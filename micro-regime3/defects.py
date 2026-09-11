@@ -858,6 +858,58 @@ def phantom2_listing(tmp):
     return {'dis': path}
 
 
+# A third site, `run28-g912` from 0x41c9dc to 0x41ca10, read 2026-09-11:
+# the tail of a block, a `jmp *-0x10(%r13)`, a two-byte pad, and then the
+# info table, whose OWN words are the body. The layout word and the type
+# word read as three `add %al,(%rax)` and an `adc`, and the low two bytes
+# of the word after them, `78 f6`, close them as `js -10` -- ten bytes,
+# five instructions, no transfer inside for the flow test to leave at and
+# no `(bad)` for the filter, so both of the guards above admit it. It
+# straddles at mod 60, which is how it reached a pair note as a refusal.
+# The tell is the run of zero bytes: `00 00` is a legal instruction, so
+# both guards above read this body as code, and no real loop of the twenty
+# binaries read carries four zero bytes in a row. Nothing branches to the
+# head but the `js` itself, and the last real instruction before it is the
+# indirect jump, so the body is unreachable as well as data.
+PHANTOM3_LISTING = """\
+
+run28-g912:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+000000000041c9dc <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x10e1c>:
+  41c9dc:\tf0 98                \tlock cwtl
+  41c9de:\t0c 7b                \tor     $0x7b,%al
+  41c9e0:\t01 48 89             \tadd    %ecx,-0x77(%rax)
+  41c9e3:\t5d                   \tpop    %rbp
+  41c9e4:\tf8                   \tclc
+  41c9e5:\t4c 8b 73 10          \tmov    0x10(%rbx),%r14
+  41c9e9:\t48 83 c5 f0          \tadd    $0xfffffffffffffff0,%rbp
+  41c9ed:\te9 9e fe ff ff       \tjmp    41c890 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x10cd0>
+  41c9f2:\t41 ff 65 f0          \tjmp    *-0x10(%r13)
+  41c9f6:\t66 90                \txchg   %ax,%ax
+  41c9f8:\t02 00                \tadd    (%rax),%al
+  41c9fa:\t00 00                \tadd    %al,(%rax)
+  41c9fc:\t00 00                \tadd    %al,(%rax)
+  41c9fe:\t00 00                \tadd    %al,(%rax)
+  41ca00:\t12 00                \tadc    (%rax),%al
+  41ca02:\t00 00                \tadd    %al,(%rax)
+  41ca04:\t78 f6                \tjs     41c9fc <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x10e3c>
+  41ca06:\t41 01 48 8d          \tadd    %ecx,-0x73(%r8)
+  41ca0a:\t45                   \trex.RB
+  41ca0b:\tf0 4c 39 f8          \tlock cmp %r15,%rax
+  41ca0f:\t72 23                \tjb     41ca34 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x10e74>
+"""
+
+
+def phantom3_listing(tmp):
+    """The third saved site, planted for `--survey`: {'dis': path}."""
+    path = os.path.join(tmp, 'run28-g912-0x41c9dc.dis')
+    write(path, PHANTOM3_LISTING)
+    return {'dis': path}
+
+
 # The run-fill loop this README prices, 28 bytes and eight instructions, as
 # `run25-g912` carries it at 0x434558; a second body differs in one
 # register so the two group apart. Listings built from them are what the
@@ -6987,6 +7039,15 @@ RECORDS = [
          argv=['--survey', '--len', '24', 'x'],
          ok=V(exit=2, has=['read only by the grouped report'])),
 
+    case('offsets-refuses-a-match-only-flag', 'loop-offsets.py', None,
+         '--loose or --source without --match, read by nobody',
+         # The family the --len-under-survey case guards, for the two knobs
+         # --match brought: both are consulted inside that report alone, so
+         # anywhere else they would be accepted and honoured by nobody. The
+         # refusal fires in the dispatch, before any binary is opened.
+         argv=['--loose', 'x'],
+         ok=V(exit=2, has=['read by --match alone'])),
+
     case('addr2line-status', 'loop-offsets.py', '9832f0b',
          'an unreadable -e file read as a build without DWARF',
          argv=['--unit', "arms('no-such-binary', [4096])"],
@@ -7025,6 +7086,19 @@ RECORDS = [
          argv=['--survey', '{dis}'],
          ok=V(exit=0, has=['still straddling   : 0'], hasnt=['0x4275f6']),
          no_audit='fixture-from-a-document-the-era-lacks'),
+
+    case('survey-counts-a-table-body-as-a-loop', 'loop-offsets.py', '6040630',
+         'an info table whose own words are the body -- zero bytes and a'
+         ' type word, closed by the word after them read as `js` -- counted'
+         ' as a straddling self-loop, both existing guards admitting it',
+         # It reached Run 28's pair note as one of the basis half's three
+         # refusals, recorded as a loop nobody could name. Nothing branches
+         # to the head but that `js`, and the code before it ends in an
+         # indirect jump and a pad.
+         plant=phantom3_listing,
+         argv=['--survey', '{dis}'],
+         ok=V(exit=0, has=['still straddling   : 0'], hasnt=['0x41c9fc']),
+         bug=V(exit=0, has=['still straddling   : 1', '0x41c9fc'])),
 
     case('survey-counts-a-swallowed-jump-as-a-loop', 'loop-offsets.py', '71fac05',
          'a continuation the sweep decoded out of step, its own jump'

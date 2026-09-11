@@ -398,15 +398,36 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'still straddling   : 0\' in r.stdout else 1)"'),
-    # The `(bad)` tell dropped: the continuation the sweep decoded out of
-    # step counts as a straddling loop again, over the second listing.
+    # BOTH TABLE TELLS dropped: the continuation the sweep decoded out of
+    # step counts as a straddling loop again, over the second listing. It
+    # takes both because they COINCIDE on that site -- its body carries a
+    # `(bad)` and a run of six zero bytes -- so dropping the `(bad)` tell
+    # alone leaves the zero-run tell to refuse it and this mutant survived,
+    # caught by this suite the day the second tell landed (2026-09-11). No
+    # site on record separates them; what proves the zero-run tell bites on
+    # its own is the mutant below, whose listing carries no `(bad)`.
     ('survey counts a swallowed jump as a loop again', 'loop-offsets.py',
-     "        if any(i[3] == '(bad)' for i in insns[k:n + 1]):\n            continue\n",
+     "        if any(i[3] == '(bad)' for i in insns[k:n + 1]):\n            continue\n"
+     "        # Nor does it carry a run of zero bytes: such a body IS a table,\n"
+     "        # the third site in `reaches`.\n"
+     "        if zero_run(body):\n            continue\n",
      '',
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
      'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
      'f = m.phantom2_listing(tempfile.mkdtemp())[\'dis\']\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'still straddling   : 0\' in r.stdout else 1)"'),
+    # The zero-run tell dropped: the info table whose own words are the
+    # body counts as a straddling loop again, over the third listing.
+    ('survey counts a table body as a loop again', 'loop-offsets.py',
+     '        if zero_run(body):\n            continue\n',
+     '',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.phantom3_listing(tempfile.mkdtemp())[\'dis\']\n'
      'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'still straddling   : 0\' in r.stdout else 1)"'),

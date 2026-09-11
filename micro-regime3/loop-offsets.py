@@ -263,8 +263,8 @@ def reaches(insns, k, n, targets):
     no transfer inside for the flow test to leave at and no `(bad)` for the
     filter. The real code ends ten bytes earlier at a `jmp *-0x10(%r13)` and
     a pad, and nothing in the binary branches to the head but that `js`. The
-    tell, and no instruction GHC emits carries one, is a run of four zero
-    bytes in the body; `scan` refuses such a body since 2026-09-11. Over
+    tell is a run of four zero bytes in the body, which no real loop of the
+    binaries read carries; `scan` refuses such a body since 2026-09-11. Over
     twenty binaries -- Runs 24 to 28's twins and the two pairs still on
     disk, with six rebuilds of Run 28's -- it marks twenty bodies and no
     real loop. Survey totals recorded before then are higher by one or two
