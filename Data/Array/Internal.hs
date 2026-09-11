@@ -256,16 +256,20 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
   where expand !acc (!nd, !sd) =
           VU.concatMap (\a -> VU.enumFromStepN a sd nd) acc
 
--- The measured-fastest fill for 'vFillStrided': an allocate-once mutable
--- result, an odometer recursion over the outer dimensions with the input
--- offset stepped additively, the innermost outer level fused into a
--- dedicated run loop, and the run fill unrolled by two with its bound on
--- the output cursor, so it is sound for zero and negative strides.
--- Written once against 'Data.Vector.Generic', which supplies the mutable
+-- The measured-fastest fill for 'vFillStrided': an allocate-once
+-- mutable result, an odometer recursion over the outer dimensions
+-- with the input offset stepped additively, the innermost outer
+-- level fused into a dedicated run loop, and the run fill unrolled
+-- by two with its bound on the output cursor, so it is sound for
+-- zero and negative strides; a run at innermost stride 0 reads
+-- its element once, and a zero-stride outer level is filled once
+-- and copied onto its remaining positions by doubling. Written
+-- once against 'Data.Vector.Generic', which supplies the mutable
 -- machinery orthotope's own 'Vector' class deliberately does not; each
--- vector-backed instance reuses it verbatim.  Ported bang-for-bang from
--- the benchmarked arm (mut-odo-vecdims-add-in-leaf-u2): the bang
--- patterns are part of what was measured. The benchmarks are preserved
+-- vector-backed instance reuses it verbatim. Ported bang-for-bang from
+-- the benchmarked fill, 'fillStage2' in micro-regime3/Main.hs (the leaf
+-- 'mut-odo-vecdims-add-in-leaf-u2' until 2026-09-11): the bang patterns
+-- are part of what was measured. The benchmarks are preserved
 -- at https://github.com/Mikolaj/orthotope/blob/speedup-strided-tovector/micro-regime3/
 -- and the implementation is similar to what once was in orthotope file
 -- FastReshape.hs, but independently discovered and improved on by Opus Fable.
@@ -277,8 +281,9 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
     fill :: forall s. ST s (VG.Mutable w s a)
     fill = do
       out <- VGM.unsafeNew l
-      let writeRun :: Int -> Int -> ST s ()
-          writeRun !outPos !baseOff =
+      let {-# INLINE writeRunStep #-}
+          writeRunStep :: Int -> Int -> ST s ()
+          writeRunStep !outPos !baseOff =
             let !oEnd = outPos + sInner
                 inner :: Int -> Int -> ST s ()
                 inner !o !src
@@ -303,28 +308,77 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
                       VGM.unsafeWrite out (o + 1) (VG.unsafeIndex v src')
                       inner (o + 2) (src' + tInner)
             in  inner outPos baseOff
-          go :: Int -> Int -> Int -> ST s Int
-          go !lev !outPos !baseOff
-            | lev >= rOuter = writeRun outPos baseOff
-                              >> return (outPos + sInner)
-            | lev == rOuter - 1 =
-                let !n  = VU.unsafeIndex oshV lev
-                    !st = VU.unsafeIndex oatsV lev
-                    run :: Int -> Int -> Int -> ST s Int
+          -- The broadcast run, innermost stride 0: one read, then the
+          -- stores, unrolled by two as the stepping run is.
+          {-# INLINE writeRunSet #-}
+          writeRunSet :: Int -> Int -> ST s ()
+          writeRunSet !outPos !baseOff =
+            let !x = VG.unsafeIndex v baseOff
+                !oEnd = outPos + sInner
+                inner :: Int -> ST s ()
+                inner !o
+                  | o + 1 >= oEnd =
+                      if o >= oEnd then return ()
+                      else VGM.unsafeWrite out o x
+                  | otherwise = do
+                      VGM.unsafeWrite out o x
+                      VGM.unsafeWrite out (o + 1) x
+                      inner (o + 2)
+            in  inner outPos
+          -- The block at src, already written, to n copies in all: each
+          -- pass copies everything written so far onto what follows, so
+          -- the length doubles and the last pass is clipped.
+          copies :: Int -> Int -> Int -> ST s Int
+          copies !n !blk !src
+            | n <= 1 = return (src + blk)
+            | otherwise = grow blk
+            where
+              !end = src + n * blk
+              grow :: Int -> ST s Int
+              grow !have
+                | src + have >= end = return end
+                | otherwise = do
+                    let !len = min have (end - src - have)
+                    VGM.unsafeCopy (VGM.unsafeSlice (src + have) len out)
+                                   (VGM.unsafeSlice src len out)
+                    grow (have + len)
+          {-# INLINE runsWith #-}
+          runsWith :: (Int -> Int -> ST s ()) -> Int -> Int -> Int -> Int
+                   -> ST s Int
+          runsWith writeRun !n !st !outPos !baseOff
+            | st == 0 = writeRun outPos baseOff >> copies n sInner outPos
+            | otherwise =
+                let run :: Int -> Int -> Int -> ST s Int
                     run !k !op !boff
                       | k <= 0    = return op
                       | otherwise = writeRun op boff
                                     >> run (k - 1) (op + sInner) (boff + st)
                 in  run n outPos baseOff
+          go :: Int -> Int -> Int -> ST s Int
+          go !lev !outPos !baseOff
+            | lev >= rOuter =
+                (if tInner == 0 then writeRunSet else writeRunStep)
+                  outPos baseOff
+                >> return (outPos + sInner)
             | otherwise =
-                let !n  = VU.unsafeIndex oshV lev
-                    !st = VU.unsafeIndex oatsV lev
-                    dim :: Int -> Int -> Int -> ST s Int
-                    dim !k !op !boff
-                      | k <= 0    = return op
-                      | otherwise = go (lev + 1) op boff
-                                    >>= \op' -> dim (k - 1) op' (boff + st)
-                in  dim n outPos baseOff
+                level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
+            where
+              level :: Int -> Int -> ST s Int
+              level !n !st
+                | lev == rOuter - 1 =
+                    if tInner == 0
+                    then runsWith writeRunSet n st outPos baseOff
+                    else runsWith writeRunStep n st outPos baseOff
+                | st == 0 = do
+                    op' <- go (lev + 1) outPos baseOff
+                    copies n (op' - outPos) outPos
+                | otherwise =
+                    let dim :: Int -> Int -> Int -> ST s Int
+                        dim !k !op !boff
+                          | k <= 0    = return op
+                          | otherwise = go (lev + 1) op boff
+                                        >>= \op' -> dim (k - 1) op' (boff + st)
+                    in  dim n outPos baseOff
       _ <- go 0 0 ao
       return out
     !sInner = last sh

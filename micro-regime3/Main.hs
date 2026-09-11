@@ -2104,18 +2104,16 @@ fbMutOdoVecdimsAddInLeafDown sh (T (Strides ats) ao v) = VS.create $ do
 -- below, rostered for Run 25 to re-read the wash under the shim.
 -- The guard looks one element ahead, @o + 1 >= oEnd@, an add per pair
 -- that 'fbMutOdoVecdimsAddInLeafU2Last' hoists into the bound.
--- This is the arm the library ships: 'genericFillStrided' in
--- Data/Array/Internal.hs is its bang-for-bang port, landed 2026-08-24,
--- and behind this arm by one change since 2026-09-11: the broadcast
--- run at innermost stride 0 read once and written unrolled by two,
--- 'fillStage2''s 'writeRunSet' taken as it stands, which Run 28's
--- registration (14) named as Run 29's task and which the library takes
--- if that run reads the arm ahead. The stepping run is untouched, so
--- no main-set figure owes anything to it; but the family's one-change
--- controls below, '-u2-last', '-u2-ptr', '-u2-down' and '-u1', keep the
--- stepping body at stride 0, so on a view whose innermost stride is 0
--- each differs from this arm by two changes, and the main set has no
--- such view.
+-- 'genericFillStrided' in Data/Array/Internal.hs was this arm's
+-- bang-for-bang port from 2026-08-24 to 2026-09-11, when the library
+-- took 'fillStage2' instead. This arm keeps the broadcast run it took
+-- from that driver the same day -- read once, written unrolled by two,
+-- at innermost stride 0 -- and has no block copy. Its stepping run is
+-- untouched, so no main-set figure owes anything to the change; but the
+-- family's one-change controls below, '-u2-last', '-u2-ptr', '-u2-down'
+-- and '-u1', keep the stepping body at stride 0, so on a view whose
+-- innermost stride is 0 each differs from this arm by two changes, and
+-- the main set has no such view.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU2 #-}
 fbMutOdoVecdimsAddInLeafU2 :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
@@ -2869,7 +2867,8 @@ fbBcastSet sh (T (Strides ats) ao v) = VS.create $ do
 -- so 'fbMutOdoVecdims' is its control and only the bcastmid class can
 -- separate the pair.
 -- Non-vacuity, 2026-08-25: copying the block from one element over
--- fails @check@ at @bcastmid-c32-cnn@.
+-- fails @check@ at @bcastmid-c32-cnn@. Retired, so not kept in step
+-- with 'fillStage2': whatever improved that driver since is not here.
 {-# NOINLINE fbMidCopy #-}
 fbMidCopy :: ShapeL -> T -> VS.Vector Double
 fbMidCopy sh (T (Strides ats) ao v) = VS.create $ do
@@ -3184,10 +3183,12 @@ mkStrided normalSh =
 -- Stage one as it shipped (Data/Array/Internal.hs at 0386073): regime 1
 -- the vector itself or a slice, regime 2 one slice per maximal normal
 -- suffix and a concatenation, regime 3 the fill 'genericFillStrided'
--- ports from 'fbMutOdoVecdimsAddInLeafU2' -- which is ahead of that
--- port by its broadcast run since 2026-09-11, so this arm is stage
--- one plus that one change until the library takes it; the leaf's
--- own note says what and why.
+-- ported from 'fbMutOdoVecdimsAddInLeafU2'. Since 2026-09-11 the
+-- library's fill is 'fillStage2' and the leaf here carries that
+-- driver's broadcast run, so this arm is neither the route shipped
+-- then nor the one shipped now: the dispatch is stage one's and the
+-- fill sits between the two. 'lib-stage2-lean' carries today's fill
+-- under the lean dispatch.
 -- Non-vacuity, 2026-08-28: dropping the regime-2 branch (so those views
 -- take the fill) leaves @check@ green, the fill being correct there --
 -- which is why the runs class prices it rather than a check; slicing
@@ -3350,20 +3351,11 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
     whole | ao == 0 && VS.length v == l = v
           | otherwise = VS.slice ao l v
 
--- The branch's 'genericFillStrided' at Storable Double, ported
--- bang-for-bang: 'fbMutOdoVecdimsAddInLeafU2''s odometer and unrolled
--- run, the run body a static argument of the INLINE fused level, the
--- broadcast run hoisted at innermost stride 0, zero-stride outer levels
--- filled once and block-copied. Kept in step with the library by hand;
--- 'check' holds it to the reference on every view. Ahead of the library
--- by two changes since 2026-09-09, each at its definition below: the
--- block copy doubles instead of copying once per block, and the
--- broadcast run is unrolled by two as the stepping run is. Both are
--- the library's to take; until it does, every arm filling through this
--- driver is ahead of the library by them, the parked 'lib-stage2' and
--- its siblings and the lazy stages' fill routes included, so no arm
--- copies a zero-stride level once per block as the branch's fill does,
--- and only the lean twin keeps its one-per-element broadcast body.
+-- The library's 'genericFillStrided' at Storable Double, ported
+-- bang-for-bang and kept in step with it by hand; 'check' holds it to
+-- the reference on every view. The two zero-stride bodies say at their
+-- definitions what each buys, and the fills that keep older forms say
+-- so at theirs.
 {-# NOINLINE fillStage2 #-}
 fillStage2 :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
            -> VS.Vector Double
@@ -3406,8 +3398,8 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
       -- copies everything written so far onto what follows, so the
       -- length doubles and the last pass is clipped. One copy per block
       -- read 2.3 of master's leaf fill on bcastmid-b200k, 200000 copies
-      -- of 24 bytes (Run 27). The parked u4 and short fills keep the
-      -- library's one copy per block, as does the library (2026-09-09).
+      -- of 24 bytes (Run 27). The parked u4 and short fills keep one
+      -- copy per block.
       -- Non-vacuity, 2026-09-09: stopping the doubling one block short
       -- fails @check@ at @edge-bcastmid-b2@ -- and had passed it on every
       -- timed view, none having a zero-stride outer level of extent 2 or
@@ -3510,8 +3502,8 @@ fillStage2U1 sh ats !ao !l !v = VS.create $ do
       -- copies everything written so far onto what follows, so the
       -- length doubles and the last pass is clipped. One copy per block
       -- read 2.3 of master's leaf fill on bcastmid-b200k, 200000 copies
-      -- of 24 bytes (Run 27). The parked u4 and short fills keep the
-      -- library's one copy per block, as does the library (2026-09-09).
+      -- of 24 bytes (Run 27). The parked u4 and short fills keep one
+      -- copy per block.
       -- The same code as 'fillStage2''s, whose non-vacuity break stands
       -- for this one.
       copies !n !blk !src _dst

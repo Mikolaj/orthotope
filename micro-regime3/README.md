@@ -10,15 +10,15 @@ a regression on every regime-3 population when Run 21 measured it and at parity
 there since the unboxing fix of 2026-08-29, [the
 ceiling](#the-mutable-ceiling-taken)'s tenth reading): `vFillStrided`, the class
 method, its shared driver a bang-for-bang port
-of `mut-odo-vecdims-add-in-leaf-u2`; **the regime 3 fix is decided:
-on 2026-08-22 the `mut-odo-vecdims` family was decided as the implementation
-to go upstream, on 2026-08-24 the stride-conditioned redirect that had kept
-the decision open was dropped, and the same day the member was fixed
-as the family's `add-in-leaf-u2` form on the two paired probes recorded
-in the ceiling** --- [the ceiling](#the-mutable-ceiling-taken) carries
-the decision and what it rests on, and [the two-stage
-plan](#the-two-stage-plan-and-the-rework-proposal) below carries the drop
-and the rework proposal the redirect's evidence now feeds.
+of `mut-odo-vecdims-add-in-leaf-u2` until 2026-09-11 and of `fillStage2`,
+the benchmark's own driver, since; **the regime 3 fix is decided: on 2026-08-22
+the `mut-odo-vecdims` family was decided as the implementation to go upstream,
+on 2026-08-24 the stride-conditioned redirect that had kept the decision open
+was dropped, and the same day the member was fixed as the family's
+`add-in-leaf-u2` form on the two paired probes recorded in the ceiling** ---
+[the ceiling](#the-mutable-ceiling-taken) carries the decision and what it rests
+on, and [the two-stage plan](#the-two-stage-plan-and-the-rework-proposal) below
+carries the drop and the rework proposal the redirect's evidence now feeds.
 
 The previous attempt, benchmarked as `gen-quotrem` resulted in a **mixed
 picture**: it had replaced the original `list` fallback
@@ -1054,7 +1054,7 @@ rather than a slot in the next run, observed again:
   on *pairs that carry back to Run 10*; what is owed is the rename,
   and it reaches a corpus case's expected text, so it is a run's work and
   not a clause's.
-- `OPEN` **The arm that leads Run 28's table is the branch's own driver
+- `ANSWERED` **The arm that leads Run 28's table is the branch's own driver
   and not a member of the family the fix shipped.** `lib-stage2-lean` reads
   0.027 on the main set against the shipped `mut-odo-vecdims-add-in-leaf-u2`'s
   0.029 and the family root's 0.051, leads outside the family in seven
@@ -1069,7 +1069,11 @@ rather than a slot in the next run, observed again:
   class to a tie. **What would settle the rest** is whether the doubling copy
   has a counterpart in the leaf at all; it has none today, so `bcastmid` stays
   the lean fill's until one is written, and no run has priced the two designs
-  with the same fill underneath them.
+  with the same fill underneath them. **TAKEN 2026-09-11**: the library's
+  `genericFillStrided` is `fillStage2`'s port, the doubling copy
+  and the broadcast unroll included, so the table's leader is the shipped fill
+  under the lean dispatch; what no arm mirrors now is the shipped dispatch
+  over that fill, `lib-stage1` keeping the leaf.
 - `ANSWERED` **What Run 28 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 28's own
@@ -2726,19 +2730,19 @@ rather than a slot in the next run, observed again:
   and 21 each ran HEAD beside 9.12, so that wait is over. Two: a margin of one
   to three percent could not move a fix that was going to be `mut-odo-vecdims`.
   It did not have to --- what ships is `mut-odo-vecdims-add-in-leaf-u2`,
-  an `add-in` arm, `genericFillStrided` being a bang-for-bang port of it
-  as it stood until 2026-09-11, so the sentence this ruling used to end on,
-  that the decision stands and ships `mut-odo-vecdims`, describes no shipped
-  code. **What is owed is therefore the probe and not a decision**: one source,
-  two builds a shim setting apart, chosen so the two arms' offsets swap
-  or converge, read on nothing else --- two twenty-second builds and a filtered
-  run, artifacts `probe-addin-*`. It no longer chooses what ships; it says
-  whether the family's lead is code or placement, which is the same question Run
-  21 raised one level down when `-add-in-leaf-down` came in 5 to 6% ahead
-  of the shipped `-u2` on both compilers, outside either half's floor. Answer
-  it there and this entry answers with it. What the entry is still for is
-  that a run should not rediscover the lead as a surprise, nor spend an evening
-  on it.
+  an `add-in` arm, `genericFillStrided` having been a bang-for-bang port
+  of it until 2026-09-11, when the library took `fillStage2`'s form,
+  so the sentence this ruling used to end on, that the decision stands and ships
+  `mut-odo-vecdims`, describes no shipped code. **What is owed is therefore
+  the probe and not a decision**: one source, two builds a shim setting apart,
+  chosen so the two arms' offsets swap or converge, read on nothing else --- two
+  twenty-second builds and a filtered run, artifacts `probe-addin-*`.
+  It no longer chooses what ships; it says whether the family's lead is code
+  or placement, which is the same question Run 21 raised one level down when
+  `-add-in-leaf-down` came in 5 to 6% ahead of the shipped `-u2` on both
+  compilers, outside either half's floor. Answer it there and this entry answers
+  with it. What the entry is still for is that a run should not rediscover
+  the lead as a surprise, nor spend an evening on it.
 
 - `ANSWERED` **Gate 3's sign reversed three runs ago, and the reversal
   is the arms' and not the read's; Run 18 is the first to say so.** The gate
@@ -3830,8 +3834,8 @@ route for contiguous runs --- the fill's stepping loop in place of one memcpy
 per run --- was decided on a nine-element probe and then read 45% slower
 and 15.7% more allocation on horde-ad's `inp-96x96/H-exec`, whose views are rows
 of 96. So the roster carries five arms that are ports of library code
-and not strategies: `lib-stage1`, stage one's `toVectorT` whole, its fill ahead
-of the shipped one by the broadcast unroll since 2026-09-11; `lib-stage2`,
+and not strategies: `lib-stage1`, stage one's `toVectorT` whole as it shipped
+until 2026-09-11, when the library's fill became `fillStage2`'s; `lib-stage2`,
 the branch's, its driver ported bang-for-bang with both zero-stride conditions
 --- its fill of the runs outside the laziness ruling of 2026-09-07, `toVectorT`
 being strict either way, and questioned by the runs class alone ([dead
@@ -4516,14 +4520,15 @@ rather than a cell to average away.
 
 **Decided 2026-08-22, completed 2026-08-24, and landed the same day: the regime
 3 fix is `vFillStrided`, the whole-kernel class method, its shared driver
-`genericFillStrided` a bang-for-bang port of `mut-odo-vecdims-add-in-leaf-u2`**
---- the decision and what it rests on are [in the ceiling
-section](#the-mutable-ceiling-taken), the signature ruling and the rejected
-forms [in the two-stage plan](#the-two-stage-plan-and-the-rework-proposal),
-and the arm's refinement from plain `mut-odo-vecdims` rests on the two paired
-probes the ceiling records. `bq-expand`, the last candidate, is what every claim
-below was measured against; the branch no longer carries it. This branch's
-library stays at stage one; stage two is
+`genericFillStrided` a bang-for-bang port of `mut-odo-vecdims-add-in-leaf-u2`,
+and since 2026-09-11 of `fillStage2`** --- the decision and what it rests
+on are [in the ceiling section](#the-mutable-ceiling-taken), the signature
+ruling and the rejected forms [in the two-stage
+plan](#the-two-stage-plan-and-the-rework-proposal), and the arm's refinement
+from plain `mut-odo-vecdims` rests on the two paired probes the ceiling records.
+`bq-expand`, the last candidate, is what every claim below was measured against;
+the branch no longer carries it. This branch's library stays at stage one; stage
+two is
 [`pr-mikolaj-toVectorListT`][https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT],
 and its figures were taken on Run 21, where it ran several times stage one
 on every population whose views will not canonicalize. **Run 22 measured
