@@ -3924,6 +3924,26 @@ TIER1 = {
               ' finding none. One occurrence, that preparation, the steps'
               ' having been dark from 27580a5 until the repair the same'
               ' day. The three PASSed on the re-run.'),
+    'fill-in-keys-the-previous-build-on-this-run-s-tag': dict(
+        family='quiet-failure', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='a run whose basis TAG differs from the previous run\'s,'
+                ' the recipe unchanged',
+        ok='the fill-in block reads the previous run\'s basis half, asking'
+           ' that run\'s own note where this run\'s tag does not name it',
+        bug='the --delta row reports a binary that never existed as not'
+            ' here, and the roster-delta membership lines print nothing',
+        # No case, so no audit watches this; what watched it is the
+        # preparation the two dark rows landed in. The clause below says so.
+        proved='ran',
+        notes='Watched 2026-09-11 at Run 29\'s preparation, which renamed'
+              ' the basis g912 -> spec on an unchanged recipe:'
+              ' log-preflight-r29.txt carries `run28-spec is not here` and'
+              ' no `main set:` line at all, with run28-g912 in the'
+              ' directory. One occurrence, that preparation, this being the'
+              ' first rename since --fill-in was born 2026-09-07. Both'
+              ' readings had been taken by hand at steps 2 and 6c, and the'
+              ' fix reproduces them figure for figure.'),
     # ---- read-run.py, the first review's ----
     'install-lands-in-next-block': dict(family='scan-for-parse', discovery='review', harm='latent',
                       trigger='a run doc whose class block carries no table of its own',
@@ -9622,6 +9642,40 @@ RECORDS = [
          # was WATCHED rather than remembered -- the first
          # `./preflight.sh run24` printed all three FAILs -- which is what
          # `proved` says here without a case to replay it.
+         argv=None, ok=None),
+
+    case('fill-in-keys-the-previous-build-on-this-run-s-tag', 'preflight.sh',
+         '907c218',
+         'a renamed basis tag lost both of the fill-in block\'s cross-run'
+         ' reads',
+         # NO CASE, and NOT for the reason the two records above give.
+         # checks.py's UNCOVERED entry says outright that *a case would run
+         # them twice* covers preflight's STEPS and not its REPORTERS, and
+         # --fill-in is a reporter: what stands behind it is the control in
+         # preflight.sh's header, every derived row read against the same
+         # figure taken independently by hand, and that control is re-taken
+         # there for this defect. A case would want a second run's binaries
+         # and note planted beside this one's, which every preparation has
+         # for free and no fixture here has yet. The previous build of this recipe
+         # was `run$PN-$BASIS` with THIS run's tag in it, which holds only
+         # while the tag does. Run 29 renamed the basis `g912` -> `spec`,
+         # the recipe unchanged, and both reads went dark at once: the
+         # --delta one reported `run28-spec` -- a name Run 28 never wrote --
+         # as not here, and the roster-delta one printed NOTHING, against
+         # the comment beside PB promising a named absence. Both matter on
+         # exactly the run that renames: the fills delta is the pinning
+         # claim's only reading and a rebuild retires it.
+         # The bug direction was WATCHED on the live run
+         # (log-preflight-r29.txt of 2026-09-11, the `not available` line
+         # and no `main set:` line at all), and the fix was proved by
+         # running its own derivation beside the old one: PB empty before,
+         # `run28-g912` after, and the two reads then printing what the
+         # preparation had taken by hand at steps 2 and 6c, figure for
+         # figure. The fallback asks the PREVIOUS run's note for its basis,
+         # through pair-halves.sh, which is where every other script reads a
+         # half's name -- with BASIS and OTHER unset for the call, that
+         # script refusing an environment that disagrees with the note it is
+         # handed, and this pass carrying this run's names.
          argv=None, ok=None),
 ]
 
