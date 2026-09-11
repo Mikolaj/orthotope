@@ -81,6 +81,19 @@
 # on every build here and so looks stable across a roster change. Re-take
 # the control whenever a row is added.
 #
+# RE-TAKEN 2026-09-11 on the run29 pair, for the two rows that read the
+# PREVIOUS run, and this time the control is how the defect was seen. Run 29
+# renamed the basis `g912` -> `spec` on an unchanged recipe, so
+# `run$PN-$BASIS` named `run28-spec`, which Run 28 never built: the `--delta`
+# row reported the reading unavailable and the roster-delta membership lines
+# printed nothing at all, with run28-g912 in the directory. Both figures had
+# been taken independently by hand at pre-run steps 2 and 6c, and that is
+# what they disagreed with. The derivation now falls back to the previous
+# run's own note, and the two rows reproduce those hand readings figure for
+# figure -- offsets [0, 0, 0, 24, 0, 4] and [0, 0], 2 and 2 displacements,
+# 39 -> 36 arms with four out and one in. Recorded as
+# `fill-in-keys-the-previous-build-on-this-run-s-tag`.
+#
 # It has no case in defects.py, deliberately: this script's own steps are
 # that corpus and the reader's gates, so a case would run them twice to
 # assert what they already assert. What is unique to it -- the three
@@ -674,7 +687,26 @@ fill_in () {
   # would read as a row nobody owed.
   PN=$(ls runs/run*.md 2>/dev/null | sed 's|.*/run||; s|\.md$||' \
        | awk -v n="${R#run}" '$0 ~ /^[0-9]+$/ && $0+0 < n+0' | sort -n | tail -1)
-  PB=""; [ -n "$PN" ] && [ -x "./run$PN-$BASIS" ] && PB="run$PN-$BASIS"
+  # AND ITS BASIS TAG IS NOT ALWAYS THIS RUN'S. A tag names what a half IS,
+  # so a run that changes the variable renames the basis while the recipe
+  # stands: Run 29's `spec` is Run 28's `g912` built again, and `run29-spec`
+  # is a name Run 28 never wrote. Keyed on this run's tag alone, both reads
+  # below went dark on that rename -- the --delta one saying a binary that
+  # never existed was not here, the roster-delta one saying nothing at all
+  # (2026-09-11). So fall back to the previous run's own note, which is
+  # where every other script reads a half's name. BASIS and OTHER are unset
+  # for the call: pair-halves.sh refuses an environment disagreeing with the
+  # note it is asked about, and this one carries THIS run's names.
+  PB=""
+  if [ -n "$PN" ]; then
+    if [ -x "./run$PN-$BASIS" ]; then
+      PB="run$PN-$BASIS"
+    else
+      PPB=$( (unset BASIS OTHER; ./pair-halves.sh "run$PN" 2>/dev/null) \
+             | sed -n 's/^BASIS=\([A-Za-z0-9_]*\).*/\1/p')
+      [ -n "$PPB" ] && [ -x "./run$PN-$PPB" ] && PB="run$PN-$PPB"
+    fi
+  fi
   D=$(date +%F)
   echo
   echo "--- the note's fill-in block, derived; paste into $R-pair.txt ---"
@@ -710,8 +742,9 @@ and $OTHER $("./$R-$OTHER" +RTS --info 2>/dev/null \
       | grep -E '^ +(every mod-64|NO address|[0-9]+ displacement|of the)' \
       | sed 's/^ */                   /'
   elif [ -n "$PN" ]; then
-    printf '  %-16s %s\n' '' "run$PN-$BASIS is not here, so the --delta \
-reading against the previous build of this recipe is not available"
+    printf '  %-16s %s\n' '' "no basis half of run$PN is here -- neither \
+run$PN-$BASIS nor the half run$PN-pair.txt names -- so the --delta reading \
+against the previous build of this recipe is not available"
   else
     # Named apart from the missing-binary case: with no earlier run file
     # at all there is no name to miss, and the branch above would have
@@ -731,6 +764,12 @@ previous build of this recipe to read --delta against"
     ./roster-delta.py "$PB" "./$R-$BASIS" 2>/dev/null \
       | grep -E '^ +(main set:|out |in |[0-9]+ survivor)' \
       | sed 's/^ */                   /'
+  else
+    # A named absence, as the comment at PB promises and as the --delta
+    # branch above has always given: silence here read as a roster nobody
+    # owed a delta for, on the one run where the delta was the point.
+    printf '  %-16s %s\n' '' "no previous basis half here, so the membership \
+delta is step 6c's to take by hand"
   fi
   printf '  %-16s %s\n' 'smoke sweep' '<yours> -- step 11, and it is the pair'\''s'
   printf '  %-16s %s\n' 'L1 ROSTER PASS:' '<yours> -- step 12: taken or not owed,'
