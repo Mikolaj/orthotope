@@ -72,9 +72,10 @@ is built beside the binary it explains, from the same source and shim:
 
 and `rm -rf db-g3` with the binary afterwards, `.gitignore` covering the
 builddir but not a copied-out probe binary. **Matching its copies to the
-timed binary's is by proximity and by the instruction window around each
-head**, and the window half is not reliable everywhere: it separates the
-vecdims copies at 73 to 75 of 80, and falls to 10 to 13 on the
+timed binary's is by the bytes of the loop body and never by proximity**,
+which is what `--match` below does. The instruction window around a head,
+which the hand method before it used, is not reliable everywhere: it
+separates the vecdims copies at 73 to 75 of 80, and falls to 10 to 13 on the
 `build`/`mut-odo` group, whose surroundings `-g3` restructured when it
 dropped the two dead copies.
 
@@ -95,8 +96,18 @@ own `<prefix>-pair.txt` -- written by hand, with the recipe for each half
 -- so the check outlives the binaries it was born on. **Those binaries are
 deleted with their run**, which is how the previous control died, so what
 has to survive is the recipe the note carries: the commit is recorded, and a
-rebuild that reproduces the two md5s reproduces the offsets above. Re-prove
-this against a known answer before pointing it at a new one.
+rebuild that reproduces the two md5s reproduces the offsets above. Taken
+whole for the first time 2026-09-11: both Run 28 halves rebuilt md5-identical
+from `bdf06c8`, in a scratch directory two days after the run and from a
+different working directory, so the recipe and not the path is what fixes
+them. **Rebuild at the commit and never at the tip**: from the tip, whose
+only build-input change was two comment hunks in `Main.hs`, the HEAD half
+reproduced its `.text` byte for byte and the basis half did not, 145622 bytes
+of it differing -- and yet no loop moved, every short loop coming back at the
+same address and all but fourteen byte-identical, those fourteen differing
+only in a rip-relative displacement, so what a failed md5 there proves is
+that the source moved and not that a placement did. Re-prove this against a known
+answer before pointing it at a new one.
 
 **`--survey`'s population size is not comparable between binaries whose
 layout differs**, which is the one way to misuse the mode. It counts loops
@@ -117,7 +128,12 @@ and addr2line's -- and a fix here wants one there first.
     ./loop-offsets.py --library A B      # do the two halves move the libraries
     ./loop-offsets.py --delta OLD NEW    # how far a rebuild moved the tracked
                                          #   loops: the pinning claim's reading
-    ./loop-offsets.py B --match TWIN     # name B's straddlers off a -g3 twin
+    ./loop-offsets.py B --match TWIN...  # name B's straddlers off -g3 twins,
+                                         #   the other half's included
+    ./loop-offsets.py ... --loose        # and by a register-masked signature
+                                         #   where every twin's bytes refuse
+    ./loop-offsets.py ... --source REV   # read a twin's names at REV's
+                                         #   source, not the working tree's
 """
 import argparse
 import collections
@@ -131,6 +147,8 @@ SYM = re.compile(r'^([0-9a-f]+) <(.+)>:$')
 JMP = re.compile(r'^j')
 TARGET = re.compile(r'^([0-9a-f]+)\b')
 LOC = re.compile(r'^(.*):(\d+)$')
+REG = re.compile(r'%[a-z][a-z0-9]*')               # a register, for --loose
+OPTGT = re.compile(r'^[0-9a-f]+ <.*>$')            # a branch's own target
 TOP = re.compile(r'^([a-z]\w*)\s*(?:::|[^=]*=)')   # a top-level binding
 KEYWORD = {'type', 'data', 'newtype', 'class', 'instance', 'import', 'module',
            'infix', 'infixl', 'infixr', 'foreign', 'pattern'}
@@ -237,6 +255,22 @@ def reaches(insns, k, n, targets):
     `scan` refuses such a body since 2026-09-06, so survey totals recorded
     before then are higher by one on those three binaries and stand as
     taken.
+
+    A third shape, one of `run28-g912`'s straddlers of 2026-09-11, which
+    both of the above admit: the body is the table itself. At 0x41c9fc a layout
+    word and a type word read as three `add %al,(%rax)` and an `adc`, closed
+    by `78 f6` -- the low bytes of the word after them -- as `js -10`, with
+    no transfer inside for the flow test to leave at and no `(bad)` for the
+    filter. The real code ends ten bytes earlier at a `jmp *-0x10(%r13)` and
+    a pad, and nothing in the binary branches to the head but that `js`. The
+    tell, and no instruction GHC emits carries one, is a run of four zero
+    bytes in the body; `scan` refuses such a body since 2026-09-11. Over
+    twenty binaries -- Runs 24 to 28's twins and the two pairs still on
+    disk, with six rebuilds of Run 28's -- it marks twenty bodies and no
+    real loop. Survey totals recorded before then are higher by one or two
+    wherever it fires and stand as taken; the two STRADDLER counts it moves
+    are `run28-g912`'s, from eight to seven, and Run 26's HEAD twin's, from
+    six to four.
     """
     live = False
     for i in range(k, n + 1):
@@ -248,6 +282,40 @@ def reaches(insns, k, n, targets):
         if live and (mnem in ('jmp', 'jmpq') or mnem.startswith('ret')):
             live = False
     return False
+
+
+def zero_run(body, n=4):
+    """Does this body carry `n` consecutive zero bytes -- the third site in
+    `reaches`, where the body is an info table rather than code.
+
+    Byte-aligned, and that is the point: the hex string of `10 00 00 00 01`
+    holds eight zero characters and only three zero bytes.
+    """
+    run = 0
+    for i in range(0, len(body), 2):
+        run = run + 1 if body[i:i + 2] == '00' else 0
+        if run >= n:
+            return True
+    return False
+
+
+def signature(insns, k, n):
+    """The body with its registers masked and its branch targets dropped --
+    `--match --loose`'s weaker key, and never a substitute for the bytes.
+
+    Two builds of one arm differ in register assignment where `-g3` moved
+    the allocator, which is the whole of why byte identity refuses them:
+    `fillStage2`'s two runs are matched by nothing else in Run 28's pair.
+    It is NOT unique, so a caller prints the family and names only what
+    another key has already anchored: in that pair one signature covers
+    `fillStage2Short`, `fillStage2` and `fbMutOdoVecdimsAddInLeafU2`.
+    """
+    out = []
+    for _addr, _nb, _raw, mnem, op, _sym in insns[k:n + 1]:
+        op = op.split('#')[0].strip()
+        op = 'TGT' if OPTGT.match(op) else REG.sub('%R', op)
+        out.append('%s %s' % (mnem, op) if op else mnem)
+    return '; '.join(out)
 
 
 def scan(path, length):
@@ -302,24 +370,54 @@ def scan(path, length):
         # sweep out of step over a table, the second site in `reaches`.
         if any(i[3] == '(bad)' for i in insns[k:n + 1]):
             continue
+        # Nor does it carry a run of zero bytes: such a body IS a table,
+        # the third site in `reaches`.
+        if zero_run(body):
+            continue
         found.append({'start': tgt, 'bytes': body, 'sym': insns[k][5],
                       'len': span, 'ninsn': n - k + 1, 'mod': tgt % LINE,
-                      'straddles': tgt % LINE + span > LINE})
+                      'straddles': tgt % LINE + span > LINE,
+                      'sig': signature(insns, k, n)})
     return found
 
 
-def bindings(src):
+def source(src, rev):
+    """The lines of `src`, from the working tree or from `rev`.
+
+    A twin's DWARF names lines in the source it was built from, so a name is
+    right only while that file has not moved; `--source REV` is how a twin
+    older than the tree is read. It REFUSES rather than falling back, exit 2
+    being this directory's `the check did not run`.
+    """
+    if rev is None:
+        with open(src) as f:
+            return f.read().splitlines()
+    d, b = os.path.split(src)
+    cmd = ['git', '-C', d or '.', 'show', f'{rev}:./{b}']
+    try:
+        got = subprocess.run(cmd, capture_output=True, text=True)
+    except OSError as exc:
+        sys.stderr.write('%s: %s\n' % (' '.join(cmd), exc))
+        raise SystemExit(2)
+    if got.returncode != 0:
+        sys.stderr.write('%s exited %d: %s\n'
+                         % (' '.join(cmd), got.returncode,
+                            got.stderr.strip() or '(no stderr)'))
+        raise SystemExit(2)
+    return got.stdout.splitlines()
+
+
+def bindings(src, rev=None):
     """(line, name) for every top-level binding of a Haskell source file."""
     out = []
-    with open(src) as f:
-        for n, line in enumerate(f, 1):
-            m = TOP.match(line)
-            if m and m.group(1) not in KEYWORD:
-                out.append((n, m.group(1)))
+    for n, line in enumerate(source(src, rev), 1):
+        m = TOP.match(line)
+        if m and m.group(1) not in KEYWORD:
+            out.append((n, m.group(1)))
     return out
 
 
-def arms(path, addrs):
+def arms(path, addrs, rev=None):
     """{addr: 'fbMutOdoVecdims (Main.hs:1669)'}, or {} without line info.
 
     The arm is the top-level binding the line falls in, read off the source
@@ -336,11 +434,15 @@ def arms(path, addrs):
     Measured 2026-08-17: no DWARF is `??:0` at exit 0, an unreadable file is
     exit 1, and an absent addr2line raises.
 
-    The source read is the WORKING TREE's, so a name is right only while
-    the file has not moved since the twin was built: at 09c7211 the Run 26
-    twin's lines named `-u2-down`'s and `-u2-ptr`'s straddlers as
-    `-u2-ptr`'s and `-u1-ptr`'s. Run `--match` at the twin's commit, or
-    read its lines against `git show COMMIT:Main.hs`.
+    The source read is the WORKING TREE's unless `rev` is given, so a name is
+    right only while the file has not moved since the twin was built: at
+    09c7211 the Run 26 twin's lines named `-u2-down`'s and `-u2-ptr`'s
+    straddlers as `-u2-ptr`'s and `-u1-ptr`'s, and on 2026-09-11 the Run 27
+    twin called a body `fillStage2U4 (Main.hs:3645)` that Run 28's twin, and
+    the tree, call `fillStage2Short`. Two comment lines are enough: the same
+    day, twins built four lines apart read `3709` and `3713` for one loop.
+    So pass `--source REV` for a twin older than the tree -- the run's own
+    commit, which its `<prefix>-pair.txt` records -- or run at that commit.
     """
     if not addrs:
         return {}
@@ -365,7 +467,7 @@ def arms(path, addrs):
             continue
         f, n = m.group(1), int(m.group(2))
         if f not in src:
-            src[f] = bindings(f)
+            src[f] = bindings(f, rev)
         name = None
         for ln, nm in src[f]:
             if ln > n:
@@ -403,8 +505,8 @@ def survey(path, want='_Main_'):
               f'{f["len"]} B  {named.get(f["start"]) or f["sym"]}')
 
 
-def match(timed, twin, want='_Main_'):
-    """Name the timed binary's straddling loops off a -g3 twin, by BYTE
+def match(timed, twins, loose=False, rev=None, want='_Main_'):
+    """Name the timed binary's straddling loops off -g3 twins, by BYTE
     IDENTITY and never by address or proximity.
 
     Post-run step 0 owes this and did it by hand for two runs: `objdump`
@@ -419,40 +521,74 @@ def match(timed, twin, want='_Main_'):
     twin's DWARF, several matches are listed, and none is a refusal said
     aloud. The count check is printed first, twin against timed, as the
     survey counts them.
+
+    **SEVERAL TWINS ARE TRIED IN TURN, and the other half's is one of them.**
+    The two compilers emit many of these bodies alike -- 85 of the HEAD
+    half's 209 short loops are byte-identical to the basis half's in Run 28's
+    pair -- so where a half's own twin refuses, the other half's often names
+    it: four of the six refusals that run first recorded, at no build and one
+    command (2026-09-11). The key is still the bytes and each twin gets its
+    own count check; the first twin holding a copy is the one that names.
+
+    `--loose` adds a second pass for what no twin holds byte-identical, over
+    the register-masked `signature`. It is a WEAKER KEY and prints as one:
+    the whole family rather than a name, so that a reader sees what the
+    signature does not separate. In Run 28's pair it is what named
+    `fillStage2`'s two runs, the broadcast one because its family has a
+    single member and the stepping one because two of that family's three
+    were anchored by the bytes already.
     """
     mine = [f for f in innermost(timed).values() if want in (f['sym'] or '')]
-    theirs = [f for f in innermost(twin).values() if want in (f['sym'] or '')]
     strad = sorted((f for f in mine if f['straddles']), key=lambda f: f['start'])
     print(f'{timed}: {len(mine)} self-loops of at most {LINE} B in '
-          f'{want}-compiled code, {len(strad)} straddling; the twin {twin} '
-          f'holds {len(theirs)}, '
-          f'{sum(1 for f in theirs if f["straddles"])} straddling')
-    if len(theirs) < len(mine):
-        print('   the twin carries FEWER loops than the timed binary, so a'
-              ' name below rests on its own byte match and the population'
-              ' comparison is refused')
-    by_bytes = collections.defaultdict(list)
-    for f in theirs:
-        by_bytes[f['bytes']].append(f)
-    named = arms(twin, sorted({f['start'] for fs in by_bytes.values()
-                               for f in fs}))
+          f'{want}-compiled code, {len(strad)} straddling')
+    tw = []
+    for t in twins:
+        theirs = [f for f in innermost(t).values() if want in (f['sym'] or '')]
+        short = ('  -- FEWER than the timed binary, so a name off it rests on'
+                 ' its own byte match and the population comparison is'
+                 ' refused' if len(theirs) < len(mine) else '')
+        print(f'   twin {t} holds {len(theirs)}, '
+              f'{sum(1 for f in theirs if f["straddles"])} straddling{short}')
+        by_bytes = collections.defaultdict(list)
+        by_sig = collections.defaultdict(list)
+        for f in theirs:
+            by_bytes[f['bytes']].append(f)
+            by_sig[f['sig']].append(f)
+        tw.append((t, by_bytes, by_sig,
+                   arms(t, sorted(f['start'] for f in theirs), rev)))
     for f in strad:
-        hits = by_bytes.get(f['bytes'], [])
         where = (f'0x{f["start"]:x}  mod {LINE} = {f["mod"]:2d}, '
                  f'{f["len"]} B')
-        if not hits:
-            print(f'      {where}  NOT NAMED: the twin holds no byte-identical'
-                  f' copy')
-        elif len(hits) == 1:
+        hits, from_twin, named = [], None, {}
+        for t, by_bytes, _by_sig, nm in tw:
+            if by_bytes.get(f['bytes']):
+                hits, from_twin, named = by_bytes[f['bytes']], t, nm
+                break
+        if len(hits) == 1:
             h = hits[0]
             print(f'      {where}  {named.get(h["start"]) or h["sym"]}  '
-                  f'(twin 0x{h["start"]:x}, mod {h["mod"]}, '
+                  f'(in {from_twin} at 0x{h["start"]:x}, mod {h["mod"]}, '
                   f'{"straddles" if h["straddles"] else "fits"} there)')
-        else:
-            print(f'      {where}  {len(hits)} byte-identical copies in the'
-                  f' twin: '
+            continue
+        if hits:
+            print(f'      {where}  {len(hits)} byte-identical copies in '
+                  f'{from_twin}: '
                   + '; '.join(f'{named.get(h["start"]) or h["sym"]} at '
                               f'0x{h["start"]:x}' for h in hits))
+            continue
+        print(f'      {where}  NOT NAMED: no twin holds a byte-identical copy')
+        if not loose:
+            continue
+        for t, _bb, by_sig, nm in tw:
+            fam = sorted(by_sig.get(f['sig'], []), key=lambda h: h['start'])
+            if not fam:
+                continue
+            only = '  (its only member)' if len(fam) == 1 else ''
+            print(f'         SIGNATURE in {t}, a weaker key: '
+                  + '; '.join(f'{nm.get(h["start"]) or h["sym"]} at '
+                              f'0x{h["start"]:x}' for h in fam) + only)
+            break
 
 
 def delta(old, new, length, min_copies, want='_Main_'):
@@ -675,10 +811,19 @@ def main():
     p.add_argument('--library', action='store_true',
                    help='how far two halves agree about where the LINKED '
                         'libraries\' loops sit, which a pair must not move')
-    p.add_argument('--match', metavar='TWIN',
-                   help='name the binary\'s straddling loops off this -g3 '
-                        'twin by byte identity, refusing where the twin '
-                        'holds no identical copy -- post-run step 0')
+    p.add_argument('--match', metavar='TWIN', nargs='+',
+                   help='name the binary\'s straddling loops off these -g3 '
+                        'twins by byte identity, refusing where none holds '
+                        'an identical copy -- post-run step 0. Give the '
+                        'other half\'s twin too: it names what a half\'s own '
+                        'cannot')
+    p.add_argument('--loose', action='store_true',
+                   help='--match only: for what no twin holds byte-identical,'
+                        ' a second pass over the register-masked signature,'
+                        ' printing the family rather than a name')
+    p.add_argument('--source', metavar='REV',
+                   help='read a twin\'s source lines at REV rather than in '
+                        'the working tree, for a twin older than the tree')
     args = p.parse_args()
 
     # ONE REPORT an invocation. The dispatch below is an if/return
@@ -726,8 +871,12 @@ def main():
             p.error('--match TWIN takes exactly one timed binary')
         if unread:
             p.error('%s read only by the grouped report' % ' and '.join(unread))
-        match(args.binary[0], args.match)
+        match(args.binary[0], args.match, args.loose, args.source)
         return
+    # The two knobs --match alone reads, refused elsewhere for the reason
+    # --len and --min-copies are: accepted and honoured by nobody.
+    if args.loose or args.source:
+        p.error('--loose and --source are read by --match alone')
 
     if args.library:
         if len(args.binary) != 2:
