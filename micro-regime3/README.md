@@ -849,6 +849,45 @@ rather than a slot in the next run, observed again:
   but the ceiling is what the family's remaining margin is measured against,
   and a ceiling read on one codegen is not a ceiling until the two agree.
 
+- `ANSWERED` **A loop's latch keeps its fall-through only where the block
+  it exits to has no second predecessor --- GHC #27799, filed 2026-09-11.**
+  `fillStage2U1`'s innermost strided copy ends on one half in `cmp`, a `jge`
+  to the exit and a `jmp` back to the body, where the other half ends
+  it in `cmp` and one `jl`: one instruction an element, the two loops otherwise
+  identical instruction for instruction and in the same registers. **It is
+  not a half difference to put on HEAD.** Both compilers emit both shapes
+  and `-fobject-determinism` selects which: with the flag the basis fuses all
+  seven loops of that shape in the binary and HEAD fuses six, and without
+  it the two exchange those counts, read off `objdump` over whole binaries
+  and repeated on the `-g3` twins. **What settled it** is the pair of dumps,
+  2026-09-10: the exit is a join whose arms disagree about registers,
+  so the linear allocator splices a fixup block onto the arm it reaches second,
+  and that order is `sccBlocks`' input order, the proc's blocks in ascending
+  unique --- only their order counting and never their values, which is why
+  a renaming reverses it and why `-dinitial-unique`, which shifts the supply
+  without permuting it, moves nothing. Block layout then multiplies the latch's
+  edge by 0.96875 for leaving a conditional branch (`relevantWeight`, Note
+  [Layout relevant edge weights], GHC #18053) while the competitor arrives
+  unconditionally at full weight, and the latch loses a contest it led. Filed
+  as GHC [#27799](https://gitlab.haskell.org/ghc/ghc/-/work_items/27799),
+  the record being horde-ad's `docs/ghc-issue-latch-loses-fallthrough.md`.
+  **What it costs this suite**: where the fill is rank 1, `lib-stage2-lean-u1`'s
+  corrected count carries one instruction an element that is not the unroll ---
+  `flip-whole-square` and `scaled-rank1-m1` gain one and `compose-scalar` loses
+  one, while every other view's arms move with their siblings --- so price
+  that unrolling on the main set, where the two halves agree to 0.08%, or off
+  a rank-2 view. Registration (13)'s `bcast` span, read short at 1.0818
+  and 1.0822, is not this: no `bcast` view moves. **And an edit that touches
+  neither fill can move the shape**, the uniques deciding it, so a run
+  that meets a one-instruction step on this arm should read this entry before
+  it reaches for a strategy. The nearest open thread is post-run step 0's
+  refusals: Run 28 named one of HEAD's seven straddlers and recorded six
+  refusals having no byte-identical `-g3` copy, taking no evidence of what they
+  are, and GHC #27687 --- `-g3` changing the emitted code, filed from here ---
+  is this same mechanism with the fixup landing on the other arm. Whether
+  `fillStage2U1` is among those six wants the two `-g3` twins rebuilt, which
+  no run has done.
+
 - `OPEN` **A saving in instructions reaches the clock at a fifth to a half
   within one binary, where the rate on record is three quarters.** [The
   ceiling](#the-mutable-ceiling-taken)'s nineteenth reading put the conversion
@@ -6268,8 +6307,14 @@ for comparability alone, every figure in this README having been taken at it.
 re-asks**: two builds of one recipe back to back gave one `Main.o` by md5
 WITHOUT `-fobject-determinism`, and the control --- the previous run's recipe,
 twice --- gave one as well, where two had been registered. So the flag is priced
-at nothing on this module, having reproduced without it, and the run-to-run
-binary differences this README has met are the store's and not this module's.
+at nothing on this module for REPRODUCIBILITY, having reproduced without it,
+and the run-to-run binary differences this README has met are the store's
+and not this module's. **It is not inert in the code it emits, which
+is the other question and was answered the other way on 2026-09-11**: toggling
+it moves which loop latches fuse, on this module and on both compilers --- seven
+of seven against six of seven one way and the reverse the other --- which
+is [the open list][open]'s GHC #27799 entry, and is why a build compared across
+that flag is not comparing the same code.
 
 `micro.cabal` builds at -O1, which is what a default `cabal build` of orthotope
 takes --- **and that is not the regime the claims decide in**, a correction made
