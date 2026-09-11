@@ -3182,13 +3182,10 @@ mkStrided normalSh =
 --
 -- Stage one as it shipped (Data/Array/Internal.hs at 0386073): regime 1
 -- the vector itself or a slice, regime 2 one slice per maximal normal
--- suffix and a concatenation, regime 3 the fill 'genericFillStrided'
--- ported from 'fbMutOdoVecdimsAddInLeafU2'. Since 2026-09-11 the
--- library's fill is 'fillStage2' and the leaf here carries that
--- driver's broadcast run, so this arm is neither the route shipped
--- then nor the one shipped now: the dispatch is stage one's and the
--- fill sits between the two. 'lib-stage2-lean' carries today's fill
--- under the lean dispatch.
+-- suffix and a concatenation, regime 3 the fill 'genericFillStrided',
+-- which is 'fillStage2' since 2026-09-11 here as in the library, and
+-- was the leaf 'fbMutOdoVecdimsAddInLeafU2' before; 'liblist-stage1'
+-- below fills through the same. The arm is the shipped route whole.
 -- Non-vacuity, 2026-08-28: dropping the regime-2 branch (so those views
 -- take the fill) leaves @check@ green, the fill being correct there --
 -- which is why the runs class prices it rather than a check; slicing
@@ -3199,7 +3196,7 @@ fbLibStage1 sh a@(T (Strides ats) ao v)
   | ats == ts' && VS.length v == l = v
   | null sh = VS.slice ao 1 v
   | oks !! (length sh - 1) = VS.concat (loop oks sh ats ao)
-  | otherwise = fbMutOdoVecdimsAddInLeafU2 sh a
+  | otherwise = fillStage2 sh ats ao l v
   where l : ts' = getStridesT sh
         oks = scanr (&&) True (zipWith (==) ats ts')
         loop (b : bs) (n : ns) (t : ts) !o
@@ -4565,7 +4562,7 @@ lsListStage1 sh a@(T (Strides ats) ao v)
   | ats == ts' && VS.length v == l = [v]
   | null sh = [VS.slice ao 1 v]
   | oks !! (length sh - 1) = loop oks sh ats ao
-  | otherwise = [fbMutOdoVecdimsAddInLeafU2 sh a]
+  | otherwise = [fillStage2 sh ats ao l v]
   where l : ts' = getStridesT sh
         oks = scanr (&&) True (zipWith (==) ats ts')
         loop (b : bs) (n : ns) (t : ts) !o
