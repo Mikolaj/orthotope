@@ -4457,7 +4457,12 @@ fbLibUnordStage7 sh a@(T _ _ v) = fillRoute (routeUnord7 sh a) v
 -- tied on stride, the 'window' views and 'small-patch-r5', where this
 -- arm keeps stage six's and stage seven has the reverse, moving no run
 -- count. One change over 'routeUnord6' per population. Added 2026-09-09
--- for Run 28.
+-- for Run 28. REFUTED 2026-09-11 on that run's registration (6): on
+-- every rostered view its run is stage seven's, 'small-patch-r5'
+-- included, so the pair priced this dispatch's exhaustive search alone,
+-- 1.05 behind on 'window' and 1.22 to 1.26 on 'small-patch-r5'; where
+-- a chain can beat the tie-break, and why no realistic view has that
+-- shape, is README.md#dead-ideas.
 routeUnord8 :: ShapeL -> T -> Route
 routeUnord8 = dispatchLean chainOrder
 
@@ -6100,7 +6105,10 @@ roster =
   , ("libunord-stage6-list-sum",   Fill fbLibUnordStage6ListSum)
     -- and the three reorderings' consumers.
   , ("libunord-stage7-sum",        Fill fbLibUnordStage7Sum)
-  , ("libunord-stage8-sum",        Fill fbLibUnordStage8Sum)
+    -- Parked 'Only' 2026-09-11: refuted at Run 28's registration (6),
+    -- its run never differing from stage seven's on a rostered view
+    -- (README.md#dead-ideas); reasons at 'routeUnord8'.
+  , ("libunord-stage8-sum",        Only fbLibUnordStage8Sum)
   , ("libunord-stage9-sum",        Fill fbLibUnordStage9Sum)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)

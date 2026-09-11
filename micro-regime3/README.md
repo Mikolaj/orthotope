@@ -4049,7 +4049,9 @@ reorderings, their consumers, the fold entry point and the ceiling's consumer,
 2026-09-09, and the same day's retirement of the thirteen arms concatenating
 a list, with the ordered list's four consumers in their place, base's `sum`
 over stage six's list later the same day, and the shipped fill's A/A pair
-of 2026-09-09, takes the roster to 741 benches.
+of 2026-09-09, took the roster to 741 benches; the parking
+of `libunord-stage8-sum` on 2026-09-11, refuted at Run 28's registration (6)
+([dead ideas][dead]), takes the roster to 722 benches.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -5812,6 +5814,25 @@ dodge the spill is the `Ptr`-walking form of [the
 ceiling](#the-mutable-ceiling-taken)'s twenty-second and twenty-third readings,
 which is refused for the library for its own reasons.
 
+**Choosing the run as the longest contiguous chain over every order of absorbing
+axes, `libunord-stage8`, in place of the tie-break's longest unit-stride axis
+--- refuted 2026-09-11, on Run 28's registration (6).** The chain can beat
+the sort only where an axis whose stride equals the run's length is
+not the sort's neighbour of the run: a blocker of intermediate stride between
+them, dims [4,3,4] on strides [1,2,4], runs of 16 where the sort stops at 4;
+or two axes tied at the run's stride of which the smaller leads on to a third,
+dims [4,2,4,3] on strides [1,4,4,8], runs of 24 where the tie-break takes 16.
+Both are self-overlapping views with an exact tiling at the same scale, which
+a parity reshape of a hop axis produces and no image view does: im2col at any
+hop or dilation, pooling, patchify, channels-last and transposed windows carry
+strides at two scales, 1 and the row width, and the chain needs one at a third.
+On the roster the chain's run never differs from stage seven's ---
+`small-patch-r5`, the one view the registration named, reads sixteen runs of 16
+under both --- so what Run 28 priced was the dispatch, an exhaustive search
+over lists: 1.05 behind stage seven on `window` and 1.22 to 1.26
+on `small-patch-r5`, on both halves. `libunord-stage8-sum` is checked
+and not timed since; the route stays for `check`.
+
 Ideas that **died on paper**, recorded so they are not re-proposed --- and,
 first, the two that did not die on paper at all:
 
@@ -6166,9 +6187,10 @@ with its three reorderings, their consumers, the fold entry point
 and the ceiling's consumer, 2026-09-09, and the same day's retirement
 of the thirteen arms concatenating a list, with the ordered list's four
 consumers in their place, and base's `sum` over stage six's list later the same
-day, and the shipped fill's A/A pair of 2026-09-09, takes the roster to 741
-benches, so with the controls the run is 39 arms. **Run 26 timed four parked
-arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked
+day, and the shipped fill's A/A pair of 2026-09-09, took the roster to 741
+benches, and the parking of `libunord-stage8-sum` on 2026-09-11 takes the roster
+to 722 benches, so with the controls the run is 38 arms. **Run 26 timed four
+parked arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked
 2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
 and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
 ([the stride classes](#the-stride-classes-and-what-they-cover)). Each was parked
@@ -11797,7 +11819,9 @@ tables and its fingerprint say so.
   `lib-stage1` and `liblist-stage1-sum` taking `fillStage2` as their regime-3
   fill, as the library did, which reaches those two on every view their route
   fills and no other timed arm --- so its figures need no adjustment outside
-  those cells --- 39 timed arms over 19 main-set shapes and 58 class views
+  those cells; and `libunord-stage8-sum` is checked and not timed since
+  2026-09-11, refuted at registration (6), so one of its timed arms
+  is not today's --- 39 timed arms over 19 main-set shapes and 58 class views
   in TEN classes, 741 benches and 2262, EIGHT A/A pairs, the `runs` class
   at FOURTEEN, `window` at EIGHT, `bcast` and `flip` at SIX, `block` and `small`
   at FIVE, `bcastmid` and `compose` at FOUR and `rev` and `scaled` at THREE.
