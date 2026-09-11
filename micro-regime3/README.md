@@ -2834,16 +2834,20 @@ by the first round of fixes**: a summary-table cell tie-broken with the wrong
 statistic, a figure corrected to a value the reader does not print, a row list
 moved to the wrong count, and three sentences left naming what they named before
 the count under them changed. That is Run 21's ratio again and it
-is the argument for the second pass. The comprehension probe then returned 29,
-of which two were errors the step-7 cycle had itself introduced --- including
-the run's HEADLINE, stated as a universal the file refutes three times. **Every
-round of fixes made errors, in every one of the four rounds this run ran.**
-**AND ONE READING NO PASS CAN TAKE**: `--inherited` named 28 paragraphs carried
-whole from Run 27, of which two were last run's claims standing under this run's
-name --- the cross-class intro with its 310 comparisons and nine degenerate
-arms, and the class-anchor paragraph with Run 27's `runs-2` figures and a second
-window this run did not have. Neither produces a diff line, so neither checker
-pass could have seen them. A step skipped: none.
+is the argument for the second pass. The comprehension probe then returned 29.
+ONE of them was an error the step-7 cycle had itself introduced ---
+the cross-class table's bolding key, left at four and six after that cycle
+corrected `rev`'s cell to make it five and five --- and its most serious
+was older than any fix: the run's HEADLINE, written at 6a and stated
+as a universal the file refutes three times. **So every round of fixes made
+errors, in three of the four rounds this run ran, and the round that made none
+was the one that only recorded.** **AND ONE READING NO PASS CAN TAKE**:
+`--inherited` named 28 paragraphs carried whole from Run 27, of which two
+were last run's claims standing under this run's name --- the cross-class intro
+with its 310 comparisons and nine degenerate arms, and the class-anchor
+paragraph with Run 27's `runs-2` figures and a second window this run did
+not have. Neither produces a diff line, so neither checker pass could have seen
+them. A step skipped: none.
 
 **What Run 27 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
