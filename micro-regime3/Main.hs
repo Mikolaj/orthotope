@@ -5874,7 +5874,7 @@ roster =
     -- below (README.md#what-is-open, the Run 25 entry); parked again
     -- after it, 2026-09-06, the bound control having been spent on that
     -- run and the -u1 question answered
-    -- (README.md#recommended-tasks-after-run-27, item 2).
+    -- (README.md#recommended-tasks-after-run-28, item 2).
   , ("mut-odo-vecdims-add-in-leaf", Only fbMutOdoVecdimsAddInLeaf)
     -- Timed once more for Run 26, which read Run 24's registration 5 on
     -- it: '-u2' ahead in all eleven populations on both halves
