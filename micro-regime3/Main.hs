@@ -5883,10 +5883,13 @@ roster =
     -- Run 28's, so the pointer named nothing and is gone rather than
     -- renamed a third time.
   , ("mut-odo-vecdims-add-in-leaf", Only fbMutOdoVecdimsAddInLeaf)
-    -- Timed once more for Run 26, which read Run 24's registration 5 on
-    -- it: '-u2' ahead in all eleven populations on both halves
-    -- (runs/run26.md, item 4). 'Only' again since 2026-09-06.
   , ("mut-odo-vecdims-add-in-leaf-down", Only fbMutOdoVecdimsAddInLeafDown)
+    -- Timed once more for Run 26, which read Run 24's registration 5 on
+    -- it: '-u2' ahead of THIS arm in all eleven populations on both
+    -- halves (runs/run26.md, item 4). 'Only' again since 2026-09-06.
+    -- The note sat on 'mut-odo-vecdims-add-in-leaf' above until
+    -- 2026-09-11, which Run 26 did not time at all and which that
+    -- registration does not name.
   , ("mut-odo-vecdims-add-in-leaf-u2", Fill fbMutOdoVecdimsAddInLeafU2)
     -- The shipped fill's near A/A copy, beside its base, added 2026-09-09
     -- with the far one at the tail: the pair is what makes position vary
