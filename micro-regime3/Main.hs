@@ -4406,14 +4406,15 @@ fbLibUnordStage7 sh a@(T _ _ v) = fillRoute (routeUnord7 sh a) v
 -- the route is stage six's, and so is it where one has stride 0, which
 -- is stage nine's question and kept out of this pair. Against stage six
 -- it moves what stage seven moves, the longest unit-stride axis being
--- the run either way, and 'small-patch-r5' further, runs of 16 where
--- the sort leaves 8 -- the pair with stage seven, read beside, prices
--- the absorption alone, which parts from the sort only where an axis
+-- the run either way, 'small-patch-r5' included, runs of 16 where the
+-- sort leaves 8 -- the pair with stage seven, read beside, prices the
+-- absorption alone, which parts from the tie-break only where an axis
 -- with the run's length sits away from the run after sorting, a thing
 -- an injective view cannot arrange -- and the order of two outer levels
--- tied on stride, the 'window' views, where this arm keeps stage six's
--- and stage seven has the reverse, moving no run count. One change over
--- 'routeUnord6' per population. Added 2026-09-09 for Run 28.
+-- tied on stride, the 'window' views and 'small-patch-r5', where this
+-- arm keeps stage six's and stage seven has the reverse, moving no run
+-- count. One change over 'routeUnord6' per population. Added 2026-09-09
+-- for Run 28.
 routeUnord8 :: ShapeL -> T -> Route
 routeUnord8 = dispatchLean chainOrder
 

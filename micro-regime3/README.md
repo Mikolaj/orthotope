@@ -1014,21 +1014,24 @@ rather than a slot in the next run, observed again:
   was refuted there, on BOTH halves and past the population's own floor: (3)
   on allocation, 16 of 77 views differing at the published precision; (6)
   on `window` at 1.0518 and 1.0474 where stage eight was argued to keep stage
-  six's order, and on `small-patch-r5` where it was registered ahead and reads
-  1.2593 and 1.2152 behind; (7) on `rev`, which has no zero stride and so should
-  have been stage six exactly, at 1.0191 and 1.0164; (11) on `main`, `rev`
-  and `small`, the lean and natural-strides dispatches parting where they
-  were argued to be one route. **The converse does NOT hold and the count
-  is what makes that worth keeping**: registrations (2), (4), (10) and (15)
-  are no-op predictions too and all four held --- (2) over eight populations,
-  and (15) the shipped fill's A/A pair, predicting 1.0 against its own copy.
-  So the finding is not that such arguments always fail but that FOUR
-  of the EIGHT no-op predictions did on one roster, where every one of the SEVEN
-  items predicting a real effect landed. **What would settle it** is a next
-  registration that states, for each no-op clause, which line of `Main.hs` makes
-  the two routes identical --- the four that failed were argued from the shape
-  of the code and not from the dispatch it compiles to, and none of the four
-  names a route.
+  six's order, and on `small-patch-r5`, where it was registered ahead on runs
+  stage seven had already halved and reads 1.2593 and 1.2152 behind; (7)
+  on `rev`, which has no zero stride and so should have been stage six exactly,
+  at 1.0191 and 1.0164; (11) on `main`, `rev` and `small`, the lean
+  and natural-strides dispatches parting where they were argued to be one route.
+  **The converse does NOT hold and the count is what makes that worth keeping**:
+  registrations (2), (4), (10) and (15) are no-op predictions too and all four
+  held --- (2) over eight populations, and (15) the shipped fill's A/A pair,
+  predicting 1.0 against its own copy. So the finding is not that such arguments
+  always fail but that FOUR of the EIGHT no-op predictions did on one roster,
+  where every one of the SEVEN items predicting a real effect landed. **What
+  would settle it** is a next registration that states, for each no-op clause,
+  which line of `Main.hs` makes the two routes identical --- the four
+  that failed were argued from the shape of the code and not from the dispatch
+  it compiles to, and none of the four names a route --- and that reads,
+  for every pair it registers, the probe JSONs already on disk: the fusion probe
+  of 2026-09-09 had (6)'s pair behind on both populations that killed it,
+  and nobody read those cells for the item.
 - `OPEN` **The A/A floor and the restricted six-pair figure came apart on Run 28
   for the first time since the prune, and which of them a margin between two
   rows must clear is now two answers.** The shipped fill's own A/A copies landed
@@ -6857,7 +6860,11 @@ and never as a chronology.
     #      NAMES THE POPULATIONS its prediction is read on, `on the
     #      main set`, the classes, or both, because that list is what
     #      tells 5c which JSONs to run the span against: a span names
-    #      no population itself and is read on whatever it is handed.
+    #      no population itself and is read on whatever it is handed
+    #      -- AND THE PROBE JSONS ALREADY ON DISK ARE READ FOR EVERY PAIR
+    #      REGISTERED: Run 28's (6) sat behind on both populations that
+    #      killed it in a probe of the same day that nobody read for the
+    #      item.
     #      What an item that names none means, and how to ask every
     #      population at once, is one section and not repeated here --
     #      its title, whole, for a grep or a --section:
@@ -11771,7 +11778,7 @@ at all**: which half of the pair a figure came from, which is why the run file's
 tables and its fingerprint say so.
 
 - Run 28 measured TODAY's shapes, class views AND today's roster, nothing
-  but two comment-only commits to `Main.hs` having moved since it ran,
+  but comment-only commits to `Main.hs` having moved since it ran,
   so its figures need no adjustment at all --- 39 timed arms over 19 main-set
   shapes and 58 class views in TEN classes, 741 benches and 2262, EIGHT A/A
   pairs, the `runs` class at FOURTEEN, `window` at EIGHT, `bcast` and `flip`
