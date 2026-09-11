@@ -1132,6 +1132,28 @@ def readme_deliberate_link_wrapped(tmp):
     return write(os.path.join(tmp, 'R.md'), text + para)
 
 
+def readme_answered_stub_unfilled(tmp):
+    """A copy of README whose newest ANSWERED run entry still carries the
+    `___` placeholder `--move-registration` leaves for the verdict clause.
+
+    Self-aiming, by the stub's own shape rather than by a run number: the
+    entry is found by its family lead and the clause after `in a clause
+    each:` is replaced whole, so the fixture follows a requote instead of
+    failing to build after one. Run 28 shipped this state as far as the
+    SECOND checker pass -- every mechanical gate passed over a bare
+    underscore where sixteen verdicts belong -- which is the defect the
+    check beside this case was written for.
+    """
+    text = open(README).read()
+    flat = subprocess.run(['wrap80', '--unwrap'], input=text,
+                          capture_output=True, text=True, check=True).stdout
+    m = re.search(r'(- `ANSWERED` \*\*What Run \d+ was built to answer[^\n]*?'
+                  r'in a clause each: )(.*?)(?=\n)', flat)
+    assert m, 'no ANSWERED run entry with a verdict clause to empty'
+    return write(os.path.join(tmp, 'R.md'),
+                 flat[:m.start(2)] + '___.' + flat[m.end(2):])
+
+
 def readme_six_pair_perturbed(tmp):
     """A copy of README whose six-pair sentence quotes a first figure no
     other site does, found by the sentence's shape rather than by the
@@ -7787,6 +7809,23 @@ RECORDS = [
          ok=V(has=['N=1'], hasnt=['RESTRICTED'])),
 
     # ---- read-run.py, figures across sites ---------------------------------
+    case('answered-stub-keeps-its-slot', 'read-run.py', None,
+         'the ANSWERED stub shipped with --move-registration\'s bare `___`',
+         # The one defect of Run 28's write-up that no mechanical gate saw.
+         # `--move-registration` writes the stub and leaves `___` for the
+         # clause of verdicts; the step that fills it is a person's, so the
+         # two are a handover with nothing on the far side. Run 28's entry
+         # reached the second checker pass with the placeholder standing and
+         # was found by an agent reading README beside the run file, not by
+         # anything here. The gate is one line and the case is its control.
+         # NO `fix`: this is a check that did not exist rather than a repair
+         # of one that did, so there is no revision before a fix to replay,
+         # and the ok direction is the whole of what there is to prove.
+         plant=lambda t: {'readme': readme_answered_stub_unfilled(t)},
+         argv=['--check-doc', '--readme', '{readme}'],
+         ok=V(exit=1, has=['still carry `___`']),
+         ),
+
     case('six-pair-floor-disagrees-across-sites', 'read-run.py', '054f3f1',
          'the six-pair figure was quoted three ways, two in one paragraph',
          # The eighteen-pair floor has been held across its sites since
@@ -8223,6 +8262,25 @@ RECORDS = [
                            '0.00 point(s) off, within 1.00%: HELD',
                            '20.00 point(s) off, within 1.00%: KILLED',
                            'yours to adjudicate: (3)'])),
+
+    case('move-registration-splits-the-items-it-moves', 'read-run.py', None,
+         'the registration landed as one paragraph, so `registration (N)`'
+         ' could not be jumped to',
+         # Run 28's arrived as a single 35,160-character line while every
+         # class block and every verdict cited an item by number, so
+         # looking one up was a scan of the whole. Its comprehension probe
+         # raised it as that probe's one structural finding, and the
+         # write-up raised it independently -- two readers on one defect.
+         # Fixed at the MOVE and not by hand afterwards, the hand copy
+         # being what this mode exists to abolish. NO `fix`: the split is
+         # a capability the mode did not have rather than a repair of one
+         # it had wrong, so there is nothing before it to replay.
+         plant=lambda t: registration_to_move(t),
+         argv=['--move-registration', '--readme', '{readme}',
+               '--run-doc', '{doc}'],
+         probe=lambda subs: open(subs['doc']).read(),
+         ok=V(exit=0, has=['Registered before the run.\n\n(1) *a*']),
+         ),
 
     case('move-registration-repoints-the-anchors-it-carries',
          'read-run.py', 'ca928dc',

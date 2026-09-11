@@ -2823,41 +2823,41 @@ with a record: `--draft` carrying a spent block (`c7364e1`), `smoke-l1.sh`
 printing `(rc=0)` for every mode that failed because `$?` in the body
 of `if ! cmd` is the negation's status (`11767f9`), the newest-run mutant judge
 reading the run number with an anchored `re.match` where the narrowing it judges
-searches anywhere (`9bbc3eb`), and 10c harvesting a path tail (`25487e3`).
-**The executing session's half, and it is five things.** **A CHECKER WENT STALE
-AGAINST THE ROSTER, and that is this run's durable finding about the tooling.**
-`--check-doc`'s six-pair agreement row baked the SIZE of the A/A set
-into its own patterns --- `the six pairs` --- and this run moved that set
-from six to eight by landing the shipped fill's own A/A copies. The row stopped
-matching and SAID SO rather than passing, which is what it was written to do;
-`defects.py`'s self-aiming fixture then would not build, which is the louder
-half of the same event. Both are repaired population-independently: the pattern
-keys on `pairs that carry back to Run 10` and tolerates the emphasis markers
-a write-up puts on figures, and the fixture's anchor moves with it.
-**That anchor has now been re-shaped three times --- 2026-09-02, 2026-09-05
-and 2026-09-11 --- each time by a roster change, and this is the first shaping
-that names no population size.** The lesson is narrower than the pattern:
-a cross-site agreement check must key on the QUANTITY, never on the size
-of the population it is taken over, because the population is exactly what
-a roster moves. **THE MECHANICAL CHECKS CAUGHT NEARLY EVERYTHING, AND MISSED
-THE ONE THAT MATTERED.** `--check-doc` refused, in order and each on a real
-defect: seven dead links into the previous run's file; a stale
-`recommended-tasks-after-run-27` anchor in `Main.hs` and two more in README;
-the class tables' shape counts, held down by a spent `added DATE, after the run`
-declaration in Run 27's delta bullet that had to retire with it; ten class
-paragraphs quoting Run 27's floors; an artifact path named in a file
-that outlives it; a lost class-process-count site; the floor pair disagreeing
-across eight sites; and a historical shape count read as this roster's. Not one
-needed a reading. **What no gate reads is `--move-registration`'s `___`**:
-it leaves that placeholder for the ANSWERED entry's verdict clause,
-`--check-doc` passes over it, and the entry would have shipped with a bare
-underscore had the second checker pass not opened README beside the run file.
-**TWO COMPUTATIONS WERE IMPROVISED, both because this file names no method
-for them.** The cross-class summary's emphasis marks the faster of two cells
-the table prints to three decimals, and FOUR of the ten classes tie there;
-the tie-break used `--pair`'s four decimals and got `rev` wrong, the column
-separating the two arms at its fourth decimal the other way. The rule that came
-out of it is now in the table's own paragraph: **the emphasis follows
+searches anywhere (`9bbc3eb`), and pre-run 10c harvesting a path tail
+(`25487e3`). **The executing session's half, and it is five things.**
+**A CHECKER WENT STALE AGAINST THE ROSTER, and that is this run's durable
+finding about the tooling.** `--check-doc`'s six-pair agreement row baked
+the SIZE of the A/A set into its own patterns --- `the six pairs` ---
+and this run moved that set from six to eight by landing the shipped fill's own
+A/A copies. The row stopped matching and SAID SO rather than passing, which
+is what it was written to do; `defects.py`'s self-aiming fixture then would
+not build, which is the louder half of the same event. Both are repaired
+population-independently: the pattern keys on `pairs that carry back to Run 10`
+and tolerates the emphasis markers a write-up puts on figures, and the fixture's
+anchor moves with it. **That anchor has now been re-shaped three times ---
+2026-09-02, 2026-09-05 and 2026-09-11 --- each time by a roster change,
+and this is the first shaping that names no population size.** The lesson
+is narrower than the pattern: a cross-site agreement check must key
+on the QUANTITY, never on the size of the population it is taken over, because
+the population is exactly what a roster moves. **THE MECHANICAL CHECKS CAUGHT
+NEARLY EVERYTHING, AND MISSED THE ONE THAT MATTERED.** `--check-doc` refused,
+in order and each on a real defect: seven dead links into the previous run's
+file; a stale `recommended-tasks-after-run-27` anchor in `Main.hs` and two more
+in README; the class tables' shape counts, held down by a spent
+`added DATE, after the run` declaration in Run 27's delta bullet that had
+to retire with it; ten class paragraphs quoting Run 27's floors; an artifact
+path named in a file that outlives it; a lost class-process-count site;
+the floor pair disagreeing across eight sites; and a historical shape count read
+as this roster's. Not one needed a reading. **What no gate reads
+is `--move-registration`'s `___`**: it leaves that placeholder for the ANSWERED
+entry's verdict clause, `--check-doc` passes over it, and the entry would have
+shipped with a bare underscore had the second checker pass not opened README
+beside the run file. **TWO COMPUTATIONS WERE IMPROVISED, both because this file
+names no method for them.** The cross-class summary's emphasis marks the faster
+of two cells the table prints to three decimals, and FOUR of the ten classes tie
+there; the tie-break used `--pair`'s four decimals and got `rev` wrong,
+the column separating the two arms at its fourth decimal the other way. The rule
+that came out of it is now in the table's own paragraph: **the emphasis follows
 the COLUMN, since the column is what a reader compares, and `--pair` only
 separates a tie the column itself cannot.** The second is the conversion rate,
 `(1 - time) / (1 - counts)`, which this file quotes every run and no reader mode
@@ -6997,6 +6997,48 @@ Unsandboxed throughout:
     #      five launch lines typed between waits, each wait a turn end
     #      and each line a place to drop the environment or to mis-order;
     #      the counts stay a line of their own for the reason 19a gives.
+    #      AND A SECOND MONITOR IN THE SAME TURN, THE HEARTBEAT, WHICH IS
+    #      OWED AND NOT A CHOICE: persistent, one line every 45 MINUTES
+    #      carrying the run's JSON count, the last stage line and
+    #      $R-wallclock.log's last line. NEITHER is stopped before
+    #      $R-evening.txt reads EVENING COMPLETE, which run-counts-all.sh
+    #      writes and run-evening.sh does not -- the counted work appends
+    #      to the same file, so the stage monitor carries step 20 too and
+    #      stopping either at the riders blinds the last hour. STOPPING
+    #      THEM IS AN ACT AND IT IS WRITTEN WHERE IT HAPPENS, at 20's
+    #      woken step below, not here where they are armed.
+    #        Monitor, persistent, from this directory:
+    #          while true; do sleep 2700
+    #            echo "heartbeat: $(ls $R-*.json 2>/dev/null | wc -l) JSONs\
+    #              | $(tail -n1 $R-evening.txt 2>/dev/null | cut -c1-90)\
+    #              | $(tail -n1 $R-wallclock.log 2>/dev/null | cut -c1-140)"
+    #          done
+    #        BOTH tails take `2>/dev/null`: for the first half-hour neither
+    #        file exists -- run-major.sh creates the wallclock log when the
+    #        sequence starts, not when the evening does -- and a tick is
+    #        wanted then as much as later, a run that died in the gate
+    #        being the one a heartbeat is most use for.
+    #      THE STAGE MONITOR IS SILENT FOR THE FIVE OR SIX HOURS THE
+    #      SEQUENCE RUNS -- one line when it starts and the next when it
+    #      ends -- so across the longest stretch of the run nothing reaches
+    #      the screen, and a driver that died an hour ago reads exactly
+    #      like one still working. The heartbeat is what makes the pace
+    #      visible while it is still a pace: on Run 28 its ticks put the
+    #      main set at 64 minutes for 741 benches and then every class
+    #      within a few minutes of its own bench count's share, criterion
+    #      spending its budget per bench, so a process running long would
+    #      have shown as it happened instead of in the wallclock log
+    #      afterwards. It wants no quiet box of its own, being an `ls` and
+    #      a `tail` an hour.
+    #      FORTY-FIVE MINUTES AND NOT SIXTY, and the reason is the
+    #      SESSION and not the run: a session's prompt cache holds for an
+    #      hour, so a tick inside that window costs a cache read while the
+    #      first message after a longer silence pays to rebuild the whole
+    #      conversation. 45 leaves room for a tick that lands late. The
+    #      two costs are within a small factor of each other over an
+    #      evening, so the heartbeat is not bought FOR the cache -- it is
+    #      bought for the pace, and the cache is only what fixes the
+    #      interval.
     #      The stage lines below say
     #      what each is for and what to reach for when one complains, as
     #      preflight.sh's do for 4 to 10; 15 and 18 are yours while it runs
@@ -7113,10 +7155,22 @@ Unsandboxed throughout:
     #      probes it on /bin/true and refuses in a millisecond, and
     #      run-counts-all.sh refuses a stage still running besides --
     #      counted beside a timed process, both readings are spoilt
-    #  THEN, WOKEN AGAIN: read the counts stages in $R-evening.txt, whose
-    #      last line is EVENING COMPLETE and whose tally is the complaints
-    #      of both commands, report each rather than folding them into a
-    #      later summary, and start the post-run list, its step 0 first
+    #  THEN, WOKEN AGAIN: STOP BOTH MONITORS FIRST -- the stage one and
+    #      the heartbeat armed at 14 -- and only then read the counts
+    #      stages in $R-evening.txt, whose last line is EVENING COMPLETE
+    #      and whose tally is the complaints of both commands; report each
+    #      rather than folding them into a later summary, and start the
+    #      post-run list, its step 0 first.
+    #      THE STOP IS A LINE HERE AND NOT ONLY AT 14 because an
+    #      instruction at the arming site is read EIGHT HOURS before the
+    #      moment it fires, and step 14's own `stopped when` clause is a
+    #      standing description rather than a thing to do now. Run 28
+    #      armed both correctly, ran to EVENING COMPLETE, and left both
+    #      running through the whole write-up until the person watching
+    #      said `I see 2 monitors` -- the heartbeat then ticking against a
+    #      finished run, every 45 minutes, saying nothing. A monitor
+    #      outlives what it watches unless something stops it, and
+    #      `persistent` means it outlives the session's attention too.
 
 **One rule for the sandbox in this directory, since half of what a run does must
 write here.** Run everything unsandboxed except the read-only checks.
@@ -7830,20 +7884,13 @@ not otherwise.
     #      an intrusion and 3 a rerun, take 1 and 2 before this, its
     #      compiles being the one thing on this list that loads the box
     #      a rerun would want quiet. AND THE COMPILE MAY WAIT ON THE
-    #      COUNTS for the same reason, which is what Run 26 did: the
-    #      naming that needs no build is two minutes and takes its place
-    #      here, while the twin's build goes after step 20's sweep
-    #      rather than beside it. Nothing later than 11 is at risk from
-    #      the wait; a rerun is. Run 23 took 1, 2 and then 0 in one
-    #      sitting, and the order cost nothing either way
-    #      The naming is what the step is for and reads like
-    #      housekeeping: it turns `[0, 24, 0, 4]` into four arms, and on
-    #      Run 17 it collapsed two of this README's open questions into
-    #      one object by showing the `[0, 0]` group IS the build/mut-odo
-    #      residue; on Run 18 it produced the sharpest finding of the
-    #      evening, the two add-in arms swapping cache-line offsets
-    #      between the compilers, which no later session could have
-    #      recovered once the binaries went.
+    #      COUNTS for the same reason: the naming that needs no build is
+    #      two minutes and takes its place here, while the twin's build
+    #      goes after step 20's sweep. Nothing later than 11 is at risk
+    #      from the wait; a rerun is.
+    #      The naming is what the step is FOR and reads like housekeeping:
+    #      it turns `[0, 24, 0, 4]` into four arms, which is the only form
+    #      in which an offset this README quotes can be tied to one.
     #      Owed by every paired run: rebuild each recipe with -g3, export
     #      the NAMED fills into the note, match groups by byte identity
     #      of the loop body and never by proximity, and read the count
@@ -7852,13 +7899,9 @@ not otherwise.
     #      `./loop-offsets.py $R-<half> --match probe-g3-<half>-$R` does
     #      the straddlers' half of that by the same rule, naming each by
     #      its bytes and saying NOT NAMED where the twin holds no copy.
-    #      NOT NAMED can also mean no loop: Run 26's sixth was an info
-    #      table misread by the sweep; `reaches` in loop-offsets.py has
-    #      the tell.
-    #      THAT CHECK IS WHAT MAKES A NEGATIVE HONEST: Run 22's twin named one of four
-    #      straddling loops and refused the other three, having no
-    #      byte-identical copy of them, and the one it did name sits in
-    #      the branch's own fill.
+    #      NOT NAMED can also mean no loop, and `reaches` in
+    #      loop-offsets.py has the tell. THAT REFUSAL IS WHAT MAKES A
+    #      NEGATIVE HONEST and is not a shortfall to work around.
     #      WHERE THE PREPARATION SPENT THIS HALF EARLY, RE-RUN THE
     #      `--match` OFF THE BINARIES YOU TIMED, which is two minutes and
     #      is what turns the note's block from a transcription into
@@ -7870,6 +7913,16 @@ not otherwise.
     #      re-ran it and reproduced all four owners and both refusals.
     #      why: --para 'Name the fill groups'
     ./read-all.sh $R                                  # 1. gate EVERY
+    ./read-all.sh $R --brief-facts                    #    AND DERIVE THE
+    #      HEAD'S FACTS IN THE SAME BREATH, which is the same readings
+    #      asked a second question and costs one call: the window and its
+    #      timestamps, the plateau band, BOTH floors per population, `list`
+    #      against the 0.7% bar per population, the A/A processes past 5%
+    #      and the sunk cells -- the rows the head's own gate, window,
+    #      floor and differencing paragraphs are written from, so a session
+    #      that skips this re-derives them by hand at 6a. It was named only at 6b until 2026-09-11, where
+    #      it serves the checker's brief, and a run wrote its whole head
+    #      before meeting it.
     #      process -- both halves of every population, a line apiece with
     #      the A/A WORST CELL beside it. READ that column: it is the NET
     #      ratio, the same quantity as the published floor, and neither
@@ -8169,12 +8222,10 @@ not otherwise.
     #      that gets skipped. It is not retyped and not summarised here:
     #      it carries all three briefs and every fact an agent starting
     #      where your session started cannot derive.
-    #      DERIVE WHAT CAN BE DERIVED: `./read-all.sh $R
-    #      --brief-facts` prints the windows, the plateau, both
-    #      floors, `list` against the 0.7% bar per population, the
-    #      A/A processes past 5% and the sunk cells -- the rows the
-    #      THIS RUN ONLY items state in prose. Read those items
-    #      against it and change what disagrees, HERE and not at 7a:
+    #      DERIVE WHAT CAN BE DERIVED: step 1's `--brief-facts` run
+    #      printed the rows the THIS RUN ONLY items state in prose, and
+    #      this is where they are spent. Read those items against it
+    #      and change what disagrees, HERE and not at 7a:
     #      a rerun stranded four of Run 27's readings mid-block and
     #      both passes read them.
     #      IT IS ONE LINE PER PARAGRAPH since 2026-09-06, and no tool
@@ -8290,19 +8341,6 @@ not otherwise.
     #      defect here is not routine: it is a signal that 6d or 6e
     #      missed something, and it is read as that rather than patched.
     #      why: --para 'Verify the write-up before deleting'
-    #  7b. THE TAIL, which no pass has read. Pass 2 reads README bounded
-    #      at RUNTIP, so everything committed after it is unreviewed BY
-    #      CONSTRUCTION -- 7a's own fixes, step 9's record, step 10's open
-    #      list and its retirements, and any disclosure a person makes
-    #      after the run. Re-resolve RUNTIP, read
-    #        git -C .. diff RUNTIP..HEAD -- micro-regime3/README.md \
-    #          micro-regime3/runs/$R.md
-    #      yourself, and say in the commit what it covered. Run 27's tail
-    #      carried the twelve references its retirement broke, a
-    #      disclosure that reached four of the six places it had to,
-    #      and three wrong claims in the evidence that retirement
-    #      moved -- every one found after both passes were over, and
-    #      its brief, which no pass reads at all, carried six more
     ./read-run.py --lint          # 8. again after ANY Main.hs edit, and
     #      never rebuild the pair to satisfy it: say in the write-up that
     #      the comment-only move happened
@@ -8342,6 +8380,27 @@ not otherwise.
     #      `STATUS: all done`, with its `yours` lines done by hand, is
     #      the one state in which this run is finished; a NOT DONE line
     #      is the next step, and a summary of what remains is not one
+    # 10c. THE TAIL, which no pass has read, and the LAST thing this list
+    #      does: it was numbered 7b until 2026-09-11 and ran before 8, 9
+    #      and 10 while its own text covered their output, so a session
+    #      either read a tail that did not exist yet or reordered in
+    #      silence. It is 10c now and runs after the done-condition
+    #      above, which is the only order its own words allow, and 10b is
+    #      what reports it undone, so the two are a short loop rather
+    #      than a sequence: run 10b, do 10c, run 10b again.
+    #      Pass 2 reads README bounded
+    #      at RUNTIP, so everything committed after it is unreviewed BY
+    #      CONSTRUCTION -- 7a's own fixes, step 9's record, step 10's open
+    #      list and its retirements, and any disclosure a person makes
+    #      after the run. Re-resolve RUNTIP, read
+    #        git -C .. diff RUNTIP..HEAD -- micro-regime3/README.md \
+    #          micro-regime3/runs/$R.md
+    #      yourself, and say in the commit what it covered. Run 27's tail
+    #      carried the twelve references its retirement broke, a
+    #      disclosure that reached four of the six places it had to,
+    #      and three wrong claims in the evidence that retirement
+    #      moved -- every one found after both passes were over, and
+    #      its brief, which no pass reads at all, carried six more
     #  A GATE IS NEVER FILTERED AND A READING'S OUTPUT MAY BE, which is
     #      the line between the readings above and the checks below. A
     #      GATE -- `--lint`, `--check-doc`, `check-all`, `defect-run.py
@@ -8353,6 +8412,13 @@ not otherwise.
     #      may be redirected and grepped -- but the status stays its own,
     #      and two of them use it: `--predictions` exits 1 where a span
     #      went unread and `--pair` 2 where it refused a sunk pair. The
+    #      AND A THIRD FORM BITES IN BACKGROUND MODE, where the harness
+    #      reports the TASK's exit and a task is the whole command line:
+    #      `check-all . > log; echo "RC=$?"` ends in the echo, so the
+    #      notification says exit code 0 over a check that returned 1,
+    #      and the status survives only in the echoed text. Read that
+    #      text, or put the gate alone on the line. Measured twice on
+    #      2026-09-11, the second time after the first was understood.
     #      first of those stopped this run's own `&&` chain testing this
     #      line, so the grep after it never ran and the recipe read as
     #      printing nothing. `2>/dev/null` is legitimate on a reading whose
@@ -8378,7 +8444,12 @@ not otherwise.
     #      Main.hs, even a comment: `./read-run.py --lint`
     #      a script here, or read-run.py: `defect-run.py --changed
     #        <REV> .` at the END of the stretch, in the background and
-    #        ALONE -- no edit and no commit while it runs -- with `-k
+    #        ALONE -- its bug direction DIFFS THE WORKING TREE, so ALONE
+    #        means no file CREATED anywhere in it either, a log or a
+    #        scratch redirect included, and not merely no edit and no
+    #        commit: a `--worklists` dump written while it ran reported
+    #        `new: ?? log-inherited-r28.txt` and failed the step
+    #        (2026-09-11) -- with `-k
     #        NAME` for one case while iterating; read-run.py besides
     #        wants `--selftest` on one run JSON
     #      a table install: `--check-doc` recomputes the tables from the
@@ -8415,15 +8486,30 @@ because by then the run read finished; putting it first is what retires that.
    owed by every paired run**: `loop-offsets.py` names a copy only in a `-g3`
    build, bare offsets are what the note records otherwise, and the map
    is a property of the binary, so once the binaries go no offset this README
-   quotes can ever be tied to an arm again. Run 12's were derived this way
-   on the last day they existed and refuted two accounts of its own split; Run
-   10's and Run 11's are gone unnamed. **Where a preparation spent this half
-   early, on an idle box before the pair ran, the executing session re-derives
-   it off the binaries it timed** --- two minutes, and the difference between
-   a block that was read and one that was carried, which is the distinction
-   pre-run step 12b exists to make and which a note's fill-in block cannot make
-   for itself. What is left over is the timing work, which is what a quiet
-   machine is for.
+   quotes can ever be tied to an arm again. **What the step has produced, which
+   is why it is first.** On Run 17 the naming collapsed two of this README's
+   open questions into one object, showing the `[0, 0]` group
+   IS the build/mut-odo residue; on Run 18 it gave the sharpest finding
+   of the evening, the two add-in arms swapping cache-line offsets between
+   the compilers, which no later session could have recovered once the binaries
+   went. The REFUSALS are what make a negative honest: Run 22's twin named one
+   of four straddling loops and refused three for want of a byte-identical copy,
+   the one it named sitting in the branch's own fill, and Run 26's sixth
+   was no loop at all but an info table the sweep misread. The ORDER has
+   been taken both ways without cost --- Run 23 took 1, 2 and then 0 in one
+   sitting, Run 26 let the twin's build wait on the counts --- so what the list
+   fixes is the deadline and not the sequence. And a note's fill-in block
+   is where TRANSCRIBED figures live, Run 25's saying outright that two
+   of its own were carried rather than derived and happening to be true, which
+   is why the executing session re-runs the `--match` off the binaries it timed.
+   Run 12's were derived this way on the last day they existed and refuted two
+   accounts of its own split; Run 10's and Run 11's are gone unnamed. **Where
+   a preparation spent this half early, on an idle box before the pair ran,
+   the executing session re-derives it off the binaries it timed** --- two
+   minutes, and the difference between a block that was read and one
+   that was carried, which is the distinction pre-run step 12b exists to make
+   and which a note's fill-in block cannot make for itself. What is left
+   over is the timing work, which is what a quiet machine is for.
 1. **Gate every population on the correction, before reading any figure ---
    and read the A/A *worst cell*, not only the pair's geomean.** A control
    that passes its gate can still be the run's most informative measurement:

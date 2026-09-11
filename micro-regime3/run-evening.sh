@@ -4,15 +4,12 @@
 # order the list gives them and under the environment the pair note
 # names, each stage's verdict appended to `$R-evening.txt` as it lands.
 #
-#     ./run-evening.sh run24          # in the background: a SESSION uses
-#     ./run-counts-all.sh run24       # the harness's own background mode,
-#                                     # which registers a task and wakes it
-#                                     # on exit, and a PERSON types `&`. A
-#                                     # session that types one gets a job
-#                                     # that detaches, runs, registers
-#                                     # nothing and wakes nobody -- measured
-#                                     # 2026-09-04. Then step 20, on a box
-#                                     # back in use
+#     ./run-evening.sh run24          # both in the background, and what
+#     ./run-counts-all.sh run24       # that means for a SESSION rather
+#                                     # than a person is README's run list
+#                                     # step 14, which states it once and
+#                                     # carries the measurement. Then step
+#                                     # 20, on a box back in use
 #
 # THE COUNTED WORK IS NOT HERE, and this file's last line is what that
 # buys: the machine is its owner's again the moment the riders land, and
@@ -58,9 +55,9 @@ set -u
 cd "$(dirname "$0")" || exit 1
 
 if [ $# -ne 1 ]; then
-  echo "usage: ./run-evening.sh RUN      # e.g. run24, in the background --"
-  echo "                                 # a session through the harness's"
-  echo "                                 # background mode, a person with &"
+  echo "usage: ./run-evening.sh RUN      # e.g. run24, in the background;"
+  echo "                                 # README's run list step 14 says"
+  echo "                                 # what that means for a session"
   exit 2
 fi
 R=$1

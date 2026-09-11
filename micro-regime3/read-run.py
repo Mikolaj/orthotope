@@ -2740,7 +2740,7 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     return 1 if unread else 0
 
 
-def counts_pair(counts_a, pairs, shapes):
+def counts_pair(counts_a, pairs, shapes, cells=None):
     """Two arms' instruction counts on ONE half, corrected and raw.
 
     `--counts` reads a PAIR of sweep files beside `--compare` and answers
@@ -2777,7 +2777,8 @@ def counts_pair(counts_a, pairs, shapes):
     if malformed:
         print('  %d malformed line(s)' % len(malformed))
     print()
-    print('%-52s %9s %9s %7s' % ('A / B', 'corrected', 'raw', 'shapes'))
+    print('%-52s %9s %9s %7s %7s'
+          % ('A / B', 'corrected', 'raw', 'shapes', 'rate'))
     rc = 0
     for a, b in pairs:
         raw, net, gone = [], [], []
@@ -2801,8 +2802,19 @@ def counts_pair(counts_a, pairs, shapes):
                      ' correction'))
             rc = 2
             continue
-        print('%-52s %9.4f %9.4f %7d'
-              % ('%s / %s' % (a, b), geomean(net), geomean(raw), len(net)))
+        gnet = geomean(net)
+        rate = '--'
+        if cells is not None:
+            try:
+                _, tr = pair_stats(cells, shapes, a, b)
+            except SystemExit:
+                tr = None
+            if tr:
+                t = geomean(tr)
+                rate = ('%6.1f%%' % ((1 - t) / (1 - gnet) * 100)
+                        if abs(1 - gnet) > 1e-9 else '--')
+        print('%-52s %9.4f %9.4f %7d %7s'
+              % ('%s / %s' % (a, b), gnet, geomean(raw), len(net), rate))
         if gone:
             print('  %d shape(s) dropped, either arm missing or left without'
                   ' work by the correction: %s'
@@ -2813,6 +2825,17 @@ def counts_pair(counts_a, pairs, shapes):
     print('of the sweep\'s `sum-only*` arms, which is the term the `time`')
     print('column subtracts -- so this figure and a `--pair` time ratio are')
     print('the same quantity on two instruments. raw is what the file holds.')
+    print()
+    print('rate is (1 - time) / (1 - corrected counts), the share of an')
+    print('instruction saving that reaches the clock, and it is here because')
+    print('this file quotes it every run and no mode computed it: Runs 26, 27')
+    print('and 28 each hand-rolled the arithmetic from two other modes, and')
+    print('Run 28 took the RAW column for the corrected one doing so. It is')
+    print("NEGATIVE where a saving costs time, which is `-u2-last`'s reading")
+    print('and not an error, and `--` where the counts did not move at all,')
+    print('a rate over no saving being a division by zero rather than a')
+    print('number. The time half is `--pair`\'s paired geomean, the same')
+    print('figure that mode prints, so the two cannot disagree.')
     return rc
 
 
@@ -5125,15 +5148,33 @@ def extremes_table(paths, main_hs, args):
           ' stride-conditioned redirect' % 'best outside the family')
     print('would have bought in that class -- by the published column and'
           ' then paired.')
+    print('`bold` is which of those two cells the cross-class summary'
+          ' EMPHASISES, and it')
+    print('is here because that table is assembled by hand and the rule was'
+          ' not written')
+    print('anywhere a session assembling it would look. The rule is the'
+          ' COLUMN, not the')
+    print('paired ratio: the summary prints both cells to three decimals'
+          ' and a reader')
+    print('compares what is printed, so the faster of `best outside family`'
+          ' and `ceiling`')
+    print('is emphasised and nothing else decides it. FOUR of Run 28\'s ten'
+          ' classes tied')
+    print('at three decimals and were broken with `--pair` instead, which'
+          ' put the bold on')
+    print('the wrong cell of `rev` -- the two columns here are UNROUNDED,'
+          ' so they always')
+    print('separate and the tie a session sees in the table is a rounding'
+          ' artefact.')
     print()
-    print('%-10s %6s %8s %7s %-26s %7s %8s %8s %7s'
+    print('%-10s %6s %8s %7s %-26s %7s %8s %8s %7s %7s'
           % ('class', 'shapes', 'plain', 'worst', 'best outside family',
-             'gap col', 'gap pair', 'ceiling', 'floor'))
+             'gap col', 'gap pair', 'ceiling', 'floor', 'bold'))
     for r in sorted(rows, key=lambda r: r.label):
-        print('%-10s %6d %8.3f %7.3f %-26s %7.2f %8.2f %8.3f %6.2f%%'
+        print('%-10s %6d %8.3f %7.3f %-26s %7.2f %8.2f %8.3f %6.2f%% %7s'
               % (r.label, r.n, r.plain, r.worst,
                  '%s %.3f' % (r.out_st, r.out), r.gap, r.gapp, r.ceil,
-                 r.floor))
+                 r.floor, 'outside' if r.out < r.ceil else 'ceiling'))
     print()
     print('extremes:')
 
@@ -7340,6 +7381,22 @@ def move_registration(readme, run_doc):
     # text crossed a directory, so the move repoints them: --check-doc
     # catches what is left, which costs a minute a run rather than a run.
     body = body.replace('](#', '](../%s#' % os.path.basename(readme))
+    # ONE PARAGRAPH PER ITEM since 2026-09-11. The registration arrived as a
+    # single line -- 35,160 characters on Run 28, which the mode's own
+    # `chars moved` line reports -- while every class block
+    # and every verdict cites `registration (N)`, so looking one up was a
+    # scan of the whole with nothing to jump to. Run 28's comprehension
+    # probe raised it as its one structural finding and that run's own
+    # write-up raised it independently, which is two readers on the same
+    # defect and the reason it is fixed at the MOVE rather than by hand
+    # afterwards: the hand copy is what this mode exists to abolish.
+    # Split before each ` (N) *`, the form an item's lead has taken since
+    # Run 18. A body carrying no such marker is left WHOLE, so a
+    # registration written some other way is moved exactly as it was
+    # rather than mangled by a pattern that does not fit it.
+    if re.search(r' \(\d+\) \*', body):
+        body = '\n\n'.join(q.strip() for q in
+                            re.split(r'(?= \(\d+\) \*)', body) if q.strip())
     if REG_HEAD not in doc:
         sys.stderr.write('--move-registration: %s has no `%s` heading\n'
                          % (os.path.basename(run_doc), REG_HEAD))
@@ -8594,6 +8651,29 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     else:
         print('ok:   no ANSWERED entry is past %d words but the exempt ones,'
               ' and %s' % (ANSWERED_ACCOUNT, said))
+
+    # `--move-registration` leaves `___` where the ANSWERED stub's clause of
+    # verdicts goes, and until 2026-09-11 nothing read it. Run 28's entry
+    # reached the SECOND checker pass with the bare placeholder standing,
+    # every mechanical gate having passed over it, and it was found by an
+    # agent opening README beside the run file rather than by anything here.
+    # The mode that writes a placeholder is the one whose output most wants
+    # a gate: what writes it is a script and what fills it is a person, so
+    # the two are a handover with nobody on the far side. run-status.sh
+    # checks the RUN FILE for the same token and not README, which is why
+    # this sits here rather than there. Case: `answered-stub-keeps-its-slot`.
+    stubs = [(where(i), l) for i, l in status_entries(lines, 'ANSWERED')
+             if '___' in l]
+    if stubs:
+        bad.append('%d ANSWERED entry(s) still carry `___`, the placeholder'
+                   ' --move-registration leaves for the verdict clause: %s.'
+                   ' Write the verdicts in a clause each, as the entry under'
+                   ' it does, or the run publishes an entry that answers'
+                   ' nothing'
+                   % (len(stubs), '; '.join('%s %s' % (i, l[:56])
+                                            for i, l in stubs)))
+    else:
+        print("ok:   no ANSWERED entry carries --move-registration's `___`")
 
     # The run file's own two-column table keeps a column for each half,
     # including the regime this run's tables are NOT published from, which
@@ -11547,7 +11627,7 @@ def main():
                              ' two files are the cross-half reading and want'
                              ' `--compare OTHER.json`\n' % len(args.counts))
             sys.exit(2)
-        sys.exit(counts_pair(args.counts[0], args.pair, shapes))
+        sys.exit(counts_pair(args.counts[0], args.pair, shapes, cells))
     elif args.pair:
         pair_table(cells, shapes, strategies, args.pair,
                    per_shape=args.per_shape)

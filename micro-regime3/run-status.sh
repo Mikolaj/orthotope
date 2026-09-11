@@ -297,10 +297,19 @@ if [ -f "$DOC" ]; then
   SUBJ=$(git log --format=%s -- "$DOC" README.md | grep -i "run $N\b\|$R\b")
   # 6d's commit carries 6b's and 6c's work, so a subject naming both of
   # those names it too, which is how Run 23 wrote it.
-  # 7b joins them 2026-09-08: the tail after the checker is a step
-  # like the others and reads NOT DONE until a subject names it.
-  for s in 6b 6d 7a 7b; do
+  # The tail after the checker joined them 2026-09-08 as 7b and is 10c
+  # since 2026-09-11, having been renumbered to the position its own text
+  # always described; it is a step like the others and reads NOT DONE
+  # until a subject names it.
+  # 10c ACCEPTS ITS OLD NAME, and that is not laziness: the tail was 7b
+  # until 2026-09-11, so a run written between those two dates carries a
+  # commit saying `step 7b` -- Runs 27 and 28 do -- and would read NOT
+  # DONE for ever after --
+  # which is this file's own documented hazard, met by its own change.
+  # A renumber may not un-do a finished run.
+  for s in 6b 6d 7a 10c; do
     if printf '%s\n' "$SUBJ" | grep -qi "\b$s\b" \
+       || { [ "$s" = 10c ] && printf '%s\n' "$SUBJ" | grep -qi '\b7b\b'; } \
        || { [ "$s" = 6d ] && printf '%s\n' "$SUBJ" | grep -qi '\b6b\b.*\b6c\b'; }; then
       say "$s" "done" "a commit subject names step $s"
     else

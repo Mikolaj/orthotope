@@ -68,6 +68,54 @@ MUTANTS = [
     # round fails the first check on every shape it finds in Main.hs.
     ('read-run selftest stops checking the shape parse', 'read-run.py',
      "            if d['l'] != want:", "            if d['l'] == want:", READER),
+    # The emphasis column deciding the cross-class summary's bold, with
+    # its comparison reversed. The summary is assembled BY HAND and the
+    # rule was written nowhere a session assembling it would look, so Run
+    # 28 inferred it from the previous run's table, broke four ties with
+    # `--pair` instead of the column, and bolded the wrong cell of `rev`.
+    # The judge reads the column back against the two figures printed
+    # beside it on every row where they differ at the printed precision,
+    # so a reversal shows on six of ten rows. It takes the NEWEST run's
+    # classes alone: `--extremes` refuses a class named twice, so a glob
+    # spanning two runs on disk makes its own baseline red.
+    ('the emphasis column bolds the slower of the two cells',
+     'read-run.py',
+     "                 r.floor, 'outside' if r.out < r.ceil else 'ceiling'))",
+     "                 r.floor, 'outside' if r.out > r.ceil else 'ceiling'))",
+     'PATH="{bin}:$PATH" python3 -c "import glob, os, re, subprocess, sys\nms = sorted(glob.glob(os.path.join(\'{root}\', \'run*-g912-main.json\')))\nif not ms: sys.exit(0)\nrun = os.path.basename(ms[-1]).split(\'-g912-\')[0]\ncs = sorted(glob.glob(os.path.join(\'{root}\', run + \'-g912-*.json\')))\ncs = [c for c in cs if not re.search(r\'-(main|gate|al)[-.]\', c)]\nif len(cs) < 3: sys.exit(0)\nr = subprocess.run([sys.executable, \'{file}\', \'--extremes\', \'--classes\'] + cs, capture_output=True, text=True).stdout\nrows = re.findall(r\'^(\\\\w+)\\\\s+\\\\d+\\\\s+[\\\\d.]+\\\\s+[\\\\d.]+\\\\s+\\\\S+ ([\\\\d.]+)\\\\s+[-\\\\d.]+\\\\s+[-\\\\d.]+\\\\s+([\\\\d.]+)\\\\s+[\\\\d.]+%\\\\s+(outside|ceiling)\', r, re.M)\nif len(rows) < 3: sys.exit(1)\nbad = [n for n, o, c, b in rows if float(o) != float(c)\n       and b != (\'outside\' if float(o) < float(c) else \'ceiling\')]\nsys.exit(1 if bad else 0)"'),
+    # The rate column taking the RAW count ratio where the CORRECTED one
+    # belongs -- not hypothetical: Run 28 hand-rolled this arithmetic
+    # before the column existed, read the raw field by an off-by-one into
+    # the row, and got 41.2% where the answer is 21.9%. The judge
+    # recomputes the rate from the corrected column the same output prints
+    # and `--pair`'s own time geomean, so it catches the swap AND a column
+    # blinded to `--`; it exits 0 with no run on disk, which is LOST
+    # rather than caught, as every corpus judge here is.
+    ('the rate column prices a saving against the raw counts',
+     'read-run.py',
+     "                rate = ('%6.1f%%' % ((1 - t) / (1 - gnet) * 100)",
+     "                rate = ('%6.1f%%' % ((1 - t) / (1 - geomean(raw)) * 100)",
+     'PATH="{bin}:$PATH" python3 -c "import glob, os, re, subprocess, sys\nsw = sorted(glob.glob(os.path.join(\'{root}\', \'run*-counts-g912.txt\')))\nif not sw: sys.exit(0)\nrun = os.path.basename(sw[-1]).split(\'-counts-\')[0]\njs = os.path.join(\'{root}\', run + \'-g912-main.json\')\nif not os.path.exists(js): sys.exit(0)\nA = [\'mut-odo-vecdims-add-in-leaf-u1-ptr\', \'mut-odo-vecdims-add-in-leaf-u1\']\nrd = lambda e: subprocess.run([sys.executable, \'{file}\', js] + e, capture_output=True, text=True).stdout\no = rd([\'--counts\', sw[-1], \'--pair\'] + A)\nm = re.search(r\'([0-9.]+)\\\\s+([0-9.]+)\\\\s+([0-9]+)\\\\s+(-?[0-9.]+)%\', o)\nif not m: sys.exit(1)\nt = re.search(A[0] + \' / \' + A[1] + r\'\\\\s+([0-9.]+)\', rd([\'--pair\'] + A))\nif not t: sys.exit(0)\nw = (1 - float(t.group(1))) / (1 - float(m.group(1))) * 100\nsys.exit(0 if abs(w - float(m.group(4))) < 0.15 else 1)"'),
+    # The ANSWERED stub's `___` gate, blinded: the comprehension keeps no
+    # entry, so a README whose newest run entry is still the bare
+    # placeholder passes. That is the state Run 28 reached the second
+    # checker pass in, and the judge plants exactly it -- the fixture of
+    # `answered-stub-keeps-its-slot` -- and fails when the message is
+    # ABSENT, which is the direction a blinded check breaks in. It plants
+    # the fixture itself rather than going through defect-run.py, which
+    # refuses a copy that is in no git repository, as its siblings below do.
+    ('check-doc stops reading the ANSWERED stub for its placeholder',
+     'read-run.py',
+     "             if '___' in l]",
+     "             if False]",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'out = m.readme_answered_stub_unfilled(tempfile.mkdtemp())\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--check-doc\', \'--quiet\','
+     ' \'--readme\', out],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'still carry\' in r.stdout + r.stderr else 1)"'),
     # The population check's exemption for main-set shapes declared added
     # after the run: dropped, the fixture of the case
     # `main-shapes-added-after-the-run-are-exempt` fails on `match no
