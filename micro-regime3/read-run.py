@@ -9363,10 +9363,10 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
              'the head of the run chapter carries the measurement, so'
              ' requote the others'),
             ('six-pair figure',
-             (r'six pairs that carry back to Run 10[^.]*?([\d.]+)% and'
-              r' ([\d.]+)%',
-              r'([\d.]+)% and ([\d.]+)% (?:are the same over|read on) the'
-              r' six pairs'),
+             (r'pairs that carry back to Run 10[^.]*?\*{0,2}([\d.]+)%\*{0,2}'
+              r' and \*{0,2}([\d.]+)%',
+              r'\*{0,2}([\d.]+)%\*{0,2} and \*{0,2}([\d.]+)%\*{0,2}'
+              r' (?:are the same over|read on) the [a-z]+ pairs'),
              (r'six-pair figure of the half it is read on[^.]*?([\d.]+)%',
               r'\*([\d.]+)% between any two rows of the table\*'),
              'it is the threshold two rows of one table must clear, so one'

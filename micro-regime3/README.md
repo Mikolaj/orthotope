@@ -849,7 +849,7 @@ rather than a slot in the next run, observed again:
   but the ceiling is what the family's remaining margin is measured against,
   and a ceiling read on one codegen is not a ceiling until the two agree.
 
-- `OPEN` **A saving in instructions reaches the clock at a third to a half
+- `OPEN` **A saving in instructions reaches the clock at a fifth to a half
   within one binary, where the rate on record is three quarters.** [The
   ceiling](#the-mutable-ceiling-taken)'s nineteenth reading put the conversion
   at about three quarters, measured across two builds of one recipe --- 13.1%
@@ -894,7 +894,14 @@ rather than a slot in the next run, observed again:
   be negative, and the counted work cannot tell the negative case
   from the others --- `-u2-last`'s ratio reproduces its own pre-run probe
   to a ten-thousandth. What is still open is the cross-build half: no run has
-  yet read one pair of arms both ways.
+  yet read one pair of arms both ways. **Run 28 reads the same three pointer
+  spans LOWER at every rung: 21.9%, 28.5% and 42.8%**, against Run 27's 27%, 35%
+  and 46% and Run 26's 29%, 32% and 41% --- and its counted ratios are Run 27's
+  to three figures, 0.8945, 0.8359 and 0.8605 against 0.8944, 0.8358 and 0.8605,
+  so what moved is the time a saving buys and not the saving. That is why
+  this entry's band now opens at a fifth. Outside the family it reads
+  `lib-stage2-lean-u1` at 40.9% where Run 27 read 59%, and `-u2-last` turns
+  a 3.1% saving into a 1.4% LOSS for a second run.
 
 - `ANSWERED` **`lib-stage2-disp` and `lib-stage2-lean` are NOT the same code
   at a few hundred elements, which the lean ruling was written to make them.**
@@ -9485,42 +9492,55 @@ The three distant spans grew, 3, 25 and 22 on Run 13 to 10, 41 and 37,
 the roster having gained arms between those twins and their bases; the three
 adjacent spans are unchanged.
 
-**On Run 27 the floor is 0.83% on the basis half and 0.63% on the control,
-the HEAD half, and it is the third run read over the six pairs the prune left.**
-Both figures are over those **six** --- `list`, `bq-expand`
-and `mut-odo-vecdims`, each with an adjacent and a distant twin --- against Run
-26's 0.31% and 0.46% and Run 25's 0.40% and 0.61%, and against Run 24's 1.26%
-and 2.11%, Run 23's 2.03% and 2.80%, Run 22's 2.12% and 1.08% and Run 21's 2.92%
-and 2.16%, all over sixteen, and Run 20's 1.51% and 1.18%, Run 19's 2.32%
-and 1.71%, Run 18's 1.36% and 1.42%, Run 17's 3.70% and 3.89% and Run 16's 2.32%
-and 1.22%, every one of those five over eighteen. **A max over six pairs
-and a max over sixteen are different statistics, so those older figures
-are not a series this one continues; Runs 25 and 26's are, and this run is WIDER
-than both on both halves.** `bq-expand-aa-distant` carries both figures,
-and 0.83% and 0.63% read on the six pairs and on the four of them that carry
-back to Run 10 alike --- so the two thresholds this file kept apart for five
-runs stay collapsed into one, and one figure is quoted per half. **What Run 19
-settled about the floor, this run cannot restate either, and saying so
-is the point.** Run 19's basis half was Run 18's basis BINARY byte for byte
-and read 2.32% where that binary read 1.36%, a factor of 1.7 with everything
-held still; Run 23's basis was Run 22's binary and moved the floor
-by a twentieth. This run has no repetition to offer --- its roster moved
-by the commits of 2026-09-07, so neither half reproduces an earlier binary ---
-and its 0.83% therefore carries a roster change and a box change as well
-as an evening: the gate's machine check fired on this run, `list`'s net reading
-3.66% below the fingerprint Run 26 kept. **Where the movement lives is the one
-thing ten runs now agree on.** The six-pair figure has read 0.54%, 0.49%, 0.44%,
-0.46%, 0.37%, 0.39%, 0.34%, 0.40%, 0.31% and now 0.83% across those ten
-on the basis while the whole-set figure ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12%,
-2.03% and 1.26% before it stopped, so the pairs outside the six were what moved
---- and the six, steady within a factor of 1.6 for nine runs, have just moved
-by 2.7x in one, with Run 21's control half the only earlier reading that strains
-the series as hard. The threshold this run supports is therefore ONE figure
-and no longer two --- *0.83% between any two rows of the table*, which is both
-the six-pair basis and the whole set --- where Run 26 supported 0.31%, Run 25
-0.40%, Run 24 0.34% and 1.26%, Run 23 0.39% and 2.03%, Run 22 0.37% and 2.12%,
-Run 21 0.46% and 2.92%, Run 20 0.44% and 1.51%, Run 19 0.49% and 2.32%, Run 18
-0.54% and 1.36%, Run 17 1.31% and 3.70%, Run 16 0.39% and 2.32%, Run 14 0.29%
+**On Run 28 the floor is 0.50% on the basis half and 0.65% on the control,
+the HEAD half, and it is the FIRST run read over EIGHT pairs.** The shipped
+fill's own A/A copies landed 2026-09-09 with that run's registration (15),
+so the eight are `list`, `bq-expand`, `mut-odo-vecdims`
+and `mut-odo-vecdims-add-in-leaf-u2`, each with an adjacent and a distant twin
+--- against Run 27's 0.83% and 0.63% and Run 26's 0.31% and 0.46% over six,
+and Run 25's 0.40% and 0.61%, and against Run 24's 1.26% and 2.11%, Run 23's
+2.03% and 2.80%, Run 22's 2.12% and 1.08% and Run 21's 2.92% and 2.16%, all
+over sixteen, and Run 20's 1.51% and 1.18%, Run 19's 2.32% and 1.71%, Run 18's
+1.36% and 1.42%, Run 17's 3.70% and 3.89% and Run 16's 2.32% and 1.22%, every
+one of those five over eighteen. **A max over six pairs and a max over sixteen
+are different statistics, so those older figures are not a series this one
+continues; Runs 25 and 26's are, and this run is WIDER than both on both
+halves.** `mut-odo-vecdims-add-in-leaf-u2-aa-distant` carries the basis figure
+and `bq-expand-aa-distant` the control's, and the **six-pair figure** ---
+the restricted reading over the four pairs that carry back to Run 10 ---
+is **0.39%** and **0.65%**. So the two thresholds this file kept apart for five
+runs and saw collapsed for three are APART AGAIN on the basis half, and
+for a reason worth keeping: the arm the library actually runs disagrees
+with its own duplicate by more than any older pair does, which is what a floor
+measured on `list`, `bq-expand` and `mut-odo-vecdims` alone could not have said.
+**What Run 19 settled about the floor, this run cannot restate either,
+and saying so is the point.** Run 19's basis half was Run 18's basis BINARY byte
+for byte and read 2.32% where that binary read 1.36%, a factor of 1.7
+with everything held still; Run 23's basis was Run 22's binary and moved
+the floor by a twentieth. This run has no repetition to offer --- its roster
+moved by the commits of 2026-09-09, so neither half reproduces an earlier binary
+--- and its 0.50% therefore carries a roster change and an evening but NOT a box
+change: the gate's machine check did NOT fire, `list`'s net reading 0.37% above
+the fingerprint Run 27 installed, where Run 27's fired at 3.66% below Run 26's.
+**Where the movement lives is the one thing ten runs now agree on.**
+The six-pair figure has read 0.54%, 0.49%, 0.44%, 0.46%, 0.37%, 0.39%, 0.34%,
+0.40%, 0.31%, 0.83% and now 0.39% across those eleven on the basis while
+the whole-set figure ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12%, 2.03% and 1.26%
+before it stopped, so the pairs outside the six were what moved. **Run 27's
+0.83% does not survive as a trend**: it was a 2.7x excursion in one run
+and this run returns to 0.39%, inside the band the series held for nine runs
+before it. What is new is not the restricted figure but the whole-set one, which
+is 0.50% here because a pair no earlier run carried is the widest of the eight.
+The threshold this run supports is therefore TWO figures again and no longer one
+--- **0.39% and 0.50%** on the basis, the restricted four-pair reading
+and the whole set over the eight pairs, quoted in that order as every run before
+Run 25 quoted its two --- and which of them a margin between two rows must clear
+is a question this run RE-OPENS rather than settles, the standing rule naming
+the restricted figure and the wider one being the conservative reading ([the
+open list][open]) --- where Run 26 supported 0.31%, Run 25 0.40%, Run 24 0.34%
+and 1.26%, Run 23 0.39% and 2.03%, Run 22 0.37% and 2.12%, Run 21 0.46%
+and 2.92%, Run 20 0.44% and 1.51%, Run 19 0.49% and 2.32%, Run 18 0.54%
+and 1.36%, Run 17 1.31% and 3.70%, Run 16 0.39% and 2.32%, Run 14 0.29%
 and 2.19%, Run 12 0.35% and 0.24%, Run 11 a quarter of a percent on its max-skip
 half and 1.21% on the other, Run 10 1.00% unaligned and 0.54% aligned, Run 9
 under 0.1% with a wild cell, Run 8 0.5% and Run 7 nearly 4%. Runs disagreeing
@@ -9668,43 +9688,43 @@ of the 0.902-to-1.181 band Run 10 had to quote when the roster order moved
 the layout underneath it. Two consequences worth keeping when the run file
 carrying them is replaced: a margin of a few percent between two runs is still
 not evidence, and a margin between two *arms* of one run has to clear
-the six-pair figure of the half it is read on --- 0.83% on Run 27's basis ---
+the six-pair figure of the half it is read on --- 0.39% on Run 28's basis ---
 which is the A/A floor above restricted to the pairs that carry, and
 was a different quantity from the whole-set floor until the prune of 2026-09-04
-left six pairs in all. **One rule is in play now where two were, and it reads
-as two numerals because there are two halves**: 0.83% and 0.63% are the widest
-an arm differs from its own duplicate by on each half, and are also what two
-rows of one table must clear --- the whole set and the four pairs carrying back
-to Run 10 giving the same figure since that prune --- and 2.1% is the across-run
-drift band an arm must clear to have moved between runs on this box, Run 23's
-one-binary reading, where Run 11's was 3.3%. **All three are the word *floor*,
-over different populations, and two things that are not it wear it easily.**
-A class's `floor` column is the same statistic again over that population's A/A
-pairs, so it is a fourth member of the family and not a fourth sense.
-**And a margin read ACROSS a pair's two halves on a class is judged against
-the WIDER of the two halves' floors, and a registration's kill condition
-on a class says so**: the narrower floor is the one that makes a kill
-and the wider the one that makes a tie honest, and a pair whose halves' floors
-differ threefold --- Run 23's `reshape1`, 3.09% on the basis and 10.75%
-on the dead-spot half --- is exactly where a reader should not get to choose.
-Ruled 2026-09-02, after that run's registration 3 was read two ways;
-under it that registration's first half is a split and not a kill. **The worst
-single A/A cell is not a floor at all** --- 16.66% on Run 24's basis main set
-and 19.72% on one of its class processes, against 2.04% and 5.48% on Run 25's
-two main sets --- and the procedure says so where it is read; it is one cell
-where these are geomeans over a population, and quoting it as one overstates
-the instrument by an order of magnitude. Nor is the residue [the alignment
-question][open] asks about, which is an effect size that survived a control
-rather than a spread the run measured. The exceptions are `build` and `mut-odo`,
-one worker at two slots, whose cells reached 1.092 on Run 23's basis and 0.828
-on that run's dead-spot half --- and Run 21 is the run that took the reading
-those two have always wanted: post-run step 0 named the tracked two-copy group
-off a `-g3` twin and it IS `fbBuild` and `fbMutOdo`, both at offset 0 in their
-cache line on BOTH halves, on Run 23's two as on Run 21's and Run 22's.
-So the residue the pairing cannot reach is not a cache-line offset; what Run 23
-adds is that placing every OTHER pad off the execution path opens the pair
-from a tie to 0.9449 on the dead-spot half, and what it is remains [the open
-list][open]'s.
+left six pairs in all. **Two rules are in play again, having been one for three
+runs, and each reads as two numerals because there are two halves**: 0.50%
+and 0.65% are the widest an arm differs from its own duplicate by on each half
+over the eight pairs this roster carries, and are what two rows of one table
+must clear, while the four pairs carrying back to Run 10 give 0.39% and 0.65%
+--- and 2.1% is the across-run drift band an arm must clear to have moved
+between runs on this box, Run 23's one-binary reading, where Run 11's was 3.3%.
+**All three are the word *floor*, over different populations, and two things
+that are not it wear it easily.** A class's `floor` column is the same statistic
+again over that population's A/A pairs, so it is a fourth member of the family
+and not a fourth sense. **And a margin read ACROSS a pair's two halves
+on a class is judged against the WIDER of the two halves' floors,
+and a registration's kill condition on a class says so**: the narrower floor
+is the one that makes a kill and the wider the one that makes a tie honest,
+and a pair whose halves' floors differ threefold --- Run 23's `reshape1`, 3.09%
+on the basis and 10.75% on the dead-spot half --- is exactly where a reader
+should not get to choose. Ruled 2026-09-02, after that run's registration 3
+was read two ways; under it that registration's first half is a split and
+not a kill. **The worst single A/A cell is not a floor at all** --- 16.66%
+on Run 24's basis main set and 19.72% on one of its class processes, against
+2.04% and 5.48% on Run 25's two main sets --- and the procedure says so where
+it is read; it is one cell where these are geomeans over a population,
+and quoting it as one overstates the instrument by an order of magnitude.
+Nor is the residue [the alignment question][open] asks about, which is an effect
+size that survived a control rather than a spread the run measured.
+The exceptions are `build` and `mut-odo`, one worker at two slots, whose cells
+reached 1.092 on Run 23's basis and 0.828 on that run's dead-spot half ---
+and Run 21 is the run that took the reading those two have always wanted:
+post-run step 0 named the tracked two-copy group off a `-g3` twin and
+it IS `fbBuild` and `fbMutOdo`, both at offset 0 in their cache line on BOTH
+halves, on Run 23's two as on Run 21's and Run 22's. So the residue the pairing
+cannot reach is not a cache-line offset; what Run 23 adds is that placing every
+OTHER pad off the execution path opens the pair from a tie to 0.9449
+on the dead-spot half, and what it is remains [the open list][open]'s.
 
 **And a busy machine has now been measured rather than only avoided, which
 is what says the wild cell is not one.** Run 11's sequence was launched twice;
@@ -11367,41 +11387,84 @@ the record costs. **A fourth half arrives with the pairing and is not a delta
 at all**: which half of the pair a figure came from, which is why the run file's
 tables and its fingerprint say so.
 
-- Run 27 measured TODAY's shapes and class views, being the run whose file
-  `runs/` currently publishes --- 35 timed arms over 19 main-set shapes and 52
-  class views in TEN classes, 665 benches and 1820, SIX A/A pairs, the `runs`
-  class at FOURTEEN and `window` at SIX --- and its roster is TODAY's LESS
-  THIRTEEN AND PLUS NINE: `libunord-stage6-sum` to `libunord-stage9-sum`,
+- Run 28 measured TODAY's shapes, class views AND today's roster, nothing having
+  moved since it ran, so its figures need no adjustment at all --- 39 timed arms
+  over 19 main-set shapes and 58 class views in TEN classes, 741 benches
+  and 2262, EIGHT A/A pairs, the `runs` class at FOURTEEN, `window` at EIGHT,
+  `bcast` and `flip` at SIX, `block` and `small` at FIVE, `bcastmid`
+  and `compose` at FOUR and `rev` and `scaled` at THREE. It is the run whose
+  file `runs/` currently publishes. **Its delta against RUN 27** is the commits
+  of 2026-09-09 and the reader ruling of the day after: thirteen timed arms
+  landing --- `libunord-stage6-sum` to `libunord-stage9-sum`,
   `libunord-stage6-loop-sum`, `libunord-stage6-list-sum`, `libunord-stage3-sum`,
   `liblist-stage1-sum` to `liblist-stage4-sum` and the shipped fill's two A/A
-  copies, `mut-odo-vecdims-add-in-leaf-u2-aa` and `-aa-distant`, were added
-  2026-09-09, after Run 27, and `liblist-stage1` to `liblist-stage4`
-  and `libunord-stage1` to `libunord-stage5`, which it timed, are checked
-  and not timed since the same day, as are `libunord-stage6`
-  to `libunord-stage9`, which no run has timed, so no slot below
-  `lib-stage2-lean-u1` is where it was, and a figure read across that boundary
-  carries a roster term; the fusion overhaul of the same day rewrote `lazyRuns`
-  and every `-sum` consumer, so `libunord-stage4`, `-stage5`, `liblist-stage3`,
-  `-stage4` and the four consumers Run 27 timed are not today's code either
-  ([the fusion entry][open]); and since 2026-09-10 no `-sum` consumer has
-  a corrected time at all, the term measured on `sum-only` having been ruled
-  inapplicable to an arm that produces nothing to force, so Run 27's `time`
-  and `worst` figures for its four have no counterpart in a later run's tables,
-  where a pair over two of them does, being read raw; and the six list Fill
-  arms, the four ports' and the two ordered candidates', no longer concatenate
-  a one-element list, so their allocation and their time on every view
-  the library fills once are not Run 27's (Run 28's item (9)).
-  And `window-64x64-c16-k3`, `window-32x32-c64-k3`, `bcast-src8`, `bcast-src64`,
-  `bcast-src512` and `flip-fwd-rows96` were added 2026-09-09, after Run 27, two
-  patch views with channels in `window`, a repeat ladder in `bcast`
-  and a forward control in `flip`, so its class views are TODAY's LESS SIX.
-  **Its delta against RUN 26** is the commits of 2026-09-06 and 2026-09-07:
-  the four arms Run 26 lifted out of parking put back, the `:: Ptr Double`
-  annotation on every bang-bound `plusPtr` result in the three pointer arms,
-  which is the GHC #27778 workaround and changes no 9.12 code ([the open
-  list][open]), and then ten arms landing --- `libunord-stage4`
-  and `libunord-stage5`, the four `-sum` reducing consumers, `liblist-stage3`
-  and `liblist-stage4`, `mut-odo-vecdims-add-in-leaf-u2-last`
+  copies --- and nine leaving, `liblist-stage1` to `liblist-stage4`
+  and `libunord-stage1` to `libunord-stage5`, every one of them an arm
+  that concatenates a list the library would fold and all of them checked
+  and not timed since; six class views landing, two patch views with channels
+  in `window`, a repeat ladder of three in `bcast` and a forward control
+  in `flip`; the fusion overhaul that rewrote `lazyRuns` into one flat loop
+  compiled once as `sumLazyRuns` and reached through each stage's `Route`; two
+  changes to `fillStage2`, a doubling block copy for a zero-stride level
+  and the broadcast run unrolled by two; and the ruling of 2026-09-10
+  that a reducing consumer has NO corrected time, which takes `time` and `worst`
+  off every `-sum` row and leaves no cell on either half below the shared
+  forcing pass, where Run 27 had seventy and forty-three. `bdf06c8`, the tip
+  both halves were built from, is the shipped fill's A/A pair and the `flip`
+  forward control. So NEITHER half reproduces an earlier binary and no md5 here
+  matches one on record; **the nineteen main-set shapes are unmoved between
+  the two runs, so a cross-run figure is over all nineteen**, and **the box did
+  NOT move**, its gate machine check reading +0.37% on `list`'s net against
+  the fingerprint Run 27 installed, over 19 of 19 shapes and none past 5%,
+  so a cross-run absolute here is a subtraction and wants no bridge --- the 18
+  arms both rosters time AND both give a corrected time reading 0.9867
+  to 1.0125. What a reader has to carry is which half a figure came from:
+  everything published in its file is `run28-g912`, ghc-9.12.4,
+  and `run28-ghead` --- the same source, shim and shim environment built through
+  `cabal.project.ghead` against the in-tree GHC HEAD stage1, unmoved since Run
+  24, so the halves differ in the compiler and in the boot libraries that come
+  with it and in nothing else --- contributes the second column
+  of `runs/run28.md`. Its `list` moved 0.46% between the halves, INSIDE the 0.7%
+  bar, so its two columns may be subtracted. Its sequence ran in ONE window,
+  01:02:39 to 09:42:43, with no intrusion found and no population rerun.
+  **And its floor is a maximum over EIGHT A/A pairs**, 0.50% and 0.65%,
+  the first run to carry the shipped fill's own pair, its restricted four-pair
+  reading being 0.39% and 0.65%.
+- Run 27 measured neither today's class views nor today's roster, and
+  is no longer the run whose file `runs/` publishes --- 35 timed arms over 19
+  main-set shapes and 52 class views in TEN classes, 665 benches and 1820, SIX
+  A/A pairs, the `runs` class at FOURTEEN and `window` at SIX --- and its roster
+  is TODAY's LESS THIRTEEN AND PLUS NINE: `libunord-stage6-sum`
+  to `libunord-stage9-sum`, `libunord-stage6-loop-sum`,
+  `libunord-stage6-list-sum`, `libunord-stage3-sum`, `liblist-stage1-sum`
+  to `liblist-stage4-sum` and the shipped fill's two A/A copies,
+  `mut-odo-vecdims-add-in-leaf-u2-aa` and `-aa-distant`, were added 2026-09-09,
+  after Run 27, and `liblist-stage1` to `liblist-stage4` and `libunord-stage1`
+  to `libunord-stage5`, which it timed, are checked and not timed since the same
+  day, as are `libunord-stage6` to `libunord-stage9`, which no run has timed,
+  so no slot below `lib-stage2-lean-u1` is where it was, and a figure read
+  across that boundary carries a roster term; the fusion overhaul of the same
+  day rewrote `lazyRuns` and every `-sum` consumer, so `libunord-stage4`,
+  `-stage5`, `liblist-stage3`, `-stage4` and the four consumers Run 27 timed
+  are not today's code either ([the fusion entry][open]); and since 2026-09-10
+  no `-sum` consumer has a corrected time at all, the term measured
+  on `sum-only` having been ruled inapplicable to an arm that produces nothing
+  to force, so Run 27's `time` and `worst` figures for its four have
+  no counterpart in a later run's tables, where a pair over two of them does,
+  being read raw; and the six list Fill arms, the four ports' and the two
+  ordered candidates', no longer concatenate a one-element list, so their
+  allocation and their time on every view the library fills once are not Run
+  27's (Run 28's item (9)). And `window-64x64-c16-k3`, `window-32x32-c64-k3`,
+  `bcast-src8`, `bcast-src64`, `bcast-src512` and `flip-fwd-rows96` were added
+  2026-09-09, after Run 27, two patch views with channels in `window`, a repeat
+  ladder in `bcast` and a forward control in `flip`, so its class views
+  are TODAY's LESS SIX. **Its delta against RUN 26** is the commits
+  of 2026-09-06 and 2026-09-07: the four arms Run 26 lifted out of parking put
+  back, the `:: Ptr Double` annotation on every bang-bound `plusPtr` result
+  in the three pointer arms, which is the GHC #27778 workaround and changes
+  no 9.12 code ([the open list][open]), and then ten arms landing ---
+  `libunord-stage4` and `libunord-stage5`, the four `-sum` reducing consumers,
+  `liblist-stage3` and `liblist-stage4`, `mut-odo-vecdims-add-in-leaf-u2-last`
   and `lib-stage2-lean-u1` --- with `check`'s laziness gate beside them
   and `lib-stage2-disp` retired that evening, ten in and five out and five net,
   no shape and no class view moving either way. `bb6d113`, the tip both halves

@@ -1146,18 +1146,28 @@ def readme_six_pair_perturbed(tmp):
     rewritten -- and an anchor that lands OUTSIDE an AGREEING site
     perturbs text the check does not read, which is a fixture that builds
     and a case that cannot fire. The shape here is one of the sites.
+
+    RE-SHAPED AGAIN 2026-09-11, for the same reason one roster later, and
+    the anchor is now population-independent so a third landing does not
+    move it. Run 28 landed the shipped fill's own A/A pair, so the set is
+    EIGHT and the sentence cannot say `the six pairs` either; what it can
+    say at any size is `pairs that carry back to Run 10`, and the check's
+    own pattern was generalised to that on the same day. The figures are
+    bolded in the live sentence, which the earlier anchor did not allow
+    for.
     """
     text = open(README).read()
     flat_text = subprocess.run(['wrap80', '--unwrap'], input=text,
                                capture_output=True, text=True,
                                check=True).stdout
-    ms = re.findall(r'([\d.]+)% and ([\d.]+)% read on the six pairs',
-                    flat_text)
-    assert len(ms) == 1, ('the six-pair sentence occurs %d times, need 1'
-                          % len(ms))
-    x, y = ms[0]
-    old = '%s%% and %s%% read on the six pairs' % (x, y)
-    new = '%.2f%% and %s%% read on the six pairs' % (float(x) + 0.30, y)
+    shape = (r'(pairs that carry back to Run 10[^.]*?\*{0,2})'
+             r'([\d.]+)(%\*{0,2} and \*{0,2}[\d.]+%)')
+    ms = list(re.finditer(shape, flat_text))
+    assert len(ms) == 1, ('the six-pair sentence occurs %d times in README,'
+                          ' need 1' % len(ms))
+    m = ms[0]
+    old = m.group(0)
+    new = '%s%.2f%s' % (m.group(1), float(m.group(2)) + 0.30, m.group(3))
     return write(os.path.join(tmp, 'R.md'), flat_text.replace(old, new, 1))
 
 
