@@ -3192,7 +3192,7 @@ mkStrided normalSh =
 -- from @o + 1@ fails @check@ at @runs-2@.
 {-# NOINLINE fbLibStage1 #-}
 fbLibStage1 :: ShapeL -> T -> VS.Vector Double
-fbLibStage1 sh a@(T (Strides ats) ao v)
+fbLibStage1 sh (T (Strides ats) ao v)
   | ats == ts' && VS.length v == l = v
   | null sh = VS.slice ao 1 v
   | oks !! (length sh - 1) = VS.concat (loop oks sh ats ao)
@@ -3401,7 +3401,7 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
       -- fails @check@ at @edge-bcastmid-b2@ -- and had passed it on every
       -- timed view, none having a zero-stride outer level of extent 2 or
       -- one more than a power of two, which is what the edge class is for.
-      copies !n !blk !src _dst
+      copies !n !blk !src
         | n <= 1 = return (src + blk)
         | otherwise = grow blk
         where
@@ -3416,7 +3416,7 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
       {-# INLINE runsWith #-}
       runsWith writeRun !n !st !outPos !baseOff
         | st == 0 = writeRun outPos baseOff
-                    >> copies n sInner outPos (outPos + sInner)
+                    >> copies n sInner outPos
         | otherwise =
             let run !k !op !boff
                   | k <= 0    = return op
@@ -3438,7 +3438,7 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
                 else runsWith writeRunStep n st outPos baseOff
             | st == 0 = do
                 op' <- go (lev + 1) outPos baseOff
-                copies n (op' - outPos) outPos op'
+                copies n (op' - outPos) outPos
             | otherwise =
                 let dim !k !op !boff
                       | k <= 0    = return op
@@ -3503,7 +3503,7 @@ fillStage2U1 sh ats !ao !l !v = VS.create $ do
       -- copy per block.
       -- The same code as 'fillStage2''s, whose non-vacuity break stands
       -- for this one.
-      copies !n !blk !src _dst
+      copies !n !blk !src
         | n <= 1 = return (src + blk)
         | otherwise = grow blk
         where
@@ -3518,7 +3518,7 @@ fillStage2U1 sh ats !ao !l !v = VS.create $ do
       {-# INLINE runsWith #-}
       runsWith writeRun !n !st !outPos !baseOff
         | st == 0 = writeRun outPos baseOff
-                    >> copies n sInner outPos (outPos + sInner)
+                    >> copies n sInner outPos
         | otherwise =
             let run !k !op !boff
                   | k <= 0    = return op
@@ -3540,7 +3540,7 @@ fillStage2U1 sh ats !ao !l !v = VS.create $ do
                 else runsWith writeRunStep n st outPos baseOff
             | st == 0 = do
                 op' <- go (lev + 1) outPos baseOff
-                copies n (op' - outPos) outPos op'
+                copies n (op' - outPos) outPos
             | otherwise =
                 let dim !k !op !boff
                       | k <= 0    = return op
@@ -4563,7 +4563,7 @@ lsUnordStage1 sh a@(T (Strides ats) ao v)
         l : ts' = getStridesT sh'
 
 lsListStage1 :: ShapeL -> T -> [VS.Vector Double]
-lsListStage1 sh a@(T (Strides ats) ao v)
+lsListStage1 sh (T (Strides ats) ao v)
   | ats == ts' && VS.length v == l = [v]
   | null sh = [VS.slice ao 1 v]
   | oks !! (length sh - 1) = loop oks sh ats ao
