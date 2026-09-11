@@ -858,9 +858,9 @@ CARRY_BACK = ('mut-odo-vecdims', 'bq-expand', 'bq-scan-rem-gm-mulback')
 Six pairs, both positions of each, and they are the only ones a floor can
 be compared across runs on: everything else in the eighteen arrived later,
 so a run-to-run reading of the eighteen-pair figure is over two different
-populations. README calls this the six-pair figure and holds it to two
-sites; before Run 17 it was derived by hand at the write-up, which is
-where it was first quoted three ways.
+populations. README calls this the carry-back figure, the six-pair figure
+until 2026-09-11, and holds it to two sites; before Run 17 it was derived
+by hand at the write-up, which is where it was first quoted three ways.
 """
 
 # The middle anchor was `cifar-L2-16-c64-k3` through Run 24, retired
@@ -1998,8 +1998,8 @@ def chapter_skeleton(cells, shapes, strategies, meta, other, main_hs):
                if any(p.a.startswith(b + '-aa') for b in CARRY_BACK)]
         if six:
             b6 = aa_floor(six)
-            print('  %s half: six-pair figure %.2f%% (%s), over the %d pair(s)'
-                  ' that carry back to Run 10'
+            print('  %s half: carry-back figure %.2f%% (%s), over the'
+                  ' %d pair(s) that carry back to Run 10'
                   % (tag, abs(b6.g - 1) * 100, b6.a, len(six)))
         anch = [(sh, cs[sh]['list']['net']) for sh in ANCHORS
                 if sh in cs and 'list' in cs[sh]]
@@ -9565,12 +9565,12 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
              (),
              'the head of the run chapter carries the measurement, so'
              ' requote the others'),
-            ('six-pair figure',
+            ('carry-back figure',
              (r'pairs that carry back to Run 10[^.]*?\*{0,2}([\d.]+)%\*{0,2}'
               r' and \*{0,2}([\d.]+)%',
               r'\*{0,2}([\d.]+)%\*{0,2} and \*{0,2}([\d.]+)%\*{0,2}'
               r' (?:are the same over|read on) the [a-z]+ pairs'),
-             (r'six-pair figure of the half it is read on[^.]*?([\d.]+)%',
+             (r'carry-back figure of the half it is read on[^.]*?([\d.]+)%',
               r'\*([\d.]+)% between any two rows of the table\*'),
              'it is the threshold two rows of one table must clear, so one'
              ' wrong copy retires a margin'),
@@ -9682,11 +9682,11 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                   ' named' % base.pop())
 
         # A CLASS's own floor, which the two checks above do not reach.
-        # They hold the RUN's floor pair and the six-pair figure across
+        # They hold the RUN's floor pair and the carry-back figure across
         # their sites; a class's floor is quoted inside its own block and
         # was checked by nothing, so a block requoting its predecessor's
         # would have ridden a write-up in silence -- the same failure the
-        # six-pair check was written for, one population down. Unlike
+        # carry-back check was written for, one population down. Unlike
         # those two this one has a truth on the page rather than only
         # agreement: the class table's `floor` column is what `--block`
         # installs from the JSON, so the block's prose is checked against
@@ -9961,7 +9961,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         # subjects that turned out to have both a truth and a phrasing.
         # A run spends one process per class per half, so the figure is
         # len(blocks) times one or two and nothing else -- a structural
-        # count, where the six-pair figure and the floor pair are only
+        # count, where the carry-back figure and the floor pair are only
         # cross-site agreement and can be uniformly stale.
         #
         # THE BARE TOTAL RESISTED AND IS NOT CHECKED, measured 2026-08-26

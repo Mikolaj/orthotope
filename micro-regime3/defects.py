@@ -1207,7 +1207,7 @@ def readme_answered_stub_unfilled(tmp):
 
 
 def readme_six_pair_perturbed(tmp):
-    """A copy of README whose six-pair sentence quotes a first figure no
+    """A copy of README whose carry-back sentence quotes a first figure no
     other site does, found by the sentence's shape rather than by the
     run's figure -- `X% and Y% read on the six pairs` -- so that the
     fixture follows the requote instead of failing to build after it.
@@ -1237,7 +1237,7 @@ def readme_six_pair_perturbed(tmp):
     shape = (r'(pairs that carry back to Run 10[^.]*?\*{0,2})'
              r'([\d.]+)(%\*{0,2} and \*{0,2}[\d.]+%)')
     ms = list(re.finditer(shape, flat_text))
-    assert len(ms) == 1, ('the six-pair sentence occurs %d times in README,'
+    assert len(ms) == 1, ('the carry-back sentence occurs %d times in README,'
                           ' need 1' % len(ms))
     m = ms[0]
     old = m.group(0)
@@ -1760,7 +1760,7 @@ def rundoc_miscounting_its_class_processes(tmp):
 
     A run spends one process per class per half, so the figure is the block
     count or twice it and nothing else. That is a structural truth, where
-    the floor pair and the six-pair figure are cross-site agreement and can
+    the floor pair and the carry-back figure are cross-site agreement and can
     be uniformly stale -- which is why this is the one of Run 14's four
     wrong subjects that turned out checkable. The phrasing is what makes it
     so: `N class processes` reads `sixteen` in run19.md and run20.md alike,
@@ -4311,8 +4311,8 @@ TIER1 = {
                       bug='refused inside the driver log, which the relaunch guard read as a previous attempt'),
     # ---- read-run.py, figures across sites ----
     'six-pair-floor-disagrees-across-sites': dict(family='two-spellings', discovery='in-use', harm='fired', harm_count=6,
-                      trigger='the six-pair figure quoted differently at two sites',
-                      ok='fails, six-pair figure is quoted differently',
+                      trigger='the carry-back figure, the six-pair figure until 2026-09-11, quoted differently at two sites',
+                      ok='fails, carry-back figure is quoted differently',
                       bug='nothing held the sites to each other'),
     'calibration-base-disagrees-across-sites': dict(family='two-spellings', discovery='in-use', harm='fired', harm_count=2,
                       trigger='the A/A population quoted as six here and eighteen there',
@@ -7952,7 +7952,7 @@ RECORDS = [
          # docstring says what it cost when it did not.
          plant=lambda t: {'readme': readme_six_pair_perturbed(t)},
          argv=['--check-doc', '--readme', '{readme}'],
-         ok=V(exit=1, has=['six-pair figure is quoted differently']),
+         ok=V(exit=1, has=['carry-back figure is quoted differently']),
          # No --audit: the fixture is built from today's document and
          # plants against an anchor the era's copy does not carry, so
          # the replay is a fixture that will not build. 2026-08-25.

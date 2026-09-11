@@ -1032,7 +1032,7 @@ rather than a slot in the next run, observed again:
   for every pair it registers, the probe JSONs already on disk: the fusion probe
   of 2026-09-09 had (6)'s pair behind on both populations that killed it,
   and nobody read those cells for the item.
-- `OPEN` **The A/A floor and the restricted six-pair figure came apart on Run 28
+- `OPEN` **The A/A floor and the carry-back figure came apart on Run 28
   for the first time since the prune, and which of them a margin between two
   rows must clear is now two answers.** The shipped fill's own A/A copies landed
   2026-09-09, so the floor is a maximum over EIGHT pairs and reads 0.50%
@@ -1053,7 +1053,10 @@ rather than a slot in the next run, observed again:
   against, a check keyed on a population's SIZE. The check itself is safe, keyed
   on *pairs that carry back to Run 10*; what is owed is the rename,
   and it reaches a corpus case's expected text, so it is a run's work and
-  not a clause's.
+  not a clause's. **The rename is TAKEN 2026-09-11**: the figure
+  is the carry-back figure, named for the pairs that carry back to Run 10,
+  in this file, on `read-run.py`'s `--chapter` line and in its agreement row,
+  and in the corpus case's expected text; what stays open is the ruling.
 - `ANSWERED` **The arm that leads Run 28's table is the branch's own driver
   and not a member of the family the fix shipped.** `lib-stage2-lean` reads
   0.027 on the main set against the shipped `mut-odo-vecdims-add-in-leaf-u2`'s
@@ -2543,7 +2546,7 @@ rather than a slot in the next run, observed again:
   criterion's estimator nothing and shares a process, so no *per-process*
   placement term survives it --- but the two arms sit at different cache-line
   offsets, 0 and 24, and that difference is static and survives every route
-  here. At 1.51% it clears the basis's 1.31% six-pair threshold. GC is 0.015%
+  here. At 1.51% it clears the basis's 1.31% carry-back threshold. GC is 0.015%
   of mutator on these arms, so reading mutator rather than wall changes nothing
   here. **What it does not cover is the control half**: the probe reads
   its timing off the instrument, which `run17-det` does not carry, so the nine
@@ -2560,35 +2563,35 @@ rather than a slot in the next run, observed again:
   of 24, sign p 0.0066), the control roster at 1.0300 (21 of 24, p 0.00028),
   the fixed-n paired probe at 1.0151, and these two at 1.0171 and 1.0059.
   The magnitude is context-dependent and spans 1.0059 to 1.0300; the direction
-  is not, and 1.71% on the uninstrumented half clears that half's 0.56% six-pair
-  threshold threefold. **But placement is NOT excluded, and the offsets
-  are the reason to suspect it.** The two arms share one 28-byte body and sit
-  at different cache-line offsets: on Run 17, `fbMutOdoVecdims` at **0**
-  and `fbMutOdoVecdimsAddIn` at **24**, named off the `-g3` twins and identical
-  in both halves, since the patch shifts `.text` by 4096 bytes and these two
-  loops by 6912, both whole multiples of 64. So every reading above is one draw
-  on their placement rather than five. **Run 17 is the first run to move
-  these two arms off the offsets they had held**, and the history is recorded
-  rather than inferred: Runs 12 and 13 each named the vecdims four off a `-g3`
-  twin and matched them by byte identity, both putting **`mut-odo-vecdims` at 24
-  and `-add-in` at 8**, and `run16-a32m` carries the same arrangement
-  `[24, 8, 0, 0]`. Run 17 carries `[0, 24, 0, 4]`, so the pair now sits at **0
-  and 24** --- measured on this run's own twins, on both halves. All four copies
-  *fit* their line in every one of those runs, so any effect here
-  is the resident-offset kind rather than the straddle Run 10 priced at 12
-  to 14%, the kind [this list already calls narrowed and not settled][open].
-  **But the offsets do not sort the readings, and one run says so outright**:
-  at the old 24-and-8, Run 13 read the pair at 0.9934 on **21 of 24** ---
-  as strong a lead as Run 17's --- while Runs 14, 15 and 16 read coin flips
-  at those same offsets. So three of the seven readings put `add-in` decisively
-  ahead and four do not, across *two* offset arrangements, with the split
-  falling inside one arrangement as well as across the change. Placement
-  is therefore not excluded and not established either; what the offsets do
-  is make it un-excludable by anything measured so far. **And the two arms
-  are NOT the same code, which the machine code settles and a Core reading
-  of 2026-08-09 had already predicted.** Their innermost loops
-  are byte-identical --- the same eight instructions in 28 bytes, which is why
-  `loop-offsets.py` groups all four family arms as copies of one body ---
+  is not, and 1.71% on the uninstrumented half clears that half's 0.56%
+  carry-back threshold threefold. **But placement is NOT excluded,
+  and the offsets are the reason to suspect it.** The two arms share one 28-byte
+  body and sit at different cache-line offsets: on Run 17, `fbMutOdoVecdims`
+  at **0** and `fbMutOdoVecdimsAddIn` at **24**, named off the `-g3` twins
+  and identical in both halves, since the patch shifts `.text` by 4096 bytes
+  and these two loops by 6912, both whole multiples of 64. So every reading
+  above is one draw on their placement rather than five. **Run 17 is the first
+  run to move these two arms off the offsets they had held**, and the history
+  is recorded rather than inferred: Runs 12 and 13 each named the vecdims four
+  off a `-g3` twin and matched them by byte identity, both putting
+  **`mut-odo-vecdims` at 24 and `-add-in` at 8**, and `run16-a32m` carries
+  the same arrangement `[24, 8, 0, 0]`. Run 17 carries `[0, 24, 0, 4]`,
+  so the pair now sits at **0 and 24** --- measured on this run's own twins,
+  on both halves. All four copies *fit* their line in every one of those runs,
+  so any effect here is the resident-offset kind rather than the straddle Run 10
+  priced at 12 to 14%, the kind [this list already calls narrowed
+  and not settled][open]. **But the offsets do not sort the readings, and one
+  run says so outright**: at the old 24-and-8, Run 13 read the pair at 0.9934
+  on **21 of 24** --- as strong a lead as Run 17's --- while Runs 14, 15 and 16
+  read coin flips at those same offsets. So three of the seven readings put
+  `add-in` decisively ahead and four do not, across *two* offset arrangements,
+  with the split falling inside one arrangement as well as across the change.
+  Placement is therefore not excluded and not established either; what
+  the offsets do is make it un-excludable by anything measured so far.
+  **And the two arms are NOT the same code, which the machine code settles
+  and a Core reading of 2026-08-09 had already predicted.** Their innermost
+  loops are byte-identical --- the same eight instructions in 28 bytes, which
+  is why `loop-offsets.py` groups all four family arms as copies of one body ---
   but the worker containing that loop is not: `$wgo7` is **328 bytes
   in `mut-odo-vecdims` against 296 in `-add-in`**, and the control carries
   an `imul` in its outer path that the sibling does not. Over each arm's whole
@@ -2853,60 +2856,60 @@ reading the run number with an anchored `re.match` where the narrowing it judges
 searches anywhere (`9bbc3eb`), and pre-run 10c harvesting a path tail
 (`25487e3`). **The executing session's half, and it is five things.**
 **A CHECKER WENT STALE AGAINST THE ROSTER, and that is this run's durable
-finding about the tooling.** `--check-doc`'s six-pair agreement row baked
-the SIZE of the A/A set into its own patterns --- `the six pairs` ---
-and this run moved that set from six to eight by landing the shipped fill's own
-A/A copies. The row stopped matching and SAID SO rather than passing, which
-is what it was written to do; `defects.py`'s self-aiming fixture then would
-not build, which is the louder half of the same event. Both are repaired
-population-independently: the pattern keys on `pairs that carry back to Run 10`
-and tolerates the emphasis markers a write-up puts on figures, and the fixture's
-anchor moves with it. **That anchor has now been re-shaped three times ---
-2026-09-02, 2026-09-05 and 2026-09-11 --- each time by a roster change,
-and this is the first shaping that names no population size.** The lesson
-is narrower than the pattern: a cross-site agreement check must key
-on the QUANTITY, never on the size of the population it is taken over, because
-the population is exactly what a roster moves. **THE MECHANICAL CHECKS CAUGHT
-NEARLY EVERYTHING, AND MISSED THE ONE THAT MATTERED.** `--check-doc` refused,
-in order and each on a real defect: seven dead links into the previous run's
-file; a stale `recommended-tasks-after-run-27` anchor in `Main.hs` and two more
-in README; the class tables' shape counts, held down by a spent
-`added DATE, after the run` declaration in Run 27's delta bullet that had
-to retire with it; ten class paragraphs quoting Run 27's floors; an artifact
-path named in a file that outlives it; a lost class-process-count site;
-the floor pair disagreeing across eight sites; and a historical shape count read
-as this roster's. Not one needed a reading. **What no gate READ
-was `--move-registration`'s `___`**: it leaves that placeholder for the ANSWERED
-entry's verdict clause, `--check-doc` passed over it, and the entry would have
-shipped with a bare underscore had the second checker pass not opened README
-beside the run file. `--check-doc` now refuses an ANSWERED entry still carrying
-one, with a corpus case and a mutant beside it. **TWO COMPUTATIONS
-WERE IMPROVISED, both because this file names no method for them.**
-The cross-class summary's emphasis marks the faster of two cells the table
-prints to three decimals, and FOUR of the ten classes tie there; the tie-break
-used `--pair`'s four decimals and got `rev` wrong, the column separating the two
-arms at its fourth decimal the other way. The rule that came out of it is now
-in the table's own paragraph: **the emphasis follows the COLUMN, since
-the column is what a reader compares, and `--pair` only separates a tie
-the column itself cannot.** The second is the conversion rate,
-`(1 - time) / (1 - counts)`, which this file quotes every run and no reader mode
-computes. **WHAT THE THREE AGENTS COST AND BOUGHT, which is the reading
-this list has not carried before.** The carrier read four sections of Run 27's
-file and returned `run28-readings.txt`; it found two errors in Run 27's
-PUBLISHED file that no gate here reads --- its stride-class prose naming three
-bolded rows where its own table bolds two, and its claims section calling
-`libunord-stage3` and `-u2-ptr` new to the timed roster when Run 26 timed both.
-Checker pass 1 returned 31 findings on the run file alone. Pass 2, over both
-documents after those were fixed, returned 17 --- **of which SIX were MADE
-by the first round of fixes**: a summary-table cell tie-broken with the wrong
-statistic, a figure corrected to a value the reader does not print, a row list
-moved to the wrong count, and three sentences left naming what they named before
-the count under them changed. That is Run 21's ratio again and it
-is the argument for the second pass. The comprehension probe then returned 29.
-ONE of them was an error the step-7 cycle had itself introduced ---
-the cross-class table's bolding key, left at four and six after that cycle
-corrected `rev`'s cell to make it five and five --- and its most serious
-was older than any fix: the run's HEADLINE, written at 6a and stated
+finding about the tooling.** `--check-doc`'s agreement row for the carry-back
+figure, then named the six-pair row, baked the SIZE of the A/A set into its own
+patterns --- `the six pairs` --- and this run moved that set from six to eight
+by landing the shipped fill's own A/A copies. The row stopped matching and SAID
+SO rather than passing, which is what it was written to do; `defects.py`'s
+self-aiming fixture then would not build, which is the louder half of the same
+event. Both are repaired population-independently: the pattern keys
+on `pairs that carry back to Run 10` and tolerates the emphasis markers
+a write-up puts on figures, and the fixture's anchor moves with it.
+**That anchor has now been re-shaped three times --- 2026-09-02, 2026-09-05
+and 2026-09-11 --- each time by a roster change, and this is the first shaping
+that names no population size.** The lesson is narrower than the pattern:
+a cross-site agreement check must key on the QUANTITY, never on the size
+of the population it is taken over, because the population is exactly what
+a roster moves. **THE MECHANICAL CHECKS CAUGHT NEARLY EVERYTHING, AND MISSED
+THE ONE THAT MATTERED.** `--check-doc` refused, in order and each on a real
+defect: seven dead links into the previous run's file; a stale
+`recommended-tasks-after-run-27` anchor in `Main.hs` and two more in README;
+the class tables' shape counts, held down by a spent `added DATE, after the run`
+declaration in Run 27's delta bullet that had to retire with it; ten class
+paragraphs quoting Run 27's floors; an artifact path named in a file
+that outlives it; a lost class-process-count site; the floor pair disagreeing
+across eight sites; and a historical shape count read as this roster's. Not one
+needed a reading. **What no gate READ was `--move-registration`'s `___`**:
+it leaves that placeholder for the ANSWERED entry's verdict clause,
+`--check-doc` passed over it, and the entry would have shipped with a bare
+underscore had the second checker pass not opened README beside the run file.
+`--check-doc` now refuses an ANSWERED entry still carrying one, with a corpus
+case and a mutant beside it. **TWO COMPUTATIONS WERE IMPROVISED, both because
+this file names no method for them.** The cross-class summary's emphasis marks
+the faster of two cells the table prints to three decimals, and FOUR of the ten
+classes tie there; the tie-break used `--pair`'s four decimals and got `rev`
+wrong, the column separating the two arms at its fourth decimal the other way.
+The rule that came out of it is now in the table's own paragraph: **the emphasis
+follows the COLUMN, since the column is what a reader compares, and `--pair`
+only separates a tie the column itself cannot.** The second is the conversion
+rate, `(1 - time) / (1 - counts)`, which this file quotes every run
+and no reader mode computes. **WHAT THE THREE AGENTS COST AND BOUGHT, which
+is the reading this list has not carried before.** The carrier read four
+sections of Run 27's file and returned `run28-readings.txt`; it found two errors
+in Run 27's PUBLISHED file that no gate here reads --- its stride-class prose
+naming three bolded rows where its own table bolds two, and its claims section
+calling `libunord-stage3` and `-u2-ptr` new to the timed roster when Run 26
+timed both. Checker pass 1 returned 31 findings on the run file alone. Pass 2,
+over both documents after those were fixed, returned 17 --- **of which SIX
+were MADE by the first round of fixes**: a summary-table cell tie-broken
+with the wrong statistic, a figure corrected to a value the reader does
+not print, a row list moved to the wrong count, and three sentences left naming
+what they named before the count under them changed. That is Run 21's ratio
+again and it is the argument for the second pass. The comprehension probe
+then returned 29. ONE of them was an error the step-7 cycle had itself
+introduced --- the cross-class table's bolding key, left at four and six after
+that cycle corrected `rev`'s cell to make it five and five --- and its most
+serious was older than any fix: the run's HEADLINE, written at 6a and stated
 as a universal the file refutes three times. **So three of this run's four
 rounds of fixes are KNOWN to have made errors, each found by the round after
 it --- and the fourth has since been read too, by this request's own passes
@@ -9843,11 +9846,11 @@ of 2026-09-04 ([what the benchmark does](#what-the-benchmark-does)) parked five
 of the eight strategies and deleted their ten twins, so the sixteen-pair series
 ends at Run 24 as the eighteen-pair one ended at Run 20. The table below
 is the other six, the ones that carried back to Run 10, which is why this README
-quotes a six-pair figure beside the sixteen-pair one and compares two rows
+quotes a carry-back figure beside the sixteen-pair one and compares two rows
 of the Results table on the six --- and the prune breaks that series too, taking
 the `bq-scan-rem-gm-mulback` pair: from Run 25 the six are the `list`,
 `bq-expand` and `mut-odo-vecdims` pairs, four of the old six continuing,
-and a six-pair figure read across that boundary is over two populations. They
+and a carry-back figure read across that boundary is over two populations. They
 are the only rows whose true ratio is known to be exactly 1 --- or were, until
 [the mutable ceiling](#the-mutable-ceiling-taken) turned up another by accident:
 
@@ -9895,60 +9898,60 @@ figure, over the four pairs that carry back to Run 10.**
 `mut-odo-vecdims-add-in-leaf-u2-aa-distant` carries the basis figure
 and `bq-expand-aa-distant` the control's, and the RESTRICTED figure
 over the four pairs that carry back to Run 10 is **0.39%** and **0.65%** ---
-a reading the chapter still calls the six-pair figure elsewhere, which named
-its population and no longer describes it. So the two thresholds this file kept
-apart for five runs and saw collapsed for three are APART AGAIN on the basis
-half, and for a reason worth keeping: the arm the library actually runs
-disagrees with its own duplicate by more than any older pair does, which is what
-a floor measured on `list`, `bq-expand` and `mut-odo-vecdims` alone could
-not have said. **What Run 19 settled about the floor, this run cannot restate
-either, and saying so is the point.** Run 19's basis half was Run 18's basis
-BINARY byte for byte and read 2.32% where that binary read 1.36%, a factor
-of 1.7 with everything held still; Run 23's basis was Run 22's binary and moved
-the floor by a twentieth. This run has no repetition to offer --- its roster
-moved by the commits of 2026-09-09, so neither half reproduces an earlier binary
---- and its 0.50% therefore carries a roster change and an evening but NOT a box
-change: the gate's machine check did NOT fire, `list`'s net reading 0.37% above
-the fingerprint Run 27 installed, where Run 27's fired at 3.66% below Run 26's.
-**Where the movement lives is the one thing eleven runs now agree on.**
-The six-pair figure has read 0.54%, 0.49%, 0.44%, 0.46%, 0.37%, 0.39%, 0.34%,
-0.40%, 0.31%, 0.83% and now 0.39% across those eleven on the basis while
-the whole-set figure ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12%, 2.03% and 1.26%
-before it stopped, so the pairs outside the six were what moved. **Run 27's
-0.83% does not survive as a trend**: it was a 2.7x excursion in one run
-and this run returns to 0.39%, inside the band the series held for nine runs
-before it. What is new is not the restricted figure but the whole-set one, which
-is 0.50% here because a pair no earlier run carried is the widest of the eight.
-The threshold this run supports is therefore TWO figures again and no longer one
---- **0.39% and 0.50%** on the basis, the restricted four-pair reading
-and the whole set over the eight pairs, quoted in that order as every run before
-Run 25 quoted its two --- and which of them a margin between two rows must clear
-is a question this run RE-OPENS rather than settles, the standing rule naming
-the restricted figure and the wider one being the conservative reading ([the
-open list][open]) --- where Run 26 supported 0.31%, Run 25 0.40%, Run 24 0.34%
-and 1.26%, Run 23 0.39% and 2.03%, Run 22 0.37% and 2.12%, Run 21 0.46%
-and 2.92%, Run 20 0.44% and 1.51%, Run 19 0.49% and 2.32%, Run 18 0.54%
-and 1.36%, Run 17 1.31% and 3.70%, Run 16 0.39% and 2.32%, Run 14 0.29%
-and 2.19%, Run 12 0.35% and 0.24%, Run 11 a quarter of a percent on its max-skip
-half and 1.21% on the other, Run 10 1.00% unaligned and 0.54% aligned, Run 9
-under 0.1% with a wild cell, Run 8 0.5% and Run 7 nearly 4%. Runs disagreeing
-several-fold on the floor is itself the caution, and one binary disagreeing
-by 1.7x with itself one day and by a twentieth another is that caution sharpened
-as far as it goes: read the floor as the run's *and the half's*, re-measured
-every time, never as a constant of the harness and never inherited.
-**And the seventh pair that no name declared has gone with its arm.**
-`lib-stage2-disp` was `lib-stage2-lean`'s code wherever no canonical run reached
-`dispRun`, and was the one check on the declared pairs from outside them;
-it was parked on 2026-09-07 ([dead ideas][dead]) and no process times it. **Two
-registered A/A pairs stand in its place on Run 27 and they do not agree
-with each other.** `mut-odo-vecdims-add-in-leaf-u2` against `-u2-down` reads
-1.0014 and 0.9991 on the main set, inside both floors, which is what
-an undeclared A/A pair should do; `libunord-stage4` against `libunord-stage5`
-was registered as one wherever the sorted pairs merge nothing and holds
-on `runs` at 1.0000 and 0.9976, but reads outside the floor on both halves
-on `block`, `small` and `compose`, and in opposite directions on `block`.
-So the check from outside the declared pairs is still worth having and still
-does not simply confirm them.
+a reading the chapter called the six-pair figure until 2026-09-11, a name
+with its population in it, and calls the carry-back figure since. So the two
+thresholds this file kept apart for five runs and saw collapsed for three
+are APART AGAIN on the basis half, and for a reason worth keeping: the arm
+the library actually runs disagrees with its own duplicate by more than any
+older pair does, which is what a floor measured on `list`, `bq-expand`
+and `mut-odo-vecdims` alone could not have said. **What Run 19 settled about
+the floor, this run cannot restate either, and saying so is the point.** Run
+19's basis half was Run 18's basis BINARY byte for byte and read 2.32% where
+that binary read 1.36%, a factor of 1.7 with everything held still; Run 23's
+basis was Run 22's binary and moved the floor by a twentieth. This run has
+no repetition to offer --- its roster moved by the commits of 2026-09-09,
+so neither half reproduces an earlier binary --- and its 0.50% therefore carries
+a roster change and an evening but NOT a box change: the gate's machine check
+did NOT fire, `list`'s net reading 0.37% above the fingerprint Run 27 installed,
+where Run 27's fired at 3.66% below Run 26's. **Where the movement lives
+is the one thing eleven runs now agree on.** The carry-back figure has read
+0.54%, 0.49%, 0.44%, 0.46%, 0.37%, 0.39%, 0.34%, 0.40%, 0.31%, 0.83% and now
+0.39% across those eleven on the basis while the whole-set figure ran 1.36%,
+2.32%, 1.51%, 2.92%, 2.12%, 2.03% and 1.26% before it stopped, so the pairs
+outside the six were what moved. **Run 27's 0.83% does not survive as a trend**:
+it was a 2.7x excursion in one run and this run returns to 0.39%, inside
+the band the series held for nine runs before it. What is new is
+not the restricted figure but the whole-set one, which is 0.50% here because
+a pair no earlier run carried is the widest of the eight. The threshold this run
+supports is therefore TWO figures again and no longer one --- **0.39%
+and 0.50%** on the basis, the restricted four-pair reading and the whole set
+over the eight pairs, quoted in that order as every run before Run 25 quoted
+its two --- and which of them a margin between two rows must clear is a question
+this run RE-OPENS rather than settles, the standing rule naming the restricted
+figure and the wider one being the conservative reading ([the open list][open])
+--- where Run 26 supported 0.31%, Run 25 0.40%, Run 24 0.34% and 1.26%, Run 23
+0.39% and 2.03%, Run 22 0.37% and 2.12%, Run 21 0.46% and 2.92%, Run 20 0.44%
+and 1.51%, Run 19 0.49% and 2.32%, Run 18 0.54% and 1.36%, Run 17 1.31%
+and 3.70%, Run 16 0.39% and 2.32%, Run 14 0.29% and 2.19%, Run 12 0.35%
+and 0.24%, Run 11 a quarter of a percent on its max-skip half and 1.21%
+on the other, Run 10 1.00% unaligned and 0.54% aligned, Run 9 under 0.1%
+with a wild cell, Run 8 0.5% and Run 7 nearly 4%. Runs disagreeing several-fold
+on the floor is itself the caution, and one binary disagreeing by 1.7x
+with itself one day and by a twentieth another is that caution sharpened as far
+as it goes: read the floor as the run's *and the half's*, re-measured every
+time, never as a constant of the harness and never inherited. **And the seventh
+pair that no name declared has gone with its arm.** `lib-stage2-disp`
+was `lib-stage2-lean`'s code wherever no canonical run reached `dispRun`,
+and was the one check on the declared pairs from outside them; it was parked
+on 2026-09-07 ([dead ideas][dead]) and no process times it. **Two registered A/A
+pairs stand in its place on Run 27 and they do not agree with each other.**
+`mut-odo-vecdims-add-in-leaf-u2` against `-u2-down` reads 1.0014 and 0.9991
+on the main set, inside both floors, which is what an undeclared A/A pair should
+do; `libunord-stage4` against `libunord-stage5` was registered as one wherever
+the sorted pairs merge nothing and holds on `runs` at 1.0000 and 0.9976,
+but reads outside the floor on both halves on `block`, `small` and `compose`,
+and in opposite directions on `block`. So the check from outside the declared
+pairs is still worth having and still does not simply confirm them.
 
 **Four processes of ONE binary in ONE day put a number on that caution,
 2026-09-06**, which is the within-evening form the recommended tasks' item 1 had
@@ -10076,7 +10079,7 @@ of the 0.902-to-1.181 band Run 10 had to quote when the roster order moved
 the layout underneath it. Two consequences worth keeping when the run file
 carrying them is replaced: a margin of a few percent between two runs is still
 not evidence, and a margin between two *arms* of one run has to clear
-the six-pair figure of the half it is read on --- 0.39% on Run 28's basis ---
+the carry-back figure of the half it is read on --- 0.39% on Run 28's basis ---
 which is the A/A floor above restricted to the pairs that carry, and
 was a different quantity from the whole-set floor until the prune of 2026-09-04
 left six pairs in all. **Two rules are in play again, having been one for three
