@@ -673,14 +673,19 @@ rather than a slot in the next run, observed again:
   decided: this run's basis, ghc-9.12.4 in the dead-spot form, as both halves,
   `spec` under `-fspec-constr` and `nospec` without it, `spec` the basis,
   so that `--compare` reads spec over nospec and every `cross` below is what
-  the flag buys one arm; over Run 28's roster less `libunord-stage8-sum`,
-  `-u2-last`, `-u2-down` and `libunord-stage4-sum`, parked 2026-09-11, plus
-  `libunord-stage10-sum`, stage seven's tie-break under stage nine's move. Three
-  code changes since Run 28 move figures below: the shipped leaf carries
-  the broadcast run since 2026-09-11, and `lib-stage1` and `liblist-stage1-sum`
+  the flag buys one arm; over Run 28's roster less the four arms parked
+  2026-09-11 --- stage eight's consumer, stage four's, and the leaf's
+  hoisted-look-ahead and count-bound forms --- plus `libunord-stage10-sum`,
+  stage seven's tie-break under stage nine's move. Three code changes since Run
+  28 move figures below: the shipped leaf carries the broadcast run since
+  2026-09-11, and `lib-stage1`, `liblist-stage1-sum` and `libunord-stage1-sum`
   fill through `fillStage2` since the same day, so their Run 28 figures
-  are not this roster's on the views those routes fill. No probe on disk has
-  timed any pair below under `nospec`, and none has timed stage ten under either
+  are not this roster's on the views those routes fill; a fourth, the driver's
+  `copies` losing an argument it never read, moves nothing. One probe has timed
+  the flag's effect, the aligned HEAD probe the ceiling records, which read
+  the shipped family level between the two regimes to three decimals and is what
+  item (1) predicts from; no probe has timed the list stages, the ports
+  or the reference under `nospec`, and none has timed stage ten under either
   flag; every figure carried in from Run 28 was read off that run's JSONs
   on both halves on 2026-09-11. Each item names its populations and carries
   a prediction and a kill condition, and where an item predicts a no-op it names
@@ -689,21 +694,21 @@ rather than a slot in the next run, observed again:
   `predict: cross mut-odo-vecdims-add-in-leaf-u2 1.0 within 1%`,
   `predict: cross lib-stage1 1.0 within 1%`
   and `predict: cross lib-stage2-lean 1.0 within 1%` --- the flag was measured
-  irrelevant to the shipped family when it became the regime, and the fill's
-  loops carry nothing `SpecConstr` specialises on. Killed by any of the three
-  past 1% on the main set, which would say the regime the shipped file compiles
-  under is not the regime these tables price the fill in. (2) *The flag
-  on the reference.* On the main set and on every class:
+  irrelevant to the shipped family on 2026-08-24, when the shipped file
+  was settled not to set it, and nothing since has measured otherwise. Killed
+  by any of the three past 1% on the main set, which would say the regime
+  the shipped file compiles under is not the regime these tables price the fill
+  in. (2) *The flag on the reference.* On the main set and on every class:
   `predict: cross list 1.0 within 3%`, `list` being the reference every table
   is read against and the halves' comparability bar being read on it. Killed
   by `list` outside 3% on the main set, which would say the two columns cannot
   be subtracted and every cross below carries the reference's own move. (3)
   *The flag on the fused list.* The lazy stages' consumers fold one flat loop,
-  `sumLazyRuns`, whose continuations are known, and `SpecConstr` is what would
-  specialise its recursion on the levels it carries. On `runs`, `block`
-  and `window`: `predict: cross libunord-stage7-sum 0.9 within 10%`, the list
-  a tenth dearer without the flag; on `rev`, `bcast`, `bcastmid`, `scaled`
-  and `compose`, where the route fills or is one block:
+  `sumLazyRuns`, whose continuations are known, and nothing has timed it without
+  the flag. On `runs`, `block` and `window`:
+  `predict: cross libunord-stage7-sum 0.9 within 10%`, the list a tenth dearer
+  without the flag; on `rev`, `bcast`, `bcastmid`, `scaled` and `compose`, where
+  the route fills or is one block:
   `predict: cross libunord-stage7-sum 1.0 within 1%`. Killed by the consumer
   inside 1% of level on `runs` and `block`, which would say the flag
   is irrelevant to the list too and the regime question closes; or by it past
@@ -737,10 +742,11 @@ rather than a slot in the next run, observed again:
   `predict: pair libunord-stage10-sum libunord-stage7-sum 0.6 within 20%`;
   on `compose` the same span prints a figure and no verdict, read per view
   by hand, `compose-zero-mid` and the two `-bcast` views ahead past the floor
-  and `compose-scalar` inside it --- stage nine's move alone read 0.45 to 0.66
-  on those views on Run 28, and stage ten's route is stage nine's there,
-  no `bcast` or `bcastmid` view carrying two axes tied on stride.
-  Over `libunord-stage9-sum` on `window`, both halves:
+  and `compose-scalar` inside it --- stage nine's move alone read 0.46 and 0.71
+  on those views on Run 28, and stage ten's route is stage nine's on all three
+  classes: no `bcast` or `bcastmid` view carries two axes tied on stride,
+  and `compose`'s tied axes are its zero strides, which `canonView` merges
+  under either order. Over `libunord-stage9-sum` on `window`, both halves:
   `predict: pair libunord-stage10-sum libunord-stage9-sum 0.72 within 15%`,
   stage seven's tie-break alone reading 0.7425 and 0.7237 over stage six there
   and stage nine's route being stage six's on `window`, no window view carrying
@@ -756,15 +762,16 @@ rather than a slot in the next run, observed again:
   over the axes separates the dispatches. Killed by the pair past the floor
   on both halves on any of the four, which would say the pass is visible
   at a call of tens of microseconds. On `small` the span prints a figure
-  and no verdict, read per view by hand: behind on the four views with no zero
-  stride by the pass, as stage nine's read 1.16 to 1.36 over stage six on Run
-  28, and ahead on `small-bcast32`. (8) *`lib-stage1` against the lean fill
-  with one fill under both.* Since 2026-09-11 both fill through `fillStage2`,
-  so on `bcast` and `bcastmid`, where Run 28 read the lean fill ahead at 0.8635
-  and 0.6163 for the two bodies the leaf lacked, the pair prices the dispatch
-  alone --- stage one's raw dims against the lean dispatch's canonical ones,
-  which merge `bcast-inner8`'s two outer levels into one. On `bcast`
-  and on `bcastmid`, both halves:
+  and no verdict, read per view by hand: behind on the four views other
+  than `small-bcast32` by the pass, as stage nine's read 1.16 to 1.36 over stage
+  six on Run 28 --- `small-flat64`'s zero stride sits on a unit axis `canonView`
+  drops, so its route is stage seven's --- and ahead on `small-bcast32`. (8)
+  *`lib-stage1` against the lean fill with one fill under both.* Since
+  2026-09-11 both fill through `fillStage2`, so on `bcast` and `bcastmid`, where
+  Run 28 read the lean fill ahead at 0.8635 and 0.6163 for the two bodies
+  the leaf lacked, the pair prices the dispatch alone --- stage one's raw dims
+  against the lean dispatch's canonical ones, which merge `bcast-inner8`'s two
+  outer levels into one. On `bcast` and on `bcastmid`, both halves:
   `predict: pair lib-stage2-lean lib-stage1 1.0 within 3%`. Killed by the pair
   past 3% on both halves on either class, which would say the canonicalization
   is worth that much to the fill on broadcast views. On `runs` and `block`
@@ -792,8 +799,8 @@ rather than a slot in the next run, observed again:
   `--alloc` on both halves, by hand: the re-aimed levels reproduce
   over the eighteen pinned shapes, the `libunord` consumers 0.00x, the fills
   and the `liblist` consumers 1.00x, `bq-expand` 2.06x, `list` 22.38x. Killed
-  by any level moving at the column's precision on the `nospec` half, allocation
-  being what a missed specialisation changes first.
+  by any level moving at the column's precision on the `nospec` half, which
+  would say the flag changes what an arm allocates and not only how fast.
 - `ANSWERED` **Why does `bq-scan-packed-mulback` get worse
   under `-fspec-constr`, when the packing was hand-rolled to buy exactly what
   the flag hands its control for free?** Dumped in both regimes from Run 8's
@@ -1193,7 +1200,7 @@ rather than a slot in the next run, observed again:
   are dated 2026-09-09 --- a doubling block copy for a zero-stride level
   and the broadcast run unrolled by two --- and registration (14) already names
   the next step for one of them, taken 2026-09-11 in the arm and unread until
-  Run 29: give `fbMutOdoVecdimsAddInLeafU2`, the leaf the library ships,
+  Run 29: give `fbMutOdoVecdimsAddInLeafU2`, the leaf the library shipped,
   the broadcast unroll, which returns `bcast-tall-Mx2` and with it the `bcast`
   class to a tie. **What would settle the rest** is whether the doubling copy
   has a counterpart in the leaf at all; it has none today, so `bcastmid` stays
@@ -4691,7 +4698,9 @@ supplies the mutable machinery orthotope's own `Vector` class deliberately does
 not: an allocate-once output, the odometer with the input offset stepped
 additively, the innermost outer level fused into a dedicated run loop,
 and the run fill unrolled by two with its bound on the output cursor, so
-it is sound for zero and negative strides. The bang patterns
+it is sound for zero and negative strides; since 2026-09-11 a run at innermost
+stride 0 reads its element once, and a zero-stride outer level is filled once
+and copied onto its remaining positions by doubling. The bang patterns
 are performance-essential, ported with the loop structure from the benchmarked
 arm; the shipped file does not set `-fspec-constr` --- the aligned HEAD probe
 read the flag irrelevant to the shipped family, the two builds agreeing to three
@@ -5960,8 +5969,9 @@ strides at two scales, 1 and the row width, and the chain needs one at a third.
 On the roster the chain's run never differs from stage seven's ---
 `small-patch-r5`, the one view the registration named, reads sixteen runs of 16
 under both --- so what Run 28 priced was the dispatch, an exhaustive search
-over lists: 1.05 behind stage seven on `window` and 1.22 to 1.26
-on `small-patch-r5`, on both halves. `libunord-stage8-sum` is checked
+over lists, and the order of two tied levels the chain leaves in stage six's
+form where stage seven reverses it: 1.05 behind stage seven on `window` and 1.22
+to 1.26 on `small-patch-r5`, on both halves. `libunord-stage8-sum` is checked
 and not timed since; the route stays for `check`.
 
 Ideas that **died on paper**, recorded so they are not re-proposed --- and,
@@ -8450,9 +8460,10 @@ not otherwise.
     #      -- which gains a bullet for the run just read -- What is open,
     #      read-run.py's docstring, micro.cabal's -M8G note, and Main.hs
     #      wherever a comment cites a figure. THE TWO SWEEPS ARE THIS
-    #      HALF'S. A cross-document figure -- the floor pair, the six-pair
-    #      one -- is quoted in BOTH files and --check-doc holds them to
-    #      agreement, so a half-done 6b FAILS that gate rather than
+    #      HALF'S. A cross-document figure -- the floor pair, the
+    #      carry-back one -- is quoted in BOTH files and --check-doc
+    #      holds them to agreement, so a half-done 6b FAILS that gate
+    #      rather than
     #      passing quietly, which is the one place this half announces
     #      itself
     #      why: --para 'What skipping this costs is measured'
@@ -11943,63 +11954,66 @@ the record costs. **A fourth half arrives with the pairing and is not a delta
 at all**: which half of the pair a figure came from, which is why the run file's
 tables and its fingerprint say so.
 
-- Run 28 measured TODAY's shapes, class views AND today's roster, nothing having
-  moved since it ran but comment-only commits to `Main.hs` and, on 2026-09-11,
-  the shipped leaf's broadcast run --- `fbMutOdoVecdimsAddInLeafU2` reading
-  its element once and writing unrolled by two at innermost stride 0,
-  registration (14)'s task for Run 29, which reaches that arm and its two A/A
-  copies on every view whose innermost stride is 0; and, the same day,
-  `lib-stage1` and `liblist-stage1-sum` taking `fillStage2` as their regime-3
-  fill, as the library did, which reaches those two on every view their route
-  fills and no other timed arm --- so its figures need no adjustment outside
-  those cells; and four of its timed arms are not today's,
-  `libunord-stage8-sum`, checked and not timed since 2026-09-11 and refuted
-  at registration (6), and `-u2-last`, `-u2-down` and `libunord-stage4-sum`,
-  parked the same day on readings this run repeated, while
-  `libunord-stage10-sum`, stage seven's tie-break under stage nine's move,
-  is timed since that day and was not timed by this run --- 39 timed arms
-  over 19 main-set shapes and 58 class views in TEN classes, 741 benches
-  and 2262, EIGHT A/A pairs, the `runs` class at FOURTEEN, `window` at EIGHT,
-  `bcast` and `flip` at SIX, `block` and `small` at FIVE, `bcastmid`
-  and `compose` at FOUR and `rev` and `scaled` at THREE. It is the run whose
-  file `runs/` currently publishes. **Its delta against RUN 27** is the commits
-  of 2026-09-09 and the reader ruling of the day after: thirteen timed arms
-  landing --- `libunord-stage6-sum` to `libunord-stage9-sum`,
-  `libunord-stage6-loop-sum`, `libunord-stage6-list-sum`, `libunord-stage3-sum`,
-  `liblist-stage1-sum` to `liblist-stage4-sum` and the shipped fill's two A/A
-  copies --- and nine leaving, `liblist-stage1` to `liblist-stage4`
-  and `libunord-stage1` to `libunord-stage5`, every one of them an arm
-  that concatenates a list the library would fold and all of them checked
-  and not timed since; six class views landing, two patch views with channels
-  in `window`, a repeat ladder of three in `bcast` and a forward control
-  in `flip`; the fusion overhaul that rewrote `lazyRuns` into one flat loop
-  compiled once as `sumLazyRuns` and reached through each stage's `Route`; two
-  changes to `fillStage2`, a doubling block copy for a zero-stride level
-  and the broadcast run unrolled by two; and the ruling of 2026-09-10
-  that a reducing consumer has NO corrected time, which takes `time` and `worst`
-  off every `-sum` row and leaves no cell on either half below the shared
-  forcing pass, where Run 27's write-up recorded seventy and forty-three --
-  counts taken before that ruling, which today's reader gives as 25 and 8
-  on the same JSONs. `bdf06c8`, the tip both halves were built from,
-  is the shipped fill's A/A pair and the `flip` forward control. So NEITHER half
-  reproduces an earlier binary and no md5 here matches one on record;
-  **the nineteen main-set shapes are unmoved between the two runs,
-  so a cross-run figure is over all nineteen**, and **the box did NOT move**,
-  its gate machine check reading +0.37% on `list`'s net against the fingerprint
-  Run 27 installed, over 19 of 19 shapes and none past 5%, so a cross-run
-  absolute here is a subtraction and wants no bridge --- the 18 arms both
-  rosters time AND both give a corrected time reading 0.9867 to 1.0125. What
-  a reader has to carry is which half a figure came from: everything published
-  in its file is `run28-g912`, ghc-9.12.4, and `run28-ghead` --- the same
-  source, shim and shim environment built through `cabal.project.ghead` against
-  the in-tree GHC HEAD stage1, unmoved since Run 24, so the halves differ
-  in the compiler and in the boot libraries that come with it and in nothing
-  else --- contributes the second column of `runs/run28.md`. Its `list` moved
-  0.46% between the halves, INSIDE the 0.7% bar, so its two columns may
-  be subtracted. Its sequence ran in ONE window, 01:02:39 to 09:42:43,
-  with no intrusion found and no population rerun. **And its floor is a maximum
-  over EIGHT A/A pairs**, 0.50% and 0.65%, the first run to carry the shipped
-  fill's own pair, its restricted four-pair reading being 0.39% and 0.65%.
+- Run 28 measured TODAY's shapes and class views and, less four arms and plus
+  one, today's roster, nothing having moved since it ran but comment-only
+  commits to `Main.hs` and, on 2026-09-11, the shipped leaf's broadcast run ---
+  `fbMutOdoVecdimsAddInLeafU2` reading its element once and writing unrolled
+  by two at innermost stride 0, registration (14)'s task for Run 29, which
+  reaches that arm and its two A/A copies on every view whose innermost stride
+  is 0; and, the same day, `lib-stage1`, `liblist-stage1-sum`
+  and `libunord-stage1-sum`, whose non-block case is that list's, taking
+  `fillStage2` as their regime-3 fill, as the library did, which reaches
+  those three on every view their route fills and no other timed arm,
+  and the driver's `copies` losing an argument it never read, which moves
+  no figure --- so its figures need no adjustment outside those cells; and four
+  of its timed arms are not today's, `libunord-stage8-sum`, checked
+  and not timed since 2026-09-11 and refuted at registration (6),
+  and `-u2-last`, `-u2-down` and `libunord-stage4-sum`, parked the same day
+  on readings this run repeated, while `libunord-stage10-sum`, stage seven's
+  tie-break under stage nine's move, is timed since that day and was not timed
+  by this run --- 39 timed arms over 19 main-set shapes and 58 class views
+  in TEN classes, 741 benches and 2262, EIGHT A/A pairs, the `runs` class
+  at FOURTEEN, `window` at EIGHT, `bcast` and `flip` at SIX, `block` and `small`
+  at FIVE, `bcastmid` and `compose` at FOUR and `rev` and `scaled` at THREE.
+  It is the run whose file `runs/` currently publishes. **Its delta against RUN
+  27** is the commits of 2026-09-09 and the reader ruling of the day after:
+  thirteen timed arms landing --- `libunord-stage6-sum`
+  to `libunord-stage9-sum`, `libunord-stage6-loop-sum`,
+  `libunord-stage6-list-sum`, `libunord-stage3-sum`, `liblist-stage1-sum`
+  to `liblist-stage4-sum` and the shipped fill's two A/A copies --- and nine
+  leaving, `liblist-stage1` to `liblist-stage4` and `libunord-stage1`
+  to `libunord-stage5`, every one of them an arm that concatenates a list
+  the library would fold and all of them checked and not timed since; six class
+  views landing, two patch views with channels in `window`, a repeat ladder
+  of three in `bcast` and a forward control in `flip`; the fusion overhaul
+  that rewrote `lazyRuns` into one flat loop compiled once as `sumLazyRuns`
+  and reached through each stage's `Route`; two changes to `fillStage2`,
+  a doubling block copy for a zero-stride level and the broadcast run unrolled
+  by two; and the ruling of 2026-09-10 that a reducing consumer has NO corrected
+  time, which takes `time` and `worst` off every `-sum` row and leaves no cell
+  on either half below the shared forcing pass, where Run 27's write-up recorded
+  seventy and forty-three -- counts taken before that ruling, which today's
+  reader gives as 25 and 8 on the same JSONs. `bdf06c8`, the tip both halves
+  were built from, is the shipped fill's A/A pair and the `flip` forward
+  control. So NEITHER half reproduces an earlier binary and no md5 here matches
+  one on record; **the nineteen main-set shapes are unmoved between the two
+  runs, so a cross-run figure is over all nineteen**, and **the box did
+  NOT move**, its gate machine check reading +0.37% on `list`'s net against
+  the fingerprint Run 27 installed, over 19 of 19 shapes and none past 5%,
+  so a cross-run absolute here is a subtraction and wants no bridge --- the 18
+  arms both rosters time AND both give a corrected time reading 0.9867
+  to 1.0125. What a reader has to carry is which half a figure came from:
+  everything published in its file is `run28-g912`, ghc-9.12.4,
+  and `run28-ghead` --- the same source, shim and shim environment built through
+  `cabal.project.ghead` against the in-tree GHC HEAD stage1, unmoved since Run
+  24, so the halves differ in the compiler and in the boot libraries that come
+  with it and in nothing else --- contributes the second column
+  of `runs/run28.md`. Its `list` moved 0.46% between the halves, INSIDE the 0.7%
+  bar, so its two columns may be subtracted. Its sequence ran in ONE window,
+  01:02:39 to 09:42:43, with no intrusion found and no population rerun.
+  **And its floor is a maximum over EIGHT A/A pairs**, 0.50% and 0.65%,
+  the first run to carry the shipped fill's own pair, its restricted four-pair
+  reading being 0.39% and 0.65%.
 - Run 27 measured neither today's class views nor today's roster, and
   is no longer the run whose file `runs/` publishes --- 35 timed arms over 19
   main-set shapes and 52 class views in TEN classes, 665 benches and 1820, SIX

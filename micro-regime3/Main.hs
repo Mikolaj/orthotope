@@ -2132,7 +2132,9 @@ fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
         in  inner outPos baseOff
       -- The broadcast run at innermost stride 0, its one element read
       -- once and written unrolled by two: 'fillStage2''s 'writeRunSet'
-      -- as it stands, taken 2026-09-11 for Run 29 (runs/run28.md,
+      -- body, without the INLINE pragma the driver gives it, this
+      -- leaf's stepping body having none either; taken 2026-09-11 for
+      -- Run 29 (runs/run28.md,
       -- registration (14)). Before it the stepping body above
       -- served a broadcast run, reading the same element every
       -- write. Non-vacuity, 2026-09-11: dropping the second write fails
@@ -3348,8 +3350,8 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
     whole | ao == 0 && VS.length v == l = v
           | otherwise = VS.slice ao l v
 
--- The library's 'genericFillStrided' at Storable Double, ported
--- bang-for-bang and kept in step with it by hand; 'check' holds it to
+-- The fill the library's 'genericFillStrided' is ported from, at
+-- Storable Double, the two kept in step by hand; 'check' holds it to
 -- the reference on every view. The two zero-stride bodies say at their
 -- definitions what each buys, and the fills that keep older forms say
 -- so at theirs.
@@ -4459,8 +4461,9 @@ fbLibUnordStage7 sh a@(T _ _ v) = fillRoute (routeUnord7 sh a) v
 -- count. One change over 'routeUnord6' per population. Added 2026-09-09
 -- for Run 28. REFUTED 2026-09-11 on that run's registration (6): on
 -- every rostered view its run is stage seven's, 'small-patch-r5'
--- included, so the pair priced this dispatch's exhaustive search alone,
--- 1.05 behind on 'window' and 1.22 to 1.26 on 'small-patch-r5'; where
+-- included, so the pair priced this dispatch's exhaustive search and
+-- the order of two tied levels, 1.05 behind on 'window' and 1.22 to
+-- 1.26 on 'small-patch-r5'; where
 -- a chain can beat the tie-break, and why no realistic view has that
 -- shape, is README.md#dead-ideas.
 routeUnord8 :: ShapeL -> T -> Route
@@ -4560,7 +4563,7 @@ fbLibUnordStage9 sh a@(T _ _ v) = fillRoute (routeUnord9 sh a) v
 -- tie-break's with the zero-stride axes outside it, and where one
 -- fires the route is stage seven's or stage nine's. What the arm
 -- prices is whether the two savings Run 28 read alone -- the tie-break
--- at 0.72 on 'window', the move at 0.45 to 0.66 on the zero-stride
+-- at 0.72 on 'window', the move at 0.45 to 0.75 on the zero-stride
 -- views -- compose with nothing paid for each other. Two changes over
 -- 'routeUnord6'. Added 2026-09-11 for Run 29.
 routeUnord10 :: ShapeL -> T -> Route
