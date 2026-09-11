@@ -6619,9 +6619,18 @@ and never as a chronology.
     #      three lint steps of checks.py, which `check-all .` runs with
     #      everything else at the cost of the audit and the mutants
     ./properties.py                       # 8c. its properties, over every
-    #      run JSON here; the reader's stderr is withheld and counted by
-    #      kind, a kind with a count of one being the thing to read, and
-    #      `--warnings` restores it
+    #      run JSON here -- and THIS BARE INVOCATION IS THE ONLY SWEEP THAT
+    #      READS THEM ALL. `check-all` runs the same file under
+    #      CORPUS_RUN=newest, which keeps the highest-numbered run and the
+    #      JSONs carrying no run number and drops every older run; it was
+    #      narrowed 2026-09-09, which took `check-all` from a quarter of an
+    #      hour to under a minute on that step. So the two
+    #      sweeps do NOT read the same thing, and a property that fails only
+    #      on an older run is caught HERE and by nothing else -- which is
+    #      also why what an old run's artifacts still buy the checks is this
+    #      step and not `check-all`. The reader's stderr is withheld and
+    #      counted by kind, a kind with a count of one being the thing to
+    #      read, and `--warnings` restores it
     defect-run.py --changed <last run's commit> .   # 8d. and if any
     #      script here has changed since the last run: every defect those
     #      scripts have had, planted again and refused again. 8c and 8d
