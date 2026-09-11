@@ -6724,8 +6724,14 @@ and never as a chronology.
     #      roster change. Steps 3, 9b and 10 are reading the block back.
     #      AND WHERE `--list` SHOWS A TIMED ARM THAT BRINGS A NEW FUNCTION,
     #      the fills read here are the pinning claim's only reading:
-    #      `./loop-offsets.py --delta $PREV-<basis> $R-<basis>` is that
-    #      comparison, against the previous build of this recipe and not
+    #      `./loop-offsets.py --delta $PREV-<PREV's basis> $R-<basis>` is
+    #      that comparison, and THE TWO TAGS ARE NOT ALWAYS ONE: a tag
+    #      names what a half IS, so a run that changes the variable
+    #      renames the basis while the recipe stands, and Run 29's
+    #      `$PREV-spec` named a binary Run 28 never built. Read the
+    #      previous run's basis off its own note's HALVES line, which is
+    #      where preflight's fill-in block reads it since 907c218.
+    #      It is against the previous build of this recipe and not
     #      against a note's transcription of it -- offsets preserved or
     #      not, addresses surviving to the byte, and the displacement SET,
     #      which is what the README's readings turn on. Two preparations
@@ -6833,8 +6839,11 @@ and never as a chronology.
     #      was read out of run-gate.sh by eye, and Run 25's preparation
     #      read it out of the previous NOTE instead, on the day the prune
     #      re-cut SEL in the same commit that parked two of its five
-    ./roster-delta.py $PREV-<basis> $R-<basis>   # 6c. WHAT THE ROSTER
-    #      CHANGE WAS, off the two binaries: benches, arms in and out,
+    ./roster-delta.py $PREV-<PREV's basis> $R-<basis>   # 6c. WHAT THE
+    #      ROSTER CHANGE WAS -- and the first tag is the PREVIOUS run's,
+    #      as at step 2: a run that renames its basis leaves
+    #      `$PREV-<basis>` naming a binary that run never built.
+    #      Off the two binaries: benches, arms in and out,
     #      whether the survivors kept their ORDER, main-set shapes in and
     #      out, and the class views per class. It is what the note's
     #      roster block and Provenance's delta bullet both state in prose,
