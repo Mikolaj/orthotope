@@ -5877,8 +5877,11 @@ roster =
     -- 2026-09-04 for Run 25 alone, as the bound control of the `-u1` arm
     -- below (README.md#what-is-open, the Run 25 entry); parked again
     -- after it, 2026-09-06, the bound control having been spent on that
-    -- run and the -u1 question answered
-    -- (README.md#recommended-tasks-after-run-28, item 2).
+    -- run and the -u1 question answered. That answer cited
+    -- `recommended-tasks-after-run-NN, item 2` until 2026-09-11; the
+    -- section has never carried numbered items, in Run 27's version or
+    -- Run 28's, so the pointer named nothing and is gone rather than
+    -- renamed a third time.
   , ("mut-odo-vecdims-add-in-leaf", Only fbMutOdoVecdimsAddInLeaf)
     -- Timed once more for Run 26, which read Run 24's registration 5 on
     -- it: '-u2' ahead in all eleven populations on both halves

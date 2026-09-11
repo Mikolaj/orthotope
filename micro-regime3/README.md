@@ -1015,9 +1015,9 @@ rather than a slot in the next run, observed again:
   have been stage six exactly, at 1.0191 and 1.0164; (11) on `main`, `rev`
   and `small`, the lean and natural-strides dispatches parting where they
   were argued to be one route. **The converse does NOT hold and the count
-  is what makes that worth keeping**: registrations (2), (4) and (10) are no-op
-  predictions too and all three held, (2) over eight populations, and
-  so is (15), the shipped fill's A/A pair, predicting 1.0 against its own copy.
+  is what makes that worth keeping**: registrations (2), (4), (10) and (15)
+  are no-op predictions too and all four held --- (2) over eight populations,
+  and (15) the shipped fill's A/A pair, predicting 1.0 against its own copy.
   So the finding is not that such arguments always fail but that FOUR
   of the EIGHT no-op predictions did on one roster, where every one of the SEVEN
   items predicting a real effect landed. **What would settle it** is a next
@@ -11764,27 +11764,29 @@ tables and its fingerprint say so.
   a doubling block copy for a zero-stride level and the broadcast run unrolled
   by two; and the ruling of 2026-09-10 that a reducing consumer has NO corrected
   time, which takes `time` and `worst` off every `-sum` row and leaves no cell
-  on either half below the shared forcing pass, where Run 27 had seventy
-  and forty-three. `bdf06c8`, the tip both halves were built from,
-  is the shipped fill's A/A pair and the `flip` forward control. So NEITHER half
-  reproduces an earlier binary and no md5 here matches one on record;
-  **the nineteen main-set shapes are unmoved between the two runs,
-  so a cross-run figure is over all nineteen**, and **the box did NOT move**,
-  its gate machine check reading +0.37% on `list`'s net against the fingerprint
-  Run 27 installed, over 19 of 19 shapes and none past 5%, so a cross-run
-  absolute here is a subtraction and wants no bridge --- the 18 arms both
-  rosters time AND both give a corrected time reading 0.9867 to 1.0125. What
-  a reader has to carry is which half a figure came from: everything published
-  in its file is `run28-g912`, ghc-9.12.4, and `run28-ghead` --- the same
-  source, shim and shim environment built through `cabal.project.ghead` against
-  the in-tree GHC HEAD stage1, unmoved since Run 24, so the halves differ
-  in the compiler and in the boot libraries that come with it and in nothing
-  else --- contributes the second column of `runs/run28.md`. Its `list` moved
-  0.46% between the halves, INSIDE the 0.7% bar, so its two columns may
-  be subtracted. Its sequence ran in ONE window, 01:02:39 to 09:42:43,
-  with no intrusion found and no population rerun. **And its floor is a maximum
-  over EIGHT A/A pairs**, 0.50% and 0.65%, the first run to carry the shipped
-  fill's own pair, its restricted four-pair reading being 0.39% and 0.65%.
+  on either half below the shared forcing pass, where Run 27's write-up recorded
+  seventy and forty-three -- counts taken before that ruling, which today's
+  reader gives as 25 and 8 on the same JSONs. `bdf06c8`, the tip both halves
+  were built from, is the shipped fill's A/A pair and the `flip` forward
+  control. So NEITHER half reproduces an earlier binary and no md5 here matches
+  one on record; **the nineteen main-set shapes are unmoved between the two
+  runs, so a cross-run figure is over all nineteen**, and **the box did
+  NOT move**, its gate machine check reading +0.37% on `list`'s net against
+  the fingerprint Run 27 installed, over 19 of 19 shapes and none past 5%,
+  so a cross-run absolute here is a subtraction and wants no bridge --- the 18
+  arms both rosters time AND both give a corrected time reading 0.9867
+  to 1.0125. What a reader has to carry is which half a figure came from:
+  everything published in its file is `run28-g912`, ghc-9.12.4,
+  and `run28-ghead` --- the same source, shim and shim environment built through
+  `cabal.project.ghead` against the in-tree GHC HEAD stage1, unmoved since Run
+  24, so the halves differ in the compiler and in the boot libraries that come
+  with it and in nothing else --- contributes the second column
+  of `runs/run28.md`. Its `list` moved 0.46% between the halves, INSIDE the 0.7%
+  bar, so its two columns may be subtracted. Its sequence ran in ONE window,
+  01:02:39 to 09:42:43, with no intrusion found and no population rerun.
+  **And its floor is a maximum over EIGHT A/A pairs**, 0.50% and 0.65%,
+  the first run to carry the shipped fill's own pair, its restricted four-pair
+  reading being 0.39% and 0.65%.
 - Run 27 measured neither today's class views nor today's roster, and
   is no longer the run whose file `runs/` publishes --- 35 timed arms over 19
   main-set shapes and 52 class views in TEN classes, 665 benches and 1820, SIX
