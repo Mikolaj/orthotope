@@ -966,8 +966,26 @@ rather than a slot in the next run, observed again:
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 28's own
   file](runs/run28.md#what-this-run-was-built-to-answer-and-what-it-answered),
-  where a run's registrations have lived since 2026-08-29; in a clause each:
-  ___.
+  where a run's registrations have lived since 2026-08-29; in a clause each: (1)
+  the dispatch cost of the first canonicalization, HELD on `small` at 0.9073
+  and 0.9363; (2) the tie everywhere else, HELD on all eight populations
+  and both halves; (3) allocation, KILLED, 16 of 77 views differing
+  at the column's own precision and each on both halves; (4) the tie-break where
+  it cannot fire, HELD, `rev` outside the floor on one half alone; (5)
+  the tie-break where it fires, HELD on `window` at 0.7425 and 0.7237; (6)
+  the longest chain, KILLED on both its conditions, `window`
+  and `small-patch-r5`; (7) zero-stride axes outermost, KILLED on `rev` while
+  every zero-stride prediction it made held; (8) the fold entry point, HELD,
+  the hand-written loop behind the fused list at 1.7249 and 1.7422; (9)
+  the ports without the copy, WITHDRAWN with its arms before the run; (10)
+  the ceiling's consumer, HELD on all five named populations; (11) the ordered
+  list's consumers, KILLED by its second kill on `main`, `rev` and `small` while
+  both its primary spans held; (12) base's `sum` over the list, HELD at 0.7176
+  and 0.7314 on `window`; (13) the two unrollings, HELD, `bcast-tall-Mx2`
+  reading 1.2061 and 1.2058; (14) the lean fill ahead of the shipped leaf, HELD
+  on its kills with both spans wrong in the arm's favour; (15) the shipped
+  fill's own A/A pair, HELD in all forty-four readings; (16) the reversal read
+  inside one process, HELD at 2.1892 and 2.1252.
 - `ANSWERED` **What Run 27 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 27's own file](runs/run27.md), where a run's
@@ -9502,10 +9520,14 @@ and Run 25's 0.40% and 0.61%, and against Run 24's 1.26% and 2.11%, Run 23's
 2.03% and 2.80%, Run 22's 2.12% and 1.08% and Run 21's 2.92% and 2.16%, all
 over sixteen, and Run 20's 1.51% and 1.18%, Run 19's 2.32% and 1.71%, Run 18's
 1.36% and 1.42%, Run 17's 3.70% and 3.89% and Run 16's 2.32% and 1.22%, every
-one of those five over eighteen. **A max over six pairs and a max over sixteen
-are different statistics, so those older figures are not a series this one
-continues; Runs 25 and 26's are, and this run is WIDER than both on both
-halves.** `mut-odo-vecdims-add-in-leaf-u2-aa-distant` carries the basis figure
+one of those five over eighteen. **A max over six pairs, one over eight and one
+over sixteen are three different statistics, so neither the sixteen-pair figures
+nor the six-pair ones are a series THIS run's whole-set figure continues --- Run
+27's 0.83% and 0.63% are over six as Runs 25 and 26's are, and this run's 0.50%
+is over eight, narrower than all three on the basis while its 0.65% is wider
+than all three on the control. What continues without a break is the RESTRICTED
+figure, over the four pairs that carry back to Run 10.**
+`mut-odo-vecdims-add-in-leaf-u2-aa-distant` carries the basis figure
 and `bq-expand-aa-distant` the control's, and the **six-pair figure** ---
 the restricted reading over the four pairs that carry back to Run 10 ---
 is **0.39%** and **0.65%**. So the two thresholds this file kept apart for five
@@ -9522,7 +9544,7 @@ moved by the commits of 2026-09-09, so neither half reproduces an earlier binary
 --- and its 0.50% therefore carries a roster change and an evening but NOT a box
 change: the gate's machine check did NOT fire, `list`'s net reading 0.37% above
 the fingerprint Run 27 installed, where Run 27's fired at 3.66% below Run 26's.
-**Where the movement lives is the one thing ten runs now agree on.**
+**Where the movement lives is the one thing eleven runs now agree on.**
 The six-pair figure has read 0.54%, 0.49%, 0.44%, 0.46%, 0.37%, 0.39%, 0.34%,
 0.40%, 0.31%, 0.83% and now 0.39% across those eleven on the basis while
 the whole-set figure ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12%, 2.03% and 1.26%
@@ -9694,8 +9716,10 @@ was a different quantity from the whole-set floor until the prune of 2026-09-04
 left six pairs in all. **Two rules are in play again, having been one for three
 runs, and each reads as two numerals because there are two halves**: 0.50%
 and 0.65% are the widest an arm differs from its own duplicate by on each half
-over the eight pairs this roster carries, and are what two rows of one table
-must clear, while the four pairs carrying back to Run 10 give 0.39% and 0.65%
+over the eight pairs this roster carries, while the four pairs carrying back
+to Run 10 give 0.39% and 0.65%, and the standing rule names the RESTRICTED
+figure as what two rows of one table must clear --- which this run re-opens
+rather than settles, the wider whole-set figure being the conservative reading
 --- and 2.1% is the across-run drift band an arm must clear to have moved
 between runs on this box, Run 23's one-binary reading, where Run 11's was 3.3%.
 **All three are the word *floor*, over different populations, and two things
