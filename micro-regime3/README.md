@@ -2878,15 +2878,17 @@ ONE of them was an error the step-7 cycle had itself introduced ---
 the cross-class table's bolding key, left at four and six after that cycle
 corrected `rev`'s cell to make it five and five --- and its most serious
 was older than any fix: the run's HEADLINE, written at 6a and stated
-as a universal the file refutes three times. **So every round of fixes made
-errors, in three of the four rounds this run ran, and the round that made none
-was the one that only recorded.** **AND ONE READING NO PASS CAN TAKE**:
-`--inherited` named 28 paragraphs carried whole from Run 27, of which two
-were last run's claims standing under this run's name --- the cross-class intro
-with its 310 comparisons and nine degenerate arms, and the class-anchor
-paragraph with Run 27's `runs-2` figures and a second window this run did
-not have. Neither produces a diff line, so neither checker pass could have seen
-them. A step skipped: none.
+as a universal the file refutes three times. **So three of this run's four
+rounds of fixes are KNOWN to have made errors, each found by the round after
+it --- and the fourth is the last, which no later round read.** The rate
+is not falling; what falls is the number of readers left. **AND ONE READING
+NO PASS CAN TAKE**: `--inherited` named the paragraphs carried whole from Run 27
+--- a count that falls as the run's own fixes rewrite them, so it is not one
+to quote --- of which two were last run's claims standing under this run's name
+--- the cross-class intro with its 310 comparisons and nine degenerate arms,
+and the class-anchor paragraph with Run 27's `runs-2` figures and a second
+window this run did not have. Neither produces a diff line, so neither checker
+pass could have seen them. A step skipped: none.
 
 **What Run 27 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
