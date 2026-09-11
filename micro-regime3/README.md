@@ -881,13 +881,17 @@ rather than a slot in the next run, observed again:
   is not this: no `bcast` view moves. **And an edit that touches neither fill
   can move the shape**, the uniques deciding it, so a run that meets
   a one-instruction step on this arm should read this entry before it reaches
-  for a strategy. The nearest open thread is post-run step 0's refusals: Run 28
-  named one of HEAD's seven straddlers and recorded six refusals having
-  no byte-identical `-g3` copy, taking no evidence of what they are, and GHC
+  for a strategy. Post-run step 0's refusals were the nearest open thread
+  and are read, 2026-09-11: Run 28's six are the four `-u2` leaf fills, which
+  the BASIS half's `-g3` twin names by the same byte identity,
+  and `fillStage2`'s broadcast and stepping runs, which no `-g3` build holds
+  byte-identical on either compiler and which the register-masked signature
+  names. **`fillStage2U1` is among none of them.** GHC
   [#27687](https://gitlab.haskell.org/ghc/ghc/-/work_items/27687) --- `-g3`
   changing the emitted code, filed from here --- is this same mechanism
-  with the fixup landing on the other arm. Whether `fillStage2U1` is among
-  those six wants the two `-g3` twins rebuilt, which no run has done.
+  with the fixup landing on the other arm, and on HEAD it reaches the fills
+  themselves, which is why that half's own twin named one straddler of seven
+  where the basis's named five of its own seven.
 
 - `OPEN` **A saving in instructions reaches the clock at a fifth to a half
   within one binary, where the rate on record is three quarters.** [The
@@ -1668,9 +1672,12 @@ rather than a slot in the next run, observed again:
   alone gates at `build` 0.9391 to 0.9517 plain over `-g3`, four to six times
   the floor and one direction. **And no weaker level is a way round it**, `-g1`
   changing the emitted code exactly as `-g3` does (GHC
-  [#27687](https://gitlab.haskell.org/ghc/ghc/-/work_items/27687)). The gate's
-  figures and the copy census that bounds the naming are in [the floor
-  section][floor].
+  [#27687](https://gitlab.haskell.org/ghc/ghc/-/work_items/27687)) ---
+  nor is one a way to a name, which is the other thing a twin is for: `-g1`
+  and `-g2` twins of Run 28's HEAD half, built beside its `-g3` one
+  on 2026-09-11, read the same census, name the same single straddler of seven
+  and refuse the same two. The gate's figures and the copy census that bounds
+  the naming are in [the floor section][floor].
 - `OPEN` **A recurring transient that lands on the `bq-expand` family, worth 35
   to 74%, and which no published column would show.** Not one cell: **five
   sightings in twelve runs**, moving each time, the largest of them Run 17's
@@ -7917,10 +7924,18 @@ not otherwise.
     #      timed binary is not named from the twin at all.
     #      `./loop-offsets.py $R-<half> --match probe-g3-<half>-$R` does
     #      the straddlers' half of that by the same rule, naming each by
-    #      its bytes and saying NOT NAMED where the twin holds no copy.
+    #      its bytes and saying NOT NAMED where no twin holds a copy.
+    #      GIVE IT BOTH TWINS, the half's own first, and add --loose: the
+    #      compilers emit many of these bodies alike, so the other half's
+    #      twin names what -g3 destroyed in this one -- four of the six
+    #      Run 28 first recorded as refusals, at no build. --loose then
+    #      offers a register-masked signature for what the bytes refuse,
+    #      and it prints a FAMILY rather than a name: read it only where
+    #      the family has one member or the rest are already anchored.
     #      NOT NAMED can also mean no loop, and `reaches` in
-    #      loop-offsets.py has the tell. THAT REFUSAL IS WHAT MAKES A
-    #      NEGATIVE HONEST and is not a shortfall to work around.
+    #      loop-offsets.py has the tell of all three shapes. THAT REFUSAL
+    #      IS WHAT MAKES A NEGATIVE HONEST and is not a shortfall to work
+    #      around.
     #      WHERE THE PREPARATION SPENT THIS HALF EARLY, RE-RUN THE
     #      `--match` OFF THE BINARIES YOU TIMED, which is two minutes and
     #      is what turns the note's block from a transcription into
@@ -8528,20 +8543,25 @@ because by then the run read finished; putting it first is what retires that.
    went. The REFUSALS are what make a negative honest: Run 22's twin named one
    of four straddling loops and refused three for want of a byte-identical copy,
    the one it named sitting in the branch's own fill, and Run 26's sixth
-   was no loop at all but an info table the sweep misread. The ORDER has
-   been taken both ways without cost --- Run 23 took 1, 2 and then 0 in one
-   sitting, Run 26 let the twin's build wait on the counts --- so what the list
-   fixes is the deadline and not the sequence. And a note's fill-in block
-   is where TRANSCRIBED figures live, Run 25's saying outright that two
-   of its own were carried rather than derived and happening to be true, which
-   is why the executing session re-runs the `--match` off the binaries it timed.
-   Run 12's were derived this way on the last day they existed and refuted two
-   accounts of its own split; Run 10's and Run 11's are gone unnamed. **Where
-   a preparation spent this half early, on an idle box before the pair ran,
-   the executing session re-derives it off the binaries it timed** --- two
-   minutes, and the difference between a block that was read and one
-   that was carried, which is the distinction pre-run step 12b exists to make
-   and which a note's fill-in block cannot make for itself. What is left
+   was no loop at all but an info table the sweep misread. **A refusal wants
+   the OTHER half's twin tried before it is recorded**, which turned Run 28's
+   six into two: four are the `-u2` leaf fills the basis twin names by the same
+   byte identity, the two left are `fillStage2`'s runs, which no `-g3` build
+   holds byte-identical on either compiler and which `--loose` then named off
+   their signature, and the basis half's own third refusal was one more misread
+   table. The ORDER has been taken both ways without cost --- Run 23 took 1, 2
+   and then 0 in one sitting, Run 26 let the twin's build wait on the counts ---
+   so what the list fixes is the deadline and not the sequence. And a note's
+   fill-in block is where TRANSCRIBED figures live, Run 25's saying outright
+   that two of its own were carried rather than derived and happening
+   to be true, which is why the executing session re-runs the `--match` off
+   the binaries it timed. Run 12's were derived this way on the last day they
+   existed and refuted two accounts of its own split; Run 10's and Run 11's
+   are gone unnamed. **Where a preparation spent this half early, on an idle box
+   before the pair ran, the executing session re-derives it off the binaries
+   it timed** --- two minutes, and the difference between a block that was read
+   and one that was carried, which is the distinction pre-run step 12b exists
+   to make and which a note's fill-in block cannot make for itself. What is left
    over is the timing work, which is what a quiet machine is for.
 1. **Gate every population on the correction, before reading any figure ---
    and read the A/A *worst cell*, not only the pair's geomean.** A control
@@ -11157,13 +11177,21 @@ What moves is resolvability --- targets not decoded as an instruction start go
 interleaves info tables with instructions, so shifting code by arbitrary NOP
 runs changes where the sweep mis-decodes and re-syncs. So the fourteen missing
 short loops did not grow and did not vanish; they stopped being visible
-to the instrument. Read *none straddling* as a statement about a sample
-that alignment makes smaller, not about the binary, and take the completeness
-question to the assembly instead, where the shim works and there is no decoding
-ambiguity: it knows which 395 heads it aligned, and the heads it skipped
-are exactly those whose preceding line was not an instruction. That is the form
-in which the claim below is sound, and the survey is corroboration rather
-than the evidence.
+to the instrument. **The same sweep INVENTS loops, and the third shape
+of that is refused since 2026-09-11**: a body carrying a run of four zero bytes,
+which is an info table read as code --- both the flow test and the `(bad)`
+filter admit one, `00 00` being a legal instruction. Over twenty binaries, Runs
+24 to 28's twins and the two pairs still on disk with six rebuilds of Run 28's,
+it marks twenty bodies and no real loop; survey totals recorded before
+it are higher by one or two wherever it fires and stand as taken, and the two
+STRADDLER counts it moves are `run28-g912`'s, from eight to seven, and Run 26's
+HEAD twin's, from six to four. Read *none straddling* as a statement about
+a sample that alignment makes smaller, not about the binary, and take
+the completeness question to the assembly instead, where the shim works
+and there is no decoding ambiguity: it knows which 395 heads it aligned,
+and the heads it skipped are exactly those whose preceding line was
+not an instruction. That is the form in which the claim below is sound,
+and the survey is corroboration rather than the evidence.
 
 The heads the padding rule skips, the ones a table sits in front of,
 are not loop heads that would have straddled here: for short loops in the code
