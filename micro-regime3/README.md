@@ -5019,29 +5019,32 @@ its `run`-level fill loops found byte for byte, once each, in the timed binary;
 the loops are kept beside it as `loop-u2.txt`, `loop-down.txt`
 and `loop-leaf.txt`). Every leaf arm carries two copies of its fill --- a rank-1
 copy behind the top guard and the fused `run`-level copy every rank-2+ shape
-executes --- and the two differ in exactly the property at issue, so a reading
-of the rank-1 copy is a reading of nothing that was timed. `-add-in-leaf-u2`'s
-rank-1 copy is the twelve-instruction body the second probe read, no load beyond
-the two `movsd` pairs; **its `run`-level copy is seventeen, with the source base
-and the output base reloaded from the stack before every load and every store**
---- four reloads per two elements, three loads per element where one is the work
---- the fused level keeping `k`, `boff`, `st`, `sInner` and `op` live across
-the fill where the rank-1 copy keeps nothing. `-add-in-leaf-down`'s is eight per
-element with one reload, `-add-in-leaf`'s nine with one, and plain
-`mut-odo-vecdims`'s, which has no fused level, eight with none.
-**So the corner's Run 20 lead is the spill and nothing else**: on every long-run
-shape the shipped arm executes more instructions and more loads per element
-than the arm it beat on the probe, and where runs are 1 to 3 the loop never
-reaches steady state, which is the run-length pattern the per-shape ratios show
---- `-down` at 0.82 to 0.87 of `-u2` on `stretch-wide-2xM`, `-inner256`,
-`-tab7MB` and the `bcast` class, at 1.0 to 1.25 on the k3 conv shapes,
-`stretch-inner1` and `window-64x64-k1x9`, on both compilers. The same spill
-is why `-u2` trails plain `mut-odo-vecdims` on `stretch-primes`, `-inner256`
-and `-pow2stride`; `stretch-tall-Mx2`, runs of 2, is the one shape where
-the per-run step and not the loop decides and the loss is not yet separated.
-**With the bases in registers the order is the probe's**: six instructions per
-element against seven, or six once the redundant `test` after `dec` goes,
-with half the branches; nothing in Run 20 argues for `-down` under an allocator
+executes --- and the two differ in exactly the property at issue, so which copy
+a reading names decides what it says: `scaled-rank1-m1` runs the rank-1 copy
+for every fill arm and `flip-whole-square` for the canonicalizing ones, two
+of the three rank-1 views GHC #27799's entry in [the open list](#what-is-open)
+prices. `-add-in-leaf-u2`'s rank-1 copy is the twelve-instruction body
+the second probe read, no load beyond the two `movsd` pairs; **its `run`-level
+copy is seventeen, with the source base and the output base reloaded
+from the stack before every load and every store** --- four reloads per two
+elements, three loads per element where one is the work --- the fused level
+keeping `k`, `boff`, `st`, `sInner` and `op` live across the fill where
+the rank-1 copy keeps nothing. `-add-in-leaf-down`'s is eight per element
+with one reload, `-add-in-leaf`'s nine with one, and plain `mut-odo-vecdims`'s,
+which has no fused level, eight with none. **So the corner's Run 20 lead
+is the spill and nothing else**: on every long-run shape the shipped arm
+executes more instructions and more loads per element than the arm it beat
+on the probe, and where runs are 1 to 3 the loop never reaches steady state,
+which is the run-length pattern the per-shape ratios show --- `-down` at 0.82
+to 0.87 of `-u2` on `stretch-wide-2xM`, `-inner256`, `-tab7MB` and the `bcast`
+class, at 1.0 to 1.25 on the k3 conv shapes, `stretch-inner1`
+and `window-64x64-k1x9`, on both compilers. The same spill is why `-u2` trails
+plain `mut-odo-vecdims` on `stretch-primes`, `-inner256` and `-pow2stride`;
+`stretch-tall-Mx2`, runs of 2, is the one shape where the per-run step
+and not the loop decides and the loss is not yet separated. **With the bases
+in registers the order is the probe's**: six instructions per element against
+seven, or six once the redundant `test` after `dec` goes, with half
+the branches; nothing in Run 20 argues for `-down` under an allocator
 that behaves, and what would refute that is a `-down` lead surviving on a build
 where `-u2`'s `run`-level loop reads twelve. The trigger is the live-value class
 of GHC [#27737](https://gitlab.haskell.org/ghc/ghc/-/work_items/27737), whose
@@ -5721,6 +5724,16 @@ costs 1.4% of the clock. Nothing in the counted work distinguishes the last
 from the first four --- its ratio reproduces a pre-run probe's 0.9688 ---
 so the rate is a property of what the loop does with the register pressure
 it frees, and a span derived from a count ratio can miss in either direction.
+
+**The reload is priced on shipped code without either.** `lib-stage2-lean`
+over `lib-stage1` at `flip-whole-square` is the rank-1 copy against
+the `run`-level one, in one process on one input: the canonicalized form against
+the raw rank-2 view of the same data. Its margin is that `0x40(%rsp)` line
+and not the rank it sheds --- **11 instructions a pair against 12**, where
+the `Ptr` form reaches nine, and the 1340 run-loop iterations the merge saves
+are a fortieth of it. It is not GHC #27799's latch, which is in the un-unrolled
+loop: both copies here are fused, and the pair has read **0.9154** in corrected
+instructions on both halves of Runs 25, 26, 27 and 28.
 
 
 ### The C-gap: still a deeper ceiling

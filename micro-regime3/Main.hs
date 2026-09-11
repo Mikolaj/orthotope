@@ -3423,6 +3423,10 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
 -- where it is, where the leaf family prices the first under the arms'
 -- own odometer, '-u2' over '-u1' at 0.9644 in time and 0.9208 in counts
 -- on Run 26's main set. Added 2026-09-07 for Run 27.
+-- Not where the fill is rank 1: GHC #27799's latch costs this
+-- loop one instruction an element there, on one half or the other
+-- (README.md#what-is-open). Price the unrolling on the main set, or off
+-- a rank-2 view.
 -- Non-vacuity, 2026-09-07: dropping the @+ tInner@ from the run's
 -- recursive call fails @check@ at @cnn-L1-6x6-c1@, naming
 -- lib-stage2-lean-u1 alone.
