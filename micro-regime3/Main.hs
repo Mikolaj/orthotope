@@ -4551,6 +4551,33 @@ lsUnordStage9 sh a@(T _ _ v) = listRoute (routeUnord9 sh a) v
 fbLibUnordStage9 :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage9 sh a@(T _ _ v) = fillRoute (routeUnord9 sh a) v
 
+-- Stage ten, stage seven's tie-break under stage nine's move: on equal
+-- absolute strides the larger extent lands innermost, so the run is
+-- the longest unit-stride axis, and every zero-stride axis then goes
+-- outermost on the list route, so a broadcast lists one real slice as
+-- many times as the axis is long. The tie-break decides the run and
+-- the move the outer order, so where both fire the run is the
+-- tie-break's with the zero-stride axes outside it, and where one
+-- fires the route is stage seven's or stage nine's. What the arm
+-- prices is whether the two savings Run 28 read alone -- the tie-break
+-- at 0.72 on 'window', the move at 0.45 to 0.66 on the zero-stride
+-- views -- compose with nothing paid for each other. Two changes over
+-- 'routeUnord6'. Added 2026-09-11 for Run 29.
+routeUnord10 :: ShapeL -> T -> Route
+routeUnord10 = dispatchLean zerosFirstTied
+
+-- Stage seven's order with its zero-stride axes moved outermost.
+zerosFirstTied :: ShapeL -> [Int] -> ([Int], ShapeL)
+zerosFirstTied sh ats = unzip (zerosOutermost (zip acats sh'))
+  where (acats, sh') = sortedAbsBy byStrideExtent sh ats
+
+lsUnordStage10 :: ShapeL -> T -> [VS.Vector Double]
+lsUnordStage10 sh a@(T _ _ v) = listRoute (routeUnord10 sh a) v
+
+{-# NOINLINE fbLibUnordStage10 #-}
+fbLibUnordStage10 :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage10 sh a@(T _ _ v) = fillRoute (routeUnord10 sh a) v
+
 -- The two ports' lists: master's and the branch's 'toVectorListT', and
 -- the unordered one-block tests in front of them. The four port Fill
 -- arms are 'concatParts' over these since 2026-09-09, Run 27 having
@@ -4688,6 +4715,11 @@ fbLibUnordStage9Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage9Sum sh a@(T _ _ v) =
   VS.singleton (sumRoute (routeUnord9 sh a) v)
 
+{-# NOINLINE fbLibUnordStage10Sum #-}
+fbLibUnordStage10Sum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage10Sum sh a@(T _ _ v) =
+  VS.singleton (sumRoute (routeUnord10 sh a) v)
+
 -- The laziness gate, in 'check' and never timed: the ruling that the
 -- list stays lazy (README.md#dead-ideas) as a predicate. On a view of
 -- 200000 runs of 20 -- regime 2 on master -- forcing the HEAD of each
@@ -4749,7 +4781,8 @@ lazinessGate = do
         , ("libunord-stage6", lsUnordStage6, Just True, Just True)
         , ("libunord-stage7", lsUnordStage7, Just True, Just True)
         , ("libunord-stage8", lsUnordStage8, Just True, Just True)
-        , ("libunord-stage9", lsUnordStage9, Just True, Just True) ]
+        , ("libunord-stage9", lsUnordStage9, Just True, Just True)
+        , ("libunord-stage10", lsUnordStage10, Just True, Just True) ]
       gate view sh a n ls ask = case ask of
         Nothing -> return ()
         Just want -> do
@@ -5949,7 +5982,11 @@ roster =
     -- The unrolled loop with its look-ahead hoisted out of the guard,
     -- added 2026-09-07 beside its parent for Run 27; reasons at its
     -- definition.
-  , ("mut-odo-vecdims-add-in-leaf-u2-last", Fill fbMutOdoVecdimsAddInLeafU2Last)
+    -- Parked 'Only' 2026-09-11: three runs read the hoisted look-ahead
+    -- as an instruction saving time does not follow, 1.0137 and 1.0144
+    -- behind '-u2' on Run 28's main set; its case is the conversion-rate
+    -- entry (README.md#what-is-open).
+  , ("mut-odo-vecdims-add-in-leaf-u2-last", Only fbMutOdoVecdimsAddInLeafU2Last)
     -- The unrolled loop with its cursors as pointers at every level,
     -- added 2026-09-05 beside its parent for Run 26's comparison with
     -- '-u1-ptr': the ceiling '-u2' would
@@ -5958,7 +5995,11 @@ roster =
   , ("mut-odo-vecdims-add-in-leaf-u2-ptr", Fill fbMutOdoVecdimsAddInLeafU2Ptr)
     -- Timed since 2026-08-28, parked 'Only' the day before: the
     -- lighter-loop form of the shipped arm, see its definition.
-  , ("mut-odo-vecdims-add-in-leaf-u2-down", Fill fbMutOdoVecdimsAddInLeafU2Down)
+    -- Parked 'Only' 2026-09-11: a tie with '-u2' for a third run, 1.0034
+    -- and 0.9981 on Run 28's main set and equal in counts since Run 26;
+    -- the allocator question it was kept for was one HEAD binary's and
+    -- is closed.
+  , ("mut-odo-vecdims-add-in-leaf-u2-down", Only fbMutOdoVecdimsAddInLeafU2Down)
     -- The un-unrolled form of the shipped fill, added 2026-09-04 for Run
     -- 25 and placed beside its parents; reasons at its definition.
   , ("mut-odo-vecdims-add-in-leaf-u1", Fill fbMutOdoVecdimsAddInLeafU1)
@@ -6074,6 +6115,8 @@ roster =
   , ("libunord-stage7",            Only fbLibUnordStage7)
   , ("libunord-stage8",            Only fbLibUnordStage8)
   , ("libunord-stage9",            Only fbLibUnordStage9)
+    -- stage ten, checked like the stages above it since it landed
+  , ("libunord-stage10",           Only fbLibUnordStage10)
     -- The ordered list's consumers, added 2026-09-09 for Run 28 as the
     -- thirteen above retired: 'sumT'-shaped over each stage's ordered
     -- list, master's and the port's under 'sumRuns', stages three and
@@ -6093,7 +6136,10 @@ roster =
     -- The ceiling's consumer, added 2026-09-09 for Run 28: the fill
     -- summed, what stage five's list is read against.
   , ("libunord-stage3-sum",        Fill fbLibUnordStage3Sum)
-  , ("libunord-stage4-sum",        Fill fbLibUnordStage4Sum)
+    -- Parked 'Only' 2026-09-11: the natural-strides dispatch against the
+    -- sorted one read 1.0051 and 1.0030 on Run 28's main set and level
+    -- on `runs`, and stages six and seven stand on stage five now.
+  , ("libunord-stage4-sum",        Only fbLibUnordStage4Sum)
   , ("libunord-stage5-sum",        Fill fbLibUnordStage5Sum)
     -- and stage six's consumer, added with it.
   , ("libunord-stage6-sum",        Fill fbLibUnordStage6Sum)
@@ -6110,6 +6156,10 @@ roster =
     -- (README.md#dead-ideas); reasons at 'routeUnord8'.
   , ("libunord-stage8-sum",        Only fbLibUnordStage8Sum)
   , ("libunord-stage9-sum",        Fill fbLibUnordStage9Sum)
+    -- Stage seven's tie-break under stage nine's move, added 2026-09-11
+    -- for Run 29 at the tail of the consumers, beside the two it
+    -- composes; reasons at 'routeUnord10'.
+  , ("libunord-stage10-sum",       Fill fbLibUnordStage10Sum)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
