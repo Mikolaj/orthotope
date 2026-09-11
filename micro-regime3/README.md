@@ -962,6 +962,56 @@ rather than a slot in the next run, observed again:
   fused shapes, the per-class table and the per-run medians --- is the fusion
   premise of Run 28's registration below, and moves with it into Run 28's file
   at that run's post-run step 5.
+- `OPEN` **An argument that a reordering cannot reach a population
+  is the cheapest clause a registration can carry and the least reliable: Run 28
+  tested four of them and all four failed.** Registrations (3), (6), (7)
+  and (11) each said two routes are the same code past a dispatch, and each
+  named the populations the argument says the reordering cannot touch. Every one
+  was refuted there, on BOTH halves and past the population's own floor: (3)
+  on allocation, 16 of 77 views differing at the published precision; (6)
+  on `window` at 1.0518 and 1.0474 where stage eight was argued to keep stage
+  six's order, and on `small-patch-r5` where it was registered ahead and reads
+  1.2593 and 1.2152 behind; (7) on `rev`, which has no zero stride and so should
+  have been stage six exactly, at 1.0191 and 1.0164; (11) on `main`, `rev`
+  and `small`, the lean and natural-strides dispatches parting where they
+  were argued to be one route. **The converse does NOT hold and the count
+  is what makes that worth keeping**: registrations (2), (4) and (10) are no-op
+  predictions too and all three held, (2) over eight populations. So the finding
+  is not that such arguments always fail but that FOUR of seven did on one
+  roster, where every one of the eight items predicting a real effect landed.
+  **What would settle it** is a next registration that states, for each no-op
+  clause, which line of `Main.hs` makes the two routes identical --- the four
+  that failed were argued from the shape of the code and not from the dispatch
+  it compiles to, and none of the four names a route.
+- `OPEN` **The A/A floor and the restricted six-pair figure came apart on Run 28
+  for the first time since the prune, and which of them a margin between two
+  rows must clear is now two answers.** The shipped fill's own A/A copies landed
+  2026-09-09, so the floor is a maximum over EIGHT pairs and reads 0.50%
+  on the basis where the four pairs that carry back to Run 10 read 0.39%;
+  on the control both read 0.65%. Runs 25 to 27 had them collapsed and quoted
+  one figure a half. The standing rule in [the floor section][floor] names
+  the RESTRICTED figure; every verdict in `runs/run28.md` uses the whole-set
+  pair, which is the conservative reading and the one a margin ought to clear
+  if the point of a floor is that an arm disagrees with its own duplicate
+  by that much. **What would settle it** is a ruling, not a measurement ---
+  but the measurement that would inform it is whether the new pair's 0.50%
+  is the fill family's own property or this evening's: a second run carrying
+  the same eight pairs says which, and Run 29 is the first that can.
+- `OPEN` **The arm that leads Run 28's table is the branch's own driver
+  and not a member of the family the fix shipped.** `lib-stage2-lean` reads
+  0.027 on the main set against the shipped `mut-odo-vecdims-add-in-leaf-u2`'s
+  0.029 and the family root's 0.051, leads outside the family in seven
+  of the ten classes, and beats the shipped route `lib-stage1` by margins
+  that reach 0.2316 and 0.2357 on `runs` and 0.4200 and 0.4257 on `block`. Two
+  of its three edges are dated 2026-09-09 --- a doubling block copy
+  for a zero-stride level and the broadcast run unrolled by two ---
+  and registration (14) already names the next step for one of them: give
+  `fbMutOdoVecdimsAddInLeafU2`, the leaf the library ships, the broadcast
+  unroll, which returns `bcast-tall-Mx2` and with it the `bcast` class to a tie.
+  **What would settle the rest** is whether the doubling copy has a counterpart
+  in the leaf at all; it has none today, so `bcastmid` stays the lean fill's
+  until one is written, and no run has priced the two designs with the same fill
+  underneath them.
 - `ANSWERED` **What Run 28 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 28's own
@@ -2706,6 +2756,94 @@ rather than a slot in the next run, observed again:
 
 
 ### Recommended tasks after Run 28
+
+**What Run 28 made cheaper for the next run, which is not a figure and no other
+step gathers --- and it is TWO sessions' worth, the preparation's reaching
+the executor only through the pair note.** **The preparation's half, taken
+2026-09-09 into 09-10 and recorded in the note:** the largest thing it found
+is that **a roster can break the READER and not the binary** --- five arms
+this roster invents beat the sum-only control the forcing correction subtracts,
+so the correction ran their rows entirely non-positive and `--selftest`,
+a REQUIRED mode, refused two legs of the L1 roster pass. No build check,
+no `check` run, no lint and no document pass can see that, and it would have
+surfaced eight hours into the evening, on `bcast` and `flip` of both halves, had
+step 12 been skipped as not owed. The ruling that settled it --- a reducing
+consumer has no corrected time, `no_net` being the predicate --- was taken
+BEFORE the gate rather than during it, which is the whole reason step 12 runs
+where it does. The check that would have caught an error was `--draft`'s own
+instruction to read every carried line: it carries the previous note's spent
+MACHINE CHECK block forward, so Run 27's box-move reading arrived in this pair's
+draft as though it were Run 28's, under a lead beginning AND IT FIRED. Nothing
+checks a pair note's prose. ONE computation was improvised, the counts block's
+per-leg seconds off the opening and `# end` stamps, which is the method
+that block already names; and one was improvised and then RULED OUT, a walk
+of the commits that rewrote the registration, which no step asks for. A step
+skipped: none. The capability found is that `--note` plus `--draft` is the whole
+of a note's assembly. It also fixed four defects in the checks themselves, each
+with a record: `--draft` carrying a spent block (`c7364e1`), `smoke-l1.sh`
+printing `(rc=0)` for every mode that failed because `$?` in the body
+of `if ! cmd` is the negation's status (`11767f9`), the newest-run mutant judge
+reading the run number with an anchored `re.match` where the narrowing it judges
+searches anywhere (`9bbc3eb`), and 10c harvesting a path tail (`25487e3`).
+**The executing session's half, and it is five things.** **A CHECKER WENT STALE
+AGAINST THE ROSTER, and that is this run's durable finding about the tooling.**
+`--check-doc`'s six-pair agreement row baked the SIZE of the A/A set
+into its own patterns --- `the six pairs` --- and this run moved that set
+from six to eight by landing the shipped fill's own A/A copies. The row stopped
+matching and SAID SO rather than passing, which is what it was written to do;
+`defects.py`'s self-aiming fixture then would not build, which is the louder
+half of the same event. Both are repaired population-independently: the pattern
+keys on `pairs that carry back to Run 10` and tolerates the emphasis markers
+a write-up puts on figures, and the fixture's anchor moves with it.
+**That anchor has now been re-shaped three times --- 2026-09-02, 2026-09-05
+and 2026-09-11 --- each time by a roster change, and this is the first shaping
+that names no population size.** The lesson is narrower than the pattern:
+a cross-site agreement check must key on the QUANTITY, never on the size
+of the population it is taken over, because the population is exactly what
+a roster moves. **THE MECHANICAL CHECKS CAUGHT NEARLY EVERYTHING, AND MISSED
+THE ONE THAT MATTERED.** `--check-doc` refused, in order and each on a real
+defect: seven dead links into the previous run's file; a stale
+`recommended-tasks-after-run-27` anchor in `Main.hs` and two more in README;
+the class tables' shape counts, held down by a spent `added DATE, after the run`
+declaration in Run 27's delta bullet that had to retire with it; ten class
+paragraphs quoting Run 27's floors; an artifact path named in a file
+that outlives it; a lost class-process-count site; the floor pair disagreeing
+across eight sites; and a historical shape count read as this roster's. Not one
+needed a reading. **What no gate reads is `--move-registration`'s `___`**:
+it leaves that placeholder for the ANSWERED entry's verdict clause,
+`--check-doc` passes over it, and the entry would have shipped with a bare
+underscore had the second checker pass not opened README beside the run file.
+**TWO COMPUTATIONS WERE IMPROVISED, both because this file names no method
+for them.** The cross-class summary's emphasis marks the faster of two cells
+the table prints to three decimals, and FOUR of the ten classes tie there;
+the tie-break used `--pair`'s four decimals and got `rev` wrong, the column
+separating the two arms at its fourth decimal the other way. The rule that came
+out of it is now in the table's own paragraph: **the emphasis follows
+the COLUMN, since the column is what a reader compares, and `--pair` only
+separates a tie the column itself cannot.** The second is the conversion rate,
+`(1 - time) / (1 - counts)`, which this file quotes every run and no reader mode
+computes. **WHAT THE THREE AGENTS COST AND BOUGHT, which is the reading
+this list has not carried before.** The carrier read four sections of Run 27's
+file and returned `run28-readings.txt`; it found two errors in Run 27's
+PUBLISHED file that no gate here reads --- its stride-class prose naming three
+bolded rows where its own table bolds two, and its claims section calling
+`libunord-stage3` and `-u2-ptr` new to the timed roster when Run 26 timed both.
+Checker pass 1 returned 31 findings on the run file alone. Pass 2, over both
+documents after those were fixed, returned 17 --- **of which SIX were MADE
+by the first round of fixes**: a summary-table cell tie-broken with the wrong
+statistic, a figure corrected to a value the reader does not print, a row list
+moved to the wrong count, and three sentences left naming what they named before
+the count under them changed. That is Run 21's ratio again and it
+is the argument for the second pass. The comprehension probe then returned 29,
+of which two were errors the step-7 cycle had itself introduced --- including
+the run's HEADLINE, stated as a universal the file refutes three times. **Every
+round of fixes made errors, in every one of the four rounds this run ran.**
+**AND ONE READING NO PASS CAN TAKE**: `--inherited` named 28 paragraphs carried
+whole from Run 27, of which two were last run's claims standing under this run's
+name --- the cross-class intro with its 310 comparisons and nine degenerate
+arms, and the class-anchor paragraph with Run 27's `runs-2` figures and a second
+window this run did not have. Neither produces a diff line, so neither checker
+pass could have seen them. A step skipped: none.
 
 **What Run 27 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
