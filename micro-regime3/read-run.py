@@ -7279,7 +7279,7 @@ def pair_note(path, draft=None, halves=None):
     # is that copying one forward is how a note comes to describe the run
     # before it, so the title is all that crosses.
     guide = _template_blocks(os.path.dirname(os.path.abspath(path)))
-    pairs, out, gate_done = [], [], False
+    pairs, out, gate_done, handover_done = [], [], False, False
     for para, kind, announced in blocks:
         lead = para.lstrip('\n').split('\n', 1)[0]
         title = _note_title(lead)
@@ -7307,6 +7307,22 @@ def pair_note(path, draft=None, halves=None):
                     out.append(_template_gate(
                         os.path.dirname(os.path.abspath(path))))
                 continue
+            if kind == 'handover':
+                # ONCE, however many handover blocks the previous note
+                # accumulated -- the rule the gate keeps just above, for
+                # the same reason and missed here because the slot NAME is
+                # fixed rather than the title's, so the duplicates come out
+                # identical and read as a template asking to be filled in
+                # three places. A handover is ONE block of the note; the
+                # previous note's runs to several paragraphs, and the
+                # splitter announces more than one of them -- Run 29's
+                # handover is a single heading over nine paragraphs, three
+                # of which arrived here announced, so Run 30's draft opened
+                # with the same slot and the same scaffolding three times
+                # (2026-09-13).
+                if handover_done:
+                    continue
+                handover_done = True
             slot = ('ENTRY POINT FOR THE SESSION THAT RUNS THIS'
                     if kind == 'handover' else title)
             out.append('%s [PAIR\'S]: <yours>\n%s'
@@ -7347,8 +7363,9 @@ def pair_note(path, draft=None, halves=None):
            for o, n in zip(old, new)}
     ren[prev] = draft
     seen = {}
-    body = re.compile('|'.join(re.escape(k) for k in
-                               sorted(ren, key=len, reverse=True))).sub(
+    ren_rx = re.compile('|'.join(re.escape(k) for k in
+                                 sorted(ren, key=len, reverse=True)))
+    body = ren_rx.sub(
         lambda mo: (seen.__setitem__(mo.group(0),
                                      seen.get(mo.group(0), 0) + 1),
                     ren[mo.group(0)])[1], body)
@@ -7434,8 +7451,15 @@ def pair_note(path, draft=None, halves=None):
     print('#')
     print('# YOURS TO WRITE, each a <yours> slot below -- the decisions,'
           ' which no')
+    # THE SAME RENAME THE BODY GOT, and not the run number's alone: the
+    # titles here are the PREVIOUS note's, so a block led `THE BASIS IS
+    # run29-spec` came out of this list as `THE BASIS IS run30-spec` --
+    # a half this pair does not have -- while the body's own heading, two
+    # lines down in the same output, read `run30-nospec`. One map, applied
+    # in both places (2026-09-13).
     print('# draft may carry: %s'
-          % ('; '.join(p.replace(prev, draft)[:56] for p in pairs) or 'none'))
+          % ('; '.join(ren_rx.sub(lambda mo: ren[mo.group(0)], p)[:56]
+                       for p in pairs) or 'none'))
     print('# The fill-in block is <yours> per row too, and'
           ' `preflight.sh %s --fill-in`' % draft)
     print('# derives most of them off the binaries once they are built.')
