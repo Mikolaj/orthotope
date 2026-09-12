@@ -623,6 +623,32 @@ else
   fi
 fi
 
+# 9b IS NOT THIS SCRIPT'S TO RUN and the list says so outright -- `diag`
+# answers for the REGIME and for nothing else, so what the two halves
+# differ in is read by the note's own command. What nothing did was put
+# that command in front of the session. A pair whose variable leaves no
+# trace in `diag` -- Run 30's `-fliberate-case`, which moves neither
+# baseOffsets row -- left its preparation to invent what stands in, with no
+# prompt at any step of the pass. ECHOED AND NEVER JUDGED: it takes no
+# verdict, so it is printed rather than `say`ed, `say` counting anything
+# but PASS as a failure and writing the row --fill-in quotes.
+# `step 9b` FIRST AND A WORD BOUNDARY SECOND, because a bare `9b` is a
+# substring of a commit hash: run30-pair.txt names `89bdb3c` above its 9b
+# sentence, and the first draft of this echoed that line instead. The
+# boundary is what makes the fallback safe, `9b` inside `89bdb3c` being
+# surrounded by word characters on both sides.
+NB=$(grep -n 'step 9b' "$R-pair.txt" 2>/dev/null | head -1 | cut -d: -f1)
+[ -n "$NB" ] || NB=$(grep -nw '9b' "$R-pair.txt" 2>/dev/null \
+                       | head -1 | cut -d: -f1)
+if [ -n "$NB" ]; then
+  printf '  %-4s %-4s %s\n' 9b yours \
+    "$(sed -n "${NB},$((NB + 2))p" "$R-pair.txt" | sed 's/^[[:space:]]*//' \
+       | tr '\n' ' ' | cut -c1-150)"
+else
+  printf '  %-4s %-4s %s\n' 9b yours \
+    "$R-pair.txt says nothing about 9b; the pair's own variable is unread"
+fi
+
 # Held to what it read and not to its exit alone: the plain form exits 0
 # whatever it finds, so `0 self-loops` in a half PASSed here against the
 # header's "exit status is the whole verdict". Two `==` headers, one per
