@@ -326,6 +326,7 @@ import re
 import signal
 import statistics as stats
 import sys
+import tempfile
 import textwrap
 
 TOL = 1e-9
@@ -2613,6 +2614,152 @@ def carried_figures(run, run_doc, readme, others, main_hs, verbose=False):
     return 0
 
 
+# How far back --carry-over walks README's commits for the previous OPEN
+# registration. The entry it wants is removed at the previous run's post-run
+# step 5, so on the run after it the hit is a few dozen commits down; the cap
+# is what keeps a MISSING registration from reading every state of a file
+# with hundreds of commits, once per candidate run number.
+PREV_REG_SCAN = 400
+
+
+def _git(root, *args):
+    """`git -C root ...`, or None where git or the object is not there."""
+    try:
+        return subprocess.run(('git', '-C', root) + args, capture_output=True,
+                              text=True, check=True).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+
+def previous_registration(readme, n):
+    """Run <m>'s registration as it stood BEFORE that run, out of git.
+
+    The pre-run form is not in the run file: post-run step 5 MOVES the
+    entry there and the write-up then appends a verdict to every item, so
+    a carry-over diffed against that copy reports all of them changed --
+    which is the reading a session actually made. What dates the pre-run
+    form is the commit that REMOVED the OPEN lead from README, step 5
+    being the removal; its parent is the last state carrying it.
+    """
+    root = os.path.dirname(os.path.abspath(readme)) or '.'
+    rel = _git(root, 'ls-files', '--full-name', os.path.basename(readme))
+    if not rel:
+        return None, None, 'git cannot read %s' % readme
+    rel = rel.strip()
+    for m in range(n - 1, 0, -1):
+        lead = 'What Run %d is built to answer' % m
+        # NOT `git log -S`, WHICH FINDS NOTHING HERE: README is kept
+        # wrapped, so the lead straddles a line break in every blob and
+        # the literal search matches none of them -- the same silence the
+        # directory's CLAUDE.md warns of for source and prose alike. Each
+        # candidate blob is flattened before it is tested.
+        # NEWEST FIRST, and the first hit is the answer: the entry is
+        # written before the run and removed at post-run step 5, so the
+        # LAST state carrying it is the one wanted. Bounding the walk by
+        # the run file's birth instead looks right and is not -- step 5
+        # writes that file, so every state carrying the lead is at or
+        # BEFORE it, and `birth^..HEAD` excluded all of them. That draft
+        # walked past Run 29 to Run 22 and reported its items as Run 22's,
+        # which is a wrong answer where a refusal was owed.
+        # The pathspec is CWD-relative and `rel` is REPO-relative: `git -C
+        # micro-regime3 log -- micro-regime3/README.md` names a path that
+        # is not there and returns no commits at all, silently, which is
+        # what the first draft of this did. `rel` is for `git show`, whose
+        # `REV:path` IS repo-relative, and the basename is for the log.
+        revs = (_git(root, 'log', '--format=%H', '--',
+                     os.path.basename(readme)) or '').split()
+        blob = None
+        for rev in revs[:PREV_REG_SCAN]:
+            got = _git(root, 'show', '%s:%s' % (rev, rel))
+            if got and lead in ' '.join(got.split()):
+                blob = got
+                break
+        if blob is None:
+            continue
+        with tempfile.NamedTemporaryFile('w', suffix='.md',
+                                         delete=False) as fh:
+            fh.write(blob)
+            tmp = fh.name
+        try:
+            flat = subprocess.run(['wrap80', '--unwrap', tmp],
+                                  capture_output=True, text=True,
+                                  check=True).stdout
+        except (OSError, subprocess.CalledProcessError) as e:
+            os.unlink(tmp)
+            return None, None, 'wrap80 --unwrap could not run (%s)' % e
+        os.unlink(tmp)
+        for line in flat.split('\n'):
+            if lead in ' '.join(line.split()):
+                return m, items_from_flat(' '.join(line.split())), None
+    return None, None, ('no earlier OPEN registration in the history of %s'
+                        % rel)
+
+
+def _word_change(a, b, cap=3, clip=60):
+    """The runs of words that differ, compactly, in git's word-diff marks."""
+    aw, bw = a.split(), b.split()
+    out = []
+    for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(None, aw,
+                                                       bw).get_opcodes():
+        if tag == 'equal':
+            continue
+        def cut(s):
+            return s if len(s) <= clip else s[:clip] + '...'
+        out.append('[-%s-]{+%s+}' % (cut(' '.join(aw[i1:i2])),
+                                     cut(' '.join(bw[j1:j2]))))
+    return (', '.join(out[:cap])
+            + ('' if len(out) <= cap
+               else ', and %d more change(s)' % (len(out) - cap)))
+
+
+def carry_over(run, run_doc, readme):
+    """This run's registration against the one it was carried from.
+
+    A registration carried over from the previous run is ordinary here --
+    Run 30's eleven items are Run 29's, with one flag name substituted and
+    two figures amended by hand -- and whether that is ALL that moved was
+    a question nothing answered. A session asked it by writing its own
+    splitter against the run file's copy, which carries a verdict per item,
+    and got back eleven changed items and no signal at all. The chapter's
+    own standing instruction is that a computation a write-up hand-rolls
+    is a defect report against the reader, so it is answered here.
+    WHAT IT IS NOT is a verdict: a carry-over is SUPPOSED to change where
+    the halves are renamed and where an amendment was decided. What it
+    hands back is the list of items that moved and the words that moved in
+    them, so the reading is which of those were meant.
+    """
+    src, items, _flat = registration_items(run, run_doc, readme)
+    if not items:
+        return 1
+    m = re.match(r'run(\d+)', os.path.basename(run))
+    if not m:
+        sys.stderr.write('--carry-over wants a run named run<N>, to know'
+                         ' which registration precedes this one\n')
+        return 2
+    pn, prev, why = previous_registration(readme, int(m.group(1)))
+    if prev is None:
+        sys.stderr.write('BLOCKED: %s\n' % why)
+        return 2
+    print('%s\'s registration in %s, against Run %d\'s as it stood BEFORE'
+          ' that run (out of git, not from its run file)'
+          % (os.path.basename(run), os.path.basename(src), pn))
+    mine, theirs = dict(items), dict(prev)
+    same = 0
+    for num in sorted(set(mine) | set(theirs), key=int):
+        a, b = theirs.get(num), mine.get(num)
+        if b is None:
+            print('  (%s) DROPPED -- in Run %d and not here' % (num, pn))
+        elif a is None:
+            print('  (%s) NEW -- not in Run %d' % (num, pn))
+        elif a == b:
+            same += 1
+        else:
+            print('  (%s) %s' % (num, _word_change(a, b)))
+    print('%d item(s) here, %d carried word for word, %d of Run %d\'s'
+          % (len(mine), same, len(theirs), pn))
+    return 0
+
+
 def registration_items(run, run_doc, readme):
     """The registration for this run, split into numbered items.
 
@@ -2669,6 +2816,18 @@ def registration_items(run, run_doc, readme):
                          % (run_doc or 'the run file', REG_HEAD, readme))
         return None, None, None
     flat = ' '.join(text.split())
+    return src, items_from_flat(flat), flat
+
+
+def items_from_flat(flat):
+    """A registration's items, `[(number, body)]`, off one unwrapped line.
+
+    Split out 2026-09-13 so that --carry-over can read a registration out
+    of git with the same hand that reads this run's out of README; before
+    that a session comparing the two wrote its own splitter, and the one
+    it wrote took the run file's copy, where step 5 has appended a verdict
+    to every item, so all eleven read as changed.
+    """
     # Items, in either house form: `(n) *lead*` inline, or `n. ` lines.
     marks = [(mm.start(), mm.group(1))
              for mm in re.finditer(r'\((\d+)\) \*', flat)]
@@ -2690,9 +2849,8 @@ def registration_items(run, run_doc, readme):
     # first occurrence is the one that carries the spans.
     # Case: `predictions-enumerates-items-twice`.
     seen_nums = set()
-    items = [(num, body) for num, body in items
-             if not (num in seen_nums or seen_nums.add(num))]
-    return src, items, flat
+    return [(num, body) for num, body in items
+            if not (num in seen_nums or seen_nums.add(num))]
 
 
 def predictions_table(cells, shapes, strategies, meta, other, main_hs,
@@ -11636,6 +11794,11 @@ def main():
                         ' earlier run, against that run: --others gives'
                         ' its JSONs, one per population the items are'
                         ' read on')
+    p.add_argument('--carry-over', action='store_true',
+                   help="this run's registration against the previous"
+                        " run's as it stood BEFORE that run, item by item,"
+                        ' read out of git rather than from its run file,'
+                        ' whose copy carries a verdict per item')
     p.add_argument('--move-registration', action='store_true',
                    help="move this run's OPEN registration from README's"
                         " open list into the run file's last section,"
@@ -11928,6 +12091,8 @@ def main():
         sys.exit(carried_figures(args.run or '', want_run_doc(args),
                                  args.readme, args.others, args.main,
                                  args.verbose))
+    if args.carry_over:
+        sys.exit(carry_over(args.run or '', want_run_doc(args), args.readme))
     if args.move_registration:
         sys.exit(move_registration(args.readme, want_run_doc(args)))
     if args.delete:
