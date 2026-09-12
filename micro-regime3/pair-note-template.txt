@@ -237,10 +237,12 @@ element is the main set and the nine that follow are the classes:
   the classes off the basis binary; the lines above are the hand form, for
   a re-take of one population.
   Give the previous run's own totals beside it, so a slow sweep is
-  recognisable, and say what a `!!` line means. DERIVE THOSE TOTALS FROM
-  THAT RUN'S OWN `$PREV-counts-*.txt` STAMPS and never carry them forward
-  from the previous note: carried, they lag a run, which is how Run 28's
-  note came to quote Run 27's. Where the pair's central
+  recognisable, and say what a `!!` line means. READ THOSE TOTALS OFF THAT
+  RUN'S OWN `$PREV-counts-*.txt`, whose `# end` line has carried
+  `elapsed=<n>s` since 2026-09-12, and never carry them forward from the
+  previous note: carried, they lag a run, which is how Run 28's note came
+  to quote Run 27's. Before that field they were differenced out of the
+  two timestamps by hand, every run. Where the pair's central
   claim turns on counts rather than on time -- a layout pair, where an arm
   must not move its instructions except where a pad was executed -- say so
   here and name which registrations are read off that split.

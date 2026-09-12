@@ -116,6 +116,7 @@ count() {  # count SHAPE ARM ITERS -> user instructions of one process
 # rather than saying nothing, so the absence of a word is not what a
 # reader has to notice. Case: `counts-file-says-it-was-restricted`.
 SCOPE="full"
+BEGAN=$(date +%s)
 [ -z "$C" ] || SCOPE="full class=$C"
 [ -z "${ONLY-}" ] || SCOPE="${C:+class=$C }ONLY=$ONLY"
 [ -z "${ARMS_ENV-}" ] || SCOPE="$SCOPE ARMS=$ARMS_ENV"
@@ -141,5 +142,11 @@ for S in $SHAPES; do
     fi
   done
 done
-echo "# end $(date -Is)" >> "$OUT"
+# THE ELAPSED IS STAMPED, not left to be differenced out of the two
+# timestamps by hand. The pair note gives the previous run's totals per leg
+# so a slow sweep is recognisable, and every preparation up to Run 29 got
+# them by subtracting the opening stamp from this one -- when it did not
+# simply carry the run before's forward, which is how Run 28's note came to
+# quote Run 27's. One field here retires both (2026-09-12).
+echo "# end $(date -Is) elapsed=$(( $(date +%s) - BEGAN ))s" >> "$OUT"
 exit $BAD
