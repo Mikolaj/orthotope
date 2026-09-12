@@ -6494,6 +6494,27 @@ def splice(docs, anchor, source):
                          ' heading -- put a blank line above the heading'
                          ' first, then replace\n' % heads[0].strip())
         return 1
+    # A TABLE ABUTTING A PARAGRAPH IS PART OF IT, and this is the THIRD of
+    # the same shape: every class block in a run file is a bolded lead with
+    # its installed table on the next line and no blank between them, which
+    # `--block --in-place` writes that way, so an anchor naming the lead
+    # takes the table too. Run 29 lost the `flip` class's 38 rows that way
+    # at exit 0, and `--check-doc` passed immediately afterwards -- it holds
+    # a table it FINDS to the JSONs and cannot miss one that is gone, so
+    # this failure is quieter than the heading's, which a later gate named.
+    # The echo below said so on its `out, last` line, which is how it was
+    # caught, and saying so was not enough, exactly as it was not for the
+    # heading and the list. A caller replacing a lead passes prose; a table
+    # is `--block --in-place`'s to write and never a replacement's.
+    # Case: `replace-takes-an-abutting-table`.
+    rows = [l for l in old.split('\n')[1:] if l.lstrip().startswith('|')]
+    if rows:
+        sys.stderr.write('--replace: this paragraph carries a %d-line table'
+                         ' that no blank line separates from it, so replacing'
+                         ' the paragraph would delete the table -- replace the'
+                         ' prose above it by quoting only that, or install the'
+                         ' table with --block --in-place\n' % len(rows))
+        return 1
     # A LIST WITH NO BLANK LINES BETWEEN ITS ITEMS IS ONE PARAGRAPH, and
     # this replaces paragraphs -- so an anchor inside one item of the open
     # list's numbered tasks took all three items and wrote back one.
