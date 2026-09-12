@@ -980,21 +980,22 @@ rather than a slot in the next run, observed again:
   at nought.** Its pair struck `-fspec-constr` off one half, and the flag
   removes about a twentieth of the instructions from EVERY arm of the fill
   family --- counts near 0.95 against times near 1.00, `time/counts` running
-  1.0340 to 1.0566 --- so on nine arms a real instruction saving buys NO time
-  whatever. On the same two binaries `bq-expand` reads counts 0.7687 against
-  time 0.7810 and `list` counts 0.8854 against time 0.8788, converting
-  essentially all of it. So one flag, one compiler and one source give a rate
-  of nought on one family and one on another, and no geomean over the roster
-  means anything. Its three pointer spans read 29.4%, 38.3% and 45.2%
-  on the basis and 27.8%, 38.1% and 48.6% on the control --- back to Run 27's
-  band from Run 28's lower one, on counted ratios of 0.8946, 0.8347 and 0.8605
-  that reproduce Runs 27 and 28 to three figures for a third run, so what moves
-  between runs is again the time a saving buys and not the saving. **What
-  that leaves of the cross-build question**: this pair is two builds of one
-  source and reads one pair of arms both ways, which is what the entry asked
-  for --- but the two builds differ in the optimiser, so it prices the FLAG
-  rather than settling whether a cross-build A/B and a within-binary pair agree
-  on identical code. That half is still open.
+  1.0340 to 1.0566 --- so on eight arms --- `mut-odo-vecdims` and the seven
+  timed arms below it --- a real instruction saving buys NO time whatever.
+  On the same two binaries `bq-expand` reads counts 0.7687 against time 0.7810
+  and `list` counts 0.8854 against time 0.8788, converting essentially all
+  of it. So one flag, one compiler and one source give a rate of nought on one
+  family and one on another, and no geomean over the roster means anything.
+  Its three pointer spans read 29.4%, 38.3% and 45.2% on the basis and 27.8%,
+  38.1% and 48.6% on the control --- back to Run 27's band from Run 28's lower
+  one, on counted ratios of 0.8946, 0.8347 and 0.8605 that reproduce Run 28's
+  0.8945, 0.8359 and 0.8605 to two figures throughout and to four on the third
+  span, so what moves between runs is again the time a saving buys and
+  not the saving. **What that leaves of the cross-build question**: this pair
+  is two builds of one source and reads one pair of arms both ways, which
+  is what the entry asked for --- but the two builds differ in the optimiser,
+  so it prices the FLAG rather than settling whether a cross-build A/B
+  and a within-binary pair agree on identical code. That half is still open.
 
 - `ANSWERED` **`lib-stage2-disp` and `lib-stage2-lean` are NOT the same code
   at a few hundred elements, which the lean ruling was written to make them.**
@@ -1487,15 +1488,15 @@ rather than a slot in the next run, observed again:
   comprehension probe, which could answer every other question it was set
   and not this one. **What would settle it** is one paragraph beside
   the floor's, saying what the bar bounds and on what evidence, and it wants
-  whoever set it rather than a measurement. **Run 29 is the first run the bar
-  refuses outright, on every population it has**, and that raises the cost
-  of leaving it undefined: its `list` moved 12.12 points between the halves
-  on the main set and 9.12% to 14.67% on the ten classes, so all eleven
-  cross-half columns became orderings at once and the pair's whole second column
-  went unreadable as a difference. A bar that decides that much decided it here
-  on a figure nobody can say the provenance of --- and a reader who wanted
-  to ask whether 12 points is merely past the bar or catastrophically past
-  it has nothing in either document to ask it of.
+  whoever set it rather than a measurement. **Run 29's pair fails the bar
+  on every population it has**, and that raises the cost of leaving
+  it undefined: its `list` moved 12.12 points between the halves on the main set
+  and 9.12% to 14.67% on the ten classes, so all eleven cross-half columns
+  became orderings at once and the pair's whole second column went unreadable
+  as a difference. A bar that decides that much decided it here on a figure
+  nobody can say the provenance of --- and a reader who wanted to ask whether 12
+  points is merely past the bar or catastrophically past it has nothing
+  in either document to ask it of.
 - `OPEN` **A hand-edited table goes stale unchecked, and this is the second run
   running.** The run file carries two tables `--in-place` does not write ---
   the two-column geomeans and the Provenance anchors --- and on Run 20 the first
@@ -10055,18 +10056,19 @@ twelve runs now agree on.** The carry-back figure has read 0.54%, 0.49%, 0.44%,
 those twelve on the basis while the whole-set figure ran 1.36%, 2.32%, 1.51%,
 2.92%, 2.12%, 2.03% and 1.26% before it stopped, so the pairs outside the four
 were what moved. **Run 27's 0.83% still does not survive as a trend**: it
-was a 2.7x excursion in one run, and the two runs since read 0.39% and 0.26%,
-inside the band the series held for nine runs before it. The threshold this run
-supports is TWO figures as Run 28's was --- **0.26% and 0.51%** on the basis,
-the restricted four-pair reading and the whole set over the eight, quoted
-in that order --- and which of them a margin between two rows must clear
-is still the question the open list carries, this run adding a second reading
-to it rather than a ruling. Runs disagreeing several-fold on the floor is itself
-the caution, and one binary disagreeing by 1.7x with itself one day and
-by a twentieth another is that caution sharpened as far as it goes: read
-the floor as the run's *and the half's*, re-measured every time, never
-as a constant of the harness and never inherited. **And both of the checks
-from OUTSIDE the declared pairs have now gone with their arms.**
+was a 2.7x excursion in one run, and the two runs since read 0.39%, inside
+the band the series held for nine runs before it, and 0.26%, which is BELOW
+that band's floor of 0.31% and the lowest carry-back reading of the twelve.
+The threshold this run supports is TWO figures as Run 28's was --- **0.26%
+and 0.51%** on the basis, the restricted four-pair reading and the whole set
+over the eight, quoted in that order --- and which of them a margin between two
+rows must clear is still the question the open list carries, this run adding
+a second reading to it rather than a ruling. Runs disagreeing several-fold
+on the floor is itself the caution, and one binary disagreeing by 1.7x
+with itself one day and by a twentieth another is that caution sharpened as far
+as it goes: read the floor as the run's *and the half's*, re-measured every
+time, never as a constant of the harness and never inherited. **And both
+of the checks from OUTSIDE the declared pairs have now gone with their arms.**
 `lib-stage2-disp` was parked on 2026-09-07; the two undeclared pairs that stood
 in its place on Run 28 --- `mut-odo-vecdims-add-in-leaf-u2` against `-u2-down`,
 and `libunord-stage4` against `libunord-stage5` wherever the sorted pairs merge
@@ -11917,7 +11919,7 @@ tables and its fingerprint say so.
   at FOURTEEN, `window` at EIGHT, `bcast` and `flip` at SIX, `block` and `small`
   at FIVE, `bcastmid` and `compose` at FOUR and `rev` and `scaled` at THREE.
   It is the run whose file `runs/` currently publishes. **Its delta against RUN
-  28** is the twelve commits from `f7a1b41` to `7685375`: ONE timed arm landing,
+  28** is the twelve commits from `bdf06c8` to `7685375`: ONE timed arm landing,
   `libunord-stage10-sum`, stage seven's tie-break under stage nine's zero-stride
   move, and FOUR parked --- `libunord-stage8-sum`, `libunord-stage4-sum`
   and the leaf's `-u2-down` and `-u2-last` forms --- with NO class view moving
@@ -11944,10 +11946,11 @@ tables and its fingerprint say so.
   contributes the second column of `runs/run29.md`. **Its `list` moved 12.12
   points between the halves, OUTSIDE the 0.7% bar, so its two columns may
   NOT be subtracted**, nor may any of its ten classes', which moved 9.12%
-  to 14.67%: it is the first run here of which that is true, and every
-  cross-half figure in its file is an ordering. Its sequence ran in ONE window,
-  01:17:01 to 09:16:42, with no intrusion found and no population rerun.
-  **And its floor is a maximum over EIGHT A/A pairs**, 0.51% and 0.82%,
+  to 14.67%: every cross-half figure in its file is an ordering.
+  The allocation-area pairs of Runs 14 to 16 failed the same bar, at 9.20%,
+  5.13% and 16.51% on the main set, for a different reason. Its sequence ran
+  in ONE window, 01:17:01 to 09:16:42, with no intrusion found and no population
+  rerun. **And its floor is a maximum over EIGHT A/A pairs**, 0.51% and 0.82%,
   the second run to carry the shipped fill's own pair and the second on which
   that pair carries the basis figure, its restricted four-pair reading being
   0.26% and 0.82%.
