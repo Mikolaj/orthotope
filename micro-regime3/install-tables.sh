@@ -442,6 +442,11 @@ if [ "$BAD" -eq 0 ]; then
   echo "than off the call count -- --fingerprint writes two. The cross-class"
   echo "summary is NOT among them: it is assembled last, by hand, from the"
   echo "class tables above, with the rank above it under its superlatives."
+  echo "AND ITS BOLDING IS NOT YOURS TO PICK: each class's \`--block\` prints"
+  echo "a \`summary bolds\` line naming which of the two columns is faster,"
+  echo "read off the column at full precision -- four of Run 29's ten rows"
+  echo "tie at the three decimals the table prints, and Run 28 broke such a"
+  echo "tie with --pair, a different statistic, and got \`rev\` backwards."
 else
   echo "$BAD install(s) REFUSED -- a refusal is the design, never a silent"
   echo "write to the wrong place. Fix what it names -- a header it could not"

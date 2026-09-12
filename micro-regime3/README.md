@@ -1530,15 +1530,21 @@ rather than a slot in the next run, observed again:
   comprehension probe, which could answer every other question it was set
   and not this one. **What would settle it** is one paragraph beside
   the floor's, saying what the bar bounds and on what evidence, and it wants
-  whoever set it rather than a measurement. **Run 29's pair fails the bar
-  on every population it has**, and that raises the cost of leaving
-  it undefined: its `list` moved 12.12 points between the halves on the main set
-  and 9.12% to 14.67% on the ten classes, so all eleven cross-half columns
-  became orderings at once and the pair's whole second column went unreadable
-  as a difference. A bar that decides that much decided it here on a figure
-  nobody can say the provenance of --- and a reader who wanted to ask whether 12
-  points is merely past the bar or catastrophically past it has nothing
-  in either document to ask it of.
+  whoever set it rather than a measurement. **HALF OF THAT IS NOW WRITTEN,
+  by Run 29, and it is the evidence half**: the paragraph beside the floor's
+  measures the bar against the pairs it is applied to --- 54 population readings
+  from the five compiler pairs whose JSONs survive, median 0.62% and only 30
+  of the 54 inside the bar --- so the number sits near the MEDIAN of the thing
+  it bounds rather than above it. What stays open is exactly the half
+  a measurement cannot reach: where 0.7 came from, which is still yours. **Run
+  29's pair fails the bar on every population it has**, and that raises the cost
+  of leaving it undefined: its `list` moved 12.12 points between the halves
+  on the main set and 9.12% to 14.67% on the ten classes, so all eleven
+  cross-half columns became orderings at once and the pair's whole second column
+  went unreadable as a difference. A bar that decides that much decided it here
+  on a figure nobody can say the provenance of --- and a reader who wanted
+  to ask whether 12 points is merely past the bar or catastrophically past
+  it has nothing in either document to ask it of.
 - `OPEN` **A hand-edited table goes stale unchecked, and this is the second run
   running.** The run file carries two tables `--in-place` does not write ---
   the two-column geomeans and the Provenance anchors --- and on Run 20 the first
@@ -8371,13 +8377,24 @@ not otherwise.
     #      is what a stale section looks like too
     ./read-run.py $R-<basis>-$c.json --block          #    one per class
     ./read-run.py $R-<basis>-$c.json --compare $R-<other>-$c.json
+    #      THE PER-CLASS CALLS ARE INDEPENDENT OF EACH OTHER, all forty of
+    #      them -- ten classes by `--block`, `--compare`, `--predictions`
+    #      and `--block --compare` -- so they are the one place in this list
+    #      that parallelises without thought. Run 29 ran them one at a time
+    #      over 24 MB JSONs and said so at its step 9
     #      and one per class ACROSS the halves -- from Run 14 on, a run
     #      before that having no control-half class JSON to compare
     #      against, so those are skipped and the chapter says they
     #      were. Which is what running every
     #      class on both is for and what nothing else in this list reads: a
     #      pair's variable can act on a class and not on the main set.
-    #      --alloc takes the same pair where allocation is the question
+    #      --alloc takes the same pair where allocation is the question,
+    #      and `--exclude ARM` composes with `--compare` as it does with
+    #      the default table: that is how a cross-half geomean is taken
+    #      with a family dropped, which is what says WHOSE a movement is
+    #      when one arm carries it. Run 29 hand-rolled that geomean over
+    #      `--cells` for want of knowing, and its own docstring line ---
+    #      `drop strategy S from every aggregate` --- had said so
     #      READ THE BLOCKS BY THEIR LINES AND NOT WHOLE: pipe them
     #      through `grep -E 'Verdicts|property|Across the halves|floor'`
     #      -- every block in one call is a hundred KB, the write-up uses some
@@ -8498,7 +8515,16 @@ not otherwise.
     #        FAILS; ~/.claude/rules/markdown-wrapping.md does not reliably
     #        load, so read it before the first edit
     #      * REPLACE BY ANCHOR, `--replace ANCHOR --with FILE`, for every
-    #        paragraph edit here and at 6a, 6b, 6c, 7, 9 and 10, AND for
+    #        paragraph edit here and at 6a, 6b, 6c, 7, 9 and 10 --- AND ITS
+    #        UNIT IS THE BLANK-LINE BLOCK, not the sentence and not the
+    #        prose: a class block's lead has its installed TABLE on the
+    #        next line with no blank between, so an anchor naming the lead
+    #        takes the table. It refuses that now, as it refuses an
+    #        abutting heading and an abutting list, each guard written
+    #        after the same loss; Run 29 met the table one and lost 38 rows
+    #        at exit 0, with `--check-doc` passing straight after, a gate
+    #        being a predicate over what is present. Read the `out, last`
+    #        line every time --- AND for
     #        a sentence-level edit too, which is a --replace of the
     #        paragraph the sentence sits in: a script that edits inside a
     #        paragraph must match the wrapping in force, and Run 26's
@@ -9491,6 +9517,12 @@ that needs it unless it is written down.
     1. this chapter's three checklists, each printed alone by
     `./read-run.py --checklist pre|run|post`, a fifth of the chapter's lines
          -- every step of them is owed, the build included
+         AND THE POST LIST COMES IN HALVES, `post-a` and `post-b`, cut at
+         step 6 because nothing below it is actionable until 5b's tables
+         are in. Take `post-a` when the sequence starts and `post-b` when
+         they are: Run 29 read all 615 lines of `post` at run-list step 15,
+         six hours before its first actionable line, because this item
+         named only the whole
     2. the last run's head and Results prose
          -- one sentence: what this run's own head has to answer
     3. What the next run compares against, its prose and not its figures
@@ -10265,6 +10297,33 @@ no check on the declared eight from outside them at all. What Run 28 got
 from them stands as its reading and is not renewed here: the first held inside
 both floors and the second read outside the floor on `block`, `small`
 and `compose`. A run that wants that check again has to land an arm for it.
+
+**The 0.7% differencing bar, measured against the pairs it is applied to ---
+and it is near the MEDIAN of that population rather than a bound on it.**
+The bar decides whether a pair's two columns may be subtracted or only ordered,
+and no sentence anywhere said what it bounds ([the open list][open] carries
+the question and it is not closed by this). What CAN be said is what
+the artifacts say, and Run 29 took it: over the five pairs whose JSONs survive
+--- Runs 24 to 28, every one of them varying the COMPILER and so a pair whose
+variable is not the reference --- `list`'s cross-half move reads over **54
+population readings**, one per population per pair, at a median of **0.62%**,
+a third quartile of **1.13%**, a ninetieth centile of **1.75%** and a worst
+of **3.27%**, on `reshape1` in Run 24. **Only 30 of the 54 are inside the bar.**
+So a pair whose variable ought not to touch the reference fails this bar
+on nearly half of its populations, and the per-run counts are 5 of 10, 8 of 11,
+4 of 11, 6 of 11 and 7 of 11 --- no run of the five clears it everywhere,
+and none is near doing so. **What follows for a reader is the ordering
+and not the bar.** A figure past 0.7% is not thereby suspect: it is
+in the company of half the readings this harness has taken from pairs it trusts,
+and what the bar buys is a rule that does not have to be argued per population.
+What a figure FAR past it means is a different thing, and Run 29 is the case
+that separates them --- its 12.12 points on the main set is nearly four times
+the worst of those 54, and every one of its eleven populations is past, which
+no compiler pair on record manages. **This paragraph is a measurement and
+not a provenance.** Where the number 0.7 came from is still unrecorded
+and is still whoever set it to say; what is settled here is only what
+it is worth against the evidence, which is that it sits inside the spread
+of the thing it bounds.
 
 **Four processes of ONE binary in ONE day put a number on that caution,
 2026-09-06**, which is the within-evening form the recommended tasks' item 1 had
