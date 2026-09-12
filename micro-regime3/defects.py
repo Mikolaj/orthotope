@@ -3992,6 +3992,28 @@ TIER1 = {
               ' -3.66% machine check in it. Nothing checks a pair note, so'
               " what caught it was the draft's own instruction to read"
               ' every carried line.'),
+    'no-mode-read-a-carried-over-registration': dict(
+        family=None, discovery='in-use', harm='fired', harm_count=1,
+        trigger='a registration carried over from the previous run, which'
+                ' is the ordinary case here',
+        ok='--carry-over reads the previous OPEN entry out of git and'
+           ' names the words that moved, item by item',
+        bug='the comparison hand-rolled against the run file, whose copy'
+            ' carries a verdict per item, so every item reads as changed',
+        # No case: the fixture would want a git HISTORY with a registration
+        # moved out of README, which no plant here builds. The splitter the
+        # mode shares with registration_items IS covered, by
+        # `predictions-enumerates-items-twice`; what is not is the history
+        # walk, whose three wrong drafts are in the fix's commit message.
+        proved='ran',
+        notes='Watched 2026-09-13 at Run 30\'s preparation, which wrote a'
+              ' difflib script against runs/run29.md and read all eleven'
+              ' items as changed, the verdicts step 5 appends being the'
+              ' whole of the difference. It then reasoned from that'
+              ' nothing, and the carry-over went unchecked until the mode'
+              ' existed. The chapter\'s own standing instruction names this'
+              ' shape: a computation a write-up hand-rolls is a defect'
+              ' report against the reader.'),
     'carried-prints-every-derivation-not-a-shortlist': dict(
         family='false-comment', discovery='in-use', harm='fired',
         harm_count=1,
@@ -6854,6 +6876,26 @@ RECORDS = [
                    '2 item(s) with a pair span, 1 quoting nothing it'
                    ' derives'],
               hasnt=['(2) quotes'])),
+
+    case('no-mode-read-a-carried-over-registration', 'read-run.py',
+         '84d82b5',
+         'the carry-over comparison was hand-rolled, against the wrong copy',
+         # NO CASE, and not for preflight's reason: this one would want a
+         # git HISTORY with a registration moved out of README, which no
+         # plant here builds. What IS covered is the splitter the mode
+         # shares with registration_items, by
+         # `predictions-enumerates-items-twice`; what is not is the history
+         # walk, and its three wrong drafts are worth naming here because a
+         # rewrite meets all three again. `git log -S` finds nothing, the
+         # README being wrapped and the lead straddling a break in every
+         # blob. The pathspec for `log` is CWD-relative where `REV:path` is
+         # repo-relative, and mixing them returns no commits, silently. And
+         # the walk is NEWEST first: bounding it by the run file's birth
+         # looks right and is not, step 5 writing that file, so every state
+         # carrying the lead is at or before it -- that draft walked past
+         # Run 29 to Run 22 and reported its items as Run 22's, which is a
+         # wrong answer where a refusal was owed.
+         argv=None, ok=None),
 
     case('carried-prints-every-derivation-not-a-shortlist', 'read-run.py',
          'e5c08d1',
