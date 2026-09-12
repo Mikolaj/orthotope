@@ -646,6 +646,16 @@ fi
   || say 10 FAIL "--library refused: $(tail -1 "$TMP/lib")"
 fi
 
+# THE RUN BEHIND THIS ONE, as a number: the highest runs/run<N>.md below
+# this run's N. Two places want it -- 8d, for the commit to date a script
+# change from, and the fill-in block's two cross-run reads -- and it was
+# inline in the second until 8d needed it too, so it is one function rather
+# than the same three lines twice.
+prev_run_n () {
+  ls runs/run*.md 2>/dev/null | sed 's|.*/run||; s|\.md$||' \
+    | awk -v n="${R#run}" '$0 ~ /^[0-9]+$/ && $0+0 < n+0' | sort -n | tail -1
+}
+
 # 8c and 8d LAST, and not merely last in the printing: they are the two
 # that read every run JSON on disk, so putting them at the end is what
 # lets --no-corpus stop short of them, the sweeps run, and --corpus take
@@ -656,9 +666,36 @@ if [ "$CORPUS" = 1 ]; then
   && say 8c PASS "properties over every run JSON here" \
   || say 8c FAIL "properties: $(grep -m1 FAIL "$TMP/prop")"
 
-defect-run.py . > "$TMP/cs" 2>&1 \
-  && say 8d PASS "every planted defect refused again" \
-  || say 8d FAIL "defect-run: $(tail -1 "$TMP/cs")"
+# 8d IS WHAT THE EDITS SINCE THE LAST RUN OWE, which is what the pre-run
+# list asks for -- `defect-run.py --changed <last run's commit> .`, glossed
+# there as *if any script here has changed since the last run* -- and not
+# what this ran until 2026-09-13. The bare form replays the WHOLE corpus,
+# minutes where the list's is seconds, and the two disagreed in plain sight:
+# the PASS line said `every planted defect` beside a list saying `if any
+# script here has changed`. Nothing was missed by it, a superset being
+# slower rather than weaker; what it cost was a step nobody would run twice.
+# THE COMMIT IS THE PREVIOUS RUN'S FILE BEING BORN. `runs/run<N>.md` is
+# written at post-run step 5, so the FIRST commit touching it dates the last
+# run finishing. NOT the newest such commit: a later session amending that
+# file is ordinary -- Run 30's preparation amended run29.md's
+# compares-against section the same day -- and dating from it would select
+# nothing and pass vacuously, which is worse than slow.
+PRN=$(prev_run_n)
+PREV_COMMIT=""
+[ -n "$PRN" ] && PREV_COMMIT=$(git log --reverse --format=%H \
+                                 -- "runs/run$PRN.md" 2>/dev/null | head -1)
+if [ -n "$PREV_COMMIT" ]; then
+  defect-run.py --changed "$PREV_COMMIT" . > "$TMP/cs" 2>&1 \
+    && say 8d PASS "every defect of what changed since run$PRN's file refused again" \
+    || say 8d FAIL "defect-run: $(tail -1 "$TMP/cs")"
+else
+  # NEVER SILENTLY LESS: with no previous run file to date from, the whole
+  # corpus runs, which is what this step did unconditionally before. The
+  # fallback is the old behaviour kept as the floor, not discarded.
+  defect-run.py . > "$TMP/cs" 2>&1 \
+    && say 8d PASS "every planted defect refused again (no previous run file to date from)" \
+    || say 8d FAIL "defect-run: $(tail -1 "$TMP/cs")"
+fi
 fi
 
 # --fill-in: THE NOTE'S FILL-IN BLOCK, DERIVED. Every row below is either a
@@ -708,8 +745,7 @@ fill_in () {
   # Both degrade to a named absence rather than to silence -- an artifact
   # offered for deletion is the normal reason, and a row that just vanished
   # would read as a row nobody owed.
-  PN=$(ls runs/run*.md 2>/dev/null | sed 's|.*/run||; s|\.md$||' \
-       | awk -v n="${R#run}" '$0 ~ /^[0-9]+$/ && $0+0 < n+0' | sort -n | tail -1)
+  PN=$(prev_run_n)
   # AND ITS BASIS TAG IS NOT ALWAYS THIS RUN'S. A tag names what a half IS,
   # so a run that changes the variable renames the basis while the recipe
   # stands: Run 29's `spec` is Run 28's `g912` built again, and `run29-spec`
