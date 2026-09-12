@@ -3992,6 +3992,35 @@ TIER1 = {
               ' -3.66% machine check in it. Nothing checks a pair note, so'
               " what caught it was the draft's own instruction to read"
               ' every carried line.'),
+    'draft-emits-a-handover-slot-per-block': dict(
+        family='other:unnamed-block-inherits-its-neighbour',
+        discovery='in-use', harm='fired', harm_count=1,
+        trigger='a previous note whose handover runs to more than one'
+                ' announced block, which every note here has',
+        ok='one handover slot, as the gate gets one gate line',
+        bug='the same slot and the same scaffolding emitted once per'
+            ' block, and listed as many times under YOURS TO WRITE',
+        notes='Watched 2026-09-12 at Run 30\'s preparation, whose draft'
+              ' opened with three identical ENTRY POINT slots off a'
+              ' run29-pair.txt carrying ONE such heading. `NOTE_HANDOVER`'
+              ' has four leads, so a handover spanning an ENTRY POINT'
+              ' paragraph and a WHAT THE PREPARATION LEARNED one announces'
+              ' twice; the gate branch beside it had the dedup and this one'
+              ' did not.'),
+    'draft-s-yours-list-renames-only-the-run-number': dict(
+        family='two-spellings', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='--draft where a block title names a half, on a run that'
+                ' does not reuse the previous basis tag',
+        ok='the YOURS list carries the same rename the body does',
+        bug='a title naming a half this pair does not have, two lines'
+            ' above the body heading that names the right one',
+        notes='Watched 2026-09-12 at Run 30\'s preparation: the list said'
+              ' `THE BASIS IS run30-spec` where the block below it said'
+              ' `THE BASIS IS run30-nospec`, the list applying'
+              ' `p.replace(prev, draft)` and the body the full map. It'
+              ' reads as a well-formed title, which is why the body had to'
+              ' be beside it for anyone to notice.'),
     # ---- preflight.sh ----
     'note-paths-read-a-name-that-merely-contains-the-run': dict(
         family='scan-for-parse', discovery='in-use', harm='fired',
@@ -4045,6 +4074,48 @@ TIER1 = {
               ' first rename since --fill-in was born 2026-09-07. Both'
               ' readings had been taken by hand at steps 2 and 6c, and the'
               ' fix reproduces them figure for figure.'),
+    'step-8d-replays-the-whole-corpus': dict(
+        family='two-spellings', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='every --corpus run since the step was written',
+        ok='the cases of what changed since the last run, dated from the'
+           ' previous run file being born',
+        bug='the whole corpus replayed, minutes where the list budgets'
+            ' seconds, with the step announcing that it did',
+        # No case, for the reason checks.py's UNCOVERED gives preflight's
+        # STEPS. The bug direction was WATCHED rather than replayed.
+        proved='ran',
+        notes='Watched 2026-09-13 at Run 30\'s preparation, which reported'
+              ' the step still running three times before asking why: the'
+              ' call was `defect-run.py .` where the list says'
+              ' `--changed <last run\'s commit>`. Slower and not weaker, so'
+              ' what it cost is a step nobody runs twice. MEASURED WITH THE'
+              ' FIX: the changed set is 277 of 376 cases here, read-run.py'
+              ' alone owning 222, so the saving appears only on a run that'
+              ' leaves the reader alone -- kept anyway, the list being the'
+              ' governing document.'),
+    'step-9-asserts-specconstr-of-every-basis': dict(
+        family='domain-unchecked', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='a pair whose BASIS half is built without `-fspec-constr`',
+        ok='the regime expected is read off the basis half\'s own recipe'
+           ' block in the note, and the binary held to that',
+        bug='a FAIL saying the regime is NOT SpecConstr, on a binary built'
+            ' exactly as its own recipe asks',
+        # No case, for the reason checks.py's UNCOVERED gives preflight's
+        # STEPS -- a case would run them twice -- and the bug direction was
+        # WATCHED rather than replayed, as the two records above were.
+        proved='ran',
+        notes='Watched 2026-09-12 at Run 30\'s preparation, the first pair'
+              ' here whose basis is unflagged: log-preflight-r30.txt carries'
+              ' `9 FAIL regime is NOT SpecConstr: scan/mut 9.992 -- plain'
+              ' -O1 is ~10`, which is the reading README gives for plain'
+              ' -O1 and the one the pair was built for. The step asserted'
+              ' half of a sentence its own comment states whole; harmless'
+              ' from Run 8 to Run 29, every basis having carried the flag.'
+              ' The derivation was proved non-vacuous by hand over the three'
+              ' branches: run30-pair.txt gives o1, run29-pair.txt gives spec'
+              ' and a note with no such block gives unknown.'),
     # ---- read-run.py, the first review's ----
     'install-lands-in-next-block': dict(family='scan-for-parse', discovery='review', harm='latent',
                       trigger='a run doc whose class block carries no table of its own',
@@ -9297,6 +9368,56 @@ RECORDS = [
          ok=V(exit=0, has=['GATE: NOT RUN'], hasnt=['-3.66%']),
          bug=V(exit=0, has=['-3.66%'])),
 
+    case('draft-emits-a-handover-slot-per-block', 'read-run.py', '89bdb3c',
+         'the handover slot came out once per announced block, not once',
+         # `NOTE_HANDOVER` carries FOUR leads, so one handover spanning an
+         # ENTRY POINT paragraph and a WHAT THE PREPARATION LEARNED one
+         # announces twice and the loop emitted a slot for each -- with the
+         # slot NAME fixed rather than the title's, so the duplicates were
+         # identical and read as a template wanting to be filled in several
+         # places. The gate branch three lines above had carried the same
+         # dedup since Run 26's note accumulated three gate blocks.
+         # The judge reads the YOURS list rather than the body, because
+         # that list joins the titles with `; ` and so turns a count into a
+         # substring, which is what V can assert.
+         plant=lambda t: {'note': write(
+             os.path.join(t, 'run29-pair.txt'),
+             "hdr\n\nENTRY POINT FOR THE SESSION THAT RUNS THIS [PAIR'S]."
+             " Spent.\n\nWHAT THE PREPARATION LEARNED: nothing to carry."
+             "\n\nA [SAME]: spec leads, nospec follows."
+             "\nHALVES: basis=spec other=nospec\n")},
+         argv=['--note', '{note}', '--draft', 'run30',
+               '--halves', 'nospec,libcase'],
+         ok=V(exit=0,
+              has=['ENTRY POINT FOR THE SESSION THAT RUNS THIS'],
+              hasnt=['ENTRY POINT FOR THE SESSION THAT RUNS THIS;'
+                     ' ENTRY POINT FOR THE SESSION THAT RUNS THIS']),
+         bug=V(exit=0,
+               has=['ENTRY POINT FOR THE SESSION THAT RUNS THIS;'
+                    ' ENTRY POINT FOR THE SESSION THAT RUNS THIS'])),
+
+    case('draft-s-yours-list-renames-only-the-run-number', 'read-run.py',
+         '89bdb3c',
+         'the YOURS list named a half the drafted pair does not have',
+         # The titles in that list are the PREVIOUS note's, and it renamed
+         # them with `p.replace(prev, draft)` -- the run number alone --
+         # where the body got the full half map. So a block led `THE BASIS
+         # IS run29-spec` was listed as `THE BASIS IS run30-spec`, a half
+         # this pair does not carry, two lines above the body's own heading
+         # reading `run30-nospec`. It bites only where the new basis does
+         # not reuse the old basis TAG, which is exactly the run that
+         # renames -- and the list reads well-formed either way.
+         plant=lambda t: {'note': write(
+             os.path.join(t, 'run29-pair.txt'),
+             "hdr\n\nTHE BASIS IS run29-spec [PAIR'S]: it publishes the"
+             " table.\n\nA [SAME]: spec leads, nospec follows."
+             "\nHALVES: basis=spec other=nospec\n")},
+         argv=['--note', '{note}', '--draft', 'run30',
+               '--halves', 'nospec,libcase'],
+         ok=V(exit=0, has=['THE BASIS IS run30-nospec'],
+              hasnt=['THE BASIS IS run30-spec']),
+         bug=V(exit=0, has=['THE BASIS IS run30-spec'])),
+
     case('net-correction-netted-a-reducing-consumer', 'read-run.py',
          '5ccc5d9',
          'a `-sum` arm was netted against a forcing pass it never ran',
@@ -9985,6 +10106,46 @@ RECORDS = [
          # half's name -- with BASIS and OTHER unset for the call, that
          # script refusing an environment that disagrees with the note it is
          # handed, and this pass carrying this run's names.
+         argv=None, ok=None),
+
+    case('step-8d-replays-the-whole-corpus', 'preflight.sh', '7fc3dc6',
+         'the changed-since-the-last-run step replayed every case there is',
+         # NO CASE, for the reason checks.py's UNCOVERED gives preflight's
+         # STEPS: a case would run this suite twice, and this step IS the
+         # suite. The bug direction was watched in this session's own logs.
+         # THE BASELINE IS THE INTERESTING PART and the place a rewrite
+         # would go wrong: `--changed` defaults to HEAD, which selects only
+         # uncommitted edits, and the obvious commit -- the NEWEST touching
+         # runs/run<PN>.md -- is whatever session last amended that file,
+         # which on this very run was the preparation itself, hours old.
+         # Either would have passed vacuously. The FIRST commit touching it
+         # is the run file being born at post-run step 5, which is the last
+         # run finishing and is immune to later amendment.
+         argv=None, ok=None),
+
+    case('step-9-asserts-specconstr-of-every-basis', 'preflight.sh',
+         'c916885',
+         'the regime step FAILed a basis built exactly as its recipe asks',
+         # NO CASE, for the reason the first two preflight records above
+         # give and checks.py's UNCOVERED repeats: step 9 is a STEP, so a
+         # case would run this suite twice. The bug direction was WATCHED,
+         # on the live run.
+         # The step read ONE of the two regimes its own comment names.
+         # README gives both -- baseOffsetsScan against baseOffsetsMut equal
+         # to three figures under SpecConstr and ten times apart at plain
+         # -O1 -- and the code asserted the first, which was every basis
+         # from Run 8 to Run 29 and is not Run 30's: the request of
+         # 2026-09-12 made both halves plain -O1, so the step FAILed the
+         # pair it was given for being the pair it was given. WHICH REGIME
+         # TO EXPECT IS NOT THIS SCRIPT'S TO KNOW, so it now reads the flag
+         # off the BASIS half's recipe block in the note -- the same file
+         # 10d already holds to the HALVES line -- and holds the binary to
+         # that, naming the disagreement in either direction.
+         # Proved non-vacuous by hand over all three branches, the copy
+         # having no binary to run `diag` on: run30-pair.txt derives o1,
+         # run29-pair.txt derives spec, and a note carrying no such block
+         # derives unknown, which FAILs saying the regime is UNCONFIRMED
+         # rather than passing on a guess.
          argv=None, ok=None),
 ]
 
