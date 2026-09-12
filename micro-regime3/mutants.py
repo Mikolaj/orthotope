@@ -377,6 +377,24 @@ MUTANTS = [
     # three steps were in before 2026-09-05 -- a delegated reading not
     # taken reading the same as one taken. The judge asks an unstarted
     # run, whose digest cannot exist, for the refusal.
+    # THE PLATEAU GATE, made blind to the state it now reads. Until Run 29
+    # this gate banded the preamble victim's ms/iter, which is timed with
+    # `list`, so a pair whose variable moves `list` failed on its own
+    # variable; the gate is the `inuse`/`keep` the same line carries now.
+    # Collapsing the distinct-state key makes every process look alike and
+    # the gate never fire. The judge plants a real run beside the mutated
+    # driver -- the only fixture with the logs AND the JSONs this driver
+    # needs -- and moves one process's `inuse`, so it is LOST rather than
+    # green once those artifacts are deleted, which is the honest reading
+    # of a check that needs a run. read-all.sh had no mutant at all before
+    # this, which is why the gate could be rewritten without one.
+    ('the plateau gate cannot tell two states apart', 'read-all.sh',
+     'NF >= 3 { n++; k[$2 " " $3] = 1 }',
+     'NF >= 3 { n++; k["one"] = 1 }',
+     'ln -s {root}/run29-*.json "{dir}/" 2>/dev/null; '
+     'cp {root}/run29-*.log "{dir}/" 2>/dev/null; '
+     'sed -i "s/inuse=95420416/inuse=7/" "{dir}/run29-spec-rev.log"; '
+     '{file} run29 2>&1 | grep -q "did not assert ONE state"'),
     ('run-status stops wanting the carrier digest', 'run-status.sh',
      'if grep -qE "^ITEM ${it}([^0-9]|\\$)" "$READINGS" 2>/dev/null; then',
      'if true; then',
