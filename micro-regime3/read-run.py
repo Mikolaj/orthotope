@@ -2505,7 +2505,7 @@ PREDICT_RE = re.compile(r'`predict: ([^`]+)`')
 CARRIED_RE = re.compile(r'(?<![\w.$-])(\d\.\d{2,4})(?![\w%])(?!\.\d)')
 
 
-def carried_figures(run, run_doc, readme, others, main_hs):
+def carried_figures(run, run_doc, readme, others, main_hs, verbose=False):
     """Every figure a registration carries in, against the run it names.
 
     A registration states its predictions in `predict:` spans, which
@@ -2586,11 +2586,28 @@ def carried_figures(run, run_doc, readme, others, main_hs):
                       for d in got)]
         if quoted and not hit:
             warned += 1
-            print('  (%s) quotes %s, and its own pair span derives %s'
+            # THE SHORTLIST IS THE POINT, and a span derived on every
+            # population handed in is not one: eleven populations on two
+            # halves put twenty-two derivations on a single line, so the
+            # mode's own output buries the item it is flagging. What the
+            # reading wants is what the span derived INSTEAD, so the
+            # nearest few to a quoted figure come first and the rest are
+            # counted. --verbose keeps the whole list, for a span whose
+            # population is itself the question (2026-09-13).
+            def _near(t):
+                return (t[3] is None,
+                        min((abs(float(q) - t[3]) for q in quoted),
+                            default=0.0) if t[3] is not None else 0.0)
+            shown, more = sorted(derived, key=_near), 0
+            if not verbose and len(shown) > 6:
+                more, shown = len(shown) - 6, shown[:6]
+            print('  (%s) quotes %s, and its own pair span derives %s%s'
                   % (num, ', '.join(quoted),
                      ', '.join('%s/%s %s on %s'
                                % (a, b, '--' if d is None else '%.4f' % d, n)
-                               for n, a, b, d in derived) or 'nothing'))
+                               for n, a, b, d in shown) or 'nothing',
+                     '' if not more
+                     else ', and %d more (--verbose for all)' % more))
     print('%d item(s) with a pair span, %d quoting nothing it derives'
           % (looked, warned))
     return 0
@@ -7868,6 +7885,35 @@ def paragraph_at(docs, where):
     return 1
 
 
+def _para_item(para, n):
+    """One `(n)` item of a paragraph, or the whole of it and a note why.
+
+    The items of a registration are `(1)` to `(11)` inline in one
+    paragraph, so the span of item n runs to the `(n+1)` that follows it
+    or to the paragraph's end. A paragraph with no such item is handed
+    back WHOLE rather than empty: the caller asked for a passage and a
+    silent nothing is the worst answer to that.
+    """
+    # THE ITALIC TITLE IS WHAT MAKES IT AN ITEM, and the reason to try it
+    # first is that a registration's own PREAMBLE cites its items by
+    # number: Run 30's opens by naming the two it amended, `(7) to within
+    # 3%, and (11) re-based`, so a bare `\(7\)` matches the preamble and
+    # returns the whole entry from there. Items read `(7) *Stage ten where
+    # neither fires.*`; the loose form stays as a fallback for a paragraph
+    # whose items carry no title, and is only reached when the titled form
+    # matches nothing at all.
+    def at(k, frm=0):
+        return (re.compile(r'\(%d\)\s+\*' % k).search(para, frm)
+                or re.compile(r'\(%d\)\s' % k).search(para, frm))
+    k = int(n)
+    start = at(k)
+    if not start:
+        return ('%s\n\n[--para: no item (%s) in this paragraph, so the whole'
+                ' of it is above]' % (para, n))
+    nxt = at(k + 1, start.end())
+    return para[start.start():nxt.start() if nxt else len(para)].rstrip()
+
+
 def paragraphs(docs, pattern, every=False):
     r"""Print the paragraphs whose BOLDED LEAD matches, and their line numbers.
 
@@ -7926,6 +7972,17 @@ def paragraphs(docs, pattern, every=False):
     """
     if isinstance(docs, str):
         docs = [docs]
+    # `PATTERN#N` PRINTS ONE NUMBERED ITEM OF THE MATCHED PARAGRAPH, which
+    # is what a registration wants: eleven items are ONE paragraph here, so
+    # every look at item (7) costs the other ten, and a preparation looks
+    # several times. An argument form rather than a flag, as `--para-at
+    # FILE:LINE` is -- and `#` is the boundary because a lead may carry
+    # anything else. N is the item's OWN number, the `(7)` a caller reads,
+    # not an ordinal into the list (2026-09-13).
+    item = None
+    m = re.search(r'#(\d+)$', pattern)
+    if m:
+        item, pattern = m.group(1), pattern[:m.start()]
     rx = re.compile(pattern, re.I)
     paras = []
     for path in docs:
@@ -7975,7 +8032,7 @@ def paragraphs(docs, pattern, every=False):
         return 0
     for path, first, para, _lead in lead_hits:
         print('%s:%d' % (os.path.basename(path), first))
-        print(para)
+        print(_para_item(para, item) if item else para)
         print()
     if lead_hits:
         return 0
@@ -11756,10 +11813,11 @@ def main():
     if args.quiet:
         args.worklists = False
     if args.verbose and not (args.aa or args.block or args.compare
-                             or args.wild):
+                             or args.wild or args.carried):
         p.error('--verbose restores what --aa, --block and --compare drop'
                 ' and does nothing alone -- under --wild it adds the'
-                ' per-sample dump the per-bench table sums')
+                ' per-sample dump the per-bench table sums, and under'
+                ' --carried the derivations its shortlist caps')
     # One mode an invocation. The dispatch below is an if/elif chain, so a
     # second mode was not refused but DROPPED: `--markdown --fingerprint
     # --in-place` installed the Results table, wrote neither fingerprint
@@ -11868,7 +11926,8 @@ def main():
                           args.imperative))
     if args.carried:
         sys.exit(carried_figures(args.run or '', want_run_doc(args),
-                                 args.readme, args.others, args.main))
+                                 args.readme, args.others, args.main,
+                                 args.verbose))
     if args.move_registration:
         sys.exit(move_registration(args.readme, want_run_doc(args)))
     if args.delete:
