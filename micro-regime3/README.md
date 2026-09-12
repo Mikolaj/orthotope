@@ -7211,10 +7211,15 @@ and never as a chronology.
     #      them: they are the only machine time in this half, neither
     #      wants a quiet box, and the registration is the long hand step,
     #      so the half is the length of its longest step and not the sum.
-    #      8c AND 8d MUST NOT BE RUNNING: they read every smoke JSON on
-    #      disk, and one still being written fails them with a traceback
-    #      (the prefix rule below has Run 17's instance). Under
-    #      `--no-corpus` they have not run yet, which is the point of it.
+    #      AND THESE TWO LOCK THE READER FOR AN HOUR, which decides the
+    #      ORDER of everything else this half does: smoke-l1.sh invokes
+    #      read-run.py once per leg, so an edit to the reader between legs
+    #      is read by the rest of the pass, and preflight.sh cannot be
+    #      edited while it runs at all, bash re-reading a running script by
+    #      byte offset. SO A REPAIR TO EITHER LANDS BEFORE STEP 11 OR WAITS
+    #      FOR IT -- Run 30's preparation found two --draft defects at step
+    #      2 and could not fix them until the pass was over. 8c and 8d's
+    #      own line below carries the other half of the sequencing.
     #      The sweep holds
     #      each process to the arm count `--list` gives for that shape.
     #      AND NOT BEFORE PREFLIGHT'S 4,5, which is the one ordering here
@@ -7366,6 +7371,20 @@ and never as a chronology.
     #      a verdict -- an item may quote a level, a count, a third arm --
     #      so what it hands back is a shortlist to read, and the reading
     #      is still 12b's
+    #      AND THE RUN TO HAND IT IS THE ONE THE ITEM NAMES, WHICH IS NOT
+    #      ALWAYS $PREV. A registration CARRIED OVER quotes the figures of
+    #      the run before it -- Run 30's eleven items are Run 29's and
+    #      quote Run 28 throughout -- so $PREV's JSONs derive none of them
+    #      and every such item comes back flagged, which is the wrong
+    #      question again and costs a call the size of the roster. Run
+    #      30's preparation paid it: five items against run29, two against
+    #      run28, and the two were the finding
+    #  AND THE PREVIOUS REGISTRATION'S PRE-RUN FORM IS IN GIT, not in the
+    #      run file: post-run step 5 moves it into `runs/$PREV.md` and the
+    #      write-up then appends a verdict to every item, so diffing a
+    #      carry-over against that copy reports all eleven changed. Read
+    #      it at the commit before the next run was recorded, which is
+    #      what `git log -- runs/$PREV.md` dates
     #  `./preflight.sh $R --figures` IS THE MECHANICAL HALF OF THE NOTE and
     #      runs in
     #      seconds, taking no step: it re-derives the fill-in rows from the
