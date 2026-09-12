@@ -147,6 +147,14 @@ Modes:
                     spans from the two runs, HELD or KILLED each with the
                     figure read, and name the items carrying no span as
                     yours; `--counts A B` beside it for the count spans
+  --carried --others J...  every figure the registration QUOTES from an
+                    earlier run, against that run: each `pair A B` span
+                    derived on the JSONs given, one per population the
+                    items are read on, and the item named where nothing
+                    it quotes matches anything its own span produces. The
+                    spans are what --predictions adjudicates; the figures
+                    beside them in prose were read by nothing, and a
+                    wrong one is a plausible number next to a correct arm
   --counts SWEEP.txt --pair A B   the other arity: two arms' instruction
                     counts on ONE half, corrected against the shared
                     forcing pass and raw beside it, which is what a
@@ -2486,6 +2494,186 @@ def parse_counts(path):
 PREDICT_RE = re.compile(r'`predict: ([^`]+)`')
 
 
+# A figure as a registration writes one: two to four places, not a percent,
+# not a version, not a date. TWO places at least, which is what the error
+# this exists for was written in -- `1.16 to 1.36`; one place alone takes
+# `1.0` out of every span's own target. The trailing class refuses a word
+# character, which keeps `9.12` inside `9.1204.0` out, but must ALLOW a
+# full stop: written `(?![\\w.%])` it dropped every figure ending a
+# sentence, which is where a carried figure most often sits -- so the
+# period is refused only when a digit follows it.
+CARRIED_RE = re.compile(r'(?<![\w.$-])(\d\.\d{2,4})(?![\w%])(?!\.\d)')
+
+
+def carried_figures(run, run_doc, readme, others, main_hs):
+    """Every figure a registration carries in, against the run it names.
+
+    A registration states its predictions in `predict:` spans, which
+    --predictions adjudicates from the artifacts. What it also does, in
+    prose beside them, is QUOTE the previous run: *Run 28 reading 0.4951
+    and 0.5177*. Nothing read those. They pass --lint, --check-doc and a
+    blind reader, because each is a plausible number next to a correct
+    arm name, and a wrong one is not wrong in any way a predicate over
+    structure can see.
+
+    So: for every `pair A B` span, derive A over B on each JSON given --
+    the previous run's, one per population the item is read on -- and
+    ask whether ANY figure quoted in that item matches ANY of those
+    derivations. It is a warning and never a verdict: an item may quote
+    a figure for a third arm, an allocation level, a count. What it
+    catches is the item whose quoted figures match NOTHING its own span
+    can produce, which is the shape of the one real error Run 29's
+    preparation found by hand -- item (7) quoting a range that was a
+    PRE-RUN PROBE's, of two arms the span does not name, under a
+    preamble promising every figure came off the named run's JSONs.
+
+    The span's own target is not a carried figure and is excluded: it is
+    what the coming run must produce, not what the last one did.
+    """
+    src, items, flat = registration_items(run, run_doc, readme)
+    if src is None:
+        return 2
+    loaded = []
+    for path in others:
+        cells, shapes, strategies, _ = load(path, main_hs)
+        # THE CORRECTION FIRST, as every table here does: `net` is set by
+        # it and not by the load, so pair_stats on a raw load raises
+        # KeyError('net') for any pair one of whose arms has no corrected
+        # time -- which read as `unavailable` and silently emptied the
+        # derivations this whole mode is. Watched 2026-09-12 on item (8),
+        # whose pair --pair gives as 0.8635.
+        apply_correction(cells, shapes, strategies)
+        loaded.append((os.path.basename(path), cells, shapes, strategies))
+    print('carried figures in %s, against %s'
+          % (os.path.basename(src),
+             ', '.join(n for n, _, _, _ in loaded) or 'nothing'))
+    print('  a WARNING and not a verdict: an item may quote a figure this'
+          ' cannot derive. What it names is an item quoting nothing its'
+          ' own pair span produces')
+    warned = looked = 0
+    for num, body in items:
+        spans = [sp.split() for sp in PREDICT_RE.findall(body)]
+        pairs = []
+        for sp in spans:
+            if sp and sp[0] == 'pair' and len(sp) >= 3 \
+                    and (sp[1], sp[2]) not in pairs:
+                pairs.append((sp[1], sp[2]))
+        if not pairs:
+            continue
+        looked += 1
+        targets = {sp[3] for sp in spans if sp[0] == 'pair' and len(sp) >= 4}
+        quoted = [q for q in CARRIED_RE.findall(body) if q not in targets]
+        derived = []
+        for name, cells, shapes, strategies in loaded:
+            for a, b in pairs:
+                if a not in strategies or b not in strategies:
+                    derived.append((name, a, b, None))
+                    continue
+                # A pair whose arms this population cannot correct --
+                # a reducing consumer against a fill, `no_net` on one
+                # side -- raises out of pair_stats rather than returning
+                # empty. Unavailable is not a mismatch, and the loop
+                # must not end on it.
+                try:
+                    _, r = pair_stats(cells, shapes, a, b)
+                except (KeyError, ZeroDivisionError):
+                    r = []
+                derived.append((name, a, b, geomean(r) if r else None))
+        got = [d for *_, d in derived if d is not None]
+        # Rounded to the places the figure is written in, which is how a
+        # registration quotes one: 0.4951 against a derived 0.49512.
+        hit = [q for q in quoted
+               if any(abs(float(q) - d) < 5 * 10 ** -(len(q.split('.')[1]) + 1)
+                      for d in got)]
+        if quoted and not hit:
+            warned += 1
+            print('  (%s) quotes %s, and its own pair span derives %s'
+                  % (num, ', '.join(quoted),
+                     ', '.join('%s/%s %s on %s'
+                               % (a, b, '--' if d is None else '%.4f' % d, n)
+                               for n, a, b, d in derived) or 'nothing'))
+    print('%d item(s) with a pair span, %d quoting nothing it derives'
+          % (looked, warned))
+    return 0
+
+
+def registration_items(run, run_doc, readme):
+    """The registration for this run, split into numbered items.
+
+    Lifted out of predictions_table 2026-09-12 so a second reader can
+    have it: WHERE a registration lives, and how its items are cut, is
+    the same question for anything that reads one, and the two failure
+    modes below -- wrap80 blocked, no registration anywhere -- had their
+    accounts written once and would have been paraphrased by the second
+    caller. Returns (src, items, flat), or (None, None, None) having said
+    on stderr why, which every caller turns into its own exit 2.
+    """
+    text = src = None
+    m = re.match(r'run(\d+)', os.path.basename(run))
+    if m:
+        # One unwrapped line per list item, as --move-registration reads
+        # it: the open list's items carry no blank line between them, so
+        # a blank-line paragraph would hand back the neighbours too.
+        lead = 'What Run %s is built to answer' % m.group(1)
+        try:
+            flat_readme = subprocess.run(['wrap80', '--unwrap', readme],
+                                         capture_output=True, text=True,
+                                         check=True).stdout
+        except (OSError, subprocess.CalledProcessError) as e:
+            # BLOCKED, as the file's two other wrap80 sites say: the
+            # fallback read the wrapped README, where a lead spanning a
+            # line break matches nothing, and went on to adjudicate the
+            # run file's section -- the previous run's, before post-run
+            # step 5 -- at a normal exit. Case:
+            # `predictions-block-without-wrap80`.
+            sys.stderr.write('BLOCKED: wrap80 --unwrap %s could not run (%s),'
+                             ' and the registration is read unwrapped, so'
+                             ' nothing was adjudicated\n'
+                             % (os.path.basename(readme), e))
+            return None, None, None
+        for line in flat_readme.split('\n'):
+            if lead in ' '.join(line.split()):
+                text, src = line, readme
+                break
+    if text is None and run_doc and os.path.exists(run_doc):
+        doc = open(run_doc).read()
+        i = doc.find(REG_HEAD)
+        if i >= 0:
+            j = doc.find('\n## ', i + len(REG_HEAD))
+            text, src = (doc[i:] if j < 0 else doc[i:j]), run_doc
+    if text is None:
+        sys.stderr.write('no registration to adjudicate: %s has no `%s`'
+                         ' section and %s has no OPEN entry led `What Run N'
+                         ' is built to answer`\n'
+                         % (run_doc or 'the run file', REG_HEAD, readme))
+        return None, None, None
+    flat = ' '.join(text.split())
+    # Items, in either house form: `(n) *lead*` inline, or `n. ` lines.
+    marks = [(mm.start(), mm.group(1))
+             for mm in re.finditer(r'\((\d+)\) \*', flat)]
+    if not marks:
+        marks = [(mm.start(), mm.group(1))
+                 for mm in re.finditer(r'(?:^| )(\d+)\. \S', flat)]
+    items = []
+    for k, (at, num) in enumerate(marks):
+        end = marks[k + 1][0] if k + 1 < len(marks) else len(flat)
+        items.append((num, flat[at:end]))
+    # ONE ENTRY PER ITEM NUMBER, the FIRST. The section read here runs
+    # from the registration's heading to the next `## `, and after
+    # post-run step 5's third act that holds the registration AND a
+    # verdict paragraph per item -- so every item was found twice,
+    # its span counted twice, and an item whose span is in the
+    # registration was listed as having none because the verdict
+    # paragraph repeating its number has none. Run 24 read eleven
+    # entries for six items. The registration comes first, so the
+    # first occurrence is the one that carries the spans.
+    # Case: `predictions-enumerates-items-twice`.
+    seen_nums = set()
+    items = [(num, body) for num, body in items
+             if not (num in seen_nums or seen_nums.add(num))]
+    return src, items, flat
+
+
 def predictions_table(cells, shapes, strategies, meta, other, main_hs,
                       run, run_doc, readme, counts):
     """The registration's `predict:` spans, adjudicated from the artifacts.
@@ -2530,69 +2718,9 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     were written dead-spot over basis, the reciprocal of --compare, and
     a span is written in --compare's orientation or it reads inverted.
     """
-    text = src = None
-    m = re.match(r'run(\d+)', os.path.basename(run))
-    if m:
-        # One unwrapped line per list item, as --move-registration reads
-        # it: the open list's items carry no blank line between them, so
-        # a blank-line paragraph would hand back the neighbours too.
-        lead = 'What Run %s is built to answer' % m.group(1)
-        try:
-            flat_readme = subprocess.run(['wrap80', '--unwrap', readme],
-                                         capture_output=True, text=True,
-                                         check=True).stdout
-        except (OSError, subprocess.CalledProcessError) as e:
-            # BLOCKED, as the file's two other wrap80 sites say: the
-            # fallback read the wrapped README, where a lead spanning a
-            # line break matches nothing, and went on to adjudicate the
-            # run file's section -- the previous run's, before post-run
-            # step 5 -- at a normal exit. Case:
-            # `predictions-block-without-wrap80`.
-            sys.stderr.write('BLOCKED: wrap80 --unwrap %s could not run (%s),'
-                             ' and the registration is read unwrapped, so'
-                             ' nothing was adjudicated\n'
-                             % (os.path.basename(readme), e))
-            return 2
-        for line in flat_readme.split('\n'):
-            if lead in ' '.join(line.split()):
-                text, src = line, readme
-                break
-    if text is None and run_doc and os.path.exists(run_doc):
-        doc = open(run_doc).read()
-        i = doc.find(REG_HEAD)
-        if i >= 0:
-            j = doc.find('\n## ', i + len(REG_HEAD))
-            text, src = (doc[i:] if j < 0 else doc[i:j]), run_doc
-    if text is None:
-        sys.stderr.write('no registration to adjudicate: %s has no `%s`'
-                         ' section and %s has no OPEN entry led `What Run N'
-                         ' is built to answer`\n'
-                         % (run_doc or 'the run file', REG_HEAD, readme))
+    src, items, flat = registration_items(run, run_doc, readme)
+    if src is None:
         return 2
-    flat = ' '.join(text.split())
-    # Items, in either house form: `(n) *lead*` inline, or `n. ` lines.
-    marks = [(mm.start(), mm.group(1))
-             for mm in re.finditer(r'\((\d+)\) \*', flat)]
-    if not marks:
-        marks = [(mm.start(), mm.group(1))
-                 for mm in re.finditer(r'(?:^| )(\d+)\. \S', flat)]
-    items = []
-    for k, (at, num) in enumerate(marks):
-        end = marks[k + 1][0] if k + 1 < len(marks) else len(flat)
-        items.append((num, flat[at:end]))
-    # ONE ENTRY PER ITEM NUMBER, the FIRST. The section read here runs
-    # from the registration's heading to the next `## `, and after
-    # post-run step 5's third act that holds the registration AND a
-    # verdict paragraph per item -- so every item was found twice,
-    # its span counted twice, and an item whose span is in the
-    # registration was listed as having none because the verdict
-    # paragraph repeating its number has none. Run 24 read eleven
-    # entries for six items. The registration comes first, so the
-    # first occurrence is the one that carries the spans.
-    # Case: `predictions-enumerates-items-twice`.
-    seen_nums = set()
-    items = [(num, body) for num, body in items
-             if not (num in seen_nums or seen_nums.add(num))]
     specs = [(num, sp) for num, body in items
              for sp in PREDICT_RE.findall(body)]
     stray = [sp for sp in PREDICT_RE.findall(flat)
@@ -11373,6 +11501,11 @@ def main():
                         ' --others for the control')
     p.add_argument('--others', nargs='+', default=[], metavar='JSON',
                    help='the control half of each --classes file, in order')
+    p.add_argument('--carried', action='store_true',
+                   help='every figure the registration quotes from an'
+                        ' earlier run, against that run: --others gives'
+                        ' its JSONs, one per population the items are'
+                        ' read on')
     p.add_argument('--move-registration', action='store_true',
                    help="move this run's OPEN registration from README's"
                         " open list into the run file's last section,"
@@ -11527,9 +11660,13 @@ def main():
     if args.cross_classes and not (args.classes and args.others):
         p.error('--cross-classes wants --classes for the basis half and'
                 ' --others for the control, in the same order')
-    if args.others and not args.cross_classes:
-        p.error('--others is a modifier of --cross-classes and does nothing'
-                ' alone')
+    if args.others and not (args.cross_classes or args.carried):
+        p.error('--others is a modifier of --cross-classes and --carried'
+                ' and does nothing alone')
+    if args.carried and not args.others:
+        p.error('--carried reads the registration against an EARLIER run,'
+                ' whose JSONs are --others; with none there is nothing to'
+                ' derive and every quoted figure would read as unmatched')
     if args.extremes and not args.classes:
         p.error('--extremes ranks the populations named by --classes, and'
                 ' none were given')
@@ -11656,6 +11793,9 @@ def main():
     if args.checklist:
         sys.exit(checklist(args.readme, args.checklist,
                           args.imperative))
+    if args.carried:
+        sys.exit(carried_figures(args.run or '', want_run_doc(args),
+                                 args.readme, args.others, args.main))
     if args.move_registration:
         sys.exit(move_registration(args.readme, want_run_doc(args)))
     if args.delete:
