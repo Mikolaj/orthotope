@@ -1533,7 +1533,7 @@ rather than a slot in the next run, observed again:
   whoever set it rather than a measurement. **HALF OF THAT IS NOW WRITTEN,
   by Run 29, and it is the evidence half**: the paragraph beside the floor's
   measures the bar against the pairs it is applied to --- 54 population readings
-  from the five compiler pairs whose JSONs survive, median 0.62% and only 30
+  from the five compiler pairs whose JSONs survive, median 0.64% and only 30
   of the 54 inside the bar --- so the number sits near the MEDIAN of the thing
   it bounds rather than above it. What stays open is exactly the half
   a measurement cannot reach: where 0.7 came from, which is still yours. **Run
@@ -10306,24 +10306,24 @@ the question and it is not closed by this). What CAN be said is what
 the artifacts say, and Run 29 took it: over the five pairs whose JSONs survive
 --- Runs 24 to 28, every one of them varying the COMPILER and so a pair whose
 variable is not the reference --- `list`'s cross-half move reads over **54
-population readings**, one per population per pair, at a median of **0.62%**,
-a third quartile of **1.13%**, a ninetieth centile of **1.75%** and a worst
-of **3.27%**, on `reshape1` in Run 24. **Only 30 of the 54 are inside the bar.**
-So a pair whose variable ought not to touch the reference fails this bar
-on nearly half of its populations, and the per-run counts are 5 of 10, 8 of 11,
-4 of 11, 6 of 11 and 7 of 11 --- no run of the five clears it everywhere,
-and none is near doing so. **What follows for a reader is the ordering
-and not the bar.** A figure past 0.7% is not thereby suspect: it is
-in the company of half the readings this harness has taken from pairs it trusts,
-and what the bar buys is a rule that does not have to be argued per population.
-What a figure FAR past it means is a different thing, and Run 29 is the case
-that separates them --- its 12.12 points on the main set is nearly four times
-the worst of those 54, and every one of its eleven populations is past, which
-no compiler pair on record manages. **This paragraph is a measurement and
-not a provenance.** Where the number 0.7 came from is still unrecorded
-and is still whoever set it to say; what is settled here is only what
-it is worth against the evidence, which is that it sits inside the spread
-of the thing it bounds.
+population readings**, one per population per pair, at a median of **0.64%** ---
+the two middle readings being 0.62% and 0.66% --- a third quartile of **1.13%**,
+a ninetieth centile of **1.75%** and a worst of **3.27%**, on `reshape1` in
+Run 24. **Only 30 of the 54 are inside the bar.** So a pair whose variable ought
+not to touch the reference fails this bar on nearly half of its populations,
+and the per-run counts are 5 of 10, 8 of 11, 4 of 11, 6 of 11 and 7 of 11 ---
+no run of the five clears it everywhere, and none is near doing so. **What
+follows for a reader is the ordering and not the bar.** A figure past 0.7%
+is not thereby suspect: it is in the company of half the readings this harness
+has taken from pairs it trusts, and what the bar buys is a rule that does
+not have to be argued per population. What a figure FAR past it means
+is a different thing, and Run 29 is the case that separates them --- its 12.12
+points on the main set is nearly four times the worst of those 54, and every one
+of its eleven populations is past, which no compiler pair on record manages.
+**This paragraph is a measurement and not a provenance.** Where the number 0.7
+came from is still unrecorded and is still whoever set it to say; what
+is settled here is only what it is worth against the evidence, which is
+that it sits inside the spread of the thing it bounds.
 
 **Four processes of ONE binary in ONE day put a number on that caution,
 2026-09-06**, which is the within-evening form the recommended tasks' item 1 had
