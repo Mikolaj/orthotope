@@ -3469,7 +3469,7 @@ def synth_text(shapes, **kw):
 
 def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
                   complained=False, note_block=False, riders=False,
-                  into=None, plateau=None, skew=()):
+                  into=None, plateau=None, skew=(), states=None):
     """A whole run in this directory: JSONs, and the log that describes it.
 
     `read-all.sh` cds to its own directory and globs, so this is one of the
@@ -3491,6 +3491,13 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
     reading of `None` is a process that asserted nothing: its log is
     there, as every process's is, and carries no such line; a list is
     several lines in one log, which no process writes.
+
+    `states` is the in-process state each of those processes asserts, one
+    `inuse` value per process, and it is what the plateau gate reads since
+    Run 29 -- the victim reading beside it being a reading and not the
+    gate, since the victim is timed with `list` and a pair whose variable
+    moves `list` moves it. Default: every process asserts the same state,
+    which is what a sound run looks like however far its victims spread.
 
     `skew` is `synth_run`'s, applied to both class runs.
     """
@@ -3536,20 +3543,31 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
                   class_shapes('rev')[:1])
     if plateau is not None:
         sat = ('@@saturate dose=1x by=list sprayed=1000000 in 6.0 s; victim'
-               ' vgg-14-c512-k3/list %s ms/iter over 20; inuse=1 keep=1')
-        for cls, ms in zip(('rev', 'slice'), plateau):
+               ' vgg-14-c512-k3/list %s ms/iter over 20; inuse=%s keep=1')
+        if states == 'omit':
+            # A run whose logs predate the state fields, which is every
+            # run up to Run 27: the gate falls back to the victim band.
+            sat = ('@@saturate dose=1x by=list sprayed=1000000 in 6.0 s;'
+                   ' victim vgg-14-c512-k3/list %s ms/iter over 20')
+            st = [None] * len(plateau)
+        else:
+            st = list(states) if states is not None else [1] * len(plateau)
+        for cls, ms, iu in zip(('rev', 'slice'), plateau, st):
             # A list is several lines in one log, which no process writes
             # and a count of lines against logs cannot tell from one each.
             lines = ([] if ms is None else ms if isinstance(ms, list)
                      else [ms])
             write(place('%s-lookrts-%s.log' % (tag, cls)),
                   'benchmarking x/y\n'
-                  + ''.join(sat % m + '\n' for m in lines))
+                  + ''.join((sat % m if iu is None else sat % (m, iu))
+                            + '\n' for m in lines))
         # A rider's and a gate half's, at readings no band could hold: both
         # are excluded by name, so a gate that counted either would fail
         # loudly here instead of passing over a wider set.
         for other in ('al-lookrts-cnn-slice-c32-r1', 'gate-lookrts-a'):
-            write(place('%s-%s.log' % (tag, other)), sat % '999.0' + '\n')
+            write(place('%s-%s.log' % (tag, other)),
+                  (sat % '999.0' if states == 'omit'
+                   else sat % ('999.0', 1)) + '\n')
     if note_block:
         # run-major.sh copies the pair note's gate lines into the log,
         # indented and with no `===` stamp of its own. run-gate.sh writes
@@ -7532,16 +7550,60 @@ RECORDS = [
     case('plateau-band-across-processes', 'read-all.sh', None,
          'two processes saturated to different depths and gated clean',
          # Run 18's registration 5. Every recorded process asserts the
-         # in-process state it measured in, and a process outside the run's
-         # own band measured somewhere else -- which every gate beside this
-         # one is blind to, each being WITHIN one process. The spread here
-         # is the 14% an unsaturated process reads below a saturated one on
-         # the dose measurements, so the fixture is the failure the band is
-         # sized for and not an invented number.
-         plant=lambda t: synthetic_run(t, plateau=['16.4', '19.1']),
+         # in-process state it measured in, and a process that asserted a
+         # different one measured somewhere else -- which every gate beside
+         # this one is blind to, each being WITHIN one process. **The
+         # fixture asserts the DEPTHS since Run 29**: the case's own gist
+         # has always said `different depths`, and until `states` existed it
+         # could only spread the victim reading, which is a proxy and, on a
+         # pair whose variable moves `list`, a proxy that moves for the
+         # variable. The 14% spread stays beside them, being the dose
+         # measurements' own figure for an unsaturated process against a
+         # saturated one, so the fixture is that failure and not an
+         # invented number.
+         plant=lambda t: synthetic_run(t, plateau=['16.4', '19.1'],
+                                       states=[1, 2]),
          argv=['{tag}'],
-         ok=V(exit=1, has=['the plateau is not flat', '16.4', '19.1'],
+         ok=V(exit=1, has=['did not assert ONE state', 'inuse=1', 'inuse=2'],
               hasnt=['999.0'])),
+
+    case('plateau-gates-the-state-and-not-the-victim', 'read-all.sh',
+         '17384a7',
+         'a pair whose variable moves the victim failed a gate on its own'
+         ' variable',
+         # Run 29 struck `-fspec-constr` off one half. The preamble's victim
+         # is timed with `list`, the one arm that flag moves, so the run read
+         # an 11.82% spread against a 5% band while every one of its
+         # twenty-two processes asserted `inuse` and `keep` identical TO THE
+         # BYTE and each half was flat within itself at 1.98% and 1.88%. The
+         # gate failed a sound run on its own variable, and `run-status.sh`
+         # re-runs this driver without honouring PLATEAU_BAND, so post-run
+         # step 1 could not go green. The gate is the STATE now and the
+         # victim spread is printed beside it, per half where the log names
+         # give halves. This fixture is that run in miniature: two processes
+         # 16.4% apart in victim and identical in state.
+         plant=lambda t: synthetic_run(t, plateau=['16.4', '19.1'],
+                                       states=[1, 1]),
+         argv=['{tag}'],
+         ok=V(exit=0, has=['assert ONE state', 'a reading and not the gate',
+                           'every process gated clean'],
+              hasnt=['did not assert ONE state']),
+         bug=V(exit=1, has=['the plateau is not flat'])),
+
+    case('plateau-falls-back-where-the-state-is-not-logged', 'read-all.sh',
+         None,
+         'CONTROL: a run whose logs predate the state fields is still gated'
+         ' on the victim band',
+         # The branch the case above would otherwise leave unexercised, and
+         # this tree's rule is that a checker branch with no live control is
+         # a silent search. Every run up to Run 27 wrote the `@@saturate`
+         # line without `inuse=` or `keep=`; those runs keep the band they
+         # were gated under, and the driver says which of the two it used.
+         plant=lambda t: synthetic_run(t, plateau=['16.4', '19.1'],
+                                       states='omit'),
+         argv=['{tag}'],
+         ok=V(exit=1, has=['the state fields are not in these logs',
+                           'outside that band'])),
 
     case('plateau-band-holds-together', 'read-all.sh', None,
          'CONTROL: two processes inside the band, and the excluded logs',
