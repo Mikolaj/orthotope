@@ -10169,24 +10169,23 @@ are three different statistics**, so the sixteen-pair and six-pair figures
 are not a series this run's whole-set figure continues; what it does continue,
 for the first time, is Run 28's, the two runs over eight reading 0.50% and 0.51%
 on their basis halves. What continues without a break is the RESTRICTED figure,
-over the four pairs that carry back to Run 10.
-`mut-odo-vecdims-add-in-leaf-u2-aa-distant` carries the basis figure
-and `bq-expand-aa-distant` the control's, and the carry-back figure is **0.26%**
-and **0.82%** --- the control's two readings being equal because
-`bq-expand-aa-distant` is the widest pair there on both counts. **So the two
-thresholds are APART AGAIN on the basis half and further apart than last run**,
-0.51% against 0.26% where Run 28 read 0.50% against 0.39%, and for the same
-reason: the arm the library actually runs disagrees with its own duplicate
-by more than any older pair does. **Registration (9) asked whether that
-was the fill pair's property or one evening's, and two runs now say the former**
---- the same pair carries the whole-set figure on both, which is the measurement
-the open entry wanted and does not settle the ruling it wanted it for. **What
-Run 19 settled about the floor, this run cannot restate either, and saying
-so is the point.** Run 19's basis half was Run 18's basis BINARY byte for byte
-and read 2.32% where that binary read 1.36%, a factor of 1.7 with everything
-held still; Run 23's basis was Run 22's binary and moved the floor
-by a twentieth. This run has no repetition to offer --- `Main.hs` moved
-by twelve commits, so neither half reproduces an earlier binary ---
+over the four pairs that carry back to Run 10, which reads **0.26%**
+and **0.82%**. `mut-odo-vecdims-add-in-leaf-u2-aa-distant` carries the basis
+figure and `bq-expand-aa-distant` the control's --- the control's two readings
+being equal because `bq-expand-aa-distant` is the widest pair there on both
+counts. **So the two thresholds are APART AGAIN on the basis half and further
+apart than last run**, 0.51% against 0.26% where Run 28 read 0.50% against
+0.39%, and for the same reason: the arm the library actually runs disagrees
+with its own duplicate by more than any older pair does. **Registration (9)
+asked whether that was the fill pair's property or one evening's, and two runs
+now say the former** --- the same pair carries the whole-set figure on both,
+which is the measurement the open entry wanted and does not settle the ruling
+it wanted it for. **What Run 19 settled about the floor, this run cannot restate
+either, and saying so is the point.** Run 19's basis half was Run 18's basis
+BINARY byte for byte and read 2.32% where that binary read 1.36%, a factor
+of 1.7 with everything held still; Run 23's basis was Run 22's binary and moved
+the floor by a twentieth. This run has no repetition to offer --- `Main.hs`
+moved by twelve commits, so neither half reproduces an earlier binary ---
 and its 0.51% therefore carries a source change and an evening but NOT a box
 change: the gate's machine check did NOT fire, `list`'s net reading 0.17% BELOW
 the fingerprint Run 28 installed. **Where the movement lives is the one thing
