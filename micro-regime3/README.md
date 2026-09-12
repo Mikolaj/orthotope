@@ -923,6 +923,47 @@ rather than a slot in the next run, observed again:
   themselves, which is why that half's own twin named one straddler of seven
   where the basis's named five of its own seven.
 
+- `OPEN` **`-fspec-constr` changes what two arms ALLOCATE and not only how fast
+  they run, and nothing here says why a specialisation pass should move
+  an allocation multiple at all.** Run 29's registration (11) predicted
+  the levels unmoved between its halves and was KILLED on two of them:
+  over the eighteen shapes claim 7 is pinned to, `bq-expand` reads **2.06x**
+  under the flag and **2.76x** without it, and `list` **22.38x** against
+  **24.90x**, while every fill and every `liblist` consumer holds 1.00x
+  and every `libunord` consumer 0.00x on both halves. The two that move
+  are exactly the two the flag speeds up, and the counted work has them
+  converting their instruction saving to time almost entirely --- `time/counts`
+  1.0161 and 0.9926 --- where the nine arms whose allocation does not move
+  convert none of theirs. So the allocation change and the time change arrive
+  together on the same two arms and on no others. **What would settle
+  it** is Core for one of the two under each regime, read for what SpecConstr's
+  specialisation does to a boxed intermediate the unspecialised loop allocates
+  per call; the arms are `bq-expand` and `list`, both of them library-shaped,
+  and `list` is the reference every table here divides by, so the answer decides
+  how much of this README's published column is a property of the regime rather
+  than of the strategies. Until it is taken, no claim here should describe
+  an allocation multiple as a property of a strategy alone: claim 7's own
+  preamble says its levels are `-fspec-constr` claims, and Run 29 is the run
+  that made that a measured statement rather than a note on the regime.
+
+- `OPEN` **The flagged half carries FEWER self-loops than the unflagged one
+  and a LARGER `.text`, and the two facts point opposite ways.** Run 29's
+  `--survey` reads 222 self-loops of at most 64 B on `run29-spec` against 284
+  on `run29-nospec`, a gap of sixty-two, where the two compilers of Run 28
+  parted by eleven --- and `spec`'s `.text` is 20783301 bytes against `nospec`'s
+  20766917, larger by 16384, which is 16 KiB exactly. More code and fewer short
+  self-loops is not a contradiction --- `--survey` counts self-loops of at most
+  64 B, so both a loop REMOVED and a loop GROWN PAST the cutoff leave it,
+  and a specialisation pass plausibly does the second --- but nothing here has
+  measured which, and a run that wanted to read placement off the survey count
+  would be reading two different events as one. **What would settle it**
+  is the same survey at a raised cutoff on both halves: if the sixty-two
+  reappear above 64 B they were grown and the count is a code-size reading,
+  and if they do not they were removed. That is one invocation of a mode
+  that already exists, on binaries the deletion offer has not yet spent. The 16
+  KiB exactly is recorded as an observation and not as a mechanism; nothing here
+  explains why the difference should be a round page multiple.
+
 - `OPEN` **A saving in instructions reaches the clock at anything from NONE
   of it to ALL of it WITHIN ONE BINARY, where the rate on record is three
   quarters.** [The ceiling](#the-mutable-ceiling-taken)'s nineteenth reading put
@@ -2918,6 +2959,104 @@ rather than a slot in the next run, observed again:
 
 
 ### Recommended tasks after Run 29
+
+**What Run 29 made cheaper for the next run, which is not a figure and no other
+step gathers --- and it is TWO sessions' worth, the preparation's reaching
+the executor only through the pair note.** **The preparation's half, taken
+2026-09-11 and recorded in the note:** the check that would have caught an error
+and did not is that NOTHING re-derives the figures a registration quotes ---
+eleven items quoting some twenty Run 28 figures passed `--lint`, `--check-doc`
+and a blind reader, and step 12b's hand re-derivation found item (7)'s `small`
+range was a PRE-RUN PROBE's figure wearing the run's name; what would catch
+it is `--predictions` pointed backwards, at a registration's own quoted pairs.
+No computation was improvised and no step skipped, though one was nearly lost
+to a tool: preflight's fill-in block derives the previous build of a recipe
+as `run$PN-$BASIS`, which holds only while the basis TAG holds, and this run
+renamed it `g912` to `spec` on an unchanged recipe, so both cross-run reads went
+dark and named a binary Run 28 never wrote. Fixed, proved and recorded.
+The capability it found is that `diag` answers step 9b on a regime pair, 9
+and 9b being one reading here. What it left owed was a whole `check-all`
+over its last four commits, which this session ran. **The executing session's
+half, and it is six things.**
+
+**A READER MODE WAS SILENTLY SUBSAMPLING, AND IT WOULD HAVE REVERSED A VERDICT
+--- this run's durable finding about the tooling.** `--predictions`' `cross`
+branch divided `net` and dropped every shape where either run's net
+was not positive. On a reducing consumer, which has no corrected time at all,
+that is most of the population: registration (3) read **0.5854 over 3 shapes
+of 14** on `runs`, and NOT READ on `block`, where the raw ratio over all
+fourteen is **0.9779**. Read the first way the item is KILLED and the write-up
+says the fused list's lead over the fill is the flag's; read the second it HOLDS
+and the flag is worth two percent. **What caught it was the shape count the mode
+prints beside its figure** --- `over 3 shape(s)` where fourteen were expected
+--- and nothing else would have: `--pair` had been brought under the 2026-09-10
+`no_net` ruling and `--compare` skips such arms entirely, so `cross` was the one
+caller left spelling the rule its own way. `no_net`'s docstring even closed
+by saying every span a registration writes over such an arm is a `pair`, which
+was true until this run's item (3). **The general lesson is the printed
+population**: a mode that says how many shapes it read can be caught by a reader
+who looks, and one that does not cannot be caught at all.
+
+**`--replace` TOOK A CLASS BLOCK'S TABLE, AND IT IS THE THIRD INSTANCE OF ONE
+SHAPE.** A paragraph's abutting heading earned a guard after Run 24 lost
+`## Results`; an abutting list earned two more. A table had none --- and every
+class block in a run file is a bolded lead with its installed table on the next
+line and no blank between them, which is how `--block --in-place` writes it.
+An anchor naming the `flip` lead took **38 rows** with it at exit 0.
+**`--check-doc` passed immediately afterwards**, which is what makes
+this the quietest of the three: a gate holds a table it FINDS to the JSONs
+and cannot miss one that is gone. Caught by the mode's own `out, last` line
+printing a table row where prose belonged, which this chapter already tells
+a reader to check; restored from the previous commit and re-installed
+by the tool. Fixed and recorded.
+
+**THE UNCHANGED-PARAGRAPH GATE FAILS ON THE HEAD AND ONLY NOTES THE BODY,
+AND THE BODY IS WHERE THEY HID.** `--check-doc` refuses a run file whose HEAD
+paragraphs are unchanged from the previous run, and merely counts the rest.
+This run cleared the head, the gate went green, and **thirteen of checker pass
+1's twenty-six findings were carried paragraphs in the body** --- among them
+a cross-run paragraph every figure of which was Run 28's, and a paragraph
+asserting that the two columns MAY be differenced, which is the opposite
+of this run's central finding and sat four sections from the head that says so.
+What would catch it is already computed and read by no gate: `--inherited` names
+every paragraph carried whole that calls itself this run's or names a run,
+and the head's refusal could key on that predicate instead of on position.
+
+**THE PLATEAU GATE CANNOT SERVE A REGIME PAIR, and it reports that as a failure
+rather than as an abstention.** It bands the preamble victim's TIME across every
+process of a run, and the victim is timed with `list` --- the one arm
+this pair's variable moves by a tenth. So it read an 11.82% spread against a 5%
+band on a run whose halves are flat at 1.98% and 1.88%, whose split is exactly
+by half, and whose saturation state is identical to the byte on all twenty-two
+processes, `inuse` and `keep` each taking one value. Banding WITHIN each half
+is strictly finer for every pair on record and would have passed this one; until
+it does, a regime pair's step 1 fails on a reading that is its own variable.
+
+**TWO COMPUTATIONS WERE IMPROVISED, both because no mode gives them.**
+The per-class cross-half geomeans with the `list` and `bq-expand` families
+dropped, which is what says WHOSE the movement is --- 0.9754 to 0.9998 against
+0.9149 to 0.9667 with them --- and the pooled class-floor count over Runs 24
+to 29, which is what showed that entry's effect has dissolved at 29 of 65. Both
+are a few lines over `--cells` and `--brief-facts`, and both answered a question
+the write-up could not otherwise have stated. **A step skipped: none.** One
+error was inherited and found: the pair note's own *twelve commits
+from `f7a1b41`* names a span of six, the twelve running from `bdf06c8`; the run
+file had it right at four sites and the delta chain had it wrong at one, which
+is how the two disagreed loudly enough to check.
+
+**WHAT THE FOUR AGENTS COST AND BOUGHT.** The carrier read four sections of Run
+28's file and returned `run29-readings.txt`, which post-run steps 4, 5 and 6a
+read back; its item-5 finding, two live claims and eight retired, is what
+the claims section is built on. Checker pass 1 read the run file alone
+and returned **26** findings, of which it had verified 473 installed table rows
+and 70 hand-edited cells and found none wrong --- every real finding was prose,
+for the fifth run running. Pass 2, over both documents once those were fixed,
+returned **ten more, five of them MADE by the first round of fixes**:
+a superlative its own paragraph refutes, a nine-row generalisation false
+on the ninth row, an enumeration that claims ten and lists nine, a counts-leg
+superlative the artifacts do not settle, and a clause the rewrite dropped.
+That is Run 21's ratio and Run 16's again, and it is the whole argument
+for the second pass.
 
 **What Run 28 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
