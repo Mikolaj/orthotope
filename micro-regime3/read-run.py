@@ -945,8 +945,13 @@ def no_net(name):
     the control whose cost was being subtracted (`flip-fwd-rows96` /
     `libunord-stage7-sum` at 0.00074 s against `sum-only-early`'s
     0.00108). Their spans read raw, which is what `pair_stats` does with a
-    `no_net` half, and every span the registrations write over them is a
-    pair.
+    `no_net` half AND, since dc2bf44, what the `cross` branch of
+    `--predictions` does too. This paragraph said instead that every span
+    the registrations write over such an arm is a `pair`, which held until
+    Run 29's item (3) wrote a `cross` over `libunord-stage7-sum`: the
+    branch divided `net` and dropped every shape whose net was not
+    positive, reading 0.5854 over 3 shapes of 14 on `runs` where the raw
+    ratio over all 14 is 0.9779, and nothing at all on `block`.
     """
     return no_forcing_pass(name) or name.endswith('-sum')
 
