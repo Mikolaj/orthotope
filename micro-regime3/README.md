@@ -3265,46 +3265,48 @@ again and it caught FOURTEEN, none reachable by any mechanical pass, preflight
 having returned eleven PASS over a note carrying every one; three
 of the fourteen were FALSE, which is the cost of the pass and is worth knowing.
 THE COMPUTATION IT IMPROVISED was one and it wants a mode: the previous run's
-counts-sweep durations, which no mode reads and which it differenced out
-of the previous run's counts files, their opening stamp against their `# end`
-line, in a throwaway script --- and which is why an earlier note quoted
-the wrong run's totals under a heading promising the previous run's. A STEP
-NEARLY LOST, not skipped: a queued step was displaced by a commit that landed
-during a wait and recovered only by being asked for, so a queue held in prose
-across a wait is not a queue. **The executing session's half, 2026-09-06.**
-THE CHECK THAT WOULD HAVE CAUGHT ITS ERRORS is one check and it caught four:
-**ask the reader for an aggregate instead of deriving it by hand.**
-The cross-half class split was written 124/75 by hand where `--cross-classes`
-emits 154/104; the classes past the 0.7% bar were written as five where the same
-mode names six; a per-class counts figure was carried out of Run 25's paragraph
-into a Run 26 sentence, which is the failure post-run step 6a's own rule names;
-and Run 25's in-situ term was taken from its prose, 1.0316, where its JSONs read
-1.0344. Every one was a figure the reader will print on request and none
-was caught by a gate. THE COMPUTATIONS IMPROVISED were two: the per-class
-counted geomeans, which want one `--compare --counts` call per class where
-the cross-half aggregates have a mode that does all ten; and the largest A/A
-pair per class, which `--aa` prints but no mode summarises, extracted here
-by a throwaway script over ten calls. A STEP SKIPPED: none --- post-run step 3's
-rerun was DECLINED rather than skipped, on the measurement recorded in Run 26's
-head, and the declining is what the write-up says. A CAPABILITY FOUND AND USED:
-`--counts SWEEP.txt --pair A B`, the mode Run 25's write-up asked for, gave
-every within-half counted ratio this run quotes in one call apiece. A CAPABILITY
-NOT USED at first: `--cross-classes`, which exists precisely so the classes
-intro and the class blocks cannot part, and which this session reached for only
-after hand-deriving what it prints. **AND THE ONE THAT WAS NOT A FIGURE AT ALL,
-recorded because it is the most expensive mistake of the write-up and no gate
-here can see it**: a commit made with `git add -A micro-regime3` swallowed 79
-untracked scratch files --- 176632 insertions and five 32 MB binaries ---
-into the history, which this repository's own notes forbid in those words,
-and `git status --porcelain` then read clean because the files had
-been absorbed. It was found by nothing until a pass over the SHAPE
-of the session's diff, where 83 changed files where four were expected
-is the only tell; the check that catches it is naming the paths on every
-`git add` and reading the diffstat of the commit you just made. The history
-was rebuilt without them, the tracked content byte-identical. Two smaller ones
-of the same family: a scripted fix batch that asserts between substitutions
-writes NOTHING when it fails late, while printing a success line for each
-substitution before the failure, so seven fixes were reported applied
+counts-sweep durations, which it differenced out of the previous run's counts
+files, their opening stamp against their `# end` line, in a throwaway script ---
+and which is why an earlier note quoted the wrong run's totals under a heading
+promising the previous run's. THE MODE IT WANTED LANDED 2026-09-12:
+`run-counts.sh` stamps `elapsed=<n>s` on that same line, so a leg taken since
+is read and not subtracted, and only a run older than that date still wants
+the arithmetic. A STEP NEARLY LOST, not skipped: a queued step was displaced
+by a commit that landed during a wait and recovered only by being asked for,
+so a queue held in prose across a wait is not a queue. **The executing session's
+half, 2026-09-06.** THE CHECK THAT WOULD HAVE CAUGHT ITS ERRORS is one check
+and it caught four: **ask the reader for an aggregate instead of deriving
+it by hand.** The cross-half class split was written 124/75 by hand where
+`--cross-classes` emits 154/104; the classes past the 0.7% bar were written
+as five where the same mode names six; a per-class counts figure was carried out
+of Run 25's paragraph into a Run 26 sentence, which is the failure post-run step
+6a's own rule names; and Run 25's in-situ term was taken from its prose, 1.0316,
+where its JSONs read 1.0344. Every one was a figure the reader will print
+on request and none was caught by a gate. THE COMPUTATIONS IMPROVISED were two:
+the per-class counted geomeans, which want one `--compare --counts` call per
+class where the cross-half aggregates have a mode that does all ten;
+and the largest A/A pair per class, which `--aa` prints but no mode summarises,
+extracted here by a throwaway script over ten calls. A STEP SKIPPED: none ---
+post-run step 3's rerun was DECLINED rather than skipped, on the measurement
+recorded in Run 26's head, and the declining is what the write-up says.
+A CAPABILITY FOUND AND USED: `--counts SWEEP.txt --pair A B`, the mode Run 25's
+write-up asked for, gave every within-half counted ratio this run quotes in one
+call apiece. A CAPABILITY NOT USED at first: `--cross-classes`, which exists
+precisely so the classes intro and the class blocks cannot part, and which
+this session reached for only after hand-deriving what it prints. **AND THE ONE
+THAT WAS NOT A FIGURE AT ALL, recorded because it is the most expensive mistake
+of the write-up and no gate here can see it**: a commit made
+with `git add -A micro-regime3` swallowed 79 untracked scratch files --- 176632
+insertions and five 32 MB binaries --- into the history, which this repository's
+own notes forbid in those words, and `git status --porcelain` then read clean
+because the files had been absorbed. It was found by nothing until a pass
+over the SHAPE of the session's diff, where 83 changed files where four
+were expected is the only tell; the check that catches it is naming the paths
+on every `git add` and reading the diffstat of the commit you just made.
+The history was rebuilt without them, the tracked content byte-identical. Two
+smaller ones of the same family: a scripted fix batch that asserts between
+substitutions writes NOTHING when it fails late, while printing a success line
+for each substitution before the failure, so seven fixes were reported applied
 and were not; and a verification keyed on an exact phrasing cannot see a second
 site that words the same claim differently, which is how two of those seven
 passed a re-check. Key such a check on the figure, and write one substitution
@@ -7199,7 +7201,7 @@ and never as a chronology.
     #      hook moving it
     #      AND THE RE-DERIVATION IS A CARRIER AGENT'S: it is a dozen
     #      reader calls whose tables nothing will quote, so only the
-    #      verdicts need come back (2026-09-12, a preparation having run
+    #      verdicts need come back (2026-09-11, a preparation having run
     #      every one of them in its own context)
     #      AND WHEN IT IS DONE, `./run-status.sh $R` READS `2c done: no
     #      <yours> slot left`, which is the one check that says the note
@@ -7211,7 +7213,7 @@ and never as a chronology.
     #      item where NOTHING it quotes matches ANYTHING its own span
     #      produces. A PROBE'S FIGURE WEARING A RUN'S NAME is the shape
     #      it was built for and reads exactly like a right one
-    #      (2026-09-12).
+    #      (2026-09-11).
     #      $R IS NAMED AND NOT READ -- at this step the run has not gone,
     #      so there is no $R JSON to hand it and none is wanted; the name
     #      is how it finds the OPEN entry in README.

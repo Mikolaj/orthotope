@@ -1357,8 +1357,8 @@ def rundoc_registration_with_verdicts(tmp):
 def rundoc_carried_figures(tmp):
     """A registration quoting one figure its span derives and one it cannot.
 
-    Item (1) names two real arms and quotes 0.4242, which no pair of them
-    produces on any population: the shape of the defect this mode exists
+    Item (1) names two real arms and quotes 0.4242, which that pair does
+    not produce on the run given: the shape of the defect this mode exists
     for, an item whose prose figure belongs to some other comparison than
     its own span's. Item (2) names a pair and quotes nothing, so it is
     counted and never warned -- the control that keeps the warning from

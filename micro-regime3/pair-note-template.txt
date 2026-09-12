@@ -99,10 +99,13 @@ the basis, with nothing downstream able to see it. Refused there since
 hyphen-free (`aligned`, `maxskip`, `maxskippa`, `lookrts`, `a1g`, `a32m`,
 `g912`, `g914`, `ghead`, `spot`, `spec`, `nospec`);
 note that `maxskip`/`maxskippa` is a bare prefix and safe -- it is the
-hyphen that collides. THAT ROLL IS HISTORICAL AND `--draft` REWRITES BARE
-TAGS INSIDE IT, this run's names replacing whichever of them the previous
-note spelled: restore the line rather than carrying back what a draft hands
-you. It had also drifted by hand, `g914` missing from Run 18 until 2026-09-12.
+hyphen that collides. THAT ROLL IS HISTORICAL, and the backticks are what
+keep `--draft` off it: the bare-tag rename skips a match with a backtick on
+either side, so the roll comes back unchanged and only the live halves,
+spelled bare, are renamed. Before that boundary landed on 2026-09-12 it
+rewrote two of the roll's members every draft. Spell a rolled tag in
+backticks and a live one bare, and check the roll anyway -- it had drifted by
+hand besides, `g914` missing from Run 18 until the same day.
 
 WHY THE BASIS IS THIS RECIPE [PAIR'S], decided YYYY-MM-DD: a decision and not a
 measurement, so the reason belongs here where the next session meets it.
@@ -243,7 +246,7 @@ element is the main set and the nine that follow are the classes:
   to quote Run 27's. The `# end` line carries `elapsed=<n>s` for a leg
   taken after 2026-09-12; FOR AN EARLIER RUN IT CARRIES ONLY THE TWO
   STAMPS and the difference is yours, which is what every preparation up
-  to Run 29 did for all twenty-two of them. Where the pair's central
+  to Run 29 did, leg by leg. Where the pair's central
   claim turns on counts rather than on time -- a layout pair, where an arm
   must not move its instructions except where a pad was executed -- say so
   here and name which registrations are read off that split.

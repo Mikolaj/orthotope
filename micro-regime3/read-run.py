@@ -2524,7 +2524,7 @@ def carried_figures(run, run_doc, readme, others, main_hs):
     catches is the item whose quoted figures match NOTHING its own span
     can produce -- a probe's figure wearing a run's name among them,
     which is what it was built for and which reads exactly like a right
-    one (2026-09-12).
+    one (2026-09-11).
 
     The span's own target is not a carried figure and is excluded: it is
     what the coming run must produce, not what the last one did.
@@ -2606,6 +2606,11 @@ def registration_items(run, run_doc, readme):
     accounts written once and would have been paraphrased by the second
     caller. Returns (src, items, flat), or (None, None, None) having said
     on stderr why, which every caller turns into its own exit 2.
+
+    The registration is README's OPEN entry for this run where one exists,
+    which is the state before post-run step 5's move, and the run file's
+    last section after it -- IN THAT ORDER, because a run file copied from
+    the previous run's carries THAT run's section until the move.
     """
     text = src = None
     m = re.match(r'run(\d+)', os.path.basename(run))
@@ -2702,11 +2707,9 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     rule and the loop are one README section, whole on the next line so a
     grep for the title finds this too:
         Which population answers a question, and how to ask all of them
-    Post-run step 5c is where it runs. The
-    registration is README's OPEN entry for this run where one exists,
-    which is the state before post-run step 5's move, and the run file's
-    last section after it -- in that order, because a run file copied
-    from the previous run's carries THAT run's section until the move. An item
+    Post-run step 5c is where it runs. WHERE the registration lives, and
+    in which order the two places are tried, is `registration_items`,
+    which this shares with --carried. An item
     with no span -- a class ordering, a verdict about verdicts -- is
     listed as the session's to adjudicate, by number, so that what the
     reader did not decide is not mistaken for decided. A span it cannot
