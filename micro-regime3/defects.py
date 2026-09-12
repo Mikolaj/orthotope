@@ -2907,6 +2907,18 @@ def sunk_shape_json(tmp, name='sunk-shape.json'):
                      sunk=[(shapes[0], a) for a in arms])
 
 
+def a_reducing_consumer():
+    """One arm the correction leaves with no corrected time, off the roster.
+
+    `no_net` is the predicate and the `-sum` suffix is how Main.hs spells
+    it, so the first such arm is TAKEN rather than named: an arm named here
+    is an arm a parking can retire, and the case below wants only that its
+    cells have no net to divide.
+    """
+    roster = _reader().roster_of(open(os.path.join(HERE, 'Main.hs')).read())
+    return next(n for n, _role, _fn in roster if n.endswith('-sum'))
+
+
 def run_order_shapes(cls):
     """One class's shapes in the order they RUN, not sorted.
 
@@ -3767,6 +3779,19 @@ TIER1 = {
            ' cell, and adjudicates the rest',
         bug='exit 2 out of the middle of the walk, the eight later items'
             ' unadjudicated and stdout silent about which'),
+    'cross-span-on-an-arm-with-no-corrected-time': dict(
+        family='two-spellings', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='a registration writing a `cross` span over a reducing'
+                ' consumer, as Run 29 item (3) does over'
+                ' `libunord-stage7-sum`',
+        ok='reads it on `pair`\'s key, slope for a `no_net` arm, over the'
+           ' whole population, and refuses a cell with no positive value'
+           ' there',
+        bug='divided net and dropped every shape whose net was not'
+            ' positive, reading 0.5854 over 3 shapes of 14 on Run 29 `runs`'
+            ' where the raw ratio over all 14 is 0.9779, and NOT READ on'
+            ' `block`, which reverses the item\'s verdict'),
     'status-reads-a-bare-item-header': dict(
         family='scan-for-parse', discovery='in-use', harm='fired',
         harm_count=1,
@@ -8583,6 +8608,41 @@ RECORDS = [
                            'within 1.00%: HELD']),
          bug=V(exit=2, hasnt=['cross list 1.0 within 1%',
                               'within 1.00%: HELD'])),
+
+    case('cross-span-on-an-arm-with-no-corrected-time', 'read-run.py',
+         'dc2bf44',
+         'a cross span over a reducing consumer netted whatever shapes kept'
+         ' a positive net, and said only how many there were',
+         # `pair` takes its key from `pair_sunk` -- slope for a `no_net`
+         # arm, net otherwise -- and refuses a sunk cell; `cross` divided
+         # `net` outright and dropped the shape. `no_net`'s own docstring
+         # closes by saying every span a registration writes over such an
+         # arm is a `pair`, which held until Run 29's item (3) wrote a
+         # `cross` over `libunord-stage7-sum`. On that run's `runs` the old
+         # branch read 0.5854 over the 3 shapes of 14 whose net stayed
+         # positive, against 0.9779 raw over all 14, and on `block` it read
+         # none at all: the item is KILLED read the first way and HELD the
+         # second. The fixture sinks EVERY cell of the arm, which is
+         # `block`'s state and the one no subsample can hide.
+         plant=lambda t: {
+             'run': synth_run(os.path.join(t, 'nonet.json'), main_shapes(),
+                              sunk=[(sh, a_reducing_consumer())
+                                    for sh in main_shapes()]),
+             'other': synth_run(os.path.join(t, 'nonet-other.json'),
+                                main_shapes(),
+                                sunk=[(sh, a_reducing_consumer())
+                                      for sh in main_shapes()]),
+             'doc': write(os.path.join(t, 'nonet.md'),
+                          '# Run 99\n\n## What this run was built to'
+                          ' answer, and what it answered\n\n(1) *a*'
+                          ' `predict: cross %s 1.0 within 5%%`. (2) *b*'
+                          ' `predict: cross list 1.0 within 5%%`.\n'
+                          % a_reducing_consumer())},
+         argv=['{run}', '--compare', '{other}', '--predictions',
+               '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['read 1.0000', 'within 5.00%: HELD'],
+              hasnt=['NOT READ']),
+         bug=V(exit=1, has=['NOT READ: no shape readable for it'])),
 
     case('pair-halves-must-differ', 'run-major.sh', '0431efe',
          'one name in both halves wrote nine JSONs twice and gated clean',
