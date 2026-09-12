@@ -1330,6 +1330,33 @@ def rundoc_pair_with_address_paragraph(tmp):
     return made
 
 
+def rundoc_pair_with_carried_body_claim(tmp):
+    """`rundoc_pair` held, plus a BODY paragraph both files share verbatim
+    that calls itself this run's.
+
+    The head is gated by position and the body was only counted, so Run 29
+    cleared its head, saw `--check-doc` go green, and left thirty carried
+    paragraphs in the body -- thirteen of which its checker returned, one
+    asserting the opposite of the run's central finding and one whose
+    `this run` had meant a run four earlier since it was written. This
+    plants that shape: identical text, below the first `## `, saying `this
+    run`. Added 2026-09-12.
+    """
+    made = rundoc_pair(tmp, held=True)
+    para = ('**zz-carried-claim, a body paragraph carried whole.** What'
+            ' this run reads here is 1.234, and it says so in both files.')
+    at = os.path.dirname(made['rundoc'])
+    for name in sorted(n for n in os.listdir(at)
+                       if re.match(r'run\d+\.md$', n)):
+        path = os.path.join(at, name)
+        text = open(path).read()
+        head, sep, rest = text.partition('\n## ')
+        assert sep, '%s has no `## ` section to end its head at' % name
+        first, nl, tail = rest.partition('\n')
+        write(path, head + sep + first + nl + '\n' + para + '\n' + tail)
+    return made
+
+
 def rundoc_registration_with_verdicts(tmp):
     """A registration section shaped as a written-up run leaves it.
 
@@ -6828,6 +6855,58 @@ RECORDS = [
                '--run-doc', '{doc}', '--readme', '{readme}'],
          ok=V(exit=1, has=['table'], hasnt=['chars ->']),
          bug=V(exit=0, has=['chars ->'])),
+
+    case('carried-body-paragraph-calls-itself-this-runs', 'read-run.py',
+         '1da8c56',
+         'a run file went green with thirty carried paragraphs in its body',
+         # The head's refusal is by POSITION. Run 29 cleared the head, this
+         # gate went green, and thirteen of its checker's twenty-six
+         # findings were carried paragraphs in the body -- among them a
+         # cross-run paragraph every figure of which was the run before's,
+         # and one asserting that the two columns MAY be differenced where
+         # the run's whole finding is that they may not. What parts a stale
+         # paragraph from the apparatus is what it says about itself, not
+         # where it sits: `this run` is a claim about the run in front of
+         # it and `Run 8 re-ran every class` is the standing apparatus, so
+         # the body is gated on the narrow predicate and `--inherited`
+         # keeps the wide one as a reading.
+         plant=rundoc_pair_with_carried_body_claim,
+         argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['call themselves this run', 'zz-carried-claim']),
+         bug=V(hasnt=['call themselves this run'])),
+
+    case('cells-stdout-is-tsv-alone', 'read-run.py', '1da8c56',
+         'the TSV mode printed a banner and a blank line above its header',
+         # The post-run list sends a caller to `--cells` precisely so a
+         # figure is not read by counting fields off a human table -- and
+         # then this mode put two lines above its own header, so the naive
+         # read the rule invites finds the banner. Run 29's write-up parsed
+         # it twice at the wrong offset, once taking line 1 for the header
+         # and once line 2. Every mode still says its population in its
+         # first line; under `--cells` alone that line goes to stderr, so
+         # stdout is a header and its rows.
+         plant=lambda t: {'run': synth_json(t, 'main')},
+         argv=['{run}', '--cells'],
+         probe=lambda subs: 'FIRSTLINE: ' + subprocess.run(
+             [str(subs['prog']), str(subs['run']), '--cells'],
+             capture_output=True, text=True).stdout.split('\n')[0][:22],
+         ok=V(has=['FIRSTLINE: shape\tstrategy']),
+         bug=V(hasnt=['FIRSTLINE: shape'])),
+
+    case('block-names-the-summary-s-bold-column', 'read-run.py', '1da8c56',
+         'which column the cross-class summary bolds was picked by eye',
+         # The summary emphasises the faster of its two named arms and the
+         # rule is that the emphasis follows the COLUMN -- which prints
+         # three decimals, where the two tie often: four of Run 29's ten
+         # rows did. Run 28 broke such a tie with `--pair`, a different
+         # statistic, and got `rev` the wrong way round. `--block` reads
+         # the column at full precision now and says so, and says when the
+         # print cannot show why. The ceiling ARM got this same line on
+         # 2026-09-01 for the same reason, one column across.
+         plant=lambda t: {'run': synth_json(t, 'rev')},
+         argv=['{run}', '--block', '--brief'],
+         ok=V(has=['summary bolds']),
+         bug=V(hasnt=['summary bolds'])),
 
     case('stale-head-check-sees-only-decimals', 'read-run.py', None,
          'three stale head paragraphs the check could not see',
