@@ -3992,6 +3992,23 @@ TIER1 = {
               ' -3.66% machine check in it. Nothing checks a pair note, so'
               " what caught it was the draft's own instruction to read"
               ' every carried line.'),
+    'carried-prints-every-derivation-not-a-shortlist': dict(
+        family='false-comment', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='--carried over more than six populations, which is every'
+                ' registration read on the classes',
+        ok='the derivations nearest a quoted figure, the rest counted,'
+           ' and --verbose for all of them',
+        bug='the span derived on every population on one line, burying the'
+            ' item it flags',
+        notes='Watched 2026-09-13 at Run 30\'s preparation: four flagged'
+              ' items, twenty-two derivations apiece, 8922 bytes to say'
+              ' what 2878 says now. The README line the mode runs under'
+              ' calls its output a shortlist to read, so this is the mode'
+              ' disagreeing with its own documentation rather than with a'
+              ' preference. Ordering by nearness was the other half: the'
+              ' 0.7433 that sits beside a quoted 0.7425 now leads its'
+              ' line instead of sitting eleventh in it.'),
     'draft-emits-a-handover-slot-per-block': dict(
         family='other:unnamed-block-inherits-its-neighbour',
         discovery='in-use', harm='fired', harm_count=1,
@@ -6837,6 +6854,38 @@ RECORDS = [
                    '2 item(s) with a pair span, 1 quoting nothing it'
                    ' derives'],
               hasnt=['(2) quotes'])),
+
+    case('carried-prints-every-derivation-not-a-shortlist', 'read-run.py',
+         'e5c08d1',
+         'a flagged item listed its span on every population handed in',
+         # The README line this mode runs under promises `a shortlist to
+         # read`, and it printed the span derived on every JSON given:
+         # eleven populations on two halves is twenty-two derivations on
+         # ONE line, so the mode's output buried the item it was flagging.
+         # Run 30's preparation read four such lines and the near-matches
+         # that mattered -- 0.7433 against a quoted 0.7425 -- sat somewhere
+         # in the middle of them. The nearest few come first now.
+         # The judge hands it eight controls so the flagged item derives
+         # past the six the shortlist keeps, and asks for the count the cap
+         # prints. The control above keeps the warning itself honest; this
+         # one keeps its SIZE honest, which no other case reads.
+         plant=lambda t: dict(rundoc_carried_figures(t),
+                              run=synth_json(t, 'main', name='a.json'),
+                              o1=synth_json(t, 'main', name='b.json'),
+                              o2=synth_json(t, 'main', name='c.json'),
+                              o3=synth_json(t, 'main', name='d.json'),
+                              o4=synth_json(t, 'main', name='e.json'),
+                              o5=synth_json(t, 'main', name='f.json'),
+                              o6=synth_json(t, 'main', name='g.json'),
+                              o7=synth_json(t, 'main', name='h.json'),
+                              o8=synth_json(t, 'main', name='i.json')),
+         argv=['{run}', '--carried', '--others', '{o1}', '{o2}', '{o3}',
+               '{o4}', '{o5}', '{o6}', '{o7}', '{o8}',
+               '--run-doc', '{rundoc}'],
+         ok=V(exit=0, has=['(1) quotes 0.4242',
+                           'more (--verbose for all)']),
+         bug=V(exit=0, has=['(1) quotes 0.4242'],
+               hasnt=['more (--verbose for all)'])),
 
     case('predictions-enumerates-items-twice', 'read-run.py', None,
          'each registration item counted once per paragraph naming it',
