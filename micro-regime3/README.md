@@ -679,14 +679,15 @@ rather than a slot in the next run, observed again:
   previous build. The eleven items are Run 29's registration as it stands
   in [that run's
   file](runs/run29.md#what-this-run-was-built-to-answer-and-what-it-answered),
-  carried here by the same request with one amendment, (7) to within 3%,
-  and with `libcase` written where they said `nospec`; nothing else in them
-  was rewritten for this pair, so *the flag* in an item is the word Run 29 used
-  for what its halves differed in, the figures they quote are the ones Run 29
-  registered, Run 28's where they say so, and their spans are read
-  in this pair's orientation. No probe on disk has timed any arm
-  under `-fliberate-case`. (1) *The flag on the shipped fill.* On the main set
-  and on every class:
+  carried here by the same request with two amendments --- (7) to within 3%,
+  and (11) re-based on 2026-09-13 onto the allocation levels Run 29 measured
+  on its unflagged half --- and with `libcase` written where they said `nospec`;
+  nothing else in them was rewritten for this pair, so *the flag* in an item
+  is the word Run 29 used for what its halves differed in, the figures they
+  quote are the ones Run 29 registered, Run 28's where they say so and (11)'s
+  Run 29's own readings, and their spans are read in this pair's orientation.
+  No probe on disk has timed any arm under `-fliberate-case`. (1) *The flag
+  on the shipped fill.* On the main set and on every class:
   `predict: cross mut-odo-vecdims-add-in-leaf-u2 1.0 within 1%`,
   `predict: cross lib-stage1 1.0 within 1%`
   and `predict: cross lib-stage2-lean 1.0 within 1%` --- the flag was measured
@@ -794,9 +795,16 @@ rather than a slot in the next run, observed again:
   the leaf fusion buys is the regime's. (11) *Claim 7 without the flag.* Off
   `--alloc` on both halves, by hand: the re-aimed levels reproduce
   over the eighteen pinned shapes, the `libunord` consumers 0.00x, the fills
-  and the `liblist` consumers 1.00x, `bq-expand` 2.06x, `list` 22.38x. Killed
-  by any level moving at the column's precision on the `libcase` half, which
-  would say the flag changes what an arm allocates and not only how fast.
+  and the `liblist` consumers 1.00x, `bq-expand` 2.76x, `list` 24.90x.
+  THOSE LAST TWO ARE NOT CLAIM 7'S PUBLISHED LEVELS: 2.06x and 22.38x
+  are the `-fspec-constr` half's, where 2.76x and 24.90x are what Run 29 read
+  on its unflagged half --- which is this run's basis recipe entire, both halves
+  of this pair being unflagged, so both should give the second pair. Amended
+  2026-09-13, the item having carried the flagged figures forward: as written
+  it predicted a level neither half here can give, and its kill would have fired
+  on both for a move Run 29 already attributed to `-fspec-constr`. Killed by any
+  level moving at the column's precision on the `libcase` half, which would say
+  `-fliberate-case` changes what an arm allocates and not only how fast.
 - `ANSWERED` **What Run 29 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 29's own
