@@ -7207,8 +7207,17 @@ def pair_note(path, draft=None, halves=None):
     if bare:
         # NOT a plain word boundary: `-` is one, so a bare `spot` would
         # match inside `dead-spot` and rename the FORM the pair varies.
+        # A BACKTICK BOUNDS IT TOO, and for a different reason: a `[SAME]`
+        # block names a half because this PAIR has it, spelled bare, and
+        # names one because the chapter once did, spelled in backticks --
+        # the roll under NAMING THE HALVES being the second kind. Renamed,
+        # that roll comes back a well-formed list with two members
+        # replaced by tags that did not exist before this run, which no
+        # checker reads and the next draft carries again. Run 29's
+        # preparation caught it by reading the substitution log; the
+        # boundary makes it mechanical (2026-09-12).
         bseen = {}
-        body = re.compile(r'(?<![\w-])(%s)(?![\w-])'
+        body = re.compile(r'(?<![\w`-])(%s)(?![\w`-])'
                           % '|'.join(re.escape(o) for o in
                                      sorted(bare, key=len, reverse=True))).sub(
             lambda mo: (bseen.__setitem__(mo.group(1),
