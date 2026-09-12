@@ -4009,9 +4009,13 @@ TIER1 = {
         notes='Watched 2026-09-13 at Run 30\'s preparation, which wrote a'
               ' difflib script against runs/run29.md and read all eleven'
               ' items as changed, the verdicts step 5 appends being the'
-              ' whole of the difference. It then reasoned from that'
-              ' nothing, and the carry-over went unchecked until the mode'
-              ' existed. The chapter\'s own standing instruction names this'
+              ' whole of the difference. What it then did is worth the'
+              ' record: it abandoned the diff and checked the carry-over a'
+              ' THIRD way, off the phrases the previous run\'s VERDICT text'
+              ' quotes -- *against a registered 0.5* and its like -- which'
+              ' happens to be right and reads nothing of the registration'
+              ' it claims to be checking. The chapter\'s own instruction'
+              ' names this'
               ' shape: a computation a write-up hand-rolls is a defect'
               ' report against the reader.'),
     'carried-prints-every-derivation-not-a-shortlist': dict(
@@ -4024,8 +4028,9 @@ TIER1 = {
         bug='the span derived on every population on one line, burying the'
             ' item it flags',
         notes='Watched 2026-09-13 at Run 30\'s preparation: four flagged'
-              ' items, twenty-two derivations apiece, 8922 bytes to say'
-              ' what 2878 says now. The README line the mode runs under'
+              ' items, a derivation per population PER SPAN -- so twenty-two'
+              ' on a one-span item and twice that on (6), which names two'
+              ' arm pairs -- and 8922 bytes to say what 2878 says now. The README line the mode runs under'
               ' calls its output a shortlist to read, so this is the mode'
               ' disagreeing with its own documentation rather than with a'
               ' preference. Ordering by nearness was the other half: the'

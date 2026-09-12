@@ -2617,8 +2617,10 @@ def carried_figures(run, run_doc, readme, others, main_hs, verbose=False):
 # How far back --carry-over walks README's commits for the previous OPEN
 # registration. The entry it wants is removed at the previous run's post-run
 # step 5, so on the run after it the hit is a few dozen commits down; the cap
-# is what keeps a MISSING registration from reading every state of a file
-# with hundreds of commits, once per candidate run number.
+# is what keeps a MISSING registration from reading every state of a file with
+# hundreds of commits. Once in all, every candidate lead being tested against
+# each blob -- a walk per candidate is what the first draft did, and the cap
+# then bounded a product rather than a sum.
 PREV_REG_SCAN = 400
 
 
@@ -2646,36 +2648,45 @@ def previous_registration(readme, n):
     if not rel:
         return None, None, 'git cannot read %s' % readme
     rel = rel.strip()
-    for m in range(n - 1, 0, -1):
-        lead = 'What Run %d is built to answer' % m
-        # NOT `git log -S`, WHICH FINDS NOTHING HERE: README is kept
-        # wrapped, so the lead straddles a line break in every blob and
-        # the literal search matches none of them -- the same silence the
-        # directory's CLAUDE.md warns of for source and prose alike. Each
-        # candidate blob is flattened before it is tested.
-        # NEWEST FIRST, and the first hit is the answer: the entry is
-        # written before the run and removed at post-run step 5, so the
-        # LAST state carrying it is the one wanted. Bounding the walk by
-        # the run file's birth instead looks right and is not -- step 5
-        # writes that file, so every state carrying the lead is at or
-        # BEFORE it, and `birth^..HEAD` excluded all of them. That draft
-        # walked past Run 29 to Run 22 and reported its items as Run 22's,
-        # which is a wrong answer where a refusal was owed.
-        # The pathspec is CWD-relative and `rel` is REPO-relative: `git -C
-        # micro-regime3 log -- micro-regime3/README.md` names a path that
-        # is not there and returns no commits at all, silently, which is
-        # what the first draft of this did. `rel` is for `git show`, whose
-        # `REV:path` IS repo-relative, and the basename is for the log.
-        revs = (_git(root, 'log', '--format=%H', '--',
-                     os.path.basename(readme)) or '').split()
-        blob = None
-        for rev in revs[:PREV_REG_SCAN]:
-            got = _git(root, 'show', '%s:%s' % (rev, rel))
-            if got and lead in ' '.join(got.split()):
-                blob = got
-                break
-        if blob is None:
+    # NOT `git log -S`, WHICH FINDS NOTHING HERE: README is kept wrapped,
+    # so the lead straddles a line break in every blob and the literal
+    # search matches none of them -- the same silence the directory's
+    # CLAUDE.md warns of for source and prose alike. Each candidate blob
+    # is flattened before it is tested.
+    # NEWEST FIRST, and the first hit is the answer: the entry is written
+    # before the run and removed at post-run step 5, so the LAST state
+    # carrying it is the one wanted. Bounding the walk by the run file's
+    # birth instead looks right and is not -- step 5 writes that file, so
+    # every state carrying the lead is at or BEFORE it, and `birth^..HEAD`
+    # excluded all of them. That draft walked past Run 29 to Run 22 and
+    # reported its items as Run 22's, a wrong answer where a refusal was
+    # owed.
+    # The pathspec is CWD-relative and `rel` is REPO-relative: `git -C
+    # micro-regime3 log -- micro-regime3/README.md` names a path that is
+    # not there and returns no commits at all, silently, which is what the
+    # first draft of this did. `rel` is for `git show`, whose `REV:path`
+    # IS repo-relative, and the basename is for the log.
+    # ONE WALK FOR EVERY CANDIDATE RUN, not a walk per run: the blob is
+    # what costs, so testing all the leads against each blob turns the
+    # miss case from PREV_REG_SCAN reads per candidate into PREV_REG_SCAN
+    # in all. The draft that walked per run would have read a 500 KB blob
+    # some tens of thousands of times before refusing.
+    leads = {'What Run %d is built to answer' % m: m for m in range(1, n)}
+    revs = (_git(root, 'log', '--format=%H', '--',
+                 os.path.basename(readme)) or '').split()
+    for rev in revs[:PREV_REG_SCAN]:
+        got = _git(root, 'show', '%s:%s' % (rev, rel))
+        if not got:
             continue
+        flat_blob = ' '.join(got.split())
+        # The HIGHEST run number present, for the blob that carries two:
+        # an open list holds one OPEN registration at a time, step 5
+        # moving each out, but a state caught mid-move would carry both
+        # and the later one is this run's predecessor.
+        m = max((v for k, v in leads.items() if k in flat_blob), default=0)
+        if not m:
+            continue
+        lead, blob = 'What Run %d is built to answer' % m, got
         with tempfile.NamedTemporaryFile('w', suffix='.md',
                                          delete=False) as fh:
             fh.write(blob)
@@ -2691,20 +2702,22 @@ def previous_registration(readme, n):
         for line in flat.split('\n'):
             if lead in ' '.join(line.split()):
                 return m, items_from_flat(' '.join(line.split())), None
-    return None, None, ('no earlier OPEN registration in the history of %s'
-                        % rel)
+    return None, None, ('no earlier OPEN registration in the last %d commit(s)'
+                        ' of %s' % (PREV_REG_SCAN, rel))
 
 
 def _word_change(a, b, cap=3, clip=60):
     """The runs of words that differ, compactly, in git's word-diff marks."""
     aw, bw = a.split(), b.split()
+
+    def cut(s):
+        return s if len(s) <= clip else s[:clip] + '...'
+
     out = []
     for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(None, aw,
                                                        bw).get_opcodes():
         if tag == 'equal':
             continue
-        def cut(s):
-            return s if len(s) <= clip else s[:clip] + '...'
         out.append('[-%s-]{+%s+}' % (cut(' '.join(aw[i1:i2])),
                                      cut(' '.join(bw[j1:j2]))))
     return (', '.join(out[:cap])
