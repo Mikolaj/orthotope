@@ -933,10 +933,11 @@ rather than a slot in the next run, observed again:
   and every `libunord` consumer 0.00x on both halves. The two that move
   are exactly the two the flag speeds up, and the counted work has them
   converting their instruction saving to time almost entirely --- `time/counts`
-  1.0161 and 0.9926 --- where the nine arms whose allocation does not move
-  convert none of theirs. So the allocation change and the time change arrive
-  together on the same two arms and on no others. **What would settle
-  it** is Core for one of the two under each regime, read for what SpecConstr's
+  1.0161 and 0.9926 --- where the eight arms whose time the flag does not move
+  --- `mut-odo-vecdims` and the seven timed arms below it --- convert none
+  of theirs. So the allocation change and the time change arrive together
+  on the same two arms and on no others. **What would settle it** is Core
+  for one of the two under each regime, read for what SpecConstr's
   specialisation does to a boxed intermediate the unspecialised loop allocates
   per call; the arms are `bq-expand` and `list`, both of them library-shaped,
   and `list` is the reference every table here divides by, so the answer decides
