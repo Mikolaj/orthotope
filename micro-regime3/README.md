@@ -7204,7 +7204,23 @@ and never as a chronology.
     #      AND WHEN IT IS DONE, `./run-status.sh $R` READS `2c done: no
     #      <yours> slot left`, which is the one check that says the note
     #      is finished rather than merely written
-    #  `./preflight.sh $R --figures` IS THE MECHANICAL HALF and runs in
+    ./read-run.py $R-<basis>-main.json --carried --others $PREV-*-main.json \
+    #      $PREV-*-runs.json ...   AND THIS IS THE MECHANICAL HALF OF THE
+    #      REGISTRATION'S figures, as --figures is of the note's. It
+    #      derives each `pair A B` span on the runs given and names the
+    #      item where NOTHING it quotes matches ANYTHING its own span
+    #      produces -- which is the shape of the one error Run 29's
+    #      preparation found by hand, an item quoting a PRE-RUN PROBE's
+    #      range for two arms the span does not name.
+    #      ONE JSON PER POPULATION THE ITEMS ARE READ ON, both halves:
+    #      handed only the main set it reports every item read on `runs`
+    #      or `block` as matching nothing, which is the mode being asked
+    #      the wrong question and not a finding. It is a WARNING and never
+    #      a verdict -- an item may quote a level, a count, a third arm --
+    #      so what it hands back is a shortlist to read, and the reading
+    #      is still 12b's
+    #  `./preflight.sh $R --figures` IS THE MECHANICAL HALF OF THE NOTE and
+    #      runs in
     #      seconds, taking no step: it re-derives the fill-in rows from the
     #      ARTIFACTS -- the two binaries and git -- and reports every
     #      figure missing from the note's row of that label.
