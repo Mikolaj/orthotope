@@ -3792,6 +3792,16 @@ TIER1 = {
             ' positive, reading 0.5854 over 3 shapes of 14 on Run 29 `runs`'
             ' where the raw ratio over all 14 is 0.9779, and NOT READ on'
             ' `block`, which reverses the item\'s verdict'),
+    'replace-takes-an-abutting-table': dict(
+        family='guard-on-the-wrong-side', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='an anchor naming a class block\'s bolded lead, which every'
+                ' run file writes with its installed table on the next line'
+                ' and no blank between them',
+        ok='refuses, naming the table\'s line count, and writes nothing',
+        bug='replaced lead and table together at exit 0, taking the flip'
+            ' class\'s 38 rows out of Run 29\'s file, with --check-doc'
+            ' passing straight afterwards'),
     'status-reads-a-bare-item-header': dict(
         family='scan-for-parse', discovery='in-use', harm='fired',
         harm_count=1,
@@ -6728,6 +6738,32 @@ RECORDS = [
          argv=['--replace', 'the planted paragraph', '--with', '{new}',
                '--run-doc', '{doc}', '--readme', '{readme}'],
          ok=V(exit=1, has=['heading'], hasnt=['chars ->'])),
+
+    case('replace-takes-an-abutting-table', 'read-run.py', '931d558',
+         'a paragraph that abuts its installed table took the table with it',
+         # The heading case above is the same shape and this is its third
+         # instance. Every class block in a run file is a bolded lead with
+         # its table on the next line and no blank between them, which
+         # `--block --in-place` writes that way, so an anchor naming the
+         # lead carries the table into the replacement. Run 29's write-up
+         # lost the `flip` class's 38 rows that way at exit 0 --- and
+         # `--check-doc` PASSED immediately after, which the heading case
+         # cannot say: a gate holds a table it finds to the JSONs and
+         # cannot miss one that is gone. Recovered from the previous
+         # commit and re-installed. The `out, last` line named a table row
+         # where prose belonged, which is how it was caught, and saying so
+         # was not enough --- the difference this guard is the third of.
+         plant=lambda t: {
+             'doc': write(os.path.join(t, 'doc.md'),
+                          '# T\n\nkeep me\n\nthe planted lead\n'
+                          '| strategy | time |\n|---|---:|\n'
+                          '| list | 1.000 |\n\nafter\n'),
+             'readme': write(os.path.join(t, 'other.md'), '# other\n'),
+             'new': write(os.path.join(t, 'new.txt'), 'replacement\n')},
+         argv=['--replace', 'the planted lead', '--with', '{new}',
+               '--run-doc', '{doc}', '--readme', '{readme}'],
+         ok=V(exit=1, has=['table'], hasnt=['chars ->']),
+         bug=V(exit=0, has=['chars ->'])),
 
     case('stale-head-check-sees-only-decimals', 'read-run.py', None,
          'three stale head paragraphs the check could not see',
