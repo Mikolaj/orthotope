@@ -760,9 +760,8 @@ rather than a slot in the next run, observed again:
   halves on any of the four, which would say the pass is visible at a call
   of tens of microseconds. On `small` the span prints a figure and no verdict,
   read per view by hand: behind on the four views other than `small-bcast32`
-  by the pass, as stage nine's read 1.18 to 1.40 over stage six on Run 28 ---
-  `small-flat64`'s zero stride sits on a unit axis `canonView` drops,
-  so its route is stage seven's --- and ahead on `small-bcast32`. (8)
+  by the pass --- `small-flat64`'s zero stride sits on a unit axis `canonView`
+  drops, so its route is stage seven's --- and ahead on `small-bcast32`. (8)
   *`lib-stage1` against the lean fill with one fill under both.* Since
   2026-09-11 both fill through `fillStage2`, so on `bcast` and `bcastmid`, where
   Run 28 read the lean fill ahead at 0.8635 and 0.6163 for the two bodies
