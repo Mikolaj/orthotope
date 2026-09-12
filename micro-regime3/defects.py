@@ -1354,6 +1354,27 @@ def rundoc_registration_with_verdicts(tmp):
     return {'rundoc': write_rundoc(tmp, doc, name='run99.md')}
 
 
+def rundoc_carried_figures(tmp):
+    """A registration quoting one figure its span derives and one it cannot.
+
+    Item (1) names two real arms and quotes 0.4242, which no pair of them
+    produces on any population: the shape of the defect this mode exists
+    for, an item whose prose figure belongs to some other comparison than
+    its own span's. Item (2) names a pair and quotes nothing, so it is
+    counted and never warned -- the control that keeps the warning from
+    being "every item with a span". Added 2026-09-12.
+    """
+    doc = ('# Run 99 (fixture)\n\n'
+           'A head paragraph.\n\n'
+           '## What this run was built to answer, and what it answered\n\n'
+           '(1) *The carried one.* On the main set:'
+           ' `predict: pair mut-odo-vecdims-add-in-leaf-u2 mut-odo-vecdims'
+           ' 0.64 within 5%` --- Run 98 reading 0.4242. (2) *The bare one.*'
+           ' `predict: pair bq-expand list 0.11 within 5%` and no figure'
+           ' quoted at all.\n')
+    return {'rundoc': write_rundoc(tmp, doc, name='run99.md')}
+
+
 def rundoc_current_run_sentence(tmp):
     """A verdict sentence attributing a figure to the run in hand.
 
@@ -6675,6 +6696,31 @@ RECORDS = [
          # plants against an anchor the era's copy does not carry, so
          # the replay is a fixture that will not build. 2026-08-25.
          ),
+
+    case('carried-figures-misses-a-two-place-figure', 'read-run.py', None,
+         'CONTROL: an item quoting a figure its own pair span cannot'
+         ' produce is named, and one quoting none is not',
+         # The figures a registration carries in are prose beside the
+         # span, and nothing read them: --lint holds the ARMS to the
+         # roster, --check-doc the anchors and widths, and a wrong number
+         # beside a right arm passes both. This derives each `pair A B`
+         # span on the runs given and asks whether any figure the item
+         # quotes matches any derivation.
+         # THE PATTERN'S PLACES ARE THE CASE. Written `\d.\d{3,4}` it
+         # missed `1.16 to 1.36`, which is the two-place form the real
+         # error was written in and the one figure this was built to
+         # catch; `0.4242` here is four and `0.64` in the span is the
+         # target, excluded as a prediction rather than a carried figure.
+         plant=lambda t: dict(rundoc_carried_figures(t),
+                              run=synth_json(t, 'main', name='a.json'),
+                              other=synth_json(t, 'main', name='b.json')),
+         argv=['{run}', '--carried', '--others', '{other}',
+               '--run-doc', '{rundoc}'],
+         ok=V(exit=0,
+              has=['(1) quotes 0.4242',
+                   '2 item(s) with a pair span, 1 quoting nothing it'
+                   ' derives'],
+              hasnt=['(2) quotes'])),
 
     case('predictions-enumerates-items-twice', 'read-run.py', None,
          'each registration item counted once per paragraph naming it',

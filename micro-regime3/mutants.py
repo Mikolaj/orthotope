@@ -204,6 +204,25 @@ MUTANTS = [
      ' \'--draft\', \'run30\', \'--halves\', \'spec,nospec\'],'
      ' capture_output=True, text=True)\n'
      'sys.exit(1 if roll not in r.stdout else 0)"'),
+    # The carried-figure pattern with the full stop back in its trailing
+    # class, which is how it was first written: every figure ENDING A
+    # SENTENCE is then dropped, and that is where a carried figure most
+    # often sits -- the fixture's own 0.4242 among them, so the mode reads
+    # a registration and warns about nothing. The judge plants the case's
+    # registration and requires the warning.
+    ('--carried drops a figure that ends a sentence', 'read-run.py',
+     "CARRIED_RE = re.compile(r'(?<![\\w.$-])(\\d\\.\\d{2,4})(?![\\w%])(?!\\.\\d)')",
+     "CARRIED_RE = re.compile(r'(?<![\\w.$-])(\\d\\.\\d{2,4})(?![\\w.%])')",
+     'python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     't = tempfile.mkdtemp()\n'
+     'out = m.rundoc_carried_figures(t)\n'
+     'j = m.synth_json(t, \'main\', name=\'b.json\')\n'
+     'r = subprocess.run([sys.executable, \'{file}\', j, \'--carried\','
+     ' \'--others\', j, \'--run-doc\', out[\'rundoc\']],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'(1) quotes 0.4242\' in r.stdout else 1)"'),
     # The carried-block flag switched off: a `[SAME]` block naming a run
     # the rename does not touch comes through pointing one run too far
     # back and reads as correctly carried, every name in it having been
