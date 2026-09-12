@@ -219,6 +219,37 @@ NPLOGS=$(printf '%s\n' "$PLOGS" | grep -c .)
 SAT=$([ -z "$PLOGS" ] || grep -h '^@@saturate ' $PLOGS 2>/dev/null \
         | awk '{ for (i = 2; i <= NF; i++)
                    if ($i == "ms/iter") print $(i - 1) }')
+# THE STATE EACH PROCESS ASSERTED, which is what the gate below reads:
+# `inuse=` and `keep=` off the same line, per log, with the log's name so a
+# process that differs can be named. Carried since Run 28; a run whose logs
+# have neither falls back to the victim band, which the gate says.
+STATEV=$([ -z "$PLOGS" ] || grep -H '^@@saturate ' $PLOGS 2>/dev/null \
+  | awk -F: '{ line = $0; sub(/^[^:]*:/, "", line)
+               iu = ""; kp = ""
+               n = split(line, w, /[ \t]+/)
+               for (i = 1; i <= n; i++) {
+                 if (w[i] ~ /^inuse=/) iu = substr(w[i], 7)
+                 if (w[i] ~ /^keep=/)  kp = substr(w[i], 6) }
+               if (iu != "" && kp != "") print $1, iu, kp }')
+# AND THE SPREAD WITHIN EACH HALF, a reading beside the run-wide one: a
+# pair's two halves are its two groups here, taken off the log name, and a
+# spread that is flat within each half and wide across them is the pair's
+# variable and not drift. Silent where the names give no halves.
+HALFSPREAD=$([ -z "$PLOGS" ] || grep -H '^@@saturate ' $PLOGS 2>/dev/null \
+  | awk -F: -v r="$R" '{ nm = $1; sub("^" r "-", "", nm); sub(/-[^-]*\.log$/, "", nm)
+                         line = $0; sub(/^[^:]*:/, "", line)
+                         n = split(line, w, /[ \t]+/)
+                         for (i = 2; i <= n; i++)
+                           if (w[i] == "ms/iter" && w[i-1] + 0 > 0) {
+                             v = w[i-1] + 0
+                             if (!(nm in lo) || v < lo[nm]) lo[nm] = v
+                             if (!(nm in hi) || v > hi[nm]) hi[nm] = v
+                             c[nm]++ } }
+     END { k = 0; for (h in lo) k++
+           if (k < 2) exit
+           for (h in lo)
+             printf "  within %-8s %d process(es), %.4f to %.4f, spread %.2f%%\n",
+                    h, c[h], lo[h], hi[h], 100 * (hi[h] - lo[h]) / lo[h] }')
 WILD_PLATEAU=0
 if [ -n "$SAT" ]; then
   # Counted against the logs and not only among themselves: one reading
@@ -252,20 +283,59 @@ EOF
                                 "$(printf '%s' "$WITHOUT" | tr '\n' ' ')"
     echo
     WILD_PLATEAU=1
-  elif awk -v s="$SPREAD" -v b="$PLATEAU_BAND" 'BEGIN { exit !(s > b) }'; then
-    echo "!! the plateau is not flat across this run: $NSAT process(es) read"
-    echo "   the preamble's victim from $LO to $HI ms/iter, a spread of"
-    echo "   $SPREAD% against a band of $PLATEAU_BAND% -- a process outside it"
-    echo "   measured in a state the others did not, so read it before its"
-    echo "   figures. The readings, per process:"
-    grep -H '^@@saturate ' $PLOGS 2>/dev/null | sed 's/^/   /'
-    echo
-    WILD_PLATEAU=1
   else
-    echo "plateau: $NSAT process(es), victim $LO-$HI ms/iter, spread $SPREAD%"
-    echo "  inside the $PLATEAU_BAND% band -- every process asserted the same"
-    echo "  in-process state"
-    echo
+    # THE GATE IS THE STATE AND THE VICTIM READING IS A READING, since Run
+    # 29. The question this gate asks is whether every process asserted the
+    # SAME in-process state; the victim's ms/iter was a proxy for it, and
+    # the proxy is timed with `list`. So a pair whose variable moves `list`
+    # moves the proxy and nothing else: Run 29 struck `-fspec-constr` off
+    # one half, read an 11.82% spread against this 5% band, and was flat
+    # WITHIN each half at 1.98% and 1.88% with `inuse` and `keep` identical
+    # to the byte on all twenty-two processes. It failed a gate on its own
+    # variable, and post-run step 1 could not go green for a sound run.
+    # The `@@saturate` line has carried the state itself all along --
+    # `inuse=` and `keep=` -- so that is what is gated now, and the victim
+    # spread is printed beside it, per half where the log names give one.
+    # A run whose logs predate those fields falls back to the band, which
+    # is what every run up to Run 27 gets. Cases:
+    # `plateau-gates-the-state-and-not-the-victim` and the control beside
+    # it; the band's own cases above are unchanged.
+    read -r NSTATED NSTATES <<EOF
+$(printf '%s\n' "$STATEV" | awk 'NF >= 3 { n++; k[$2 " " $3] = 1 }
+                                  END { m = 0; for (x in k) m++
+                                        printf "%d %d\n", n + 0, m + 0 }')
+EOF
+    if [ "$NSTATED" != "$NSAT" ]; then
+      echo "plateau: $NSAT process(es), victim $LO-$HI ms/iter, spread\
+ $SPREAD%, and the state fields are not in these logs -- gated on the\
+ victim against the $PLATEAU_BAND% band, as every run before Run 28 is"
+      awk -v s="$SPREAD" -v b="$PLATEAU_BAND" 'BEGIN { exit !(s > b) }' \
+        && { echo "!! and it is outside that band: a process outside it"
+             echo "   measured in a state the others did not, so read it"
+             echo "   before its figures. The readings, per process:"
+             grep -H '^@@saturate ' $PLOGS 2>/dev/null | sed 's/^/   /'
+             WILD_PLATEAU=1; }
+      echo
+    elif [ "$NSTATES" != 1 ]; then
+      echo "!! the processes did not assert ONE state: $NSAT process(es)"
+      echo "   report $NSTATES distinct inuse/keep pairs, so they did not"
+      echo "   all saturate alike and every A/A gate below is WITHIN a"
+      echo "   process. The states, per process:"
+      printf '%s\n' "$STATEV" | awk 'NF >= 3 { printf "   %s inuse=%s keep=%s\n", $1, $2, $3 }'
+      echo
+      WILD_PLATEAU=1
+    else
+      echo "plateau: $NSAT process(es) assert ONE state, inuse and keep\
+ identical on every one -- the gate"
+      echo "  victim $LO-$HI ms/iter, spread $SPREAD% -- a reading and not\
+ the gate, the victim being timed with \`list\`"
+      printf '%s\n' "$HALFSPREAD"
+      awk -v s="$SPREAD" -v b="$PLATEAU_BAND" 'BEGIN { exit !(s > b) }' \
+        && echo "  that spread is past the $PLATEAU_BAND% band and the state\
+ is identical, which is what a pair whose variable moves \`list\` looks\
+ like -- read the per-half spreads above before reading it as drift"
+      echo
+    fi
   fi
 fi
 
