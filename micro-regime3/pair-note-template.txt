@@ -238,11 +238,12 @@ element is the main set and the nine that follow are the classes:
   a re-take of one population.
   Give the previous run's own totals beside it, so a slow sweep is
   recognisable, and say what a `!!` line means. READ THOSE TOTALS OFF THAT
-  RUN'S OWN `$PREV-counts-*.txt`, whose `# end` line has carried
-  `elapsed=<n>s` since 2026-09-12, and never carry them forward from the
+  RUN'S OWN `$PREV-counts-*.txt` and never carry them forward from the
   previous note: carried, they lag a run, which is how Run 28's note came
-  to quote Run 27's. Before that field they were differenced out of the
-  two timestamps by hand, every run. Where the pair's central
+  to quote Run 27's. The `# end` line carries `elapsed=<n>s` for a leg
+  taken after 2026-09-12; FOR AN EARLIER RUN IT CARRIES ONLY THE TWO
+  STAMPS and the difference is yours, which is what every preparation up
+  to Run 29 did for all twenty-two of them. Where the pair's central
   claim turns on counts rather than on time -- a layout pair, where an arm
   must not move its instructions except where a pad was executed -- say so
   here and name which registrations are read off that split.

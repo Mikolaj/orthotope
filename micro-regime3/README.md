@@ -7204,7 +7204,7 @@ and never as a chronology.
     #      AND WHEN IT IS DONE, `./run-status.sh $R` READS `2c done: no
     #      <yours> slot left`, which is the one check that says the note
     #      is finished rather than merely written
-    ./read-run.py $R-<basis>-main.json --carried --others $PREV-*-main.json \
+    ./read-run.py $R --carried --others $PREV-*-main.json \
     #      $PREV-*-runs.json ...   AND THIS IS THE MECHANICAL HALF OF THE
     #      REGISTRATION'S figures, as --figures is of the note's. It
     #      derives each `pair A B` span on the runs given and names the
@@ -7212,6 +7212,9 @@ and never as a chronology.
     #      produces. A PROBE'S FIGURE WEARING A RUN'S NAME is the shape
     #      it was built for and reads exactly like a right one
     #      (2026-09-12).
+    #      $R IS NAMED AND NOT READ -- at this step the run has not gone,
+    #      so there is no $R JSON to hand it and none is wanted; the name
+    #      is how it finds the OPEN entry in README.
     #      ONE JSON PER POPULATION THE ITEMS ARE READ ON, both halves:
     #      handed only the main set it reports every item read on `runs`
     #      or `block` as matching nothing, which is the mode being asked
