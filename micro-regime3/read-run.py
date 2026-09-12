@@ -4951,6 +4951,27 @@ def block_verdicts(cells, shapes, strategies, meta, args):
     if led.family:
         print('  ceiling (family)    %-30s %.3f' % (led.family[0].st,
                                                      led.family[0].time))
+    # AND WHICH OF THOSE TWO THE SUMMARY BOLDS, which was hand work and is
+    # the same lesson as the ceiling line above, one column across. The
+    # cross-class summary emphasises the faster of its two named arms, and
+    # the rule is that the emphasis follows the COLUMN -- but the column
+    # PRINTS three decimals and the two arms tie there often: four of Run
+    # 29's ten rows did, and Run 28 got `rev` wrong by breaking such a tie
+    # with `--pair`, whose paired geomean is a different statistic and
+    # parted from the column the other way. The column decides at full
+    # precision, which is what this line reads, and it says when the print
+    # cannot show why. Case: `block-names-the-summary-s-bold-column`.
+    if outside and led.family:
+        a, an = outside[0][0], outside[0][1]
+        b, bn = led.family[0].time, led.family[0].st
+        col = 'best outside family' if a < b else 'ceiling'
+        print('  summary bolds       %-30s (%s)'
+              % (col, an if a < b else bn))
+        if round(a, 3) == round(b, 3):
+            print('    both print %.3f, so the table shows a tie the column'
+                  ' resolves at %.6f against %.6f -- do NOT break it with'
+                  ' --pair, which is a different statistic'
+                  % (round(a, 3), a, b))
     plain = next((r for r in timed if r[1] == PLAIN), None)
     if plain:
         print('  %-19s %-30s %.3f   worst %.3f'
@@ -9521,14 +9542,40 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                   ' Run %s' % (cur, was_run))
         held = [l for k, l in figure_blocks(now_rest).items()
                 if k in old_all]
-        if held:
-            print('note: %d paragraph(s) of %s are unchanged from Run %s;'
-                  ' each is stale or is standing on purpose, and the ones'
-                  ' that stand are usually a form or a restatement:'
-                  % (len(held), os.path.basename(run_doc), was_run))
-            for line in held:
+        # AND THE BODY IS GATED TOO, on the NARROW predicate. The head's
+        # refusal above is by POSITION, and Run 29 cleared the head, saw
+        # this gate go green, and left thirty carried paragraphs standing
+        # in the body -- of which its checker returned thirteen, among them
+        # a cross-run paragraph every figure of which was the run before's
+        # and a paragraph asserting that the two columns MAY be differenced
+        # where the run's whole finding is that they may not. What parts a
+        # stale paragraph from the apparatus is not where it sits but what
+        # it says about itself: `this run`, `this pair`, or the CURRENT
+        # run's own number is a claim about the run in front of it, while
+        # `Run 8 re-ran every class` is the standing apparatus and re-carries
+        # every run. `--inherited` reports the wide predicate and stays a
+        # reading; this is the narrow half of it, and it refuses.
+        # Case: `carried-body-paragraph-calls-itself-this-runs`.
+        mine = re.compile(r"this run\b|this pair\b|\bRun %s\b"
+                          % re.escape(cur))
+        claims = [l for l in held if mine.search(l)]
+        rest = [l for l in held if l not in claims]
+        if claims:
+            bad.append('%d carried paragraph(s) of %s call themselves this'
+                       " run's or name Run %s while being Run %s's file"
+                       ' unchanged -- each is stale or wants rewording to say'
+                       ' it stands on purpose: %s'
+                       % (len(claims), os.path.basename(run_doc), cur, was_run,
+                          '; '.join(l.strip()[:60] for l in claims)))
+        if rest:
+            print('note: %d paragraph(s) of %s are unchanged from Run %s and'
+                  ' name only an EARLIER run; each is stale or is standing on'
+                  ' purpose, and the ones that stand are usually a form or a'
+                  ' restatement:'
+                  % (len(rest), os.path.basename(run_doc), was_run))
+            for line in rest:
                 print('        %s' % line.strip()[:76])
-        else:
+        if not held:
             print('ok:   %s holds no figure-bearing paragraph of Run %s'
                   % (os.path.basename(run_doc), was_run))
 
@@ -11934,14 +11981,23 @@ def main():
         roster += ('; reading %d of them over %d shape%s'
                    % (len(strategies), len(shapes),
                       '' if len(shapes) == 1 else 's'))
-    print('%s: criterion %s, %d reports = %s%s%s'
-          % (os.path.basename(args.run), meta['version'], meta['reports'],
-             roster,
-             '  (RAGGED: some cells missing)' if meta['ragged'] else '',
-             '' if len(shapes) > 1 else '  (one shape: nothing to spread)'))
+    # THE BANNER GOES TO STDERR UNDER --cells AND NOWHERE ELSE. Every mode
+    # says its population in its first line, which is this file's rule and
+    # stays -- but `--cells` is the TSV the post-run list sends a caller to
+    # precisely so a figure is not read by counting fields off a human
+    # table, and a banner and a blank line above the header defeat that:
+    # Run 29's write-up parsed this output twice with the header at the
+    # wrong offset, once taking line 1 for it and once line 2. On stderr
+    # the population is still said, and stdout is a header and its rows.
+    say = (lambda t='': print(t, file=sys.stderr)) if args.cells else print
+    say('%s: criterion %s, %d reports = %s%s%s'
+        % (os.path.basename(args.run), meta['version'], meta['reports'],
+           roster,
+           '  (RAGGED: some cells missing)' if meta['ragged'] else '',
+           '' if len(shapes) > 1 else '  (one shape: nothing to spread)'))
     if args.corr != 'sumonly':
-        print('corrected by the IN-SITU term (--corr=insitu), not `sum-only`')
-    print()
+        say('corrected by the IN-SITU term (--corr=insitu), not `sum-only`')
+    say()
     health(cells, shapes, strategies, terms, args.corr)
     if args.shapes:
         shape_table(cells, shapes, strategies, meta)
