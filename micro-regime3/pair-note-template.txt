@@ -96,9 +96,13 @@ hyphen. install-tables.sh finds the basis's class JSONs by globbing
 table in every class block under a driver that says every table comes from
 the basis, with nothing downstream able to see it. Refused there since
 2026-08-17 rather than left to the naming. Every half on record is
-hyphen-free (`aligned`, `maxskip`, `maxskippa`, `lookrts`, `a1g`, `a32m`);
+hyphen-free (`aligned`, `maxskip`, `maxskippa`, `lookrts`, `a1g`, `a32m`,
+`g912`, `g914`, `ghead`, `spot`, `spec`, `nospec`);
 note that `maxskip`/`maxskippa` is a bare prefix and safe -- it is the
-hyphen that collides.
+hyphen that collides. THAT ROLL IS HISTORICAL AND `--draft` REWRITES BARE
+TAGS INSIDE IT, this run's names replacing whichever of them the previous
+note spelled: restore the line rather than carrying back what a draft hands
+you. It had also drifted by hand, `g914` missing from Run 18 until 2026-09-12.
 
 WHY THE BASIS IS THIS RECIPE [PAIR'S], decided YYYY-MM-DD: a decision and not a
 measurement, so the reason belongs here where the next session meets it.
@@ -233,7 +237,10 @@ element is the main set and the nine that follow are the classes:
   the classes off the basis binary; the lines above are the hand form, for
   a re-take of one population.
   Give the previous run's own totals beside it, so a slow sweep is
-  recognisable, and say what a `!!` line means. Where the pair's central
+  recognisable, and say what a `!!` line means. DERIVE THOSE TOTALS FROM
+  THAT RUN'S OWN `$PREV-counts-*.txt` STAMPS and never carry them forward
+  from the previous note: carried, they lag a run, which is how Run 28's
+  note came to quote Run 27's. Where the pair's central
   claim turns on counts rather than on time -- a layout pair, where an arm
   must not move its instructions except where a pad was executed -- say so
   here and name which registrations are read off that split.
