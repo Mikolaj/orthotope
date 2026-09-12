@@ -581,17 +581,45 @@ step_8
 # The regime, in the binary, which nothing later can confirm. Read as
 # README reads it: baseOffsetsScan against baseOffsetsMut on vgg-14-c512,
 # equal to three figures under SpecConstr and ten times apart at plain -O1.
+# WHICH OF THE TWO TO EXPECT IS THE NOTE'S TO SAY AND NOT THIS SCRIPT'S.
+# Both readings are the list's, and this step asserted the first alone --
+# harmless while the basis carried `-fspec-constr`, which it did on every
+# run from Run 8 to Run 29, and a FAIL on the first pair whose basis does
+# not. Run 30's halves are both plain -O1 by the request of 2026-09-12, so
+# the binary was right and the expectation was wrong. Read the flag off the
+# BASIS half's own recipe block, which 10d already holds to the HALVES
+# line, and hold the binary to what its recipe asks for.
+RECIPE=$(awk -v b="$R-$BASIS" -v o="$R-$OTHER" '
+  $1 == o { f = 0 }
+  $1 == b { f = 1 }
+  f && /^[^ ]/ && $1 != b { f = 0 }
+  f { print }' "$R-pair.txt" 2>/dev/null)
+case "$RECIPE" in
+  '')              WANT=unknown ;;
+  *-fspec-constr*) WANT=spec ;;
+  *)               WANT=o1 ;;
+esac
 SCAN=$("./$R-$BASIS" diag 2>/dev/null \
        | awk '/^vgg-14-c512 /{f=1} f && /baseOffsetsScan /{print $(NF-3); exit}')
 MUT=$("./$R-$BASIS" diag 2>/dev/null \
       | awk '/^vgg-14-c512 /{f=1} f && /baseOffsetsMut /{print $(NF-3); exit}')
 if [ -z "$SCAN" ] || [ -z "$MUT" ]; then
   say 9 FAIL "could not read the diag row; regime UNCONFIRMED"
+elif [ "$WANT" = unknown ]; then
+  say 9 FAIL "no recipe block for $R-$BASIS in $R-pair.txt; regime UNCONFIRMED"
 else
   RATIO=$(python3 -c "print('%.3f' % ($SCAN/$MUT))")
-  if python3 -c "import sys; sys.exit(0 if 0.98 < $SCAN/$MUT < 1.02 else 1)"
-  then say 9 PASS "SpecConstr: scan/mut $RATIO on vgg-14-c512 ($SCAN vs $MUT)"
-  else say 9 FAIL "regime is NOT SpecConstr: scan/mut $RATIO -- plain -O1 is ~10"
+  IS_SPEC=0
+  python3 -c "import sys; sys.exit(0 if 0.98 < $SCAN/$MUT < 1.02 else 1)" \
+    && IS_SPEC=1
+  if [ "$WANT" = spec ] && [ "$IS_SPEC" = 1 ]; then
+    say 9 PASS "SpecConstr, which the basis recipe asks for: scan/mut $RATIO on vgg-14-c512 ($SCAN vs $MUT)"
+  elif [ "$WANT" = spec ]; then
+    say 9 FAIL "the basis recipe sets -fspec-constr and the binary does not read as SpecConstr: scan/mut $RATIO -- SpecConstr is ~1"
+  elif [ "$IS_SPEC" = 1 ]; then
+    say 9 FAIL "the basis recipe sets no -fspec-constr and the binary reads as SpecConstr: scan/mut $RATIO -- plain -O1 is ~10"
+  else
+    say 9 PASS "plain -O1, which the basis recipe asks for: scan/mut $RATIO on vgg-14-c512 ($SCAN vs $MUT)"
   fi
 fi
 
