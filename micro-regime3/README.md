@@ -7380,12 +7380,14 @@ and never as a chronology.
     #      question again and costs a call the size of the roster. Run
     #      30's preparation paid it: five items against run29, two against
     #      run28, and the two were the finding
-    #  AND THE PREVIOUS REGISTRATION'S PRE-RUN FORM IS IN GIT, not in the
-    #      run file: post-run step 5 moves it into `runs/$PREV.md` and the
-    #      write-up then appends a verdict to every item, so diffing a
-    #      carry-over against that copy reports all eleven changed. Read
-    #      it at the commit before the next run was recorded, which is
-    #      what `git log -- runs/$PREV.md` dates
+    #  AND `./read-run.py $R --carry-over` IS THAT COMPARISON, item by
+    #      item against the previous registration's PRE-RUN form -- which
+    #      is in GIT and not in the run file, post-run step 5 having moved
+    #      it there and the write-up appended a verdict to every item, so
+    #      a diff against that copy reports all of them changed. It names
+    #      the words that moved and judges none: a carry-over is MEANT to
+    #      change where the halves are renamed and where an amendment was
+    #      decided, and which of those were meant is the reading's
     #  `./preflight.sh $R --figures` IS THE MECHANICAL HALF OF THE NOTE and
     #      runs in
     #      seconds, taking no step: it re-derives the fill-in rows from the
