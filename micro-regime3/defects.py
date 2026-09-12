@@ -9051,6 +9051,32 @@ RECORDS = [
                    'bare spot -> ghead'],
               hasnt=['dead-ghead', 'ghead-check', 'hotghead', 'gheadless'])),
 
+    case('draft-rewrites-a-backticked-historical-roll', 'read-run.py',
+         '214e717',
+         'the bare-tag rename reached a roll of every half on record and'
+         ' replaced two of its members',
+         # A `[SAME]` block may name a half because the PAIR has it, and it
+         # may name one because the chapter once did. The bare-tag rename
+         # cannot tell those apart by position, and the roll under NAMING
+         # THE HALVES is the second kind: carried through a draft it comes
+         # back with this run's tags standing where two historical ones
+         # were, still a well-formed list, read by no checker, and carried
+         # again by the next draft. Backticks are the tell -- the note
+         # spells a live half bare and a rolled one in backticks -- so the
+         # rename now refuses a match with a backtick on either side.
+         plant=lambda t: {'note': write(
+             os.path.join(t, 'run29-pair.txt'),
+             "hdr\n\nA [SAME]: g912 leads, ghead follows. Every half on"
+             " record is hyphen-free (`aligned`, `g912`, `ghead`,"
+             " `spot`).\nHALVES: basis=g912 other=ghead\n")},
+         argv=['--note', '{note}', '--draft', 'run30',
+               '--halves', 'spec,nospec'],
+         ok=V(exit=0,
+              has=['spec leads, nospec follows',
+                   '(`aligned`, `g912`, `ghead`, `spot`)'],
+              hasnt=['(`aligned`, `spec`, `nospec`, `spot`)']),
+         bug=V(exit=0, has=['(`aligned`, `spec`, `nospec`, `spot`)'])),
+
     case('draft-renames-a-half-onto-the-other', 'read-run.py', 'abd8ed8',
          'renaming one half at a time fed each result to the next rename',
          # The new BASIS reuses the old OTHER's name, which is ordinary --

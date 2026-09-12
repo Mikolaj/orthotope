@@ -168,7 +168,7 @@ MUTANTS = [
     # the pair varies, inside every [SAME] block it carries forward. The
     # judge plants the stub note whose block spells the trap out.
     ('--draft renames the half with a plain word boundary', 'read-run.py',
-     "        body = re.compile(r'(?<![\\w-])(%s)(?![\\w-])'",
+     "        body = re.compile(r'(?<![\\w`-])(%s)(?![\\w`-])'",
      "        body = re.compile(r'\\b(%s)\\b'",
      'python3 -c "import importlib.util, sys, tempfile, subprocess\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
@@ -178,6 +178,32 @@ MUTANTS = [
      ' out[\'note\'], \'--draft\', \'run24\', \'--halves\','
      ' \'g912,ghead\'], capture_output=True, text=True)\n'
      'sys.exit(0 if \'dead-spot\' in r.stdout else 1)"'),
+    # The same rename with the BACKTICK boundary dropped, which is the form
+    # it had until 2026-09-12. A `[SAME]` block spells a live half bare and
+    # a historical one in backticks, so without that boundary the roll of
+    # every half on record comes back with this run's tags standing where
+    # two older ones were -- a well-formed list no checker reads, carried
+    # again by the next draft. The judge writes its own note, that roll
+    # being what the stub lacks.
+    ('--draft rewrites a backticked roll of half names', 'read-run.py',
+     "        body = re.compile(r'(?<![\\w`-])(%s)(?![\\w`-])'",
+     "        body = re.compile(r'(?<![\\w-])(%s)(?![\\w-])'",
+     # NO LITERAL BACKTICK IN THIS JUDGE: it is a shell string, and a
+     # backtick inside one is command substitution, so a roll spelled out
+     # here is executed rather than compared and the mutant reads as
+     # MISSED. Built from chr(96) instead (2026-09-12).
+     'python3 -c "import sys, tempfile, subprocess, os\n'
+     'b = chr(96)\n'
+     'roll = \'(\' + b + \'aligned\' + b + \', \' + b + \'g912\' + b'
+     ' + \', \' + b + \'ghead\' + b + \', \' + b + \'spot\' + b + \')\'\n'
+     'd = tempfile.mkdtemp(); n = os.path.join(d, \'run29-pair.txt\')\n'
+     'open(n, \'w\').write(chr(10).join([\'hdr\', \'\','
+     ' \'A [SAME]: g912 leads, ghead follows. Roll \' + roll + \'.\','
+     ' \'HALVES: basis=g912 other=ghead\', \'\']))\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--note\', n,'
+     ' \'--draft\', \'run30\', \'--halves\', \'spec,nospec\'],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(1 if roll not in r.stdout else 0)"'),
     # The carried-block flag switched off: a `[SAME]` block naming a run
     # the rename does not touch comes through pointing one run too far
     # back and reads as correctly carried, every name in it having been
