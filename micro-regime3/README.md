@@ -7004,8 +7004,9 @@ and never as a chronology.
     #      strong form, are in the prose
     #      BUILD BOTH, ALWAYS -- the BOTH HALVES ARE BUILT ANEW ruling,
     #      whatever the source and the md5 say. ON A REPETITION THE MD5 IS
-    #      ONE-SIDED, and an md5 that does not reproduce is a finding and
-    #      not a stop, located by the three reads the prose gives
+    #      ONE-SIDED, and an md5 that does not reproduce is NOT A STOP:
+    #      the note records the observation, the write-up carries what
+    #      moved, and the prose gives the three reads that locate it
     #      why: --para 'three rules are what they are'
     cat $R-pair.txt                       # 2a. the note, quoted by steps
     #      here and in the run list alike -- the halves' roles, the
