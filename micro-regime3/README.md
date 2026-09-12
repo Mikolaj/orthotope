@@ -3029,9 +3029,21 @@ process of a run, and the victim is timed with `list` --- the one arm
 this pair's variable moves by a tenth. So it read an 11.82% spread against a 5%
 band on a run whose halves are flat at 1.98% and 1.88%, whose split is exactly
 by half, and whose saturation state is identical to the byte on all twenty-two
-processes, `inuse` and `keep` each taking one value. Banding WITHIN each half
-is strictly finer for every pair on record and would have passed this one; until
-it does, a regime pair's step 1 fails on a reading that is its own variable.
+processes, `inuse` and `keep` each taking one value. **And the obvious repair
+is not obviously right, which is why this run did not make it.** Banding WITHIN
+each half would have passed this run --- 1.98% and 1.88% --- but it drops
+the very comparison the gate exists to make, since a whole HALF that saturated
+somewhere else is exactly what a per-half band cannot see. What answers
+the gate's own question directly is the state the processes assert rather
+than the proxy: the `@@saturate` line already carries `inuse=` and `keep=`,
+and on this run those were identical to the byte on all twenty-two while
+the victim reading was not. A gate on the state, with the victim spread kept
+as a reading beside it, is the shape to build --- and building it is a design
+task rather than a patch, so it is named here and left. Until it exists,
+a regime pair's post-run step 1 stands red on a reading that is its own
+variable, and `run-status.sh` re-runs `read-all.sh` without honouring
+`PLATEAU_BAND`, so the run cannot reach `all done` by the documented override
+either.
 
 **TWO COMPUTATIONS WERE IMPROVISED, both because no mode gives them.**
 The per-class cross-half geomeans with the `list` and `bq-expand` families
