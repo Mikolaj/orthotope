@@ -2643,12 +2643,36 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
                 if arm not in strategies or arm not in b_strategies:
                     why = 'arm %s is not in both runs' % arm
                 else:
-                    rs = [cells[sh][arm]['net'] / b_cells[sh][arm]['net']
-                          for sh in shapes
-                          if sh in b_shapes and sh not in excl
-                          and cells[sh][arm]['net'] > 0
-                          and b_cells[sh][arm]['net'] > 0]
-                    g, n = (geomean(rs), len(rs)) if rs else (None, 0)
+                    # THE KEY IS `pair`'s, by `no_net`'s own rule: an arm
+                    # that never ran the forcing pass has no corrected time
+                    # in either run, so a net ratio over it divides two
+                    # meaningless numbers -- and a cell with no positive
+                    # value on that key is REFUSED here as `pair_sunk`'s
+                    # callers refuse it, where this dropped the shape and
+                    # said only how many were left. Run 29's item (3) is the
+                    # first `cross` written over a reducing consumer, which
+                    # `no_net`'s docstring said would not happen: on `runs`
+                    # it read 0.5854 over the 3 shapes of 14 whose net
+                    # stayed positive, against 0.9779 raw over all 14, and
+                    # on `block` it read none at all and reported NOT READ.
+                    key = 'slope' if no_net(arm) else 'net'
+                    shs = [sh for sh in shapes
+                           if sh in b_shapes and sh not in excl]
+                    sunk = [(sh, w) for sh in shs
+                            for w, cc in (('this', cells),
+                                          ('other', b_cells))
+                            if not cc[sh][arm][key] > 0]
+                    if sunk:
+                        why = ('%d cell(s) of `%s` have no positive %s, the'
+                               ' first %s in the %s run -- the span is read'
+                               ' over the population the item names or not'
+                               ' at all'
+                               % (len(sunk), arm, key,
+                                  sunk[0][0], sunk[0][1]))
+                    else:
+                        rs = [cells[sh][arm][key] / b_cells[sh][arm][key]
+                              for sh in shs]
+                        g, n = (geomean(rs), len(rs)) if rs else (None, 0)
                 tol = within if within is not None else floor_pct
             elif kind == 'counts' and len(args_) == 2:
                 arm, x = args_[0], float(args_[1])
