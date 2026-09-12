@@ -8390,11 +8390,16 @@ not otherwise.
     #      pair's variable can act on a class and not on the main set.
     #      --alloc takes the same pair where allocation is the question,
     #      and `--exclude ARM` composes with `--compare` as it does with
-    #      the default table: that is how a cross-half geomean is taken
-    #      with a family dropped, which is what says WHOSE a movement is
-    #      when one arm carries it. Run 29 hand-rolled that geomean over
-    #      `--cells` for want of knowing, and its own docstring line ---
-    #      `drop strategy S from every aggregate` --- had said so
+    #      the default table, which is how a cross-half geomean is taken
+    #      with an arm dropped --- what says WHOSE a movement is when one
+    #      family carries it. Run 29 hand-rolled that geomean over
+    #      `--cells` for want of knowing, and the docstring's own line ---
+    #      `drop strategy S from every aggregate` --- had said so.
+    #      IT DROPS AN ARM AND NOT A FAMILY, and repeatable is the whole of
+    #      how a family goes: `--exclude list --exclude bq-expand` takes 18
+    #      arms to 16 and not to 12, the four A/A copies staying, so a
+    #      family wants its twins named too. Measured here rather than
+    #      assumed, the first phrasing of this line having said `family`
     #      READ THE BLOCKS BY THEIR LINES AND NOT WHOLE: pipe them
     #      through `grep -E 'Verdicts|property|Across the halves|floor'`
     #      -- every block in one call is a hundred KB, the write-up uses some
