@@ -6783,9 +6783,12 @@ and never as a chronology.
     #      TWO COMMANDS DO THE READING AND THE COPYING, and they are here
     #      rather than only at item 10 because a preparation that meets
     #      them in the framing has forgotten them by the time it writes:
-    #          ./read-run.py --note $PREV-pair.txt > note-read.txt
+    #          ./read-run.py --note $PREV-pair.txt > $R-note-read.txt
     #          ./read-run.py --note $PREV-pair.txt --draft $R \
     #                        --halves <basis>,<other>
+    #      THE REDIRECT WANTS AN UNSANDBOXED CALL and a blocked one runs
+    #      nothing at all, so the name carries $R: a file the previous
+    #      preparation left cannot then read back as this one's output
     #      The first prints the blocks a preparation DECIDES and withholds
     #      the rest -- the handover and the gate, spent with that run, and
     #      the `[SAME]` blocks, which the second carries over -- saying how
@@ -6794,11 +6797,9 @@ and never as a chronology.
     #      present and empty as `<yours>`, the template's guidance under
     #      each as `#` scaffolding to delete. SO THE NOTE IS THAT FILE
     #      FILLED IN, not three files assembled -- redirect it to
-    #      $R-pair.txt and edit there. Run 25's preparation ran the first
-    #      and not the second, hand-copied every `[SAME]` block, and
-    #      carried the previous run's gate arms and its --library figures
-    #      forward in the copying; Run 27's ran both and still assembled
-    #      the note by hand, which is what the second now removes
+    #      $R-pair.txt and edit there. Hand-copying the `[SAME]` blocks is
+    #      what the second removes: before it existed that copying carried
+    #      a previous run's gate arms and --library figures forward twice
     #      WHAT THE PAIR VARIES is not in this list and not in the
     #      template: it is settled in *What the next run compares against*, and
     #      the recipe to vary is the previous run's note. Read both before
@@ -7039,7 +7040,9 @@ and never as a chronology.
     ./$R-<basis> diag                     # 9. the regime, in the binary:
     #      one row, baseOffsetsScan against baseOffsetsMut on vgg-14-c512,
     #      equal to three figures under SpecConstr and ten times apart at
-    #      plain -O1
+    #      plain -O1. MATCH THE TWO ROW LABELS, never the position: diag
+    #      prints the whole baseOffsets* family per shape, and the rows
+    #      above these two are another question's
     #      why: --para 'Then confirm the regime'
     #  9b. and the pair's own variable, by whatever the note says reads it:
     #      diag answers for the regime and for nothing else, so what the
@@ -7082,6 +7085,10 @@ and never as a chronology.
     #      2026-09-10. What IS taken is the parallelism inside 4,5: the
     #      two halves check concurrently, which costs nothing and risks
     #      nothing, the assertion being that their logs agree
+    #      THE WAIT IS ON THE LOG LINE AND NOT ON THE CALL: launch these
+    #      two the moment preflight's log shows `4,5  PASS`, which is
+    #      minutes before that call returns -- the rest of a preflight is
+    #      cheap and the two `check` runs are not
     #      IN THE BACKGROUND, AND WHICH BACKGROUND MATTERS -- the command
     #      lines above carry no `&` for that reason. A SESSION uses the
     #      harness's own background mode, which registers a task and
@@ -7098,17 +7105,14 @@ and never as a chronology.
     #      first, and read the membership off 6c above rather than off
     #      the roster delta under Provenance. The main set plus a leg per
     #      class named,
-    #      `scaled` by default; NAME A CLASS BESIDES whenever its
-    #      population moved since the last pass -- AND NAME THEM ALL
-    #      WHENEVER THE TIMED ROSTER GAINED ARMS, which the population
-    #      condition does not reach: an arm lands on every class, so the
-    #      classes whose VIEWS moved are not the ones at risk. Run 28
-    #      named `scaled` and the three its views moved in, and those
-    #      three held five of the sixteen rows its new arms emptied;
-    #      `block`, unmoved, held ten. Its four-class pass ran 36 minutes
-    #      with the main leg and the six classes it had skipped 30 more,
-    #      so naming them all is half again on a change that already
-    #      costs the better part of an hour. Artifacts are
+    #      AND THE DEFAULT IS ALL TEN CLASSES, a timed arm landing on
+    #      every one of them, so the classes whose VIEWS moved are not the
+    #      ones at risk. Name a SUBSET -- `scaled` plus whatever
+    #      population moved -- only where the roster gained no arm. Run 28
+    #      named four and they held five of the sixteen rows its new arms
+    #      emptied, `block` unmoved holding ten; Run 29 named all ten and
+    #      its eleven legs ran an hour, which is what to plan for.
+    #      Artifacts are
     #      `smoke-l1-$R-*`, never `$R-*` (the prefix rule below), and a
     #      previous attempt's are refused. Record it on an `L1 ROSTER
     #      PASS:` line
@@ -7188,6 +7192,18 @@ and never as a chronology.
     #      IT CAME FROM, never from the sentence beside it, and then read
     #      both back end to end. It costs minutes, and it is not a
     #      substitute for post-run step 6b's independent reader
+    #      LOCATE BY PHRASE, NOT BY COORDINATE: this is what `--para`
+    #      is, and a `grep -n` for a line number is what sends a session
+    #      to `sed` and from there into the chapter. A line number into
+    #      prose does not survive a turn boundary either, the wrapping
+    #      hook moving it
+    #      AND THE RE-DERIVATION IS A CARRIER AGENT'S: it is a dozen
+    #      reader calls whose tables nothing will quote, so only the
+    #      verdicts need come back. Run 29's preparation ran them all in
+    #      its own context and quoted none
+    #      AND WHEN IT IS DONE, `./run-status.sh $R` READS `2c done: no
+    #      <yours> slot left`, which is the one check that says the note
+    #      is finished rather than merely written
     #  `./preflight.sh $R --figures` IS THE MECHANICAL HALF and runs in
     #      seconds, taking no step: it re-derives the fill-in rows from the
     #      ARTIFACTS -- the two binaries and git -- and reports every
@@ -9528,7 +9544,7 @@ that needs it unless it is written down.
          TWO COMMANDS DO THE SKIP AND THE COPY, and neither is a thing
          to do by eye (both added 2026-09-03, after Run 24's
          preparation did both by hand):
-             ./read-run.py --note $PREV-pair.txt > note-read.txt
+             ./read-run.py --note $PREV-pair.txt > $R-note-read.txt
              ./read-run.py --note $PREV-pair.txt --draft $R \
                            --halves <basis>,<other>
          The first withholds the handover below and says how much; the
