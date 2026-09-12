@@ -82,17 +82,12 @@
 # the control whenever a row is added.
 #
 # RE-TAKEN 2026-09-11 on the run29 pair, for the two rows that read the
-# PREVIOUS run, and this time the control is how the defect was seen. Run 29
-# renamed the basis `g912` -> `spec` on an unchanged recipe, so
-# `run$PN-$BASIS` named `run28-spec`, which Run 28 never built: the `--delta`
-# row reported the reading unavailable and the roster-delta membership lines
-# printed nothing at all, with run28-g912 in the directory. Both figures had
-# been taken independently by hand at pre-run steps 2 and 6c, and that is
-# what they disagreed with. The derivation now falls back to the previous
-# run's own note, and the two rows reproduce those hand readings figure for
-# figure -- offsets [0, 0, 0, 24, 0, 4] and [0, 0], 2 and 2 displacements,
-# 39 -> 36 arms with four out and one in. Recorded as
-# `fill-in-keys-the-previous-build-on-this-run-s-tag`.
+# PREVIOUS run, and this time the control is how the defect was seen -- both
+# had gone dark on a renamed basis tag. They reproduce the readings that
+# preparation took by hand at pre-run steps 2 and 6c, figure for figure:
+# offsets [0, 0, 0, 24, 0, 4] and [0, 0], 2 and 2 displacements, 39 -> 36
+# arms with four out and one in. The defect and how it was watched are
+# `fill-in-keys-the-previous-build-on-this-run-s-tag` in defects.py.
 #
 # It has no case in defects.py, deliberately: this script's own steps are
 # that corpus and the reader's gates, so a case would run them twice to

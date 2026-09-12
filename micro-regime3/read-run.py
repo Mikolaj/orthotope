@@ -2522,10 +2522,9 @@ def carried_figures(run, run_doc, readme, others, main_hs):
     derivations. It is a warning and never a verdict: an item may quote
     a figure for a third arm, an allocation level, a count. What it
     catches is the item whose quoted figures match NOTHING its own span
-    can produce, which is the shape of the one real error Run 29's
-    preparation found by hand -- item (7) quoting a range that was a
-    PRE-RUN PROBE's, of two arms the span does not name, under a
-    preamble promising every figure came off the named run's JSONs.
+    can produce -- a probe's figure wearing a run's name among them,
+    which is what it was built for and which reads exactly like a right
+    one (2026-09-12).
 
     The span's own target is not a carried figure and is excluded: it is
     what the coming run must produce, not what the last one did.

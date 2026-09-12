@@ -7199,8 +7199,8 @@ and never as a chronology.
     #      hook moving it
     #      AND THE RE-DERIVATION IS A CARRIER AGENT'S: it is a dozen
     #      reader calls whose tables nothing will quote, so only the
-    #      verdicts need come back. Run 29's preparation ran them all in
-    #      its own context and quoted none
+    #      verdicts need come back (2026-09-12, a preparation having run
+    #      every one of them in its own context)
     #      AND WHEN IT IS DONE, `./run-status.sh $R` READS `2c done: no
     #      <yours> slot left`, which is the one check that says the note
     #      is finished rather than merely written
@@ -7209,9 +7209,9 @@ and never as a chronology.
     #      REGISTRATION'S figures, as --figures is of the note's. It
     #      derives each `pair A B` span on the runs given and names the
     #      item where NOTHING it quotes matches ANYTHING its own span
-    #      produces -- which is the shape of the one error Run 29's
-    #      preparation found by hand, an item quoting a PRE-RUN PROBE's
-    #      range for two arms the span does not name.
+    #      produces. A PROBE'S FIGURE WEARING A RUN'S NAME is the shape
+    #      it was built for and reads exactly like a right one
+    #      (2026-09-12).
     #      ONE JSON PER POPULATION THE ITEMS ARE READ ON, both halves:
     #      handed only the main set it reports every item read on `runs`
     #      or `block` as matching nothing, which is the mode being asked
