@@ -7133,6 +7133,17 @@ def pair_note(path, draft=None, halves=None):
     # of `as Runs 24 to 27 were`, so a block whose only older-run mention
     # is plural went unflagged and a flagged block's list was short of
     # what it names (2026-09-10).
+    # AND A CARRIED BLOCK THAT ASSERTS A COMPILE OPTION IS FLAGGED TOO,
+    # which the run-number test does not reach and which fails differently:
+    # an old run number points one run too far back and may be right, where
+    # a flag name in a carried block is a claim about THIS pair's regime and
+    # goes false the moment the variable changes. Run 31's draft carried
+    # `NEITHER half carries -fspec-constr` onto a pair whose other half is
+    # built at -O2, which turns that pass on -- false of the pair it was
+    # carried to, and reached by no test of its own, its block being flagged
+    # for its run numbers instead (2026-09-14). Marked and never changed, as
+    # above; RTS options are not matched, `-A32m` standing in several
+    # carried blocks and asserting nothing about the optimiser.
     mine = re.search(r'(\d+)', draft)
     mine = mine.group(1) if mine else draft
     flagged = []
@@ -7145,17 +7156,27 @@ def pair_note(path, draft=None, halves=None):
                              para):
             nums |= set(re.findall(r'\d+', m.group(0)))
         old_runs = sorted({n for n in nums if n != mine}, key=int)
-        if old_runs:
-            flagged.append((_note_title(lead), old_runs))
+        opts = sorted(set(re.findall(r'(?<![-\w])-(?:f[a-z][\w-]*|O\d)',
+                                     para)))
+        if old_runs or opts:
+            flagged.append((_note_title(lead), old_runs, opts))
     if flagged:
-        marks = '\n'.join(
-            '#   %-44s names %s %s'
-            % (t[:44], 'Runs' if len(r) > 1 else 'Run', ', '.join(r))
-            for t, r in flagged)
+        rows = []
+        for t, r, o in flagged:
+            why = []
+            if r:
+                why.append('names %s %s'
+                           % ('Runs' if len(r) > 1 else 'Run', ', '.join(r)))
+            if o:
+                why.append('asserts %s' % ', '.join(o))
+            rows.append('#   %-44s %s' % (t[:44], ' and '.join(why)))
+        marks = '\n'.join(rows)
         body = ('# CHECK THESE CARRIED BLOCKS: each names a run this draft'
-                ' did not rename,\n# so a figure in it may be one run too'
-                ' far back. Read them against this\n# pair before deleting'
-                ' this notice.\n%s\n\n%s' % (marks, body))
+                ' did not rename, or\n# asserts a compile option -- so a'
+                ' figure in it may be one run too far back,\n# and a clause'
+                ' about the regime may be false for this pair. Read them\n#'
+                ' against this pair before deleting this notice.\n%s\n\n%s'
+                % (marks, body))
     print('# DRAFT for %s-pair.txt, the WHOLE note: %s\'s [SAME] blocks'
           ' carried over,' % (draft, os.path.basename(path)))
     print('# every other slot present and empty. Redirect it, fill the'
@@ -7221,6 +7242,58 @@ POST_SPLIT = '    #   6. walk the replace list under Provenance'
 PRE_SPLIT = '    ./smoke-sweep.sh $R '
 
 SPLITS = {'pre': PRE_SPLIT, 'post': POST_SPLIT}
+
+# THE DOCSTRING IS READ IN PARTS, which is what the run chapter's pre-run
+# step 7 asks for and what nothing offered: it names `the Modes list,
+# --para, --section and the two gates`, and the only way to reach any of
+# them was the whole file's worth of docstring, which a preparation then
+# carries for the rest of its session. The cuts are the docstring's OWN
+# lead lines, so a paragraph moved across one moves its part with it; a
+# lead that is no longer there refuses at 2 rather than silently merging
+# two parts, since a part that quietly absorbed its neighbour reads exactly
+# like a part that was always that long (2026-09-14).
+DOC_PARTS = [
+    ('intro', None),
+    ('definitions', 'Definitions, once:'),
+    ('modes', 'Modes:'),
+    ('validation', 'A run artifact is made when a question needs it'),
+]
+
+
+def doc_part(which=None):
+    """Print one named part of this script's docstring, or list them."""
+    lines = (__doc__ or '').split('\n')
+    starts = []
+    for name, lead in DOC_PARTS:
+        if lead is None:
+            starts.append((name, 0))
+            continue
+        at = next((i for i, ln in enumerate(lines)
+                   if ln.startswith(lead)), None)
+        if at is None:
+            print('--doc: the part `%s` is cut at `%s`, which the docstring'
+                  ' no longer carries; the parts are stale' % (name, lead),
+                  file=sys.stderr)
+            return 2
+        starts.append((name, at))
+    parts = []
+    for i, (name, at) in enumerate(starts):
+        end = starts[i + 1][1] if i + 1 < len(starts) else len(lines)
+        parts.append((name, '\n'.join(lines[at:end]).strip('\n')))
+    if not which:
+        print("read-run.py's docstring in parts; --doc NAME prints one,"
+              ' and the two gates are in `modes`')
+        for name, text in parts:
+            print('  %-12s %2d paragraph(s), %5d chars'
+                  % (name, text.count('\n\n') + 1, len(text)))
+        return 0
+    for name, text in parts:
+        if name == which:
+            print(text)
+            return 0
+    print('--doc: no part `%s`; --doc alone lists them' % which,
+          file=sys.stderr)
+    return 2
 
 
 def checklist(readme, which, steps_only=False):
@@ -11424,6 +11497,11 @@ def main():
                    help="print one of the run chapter's three checklists"
                         ' alone, which is what a session executes; the'
                         ' prose around them is the reasons')
+    p.add_argument('--doc', nargs='?', const='', metavar='PART',
+                   help="print one part of this script's own docstring --"
+                        ' `modes` is the Modes list with the two gates in'
+                        " it, which the pre-run list's step 7 asks for;"
+                        ' alone it lists the parts and their sizes')
     p.add_argument('--section', metavar='NAME',
                    help="print one section's prose by heading name, without"
                         ' its tables, so the reading a run owes can be taken'
@@ -11672,6 +11750,8 @@ def main():
         sys.exit(cross_class_summary(args.classes, args.others, args.main))
     if args.section:
         sys.exit(section(docs, args.section, args.with_tables))
+    if args.doc is not None:
+        sys.exit(doc_part(args.doc))
     # Absorbed without effect is the silent-option family this tree
     # counts, and these two flags mean nothing on their own: --draft
     # without --note fell through to "a run file is required", naming the

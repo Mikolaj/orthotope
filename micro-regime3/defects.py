@@ -9521,6 +9521,50 @@ RECORDS = [
                            'names Run 21'],
               hasnt=['MINE                ', 'names Run 23'])),
 
+    case('draft-flags-a-carried-block-asserting-a-compile-option',
+         'read-run.py', None,
+         'CONTROL: a carried [SAME] block naming a compile option is'
+         ' flagged for it, and an RTS option is not one',
+         # An old run number in a carried block points one run too far back
+         # and may be right; a COMPILE OPTION in one is a claim about this
+         # pair's regime and goes false the moment the variable changes.
+         # Both directions in one fixture: the first block asserts
+         # `-fspec-constr` and names no run at all, so the run-number test
+         # cannot reach it, and the second names an RTS option and a cabal
+         # flag, neither of which reaches the optimiser. Non-vacuous by
+         # `--at`: at the parent revision this fixture draws NO notice at
+         # all, neither block naming a run, which is the gap it closes.
+         plant=lambda t: {'note': write(
+             os.path.join(t, 'run30-pair.txt'),
+             "hdr\n\nOPT [SAME]: NEITHER half carries `-fspec-constr`.\n\n"
+             "RTS [SAME]: -A32m on both, passed through --ghc-options.\n"
+             "HALVES: basis=nospec other=libcase\n")},
+         argv=['--note', '{note}', '--draft', 'run31',
+               '--halves', 'nospec,o2'],
+         ok=V(exit=0, has=['CHECK THESE CARRIED BLOCKS',
+                           'asserts -fspec-constr'],
+              hasnt=['RTS      ', 'asserts -A32m',
+                     'asserts --ghc-options'])),
+
+    case('doc-prints-one-part-of-the-docstring', 'read-run.py', None,
+         'CONTROL: --doc modes prints the Modes list with the two gates in'
+         ' it and not its neighbours',
+         # The pre-run list's step 7 asks for the Modes list, --para,
+         # --section and the two gates, and the only way to any of them was
+         # the whole docstring, which a preparation then carries for the
+         # rest of its session. It needs no run file and no README, which
+         # is why this case runs from an empty directory.
+         argv=['--doc', 'modes'],
+         ok=V(exit=0, has=['Modes:', '--lint', '--check-doc', '--para',
+                           '--section'],
+              hasnt=['Definitions, once:', 'Validation:'])),
+
+    case('doc-refuses-a-part-that-is-not-one', 'read-run.py', None,
+         'CONTROL: --doc with a name that is no part refuses at 2 rather'
+         ' than printing the lot',
+         argv=['--doc', 'nosuch'],
+         ok=V(exit=2, has=['no part `nosuch`'], hasnt=['Modes:'])),
+
     case('note-figures-reads-a-row-only-as-present', 'preflight.sh', None,
          'CONTROL: --figures holds each derived figure to the note ROW of'
          ' its own label, not to the note anywhere',
