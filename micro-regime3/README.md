@@ -40,14 +40,18 @@ with no regression and needs no extension to orthotope classes.
 
 **A direct mutable result buffer is faster still**: `mut-odo` walks the outer
 odometer and writes each innermost run, and `mut-odo-vecdims` --- the same fill
-with its dimension lists replaced by unboxed vectors --- is on Run 29
-(SpecConstr, -A32m) **2.22x** over `bq-expand` paired, ahead on all nineteen
-shapes. Its family holds the top of the table. It needs a new `Vector`-class
-method, which this README argued against for as long as the ceiling stood ---
-to keep orthotope's `Vector` API pure and minimal, a bar an in-tree precedent
-softened to a weight --- and which the decision of 2026-08-22 **took**,
-`vFillStrided` landing 2026-08-24 ([below](#the-mutable-ceiling-taken)). Plain
-`mut-odo` no longer argues for it at all: it and `bq-expand`, which survives
+with its dimension lists replaced by unboxed vectors --- is on Run 30 (plain
+-O1, -A32m) **2.87x** over `bq-expand` paired, ahead on all nineteen shapes.
+**That headline moved with the published REGIME and not with either arm**: Run
+29 read 2.22x on a `-fspec-constr` basis and 2.83x on its own unflagged half,
+and Run 30's basis is that unflagged recipe, so the gap this ratio reports
+is the one the library actually compiles in for the first time since Run 16.
+Its family holds the top of the table. It needs a new `Vector`-class method,
+which this README argued against for as long as the ceiling stood --- to keep
+orthotope's `Vector` API pure and minimal, a bar an in-tree precedent softened
+to a weight --- and which the decision of 2026-08-22 **took**, `vFillStrided`
+landing 2026-08-24 ([below](#the-mutable-ceiling-taken)). Plain `mut-odo`
+no longer argues for it at all: it and `bq-expand`, which survives
 in `Data/Array/Internal.hs` only as that method's class default, the three
 vector-backed instances overriding it with the mutable fill, are a tie at 0.8906
 paired, 14 shapes of 26 and sign p 0.85 on an interval covering 1 ---
@@ -950,9 +954,21 @@ rather than a slot in the next run, observed again:
   themselves, which is why that half's own twin named one straddler of seven
   where the basis's named five of its own seven.
 
-- `OPEN` **`-fspec-constr` changes what two arms ALLOCATE and not only how fast
-  they run, and nothing here says why a specialisation pass should move
-  an allocation multiple at all.** Run 29's registration (11) predicted
+- `OPEN` **Each -O2 pass changes what an arm ALLOCATES and not only how fast
+  it runs, they disagree on WHICH arms and move `list`'s multiple in OPPOSITE
+  directions, and nothing here says why an optimisation pass should move
+  an allocation multiple at all.** **Run 30 reads the other -O2 pass on the same
+  question and the answer is not the same.** Its registration (11) was killed
+  on ONE level, not two: over the same pinned eighteen, `-fliberate-case` leaves
+  `bq-expand` at 2.76x and takes `list` from 24.90x to **25.26x** --- UPWARD,
+  where `-fspec-constr` takes the same arm DOWNWARD from 24.90x to 22.38x.
+  So the two passes move the reference's allocation in opposite directions, one
+  of them touches `bq-expand` and the other does not, and both speed `list` up.
+  The counted work sharpens it further: under `-fliberate-case` TEN
+  of the eighteen arms read counts EXACTLY 1.0000 between the halves and only
+  `bq-expand` and `list` move at all, where `-fspec-constr` thinned every arm.
+  Whatever the account is, it has to explain an allocation multiple rising
+  on the arm a pass makes faster. Run 29's registration (11) predicted
   the levels unmoved between its halves and was KILLED on two of them:
   over the eighteen shapes claim 7 is pinned to, `bq-expand` reads **2.06x**
   under the flag and **2.76x** without it, and `list` **22.38x** against
@@ -990,7 +1006,18 @@ rather than a slot in the next run, observed again:
   and if they do not they were removed. That is one invocation of a mode
   that already exists, on binaries the deletion offer has not yet spent. The 16
   KiB exactly is recorded as an observation and not as a mechanism; nothing here
-  explains why the difference should be a round page multiple.
+  explains why the difference should be a round page multiple. **Run 30
+  reproduces the SHAPE of this on the other -O2 pass and narrows it sharply.**
+  `--survey` reads 284 self-loops on `run30-nospec` against 280
+  on `run30-libcase`, a gap of FOUR where Run 29's was sixty-two,
+  with the flagged half again carrying the fewer and again the larger `.text`,
+  by 20480 bytes --- 20 KiB exactly, a second round multiple and still
+  no mechanism. **But the within-pair placement reading is the opposite of Run
+  29's**: `--library` puts 925 library self-loops at **100.0%** the same offset
+  in line and **100.0%** the same straddle state across Run 30's halves, where
+  Run 29 read 39.4% of 914. So a flag can grow `.text` by 20 KiB, drop four
+  short self-loops and displace NOT ONE tracked library loop, which is what
+  the raised-cutoff survey would now be asked on two pairs rather than one.
 
 - `OPEN` **A saving in instructions reaches the clock at anything from NONE
   of it to ALL of it WITHIN ONE BINARY, where the rate on record is three
@@ -3004,6 +3031,81 @@ rather than a slot in the next run, observed again:
 
 ### Recommended tasks after Run 30
 
+**What Run 30 made cheaper for the next run, which is not a figure and no other
+step gathers --- and it is TWO sessions' worth, the preparation's reaching
+this one only through the pair note.** **THE PREPARATION'S HALF, from its own
+block in `run30-pair.txt`.** A CHECK THAT WOULD HAVE CAUGHT AN ERROR:
+`--draft`'s carried-block substitution is not a reading, and it turned Run 29's
+`Half names` block into a sentence that was false twice for this pair ---
+it renames tags and cannot know the tags now mean something else, so every
+`[SAME]` block was re-read and three were rewritten. A COMPUTATION IMPROVISED:
+none; the counts scale came from the previous run's own counts files,
+`run29-counts-nospec.txt` and its ten class siblings, read at their opening
+and `# end` stamps rather than from the previous note, and it predicted every
+one of this run's twenty-two legs to within a second or two. A STEP SKIPPED:
+none, and one STOPPED --- step 12's condition does not fire on an unmoved
+roster, so the L1 pass was never owed; six of its eleven legs were taken anyway
+because the basis is a recipe no L1 pass had run on, and all six were clean.
+A CAPABILITY FOUND: `run30-nospec` is a REPETITION, the first this chapter could
+read on a half it then published.
+
+**THE EXECUTING SESSION'S HALF, and the first item is the one that cost
+something.** **THE WRITE-UP SESSION VOIDED TWO BENCHES OF ITS OWN RUN,
+AND THE CHAPTER HAD ALREADY FORBIDDEN IT.** Run list step 17 says NOTHING ELSE
+ON THE MACHINE until the evening ends; `run-status.sh` ran 58 seconds
+into an eight-hour sequence, put the reader twice over a 600 KB README, and left
+`cnn-L1-6x6-c1` carrying 0.77 and 0.61 of a core on two
+of `run30-libcase-main`'s benches. **What makes it worth an entry rather
+than an apology is WHEN the invitation arrives**: `run-evening.sh` prints
+*the verdict is yours to write into run30-pair.txt (step 14a)* at 02:05:16
+and the sequence starts at 02:05:18, so the line that invites a reading
+and the hours that forbid one are two seconds apart. Step 14a's own text already
+defers the verdict to *once the evening has landed*, and 19a repeats it;
+the driver's line does not. **A driver line that says what is yours to do next
+should say WHEN**, and that is a one-line fix in `run-evening.sh` that would
+have saved this run its only intrusion. **THE CHECKS THAT WOULD HAVE CAUGHT
+THE ERRORS, and this run is the first where most of them are mechanical.**
+`--check-doc`'s cross-document agreement caught five sites still quoting
+the previous run's floor pair and carry-back figure. `--lint` caught an arm,
+`libunord-stage7`, that this session's own edit had left named nowhere in either
+document. `--check-doc`'s class-floor check caught the hand-assembled
+cross-class summary still carrying Run 29's ten rows. `--replace`'s three guards
+refused three edits that would each have destroyed something: a table abutting
+its lead, twice, and a list item quoted as though it were a paragraph.
+**AND THE ONE THAT IS NOT MECHANICAL EARNED ITS PLACE TWICE OVER**:
+`--check-doc --worklists`' superlative sweep names the candidates but derives
+nothing, and sorting the ten class populations by hand refuted FOUR superlatives
+this write-up had already committed --- two classes called *joint lowest*
+on a `worst` that `compose` beats, a floor called *the tightest of the ten*
+that is third, and a `list` move called *the second widest* that is third ---
+plus a fifth error of direction, *closest* quoted as the furthest cell rather
+than the nearest. Every one came of reading the arms the sentence was about
+instead of ranking the set, which is the rule the portable notes give
+and the failure they name.
+
+**A COMPUTATION IMPROVISED: one, and one retired.** The per-class cross-half
+geomeans with the `list` and `bq-expand` families dropped were hand-rolled
+on Run 29 and are `--compare --chapter --exclude` here, which is the mode doing
+it --- but `--block --compare` REFUSES the same flags, needing `list`
+as its baseline, so the figure has two routes and only one of them works. What
+is still improvised is the correction's own arithmetic: deciding which figures
+a partial-population omission reaches, and requoting exactly those on eighteen
+shapes while everything else stays on nineteen, is by hand because no mode takes
+a cell out of a population and says what it touched. **A STEP DECLINED RATHER
+THAN SKIPPED**: post-run step 3's rerun of both halves of the main set
+was offered with its cost and its measured damage and declined on 2026-09-13,
+the omission being taken instead; Provenance carries the treatment and the four
+requoted figures. **A READER DEFECT FOUND AND NOT FIXED**: `--para` compiles
+its argument as a regex, so a lead containing `(` --- which every registration
+item's lead does --- exits with a `re.error` traceback rather than a refusal.
+It cost one call here; a `re.escape` fallback or a caught `re.error` would
+retire it, and it is listed below rather than fixed because fixing the reader
+mid-write-up invalidates the checks already run against it. **WHAT THE AGENTS
+COST AND BOUGHT.** The carrier read four sections of Run 29's file and returned
+`run30-readings.txt`, which post-run steps 4, 5 and 6a then read a block
+at a time; its item 4 was re-derived here by hand and agreed. The independent
+checker ran its two passes on the two commits.
+
 **What Run 29 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
 the executor only through the pair note.** **The preparation's half, taken
@@ -3610,6 +3712,29 @@ codegen rather than that it cannot be built.
   which is what the entry above says none of these fixes could avoid. What
   it does not address is the placement gap the `build`/`mut-odo` pair shows,
   a separate and larger target that no reordering reaches.
+- `OPEN` **`--para` compiles its argument as a regex and tracebacks on a bolded
+  lead that contains a bracket.** Every registration item's lead does ---
+  `(11) *Claim 7 without the flag.*` --- so the one mode this chapter recommends
+  for locating a paragraph by phrase fails on the paragraphs a write-up most
+  often wants, with a `re.error: missing ), unterminated subpattern`
+  and a Python stack rather than a refusal. Found 2026-09-13 during Run 30's
+  write-up, at the cost of one call. **What would settle it** is either catching
+  `re.error` and saying so, or falling back to `re.escape` when the pattern does
+  not compile --- a defect case first, as `read-run.py`'s own docstring
+  requires, since the corpus is what keeps such a fix proved after the commit
+  that made it. It is recorded rather than fixed because fixing the reader
+  inside a write-up invalidates every check already run against it.
+- `OPEN` **A driver line that says what is yours to do next does not say WHEN,
+  and it cost Run 30 its only intrusion.** `run-evening.sh` prints *the verdict
+  is yours to write into $R-pair.txt (step 14a)* two seconds before the sequence
+  begins; step 14a's own text defers that to *once the evening has landed*
+  and run-list step 19a repeats it, but the line a session actually reads
+  at that moment says neither. Run 30's write-up read the gate's verdict there,
+  ran `run-status.sh` 58 seconds into an eight-hour sequence, and voided two
+  benches of `run30-libcase-main`. **What would settle it** is one clause
+  on that line naming 19a as the moment --- and it is worth taking before
+  the next run rather than after, the failure being invited by the tooling
+  rather than merely permitted by it.
 - `OPEN` **No build-vs-output time decomposition**, which Run 8 wanted and did
   without. `diag` measures per-builder *allocation* only, so a claim like
   "the table build is a third of the cost" --- the natural reading
@@ -6012,8 +6137,10 @@ is still the patched compiler's to say, a source rewrite
 and a register-allocator fix not being the same intervention. **And the RATE
 at which an instruction saving reaches the clock is a third to a half here,
 not three quarters --- and Run 29 has since read it at nought and at one
-in a single binary, so what follows is this comparison's rate and
-not the harness's** ([the open list][open]). The nineteenth reading put
+in a single binary, with Run 30 sharper still --- ten of its eighteen arms
+saving NO instructions at all between the halves, exactly 1.0000, while the two
+that do convert 0.8963 and 0.9718 of it --- so what follows is this comparison's
+rate and not the harness's** ([the open list][open]). The nineteenth reading put
 it at about three quarters, 13.1% of the instructions buying 9.7% of the time
 and 18.6% buying 13.2%, across two builds of one recipe. Within one binary,
 over five spans of the leaf family, Run 26 reads 29%, 32% and 41% on the three
@@ -8951,8 +9078,6 @@ Steps 1 to 4a are readings and cost only tool calls, 5a another; 5, 5b and 6's
 two halves write; 6b, 6d and 6e are what find things, and 7 is where what they
 find is applied. Step 0 was the step most often skipped when it stood last,
 because by then the run read finished; putting it first is what retires that.
-
-
 
 0. **Name the fill groups, and spend the other load-independent measurements,
    before the artifacts go --- first, because this is the only step whose window
@@ -12955,8 +13080,6 @@ in quietly.
 How a run is made, and what to record beside its numbers, is [Making a major
 benchmark run](#making-a-major-benchmark-run) --- which is also where the walk
 of the list above is one of the steps.
-
-
 
 [achieved]: #how-the-strictly-positive-picture-was-achieved
 [bench]: #what-the-benchmark-does
