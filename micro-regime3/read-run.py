@@ -5676,8 +5676,9 @@ def extremes_table(paths, main_hs, args):
     # `worst` another class beats, a floor called tightest that is third,
     # and a `list` move called second widest that is third -- each derived
     # from the arms the sentence was about instead of from a sort. A
-    # holder line cannot refute any of them; a printed order refutes all
-    # four at a glance.
+    # holder line cannot refute any of them; the orders below refute the
+    # three these rows carry, the `list` move being a cross-half figure
+    # and `--compare`'s.
     print()
     print('the full order, for the ordinal claims a holder line cannot'
           ' settle:')

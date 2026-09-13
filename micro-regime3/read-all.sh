@@ -467,7 +467,7 @@ brief_facts () {
   # run and both restate the run file's head; the rows below are the ones
   # an artifact can settle, so what is left to a hand is prose rather than
   # re-derivation. Run 30 retyped the repetition fact and got it wrong in
-  # four places -- it called the third repetition this chapter has read the
+  # four places -- it called the fourth repetition this chapter has read the
   # first -- which a row off the note's own md5s would not have done.
   NOTE="$R-pair.txt"
   if [ -f "$NOTE" ]; then

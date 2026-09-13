@@ -47,7 +47,7 @@ with its dimension lists replaced by unboxed vectors --- is on Run 30 (plain
 and Run 30's basis is that unflagged recipe --- the SAME BINARY, md5 and `.text`
 alike, so the 2.83-to-2.87 step is two evenings of run-to-run drift on one build
 and nothing else --- so the gap this ratio reports is the one the library
-actually compiles in for the first time since Run 16. Its family holds the top
+actually compiles in for the first time since Run 7. Its family holds the top
 of the table. It needs a new `Vector`-class method, which this README argued
 against for as long as the ceiling stood --- to keep orthotope's `Vector` API
 pure and minimal, a bar an in-tree precedent softened to a weight --- and which
@@ -683,28 +683,28 @@ rather than a slot in the next run, observed again:
   off 1 and so 0.09 past its 1% bar --- a margin resting on one capped cell
   and on which statistic is read, which that item's verdict sets out and which
   would reverse on the column the table publishes and the first -O2 pass here
-  to reach the shipped fill at all; (2) the flag on the reference, KILLED
-  at 1.1710 on the main set and past the bar on all eleven populations,
-  so the two columns are an ordering; (3) the flag on the fused list, NEITHER
-  KILL FIRING, its three magnitude spans missing because they are Run 29's
-  and read in that run's orientation, the flag worth 18.27 points on `runs`
-  where `-fspec-constr` was worth 2.21; (4) the odometer over the table, HELD
-  at 0.4678 and 0.3947 on `runs`; (5) the list over the fill, HELD at 0.5808
-  and 0.4900 on `runs` and tying inside the floor on all five fill classes; (6)
-  stage ten where both changes fire, HELD on both kills, its `window` span
-  missing on the control at 0.8863 where the two views Run 29 found parting
-  in sign part by twenty-eight and nineteen points; (7) stage ten where neither
-  fires, HELD at 1.0244 and 1.0245 on `rev` --- outside both floors, as when
-  it was killed on Run 29, and inside the 3% it was amended to; (8) `lib-stage1`
-  against the lean fill, HELD and reproducing Run 28's 0.23 and 0.42 for a third
-  run; (9) the floor with the fill family's pair, HELD in all forty-four
-  readings --- and its hand-read half REVERSES Run 29's, `bq-expand-aa-distant`
-  carrying the whole-set floor at 0.57% where two runs had said the gap
-  was the fill pair's own; (10) claim 10 without the flag, HELD at 0.6446
-  and 0.6525, so the leaf fusion is neither -O2 pass's; (11) claim 7 without
-  the flag, KILLED, `list` alone moving from 24.90x to 25.26x on the pinned
-  eighteen. All three kills fell on an item predicting a no-op, which
-  is the third run running.
+  to make the shipped fill slower rather than leave it alone; (2) the flag
+  on the reference, KILLED at 1.1710 on the main set and past the bar on all
+  eleven populations, so the two columns are an ordering; (3) the flag
+  on the fused list, NEITHER KILL FIRING, its three magnitude spans missing
+  because they are Run 29's and read in that run's orientation, the flag worth
+  18.27 points on `runs` where `-fspec-constr` was worth 2.21; (4) the odometer
+  over the table, HELD at 0.4678 and 0.3947 on `runs`; (5) the list
+  over the fill, HELD at 0.5808 and 0.4900 on `runs` and tying inside the floor
+  on all five fill classes; (6) stage ten where both changes fire, HELD on both
+  kills, its `window` span missing on the control at 0.8863 where the two views
+  Run 29 found parting in sign part by twenty-eight and nineteen points; (7)
+  stage ten where neither fires, HELD at 1.0244 and 1.0245 on `rev` --- outside
+  both floors, as when it was killed on Run 29, and inside the 3% it was amended
+  to; (8) `lib-stage1` against the lean fill, HELD and reproducing Run 28's 0.23
+  and 0.42 for a third run; (9) the floor with the fill family's pair, HELD
+  in all forty-four readings --- and its hand-read half REVERSES Run 29's,
+  `bq-expand-aa-distant` carrying the whole-set floor at 0.57% where two runs
+  had said the gap was the fill pair's own; (10) claim 10 without the flag, HELD
+  at 0.6446 and 0.6525, so the leaf fusion is neither -O2 pass's; (11) claim 7
+  without the flag, KILLED, `list` alone moving from 24.90x to 25.26x
+  on the pinned eighteen. All three kills fell on an item predicting a no-op,
+  which is the third run running.
 - `ANSWERED` **What Run 29 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 29's own file](runs/run29.md), where a run's
@@ -3054,8 +3054,8 @@ column for both halves, and the flagged half counts faster. A STEP SKIPPED:
 none, and one STOPPED --- step 12's condition does not fire on an unmoved
 roster, so the L1 pass was never owed; six of its eleven legs were taken anyway
 because the basis is a recipe no L1 pass had run on, and all six were clean.
-A CAPABILITY FOUND: `run30-nospec` is a REPETITION, the first this chapter could
-read on a half it then published.
+A CAPABILITY FOUND: `run30-nospec` is a REPETITION, the fourth this chapter has
+read, of a recipe Run 29 ran as its control rather than published.
 
 **THE EXECUTING SESSION'S HALF, and the first item is the one that cost
 something.** **THE WRITE-UP SESSION VOIDED TWO BENCHES OF ITS OWN RUN,
@@ -3083,14 +3083,20 @@ its lead, twice, and a list item quoted as though it were a paragraph.
 **AND THE ONE THAT IS NOT MECHANICAL EARNED ITS PLACE TWICE OVER**:
 `--check-doc --worklists`' superlative sweep named the candidates and derived
 nothing --- `--extremes` prints the full order since 2026-09-13, which
-is this run's answer to it --- and sorting the ten class populations by hand
-refuted FOUR superlatives this write-up had already committed --- two classes
-called *joint lowest* on a `worst` that `compose` beats, a floor called
-*the tightest of the ten* that is third, and a `list` move called *the second
-widest* that is third --- plus a fifth error of direction, *closest* quoted
-as the furthest cell rather than the nearest. Every one came of reading the arms
-the sentence was about instead of ranking the set, which is the rule
-the portable notes give and the failure they name.
+is this run's answer to it for the class populations --- and sorting the ten
+class populations by hand refuted FOUR superlatives this write-up had already
+committed --- two classes called *joint lowest* on a `worst` that `compose`
+beats, a floor called *the tightest of the ten* that is third, and a `list` move
+called *the second widest* that is third --- plus a fifth error of direction,
+*closest* quoted as the furthest cell rather than the nearest. Every one came
+of reading the arms the sentence was about instead of ranking the set, which
+is the rule the portable notes give and the failure they name. **A blind reader
+over the whole diff then refuted nine more, and not one was about a table**:
+they were ordinals and quantifiers about this chapter's own history --- which
+repetition this was, whose basis it repeated, since which run the published
+table has been a `-fspec-constr` one --- each derived from the run in view
+instead of from the run files, which no sort of this run's populations can
+settle and only opening them can.
 
 **A COMPUTATION IMPROVISED: one, and one retired.** The per-class cross-half
 geomeans with the `list` and `bq-expand` families dropped were hand-rolled
@@ -3104,16 +3110,14 @@ a cell out of a population and says what it touched. **A STEP DECLINED RATHER
 THAN SKIPPED**: post-run step 3's rerun of both halves of the main set
 was offered with its cost and its measured damage and declined on 2026-09-13,
 the omission being taken instead; Provenance carries the treatment and the four
-requoted figures. **A READER DEFECT FOUND AND NOT FIXED**: `--para` compiles
-its argument as a regex, so a lead containing `(` --- which every registration
-item's lead does --- exits with a `re.error` traceback rather than a refusal.
-It cost one call here; a `re.escape` fallback or a caught `re.error` would
-retire it, and it is listed below rather than fixed because fixing the reader
-mid-write-up invalidates the checks already run against it. **WHAT THE AGENTS
-COST AND BOUGHT.** The carrier read four sections of Run 29's file and returned
-`run30-readings.txt`, which post-run steps 4, 5 and 6a then read a block
-at a time; its item 4 was re-derived here by hand and agreed. The independent
-checker ran its two passes on the two commits.
+requoted figures. **A READER DEFECT FOUND, AND FIXED AFTER THE WRITE-UP**:
+`--para` took its argument as a regex, so a registration item's bracketed lead
+matched nothing where its brackets balanced and raised where they did not.
+It cost one call here, and [the open list][open] carries the fix. **WHAT
+THE AGENTS COST AND BOUGHT.** The carrier read four sections of Run 29's file
+and returned `run30-readings.txt`, which post-run steps 4, 5 and 6a then read
+a block at a time; its item 4 was re-derived here by hand and agreed.
+The independent checker ran its two passes on the two commits.
 
 **What Run 29 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
@@ -12425,40 +12429,40 @@ tables and its fingerprint say so.
   It is the run whose file `runs/` currently publishes. **Its delta against RUN
   29 is NOTHING AT ALL**: `Main.hs` stands at `7685375`, the commit Run 29
   built, so no arm landed, none was parked, no shape moved and no class view
-  moved --- the roster term in any cross-run figure is ABSENT rather than small,
-  which only Run 23 could say before it. **So `run30-nospec` REPRODUCES
-  `run29-nospec` to the byte**, md5 `f507eafbcbbfecf7c2151f390caf9b92` on both,
-  `.text` 20766917 on both, and `--delta` reads every tracked fill's mod-64
-  offset preserved AND every address surviving, 6 of 6 and 2 of 2
-  with no displacement --- the first repetition this chapter has read
-  on a published basis, and the control the pinning claim never had.
-  `run30-libcase`, at `66f89adf1838ccfcf63ec11d5a10b047` and 20787397 bytes
-  of `.text`, is that recipe with `-fliberate-case` added and is new here.
-  **The nineteen main-set shapes are unmoved between the two runs,
-  so a cross-run figure is over all nineteen**, and **the box did NOT move**,
-  though its gate machine check says otherwise at first reading: that check
-  fired at +12.96% on `list`'s net against the fingerprint Run 29 installed,
-  which is Run 29's FLAGGED half's while this basis is its control recipe,
-  and against `run29-nospec` --- this recipe's own previous build --- the whole
-  timed roster spans 0.9937 to 1.0069 with `list` at 0.9951 and the check's
-  worst shape, `stretch-r5-8x432`, at 1.0015. So a cross-run absolute here
-  is a subtraction and wants no bridge. What a reader has to carry is which half
-  a figure came from: everything published in its file is `run30-nospec`,
-  ghc-9.12.4 at PLAIN -O1 with neither -O2 pass set, and `run30-libcase` ---
-  the same source, shim, shim environment, compiler, store and plan
-  with `-fliberate-case` added to one `--ghc-options` --- contributes the second
-  column of `runs/run30.md`. **Its `list` moved 17.10 points between the halves,
-  OUTSIDE the 0.7% bar, so its two columns may NOT be subtracted**, nor may any
-  of its ten classes', which moved 17.26 to 21.71 points: every cross-half
-  figure in its file is an ordering. Its sequence ran in ONE window, 02:05:18
-  to 10:04:58, with ONE intrusion found --- two cells of `run30-libcase-main`
-  on `cnn-L1-6x6-c1`, caused by the write-up session's own reader call 58
-  seconds in, omitted from the readings they enter and no population rerun.
-  **And its floor is a maximum over EIGHT A/A pairs**, 0.57% and 0.84%,
-  the third run to carry the shipped fill's own pair and the FIRST on which
-  that pair does not carry the basis figure, `bq-expand-aa-distant` carrying
-  it instead; its restricted four-pair reading is 0.57% and 0.56%, equal
-  to the whole-set figure on the basis for the first time since the pair landed.
+  moved --- the roster term in any cross-run figure is ABSENT rather than small.
+  **So `run30-nospec` REPRODUCES `run29-nospec` to the byte**, md5
+  `f507eafbcbbfecf7c2151f390caf9b92` on both, `.text` 20766917 on both,
+  and `--delta` reads every tracked fill's mod-64 offset preserved AND every
+  address surviving, 6 of 6 and 2 of 2 with no displacement --- a repetition
+  of the recipe Run 29 ran as its control and did not publish, and the control
+  the pinning claim never had. `run30-libcase`,
+  at `66f89adf1838ccfcf63ec11d5a10b047` and 20787397 bytes of `.text`,
+  is that recipe with `-fliberate-case` added and is new here. **The nineteen
+  main-set shapes are unmoved between the two runs, so a cross-run figure
+  is over all nineteen**, and **the box did NOT move**, though its gate machine
+  check says otherwise at first reading: that check fired at +12.96% on `list`'s
+  net against the fingerprint Run 29 installed, which is Run 29's FLAGGED half's
+  while this basis is its control recipe, and against `run29-nospec` ---
+  this recipe's own previous build --- the whole timed roster spans 0.9937
+  to 1.0069 with `list` at 0.9951 and the check's worst shape,
+  `stretch-r5-8x432`, at 1.0015. So a cross-run absolute here is a subtraction
+  and wants no bridge. What a reader has to carry is which half a figure came
+  from: everything published in its file is `run30-nospec`, ghc-9.12.4 at PLAIN
+  -O1 with neither -O2 pass set, and `run30-libcase` --- the same source, shim,
+  shim environment, compiler, store and plan with `-fliberate-case` added to one
+  `--ghc-options` --- contributes the second column of `runs/run30.md`.
+  **Its `list` moved 17.10 points between the halves, OUTSIDE the 0.7% bar,
+  so its two columns may NOT be subtracted**, nor may any of its ten classes',
+  which moved 17.26 to 21.71 points: every cross-half figure in its file
+  is an ordering. Its sequence ran in ONE window, 02:05:18 to 10:04:58, with ONE
+  intrusion found --- two cells of `run30-libcase-main` on `cnn-L1-6x6-c1`,
+  caused by the write-up session's own reader call 58 seconds in, omitted
+  from the readings they enter and no population rerun. **And its floor
+  is a maximum over EIGHT A/A pairs**, 0.57% and 0.84%, the third run to carry
+  the shipped fill's own pair and the FIRST on which that pair does not carry
+  the basis figure, `bq-expand-aa-distant` carrying it instead; its restricted
+  four-pair reading is 0.57% and 0.56%, equal to the whole-set figure
+  on the basis for the first time since the pair landed.
 - Run 29 measured TODAY's shapes, class views and roster exactly, nothing having
   moved since it ran --- 36 timed arms over 19 main-set shapes and 58 class
   views in TEN classes, 684 benches and 2088, EIGHT A/A pairs, the `runs` class
