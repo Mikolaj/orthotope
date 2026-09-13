@@ -3081,15 +3081,16 @@ cross-class summary still carrying Run 29's ten rows. `--replace`'s three guards
 refused three edits that would each have destroyed something: a table abutting
 its lead, twice, and a list item quoted as though it were a paragraph.
 **AND THE ONE THAT IS NOT MECHANICAL EARNED ITS PLACE TWICE OVER**:
-`--check-doc --worklists`' superlative sweep names the candidates but derives
-nothing, and sorting the ten class populations by hand refuted FOUR superlatives
-this write-up had already committed --- two classes called *joint lowest*
-on a `worst` that `compose` beats, a floor called *the tightest of the ten*
-that is third, and a `list` move called *the second widest* that is third ---
-plus a fifth error of direction, *closest* quoted as the furthest cell rather
-than the nearest. Every one came of reading the arms the sentence was about
-instead of ranking the set, which is the rule the portable notes give
-and the failure they name.
+`--check-doc --worklists`' superlative sweep named the candidates and derived
+nothing --- `--extremes` prints the full order since 2026-09-13, which
+is this run's answer to it --- and sorting the ten class populations by hand
+refuted FOUR superlatives this write-up had already committed --- two classes
+called *joint lowest* on a `worst` that `compose` beats, a floor called
+*the tightest of the ten* that is third, and a `list` move called *the second
+widest* that is third --- plus a fifth error of direction, *closest* quoted
+as the furthest cell rather than the nearest. Every one came of reading the arms
+the sentence was about instead of ranking the set, which is the rule
+the portable notes give and the failure they name.
 
 **A COMPUTATION IMPROVISED: one, and one retired.** The per-class cross-half
 geomeans with the `list` and `bq-expand` families dropped were hand-rolled
@@ -3737,34 +3738,38 @@ codegen rather than that it cannot be built.
   which found the two documents answering it opposite ways; Run 31 varies `-O2`
   against this same basis and will make the question sharper rather than settle
   it.
-- `OPEN` **`--para` compiles its argument as a regex, so a bolded lead pasted
-  verbatim can fail SILENTLY, and an unbalanced bracket tracebacks.** Every
-  registration item's lead carries brackets ---
+- `ANSWERED` **`--para` compiled its argument as a regex, so a bolded lead
+  pasted verbatim failed SILENTLY and an unbalanced bracket tracebacked ---
+  TAKEN 2026-09-13.** Every registration item's lead carries brackets ---
   `(11) *Claim 7 without the flag.*` --- and pasted whole it compiles, matches
   nothing and exits 0: the mode this chapter recommends for locating a paragraph
   by phrase reports *no paragraph whose bolded lead or body matches* for a lead
-  that is demonstrably there. Truncate it to an unbalanced bracket ---
-  `--para '(11'` --- and it raises
-  `re.error: missing ), unterminated subpattern` with a Python stack instead.
-  The silent half is the worse of the two and is what this entry is for;
-  the traceback is how it was noticed. Found 2026-09-13 during Run 30's
-  write-up, at the cost of one call. **What would settle it** is either catching
-  `re.error` and saying so, or falling back to `re.escape` when the pattern does
-  not compile --- a defect case first, as `read-run.py`'s own docstring
-  requires, since the corpus is what keeps such a fix proved after the commit
-  that made it. It is recorded rather than fixed because fixing the reader
-  inside a write-up invalidates every check already run against it.
-- `OPEN` **A driver line that says what is yours to do next does not say WHEN,
-  and it cost Run 30 its only intrusion.** `run-evening.sh` prints *the verdict
-  is yours to write into $R-pair.txt (step 14a)* two seconds before the sequence
-  begins; step 14a's own text defers that to *once the evening has landed*
-  and run-list step 19a repeats it, but the line a session actually reads
-  at that moment says neither. Run 30's write-up read the gate's verdict there,
-  ran `run-status.sh` 58 seconds into an eight-hour sequence, and voided two
-  benches of `run30-libcase-main`. **What would settle it** is one clause
-  on that line naming 19a as the moment --- and it is worth taking before
-  the next run rather than after, the failure being invited by the tooling
-  rather than merely permitted by it.
+  that is demonstrably there. Truncated to an unbalanced bracket ---
+  `--para '(11'` --- it raised `re.error: missing ), unterminated subpattern`
+  with a Python stack instead. The silent half was the worse of the two
+  and is what this entry was for; the traceback is how it was noticed. **The fix
+  retries the pattern as a literal, at the lead search AND at the body search**
+  --- a registration item has no bolded lead at all, so a fix at the compile
+  alone changed nothing --- with cases `para-traceback-on-a-bracketed-lead`
+  and `para-refuses-an-uncompilable-pattern`, both of which failed before it.
+  Found 2026-09-13 during Run 30's write-up, at the cost of one call. **What
+  would settle it** is either catching `re.error` and saying so, or falling back
+  to `re.escape` when the pattern does not compile --- a defect case first,
+  as `read-run.py`'s own docstring requires, since the corpus is what keeps such
+  a fix proved after the commit that made it.
+- `ANSWERED` **A driver line that said what is yours to do next did not say
+  WHEN, and it cost Run 30 its only intrusion --- TAKEN 2026-09-13.**
+  `run-evening.sh` prints *the verdict is yours to write into $R-pair.txt (step
+  14a)* two seconds before the sequence begins; step 14a's own text defers
+  that to *once the evening has landed* and run-list step 19a repeats it,
+  but the line a session actually reads at that moment says neither. Run 30's
+  write-up read the gate's verdict there, ran `run-status.sh` 58 seconds
+  into an eight-hour sequence, and voided two benches of `run30-libcase-main`.
+  **What settled it** is one clause on that line, which now names 19a and step
+  17 outright. It carries a record and no case: the stamp is reachable only
+  where the gate RUNS AND PASSES, which no stand-in here makes it do --- a case
+  was written, watched to fail for that reason, and withdrawn rather than left
+  asserting the driver's source text.
 - `OPEN` **No build-vs-output time decomposition**, which Run 8 wanted and did
   without. `diag` measures per-builder *allocation* only, so a claim like
   "the table build is a third of the cost" --- the natural reading
@@ -8610,7 +8615,7 @@ not otherwise.
     #      and `--block --compare` -- so they are the one place in this list
     #      that parallelises without thought. SAY IT WITH A COMMAND, since
     #      a session that has to invent the parallelism runs them one at a
-    #      time, as Run 30 did: `printf '%s\\n' rev bcast ... | xargs -P4 -I{}
+    #      time, as Run 30 did: `printf '%s\n' rev bcast ... | xargs -P4 -I{}
     #      sh -c './read-run.py $R-<basis>-{}.json --block --brief >
     #      <scratch>/{}-block.txt 2>&1'`, and the same shape for the other
     #      three readings. Run 29 ran them one at a time
