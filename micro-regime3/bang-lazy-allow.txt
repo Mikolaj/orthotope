@@ -1,0 +1,8 @@
+# Candidates horde-ad's tools/bang-lazy-check.py prints over Main.hs that a
+# reader has read, one a line as `Main.hs:NAME ARG  # reason`, read by the
+# `bang shapes` step of checks.py. The reason is the point of an entry: one
+# without a reason hides the very shape the checker exists to show. Delete
+# an entry when its definition moves or its bang shape changes; the step
+# then reports the entry stale and asks for a second reading, and a new
+# candidate fails the step until it is read and listed here or fixed.
+Main.hs:merge 1  # canonView's fold, read 2026-09-13: the guard forces both fields where they are compared, and the pair passes to the result unopened otherwise

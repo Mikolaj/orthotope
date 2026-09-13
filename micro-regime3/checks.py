@@ -25,6 +25,18 @@ STEPS = [
                                 'cd "{root}" && { command -v pyflakes >/dev/null || python3 -m pyflakes --version >/dev/null 2>&1 || { echo "pyflakes is not on PATH (command -v pyflakes finds nothing), so the Python here went unlinted"; exit 1; }; } && python3 -m pyflakes *.py']),
     ('shellcheck',             ['bash', '-c',
                                 'cd "{root}" && { command -v shellcheck >/dev/null || { echo "shellcheck is not on PATH (command -v shellcheck finds nothing), so the shell scripts here went unlinted"; exit 1; }; } && shellcheck -S warning -f gcc *.sh']),
+    # The bang checker is horde-ad's, reached through the sibling checkout
+    # as the twin-sync check reaches its twin, and BLOCKED with exit 2 when
+    # that checkout is not mounted, so an unrun step is never a pass. It
+    # exits 0 on whatever it prints unless given --allow, so the allow
+    # file is what makes this a gate: a candidate not listed there fails
+    # the step, and a listed one prints as read. Added 2026-09-13, the day
+    # two lazy binders in the walker were read back out of a flag's worth
+    # on Run 30; it names one of them STRONG, the carry's empty clause.
+    ('bang shapes',            ['bash', '-c',
+                                'cd "{root}" && t=../../horde-ad/tools/bang-lazy-check.py && '
+                                '{ [ -f "$t" ] || { echo "BLOCKED: $t is not mounted, so Main.hs went unread for bang shapes"; exit 2; }; } && '
+                                'python3 "$t" --allow bang-lazy-allow.txt Main.hs']),
     # CORPUS_RUN=newest, since 2026-09-09: the properties are quantified
     # over every run on disk, and several written-up runs make that sweep
     # minutes. What it buys is about a tenth of this suite's time and not

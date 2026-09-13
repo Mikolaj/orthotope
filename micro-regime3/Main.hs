@@ -2708,6 +2708,11 @@ canonView sh ats =
   let merge (!n, !st) ((n', st') : rest)
         | st == n' * st' = (n * n', st') : rest
       merge p rest = p : rest
+      -- Lazy in the pair on the second equation, and read as fine
+      -- (2026-09-13): the guard above forces both fields where they are
+      -- compared, and the pair passes to the result unopened otherwise.
+      -- checks.py's bang-shapes step prints this; bang-lazy-allow.txt
+      -- carries the reading.
       merged = foldr merge [] [p | p@(n, _) <- zip sh ats, n /= 1]
   in  (map fst merged, map snd merged)
 
