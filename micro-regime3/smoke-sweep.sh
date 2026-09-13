@@ -163,7 +163,7 @@ if ./read-run.py smoke.json --cells "${EXCL[@]}" >/dev/null 2>&1; then
 fi
 # --exclude-shape has no positive form here, and that is structural: this run
 # is ONE shape, so the only name that could remove anything empties it. Its
-# REFUSAL is the check, as with --claims below -- nonzero is the pass, and a
+# REFUSAL is the check -- nonzero is the pass, and a
 # zero exit would mean the filter left the shape set it was told to empty.
 # The name here used to be a main-set shape this run does not carry, so the
 # filter matched nothing and the check could only ever pass.
@@ -172,12 +172,8 @@ if ./read-run.py smoke.json --cells --exclude-shape "$SHAPE" \
   echo "  !! --exclude-shape $SHAPE did NOT refuse a run of that shape alone"
   BAD=$((BAD + 1))
 fi
-mode smoke.json --claims          # reads the run file's verdicts back too,
-                                  # so this is also the read-back's only
-                                  # pre-run exercise
-
-# THE RUN'S OWN FILE, not README.md: every table an installer writes and
-# every reading `--claims` installs is in `runs/run<N>.md`, and `--in-place`
+# THE RUN'S OWN FILE, not README.md: every table an installer writes is
+# in `runs/run<N>.md`, and `--in-place`
 # refuses `--readme` outright rather than writing the live one behind a
 # caller aiming at a copy. The copy keeps a `run<N>.md` name so the reader
 # can still read the run number off it.
@@ -190,33 +186,6 @@ cp "$RUNDOC" "$SMOKEDOC"
 mode smoke.json --markdown --in-place --run-doc "$SMOKEDOC"
 mode smoke.json --fingerprint --in-place --run-doc "$SMOKEDOC"
 mode smoke-class.json --block --in-place --run-doc "$SMOKEDOC"
-# The fourth installer is exercised by its REFUSAL, which is the only
-# answer available here: the claims are registered over the whole main
-# set, this run is one shape of it, and the install refuses anything less
-# rather than writing a claims section out of one cell. So nonzero is the
-# pass, and a zero exit would mean it installed one.
-#
-# The first version of this block said the refusal was the ARMS guard's --
-# that a one-shape run holds none of the claims' arms. It holds all
-# fifteen, shape filtering removing no arm, so that guard never fired and
-# what the block was reading as the refusal was an IndexError inside the
-# readings themselves. It passed for two days' worth of an afternoon on a
-# crash. Both were fixed on 2026-08-16, when a toy run of this very block
-# found it; the shape guard is what makes the sentence above true.
-#
-# Non-vacuous, same day: over a one-shape run the install exits 1 saying
-# which shape count it got and writes nothing, and over the full main set
-# it installs and exits 0, which is what this block would report.
-cp "$SMOKEDOC" README.smoke.pre
-if ./read-run.py smoke.json --claims --in-place --run-doc "$SMOKEDOC" \
-     >/dev/null 2>&1; then
-  echo "  !! --claims --in-place did NOT refuse a filtered run"
-  BAD=$((BAD + 1))
-elif ! cmp -s "$SMOKEDOC" README.smoke.pre; then
-  echo "  !! --claims --in-place refused and wrote anyway"
-  BAD=$((BAD + 1))
-fi
-rm -f README.smoke.pre
 if cmp -s "$SMOKEDOC" "$RUNDOC"; then
   echo "  !! --in-place wrote nothing -- the copy is identical"
   BAD=$((BAD + 1))

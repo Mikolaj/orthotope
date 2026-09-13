@@ -167,8 +167,6 @@ Modes:
                     registration comparing two arms on one binary turns
                     on. Two sweep files with `--compare` is the cross-half
                     reading and the older one
-  --claims          every claim ordering and its registered verdict in one
-                    call, in the claims section's order, from a manifest
                     --lint holds to the roster
   --steps           every cell read at sample level for a mid-bench change
                     of level, which the fitted slope averages away and no
@@ -839,8 +837,8 @@ def aa_pairs(cells, shapes, strategies):
         b = twin_of(a)
         if not b or b not in strategies:
             continue
-        # Not readable rather than divided: on a file `--claims` refuses
-        # outright, `--aa` used to die inside `geomean` with `math domain
+        # Not readable rather than divided: `--aa` used to die inside
+        # `geomean` with `math domain
         # error`, and `--block`, `--compare --chapter` and `summary_row` all
         # come through here. The guard `pair_stats` grew was never carried
         # to its siblings. Found 2026-08-17 by review.
@@ -1190,7 +1188,7 @@ def property_clauses(cells, shapes, strategies):
     `bq-expand` on every shape, property 2 the same two inequalities in
     allocation, `mut-odo-vecdims` under `list` and under `bq-expand` on
     every shape to within 1%, on the `alloc` multiple each cell carries;
-    the set is stated in the run file's claims section and restated there
+    the set is stated in the run file's properties section and restated there
     on 2026-09-06, when the top-of-the-table ordering that was property 2
     retired, and the margin dates from 2026-09-07, the strict form having
     broken on its first reading on ties of tens of bytes per call where
@@ -1311,7 +1309,7 @@ def want_run_doc(args):
     """The run file, or a refusal naming what is missing.
 
     Twelve sites read or write it and none may fall back to README.md: a
-    run's tables and its claims readings live in `runs/run<N>.md` and
+    run's tables and its class blocks live in `runs/run<N>.md` and
     nowhere else, so an absent file is a refusal and never a table
     installed over standing prose. `--in-place` with no run file is how
     that would have happened.
@@ -1319,8 +1317,8 @@ def want_run_doc(args):
     if args.run_doc:
         return args.run_doc
     sys.exit("no run file: this mode reads or writes `%s/run<N>.md`, which"
-             " carries the Results table, the fingerprint, the claims"
-             " readings and the class blocks, and that directory holds"
+             " carries the Results table, the fingerprint and the class"
+             " blocks, and that directory holds"
              " none. Make the file, or name it with --run-doc." % RUNS_DIR)
 
 
@@ -1734,15 +1732,15 @@ def pair_sunk(cells, shapes, a, b):
 def pair_stats(cells, shapes, a, b):
     """One pair's per-shape ratios, and whether they had to be taken raw.
 
-    The one computation `--pair` and `--claims` share, held in one place so
-    the verdict a claim prints cannot disagree with the figures beside it.
+    The one computation every pair reading shares, held in one place so a
+    verdict cannot disagree with the figures beside it.
     Netting an arm that never ran the forcing pass is meaningless, so a
     pair with a `sum-only` or `-nosum` half is compared raw and says so.
 
     A cell the forcing term did not leave positive is refused rather than
     divided: `time_of` and `worst_of` answer `--` for one and `--selftest`
     fails the file over it, while this divided regardless and handed
-    `--pair` and `--claims` a ZeroDivisionError, or a negative ratio and
+    `--pair` a ZeroDivisionError, or a negative ratio and
     then `math domain error` out of `geomean` -- a traceback where this
     file's convention is a refusal that says what did not happen. Found
     2026-08-17 by review.
@@ -1812,8 +1810,8 @@ def pair_table(cells, shapes, strategies, pairs, quiet=False,
               % ('', '--' if pub != pub else '%.4f' % pub,
                  '; compared RAW, one arm has no corrected time' if raw
                  else ''))
-    # `--claims` prints a dozen of these in one call and the standing
-    # explanation once would be twelve times; it is the same reasoning
+    # A caller printing a dozen of these in one call wants the standing
+    # explanation once rather than twelve times; it is the same reasoning
     # `--brief` applies to `--aa` and `--block`, and drops no figure.
     if quiet:
         return
@@ -2051,7 +2049,8 @@ def compare_alloc(cells, shapes, strategies, meta, other, main_hs):
 
     Allocation is deterministic per call, so a pair whose halves differ only
     in placement must agree on every cell, and a level that DOES move is a
-    code change rather than a slot. That makes this the claim to check first
+    code change rather than a slot. That makes this the reading to check
+    first
     when anything else moves -- which is why it wants a mode of its own
     rather than a script per run. Two things a script per run got wrong here
     on 2026-08-14, both of which this mode exists to make unrepeatable.
@@ -4500,562 +4499,6 @@ def fingerprint_table(cells, shapes, strategies, meta, classes=()):
                 print(fingerprint_row(sh, c_cells[sh], c_dims.get(sh), label))
 
 
-# The three arms the second class property names, in the claims section
-# (*The claims Run N should test*, NAMED and deliberately not anchored: that
-# heading carried the run number until the run-file split and was renamed
-# every write-up, so an anchor went dead at each rename -- and stays dead in
-# every archived revision, where --audit replays this file against today's
-# README and reads its own stale anchors as a --check-doc failure).
-# Constants rather than literals
-# because the property has been re-aimed twice, and a re-aim that misses one
-# use of a name is how a verdict starts disagreeing with the claim it checks.
-# The orderings each numbered claim rests on, as pairs, in the claims
-# section's own order (named above and not anchored, for the reason there).
-# A manifest
-# rather than a parser over the prose: the claims are not uniformly
-# machine-readable -- claim 2's second half is `offtab` BEHIND `bq-expand`
-# rather than an `A < B` ordering, and claim 4 states two readings of
-# one arm -- so anything scraping them would be wrong on exactly the two
-# that need care. Claim 7 names no pair: it is the allocation column, read
-# by `--compare --alloc`. Claim 8 named none either and was structural,
-# read off the table by eye; it retired 2026-08-29 with the pure tier it
-# quantified over.
-# `--lint` holds every arm here to the roster, which is what stops a
-# re-aimed claim from leaving a verdict checking an arm no run times.
-# Each pair carries its registered expectation, so `--claims` prints a
-# verdict rather than leaving every reading to be judged by eye against the
-# claims section. The predicate follows the section's own rules: a direction
-# claim is judged on which side of 1 the paired geomean falls ("the margin
-# is the finding and the p is not"), a tie on the sign test alone (which is
-# how claims 4 and 6 are stated), and claim 9's stable half on the two best
-# shapes of the sort, its geomean being explicitly not the claim.
-# THIRTEEN ORDERINGS BECAME EIGHT AT RUN 19'S WRITE-UP, the retirement
-# settled 2026-08-24 and deliberately applied after the run so that the four
-# retiring claims got one last cross-compiler reading -- all thirteen HELD on
-# both of Run 19's halves, which is the reading they retire on. The test the
-# settlement applied: an ordering stays only if it forecloses something
-# anyone would propose again AND can still break. The claims section's own
-# settlement paragraph owns the account and each retirement's reason; what is
-# here is the shape it asked for. Claims 3, 5 and 9 went outright, claim 4's
-# tie moved into claim 1, and the numbers 3, 4, 5 and 9 are not reused --
-# `--claims` prints in this list's order and the section's headings carry the
-# same numbers, so renumbering would silently repoint every verdict ever
-# recorded against them.
-CLAIMS = [
-    # The ladder the `needs` column draws, top to bottom: what a mutating
-    # method buys, then what a mutable `Int` scratch buys, then the two
-    # arms that need nothing at all. The third link is redundant with the
-    # two added below it and stays for the seven runs of history they do
-    # not carry.
-    # CLAIM 1'S FOOT RUNG RETIRED 2026-08-29, on a decision rather than on
-    # a reading. It registered `bq-scan-rem-gm-mulback` against
-    # `bq-odo-gm-mulback` as a tie, so that either was what ships if the
-    # mutating method were refused upstream -- which is still undecided,
-    # `vFillStrided` sitting on the unmerged `pr-mikolaj-toVectorListT` and
-    # on neither master -- and it read as a tie on every run that carried
-    # it. Both arms stay above, so `--lint`'s rostered check still names
-    # them; `--pair bq-scan-rem-gm-mulback bq-odo-gm-mulback` recovers the
-    # reading, and its last is Run 21's. WHAT GOES DARK WITH IT: no live
-    # registration expects `tie` any more, so the two `expect == 'tie'`
-    # branches below -- in `claim_readings` and in the `--claims` printer
-    # -- are unexercised by this manifest and a change to either would
-    # pass every check here. Re-register a tie to exercise them.
-    # CLAIM 1 RETIRED 2026-09-04 with the prune, which parked every arm
-    # below its top rung -- `mut-flat-gm`, `bq-mut-runs-gm-mulback`,
-    # `bq-odo-gm-mulback` and `bq-scan-rem-gm-mulback` -- so no link of
-    # the ladder can be read on the roster as it stands; its last reading
-    # is Run 24's, in that run's file. CLAIM 10 REGISTERED THE SAME DAY in
-    # its place, on the roster's question: what the leaf fusion buys over
-    # the family root, the shipped fill against `mut-odo-vecdims`, read
-    # ahead of it by every run from Run 20 to Run 24 and at 0.6157, 25 of
-    # 26, on Run 24's basis. It is the one registration, so the `tie` and
-    # best-two-shapes branches below stay unexercised as they have been
-    # since the foot rung went. The ladder as it was, for re-registration
-    # if its arms are ever re-timed:
-    #   (1, 'the ceiling ordering, on unconditional arms',
-    #    [('mut-odo-vecdims', 'mut-flat-gm', 'faster'),
-    #     ('mut-flat-gm', 'bq-mut-runs-gm-mulback', 'faster'),
-    #     ('bq-mut-runs-gm-mulback', 'bq-odo-gm-mulback', 'faster'),
-    #     ('bq-mut-runs-gm-mulback', 'bq-scan-rem-gm-mulback', 'faster')]),
-    (10, 'the leaf fusion, on the family root',
-     [('mut-odo-vecdims-add-in-leaf-u2', 'mut-odo-vecdims', 'faster')]),
-    # CLAIMS 2 AND 6 RETIRED 2026-08-28 with the parking of `offtab` and
-    # `gen-quotrem`, the arm each of them turned on: a claim over a parked arm
-    # cannot be installed, and both were settled orderings a reader takes
-    # from Run 20's tables for good. Claim 2 had already lost its
-    # `bq-expand` / `mut-odo-vecdims` link on 2026-08-26, kept only while
-    # `Data/Array/Internal.hs` carried `bq-expand`, which `vFillStrided`
-    # ended on 2026-08-24; its last reading is Run 20's, 2.1134 on the
-    # basis at 1 of 24, and `--pair bq-expand mut-odo-vecdims` recovers
-    # it, both arms staying timed.
-]
-
-
-READING = collections.namedtuple(
-    'READING', 'a b expect g k m p best ok pub')
-
-
-def claim_readings(cells, shapes, strategies):
-    """Every registered ordering's arithmetic and verdict: {claim: [...]}.
-
-    `--claims` prints these and `--claims --in-place` installs them, and
-    each computed them for itself -- the same four statistics and the
-    same three-way read of the registered expectation, in two loops a
-    hundred lines apart. They drifted where copies do: claim 9's two best
-    cells were joined in one and indexed in the other, so a one-shape run
-    got a line out of the printer and an IndexError out of the installer,
-    on the same arithmetic (2026-08-16). What stays with each caller is
-    the wording, which is all they ever really differed in.
-
-    `best` is None unless the expectation names two shapes, and a pair
-    either half of which this run does not carry is absent, so a claim
-    with nothing live has no entry at all.
-    """
-    out = {}
-    for n, _, pairs in CLAIMS:
-        for a, b, expect in pairs:
-            if a not in strategies or b not in strategies:
-                continue
-            raw, r = pair_stats(cells, shapes, a, b)
-            g, m = geomean(r), len(r)
-            k = sum(1 for x in r if x < 1)
-            p = sign_p(k, m)
-            # The published-column ratio, which only the read-back forms:
-            # None where the pair had to be compared raw, there being no
-            # corrected time to publish.
-            pub = (None if raw else
-                   time_of(cells, shapes, a) / time_of(cells, shapes, b))
-            best = None
-            if isinstance(expect, tuple):
-                best = sorted(s for _, s in sorted(zip(r, shapes))[:2])
-                ok = best == sorted(expect[1:])
-            elif expect == 'tie':
-                ok = p >= 0.05
-            else:
-                ok = (g < 1) if expect == 'faster' else (g > 1)
-            out.setdefault(n, []).append(
-                READING(a, b, expect, g, k, m, p, best, ok, pub))
-    return out
-
-
-def claims_table(cells, shapes, strategies, args):
-    """Every claim's reading and its registered verdict, in one call.
-
-    Each ordering is one `--pair`, and a write-up used to run a dozen of
-    them by hand and then judge each against the claims section by eye --
-    which is where a wrong verdict gets invented, so the expectations now
-    ride in the manifest above and the verdict is printed beside the
-    figures. What stays the author's is everything a predicate cannot
-    hold: whether a HELD margin moved against the run before, and whether
-    a movement clears the floor -- a margin inside it is requoted without
-    comment.
-
-    Claim 7 prints as a reminder with no figures, having no pair: it is
-    `--compare --alloc` between the halves. Naming it here rather than
-    omitting it is the point -- a printed list short of what the run file
-    carries live is how a claim goes unchecked. Claim 8 printed the same
-    way until it retired on 2026-08-29.
-
-    Born checked: run against Run 13's basis, every ordering it prints
-    reproduces the figure that run published -- geomean, win count and
-    sign p alike -- on all thirteen of them. The verdicts' own
-    non-vacuity, 2026-08-14 against that same run: every pair prints HELD,
-    and flipping claim 3's expectation to `slower` printed BROKE on the
-    same figures, as did swapping claim 9's two registered shapes for
-    `stretch-primes` -- so both predicate kinds can fail, and the reverted
-    manifest returned thirteen HELDs.
-    """
-    gone, whole = main_set_gap(shapes, args.main)
-    if gone:
-        print('NOTE: this run carries %d of the main set\'s %d shapes. The'
-              ' claims are registered over the whole of it, so what follows'
-              ' is arithmetic and not their verdicts, which is why every'
-              ' one below reads PART.' % (whole - gone, whole))
-    # One entry per arm, as `install_readings` builds it: an arm the claims
-    # list registers several times over -- `bq-expand` is one -- was counted
-    # once per registration and named once, so a run filtered to drop it
-    # reported more missing arms than it could name. Found 2026-08-17 by
-    # review.
-    missing = sorted({a for _, _, ps in CLAIMS for p in ps for a in p[:2]
-                      if a not in strategies})
-    if missing:
-        print('NOTE: %d arm(s) of the claims list are not in this run: %s'
-              % (len(missing), ', '.join(missing)))
-        print('      a filtered run cannot check the claims; use a full one.')
-    held = broke = 0
-    readings = claim_readings(cells, shapes, strategies)
-    for n, label, pairs in CLAIMS:
-        print('\nclaim %d -- %s' % (n, label))
-        live = [[x.a, x.b] for x in readings.get(n, [])]
-        for a, b, _ in pairs:
-            if [a, b] not in live:
-                print('  %s / %s: not in this run' % (a, b))
-        if live:
-            pair_table(cells, shapes, strategies, live, quiet=True)
-        for x in readings.get(n, []):
-            a, b, expect, ok = x.a, x.b, x.expect, x.ok
-            if x.best is not None:
-                want = 'best two shapes are %s' % ' and '.join(
-                    sorted(expect[1:]))
-                got = 'they are %s' % ' and '.join(x.best)
-            elif expect == 'tie':
-                want, got = 'a tie by sign test', 'sign p %.2g' % x.p
-            else:
-                want = 'A %s (geomean %s 1)' % (expect,
-                                                '<' if expect == 'faster'
-                                                else '>')
-                got = 'geomean %.4f' % x.g
-            held += ok
-            broke += not ok
-            # On a partial population the arithmetic is real and the
-            # verdict is not, so the verdict word is what goes. Saying it
-            # once at the top was not enough: the BROKE lines are forty
-            # lines below it, and a smoke run's two of them read as a
-            # broken README to the session that ran it by hand.
-            print('  %s  %s / %s: registered %s; %s'
-                  % ('PART ' if gone else 'HELD ' if ok else 'BROKE',
-                     a, b, want, got))
-    if gone:
-        print('\nNo verdict: %d of %d shapes. The orderings above are this'
-              ' run\'s arithmetic, not the claims\'.' % (whole - gone, whole))
-    else:
-        print('\n%d of %d registered orderings held.' % (held, held + broke))
-        if broke:
-            # THE MANIFEST IS THE OTHER HALF OF A RETIREMENT, and forgetting
-            # it is not hypothetical: Run 17's chapter retired claim 4's tie
-            # in prose -- *the next run inherits an ordering rather than
-            # re-reading a tie* -- and `CLAIMS` went on registering the tie
-            # for a day, so the next run would have broken it a third time
-            # and a session rediscovered a decision already taken. The
-            # rewrite obligation was already stated and was the half that
-            # got done; this names the half that did not.
-            print('  A BROKE obliges the paragraph above its reading to be'
-                  ' rewritten rather than')
-            print('  requoted -- and where the rewrite RETIRES the'
-                  ' registration rather than')
-            print('  recording a movement, `CLAIMS` in this script is where'
-                  ' that lands. Prose')
-            print('  alone leaves the next run testing the prediction this'
-                  ' one replaced.')
-    print('\nclaim 7 -- allocation: no pair; read it with'
-          '\n  ./read-run.py BASIS.json --compare OTHER.json --alloc')
-    print('\nA verdict answers the registered predicate and nothing more.'
-          '\nWhether a HELD margin moved against the run before, and whether'
-          '\na movement clears the floor, are still the reading\'s to say.')
-
-
-CLAIMS_HEAD = re.compile(r'#+ The claims the next run should test')
-CLAIMS_FIG = re.compile(r'\b\d+(?:\.\d+)?e-\d+\b|\b\d+\.\d{2,4}\b'
-                        # `3 of 3 registered orderings held` is the installed
-                        # line's verdict, not one of its win counts.
-                        r'|\b(\d+) (?:wins )?of (\d+)\b(?! registered)')
-def claims_past(run_now=None):
-    """A sentence attributing its figures to a run OTHER than this one.
-
-    `Run \\d+` matched any run number, this one included, so a verdict
-    sentence opening "In Run 15, `bq-expand` reads 0.9312" exempted every
-    figure in itself -- and a stale CURRENT-run figure, which is the one
-    kind this sweep exists to catch, was the kind it could not see. The
-    run in hand is excluded when the run file's NAME gives its number;
-    where it does not the old behaviour stands, which is a sweep that lists
-    less rather than one that lists wrongly. Found 2026-08-17 by review.
-    """
-    return re.compile((r'Run \d+' if run_now is None
-                       else r'Run (?!%d\b)\d+' % run_now)
-                      + r'|(?:last|previous|earlier|prior)\s+(?:\w+\s+)?runs?')
-
-
-def main_set_gap(shapes, main_hs):
-    """(missing, total): how far a run falls short of the main set.
-
-    Every claims path is registered over the main set, and until
-    2026-08-16 none of them noticed a run that was not it. The arms guard
-    does not catch it: a one-shape run keeps all 47 arms. What a smoke run
-    produced instead was two BROKE verdicts and a forty-item worklist
-    against a README with nothing wrong with it, and, on the install path,
-    an `IndexError` out of a `best two cells` that had one -- a crash the
-    caller then read as the refusal it was waiting for.
-
-    THIS COMPARES AGAINST TODAY'S MAIN SET AND NOT AGAINST THE RUN'S OWN
-    ERA, and that is deliberate at every one of its three callers. The
-    provenance bullet's `added YYYY-MM-DD, after the run` declaration
-    exempts main-set shapes from the POPULATION SIZES (d08d6a5,
-    2026-09-02) and from nothing else, the roster-size sites being
-    sentences about the roster as it stands. Each caller here reads a run
-    that carries today's shapes by construction, so the gap is a signal
-    that something else is being read -- an older run, or a filtered one
-    -- rather than a mismatch to forgive.
-    """
-    dims = dims_by_shape(main_hs)[0]
-    whole = {s for s, d in dims.items()
-             if d['lst'] in MAIN_LISTS and not d['retired']}
-    return len(whole - set(shapes)), len(whole)
-
-
-def claims_section(paras):
-    """Where the verdict subsection starts and ends, in a paragraph list.
-
-    The installer and the read-back both need it and neither may guess:
-    the restatement below `Restated` carries figures of its own, and a
-    paragraph leading with a claim's number occurs outside the section
-    too, so a search over the whole README finds the wrong one rather than
-    none. Returns (None, None) when either end is missing, which every
-    caller reports rather than working around.
-    """
-    start = next((i for i, p in enumerate(paras)
-                  if CLAIMS_HEAD.match(p.lstrip())), None)
-    if start is None:
-        return None, None
-    end = next((i for i in range(start + 1, len(paras))
-                if paras[i].lstrip().startswith('Restated')), None)
-    return (start, end) if end is not None else (None, None)
-
-
-def claims_readings(cells, shapes, strategies):
-    """Each claim's figures, as the paragraph the README is to carry.
-
-    The claims section was the last figure-bearing block with no
-    installer, so a run hand-copied a dozen orderings out of `--claims`
-    and the transcription was where the wrong figure got in. What is
-    installed is the arithmetic and nothing else -- per link the paired
-    geomean, the win count and the sign p, then how many registered
-    orderings held -- on the same division the class blocks keep: the
-    reader writes the sentence a predicate can write, the author writes
-    the comparison with the run before and the judgement of whether a
-    movement clears the floor.
-
-    Claim 9's expectation is its two best cells rather than a direction,
-    so its reading names them; a claim with no live pair is absent from
-    what this returns, having no arithmetic to install.
-    """
-    out = {}
-    for n, live in claim_readings(cells, shapes, strategies).items():
-        bits, broke = [], []
-        for x in live:
-            bit = ('`%s` / `%s` %.4f, %d of %d, sign p %.2g'
-                   % (x.a, x.b, x.g, x.k, x.m, x.p))
-            if x.best is not None:
-                bit += ', best two cells %s' % ' and '.join(
-                    '`%s`' % s for s in x.best)
-            if not x.ok:
-                broke.append('`%s` / `%s`' % (x.a, x.b))
-            bits.append(bit)
-        verdict = ('%d of %d registered ordering%s held'
-                   % (len(bits) - len(broke), len(bits),
-                      '' if len(bits) == 1 else 's'))
-        if broke:
-            verdict += ', BROKE on ' + ' and '.join(broke)
-        out[n] = '**Readings:** %s. %s.' % ('; '.join(bits), verdict)
-    return out
-
-
-def install_readings(readme, texts, src, strategies, shapes, main_hs):
-    """Install each claim's Readings paragraph under its lead, or refuse.
-
-    The lead is the author's `**Claim N` paragraph and the reading goes
-    directly beneath it, which is the class blocks' arrangement and is
-    matched the same way -- exactly one lead per claim inside the verdict
-    section, or this exits rather than guessing. A claim whose reading is
-    missing gets one inserted and said so on the way out, the case five
-    class blocks silently lost their per-shape line to.
-
-    A filtered run is refused outright: `--exclude` can leave a claim's
-    arms out, and a section installed from it would carry a subset with
-    nothing in the README saying so.
-
-    Born checked, 2026-08-16, against a copy, four ways: run twice it
-    leaves the file byte-identical the second time; with `**Claim 3 held.`
-    renamed it exits 1 naming that claim and writes nothing; with claim 2's
-    Readings paragraph deleted it reinserts that one alone and says so,
-    restoring the file byte-identical; and under `--exclude bq-mut` it
-    exits 1 naming the arm rather than installing six claims of seven.
-    """
-    missing = sorted({a for _, _, ps in CLAIMS for p in ps for a in p[:2]
-                      if a not in strategies})
-    if missing:
-        sys.exit('--in-place: %d claim arm(s) are not in this run (%s); a'
-                 ' filtered run cannot install the claims'
-                 % (len(missing), ', '.join(missing)))
-    gone, whole = main_set_gap(shapes, main_hs)
-    if gone:
-        sys.exit('--in-place: this run carries %d of the main set\'s %d'
-                 ' shapes; the claims are registered over the whole of it,'
-                 ' so a shape-filtered run cannot install them'
-                 % (whole - gone, whole))
-    with open(readme) as f:
-        paras = f.read().split('\n\n')
-    flat = [' '.join(p.split()) for p in paras]
-    start, end = claims_section(flat)
-    if start is None:
-        sys.exit('--in-place: no claims verdict section in %s, so there is'
-                 ' nothing to install into' % os.path.basename(readme))
-    done = added = 0
-    for n in sorted(texts):
-        lead = [i for i in range(start + 1, end)
-                if re.match(r'\*\*Claims? %d\b' % n, flat[i])]
-        if len(lead) != 1:
-            sys.exit('--in-place: %d paragraph(s) in the claims section lead'
-                     ' with **Claim %d, need exactly one' % (len(lead), n))
-        i = lead[0]
-        if i + 1 < end and flat[i + 1].lstrip('*').startswith('Readings:'):
-            if flat[i + 1] != texts[n]:
-                paras[i + 1] = flat[i + 1] = texts[n]
-                done += 1
-        else:
-            paras.insert(i + 1, texts[n])
-            flat.insert(i + 1, texts[n])
-            end += 1
-            added += 1
-            sys.stderr.write('claim %d: Readings paragraph ADDED, the claim'
-                             ' had none\n' % n)
-    with open(readme, 'w') as f:
-        f.write('\n\n'.join(paras))
-    sys.stderr.write('installed at %s from %s, %d claim reading(s) rewritten'
-                     ' and %d added, of %d\n'
-                     % (os.path.basename(readme), os.path.basename(src),
-                        done, added, len(texts)))
-
-
-def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
-    """Figures in the claims verdicts that this run's readings do not give.
-
-    The installer writes each claim's readings; this asks the other
-    question, whether a figure the AUTHOR wrote beside them is this run's.
-    On 2026-08-15 a write-up shipped a whole verdict section of the
-    previous run's figures with every checker green, and no installer
-    reaches that: the sentence is the author's and stays the author's.
-
-    A figure earns its place three ways -- it is one of its own claim's
-    readings (paired geomean, published-column ratio, win count, sign p),
-    it is a percentage, or its sentence attributes it, naming a run or
-    saying "the last two runs". Everything else is listed. Attribution is
-    by paragraph lead, so a continuation paragraph is read against the
-    claim above it, and a claim with no live pair is skipped whole, its
-    figures being the table's rather than a pair's.
-
-    It lists rather than fails, and the summary count is the instrument
-    rather than the list: a clean README reproduces nearly everything and
-    leaves a handful of table-sourced cells, where a stale one collapses.
-
-    The installed readings are checked too, not skipped as trivially this
-    run's: a README whose `Readings:` lines were never reinstalled is exactly
-    the failure this exists for, and it is the densest evidence of it.
-
-    Non-vacuity, 2026-08-16, three readings over Run 14's artifacts. The
-    README reproduces 44 and lists nothing -- after the one figure it did
-    list was fixed, an unattributed Run 13 sign p inside claim 2's
-    paragraph, which is this check's first find and exactly the kind the
-    README's own convention forbids. Run 13's published README against the same
-    artifacts, which is the shape the 2026-08-15 incident had, reproduces
-    17 and lists 17. And the control half read in place of the basis
-    reproduces 9 and lists 35, which is why the basis is a caller's
-    argument here as it is everywhere else in this README.
-    """
-    gone, whole = main_set_gap(shapes, main_hs)
-    if gone:
-        # A NOTE AND A ZERO EXIT, and both are load-bearing. smoke-sweep.sh
-        # runs this mode over the ONE-SHAPE smoke run and wants exit 0,
-        # calling it the read-back's only pre-run exercise, so a shape gap
-        # that failed here would fail pre-run step 11. And the gap cannot
-        # arise where the procedure reads a real run: post-run step 4a and
-        # install-tables.sh both point this at `$R-<basis>-main.json`, the
-        # run's own, built from today's Main.hs. Run 24's preparation read
-        # the skip as a hole in the checking and proposed exactly that
-        # failure; the call sites are what refuted it (2026-09-03).
-        print('\nnote: this run carries %d of the main set\'s %d shapes, so'
-              ' the README\'s figures are not comparable with it and were not'
-              ' read back. Nothing here is a finding about the README.'
-              % (whole - gone, whole))
-        return
-    try:
-        doc = open(readme).read()
-    except OSError as exc:
-        print('\nnote: %s unread, so the claims section went unchecked: %s'
-              % (os.path.basename(readme), exc))
-        return
-    paras = [' '.join(p.split()) for p in doc.split('\n\n')]
-    start, end = claims_section(paras)
-    if start is None:
-        print('\nnote: no claims verdict section in %s, so this check did'
-              ' not happen rather than passing'
-              % os.path.basename(readme))
-        return
-
-    # The same arithmetic the printer and the installer use, and formatted
-    # here the way they format it: this check matches the README on the
-    # STRING, so a format that moved in the writer and not here would stop
-    # the read-back recognising figures it had just written -- or leave it
-    # passing while checking a shape nothing emits.
-    readings = {}
-    for n, live in claim_readings(cells, shapes, strategies).items():
-        figs = set()
-        for x in live:
-            figs.add('%.4f' % x.g)
-            figs.add('%d of %d' % (x.k, x.m))
-            figs.add('%.2g' % x.p)
-            if x.pub is not None:
-                figs.add('%.4f' % x.pub)
-        readings[n] = figs
-
-    # The paragraphs above the first claim are the section's own summary,
-    # and they quote figures too -- the movement that is the run's reading.
-    # They are read against every claim's figures rather than one's.
-    every = set().union(*readings.values()) if readings else set()
-    past_re = claims_past(run_no_of(readme))
-    # A RETIREMENT EPITAPH IS ATTRIBUTED, not unaccounted. A claim leaving
-    # the manifest takes its pair with it, so every figure in the sentence
-    # recording what it last read becomes a figure this mode cannot
-    # account for -- and it is precisely the figure the settlement asked
-    # to be written down, so that the last reading survives the manifest
-    # diff. Run 19 retired four claims and put eleven such figures in two
-    # sentences; without this they list as unattributed, and a session
-    # meeting that list reads a correct write-up as a defective one.
-    retired_re = re.compile(r'\bretire(s|d|ment|ments)?\b', re.I)
-    ok, listed, skipped, claim = 0, [], set(), None
-    for para in paras[start + 1:end]:
-        lead = re.match(r'\*\*Claims? (\d+)', para)
-        if lead:
-            claim = int(lead.group(1))
-        if claim is not None and claim not in readings:
-            skipped.add(claim)
-            continue
-        allowed = every if claim is None else readings[claim]
-        for sent in re.split(r'(?<=[.!?]) (?=[A-Z*`(])', para):
-            past = past_re.search(sent)
-            for m in CLAIMS_FIG.finditer(sent):
-                if sent[m.end():m.end() + 1] == '%':
-                    continue
-                fig = ('%s of %s' % (m.group(1), m.group(2))
-                       if m.group(1) else m.group(0))
-                if fig in allowed:
-                    ok += 1
-                elif not past and not retired_re.search(sent):
-                    listed.append((claim, fig, sent))
-    # Name the file the readings came from. A run pointed at the control
-    # half lists two dozen figures as unaccounted, which is what a stale
-    # section looks like too -- and the cure for one is to rewrite two
-    # dozen correct sentences, so the two must not print alike.
-    print('\n%d figure(s) in the verdicts are the readings of %s.'
-          % (ok, os.path.basename(src)))
-    if skipped:
-        print('claim%s %s ha%s no live pair here, so what %s quote%s is the'
-              ' table\'s and goes unchecked by this.'
-              % ('' if len(skipped) == 1 else 's',
-                 ' and '.join(str(n) for n in sorted(skipped)),
-                 's' if len(skipped) == 1 else 've',
-                 'it' if len(skipped) == 1 else 'they',
-                 's' if len(skipped) == 1 else ''))
-    if not listed:
-        print('note: no unattributed figure left over.')
-        return
-    print('note: %d figure(s) neither this run\'s, nor attributed to'
-          ' another run, nor inside a sentence about a retirement;'
-          ' adjudicate each:' % len(listed))
-    for n, fig, sent in listed:
-        print('        %-9s %-9s %s'
-              % ('summary' if n is None else 'claim %d' % n, fig, sent[:92]))
-
-
 # The regime 3 fix became the `mut-odo-vecdims` FAMILY by the decision of
 # 2026-08-22 (README, the ceiling), narrowed 2026-08-24 to its
 # `add-in-leaf-u2` member, which is what ships; `bq-expand` the last
@@ -5924,7 +5367,7 @@ MS_RE = re.compile(r'\b\d+(?:\.\d+)?\s*ms\b')
 BURIED_RE = re.compile(r'\./(?:read-run\.py|loop-offsets\.py|run-gate\.sh'
                        r'|run-major\.sh|smoke-sweep\.sh|\$R-)'
                        r'|(?<![\w-])--(?:survey|in-place|para|compare'
-                       r'|machine|claims|steps|alloc)(?![\w-])')
+                       r'|machine|steps|alloc)(?![\w-])')
 
 
 def buried_actions(lines):
@@ -6202,7 +5645,7 @@ def run_docs(here=None):
 
     ONE FILE PER RUN, and the number in the file name and in no heading:
     the run file's sections are `Results`, `What the next run compares
-    against`, `The claims the next run should test` and `The stride
+    against`, `The properties the next run should test` and `The stride
     classes, run by run`, none of which carries a numeral, so a write-up
     makes a file and renames one heading -- `Recommended tasks after Run
     N`, which is the open list's and stays in README.md. Four renames were
@@ -6227,7 +5670,7 @@ def run_docs(here=None):
 
 
 def current_run_doc(here=None):
-    """The file every table and every claim reading is installed into."""
+    """The file every table and every class block is installed into."""
     docs = run_docs(here)
     return docs[0][1] if docs else None
 
@@ -8268,7 +7711,7 @@ def paragraphs(docs, pattern, every=False):
         item, pattern = m.group(1), pattern[:m.start()]
     # A LEAD PASTED VERBATIM IS THE ORDINARY CALL, and this argument is a
     # REGEX, so the two collide wherever a lead carries brackets -- which
-    # every registration item's does. Compiled, `(11) *Claim 7...` matches
+    # every registration item's does. Compiled, `(9) *The floor...` matches
     # nothing and exits 0, reporting no such paragraph for one that is
     # demonstrably there; truncated to `(11` it raised re.error with a
     # stack. Try the pattern, fall back to the literal, and refuse a
@@ -8339,7 +7782,7 @@ def paragraphs(docs, pattern, every=False):
     body = [(path, first, para) for path, first, para in paras
             if rx.search(para)]
     # THE LITERAL RETRY REACHES THE BODY TOO. A registration item's
-    # paragraph opens with `(11) *Claim 7 ...*` and no bolded lead at all,
+    # paragraph opens with `(9) *The floor ...*` and no bolded lead at all,
     # so a caller pasting that lands here -- and as a regex it matches
     # nothing, which is the silent failure this fallback exists to end.
     if not body and re.escape(pattern) != pattern:
@@ -8557,7 +8000,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
 
     TWO DOCUMENTS, read as one. The run's own write-up is
     `runs/run<N>.md` -- the chapter head, Results, what the next run
-    compares against, the claims it should test and the eight class blocks
+    compares against, the properties it should test and the class blocks
     -- and README.md is what stands between runs. Nearly every check here
     is a sweep over prose or a figure quoted in several places, and those
     places now fall either side of the split, so the sweeps read the pair
@@ -8678,7 +8121,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         note.append('no chapter recipe pipes or chains a gate')
     if run_doc is None:
         bad.append('BLOCKED: no run file in %s/, so the Results table, the'
-                   ' fingerprint, the claims readings and the class blocks'
+                   ' fingerprint and the class blocks'
                    ' were not checked at all -- everything a run publishes'
                    ' is in that file and none of it was read' % RUNS_DIR)
 
@@ -9863,7 +9306,8 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     # The HEAD FAILS and the rest is a worklist, which is the split the two
     # checks this replaces had between them: the head is a handful of
     # paragraphs and every one is written from this run's numbers, while a
-    # class block's form and a claim's restatement can legitimately repeat.
+    # class block's form and a property's restatement can legitimately
+    # repeat.
     def figure_blocks(text, figures_only=True):
         # `figures_only` is FALSE for the HEAD, which a run replaces
         # WHOLE: there, any paragraph the run before also had is
@@ -10941,18 +10385,20 @@ def check_doc_quiet(readme, main_hs, run_doc=None, prev_doc=None):
     return rc
 
 
-def claim_items(text):
-    """The claims section's numbered items, as (number, line, body).
+PROPERTIES_HEAD = re.compile(r'#+ The properties the next run should test')
 
-    BOTH numbered sets -- the live claims and the class properties -- since
-    a run returns a verdict on each. The prose between and after them is
+
+def property_items(text):
+    """The properties section's numbered items, as (number, line, body).
+
+    A run returns a verdict on each. The prose between and after them is
     deliberately NOT included: that is where retirements are recorded, and
     a retirement names the arm it retires, so a check over the section
     would fire on every one of them.
     """
     lines = text.split('\n')
     try:
-        i = next(k for k, l in enumerate(lines) if CLAIMS_HEAD.match(l))
+        i = next(k for k, l in enumerate(lines) if PROPERTIES_HEAD.match(l))
     except StopIteration:
         return []
     end = next((k for k, l in enumerate(lines[i + 1:], i + 1)
@@ -11060,66 +10506,26 @@ def lint(main_hs, readme, run_doc=None):
         print('ok:   every fb function defined in Main.hs is in the roster'
               ' (%d of them, one of which is the reference)' % len(rostered))
 
-    # The claims manifest names arms `--claims` will ask the reader for, and
-    # a re-aimed claim that misses one leaves a verdict checking an arm no
-    # run times -- which fails only when somebody runs it, months later.
-    # Held to the roster here, where every other name in this file is.
-    # Non-vacuous 2026-08-14: renaming one arm of claim 4 in the manifest
-    # named it and exited 1; restoring it returned the ok line.
-    claimed = sorted({a for _, _, ps in CLAIMS for pr in ps for a in pr[:2]})
-    stray = [a for a in claimed if a not in names]
-    if stray:
-        bad.append('%d arm(s) the claims manifest names are not rostered,'
-                   ' so `--claims` would ask for what no run times: %s'
-                   % (len(stray), ', '.join(stray)))
-    else:
-        print('ok:   every arm the claims manifest names is rostered'
-              ' (%d across %d claims)' % (len(claimed), len(CLAIMS)))
-
-    # ONE SITE FOR THE PARKED SET, which the claims check below and the
+    # ONE SITE FOR THE PARKED SET, which the properties check below and the
     # registration check under it both ask for. It was computed twice,
     # once in each, which is `two-spellings` in a file whose own corpus
     # tracks that family -- harmless while the two expressions agreed and
     # exactly the shape that stops agreeing.
     untimed = set(names) - set(timed)
 
-    # THE SAME QUESTION FOR THE CLAIMS THAT HAVE NO MANIFEST, which is the
-    # half the check above cannot reach: claim 7 is prose and reaches
-    # `CLAIMS` not at all -- claim 8 was too until it retired 2026-08-29 --
-    # so an arm parked out of the TIMED roster leaves such a claim naming
-    # what no run measures, and nothing here saw it. Not
-    # hypothetical -- the parking of 2026-08-28 retired claims 2 and 6 in
-    # `CLAIMS` and left both live in the run file naming `offtab` and
-    # `gen-quotrem`, claim 7's levels naming two more and claim 8's span a
-    # third, through two preflights, `--check-doc`, `defect-run.py` and
-    # every gate here.
-    #
-    # A retired item is exempt by the marker it already carries, `**Retired`
-    # opening its body, which is the form all six retirements in the run
-    # file use -- so retiring a claim in prose is what clears it here, and
-    # that is the coupling this check exists to force.
-    #
-    # NON-VACUITY, 2026-08-28, and on the real document rather than a
-    # fixture: pointed by `--run-doc` at run20.md as the parking commit left
-    # it (`git show 8f2a4e5:micro-regime3/runs/run20.md`, on the working
-    # branch, so un-retiring claims 2 and 6 rebuilds the control if that
-    # commit is ever squashed away) it exits 1 naming
-    # all four -- claim 2 `offtab`, claim 6 `cm-gather` and `gen-quotrem`,
-    # claim 7 `bq-mut`, `gen-quotrem` and `offtab`, claim 8 `bq-expand-zf`
-    # and `bq-gen` -- and on the repaired file it returns the ok line. That
-    # control is a commit and cannot rot the way a fixture does.
-    #
-    # THE RULE IS STRICTER THAN THE PARKING THAT PROMPTED IT, which the same
-    # control shows: `cm-gather` is untimed and claim 6 named it for five
-    # runs while SAYING SO -- `the cm-gather < list half is untimed and
-    # stands as Run 8's`. So a live claim may not name an untimed arm even
-    # to say that it is untimed; that half belongs in the prose beside the
-    # item, where every reading does. Loosening this to exempt a
-    # self-declaring clause is refused: the predicate would be `does the
-    # sentence admit it`, which is the noise-for-signal shape this file
-    # refuses elsewhere.
+    # A LIVE PROPERTY MAY NOT NAME AN ARM THE ROSTER NO LONGER TIMES, or
+    # it cannot be read on this run at all, and nothing else here sees
+    # that. A retired item is exempt by the marker it already carries,
+    # `**Retired` opening its body, so retiring one in prose is what
+    # clears it, and that coupling is what this check exists to force.
+    # The rule is stricter than the parking that prompts it: an item may
+    # not name an untimed arm even to say that it is untimed, that half
+    # belonging in the prose beside the item, where every reading does.
+    # Loosening it to exempt a self-declaring clause is refused -- the
+    # predicate would be `does the sentence admit it`, which is the
+    # noise-for-signal shape this file refuses elsewhere.
     if run_doc:
-        items = claim_items(run_text)
+        items = property_items(run_text)
         stale = []
         for num, ln, body in items:
             if body.lstrip().startswith('**Retired'):
@@ -11127,36 +10533,38 @@ def lint(main_hs, readme, run_doc=None):
             gone = sorted(set(re.findall(r'`([A-Za-z][A-Za-z0-9-]*)`', body))
                           & untimed)
             if gone:
-                stale.append('claim %s (%s:%d): %s'
+                stale.append('property %s (%s:%d): %s'
                              % (num, os.path.basename(run_doc), ln,
                                 ', '.join(gone)))
         if stale:
-            bad.append('%d live claim(s) name arms the roster no longer'
-                       ' times, so the claim cannot be read on this run --'
-                       ' retire it or re-aim it:\n        %s'
+            bad.append('%d live propert(y/ies) name arms the roster no'
+                       ' longer times, so the property cannot be read on'
+                       ' this run -- retire it or re-aim it:\n        %s'
                        % (len(stale), '\n        '.join(stale)))
         elif items:
-            print('ok:   every arm a live claim names is still timed'
-                  ' (%d claim item(s) read, %d untimed arm(s) to avoid)'
+            print('ok:   every arm a live property names is still timed'
+                  ' (%d item(s) read, %d untimed arm(s) to avoid)'
                   % (len(items), len(untimed)))
         else:
             # An `ok` over zero items is the vacuous pass this file refuses
-            # everywhere else, and it is reachable: a run file whose claims
-            # section has not been written yet parses to no items at all.
-            # Proved by `--run-doc /dev/null`, which read 0 and said `ok`
-            # until this branch existed.
-            print('skip: no claims section in %s, so no live claim was held'
-                  ' to the roster' % os.path.basename(run_doc))
+            # everywhere else, and it is reachable: a run file whose
+            # properties section has not been written yet parses to no
+            # items at all. Proved by `--run-doc /dev/null`, which read 0
+            # and said `ok` until this branch existed.
+            print('skip: no properties section in %s, so no live property'
+                  ' was held to the roster' % os.path.basename(run_doc))
     else:
         # `--run-doc` defaults to the newest in runs/, so this fires only
         # where that directory is empty -- and a check that says nothing
         # there would be a silent search, which this file refuses.
-        print('skip: no run file, so no live claim was held to the roster')
+        print('skip: no run file, so no live property was held to the'
+              ' roster')
 
     # THE REGISTRATION, WHICH NOTHING HERE READ UNTIL 2026-09-04. The check
-    # above holds a live CLAIM to the timed roster. A REGISTRATION is the
-    # same shape of promise about the same arms -- written before the run
-    # where a claim is written after it -- and no check reached it at all,
+    # above holds a live PROPERTY to the timed roster. A REGISTRATION is
+    # the same shape of promise about the same arms -- written before the
+    # run where a property is written after it -- and no check reached it
+    # at all,
     # which the open list has said outright since Run 24 lost a clause of
     # one to an arm the same commit parked. Two questions, both answerable
     # off the document and neither needing a run:
@@ -11176,7 +10584,8 @@ def lint(main_hs, readme, run_doc=None):
     # prose -- so it stays pre-run step 12b's, a reading, and this check
     # names what it covers rather than implying the rest.
     #
-    # ARMS ARE READ AS THE CLAIMS CHECK READS THEM: a backticked token that
+    # ARMS ARE READ AS THE PROPERTIES CHECK READS THEM: a backticked token
+    # that
     # the roster carries as `Only`. A registration is thick with backticks
     # that are not arms -- `predict: cross list 1.0 within 0.7%`,
     # `LOOP_DEADSPOT=1`, section names -- and intersecting with the parked
@@ -11845,9 +11254,6 @@ def main():
     p.add_argument('--chapter', action='store_true',
                    help='with --compare: the run chapter\'s mechanical'
                         ' figures, as --block does for a class')
-    p.add_argument('--claims', action='store_true',
-                   help='every claim ordering and its registered verdict'
-                        " in one call, in the claims section's order")
     p.add_argument('--alloc', action='store_true',
                    help='with --compare: allocation agreement instead of'
                         ' times, on the multiple the alloc column publishes')
@@ -11911,8 +11317,8 @@ def main():
                         ' no computed figure differs either way')
     p.add_argument('--in-place', action='store_true',
                    help='install --markdown/--fingerprint/--block tables,'
-                        " or --claims' per-claim readings, into the run's"
-                        ' own file instead of printing them')
+                        " into the run's own file instead of printing"
+                        ' them')
     p.add_argument('--selftest', action='store_true')
     p.add_argument('--lint', action='store_true')
     p.add_argument('--check-doc', action='store_true')
@@ -12033,7 +11439,7 @@ def main():
     p.add_argument('--run-doc', dest='run_doc', metavar='FILE',
                    help="the run's own file, `runs/run<N>.md`, which carries"
                         ' the Results table, the fingerprint tables, the'
-                        ' claims readings and the nine class blocks --'
+                        ' and the class blocks --'
                         ' everything a run replaces. Every --in-place'
                         ' install writes it and no other document'
                         ' (default: the newest in runs/)')
@@ -12055,7 +11461,7 @@ def main():
     args = p.parse_args()
     # RESOLVED ONCE, HERE, so that every mode below reads the same run and a
     # session cannot install one run's tables while reading another's
-    # claims back. The default is the newest file in runs/ rather than a
+    # figures back. The default is the newest file in runs/ rather than a
     # literal, so the write-up that adds `runs/run20.md` re-aims every mode
     # by creating it.
     # A COPY POINTED AT BY `--readme` DOES NOT AIM AN INSTALL, and saying
@@ -12066,8 +11472,7 @@ def main():
     # would silently find the newest file in runs/. Measured on 2026-08-25,
     # when the corpus wrote eleven tables into the live run file that way.
     if (args.in_place and args.readme is not None and args.run_doc is None
-            and (args.markdown or args.fingerprint or args.block
-                 or args.claims)):
+            and (args.markdown or args.fingerprint or args.block)):
         p.error('--in-place writes the run\'s own file, not --readme:'
                 ' name it with --run-doc, or drop --readme')
     if args.readme is None:
@@ -12107,9 +11512,9 @@ def main():
     # wrote nothing and exited 0, which is the silence this loop
     # exists to refuse.
     if args.in_place and not (args.markdown or args.fingerprint
-                              or args.block or args.claims):
-        p.error('--in-place is a modifier of --markdown, --fingerprint,'
-                ' --block or --claims and does nothing alone')
+                              or args.block):
+        p.error('--in-place is a modifier of --markdown, --fingerprint'
+                ' or --block and does nothing alone')
     def asked(v):
         """Was this flag given? False and 0 are given; None is not."""
         return v is not None and v is not False
@@ -12180,7 +11585,7 @@ def main():
     # after they were written: a mode added outside this list is exactly
     # the silent drop the list exists to refuse, and `--inherited --lint`
     # printed the report and said nothing of the lint it never ran.
-    modes = [f for f in ('shapes', 'aa', 'pair', 'claims', 'compare',
+    modes = [f for f in ('shapes', 'aa', 'pair', 'compare',
                          'machine', 'steps', 'cells', 'markdown',
                          'fingerprint', 'block', 'selftest', 'lint',
                          'check_doc', 'para', 'wild', 'deflation',
@@ -12342,7 +11747,7 @@ def main():
     # out. Run 24's write-up improvised it with two flags and recorded the
     # improvisation as a task; Run 25 improvised it with EIGHT, and every
     # cross-run figure it published needed them: the predecessor's whole
-    # column, its claim readings, its allocation levels, its correction
+    # column, its allocation levels, its correction
     # terms. Two runs is the bar this file uses for making something a
     # mode, and a hand-typed list is a place to drop a shape silently.
     if args.pin:
@@ -12458,15 +11863,6 @@ def main():
     elif args.pair:
         pair_table(cells, shapes, strategies, args.pair,
                    per_shape=args.per_shape)
-    elif args.claims and args.in_place:
-        install_readings(want_run_doc(args),
-                         claims_readings(cells, shapes, strategies),
-                         args.run, strategies, shapes, args.main)
-    elif args.claims:
-        claims_table(cells, shapes, strategies, args)
-        claims_in_doc(want_run_doc(args), cells, shapes, strategies,
-                      args.run,
-                      args.main)
     elif args.compare and args.block:
         # --block owns the pair here: --compare is its second file and not
         # a mode of its own, so it has to be tested before the plain

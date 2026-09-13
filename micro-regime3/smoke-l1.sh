@@ -156,7 +156,7 @@ fi
 # --machine wants a population the run file's fingerprint holds and so
 # refuses on a class.
 say "=== every single-file reader mode over each leg"
-ALWAYS=("" "--shapes" "--aa" "--aa --brief" "--claims" "--steps" "--cells" \
+ALWAYS=("" "--shapes" "--aa" "--aa --brief" "--steps" "--cells" \
         "--markdown" "--fingerprint" "--selftest")
 OPTIONAL=("--deflation" "--extremes")
 for i in "${!LEGS[@]}"; do

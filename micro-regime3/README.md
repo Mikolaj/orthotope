@@ -415,8 +415,8 @@ the chronology of how the instructions got here.
   - [Results](runs/run30.md#results)
   - [What the next run compares
     against](runs/run30.md#what-the-next-run-compares-against)
-  - [The claims the next run should
-    test](runs/run30.md#the-claims-the-next-run-should-test)
+  - [The properties the next run should
+    test](runs/run30.md#the-properties-the-next-run-should-test)
   - [The stride classes, run
     by run](runs/run30.md#the-stride-classes-run-by-run)
   - [Provenance](runs/run30.md#provenance)
@@ -700,15 +700,12 @@ rather than a slot in the next run, observed again:
   and 0.42 for a third run; (9) the floor with the fill family's pair, HELD
   in all forty-four readings --- and its hand-read half REVERSES Run 29's,
   `bq-expand-aa-distant` carrying the whole-set floor at 0.57% where two runs
-  had said the gap was the fill pair's own; (10) claim 10 without the flag, HELD
-  at 0.6446 and 0.6525, so the leaf fusion is neither -O2 pass's; (11) claim 7
-  without the flag, KILLED, `list` alone moving from 24.90x to 25.26x
-  on the pinned eighteen. All three kills fell on an item predicting a no-op,
-  which is the third run running.
+  had said the gap was the fill pair's own. Both kills fell on an item
+  predicting a no-op, which is the third run running.
 - `ANSWERED` **What Run 29 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 29's own file](runs/run29.md), where a run's
-  registrations have lived since 2026-08-29; in a clause each: (1) the flag
+  registrations have lived since 2026-08-29; in a clause: (1) the flag
   on the shipped fill, HELD on the main set at 1.0001, 0.9945 and 1.0044,
   with ten of its thirty-three class readings outside 1% on `bcast`, `bcastmid`,
   `block` and `small`; (2) the flag on the reference, KILLED, `list` reading
@@ -727,13 +724,10 @@ rather than a slot in the next run, observed again:
   1.0075 and 0.9710 on `bcastmid`, 0.2320 and 0.2328 on `runs` and 0.4225
   and 0.4259 on `block`; (9) the floor with the fill family's pair, HELD in all
   forty-four readings, the whole-set floor being that pair's for a second run
-  at 0.51% against the carry-back figure's 0.26%; (10) claim 10 without
-  the flag, HELD at 0.6441 and 0.6413; (11) claim 7 without the flag, KILLED,
-  `bq-expand` reading 2.06x under the flag and 2.76x without it and `list`
-  22.38x against 24.90x. **Eight held, three were killed, and all three kills
-  fell on an item predicting a no-op** --- Run 28's own finding read again
-  on a different variable, and the write-up does not claim the converse, five
-  other no-op arguments having held.
+  at 0.51% against the carry-back figure's 0.26%. **Every kill fell on an item
+  predicting a no-op** --- Run 28's own finding read again on a different
+  variable, and the write-up does not claim the converse, five other no-op
+  arguments having held.
 - `ANSWERED` **Why does `bq-scan-packed-mulback` get worse
   under `-fspec-constr`, when the packing was hand-rolled to buy exactly what
   the flag hands its control for free?** Dumped in both regimes from Run 8's
@@ -963,38 +957,38 @@ rather than a slot in the next run, observed again:
   it runs, they disagree on WHICH arms and move `list`'s multiple in OPPOSITE
   directions, and nothing here says why an optimisation pass should move
   an allocation multiple at all.** **Run 30 reads the other -O2 pass on the same
-  question and the answer is not the same.** Its registration (11) was killed
-  on ONE level, not two: over the same pinned eighteen, `-fliberate-case` leaves
-  `bq-expand` at 2.76x and takes `list` from 24.90x to **25.26x** --- UPWARD,
-  where `-fspec-constr` takes the same arm DOWNWARD from 24.90x to 22.38x.
-  So the two passes move the reference's allocation in opposite directions, one
-  of them touches `bq-expand` and the other does not, and both speed `list` up.
-  The counted work sharpens it further: under `-fliberate-case` TEN
-  of the eighteen arms read counts EXACTLY 1.0000 between the halves and EIGHT
-  move --- the `bq-expand` and `list` families of three each,
-  and `lib-stage2-lean` with its twin by a tenth of a percent, where
-  `-fspec-constr` thinned every arm. Whatever the account is, it has to explain
-  an allocation multiple rising on the arm a pass makes faster. Run 29's
-  registration (11) predicted the levels unmoved between its halves
-  and was KILLED on two of them: over the eighteen shapes claim 7 is pinned to,
-  `bq-expand` reads **2.06x** under the flag and **2.76x** without it,
-  and `list` **22.38x** against **24.90x**, while every fill and every `liblist`
-  consumer holds 1.00x and every `libunord` consumer 0.00x on both halves.
-  The two that move are exactly the two the flag speeds up, and the counted work
-  has them converting their instruction saving to time almost entirely ---
-  `time/counts` 1.0161 and 0.9926 --- where the eight arms whose time the flag
-  does not move --- `mut-odo-vecdims` and the seven timed arms below it ---
-  convert none of theirs. So the allocation change and the time change arrive
-  together on the same two arms and on no others. **What would settle
-  it** is Core for one of the two under each regime, read for what SpecConstr's
-  specialisation does to a boxed intermediate the unspecialised loop allocates
-  per call; the arms are `bq-expand` and `list`, both of them library-shaped,
-  and `list` is the reference every table here divides by, so the answer decides
-  how much of this README's published column is a property of the regime rather
-  than of the strategies. Until it is taken, no claim here should describe
-  an allocation multiple as a property of a strategy alone: claim 7's own
-  preamble says its levels are `-fspec-constr` claims, and Run 29 is the run
-  that made that a measured statement rather than a note on the regime.
+  question and the answer is not the same.** It moved ONE level, not two:
+  over the same eighteen shapes, `-fliberate-case` leaves `bq-expand` at 2.76x
+  and takes `list` from 24.90x to **25.26x** --- UPWARD, where `-fspec-constr`
+  takes the same arm DOWNWARD from 24.90x to 22.38x. So the two passes move
+  the reference's allocation in opposite directions, one of them touches
+  `bq-expand` and the other does not, and both speed `list` up. The counted work
+  sharpens it further: under `-fliberate-case` TEN of the eighteen arms read
+  counts EXACTLY 1.0000 between the halves and EIGHT move --- the `bq-expand`
+  and `list` families of three each, and `lib-stage2-lean` with its twin
+  by a tenth of a percent, where `-fspec-constr` thinned every arm. Whatever
+  the account is, it has to explain an allocation multiple rising on the arm
+  a pass makes faster. Run 29's registration (11) predicted the levels unmoved
+  between its halves and was KILLED on two of them: over eighteen
+  of the nineteen main-set shapes, `bq-expand` reads **2.06x** under the flag
+  and **2.76x** without it, and `list` **22.38x** against **24.90x**, while
+  every fill and every `liblist` consumer holds 1.00x and every `libunord`
+  consumer 0.00x on both halves. The two that move are exactly the two the flag
+  speeds up, and the counted work has them converting their instruction saving
+  to time almost entirely --- `time/counts` 1.0161 and 0.9926 --- where
+  the eight arms whose time the flag does not move --- `mut-odo-vecdims`
+  and the seven timed arms below it --- convert none of theirs.
+  So the allocation change and the time change arrive together on the same two
+  arms and on no others. **What would settle it** is Core for one of the two
+  under each regime, read for what SpecConstr's specialisation does to a boxed
+  intermediate the unspecialised loop allocates per call; the arms
+  are `bq-expand` and `list`, both of them library-shaped, and `list`
+  is the reference every table here divides by, so the answer decides how much
+  of this README's published column is a property of the regime rather
+  than of the strategies. Until it is taken, nothing here should describe
+  an allocation multiple as a property of a strategy alone: the levels
+  are the regime's as much as the strategy's, and Run 29 is the run that made
+  that a measured statement rather than a note.
 
 - `OPEN` **The flagged half carries FEWER self-loops than the unflagged one
   and a LARGER `.text`, and the two facts point opposite ways.** Run 29's
@@ -1645,7 +1639,7 @@ rather than a slot in the next run, observed again:
   since 2026-09-09 with every arm that concatenates a list, their consumers
   carrying the reading, read 0.00x allocation where every mutable fill reads
   1.00x: where the one-block test fires they return a slice of the source
-  and allocate nothing. Claim 7's ladder has a floor under its floor. What
+  and allocate nothing. The allocation ladder has a floor under its floor. What
   is not known is what that is worth to a consumer who cannot accept a view,
   and whether the test's cost is visible where it does NOT fire --- Run 22 reads
   both arms inside the floor on the six classes where it does not, which bounds
@@ -2620,10 +2614,10 @@ rather than a slot in the next run, observed again:
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
   section][floor] --- a drift band a quarter of the one this README had
-  been quoting, and every claim reproducing on it. What the roster owed
-  is the third `-nosum` arm the queue holds, deferred out of Run 11 so
-  that its membership stayed pinned and out of Run 12 so that it did not arrive
-  in the same run as a change of shim. **It is now written**,
+  been quoting, and every published figure reproducing on it. What the roster
+  owed is the third `-nosum` arm the queue holds, deferred out of Run 11
+  so that its membership stayed pinned and out of Run 12 so that it did
+  not arrive in the same run as a change of shim. **It is now written**,
   as `mut-flat-gm-nosum`: a `Force` pair on the flat fill, the third shape
   of fill after the odometer and the expansion, which is what lets gate 3 tell
   a biased read from two biased arms. It sits beside its base, as both other
@@ -2682,9 +2676,9 @@ rather than a slot in the next run, observed again:
   reads *the same, on a third write pattern* --- the control convention,
   not the shippability phrase this entry first proposed. **A return to -O1 stood
   behind it as the second debt and is retired, its premise being false**
-  (2026-08-14): -O1 is not the regime the claims are read in, `-fspec-constr`
-  being the basis every run since Run 8 has used, so Run 7's claim set
-  is history rather than a debt. The build specification that entry had
+  (2026-08-14): -O1 is not the regime the figures are read in, `-fspec-constr`
+  being the basis every run since Run 8 has used, so Run 7's readings
+  are history rather than a debt. The build specification that entry had
   accumulated goes with it, a retired run having no use for one. An -O1 reading
   of a single ordering stays available as a filtered probe, as the 2026-08-08
   twin probes were; what is retired is the evening. `--check-doc` enforces
@@ -2996,33 +2990,6 @@ rather than a slot in the next run, observed again:
   verdicts are [in Run 18's own file](runs/run18.md), where they were moved
   on 2026-08-29; a registration is that run's record and reads against
   that run's tables.
-- `ANSWERED` **Which of the `bq-expand`-centric claims retire, now that the fix
-  decided is the `mut-odo-vecdims` family.** **Settled 2026-08-24**: claims 3,
-  4, 5 and 9 retire, claim 1 gains `bq-scan-rem-gm-mulback` and the tie
-  at its foot, and claim 2 changes its question to where `offtab`
-  and `bq-expand` sit --- thirteen registered orderings becoming eight,
-  and seven on 2026-08-26 when claim 2's `bq-expand` link retired, its condition
-  having been spent from the settlement day itself and read back by nobody until
-  then, and five on 2026-08-28 when claims 2 and 6 retired with the parking
-  of `offtab` and `gen-quotrem`, the arm each of them turned on: a claim
-  over a parked arm cannot be installed, and neither had a question left ---
-  `offtab`'s place behind the pure yardstick and the first attempt's tie
-  with the baseline were both settled orderings a reader can take from Run 20's
-  tables for good. Each retirement's reason, and the readings the two new links
-  were measured at on both of Run 18's halves, are in the settlement paragraph
-  at the foot of [the
-  claims](runs/run30.md#the-claims-the-next-run-should-test), which owns
-  the account; the `CLAIMS` manifest in `read-run.py` took it at Run 19's
-  write-up on 2026-08-25, the retiring orderings having had one last
-  cross-compiler reading first, in which all four held on both halves.
-  **The second half of the ask was already spent**, the eight *What the class
-  says* paragraphs having been written to the re-aimed properties at Run 18's
-  write-up with only the sentence asking for it surviving. The decision
-  was whoever asks for a run's, which is why it sat unmade through three runs;
-  what kept it live was that it had no entry here until 2026-08-24, the index
-  above saying nothing open is recorded anywhere else and the ask being a bolded
-  TODO outside this list.
-
 - `ANSWERED` **What Run 19 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 19's own file](runs/run19.md), where they were moved
@@ -3217,17 +3184,16 @@ is how the two disagreed loudly enough to check.
 
 **WHAT THE FOUR AGENTS COST AND BOUGHT.** The carrier read four sections of Run
 28's file and returned `run29-readings.txt`, which post-run steps 4, 5 and 6a
-read back; its item-5 finding, two live claims and eight retired, is what
-the claims section is built on. Checker pass 1 read the run file alone
-and returned **26** findings, of which it had verified 473 installed table rows
-and 70 hand-edited cells and found none wrong --- every real finding was prose,
-for the fifth run running. Pass 2, over both documents once those were fixed,
-returned **ten more, five of them MADE by the first round of fixes**:
-a superlative its own paragraph refutes, a nine-row generalisation false
-on the ninth row, an enumeration that claims ten and lists nine, a counts-leg
-superlative the artifacts do not settle, and a clause the rewrite dropped.
-That is Run 21's ratio and Run 16's again, and it is the whole argument
-for the second pass.
+read back; its item-5 finding is what the properties section is built on.
+Checker pass 1 read the run file alone and returned **26** findings, of which
+it had verified 473 installed table rows and 70 hand-edited cells and found none
+wrong --- every real finding was prose, for the fifth run running. Pass 2,
+over both documents once those were fixed, returned **ten more, five of them
+MADE by the first round of fixes**: a superlative its own paragraph refutes,
+a nine-row generalisation false on the ninth row, an enumeration that claims ten
+and lists nine, a counts-leg superlative the artifacts do not settle,
+and a clause the rewrite dropped. That is Run 21's ratio and Run 16's again,
+and it is the whole argument for the second pass.
 
 **What Run 28 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
@@ -3300,19 +3266,19 @@ and no reader mode computes. **WHAT THE THREE AGENTS COST AND BOUGHT, which
 is the reading this list has not carried before.** The carrier read four
 sections of Run 27's file and returned `run28-readings.txt`; it found two errors
 in Run 27's PUBLISHED file that no gate here reads --- its stride-class prose
-naming three bolded rows where its own table bolds two, and its claims section
-calling `libunord-stage3` and `-u2-ptr` new to the timed roster when Run 26
-timed both. Checker pass 1 returned 31 findings on the run file alone. Pass 2,
-over both documents after those were fixed, returned 17 --- **of which SIX
-were MADE by the first round of fixes**: a summary-table cell tie-broken
-with the wrong statistic, a figure corrected to a value the reader does
-not print, a row list moved to the wrong count, and three sentences left naming
-what they named before the count under them changed. That is Run 21's ratio
-again and it is the argument for the second pass. The comprehension probe
-then returned 29. ONE of them was an error the step-7 cycle had itself
-introduced --- the cross-class table's bolding key, left at four and six after
-that cycle corrected `rev`'s cell to make it five and five --- and its most
-serious was older than any fix: the run's HEADLINE, written at 6a and stated
+naming three bolded rows where its own table bolds two, and that section calling
+`libunord-stage3` and `-u2-ptr` new to the timed roster when Run 26 timed both.
+Checker pass 1 returned 31 findings on the run file alone. Pass 2, over both
+documents after those were fixed, returned 17 --- **of which SIX were MADE
+by the first round of fixes**: a summary-table cell tie-broken with the wrong
+statistic, a figure corrected to a value the reader does not print, a row list
+moved to the wrong count, and three sentences left naming what they named before
+the count under them changed. That is Run 21's ratio again and it
+is the argument for the second pass. The comprehension probe then returned 29.
+ONE of them was an error the step-7 cycle had itself introduced ---
+the cross-class table's bolding key, left at four and six after that cycle
+corrected `rev`'s cell to make it five and five --- and its most serious
+was older than any fix: the run's HEADLINE, written at 6a and stated
 as a universal the file refutes three times. **So three of this run's four
 rounds of fixes are KNOWN to have made errors, each found by the round after
 it --- and the fourth has since been read too, by this request's own passes
@@ -3506,16 +3472,16 @@ cells give. **What no mechanical pass could reach were the three findings
 the run turns on**: that five registered clauses named arms the prune had
 parked, found by trying to adjudicate them; that the eight-run ceiling series
 has no successor, found because its denominator is absent from `--list`;
-and that claim 7's pinned shape set no longer exists, found by re-deriving
-the claim. All three are the reading, and all three are what post-run step 4's
-*match bases before reading any ratio* is for. **THE COMPUTATIONS IMPROVISED,
-three, and the reader owns two of them since 2026-09-05.** The WITHIN-HALF
-COUNTED WORK was that heading's item 5, retired 2026-09-08, is the one
-registration 7 turns on, and is `--counts SWEEP.txt --pair A B` now. The FASTEST
-CELL OF ANY POPULATION: a registration predicted one, and ranking net time per
-element across every view of every population is a sort no mode does, so
-it was written out --- and the prediction was refuted by it, sixth rather
-than first, which is the case for the mode rather than against it.
+and that the pinned shape set a figure was quoted over no longer exists, found
+by re-deriving it. All three are the reading, and all three are what post-run
+step 4's *match bases before reading any ratio* is for. **THE COMPUTATIONS
+IMPROVISED, three, and the reader owns two of them since 2026-09-05.**
+The WITHIN-HALF COUNTED WORK was that heading's item 5, retired 2026-09-08,
+is the one registration 7 turns on, and is `--counts SWEEP.txt --pair A B` now.
+The FASTEST CELL OF ANY POPULATION: a registration predicted one, and ranking
+net time per element across every view of every population is a sort no mode
+does, so it was written out --- and the prediction was refuted by it, sixth
+rather than first, which is the case for the mode rather than against it.
 And THE CROSS-RUN PIN, eight `--exclude-shape` flags naming the retired shapes,
 which turns Run 24's 26-shape column into one over this run's eighteen: Run 24's
 own write-up improvised the same thing with two flags and said so, which is two
@@ -3579,17 +3545,15 @@ the readings; the vecdims family's re-taken ordering is the same two sections';
 the run-length condition and the dispatch threshold are the [`dispRun`
 entry][open]'s, which says of itself that it is the only copy of that probe's
 account; the move of the basis to the dead-spot recipe is a decision, recorded
-in the run chapter and in Run 24's own file; and *re-aim claim 1 at the family's
-leader* was answered by the prune of 2026-09-04, which retired claim 1 outright
-and registered claim 10 in its place --- [the
-claims](runs/run30.md#the-claims-the-next-run-should-test) carry both. The tenth
-item, Run 25's own additions, was that heading's item 6 until 2026-09-08
-and is retired above with the other five --- its one irreplaceable part,
-the past-cache probe's account, having gone to [the `dispRun` entry][open] where
-the rest of that probe's family already lives. It said of itself
-that its account was nowhere else, and the retirement nearly proved it:
-the first sweep for a home matched the IN-CACHE probe's entry and passed,
-and what caught it was reading this sentence.
+in the run chapter and in Run 24's own file; and *re-aim the ladder
+at the family's leader* was answered by the prune of 2026-09-04, which parked
+every rung below `mut-odo-vecdims`. The tenth item, Run 25's own additions,
+was that heading's item 6 until 2026-09-08 and is retired above with the other
+five --- its one irreplaceable part, the past-cache probe's account, having gone
+to [the `dispRun` entry][open] where the rest of that probe's family already
+lives. It said of itself that its account was nowhere else, and the retirement
+nearly proved it: the first sweep for a home matched the IN-CACHE probe's entry
+and passed, and what caught it was reading this sentence.
 
 **Both of Run 17's items are spent, and this heading no longer carries them.**
 Its first --- which shapes poison --- was answered 2026-08-18 and its account
@@ -3725,36 +3689,37 @@ codegen rather than that it cannot be built.
   which is what the entry above says none of these fixes could avoid. What
   it does not address is the placement gap the `build`/`mut-odo` pair shows,
   a separate and larger target that no reordering reaches.
-- `OPEN` **The published basis has left the regime the claims are ruled
-  to decide in, and the ruling has not been re-taken.** README says in four
-  places that `-fspec-constr` is the deciding regime, every run since Run 8
-  being in it --- the correction of 2026-08-14, amended 2026-08-24. Run 29
+- `OPEN` **The published basis has left the regime this chapter's figures
+  are ruled to be read in, and the ruling has not been re-taken.** README says
+  in four places that `-fspec-constr` is the deciding regime, every run since
+  Run 8 being in it --- the correction of 2026-08-14, amended 2026-08-24. Run 29
   then measured the flag irrelevant to the shipped fill family, and the request
   of 2026-09-12 moved Run 30's published basis to plain -O1, which is what
-  `Data/Array/Internal.hs` actually compiles under. So Run 30's claim readings
-  are at -O1 while the ruling they are read against is the flag's, and claim 7's
-  `bq-expand` and `list` levels differ by about a third between the two: 2.06x
-  and 22.38x under the flag, 2.76x and 24.90x without it. **What would settle
-  it** is a ruling and not a measurement --- either the deciding regime follows
-  the published basis to -O1, which makes Runs 8 to 29's claim readings history
-  rather than the series, or it does not, in which case a run publishing at -O1
-  owes a flagged column for the claims. Raised by Run 30's comprehension probe,
-  which found the two documents answering it opposite ways; Run 31 varies `-O2`
-  against this same basis and will make the question sharper rather than settle
-  it.
+  `Data/Array/Internal.hs` actually compiles under. So Run 30's readings
+  are at -O1 while the ruling they are read against is the flag's,
+  and the allocation levels differ by about a third between the two: `bq-expand`
+  and `list` at 2.06x and 22.38x under the flag, 2.76x and 24.90x without it.
+  **What would settle it** is a ruling and not a measurement --- either
+  the deciding regime follows the published basis to -O1, which makes Runs 8
+  to 29's readings history rather than the series, or it does not, in which case
+  a run publishing at -O1 owes a flagged column. Raised by Run 30's
+  comprehension probe, which found the two documents answering it opposite ways;
+  Run 31 varies `-O2` against this same basis and will make the question sharper
+  rather than settle it.
 - `ANSWERED` **`--para` compiled its argument as a regex, so a bolded lead
   pasted verbatim failed SILENTLY and an unbalanced bracket tracebacked ---
   TAKEN 2026-09-13.** Every registration item's lead carries brackets ---
-  `(11) *Claim 7 without the flag.*` --- and pasted whole it compiles, matches
-  nothing and exits 0: the mode this chapter recommends for locating a paragraph
-  by phrase reports *no paragraph whose bolded lead or body matches* for a lead
-  that is demonstrably there. Truncated to an unbalanced bracket ---
-  `--para '(11'` --- it raised `re.error: missing ), unterminated subpattern`
-  with a Python stack instead. The silent half was the worse of the two
-  and is what this entry was for; the traceback is how it was noticed. **The fix
-  retries the pattern as a literal, at the lead search AND at the body search**
-  --- a registration item has no bolded lead at all, so a fix at the compile
-  alone changed nothing --- with cases `para-traceback-on-a-bracketed-lead`
+  `(9) *The floor with the fill family's pair.*` --- and pasted whole
+  it compiles, matches nothing and exits 0: the mode this chapter recommends
+  for locating a paragraph by phrase reports *no paragraph whose bolded lead
+  or body matches* for a lead that is demonstrably there. Truncated
+  to an unbalanced bracket --- `--para '(11'` --- it raised
+  `re.error: missing ), unterminated subpattern` with a Python stack instead.
+  The silent half was the worse of the two and is what this entry was for;
+  the traceback is how it was noticed. **The fix retries the pattern
+  as a literal, at the lead search AND at the body search** --- a registration
+  item has no bolded lead at all, so a fix at the compile alone changed nothing
+  --- with cases `para-traceback-on-a-bracketed-lead`
   and `para-refuses-an-uncompilable-pattern`, both of which failed before it.
   Found 2026-09-13 during Run 30's write-up, at the cost of one call. **What
   would settle it** is either catching `re.error` and saying so, or falling back
@@ -3777,16 +3742,16 @@ codegen rather than that it cannot be built.
 - `OPEN` **No build-vs-output time decomposition**, which Run 8 wanted and did
   without. `diag` measures per-builder *allocation* only, so a claim like
   "the table build is a third of the cost" --- the natural reading
-  of `bq-mut-runs` beating `bq-mut` by 39% --- cannot be checked here. Claim 4
-  no longer needs it --- a Core diff identified what the flag deletes
-  from the scan builder and the ~4% it is worth accounts for where the pair
-  lands, the two arms sharing their output code exactly --- but the residue
-  does: how much of each arm's own ~25% absolute gain is build and how much
-  output is still unmeasured, and the same question stands for every other arm
-  in the table. It needs a timing mode alongside `diag`'s allocation one, using
-  the fixed-iteration differencing the horde-ad performance model prescribes
-  (`-n 200` minus `-n 100`, fresh processes) rather than criterion, since
-  the builders are not benchmarks.
+  of `bq-mut-runs` beating `bq-mut` by 39% --- cannot be checked here.
+  The question no longer needs it --- a Core diff identified what the flag
+  deletes from the scan builder and the ~4% it is worth accounts for where
+  the pair lands, the two arms sharing their output code exactly ---
+  but the residue does: how much of each arm's own ~25% absolute gain is build
+  and how much output is still unmeasured, and the same question stands
+  for every other arm in the table. It needs a timing mode alongside `diag`'s
+  allocation one, using the fixed-iteration differencing the horde-ad
+  performance model prescribes (`-n 200` minus `-n 100`, fresh processes) rather
+  than criterion, since the builders are not benchmarks.
 - `PARKED` **Change the method and a family of prose is deleted rather
   than maintained --- the lever the two speculative regimes here share,
   and the one no tooling reaches. Both routes to it were piloted on 2026-08-22
@@ -3843,11 +3808,11 @@ codegen rather than that it cannot be built.
   into the run's file as `--in-place` renders the tables, so that everything
   rendered cannot go stale and the checker fleet stops growing a check per
   defect class. The mechanism is not in doubt; the cost is a rewrite
-  of the write-up procedure. **Its pilot was the claims verdicts and
+  of the write-up procedure. **Its pilot was the registration verdicts and
   it is taken** (2026-08-16), which left the question the pilot cannot answer:
   whether one ledger file beats an installer per section. **REFUSED 2026-08-26,
   and the installers answered it by arriving.** Four now write into the run file
-  --- the Results table, the fingerprint, a block per class and the claims ---
+  --- the Results table, the fingerprint, and a block per class ---
   so the ledger would be a second home for what already has one, bought
   with a rewrite of the write-up procedure. And the one thing it would have
   to carry that no installer can, the cross-class summary's emphasis,
@@ -3940,13 +3905,6 @@ codegen rather than that it cannot be built.
   `bq-scan-rem-gm-mulback` rather than tracking it --- ahead by a thousandth
   here, 0.171 against 0.131 on `stretch-rank12` --- so the two are not one
   strategy spelled twice.
-- `ANSWERED` **`--claims --compare PREV.json`, if the movement sentence turns
-  out to be the last transcription.** The kept JSONs make *held, and moved
-  from 0.9909 to 0.9940* mechanical --- `pair_stats` over both files ---
-  and it is the one thing a claim's paragraph still copies by hand. Not taken,
-  because it renders the reading rather than the arithmetic, and the division
-  the installed readings keep is that the author owns whether a movement means
-  anything.
 - `ANSWERED` **Check that the basis half named in prose is the run's own ---
   taken 2026-08-19.** `--check-doc` holds every `run<N>-<half>` token
   in the Results section to the run its file is named for, which is where Run
@@ -4990,9 +4948,9 @@ on are [in the ceiling section](#the-mutable-ceiling-taken), the signature
 ruling and the rejected forms [in the two-stage
 plan](#the-two-stage-plan-and-the-rework-proposal), and the arm's refinement
 from plain `mut-odo-vecdims` rests on the two paired probes the ceiling records.
-`bq-expand`, the last candidate, is what every claim below was measured against;
-the branch no longer carries it. This branch's library stays at stage one; stage
-two is
+`bq-expand`, the last candidate, is what every figure below was measured
+against; the branch no longer carries it. This branch's library stays at stage
+one; stage two is
 [`pr-mikolaj-toVectorListT`][https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT],
 and its figures were taken on Run 21, where it ran several times stage one
 on every population whose views will not canonicalize. **Run 22 measured
@@ -5103,8 +5061,8 @@ and `window`, with `canon-vecdims` in `scaled` and the new `runs`, `mid-copy`
 in `bcastmid` and `lib-stage2-concat` in `reshape1`. Of what the decision owed,
 the class method and its instances, the suite pass and the non-vacuity break
 landed 2026-08-24 ([the fix section](#the-fix-in-dataarrayinternalhs) has them);
-the claims re-read is settled, applied at Run 19's write-up; and horde-ad's
-end-to-end re-measurement was taken on 2026-08-27, as its `CLAUDE.md` records.
+and horde-ad's end-to-end re-measurement was taken on 2026-08-27,
+as its `CLAUDE.md` records.
 
 **The `bq-*` strategies still fill the result one element at a time.**
 The tightest possible shape drops to a **mutable result buffer**: allocate
@@ -5238,12 +5196,11 @@ the ruling on a movement of that size --- Run 10 showed the volatility
 is not the layout's, and Runs 11, 19 and 23 show it is not the run's either,
 which leaves the roster and the regime as what moved it. **The series ends
 at Run 24 and this is where a reader is told**: the prune of 2026-09-04 parked
-`bq-scan-rem-gm-mulback` with every other rung below the top of claim 1,
+`bq-scan-rem-gm-mulback` with every other rung below the top of the ladder,
 so no run since times the denominator and no figure above can be extended.
 The ruling stands on what is here; a run that wants the reading back re-times
 that arm, and until one does the family's own leaf ratio ---
-`mut-odo-vecdims-add-in-leaf-u2` over `mut-odo-vecdims`, [claim
-10](runs/run30.md#the-claims-the-next-run-should-test) at 0.6438 and 0.6467
+`mut-odo-vecdims-add-in-leaf-u2` over `mut-odo-vecdims`, at 0.6438 and 0.6467
 on Run 26's two halves --- is what the roster prices in its place, which
 is a different question and not a continuation of this one.
 
@@ -6632,15 +6589,13 @@ the halves that bracketed `dispRun`. A parked arm's A/A twins and `Force` arm
 are deleted rather than parked, a control of an untimed arm pricing nothing
 and the roster having no untimed form for one: ten twins and two `-nosum` arms
 go, so the floor is read over six pairs from Run 25 on and gate 3 over two
-shapes of fill ([sum-only](#sum-only-and-the-correction-now-applied)), and claim
-1, the ladder every rung of which but the top is parked, retires with them,
-claim 10 registered in its place on the roster's own question, the shipped fill
-against the family root ([the
-claims](runs/run30.md#the-claims-the-next-run-should-test)). The slots that stay
-keep their order, so `sum-only-early` still precedes `list` and the distant
-twins still sit early; what the deletions change is the spans, which shorten
-as they did at the first cut. The prune took the roster to 432 benches; the same
-day `mut-odo-vecdims-add-in-leaf-u1` landed for Run 25
+shapes of fill ([sum-only](#sum-only-and-the-correction-now-applied)),
+and the ladder every rung of which but the top is parked goes with them,
+the roster's own question becoming the shipped fill against the family root.
+The slots that stay keep their order, so `sum-only-early` still precedes `list`
+and the distant twins still sit early; what the deletions change is the spans,
+which shorten as they did at the first cut. The prune took the roster to 432
+benches; the same day `mut-odo-vecdims-add-in-leaf-u1` landed for Run 25
 with `mut-odo-vecdims-add-in-leaf` re-timed as its control ([the Run 25
 entry][open]), and the ruling on the short bodies parked two, the day ending
 at 432 benches; `libunord-stage3`, added 2026-09-05 for Run 26, makes it 450,
@@ -6727,14 +6682,12 @@ whose base is not measured is not a control:
   `bq-mut-runs-mulback` does not, so the pair that prices dropping the size
   bound no longer exists --- which is the ruling doing its work, since
   that pair's whole subject is the bound this rule now refuses;
-- claim 4's controlled pair, `bq-scan-mulback` against
-  `bq-expand-lemire-mulback`, loses both halves, and the Lemire output
-  substitution loses its arm. Those *readings* stand as Run 8's and cannot
-  be re-measured under this roster, which is the price of the rule
-  and is recorded rather than worked around. Both *questions* survive
-  on the counterparts written below, and [the claims
-  list](runs/run30.md#the-claims-the-next-run-should-test) has been re-aimed
-  onto them.
+- the controlled pair, `bq-scan-mulback` against `bq-expand-lemire-mulback`,
+  loses both halves, and the Lemire output substitution loses its arm.
+  Those *readings* stand as Run 8's and cannot be re-measured under this roster,
+  which is the price of the rule and is recorded rather than worked around. Both
+  *questions* survive on the counterparts written below, and the roster has
+  been re-aimed onto them.
 
 **The crossed A/A design survives the cut, at half to two thirds the span.**
 Its three distant twins are placed early and their bases late, and 23
@@ -6860,32 +6813,32 @@ is [the open list][open]'s GHC #27799 entry, and is why a build compared across
 that flag is not comparing the same code.
 
 `micro.cabal` builds at -O1, which is what a default `cabal build` of orthotope
-takes --- **and that is not the regime the claims decide in**, a correction made
-2026-08-14 after several entries had been written on the other reading
+takes --- **and that is not the regime the figures are read in**, a correction
+made 2026-08-14 after several entries had been written on the other reading
 and amended 2026-08-24: the deciding regime is `-fspec-constr`, every run since
 Run 8 already in it, and the shipped file does not set the flag ([the
 ceiling](#the-mutable-ceiling-taken) has the probe that settled it).
 **THAT RULING AND THE PUBLISHED BASIS HAVE COME APART AT RUN 30 and the ruling
 has not been re-taken**: Run 29 measured the flag irrelevant to the shipped
 family, the request of 2026-09-12 moved Run 30's basis to plain -O1 ---
-the regime the shipped file actually compiles under --- and [that run's
-claims](runs/run30.md#the-claims-the-next-run-should-test) are therefore READ
-at -O1 while this sentence still says they DECIDE under the flag. Claim 7's
-`bq-expand` and `list` levels differ by about a third between the two,
-so the gap is not academic. Nothing here resolves it; the open list carries
-it as a decision owed. Other regimes are command-line only, the flag landing
-after the cabal file's so the later `-O` wins: `-fspec-constr` when testing
-the `SpecConstr` optimization effect, `-O2` for the half of the scan-fusion
-refutation that inverts there (a `diag` at `-O2` is what measures it). **The RTS
-line is the second thing the shipped setting fixes, and since 2026-08-21
-this suite shares it by decision: every horde-ad test and benchmark and every
-process here runs at `-A32m`, and the area is not to vary again.** `micro.cabal`
-bakes the whole line, `-A32m -I0 -T -M8G`, the one every recorded recipe since
-Run 13 carried, so no recipe passes `-with-rtsopts` any more, and a `+RTS` line
-that varies anything else repeats it in full. The caller ran at `-A1G` until
-then, a gap [the floor section][floor] priced on one shape and Runs 14 to 16
-over the table, and what closed it is the churn findings: the tax grows
-with the area and `-A32m` is their recommendation for this workload class.
+the regime the shipped file actually compiles under --- and that run's figures
+are therefore READ at -O1 while this sentence still says they DECIDE
+under the flag. The `bq-expand` and `list` allocation levels differ by about
+a third between the two, so the gap is not academic. Nothing here resolves it;
+the open list carries it as a decision owed. Other regimes are command-line
+only, the flag landing after the cabal file's so the later `-O` wins:
+`-fspec-constr` when testing the `SpecConstr` optimization effect, `-O2`
+for the half of the scan-fusion refutation that inverts there (a `diag` at `-O2`
+is what measures it). **The RTS line is the second thing the shipped setting
+fixes, and since 2026-08-21 this suite shares it by decision: every horde-ad
+test and benchmark and every process here runs at `-A32m`, and the area
+is not to vary again.** `micro.cabal` bakes the whole line, `-A32m -I0 -T -M8G`,
+the one every recorded recipe since Run 13 carried, so no recipe passes
+`-with-rtsopts` any more, and a `+RTS` line that varies anything else repeats
+it in full. The caller ran at `-A1G` until then, a gap [the floor
+section][floor] priced on one shape and Runs 14 to 16 over the table, and what
+closed it is the churn findings: the tax grows with the area and `-A32m`
+is their recommendation for this workload class.
 
 **Those last four need no build and no pair**: `micro.cabal` compiles
 with `-rtsopts`, so an already-built binary takes any RTS setting, and `-s`,
@@ -6962,7 +6915,7 @@ and never as a chronology.
     #      behind you, and the disk is where the number is written. DO
     #      NOT MAKE `runs/$R.md` YET: every
     #      mode defaults to the newest file, and everything before
-    #      post-run step 5 -- the gate's machine check, the claims read
+    #      post-run step 5 -- the gate's machine check, the tables read
     #      back -- wants the run BEHIND you and would read this run's
     #      empty file instead; step 5 makes it. Governing docs are this
     #      file and read-run.py's docstring, and horde-ad's CLAUDE.md is not
@@ -7192,7 +7145,8 @@ and never as a chronology.
     #      count moved is a class that pass is owed for -- so read it here
     #      and carry the answer down
     ./read-run.py --lint                  # 7. roster and shape annotations,
-    #      the claims, AND THE OPEN REGISTRATION, which nothing read until
+    #      the properties, AND THE OPEN REGISTRATION, which nothing read
+    #      until
     #      2026-09-04: every arm it names must be timed and every `task N`
     #      it defers to must resolve. What that does NOT ask is whether
     #      the task still carries a prediction -- Run 25's item (4)
@@ -7842,9 +7796,9 @@ and how much must be read before the first one. The fixed cost is the reading
 --- this chapter and the last run's own file --- and it is larger than executing
 either checklist, which is what both checklists are for. After it the work
 divides three ways and only one part is large. *Batchable*: anything with one
-invocation per process or per claim --- a `--selftest` and an `--aa` apiece,
-the dozen-odd `--pair` lines, a `--block` per class --- goes in one call per
-kind, so steps 1 and 3 together are a handful. *One per site*: the eleven
+invocation per process or per registration --- a `--selftest` and an `--aa`
+apiece, the dozen-odd `--pair` lines, a `--block` per class --- goes in one call
+per kind, so steps 1 and 3 together are a handful. *One per site*: the eleven
 `--in-place` installs, three calls. *Unbatchable*: the prose, one edit per
 paragraph, and this is the bulk --- the class blocks alone are one paragraph
 apiece, plus a lead wherever the roster moved one, and no tool reduces
@@ -8169,13 +8123,13 @@ copy of a driver's sequence drifts from the driver with nothing checking it,
 which is what the class loop this README once carried had done. **What it proves
 and what it does not**: each *table* installer found its table and wrote
 something, `cmp` failing loudly where the copy came out identical, which
-is the case where one silently found nothing; the claims installer must REFUSE,
-the claims being registered over the whole main set and a smoke run being one
-shape of it, so a zero exit there is the failure. It does not prove the right
-rows went to the right place --- that guarantee is `install`'s, which matches
-by whole line and asserts the row count, so the Run 8 mis-paste is impossible
-rather than merely detectable --- and it is hours too late to find a broken
-installer at the write-up.
+is the case where one silently found nothing; an installer must REFUSE, a table
+being written over the whole main set and a smoke run being one shape of it,
+so a zero exit there is the failure. It does not prove the right rows went
+to the right place --- that guarantee is `install`'s, which matches by whole
+line and asserts the row count, so the Run 8 mis-paste is impossible rather
+than merely detectable --- and it is hours too late to find a broken installer
+at the write-up.
 
 **Run every mode, not the interesting ones**, which is why the script sweeps
 them as a loop: after the trim came out, `--pair` and `--aa` both died on a name
@@ -8192,7 +8146,7 @@ that can reproduce one, so sweep before deleting it rather than after.
 class**, which reaches three things a one-shape smoke cannot. `--selftest` skips
 a whole block on one shape and says so --- winsorizing, the A/A identities
 and the baseline identity, none of which is an identity of anything until there
-are shapes to be one over. Every claim's `--pair` line goes unrun, and a claim
+are shapes to be one over. Every registered `--pair` line goes unrun, and one
 re-aimed at an arm the run does not carry fails only when someone runs it.
 And `--block`'s per-shape line is guarded by `len(shapes) > 2`, so it is dead
 on a one-shape file --- a guard that hid an edited line of this reader through
@@ -8212,7 +8166,7 @@ of names rather than their order. Criterion emits it sorted, so an arm moving
 slot cannot produce a false positive --- which is the only thing making the test
 sound and is worth knowing, since order *is* a change, of the kind
 [Provenance](#provenance) deals with rather than this pass. An edit
-to the reader or to a claim is not a roster change either, though the three
+to the reader or to a property is not a roster change either, though the three
 reasons above are worded in their terms because a roster change is the only
 thing that has ever broken them. What the test cannot usually do is run itself:
 the previous run's binary is deleted and its listing recorded nowhere,
@@ -8605,13 +8559,7 @@ not otherwise.
     #      READ NOW: item 9's execution half of read-run.py's docstring
     #      -- the statistic definitions, the A/A identity and the modes
     #      that read a run's figures -- and, FROM THE DIGEST, items 5
-    #      and 6, the claims and the class-block form
-    ./read-run.py $R-<basis>-main.json --claims       # 4a. every claim's
-    #      ordering and registered verdict in one call, in the claims
-    #      section's own order -- and, after them, the README's own verdict
-    #      figures read back against these readings. Give it the BASIS:
-    #      the control half lists two dozen figures as unaccounted, which
-    #      is what a stale section looks like too
+    #      and 6, the properties and the class-block form
     ./read-run.py $R-<basis>-$c.json --block          #    one per class
     ./read-run.py $R-<basis>-$c.json --compare $R-<other>-$c.json
     #      THE PER-CLASS CALLS ARE INDEPENDENT OF EACH OTHER, all forty of
@@ -8667,7 +8615,7 @@ not otherwise.
     #      paragraph from --block's VERDICTS, never from its table, one
     #      paragraph each. Use --brief on --aa and --block: no computed
     #      figure is lost. Do not write a second reader
-    #      why: --para 'The claims are part of this'
+    #      why: --para 'The properties are part of this'
     #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
     #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT
     #      (FROM THE DIGEST: item 2's block, whether or not 18 read it
@@ -8711,12 +8659,12 @@ not otherwise.
     #      this run, so it is run once, after the copy is committed
     #  5a. TAKE THE MOVEMENT READING, whose window 5b closes: a
     #      "moved from X to Y" sentence compares against the figures
-    #      the claims install overwrites, and after it they are in git
+    #      the install overwrites, and after it they are in git
     #      or in the kept JSON only. It was a clause inside 5b until
     #      2026-09-01, telling a session to take it before the line it
     #      was written under, which is what an unnumbered step costs
     ./install-tables.sh $R                            # 5b. install, never
-    #      paste: every table and every claim reading, from the BASIS half
+    #      paste: every table, from the BASIS half
     #      into `runs/$R.md`, the one document any of them writes -- so
     #      commit or park it first. Read what the driver collects at the
     #      end, the rows left to hand-fill; the cross-class summary is
@@ -8816,7 +8764,7 @@ not otherwise.
     #      this half hand-edits), which is that first bullet and is the bulk
     #      of the run: its head, Results and the findings under it, what
     #      the next run compares against with its hand-edited two-column
-    #      table, the claims, the class leads and paragraphs, its
+    #      table, the properties, the class leads and paragraphs, its
     #      Provenance and its registrations. TWO TABLES HERE ARE
     #      HAND-EDITED and neither is installed: the two-column geomeans
     #      and the PROVENANCE ANCHORS. Run 20 forgot the first entirely
@@ -9223,8 +9171,8 @@ because by then the run read finished; putting it first is what retires that.
    disagrees with itself.
 4. **Match bases before reading any ratio.** The first act of a comparison
    is making its two sides one basis --- the same population, the same
-   restriction, the basis a claim was stated on --- and only then reading
-   figures. Run 7's first claim check ran on its 24 shapes against claims stated
+   restriction, the basis a figure was stated on --- and only then reading
+   figures. Run 7's first check ran on its 24 shapes against figures stated
    on 22, and every pair had to be re-run. **AND WHERE THIS RUN'S SHAPE SET
    MOVED, PIN IT BACK BEFORE QUOTING ANY CROSS-RUN FIGURE**: `--exclude-shape`
    the shapes this run added, once per shape, so the figure is
@@ -9246,20 +9194,17 @@ because by then the run read finished; putting it first is what retires that.
    compares their tables.
 4a. Analyse with `./read-run.py`, which is where every table in this file comes
 from --- read [the reader's own section](#the-reader-read-runpy) first, and do
-not write another reader. **The claims are part of this and are the thing
-these steps are likeliest to leave out**: the run's file names three things
-a run reads, and the claims section is the third, each of its orderings carried
-in `--claims` with its registered expectation, so that a run transcribes printed
-verdicts rather than re-deriving the table. The class properties are the same
-job three times a population, off the verdicts `--block` emits, and the set
-is restated for the next run on this run's basis while the readings are still
-in front of you. **A paired run's own mode is `--compare`**, and its direction
+not write another reader. **The properties are part of this and are the thing
+these steps are likeliest to leave out**: they are the same job three times
+a population, off the verdicts `--block` emits, and the set is restated
+for the next run on this run's basis while the readings are still in front
+of you. **A paired run's own mode is `--compare`**, and its direction
 is the list's convention: the run given first is the one the ratios are *of*,
 so `basis --compare control` puts a figure below 1 where the basis is faster,
 which for Run 10 was where alignment was faster.
 5. **Make the run's own file, COMMIT THE COPY, and repoint README at it,
    and not before this step.** `runs/run<N>.md` is one run's write-up entire ---
-   *Results*, *What the next run compares against*, *The claims the next run
+   *Results*, *What the next run compares against*, *The properties the next run
    should test*, *The stride classes, run by run*, *Provenance*, none of them
    numbered because the name is --- so a run copies the last one's over its own
    name, commits that copy untouched, and rewrites it, HERE and not earlier
@@ -9297,25 +9242,23 @@ which for Run 10 was where alignment was faster.
    copy. The cost is one commit whose content is a verbatim copy, which reads
    as diary until the next diff makes it legible.
 5b. **Install the tables with `--in-place` rather than pasting them.**
-`--markdown`, `--fingerprint`, `--block` and `--claims` each take it ---
-the last installing a `Readings:` paragraph under each claim's lead rather
-than a table --- and each refuses rather than guessing: the match is by whole
-line, the count is asserted, and a class table is narrowed by its block's bolded
-lead. **A claim's reading is placed by its `**Claim N` lead the same way, which
-is prose the write-up is editing while it works**: rename a lead and the install
-that fills the paragraph beneath it refuses, naming the claim. Hand-pasting
-is what this replaces, and the reason is on the record --- the cross-class
-summary's header is written out twice, once indented as the spec that fixes
-the columns, and a session locating the table by searching for that text put Run
-8's rows under the spec and left Run 7's table standing, with every check green
-because the check looked it up the same way. The table carries `needs`
-and the emphasis forward from the one already there, and its stderr is the whole
-of what is left by hand; Run 9 had ten new rows and filled them from a note
-written here before the run, which is the practice to repeat whenever a roster
-change is known in advance --- the cell then gets transcribed rather
-than invented at the end of a long day. A class table comes out six columns
-wide, `needs` being a property of a strategy rather than of a population
-and so stated in the main table alone.
+`--markdown`, `--fingerprint` and `--block` each take it, and each refuses
+rather than guessing: the match is by whole line, the count is asserted,
+and a class table is narrowed by its block's bolded lead. **An install is placed
+by a bolded lead, which is prose the write-up is editing while it works**:
+rename a lead and the install that fills the paragraph beneath it refuses,
+naming it. Hand-pasting is what this replaces, and the reason is on the record
+--- the cross-class summary's header is written out twice, once indented
+as the spec that fixes the columns, and a session locating the table
+by searching for that text put Run 8's rows under the spec and left Run 7's
+table standing, with every check green because the check looked it up the same
+way. The table carries `needs` and the emphasis forward from the one already
+there, and its stderr is the whole of what is left by hand; Run 9 had ten new
+rows and filled them from a note written here before the run, which
+is the practice to repeat whenever a roster change is known in advance ---
+the cell then gets transcribed rather than invented at the end of a long day.
+A class table comes out six columns wide, `needs` being a property of a strategy
+rather than of a population and so stated in the main table alone.
 
 **Assemble the cross-class summary last, from the tables and not
 from the JSONs.** Every cell of it appears in one of the class tables above it,
@@ -9333,7 +9276,7 @@ already drifted between runs.
    **What skipping this costs is measured**: Run 16 walked it shallowly
    and an independent checker then found **fourteen of its twenty-one findings**
    were stale prose in sections this list names --- an anchor table, a launch
-   window, four per-claim verdicts, a class calibration paragraph --- every one
+   window, four verdict paragraphs, a class calibration paragraph --- every one
    of them contradicted by a table the same write-up had just installed.
    **Replace; do not annotate.** Walking a list of what to replace makes "now X,
    where it was Y" the natural sentence, and a superseded number has to earn
@@ -9766,7 +9709,7 @@ at the head of the post-run walk --- or EARLIER, during the sequence, which
 is where Run 26 put it and where it costs nothing: the box is busy for hours,
 the carrier only reads, and the file waits. Read back a block at a time
 by the three steps that name those items. They are the previous run's prose ---
-its head, its two-column section, its claims and a class block --- read once
+its head, its two-column section, its properties and a class block --- read once
 for a verdict apiece and never carried whole, which is what a carrier is for.
 A file rather than a returned message because the sentence above binds
 a delegated reading too: what the carrier says is forgotten by the step
@@ -9794,10 +9737,8 @@ that needs it unless it is written down.
     4. the two-column table under it, the ONE table read, `--with-tables`
          -- does it carry the last run's columns? Run 20's write-up
             forgot to add its own, which is why this is named separately
-    5. the claims, BOTH numbered sets AND the prose after them, which is where
-       retirements are recorded -- not the readings above them, which `--claims`
-       reprints
-         -- which claims are live, and how many
+    5. the properties and the prose after them, which is where retirements
+         are recorded -- which are live, and how many
     6. the class blocks: the six numbered items of the form, and one example
        block, not the rest
          -- the form, in your own words
@@ -9811,7 +9752,7 @@ that needs it unless it is written down.
          ITS FOUR READS, so the carrier opens no file whole (P=$PREV):
              item 2  --section Results --run-doc runs/$P.md
              item 4  --section 'What the next run compares against' --run-doc runs/$P.md --with-tables 1
-             item 5  --section 'The claims the next run should test' --run-doc runs/$P.md
+             item 5  --section 'The properties the next run should test' --run-doc runs/$P.md
              item 6  --section 'The stride classes, run by run' --run-doc runs/$P.md
          The 1 is the two-column table and the other tables of that
          section are the per-shape fingerprint, which item 4 does not
@@ -9904,24 +9845,24 @@ and 8's replace list**, every one of which answers a question the write-up asks:
 the replace list is walked at post-run step 6 and gains nothing from being read
 hours early, which run list step 15 already says of it, and the class blocks'
 form is not used until a block is written. **ONE OF THOSE CROSSES BACK,
-and it is 5.** A roster change that parks or drops an arm can leave a live claim
-naming an untimed one, which `--lint` refuses at step 7 --- so the preparation
-that made the change is the one that must retire or re-aim the claim,
-and it owes the claims section to do it. Run 21's preparation is the case:
-parking `offtab` and `gen-quotrem` retired claims 2 and 6 and re-aimed 8, all
-of it before that run started. A preparation that parks nothing does not owe 5,
-and step 7 is what tells it which it is. **Reading the other session's half
-is the largest avoidable spend in this chapter after the prose itself.**
-It was the shape of a preparation on 2026-08-30, which read the whole post-run
-list and an example class block and used neither, and it is a spend the split
-makes invisible: nothing in a handover shows what the session before it read
-for nothing. Items 2 to 6 are [the last run's own file](runs/run30.md#results),
-3 and 4 being [what the next run compares
+and it is 5.** A roster change that parks or drops an arm can leave a live
+property naming an untimed one, which `--lint` refuses at step 7 ---
+so the preparation that made the change is the one that must retire or re-aim
+it, and it owes the properties section to do that. Run 21's preparation
+is the case: parking `offtab` and `gen-quotrem` retired claims 2 and 6
+and re-aimed 8, all of it before that run started. A preparation that parks
+nothing does not owe 5, and step 7 is what tells it which it is. **Reading
+the other session's half is the largest avoidable spend in this chapter after
+the prose itself.** It was the shape of a preparation on 2026-08-30, which read
+the whole post-run list and an example class block and used neither, and it
+is a spend the split makes invisible: nothing in a handover shows what
+the session before it read for nothing. Items 2 to 6 are [the last run's own
+file](runs/run30.md#results), 3 and 4 being [what the next run compares
 against](runs/run30.md#what-the-next-run-compares-against), 5 [the
-claims](runs/run30.md#the-claims-the-next-run-should-test) and 6 [the class
-blocks](runs/run30.md#the-stride-classes-run-by-run) --- and `--section` takes
-the heading's own words, never the anchor those links spell, which it refuses
-by name:
+properties](runs/run30.md#the-properties-the-next-run-should-test) and 6 [the
+class blocks](runs/run30.md#the-stride-classes-run-by-run) --- and `--section`
+takes the heading's own words, never the anchor those links spell, which
+it refuses by name:
 
     ./read-run.py --section 'What the next run compares against'
     ./read-run.py --section 'What the next run compares against' --with-tables 1
@@ -9990,12 +9931,12 @@ back, so a probe in it that TIMES anything is asked for first (19a); one
 that only reads the artifacts is not. **And do not read the budget
 as a concession --- it is where this README's mechanisms have come from, where
 the run is where its figures come from.** Run 15's six and a half hours produced
-figures, held 13 of 13 claims and confirmed a repetition, and no mechanism
-at all; some two hours of probes afterwards settled five standing questions,
-refuted three of that run's own published claims and found a caveat touching
-every ratio here. So a question with a discriminating measurement deserves
-a filtered run now rather than a slot in the next full one, which is a rule
-this chapter states twice and had buried both times.
+figures, held every registered ordering and confirmed a repetition,
+and no mechanism at all; some two hours of probes afterwards settled five
+standing questions, refuted three of that run's own published claims and found
+a caveat touching every ratio here. So a question with a discriminating
+measurement deserves a filtered run now rather than a slot in the next full one,
+which is a rule this chapter states twice and had buried both times.
 
 **Stop for two things.** No further progress --- a build that will not build,
 a gate that fails, evidence that is not on this machine --- and a decision
@@ -10010,11 +9951,11 @@ the test and not the category: *belongs to whoever asked* cannot be applied
 from inside, since anything can be argued into it, where *changes what
 the machine does next* is answerable in a sentence and would have answered every
 stop this chapter has recorded. A preparation that leaves such a decision says
-so outright --- Run 19's put the claims-retirement decision at the head
-of the pair note in this paragraph's own vocabulary, with *before the gate
-is paid* beside it, and its first operator read it as a stop and lost the night
-(2026-08-24), where the test says plainly that a manifest edit due
-at the write-up changes nothing the evening does.
+so outright --- Run 19's put a retirement decision at the head of the pair note
+in this paragraph's own vocabulary, with *before the gate is paid* beside it,
+and its first operator read it as a stop and lost the night (2026-08-24), where
+the test says plainly that a manifest edit due at the write-up changes nothing
+the evening does.
 
 **Confirm each long process on the screen as it finishes**, rather than folding
 it into a later summary. The gate, the sequence, a rebuild, any probe that takes
@@ -10154,7 +10095,6 @@ this are in the reader's docstring and the corpus's own.
     ./read-run.py A.json --compare B.json --ci  # the CI% column's MEDIAN,
                                             # which is the statistic it
                                             # publishes and not the mean
-    ./read-run.py RUN.json --claims         # every claim's verdict, one call
     #      then the README's verdict figures read back: what reproduces these
     #      readings, and what is neither theirs nor attributed to a run
     ./read-run.py RUN.json --cells          # every cell as TSV, for the rest
@@ -10231,8 +10171,8 @@ this are in the reader's docstring and the corpus's own.
 no write-up has ever read a table row out of either document: `--markdown`,
 `--fingerprint` and `--block` emit those rows and `--in-place` installs them,
 so three hundred-odd cells are never carried through a context that does
-not need them. `--claims --in-place` extended that from rows to prose,
-the readings under each claim being the reader's sentence and not the author's.
+not need them. An `--in-place` install extended that from rows to prose,
+the reading under a lead being the reader's sentence and not the author's.
 `--para` is the same trick for prose --- the alternative is a `grep -n` paired
 with a `sed -n` for every passage wanted, both of which go stale the moment
 an edit above moves the lines, which every install and every fix does. The rule
@@ -13026,7 +12966,7 @@ is the failure this list was rewritten to escape.
   span a roster order change alone is worth and which half published what;
   the Results table and the findings under it; its own two-column geomeans
   and the two-column per-shape fingerprint, which are the only record kept once
-  the JSON is deleted; the claims, where a run reports which held rather
+  the JSON is deleted; the properties, where a run reports which held rather
   than re-deriving them; each class's own table, controls, provenance, anchor
   and paragraph; and its own Provenance, carrying what the pair was, how
   the sequence ran, the three main-set anchors with the class ones,

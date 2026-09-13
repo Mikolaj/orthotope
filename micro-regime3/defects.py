@@ -224,9 +224,8 @@ def _newest_run_doc():
     """The run's own file, which is where everything a run publishes is.
 
     HALF THE FIXTURES HERE PLANT INTO IT and not into README.md: the
-    Results table, the run's own geomeans, the fingerprint, the claims
-    verdicts,
-    the eight class blocks and the run's own provenance all live in
+    Results table, the run's own geomeans, the fingerprint,
+    the class blocks and the run's own provenance all live in
     `runs/run<N>.md`. An absent one is a
     fixture that cannot be built, so it is an assertion and not a fallback
     to README.md -- which would build every one of them against a
@@ -242,7 +241,7 @@ def _newest_run_doc():
         # BLOCKED at 2, not an assert: a missing corpus is "the run did
         # not happen", and the traceback hit --list too. 2026-09-01.
         print('BLOCKED: no runs/run<N>.md in %s -- the Results table, the'
-              ' claims verdicts and the class blocks are all in one, so'
+              ' and the class blocks are all in one, so'
               ' every fixture that plants against them is unbuildable' % at)
         raise SystemExit(2)
     return max(got)[1]
@@ -1402,37 +1401,6 @@ def rundoc_carried_figures(tmp):
     return {'rundoc': write_rundoc(tmp, doc, name='run99.md')}
 
 
-def rundoc_current_run_sentence(tmp):
-    """A verdict sentence attributing a figure to the run in hand.
-
-    Its own PARAGRAPH, under the claim's lead, because the sweep reads a
-    paragraph at a time and splits it into sentences: appended to the lead
-    LINE, which is where this fixture started, the sentence lands inside
-    another one and the figure is never reached.
-    """
-    ANCHOR = '**Claim 10 '   # RE-AIMED 2026-09-04, from claim 1, retired
-    # that day by the prune with every rung below its top parked;
-    # 2026-08-28 from claim 2, retired with its arm parked; and 2026-08-25
-    # from claim 3, which retired at Run 19's write-up along with 4, 5 and
-    # 9. The anchor has to be a claim the MANIFEST still carries, not
-    # merely a heading the section still shows: with the claim gone from
-    # `CLAIMS` the reader computes no reading for it, so the planted
-    # sentence is never adjudicated and the figure never appears -- which
-    # is how this case failed the hour the manifest shrank, and again on
-    # 2026-08-28 and 2026-09-04 when a claim retired with its arms: the
-    # sentence names the live claim's arm, so it reads as one about the
-    # claim that is left.
-    doc = rundoc_text()
-    run = re.match(r'run(\d+)\.md$', os.path.basename(RUNDOC))
-    assert run, 'the run file is not named run<N>.md, so it names no run'
-    paras = doc.split('\n\n')
-    at = [i for i, p in enumerate(paras) if p.startswith(ANCHOR)]
-    assert len(at) == 1, '%s lead: %d paragraph(s)' % (ANCHOR, len(at))
-    paras.insert(at[0] + 1, 'In Run %s, `mut-odo-vecdims-add-in-leaf-u2`'
-                            ' reads 0.9312 against it.' % run.group(1))
-    return write_rundoc(tmp, '\n\n'.join(paras))
-
-
 def doc_of_a_list(tmp, items=4):
     """A document whose one list has no blank line between its items.
 
@@ -1573,9 +1541,9 @@ def readings_digest(run='run97', bare=False):
             '    does it carry the last run\'s columns? yes, both.\n'
             '    from: ./read-run.py --section \'What the next run compares'
             ' against\' --with-tables 1\n\n'
-            'ITEM 5 (the claims, both numbered sets and the prose after)\n'
-            '    live: four of ten.\n'
-            '    from: ./read-run.py run96-main.json --claims\n\n'
+            'ITEM 5 (the properties and the prose after them)\n'
+            '    live: three.\n'
+            '    from: ./read-run.py --lint\n\n'
             'ITEM 6 (the class blocks)\n'
             '    the form: six numbered items, verdicts first, the'
             ' paragraph the author\'s.\n'
@@ -1654,31 +1622,6 @@ def readme_of_leads(tmp):
         '**Beta alone.** Body four, which is unique to it.',
     ]) + '\n')
 
-
-def rundoc_retirement_sentence(tmp, retiring=True):
-    """A claims paragraph quoting a figure the manifest cannot account for.
-
-    Planted under the live claim's lead, the same anchor
-    `rundoc_current_run_sentence` uses and for the same reason: it is a
-    claim the manifest still carries, so the paragraph is adjudicated at
-    all. The figure is the fixture's and is not read from the run.
-
-    With `retiring`, the sentence is about a retirement, which is the
-    state Run 19's write-up left eleven figures in -- a retired claim
-    takes its pair out of the manifest, so the reading recorded as its
-    epitaph is by construction unaccountable, and listing it reads a
-    correct write-up as a defective one. Without, it is the same figure
-    in an ordinary sentence, which must still be listed.
-    """
-    doc = subprocess.run(['wrap80', '--unwrap'], input=rundoc_text(),
-                         capture_output=True, text=True, check=True).stdout
-    paras = doc.split('\n\n')
-    at = [i for i, x in enumerate(paras) if x.startswith('**Claim 10 ')]
-    assert len(at) == 1, 'claim 10 lead: %d paragraph(s)' % len(at)
-    sent = ('Claim 10 retires here, having last read 0.8271 against it.'
-            if retiring else 'Claim 10 reads 0.8271 against it.')
-    paras.insert(at[0] + 1, sent)
-    return write_rundoc(tmp, '\n\n'.join(paras))
 
 
 def readme_citing_dotfile(tmp):
@@ -1997,8 +1940,8 @@ def stub_pair_note(tmp):
     Written rather than taken from a real note because the real ones are
     gitignored and go with their pair: a case built on run23-pair.txt
     would be a case that stops running the day the artifacts are offered.
-    That is the DELETION decay, answered by re-aiming; era_main_hs below
-    answers the other one, the main set growing under a captured run. The half named `spot` inside `dead-spot`, `spot-check`,
+    That is the DELETION decay, answered by re-aiming. The half named
+    `spot` inside `dead-spot`, `spot-check`,
     `hotspot` and `spotless` is the point of the block: a rename bounded
     by `\\b` renames the FORM the pair varies, `-` being a word boundary.
     """
@@ -2034,58 +1977,6 @@ def stub_pair_note_machine_check(tmp):
     return {'note': write(os.path.join(tmp, 'run23-pair.txt'),
                           STUB_NOTE_MACHINE_CHECK)}
 
-
-def era_main_hs(tmp, run):
-    """Main.hs with the main lists trimmed to the shapes a captured run has.
-
-    The three cases below read a CAPTURED run through `--claims`, whose
-    population gate holds the run to TODAY's main set and, when the run
-    falls short, prints a note and reads nothing back. Two main-set shapes
-    landed on 2026-09-02 for Run 24, which put every captured run on disk
-    at 24 of 26 and turned that gate on: the two `has` cases went red and
-    the `hasnt` case went VACUOUS, passing because every figure was
-    suppressed rather than because the sentence exempted one. Re-aiming
-    them at a newer run does not help -- no captured run can carry a shape
-    added after it -- so what they pass is the era's main set as far as
-    the run itself shows it, and no later addition can reach them.
-
-    Trimming only REMOVES entries, so every shape the run does carry keeps
-    its dims and its `l`. The assertion is the point: a trim that loses or
-    keeps the wrong names would leave the gate firing for a new reason and
-    the cases red for a reason nobody would look for.
-
-    AND THE LIVE GATE STAYS AS IT IS, ruled 2026-09-03: it looked as
-    though `--claims` should honour the declaration that the population
-    sizes honour since d08d6a5, and it should not. The gap cannot arise
-    where the procedure uses the mode -- post-run step 4a and
-    install-tables.sh both point it at `$R-<basis>-main.json`, this run's
-    own, built from today's Main.hs and carrying every shape by
-    construction -- so the only thing that ever tripped it was a fixture
-    aiming it at an older run, which is what this function is for. And
-    the note-and-exit-0 path is load-bearing besides: smoke-sweep.sh runs
-    `--claims` over the one-shape smoke run and wants exit 0, calling it
-    the read-back's only pre-run exercise, so making the shape gap
-    nonzero would fail the sweep. Do not re-propose it.
-    """
-    want = {r['reportName'].split('/')[0]
-            for r in json.load(open(run))[2]}
-    src = open(MAIN).read()
-    got = set()
-    for lst in MAIN_LIST_NAMES:
-        head = '\n%s =\n' % lst
-        i = src.index(head) + len(head)
-        j = src.index('\n  ]', i)
-        entries = re.split(r'\n(?=  [,\[] )', src[i:j])
-        kept = [e for e in entries
-                if (re.search(r'\("([\w-]+)",', e) or _NO).group(1) in want]
-        assert kept, '%s: the run shares no shape with %s' % (run, lst)
-        got |= {re.search(r'\("([\w-]+)",', e).group(1) for e in kept}
-        kept[0] = re.sub(r'^  , ', '  [ ', kept[0])
-        src = src[:i] + '\n'.join(kept) + src[j:]
-    assert got == want, ('trimmed main set %s the run\'s: only here %s, only'
-                         ' in the run %s' % ('is not', sorted(got - want),
-                                             sorted(want - got)))
-    return write(os.path.join(tmp, 'Main.hs'), src)
 
 
 class _NoMatch:
@@ -2911,8 +2802,8 @@ def main_shapes(n=None):
                      if d['lst'] == 'stretchShapes' and not d.get('retired'))
     ms = [sh for pair in zip(conv, stretch) for sh in pair]
     ms += [sh for sh in conv + stretch if sh not in ms]
-    # ALL of it by default, because `--claims --in-place` refuses a main
-    # set that is not the whole one -- the claims are registered over the
+    # ALL of it by default, because an install refuses a main set that is
+    # not the whole one -- a table is written over the whole
     # population, and a fixture short of it makes install-tables.sh refuse
     # for a reason the case is not about. `n` is for the cases that only
     # need a couple of shapes and would rather build less.
@@ -3783,8 +3674,8 @@ def V(exit=None, has=(), hasnt=()):
 # has no audit to watch anything -- so where such a record's bug direction
 # was seen in real use, this table carries the `proved` and says why. The families that were judgement calls were read
 # a second time against their cases: two-spellings covers one quantity
-# derived two ways at two sites (`claims-arm-counted-per-registration`,
-# `ragged-gate-after-exclude`, `alloc-ceiling-over-the-named-cells`,
+# derived two ways at two sites (`ragged-gate-after-exclude`,
+# `alloc-ceiling-over-the-named-cells`,
 # `lead-order-mislabels-the-per-shape-line`, `gate-arms-track-the-selection`),
 # false-comment a message naming a wrong remedy
 # (`withheld-line-names-a-flag-that-is-not-one`), and
@@ -3966,20 +3857,6 @@ TIER1 = {
         family='scan-for-parse', discovery='review', harm='latent',
         trigger='`pushd /path` in a driver', ok='refused as absolute',
         bug='held in a shadow, so the driver would have run for real'),
-    'era-judge-writes-the-shared-copy': dict(
-        family='unverified-state', discovery='review', harm='latent',
-        trigger='selftest-mutants.py running the era_main_hs judge before'
-                ' the property judges',
-        ok='plants the probe shape into a Main.hs of its own',
-        bug='wrote the copy\'s Main.hs and restored nothing, so the later'
-            ' judges read two zz-era-probe entries',
-        # No case: a judge is driven by selftest-mutants.py alone.
-        proved='ran',
-        notes='Watched 2026-09-04: the old and the new judge each run once'
-              ' in a fresh copy of the tracked files, with CORPUS at this'
-              ' directory and CORPUS_LIMIT=2, and the copy\'s Main.hs'
-              ' counted for zz-era-probe afterwards: one entry left by the'
-              ' old, none by the new'),
     'mutants-name-a-property-without-one': dict(
         family='false-comment', discovery='review', harm='latent',
         trigger='reading mutants.py against properties.py',
@@ -4220,10 +4097,6 @@ TIER1 = {
                       trigger='a run named through a directory, from another cwd',
                       ok='finds the legs beside the run',
                       bug='globbed the cwd and said the riders were not taken with every leg on disk'),
-    'claims-arm-counted-per-registration': dict(family='two-spellings', discovery='review', harm='latent',
-                      trigger='--claims --exclude on an arm in several registrations',
-                      ok='reports one arm',
-                      bug='counted the arm once per registration while naming it once, eight for one'),
     'population-main-hs-does-not-define': dict(family=None, discovery='review', harm='latent',
                       trigger='a run whose shapes Main.hs no longer defines',
                       ok='refuses naming the undefined population',
@@ -4287,10 +4160,6 @@ TIER1 = {
                       trigger='a renamed yardstick header over a published ? cell',
                       ok='still carry the ? is reported',
                       bug='the ? gate sat inside the yardstick block and was silently disabled'),
-    'claims-current-run-not-exempt': dict(family='vacuous-check', discovery='review', harm='latent',
-                      trigger='a stale figure in a sentence naming the run in hand',
-                      ok='the figure is read and listed',
-                      bug='CLAIMS_PAST exempted any sentence naming a run, this one included'),
     # ---- read-run.py, later reviews' cases ----
     'insitu-worst-cell-label': dict(family='scan-for-parse', discovery='review', harm='fired',
                       trigger='--aa with one shape dropped from the in-situ ratios',
@@ -4335,7 +4204,7 @@ TIER1 = {
     'aa-survives-a-sunk-cell': dict(family='domain-unchecked', discovery='review', harm='latent',
                       trigger='--aa over a sunk cell',
                       ok='prints the calibration',
-                      bug='died with math domain error where --claims refuses'),
+                      bug='died with math domain error where other modes refuse'),
     'aa-lists-controls-under-no-controls': dict(family=None, discovery='review', harm='latent',
                       trigger='--aa --no-controls',
                       ok='refuses at exit 2, --no-controls drops the controls',
@@ -5093,48 +4962,6 @@ RECORDS = [
          ok=V(exit=0, has=['sat/clean'],
               hasnt=['the riders were not taken']),
          bug=V(exit=2, has=['the riders were not taken'])),
-
-    case('broke-names-the-manifest', 'read-run.py', None,
-         'a retirement made in prose left the manifest predicting the old',
-         # THE MANIFEST IS THE OTHER HALF OF A RETIREMENT. Run 17's chapter
-         # retired claim 4's tie in prose -- *the next run inherits an
-         # ordering rather than re-reading a tie* -- and CLAIMS went on
-         # registering the tie for a day, so Run 18 would have broken it a
-         # third time and a session rediscovered a decision already taken.
-         # The rewrite obligation was stated and was the half that got
-         # done; this names the half that did not, at the moment a BROKE
-         # is read and the decision is being made.
-         #
-         # The silent branch has no case, a synthetic population breaking
-         # eleven of thirteen and no cheap filter leaving none: measured
-         # instead on run17-det, 13 of 13 held and the paragraph absent.
-         # THE BREAK IS PLANTED since 2026-09-04: the manifest is one
-         # registration, and whether the synthetic work order breaks it is
-         # `_spread`'s accident, so the shipped fill is skewed clear past
-         # its root on every shape.
-         plant=lambda t: {'run': synth_json(t, 'main', skew=[
-             (sh, 'mut-odo-vecdims-add-in-leaf-u2', 4.0)
-             for sh in main_shapes()])},
-         argv=['{run}', '--claims'],
-         ok=V(has=['`CLAIMS` in this script is where that lands'])),
-
-    case('claims-arm-counted-per-registration', 'read-run.py', '045ca63',
-         'one filtered arm reported as eight',
-         # THE EXCLUDED ARM MUST BE ONE `CLAIMS` NAMES IN EXACTLY ONE
-         # REGISTRATION, which is the whole of what this case needs: filter
-         # one arm, and the reader must report one arm rather than the
-         # registrations it appears in. It was `bq-expand` until 2026-08-26,
-         # when claim 2's second link retired and took that arm out of the
-         # manifest -- the case then filtered nothing and said `0 arm(s)`;
-         # `mut-flat-gm` until the prune of 2026-09-04 parked it with claim
-         # 1. Claim 10's shipped fill is in one registration; `list` would
-         # not serve, being the baseline every ratio divides by.
-         plant=lambda t: {'run': synth_json(t, 'main')},
-         argv=['{run}', '--claims', '--exclude',
-               'mut-odo-vecdims-add-in-leaf-u2'],
-         ok=V(has=['1 arm(s) of the claims list']),
-         bug=V(has=['arm(s) of the claims list'],
-               hasnt=['1 arm(s) of the claims list'])),
 
     case('added-lines-over-head', 'read-run.py', None,
          'a STAGED document emptied the freshness sweeps',
@@ -5949,39 +5776,6 @@ RECORDS = [
          # than reproducing anything. The run-file split, 2026-08-25.
          ),
 
-    case('claims-current-run-not-exempt', 'read-run.py', 'a6c32e8',
-         '`Run N` exempted the run in hand, the one kind that matters',
-         # THE ONE CASE STILL ON A CAPTURED RUN, and it is stated rather
-         # than left to be noticed. Its verdict is a published reading,
-         # 0.9312, and the defect is that the sentence exempted the run in
-         # hand from being read at all -- so what separates the two
-         # revisions is whether that figure appears. Over a built run they
-         # print byte-identical output, measured 2026-08-17, so the case
-         # would pass while testing nothing. If the captured run's artifacts
-         # go, this reports FIXTURE DID NOT BUILD, which is the honest
-         # failure and not a false pass; re-aim it at whatever run is then
-         # on disk. RE-AIMED 2026-08-23 from run14-lookrts to run18-g912,
-         # the artifacts up to Run 16 having been deleted that day, and
-         # again 2026-09-02 to run23-g912 at Run 24's preparation, Run 18's
-         # and Run 19's having gone the same way, and again 2026-09-05 to
-         # run25-g912 when Run 22's and Run 23's were deleted at Run 25's
-         # own offer -- the third re-aim in a fortnight, which is the decay
-         # `stub_pair_note` above describes and the reason this comment
-         # names the remedy rather than the run. The
-         # figure is the FIXTURE's, planted into the README copy rather
-         # than read from the run, so it does not move with the run; what
-         # the run has to be is CAPTURED rather than built.
-         plant=lambda t: {'rundoc': rundoc_current_run_sentence(t),
-                          'run': run_json('run25-g912-main.json'),
-                          'main': era_main_hs(t, run_json('run25-g912-main.json'))},
-         argv=['{run}', '--claims', '--run-doc', '{rundoc}',
-               '--main', '{main}'],
-         ok=V(has=['0.9312']),
-         # No --audit: `--run-doc` postdates every commit this case could
-         # replay against, so the older reader rejects the argv rather
-         # than reproducing anything. The run-file split, 2026-08-25.
-         ),
-
     # ---- --para's retrieval shape, which had no case at all ---------
     # Added with the change they describe, 2026-08-25. `--para` is the
     # mode a session reaches for most and it was unguarded: on Run 19
@@ -6262,31 +6056,6 @@ RECORDS = [
               hasnt=['paragraph(s) whose lead matches'])),
 
     # ---- the run file, read back -------------------------------------------
-    case('retirement-epitaph-listed-as-unaccounted', 'read-run.py', None,
-         'a retired claim\'s last reading listed as an unattributed figure',
-         # CONTROL FIRST, below: the same figure in an ordinary sentence
-         # is still listed, so this pair says the exemption is the word
-         # `retires` and not the mode having stopped listing anything.
-         # The captured run is re-aimed as the case above is, and for the
-         # same reason: RE-AIMED 2026-09-02 from run19-g912, whose
-         # artifacts went with Run 19's RE-AIMED AGAIN 2026-09-05
-         # to run25-g912, Run 23's having gone with Run 25's deletion offer.
-         plant=lambda t: {'rundoc': rundoc_retirement_sentence(t),
-                          'run': run_json('run25-g912-main.json'),
-                          'main': era_main_hs(t, run_json('run25-g912-main.json'))},
-         argv=['{run}', '--claims', '--run-doc', '{rundoc}',
-               '--main', '{main}'],
-         ok=V(hasnt=['0.8271'])),
-
-    case('ordinary-sentence-still-listed', 'read-run.py', None,
-         'CONTROL: an unattributed figure outside a retirement is listed',
-         plant=lambda t: {'rundoc': rundoc_retirement_sentence(t, False),
-                          'run': run_json('run25-g912-main.json'),
-                          'main': era_main_hs(t, run_json('run25-g912-main.json'))},
-         argv=['{run}', '--claims', '--run-doc', '{rundoc}',
-               '--main', '{main}'],
-         ok=V(has=['0.8271'])),
-
     case('results-names-an-older-basis-half', 'read-run.py', None,
          "the Results lead named the PREVIOUS run's half under this run's"
          ' tables',
@@ -6519,7 +6288,7 @@ RECORDS = [
          bug=V(has=['math domain error'])),
 
     case('aa-survives-a-sunk-cell', 'read-run.py', 'febc2bd',
-         '--aa died where --claims refuses, on the same file',
+         '--aa died where other modes refuse, on the same file',
          plant=_sunk_slice,
          argv=['{run}', '--aa', '--brief'],
          ok=V(has=['calibration:'], hasnt=['math domain error']),
@@ -7066,10 +6835,10 @@ RECORDS = [
          # testing its own reproducer, which did not reproduce.
          plant=lambda t: {
              'doc': write(os.path.join(t, 'doc.md'),
-                          '# T\n\n**(11) *Claim 7 without the flag.* '
+                          '# T\n\n**(9) *The floor for a second run.* '
                           'the planted body\n'),
              'readme': write(os.path.join(t, 'other.md'), '# other\n')},
-         argv=['--para', '(11) *Claim 7 without the flag.*',
+         argv=['--para', '(9) *The floor for a second run.*',
                '--run-doc', '{doc}', '--readme', '{readme}'],
          ok=V(exit=0, has=['the planted body'])),
 
@@ -10076,7 +9845,8 @@ RECORDS = [
               'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzxa'],
          ok=V(exit=1, has=['every arm', 'did NOT refuse']),
-         bug=V(exit=0, has=['sweep clean'], hasnt=['did NOT refuse'])),
+         bug=V(exit=0, has=['sweep clean'], hasnt=['did NOT refuse']),
+         no_audit='other:pre-fix-script-invokes-a-retired-mode'),
 
     case('predictions-block-without-wrap80', 'read-run.py', '690a3b5',
          'with wrap80 off PATH --predictions read the wrapped README and'
@@ -10204,16 +9974,7 @@ RECORDS = [
          ok=V(has=['cds to an absolute path']),
          bug=V(has=['/shadow'], hasnt=['cds to an absolute path'])),
 
-    # Four records without a case: a judge, two docstrings and a probe.
-    case('era-judge-writes-the-shared-copy', 'mutants.py', '462fb1b',
-         "the era_main_hs judge planted its probe shape into the copy's"
-         ' Main.hs, which nothing restored',
-         # selftest-mutants.py restores the MUTATED file and no other, so
-         # the two runs of that judge left two `zz-era-probe` entries for
-         # every later judge to read. The judge points era_main_hs at a
-         # planted copy of its own now. No verdict moved.
-         argv=None, ok=None),
-
+    # Three records without a case: two docstrings and a probe.
     case('mutants-name-a-property-without-one', 'mutants.py', '462fb1b',
          '"the three properties" stood over mutants for two',
          # `prop_table_reads_back` had none, and properties.py still

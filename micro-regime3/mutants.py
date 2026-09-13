@@ -263,38 +263,6 @@ MUTANTS = [
      ' out[\'note\'], \'--draft\', \'run24\', \'--halves\','
      ' \'g912,ghead\'], capture_output=True, text=True)\n'
      'sys.exit(0 if \'-3.66%\' not in r.stdout else 1)"'),
-    # era_main_hs's trim, dropped: the captured-run cases read `--claims`
-    # against a Main.hs trimmed to the run's own shapes, and untrimmed the
-    # population gate fires and suppresses every figure -- which is the
-    # state those cases were in on 2026-09-02, two red and one passing
-    # vacuously. The judge plants the control fixture and requires the
-    # figure to be listed, reaching the run through CORPUS because the
-    # copy holds tracked files alone. Since the retirement of 2026-09-04
-    # every captured run carries today's whole timed main set, so the trim
-    # had nothing to remove and this mutant survived: the judge now plants
-    # a timed shape no run has into the copy's Main.hs first, which the
-    # trim removes and the untrimmed gate fires on, whatever the roster.
-    # Planted into a Main.hs of the judge's own and never into the copy's:
-    # written there, nothing restored it, and every later judge read two
-    # probe entries (2026-09-04).
-    ('era_main_hs stops trimming the main set', 'defects.py',
-     "        src = src[:i] + '\\n'.join(kept) + src[j:]",
-     "        src = src[:i] + '\\n'.join(entries) + src[j:]",
-     'python3 -c "import importlib.util, os, sys, tempfile, subprocess\n'
-     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
-     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
-     's = open(os.path.join(\'{dir}\', \'Main.hs\')).read()\n'
-     'i = s.index(\'\\nstretchShapes =\\n\'); j = s.index(\'\\n  ]\', i)\n'
-     's = s[:j] + \'\\n  , (\\"zz-era-probe\\", [3, 3, 3])  -- 27\' + s[j:]\n'
-     'm.MAIN = os.path.join(tempfile.mkdtemp(), \'Main.hs\')\n'
-     'open(m.MAIN, \'w\').write(s)\n'
-     'run = os.path.join(os.environ[\'CORPUS\'], \'run25-g912-main.json\')\n'
-     'doc = m.rundoc_retirement_sentence(tempfile.mkdtemp(), False)\n'
-     'main = m.era_main_hs(tempfile.mkdtemp(), run)\n'
-     'r = subprocess.run([sys.executable, \'{dir}/read-run.py\', run,'
-     ' \'--claims\', \'--run-doc\', doc, \'--main\', main],'
-     ' capture_output=True, text=True)\n'
-     'sys.exit(0 if \'0.8271\' in r.stdout else 1)"'),
     # The three properties, each broken as its 2026-08-17 proof did: every
     # unit labelled `ns` fails the round-trip on every figure, a column test
     # widened by one fails the read-back on every row, and a reader that
