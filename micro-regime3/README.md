@@ -44,19 +44,21 @@ with its dimension lists replaced by unboxed vectors --- is on Run 30 (plain
 -O1, -A32m) **2.87x** over `bq-expand` paired, ahead on all nineteen shapes.
 **That headline moved with the published REGIME and not with either arm**: Run
 29 read 2.22x on a `-fspec-constr` basis and 2.83x on its own unflagged half,
-and Run 30's basis is that unflagged recipe, so the gap this ratio reports
-is the one the library actually compiles in for the first time since Run 16.
-Its family holds the top of the table. It needs a new `Vector`-class method,
-which this README argued against for as long as the ceiling stood --- to keep
-orthotope's `Vector` API pure and minimal, a bar an in-tree precedent softened
-to a weight --- and which the decision of 2026-08-22 **took**, `vFillStrided`
-landing 2026-08-24 ([below](#the-mutable-ceiling-taken)). Plain `mut-odo`
-no longer argues for it at all: it and `bq-expand`, which survives
-in `Data/Array/Internal.hs` only as that method's class default, the three
-vector-backed instances overriding it with the mutable fill, are a tie at 0.8906
-paired, 14 shapes of 26 and sign p 0.85 on an interval covering 1 ---
-and at 0.8918 on Run 24's HEAD half, a thousandth away, so the tie is not one
-compiler's --- where Run 7 (Harness), at -O1, had it 1.51x ahead.
+and Run 30's basis is that unflagged recipe --- the SAME BINARY, md5 and `.text`
+alike, so the 2.83-to-2.87 step is two evenings of run-to-run drift on one build
+and nothing else --- so the gap this ratio reports is the one the library
+actually compiles in for the first time since Run 16. Its family holds the top
+of the table. It needs a new `Vector`-class method, which this README argued
+against for as long as the ceiling stood --- to keep orthotope's `Vector` API
+pure and minimal, a bar an in-tree precedent softened to a weight --- and which
+the decision of 2026-08-22 **took**, `vFillStrided` landing 2026-08-24
+([below](#the-mutable-ceiling-taken)). Plain `mut-odo` no longer argues
+for it at all: it and `bq-expand`, which survives in `Data/Array/Internal.hs`
+only as that method's class default, the three vector-backed instances
+overriding it with the mutable fill, are a tie at 0.8906 paired, 14 shapes of 26
+and sign p 0.85 on an interval covering 1 --- and at 0.8918 on Run 24's HEAD
+half, a thousandth away, so the tie is not one compiler's --- where Run 7
+(Harness), at -O1, had it 1.51x ahead.
 
 **Several strategies measured since are faster than the last candidate,
 `bq-expand`, and need no class method --- a distinction the decision
@@ -678,28 +680,29 @@ rather than a slot in the next run, observed again:
   file](runs/run30.md#what-this-run-was-built-to-answer-and-what-it-answered),
   where a run's registrations have lived since 2026-08-29; in a clause each: (1)
   the flag on the shipped fill, KILLED on the main set at 0.9891, 1.09 points
-  past its 1% bar and the first -O2 pass here to reach the shipped fill at all;
-  (2) the flag on the reference, KILLED at 1.1710 on the main set and past
-  the bar on all eleven populations, so the two columns are an ordering; (3)
-  the flag on the fused list, NEITHER KILL FIRING, its three magnitude spans
-  missing because they are Run 29's and read in that run's orientation, the flag
-  worth 18.27 points on `runs` where `-fspec-constr` was worth 2.21; (4)
-  the odometer over the table, HELD at 0.4678 and 0.3947 on `runs`; (5) the list
-  over the fill, HELD at 0.5808 and 0.4900 on `runs` and tying inside the floor
-  on all five fill classes; (6) stage ten where both changes fire, HELD on both
-  kills, its `window` span missing on the control at 0.8863 where the two views
-  Run 29 found parting in sign part by twenty-five and nineteen points; (7)
-  stage ten where neither fires, HELD at 1.0244 and 1.0245 on `rev` --- outside
-  both floors, as when it was killed on Run 29, and inside the 3% it was amended
-  to; (8) `lib-stage1` against the lean fill, HELD and reproducing Run 28's 0.23
-  and 0.42 for a third run; (9) the floor with the fill family's pair, HELD
-  in all forty-four readings --- and its hand-read half REVERSES Run 29's,
-  `bq-expand-aa-distant` carrying the whole-set floor at 0.57% where two runs
-  had said the gap was the fill pair's own; (10) claim 10 without the flag, HELD
-  at 0.6446 and 0.6525, so the leaf fusion is neither -O2 pass's; (11) claim 7
-  without the flag, KILLED, `list` alone moving from 24.90x to 25.26x
-  on the pinned eighteen. All three kills fell on an item predicting a no-op,
-  which is the third run running.
+  off 1 and so 0.09 past its 1% bar and the first -O2 pass here to reach
+  the shipped fill at all; (2) the flag on the reference, KILLED at 1.1710
+  on the main set and past the bar on all eleven populations, so the two columns
+  are an ordering; (3) the flag on the fused list, NEITHER KILL FIRING,
+  its three magnitude spans missing because they are Run 29's and read
+  in that run's orientation, the flag worth 18.27 points on `runs` where
+  `-fspec-constr` was worth 2.21; (4) the odometer over the table, HELD
+  at 0.4678 and 0.3947 on `runs`; (5) the list over the fill, HELD at 0.5808
+  and 0.4900 on `runs` and tying inside the floor on all five fill classes; (6)
+  stage ten where both changes fire, HELD on both kills, its `window` span
+  missing on the control at 0.8863 where the two views Run 29 found parting
+  in sign part by twenty-eight and nineteen points; (7) stage ten where neither
+  fires, HELD at 1.0244 and 1.0245 on `rev` --- outside both floors, as when
+  it was killed on Run 29, and inside the 3% it was amended to; (8) `lib-stage1`
+  against the lean fill, HELD and reproducing Run 28's 0.23 and 0.42 for a third
+  run; (9) the floor with the fill family's pair, HELD in all forty-four
+  readings --- and its hand-read half REVERSES Run 29's, `bq-expand-aa-distant`
+  carrying the whole-set floor at 0.57% where two runs had said the gap
+  was the fill pair's own; (10) claim 10 without the flag, HELD at 0.6446
+  and 0.6525, so the leaf fusion is neither -O2 pass's; (11) claim 7 without
+  the flag, KILLED, `list` alone moving from 24.90x to 25.26x on the pinned
+  eighteen. All three kills fell on an item predicting a no-op, which
+  is the third run running.
 - `ANSWERED` **What Run 29 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 29's own file](runs/run29.md), where a run's
@@ -3041,8 +3044,10 @@ it renames tags and cannot know the tags now mean something else, so every
 `[SAME]` block was re-read and three were rewritten. A COMPUTATION IMPROVISED:
 none; the counts scale came from the previous run's own counts files,
 `run29-counts-nospec.txt` and its ten class siblings, read at their opening
-and `# end` stamps rather than from the previous note, and it predicted every
-one of this run's twenty-two legs to within a second or two. A STEP SKIPPED:
+and `# end` stamps rather than from the previous note, and it predicted all
+eleven of this run's `nospec` legs to within a second or two, overshooting six
+of the eleven `libcase` ones by up to 44 seconds --- it reads Run 29's unflagged
+column for both halves, and the flagged half counts faster. A STEP SKIPPED:
 none, and one STOPPED --- step 12's condition does not fire on an unmoved
 roster, so the L1 pass was never owed; six of its eleven legs were taken anyway
 because the basis is a recipe no L1 pass had run on, and all six were clean.
@@ -3712,12 +3717,34 @@ codegen rather than that it cannot be built.
   which is what the entry above says none of these fixes could avoid. What
   it does not address is the placement gap the `build`/`mut-odo` pair shows,
   a separate and larger target that no reordering reaches.
-- `OPEN` **`--para` compiles its argument as a regex and tracebacks on a bolded
-  lead that contains a bracket.** Every registration item's lead does ---
-  `(11) *Claim 7 without the flag.*` --- so the one mode this chapter recommends
-  for locating a paragraph by phrase fails on the paragraphs a write-up most
-  often wants, with a `re.error: missing ), unterminated subpattern`
-  and a Python stack rather than a refusal. Found 2026-09-13 during Run 30's
+- `OPEN` **The published basis has left the regime the claims are ruled
+  to decide in, and the ruling has not been re-taken.** README says in four
+  places that `-fspec-constr` is the deciding regime, every run since Run 8
+  being in it --- the correction of 2026-08-14, amended 2026-08-24. Run 29
+  then measured the flag irrelevant to the shipped fill family, and the request
+  of 2026-09-12 moved Run 30's published basis to plain -O1, which is what
+  `Data/Array/Internal.hs` actually compiles under. So Run 30's claim readings
+  are at -O1 while the ruling they are read against is the flag's, and claim 7's
+  `bq-expand` and `list` levels differ by about a third between the two: 2.06x
+  and 22.38x under the flag, 2.76x and 24.90x without it. **What would settle
+  it** is a ruling and not a measurement --- either the deciding regime follows
+  the published basis to -O1, which makes Runs 8 to 29's claim readings history
+  rather than the series, or it does not, in which case a run publishing at -O1
+  owes a flagged column for the claims. Raised by Run 30's comprehension probe,
+  which found the two documents answering it opposite ways; Run 31 varies `-O2`
+  against this same basis and will make the question sharper rather than settle
+  it.
+- `OPEN` **`--para` compiles its argument as a regex, so a bolded lead pasted
+  verbatim can fail SILENTLY, and an unbalanced bracket tracebacks.** Every
+  registration item's lead carries brackets ---
+  `(11) *Claim 7 without the flag.*` --- and pasted whole it compiles, matches
+  nothing and exits 0: the mode this chapter recommends for locating a paragraph
+  by phrase reports *no paragraph whose bolded lead or body matches* for a lead
+  that is demonstrably there. Truncate it to an unbalanced bracket ---
+  `--para '(11'` --- and it raises
+  `re.error: missing ), unterminated subpattern` with a Python stack instead.
+  The silent half is the worse of the two and is what this entry is for;
+  the traceback is how it was noticed. Found 2026-09-13 during Run 30's
   write-up, at the cost of one call. **What would settle it** is either catching
   `re.error` and saying so, or falling back to `re.escape` when the pattern does
   not compile --- a defect case first, as `read-run.py`'s own docstring
@@ -6823,16 +6850,24 @@ takes --- **and that is not the regime the claims decide in**, a correction made
 2026-08-14 after several entries had been written on the other reading
 and amended 2026-08-24: the deciding regime is `-fspec-constr`, every run since
 Run 8 already in it, and the shipped file does not set the flag ([the
-ceiling](#the-mutable-ceiling-taken) has the probe that settled it). Other
-regimes are command-line only, the flag landing after the cabal file's
-so the later `-O` wins: `-fspec-constr` when testing the `SpecConstr`
-optimization effect, `-O2` for the half of the scan-fusion refutation
-that inverts there (a `diag` at `-O2` is what measures it). **The RTS line
-is the second thing the shipped setting fixes, and since 2026-08-21 this suite
-shares it by decision: every horde-ad test and benchmark and every process here
-runs at `-A32m`, and the area is not to vary again.** `micro.cabal` bakes
-the whole line, `-A32m -I0 -T -M8G`, the one every recorded recipe since Run 13
-carried, so no recipe passes `-with-rtsopts` any more, and a `+RTS` line
+ceiling](#the-mutable-ceiling-taken) has the probe that settled it).
+**THAT RULING AND THE PUBLISHED BASIS HAVE COME APART AT RUN 30 and the ruling
+has not been re-taken**: Run 29 measured the flag irrelevant to the shipped
+family, the request of 2026-09-12 moved Run 30's basis to plain -O1 ---
+the regime the shipped file actually compiles under --- and [that run's
+claims](runs/run30.md#the-claims-the-next-run-should-test) are therefore READ
+at -O1 while this sentence still says they DECIDE under the flag. Claim 7's
+`bq-expand` and `list` levels differ by about a third between the two,
+so the gap is not academic. Nothing here resolves it; the open list carries
+it as a decision owed. Other regimes are command-line only, the flag landing
+after the cabal file's so the later `-O` wins: `-fspec-constr` when testing
+the `SpecConstr` optimization effect, `-O2` for the half of the scan-fusion
+refutation that inverts there (a `diag` at `-O2` is what measures it). **The RTS
+line is the second thing the shipped setting fixes, and since 2026-08-21
+this suite shares it by decision: every horde-ad test and benchmark and every
+process here runs at `-A32m`, and the area is not to vary again.** `micro.cabal`
+bakes the whole line, `-A32m -I0 -T -M8G`, the one every recorded recipe since
+Run 13 carried, so no recipe passes `-with-rtsopts` any more, and a `+RTS` line
 that varies anything else repeats it in full. The caller ran at `-A1G` until
 then, a gap [the floor section][floor] priced on one shape and Runs 14 to 16
 over the table, and what closed it is the churn findings: the tax grows
@@ -12378,7 +12413,7 @@ tables and its fingerprint say so.
   with `-fliberate-case` added to one `--ghc-options` --- contributes the second
   column of `runs/run30.md`. **Its `list` moved 17.10 points between the halves,
   OUTSIDE the 0.7% bar, so its two columns may NOT be subtracted**, nor may any
-  of its ten classes', which moved 17.18 to 21.71 points: every cross-half
+  of its ten classes', which moved 17.26 to 21.71 points: every cross-half
   figure in its file is an ordering. Its sequence ran in ONE window, 02:05:18
   to 10:04:58, with ONE intrusion found --- two cells of `run30-libcase-main`
   on `cnn-L1-6x6-c1`, caused by the write-up session's own reader call 58
