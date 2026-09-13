@@ -7631,15 +7631,9 @@ Unsandboxed throughout:
     #      visible at the tick rather than in the wallclock log
     #      afterwards. It wants no quiet box of its own, being an `ls` and
     #      a `tail` an hour.
-    #      FORTY-FIVE MINUTES AND NOT SIXTY, and the reason is the
-    #      SESSION and not the run: a session's prompt cache holds for an
-    #      hour, so a tick inside that window costs a cache read while the
-    #      first message after a longer silence pays to rebuild the whole
-    #      conversation. 45 leaves room for a tick that lands late. The
-    #      two costs are within a small factor of each other over an
-    #      evening, so the heartbeat is not bought FOR the cache -- it is
-    #      bought for the pace, and the cache is only what fixes the
-    #      interval.
+    #      FORTY-FIVE MINUTES AND NOT SIXTY, for a reason that is the
+    #      SESSION's and not the run's; the prose has it, under the
+    #      heartbeat's own bolded lead
     #      The stage lines below say
     #      what each is for and what to reach for when one complains, as
     #      preflight.sh's do for 4 to 10; 15 and 18 are yours while it runs
@@ -8354,6 +8348,14 @@ and its header says how: every process's bench count against the binary's own
 listing, loud in the log and not fatal, the exit status carrying the count
 of complaints out to whatever collected it.
 
+**The heartbeat ticks at FORTY-FIVE MINUTES for a reason that is the SESSION's
+and not the run's.** A session's prompt cache holds for an hour, so a tick
+inside that window costs a cache read while the first message after a longer
+silence pays to rebuild the whole conversation. 45 leaves room for a tick
+that lands late. The two costs are within a small factor of each other
+over an evening, so the heartbeat is not bought FOR the cache -- it is bought
+for the pace, and the cache is only what fixes the interval.
+
 Everything else is already a default. The allocation fit
 `--regress allocated:iters` is on (it is well-conditioned at 5s), so `alloc`
 comes out of the same process as the times rather than a side run; passing
@@ -8606,7 +8608,12 @@ not otherwise.
     #      THE PER-CLASS CALLS ARE INDEPENDENT OF EACH OTHER, all forty of
     #      them -- ten classes by `--block`, `--compare`, `--predictions`
     #      and `--block --compare` -- so they are the one place in this list
-    #      that parallelises without thought. Run 29 ran them one at a time
+    #      that parallelises without thought. SAY IT WITH A COMMAND, since
+    #      a session that has to invent the parallelism runs them one at a
+    #      time, as Run 30 did: `printf '%s\\n' rev bcast ... | xargs -P4 -I{}
+    #      sh -c './read-run.py $R-<basis>-{}.json --block --brief >
+    #      <scratch>/{}-block.txt 2>&1'`, and the same shape for the other
+    #      three readings. Run 29 ran them one at a time
     #      over 24 MB JSONs and said so at its step 9
     #      and one per class ACROSS the halves -- from Run 14 on, a run
     #      before that having no control-half class JSON to compare
@@ -8628,6 +8635,11 @@ not otherwise.
     #      assumed, the first phrasing of this line having said `family`
     #      READ THE BLOCKS BY THEIR LINES AND NOT WHOLE: pipe them
     #      through `grep -E 'Verdicts|property|Across the halves|floor'`
+    #      -- AND THE SAME FOR `--wild` AND `--aa`, whose tables run to
+    #      hundreds of lines and whose answer is one: `--wild`'s
+    #      `reaches 0.25 foreign` line, which is the intrusion verdict,
+    #      and `--aa`'s `observed spread` line, which is the FLOOR and
+    #      is not read-all.sh's worst-cell column
     #      -- every block in one call is a hundred KB, the write-up uses some
     #      forty lines of them, and Run 23 read the persisted output of
     #      that call three times over
@@ -8779,6 +8791,19 @@ not otherwise.
     #        step naming that it did
     #      why: --para 'What skipping this costs is measured'
     #  6a. THE RUN'S OWN FILE (FROM THE DIGEST: item 4, the two-column table
+    #      FIRST, BEFORE A WORD OF IT: `./read-run.py --inherited`, which
+    #      names the paragraphs this file carried WHOLE from the last
+    #      run's and which claim something about the run in front of
+    #      them. It is the one class of defect neither checker pass can
+    #      see -- their diff base is step 5's copy, so an untouched
+    #      paragraph produces no diff line at all -- and it is cheap and
+    #      easy to skip. Read each: it is the apparatus every run
+    #      re-carries, or it is last run's claim under this run's name.
+    #      RUN IT HERE AND NOT AT 6d, which is where it was named until
+    #      2026-09-13: after the prose is written every hit is a rewrite,
+    #      and Run 30, which met it at 6d, skipped it and had its checker
+    #      return twelve stale carried paragraphs instead. Run 27 shipped
+    #      nine past both passes and two past its probe besides
     #      this half hand-edits), which is that first bullet and is the bulk
     #      of the run: its head, Results and the findings under it, what
     #      the next run compares against with its hand-edited two-column
@@ -8897,16 +8922,11 @@ not otherwise.
     #      ships them. What bounds it is the ARTIFACT: the diff of both
     #      files since the run's base commit, never README whole. 6e runs
     #      meanwhile, producing a worklist and not an edit.
-    #      AND RUN `./read-run.py --inherited` IN THE SAME TURN:
-    #      it names the paragraphs this file carried WHOLE from
-    #      the last run's and which claim something about the run
-    #      in front of them, which is the one class of defect
-    #      neither pass can see -- their diff base is step 5's
-    #      copy, so an untouched paragraph produces no diff line
-    #      at all. Read each: it is the apparatus every run
-    #      re-carries, or it is last run's claim under this run's
-    #      name. Run 27 shipped nine of the second kind past both
-    #      passes and two past its probe besides
+    #      `--inherited` WAS RUN AT 6a's HEAD, not here: this line
+    #      named it until 2026-09-13, and naming it after the prose
+    #      is written turns every hit into a rewrite. Run 30 missed
+    #      it entirely at this position and its checker returned
+    #      twelve stale carried paragraphs that one command lists
     #      why: --para 'Verify the write-up before deleting'
     #  6e. VERIFY, THE READ-ONLY HALF, run in parallel with 6d and
     #      producing a worklist rather than an edit -- which is what lets
@@ -9746,12 +9766,18 @@ that needs it unless it is written down.
     1. this chapter's three checklists, each printed alone by
     `./read-run.py --checklist pre|run|post`, a fifth of the chapter's lines
          -- every step of them is owed, the build included
-         AND THE POST LIST COMES IN HALVES, `post-a` and `post-b`, cut at
-         step 6 because nothing below it is actionable until 5b's tables
-         are in. Take `post-a` when the sequence starts and `post-b` when
-         they are: Run 29 read all 615 lines of `post` at run-list step 15,
-         six hours before its first actionable line, because this item
-         named only the whole
+         AND BOTH LONG LISTS COME IN HALVES, `pre-a`/`pre-b` and
+         `post-a`/`post-b`. The post list is cut at step 6, nothing below
+         it being actionable until 5b's tables are in; the pre list at
+         step 11, where the machine time starts and where nothing can be
+         started until preflight's 4,5 has passed on binaries that exist.
+         Take `pre-a` at step 0 and `post-a` when the sequence starts,
+         the other half of each when its steps arrive: Run 29 read all
+         615 lines of `post` at run-list step 15, six hours before its
+         first actionable line, and Run 30 read all 642 of it at the same
+         step having just read the sentence saying so --- which is why
+         this item now names the halves rather than warning about the
+         whole.
     2. the last run's head and Results prose
          -- one sentence: what this run's own head has to answer
     3. What the next run compares against, its prose and not its figures

@@ -461,8 +461,42 @@ brief_facts () {
   BASIS=$(sed -n 's/.*; \([A-Za-z0-9]*\) is the basis.*/\1/p' "$LOG" \
             | head -1)
   echo
-  echo "--- the brief's THIS RUN ONLY facts, derived; read item 6 of"
+  echo "--- the brief's THIS RUN ONLY facts, derived; read items 5 AND 6 of"
   echo "    checker-brief.txt against these and change what disagrees ---"
+  # ITEM 5's ROWS TOO, since 2026-09-13. Both items are hand-edited every
+  # run and both restate the run file's head; the rows below are the ones
+  # an artifact can settle, so what is left to a hand is prose rather than
+  # re-derivation. Run 30 retyped the repetition fact and got it wrong in
+  # four places -- it called the third repetition this chapter has read the
+  # first -- which a row off the note's own md5s would not have done.
+  NOTE="$R-pair.txt"
+  if [ -f "$NOTE" ]; then
+    printf '  %-14s %s\n' 'md5s' \
+      "$(sed -n 's/^ *md5 \([a-z0-9]*\) *\([0-9a-f]\{32\}\)/\1=\2/p' \
+           "$NOTE" | tr '\n' ' ')"
+    printf '  %-14s %s\n' 'repetition' \
+      "$(sed -n '/^ *repetition /,/^ *[a-z]/p' "$NOTE" | head -2 \
+           | tr '\n' ' ' | sed 's/  */ /g' | cut -c1-150)"
+    printf '  %-14s %s\n' 'text' \
+      "$(sed -n 's/^ *\.text *\(.*\)/\1/p' "$NOTE" | head -1 | cut -c1-110)"
+  else
+    printf '  %-14s %s\n' 'note' "no $NOTE, so item 5's binary rows are NOT\
+ derived -- read them by hand"
+  fi
+  if [ -f "$R-evening-out.txt" ]; then
+    MC=$(sed -n 's/^ *geomean \(.*\)/\1/p' "$R-evening-out.txt" | head -1)
+    # A FIRED CHECK IS NOT A BOX MOVE until it is read against the previous
+    # build of THIS recipe: Run 30's fired at +12.96% against a fingerprint
+    # belonging to the other half's regime, and the box had not moved at all.
+    if grep -q 'BOX MOVED' "$R-evening-out.txt"; then
+      MC="$MC -- BOX MOVED, which is the check asking whether the FINGERPRINT's
+                 half is this basis's recipe; read it against that recipe's
+                 previous build before believing it"
+    else
+      MC="$MC -- did not fire"
+    fi
+    printf '  %-14s %s\n' 'machine check' "$MC"
+  fi
   # THE VERDICT ABOVE GOVERNS THESE ROWS. A failed gate invalidates that
   # population's whole time column, a short run is a reading of what
   # landed, and a plateau that is not flat says the processes measured in

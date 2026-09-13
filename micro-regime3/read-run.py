@@ -132,7 +132,13 @@ Modes:
   --pair A B --per-shape  and the per-shape ratios the range line is a max
                     and min of, which is where a crossover lives
   --compare OTHER   compare one arm across two runs of the same population,
-                    every arm at once -- what a paired run's two halves want
+                    every arm at once -- what a paired run's two halves want.
+                    ITS RATIO IS A PLAIN GEOMEAN of the per-shape net
+                    ratios, NOT the winsorized one the `time` column above
+                    is: the two are different statistics and they part on
+                    any arm with a capped cell. Run 30's shipped leaf reads
+                    0.9891 here and 0.9977 winsorized, which is its
+                    registration (1) killed or held
   --compare O --alloc   whether the two agree on what each arm allocates,
                     partitioned by size and never by column
   --compare O --bridge  each arm as a ratio to `list` IN ITS OWN RUN, per
@@ -2866,8 +2872,33 @@ def items_from_flat(flat):
             if not (num in seen_nums or seen_nums.add(num))]
 
 
+def item_populations(text, available):
+    r"""The populations an item's own text names, out of those on disk.
+
+    A registration item states where it is read -- `On \`runs\`, \`block\`
+    and \`window\`` or `On the main set and on every class` -- and until
+    2026-09-13 nothing read that: `--predictions` adjudicated every span on
+    whatever JSON it was handed, so a span registered on `runs` was read on
+    the main set and reported KILLED for being asked the wrong question.
+    Run 30's write-up hand-rolled the mapping in a throwaway script, which
+    is the shape the chapter calls a defect report against the reader.
+
+    `available` is the population names on disk. Returns them in that
+    order, so the report follows the roster and not the prose.
+    """
+    named = set()
+    if re.search(r'\bon every class\b|\bevery class\b', text, re.I):
+        named |= {p for p in available if p != 'main'}
+    if re.search(r'\bthe main set\b', text, re.I):
+        named.add('main')
+    for p in available:
+        if p != 'main' and re.search(r'`%s`' % re.escape(p), text):
+            named.add(p)
+    return [p for p in available if p in named]
+
+
 def predictions_table(cells, shapes, strategies, meta, other, main_hs,
-                      run, run_doc, readme, counts):
+                      run, run_doc, readme, counts, pop_paths=()):
     """The registration's `predict:` spans, adjudicated from the artifacts.
 
     A registration item states a prediction and a kill condition in prose,
@@ -3084,6 +3115,31 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
              '; item(s) with no span, yours to adjudicate: %s'
              % ', '.join('(%s)' % u for u in unspanned) if unspanned
              else '; every item carries a span'))
+    # WHICH POPULATIONS EACH ITEM IS READ ON, added 2026-09-13. This mode
+    # adjudicates every span on whatever file it is handed, and an item
+    # naming `runs` read on the main set comes back KILLED for being asked
+    # the wrong question -- thirteen of Run 30's twenty-one main-set spans
+    # were exactly that. The item says where it is read; nothing read it,
+    # so the write-up hand-rolled the mapping in a throwaway script, which
+    # the chapter calls a defect report against the reader. This prints the
+    # mapping and the call each population owes; the spans are still
+    # adjudicated one population at a time, which is what the loop below
+    # names rather than hides.
+    if pop_paths:
+        names = []
+        for path in pop_paths:
+            base = os.path.basename(path)
+            m = re.search(r'-([a-z0-9]+)\.json$', base)
+            names.append(m.group(1) if m else base)
+        print()
+        print('the populations each item names, off its own text --- the'
+              ' spans above are this file alone:')
+        for num, text in items:
+            want = item_populations(text, names)
+            print('  (%s) %s' % (num, ', '.join(want) if want
+                                 else 'no population named; read by hand'))
+        print('  each wants its own call: --compare the other half of that'
+              ' population, --predictions, and the item read on THAT output')
     return 1 if unread else 0
 
 
@@ -5586,6 +5642,7 @@ def extremes_table(paths, main_hs, args):
             ('best for the plain arm', lambda r: r.plain, min, '%.3f'),
             ('worst for the plain arm', lambda r: r.plain, max, '%.3f'),
             ('highest `worst` cell', lambda r: r.worst, max, '%.3f'),
+            ('lowest `worst` cell', lambda r: r.worst, min, '%.3f'),
             ('best outside the family', lambda r: r.out, min, '%.3f'),
             ('fastest ceiling', lambda r: r.ceil, min, '%.3f'),
             ('narrowest gap, column', lambda r: gap_size(r.gap), min,
@@ -5611,6 +5668,28 @@ def extremes_table(paths, main_hs, args):
             line += ('  -- 0 at this precision: say whether the arm counts'
                      ' before quoting')
         print(line)
+    # THE FULL ORDER AND NOT ONLY THE HOLDER, added 2026-09-13. Every
+    # superlative this mode was built for is answered by its holder line,
+    # and the ORDINAL ones are not: *second widest*, *joint lowest*,
+    # *third tightest* need the ranking under them. Run 30 wrote four of
+    # those and every one was wrong -- two classes called joint lowest on a
+    # `worst` another class beats, a floor called tightest that is third,
+    # and a `list` move called second widest that is third -- each derived
+    # from the arms the sentence was about instead of from a sort. A
+    # holder line cannot refute any of them; a printed order refutes all
+    # four at a glance.
+    print()
+    print('the full order, for the ordinal claims a holder line cannot'
+          ' settle:')
+    for what, key, rev, fmt in (
+            ('floor, tightest first', lambda r: r.floor, False, '%.2f%%'),
+            ('`worst`, lowest first', lambda r: r.worst, False, '%.3f'),
+            ('the plain arm, best first', lambda r: r.plain, False, '%.3f')):
+        live = [r for r in rows if key(r) == key(r)]
+        order = sorted(live, key=key, reverse=rev)
+        print('  %-26s %s' % (what, ', '.join(('`%s` ' + fmt) % (r.label,
+                                                                key(r))
+                                              for r in order)))
     for want in (min, max):
         by_col = holder(want, lambda r: gap_size(r.gap))
         by_pair = holder(want, lambda r: gap_size(r.gapp))
@@ -6850,9 +6929,11 @@ def splice(docs, anchor, source):
     if rows:
         sys.stderr.write('--replace: this paragraph carries a %d-line table'
                          ' that no blank line separates from it, so replacing'
-                         ' the paragraph would delete the table -- replace the'
-                         ' prose above it by quoting only that, or install the'
-                         ' table with --block --in-place\n' % len(rows))
+                         ' the paragraph would delete the table -- replace'
+                         ' the prose above it by quoting only that AND THEN'
+                         ' --delete the table, or the old one stands below'
+                         ' the new; or install it with --block --in-place\n'
+                         % len(rows))
         return 1
     # A LIST WITH NO BLANK LINES BETWEEN ITS ITEMS IS ONE PARAGRAPH, and
     # this replaces paragraphs -- so an anchor inside one item of the open
@@ -7678,16 +7759,27 @@ CHECKLISTS = {
 # steps.
 POST_SPLIT = '    #   6. walk the replace list under Provenance'
 
+# THE PRE LIST HAS THE SAME SEAM AND IT WAS NOT CUT until 2026-09-13: its
+# steps 0 to 10 decide the pair, build it and check it, and nothing from 11
+# on can be started until preflight's 4,5 has passed on binaries that exist
+# -- so a preparation reading the whole 578 lines at step 0 reads the sweeps
+# and the registration before it has a note. Cut where the machine time
+# starts, which is the same place the half's own length is decided.
+PRE_SPLIT = '    ./smoke-sweep.sh $R '
+
+SPLITS = {'pre': PRE_SPLIT, 'post': POST_SPLIT}
+
 
 def checklist(readme, which, steps_only=False):
     """Print one of the run chapter's three checklists, and nothing else."""
     half = None
-    if which in ('post-a', 'post-b'):
-        which, half = 'post', which[-1]
+    if which[-2:] in ('-a', '-b') and which[:-2] in SPLITS:
+        which, half = which[:-2], which[-1]
     if which not in CHECKLISTS:
         sys.stderr.write('--checklist: one of %s, not %r\n'
-                         % ('|'.join(list(CHECKLISTS) + ['post-a', 'post-b']),
-                            which))
+                         % ('|'.join(list(CHECKLISTS)
+                                     + [k + h for k in SPLITS
+                                        for h in ('-a', '-b')]), which))
         return 1
     try:
         lines = open(readme).read().split('\n')
@@ -7718,11 +7810,12 @@ def checklist(readme, which, steps_only=False):
     label = {'pre': 'pre-run', 'run': 'run', 'post': 'post-run'}[which]
     steps = ''
     if half:
-        cut = [k for k, l in enumerate(block) if l.startswith(POST_SPLIT)]
+        cut = [k for k, l in enumerate(block) if l.startswith(SPLITS[which])]
         if len(cut) != 1:
-            sys.stderr.write('--checklist post-%s: its seam %r occurs %d'
-                             ' times in the post list, need 1\n'
-                             % (half, POST_SPLIT.strip(), len(cut)))
+            sys.stderr.write('--checklist %s-%s: its seam %r occurs %d'
+                             ' times in the %s list, need 1\n'
+                             % (which, half, SPLITS[which].strip(), len(cut),
+                                which))
             return 1
         if half == 'a':
             block, j = block[:cut[0]], i + cut[0] - 1
@@ -7730,7 +7823,12 @@ def checklist(readme, which, steps_only=False):
             block, i = block[cut[0]:], i + cut[0]
         # read off the half rather than naming its ends here, a step
         # added or renumbered otherwise leaving this label behind
-        nums = re.findall(r'(?m)^ {4}# {1,3}(\d+[a-z]?)\.', '\n'.join(block))
+        # A STEP IS NOT ALWAYS AT THE LINE'S HEAD: the pre list writes
+        # 4 and 11 after their commands, so anchoring at column five
+        # read pre-b as starting at 12 when it starts at 11.
+        nums = [m.group(1) for l in block
+                for m in [re.search(r'# {1,3}(\d+[a-z]?)\.', l)]
+                if l.startswith('    ') and m]
         if nums:
             steps = ', steps %s to %s' % (nums[0], nums[-1])
     print('%s: the %s checklist%s, %d lines, %d KB, README.md lines %d to %d'
@@ -8085,6 +8183,19 @@ def _para_item(para, n):
     return para[start.start():nxt.start() if nxt else len(para)].rstrip()
 
 
+def _para_leads(paras, rx):
+    """The paragraphs whose bolded lead matches, with and without markup."""
+    hits = []
+    for path, first, para in paras:
+        lead = LEAD_RE.search(para)
+        if not lead:
+            continue
+        flat = ' '.join(lead.group(1).split())
+        if rx.search(flat) or rx.search(re.sub(r'[`*]', '', flat)):
+            hits.append((path, first, para, flat))
+    return hits
+
+
 def paragraphs(docs, pattern, every=False):
     r"""Print the paragraphs whose BOLDED LEAD matches, and their line numbers.
 
@@ -8154,7 +8265,23 @@ def paragraphs(docs, pattern, every=False):
     m = re.search(r'#(\d+)$', pattern)
     if m:
         item, pattern = m.group(1), pattern[:m.start()]
-    rx = re.compile(pattern, re.I)
+    # A LEAD PASTED VERBATIM IS THE ORDINARY CALL, and this argument is a
+    # REGEX, so the two collide wherever a lead carries brackets -- which
+    # every registration item's does. Compiled, `(11) *Claim 7...` matches
+    # nothing and exits 0, reporting no such paragraph for one that is
+    # demonstrably there; truncated to `(11` it raised re.error with a
+    # stack. Try the pattern, fall back to the literal, and refuse a
+    # pattern that is neither. Cases: `para-traceback-on-a-bracketed-lead`,
+    # `para-refuses-an-uncompilable-pattern`.
+    try:
+        rx = re.compile(pattern, re.I)
+    except re.error as e:
+        try:
+            rx = re.compile(re.escape(pattern), re.I)
+        except re.error:
+            sys.stderr.write('--para: %r is neither a usable regex (%s) nor'
+                             ' matchable literally\n' % (pattern, e))
+            return 2
     paras = []
     for path in docs:
         try:
@@ -8164,9 +8291,13 @@ def paragraphs(docs, pattern, every=False):
             return 2
         paras += [(path, first, para)
                   for first, para, _ in unwrapped_paragraphs(lines)]
-    lead_hits = []
-    for path, first, para in paras:
-        lead = LEAD_RE.search(para)
+    # AND IF THE REGEX MATCHES NOTHING, RETRY IT AS A LITERAL. A bracketed
+    # lead compiles -- so the try above never fires -- and then matches
+    # nothing, which is the quieter half of this defect: the caller is told
+    # no such paragraph exists for one that is demonstrably there.
+    lead_hits = _para_leads(paras, rx)
+    if not lead_hits and re.escape(pattern) != pattern:
+        lead_hits = _para_leads(paras, re.compile(re.escape(pattern), re.I))
         # MATCHED WITH ITS MARKUP AND WITHOUT IT. A caller quoting a lead
         # types what it reads, and a lead carrying backticks or italics
         # renders without them -- so `--para 'the three script-check
@@ -8175,10 +8306,6 @@ def paragraphs(docs, pattern, every=False):
         # pattern is a regex, so it is the LEAD that is stripped rather
         # than the pattern: stripping a `*` out of a pattern would eat a
         # quantifier.
-        flat = ' '.join(lead.group(1).split()) if lead else ''
-        if lead and (rx.search(flat) or rx.search(re.sub(r'[`*]', '', flat))):
-            lead_hits.append((path, first, para,
-                              ' '.join(lead.group(1).split())))
     # ONE MATCH PRINTS WHOLE; SEVERAL PRINT AN INDEX. Retrieval is what this
     # mode is for, and a unique match is retrieved -- printing it costs the
     # caller nothing and a second call would cost a round trip for nothing.
@@ -8210,6 +8337,14 @@ def paragraphs(docs, pattern, every=False):
 
     body = [(path, first, para) for path, first, para in paras
             if rx.search(para)]
+    # THE LITERAL RETRY REACHES THE BODY TOO. A registration item's
+    # paragraph opens with `(11) *Claim 7 ...*` and no bolded lead at all,
+    # so a caller pasting that lands here -- and as a regex it matches
+    # nothing, which is the silent failure this fallback exists to end.
+    if not body and re.escape(pattern) != pattern:
+        lit = re.compile(re.escape(pattern), re.I)
+        body = [(path, first, para) for path, first, para in paras
+                if lit.search(para)]
     if not body:
         print('no paragraph whose bolded lead or body matches %r' % pattern)
         return 1
@@ -9820,8 +9955,16 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                        % (len(claims), os.path.basename(run_doc), cur, was_run,
                           '; '.join(l.strip()[:60] for l in claims)))
         if rest:
+            # NAME THE MODE THAT LISTS THEM. A count with no route to
+            # its own members is one a session reads past: Run 30 met
+            # this note, did not run --inherited, wrote its head, and
+            # had a checker return twelve stale carried paragraphs
+            # that the one command lists. Case:
+            # `carried-note-does-not-name-inherited`.
             print('note: %d paragraph(s) of %s are unchanged from Run %s and'
-                  ' name only an EARLIER run; each is stale or is standing on'
+                  ' name only an EARLIER run -- `--inherited` lists them'
+                  ' and post-run 6a runs it BEFORE the prose is written;'
+                  ' each is stale or is standing on'
                   ' purpose, and the ones that stand are usually a form or a'
                   ' restatement:'
                   % (len(rest), os.path.basename(run_doc), was_run))
@@ -10053,6 +10196,31 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
              (),
              'the head of the run chapter carries the measurement, so'
              ' requote the others'),
+            # THE CROSS-HALF `list` MOVE, added 2026-09-13. It is quoted at
+            # six sites across the two documents and nothing held them
+            # together: Run 30 wrote 17.18 where its own class block and
+            # `--compare` both say 17.26, and the wrong figure stood in five
+            # places in the run file, one in README and two in the checker's
+            # brief until a checker pass sorted the ten classes. The floor
+            # pair earned this treatment the same way, and the comment above
+            # says what a recurring phrasing owes: a row here rather than a
+            # reviewer's memory.
+            ('cross-half `list` move',
+             (r'`list` having moved \*{0,2}([\d.]+) points\*{0,2} on this'
+              r" run's main set",
+              r'`list` is ([\d.]+) points faster WITH the flag',
+              r'`list` moves by about a \w+ everywhere, ([\d.]+)% at its'
+              r' narrowest',
+              r'`list` moves between the halves by ([\d.]+)% at its'
+              r' narrowest'),
+             # NOT the delta chain's `Its `list` moved N points between the
+             # halves`: that chain keeps one bullet per run and each carries
+             # its OWN figure, so the pattern matched Run 29's 12.12 beside
+             # Run 30's 17.10 and called legitimate history a disagreement.
+             # A site belongs here only where `this run` scopes it.
+             (),
+             'the main set is one number and the class range another, so a'
+             ' site quoting the first is quoting this one'),
             ('carry-back figure',
              (r'pairs that carry back to Run 10[^.]*?\*{0,2}([\d.]+)%\*{0,2}'
               r' and \*{0,2}([\d.]+)%',
@@ -10075,24 +10243,33 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                 bad.append('the %s is quoted differently across its %d'
                            ' sites: %s -- %s'
                            % (name, len(sites),
-                              '; '.join('%s%%/%s%%' % f for f in set(sites)),
+                              '; '.join('/'.join('%s%%' % x for x in
+                                                  (f if isinstance(f, tuple)
+                                                   else (f,)))
+                                        for f in set(sites)),
                               why))
-            elif any(o != sites[0][0] for o in alone):
+            elif any(o != (sites[0][0] if isinstance(sites[0], tuple)
+                           else sites[0]) for o in alone):
                 bad.append('the %s reads %s%% where it is quoted as a pair'
                            ' and %s where it is quoted alone -- the two are'
                            ' the same number'
-                           % (name, sites[0][0],
+                           % (name, (sites[0][0] if isinstance(sites[0], tuple)
+                                     else sites[0]),
                               ', '.join(sorted(set(o for o in alone
                                                    if o != sites[0][0])))))
             elif alone_pats:
                 print('ok:   the %s reads %s%%/%s%% at all %d sites that'
                       ' quote it, and %s%% at the %d that quote one half'
-                      % ((name,) + sites[0] + (len(sites), sites[0][0],
-                                               len(alone))))
+                      % ((name,) + (sites[0] if isinstance(sites[0], tuple)
+                                    else (sites[0],))
+                         + (len(sites), (sites[0][0]
+                                         if isinstance(sites[0], tuple)
+                                         else sites[0]), len(alone))))
             else:
-                print('ok:   the %s reads %s%%/%s%% at all %d sites that'
-                      ' quote it'
-                      % ((name,) + sites[0] + (len(sites),)))
+                one = sites[0] if isinstance(sites[0], tuple) else (sites[0],)
+                print('ok:   the %s reads %s at all %d sites that quote it'
+                      % (name, '/'.join('%s%%' % x for x in one),
+                         len(sites)))
 
         # And the A/A population itself. The twelve twins took it from six
         # pairs to eighteen on 2026-08-14 and two sites kept saying six for
@@ -11960,9 +12137,9 @@ def main():
     # one that cannot proceed without it, so it is refused rather than
     # dropped.
     if args.classes and not (args.fingerprint or args.extremes
-                             or args.cross_classes):
-        p.error('--classes is a modifier of --fingerprint, --extremes and'
-                ' --cross-classes and does nothing alone')
+                             or args.cross_classes or args.predictions):
+        p.error('--classes is a modifier of --fingerprint, --extremes,'
+                ' --cross-classes and --predictions and does nothing alone')
     if args.cross_classes and not (args.classes and args.others):
         p.error('--cross-classes wants --classes for the basis half and'
                 ' --others for the control, in the same order')
@@ -12309,7 +12486,7 @@ def main():
                 rd = cand
         sys.exit(predictions_table(cells, shapes, strategies, meta,
                                    args.compare, args.main, args.run, rd,
-                                   args.readme, args.counts))
+                                   args.readme, args.counts, args.classes))
     elif args.compare and args.counts:
         # Before the plain --compare arm below, as every other second-file
         # mode is: --counts is a reading OF a comparison and not a mode

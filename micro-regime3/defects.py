@@ -3809,6 +3809,30 @@ TIER1 = {
         trigger='a clean GATE block, then either half rebuilt',
         ok='runs the gate again, saying the block names other binaries',
         bug='inherited the block by its text alone'),
+    'evening-14a-stamp-does-not-say-when': dict(
+        family='false-comment', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='every run whose gate is not inherited, which is every pair'
+                ' built anew',
+        ok='the stamp handing 14a to a session names 19a as the moment,'
+           ' which is where 14a and the run list both put it',
+        bug='it said the verdict was yours with no when, two seconds before'
+            ' the sequence line, and a session wrote it there',
+        # No case: the stamp is reachable only where the gate RUNS AND
+        # PASSES, and no stand-in here makes it pass -- which is why the one
+        # control case, evening-chains-the-stages, inherits the gate
+        # instead. A case was written and withdrawn rather than left to
+        # assert the driver's source text, which expires the moment the code
+        # under it moves.
+        proved='ran',
+        notes='Watched 2026-09-13 at Run 30, which read the gate verdict at'
+              ' the stamp and ran run-status.sh 58 seconds into an'
+              ' eight-hour sequence: run30-libcase-main carries two benches'
+              ' of cnn-L1-6x6-c1 at 0.77 and 0.61 of a core, benches 11 and'
+              ' 12 of 684. run30-evening.txt stamps the line at 02:05:16 and'
+              ' the sequence at 02:05:18. The rule is in run list step 17'
+              ' and the deferral in 14a and 19a; what the session read at'
+              ' the moment it acted was this line, which carried neither.'),
     'evening-does-not-inherit-an-untied-gate': dict(
         family='unverified-state', discovery='review', harm='latent',
         trigger='a clean GATE block without a halves md5 line',
@@ -7030,6 +7054,73 @@ RECORDS = [
          ok=V(exit=1, has=['table'], hasnt=['chars ->']),
          bug=V(exit=0, has=['chars ->'])),
 
+    case('para-traceback-on-a-bracketed-lead', 'read-run.py', None,
+         'a lead pasted verbatim is retried as a literal instead of'
+         ' raising or matching nothing',
+         # --para compiles its argument as a regex and the chapter tells a
+         # session to locate a paragraph by its bolded lead. Every
+         # registration item's lead carries brackets: pasted whole it
+         # COMPILES and matches nothing at exit 0, and truncated to an
+         # unbalanced bracket it raises re.error with a Python stack. Run
+         # 30 met the traceback and recorded the silent half only after
+         # testing its own reproducer, which did not reproduce.
+         plant=lambda t: {
+             'doc': write(os.path.join(t, 'doc.md'),
+                          '# T\n\n**(11) *Claim 7 without the flag.* '
+                          'the planted body\n'),
+             'readme': write(os.path.join(t, 'other.md'), '# other\n')},
+         argv=['--para', '(11) *Claim 7 without the flag.*',
+               '--run-doc', '{doc}', '--readme', '{readme}'],
+         ok=V(exit=0, has=['the planted body'])),
+
+    case('para-refuses-an-uncompilable-pattern', 'read-run.py', None,
+         'an unbalanced bracket falls back to the literal instead of'
+         ' raising a Python stack',
+         # `--para '(11'` is what truncating a registration lead gives, and
+         # it raised `re.error: missing ), unterminated subpattern` out of
+         # the compile. It now matches literally; where that finds nothing,
+         # the ordinary `no paragraph` is the answer and the stack is gone.
+         plant=lambda t: {
+             'doc': write(os.path.join(t, 'doc.md'), '# T\n\n**a lead\n'),
+             'readme': write(os.path.join(t, 'other.md'), '# other\n')},
+         argv=['--para', '(11', '--run-doc', '{doc}', '--readme', '{readme}'],
+         ok=V(exit=1, has=['no paragraph'], hasnt=['Traceback'])),
+
+    case('carried-note-does-not-name-inherited', 'read-run.py', None,
+         'the carried-paragraph note names --inherited, the mode that'
+         ' lists what it is counting',
+         # The note counts the paragraphs a run carried whole and names no
+         # way to see them; --inherited is that way and is named only in
+         # the post list, mid-paragraph. Run 30 read the paragraph, missed
+         # the command, wrote its head without it, and had a checker pass
+         # return twelve stale carried paragraphs -- every one of which
+         # that one command lists. A count with no route to its own
+         # members is the shape this record is about.
+         plant=rundoc_pair_with_carried_body_claim,
+         argv=['--check-doc', '--worklists', '--run-doc', '{rundoc}'],
+         ok=V(has=['--inherited'])),
+
+    case('replace-refusal-does-not-name-delete', 'read-run.py', None,
+         'the table refusal names --delete, the mode that removes the'
+         ' table it is refusing to take',
+         # The refusal told a caller to `replace the prose above it by
+         # quoting only that`, which is exactly what leaves the old table
+         # standing BELOW the new one: Run 30 did it twice, to the
+         # two-column table and to the Provenance anchors, and read both
+         # duplicates back out of --inherited hours later. A message that
+         # names the next step is the cheapest guard there is, and this one
+         # named the step that produces the defect.
+         plant=lambda t: {
+             'doc': write(os.path.join(t, 'doc.md'),
+                          '# T\n\nkeep me\n\nthe planted lead\n'
+                          '| strategy | time |\n|---|---:|\n'
+                          '| list | 1.000 |\n\nafter\n'),
+             'readme': write(os.path.join(t, 'other.md'), '# other\n'),
+             'new': write(os.path.join(t, 'new.txt'), 'replacement\n')},
+         argv=['--replace', 'the planted lead', '--with', '{new}',
+               '--run-doc', '{doc}', '--readme', '{readme}'],
+         ok=V(exit=1, has=['--delete'])),
+
     case('carried-body-paragraph-calls-itself-this-runs', 'read-run.py',
          '1da8c56',
          'a run file went green with thirty carried paragraphs in its body',
@@ -8619,6 +8710,7 @@ RECORDS = [
                            'riders lookrts clean: done, rc=0',
                            'RIDERS DONE AND THE MACHINE IS FREE'],
               hasnt=['COMPLAINT', 'STOPPED', 'counts a1g'])),
+
 
     case('alonelegs-refuses-a-saturated-clean-leg', 'run-alonelegs.sh', None,
          'CONTROL: a clean leg whose log carries the preamble line complains',

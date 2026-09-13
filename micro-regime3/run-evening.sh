@@ -189,7 +189,9 @@ else
     ./read-run.py "$R-gate-$BASIS-b.json" --compare "$R-gate-$OTHER-b.json"
   } >> "$OUT" 2>&1
   stamp "gate: the two --compare readings are in $OUT; the verdict is yours\
- to write into $NOTE (step 14a)"
+ to write into $NOTE at step 14a -- AT 19a, WHEN THE EVENING HAS LANDED, and\
+ not now: the sequence starts two seconds after this line and README's run\
+ list step 17 wants nothing else on the machine until it ends"
 fi
 
 # 16. THE ALARM, the reading run-alonelegs.sh takes (machine-busy.sh says

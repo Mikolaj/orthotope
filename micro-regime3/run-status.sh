@@ -248,6 +248,17 @@ if [ -f "$R-evening.txt" ]; then
 fi
 
 echo "post-run"
+# 0 IS THE ONE STEP WHOSE WINDOW CLOSES, and until 2026-09-13 it was the one
+# step this file could not prompt: it spends the binaries, so a run that
+# reaches step 11 without it cannot go back. The twins are what it leaves,
+# one per half, named for the run.
+TWINS=$(ls probe-g3-*-"$R" 2>/dev/null | wc -l)
+if [ "$TWINS" -ge 2 ]; then
+  say 0 "done" "$TWINS -g3 twin(s) here; the fill groups are named off them"
+elif [ -f "$DOC" ] || ls "$R"-*.json >/dev/null 2>&1; then
+  say 0 "NOT DONE" "no probe-g3-*-$R twins: step 0 names the fill groups off\
+ them and SPENDS the binaries, so it cannot be taken after step 11"
+fi
 if ls "$R"-*.json >/dev/null 2>&1; then
   ./read-all.sh "$R" > "$TMP/ra" 2>&1 && say 1 "done" "read-all.sh gates every process clean" \
     || say 1 "NOT DONE" "read-all.sh: $(tail -1 "$TMP/ra" | cut -c1-90)"
