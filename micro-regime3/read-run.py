@@ -7142,8 +7142,9 @@ def pair_note(path, draft=None, halves=None):
     # built at -O2, which turns that pass on -- false of the pair it was
     # carried to, and reached by no test of its own, its block being flagged
     # for its run numbers instead (2026-09-14). Marked and never changed, as
-    # above; RTS options are not matched, `-A32m` standing in several
-    # carried blocks and asserting nothing about the optimiser.
+    # above. RTS options are deliberately NOT matched, reaching the runtime
+    # and not the optimiser -- which is a design point and not a case this
+    # has met: no `[SAME]` block of run30-pair.txt names one.
     mine = re.search(r'(\d+)', draft)
     mine = mine.group(1) if mine else draft
     flagged = []
@@ -7244,19 +7245,25 @@ PRE_SPLIT = '    ./smoke-sweep.sh $R '
 SPLITS = {'pre': PRE_SPLIT, 'post': POST_SPLIT}
 
 # THE DOCSTRING IS READ IN PARTS, which is what the run chapter's pre-run
-# step 7 asks for and what nothing offered: it names `the Modes list,
-# --para, --section and the two gates`, and the only way to reach any of
-# them was the whole file's worth of docstring, which a preparation then
-# carries for the rest of its session. The cuts are the docstring's OWN
-# lead lines, so a paragraph moved across one moves its part with it; a
-# lead that is no longer there refuses at 2 rather than silently merging
-# two parts, since a part that quietly absorbed its neighbour reads exactly
-# like a part that was always that long (2026-09-14).
+# step 7 asks for: it names `the Modes list, --para, --section and the two
+# gates`, and the whole docstring was the only way to the PROSE of any of
+# them, which a preparation then carries for the rest of its session.
+# `--help` is the other route and reaches the mode NAMES, so what this
+# saves is measured rather than total: `--doc modes` is the smallest of the
+# three, under `--help`, which is itself well under the docstring entire.
+# The cuts are the docstring's OWN lead lines, so that no part is named for
+# a heading it does not open, `intro` being what stands before the first
+# cut and named for that; a paragraph moved across a
+# cut moves its part with it, and a lead that is no longer there refuses at
+# 2 rather than silently merging two parts, since a part that quietly
+# absorbed its neighbour reads exactly like a part that was always that
+# long (2026-09-14).
 DOC_PARTS = [
     ('intro', None),
     ('definitions', 'Definitions, once:'),
     ('modes', 'Modes:'),
-    ('validation', 'A run artifact is made when a question needs it'),
+    ('partial', 'A run artifact is made when a question needs it'),
+    ('validation', 'Validation:'),
 ]
 
 

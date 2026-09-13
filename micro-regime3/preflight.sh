@@ -602,7 +602,8 @@ step_8
 # equality rather than arguing it. READ OFF THE COMMAND AND NOT OFF THE
 # BLOCK, which the -O2 reading forced and the -fspec-constr one already
 # wanted: a block carries prose as well as a command, and run30-pair.txt's
-# control block says `at -O2 and not at -O1` of a half built at plain -O1.
+# control block says `GHC enabling that pass at -O2 and not at -O1` of a
+# half built at plain -O1.
 # So the `--ghc-options` lines alone, which are what cabal is handed, and a
 # block naming none of them is UNCONFIRMED rather than plain -O1 by default.
 RECIPE=$(awk -v b="$R-$BASIS" -v o="$R-$OTHER" '

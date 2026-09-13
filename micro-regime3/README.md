@@ -7258,8 +7258,8 @@ and never as a chronology.
     #      the load address, as .text, and then reasoned about why it had
     #      not moved across a
     #      roster change. Steps 3, 9b and 10 are reading the block back.
-    #      AND THE FILLS ARE READ THE MOMENT BOTH BINARIES EXIST, at 2d
-    #      below, before anything else changes
+    #      AND THE FILLS ARE READ BEFORE ANYTHING ELSE CHANGES, at 2d
+    #      below; 2a and 2b sit between and change neither binary
     #      BUILD BOTH, ALWAYS -- the BOTH HALVES ARE BUILT ANEW ruling,
     #      whatever the source and the md5 say. ON A REPETITION THE MD5 IS
     #      ONE-SIDED, and an md5 that does not reproduce is NOT A STOP:
@@ -7383,7 +7383,7 @@ and never as a chronology.
     #      re-cut SEL in the same commit that parked two of its five
     ./roster-delta.py $PREV-<PREV's basis> $R-<basis>   # 6c. WHAT THE
     #      ROSTER CHANGE WAS -- and the first tag is the PREVIOUS run's,
-    #      as at step 2: a run that renames its basis leaves
+    #      as at 2d: a run that renames its basis leaves
     #      `$PREV-<basis>` naming a binary that run never built.
     #      Off the two binaries: benches, arms in and out,
     #      whether the survivors kept their ORDER, main-set shapes in and
