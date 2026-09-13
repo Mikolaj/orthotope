@@ -4151,9 +4151,22 @@ lazyRuns ssh sats start v = build (lazyRunsFB ssh sats start v)
 -- every continuation the fused fold meets is 'go', 'carry' or 'nil',
 -- all known to the compiler, so base's own left folds -- 'sum' among
 -- them -- see a strict known call and allocate nothing a run.
+--
+-- The bang on the vector is measured, not style (2026-09-13): a view
+-- of no runs never touches it, so without the bang the walker is lazy
+-- in it, the worker takes it boxed and every run re-enters it for its
+-- length and address -- on 'runs-2' 25 of the 64 instructions a run,
+-- all but one of what -fliberate-case bought this loop on Run 30, that
+-- pass copying the loop under a case on the vector. Banged, the worker
+-- takes the three fields unboxed and the flag has nothing left to do:
+-- the Core is byte-identical with it and without (stage10-probe/). The
+-- bang on the offset 'carry' ignores is the same kind of thing: without
+-- it 'carry' is lazy in its offset, 'go' boxes it for the one call a
+-- level makes, and the heap check for that box sits at the head of 'go'
+-- and is paid every run.
 lazyRunsFB :: ShapeL -> [Int] -> Int -> VS.Vector Double
            -> (VS.Vector Double -> b -> b) -> b -> b
-lazyRunsFB ssh sats !start v cons nil =
+lazyRunsFB ssh sats !start !v cons nil =
   let !n = last ssh
   in  case (init ssh, init sats) of
         ([], []) -> cons (VS.slice start n v) nil
@@ -4170,7 +4183,7 @@ lazyRunsFB ssh sats !start v cons nil =
               -- with two levels above the counter once through its
               -- inner one and failed 'check' on slice-cnn-L2-24x24-c32
               -- (2026-09-09).
-              carry [] _ _ = nil
+              carry [] !_ _ = nil
               carry ((j, d, s) : rest) !o reset
                 | j + 1 < d =
                     go 0 (o + s) (foldl' (flip (:)) ((j + 1, d, s) : rest) reset)
