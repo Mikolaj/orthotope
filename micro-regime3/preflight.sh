@@ -54,6 +54,12 @@
 # breaks and not the stubs. On the real run17 pair it reads ten PASS and
 # exits 0, reproducing every figure the Run 17 preparation read by hand:
 # 1128 benches, byte-identical `check`, scan/mut 1.000, --library 25.3%.
+# Step 9's DERIVATION of which regime to expect, 2026-09-13: it takes no
+# binary, so what breaks it is a wrong NOTE rather than a wrong stub, and
+# the two on disk are the controls. It reads o1 for run31-nospec, spec for
+# run31-o2 and o1 for BOTH of run30's halves, with unknown for a half that
+# has no block. run30-libcase is the one that bites: its recipe block names
+# `-O2` in prose where its command does not.
 # `--note`'s own, 2026-09-01, on two stub notes made and removed in one
 # call: one naming an absent `probe-` path reads 10c FAIL and exits 1, one
 # naming a present path reads 10c PASS and exits 0, and step 8 PASSes under
@@ -589,16 +595,30 @@ step_8
 # the binary was right and the expectation was wrong. Read the flag off the
 # BASIS half's own recipe block, which 10d already holds to the HALVES
 # line, and hold the binary to what its recipe asks for.
+# AND IT IS A PASS AND NOT A FLAG NAME: GHC turns SpecConstr on at -O2 too,
+# so a basis built at that level would have FAILed here for being what its
+# recipe asks -- the Run 30 defect one level up. Run 31's `o2` half reads
+# scan/mut 1.000 against its `nospec` half's 9.992, which measures the
+# equality rather than arguing it. READ OFF THE COMMAND AND NOT OFF THE
+# BLOCK, which the -O2 reading forced and the -fspec-constr one already
+# wanted: a block carries prose as well as a command, and run30-pair.txt's
+# control block says `at -O2 and not at -O1` of a half built at plain -O1.
+# So the `--ghc-options` lines alone, which are what cabal is handed, and a
+# block naming none of them is UNCONFIRMED rather than plain -O1 by default.
 RECIPE=$(awk -v b="$R-$BASIS" -v o="$R-$OTHER" '
   $1 == o { f = 0 }
   $1 == b { f = 1 }
   f && /^[^ ]/ && $1 != b { f = 0 }
   f { print }' "$R-pair.txt" 2>/dev/null)
-case "$RECIPE" in
-  '')              WANT=unknown ;;
-  *-fspec-constr*) WANT=spec ;;
-  *)               WANT=o1 ;;
-esac
+OPTS=$(printf '%s\n' "$RECIPE" | grep -- '--ghc-options')
+if [ -z "$RECIPE" ] || [ -z "$OPTS" ]; then
+  WANT=unknown
+else
+  case "$OPTS" in
+    *-fspec-constr*|*-O2*) WANT=spec ;;
+    *)                     WANT=o1 ;;
+  esac
+fi
 SCAN=$("./$R-$BASIS" diag 2>/dev/null \
        | awk '/^vgg-14-c512 /{f=1} f && /baseOffsetsScan /{print $(NF-3); exit}')
 MUT=$("./$R-$BASIS" diag 2>/dev/null \
@@ -606,7 +626,7 @@ MUT=$("./$R-$BASIS" diag 2>/dev/null \
 if [ -z "$SCAN" ] || [ -z "$MUT" ]; then
   say 9 FAIL "could not read the diag row; regime UNCONFIRMED"
 elif [ "$WANT" = unknown ]; then
-  say 9 FAIL "no recipe block for $R-$BASIS in $R-pair.txt; regime UNCONFIRMED"
+  say 9 FAIL "no recipe block for $R-$BASIS in $R-pair.txt, or none naming --ghc-options; regime UNCONFIRMED"
 else
   RATIO=$(python3 -c "print('%.3f' % ($SCAN/$MUT))")
   IS_SPEC=0
@@ -615,9 +635,9 @@ else
   if [ "$WANT" = spec ] && [ "$IS_SPEC" = 1 ]; then
     say 9 PASS "SpecConstr, which the basis recipe asks for: scan/mut $RATIO on vgg-14-c512 ($SCAN vs $MUT)"
   elif [ "$WANT" = spec ]; then
-    say 9 FAIL "the basis recipe sets -fspec-constr and the binary does not read as SpecConstr: scan/mut $RATIO -- SpecConstr is ~1"
+    say 9 FAIL "the basis recipe sets -fspec-constr or -O2 and the binary does not read as SpecConstr: scan/mut $RATIO -- SpecConstr is ~1"
   elif [ "$IS_SPEC" = 1 ]; then
-    say 9 FAIL "the basis recipe sets no -fspec-constr and the binary reads as SpecConstr: scan/mut $RATIO -- plain -O1 is ~10"
+    say 9 FAIL "the basis recipe sets neither -fspec-constr nor -O2 and the binary reads as SpecConstr: scan/mut $RATIO -- plain -O1 is ~10"
   else
     say 9 PASS "plain -O1, which the basis recipe asks for: scan/mut $RATIO on vgg-14-c512 ($SCAN vs $MUT)"
   fi
