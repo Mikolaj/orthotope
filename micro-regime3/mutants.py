@@ -44,14 +44,15 @@ MUTANTS = [
      'python3 -c "import os,re,sys,importlib.util; os.environ[\'CORPUS\']=\'{root}\'; os.environ[\'CORPUS_RUN\']=\'newest\'; spec=importlib.util.spec_from_file_location(\'p\',\'{file}\'); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); ns=set(int(x.group(1)) for x in (re.search(r\'run(\\\\d+)[-.]\',os.path.basename(f)) for f in m.runs_on_disk()) if x); sys.exit(0 if len(ns)==1 else 1)"'),
     # The populations block's whole judgement is what item_populations
     # returns, so returning nothing is a mutant of the reader: every item
-    # then reads `no population named; read by hand`, and the control case
-    # predictions-name-the-main-set-an-item-reads-on fails on its
-    # `(1) runs`.
+    # then reads `no population named; read by hand`. The judge plants the
+    # fixture of predictions-name-the-main-set-an-item-reads-on itself,
+    # through defects.py's own builders, and runs the mutated copy on it
+    # -- defect-run.py would run the tree's reader and not the copy.
     ('the populations block names no population',
      'read-run.py',
      "    return [p for p in available if p in named]",
      "    return []",
-     'PATH="{bin}:$PATH" python3 {bin}/defect-run.py -k predictions-name-the-main-set {root}'),
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nb = chr(96)\nrun = d.synth_json(t)\nother = d.synth_json(t, name=\'other.json\')\nruns = d.synth_json(t, pop=\'runs\', name=\'x-runs.json\')\ndoc = d.write(os.path.join(t, \'r.md\'), \'# Run 99\\n\\n## What this run was built to answer, and what it answered\\n\\n(1) *a* On \' + b + \'runs\' + b + \': \' + b + \'predict: cross list 1.0 within 1%\' + b + \'.\\n\')\nr = subprocess.run([sys.executable, \'{file}\', run, \'--compare\', other, \'--predictions\', \'--run-doc\', doc, \'--classes\', runs], capture_output=True, text=True)\nsys.exit(0 if \'(1) runs\' in r.stdout else 1)"'),
     # The per-view floor's whole judgement is one comparison, so inverting
     # it is a mutant of the tool. The judge greps for the finding the tool
     # was written to make -- `flip-last-rows` starred in the
