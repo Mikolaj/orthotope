@@ -5995,7 +5995,11 @@ roster =
     -- '-u1-ptr': the ceiling '-u2' would
     -- reach under an allocator that spilled nothing, not a candidate
     -- (README.md#dead-ideas); reasons at its definition.
-  , ("mut-odo-vecdims-add-in-leaf-u2-ptr", Fill fbMutOdoVecdimsAddInLeafU2Ptr)
+    -- Parked 'Only' 2026-09-13: the ceiling is read, 0.9385 of '-u2' on
+    -- Run 30's basis and 0.9268 on its control, 0.9366 and 0.9372 on
+    -- Run 29's halves and 0.9532 on Run 28's basis -- moved by neither
+    -- -O2 pass, and the form it prices is refused for the library.
+  , ("mut-odo-vecdims-add-in-leaf-u2-ptr", Only fbMutOdoVecdimsAddInLeafU2Ptr)
     -- Timed since 2026-08-28, parked 'Only' the day before: the
     -- lighter-loop form of the shipped arm, see its definition.
     -- Parked 'Only' 2026-09-11: a tie with '-u2' for a third run, 1.0034
@@ -6010,7 +6014,11 @@ roster =
     -- 2026-09-05 beside its parent: the ceiling '-u1' would reach under
     -- an allocator that spilled nothing,
     -- not a candidate (README.md#dead-ideas); reasons at its definition.
-  , ("mut-odo-vecdims-add-in-leaf-u1-ptr", Fill fbMutOdoVecdimsAddInLeafU1Ptr)
+    -- Parked 'Only' 2026-09-13 with '-u2-ptr': 0.9748 of '-u1' on Run
+    -- 30's basis and 0.9761 on its control, 0.9690 and 0.9709 on Run
+    -- 29's halves and 0.9769 on Run 28's basis; the reload it removes
+    -- is priced, and the form is refused for the library.
+  , ("mut-odo-vecdims-add-in-leaf-u1-ptr", Only fbMutOdoVecdimsAddInLeafU1Ptr)
     -- The same fill with the source base held rather than reloaded,
     -- added 2026-09-05 beside the arm it is one change from and parked
     -- 'Only' the same day: it executes 0.9985 of '-u1''s instructions,
@@ -6130,20 +6138,30 @@ roster =
   , ("liblist-stage4-sum",         Fill fbLibListStage4Sum)
     -- The reducing consumer over each stage's list, added the same day:
     -- 'sumT' as the library composes it, one slice at a time and no
-    -- concatenation, the stage-five consumer against the stage-one one
+    -- concatenation, a lazy stage's consumer against the stage-one one
     -- being what the lazy candidates buy a fold; the Fill arms above,
     -- once the pair pricing the copy, are checked and not timed since
     -- 2026-09-09.
   , ("libunord-stage1-sum",        Fill fbLibUnordStage1Sum)
-  , ("libunord-stage2-sum",        Fill fbLibUnordStage2Sum)
+    -- Parked 'Only' 2026-09-13: the branch port's consumer, timed since
+    -- Run 27 and named by no registration; its one reading, that run's
+    -- class leads, went with the ruling that a reducing consumer has no
+    -- corrected time.
+  , ("libunord-stage2-sum",        Only fbLibUnordStage2Sum)
     -- The ceiling's consumer, added 2026-09-09 for Run 28: the fill
     -- summed, what stage five's list is read against.
-  , ("libunord-stage3-sum",        Fill fbLibUnordStage3Sum)
+    -- Parked 'Only' 2026-09-13 with stage five's consumer: their pair,
+    -- the fused list against the same route's fill, read 0.5681, 0.5675
+    -- and 0.5808 on 'runs' and 0.4457, 0.4453 and 0.4520 on 'block' on
+    -- the bases of Runs 28 to 30 and tied inside the floor on every
+    -- class where both fill, so the question is answered.
+  , ("libunord-stage3-sum",        Only fbLibUnordStage3Sum)
     -- Parked 'Only' 2026-09-11: the natural-strides dispatch against the
     -- sorted one read 1.0051 and 1.0030 on Run 28's main set and level
     -- on `runs`, and stages six and seven stand on stage five now.
   , ("libunord-stage4-sum",        Only fbLibUnordStage4Sum)
-  , ("libunord-stage5-sum",        Fill fbLibUnordStage5Sum)
+    -- Parked 'Only' 2026-09-13 with stage three's consumer, above.
+  , ("libunord-stage5-sum",        Only fbLibUnordStage5Sum)
     -- and stage six's consumer, added with it.
   , ("libunord-stage6-sum",        Fill fbLibUnordStage6Sum)
     -- The fold entry point over stage six, added 2026-09-09 for Run 28;
@@ -6151,7 +6169,10 @@ roster =
   , ("libunord-stage6-loop-sum",   Fill fbLibUnordStage6LoopSum)
     -- The same sum as a library user writes it, base's 'sum' over the
     -- list, added 2026-09-09; reasons at the definition.
-  , ("libunord-stage6-list-sum",   Fill fbLibUnordStage6ListSum)
+    -- Parked 'Only' 2026-09-13: Run 28's item (12) held, 0.7176 and
+    -- 0.7314 of 'libunord-stage6-sum' on 'window' and 0.8349 and 0.8415
+    -- on 'runs', and nothing has read it since.
+  , ("libunord-stage6-list-sum",   Only fbLibUnordStage6ListSum)
     -- and the three reorderings' consumers.
   , ("libunord-stage7-sum",        Fill fbLibUnordStage7Sum)
     -- Parked 'Only' 2026-09-11: refuted at Run 28's registration (6),
