@@ -674,6 +674,194 @@ been asking for and leaves nothing measured on an ungrown pool.
 specified --- the rule about a discriminating measurement deserving one now
 rather than a slot in the next run, observed again:
 
+- `OPEN` **What Run 31 is built to answer, registered before it runs.**
+  Registered 2026-09-13, before the run, on the pair the entry on the deciding
+  regime below names: Run 30's basis recipe, ghc-9.12.4 in the dead-spot form
+  at plain -O1, as both halves, `nospec` as it is and `o2` with `-O2` added
+  to its `--ghc-options`, `nospec` the basis, so that `--compare` reads nospec
+  over o2 and every `cross` below is what `-O2` does to one arm; over Run 30's
+  roster less the six arms parked 2026-09-13, `Main.hs` otherwise standing where
+  Run 30 ran it. The first ten items are Run 30's, as they stand in [that run's
+  file](runs/run30.md#what-this-run-was-built-to-answer-and-what-it-answered),
+  each re-aimed at the figure Run 30 read so that every span passes
+  on that run's own JSONs, with `o2` written where they said `libcase`
+  and the two that leaned on the retired claims manifest restated on their own
+  terms; Run 30's (5) is not carried, both of its arms being parked. The last
+  four are new, on `lib-stage2-lean`, `liblist-stage4-sum`,
+  `libunord-stage9-sum` and `libunord-stage10-sum`, every figure they quote read
+  off Run 30's JSONs with `--pair` on 2026-09-13. (1) *The flag on the shipped
+  fill.* On the main set:
+  `predict: cross mut-odo-vecdims-add-in-leaf-u2 1.0 within 2%`,
+  `predict: cross lib-stage1 1.0 within 2%`
+  and `predict: cross lib-stage2-lean 1.0 within 2%`; on every class:
+  `predict: cross mut-odo-vecdims-add-in-leaf-u2 1.0 within 4%`,
+  `predict: cross lib-stage1 1.0 within 4%`
+  and `predict: cross lib-stage2-lean 1.0 within 4%` --- Run 30 read the three
+  at 0.9891, 1.0003 and 1.0093 on the main set under `-fliberate-case`, and ten
+  of their thirty-three class readings outside 1%, the widest 1.0326. Killed
+  by any of the three past 2% on the main set, which would say `-O2` reaches
+  the shipped fill by more than either of its passes alone did. (2) *The flag
+  on the reference.* On the main set: `predict: cross list 1.17 within 3%`;
+  on every class: `predict: cross list 1.19 within 5%` --- Run 30 read 1.1710
+  on the main set and 1.1726 to 1.2171 across the classes
+  under `-fliberate-case`, which `-O2` includes, `list` being the reference
+  every table is read against. Killed by `list` outside 3% of 1.17 on the main
+  set, which would say `-O2`'s other passes move the reference beyond what
+  LiberateCase alone did; either way the two columns cannot be subtracted,
+  and every cross below carries the reference's own move. (3) *The flag
+  on the fused list.* The lazy stages' consumers fold one flat loop,
+  `sumLazyRuns`, whose continuations are known, and `-fliberate-case` was worth
+  6 to 18 points to it on Run 30. On `runs`:
+  `predict: cross libunord-stage7-sum 1.18 within 10%`; on `window`:
+  `predict: cross libunord-stage7-sum 1.10 within 10%`; on `block`:
+  `predict: cross libunord-stage7-sum 1.06 within 10%`; on `rev`, `bcast`,
+  `bcastmid`, `scaled` and `compose`, where the route fills or is one block:
+  `predict: cross libunord-stage7-sum 1.0 within 1%`. Killed by the consumer
+  inside 1% of level on `runs` and `block`, which would say `-O2`'s other passes
+  take back what LiberateCase gave the list; or by it past 1.3 there, which
+  would say the list's lead over the fill is the regime's. (4) *The odometer
+  over the table.* `liblist-stage4-sum` over `liblist-stage2-sum`, the lazy
+  odometer's consumer against the port's base-offset table's. On `runs`, both
+  halves: `predict: pair liblist-stage4-sum liblist-stage2-sum 0.47 within 25%`;
+  on `block`, both halves:
+  `predict: pair liblist-stage4-sum liblist-stage2-sum 0.73 within 25%` --- Run
+  30 reading 0.4678 and 0.3947, 0.7281 and 0.6800. Killed by the odometer's
+  consumer behind the table's past the floor on the `o2` half, which would say
+  the lazy list's lead over the branch's list is one regime's and
+  not the design's. (5) *Stage ten where both of its changes fire, and where one
+  does.* `libunord-stage10-sum` over `libunord-stage7-sum` on `bcast`, both
+  halves:
+  `predict: pair libunord-stage10-sum libunord-stage7-sum 0.59 within 20%`;
+  on `bcastmid`, both halves:
+  `predict: pair libunord-stage10-sum libunord-stage7-sum 0.62 within 20%`;
+  on `compose` the same span prints a figure and no verdict, read per view
+  by hand, `compose-zero-mid` and the two `-bcast` views ahead past the floor
+  and `compose-scalar` inside it. Over `libunord-stage9-sum` on `window`, both
+  halves:
+  `predict: pair libunord-stage10-sum libunord-stage9-sum 0.73 within 25%` ---
+  Run 30 reading 0.7326 and 0.8863, the control's `window-128x128-k7` at 1.2538
+  being what widens the band. Killed by stage ten behind stage seven past
+  the floor on both halves on any zero-stride view, or behind stage nine past
+  the floor on both halves on any unstrided window view, which would say the two
+  changes do not compose. (6) *Stage ten where neither fires.* On `rev`,
+  `scaled`, `runs` and `block`, both halves:
+  `predict: pair libunord-stage10-sum libunord-stage7-sum 1.0 within 3%` ---
+  `zerosOutermost` hands its list back unchanged where no stride is 0,
+  so `routeUnord10` is `routeUnord7` there to the byte and only the extra pass
+  over the axes separates the dispatches, which `rev` has shown for three runs,
+  at 1.0244 and 1.0245 on Run 30. Killed by the pair past 3% on both halves
+  on any of the four, which would say the pass is visible at a call of tens
+  of microseconds by more than that. On `small` the span prints a figure
+  and no verdict, read per view by hand: behind on the four views other
+  than `small-bcast32` by the pass and ahead on `small-bcast32`. (7)
+  *`lib-stage1` against the lean fill with one fill under both.* Both fill
+  through `fillStage2` since 2026-09-11, so on `bcast` and `bcastmid` the pair
+  prices the dispatch alone. On `bcast` and on `bcastmid`, both halves:
+  `predict: pair lib-stage2-lean lib-stage1 1.0 within 3%`. Killed by the pair
+  past 3% on both halves on either class, which would say the canonicalization
+  is worth that much to the fill on broadcast views. On `runs` and `block`
+  the routes part, stage one concatenating a slice per run where the lean
+  dispatch fills: `predict: pair lib-stage2-lean lib-stage1 0.23 within 20%`
+  on `runs` and `predict: pair lib-stage2-lean lib-stage1 0.42 within 20%`
+  on `block`, both halves, as Runs 28 to 30 all read; killed by the lean fill
+  not ahead past the floor on either, which would say the slice-and-concatenate
+  route no longer loses on short runs. (8) *The floor with the fill family's
+  pair for a third run.* On the main set and on every class, both halves:
+  `predict: pair mut-odo-vecdims-add-in-leaf-u2-aa mut-odo-vecdims-add-in-leaf-u2 1.0`
+  and
+  `predict: pair mut-odo-vecdims-add-in-leaf-u2-aa-distant mut-odo-vecdims-add-in-leaf-u2 1.0`,
+  each inside the population's floor as Run 30's forty-four readings were; read
+  beside them by hand which pair carries the whole-set floor on each half,
+  `bq-expand-aa-distant` on Run 30's basis where Runs 28 and 29 read the fill
+  pair's, which is what the floor entry's open question turns on. Killed
+  by the adjacent copy outside the floor on both halves on the main set. (9)
+  *What the leaf fusion buys.* The shipped leaf against the family root, the one
+  ordering the roster still prices that the library has taken. On the main set,
+  both halves:
+  `predict: pair mut-odo-vecdims-add-in-leaf-u2 mut-odo-vecdims 0.64 within 5%`
+  --- read on five runs, Run 29's 0.6441 and 0.6413 and Run 30's 0.6446
+  and 0.6525 the latest. Killed by the pair outside 5% on the `o2` half, which
+  would say what the fusion buys is the regime's. (10) *The allocation levels
+  under the flag.* Off `--alloc` on both halves, by hand, over the eighteen
+  main-set shapes other than `cnn-L1-6x6-c1`: on the basis the levels reproduce,
+  the `libunord` consumers 0.00x, the fills and the `liblist` consumers 1.00x,
+  `bq-expand` 2.76x and `list` 24.90x; on the `o2` half the same, `bq-expand`
+  within 2% of 2.76x and `list` within 2% of 24.90x --- `-fliberate-case` took
+  `list` to 25.26x on Run 30 and left `bq-expand` alone, where `-fspec-constr`
+  took them to 22.38x and 2.06x on Run 29. Killed by any level moving past 2%
+  on the `o2` half, which would say `-O2` changes what an arm allocates
+  and not only how fast it runs. (11) *The lean fill's unrolling and the leaf.*
+  On the main set, both halves:
+  `predict: pair lib-stage2-lean lib-stage2-lean-u1 0.96 within 5%`,
+  the unrolling worth about four points under the lean dispatch, Run 30 reading
+  0.9622 and 0.9575; and
+  `predict: pair lib-stage2-lean mut-odo-vecdims-add-in-leaf-u2 0.98 within 3%`,
+  Run 30 reading 0.9914 at 13 of 19 and 0.9715 at 15 of 19. Killed by the lean
+  fill behind its un-unrolled twin past the floor on either half, which would
+  say the unrolling is worth nothing under this dispatch; or ahead
+  of the shipped leaf by more than 5% on both halves, which would say
+  the dispatch beats the leaf it wraps. (12) *The lazy odometer's consumer
+  against master's.* `liblist-stage4-sum` over `liblist-stage1-sum`,
+  the odometer list under the lean dispatch against the slice recursion
+  the library ships, both folded by `sumT`. Both halves, on `runs`:
+  `predict: pair liblist-stage4-sum liblist-stage1-sum 0.37 within 25%`;
+  on `block`:
+  `predict: pair liblist-stage4-sum liblist-stage1-sum 0.46 within 10%`;
+  on `rev`:
+  `predict: pair liblist-stage4-sum liblist-stage1-sum 0.92 within 10%`;
+  on `bcast`:
+  `predict: pair liblist-stage4-sum liblist-stage1-sum 1.0 within 1%` --- Run 30
+  reading 0.3720 and 0.3205, 0.4616 and 0.4433, 0.9240 and 0.9162, 0.9983
+  and 0.9985. Killed by the odometer's consumer not ahead of master's past
+  the floor on `runs` or `block` on either half, which would say the lazy list
+  buys a fold nothing over what the library ships; or behind it past the floor
+  on `bcast` on both halves, where both routes fill. (13) *The zero-stride move
+  alone.* `libunord-stage9-sum` moves every zero-stride axis outermost
+  and otherwise keeps stage six's order. Over `libunord-stage7-sum`, both
+  halves, on `bcast`:
+  `predict: pair libunord-stage9-sum libunord-stage7-sum 0.59 within 20%`;
+  on `bcastmid`:
+  `predict: pair libunord-stage9-sum libunord-stage7-sum 0.62 within 20%`;
+  on `compose`:
+  `predict: pair libunord-stage9-sum libunord-stage7-sum 0.69 within 10%`;
+  on `rev`, where neither reordering fires:
+  `predict: pair libunord-stage9-sum libunord-stage7-sum 1.0 within 3%`;
+  on `window`, where no view has a zero stride and the tie-break is what
+  this stage lacks:
+  `predict: pair libunord-stage9-sum libunord-stage7-sum 1.25 within 15%` ---
+  Run 30 reading 0.5903 and 0.5588, 0.6215 and 0.5828, 0.6941 and 0.6886, 1.0208
+  and 1.0214, 1.3730 and 1.1344. Over `libunord-stage6-sum` on `bcast`
+  and `bcastmid`, both halves:
+  `predict: pair libunord-stage9-sum libunord-stage6-sum 0.59 within 20%`
+  and `predict: pair libunord-stage9-sum libunord-stage6-sum 0.62 within 20%`,
+  the tie-break moving nothing on those views, Run 30 reading 0.5905 and 0.5585,
+  0.6211 and 0.5832. Killed by stage nine behind stage seven past the floor
+  on both halves on any `bcast` or `bcastmid` view, which would say the move
+  costs where it should pay; or not behind stage seven past the floor
+  on `window` on both halves, which would say the tie-break is worth nothing
+  there. (14) *What the composed route buys a fold.* `libunord-stage10-sum`
+  over `libunord-stage1-sum`, stage seven's tie-break under stage nine's move
+  against master's own consumer, both halves: on `runs`:
+  `predict: pair libunord-stage10-sum libunord-stage1-sum 0.37 within 25%`;
+  on `block`:
+  `predict: pair libunord-stage10-sum libunord-stage1-sum 0.46 within 10%`;
+  on `window`:
+  `predict: pair libunord-stage10-sum libunord-stage1-sum 0.42 within 15%`;
+  on `bcast`:
+  `predict: pair libunord-stage10-sum libunord-stage1-sum 0.59 within 20%`;
+  on `rev`:
+  `predict: pair libunord-stage10-sum libunord-stage1-sum 0.53 within 10%` ---
+  Run 30 reading 0.3720 and 0.3199, 0.4631 and 0.4436, 0.4157 and 0.3762, 0.5899
+  and 0.5577, 0.5334 and 0.5359. And where no pair of axes is tied on stride
+  the tie-break is the identity and stage ten is stage nine: on `bcast`,
+  `bcastmid` and `compose`, both halves,
+  `predict: pair libunord-stage10-sum libunord-stage9-sum 1.0 within 0.5%`, Run
+  30 reading 1.0000 and 0.9999, 0.9997 and 0.9999, 1.0001 and 0.9998. Killed
+  by stage ten not ahead of master's consumer past the floor on any of the five
+  populations on either half; or by it parting from stage nine past the floor
+  on both halves on any of the three, which would say the tie-break fires where
+  no pair is tied.
+
 - `ANSWERED` **What Run 30 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 30's own
