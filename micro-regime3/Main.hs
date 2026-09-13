@@ -4736,6 +4736,23 @@ fbLibUnordStage10Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage10Sum sh a@(T _ _ v) =
   VS.singleton (sumRoute (routeUnord10 sh a) v)
 
+-- The cross-over of 'fbLibUnordStage6ListSum' and 'fbLibUnordStage10Sum':
+-- base's 'sum' over stage TEN's list, the consumer a user of
+-- 'toUnorderedVectorListT' writes, carried from stage six's route to the
+-- composed one. Against 'libunord-stage10-sum' it asks Run 28's item
+-- (12) again where the route has changed under it -- on Run 30 the
+-- user's fold read 0.7610 on 'window' and 0.8495 on 'runs' of the
+-- harness's, inlining the route into the fold where the harness
+-- compiles one loop for every stage, and the bangs of 2026-09-13 are
+-- what should take that gap out. The composed route is what the
+-- tie-break and the zero-stride move leave a fold to walk: on a
+-- broadcast, one real slice listed as many times as the axis is long.
+-- Added 2026-09-13 for Run 31, registration (15).
+{-# NOINLINE fbLibUnordStage10ListSum #-}
+fbLibUnordStage10ListSum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage10ListSum sh a@(T _ _ v) =
+  VS.singleton (sum (map VS.sum (listRoute (routeUnord10 sh a) v)))
+
 -- The laziness gate, in 'check' and never timed: the ruling that the
 -- list stays lazy (README.md#dead-ideas) as a predicate. On a view of
 -- 200000 runs of 20 -- regime 2 on master -- forcing the HEAD of each
@@ -6197,6 +6214,11 @@ roster =
     -- for Run 29 at the tail of the consumers, beside the two it
     -- composes; reasons at 'routeUnord10'.
   , ("libunord-stage10-sum",       Fill fbLibUnordStage10Sum)
+    -- Base's 'sum' over stage ten's list, added 2026-09-13 for Run 31 at
+    -- the tail of the consumers as stage ten's own was, beside the entry
+    -- it pairs with and so that no existing control's span moves.
+    -- Reasons at the definition.
+  , ("libunord-stage10-list-sum",  Fill fbLibUnordStage10ListSum)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
