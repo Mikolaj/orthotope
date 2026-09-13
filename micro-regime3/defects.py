@@ -4087,6 +4087,37 @@ TIER1 = {
               ' The derivation was proved non-vacuous by hand over the three'
               ' branches: run30-pair.txt gives o1, run29-pair.txt gives spec'
               ' and a note with no such block gives unknown.'),
+    'step-9-derives-the-regime-from-a-flag-name-in-prose': dict(
+        family='domain-unchecked', discovery='review', harm='latent',
+        trigger='a pair whose recipe raises the LEVEL rather than naming'
+                ' `-fspec-constr`, or whose recipe block says a flag name'
+                ' in its prose',
+        ok='the expected regime is read off the `--ghc-options` lines of'
+           ' the basis half\'s recipe block, `-O2` asking for SpecConstr'
+           ' as `-fspec-constr` does',
+        bug='a recipe built at -O2 classed as plain -O1 and FAILed for'
+            ' reading as SpecConstr; and a block whose PROSE names the'
+            ' flag classed as flagged whatever its command passes',
+        # No case, for the reason checks.py's UNCOVERED gives preflight's
+        # STEPS -- a case would run them twice -- and the derivation was
+        # proved by hand over five inputs instead.
+        proved='ran',
+        notes='Found 2026-09-13 at Run 31\'s preparation, reading the step'
+              ' before its pair -- the first whose control half is built at'
+              ' -O2, which turns SpecConstr on. The Run 30 repair above'
+              ' read a FLAG NAME where the step\'s own comment names a'
+              ' PASS, so the level reaches the same pass by another road'
+              ' and was not recognised. The prose half is what the first'
+              ' fix walked into: matching `-O2` over the whole block made'
+              ' run30-pair.txt\'s control derive spec, its recipe block'
+              ' saying `GHC enabling that pass at -O2 and not at -O1` of a'
+              ' half built at plain -O1. Narrowed to the `--ghc-options`'
+              ' lines and proved non-vacuous by hand over five inputs:'
+              ' run31-pair.txt gives o1 for nospec and spec for o2,'
+              ' run30-pair.txt gives o1 for BOTH halves, and a name with no'
+              ' block gives unknown. The o2 reading is measured and not'
+              ' argued -- `diag` on vgg-14-c512 reads scan/mut 9.992 on'
+              ' run31-nospec and 1.000 on run31-o2.'),
     # ---- read-run.py, the first review's ----
     'install-lands-in-next-block': dict(family='scan-for-parse', discovery='review', harm='latent',
                       trigger='a run doc whose class block carries no table of its own',
@@ -10149,6 +10180,30 @@ RECORDS = [
          # run29-pair.txt derives spec, and a note carrying no such block
          # derives unknown, which FAILs saying the regime is UNCONFIRMED
          # rather than passing on a guess.
+         argv=None, ok=None),
+
+    case('step-9-derives-the-regime-from-a-flag-name-in-prose',
+         'preflight.sh', 'dace8e7',
+         'the regime step read a flag NAME anywhere in the recipe block',
+         # NO CASE, for the reason the three preflight records above give
+         # and checks.py's UNCOVERED repeats: step 9 is a STEP, so a case
+         # would run this suite twice.
+         # Two faults, one fix. The step's own comment names a PASS --
+         # SpecConstr -- and the code keyed on ONE flag that turns it on,
+         # so a half built at -O2, which turns it on too, classed as plain
+         # -O1 and would have FAILed for reading as SpecConstr. That is the
+         # record above one level up, the flag name standing in for the
+         # pass. And the search ran over the WHOLE block, prose included,
+         # which the first fix walked into: run30-pair.txt's control block
+         # says `GHC enabling that pass at -O2 and not at -O1` of a half
+         # built at plain -O1, so matching `-O2` there derived spec for a
+         # binary that has none. The fix reads the `--ghc-options` lines
+         # alone -- what cabal is handed -- and treats a block naming none
+         # of them as UNCONFIRMED rather than as plain -O1 by default.
+         # Proved non-vacuous by hand over five inputs, the two notes on
+         # disk being the controls: run31-pair.txt derives o1 for nospec
+         # and spec for o2, run30-pair.txt derives o1 for BOTH of its
+         # halves, and a name with no block derives unknown.
          argv=None, ok=None),
 ]
 
