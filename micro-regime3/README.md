@@ -7195,7 +7195,10 @@ and never as a chronology.
     #      older than this run's own preparation is ever inherited
     #      why: --para 'A preparation already spent'
     #   2. BUILD BOTH HALVES -- unconditional, from the note's own
-    #      recipe. It is a STEP and a session's to run, and the note is
+    #      recipe. READ NOW, BEFORE ANY OF THIS STEP: items 3 and 10, the
+    #      compares-against prose and the previous run's note, which
+    #      settle what the pair varies and which this step's own writing
+    #      needs. It is a STEP and a session's to run, and the note is
     #      the part written by hand.
     #      There is no builder, every pair being two shims typed out, so
     #      write the note FIRST, from pair-note-template.txt -- it is the
@@ -7228,8 +7231,6 @@ and never as a chronology.
     #      WHERE THE REQUEST DIFFERS from that section, the request wins,
     #      and the section and the open list's task recording the
     #      decision are amended first, in a commit of their own
-    #      (READ NOW: items 3 and 10, the compares-against prose and the
-    #      previous run's note)
     #      Every build wants -fforce-recomp and a fresh --builddir, cabal
     #      answering "Up to date" for a -pgma or an environment change;
     #      the recipe SPELLS THE REGIME OUT rather than interpolating
@@ -7257,27 +7258,8 @@ and never as a chronology.
     #      the load address, as .text, and then reasoned about why it had
     #      not moved across a
     #      roster change. Steps 3, 9b and 10 are reading the block back.
-    #      AND WHERE `--list` SHOWS A TIMED ARM THAT BRINGS A NEW FUNCTION,
-    #      the fills read here are the pinning claim's only reading:
-    #      `./loop-offsets.py --delta $PREV-<PREV's basis> $R-<basis>` is
-    #      that comparison, and THE TWO TAGS ARE NOT ALWAYS ONE: a tag
-    #      names what a half IS, so a run that changes the variable
-    #      renames the basis while the recipe stands, and Run 29's
-    #      `$PREV-spec` named a binary Run 28 never built. Read the
-    #      previous run's basis off its own note's HALVES line, which is
-    #      where preflight's fill-in block reads it since 907c218.
-    #      It is against the previous build of this recipe and not
-    #      against a note's transcription of it -- offsets preserved or
-    #      not, addresses surviving to the byte, and the displacement SET,
-    #      which is what the README's readings turn on. Two preparations
-    #      did that subtraction by hand and both recorded it as an
-    #      improvised computation before the mode existed (2026-09-04).
-    #      Take it before anything else changes, since a rebuild retires
-    #      it. preflight's own step
-    #      10 reads the fills AGAIN and does not make this comparison --
-    #      it says so on the line -- so taking it here is not a duplicate.
-    #      What the claim covers, and how Runs 20 and 21 killed its
-    #      strong form, are in the prose
+    #      AND THE FILLS ARE READ THE MOMENT BOTH BINARIES EXIST, at 2d
+    #      below, before anything else changes
     #      BUILD BOTH, ALWAYS -- the BOTH HALVES ARE BUILT ANEW ruling,
     #      whatever the source and the md5 say. ON A REPETITION THE MD5 IS
     #      ONE-SIDED, and an md5 that does not reproduce is NOT A STOP:
@@ -7304,6 +7286,30 @@ and never as a chronology.
     #      shape of edit that gets four fifths done; an older note's
     #      `scripts set` row records that edit and is not copied forward
     #      why: --para 'Which two halves a pair has'
+    ./loop-offsets.py --delta $PREV-<PREV's basis> $R-<basis>   # 2d. THE
+    #      FILLS AGAINST THE PREVIOUS BUILD OF THIS RECIPE, taken the
+    #      moment both binaries exist and before anything else changes,
+    #      since A REBUILD RETIRES IT. There is no 2c: that is
+    #      run-status.sh's label for a finished note.
+    #      OWED WHEREVER `--list` SHOWS A TIMED ARM THAT BRINGS A NEW
+    #      FUNCTION, the fills read here being the pinning claim's only
+    #      reading.
+    #      THE TWO TAGS ARE NOT ALWAYS ONE: a tag names what a half IS, so
+    #      a run that changes the variable renames the basis while the
+    #      recipe stands, and Run 29's `$PREV-spec` named a binary Run 28
+    #      never built. Read the previous run's basis off its own note's
+    #      HALVES line, which is where preflight's fill-in block reads it
+    #      since 907c218.
+    #      It is against the previous build of this recipe and not against
+    #      a note's transcription of it -- offsets preserved or not,
+    #      addresses surviving to the byte, and the displacement SET, which
+    #      is what the README's readings turn on. preflight's own step 10
+    #      reads the fills AGAIN and does not make this comparison -- it
+    #      says so on the line -- so taking it here is not a duplicate.
+    #      What the claim covers, and how Runs 20 and 21 killed its strong
+    #      form, are in the prose. Two preparations did that subtraction by
+    #      hand and both recorded it as an improvised computation before
+    #      the mode existed (2026-09-04).
     md5sum $R-<basis> $R-<other>          # 3. the note's fill-in block, read
     git log -1 --format=%h -- :/micro-regime3/Main.hs   #    back: the two
     git log -1 --format=%h -- :/micro-regime3/align-as.py  #    md5s, the
