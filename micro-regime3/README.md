@@ -93,17 +93,18 @@ classes](#the-stride-classes-and-what-they-cover), each its own population, run
 in its own process and tabled beside the main set rather than folded into it.
 
 And **one regime's**, **one roster's** and now **one layout's** as well. Every
-run since Run 8 has compiled the suite with `-fspec-constr`, where every run
-before them took the plain -O1 a default `cabal build` of orthotope takes,
-and the flag reorders the table rather than nudging it --- it speeds `list`
-itself by 8%, `bq-expand` by 27% and the plain scan family by 31%. The 19%
-it was also said to *cost* `mut-odo` is not the flag's: `build` compiles
-to the same worker and moved 17% the other way, which identical code cannot do,
-and the pad probe has since priced that disagreement as placement ([the floor
-section][floor]). Every figure in this sentence crosses a rebuild and so carries
-some of the same term; the three that survive it do so by being larger than it.
-Run 9 then changed the roster and nothing else, and moved arms from 9% faster
-to 19% slower with the baseline standing still; Run 10 changed only the roster's
+run from Run 8 to Run 29 compiled the suite with `-fspec-constr`, where every
+run before them took the plain -O1 a default `cabal build` of orthotope takes
+and Run 30 returned to it, the ruling of 2026-09-13 following, and the flag
+reorders the table rather than nudging it --- it speeds `list` itself by 8%,
+`bq-expand` by 27% and the plain scan family by 31%. The 19% it was also said
+to *cost* `mut-odo` is not the flag's: `build` compiles to the same worker
+and moved 17% the other way, which identical code cannot do, and the pad probe
+has since priced that disagreement as placement ([the floor section][floor]).
+Every figure in this sentence crosses a rebuild and so carries some of the same
+term; the three that survive it do so by being larger than it. Run 9
+then changed the roster and nothing else, and moved arms from 9% faster to 19%
+slower with the baseline standing still; Run 10 changed only the roster's
 *order* and moved them 3% faster to 14% slower, and then measured the layout
 term directly by running the same source from two binaries that differ in where
 its loops sit --- 12 to 14% on the two arms whose loop straddled a cache line,
@@ -122,8 +123,9 @@ over a real build. The 27% is what this README contributes to it. **At module
 scope it is settled (2026-08-24): the shipped file does not set
 `-fspec-constr`**, the aligned HEAD probe having read the flag irrelevant
 to the shipped family ([the ceiling](#the-mutable-ceiling-taken)),
-and `-fspec-constr` stays the regime every claim below is read in rather
-than a probe of one.
+and `-fspec-constr` stayed the regime every figure below was read in, rather
+than a probe of one, until 2026-09-13, when the ruling followed the published
+basis to plain -O1 ([the open list][open]).
 
 
 ### The two-stage plan and the rework proposal
@@ -2857,16 +2859,19 @@ rather than a slot in the next run, observed again:
   reads *the same, on a third write pattern* --- the control convention,
   not the shippability phrase this entry first proposed. **A return to -O1 stood
   behind it as the second debt and is retired, its premise being false**
-  (2026-08-14): -O1 is not the regime the figures are read in, `-fspec-constr`
-  being the basis every run since Run 8 has used, so Run 7's readings
-  are history rather than a debt. The build specification that entry had
-  accumulated goes with it, a retired run having no use for one. An -O1 reading
-  of a single ordering stays available as a filtered probe, as the 2026-08-08
-  twin probes were; what is retired is the evening. `--check-doc` enforces
-  the run file's own two-column table in the one direction it safely can: a run
-  named aligned must also be named unaligned, so dropping the unaligned half
-  fails the check. Dropping an *aligned* one cannot be checked, an unpaired run
-  being what every column before Run 10 is, and stays the reading's job.
+  (2026-08-14): -O1 was not the regime the figures were read in, `-fspec-constr`
+  being the basis every run from Run 8 to Run 29 used, so Run 7's readings
+  are history rather than a debt. Since 2026-09-13 the regime is -O1 again, Run
+  30 having published there and the ruling followed; that pays no debt, an -O1
+  evening having been run rather than returned to, and it makes Runs 8 to 29's
+  readings the history. The build specification that entry had accumulated goes
+  with it, a retired run having no use for one. An -O1 reading of a single
+  ordering stays available as a filtered probe, as the 2026-08-08 twin probes
+  were; what is retired is the evening. `--check-doc` enforces the run file's
+  own two-column table in the one direction it safely can: a run named aligned
+  must also be named unaligned, so dropping the unaligned half fails the check.
+  Dropping an *aligned* one cannot be checked, an unpaired run being what every
+  column before Run 10 is, and stays the reading's job.
 
   **Run 11 had no unaligned half, and the check was left alone rather
   than widened --- the reading is that this was right.** Its two columns
@@ -3870,23 +3875,23 @@ codegen rather than that it cannot be built.
   which is what the entry above says none of these fixes could avoid. What
   it does not address is the placement gap the `build`/`mut-odo` pair shows,
   a separate and larger target that no reordering reaches.
-- `OPEN` **The published basis has left the regime this chapter's figures
-  are ruled to be read in, and the ruling has not been re-taken.** README says
-  in more than one place that `-fspec-constr` is the deciding regime, every run
-  since Run 8 being in it --- the correction of 2026-08-14, amended 2026-08-24.
-  Run 29 then measured the flag irrelevant to the shipped fill family,
-  and the request of 2026-09-12 moved Run 30's published basis to plain -O1,
-  which is what `Data/Array/Internal.hs` actually compiles under. So Run 30's
-  readings are at -O1 while the ruling they are read against is the flag's,
+- `ANSWERED` **The published basis has left the regime this chapter's figures
+  are ruled to be read in --- RULED 2026-09-13: the deciding regime follows
+  the basis to plain -O1.** README said in more than one place
+  that `-fspec-constr` was the deciding regime, every run since Run 8 being
+  in it --- the correction of 2026-08-14, amended 2026-08-24. Run 29
+  then measured the flag irrelevant to the shipped fill family, and the request
+  of 2026-09-12 moved Run 30's published basis to plain -O1, which is what
+  `Data/Array/Internal.hs` actually compiles under. So Run 30's readings
+  were at -O1 while the ruling they were read against was the flag's,
   and the allocation levels differ by about a third between the two: `bq-expand`
   and `list` at 2.06x and 22.38x under the flag, 2.76x and 24.90x without it.
-  **What would settle it** is a ruling and not a measurement --- either
-  the deciding regime follows the published basis to -O1, which makes Runs 8
-  to 29's readings history rather than the series, or it does not, in which case
-  a run publishing at -O1 owes a flagged column. Raised by Run 30's
-  comprehension probe, which found the two documents answering it opposite ways;
-  Run 31 varies `-O2` against this same basis and will make the question sharper
-  rather than settle it.
+  **Ruled 2026-09-13: the deciding regime follows the published basis to plain
+  -O1**, the regime the shipped file compiles under, so Runs 8 to 29's readings
+  are history the series does not continue and a run publishing at -O1 owes
+  no flagged column. Raised by Run 30's comprehension probe, which found the two
+  documents answering it opposite ways; Run 31 varies `-O2` against this same
+  basis and is read against this regime.
 - `ANSWERED` **`--para` compiled its argument as a regex, so a bolded lead
   pasted verbatim failed SILENTLY and an unbalanced bracket tracebacked ---
   TAKEN 2026-09-13.** Every registration item's lead carries brackets ---
@@ -5002,10 +5007,13 @@ index, so a shipped version needs an `l < 2^32` test choosing between the two
 fills --- loop-invariant and chosen once per call, but it must be there, since
 orthotope does not otherwise cap array length. **The conditional this paragraph
 used to end on has resolved against it**, and against shipping: the 6.0%
-is an -O1 figure, the deciding regime is `-fspec-constr`, and under the flag
-the same pair is a dead tie --- so what there is to weigh against `MagicHash`,
-the helper and the precondition is nothing. This README still only prices
-the arm; at zero, the pricing is the answer.
+is an -O1 figure, and under `-fspec-constr`, the deciding regime from 2026-08-14
+to 2026-09-13, the same pair is a dead tie --- so what there was to weigh
+against `MagicHash`, the helper and the precondition was nothing.
+With the deciding regime back at plain -O1 since 2026-09-13 the 6.0%
+is a reading in the deciding regime again, on an arm the roster checks
+and no longer times; this README still only prices the arm, and what there
+is to weigh is now that figure and not nothing.
 
 
 ### Per shape, where the geomean hides the ordering
@@ -7012,21 +7020,19 @@ is [the open list][open]'s GHC #27799 entry, and is why a build compared across
 that flag is not comparing the same code.
 
 `micro.cabal` builds at -O1, which is what a default `cabal build` of orthotope
-takes --- **and that is not the regime the figures are read in**, a correction
-made 2026-08-14 after several entries had been written on the other reading
-and amended 2026-08-24: the deciding regime is `-fspec-constr`, every run since
-Run 8 already in it, and the shipped file does not set the flag ([the
-ceiling](#the-mutable-ceiling-taken) has the probe that settled it).
-**THAT RULING AND THE PUBLISHED BASIS HAVE COME APART AT RUN 30 and the ruling
-has not been re-taken**: Run 29 measured the flag irrelevant to the shipped
-family, the request of 2026-09-12 moved Run 30's basis to plain -O1 ---
-the regime the shipped file actually compiles under --- and that run's figures
-are therefore READ at -O1 while this sentence still says they DECIDE
-under the flag. The `bq-expand` and `list` allocation levels differ by about
-a third between the two, so the gap is not academic. Nothing here resolves it;
-the open list carries it as a decision owed. Other regimes are command-line
-only, the flag landing after the cabal file's so the later `-O` wins:
-`-fspec-constr` when testing the `SpecConstr` optimization effect, `-O2`
+takes --- **and since 2026-09-13 that is the regime the figures are read
+in again**: a correction of 2026-08-14, amended 2026-08-24, had made
+`-fspec-constr` the deciding regime, every run from Run 8 to Run 29 in
+it and the shipped file not setting the flag ([the
+ceiling](#the-mutable-ceiling-taken) has the probe that settled that); Run 29
+then measured the flag irrelevant to the shipped family, the request
+of 2026-09-12 moved Run 30's basis to plain -O1 --- the regime the shipped file
+actually compiles under --- and the ruling of 2026-09-13 followed it, so Runs 8
+to 29's readings are history the series does not continue. The `bq-expand`
+and `list` allocation levels differ by about a third between the two regimes,
+so the two series do not join ([the open list][open]). Other regimes
+are command-line only, the flag landing after the cabal file's so the later `-O`
+wins: `-fspec-constr` when testing the `SpecConstr` optimization effect, `-O2`
 for the half of the scan-fusion refutation that inverts there (a `diag` at `-O2`
 is what measures it). **The RTS line is the second thing the shipped setting
 fixes, and since 2026-08-21 this suite shares it by decision: every horde-ad
