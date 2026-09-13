@@ -680,13 +680,15 @@ rather than a slot in the next run, observed again:
   file](runs/run30.md#what-this-run-was-built-to-answer-and-what-it-answered),
   where a run's registrations have lived since 2026-08-29; in a clause each: (1)
   the flag on the shipped fill, KILLED on the main set at 0.9891, 1.09 points
-  off 1 and so 0.09 past its 1% bar and the first -O2 pass here to reach
-  the shipped fill at all; (2) the flag on the reference, KILLED at 1.1710
-  on the main set and past the bar on all eleven populations, so the two columns
-  are an ordering; (3) the flag on the fused list, NEITHER KILL FIRING,
-  its three magnitude spans missing because they are Run 29's and read
-  in that run's orientation, the flag worth 18.27 points on `runs` where
-  `-fspec-constr` was worth 2.21; (4) the odometer over the table, HELD
+  off 1 and so 0.09 past its 1% bar --- a margin resting on one capped cell
+  and on which statistic is read, which that item's verdict sets out and which
+  would reverse on the column the table publishes and the first -O2 pass here
+  to reach the shipped fill at all; (2) the flag on the reference, KILLED
+  at 1.1710 on the main set and past the bar on all eleven populations,
+  so the two columns are an ordering; (3) the flag on the fused list, NEITHER
+  KILL FIRING, its three magnitude spans missing because they are Run 29's
+  and read in that run's orientation, the flag worth 18.27 points on `runs`
+  where `-fspec-constr` was worth 2.21; (4) the odometer over the table, HELD
   at 0.4678 and 0.3947 on `runs`; (5) the list over the fill, HELD at 0.5808
   and 0.4900 on `runs` and tying inside the floor on all five fill classes; (6)
   stage ten where both changes fire, HELD on both kills, its `window` span
@@ -968,22 +970,23 @@ rather than a slot in the next run, observed again:
   So the two passes move the reference's allocation in opposite directions, one
   of them touches `bq-expand` and the other does not, and both speed `list` up.
   The counted work sharpens it further: under `-fliberate-case` TEN
-  of the eighteen arms read counts EXACTLY 1.0000 between the halves and only
-  `bq-expand` and `list` move at all, where `-fspec-constr` thinned every arm.
-  Whatever the account is, it has to explain an allocation multiple rising
-  on the arm a pass makes faster. Run 29's registration (11) predicted
-  the levels unmoved between its halves and was KILLED on two of them:
-  over the eighteen shapes claim 7 is pinned to, `bq-expand` reads **2.06x**
-  under the flag and **2.76x** without it, and `list` **22.38x** against
-  **24.90x**, while every fill and every `liblist` consumer holds 1.00x
-  and every `libunord` consumer 0.00x on both halves. The two that move
-  are exactly the two the flag speeds up, and the counted work has them
-  converting their instruction saving to time almost entirely --- `time/counts`
-  1.0161 and 0.9926 --- where the eight arms whose time the flag does not move
-  --- `mut-odo-vecdims` and the seven timed arms below it --- convert none
-  of theirs. So the allocation change and the time change arrive together
-  on the same two arms and on no others. **What would settle it** is Core
-  for one of the two under each regime, read for what SpecConstr's
+  of the eighteen arms read counts EXACTLY 1.0000 between the halves and EIGHT
+  move --- the `bq-expand` and `list` families of three each,
+  and `lib-stage2-lean` with its twin by a tenth of a percent, where
+  `-fspec-constr` thinned every arm. Whatever the account is, it has to explain
+  an allocation multiple rising on the arm a pass makes faster. Run 29's
+  registration (11) predicted the levels unmoved between its halves
+  and was KILLED on two of them: over the eighteen shapes claim 7 is pinned to,
+  `bq-expand` reads **2.06x** under the flag and **2.76x** without it,
+  and `list` **22.38x** against **24.90x**, while every fill and every `liblist`
+  consumer holds 1.00x and every `libunord` consumer 0.00x on both halves.
+  The two that move are exactly the two the flag speeds up, and the counted work
+  has them converting their instruction saving to time almost entirely ---
+  `time/counts` 1.0161 and 0.9926 --- where the eight arms whose time the flag
+  does not move --- `mut-odo-vecdims` and the seven timed arms below it ---
+  convert none of theirs. So the allocation change and the time change arrive
+  together on the same two arms and on no others. **What would settle
+  it** is Core for one of the two under each regime, read for what SpecConstr's
   specialisation does to a boxed intermediate the unspecialised loop allocates
   per call; the arms are `bq-expand` and `list`, both of them library-shaped,
   and `list` is the reference every table here divides by, so the answer decides
@@ -6165,29 +6168,31 @@ and a register-allocator fix not being the same intervention. **And the RATE
 at which an instruction saving reaches the clock is a third to a half here,
 not three quarters --- and Run 29 has since read it at nought and at one
 in a single binary, with Run 30 sharper still --- ten of its eighteen arms
-saving NO instructions at all between the halves, exactly 1.0000, while the two
-that do convert 0.8963 and 0.9718 of it --- so what follows is this comparison's
-rate and not the harness's** ([the open list][open]). The nineteenth reading put
-it at about three quarters, 13.1% of the instructions buying 9.7% of the time
-and 18.6% buying 13.2%, across two builds of one recipe. Within one binary,
-over five spans of the leaf family, Run 26 reads 29%, 32% and 41% on the three
-pointer spans and 52% and 45% on `-u1` over `-add-in-leaf-down` and `-u2`
-over `-u1`. The two are different comparisons --- a cross-build A/B against
-a within-binary arm pair --- and that is the finding rather than an error
-in either: **a span DERIVED from the nineteenth's rate will miss low**, which
-is what Run 26's registration (8) did three times over, its three predicted
-spans of 0.92, 0.88 and 0.90 reading 0.9693, 0.9479 and 0.9431 while every one
-of its three instruction ratios came back to a ten-thousandth. **The other half
-is a compiler finding and not a fill one**: on GHC HEAD the same two arms lose
-the saving outright, `-u2-ptr` executing 1.8842 of `-u2`'s corrected
-instructions where the basis reads 0.8357, and allocating **2.61x** the result
-vector, with `-u1-ptr` at 1.41x beside it, where every fill on the basis half
-and every non-pointer fill on HEAD allocates 1.00x. So a ceiling read on one
-codegen is not a ceiling, and the `Ptr` form is the one shape in this family
-whose codegen the two compilers do not agree on. The disagreement has a name
-and a workaround since 2026-09-06, GHC #27778 in the open list's answered entry:
-the boxed value is the run's let-generalised end pointer, and a type annotation
-on it gives HEAD the basis's code.
+saving NO instructions at all between the halves, exactly 1.0000, two more
+saving a tenth of a percent, and the six of the `bq-expand` and `list` families
+converting 0.8963 and 0.9718 of what they save --- so what follows
+is this comparison's rate and not the harness's** ([the open list][open]).
+The nineteenth reading put it at about three quarters, 13.1% of the instructions
+buying 9.7% of the time and 18.6% buying 13.2%, across two builds of one recipe.
+Within one binary, over five spans of the leaf family, Run 26 reads 29%, 32%
+and 41% on the three pointer spans and 52% and 45% on `-u1`
+over `-add-in-leaf-down` and `-u2` over `-u1`. The two are different comparisons
+--- a cross-build A/B against a within-binary arm pair --- and that
+is the finding rather than an error in either: **a span DERIVED
+from the nineteenth's rate will miss low**, which is what Run 26's registration
+(8) did three times over, its three predicted spans of 0.92, 0.88 and 0.90
+reading 0.9693, 0.9479 and 0.9431 while every one of its three instruction
+ratios came back to a ten-thousandth. **The other half is a compiler finding
+and not a fill one**: on GHC HEAD the same two arms lose the saving outright,
+`-u2-ptr` executing 1.8842 of `-u2`'s corrected instructions where the basis
+reads 0.8357, and allocating **2.61x** the result vector, with `-u1-ptr`
+at 1.41x beside it, where every fill on the basis half and every non-pointer
+fill on HEAD allocates 1.00x. So a ceiling read on one codegen is not a ceiling,
+and the `Ptr` form is the one shape in this family whose codegen the two
+compilers do not agree on. The disagreement has a name and a workaround since
+2026-09-06, GHC #27778 in the open list's answered entry: the boxed value
+is the run's let-generalised end pointer, and a type annotation on it gives HEAD
+the basis's code.
 
 **A twenty-third reading, Run 27, times the same two arms with GHC #27778 worked
 around --- and every reading the twenty-second could take on one codegen only
