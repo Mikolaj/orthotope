@@ -1180,33 +1180,38 @@ rather than a slot in the next run, observed again:
   that a measured statement rather than a note.
 
 - `OPEN` **The flagged half carries FEWER self-loops than the unflagged one
-  and a LARGER `.text`, and the two facts point opposite ways.** Run 29's
-  `--survey` reads 222 self-loops of at most 64 B on `run29-spec` against 284
-  on `run29-nospec`, a gap of sixty-two, where the two compilers of Run 28
-  parted by eleven --- and `spec`'s `.text` is 20783301 bytes against `nospec`'s
-  20766917, larger by 16384, which is 16 KiB exactly. More code and fewer short
-  self-loops is not a contradiction --- `--survey` counts self-loops of at most
-  64 B, so both a loop REMOVED and a loop GROWN PAST the cutoff leave it,
+  and a LARGER `.text`, and the two facts point opposite ways --- the loops
+  measured gone, not grown, 2026-09-13.** Run 29's `--survey` reads 222
+  self-loops of at most 64 B on `run29-spec` against 284 on `run29-nospec`,
+  a gap of sixty-two, where the two compilers of Run 28 parted by eleven ---
+  and `spec`'s `.text` is 20783301 bytes against `nospec`'s 20766917, larger
+  by 16384, which is 16 KiB exactly. More code and fewer short self-loops
+  is not a contradiction --- `--survey` counts self-loops of at most 64 B,
+  so both a loop REMOVED and a loop GROWN PAST the cutoff leave it,
   and a specialisation pass plausibly does the second --- but nothing here has
   measured which, and a run that wanted to read placement off the survey count
-  would be reading two different events as one. **What would settle it**
-  is the same survey at a raised cutoff on both halves: if the sixty-two
-  reappear above 64 B they were grown and the count is a code-size reading,
-  and if they do not they were removed. That is one invocation of a mode
-  that already exists, on binaries the deletion offer has not yet spent. The 16
-  KiB exactly is recorded as an observation and not as a mechanism; nothing here
-  explains why the difference should be a round page multiple. **Run 30
-  reproduces the SHAPE of this on the other -O2 pass and narrows it sharply.**
-  `--survey` reads 284 self-loops on `run30-nospec` against 280
-  on `run30-libcase`, a gap of FOUR where Run 29's was sixty-two,
-  with the flagged half again carrying the fewer and again the larger `.text`,
-  by 20480 bytes --- 20 KiB exactly, a second round multiple and still
-  no mechanism. **But the within-pair placement reading is the opposite of Run
-  29's**: `--library` puts 925 library self-loops at **100.0%** the same offset
-  in line and **100.0%** the same straddle state across Run 30's halves, where
-  Run 29 read 39.4% of 914. So a flag can grow `.text` by 20 KiB, drop four
-  short self-loops and displace NOT ONE tracked library loop, which is what
-  the raised-cutoff survey would now be asked on two pairs rather than one.
+  would be reading two different events as one. **Measured 2026-09-13 at raised
+  cutoffs, on both pairs, and they were REMOVED**: counting every self-loop
+  of any length in `_Main_`-compiled code --- the survey's cutoff lifted to 96,
+  128, 192 and 256 B and then past any loop --- `run29-nospec` holds 327 against
+  `run29-spec`'s 268 and `run30-nospec` 327 against `run30-libcase`'s 318,
+  so neither gap closes at any cutoff; each widens a little once loops longer
+  than a line are counted, to fifty-nine and nine. The survey count
+  is a loop-count reading and not a code-size one, and each flag's larger
+  `.text` carries fewer self-loops of every length. The 16 KiB exactly
+  is recorded as an observation and not as a mechanism; nothing here explains
+  why the difference should be a round page multiple. **Run 30 reproduces
+  the SHAPE of this on the other -O2 pass and narrows it sharply.** `--survey`
+  reads 284 self-loops on `run30-nospec` against 280 on `run30-libcase`, a gap
+  of FOUR where Run 29's was sixty-two, with the flagged half again carrying
+  the fewer and again the larger `.text`, by 20480 bytes --- 20 KiB exactly,
+  a second round multiple and still no mechanism. **But the within-pair
+  placement reading is the opposite of Run 29's**: `--library` puts 925 library
+  self-loops at **100.0%** the same offset in line and **100.0%** the same
+  straddle state across Run 30's halves, where Run 29 read 39.4% of 914.
+  So a flag can grow `.text` by 20 KiB, drop four short self-loops and displace
+  NOT ONE tracked library loop; the raised-cutoff survey, asked on both pairs,
+  says the dropped loops are gone and not grown.
 
 - `OPEN` **A saving in instructions reaches the clock at anything from NONE
   of it to ALL of it WITHIN ONE BINARY, where the rate on record is three
