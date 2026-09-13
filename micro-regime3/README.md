@@ -681,37 +681,38 @@ rather than a slot in the next run, observed again:
   to its `--ghc-options`, `nospec` the basis, so that `--compare` reads nospec
   over o2 and every `cross` below is what `-O2` does to one arm; over Run 30's
   roster less the six arms parked 2026-09-13, `Main.hs` otherwise standing where
-  Run 30 ran it. The first ten items are Run 30's, as they stand in [that run's
-  file](runs/run30.md#what-this-run-was-built-to-answer-and-what-it-answered),
-  each re-aimed at the figure Run 30 read so that every span passes
-  on that run's own JSONs, with `o2` written where they said `libcase`
-  and the two that leaned on the retired claims manifest restated on their own
-  terms; Run 30's (5) is not carried, both of its arms being parked. The last
-  four are new, on `lib-stage2-lean`, `liblist-stage4-sum`,
-  `libunord-stage9-sum` and `libunord-stage10-sum`, every figure they quote read
-  off Run 30's JSONs with `--pair` on 2026-09-13. (1) *The flag on the shipped
-  fill.* On the main set:
-  `predict: cross mut-odo-vecdims-add-in-leaf-u2 1.0 within 2%`,
+  Run 30 ran it. The first ten items are Run 30's eleven less its (5), which
+  is not carried, both of its arms being parked: eight as they stand in [that
+  run's
+  file](runs/run30.md#what-this-run-was-built-to-answer-and-what-it-answered)
+  and two, (9) and (10) here, that the retirement of the claims manifest took
+  out of that file on 2026-09-13 and that stand here on their own terms --- each
+  re-aimed at the figure Run 30 read so that every span passes on that run's own
+  JSONs, with `o2` written where they said `libcase`. The last four are new,
+  on `lib-stage2-lean`, `liblist-stage4-sum`, `libunord-stage9-sum`
+  and `libunord-stage10-sum`, every figure they quote read off Run 30's JSONs
+  with `--pair` on 2026-09-13. (1) *The flag on the shipped fill.* On the main
+  set: `predict: cross mut-odo-vecdims-add-in-leaf-u2 1.0 within 2%`,
   `predict: cross lib-stage1 1.0 within 2%`
   and `predict: cross lib-stage2-lean 1.0 within 2%`; on every class:
   `predict: cross mut-odo-vecdims-add-in-leaf-u2 1.0 within 4%`,
   `predict: cross lib-stage1 1.0 within 4%`
   and `predict: cross lib-stage2-lean 1.0 within 4%` --- Run 30 read the three
   at 0.9891, 1.0003 and 1.0093 on the main set under `-fliberate-case`, and ten
-  of their thirty-three class readings outside 1%, the widest 1.0326. Killed
-  by any of the three past 2% on the main set, which would say `-O2` reaches
-  the shipped fill by more than either of its passes alone did. (2) *The flag
-  on the reference.* On the main set: `predict: cross list 1.17 within 3%`;
-  on every class: `predict: cross list 1.19 within 5%` --- Run 30 read 1.1710
-  on the main set and 1.1726 to 1.2171 across the classes
-  under `-fliberate-case`, which `-O2` includes, `list` being the reference
-  every table is read against. Killed by `list` outside 3% of 1.17 on the main
-  set, which would say `-O2`'s other passes move the reference beyond what
-  LiberateCase alone did; either way the two columns cannot be subtracted,
-  and every cross below carries the reference's own move. (3) *The flag
-  on the fused list.* The lazy stages' consumers fold one flat loop,
-  `sumLazyRuns`, whose continuations are known, and `-fliberate-case` was worth
-  6 to 18 points to it on Run 30. On `runs`:
+  of their thirty-three readings over the eleven populations outside 1%,
+  the widest 1.0326. Killed by any of the three past 2% on the main set, which
+  would say `-O2` reaches the shipped fill by more than either of its passes
+  alone did. (2) *The flag on the reference.* On the main set:
+  `predict: cross list 1.17 within 3%`; on every class:
+  `predict: cross list 1.19 within 5%` --- Run 30 read 1.1710 on the main set
+  and 1.1726 to 1.2171 across the classes under `-fliberate-case`, which `-O2`
+  includes, `list` being the reference every table is read against. Killed
+  by `list` outside 3% of 1.17 on the main set, which would say `-O2`'s other
+  passes move the reference beyond what LiberateCase alone did; either way
+  the two columns cannot be subtracted, and every cross below carries
+  the reference's own move. (3) *The flag on the fused list.* The lazy stages'
+  consumers fold one flat loop, `sumLazyRuns`, whose continuations are known,
+  and `-fliberate-case` was worth 6 to 18 points to it on Run 30. On `runs`:
   `predict: cross libunord-stage7-sum 1.18 within 10%`; on `window`:
   `predict: cross libunord-stage7-sum 1.10 within 10%`; on `block`:
   `predict: cross libunord-stage7-sum 1.06 within 10%`; on `rev`, `bcast`,
@@ -3227,25 +3228,25 @@ defers the verdict to *once the evening has landed*, and 19a repeats it;
 the driver's line does not. **A driver line that says what is yours to do next
 should say WHEN**, and that is a one-line fix in `run-evening.sh` that would
 have saved this run its only intrusion. **THE CHECKS THAT WOULD HAVE CAUGHT
-THE ERRORS, and this run is the first where most of them are mechanical.**
-`--check-doc`'s cross-document agreement caught five sites still quoting
-the previous run's floor pair and carry-back figure. `--lint` caught an arm,
-`libunord-stage7`, that this session's own edit had left named nowhere in either
-document. `--check-doc`'s class-floor check caught the hand-assembled
-cross-class summary still carrying Run 29's ten rows. `--replace`'s three guards
-refused three edits that would each have destroyed something: a table abutting
-its lead, twice, and a list item quoted as though it were a paragraph.
-**AND THE ONE THAT IS NOT MECHANICAL EARNED ITS PLACE TWICE OVER**:
-`--check-doc --worklists`' superlative sweep named the candidates and derived
-nothing --- `--extremes` prints the full order since 2026-09-13, which
-is this run's answer to it for the class populations --- and sorting the ten
-class populations by hand refuted FOUR superlatives this write-up had already
-committed --- two classes called *joint lowest* on a `worst` that `compose`
-beats, a floor called *the tightest of the ten* that is third, and a `list` move
-called *the second widest* that is third --- plus a fifth error of direction,
-*closest* quoted as the furthest cell rather than the nearest. Every one came
-of reading the arms the sentence was about instead of ranking the set, which
-is the rule the portable notes give and the failure they name. **A blind reader
+THE ERRORS, most of them mechanical, as Run 29's were.** `--check-doc`'s
+cross-document agreement caught five sites still quoting the previous run's
+floor pair and carry-back figure. `--lint` caught an arm, `libunord-stage7`,
+that this session's own edit had left named nowhere in either document.
+`--check-doc`'s class-floor check caught the hand-assembled cross-class summary
+still carrying Run 29's ten rows. `--replace`'s three guards refused three edits
+that would each have destroyed something: a table abutting its lead, twice,
+and a list item quoted as though it were a paragraph. **AND THE ONE THAT
+IS NOT MECHANICAL EARNED ITS PLACE TWICE OVER**: `--check-doc --worklists`'
+superlative sweep named the candidates and derived nothing --- `--extremes`
+prints the full order since 2026-09-13, which is this run's answer to it
+for the class populations --- and sorting the ten class populations by hand
+refuted FOUR superlatives this write-up had already committed --- two classes
+called *joint lowest* on a `worst` that `compose` beats, a floor called
+*the tightest of the ten* that is third, and a `list` move called *the second
+widest* that is third --- plus a fifth error of direction, *closest* quoted
+as the furthest cell rather than the nearest. Every one came of reading the arms
+the sentence was about instead of ranking the set, which is the rule
+the portable notes give and the failure they name. **A blind reader
 over the whole diff then refuted nine more, and not one was about a table**:
 they were ordinals and quantifiers about this chapter's own history --- which
 repetition this was, whose basis it repeated, since which run the published
@@ -3879,12 +3880,12 @@ codegen rather than that it cannot be built.
   a separate and larger target that no reordering reaches.
 - `OPEN` **The published basis has left the regime this chapter's figures
   are ruled to be read in, and the ruling has not been re-taken.** README says
-  in four places that `-fspec-constr` is the deciding regime, every run since
-  Run 8 being in it --- the correction of 2026-08-14, amended 2026-08-24. Run 29
-  then measured the flag irrelevant to the shipped fill family, and the request
-  of 2026-09-12 moved Run 30's published basis to plain -O1, which is what
-  `Data/Array/Internal.hs` actually compiles under. So Run 30's readings
-  are at -O1 while the ruling they are read against is the flag's,
+  in more than one place that `-fspec-constr` is the deciding regime, every run
+  since Run 8 being in it --- the correction of 2026-08-14, amended 2026-08-24.
+  Run 29 then measured the flag irrelevant to the shipped fill family,
+  and the request of 2026-09-12 moved Run 30's published basis to plain -O1,
+  which is what `Data/Array/Internal.hs` actually compiles under. So Run 30's
+  readings are at -O1 while the ruling they are read against is the flag's,
   and the allocation levels differ by about a third between the two: `bq-expand`
   and `list` at 2.06x and 22.38x under the flag, 2.76x and 24.90x without it.
   **What would settle it** is a ruling and not a measurement --- either
@@ -6333,8 +6334,8 @@ at which an instruction saving reaches the clock is a third to a half here,
 not three quarters --- and Run 29 has since read it at nought and at one
 in a single binary, with Run 30 sharper still --- ten of its eighteen arms
 saving NO instructions at all between the halves, exactly 1.0000, two more
-saving a tenth of a percent, and the six of the `bq-expand` and `list` families
-converting 0.8963 and 0.9718 of what they save --- so what follows
+saving a tenth of a percent, and the `list` family converting 0.86 of what
+it saves where the `bq-expand` family converts 0.11 --- so what follows
 is this comparison's rate and not the harness's** ([the open list][open]).
 The nineteenth reading put it at about three quarters, 13.1% of the instructions
 buying 9.7% of the time and 18.6% buying 13.2%, across two builds of one recipe.
@@ -7611,8 +7612,8 @@ and never as a chronology.
     #      is still 12b's
     #      AND THE RUN TO HAND IT IS THE ONE THE ITEM NAMES, WHICH IS NOT
     #      ALWAYS $PREV. A registration CARRIED OVER quotes the figures of
-    #      the run before it -- Run 30's eleven items are Run 29's and
-    #      quote Run 28 throughout -- so $PREV's JSONs derive none of them
+    #      the run before it -- Run 30's items were Run 29's and
+    #      quoted Run 28 throughout -- so $PREV's JSONs derive none of them
     #      and every such item comes back flagged, which is the wrong
     #      question again and costs a call the size of the roster. Run
     #      30's preparation paid it: five items against run29, two against
@@ -10657,18 +10658,18 @@ and 2.11%, Run 23's 2.03% and 2.80%, Run 22's 2.12% and 1.08% and Run 21's 2.92%
 and 2.16%, all over sixteen, and Run 20's 1.51% and 1.18%, Run 19's 2.32%
 and 1.71%, Run 18's 1.36% and 1.42%, Run 17's 3.70% and 3.89% and Run 16's 2.32%
 and 1.22%, every one of those five over eighteen. **A max over six pairs, one
-over eight and one over sixteen are three different statistics**,
-so the sixteen-pair and six-pair figures are not a series this run's whole-set
-figure continues; what it does continue is the eight-pair one, whose three basis
-readings are now 0.50%, 0.51% and 0.57%. The RESTRICTED figure, over the four
-pairs that carry back to Run 10, reads **0.57%** and **0.56%**.
-`bq-expand-aa-distant` carries BOTH of the basis figures and the control's
-restricted one, `mut-odo-vecdims-add-in-leaf-u2-aa-distant` the control's
-whole-set figure. **So the two thresholds have CLOSED on the basis half,
-and that is the news**: 0.57% against 0.57%, the same pair carrying each, where
-Run 28 read 0.50% against 0.39% and Run 29 read 0.51% against 0.26% and further
-apart. The reason they parted is gone with it --- the shipped fill's own
-duplicate is no longer the widest pair on this half, `bq-expand`'s is ---
+over eight, one over sixteen and one over eighteen are four different
+statistics**, so the sixteen-pair and six-pair figures are not a series
+this run's whole-set figure continues; what it does continue is the eight-pair
+one, whose three basis readings are now 0.50%, 0.51% and 0.57%. The RESTRICTED
+figure, over the four pairs that carry back to Run 10, reads **0.57%**
+and **0.56%**. `bq-expand-aa-distant` carries BOTH of the basis figures
+and the control's restricted one, `mut-odo-vecdims-add-in-leaf-u2-aa-distant`
+the control's whole-set figure. **So the two thresholds have CLOSED on the basis
+half, and that is the news**: 0.57% against 0.57%, the same pair carrying each,
+where Run 28 read 0.50% against 0.39% and Run 29 read 0.51% against 0.26%
+and further apart. The reason they parted is gone with it --- the shipped fill's
+own duplicate is no longer the widest pair on this half, `bq-expand`'s is ---
 so the fill pair's excursion of the last two runs was not a standing property
 of that arm. On the control they still part, 0.84% against 0.56%. **Registration
 (9) held in all forty-four of its readings**, two spans over eleven populations

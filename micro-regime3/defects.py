@@ -240,7 +240,7 @@ def _newest_run_doc():
     if not got:
         # BLOCKED at 2, not an assert: a missing corpus is "the run did
         # not happen", and the traceback hit --list too. 2026-09-01.
-        print('BLOCKED: no runs/run<N>.md in %s -- the Results table, the'
+        print('BLOCKED: no runs/run<N>.md in %s -- the Results table'
               ' and the class blocks are all in one, so'
               ' every fixture that plants against them is unbuildable' % at)
         raise SystemExit(2)
@@ -1979,19 +1979,6 @@ def stub_pair_note_machine_check(tmp):
 
 
 
-class _NoMatch:
-    """A stand-in whose `group` is a name no shape list carries."""
-
-    @staticmethod
-    def group(_n):
-        return ''
-
-
-_NO = _NoMatch()
-
-MAIN_LIST_NAMES = ('convShapes', 'stretchShapes')
-
-
 def synth_json(tmp, pop='main', name=None, **kw):
     """One population as a file: `main`, or a class by name."""
     shapes = main_shapes() if pop == 'main' else class_shapes(pop)
@@ -2802,11 +2789,10 @@ def main_shapes(n=None):
                      if d['lst'] == 'stretchShapes' and not d.get('retired'))
     ms = [sh for pair in zip(conv, stretch) for sh in pair]
     ms += [sh for sh in conv + stretch if sh not in ms]
-    # ALL of it by default, because an install refuses a main set that is
-    # not the whole one -- a table is written over the whole
-    # population, and a fixture short of it makes install-tables.sh refuse
-    # for a reason the case is not about. `n` is for the cases that only
-    # need a couple of shapes and would rather build less.
+    # ALL of it by default: a table is written over the whole population,
+    # so a fixture short of it installs a table no checker reads as the
+    # run's, for a reason the case is not about. `n` is for the cases that
+    # only need a couple of shapes and would rather build less.
     assert len(ms) >= (n or 1), 'the main set parsed as %d shape(s)' % len(ms)
     return ms[:n] if n else ms
 
@@ -8866,6 +8852,33 @@ RECORDS = [
                            'within 1.00%: HELD']),
          bug=V(exit=2, hasnt=['cross list 1.0 within 1%',
                               'within 1.00%: HELD'])),
+
+    case('predictions-name-the-main-set-an-item-reads-on', 'read-run.py',
+         None,
+         'CONTROL for the populations block: an item saying `on the main'
+         ' set` names the main set, one naming a class names it, and one'
+         ' naming neither is handed back to the hand',
+         # The block reads each item for the populations it names and
+         # prints the mapping, so that a span registered on `runs` is not
+         # read on the main set and reported KILLED for the wrong question.
+         # `main` is the file the spans were read on, so it is available
+         # whether or not its JSON is among --classes; until 2026-09-13 it
+         # was not, and `on the main set` came back as naming nothing.
+         plant=lambda t: {
+             'run': synth_json(t),
+             'other': synth_json(t, name='other.json'),
+             'runs': synth_json(t, pop='runs', name='x-runs.json'),
+             'doc': write(os.path.join(t, 'r.md'),
+                          '# Run 99\n\n## What this run was built to answer,'
+                          ' and what it answered\n\n(1) *a* On `runs`:'
+                          ' `predict: cross list 1.0 within 1%`. (2) *b* On'
+                          ' the main set: `predict: cross list 1.0 within'
+                          ' 1%`. (3) *c* `predict: cross list 1.0 within'
+                          ' 1%`.\n')},
+         argv=['{run}', '--compare', '{other}', '--predictions',
+               '--run-doc', '{doc}', '--classes', '{runs}'],
+         ok=V(has=['the populations each item names', '(1) runs',
+                   '(2) main', '(3) no population named; read by hand'])),
 
     case('cross-span-on-an-arm-with-no-corrected-time', 'read-run.py',
          'dc2bf44',

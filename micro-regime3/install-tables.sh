@@ -4,10 +4,10 @@
 #     ./install-tables.sh run14           # writes runs/run14.md
 #
 # `--markdown`, `--fingerprint` and a `--block` per class,
-# every one from the BASIS half, every one `--in-place`. That is eleven
-# tables and one reading per claim, and those are numbers a session loses
-# count of: the failure is not a wrong table but a missing one, and a run
-# file with ten of eleven installed looks exactly like one with eleven.
+# every one from the BASIS half, every one `--in-place`. That is a table
+# per class and two more, a count a session loses track of: the failure is
+# not a wrong table but a missing one, and a run file one table short looks
+# exactly like one with them all.
 #
 # It installs and collects; it decides nothing. Each mode's stderr is the
 # hand-work it leaves -- a row new to the roster installs as `?` and is
@@ -15,7 +15,7 @@
 # gathers those and prints them at the end as the list they are.
 #
 # It also RANKS, once, and installs nothing from it: `--extremes` over the
-# same class list, because a superlative about the eight -- widest, best,
+# same class list, because a superlative about the classes -- widest, best,
 # tightest floor -- is a claim about every population at once and this is
 # the only program that holds them all. The cross-class summary stays
 # hand-assembled, its emphasis being a per-run judgement; what the rank
@@ -23,15 +23,15 @@
 #
 # The class list comes from the JSONs on disk rather than from a literal
 # here: run-major.sh's own class literal went out of step with the binary
-# once, and a write-up that installs seven blocks of eight is the same
+# once, and a write-up that installs one block too few is the same
 # defect one stage later.
 #
 # Its defects, and the control that a full pass rewrites no table, are cases
 # in defects.py; add one there before fixing anything here.
 #
-# WRITES THE RUN'S OWN FILE and nothing else -- every table and every
-# claim reading a run publishes is in `runs/run<N>.md`, which is why one
-# `DOC` can serve all eleven installs. Commit or park that file first --
+# WRITES THE RUN'S OWN FILE and nothing else -- every table a run
+# publishes is in `runs/run<N>.md`, which is why one `DOC` can serve every
+# install. Commit or park that file first --
 # `git checkout -- runs/run<N>.md` is the undo, and there is no other. Read
 # the diff afterwards rather than the terminal: install prints what it
 # replaced, not what the file now says.

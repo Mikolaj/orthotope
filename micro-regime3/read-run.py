@@ -161,13 +161,17 @@ Modes:
                     spans are what --predictions adjudicates; the figures
                     beside them in prose were read by nothing, and a
                     wrong one is a plausible number next to a correct arm
+  --carry-over      this run's registration against the previous run's as
+                    it stood BEFORE that run, item by item, read out of
+                    git rather than from its run file, whose copy carries
+                    a verdict per item; it names the words that moved and
+                    judges none
   --counts SWEEP.txt --pair A B   the other arity: two arms' instruction
                     counts on ONE half, corrected against the shared
                     forcing pass and raw beside it, which is what a
                     registration comparing two arms on one binary turns
                     on. Two sweep files with `--compare` is the cross-half
                     reading and the older one
-                    --lint holds to the roster
   --steps           every cell read at sample level for a mid-bench change
                     of level, which the fitted slope averages away and no
                     other column here can show
@@ -3125,11 +3129,16 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     # adjudicated one population at a time, which is what the loop below
     # names rather than hides.
     if pop_paths:
-        names = []
+        # The main set is the file the spans above were read on, so it is
+        # available whether or not its JSON is among the paths; without
+        # it an item saying `on the main set` came back as naming nothing.
+        names = ['main']
         for path in pop_paths:
             base = os.path.basename(path)
             m = re.search(r'-([a-z0-9]+)\.json$', base)
-            names.append(m.group(1) if m else base)
+            nm = m.group(1) if m else base
+            if nm not in names:
+                names.append(nm)
         print()
         print('the populations each item names, off its own text --- the'
               ' spans above are this file alone:')
@@ -9700,16 +9709,17 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                            ' the same number'
                            % (name, (sites[0][0] if isinstance(sites[0], tuple)
                                      else sites[0]),
-                              ', '.join(sorted(set(o for o in alone
-                                                   if o != sites[0][0])))))
+                              ', '.join(sorted(set(
+                                  o for o in alone
+                                  if o != (sites[0][0]
+                                           if isinstance(sites[0], tuple)
+                                           else sites[0]))))))
             elif alone_pats:
-                print('ok:   the %s reads %s%%/%s%% at all %d sites that'
+                one = sites[0] if isinstance(sites[0], tuple) else (sites[0],)
+                print('ok:   the %s reads %s at all %d sites that'
                       ' quote it, and %s%% at the %d that quote one half'
-                      % ((name,) + (sites[0] if isinstance(sites[0], tuple)
-                                    else (sites[0],))
-                         + (len(sites), (sites[0][0]
-                                         if isinstance(sites[0], tuple)
-                                         else sites[0]), len(alone))))
+                      % (name, '/'.join('%s%%' % x for x in one),
+                         len(sites), one[0], len(alone)))
             else:
                 one = sites[0] if isinstance(sites[0], tuple) else (sites[0],)
                 print('ok:   the %s reads %s at all %d sites that quote it'
@@ -11316,7 +11326,7 @@ def main():
                    help='restore the standing explanation --brief drops;'
                         ' no computed figure differs either way')
     p.add_argument('--in-place', action='store_true',
-                   help='install --markdown/--fingerprint/--block tables,'
+                   help='install --markdown/--fingerprint/--block tables'
                         " into the run's own file instead of printing"
                         ' them')
     p.add_argument('--selftest', action='store_true')
@@ -11363,7 +11373,8 @@ def main():
                         " bolded lead matches, with the line it starts at;"
                         " where several"
                         " match, print their leads and locations instead;"
-                        " needs no run file")
+                        " PATTERN#N prints item (N) of the matching"
+                        " paragraph alone; needs no run file")
     p.add_argument('--para-at', metavar='FILE:LINE',
                    help='resolve a line number in either document to the'
                         ' paragraph holding it and print that paragraph\'s'
@@ -11438,7 +11449,7 @@ def main():
                         ' is --run-doc')
     p.add_argument('--run-doc', dest='run_doc', metavar='FILE',
                    help="the run's own file, `runs/run<N>.md`, which carries"
-                        ' the Results table, the fingerprint tables, the'
+                        ' the Results table, the fingerprint tables'
                         ' and the class blocks --'
                         ' everything a run replaces. Every --in-place'
                         ' install writes it and no other document'
