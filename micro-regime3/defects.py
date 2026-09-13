@@ -1704,7 +1704,14 @@ def rundoc_stale_basis_in_results(tmp):
     end = next(j for j in range(start + 1, len(lines))
                if re.match(r'#{1,6} ', lines[j]))
     seg = '\n'.join(lines[start:end])
-    runs = set(re.findall(r'\brun(\d+)-[a-z0-9]+', seg))
+    # THE CHECKER'S OWN EXEMPTION, and this fixture has to share it or the
+    # two disagree about which names count: a repetition names its
+    # predecessor's half ON PURPOSE, and check_run_doc lets a token pass
+    # when `byte for byte` follows within eighty characters. Run 30's
+    # Results names run29-nospec that way, which built this plant a second
+    # run and failed it at `names 2 run(s)`.
+    runs = {m.group(1) for m in re.finditer(r'\brun(\d+)-[a-z0-9]+', seg)
+            if 'byte for byte' not in seg[m.end():m.end() + 80]}
     if len(runs) != 1:
         raise AssertionError('Results names %d run(s), not one: %s'
                              % (len(runs), sorted(runs)))
