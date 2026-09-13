@@ -3710,6 +3710,39 @@ TIER1 = {
               ' the sequence at 02:05:18. The rule is in run list step 17'
               ' and the deferral in 14a and 19a; what the session read at'
               ' the moment it acted was this line, which carried neither.'),
+    'predictions-name-the-main-set-an-item-reads-on': dict(
+        family='two-spellings', discovery='audit', harm='latent',
+        trigger='--predictions with --classes over a registration whose'
+                ' item says `on the main set`, which every item of Run 30'
+                ' and Run 31 does',
+        ok='names the main set for that item, the run file being the'
+           ' population the spans were read on whether or not its JSON'
+           ' is among the class paths',
+        bug='built the available names from the class paths alone, so'
+            ' `main` was never among them and the item came back as'
+            ' naming nothing, to be read by hand',
+        proved='ran',
+        notes='Found 2026-09-13 by running the block\'s first case against'
+              ' the reader as committed, the block having landed the same'
+              ' day with no case: `(2) main` was absent where `(1) runs`'
+              ' was present.'),
+    'agreeing-sweep-one-capture-row-with-alone-patterns': dict(
+        family='scan-for-parse', discovery='review', harm='latent',
+        trigger='an AGREEING row whose patterns capture one figure and'
+                ' which carries alone-patterns; no row does today',
+        ok='both the alone-disagreement message and the ok line take the'
+           ' figure as a tuple of one, as the else branch already did',
+        bug='`sites[0][0]` took the first CHARACTER of a one-capture'
+            ' figure in the message, and the ok line\'s two-slot format'
+            ' raised TypeError on a one-element tuple',
+        # No case: the rows are a table in the checker's own source, and
+        # a case would have to plant one there. The two branches were made
+        # arity-aware beside the else branch, and the two-capture row that
+        # does carry alone-patterns, the carry-back figure, prints the
+        # same line before and after.
+        proved='asserted',
+        notes='Found 2026-09-13 by a blind reader of the range that added'
+              ' the isinstance shim to two of the four sibling branches.'),
     'evening-does-not-inherit-an-untied-gate': dict(
         family='unverified-state', discovery='review', harm='latent',
         trigger='a clean GATE block without a halves md5 line',
@@ -8854,10 +8887,10 @@ RECORDS = [
                               'within 1.00%: HELD'])),
 
     case('predictions-name-the-main-set-an-item-reads-on', 'read-run.py',
-         None,
-         'CONTROL for the populations block: an item saying `on the main'
-         ' set` names the main set, one naming a class names it, and one'
-         ' naming neither is handed back to the hand',
+         '4e121a2',
+         'an item saying `on the main set` named no population, the block'
+         ' having built its names from the class paths alone; one naming'
+         ' a class names it, and one naming neither is handed to the hand',
          # The block reads each item for the populations it names and
          # prints the mapping, so that a span registered on `runs` is not
          # read on the main set and reported KILLED for the wrong question.
@@ -8878,7 +8911,8 @@ RECORDS = [
          argv=['{run}', '--compare', '{other}', '--predictions',
                '--run-doc', '{doc}', '--classes', '{runs}'],
          ok=V(has=['the populations each item names', '(1) runs',
-                   '(2) main', '(3) no population named; read by hand'])),
+                   '(2) main', '(3) no population named; read by hand']),
+         bug=V(has=['(1) runs'], hasnt=['(2) main'])),
 
     case('cross-span-on-an-arm-with-no-corrected-time', 'read-run.py',
          'dc2bf44',
