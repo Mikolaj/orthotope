@@ -55,6 +55,7 @@ probe-*
 !probe-flip-reroll-fixture.py
 !probe-flip-counters.sh
 !probe-flip-counters-read.py
+!probe-r32-g3-twins.sh
 
 # What those two leave: a directory of legs apiece, named for the question
 # and not for a run, so the `run[0-9]*` and `probe-*` patterns miss them.
