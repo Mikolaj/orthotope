@@ -241,8 +241,8 @@ MUTANTS = [
     # naming run21, which no rename reaches, and one naming run23, which
     # becomes run24 -- and requires the notice.
     ('--draft stops flagging a block that names another run', 'read-run.py',
-     "    if flagged:\n        marks = ",
-     "    if False and flagged:\n        marks = ",
+     "    if flagged:\n        rows = []",
+     "    if False and flagged:\n        rows = []",
      'python3 -c "import importlib.util, sys, tempfile, subprocess, os\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
      'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
@@ -569,8 +569,8 @@ MUTANTS = [
      "           PLAIN, LAST_CANDIDATE, 1.0)",
      "    clause('property 1, ahead of `bq-expand` on every shape', 'net',\n"
      "           LAST_CANDIDATE, PLAIN, 1.0)",
-     'f=$(ls "{root}"/run[0-9]*-main.json 2>/dev/null | tail -1); test -n "$f" '
-     '&& python3 "{file}" "$f" 2>/dev/null | grep -q "property 1, ahead of .bq-expand. on every shape: HOLDS"'),
+     'f=$(ls "{root}"/run[0-9]*-rev.json 2>/dev/null | tail -1); test -n "$f" '
+     '&& python3 "{file}" "$f" --block 2>/dev/null | grep -q "property 1, ahead of .bq-expand. on every shape: HOLDS"'),
     ('property 2 stops reading mut-odo-vecdims against list', 'read-run.py',
      "    clause('property 2, allocation at most 1% over `list` on every shape',\n"
      "           'alloc', PLAIN, 'list', 1.01)",

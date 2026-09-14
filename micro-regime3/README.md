@@ -53,18 +53,19 @@ speeding `bq-expand` by 29% and leaving the fill where it is, and the gap
 this ratio reports is the one the library actually compiles in. **The nineteenth
 shape is what is new**: `stretch-pow2stride` reads 0.999, `bq-expand`
 a thousandth faster there, which is class property 1 breaking on the main set
-for the first time. Its family holds the top of the table. It needs a new
-`Vector`-class method, which this README argued against for as long
-as the ceiling stood --- to keep orthotope's `Vector` API pure and minimal,
-a bar an in-tree precedent softened to a weight --- and which the decision
-of 2026-08-22 **took**, `vFillStrided` landing 2026-08-24
-([below](#the-mutable-ceiling-taken)). Plain `mut-odo` no longer argues
-for it at all: it and `bq-expand`, which survives in `Data/Array/Internal.hs`
-only as that method's class default, the three vector-backed instances
-overriding it with the mutable fill, are a tie at 0.8906 paired, 14 shapes of 26
-and sign p 0.85 on an interval covering 1 --- and at 0.8918 on Run 24's HEAD
-half, a thousandth away, so the tie is not one compiler's --- where Run 7
-(Harness), at -O1, had it 1.51x ahead.
+for the first time. **The mutable fills hold the top of the table** ---
+`lib-stage2-lean` at 0.025 and the shipped leaf at 0.027, against
+`mut-odo-vecdims`'s 0.045 --- and every one of them needs a new `Vector`-class
+method, which this README argued against for as long as the ceiling stood ---
+to keep orthotope's `Vector` API pure and minimal, a bar an in-tree precedent
+softened to a weight --- and which the decision of 2026-08-22 **took**,
+`vFillStrided` landing 2026-08-24 ([below](#the-mutable-ceiling-taken)). Plain
+`mut-odo` no longer argues for it at all: it and `bq-expand`, which survives
+in `Data/Array/Internal.hs` only as that method's class default, the three
+vector-backed instances overriding it with the mutable fill, are a tie at 0.8906
+paired, 14 shapes of 26 and sign p 0.85 on an interval covering 1 ---
+and at 0.8918 on Run 24's HEAD half, a thousandth away, so the tie is not one
+compiler's --- where Run 7 (Harness), at -O1, had it 1.51x ahead.
 
 **Several strategies measured since are faster than the last candidate,
 `bq-expand`, and need no class method --- a distinction the decision
@@ -1000,10 +1001,11 @@ rather than a slot in the next run, observed again:
   whether it is the shape's or the run's** is the next run's reading of that one
   cell ---
   `./read-run.py run<N>-<basis>-main.json --pair bq-expand mut-odo-vecdims --per-shape`,
-  whose `stretch-pow2stride` entry this run reads at 0.999 and Run 30 at 1.000.
-  Three readings on the same side of 1 make it the shape's property; two
-  are consistent with a cell sitting on the line and a floor of 0.61%.
-  Registered here 2026-09-14.
+  whose `range` line this run reads at 0.999 on `stretch-pow2stride` and Run 30
+  at 1.000, the per-shape lines below giving 0.9991 and 1.0003. Three readings
+  on the same side of 1 make it the shape's property; two are consistent
+  with a cell sitting on the line and a floor of 0.61%. Registered here
+  2026-09-14.
 - `OPEN` **`-O2` changes what the preamble's spray leaves RESIDENT, and no pair
   before it did.** Run 31's twenty-two processes carry one `keep` value,
   `8.19844333056e12`, and TWO `inuse` values --- 95420416 on every plain -O1
@@ -1012,14 +1014,15 @@ rather than a slot in the next run, observed again:
   carried one of each and Run 29's did too, so this is the level doing something
   neither of its passes did alone. The preamble sprays a fixed number
   of elements, so what differs is what survives the spray, and a level
-  that moves an arm's allocation multiple plausibly moves that too: the entry
-  above records `bq-expand` going from 2.78x to 2.11x on this very pair. **What
-  would settle it costs no machine time**: the two main processes' logs already
-  carry per-bench RTS totals, so `./read-run.py run31-<half>-main.log --wild`
-  read against each half's `@@saturate` `inuse` says whether the resident level
-  tracks the allocation multiples --- if it does the two are one fact, and
-  if it does not the spray is doing something the `alloc` column cannot see.
-  Registered here 2026-09-14.
+  that moves an arm's allocation multiple plausibly moves that too,
+  and the allocation entry below --- the one opening *Each -O2 pass changes what
+  an arm ALLOCATES* --- records `bq-expand` going from 2.78x to 2.11x
+  on this very pair. **What would settle it costs no machine time**: the two
+  main processes' logs already carry per-bench RTS totals,
+  so `./read-run.py run31-<half>-main.log --wild` read against each half's
+  `@@saturate` `inuse` says whether the resident level tracks the allocation
+  multiples --- if it does the two are one fact, and if it does not the spray
+  is doing something the `alloc` column cannot see. Registered here 2026-09-14.
 - `OPEN` **Each -O2 pass changes what an arm ALLOCATES and not only how fast
   it runs, they disagree on WHICH arms and move `list`'s multiple in OPPOSITE
   directions, and nothing here says why an optimisation pass should move
@@ -1104,8 +1107,9 @@ rather than a slot in the next run, observed again:
   says the dropped loops are gone and not grown. **Run 31 is the third pair
   and the widest: 221 self-loops on the `-O2` half against 299 on the plain -O1
   basis, a gap of SEVENTY-EIGHT, with the `-O2` half's `.text` the LARGER
-  by 12288 bytes.** Same direction as both single-pass pairs and about four
-  times Run 30's gap of four, so a whole level does to the survey count what
+  by 12288 bytes.** Same direction as both single-pass pairs and far wider
+  than either: nineteen and a half times Run 30's gap of four and a quarter more
+  than Run 29's sixty-two, so a whole level does to the survey count what
   neither of its passes alone did. `--library` reads it from the other side
   on the same pair: 916 library self-loops in common, only 4.4% at the same
   offset in line against Run 30's 100.0% of 925, so the level displaces loops
@@ -1188,14 +1192,15 @@ rather than a slot in the next run, observed again:
   so it prices the FLAG rather than settling whether a cross-build A/B
   and a within-binary pair agree on identical code. That half is still open.
   **Run 31 reads the full range again on ONE pair, and the low end
-  is the shipped fill.** Its ten fill-family arms are spared four to five
-  percent of their instructions and convert NONE of it: `time/counts` runs
-  0.9287 to 0.9620 while the clock sits within half a point of level and three
-  of the ten fall the wrong side of it. The two arms that do convert, convert
-  nearly all: `list` turns 23.8% of its instructions into 22.9% of its time
-  and `bq-expand` 30.7% into 22.7%. So the rate on one pair of one binary spans
-  none to nineteen twentieths, and the three-quarters figure is not a constant
-  of this box either.
+  is the shipped fill.** Its ten fill-family arms are spared three and a half
+  to five percent of their instructions and convert NONE of it: `time/counts`
+  runs 0.9287 to 0.9620 while nine of the ten clocks sit within a point of level
+  and the tenth, `mut-odo-vecdims-add-in-leaf-u1`, moves the WRONG WAY --- 4.7%
+  fewer instructions costing the -O2 half 2.6% of its time on that arm. The two
+  arms that do convert, convert nearly all: `list` turns 23.8%
+  of its instructions into 22.9% of its time and `bq-expand` 30.7% into 22.7%.
+  So the rate on one pair of one binary spans none to nineteen twentieths,
+  and the three-quarters figure is not a constant of this box either.
 
 - `ANSWERED` **`lib-stage2-disp` and `lib-stage2-lean` are NOT the same code
   at a few hundred elements, which the lean ruling was written to make them.**
@@ -1320,25 +1325,29 @@ rather than a slot in the next run, observed again:
   basis where the four pairs that carry back to Run 10 read **0.61%** as well,
   `bq-expand-aa-distant` carrying both; on its control they part far wider,
   1.58% on `mut-odo-vecdims-add-in-leaf-u2-aa-distant` against 0.43%,
-  and that gap is one wild `cnn-slice-c32` cell's. Runs 28 and 29 read the two
-  apart, the fill's own pair carrying the whole-set figure both times, and Runs
-  30 and 31 put it on `bq-expand`'s pair instead, Run 30 also reading one
-  unchanged binary at 0.82% and 0.57% a day apart; the four runs' figures
-  and that repetition are [in the floor section][floor], which until 2026-09-13
-  named the RESTRICTED figure as the bar while every verdict in `runs/run31.md`
-  used the whole-set pair. **RULED 2026-09-13**: a margin between two rows
-  clears the floor of every pair the roster carries, the widest an arm disagrees
-  with its own duplicate by on that half that evening, quoted to one decimal
-  where it stands as a bar; the carry-back figure, over the pairs that carry
-  back to Run 10, is the series that keeps fourteen runs comparable and is never
-  the bar. Run 30 is the run that showed those are not the same arm twice
-  running, and its verdicts already read the whole-set pair, as the reader's
-  default tolerance does. **The rename this entry also carried is TAKEN
-  and stays taken**, 2026-09-11: the figure is the carry-back figure, named
-  for the pairs that carry back to Run 10 rather than for a population size,
-  in this file, on `read-run.py`'s `--chapter` line and in its agreement row,
-  and in the corpus case's expected text --- a cross-site agreement check keying
-  on the SIZE of a population being exactly what a roster change breaks.
+  and that gap is the two wild `cnn-slice-c32` cells' together: dropping
+  the pair that carries the 15.29% one leaves the leaf's ADJACENT copy at 1.30%,
+  still three times 0.43%, and it takes dropping both to leave 0.43% standing.
+  Runs 28 and 29 read the two apart, the fill's own pair carrying the whole-set
+  figure both times, and Runs 30 and 31 put it on `bq-expand`'s pair instead
+  ON THE PUBLISHED HALF, Run 31's CONTROL half still reading the fill pair's
+  and only on two wild cells, Run 30 also reading one unchanged binary at 0.82%
+  and 0.57% a day apart; the four runs' figures and that repetition are [in
+  the floor section][floor], which until 2026-09-13 named the RESTRICTED figure
+  as the bar while every verdict in `runs/run31.md` used the whole-set pair.
+  **RULED 2026-09-13**: a margin between two rows clears the floor of every pair
+  the roster carries, the widest an arm disagrees with its own duplicate
+  by on that half that evening, quoted to one decimal where it stands as a bar;
+  the carry-back figure, over the pairs that carry back to Run 10, is the series
+  that keeps fourteen runs comparable and is never the bar. Run 30 is the run
+  that showed those are not the same arm twice running, and its verdicts already
+  read the whole-set pair, as the reader's default tolerance does. **The rename
+  this entry also carried is TAKEN and stays taken**, 2026-09-11: the figure
+  is the carry-back figure, named for the pairs that carry back to Run 10 rather
+  than for a population size, in this file, on `read-run.py`'s `--chapter` line
+  and in its agreement row, and in the corpus case's expected text ---
+  a cross-site agreement check keying on the SIZE of a population being exactly
+  what a roster change breaks.
 - `ANSWERED` **The arm that leads Run 28's table is the branch's own driver
   and not a member of the family the fix shipped.** `lib-stage2-lean` reads
   0.027 on the main set against the shipped `mut-odo-vecdims-add-in-leaf-u2`'s
@@ -3152,27 +3161,55 @@ site, and the `Results section names run N` rule catching two cross-run binary
 names in the section whose tables are the basis half's. The last of those
 is the one worth keeping: its patterns are phrasings, so rewording a sentence
 can make the check stop finding two sites to compare --- which happened here,
-and the checker said so rather than passing. **A COMPUTATION IMPROVISED,
-three**: the per-half plateau spread and the saturation state split
-(`read-all.sh` reports the run-wide band and refuses, and the per-half reading
-is what makes that refusal legible); the sweep for a timed arm above its shape's
-`list` over all twenty-two populations, hand-rolled from `--cells` because
-no mode ranks that population; and the cross-run anchor movements against
-the previous build of the recipe. **A STEP SKIPPED: none.** **A CAPABILITY
-FOUND**: `--replace`'s abutting-table guard fired on the main-set anchors
-paragraph and named the two remedies, which is the guard Run 29 paid 38 rows
-for working exactly as designed. **AND THE READINGS A CARRIER TOOK: none,
-and the batch missed its window.** This write-up used one agent, the checker,
-and took items 2, 4, 5 and 6 itself -- item 2 during the sequence, where
-the chapter puts it, and the other three at the steps that read them, which
-is hours after the window the chapter names. `run31-readings.txt`
-was then written after the fact and says so at its head. The window
-is the sequence's own hours, when the box is busy and a carrier only reads,
-and what missing it costs is not the reading but the record: `run-status.sh`
-judges those three steps on the blocks and cannot tell a reading taken from one
-merely claimed, which is the sentence the chapter wrote the file for. The forty
-per-class reader calls were parallelised with `xargs -P4` as the chapter asks
-and cost about a minute in all, where Runs 29 and 30 ran them one at a time.
+and the checker said so rather than passing. **AND `check-all` FAILED, ON TWO
+MUTANTS NEITHER OF WHICH IS THIS RUN'S PROSE.** `selftest-mutants.py .` reported
+42 mutants, 40 caught, 0 survived and TWO that could not be applied. The first
+is a rename that outran its own proof: `4d0586e`, of this run's own preparation,
+renamed `marks` to `rows` inside `--draft`'s carried-block flag and left
+the mutant's anchor naming the old variable, so from that commit the mutant
+was dead and `check-all` red --- which the pair note's record of a clean whole
+run on 2026-09-14 does not show, and the two cannot both be true. The second
+is the case the standing checks name and nobody expects: the mutant for property
+1's `bq-expand` clause proved itself by requiring the clause to HOLD
+on the newest main-set run on disk, and Run 31 is the run on which it BREAKS,
+so the run's own finding retired its own control. Both are repaired here ---
+the anchor re-pointed at the current code, the property-1 control read off
+the newest `rev` class JSON through `--block`, where the clause holds on every
+class of both halves --- and `selftest-mutants.py .` now reads 42 caught, 0
+survived, 0 unapplied. **What the pair is worth recording for is the second**:
+a checker whose control is *the newest run on disk* stays green for as long
+as the property holds and dies silently the day it does not, which is the one
+day the checker exists for. A control a finding can retire is not a control.
+**AND A THIRD THING, OBSERVED AND NOT EXPLAINED**: README was left
+at the UNWRAPPED form, a turn ended and a `check-all` ran, and it was afterwards
+found at the WRAPPED one --- so the next exact-match edit, written against
+the unwrapped text, failed to match. The turn-end hold was set and
+is this session's, so what restored it is not established here and no mechanism
+is claimed. What it cost was one refused substitution and nothing else, because
+the edit asserted its own count before writing; an edit that had not would have
+written the file with the substitution silently unmade. The rule that survives
+the missing mechanism is the assertion, not a theory about the hook.
+**A COMPUTATION IMPROVISED, three**: the per-half plateau spread
+and the saturation state split (`read-all.sh` reports the run-wide band
+and refuses, and the per-half reading is what makes that refusal legible);
+the sweep for a timed arm above its shape's `list` over all twenty-two
+populations, hand-rolled from `--cells` because no mode ranks that population;
+and the cross-run anchor movements against the previous build of the recipe.
+**A STEP SKIPPED: none.** **A CAPABILITY FOUND**: `--replace`'s abutting-table
+guard fired on the main-set anchors paragraph and named the two remedies, which
+is the guard Run 29 paid 38 rows for working exactly as designed.
+**AND THE READINGS A CARRIER TOOK: none, and the batch missed its window.**
+This write-up used one agent, the checker, and took items 2, 4, 5 and 6 itself
+-- item 2 during the sequence, where the chapter puts it, and the other three
+at the steps that read them, which is hours after the window the chapter names.
+`run31-readings.txt` was then written after the fact and says so at its head.
+The window is the sequence's own hours, when the box is busy and a carrier only
+reads, and what missing it costs is not the reading but the record:
+`run-status.sh` judges those three steps on the blocks and cannot tell a reading
+taken from one merely claimed, which is the sentence the chapter wrote the file
+for. The forty per-class reader calls were parallelised with `xargs -P4`
+as the chapter asks and cost about a minute in all, where Runs 29 and 30 ran
+them one at a time.
 
 **What Run 30 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
@@ -10676,8 +10713,10 @@ carrying each, where Run 28 read 0.50% against 0.39% and Run 29 0.51% against
 and that gap is one cell's.** 1.58% against 0.43% is a factor of 3.7,
 and the 1.58% is the shipped leaf's distant copy carried there by a wild
 `cnn-slice-c32` cell reading 15.29% --- `--wild` clears every one of this run's
-hundred and ten logs, so it is wild and not an intrusion. Read without
-it the control half has no pair wider than `bq-expand-aa-distant`'s 0.43%.
+hundred and fourteen logs, the worst bench anywhere reaching 0.24 of a core,
+so it is wild and not an intrusion. Read without BOTH of them --- the adjacent
+copy at 1.30% and the distant one at 1.58% --- the control half has no pair
+wider than `bq-expand-aa-distant`'s 0.43%; drop only the wider and 1.30% stands.
 **Registration (8) held in all forty-four of its readings**, two spans
 over eleven populations on two halves, and the open entry's question is now four
 runs old with two answers and no trend. **What this run cannot restate is Run
@@ -12612,9 +12651,9 @@ tables and its fingerprint say so.
   OUTSIDE the 0.7% bar, so its two columns may NOT be subtracted**, nor may any
   of its ten classes', which moved 23.72 to 38.35 points: every cross-half
   figure in its file is an ordering. Its sequence ran in ONE window, 01:20:50
-  to 08:14:07, with NO intrusion found anywhere, in any of its hundred and ten
-  logs. **And its floor is a maximum over EIGHT A/A pairs**, 0.61% and 1.58%,
-  `bq-expand-aa-distant` carrying the basis figure for a second run
+  to 08:14:07, with NO intrusion found anywhere, in any of its hundred
+  and fourteen logs. **And its floor is a maximum over EIGHT A/A pairs**, 0.61%
+  and 1.58%, `bq-expand-aa-distant` carrying the basis figure for a second run
   and the shipped leaf's distant copy carrying the control's on two wild
   `cnn-slice-c32` cells; its restricted four-pair reading is 0.61% and 0.43%,
   equal to the whole-set figure on the basis for a second run running.
