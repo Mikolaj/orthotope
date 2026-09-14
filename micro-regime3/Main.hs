@@ -4262,7 +4262,26 @@ concatParts ps = VS.concat ps
 {-# NOINLINE sumLazyRuns #-}
 sumLazyRuns :: ShapeL -> [Int] -> Int -> VS.Vector Double -> Double
 sumLazyRuns ssh sats !o v =
-  foldl' (\ !acc p -> acc + VS.sum p) 0 (lazyRuns ssh sats o v)
+  foldl' (\ !acc p -> acc + sumNoSpec p) 0 (lazyRuns ssh sats o v)
+
+-- Each run summed without vector's SPEC argument, which is what -O2 was
+-- worth to 'libunord-stage10-sum' on Run 31 and the whole of it
+-- (2026-09-14, stage10-probe/): vector's 'sum' is a fold carrying SPEC
+-- so that SpecConstr can specialise it, and at -O1 that pass does not
+-- run, so the loop re-passes the argument every element -- one
+-- instruction an element and one a run, six against five in the body --
+-- where '-O1 -fspec-constr' gives -O2's Core and assembly byte for byte
+-- on the walker and '-fliberate-case' alone gives -O1's. This loop reads
+-- -O2's counts at -O1 on every runs shape, within a hundred instructions
+-- a call of Run 31's o2 binary, and its time on 'runs-3', so the shared
+-- loop reads the same at either level, and the '-list-sum' arms, which
+-- keep vector's 'sum', are what price the argument from Run 32 on.
+sumNoSpec :: VS.Vector Double -> Double
+sumNoSpec p = go 0 0
+  where !n = VS.length p
+        go !i !acc | i < n = go (i + 1) (acc + VS.unsafeIndex p i)
+                   | otherwise = acc
+{-# INLINE sumNoSpec #-}
 
 -- 'VS.concat' is no good consumer, so this materializes the list; once
 -- for the same reason.
@@ -4755,12 +4774,31 @@ fbLibUnordStage10Sum sh a@(T _ _ v) =
 -- so the user's fold is no longer ahead anywhere. The composed route
 -- is what the tie-break and the zero-stride move leave a fold to
 -- walk: on a broadcast, one real slice listed as many times as the
--- axis is long.
--- Added 2026-09-13 for Run 31, registration (15).
+-- axis is long. Since 2026-09-14 the shared loop sums each run through
+-- 'sumNoSpec' and this arm keeps vector's 'sum', so the pair prices the
+-- SPEC argument as well as the inlining: above level where runs are
+-- short, by what -O2 was worth to the shared loop on Run 31.
+-- Added 2026-09-13 for Run 31, registration (15); re-registered for
+-- Run 32 on the loop change.
 {-# NOINLINE fbLibUnordStage10ListSum #-}
 fbLibUnordStage10ListSum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage10ListSum sh a@(T _ _ v) =
   VS.singleton (sum (map VS.sum (listRoute (routeUnord10 sh a) v)))
+
+-- The same fold over stage FOUR's list, the lean dispatch on the
+-- canonical view with no reordering, so that a fold keeping vector's
+-- 'sum' stands against the shared loop on the lean route as on the
+-- composed one. Where the two routes walk the same runs -- a view whose
+-- canonical axes are already in stride order, the 'runs' and 'block'
+-- classes on Run 31's counts -- this pair and stage ten's meet one loop
+-- and should read alike, which registration (16) holds them to;
+-- elsewhere stage ten's sort or its zero-stride move gives the fold a
+-- different walk, and the two pairs are registered apart.
+-- Added 2026-09-14 for Run 32, registration (16).
+{-# NOINLINE fbLibListStage4ListSum #-}
+fbLibListStage4ListSum :: ShapeL -> T -> VS.Vector Double
+fbLibListStage4ListSum sh a@(T _ _ v) =
+  VS.singleton (sum (map VS.sum (listRoute (routeList4 sh a) v)))
 
 -- The laziness gate, in 'check' and never timed: the ruling that the
 -- list stays lazy (README.md#dead-ideas) as a predicate. On a view of
@@ -6228,6 +6266,11 @@ roster =
     -- it pairs with and so that no existing control's span moves.
     -- Reasons at the definition.
   , ("libunord-stage10-list-sum",  Fill fbLibUnordStage10ListSum)
+    -- Base's 'sum' over stage four's list, added 2026-09-14 for Run 32 at
+    -- the tail of the consumers, so that a fold keeping vector's 'sum'
+    -- stands against the shared loop on the lean route as on the
+    -- composed one. Reasons at the definition.
+  , ("liblist-stage4-list-sum",    Fill fbLibListStage4ListSum)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
