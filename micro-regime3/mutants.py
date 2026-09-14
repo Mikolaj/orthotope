@@ -560,6 +560,71 @@ MUTANTS = [
      'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
      'try:\n    m.shadow_dir(tempfile.mkdtemp(), \'probe-areacurve.sh\', \'cd /nowhere-zz\\n\')\n'
      'except AssertionError:\n    sys.exit(0)\nsys.exit(1)"'),
+    # The note's declaration turned into a blanket pass: every run then
+    # reads its state split as expected, declared or not, and the one
+    # gate that can see a process which saturated somewhere else is off
+    # for everybody. The declaration is meant to cost a sentence in a
+    # note; this is what it looks like when it costs nothing.
+    ('the pair note\'s EXPECT line becomes a blanket pass', 'read-all.sh',
+     '  case " $EXPECTED " in *" $1 "*) return 0 ;; esac\n'
+     '  return 1',
+     '  return 0',
+     'python3 -c "import importlib.util, sys, tempfile, subprocess, os\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'tmp = tempfile.mkdtemp()\n'
+     'd = os.path.dirname(os.path.abspath(\'{file}\'))\n'
+     'f = m.synthetic_run(tmp, plateau=[\'16.4\', \'19.1\'],'
+     ' states=[1, 2], into=d)\n'
+     'r = subprocess.run([\'{file}\', f[\'tag\']],'
+     ' capture_output=True, text=True, cwd=d)\n'
+     'sys.exit(0 if r.returncode != 0 else 1)"'),
+
+    # --counts-totals' unfinished branch made silent: the killed leg is
+    # then dropped from the table AND from the totals with nothing said,
+    # so the scale a preparation reads is short by whatever that leg
+    # would have cost and nothing on the screen says which. Summing it
+    # would be loud; dropping it is not, which is why this is the branch
+    # worth a mutant rather than the arithmetic.
+    ('--counts-totals stops naming a leg that never ended', 'read-run.py',
+     "        if end is None:\n"
+     "            unfinished.append((os.path.basename(path),"
+     " 'no `# end` stamp'))\n"
+     '            continue',
+     "        if end is None:\n"
+     '            continue',
+     'python3 -c "import importlib.util, sys, tempfile, subprocess, os\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'tmp = tempfile.mkdtemp()\n'
+     'm.counts_leg(tmp, \'zz\', \'a\', elapsed=300)\n'
+     'm.counts_leg(tmp, \'zz\', \'b\', ended=False)\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--counts-totals\','
+     ' os.path.join(tmp, \'zz\')], capture_output=True, text=True)\n'
+     'sys.exit(0 if \'NOT summed\' in r.stdout else 1)"'),
+
+    # --over-list's comparison switched off: the sweep then reports its
+    # denominator and no hits, which is exactly what a clean run reads
+    # like -- the failure the mode exists to make impossible. ITS CONTROL
+    # PLANTS ITS OWN POPULATION rather than reading the newest run on
+    # disk: a control that a run's own finding can retire is not a
+    # control, which is what the property-1 mutant below cost on Run 31,
+    # and the mutants copy holds tracked files alone in any case.
+    ('--over-list stops comparing an arm with its shape\'s list',
+     'read-run.py',
+     '                if v / base > 1.0:',
+     '                if False:',
+     'python3 -c "import importlib.util, sys, tempfile, subprocess, os\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'tmp = tempfile.mkdtemp()\n'
+     'sh = m.main_shapes()[0]\n'
+     'm.synth_json(tmp, \'main\', name=\'zz-a-main.json\','
+     ' skew=[(sh, m._reader().PLAIN, 100)])\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--over-list\','
+     ' os.path.join(tmp, \'zz\')], capture_output=True, text=True)\n'
+     'sys.exit(0 if \'cell(s) above 1\' in r.stdout else 1)"'),
+
     # THE TWO PER-SHAPE PROPERTY CLAUSES OF 2026-09-06, judged on the
     # newest main-set run on disk through the default mode, which prints
     # them for the main set as --block does for a class. Each mutant

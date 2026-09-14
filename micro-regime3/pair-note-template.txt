@@ -255,6 +255,27 @@ GATE: NOT RUN. run-gate.sh takes five benches over the shape set from each
 half, twice each, in a palindrome, and both passes are read. Until a line
 below states an outcome, this pair has no gate.
 
+AND A GATE THE PAIR'S OWN VARIABLE WILL FIRE IS DECLARED HERE [SAME], by
+hand and after the run, as the gate's verdict above is. read-all.sh
+refuses a run whose processes do not assert ONE saturation state, and a
+pair whose variable moves what the preamble's spray leaves resident fires
+that on every process, every time -- so post-run step 1 can never pass and
+`STATUS: all done`, which the chapter calls the one state in which a
+session is finished with a run, is unreachable for the whole of it. Run 31
+is the case, its `-O2` half leaving 74448896 bytes in use against the
+plain half's 95420416.
+    EXPECT: state           the processes will not assert one state
+    EXPECT: band            the victim's spread will pass the band
+    EXPECT: state band      both
+LEAVE THE LINE OUT UNLESS THE RUN HAS SHOWN IT. A declaration is not a
+prediction and not a suppression: the block is still printed in full, the
+states still listed per process and the per-half plateau still printed
+beside them, and what changes is only that a declared firing reads as a
+finding rather than as a refusal. Written before the run it would be a
+guess that silences the one gate nothing else replaces; written after it
+with its reason, it is the same act as writing the gate's verdict, and it
+costs a sentence somebody had to mean.
+
 ANY OTHER GATE THIS NOTE SETS [SAME] MUST NAME WHAT DISCHARGES IT AND WHERE THE
 DISCHARGE IS WRITTEN. A note may hold the run back on something the gate
 line does not cover -- the commonest is the previous run's artifacts,

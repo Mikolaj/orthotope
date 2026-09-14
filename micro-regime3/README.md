@@ -3451,66 +3451,72 @@ MUTANTS NEITHER OF WHICH IS THIS RUN'S PROSE.** `selftest-mutants.py .` reported
 is a rename that outran its own proof: `4d0586e`, of this run's own preparation,
 renamed `marks` to `rows` inside `--draft`'s carried-block flag and left
 the mutant's anchor naming the old variable, so from that commit the mutant
-was dead and `check-all` red --- which the pair note's record of a clean whole
-run on 2026-09-14 does not show, and the two cannot both be true. The second
-is the case the standing checks name and nobody expects: the mutant for property
-1's `bq-expand` clause proved itself by requiring the clause to HOLD
-on the newest main-set run on disk, and Run 31 is the run on which it BREAKS,
-so the run's own finding retired its own control. Both are repaired here ---
-the anchor re-pointed at the current code, the property-1 control read off
-the newest `rev` class JSON through `--block`, where the clause holds on every
-class of both halves --- and `selftest-mutants.py .` now reads 42 caught, 0
-survived, 0 unapplied. **What the pair is worth recording for is the second**:
-a checker whose control is *the newest run on disk* stays green for as long
-as the property holds and dies silently the day it does not, which is the one
-day the checker exists for. A control a finding can retire is not a control.
-**AND A THIRD THING, WHICH IS WHAT A SECOND SESSION COSTS.** `check-all`'s ok
-direction went PARTIAL at 28 cases of 364, reporting that the tree had moved
-and naming six new files under `micro-regime3/stage10-probe/` --- another
-session's, confirmed by its owner, written while this one ran. The step
-is documented as wanting to run ALONE and that is the condition it means:
-not merely no edit of this session's, but no file created anywhere in the tree
-by anybody. On a box with two sessions the whole-tree check is therefore a thing
-to run when the other is quiet, and a PARTIAL run settles nothing rather
-than failing anything. **The same evening also left README at the WRAPPED form
-after this session had unwrapped it**, so the next exact-match edit failed
-to match. The turn-end hold was set and is this session's; whether the other
-session's turn end restored it is not established here and no mechanism
-is claimed. What it cost was one refused substitution and nothing else, because
-the edit asserted its own count before writing --- which is the rule
-that survives the missing mechanism. **AND THE TAIL WAS READ, which is step 10c
-and which no pass sees.** Pass 2 was bounded at `396f01c`, so everything
-committed after it --- step 7's fix cycle, the comprehension probe's, step 9's
-record and step 10's two new open entries --- is unreviewed by construction.
-Read as `396f01c..HEAD` over both documents and DIFFED ON THE UNWRAPPED FORMS,
-because README's own form flipped between those commits and a wrapped diff would
-have shown the reflow rather than the words: 26 changed paragraphs in each file,
-every one this session's, and nothing in them wanted a further fix. **What
-the tail could not cover is `check-all`**, dropped for the rest of the session
-at the owner's word with another session writing into the tree; the last whole
-run of it stands at 09:45, clean on eight of nine steps, and the ninth,
-the mutants, is green on its own re-run at 42 caught and 0 unapplied.
-**A COMPUTATION IMPROVISED, three**: the per-half plateau spread
-and the saturation state split (`read-all.sh` reports the run-wide band
-and refuses, and the per-half reading is what makes that refusal legible);
-the sweep for a timed arm above its shape's `list` over all twenty-two
-populations, hand-rolled from `--cells` because no mode ranks that population;
-and the cross-run anchor movements against the previous build of the recipe.
-**A STEP SKIPPED: none.** **A CAPABILITY FOUND**: `--replace`'s abutting-table
-guard fired on the main-set anchors paragraph and named the two remedies, which
-is the guard Run 29 paid 38 rows for working exactly as designed.
-**AND THE READINGS A CARRIER TOOK: none, and the batch missed its window.**
-This write-up used one agent, the checker, and took items 2, 4, 5 and 6 itself
--- item 2 during the sequence, where the chapter puts it, and the other three
-at the steps that read them, which is hours after the window the chapter names.
-`run31-readings.txt` was then written after the fact and says so at its head.
-The window is the sequence's own hours, when the box is busy and a carrier only
-reads, and what missing it costs is not the reading but the record:
-`run-status.sh` judges those three steps on the blocks and cannot tell a reading
-taken from one merely claimed, which is the sentence the chapter wrote the file
-for. The forty per-class reader calls were parallelised with `xargs -P4`
-as the chapter asks and cost about a minute in all, where Runs 29 and 30 ran
-them one at a time.
+was dead and `check-all` red. **THAT IS NOT A CONTRADICTION WITH THE NOTE,
+and a first draft of this sentence said it was**: the note records a clean whole
+run on 2026-09-14 covering the preparation's own two commits, which landed
+at 23:48, and `4d0586e` landed at 00:36 after it --- so the rename outran
+a check that had already passed, which is the ordinary way a proof goes stale
+and not a false record. What the pair costs is the same either way, and
+it is what can be said rather than what would be nice to: the mutant was dead
+from that commit until this write-up's own `check-all` found it, and no session
+left a record of running one in between. The second is the case the standing
+checks name and nobody expects: the mutant for property 1's `bq-expand` clause
+proved itself by requiring the clause to HOLD on the newest main-set run
+on disk, and Run 31 is the run on which it BREAKS, so the run's own finding
+retired its own control. Both are repaired here --- the anchor re-pointed
+at the current code, the property-1 control read off the newest `rev` class JSON
+through `--block`, where the clause holds on every class of both halves ---
+and `selftest-mutants.py .` now reads 42 caught, 0 survived, 0 unapplied. **What
+the pair is worth recording for is the second**: a checker whose control
+is *the newest run on disk* stays green for as long as the property holds
+and dies silently the day it does not, which is the one day the checker exists
+for. A control a finding can retire is not a control. **AND A THIRD THING, WHICH
+IS WHAT A SECOND SESSION COSTS.** `check-all`'s ok direction went PARTIAL at 28
+cases of 364, reporting that the tree had moved and naming six new files
+under `micro-regime3/stage10-probe/` --- another session's, confirmed
+by its owner, written while this one ran. The step is documented as wanting
+to run ALONE and that is the condition it means: not merely no edit
+of this session's, but no file created anywhere in the tree by anybody. On a box
+with two sessions the whole-tree check is therefore a thing to run when
+the other is quiet, and a PARTIAL run settles nothing rather than failing
+anything. **The same evening also left README at the WRAPPED form after
+this session had unwrapped it**, so the next exact-match edit failed to match.
+The turn-end hold was set and is this session's; whether the other session's
+turn end restored it is not established here and no mechanism is claimed. What
+it cost was one refused substitution and nothing else, because the edit asserted
+its own count before writing --- which is the rule that survives the missing
+mechanism. **AND THE TAIL WAS READ, which is step 10c and which no pass sees.**
+Pass 2 was bounded at `396f01c`, so everything committed after it --- step 7's
+fix cycle, the comprehension probe's, step 9's record and step 10's two new open
+entries --- is unreviewed by construction. Read as `396f01c..HEAD` over both
+documents and DIFFED ON THE UNWRAPPED FORMS, because README's own form flipped
+between those commits and a wrapped diff would have shown the reflow rather
+than the words: 26 changed paragraphs in each file, every one this session's,
+and nothing in them wanted a further fix. **What the tail could not cover
+is `check-all`**, dropped for the rest of the session at the owner's word
+with another session writing into the tree; the last whole run of it stands
+at 09:45, clean on eight of nine steps, and the ninth, the mutants, is green
+on its own re-run at 42 caught and 0 unapplied. **A COMPUTATION IMPROVISED,
+three**: the per-half plateau spread and the saturation state split
+(`read-all.sh` reports the run-wide band and refuses, and the per-half reading
+is what makes that refusal legible); the sweep for a timed arm above its shape's
+`list` over all twenty-two populations, hand-rolled from `--cells` because
+no mode ranks that population; and the cross-run anchor movements against
+the previous build of the recipe. **A STEP SKIPPED: none.** **A CAPABILITY
+FOUND**: `--replace`'s abutting-table guard fired on the main-set anchors
+paragraph and named the two remedies, which is the guard Run 29 paid 38 rows
+for working exactly as designed. **AND THE READINGS A CARRIER TOOK: none,
+and the batch missed its window.** This write-up used one agent, the checker,
+and took items 2, 4, 5 and 6 itself -- item 2 during the sequence, where
+the chapter puts it, and the other three at the steps that read them, which
+is hours after the window the chapter names. `run31-readings.txt`
+was then written after the fact and says so at its head. The window
+is the sequence's own hours, when the box is busy and a carrier only reads,
+and what missing it costs is not the reading but the record: `run-status.sh`
+judges those three steps on the blocks and cannot tell a reading taken from one
+merely claimed, which is the sentence the chapter wrote the file for. The forty
+per-class reader calls were parallelised with `xargs -P4` as the chapter asks
+and cost about a minute in all, where Runs 29 and 30 ran them one at a time.
 
 **What Run 30 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
@@ -8096,21 +8102,37 @@ Unsandboxed throughout:
     #      `evening begins` in $R-evening.txt and never by the launching
     #      shell's output, a blocked write leaving a launch that never
     #      happened looking like one in progress.
-    #      AND ARM A MONITOR ON THAT FILE IN THE SAME TURN, `tail -f`
-    #      over $R-evening.txt, stopped when the evening ends.
+    #      AND ARM A MONITOR ON THAT FILE IN THE SAME TURN:
+    #          tail -F -n +1 $R-evening.txt 2>/dev/null
+    #      stopped when the evening ends. `-F` AND NOT `-f`, AND THE
+    #      REDIRECT IS NOT OPTIONAL: run-evening.sh creates that file at
+    #      its first stamp, so at arming time it does not exist yet and
+    #      plain `tail -f` fails on it and the monitor is armed over
+    #      nothing. `-F` retries by name and `-n +1` replays the stamps
+    #      already written, which is what makes the first line the
+    #      `evening begins` this step confirms the launch by.
     #      Background mode wakes you at the command's EXIT, which for
     #      this one is some seven hours after four stages and
     #      twenty-two processes have landed silently; the monitor is
     #      what puts each on the screen as it lands, which is what
     #      the confirm-each-long-process rule asks for and what
     #      background mode alone cannot give. NOT INSTEAD of it:
-    #      `tail -f` never exits, so it would never deliver the
+    #      a tail never exits, so it would never deliver the
     #      command's status. Run 26 armed both and reported the gate,
     #      the alarm, the sequence and all four riders as they came.
     #      What it replaced was
     #      five launch lines typed between waits, each wait a turn end
     #      and each line a place to drop the environment or to mis-order;
     #      the counts stay a line of their own for the reason 19a gives.
+    #      AND EACH MONITOR'S `description` IS A TAG AND NOT A LEGEND --
+    #      `$R stages` and `$R heartbeat`, two or three words: the harness
+    #      announces every event as `Monitor event: "<description>"`, so
+    #      whatever it says is reprinted on every tick, and a 45-minute
+    #      heartbeat reprints it all night. The legend belongs in the LINE
+    #      the monitor emits, where it is read once per tick and is the
+    #      reason the monitor is worth arming. Asked for twice in one
+    #      session (2026-09-14); the prefix itself is a literal in the
+    #      `claude` binary and no settings key reaches it.
     #      AND A SECOND MONITOR IN THE SAME TURN, THE HEARTBEAT, WHICH IS
     #      OWED AND NOT A CHOICE: persistent, one line every 45 MINUTES
     #      carrying the run's JSON count, the last stage line and
@@ -8122,17 +8144,12 @@ Unsandboxed throughout:
     #      THEM IS AN ACT AND IT IS WRITTEN WHERE IT HAPPENS, at 20's
     #      woken step below, not here where they are armed.
     #        Monitor, persistent, from this directory:
-    #          while true; do
-    #            echo "heartbeat: $(ls $R-*.json 2>/dev/null | wc -l) JSONs\
-    #              | $(tail -n1 $R-evening.txt 2>/dev/null | cut -c1-90)\
-    #              | $(tail -n1 $R-wallclock.log 2>/dev/null | cut -c1-140)"
-    #            sleep 2700
-    #          done
-    #        BOTH tails take `2>/dev/null`: for the first half-hour neither
-    #        file exists -- run-major.sh creates the wallclock log when the
-    #        sequence starts, not when the evening does -- and a tick is
-    #        wanted then as much as later, a run that died in the gate
-    #        being the one a heartbeat is most use for.
+    #          ./run-heartbeat.sh $R
+    #        The loop was eleven lines here until 2026-09-14, retyped every
+    #        run with two redirects and a `cut` to get right; the script
+    #        owns them and its header owns their reasons, a tick over a
+    #        file that does not exist yet being an empty field and never
+    #        an error. What the list keeps is the line that arms it.
     #      THE STAGE MONITOR IS SILENT FOR THE FIVE OR SIX HOURS THE
     #      SEQUENCE RUNS -- one line when it starts and the next when it
     #      ends -- so across the longest stretch of the run nothing reaches
@@ -9586,7 +9603,22 @@ not otherwise.
     #      `--cells`, which is TSV for exactly this; where a mode has
     #      no TSV form, match the LABEL on the line rather than its
     #      offset, and assert the header you expect before reading a
-    #      row under it. A FIGURE THIS FILE QUOTES EVERY RUN OWES A
+    #      row under it. AND A PUBLISHED COLUMN IS NEVER INVERTED TO
+    #      GET THE OTHER ORIENTATION. A run file prints its `cross`
+    #      figures to four places, and a previous run's basis is often
+    #      the half yours is not, so the reciprocal is wanted every
+    #      time three runs are put in one orientation -- but `1/0.8788`
+    #      is a rounded number's reciprocal and not the geomean
+    #      `--compare` computes with the halves swapped, and the two
+    #      need not agree past the places the first was printed to.
+    #      RE-RUN THE READER: `./read-run.py PREV-<unflagged>-main.json
+    #      --compare PREV-<flagged>-main.json` prints the orientation
+    #      you want, off the JSONs. Run 31 built the composition
+    #      arithmetic its compares-against section turns on by
+    #      inverting Run 29's 0.8788 and 0.7810, then re-derived them
+    #      and found the reader agreeing to four places -- which it
+    #      need not have, and which no check here would have caught.
+    #      A FIGURE THIS FILE QUOTES EVERY RUN OWES A
     #      MODE besides: `rate` and the summary's `bold` were hand
     #      arithmetic over two other modes' output until 2026-09-11,
     #      and each was got wrong the run it was last hand-rolled.

@@ -1979,6 +1979,26 @@ def stub_pair_note_machine_check(tmp):
 
 
 
+def counts_leg(tmp, run, half, pop=None, elapsed=80, ended=True):
+    """One `run-counts.sh` leg as a file: its header, one row, its stamp.
+
+    Three lines rather than a captured sweep, because what the totals mode
+    reads is the header and the `# end` line and nothing between them --
+    a fixture carrying a real sweep's thousand rows would assert the same
+    thing and hide which two lines the claim rests on.
+    """
+    name = '%s-counts-%s%s.txt' % (run, half, '-%s' % pop if pop else '')
+    path = os.path.join(tmp, name)
+    with open(path, 'w') as fh:
+        fh.write('# %s-%s deadbeef N=50 2026-01-01T00:00:00+00:00 full%s\n'
+                 % (run, half, ' class=%s' % pop if pop else ''))
+        fh.write('# shape arm N instructions/iter\n')
+        fh.write('a-shape an-arm 50 1000\n')
+        if ended:
+            fh.write('# end 2026-01-01T00:01:20+00:00 elapsed=%ds\n' % elapsed)
+    return path
+
+
 def synth_json(tmp, pop='main', name=None, **kw):
     """One population as a file: `main`, or a class by name."""
     shapes = main_shapes() if pop == 'main' else class_shapes(pop)
@@ -3380,7 +3400,8 @@ def synth_text(shapes, **kw):
 
 def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
                   complained=False, note_block=False, riders=False,
-                  into=None, plateau=None, skew=(), states=None):
+                  into=None, plateau=None, skew=(), states=None,
+                  expect=None):
     """A whole run in this directory: JSONs, and the log that describes it.
 
     `read-all.sh` cds to its own directory and globs, so this is one of the
@@ -3411,6 +3432,13 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
     which is what a sound run looks like however far its victims spread.
 
     `skew` is `synth_run`'s, applied to both class runs.
+
+    `expect` writes a pair note carrying an `EXPECT:` line, which is how a
+    run DECLARES that its own variable fires one of the plateau gates --
+    the gate-verdict pattern, written by hand after the run and with its
+    reason, so that a pair which can never assert one state does not leave
+    post-run step 1 red for the whole of its life. It is a note and not a
+    flag for that reason: a declaration somebody had to mean.
     """
     place = (here_file if into is None
              else lambda name: os.path.join(into, name))
@@ -3493,6 +3521,11 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
                 ' evening',
                 '      That is exit codes and counts; the reading is still'
                 ' to do.']
+    if expect:
+        write(place('%s-pair.txt' % tag),
+              'A pair note, enough of one for the declaration to be read.\n'
+              '\nHALVES: basis=lookrts other=lookrts\n'
+              'EXPECT: %s\n' % expect)
     write(place('%s-wallclock.log' % tag), '\n'.join(log) + '\n')
     return {'tag': tag}
 
@@ -4658,6 +4691,163 @@ TIER1 = {
 
 RECORDS = [
     # ---- read-run.py, the first review's ------------------------------
+    # ---- --counts-totals, the scale a pair note asks for leg by leg ----
+    # TWO PREPARATIONS DERIVED THESE BY HAND and each recorded it as an
+    # improvisation, the note's COUNTS block wanting the previous run's
+    # twenty-two figures to set the scale its own evening is read against.
+    # The mode reads each leg's own header rather than its filename, so a
+    # copied or renamed file answers for the run that wrote it.
+    case('counts-totals-does-not-sum-the-legs', 'read-run.py', None,
+         'the pair note\'s per-leg scale was hand-derived, twice running',
+         plant=lambda t: {
+             'a': counts_leg(t, 'zz', 'nospec', elapsed=300),
+             'b': counts_leg(t, 'zz', 'o2', elapsed=200),
+             'c': counts_leg(t, 'zz', 'nospec', 'runs', elapsed=400),
+             'd': counts_leg(t, 'zz', 'o2', 'runs', elapsed=100)},
+         argv=['--counts-totals', '{tmp}/zz'],
+         ok=V(exit=0,
+              has=['4 counted leg(s) over 2 population(s) and 2 halves,'
+                   ' 1000s in all', 'runs', 'main', '700s', '300s'])),
+
+    # A KILLED SWEEP LEAVES A FILE THAT PARSES, which is the failure the
+    # unfinished branch exists for: summed silently it enters the scale as
+    # a fast leg, and the next preparation reads a budget that was never
+    # spent. The leg is named, kept out of every total, and the mode exits
+    # 1 -- a partial answer said to be partial, as the run chapter asks of
+    # every reading whose silence would otherwise pass for a verdict.
+    case('counts-totals-sums-a-leg-that-never-ended', 'read-run.py', None,
+         'a killed sweep would have entered the scale as a fast leg',
+         plant=lambda t: {
+             'a': counts_leg(t, 'zz', 'nospec', elapsed=300),
+             'b': counts_leg(t, 'zz', 'o2', ended=False)},
+         argv=['--counts-totals', '{tmp}/zz'],
+         ok=V(exit=1,
+              has=['300s in all', 'NOT summed', 'no `# end` stamp',
+                   'zz-counts-o2.txt'])),
+
+    case('counts-totals-refuses-a-prefix-that-names-nothing',
+         'read-run.py', None,
+         'a mistyped run name would have printed an empty scale',
+         plant=lambda t: {},
+         argv=['--counts-totals', '{tmp}/no-such-run'],
+         ok=V(exit=2, has=['no counts file here'])),
+
+    # ---- run-heartbeat.sh -----------------------------------------
+    # THE SCRIPT EXISTS BECAUSE THE LOOP WAS IN THE CHAPTER, eleven lines
+    # of `while true` with two redirects and a `cut`, retyped every run.
+    # checks.py's own rule is that every tracked shebang file here is a
+    # program a step or a case must name, so a script added without one
+    # is a gap the day it lands -- which is how this one arrived, and
+    # what the shape pass caught.
+    #
+    # THE PREFIX IS TAKEN WHERE IT POINTS, as `--over-list`'s is, so these
+    # plant in a temp directory and need no shadow: the script cds to its
+    # own directory for a bare name and a path-qualified one resolves
+    # from there.
+    case('heartbeat-does-not-tick-what-a-run-has-produced', 'run-heartbeat.sh',
+         None, 'the run list carried the heartbeat as a shell loop to retype',
+         plant=lambda t: {
+             'a': synth_json(t, 'main', name='zz-a-main.json'),
+             'b': write(os.path.join(t, 'zz-evening.txt'),
+                             '=== 2026-01-01 sequence: done, rc=0\n'),
+             'c': write(os.path.join(t, 'zz-wallclock.log'),
+                             '=== 2026-01-01 major run complete\n')},
+         env={'HEARTBEAT_ONCE': '1'},
+         argv=['{tmp}/zz'],
+         ok=V(exit=0, has=['heartbeat: 1 JSONs', 'sequence: done, rc=0',
+                           'major run complete'])),
+
+    # THE TICK A RUN THAT HAS PRODUCED NOTHING STILL OWES. For the first
+    # half-hour neither file exists -- run-major.sh writes the wall-clock
+    # log when the SEQUENCE starts, not when the evening does -- and a run
+    # that died in the gate is the one a heartbeat is most use for, so a
+    # missing file is an empty field and never an error.
+    case('heartbeat-errors-before-the-run-has-written-anything',
+         'run-heartbeat.sh', None,
+         'a tick before the first file exists would have read as a failure',
+         plant=lambda t: {},
+         env={'HEARTBEAT_ONCE': '1'},
+         argv=['{tmp}/zz'],
+         ok=V(exit=0, has=['heartbeat: 0 JSONs'])),
+
+    case('heartbeat-takes-no-argument-as-a-run', 'run-heartbeat.sh', None,
+         'a missing run name would have ticked over the whole directory',
+         plant=lambda t: {},
+         argv=[],
+         ok=V(exit=2, has=['usage: ./run-heartbeat.sh RUN'])),
+
+    # ---- --over-list, the sweep behind the properties' only-claim ----
+    # THE CLAIM IS A NEGATIVE OVER A THOUSAND CELLS and the mode's whole
+    # job is to make its silence readable: Run 31 hand-rolled it from
+    # `--cells` and its independent checker hand-rolled it again, agreeing
+    # on three cells of 1078 with neither able to show the other what it
+    # had read. So this plants ONE cell above the baseline and requires
+    # both halves of the answer -- the cell named, and the denominator
+    # line that makes a clean run different from an empty one.
+    case('over-list-misses-a-planted-cell', 'read-run.py', None,
+         'the only-claim behind property 1 had no mode and was hand-rolled',
+         plant=lambda t: {
+             'a': synth_json(t, 'main', name='zz-nospec-main.json',
+                             skew=[(main_shapes()[0], _reader().PLAIN, 100)]),
+             'b': synth_json(t, 'main', name='zz-o2-main.json')},
+         argv=['--over-list', '{tmp}/zz'],
+         ok=V(exit=0,
+              has=['population(s) read', 'cell(s) above 1',
+                   main_shapes()[0], _reader().PLAIN],
+              hasnt=['NO cell above 1'])),
+
+    # THE OTHER DIRECTION, and it is the one the claim is usually read in:
+    # a run with nothing above the baseline must SAY how much it read, or
+    # a sweep that found no populations at all reads the same as a clean
+    # one. That is this README's own rule for a grep, applied to a mode
+    # whose ordinary answer is silence.
+    case('over-list-clean-run-says-what-it-read', 'read-run.py', None,
+         'a clean sweep and an empty one read alike without the count',
+         # THE CLEAN RUN IS BUILT AND NOT ASSUMED: the synthetic model
+         # gives `lib-stage1` above the baseline on every shape, so a
+         # default pair is not clean and a case that took it for clean
+         # would have asserted the wrong branch. `list` is skewed slowest
+         # instead, which is a run with nothing above it by construction.
+         plant=lambda t: {
+             'a': synth_json(t, 'main', name='zz-nospec-main.json',
+                             skew=[(sh, 'list', 100)
+                                   for sh in main_shapes()]),
+             'b': synth_json(t, 'main', name='zz-o2-main.json',
+                             skew=[(sh, 'list', 100)
+                                   for sh in main_shapes()])},
+         argv=['--over-list', '{tmp}/zz'],
+         ok=V(exit=0,
+              has=['2 population(s) read', 'NO cell above 1'],
+              hasnt=['cell(s) above 1,'])),
+
+    # A PREFIX THAT NAMES NOTHING IS A 2 AND NOT A CLEAN RUN, which is the
+    # exit every script here owes for a run that did not happen -- and the
+    # failure this mode would otherwise have is the quietest one it could:
+    # a mistyped run name printing a clean sweep over no populations.
+    # A POPULATION WITH NO `list` COMPARED NOTHING, and counted as read it
+    # turned a sweep over nothing into a clean verdict -- the mode's own
+    # failure mode wearing the answer it exists to prevent. A filtered
+    # probe is a run without `list`, which is the shape that made
+    # `--bridge` raise rather than refuse. Found 2026-09-14 by the shape
+    # pass, asking the mode a question other than the one it was written
+    # for, and not by any check.
+    case('over-list-calls-a-baseless-population-clean', 'read-run.py', None,
+         'a population with no `list` read as a clean sweep',
+         plant=lambda t: {
+             'a': synth_json(t, 'main', name='zz-a-main.json',
+                             drop_arms=('list',))},
+         argv=['--over-list', '{tmp}/zz'],
+         ok=V(exit=2,
+              has=['NO readable `list` to compare against',
+                   'compared nothing'],
+              hasnt=['NO cell above 1'])),
+
+    case('over-list-refuses-a-prefix-that-names-nothing', 'read-run.py', None,
+         'a mistyped run name would have read as a clean sweep',
+         plant=lambda t: {},
+         argv=['--over-list', '{tmp}/no-such-run'],
+         ok=V(exit=2, has=['no population JSON here'])),
+
     case('install-lands-in-next-block', 'read-run.py', '045ca63',
          'a class whose own table is absent took the next class\'s',
          plant=lambda t: {'rundoc': rundoc_without_class_table(t),
@@ -7729,6 +7919,58 @@ RECORDS = [
          argv=['{tag}'],
          ok=V(exit=1, has=['did not assert ONE state', 'inuse=1', 'inuse=2'],
               hasnt=['999.0'])),
+
+    case('brief-facts-leaves-the-delta-range-to-the-eye', 'read-all.sh',
+         None,
+         "the delta chain's `list` range was summarised by eye from the"
+         ' eleven rows above it',
+         # README's Provenance carries a bullet per run quoting this run's
+         # `list` move as a main-set figure and a class RANGE with both
+         # ends named, and nothing derived it: the eleven per-population
+         # rows were already printed and the sentence over them was read
+         # off by eye. Run 31 wrote `23.72 to 38.35 points` by hand into
+         # two documents and got the same figure wrong at a third site the
+         # same evening. Both are printed now -- a range with no rows
+         # under it cannot be checked, and rows with no range over them
+         # are what got summarised by hand.
+         #
+         # WHAT THIS CASE PROVES AND WHAT IT DOES NOT. `synthetic_run`
+         # builds ONE half -- every log is `<tag>-lookrts-*` -- so the
+         # cross-half loop finds no second file and the two arithmetic
+         # lines cannot fire here. What is proved is that the block is
+         # reached and printed at all, which is the wiring; the
+         # arithmetic over it is exercised on a real pair and by nothing
+         # in this suite. A two-half fixture would close that and is not
+         # built: the knob would reach every read-all case, and a fixture
+         # grown for one assertion is how the captured `run14-*` JSONs
+         # this file replaced came to tie thirty-four cases to artifacts
+         # the procedure offers for deletion.
+         plant=lambda t: synthetic_run(t),
+         argv=['{tag}', '--brief-facts'],
+         ok=V(has=['list, as the delta bullet quotes it'])),
+
+    case('declared-state-split-still-refuses-the-run', 'read-all.sh', None,
+         'a pair whose variable moves the resident state could never pass',
+         # THE GATE IS RIGHT AND UNPASSABLE, which is a different thing
+         # from wrong. A pair whose variable changes what the preamble's
+         # spray leaves resident asserts two states on every process, so
+         # post-run step 1 refuses for the whole life of the run and
+         # `STATUS: all done` -- the one state the chapter calls finished
+         # -- is out of reach. Run 31 is the case, its `-O2` half leaving
+         # 74448896 bytes in use against the plain half's 95420416,
+         # disclosed in its head, its Provenance and an open entry, and its
+         # step 1 still red at the end. The note declares it AFTER the run
+         # and with its reason, as the gate's own verdict is written, and
+         # the block is still printed whole: what changes is that a
+         # declared firing reads as a finding and not as a refusal.
+         plant=lambda t: synthetic_run(t, plateau=['16.4', '19.1'],
+                                       states=[1, 2], expect='state'),
+         argv=['{tag}'],
+         ok=V(exit=0,
+              has=['DECLARES expected', 'a reading and not the gate',
+                   'inuse=1', 'inuse=2'],
+              hasnt=['did not assert ONE state',
+                     'did NOT gate clean'])),
 
     case('plateau-gates-the-state-and-not-the-victim', 'read-all.sh',
          '17384a7',

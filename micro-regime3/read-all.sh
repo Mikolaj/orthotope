@@ -250,6 +250,32 @@ HALFSPREAD=$([ -z "$PLOGS" ] || grep -H '^@@saturate ' $PLOGS 2>/dev/null \
            for (h in lo)
              printf "  within %-8s %d process(es), %.4f to %.4f, spread %.2f%%\n",
                     h, c[h], lo[h], hi[h], 100 * (hi[h] - lo[h]) / lo[h] }')
+# WHAT THE PAIR NOTE DECLARES EXPECTED, on the gate-verdict pattern: a
+# pair whose VARIABLE moves what the preamble leaves resident fires the
+# state gate on every process, every time, and no reading afterwards can
+# make it pass -- so `STATUS: all done`, which the run chapter calls the
+# one state in which a session is finished with a run, became unreachable
+# for the whole of such a run. Run 31 is the case: its `-O2` half left
+# 74448896 bytes in use against the plain half's 95420416, one value per
+# half and none within one, disclosed in its head, its Provenance and an
+# open entry, and its post-run step 1 still read NOT DONE at the end.
+#
+# A DECLARATION IS NOT A SUPPRESSION. It is written into the note BY HAND
+# with its reason, exactly as the gate's own verdict is at run list step
+# 14a, so what it costs is a sentence somebody had to mean; the block is
+# still printed in full, the states still listed per process, and the
+# line says the note declared it. What changes is only that a declared
+# firing is a READING and not a refusal.
+#     EXPECT: state           the processes will not assert one state
+#     EXPECT: band            the victim's spread will pass the band
+#     EXPECT: state band      both
+# Absent or empty, nothing is declared and every gate is as it was.
+EXPECTED=$(sed -n 's/^EXPECT: *//p' "$R-pair.txt" 2>/dev/null | tr '\n' ' ')
+expects () {
+  case " $EXPECTED " in *" $1 "*) return 0 ;; esac
+  return 1
+}
+
 WILD_PLATEAU=0
 if [ -n "$SAT" ]; then
   # Counted against the logs and not only among themselves: one reading
@@ -317,13 +343,27 @@ EOF
              WILD_PLATEAU=1; }
       echo
     elif [ "$NSTATES" != 1 ]; then
-      echo "!! the processes did not assert ONE state: $NSAT process(es)"
-      echo "   report $NSTATES distinct inuse/keep pairs, so they did not"
-      echo "   all saturate alike and every A/A gate below is WITHIN a"
-      echo "   process. The states, per process:"
+      if expects state; then
+        echo "plateau: $NSAT process(es) report $NSTATES distinct inuse/keep\
+ pairs, which $R-pair.txt DECLARES expected -- a reading and not the gate"
+        echo "  every A/A gate below is still WITHIN a process, which is\
+ what the states parting means and what the declaration does not change"
+      else
+        echo "!! the processes did not assert ONE state: $NSAT process(es)"
+        echo "   report $NSTATES distinct inuse/keep pairs, so they did not"
+        echo "   all saturate alike and every A/A gate below is WITHIN a"
+        echo "   process. The states, per process:"
+      fi
       printf '%s\n' "$STATEV" | awk 'NF >= 3 { printf "   %s inuse=%s keep=%s\n", $1, $2, $3 }'
+      # THE PER-HALF SPREAD IS PRINTED HERE TOO, and this is the branch
+      # that wanted it most: a run whose states part by half is exactly
+      # the run whose plateau has to be read per half, and until
+      # 2026-09-14 this branch alone withheld it, so Run 31 hand-rolled
+      # from the twenty-two `@@saturate` lines what was already computed
+      # four hundred lines above.
+      printf '%s\n' "$HALFSPREAD"
       echo
-      WILD_PLATEAU=1
+      expects state || WILD_PLATEAU=1
     else
       echo "plateau: $NSAT process(es) assert ONE state, inuse and keep\
  identical on every one -- the gate"
@@ -588,6 +628,33 @@ second window"
                       print $2, "inside the bar"
                     exit }')"
   done
+  # AND THE SAME ELEVEN FIGURES AS THE DELTA CHAIN'S BULLET WANTS THEM,
+  # which is a main-set number and a class RANGE with both ends named.
+  # README's Provenance carries that bullet for every run and nothing
+  # derived it: Run 31 read the eleven rows above and wrote `23.72 to
+  # 38.35 points` by eye into two documents, and got the same figure
+  # wrong on a third site the same evening. The rows are the reading and
+  # this is the sentence they are quoted as; both are printed, because a
+  # range with no rows under it cannot be checked and rows with no range
+  # over them are what got summarised by hand.
+  printf '  %-14s %s\n' 'list, as the delta bullet quotes it' ''
+  for pop in $(printf '%s' "$FACTS" | awk -F'\t' \
+                 '{ split($1, t, "-"); print substr($1, length(t[1]) + 2) }' \
+               | sort -u); do
+    a="$R-$BASIS-$pop.json"
+    b=$(printf '%s\n' $FILES | grep -v -- "-$BASIS-" | grep -- "-$pop\.json")
+    { [ -f "$a" ] && [ -n "$b" ]; } || continue
+    ./read-run.py "$a" --compare "$b" 2>/dev/null \
+      | awk -v p="$pop" '$1 == "list" { print p, $2; exit }'
+  done | awk '
+      { if ($1 == "main") main = $2
+        else { if (lo == "" || $2 + 0 < lo + 0) { lo = $2; lop = $1 }
+               if (hi == "" || $2 + 0 > hi + 0) { hi = $2; hip = $1 } } }
+      END {
+        if (main != "") printf "    main set   %.2f points\n", (main - 1) * 100
+        if (lo != "")
+          printf "    classes    %.2f points on %s to %.2f on %s\n",
+                 (lo - 1) * 100, lop, (hi - 1) * 100, hip }'
   for h in $BASIS $(printf '%s\n' $FILES | sed 's/^'"$R"'-//; s/-.*//' \
                       | sort -u | grep -v "^$BASIS$"); do
     m="$R-$h-main.json"

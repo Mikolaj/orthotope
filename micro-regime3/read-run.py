@@ -4993,6 +4993,200 @@ def class_reading(path, main_hs, args):
                          '--' if aa is None else aa.a)
 
 
+def run_populations(run):
+    """Every timed population JSON a run left, main set and classes, both
+    halves -- and NOT the gate's four or the alone legs'.
+
+    Globbed rather than listed because the class set is Main.hs's and moves
+    with it: a mode that spelled the eleven names out would answer for ten
+    the day one landed. The two exclusions are by artifact kind and not by
+    name, the gate being five arms at a gate's budget and an alone leg one
+    bench, neither of which is a population.
+
+    THE PREFIX IS GLOBBED WHERE IT POINTS, so a bare `run31` reads the
+    working directory -- which every driver here cds to -- and a
+    `/tmp/xxx/zz` reads there. That is what lets a case plant a population
+    and sweep it without the real artifacts beside it answering instead,
+    and it costs a session nothing, `main_hs` being the roster's home and
+    not the run's.
+    """
+    out = []
+    for path in sorted(glob.glob('%s-*.json' % run)):
+        b = os.path.basename(path)
+        base = os.path.basename(run)
+        if '-gate-' in b or b.startswith('%s-al-' % base):
+            continue
+        out.append(path)
+    return out
+
+
+def counts_totals(run, args):
+    """What each counted leg cost, per population and per half, off the
+    counts files' own stamps.
+
+    The pair note's COUNTS block asks a preparation for the PREVIOUS run's
+    totals leg by leg -- to set the scale the evening's counted work is
+    read against -- and no mode printed them: two preparations in a row
+    derived them by hand from the `# end` lines and each recorded the
+    improvisation, Run 31's note carrying twenty-two figures gathered that
+    way. A scale is a reading and not a prediction, which is why it is a
+    mode and not a gate.
+
+    READ OFF EACH FILE'S OWN HEADER and not off its name: the header
+    states the half and the class the sweep ran, so a file renamed or
+    copied answers for the run it was written by rather than for the name
+    it now carries. A leg with no `# end` line is reported UNFINISHED and
+    counted in no total -- a killed sweep leaves a file that parses, and
+    summing it silently would put a short leg into the scale as though it
+    were a fast one.
+    """
+    paths = sorted(glob.glob('%s-counts-*.txt' % run))
+    if not paths:
+        sys.stderr.write('%s: no counts file here, so the totals did not'
+                         ' happen\n' % run)
+        return 2
+    legs, halves, unfinished = {}, [], []
+    for path in paths:
+        head = end = None
+        with open(path, errors='replace') as fh:
+            for line in fh:
+                if head is None and line.startswith('# '):
+                    head = line
+                elif line.startswith('# end '):
+                    end = line
+        if head is None:
+            unfinished.append((os.path.basename(path), 'no header'))
+            continue
+        tag = head.split()[1]
+        half = tag[len(os.path.basename(run)) + 1:] if '-' in tag else tag
+        m = re.search(r'class=(\S+)', head)
+        pop = m.group(1) if m else 'main'
+        if half not in halves:
+            halves.append(half)
+        if end is None:
+            unfinished.append((os.path.basename(path), 'no `# end` stamp'))
+            continue
+        m = re.search(r'elapsed=(\d+)s', end)
+        if m is None:
+            unfinished.append((os.path.basename(path),
+                               'no elapsed on `# end`'))
+            continue
+        legs[(pop, half)] = int(m.group(1))
+    pops = sorted({p for p, _ in legs}, key=lambda p: -max(
+        v for (q, _), v in legs.items() if q == p))
+    total = sum(legs.values())
+    print('%s: %d counted leg(s) over %d population(s) and %d hal%s,'
+          ' %ds in all'
+          % (run, len(legs), len(pops), len(halves),
+             'f' if len(halves) == 1 else 'ves', total))
+    print('\n%-12s %s'
+          % ('population', ' '.join('%8s' % h for h in halves)))
+    for pop in pops:
+        row = ' '.join('%8s' % ('%ds' % legs[(pop, h)]
+                                if (pop, h) in legs else '--')
+                       for h in halves)
+        print('%-12s %s' % (pop, row))
+    print('%-12s %s'
+          % ('half total',
+             ' '.join('%8s' % ('%ds' % sum(v for (_, q), v in legs.items()
+                                           if q == h)) for h in halves)))
+    if unfinished:
+        print('\n%d leg(s) NOT summed, each reported rather than dropped:'
+              % len(unfinished))
+        for name, why in unfinished:
+            print('  %-38s %s' % (name, why))
+        return 1
+    return 0
+
+
+def over_list_sweep(run, args):
+    """Every cell where a timed non-control arm is SLOWER than its shape's
+    `list`, over every population of a run and both halves.
+
+    The properties section makes an *only* claim about this set every run
+    -- that no arm the library would ship is slower than the baseline on
+    any shape, and which cells break it -- and nothing printed it: `--block`
+    reads property 1 as `mut-odo-vecdims` against `bq-expand` on one
+    population, and the baseline clause reaches a row's `worst` column,
+    which is a maximum over shapes and not a listing of the cells past 1.
+    On Run 31 the write-up hand-rolled this from `--cells` and the
+    independent checker hand-rolled it again; the two agreed on three cells,
+    which is two sessions deriving one negative with neither able to show
+    the other what it had read.
+
+    SO THE DENOMINATOR IS PRINTED WITH THE HITS. A sweep whose silence is
+    the finding must say how much it read, or a run with no `list` and a
+    run with nothing above it read alike -- which is this README's own rule
+    that a grep proves nothing until it is known to find something, and is
+    why the count line is not optional and not `--brief`-able.
+
+    A reducing consumer carries no corrected time, so it is counted as
+    UNREADABLE and never as clean: `no_net` is the predicate the published
+    column drops on, and a claim about arms the library would ship is a
+    claim about arms that carry a time to compare.
+    """
+    paths = run_populations(run)
+    if not paths:
+        sys.stderr.write('%s: no population JSON here, so the sweep did not'
+                         ' happen\n' % run)
+        return 2
+    hits, read, unreadable, pops, baseless = [], 0, 0, 0, []
+    for path in paths:
+        cells, shapes, strategies, meta = load(path, args.main)
+        apply_correction(cells, shapes, strategies)
+        tag = os.path.basename(path)[len(os.path.basename(run)) + 1:
+                                    -len('.json')]
+        pops += 1
+        got = 0
+        for sh in shapes:
+            base = cells[sh].get('list', {}).get('net')
+            if base is None or base <= 0:
+                continue
+            got += 1
+            for st in strategies:
+                if st == 'list' or is_control(st):
+                    continue
+                v = None if no_net(st) else cells[sh].get(st, {}).get('net')
+                if v is None:
+                    unreadable += 1
+                    continue
+                read += 1
+                if v / base > 1.0:
+                    hits.append((tag, sh, st, v / base))
+        if not got:
+            baseless.append(tag)
+    print('%d population(s) read, %d timed non-control cell(s) against their'
+          " own shape's `list`, %d with no corrected time to read"
+          % (pops, read, unreadable))
+    # A POPULATION WITH NO BASELINE COMPARED NOTHING, and counted as read
+    # it turned a sweep over nothing into a clean verdict: a filtered
+    # probe drops `list`, and this mode's whole job is that its silence
+    # be readable. Named here, and a sweep with no baseline anywhere is a
+    # 2, which is the exit this directory owes for a run that did not
+    # happen. Found 2026-09-14 by asking the mode a question other than
+    # the one it was written for.
+    if baseless:
+        print('%d population(s) have NO readable `list` to compare against,'
+              ' so they are read over nothing: %s'
+              % (len(baseless), ', '.join(baseless)))
+    if not read:
+        sys.stderr.write('%s: no population here has a readable `list`, so'
+                         ' the sweep compared nothing\n' % run)
+        return 2
+    if not hits:
+        print('NO cell above 1: no timed arm outside the controls is slower'
+              " than its shape's `list` anywhere in this run")
+        return 0
+    print('\n%-22s %-24s %-40s %s'
+          % ('process', 'shape', 'arm', 'over `list`'))
+    for tag, sh, st, r in sorted(hits, key=lambda h: -h[3]):
+        print('%-22s %-24s %-40s %9.4f' % (tag, sh, st, r))
+    print('\n%d cell(s) above 1, which is the population this run\'s'
+          ' *no arm the library would ship is slower than `list`* claim is'
+          ' read over.' % len(hits))
+    return 0
+
+
 def extremes_table(paths, main_hs, args):
     """Who holds each extreme across the class populations, sorted not eyed.
 
@@ -5684,6 +5878,17 @@ def current_run_doc(here=None):
     """The file every table and every class block is installed into."""
     docs = run_docs(here)
     return docs[0][1] if docs else None
+
+
+def _agree_unit(x):
+    """A captured figure as the agreement report prints it.
+
+    Every rule in that table read a PERCENTAGE until 2026-09-14, so the
+    report appended `%` to whatever it captured -- and the log-count rule
+    landed that day capturing the spelled word, which printed as
+    `fourteen%`. The unit belongs to the capture and not to the report.
+    """
+    return '%s%%' % x if re.fullmatch(r'[\d.]+', x) else x
 
 
 def previous_run_doc(run_doc):
@@ -9757,6 +9962,49 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
              (),
              'the main set is one number and the class range another, so a'
              ' site quoting the first is quoting this one'),
+            # THE LOG COUNT, added 2026-09-14. Run 31 corrected it in the
+            # run file and left the retired figure standing at two README
+            # sites written in the same stretch -- 110 where the run has
+            # 114, and the four the shortfall omits carry the run's worst
+            # bench. `--check-doc` passed either way, the two documents
+            # having nothing tying this figure together, and the checker's
+            # second pass is what found it. The count is spelled and not
+            # a numeral here, so the capture is the WORD and the
+            # comparison a string's: `two hundred and fifty-six times the
+            # default nursery` is why the patterns name the noun as well.
+            # NON-VACUITY BY HAND, as the floor pair's above and for the
+            # same reason, 2026-09-14: planting `hundred and ten` at one
+            # of the run file's three sites makes this report the
+            # disagreement across all FIVE, and the real pair is green.
+            ('log count the intrusion sweep read',
+             (r"hundred and (\w+)(?: of this run's)? logs?\b",
+              r'hundred and (\w+) reaches 0\.25'),
+             (),
+             'the four gate logs are in it or they are not, and the run'
+             " that omits them omits its own worst bench"),
+
+            # THE FILL FAMILY'S COUNTS RANGE, added the same day and for
+            # the same reason: the counted-work paragraph is written into
+            # both documents every run, and Run 31's two copies of its
+            # clock clause disagreed for a whole commit -- one saying the
+            # clocks sit within half a point, the corrected one saying
+            # nine of ten sit within a point and naming the tenth. That
+            # clause carries no figure a check can hold; this range does,
+            # it is the same paragraph's, and a copy that went stale on
+            # one side would be caught by it. NON-VACUITY BY HAND,
+            # 2026-09-14: 1.0530 planted as 1.0555 in the run file makes
+            # this report both sites. ITS CAPTURES ARE RATIOS AND THE
+            # REPORT PRINTS A `%` AFTER THEM, this table having carried
+            # percentages alone until today; the rule names itself, so
+            # `1.0380%` is legible where it stands, and giving each rule
+            # its own unit would reshape a tuple five other rules share.
+            ('fill family\'s counts range',
+             (r'fill[- ]family (?:arms )?run(?:ning)? \*{0,2}([\d.]+) to'
+              r' ([\d.]+)\*{0,2}',),
+             (),
+             'the counted-work paragraph is written into both documents,'
+             ' so one copy going stale is the failure this catches'),
+
             ('carry-back figure',
              (r'pairs that carry back to Run 10[^.]*?\*{0,2}([\d.]+)%\*{0,2}'
               r' and \*{0,2}([\d.]+)%',
@@ -9779,7 +10027,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                 bad.append('the %s is quoted differently across its %d'
                            ' sites: %s -- %s'
                            % (name, len(sites),
-                              '; '.join('/'.join('%s%%' % x for x in
+                              '; '.join('/'.join(_agree_unit(x) for x in
                                                   (f if isinstance(f, tuple)
                                                    else (f,)))
                                         for f in set(sites)),
@@ -11380,6 +11628,17 @@ def main():
                    help='with --fingerprint: the class JSONs whose shapes'
                         ' fill the second table; with --extremes, the'
                         ' populations to rank')
+    p.add_argument('--counts-totals', dest='counts_totals',
+                   metavar='RUN',
+                   help='what each counted leg of RUN cost, per'
+                        ' population and half, off the counts files'
+                        " own `# end` stamps -- the scale a pair"
+                        ' note asks for leg by leg')
+    p.add_argument('--over-list', dest='over_list', metavar='RUN',
+                   help='every timed non-control cell of RUN slower'
+                        " than its shape's `list`, over every"
+                        ' population and both halves, with the count'
+                        ' it read so the silence is a reading')
     p.add_argument('--extremes', action='store_true',
                    help='which class holds each extreme -- the tightest'
                         ' floor, the widest gap, the best class for an arm'
@@ -11810,6 +12069,10 @@ def main():
                                       prev))
     if args.lint:
         sys.exit(lint(args.main, args.readme, args.run_doc))
+    if args.counts_totals:
+        sys.exit(counts_totals(args.counts_totals, args))
+    if args.over_list:
+        sys.exit(over_list_sweep(args.over_list, args))
     if args.extremes:
         missing = [c for c in args.classes if not os.path.exists(c)]
         if missing:
