@@ -3198,27 +3198,39 @@ to match. The turn-end hold was set and is this session's; whether the other
 session's turn end restored it is not established here and no mechanism
 is claimed. What it cost was one refused substitution and nothing else, because
 the edit asserted its own count before writing --- which is the rule
-that survives the missing mechanism. **A COMPUTATION IMPROVISED, three**:
-the per-half plateau spread and the saturation state split (`read-all.sh`
-reports the run-wide band and refuses, and the per-half reading is what makes
-that refusal legible); the sweep for a timed arm above its shape's `list`
-over all twenty-two populations, hand-rolled from `--cells` because no mode
-ranks that population; and the cross-run anchor movements against the previous
-build of the recipe. **A STEP SKIPPED: none.** **A CAPABILITY FOUND**:
-`--replace`'s abutting-table guard fired on the main-set anchors paragraph
-and named the two remedies, which is the guard Run 29 paid 38 rows for working
-exactly as designed. **AND THE READINGS A CARRIER TOOK: none, and the batch
-missed its window.** This write-up used one agent, the checker, and took items
-2, 4, 5 and 6 itself -- item 2 during the sequence, where the chapter puts it,
-and the other three at the steps that read them, which is hours after the window
-the chapter names. `run31-readings.txt` was then written after the fact and says
-so at its head. The window is the sequence's own hours, when the box is busy
-and a carrier only reads, and what missing it costs is not the reading
-but the record: `run-status.sh` judges those three steps on the blocks
-and cannot tell a reading taken from one merely claimed, which is the sentence
-the chapter wrote the file for. The forty per-class reader calls
-were parallelised with `xargs -P4` as the chapter asks and cost about a minute
-in all, where Runs 29 and 30 ran them one at a time.
+that survives the missing mechanism. **AND THE TAIL WAS READ, which is step 10c
+and which no pass sees.** Pass 2 was bounded at `396f01c`, so everything
+committed after it --- step 7's fix cycle, the comprehension probe's, step 9's
+record and step 10's two new open entries --- is unreviewed by construction.
+Read as `396f01c..HEAD` over both documents and DIFFED ON THE UNWRAPPED FORMS,
+because README's own form flipped between those commits and a wrapped diff would
+have shown the reflow rather than the words: 26 changed paragraphs in each file,
+every one this session's, and nothing in them wanted a further fix. **What
+the tail could not cover is `check-all`**, dropped for the rest of the session
+at the owner's word with another session writing into the tree; the last whole
+run of it stands at 09:45, clean on eight of nine steps, and the ninth,
+the mutants, is green on its own re-run at 42 caught and 0 unapplied.
+**A COMPUTATION IMPROVISED, three**: the per-half plateau spread
+and the saturation state split (`read-all.sh` reports the run-wide band
+and refuses, and the per-half reading is what makes that refusal legible);
+the sweep for a timed arm above its shape's `list` over all twenty-two
+populations, hand-rolled from `--cells` because no mode ranks that population;
+and the cross-run anchor movements against the previous build of the recipe.
+**A STEP SKIPPED: none.** **A CAPABILITY FOUND**: `--replace`'s abutting-table
+guard fired on the main-set anchors paragraph and named the two remedies, which
+is the guard Run 29 paid 38 rows for working exactly as designed.
+**AND THE READINGS A CARRIER TOOK: none, and the batch missed its window.**
+This write-up used one agent, the checker, and took items 2, 4, 5 and 6 itself
+-- item 2 during the sequence, where the chapter puts it, and the other three
+at the steps that read them, which is hours after the window the chapter names.
+`run31-readings.txt` was then written after the fact and says so at its head.
+The window is the sequence's own hours, when the box is busy and a carrier only
+reads, and what missing it costs is not the reading but the record:
+`run-status.sh` judges those three steps on the blocks and cannot tell a reading
+taken from one merely claimed, which is the sentence the chapter wrote the file
+for. The forty per-class reader calls were parallelised with `xargs -P4`
+as the chapter asks and cost about a minute in all, where Runs 29 and 30 ran
+them one at a time.
 
 **What Run 30 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
