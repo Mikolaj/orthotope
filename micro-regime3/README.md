@@ -12268,6 +12268,19 @@ several lines in any build. It reads 115 such loops in `micro-unaligned`, **50
 of them straddling and one at offset 0**, against 101 in `micro-aligned`
 with **100 at offset 0 and none straddling at all**.
 
+**A straddler count is not a count of straddling HOT loops.** Run 32's pair
+carries eight apiece, and `probe-attr.sh` over their `-g3` twins puts samples
+in the same two on each half: the `run` loops of `fbMutOdoVecdimsAddInLeafU2`
+and `fillStage2`, which turn over once a run. They take 14 to 16% of a fill
+arm's instructions on `cnn-L2-24x24-c32` against 0.9 to 1.1%
+on `stretch-square-1341` --- a run-loop signature and not an element one ---
+and the loop each jumps into is the unrolled-by-two element body, 42 bytes
+at mod-64 offset 0 on three of the four and 8 on the fourth. The other six
+are cold in every cell measured, save `-u2-ptr` on the HEAD half, which no HEAD
+twin places and which is parked in any case. So the per-element work crosses
+no line on either half, which is what the alignment is for and what a count
+alone cannot say.
+
 **The shim was blind under `-g`, which is why this wanted a fix and not merely
 a build.** `align-as.py` aligns a head only where the line before it
 is an instruction, that being how it refuses to put padding between an info
