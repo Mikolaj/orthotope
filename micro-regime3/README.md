@@ -840,9 +840,9 @@ rather than a slot in the next run, observed again:
   --- read on five runs, Run 29's 0.6441 and 0.6413 and Run 30's 0.6446
   and 0.6525 the latest. Killed by the pair outside 5% on the `ghead` half,
   which would say what the fusion buys is the regime's. (10) *The allocation
-  levels across compilers.* Off `--alloc` on both halves, by hand,
-  over the eighteen main-set shapes other than `cnn-L1-6x6-c1`: on the basis
-  the levels reproduce Run 31's, the `libunord` consumers 0.00x, the fills
+  levels across compilers.* Off `--alloc` on both halves, by hand, over all
+  nineteen main-set shapes, `cnn-L1-6x6-c1` included: on the basis the levels
+  reproduce Run 31's, the `libunord` consumers 0.00x, the fills
   and the `liblist` consumers 1.00x, `bq-expand` 2.78x and `list` 25.20x;
   on the `ghead` half the same, `bq-expand` within 2% of 2.78x and `list` within
   2% of 25.20x --- Run 27's compiler pair agreed to 1e-4 on 505 of its 627
