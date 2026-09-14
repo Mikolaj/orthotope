@@ -717,8 +717,26 @@ rather than a slot in the next run, observed again:
   figure the two quote read off Run 31's JSONs on 2026-09-14 as the ratio
   of the `-list-sum` arm on the basis to the shared loop's consumer on the `o2`
   half, per shape and geomeaned, which is what the pair should read now
-  that the shared loop is -O2's at -O1. (1) *The compiler on the shipped fill.*
-  On the main set:
+  that the shared loop is -O2's at -O1. **Four of the spans below lost their
+  prior on 2026-09-14, after this list was written**, and are registered
+  at figures the tree no longer produces: `08ee255` and `e12b000` took an unzip
+  immediately undone by a zip out of the orders, which is worth 392 bytes
+  an axis to stage nine and stage ten, 168 to stage six and stage seven
+  and nothing to `libunord-stage1-sum`, so (5)'s two spans over stage seven,
+  (6)'s four, (13)'s seven and (14)'s five over master's consumer price
+  a dispatch that has changed under them. What the change is worth to them
+  is NOT settled here: a probe of the two binaries over a reduced class roster
+  moves those spans between 7% below and 25% above the same probe's reading
+  of the pristine binary, and `libunord-stage1-sum`, whose source neither commit
+  touched, moves 0.956 to 1.057 across the nine classes in the same pair
+  of processes, so that probe's own context term is wider than the 3% two
+  of the spans are registered at and it bounds nothing. It also puts (5)'s three
+  cancelling `window` views at 1.03, 0.96 and 0.85 where Run 31 read 1.3666,
+  1.2355 and 1.0785, which would retire the cancellation (5) expects
+  to reproduce; that reading wants an A/A floor before it is believed. So a miss
+  on those four is the source's until a pair with a floor says otherwise,
+  and what re-aims them is Run 32's own basis half. (1) *The compiler
+  on the shipped fill.* On the main set:
   `predict: cross mut-odo-vecdims-add-in-leaf-u2 1.0 within 2%`,
   `predict: cross lib-stage1 1.0 within 2%`
   and `predict: cross lib-stage2-lean 1.0 within 2%`; on every class:
