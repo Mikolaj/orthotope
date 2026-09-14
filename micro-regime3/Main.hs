@@ -4300,10 +4300,10 @@ concatLazyRuns :: ShapeL -> [Int] -> Int -> VS.Vector Double
                -> VS.Vector Double
 concatLazyRuns ssh sats !o v = VS.concat (lazyRuns ssh sats o v)
 
--- The lean dispatch over an axis order: the (strides, dims) the order
--- hands back are canonicalized, and the rank test reads them -- one
--- block as a slice, runs where the innermost stride is 1, the fill
--- otherwise. Stages three and five to nine are this over their own
+-- The lean dispatch over an axis order: the (stride, extent) pairs the
+-- order hands back are canonicalized, and the rank test reads them --
+-- one block as a slice, runs where the innermost stride is 1, the fill
+-- otherwise. Stages three and five to ten are this over their own
 -- order, so a pair of them differs in the order function alone; stage
 -- four keeps the natural-strides test and is written out.
 dispatchLean :: (ShapeL -> [Int] -> [(Int, Int)]) -> ShapeL -> T -> Route
@@ -4322,9 +4322,8 @@ dispatchLean order sh (T (Strides ats) ao _)
 -- The orders, as the pairs every consumer of one now wants. Absolute
 -- stride descending, the extent breaking a tie the larger first, is the
 -- sort every stage before seven used. An unzip immediately undone by a
--- zip cost stages nine and ten 224 bytes an axis and 16 a call, and
--- stood 'libunord-stage10-sum' 19% over '-stage7-sum' on 'small' where
--- it now stands 3% over (2026-09-14, tweak-probe/).
+-- zip stood 'libunord-stage10-sum' 19% over '-stage7-sum' on 'small'
+-- where it now stands 3% over (2026-09-14, tweak-probe/).
 sortedAbsPairs :: ((Int, Int) -> (Int, Int) -> Ordering) -> ShapeL
                -> [Int] -> [(Int, Int)]
 sortedAbsPairs cmp sh ats = sortBy cmp $ zip (map abs ats) sh
@@ -4541,7 +4540,7 @@ runStarts sh ats =
 
 -- The longest chain over every start and every order of absorption as
 -- the run, the axes it leaves sorted outside it in stage six's order:
--- (strides, dims), as stage six's sort hands them.
+-- (stride, extent) pairs, as stage six's sort hands them.
 longestRun :: [(Int, [(Int, Int)])] -> [(Int, Int)]
 longestRun starts = outer ++ [(1, runLen)]
   where (runLen, rest) = bestOf [ chain n0 rest0 | (n0, rest0) <- starts ]
