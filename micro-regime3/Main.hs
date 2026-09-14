@@ -4314,7 +4314,17 @@ dispatchLean order sh (T (Strides ats) ao _)
 -- larger first, is the sort every stage before seven used.
 sortedAbsBy :: ((Int, Int) -> (Int, Int) -> Ordering) -> ShapeL -> [Int]
             -> ([Int], ShapeL)
-sortedAbsBy cmp sh ats = unzip $ sortBy cmp $ zip (map abs ats) sh
+sortedAbsBy cmp sh ats = unzip (sortedAbsPairs cmp sh ats)
+
+-- The same, stopping at the pairs, for the orders that compose a pass
+-- over another order: an unzip immediately undone by a zip cost stages
+-- nine and ten 228 bytes an axis, and stood 'libunord-stage10-sum' 19%
+-- over '-stage7-sum' on 'small' where it now stands 3% over
+-- (2026-09-14, tweak-probe/).
+sortedAbsPairs :: ((Int, Int) -> (Int, Int) -> Ordering) -> ShapeL
+               -> [Int] -> [(Int, Int)]
+sortedAbsPairs cmp sh ats = sortBy cmp $ zip (map abs ats) sh
+{-# INLINE sortedAbsPairs #-}
 
 sortedAbs :: ShapeL -> [Int] -> ([Int], ShapeL)
 sortedAbs = sortedAbsBy (flip compare)
@@ -4571,8 +4581,8 @@ routeUnord9 = dispatchLean zerosFirst
 
 -- Stage six's order with its zero-stride axes moved outermost.
 zerosFirst :: ShapeL -> [Int] -> ([Int], ShapeL)
-zerosFirst sh ats = unzip (zerosOutermost (zip acats sh'))
-  where (acats, sh') = sortedAbs sh ats
+zerosFirst sh ats =
+  unzip (zerosOutermost (sortedAbsPairs (flip compare) sh ats))
 
 -- The zero-stride axes moved in front of the rest, whose order stays,
 -- where a unit-stride axis will then be innermost and the list route
@@ -4608,8 +4618,8 @@ routeUnord10 = dispatchLean zerosFirstTied
 
 -- Stage seven's order with its zero-stride axes moved outermost.
 zerosFirstTied :: ShapeL -> [Int] -> ([Int], ShapeL)
-zerosFirstTied sh ats = unzip (zerosOutermost (zip acats sh'))
-  where (acats, sh') = sortedAbsBy byStrideExtent sh ats
+zerosFirstTied sh ats =
+  unzip (zerosOutermost (sortedAbsPairs byStrideExtent sh ats))
 
 lsUnordStage10 :: ShapeL -> T -> [VS.Vector Double]
 lsUnordStage10 sh a@(T _ _ v) = listRoute (routeUnord10 sh a) v
