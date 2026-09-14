@@ -104,20 +104,24 @@ run from Run 8 to Run 29 compiled the suite with `-fspec-constr`, where every
 run before them took the plain -O1 a default `cabal build` of orthotope takes
 and Runs 30 and 31 published on it, the ruling of 2026-09-13 following,
 and the flag reorders the table rather than nudging it --- it speeds `list`
-itself by 8%, `bq-expand` by 27% and the plain scan family by 31%. **Run 31
-then priced the whole level that flag is one pass of**: `-O2` is worth 29.74%
-to `list` and 29.43% to `bq-expand` and nothing measurable to the shipped fill,
-so a table published at -O1 and one published at -O2 are two orderings
-of the same arms rather than one table with a scale factor. The 19% it was also
-said to *cost* `mut-odo` is not the flag's: `build` compiles to the same worker
-and moved 17% the other way, which identical code cannot do, and the pad probe
-has since priced that disagreement as placement ([the floor section][floor]).
-Every figure in this sentence crosses a rebuild and so carries some of the same
-term; the three that survive it do so by being larger than it. Run 9
-then changed the roster and nothing else, and moved arms from 9% faster to 19%
-slower with the baseline standing still; Run 10 changed only the roster's
-*order* and moved them 3% faster to 14% slower, and then measured the layout
-term directly by running the same source from two binaries that differ in where
+itself by 8%, `bq-expand` by 27% and the plain scan family by 31% --- three
+figures this README does not date, and which cross a rebuild, as the sentence
+after them says. **Run 29 measured the same flag on a PAIR** and read `list`
+13.79% and `bq-expand` 28.04% apart between its halves, which is the figure
+to quote against Run 30's and Run 31's. **Run 31 then priced the whole level
+that flag is one pass of**: `-O2` is worth 29.74% to `list` and 29.43%
+to `bq-expand` and nothing measurable to the shipped fill, so a table published
+at -O1 and one published at -O2 are two orderings of the same arms rather
+than one table with a scale factor. The 19% it was also said to *cost* `mut-odo`
+is not the flag's: `build` compiles to the same worker and moved 17% the other
+way, which identical code cannot do, and the pad probe has since priced
+that disagreement as placement ([the floor section][floor]). Every figure
+in this sentence crosses a rebuild and so carries some of the same term;
+the three that survive it do so by being larger than it. Run 9 then changed
+the roster and nothing else, and moved arms from 9% faster to 19% slower
+with the baseline standing still; Run 10 changed only the roster's *order*
+and moved them 3% faster to 14% slower, and then measured the layout term
+directly by running the same source from two binaries that differ in where
 its loops sit --- 12 to 14% on the two arms whose loop straddled a cache line,
 and a percent or two the other way on everything else. **Run 11 then changed
 nothing at all**, re-running Run 10's aligned binary, and moved every arm
@@ -3180,36 +3184,41 @@ survived, 0 unapplied. **What the pair is worth recording for is the second**:
 a checker whose control is *the newest run on disk* stays green for as long
 as the property holds and dies silently the day it does not, which is the one
 day the checker exists for. A control a finding can retire is not a control.
-**AND A THIRD THING, OBSERVED AND NOT EXPLAINED**: README was left
-at the UNWRAPPED form, a turn ended and a `check-all` ran, and it was afterwards
-found at the WRAPPED one --- so the next exact-match edit, written against
-the unwrapped text, failed to match. The turn-end hold was set and
-is this session's, so what restored it is not established here and no mechanism
+**AND A THIRD THING, WHICH IS WHAT A SECOND SESSION COSTS.** `check-all`'s ok
+direction went PARTIAL at 28 cases of 364, reporting that the tree had moved
+and naming six new files under `micro-regime3/stage10-probe/` --- another
+session's, confirmed by its owner, written while this one ran. The step
+is documented as wanting to run ALONE and that is the condition it means:
+not merely no edit of this session's, but no file created anywhere in the tree
+by anybody. On a box with two sessions the whole-tree check is therefore a thing
+to run when the other is quiet, and a PARTIAL run settles nothing rather
+than failing anything. **The same evening also left README at the WRAPPED form
+after this session had unwrapped it**, so the next exact-match edit failed
+to match. The turn-end hold was set and is this session's; whether the other
+session's turn end restored it is not established here and no mechanism
 is claimed. What it cost was one refused substitution and nothing else, because
-the edit asserted its own count before writing; an edit that had not would have
-written the file with the substitution silently unmade. The rule that survives
-the missing mechanism is the assertion, not a theory about the hook.
-**A COMPUTATION IMPROVISED, three**: the per-half plateau spread
-and the saturation state split (`read-all.sh` reports the run-wide band
-and refuses, and the per-half reading is what makes that refusal legible);
-the sweep for a timed arm above its shape's `list` over all twenty-two
-populations, hand-rolled from `--cells` because no mode ranks that population;
-and the cross-run anchor movements against the previous build of the recipe.
-**A STEP SKIPPED: none.** **A CAPABILITY FOUND**: `--replace`'s abutting-table
-guard fired on the main-set anchors paragraph and named the two remedies, which
-is the guard Run 29 paid 38 rows for working exactly as designed.
-**AND THE READINGS A CARRIER TOOK: none, and the batch missed its window.**
-This write-up used one agent, the checker, and took items 2, 4, 5 and 6 itself
--- item 2 during the sequence, where the chapter puts it, and the other three
-at the steps that read them, which is hours after the window the chapter names.
-`run31-readings.txt` was then written after the fact and says so at its head.
-The window is the sequence's own hours, when the box is busy and a carrier only
-reads, and what missing it costs is not the reading but the record:
-`run-status.sh` judges those three steps on the blocks and cannot tell a reading
-taken from one merely claimed, which is the sentence the chapter wrote the file
-for. The forty per-class reader calls were parallelised with `xargs -P4`
-as the chapter asks and cost about a minute in all, where Runs 29 and 30 ran
-them one at a time.
+the edit asserted its own count before writing --- which is the rule
+that survives the missing mechanism. **A COMPUTATION IMPROVISED, three**:
+the per-half plateau spread and the saturation state split (`read-all.sh`
+reports the run-wide band and refuses, and the per-half reading is what makes
+that refusal legible); the sweep for a timed arm above its shape's `list`
+over all twenty-two populations, hand-rolled from `--cells` because no mode
+ranks that population; and the cross-run anchor movements against the previous
+build of the recipe. **A STEP SKIPPED: none.** **A CAPABILITY FOUND**:
+`--replace`'s abutting-table guard fired on the main-set anchors paragraph
+and named the two remedies, which is the guard Run 29 paid 38 rows for working
+exactly as designed. **AND THE READINGS A CARRIER TOOK: none, and the batch
+missed its window.** This write-up used one agent, the checker, and took items
+2, 4, 5 and 6 itself -- item 2 during the sequence, where the chapter puts it,
+and the other three at the steps that read them, which is hours after the window
+the chapter names. `run31-readings.txt` was then written after the fact and says
+so at its head. The window is the sequence's own hours, when the box is busy
+and a carrier only reads, and what missing it costs is not the reading
+but the record: `run-status.sh` judges those three steps on the blocks
+and cannot tell a reading taken from one merely claimed, which is the sentence
+the chapter wrote the file for. The forty per-class reader calls
+were parallelised with `xargs -P4` as the chapter asks and cost about a minute
+in all, where Runs 29 and 30 ran them one at a time.
 
 **What Run 30 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
@@ -4432,7 +4441,10 @@ ahead of the implementation:
   at the builder, the numbers and the argument recorded at the assert and both
   Int32 comment sites.
 
-**A class population is three shapes, or four, or seven**, against a main set
+**A class population is three shapes, or four, or fourteen** --- three to seven
+when this paragraph was written and three to fourteen today, `runs` having grown
+on Runs 22 and 24, and the figure is stated here as a SCALE and re-read off
+a run's own cross-class table rather than maintained --- against a main set
 several times the size, which is deliberate --- the classes are there to vary
 the *mechanism*, and varying size and rank within one is the main set's job ---
 but it decides how their results read. A class geomean rests on three cells,
@@ -10655,13 +10667,15 @@ of 2026-09-04 ([what the benchmark does](#what-the-benchmark-does)) parked five
 of the eight strategies and deleted their ten twins, so the sixteen-pair series
 ends at Run 24 as the eighteen-pair one ended at Run 20. The table below
 is the other six, the ones that carried back to Run 10, which is why this README
-quotes a carry-back figure beside the sixteen-pair one and compares two rows
-of the Results table on the six --- and the prune breaks that series too, taking
-the `bq-scan-rem-gm-mulback` pair: from Run 25 the six are the `list`,
-`bq-expand` and `mut-odo-vecdims` pairs, four of the old six continuing,
-and a carry-back figure read across that boundary is over two populations. They
-are the only rows whose true ratio is known to be exactly 1 --- or were, until
-[the mutable ceiling](#the-mutable-ceiling-taken) turned up another by accident:
+quotes a carry-back figure beside the sixteen-pair one --- and it is FOUR today
+and not six, as the same sentence goes on to say, so a present-tense
+`carry back` means the four and a past-tense `carried back` the six ---
+and the prune breaks that series too, taking the `bq-scan-rem-gm-mulback` pair:
+from Run 25 the six are the `list`, `bq-expand` and `mut-odo-vecdims` pairs,
+four of the old six continuing, and a carry-back figure read across
+that boundary is over two populations. They are the only rows whose true ratio
+is known to be exactly 1 --- or were, until [the mutable
+ceiling](#the-mutable-ceiling-taken) turned up another by accident:
 
 | pair | span | g912 | ghead | mean per cell |
 |---|---:|---:|---:|---:|
@@ -10680,12 +10694,15 @@ else. **Two of the six had a cell capped on the basis half and three
 on the control**, so a published figure above is no longer always its paired one
 --- `bq-scan-rem-gm-mulback` against its distant twin reads 1.0017 published
 and 1.0044 paired on the basis and 0.9994 against 1.0028 on the control, the two
-widest such gaps --- and where they part it is the published column that
-is the yardstick for comparing two rows of the Results table, while a margin
-measured per shape belongs against the paired figures `read-run.py --aa` prints.
-The three distant spans grew, 3, 25 and 22 on Run 13 to 10, 41 and 37,
-the roster having gained arms between those twins and their bases; the three
-adjacent spans are unchanged.
+widest such gaps --- and where they part the margin is the PAIRED figure
+and never the published column --- which is what a run file's own *DO NOT DIVIDE
+TWO ROWS OF THIS TABLE FOR A MARGIN* paragraph says, and what the floor
+requires, the floor being defined in that same statistic. **This clause said
+the opposite until 2026-09-14**, naming the published column as the yardstick
+for comparing two rows; it is recorded rather than deleted because a reader who
+met it once will otherwise meet it again. The three distant spans grew, 3, 25
+and 22 on Run 13 to 10, 41 and 37, the roster having gained arms between
+those twins and their bases; the three adjacent spans are unchanged.
 
 **On Run 31 the floor is 0.61% on the basis half and 1.58% on the control,
 and it is the FOURTH run read over EIGHT pairs.** The eight are `list`,
