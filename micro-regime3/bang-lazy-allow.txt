@@ -5,4 +5,4 @@
 # an entry when its definition moves or its bang shape changes; the step
 # then reports the entry stale and asks for a second reading, and a new
 # candidate fails the step until it is read and listed here or fixed.
-Main.hs:merge 1  # canonView's fold, read 2026-09-13: the guard forces both fields where they are compared, and the pair passes to the result unopened otherwise
+Main.hs:merge 1  # canonViewOfPairs's fold, read 2026-09-14 where canonView's was read 2026-09-13, the definition having moved there with its pair's fields swapped and its bang shape unchanged: the guard forces both fields where they are compared, and the pair passes to the result unopened otherwise

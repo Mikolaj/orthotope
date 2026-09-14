@@ -2704,17 +2704,27 @@ fbMutOdoVecdimsAddInLeafU2Down sh (T (Strides ats) ao v) = VS.create $ do
 -- fires on 'rev' views too. Both rewrites preserve the row-major
 -- element sequence exactly; O(rank) list work per call.
 canonView :: ShapeL -> [Int] -> (ShapeL, [Int])
-canonView sh ats =
-  let merge (!n, !st) ((n', st') : rest)
-        | st == n' * st' = (n * n', st') : rest
+canonView sh ats = canonViewOfPairs (zip ats sh)
+
+-- The same over the (stride, extent) pairs an order function has in
+-- hand, so that 'dispatchLean' need not unzip them for it; it saves
+-- 168 bytes an axis on every stage that dispatch serves (2026-09-14,
+-- tweak-probe/). It does not carry the 'Pairs' suffix of
+-- 'sortedAbsPairs' and 'canonSortedPairs', which names a function that
+-- RETURNS pairs.
+canonViewOfPairs :: [(Int, Int)] -> (ShapeL, [Int])
+canonViewOfPairs ps =
+  let merge (!st, !n) ((st', n') : rest)
+        | st == n' * st' = (st', n * n') : rest
       merge p rest = p : rest
       -- Lazy in the pair on the second equation, and read as fine
-      -- (2026-09-13): the guard above forces both fields where they are
+      -- (2026-09-14, moved here from 'canonView' with its fields
+      -- swapped): the guard above forces both fields where they are
       -- compared, and the pair passes to the result unopened otherwise.
       -- checks.py's bang-shapes step prints this; bang-lazy-allow.txt
       -- carries the reading.
-      merged = foldr merge [] [p | p@(n, _) <- zip sh ats, n /= 1]
-  in  (map fst merged, map snd merged)
+      merged = foldr merge [] [p | p@(_, n) <- ps, n /= 1]
+  in  (map snd merged, map fst merged)
 
 -- 'fbMutOdoVecdims' behind 'canonView', the canonical natural-stride
 -- case returned as an O(1) slice of the source -- the regime-1 hit the
@@ -4296,10 +4306,10 @@ concatLazyRuns ssh sats !o v = VS.concat (lazyRuns ssh sats o v)
 -- otherwise. Stages three and five to nine are this over their own
 -- order, so a pair of them differs in the order function alone; stage
 -- four keeps the natural-strides test and is written out.
-dispatchLean :: (ShapeL -> [Int] -> ([Int], ShapeL)) -> ShapeL -> T -> Route
+dispatchLean :: (ShapeL -> [Int] -> [(Int, Int)]) -> ShapeL -> T -> Route
 dispatchLean order sh (T (Strides ats) ao _)
   | l == 0 = RBlock 0 0
-  | otherwise = case canonView sh' acats of
+  | otherwise = case canonViewOfPairs (order sh ats) of
       ([], _) -> RBlock start l
       ([_], [1]) -> RBlock start l
       (ssh, sats)
@@ -4307,31 +4317,29 @@ dispatchLean order sh (T (Strides ats) ao _)
         | otherwise -> RFill ssh sats start l
   where !l = product sh
         !start = startOf sh ats ao
-        (acats, sh') = order sh ats
 {-# INLINE dispatchLean #-}
 
--- The orders. Absolute stride descending, the extent breaking a tie the
--- larger first, is the sort every stage before seven used.
-sortedAbsBy :: ((Int, Int) -> (Int, Int) -> Ordering) -> ShapeL -> [Int]
-            -> ([Int], ShapeL)
-sortedAbsBy cmp sh ats = unzip (sortedAbsPairs cmp sh ats)
-
--- The same, stopping at the pairs, for the orders that compose a pass
--- over another order: an unzip immediately undone by a zip cost stages
--- nine and ten 228 bytes an axis, and stood 'libunord-stage10-sum' 19%
--- over '-stage7-sum' on 'small' where it now stands 3% over
--- (2026-09-14, tweak-probe/).
+-- The orders, as the pairs every consumer of one now wants. Absolute
+-- stride descending, the extent breaking a tie the larger first, is the
+-- sort every stage before seven used. An unzip immediately undone by a
+-- zip cost stages nine and ten 224 bytes an axis and 16 a call, and
+-- stood 'libunord-stage10-sum' 19% over '-stage7-sum' on 'small' where
+-- it now stands 3% over (2026-09-14, tweak-probe/).
 sortedAbsPairs :: ((Int, Int) -> (Int, Int) -> Ordering) -> ShapeL
                -> [Int] -> [(Int, Int)]
 sortedAbsPairs cmp sh ats = sortBy cmp $ zip (map abs ats) sh
 {-# INLINE sortedAbsPairs #-}
 
-sortedAbs :: ShapeL -> [Int] -> ([Int], ShapeL)
-sortedAbs = sortedAbsBy (flip compare)
-
 -- Canonicalized first, then sorted: stages four and five.
 canonSorted :: ShapeL -> [Int] -> ([Int], ShapeL)
-canonSorted sh ats = let (csh, cats) = canonView sh ats in sortedAbs csh cats
+canonSorted sh ats = unzip (canonSortedPairs sh ats)
+
+-- The same, stopping at the pairs, for 'dispatchLean'; stage four is
+-- written out around the two lists and keeps them.
+canonSortedPairs :: ShapeL -> [Int] -> [(Int, Int)]
+canonSortedPairs sh ats =
+  let (csh, cats) = canonView sh ats
+  in  sortedAbsPairs (flip compare) csh cats
 
 -- Stage four, the unordered list kept lazy up to the exception and read
 -- in address order: 'fbLibUnordStage2''s one-block test on the sorted
@@ -4376,7 +4384,7 @@ fbLibUnordStage4 sh a@(T _ _ v) = fillRoute (routeUnord4 sh a) v
 -- here can be longer than stage four's; the pair with stage four prices
 -- the two together. Added 2026-09-07 for Run 27.
 routeUnord5 :: ShapeL -> T -> Route
-routeUnord5 = dispatchLean canonSorted
+routeUnord5 = dispatchLean canonSortedPairs
 
 lsUnordStage5 :: ShapeL -> T -> [VS.Vector Double]
 lsUnordStage5 sh a@(T _ _ v) = listRoute (routeUnord5 sh a) v
@@ -4398,7 +4406,7 @@ fbLibUnordStage5 sh a@(T _ _ v) = fillRoute (routeUnord5 sh a) v
 -- 'routeUnord5' per population. Added 2026-09-09 for Run 28; the
 -- registration is README's open list.
 routeUnord6 :: ShapeL -> T -> Route
-routeUnord6 = dispatchLean sortedAbs
+routeUnord6 = dispatchLean (sortedAbsPairs (flip compare))
 
 lsUnordStage6 :: ShapeL -> T -> [VS.Vector Double]
 lsUnordStage6 sh a@(T _ _ v) = listRoute (routeUnord6 sh a) v
@@ -4474,7 +4482,7 @@ fbLibUnordStage6ListSum sh a@(T _ _ v) =
 -- One change over 'routeUnord6' per population. Added 2026-09-09 for
 -- Run 28.
 routeUnord7 :: ShapeL -> T -> Route
-routeUnord7 = dispatchLean (sortedAbsBy byStrideExtent)
+routeUnord7 = dispatchLean (sortedAbsPairs byStrideExtent)
 
 -- Absolute stride descending, extent ascending on a tie: stage seven's
 -- order over (stride, extent) pairs.
@@ -4518,9 +4526,9 @@ routeUnord8 = dispatchLean chainOrder
 
 -- The longest run first and the rest in stage six's order; stage six's
 -- order whole where a stride is 0 or none is 1.
-chainOrder :: ShapeL -> [Int] -> ([Int], ShapeL)
+chainOrder :: ShapeL -> [Int] -> [(Int, Int)]
 chainOrder sh ats
-  | 0 `elem` ats || null starts = sortedAbs sh ats
+  | 0 `elem` ats || null starts = sortedAbsPairs (flip compare) sh ats
   | otherwise = longestRun starts
   where starts = runStarts sh ats
 
@@ -4534,8 +4542,8 @@ runStarts sh ats =
 -- The longest chain over every start and every order of absorption as
 -- the run, the axes it leaves sorted outside it in stage six's order:
 -- (strides, dims), as stage six's sort hands them.
-longestRun :: [(Int, [(Int, Int)])] -> ([Int], ShapeL)
-longestRun starts = (map fst outer ++ [1], map snd outer ++ [runLen])
+longestRun :: [(Int, [(Int, Int)])] -> [(Int, Int)]
+longestRun starts = outer ++ [(1, runLen)]
   where (runLen, rest) = bestOf [ chain n0 rest0 | (n0, rest0) <- starts ]
         outer = sortBy (flip compare) rest
 
@@ -4580,9 +4588,8 @@ routeUnord9 :: ShapeL -> T -> Route
 routeUnord9 = dispatchLean zerosFirst
 
 -- Stage six's order with its zero-stride axes moved outermost.
-zerosFirst :: ShapeL -> [Int] -> ([Int], ShapeL)
-zerosFirst sh ats =
-  unzip (zerosOutermost (sortedAbsPairs (flip compare) sh ats))
+zerosFirst :: ShapeL -> [Int] -> [(Int, Int)]
+zerosFirst sh ats = zerosOutermost (sortedAbsPairs (flip compare) sh ats)
 
 -- The zero-stride axes moved in front of the rest, whose order stays,
 -- where a unit-stride axis will then be innermost and the list route
@@ -4617,9 +4624,8 @@ routeUnord10 :: ShapeL -> T -> Route
 routeUnord10 = dispatchLean zerosFirstTied
 
 -- Stage seven's order with its zero-stride axes moved outermost.
-zerosFirstTied :: ShapeL -> [Int] -> ([Int], ShapeL)
-zerosFirstTied sh ats =
-  unzip (zerosOutermost (sortedAbsPairs byStrideExtent sh ats))
+zerosFirstTied :: ShapeL -> [Int] -> [(Int, Int)]
+zerosFirstTied sh ats = zerosOutermost (sortedAbsPairs byStrideExtent sh ats)
 
 lsUnordStage10 :: ShapeL -> T -> [VS.Vector Double]
 lsUnordStage10 sh a@(T _ _ v) = listRoute (routeUnord10 sh a) v
@@ -4662,8 +4668,7 @@ lsUnordStage2 sh a@(T (Strides ats) ao v)
   where !l = product sh
         (csh, cats) = canonView sh ats
         oneBlock =
-          let (acats, csh') =
-                unzip $ sortBy (flip compare) $ zip (map abs cats) csh
+          let (acats, csh') = unzip (sortedAbsPairs (flip compare) csh cats)
               _ : ts = getStridesT csh'
           in  acats == ts
 
