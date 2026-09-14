@@ -136,9 +136,11 @@ Modes:
                     ITS RATIO IS A PLAIN GEOMEAN of the per-shape net
                     ratios, NOT the winsorized one the `time` column above
                     is: the two are different statistics and they part on
-                    any arm with a capped cell. Run 30's shipped leaf reads
-                    0.9891 here and 0.9977 winsorized, which is its
-                    registration (1) killed or held
+                    any arm with a capped cell, and they can part in SIGN:
+                    Run 31's `mut-odo-vecdims-add-in-leaf-u2-aa` distant
+                    copy reads 0.9981 here against its base and 1.0019
+                    winsorized, one calling the copy faster and the other
+                    slower, both inside that half's 0.61% floor
   --compare O --alloc   whether the two agree on what each arm allocates,
                     partitioned by size and never by column
   --compare O --bridge  each arm as a ratio to `list` IN ITS OWN RUN, per

@@ -4749,9 +4749,13 @@ fbLibUnordStage10Sum sh a@(T _ _ v) =
 -- user's fold read 0.7610 on 'window' and 0.8495 on 'runs' of the
 -- harness's, inlining the route into the fold where the harness
 -- compiles one loop for every stage, and the bangs of 2026-09-13 are
--- what should take that gap out. The composed route is what the
--- tie-break and the zero-stride move leave a fold to walk: on a
--- broadcast, one real slice listed as many times as the axis is long.
+-- what should take that gap out. They did: Run 31 reads the pair at
+-- 1.0154 on 'window' and 1.0132 on 'runs' on the same plain -O1
+-- recipe, and within 2% of level on every population of both halves,
+-- so the user's fold is no longer ahead anywhere. The composed route
+-- is what the tie-break and the zero-stride move leave a fold to
+-- walk: on a broadcast, one real slice listed as many times as the
+-- axis is long.
 -- Added 2026-09-13 for Run 31, registration (15).
 {-# NOINLINE fbLibUnordStage10ListSum #-}
 fbLibUnordStage10ListSum :: ShapeL -> T -> VS.Vector Double
