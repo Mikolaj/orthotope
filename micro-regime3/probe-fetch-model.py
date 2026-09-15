@@ -8,24 +8,31 @@ residues of a line with `.p2align 6; .skip K`, and per residue four
 counters are read per iteration, differenced over two iteration counts:
 cycles, op-cache fetch blocks (0x28F), L1 BTB overrides (0x8A) and L2 BTB
 overrides (0x8B). From the assembled layout, read off objdump, the probe
-predicts each residue's cost under three rules from section 2.8 of the
-Zen 3 optimization guide (README, the placement section):
+predicts each residue's cost under rules read off section 2.8 of the
+Zen 3 optimization guide and the nine sweeps of 2026-09-15 (README, the
+placement section):
 
   blocks   one aligned 64-byte fetch block a cycle: a segment of the
-           executed path is cut at every line boundary, each piece a block
-  lone     a block holding nothing but a conditional branch, alone or
-           with its fused flag writer, pays a cycle; one holding only an
-           unconditional jmp does not. Read off the fill's jge at 9..13
-           against its tail's jmp at 33..42, and a candidate for the
-           guide's rule that two branches share a BTB entry only when
-           their last bytes share a line
-  short    a segment whose first instruction straddles the line leaves an
-           empty fetch block behind, the guide's shortened block from
-           branching to a line's end, and pays a cycle
+           executed path is cut at every line boundary, each piece a
+           block, and a first instruction astride the boundary leaves an
+           empty block behind that is fetched like any other
+  cut      a whole cycle: a segment's taken conditional branch, or the
+           fused pair it belongs to, astride the boundary or ending in a
+           different line from the segment's previous predicted branch --
+           the guide's rule that two branches share a BTB entry only when
+           their last bytes share a line. A not-taken conditional or an
+           unconditional jmp cut the same way pays nothing beyond its block
+  head     a whole cycle: the loop head within HEAD_TAIL bytes of its
+           line's end, the guide's shortened fetch block; a tail or
+           re-entry segment entered there pays only the empty block
+  half     half cycles: a cut that leaves a last block of three or fewer
+           instructions starting in its line, a block holding only a jmp,
+           and a quarter for a taken conditional that is not fused
 
 and a fourth, the dispatcher's six ops a cycle, as a floor. Predicted
-cycles are max(ops / 6, sum over blocks of 1 + penalties), rounded, and
-a residue is a MISS where the rounded measurement disagrees. The verdict
+cycles are max(ops / 6, blocks) plus the penalties, whole where the
+fetch bounds the loop and halved where the dispatcher does, and a
+residue is a MISS where the measurement is more than half a cycle away. The verdict
 of a sweep is how many residues miss and which rule the misses implicate,
 which is what the model needs before the shim can carry a cost built on
 it.
@@ -238,48 +245,100 @@ def path_fill(rows, r):
     return [entry] + [body_taken] * (r // 2 - 1) + [body_exit, tail]
 
 
-def predict(rows, segs, k, head_addr):
-    """-> (ops, blocks, split, short, predicted cycles) for head offset k."""
-    ops = 0
-    blocks = split = short = 0
-    for seg in segs:
-        # ops: instructions less fused pairs inside the segment
+HEAD_TAIL = 8             # a head this close to the line's end pays a cycle
+
+
+def is_cond(mn):
+    return mn.startswith('j') and mn != 'jmp'
+
+
+def whole_in_last(pieces):
+    """Instructions of a segment's last block that start in its line: a
+    straddler counted by its last byte belongs to the block's line but
+    not to what the block delivers."""
+    line, ins = list(pieces.items())[-1]
+    return sum(1 for i in ins if ROWS_K[i] // 64 == line)
+
+
+def predict(rows, segs, k, head_addr, body_first=True):
+    """-> (ops, blocks, whole, half, predicted cycles) for head offset k.
+
+    Whole-cycle penalties, the rules the sweeps of 2026-09-15 bear out
+    in every regime: `cut`, a segment's taken conditional branch, or the
+    fused pair it belongs to, astride a line boundary or in a different
+    line from the segment's previous predicted branch; `head`, the loop
+    head within HEAD_TAIL bytes of its line's end, charged on the body
+    alone since a tail or re-entry entered there reads nothing. Half
+    ones: a last block with three or fewer instructions starting in its
+    line, a block holding only an unconditional jump, and a quarter for
+    an unfused taken conditional. A first instruction astride the
+    boundary adds the empty block it leaves. Predicted cycles are
+    max(ops / 6, blocks) plus the penalties, whole where the fetch bounds
+    the loop and halved where the dispatcher does; a residue fits within
+    half a cycle.
+    """
+    global ROWS_K
+    ROWS_K = {i: row[0] - head_addr + k for i, row in enumerate(rows)}
+    ops = blocks = whole = half = 0
+    for n_seg, seg in enumerate(segs):
         n = len(seg)
         for a, b in zip(seg, seg[1:]):
             if rows[a][2] in FUSABLE and rows[b][2].startswith('j'):
                 n -= 1
         ops += n
-        # cut into blocks by the line each instruction ENDS in
         pieces = collections.OrderedDict()
         for i in seg:
             off = rows[i][0] - head_addr + k
-            end_line = (off + rows[i][1] - 1) // 64
-            pieces.setdefault(end_line, []).append(i)
-        # a block that holds nothing but a conditional branch, alone or
-        # with the flag writer it fuses with, pays a cycle: the fill's jge
-        # at 9..13 and the straight loop's jnz at 25..28. A block holding
-        # only an unconditional jmp does not: the fill's tail at 33..42.
-        for ins in pieces.values():
+            pieces.setdefault((off + rows[i][1] - 1) // 64, []).append(i)
+        blocks += len(pieces)
+        last = seg[-1]
+        last_mn = rows[last][2]
+        fused = (last - 1 >= seg[0] and rows[last - 1][2] in FUSABLE
+                 and is_cond(last_mn))
+        first_byte = rows[last - 1 if fused else last][0] - head_addr + k
+        last_byte = rows[last][0] - head_addr + k + rows[last][1] - 1
+        if is_cond(last_mn):
+            cut = first_byte // 64 != last_byte // 64
+            prev = [i for i in seg[:-1] if rows[i][2].startswith('j')
+                    and not (fused and i == last - 1)]
+            if not cut and prev:
+                pe = rows[prev[-1]][0] - head_addr + k + rows[prev[-1]][1] - 1
+                cut = pe // 64 != last_byte // 64
+            if cut:
+                whole += 1
+            if not fused:
+                half += 0.5            # an unfused taken conditional, a quarter
+            if len(pieces) > 1 and whole_in_last(pieces) <= 3 and not cut:
+                half += 1              # a cut leaving a short last block
+        elif last_mn == 'jmp':
+            if whole_in_last(pieces) <= 1:
+                half += 1
+        # a segment whose first instruction straddles the boundary leaves
+        # an empty fetch block behind, fetched like any other: 19..21 and
+        # 54..55 of the fill read one block more than the pieces. The loop
+        # head pays a cycle beyond that when its block holds fewer than
+        # two whole instructions, 56..63; a tail or re-entry does not.
+        fo = rows[seg[0]][0] - head_addr + k
+        straddles = fo // 64 != (fo + rows[seg[0]][1] - 1) // 64
+        if straddles:
             blocks += 1
-            mn = [rows[i][2] for i in ins]
-            if mn[-1].startswith('j') and mn[-1] != 'jmp' and (
-                    len(mn) == 1 or (len(mn) == 2 and mn[0] in FUSABLE)):
-                split += 1
-        # a segment entered in a line's last bytes, its first instruction
-        # ending in the next line: the predictor's block for the entry
-        # line holds no whole instruction, a shortened fetch block that is
-        # a block and a short one, and no piece above stands for it
-        j = seg[0]
-        first_off = rows[j][0] - head_addr + k
-        if first_off // 64 != (first_off + rows[j][1] - 1) // 64:
-            blocks += 1
-            short += 1
-        if DEBUG:
-            print('#   K=%d seg: ' % k + ' | '.join(
-                'L%d:%s' % (line, ','.join(rows[i][2] for i in ins))
-                for line, ins in pieces.items()), file=sys.stderr)
-    pred = max(ops / 6.0, blocks + split + short)
-    return ops, blocks, split, short, pred
+        if body_first and n_seg == 0 or rows[seg[0]][3] == 'head':
+            if fo % 64 >= 64 - HEAD_TAIL:
+                whole += 1
+    # penalties are whole cycles where the fetch bounds the loop and half
+    # where the dispatcher does: the 64-byte straight loop pays 0.5 at a
+    # cut its 3.5-cycle dispatch floor absorbs, the fill pays 1 at 4
+    # blocks over a 3.67 floor
+    floor = max(ops / 6.0, blocks)
+    w = 1.0 if blocks >= ops / 6.0 else 0.5
+    pred = floor + w * (whole + half / 2.0)
+    return ops, blocks, whole, half, pred
+
+
+def fits(cyc, pred):
+    """Within half a cycle, rather than rounding both: a loop whose floor
+    is 2.5 cycles reads 2.4 or 2.6 by the machine's mood."""
+    return abs(cyc - pred) <= 0.5
 
 
 def rescore(path):
@@ -313,8 +372,8 @@ def rescore(path):
     miss = []
     print('# rescored %s: %s %s' % (path, kernel, ' '.join(args)))
     for k, cyc, blk, l1, l2 in meas:
-        ops, blocks, split, short, pred = predict(rows, segs, k, 0)
-        ok = round(cyc) == round(pred)
+        ops, blocks, split, short, pred = predict(rows, segs, k, 0, body_first=False)
+        ok = fits(cyc, pred)
         if not ok:
             miss.append(k)
         print('%2d %6.2f %6.2f %6.2f %6.2f | %4d %6d %5d %5d %6.2f %s'
@@ -352,10 +411,10 @@ def main():
     ks = a.only or list(range(64))
     tmp = tempfile.mkdtemp(prefix='fetch-model-')
     print('# %s; per iteration: measured cycles, fetch blocks, L1 and L2 BTB'
-          ' overrides; predicted ops, blocks, lone, short, cycles' % title)
+          ' overrides; predicted ops, blocks, whole, half, cycles' % title)
     print('%2s %6s %6s %6s %6s | %4s %6s %5s %5s %6s %s'
-          % ('K', 'cyc', 'blk', 'l1', 'l2', 'ops', 'blocks', 'lone',
-             'short', 'pred', 'verdict'))
+          % ('K', 'cyc', 'blk', 'l1', 'l2', 'ops', 'blocks', 'whole',
+             'half', 'pred', 'verdict'))
     miss = []
     try:
         for k in ks:
@@ -383,8 +442,8 @@ def main():
                 segs = path_fill(rows, r)
             else:
                 segs = path_straight(rows, end)
-            ops, blocks, split, short, pred = predict(rows, segs, k, head_addr)
-            ok = round(m[0]) == round(pred)
+            ops, blocks, split, short, pred = predict(rows, segs, k, head_addr, body_first=False)
+            ok = fits(m[0], pred)
             if not ok:
                 miss.append(k)
             print('%2d %6.2f %6.2f %6.2f %6.2f | %4d %6d %5d %5d %6.2f %s'
