@@ -3404,14 +3404,16 @@ rather than a slot in the next run, observed again:
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
 this one only through the pair note.** **THE PREPARATION'S HALF, taken
 2026-09-14 and recorded in the note.** A COMPUTATION IMPROVISED, and it
-is the one to build a mode for: `--compare` drops every reducing consumer,
+was the one to build a mode for: `--compare` dropped every reducing consumer,
 having no corrected time to divide, so a `cross` prior quoted for a `-sum` arm
-cannot be re-derived with it and the mode answers NO MATCH on a figure
-that is right; re-deriving one item's three Run 27 figures took a hand-written
-geomean of `slope` ratios over two JSONs. A CAPABILITY FOUND: `--figures`,
-`--carried` and `--carry-over` between them leave only the cross priors
-and the prose to read by hand, which is most of pre-run step 12b done
-mechanically. A STEP SKIPPED: none.
+could not be re-derived with it and the mode answered NO MATCH on a figure
+that was right; re-deriving one item's three Run 27 figures took a hand-written
+geomean of `slope` ratios over two JSONs. BUILT 2026-09-15, at 7249a35,
+in a block of its own under `--compare`'s table and on raw `slope` --- after Run
+33's preparation had improvised the same computation a second time. A CAPABILITY
+FOUND: `--figures`, `--carried` and `--carry-over` between them leave only
+the cross priors and the prose to read by hand, which is most of pre-run step
+12b done mechanically. A STEP SKIPPED: none.
 
 **THE WRITE-UP SESSION'S HALF, and the first item is one the chapter caused.**
 **THIS RUN INTRUDED ON ITS OWN GATE, AND RUN LIST STEP 15 IS WHY.** Step 14
@@ -7695,10 +7697,13 @@ and never as a chronology.
     #      A HALF'S TAG IS ONE TOKEN, `[A-Za-z0-9_]`, and pair-halves.sh
     #      REFUSES anything else since 2026-09-15 -- it used to CUT at the
     #      first character outside that set, so a declared `ghead-exit`
-    #      reached every driver as `ghead` and named a binary nobody
-    #      built. `--draft` refuses such a tag too. Where the pair as
-    #      declared carries one, the declaration and the registration are
-    #      renamed first, in a commit of their own, as Run 33's were
+    #      would have reached every driver as `ghead` and named a binary
+    #      nobody built. `--draft` refuses such a tag too, and refused
+    #      first, which is where Run 33 met it -- at step 2, after the
+    #      recipes and the registration were written and committed. Where
+    #      the pair as declared carries one, the declaration and the
+    #      registration are renamed first, in a commit of their own, as
+    #      Run 33's were
     #      why: --para 'Which two halves a pair has'
     ./loop-offsets.py --delta $PREV-<PREV's basis> $R-<basis>   # 2d. THE
     #      FILLS AGAINST THE PREVIOUS BUILD OF THIS RECIPE, taken the
@@ -7737,6 +7742,12 @@ and never as a chronology.
     #  the :/ pathspec resolves from the repo root, so these answer the same
     #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
     #  and exits 0, which reads exactly like an unmoved source
+    #  AND `git show HEAD:FILE` RESOLVES FROM THE ROOT TOO, which is the
+    #  same rule read the other way and is the one that answers WRONG
+    #  rather than empty: from here `git show HEAD:README.md` hands back
+    #  orthotope's top-level README, a different document of a few hundred
+    #  lines, and says nothing. `git show HEAD:./README.md` is the form
+    #  that means this directory's
     ./preflight.sh $R --no-corpus --fill-in   # 4-10 LESS 8c AND 8d, which read
     #      every run JSON on disk and so must not run while 11 or 12 is
     #      WRITING one. Deferring them is what lets the roster pass -- the
@@ -7916,8 +7927,20 @@ and never as a chronology.
     #      edited while it runs at all, bash re-reading a running script by
     #      byte offset. SO A REPAIR TO EITHER LANDS BEFORE STEP 11 OR WAITS
     #      FOR IT -- Run 30's preparation found two --draft defects at step
-    #      2 and could not fix them until the pass was over. 8c and 8d's
-    #      own line below carries the other half of the sequencing.
+    #      2 and waited out the pass.
+    #      WHAT THE PASS DOES NOT HOLD, which is most of the tree: it reads
+    #      pair-halves.sh ONCE, at its own start, and hands each leg a
+    #      JSON, so it never opens README. Those are editable under it, and
+    #      the document changes Run 33's preparation made WHILE the pass
+    #      ran landed that way
+    #      AND A REPAIR TO THE READER ITSELF NEED NOT WAIT IDLE: `cp
+    #      read-run.py log-work-read-run.py`, edit the copy, TEST it
+    #      against real JSONs, and apply it when the pass prints its
+    #      verdict. Run 33 wrote and tested four reader changes inside the
+    #      hour Run 30's preparation spent blocked. Delete the copy before
+    #      8c and 8d, which lint every *.py here
+    #      8c and 8d's own line below carries the other half of the
+    #      sequencing.
     #      The sweep holds
     #      each process to the arm count `--list` gives for that shape.
     #      AND NOT BEFORE PREFLIGHT'S 4,5, which is the one ordering here
@@ -8054,8 +8077,8 @@ and never as a chronology.
     #      ((10) against a registration of seven), and a half tag missing
     #      from the roll under NAMING THE HALVES. It does NOT read a
     #      figure, so the re-derivation below is owed whole: Run 33's
-    #      preparation found six such statements by reading and three of
-    #      them are of no kind a check can have
+    #      preparation rewrote a statement in every carried block it had,
+    #      and most of them are of no kind a check can have
     #      AND A `cross` PRIOR ON A `-sum` ARM IS READ BY `--compare`
     #      SINCE 2026-09-15, in a block of its own under the table, on raw
     #      `slope` and never in the table's own column -- the two are
@@ -8063,6 +8086,15 @@ and never as a chronology.
     #      re-derived only by a hand-written geomean over two JSONs, which
     #      is what Run 32's preparation wrote and what left Run 33's
     #      unable to quote two of the three figures its note wanted
+    #      AND THE STRONGER READING OF A QUOTED PRIOR IS `--predictions`
+    #      OVER THE JSONS OF THE RUN THAT QUOTED IT: it adjudicates THAT
+    #      run's own items, so it prints the figure with its band and its
+    #      verdict rather than a bare ratio --
+    #      `./read-run.py run32-nospec-runs.json --compare
+    #      run32-ghead-runs.json --predictions` reads `libunord-stage7-sum`
+    #      0.9691 and the 3.09 points that killed Run 32's item (3). Only
+    #      an arm some span of that registration NAMES comes back, which is
+    #      what `--compare`'s block above is for
     #      LOCATE BY PHRASE, NOT BY COORDINATE: this is what `--para`
     #      is, and a `grep -n` for a line number is what sends a session
     #      to `sed` and from there into the chapter. A line number into
@@ -9284,9 +9316,9 @@ not otherwise.
     #      since 2026-09-15, on raw `slope`: they run no forcing pass, so
     #      their net is that term subtracted from itself and the table
     #      above skips them. NEVER QUOTE THE TWO IN ONE COLUMN, ROW OR
-    #      TABLE -- corrected net and raw slope are different quantities,
-    #      which is the rule the performance model states for criterion
-    #      numbers and tasty totals, met again here. `--predictions` reads
+    #      TABLE: a corrected net over a corrected net and a raw slope over
+    #      a raw slope are different quantities, and a table holding both
+    #      says neither. `--predictions` reads
     #      a `cross` prior on those arms the same way, so a prior and this
     #      block agree by construction and a `-sum` figure no longer wants
     #      a hand-written geomean

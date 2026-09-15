@@ -7321,9 +7321,10 @@ def note_check(path, readme, run_doc=None):
     until a hand re-reads them, which the draft's own header asks for and
     which is where a preparation is tired.
 
-    Run 33's preparation found six such statements by reading, and these
-    are the three kinds a machine can have: a range ending at the run
-    before the previous one (`as Runs 20 to 31` in a note whose previous
+    Run 33's preparation re-read those blocks and rewrote a statement in
+    every one of them; these are the three kinds a machine can have: a
+    range ending at the run before the previous one (`as Runs 20 to 31`
+    in a note whose previous
     run is 32, twice), an item number above what the registration carries
     ((10), (15) and (16) against a registration of seven), and a half tag
     missing from the note's own roll of them (neither `exit` nor
@@ -7393,7 +7394,11 @@ def note_check(path, readme, run_doc=None):
     if items is None:
         return 2
     top = max([int(k) for k, _ in items] or [0])
-    for i, ln in enumerate(lines, 1):
+    # A REGISTRATION THAT PARSES NO ITEM DISABLES THIS CHECK rather than
+    # firing it on every reference: at a `top` of zero the comparison is
+    # true of every `(N)` in the note, which reports the PARSE and calls
+    # it the note's fault. The summary line prints the count either way.
+    for i, ln in enumerate(lines, 1) if top else ():
         for q in re.finditer(r'\((\d{1,2})\)', ln):
             if int(q.group(1)) > top:
                 found.append((i, 'item %s, where the registration in %s'

@@ -65,6 +65,14 @@
 # naming a present path reads 10c PASS and exits 0, and step 8 PASSes under
 # both -- which is the control saying the FAIL was the stub and not the
 # mode.
+# 10e's own, 2026-09-16, and on the REAL note rather than a stub, since
+# the mode reads a registration and a runs/ directory that no stub here
+# carries: run33-pair.txt was copied aside, one continuity claim moved
+# from `as Runs 20 to 32` to `31`, and 10e read FAIL and exited 1 naming
+# the line; restored from the copy at the same md5 it reads PASS, which
+# is the control saying the FAIL was the break and not the step. The
+# mode's own three kinds are `note-check-reads-the-carried-blocks` in
+# defects.py; what this proves is the WIRING, which no case reaches.
 # Step 10's zero-fill FAIL, 2026-08-23: no stub reaches it through this
 # script, a stub answering `check` being no ELF, so its awk was fed
 # `./loop-offsets.py /bin/true run14-lookrts` -- `0 self-loops` for the
@@ -485,8 +493,8 @@ step_10e () {  # 10e. AND THE NOTE'S PROSE, which 10c and 10d do not read:
   # `--draft` substitutes the run and the half names and nothing else, so
   # the run numbers, the item numbers and the roll of tags inside those
   # blocks stay the last pair's until a hand re-reads them. Run 33's
-  # preparation found six such statements by reading; these are the three
-  # kinds a machine can have. Non-vacuity is defects.py's
+  # preparation re-read those blocks and rewrote a statement in every one
+  # of them; these are the three kinds a machine can have. Non-vacuity is defects.py's
   # `note-check-reads-the-carried-blocks`, which plants all three in a
   # copy of a real note and counts what comes back.
   [ -f "$R-pair.txt" ] || return 0
