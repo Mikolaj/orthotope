@@ -12416,6 +12416,40 @@ in the front end and never shows as a starved dispatcher, and the predictor's
 block sequencing under the two rules above is the account to test, not the op
 cache's capacity.
 
+**Nine sweeps in a quiet half hour, 2026-09-15 evening, `probe-fetch-model.py`,
+each table saved with its assembled layout so the rules are re-scored offline.**
+The fill's per-run cycle at runs of 2, 4, 8 and 64, and a straight loop of 12
+ops in 3-byte and in 6-byte instructions, of 20 ops, of 12 with the branch
+unfused from its flag writer, and of 12 with an unconditional back edge. What
+they settle, offset by offset. A plain crossing inside a segment costs nothing:
+the fill's body cut 9 and 5 at offsets 22 to 31 reads the free 4 cycles,
+and the 20-op straight loop fits the block count at all 64 offsets. A taken
+conditional branch, or the fused pair it belongs to, cut by the line boundary
+costs a cycle: the fill's `jge` at 9 to 12 and its entry `jl` at 14 to 17,
+the straight loop's `jnz` at 25 to 28; a not-taken one cut the same way,
+the tail's `jle` at 43 to 46, costs nothing. A block whose predicted branches
+end in two lines costs a cycle, the guide's two-branch rule: offset 13, `jl`
+ending in the first line and `jge` in the second with neither cut. A head whose
+block holds fewer than two whole instructions costs a cycle, offsets 56 to 63,
+while a tail or re-entry segment entered the same way, 54 and 55, 20 and 21,
+does not, which the rules do not yet tell apart. A block holding only
+an unconditional `jmp` costs its block and nothing more, 33 to 42. The op
+cache's entry limit binds only where instructions carry 32-bit immediates:
+the 6-byte loop, twelve `and $imm32`, reads 3.26 cycles at every offset
+that fits its 84 bytes in two lines, three entries by the eight-immediates limit
+where the 3-byte loop needs two. An unfused taken conditional costs about
+a third of a cycle an iteration in one block and half a cycle when the cut
+leaves it with three or fewer instructions, against the fused pair's whole
+cycle. And the runs of 4, 8 and 64 are memory-bound, 6.5, 11.3 and 100 cycles
+a run flat across most offsets, the front-end penalties hidden except the two
+that survive anything: the cut taken pair at 14 to 17 and the head in the line's
+last bytes at 60 to 63, each still 15 to 17 percent on the 64-element run.
+So what a placement must avoid on this core, in every regime seen: a taken
+conditional or its fused pair astride a boundary, a head in a line's last bytes,
+and a block whose two predicted branches end in different lines; what it may
+ignore: a crossing anywhere else. The tables are the `probe-fetch-model-*.txt`
+files beside the probe, untracked.
+
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above
 the inner loop header, on all four of those compilers,
