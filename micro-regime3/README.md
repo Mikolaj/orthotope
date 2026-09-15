@@ -3036,19 +3036,23 @@ rather than a slot in the next run, observed again:
   GHC #27799's shape at a loop head, and lays the loop's exit block inside
   the cycle, 100 bytes that cannot fit two lines without a crossing --- six
   taken branches and seven fetch blocks a run against five and five, 8.1 cycles
-  against 6.15. Pinned at 0 on HEAD it reads 7.40 cycles and seven blocks, 0.93
-  of the exit-span half on `runs-3` and 0.98 on the window view, so placement
-  is worth the crossing's position and no more there, and the rest is code
-  order. **Where HEAD's planners actually put it, read off the binaries
-  by the loop's five-instruction shape rather than by a pattern's first match,
-  which had named another copy and cost this entry a wrong 37 and 41
-  for an hour**: the plain form at 30, the exit span at 3, the block rules at 0,
-  every one free by the rules and the planner's trace confirming the block rules
-  chose 0 with a budget of 29 at the head's own dead spot. So no cost failed
-  to act on HEAD; what the free band hides there is a ten percent spread between
-  30, 3 and 0, which comes from where the outer loop's head lands, HEAD having
-  made that outer cycle the one with six taken branches, and the tiers price
-  the outer last. The same holds for stages 7, 10 and 11, which run this loop.
+  against 6.15. Pinned at 0 on HEAD it reads 7.40 cycles and seven blocks
+  against the plain half's 8.10 --- but that plain half is Run 32's, built
+  from the tree of the day before, and a comparison inside one tree, the block
+  rules' half at 0 against the same tree pinned at 30, reads 0.9999 on `runs-3`,
+  0.995 on stage 7's and 1.028 on the window view, level: on HEAD the residue
+  of this head is worth nothing, the 0.93 first read here was the two trees
+  parting, and the whole of HEAD's penalty is code order. **Where HEAD's
+  planners actually put it, read off the binaries by the loop's five-instruction
+  shape rather than by a pattern's first match, which had named another copy
+  and cost this entry a wrong 37 and 41 for an hour**: the plain form at 30,
+  the exit span at 3, the block rules at 0, every one free by the rules
+  and the planner's trace confirming the block rules chose 0 with a budget of 29
+  at the head's own dead spot. So no cost failed to act on HEAD; what the free
+  band hides there is a ten percent spread between 30, 3 and 0, which comes
+  from where the outer loop's head lands, HEAD having made that outer cycle
+  the one with six taken branches, and the tiers price the outer last. The same
+  holds for stages 7, 10 and 11, which run this loop.
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
