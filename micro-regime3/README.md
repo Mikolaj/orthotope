@@ -12387,6 +12387,35 @@ would have to re-derive.
 | Skylake to Comet Lake with the JCC microcode | as above | as above, and a jump crossing or ending on a 32-byte boundary is not cached at all | | [Intel, JCC mitigation][jcc] |
 | Golden Cove and later | 4096 entries; 12-wide on Lion Cove | the window is 64 bytes | 8 | [Chips and Cheese][golden-cove] |
 
+**What the Zen 3 guide's own front-end chapter says about the bands, read
+the same evening, and what the counters confirm.** Section 2.8 of [the Zen 3
+guide][zen3-sog]: the next-address logic produces one naturally aligned 64-byte
+fetch block a cycle, and "branching to the end of a 64-byte fetch block can
+result in loss of prediction bandwidth as it will result in a shortened fetch
+block", which is the 60 to 63 band, a head in the line's last bytes; a BTB entry
+holds two branches only "if the last bytes of the branches reside in the same
+64-byte aligned cache line and the first branch is a conditional branch",
+and a third predicted branch after a cache-line entry point "will require
+an additional BTB entry and additional cycles of prediction latency", which
+is what the 32 to 42 band's fourth L1 BTB override a run looks like and what
+the 9 to 13 band's `jl` ending in one line and `jge` in the next would pay;
+fetch windows are tracked in a 64-entry FIFO from fetch to retirement, one entry
+a line visited or more, and fetch stalls when it fills; and the guide's own loop
+advice, section 2.8.3, is to align the END of a loop to the last byte of a line
+and keep predicted branches per entry point at two, the exit span's rule stated
+the other way round for a cycle that fits a line and a rule for the cut where
+it does not. The processor programming reference for the same core, 55898,
+defines the counters: 0x28F counts op-cache micro-tag lookups, one a fetch
+block, 0xA9 cycles with the op queue empty, 0x1D0 retired fused instructions,
+and 0xAA, the op-source split, sits under erratum 1287 and reads zero here. Read
+on the fill kernel at six offsets, per run: 26 instructions, 22 ops, four fused
+pairs and three taken branches at every offset; op-cache misses, op-cache
+to decoder switches, op-queue-empty cycles and every dispatch token stall
+at zero at the costly offsets as at the free ones. So the lost cycle is
+in the front end and never shows as a starved dispatcher, and the predictor's
+block sequencing under the two rules above is the account to test, not the op
+cache's capacity.
+
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above
 the inner loop header, on all four of those compilers,
