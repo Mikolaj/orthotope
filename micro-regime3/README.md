@@ -12445,10 +12445,20 @@ a run flat across most offsets, the front-end penalties hidden except the two
 that survive anything: the cut taken pair at 14 to 17 and the head in the line's
 last bytes at 60 to 63, each still 15 to 17 percent on the 64-element run.
 So what a placement must avoid on this core, in every regime seen: a taken
-conditional or its fused pair astride a boundary, a head in a line's last bytes,
-and a block whose two predicted branches end in different lines; what it may
-ignore: a crossing anywhere else. The tables are the `probe-fetch-model-*.txt`
-files beside the probe, untracked.
+conditional or its fused pair astride a boundary, a head within eight bytes
+of a line's end, and a block whose two predicted branches end in different
+lines; what it may ignore: a crossing anywhere else. Written as rules
+in the probe and re-scored offline against the tables, they fit the fill at run
+length 2 and the four 3-byte straight loops at 319 of 320 residues, the one miss
+a row that jitters between 2.4 and 2.9 on a 2.5-cycle floor: one cycle a fetch
+block, a straddling first instruction leaving an empty block that is fetched
+like any other; a whole cycle for the cut taken pair and for the head
+in the line's last eight bytes; half cycles for a cut leaving a last block
+of three or fewer instructions, a block holding only a `jmp`, and a quarter
+for an unfused taken conditional; the penalties added to the larger of ops
+over six and blocks, whole where the fetch bounds the loop and halved where
+the dispatcher does. The tables are the `probe-fetch-model-*.txt` files beside
+the probe, untracked.
 
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above
