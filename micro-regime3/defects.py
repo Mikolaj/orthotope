@@ -2805,6 +2805,34 @@ def asm_exit(tmp):
     return asm(tmp, ASM_EXIT_ASTRIDE)
 
 
+# A loop whose back edge is an unconditional jmp, followed by a dead block
+# of 9 bytes (3 + 3 + 3 -- movq, movq, `jmp *(%rbp)`) up to that block's
+# own jump: the 8 B preamble (5 + 3) ends in the dead spot, the body is
+# 26 B (8 movq of 3 and a 2-byte jmp). Read past the jmp, the exit span
+# is 35 B and costly from residue 30, a budget of 34, which the shim as
+# committed before the fix emits; with no exit after an unconditional
+# back edge the body alone counts, costly from 39, a budget of 25.
+# Worked by hand, the old budget first guessed at 35 for a 4-byte jmp
+# and corrected by running the old shim, 2026-09-15.
+ASM_JMP_BACK_EDGE = """\
+\t.text
+.Lstart:
+\tmovq\t$1, %rax
+\tjmp\t*(%rbp)
+.Lin:
+""" + '\tmovq\t%rax, %rcx\n' * 8 + """\
+\tjmp\t.Lin
+.Ldead:
+\tmovq\t%rax, %rdx
+\tmovq\t%rax, %rsi
+\tjmp\t*(%rbp)
+"""
+
+
+def asm_jmp_back(tmp):
+    return asm(tmp, ASM_JMP_BACK_EDGE)
+
+
 def asm_entries(tmp):
     return asm(tmp, ASM_ENTRIES_CUT)
 
@@ -7716,6 +7744,15 @@ RECORDS = [
                            'before .Lin: jmp\t*(%rbp)',
                            '1 head(s) the blocks cost places at a residue'
                            ' the exit cost would not: .Lin'])),
+
+    case('exitspan-reads-no-exit-after-a-jmp-back-edge', 'align-as.py', None,
+         'a dead block after an unconditional back edge was the exit span',
+         plant=asm_jmp_back, probe=emitted,
+         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
+              'LOOP_EXITSPAN': '1', 'ALIGN_AS_VERBOSE': '1'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         ok=V(exit=0, has=['after jmp\t*(%rbp): .p2align\t6, 0x90, 25'],
+              hasnt=['.p2align\t6, 0x90, 34'])),
 
     case('cost-flags-want-the-dead-spot-form', 'align-as.py', None,
          'a cost of the planner asked for without the planner',

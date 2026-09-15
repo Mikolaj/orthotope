@@ -565,9 +565,14 @@ def exits_of(src, edges):
     """head label -> the line of the first jump on the fall-through path
     after its last back edge: the loop's exit test, which a loop that
     turns over once per entry executes as often as its body. None where
-    a table, a section change or the file's end comes first."""
+    a table, a section change or the file's end comes first, and none
+    where the last back edge is an unconditional jump, nothing falling
+    through it: the bytes after it are another block's, and until
+    2026-09-15 they were read as the exit and charged."""
     out = {}
     for h, (i, js) in edges.items():
+        if UNCOND.match(src[max(js)].strip()):
+            continue
         for k in range(max(js) + 1, len(src)):
             s = src[k].strip()
             if not s or s.startswith('#') or BYTELESS.match(s):
