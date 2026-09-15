@@ -2973,11 +2973,22 @@ rather than a slot in the next run, observed again:
   on `window-128x128-k7` and 0.991 on the latency-bound stage 10. The thirteen
   cells the entry above was answered on held fills and references
   and no reducer, and a reducer's per-run loop with a three-element body
-  is exactly the population where a stub piece costs. The verdict stands,
-  the exit span being the one of the two that does not lose here; what this adds
-  is the candidate for the crossing both admit, the sum of the two costs, lines
-  beyond least plus entries beyond least, which would pick the cut that strands
-  no stub --- a basis change for a run, registered here and not built.
+  is exactly the population where a stub piece costs. **On the tiny views
+  the same arm trails stage 7 for a third reason, and it is neither**:
+  on `small-patch-k5`, `cnn-slice-c32` and `small-patch-r5`, 150 to 256 elements
+  and calls of 200 to 700 ns, stage 10 retires 650 to 1050 more instructions
+  a call than stage 7, the rank-5 view the most, and stage 9 the same excess
+  over stage 6 --- the per-call cost of the zero-stride move, two filters
+  and an append over the axis pairs, run on every call whether or not a zero
+  stride is there --- and the gap is that excess at the IPC of allocating list
+  code, 55 to 58 ns on the rank-3 views and 109 on the rank-5 one, the same
+  to a few nanoseconds on both compilers, the counts being equal
+  to the instruction. A per-call term on a view that small, not a loop's
+  placement. The verdict stands, the exit span being the one of the two
+  that does not lose here; what this adds is the candidate for the crossing both
+  admit, the sum of the two costs, lines beyond least plus entries beyond least,
+  which would pick the cut that strands no stub --- a basis change for a run,
+  registered here and not built.
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
