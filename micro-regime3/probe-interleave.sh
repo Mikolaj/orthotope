@@ -3,7 +3,9 @@
 # for a machine that is quiet for minutes and not hours: per pair the
 # per-iteration user cycles of each binary, differenced -n 2N against -n N
 # as run-counts.sh differences instructions, and the ratio B/A; per cell
-# the median ratio over the pairs and its range. The cells come from
+# the median ratio over the pairs and its range, with the two cycle
+# counts behind every pair on a comment line under the cell, since a
+# ratio alone cannot say which side a burst of load hit. The cells come from
 # probe-fetches-read.py, the ones whose window crossings moved. A probe:
 # an input to README, run by hand, and never a published figure -- the
 # floors and the A/A copies belong to a run.
@@ -39,15 +41,19 @@ per_iter() {  # per_iter BINARY SEL SHAPE ARM -> cycles an iteration, difference
 }
 echo "# A=$A B=$B PAIRS=$PAIRS N=$N $(date -Is)"
 echo "# cell  pairs(B/A)...  median  range"
+echo "# and under each cell the cycles an iteration behind each pair, A:B, so"
+echo "# that a pair off the others can be read as one side moved or both"
 for CELL in "$@"; do
   P=${CELL%%/*}; REST=${CELL#*/}; S=${REST%%/*}; ARM=${REST#*/}
   if [ "$P" = main ]; then SEL=; else SEL=classes; fi
-  RATIOS=""
+  RATIOS=""; RAW=""
   for _ in $(seq "$PAIRS"); do
     a=$(per_iter "$A" "$SEL" "$S" "$ARM"); b=$(per_iter "$B" "$SEL" "$S" "$ARM")
+    RAW="$RAW $a:$b"
     if [ "$a" = NaN ] || [ "$b" = NaN ] || [ "$a" -eq 0 ]; then RATIOS="$RATIOS NaN"
     else RATIOS="$RATIOS $(awk -v a="$a" -v b="$b" 'BEGIN{printf "%.4f", b/a}')"; fi
   done
   STATS=$(printf '%s\n' $RATIOS | grep -v NaN | sort -n | awk '{v[NR]=$1} END{if(NR==0){print "NaN NaN"} else {m=(NR%2)?v[(NR+1)/2]:(v[NR/2]+v[NR/2+1])/2; printf "%.4f %.4f..%.4f", m, v[1], v[NR]}}')
   echo "$CELL $RATIOS  $STATS"
+  echo "#  $RAW"
 done
