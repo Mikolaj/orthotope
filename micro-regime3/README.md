@@ -2997,10 +2997,22 @@ rather than a slot in the next run, observed again:
   it is the timing: level with stage seven on every view without a zero stride
   and with stage ten on every view with one, which the counts predict
   and the run has to say. The verdict stands, the exit span being the one
-  of the two that does not lose here; what this adds is the candidate
-  for the crossing both admit, the sum of the two costs, lines beyond least plus
-  entries beyond least, which would pick the cut that strands no stub ---
-  a basis change for a run, registered here and not built.
+  of the two that does not lose here. **The third cost, `LOOP_BLOCKRULES=1`,
+  the nine sweeps' rules carried into the shim the same evening, was built
+  and read on both compilers before the day ended**: it places 1145 of 1874
+  heads on 9.12.4 and 1159 of 1901 on HEAD at residues the exit span would not,
+  leaves 57 and 67 short loops straddling by the lines criterion,
+  and in interleaved pairs reads level with the exit span on the lean fill
+  and on both window cells, 1.018 and 1.001 on HEAD's stage 9 and 1.016
+  on 9.12.4's --- so it loses nothing where the entry count lost, and it does
+  not move stage 9 on HEAD either. That settles which part of the shim the stage
+  9 cell indicts: not the cost, all three of which price the residue the planner
+  hands the inner head, but the tier that hands it there. The inner loop
+  of that rotated pair is the three-element `sumNoSpec`, cold per element,
+  and the outer walker is the hot cycle, so the residue should be the outer's;
+  the planner has no way to know a trip count, and a profile is what would tell
+  it. The end-alignment the guide recommends is a tie-break the block rules do
+  not yet carry, and it too would be spent on the inner head.
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
