@@ -521,9 +521,11 @@ brief_facts () {
       "$(sed -n 's/^ *md5 \([a-z0-9]*\) *\([0-9a-f]\{32\}\)/\1=\2/p' \
            "$NOTE" | tr '\n' ' ')"
     # ANCHORED AT THE FACT BLOCK'S OWN INDENT. `^ *repetition ` matched
-    # the note's PROSE first -- run32-pair.txt line 319, a sentence about
-    # what a one-sided md5 row means -- and published that instead of the
-    # run's entry at line 554, boilerplate standing where a fact belongs.
+    # the note's PROSE first -- the sentence saying what a one-sided md5
+    # row means, which opens with the word and is indented as prose --
+    # and published that instead of the entry of that name, boilerplate
+    # standing where a fact belongs. A note is gitignored and per-run, so
+    # the indent is what names these and a line number would not.
     printf '  %-14s %s\n' 'repetition' \
       "$(sed -n '/^  repetition /,$p' "$NOTE" | head -6 \
            | sed 's/^ *repetition *//' | tr '\n' ' ' \
