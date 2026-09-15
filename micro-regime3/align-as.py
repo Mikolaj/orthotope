@@ -51,6 +51,16 @@ the old object code and reports nothing (README.md, same section).
                off by default. The same section
   LOOP_WINDOW  bytes of the window that ends an entry, default 64
   LOOP_ENTRY_OPS  instructions an entry holds, default 8
+  LOOP_BLOCKRULES  charge the fetch blocks of the cycle and the front-end
+               penalties nine sweeps measured on this Zen 3: a whole cycle
+               for the segment's taken conditional or its fused pair
+               astride a boundary or ending in a different line from the
+               segment's previous branch, a whole cycle for the head
+               within eight bytes of its line's end, half cycles for a
+               cut leaving a short last block and for a block holding
+               only a jmp, over the larger of ops/6 and blocks. Wants
+               LOOP_DEADSPOT=1 likewise, stands alone, and is off by
+               default. The same section
   PAD_BYTES    dead bytes appended after the first module's text, default 0
   REAL_AS      the real assembler, default /usr/bin/gcc
   ALIGN_AS_VERBOSE  report the budgets emitted, the heads fallen back on,
@@ -216,10 +226,29 @@ references; on a reducer's per-run loop with a three-element body,
 window-224x224-k3's stage 9, the entry form reads 7 percent behind,
 its cut having stranded a stub (README, the open list). So the exit span is
 the candidate basis and the entry form stays here, off, for the day a
-cell contradicts that (README, the open list). Both are costs of the
-dead-spot planner and refuse
-to run without `LOOP_DEADSPOT=1`, since a switch that implied another
-would be a default and a pair's note records no default. Under
+cell contradicts that (README, the open list).
+
+**The block rules, `LOOP_BLOCKRULES=1`** (2026-09-15, evening): the
+cost `probe-fetch-model.py` fitted to nine sweeps, 319 of 320 residues
+on the loops the front end bounds, carried over rule for rule -- one
+cycle a fetch block, a straddling first instruction leaving an empty
+block that is fetched like any other; a whole cycle for a segment's
+taken conditional branch, or its fused pair, astride the boundary or
+ending in a different line from the segment's previous predicted
+branch; a whole cycle for the loop head within eight bytes of its
+line's end; half cycles for a cut leaving a last block of three or
+fewer instructions starting in its line, for a block holding only a
+`jmp`, and a quarter for an unfused taken conditional; the penalties
+added to the larger of ops over six and blocks, whole where the blocks
+bound the loop and halved where the dispatcher does. A head's cost at a
+residue is that figure less its least over the 64 residues, in the tier
+its body length puts it in, so a crossing that fires no rule is free
+and a cycle longer than a line is priced by where its cut falls, which
+neither earlier cost could say. The segment-ending branch is taken and
+any inside a segment is not, the shim's standing assumption. All three
+are costs of the dead-spot planner and refuse to run without
+`LOOP_DEADSPOT=1`, since a switch that implied another would be a
+default and a pair's note records no default. Under
 ALIGN_AS_VERBOSE each plans the module a second time under the cost
 below it, the entry count against the exit span and the exit span
 against the plain dead-spot cost, probes that plan too, and names the
@@ -232,9 +261,10 @@ cycles at every residue.
 Its defects are kept as cases in `defects.py`: the switch read for
 truth, the head after a zero-operand instruction, the pad's announcement,
 the empty `PAD_BYTES`, for the dead-spot form the pad's place, the table
-kept with its label and the rotated pair's order, and for the two costs
-above the fill's shape under each, a cut the entry count keeps and the
-exit span pads, and the refusal without the dead-spot form. Add one there
+kept with its label and the rotated pair's order, and for the three costs
+above the fill's shape under each, a cut the entry count and the block
+rules keep and the exit span pads, and the refusal without the dead-spot
+form. Add one there
 before fixing anything here, and the proof outlives the commit.
 
 The published copy of this is in horde-ad's
@@ -405,15 +435,16 @@ NOOVERLAP = switch('LOOP_NOOVERLAP')
 DEADSPOT = switch('LOOP_DEADSPOT')
 EXITSPAN = switch('LOOP_EXITSPAN')
 ENTRIES = switch('LOOP_ENTRIES')
+BLOCKRULES = switch('LOOP_BLOCKRULES')
 WINDOW = number('LOOP_WINDOW', 64)
 ENTRY_OPS = number('LOOP_ENTRY_OPS', 8)
 VERBOSE = switch('ALIGN_AS_VERBOSE')
 PAD = number('PAD_BYTES', 0)
 BOUND = 1 << int(ALIGN)
-if (EXITSPAN or ENTRIES) and not DEADSPOT:
-    sys.exit('align-as: LOOP_EXITSPAN and LOOP_ENTRIES are costs of the'
-             ' dead-spot planner and want LOOP_DEADSPOT=1 beside them; the'
-             ' recipe asked for something this shim cannot do')
+if (EXITSPAN or ENTRIES or BLOCKRULES) and not DEADSPOT:
+    sys.exit('align-as: LOOP_EXITSPAN, LOOP_ENTRIES and LOOP_BLOCKRULES are'
+             ' costs of the dead-spot planner and want LOOP_DEADSPOT=1 beside'
+             ' them; the recipe asked for something this shim cannot do')
 if ENTRIES and (WINDOW < 1 or BOUND % WINDOW or ENTRY_OPS < 1):
     sys.exit('align-as: LOOP_WINDOW=%d LOOP_ENTRY_OPS=%d: the window must'
              ' divide the alignment boundary of %d bytes and an entry must'
@@ -548,21 +579,32 @@ def instr_lines(src, edges, exits):
     return out
 
 
-def segments(sym, i, j, x, a, end_body, end_exit):
-    """A head's cycle as two lists of (start, end) offsets from the head,
-    body through the back edge on line `j` and exit through line `x`, each
-    instruction ending where the next begins."""
-    at = sorted((v - a, int(k.split('_')[1])) for k, v in sym.items()
-                if k.startswith(f'{DS}I_') and a <= v
-                and i <= int(k.split('_')[1]) <= (x if x is not None else j))
+def instr_index(sym):
+    """The instruction labels' lines in order with their addresses, read
+    off the symbol table once: `segments` then takes a head's slice by
+    bisection rather than scanning every symbol per head, which is what
+    made a build with instruction labels take twelve minutes for one."""
+    lines = sorted((int(k.split('_')[1]), v) for k, v in sym.items()
+                   if k.startswith(f'{DS}I_'))
+    return [ln for ln, _ in lines], [v for _, v in lines]
+
+
+def segments(index, i, j, x, a, end_body, end_exit, mnemonic):
+    """A head's cycle as two lists of (start, end, mnemonic) from the
+    head, body through the back edge on line `j` and exit through line
+    `x`, each instruction ending where the next begins."""
+    lines, addrs = index
+    lo = bisect.bisect_left(lines, i)
+    hi = bisect.bisect_right(lines, x if x is not None else j)
+    at = [(addrs[n] - a, lines[n]) for n in range(lo, hi) if addrs[n] >= a]
     body, exit_ = [], []
     for n, (start, line) in enumerate(at):
         if line <= j:
             end = at[n + 1][0] if n + 1 < len(at) and at[n + 1][1] <= j else end_body
-            body.append((start, end))
+            body.append((start, end, mnemonic[line]))
         else:
             end = at[n + 1][0] if n + 1 < len(at) else end_exit
-            exit_.append((start, end))
+            exit_.append((start, end, mnemonic[line]))
     return body, exit_
 
 
@@ -576,10 +618,90 @@ def entry_cost(segs, r):
     for seg in segs:
         if not seg:
             continue
-        pieces = collections.Counter((r + end - 1) // WINDOW for _, end in seg)
+        pieces = collections.Counter((r + end - 1) // WINDOW for _, end, _ in seg)
         tot += (sum(-(-n // ENTRY_OPS) for n in pieces.values())
                 - -(-len(seg) // ENTRY_OPS))
     return tot
+
+
+FUSABLE = {'cmp', 'test', 'add', 'sub', 'and', 'or', 'xor', 'inc', 'dec',
+           'cmpq', 'cmpl', 'testq', 'testl', 'addq', 'addl', 'subq', 'subl',
+           'andq', 'andl', 'orq', 'orl', 'xorq', 'xorl', 'incq', 'incl',
+           'decq', 'decl'}
+HEAD_TAIL = 8             # a head this close to the line's end pays a cycle
+
+
+def is_cond(mn):
+    return mn.startswith('j') and mn != 'jmp'
+
+
+def prepared(segs):
+    """The per-segment figures `block_cost` needs at every residue, taken
+    once: instruction starts, ends and mnemonics, the op count less fused
+    pairs, and the taken branch's own bytes. A build prices 1874 heads at
+    64 residues each, so what is per segment and not per residue is done
+    here -- 419 of 452 seconds went to redoing it, profiled 2026-09-15."""
+    out = []
+    for seg in segs:
+        if not seg:
+            continue
+        starts = [s for s, _, _ in seg]
+        ends = [e for _, e, _ in seg]
+        mns = [m for _, _, m in seg]
+        fusedpairs = sum(1 for x, y in zip(mns, mns[1:])
+                         if x in FUSABLE and y.startswith('j'))
+        last = mns[-1]
+        fused = len(seg) >= 2 and mns[-2] in FUSABLE and is_cond(last)
+        prev = [n for n in range(len(seg) - 1) if mns[n].startswith('j')
+                and not (fused and n == len(seg) - 2)]
+        out.append(dict(starts=starts, ends=ends, mns=mns,
+                        ops=len(seg) - fusedpairs, last=last, fused=fused,
+                        pair_start=starts[-2] if fused else starts[-1],
+                        prev_end=ends[prev[-1]] if prev else None))
+    return out
+
+
+def block_cost(segs, r):
+    """Front-end cycles of a cycle placed with its head at residue `r`,
+    `probe-fetch-model.py`'s rules as fitted on 2026-09-15: fetch blocks
+    over the dispatcher's floor, plus the penalties the docstring lists,
+    whole where the blocks bound the loop and halved otherwise. `segs` is
+    `prepared`'s list, the body first; each segment ends in its taken
+    branch and every branch inside it is taken not to be."""
+    ops, blocks, whole, half = 0, 0, 0, 0.0
+    for n_seg, sg in enumerate(segs):
+        ends, starts = sg['ends'], sg['starts']
+        ops += sg['ops']
+        lines = {(r + e - 1) >> 6 for e in ends}
+        blocks += len(lines)
+        if (r + starts[0]) >> 6 != (r + ends[0] - 1) >> 6:
+            blocks += 1                              # the empty block left
+        if n_seg == 0 and r % 64 >= 64 - HEAD_TAIL:
+            whole += 1                               # a head near the end
+        last_line = (r + ends[-1] - 1) >> 6
+        whole_in_last = 0
+        for n in range(len(ends) - 1, -1, -1):
+            if (r + ends[n] - 1) >> 6 != last_line:
+                break
+            if (r + starts[n]) >> 6 == last_line:
+                whole_in_last += 1
+        last = sg['last']
+        if is_cond(last):
+            lb = r + ends[-1] - 1
+            cut = (r + sg['pair_start']) >> 6 != lb >> 6
+            if not cut and sg['prev_end'] is not None:
+                cut = (r + sg['prev_end'] - 1) >> 6 != lb >> 6
+            if cut:
+                whole += 1
+            if not sg['fused']:
+                half += 0.5
+            if len(lines) > 1 and whole_in_last <= 3 and not cut:
+                half += 1
+        elif last == 'jmp' and whole_in_last <= 1:
+            half += 1
+    floor = max(ops / 6.0, blocks)
+    w = 1.0 if blocks >= ops / 6.0 else 0.5
+    return floor + w * (whole + half / 2.0)
 
 
 def sites(src, heads):
@@ -829,13 +951,15 @@ def plan_dead(src, args, path):
     """
     edges = edges_of(src)
     dead, aligns = dead_spots(src)
-    exits = exits_of(src, edges) if (EXITSPAN or ENTRIES) else {}
-    ilines = instr_lines(src, edges, exits) if ENTRIES else set()
+    exits = exits_of(src, edges) if (EXITSPAN or ENTRIES or BLOCKRULES) else {}
+    ilines = instr_lines(src, edges, exits) if (ENTRIES or BLOCKRULES) else set()
+    mnemonic = {k: src[k].strip().split()[0] for k in ilines}
     sym = probe(marked(src, edges, dead, aligns, {}, exits, ilines),
                 args, path, DS)
     if not sym:
         return None
-    L, LX, SEGS = {}, {}, {}
+    L, LX, SEGS, BC = {}, {}, {}, {}
+    index = instr_index(sym) if ilines else ([], [])
     for h, (i, js) in edges.items():
         a = sym[f'{DS}H_{i}']
         ends = [sym[f'{DS}E_{i}_{j}'] - a for j in js if sym[f'{DS}E_{i}_{j}'] > a]
@@ -845,14 +969,21 @@ def plan_dead(src, args, path):
         x = sym.get(f'{DS}X_{i}')
         if x is not None and x - a > L[h]:
             LX[h] = x - a
-        if ENTRIES:
+        if ENTRIES or BLOCKRULES:
             j = max(js)
-            SEGS[h] = segments(sym, i, j, exits.get(h), a,
-                               sym[f'{DS}E_{i}_{j}'] - a, LX.get(h, L[h]))
+            SEGS[h] = segments(index, i, j, exits.get(h), a,
+                               sym[f'{DS}E_{i}_{j}'] - a, LX.get(h, L[h]),
+                               mnemonic)
+            if BLOCKRULES and SEGS[h][0]:
+                pre = prepared(SEGS[h])
+                costs = [block_cost(pre, r) for r in range(BOUND)]
+                least = min(costs)
+                BC[h] = [c - least for c in costs]
     outer = overlapped(spans_of(src))
     align_lines = sorted(aligns)
-    mode = 'entries' if ENTRIES else 'exit' if EXITSPAN else 'plain'
-    below = {'entries': 'exit', 'exit': 'plain'}
+    mode = ('blocks' if BLOCKRULES else 'entries' if ENTRIES
+            else 'exit' if EXITSPAN else 'plain')
+    below = {'blocks': 'exit', 'entries': 'exit', 'exit': 'plain'}
 
     def residue(d, i, p):
         """Head line i's offset mod BOUND when the pad after d ends at p."""
@@ -877,14 +1008,16 @@ def plan_dead(src, args, path):
     for cands, hs in groups:
         if not cands:
             continue
-        hl = [(edges[h][0], L[h], h in outer, LX.get(h), SEGS.get(h))
-              for h in hs]
+        hl = [(edges[h][0], L[h], h in outer, LX.get(h), SEGS.get(h),
+               BC.get(h)) for h in hs]
 
         def cost(d, p, how):
             c = [0, 0, 0]
-            for i, ln, out, lx, segs in hl:
+            for i, ln, out, lx, segs, bc in hl:
                 r = residue(d, i, p)
-                if how == 'entries' and segs is not None:
+                if how == 'blocks' and bc is not None:
+                    v = bc[r]
+                elif how == 'entries' and segs is not None:
                     v = entry_cost(segs, r)
                 else:
                     v = extra(r, ln)
@@ -916,7 +1049,7 @@ def plan_dead(src, args, path):
             return c0
 
         c0 = directive(choose(mode), ins)
-        unresolved += c0[0] + c0[1]
+        unresolved += int(c0[0] + c0[1])
         if VERBOSE and mode in below:
             directive(choose(below[mode]), ins_alt)
     if VERBOSE:

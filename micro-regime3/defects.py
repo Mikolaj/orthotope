@@ -2755,7 +2755,15 @@ def asm_pair(tmp):
 # 10..63, a budget of 54, fired at 20; the entry count charges nothing
 # until the body itself is cut, at 36..61, a budget of 28, not fired at
 # 20, so the head stays where the sweep's smaller-piece rule would price
-# it -- a control of the arithmetic and not of the machine.
+# it -- a control of the arithmetic and not of the machine. Under the
+# block rules the same cut is free too, and the budget is worked from
+# the rules' costly residues: the exit's jmp alone in its block at 10 to
+# 13, the cmp+jl pair astride the boundary at 36 to 39 and a short last
+# block at 40 to 45, the head in the line's last eight bytes at 56 to
+# 63, none at 20. The jmp spot's budget would be 54, the text spot's,
+# 20 bytes earlier, 48, and the planner takes the smaller: a directive
+# after `.text` that fires as no bytes at residue 0, nothing after the
+# jmp, and the head left at 20 where the exit span moves it to 0.
 ASM_EXIT_ASTRIDE = """\
 \t.text
 .Lstart:
@@ -7697,6 +7705,17 @@ RECORDS = [
                            '1 exit span(s) astride',
                            '1 head(s) the entries cost places at a residue the'
                            ' exit cost would not: .Lin'])),
+
+    case('blockrules-keep-what-the-exit-span-pads', 'align-as.py', None,
+         'the same cut priced by the block rules, and the head stays',
+         plant=asm_entries, probe=emitted,
+         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
+              'LOOP_BLOCKRULES': '1', 'ALIGN_AS_VERBOSE': '1'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         ok=V(exit=0, has=['after .text: .p2align\t6, 0x90, 48',
+                           'before .Lin: jmp\t*(%rbp)',
+                           '1 head(s) the blocks cost places at a residue'
+                           ' the exit cost would not: .Lin'])),
 
     case('cost-flags-want-the-dead-spot-form', 'align-as.py', None,
          'a cost of the planner asked for without the planner',
