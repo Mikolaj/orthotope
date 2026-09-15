@@ -2875,6 +2875,35 @@ rather than a slot in the next run, observed again:
   as a property of publishing a half. What would close the entry is a ruling
   that it is retired on that evidence; what would reopen it is a mechanism,
   which nobody has proposed.
+- `OPEN` **Price the exit span against the entry count, `LOOP_EXITSPAN=1`
+  against `LOOP_ENTRIES=1`, each under the dead-spot form --- registered
+  2026-09-15, before either has been built into a half.** Run 32's HEAD half
+  left `fillStage2`'s stepping loop at offset 9 with its exit astride the line,
+  which the shim's span test accepts and the machine charges about a cycle a run
+  for ([the placement section][floor] carries the sweep, the per-core table
+  and the sources). The two flags are the two repairs, and they agree wherever
+  a cycle fits a line, this loop included, so a pair of them prices the model
+  and not the fix: A is `LOOP_DEADSPOT=1 LOOP_EXITSPAN=1`, B
+  is `LOOP_DEADSPOT=1 LOOP_ENTRIES=1`, one source, one compiler, the inert
+  `LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1` carried on both halves or on neither,
+  and the note naming every switch. Read it in two stages. First, before timing
+  anything, `ALIGN_AS_VERBOSE=1` on B's build names the heads the entry count
+  places at a residue the exit span would not, and A's build the heads the exit
+  span moves off the plain cost's residues; those heads are where the pair can
+  say anything, and on the tree of 2026-09-15 they are most of it, 1399 of 1833
+  heads between B and A and 637 between A and the plain form, upstream pads
+  carrying a residue change down to every head below them. So the pair differs
+  nearly everywhere, and `probe-entries-sweep.py` is what localises
+  a difference: the exhaustive reading for one head, predicted entries against
+  measured cycles at all 64 residues, which the entry count already misses
+  at ten to thirteen offsets of the fill loop. Second, the pair itself
+  with `--pair`, and per cell the op-cache fetch counter, raw event 0x28F, which
+  reads taken branches plus window crossings and so checks the window half
+  of the model directly, the cycles checking the rest. What settles it: B ahead
+  of A on the heads named, past their floors, with the sweep's mispredicted
+  residues not among them, buys the entry count the basis; level, or behind,
+  the exit span is the cheaper rule and stands, and the entry count is parked
+  with the sweep beside it.
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
@@ -12218,6 +12247,49 @@ of scope than two arms here could reach, and a candidate for why 1.19 here
 is smaller than 1.58 there, the run-fill copying memory rather than only adding,
 though nothing here measures that.
 
+**What a line boundary costs is an op-cache entry, and a split instruction
+is not a second thing** (2026-09-15, on this Zen 3, a Ryzen 7 5800X). Run 32's
+HEAD half lands `fillStage2`'s stepping loop at offset 9, its exit `cmp; jge`
+astride the line end, and pays about a cycle a run on every two-
+and four-element run where the 9.12.4 half at offset 0 pays none,
+the instructions, taken branches and mispredictions of the two binaries being
+identical: op-cache fetches read one more a run, 5.4M against 4.5M an iteration
+on `stretch-wide-2xM`, with 900k runs an iteration. Swept over all 64 offsets
+in a standalone copy of that loop, `probe-entries-sweep.py`, the run costs 4
+cycles at offsets 0 to 8 and 22 to 31 and 5 or 6 everywhere else, and offset 9,
+where the branch is split, reads the same as offset 10, where it starts the next
+line. A straight loop of 14 instructions swept the same way costs nothing at any
+cut that leaves five or more ops on both sides of the boundary and up to a cycle
+where a side holds a lone branch. The vendor documents name the unit: an entry
+of up to 8 sequential instructions ending in the same 64-byte region, terminated
+at the region's end, on Zen 2; 8 macro ops on Zen 3, where the sentence about
+the region is gone from the guide and the fetch counter says the boundary still
+ends an entry; 9 macro ops from up to two adjacent lines on Zen 4. Intel before
+Golden Cove builds lines of 6 uops per 32-byte window, and Skylake through Comet
+Lake under the JCC microcode cannot cache a jump that crosses or ends
+on a 32-byte boundary at all, so there the split branch is the worse case
+and not the same one. An entry count, each piece of a straight segment charged
+one entry per 8 instructions, reproduces the sweep at 54 of the 64 offsets
+on the probe's own run and 51 on the first, the misses being 18, 22, 32 to 35
+and 60 to 63 on both and 19 to 21 on the first alone; the middle band is where
+a fourth L1 BTB override a run appears, on 32 to 42, unexplained, and counting
+fused ops instead of instructions fits worse, at 48 on the first run. Two things
+follow for the shim. Its criterion, lines spanned by the head-to-back-edge span
+and not straddling, is the right unit and the wrong span: a loop that turns
+over once a run exits every run, and the exit is what the boundary cut.
+And the criterion is this machine's; the table is what a run on another core
+would have to re-derive.
+
+| core | entry limit | window that ends an entry | ops a cycle | source |
+|---|---|---|---|---|
+| Zen 2 | 8 instructions | 64 bytes: up to 8 sequential instructions ending in the same 64-byte aligned region; an entry terminates at the region's end | 8 | [Zen 2 SOG 56305][zen2-sog] |
+| Zen 3 | 8 macro ops; CMP, TEST, SUB, ADD, INC, DEC, OR, AND and XOR fuse with a following Jcc | 64 bytes, by the fetch counter and the sweep here; the guide no longer says so | 8 | [Zen 3 SOG 56665][zen3-sog] |
+| Zen 4 | 9 macro ops, fewer with many immediates or EVEX prefixes | an entry may hold instructions from two adjacent 64-byte lines | 9 | [Zen 4 SOG 57647][zen4-sog], [Chips and Cheese][zen4-cc] |
+| Zen 5 | 6K entries; two taken branches a cycle | not in a document opened here | 6 per branch | [Agner Fog][agner], [Hot Chips 2024][zen5-hc] |
+| Intel Sandy Bridge to Skylake | 6 uops a line, at most 3 lines a window; an unconditional jump ends a line | 32 bytes; one line a clock | 4 | [Agner Fog][agner] |
+| Skylake to Comet Lake with the JCC microcode | as above | as above, and a jump crossing or ending on a 32-byte boundary is not cached at all | | [Intel, JCC mitigation][jcc] |
+| Golden Cove and later | 4096 entries; 12-wide on Lion Cove | the window is 64 bytes | 8 | [Chips and Cheese][golden-cove] |
+
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above
 the inner loop header, on all four of those compilers,
@@ -13859,6 +13931,7 @@ benchmark run](#making-a-major-benchmark-run) --- which is also where the walk
 of the list above is one of the steps.
 
 [achieved]: #how-the-strictly-positive-picture-was-achieved
+[agner]: https://www.agner.org/optimize/microarchitecture.pdf
 [bench]: #what-the-benchmark-does
 [ceiling]: #the-mutable-ceiling-taken
 [cgap]: #the-c-gap-still-a-deeper-ceiling
@@ -13867,6 +13940,8 @@ of the list above is one of the steps.
 [dead]: #dead-ideas
 [fix]: #the-fix-in-dataarrayinternalhs
 [floor]: #what-moves-a-figure-when-no-strategy-changed
+[golden-cove]: https://chipsandcheese.com/p/popping-the-hood-on-golden-cove
+[jcc]: https://www.intel.com/content/www/us/en/developer/articles/technical/software-security-guidance/best-practices/mitigation-strategies-jcc-microcode.html
 [lemire]: #lemire-multiplicative-inverses-at-the-two-division-sites
 [open]: #what-is-open
 [open-tasks]: #recommended-tasks-after-run-32
@@ -13879,7 +13954,12 @@ of the list above is one of the steps.
 [ramp]: #r2-is-the-ramp-detector-not-the-noise-detector
 [reader]: #the-reader-read-runpy
 [results]: runs/run32.md#results
-[settled]: #what-is-settled-and-where
 [scratch]: #the-scratch-vector-flavour
+[settled]: #what-is-settled-and-where
 [shapeset]: #the-shape-set
 [todo]: #non-urgent-todo-list
+[zen2-sog]: https://kib.kiev.ua/x86docs/AMD/Optimization/56305_3.00_Software%20Optimization%20Guide%20for%20AMD%20Family%2017h%20Models%2030h%20and%20Greater%20Processors.pdf
+[zen3-sog]: https://www.lsferreira.net/public/knowledge-base/x86/upos/amd_zen3.pdf
+[zen4-cc]: https://chipsandcheese.com/p/amds-zen-4-part-1-frontend-and-execution-engine
+[zen4-sog]: https://www.numberworld.org/blogs/2024_8_7_zen5_avx512_teardown/57647_zen4_sog.pdf
+[zen5-hc]: https://hc2024.hotchips.org/assets/program/conference/day2/24_HC2024.AMD.Cohen.Subramony.final.pdf
