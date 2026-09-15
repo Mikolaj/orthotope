@@ -67,6 +67,8 @@ import subprocess
 import sys
 import tempfile
 
+PROBE_NAME = 'probe-fetch-model'
+
 EVENTS = 'cycles:u,r20000078f:u,r08a:u,r08b:u'
 NAMES = ['cyc', 'blocks', 'l1btb', 'l2btb']
 REGS = ['%rcx', '%rdx', '%rsi', '%r8', '%r9', '%r10', '%r11', '%r12',
@@ -190,9 +192,12 @@ def build(tmp, asm, cmain, k):
 def counts(binary, arg):
     with tempfile.NamedTemporaryFile(delete=False) as f:
         out = f.name
-    subprocess.run(['perf', 'stat', '-x,', '-e', EVENTS, '-o', out, binary,
-                    str(arg)], stdout=subprocess.DEVNULL,
-                   stderr=subprocess.DEVNULL)
+    ran = subprocess.run(['perf', 'stat', '-x,', '-e', EVENTS, '-o', out,
+                          binary, str(arg)], stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL)
+    if ran.returncode:
+        os.unlink(out)
+        return None
     vals = []
     with open(out) as f:
         for line in f:
@@ -205,8 +210,12 @@ def counts(binary, arg):
 
 def layout(binary):
     """[(abs address, length, mnemonic, label-or-None)] from head to ret."""
-    out = subprocess.run(['objdump', '-d', binary], capture_output=True,
-                         text=True).stdout
+    got = subprocess.run(['objdump', '-d', binary], capture_output=True,
+                         text=True)
+    if got.returncode:
+        sys.exit('%s: objdump -d %s exited %d' % (PROBE_NAME, binary,
+                                                  got.returncode))
+    out = got.stdout
     sec = out[out.index('<head>:'):]
     sec = sec[:sec.index('\tret')]
     rows, label = [], 'head'
@@ -390,25 +399,25 @@ def main():
     ap.add_argument('args', nargs='*')
     ap.add_argument('--only', type=int, nargs='+', metavar='K')
     ap.add_argument('--pairs', type=int, default=2)
-    a = ap.parse_args()
-    if a.kernel == 'rescore':
-        return rescore(a.args[0])
+    args = ap.parse_args()
+    if args.kernel == 'rescore':
+        return rescore(args.args[0])
     for tool in ('gcc', 'perf', 'objdump'):
         if shutil.which(tool) is None:
             sys.exit('probe-fetch-model: %s is not on PATH; nothing ran' % tool)
     if counts('/bin/true', '') is None:
         sys.exit('probe-fetch-model: perf does not count %s here; nothing ran'
                  % EVENTS)
-    if a.kernel == 'straight':
-        n, w, end = int(a.args[0]), int(a.args[1]), a.args[2]
+    if args.kernel == 'straight':
+        n, w, end = int(args.args[0]), int(args.args[1]), args.args[2]
         asm, cmain, per, iters = straight(n, w, end), STRAIGHT_MAIN, 20000000, (2, 1)
         title = 'straight N=%d W=%d %s' % (n, w, end)
     else:
-        r = int(a.args[0]) if a.args else 2
+        r = int(args.args[0]) if args.args else 2
         asm = PROLOGUE + FILL.replace('$R', '$%d' % r) + EPILOGUE
         cmain, per, iters = FILL_MAIN % (ELEMS // r, r), ELEMS // r, (200, 100)
         title = 'fill R=%d' % r
-    ks = a.only or list(range(64))
+    ks = args.only or list(range(64))
     tmp = tempfile.mkdtemp(prefix='fetch-model-')
     print('# %s; per iteration: measured cycles, fetch blocks, L1 and L2 BTB'
           ' overrides; predicted ops, blocks, whole, half, cycles' % title)
@@ -422,11 +431,11 @@ def main():
             if b is None:
                 return 1
             reads = []
-            for _ in range(a.pairs):
+            for _ in range(args.pairs):
                 hi, lo = counts(b, iters[0]), counts(b, iters[1])
                 if hi is None or lo is None:
                     sys.exit('probe-fetch-model: perf stopped counting at K=%d' % k)
-                if a.kernel == 'fill':
+                if args.kernel == 'fill':
                     reads.append(tuple((h - l) / 100 / per for h, l in zip(hi, lo)))
                 else:
                     reads.append(tuple(h / per for h in hi))
@@ -434,11 +443,11 @@ def main():
             rows = layout(b)
             head_addr = rows[0][0]
             if k == ks[0]:
-                print('# kernel: %s %s' % (a.kernel, ' '.join(a.args)))
+                print('# kernel: %s %s' % (args.kernel, ' '.join(args.args)))
                 print('# layout: ' + ' '.join('%s%s+%d/%d' % (
                     (row[3] + ':') if row[3] else '', row[2],
                     row[0] - head_addr, row[1]) for row in rows))
-            if a.kernel == 'fill':
+            if args.kernel == 'fill':
                 segs = path_fill(rows, r)
             else:
                 segs = path_straight(rows, end)

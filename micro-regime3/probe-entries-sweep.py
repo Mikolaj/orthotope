@@ -44,6 +44,8 @@ import subprocess
 import sys
 import tempfile
 
+PROBE_NAME = 'probe-entries-sweep'
+
 RUNS = 900000
 FILL = r'''
     .text
@@ -157,9 +159,12 @@ def counts(binary, arg):
     """The two counters over one process, or None when perf did not count."""
     with tempfile.NamedTemporaryFile(delete=False) as f:
         out = f.name
-    subprocess.run(['perf', 'stat', '-x,', '-e', EVENTS, '-o', out, binary,
-                    str(arg)], stdout=subprocess.DEVNULL,
-                   stderr=subprocess.DEVNULL)
+    ran = subprocess.run(['perf', 'stat', '-x,', '-e', EVENTS, '-o', out,
+                          binary, str(arg)], stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL)
+    if ran.returncode:
+        os.unlink(out)
+        return None
     vals = []
     with open(out) as f:
         for line in f:
@@ -174,8 +179,12 @@ def layout(binary):
     """(offset from head, length, mnemonic) of every instruction from `head`
     to the `ret`, read off objdump, so the model prices the bytes the
     assembler emitted and not the bytes the source names."""
-    out = subprocess.run(['objdump', '-d', binary], capture_output=True,
-                         text=True).stdout
+    got = subprocess.run(['objdump', '-d', binary], capture_output=True,
+                         text=True)
+    if got.returncode:
+        sys.exit('%s: objdump -d %s exited %d' % (PROBE_NAME, binary,
+                                                  got.returncode))
+    out = got.stdout
     sec = out[out.index('<head>:'):]
     sec = sec[:sec.index('\tret')]
     rows, head = [], None
@@ -221,7 +230,7 @@ def main():
     ap.add_argument('--pairs', type=int, default=2,
                     help='differenced pairs per offset, the least taken'
                          ' (default 2)')
-    a = ap.parse_args()
+    args = ap.parse_args()
     for tool in ('gcc', 'perf', 'objdump'):
         if shutil.which(tool) is None:
             sys.exit('probe-entries-sweep: %s is not on PATH; nothing ran'
@@ -230,17 +239,17 @@ def main():
     if probe is None:
         sys.exit('probe-entries-sweep: perf does not count %s here'
                  ' (kernel.perf_event_paranoid?); nothing ran' % EVENTS)
-    ks = a.only or list(range(64))
-    if a.kernel == 'fill' and ks[0] != 0:
+    ks = args.only or list(range(64))
+    if args.kernel == 'fill' and ks[0] != 0:
         ks = [0] + ks              # the model's base is residue 0, measured
-    if a.kernel == 'fill':
-        asm, cmain, args, per = FILL, FILL_MAIN, (200, 100), RUNS
+    if args.kernel == 'fill':
+        asm, cmain, iters, per = FILL, FILL_MAIN, (200, 100), RUNS
     else:
-        asm, cmain, per = straight(a.movs), STRAIGHT_MAIN % 20000000, 20000000
-        args = (2, 1)          # two runs of the same process, differenced
+        asm, cmain, per = straight(args.movs), STRAIGHT_MAIN % 20000000, 20000000
+        iters = (2, 1)         # two runs of the same process, differenced
     tmp = tempfile.mkdtemp(prefix='entries-sweep-')
     print('K  cycles/iter  fetches/iter' + ('  entries  model  verdict'
-                                             if a.kernel == 'fill' else ''))
+                                             if args.kernel == 'fill' else ''))
     base = None
     mism = []
     try:
@@ -249,12 +258,12 @@ def main():
             if b is None:
                 return 1
             readings = []
-            for _ in range(a.pairs):
-                hi, lo = counts(b, args[0]), counts(b, args[1])
+            for _ in range(args.pairs):
+                hi, lo = counts(b, iters[0]), counts(b, iters[1])
                 if hi is None or lo is None:
                     sys.exit('probe-entries-sweep: perf stopped counting at'
                              ' K=%d; the rows above stand' % k)
-                if a.kernel == 'fill':
+                if args.kernel == 'fill':
                     d = 100
                 else:
                     d, lo = 1, [0, 0]     # one process carries every iteration
@@ -262,7 +271,7 @@ def main():
             cyc = min(r[0] for r in readings)
             opc = min(r[1] for r in readings)
             row = '%2d  %10.2f  %12.2f' % (k, cyc, opc)
-            if a.kernel == 'fill':
+            if args.kernel == 'fill':
                 segs = segments(layout(b))
                 e = sum(entries(s, k) for s in segs)
                 if base is None:      # residue 0: the cycles and entries
@@ -273,7 +282,7 @@ def main():
                     mism.append(k)
                 row += '  %7d  %5d  %s' % (e, model, verdict)
             print(row, flush=True)
-        if a.kernel == 'fill':
+        if args.kernel == 'fill':
             print('entry count against the cycles: %d of %d offsets miss%s'
                   % (len(mism), len(ks),
                      ': ' + ' '.join(map(str, mism)) if mism else ''))
