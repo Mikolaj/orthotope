@@ -3039,8 +3039,16 @@ rather than a slot in the next run, observed again:
   against 6.15. Pinned at 0 on HEAD it reads 7.40 cycles and seven blocks, 0.93
   of the exit-span half on `runs-3` and 0.98 on the window view, so placement
   is worth the crossing's position and no more there, and the rest is code
-  order. Why HEAD's planner left the head at 37 and 41, residues the rules
-  charge, is still to be read off that assembly.
+  order. **Where HEAD's planners actually put it, read off the binaries
+  by the loop's five-instruction shape rather than by a pattern's first match,
+  which had named another copy and cost this entry a wrong 37 and 41
+  for an hour**: the plain form at 30, the exit span at 3, the block rules at 0,
+  every one free by the rules and the planner's trace confirming the block rules
+  chose 0 with a budget of 29 at the head's own dead spot. So no cost failed
+  to act on HEAD; what the free band hides there is a ten percent spread between
+  30, 3 and 0, which comes from where the outer loop's head lands, HEAD having
+  made that outer cycle the one with six taken branches, and the tiers price
+  the outer last. The same holds for stages 7, 10 and 11, which run this loop.
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
