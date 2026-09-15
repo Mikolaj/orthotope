@@ -4608,6 +4608,23 @@ codegen rather than that it cannot be built.
   it does not rank is the main set**, which it refuses, that population having
   no row in the table these claims are made about --- so a superlative meant
   over all nine has no source here either.
+- **Price a rotated pair as one cycle where the outer cycle is short.**
+  Registered 2026-09-15 off the `sumLazyRuns` reading in [the open list][open]:
+  the tiers hand a group's residue to the inner head, and for a per-run loop
+  whose inner body is a few instructions with a trip count of three, the outer
+  cycle is the hot path and the inner's residue is the wrong thing to optimise.
+  The trip count is not in the code, but the outer cycle's length is: when
+  the inner body is under about sixteen bytes and the outer cycle fits two
+  lines, sum the two heads' block-rule costs instead of ordering them,
+  the inner's counted two or three times for an assumed short run. Exposure
+  bounded: an inner loop with a long trip count under such an outer loses
+  at most one crossing per iteration where the sum prefers the outer, the same
+  size of error the present order makes the other way for every short-run loop,
+  and the fill's rotated pairs, with inner bodies of 34 to 51 bytes, fall
+  outside the rule. On HEAD this is the ten percent between residues 0, 3 and 30
+  of that loop; on 9.12.4 nothing, the plain form having found the optimum.
+  Not built: the flag pair it would face is the block rules with and without it,
+  on the stage arms' `runs` and `window` cells.
 
 
 ## The goal of these benchmarks
