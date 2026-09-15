@@ -177,6 +177,14 @@ Modes:
   --steps           every cell read at sample level for a mid-bench change
                     of level, which the fitted slope averages away and no
                     other column here can show
+  --winsor          each timed row's PLAIN per-shape geomean beside the
+                    published winsorized one, with how many cells the
+                    cap touched: what the `time` column owes to its own
+                    estimator rather than to the arm. A row whose shapes
+                    span widely is published at a figure its cells do
+                    not average to, and the gap is not stable between
+                    runs -- `--compare` carries the cross-run half of
+                    the same question
   --deflation       this run's `list` over its own alone legs, per shape:
                     the in-process deflation the riders exist to measure,
                     RAW over RAW because a leg carries no `sum-only` to
@@ -1142,6 +1150,58 @@ def time_of(cells, shapes, strategy):
     logs = [math.log(cells[s][strategy]['net'] / cells[s]['list']['net'])
             for s in live]
     return math.exp(stats.fmean(winsorize(logs)[0]))
+
+
+def winsor_table(cells, shapes, strategies):
+    """What the published `time` column owes to its own estimator.
+
+    The column is a WINSORIZED geomean of net over `list`'s net, capped at
+    3 MADs of the log, and both the median and the MAD are that row's own
+    and that run's own. So a row whose shapes span widely is published at a
+    figure its cells do not average to, and the gap is not stable between
+    runs: Run 31 published `lib-stage2-lean-u1` at 0.029 and Run 32 at
+    0.025 on an arm that moved 1.6%, the same four cells capped in both and
+    the cap they were pulled to halved with the row's MAD.
+
+    This prints the two side by side so the gap is read rather than
+    reimplemented -- it was reimplemented by hand on 2026-09-15, which is
+    the day this mode was asked for. `--compare` carries the cross-run half
+    of the same question, flagging a row whose two published figures divide
+    to something the paired ratio does not.
+    """
+    print('\nwinsorizing, per timed row: the plain per-shape geomean beside'
+          ' the published one')
+    print('%-38s %9s %9s %8s %7s' % ('strategy', 'plain', 'published',
+                                     'gap', 'capped'))
+    worst, n_rows = None, 0
+    for st in sorted(strategies):
+        if no_net(st):
+            continue
+        live = live_shapes(cells, shapes, st)
+        if not live:
+            continue
+        logs = [math.log(cells[s][st]['net'] / cells[s]['list']['net'])
+                for s in live]
+        capped, n_capped = winsorize(logs)
+        plain = math.exp(stats.fmean(logs))
+        pub = math.exp(stats.fmean(capped))
+        gap = pub / plain - 1
+        n_rows += 1
+        if worst is None or abs(gap) > abs(worst[1]):
+            worst = (st, gap)
+        print('%-38s %9.5f %9.5f %7.1f%% %4d/%-3d'
+              % (st, plain, pub, gap * 100, n_capped, len(live)))
+    if not n_rows:
+        print('  no timed row here, so the column has nothing to winsorize')
+        return 2
+    print('\nA row whose two columns part is a row whose published figure is'
+          ' partly its own')
+    print('spread. The widest here is `%s` at %.1f points. Quote the'
+          ' published column' % (worst[0], abs(worst[1]) * 100))
+    print('for reading the table and `--pair` for a margin; for a row across'
+          ' two runs')
+    print('quote `--compare`, which flags that division itself.')
+    return 0
 
 
 ROW = collections.namedtuple('ROW', 'time st ci noise smp alloc worst')
@@ -2436,6 +2496,82 @@ def compare_table(cells, shapes, strategies, meta, other, main_hs,
                     if cells[sh][st]['net'] > 0 and b_cells[sh][st]['net'] > 0)
         print('%-34s %8.4f %8.4f %5d/%-3d %5.3f..%.3f'
               % (st, g, 1 / g, wins, n, rs[0], rs[-1]))
+    # THE A/A BAR FOR THIS COMPARISON, which is the floor's counterpart
+    # here and which no mode printed until 2026-09-15. `--aa` gives the
+    # floor WITHIN one half: how far an arm differs from its own duplicate
+    # there. A figure ACROSS two files is read against nothing unless the
+    # same duplicates are read across them too -- an A/A copy is the same
+    # code as its base, so the two owe one ratio, and how far they part is
+    # what an arm must clear before its movement is the pair's variable
+    # rather than the comparison's own noise. Run 32's head was written
+    # without it and called the compiler worth nothing this roster can
+    # measure, where three of eight strategies clear 0.81 points.
+    # Case: `compare-prints-no-aa-bar`.
+    def cross(st):
+        rs = [cells[sh][st]['net'] / b_cells[sh][st]['net'] for sh in both_sh
+              if cells[sh][st]['net'] > 0 and b_cells[sh][st]['net'] > 0]
+        return geomean(rs) if rs else None
+
+    # `carrier is None` MEANS NO PAIR IS HERE and never `every pair agreed
+    # exactly`: initialised at a bar of 0.0 with a strict `>`, two files
+    # whose A/A copies match to the digit -- which is what a synthetic pair
+    # is, and what a repetition would be -- set no carrier and reported the
+    # pairs as absent. Caught by `compare-prints-no-aa-bar` the day the
+    # line was written.
+    bar, carrier = 0.0, None
+    for st in both_st:
+        base = twin_of(st)
+        if base is None or base not in both_st:
+            continue
+        a, b = cross(st), cross(base)
+        if not a or not b:
+            continue
+        if carrier is None or abs(a / b - 1) > bar:
+            bar, carrier = abs(a / b - 1), (st, a, base, b)
+    arms = [(abs(cross(t) - 1), t) for t in both_st
+            if not is_control(t) and not no_net(t) and cross(t)]
+    if carrier is None:
+        print('\nNO A/A pair is in both files, so this comparison has no bar'
+              ' of its own:\n  read it against the population floor `--aa`'
+              ' prints and say which you used')
+    else:
+        st, a, base, b = carrier
+        past = sorted(t for d, t in arms if d > bar)
+        print('\nA/A bar for this comparison %.2f%%, the widest an arm and'
+              ' its own duplicate part here:' % (bar * 100))
+        print('  `%s` %.4f against `%s` %.4f' % (st, a, base, b))
+        print('  %d of %d non-control arm(s) move further than the bar%s'
+              % (len(past), len(arms),
+                 ': ' + ', '.join('`%s`' % t for t in past) if past
+                 else ', so nothing here is this comparison\'s to claim'))
+
+    # THE PUBLISHED COLUMN'S OWN DRIFT, added the same day. `time` is a
+    # WINSORIZED geomean, and the cap is computed per row per run off that
+    # row's own spread, so two published figures divide to the paired ratio
+    # only where the cap did not move under them. Run 31 published
+    # `lib-stage2-lean-u1` at 0.029 and Run 32 at 0.025 -- fourteen points,
+    # where the arm moved 1.6 -- the same four cells capped in both and the
+    # cap they were pulled to halved. README forbids dividing two ROWS of
+    # one table for a margin; this is the other reading a table invites, ONE
+    # row down two runs, and nothing warned against it until a write-up had
+    # published the division. Case: `compare-does-not-flag-column-drift`.
+    drift = []
+    for g, _w, _n, st in sorted(rows):
+        t_a, t_b = time_of(cells, both_sh, st), time_of(b_cells, both_sh, st)
+        if t_a != t_a or t_b != t_b or not t_b:
+            continue
+        if abs(t_a / t_b - g) > 0.02:
+            drift.append((st, t_a / t_b, g))
+    if drift:
+        print('\npublished-column drift, %d row(s): the `time` column is'
+              ' winsorized per row' % len(drift))
+        print('  and per run, so dividing one row\'s two published figures'
+              ' reports the')
+        print('  estimator and not the arm. Quote the paired ratio above.')
+        for st, col, g in drift:
+            print('  %-34s column %8.4f against paired %8.4f, %5.1f points'
+                  % (st, col, g, abs(col - g) * 100))
+
     if per_shape:
         # One line per arm, the per-shape ratios in the run's shape order,
         # which is what a question about ordering along a class's axis
@@ -10019,10 +10155,29 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
             sites = [m for p in pats for m in re.findall(p, uw)]
             alone = [m for p in alone_pats for m in re.findall(p, uw)]
             if len(sites) < 2:
+                # AND IT SAYS WHAT IT LOOKED FOR, added 2026-09-15. The
+                # abstention is loud, which is right, but it used to leave
+                # the author to find the patterns in this file: a write-up
+                # reworded four of these paragraphs in one stretch and paid
+                # a round of reading source to learn which sentence shapes
+                # the check wanted. Printing them turns the FAIL into an
+                # instruction. Case: `check-doc-abstention-names-its-patterns`.
+                #
+                # REFUSED, THE SAME DAY: keying these on the NOUN instead of
+                # the phrasing, which is what this file's own rule for a
+                # sweep asks for. A noun-keyed matcher over prose cannot
+                # tell THIS run's figure from the series of earlier runs'
+                # figures quoted in the same paragraph, and the floor
+                # section is made of exactly that -- fifteen carry-back
+                # readings and nine floor pairs in one paragraph, every one
+                # of them a percent adjacent to the word `floor`. The
+                # phrasings stay, and what a rewording costs is now one
+                # message rather than one reading of this file.
                 bad.append('could not locate at least two sites quoting the'
                            " run's %s, so its agreement check did not run --"
                            " if the sentences were reworded, this check's"
-                           ' patterns move with them' % name)
+                           ' patterns move with them. It looked for: %s'
+                           % (name, '; '.join(repr(x) for x in pats)))
             elif len(set(sites)) > 1:
                 bad.append('the %s is quoted differently across its %d'
                            ' sites: %s -- %s'
@@ -11620,6 +11775,11 @@ def main():
     p.add_argument('--bridge', action='store_true',
                    help='with --compare: each arm as a ratio to `list` in'
                         ' its own run, which a box change cannot move')
+    p.add_argument('--winsor', action='store_true',
+                   help='the plain per-shape geomean beside the published'
+                        ' winsorized one, per timed row, with how many cells'
+                        ' the cap touched -- what the `time` column owes to'
+                        ' its own estimator rather than to the arm')
     p.add_argument('--band', type=float, default=3.3, metavar='PCT',
                    help='with --bridge: the drift band, default 3.3')
     p.add_argument('--markdown', action='store_true')
@@ -12268,6 +12428,8 @@ def main():
         compare_table(cells, shapes, strategies, meta, args.compare,
                       args.main, not args.verbose,
                       per_shape=args.per_shape)
+    elif args.winsor:
+        sys.exit(winsor_table(cells, shapes, strategies))
     elif args.deflation:
         sys.exit(deflation_table(args.run, cells, shapes, args.main))
     elif args.machine:

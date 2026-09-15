@@ -24,6 +24,36 @@ READER = ('f=$(ls "{root}"/*.json 2>/dev/null | head -1); test -n "$f" '
 PROPS = 'python3 "{dir}/properties.py"'
 
 MUTANTS = [
+    # THE BAR NAMES THE ARMS THAT CLEAR IT, or it is a number a reader has
+    # to apply by hand -- which is what a session did on Run 32, whose head
+    # claimed the compiler worth nothing this roster can measure while
+    # three of eight strategies cleared its own A/A bar. The mutant leaves
+    # the bar printed and empties the list.
+    ('the A/A bar names no arm that clears it',
+     'read-run.py',
+     '        past = sorted(t for d, t in arms if d > bar)',
+     '        past = []',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\na = d.synth_json(t, \'main\', name=\'a.json\')\nb = d.synth_json(t, \'main\', name=\'b.json\', skew=[(d.main_shapes()[0], \'lib-stage1\', 4)])\nr = subprocess.run([sys.executable, \'{file}\', a, \'--compare\', b], capture_output=True, text=True)\nsys.exit(0 if \'move further than the bar: \' in r.stdout and \'lib-stage1\' in r.stdout else 1)"'),
+
+    # THE DRIFT LINE FIRES ON A ROW WHOSE TWO PUBLISHED FIGURES DIVIDE TO
+    # SOMETHING THE ARM DID NOT DO. Raising the threshold past any real gap
+    # is the same as not having written it, which is the state Runs 31 and
+    # 32 were both published in.
+    ('the published-column drift threshold catches nothing',
+     'read-run.py',
+     '        if abs(t_a / t_b - g) > 0.02:',
+     '        if abs(t_a / t_b - g) > 99:',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\na = d.synth_json(t, \'main\', name=\'a.json\')\nb = d.synth_json(t, \'main\', name=\'b.json\', skew=[(d.main_shapes()[0], \'lib-stage1\', 40), (d.main_shapes()[1], \'lib-stage1\', 30)])\nr = subprocess.run([sys.executable, \'{file}\', a, \'--compare\', b], capture_output=True, text=True)\nsys.exit(0 if \'published-column drift\' in r.stdout else 1)"'),
+
+    # AND --winsor ACTUALLY WINSORIZES. With the cap removed the two
+    # columns are one column and every gap reads 0.0%, which is a mode
+    # answering the question it was written to ask with `nothing`.
+    ('--winsor publishes the plain geomean as the published one',
+     'read-run.py',
+     '        capped, n_capped = winsorize(logs)',
+     '        capped, n_capped = logs, 0',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\na = d.synth_json(t, \'main\', name=\'a.json\', skew=[(d.main_shapes()[0], \'lib-stage1\', 40), (d.main_shapes()[1], \'lib-stage1\', 30)])\nr = subprocess.run([sys.executable, \'{file}\', a, \'--winsor\'], capture_output=True, text=True)\nrows = [l for l in r.stdout.splitlines() if l.startswith(\'lib-stage1 \')]\nsys.exit(0 if rows and \'0.0%\' not in rows[0] else 1)"'),
+
     # `CORPUS_RUN=newest` narrows `check-all`'s corpus to one run, so a
     # narrowing that keeps the wrong runs would put the suite back where it
     # was while reading as narrowed. The judge asks the selection directly

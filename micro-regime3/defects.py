@@ -7017,6 +7017,79 @@ RECORDS = [
          argv=['{run}', '--compare', '{other}'],
          ok=V(exit=0, has=['below 1 ='])),
 
+    # THE BAR A CROSS-FILE FIGURE IS READ AGAINST, and the mode printed
+    # none until 2026-09-15. `--aa` gives the floor WITHIN one half; a
+    # figure ACROSS two files had no counterpart, so a pair's headline was
+    # written against nothing. Run 32 called the compiler worth nothing
+    # this roster can measure and three of eight strategies clear the bar
+    # its own A/A copies set. Two synthetic runs read A/A at exactly 1, so
+    # the bar is 0.00% and NOTHING clears it -- which is the clean-run
+    # direction, and the clause it prints is the one a reader needs when a
+    # comparison has nothing to claim.
+    case('compare-prints-no-aa-bar', 'read-run.py', None,
+         'a cross-file figure had no bar of its own to be read against',
+         plant=lambda t: {'run': synth_json(t, 'main', name='a.json'),
+                          'other': synth_json(t, 'main', name='b.json')},
+         argv=['{run}', '--compare', '{other}'],
+         ok=V(exit=0,
+              has=['A/A bar for this comparison',
+                   "nothing here is this comparison's to claim"])),
+
+    # AND THE OTHER DIRECTION, which is the one a real pair has: an arm
+    # skewed on one shape in one file alone moves further than the bar and
+    # is NAMED, where the twins still agree. Without the naming the line
+    # would be a number a reader has to apply by hand, which is what a
+    # session did to get Run 32's head wrong.
+    case('compare-names-no-arm-past-the-bar', 'read-run.py', None,
+         'the bar was a figure with no arms measured against it',
+         plant=lambda t: {
+             'run': synth_json(t, 'main', name='a.json'),
+             'other': synth_json(t, 'main', name='b.json',
+                                 skew=[(main_shapes()[0], 'lib-stage1', 4)])},
+         argv=['{run}', '--compare', '{other}'],
+         ok=V(exit=0,
+              has=['A/A bar for this comparison',
+                   'move further than the bar', 'lib-stage1'],
+              hasnt=["nothing here is this comparison's to claim"])),
+
+    # THE PUBLISHED COLUMN AGAINST ITSELF ACROSS TWO RUNS. `time` is a
+    # winsorized geomean whose cap is that row's own and that run's own, so
+    # one row's two published figures divide to the arm's movement only
+    # where the cap did not move under them. Run 31 published
+    # `lib-stage2-lean-u1` at 0.029 and Run 32 at 0.025 -- fourteen points
+    # on an arm that moved 1.6 -- and the chapter forbade dividing two ROWS
+    # of one table while saying nothing about one row down two runs. The
+    # fixture skews ONE cell of one arm far out in one file: that widens
+    # the row's MAD there and caps nothing, where the unskewed file caps
+    # the same cells to a tighter ceiling, so the two published figures
+    # part while the paired ratio does not.
+    case('compare-does-not-flag-column-drift', 'read-run.py', None,
+         "one row's two published figures divided to what no arm did",
+         plant=lambda t: {
+             'run': synth_json(t, 'main', name='a.json'),
+             'other': synth_json(t, 'main', name='b.json',
+                                 skew=[(main_shapes()[0], 'lib-stage1', 40),
+                                       (main_shapes()[1], 'lib-stage1', 30)])},
+         argv=['{run}', '--compare', '{other}'],
+         ok=V(exit=0,
+              has=['published-column drift', 'column', 'against paired',
+                   'lib-stage1'])),
+
+    # WHAT THE COLUMN OWES ITS OWN ESTIMATOR, per row. The gap was
+    # reimplemented by hand on 2026-09-15 to establish it, which is the
+    # day this mode was asked for; a row whose cells are capped reads a
+    # published figure its cells do not average to, and only this says so.
+    case('winsor-does-not-say-what-the-cap-moved', 'read-run.py', None,
+         'the published column hid how much of itself was the estimator',
+         plant=lambda t: {
+             'run': synth_json(t, 'main', name='a.json',
+                               skew=[(main_shapes()[0], 'lib-stage1', 40),
+                                     (main_shapes()[1], 'lib-stage1', 30)])},
+         argv=['{run}', '--winsor'],
+         ok=V(exit=0,
+              has=['winsorizing, per timed row', 'plain', 'published',
+                   'capped', 'lib-stage1'])),
+
     case('replace-takes-an-abutting-heading', 'read-run.py', None,
          'a paragraph that abuts a heading took the heading with it',
          # --replace's unit is blank-line separated, so a paragraph the
@@ -7545,6 +7618,18 @@ RECORDS = [
          # refusal fires in the dispatch, before any binary is opened.
          argv=['--loose', 'x'],
          ok=V(exit=2, has=['read by --match alone'])),
+
+    # SEVERAL PAIRS IN ONE CALL, and an ODD count refused rather than the
+    # last binary paired with nothing. `--library` took exactly two until
+    # 2026-09-15, so re-deriving the whole surviving series -- which its
+    # own open entry asks for, the recorded per-run figures and today's
+    # reading disagreeing -- was a shell loop, and the one a session wrote
+    # timed out. The refusal fires in the dispatch, before any binary is
+    # opened, so the names need not exist.
+    case('offsets-library-takes-an-odd-count', 'loop-offsets.py', None,
+         '--library paired the last binary with nothing',
+         argv=['--library', 'x', 'y', 'z'],
+         ok=V(exit=2, has=['two at a time', 'even number'])),
 
     case('addr2line-status', 'loop-offsets.py', '9832f0b',
          'an unreadable -e file read as a build without DWARF',

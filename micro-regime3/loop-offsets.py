@@ -879,9 +879,18 @@ def main():
         p.error('--loose and --source are read by --match alone')
 
     if args.library:
-        if len(args.binary) != 2:
-            p.error('--library compares two binaries')
-        library(*args.binary)
+        # SEVERAL PAIRS IN ONE CALL, since 2026-09-15. The open entry on
+        # this column asks for the whole surviving series re-derived under
+        # ONE tool, because the per-run recorded figures and today's
+        # reading disagree -- and a shell loop over pairs is what a session
+        # wrote instead, which timed out at two minutes and had to be
+        # backgrounded. An odd count is refused rather than pairing the
+        # last binary with nothing.
+        if len(args.binary) < 2 or len(args.binary) % 2:
+            p.error('--library compares binaries two at a time, so it wants'
+                    ' an even number of them; got %d' % len(args.binary))
+        for i in range(0, len(args.binary), 2):
+            library(args.binary[i], args.binary[i + 1])
         return
 
     if args.survey:

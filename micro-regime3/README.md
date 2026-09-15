@@ -1018,11 +1018,11 @@ rather than a slot in the next run, observed again:
   themselves, which is why that half's own twin named one straddler of seven
   where the basis's named five of its own seven.
 
-- `OPEN` **The published `time` column moves a row across runs by far more
+- `ANSWERED` **The published `time` column moves a row across runs by far more
   than the arm moves, because its winsorizing BAND collapses under it ---
-  measured 2026-09-15 and not previously suspected.** `lib-stage2-lean-u1`
-  prints **0.025** on `run32-nospec` and **0.029** on `run31-nospec`, fourteen
-  points, where `--compare` between the two runs reads that arm at **0.9839**
+  measured 2026-09-15, and two modes now say so.** `lib-stage2-lean-u1` prints
+  **0.025** on `run32-nospec` and **0.029** on `run31-nospec`, fourteen points,
+  where `--compare` between the two runs reads that arm at **0.9839**
   and the plain per-shape geomean of net over `list`'s net moves from 0.03036
   to 0.02978, under two points. The column is a winsorized geomean, outliers
   capped at 3 MADs of the log, and that row's nineteen shapes span sevenfold,
@@ -1038,31 +1038,46 @@ rather than a slot in the next run, observed again:
   It matters because the run chapter's standing rule is *DO NOT DIVIDE TWO ROWS
   OF THIS TABLE FOR A MARGIN* and nothing warns against the other reading
   a table invites --- following ONE row down the published columns of successive
-  runs, which is what a cross-run sentence does by hand. **What would settle
-  it costs no machine time**: print the plain per-shape geomean beside
-  the winsorized one under `--cells` or a flag, and have `--check-doc` hold
-  a cross-run sentence about a row to `--compare`'s paired figure for that arm,
-  which is the statistic the floor is defined in. Until then a sentence tracking
-  a row across runs is quoting the estimator and not the arm. Registered here
-  2026-09-15.
-- `OPEN` **The `--library` within-pair agreement is quoted as a series across
-  runs and does not reproduce under one tool.** Re-derived 2026-09-15
-  from the surviving binaries: Runs 24, 25 and 26 all read **14.0%** at the same
-  offset in line and 66.2% in the same straddle state over 136 loops in common
-  --- one reading for three pairs, which is what a column over LINKED libraries
-  should give when two pairs share two compilers --- where those runs recorded
-  14.0%/65.7%, 13.9%/66.0% and 14.2%/65.2%; Run 27 reads 12.5% and 64.7% where
-  it recorded 12.8% *of 141* and 63.8%, and Run 28 11.8% and 74.3% where
-  it recorded 11.3% of 141 and 73.8%. Run 31's 916, 4.4% and 58.7% reproduce
-  to the digit, and Run 32 reads 11.0% and 65.4% of 136. So the denominator
-  moved from 141 to 136 on the older pairs and the percentages with it, nothing
-  here says when or why, and a run reading its figure against that series
-  is reading numbers taken under more than one version of `loop-offsets.py`.
-  **What would settle it** is one pass re-deriving every surviving pair
-  under today's tool and recording that column as the series, with the per-run
-  recorded figures kept beside it as what each run saw --- or, if the tool's
-  reading is the one that moved, retiring the cross-run comparison and quoting
-  a pair's figure against its own band alone. Registered here 2026-09-15.
+  runs, which is what a cross-run sentence does by hand. **TAKEN 2026-09-15,
+  the same day, in two modes.** `--winsor` prints each timed row's plain
+  per-shape geomean beside the published one with how many cells the cap
+  touched, so the gap is read rather than reimplemented; and `--compare` flags
+  a row whose two published figures divide to something its paired ratio does
+  not, which is the cross-run half and fires on the artifacts. **The document
+  check this entry asked for was REFUSED in favour of the second**: holding
+  a cross-run SENTENCE to `--compare` means matching prose that names an arm
+  and two runs, and a matcher keyed on prose cannot tell this run's figure
+  from the series of earlier runs' figures in the same paragraph -- the reason
+  recorded beside `--check-doc`'s own agreement table. A check on the JSONs
+  cannot go stale with a rewording and needs no phrasing at all. Cases:
+  `compare-does-not-flag-column-drift`
+  and `winsor-does-not-say-what-the-cap-moved`, with a mutant apiece.
+- `ANSWERED` **The `--library` within-pair agreement was quoted as a series
+  across runs and did not reproduce under one tool; the series is now one
+  tool's.** Re-derived 2026-09-15 from the surviving binaries: Runs 24, 25
+  and 26 all read **14.0%** at the same offset in line and 66.2% in the same
+  straddle state over 136 loops in common --- one reading for three pairs, which
+  is what a column over LINKED libraries should give when two pairs share two
+  compilers --- where those runs recorded 14.0%/65.7%, 13.9%/66.0%
+  and 14.2%/65.2%; Run 27 reads 12.5% and 64.7% where it recorded 12.8% *of 141*
+  and 63.8%, and Run 28 11.8% and 74.3% where it recorded 11.3% of 141
+  and 73.8%. Run 31's 916, 4.4% and 58.7% reproduce to the digit, and Run 32
+  reads 11.0% and 65.4% of 136. So the denominator moved from 141 to 136
+  on the older pairs and the percentages with it, nothing here says when or why,
+  and a run reading its figure against that series is reading numbers taken
+  under more than one version of `loop-offsets.py`. **TAKEN 2026-09-15, in one
+  call**, `--library` having been given several pairs the same day: over every
+  surviving pair the column reads **14.0% and 66.2%** on Runs 24, 25 and 26
+  alike, **12.5% and 64.7%** on Run 27, **11.8% and 74.3%** on Run 28, all
+  of 136 loops in common; **4.4% and 58.7%** of 916 on Run 31, whose halves
+  share a compiler; and **11.0% and 65.4%** of 136 on Run 32. THAT
+  is the series, and the per-run recorded figures are what each run saw rather
+  than a column to read across. **Two things it does not settle.** Runs 29's
+  and 30's binaries are not on disk, so the flag pairs are one reading
+  and not two, and nothing here says WHEN the denominator moved from 141 to 136
+  or why three pairs that share two compilers were once recorded as three
+  distinct figures. Both want the tool's own history read, which is cheaper
+  than a run and is nobody's yet.
 - `OPEN` **Class property 1 breaks on ONE main-set cell that was already a tie,
   and which side of 1 it lands on has changed three times in three runs.**
   `mut-odo-vecdims` is behind `bq-expand` on `stretch-pow2stride` at **1.0009**
@@ -7500,6 +7515,9 @@ and never as a chronology.
     #      moved, and the prose gives the three reads that locate it
     #      why: --para 'three rules are what they are'
     cat $R-pair.txt                       # 2a. the note, quoted by steps
+    #      -- and at run-list step 13 the EXECUTING session reads the
+    #      [EXEC] blocks and skims the rest, those being the ones it
+    #      acts on rather than the ones the preparation wrote
     #      here and in the run list alike -- the halves' roles, the
     #      md5s, the commit, the gate line, and any environment its LAUNCH
     #      line puts in FRONT of a command. It is WRITTEN at step 2,
@@ -8010,7 +8028,11 @@ Unsandboxed throughout:
     #      read UP: the newest GATE: line is the script's own "reading still
     #      to do"; the hand-written verdict sits above it. The note is
     #      always somebody else's and NOT RUN is its ordinary answer, so
-    #      read it whole before grepping it
+    #      read its [EXEC] blocks before grepping it -- those are the ones
+    #      this session ACTS on, where [SAME] and [PAIR'S] say who WROTE
+    #      the block; the rest is the preparation's record and is skimmed.
+    #      Run 32 read all eight hundred lines at this step, which the
+    #      line then asked for
     #      why: --para 'A paired run has one gate more'
     ./run-evening.sh $R                   # 14 TO 19 IN ONE COMMAND, in the
     #      harness's background mode and NOT a typed `&`, so its exit
@@ -8117,7 +8139,8 @@ Unsandboxed throughout:
     #      that is the apparatus: read run-gate.sh's block in the note
     #      why: --para 'A paired run has one gate more'
     ./read-run.py --section 'What this run was built to answer'
-    #  15. WHILE IT RUNS, READ: the PREVIOUS run's registered predictions
+    #  15. ONCE `sequence: start` IS ON THE STAGE MONITOR, AND NOT BEFORE,
+    #      READ: the PREVIOUS run's registered predictions
     #      and their verdicts, in its own file, where they have lived since
     #      2026-08-29 -- `--para 'What Run'` reads the pointer and not the
     #      registration, and an empty-looking answer is not a blocker --
@@ -8125,6 +8148,16 @@ Unsandboxed throughout:
     #      the replace list: it is walked at post-run step 6, gains nothing
     #      from being read six hours early, and the read is paid twice if
     #      the session does not survive the sequence
+    #      SCOPED TO THE SEQUENCE 2026-09-15, and the evening's own
+    #      instrument is why: step 14 launches four stages as one
+    #      command and the FIRST of them is the gate, half an hour of
+    #      benches, so a reading told to start `while it runs` starts
+    #      inside it. Run 32's did, and `--wild` found 2 of that
+    #      process's 95 benches at 0.82 and 0.68 of a core -- the
+    #      write-up session intruding on its own gate because this
+    #      line said so. The sequence is hours and a document read is
+    #      minutes, so after `sequence: start` the reading is free;
+    #      before it, it is measured
     #      why: --para 'registered predictions'
     #  16. THE ALARM, its second stage: two reads of /proc/stat two seconds
     #      apart, refused above 5% non-idle, MAXBUSY overriding -- the
@@ -8152,13 +8185,14 @@ Unsandboxed throughout:
     #      the ones that need no asking (19a); a filtered probe takes ONE
     #      -m MODE then its patterns, and its benchmarking lines are
     #      counted before any number is read
-    #  18. WHILE IT RUNS, READ: the last run's own file, which shapes the
+    #  18. ALSO ONLY AFTER `sequence: start`: the last run's own file,
+    #      which shapes the
     #      whole write-up and is worth little read after it has begun
     #      (READ NOW: item 2, its head and Results prose)
     #  19. THE RIDERS, its fourth stage: run-alonelegs.sh on each half,
     #      control first, clean (SATURATE stripped from the launch
     #      environment) and then `SAT=1` where the note's RIDERS: line
-    #      says `sat` -- the 24 main-set `list` alone legs, one bench
+    #      says `sat` -- the main-set `list` alone legs, one bench
     #      per process, which turn the in-process deflation from an
     #      estimate into a per-shape measurement, so a run without them
     #      cannot check a span prediction. Each refuses a previous
@@ -9058,7 +9092,11 @@ not otherwise.
     #      and 6, the properties and the class-block form
     ./read-run.py $R-<basis>-$c.json --block          #    one per class
     ./read-run.py $R-<basis>-$c.json --compare $R-<other>-$c.json
-    #      THE PER-CLASS CALLS ARE INDEPENDENT OF EACH OTHER, all forty of
+    #      THE PER-CLASS CALLS ARE INDEPENDENT OF EACH OTHER, all EIGHTY of
+    #      them -- the forty below on the basis half and the same forty
+    #      with the two files swapped, which is how a `pair` span is read
+    #      within the control half; Run 32 fanned out the basis alone and
+    #      paid three more serial passes for the other. As a count:
     #      them -- ten classes by `--block`, `--compare`, `--predictions`
     #      and `--block --compare` -- so they are the one place in this list
     #      that parallelises without thought. SAY IT WITH A COMMAND, since
@@ -9105,6 +9143,23 @@ not otherwise.
     #      guard as read-all.sh globs it just above
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --chapter
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --alloc
+    ./read-run.py $R-<basis>-main.json --deflation    #    and the other half
+    #      THE DECOMPOSITION IS A HEAD FIGURE and is taken here rather
+    #      than at 10a, where it stood until 2026-09-15: the head's own
+    #      paragraph quotes it, so a write-up reaching it at 10a reaches
+    #      it after the paragraph is written. 10a keeps the number
+    #      AND THE BAR THE CROSS-HALF FIGURES ARE READ AGAINST comes off
+    #      the plain `--compare` above, which since 2026-09-15 prints how
+    #      far an arm and its own A/A duplicate part IN THAT COMPARISON
+    #      and names the arms that move further -- the counterpart of the
+    #      floor `--aa` gives WITHIN one half, and the thing a pair's
+    #      headline is read against. READ IT BEFORE WRITING THE HEAD: Run
+    #      32's was written without it and called the pair's variable
+    #      worth nothing this roster can measure, where three of eight
+    #      strategies cleared it. `--winsor` is the same caution per row,
+    #      the published column against its own uncapped geomean, and the
+    #      same `--compare` flags a row whose two published figures divide
+    #      to something no arm did
     #      --compare takes the BASIS first and the control as its argument,
     #      so below 1 means the basis is faster; reversed, every figure
     #      inverts and nothing in the output says so. Write each class
@@ -9124,7 +9179,13 @@ not otherwise.
     #      Every install below writes that file and no other document.
     #      TWO headings take the number: the file's title, renamed by the
     #      copy, and `Recommended tasks after Run N` in the open list.
-    #      Then repoint README's links from the run before to this file,
+    #      Then repoint README's links from the run before to this file --
+    #      SITE BY SITE AND NOT AS ONE SUBSTITUTION: some links into the
+    #      `runs/` directory are the older run's OWN and must not move, the delta
+    #      chain's bullet for that run and its `ANSWERED` entry among
+    #      them, and both read correctly after a wrong repoint because
+    #      `runs/` keeps every run. Run 32 replaced 25 occurrences and two
+    #      of them were wrong, found by reading the diff --
     #      ON THE UNWRAPPED FORM -- a literal rename over the wrapped
     #      document misses link text a line break falls inside (Run 18
     #      lost three) -- and --check-doc fails any that still name it;
@@ -9194,6 +9255,12 @@ not otherwise.
     #      moved inside the floor is requoted without comment. The three
     #      bullets below GOVERN the walk rather than following it, which
     #      is why they are bullets and not sub-steps; 6a and 6c ARE it
+    #      * THE WRITE-UP'S OWN COMMITS REWRAP THE WORKING COPY. The hold
+    #        stops the `Stop` hook and not the `PreToolUse` one, and this
+    #        half of the list makes three commits -- 6b, 6d and 7a -- so
+    #        an unwrapped stretch ends at each of them and the next
+    #        exact-match batch misses until it is unwrapped again. Three
+    #        failed asserts on Run 32 before the cause was named.
     #      * WRAPPING IS NOT A PRECONDITION: --replace, --delete and
     #        --para match the flattened form, so nothing is unwrapped
     #        before editing or after a commit's re-wrap; an EXACT-MATCH
@@ -9261,7 +9328,15 @@ not otherwise.
     #      of the run: its head, Results and the findings under it, what
     #      the next run compares against with its hand-edited two-column
     #      table, the properties, the class leads and paragraphs, its
-    #      Provenance and its registrations. TWO TABLES HERE ARE
+    #      Provenance and its registrations. **THE HEAD IS WRITTEN LAST**,
+    #      after 5c: it is the only section that generalises over the
+    #      others, so written first it generalises over figures not yet
+    #      adjudicated -- Run 32 wrote it first and every large fix of
+    #      its whole cycle landed there, the largest a claim about the
+    #      pair's variable made before the bar that tests it was read.
+    #      The class blocks, the registration verdicts and Provenance are
+    #      mechanical and settle their own figures; the head then
+    #      summarises settled ones. TWO TABLES HERE ARE
     #      HAND-EDITED and neither is installed: the two-column geomeans
     #      and the PROVENANCE ANCHORS. Run 20 forgot the first entirely
     #      and Run 22 left the second carrying the previous run's figures
@@ -9328,7 +9403,13 @@ not otherwise.
     #      commit, the brief's RUNTIP, given in the launch message and
     #      advanced in the brief afterwards as a record, the commit that
     #      carries its edit being unable to name itself.
-    #      THE BRIEF IS `checker-brief.txt`, EDITED EVERY RUN BEFORE
+    #      THE BRIEF IS `checker-brief.txt`, and its two THIS RUN ONLY
+    #      items are PASTED FROM `./read-all.sh $R --for-brief` rather
+    #      than retyped: it prints them with every figure an artifact can
+    #      settle in place and `<yours>` where prose is owed. Run 32's
+    #      hand copy carried a count the reader contradicts, the write-up
+    #      copied it into the run file, and the checker found it there.
+    #      EDITED EVERY RUN BEFORE
     #      EITHER PASS IS LAUNCHED -- a STALE brief looks exactly like a
     #      used one. Its head says which three things change; WALK THE
     #      FILE, NOT ITS HEAD, the two THIS RUN ONLY items being the half
@@ -9363,6 +9444,13 @@ not otherwise.
     #      itself
     #      why: --para 'What skipping this costs is measured'
     #  6d. COMMIT 6b'S AND 6c'S WORK AS A SINGLE COMMIT, subject naming
+    #      -- AND STEPS 9 AND 10 GO IN IT TOO, taken before this commit
+    #      and not after 7, which is where they used to sit. Neither
+    #      depends on anything pass 2 produces, and 10c's own line says
+    #      everything committed after RUNTIP is unreviewed BY
+    #      CONSTRUCTION -- step 9's record and step 10's open list being
+    #      the bulk of it. Moved here 2026-09-15, after Run 32 did it by
+    #      accident and had both read by the pass.
     #      the step; START the second pass on it AND 6e in the same
     #      turn; THEN FREEZE WRITES to both documents until 7, a finding
     #      quoting a phrase you may otherwise have changed. THAT COMMIT'S
@@ -9454,7 +9542,9 @@ not otherwise.
     #      never rebuild the pair to satisfy it: say in the write-up that
     #      the comment-only move happened
     #      why: --para 'Do not rebuild the pair'
-    #   9. collect what this run made CHEAPER for the next, which no
+    #   9. TAKEN BEFORE 6d AND COMMITTED WITH IT, not here: the number
+    #      is kept so that every pointer to it still lands. Collect what
+    #      this run made CHEAPER for the next, which no
     #      other step gathers and which is not a figure: the checks that
     #      would have caught each error, the computations improvised, the
     #      steps skipped, any capability found, and the readings the
@@ -9467,7 +9557,9 @@ not otherwise.
     #      was four checker gaps, two corrected rules here, and the finding
     #      that a probe needs no pair; none of it is in a table. It feeds
     #      10 and so comes before it
-    #  10. walk the open list: grep the settled index before adding an
+    #  10. TAKEN BEFORE 6d AND COMMITTED WITH IT, as 9 is and for the
+    #      same reason. Walk the open list: grep the settled index
+    #      before adding an
     #      entry, move answered ones with their measurement, and add each
     #      surprise with what would settle it. PREDICTION VERDICTS DO NOT
     #      GO HERE: since 2026-08-29 a run's registrations and their

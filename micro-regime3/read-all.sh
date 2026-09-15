@@ -57,19 +57,25 @@ set -u
 cd "$(dirname "$0")" || exit 1
 
 if [ $# -lt 1 ]; then
-  echo "usage: ./read-all.sh RUN [--brief-facts]   # e.g. run14"
+  echo "usage: ./read-all.sh RUN [--brief-facts] [--for-brief]  # e.g. run14"
   echo "  --brief-facts  and derive, from the same readings, the facts the"
   echo "                 checker's brief states in prose for its two agents"
+  echo "  --for-brief    and print those facts already written into the"
+  echo "                 brief's items 5 and 6, to paste over them; implies"
+  echo "                 --brief-facts. What it cannot derive it marks"
+  echo "                 <yours>, as the pair note's --fill-in does"
   exit 2
 fi
 R=""
 BRIEF=0
+FORBRIEF=0
 # Refused rather than absorbed: an unknown flag taken and ignored is this
 # tree's silent-option family, and a `--brief-facts` swallowed as a second
 # RUN would gate nothing and say `every process gated clean`.
 for a in "$@"; do
   case "$a" in
     --brief-facts) BRIEF=1 ;;
+    --for-brief) BRIEF=1; FORBRIEF=1 ;;
     -*) echo "read-all.sh: unknown option $a" >&2; exit 2 ;;
     *) if [ -z "$R" ]; then R="$a"
        else echo "read-all.sh: one run at a time, not $R and $a" >&2; exit 2
@@ -667,7 +673,52 @@ second window"
   done
 }
 
-[ "$BRIEF" = 0 ] || brief_facts
+# --for-brief: THE SAME FACTS, ALREADY IN THE BRIEF'S SENTENCES. The rows
+# above are what an artifact can settle; this writes them into items 5 and
+# 6 so the write-up pastes rather than re-derives. It is `--fill-in` for
+# the checker's brief, and it exists for the same reason: Run 32's brief
+# carried `thirteen of the sixteen inside 1%` where the reader says
+# fourteen, the write-up copied that figure into the run file, and the
+# checker found it there. A figure that is transcribed is a figure that
+# can be transcribed wrong. What it cannot derive it marks <yours>.
+for_brief () {
+  facts="$1"
+  # THE DELIMITER IS NOT `/`: one of the labels is `A/A past 5%`, and a
+  # slash-delimited `s` command died on it with `unknown option to s`,
+  # printing an empty row rather than failing -- which is this tree's
+  # silent-shortfall family in one character.
+  row () { printf '%s\n' "$facts" | sed -n 's|^  '"$1"' *||p' | head -1; }
+  echo
+  echo "--- paste over checker-brief.txt items 5 and 6; <yours> is prose ---"
+  echo " 5. THIS RUN ONLY -- THE BOX AND THE PAIR. The gate machine check"
+  echo "    read $(row 'machine check'). Against PREVBASIS: <yours: the"
+  echo "    shared-arm span, from --compare>. The binaries are"
+  echo "    $(row 'md5s')with .text $(row 'text')"
+  echo "    Repetition: $(row 'repetition')"
+  echo "    THE TWO HALVES DIFFER IN <yours: the pair's variable> AND IN"
+  echo "    NOTHING ELSE. THE PUBLISHED BASIS IS <yours>. The two columns"
+  echo "    may be differenced where \`list\` sits inside the 0.7% bar:"
+  printf '%s\n' "$facts" | sed -n '/list vs the 0.7% bar/,/^  list, as the/p' \
+    | sed -n 's/^    /      /p'
+  echo " 6. THIS RUN ONLY -- THE WINDOW AND THE INSTRUMENTS. Window"
+  echo "    $(row 'windows')"
+  echo "    Processes: $(row 'processes'). Plateau: $(row 'plateau')."
+  echo "    Floors over eight A/A pairs: $(row 'floors')"
+  echo "    A/A worst cells past 5%: $(row 'A/A past 5%')"
+  echo "    Sunk cells: $(printf '%s\n' "$facts" | sed -n 's/^  sunk /sunk /p' \
+                            | tr '\n' ';' | sed 's/;$//')"
+  echo "    <yours: the intrusion verdict from --wild over every log, the"
+  echo "    class shape counts, the counted work's range, the registration"
+  echo "    tally, and what this run's largest finding is>"
+}
+
+if [ "$BRIEF" = 0 ]; then
+  :
+else
+  FACTS_OUT=$(brief_facts)
+  printf '%s\n' "$FACTS_OUT"
+  [ "$FORBRIEF" = 0 ] || for_brief "$FACTS_OUT"
+fi
 
 { [ "$BAD" -eq 0 ] && [ "$SHORT" = 0 ] && [ "$NOISY" = 0 ] \
     && [ "$WILD_PLATEAU" = 0 ]; } || exit 1

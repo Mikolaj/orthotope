@@ -28,6 +28,16 @@ The blocks below are marked [SAME] or [PAIR'S]:
 A note that is mostly [SAME] is the normal state and not a lazy one. What
 it must not be is mostly [SAME] in the [PAIR'S] blocks.
 
+AND THE MARKERS SAY WHO WRITES, NOT WHO ACTS. The EXECUTING session reads
+this note at run-list step 13 and the step says to read it whole, which is
+eight hundred lines of a preparation's record for the handful of blocks it
+acts on: the HALVES, LAUNCH and RIDERS lines every script reads, the gate
+arms, and the fill-in rows the write-up transcribes. Mark those [EXEC] as
+well as [SAME] or [PAIR'S] -- the two are orthogonal, one saying who wrote
+the block and the other who runs on it -- so that step 13 can say read the
+[EXEC] blocks and skim the rest. Added 2026-09-15, after Run 32's executing
+session read the whole note at the step that told it to.
+
 AND KEEP THE FIGURES OUT OF IT. A note is gitignored and goes with the
 pair, so a session other than the one that wrote it cannot correct it:
 Run 22's arms' session amended that run's registration in README.md at
