@@ -2879,7 +2879,7 @@ rather than a slot in the next run, observed again:
   declared 2026-09-15 evening by request, the recipes in [Run 32's
   file](runs/run32.md#what-the-next-run-compares-against).** The pair is Run
   32's with `LOOP_EXITSPAN=1` on both halves, `run33-exit` the basis
-  on ghc-9.12.4 and `run33-ghead-exit` on GHC HEAD, both at plain `-O1`
+  on ghc-9.12.4 and `run33-gheadexit` on GHC HEAD, both at plain `-O1`
   in the dead-spot form, the shim at f1a5adb and `Main.hs` at the tip at build
   time, which carries stage 11 and so is not Run 32's source. Every `cross`
   below is basis over control between this run's own halves unless it says
