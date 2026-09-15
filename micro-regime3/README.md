@@ -3024,19 +3024,23 @@ rather than a slot in the next run, observed again:
   blocks a run and 6.15 cycles, which is where every 9.12.4 binary had it; at 30
   the one crossing falls in the straight part of the checks and reads level,
   0.94 to 1.04; at 58 the inner body is astride the line on every iteration
-  and reads 1.34 to 1.42 on `runs-3`, `window-224x224-k3` and stage 7's `runs-3`
-  alike. The rules charge 58 and not 30, as the machine does, so on this loop
-  no placement defeats them. **HEAD's penalty on it is two blocks
-  of the compiler's own making and one of placement**: HEAD emits the outer
-  head's test as `cmpq; jl` into the checks, a taken branch every run where
-  9.12.4's `jge` falls through, GHC #27799's shape at a loop head, and lays
-  the loop's exit block inside the cycle, 100 bytes that cannot fit two lines
-  without a crossing --- six taken branches and seven fetch blocks a run against
-  five and five, 8.1 cycles against 6.15. Pinned at 0 on HEAD it reads 7.40
-  cycles and seven blocks, 0.93 of the exit-span half on `runs-3` and 0.98
-  on the window view, so placement is worth the crossing's position and no more
-  there, and the rest is code order. Why HEAD's planner left the head at 37
-  and 41, residues the rules charge, is still to be read off that assembly.
+  and reads 1.34 to 1.42 on `runs-3` and `window-224x224-k3` for stage 9, 1.39
+  to 1.48 on `runs-3` for stages 7, 10 and 11, 1.29 to 1.36 on the stride-2
+  window for the three, and 1.08 to 1.10 on the long-run window for stages 10
+  and 11, where the arm is latency-bound and the crossing per element still
+  shows. The rules charge 58 and not 30, as the machine does, so on this loop
+  no placement defeats them, for any of the four arms that run it. **HEAD's
+  penalty on it is two blocks of the compiler's own making and one
+  of placement**: HEAD emits the outer head's test as `cmpq; jl`
+  into the checks, a taken branch every run where 9.12.4's `jge` falls through,
+  GHC #27799's shape at a loop head, and lays the loop's exit block inside
+  the cycle, 100 bytes that cannot fit two lines without a crossing --- six
+  taken branches and seven fetch blocks a run against five and five, 8.1 cycles
+  against 6.15. Pinned at 0 on HEAD it reads 7.40 cycles and seven blocks, 0.93
+  of the exit-span half on `runs-3` and 0.98 on the window view, so placement
+  is worth the crossing's position and no more there, and the rest is code
+  order. Why HEAD's planner left the head at 37 and 41, residues the rules
+  charge, is still to be read off that assembly.
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
