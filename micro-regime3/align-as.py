@@ -441,6 +441,7 @@ EXITSPAN = switch('LOOP_EXITSPAN')
 ENTRIES = switch('LOOP_ENTRIES')
 BLOCKRULES = switch('LOOP_BLOCKRULES')
 PIN = os.environ.get('LOOP_PIN', '')
+TRACE = os.environ.get('LOOP_TRACE', '')   # a head label: its group's plan, on stderr
 WINDOW = number('LOOP_WINDOW', 64)
 ENTRY_OPS = number('LOOP_ENTRY_OPS', 8)
 VERBOSE = switch('ALIGN_AS_VERBOSE')
@@ -1059,6 +1060,18 @@ def plan_dead(src, args, path):
             return c0
 
         chosen = choose(mode)
+        if TRACE and TRACE in hs:
+            (tc0, trho, tm), td = chosen
+            i = edges[TRACE][0]
+            print(f'align-as: trace {TRACE}: group {hs}, spots at lines'
+                  f' {cands}, chosen spot line {td}, rho {trho}, budget {tm},'
+                  f' cost {tc0}; the spot\'s raw residue {sym[f"{DS}D_{td}"] % BOUND},'
+                  f' the head\'s {sym[f"{DS}H_{i}"] % BOUND};'
+                  f' L {L[TRACE]}, exit span {LX.get(TRACE)}', file=sys.stderr)
+            if TRACE in BC:
+                costly = [r for r in range(BOUND) if BC[TRACE][r] > 1e-9]
+                print(f'align-as: trace {TRACE}: block-rule costly residues'
+                      f' {costly}', file=sys.stderr)
         if PIN and PIN.rsplit(':', 1)[0] in hs:
             # the pinned head's group: the nearest spot, the residue that
             # puts the head where asked, a budget that always fires
