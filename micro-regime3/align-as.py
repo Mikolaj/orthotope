@@ -211,7 +211,10 @@ pair of them prices. Priced the same day on thirteen cells in interleaved
 pairs, on 9.12.4 and on HEAD, the two read level, 0.9917 to 1.0071 of
 each other, with the entry form crossing up to twice the windows for it,
 while the exit-span half beats Run 32's HEAD binary by 4 to 9 percent
-gross on the four short-run cells; so the exit span is
+gross on the four short-run cells. Those thirteen were fills and
+references; on a reducer's per-run loop with a three-element body,
+window-224x224-k3's stage 9, the entry form reads 7 percent behind,
+its cut having stranded a stub (README, the open list). So the exit span is
 the candidate basis and the entry form stays here, off, for the day a
 cell contradicts that (README, the open list). Both are costs of the
 dead-spot planner and refuse
