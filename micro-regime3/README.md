@@ -54,7 +54,7 @@ than six tenths of a multiple, `-O2` speeding `bq-expand` by 29% and leaving
 the fill where it is, while changing the compiler costs it a hundredth; the gap
 this ratio reports is the one the library actually compiles in. **The nineteenth
 shape is what WAS new, and it has come back**: `stretch-pow2stride` reads 0.993
-on this basis, the fill ahead again, where Run 31 read 0.999 with `bq-expand`
+on this basis, the fill ahead again, where Run 31 read 1.0009 with `bq-expand`
 a thousandth faster; on the GHC HEAD half it reads 1.000 and class property 1
 breaks there and not here, so that cell sits on the line rather than having
 turned over. **The mutable fills hold the top of the table** ---
@@ -117,19 +117,19 @@ that flag is one pass of**: `-O2` is worth 29.74% to `list` and 29.43%
 to `bq-expand` and nothing measurable to the shipped fill, so a table published
 at -O1 and one published at -O2 are two orderings of the same arms rather
 than one table with a scale factor. **And Run 32 asked the COMPILER at that same
-level and got nothing**: GHC HEAD against ghc-9.12.4, one source and one shim
-between them, moves `list` by 0.43 points and `bq-expand` by 0.73 and no arm
-of the main set past 3%. So the scale factor between two published tables
-is the level's and not the toolchain's. The 19% it was also said to *cost*
-`mut-odo` is not the flag's: `build` compiles to the same worker and moved 17%
-the other way, which identical code cannot do, and the pad probe has since
-priced that disagreement as placement ([the floor section][floor]). Every figure
-in this sentence crosses a rebuild and so carries some of the same term;
-the three that survive it do so by being larger than it. Run 9 then changed
-the roster and nothing else, and moved arms from 9% faster to 19% slower
-with the baseline standing still; Run 10 changed only the roster's *order*
-and moved them 3% faster to 14% slower, and then measured the layout term
-directly by running the same source from two binaries that differ in where
+level and got almost nothing**: GHC HEAD against ghc-9.12.4, one source and one
+shim between them, moves `list` by 0.43 points and `bq-expand` by 0.73
+and no arm of the main set past 3%. So the scale factor between two published
+tables is the level's and not the toolchain's. The 19% it was also said
+to *cost* `mut-odo` is not the flag's: `build` compiles to the same worker
+and moved 17% the other way, which identical code cannot do, and the pad probe
+has since priced that disagreement as placement ([the floor section][floor]).
+Every figure in this sentence crosses a rebuild and so carries some of the same
+term; the three that survive it do so by being larger than it. Run 9
+then changed the roster and nothing else, and moved arms from 9% faster to 19%
+slower with the baseline standing still; Run 10 changed only the roster's
+*order* and moved them 3% faster to 14% slower, and then measured the layout
+term directly by running the same source from two binaries that differ in where
 its loops sit --- 12 to 14% on the two arms whose loop straddled a cache line,
 and a percent or two the other way on everything else. **Run 11 then changed
 nothing at all**, re-running Run 10's aligned binary, and moved every arm
@@ -1019,26 +1019,32 @@ rather than a slot in the next run, observed again:
   where the basis's named five of its own seven.
 
 - `OPEN` **The published `time` column moves a row across runs by far more
-  than the arm moves, because its winsorizing cap changes hands --- measured
-  2026-09-15 and not previously suspected.** `lib-stage2-lean-u1` prints
-  **0.025** on `run32-nospec` and **0.029** on `run31-nospec`, fourteen points,
-  where `--compare` between the two runs reads that arm at **0.9839**
+  than the arm moves, because its winsorizing BAND collapses under it ---
+  measured 2026-09-15 and not previously suspected.** `lib-stage2-lean-u1`
+  prints **0.025** on `run32-nospec` and **0.029** on `run31-nospec`, fourteen
+  points, where `--compare` between the two runs reads that arm at **0.9839**
   and the plain per-shape geomean of net over `list`'s net moves from 0.03036
   to 0.02978, under two points. The column is a winsorized geomean, outliers
   capped at 3 MADs of the log, and that row's nineteen shapes span sevenfold,
-  so four cells are capped in each run and WHICH four is not the same four.
-  Re-implementing the winsorization by hand reproduces the published figure
-  to three decimals on eight rows across the two runs, which is what makes
-  this a mechanism rather than a suspicion. It matters because the run chapter's
-  standing rule is *DO NOT DIVIDE TWO ROWS OF THIS TABLE FOR A MARGIN*
-  and nothing warns against the other reading a table invites --- following ONE
-  row down the published columns of successive runs, which is what a cross-run
-  sentence does by hand. **What would settle it costs no machine time**: print
-  the plain per-shape geomean beside the winsorized one under `--cells`
-  or a flag, and have `--check-doc` hold a cross-run sentence about a row
-  to `--compare`'s paired figure for that arm, which is the statistic the floor
-  is defined in. Until then a sentence tracking a row across runs is quoting
-  the estimator and not the arm. Registered here 2026-09-15.
+  so four of its cells are capped in each run. **The same four**:
+  `cnn-L1-6x6-c1`, `cnn-slice-c32`, `stretch-pow2stride`
+  and `stretch-square-1341` in both. What moves is the CAP they are pulled
+  to --- the scaled MAD of that row's log-ratios falls from **0.34402**
+  on `run31-nospec` to **0.17956** on `run32-nospec` and the upper cap with it,
+  from a ratio of 0.06858 to 0.03829, so one estimator's own spread halving
+  drags four published cells down with it. Re-implementing the winsorization
+  by hand reproduces the published figure to three decimals on eight rows across
+  the two runs, which is what makes this a mechanism rather than a suspicion.
+  It matters because the run chapter's standing rule is *DO NOT DIVIDE TWO ROWS
+  OF THIS TABLE FOR A MARGIN* and nothing warns against the other reading
+  a table invites --- following ONE row down the published columns of successive
+  runs, which is what a cross-run sentence does by hand. **What would settle
+  it costs no machine time**: print the plain per-shape geomean beside
+  the winsorized one under `--cells` or a flag, and have `--check-doc` hold
+  a cross-run sentence about a row to `--compare`'s paired figure for that arm,
+  which is the statistic the floor is defined in. Until then a sentence tracking
+  a row across runs is quoting the estimator and not the arm. Registered here
+  2026-09-15.
 - `OPEN` **The `--library` within-pair agreement is quoted as a series across
   runs and does not reproduce under one tool.** Re-derived 2026-09-15
   from the surviving binaries: Runs 24, 25 and 26 all read **14.0%** at the same
@@ -1080,13 +1086,15 @@ rather than a slot in the next run, observed again:
   which is the answer neither branch of the question expected: `mut-odo-vecdims`
   is AHEAD on `stretch-pow2stride` by 0.66 of a point on the ghc-9.12.4 half,
   at 0.9934, and BEHIND by three hundredths on the GHC HEAD half, at 1.0003,
-  against main-set floors of 0.66% and 0.68%. So four readings of that cell now
-  exist --- 0.9997, 1.0009, 1.0109, 0.9934 and 1.0003 across Runs 30, 31 and 32
-  --- they straddle 1, every one of them is inside the floor of the half
-  it was read on, and the two that a compiler alone separates part in sign.
-  That is a cell sitting on the line rather than a property of the shape,
-  and the entry STAYS OPEN on a narrower question: whether any run reads
-  it outside its own floor. Until one does, a break here is not evidence
+  against main-set floors of 0.66% and 0.68%. So SIX readings of that cell now
+  exist across Runs 30, 31 and 32 --- 0.9997 and 0.9748 on Run 30's two halves,
+  1.0009 and 1.0109 on Run 31's, 0.9934 and 1.0003 on Run 32's --- they straddle
+  1, FIVE of the six sit inside the floor of the half they were read on,
+  the sixth is Run 30's control at 0.9748 against a 0.84% floor and is the fill
+  AHEAD by two and a half points, and the two that a compiler alone separates
+  part in sign. That is a cell sitting on the line rather than a property
+  of the shape, and the entry STAYS OPEN on a narrower question: whether any run
+  reads it outside its own floor. Until one does, a break here is not evidence
   that the fill fails to replace `bq-expand` on that shape.
 - `OPEN` **`-O2` changes what the preamble's spray leaves RESIDENT, and no pair
   before it did.** Run 31's twenty-two processes carry one `keep` value,
@@ -1223,7 +1231,11 @@ rather than a slot in the next run, observed again:
   band and not the flag ones. So the fewer-loops-larger-text pairing
   is a property of ADDING A PASS and not of emitting more code, which
   is a narrowing the entry did not have and still not the measurement it asks
-  for.
+  for. **The round page multiple narrows the same way**: the three flag pairs'
+  `.text` gaps are 16384, 20480 and 12288, exact multiples every one,
+  and no compiler pair's ever has been --- Runs 24 to 28 read 140922, 140922,
+  145018, 140922 and 145018 and Run 32 reads 153210. So whatever makes a gap
+  a round multiple is a pass being added and not a code generator changing.
 
 - `OPEN` **A saving in instructions reaches the clock at anything from NONE
   of it to ALL of it WITHIN ONE BINARY, where the rate on record is three
@@ -1369,8 +1381,8 @@ rather than a slot in the next run, observed again:
   premise of Run 28's registration, and moved with it into `runs/run28.md`
   at that run's post-run step 5.
 - `OPEN` **An argument that a reordering cannot reach a population
-  is the cheapest clause a registration can carry and the least reliable: two
-  runs have now put eight such clauses each to the test and seven failed between
+  is the cheapest clause a registration can carry and the least reliable: three
+  runs have now put eight such clauses each to the test and eight failed between
   them.** Registrations (3), (6), (7) and (11) each said two routes are the same
   code past a dispatch, and each named the populations the argument says
   the reordering cannot touch. Every one was refuted there, on BOTH halves
@@ -3279,32 +3291,33 @@ the tooling.** `lib-stage2-lean-u1` prints 0.025 in the `time` column here
 and 0.029 on `run31-nospec`, fourteen points, where the cross-run PAIRED reading
 is 0.9839 and the plain per-shape geomean moves from 0.03036 to 0.02978.
 The column is a winsorized geomean with four of nineteen cells capped in each
-run, and on a row whose shapes span sevenfold the cap changes hands between
-runs. Re-implementing the winsorization by hand reproduced the published figure
-to three decimals on eight rows across the two runs, which is what turned
-a suspicion into a mechanism. **THE TASK** is that the run chapter's *DO
-NOT DIVIDE TWO ROWS* rule now needs a second clause --- one row's movement
-BETWEEN RUNS is not the arm's either --- and that a mode printing the plain
-geomean beside the winsorized one would make it visible rather than remembered.
-**A COMPUTATION IMPROVISED: the `--library` series is not a series.**
-Re-deriving Runs 24 to 28's within-pair library agreement from their own
-surviving binaries with today's tool gives 14.0% and 66.2% for all THREE of Runs
-24, 25 and 26 --- which three pairs sharing two compilers should ---
-and 12.5%/64.7% and 11.8%/74.3% for Runs 27 and 28, where those runs recorded
-three distinct pairs of figures and 12.8% and 11.3% *of 141*. Run 31's 916, 4.4%
-and 58.7% reproduce to the digit. So the recorded per-run figures and today's
-tool disagree systematically on the older pairs, nothing compares a recorded
-figure with its re-derivation, and a run quoting that series as a series
-is quoting numbers taken under more than one tool. **A CAPABILITY FOUND**:
-`--exclude-shape` re-reads a gate with an intruded shape dropped, which is what
-turned this run's intrusion from a stop into a recorded finding in two calls.
-**WHAT THE THREE AGENTS COST AND BOUGHT.** One carrier took readings 2, 4, 5
-and 6 during the sequence and returned `run32-readings.txt`, where it found
-that `--with-tables 1` does NOT release the two-column table the reading list
-sends it for: that section's two withholdable table paragraphs are both
-per-shape fingerprints, and the two-column table prints regardless because
-no blank line separates it from its lead. The checker's two passes
-and the comprehension probe are the other two.
+run, and on a row whose shapes span sevenfold the cap BAND halves between runs,
+the four capped cells being the same four. Re-implementing the winsorization
+by hand reproduced the published figure to three decimals on eight rows across
+the two runs, which is what turned a suspicion into a mechanism. **THE TASK**
+is that the run chapter's *DO NOT DIVIDE TWO ROWS* rule now needs a second
+clause --- one row's movement BETWEEN RUNS is not the arm's either ---
+and that a mode printing the plain geomean beside the winsorized one would make
+it visible rather than remembered. **A COMPUTATION IMPROVISED: the `--library`
+series is not a series.** Re-deriving Runs 24 to 28's within-pair library
+agreement from their own surviving binaries with today's tool gives 14.0%
+and 66.2% for all THREE of Runs 24, 25 and 26 --- which three pairs sharing two
+compilers should --- and 12.5%/64.7% and 11.8%/74.3% for Runs 27 and 28, where
+those runs recorded three distinct pairs of figures and 12.8% and 11.3%
+*of 141*. Run 31's 916, 4.4% and 58.7% reproduce to the digit. So the recorded
+per-run figures and today's tool disagree systematically on the older pairs,
+nothing compares a recorded figure with its re-derivation, and a run quoting
+that series as a series is quoting numbers taken under more than one tool.
+**A CAPABILITY FOUND**: `--exclude-shape` re-reads a gate with an intruded shape
+dropped, which is what turned this run's intrusion from a stop into a recorded
+finding in two calls. **WHAT THE THREE AGENTS COST AND BOUGHT.** One carrier
+took readings 2, 4, 5 and 6 during the sequence and returned
+`run32-readings.txt`, where it found that `--with-tables 1` does NOT release
+the two-column table the reading list sends it for: that section's two
+withholdable table paragraphs are both per-shape fingerprints,
+and the two-column table prints regardless because no blank line separates
+it from its lead. The checker's two passes and the comprehension probe
+are the other two.
 
 **What Run 31 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
@@ -12926,7 +12939,7 @@ tables and its fingerprint say so.
   `10.1.20260803`, instead --- contributes the second column of `runs/run32.md`.
   **Its `list` moved 0.43 points between the halves, INSIDE the 0.7% bar,
   so its two columns MAY be subtracted**, as may six of its ten classes';
-  the four past the bar are `rev`, `scaled`, `small` and `compose`, at 1.45
+  the four past the bar are `scaled`, `rev`, `small` and `compose`, at 1.19
   to 2.27 points. Its sequence ran in ONE window, 00:35:17 to 07:42:54,
   with NO intrusion in any of its twenty-two processes or its eighty-eight
   alone-leg logs --- one of its four GATE processes was intruded on

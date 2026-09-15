@@ -9,7 +9,7 @@ Substitute per run: RUN=run32 BASIS=nospec OTHER=ghead PREV=run31
                                       run file as wholly new and leave the
                                       pass no `before` to find a stale
                                       paragraph in)
-                    RUNTIP=<given in the launch message>   (the commit pass 2
+                    RUNTIP=df674e9   (the commit pass 2
                                       READS -- the commit that carries this
                                       line's edit cannot name itself -- and
                                       advanced here after, as the record and
