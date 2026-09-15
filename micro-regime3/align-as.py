@@ -62,6 +62,10 @@ the old object code and reports nothing (README.md, same section).
                LOOP_DEADSPOT=1 likewise, stands alone, and is off by
                default. The same section
   PAD_BYTES    dead bytes appended after the first module's text, default 0
+  LOOP_PIN     LABEL:RESIDUE, a probe's knob and never a recipe's: the group
+               holding that head takes the residue that puts the head
+               there, whatever any cost says, so a placement can be built
+               to order and timed. Dead-spot form only; refused otherwise
   REAL_AS      the real assembler, default /usr/bin/gcc
   ALIGN_AS_VERBOSE  report the budgets emitted, the heads fallen back on,
                and the heads the info-table guard left alone
@@ -436,6 +440,7 @@ DEADSPOT = switch('LOOP_DEADSPOT')
 EXITSPAN = switch('LOOP_EXITSPAN')
 ENTRIES = switch('LOOP_ENTRIES')
 BLOCKRULES = switch('LOOP_BLOCKRULES')
+PIN = os.environ.get('LOOP_PIN', '')
 WINDOW = number('LOOP_WINDOW', 64)
 ENTRY_OPS = number('LOOP_ENTRY_OPS', 8)
 VERBOSE = switch('ALIGN_AS_VERBOSE')
@@ -445,6 +450,11 @@ if (EXITSPAN or ENTRIES or BLOCKRULES) and not DEADSPOT:
     sys.exit('align-as: LOOP_EXITSPAN, LOOP_ENTRIES and LOOP_BLOCKRULES are'
              ' costs of the dead-spot planner and want LOOP_DEADSPOT=1 beside'
              ' them; the recipe asked for something this shim cannot do')
+if PIN and not DEADSPOT:
+    sys.exit('align-as: LOOP_PIN is a knob of the dead-spot planner and'
+             ' wants LOOP_DEADSPOT=1 beside it')
+if PIN and (':' not in PIN or not PIN.rsplit(':', 1)[1].isdigit()):
+    sys.exit('align-as: LOOP_PIN=%r is not LABEL:RESIDUE' % PIN)
 if ENTRIES and (WINDOW < 1 or BOUND % WINDOW or ENTRY_OPS < 1):
     sys.exit('align-as: LOOP_WINDOW=%d LOOP_ENTRY_OPS=%d: the window must'
              ' divide the alignment boundary of %d bytes and an entry must'
@@ -1048,7 +1058,20 @@ def plan_dead(src, args, path):
                 into[d].append(f'\t.skip\t{rho}, 0x90')
             return c0
 
-        c0 = directive(choose(mode), ins)
+        chosen = choose(mode)
+        if PIN and PIN.rsplit(':', 1)[0] in hs:
+            # the pinned head's group: the nearest spot, the residue that
+            # puts the head where asked, a budget that always fires
+            lab, want = PIN.rsplit(':', 1)
+            d = cands[-1]
+            i = edges[lab][0]
+            rho = next(p for p in range(BOUND)
+                       if residue(d, i, p) == int(want) % BOUND)
+            chosen = ((cost(d, rho, mode), rho, BOUND - 1), d)
+            if VERBOSE:
+                print(f'align-as: {path}: {lab} pinned at residue'
+                      f' {int(want) % BOUND} by LOOP_PIN', file=sys.stderr)
+        c0 = directive(chosen, ins)
         unresolved += int(c0[0] + c0[1])
         if VERBOSE and mode in below:
             directive(choose(below[mode]), ins_alt)
