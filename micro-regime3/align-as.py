@@ -36,6 +36,21 @@ the old object code and reports nothing (README.md, same section).
                containment test as a skip do not apply, the last serving
                as a priority instead. Its own section below. A basis
                change, so off by default
+  LOOP_EXITSPAN  cost a head's fall-through exit with its body: a second
+               span runs from the head through the first jump after its
+               last back edge, and the lines-spanned charge is taken on
+               both. A cost inside the dead-spot planner, so it wants
+               LOOP_DEADSPOT=1 beside it and refuses without. A basis
+               change, so off by default. Its own section below
+  LOOP_ENTRIES  charge op-cache entries rather than lines: each straight
+               segment of the cycle, body and exit, is cut at every
+               LOOP_WINDOW boundary, each piece costs one entry per
+               LOOP_ENTRY_OPS instructions, and the head pays the total
+               beyond the uncut minimum. Wants LOOP_DEADSPOT=1 likewise,
+               stands alone rather than adding the lines charge, and is
+               off by default. The same section
+  LOOP_WINDOW  bytes of the window that ends an entry, default 64
+  LOOP_ENTRY_OPS  instructions an entry holds, default 8
   PAD_BYTES    dead bytes appended after the first module's text, default 0
   REAL_AS      the real assembler, default /usr/bin/gcc
   ALIGN_AS_VERBOSE  report the budgets emitted, the heads fallen back on,
@@ -169,10 +184,47 @@ carried none within the floor. Off by default for the reason the other
 switches are: every figure published through this shim was measured under
 the max-skip form, and moving the basis is a run's decision.
 
+**The exit span and the entry count, `LOOP_EXITSPAN=1` and
+`LOOP_ENTRIES=1`** (2026-09-15). The span the planner protects runs from
+a head to its back edge, and a loop that turns over once a run exits
+every run through the instructions after that edge: Run 32's HEAD half
+left `fillStage2`'s stepping loop at offset 9, its 51-byte body inside
+the line and its exit `cmp; jge` astride the line's end, and paid about
+a cycle a run for it where the 9.12.4 half at offset 0 paid none, the
+instructions and the taken branches being identical -- an op-cache fetch
+more a run on the counter, and the same cost whether the branch is split
+by the boundary or starts the next line, read off a sweep of that loop
+over all 64 offsets. README's placement section carries the sweep, the
+per-core table it was checked against and the sources. So the exit-span
+form reads a second span, head through the first jump on the fall-through
+path after the last back edge, and charges lines spanned beyond the least
+on both spans, summed rather than replaced so that a short body whose
+exit span is long keeps the protection it has. The entry form is the
+model the sweep suggests and does not fully bear out, the count
+reproducing 51 to 54 of the 64 offsets over two sweeps: each straight segment of the cycle,
+body and exit, cut at every window boundary by the instruction's ending
+byte, a piece costing one entry per LOOP_ENTRY_OPS instructions, the head
+charged the total beyond the uncut minimum, and nothing else -- a cut
+that leaves a full entry on each side of a long segment is free under it
+and is not under the exit span, which is where the two part and what a
+pair of them prices. Both are costs of the dead-spot planner and refuse
+to run without `LOOP_DEADSPOT=1`, since a switch that implied another
+would be a default and a pair's note records no default. Under
+ALIGN_AS_VERBOSE each plans the module a second time under the cost
+below it, the entry count against the exit span and the exit span
+against the plain dead-spot cost, probes that plan too, and names the
+heads the two costs place at different residues, which is the list a
+pair of the two can say anything about; and the verified line counts
+the exit spans still astride. `probe-entries-sweep.py` is
+the exhaustive reading for one loop, predicted entries against measured
+cycles at every residue.
+
 Its defects are kept as cases in `defects.py`: the switch read for
 truth, the head after a zero-operand instruction, the pad's announcement,
-the empty `PAD_BYTES`, and for the dead-spot form the pad's place, the
-table kept with its label and the rotated pair's order. Add one there
+the empty `PAD_BYTES`, for the dead-spot form the pad's place, the table
+kept with its label and the rotated pair's order, and for the two costs
+above the fill's shape under each, a cut the entry count keeps and the
+exit span pads, and the refusal without the dead-spot form. Add one there
 before fixing anything here, and the proof outlives the commit.
 
 The published copy of this is in horde-ad's
@@ -341,9 +393,22 @@ MAXSKIP = switch('LOOP_MAXSKIP')
 LOOKTHROUGH = switch('LOOP_LOOKTHROUGH')
 NOOVERLAP = switch('LOOP_NOOVERLAP')
 DEADSPOT = switch('LOOP_DEADSPOT')
+EXITSPAN = switch('LOOP_EXITSPAN')
+ENTRIES = switch('LOOP_ENTRIES')
+WINDOW = number('LOOP_WINDOW', 64)
+ENTRY_OPS = number('LOOP_ENTRY_OPS', 8)
 VERBOSE = switch('ALIGN_AS_VERBOSE')
 PAD = number('PAD_BYTES', 0)
 BOUND = 1 << int(ALIGN)
+if (EXITSPAN or ENTRIES) and not DEADSPOT:
+    sys.exit('align-as: LOOP_EXITSPAN and LOOP_ENTRIES are costs of the'
+             ' dead-spot planner and want LOOP_DEADSPOT=1 beside them; the'
+             ' recipe asked for something this shim cannot do')
+if ENTRIES and (WINDOW < 1 or BOUND % WINDOW or ENTRY_OPS < 1):
+    sys.exit('align-as: LOOP_WINDOW=%d LOOP_ENTRY_OPS=%d: the window must'
+             ' divide the alignment boundary of %d bytes and an entry must'
+             ' hold an instruction; the recipe asked for something this'
+             ' shim cannot do' % (WINDOW, ENTRY_OPS, BOUND))
 LABEL = re.compile(r'^(\.L\w+):')
 JUMP = re.compile(r'^j\w*\s+(\.L\w+)\b')
 # A mnemonic, not a directive or label -- with no operand as much as with
@@ -376,6 +441,7 @@ JUMP = re.compile(r'^j\w*\s+(\.L\w+)\b')
 INSTR = re.compile(r'^[a-z][a-z0-9.]*(?:\s|$)')
 BYTELESS = re.compile(r'^(?:[\w.$]+:|\.(?:loc|file|cfi_\w+)\b.*)$')  # no bytes
 UNCOND = re.compile(r'^(?:jmp|ret|ud2|hlt)\b')      # nothing falls through
+EXITEND = re.compile(r'^(?:j\w*|ret|ud2|hlt)\b')     # where a fall-through exit ends
 ALIGNDIR = re.compile(r'^\.(p2)?align\s+(\d+)')
 PROBE = 'apLoop'          # apLoopHead_<line>, apLoopEnd_<line>_<k>_<n>
 DS = 'dsProbe'            # dsProbe{H,A,B,D,Q}_<line>, dsProbeE_<head>_<line>
@@ -441,6 +507,69 @@ def overlapped(spans):
     """
     return {h for h, (i, j) in spans.items()
             if any(a < i < b < j for a, b in spans.values() if (a, b) != (i, j))}
+
+
+def exits_of(src, edges):
+    """head label -> the line of the first jump on the fall-through path
+    after its last back edge: the loop's exit test, which a loop that
+    turns over once per entry executes as often as its body. None where
+    a table, a section change or the file's end comes first."""
+    out = {}
+    for h, (i, js) in edges.items():
+        for k in range(max(js) + 1, len(src)):
+            s = src[k].strip()
+            if not s or s.startswith('#') or BYTELESS.match(s):
+                continue
+            if s.startswith('.'):        # a directive: a table or a section
+                break
+            if EXITEND.match(s):
+                out[h] = k
+                break
+    return out
+
+
+def instr_lines(src, edges, exits):
+    """The instruction lines of every head's cycle, head through exit."""
+    out = set()
+    for h, (i, js) in edges.items():
+        for k in range(i, exits.get(h, max(js)) + 1):
+            if INSTR.match(src[k].strip()):
+                out.add(k)
+    return out
+
+
+def segments(sym, i, j, x, a, end_body, end_exit):
+    """A head's cycle as two lists of (start, end) offsets from the head,
+    body through the back edge on line `j` and exit through line `x`, each
+    instruction ending where the next begins."""
+    at = sorted((v - a, int(k.split('_')[1])) for k, v in sym.items()
+                if k.startswith(f'{DS}I_') and a <= v
+                and i <= int(k.split('_')[1]) <= (x if x is not None else j))
+    body, exit_ = [], []
+    for n, (start, line) in enumerate(at):
+        if line <= j:
+            end = at[n + 1][0] if n + 1 < len(at) and at[n + 1][1] <= j else end_body
+            body.append((start, end))
+        else:
+            end = at[n + 1][0] if n + 1 < len(at) else end_exit
+            exit_.append((start, end))
+    return body, exit_
+
+
+def entry_cost(segs, r):
+    """Entries the cycle's segments need at residue `r` beyond their least:
+    each cut at a window boundary by ending byte, a piece charged one entry
+    per ENTRY_OPS instructions. Instructions and not fused ops, which fit
+    the sweep of 2026-09-15 better, at 51 offsets of 64 against 48 on
+    its first run."""
+    tot = 0
+    for seg in segs:
+        if not seg:
+            continue
+        pieces = collections.Counter((r + end - 1) // WINDOW for _, end in seg)
+        tot += (sum(-(-n // ENTRY_OPS) for n in pieces.values())
+                - -(-len(seg) // ENTRY_OPS))
+    return tot
 
 
 def sites(src, heads):
@@ -630,15 +759,20 @@ def dead_spots(src):
     return dead, aligns
 
 
-def marked(src, edges, dead, aligns, ins):
+def marked(src, edges, dead, aligns, ins, exits=None, ilines=()):
     """`src` with `ins` applied and a byte-free symbol at every place the
     planner reasons about: each head, each back-edge's end, each dead spot
-    on both sides of its pad, each `.align` on both sides."""
+    on both sides of its pad, each `.align` on both sides -- and, for the
+    two costs that read past the back edge, each exit's end and each
+    instruction of a cycle."""
     head_at = {i: h for h, (i, _) in edges.items()}
     end_at = collections.defaultdict(list)
     for h, (i, js) in edges.items():
         for j in js:
             end_at[j].append(i)
+    exit_at = collections.defaultdict(list)
+    for h, x in (exits or {}).items():
+        exit_at[x].append(edges[h][0])
     deadset = set(dead)
     out = []
     for i, line in enumerate(src):
@@ -646,11 +780,15 @@ def marked(src, edges, dead, aligns, ins):
             out.append(f'{DS}H_{i}:')
         if i in aligns:
             out.append(f'{DS}A_{i}:')
+        if i in ilines:
+            out.append(f'{DS}I_{i}:')
         out.append(line)
         if i in aligns:
             out.append(f'{DS}B_{i}:')
         for hi in end_at.get(i, ()):
             out.append(f'{DS}E_{hi}_{i}:')
+        for hi in exit_at.get(i, ()):
+            out.append(f'{DS}X_{hi}:')
         if i in deadset:
             out.append(f'{DS}D_{i}:')
             out += ins.get(i, [])
@@ -671,20 +809,40 @@ def plan_dead(src, args, path):
     `rho` does would need, so the directive fires for exactly those. The
     `.align` between a spot and a head is applied to `p` as the assembler
     will apply it, so no rigid-distance assumption is made across one.
+
+    Under LOOP_EXITSPAN the lines charge is taken on the exit span as
+    well, and under LOOP_ENTRIES the charge is `entry_cost` instead, both
+    in the tier the body's length puts the head in; the docstring above
+    says what each is for. `mode` names the cost, and the verbose report
+    plans every group a second time under the cost below the one in force
+    and probes that plan too, to name the heads the two place differently.
     """
     edges = edges_of(src)
     dead, aligns = dead_spots(src)
-    sym = probe(marked(src, edges, dead, aligns, {}), args, path, DS)
+    exits = exits_of(src, edges) if (EXITSPAN or ENTRIES) else {}
+    ilines = instr_lines(src, edges, exits) if ENTRIES else set()
+    sym = probe(marked(src, edges, dead, aligns, {}, exits, ilines),
+                args, path, DS)
     if not sym:
         return None
-    L = {}
+    L, LX, SEGS = {}, {}, {}
     for h, (i, js) in edges.items():
         a = sym[f'{DS}H_{i}']
         ends = [sym[f'{DS}E_{i}_{j}'] - a for j in js if sym[f'{DS}E_{i}_{j}'] > a]
-        if ends:
-            L[h] = min(ends)
+        if not ends:
+            continue
+        L[h] = min(ends)
+        x = sym.get(f'{DS}X_{i}')
+        if x is not None and x - a > L[h]:
+            LX[h] = x - a
+        if ENTRIES:
+            j = max(js)
+            SEGS[h] = segments(sym, i, j, exits.get(h), a,
+                               sym[f'{DS}E_{i}_{j}'] - a, LX.get(h, L[h]))
     outer = overlapped(spans_of(src))
     align_lines = sorted(aligns)
+    mode = 'entries' if ENTRIES else 'exit' if EXITSPAN else 'plain'
+    below = {'entries': 'exit', 'exit': 'plain'}
 
     def residue(d, i, p):
         """Head line i's offset mod BOUND when the pad after d ends at p."""
@@ -705,46 +863,84 @@ def plan_dead(src, args, path):
         else:
             groups[-1][1].append(h)
         last = i
-    ins, unresolved = {}, 0
+    ins, ins_alt, unresolved = {}, {}, 0
     for cands, hs in groups:
         if not cands:
             continue
-        hl = [(edges[h][0], L[h], h in outer) for h in hs]
+        hl = [(edges[h][0], L[h], h in outer, LX.get(h), SEGS.get(h))
+              for h in hs]
 
-        def cost(d, p):
+        def cost(d, p, how):
             c = [0, 0, 0]
-            for i, ln, out in hl:
-                c[2 if ln > BOUND else 1 if out else 0] += extra(residue(d, i, p), ln)
+            for i, ln, out, lx, segs in hl:
+                r = residue(d, i, p)
+                if how == 'entries' and segs is not None:
+                    v = entry_cost(segs, r)
+                else:
+                    v = extra(r, ln)
+                    if how == 'exit' and lx:
+                        v += extra(r, lx)
+                c[2 if ln > BOUND else 1 if out else 0] += v
             return tuple(c)
 
-        best = None
-        for d in reversed(cands):
-            costs = [cost(d, p) for p in range(BOUND)]
-            for rho in range(BOUND):
-                c0 = costs[rho]
-                m = max(((BOUND - p) % BOUND for p in range(BOUND)
-                         if costs[(p + rho) % BOUND] > c0), default=-1)
-                if best is None or (c0, rho, m) < best[0]:
-                    best = ((c0, rho, m), d)
-        (c0, rho, m), d = best
+        def choose(how):
+            best = None
+            for d in reversed(cands):
+                costs = [cost(d, p, how) for p in range(BOUND)]
+                for rho in range(BOUND):
+                    c0 = costs[rho]
+                    m = max(((BOUND - p) % BOUND for p in range(BOUND)
+                             if costs[(p + rho) % BOUND] > c0), default=-1)
+                    if best is None or (c0, rho, m) < best[0]:
+                        best = ((c0, rho, m), d)
+            return best
+
+        def directive(chosen, into):
+            (c0, rho, m), d = chosen
+            if m < 0:                    # no residue costs more than rho's
+                return c0
+            into[d] = [f'\t.p2align\t{ALIGN}, 0x90'
+                       + (f', {m}' if m < BOUND - 1 else '')]
+            if rho:
+                into[d].append(f'\t.skip\t{rho}, 0x90')
+            return c0
+
+        c0 = directive(choose(mode), ins)
         unresolved += c0[0] + c0[1]
-        if m < 0:                        # no residue costs more than rho's
-            continue
-        ins[d] = [f'\t.p2align\t{ALIGN}, 0x90' + (f', {m}' if m < BOUND - 1 else '')]
-        if rho:
-            ins[d].append(f'\t.skip\t{rho}, 0x90')
+        if VERBOSE and mode in below:
+            directive(choose(below[mode]), ins_alt)
     if VERBOSE:
         # The plan checked against the assembler, one more probe: what the
         # symbol table of the padded copy says every head's residue is.
-        sym2 = probe(marked(src, edges, dead, aligns, ins), args, path, DS)
+        sym2 = probe(marked(src, edges, dead, aligns, ins, exits, ilines),
+                     args, path, DS)
         if sym2:
             strad = sum(1 for h in L if L[h] <= BOUND
                         and extra(sym2[f'{DS}H_{edges[h][0]}'], L[h]))
             padb = sum(sym2[f'{DS}Q_{d}'] - sym2[f'{DS}D_{d}'] for d in dead)
+            astride = ''
+            if mode != 'plain':
+                stradx = sum(1 for h in LX if LX[h] <= BOUND
+                             and extra(sym2[f'{DS}H_{edges[h][0]}'], LX[h]))
+                astride = f', {stradx} exit span(s) astride'
             print(f'align-as: {path}: {len(L)} head(s) in {len(groups)} group(s),'
                   f' {len(ins)} dead-spot directive(s), {padb} pad byte(s);'
                   f' verified: {strad} short loop(s) straddling'
-                  f' ({unresolved} planned)', file=sys.stderr)
+                  f' ({unresolved} planned){astride}', file=sys.stderr)
+        # And the plan under the cost below this one, probed the same way:
+        # the heads the two costs place at different residues are the ones
+        # a pair of the two costs can say anything about, budgets that
+        # differ without moving a head being no difference at all.
+        sym3 = probe(marked(src, edges, dead, aligns, ins_alt, exits, ilines),
+                     args, path, DS) if mode in below else None
+        if sym2 and sym3:
+            names = [h for h in sorted(L, key=lambda h: edges[h][0])
+                     if sym2[f'{DS}H_{edges[h][0]}'] % BOUND
+                     != sym3[f'{DS}H_{edges[h][0]}'] % BOUND]
+            shown = ', '.join(names[:12]) + (', ...' if len(names) > 12 else '')
+            print(f'align-as: {path}: {len(names)} head(s) the {mode} cost'
+                  f' places at a residue the {below[mode]} cost would not'
+                  + (f': {shown}' if names else ''), file=sys.stderr)
     return ins, len(groups), unresolved
 
 

@@ -2741,6 +2741,66 @@ def asm_pair(tmp):
     return asm(tmp, ASM_ROTATED_PAIR)
 
 
+# The two costs of 2026-09-15, each with its answer worked by hand. The
+# fill's shape, as Run 32's HEAD half laid it: a 9 B preamble (3, 3, 3)
+# ending in the dead spot, a body of 51 B (42 + 4 + 3 + 2) whose exit
+# `cmp; jge` (3 + 2) makes a 56 B span, and the outer loop 42 B on with a
+# 55 B cycle. The body fits a line for the pad point at 0..13 and the
+# exit span at 0..8, so the plain cost pads for 14..63, a budget of 50,
+# and leaves the head at 9 with the exit astride; the exit-span cost pads
+# for 9..63, a budget of 55, which fires at 9. A cut the entry count
+# keeps: a 20 B preamble (17 + 3), a body of 8 movs, a cmp and a jl (29 B,
+# 10 instructions, two entries) and an exit of 8 movs and a jmp (26 B, 9
+# instructions, two entries). The exit span is 55 B and crosses for
+# 10..63, a budget of 54, fired at 20; the entry count charges nothing
+# until the body itself is cut, at 36..61, a budget of 28, not fired at
+# 20, so the head stays where the sweep's smaller-piece rule would price
+# it -- a control of the arithmetic and not of the machine.
+ASM_EXIT_ASTRIDE = """\
+\t.text
+.Lstart:
+\tmovq\t%rdi, %rax
+\tmovq\t%rsi, %rbx
+\tjmp\t*(%rbp)
+.Lin:
+\t.skip\t42, 0x90
+.Lout:
+\tleaq\t1(%rsi), %r11
+\tcmpq\t%rax, %r11
+\tjl\t.Lin
+\tcmpq\t%rax, %rsi
+\tjge\t.Ldone
+\t.skip\t17, 0x90
+.Ldone:
+\t.skip\t22, 0x90
+\tjmp\t.Lout
+"""
+
+ASM_ENTRIES_CUT = """\
+\t.text
+.Lstart:
+\t.skip\t17, 0x90
+\tjmp\t*(%rbp)
+.Lin:
+""" + '\tmovq\t%rax, %rcx\n' * 8 + """\
+\tcmpq\t%rax, %rsi
+\tjl\t.Lin
+""" + '\tmovq\t%rax, %rdx\n' * 8 + """\
+\tjmp\t.Ldone
+\t.skip\t9, 0x90
+.Ldone:
+\tret
+"""
+
+
+def asm_exit(tmp):
+    return asm(tmp, ASM_EXIT_ASTRIDE)
+
+
+def asm_entries(tmp):
+    return asm(tmp, ASM_ENTRIES_CUT)
+
+
 def emitted(subs):
     """Where the shim's directives landed, as one line per place worth
     asking about: after each unconditional jump, after `.text`, before
@@ -7593,6 +7653,61 @@ RECORDS = [
          ok=V(exit=0, has=['after jmp\t.Lgo: nop',
                            'before .Lloop: .p2align\t6, 0x90, 9'],
               hasnt=['dead-spot'])),
+
+    # The exit span and the entry count, worked by hand above the two
+    # fixtures. The first is the plain form's own reading of the fill's
+    # shape and is what Run 32's HEAD half paid for: a control kept so the
+    # flag's case proves a difference and not a coincidence.
+    case('deadspot-leaves-the-exit-astride', 'align-as.py', None,
+         'the body fits, the exit does not, and the plain cost is content',
+         plant=asm_exit, probe=emitted,
+         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
+              'ALIGN_AS_VERBOSE': '1'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         ok=V(exit=0, has=['after jmp\t*(%rbp): .p2align\t6, 0x90, 50'],
+              hasnt=['exit span(s) astride'])),
+
+    case('exitspan-moves-the-exit-off-the-boundary', 'align-as.py', None,
+         'the exit span raises the budget and the head goes to 0',
+         plant=asm_exit, probe=emitted,
+         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
+              'LOOP_EXITSPAN': '1', 'ALIGN_AS_VERBOSE': '1'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         ok=V(exit=0, has=['after jmp\t*(%rbp): .p2align\t6, 0x90, 55',
+                           '0 exit span(s) astride',
+                           '2 head(s) the exit cost places at a residue the'
+                           ' plain cost would not: .Lin, .Lout'])),
+
+    case('exitspan-pads-the-cut-the-entries-keep', 'align-as.py', None,
+         'a cut leaving whole entries on both sides, priced by lines',
+         plant=asm_entries, probe=emitted,
+         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
+              'LOOP_EXITSPAN': '1', 'ALIGN_AS_VERBOSE': '1'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         ok=V(exit=0, has=['after jmp\t*(%rbp): .p2align\t6, 0x90, 54',
+                           '0 exit span(s) astride'])),
+
+    case('entries-keep-the-cut-the-exitspan-pads', 'align-as.py', None,
+         'the same cut priced by entries, and the head stays',
+         plant=asm_entries, probe=emitted,
+         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
+              'LOOP_ENTRIES': '1', 'ALIGN_AS_VERBOSE': '1'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         ok=V(exit=0, has=['after jmp\t*(%rbp): .p2align\t6, 0x90, 28',
+                           '1 exit span(s) astride',
+                           '1 head(s) the entries cost places at a residue the'
+                           ' exit cost would not: .Lin'])),
+
+    case('cost-flags-want-the-dead-spot-form', 'align-as.py', None,
+         'a cost of the planner asked for without the planner',
+         plant=asm,
+         env={'REAL_AS': '{as}', 'LOOP_EXITSPAN': '1'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         # Refused in one line at import, as a non-number is, and not
+         # implied: a switch that switched another on would be a default,
+         # and a pair's note records no default.
+         ok=V(exit=1, has=['want LOOP_DEADSPOT=1 beside them'],
+              hasnt=['Traceback'])),
 
     # ---- probe-nospill-fills.py ---------------------------------------
     case('fills-entry-region-goes-to-the-previous-proc',
