@@ -4633,6 +4633,33 @@ lsUnordStage10 sh a@(T _ _ v) = listRoute (routeUnord10 sh a) v
 fbLibUnordStage10 :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage10 sh a@(T _ _ v) = fillRoute (routeUnord10 sh a) v
 
+-- Stage eleven, stage ten with the move guarded: the zero-stride axes
+-- go outermost only where the view has one, and a view without takes
+-- stage seven's order and nothing else. On Run 32's small views stage
+-- ten retired 650 to 1050 instructions a call more than stage seven,
+-- the move's two filters and append run on every call, and trailed by
+-- 55 to 109 ns on calls of 200 to 700 ns for it, the same on both
+-- compilers; the guard is one pass over the strides. Where a zero
+-- stride is there the route is stage ten's. One change over
+-- 'routeUnord10'. Added 2026-09-15 for Run 33.
+routeUnord11 :: ShapeL -> T -> Route
+routeUnord11 = dispatchLean zerosFirstTiedGuarded
+
+-- Stage ten's order where a zero stride is present, stage seven's where
+-- none is: the move's result on such a view IS stage seven's order, so
+-- the guard changes no route and only what is computed to reach it.
+zerosFirstTiedGuarded :: ShapeL -> [Int] -> [(Int, Int)]
+zerosFirstTiedGuarded sh ats
+  | any (== 0) ats = zerosFirstTied sh ats
+  | otherwise = sortedAbsPairs byStrideExtent sh ats
+
+lsUnordStage11 :: ShapeL -> T -> [VS.Vector Double]
+lsUnordStage11 sh a@(T _ _ v) = listRoute (routeUnord11 sh a) v
+
+{-# NOINLINE fbLibUnordStage11 #-}
+fbLibUnordStage11 :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage11 sh a@(T _ _ v) = fillRoute (routeUnord11 sh a) v
+
 -- The two ports' lists: master's and the branch's 'toVectorListT', and
 -- the unordered one-block tests in front of them. The four port Fill
 -- arms are 'concatParts' over these since 2026-09-09, Run 27 having
@@ -4774,6 +4801,11 @@ fbLibUnordStage10Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage10Sum sh a@(T _ _ v) =
   VS.singleton (sumRoute (routeUnord10 sh a) v)
 
+{-# NOINLINE fbLibUnordStage11Sum #-}
+fbLibUnordStage11Sum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage11Sum sh a@(T _ _ v) =
+  VS.singleton (sumRoute (routeUnord11 sh a) v)
+
 -- The cross-over of 'fbLibUnordStage6ListSum' and 'fbLibUnordStage10Sum':
 -- base's 'sum' over stage TEN's list, the consumer a user of
 -- 'toUnorderedVectorListT' writes, carried from stage six's route to the
@@ -4876,7 +4908,8 @@ lazinessGate = do
         , ("libunord-stage7", lsUnordStage7, Just True, Just True)
         , ("libunord-stage8", lsUnordStage8, Just True, Just True)
         , ("libunord-stage9", lsUnordStage9, Just True, Just True)
-        , ("libunord-stage10", lsUnordStage10, Just True, Just True) ]
+        , ("libunord-stage10", lsUnordStage10, Just True, Just True)
+        , ("libunord-stage11", lsUnordStage11, Just True, Just True) ]
       gate view sh a n ls ask = case ask of
         Nothing -> return ()
         Just want -> do
@@ -6219,6 +6252,8 @@ roster =
   , ("libunord-stage9",            Only fbLibUnordStage9)
     -- stage ten, checked like the stages above it since it landed
   , ("libunord-stage10",           Only fbLibUnordStage10)
+    -- stage eleven, stage ten with its move guarded, checked likewise
+  , ("libunord-stage11",           Only fbLibUnordStage11)
     -- The ordered list's consumers, added 2026-09-09 for Run 28 as the
     -- thirteen above retired: 'sumT'-shaped over each stage's ordered
     -- list, master's and the port's under 'sumRuns', stages three and
@@ -6285,6 +6320,13 @@ roster =
     -- stands against the shared loop on the lean route as on the
     -- composed one. Reasons at the definition.
   , ("liblist-stage4-list-sum",    Fill fbLibListStage4ListSum)
+    -- Stage ten with its zero-stride move guarded, added 2026-09-15 for
+    -- Run 33 at the tail of the consumers, so that no existing control's
+    -- span moves; reasons at 'routeUnord11'. Its control is
+    -- 'libunord-stage10-sum', one change over it, and 'libunord-stage7-sum'
+    -- is what it should read level with on every view without a zero
+    -- stride.
+  , ("libunord-stage11-sum",       Fill fbLibUnordStage11Sum)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
