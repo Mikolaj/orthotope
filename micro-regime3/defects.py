@@ -7800,7 +7800,7 @@ RECORDS = [
          bug=V(exit=1, has=['complaint(s) from the run itself'],
                hasnt=['every process gated clean'])),
 
-    case('for-brief-pastes-a-wrapped-note-row', 'read-all.sh', 'ce2dd04',
+    case('for-brief-pastes-a-wrapped-note-row', 'read-all.sh', '71eee9c',
          'a wrapped note row was pasted cut at its first line, inverted',
          # --for-brief writes the derived rows into the brief's items 5
          # and 6 so a write-up pastes rather than transcribes, which is
