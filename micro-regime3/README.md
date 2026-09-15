@@ -2875,12 +2875,14 @@ rather than a slot in the next run, observed again:
   as a property of publishing a half. What would close the entry is a ruling
   that it is retired on that evidence; what would reopen it is a mechanism,
   which nobody has proposed.
-- `OPEN` **Price the exit span against the entry count, `LOOP_EXITSPAN=1`
+- `ANSWERED` **Price the exit span against the entry count, `LOOP_EXITSPAN=1`
   against `LOOP_ENTRIES=1`, each under the dead-spot form --- registered
-  2026-09-15, before either has been built into a half.** Run 32's HEAD half
-  left `fillStage2`'s stepping loop at offset 9 with its exit astride the line,
-  which the shim's span test accepts and the machine charges about a cycle a run
-  for ([the placement section][floor] carries the sweep, the per-core table
+  2026-09-15, before either has been built into a half, and answered the same
+  day by the probes rather than by a run: LEVEL, so the exit span stands
+  and the entry count is parked.** Run 32's HEAD half left `fillStage2`'s
+  stepping loop at offset 9 with its exit astride the line, which the shim's
+  span test accepts and the machine charges about a cycle a run for ([the
+  placement section][floor] carries the sweep, the per-core table
   and the sources). The two flags are the two repairs, and they agree wherever
   a cycle fits a line, this loop included, so a pair of them prices the model
   and not the fix: A is `LOOP_DEADSPOT=1 LOOP_EXITSPAN=1`, B
@@ -2903,7 +2905,27 @@ rather than a slot in the next run, observed again:
   of A on the heads named, past their floors, with the sweep's mispredicted
   residues not among them, buys the entry count the basis; level, or behind,
   the exit span is the cheaper rule and stands, and the entry count is parked
-  with the sweep beside it.
+  with the sweep beside it. **The answer, 2026-09-15, off the two probes
+  that need no quiet run.** `probe-fetches.sh` over both binaries, every
+  population, no cell refused: B crosses more windows than A almost everywhere,
+  over half again as many on 450 of the 1969 cells above 100k fetches
+  an iteration, 5 to 50 percent more on 739, within 5 percent on 768 and 5 to 8
+  percent fewer on 12, the fewer being `list` and the reducers; the fill loop
+  that started this crosses two windows more a run under B on all four short-run
+  shapes, where A reads the five a run Run 32's basis half did.
+  Then `probe-interleave.sh` on thirteen cells in a ten-minute quiet window,
+  nine pairs each: the medians of B over A run 0.9938 to 1.0055,
+  `flip-whole-square`'s lean fill the lowest and `scaled-rank1-m1`'s
+  the highest, the four short-run cells at 0.9976 to 1.0038, the shipped leaf
+  on `cnn-L2-24x24-c32` at 1.0019 and the two cells where B crosses fewer
+  at 0.9965 and 0.9994, with per-cell ranges of one to three percent and one
+  of eight on `compose-scalar`. So the crossings the entry count permits cost
+  nothing this instrument can see, and the pads the exit span adds cost nothing
+  either; A is the simpler rule and is the candidate for the next basis,
+  the entry count staying in the shim, off, with the sweep beside it for the day
+  a cell contradicts this. What is now owed is the pair that moves the basis:
+  A against Run 32's basis recipe, the plain dead-spot form, which prices
+  the fix itself under a run's floors and A/A copies.
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
