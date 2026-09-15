@@ -58,7 +58,8 @@ the old object code and reports nothing (README.md, same section).
                segment's previous branch, a whole cycle for the head
                within eight bytes of its line's end, half cycles for a
                cut leaving a short last block and for a block holding
-               only a jmp, over the larger of ops/6 and blocks. Wants
+               only a jmp, a quarter for an unfused taken conditional,
+               over the larger of ops/6 and blocks. Wants
                LOOP_DEADSPOT=1 likewise, stands alone, and is off by
                default. The same section
   PAD_BYTES    dead bytes appended after the first module's text, default 0
@@ -254,8 +255,9 @@ are costs of the dead-spot planner and refuse to run without
 `LOOP_DEADSPOT=1`, since a switch that implied another would be a
 default and a pair's note records no default. Under
 ALIGN_AS_VERBOSE each plans the module a second time under the cost
-below it, the entry count against the exit span and the exit span
-against the plain dead-spot cost, probes that plan too, and names the
+below it, the entry count and the block rules each against the exit
+span and the exit span against the plain dead-spot cost, probes that
+plan too, and names the
 heads the two costs place at different residues, which is the list a
 pair of the two can say anything about; and the verified line counts
 the exit spans still astride. `probe-entries-sweep.py` is

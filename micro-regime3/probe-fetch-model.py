@@ -5,7 +5,8 @@ registers, run as one probe.
 
 A kernel is generated from a description, its head swept over the 64
 residues of a line with `.p2align 6; .skip K`, and per residue four
-counters are read per iteration, differenced over two iteration counts:
+counters are read per iteration, the fill differenced over two iteration
+counts and the straight loop read from one process of twenty million:
 cycles, op-cache fetch blocks (0x28F), L1 BTB overrides (0x8A) and L2 BTB
 overrides (0x8B). From the assembled layout, read off objdump, the probe
 predicts each residue's cost under rules read off section 2.8 of the

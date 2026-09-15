@@ -5,8 +5,10 @@ costs: the exhaustive instrument behind align-as.py's LOOP_ENTRIES.
 A probe: an input to README's placement section, run by hand. It builds a
 standalone copy of a loop, steps its head through the 64 residues with a
 `.p2align 6; .skip K` in front, and reads two counters per iteration off
-`perf stat`, differencing two iteration counts so that the process's own
-startup cancels: cycles, and the op-cache fetches of raw event 0x28F,
+`perf stat` -- the fill kernel differenced over two iteration counts so
+that the process's own startup cancels, the straight one read from one
+process of twenty million iterations, against which its startup is
+nothing: cycles, and the op-cache fetches of raw event 0x28F,
 which count taken branches plus window crossings on this Zen 3. For the
 fill kernel it also prints what the entry count of align-as.py predicts
 at each residue and the residues where the prediction and the cycles
@@ -246,7 +248,7 @@ def main():
         asm, cmain, iters, per = FILL, FILL_MAIN, (200, 100), RUNS
     else:
         asm, cmain, per = straight(args.movs), STRAIGHT_MAIN % 20000000, 20000000
-        iters = (2, 1)         # two runs of the same process, differenced
+        iters = (2, 1)         # one process read whole, the second ignored
     tmp = tempfile.mkdtemp(prefix='entries-sweep-')
     print('K  cycles/iter  fetches/iter' + ('  entries  model  verdict'
                                              if args.kernel == 'fill' else ''))

@@ -6,8 +6,8 @@ placement crosses more windows than the other's, and by how much.
 
 Joins on (population, shape, arm), prints every cell whose fetches per
 iteration differ by at least --min percent (default 0.2), B against A,
-sorted by the size of the difference, and a summary: cells read, cells
-moved, cells that could not be counted on either side. A cell that moved
+sorted by the percentage difference, and a summary: cells in both files,
+cells moved, cells in one file only, cells that could not be counted. A cell that moved
 is one the pair of the two placements can differ on; a cell that did not
 cannot, whatever the timing says. Exit 0 with output, 1 when a file
 carries no cells, 2 on usage.
