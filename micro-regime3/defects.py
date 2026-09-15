@@ -1571,6 +1571,71 @@ def doc_with_a_table(tmp, n=1):
                  'Prose after the table.\n\n## Tail\n\nProse three.\n')
 
 
+def doc_with_a_glued_table(tmp):
+    """A section whose table follows its lead with NO blank line between.
+
+    Which is how every two-column table in this chapter is written, and
+    markdown renders it the same -- so a splitter keyed on the paragraph
+    STARTING with a bar cannot see it, and the table is unselectable
+    while the fingerprints below it, which do start one, are the only
+    things `--with-tables N` can name. The second table here is glued and
+    the first is not, so a case can say which one came back.
+    """
+    return write(os.path.join(tmp, 'G.md'),
+                 '# T\n\n## Middle\n\n'
+                 '| a1 | b1 |\n|---|---|\n| 1 | 1 |\n\n'
+                 'The lead sentence of the glued table.\n'
+                 '| a2 | b2 |\n|---|---|\n| 2 | 2 |\n\n'
+                 'Prose after.\n\n## Tail\n\nProse three.\n')
+
+
+def note_with_gate_below_the_fill(tmp, name='run97-pair.txt'):
+    """A previous note whose gate verdict continues BELOW the fill-in block.
+
+    That is the ORDINARY shape and not a contrived one: run-gate.sh
+    appends its block at the end of the note and the hand verdict is
+    written beside it, so a gate's continuations sit under the fill-in
+    block rather than over it. The blocks run GATE, `Verified when
+    built`, then two paragraphs that continue the gate and nothing else.
+    """
+    return write(os.path.join(tmp, name),
+                 'The pair run97-a and run97-b, Run 97s, written by hand'
+                 ' 2026-01-01\nBEFORE either of the PAIRS binaries'
+                 ' exists.\n\n'
+                 'HALVES: basis=a other=b\n\n'
+                 "WHAT THIS PAIR MEASURES [PAIRS]: the thing.\n\n"
+                 'THE MACHINE [SAME]: the box.\n\n'
+                 'GATE: RUN AND SOUND, 2026-01-01. Five benches a half.\n\n'
+                 'Verified when built, 2026-01-01:\n'
+                 '  md5 a           deadbeef\n\n'
+                 'AND THE PALINDROME SPREAD WAS RUN 96s, arm for arm, and'
+                 ' this paragraph is the gates and spent with it.\n\n'
+                 'AND THE MACHINE CHECK DID NOT FIRE for run97 either.\n')
+
+
+def note_for_the_check(tmp, broken=True):
+    """This run's note, with or without the three stale statements.
+
+    Run 99's, so the synthetic registration `readme_with_a_registration`
+    appends is the one read, and a `runs/run98.md` beside it so the
+    previous run resolves to 98. Broken, the note carries one of each
+    kind: a continuity claim reaching only Run 96, an item (5) where that
+    registration carries one, and a roll missing the `d` half.
+    """
+    write(os.path.join(_mkruns(tmp), 'run98.md'), '# Run 98\n')
+    roll = '`c` and `d`' if not broken else '`c`'
+    return write(os.path.join(tmp, 'run99-pair.txt'),
+                 'The pair run99-c and run99-d, Run 99s, written by hand'
+                 ' 2026-01-01\n\n'
+                 'HALVES: basis=c other=d\n\n'
+                 'NAMING THE HALVES [SAME]: every half on record is'
+                 ' hyphen-free (%s).\n\n'
+                 'THE COUNTS [SAME]: run-status.sh holds this run to 22'
+                 ' counts files,\nas it held Runs 20 to %d.\n\n'
+                 'WHAT THE PAIR PRICES [PAIRS]: what item (%d) asks.\n'
+                 % (roll, 96 if broken else 98, 5 if broken else 1))
+
+
 def doc_of_a_big_paragraph(tmp, n=1800):
     """A document whose middle paragraph is past `--delete`'s size bar."""
     return write(os.path.join(tmp, 'B.md'),
@@ -4672,6 +4737,26 @@ TIER1 = {
                       trigger='a class named with a hyphen',
                       ok='refuses before the hours, carries a hyphen',
                       bug='cut at the first hyphen merged it with the class before the hyphen'),
+    'half-name-carries-no-hyphen': dict(family='scan-for-parse', discovery='review', harm='latent',
+                      trigger='a HALVES line naming a half with a hyphen',
+                      ok='refuses, naming the grammar',
+                      bug='cut at the first hyphen and handed the truncation to every driver'),
+    'note-blocks-resume-after-the-fill': dict(family='state-not-restored', discovery='review', harm='latent',
+                      trigger='a gate verdict continuing BELOW the fill-in block',
+                      ok='withheld with the rest of the gate',
+                      bug="--draft carried the previous pair's gate into the next note"),
+    'compare-reads-no-reducing-consumer': dict(family='silent-drop', discovery='review', harm='latent',
+                      trigger='a `-sum` arm whose cross a registration quotes',
+                      ok='a block of its own under the table, on raw slope',
+                      bug='dropped, so the prior was re-derived by a hand-written geomean'),
+    'section-splits-a-table-from-its-lead': dict(family='scan-for-parse', discovery='review', harm='latent',
+                      trigger='a table sharing a paragraph with its introducing sentence',
+                      ok='its own paragraph, so --with-tables N can name it',
+                      bug='unselectable, and --with-tables 1 released another table instead'),
+    'note-check-reads-the-carried-blocks': dict(family='vacuous-check', discovery='review', harm='latent',
+                      trigger="a note whose carried blocks still describe the previous pair",
+                      ok='three kinds of stale statement named with their lines',
+                      bug='nothing read the note as prose, 10c and 10d being structural'),
     'smoke-exercises-the-shape-filter': dict(family='vacuous-check', discovery='review', harm='latent',
                       trigger='a reader whose shape filter does not refuse an emptied run',
                       ok='fails, did NOT refuse',
@@ -6320,6 +6405,71 @@ RECORDS = [
                '--readme', '{doc}'],
          ok=V(exit=0, has=['| a2 | b2 |', 'table paragraph(s) withheld'],
               hasnt=['| a1 | b1 |', '| a3 | b3 |'])),
+
+    case('section-splits-a-table-from-its-lead', 'read-run.py', '7249a35',
+         'a table sharing a paragraph with its lead could not be selected,'
+         ' so --with-tables 1 released another table instead',
+         # Reading-list item 4 asks for the compares-against section's
+         # two-column table by `--with-tables 1`, and that table follows
+         # its lead with no blank line, as every one here does. Only the
+         # per-shape fingerprints started a paragraph with a bar, so the
+         # ONE table the list names was the one the mode could not reach.
+         # Found by Run 32's carrier, which reported it from inside the
+         # digest rather than as a refusal anybody saw.
+         plant=lambda t: {'doc': doc_with_a_glued_table(t)},
+         argv=['--section', 'Middle', '--with-tables', '2',
+               '--readme', '{doc}'],
+         ok=V(exit=0, has=['| a2 | b2 |', 'The lead sentence'],
+              hasnt=['| a1 | b1 |']),
+         bug=V(exit=1, has=['this section carries 1 table'])),
+
+    case('note-blocks-resume-after-the-fill', 'read-run.py', '7249a35',
+         "a gate verdict written BELOW the fill-in block escaped the"
+         ' withholding and --draft carried it into the next note',
+         # The state was sticky and RESET to plain after the fill-in
+         # block, which is one paragraph -- so everything under it read as
+         # ordinary content. Run 33's draft opened with Run 32's
+         # palindrome spread and its machine check, tag substitution
+         # applied, naming a gate process no run will write.
+         plant=lambda t: {'note': note_with_gate_below_the_fill(t)},
+         argv=['--note', '{note}', '--draft', 'run98', '--halves', 'c,d'],
+         ok=V(exit=0, has=['GATE: NOT RUN', 'HALVES: basis=c other=d'],
+              hasnt=['PALINDROME', 'MACHINE CHECK DID NOT FIRE']),
+         bug=V(exit=0, has=['PALINDROME', 'MACHINE CHECK DID NOT FIRE'])),
+
+    case('compare-reads-no-reducing-consumer', 'read-run.py', '7249a35',
+         'a `cross` prior on a `-sum` arm was re-derivable only by a'
+         ' hand-written geomean over two JSONs',
+         # `--compare` skips them because their net is the forcing term
+         # subtracted from itself; `--predictions` has read them on raw
+         # `slope` since Run 29 but only for an arm some span names. Run
+         # 32's preparation wrote the geomean by hand and Run 33's could
+         # not quote two of the three figures its note wanted.
+         plant=lambda t: {'a': synth_json(t, name='a.json'),
+                          'b': synth_json(t, name='b.json', slow=1.1)},
+         argv=['{a}', '--compare', '{b}'],
+         ok=V(exit=0, has=['reducing consumers', 'sum-only-late',
+                           'RAW `slope`']),
+         bug=V(exit=0, hasnt=['reducing consumers'])),
+
+    case('note-check-reads-the-carried-blocks', 'read-run.py', '7249a35',
+         'nothing read the note as PROSE: 10c and 10d are predicates over'
+         ' structure, so a carried block describing the previous pair'
+         ' passed them both',
+         plant=lambda t: {'note': note_for_the_check(t),
+                          'readme': readme_with_a_registration(t)},
+         argv=['--note-check', '{note}', '--readme', '{readme}'],
+         ok=V(exit=1, has=['continuity claim reaching only Run 96',
+                           'item (5)', 'not on the roll']),
+         bug=V(exit=2, hasnt=['continuity claim'])),
+
+    case('note-check-passes-a-note-with-none-of-them', 'read-run.py', None,
+         'CONTROL: the same note with its three statements current',
+         plant=lambda t: {'note': note_for_the_check(t, broken=False),
+                          'readme': readme_with_a_registration(t)},
+         argv=['--note-check', '{note}', '--readme', '{readme}'],
+         ok=V(exit=0, has=['clean'],
+              hasnt=['continuity claim', 'not on the roll'])),
 
     case('section-with-tables-refuses-a-number-past-the-end', 'read-run.py',
          None,
@@ -9039,6 +9189,21 @@ RECORDS = [
          shadow=dict(extra=[('zzph3-pair.txt', 'a stand-in pair note.\n')]),
          argv=['zzph3'],
          ok=V(exit=1, has=["has no 'HALVES: basis=<b> other=<o>' line"])),
+
+    case('half-name-carries-no-hyphen', 'pair-halves.sh', '7249a35',
+         'a hyphenated tag was CUT at the hyphen and handed on truncated,'
+         ' so every driver would have run a binary nobody built',
+         # Run 33's pair was declared `run33-ghead-exit`; `other=ghead-exit`
+         # read back as `ghead`. The sibling case above it is run-major.sh's
+         # class names, cut the same way and refused since 8cb5eb7.
+         shadow=dict(extra=[('zzph5-pair.txt',
+                             'a stand-in pair note.\n'
+                             'HALVES: basis=lookrts other=a1g-pa\n')]),
+         argv=['zzph5'],
+         ok=V(exit=1, has=["a half's tag is [A-Za-z0-9_]"],
+              hasnt=['BASIS=']),
+         bug=V(exit=0, has=['BASIS=lookrts; OTHER=a1g'],
+               hasnt=["a half's tag"])),
 
     case('halves-fall-back-to-the-environment-without-a-note',
          'pair-halves.sh', None,
