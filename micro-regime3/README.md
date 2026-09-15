@@ -2923,9 +2923,21 @@ rather than a slot in the next run, observed again:
   nothing this instrument can see, and the pads the exit span adds cost nothing
   either; A is the simpler rule and is the candidate for the next basis,
   the entry count staying in the shim, off, with the sweep beside it for the day
-  a cell contradicts this. What is now owed is the pair that moves the basis:
-  A against Run 32's basis recipe, the plain dead-spot form, which prices
-  the fix itself under a run's floors and A/A copies.
+  a cell contradicts this. **The same on HEAD, the same afternoon**: the two
+  costs built through `cabal.project.ghead` read level on the same thirteen
+  cells, medians 0.9917 to 1.0071 with per-cell ranges of one to three percent
+  and `compose-scalar`'s of thirteen, while the exit span moves 527 of HEAD's
+  1860 heads and the entry count 1378 more, and B crosses over half again
+  as many windows on 557 of 1970 large cells. And the fix itself, the exit-span
+  half against Run 32's own HEAD binary in the same window: that binary reads
+  slower by **1.0894** on `stretch-wide-2xM`, 1.0785 on `stretch-tab7MB`, 1.0480
+  on `runs-2` and 1.0385 on `runs-4`, gross cycles an iteration on the lean
+  fill, nine pairs each and every pair above 1.02, with the shipped leaf
+  on `cnn-L2-24x24-c32` at 0.9981, its loop not having moved. That is the cycle
+  a run of 2026-09-15's reading bought back, seen on the compiler that lost it.
+  What is now owed is the pair that moves the basis: A against Run 32's basis
+  recipe, the plain dead-spot form, which prices the fix itself under a run's
+  floors and A/A copies.
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
