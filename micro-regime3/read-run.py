@@ -10168,9 +10168,10 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                 # sweep asks for. A noun-keyed matcher over prose cannot
                 # tell THIS run's figure from the series of earlier runs'
                 # figures quoted in the same paragraph, and the floor
-                # section is made of exactly that -- fifteen carry-back
-                # readings and nine floor pairs in one paragraph, every one
-                # of them a percent adjacent to the word `floor`. The
+                # section is made of exactly that -- earlier runs'
+                # readings carried back beside this run's own, in one
+                # paragraph, every one of them a percent adjacent to
+                # the word `floor`. The
                 # phrasings stay, and what a rewording costs is now one
                 # message rather than one reading of this file.
                 bad.append('could not locate at least two sites quoting the'

@@ -3530,6 +3530,32 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
     return {'tag': tag}
 
 
+def for_brief_note(tmp):
+    """A run whose pair note WRAPS the rows --for-brief pastes.
+
+    The real notes wrap, and two of the rows were read a line at a time:
+    `.text` ended at `-- they do` with `NOT agree` on the next line, and
+    `repetition` matched a prose sentence that opens with the word, above
+    the entry of that name. Both are here, indented as the notes indent
+    them -- the entries at two spaces, the prose deeper.
+    """
+    r = synthetic_run(tmp, expect='nothing')
+    with open(here_file('%s-pair.txt' % r['tag']), 'a') as f:
+        f.write('\n'
+                '                repetition and the md5 row below is'
+                ' one-sided: nothing may\n'
+                '                be expected to reproduce.\n'
+                '\n'
+                '  md5           basis 0123456789abcdef0123456789abcdef\n'
+                '  repetition       NOT OWED: the inputs moved under both'
+                ' halves.\n'
+                '  .text            111 bytes on basis, 222 on other --'
+                ' they do\n'
+                '                   NOT agree, the other half larger by'
+                ' 111 bytes.\n')
+    return r
+
+
 def staged_doc(tmp):
     """A document STAGED in a throwaway index, the real one untouched.
 
@@ -7773,6 +7799,24 @@ RECORDS = [
               hasnt=['complaint(s) from the run itself']),
          bug=V(exit=1, has=['complaint(s) from the run itself'],
                hasnt=['every process gated clean'])),
+
+    case('for-brief-pastes-a-wrapped-note-row', 'read-all.sh', 'ce2dd04',
+         'a wrapped note row was pasted cut at its first line, inverted',
+         # --for-brief writes the derived rows into the brief's items 5
+         # and 6 so a write-up pastes rather than transcribes, which is
+         # the whole of why it exists. But the note WRAPS its entries, so
+         # a row taken as `head -1` ends mid-clause: `.text ... -- they
+         # do`, where the note's next line reads `NOT agree`. The paste
+         # published the fact INVERTED, which is worse than the
+         # transcription it was built to retire. The fixture also carries
+         # a prose line beginning with the word `repetition`, ahead of
+         # the entry of that name and indented as prose: `^ *repetition `
+         # matched it and published boilerplate where a fact belongs.
+         plant=lambda t: for_brief_note(t),
+         argv=['{tag}', '--for-brief'],
+         ok=V(has=['they do NOT agree', 'NOT OWED'],
+              hasnt=['one-sided']),
+         bug=V(has=['one-sided'], hasnt=['they do NOT agree'])),
 
     # ---- read-run.py, beside the drivers -----------------------------------
     case('table-row-narrower-than-its-header', 'read-run.py', '0e2934c',

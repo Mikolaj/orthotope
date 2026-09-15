@@ -520,11 +520,22 @@ brief_facts () {
     printf '  %-14s %s\n' 'md5s' \
       "$(sed -n 's/^ *md5 \([a-z0-9]*\) *\([0-9a-f]\{32\}\)/\1=\2/p' \
            "$NOTE" | tr '\n' ' ')"
+    # ANCHORED AT THE FACT BLOCK'S OWN INDENT. `^ *repetition ` matched
+    # the note's PROSE first -- run32-pair.txt line 319, a sentence about
+    # what a one-sided md5 row means -- and published that instead of the
+    # run's entry at line 554, boilerplate standing where a fact belongs.
     printf '  %-14s %s\n' 'repetition' \
-      "$(sed -n '/^ *repetition /,/^ *[a-z]/p' "$NOTE" | head -2 \
-           | tr '\n' ' ' | sed 's/  */ /g' | cut -c1-150)"
+      "$(sed -n '/^  repetition /,$p' "$NOTE" | head -6 \
+           | sed 's/^ *repetition *//' | tr '\n' ' ' \
+           | sed 's/  */ /g; s/\. .*/./')"
+    # THE WHOLE SENTENCE AND NOT ITS FIRST LINE. The note WRAPS this
+    # entry, and `head -1` cut it at `-- they do`, where the next line
+    # reads `NOT agree`: --for-brief pastes this row into the brief as
+    # prose, so the cut published the fact inverted. Joined to its
+    # continuations and cut at the first full stop instead.
     printf '  %-14s %s\n' 'text' \
-      "$(sed -n 's/^ *\.text *\(.*\)/\1/p' "$NOTE" | head -1 | cut -c1-110)"
+      "$(sed -n '/^ *\.text /,$p' "$NOTE" | head -6 | sed 's/^ *\.text *//' \
+           | tr '\n' ' ' | sed 's/  */ /g; s/\. .*/./')"
   else
     printf '  %-14s %s\n' 'note' "no $NOTE, so item 5's binary rows are NOT\
  derived -- read them by hand"
@@ -705,7 +716,11 @@ for_brief () {
   echo "    Processes: $(row 'processes'). Plateau: $(row 'plateau')."
   echo "    Floors over eight A/A pairs: $(row 'floors')"
   echo "    A/A worst cells past 5%: $(row 'A/A past 5%')"
+  # A HALF WITH NO SUNK CELL SAYS SO. The row is empty when nothing sank,
+  # which is the good answer; pasted as a bare label it reads as a figure
+  # nobody derived, which is this tree's silent-shortfall family again.
   echo "    Sunk cells: $(printf '%s\n' "$facts" | sed -n 's/^  sunk /sunk /p' \
+                            | sed 's/[[:space:]]*$//; s/^\(sunk [a-z]*\)$/\1 none/' \
                             | tr '\n' ';' | sed 's/;$//')"
   echo "    <yours: the intrusion verdict from --wild over every log, the"
   echo "    class shape counts, the counted work's range, the registration"
