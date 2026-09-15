@@ -2984,11 +2984,23 @@ rather than a slot in the next run, observed again:
   code, 55 to 58 ns on the rank-3 views and 109 on the rank-5 one, the same
   to a few nanoseconds on both compilers, the counts being equal
   to the instruction. A per-call term on a view that small, not a loop's
-  placement. The verdict stands, the exit span being the one of the two
-  that does not lose here; what this adds is the candidate for the crossing both
-  admit, the sum of the two costs, lines beyond least plus entries beyond least,
-  which would pick the cut that strands no stub --- a basis change for a run,
-  registered here and not built.
+  placement. **Stage eleven is that arm with the move guarded,
+  `libunord-stage11-sum`, added to the roster the same day for Run 33
+  and counted at once**: one pass over the strides, stage seven's order where
+  none is zero and stage ten's where one is, so it changes no route. Counted
+  on the build of 2026-09-15, instructions a call: 3196 against stage seven's
+  3123 and stage ten's 3772 on `small-patch-k5`, 4081 against 3976 and 4642
+  on `cnn-slice-c32`, 8797 against 8665 and 9720 on `small-patch-r5`; within
+  a few hundred of stage seven on the `window` and `runs` views, where stage ten
+  already was; and stage ten's own count to the instruction on `bcast-tall-Mx2`
+  and `bcastmid-b200k`, the views with a zero stride. What Run 33 asks of
+  it is the timing: level with stage seven on every view without a zero stride
+  and with stage ten on every view with one, which the counts predict
+  and the run has to say. The verdict stands, the exit span being the one
+  of the two that does not lose here; what this adds is the candidate
+  for the crossing both admit, the sum of the two costs, lines beyond least plus
+  entries beyond least, which would pick the cut that strands no stub ---
+  a basis change for a run, registered here and not built.
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
