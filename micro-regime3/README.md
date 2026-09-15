@@ -2875,6 +2875,61 @@ rather than a slot in the next run, observed again:
   as a property of publishing a half. What would close the entry is a ruling
   that it is retired on that evidence; what would reopen it is a mechanism,
   which nobody has proposed.
+- `OPEN` **What Run 33 is built to answer, registered before it runs ---
+  declared 2026-09-15 evening by request, the recipes in [Run 32's
+  file](runs/run32.md#what-the-next-run-compares-against).** The pair is Run
+  32's with `LOOP_EXITSPAN=1` on both halves, `run33-exit` the basis
+  on ghc-9.12.4 and `run33-ghead-exit` on GHC HEAD, both at plain `-O1`
+  in the dead-spot form, the shim at f1a5adb and `Main.hs` at the tip at build
+  time, which carries stage 11 and so is not Run 32's source. Every `cross`
+  below is basis over control between this run's own halves unless it says
+  `--compare`, which is `run32-nospec` against `run33-exit`, the one step
+  the chapter allows and one that carries a source term. Each prediction
+  is its own kill condition; a `predict:` line that fails is KILLED. (1)
+  *The compiler on the lean fill, the one placement defect these arms had, now
+  removed on both halves.* Run 32 read the fill 1.0134 on the main set
+  with HEAD's head at residue 9, its exit astride the line, and the interleaved
+  readings of the afternoon put the fixed half level with the basis. On the main
+  set: `predict: cross lib-stage2-lean 1.0 within 2%`; on `runs`:
+  `predict: cross lib-stage2-lean 1.0 within 3%`; and its twin, whose head
+  no form moves: on the main set
+  `predict: cross lib-stage2-lean-u1 1.0 within 2%`. (2) *The compiler
+  on the reference.* Run 32 read 1.0043, inside the differencing bar,
+  and the exit span moves `list`'s loops on neither half. On the main set:
+  `predict: cross list 1.0 within 2%`; on every class:
+  `predict: cross list 1.0 within 3%`. (3) *The compiler on the shared per-run
+  loop of stages 7, 9, 10 and 11, which placement cannot mend.* HEAD retires six
+  taken branches and seven fetch blocks a run against 9.12.4's five and five
+  on `runs-3`, the outer head's test a taken `jl` and the exit block laid inside
+  the cycle, and inside one tree residues 0, 3 and 30 of its head read level.
+  So the penalty is the compiler's and the exit span leaves it: on `runs`:
+  `predict: cross libunord-stage9-sum 0.81 within 6%`,
+  `predict: cross libunord-stage7-sum 0.81 within 6%`,
+  `predict: cross libunord-stage10-sum 0.81 within 6%`; on `window`:
+  `predict: cross libunord-stage9-sum 0.85 within 6%`, and stage 10 on its long
+  runs, latency-bound and placement-blind,
+  `predict: cross libunord-stage10-sum 1.0 within 3%`. (4) *The shipped leaf,
+  unmoved by either half's placement.* On the main set:
+  `predict: cross mut-odo-vecdims-add-in-leaf-u2 1.0 within 2%`; and its fusion
+  over the odometer, read 0.6459 and 0.6358 on Run 32's halves: on the main set,
+  both halves,
+  `predict: pair mut-odo-vecdims-add-in-leaf-u2 mut-odo-vecdims 0.64 within 4%`.
+  (5) *The floor pair.* The A/A copies against their originals within the class
+  floor on both halves, the standing registration every run carries, read as Run
+  32 read it. (6) *The exit span against Run 32's basis, one step, same
+  compiler, a moved source.* `--compare run32-nospec run33-exit`: the fill's
+  loops sit at residue 0 in both,
+  so `predict: cross lib-stage2-lean 1.0 within 2%`
+  and `predict: cross lib-stage2-lean-u1 1.0 within 2%` on the main set,
+  and `predict: cross list 1.0 within 1%`; the stage arms are excluded
+  from this item, `Main.hs` having gained stage 11 between the builds
+  and the afternoon's reading of that step on those arms being the trees
+  parting. What KILLS this item is a fill arm past 2%, which would say the 637
+  heads the exit span moves include one of theirs. (7) *The shim's own claim.*
+  The verbose line of each build reads eight exit spans astride and no short
+  loop straddling but the rotated pairs' sixteen planned, as the afternoon's
+  builds did; post-run step 0's twins name the eight. A ninth astride,
+  or a straddler outside the pairs, KILLS it.
 - `ANSWERED` **Price the exit span against the entry count, `LOOP_EXITSPAN=1`
   against `LOOP_ENTRIES=1`, each under the dead-spot form --- registered
   2026-09-15, before either has been built into a half, and answered the same
@@ -2888,170 +2943,66 @@ rather than a slot in the next run, observed again:
   and not the fix: A is `LOOP_DEADSPOT=1 LOOP_EXITSPAN=1`, B
   is `LOOP_DEADSPOT=1 LOOP_ENTRIES=1`, one source, one compiler, the inert
   `LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1` carried on both halves or on neither,
-  and the note naming every switch. Read it in two stages. First, before timing
-  anything, `ALIGN_AS_VERBOSE=1` on B's build names the heads the entry count
-  places at a residue the exit span would not, and A's build the heads the exit
-  span moves off the plain cost's residues; those heads are where the pair can
-  say anything, and on the tree of 2026-09-15 they are most of it, 1399 of 1833
-  heads between B and A and 637 between A and the plain form, upstream pads
-  carrying a residue change down to every head below them. So the pair differs
-  nearly everywhere, and `probe-entries-sweep.py` is what localises
-  a difference: the exhaustive reading for one head, predicted entries against
-  measured cycles at all 64 residues, which the entry count already misses
-  at ten to thirteen offsets of the fill loop. Second, the pair itself
-  with `--pair`, and per cell the op-cache fetch counter, raw event 0x28F, which
-  reads taken branches plus window crossings and so checks the window half
-  of the model directly, the cycles checking the rest. What settles it: B ahead
-  of A on the heads named, past their floors, with the sweep's mispredicted
-  residues not among them, buys the entry count the basis; level, or behind,
-  the exit span is the cheaper rule and stands, and the entry count is parked
-  with the sweep beside it. **The answer, 2026-09-15, off the two probes
-  that need no quiet run.** `probe-fetches.sh` over both binaries, every
-  population, no cell refused: B crosses more windows than A almost everywhere,
-  over half again as many on 450 of the 1969 cells above 100k fetches
-  an iteration, 5 to 50 percent more on 739, within 5 percent on 768 and 5 to 8
-  percent fewer on 12, the fewer being `list` and the reducers; the fill loop
-  that started this crosses two windows more a run under B on all four short-run
-  shapes, where A reads the five a run Run 32's basis half did.
-  Then `probe-interleave.sh` on thirteen cells in a ten-minute quiet window,
-  nine pairs each: the medians of B over A run 0.9938 to 1.0055,
-  `flip-whole-square`'s lean fill the lowest and `scaled-rank1-m1`'s
-  the highest, the four short-run cells at 0.9976 to 1.0038, the shipped leaf
-  on `cnn-L2-24x24-c32` at 1.0019 and the two cells where B crosses fewer
-  at 0.9965 and 0.9994, with per-cell ranges of one to three percent and one
-  of eight on `compose-scalar`. So the crossings the entry count permits cost
-  nothing this instrument can see on fills and references --- on one reducer's
-  per-run loop they cost 7 percent, the entry below, which confirms the verdict
-  rather than moving it --- and the pads the exit span adds cost nothing either;
-  A is the simpler rule and is the candidate for the next basis, the entry count
-  staying in the shim, off, with the sweep beside it for the day a cell
-  contradicts this. **The same on HEAD, the same afternoon**: the two costs
-  built through `cabal.project.ghead` read level on the same thirteen cells,
-  medians 0.9917 to 1.0071 with per-cell ranges of one to three percent
-  and `compose-scalar`'s of thirteen, while the exit span moves 527 of HEAD's
-  1860 heads and the entry count 1378 more, and B crosses over half again
-  as many windows on 557 of 1970 large cells. And the fix itself, the exit-span
-  half against Run 32's own HEAD binary in the same window: that binary reads
-  slower by **1.0894** on `stretch-wide-2xM`, 1.0785 on `stretch-tab7MB`, 1.0480
-  on `runs-2` and 1.0385 on `runs-4`, gross cycles an iteration on the lean
-  fill, nine pairs each and every pair above 1.02, with the shipped leaf
-  on `cnn-L2-24x24-c32` at 0.9981, its loop not having moved. That is the cycle
-  a run of 2026-09-15's reading bought back, seen on the compiler that lost it.
-  What is now owed is the pair that moves the basis: A against Run 32's basis
-  recipe, the plain dead-spot form, which prices the fix itself under a run's
-  floors and A/A copies.
+  and the note naming every switch. Read in two stages: the heads the two costs
+  place differently, which `ALIGN_AS_VERBOSE=1` names and which were most
+  of the tree on 2026-09-15, then the pair with `--pair` and, per cell,
+  the op-cache fetch counter, raw event 0x28F, taken branches plus window
+  crossings. What settles it: B ahead of A on the heads named, past their
+  floors, with the sweep's mispredicted residues not among them, buys the entry
+  count the basis; level, or behind, the exit span is the cheaper rule
+  and stands, and the entry count is parked with the sweep beside it. **Answered
+  2026-09-15 off the two probes that need no quiet run, the readings in [the
+  placement section][floor]**: B crosses more windows than A almost everywhere,
+  two more a run on the fill loop, and reads level with A on thirteen cells
+  on both compilers, medians within 0.6 percent; it loses 7 percent on one
+  reducer's per-run loop, `window-224x224-k3`'s stage 9, the population
+  the thirteen did not hold; and A read the fix itself against Run 32's HEAD
+  binary at 4 to 9 percent on the four short-run cells. So A is the simpler rule
+  and the candidate basis, and B stays in the shim, off, with the sweep beside
+  it. What is now owed is Run 33, declared in [Run 32's
+  file](runs/run32.md#what-the-next-run-compares-against) with its recipes
+  and registered in the entry below: the exit span on both halves, the compiler
+  the variable, and the exit span against Run 32's basis read as the one-step
+  comparison.
 - `ANSWERED` **Why `libunord-stage10-sum` trails `libunord-stage9-sum` by 19
   to 39 percent on the `window` views while retiring 40 to 60 percent fewer
   instructions, and why HEAD moves stage 9 and not stage 10 --- asked
   and answered 2026-09-15.** Not the placement cause of the entry above,
-  for the two arms; that cause, for the two compilers. Both arms are `sumRoute`
-  over `sumLazyRuns`, whose `sumNoSpec` folds each run through one accumulator,
-  so a run of L elements is a chain of L dependent adds at the FADD latency,
-  three cycles on this Zen 3, and the chains of successive runs overlap only
-  at their ends. Stage 10's tie-break makes the run the longest unit-stride
-  axis, 224, 128 and 64 elements on the three views, and the arm runs
-  latency-bound: 2.67 and 2.27 cycles an element on `window-224x224-k3`
-  and `window-128x128-k7`, rising with the run length toward the three,
-  at an IPC of 2.0 where it retires 2.34M instructions an iteration against
-  stage 9's 5.72M. Stage 9 keeps stage six's order, runs of 3, 7 and 9, short
-  chains that overlap across runs, and runs instruction-bound at an IPC of 5.7.
-  So the tie-break saves the per-run instructions and serialises the adds,
-  and on these views the adds cost more than the instructions saved.
-  A latency-bound loop is placement-blind, which the placement section says
-  in its own words, and stage 10 reads the same on both compilers and under all
-  four placements, 0.3236 to 0.3278 ms on `window-128x128-k7`. Stage 9
-  is placement-sensitive for the same reason, and that is the compiler
-  difference: HEAD retires the same instructions and 22 to 39 percent more
-  op-cache fetches on its per-run cycle, and reads 1.082 and 1.145 slower
-  than 9.12.4 on the two views in interleaved pairs, under the exit span as much
-  as under the plain form --- a crossing neither cost covers, the cycle
-  a three-element run executes spanning more than a line, so that lines beyond
-  least and entries beyond least both admit one crossing and neither says where
-  it may fall. **And the same cell is where the entry count loses on 9.12.4**: B
-  crosses 19 percent more windows on `window-224x224-k3`'s stage 9 than
-  A and reads 1.074 slower in seven interleaved pairs, against 1.000
-  on `window-128x128-k7` and 0.991 on the latency-bound stage 10. The thirteen
-  cells the entry above was answered on held fills and references
-  and no reducer, and a reducer's per-run loop with a three-element body
-  is exactly the population where a stub piece costs. **On the tiny views
-  the same arm trails stage 7 for a third reason, and it is neither**:
-  on `small-patch-k5`, `cnn-slice-c32` and `small-patch-r5`, 150 to 256 elements
-  and calls of 200 to 700 ns, stage 10 retires 650 to 1050 more instructions
-  a call than stage 7, the rank-5 view the most, and stage 9 the same excess
-  over stage 6 --- the per-call cost of the zero-stride move, two filters
-  and an append over the axis pairs, run on every call whether or not a zero
-  stride is there --- and the gap is that excess at the IPC of allocating list
-  code, 55 to 58 ns on the rank-3 views and 109 on the rank-5 one, the same
-  to a few nanoseconds on both compilers, the counts being equal
-  to the instruction. A per-call term on a view that small, not a loop's
-  placement. **Stage eleven is that arm with the move guarded,
-  `libunord-stage11-sum`, added to the roster the same day for Run 33
-  and counted at once**: one pass over the strides, stage seven's order where
-  none is zero and stage ten's where one is, so it changes no route. Counted
-  on the build of 2026-09-15, instructions a call: 3196 against stage seven's
-  3123 and stage ten's 3772 on `small-patch-k5`, 4081 against 3976 and 4642
-  on `cnn-slice-c32`, 8797 against 8665 and 9720 on `small-patch-r5`; within
-  a few hundred of stage seven on the `window` and `runs` views, where stage ten
-  already was; and stage ten's own count to the instruction on `bcast-tall-Mx2`
-  and `bcastmid-b200k`, the views with a zero stride. What Run 33 asks of
-  it is the timing: level with stage seven on every view without a zero stride
-  and with stage ten on every view with one, which the counts predict
-  and the run has to say. The verdict stands, the exit span being the one
-  of the two that does not lose here. **The third cost, `LOOP_BLOCKRULES=1`,
-  the nine sweeps' rules carried into the shim the same evening, was built
-  and read on both compilers before the day ended**: it places 1145 of 1874
-  heads on 9.12.4 and 1159 of 1901 on HEAD at residues the exit span would not,
-  leaves 57 and 67 short loops straddling by the lines criterion,
-  and in interleaved pairs reads level with the exit span on the lean fill
-  and on both window cells, 1.018 and 1.001 on HEAD's stage 9 and 1.016
-  on 9.12.4's --- so it loses nothing where the entry count lost, and it does
-  not move stage 9 on HEAD either. That settles which part of the shim the stage
-  9 cell indicts: not the cost, all three of which price the residue the planner
-  hands the inner head, but the tier that hands it there. The inner loop
-  of that rotated pair is the three-element `sumNoSpec`, cold per element,
-  and the outer walker is the hot cycle, so the residue should be the outer's;
-  the planner has no way to know a trip count, and a profile is what would tell
-  it. The end-alignment the guide recommends is a tie-break the block rules do
-  not yet carry, and it too would be spent on the inner head. **Asked whether
-  any placement of these arms defeats the rules, the loop was built to order
-  the same evening** with the shim's new `LOOP_PIN`, `sumLazyRuns`'s inner head
-  pinned at residues 0, 30 and 58 on 9.12.4 --- the same loop serving stages 7,
-  9 and 10, which is why `runs-3` reads 1.24 on all three. Its per-run cycle
-  is 78 bytes and five taken branches: the outer head's test, three not-taken
-  bounds checks and a `jmp` into the rotated three-element inner loop,
-  the inner's `jl` taken three times, the accumulate and the jump back. At 0
-  the `jmp` ends on byte 63 and the inner loop starts the next line, five fetch
-  blocks a run and 6.15 cycles, which is where every 9.12.4 binary had it; at 30
-  the one crossing falls in the straight part of the checks and reads level,
-  0.94 to 1.04; at 58 the inner body is astride the line on every iteration
-  and reads 1.34 to 1.42 on `runs-3` and `window-224x224-k3` for stage 9, 1.39
-  to 1.48 on `runs-3` for stages 7, 10 and 11, 1.29 to 1.36 on the stride-2
-  window for the three, and 1.08 to 1.10 on the long-run window for stages 10
-  and 11, where the arm is latency-bound and the crossing per element still
-  shows. The rules charge 58 and not 30, as the machine does, so on this loop
-  no placement defeats them, for any of the four arms that run it. **HEAD's
-  penalty on it is two blocks of the compiler's own making and one
-  of placement**: HEAD emits the outer head's test as `cmpq; jl`
-  into the checks, a taken branch every run where 9.12.4's `jge` falls through,
-  GHC #27799's shape at a loop head, and lays the loop's exit block inside
-  the cycle, 100 bytes that cannot fit two lines without a crossing --- six
-  taken branches and seven fetch blocks a run against five and five, 8.1 cycles
-  against 6.15. Pinned at 0 on HEAD it reads 7.40 cycles and seven blocks
-  against the plain half's 8.10 --- but that plain half is Run 32's, built
-  from the tree of the day before, and a comparison inside one tree, the block
-  rules' half at 0 against the same tree pinned at 30, reads 0.9999 on `runs-3`,
-  0.995 on stage 7's and 1.028 on the window view, level: on HEAD the residue
-  of this head is worth nothing, the 0.93 first read here was the two trees
-  parting, and the whole of HEAD's penalty is code order. **Where HEAD's
-  planners actually put it, read off the binaries by the loop's five-instruction
-  shape rather than by a pattern's first match, which had named another copy
-  and cost this entry a wrong 37 and 41 for an hour**: the plain form at 30,
-  the exit span at 3, the block rules at 0, every one free by the rules
-  and the planner's trace confirming the block rules chose 0 with a budget of 29
-  at the head's own dead spot. So no cost failed to act on HEAD, and the free
-  band hides nothing there either: 0, 3 and 30 read level inside one tree,
-  and the differences first read between them were the trees parting. The same
-  holds for stages 7, 10 and 11, which run this loop.
+  for the two arms; that cause, for the two compilers. Both arms sum the runs
+  through `sumLazyRuns`'s one-accumulator fold, so a run is a chain of dependent
+  adds at the FADD latency: stage 10's tie-break makes the run the longest
+  unit-stride axis and the arm latency-bound, placement-blind and the same
+  on both compilers; stage 9's runs of 3, 7 and 9 overlap across runs
+  and the arm runs at instruction throughput, placement-sensitive, and HEAD's
+  difference on it is the compiler's code order, a taken branch and a fetch
+  block more a run. The counts, the entry count's 7 percent loss on that cell,
+  the loop built to order at three residues, and HEAD's placements are in [the
+  placement section][floor]: no placement defeats the rules, and none mends
+  HEAD. **On the tiny views the same arm trails stage 7 for a third reason,
+  and it is neither**: on `small-patch-k5`, `cnn-slice-c32`
+  and `small-patch-r5`, 150 to 256 elements and calls of 200 to 700 ns, stage 10
+  retires 650 to 1050 more instructions a call than stage 7, the rank-5 view
+  the most, and stage 9 the same excess over stage 6 --- the per-call cost
+  of the zero-stride move, two filters and an append over the axis pairs, run
+  on every call whether or not a zero stride is there --- and the gap
+  is that excess at the IPC of allocating list code, 55 to 58 ns on the rank-3
+  views and 109 on the rank-5 one, the same to a few nanoseconds on both
+  compilers, the counts being equal to the instruction. A per-call term
+  on a view that small, not a loop's placement. **Stage eleven is that arm
+  with the move guarded, `libunord-stage11-sum`, added to the roster the same
+  day for Run 33 and counted at once**: one pass over the strides, stage seven's
+  order where none is zero and stage ten's where one is, so it changes no route.
+  Counted on the build of 2026-09-15, instructions a call: 3196 against stage
+  seven's 3123 and stage ten's 3772 on `small-patch-k5`, 4081 against 3976
+  and 4642 on `cnn-slice-c32`, 8797 against 8665 and 9720 on `small-patch-r5`;
+  within a few hundred of stage seven on the `window` and `runs` views, where
+  stage ten already was; and stage ten's own count to the instruction
+  on `bcast-tall-Mx2` and `bcastmid-b200k`, the views with a zero stride. What
+  Run 33 asks of it is the timing: level with stage seven on every view without
+  a zero stride and with stage ten on every view with one, which the counts
+  predict and the run has to say. The verdict stands, the exit span being
+  the one of the two that does not lose here.
+
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
@@ -4607,7 +4558,7 @@ codegen rather than that it cannot be built.
   it does not rank is the main set**, which it refuses, that population having
   no row in the table these claims are made about --- so a superlative meant
   over all nine has no source here either.
-- **Price a rotated pair as one cycle where the outer cycle is short.**
+- `OPEN` **Price a rotated pair as one cycle where the outer cycle is short.**
   Registered 2026-09-15 off the `sumLazyRuns` reading in [the open list][open]:
   the tiers hand a group's residue to the inner head, and for a per-run loop
   whose inner body is a few instructions with a trip count of three, the outer
@@ -5141,7 +5092,9 @@ and the cross-over of that consumer with `libunord-stage10-sum`, landing
 the same day for Run 31 at the tail of the consumers where stage ten's own
 landed so that no control's span moves, took the roster to 589 benches;
 and `liblist-stage4-list-sum`, the same fold over stage four's list, landing
-2026-09-14 for Run 32 at the same tail, takes the roster to 608 benches.
+2026-09-14 for Run 32 at the same tail, took the roster to 608 benches,
+and `libunord-stage11-sum`, landing 2026-09-15 for Run 33, takes the roster
+to 627 benches.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -7315,12 +7268,13 @@ to 684 benches, and the parking of 2026-09-13 ---
 `libunord-stage3-sum`, `libunord-stage5-sum` and `libunord-stage6-list-sum` ---
 took the roster to 570 benches, and `libunord-stage10-list-sum`, landing
 the same day, took the roster to 589 benches, and `liblist-stage4-list-sum`,
-landing 2026-09-14, takes the roster to 608 benches, so with the controls
-the run is 32 arms. **Run 26 timed four parked arms for that run alone**:
-`mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02; `canon-vecdims`
-and `lib-stage2`, parked by this prune; and `lib-stage2-short`, parked
-by the ruling on the short bodies of the same day ([the stride
-classes](#the-stride-classes-and-what-they-cover)). Each was parked
+landing 2026-09-14, took the roster to 608 benches, and `libunord-stage11-sum`,
+stage ten with its zero-stride move guarded, landing 2026-09-15, takes
+the roster to 627 benches, so with the controls the run is 33 arms. **Run 26
+timed four parked arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`,
+parked 2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
+and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
+([the stride classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration
 unreadable --- Run 24 lost a clause, Run 25 five, and the two-window item
 was withdrawn beside them, seven in all ([the open list][open]) --- so Run 26
@@ -12528,8 +12482,125 @@ in the line's last eight bytes; half cycles for a cut leaving a last block
 of three or fewer instructions, a block holding only a `jmp`, and a quarter
 for an unfused taken conditional; the penalties added to the larger of ops
 over six and blocks, whole where the fetch bounds the loop and halved where
-the dispatcher does. The tables are the `probe-fetch-model-*.txt` files beside
-the probe, untracked.
+the dispatcher does. The tables are the files the probe writes beside itself,
+named for the kernel swept, untracked.
+
+**The three costs priced against each other, 2026-09-15, without a run** ---
+the pair registered in the open list, answered here. `probe-fetches.sh`
+over both binaries, every population, no cell refused: B crosses more windows
+than A almost everywhere, over half again as many on 450 of the 1969 cells above
+100k fetches an iteration, 5 to 50 percent more on 739, within 5 percent on 768
+and 5 to 8 percent fewer on 12, the fewer being `list` and the reducers;
+the fill loop that started this crosses two windows more a run under B on all
+four short-run shapes, where A reads the five a run Run 32's basis half did.
+Then `probe-interleave.sh` on thirteen cells in a ten-minute quiet window, nine
+pairs each: the medians of B over A run 0.9938 to 1.0055, `flip-whole-square`'s
+lean fill the lowest and `scaled-rank1-m1`'s the highest, the four short-run
+cells at 0.9976 to 1.0038, the shipped leaf on `cnn-L2-24x24-c32` at 1.0019
+and the two cells where B crosses fewer at 0.9965 and 0.9994, with per-cell
+ranges of one to three percent and one of eight on `compose-scalar`.
+So the crossings the entry count permits cost nothing this instrument can see
+on fills and references --- on one reducer's per-run loop they cost 7 percent,
+the entry below, which confirms the verdict rather than moving it ---
+and the pads the exit span adds cost nothing either; A is the simpler rule
+and is the candidate for the next basis, the entry count staying in the shim,
+off, with the sweep beside it for the day a cell contradicts this. **The same
+on HEAD, the same afternoon**: the two costs built through `cabal.project.ghead`
+read level on the same thirteen cells, medians 0.9917 to 1.0071 with per-cell
+ranges of one to three percent and `compose-scalar`'s of thirteen, while
+the exit span moves 527 of HEAD's 1860 heads and the entry count 1378 more,
+and B crosses over half again as many windows on 557 of 1970 large cells.
+And the fix itself, the exit-span half against Run 32's own HEAD binary
+in the same window: that binary reads slower by **1.0894**
+on `stretch-wide-2xM`, 1.0785 on `stretch-tab7MB`, 1.0480 on `runs-2` and 1.0385
+on `runs-4`, gross cycles an iteration on the lean fill, nine pairs each
+and every pair above 1.02, with the shipped leaf on `cnn-L2-24x24-c32`
+at 0.9981, its loop not having moved. That is the cycle a run of 2026-09-15's
+reading bought back, seen on the compiler that lost it.
+
+**The two stage arms' mechanism, their loop built to order, and HEAD's code
+order on it.** Not the placement cause of the entry above, for the two arms;
+that cause, for the two compilers. Both arms are `sumRoute` over `sumLazyRuns`,
+whose `sumNoSpec` folds each run through one accumulator, so a run of L elements
+is a chain of L dependent adds at the FADD latency, three cycles on this Zen 3,
+and the chains of successive runs overlap only at their ends. Stage 10's
+tie-break makes the run the longest unit-stride axis, 224, 128 and 64 elements
+on the three views, and the arm runs latency-bound: 2.67 and 2.27 cycles
+an element on `window-224x224-k3` and `window-128x128-k7`, rising with the run
+length toward the three, at an IPC of 2.0 where it retires 2.34M instructions
+an iteration against stage 9's 5.72M. Stage 9 keeps stage six's order, runs
+of 3, 7 and 9, short chains that overlap across runs, and runs instruction-bound
+at an IPC of 5.7. So the tie-break saves the per-run instructions and serialises
+the adds, and on these views the adds cost more than the instructions saved.
+A latency-bound loop is placement-blind, which the placement section says
+in its own words, and stage 10 reads the same on both compilers and under all
+four placements, 0.3236 to 0.3278 ms on `window-128x128-k7`. Stage 9
+is placement-sensitive for the same reason, and that is the compiler difference:
+HEAD retires the same instructions and 22 to 39 percent more op-cache fetches
+on its per-run cycle, and reads 1.082 and 1.145 slower than 9.12.4 on the two
+views in interleaved pairs, under the exit span as much as under the plain form
+--- a crossing neither cost covers, the cycle a three-element run executes
+spanning more than a line, so that lines beyond least and entries beyond least
+both admit one crossing and neither says where it may fall. **And the same cell
+is where the entry count loses on 9.12.4**: B crosses 19 percent more windows
+on `window-224x224-k3`'s stage 9 than A and reads 1.074 slower in seven
+interleaved pairs, against 1.000 on `window-128x128-k7` and 0.991
+on the latency-bound stage 10. The thirteen cells the entry above was answered
+on held fills and references and no reducer, and a reducer's per-run loop
+with a three-element body is exactly the population where a stub piece costs.
+**The third cost, `LOOP_BLOCKRULES=1`, the nine sweeps' rules carried
+into the shim the same evening, was built and read on both compilers before
+the day ended**: it places 1145 of 1874 heads on 9.12.4 and 1159 of 1901 on HEAD
+at residues the exit span would not, leaves 57 and 67 short loops straddling
+by the lines criterion, and in interleaved pairs reads level with the exit span
+on the lean fill and on both window cells, 1.018 and 1.001 on HEAD's stage 9
+and 1.016 on 9.12.4's --- so it loses nothing where the entry count lost,
+and it does not move stage 9 on HEAD either. That settles which part of the shim
+the stage 9 cell indicts: not the cost, all three of which price the residue
+the planner hands the inner head, but the tier that hands it there. The inner
+loop of that rotated pair is the three-element `sumNoSpec`, cold per element,
+and the outer walker is the hot cycle, so the residue should be the outer's;
+the planner has no way to know a trip count, and a profile is what would tell
+it. The end-alignment the guide recommends is a tie-break the block rules do
+not yet carry, and it too would be spent on the inner head. **Asked whether any
+placement of these arms defeats the rules, the loop was built to order the same
+evening** with the shim's new `LOOP_PIN`, `sumLazyRuns`'s inner head pinned
+at residues 0, 30 and 58 on 9.12.4 --- the same loop serving stages 7, 9 and 10,
+which is why `runs-3` reads 1.24 on all three. Its per-run cycle is 78 bytes
+and five taken branches: the outer head's test, three not-taken bounds checks
+and a `jmp` into the rotated three-element inner loop, the inner's `jl` taken
+three times, the accumulate and the jump back. At 0 the `jmp` ends on byte 63
+and the inner loop starts the next line, five fetch blocks a run and 6.15
+cycles, which is where every 9.12.4 binary had it; at 30 the one crossing falls
+in the straight part of the checks and reads level, 0.94 to 1.04; at 58
+the inner body is astride the line on every iteration and reads 1.34 to 1.42
+on `runs-3` and `window-224x224-k3` for stage 9, 1.39 to 1.48 on `runs-3`
+for stages 7, 10 and 11, 1.29 to 1.36 on the stride-2 window for the three,
+and 1.08 to 1.10 on the long-run window for stages 10 and 11, where the arm
+is latency-bound and the crossing per element still shows. The rules charge 58
+and not 30, as the machine does, so on this loop no placement defeats them,
+for any of the four arms that run it. **HEAD's penalty on it is two blocks
+of the compiler's own making and one of placement**: HEAD emits the outer head's
+test as `cmpq; jl` into the checks, a taken branch every run where 9.12.4's
+`jge` falls through, GHC #27799's shape at a loop head, and lays the loop's exit
+block inside the cycle, 100 bytes that cannot fit two lines without a crossing
+--- six taken branches and seven fetch blocks a run against five and five, 8.1
+cycles against 6.15. Pinned at 0 on HEAD it reads 7.40 cycles and seven blocks
+against the plain half's 8.10 --- but that plain half is Run 32's, built
+from the tree of the day before, and a comparison inside one tree, the block
+rules' half at 0 against the same tree pinned at 30, reads 0.9999 on `runs-3`,
+0.995 on stage 7's and 1.028 on the window view, level: on HEAD the residue
+of this head is worth nothing, the 0.93 first read here was the two trees
+parting, and the whole of HEAD's penalty is code order. **Where HEAD's planners
+actually put it, read off the binaries by the loop's five-instruction shape
+rather than by a pattern's first match, which had named another copy and cost
+this entry a wrong 37 and 41 for an hour**: the plain form at 30, the exit span
+at 3, the block rules at 0, every one free by the rules and the planner's trace
+confirming the block rules chose 0 with a budget of 29 at the head's own dead
+spot. So no cost failed to act on HEAD, and the free band hides nothing there
+either: 0, 3 and 30 read level inside one tree, and the differences first read
+between them were the trees parting. The same holds for stages 7, 10 and 11,
+which run this loop.
 
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above
@@ -13327,20 +13398,23 @@ the record costs. **A fourth half arrives with the pairing and is not a delta
 at all**: which half of the pair a figure came from, which is why the run file's
 tables and its fingerprint say so.
 
-- Run 32 measured TODAY's shapes, class views and roster EXACTLY, nothing having
-  moved since it ran: 32 timed arms over 19 main-set shapes and 58 class views
-  in TEN classes, 608 benches and 1856, EIGHT A/A pairs, the `runs` class
-  at FOURTEEN, `window` at EIGHT, `bcast` and `flip` at SIX, `block` and `small`
-  at FIVE, `bcastmid` and `compose` at FOUR and `rev` and `scaled` at THREE.
-  It is the run whose file `runs/` currently publishes. **Its delta against RUN
-  31 is ONE ARM IN AND NONE OUT**: `Main.hs` moved from `13cbd0d` to `f95795a`
-  in six commits --- `c2021a8` adding comments and no code, `396f01c` carrying
-  Run 31's own step-6d fixes, `4488631` landing `liblist-stage4-list-sum`,
-  base's `sum` over stage four's list, and making the shared loop `sumLazyRuns`
-  sum each run through `sumNoSpec` without vector's `SPEC` argument, a code
-  change under unmoved names that reaches every lazy consumer wherever a view
-  routes to runs, and `08ee255`, `e12b000` and `f95795a` taking an unzip
-  immediately undone by a zip out of the zero-stride orders and threading
+- Run 32 measured TODAY's shapes and class views exactly and, less one arm,
+  today's roster, nothing having moved since it ran but 2026-09-15's landing
+  of `libunord-stage11-sum`, stage ten with its zero-stride move guarded,
+  so today's roster is 33 timed arms, 627 benches and 1914 --- 32 timed arms
+  over 19 main-set shapes and 58 class views in TEN classes, 608 benches
+  and 1856, EIGHT A/A pairs, the `runs` class at FOURTEEN, `window` at EIGHT,
+  `bcast` and `flip` at SIX, `block` and `small` at FIVE, `bcastmid`
+  and `compose` at FOUR and `rev` and `scaled` at THREE. It is the run whose
+  file `runs/` currently publishes. **Its delta against RUN 31 is ONE ARM
+  IN AND NONE OUT**: `Main.hs` moved from `13cbd0d` to `f95795a` in six commits
+  --- `c2021a8` adding comments and no code, `396f01c` carrying Run 31's own
+  step-6d fixes, `4488631` landing `liblist-stage4-list-sum`, base's `sum`
+  over stage four's list, and making the shared loop `sumLazyRuns` sum each run
+  through `sumNoSpec` without vector's `SPEC` argument, a code change
+  under unmoved names that reaches every lazy consumer wherever a view routes
+  to runs, and `08ee255`, `e12b000` and `f95795a` taking an unzip immediately
+  undone by a zip out of the zero-stride orders and threading
   the canonicalization on pairs. The 19 main-set shapes and all 58 class views
   are unmoved, so a cross-run figure against Run 31 is over all nineteen shapes
   and over the 16 arms both rosters time --- and it carries a SOURCE term
