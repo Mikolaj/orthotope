@@ -1032,10 +1032,15 @@ rather than a slot in the next run, observed again:
   to --- the scaled MAD of that row's log-ratios falls from **0.34402**
   on `run31-nospec` to **0.17956** on `run32-nospec` and the upper cap with it,
   from a ratio of 0.06858 to 0.03829, so one estimator's own spread halving
-  drags four published cells down with it. Re-implementing the winsorization
-  by hand reproduces the published figure to three decimals on eight rows across
-  the two runs, which is what makes this a mechanism rather than a suspicion.
-  It matters because the run chapter's standing rule is *DO NOT DIVIDE TWO ROWS
+  drags four published cells down with it. **AND THE COLLAPSE IS NOT ONE OR TWO
+  OUTLIERS**: holding the two shapes that moved 20% between the runs at their
+  Run 31 values leaves the MAD at 0.29044 against a fall to 0.17956,
+  so those two account for about two thirds of it and the rest is the row's
+  whole middle tightening --- measured rather than assumed, the assumption
+  having been made first. Re-implementing the winsorization by hand reproduces
+  the published figure to three decimals on eight rows across the two runs,
+  which is what makes this a mechanism rather than a suspicion. It matters
+  because the run chapter's standing rule is *DO NOT DIVIDE TWO ROWS
   OF THIS TABLE FOR A MARGIN* and nothing warns against the other reading
   a table invites --- following ONE row down the published columns of successive
   runs, which is what a cross-run sentence does by hand. **TAKEN 2026-09-15,
@@ -1058,26 +1063,30 @@ rather than a slot in the next run, observed again:
   and 26 all read **14.0%** at the same offset in line and 66.2% in the same
   straddle state over 136 loops in common --- one reading for three pairs, which
   is what a column over LINKED libraries should give when two pairs share two
-  compilers --- where those runs recorded 14.0%/65.7%, 13.9%/66.0%
-  and 14.2%/65.2%; Run 27 reads 12.5% and 64.7% where it recorded 12.8% *of 141*
-  and 63.8%, and Run 28 11.8% and 74.3% where it recorded 11.3% of 141
-  and 73.8%. Run 31's 916, 4.4% and 58.7% reproduce to the digit, and Run 32
-  reads 11.0% and 65.4% of 136. So the denominator moved from 141 to 136
-  on the older pairs and the percentages with it, nothing here says when or why,
-  and a run reading its figure against that series is reading numbers taken
-  under more than one version of `loop-offsets.py`. **TAKEN 2026-09-15, in one
-  call**, `--library` having been given several pairs the same day: over every
-  surviving pair the column reads **14.0% and 66.2%** on Runs 24, 25 and 26
-  alike, **12.5% and 64.7%** on Run 27, **11.8% and 74.3%** on Run 28, all
-  of 136 loops in common; **4.4% and 58.7%** of 916 on Run 31, whose halves
-  share a compiler; and **11.0% and 65.4%** of 136 on Run 32. THAT
-  is the series, and the per-run recorded figures are what each run saw rather
-  than a column to read across. **Two things it does not settle.** Runs 29's
-  and 30's binaries are not on disk, so the flag pairs are one reading
-  and not two, and nothing here says WHEN the denominator moved from 141 to 136
-  or why three pairs that share two compilers were once recorded as three
-  distinct figures. Both want the tool's own history read, which is cheaper
-  than a run and is nobody's yet.
+  compilers --- where Run 32's pair note cites them as 14.0%/65.7%, 13.9%/66.0%
+  and 14.2%/65.2%. **THOSE THREE FIGURES ARE IN NO ARTIFACT OF THEIR OWN RUNS**:
+  `runs/run24.md`, `runs/run25.md` and `runs/run26.md` carry no `--library`
+  sentence at all and their pair notes name the command without recording
+  its answer, so the only place a Run 24, 25 or 26 figure exists is a later note
+  citing it. Runs 27 and 28 DID record theirs and both citations are faithful:
+  12.8% *of 141* and 63.8%, and 11.3% of 141 and 73.8%, against 12.5%/64.7%
+  and 11.8%/74.3% today. Run 31's 916, 4.4% and 58.7% reproduce to the digit,
+  and Run 32 reads 11.0% and 65.4% of 136. So the denominator moved from 141
+  to 136 between Run 28 and today and the percentages with it, nothing here says
+  when or why, and a run reading its figure against that series is reading
+  numbers taken under more than one version of `loop-offsets.py`. **TAKEN
+  2026-09-15, in one call**, `--library` having been given several pairs
+  the same day: over every surviving pair the column reads **14.0% and 66.2%**
+  on Runs 24, 25 and 26 alike, **12.5% and 64.7%** on Run 27, **11.8%
+  and 74.3%** on Run 28, all of 136 loops in common; **4.4% and 58.7%** of 916
+  on Run 31, whose halves share a compiler; and **11.0% and 65.4%** of 136
+  on Run 32. THAT is the series, and the per-run recorded figures are what each
+  run saw rather than a column to read across. **Two things it does
+  not settle.** Runs 29's and 30's binaries are not on disk, so the flag pairs
+  are one reading and not two, and nothing here says WHEN the denominator moved
+  from 141 to 136 or why three pairs that share two compilers were once recorded
+  as three distinct figures. Both want the tool's own history read, which
+  is cheaper than a run and is nobody's yet.
 - `OPEN` **Class property 1 breaks on ONE main-set cell that was already a tie,
   and which side of 1 it lands on has changed three times in three runs.**
   `mut-odo-vecdims` is behind `bq-expand` on `stretch-pow2stride` at **1.0009**
@@ -9259,8 +9268,9 @@ not otherwise.
     #        stops the `Stop` hook and not the `PreToolUse` one, and this
     #        half of the list makes three commits -- 6b, 6d and 7a -- so
     #        an unwrapped stretch ends at each of them and the next
-    #        exact-match batch misses until it is unwrapped again. Three
-    #        failed asserts on Run 32 before the cause was named.
+    #        exact-match batch misses until it is unwrapped again. Writing
+    #        this bullet did not stop it biting twice more on Run 32, the
+    #        hook's own `restored ... (wrapped)` line going unread.
     #      * WRAPPING IS NOT A PRECONDITION: --replace, --delete and
     #        --para match the flattened form, so nothing is unwrapped
     #        before editing or after a commit's re-wrap; an EXACT-MATCH
