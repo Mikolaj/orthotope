@@ -3048,10 +3048,9 @@ rather than a slot in the next run, observed again:
   and cost this entry a wrong 37 and 41 for an hour**: the plain form at 30,
   the exit span at 3, the block rules at 0, every one free by the rules
   and the planner's trace confirming the block rules chose 0 with a budget of 29
-  at the head's own dead spot. So no cost failed to act on HEAD; what the free
-  band hides there is a ten percent spread between 30, 3 and 0, which comes
-  from where the outer loop's head lands, HEAD having made that outer cycle
-  the one with six taken branches, and the tiers price the outer last. The same
+  at the head's own dead spot. So no cost failed to act on HEAD, and the free
+  band hides nothing there either: 0, 3 and 30 read level inside one tree,
+  and the differences first read between them were the trees parting. The same
   holds for stages 7, 10 and 11, which run this loop.
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
@@ -4621,10 +4620,13 @@ codegen rather than that it cannot be built.
   at most one crossing per iteration where the sum prefers the outer, the same
   size of error the present order makes the other way for every short-run loop,
   and the fill's rotated pairs, with inner bodies of 34 to 51 bytes, fall
-  outside the rule. On HEAD this is the ten percent between residues 0, 3 and 30
-  of that loop; on 9.12.4 nothing, the plain form having found the optimum.
-  Not built: the flag pair it would face is the block rules with and without it,
-  on the stage arms' `runs` and `window` cells.
+  outside the rule. No cell measures what it would buy: on this loop the inner
+  head's free residues read level inside one tree on HEAD, and on 9.12.4
+  the plain form found the optimum; the case for it is the rotated pair whose
+  outer cycle is hot and whose inner head's free band leaves the outer's
+  crossing somewhere that costs, which the sweeps say exists and no arm here has
+  shown. Not built: the flag pair it would face is the block rules
+  with and without it, on the stage arms' `runs` and `window` cells.
 
 
 ## The goal of these benchmarks
