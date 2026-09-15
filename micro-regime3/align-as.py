@@ -208,8 +208,10 @@ charged the total beyond the uncut minimum, and nothing else -- a cut
 that leaves a full entry on each side of a long segment is free under it
 and is not under the exit span, which is where the two part and what a
 pair of them prices. Priced the same day on thirteen cells in interleaved
-pairs, the two read level, 0.9938 to 1.0055 of each other, with the
-entry form crossing up to twice the windows for it; so the exit span is
+pairs, on 9.12.4 and on HEAD, the two read level, 0.9917 to 1.0071 of
+each other, with the entry form crossing up to twice the windows for it,
+while the exit-span half beats Run 32's HEAD binary by 4 to 9 percent
+gross on the four short-run cells; so the exit span is
 the candidate basis and the entry form stays here, off, for the day a
 cell contradicts that (README, the open list). Both are costs of the
 dead-spot planner and refuse
