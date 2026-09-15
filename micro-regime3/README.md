@@ -1063,8 +1063,8 @@ rather than a slot in the next run, observed again:
   recorded figures kept beside it as what each run saw --- or, if the tool's
   reading is the one that moved, retiring the cross-run comparison and quoting
   a pair's figure against its own band alone. Registered here 2026-09-15.
-- `OPEN` **Class property 1 has BROKEN for the first time, on the main set,
-  on both halves, and on a cell that was already nearly a tie.**
+- `OPEN` **Class property 1 breaks on ONE main-set cell that was already a tie,
+  and which side of 1 it lands on has changed three times in three runs.**
   `mut-odo-vecdims` is behind `bq-expand` on `stretch-pow2stride` at **1.0009**
   on Run 31's plain -O1 half and **1.0109** on its `-O2` half, where Run 30 read
   0.9997 on the same recipe and its own head called that a win by three
@@ -1089,13 +1089,14 @@ rather than a slot in the next run, observed again:
   against main-set floors of 0.66% and 0.68%. So SIX readings of that cell now
   exist across Runs 30, 31 and 32 --- 0.9997 and 0.9748 on Run 30's two halves,
   1.0009 and 1.0109 on Run 31's, 0.9934 and 1.0003 on Run 32's --- they straddle
-  1, FIVE of the six sit inside the floor of the half they were read on,
-  the sixth is Run 30's control at 0.9748 against a 0.84% floor and is the fill
-  AHEAD by two and a half points, and the two that a compiler alone separates
-  part in sign. That is a cell sitting on the line rather than a property
-  of the shape, and the entry STAYS OPEN on a narrower question: whether any run
-  reads it outside its own floor. Until one does, a break here is not evidence
-  that the fill fails to replace `bq-expand` on that shape.
+  1, FIVE of the six sit at or inside the floor of the half they were read
+  on --- Run 32's basis reading is exactly its own 0.66% floor and does
+  not clear it --- the sixth is Run 30's control at 0.9748 against a 0.84% floor
+  and is the fill AHEAD by two and a half points, and the two that a compiler
+  alone separates part in sign. That is a cell sitting on the line rather
+  than a property of the shape, and the entry STAYS OPEN on a narrower question:
+  whether any run reads it outside its own floor. Until one does, a break here
+  is not evidence that the fill fails to replace `bq-expand` on that shape.
 - `OPEN` **`-O2` changes what the preamble's spray leaves RESIDENT, and no pair
   before it did.** Run 31's twenty-two processes carry one `keep` value,
   `8.19844333056e12`, and TWO `inuse` values --- 95420416 on every plain -O1
@@ -3310,7 +3311,14 @@ nothing compares a recorded figure with its re-derivation, and a run quoting
 that series as a series is quoting numbers taken under more than one tool.
 **A CAPABILITY FOUND**: `--exclude-shape` re-reads a gate with an intruded shape
 dropped, which is what turned this run's intrusion from a stop into a recorded
-finding in two calls. **WHAT THE THREE AGENTS COST AND BOUGHT.** One carrier
+finding in two calls. **AND A STALE FIGURE IN THE RUN LIST ITSELF, found
+by the comprehension probe and left for a chapter commit of its own**: step 19
+calls the riders *the 24 main-set `list` alone legs*, where this run wrote
+**22** a half in each state --- the nineteen main-set shapes plus the three
+anchors on a second reps pass, 88 JSONs in all. The probe could not reconcile 88
+with either 19 or 24 from the documents, which is what a reader meets; the run
+file now says where the 22 comes from and the chapter's 24 is a one-numeral fix
+nobody owes this run. **WHAT THE THREE AGENTS COST AND BOUGHT.** One carrier
 took readings 2, 4, 5 and 6 during the sequence and returned
 `run32-readings.txt`, where it found that `--with-tables 1` does NOT release
 the two-column table the reading list sends it for: that section's two
