@@ -2,7 +2,7 @@
 # The pre-run list's steps 4 to 10, in one call.
 #
 #     ./preflight.sh run19            # the halves from the note's HALVES line
-#     ./preflight.sh run19 --note     # 10c, 10d and 8 alone, seconds
+#     ./preflight.sh run19 --note     # 10c, 10d, 10e and 8 alone, seconds
 #     ./preflight.sh run19 --figures  # step 12b: the note's fill-in
 #                                     # figures against the artifacts
 #
@@ -10,7 +10,7 @@
 # are the two that read what the preparation WROTE, and a defect in a note
 # is the likeliest thing a first pass finds. Read at minute eight it costs the
 # whole pass again; read at second five it costs nothing. `--note` is the
-# other half of that -- the same two steps alone, wanting no binary, for a
+# other half of that -- those steps alone, wanting no binary, for a
 # note or a registration edited after a full pass. It is NOT a preflight
 # and says so on every run.
 #
@@ -107,7 +107,7 @@ cd "$(dirname "$0")" || exit 1
 
 if [ $# -lt 1 ]; then
   echo "usage: ./preflight.sh RUN [--note|--no-corpus|--corpus] [--figures] [--fill-in]"
-  echo "  --note        steps 10c, 10d and 8 alone -- the ones that read what"
+  echo "  --note        steps 10c, 10d, 10e and 8 alone -- the ones that read"
   echo "                the preparation WROTE, in seconds and with no binary"
   echo "  --no-corpus   everything but 8c and 8d, the two that read every run"
   echo "                JSON on disk: run this, launch 11 and 12, and take"
@@ -178,7 +178,7 @@ fi
 # --note runs neither half, so a corpus flag beside it was taken and
 # ignored: absorbed without effect is the defect family this tree counts.
 if [ "$NOTE_ONLY" = 1 ] && { [ "$CORPUS" = 0 ] || [ "$REST" = 0 ]; }; then
-  echo "--note runs 10c, 10d and 8 alone, so a corpus flag beside it means"
+  echo "--note runs 10c, 10d, 10e and 8 alone, so a corpus flag beside it means"
   echo "nothing; drop one of them."; exit 2
 fi
 HALVES_SET=$(./pair-halves.sh "$R") || exit 2   # the note's HALVES line,
@@ -478,11 +478,30 @@ step_10d () {  # 10d. AND THAT THE RECIPES BUILD THE HALVES THE LINE NAMES:
     say 10d FAIL "$R-pair.txt never names: $(echo $MISS) -- its HALVES line and its recipes disagree"
   fi
 }
+step_10e () {  # 10e. AND THE NOTE'S PROSE, which 10c and 10d do not read:
+  # both of those are predicates over structure -- the paths the note
+  # names, the halves its recipes build -- so a note whose carried [SAME]
+  # blocks still describe the PREVIOUS pair passes them untouched.
+  # `--draft` substitutes the run and the half names and nothing else, so
+  # the run numbers, the item numbers and the roll of tags inside those
+  # blocks stay the last pair's until a hand re-reads them. Run 33's
+  # preparation found six such statements by reading; these are the three
+  # kinds a machine can have. Non-vacuity is defects.py's
+  # `note-check-reads-the-carried-blocks`, which plants all three in a
+  # copy of a real note and counts what comes back.
+  [ -f "$R-pair.txt" ] || return 0
+  if ./read-run.py --note-check "$R-pair.txt" > "$TMP/notecheck" 2>&1; then
+    say 10e PASS "$(head -1 "$TMP/notecheck")"
+  else
+    say 10e FAIL "$(head -1 "$TMP/notecheck") -- first: $(sed -n '2p' "$TMP/notecheck" | sed 's/^ *//')"
+  fi
+}
 if [ "$NOTE_ONLY" = 1 ]; then
   echo "preflight for $R: the note and the documents alone"
   echo
   step_10c
   step_10d
+  step_10e
   step_8
   echo
   if [ "$BAD" -eq 0 ]; then
@@ -554,6 +573,7 @@ fi
 
 step_10c
 step_10d
+step_10e
 
 ./read-run.py --lint > "$TMP/lint" 2>&1 \
   && say 7 PASS "roster and shape annotations" \

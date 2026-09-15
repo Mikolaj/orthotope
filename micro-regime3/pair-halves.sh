@@ -61,13 +61,28 @@ if [ -z "$LINE" ]; then
   echo "   THE BASIS IS; pair-note-template.txt shows where." >&2
   exit 1
 fi
-B=$(printf '%s\n' "$LINE" | sed -n 's/.*basis=\([A-Za-z0-9_]*\).*/\1/p')
-O=$(printf '%s\n' "$LINE" | sed -n 's/.*other=\([A-Za-z0-9_]*\).*/\1/p')
+# UP TO THE NEXT SPACE, and not up to the first character outside the
+# grammar: a name carrying one was CUT there and handed on truncated, so
+# `other=ghead-exit` reached every driver as `ghead` and named a binary
+# nobody built. Read whole here, refused below, since a wrong name that
+# parses is the one failure no step downstream can see. Run 33's pair was
+# declared `run33-ghead-exit` and renamed for exactly this.
+B=$(printf '%s\n' "$LINE" | sed -n 's/.*basis=\([^ ]*\).*/\1/p')
+O=$(printf '%s\n' "$LINE" | sed -n 's/.*other=\([^ ]*\).*/\1/p')
 if [ -z "$B" ] || [ -z "$O" ]; then
   echo "!! $NOTE's HALVES line does not parse: '$LINE'" >&2
   echo "   wanted 'HALVES: basis=<b> other=<o>', names of [A-Za-z0-9_]" >&2
   exit 1
 fi
+for N in "$B" "$O"; do
+  case $N in
+    *[!A-Za-z0-9_]*)
+      echo "!! $NOTE names a half '$N': a half's tag is [A-Za-z0-9_], and" >&2
+      echo "   a hyphen in one is read wrong here and by install-tables.sh's" >&2
+      echo "   \$R-<basis>-*.json glob alike. Name the half in one token." >&2
+      exit 1 ;;
+  esac
+done
 # A pair is two halves; run-major.sh says what one name in both costs.
 if [ "$B" = "$O" ]; then
   echo "!! $NOTE names '$B' as both halves -- a pair is two halves" >&2

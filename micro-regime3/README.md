@@ -3403,22 +3403,15 @@ rather than a slot in the next run, observed again:
 **What Run 32 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
 this one only through the pair note.** **THE PREPARATION'S HALF, taken
-2026-09-14 and recorded in the note.** A CHECK THAT WOULD HAVE CAUGHT AN ERROR:
-`--carried` handed Run 31's JSONs ALONE names three items as quoting nothing
-it derives, and all three resolve against Run 30 --- the run those items name
---- so a carried registration wants ONE CALL PER RUN NAMED and not one call
-for `$PREV`, which asks the wrong question and cost a call to learn.
-A COMPUTATION IMPROVISED, and it is the one to build a mode for: `--compare`
-drops every reducing consumer, having no corrected time to divide, so a `cross`
-prior quoted for a `-sum` arm cannot be re-derived with it and the mode answers
-NO MATCH on a figure that is right; re-deriving one item's three Run 27 figures
-took a hand-written geomean of `slope` ratios over two JSONs. A CAPABILITY
-FOUND: `--figures`, `--carried` and `--carry-over` between them leave only
-the cross priors and the prose to read by hand, which is most of pre-run step
-12b done mechanically. A STEP SKIPPED: none --- but the waiter set
-on preflight's `4,5 PASS` line was anchored at the start of the line where
-the log writes it indented by two spaces, so it never fired and the sweeps
-started at preflight's exit rather than minutes before it.
+2026-09-14 and recorded in the note.** A COMPUTATION IMPROVISED, and it
+is the one to build a mode for: `--compare` drops every reducing consumer,
+having no corrected time to divide, so a `cross` prior quoted for a `-sum` arm
+cannot be re-derived with it and the mode answers NO MATCH on a figure
+that is right; re-deriving one item's three Run 27 figures took a hand-written
+geomean of `slope` ratios over two JSONs. A CAPABILITY FOUND: `--figures`,
+`--carried` and `--carry-over` between them leave only the cross priors
+and the prose to read by hand, which is most of pre-run step 12b done
+mechanically. A STEP SKIPPED: none.
 
 **THE WRITE-UP SESSION'S HALF, and the first item is one the chapter caused.**
 **THIS RUN INTRUDED ON ITS OWN GATE, AND RUN LIST STEP 15 IS WHY.** Step 14
@@ -3473,10 +3466,13 @@ from the documents, which is what a reader meets; the run file now says where
 the 22 comes from and the chapter's 24 is a one-numeral fix nobody owes
 this run. **WHAT THE THREE AGENTS COST AND BOUGHT.** One carrier took readings
 2, 4, 5 and 6 during the sequence and returned `run32-readings.txt`, where
-it found that `--with-tables 1` does NOT release the two-column table
-the reading list sends it for: that section's two withholdable table paragraphs
-are both per-shape fingerprints, and the two-column table prints regardless
-because no blank line separates it from its lead. The checker's two passes
+it found that `--with-tables 1` did not release the two-column table the reading
+list sends it for: `--section` counted a paragraph as a table only where
+the paragraph STARTED with `|`, so that table, which shares a paragraph
+with its lead, could not be selected at all and the two selectable ones
+were both per-shape fingerprints. FIXED 2026-09-15, a table being its own
+paragraph there now: the section offers three, and `--with-tables 1` releases
+the two-column one the reading list wants. The checker's two passes
 and the comprehension probe are the other two.
 
 **What Run 31 made cheaper for the next run, which is not a figure and no other
@@ -7696,6 +7692,13 @@ and never as a chronology.
     #      2026-09-02 the halves were set in five scripts by hand, the
     #      shape of edit that gets four fifths done; an older note's
     #      `scripts set` row records that edit and is not copied forward
+    #      A HALF'S TAG IS ONE TOKEN, `[A-Za-z0-9_]`, and pair-halves.sh
+    #      REFUSES anything else since 2026-09-15 -- it used to CUT at the
+    #      first character outside that set, so a declared `ghead-exit`
+    #      reached every driver as `ghead` and named a binary nobody
+    #      built. `--draft` refuses such a tag too. Where the pair as
+    #      declared carries one, the declaration and the registration are
+    #      renamed first, in a commit of their own, as Run 33's were
     #      why: --para 'Which two halves a pair has'
     ./loop-offsets.py --delta $PREV-<PREV's basis> $R-<basis>   # 2d. THE
     #      FILLS AGAINST THE PREVIOUS BUILD OF THIS RECIPE, taken the
@@ -7932,7 +7935,14 @@ and never as a chronology.
     #      THE WAIT IS ON THE LOG LINE AND NOT ON THE CALL: launch these
     #      two the moment preflight's log shows `4,5  PASS`, which is
     #      minutes before that call returns -- the rest of a preflight is
-    #      cheap and the two `check` runs are not
+    #      cheap and the two `check` runs are not.
+    #      READ THAT LINE BY APPENDING A `tail` OF THE LOG TO THE CALLS
+    #      YOU ARE MAKING ANYWAY -- the note's own writing is a dozen of
+    #      them and each carries the poll for nothing -- AND SET NO
+    #      WAITER FOR IT. The log writes the line INDENTED BY TWO SPACES,
+    #      so a pattern anchored at the start of a line never fires, and
+    #      a blocking waiter hangs the call rather than losing the
+    #      minutes it was set to save
     #      IN THE BACKGROUND, AND WHICH BACKGROUND MATTERS -- the command
     #      lines above carry no `&` for that reason. A SESSION uses the
     #      harness's own background mode, which registers a task and
@@ -8036,6 +8046,23 @@ and never as a chronology.
     #      IT CAME FROM, never from the sentence beside it, and then read
     #      both back end to end. It costs minutes, and it is not a
     #      substitute for post-run step 6b's independent reader
+    #      THREE OF THOSE ERRORS ARE A MACHINE'S NOW, and preflight runs
+    #      them as 10e: `./read-run.py --note-check $R-pair.txt` reads the
+    #      note's CARRIED blocks for a continuity claim that stops short
+    #      of $PREV (`as Runs 20 to 31` in a note whose previous run is
+    #      32), an item number above what this run's registration carries
+    #      ((10) against a registration of seven), and a half tag missing
+    #      from the roll under NAMING THE HALVES. It does NOT read a
+    #      figure, so the re-derivation below is owed whole: Run 33's
+    #      preparation found six such statements by reading and three of
+    #      them are of no kind a check can have
+    #      AND A `cross` PRIOR ON A `-sum` ARM IS READ BY `--compare`
+    #      SINCE 2026-09-15, in a block of its own under the table, on raw
+    #      `slope` and never in the table's own column -- the two are
+    #      different quantities. Before it, such a prior could be
+    #      re-derived only by a hand-written geomean over two JSONs, which
+    #      is what Run 32's preparation wrote and what left Run 33's
+    #      unable to quote two of the three figures its note wanted
     #      LOCATE BY PHRASE, NOT BY COORDINATE: this is what `--para`
     #      is, and a `grep -n` for a line number is what sends a session
     #      to `sed` and from there into the chapter. A line number into
@@ -9253,6 +9280,16 @@ not otherwise.
     #      and 6, the properties and the class-block form
     ./read-run.py $R-<basis>-$c.json --block          #    one per class
     ./read-run.py $R-<basis>-$c.json --compare $R-<other>-$c.json
+    #      AND `--compare` PRINTS THE REDUCING CONSUMERS UNDER ITS TABLE
+    #      since 2026-09-15, on raw `slope`: they run no forcing pass, so
+    #      their net is that term subtracted from itself and the table
+    #      above skips them. NEVER QUOTE THE TWO IN ONE COLUMN, ROW OR
+    #      TABLE -- corrected net and raw slope are different quantities,
+    #      which is the rule the performance model states for criterion
+    #      numbers and tasty totals, met again here. `--predictions` reads
+    #      a `cross` prior on those arms the same way, so a prior and this
+    #      block agree by construction and a `-sum` figure no longer wants
+    #      a hand-written geomean
     #      THE PER-CLASS CALLS ARE INDEPENDENT OF EACH OTHER, all EIGHTY of
     #      them -- the forty below on the basis half and the same forty
     #      with the two files swapped, which is how a `pair` span is read

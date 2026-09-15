@@ -2496,6 +2496,42 @@ def compare_table(cells, shapes, strategies, meta, other, main_hs,
                     if cells[sh][st]['net'] > 0 and b_cells[sh][st]['net'] > 0)
         print('%-34s %8.4f %8.4f %5d/%-3d %5.3f..%.3f'
               % (st, g, 1 / g, wins, n, rs[0], rs[-1]))
+    # THE REDUCING CONSUMERS, ON RAW `slope`, IN A BLOCK OF THEIR OWN and
+    # never as rows of the table above: the two are different quantities.
+    # Every figure there is a corrected net over a corrected net, while an
+    # arm that hands back a scalar runs no forcing pass, so its net is that
+    # term subtracted from itself and a ratio of two of them divides two
+    # near-zeros -- which is why the loop above skips them.
+    # `--predictions` has read a `cross` prior on such an arm since Run 29,
+    # on the raw key; nothing else did until 2026-09-15, so a prior quoted
+    # for a `-sum` arm could be re-derived only by hand. Run 32's
+    # preparation wrote that geomean of slope ratios by hand over two
+    # JSONs, and Run 33's could not quote two of the three figures its own
+    # note wanted, no span naming those two arms. Same key and same shapes
+    # as that branch, so a prior and its re-derivation agree by
+    # construction. Case: `compare-reads-no-reducing-consumer`.
+    sunk = []
+    for st in both_st:
+        if not no_net(st):
+            continue
+        rs = sorted(cells[sh][st]['slope'] / b_cells[sh][st]['slope']
+                    for sh in both_sh
+                    if cells[sh][st]['slope'] > 0
+                    and b_cells[sh][st]['slope'] > 0)
+        if rs:
+            sunk.append((geomean(rs), sum(1 for r in rs if r < 1),
+                         len(rs), st, rs[0], rs[-1]))
+    if sunk:
+        print('\nreducing consumers, %d arm(s), on RAW `slope` and NOT on'
+              ' the corrected net above -- they run no forcing pass, so the'
+              ' two are different quantities and never share a table.'
+              ' `--predictions` reads a `cross` prior on these the same way,'
+              ' so a prior and this agree' % len(sunk))
+        print('%-34s %8s %8s %8s %10s'
+              % ('arm', 'ratio', 'recip', 'faster', 'range'))
+        for g, wins, n, st, lo, hi in sorted(sunk):
+            print('%-34s %8.4f %8.4f %5d/%-3d %5.3f..%.3f'
+                  % (st, g, 1 / g, wins, n, lo, hi))
     # THE A/A BAR FOR THIS COMPARISON, which is the floor's counterpart
     # here and which no mode printed until 2026-09-15. `--aa` gives the
     # floor WITHIN one half: how far an arm differs from its own duplicate
@@ -7021,7 +7057,29 @@ def section(docs, name, with_tables=None):
     end = next((j for j in range(i + 1, len(lines))
                 if re.match(r'#{1,%d}\s' % lvl, lines[j])), len(lines))
     body = '\n'.join(lines[i:end])
-    paras = body.split('\n\n')
+    # A TABLE IS ITS OWN PARAGRAPH HERE, EVEN WHERE THE DOCUMENT DOES NOT
+    # SEPARATE IT FROM ITS LEAD. Markdown lets a table follow its
+    # introducing sentence with no blank line between them, and this
+    # counted a paragraph as a table only when the paragraph STARTED with
+    # `|` -- so such a table printed whatever was asked, and the
+    # compares-against section's two-column table, which is the one the
+    # reading list sends `--with-tables 1` for, could not be selected at
+    # all: the only two selectable paragraphs there were the per-shape
+    # fingerprints, and `--with-tables 1` released one of those instead.
+    # Found by Run 32's carrier, fixed 2026-09-15.
+    # Case: `section-splits-a-table-from-its-lead`.
+    paras, seg, was = [], [], None
+    for para in body.split('\n\n'):
+        for line in para.split('\n'):
+            now = line.lstrip().startswith('|')
+            if seg and now != was:
+                paras.append('\n'.join(seg))
+                seg = []
+            seg.append(line)
+            was = now
+        if seg:
+            paras.append('\n'.join(seg))
+            seg, was = [], None
     tabs = [k for k, para in enumerate(paras)
             if para.lstrip().startswith('|')]
     if with_tables and with_tables > len(tabs):
@@ -7047,7 +7105,8 @@ def section(docs, name, with_tables=None):
     if held:
         print('  %d table paragraph(s) withheld of %d here, %d KB --'
               ' --with-tables prints them and --with-tables N the Nth alone,'
-              ' which is the reading list\'s ONE table'
+              ' numbered down the section; the reading list wants the FIRST,'
+              ' which is the two-column table'
               % (held, len(tabs), held_bytes // 1024))
     print()
     print(out)
@@ -7197,17 +7256,32 @@ def _note_kind(lead):
 
 
 def _note_blocks(text):
-    """(paragraph, kind, announced) per block, in the note's own order."""
+    """(paragraph, kind, announced) per block, in the note's own order.
+
+    THE FILL-IN BLOCK IS ONE PARAGRAPH AND AN INTERRUPTION, so what
+    follows it RESUMES what it interrupted rather than starting fresh.
+    Returning to `plain` there is what let a whole pair's spent gate out
+    of the withholding: a gate verdict is written above the fill-in block
+    and its own continuations -- the palindrome's spread, the arm that
+    crosses 1, the machine check -- are written BELOW it, so they came
+    back `plain`, `--note` printed them as blocks a preparation decides,
+    and `--draft` carried five of them into the next note with the tag
+    substitution applied. Run 33's draft opened with Run 32's gate
+    reading and named `run33-gate-nospec-a`, a process no run will ever
+    write (2026-09-15). Case: `note-blocks-resume-after-the-fill`.
+    """
     out = []
-    state, announced = 'plain', True
+    state, announced, before_fill = 'plain', True, 'plain'
     for para in text.split('\n\n'):
         lead = para.lstrip('\n').split('\n', 1)[0]
         k = _note_kind(lead)
         announced = k is not None
         if announced:
+            if k == 'fill':
+                before_fill = state
             state = k
         elif state == 'fill':
-            state = 'plain'       # the fill-in block is a single paragraph
+            state = before_fill
         out.append((para, state, announced))
     return out
 
@@ -7232,6 +7306,127 @@ def _fill_trimmed(para):
         else:
             kept.append(line)
     return '\n'.join(kept), dropped
+
+
+def note_check(path, readme, run_doc=None):
+    """The note's own PROSE, checked mechanically.
+
+    Until 2026-09-15 the note was the one artifact here with no such pass:
+    preflight's 10c reads the paths it names and 10d its recipes against
+    the HALVES line, and both are predicates over structure -- neither
+    reads a sentence. What a note's prose gets wrong is not structural. It
+    is carried: `--draft` brings every `[SAME]` block over with the RUN
+    and the HALF names substituted and nothing else, so the figures, the
+    run numbers and the item numbers inside them are the previous pair's
+    until a hand re-reads them, which the draft's own header asks for and
+    which is where a preparation is tired.
+
+    Run 33's preparation found six such statements by reading, and these
+    are the three kinds a machine can have: a range ending at the run
+    before the previous one (`as Runs 20 to 31` in a note whose previous
+    run is 32, twice), an item number above what the registration carries
+    ((10), (15) and (16) against a registration of seven), and a half tag
+    missing from the note's own roll of them (neither `exit` nor
+    `gheadexit` was on it, under a carried clause saying both were
+    already). The other three wanted a reader. Case:
+    `note-check-reads-the-carried-blocks`.
+    """
+    try:
+        text = open(path).read()
+    except OSError as e:
+        sys.stderr.write('--note-check: %s\n' % e)
+        return 2
+    base = os.path.basename(path)
+    m = re.match(r'(run(\d+))-pair\.txt$', base)
+    if not m:
+        sys.stderr.write('--note-check wants a $R-pair.txt, not %r\n' % base)
+        return 2
+    run, n = m.group(1), int(m.group(2))
+    at = os.path.dirname(os.path.abspath(path))
+    older = [int(q.group(1))
+             for f in os.listdir(os.path.join(at, RUNS_DIR))
+             for q in [re.match(r'run(\d+)\.md$', f)] if q
+             and int(q.group(1)) < n]
+    if not older:
+        sys.stderr.write('--note-check: no runs/run<N>.md below %s, so the'
+                         ' previous run cannot be resolved and the stale'
+                         ' ranges cannot be read\n' % run)
+        return 2
+    prev = max(older)
+    lines = text.split('\n')
+    found = []
+
+    # 1. A CONTINUITY CLAIM THAT STOPS SHORT OF THE PREVIOUS RUN. What is
+    # checked is the CLAIM and not the range: `as Runs 20 to 31` says
+    # every run from 20 to now did this, so an upper bound below the
+    # previous run dates the sentence to the note it was carried from.
+    # A bare range is history and is left alone -- `was not Runs 29 to
+    # 31's` names the three flag pairs and is right at any distance,
+    # which is what a version of this keyed on the range alone flagged
+    # twice on a correct note.
+    # OVER THE WHOLE TEXT AND NOT LINE BY LINE, the note being wrapped at
+    # about seventy columns: `as it\nheld Runs 25 to 31` is the shape the
+    # carried blocks actually take, and a line-scanning version of this
+    # check missed exactly that one of four planted errors while catching
+    # the other three -- which is this repo's own rule about searching the
+    # unwrapped form, met again in a checker.
+    # AND THE RANGE'S OWN TAIL COUNTS. `as they were on Runs 24 to 30 and
+    # 32` reaches the previous run by naming it after the range, so the
+    # claim is whole and the bound alone reads it short -- which is the
+    # one false positive this check had on a note believed correct.
+    for q in re.finditer(r'\bas (?:\S+\s+){0,3}Runs\s+(\d+)\s+to\s+(\d+)'
+                         r'((?:(?:,|\s+and)\s+\d+)*)', text):
+        reach = max([int(q.group(2))]
+                    + [int(x) for x in re.findall(r'\d+', q.group(3))])
+        if reach < prev:
+            found.append((text.count('\n', 0, q.start()) + 1,
+                          'a continuity claim reaching only Run %d where the'
+                          ' previous run is %d: %r'
+                          % (reach, prev, ' '.join(q.group(0).split()))))
+
+    # 2. AN ITEM NUMBER ABOVE WHAT THE REGISTRATION CARRIES, the shape a
+    # shrunk registration leaves: Run 32's sixteen items became Run 33's
+    # seven, and a carried block went on naming three that no longer
+    # exist. Four-digit parentheses are dates and are not items.
+    src, items, _flat = registration_items(
+        run, run_doc or os.path.join(at, RUNS_DIR, '%s.md' % run), readme)
+    if items is None:
+        return 2
+    top = max([int(k) for k, _ in items] or [0])
+    for i, ln in enumerate(lines, 1):
+        for q in re.finditer(r'\((\d{1,2})\)', ln):
+            if int(q.group(1)) > top:
+                found.append((i, 'item %s, where the registration in %s'
+                                 ' carries %d'
+                              % (q.group(0), os.path.basename(src), top)))
+
+    # 3. A HALF TAG MISSING FROM THE NOTE'S OWN ROLL OF THEM. The roll is
+    # the paragraph led NAMING THE HALVES, and `--draft` holds its tag
+    # substitution off it deliberately -- so a run whose tags are new
+    # appends them by hand or the roll silently stops being a roll.
+    roll = next((p for p in text.split('\n\n')
+                 if p.lstrip('\n').startswith('NAMING THE HALVES')), None)
+    halves = re.search(r'^HALVES: basis=(\S+) other=(\S+)\s*$',
+                       text, re.M)
+    if roll is None:
+        found.append((0, 'no paragraph led NAMING THE HALVES, which is the'
+                         ' roll of the halves this chapter has used'))
+    elif halves:
+        for tag in (halves.group(1), halves.group(2)):
+            if '`%s`' % tag not in roll:
+                found.append((text[:text.index(roll)].count('\n') + 1,
+                              'the half `%s` is not on the roll in NAMING'
+                              ' THE HALVES, which this run appends to' % tag))
+
+    if not found:
+        print('note-check %s: clean -- %d line(s), previous run %d,'
+              ' registration of %d item(s)' % (base, len(lines), prev, top))
+        return 0
+    print('note-check %s: %d finding(s), previous run %d, registration of'
+          ' %d item(s)' % (base, len(found), prev, top))
+    for i, why in sorted(found):
+        print('  %s:%d  %s' % (base, i, why))
+    return 1
 
 
 def pair_note(path, draft=None, halves=None):
@@ -11916,6 +12111,12 @@ def main():
     p.add_argument('--note', metavar='PREV-pair.txt',
                    help="a previous pair note read as the NEXT preparation"
                         ' owes it: the handover withheld and its size said')
+    p.add_argument('--note-check', dest='note_check', metavar='$R-pair.txt',
+                   help="THIS run's note, read mechanically: a range ending"
+                        ' at the run before the previous one, an item number'
+                        ' above what the registration carries, and a half'
+                        ' tag missing from the roll -- the three carried-block'
+                        ' errors a machine can have. preflight runs it as 10e')
     p.add_argument('--draft', metavar='RUN',
                    help="with --note: print the [SAME] blocks alone, carried"
                         ' to RUN, which is what the next note is written'
@@ -12198,6 +12399,8 @@ def main():
         p.error('--imperative is --checklist\'s: it drops the prose under'
                 ' each step, and there are no steps without a list to'
                 ' print. Taken alone it was read and ignored')
+    if args.note_check:
+        sys.exit(note_check(args.note_check, args.readme, args.run_doc))
     if args.note:
         sys.exit(pair_note(args.note, args.draft, args.halves))
     if args.checklist:
