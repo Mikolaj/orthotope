@@ -2920,12 +2920,14 @@ rather than a slot in the next run, observed again:
   on `cnn-L2-24x24-c32` at 1.0019 and the two cells where B crosses fewer
   at 0.9965 and 0.9994, with per-cell ranges of one to three percent and one
   of eight on `compose-scalar`. So the crossings the entry count permits cost
-  nothing this instrument can see, and the pads the exit span adds cost nothing
-  either; A is the simpler rule and is the candidate for the next basis,
-  the entry count staying in the shim, off, with the sweep beside it for the day
-  a cell contradicts this. **The same on HEAD, the same afternoon**: the two
-  costs built through `cabal.project.ghead` read level on the same thirteen
-  cells, medians 0.9917 to 1.0071 with per-cell ranges of one to three percent
+  nothing this instrument can see on fills and references --- on one reducer's
+  per-run loop they cost 7 percent, the entry below, which confirms the verdict
+  rather than moving it --- and the pads the exit span adds cost nothing either;
+  A is the simpler rule and is the candidate for the next basis, the entry count
+  staying in the shim, off, with the sweep beside it for the day a cell
+  contradicts this. **The same on HEAD, the same afternoon**: the two costs
+  built through `cabal.project.ghead` read level on the same thirteen cells,
+  medians 0.9917 to 1.0071 with per-cell ranges of one to three percent
   and `compose-scalar`'s of thirteen, while the exit span moves 527 of HEAD's
   1860 heads and the entry count 1378 more, and B crosses over half again
   as many windows on 557 of 1970 large cells. And the fix itself, the exit-span
@@ -2938,6 +2940,44 @@ rather than a slot in the next run, observed again:
   What is now owed is the pair that moves the basis: A against Run 32's basis
   recipe, the plain dead-spot form, which prices the fix itself under a run's
   floors and A/A copies.
+- `ANSWERED` **Why `libunord-stage10-sum` trails `libunord-stage9-sum` by 19
+  to 39 percent on the `window` views while retiring 40 to 60 percent fewer
+  instructions, and why HEAD moves stage 9 and not stage 10 --- asked
+  and answered 2026-09-15.** Not the placement cause of the entry above,
+  for the two arms; that cause, for the two compilers. Both arms are `sumRoute`
+  over `sumLazyRuns`, whose `sumNoSpec` folds each run through one accumulator,
+  so a run of L elements is a chain of L dependent adds at the FADD latency,
+  three cycles on this Zen 3, and the chains of successive runs overlap only
+  at their ends. Stage 10's tie-break makes the run the longest unit-stride
+  axis, 224, 128 and 64 elements on the three views, and the arm runs
+  latency-bound: 2.67 and 2.27 cycles an element on `window-224x224-k3`
+  and `window-128x128-k7`, rising with the run length toward the three,
+  at an IPC of 2.0 where it retires 2.34M instructions an iteration against
+  stage 9's 5.72M. Stage 9 keeps stage six's order, runs of 3, 7 and 9, short
+  chains that overlap across runs, and runs instruction-bound at an IPC of 5.7.
+  So the tie-break saves the per-run instructions and serialises the adds,
+  and on these views the adds cost more than the instructions saved.
+  A latency-bound loop is placement-blind, which the placement section says
+  in its own words, and stage 10 reads the same on both compilers and under all
+  four placements, 0.3236 to 0.3278 ms on `window-128x128-k7`. Stage 9
+  is placement-sensitive for the same reason, and that is the compiler
+  difference: HEAD retires the same instructions and 22 to 39 percent more
+  op-cache fetches on its per-run cycle, and reads 1.082 and 1.145 slower
+  than 9.12.4 on the two views in interleaved pairs, under the exit span as much
+  as under the plain form --- a crossing neither cost covers, the cycle
+  a three-element run executes spanning more than a line, so that lines beyond
+  least and entries beyond least both admit one crossing and neither says where
+  it may fall. **And the same cell is where the entry count loses on 9.12.4**: B
+  crosses 19 percent more windows on `window-224x224-k3`'s stage 9 than
+  A and reads 1.074 slower in seven interleaved pairs, against 1.000
+  on `window-128x128-k7` and 0.991 on the latency-bound stage 10. The thirteen
+  cells the entry above was answered on held fills and references
+  and no reducer, and a reducer's per-run loop with a three-element body
+  is exactly the population where a stub piece costs. The verdict stands,
+  the exit span being the one of the two that does not lose here; what this adds
+  is the candidate for the crossing both admit, the sum of the two costs, lines
+  beyond least plus entries beyond least, which would pick the cut that strands
+  no stub --- a basis change for a run, registered here and not built.
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
