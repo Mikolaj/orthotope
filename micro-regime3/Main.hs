@@ -4648,6 +4648,11 @@ routeUnord11 = dispatchLean zerosFirstTiedGuarded
 -- Stage ten's order where a zero stride is present, stage seven's where
 -- none is: the move's result on such a view IS stage seven's order, so
 -- the guard changes no route and only what is computed to reach it.
+-- Not shared with stage twelve's guard over its own order, though the
+-- two differ in the comparator alone: one guard taking the comparator
+-- moved this arm's count by 35 to 63 instructions a call, INLINE
+-- pragma and all, on three views counted 2026-09-16, and a control's
+-- code is not moved in the run that reads it.
 zerosFirstTiedGuarded :: ShapeL -> [Int] -> [(Int, Int)]
 zerosFirstTiedGuarded sh ats
   | any (== 0) ats = zerosFirstTied sh ats
@@ -4659,6 +4664,95 @@ lsUnordStage11 sh a@(T _ _ v) = listRoute (routeUnord11 sh a) v
 {-# NOINLINE fbLibUnordStage11 #-}
 fbLibUnordStage11 :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage11 sh a@(T _ _ v) = fillRoute (routeUnord11 sh a) v
+
+-- Stage twelve, stage eleven with the run chosen among the unit-stride
+-- axes by its extent, the run's length wherever no axis merges into it,
+-- and not by the tie-break. The sum consumer's chain of adds runs at
+-- one add latency an element on a long run and overlaps the next run's
+-- on a short one, and Run 33's 'runs' column with the probe of
+-- 2026-09-16 read the cost per element falling from runs of 5 to 9,
+-- flat to 32, a shelf from 48 to 96 and a climb past it towards the
+-- asymptote, with runs of 3 and 4 a hair above the shelf's cost. So on
+-- a tie at stride 1 the axis on the plateau lands innermost, the
+-- longest of them, and where none is on it the shelf beats runs of 3
+-- and 4 and those beat the climb. Stage seven's order stays everywhere
+-- else, the outer tie included, which stage eight kept the other way
+-- and, with its exhaustive search, read at 1.05 behind stage seven on
+-- 'window': the comparator branches on the stride. A list's route and
+-- not a fill's: a fill copies its run and wants it long, and this arm's
+-- fill is checked and never timed. Of the 'window' views it moves
+-- three, 'window-128x128-k7' to runs of 7, 'window-64x64-k1x9' to 9 and
+-- 'window-224x224-k3' to 3, and leaves the other five at stage seven's
+-- run: the two with channels and 'window-28x28-k5', where the longer
+-- tied axis is on the plateau, and the strided and dilated views, which
+-- carry one unit-stride axis and no tie. 'small-patch-r5' carries one
+-- too, its run of 16 set by a tie at stride 4 that this comparator
+-- leaves as stage seven has it. One change over 'routeUnord11' per
+-- population. Added 2026-09-16 for Run 34.
+routeUnord12 :: ShapeL -> T -> Route
+routeUnord12 = dispatchLean zerosFirstRankedGuarded
+
+-- Stage eleven's guard over stage twelve's order, written out for the
+-- reason at 'zerosFirstTiedGuarded'.
+zerosFirstRankedGuarded :: ShapeL -> [Int] -> [(Int, Int)]
+zerosFirstRankedGuarded sh ats
+  | any (== 0) ats = zerosOutermost (sortedAbsPairs byStrideRank sh ats)
+  | otherwise = sortedAbsPairs byStrideRank sh ats
+
+-- Absolute stride descending; on a tie at stride 1 the length 'runRank'
+-- prefers last, so that it is the run, and on any other tie the extent
+-- ascending, which is 'byStrideExtent'. In case form rather than over
+-- '<>', and the strides banged and the extents not, on counts of
+-- 2026-09-16 over three tie views: the '<>' form retired 42 to 128
+-- instructions a call more than this, and a bang on the extents 69 to
+-- 162 more, the tie branch being the one most comparisons never reach:
+-- 'sortBy' calls the comparator unknown, so a banged field is an
+-- unbox at every entry, and a sort of our own with the comparator
+-- known and strict would lift that for a list of a few pairs, which
+-- is not worth a sort.
+byStrideRank :: (Int, Int) -> (Int, Int) -> Ordering
+byStrideRank (!s1, n1) (!s2, n2) = case compare s2 s1 of
+  EQ | s1 == 1 -> runRank n2 n1
+     | otherwise -> compare n1 n2
+  o -> o
+
+-- The curve's corners, this CPU's: where the fall to the plateau
+-- starts, the plateau's end, and the shelf's end, past which a run
+-- loses to a run of 3 -- 96 reads 0.39 against the 0.41 of 3, and 122,
+-- 'window-128x128-k7' under stage seven's run, reads 0.44.
+runLo, runHi, runFar :: Int
+runLo = 5
+runHi = 32
+runFar = 96
+
+-- Which of two run lengths the sum consumer prefers, LT the faster: by
+-- tier -- the plateau, the shelf above it, runs of 3 and 4, the climb
+-- past the shelf, then 2 and 1 -- and within a tier the longer on the
+-- plateau and among the short runs, where the rate falls or is flat,
+-- and the shorter on the shelf, which rises by a twentieth across its
+-- width, and on the climb.
+runRank :: Int -> Int -> Ordering
+runRank !a !b = case compare ta tb of
+  EQ | ta == 1 || ta == 3 -> compare a b
+     | otherwise -> compare b a
+  o -> o
+  where
+    !ta = tier a
+    !tb = tier b
+    tier n
+      | n <= 2 = 4 :: Int
+      | n < runLo = 2
+      | n <= runHi = 0
+      | n <= runFar = 1
+      | otherwise = 3
+{-# INLINE runRank #-}
+
+lsUnordStage12 :: ShapeL -> T -> [VS.Vector Double]
+lsUnordStage12 sh a@(T _ _ v) = listRoute (routeUnord12 sh a) v
+
+{-# NOINLINE fbLibUnordStage12 #-}
+fbLibUnordStage12 :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage12 sh a@(T _ _ v) = fillRoute (routeUnord12 sh a) v
 
 -- The two ports' lists: master's and the branch's 'toVectorListT', and
 -- the unordered one-block tests in front of them. The four port Fill
@@ -4806,6 +4900,11 @@ fbLibUnordStage11Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage11Sum sh a@(T _ _ v) =
   VS.singleton (sumRoute (routeUnord11 sh a) v)
 
+{-# NOINLINE fbLibUnordStage12Sum #-}
+fbLibUnordStage12Sum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage12Sum sh a@(T _ _ v) =
+  VS.singleton (sumRoute (routeUnord12 sh a) v)
+
 -- The cross-over of 'fbLibUnordStage6ListSum' and 'fbLibUnordStage10Sum':
 -- base's 'sum' over stage TEN's list, the consumer a user of
 -- 'toUnorderedVectorListT' writes, carried from stage six's route to the
@@ -4909,7 +5008,8 @@ lazinessGate = do
         , ("libunord-stage8", lsUnordStage8, Just True, Just True)
         , ("libunord-stage9", lsUnordStage9, Just True, Just True)
         , ("libunord-stage10", lsUnordStage10, Just True, Just True)
-        , ("libunord-stage11", lsUnordStage11, Just True, Just True) ]
+        , ("libunord-stage11", lsUnordStage11, Just True, Just True)
+        , ("libunord-stage12", lsUnordStage12, Just True, Just True) ]
       gate view sh a n ls ask = case ask of
         Nothing -> return ()
         Just want -> do
@@ -6264,6 +6364,8 @@ roster =
   , ("libunord-stage10",           Only fbLibUnordStage10)
     -- stage eleven, stage ten with its move guarded, checked likewise
   , ("libunord-stage11",           Only fbLibUnordStage11)
+    -- stage twelve, the run chosen by length, checked likewise
+  , ("libunord-stage12",           Only fbLibUnordStage12)
     -- The ordered list's consumers, added 2026-09-09 for Run 28 as the
     -- thirteen above retired: 'sumT'-shaped over each stage's ordered
     -- list, master's and the port's under 'sumRuns', stages three and
@@ -6337,6 +6439,12 @@ roster =
     -- is what it should read level with on every view without a zero
     -- stride.
   , ("libunord-stage11-sum",       Fill fbLibUnordStage11Sum)
+    -- Stage eleven with the run chosen among tied unit-stride axes by
+    -- its length, added 2026-09-16 for Run 34 at the tail; reasons at
+    -- 'routeUnord12'. Its control is 'libunord-stage11-sum', one change
+    -- over it, and 'libunord-stage6-sum' is what it should read level
+    -- with on the three 'window' views it moves.
+  , ("libunord-stage12-sum",       Fill fbLibUnordStage12Sum)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)

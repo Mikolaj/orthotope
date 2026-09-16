@@ -708,6 +708,50 @@ been asking for and leaves nothing measured on an ungrown pool.
 specified --- the rule about a discriminating measurement deserving one now
 rather than a slot in the next run, observed again:
 
+- `OPEN` **What Run 34 is built to answer, registered before it runs.** The pair
+  is Run 33's, the same two compilers at plain -O1 under the exit span,
+  ghc-9.12.4 the basis and GHC HEAD the control, both halves rebuilt by Run 33's
+  recipe from the moved source, so what varies from Run 33 is the source alone:
+  `libunord-stage12-sum`, stage eleven with the run chosen among tied
+  unit-stride axes by its length (reasons at `routeUnord12`; its fill
+  is rostered checked and never timed), and `runs-32`, `runs-48` and `runs-64`
+  in the `runs` class. Each prediction is its own kill condition,
+  and a `predict:` span that fails kills its item. (1) *Stage twelve takes stage
+  six's run on the three unstrided `window` views without channels and stage
+  seven's everywhere else.* On `window`, Run 33's per-shape figures on the basis
+  give the pair with stage six 0.90, level on the three moved views and stage
+  seven's advantage on the two with channels and `window-28x28-k5`:
+  `predict: pair libunord-stage12-sum libunord-stage6-sum 0.90 within 3%`;
+  and against its control, from 0.73, 0.80 and 0.86 on the three moved views
+  and 1 on the other five,
+  `predict: pair libunord-stage12-sum libunord-stage11-sum 0.92 within 3%`. Each
+  of the three moved views inside the class floor of stage six, read off
+  `--pair --per-shape` by hand. The probe of 2026-09-16 on the basis recipe
+  and a quiet machine, `probe-stage12h-classes.json`, read the two pairs
+  at 0.901 and 0.912 on the class. (2) *And moves nothing else.* The same probe
+  and its main-set twin read stage twelve within 1.1 percent of stage eleven
+  on every view it leaves at stage seven's run, the five `window` views,
+  `small-patch-r5`, `small-patch-k5`, `cnn-L1-6x6-c1`, `cnn-L1-24x24-c1`
+  and `cnn-slice-c32`, and on `bcast-inner8` and `rev-cnn-L1-24x24-c1`, where
+  the guard and the other tie-break rule; the list form this arm first took read
+  4 to 6 percent behind on the tiny views and the `<>` form 2.5 and 4, the case
+  form retiring fewer instructions a call than stage eleven. So on the main set
+  and on every class but `window`:
+  `predict: pair libunord-stage12-sum libunord-stage11-sum 1.0 within 1%`;
+  and the count sweep, read by hand with `--counts --pair`, puts stage twelve
+  under stage eleven by fewer than a hundred instructions a call on every tie
+  view it leaves alone, on both compilers, and within a percent of stage six's
+  count on the three it moves. (3) *It inherits stage six's placement term
+  on the views it moves.* Run 33 read stage six 1.195, 1.080 and 1.022 slower
+  on HEAD on the three and stage eleven within a point, and stage eleven's cross
+  on the class was 0.967; replacing its three cells by stage six's gives 0.936:
+  on `window`, `predict: cross libunord-stage12-sum 0.94 within 2.5%`, a span
+  stage eleven's own figure sits outside of, so reading it kills the item
+  as surely as reading 0.90 does. (4) *The three `runs` shapes sit where
+  the probe of 2026-09-16 put them.* On `runs`, both halves, `runs-32` within 3
+  percent of `runs-9` per element on every `-sum` arm, and `runs-48`
+  and `runs-64` within 3 percent of `runs-96`, read off `--cells` by hand;
+  no span, the quantity being a cell and not a pair.
 - `ANSWERED` **What Run 32 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 32's own file](runs/run32.md), where a run's
@@ -5220,8 +5264,10 @@ the same day for Run 31 at the tail of the consumers where stage ten's own
 landed so that no control's span moves, took the roster to 589 benches;
 and `liblist-stage4-list-sum`, the same fold over stage four's list, landing
 2026-09-14 for Run 32 at the same tail, took the roster to 608 benches,
-and `libunord-stage11-sum`, landing 2026-09-15 for Run 33, takes the roster
-to 627 benches.
+and `libunord-stage11-sum`, landing 2026-09-15 for Run 33, took the roster
+to 627 benches, and `libunord-stage12-sum`, landing 2026-09-16 for Run 34
+with its fill `libunord-stage12` rostered `Only` beside it, takes the roster
+to 646 benches.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -7426,12 +7472,14 @@ to 684 benches, and the parking of 2026-09-13 ---
 took the roster to 570 benches, and `libunord-stage10-list-sum`, landing
 the same day, took the roster to 589 benches, and `liblist-stage4-list-sum`,
 landing 2026-09-14, took the roster to 608 benches, and `libunord-stage11-sum`,
-stage ten with its zero-stride move guarded, landing 2026-09-15, takes
-the roster to 627 benches, so with the controls the run is 33 arms. **Run 26
-timed four parked arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`,
-parked 2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
-and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
-([the stride classes](#the-stride-classes-and-what-they-cover)). Each was parked
+stage ten with its zero-stride move guarded, landing 2026-09-15, took the roster
+to 627 benches, and `libunord-stage12-sum`, stage eleven with the run chosen
+by length, landing 2026-09-16, takes the roster to 646 benches, so
+with the controls the run is 34 arms. **Run 26 timed four parked arms
+for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02;
+`canon-vecdims` and `lib-stage2`, parked by this prune; and `lib-stage2-short`,
+parked by the ruling on the short bodies of the same day ([the stride
+classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration
 unreadable --- Run 24 lost a clause, Run 25 five, and the two-window item
 was withdrawn beside them, seven in all ([the open list][open]) --- so Run 26
