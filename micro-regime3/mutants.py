@@ -54,6 +54,41 @@ MUTANTS = [
      '        capped, n_capped = logs, 0',
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\na = d.synth_json(t, \'main\', name=\'a.json\', skew=[(d.main_shapes()[0], \'lib-stage1\', 40), (d.main_shapes()[1], \'lib-stage1\', 30)])\nr = subprocess.run([sys.executable, \'{file}\', a, \'--winsor\'], capture_output=True, text=True)\nrows = [l for l in r.stdout.splitlines() if l.startswith(\'lib-stage1 \')]\nsys.exit(0 if rows and \'0.0%\' not in rows[0] else 1)"'),
 
+    # AND --inherited READS THE CHANGED PARAGRAPHS AS WELL AS THE CARRIED
+    # ONES. The carried half catches what a diff cannot see; this half
+    # catches what a diff SHOWS and a reader skims past, a lead rewritten
+    # over a body left alone. Dropping the membership test empties it, so
+    # a half-updated paragraph reads as fully updated -- the state Run
+    # 33's floor paragraph was in when a checker pass read its diff and
+    # passed it. The judge plants that shape and asks for the count.
+    ('--inherited stops reading the changed paragraphs',
+     'read-run.py',
+     '                   if p not in before and pat.search(p)]',
+     '                   if False and pat.search(p)]',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nf = d.inherited_pair(t, half=True)\nr = subprocess.run([sys.executable, \'{file}\', \'--inherited\', \'--run-doc\', f[\'doc\']], capture_output=True, text=True)\nsys.exit(0 if \'1 paragraph(s) this run CHANGED\' in r.stdout else 1)"'),
+
+    # AND --lint HOLDS THE REGISTRATION'S LEAD TO THE MOVER'S KEY.
+    # `--move-registration` matches that lead whole and refuses anything
+    # else, so a lead carrying one clause more is a refusal at post-run
+    # step 5 with the hours already spent -- Run 33's was, a day after
+    # both gates passed it. Making the test vacuous puts it back.
+    ('--lint stops holding the registration lead to the mover', 'read-run.py',
+     "            if not t.startswith(want):",
+     "            if False:",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nr = subprocess.run([sys.executable, \'{file}\', \'--lint\', \'--readme\', d.readme_with_a_registration(t, lead_extra=\'declared by request\')], capture_output=True, text=True)\nsys.exit(0 if \'not the form --move-registration matches\' in r.stdout + r.stderr else 1)"'),
+
+    # AND --floor-pairs NAMES THE PAIR THAT CARRIES THE FLOOR. The mode
+    # prints and never judges -- the floor is the widest of the pairs it
+    # lists -- so the carrier IS its answer, and a carrier read off the
+    # first pair instead of the widest is a mode agreeing with itself and
+    # with nothing else. The judge plants one population and asks that the
+    # named carrier be the pair furthest from 1.
+    ('--floor-pairs names a carrier that does not carry the floor',
+     'read-run.py',
+     '        carrier = aa_floor(pairs)\n        floor = abs(carrier.g - 1) * 100',
+     '        carrier = pairs[0]\n        floor = abs(carrier.g - 1) * 100',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, re, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nd.synth_json(t, \'main\', name=\'run95-x-main.json\', skew=[(d.main_shapes()[0], \'mut-odo-vecdims-add-in-leaf-u2-aa-distant\', 12)])\nr = subprocess.run([sys.executable, \'{file}\', \'--floor-pairs\', os.path.join(t, \'run95\')], capture_output=True, text=True)\nrows = [l for l in r.stdout.splitlines() if re.search(r\' ([0-9.]+) pts\', l)]\nwidest = max(rows, key=lambda l: float(re.search(r\' ([0-9.]+) pts\', l).group(1)))\nsys.exit(0 if \'<- the floor\' in widest else 1)"'),
+
     # `CORPUS_RUN=newest` narrows `check-all`'s corpus to one run, so a
     # narrowing that keeps the wrong runs would put the suite back where it
     # was while reading as narrowed. The judge asks the selection directly

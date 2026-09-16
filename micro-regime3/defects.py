@@ -989,7 +989,8 @@ def parked_arm():
     return parked[0]
 
 
-def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None):
+def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
+                               lead_extra=None):
     """The README plus a synthetic OPEN registration, at the end.
 
     SYNTHETIC and not an edit of the live one, which is the whole point:
@@ -1012,9 +1013,16 @@ def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None):
     """
     text = subprocess.run(['wrap80', '--unwrap'], input=open(README).read(),
                           capture_output=True, text=True, check=True).stdout
+    # `lead_extra` puts a clause INSIDE the bold lead, which is the shape
+    # Run 33 declared and which `--move-registration` refuses after the
+    # hours are spent: the mover matches the lead whole, ending at
+    # `runs.**`, so one clause more is a refusal at post-run step 5 that
+    # nothing catches at pre-run 7.
+    tail = (' --- %s.**' % lead_extra) if lead_extra else '.**'
     entry = ("- `OPEN` **What Run 99 is built to answer, registered before"
-             " it runs.** Registered for this fixture and for nothing else."
-             " (1) *The box.* `list` moves under 3%; killed by more.")
+             " it runs%s Registered for this fixture and for nothing else."
+             " (1) *The box.* `list` moves under 3%%; killed by more."
+             % tail)
     if arm:
         entry += " (2) *The arm.* `%s` leads its family; killed by a loss." % arm
     if task:
@@ -1471,7 +1479,7 @@ def brief_facts_without_halves(tmp):
     return out
 
 
-def inherited_pair(tmp, n=97, share=True):
+def inherited_pair(tmp, n=97, share=True, half=False):
     """Two consecutive runs' files, the later copied from the earlier.
 
     Step 5 copies the previous run's file whole and the write-up edits it,
@@ -1481,6 +1489,13 @@ def inherited_pair(tmp, n=97, share=True):
     which must be reported, and one of the standing apparatus every run
     re-carries, which must not. `share=False` is the control, the write-up
     having rewritten both, so the report has nothing to name.
+
+    `half=True` is the third shape and the one a diff shows: the claim's
+    LEAD is rewritten for this run and its body still quotes the run
+    before. It is in the diff, so a checker pass reading that diff sees a
+    paragraph being worked on rather than a claim left standing -- which
+    is how Run 33's floor paragraph and its class-property entry passed
+    one pass each and were caught by the next reading the whole document.
     """
     m = _reader()
     d = os.path.join(tmp, m.RUNS_DIR)
@@ -1491,7 +1506,11 @@ def inherited_pair(tmp, n=97, share=True):
                 ' edited by hand.\n')
     write(os.path.join(d, 'run%d.md' % (n - 1)),
           '# Run %d\n\nA head paragraph.\n\n%s\n%s' % (n - 1, claim, standing))
-    if share:
+    if half:
+        body = ('**On Run %d the floor is 0.44%% on the basis half.** Run %d'
+                ' read it over the six A/A pairs and named the pair that'
+                ' carried it.\n\n%s' % (n, n - 1, standing))
+    elif share:
         body = claim + '\n' + standing
     else:
         body = ('**On Run %d the floor is 0.44%% on the basis half.** This'
@@ -9544,7 +9563,27 @@ RECORDS = [
          ' reports none, so the report cannot be read as always firing',
          plant=lambda t: inherited_pair(t, share=False),
          argv=['--inherited', '--run-doc', '{doc}'],
-         ok=V(exit=0, has=['0 paragraph(s)'])),
+         ok=V(exit=0, has=['0 paragraph(s)',
+                           '0 paragraph(s) this run CHANGED that still'
+                           ' name Run 96'])),
+
+    case('inherited-names-a-half-updated-paragraph', 'read-run.py', None,
+         'a paragraph whose LEAD was rewritten for this run and whose body'
+         ' still quotes the run before read as work being done, by every'
+         ' pass whose object is the diff',
+         # The complement of the carried half above, added 2026-09-16.
+         # That half catches what a diff cannot see; this catches what a
+         # diff SHOWS and a reader skims, the changed line looking like
+         # the work. Run 33's floor paragraph carried Run 32's carriers,
+         # closed thresholds, wild cells, registration number and
+         # fifteen-run series under a lead rewritten for Run 33, and its
+         # class-property entry an updated head over a tail that
+         # contradicted it; one checker pass read that diff and passed
+         # both, and the next found them by reading the finished file.
+         plant=lambda t: inherited_pair(t, half=True),
+         argv=['--inherited', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['1 paragraph(s) this run CHANGED that still'
+                           ' name Run 96', 'On Run 97 the floor'])),
 
     case('check-doc-holds-a-heading-to-two-blank-lines',
          'read-run.py', None,
@@ -10272,6 +10311,70 @@ RECORDS = [
     # open list only until post-run step 5 moves it into the run's own
     # file, so a fixture editing the live one stops building the day its
     # run is written up.
+    case('floor-pairs-reads-every-population', 'read-run.py', None,
+         'the standing floor-pair registration -- the A/A copies against'
+         ' their originals -- had no mode, so Run 32 read it as sixteen'
+         ' spans and Run 33 by a script written for the evening and thrown'
+         ' away',
+         # It is the reader's own `aa_pairs` and `aa_floor`, the helpers
+         # the class block and the chapter already share, so this mode
+         # and `--aa` cannot disagree without disagreeing with
+         # themselves. It prints and never judges: the floor IS the
+         # widest of the pairs it lists, so `inside its own floor` is
+         # true by construction and a verdict column would be a silent
+         # search -- what the registration asks is how wide it is and
+         # which pair carries it.
+         plant=lambda t: {'j': synth_json(t, 'main',
+                                          name='run95-x-main.json')},
+         argv=['--floor-pairs', '{tmp}/run95'],
+         ok=V(exit=0, has=['run95-x-main.json -- floor',
+                           'carried by', 'carries it in 1 of 1',
+                           '1 population(s)'])),
+
+    case('check-doc-abstention-names-its-patterns', 'read-run.py', None,
+         'the abstention named the patterns it wanted and not the site it'
+         ' had already matched, so an author who reworded one of two sites'
+         ' grepped the documents for the other',
+         # The comment beside the abstention has named this case since
+         # 2026-09-15 and no case carried the name. Run 33 reworded four
+         # of these paragraphs in one stretch, met four abstentions, and
+         # went looking for the surviving site each time; the figure is
+         # enough to find it, these being quoted twice and no more.
+         plant=lambda t: {'readme': unwrapped_readme_edit(
+             t,
+             'Over the four pairs that carry back to Run 10 this run reads'
+             ' 0.47% and 0.62%',
+             'Over those same four pairs this run reads its whole-set'
+             ' figures exactly')},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=1, has=['could not locate at least two sites quoting the'
+                           " run's carry-back figure", 'It found 1:',
+                           'It looked for:'])),
+
+    case('registration-lead-is-the-movers-key', 'read-run.py', None,
+         'a registration whose bold lead carried one clause more passed'
+         ' pre-run 7 and was refused by --move-registration after the run,'
+         ' when the entry had been committed for a day and the hours were'
+         ' spent',
+         # `--move-registration` matches the lead WHOLE and refuses
+         # anything else; nothing held the lead where it is written. Run
+         # 33 declared its pair with the recipes named inside the bold
+         # span, `--lint` and `--check-doc` both passed it, and the move
+         # refused at post-run step 5. The clause belongs in the body,
+         # where it travels into the run file with the rest.
+         plant=lambda t: {'readme': readme_with_a_registration(
+             t, lead_extra='declared by request, the recipes in Run 98')},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(exit=1, has=['not the form --move-registration matches'])),
+
+    case('registration-lead-in-the-movers-form-passes',
+         'read-run.py', None,
+         'CONTROL: the canonical lead is not reported, so the check cannot'
+         ' be read as firing on every registration',
+         plant=lambda t: {'readme': readme_with_a_registration(t)},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(hasnt=['not the form --move-registration matches'])),
+
     case('registration-arm-is-not-timed', 'read-run.py', 'f40fad2',
          'nothing here read a registration, and Run 24 lost a clause of one',
          plant=lambda t: {'readme': readme_with_a_registration(

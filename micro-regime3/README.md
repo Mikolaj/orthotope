@@ -7977,6 +7977,13 @@ and never as a chronology.
     #      drivers, a linter off PATH failing the step by name -- the
     #      three lint steps of checks.py, which `check-all .` runs with
     #      everything else at the cost of the audit and the mutants
+    #      AND `check-all` IS RUN ALONE, which is where that condition
+    #      belongs and not only in the post-run list: its two case steps
+    #      DIFF THE WORKING TREE, so a file CREATED anywhere in it while
+    #      they run -- a log, a scratch redirect, an edit committed or
+    #      not -- makes them report PARTIAL and settle nothing. Run 33
+    #      launched it in the background and kept editing, and had to
+    #      run the whole suite again
     ./properties.py                       # 8c. its properties, over every
     #      run JSON here -- and THIS BARE INVOCATION IS THE ONLY SWEEP THAT
     #      READS THEM ALL. `check-all` runs the same file under
@@ -9475,7 +9482,12 @@ not otherwise.
     #      paid three more serial passes for the other. As a count:
     #      them -- ten classes by `--block`, `--compare`, `--predictions`
     #      and `--block --compare` -- so they are the one place in this list
-    #      that parallelises without thought. SAY IT WITH A COMMAND, since
+    #      that parallelises without thought --- AND THE SAME SHAPE SERVES
+    #      THE OTHER TWO SWEEPS THIS LIST OWES, the twenty-two `--aa`
+    #      reads (one per population per half, which is where the floor
+    #      pairs are read) and the eleven `--counts` comparisons: the
+    #      command below takes a different list and nothing else.
+    #      SAY IT WITH A COMMAND, since
     #      a session that has to invent the parallelism runs them one at a
     #      time, as Run 30 did: `printf '%s\n' rev bcast ... | xargs -P4 -I{}
     #      sh -c './read-run.py $R-<basis>-{}.json --block --brief >
@@ -9730,6 +9742,17 @@ not otherwise.
     #      are not touched here; what is written is the prose around them,
     #      one edit per paragraph, and no tool reduces that count. Budget
     #      the head and the class paragraphs as the work.
+    #      AND STATE THE DIRECTION ONCE, THEN CHECK EVERY CLAIM
+    #      AGAINST IT: a `cross` figure ABOVE 1 means the CONTROL half
+    #      is the FASTER, `--compare` taking the basis first, and the
+    #      reader prints the key in every table header and in no
+    #      verdict. Prose is where it goes wrong: Run 33 wrote three
+    #      head paragraphs with HEAD as the slower half, past its own
+    #      end-to-end read, and what caught it was `--cells` on one arm
+    #      on one shape -- 0.000614 s against 0.000574 s, which settles
+    #      a direction in one line where a legend re-read does not. So
+    #      say it once in the head, and take that one cell before
+    #      writing a sentence that says which half won
     #      WRITE EACH PARAGRAPH FROM THE READER'S OUTPUT AND NOT BY
     #      EDITING THE PREVIOUS RUN'S, which is the prose counterpart of
     #      `install, never paste` and bites harder: a table is replaced
@@ -9774,6 +9797,13 @@ not otherwise.
     #      there. FIXING IS THIS
     #      STEP'S OTHER HALF and not 6d's, which exists to read what the
     #      fixing broke.
+    #      IF THE PASS HAS NOT RETURNED BY THE TIME 6c IS DONE, COMMIT
+    #      6d ANYWAY and fix both reports at 7: the passes are minutes
+    #      to tens of minutes and 6c is often shorter, so waiting idles
+    #      the session for nothing and the one barrier this list has is
+    #      7's. Run 33's first pass returned after its 6c and its fixes
+    #      landed in 7's cycle, which cost nothing but had to be decided
+    #      on the spot
     #      KEEP CHAPTER EDITS OUT OF THE WRITE-UP'S COMMITS, which is what
     #      makes `that commit's diff` mean anything; where they have
     #      already happened, bound README's diff at the run's own last
@@ -10050,14 +10080,11 @@ not otherwise.
     #      Main.hs, even a comment: `./read-run.py --lint`
     #      a script here, or read-run.py: `defect-run.py --changed
     #        <REV> .` at the END of the stretch, in the background and
-    #        ALONE -- its bug direction DIFFS THE WORKING TREE, so ALONE
-    #        means no file CREATED anywhere in it either, a log or a
-    #        scratch redirect included, and not merely no edit and no
-    #        commit: a `--worklists` dump written while it ran reported
-    #        `new: ?? log-inherited-r28.txt` and failed the step
-    #        (2026-09-11) -- with `-k
-    #        NAME` for one case while iterating; read-run.py besides
-    #        wants `--selftest` on one run JSON
+    #        ALONE, in the sense pre-run step 8b gives that word -- no
+    #        file created anywhere in the tree while it runs, which is
+    #        not merely no edit and no commit -- with `-k NAME` for one
+    #        case while iterating; read-run.py besides wants
+    #        `--selftest` on one run JSON
     #      a table install: `--check-doc` recomputes the tables from the
     #        JSONs, so it is the install's check too
     #      a note or a registration: `./preflight.sh $R --note`

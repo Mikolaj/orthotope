@@ -5192,6 +5192,76 @@ def run_populations(run):
     return out
 
 
+def floor_pairs(run, args):
+    """Every A/A pair of RUN against its original, per population and half,
+    each judged against that population's own floor.
+
+    The standing floor-pair registration -- *the A/A copies against their
+    originals within the class floor on both halves* -- is the one item a
+    run carries every time and the one item no mode adjudicated. Run 32
+    read it as sixteen `predict: pair` spans; Run 33's registration wrote
+    it as prose with no span at all, so its forty-four readings were taken
+    by a script written for the evening and thrown away, which is the
+    state every hand-rolled computation here has been recorded in before
+    it became a mode.
+
+    IT IS THE READER'S OWN CALIBRATION AND NOT A SECOND ONE: each
+    population is loaded and handed to `aa_table`, whose `collect` gives
+    back the pairs and the floor it printed, so this mode and `--aa` can
+    only ever disagree by disagreeing with themselves. The floor is
+    `max |ratio - 1|` over those pairs, so the widest pair EQUALS it by
+    construction -- which is the reading, and why a pair reported `carries
+    it` is not a pair reported outside.
+    """
+    paths = sorted(glob.glob('%s-*.json' % run))
+    paths = [p for p in paths
+             if not os.path.basename(p).startswith('%s-gate-' % run)
+             and '-al-' not in os.path.basename(p)]
+    if not paths:
+        sys.stderr.write('%s: no population JSON here, so the floor pairs'
+                         ' were not read\n' % run)
+        return 2
+    total, read, carriers = 0, 0, collections.Counter()
+    print('the A/A copies of %s against their originals, per population'
+          ' and half' % run)
+    for path in paths:
+        cells, shapes, strategies, meta = load(path, args.main)
+        apply_correction(cells, shapes, strategies, args.corr)
+        pairs = aa_pairs(cells, shapes, strategies)
+        if len(pairs) < 2:
+            print('\n%s -- NOT READ: fewer than two A/A pairs, so it has'
+                  ' no floor of its own' % os.path.basename(path))
+            continue
+        read += 1
+        carrier = aa_floor(pairs)
+        floor = abs(carrier.g - 1) * 100
+        carriers[carrier.a] += 1
+        print('\n%s -- floor %.2f%%, carried by `%s`'
+              % (os.path.basename(path), floor, carrier.a))
+        for p in pairs:
+            total += 1
+            print('  %-58s %.4f  %5.2f pts%s'
+                  % (p.a + ' / ' + p.b, p.g, abs(p.g - 1) * 100,
+                     '  <- the floor' if p is carrier else ''))
+    # NO VERDICT COLUMN, and that is the reading rather than a shortfall:
+    # the floor IS `max |g - 1|` over these very pairs, so `inside its own
+    # population's floor` is true of every one of them by construction and
+    # a column saying so would be a silent search. What the registration
+    # is really asking -- how wide each half's floor is and WHICH pair
+    # carries it -- is what the lines above answer, and Run 32's item (8)
+    # asked for the carrier by hand for the same reason. A pair genuinely
+    # outside something is a pair read against ANOTHER population's floor
+    # or another run's, which is a cross-population claim this chapter
+    # does not make.
+    print('\n%d pair reading(s) over %d population(s). The floor of each is'
+          ' the widest of its own pairs, so no reading here can be outside'
+          ' it: what the standing registration asks is how wide it is and'
+          ' which pair carries it.' % (total, read))
+    for arm, n in carriers.most_common():
+        print('  `%s` carries it in %d of %d' % (arm, n, read))
+    return 0
+
+
 def counts_totals(run, args):
     """What each counted leg cost, per population and per half, off the
     counts files' own stamps.
@@ -6162,6 +6232,40 @@ def inherited(run_doc, prev_doc):
     print('Each is either the apparatus every run re-carries or last run\'s'
           ' claim standing under this run\'s name, and only reading says'
           ' which. The diff cannot: its base is the copy.')
+    # THE OTHER HALF, added 2026-09-16: a paragraph the write-up CHANGED
+    # that still names the previous run. The carried half above is what a
+    # diff cannot see at all; this is what a diff shows and a reader
+    # skims past, because the line that changed looks like the work being
+    # done. Run 33's floor paragraph had its lead rewritten for the run
+    # and its body left as Run 32's -- carriers, closed thresholds, wild
+    # cells, a registration number and a fifteen-run series, every one of
+    # them that run's -- and its class-property entry had an updated head
+    # over an un-updated tail that contradicted it. Both were in the diff
+    # and both survived a checker pass that read that diff; what found
+    # them was the second pass reading the finished document.
+    # It PRINTS and never refuses, as the half above does: naming the
+    # previous run in a changed paragraph is ordinary -- a delta bullet,
+    # a comparison, a series -- so the reading is which of them is a
+    # claim left standing rather than a claim made.
+    prev_n = run_no_of(prev_doc)
+    if prev_n is not None:
+        pat = re.compile(r'\bRun %d\b' % prev_n)
+        touched = [p for p in doc_paragraphs(run_doc)
+                   if p not in before and pat.search(p)]
+        print('\n%d paragraph(s) this run CHANGED that still name Run %d,'
+              ' out of %d changed in all:'
+              % (len(touched), prev_n,
+                 len([p for p in doc_paragraphs(run_doc)
+                      if p not in before])))
+        for p in touched:
+            m = pat.search(p)
+            print('  %s' % (p[:110] + (' ...' if len(p) > 110 else '')))
+            print('      names: ...%s...'
+                  % p[max(0, m.start() - 45):m.end() + 45])
+        print('A lead rewritten over a body left alone reads as done and'
+              ' is in the diff, which is why both checker passes can pass'
+              ' it. Read each: is Run %d the subject, or the leftover?'
+              % prev_n)
     return 0
 
 
@@ -10374,11 +10478,24 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                 # the word `floor`. The
                 # phrasings stay, and what a rewording costs is now one
                 # message rather than one reading of this file.
+                # AND IT SAYS WHAT IT DID FIND, added 2026-09-16: with two
+                # sites wanted and one matched, the author's question is
+                # which sentence already matches, and the patterns alone
+                # do not answer it -- Run 33 reworded four of these and
+                # grepped for the surviving site each time. The figure is
+                # enough to find it, the documents quoting each of these
+                # in two places and no more.
                 bad.append('could not locate at least two sites quoting the'
                            " run's %s, so its agreement check did not run --"
                            " if the sentences were reworded, this check's"
-                           ' patterns move with them. It looked for: %s'
-                           % (name, '; '.join(repr(x) for x in pats)))
+                           ' patterns move with them. It found %d: %s. It'
+                           ' looked for: %s'
+                           % (name, len(sites),
+                              '; '.join('/'.join(_agree_unit(x) for x in
+                                                 (s if isinstance(s, tuple)
+                                                  else (s,)))
+                                        for s in sites) or 'nothing',
+                              '; '.join(repr(x) for x in pats)))
             elif len(set(sites)) > 1:
                 bad.append('the %s is quoted differently across its %d'
                            ' sites: %s -- %s'
@@ -11327,6 +11444,26 @@ def lint(main_hs, readme, run_doc=None):
         trouble = []
         for t in regs:
             num = re.search(r'What Run (\d+)', t).group(1)
+            # THE LEAD IS THE MOVER'S KEY, held here because nothing held
+            # it where it is written. `--move-registration` matches the
+            # bold lead WHOLE -- `...is built to answer, registered before
+            # it runs.**` -- and refuses anything else, so a registration
+            # whose lead carries one clause more is a refusal at post-run
+            # step 5, a day or a week after the entry was committed and
+            # with the hours already spent. Run 33 declared its pair with
+            # `--- declared 2026-09-15 evening by request, the recipes in
+            # [Run 32's file](...)` inside the bold span; `--lint` and
+            # `--check-doc` both passed it at pre-run 7, and the mover
+            # refused it after the run. The clause belongs in the body,
+            # where it moves into the run file with the rest.
+            want = ('- `OPEN` **What Run %s is built to answer, registered'
+                    ' before it runs.**' % num)
+            if not t.startswith(want):
+                trouble.append("Run %s's registration lead is not the form"
+                               ' --move-registration matches, so the move at'
+                               ' post-run step 5 will refuse it: it wants'
+                               ' %r and the entry opens %r'
+                               % (num, want[-44:], t[:len(want) + 12]))
             gone = sorted(set(re.findall(r'`([A-Za-z][A-Za-z0-9-]*)`', t))
                           & untimed)
             if gone:
@@ -11995,6 +12132,11 @@ def main():
                         ' population and half, off the counts files'
                         " own `# end` stamps -- the scale a pair"
                         ' note asks for leg by leg')
+    p.add_argument('--floor-pairs', dest='floor_pairs', metavar='RUN',
+                   help="every A/A copy of RUN against its original, per"
+                        ' population and half, judged against that'
+                        " population's own floor -- the standing"
+                        ' floor-pair registration, read in one call')
     p.add_argument('--over-list', dest='over_list', metavar='RUN',
                    help='every timed non-control cell of RUN slower'
                         " than its shape's `list`, over every"
@@ -12440,6 +12582,8 @@ def main():
         sys.exit(lint(args.main, args.readme, args.run_doc))
     if args.counts_totals:
         sys.exit(counts_totals(args.counts_totals, args))
+    if args.floor_pairs:
+        sys.exit(floor_pairs(args.floor_pairs, args))
     if args.over_list:
         sys.exit(over_list_sweep(args.over_list, args))
     if args.extremes:
