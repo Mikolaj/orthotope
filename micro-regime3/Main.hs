@@ -4593,7 +4593,11 @@ zerosFirst sh ats = zerosOutermost (sortedAbsPairs (flip compare) sh ats)
 -- The zero-stride axes moved in front of the rest, whose order stays,
 -- where a unit-stride axis will then be innermost and the list route
 -- repeats one slice; unchanged otherwise, so the fill is stage six's,
--- its zero strides innermost under the hoisted store.
+-- its zero strides innermost under the hoisted store. Two filters and
+-- not a 'span', though the pairs come sorted and the zeros are their
+-- suffix: the span cost stage ten 43 to 156 instructions a call more
+-- on three of four views counted 2026-09-16, its lazy prefix and pair
+-- dearer than a second pass over a view's few pairs.
 zerosOutermost :: [(Int, Int)] -> [(Int, Int)]
 zerosOutermost ps
   | any (\(s, n) -> s == 1 && n /= 1) ps =
@@ -4641,13 +4645,21 @@ fbLibUnordStage10 sh a@(T _ _ v) = fillRoute (routeUnord10 sh a) v
 -- 55 to 109 ns on calls of 200 to 700 ns for it, the same on both
 -- compilers; the guard is one pass over the strides. Where a zero
 -- stride is there the route is stage ten's. One change over
--- 'routeUnord10'. Added 2026-09-15 for Run 33.
+-- 'routeUnord10'. Added 2026-09-15 for Run 33. The guard asked for
+-- any zero stride until 2026-09-16 and asks since for one on an axis
+-- of extent above 1, which is what the move can act on: on
+-- 'small-flat64', [4, 1, 64] on strides [64, 0, 1], the raw zero ran
+-- the move for a route canonicalization makes one block of on every
+-- stage, 600-odd instructions and 21 percent a call on both of Run
+-- 33's halves, the one double-digit cell the guard had left.
 routeUnord11 :: ShapeL -> T -> Route
 routeUnord11 = dispatchLean zerosFirstTiedGuarded
 
--- Stage ten's order where a zero stride is present, stage seven's where
--- none is: the move's result on such a view IS stage seven's order, so
--- the guard changes no route and only what is computed to reach it.
+-- Stage ten's order where a zero stride of extent above 1 is present,
+-- stage seven's where none is: on such a view the move's result and
+-- stage seven's order canonicalize to one route, the axes of extent 1
+-- dropped, so the guard changes no route and only what is computed to
+-- reach it.
 -- Not shared with stage twelve's guard over its own order, though the
 -- two differ in the comparator alone: one guard taking the comparator
 -- moved this arm's count by 35 to 63 instructions a call, INLINE
@@ -4655,8 +4667,26 @@ routeUnord11 = dispatchLean zerosFirstTiedGuarded
 -- code is not moved in the run that reads it.
 zerosFirstTiedGuarded :: ShapeL -> [Int] -> [(Int, Int)]
 zerosFirstTiedGuarded sh ats
-  | any (== 0) ats = zerosFirstTied sh ats
+  | zeroAxis sh ats = zerosFirstTied sh ats
   | otherwise = sortedAbsPairs byStrideExtent sh ats
+
+-- A zero stride on an axis the move can act on: one of extent above 1,
+-- an axis of extent 1 being dropped by canonicalization whatever its
+-- stride. The test 'zerosOutermost' makes of the unit stride, made of
+-- the zero: a one-list 'any' first, so that a view with no zero stride
+-- walks one spine, and behind it one loop over both lists that stops at
+-- the first such zero. Counted 2026-09-16: 'or' over 'zipWith' alone
+-- cost 40 to 50 instructions a call on views with no zero stride, the
+-- loop alone 48 there while saving 49 to 98 on views with one, and the
+-- loop behind the 'any' reads 4 to 6 under the 'zipWith' behind it. The
+-- raw strides, not the sorted pairs, since the sort is what a miss here
+-- skips, so the zeros may sit anywhere and every one is read.
+zeroAxis :: ShapeL -> [Int] -> Bool
+zeroAxis sh ats = any (== 0) ats && go ats sh
+  where go (0 : ss) (n : ns) = n /= 1 || go ss ns
+        go (_ : ss) (_ : ns) = go ss ns
+        go _ _ = False
+{-# INLINE zeroAxis #-}
 
 lsUnordStage11 :: ShapeL -> T -> [VS.Vector Double]
 lsUnordStage11 sh a@(T _ _ v) = listRoute (routeUnord11 sh a) v
@@ -4696,7 +4726,7 @@ routeUnord12 = dispatchLean zerosFirstRankedGuarded
 -- reason at 'zerosFirstTiedGuarded'.
 zerosFirstRankedGuarded :: ShapeL -> [Int] -> [(Int, Int)]
 zerosFirstRankedGuarded sh ats
-  | any (== 0) ats = zerosOutermost (sortedAbsPairs byStrideRank sh ats)
+  | zeroAxis sh ats = zerosOutermost (sortedAbsPairs byStrideRank sh ats)
   | otherwise = sortedAbsPairs byStrideRank sh ats
 
 -- Absolute stride descending; on a tie at stride 1 the length 'runRank'

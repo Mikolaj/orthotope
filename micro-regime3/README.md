@@ -715,28 +715,37 @@ rather than a slot in the next run, observed again:
   `libunord-stage12-sum`, stage eleven with the run chosen among tied
   unit-stride axes by its length (reasons at `routeUnord12`; its fill
   is rostered checked and never timed), and `runs-32`, `runs-48` and `runs-64`
-  in the `runs` class. Each prediction is its own kill condition,
-  and a `predict:` span that fails kills its item. (1) *Stage twelve takes stage
-  six's run on the three unstrided `window` views without channels and stage
-  seven's everywhere else.* On `window`, Run 33's per-shape figures on the basis
-  give the pair with stage six 0.90, level on the three moved views and stage
-  seven's advantage on the two with channels and `window-28x28-k5`:
+  in the `runs` class; and stage eleven's guard, corrected 2026-09-16 to fire
+  on a zero stride of extent above 1 and not on any zero, after Run 33 read
+  `small-flat64`, `[4, 1, 64]` on strides `[64, 0, 1]`, running stage ten's move
+  for a route canonicalization makes one block of on every stage, 21 percent
+  a call on both halves, so stage eleven's `small` cells are not Run 33's
+  and stage twelve's guard mirrors the correction. Each prediction is its own
+  kill condition, and a `predict:` span that fails kills its item. (1) *Stage
+  twelve takes stage six's run on three of the four unstrided `window` views
+  without channels and stage seven's everywhere else.* On `window`, Run 33's
+  per-shape figures on the basis give the pair with stage six 0.90, level
+  on the three moved views and stage seven's advantage on the two with channels
+  and `window-28x28-k5`:
   `predict: pair libunord-stage12-sum libunord-stage6-sum 0.90 within 3%`;
   and against its control, from 0.73, 0.80 and 0.86 on the three moved views
   and 1 on the other five,
   `predict: pair libunord-stage12-sum libunord-stage11-sum 0.92 within 3%`. Each
-  of the three moved views inside the class floor of stage six, read off
-  `--pair --per-shape` by hand. The probe of 2026-09-16 on the basis recipe
-  and a quiet machine, `probe-stage12h-classes.json`, read the two pairs
-  at 0.901 and 0.912 on the class. (2) *And moves nothing else.* The same probe
-  and its main-set twin read stage twelve within 1.1 percent of stage eleven
-  on every view it leaves at stage seven's run, the five `window` views,
-  `small-patch-r5`, `small-patch-k5`, `cnn-L1-6x6-c1`, `cnn-L1-24x24-c1`
-  and `cnn-slice-c32`, and on `bcast-inner8` and `rev-cnn-L1-24x24-c1`, where
-  the guard and the other tie-break rule; the list form this arm first took read
-  4 to 6 percent behind on the tiny views and the `<>` form 2.5 and 4, the case
-  form retiring fewer instructions a call than stage eleven. So on the main set
-  and on every class but `window`:
+  of the three moved views within a point of stage six, whose run it takes
+  under stage seven's outer order and not stage six's, read off
+  `--pair --per-shape` by hand, four probes having put them between 0.990
+  and 1.024. The probe of 2026-09-16 on the basis recipe and a quiet machine,
+  `probe-stage12h-window.json`, read the two pairs at 0.901 and 0.912
+  on the class. (2) *And moves nothing else.* The same probe's `small`, `bcast`
+  and `rev` files and its main-set twin, `probe-stage12h-small.json`,
+  `-bcast.json`, `-rev.json` and `-main.json`, read stage twelve within 1.1
+  percent of stage eleven on every view it leaves at stage seven's run, the five
+  `window` views, `small-patch-r5`, `small-patch-k5`, `cnn-L1-6x6-c1`,
+  `cnn-L1-24x24-c1` and `cnn-slice-c32`, and on `bcast-inner8`
+  and `rev-cnn-L1-24x24-c1`, where the guard and the other tie-break rule;
+  the list form this arm first took read 4 to 6 percent behind on the tiny views
+  and the `<>` form 2.5 and 4, the case form retiring fewer instructions a call
+  than stage eleven. So on the main set and on every class but `window`:
   `predict: pair libunord-stage12-sum libunord-stage11-sum 1.0 within 1%`;
   and the count sweep, read by hand with `--counts --pair`, puts stage twelve
   under stage eleven by fewer than a hundred instructions a call on every tie
@@ -749,9 +758,26 @@ rather than a slot in the next run, observed again:
   stage eleven's own figure sits outside of, so reading it kills the item
   as surely as reading 0.90 does. (4) *The three `runs` shapes sit where
   the probe of 2026-09-16 put them.* On `runs`, both halves, `runs-32` within 3
-  percent of `runs-9` per element on every `-sum` arm, and `runs-48`
-  and `runs-64` within 3 percent of `runs-96`, read off `--cells` by hand;
-  no span, the quantity being a cell and not a pair.
+  percent of `runs-9` per element on every `-sum` arm, the probe having timed
+  `libunord-stage6-sum` and `libunord-stage11-sum`, and `runs-48` and `runs-64`
+  within 3 percent of `runs-96`, read off `--cells` by hand; no span,
+  the quantity being a cell and not a pair. (5) *Stage eleven's corrected guard
+  takes `small-flat64` back and moves nothing else.* The guard is two tests,
+  the old one-list `any` first and one loop over strides and extents behind
+  a zero, so a view with no zero stride retires the count it retired,
+  `small-patch-k5` to the instruction on the basis probe of 2026-09-16,
+  `probe-s11guard4-small.json`, and a view with one pays the second test,
+  `small-bcast32` 133 instructions a call over stage ten, 78 of them the extent
+  test's. On `small`, both halves: `small-flat64` under stage eleven within 4
+  percent of stage seven, from 1.21, the probe reading 1.030 at 185 instructions
+  a call over stage seven, and `small-bcast32` under stage eleven within 6
+  percent of stage ten, the probe reading 1.028, both read off
+  `--pair --per-shape`; on the class
+  `predict: pair libunord-stage11-sum libunord-stage7-sum 0.94 within 2%`,
+  the probe reading 0.941 where Run 33's cells gave the uncorrected guard 0.96;
+  and on every other population stage eleven's pair with stage ten as Run 33
+  read it, within the floor, no view there carrying a zero stride on an axis
+  of extent 1.
 - `ANSWERED` **What Run 32 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 32's own file](runs/run32.md), where a run's
@@ -13826,44 +13852,52 @@ the record costs. **A fourth half arrives with the pairing and is not a delta
 at all**: which half of the pair a figure came from, which is why the run file's
 tables and its fingerprint say so.
 
-- Run 33 measured TODAY's shapes, class views and roster exactly, nothing having
-  moved in `Main.hs` since it ran --- 33 timed arms over 19 main-set shapes
-  and 58 class views in TEN classes, 627 benches and 1914, EIGHT A/A pairs,
-  the `runs` class at FOURTEEN, `window` at EIGHT, `bcast` and `flip` at SIX,
-  `block` and `small` at FIVE, `bcastmid` and `compose` at FOUR and `rev`
-  and `scaled` at THREE. It is the run whose file `runs/` currently publishes.
-  **Its delta against RUN 32 is ONE ARM IN AND NONE OUT**: `Main.hs` moved
-  from `f95795a` to `f31bd1c` in two commits --- `f46867f` landing
-  `libunord-stage11-sum`, stage ten with its zero-stride move guarded,
-  with its untimed sibling beside it, and `f31bd1c` changing one comment line
-  and no code --- and the SHIM moved too, from `b3a1aca` to `f31bd1c` in NINE
-  commits, `3b49356` adding the `LOOP_EXITSPAN` cost this pair is the first
-  to build under and `f1a5adb` fixing it. Its sequence ran in ONE window,
-  01:05:22 to 08:26:08, and ONE of its twenty-two processes was intruded
-  on by the write-up session, `run33-gheadexit-main`, for 3 of its 627 benches
-  at a peak of 0.35 of a core; the rerun post-run step 3 orders was launched
-  and stopped at the owner's word, and the run's own file carries
-  the sensitivity reading that stands in for it. Its four gate processes and all
-  88 alone-leg logs are clean. **And its floor is a maximum over EIGHT A/A
-  pairs**, 0.47% and 0.62%, `bq-expand-aa-distant` carrying it on BOTH halves;
-  its restricted four-pair reading is the same two figures, so the two
+- Run 33 measured TODAY's shapes exactly and, less the three `runs` views
+  of 2026-09-16, today's class views and, less one arm and one guard, today's
+  roster: since it ran `Main.hs` moved in three commits of 2026-09-16, `971ffb6`
+  landing the three `runs` views (`runs-32`, `runs-48` and `runs-64` were added
+  2026-09-16, after the run), `0d637b7` landing `libunord-stage12-sum`
+  with its untimed sibling, and the commit carrying this bullet correcting stage
+  eleven's guard ([the Run 34 registration][open]), so today's roster is 34
+  timed arms, 646 benches and 2074 and the `runs` class seventeen views --- 33
+  timed arms over 19 main-set shapes and 58 class views in TEN classes, 627
+  benches and 1914, EIGHT A/A pairs, the `runs` class at FOURTEEN, `window`
+  at EIGHT, `bcast` and `flip` at SIX, `block` and `small` at FIVE, `bcastmid`
+  and `compose` at FOUR and `rev` and `scaled` at THREE. It is the run whose
+  file `runs/` currently publishes. **Its delta against RUN 32 is ONE ARM
+  IN AND NONE OUT**: `Main.hs` moved from `f95795a` to `f31bd1c` in two commits
+  --- `f46867f` landing `libunord-stage11-sum`, stage ten with its zero-stride
+  move guarded, with its untimed sibling beside it, and `f31bd1c` changing one
+  comment line and no code --- and the SHIM moved too, from `b3a1aca`
+  to `f31bd1c` in NINE commits, `3b49356` adding the `LOOP_EXITSPAN` cost
+  this pair is the first to build under and `f1a5adb` fixing it. Its sequence
+  ran in ONE window, 01:05:22 to 08:26:08, and ONE of its twenty-two processes
+  was intruded on by the write-up session, `run33-gheadexit-main`, for 3
+  of its 627 benches at a peak of 0.35 of a core; the rerun post-run step 3
+  orders was launched and stopped at the owner's word, and the run's own file
+  carries the sensitivity reading that stands in for it. Its four gate processes
+  and all 88 alone-leg logs are clean. **And its floor is a maximum over EIGHT
+  A/A pairs**, 0.47% and 0.62%, `bq-expand-aa-distant` carrying it on BOTH
+  halves; its restricted four-pair reading is the same two figures, so the two
   thresholds are closed on both halves for a second run.
-- Run 32 measured TODAY's shapes and class views exactly and, less one arm,
-  today's roster, nothing having moved since it ran but 2026-09-15's landing
+- Run 32 measured TODAY's shapes exactly and, less the three `runs` views
+  of 2026-09-16, today's class views and, less two arms and one guard, today's
+  roster, nothing having moved since it ran but 2026-09-15's landing
   of `libunord-stage11-sum`, stage ten with its zero-stride move guarded,
-  so today's roster is 33 timed arms, 627 benches and 1914 --- 32 timed arms
-  over 19 main-set shapes and 58 class views in TEN classes, 608 benches
-  and 1856, EIGHT A/A pairs, the `runs` class at FOURTEEN, `window` at EIGHT,
-  `bcast` and `flip` at SIX, `block` and `small` at FIVE, `bcastmid`
-  and `compose` at FOUR and `rev` and `scaled` at THREE. **Its delta against RUN
-  31 is ONE ARM IN AND NONE OUT**: `Main.hs` moved from `13cbd0d` to `f95795a`
-  in six commits --- `c2021a8` adding comments and no code, `396f01c` carrying
-  Run 31's own step-6d fixes, `4488631` landing `liblist-stage4-list-sum`,
-  base's `sum` over stage four's list, and making the shared loop `sumLazyRuns`
-  sum each run through `sumNoSpec` without vector's `SPEC` argument, a code
-  change under unmoved names that reaches every lazy consumer wherever a view
-  routes to runs, and `08ee255`, `e12b000` and `f95795a` taking an unzip
-  immediately undone by a zip out of the zero-stride orders and threading
+  and 2026-09-16's three commits, which the Run 33 bullet names, so today's
+  roster is 34 timed arms, 646 benches and 2074 --- 32 timed arms over 19
+  main-set shapes and 58 class views in TEN classes, 608 benches and 1856, EIGHT
+  A/A pairs, the `runs` class at FOURTEEN, `window` at EIGHT, `bcast` and `flip`
+  at SIX, `block` and `small` at FIVE, `bcastmid` and `compose` at FOUR
+  and `rev` and `scaled` at THREE. **Its delta against RUN 31 is ONE ARM
+  IN AND NONE OUT**: `Main.hs` moved from `13cbd0d` to `f95795a` in six commits
+  --- `c2021a8` adding comments and no code, `396f01c` carrying Run 31's own
+  step-6d fixes, `4488631` landing `liblist-stage4-list-sum`, base's `sum`
+  over stage four's list, and making the shared loop `sumLazyRuns` sum each run
+  through `sumNoSpec` without vector's `SPEC` argument, a code change
+  under unmoved names that reaches every lazy consumer wherever a view routes
+  to runs, and `08ee255`, `e12b000` and `f95795a` taking an unzip immediately
+  undone by a zip out of the zero-stride orders and threading
   the canonicalization on pairs. The 19 main-set shapes and all 58 class views
   are unmoved, so a cross-run figure against Run 31 is over all nineteen shapes
   and over the 16 arms both rosters time --- and it carries a SOURCE term
@@ -13896,22 +13930,23 @@ tables and its fingerprint say so.
   and `mut-odo-vecdims-aa-distant` the control's; its restricted four-pair
   reading is the same two figures, so the two thresholds are closed on both
   halves for the first time.
-- Run 31 measured TODAY's shapes and class views exactly and, less one arm,
-  today's roster, nothing having moved since it ran but 2026-09-14's landing
-  of `liblist-stage4-list-sum`, base's `sum` over stage four's list, that day's
-  change of the shared loop `sumLazyRuns` to sum each run through `sumNoSpec`,
-  without vector's `SPEC` argument, a code change under unmoved names
-  that reaches the `Route` stages' consumers wherever a view routes to runs,
-  and the three commits of the same day on the zero-stride orders
-  and the canonicalization, so today's roster is 32 timed arms, 608 benches
-  and 1856 --- 31 timed arms over 19 main-set shapes and 58 class views in TEN
-  classes, 589 benches and 1798, EIGHT A/A pairs, the `runs` class at FOURTEEN,
-  `window` at EIGHT, `bcast` and `flip` at SIX, `block` and `small` at FIVE,
-  `bcastmid` and `compose` at FOUR and `rev` and `scaled` at THREE. **Its delta
-  against RUN 30 is SIX ARMS OUT AND ONE IN**: `Main.hs` moved from `7685375`
-  to `13cbd0d` in three commits on 2026-09-13 --- `c753fff` parking
-  `libunord-stage2-sum`, `-stage3-sum`, `-stage5-sum`,
-  `libunord-stage6-list-sum` and the two pointer leaves
+- Run 31 measured TODAY's shapes exactly and, less the three `runs` views
+  of 2026-09-16, today's class views and, less 2026-09-16's three commits, which
+  the Run 33 bullet names, and less one arm, today's roster, nothing else having
+  moved since it ran but 2026-09-14's landing of `liblist-stage4-list-sum`,
+  base's `sum` over stage four's list, that day's change of the shared loop
+  `sumLazyRuns` to sum each run through `sumNoSpec`, without vector's `SPEC`
+  argument, a code change under unmoved names that reaches the `Route` stages'
+  consumers wherever a view routes to runs, and the three commits of the same
+  day on the zero-stride orders and the canonicalization, so today's roster
+  is 32 timed arms, 608 benches and 1856 --- 31 timed arms over 19 main-set
+  shapes and 58 class views in TEN classes, 589 benches and 1798, EIGHT A/A
+  pairs, the `runs` class at FOURTEEN, `window` at EIGHT, `bcast` and `flip`
+  at SIX, `block` and `small` at FIVE, `bcastmid` and `compose` at FOUR
+  and `rev` and `scaled` at THREE. **Its delta against RUN 30 is SIX ARMS OUT
+  AND ONE IN**: `Main.hs` moved from `7685375` to `13cbd0d` in three commits
+  on 2026-09-13 --- `c753fff` parking `libunord-stage2-sum`, `-stage3-sum`,
+  `-stage5-sum`, `libunord-stage6-list-sum` and the two pointer leaves
   `mut-odo-vecdims-add-in-leaf-u1-ptr` and `-u2-ptr`, reasons at their entries;
   `a22677b` banging the stage-ten walker's vector and the offset its empty carry
   ignores, a code change under unmoved names that reaches the `Route` stages'
@@ -13944,104 +13979,110 @@ tables and its fingerprint say so.
   and the shipped leaf's distant copy carrying the control's on two wild
   `cnn-slice-c32` cells; its restricted four-pair reading is 0.61% and 0.43%,
   equal to the whole-set figure on the basis for a second run running.
-- Run 30 measured TODAY's shapes and class views exactly and, less six arms
-  and plus one, today's roster, nothing having moved since it ran
-  but the parking of 2026-09-13 --- `mut-odo-vecdims-add-in-leaf-u1-ptr`
-  and `-u2-ptr`, their ceiling read, and `libunord-stage2-sum`,
-  `libunord-stage3-sum`, `libunord-stage5-sum` and `libunord-stage6-list-sum`,
-  their questions answered, reasons at their entries --- and the landing
-  of `libunord-stage10-list-sum` the same day, base's `sum` over stage ten's
-  list, and that day's bangs on the walker's vector and on the offset its empty
-  carry ignores, which reach the `Route` stages' lists and consumers wherever
-  a view routes to runs, and the landing of `liblist-stage4-list-sum`
-  and the shared loop's SPEC-free sum on 2026-09-14, so today's roster is 32
-  timed arms, 608 benches and 1856 --- 36 timed arms over 19 main-set shapes
-  and 58 class views in TEN classes, 684 benches and 2088, EIGHT A/A pairs,
-  the `runs` class at FOURTEEN, `window` at EIGHT, `bcast` and `flip` at SIX,
-  `block` and `small` at FIVE, `bcastmid` and `compose` at FOUR and `rev`
-  and `scaled` at THREE. It is the run before the one whose file `runs/`
-  currently publishes. **Its delta against RUN 29 is NOTHING AT ALL**: `Main.hs`
-  stands at `7685375`, the commit Run 29 built, so no arm landed, none
-  was parked, no shape moved and no class view moved --- the roster term in any
-  cross-run figure is ABSENT rather than small. **So `run30-nospec` REPRODUCES
-  `run29-nospec` to the byte**, md5 `f507eafbcbbfecf7c2151f390caf9b92` on both,
-  `.text` 20766917 on both, and `--delta` reads every tracked fill's mod-64
-  offset preserved AND every address surviving, 6 of 6 and 2 of 2
-  with no displacement --- a repetition of the recipe Run 29 ran as its control
-  and did not publish, and the control the pinning claim never had.
-  `run30-libcase`, at `66f89adf1838ccfcf63ec11d5a10b047` and 20787397 bytes
-  of `.text`, is that recipe with `-fliberate-case` added and is new here.
-  **The nineteen main-set shapes are unmoved between the two runs,
-  so a cross-run figure is over all nineteen**, and **the box did NOT move**,
-  though its gate machine check says otherwise at first reading: that check
-  fired at +12.96% on `list`'s net against the fingerprint Run 29 installed,
-  which is Run 29's FLAGGED half's while this basis is its control recipe,
-  and against `run29-nospec` --- this recipe's own previous build --- the whole
-  timed roster spans 0.9937 to 1.0069 with `list` at 0.9951 and the check's
-  worst shape, `stretch-r5-8x432`, at 1.0015. So a cross-run absolute here
-  is a subtraction and wants no bridge. What a reader has to carry is which half
-  a figure came from: everything published in its file is `run30-nospec`,
-  ghc-9.12.4 at PLAIN -O1 with neither -O2 pass set, and `run30-libcase` ---
-  the same source, shim, shim environment, compiler, store and plan
-  with `-fliberate-case` added to one `--ghc-options` --- contributes the second
-  column of `runs/run30.md`. **Its `list` moved 17.10 points between the halves,
-  OUTSIDE the 0.7% bar, so its two columns may NOT be subtracted**, nor may any
-  of its ten classes', which moved 17.26 to 21.71 points: every cross-half
-  figure in its file is an ordering. Its sequence ran in ONE window, 02:05:18
-  to 10:04:58, with ONE intrusion found --- two cells of `run30-libcase-main`
-  on `cnn-L1-6x6-c1`, caused by the write-up session's own reader call 58
-  seconds in, omitted from the readings they enter and no population rerun.
-  **And its floor is a maximum over EIGHT A/A pairs**, 0.57% and 0.84%,
-  the third run to carry the shipped fill's own pair and the FIRST on which
-  that pair does not carry the basis figure, `bq-expand-aa-distant` carrying
-  it instead; its restricted four-pair reading is 0.57% and 0.56%, equal
-  to the whole-set figure on the basis for the first time since the pair landed.
-- Run 29 measured TODAY's shapes and class views exactly and, less the six arms
-  parked 2026-09-13 and plus the one landing that day, both of which Run 30's
-  bullet names, today's roster, nothing else having moved since it ran
-  but the walker's bangs, which that bullet names too --- 36 timed arms over 19
-  main-set shapes and 58 class views in TEN classes, 684 benches and 2088, EIGHT
-  A/A pairs, the `runs` class at FOURTEEN, `window` at EIGHT, `bcast` and `flip`
-  at SIX, `block` and `small` at FIVE, `bcastmid` and `compose` at FOUR
-  and `rev` and `scaled` at THREE. It is no longer the run whose file `runs/`
-  publishes. **Its delta against RUN 28** is the twelve commits from `bdf06c8`
-  to `7685375`: ONE timed arm landing, `libunord-stage10-sum`, stage seven's
-  tie-break under stage nine's zero-stride move, and FOUR parked ---
-  `libunord-stage8-sum`, `libunord-stage4-sum` and the leaf's `-u2-down`
-  and `-u2-last` forms --- with NO class view moving at all, so the ten classes
-  are where Run 28 left them and the roster term in any cross-run figure
-  is three arms net out. Three code changes move figures under unmoved names:
-  the shipped leaf took the broadcast unroll, and `lib-stage1`,
-  `liblist-stage1-sum` and `libunord-stage1-sum` came to fill through
-  `fillStage2`, so those arms' Run 28 figures are not this roster's on the views
-  those routes fill; a fourth, the driver's `copies` losing an argument it never
-  read, moves nothing. `7685375` is the tip both halves were built from,
-  so NEITHER reproduces an earlier binary and no md5 here matches one on record;
-  **the nineteen main-set shapes are unmoved between the two runs,
-  so a cross-run figure is over all nineteen**, and **the box did NOT move**,
-  its gate machine check reading -0.17% on `list`'s net against the fingerprint
-  Run 28 installed, over 19 of 19 shapes and none past 5%, so a cross-run
-  absolute here is a subtraction and wants no bridge --- the 18 arms both
-  rosters time AND both give a corrected time reading 0.9896 to 1.0213, sixteen
-  of them inside 1% of 1 and `list` itself at 0.9999. What a reader has to carry
-  is which half a figure came from: everything published in its file
-  is `run29-spec`, ghc-9.12.4 under `-fspec-constr`, and `run29-nospec` ---
-  the same source, shim, shim environment, compiler, store and plan
-  with that one flag struck off, so the halves differ in ONE COMPILE FLAG
-  and in nothing else, which no earlier pair here can say --- contributes
-  the second column of `runs/run29.md`. **Its `list` moved 12.12 points between
-  the halves, OUTSIDE the 0.7% bar, so its two columns may NOT be subtracted**,
-  nor may any of its ten classes', which moved 9.12% to 14.67%: every cross-half
-  figure in its file is an ordering. The allocation-area pairs of Runs 14 to 16
-  failed the same bar, at 9.20%, 5.13% and 16.51% on the main set,
-  for a different reason. Its sequence ran in ONE window, 01:17:01 to 09:16:42,
-  with no intrusion found and no population rerun. **And its floor is a maximum
-  over EIGHT A/A pairs**, 0.51% and 0.82%, the second run to carry the shipped
-  fill's own pair and the second on which that pair carries the basis figure,
-  its restricted four-pair reading being 0.26% and 0.82%.
-- Run 28 measured TODAY's shapes and class views and, less ten arms and plus
-  two, today's roster, nothing having moved since it ran but comment-only
-  commits to `Main.hs` and, on 2026-09-11, the shipped leaf's broadcast run ---
+- Run 30 measured TODAY's shapes exactly and, less the three `runs` views
+  of 2026-09-16, today's class views and, less 2026-09-16's three commits, which
+  the Run 33 bullet names, and less six arms and plus one, today's roster,
+  nothing else having moved since it ran but the parking of 2026-09-13 ---
+  `mut-odo-vecdims-add-in-leaf-u1-ptr` and `-u2-ptr`, their ceiling read,
+  and `libunord-stage2-sum`, `libunord-stage3-sum`, `libunord-stage5-sum`
+  and `libunord-stage6-list-sum`, their questions answered, reasons at their
+  entries --- and the landing of `libunord-stage10-list-sum` the same day,
+  base's `sum` over stage ten's list, and that day's bangs on the walker's
+  vector and on the offset its empty carry ignores, which reach the `Route`
+  stages' lists and consumers wherever a view routes to runs, and the landing
+  of `liblist-stage4-list-sum` and the shared loop's SPEC-free sum
+  on 2026-09-14, so today's roster is 32 timed arms, 608 benches and 1856 --- 36
+  timed arms over 19 main-set shapes and 58 class views in TEN classes, 684
+  benches and 2088, EIGHT A/A pairs, the `runs` class at FOURTEEN, `window`
+  at EIGHT, `bcast` and `flip` at SIX, `block` and `small` at FIVE, `bcastmid`
+  and `compose` at FOUR and `rev` and `scaled` at THREE. It is the run before
+  the one whose file `runs/` currently publishes. **Its delta against RUN 29
+  is NOTHING AT ALL**: `Main.hs` stands at `7685375`, the commit Run 29 built,
+  so no arm landed, none was parked, no shape moved and no class view moved ---
+  the roster term in any cross-run figure is ABSENT rather than small.
+  **So `run30-nospec` REPRODUCES `run29-nospec` to the byte**, md5
+  `f507eafbcbbfecf7c2151f390caf9b92` on both, `.text` 20766917 on both,
+  and `--delta` reads every tracked fill's mod-64 offset preserved AND every
+  address surviving, 6 of 6 and 2 of 2 with no displacement --- a repetition
+  of the recipe Run 29 ran as its control and did not publish, and the control
+  the pinning claim never had. `run30-libcase`,
+  at `66f89adf1838ccfcf63ec11d5a10b047` and 20787397 bytes of `.text`,
+  is that recipe with `-fliberate-case` added and is new here. **The nineteen
+  main-set shapes are unmoved between the two runs, so a cross-run figure
+  is over all nineteen**, and **the box did NOT move**, though its gate machine
+  check says otherwise at first reading: that check fired at +12.96% on `list`'s
+  net against the fingerprint Run 29 installed, which is Run 29's FLAGGED half's
+  while this basis is its control recipe, and against `run29-nospec` ---
+  this recipe's own previous build --- the whole timed roster spans 0.9937
+  to 1.0069 with `list` at 0.9951 and the check's worst shape,
+  `stretch-r5-8x432`, at 1.0015. So a cross-run absolute here is a subtraction
+  and wants no bridge. What a reader has to carry is which half a figure came
+  from: everything published in its file is `run30-nospec`, ghc-9.12.4 at PLAIN
+  -O1 with neither -O2 pass set, and `run30-libcase` --- the same source, shim,
+  shim environment, compiler, store and plan with `-fliberate-case` added to one
+  `--ghc-options` --- contributes the second column of `runs/run30.md`.
+  **Its `list` moved 17.10 points between the halves, OUTSIDE the 0.7% bar,
+  so its two columns may NOT be subtracted**, nor may any of its ten classes',
+  which moved 17.26 to 21.71 points: every cross-half figure in its file
+  is an ordering. Its sequence ran in ONE window, 02:05:18 to 10:04:58, with ONE
+  intrusion found --- two cells of `run30-libcase-main` on `cnn-L1-6x6-c1`,
+  caused by the write-up session's own reader call 58 seconds in, omitted
+  from the readings they enter and no population rerun. **And its floor
+  is a maximum over EIGHT A/A pairs**, 0.57% and 0.84%, the third run to carry
+  the shipped fill's own pair and the FIRST on which that pair does not carry
+  the basis figure, `bq-expand-aa-distant` carrying it instead; its restricted
+  four-pair reading is 0.57% and 0.56%, equal to the whole-set figure
+  on the basis for the first time since the pair landed.
+- Run 29 measured TODAY's shapes exactly and, less the three `runs` views
+  of 2026-09-16, today's class views and, less 2026-09-16's three commits, which
+  the Run 33 bullet names, and less the six arms parked 2026-09-13 and plus
+  the one landing that day, both of which Run 30's bullet names, today's roster,
+  nothing else having moved since it ran but the walker's bangs, which
+  that bullet names too --- 36 timed arms over 19 main-set shapes and 58 class
+  views in TEN classes, 684 benches and 2088, EIGHT A/A pairs, the `runs` class
+  at FOURTEEN, `window` at EIGHT, `bcast` and `flip` at SIX, `block` and `small`
+  at FIVE, `bcastmid` and `compose` at FOUR and `rev` and `scaled` at THREE.
+  It is no longer the run whose file `runs/` publishes. **Its delta against RUN
+  28** is the twelve commits from `bdf06c8` to `7685375`: ONE timed arm landing,
+  `libunord-stage10-sum`, stage seven's tie-break under stage nine's zero-stride
+  move, and FOUR parked --- `libunord-stage8-sum`, `libunord-stage4-sum`
+  and the leaf's `-u2-down` and `-u2-last` forms --- with NO class view moving
+  at all, so the ten classes are where Run 28 left them and the roster term
+  in any cross-run figure is three arms net out. Three code changes move figures
+  under unmoved names: the shipped leaf took the broadcast unroll,
+  and `lib-stage1`, `liblist-stage1-sum` and `libunord-stage1-sum` came to fill
+  through `fillStage2`, so those arms' Run 28 figures are not this roster's
+  on the views those routes fill; a fourth, the driver's `copies` losing
+  an argument it never read, moves nothing. `7685375` is the tip both halves
+  were built from, so NEITHER reproduces an earlier binary and no md5 here
+  matches one on record; **the nineteen main-set shapes are unmoved between
+  the two runs, so a cross-run figure is over all nineteen**, and **the box did
+  NOT move**, its gate machine check reading -0.17% on `list`'s net against
+  the fingerprint Run 28 installed, over 19 of 19 shapes and none past 5%,
+  so a cross-run absolute here is a subtraction and wants no bridge --- the 18
+  arms both rosters time AND both give a corrected time reading 0.9896
+  to 1.0213, sixteen of them inside 1% of 1 and `list` itself at 0.9999. What
+  a reader has to carry is which half a figure came from: everything published
+  in its file is `run29-spec`, ghc-9.12.4 under `-fspec-constr`,
+  and `run29-nospec` --- the same source, shim, shim environment, compiler,
+  store and plan with that one flag struck off, so the halves differ in ONE
+  COMPILE FLAG and in nothing else, which no earlier pair here can say ---
+  contributes the second column of `runs/run29.md`. **Its `list` moved 12.12
+  points between the halves, OUTSIDE the 0.7% bar, so its two columns may
+  NOT be subtracted**, nor may any of its ten classes', which moved 9.12%
+  to 14.67%: every cross-half figure in its file is an ordering.
+  The allocation-area pairs of Runs 14 to 16 failed the same bar, at 9.20%,
+  5.13% and 16.51% on the main set, for a different reason. Its sequence ran
+  in ONE window, 01:17:01 to 09:16:42, with no intrusion found and no population
+  rerun. **And its floor is a maximum over EIGHT A/A pairs**, 0.51% and 0.82%,
+  the second run to carry the shipped fill's own pair and the second on which
+  that pair carries the basis figure, its restricted four-pair reading being
+  0.26% and 0.82%.
+- Run 28 measured TODAY's shapes and, less the three `runs` views of 2026-09-16,
+  today's class views and, less 2026-09-16's three commits, which the Run 33
+  bullet names, and less ten arms and plus two, today's roster, nothing else
+  having moved since it ran but comment-only commits to `Main.hs` and,
+  on 2026-09-11, the shipped leaf's broadcast run ---
   `fbMutOdoVecdimsAddInLeafU2` reading its element once and writing unrolled
   by two at innermost stride 0, registration (14)'s task for Run 29, which
   reaches that arm and its two A/A copies on every view whose innermost stride
