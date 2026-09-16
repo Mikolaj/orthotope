@@ -551,6 +551,43 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'still straddling   : 0\' in r.stdout else 1)"'),
+    # The nop-head tell dropped: the pad and the table word after it count
+    # as a six-byte self-loop again, over the fifth listing.
+    ('survey counts a nop pad and its table word as a loop again', 'loop-offsets.py',
+     "        if insns[k][3].startswith('nop'):\n            continue\n",
+     '',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.phantom4_listing(tempfile.mkdtemp())[\'dis\']\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'0 self-loops of at most\' in r.stdout else 1)"'),
+    # The exit-span count's two halves, each broken on its own over the
+    # fourth listing: the crossing test dropped, so the stepping loop at
+    # residue 9 with its exit ending at byte 65 reads as in line; and the
+    # unconditional-edge skip dropped, so the pair's `jmp` back edge grows
+    # an exit span through the next block, the pre-f1a5adb shim's reading.
+    ('the survey reads every exit span as in line', 'loop-offsets.py',
+     "                   and f['mod'] + spans[f['start']] > LINE),\n",
+     "                   and False),\n",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.exitspan_listing(tempfile.mkdtemp())[\'dis\']\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'exit spans astride : 1\' in r.stdout else 1)"'),
+    ('the survey reads an exit span past a jmp back edge', 'loop-offsets.py',
+     "        if UNCOND.match(insns[n][3]):\n            continue\n",
+     '',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.exitspan_listing(tempfile.mkdtemp())[\'dis\']\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'exit spans astride : 1\' in r.stdout and \'exit span 57 B\' not in r.stdout else 1)"'),
     # --delta's three readings, each broken on its own over the listings
     # defects.py builds for it: preservation reported whatever moved, the
     # selection taken of the OLD side alone again, and the libraries read

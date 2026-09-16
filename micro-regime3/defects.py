@@ -930,6 +930,173 @@ def phantom3_listing(tmp):
     return {'dis': path}
 
 
+# A fourth site, `run32-ghead` from 0x430b40 to 0x430c60, read 2026-09-16:
+# `fillStage2`'s 51-byte stepping loop at 0x430b89, residue 9, its body in
+# the line and its exit `cmp; jge` ending at byte 65 -- the placement that
+# Run 32's HEAD half timed and that `LOOP_EXITSPAN=1` was written to
+# remove -- followed at 0x430c00 by a rotated pair whose outer loop's back
+# edge is a `jmp`, which has no fall-through and so no exit span. Planted
+# for the survey's exit-span count: ONE exit span astride, and the pair's
+# `jmp` read as no exit rather than as a span through the next block.
+EXITSPAN_LISTING = """\
+
+run32-ghead:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000430b40 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x22bb8>:
+  430b40:\tf0 48 01 d0          \tlock add %rdx,%rax
+  430b44:\t48 89 f3             \tmov    %rsi,%rbx
+  430b47:\teb 12                \tjmp    430b5b <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x22bd3>
+  430b49:\tf2 0f 11 04 d9       \tmovsd  %xmm0,(%rcx,%rbx,8)
+  430b4e:\t48 8d 7b 01          \tlea    0x1(%rbx),%rdi
+  430b52:\tf2 0f 11 04 f9       \tmovsd  %xmm0,(%rcx,%rdi,8)
+  430b57:\t48 83 c3 02          \tadd    $0x2,%rbx
+  430b5b:\t48 8d 7b 01          \tlea    0x1(%rbx),%rdi
+  430b5f:\t48 39 c7             \tcmp    %rax,%rdi
+  430b62:\t7c e5                \tjl     430b49 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x22bc1>
+  430b64:\t48 39 c3             \tcmp    %rax,%rbx
+  430b67:\t7d 05                \tjge    430b6e <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x22be6>
+  430b69:\tf2 0f 11 04 d9       \tmovsd  %xmm0,(%rcx,%rbx,8)
+  430b6e:\t49 83 fa 01          \tcmp    $0x1,%r10
+  430b72:\t7e 0f                \tjle    430b83 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x22bfb>
+  430b74:\t4c 0f af d2          \timul   %rdx,%r10
+  430b78:\t48 89 f0             \tmov    %rsi,%rax
+  430b7b:\t4c 01 d0             \tadd    %r10,%rax
+  430b7e:\te9 cf 01 00 00       \tjmp    430d52 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x22dca>
+  430b83:\t48 89 c3             \tmov    %rax,%rbx
+  430b86:\tff 65 00             \tjmp    *0x0(%rbp)
+  430b89:\t4c 8b 5c 24 40       \tmov    0x40(%rsp),%r11
+  430b8e:\tf2 41 0f 10 04 db    \tmovsd  (%r11,%rbx,8),%xmm0
+  430b94:\tf2 0f 11 04 f1       \tmovsd  %xmm0,(%rcx,%rsi,8)
+  430b99:\t4c 01 cb             \tadd    %r9,%rbx
+  430b9c:\tf2 41 0f 10 04 db    \tmovsd  (%r11,%rbx,8),%xmm0
+  430ba2:\t4c 8d 76 01          \tlea    0x1(%rsi),%r14
+  430ba6:\tf2 42 0f 11 04 f1    \tmovsd  %xmm0,(%rcx,%r14,8)
+  430bac:\t4c 01 cb             \tadd    %r9,%rbx
+  430baf:\t48 83 c6 02          \tadd    $0x2,%rsi
+  430bb3:\t4c 8d 5e 01          \tlea    0x1(%rsi),%r11
+  430bb7:\t49 39 c3             \tcmp    %rax,%r11
+  430bba:\t7c cd                \tjl     430b89 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x22c01>
+  430bbc:\t48 39 c6             \tcmp    %rax,%rsi
+  430bbf:\t7d 10                \tjge    430bd1 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x22c49>
+  430bc1:\t4c 8b 5c 24 40       \tmov    0x40(%rsp),%r11
+  430bc6:\tf2 41 0f 10 04 db    \tmovsd  (%r11,%rbx,8),%xmm0
+  430bcc:\tf2 0f 11 04 f1       \tmovsd  %xmm0,(%rcx,%rsi,8)
+  430bd1:\t4c 01 c7             \tadd    %r8,%rdi
+  430bd4:\t49 ff ca             \tdec    %r10
+  430bd7:\t48 89 c6             \tmov    %rax,%rsi
+  430bda:\t4d 85 d2             \ttest   %r10,%r10
+  430bdd:\t7e 0b                \tjle    430bea <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x22c62>
+  430bdf:\t48 89 f0             \tmov    %rsi,%rax
+  430be2:\t48 01 d0             \tadd    %rdx,%rax
+  430be5:\t48 89 fb             \tmov    %rdi,%rbx
+  430be8:\teb c9                \tjmp    430bb3 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x22c2b>
+  430bea:\t48 89 f3             \tmov    %rsi,%rbx
+  430bed:\tff 65 00             \tjmp    *0x0(%rbp)
+  430bf0:\t66 66 2e 0f 1f 84 00 \tdata16 cs nopw 0x0(%rax,%rax,1)
+  430bf7:\t00 00 00 00 
+  430bfb:\t0f 1f 44 00 00       \tnopl   0x0(%rax,%rax,1)
+  430c00:\tf2 0f 11 04 f1       \tmovsd  %xmm0,(%rcx,%rsi,8)
+  430c05:\t4c 8d 4e 01          \tlea    0x1(%rsi),%r9
+  430c09:\tf2 42 0f 11 04 c9    \tmovsd  %xmm0,(%rcx,%r9,8)
+  430c0f:\t48 83 c6 02          \tadd    $0x2,%rsi
+  430c13:\t4c 8d 4e 01          \tlea    0x1(%rsi),%r9
+  430c17:\t49 39 d9             \tcmp    %rbx,%r9
+  430c1a:\t7c e4                \tjl     430c00 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x22c78>
+  430c1c:\t48 39 de             \tcmp    %rbx,%rsi
+  430c1f:\t7d 05                \tjge    430c26 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x22c9e>
+  430c21:\tf2 0f 11 04 f1       \tmovsd  %xmm0,(%rcx,%rsi,8)
+  430c26:\t4c 01 c7             \tadd    %r8,%rdi
+  430c29:\t49 ff ca             \tdec    %r10
+  430c2c:\t48 89 de             \tmov    %rbx,%rsi
+  430c2f:\t4d 85 d2             \ttest   %r10,%r10
+  430c32:\t7e 12                \tjle    430c46 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x22cbe>
+  430c34:\t48 8b 44 24 40       \tmov    0x40(%rsp),%rax
+  430c39:\tf2 0f 10 04 f8       \tmovsd  (%rax,%rdi,8),%xmm0
+  430c3e:\t48 89 f3             \tmov    %rsi,%rbx
+  430c41:\t48 01 d3             \tadd    %rdx,%rbx
+  430c44:\teb cd                \tjmp    430c13 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x22c8b>
+  430c46:\t48 89 f3             \tmov    %rsi,%rbx
+  430c49:\tff 65 00             \tjmp    *0x0(%rbp)
+  430c4c:\t48 89 c7             \tmov    %rax,%rdi
+  430c4f:\t48 01 d7             \tadd    %rdx,%rdi
+  430c52:\t48 c1 e7 03          \tshl    $0x3,%rdi
+  430c56:\t49 89 c8             \tmov    %rcx,%r8
+  430c59:\t49 01 f8             \tadd    %rdi,%r8
+  430c5c:\t48 89 c7             \tmov    %rax,%rdi
+  430c5f:\t48                   \trex.W
+"""
+
+
+def exitspan_listing(tmp):
+    """The fourth saved site, planted for `--survey`: {'dis': path}."""
+    path = os.path.join(tmp, 'run32-ghead-0x430b40.dis')
+    write(path, EXITSPAN_LISTING)
+    return {'dis': path}
+
+
+# A fifth site, `run33-gheadexit` from 0x496880 to 0x4968e0, read
+# 2026-09-16: a `jmp stg_gc_unpt_r1`, the `nopl` that pads to the next
+# info table, and the table's first word, `78 fa`, decoding as `js -6`
+# back to the pad. The pad is reached by no path, holds no `(bad)` and
+# no zero run, and six bytes cannot straddle, so the three tells and the
+# straddle count all passed it; what met it was the exit-span count,
+# which read two astride on that half where the shim's own line read
+# none. No emitted loop begins with a `nop`, which is the tell.
+PHANTOM4_LISTING = """\
+
+run33-gheadexit:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000496880 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x888f8>:
+  496880:\t48 8b 45 10          \tmov    0x10(%rbp),%rax
+  496884:\t49 89 04 24          \tmov    %rax,(%r12)
+  496888:\t49 8d 5c 24 e9       \tlea    -0x17(%r12),%rbx
+  49688d:\t48 83 c5 20          \tadd    $0x20,%rbp
+  496891:\tff 65 00             \tjmp    *0x0(%rbp)
+  496894:\t49 c7 85 88 03 00 00 \tmovq   $0x20,0x388(%r13)
+  49689b:\t20 00 00 00 
+  49689f:\te9 dc 49 34 01       \tjmp    17db280 <stg_gc_unpt_r1>
+  4968a4:\t0f 1f 40 00          \tnopl   0x0(%rax)
+  4968a8:\t78 fa                \tjs     4968a4 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x8891c>
+  4968aa:\tff                   \t(bad)
+  4968ab:\tff                   \t(bad)
+  4968ac:\tff                   \t(bad)
+  4968ad:\tff                   \t(bad)
+  4968ae:\tff                   \t(bad)
+  4968af:\tff 05 03 00 00 00    \tincl   0x3(%rip)        # 4968b8 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x88930>
+  4968b5:\t00 00                \tadd    %al,(%rax)
+  4968b7:\t00 00                \tadd    %al,(%rax)
+  4968b9:\t00 00                \tadd    %al,(%rax)
+  4968bb:\t00 05 00 00 00 02    \tadd    %al,0x2000000(%rip)        # 24968c1 <_end+0xac4b49>
+  4968c1:\t00 00                \tadd    %al,(%rax)
+  4968c3:\t00 00                \tadd    %al,(%rax)
+  4968c5:\t00 00                \tadd    %al,(%rax)
+  4968c7:\t00 0e                \tadd    %cl,(%rsi)
+  4968c9:\t00 00                \tadd    %al,(%rax)
+  4968cb:\t00 00                \tadd    %al,(%rax)
+  4968cd:\t00 00                \tadd    %al,(%rax)
+  4968cf:\t00 48 8d             \tadd    %cl,-0x73(%rax)
+  4968d2:\t45 80 4c 39 f8 72    \trex.RB orb $0x72,-0x8(%r9,%rdi,1)
+  4968d8:\t7d 49                \tjge    496923 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x8899b>
+  4968da:\t83 c4 10             \tadd    $0x10,%esp
+  4968dd:\t4d                   \trex.WRB
+  4968de:\t3b                   \t.byte 0x3b
+  4968df:\ta5                   \tmovsl  %ds:(%rsi),%es:(%rdi)
+"""
+
+
+def phantom4_listing(tmp):
+    """The fifth saved site, planted for `--survey`: {'dis': path}."""
+    path = os.path.join(tmp, 'run33-gheadexit-0x496880.dis')
+    write(path, PHANTOM4_LISTING)
+    return {'dis': path}
+
+
 # The run-fill loop this README prices, 28 bytes and eight instructions, as
 # `run25-g912` carries it at 0x434558; a second body differs in one
 # register so the two group apart. Listings built from them are what the
@@ -4858,6 +5025,16 @@ TIER1 = {
                       trigger='an info-table word throwing the sweep out of step through a continuation whose own jump displacement then decodes as a backward branch',
                       ok='a body with an undecodable instruction in it is not a loop, no code GHC emits decoding as (bad)',
                       bug="run26-g912's survey read six straddlers where its twin read five, the sixth a return-frame table and a continuation of $wfbCanonVecdims"),
+    'survey-counts-no-exit-span': dict(family=None, discovery='in-use', harm='latent',
+                      notes='the shim counts its own exit spans only under ALIGN_AS_VERBOSE, which no recipe sets, so Run 33 paid two throwaway rebuilds to read a line the binary carries',
+                      trigger="a half built under LOOP_EXITSPAN=1, whose exit spans the shim says all fit, and a half built without it, whose 65 and 72 astride nothing had counted",
+                      ok='the survey counts the exit spans astride beside the straddlers, as align-as.py defines the span',
+                      bug='the survey counted bodies alone, so a switch that moves exits and not bodies left no reading in the binary'),
+    'survey-counts-a-nop-pad-table-word-as-a-loop': dict(family='scan-for-parse', discovery='in-use', harm='fired', harm_count=1, proved='ran',
+                      notes='read on run33-gheadexit against the shim\'s verified line, 2026-09-16: two exit spans astride against none, both this shape, and run32-ghead carries one',
+                      trigger='a nopl pad after an unconditional jump, followed by an info-table word decoding as a short backward jcc to the pad',
+                      ok='a body whose head is a nop is a pad and not a loop',
+                      bug='the pad passed the flow test, the (bad) tell and the zero-run tell, and its six bytes cannot straddle, so only the exit-span count ever saw it'),
     'delta-sees-a-group-that-grows-past-the-threshold': dict(family='quiet-failure', discovery='review', harm='fired', harm_count=1, proved='ran',
                       notes='watched on run24-g912 against run25-g912 at --len 0, 2026-09-04, at both thresholds',
                       trigger='a group under --min-copies in OLD and over it in NEW',
@@ -8067,6 +8244,27 @@ RECORDS = [
          argv=['--survey', '{dis}'],
          ok=V(exit=0, has=['still straddling   : 0'], hasnt=['0x42c660']),
          bug=V(exit=0, has=['still straddling   : 1', '0x42c660'])),
+
+    case('survey-counts-no-exit-span', 'loop-offsets.py', '0b170a9',
+         'the survey counted bodies astride a line and not exit spans, so'
+         ' the one placement LOOP_EXITSPAN moves had no reading off the'
+         ' binary, only off a rebuild under ALIGN_AS_VERBOSE',
+         plant=exitspan_listing,
+         argv=['--survey', '{dis}'],
+         ok=V(exit=0, has=['exit spans astride : 1', '0x430b89'],
+              hasnt=['exit span 57 B']),
+         bug=V(exit=0, hasnt=['exit spans astride'])),
+
+    case('survey-counts-a-nop-pad-table-word-as-a-loop', 'loop-offsets.py',
+         '0b170a9',
+         'a nopl pad and the table word after it, read as a six-byte'
+         ' self-loop, counted as an exit span astride where the shim'
+         ' counted none',
+         plant=phantom4_listing,
+         argv=['--survey', '{dis}'],
+         ok=V(exit=0, has=['0 self-loops of at most 64 B'],
+              hasnt=['0x4968a4']),
+         bug=V(exit=0, has=['1 self-loops of at most 64 B'])),
 
     # ---- read-all.sh ---------------------------------------------------
     case('aa-worst-cell-is-not-an-insitu-row', 'read-all.sh', '8ee1e5b',
