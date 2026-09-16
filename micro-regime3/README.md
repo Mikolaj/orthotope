@@ -8445,16 +8445,23 @@ Unsandboxed throughout:
     #      the replace list: it is walked at post-run step 6, gains nothing
     #      from being read six hours early, and the read is paid twice if
     #      the session does not survive the sequence
-    #      SCOPED TO THE SEQUENCE 2026-09-15, and the evening's own
-    #      instrument is why: step 14 launches four stages as one
-    #      command and the FIRST of them is the gate, half an hour of
-    #      benches, so a reading told to start `while it runs` starts
-    #      inside it. Run 32's did, and `--wild` found 2 of that
-    #      process's 95 benches at 0.82 and 0.68 of a core -- the
-    #      write-up session intruding on its own gate because this
-    #      line said so. The sequence is hours and a document read is
-    #      minutes, so after `sequence: start` the reading is free;
-    #      before it, it is measured
+    #      SCOPED TO THE SEQUENCE 2026-09-15 AND RESCOPED AGAIN
+    #      2026-09-16, TO AFTER ITS FIRST PROCESS ENDS: wait for the
+    #      stage monitor's second `start` line, not its first. The
+    #      evening's own instrument is why, twice over. Step 14
+    #      launches four stages as one command and the FIRST is the
+    #      gate, half an hour of benches, so a reading told to start
+    #      `while it runs` starts inside the gate: Run 32's did, and
+    #      `--wild` found 2 of that process's 95 benches at 0.82 and
+    #      0.68 of a core. Scoping the reading to `sequence: start`
+    #      moved it one step and no further -- Run 33 obeyed the
+    #      scoped line and intruded on the sequence's FIRST process,
+    #      3 of 627 benches at up to 0.35 of a core, on registration
+    #      (1)'s own arm and two of the copies the floor is read
+    #      from, which cost that run a rerun it then had to stop.
+    #      A sequence process is an hour and the reading is minutes,
+    #      so the wait costs the session nothing it was not already
+    #      waiting; before that line it is measured, twice now
     #      why: --para 'registered predictions'
     #  16. THE ALARM, its second stage: two reads of /proc/stat two seconds
     #      apart, refused above 5% non-idle, MAXBUSY overriding -- the
@@ -10617,10 +10624,13 @@ that owes nothing cannot be told from a reading not done, which is the whole
 of why this is a list and not a sentence. **Items 2, 4, 5 and 6 are ONE
 CARRIER'S BATCH, and its return is a file**: `run<N>-readings.txt`, written
 at the head of the post-run walk --- or EARLIER, during the sequence, which
-is where Run 26 put it and where it costs nothing: the box is busy for hours,
-the carrier only reads, and the file waits. Read back a block at a time
-by the three steps that name those items. They are the previous run's prose ---
-its head, its two-column section, its properties and a class block --- read once
+is where Run 26 put it, AFTER ITS FIRST PROCESS ENDS as run list step 15 now
+asks of every reading: the box is busy for hours and the carrier only reads,
+but an agent's bootstrap is not free and Run 33's landed inside the sequence's
+first process, three of whose benches `--wild` then read above a quarter
+of a core. The file waits either way. Read back a block at a time by the three
+steps that name those items. They are the previous run's prose --- its head,
+its two-column section, its properties and a class block --- read once
 for a verdict apiece and never carried whole, which is what a carrier is for.
 A file rather than a returned message because the sentence above binds
 a delegated reading too: what the carrier says is forgotten by the step
