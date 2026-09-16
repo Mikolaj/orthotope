@@ -1134,13 +1134,18 @@ rather than a slot in the next run, observed again:
   reading that stood in for it moved no verdict, the widest span by 0.75
   of a point. **So the cost is small, real, and lands where the reading happens
   to fall** --- twice now on the first process of whatever stage is running when
-  the session starts reading. **What would settle the instruction**: nothing
-  measured, because the fix is an ordering and not a question. Either
-  the reading waits for the first process of the sequence to END, which
-  the stage monitor already announces and which costs the session a wait
-  it is making anyway, or the run accepts an intruded first process and says
-  so every time. Run 32 chose the second by accident and Run 33 by instruction;
-  the entry is here so the next session decides it on purpose.
+  the session starts reading. **TAKEN 2026-09-16, and the entry is kept
+  for the evidence rather than the question**: the fix is an ordering and
+  not a measurement, so run list step 15 now scopes the reading to AFTER
+  the sequence's first process ends --- the stage monitor's second `start` line
+  --- and the reading-list digest's placement of the carrier, which had said
+  that window `costs nothing`, waits with it. A sequence process is an hour
+  and a document read is minutes, so the wait costs a session nothing it
+  was not already waiting. What is NOT settled, and is why this stays open:
+  nobody has measured what a session's reading costs the process it lands on,
+  only that twice it cleared the 0.25-of-a-core bar the reader calls
+  an intrusion. A run that wants that figure reads documents deliberately
+  through one class process and `--wild`s it against its twin.
 - `OPEN` **Class property 1 breaks on ONE main-set cell that was already a tie,
   and which side of 1 it lands on has now changed four times in four runs ---
   and twice WITHIN a pair.** `mut-odo-vecdims` is behind `bq-expand`
