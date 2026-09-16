@@ -7619,6 +7619,21 @@ def note_check(path, readme, run_doc=None):
                               'the half `%s` is not on the roll in NAMING'
                               ' THE HALVES, which this run appends to' % tag))
 
+    # 4. AND AN ENTRY POINT THE EXECUTING SESSION CAN READ IN A MINUTE.
+    # Run list step 13 tells that session to read the note's `[EXEC]`
+    # blocks -- the ones it ACTS on -- `or the whole note where a
+    # preparation left none`. Run 33's preparation left none and the
+    # executing session read all 745 lines, which is the branch being
+    # taken rather than a shortfall in the instruction: a note is the
+    # preparation's record and an entry point is what makes it usable
+    # by anyone else. One block, naming what is spent and what is owed,
+    # is thirty lines of reading instead of seven hundred.
+    if '[EXEC]' not in text:
+        found.append((0, 'no [EXEC] block, so run list step 13 falls back'
+                         ' to reading the whole note -- 745 lines on Run'
+                         ' 33. Mark the block the executing session ACTS'
+                         ' on, what is spent and what is still owed'))
+
     if not found:
         print('note-check %s: clean -- %d line(s), previous run %d,'
               ' registration of %d item(s)' % (base, len(lines), prev, top))

@@ -8305,6 +8305,12 @@ and never as a chronology.
     #      lost NONE. That is the whole of the fix and it costs a
     #      paragraph; where a pointer is kept anyway, follow it and read
     #      what it lands on
+    #  12c. TAG THE NOTE'S ENTRY POINT `[EXEC]` FIRST: one block, saying
+    #      what is SPENT, what is STILL OWED and what the executing
+    #      session acts on. `--note-check` refuses a note without one,
+    #      which is what retires run list step 13's `or the whole note`
+    #      branch -- taken by both runs that met it, at eight hundred and
+    #      745 lines of reading. The block is thirty
     #  12c. COMMIT, AND REVIEW BEFORE YOU DO, not after: walk what this
     #      half wrote for errors -- 12b is the figures, this is the shape
     #      of the changes -- and commit once at the end. A review after
@@ -8375,12 +8381,16 @@ Unsandboxed throughout:
     #      read UP: the newest GATE: line is the script's own "reading still
     #      to do"; the hand-written verdict sits above it. The note is
     #      always somebody else's and NOT RUN is its ordinary answer, so
-    #      read its [EXEC] blocks before grepping it, or the whole note
-    #      where a preparation left none -- those are the ones this
-    #      session ACTS on, where [SAME] and [PAIR'S] say who WROTE the
-    #      block; the rest is the preparation's record and is skimmed.
-    #      Run 32 read all eight hundred lines at this step, which the
-    #      line then asked for
+    #      read its [EXEC] blocks and not the note -- those are the ones
+    #      this session ACTS on, where [SAME] and [PAIR'S] say who WROTE
+    #      the block; the rest is the preparation's record and is skimmed.
+    #      THERE IS NO `or the whole note` BRANCH SINCE 2026-09-16: a note
+    #      without an [EXEC] block is a note `--note-check` refuses at
+    #      pre-run 12c, so by the time this step reads one the block is
+    #      there. That branch was live and both runs that met it took it
+    #      -- Run 32 read all eight hundred lines at this step and Run 33
+    #      all 745, each because its preparation had left the entry point
+    #      untagged
     #      why: --para 'A paired run has one gate more'
     ./read-run.py --section 'What this run was built to answer' \
     #        --run-doc runs/$PREV.md      # 13a, AND EVERY OTHER READING
@@ -8416,91 +8426,38 @@ Unsandboxed throughout:
     #      there is one before it, and a reading this cheap has no claim
     #      on the hours anyway.
     #      why: --para 'registered predictions'
-    ./run-evening.sh $R                   # 14 TO 19 IN ONE COMMAND, in the
-    #      harness's background mode and NOT a typed `&`, so its exit
-    #      wakes you and no waiter is owed -- a bare `&` detaches just as
-    #      well, registers no task and wakes nobody (2026-09-04): the gate (14), the alarm (16), the sequence (17) and
-    #      the riders (19), in that order and under the environment the
-    #      note's LAUNCH: line names, each stage's verdict appended to
-    #      $R-evening.txt as it lands and the machine handed back on its
-    #      last line. It reads the note's HALVES:, LAUNCH: and RIDERS:
-    #      lines and refuses a note without them; it skips the gate where
-    #      the note records one mechanically clean; the gate refusing or a
-    #      busy box stops it, and nothing after that does -- a complaint
-    #      is recorded and the next stage runs. Confirm the launch by
-    #      `evening begins` in $R-evening.txt and never by the launching
-    #      shell's output, a blocked write leaving a launch that never
-    #      happened looking like one in progress.
-    #      AND ARM A MONITOR ON THAT FILE IN THE SAME TURN:
-    #          tail -F -n +1 $R-evening.txt 2>/dev/null
-    #      stopped when the evening ends. `-F` AND NOT `-f`, AND THE
-    #      REDIRECT IS NOT OPTIONAL: run-evening.sh creates that file at
-    #      its first stamp, so at arming time it does not exist yet and
-    #      plain `tail -f` fails on it and the monitor is armed over
-    #      nothing. `-F` retries by name and `-n +1` replays the stamps
-    #      already written, which is what makes the first line the
-    #      `evening begins` this step confirms the launch by.
-    #      Background mode wakes you at the command's EXIT, which for
-    #      this one is some seven hours after four stages and
-    #      twenty-two processes have landed silently; the monitor is
-    #      what puts each on the screen as it lands, which is what
-    #      the confirm-each-long-process rule asks for and what
-    #      background mode alone cannot give. NOT INSTEAD of it:
-    #      a tail never exits, so it would never deliver the
-    #      command's status. Run 26 armed both and reported the gate,
-    #      the alarm, the sequence and all four riders as they came.
-    #      What it replaced was
-    #      five launch lines typed between waits, each wait a turn end
-    #      and each line a place to drop the environment or to mis-order;
-    #      the counts stay a line of their own for the reason 19a gives.
-    #      AND EACH MONITOR'S `description` IS A TAG AND NOT A LEGEND --
+    ./run-evening.sh $R                   # 14 TO 19 IN ONE COMMAND, in
+    #      the harness's background mode and NOT a typed `&`: the gate
+    #      (14), the alarm (16), the sequence (17) and the riders (19),
+    #      in that order, under the environment the note's LAUNCH: line
+    #      names, each stage's verdict appended to $R-evening.txt as it
+    #      lands and the machine handed back on its last line. It reads
+    #      the note's HALVES:, LAUNCH: and RIDERS: lines and refuses a
+    #      note without them; it skips a gate the note records
+    #      mechanically clean; the gate refusing or a busy box stops it,
+    #      and nothing after that does. CONFIRM THE LAUNCH by `evening
+    #      begins` in $R-evening.txt and never by the launching shell's
+    #      output, a blocked write leaving a launch that never happened
+    #      looking like one in progress.
+    #      AND ARM TWO MONITORS IN THE SAME TURN, both owed:
+    #          tail -F -n +1 $R-evening.txt 2>/dev/null   # the stages
+    #          ./run-heartbeat.sh $R                      # persistent
+    #      `-F` AND NOT `-f`, AND THE REDIRECT IS NOT OPTIONAL: the file
+    #      does not exist at arming time, `-F` retries by name and `-n +1`
+    #      replays the stamps already written. The stage monitor is SILENT
+    #      for the five or six hours the sequence runs, so the heartbeat
+    #      is what makes the pace visible while it is still a pace -- one
+    #      line every 45 minutes carrying the JSON count, the last stage
+    #      line and $R-wallclock.log's last line.
+    #      EACH MONITOR'S `description` IS A TAG AND NOT A LEGEND --
     #      `$R stages` and `$R heartbeat`, two or three words: the harness
-    #      announces every event as `Monitor event: "<description>"`, so
-    #      whatever it says is reprinted on every tick, and a 45-minute
-    #      heartbeat reprints it all night. The legend belongs in the LINE
-    #      the monitor emits, where it is read once per tick and is the
-    #      reason the monitor is worth arming. Asked for twice in one
-    #      session (2026-09-14); the prefix itself is a literal in the
-    #      `claude` binary and no settings key reaches it.
-    #      AND A SECOND MONITOR IN THE SAME TURN, THE HEARTBEAT, WHICH IS
-    #      OWED AND NOT A CHOICE: persistent, one line every 45 MINUTES
-    #      carrying the run's JSON count, the last stage line and
-    #      $R-wallclock.log's last line. NEITHER is stopped before
-    #      $R-evening.txt reads EVENING COMPLETE, which run-counts-all.sh
-    #      writes and run-evening.sh does not -- the counted work appends
-    #      to the same file, so the stage monitor carries step 20 too and
-    #      stopping either at the riders blinds the last hour. STOPPING
-    #      THEM IS AN ACT AND IT IS WRITTEN WHERE IT HAPPENS, at 20's
-    #      woken step below, not here where they are armed.
-    #        Monitor, persistent, from this directory:
-    #          ./run-heartbeat.sh $R
-    #        The loop was eleven lines here until 2026-09-14, retyped every
-    #        run with two redirects and a `cut` to get right; the script
-    #        owns them and its header owns their reasons, a tick over a
-    #        file that does not exist yet being an empty field and never
-    #        an error. What the list keeps is the line that arms it.
-    #      THE STAGE MONITOR IS SILENT FOR THE FIVE OR SIX HOURS THE
-    #      SEQUENCE RUNS -- one line when it starts and the next when it
-    #      ends -- so across the longest stretch of the run nothing reaches
-    #      the screen, and a driver that died an hour ago reads exactly
-    #      like one still working. The heartbeat is what makes the pace
-    #      visible while it is still a pace: on Run 28 its ticks put the
-    #      main set at 64 minutes for 741 benches and then every class at
-    #      its own bench count's share of that, criterion spending its
-    #      budget per bench. THAT SHARE IS TIGHT ENOUGH TO READ AGAINST:
-    #      all twenty-two of Run 28's processes ran between 5.169 and
-    #      5.244 seconds a bench, a ONE PERCENT spread over populations
-    #      from 117 benches to 741, so a process ten percent slow is
-    #      visible at the tick rather than in the wallclock log
-    #      afterwards. It wants no quiet box of its own, being an `ls` and
-    #      a `tail` an hour.
-    #      FORTY-FIVE MINUTES AND NOT SIXTY, for a reason that is the
-    #      SESSION's and not the run's; the prose has it, under the
-    #      heartbeat's own bolded lead
-    #      The stage lines below say
-    #      what each is for and what to reach for when one complains, as
-    #      preflight.sh's do for 4 to 10; 15 and 18 are yours while it runs
+    #      reprints it on every tick.
+    #      NEITHER IS STOPPED before $R-evening.txt reads EVENING
+    #      COMPLETE, which the counted work writes and this command does
+    #      not; stopping them is an act and it is written at 20's woken
+    #      step, where it happens.
     #      why: --para 'run-major.sh is that sequence'
+    #      why: --para 'The heartbeat ticks at FORTY-FIVE MINUTES'
     ./run-status.sh $R                    # AND THE DONE-CONDITION, run now
     #      and whenever the run seems finished: every step of the three
     #      lists an artifact or the repository can answer for, `STATUS: all
@@ -10027,57 +9984,51 @@ not otherwise.
     #      the line between the readings above and the checks below. A
     #      GATE -- `--lint`, `--check-doc`, `check-all`, `defect-run.py
     #      --changed .`, `selftest-mutants.py .`, a build or a test suite
-    #      -- is run bare, its status read from its own exit and never
-    #      through a pipe or an `&&` chain, both of which report the LAST
-    #      command's: Run 27 read `check-all | tail`'s exit 0 and had to
-    #      run it again. A READING is wanted for what it PRINTS, so that
-    #      may be redirected and grepped -- but the status stays its own,
-    #      AND A HUMAN TABLE IS NOT PARSED BY FIELD INDEX. The tables
-    #      these modes print are aligned for reading, so a column's
-    #      position depends on the widest arm name in the run: Run 28
-    #      took `--counts --pair`'s RAW column for its CORRECTED one
-    #      and `--pair`'s arm name for its ratio, both by counting
-    #      fields, and the first survived into a published rate. Use
-    #      `--cells`, which is TSV for exactly this; where a mode has
-    #      no TSV form, match the LABEL on the line rather than its
-    #      offset, and assert the header you expect before reading a
-    #      row under it. AND A PUBLISHED COLUMN IS NEVER INVERTED TO
-    #      GET THE OTHER ORIENTATION. A run file prints its `cross`
-    #      figures to four places, and a previous run's basis is often
-    #      the half yours is not, so the reciprocal is wanted every
-    #      time three runs are put in one orientation -- but `1/0.8788`
-    #      is a rounded number's reciprocal and not the geomean
-    #      `--compare` computes with the halves swapped, and the two
-    #      need not agree past the places the first was printed to.
-    #      RE-RUN THE READER: `./read-run.py PREV-<unflagged>-main.json
-    #      --compare PREV-<flagged>-main.json` prints the orientation
-    #      you want, off the JSONs. Run 31 built the composition
-    #      arithmetic its compares-against section turns on by
-    #      inverting Run 29's 0.8788 and 0.7810, then re-derived them
-    #      and found the reader agreeing to four places -- which it
-    #      need not have, and which no check here would have caught.
-    #      A FIGURE THIS FILE QUOTES EVERY RUN OWES A
-    #      MODE besides: `rate` and the summary's `bold` were hand
-    #      arithmetic over two other modes' output until 2026-09-11,
-    #      and each was got wrong the run it was last hand-rolled.
-    #      and two of them use it: `--predictions` exits 1 where a span
-    #      went unread and `--pair` 2 where it refused a sunk pair. The
-    #      first of those stopped this run's own `&&` chain testing this
-    #      line, so the grep after it never ran and the recipe read as
-    #      printing nothing. `2>/dev/null` is legitimate on a reading whose
+    #      -- is run bare and its status read from its own exit. The three
+    #      ways that status gets lost are the user-scope CLAUDE.md's, with
+    #      the measurements: a pipe and an `&&` chain each report the LAST
+    #      command's status, and in background mode the harness reports
+    #      the TASK's, so `check-all . > log; echo "RC=$?"` ends in the
+    #      echo. Run 27 read `check-all | tail`'s exit 0 here and ran the
+    #      suite again; Run 33 lost check-all's status to the echo and ran
+    #      it again too. `2>/dev/null` is legitimate on a reading whose
     #      warnings this session has already read once, and on no gate and
     #      no first call: the stderr a run wants is there -- the sunk-cell
     #      count, the R2 and sample warnings, `--corr=insitu`'s notice
-    #      that its column compares to nothing in README -- and a session
-    #      that silences it by habit has bought its quiet with the one
-    #      channel that says a figure is not to be trusted.
-    #      AND A THIRD FORM BITES IN BACKGROUND MODE, where the harness
-    #      reports the TASK's exit and a task is the whole command line:
-    #      `check-all . > log; echo "RC=$?"` ends in the echo, so the
-    #      notification says exit code 0 over a check that returned 1,
-    #      and the status survives only in the echoed text. Read that
-    #      text, or put the gate alone on the line. Measured twice on
-    #      2026-09-11, the second time after the first was understood.
+    #      that its column compares to nothing in README.
+    #      AND A HUMAN TABLE IS NOT PARSED BY FIELD INDEX, which is this
+    #      chapter's own and not portable: the tables these modes print
+    #      are aligned for reading, so a column's position depends on the
+    #      widest arm name in the run. Run 28 took `--counts --pair`'s RAW
+    #      column for its CORRECTED one and `--pair`'s arm name for its
+    #      ratio, both by counting fields, and the first survived into a
+    #      published rate. Use `--cells`, which is TSV for exactly this;
+    #      where a mode has no TSV form, match the LABEL on the line
+    #      rather than its offset, and assert the header you expect
+    #      before reading a row under it.
+    #      AND A PUBLISHED COLUMN IS NEVER INVERTED TO GET THE OTHER
+    #      ORIENTATION. A run file prints its `cross` figures to four
+    #      places and a previous run's basis is often the half yours is
+    #      not, so the reciprocal is wanted every time three runs are put
+    #      in one orientation -- but `1/0.8788` is a rounded number's
+    #      reciprocal and not the geomean `--compare` computes with the
+    #      halves swapped, and the two need not agree past the places the
+    #      first was printed to. RE-RUN THE READER:
+    #      `./read-run.py PREV-<unflagged>-main.json --compare
+    #      PREV-<flagged>-main.json` prints the orientation you want, off
+    #      the JSONs. Run 31 built the composition arithmetic its
+    #      compares-against section turns on by inverting Run 29's 0.8788
+    #      and 0.7810, then re-derived them and found the reader agreeing
+    #      to four places -- which it need not have, and which no check
+    #      here would have caught.
+    #      A FIGURE THIS FILE QUOTES EVERY RUN OWES A MODE besides:
+    #      `rate` and the summary's `bold` were hand arithmetic over two
+    #      other modes' output until 2026-09-11, and each was got wrong
+    #      the run it was last hand-rolled; `--floor-pairs` and
+    #      `--movement` joined them on 2026-09-16 for the same reason.
+    #      Two modes use the exit status besides: `--predictions` exits 1
+    #      where a span went unread and `--pair` 2 where it refused a sunk
+    #      pair.
     #  WHICH CHECK AFTER WHICH EDIT, and no other -- an expensive check's
     #      answer stands until what it reads changes, and a commit is
     #      not such a change:

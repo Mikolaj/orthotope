@@ -1630,9 +1630,17 @@ def note_for_the_check(tmp, broken=True):
     """
     write(os.path.join(_mkruns(tmp), 'run98.md'), '# Run 98\n')
     roll = '`c` and `d`' if not broken else '`c`'
+    # The ENTRY POINT the executing session reads, tagged as run list step
+    # 13 wants it and as pre-run 12c now requires: without it that step
+    # falls back to reading the note whole, which both runs that met the
+    # branch did, at eight hundred and 745 lines.
+    entry = ('' if broken else
+             'ENTRY POINT FOR THE SESSION THAT RUNS THIS [EXEC]: pre-run'
+             ' is spent; the gate at 14 is owed.\n\n')
     return write(os.path.join(tmp, 'run99-pair.txt'),
                  'The pair run99-c and run99-d, Run 99s, written by hand'
                  ' 2026-01-01\n\n'
+                 + entry +
                  'HALVES: basis=c other=d\n\n'
                  'NAMING THE HALVES [SAME]: every half on record is'
                  ' hyphen-free (%s).\n\n'
@@ -6481,7 +6489,7 @@ RECORDS = [
                           'readme': readme_with_a_registration(t)},
          argv=['--note-check', '{note}', '--readme', '{readme}'],
          ok=V(exit=1, has=['continuity claim reaching only Run 96',
-                           'item (5)', 'not on the roll']),
+                           'item (5)', 'not on the roll', 'no [EXEC] block']),
          bug=V(exit=2, hasnt=['continuity claim'])),
 
     case('note-check-passes-a-note-with-none-of-them', 'read-run.py', None,

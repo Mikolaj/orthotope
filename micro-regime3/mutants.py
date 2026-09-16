@@ -110,6 +110,15 @@ MUTANTS = [
      "    prev = {}",
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nj = d.synth_json(t, \'main\')\ndoc = d.rundoc_with_a_results_table(t)\nr = subprocess.run([sys.executable, \'{file}\', j, \'--movement\', \'--run-doc\', doc], capture_output=True, text=True)\nsys.exit(0 if \'lib-stage2-lean\' in r.stdout and \'row(s) moved\' in r.stdout else 1)"'),
 
+    # AND --note-check WANTS THE NOTE'S ENTRY POINT. Run list step 13
+    # reads the [EXEC] blocks, and its `or the whole note` branch was
+    # taken by both runs that met it -- eight hundred lines and 745.
+    # Dropping the test puts the branch back with nothing saying so.
+    ('--note-check stops wanting an [EXEC] block', 'read-run.py',
+     "    if '[EXEC]' not in text:",
+     '    if False:',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nn = d.note_for_the_check(t)\nrm = d.readme_with_a_registration(t)\nr = subprocess.run([sys.executable, \'{file}\', \'--note-check\', n, \'--readme\', rm], capture_output=True, text=True)\nsys.exit(0 if \'no [EXEC] block\' in r.stdout + r.stderr else 1)"'),
+
     # `CORPUS_RUN=newest` narrows `check-all`'s corpus to one run, so a
     # narrowing that keeps the wrong runs would put the suite back where it
     # was while reading as narrowed. The judge asks the selection directly
