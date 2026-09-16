@@ -4962,13 +4962,13 @@ ahead of the implementation:
   Int32 comment sites.
 
 **A class population is three shapes, or four, or fourteen** --- three to seven
-when this paragraph was written and three to fourteen today, `runs` having grown
-on Runs 22 and 24, and the figure is stated here as a SCALE and re-read off
-a run's own cross-class table rather than maintained --- against a main set
-several times the size, which is deliberate --- the classes are there to vary
-the *mechanism*, and varying size and rank within one is the main set's job ---
-but it decides how their results read. A class geomean rests on three cells,
-so it is a summary of a handful of numbers rather than a statistic
+when this paragraph was written and three to seventeen today, `runs` having
+grown on Runs 22, 24 and 34, and the figure is stated here as a SCALE
+and re-read off a run's own cross-class table rather than maintained --- against
+a main set several times the size, which is deliberate --- the classes are there
+to vary the *mechanism*, and varying size and rank within one is the main set's
+job --- but it decides how their results read. A class geomean rests on three
+cells, so it is a summary of a handful of numbers rather than a statistic
 over a spread; the per-shape figures are nearly the whole population
 and are worth quoting where the main set's would be flattened away; winsorizing
 has almost nothing to cap and `--pair`'s bootstrap interval almost nothing
@@ -7108,6 +7108,34 @@ first, the two that did not die on paper at all:
   the two ports of the branch to fail it, and what prices it for the consumer
   is the `-sum` arms ([the stride
   classes](#the-stride-classes-and-what-they-cover)).
+- **Cutting a run longer than a constant C into runs of C in the unordered list,
+  sketched on 2026-09-16 as a stage twelve over stage eleven, before that name
+  went to the run-length tie-break, so that the one-accumulator consumer's chain
+  of adds never exceeds C** --- died on paper the same day, on size and
+  on the constant. The size: the cut has to come after `canonViewOfPairs`, which
+  merges a chunk level whose stride equals the inner extent straight back
+  into one run, and it needs a second walk over the same outer levels
+  for the remainder where C does not divide the run, so the route becomes two
+  walks and a `-list-sum` arm is owed beside the `-sum` one to price the longer
+  list to an unfused consumer: some forty lines beside stage eleven's seventeen,
+  for what is a guard of one line there. The constant: Run 33's `runs` class
+  on the basis half has stage eleven at 0.70 ns an element on runs of 2, 0.289
+  on runs of 9, 0.38 on runs of 96 and 0.60 from 4096 up, the asymptote being
+  the dependent-add rate [the open list][open] names in its answer
+  of 2026-09-15; a probe the same day over `runs-32`, `runs-48` and `runs-64`,
+  added for Run 34 and in no run's column yet, read 0.31 at 32 and 0.38 at 48
+  and 64 beside 0.31 at 9 and 0.39 at 96 in the same process, a plateau to 32
+  and a step by 48 --- so C is a figure read off one Zen 3, about 32 here,
+  and the win it buys is that machine's. The simpler forms meet the same two
+  walls. Stage six's tie-break in place of stage seven's takes three
+  of the unstrided `window` views back, by 17 to 37 percent on Run 33's basis,
+  and gives up the two with channels and `window-28x28-k5`, by 19, 48 and 32,
+  the lever being the run length and not the tie; a cut at the square root
+  of the run leaves `runs-65536` in chunks of 256, on the asymptote; and any
+  partition of the multiset into contiguous runs sums each run serially,
+  so no run choice under the unordered contract escapes the latency without
+  a length. What escapes it is a fold the library drives with two accumulators,
+  a different entry point and not this list.
 - **Delta-compressing an offset table** (storing Int8/Int16 steps, mostly
   the constant `tInner`, instead of absolute offsets) fails `vGenerate`'s
   contract: the callback is random-access, and recovering an absolute offset

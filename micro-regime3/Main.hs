@@ -5649,6 +5649,16 @@ runsShapes =
     -- conv row.
   , ("runs-7",        [257142, 7])      -- 1799994, a k7 conv row
   , ("runs-9",        [200000, 9])      -- 1800000, the window probe's run
+    -- Three lengths inside the 9 to 96 gap, added 2026-09-16 for Run 34:
+    -- Run 33 read stage eleven at 0.289 ns an element on runs of 9 and
+    -- 0.380 on runs of 96, and a fit to its curve put a minimum between
+    -- them. A probe the same day (probe-runsdip-basis.json, the basis
+    -- recipe, not a run) read 0.31 at 32 and 0.38 at 48 and 64 against
+    -- 0.31 at 9 and 0.39 at 96 in the same process: a plateau to 32 and
+    -- a step by 48, no dip. Not in Run 33; Run 34 records the column.
+  , ("runs-32",       [56250, 32])      -- 1800000
+  , ("runs-48",       [37500, 48])      -- 1800000
+  , ("runs-64",       [28125, 64])      -- 1800000
   , ("runs-96",       [18750, 96])      -- 1800000, an image row
     -- The `flip` class's forward control, added 2026-09-09, and a `runs`
     -- shape only in how it is built. `flip-last-rows` is the same `l` at
