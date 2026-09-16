@@ -13559,7 +13559,7 @@ tables and its fingerprint say so.
   `run33-gheadexit-main`, for 3 of its 627 benches at a peak of 0.35 of a core;
   the rerun post-run step 3 orders was launched and stopped at the owner's word,
   and the run's own file carries the sensitivity reading that stands in for it.
-  Its four gate processes and all 92 alone-leg logs are clean. **And its floor
+  Its four gate processes and all 88 alone-leg logs are clean. **And its floor
   is a maximum over EIGHT A/A pairs**, 0.47% and 0.62%, `bq-expand-aa-distant`
   carrying it on BOTH halves; its restricted four-pair reading is the same two
   figures, so the two thresholds are closed on both halves for a second run.
