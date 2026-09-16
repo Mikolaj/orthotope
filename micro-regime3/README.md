@@ -1134,18 +1134,24 @@ rather than a slot in the next run, observed again:
   reading that stood in for it moved no verdict, the widest span by 0.75
   of a point. **So the cost is small, real, and lands where the reading happens
   to fall** --- twice now on the first process of whatever stage is running when
-  the session starts reading. **TAKEN 2026-09-16, and the entry is kept
-  for the evidence rather than the question**: the fix is an ordering and
-  not a measurement, so run list step 15 now scopes the reading to AFTER
-  the sequence's first process ends --- the stage monitor's second `start` line
-  --- and the reading-list digest's placement of the carrier, which had said
-  that window `costs nothing`, waits with it. A sequence process is an hour
-  and a document read is minutes, so the wait costs a session nothing it
-  was not already waiting. What is NOT settled, and is why this stays open:
-  nobody has measured what a session's reading costs the process it lands on,
-  only that twice it cleared the 0.25-of-a-core bar the reader calls
-  an intrusion. A run that wants that figure reads documents deliberately
-  through one class process and `--wild`s it against its twin.
+  the session starts reading. **TAKEN 2026-09-16, at the second attempt,
+  and the entry is kept for the evidence and for the first attempt's error**:
+  every reading moves OUT of the evening, to run list step 13a, before
+  `run-evening.sh` is launched --- the previous run's registrations, the open
+  list, the last run's file, `post-a` and the readings carrier with them.
+  The first attempt scoped the reading to after the sequence's FIRST process
+  instead, which relocates the intrusion rather than removing it: every one
+  of the twenty-two is a timed process. **What settles the placement is
+  that the exposure is per command and not per minute.** The two reads step 15
+  named cost 0.08 s and 0.37 s of CPU; a bench's samples are milliseconds,
+  and the worst foreign readings on the three intruded benches were 291, 276
+  and 234 ms --- so anything concurrent trips the bar, and there is no quiet
+  window inside the evening to move a reading to. There is one before it,
+  and a reading this cheap has no claim on the hours. What is NOT settled,
+  and is why this stays open: nobody has measured what a session's reading costs
+  the process it lands on, only that twice it cleared the 0.25-of-a-core bar
+  the reader calls an intrusion. A run that wants that figure reads documents
+  deliberately through one class process and `--wild`s it against its twin.
 - `OPEN` **Class property 1 breaks on ONE main-set cell that was already a tie,
   and which side of 1 it lands on has now changed four times in four runs ---
   and twice WITHIN a pair.** `mut-odo-vecdims` is behind `bq-expand`
@@ -8336,6 +8342,39 @@ Unsandboxed throughout:
     #      Run 32 read all eight hundred lines at this step, which the
     #      line then asked for
     #      why: --para 'A paired run has one gate more'
+    ./read-run.py --section 'What this run was built to answer' \
+    #        --run-doc runs/$PREV.md      # 13a, AND EVERY OTHER READING
+    #      THIS LIST OWES, HERE AND NOT INSIDE THE EVENING BELOW. Read
+    #      now: the PREVIOUS run's registered predictions and their
+    #      verdicts, in its own file, where they have lived since
+    #      2026-08-29 -- `--para 'What Run'` reads the pointer and not
+    #      the registration, and an empty-looking answer is not a
+    #      blocker; the open list by its status markers (READ NOW: item
+    #      7); the last run's own file, its head and Results prose (READ
+    #      NOW: item 2), which shapes the whole write-up; and the post-run
+    #      list's first half, `--checklist post-a`. NOT the replace list:
+    #      it is walked at post-run step 6 and gains nothing from being
+    #      read six hours early.
+    #      AND THE READINGS CARRIER IS SPAWNED HERE, items 2, 4, 5 and 6,
+    #      for the same reason and not during the sequence: an agent is a
+    #      local process and its bootstrap lands wherever it is started.
+    #      TWICE MEASURED, WHICH IS WHY THIS SITS BEFORE THE LAUNCH.
+    #      Run 32 read documents during its GATE and `--wild` found 2 of
+    #      that process's 95 benches at 0.82 and 0.68 of a core; the line
+    #      was then scoped to `sequence: start`, and Run 33 obeyed the
+    #      scoped line and intruded on the sequence's FIRST process -- 3
+    #      of 627 benches at up to 0.35 of a core, on registration (1)'s
+    #      own arm and two of the copies its floor is read from, which
+    #      cost that run a rerun it launched and had to stop.
+    #      THE EXPOSURE IS PER COMMAND AND NOT PER MINUTE, which is what
+    #      the two scopings each missed: the two reads named above cost
+    #      0.08 s and 0.37 s of CPU, a bench's samples are milliseconds,
+    #      and half a second of anything concurrent trips the
+    #      0.25-of-a-core bar the reader calls an intrusion. So there is
+    #      no quiet window inside the evening to move the reading to;
+    #      there is one before it, and a reading this cheap has no claim
+    #      on the hours anyway.
+    #      why: --para 'registered predictions'
     ./run-evening.sh $R                   # 14 TO 19 IN ONE COMMAND, in the
     #      harness's background mode and NOT a typed `&`, so its exit
     #      wakes you and no waiter is owed -- a bare `&` detaches just as
@@ -8440,34 +8479,13 @@ Unsandboxed throughout:
     #      gate that FAILED mechanically stopped the driver instead, and
     #      that is the apparatus: read run-gate.sh's block in the note
     #      why: --para 'A paired run has one gate more'
-    ./read-run.py --section 'What this run was built to answer'
-    #  15. ONCE `sequence: start` IS ON THE STAGE MONITOR, AND NOT BEFORE,
-    #      READ: the PREVIOUS run's registered predictions
-    #      and their verdicts, in its own file, where they have lived since
-    #      2026-08-29 -- `--para 'What Run'` reads the pointer and not the
-    #      registration, and an empty-looking answer is not a blocker --
-    #      and the open list by its status markers (READ NOW: item 7). NOT
-    #      the replace list: it is walked at post-run step 6, gains nothing
-    #      from being read six hours early, and the read is paid twice if
-    #      the session does not survive the sequence
-    #      SCOPED TO THE SEQUENCE 2026-09-15 AND RESCOPED AGAIN
-    #      2026-09-16, TO AFTER ITS FIRST PROCESS ENDS: wait for the
-    #      stage monitor's second `start` line, not its first. The
-    #      evening's own instrument is why, twice over. Step 14
-    #      launches four stages as one command and the FIRST is the
-    #      gate, half an hour of benches, so a reading told to start
-    #      `while it runs` starts inside the gate: Run 32's did, and
-    #      `--wild` found 2 of that process's 95 benches at 0.82 and
-    #      0.68 of a core. Scoping the reading to `sequence: start`
-    #      moved it one step and no further -- Run 33 obeyed the
-    #      scoped line and intruded on the sequence's FIRST process,
-    #      3 of 627 benches at up to 0.35 of a core, on registration
-    #      (1)'s own arm and two of the copies the floor is read
-    #      from, which cost that run a rerun it then had to stop.
-    #      A sequence process is an hour and the reading is minutes,
-    #      so the wait costs the session nothing it was not already
-    #      waiting; before that line it is measured, twice now
-    #      why: --para 'registered predictions'
+    #  15. TAKEN AT 13a, BEFORE THE LAUNCH, and not here: the number is
+    #      kept so that every pointer to it still lands. What stood here
+    #      was the previous run's registrations and the open list, read
+    #      `once sequence: start is on the stage monitor` -- the second
+    #      of two placements inside the evening, both of which a run
+    #      then measured as an intrusion. Nothing is owed at this point
+    #      of the evening but watching it
     #  16. THE ALARM, its second stage: two reads of /proc/stat two seconds
     #      apart, refused above 5% non-idle, MAXBUSY overriding -- the
     #      reading the riders take. An alarm and never a permission: the
@@ -8494,10 +8512,10 @@ Unsandboxed throughout:
     #      the ones that need no asking (19a); a filtered probe takes ONE
     #      -m MODE then its patterns, and its benchmarking lines are
     #      counted before any number is read
-    #  18. ALSO ONLY AFTER `sequence: start`: the last run's own file,
-    #      which shapes the
-    #      whole write-up and is worth little read after it has begun
-    #      (READ NOW: item 2, its head and Results prose)
+    #  18. TAKEN AT 13a TOO, with the rest of the readings: the last
+    #      run's own file, its head and Results prose (READ NOW: item 2),
+    #      which shapes the whole write-up. The number is kept for the
+    #      pointers into it
     #  19. THE RIDERS, its fourth stage: run-alonelegs.sh on each half,
     #      control first, clean (SATURATE stripped from the launch
     #      environment) and then `SAT=1` where the note's RIDERS: line
@@ -9231,37 +9249,37 @@ because the suspects sat at one roster slot on two shapes, which is luck
 and not a method.
 
 **The run's registered predictions** ([the open list][open]) say what this run
-was for and what would kill each one, and are read while the sequence is still
-ahead of you, at step 15; their verdicts are written beside them once post-run
-step 5 has moved them into the run's own file. **An empty registration does
-not hold the run.** Where a run has none, note the absence and read the outcome
-against its queue entry instead. What is not open is registering afterwards:
-the point of the list is that it predates the hours, so the choice here
-is to register before the evening or to do without. **A count of what held
-is read off the items rather than tallied from memory**, which is how Run 18
-came to summarise five registrations in its lead before it had adjudicated
-the fifth. **And a verdict is written in a fixed vocabulary, because a checker
-reads it**: `--check-doc` holds a registration's marker to its items ---
-numbered `1.` at the start of a line, Run 17's form, or `(N)` inline before
-an italic label, Run 18's, a number's spans grouped so that stating a question
-and later adjudicating it under one number reads as one item --- so an `OPEN`
-entry whose every item is adjudicated is reported as a stale marker
-and an `ANSWERED` one with an item that is not is reported as an incomplete
-adjudication. What it recognises is a **bolded span whose first sixty characters
-carry one of** ANSWERED, REFUTED, HELD, BROKE, BROKEN, FAILED, SPLIT, KILLED,
-TAKEN, DELIVERED, PAID, CLEAN, SETTLED, RETIRED, SPENT, UNUSED, NULL
-or WITHDRAWN --- both house styles pass, the label-then-verdict
-`*The flag's cost.* **KILLED, ...**` and the paragraph-opening
-`**The condition was met and the debt is PAID**`. **A verdict written outside
-that vocabulary is invisible to the check**, so a new word is added
-to `VERDICT_WORDS` in `read-run.py` in the same edit that first uses it,
-or the item reads as unadjudicated for ever. Run 12's entry sat `OPEN` for six
-runs on an item that said PAID, and the check's own first draft missed
-it by keying on capitalisation instead of the word. **And say what a partial
-outcome is**: a prediction registered over several arms can come apart,
-and neither "held" nor "refuted" is then true --- Run 10's first was stated
-over three arms and one confirmed it while two met its own kill condition.
-Report that as a split, name which arms went which way, and carry
+was for and what would kill each one, and are read while the whole evening
+is still ahead of you, at step 13a and before it is launched; their verdicts
+are written beside them once post-run step 5 has moved them into the run's own
+file. **An empty registration does not hold the run.** Where a run has none,
+note the absence and read the outcome against its queue entry instead. What
+is not open is registering afterwards: the point of the list is that it predates
+the hours, so the choice here is to register before the evening or to do
+without. **A count of what held is read off the items rather than tallied
+from memory**, which is how Run 18 came to summarise five registrations
+in its lead before it had adjudicated the fifth. **And a verdict is written
+in a fixed vocabulary, because a checker reads it**: `--check-doc` holds
+a registration's marker to its items --- numbered `1.` at the start of a line,
+Run 17's form, or `(N)` inline before an italic label, Run 18's, a number's
+spans grouped so that stating a question and later adjudicating it under one
+number reads as one item --- so an `OPEN` entry whose every item is adjudicated
+is reported as a stale marker and an `ANSWERED` one with an item that is
+not is reported as an incomplete adjudication. What it recognises is a **bolded
+span whose first sixty characters carry one of** ANSWERED, REFUTED, HELD, BROKE,
+BROKEN, FAILED, SPLIT, KILLED, TAKEN, DELIVERED, PAID, CLEAN, SETTLED, RETIRED,
+SPENT, UNUSED, NULL or WITHDRAWN --- both house styles pass,
+the label-then-verdict `*The flag's cost.* **KILLED, ...**`
+and the paragraph-opening `**The condition was met and the debt is PAID**`.
+**A verdict written outside that vocabulary is invisible to the check**,
+so a new word is added to `VERDICT_WORDS` in `read-run.py` in the same edit
+that first uses it, or the item reads as unadjudicated for ever. Run 12's entry
+sat `OPEN` for six runs on an item that said PAID, and the check's own first
+draft missed it by keying on capitalisation instead of the word. **And say what
+a partial outcome is**: a prediction registered over several arms can come
+apart, and neither "held" nor "refuted" is then true --- Run 10's first
+was stated over three arms and one confirmed it while two met its own kill
+condition. Report that as a split, name which arms went which way, and carry
 the consequence for each separately; the temptation is to round it to whichever
 answer the majority of arms gives, which loses the finding.
 
@@ -10628,18 +10646,19 @@ a reading taken at the head is forgotten by the time its step arrives. A reading
 that owes nothing cannot be told from a reading not done, which is the whole
 of why this is a list and not a sentence. **Items 2, 4, 5 and 6 are ONE
 CARRIER'S BATCH, and its return is a file**: `run<N>-readings.txt`, written
-at the head of the post-run walk --- or EARLIER, during the sequence, which
-is where Run 26 put it, AFTER ITS FIRST PROCESS ENDS as run list step 15 now
-asks of every reading: the box is busy for hours and the carrier only reads,
-but an agent's bootstrap is not free and Run 33's landed inside the sequence's
-first process, three of whose benches `--wild` then read above a quarter
-of a core. The file waits either way. Read back a block at a time by the three
-steps that name those items. They are the previous run's prose --- its head,
-its two-column section, its properties and a class block --- read once
-for a verdict apiece and never carried whole, which is what a carrier is for.
-A file rather than a returned message because the sentence above binds
-a delegated reading too: what the carrier says is forgotten by the step
-that needs it unless it is written down.
+at the head of the post-run walk --- or EARLIER, at run list step 13a, BEFORE
+`run-evening.sh` is launched, which is where every reading now goes: Run 26 put
+the carrier inside the sequence and said it cost nothing there, and Run 33's
+landed in the sequence's first process, three of whose benches `--wild`
+then read above a quarter of a core. An agent is a local process
+and its bootstrap lands wherever it is started. The file waits either way. Read
+back a block at a time by the three steps that name those items. They
+are the previous run's prose --- its head, its two-column section,
+its properties and a class block --- read once for a verdict apiece and never
+carried whole, which is what a carrier is for. A file rather than a returned
+message because the sentence above binds a delegated reading too: what
+the carrier says is forgotten by the step that needs it unless it is written
+down.
 
     1. this chapter's three checklists, each printed alone by
     `./read-run.py --checklist pre|run|post`, a fifth of the chapter's lines
@@ -10649,7 +10668,7 @@ that needs it unless it is written down.
          it being actionable until 5b's tables are in; the pre list at
          step 11, where the machine time starts and where nothing can be
          started until preflight's 4,5 has passed on binaries that exist.
-         Take `pre-a` at step 0 and `post-a` when the sequence starts,
+         Take `pre-a` at step 0 and `post-a` at run list step 13a, before the evening is launched,
          the other half of each when its steps arrive: Run 29 read all
          615 lines of `post` at run-list step 15, six hours before its
          first actionable line, and Run 30 read all 642 of it at the same
