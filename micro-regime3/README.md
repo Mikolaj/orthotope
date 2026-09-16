@@ -12925,10 +12925,14 @@ a reboot, a copy over the file or the eviction itself all do. A tmpfs makes
 the frame a function of the layout --- deterministic, and the shim's kind
 of term: the box's `/tmp` hands out 128 KiB compound pages, and a copy run
 from it read its code lines in runs of 32 frames with the physical L2 set equal
-to the virtual one, `0x141` and `0x292` on the two hot lines, and read fast ---
-at the price of a TLB change on both halves, and it is not adopted until a half
-has been timed under it, which `probe-hugebin.sh` does for a `huge=always` mount
-under the checkout.
+to the virtual one, `0x141` and `0x292` on the two hot lines, and read fast.
+Those pages are still mapped 4 KiB at a time, `FilePmdMapped` 0, so the TLB sees
+what it saw; what changes is that a collision, if one lands, recurs on every
+launch and rebuild with that layout, readable with the probes and movable
+by the shim, where today it is drawn afresh per file instance. Not adopted until
+a whole half has been timed from tmpfs against its on-disk twin, which no cell
+stands in for; `probe-hugebin.sh` takes the one-cell reading for a `huge=always`
+mount under the checkout, and the roster reading is a run's.
 
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above
