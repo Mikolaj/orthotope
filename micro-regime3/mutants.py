@@ -381,11 +381,7 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', j, \'--machine\','
      ' \'--run-doc\', fp], capture_output=True, text=True)\n'
      'sys.exit(0 if \'OWN fingerprint\' in r.stdout + r.stderr else 1)"'),
-    # The digest check, made unconditional: every ITEM block reads present
-    # whether or not the carrier returned one, which is the state the
-    # three steps were in before 2026-09-05 -- a delegated reading not
-    # taken reading the same as one taken. The judge asks an unstarted
-    # run, whose digest cannot exist, for the refusal.
+
     # THE PLATEAU GATE, made blind to the state it now reads. Until Run 29
     # this gate banded the preamble victim's ms/iter, which is timed with
     # `list`, so a pair whose variable moves `list` failed on its own
@@ -404,20 +400,7 @@ MUTANTS = [
      'cp {root}/run29-*.log "{dir}/" 2>/dev/null; '
      'sed -i "s/inuse=95420416/inuse=7/" "{dir}/run29-spec-rev.log"; '
      '{file} run29 2>&1 | grep -q "did not assert ONE state"'),
-    ('run-status stops wanting the carrier digest', 'run-status.sh',
-     'if grep -qE "^ITEM ${it}([^0-9]|\\$)" "$READINGS" 2>/dev/null; then',
-     'if true; then',
-     '{file} run98 2>&1 | grep -q "no ITEM 5 block"'),
-    # The end-of-line half of that same pattern, taken back out: a header
-    # reading `ITEM N` and nothing after it stops matching, which is the
-    # form the chapter asks for and the one Run 27's carrier wrote, where
-    # Run 26's carried a title. The judge plants bare headers and asks for
-    # the present verdict.
-    ('run-status wants a title after the ITEM number', 'run-status.sh',
-     'if grep -qE "^ITEM ${it}([^0-9]|\\$)" "$READINGS" 2>/dev/null; then',
-     'if grep -q "^ITEM ${it}[^0-9]" "$READINGS" 2>/dev/null; then',
-     'printf \'ITEM 2\\nITEM 4\\nITEM 5\\nITEM 6\\n\' > "{dir}/run97-readings.txt"; '
-     '{file} run97 2>&1 | grep -q "carries the ITEM 5 block"'),
+
     # The heading-spacing gate, made blind: `n != 2` becomes `False`, so
     # a heading run straight into the paragraph above it passes -- the
     # state README was in for the whole of Run 27's write-up, past every

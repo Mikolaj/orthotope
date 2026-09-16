@@ -1152,6 +1152,39 @@ rather than a slot in the next run, observed again:
   the process it lands on, only that twice it cleared the 0.25-of-a-core bar
   the reader calls an intrusion. A run that wants that figure reads documents
   deliberately through one class process and `--wild`s it against its twin.
+- `ANSWERED` **The readings carrier is retired, 2026-09-16: the reading it saved
+  is a reading the write-up cannot avoid.** From 2026-09-05 reading-list items
+  2, 4, 5 and 6 --- the previous run's head and Results prose, its two-column
+  table, its properties and its class blocks --- were one agent's batch,
+  returned as `run<N>-readings.txt`, one `ITEM N` block apiece, on the argument
+  that a session should read that prose once for a verdict apiece rather
+  than carry it whole. **What retires it is that post-run step 5 copies
+  the previous run's file and the write-up edits the copy paragraph
+  by paragraph**, so the session reads those four sections as the text
+  it is replacing, whatever a carrier reads. The carrier read them a second
+  time, in another process, to summarise what the session was about to have
+  open: on Run 33 that cost 111,877 tokens, ten tool calls and 2m16s for an 11.6
+  KB file. **And the file went unopened on two of the three runs that used one**
+  --- Run 26 read its summary off the task notification, which the instruction
+  at step 5 then warned about by name, and Run 33 did the same thing anyway.
+  `run-status.sh` could not see it: it marked steps 4, 5 and 6a done when
+  the `ITEM N` blocks EXISTED, which is a check that the carrier ran
+  and not that anyone read it, so the one instrument that would have noticed
+  confirmed the opposite. **What was worth keeping is the QUESTION each item
+  carries** --- does the two-column table carry the last run's columns, which
+  properties are live and how many, what the six-part class-block form is ---
+  and those now sit at the steps that rewrite those sections, where the text
+  is open and the question costs nothing. **What went with the check**:
+  `run-status.sh`'s digest block, the four defect cases
+  `status-wants-the-carriers-digest`, `status-reads-the-carriers-digest`,
+  `status-reads-a-bare-item-header` and `status-wants-no-digest-before-run-26`,
+  the two mutants that proved it bit, and `defects.py`'s `readings_digest`
+  fixture --- all in git under those names. **What would reopen it**: a run
+  whose write-up does NOT edit the previous run's file in place, which is what
+  post-run step 5 would have to stop doing; or a handover, a session dying
+  between the launch and the write-up, where a page of conclusions outlives
+  a transcript --- and that case wants the four `--section` calls written
+  to a file by the session, 0.08 s each, and not an agent.
 - `OPEN` **Class property 1 breaks on ONE main-set cell that was already a tie,
   and which side of 1 it lands on has now changed four times in four runs ---
   and twice WITHIN a pair.** `mut-odo-vecdims` is behind `bq-expand`
@@ -8355,9 +8388,10 @@ Unsandboxed throughout:
     #      list's first half, `--checklist post-a`. NOT the replace list:
     #      it is walked at post-run step 6 and gains nothing from being
     #      read six hours early.
-    #      AND THE READINGS CARRIER IS SPAWNED HERE, items 2, 4, 5 and 6,
-    #      for the same reason and not during the sequence: an agent is a
-    #      local process and its bootstrap lands wherever it is started.
+    #      ITEMS 2, 4, 5 AND 6 ARE NOT READ HERE: they are the sections
+    #      post-run 4, 5 and 6a rewrite, and are read there with the text
+    #      open. No agent is spawned for them, by the ruling of
+    #      2026-09-16 in the open list.
     #      TWICE MEASURED, WHICH IS WHY THIS SITS BEFORE THE LAUNCH.
     #      Run 32 read documents during its GATE and `--wild` found 2 of
     #      that process's 95 benches at 0.82 and 0.68 of a core; the line
@@ -9415,8 +9449,13 @@ not otherwise.
     #      why: --para 'Match bases before reading any ratio'
     #      READ NOW: item 9's execution half of read-run.py's docstring
     #      -- the statistic definitions, the A/A identity and the modes
-    #      that read a run's figures -- and, FROM THE DIGEST, items 5
-    #      and 6, the properties and the class-block form
+    #      that read a run's figures -- and reading items 5 and 6 HERE,
+    #      off the previous run's own file, whose properties section and
+    #      class blocks this step's readings are about to replace: which
+    #      properties are live and how many, and the six-part form of a
+    #      class block. `--section 'The properties the next run should
+    #      test' --run-doc runs/$PREV.md` and `--section 'The stride
+    #      classes, run by run' --run-doc runs/$PREV.md` are the reads
     ./read-run.py $R-<basis>-$c.json --block          #    one per class
     ./read-run.py $R-<basis>-$c.json --compare $R-<other>-$c.json
     #      AND `--compare` PRINTS THE REDUCING CONSUMERS UNDER ITS TABLE
@@ -9506,12 +9545,9 @@ not otherwise.
     #      why: --para 'The properties are part of this'
     #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
     #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT
-    #      (FROM THE DIGEST: item 2's block, whether or not 18 read it
-    #      -- a reading taken in the run session does not reach here.
-    #      OPEN THE FILE: the carrier's returned MESSAGE is not the file,
-    #      and working from it is the forgetting the file exists to
-    #      prevent -- Run 26 never opened items 2 and 4 at all and read
-    #      their summaries off the task notification instead) --
+    #      (reading item 2 HERE, off the copy you have just made, which
+    #      IS the last run's head and Results prose until you replace it:
+    #      one sentence on what this run's own head has to answer) --
     #      three reasons, all of them below and only one about wrapping.
     #      Every install below writes that file and no other document.
     #      TWO headings take the number: the file's title, renamed by the
@@ -9648,7 +9684,10 @@ not otherwise.
     #        session reading 6 as one walk writes a whole document with no
     #        step naming that it did
     #      why: --para 'What skipping this costs is measured'
-    #  6a. THE RUN'S OWN FILE (FROM THE DIGEST: item 4, the two-column table
+    #  6a. THE RUN'S OWN FILE (reading item 4 HERE, off the copy: does the
+    #      two-column table carry the last run's columns? Run 20's
+    #      write-up forgot to add its own, which is why the question is
+    #      asked at the step that rewrites the table
     #      FIRST, BEFORE A WORD OF IT: `./read-run.py --inherited`, which
     #      names the paragraphs this file carried WHOLE from the last
     #      run's and which claim something about the run in front of
@@ -10644,21 +10683,23 @@ IT and not before**: item 1 is read now, and every other item stands
 in the lists above as a `READ NOW` line at the step whose work needs it, because
 a reading taken at the head is forgotten by the time its step arrives. A reading
 that owes nothing cannot be told from a reading not done, which is the whole
-of why this is a list and not a sentence. **Items 2, 4, 5 and 6 are ONE
-CARRIER'S BATCH, and its return is a file**: `run<N>-readings.txt`, written
-at the head of the post-run walk --- or EARLIER, at run list step 13a, BEFORE
-`run-evening.sh` is launched, which is where every reading now goes: Run 26 put
-the carrier inside the sequence and said it cost nothing there, and Run 33's
-landed in the sequence's first process, three of whose benches `--wild`
-then read above a quarter of a core. An agent is a local process
-and its bootstrap lands wherever it is started. The file waits either way. Read
-back a block at a time by the three steps that name those items. They
-are the previous run's prose --- its head, its two-column section,
-its properties and a class block --- read once for a verdict apiece and never
-carried whole, which is what a carrier is for. A file rather than a returned
-message because the sentence above binds a delegated reading too: what
-the carrier says is forgotten by the step that needs it unless it is written
-down.
+of why this is a list and not a sentence. **Items 2, 4, 5 and 6 are read
+at the three post-run steps that rewrite those very sections** --- 5 for item 2,
+6a for item 4, 4 for items 5 and 6 --- and by nobody else. They were one
+carrier's batch from 2026-09-05 until 2026-09-16, returned
+as `run<N>-readings.txt` so that a delegated reading could not be forgotten;
+what ended it is that the reading was never avoidable to begin with. Post-run
+step 5 copies the previous run's file and the write-up edits that copy paragraph
+by paragraph, so the session reads that run's head, its two-column section,
+its properties and its class blocks AS THE TEXT IT IS REPLACING ---
+and the carrier read the same four a second time, in another process,
+to summarise what the session was about to have open in front of it. Run 26
+never opened the file at all and read its summary off the task notification; Run
+33 did the same, which is two runs of three, and settled it. What the items keep
+is their QUESTION --- does the two-column table carry the last run's columns,
+which properties are live and how many --- which is the half a carrier
+was really enforcing and which costs nothing asked at the step that rewrites
+the section.
 
     1. this chapter's three checklists, each printed alone by
     `./read-run.py --checklist pre|run|post`, a fifth of the chapter's lines
@@ -10687,14 +10728,18 @@ down.
     6. the class blocks: the six numbered items of the form, and one example
        block, not the rest
          -- the form, in your own words
-         ITEMS 2, 4, 5 AND 6 ARE ONE CARRIER'S BATCH and its return is
-         `run<N>-readings.txt`, one `ITEM N` block apiece, each block the
-         artifact named on that item's own second line and each figure
-         beside the invocation that re-emits it. It is
-         `checker-brief.txt` turned around -- a page of conclusions
-         written BY an agent FOR the run where the brief is written for
-         one -- so it follows that file's form and invents nothing
-         ITS FOUR READS, so the carrier opens no file whole (P=$PREV):
+         ITEMS 2, 4, 5 AND 6 ARE READ AT THE STEPS THAT REWRITE THOSE
+         SECTIONS -- post-run 5 for item 2, 6a for item 4, and 4 for
+         items 5 and 6 -- and not before and not by anyone else. They
+         WERE one agent's batch, returned as `run<N>-readings.txt`, from
+         2026-09-05 until 2026-09-16; the ruling that ended it is in the
+         open list, and its ground is that post-run step 5 copies the
+         previous run's file and the write-up edits that copy in place,
+         so the session has those four sections open in front of it
+         whatever a carrier reads. Two of the three runs that used one
+         never opened the file it returned. What the items keep is their
+         QUESTION, which is the half that was worth having
+         ITS FOUR READS, none of which opens a file whole (P=$PREV):
              item 2  --section Results --run-doc runs/$P.md
              item 4  --section 'What the next run compares against' --run-doc runs/$P.md --with-tables 1
              item 5  --section 'The properties the next run should test' --run-doc runs/$P.md

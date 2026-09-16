@@ -1518,40 +1518,6 @@ def rundoc_heading_spacing(tmp, blanks=1):
                         + '## Results\n\nA paragraph under it.\n')
 
 
-def readings_digest(run='run97', bare=False):
-    """A carrier's return for reading-list items 2, 4, 5 and 6.
-
-    One `ITEM N` block apiece, each block the artifact the list already
-    says that item owes, and each figure beside the invocation that
-    re-emits it -- a claim with no named invocation being a gap, here as
-    in the run file.
-
-    `bare` heads each block `ITEM N` and nothing else, which is what the
-    chapter asks for and what Run 27's carrier wrote; the titled form is
-    Run 26's, so a check reading the header has to take both.
-    """
-    text = ('# %s-readings.txt -- the carrier\'s return for reading-list'
-            ' items 2, 4, 5 and 6.\n\n'
-            'ITEM 2 (the last run\'s head and Results prose)\n'
-            '    what this run\'s head must answer: the last one rests on'
-            ' a repetition this one cannot take.\n'
-            '    from: ./read-run.py --section Results --run-doc'
-            ' runs/run96.md\n\n'
-            'ITEM 4 (the two-column table, the ONE table read)\n'
-            '    does it carry the last run\'s columns? yes, both.\n'
-            '    from: ./read-run.py --section \'What the next run compares'
-            ' against\' --with-tables 1\n\n'
-            'ITEM 5 (the properties and the prose after them)\n'
-            '    live: three.\n'
-            '    from: ./read-run.py --lint\n\n'
-            'ITEM 6 (the class blocks)\n'
-            '    the form: six numbered items, verdicts first, the'
-            ' paragraph the author\'s.\n'
-            '    from: ./read-run.py run96-rev.json --block\n' % run)
-    if bare:
-        text = re.sub(r'^(ITEM \d+) .*$', r'\1', text, flags=re.M)
-    return text
-
 
 def doc_with_a_table(tmp, n=1):
     """A document of three sections, the middle one carrying `n` tables.
@@ -10535,52 +10501,6 @@ RECORDS = [
               hasnt=['gate: inherited']),
          bug=V(has=['gate: inherited'], hasnt=['gate: start'])),
 
-    case('status-wants-the-carriers-digest', 'run-status.sh', None,
-         'the three steps that read the previous run through a carrier were'
-         ' judged on nothing, so a delegated reading not taken read the same'
-         ' as one taken',
-         # Reading-list items 2, 4, 5 and 6 are one carrier's batch and its
-         # return is $R-readings.txt. The chapter's own sentence is that a
-         # reading which owes nothing cannot be told from a reading not
-         # done; post-run 4 owes items 5 and 6, step 5 item 2 and step 6a
-         # item 4, and each is judged on its block from Run 26 on.
-         shadow=dict(),
-         argv=['run98'],
-         ok=V(exit=1, has=['no ITEM 5 block', 'no ITEM 6 block',
-                           'no ITEM 2 block', 'no ITEM 4 block'])),
-
-    case('status-reads-the-carriers-digest', 'run-status.sh', None,
-         'CONTROL: with the blocks present those three steps read done',
-         shadow=dict(extra=[('run97-readings.txt', readings_digest())]),
-         argv=['run97'],
-         ok=V(has=['carries the ITEM 2 block', 'carries the ITEM 4 block',
-                   'carries the ITEM 5 block', 'carries the ITEM 6 block'],
-              hasnt=['no ITEM 2 block'])),
-
-    case('status-reads-a-bare-item-header', 'run-status.sh', 'e8f1c31',
-         'a block headed `ITEM N` and nothing else read as absent, so the'
-         ' carrier\'s return was owed four times over with the file there',
-         # The chapter asks for `one ITEM N block apiece` and names no
-         # title; Run 26's carrier wrote one anyway and Run 27's did not,
-         # so the header that matched was the decorated one. `[^0-9]` was
-         # there to keep ITEM 2 off ITEM 25 and took the end of the line
-         # with it.
-         shadow=dict(extra=[('run97-readings.txt',
-                             readings_digest(bare=True))]),
-         argv=['run97'],
-         ok=V(has=['carries the ITEM 2 block', 'carries the ITEM 4 block',
-                   'carries the ITEM 5 block', 'carries the ITEM 6 block'],
-              hasnt=['no ITEM 2 block']),
-         bug=V(has=['no ITEM 2 block', 'no ITEM 4 block', 'no ITEM 5 block',
-                    'no ITEM 6 block'],
-               hasnt=['carries the ITEM 2 block'])),
-
-    case('status-wants-no-digest-before-run-26', 'run-status.sh', None,
-         'CONTROL: the carrier batch is an instruction of 2026-09-05, and'
-         ' every run up to 25 read the previous run\'s file directly',
-         shadow=dict(),
-         argv=['run20'],
-         ok=V(exit=1, hasnt=['ITEM 2', 'ITEM 4', 'ITEM 5', 'ITEM 6'])),
 
     case('status-counts-the-slots-a-note-still-owes', 'run-status.sh', None,
          'CONTROL: a note carrying <yours> reads NOT DONE at 2c, naming'
