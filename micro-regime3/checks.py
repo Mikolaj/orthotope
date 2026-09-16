@@ -99,7 +99,7 @@ UNCOVERED = {
 # The probes: inputs to README rather than drivers, each run by hand for
 # the question it is named for, and none with a case.
 for _name in ('probe-pageflags.py', 'probe-r33-instance.sh',
-              'probe-hugebin.sh',
+              'probe-hugebin.sh', 'probe-ibs.sh',
               'probe-attr-build.sh', 'probe-attrnoshim-build.sh',
               'probe-attr-read.py', 'probe-attr.sh', 'probe-cache-build.sh',
               'probe-flip-counters.sh', 'probe-flip-counters-read.py',

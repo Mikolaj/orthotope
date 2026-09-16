@@ -12907,20 +12907,28 @@ and front-end stalls read equal, branch resyncs number in the hundreds on both,
 and only the store-to-load interlock count moves, 8 to 12 percent more
 on the slow instance; the basis's term scales with the nursery, 5 percent
 at `-A8m` and 15 at `-A32m` and `-A64m`. So it is not a set conflict
-with the heap, not a flush from a false code-write match and not the front end;
-a back-end term of the loads and stores against something the frame fixes
-is what is left, and IBS is the instrument that would attribute it. Two readings
-reach the term and nothing else here does: `--half-movers RUN PREV`, each half
-against the previous run's same half over every population, since the A/A pairs
-share the binary and the counts share the code; and the copy test, the half
-copied to a probe name and the cell timed on both, a minute.
-`probe-pageflags.py` reads the frames of a running instance under sudo,
-its `--heap` form beside the heap's, and is what to run on the next slow
-instance BEFORE anything evicts it, which a reboot, a copy over the file
-or the eviction itself all do. A tmpfs mounted `huge=always` would make
+with the heap, not a flush from a false code-write match and not the front end.
+IBS over the same cell on both instances, `probe-ibs.sh`, attributes nothing
+either: every instruction of the leaf's loop samples at the same rate on both,
+its loads hit L1 on both with the same latency, and the miss-buffer counts
+for loads, stores and hardware prefetches agree within three percent, the copy's
+slightly higher. What is left is a per-iteration back-end stall that no event
+this core exposes names, the interlocks being too few by an order of magnitude
+to be it, and the mechanism stays open. Two readings reach the term and nothing
+else here does: `--half-movers RUN PREV`, each half against the previous run's
+same half over every population, since the A/A pairs share the binary
+and the counts share the code; and the copy test, the half copied to a probe
+name and the cell timed on both, a minute. `probe-pageflags.py` reads the frames
+of a running instance under sudo, its `--heap` form beside the heap's,
+and is what to run on the next slow instance BEFORE anything evicts it, which
+a reboot, a copy over the file or the eviction itself all do. A tmpfs makes
 the frame a function of the layout --- deterministic, and the shim's kind
-of term --- at the price of an iTLB change on both halves, and is not adopted
-until a copy has been timed under it.
+of term: the box's `/tmp` hands out 128 KiB compound pages, and a copy run
+from it read its code lines in runs of 32 frames with the physical L2 set equal
+to the virtual one, `0x141` and `0x292` on the two hot lines, and read fast ---
+at the price of a TLB change on both halves, and it is not adopted until a half
+has been timed under it, which `probe-hugebin.sh` does for a `huge=always` mount
+under the checkout.
 
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above

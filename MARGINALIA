@@ -27,3 +27,10 @@ rate, the front end reads equal, resyncs are hundreds on both, and only
 the store-to-load interlocks move; the structure stays open. The tmpfs
 copy came in 128 KiB compound pages with physical L2 sets equal to the
 virtual ones, which is item 34's determinism from a mount that exists.
+Evening: IBS over the compose cell on HEAD's slow instance and its copy,
+probe-ibs.sh after three false starts (per-thread refused, a user-only
+modifier refused, root refused a user's stale file in /tmp): every
+instruction of the leaf's loop samples alike on both, all L1 hits, and
+the miss-buffer counts for loads, stores and prefetches agree, so the
+mechanism stays open with the front end, the caches, the TLB, resyncs
+and prefetch all ruled out by counters.
