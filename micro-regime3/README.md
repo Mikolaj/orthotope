@@ -3441,28 +3441,32 @@ were read against it only at the close; the switch changes no byte of either
 binary, so what it would have moved is WHEN the item was caught and not what
 it says. A COMPUTATION IMPROVISED: a cross for a reducing consumer,
 for the second run running, which became a mode under `--compare` at 7249a35.
-A STEP SKIPPED: none. A CAPABILITY FOUND: `--note-check`, which preflight runs
-as 10e over the note and which catches a carried `[SAME]` block that is still
-the previous pair's. **AND THIS SESSION'S HALF.** A CHECK THAT WOULD HAVE CAUGHT
-AN ERROR, and this run has two. The first: `--move-registration` REFUSED
-at post-run step 5 because the OPEN entry's bold lead carried a declaration
-clause --- *registered before it runs --- declared 2026-09-15 evening
-by request, the recipes in ...* --- where the mode matches the lead ending
-at *runs.*, and neither `--lint` nor `--check-doc` holds a registration's lead
-to the form the mover needs, so the defect sat from the declaration until
-the move. The second: THREE HEAD PARAGRAPHS STATED THE PAIR'S DIRECTION
-BACKWARDS, HEAD read as the slower half where a `cross` above 1 means
-the control is the faster; what caught it was reading `--cells` on one shape
-of one arm, and nothing in the gates holds prose to the direction of a ratio.
-The brief now carries the direction as a line of its own. A COMPUTATION
-IMPROVISED, and it is the one to build a mode for: item (5) is the standing
-floor-pair registration and carries no `predict:` span, so adjudicating
-its forty-four readings took a script over `--pair` per population per half
-against each population's own floor --- and the sensitivity reading
-the intrusion forced, `--exclude-shape` twice over both halves,
-was hand-assembled the same way. A STEP SKIPPED: none, but 6a's **THE HEAD
-IS WRITTEN LAST** was not observed --- the head was written after 5c's
-adjudication and before the class paragraphs and Provenance ---
+A STEP SKIPPED: none. A CHECK THAT CAUGHT AN ERROR AFTER THE FACT:
+`properties.py` over the corpus, which failed three properties on the truncated
+JSON the stopped rerun left parked as `probe-*.json` --- the `probe-` prefix
+keeps a superseded artifact out of the readers' `$R-*` globs but not out
+of a sweep over every `*.json`, and a `.partial` suffix is what does.
+A CAPABILITY FOUND: `--note-check`, which preflight runs as 10e over the note
+and which catches a carried `[SAME]` block that is still the previous pair's.
+**AND THIS SESSION'S HALF.** A CHECK THAT WOULD HAVE CAUGHT AN ERROR,
+and this run has two. The first: `--move-registration` REFUSED at post-run step
+5 because the OPEN entry's bold lead carried a declaration clause ---
+*registered before it runs --- declared 2026-09-15 evening by request,
+the recipes in ...* --- where the mode matches the lead ending at *runs.*,
+and neither `--lint` nor `--check-doc` holds a registration's lead to the form
+the mover needs, so the defect sat from the declaration until the move.
+The second: THREE HEAD PARAGRAPHS STATED THE PAIR'S DIRECTION BACKWARDS, HEAD
+read as the slower half where a `cross` above 1 means the control is the faster;
+what caught it was reading `--cells` on one shape of one arm, and nothing
+in the gates holds prose to the direction of a ratio. The brief now carries
+the direction as a line of its own. A COMPUTATION IMPROVISED, and it is the one
+to build a mode for: item (5) is the standing floor-pair registration
+and carries no `predict:` span, so adjudicating its forty-four readings took
+a script over `--pair` per population per half against each population's own
+floor --- and the sensitivity reading the intrusion forced, `--exclude-shape`
+twice over both halves, was hand-assembled the same way. A STEP SKIPPED: none,
+but 6a's **THE HEAD IS WRITTEN LAST** was not observed --- the head was written
+after 5c's adjudication and before the class paragraphs and Provenance ---
 and the direction errors above were all three in it, which is the cost
 that instruction predicts. THE READINGS THE CARRIER TOOK AND WHAT THEY COST:
 items 2, 4, 5 and 6 came back as `run33-readings.txt`, four `--section` reads
