@@ -8041,7 +8041,13 @@ and never as a chronology.
     ./loop-offsets.py --survey $R-<basis>       # 10a. one leg per half,
     ./loop-offsets.py --survey $R-<other>       # 10b. both owed, both new,
     #      and the answer goes in the note: it is the binary's, not the
-    #      reading session's. What it means is below, at the pad
+    #      reading session's. What it means is below, at the pad.
+    #      Each leg prints three counts, and the third is new (2026-09-16):
+    #      exit spans astride, the span as align-as.py costs it under
+    #      LOOP_EXITSPAN. On a half built with that switch it is 0, or the
+    #      recipe lacks the switch or the shim regressed -- stop before 11
+    #      and read the recipe; on a half built without it, a figure for
+    #      the note, 65 and 72 on Run 32's halves
     ./smoke-sweep.sh $R                   # 11. the smoke sweep, STARTED NOW
     ./smoke-l1.sh $R [CLASS ...]          #     in the background with 12 where
     #      the diff at 6 says it is owed, and 12a and 12b taken under
@@ -8850,8 +8856,12 @@ the length-agnostic form, one binary at a time, and the answer a property
 of the pair --- offsets at 0 are what a fully padded half shows and not a thing
 to require of a max-skip one, which leaves a resident loop where it fell; what
 "every timed arm's loop" means is bounded by what can be attributed at all.
-The sequence below runs each half in turn, and `run-major.sh` does it for you;
-what neither can do is interleave two processes of this size within
+The exit-span count the survey prints beside the straddlers (2026-09-16) is read
+the same way and is sharper: under `LOOP_EXITSPAN=1` it is 0 on both halves
+by the shim's own claim, so a nonzero there is a recipe or shim defect and
+not a reading, while a half built without the switch records it, 65 and 72
+on Run 32's. The sequence below runs each half in turn, and `run-major.sh` does
+it for you; what neither can do is interleave two processes of this size within
 a population, so the order they ran in is written down and is one of the two
 things left uncontrolled.
 
@@ -10103,13 +10113,16 @@ because by then the run read finished; putting it first is what retires that.
    fill-in block is where TRANSCRIBED figures live, Run 25's saying outright
    that two of its own were carried rather than derived and happening
    to be true, which is why the executing session re-runs the `--match` off
-   the binaries it timed. Run 12's were derived this way on the last day they
-   existed and refuted two accounts of its own split; Run 10's and Run 11's
-   are gone unnamed. **Where a preparation spent this half early, on an idle box
-   before the pair ran, the executing session re-derives it off the binaries
-   it timed** --- two minutes, and the difference between a block that was read
-   and one that was carried, which is the distinction pre-run step 12b exists
-   to make and which a note's fill-in block cannot make for itself. What is left
+   the binaries it timed, and reads the block it ends with since 2026-09-16,
+   the exit spans astride named the same way --- empty on a `LOOP_EXITSPAN=1`
+   half, and on any other the loops that switch would move. Run 12's
+   were derived this way on the last day they existed and refuted two accounts
+   of its own split; Run 10's and Run 11's are gone unnamed. **Where
+   a preparation spent this half early, on an idle box before the pair ran,
+   the executing session re-derives it off the binaries it timed** --- two
+   minutes, and the difference between a block that was read and one
+   that was carried, which is the distinction pre-run step 12b exists to make
+   and which a note's fill-in block cannot make for itself. What is left
    over is the timing work, which is what a quiet machine is for.
 1. **Gate every population on the correction, before reading any figure ---
    and read the A/A *worst cell*, not only the pair's geomean.** A control

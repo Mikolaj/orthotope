@@ -811,10 +811,14 @@ fill_in () {
   # The count line is taken WHOLE past its colon rather than by fields: a
   # field slice of it read "184 self-loops of at most" and dropped the "64
   # B" that says what a self-loop is here.
+  # And the exit-span count beside them (2026-09-16): 0 on a half built
+  # under LOOP_EXITSPAN=1, a figure to keep on one built without it.
   srv () { ./loop-offsets.py --survey "$1" 2>/dev/null \
              | awk '/self-loops/ && !a { sub(/^[^:]*: */, ""); a = $0 }
                     /at offset 0/{b=$NF} /still straddling/{c=$NF}
-                    END{print a", "b" at offset 0, "c" straddling"}'; }
+                    /exit spans astride :/{d=$NF}
+                    END{print a", "b" at offset 0, "c" straddling, "\
+                              d" exit spans astride"}'; }
   # The run behind this one, for the two cross-run reads: the highest
   # runs/run<N>.md below this N, and its basis binary if it is still here.
   # Both degrade to a named absence rather than to silence -- an artifact

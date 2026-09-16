@@ -119,16 +119,30 @@ decoded as an instruction start go 613 to 777, which is the whole of why one
 reads 115 short loops and the other 101. The straddle count *within* one
 binary is sound; a difference in the totals between two is the disassembler.
 
+**`--survey` counts exit spans astride beside the straddlers** (2026-09-16),
+the span as `align-as.py` costs it under `LOOP_EXITSPAN`: from a head
+through the first jump on the fall-through path after its last back edge,
+none where that edge is a `jmp`, and astride when a span of at most a line
+crosses one. The shim prints its own count only under `ALIGN_AS_VERBOSE`,
+which no recipe sets, so this is the reading a run has off the binary it
+timed. Under `LOOP_EXITSPAN=1` it is an invariant: Run 33's two halves read
+0 and 0 where Run 32's read 65 and 72, and a nonzero on a half built with
+the switch says the recipe lacked it or the shim regressed. It counts a
+placement and not a cost.
+
 Its defects are kept as cases in `defects.py` -- objdump's status
 and addr2line's -- and a fix here wants one there first.
 
     ./loop-offsets.py BINARY...          # 28-byte loop, the one this README prices
     ./loop-offsets.py --len 24 BINARY    # e.g. the count-down form
-    ./loop-offsets.py --survey BINARY    # every loop that could fit a line
+    ./loop-offsets.py --survey BINARY    # every loop that could fit a line:
+                                         #   the straddlers, and the exit
+                                         #   spans astride (2026-09-16)
     ./loop-offsets.py --library A B      # do the two halves move the libraries
     ./loop-offsets.py --delta OLD NEW    # how far a rebuild moved the tracked
                                          #   loops: the pinning claim's reading
-    ./loop-offsets.py B --match TWIN...  # name B's straddlers off -g3 twins,
+    ./loop-offsets.py B --match TWIN...  # name B's straddlers, and its exit
+                                         #   spans astride, off -g3 twins,
                                          #   the other half's included
     ./loop-offsets.py ... --loose        # and by a register-masked signature
                                          #   where every twin's bytes refuse
@@ -153,6 +167,8 @@ TOP = re.compile(r'^([a-z]\w*)\s*(?:::|[^=]*=)')   # a top-level binding
 KEYWORD = {'type', 'data', 'newtype', 'class', 'instance', 'import', 'module',
            'infix', 'infixl', 'infixr', 'foreign', 'pattern'}
 LINE = 64  # the cache line, and the op cache's window on this Zen 3
+UNCOND = re.compile(r'^(?:jmp|ret|ud2|hlt)')   # nothing falls through it
+EXITEND = re.compile(r'^(?:j|ret|ud2|hlt)')    # where a fall-through exit ends
 
 
 def span_label(want):
@@ -318,21 +334,30 @@ def signature(insns, k, n):
     return '; '.join(out)
 
 
-def scan(path, length):
-    dis = listing(path)
-    cur = None
-    insns = []
-    for line in dis.split('\n'):
-        m = SYM.match(line)
-        if m:
-            cur = m.group(2)
-            continue
-        m = INSN.match(line)
-        if m:
-            insns.append((int(m.group(1), 16), len(m.group(2).split()),
-                          ''.join(m.group(2).split()), m.group(3),
-                          m.group(4), cur))
+_PARSED = {}
 
+
+def parse(path):
+    """The listing's instructions, read once per path: (address, byte
+    count, hex, mnemonic, operands, enclosing symbol)."""
+    if path not in _PARSED:
+        cur, insns = None, []
+        for line in listing(path).split('\n'):
+            m = SYM.match(line)
+            if m:
+                cur = m.group(2)
+                continue
+            m = INSN.match(line)
+            if m:
+                insns.append((int(m.group(1), 16), len(m.group(2).split()),
+                              ''.join(m.group(2).split()), m.group(3),
+                              m.group(4), cur))
+        _PARSED[path] = insns
+    return _PARSED[path]
+
+
+def scan(path, length):
+    insns = parse(path)
     at = {i[0]: n for n, i in enumerate(insns)}
     targets = set()
     for _addr, _nb, _raw, mnem, op, _sym in insns:
@@ -373,6 +398,14 @@ def scan(path, length):
         # Nor does it carry a run of zero bytes: such a body IS a table,
         # the third site in `reaches`.
         if zero_run(body):
+            continue
+        # Nor does it begin with a nop: a `nopl` pad after an unconditional
+        # jump, closed by the info-table word after it read as a short
+        # backward jcc, is a fourth table shape -- six bytes that cannot straddle,
+        # so only the exit-span count met it, two on run33-gheadexit and one
+        # on run32-ghead (2026-09-16). Survey totals recorded before then are
+        # higher by that on those two and stand as taken.
+        if insns[k][3].startswith('nop'):
             continue
         found.append({'start': tgt, 'bytes': body, 'sym': insns[k][5],
                       'len': span, 'ninsn': n - k + 1, 'mod': tgt % LINE,
@@ -478,8 +511,51 @@ def arms(path, addrs, rev=None):
     return named
 
 
+def exit_spans(path, heads):
+    """{head: its exit span in bytes}, for the heads given, as align-as.py
+    costs them under LOOP_EXITSPAN: from the head through the first jump
+    on the fall-through path after the head's LAST back edge, and none
+    where that edge is unconditional, nothing falling through it. The last
+    back edge is any backward jump to the head, however long, which is why
+    this reads the listing again rather than the loops `scan` kept.
+    """
+    insns = parse(path)
+    last = {}
+    for n, (addr, _nb, _raw, mnem, op, _sym) in enumerate(insns):
+        if not JMP.match(mnem):
+            continue
+        t = TARGET.match(op.strip())
+        if not t:
+            continue
+        tgt = int(t.group(1), 16)
+        if tgt in heads and tgt < addr:
+            last[tgt] = n
+    out = {}
+    for h, n in last.items():
+        if UNCOND.match(insns[n][3]):
+            continue
+        for k in range(n + 1, len(insns)):
+            if EXITEND.match(insns[k][3]):
+                out[h] = insns[k][0] + insns[k][1] - h
+                break
+    return out
+
+
+def astride(loops, spans):
+    """The loops whose exit span, of at most a line, crosses one --
+    `extra` in align-as.py, over LX."""
+    return sorted((f for f in loops
+                   if f['start'] in spans and spans[f['start']] <= LINE
+                   and f['mod'] + spans[f['start']] > LINE),
+                  key=lambda f: f['start'])
+
+
 def survey(path, want='_Main_'):
     """Every self-loop of any length, and how many can still straddle.
+
+    And every head's exit span, astride or not, since 2026-09-16: the
+    count that says whether a LOOP_EXITSPAN build did what it claims, the
+    shim's own line needing a rebuild under ALIGN_AS_VERBOSE to print.
 
     Only a loop no longer than a line can be rescued by an offset outright,
     so that is the population the count is about: the loops an alignment
@@ -503,6 +579,18 @@ def survey(path, want='_Main_'):
     for f in worst:
         print(f'      0x{f["start"]:x}  mod {LINE} = {f["mod"]:2d}, '
               f'{f["len"]} B  {named.get(f["start"]) or f["sym"]}')
+    spans = exit_spans(path, {f['start'] for f in mine})
+    over = astride(mine, spans)
+    print(f'   exit spans astride : {len(over)}')
+    print(f'      of {sum(1 for f in mine if spans.get(f["start"], LINE + 1) <= LINE)}'
+          f' heads whose fall-through exit ends within a line of the head;'
+          f' 0 is what a LOOP_EXITSPAN=1 build owes')
+    worst = sorted(over, key=lambda x: -spans[x['start']])[:10]
+    named = arms(path, [f['start'] for f in worst])
+    for f in worst:
+        print(f'      0x{f["start"]:x}  mod {LINE} = {f["mod"]:2d}, '
+              f'{f["len"]} B body, exit span {spans[f["start"]]} B  '
+              f'{named.get(f["start"]) or f["sym"]}')
 
 
 def match(timed, twins, loose=False, rev=None, want='_Main_'):
@@ -540,8 +628,11 @@ def match(timed, twins, loose=False, rev=None, want='_Main_'):
     """
     mine = [f for f in innermost(timed).values() if want in (f['sym'] or '')]
     strad = sorted((f for f in mine if f['straddles']), key=lambda f: f['start'])
+    spans = exit_spans(timed, {f['start'] for f in mine})
+    over = astride(mine, spans)
     print(f'{timed}: {len(mine)} self-loops of at most {LINE} B in '
-          f'{want}-compiled code, {len(strad)} straddling')
+          f'{want}-compiled code, {len(strad)} straddling, '
+          f'{len(over)} exit span(s) astride')
     tw = []
     for t in twins:
         theirs = [f for f in innermost(t).values() if want in (f['sym'] or '')]
@@ -557,9 +648,7 @@ def match(timed, twins, loose=False, rev=None, want='_Main_'):
             by_sig[f['sig']].append(f)
         tw.append((t, by_bytes, by_sig,
                    arms(t, sorted(f['start'] for f in theirs), rev)))
-    for f in strad:
-        where = (f'0x{f["start"]:x}  mod {LINE} = {f["mod"]:2d}, '
-                 f'{f["len"]} B')
+    def name(f, where):
         hits, from_twin, named = [], None, {}
         for t, by_bytes, _by_sig, nm in tw:
             if by_bytes.get(f['bytes']):
@@ -570,16 +659,16 @@ def match(timed, twins, loose=False, rev=None, want='_Main_'):
             print(f'      {where}  {named.get(h["start"]) or h["sym"]}  '
                   f'(in {from_twin} at 0x{h["start"]:x}, mod {h["mod"]}, '
                   f'{"straddles" if h["straddles"] else "fits"} there)')
-            continue
+            return
         if hits:
             print(f'      {where}  {len(hits)} byte-identical copies in '
                   f'{from_twin}: '
                   + '; '.join(f'{named.get(h["start"]) or h["sym"]} at '
                               f'0x{h["start"]:x}' for h in hits))
-            continue
+            return
         print(f'      {where}  NOT NAMED: no twin holds a byte-identical copy')
         if not loose:
-            continue
+            return
         for t, _bb, by_sig, nm in tw:
             fam = sorted(by_sig.get(f['sig'], []), key=lambda h: h['start'])
             if not fam:
@@ -589,6 +678,16 @@ def match(timed, twins, loose=False, rev=None, want='_Main_'):
                   + '; '.join(f'{nm.get(h["start"]) or h["sym"]} at '
                               f'0x{h["start"]:x}' for h in fam) + only)
             break
+
+    for f in strad:
+        name(f, f'0x{f["start"]:x}  mod {LINE} = {f["mod"]:2d}, {f["len"]} B')
+    # The exit spans astride, named the same way (2026-09-16): a block a
+    # LOOP_EXITSPAN=1 half leaves empty, and otherwise the loops the switch
+    # would move.
+    print(f'   exit spans astride: {len(over)}')
+    for f in over:
+        name(f, f'0x{f["start"]:x}  mod {LINE} = {f["mod"]:2d}, {f["len"]} B'
+                f' body, exit span {spans[f["start"]]} B')
 
 
 def delta(old, new, length, min_copies, want='_Main_'):
