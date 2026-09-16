@@ -8399,7 +8399,7 @@ Unsandboxed throughout:
     #      untagged
     #      why: --para 'A paired run has one gate more'
     ./read-run.py --section 'What this run was built to answer' \
-    #        --run-doc runs/$PREV.md      # 13a, AND EVERY OTHER READING
+      --run-doc runs/$PREV.md             # 13a, AND EVERY OTHER READING
     #      THIS LIST OWES, HERE AND NOT INSIDE THE EVENING BELOW. Read
     #      now: the PREVIOUS run's registered predictions and their
     #      verdicts, in its own file, where they have lived since
