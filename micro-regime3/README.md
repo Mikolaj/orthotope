@@ -709,27 +709,33 @@ specified --- the rule about a discriminating measurement deserving one now
 rather than a slot in the next run, observed again:
 
 - `OPEN` **What Run 34 is built to answer, registered before it runs.** The pair
-  is Run 33's, the same two compilers at plain -O1 under the exit span,
-  ghc-9.12.4 the basis and GHC HEAD the control, both halves rebuilt by Run 33's
-  recipe from the moved source, so what varies from Run 33 is the source alone:
+  is Run 32's two compilers at plain -O1 with the exit span added on both
+  halves, ghc-9.12.4 the basis and GHC HEAD the control, both halves built
+  from the moved source and launched from `hugebin/`, and the earlier run
+  it is read against is Run 32, by the owner's ruling of 2026-09-16 that Run
+  33's timings are skewed by filesystem issues --- the file-page frames [the
+  placement section][floor] prices. So what varies from Run 32 is the switch,
+  the shim, from `b3a1aca` to `f31bd1c`, the launch and the source:
+  `libunord-stage11-sum`, stage ten with its zero-stride move guarded;
   `libunord-stage12-sum`, stage eleven with the run chosen among tied
   unit-stride axes by its length (reasons at `routeUnord12`; its fill
-  is rostered checked and never timed), and `runs-32`, `runs-48` and `runs-64`
-  in the `runs` class; and stage eleven's guard, corrected 2026-09-16 to fire
-  on a zero stride of extent above 1 and not on any zero, after Run 33 read
-  `small-flat64`, `[4, 1, 64]` on strides `[64, 0, 1]`, running stage ten's move
-  for a route canonicalization makes one block of on every stage, 21 percent
-  a call on both halves, so stage eleven's `small` cells are not Run 33's
-  and stage twelve's guard mirrors the correction. Each prediction is its own
-  kill condition, and a `predict:` span that fails kills its item. (1) *Stage
-  twelve takes stage six's run on three of the four unstrided `window` views
-  without channels and stage seven's everywhere else.* On `window`, Run 33's
-  per-shape figures on the basis give the pair with stage six 0.90, level
-  on the three moved views and stage seven's advantage on the two with channels
-  and `window-28x28-k5`:
+  is rostered checked and never timed); and `runs-32`, `runs-48` and `runs-64`
+  in the `runs` class. Stage eleven's guard fires on a zero stride of extent
+  above 1 and not on any zero, corrected 2026-09-16 for `small-flat64`,
+  `[4, 1, 64]` on strides `[64, 0, 1]`, where canonicalization makes the route
+  one block on every stage and stage ten's move runs anyway, 17 and 20 percent
+  a call over stage seven on Run 32's two halves; stage twelve's guard mirrors
+  the correction. Each prediction is its own kill condition, and a `predict:`
+  span that fails kills its item. (1) *Stage twelve takes stage six's run
+  on three of the four unstrided `window` views without channels and stage
+  seven's everywhere else.* On `window`, Run 32's per-shape figures on the basis
+  give the pair with stage six 0.90, level on the three moved views and stage
+  seven's advantage on the two with channels and `window-28x28-k5`:
   `predict: pair libunord-stage12-sum libunord-stage6-sum 0.90 within 3%`;
-  and against its control, from 0.73, 0.80 and 0.86 on the three moved views
-  and 1 on the other five,
+  and against its control, from Run 32's stage six over stage seven, which
+  is stage eleven's route on a class with no zero stride, 0.72, 0.80 and 0.84
+  on `window-128x128-k7`, `window-64x64-k1x9` and `window-224x224-k3`, the three
+  moved views, and 1 on the other five,
   `predict: pair libunord-stage12-sum libunord-stage11-sum 0.92 within 3%`. Each
   of the three moved views within a point of stage six, whose run it takes
   under stage seven's outer order and not stage six's, read off
@@ -751,33 +757,37 @@ rather than a slot in the next run, observed again:
   under stage eleven by fewer than a hundred instructions a call on every tie
   view it leaves alone, on both compilers, and within a percent of stage six's
   count on the three it moves. (3) *It inherits stage six's placement term
-  on the views it moves.* Run 33 read stage six 1.195, 1.080 and 1.022 slower
-  on HEAD on the three and stage eleven within a point, and stage eleven's cross
-  on the class was 0.967; replacing its three cells by stage six's gives 0.936:
-  on `window`, `predict: cross libunord-stage12-sum 0.94 within 2.5%`, a span
-  stage eleven's own figure sits outside of, so reading it kills the item
-  as surely as reading 0.90 does. (4) *The three `runs` shapes sit where
-  the probe of 2026-09-16 put them.* On `runs`, both halves, `runs-32` within 3
-  percent of `runs-9` per element on every `-sum` arm, the probe having timed
-  `libunord-stage6-sum` and `libunord-stage11-sum`, and `runs-48` and `runs-64`
-  within 3 percent of `runs-96`, read off `--cells` by hand; no span,
-  the quantity being a cell and not a pair. (5) *Stage eleven's corrected guard
-  takes `small-flat64` back and moves nothing else.* The guard is two tests,
-  the old one-list `any` first and one loop over strides and extents behind
-  a zero, so a view with no zero stride retires the count it retired,
-  `small-patch-k5` to the instruction on the basis probe of 2026-09-16,
-  `probe-s11guard4-small.json`, and a view with one pays the second test,
-  `small-bcast32` 133 instructions a call over stage ten, 78 of them the extent
-  test's. On `small`, both halves: `small-flat64` under stage eleven within 4
-  percent of stage seven, from 1.21, the probe reading 1.030 at 185 instructions
-  a call over stage seven, and `small-bcast32` under stage eleven within 6
-  percent of stage ten, the probe reading 1.028, both read off
+  on the views it moves.* Run 32 read stage six 1.084, 1.019 and 1.215 slower
+  on HEAD on the three, in that order, and stage seven, stage eleven's route
+  there, within a point, and stage seven's cross on the class was 0.973;
+  replacing its three cells by stage six's gives 0.938: on `window`,
+  `predict: cross libunord-stage12-sum 0.94 within 2.5%`, a span stage eleven's
+  own figure sits outside of, so reading it kills the item as surely as reading
+  0.90 does. (4) *The three `runs` shapes sit where the probe of 2026-09-16 put
+  them.* On `runs`, both halves, `runs-32` within 3 percent of `runs-9` per
+  element on every `-sum` arm, the probe having timed `libunord-stage6-sum`
+  and `libunord-stage11-sum`, and `runs-48` and `runs-64` within 3 percent
+  of `runs-96`, read off `--cells` by hand; no span, the quantity being a cell
+  and not a pair. (5) *Stage eleven's corrected guard takes `small-flat64` back
+  and moves nothing else.* The guard is two tests, the old one-list `any` first
+  and one loop over strides and extents behind a zero, so a view with no zero
+  stride retires the count it retired, `small-patch-k5` to the instruction
+  on the basis probe of 2026-09-16, `probe-s11guard4-small.json`, and a view
+  with one pays the second test, `small-bcast32` 133 instructions a call
+  over stage ten, 78 of them the extent test's. On `small`, both halves:
+  `small-flat64` under stage eleven within 4 percent of stage seven, from 1.17
+  and 1.20, stage ten's on Run 32's two halves, the probe reading 1.030 at 185
+  instructions a call over stage seven, and `small-bcast32` under stage eleven
+  within 6 percent of stage ten, the probe reading 1.028, both read off
   `--pair --per-shape`; on the class
   `predict: pair libunord-stage11-sum libunord-stage7-sum 0.94 within 2%`,
-  the probe reading 0.941 where Run 33's cells gave the uncorrected guard 0.96;
-  and on every other population stage eleven's pair with stage ten as Run 33
-  read it, within the floor, no view there carrying a zero stride on an axis
-  of extent 1.
+  the probe reading 0.941 where Run 32's cells, stage ten's on the two views
+  with a zero stride and stage seven's on the other three, give the uncorrected
+  guard 0.94 and 0.95 on its two halves and the corrected one 0.91 and 0.92
+  before the guard's own cost; and on every other population stage eleven's pair
+  with stage ten where Run 32's cells put it, stage seven's over stage ten
+  on the views without a zero stride and level on the rest, within the floor,
+  no view there carrying a zero stride on an axis of extent 1.
 - `ANSWERED` **What Run 32 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 32's own file](runs/run32.md), where a run's
