@@ -45,9 +45,9 @@ cd "$(dirname "$0")" || exit 1
                   exit 2; }   # 2, "did not run", as every usage path here
 R="$1"
 H="$2"
-B=./$R-$H
+B=$(./half-bin.sh "$R" "$H") || exit 2   # the tmpfs copy where mounted, and says which; refuses a missing half itself
 SUF=${SAT:+-sat}               # artifacts of saturated legs carry it
-[ -x "$B" ] || { echo "no $B here -- $R-pair.txt has the recipe"; exit 1; }
+echo "launching $B"
 EXISTING=$(ls -1 "$R-al-$H$SUF"-*.json "$R-al-$H$SUF"-*.log 2>/dev/null)
 # THE CLEAN SWEEP'S GLOB WOULD OTHERWISE TAKE THE SATURATED LEGS. `-sat`
 # is a suffix on the half's name, so with SUF empty `$R-al-$H-*` matches

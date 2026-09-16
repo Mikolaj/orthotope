@@ -228,9 +228,15 @@ log () { echo "=== $(date -Is) $*" | tee -a "$R-wallclock.log"; }
 
 run () {   # $1 = half, $2 = artifact tag, $3 = benches expected, $4.. = args
   local h=$1 tag=$2 want=$3; shift 3
-  local out="$R-$tag" rc nb
-  log "start $out"
-  ./"$PREFIX-$h" "$@" --json "$out.json" > "$out.log" 2>&1
+  local out="$R-$tag" rc nb bin
+  # THE LAUNCH PATH IS half-bin.sh'S, the tmpfs copy where hugebin/ is
+  # mounted and the on-disk file where it is not, and the log names it:
+  # the frames a half's code pages sit in are a placement term (README,
+  # the placement section) and which instance ran is the one thing a
+  # later reader cannot recover from the artifacts otherwise.
+  bin=$(./half-bin.sh "$PREFIX" "$h") || { log "  !! no binary for $h"; BAD=$((BAD + 1)); return; }
+  log "start $out from $bin"
+  "$bin" "$@" --json "$out.json" > "$out.log" 2>&1
   rc=$?
   nb=$(grep -c '^benchmarking ' "$out.log")
   log "done  $out rc=$rc benchmarking=$nb"

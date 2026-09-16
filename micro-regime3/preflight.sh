@@ -871,6 +871,16 @@ and $OTHER $("./$R-$OTHER" +RTS --info 2>/dev/null \
 -- the FIRST column of size -A, the second being the load address"
   printf '  %-16s %s\n' "md5 $BASIS" "$(md5sum "./$R-$BASIS" | cut -d' ' -f1)"
   printf '  %-16s %s\n' "md5 $OTHER" "$(md5sum "./$R-$OTHER" | cut -d' ' -f1)"
+  # WHERE THE HALVES LAUNCH FROM, since 2026-09-16: half-bin.sh's answer,
+  # the tmpfs copy under hugebin/ where that is mounted and the on-disk
+  # file where it is not. A real pair wants the mount (README, the
+  # placement section: a code page's physical frame is a placement term,
+  # and the tmpfs makes it the layout's); this row is where a note shows
+  # which it got, and a row reading `./` on a real pair is the finding.
+  printf '  %-16s %s\n' 'launch' \
+    "$BASIS from $(./half-bin.sh "$R" "$BASIS" 2>/dev/null || echo '(refused)'), \
+$OTHER from $(./half-bin.sh "$R" "$OTHER" 2>/dev/null || echo '(refused)'); \
+hugebin/ $(mountpoint -q hugebin && echo mounted || echo NOT MOUNTED)"
   printf '  %-16s %s\n' 'repetition' '<yours> -- available only where the'
   printf '  %-16s %s\n' '' 'source did not move; say which and why'
   printf '  %-16s %s\n' 'fills' "$(vd 10)"

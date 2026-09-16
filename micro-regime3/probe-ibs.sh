@@ -45,8 +45,10 @@ done
 python3 - "$ORIG" "$COPY" "$LO" "$HI" <<'EOF'
 import collections, os, re, sys
 orig, copy, lo, hi = sys.argv[1], sys.argv[2], int(sys.argv[3], 16), int(sys.argv[4], 16)
-# perf script prints, whatever order -F names them: the data address, the
-# data source as hex, its decoding between bars, the weight, the ip.
+# perf script prints, whatever order -F names them: the command name, the
+# data address, the data source as hex, its decoding between bars, the
+# weight, the ip. The command name is what keeps the benchmark's samples
+# out of a system-wide recording.
 LINE = re.compile(r'^\s*(\S+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+\|(.*\S)\s+(\d+)\s+([0-9a-f]+)\s*$')
 
 def read(tag):

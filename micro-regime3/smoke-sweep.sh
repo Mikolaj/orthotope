@@ -77,8 +77,11 @@ ARMS=$(./"$R-$BASIS" --list 2>/dev/null | grep -c "^$SHAPE/")
 [ "$ARMS" -gt 0 ] || { echo "--list has no $SHAPE; wrong binary or shape?"; exit 1; }
 
 run () {   # $1 = artifact, $2 = half, $3.. = args
-  local out=$1 half=$2; shift 2
-  ./"$R-$half" "$@" --json "$out" > "${out%.json}.log" 2>&1
+  local out=$1 half=$2 bin; shift 2
+  # The launch path is half-bin.sh's, as every driver's is, and named.
+  bin=$(./half-bin.sh "$R" "$half") || { echo "!! no binary for $half"; return 1; }
+  echo "=== $out from $bin"
+  "$bin" "$@" --json "$out" > "${out%.json}.log" 2>&1
   local rc=$? nb
   nb=$(grep -c '^benchmarking ' "${out%.json}.log")
   echo "  $out rc=$rc benchmarking=$nb"

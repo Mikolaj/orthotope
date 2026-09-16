@@ -82,6 +82,11 @@ UNCOVERED = {
                     'mutants copy holds tracked files alone',
     'machine-busy.sh': 'read by run-gate.sh, whose cases reach it; no case '
                        'of its own yet',
+    'half-bin.sh': 'the launch path of a half, read by every driver that '
+                   'spends the machine, whose cases exercise its no-mount '
+                   'branch on stub halves; the mount branch is a box\'s '
+                   'and a run\'s to exercise, the corpus copy having no '
+                   'tmpfs under it',
     'smoke-l1.sh': 'the reader\'s smoke sweep, driven by the run chapter; '
                    'no case yet',
     'view-floor.py': 'a reading and not a gate: it reports each view\'s own '

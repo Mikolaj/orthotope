@@ -5434,6 +5434,11 @@ def half_movers(run, prev, args):
                      '--' if ka is None else '%.4f' % ka,
                      '--' if kb is None else '%.4f' % kb, side))
             flagged.append((pop, st, side))
+    if not read:
+        sys.stderr.write('%s against %s: no population has a JSON on both'
+                         ' halves of both runs, so nothing was compared\n'
+                         % (os.path.basename(run), os.path.basename(prev)))
+        return 2
     print('\n%d half-local mover(s) over %d population(s) read; %d arm(s)'
           ' moved on both halves and are the runs parting, not a half.'
           % (len(flagged), read, both))

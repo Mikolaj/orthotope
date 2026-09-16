@@ -126,9 +126,10 @@ ghc-9.12.4 over one source and one shim and moved `list` by 0.43 points,
 `bq-expand` by 0.73 and no arm of the main set past 3%, while Run 33 asked
 the same two compilers with `LOOP_EXITSPAN=1` on both halves and read `list`
 0.45 points apart, the lean fill 3.54 and one class arm 29.5 --- the counts
-within a percent on all three, and level to four decimals on the last.
-So the scale factor between two published tables is the level's and
-not the toolchain's. The 19% it was also said to *cost* `mut-odo` is
+within a percent on all three, and level to four decimals on the last, which
+is since read as the basis file's page frame and not the compiler's ([the open
+list][open]). So the scale factor between two published tables is the level's
+and not the toolchain's. The 19% it was also said to *cost* `mut-odo` is
 not the flag's: `build` compiles to the same worker and moved 17% the other way,
 which identical code cannot do, and the pad probe has since priced
 that disagreement as placement ([the floor section][floor]). Every figure
@@ -1097,45 +1098,35 @@ rather than a slot in the next run, observed again:
 - `ANSWERED` **A compiler is worth up to 29.5% on one arm of one class while
   the two compilers execute the same instructions to four decimals ---
   and it was not the compiler but the physical frame the page cache held one
-  page of the basis's FILE in, read 2026-09-16.** Run 33 put ghc-9.12.4 against
-  GHC HEAD's in-tree stage1 at plain `-O1` with `LOOP_EXITSPAN=1` on both halves
-  and read `lib-stage2-lean-u1` at **1.2954** across the halves on the `runs`
-  class, the basis slower on all fourteen shapes with the counted work
-  at **1.0000**, and this entry credited the compiler. Each half against Run
-  32's same half says otherwise: HEAD's u1 did not move on any of the fourteen
-  shapes, the basis's moved 12 to 19 percent on every shape from `runs-7` up
-  and 4 to 5 on runs 3 to 5, in a binary whose u1 loops are byte-identical
-  to Run 32's and whose counts agree to five digits, and within Run 32 the same
-  cell read 1.0029. A byte-identical copy of `run33-exit` on the same filesystem
-  then ran the `runs-16384` cell at 2800M cycles for 300 iterations against
-  the original's 3260M, twice interleaved, every extra cycle in the fill loop's
-  own 64-byte line at the same residue, and after `posix_fadvise(DONTNEED)`
-  re-drew the original's frames it read 2785M. So the term was the frame of one
-  4 KiB page, drawn when the file was first read on the 15th and held
-  by the page cache through every process of the evening --- a term the shim
-  cannot set and no within-pair reading can see, the A/A pairs sharing
-  the binary and the counts the code. [The placement section][floor] prices
-  it and names the two readings that reach it; post-run step 4a takes the first,
-  `--half-movers run33 run32`, which flags this arm on `runs`, `window`,
-  `scaled`, `flip` and `block` on the basis, and five more readings, one
-  on the basis and four on HEAD's half, that nobody has copy-tested yet. HEAD's
-  half carries a frame term of its own, on `mut-odo-vecdims-add-in-leaf-u1`: 22
-  percent slower than Run 32 on two `compose` shapes and 12 on one of `scaled`,
-  counts level, and its original 11 percent slower an iteration
-  than a byte-identical copy on the compose cell, so the run file's finding
-  that 9.12.4 wins on that leaf is HEAD's frame until copy-tested per class.
-  That frame was read while it lived, `0x401194040`, a single page; the heap's
-  pages share its low bits at the random rate, the front end reads equal
-  and the resyncs number in the hundreds on both instances, so which structure
-  a frame collides in is still open, the store-to-load interlocks, 8 to 12
-  percent more on the slow one, being the one counter that moved. The main-set
-  residues this entry also named --- the lean fill at 1.0354 and `lib-stage1`
-  at 1.0298, counts within a percent --- stand: HEAD's fills gained about two
-  points against Run 32 under the exit span while the basis's lean fill read
-  level, its loop being on another page, so they are the compiler's
-  placement-and-runtime term and a frame's only on u1, whose main-set 1.0209
-  the basis's own 1.86-point move against Run 32 on that arm accounts
-  for in size.
+  page of the basis's FILE in, read 2026-09-16.** Run 33 read
+  `lib-stage2-lean-u1` at **1.2954** across the halves on `runs`, the basis
+  slower on all fourteen shapes with the counted work at **1.0000**,
+  and this entry credited the compiler. Each half against Run 32's same half
+  says otherwise: HEAD's u1 did not move on any shape, the basis's moved 12
+  to 19 percent from `runs-7` up in byte-identical loops with counts agreeing
+  to five digits, and within Run 32 the cell read 1.0029. A byte-identical copy
+  of `run33-exit` then ran `runs-16384` at 2800M cycles for 300 iterations
+  against the original's 3260M, every extra cycle in the fill loop's own line
+  at the same residue, and evicting the original's cached pages brought
+  it to 2785M. So the term was the frame of one 4 KiB page, drawn when the file
+  was first read and held through every process of the evening --- a term
+  the shim cannot set and no within-pair reading can see, the A/A pairs sharing
+  the binary and the counts the code. HEAD's half carries one of its own,
+  on `mut-odo-vecdims-add-in-leaf-u1`, 22 percent against Run 32 on two
+  `compose` shapes and 11 percent an iteration against its copy, so the run
+  file's finding that 9.12.4 wins on that leaf is HEAD's frame on `compose`,
+  `bcast` and `scaled`, where the copy test reads 5 to 9 percent an iteration,
+  and stands on `flip` and `window`, where it reads level. [The placement
+  section][floor] carries both readings, the frame `0x401194040` read while
+  it lived, what the counters and IBS rule out, and the tmpfs the halves now
+  launch from; post-run step 4a takes the reading that separates the term,
+  `--half-movers`, which flags the u1 arm on five populations of the basis
+  and five more readings, HEAD's leaf-u1 twice among them and the rest untested,
+  the basis's own file having been evicted before its other flag could be.
+  The main-set residues this entry also named, the lean fill at 1.0354
+  and `lib-stage1` at 1.0298, stand as the compiler's placement-and-runtime
+  term: HEAD's fills gained about two points against Run 32 under the exit span
+  while the basis's lean fill read level, its loop on another page.
 - `OPEN` **The chapter's own two reading windows land INSIDE a timed process,
   and this run measured what that costs.** Run list step 15 puts the previous
   run's registered predictions and the open list *after `sequence: start`*,
@@ -7746,6 +7737,23 @@ and never as a chronology.
     #      settle what the pair varies and which this step's own writing
     #      needs. It is a STEP and a session's to run, and the note is
     #      the part written by hand.
+    #      THE HALVES LAUNCH FROM hugebin/, since 2026-09-16: a tmpfs
+    #      mounted `huge=always` under this directory, so that a code
+    #      page's physical frame is the layout's and not the page cache's
+    #      draw, which the placement section prices at 15 percent on one
+    #      arm of Run 33's basis. Nothing here copies by hand: every
+    #      driver that spends the machine asks half-bin.sh for the path,
+    #      which refreshes the copy from the on-disk file by md5, and the
+    #      on-disk file stays the record the note provenances and this
+    #      list offers for deletion. The mount is root's, once, the
+    #      fstab line in half-bin.sh's header; a session started before
+    #      the mount sees it from an unsandboxed call and not from a
+    #      sandboxed one, and a session started after sees it from both,
+    #      so a `mountpoint -q hugebin` that says NOT mounted wants the
+    #      unsandboxed reading before it is believed. The
+    #      note's `launch` row, which preflight fills, says which instance
+    #      each half got, and a real pair whose row reads `./` launched
+    #      from disk with its frames drawn.
     #      There is no builder, every pair being two shims typed out, so
     #      write the note FIRST, from pair-note-template.txt -- it is the
     #      only copy of both recipes, and the template is what says what a note owes.
@@ -8515,7 +8523,10 @@ Unsandboxed throughout:
     #      request for the run is the go-ahead, and this only stops a box
     #      that got busy since short of the hours rather than after them
     #  17. THE SEQUENCE, its third stage: run-major.sh, many processes,
-    #      several hours, its complaints recorded and not fatal. NOTHING
+    #      several hours, its complaints recorded and not fatal. Each
+    #      process's `start` line in the wallclock log names the instance
+    #      it launched, `from hugebin/$R-<half>` on a real pair; read it
+    #      back rather than assuming the mount held. NOTHING
     #      ELSE ON THE MACHINE, AND NO EDIT TO THE TREE, until the evening
     #      ends: the driver's git lines are the binary's provenance. Never
     #      raise -L on a recorded run. A process far slower than its
@@ -9549,7 +9560,7 @@ not otherwise.
     #  4a. THE HALF-LOCAL MOVERS, each half against the PREVIOUS run's
     #      same half over every population, BEFORE any cross-half figure
     #      is attributed to the pair's variable:
-    ./read-run.py --half-movers $R $PREV     # a 3% bar; --movers PCT lowers it
+    ./read-run.py --half-movers $R $PREV     # a 3% bar; --movers PCT sets it
     #      why: --para 'The physical frame of a code page is a placement term too'
     #      An arm it flags with its counts level is that half's binary or
     #      its FILE INSTANCE and not the pair's: Run 33's basis carried
@@ -12900,39 +12911,48 @@ pages, `enabled` at `madvise`, `READ_ONLY_THP_FOR_FS` unset
 and `pages_collapsed` 0, so the placement is per page and per file instance.
 What a frame collides in is not read, and the readings narrow it: HEAD's own
 instance, `mut-odo-vecdims-add-in-leaf-u1` 11 percent slower an iteration
-than its copy on `compose-rev-bcast`, has its frame at `0x401194040`,
-and against it the heap's resident pages share the low physical bits
-at the random rate at every width, the instruction-cache loads, misses
-and front-end stalls read equal, branch resyncs number in the hundreds on both,
-and only the store-to-load interlock count moves, 8 to 12 percent more
-on the slow instance; the basis's term scales with the nursery, 5 percent
-at `-A8m` and 15 at `-A32m` and `-A64m`. So it is not a set conflict
-with the heap, not a flush from a false code-write match and not the front end.
-IBS over the same cell on both instances, `probe-ibs.sh`, attributes nothing
-either: every instruction of the leaf's loop samples at the same rate on both,
-its loads hit L1 on both with the same latency, and the miss-buffer counts
-for loads, stores and hardware prefetches agree within three percent, the copy's
-slightly higher. What is left is a per-iteration back-end stall that no event
-this core exposes names, the interlocks being too few by an order of magnitude
-to be it, and the mechanism stays open. Two readings reach the term and nothing
-else here does: `--half-movers RUN PREV`, each half against the previous run's
-same half over every population, since the A/A pairs share the binary
-and the counts share the code; and the copy test, the half copied to a probe
-name and the cell timed on both, a minute. `probe-pageflags.py` reads the frames
-of a running instance under sudo, its `--heap` form beside the heap's,
-and is what to run on the next slow instance BEFORE anything evicts it, which
-a reboot, a copy over the file or the eviction itself all do. A tmpfs makes
-the frame a function of the layout --- deterministic, and the shim's kind
-of term: the box's `/tmp` hands out 128 KiB compound pages, and a copy run
-from it read its code lines in runs of 32 frames with the physical L2 set equal
-to the virtual one, `0x141` and `0x292` on the two hot lines, and read fast.
-Those pages are still mapped 4 KiB at a time, `FilePmdMapped` 0, so the TLB sees
-what it saw; what changes is that a collision, if one lands, recurs on every
-launch and rebuild with that layout, readable with the probes and movable
-by the shim, where today it is drawn afresh per file instance. Not adopted until
-a whole half has been timed from tmpfs against its on-disk twin, which no cell
-stands in for; `probe-hugebin.sh` takes the one-cell reading for a `huge=always`
-mount under the checkout, and the roster reading is a run's.
+than a copy on the box's `/tmp` on `compose-rev-bcast`, has its frame
+at `0x401194040`, and against it the heap's resident pages share the low
+physical bits at the random rate at every width, the instruction-cache loads,
+misses and front-end stalls read equal, branch resyncs number in the hundreds
+on both, and only the store-to-load interlock count moves, 8 to 12 percent more
+on the slow instance. So it is not a set conflict with the heap, not a flush
+from a false code-write match and not the front end; what the basis's term
+is made of that scales with the nursery, 5 percent at `-A8m` and 15 at `-A32m`
+and `-A64m`, is unread, that instance's frame having gone before the heap
+reading existed. IBS over the same cell on both instances, `probe-ibs.sh`,
+attributes nothing either: every instruction of the leaf's loop samples
+at the same rate on both, its loads hit L1 on both with the same latency,
+and the miss-buffer counts for loads, stores and hardware prefetches agree
+within three percent, the copy's slightly higher. What is left
+is a per-iteration back-end stall that no event this core exposes names,
+the interlocks being too few by an order of magnitude to be it,
+and the mechanism stays open. Two readings reach the term and nothing else here
+does: `--half-movers RUN PREV`, each half against the previous run's same half
+over every population, since the A/A pairs share the binary and the counts share
+the code; and the copy test, the half copied to a probe name and the cell timed
+on both, a minute. `probe-pageflags.py` reads the frames of a running instance
+under sudo, its `--heap` form beside the heap's, and is what to run on the next
+slow instance BEFORE anything evicts it, which a reboot, a copy over the file
+or the eviction itself all do. A tmpfs makes the frame a function of the layout
+--- deterministic, and the shim's kind of term: the box's `/tmp` hands out 128
+KiB compound pages, and a copy run from it read its code lines in runs of 32
+frames with the physical L2 set equal to the virtual one, `0x141` and `0x292`
+on the two hot lines, and read fast. Those pages are still mapped 4 KiB
+at a time, `FilePmdMapped` 0, so the TLB sees what it saw; what changes
+is that a collision, if one lands, recurs on every launch and rebuild
+with that layout, readable with the probes and movable by the shim, where today
+it is drawn afresh per file instance. Adopted 2026-09-16: `hugebin/` is such
+a mount, every driver that spends the machine launches a half through
+`half-bin.sh` from its copy there, and the note's `launch` row says which
+instance each half got. On the one cell timed, HEAD's slow original read 245k
+to 250k cycles an iteration against its mounted copy's 230k to 231k, the copy
+reading as the fresh instances had. `probe-pageflags.py` on the mounted copy
+reads both hot lines in one 2 MiB compound page at `0x400000`, `THP`
+in the flags, physical equal to virtual modulo 2 MiB and the L2 sets `0x141`
+and `0x292` the virtual ones --- mapped by 4 KiB entries still, `FilePmdMapped`
+0, so the TLB sees what it saw. The roster reading is Run 34's, the first pair
+launched from it.
 
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above

@@ -39,7 +39,9 @@ H="$2"
 # line carries it so that what reads the file later does not have to infer
 # it from the name. Case: `counts-sweeps-only-the-class-it-was-given`.
 C="${3-}"
-B=./$R-$H
+# The same instance the evening ran, through half-bin.sh: a count owes
+# placement nothing, but one binary per run is one fewer thing to say.
+B=$(./half-bin.sh "$R" "$H") || exit 2
 [ -x "$B" ] || { echo "no $B here -- $R-pair.txt has the recipe"; exit 1; }
 OUT=$R-counts-$H${C:+-$C}.txt
 [ -e "$OUT" ] && { echo "$OUT exists; move it aside first"; exit 1; }

@@ -44,6 +44,13 @@ micro-pair*.txt
 # it, at which point `git add` refuses in silence -- so they are named
 # here, and a probe worth tracking in future is named beside them.
 probe-*
+# The tmpfs the halves launch from (half-bin.sh), a mount and never a
+# file to track, and its contents are copies of the on-disk records.
+hugebin/
+!probe-pageflags.py
+!probe-r33-instance.sh
+!probe-hugebin.sh
+!probe-ibs.sh
 !probe-areacurve.sh
 !probe-within-evening.sh
 !probe-order-reversal.sh

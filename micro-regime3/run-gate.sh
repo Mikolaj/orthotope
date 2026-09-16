@@ -169,10 +169,13 @@ PROC=0                       # of those, the ones a PROCESS raised. The line
 RESULTS=""
 
 run () {   # $1 = half, $2 = pass
-  local half=$1 pass=$2 out rc nb
+  local half=$1 pass=$2 out rc nb bin
   out="${PREFIX}-gate-${half}-${pass}"
-  echo "=== $(date -Is) start ${out}"
-  ./"$PREFIX-${half}" "${SEL[@]}" --json "${out}.json" > "${out}.log" 2>&1
+  # The launch path is half-bin.sh's, as run-major.sh's is, and named
+  # here for the same reason: which instance ran is not in the artifacts.
+  bin=$(./half-bin.sh "$PREFIX" "$half") || { echo "    !! ${out}: no binary for ${half}"; BAD=$((BAD + 1)); return; }   # BAD, not PROC: no process ran and no log exists to read
+  echo "=== $(date -Is) start ${out} from ${bin}"
+  "$bin" "${SEL[@]}" --json "${out}.json" > "${out}.log" 2>&1
   rc=$?
   nb=$(grep -c '^benchmarking ' "${out}.log")
   echo "=== $(date -Is) done  ${out} rc=${rc} benchmarking=${nb}"

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Where a running binary's code lines sit in PHYSICAL memory, and whether
-the page cache holds them as huge pages -- the reading that decides item 4
-of the Run 33 review, 2026-09-16: a byte-identical copy of run33-exit runs
-`runs-16384/lib-stage2-lean-u1` 15 percent faster than the original, every
+the page cache holds them as huge pages -- the reading README's placement
+section prices, 2026-09-16: run33-exit ran `runs-16384/lib-stage2-lean-u1`
+15 percent slower an iteration than a byte-identical copy of itself, every
 extra cycle in the fill loop's own line at 0x430980, so what differs is the
 physical placement of that file instance's pages and not its bytes.
 

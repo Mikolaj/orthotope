@@ -77,9 +77,7 @@ CLASSES=${*:-scaled}
 [ -f "$R-pair.txt" ] || { echo "!! no $R-pair.txt -- the note is written at pre-run step 2"; exit 2; }
 HALVES_SET=$(./pair-halves.sh "$R") || exit 2   # the note's HALVES
 eval "$HALVES_SET"                                # line, and nothing else
-BIN="./$R-$BASIS"
-
-[ -x "$BIN" ] || { echo "!! no $BIN -- wrong run, wrong BASIS, or the half is not built"; exit 2; }
+BIN=$(./half-bin.sh "$R" "$BASIS") || exit 2  # the tmpfs copy where mounted; refuses a missing half itself
 
 # The expected counts come from the binary and never from a literal: a
 # roster that grew makes a literal wrong and the pass credit the wrong
