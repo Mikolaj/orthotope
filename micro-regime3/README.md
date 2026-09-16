@@ -3112,8 +3112,10 @@ rather than a slot in the next run, observed again:
   of its spans --- the switch worth 0.17 of a point to `lib-stage2-lean`, 1.83
   to `lib-stage2-lean-u1` and 0.14 to `list` across the two builds. So A stands
   as the basis it was made the candidate for. What is now owed is Run 34,
-  declared in [Run 33's file](runs/run33.md#what-the-next-run-compares-against):
-  the two `-O2` passes against neither, on one compiler.
+  [registered in the open list][open]: Run 33's pair rebuilt from the moved
+  source and read against Run 32. The two `-O2` passes against neither, which
+  [Run 33's file](runs/run33.md#what-the-next-run-compares-against) declared
+  for Run 34, are deferred again.
 - `ANSWERED` **Why `libunord-stage10-sum` trails `libunord-stage9-sum` by 19
   to 39 percent on the `window` views while retiring 40 to 60 percent fewer
   instructions, and why HEAD moves stage 9 and not stage 10 --- asked
