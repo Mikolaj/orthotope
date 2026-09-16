@@ -89,6 +89,27 @@ MUTANTS = [
      '        carrier = pairs[0]\n        floor = abs(carrier.g - 1) * 100',
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, re, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nd.synth_json(t, \'main\', name=\'run95-x-main.json\', skew=[(d.main_shapes()[0], \'mut-odo-vecdims-add-in-leaf-u2-aa-distant\', 12)])\nr = subprocess.run([sys.executable, \'{file}\', \'--floor-pairs\', os.path.join(t, \'run95\')], capture_output=True, text=True)\nrows = [l for l in r.stdout.splitlines() if re.search(r\' ([0-9.]+) pts\', l)]\nwidest = max(rows, key=lambda l: float(re.search(r\' ([0-9.]+) pts\', l).group(1)))\nsys.exit(0 if \'<- the floor\' in widest else 1)"'),
 
+    # AND THE INTRUSION VERDICT NAMES THE SHAPES AND NOT THE BENCHES.
+    # What stands in for post-run step 3's rerun drops the disturbed
+    # SHAPES from both halves; a remedy naming the bench cannot be typed
+    # into `--exclude-shape` at all. The mutant names the whole bench and
+    # the judge asks for the shape.
+    ('the intrusion remedy names the bench instead of the shape',
+     'read-run.py',
+     "            hurt = sorted({nm.split('/')[0] for nm, _, _ in loud})",
+     "            hurt = sorted({nm for nm, _, _ in loud})",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\np = os.path.join(t, \'w.log\')\nopen(p, \'w\').write(d.WILD_LOUD_LOG)\nr = subprocess.run([sys.executable, \'{file}\', p, \'--wild\'], capture_output=True, text=True)\nsys.exit(0 if \'--exclude-shape shp\\n\' in r.stdout or \'--exclude-shape shp\' in r.stdout.replace(\'--exclude-shape shp/arm\', \'\') else 1)"'),
+
+    # AND --movement READS THE TABLE IT IS ABOUT TO OVERWRITE, not the
+    # one already installed. The whole of post-run 5a is that the old
+    # figures are gone after 5b, so a movement read off the NEW table is
+    # every row moving by nothing -- a reading that cannot fail and says
+    # nothing, which is the state the step was in when no mode did it.
+    ('--movement compares this run against itself', 'read-run.py',
+     "    prev = readme_rows(doc, set(strategies), set(strategies))",
+     "    prev = {}",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nj = d.synth_json(t, \'main\')\ndoc = d.rundoc_with_a_results_table(t)\nr = subprocess.run([sys.executable, \'{file}\', j, \'--movement\', \'--run-doc\', doc], capture_output=True, text=True)\nsys.exit(0 if \'lib-stage2-lean\' in r.stdout and \'row(s) moved\' in r.stdout else 1)"'),
+
     # `CORPUS_RUN=newest` narrows `check-all`'s corpus to one run, so a
     # narrowing that keeps the wrong runs would put the suite back where it
     # was while reading as narrowed. The judge asks the selection directly

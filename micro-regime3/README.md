@@ -9531,6 +9531,11 @@ not otherwise.
     #      guard as read-all.sh globs it just above
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --chapter
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --alloc
+    ./read-run.py --floor-pairs $R                   #    the standing
+    #      floor-pair registration in one call: every A/A copy against its
+    #      original, per population and half, with each population's floor
+    #      and the pair that carries it. A mode since 2026-09-16; Run 32
+    #      read it as sixteen spans and Run 33 by a script it threw away
     ./read-run.py $R-<basis>-main.json --deflation    #    and the other half
     #      THE DECOMPOSITION IS A HEAD FIGURE and is taken here rather
     #      than at 10a, where it stood until 2026-09-15: the head's own
@@ -9599,12 +9604,21 @@ not otherwise.
     #      the verdicts are then written beside each prediction where it
     #      already stands. It refuses unless exactly one OPEN entry names
     #      this run, so it is run once, after the copy is committed
-    #  5a. TAKE THE MOVEMENT READING, whose window 5b closes: a
-    #      "moved from X to Y" sentence compares against the figures
-    #      the install overwrites, and after it they are in git
-    #      or in the kept JSON only. It was a clause inside 5b until
-    #      2026-09-01, telling a session to take it before the line it
-    #      was written under, which is what an unnumbered step costs
+    ./read-run.py $R-<basis>-main.json --movement    # 5a. THE MOVEMENT
+    #      READING, whose window 5b closes: a "moved from X to Y"
+    #      sentence compares against the figures the install overwrites,
+    #      and after it they are in git or in the kept JSON only. It was
+    #      a clause inside 5b until 2026-09-01, telling a session to take
+    #      it before the line it was written under, which is what an
+    #      unnumbered step costs -- and a mode only since 2026-09-16,
+    #      two runs having taken it by hand and one having published
+    #      `sixteen points` for a row that moved fourteen, off the
+    #      table's three decimals. The mode reads the same two sources
+    #      the install does, says which figures are three decimals and
+    #      which are full, and says of every row what the chapter says
+    #      once: a row's movement between runs is the winsorized column
+    #      moving, so `--compare` against the previous run's own JSON is
+    #      what says how far the ARM moved
     ./install-tables.sh $R                            # 5b. install, never
     #      paste: every table, from the BASIS half
     #      into `runs/$R.md`, the one document any of them writes -- so

@@ -1473,7 +1473,13 @@ def readme_rows(readme, strategies, recognise=None):
             continue
         style = ('bold' if cell[0].startswith('**')
                  else 'italic' if cell[0].startswith('*') else 'plain')
-        out[bare] = (cell[0], style, cell[-1])
+        # THE `time` CELL TOO, since 2026-09-16: post-run 5a's movement
+        # reading compares the published column this install is about to
+        # overwrite against the one going in, and after the install it is
+        # in git or in the kept JSON only. Carrying it here rather than
+        # parsing the table a second time is what keeps the two readings
+        # of one table from disagreeing.
+        out[bare] = (cell[0], style, cell[-1], cell[1])
     return out
 
 
@@ -1672,7 +1678,7 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
     print('|---|---:|---:|---:|---:|---:' + ('|---|' if editorial else '|'))
     for time, st, ci, noise, smp, alloc, worst in rows:
         if st in prev:
-            label_, style, needs = prev[st]
+            label_, style, needs, _ = prev[st]
         else:
             if editorial:
                 fresh.append(st)
@@ -4525,6 +4531,24 @@ def wild_table(path, verbose=False):
                   ' foreign, peak %.2f.'
                   % (len(loud), len(order), WILD_LOUD,
                      max(r for _, r, _ in loud)))
+            # AND THE REMEDY, printed rather than left to be assembled:
+            # post-run step 3 reruns the populations an intrusion touched,
+            # and where a rerun is not taken the reading that stands in
+            # for it drops those SHAPES from both halves and re-reads.
+            # Run 33 assembled that invocation by hand under a stopped
+            # rerun; the shapes are on this very screen, so the mode that
+            # names them can name the call. It is the shapes and not the
+            # benches: a cell is an arm on a shape, and the comparison
+            # this feeds is per shape.
+            hurt = sorted({nm.split('/')[0] for nm, _, _ in loud})
+            print('  TO READ WITHOUT THEM, both halves, where step 3\'s'
+                  ' rerun is not taken:')
+            print('    --compare OTHER.json %s'
+                  % ' '.join('--exclude-shape %s' % s for s in hurt))
+            print('    and the same with the two files swapped. That is a'
+                  ' sensitivity reading and not a repair: it says whether'
+                  ' a verdict turns on the disturbed cells, and a verdict'
+                  ' that does wants the rerun.')
         else:
             print()
             print('NO bench reaches %.2f foreign: nothing else was running on'
@@ -4935,7 +4959,7 @@ def table_leaders(cells, shapes, strategies, args):
     rows, have_list = strategy_rows(cells, shapes, strategies)
     if not have_list:
         return None
-    needs = {st: n for st, (_, _, n)
+    needs = {st: n for st, (_, _, n, _)
              in readme_rows(want_run_doc(args), strategies).items()}
     timed = [r for r in rows if not is_control(r.st) and r.time == r.time]
     return LEADERS(rows, needs, timed,
@@ -5259,6 +5283,74 @@ def floor_pairs(run, args):
           ' which pair carries it.' % (total, read))
     for arm, n in carriers.most_common():
         print('  `%s` carries it in %d of %d' % (arm, n, read))
+    return 0
+
+
+def movement(path, args):
+    """The published column this install is about to overwrite, against the
+    one going in -- post-run step 5a, whose window 5b closes.
+
+    A *moved from X to Y* sentence compares against the figures the install
+    replaces, and after it they are in git or in the kept JSON only. Two
+    runs took that reading by hand: Run 33 wrote a throwaway script over
+    the two tables and then published `sixteen points` for a row that had
+    moved fourteen, the figure having been read off three decimals rather
+    than off the column.
+
+    IT READS THE SAME TWO SOURCES THE INSTALL DOES: `readme_rows` for the
+    table in the run file, `strategy_rows` for this run, so the movement
+    cannot disagree with what `--markdown` is about to write. And it says
+    of every row what the chapter says once: the published column is
+    winsorized per row and per run, so a row's movement between runs is
+    the estimator's as much as the arm's -- `--compare` against the
+    previous run's own JSON is what says how far the ARM moved.
+    """
+    cells, shapes, strategies, meta = load(path, args.main)
+    apply_correction(cells, shapes, strategies, args.corr)
+    rows, have_list = strategy_rows(cells, shapes, strategies)
+    if not have_list:
+        sys.stderr.write('%s: no `list` bench, so every published time is'
+                         ' `--` and there is nothing to compare\n'
+                         % os.path.basename(path))
+        return 2
+    doc = want_run_doc(args)
+    prev = readme_rows(doc, set(strategies), set(strategies))
+    if not prev:
+        sys.stderr.write('%s: no Results table to compare against, so the'
+                         ' movement reading did not happen\n'
+                         % os.path.basename(doc or '(no run doc)'))
+        return 2
+    print('the published `time` column of %s against the table in %s'
+          % (os.path.basename(path), os.path.basename(doc)))
+    print('%-44s %8s %8s %9s' % ('strategy', 'there', 'here', 'points'))
+    moved = flat = 0
+    for r in rows:
+        if r.st not in prev:
+            continue
+        was = prev[r.st][3].strip('*` ')
+        try:
+            old = float(was)
+        except ValueError:
+            continue            # `--`: a row with no corrected time
+        if r.time != r.time:
+            continue
+        pts = (r.time / old - 1) * 100 if old else float('nan')
+        if abs(pts) < 0.05:
+            flat += 1
+        else:
+            moved += 1
+        print('%-44s %8.3f %8.3f %+8.1f%%' % (r.st, old, r.time, pts))
+    print('\n`there` is the table\'s own THREE decimals and `here` is'
+          ' this run at full precision, so a movement under a point is'
+          ' inside that rounding and no reading at all -- which is how a'
+          ' hand-rolled form of this reading published `sixteen points`'
+          ' for a row that moved fourteen, dividing 0.029 by 0.025.')
+    print('%d row(s) moved and %d read the same three decimals. A row'
+          ' moving here is the winsorized column moving, which is the'
+          ' estimator as much as the arm: what says how far the ARM moved'
+          ' is --compare against that run\'s own JSON, and the two have'
+          ' parted by fourteen points on one row of one pair.'
+          % (moved, flat))
     return 0
 
 
@@ -5641,7 +5733,7 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
     if len(shapes) > 2:
         rows = readme_rows(want_run_doc(args), strategies)
         bold = [st for st in strategies
-                if rows.get(st, ('', '', ''))[1] == 'bold']
+                if rows.get(st, ('', '', '', ''))[1] == 'bold']
         print()
         print("**Per shape, in the run's shape order (%s):**"
               % ', '.join(shapes))
@@ -12132,6 +12224,10 @@ def main():
                         ' population and half, off the counts files'
                         " own `# end` stamps -- the scale a pair"
                         ' note asks for leg by leg')
+    p.add_argument('--movement', action='store_true',
+                   help="the published `time` column of this run against"
+                        " the table in --run-doc, row by row -- post-run"
+                        ' step 5a, whose window the install closes')
     p.add_argument('--floor-pairs', dest='floor_pairs', metavar='RUN',
                    help="every A/A copy of RUN against its original, per"
                         ' population and half, judged against that'
@@ -12584,6 +12680,8 @@ def main():
         sys.exit(counts_totals(args.counts_totals, args))
     if args.floor_pairs:
         sys.exit(floor_pairs(args.floor_pairs, args))
+    if args.movement:
+        sys.exit(movement(args.run, args))
     if args.over_list:
         sys.exit(over_list_sweep(args.over_list, args))
     if args.extremes:

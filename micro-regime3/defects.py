@@ -611,6 +611,27 @@ def class_table_span(lines, cls):
     return i, j
 
 
+def rundoc_with_a_results_table(tmp, time='0.025'):
+    """A run file carrying a Results table with one row worth reading.
+
+    Post-run 5a compares the published column the install is about to
+    overwrite against the one going in, so the fixture is a table with a
+    figure in it and nothing else: `--movement` reads the row by name and
+    the rest of the file is what a run file must look like for the table
+    to be found at all.
+    """
+    m = _reader()
+    return write_rundoc(
+        tmp,
+        '# Run 96\n\n## Results\n\nA paragraph above the table.\n\n'
+        + m.RESULTS_HDR + '\n'
+        + '|---|---:|---:|---:|---:|---:|---|\n'
+        + '| lib-stage2-lean | %s | 0.113 | 0.53 | 69 | 1.00x | a tier |\n'
+          % time
+        + '| list (baseline) | 1.000 | 1.000 | 0.74 | 21 | 25.20x | -- |\n'
+        + '\nA paragraph below it.\n')
+
+
 def rundoc_with_ragged_row(tmp):
     """A copy whose yardstick table has one row two cells short.
 
@@ -2674,6 +2695,21 @@ WILD_MIXED = """\
 @@wild a/b pre iters=1 alloc=3 mut=4 gc=0 gcs=1/0 inuse=1 load=0.1 run=1 cpu=100
 @@wild a/b post iters=1 alloc=4 mut=6 gc=0 gcs=1/0 inuse=1 load=0.1 run=1 cpu=200
 @@wild a/c pre iters=1 alloc=1 mut=1 gc=0 gcs=1/0 inuse=1 load=0.1 run=1 cpu=100
+"""
+
+
+WILD_LOUD_LOG = """\
+@@wild shp/arm pre iters=1 alloc=1 mut=1000000000 gc=0 gcs=1/0 inuse=1 load=0.1 run=100 cpu=1000
+@@wild shp/arm post iters=1 alloc=2 mut=2000000000 gc=0 gcs=1/0 inuse=1 load=0.1 run=101 cpu=1200
+@@wild other/arm pre iters=1 alloc=1 mut=1000000000 gc=0 gcs=1/0 inuse=1 load=0.1 run=200 cpu=2000
+@@wild other/arm post iters=1 alloc=2 mut=2000000000 gc=0 gcs=1/0 inuse=1 load=0.1 run=201 cpu=2100
+"""
+"""One bench with a second of foreign CPU beside it and one without.
+
+The first trips the 0.25-of-a-core bar the reader calls an INTRUSION and
+the second does not, so the remedy printed under the verdict names one
+shape and not both -- which is the whole of what a session has to type
+where post-run step 3's rerun is not taken.
 """
 
 
@@ -8254,6 +8290,23 @@ RECORDS = [
          argv=['{run}', '--machine', '--run-doc', '{fp}'],
          ok=V(exit=0, has=['inside 3%'], hasnt=['its own'])),
 
+    case('wild-names-the-shapes-to-exclude', 'read-run.py', None,
+         'the intrusion verdict named the benches and left the session to'
+         ' assemble the reading that stands in for a rerun, which Run 33'
+         ' did by hand under a rerun it had stopped',
+         # Post-run step 3 reruns the populations an intrusion touched;
+         # where the rerun is not taken, what stands in for it drops those
+         # SHAPES from both halves and re-reads. The shapes are on the
+         # screen already, so the mode that names the benches can name the
+         # call -- and it is shapes and not benches, a cell being an arm
+         # on a shape and the comparison being per shape.
+         plant=lambda t: {'log': write(os.path.join(t, 'w.log'),
+                                       WILD_LOUD_LOG)},
+         argv=['{log}', '--wild'],
+         ok=V(exit=0, has=['IN ONE LINE: 1 of 2 bench(es)',
+                           '--exclude-shape shp'],
+              hasnt=['--exclude-shape other'])),
+
     case('wild-partial-load-fields', 'read-run.py', None,
          'a foreign figure over half a bench read as the whole bench',
          # A log spanning an instrument change -- or two concatenated --
@@ -10311,6 +10364,22 @@ RECORDS = [
     # open list only until post-run step 5 moves it into the run's own
     # file, so a fixture editing the live one stops building the day its
     # run is written up.
+    case('movement-reads-the-column-it-overwrites', 'read-run.py', None,
+         "post-run 5a's movement reading had no mode, so two runs took it"
+         ' by hand and one published sixteen points for a row that moved'
+         ' fourteen, having divided the table\'s three decimals',
+         # It reads the same two sources the install does -- `readme_rows`
+         # for the table in the run file, `strategy_rows` for this run --
+         # so the movement cannot disagree with what `--markdown` is about
+         # to write over it. And it says what the hand reading did not:
+         # `there` is three decimals, so a move under a point is inside
+         # the rounding and no reading at all.
+         plant=lambda t: {'j': synth_json(t, 'main'),
+                          'doc': rundoc_with_a_results_table(t)},
+         argv=['{j}', '--movement', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['against the table in', 'points',
+                           "`there` is the table's own THREE decimals"])),
+
     case('floor-pairs-reads-every-population', 'read-run.py', None,
          'the standing floor-pair registration -- the A/A copies against'
          ' their originals -- had no mode, so Run 32 read it as sixteen'
