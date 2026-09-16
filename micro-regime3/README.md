@@ -1094,29 +1094,40 @@ rather than a slot in the next run, observed again:
   from 141 to 136 or why three pairs that share two compilers were once recorded
   as three distinct figures. Both want the tool's own history read, which
   is cheaper than a run and is nobody's yet.
-- `OPEN` **A compiler is worth up to 29.5% on one arm of one class while the two
-  compilers execute the same instructions to four decimals, and nothing here
-  says what the difference is made of.** Run 33 put ghc-9.12.4 against GHC
-  HEAD's in-tree stage1 at plain `-O1` with `LOOP_EXITSPAN=1` on both halves
+- `ANSWERED` **A compiler is worth up to 29.5% on one arm of one class while
+  the two compilers execute the same instructions to four decimals ---
+  and it was not the compiler but the physical frame the page cache held one
+  page of the basis's FILE in, read 2026-09-16.** Run 33 put ghc-9.12.4 against
+  GHC HEAD's in-tree stage1 at plain `-O1` with `LOOP_EXITSPAN=1` on both halves
   and read `lib-stage2-lean-u1` at **1.2954** across the halves on the `runs`
-  class --- the basis slower on all fourteen shapes, from 1.013 to 1.473,
-  against that class's A/A bar of 0.66 points --- with the counted work
-  at **1.0000**, so `time/counts` carries the whole of it. The same shape shows
-  on the main set and smaller: the lean fill at 1.0354 in time and 1.0062
-  in counts, `lib-stage1` at 1.0298 and 1.0075, leaving 2.90 and 2.21 points
-  outside the instruction stream. It is not allocation, which agrees between
-  the halves on 456 of 589 cells to 1e-4; it is not the regime, `diag` reading
-  9.992 times apart on each half; and it is not the exit span, which both halves
-  carry. **What it could be is placement, the boot libraries, or the runtime**,
-  which a compiler pair changes together --- and the run that could tell them
-  apart is one that varies ONE of them. **What would settle it**: a pair on one
-  compiler with the `.text` placement of the other forced, which the shim can do
-  for the tracked heads; or, cheaper, the per-cell counters the chapter already
-  reaches for --- taken branches and op-cache fetches, raw event 0x28F ---
-  over `lib-stage2-lean-u1` on `runs-2` to `runs-8` on each half, which
-  is minutes on a quiet box and needs no pair. Until one of those is taken,
-  a cross-half figure on this roster is not attributable to the code generator
-  however large it is.
+  class, the basis slower on all fourteen shapes with the counted work
+  at **1.0000**, and this entry credited the compiler. Each half against Run
+  32's same half says otherwise: HEAD's u1 did not move on any of the fourteen
+  shapes, the basis's moved 12 to 19 percent on every shape from `runs-7` up
+  and 4 to 5 on runs 3 to 5, in a binary whose u1 loops are byte-identical
+  to Run 32's and whose counts agree to five digits, and within Run 32 the same
+  cell read 1.0029. A byte-identical copy of `run33-exit` on the same filesystem
+  then ran the `runs-16384` cell at 2800M cycles for 300 iterations against
+  the original's 3260M, twice interleaved, every extra cycle in the fill loop's
+  own 64-byte line at the same residue, and after `posix_fadvise(DONTNEED)`
+  re-drew the original's frames it read 2785M. So the term was the frame of one
+  4 KiB page, drawn when the file was first read on the 15th and held
+  by the page cache through every process of the evening --- a term the shim
+  cannot set and no within-pair reading can see, the A/A pairs sharing
+  the binary and the counts the code. [The placement section][floor] prices
+  it and names the two readings that reach it; post-run step 4a takes the first,
+  `--half-movers run33 run32`, which flags this arm on `runs`, `window`,
+  `scaled`, `flip` and `block` on the basis, and five more readings, one
+  on the basis and four on HEAD's half, that nobody has copy-tested yet. Still
+  open is which structure the frame collided in, the slow frame having
+  been evicted before its address was read, which the same step reads
+  on the next one with `probe-pageflags.py`. The main-set residues this entry
+  also named --- the lean fill at 1.0354 and `lib-stage1` at 1.0298, counts
+  within a percent --- stand: HEAD's fills gained about two points against Run
+  32 under the exit span while the basis's lean fill read level, its loop being
+  on another page, so they are the compiler's placement-and-runtime term
+  and a frame's only on u1, whose main-set 1.0209 the basis's own 1.86-point
+  move against Run 32 on that arm accounts for in size.
 - `OPEN` **The chapter's own two reading windows land INSIDE a timed process,
   and this run measured what that costs.** Run list step 15 puts the previous
   run's registered predictions and the open list *after `sequence: start`*,
@@ -9527,6 +9538,26 @@ not otherwise.
     #      paragraph each. Use --brief on --aa and --block: no computed
     #      figure is lost. Do not write a second reader
     #      why: --para 'The properties are part of this'
+    #  4a. THE HALF-LOCAL MOVERS, each half against the PREVIOUS run's
+    #      same half over every population, BEFORE any cross-half figure
+    #      is attributed to the pair's variable:
+    ./read-run.py --half-movers $R $PREV     # a 3% bar; --movers PCT lowers it
+    #      why: --para 'The physical frame of a code page is a placement term too'
+    #      An arm it flags with its counts level is that half's binary or
+    #      its FILE INSTANCE and not the pair's: Run 33's basis carried
+    #      29.5% on one `runs` arm off the frame of one 4 KiB page, held
+    #      by the page cache from the build through the evening, and the
+    #      open list credited a compiler with it for a day. Nothing else in
+    #      this list sees the term, the A/A pairs sharing the binary and
+    #      the counts the code. For each flagged arm, the COPY TEST first:
+    #      `cp $R-<half> probe-copy-$R-<half>` and the cell timed on both,
+    #      interleaved, which probe-r33-instance.sh's part 1 is with the
+    #      names changed; then, BEFORE anything evicts the file -- a
+    #      reboot, a copy over it, the fadvise -- the frames off the slow
+    #      instance while it runs:
+    sudo python3 probe-pageflags.py <pid> <addr of the hot line> --heap
+    #      which prints the code frame beside the heap's, so the bits they
+    #      share are read and not guessed
     #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
     #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT
     #      (reading item 2 HERE, off the copy you have just made, which
@@ -12844,6 +12875,37 @@ spot. So no cost failed to act on HEAD, and the free band hides nothing there
 either: 0, 3 and 30 read level inside one tree, and the differences first read
 between them were the trees parting. The same holds for stages 7, 10 and 11,
 which run this loop.
+
+**The physical frame of a code page is a placement term too, priced 2026-09-16
+at 15 percent on a 27-byte loop, and it is the one term here that neither
+the shim nor the survey can see.** Run 33's basis file, `run33-exit`, ran
+`runs-16384/lib-stage2-lean-u1` at 3260M cycles for 300 iterations where
+a byte-identical copy of it on the same filesystem ran 2800M, twice interleaved;
+every extra cycle landed in the fill loop's own line, at residue 0 in both,
+with the instruction and L1 miss counts equal and the TLB misses fewer
+on the slow one; and the text pages of both read as single 4 KiB frames,
+so the frame is drawn at random when a file is first read and held by the page
+cache for as long as the file stays cached --- from the build on the 15th
+through every process of the evening, until `posix_fadvise(DONTNEED)` re-drew
+it and the original read 2785M. The kernel here collapses nothing into huge
+pages, `enabled` at `madvise`, `READ_ONLY_THP_FOR_FS` unset
+and `pages_collapsed` 0, so the placement is per page and per file instance.
+What the frame collided in is not read: the loop touches no file page
+but its own per element, and the data it streams sits in random frames
+that cover every set evenly, so a plain set conflict cannot single out one
+frame; a check charged per store against the executing code's physical tag
+could, and would scale with the nursery as this did, 5 percent at `-A8m` and 15
+at `-A32m` and `-A64m`. Two readings reach the term and nothing else here does:
+`--half-movers RUN PREV`, each half against the previous run's same half
+over every population, since the A/A pairs share the binary and the counts share
+the code; and the copy test, the half copied to a probe name and the cell timed
+on both, a minute. `probe-pageflags.py` reads the frames of a running instance
+under sudo, its `--heap` form beside the heap's, and is what to run on the next
+slow instance BEFORE anything evicts it, which a reboot, a copy over the file
+or the eviction itself all do. A tmpfs mounted `huge=always` would make
+the frame a function of the layout --- deterministic, and the shim's kind
+of term --- at the price of an iTLB change on both halves, and is not adopted
+until a copy has been timed under it.
 
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above

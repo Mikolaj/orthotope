@@ -1,0 +1,21 @@
+
+2026-09-16, micro-regime3, the day after Run 33. The review of Run 33's
+straddlers and of LOOP_EXITSPAN found the switch doing what it claims --
+exit spans astride 65 and 72 on Run 32's halves, 0 and 0 on Run 33's, read
+off the binaries by a reader mirroring the shim's definition -- and found
+the open list's 29.5% "compiler" figure on lib-stage2-lean-u1 over runs to
+be the basis FILE's: each half against Run 32's same half, HEAD's u1 unmoved
+on all fourteen shapes and the basis's 12 to 19 percent slow from runs-7 up,
+same bytes, same counts, then a byte-identical copy of run33-exit running the
+cell at Run 32's speed while the original stayed slow, and posix_fadvise
+DONTNEED bringing the original level. A probe build of today's source without
+the exit span read fast too and was, for an hour, taken as proof that the
+switch's placement was the cause, until the copy test said the probe was
+fast for being a fresh file. The khugepaged story that followed died to the
+sysfs readings (enabled madvise, READ_ONLY_THP_FOR_FS unset, pages_collapsed
+0) and the large-folio story to probe-pageflags.py reading single frames.
+The slow frame's address was never read: the first probe launch had no
+delay and the fill page was not yet present. What went in: --half-movers in
+read-run.py with its mutant, post-run step 4a, a placement paragraph, the
+open entry answered, Run 33's file corrected by clauses, probe-pageflags.py
+with --heap, probe-r33-instance.sh and probe-hugebin.sh.
