@@ -5286,6 +5286,166 @@ def floor_pairs(run, args):
     return 0
 
 
+def half_movers(run, prev, args):
+    """Each half of RUN against the same half of PREV, over every population
+    both runs have, naming the arms that moved past the population's floor
+    on ONE half while the other half stayed inside its own: the half-local
+    movers, which a pair's variable cannot make and no within-pair reading
+    can see.
+
+    Run 33's basis read `lib-stage2-lean-u1` 29.5% slower than HEAD's over
+    `runs`, counts level, and the open list recorded a compiler worth
+    that much for a day. Against Run 32, HEAD's half had not moved on any
+    of the fourteen shapes and the basis had moved 12 to 19 percent on
+    every shape from `runs-7` up -- the same bytes at the same virtual
+    addresses, slow in the file the evening ran and fast in a byte-identical
+    copy of it, the physical frame the page cache held the fill loop's
+    page in being the whole of it (README, the placement section). The
+    A/A pairs share the binary and the counts share the code, so this
+    cross-run reading per half is the one instrument for that class of
+    term, and it was taken by hand on 2026-09-16.
+
+    Halves come off each run's pair note, `HALVES: basis=X other=Y`, basis
+    against basis and other against other, so the two halves compared are
+    the same recipe with whatever the runs changed between them. The bar
+    is `--movers`'s, 3% unless given, since a cross-run reading carries
+    the box and the source under both halves and the within-run floor
+    does not bound those: read against the floor alone, Run 33 over Run
+    32 flagged seventy arms at a percent, most of them HEAD's fills
+    gaining what the exit span bought. What is flagged is an arm past the
+    bar on one half and not the other, the two halves' readings apart by
+    more than the wider of their A/A floors on that population, as `--aa`
+    and `--floor-pairs` read them. Counts are read beside the time where
+    both runs carry a sweep for the half, `RUN-counts-HALF[-POP].txt`. A
+    flagged arm wants the copy test before any attribution -- the half
+    copied to a probe name and the cell timed on both, one minute -- and
+    `probe-pageflags.py` on the slow instance while it runs. A reading and
+    not a gate: exit 0 whatever it finds, 2 where nothing could be read.
+    """
+    def halves_of(r):
+        try:
+            text = open('%s-pair.txt' % r).read()
+        except OSError:
+            return None
+        m = re.search(r'^HALVES:\s*basis=(\w+)\s+other=(\w+)', text, re.M)
+        return (m.group(1), m.group(2)) if m else None
+
+    h_run, h_prev = halves_of(run), halves_of(prev)
+    for r, h in ((run, h_run), (prev, h_prev)):
+        if not h:
+            sys.stderr.write('%s-pair.txt: no HALVES line, so the halves'
+                             ' were not read and nothing was compared\n' % r)
+            return 2
+    head = '%s-%s-' % (os.path.basename(run), h_run[0])
+    pops = [os.path.basename(p)[len(head):-5]
+            for p in sorted(glob.glob('%s-%s-*.json' % (run, h_run[0])))]
+    if not pops:
+        sys.stderr.write('%s: no population JSON on its basis half, so the'
+                         ' half-local movers were not read\n' % run)
+        return 2
+
+    def sweep_of(r, half, pop):
+        p = '%s-counts-%s%s.txt' % (r, half,
+                                    '' if pop == 'main' else '-' + pop)
+        return parse_counts(p)[0] if os.path.exists(p) else None
+
+    pct = args.movers if args.movers is not None else 3.0
+    lim = pct / 100.0
+    print('half-local movers of %s against %s past %g%%: each half over'
+          ' the same half of the other run, per population, this run over'
+          ' that one'
+          % (os.path.basename(run), os.path.basename(prev), pct))
+    flagged, both, read = [], 0, 0
+    for pop in pops:
+        sides = []
+        for k in (0, 1):
+            this = '%s-%s-%s.json' % (run, h_run[k], pop)
+            that = '%s-%s-%s.json' % (prev, h_prev[k], pop)
+            if not os.path.exists(this) or not os.path.exists(that):
+                sides = None
+                break
+            cells, shapes, strategies, meta = load(this, args.main)
+            apply_correction(cells, shapes, strategies, args.corr)
+            b_cells, b_shapes, b_strategies = load_other(that, args.main,
+                                                         shapes, meta)
+            pairs = aa_pairs(cells, shapes, strategies)
+            floor = (abs(aa_floor(pairs).g - 1) if len(pairs) >= 2
+                     else None)
+            ca = sweep_of(run, h_run[k], pop)
+            cb = sweep_of(prev, h_prev[k], pop)
+            both_sh = [x for x in shapes if x in b_shapes]
+            g, c = {}, {}
+            for st in strategies:
+                if no_net(st) or st not in b_strategies:
+                    continue
+                rs = [cells[sh][st]['net'] / b_cells[sh][st]['net']
+                      for sh in both_sh
+                      if cells[sh][st]['net'] > 0
+                      and b_cells[sh][st]['net'] > 0]
+                if rs:
+                    g[st] = geomean(rs)
+                if ca and cb:
+                    cs = [ca[sh][st] / cb[sh][st] for sh in both_sh
+                          if st in ca.get(sh, {}) and st in cb.get(sh, {})]
+                    if cs:
+                        c[st] = geomean(cs)
+            sides.append((floor, g, c))
+        if sides is None:
+            print('\n%s -- NOT READ: a half of one run has no JSON for it'
+                  % pop)
+            continue
+        read += 1
+        (f0, g0, c0), (f1, g1, c1) = sides
+        print('\n%s -- floors %s on %s, %s on %s' % (
+            pop,
+            'none' if f0 is None else '%.2f%%' % (f0 * 100), h_run[0],
+            'none' if f1 is None else '%.2f%%' % (f1 * 100), h_run[1]))
+        if f0 is None or f1 is None:
+            print('  a half with fewer than two A/A pairs has no floor, so'
+                  ' nothing here is flagged')
+            continue
+        rows = []
+        for st in g0:
+            if st not in g1:
+                continue
+            moved = (abs(g0[st] - 1) > lim, abs(g1[st] - 1) > lim)
+            # THE RULE: past the bar on one half and not the other, and
+            # the two halves' readings apart by more than the wider
+            # floor. Both past the bar is the source, the shim or the box
+            # moving under both halves and is counted rather than
+            # flagged; the floor clause keeps a 2.9 beside a 3.1 out.
+            local = (moved[0] != moved[1]
+                     and abs(g0[st] / g1[st] - 1) > max(f0, f1))
+            if moved[0] and moved[1]:
+                both += 1
+            if local:
+                rows.append((st, g0[st], g1[st], c0.get(st), c1.get(st),
+                             h_run[0] if moved[0] else h_run[1]))
+        if not rows:
+            print('  no half-local mover past %g%% over %d arm(s)'
+                  % (pct, len(g0)))
+            continue
+        print('  %-34s %8s %8s %8s %8s  %s'
+              % ('arm', h_run[0], h_run[1], 'counts', 'counts', 'moved on'))
+        rows.sort(key=lambda r: -max(abs(r[1] - 1), abs(r[2] - 1)))
+        for st, a, b, ka, kb, side in rows:
+            print('  %-34s %8.4f %8.4f %8s %8s  %s'
+                  % (st, a, b,
+                     '--' if ka is None else '%.4f' % ka,
+                     '--' if kb is None else '%.4f' % kb, side))
+            flagged.append((pop, st, side))
+    print('\n%d half-local mover(s) over %d population(s) read; %d arm(s)'
+          ' moved on both halves and are the runs parting, not a half.'
+          % (len(flagged), read, both))
+    if flagged:
+        print('A half-local mover with its counts level is a term of that'
+              ' half\'s binary or its file instance and not the pair\'s'
+              ' variable: copy the half to a probe name and time the cell'
+              ' on both before attributing it, and read the frames with'
+              ' probe-pageflags.py while the slow instance runs.')
+    return 0
+
+
 def movement(path, args):
     """The published column this install is about to overwrite, against the
     one going in -- post-run step 5a, whose window 5b closes.
@@ -12253,6 +12413,14 @@ def main():
                         " than its shape's `list`, over every"
                         ' population and both halves, with the count'
                         ' it read so the silence is a reading')
+    p.add_argument('--half-movers', dest='half_movers', nargs=2,
+                   metavar=('RUN', 'PREV'),
+                   help='each half of RUN against the same half of PREV'
+                        ' over every population both have, naming the'
+                        ' arms past the floor on ONE half and inside it'
+                        ' on the other -- the term a file instance or a'
+                        ' binary carries, which no within-pair reading'
+                        ' sees; post-run step 4a')
     p.add_argument('--extremes', action='store_true',
                    help='which class holds each extreme -- the tightest'
                         ' floor, the widest gap, the best class for an arm'
@@ -12511,6 +12679,8 @@ def main():
         # to refuse. Found by an independent checker reading the code,
         # 2026-08-25, on a mode added beside the case written for exactly
         # this family.
+        if (flag == 'movers' and asked(args.half_movers)):
+            continue            # its second owner since 2026-09-16: the bar
         if asked(getattr(args, flag)) and not asked(getattr(args, needs)):
             p.error('--%s is a modifier of --%s and does nothing alone'
                     % (flag, needs.replace('_', '-')))
@@ -12695,6 +12865,8 @@ def main():
         sys.exit(counts_totals(args.counts_totals, args))
     if args.floor_pairs:
         sys.exit(floor_pairs(args.floor_pairs, args))
+    if args.half_movers:
+        sys.exit(half_movers(args.half_movers[0], args.half_movers[1], args))
     if args.movement:
         sys.exit(movement(args.run, args))
     if args.over_list:

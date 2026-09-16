@@ -110,6 +110,17 @@ MUTANTS = [
      "    prev = {}",
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nj = d.synth_json(t, \'main\')\ndoc = d.rundoc_with_a_results_table(t)\nr = subprocess.run([sys.executable, \'{file}\', j, \'--movement\', \'--run-doc\', doc], capture_output=True, text=True)\nsys.exit(0 if \'lib-stage2-lean\' in r.stdout and \'row(s) moved\' in r.stdout else 1)"'),
 
+    # AND --half-movers FLAGS AN ARM THAT MOVED ON ONE HALF ALONE. The
+    # rule is the one reading that separates a file instance's term from
+    # the pair's variable -- Run 33's basis carried 29.5% on one arm of
+    # `runs` that the open list credited to a compiler for a day -- and
+    # with it switched off the mode prints its floors and flags nothing,
+    # which reads exactly like a run with no such term.
+    ('--half-movers flags nothing', 'read-run.py',
+     "            local = (moved[0] != moved[1]",
+     "            local = (False",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nsk = [(sh, \'lib-stage1\', 1.3) for sh in d.class_shapes(\'runs\')]\nd.synth_json(t, \'runs\', name=\'r0-a-runs.json\')\nd.synth_json(t, \'runs\', name=\'r0-b-runs.json\')\nd.synth_json(t, \'runs\', name=\'r1-a-runs.json\', skew=sk)\nd.synth_json(t, \'runs\', name=\'r1-b-runs.json\')\nfor r in (\'r0\', \'r1\'):\n    open(os.path.join(t, r + \'-pair.txt\'), \'w\').write(\'HALVES: basis=a other=b\\n\')\nr = subprocess.run([sys.executable, \'{file}\', \'--half-movers\', os.path.join(t, \'r1\'), os.path.join(t, \'r0\')], capture_output=True, text=True)\nsys.exit(0 if \'1 half-local mover(s)\' in r.stdout and \'lib-stage1\' in r.stdout else 1)"'),
+
     # AND --note-check WANTS THE NOTE'S ENTRY POINT. Run list step 13
     # reads the [EXEC] blocks, and its `or the whole note` branch was
     # taken by both runs that met it -- eight hundred lines and 745.
