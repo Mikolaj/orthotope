@@ -40,36 +40,37 @@ with no regression and needs no extension to orthotope classes.
 
 **A direct mutable result buffer is faster still**: `mut-odo` walks the outer
 odometer and writes each innermost run, and `mut-odo-vecdims` --- the same fill
-with its dimension lists replaced by unboxed vectors --- is on Run 32 (plain
--O1, -A32m, ghc-9.12.4) **2.85x** over `bq-expand` paired, ahead on NINETEEN
-of nineteen shapes. **That headline moves with the published REGIME and
-not with either arm, and not with the COMPILER either**: Run 29 read 2.22x
+with its dimension lists replaced by unboxed vectors --- is on Run 33 (plain
+-O1, -A32m, exit span, ghc-9.12.4) **2.84x** over `bq-expand` paired, ahead
+on EIGHTEEN of nineteen shapes. **That headline moves with the published REGIME
+and not with either arm, and not with the COMPILER either**: Run 29 read 2.22x
 on a `-fspec-constr` basis and 2.83x on its own unflagged half, Run 30 read
 2.87x on that same unflagged recipe --- the same binary as Run 29's unflagged
 half, md5 and `.text` alike, so that step was two evenings of drift on one build
---- Run 31 read 2.84x on the recipe and 2.19x on its `-O2` half, and this run
-reads **2.85x** on the recipe and **2.84x** on a GHC HEAD half built from one
-source at the same level. So raising the level costs the headline better
-than six tenths of a multiple, `-O2` speeding `bq-expand` by 29% and leaving
-the fill where it is, while changing the compiler costs it a hundredth; the gap
-this ratio reports is the one the library actually compiles in. **The nineteenth
-shape is what WAS new, and it has come back**: `stretch-pow2stride` reads 0.993
-on this basis, the fill ahead again, where Run 31 read 1.0009 with `bq-expand`
-a thousandth faster; on the GHC HEAD half it reads 1.000 and class property 1
-breaks there and not here, so that cell sits on the line rather than having
-turned over. **The mutable fills hold the top of the table** ---
-`lib-stage2-lean` at 0.025 and the shipped leaf at 0.027, against
-`mut-odo-vecdims`'s 0.045 --- and every one of them needs a new `Vector`-class
-method, which this README argued against for as long as the ceiling stood ---
-to keep orthotope's `Vector` API pure and minimal, a bar an in-tree precedent
-softened to a weight --- and which the decision of 2026-08-22 **took**,
-`vFillStrided` landing 2026-08-24 ([below](#the-mutable-ceiling-taken)). Plain
-`mut-odo` no longer argues for it at all: it and `bq-expand`, which survives
-in `Data/Array/Internal.hs` only as that method's class default, the three
-vector-backed instances overriding it with the mutable fill, are a tie at 0.8906
-paired, 14 shapes of 26 and sign p 0.85 on an interval covering 1 ---
-and at 0.8918 on Run 24's HEAD half, a thousandth away, so the tie is not one
-compiler's --- where Run 7 (Harness), at -O1, had it 1.51x ahead.
+--- Run 31 read 2.84x on the recipe and 2.19x on its `-O2` half, Run 32 read
+**2.85x** on the recipe and **2.84x** on its GHC HEAD half, and this run reads
+**2.84x** on its basis and **2.86x** on its HEAD half, both under the exit span.
+So raising the level costs the headline better than six tenths of a multiple,
+`-O2` speeding `bq-expand` by 29% and leaving the fill where it is, while
+changing the compiler costs it a hundredth; the gap this ratio reports
+is the one the library actually compiles in. **The nineteenth shape is what
+WAS new, and it has come back**: `stretch-pow2stride` reads 0.993 on this basis,
+the fill ahead again, where Run 31 read 1.0009 with `bq-expand` a thousandth
+faster; on the GHC HEAD half it reads 1.000 and class property 1 breaks there
+and not here, so that cell sits on the line rather than having turned over.
+**The mutable fills hold the top of the table** --- `lib-stage2-lean` at 0.025
+and the shipped leaf at 0.027, against `mut-odo-vecdims`'s 0.045 --- and every
+one of them needs a new `Vector`-class method, which this README argued against
+for as long as the ceiling stood --- to keep orthotope's `Vector` API pure
+and minimal, a bar an in-tree precedent softened to a weight --- and which
+the decision of 2026-08-22 **took**, `vFillStrided` landing 2026-08-24
+([below](#the-mutable-ceiling-taken)). Plain `mut-odo` no longer argues
+for it at all: it and `bq-expand`, which survives in `Data/Array/Internal.hs`
+only as that method's class default, the three vector-backed instances
+overriding it with the mutable fill, are a tie at 0.8906 paired, 14 shapes of 26
+and sign p 0.85 on an interval covering 1 --- and at 0.8918 on Run 24's HEAD
+half, a thousandth away, so the tie is not one compiler's --- where Run 7
+(Harness), at -O1, had it 1.51x ahead.
 
 **Several strategies measured since are faster than the last candidate,
 `bq-expand`, and need no class method --- a distinction the decision
@@ -116,20 +117,23 @@ to quote against Run 30's and Run 31's. **Run 31 then priced the whole level
 that flag is one pass of**: `-O2` is worth 29.74% to `list` and 29.43%
 to `bq-expand` and nothing measurable to the shipped fill, so a table published
 at -O1 and one published at -O2 are two orderings of the same arms rather
-than one table with a scale factor. **And Run 32 asked the COMPILER at that same
-level and got almost nothing**: GHC HEAD against ghc-9.12.4, one source and one
-shim between them, moves `list` by 0.43 points and `bq-expand` by 0.73
-and no arm of the main set past 3%. So the scale factor between two published
-tables is the level's and not the toolchain's. The 19% it was also said
-to *cost* `mut-odo` is not the flag's: `build` compiles to the same worker
-and moved 17% the other way, which identical code cannot do, and the pad probe
-has since priced that disagreement as placement ([the floor section][floor]).
-Every figure in this sentence crosses a rebuild and so carries some of the same
-term; the three that survive it do so by being larger than it. Run 9
-then changed the roster and nothing else, and moved arms from 9% faster to 19%
-slower with the baseline standing still; Run 10 changed only the roster's
-*order* and moved them 3% faster to 14% slower, and then measured the layout
-term directly by running the same source from two binaries that differ in where
+than one table with a scale factor. **And the COMPILER has been asked
+at that same level twice, with different answers**: Run 32 put GHC HEAD against
+ghc-9.12.4 over one source and one shim and moved `list` by 0.43 points,
+`bq-expand` by 0.73 and no arm of the main set past 3%, while Run 33 asked
+the same two compilers with `LOOP_EXITSPAN=1` on both halves and read `list`
+0.45 points apart, the lean fill 3.54 and one class arm 29.5 --- the counts
+level under all three. So the scale factor between two published tables
+is the level's and not the toolchain's. The 19% it was also said to *cost*
+`mut-odo` is not the flag's: `build` compiles to the same worker and moved 17%
+the other way, which identical code cannot do, and the pad probe has since
+priced that disagreement as placement ([the floor section][floor]). Every figure
+in this sentence crosses a rebuild and so carries some of the same term;
+the three that survive it do so by being larger than it. Run 9 then changed
+the roster and nothing else, and moved arms from 9% faster to 19% slower
+with the baseline standing still; Run 10 changed only the roster's *order*
+and moved them 3% faster to 14% slower, and then measured the layout term
+directly by running the same source from two binaries that differ in where
 its loops sit --- 12 to 14% on the two arms whose loop straddled a cache line,
 and a percent or two the other way on everything else. **Run 11 then changed
 nothing at all**, re-running Run 10's aligned binary, and moved every arm
@@ -1086,20 +1090,74 @@ rather than a slot in the next run, observed again:
   from 141 to 136 or why three pairs that share two compilers were once recorded
   as three distinct figures. Both want the tool's own history read, which
   is cheaper than a run and is nobody's yet.
+- `OPEN` **A compiler is worth up to 29.5% on one arm of one class while the two
+  compilers execute the same instructions to four decimals, and nothing here
+  says what the difference is made of.** Run 33 put ghc-9.12.4 against GHC
+  HEAD's in-tree stage1 at plain `-O1` with `LOOP_EXITSPAN=1` on both halves
+  and read `lib-stage2-lean-u1` at **1.2954** across the halves on the `runs`
+  class --- the basis slower on all fourteen shapes, from 1.013 to 1.473,
+  against that class's A/A bar of 0.66 points --- with the counted work
+  at **1.0000**, so `time/counts` carries the whole of it. The same shape shows
+  on the main set and smaller: the lean fill at 1.0354 in time and 1.0062
+  in counts, `lib-stage1` at 1.0298 and 1.0075, both leaving two and a half
+  to three points outside the instruction stream. It is not allocation, which
+  agrees between the halves on 456 of 589 cells to 1e-4; it is not the regime,
+  `diag` reading 9.992 times apart on each half; and it is not the exit span,
+  which both halves carry. **What it could be is placement, the boot libraries,
+  or the runtime**, which a compiler pair changes together --- and the run
+  that could tell them apart is one that varies ONE of them. **What would settle
+  it**: a pair on one compiler with the `.text` placement of the other forced,
+  which the shim can do for the tracked heads; or, cheaper, the per-cell
+  counters the chapter already reaches for --- taken branches and op-cache
+  fetches, raw event 0x28F --- over `lib-stage2-lean-u1` on `runs-2` to `runs-8`
+  on each half, which is minutes on a quiet box and needs no pair. Until one
+  of those is taken, a cross-half figure on this roster is not attributable
+  to the code generator however large it is.
+- `OPEN` **The chapter's own two reading windows land INSIDE a timed process,
+  and this run measured what that costs.** Run list step 15 puts the previous
+  run's registered predictions and the open list *after `sequence: start`*,
+  on the argument that the sequence is hours and a document read is minutes ---
+  a line written after Run 32's reading intruded on its GATE, one step earlier.
+  The reading-list digest puts the carrier's four `--section` reads in the same
+  window, saying outright that there it *costs nothing*. Run 33 obeyed both
+  and intruded on `run33-gheadexit-main`, the sequence's FIRST process: 3
+  of its 627 benches at or above 0.25 of a core, peak 0.35,
+  on `lenet-L1-28-c1-k5/mut-odo-vecdims-add-in-leaf-u2-aa-distant`,
+  `cnn-L1-6x6-c1/lib-stage2-lean`
+  and `cnn-L1-6x6-c1/mut-odo-vecdims-add-in-leaf-u2-aa` --- registration (1)'s
+  own arm and two of the copies the floor is read from. The rerun post-run step
+  3 orders was launched and stopped at the owner's word, and the sensitivity
+  reading that stood in for it moved no verdict, the widest span by 0.75
+  of a point. **So the cost is small, real, and lands where the reading happens
+  to fall** --- twice now on the first process of whatever stage is running when
+  the session starts reading. **What would settle the instruction**: nothing
+  measured, because the fix is an ordering and not a question. Either
+  the reading waits for the first process of the sequence to END, which
+  the stage monitor already announces and which costs the session a wait
+  it is making anyway, or the run accepts an intruded first process and says
+  so every time. Run 32 chose the second by accident and Run 33 by instruction;
+  the entry is here so the next session decides it on purpose.
 - `OPEN` **Class property 1 breaks on ONE main-set cell that was already a tie,
-  and which side of 1 it lands on has changed three times in three runs.**
-  `mut-odo-vecdims` is behind `bq-expand` on `stretch-pow2stride` at **1.0009**
-  on Run 31's plain -O1 half and **1.0109** on its `-O2` half, where Run 30 read
-  0.9997 on the same recipe and its own head called that a win by three
-  ten-thousandths inside a 0.57% floor. The clause holds on every shape of all
-  ten classes on both halves, so what broke is one main-set shape and
-  not the property's reach. It matters because this is the clause the stride
-  classes exist to test and the only one here that bears
-  on `Data/Array/Internal.hs` directly: `bq-expand` is the route the shipped
-  file took before the fill, and an arm that is not ahead of it everywhere
-  is an arm whose replacement of it is not unconditional. **What would settle
-  whether it is the shape's or the run's** is the next run's reading of that one
-  cell ---
+  and which side of 1 it lands on has now changed four times in four runs ---
+  and twice WITHIN a pair.** `mut-odo-vecdims` is behind `bq-expand`
+  on `stretch-pow2stride` at **1.0009** on Run 31's plain -O1 half
+  and **1.0109** on its `-O2` half, where Run 30 read 0.9997 on the same recipe
+  and its own head called that a win by three ten-thousandths inside a 0.57%
+  floor. Run 32 then read it ahead at 0.9934 on its basis and behind at 1.0003
+  on its control, and Run 33 reads the same split with the halves exchanged,
+  behind at **1.0007** on its basis and ahead at **0.9961** on its control.
+  Every one of those six margins is inside the floor of the half it was read
+  on --- 0.07 of a point against 0.47% on Run 33's basis --- so the cell has now
+  been read by two compilers, two levels and the exit span without any of them
+  settling it, which is what a tie looks like when a chapter keeps asking.
+  The clause holds on every shape of all ten classes on both halves, so what
+  broke is one main-set shape and not the property's reach. It matters because
+  this is the clause the stride classes exist to test and the only one here
+  that bears on `Data/Array/Internal.hs` directly: `bq-expand` is the route
+  the shipped file took before the fill, and an arm that is not ahead
+  of it everywhere is an arm whose replacement of it is not unconditional.
+  **What would settle whether it is the shape's or the run's** is the next run's
+  reading of that one cell ---
   `./read-run.py run<N>-<basis>-main.json --pair bq-expand mut-odo-vecdims --per-shape`,
   whose `range` line this run reads at 0.999 on `stretch-pow2stride` and Run 30
   at 1.000, the per-shape lines below giving 0.9991 and 1.0003. Three readings
@@ -3357,6 +3415,50 @@ rather than a slot in the next run, observed again:
 
 
 ### Recommended tasks after Run 33
+
+**What Run 33 made cheaper for the next run, which is not a figure and no other
+step gathers --- and it is TWO sessions' worth, the preparation's reaching
+this one only through the pair note.** **THE PREPARATION'S HALF, taken
+2026-09-15 and recorded in the note.** A CHECK THAT WOULD HAVE CAUGHT AN ERROR:
+none did --- the HEAD half was declared `run33-ghead-exit` and no check held
+that name to the tag grammar until `--draft` refused the hyphen at pre-run step
+2, after the recipes, the registration and their commit; `--lint` already reads
+the registration and is where that check belongs. AN INSTRUMENT THAT WOULD HAVE,
+WHICH IS NOT THE SAME THING: neither recipe sets `ALIGN_AS_VERBOSE`, so no build
+of the pair printed the shim's `verified:` line and registration (7)'s figures
+were read against it only at the close; the switch changes no byte of either
+binary, so what it would have moved is WHEN the item was caught and not what
+it says. A COMPUTATION IMPROVISED: a cross for a reducing consumer,
+for the second run running, which became a mode under `--compare` at 7249a35.
+A STEP SKIPPED: none. A CAPABILITY FOUND: `--note-check`, which preflight runs
+as 10e over the note and which catches a carried `[SAME]` block that is still
+the previous pair's. **AND THIS SESSION'S HALF.** A CHECK THAT WOULD HAVE CAUGHT
+AN ERROR, and this run has two. The first: `--move-registration` REFUSED
+at post-run step 5 because the OPEN entry's bold lead carried a declaration
+clause --- *registered before it runs --- declared 2026-09-15 evening
+by request, the recipes in ...* --- where the mode matches the lead ending
+at *runs.*, and neither `--lint` nor `--check-doc` holds a registration's lead
+to the form the mover needs, so the defect sat from the declaration until
+the move. The second: THREE HEAD PARAGRAPHS STATED THE PAIR'S DIRECTION
+BACKWARDS, HEAD read as the slower half where a `cross` above 1 means
+the control is the faster; what caught it was reading `--cells` on one shape
+of one arm, and nothing in the gates holds prose to the direction of a ratio.
+The brief now carries the direction as a line of its own. A COMPUTATION
+IMPROVISED, and it is the one to build a mode for: item (5) is the standing
+floor-pair registration and carries no `predict:` span, so adjudicating
+its forty-four readings took a script over `--pair` per population per half
+against each population's own floor --- and the sensitivity reading
+the intrusion forced, `--exclude-shape` twice over both halves,
+was hand-assembled the same way. A STEP SKIPPED: none, but 6a's **THE HEAD
+IS WRITTEN LAST** was not observed --- the head was written after 5c's
+adjudication and before the class paragraphs and Provenance ---
+and the direction errors above were all three in it, which is the cost
+that instruction predicts. THE READINGS THE CARRIER TOOK AND WHAT THEY COST:
+items 2, 4, 5 and 6 came back as `run33-readings.txt`, four `--section` reads
+and about two minutes, launched during the sequence where the chapter puts them
+--- and the carrier's own reads are among what intruded
+on `run33-gheadexit-main`, which is the run's procedural finding and is
+in the entry below.
 
 **What Run 32 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
@@ -6793,12 +6895,14 @@ settled that neither -O2 pass reaches the ceiling they price --- `-u2-ptr`
 over `-u2` read 0.9385 and 0.9268 on Run 30's two halves, 0.9366 and 0.9372
 on Run 29's and 0.9532 on Run 28's basis. Runs 31 and 32 time neither,
 so the ceiling is recorded at those five readings and a run that wants a sixth
-has to un-park an arm. What Run 32 does say about the form is from the naming
-side rather than the timing one: post-run step 0 still finds
+has to un-park an arm. What Runs 32 and 33 do say about the form is
+from the naming side rather than the timing one: post-run step 0 still finds
 `fbMutOdoVecdimsAddInLeafU2Ptr` among the straddling loops of BOTH halves ---
 by byte identity off the half's own -g3 twin on ghc-9.12.4 and off the OTHER
 half's twin on GHC HEAD, which is what giving `--match` both twins is for ---
-parking having taken the arm off the roster and not out of the binary.
+parking having taken the arm off the roster and not out of the binary. Run 33
+reads it there under the exit span as well, which moves the straddler count
+on neither half: eight on each, as Run 32 read.
 
 
 ### The C-gap: still a deeper ceiling
