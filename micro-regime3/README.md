@@ -1118,16 +1118,24 @@ rather than a slot in the next run, observed again:
   it and names the two readings that reach it; post-run step 4a takes the first,
   `--half-movers run33 run32`, which flags this arm on `runs`, `window`,
   `scaled`, `flip` and `block` on the basis, and five more readings, one
-  on the basis and four on HEAD's half, that nobody has copy-tested yet. Still
-  open is which structure the frame collided in, the slow frame having
-  been evicted before its address was read, which the same step reads
-  on the next one with `probe-pageflags.py`. The main-set residues this entry
-  also named --- the lean fill at 1.0354 and `lib-stage1` at 1.0298, counts
-  within a percent --- stand: HEAD's fills gained about two points against Run
-  32 under the exit span while the basis's lean fill read level, its loop being
-  on another page, so they are the compiler's placement-and-runtime term
-  and a frame's only on u1, whose main-set 1.0209 the basis's own 1.86-point
-  move against Run 32 on that arm accounts for in size.
+  on the basis and four on HEAD's half, that nobody has copy-tested yet. HEAD's
+  half carries a frame term of its own, on `mut-odo-vecdims-add-in-leaf-u1`: 22
+  percent slower than Run 32 on two `compose` shapes and 12 on one of `scaled`,
+  counts level, and its original 11 percent slower an iteration
+  than a byte-identical copy on the compose cell, so the run file's finding
+  that 9.12.4 wins on that leaf is HEAD's frame until copy-tested per class.
+  That frame was read while it lived, `0x401194040`, a single page; the heap's
+  pages share its low bits at the random rate, the front end reads equal
+  and the resyncs number in the hundreds on both instances, so which structure
+  a frame collides in is still open, the store-to-load interlocks, 8 to 12
+  percent more on the slow one, being the one counter that moved. The main-set
+  residues this entry also named --- the lean fill at 1.0354 and `lib-stage1`
+  at 1.0298, counts within a percent --- stand: HEAD's fills gained about two
+  points against Run 32 under the exit span while the basis's lean fill read
+  level, its loop being on another page, so they are the compiler's
+  placement-and-runtime term and a frame's only on u1, whose main-set 1.0209
+  the basis's own 1.86-point move against Run 32 on that arm accounts
+  for in size.
 - `OPEN` **The chapter's own two reading windows land INSIDE a timed process,
   and this run measured what that costs.** Run list step 15 puts the previous
   run's registered predictions and the open list *after `sequence: start`*,
@@ -12890,18 +12898,25 @@ through every process of the evening, until `posix_fadvise(DONTNEED)` re-drew
 it and the original read 2785M. The kernel here collapses nothing into huge
 pages, `enabled` at `madvise`, `READ_ONLY_THP_FOR_FS` unset
 and `pages_collapsed` 0, so the placement is per page and per file instance.
-What the frame collided in is not read: the loop touches no file page
-but its own per element, and the data it streams sits in random frames
-that cover every set evenly, so a plain set conflict cannot single out one
-frame; a check charged per store against the executing code's physical tag
-could, and would scale with the nursery as this did, 5 percent at `-A8m` and 15
-at `-A32m` and `-A64m`. Two readings reach the term and nothing else here does:
-`--half-movers RUN PREV`, each half against the previous run's same half
-over every population, since the A/A pairs share the binary and the counts share
-the code; and the copy test, the half copied to a probe name and the cell timed
-on both, a minute. `probe-pageflags.py` reads the frames of a running instance
-under sudo, its `--heap` form beside the heap's, and is what to run on the next
-slow instance BEFORE anything evicts it, which a reboot, a copy over the file
+What a frame collides in is not read, and the readings narrow it: HEAD's own
+instance, `mut-odo-vecdims-add-in-leaf-u1` 11 percent slower an iteration
+than its copy on `compose-rev-bcast`, has its frame at `0x401194040`,
+and against it the heap's resident pages share the low physical bits
+at the random rate at every width, the instruction-cache loads, misses
+and front-end stalls read equal, branch resyncs number in the hundreds on both,
+and only the store-to-load interlock count moves, 8 to 12 percent more
+on the slow instance; the basis's term scales with the nursery, 5 percent
+at `-A8m` and 15 at `-A32m` and `-A64m`. So it is not a set conflict
+with the heap, not a flush from a false code-write match and not the front end;
+a back-end term of the loads and stores against something the frame fixes
+is what is left, and IBS is the instrument that would attribute it. Two readings
+reach the term and nothing else here does: `--half-movers RUN PREV`, each half
+against the previous run's same half over every population, since the A/A pairs
+share the binary and the counts share the code; and the copy test, the half
+copied to a probe name and the cell timed on both, a minute.
+`probe-pageflags.py` reads the frames of a running instance under sudo,
+its `--heap` form beside the heap's, and is what to run on the next slow
+instance BEFORE anything evicts it, which a reboot, a copy over the file
 or the eviction itself all do. A tmpfs mounted `huge=always` would make
 the frame a function of the layout --- deterministic, and the shim's kind
 of term --- at the price of an iTLB change on both halves, and is not adopted

@@ -19,3 +19,11 @@ delay and the fill page was not yet present. What went in: --half-movers in
 read-run.py with its mutant, post-run step 4a, a placement paragraph, the
 open entry answered, Run 33's file corrected by clauses, probe-pageflags.py
 with --heap, probe-r33-instance.sh and probe-hugebin.sh.
+Later the same day: HEAD's half read for the same term, --half-movers
+flagging mut-odo-vecdims-add-in-leaf-u1 on compose and scaled, the copy
+test confirming 11 percent an iteration, and the frame read while it
+lived, 0x401194040. The heap's frames share its low bits at the random
+rate, the front end reads equal, resyncs are hundreds on both, and only
+the store-to-load interlocks move; the structure stays open. The tmpfs
+copy came in 128 KiB compound pages with physical L2 sets equal to the
+virtual ones, which is item 34's determinism from a mount that exists.
