@@ -2,7 +2,7 @@
 # The pair's two halves, read from its note and from nowhere else.
 #
 #     HALVES=$(./pair-halves.sh run24) || exit 1    # the refusal's status
-#     eval "$HALVES"                                 # sets BASIS and OTHER
+#     eval "$HALVES"                         # sets BASIS, OTHER and COMPARE
 #
 # Two lines and not `eval "$(...)" || exit`: eval's status is the evaluated
 # text's, and an empty text evaluates to 0, so the one-line form went on
@@ -18,7 +18,7 @@
 #
 #     HALVES: basis=g912 other=spot
 #
-# -- and every script reads them through this file. It prints two shell
+# -- and every script reads them through this file. It prints the shell
 # assignments on stdout for the caller to eval, and on any refusal prints
 # the reason on stderr, prints nothing to eval, and exits 1: no note, no
 # HALVES line, a line naming one half twice, or an environment that
@@ -28,6 +28,11 @@
 # in, said on stderr: that is the install of a pair whose note has gone,
 # and the corpus's stand-ins; every driver that spends the machine wants
 # the note itself and refuses without it.
+#
+# COMPARE is the note's `COMPARE: run<N>`, the earlier run every cross-run
+# reading of the pair goes against, and empty where the note has none. A
+# line naming anything but a run is refused, since `runs/$COMPARE.md` is
+# what the readers open.
 #
 # The defects.py cases for this file are its controls: a note read,
 # and each refusal.
@@ -47,7 +52,7 @@ NOTE="$R-pair.txt"
 if [ ! -f "$NOTE" ]; then
   if [ -n "${BASIS:-}" ]; then
     echo "no $NOTE: halves from the environment, BASIS=$BASIS OTHER=${OTHER:-}" >&2
-    echo "BASIS=$BASIS; OTHER=${OTHER:-}"
+    echo "BASIS=$BASIS; OTHER=${OTHER:-}; COMPARE="
     exit 0
   fi
   echo "no $NOTE -- a pair's note is written at pre-run step 2, and its" >&2
@@ -100,4 +105,13 @@ if [ -n "${OTHER:-}" ] && [ "$OTHER" != "$O" ]; then
   echo "   the note is the authority; unset OTHER or fix the note" >&2
   exit 1
 fi
-echo "BASIS=$B; OTHER=$O"
+C=$(grep -m1 '^COMPARE:' "$NOTE")
+if [ -n "$C" ]; then
+  C=$(printf '%s\n' "$C" | sed 's/^COMPARE:[[:space:]]*//; s/[[:space:]]*$//')
+  if ! printf '%s\n' "$C" | grep -qx 'run[0-9][0-9]*'; then
+    echo "!! $NOTE's COMPARE line names '$C', where it names a run," >&2
+    echo "   'COMPARE: run<N>', whose file is runs/run<N>.md" >&2
+    exit 1
+  fi
+fi
+echo "BASIS=$B; OTHER=$O; COMPARE=$C"

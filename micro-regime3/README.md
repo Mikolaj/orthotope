@@ -7965,15 +7965,19 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      name, and every script reads them there (2b).
     #      The basis runs second, and both halves run the classes
     #      why: --para 'Which two halves a pair has'
-    #  2b. THE NOTE'S THREE MACHINE LINES, written with it and read by
+    #  2b. THE NOTE'S FOUR MACHINE LINES, written with it and read by
     #      every script that takes a run, so that nothing is set in any
     #      script: `HALVES: basis=<b> other=<o>`, which pair-halves.sh
-    #      reads for all of them and holds the environment to; `LAUNCH:
-    #      <NAME=value ...>` or `LAUNCH: none`; and `RIDERS: clean [sat]`
-    #      or `RIDERS: none`, the two run-evening.sh reads. Until
-    #      2026-09-02 the halves were set in five scripts by hand, the
-    #      shape of edit that gets four fifths done; an older note's
-    #      `scripts set` row records that edit and is not copied forward
+    #      reads for all of them and holds the environment to; `COMPARE:
+    #      run<N>`, the earlier run run-gate.sh's machine check,
+    #      `--movement`, `--bridge` and `--half-movers` read against
+    #      unless told otherwise, which `--draft` sets to $PREV and a
+    #      ruling may change; `LAUNCH: <NAME=value ...>` or `LAUNCH:
+    #      none`; and `RIDERS: clean [sat]` or `RIDERS: none`, the two
+    #      run-evening.sh reads. Until 2026-09-02 the halves were set in
+    #      five scripts by hand, the shape of edit that gets four fifths
+    #      done; an older note's `scripts set` row records that edit and
+    #      is not copied forward
     #      A HALF'S TAG IS ONE TOKEN, `[A-Za-z0-9_]`, and pair-halves.sh
     #      REFUSES anything else since 2026-09-15 -- it used to CUT at the
     #      first character outside that set, so a declared `ghead-exit`
@@ -9674,12 +9678,12 @@ not otherwise.
     #      paragraph each. Use --brief on --aa and --block: no computed
     #      figure is lost. Do not write a second reader
     #      why: --para 'The properties are part of this'
-    #  4a. THE HALF-LOCAL MOVERS, each half against the PREVIOUS run's
+    #  4a. THE HALF-LOCAL MOVERS, each half against the COMPARE run's
     #      same half over every population, BEFORE any cross-half
     #      figure is attributed to the pair's variable, AND AFTER
     #      $R-evening.txt reads EVENING COMPLETE, its counts columns
     #      reading `--` until the counts have landed:
-    ./read-run.py --half-movers $R $PREV     # a 3% bar; --movers PCT sets it
+    ./read-run.py --half-movers $R           # a 3% bar; --movers PCT sets it
     #      why: --para 'The physical frame of a code page is a placement term too'
     #      An arm it flags with its counts level is that half's binary or
     #      its FILE INSTANCE and not the pair's: Run 33's basis carried
@@ -9742,19 +9746,20 @@ not otherwise.
     #      this run, so it is run once, after the copy is committed
     ./read-run.py $R-<basis>-main.json --movement    # 5a. THE MOVEMENT
     #      READING, whose window 5b closes: a "moved from X to Y"
-    #      sentence compares against the figures the install overwrites,
-    #      and after it they are in git or in the kept JSON only. It was
-    #      a clause inside 5b until 2026-09-01, telling a session to take
-    #      it before the line it was written under, which is what an
-    #      unnumbered step costs -- and a mode only since 2026-09-16,
-    #      two runs having taken it by hand and one having published
-    #      `sixteen points` for a row that moved fourteen, off the
-    #      table's three decimals. The mode reads the same two sources
-    #      the install does, says which figures are three decimals and
-    #      which are full, and says of every row what the chapter says
-    #      once: a row's movement between runs is the winsorized column
-    #      moving, so `--compare` against the previous run's own JSON is
-    #      what says how far the ARM moved
+    #      sentence compares against the COMPARE run's file, or,
+    #      where the note names none, against the figures the install
+    #      overwrites, and after it those are in git or in the kept
+    #      JSON only. It was a clause inside 5b until 2026-09-01,
+    #      telling a session to take it before the line it was written
+    #      under, which is what an unnumbered step costs -- and a mode
+    #      only since 2026-09-16, two runs having taken it by hand and
+    #      one having published `sixteen points` for a row that moved
+    #      fourteen, off the table's three decimals. The mode reads the
+    #      same two sources the install does, says which figures are
+    #      three decimals and which are full, and says of every row what
+    #      the chapter says once: a row's movement between runs is the
+    #      winsorized column moving, so `--compare` against the COMPARE
+    #      run's own JSON is what says how far the ARM moved
     ./install-tables.sh $R                            # 5b. install, never
     #      paste: every table, from the BASIS half
     #      into `runs/$R.md`, the one document any of them writes -- so

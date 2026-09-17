@@ -131,6 +131,15 @@ if [ ! -f "$NOTE" ]; then
   echo "from a scroll-back."
   exit 1
 fi
+# The machine check reads the fingerprint of the run the note's COMPARE line
+# names, where it names one, and the newest run file's otherwise. A named
+# run with no file would make that check the one thing the forty minutes
+# could not answer, so it is refused here.
+MDOC=()
+if [ -n "$COMPARE" ]; then
+  [ -f "runs/$COMPARE.md" ] || { echo "!! $NOTE names COMPARE: $COMPARE, and runs/$COMPARE.md is not there -- the machine check would have no fingerprint to read"; exit 1; }
+  MDOC=(--run-doc "runs/$COMPARE.md")
+fi
 
 SHAPES=$(./"$PREFIX-$BASIS" --list 2>/dev/null | cut -d/ -f1 | sort -u | wc -l)
 [ "$SHAPES" -gt 0 ] || { echo "--list gave nothing; wrong binary?"; exit 1; }
@@ -153,6 +162,8 @@ if [ "$SHOW" = 1 ]; then
   echo "  arms   $ARMS"
   echo "  shapes $SHAPES"
   echo "  expect $EXPECT benches a process"
+  if [ -n "$COMPARE" ]; then echo "  compare runs/$COMPARE.md"
+  else echo "  compare the newest run file, the note naming no COMPARE run"; fi
   exit 0
 fi
 # The two binaries by content, for the block below: run-evening.sh inherits
@@ -228,7 +239,7 @@ echo "=== $(date -Is) gate complete"
 # reads is the geomean against the 0.82% worst excursion eleven kept processes
 # show, with the per-shape residual beside it telling a level shift from a
 # move the shapes disagree on -- a single shape wandering 7% being ordinary.
-MACHINE=$(./read-run.py "$PREFIX-gate-$BASIS-a.json" --machine 2>&1)
+MACHINE=$(./read-run.py "$PREFIX-gate-$BASIS-a.json" --machine "${MDOC[@]}" 2>&1)
 MACHINE_RC=$?
 printf '%s\n' "$MACHINE"
 if [ "$MACHINE_RC" = 2 ]; then

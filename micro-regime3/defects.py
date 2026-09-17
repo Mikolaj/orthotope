@@ -664,6 +664,26 @@ def rundoc_with_a_results_table(tmp, time='0.025'):
         + '\nA paragraph below it.\n')
 
 
+def pair_with_a_compare_run(tmp):
+    """Run 98's basis JSON and note, the note naming `COMPARE: run97`, and
+    what each cross-run default then reads: Run 97's note, its main JSON
+    on both halves, and `runs/run97.md` with a Results table.
+
+    Run 97's halves are named apart from Run 98's, so a default that paired
+    halves by NAME rather than by role finds no file.
+    """
+    write(os.path.join(tmp, 'run98-pair.txt'), NOTE_STUB + 'COMPARE: run97\n')
+    write(os.path.join(tmp, 'run97-pair.txt'),
+          'a stand-in pair note.\nHALVES: basis=nospec other=ghead\n')
+    os.mkdir(os.path.join(tmp, 'runs'))
+    os.rename(rundoc_with_a_results_table(tmp),
+              os.path.join(tmp, 'runs', 'run97.md'))
+    for name in ('run98-a1g', 'run97-nospec', 'run97-ghead'):
+        synth_json(tmp, 'main', name='%s-main.json' % name)
+    return {'j': synth_json(tmp, 'main', name='run98-lookrts-main.json'),
+            'run': os.path.join(tmp, 'run98')}
+
+
 def rundoc_with_ragged_row(tmp):
     """A copy whose yardstick table has one row two cells short.
 
@@ -6675,6 +6695,22 @@ RECORDS = [
               hasnt=['PALINDROME', 'MACHINE CHECK DID NOT FIRE']),
          bug=V(exit=0, has=['PALINDROME', 'MACHINE CHECK DID NOT FIRE'])),
 
+    case('draft-compares-with-the-run-it-drafts-from', 'read-run.py', None,
+         'CONTROL: a carried COMPARE line is reset to the drafted-from run,'
+         ' a ruling that picked another being the last pair\'s',
+         plant=lambda t: {'note': write(os.path.join(t, 'run97-pair.txt'),
+                                        NOTE_STUB + 'COMPARE: run95\n')},
+         argv=['--note', '{note}', '--draft', 'run98', '--halves', 'c,d'],
+         ok=V(exit=0, has=['COMPARE: run97'], hasnt=['COMPARE: run95'])),
+
+    case('draft-adds-a-compare-line', 'read-run.py', None,
+         'CONTROL: a note from before the COMPARE line drafts one under'
+         ' HALVES',
+         plant=lambda t: {'note': write(os.path.join(t, 'run97-pair.txt'),
+                                        NOTE_STUB)},
+         argv=['--note', '{note}', '--draft', 'run98', '--halves', 'c,d'],
+         ok=V(exit=0, has=['HALVES: basis=c other=d\nCOMPARE: run97'])),
+
     case('compare-reads-no-reducing-consumer', 'read-run.py', '7249a35',
          'a `cross` prior on a `-sum` arm was re-derivable only by a'
          ' hand-written geomean over two JSONs',
@@ -9488,6 +9524,20 @@ RECORDS = [
          argv=['zzph4'],
          ok=V(exit=0, has=['halves from the environment', 'BASIS=x; OTHER=y'])),
 
+    case('halves-read-the-compare-line', 'pair-halves.sh', None,
+         'CONTROL: the COMPARE line is printed as a third assignment',
+         shadow=dict(extra=[('zzph6-pair.txt',
+                             NOTE_STUB + 'COMPARE: run97\n')]),
+         argv=['zzph6'],
+         ok=V(exit=0, has=['BASIS=lookrts; OTHER=a1g; COMPARE=run97'])),
+
+    case('halves-refuse-a-compare-line-naming-no-run', 'pair-halves.sh', None,
+         'CONTROL: a COMPARE line naming a path and not a run is refused',
+         shadow=dict(extra=[('zzph7-pair.txt',
+                             NOTE_STUB + 'COMPARE: runs/run97.md\n')]),
+         argv=['zzph7'],
+         ok=V(exit=1, has=["COMPARE: run<N>"], hasnt=['BASIS='])),
+
     # ---- run-evening.sh, the run list's quiet machine steps as one command
     case('evening-chains-the-stages', 'run-evening.sh', None,
          'CONTROL: gate inherited, alarm, sequence and riders land in one'
@@ -10618,6 +10668,44 @@ RECORDS = [
          ok=V(exit=0, has=['against the table in', 'points',
                            "`there` is the table's own THREE decimals"])),
 
+    # ---- the note's COMPARE line, the earlier run of every cross-run reading
+    case('movement-defaults-to-the-compare-run', 'read-run.py', None,
+         'CONTROL: --movement with no --run-doc reads the COMPARE run\'s'
+         ' file beside the JSON, not the newest in runs/',
+         plant=pair_with_a_compare_run,
+         argv=['{j}', '--movement'],
+         ok=V(exit=0, has=['against the table in', 'run97.md'])),
+
+    case('bridge-defaults-to-the-compare-run', 'read-run.py', None,
+         'CONTROL: --bridge with no --compare takes the same half of the'
+         ' COMPARE run, by role and not by name',
+         plant=pair_with_a_compare_run,
+         argv=['{j}', '--bridge'],
+         ok=V(exit=0, has=['run97-nospec-main.json'])),
+
+    case('half-movers-default-to-the-compare-run', 'read-run.py', None,
+         'CONTROL: --half-movers RUN alone takes PREV off the COMPARE line',
+         plant=pair_with_a_compare_run,
+         argv=['--half-movers', '{run}'],
+         ok=V(exit=0, has=['run97'], hasnt=['no COMPARE line'])),
+
+    case('half-movers-refuse-without-prev-or-compare', 'read-run.py', None,
+         'CONTROL: --half-movers RUN alone, with no COMPARE line, is refused'
+         ' naming both ways out',
+         plant=lambda t: {'run': (write(os.path.join(t, 'run98-pair.txt'),
+                                        NOTE_STUB), os.path.join(t, 'run98'))[1]},
+         argv=['--half-movers', '{run}'],
+         ok=V(exit=2, has=['no COMPARE line'])),
+
+    case('compare-line-naming-no-run-is-refused', 'read-run.py', None,
+         'CONTROL: a COMPARE line naming a path is refused, not taken for'
+         ' a run nobody has',
+         plant=lambda t: {'run': (write(os.path.join(t, 'run98-pair.txt'),
+                                        NOTE_STUB + 'COMPARE: runs/run97.md\n'),
+                                  os.path.join(t, 'run98'))[1]},
+         argv=['--half-movers', '{run}'],
+         ok=V(exit=2, has=['COMPARE: run<N>'])),
+
     case('floor-pairs-reads-every-population', 'read-run.py', None,
          'the standing floor-pair registration -- the A/A copies against'
          ' their originals -- had no mode, so Run 32 read it as sixteen'
@@ -10754,6 +10842,28 @@ RECORDS = [
          argv=['zzshow2', '--show', 'nonsense'],
          ok=V(exit=2, has=['too many arguments'],
               hasnt=['expect 15 benches a process'])),
+
+    case('gate-show-names-the-compare-run', 'run-gate.sh', None,
+         'CONTROL: --show names the run file the machine check reads, off'
+         ' the note\'s COMPARE line',
+         # run32.md is a record and stays, so the shadow's symlinked runs/
+         # carries it.
+         shadow=dict(extra=[('zzshow3-a1g', FAKE_HALF),
+                            ('zzshow3-lookrts', FAKE_HALF),
+                            ('zzshow3-pair.txt',
+                             NOTE_STUB + 'COMPARE: run32\n')]),
+         argv=['zzshow3', '--show'],
+         ok=V(exit=0, has=['compare runs/run32.md'])),
+
+    case('gate-refuses-a-compare-run-with-no-file', 'run-gate.sh', None,
+         'CONTROL: a COMPARE run with no run file is refused before the'
+         ' machine, whose check would read nothing after forty minutes',
+         shadow=dict(extra=[('zzshow4-a1g', FAKE_HALF),
+                            ('zzshow4-lookrts', FAKE_HALF),
+                            ('zzshow4-pair.txt',
+                             NOTE_STUB + 'COMPARE: run1\n')]),
+         argv=['zzshow4', '--show'],
+         ok=V(exit=1, has=['runs/run1.md'], hasnt=['expect 15 benches'])),
 
     case('delta-of-a-build-against-itself-moves-nothing', 'loop-offsets.py',
          None,

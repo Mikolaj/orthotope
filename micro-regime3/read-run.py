@@ -145,7 +145,8 @@ Modes:
                     partitioned by size and never by column
   --compare O --bridge  each arm as a ratio to `list` IN ITS OWN RUN, per
                     shape, which cancels a box change exactly where the
-                    plain --compare reads absolutes and cannot
+                    plain --compare reads absolutes and cannot; given no
+                    --compare, O is the same half of the note's COMPARE run
   --compare O --ci  each arm's CI% median against the other run's -- the
                     statistic the column publishes, and not the mean a
                     script over --cells reaches for
@@ -5286,6 +5287,53 @@ def floor_pairs(run, args):
     return 0
 
 
+def note_halves(run):
+    """RUN's halves off its note, `RUN-pair.txt`, as (basis, other), or
+    None where there is no note or no HALVES line. RUN is a path prefix,
+    `DIR/run<N>`."""
+    try:
+        text = open('%s-pair.txt' % run).read()
+    except OSError:
+        return None
+    m = re.search(r'^HALVES:\s*basis=(\w+)\s+other=(\w+)', text, re.M)
+    return (m.group(1), m.group(2)) if m else None
+
+
+def note_compare(run):
+    """The run RUN's note names on its `COMPARE: run<N>` line, as a path
+    prefix beside RUN, or None where the note has no such line.
+
+    It is the earlier run every cross-run reading of the pair goes against,
+    and `--movement`, `--bridge` and `--half-movers` default to it. A line
+    naming anything but a run exits 2 rather than returning None, since
+    None sends each of them back to a default the line was written to
+    overrule.
+    """
+    try:
+        text = open('%s-pair.txt' % run).read()
+    except OSError:
+        return None
+    m = re.search(r'^COMPARE:(.*)$', text, re.M)
+    if not m:
+        return None
+    name = m.group(1).strip()
+    if not re.fullmatch(r'run\d+', name):
+        sys.stderr.write("%s-pair.txt's COMPARE line names '%s', where it"
+                         " names a run, 'COMPARE: run<N>'\n" % (run, name))
+        sys.exit(2)
+    return os.path.join(os.path.dirname(run), name)
+
+
+def json_run_half(path):
+    """A population JSON's run prefix, half and population, off its name
+    `DIR/run<N>-HALF-POP.json`, or None."""
+    m = re.match(r'(run\d+)-(\w+)-(.+)\.json$', os.path.basename(path))
+    if not m:
+        return None
+    return (os.path.join(os.path.dirname(path), m.group(1)), m.group(2),
+            m.group(3))
+
+
 def half_movers(run, prev, args):
     """Each half of RUN against the same half of PREV, over every population
     both runs have, naming the arms that moved past the population's floor
@@ -5322,15 +5370,7 @@ def half_movers(run, prev, args):
     `probe-pageflags.py` on the slow instance while it runs. A reading and
     not a gate: exit 0 whatever it finds, 2 where nothing could be read.
     """
-    def halves_of(r):
-        try:
-            text = open('%s-pair.txt' % r).read()
-        except OSError:
-            return None
-        m = re.search(r'^HALVES:\s*basis=(\w+)\s+other=(\w+)', text, re.M)
-        return (m.group(1), m.group(2)) if m else None
-
-    h_run, h_prev = halves_of(run), halves_of(prev)
+    h_run, h_prev = note_halves(run), note_halves(prev)
     for r, h in ((run, h_run), (prev, h_prev)):
         if not h:
             sys.stderr.write('%s-pair.txt: no HALVES line, so the halves'
@@ -8036,6 +8076,17 @@ def pair_note(path, draft=None, halves=None):
                 for k, c in bseen.items()]
     body = re.sub(r'^HALVES:.*$', 'HALVES: basis=%s other=%s' % new,
                   body, flags=re.M)
+    # THE COMPARE LINE IS NEVER CARRIED. It names the earlier run a pair is
+    # read against, which is the run drafted from unless a ruling picks
+    # another, and a ruling is that pair's: Run 34's `COMPARE: run32` was.
+    # So the draft names the run it is drafted from, under HALVES where
+    # the old note had no line, and the scan below skips the line.
+    if re.search(r'^COMPARE:', body, re.M):
+        body = re.sub(r'^COMPARE:.*$', 'COMPARE: %s' % prev, body,
+                      flags=re.M)
+    else:
+        body = re.sub(r'^(HALVES:.*)$', r'\1\nCOMPARE: %s' % prev, body,
+                      count=1, flags=re.M)
     # A CARRIED BLOCK THAT NAMES ANOTHER RUN IS FLAGGED WHERE IT SITS.
     # The renames above map the PREVIOUS run onto this one and touch no
     # other number, so a `[SAME]` block quoting `run26-g912` as the
@@ -8071,7 +8122,8 @@ def pair_note(path, draft=None, halves=None):
         lead = para.lstrip('\n').split('\n', 1)[0]
         if '[SAME' not in lead:
             continue
-        nums = set(re.findall(r'run(\d+)', para))
+        nums = set(re.findall(r'run(\d+)',
+                              re.sub(r'^COMPARE:.*$', '', para, flags=re.M)))
         for m in re.finditer(r'[Rr]uns?\s+\d+(?:\s*(?:to|and|,|--)\s*\d+)*',
                              para):
             nums |= set(re.findall(r'\d+', m.group(0)))
@@ -12418,9 +12470,10 @@ def main():
                         " than its shape's `list`, over every"
                         ' population and both halves, with the count'
                         ' it read so the silence is a reading')
-    p.add_argument('--half-movers', dest='half_movers', nargs=2,
-                   metavar=('RUN', 'PREV'),
-                   help='each half of RUN against the same half of PREV'
+    p.add_argument('--half-movers', dest='half_movers', nargs='+',
+                   metavar='RUN',
+                   help='RUN [PREV]: each half of RUN against the same half'
+                        " of PREV, the note's COMPARE run unless given,"
                         ' over every population both have, naming the'
                         ' arms past the floor on ONE half and inside it'
                         ' on the other -- the term a file instance or a'
@@ -12627,6 +12680,7 @@ def main():
                 ' name it with --run-doc, or drop --readme')
     if args.readme is None:
         args.readme = os.path.join(here, 'README.md')
+    run_doc_named = args.run_doc is not None
     if args.run_doc is None:
         args.run_doc = current_run_doc(here)
         # AND THE DEFAULT IS HELD TO THE RUN NAMED. The newest file in
@@ -12796,8 +12850,27 @@ def main():
                 % len(args.counts))
     if args.ci and not args.compare:
         p.error('--ci is a reading ACROSS two runs: give it --compare')
+    # A CROSS-RUN READING GIVEN NO EARLIER RUN takes the note's COMPARE
+    # run: --bridge the same half of it by role, --movement its run file.
+    # Named explicitly, --compare and --run-doc win.
+    if args.bridge and not args.compare and args.run:
+        at = json_run_half(args.run)
+        cmp_run = note_compare(at[0]) if at else None
+        if cmp_run:
+            mine, theirs = note_halves(at[0]), note_halves(cmp_run)
+            if not mine or at[1] not in mine or not theirs:
+                p.error('--bridge: %s names COMPARE %s, and the halves of'
+                        ' %s are not both readable off the two notes'
+                        % (at[0] + '-pair.txt', os.path.basename(cmp_run),
+                           os.path.basename(args.run)))
+            args.compare = '%s-%s-%s.json' % (
+                cmp_run, theirs[mine.index(at[1])], at[2])
+            sys.stderr.write('--bridge: against %s, the same half of the'
+                             " note's COMPARE run\n"
+                             % os.path.basename(args.compare))
     if args.bridge and not args.compare:
-        p.error('--bridge is a reading ACROSS two runs: give it --compare')
+        p.error('--bridge is a reading ACROSS two runs: give it --compare,'
+                " or a COMPARE line to the run's note")
 
     # BOTH DOCUMENTS, in reading order. `--para` and `--replace` are
     # retrieval, and a session that had to say which file a paragraph is in
@@ -12871,8 +12944,31 @@ def main():
     if args.floor_pairs:
         sys.exit(floor_pairs(args.floor_pairs, args))
     if args.half_movers:
-        sys.exit(half_movers(args.half_movers[0], args.half_movers[1], args))
+        if len(args.half_movers) > 2:
+            p.error('--half-movers takes RUN and at most one PREV')
+        run = args.half_movers[0]
+        prev = args.half_movers[1] if args.half_movers[1:] else None
+        if prev is None:
+            prev = note_compare(run)
+            if prev is None:
+                sys.stderr.write('--half-movers %s: no PREV given and no'
+                                 ' COMPARE line in %s-pair.txt, so there is'
+                                 ' no earlier run to read against -- name'
+                                 ' one, or add the line\n' % (run, run))
+                sys.exit(2)
+        sys.exit(half_movers(run, prev, args))
     if args.movement:
+        at = json_run_half(args.run or '')
+        cmp_run = (note_compare(at[0])
+                   if at and not run_doc_named else None)
+        if cmp_run:
+            args.run_doc = os.path.join(os.path.dirname(cmp_run) or '.',
+                                        RUNS_DIR,
+                                        os.path.basename(cmp_run) + '.md')
+            if not os.path.exists(args.run_doc):
+                sys.stderr.write("--movement: the note's COMPARE run has no"
+                                 ' file at %s\n' % args.run_doc)
+                sys.exit(2)
         sys.exit(movement(args.run, args))
     if args.over_list:
         sys.exit(over_list_sweep(args.over_list, args))

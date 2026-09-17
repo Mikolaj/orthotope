@@ -96,8 +96,13 @@ THE BASIS IS $R-<basis> [PAIR'S] -- it publishes the big table, the bench counts
 read from it, every --in-place table comes from it, and it runs second. The
 line below is the ONE place the two names are set: every script that takes
 a run reads it through pair-halves.sh, and an environment that names them
-differently is refused. Nothing is set in any script.
+differently is refused. Nothing is set in any script. The COMPARE line
+under it names the earlier run every cross-run reading of this pair goes
+against -- run-gate.sh's machine check, `--movement`, `--bridge` and
+`--half-movers` all default to it -- and `--draft` writes the run it drafts
+from; a ruling that picks another run changes this line and nothing else.
 HALVES: basis=<basis> other=<other>
+COMPARE: <previous run, as run<N>>
 
 NAMING THE HALVES [SAME]: neither name may begin with the other's followed by a
 hyphen. install-tables.sh finds the basis's class JSONs by globbing
