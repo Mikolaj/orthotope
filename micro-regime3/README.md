@@ -59,21 +59,22 @@ actually compiles in. **The nineteenth shape is what WAS new, and it sits
 on the line**: `stretch-pow2stride` reads **0.9989** on Run 34's basis, the fill
 a ninth of a point ahead of `bq-expand`, and **1.0016** on the GHC HEAD half,
 where it is behind and class property 1 breaks --- Run 33's two readings
-with the halves exchanged again. Five runs have now put that cell within a point
-and a quarter of a tie, on both sides of it, so it sits on the line rather
-than having turned over. **The mutable fills hold the top of the table** ---
-`lib-stage2-lean` at 0.025 and the shipped leaf at 0.027, against
-`mut-odo-vecdims`'s 0.045 --- and every one of them needs a new `Vector`-class
-method, which this README argued against for as long as the ceiling stood ---
-to keep orthotope's `Vector` API pure and minimal, a bar an in-tree precedent
-softened to a weight --- and which the decision of 2026-08-22 **took**,
-`vFillStrided` landing 2026-08-24 ([below](#the-mutable-ceiling-taken)). Plain
-`mut-odo` no longer argues for it at all: it and `bq-expand`, which survives
-in `Data/Array/Internal.hs` only as that method's class default, the three
-vector-backed instances overriding it with the mutable fill, are a tie at 0.8906
-paired, 14 shapes of 26 and sign p 0.85 on an interval covering 1 ---
-and at 0.8918 on Run 24's HEAD half, a thousandth away, so the tie is not one
-compiler's --- where Run 7 (Harness), at -O1, had it 1.51x ahead.
+with the halves exchanged again. Five runs have now read that cell on both sides
+of a tie, nine of their ten readings within a point and a quarter of it,
+so it sits on the line rather than having turned over. **The mutable fills hold
+the top of the table** --- `lib-stage2-lean` at 0.025 and the shipped leaf
+at 0.027, against `mut-odo-vecdims`'s 0.045 --- and every one of them needs
+a new `Vector`-class method, which this README argued against for as long
+as the ceiling stood --- to keep orthotope's `Vector` API pure and minimal,
+a bar an in-tree precedent softened to a weight --- and which the decision
+of 2026-08-22 **took**, `vFillStrided` landing 2026-08-24
+([below](#the-mutable-ceiling-taken)). Plain `mut-odo` no longer argues
+for it at all: it and `bq-expand`, which survives in `Data/Array/Internal.hs`
+only as that method's class default, the three vector-backed instances
+overriding it with the mutable fill, are a tie at 0.8906 paired, 14 shapes of 26
+and sign p 0.85 on an interval covering 1 --- and at 0.8918 on Run 24's HEAD
+half, a thousandth away, so the tie is not one compiler's --- where Run 7
+(Harness), at -O1, had it 1.51x ahead.
 
 **Several strategies measured since are faster than the last candidate,
 `bq-expand`, and need no class method --- a distinction the decision
@@ -715,11 +716,11 @@ rather than a slot in the next run, observed again:
   verdicts are [in Run 34's own
   file](runs/run34.md#what-this-run-was-built-to-answer-and-what-it-answered),
   where a run's registrations have lived since 2026-08-29; in a clause each: (1)
-  SPLIT, stage twelve taking stage six's run on `window` on the basis
-  and missing both spans within the control half; (2) SPLIT, stage twelve level
-  with stage eleven on every span and within a hundred instructions of it,
-  but retiring more on 20 of 154 tie-view readings; (3) HELD, stage twelve
-  across the halves at 0.9304 on `window`; (4) KILLED, `runs-48` 4.0 to 5.4%
+  HELD, stage twelve taking stage six's run on `window` on the basis, where
+  an item naming no half is read; (2) KILLED by its count clause, stage twelve
+  level with stage eleven on every span but retiring more instructions
+  than it on 20 of 154 tie-view readings; (3) HELD, stage twelve across
+  the halves at 0.9304 on `window`; (4) KILLED, `runs-48` 4.0 to 5.4%
   under `runs-96` an element; (5) KILLED within the control half, `small-flat64`
   5.06% over stage seven against 4%.
 - `ANSWERED` **What Run 32 was built to answer, registered before it ran ---
@@ -1138,14 +1139,16 @@ rather than a slot in the next run, observed again:
   and five more readings, HEAD's leaf-u1 twice among them and the rest untested,
   the basis's own file having been evicted before its other flag could be.
   The main-set residues this entry also named, the lean fill at 1.0354
-  and `lib-stage1` at 1.0298, stand as the compiler's placement-and-runtime
-  term: HEAD's fills gained about two points against Run 32 under the exit span
-  while the basis's lean fill read level, its loop on another page. **Run 34,
-  the same recipe launched from `hugebin/` on a moved source, reads
-  `lib-stage2-lean-u1` at 1.0027 across the halves on `runs` and the lean fill
-  at 1.0047 on the main set**, both with their counts level --- and four other
-  half-local movers against Run 32 whose copy test that run did not take,
-  at the head of [Run 34's file](runs/run34.md).
+  and `lib-stage1` at 1.0298, were read on Run 33 as the compiler's
+  placement-and-runtime term: HEAD's fills gained about two points against Run
+  32 under the exit span while the basis's lean fill read level, its loop
+  on another page. **Run 34, the same recipe launched from `hugebin/` on a moved
+  source, reads `lib-stage2-lean-u1` at 1.0027 across the halves on `runs`
+  with its counts level, and the lean fill at 1.0047 on the main set
+  with its counts at 1.0063**, so neither residue reproduced; `lib-stage1` reads
+  1.0258 with its counts at 1.0075 --- and four other half-local movers against
+  Run 32 whose copy test that run did not take, at the head of [Run 34's
+  file](runs/run34.md).
 - `OPEN` **Four arms moved past 3% against Run 32 on ONE half each, with their
   counts level, and nobody took the copy test that says whether each
   is the binary's or its file instance's.** Run 34's `--half-movers run34 run32`
@@ -1256,19 +1259,20 @@ rather than a slot in the next run, observed again:
   on its control, Run 33 read the same split with the halves exchanged, behind
   at **1.0007** on its basis and ahead at **0.9961** on its control, and Run 34
   exchanges them back, ahead at **0.9989** on its basis and behind at **1.0016**
-  on its control. Nine of the ten margins across those five runs are inside
-  the floor of the half they were read on, Run 30's control the exception ---
-  Run 34's two are 0.11 of a point against 0.51% and 0.16 against 0.49% ---
-  so the cell has now been read by two compilers, two levels and the exit span
-  without any of them settling it, which is what a tie looks like when a chapter
-  keeps asking. The clause holds on every shape of all ten classes on both
-  halves, so what broke is one main-set shape and not the property's reach.
-  It matters because this is the clause the stride classes exist to test
-  and the only one here that bears on `Data/Array/Internal.hs` directly:
-  `bq-expand` is the route the shipped file took before the fill, and an arm
-  that is not ahead of it everywhere is an arm whose replacement of it
-  is not unconditional. **What would settle whether it is the shape's
-  or the run's** is the next run's reading of that one cell ---
+  on its control. Nine of the ten margins across those five runs are
+  at or inside the floor of the half they were read on, Run 30's control
+  the exception --- Run 34's two are 0.11 of a point against 0.51% and 0.16
+  against 0.49% --- so the cell has now been read by two compilers, two levels
+  and the exit span without any of them settling it, which is what a tie looks
+  like when a chapter keeps asking. The clause holds on every shape of all ten
+  classes on both halves, so what broke is one main-set shape and
+  not the property's reach. It matters because this is the clause the stride
+  classes exist to test and the only one here that bears
+  on `Data/Array/Internal.hs` directly: `bq-expand` is the route the shipped
+  file took before the fill, and an arm that is not ahead of it everywhere
+  is an arm whose replacement of it is not unconditional. **What would settle
+  whether it is the shape's or the run's** is the next run's reading of that one
+  cell ---
   `./read-run.py run<N>-<basis>-main.json --pair bq-expand mut-odo-vecdims --per-shape`,
   whose `range` line this run reads at 0.999 on `stretch-pow2stride` and Run 30
   at 1.000, the per-shape lines below giving 0.9991 and 1.0003. Three readings
@@ -1288,11 +1292,12 @@ rather than a slot in the next run, observed again:
   33's two are 0.07 of a point against 0.47% and 0.39 against 0.62%, and Run
   34's 0.11 against 0.51% and 0.16 against 0.49% --- the tenth is Run 30's
   control at 0.9748 against a 0.84% floor and is the fill AHEAD by two
-  and a half points, and the two pairs that a compiler alone separates part
-  in sign, in opposite directions. That is a cell sitting on the line rather
-  than a property of the shape, and the entry STAYS OPEN on a narrower question:
-  whether any run reads it outside its own floor. Until one does, a break here
-  is not evidence that the fill fails to replace `bq-expand` on that shape.
+  and a half points, and the three pairs that a compiler alone separates, Runs
+  32 to 34, all part in sign, Runs 32 and 34 with the basis ahead and Run 33
+  the other way. That is a cell sitting on the line rather than a property
+  of the shape, and the entry STAYS OPEN on a narrower question: whether any run
+  reads it outside its own floor. Until one does, a break here is not evidence
+  that the fill fails to replace `bq-expand` on that shape.
 - `OPEN` **`-O2` changes what the preamble's spray leaves RESIDENT, and no pair
   before it did.** Run 31's twenty-two processes carry one `keep` value,
   `8.19844333056e12`, and TWO `inuse` values --- 95420416 on every plain -O1
@@ -1658,7 +1663,7 @@ rather than a slot in the next run, observed again:
   root's on none, Run 30 also reading one unchanged binary at 0.82% and 0.57%
   a day apart; the five runs' figures and that repetition are [in the floor
   section][floor], which until 2026-09-13 named the RESTRICTED figure as the bar
-  while every verdict in `runs/run33.md` used the whole-set pair. **RULED
+  while every verdict in `runs/run30.md` used the whole-set pair. **RULED
   2026-09-13**: a margin between two rows clears the floor of every pair
   the roster carries, the widest an arm disagrees with its own duplicate
   by on that half that evening, quoted to one decimal where it stands as a bar;
@@ -3092,10 +3097,11 @@ rather than a slot in the next run, observed again:
   comparison, which is that run's registration (6) and which HELD on all three
   of its spans --- the switch worth 0.17 of a point to `lib-stage2-lean`, 1.83
   to `lib-stage2-lean-u1` and 0.14 to `list` across the two builds. So A stands
-  as the basis it was made the candidate for. What is now owed is Run 34,
-  [registered in the open list][open]: Run 33's pair rebuilt from the moved
-  source and read against Run 32. The two `-O2` passes against neither, which
-  [Run 33's file](runs/run33.md) declared for Run 34, are deferred again.
+  as the basis it was made the candidate for. Run 34 then took Run 33's pair
+  again, rebuilt from the moved source and read against Run 32, and its verdicts
+  are in [Run 34's file](runs/run34.md). The two `-O2` passes against neither,
+  which [Run 33's file](runs/run33.md) declared for Run 34, are deferred to
+  Run 35.
 - `ANSWERED` **Why `libunord-stage10-sum` trails `libunord-stage9-sum` by 19
   to 39 percent on the `window` views while retiring 40 to 60 percent fewer
   instructions, and why HEAD moves stage 9 and not stage 10 --- asked
@@ -3559,15 +3565,18 @@ clauses naming a SHAPE or a COUNT rather than a population: (1)'s moved views
 within a point of stage six, (4)'s per-element ratios over three `runs` lengths,
 (5)'s last clause against a prior built from Run 32's cells with each view
 classed by this run's own basis cell, and (2)'s count clause, which no mode
-reads because `--counts --pair` corrects a reducing consumer to nothing ---
-every one a script over `--cells` or over the counts files directly. **A CHECK
-THAT DOES NOT EXIST**: `--predictions` reads every span of the registration
-on every population it is handed, so an item naming `window` alone comes back
-KILLED on the other ten populations and a session filters by hand; and it reads
-a `pair` span on whichever half the file handed first is, where the item may
-name no half --- (1) holds on the basis and misses within the control,
-and nothing but the reading says which the item meant. **A RESOLUTION NOBODY HAD
-PRICED**: the counted work's identical-code pair, `sum-only-early` against
+reads because `--counts --pair` corrects a reducing consumer's count away
+on most shapes, seventeen of nineteen on the main set --- every one a script
+over `--cells` or over the counts files directly. **A CHECK THAT DOES
+NOT EXIST**: `--predictions` reads every span of the registration on every
+population it is handed, so an item naming `window` alone comes back
+with a verdict on all ten populations it does not name --- KILLED on most,
+and HELD on `small` for one of (1)'s spans by coincidence --- and a session
+filters by hand; and it reads a `pair` span on the half handed first, so an item
+that names no half is read on the basis by that default alone --- (1) holds
+there and would miss within the control, and only the write-up's own statement
+of the convention says which the item meant. **A RESOLUTION NOBODY HAD PRICED**:
+the counted work's identical-code pair, `sum-only-early` against
 `sum-only-late`, differs by up to 14 instructions a call over `window`
 on the basis and by up to 2925 over `runs`, so a registration clause resting
 on the sign of a difference under a hundred instructions sits inside
@@ -7064,7 +7073,7 @@ of this kind is available off the roster.** `mut-odo-vecdims-add-in-leaf-u1-ptr`
 and `-u2-ptr` went `Only` with their question answered, Runs 29 and 30 having
 settled that neither -O2 pass reaches the ceiling they price --- `-u2-ptr`
 over `-u2` read 0.9385 and 0.9268 on Run 30's two halves, 0.9366 and 0.9372
-on Run 29's and 0.9532 on Run 28's basis. Runs 31 and 32 time neither,
+on Run 29's and 0.9532 on Run 28's basis. Runs 31 to 34 time neither,
 so the ceiling is recorded at those five readings and a run that wants a sixth
 has to un-park an arm. What Runs 32 to 34 do say about the form is
 from the naming side rather than the timing one: post-run step 0 still finds
@@ -11843,23 +11852,23 @@ then it was held to the carry-back figure of the half it is read on --- 0.49%
 on Run 34's basis --- which is the A/A floor above restricted to the pairs
 that carry, was a different quantity from the whole-set floor until the prune
 of 2026-09-04 left six pairs in all, and is now the series across runs rather
-than the bar. **Two rules are in play again, having been one for three runs,
-and each reads as two numerals because there are two halves**: 0.51% and 0.49%
-are the widest an arm differs from its own duplicate by on each half
-over the eight pairs this roster carries, while the four pairs carrying back
-to Run 10 give 0.49% and 0.49% --- equal to the whole-set figure on the control
-and two hundredths under it on the basis this run, where Run 33 had them equal
-on both halves, Runs 30 and 31 on the basis alone and Runs 28 and 29 read
-the two apart, and the rule since 2026-09-13 names the WHOLE-SET figure as what
-two rows of one table must clear, the restricted one having been the rule until
-Run 30 re-opened it, the wider figure being the conservative reading ---
-and 2.1% is the across-run drift band an arm must clear to have moved between
-runs on this box, Run 23's one-binary reading, where Run 11's was 3.3%. **All
-three are the word *floor*, over different populations, and two things
-that are not it wear it easily.** A class's `floor` column is the same statistic
-again over that population's A/A pairs, so it is a fourth member of the family
-and not a fourth sense. **And a margin read ACROSS a pair's two halves
-on a class is judged against the WIDER of the two halves' floors,
+than the bar. **Two rules are in play again, having been one on both halves
+for two runs, and each reads as two numerals because there are two halves**:
+0.51% and 0.49% are the widest an arm differs from its own duplicate by on each
+half over the eight pairs this roster carries, while the four pairs carrying
+back to Run 10 give 0.49% and 0.49% --- equal to the whole-set figure
+on the control and two hundredths under it on the basis this run, where Runs 32
+and 33 had them equal on both halves, Runs 30 and 31 on the basis alone and Runs
+28 and 29 read the two apart, and the rule since 2026-09-13 names the WHOLE-SET
+figure as what two rows of one table must clear, the restricted one having
+been the rule until Run 30 re-opened it, the wider figure being the conservative
+reading --- and 2.1% is the across-run drift band an arm must clear to have
+moved between runs on this box, Run 23's one-binary reading, where Run 11's
+was 3.3%. **All three are the word *floor*, over different populations, and two
+things that are not it wear it easily.** A class's `floor` column is the same
+statistic again over that population's A/A pairs, so it is a fourth member
+of the family and not a fourth sense. **And a margin read ACROSS a pair's two
+halves on a class is judged against the WIDER of the two halves' floors,
 and a registration's kill condition on a class says so**: the narrower floor
 is the one that makes a kill and the wider the one that makes a tie honest,
 and a pair whose halves' floors differ threefold --- Run 23's `reshape1`, 3.09%
@@ -13907,22 +13916,23 @@ tables and its fingerprint say so.
   class at FOURTEEN, `window` at EIGHT, `bcast` and `flip` at SIX, `block`
   and `small` at FIVE, `bcastmid` and `compose` at FOUR and `rev` and `scaled`
   at THREE. Its timings were ruled skewed by filesystem issues on 2026-09-16,
-  the file-page frame term, so no later run compares against it. **Its delta
-  against RUN 32 is ONE ARM IN AND NONE OUT**: `Main.hs` moved from `f95795a`
-  to `f31bd1c` in two commits --- `f46867f` landing `libunord-stage11-sum`,
-  stage ten with its zero-stride move guarded, with its untimed sibling beside
-  it, and `f31bd1c` changing one comment line and no code --- and the SHIM moved
-  too, from `b3a1aca` to `f31bd1c` in NINE commits, `3b49356` adding
-  the `LOOP_EXITSPAN` cost this pair is the first to build under and `f1a5adb`
-  fixing it. Its sequence ran in ONE window, 01:05:22 to 08:26:08, and ONE
-  of its twenty-two processes was intruded on by the write-up session,
-  `run33-gheadexit-main`, for 3 of its 627 benches at a peak of 0.35 of a core;
-  the rerun post-run step 3 orders was launched and stopped at the owner's word,
-  and the run's own file carries the sensitivity reading that stands in for it.
-  Its four gate processes and all 88 alone-leg logs are clean. **And its floor
-  is a maximum over EIGHT A/A pairs**, 0.47% and 0.62%, `bq-expand-aa-distant`
-  carrying it on BOTH halves; its restricted four-pair reading is the same two
-  figures, so the two thresholds are closed on both halves for a second run.
+  the file-page frame term, so Run 34 takes its one-step comparison against Run
+  32 and not against it. **Its delta against RUN 32 is ONE ARM IN AND NONE
+  OUT**: `Main.hs` moved from `f95795a` to `f31bd1c` in two commits ---
+  `f46867f` landing `libunord-stage11-sum`, stage ten with its zero-stride move
+  guarded, with its untimed sibling beside it, and `f31bd1c` changing one
+  comment line and no code --- and the SHIM moved too, from `b3a1aca`
+  to `f31bd1c` in NINE commits, `3b49356` adding the `LOOP_EXITSPAN` cost
+  this pair is the first to build under and `f1a5adb` fixing it. Its sequence
+  ran in ONE window, 01:05:22 to 08:26:08, and ONE of its twenty-two processes
+  was intruded on by the write-up session, `run33-gheadexit-main`, for 3
+  of its 627 benches at a peak of 0.35 of a core; the rerun post-run step 3
+  orders was launched and stopped at the owner's word, and the run's own file
+  carries the sensitivity reading that stands in for it. Its four gate processes
+  and all 88 alone-leg logs are clean. **And its floor is a maximum over EIGHT
+  A/A pairs**, 0.47% and 0.62%, `bq-expand-aa-distant` carrying it on BOTH
+  halves; its restricted four-pair reading is the same two figures, so the two
+  thresholds are closed on both halves for a second run.
 - Run 32 measured TODAY's shapes exactly and, less the three `runs` views
   of 2026-09-16, today's class views and, less two arms and one guard, today's
   roster, nothing having moved since it ran but 2026-09-15's landing
