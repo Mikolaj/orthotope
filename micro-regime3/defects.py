@@ -6126,6 +6126,23 @@ RECORDS = [
                            'mut-odo-vecdims / bq-expand'],
               hasnt=['no shape carries both'])),
 
+    case('counts-pair-per-shape-differences-beside-the-resolution',
+         'read-run.py', None,
+         'CONTROL: --per-shape with a within-half --counts pair prints each'
+         ' shape\'s instruction difference and the sum-only-early/late'
+         ' spread it is read against',
+         # Run 34 hand-rolled both: a stage-twelve-over-eleven difference
+         # per shape, whose corrected ratio dropped seventeen of nineteen
+         # shapes, and the spread between the two copies of the forcing
+         # pass, which no mode priced.
+         plant=lambda t: {'run': synth_json(t, 'main'),
+                          'counts': synth_counts(t, 'c.txt',
+                                                 cheap_sum_only=True)},
+         argv=['{run}', '--counts', '{counts}',
+               '--pair', 'mut-odo-vecdims', 'bq-expand', '--per-shape'],
+         ok=V(exit=0, has=['per shape, mut-odo-vecdims - bq-expand',
+                           '|early - late|', 'the resolution'])),
+
     case('counts-pair-sinks-loudly', 'read-run.py', None,
          'a within-half reading whose correction leaves no work said so'
          ' rather than printing a ratio of two negatives',

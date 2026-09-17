@@ -174,7 +174,10 @@ Modes:
                     forcing pass and raw beside it, which is what a
                     registration comparing two arms on one binary turns
                     on. Two sweep files with `--compare` is the cross-half
-                    reading and the older one
+                    reading and the older one. `--per-shape` adds each
+                    shape's raw difference A - B beside how far the
+                    sweep's two copies of the forcing pass part, the
+                    resolution such a difference is read against
   --steps           every cell read at sample level for a mid-bench change
                     of level, which the fitted slope averages away and no
                     other column here can show
@@ -3332,7 +3335,7 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     return 1 if unread else 0
 
 
-def counts_pair(counts_a, pairs, shapes, cells=None):
+def counts_pair(counts_a, pairs, shapes, cells=None, per_shape=False):
     """Two arms' instruction counts on ONE half, corrected and raw.
 
     `--counts` reads a PAIR of sweep files beside `--compare` and answers
@@ -3412,6 +3415,41 @@ def counts_pair(counts_a, pairs, shapes, cells=None):
                   ' work by the correction: %s'
                   % (len(gone), ', '.join(sorted(gone)[:6])
                      + (', ...' if len(gone) > 6 else '')))
+    # PER SHAPE, AS A DIFFERENCE, RAW. The forcing pass cancels in A - B,
+    # so no shape is lost to the correction -- Run 34's corrected
+    # stage-twelve-over-eleven ratio kept two shapes of nineteen, the
+    # reducing consumers being nearly all pass -- and what a difference is
+    # read against is how far two copies of that one pass part: the
+    # sweep's `sum-only-early` against `sum-only-late`, per shape and at
+    # its widest. Run 34 hand-rolled both.
+    for a, b in (pairs if per_shape else []):
+        print()
+        print('per shape, %s - %s in instructions an iteration, raw: the'
+              ' forcing pass cancels in a difference' % (a, b))
+        print('  %-44s %12s %14s' % ('shape', 'A - B', '|early - late|'))
+        diffs, spreads = [], []
+        for sh in shapes:
+            arms = counts.get(sh, {})
+            e, l = arms.get('sum-only-early'), arms.get('sum-only-late')
+            spread = abs(e - l) if e is not None and l is not None else None
+            if spread is not None:
+                spreads.append((spread, sh))
+            d = arms[a] - arms[b] if a in arms and b in arms else None
+            if d is not None:
+                diffs.append((d, sh))
+            print('  %-44s %12s %14s'
+                  % (sh, '--' if d is None else '%+.0f' % d,
+                     '--' if spread is None else '%.0f' % spread))
+        if diffs:
+            print('  from %+.0f on %s to %+.0f on %s, over %d shape(s)'
+                  % (min(diffs) + max(diffs) + (len(diffs),)))
+        if spreads:
+            print('  the resolution: the two copies of the forcing pass part'
+                  ' by up to %.0f, on %s, and a difference inside that is'
+                  ' no difference' % max(spreads))
+        else:
+            print('  the resolution: this sweep carries no `sum-only-early`'
+                  ' and `sum-only-late` on one shape, so none is read')
     print()
     print('corrected subtracts the shared forcing pass per shape, the mean')
     print('of the sweep\'s `sum-only*` arms, which is the term the `time`')
@@ -12400,7 +12438,10 @@ def main():
                         ' carries the load fields')
     p.add_argument('--per-shape', action='store_true',
                    help='with --pair, the per-shape ratios the range'
-                        ' line is a max and min of; with --compare or'
+                        ' line is a max and min of; with --pair and ONE'
+                        ' --counts sweep, each shape\'s instruction'
+                        ' difference beside the sum-only-early/late'
+                        ' spread; with --compare or'
                         ' --compare --counts, one line per arm of the'
                         ' per-shape ratios in shape order')
     p.add_argument('--pair', nargs=2, action='append', default=[],
@@ -13121,7 +13162,8 @@ def main():
                              ' two files are the cross-half reading and want'
                              ' `--compare OTHER.json`\n' % len(args.counts))
             sys.exit(2)
-        sys.exit(counts_pair(args.counts[0], args.pair, shapes, cells))
+        sys.exit(counts_pair(args.counts[0], args.pair, shapes, cells,
+                             per_shape=args.per_shape))
     elif args.pair:
         pair_table(cells, shapes, strategies, args.pair,
                    per_shape=args.per_shape)
