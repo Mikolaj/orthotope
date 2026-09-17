@@ -488,11 +488,12 @@ def plant_main_shapes_exempt(tmp):
     """The fixture of `main-shapes-added-after-the-run-are-exempt`.
 
     Both halves planted, and the figure derived rather than written: a
-    declaration in README of two main-set shapes never added after any
-    run, and a run file whose every `over N shapes` at the run's TRUE
-    main-set size -- Main.hs's timed set less whatever the live README
-    already declares added, plus what it declares retired -- is moved
-    down by the two planted. So the fixture builds
+    declaration in README of one or two main-set shapes never added
+    after any run, and a run file whose every `over N shapes` at the run's
+    TRUE main-set size -- Main.hs's timed set less whatever the live
+    README already declares added, plus what it declares retired -- is
+    moved down by the ones planted, to a count no class carries. So the
+    fixture builds
     the same subject whether or not a real declaration stands, and a
     figure in it cannot go stale under a later main-set change, which the
     class sibling's hand-written 7 can.
@@ -520,6 +521,17 @@ def plant_main_shapes_exempt(tmp):
             if n in timed and n not in real]
     assert len(fake) == 2, 'the two planted shapes must be timed and undeclared'
     was = len(timed) - len(real) + len(declared_retired & retired)
+    # The moved count must be NO population's size, or the mutant that
+    # drops the exemption finds it matching a class and survives: two
+    # planted took 19 to 17 on the day `runs` grew to seventeen views
+    # (971ffb6), and the mutant survived Run 34's check-all. So plant one
+    # shape where two would land on a class size.
+    classes = {}
+    for s, d in _reader().dims_by_shape(MAIN)[0].items():
+        if d['cls'] != 'main' and not d['retired']:
+            classes.setdefault(d['cls'], set()).add(s)
+    sizes = {len(v) for v in classes.values()}
+    fake = next(fake[:k] for k in (2, 1) if was - k not in sizes)
     now = was - len(fake)
     doc = subprocess.run(['wrap80', '--unwrap'], input=rundoc_text(),
                          capture_output=True, text=True, check=True).stdout
@@ -531,8 +543,10 @@ def plant_main_shapes_exempt(tmp):
     readme = pat.sub(down, readme)
     anchor = '## Provenance\n'
     assert readme.count(anchor) == 1
-    readme = readme.replace(anchor, anchor + '\n`%s` and `%s` were added'
-                            ' 2026-09-02, after the run.\n' % tuple(fake), 1)
+    readme = readme.replace(anchor, anchor + '\n%s %s added'
+                            ' 2026-09-02, after the run.\n'
+                            % (' and '.join('`%s`' % n for n in fake),
+                               'were' if len(fake) > 1 else 'was'), 1)
     return {'readme': write(os.path.join(tmp, 'R.md'), readme),
             'rundoc': write_rundoc(tmp, doc)}
 
@@ -10615,12 +10629,13 @@ RECORDS = [
          # of these paragraphs in one stretch, met four abstentions, and
          # went looking for the surviving site each time; the figure is
          # enough to find it, these being quoted twice and no more.
+         # The anchor is the sentence's run-independent prefix, the
+         # figures after it being the run's: Run 34's write-up requoted
+         # Run 33's `0.47% and 0.62%` and the fixture stopped building.
          plant=lambda t: {'readme': unwrapped_readme_edit(
              t,
-             'Over the four pairs that carry back to Run 10 this run reads'
-             ' 0.47% and 0.62%',
-             'Over those same four pairs this run reads its whole-set'
-             ' figures exactly')},
+             'Over the four pairs that carry back to Run 10 this run reads',
+             'Over those same four pairs this run reads')},
          argv=['--check-doc', '--quiet', '--readme', '{readme}'],
          ok=V(exit=1, has=['could not locate at least two sites quoting the'
                            " run's carry-back figure", 'It found 1:',
