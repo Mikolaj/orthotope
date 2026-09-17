@@ -9581,8 +9581,11 @@ not otherwise.
     #      class block. `--section 'The properties the next run should
     #      test' --run-doc runs/$PREV.md` and `--section 'The stride
     #      classes, run by run' --run-doc runs/$PREV.md` are the reads
-    ./read-run.py $R-<basis>-$c.json --block          #    one per class
-    ./read-run.py $R-<basis>-$c.json --compare $R-<other>-$c.json
+    ./post-run-readings.sh $R        #    EVERY READING OF 4, 4a AND 10a,
+    #      in parallel, a file each in log-read-$R/, the script's header
+    #      naming which file holds which; the count-dependent ones only
+    #      once $R-evening.txt reads EVENING COMPLETE, so it is run again
+    #      then
     #      AND `--compare` PRINTS THE REDUCING CONSUMERS UNDER ITS TABLE
     #      since 2026-09-15, on raw `slope`: they run no forcing pass, so
     #      their net is that term subtracted from itself and the table
@@ -9593,31 +9596,10 @@ not otherwise.
     #      a `cross` prior on those arms the same way, so a prior and this
     #      block agree by construction and a `-sum` figure no longer wants
     #      a hand-written geomean
-    #      THE PER-CLASS CALLS ARE INDEPENDENT OF EACH OTHER, all EIGHTY of
-    #      them -- the forty below on the basis half and the same forty
-    #      with the two files swapped, which is how a `pair` span is read
-    #      within the control half; Run 32 fanned out the basis alone and
-    #      paid three more serial passes for the other. As a count:
-    #      them -- ten classes by `--block`, `--compare`, `--predictions`
-    #      and `--block --compare` -- so they are the one place in this list
-    #      that parallelises without thought --- AND THE SAME SHAPE SERVES
-    #      THE OTHER TWO SWEEPS THIS LIST OWES, the twenty-two `--aa`
-    #      reads (one per population per half, which is where the floor
-    #      pairs are read) and the eleven `--counts` comparisons: the
-    #      command below takes a different list and nothing else.
-    #      SAY IT WITH A COMMAND, since
-    #      a session that has to invent the parallelism runs them one at a
-    #      time, as Run 30 did: `printf '%s\n' rev bcast ... | xargs -P4 -I{}
-    #      sh -c './read-run.py $R-<basis>-{}.json --block --brief >
-    #      <scratch>/{}-block.txt 2>&1'`, and the same shape for the other
-    #      three readings. Run 29 ran them one at a time
-    #      over 24 MB JSONs and said so at its step 9
-    #      and one per class ACROSS the halves -- from Run 14 on, a run
-    #      before that having no control-half class JSON to compare
-    #      against, so those are skipped and the chapter says they
-    #      were. Which is what running every
-    #      class on both is for and what nothing else in this list reads: a
-    #      pair's variable can act on a class and not on the main set.
+    #      EVERY CLASS IS READ ACROSS THE HALVES, and on each half
+    #      against the other, which is how a `pair` span is read within
+    #      the control half: a pair's variable can act on a class and not
+    #      on the main set.
     #      --alloc takes the same pair where allocation is the question,
     #      and `--exclude ARM` composes with `--compare` as it does with
     #      the default table, which is how a cross-half geomean is taken
@@ -9640,27 +9622,20 @@ not otherwise.
     #      -- every block in one call is a hundred KB, the write-up uses some
     #      forty lines of them, and Run 23 read the persisted output of
     #      that call three times over
-    #      THE SAME FOR THE TWO SWEEPS THAT GREW SINCE, `--predictions`
-    #      over eleven populations and `--compare --counts`: redirect
-    #      each to a file and grep that -- `grep -E '^  \(|span\(s\)'`
-    #      for a predictions sweep -- rather than printing it whole. The
-    #      destination is a scratch path SPELLED IN FULL, never `$TMPDIR`
-    #      and never `$R-*`, which run-major.sh globs for its relaunch
-    #      guard as read-all.sh globs it just above
-    ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --chapter
-    ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --alloc
-    ./read-run.py --floor-pairs $R                   #    the standing
-    #      floor-pair registration in one call: every A/A copy against its
-    #      original, per population and half, with each population's floor
-    #      and the pair that carries it. A mode since 2026-09-16; Run 32
-    #      read it as sixteen spans and Run 33 by a script it threw away
-    ./read-run.py $R-<basis>-main.json --deflation    #    and the other half
+    #      THE SAME FOR THE PREDICTIONS AND COUNTS FILES, the first by
+    #      `grep -E '^ {2}\(|span\(s\)'`
+    #      floor-pairs.txt IS THE STANDING floor-pair registration in one
+    #      call: every A/A copy against its original, per population and
+    #      half, with each population's floor and the pair that carries
+    #      it. A mode since 2026-09-16; Run 32 read it as sixteen spans
+    #      and Run 33 by a script it threw away
+    #      main-<half>-deflation.txt, on both halves:
     #      THE DECOMPOSITION IS A HEAD FIGURE and is taken here rather
     #      than at 10a, where it stood until 2026-09-15: the head's own
     #      paragraph quotes it, so a write-up reaching it at 10a reaches
     #      it after the paragraph is written. 10a keeps the number
     #      AND THE BAR THE CROSS-HALF FIGURES ARE READ AGAINST comes off
-    #      the plain `--compare` above, which since 2026-09-15 prints how
+    #      the plain `--compare` file, which since 2026-09-15 prints how
     #      far an arm and its own A/A duplicate part IN THAT COMPARISON
     #      and names the arms that move further -- the counterpart of the
     #      floor `--aa` gives WITHIN one half, and the thing a pair's
@@ -9671,19 +9646,20 @@ not otherwise.
     #      the published column against its own uncapped geomean, and the
     #      same `--compare` flags a row whose two published figures divide
     #      to something no arm did
-    #      --compare takes the BASIS first and the control as its argument,
-    #      so below 1 means the basis is faster; reversed, every figure
-    #      inverts and nothing in the output says so. Write each class
+    #      POP-<basis>-compare.txt takes the BASIS first and the control
+    #      as its argument, so below 1 means the basis is faster;
+    #      POP-<other>-compare.txt is the same reversed, every figure
+    #      inverted, and nothing in the output says so. Write each class
     #      paragraph from --block's VERDICTS, never from its table, one
-    #      paragraph each. Use --brief on --aa and --block: no computed
-    #      figure is lost. Do not write a second reader
+    #      paragraph each. Do not write a second reader
     #      why: --para 'The properties are part of this'
     #  4a. THE HALF-LOCAL MOVERS, each half against the COMPARE run's
     #      same half over every population, BEFORE any cross-half
     #      figure is attributed to the pair's variable, AND AFTER
     #      $R-evening.txt reads EVENING COMPLETE, its counts columns
     #      reading `--` until the counts have landed:
-    ./read-run.py --half-movers $R           # a 3% bar; --movers PCT sets it
+    #      half-movers.txt, at a 3% bar; `--half-movers $R --movers PCT`
+    #      sets another
     #      why: --para 'The physical frame of a code page is a placement term too'
     #      An arm it flags with its counts level is that half's binary or
     #      its FILE INSTANCE and not the pair's: Run 33's basis carried
@@ -10135,13 +10111,12 @@ not otherwise.
     #      run -- the lead, a verdict in a clause, and a link to that
     #      file. Report a split as a split, arm by arm
     #      why: --para 'Walk the open list against what this session'
-    ./read-run.py $R-<basis>-main.json --deflation   # 10a. and the same
-    #      on the control: the roster cell over its own alone leg, per
-    #      shape, which is what the riders were run for. RAW over RAW,
-    #      which the mode does because a leg carries no `sum-only` to
-    #      correct with -- the one figure here a session had to hand-roll
-    #      before the mode existed, and the one place it would reach for
-    #      the wrong numerator
+    # 10a. main-<half>-deflation.txt, on both halves: the roster cell
+    #      over its own alone leg, per shape, which is what the riders
+    #      were run for. RAW over RAW, which the mode does because a leg
+    #      carries no `sum-only` to correct with -- the one figure here a
+    #      session had to hand-roll before the mode existed, and the one
+    #      place it would reach for the wrong numerator
     ./run-status.sh $R                    # 10b. THE DONE-CONDITION: every
     #      step of the three lists an artifact or the repository answers for.
     #      `STATUS: all done`, with its `yours` lines done by hand, is

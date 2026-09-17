@@ -3575,6 +3575,32 @@ def whole_run(halves_of, samples=2, prefix=SRC, short_class=None,
     return _WHOLE[key]
 
 
+def readings_run(prefix, complete):
+    """A paired run's main set and one class on both halves, with its
+    note, as `extra` for a shadow -- and, where `complete`, its counts
+    sweeps and an evening file ending EVENING COMPLETE, which is what
+    post-run-readings.sh waits for before a count-dependent reading.
+    """
+    def extra():
+        out = list(whole_run(['lookrts', 'a1g'], prefix=prefix,
+                             classes=class_names()[:1]))
+        out.append(('%s-pair.txt' % prefix, NOTE_STUB))
+        if complete:
+            tmp = tempfile.mkdtemp(prefix='zz-synth-')
+            try:
+                for half in ('lookrts', 'a1g'):
+                    p = synth_counts(tmp, half, cheap_sum_only=True)
+                    out.append(('%s-counts-%s.txt' % (prefix, half),
+                                open(p).read()))
+            finally:
+                shutil.rmtree(tmp, ignore_errors=True)
+            out.append(('%s-evening.txt' % prefix,
+                        '=== 2026-01-01T00:00:00+00:00 EVENING COMPLETE:'
+                        ' every stage of both calls exited 0\n'))
+        return out
+    return extra
+
+
 def class_shapes(cls):
     """One stride class's shapes, from Main.hs rather than from a literal.
 
@@ -9537,6 +9563,37 @@ RECORDS = [
                              NOTE_STUB + 'COMPARE: runs/run97.md\n')]),
          argv=['zzph7'],
          ok=V(exit=1, has=["COMPARE: run<N>"], hasnt=['BASIS='])),
+
+    # ---- post-run-readings.sh, post-run step 4's readings in one command
+    case('readings-wait-for-the-evening-to-complete', 'post-run-readings.sh',
+         None,
+         'CONTROL: before EVENING COMPLETE the timed readings are taken and'
+         ' the count-dependent ones are not',
+         shadow=dict(extra=readings_run('zzpr', complete=False)),
+         argv=['zzpr'],
+         ok=V(has=['rc=0 main-lookrts-aa.txt', 'rc=0 main-a1g-pred.txt',
+                   'rc=0 %s-a1g-block.txt' % class_names()[0],
+                   'not before EVENING COMPLETE'],
+              hasnt=['main-counts-cmp.txt', 'half-movers.txt'])),
+
+    case('readings-take-the-counts-once-complete', 'post-run-readings.sh',
+         None,
+         'CONTROL: after EVENING COMPLETE the counts comparison is taken, and'
+         ' --half-movers is skipped naming the missing COMPARE line',
+         shadow=dict(extra=readings_run('zzpr2', complete=True)),
+         argv=['zzpr2'],
+         ok=V(has=['rc=0 main-counts-cmp.txt', 'no COMPARE line'],
+              hasnt=['not before EVENING COMPLETE'])),
+
+    case('readings-cells-dump-is-stdout-alone', 'post-run-readings.sh', None,
+         'CONTROL: a -cells.tsv carries the TSV alone, the reader\'s'
+         ' header and warnings on stderr being in the other files',
+         shadow=dict(extra=readings_run('zzpr3', complete=False)),
+         argv=['zzpr3'],
+         probe=lambda subs: open(os.path.join(
+             str(subs['at']), 'log-read-zzpr3',
+             'main-lookrts-cells.tsv')).read().split('\n')[0],
+         ok=V(hasnt=['criterion 1.6'])),
 
     # ---- run-evening.sh, the run list's quiet machine steps as one command
     case('evening-chains-the-stages', 'run-evening.sh', None,
