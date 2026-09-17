@@ -127,7 +127,9 @@ crosses one. The shim prints its own count only under `ALIGN_AS_VERBOSE`,
 which no recipe sets, so this is the reading a run has off the binary it
 timed. Under `LOOP_EXITSPAN=1` it is an invariant: Run 33's two halves read
 0 and 0 where Run 32's read 65 and 72, and a nonzero on a half built with
-the switch says the recipe lacked it or the shim regressed. It counts a
+the switch says the recipe lacked it, the shim regressed, or `scan` met a
+table shape it has no tell for yet, as Run 35's one astride was
+(2026-09-18): read the head's bytes before the recipe. It counts a
 placement and not a cost.
 
 Its defects are kept as cases in `defects.py` -- objdump's status
@@ -398,6 +400,11 @@ def scan(path, length):
         # Nor does it carry a run of zero bytes: such a body IS a table,
         # the third site in `reaches`.
         if zero_run(body):
+            continue
+        # Nor a stray REX prefix, `rex.*` in the mnemonic column: the sweep
+        # entered an instruction mid-way, a fifth shape, the sixth site in
+        # defects.py (2026-09-18), which carries the totals it moves.
+        if any(i[3].startswith('rex.') for i in insns[k:n + 1]):
             continue
         # Nor does it begin with a nop: a `nopl` pad after an unconditional
         # jump, closed by the info-table word after it read as a short
