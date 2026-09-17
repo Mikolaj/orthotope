@@ -775,11 +775,12 @@ for_brief () {
     set -- "$RD"/*-pred.txt
     [ -f "$1" ] || { want "the registration tally" "*-pred.txt"; return; }
     awk '/^[0-9]+ span\(s\): / { n += $1; h += $3; k += $5; u += $7
+           if ($9 == "read,") o += $10
            if (match($0, /yours to adjudicate: .*/)) {
              s = substr($0, RSTART + 21); m = split(s, it, ", ")
              for (i = 1; i <= m; i++) if (!(it[i] in seen)) {
                seen[it[i]] = 1; items = items (items == "" ? "" : ", ") it[i] } } }
-         END { printf "Registrations, span by span over %d predictions file(s): %d reading(s), %d HELD, %d KILLED, %d not read; %s", ARGC - 1, n, h, k, u, (items == "" ? "every item carries a span" : "item(s) with no span, adjudicated by hand: " items) }' "$@"
+         END { printf "Registrations, span by span over %d predictions file(s): %d reading(s), %d HELD, %d KILLED, %d not read, %d out of scope; %s", ARGC - 1, n, h, k, u, o, (items == "" ? "every item carries a span or a script" : "item(s) with no span, adjudicated by hand: " items) }' "$@"
   }
   echo
   echo "--- paste over checker-brief.txt items 5 and 6; <yours> is prose ---"

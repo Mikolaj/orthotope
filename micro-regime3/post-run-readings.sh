@@ -3,6 +3,7 @@
 # one directory, a file a reading --
 #
 #     ./post-run-readings.sh run35            # writes log-read-run35/
+#     ./post-run-readings.sh run35 --list     # prints what it would take
 #
 # Per population and half, against the other half where a reading takes
 # two: --compare, --compare --predictions, --aa --brief and --cells, as
@@ -21,8 +22,10 @@
 # ONCE $R-evening.txt ENDS `EVENING COMPLETE:`, and not before, the
 # readings that want the counts: --compare --counts per population,
 # basis first, as POP-counts-cmp.txt, and --half-movers against the
-# note's COMPARE run as half-movers.txt. Before then a counts column
-# reads `--`, and Run 34 took its 4a that way and took it again.
+# note's COMPARE run as half-movers.txt, and each -pred.txt reads the two
+# sweeps beside its comparison, so a counts or countdiff span is read.
+# Before then a counts column reads `--`, and Run 34 took its 4a that way
+# and took it again.
 #
 # Run 34's session wrote the step-4 readings by hand, a population and
 # a half at a time. It only reads, so a busy machine is fine;
@@ -34,8 +37,10 @@
 # no JSON on the basis half.
 set -u
 cd "$(dirname "$0")" || exit 2
-if [ $# -ne 1 ]; then
-  echo "usage: ./post-run-readings.sh RUN     # e.g. run35" >&2
+LIST=0
+if [ $# -eq 2 ] && [ "$2" = --list ]; then LIST=1
+elif [ $# -ne 1 ]; then
+  echo "usage: ./post-run-readings.sh RUN [--list]    # e.g. run35" >&2
   exit 2
 fi
 R=$1
@@ -43,7 +48,6 @@ R=$1
 HALVES_SET=$(./pair-halves.sh "$R") || exit 2
 eval "$HALVES_SET"
 D="log-read-$R"
-mkdir -p "$D" || exit 2
 
 POPS=""
 for f in "$R-$BASIS"-*.json; do
@@ -67,8 +71,12 @@ for p in $POPS; do
     job "$p-$h-cells.tsv ./read-run.py $j --cells"
     [ "$p" = main ] || job "$p-$h-block.txt ./read-run.py $j --block --brief"
     if [ -f "$R-$o-$p.json" ]; then
+      # A counts or countdiff span wants the sweeps, this half's first,
+      # and they exist only once the evening is complete.
+      s="-$p"; [ "$p" = main ] && s=""
+      pc=""; [ "$COMPLETE" = 1 ] && pc=" --counts $R-counts-$h$s.txt $R-counts-$o$s.txt"
       job "$p-$h-compare.txt ./read-run.py $j --compare $R-$o-$p.json"
-      job "$p-$h-pred.txt ./read-run.py $j --compare $R-$o-$p.json --predictions"
+      job "$p-$h-pred.txt ./read-run.py $j --compare $R-$o-$p.json --predictions$pc"
       [ "$p" = main ] || job "$p-$h-blockcmp.txt ./read-run.py $j --block --compare $R-$o-$p.json --brief"
     fi
   done
@@ -108,6 +116,13 @@ if [ "$COMPLETE" = 1 ]; then
   fi
 fi
 
+if [ "$LIST" = 1 ]; then
+  cat "$JOBS"
+  echo "for-brief.txt ./read-all.sh $R --for-brief    # last, off the rest"
+  rm -f "$JOBS"
+  exit 0
+fi
+mkdir -p "$D" || exit 2
 # A -cells.tsv is stdout alone, for a script to read: the reader's header
 # and warnings go to stderr, and the same population's other files carry
 # them.

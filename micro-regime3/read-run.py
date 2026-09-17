@@ -153,8 +153,9 @@ Modes:
   --compare O --chapter the run chapter's own arithmetic, so that writing
                     one need not begin by reading the last one
   --compare O --predictions  adjudicate the registration's `predict:`
-                    spans from the two runs, HELD or KILLED each with the
-                    figure read, and name the items carrying no span as
+                    spans from the two runs, each on the population and
+                    half it names, HELD or KILLED with the figure read,
+                    and name the items carrying no span or script as
                     yours; `--counts A B` beside it for the count spans
   --carried --others J...  every figure the registration QUOTES from an
                     earlier run, against that run: each `pair A B` span
@@ -3103,21 +3104,35 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
             over the other's, read as X; wants --counts A B
         `predict: pair A B X [within P%] [excluding S1,S2]`
             the within-half --pair geomean of A over B, read as X
+        `predict: cell SHAPE/ARM over SHAPE/ARM X [within P%]`
+            one cell's time over another's on this file's half, read as X
+        `predict: countdiff A B under N [on views S1,S2]`
+            A's instructions less B's on this file's own sweep, the first
+            --counts file, under N on every view named or on every shape
+
+    and every kind takes `on POP[,POP]` and one of `basis`, `control` or
+    `both`: the populations and the half it is read on, this file's
+    population read off its shapes and its half off its name and its
+    run's note. A span outside its scope is printed as such and counted
+    apart; one naming no scope is read on every file handed in, which
+    `--lint` refuses in an OPEN registration.
 
     HELD when the figure read is within P points of X, KILLED otherwise;
     P defaults to the A/A floor of the POPULATION READ for cross and
     pair -- this file's own, which is the main set's only when this file
     is the main set -- and to 0.1 for counts, which are exact to the
-    fourth place on a repeat. A span names no population, so it is a
-    claim about every one its item names and is read once per JSON. The
+    fourth place on a repeat. A span is read once per JSON its scope
+    admits. The
     rule and the loop are one README section, whole on the next line so a
     grep for the title finds this too:
         Which population answers a question, and how to ask all of them
     Post-run step 5c is where it runs. WHERE the registration lives, and
     in which order the two places are tried, is `registration_items`,
-    which this shares with --carried. An item
-    with no span -- a class ordering, a verdict about verdicts -- is
-    listed as the session's to adjudicate, by number, so that what the
+    which this shares with --carried. An item naming a committed
+    `script: NAME` is listed with it, that script being its adjudicator,
+    and an item with neither -- a class ordering, a verdict about
+    verdicts -- is listed as the session's to adjudicate, by number, so
+    that what the
     reader did not decide is not mistaken for decided. A span it cannot
     read is a finding about the document and exits 1; a document with
     no span at all exits 2, nothing having been adjudicated.
@@ -3134,7 +3149,10 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     stray = [sp for sp in PREDICT_RE.findall(flat)
              if sp not in [x for _, x in specs]]
     specs += [('?', sp) for sp in stray]
-    unspanned = [num for num, body in items if not PREDICT_RE.search(body)]
+    scripted = [(num, sc) for num, body in items
+                for sc in re.findall(r'`script: ([^`]+)`', body)]
+    unspanned = [num for num, body in items if not PREDICT_RE.search(body)
+                 and num not in [n for n, _ in scripted]]
     if not specs:
         print('%s: no `predict:` span in the registration (%d item(s)), so'
               ' nothing here is adjudicated; every item is yours'
@@ -3143,6 +3161,15 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
 
     fl = aa_floor(aa_pairs(cells, shapes, strategies))
     floor_pct = abs(fl.g - 1) * 100 if fl else None
+    # WHICH POPULATION AND HALF THIS FILE IS, for the spans that name
+    # theirs: the population off the shapes, as `population_of` reads it,
+    # and the half off the file's name and its run's note.
+    pops = {meta['dims'][sh]['cls'] for sh in shapes if sh in meta['dims']}
+    this_pop = next(iter(pops)) if len(pops) == 1 else None
+    at = json_run_half(run)
+    hv = note_halves(at[0]) if at else None
+    this_half = (None if not hv or at[1] not in hv
+                 else 'basis' if at[1] == hv[0] else 'control')
     print('predictions in %s, read from %s against %s' % (
         os.path.basename(src), os.path.basename(run), os.path.basename(other)))
     print('  cross and counts are THIS RUN over the other, as --compare'
@@ -3153,10 +3180,11 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
              else 'unavailable (no A/A pair)'))
     b_cells = b_shapes = b_strategies = None
     a_counts = b_counts = None
-    held = killed = unread = 0
+    held = killed = unread = outside = 0
     for num, spec in specs:
         toks = spec.split()
         kind, rest, within, excl, args_ = toks[0], toks[1:], None, [], []
+        on_pops = views = half = None
         i = 0
         while i < len(rest):
             if rest[i] == 'within' and i + 1 < len(rest):
@@ -3168,9 +3196,43 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
             elif rest[i] == 'excluding' and i + 1 < len(rest):
                 excl = rest[i + 1].split(',')
                 i += 2
+            elif rest[i] == 'on' and i + 2 < len(rest) \
+                    and rest[i + 1] == 'views':
+                views = rest[i + 2].split(',')
+                i += 3
+            elif rest[i] == 'on' and i + 1 < len(rest):
+                on_pops = rest[i + 1].split(',')
+                i += 2
+            elif rest[i] in ('basis', 'control', 'both'):
+                half = rest[i]
+                i += 1
             else:
                 args_.append(rest[i])
                 i += 1
+        # THE SCOPE FIRST, since 2026-09-17: a span naming its population
+        # and half is read there and nowhere else, where a span naming
+        # none was read on every file handed in and thirteen of Run 30's
+        # main-set spans came back KILLED for being asked on the wrong
+        # population. A span with no scope is read everywhere still, and
+        # `--lint` refuses one in an OPEN registration.
+        if on_pops is not None and this_pop is None:
+            unread += 1
+            print('  (%s) %-44s NOT READ: this file is no one population,'
+                  ' so a span scoped to %s cannot be placed'
+                  % (num, spec, ','.join(on_pops)))
+            continue
+        if half in ('basis', 'control') and this_half is None:
+            unread += 1
+            print('  (%s) %-44s NOT READ: this file\'s half is not known'
+                  ' off its name and its run\'s note, so a %s span cannot'
+                  ' be placed' % (num, spec, half))
+            continue
+        if ((on_pops is not None and this_pop not in on_pops)
+                or (half in ('basis', 'control') and half != this_half)):
+            outside += 1
+            print('  (%s) %-44s out of scope, this file being %s on the %s'
+                  ' half' % (num, spec, this_pop, this_half or 'unnamed'))
+            continue
         why = None
         g = n = None
         try:
@@ -3248,9 +3310,69 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
                                     else (None, []))
                         g, n = (geomean(rs), len(rs)) if rs else (None, 0)
                 tol = within if within is not None else floor_pct
+            elif kind == 'cell' and len(args_) == 4 and args_[1] == 'over':
+                # One cell over another on this file's half: SHAPE/ARM over
+                # SHAPE/ARM, on `net` unless either arm has none.
+                if '/' not in args_[0] or '/' not in args_[2]:
+                    why = 'a cell is SHAPE/ARM'
+                else:
+                    (s1, a1), (s2, a2) = (args_[0].split('/', 1),
+                                          args_[2].split('/', 1))
+                    x = float(args_[3])
+                    key = 'slope' if no_net(a1) or no_net(a2) else 'net'
+                    v1 = cells.get(s1, {}).get(a1, {}).get(key)
+                    v2 = cells.get(s2, {}).get(a2, {}).get(key)
+                    if v1 is None or v2 is None:
+                        why = 'cell %s or %s is not in this run' % (
+                            args_[0], args_[2])
+                    elif not (v1 > 0 and v2 > 0):
+                        why = 'a cell has no positive %s' % key
+                    else:
+                        g, n = v1 / v2, 1
+                tol = within if within is not None else floor_pct
+            elif (kind == 'countdiff' and len(args_) == 4
+                  and args_[2] == 'under'):
+                # A's instructions less B's, on this file's own sweep --
+                # the first --counts file -- per view, under N on every
+                # view named, or on every shape where none is: the within-
+                # half count clause Run 34 read by hand four times.
+                a, b, x = args_[0], args_[1], float(args_[3])
+                if not counts:
+                    why = ('a countdiff span wants --counts THIS.txt'
+                           ' OTHER.txt, and reads the first')
+                else:
+                    if a_counts is None:
+                        a_counts = parse_counts(counts[0])[0]
+                        b_counts = parse_counts(counts[1])[0]
+                    shs = [sh for sh in (views or shapes) if sh not in excl]
+                    ds = [(a_counts[sh][a] - a_counts[sh][b], sh)
+                          for sh in shs
+                          if a in a_counts.get(sh, {})
+                          and b in a_counts.get(sh, {})]
+                    lost = sorted(set(shs) - {sh for _, sh in ds})
+                    if views and lost:
+                        why = ('view(s) with no count for both arms: %s'
+                               % ', '.join(lost))
+                    elif not ds:
+                        why = 'no shape carries both arms\' counts'
+                    else:
+                        over = [sh for d, sh in ds if d >= x]
+                        ok = not over
+                        held += ok
+                        killed += not ok
+                        print('  (%s) %-44s A - B up to %+.0f over %d'
+                              ' view(s), under %.0f: %s%s'
+                              % (num, spec, max(ds)[0], len(ds), x,
+                                 'HELD' if ok else 'KILLED',
+                                 '' if ok else '; at or over it on %s'
+                                 % ', '.join(over[:6])))
+                        continue
             else:
-                why = ('not one of cross ARM X, counts ARM X, pair A B X'
-                       ' (with optional within P% and excluding S,...)')
+                why = ('not one of cross ARM X, counts ARM X, pair A B X,'
+                       ' cell SHAPE/ARM over SHAPE/ARM X, countdiff A B'
+                       ' under N (with optional within P%, excluding'
+                       ' S,..., on POP,..., on views S,... and basis,'
+                       ' control or both)')
         except ValueError:
             why = 'the predicted figure is not a number'
         if why is None and g is None:
@@ -3297,11 +3419,14 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
               ' within %.2f%%: %s%s'
               % (num, spec, g, n, off, tol, 'HELD' if ok else 'KILLED',
                  extra))
-    print('%d span(s): %d HELD, %d KILLED, %d not read%s'
-          % (len(specs), held, killed, unread,
+    print('%d span(s): %d HELD, %d KILLED, %d not read, %d out of scope%s%s'
+          % (len(specs), held, killed, unread, outside,
+             '; item(s) adjudicated by a committed script: %s'
+             % ', '.join('(%s) %s' % s_ for s_ in scripted)
+             if scripted else '',
              '; item(s) with no span, yours to adjudicate: %s'
              % ', '.join('(%s)' % u for u in unspanned) if unspanned
-             else '; every item carries a span'))
+             else '; every item carries a span or a script'))
     # WHICH POPULATIONS EACH ITEM IS READ ON, added 2026-09-13. This mode
     # adjudicates every span on whatever file it is handed, and an item
     # naming `runs` read on the main set comes back KILLED for being asked
@@ -11844,6 +11969,42 @@ def lint(main_hs, readme, run_doc=None):
             # mutant that proves nothing either way, which is worse than
             # one that fails (2026-09-05).
             deferred = set(re.findall(r'\b[Tt]ask (\d+)', t))
+            # EVERY ITEM ADJUDICABLE, since 2026-09-17: a `predict:` span
+            # carrying its scope, a `script:` committed beside it, or a
+            # deferral to a task, which the checks below hold. Run 34's
+            # registration left four items' clauses to be read by hand off
+            # --cells and the counts files, and one of its spans named no
+            # half, so its verdict and the item's prose disagreed.
+            for inum, body in items_from_flat(' '.join(t.split())):
+                spans = PREDICT_RE.findall(body)
+                scripts = re.findall(r'`script: ([^`]+)`', body)
+                for sp in spans:
+                    tk = sp.split()
+                    if 'on' not in tk or not {'basis', 'control',
+                                              'both'} & set(tk):
+                        trouble.append("Run %s's item (%s) span `predict:"
+                                       " %s` carries no scope: it wants"
+                                       ' `on POP,...` and basis, control or'
+                                       ' both, or it is read on every file'
+                                       ' handed in' % (num, inum, sp))
+                for sc in scripts:
+                    name = sc.split()[0]
+                    known = subprocess.run(
+                        ['git', 'ls-files', '--error-unmatch', name],
+                        cwd=os.path.dirname(os.path.abspath(main_hs)),
+                        capture_output=True).returncode == 0
+                    if not known:
+                        trouble.append("Run %s's item (%s) names script %s,"
+                                       ' which is not committed, so the'
+                                       ' clause it reads is read by nothing'
+                                       ' a later session can run'
+                                       % (num, inum, name))
+                if not spans and not scripts \
+                        and not re.search(r'\b[Tt]ask \d+', body):
+                    trouble.append("Run %s's item (%s) carries neither a"
+                                   ' `predict:` span nor a committed'
+                                   ' `script:`, so nothing adjudicates it'
+                                   ' but a reading by hand' % (num, inum))
             lost = sorted(deferred - set(tasks))
             if lost:
                 trouble.append("Run %s's registration defers to task(s) that"
@@ -11872,7 +12033,9 @@ def lint(main_hs, readme, run_doc=None):
         else:
             print('ok:   every arm the OPEN registration(s) name is timed,'
                   ' and so is every arm of every task they defer to, which'
-                  ' resolves (%d registration(s), %d task(s) on offer)'
+                  ' resolves; every item carries a scoped span, a committed'
+                  ' script or a deferral (%d registration(s), %d task(s) on'
+                  ' offer)'
                   % (len(regs), len(tasks)))
 
     def mirrors(entries, resolve, what):

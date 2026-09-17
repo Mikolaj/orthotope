@@ -8325,19 +8325,22 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      built to answer, registered before it runs`, numbered
     #      questions with a prediction and A KILL CONDITION each, AND A
     #      `predict:` SPAN WHERE THE QUANTITY IS ONE THE READER COMPUTES
-    #      -- `` `predict: cross ARM X` ``, `counts ARM X` or `pair A B
-    #      X`, each taking `within P%` and `excluding S,...`, written in
-    #      --compare's orientation, the basis over the control (`predict:
-    #      cross list 1.0 within 0.5%` predicts `list` level between the
-    #      halves to half a point) -- so that
-    #      post-run step 5 reads its verdict off `--predictions` and not
-    #      off a session's reading of the tables; an item whose quantity
-    #      is none of the three carries no span and is adjudicated by
-    #      hand, named as yours by the same call -- AND EVERY ITEM
-    #      NAMES THE POPULATIONS its prediction is read on, `on the
-    #      main set`, the classes, or both, because that list is what
-    #      tells 5c which JSONs to run the span against: a span names
-    #      no population itself and is read on whatever it is handed
+    #      -- `` `predict: cross ARM X` ``, `counts ARM X`, `pair A B
+    #      X`, `cell SHAPE/ARM over SHAPE/ARM X` or `countdiff A B under
+    #      N [on views S,...]`, each taking `within P%` and `excluding
+    #      S,...`, written in --compare's orientation, the basis over the
+    #      control (`predict: cross list 1.0 within 0.5% on main both`
+    #      predicts `list` level between the halves to half a point on
+    #      the main set) -- so that post-run step 5 reads its verdict
+    #      off `--predictions` and not off a session's reading of the
+    #      tables -- AND EVERY SPAN CARRIES ITS SCOPE, `on POP,...` and
+    #      one of `basis`, `control` or `both`, which `--predictions`
+    #      reads it on and nowhere else; a clause no kind states is read
+    #      by a script committed with the registration and named in it as
+    #      `` `script: NAME` ``, and `--lint` refuses an item carrying no
+    #      span, no script and no deferral to a task, or a span without
+    #      its scope. A BAND SET FROM A PROBE QUOTES THAT PROBE'S OWN
+    #      SPREAD beside it
     #      -- AND THE PROBE JSONS ALREADY ON DISK ARE READ FOR EVERY PAIR
     #      REGISTERED: Run 28's (6) sat behind on both populations that
     #      killed it in a probe of the same day that nobody read for the

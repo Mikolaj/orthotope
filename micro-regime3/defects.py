@@ -1230,7 +1230,8 @@ def parked_arm():
 
 
 def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
-                               lead_extra=None):
+                               lead_extra=None, unscoped=False, bare=False,
+                               script='read-run.py'):
     """The README plus a synthetic OPEN registration, at the end.
 
     SYNTHETIC and not an edit of the live one, which is the whole point:
@@ -1242,6 +1243,11 @@ def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
 
     `arm` names an arm to put in backticks -- pass `parked_arm()` for the
     defect direction -- and `task` a task number to defer to.
+
+    Every item is adjudicable, as `--lint` has held since 2026-09-17: a
+    scoped `predict:` span, a committed `script:`, or a task deferral.
+    `unscoped` drops the span's scope, `bare` adds an item with neither
+    span nor script, and `script` names the script item (2) carries.
 
     `task_arm` is the other half of the deferral: it PLANTS a task 99
     under the live tasks heading naming that arm, and defers to it. A
@@ -1261,10 +1267,14 @@ def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
     tail = (' --- %s.**' % lead_extra) if lead_extra else '.**'
     entry = ("- `OPEN` **What Run 99 is built to answer, registered before"
              " it runs%s Registered for this fixture and for nothing else."
-             " (1) *The box.* `list` moves under 3%%; killed by more."
-             % tail)
+             " (1) *The box.* `list` moves under 3%%, `predict: cross list"
+             " 1.0 within 3%%%s`; killed by more."
+             % (tail, '' if unscoped else ' on main both'))
     if arm:
-        entry += " (2) *The arm.* `%s` leads its family; killed by a loss." % arm
+        entry += (" (2) *The arm.* `%s` leads its family; killed by a loss,"
+                  " `script: %s`." % (arm, script))
+    if bare:
+        entry += " (5) *The unread.* Something moves; killed by nothing."
     if task:
         entry += " (3) *The additions.* Task %s's, read there." % task
     if task_arm:
@@ -1647,6 +1657,46 @@ def rundoc_carried_figures(tmp):
            ' `predict: pair bq-expand list 0.11 within 5%` and no figure'
            ' quoted at all.\n')
     return {'rundoc': write_rundoc(tmp, doc, name='run99.md')}
+
+
+def scoped_spans_run(tmp):
+    """Run 99's two main-set halves, their note and counts sweeps, and a
+    run file whose registration scopes every span: one read on the main
+    set on both halves, one on a class, one on the basis alone, a `cell`
+    span, a `countdiff` span that holds and one on a named view that
+    does not, and an item adjudicated by a committed script.
+
+    The cell's figure and the countdiff bounds are derived here through
+    the reader, so the spans hold or fail by construction and the case
+    reads which cells and counts each kind took.
+    """
+    m = _reader()
+    write(os.path.join(tmp, 'run99-pair.txt'), NOTE_STUB)
+    a = synth_json(tmp, 'main', name='run99-lookrts-main.json')
+    b = synth_json(tmp, 'main', name='run99-a1g-main.json')
+    ca = synth_counts(tmp, 'ca.txt', cheap_sum_only=True)
+    cb = synth_counts(tmp, 'cb.txt', cheap_sum_only=True)
+    cells, shapes, strategies, _ = m.load(a, MAIN)
+    m.apply_correction(cells, shapes, strategies)
+    sh = shapes[0]
+    x = cells[sh]['mut-odo-vecdims']['net'] / cells[sh]['bq-expand']['net']
+    counts = m.parse_counts(ca)[0]
+    d = max(counts[s]['mut-odo-vecdims'] - counts[s]['bq-expand']
+            for s in shapes)
+    doc = ('# Run 99 (fixture)\n\nA head paragraph.\n\n'
+           '## What this run was built to answer, and what it answered\n\n'
+           '(1) *Main.* `predict: cross list 1.0 within 99%% on main both`.'
+           ' (2) *A class.* `predict: cross list 1.0 within 99%% on bcast'
+           ' both`. (3) *The basis.* `predict: cross list 1.0 within 99%% on'
+           ' main basis`. (4) *A cell.* `predict: cell %s/mut-odo-vecdims'
+           ' over %s/bq-expand %.4f within 0.1%% on main both`. (5) *Counted.*'
+           ' `predict: countdiff mut-odo-vecdims bq-expand under %d on main'
+           ' both`. (6) *Counted on a view.* `predict: countdiff'
+           ' mut-odo-vecdims bq-expand under %d on views %s on main both`.'
+           ' (7) *By hand.* Read by `script: read-run.py`.\n'
+           % (sh, sh, x, d + 1, d, sh))
+    return {'a': a, 'b': b, 'ca': ca, 'cb': cb,
+            'rundoc': write_rundoc(tmp, doc, name='run99.md')}
 
 
 def doc_of_a_list(tmp, items=4):
@@ -4044,11 +4094,11 @@ def for_brief_readings(tmp):
         'window-counts-cmp.txt': counts % '0.9989',
         'runs-counts-cmp.txt': counts % '1.0098',
         'main-lookrts-pred.txt':
-            '5 span(s): 1 HELD, 4 KILLED, 0 not read; item(s) with no span,'
-            ' yours to adjudicate: (4)\n',
+            '5 span(s): 1 HELD, 3 KILLED, 0 not read, 1 out of scope;'
+            ' item(s) with no span, yours to adjudicate: (4)\n',
         'main-a1g-pred.txt':
-            '5 span(s): 5 HELD, 0 KILLED, 0 not read; every item carries a'
-            ' span\n',
+            '5 span(s): 4 HELD, 0 KILLED, 0 not read, 1 out of scope;'
+            ' every item carries a span or a script\n',
     }
     for name, text in files.items():
         write(os.path.join(d, name), text)
@@ -8555,7 +8605,8 @@ RECORDS = [
                    'THE INTRUSION VERDICT IS CLEAN',
                    'runs 17, window 8, bcast and flip 6',
                    '0.9989 on window to 1.0098 on runs',
-                   '6 HELD, 4 KILLED', "<yours: the pair's variable>",
+                   '5 HELD, 3 KILLED, 0 not read, 2 out of scope',
+                   "<yours: the pair's variable>",
                    "<yours: what this run's largest finding is>"],
               hasnt=['<yours: the intrusion verdict from --wild over every'
                      ' log, the'])),
@@ -9709,6 +9760,19 @@ RECORDS = [
                    ' samples', 'rc=0 main-lookrts-vs-compare.txt',
                    'rc=0 main-a1g-bridge.txt', 'rc=0 half-movers.txt',
                    'wild-zzpr4-a1g-main.txt', 'for-brief.txt'])),
+
+    case('readings-predictions-take-the-counts-once-complete',
+         'post-run-readings.sh', None,
+         'CONTROL: after EVENING COMPLETE each half\'s --predictions gets'
+         ' its own sweep first and the other half\'s second, so a counts or'
+         ' countdiff span is read and not NOT READ',
+         shadow=dict(extra=readings_run('zzpr5', complete=True)),
+         argv=['zzpr5', '--list'],
+         ok=V(exit=0, has=['main-a1g-pred.txt ./read-run.py'
+                           ' zzpr5-a1g-main.json --compare'
+                           ' zzpr5-lookrts-main.json --predictions --counts'
+                           ' zzpr5-counts-a1g.txt zzpr5-counts-lookrts.txt'],
+              hasnt=['rc='])),
 
     case('readings-cells-dump-is-stdout-alone', 'post-run-readings.sh', None,
          'CONTROL: a -cells.tsv carries the TSV alone, the reader\'s'
@@ -10989,6 +11053,51 @@ RECORDS = [
          argv=['--lint', '--readme', '{readme}'],
          ok=V(exit=1, has=['defers to task 99, which names arms the roster'
                            ' does not time'])),
+
+    case('predictions-read-each-span-on-its-scope', 'read-run.py', None,
+         'CONTROL: a span is read only on the population and half it names,'
+         ' and the cell and countdiff kinds read what they name',
+         plant=scoped_spans_run,
+         argv=['{a}', '--compare', '{b}', '--predictions', '--run-doc',
+               '{rundoc}', '--counts', '{ca}', '{cb}'],
+         ok=V(has=['out of scope, this file being main on the basis half',
+                   '6 span(s): 4 HELD, 1 KILLED, 0 not read, 1 out of scope',
+                   'item(s) adjudicated by a committed script: (7)'
+                   ' read-run.py'])),
+
+    case('predictions-scope-a-half', 'read-run.py', None,
+         'CONTROL: on the control half a basis span is out of scope too',
+         plant=scoped_spans_run,
+         argv=['{b}', '--compare', '{a}', '--predictions', '--run-doc',
+               '{rundoc}', '--counts', '{cb}', '{ca}'],
+         ok=V(has=['out of scope, this file being main on the control half',
+                   '6 span(s): 3 HELD, 1 KILLED, 0 not read, 2 out of'
+                   ' scope'])),
+
+    case('registration-span-carries-its-scope', 'read-run.py', None,
+         'CONTROL: an OPEN registration\'s span with no `on POP` and no half'
+         ' is refused, a span read on every file it is handed being how'
+         ' thirteen of Run 30\'s main-set spans were KILLED for the wrong'
+         ' question',
+         plant=lambda t: {'readme': readme_with_a_registration(
+             t, unscoped=True)},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(exit=1, has=['carries no scope'])),
+
+    case('registration-item-is-adjudicable', 'read-run.py', None,
+         'CONTROL: an item with neither a span nor a committed script is'
+         ' refused, Run 34 having read four items\' clauses by hand',
+         plant=lambda t: {'readme': readme_with_a_registration(t, bare=True)},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(exit=1, has=['item (5) carries neither a `predict:` span nor'
+                           ' a committed `script:`'])),
+
+    case('registration-script-is-committed', 'read-run.py', None,
+         'CONTROL: a `script:` naming no committed file is refused',
+         plant=lambda t: {'readme': readme_with_a_registration(
+             t, arm='list', script='zz-no-such-script.py')},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(exit=1, has=['zz-no-such-script.py, which is not committed'])),
 
     case('registration-clean-reads-ok', 'read-run.py', None,
          'CONTROL: a registration naming a timed arm and no task passes,'
