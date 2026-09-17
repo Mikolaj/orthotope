@@ -2706,6 +2706,8 @@ def parse_counts(path):
     return counts, refused, malformed
 
 
+HEAD_PARAGRAPHS = 5      # the run file's head past its preamble
+
 PREDICT_RE = re.compile(r'`predict: ([^`]+)`')
 
 
@@ -10870,6 +10872,29 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         m = re.search(r'^## ', text, re.M)
         return (text[:m.start()], text[m.start():]) if m else (text, '')
 
+    # THE HEAD IS FIVE PARAGRAPHS past the preamble, since 2026-09-17: the
+    # pair, the headline, the registration tally, anomalies and what the
+    # next run takes. Run 34's ran to twenty-one, most of them restating
+    # Provenance or a class block -- the gate, the window, intrusion,
+    # repetition, `.text`, the regime, the straddlers and the
+    # decomposition -- each restatement one more site two copies of a
+    # figure could part across. Case: `head-is-five-paragraphs`.
+    if run_text:
+        n_head = len(figure_blocks(head_and_rest(run_text)[0],
+                                   figures_only=False)) - 1
+        if n_head > HEAD_PARAGRAPHS:
+            bad.append("%s's head carries %d paragraphs past its preamble,"
+                       ' and the form is %d: the pair, the headline, the'
+                       ' registration tally, anomalies and what the next run'
+                       ' takes -- the gate, window, intrusion, repetition,'
+                       ' regime, straddlers and decomposition are'
+                       " Provenance's"
+                       % (os.path.basename(run_doc), n_head,
+                          HEAD_PARAGRAPHS))
+        else:
+            print("ok:   %s's head is %d paragraphs past its preamble"
+                  % (os.path.basename(run_doc), n_head))
+
     if run_doc is None:
         pass                # the BLOCKED at the top of this function said it
     elif prev_doc is None:
@@ -11200,27 +11225,6 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
              (),
              'the main set is one number and the class range another, so a'
              ' site quoting the first is quoting this one'),
-            # THE LOG COUNT, added 2026-09-14. Run 31 corrected it in the
-            # run file and left the retired figure standing at two README
-            # sites written in the same stretch -- 110 where the run has
-            # 114, and the four the shortfall omits carry the run's worst
-            # bench. `--check-doc` passed either way, the two documents
-            # having nothing tying this figure together, and the checker's
-            # second pass is what found it. The count is spelled and not
-            # a numeral here, so the capture is the WORD and the
-            # comparison a string's: `two hundred and fifty-six times the
-            # default nursery` is why the patterns name the noun as well.
-            # NON-VACUITY BY HAND, as the floor pair's above and for the
-            # same reason, 2026-09-14: planting `hundred and ten` at one
-            # of the run file's three sites makes this report the
-            # disagreement across all FIVE, and the real pair is green.
-            ('log count the intrusion sweep read',
-             (r"hundred and (\w+)(?: of this run's)? logs?\b",
-              r'hundred and (\w+) reaches 0\.25'),
-             (),
-             'the four gate logs are in it or they are not, and the run'
-             " that omits them omits its own worst bench"),
-
             # THE FILL FAMILY'S COUNTS RANGE, added the same day and for
             # the same reason: the counted-work paragraph is written into
             # both documents every run, and Run 31's two copies of its

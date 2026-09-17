@@ -1587,6 +1587,24 @@ def rundoc_pair_with_address_paragraph(tmp):
     return made
 
 
+def rundoc_with_a_sixth_head_paragraph(tmp):
+    """The run file with its head padded to six paragraphs past the
+    preamble, the form being five: the pair, the headline, the
+    registration tally, anomalies and what the next run takes. Padded by
+    however many the live head lacks, so the fixture outlives the run.
+    """
+    text = rundoc_text()
+    head, sep, rest = text.partition('\n## ')
+    assert sep, 'the run file has no `## ` section to end its head at'
+    paras = [q for q in head.split('\n\n') if q.strip()
+             and not q.lstrip().startswith('#')]
+    extra = ''.join('**zz-head-paragraph %d, one more than the form.** Its'
+                    ' figure is 1.2345.\n\n' % k
+                    for k in range(max(1, 7 - len(paras))))
+    return write_rundoc(tmp, head.rstrip('\n') + '\n\n' + extra.rstrip('\n')
+                        + '\n\n' + sep + rest)
+
+
 def rundoc_pair_with_carried_body_claim(tmp):
     """`rundoc_pair` held, plus a BODY paragraph both files share verbatim
     that calls itself this run's.
@@ -8034,6 +8052,16 @@ RECORDS = [
          argv=['{run}', '--block', '--brief'],
          ok=V(has=['summary bolds']),
          bug=V(hasnt=['summary bolds'])),
+
+    case('head-is-five-paragraphs', 'read-run.py', None,
+         'CONTROL: a run file whose head runs past five paragraphs is'
+         ' refused, the gate, window and the rest being Provenance\'s',
+         # Run 34's head was twenty-one paragraphs, most restating
+         # Provenance or a class block, and every restatement a site two
+         # figures could disagree across.
+         plant=lambda t: {'rundoc': rundoc_with_a_sixth_head_paragraph(t)},
+         argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['head carries 6 paragraphs'])),
 
     case('stale-head-check-sees-only-decimals', 'read-run.py', None,
          'three stale head paragraphs the check could not see',

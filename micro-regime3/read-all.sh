@@ -471,7 +471,7 @@ if [ "$BAD" -eq 0 ] && [ "$SHORT" = 0 ] && [ "$NOISY" = 0 ] \
    && [ "$WILD_PLATEAU" = 0 ]; then
   echo "every process gated clean. The worst cells above are yours to read:"
   echo "  a pair inside the floor with a cell an order of magnitude outside"
-  echo "  it is a finding, not noise, and the floor goes in the run file's head"
+  echo "  it is a finding, not noise, and the floor goes in the run file's Results"
 else
   # The processes that landed are still gated and their verdicts still
   # printed -- whether the nine that ran are sound is what says to resume
@@ -511,11 +511,12 @@ brief_facts () {
   echo "--- the brief's THIS RUN ONLY facts, derived; read items 5 AND 6 of"
   echo "    checker-brief.txt against these and change what disagrees ---"
   # ITEM 5's ROWS TOO, since 2026-09-13. Both items are hand-edited every
-  # run and both restate the run file's head; the rows below are the ones
-  # an artifact can settle, so what is left to a hand is prose rather than
-  # re-derivation. Run 30 retyped the repetition fact and got it wrong in
-  # four places -- it called the fourth repetition this chapter has read the
-  # first -- which a row off the note's own md5s would not have done.
+  # run and both restate the run file's Provenance and Results; the rows
+  # below are the ones an artifact can settle, so what is left to a hand
+  # is prose rather than re-derivation. Run 30 retyped the repetition fact
+  # and got it wrong in four places -- it called the fourth repetition this
+  # chapter has read the first -- which a row off the note's own md5s would
+  # not have done.
   NOTE="$R-pair.txt"
   if [ -f "$NOTE" ]; then
     printf '  %-14s %s\n' 'md5s' \

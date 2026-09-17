@@ -9423,15 +9423,16 @@ not otherwise.
     #      every process a second time for nothing: the window and its
     #      timestamps, the plateau band, BOTH floors per population,
     #      `list` against the 0.7% bar per population, the A/A processes
-    #      past 5% and the sunk cells -- the rows the head's own gate,
-    #      window, floor and differencing paragraphs are written from, so
-    #      a session that skips this re-derives them by hand at 6a.
+    #      past 5% and the sunk cells -- the rows Provenance's gate
+    #      and window paragraphs and Results' floor and differencing
+    #      paragraphs are written from, so a session that skips this
+    #      re-derives them by hand at 6a.
     #      EVERY PROCESS IS BOTH HALVES of every population, a line apiece
     #      with the A/A WORST CELL beside it. READ that column: it is the NET
     #      ratio, the same quantity as the published floor, and neither
     #      the pair's geomean nor the gate. A failed gate invalidates that
     #      population's whole time column and only that one. Write this
-    #      run's floor into the head of the run file now: every margin is
+    #      run's floor into the run file's Results now: every margin is
     #      judged against it. Read $R-wallclock.log FIRST -- a wrong bench
     #      count is logged loudly and is not fatal, so nothing else stops
     #      on it.
@@ -9717,12 +9718,16 @@ not otherwise.
     #      run re-carries, or it is last run's claim under this run's
     #      name. RUN IT HERE AND NOT AT 6d: after the prose is written
     #      every hit is a rewrite.
-    #      **THE HEAD IS WRITTEN LAST**,
-    #      after 5c: it is the only section that generalises over the
-    #      others, so written first it generalises over figures not yet
-    #      adjudicated. The class blocks, the registration verdicts
-    #      and Provenance are mechanical and settle their own figures;
-    #      the head then summarises settled ones. TWO TABLES HERE ARE
+    #      **THE HEAD IS WRITTEN LAST**, after 5c: it is the only
+    #      section that generalises over the others, so written first
+    #      it generalises over figures not yet adjudicated. The class
+    #      blocks, the registration verdicts and Provenance are
+    #      mechanical and settle their own figures; the head then
+    #      summarises settled ones, in FIVE PARAGRAPHS -- the pair, the
+    #      headline, the registration tally, anomalies and what the
+    #      next run takes -- which `--check-doc` holds it to: the gate,
+    #      window, intrusion, repetition, `.text`, regime, straddlers and
+    #      decomposition are Provenance's. TWO TABLES HERE ARE
     #      HAND-EDITED and neither is installed: the two-column geomeans
     #      and the PROVENANCE ANCHORS, a stale anchor row passing every
     #      gate and a whole checker pass while --machine resolves its
@@ -10116,7 +10121,7 @@ because by then the run read finished; putting it first is what retires that.
    built on another roster carries that roster's --- so a class run passes
    or fails the gates on its own evidence and a failure there invalidates
    that class's column and no other. **Then write this run's own floor
-   at the head of the chapter as you draft it, and keep it there.**
+   into the run file's Results as you draft it, and keep it there.**
    It is published with the margins it judges rather than kept where only
    this session can see it, it is re-measured each run, and the runs have
    disagreed several-fold, so the previous run's figure is the one you will
@@ -14736,17 +14741,18 @@ of the structure and would rot the first time a lead was reworded, which
 is the failure this list was rewritten to escape.
 
 - [the run's own file](runs/run34.md) ENTIRE, which is what makes it a file:
-  its head, carrying the run's name, regime, scale and source commit, the layout
-  span a roster order change alone is worth and which half published what;
-  the Results table and the findings under it; its own two-column geomeans
+  its head of five paragraphs, the pair, the headline, the registration tally,
+  anomalies and what the next run takes; the Results table and the findings
+  under it, with which half published what; its own two-column geomeans
   and the two-column per-shape fingerprint, which are the only record kept once
   the JSON is deleted; the properties, where a run reports which held rather
   than re-deriving them; each class's own table, controls, provenance, anchor
-  and paragraph; and its own Provenance, carrying what the pair was, how
-  the sequence ran, the three main-set anchors with the class ones,
-  and the correction's span. The bullets that used to name those sections one
-  by one are this one, and the coverage check below reads it as covering every
-  heading in that file;
+  and paragraph; and its own Provenance, carrying what the pair was, its regime,
+  scale and source commit, how the sequence ran and was gated, the three
+  main-set anchors with the class ones, the straddlers and the layout span
+  a roster order change alone is worth, the decomposition, and the correction's
+  span. The bullets that used to name those sections one by one are this one,
+  and the coverage check below reads it as covering every heading in that file;
 - [the recommended tasks after Run 34](#recommended-tasks-after-run-34), which
   is run-scoped by its own title: a task taken or superseded leaves it --- which
   RENUMBERS the rest, so `grep -n 'task [0-9]'` over this file and the run's
