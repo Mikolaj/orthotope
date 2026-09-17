@@ -464,6 +464,12 @@ def plant_retired_shape_exempt(tmp):
     # The run's population as the reader derives it, and one more retired
     # than the gap between today's set and it.
     was = len(timed) - len(declared & set(timed)) + len(declared_retired & retired)
+    # The run's own count is what the dropped exemption must leave matching
+    # no population, and a fixture cannot choose it; say so loudly rather
+    # than let the mutant survive as it did once a class reached a count.
+    assert was not in class_population_sizes(), (
+        'the run file\'s main-set count %d is also a class population\'s'
+        ' size, so no retirement here can make the mutant see anything' % was)
     n = max(1, len(timed) - was + 1)
     picks = []
     for sh in ['vgg-14-c512-k3'] + list(reversed(timed)):
@@ -482,6 +488,22 @@ def plant_retired_shape_exempt(tmp):
         '\n## Provenance\n\n%s %s retired 2026-09-04, after the run.\n'
         % (decl, 'was' if n == 1 else 'were'))
     return out
+
+
+def class_population_sizes():
+    """The size of every timed class population Main.hs defines.
+
+    A fixture that plants a main-set count checks it against these: the
+    population check accepts a quoted count equal to ANY population's size,
+    so a planted count landing on a class's size makes a check that drops
+    an exemption pass anyway -- which is how the added-after mutant
+    survived Run 34's check-all, `runs` having grown to seventeen views.
+    """
+    classes = {}
+    for s, d in _reader().dims_by_shape(MAIN)[0].items():
+        if d['cls'] != 'main' and not d['retired']:
+            classes.setdefault(d['cls'], set()).add(s)
+    return {len(v) for v in classes.values()}
 
 
 def plant_main_shapes_exempt(tmp):
@@ -526,11 +548,7 @@ def plant_main_shapes_exempt(tmp):
     # planted took 19 to 17 on the day `runs` grew to seventeen views
     # (971ffb6), and the mutant survived Run 34's check-all. So plant one
     # shape where two would land on a class size.
-    classes = {}
-    for s, d in _reader().dims_by_shape(MAIN)[0].items():
-        if d['cls'] != 'main' and not d['retired']:
-            classes.setdefault(d['cls'], set()).add(s)
-    sizes = {len(v) for v in classes.values()}
+    sizes = class_population_sizes()
     fake = next(fake[:k] for k in (2, 1) if was - k not in sizes)
     now = was - len(fake)
     doc = subprocess.run(['wrap80', '--unwrap'], input=rundoc_text(),
