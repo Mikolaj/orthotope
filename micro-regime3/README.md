@@ -709,6 +709,78 @@ been asking for and leaves nothing measured on an ungrown pool.
 specified --- the rule about a discriminating measurement deserving one now
 rather than a slot in the next run, observed again:
 
+- `OPEN` **What Run 35 is built to answer, registered before it runs.** The pair
+  is Run 34's: the same two compilers at plain -O1 under the exit span,
+  ghc-9.12.4 the basis and GHC HEAD the control, both halves rebuilt by Run 34's
+  recipe from the moved source, on the same machine and with no reboot between,
+  so what varies from Run 34 is the source alone: `libunord-stage13-sum`, stage
+  twelve's route found with fewer passes over the axes (reasons
+  at `routeUnord13`; its fill is rostered checked and never timed), and the two
+  pieces it shares with older arms, the merge step `mergeInto`
+  that `canonViewOfPairs` now folds and the route tail `routeOf`
+  that `routeList4` and `dispatchLean` now end in. Each prediction is its own
+  kill condition, a `predict:` span that fails kills its item, and every span
+  is read on both halves. (1) *Stage thirteen reads under stage twelve where
+  a call is short and level where it is long.* A probe of the two arms
+  on a plain -O1 build of the committed source, `0eda736`, launched
+  from the build directory rather than `hugebin/` with nothing else running,
+  `probe-stage13-main.json` and one `probe-stage13-<class>.json` per class, read
+  the pair at 0.9726 on the main set, from 0.681 on `cnn-L1-6x6-c1` to 1.017
+  on `stretch-coprime-r7`; at 0.8561 on `small`, from 0.765 on `small-flat64`
+  to 0.926 on `small-row96`; at 0.9841 on `rev` and 0.9849 on `scaled`;
+  and within a percent of level on the other seven classes, `block` at 0.9910
+  the furthest:
+  `predict: pair libunord-stage13-sum libunord-stage12-sum 0.97 within 2% on main both`,
+  `predict: pair libunord-stage13-sum libunord-stage12-sum 0.86 within 3% on small both`,
+  `predict: pair libunord-stage13-sum libunord-stage12-sum 0.98 within 2% on rev both`,
+  `predict: pair libunord-stage13-sum libunord-stage12-sum 0.985 within 1.5% on scaled both`,
+  `predict: pair libunord-stage13-sum libunord-stage12-sum 0.99 within 1.5% on block both`,
+  `predict: pair libunord-stage13-sum libunord-stage12-sum 1.0 within 1% on bcast,bcastmid,compose,flip,runs,window both`.
+  The route is stage twelve's on every view, which `check` holds it to
+  and no span reads. (2) *And it retires fewer instructions than stage twelve
+  on every view, by more than two hundred a call.* Counted on the plain build
+  as run-counts.sh counts, the gap runs from 295 on `small-row96` to 2001
+  on `rev-cnn-L1-24x24-c1`, the four views with an extent-1 axis, which the sort
+  no longer sees, all above 1860:
+  `predict: countdiff libunord-stage13-sum libunord-stage12-sum under -200 on main,bcast,bcastmid,block,compose,flip,rev,runs,scaled,small,window both`,
+  read with `--counts` over each population's own sweep. (3) *The shared code
+  left the two ported library arms where Run 34 read them.* `lib-stage2-lean`
+  compiles through `mergeInto` now and `liblist-stage4-sum` through `mergeInto`
+  and `routeOf`, and a plain build of the committed source counted every control
+  cell read within five instructions of a plain build of Run 34's source,
+  `2496c98`, whose only later changes are to comments, but `liblist-stage4-sum`
+  on `small-row96`, 27 under. So their counts read Run 34's, exact but
+  for that cell:
+  `predict: counts lib-stage2-lean 1.0 within 0.1% on main,bcast,bcastmid,block,compose,flip,rev,runs,scaled,small,window both`,
+  `predict: counts liblist-stage4-sum 1.0 within 0.1% on main,bcast,bcastmid,block,compose,flip,rev,runs,scaled,window both`,
+  `predict: counts liblist-stage4-sum 1.0 within 0.3% on small both`; and their
+  times against `list` read Run 34's, the machine and the recipe being the same:
+  per population the target is the geometric mean of Run 34's two halves'
+  `--pair ARM list` figures and the tolerance three percent of it, five
+  on the three where Run 34's own halves part by more than a point and a half,
+  written in points of the ratio since that is what a span's `within` reads:
+  `predict: pair lib-stage2-lean list 0.0286 within 0.086% on main both`,
+  `predict: pair lib-stage2-lean list 0.0156 within 0.047% on bcast both`,
+  `predict: pair lib-stage2-lean list 0.0121 within 0.036% on bcastmid both`,
+  `predict: pair lib-stage2-lean list 0.0213 within 0.064% on block both`,
+  `predict: pair lib-stage2-lean list 0.0147 within 0.044% on compose both`,
+  `predict: pair lib-stage2-lean list 0.0241 within 0.072% on flip both`,
+  `predict: pair lib-stage2-lean list 0.0234 within 0.07% on rev both`,
+  `predict: pair lib-stage2-lean list 0.0243 within 0.073% on runs both`,
+  `predict: pair lib-stage2-lean list 0.0237 within 0.071% on scaled both`,
+  `predict: pair lib-stage2-lean list 0.0545 within 0.16% on small both`,
+  `predict: pair lib-stage2-lean list 0.0233 within 0.12% on window both`,
+  `predict: pair liblist-stage4-sum list 0.0569 within 0.17% on main both`,
+  `predict: pair liblist-stage4-sum list 0.0471 within 0.14% on bcast both`,
+  `predict: pair liblist-stage4-sum list 0.0385 within 0.12% on bcastmid both`,
+  `predict: pair liblist-stage4-sum list 0.0226 within 0.068% on block both`,
+  `predict: pair liblist-stage4-sum list 0.0475 within 0.14% on compose both`,
+  `predict: pair liblist-stage4-sum list 0.0414 within 0.12% on flip both`,
+  `predict: pair liblist-stage4-sum list 0.0515 within 0.15% on rev both`,
+  `predict: pair liblist-stage4-sum list 0.0257 within 0.13% on runs both`,
+  `predict: pair liblist-stage4-sum list 0.0560 within 0.17% on scaled both`,
+  `predict: pair liblist-stage4-sum list 0.0788 within 0.39% on small both`,
+  `predict: pair liblist-stage4-sum list 0.0430 within 0.13% on window both`.
 - `ANSWERED` **What Run 34 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 34's own
@@ -5308,8 +5380,10 @@ and `liblist-stage4-list-sum`, the same fold over stage four's list, landing
 2026-09-14 for Run 32 at the same tail, took the roster to 608 benches,
 and `libunord-stage11-sum`, landing 2026-09-15 for Run 33, took the roster
 to 627 benches, and `libunord-stage12-sum`, landing 2026-09-16 for Run 34
-with its fill `libunord-stage12` rostered `Only` beside it, takes the roster
-to 646 benches.
+with its fill `libunord-stage12` rostered `Only` beside it, took the roster
+to 646 benches, and `libunord-stage13-sum`, landing 2026-09-17 for Run 35
+with its fill `libunord-stage13` rostered `Only` beside it, takes the roster
+to 665 benches.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -7520,11 +7594,13 @@ the same day, took the roster to 589 benches, and `liblist-stage4-list-sum`,
 landing 2026-09-14, took the roster to 608 benches, and `libunord-stage11-sum`,
 stage ten with its zero-stride move guarded, landing 2026-09-15, took the roster
 to 627 benches, and `libunord-stage12-sum`, stage eleven with the run chosen
-by length, landing 2026-09-16, takes the roster to 646 benches, so
-with the controls the run is 34 arms. **Run 26 timed four parked arms
-for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02;
-`canon-vecdims` and `lib-stage2`, parked by this prune; and `lib-stage2-short`,
-parked by the ruling on the short bodies of the same day ([the stride
+by length, landing 2026-09-16, took the roster to 646 benches,
+and `libunord-stage13-sum`, stage twelve's route in fewer passes over the axes,
+landing 2026-09-17, takes the roster to 665 benches, so with the controls
+the run is 35 arms. **Run 26 timed four parked arms for that run alone**:
+`mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02; `canon-vecdims`
+and `lib-stage2`, parked by this prune; and `lib-stage2-short`, parked
+by the ruling on the short bodies of the same day ([the stride
 classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration
 unreadable --- Run 24 lost a clause, Run 25 five, and the two-window item
