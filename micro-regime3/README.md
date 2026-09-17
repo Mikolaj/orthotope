@@ -1145,10 +1145,10 @@ rather than a slot in the next run, observed again:
   on another page. **Run 34, the same recipe launched from `hugebin/` on a moved
   source, reads `lib-stage2-lean-u1` at 1.0027 across the halves on `runs`
   with its counts level, and the lean fill at 1.0047 on the main set
-  with its counts at 1.0063**, so neither residue reproduced; `lib-stage1` reads
-  1.0258 with its counts at 1.0075 --- and four other half-local movers against
-  Run 32 whose copy test that run did not take, at the head of [Run 34's
-  file](runs/run34.md).
+  with its counts at 1.0063**, so of the two main-set residues the lean fill's
+  did not reproduce and `lib-stage1`'s did, at 1.0258 with its counts at 1.0075
+  --- and four other half-local movers against Run 32 whose copy test that run
+  did not take, at the head of [Run 34's file](runs/run34.md).
 - `OPEN` **Four arms moved past 3% against Run 32 on ONE half each, with their
   counts level, and nobody took the copy test that says whether each
   is the binary's or its file instance's.** Run 34's `--half-movers run34 run32`
@@ -13886,28 +13886,29 @@ at all**: which half of the pair a figure came from, which is why the run file's
 tables and its fingerprint say so.
 
 - Run 34 measured TODAY's shapes, class views and roster exactly, nothing having
-  moved since it ran --- 34 timed arms over 19 main-set shapes and 61 class
-  views in TEN classes, 646 benches and 2074, EIGHT A/A pairs, the `runs` class
-  at SEVENTEEN, `window` at EIGHT, `bcast` and `flip` at SIX, `block`
-  and `small` at FIVE, `bcastmid` and `compose` at FOUR and `rev` and `scaled`
-  at THREE. It is the run whose file `runs/` currently publishes. **Its delta
-  against RUN 33 is ONE ARM IN, NONE OUT AND THREE CLASS VIEWS IN**: `Main.hs`
-  moved from `f31bd1c` to `2496c98` in three commits of 2026-09-16 --- `971ffb6`
-  landing `runs-32`, `runs-48` and `runs-64`, `0d637b7` landing
-  `libunord-stage12-sum`, stage eleven with the run chosen among tied
-  unit-stride axes by its length, with its untimed sibling, and `2496c98` firing
-  stage eleven's guard on a zero stride of extent above 1 alone --- while
-  the shim stood at `f31bd1c`, and every process launched from the `hugebin/`
-  mount, which no earlier run's did. It is read against RUN 32 and not Run 33,
-  by the owner's ruling of 2026-09-16; against Run 32 its delta is two arms
-  in and the same three views, with the exit span, the shim and the launch
-  besides. Its sequence ran in ONE window, 02:20:29 to 10:12:17, and no process
-  of the run, the gate's and the riders' included, was intruded on.
-  **And its floor is a maximum over EIGHT A/A pairs**, 0.51% on the basis,
-  carried by `mut-odo-vecdims-add-in-leaf-u2-aa-distant`, and 0.49%
-  on the control, carried by `bq-expand-aa-distant`; its restricted four-pair
-  reading is 0.49% on both halves, so the two thresholds part on the basis
-  and are closed on the control.
+  moved since it ran but one comment in `Main.hs` --- 34 timed arms over 19
+  main-set shapes and 61 class views in TEN classes, 646 benches and 2074, EIGHT
+  A/A pairs, the `runs` class at SEVENTEEN, `window` at EIGHT, `bcast`
+  and `flip` at SIX, `block` and `small` at FIVE, `bcastmid` and `compose`
+  at FOUR and `rev` and `scaled` at THREE. It is the run whose file `runs/`
+  currently publishes. **Its delta against RUN 33 is ONE ARM IN, NONE OUT
+  AND THREE CLASS VIEWS IN**: `Main.hs` moved from `f31bd1c` to `2496c98`
+  in three commits of 2026-09-16 --- `971ffb6` landing `runs-32`, `runs-48`
+  and `runs-64`, `0d637b7` landing `libunord-stage12-sum`, stage eleven
+  with the run chosen among tied unit-stride axes by its length,
+  with its untimed sibling, and `2496c98` firing stage eleven's guard on a zero
+  stride of extent above 1 alone --- while the shim stood at `f31bd1c`,
+  and every process launched from the `hugebin/` mount, which no earlier run's
+  did. It is read against RUN 32 and not Run 33, by the owner's ruling
+  of 2026-09-16; against Run 32 its delta is two arms in and the same three
+  views, with the exit span, the shim and the launch besides. Its sequence ran
+  in ONE window, 02:20:29 to 10:12:17, and no process of the run, the gate's
+  and the riders' included, was intruded on. **And its floor is a maximum
+  over EIGHT A/A pairs**, 0.51% on the basis, carried
+  by `mut-odo-vecdims-add-in-leaf-u2-aa-distant`, and 0.49% on the control,
+  carried by `bq-expand-aa-distant`; its restricted four-pair reading is 0.49%
+  on both halves, so the two thresholds part on the basis and are closed
+  on the control.
 - Run 33 measured TODAY's shapes exactly and, less the three `runs` views
   of 2026-09-16, today's class views and, less one arm and one guard, today's
   roster, nothing having moved since it ran but 2026-09-16's three commits,
