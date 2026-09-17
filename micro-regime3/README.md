@@ -1146,24 +1146,36 @@ rather than a slot in the next run, observed again:
   source, reads `lib-stage2-lean-u1` at 1.0027 across the halves on `runs`
   with its counts level, and the lean fill at 1.0047 on the main set
   with its counts at 1.0063**, so of the two main-set residues the lean fill's
-  did not reproduce and `lib-stage1`'s did, at 1.0258 with its counts at 1.0075
-  --- and four other half-local movers against Run 32 whose copy test that run
-  did not take, at the head of [Run 34's file](runs/run34.md).
+  did not reproduce and `lib-stage1`'s did, at 1.0258 with its counts at 1.0075.
 - `OPEN` **Four arms moved past 3% against Run 32 on ONE half each, with their
-  counts level, and nobody took the copy test that says whether each
-  is the binary's or its file instance's.** Run 34's `--half-movers run34 run32`
-  names `mut-odo-vecdims-add-in-leaf-u1` on `scaled` on the basis half
-  at 1.0636, both of the shipped leaf's A/A copies on `small` on the control
-  at 0.9662, and `lib-stage2-lean` on `rev` on the control at 1.0322, the other
-  half moving under 2.3 points on each and every count within 0.20 of a point.
-  Every process of that run launched from `hugebin/`, the mount introduced
-  against Run 33's file-page frame term, so what these four are is open. **What
-  would settle each** is post-run step 4a's copy test --- the flagged cell timed
-  on the half's binary and on a byte-identical copy, interleaved, on a quiet
-  box, `probe-r33-instance.sh`'s part 1 with the names changed --- and, where
-  the two part, `probe-pageflags.py` on the slow instance while it runs.
-  It needs `run34-exit` and `run34-gheadexit`, so it is owed before
-  those are deleted. Registered 2026-09-17.
+  counts level; the copy test, taken after the run, gives one of them
+  to the evening's mounted file instance and cannot reach the other three.** Run
+  34's `--half-movers run34 run32` names `mut-odo-vecdims-add-in-leaf-u1`
+  on `scaled` on the basis half at 1.0636, both of the shipped leaf's A/A copies
+  on `small` on the control at 0.9662, and `lib-stage2-lean` on `rev`
+  on the control at 1.0322, the other half moving under 2.3 points on each
+  and every count within 0.20 of a point. Every process of that run launched
+  from `hugebin/`, the mount introduced against Run 33's file-page frame term,
+  so what these four were was open. **The copy test was taken 2026-09-17
+  on a quiet box**, each mover's worst cell timed on four instances ---
+  the evening's mounted copy, a second mounted copy of the same bytes, a mounted
+  copy of Run 32's same half and that half from disk --- as raw cycles
+  an iteration, `-n 2N` less `-n N`, in `probe-r34-instance.sh`,
+  and the evening's copy against the second then alternated eight times each
+  in `probe-r34-instance2.sh`. **On `scaled` it is the file instance**:
+  `scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u1`, where the mover reads 1.2258
+  net, runs in the evening's copy at a median 1.075 of the second copy's cycles,
+  all eight readings above all eight, the four instances' instructions within
+  five of each other in 4.8 million and the second copy level with Run 32's
+  binary. **On `rev` and `small` it reaches nothing**:
+  `rev-cnn-L1-24x24-c1/lib-stage2-lean` reads 0.980
+  and `small-bcast32/mut-odo-vecdims-add-in-leaf-u2` 1.009, where repeats of one
+  instance part by up to eight percent, so those three movers, a few percent
+  each, are below what a differenced fixed-`-n` process resolves and stay open;
+  what would settle them is the cell timed with criterion's own sampling
+  on the evening's copy and a second one, interleaved. The frames
+  of the `scaled` pair are in [the placement section][floor]. Registered
+  2026-09-17.
 - `OPEN` **On `flip-last-rows` the shipped leaf's own cell parts from BOTH
   its A/A copies by 22% in one process, and the copies agree with each other.**
   Run 34's `run34-exit-flip` reads `mut-odo-vecdims-add-in-leaf-u2-aa` 22.29%
@@ -3581,14 +3593,14 @@ the counted work's identical-code pair, `sum-only-early` against
 on the basis and by up to 2925 over `runs`, so a registration clause resting
 on the sign of a difference under a hundred instructions sits inside
 the instrument's resolution on some populations and outside it on others,
-and wants that pair's figure beside it. **A STEP SKIPPED, AND IT IS OWED**:
-post-run 4a's copy test on the four half-local movers against Run 32, which
-wants the box quiet and so wants asking, the session having nobody to ask;
-the four stand unattributed in the head. And `--half-movers` was first run
-before the counts had landed, so its counts columns read `--`; it reads them
-only when rerun after step 20. THE READINGS: no carrier ran, by the ruling
-of 2026-09-16, and the readings at run list step 13a were all taken before
-the launch.
+and wants that pair's figure beside it. **A STEP SKIPPED AT THE RUN AND TAKEN
+AFTER IT**: post-run 4a's copy test on the four half-local movers against Run
+32, which wanted the box quiet again and so wanted asking, the session having
+nobody to ask until the owner's go the same day; its readings are in the open
+list's entry on the four. And `--half-movers` was first run before the counts
+had landed, so its counts columns read `--`; it reads them only when rerun after
+step 20. THE READINGS: no carrier ran, by the ruling of 2026-09-16,
+and the readings at run list step 13a were all taken before the launch.
 
 **What Run 33 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
@@ -13086,8 +13098,23 @@ reading as the fresh instances had. `probe-pageflags.py` on the mounted copy
 reads both hot lines in one 2 MiB compound page at `0x400000`, `THP`
 in the flags, physical equal to virtual modulo 2 MiB and the L2 sets `0x141`
 and `0x292` the virtual ones --- mapped by 4 KiB entries still, `FilePmdMapped`
-0, so the TLB sees what it saw. The roster reading is Run 34's, the first pair
-launched from it.
+0, so the TLB sees what it saw. **Run 34 is the first pair launched from it,
+and the term survives the mount.**
+On `scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u1`, the cell carrying
+that run's one basis-half mover against Run 32, the evening's mounted instance
+`hugebin/run34-exit` reads a median 1.075 of a second mounted copy's cycles
+an iteration, all eight of its readings above all eight of the copy's
+(`probe-r34-instance2.sh`, 2026-09-17), with the instructions within five
+of each other in 4.8 million (`probe-r34-instance.sh`). Both copies' text sits
+in 2 MiB compound pages, `THP` in the flags, the evening's mapped by 2 MiB
+entries, `ShmemPmdMapped` 20480 kB --- which the 4 KiB reading above could
+not have seen, `FilePmdMapped` reading 0 on this same text --- with physical
+equal to virtual modulo 2 MiB and the fill and sum loops in the same L2 sets
+in both, `0x220` and `0x3ec`; what differs is the 2 MiB frame, `0xd54600000`
+against `0x8a8e00000`, and the heap's resident pages share the code frame's low
+physical bits at the random rate in both. So the mount fixes the low bits
+and the L2 set and not the term: a copy of one binary is still a draw, at 2 MiB
+granularity, and what reads the high bits is unread.
 
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above
