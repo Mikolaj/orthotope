@@ -123,7 +123,10 @@ if [ "$LIST" = 1 ]; then
   rm -f "$JOBS"
   exit 0
 fi
-mkdir -p "$D" || exit 2
+# REWRITTEN WHOLE: a file an earlier call left, a reading against a COMPARE
+# run the note has since dropped among them, is read by --for-brief as
+# this call's.
+rm -rf "$D" && mkdir "$D" || exit 2
 # A -cells.tsv is stdout alone, for a script to read: the reader's header
 # and warnings go to stderr, and the same population's other files carry
 # them.
@@ -156,7 +159,7 @@ while read -r rc out; do
 done < "$JOBS.rc"
 CRASHED=$(cd "$D" && grep -l 'Traceback (most recent call last)' -- * 2>/dev/null | sort | tr '\n' ' ')
 rm -f "$JOBS" "$JOBS.rc"
-echo "$N reading(s) into $D/, $LOST of them exiting 2 or worse; $BARE log(s) carry no --wild samples"
+echo "$N reading(s) into $D/: $LOST did not happen, exiting 2 or worse, and $BARE --wild reading(s) exited 2 on a log carrying no samples"
 [ -z "$CRASHED" ] || { echo "!! crashed: ${CRASHED% }"; LOST=$((LOST + 1)); }
 if [ "$COMPLETE" = 0 ]; then
   echo "-- the counts comparisons and --half-movers: not before EVENING COMPLETE,"

@@ -9864,8 +9864,9 @@ RECORDS = [
          # is not counted with the readings that did not happen: Run 34's
          # wallclock log and its riders' four driver logs carry none
          # either. --deflation's two, with no riders here, are counted.
-         ok=V(has=['2 of them exiting 2 or worse; 4 log(s) carry no --wild'
-                   ' samples', 'rc=0 main-lookrts-vs-compare.txt',
+         ok=V(has=['2 did not happen, exiting 2 or worse, and 4 --wild'
+                   ' reading(s) exited 2 on a log carrying no samples',
+                   'rc=0 main-lookrts-vs-compare.txt',
                    'rc=0 main-a1g-bridge.txt', 'rc=0 half-movers.txt',
                    'wild-zzpr4-a1g-main.txt', 'for-brief.txt'])),
 
@@ -9910,6 +9911,24 @@ RECORDS = [
              str(subs['at']), 'log-read-zzpr3',
              'main-lookrts-cells.tsv')).read().split('\n')[0],
          ok=V(hasnt=['criterion 1.6'])),
+
+    case('readings-rewrite-their-directory-whole', 'post-run-readings.sh',
+         None,
+         'a reading an earlier call left, against a COMPARE run the note no'
+         ' longer names, stayed in the directory and --for-brief quoted it'
+         ' as this call\'s',
+         # Found by review, 2026-09-17, the first real call writing into a
+         # directory a later one reuses.
+         shadow=dict(extra=readings_run('zzpr7', complete=False)),
+         plant=lambda tmp: (os.makedirs(os.path.join(
+             tmp, 'shadow', 'log-read-zzpr7'), exist_ok=True), write(
+                 os.path.join(tmp, 'shadow', 'log-read-zzpr7',
+                              'main-lookrts-vs-compare.txt'),
+                 'this run / run96-nospec-main.json, per arm\n'), None)[-1],
+         argv=['zzpr7'],
+         probe=lambda subs: ' '.join(sorted(os.listdir(os.path.join(
+             str(subs['at']), 'log-read-zzpr7')))),
+         ok=V(hasnt=['main-lookrts-vs-compare.txt'])),
 
     # ---- run-evening.sh, the run list's quiet machine steps as one command
     case('evening-chains-the-stages', 'run-evening.sh', None,

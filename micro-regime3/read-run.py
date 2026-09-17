@@ -3265,9 +3265,10 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     apart; one naming no scope is read on every file handed in, which
     `--lint` refuses in an OPEN registration.
 
-    HELD when the figure read is within P points of X, KILLED otherwise;
-    P defaults to the A/A floor of the POPULATION READ for cross and
-    pair -- this file's own, which is the main set's only when this file
+    HELD when the figure read is within P points of X, or for countdiff
+    when every difference is under N, KILLED otherwise; P defaults to the
+    A/A floor of the POPULATION READ for cross, pair and cell -- this
+    file's own, which is the main set's only when this file
     is the main set -- and to 0.1 for counts, which are exact to the
     fourth place on a repeat. A span is read once per JSON its scope
     admits. The
@@ -5536,10 +5537,10 @@ def series_table(a, b, shape, args, where='.'):
     where either arm has no corrected time, beside that half's
     main-set floor, so whether a reading clears it is read off the
     row. Written 2026-09-17 for `mut-odo-vecdims` over `bq-expand` on
-    `stretch-pow2stride`, whose readings Runs 30 to 34 requoted in the
-    properties, the head, README's opening and an open entry, the entry and
-    the properties listing every run. A reading and not a gate: exit 0, and
-    2 where no run on disk carries the cell.
+    `stretch-pow2stride`, whose readings Runs 30 to 34 requoted run by run
+    in the properties, the head, README's opening and an open entry. A
+    reading and not a gate: exit 0, and 2 where no run on disk carries the
+    cell.
     """
     def run_no(path):
         return int(re.match(r'run(\d+)', os.path.basename(path)).group(1))
@@ -6255,7 +6256,7 @@ def extremes_table(paths, main_hs, args):
 
 def class_says(cells, shapes, strategies, meta, args):
     """Item 6 of the class-block form with its figures in place and `___`
-    where the finding goes: the properties, `worst` and the allocation
+    where the finding goes: properties 1 and 2, `worst` and the allocation
     tiers, the best arm outside the family priced against the plain arm
     and the floor, whether the two columns may be differenced and the
     class geomean across the halves, the A/A bar of that comparison and

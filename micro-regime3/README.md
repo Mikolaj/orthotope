@@ -3537,30 +3537,34 @@ clauses naming a SHAPE or a COUNT rather than a population: (1)'s moved views
 within a point of stage six, (4)'s per-element ratios over three `runs` lengths,
 (5)'s last clause against a prior built from Run 32's cells with each view
 classed by this run's own basis cell, and (2)'s count clause, which no mode
-reads because `--counts --pair` corrects a reducing consumer's count away
-on most shapes, seventeen of nineteen on the main set --- every one a script
-over `--cells` or over the counts files directly. **A CHECK THAT DOES
-NOT EXIST**: `--predictions` reads every span of the registration on every
-population it is handed, so an item naming `window` alone comes back
-with a verdict on all ten populations it does not name --- KILLED on most,
+read, `--counts --pair` correcting a reducing consumer's count away on most
+shapes, seventeen of nineteen on the main set --- every one a script
+over `--cells` or over the counts files directly; BUILT 2026-09-17 for (1)
+and (2), as the `cell` and `countdiff` spans at 881c250. **A CHECK THAT DID
+NOT EXIST**: `--predictions` read every span of the registration on every
+population it was handed, so an item naming `window` alone came back
+with a verdict on all ten populations it did not name --- KILLED on most,
 and HELD on `small` for one of (1)'s spans by coincidence --- and a session
-filters by hand; and it reads a `pair` span on the half handed first, so an item
-that names no half is read on the basis by that default alone --- (1) holds
-there and would miss within the control, and only the write-up's own statement
-of the convention says which the item meant. **A RESOLUTION NOBODY HAD PRICED**:
+filtered by hand; and it read a `pair` span on the half handed first, so an item
+naming no half was read on the basis by that default alone --- (1) held there
+and would have missed within the control, and only the write-up's own statement
+of the convention said which the item meant. BUILT 2026-09-17, at 881c250,
+as each span's population and half. **A RESOLUTION NOBODY HAD PRICED**:
 the counted work's identical-code pair, `sum-only-early` against
 `sum-only-late`, differs by up to 14 instructions a call over `window`
 on the basis and by up to 2925 over `runs`, so a registration clause resting
 on the sign of a difference under a hundred instructions sits inside
 the instrument's resolution on some populations and outside it on others,
-and wants that pair's figure beside it. **A STEP SKIPPED AT THE RUN AND TAKEN
-AFTER IT**: post-run 4a's copy test on the four half-local movers against Run
-32, which wanted the box quiet again and so wanted asking, the session having
-nobody to ask until the owner's go the same day; its readings are in the open
-list's entry on the four. And `--half-movers` was first run before the counts
-had landed, so its counts columns read `--`; it reads them only when rerun after
-step 20. THE READINGS: no carrier ran, by the ruling of 2026-09-16,
-and the readings at run list step 13a were all taken before the launch.
+and wants that pair's figure beside it, which `--counts --pair --per-shape`
+prints since 60803b9. **A STEP SKIPPED AT THE RUN AND TAKEN AFTER IT**: post-run
+4a's copy test on the four half-local movers against Run 32, which wanted
+the box quiet again and so wanted asking, the session having nobody to ask until
+the owner's go the same day; its readings are in the open list's entry
+on the four. And `--half-movers` was first run before the counts had landed,
+so its counts columns read `--`; post-run-readings.sh takes it only once
+the evening is complete, since f16d964. THE READINGS: no carrier ran,
+by the ruling of 2026-09-16, and the readings at run list step 13a were all
+taken before the launch.
 
 **What Run 33 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
