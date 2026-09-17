@@ -9538,8 +9538,9 @@ not otherwise.
     #      Run 34's record missed cells at 1.23 with counts level and
     #      the latch's count differences, the run's largest. Read the rows
     #      in three kinds. COUNT-LED: the codegen's, and on
-    #      `lib-stage2-lean-u1` the known offender, GHC #27799's latch
-    #      on a rank-1 view, which the mode names under the table.
+    #      `lib-stage2-lean-u1` the known offender, the latch of GHC
+    #      https://gitlab.haskell.org/ghc/ghc/-/work_items/27799 on a
+    #      rank-1 view, which the mode names under the table.
     #      TIME-LED with counts level and the arm's twins agreeing: one
     #      half's binary, file instance or process -- the copy test of
     #      4a and the cell timed in a fresh process tell those apart.

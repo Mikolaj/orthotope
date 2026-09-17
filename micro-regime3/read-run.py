@@ -5858,7 +5858,8 @@ def half_movers(run, prev, args):
 # The count-led offenders a cell reading meets again and again, by arm:
 # what the mode says under the table when a cell of that arm is count-led,
 # so that the account is met where the figure is read and not only in the
-# open list. One entry so far, the latch of GHC #27799.
+# open list. One entry so far, the latch of GHC
+# https://gitlab.haskell.org/ghc/ghc/-/work_items/27799.
 KNOWN_COUNT_LED = {
     'lib-stage2-lean-u1':
         "GHC #27799's latch on a rank-1 view, one instruction an element that"
@@ -5889,8 +5890,9 @@ def cell_movers(run, top, args):
     here flags. Run 34's record was written from those readings and
     carried none of the run's largest cells -- the `mut-odo-vecdims`
     family at 1.23 on one `runs` view with counts level, one branch
-    mispredict a run on `compose-zero-mid`, and the latch of GHC #27799
-    on `lib-stage2-lean-u1`'s rank-1 views, the run's largest count
+    mispredict a run on `compose-zero-mid`, and the latch of GHC
+    https://gitlab.haskell.org/ghc/ghc/-/work_items/27799 on
+    `lib-stage2-lean-u1`'s rank-1 views, the run's largest count
     differences -- found only when the cells were ranked by hand on
     2026-09-17.
 
