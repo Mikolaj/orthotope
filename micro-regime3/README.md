@@ -442,6 +442,7 @@ the chronology of how the instructions got here.
   - [Making a major benchmark run](#making-a-major-benchmark-run)
   - [Other toolchains, probed and not run](#other-toolchains-probed-and-not-run)
   - [The reader: read-run.py](#the-reader-read-runpy)
+  - [Reading a run file](#reading-a-run-file)
   - [What moves a figure when no strategy
     changed](#what-moves-a-figure-when-no-strategy-changed)
   - [R2 is the ramp detector, not the noise
@@ -11273,6 +11274,278 @@ shape, so a published ratio is the paired one whenever neither arm had a cell
 capped. `--aa` prints both and `--selftest` asserts the identity where it holds.
 
 
+### Reading a run file
+
+What a run's own file stands on and does not restate: how its tables are read,
+the rulings its comparisons rest on, and the form its class section keeps.
+It is here once because none of it changes with a run, and the run file links
+it where it applies.
+
+**The Results table.** How to read its columns, the `needs` column's own gloss
+being under the run file's properties with the tier it splits:
+
+- **time** is the geomean over **every** shape of the per-shape OLS *slope*,
+  less that shape's forcing term, over `list`'s slope less the same term,
+  with the per-shape log-ratios *winsorized* first --- capped at the row's own
+  median plus or minus three MADs, the MAD scaled by 1.4826 so the cap
+  is in standard deviations. Nothing is dropped by the estimator, so winsorizing
+  costs no row its population and a cell far enough out to distort the mean has
+  its influence bounded instead of its evidence deleted. What can cost a row
+  shapes is the correction and not the estimator: a cell the shared forcing pass
+  is not smaller than is dropped from its row and named. The `CI%`, `smp`
+  and `alloc` columns stay raw: subtracting a shared term moves a point
+  estimate, it does not make a cell better measured. `worst` is a ratio of nets,
+  as `time` is, just per shape and unwinsorized.
+
+  **This replaced a trim** --- drop each strategy's single highest-CI shape ---
+  and the ruling is worth keeping because the trim looks obviously right
+  and is not. It selected on CI, and criterion spends a *time* budget, so a slow
+  cell buys fewer samples and a wider CI: measured on Run 6, the cell it removed
+  was above its own row's geomean in **30 of 41** rows, p about 0.003.
+  It therefore deleted each strategy's worst evidence, differentially,
+  and a catastrophic shape is exactly the shape it would remove:
+  `bq-expand-lemire-out` loses on one shape of 33, and that shape was the one
+  trimmed from its column. Because the cell removed differed by row, two
+  published columns were also geomeans over different shape sets, which is why
+  a published A/A ratio used to disagree with its paired one. Swapping
+  estimators costs a median 2% and moves one row (`mut-offsets`) by 14%,
+  that row having been flattered all along; it buys back exact comparability,
+  and `--selftest` now asserts published == paired for every uncapped pair.
+
+  **Don't reach for inverse-variance weighting**, which is the standard-looking
+  repair and is worse than what it repairs. It assumes every shape estimates one
+  ratio and differs only in precision, where here the between-shape variance
+  runs a median 5,000x the within-shape kind --- the heterogeneity
+  is the README's finding, not its error --- so weighting by precision collapses
+  the effective shape count from 33 to about nine and hands a quarter
+  of the weight to the smallest shape in the set. Worse for the purpose:
+  a catastrophically slow cell buys fewer samples, so it has a wider CI, so IVW
+  discounts precisely the cells the trim used to delete --- the same failure
+  made continuous, not a repair of it.
+
+  **The *slope* rather than criterion's mean, because criterion never times one
+  call**: it times batches --- one call, then four, then twenty --- and every
+  batch also pays for starting the timer and for the first pass through cold
+  code and cold data. A mean divides each batch's time by its calls,
+  so that fixed cost is smeared across them and weighs most in the small
+  batches. The slope is the line through those points: how much more time one
+  *additional* call adds, leaving the fixed part behind as the line's height
+  at zero. On the microsecond shapes, hundreds of samples and no warm-up worth
+  speaking of, the two agree. They part on the slow shapes, where the early
+  batches run cold: there the mean reads high, and by different amounts
+  for different strategies --- which is exactly the part that dividing by `list`
+  cannot cancel. It also keeps `CI%` and R^2 describing the number the table
+  shows, both being properties of that same fitted line.
+- **worst** is the row's largest per-shape ratio to `list` --- the shape
+  on which that strategy does least well against the baseline. It is what
+  property 1 is about, and it is raw rather than winsorized.
+- **CI%** is the median across shapes of the slope's confidence half-width
+  as a percentage of the slope --- "how many digits are real". 0.5% is three; 5%
+  is one.
+- **smp** is the median sample count. Criterion spends a time budget, so a slow
+  call buys fewer samples; this is where that shows.
+- **alloc** is bytes per call as a multiple of the result vector (`8*l`),
+  the median over shapes of the `allocated` fit the harness now runs on every
+  bench of every shape. The multiples were held to be shape-independent ---
+  refitted on a different shape, every one reproduced to within 0.4% ---
+  so that the median was a formality rather than a smoothing and the column did
+  not move with what it was fitted on. **That is wrong**, and Run 6 (-O1)
+  reproduced the refutation at full budget where a rough pass had found it.
+  Re-derived on Run 9's cells and roster it is unanimous: **every one of the 32
+  benched rows** varies by more than 5% from shape to shape, the median row
+  by 2.00x and the worst by 5.10x (`bq-expand-b`, 1.00x to 5.10x), and the four
+  shapes of identical `l` = 1800000 give `bq-expand` 2.000x, 2.111x, 1.000x
+  and 2.639x. The spread narrowed as the roster was cut --- Run 6's worst
+  was an arm nothing times any more --- and the property it measures did not.
+  Every allocated fit sat at R^2 1.000 on Run 6, so the spread is the quantity
+  and not the measurement, and allocation being deterministic per call
+  the budget does not bear on it either way. What does survive is the column:
+  a median over a *pinned* shape set reproduces, every allocation tier returning
+  on its own level across a roster change. So read `alloc` as a statistic
+  of a strategy **and** a shape set, and pin the shape set before comparing
+  it across runs, exactly as the `time` column already asks. It is the one
+  column the correction does not touch.
+
+**What the next run compares against.** Four rulings stand under that section's
+comparisons, and two notes on its tables follow them.
+
+**The position term was the candidate Run 15 promoted, and the probes have since
+spent it.** What Run 14 first saw and Run 15 confirmed is resolved
+as small-pinned churn --- selector found, ladder re-sized, no poison set ---
+in [the position-term entry][open]
+and `small-pinned-churn-investigation/nursery-position-findings2.txt`,
+so the roster-order pair this paragraph used to ask for is not owed:
+the corrected scans priced the term per shape in filtered processes, without
+a pair and without a layout term to argue about.
+
+**The allocation area has now been priced twice and does not want a third pair**
+--- a ruling superseded in scope, 2026-08-19, and kept because what it refused
+stays refused. Run 14 took the area at `-A1G` and could not subtract its halves'
+absolutes; Run 15 took it at `-A32m` and found the cost at about 6%
+of the roster's time --- so re-PRICING default-against-enlarged is spent,
+and Run 16's pair does not do that: it changes the published basis to `-A32m`
+and reads `-A64m` against it, the one comparison neither earlier pair made
+and the one the churn findings' recommendation turns on, in the saturated
+in-process state both halves share. On 2026-08-21 the area was fixed at `-A32m`
+outright, here and in every horde-ad suite, so the one-binary runner
+this section used to ask for is not owed, and no further `-A` question
+is the README's.
+
+**Where a run changes basis, the new basis is checked against the half
+at its OWN allocation area and against no other**, which is the rule the Run 15
+to Run 16 change settled and the one place *against the previous run* can still
+be ambiguous. **The six figures that follow are Run 16's, are no longer
+checkable, and are stamped so that no later run reads them as its own**,
+`run15-*` and `run16-*` having been deleted; they are kept as the evidence
+the ruling was taken on. Against `run15-a32m` Run 16's three anchors read
+**-0.66%, -1.01% and -0.06%**, every one well inside the 2.32% floor
+it measured; against `run15-lookrts` the same three would have read **+8.81%,
+-9.57% and +7.74%**, which is the allocation area and not the shapes, and would
+have put all three outside that floor for a reason that is not theirs. Distance
+from a half at another area is that area plus whatever else moved; only distance
+from the half at a run's OWN area is drift.
+
+**A pair's two halves are never folded into one.** Merging them puts back,
+in the record built to outlive every artifact, exactly the term the pairing
+exists to separate --- and what a given pair's two columns price is that run's
+own file's to say, not this section's. `--check-doc` catches one half of it:
+a run named aligned must also be named unaligned. Pruning an aligned column,
+merging two, and naming a second half accurately are the reading's to catch ---
+the check cannot demand an unaligned half of every pair without failing the last
+two runs, which have none, nor an aligned column of every run without failing
+Runs 6 through 9, which had none either.
+
+**Two tables in a run's file are NOT installed and are edited by hand:
+the two-column one under *What the next run compares against*
+and the cross-class summary opening the class section.** Every other table a run
+publishes comes from `install-tables.sh` and is replaced whole. The two-column
+one is replaced whole too, being that run's own halves and no earlier run's,
+and the summary is transcribed row by row from the class tables. A hand-edited
+table is edited with the whole line named, never with a prefix anchor. Name
+the whole row, assert it occurs exactly once, and read `--check-doc`'s width
+verdict afterwards: a prefix anchor once matched an earlier table and put two
+cells into another table's header.
+
+And because a geomean cannot say *where* it moved, the **fingerprint**
+in that section is kept so a future disagreement can be localised rather
+than only noticed; its membership rule, the column heads and the rulings
+on dropping a column are [in the per-shape section][pershape]. Its two tables
+are installed from the run's own JSONs in the per-shape form that section
+describes.
+
+**The properties.** `--pair` works within a class JSON exactly as within
+the main one, and is still the way to compare two arms; its bootstrap interval,
+over three shapes, is worth less there than its win count.
+
+Two notes on the columns. The `needs` column splits the class-method tier
+in two. A **new pure `Vector` method** delegates to a pure function the vector
+package already ships for every carrier --- `unfoldrExactN`, `backpermute`,
+the `concatMap`/`enumFromStepN` pipeline --- so it fights only *minimal*
+in orthotope's pure-and-minimal API rule; the **new mutating `Vector` method**
+the direct fills need is the [mutable ceiling](#the-mutable-ceiling-taken)'s
+ask, which *pure* barred outright until the amendment there turned the bar
+into a weight, and which the decision of 2026-08-22 takes. `offtab`
+is the `Vector`-class-expressible shape of these gathers --- output by plain
+`vGenerate` over a concrete offset table --- so its own cell names only
+its mutable `Int` scratch. And the geomean weights every benchmarked shape
+**equally**, so a figure here is a ranking statistic, not a claim about total
+work saved: the small shapes count as much as the largest.
+
+**The stride classes, run by run.** The section opens with one table over all
+the classes, so that an inversion is visible without reading every class's
+table. Every figure in it is transcribed from a class's own table --- none
+is computed there, and none is an average across classes, there being no such
+population to average over. Its header, fixed here so a run fills rows and never
+reshapes columns:
+
+    | class | shapes | mut-odo-vecdims | worst | best outside family | ceiling | floor |
+
+**The aggregate figures in the paragraph above the blocks are the reader's,
+emitted rather than assembled.**
+`./read-run.py --cross-classes --classes BASIS... --others CONTROL...` prints
+every one of them --- the comparison count, the faster/slower split, the range
+of the geomeans with the class at each end, the arm holding each extreme and how
+many populations share it, the degenerate arms it kept out, and the classes
+whose `list` is past the 0.7% bar --- from the same per-class rows the blocks'
+cross-half lines print, so the intro and the blocks cannot part. The comparison
+count, the faster/slower split, the range of the geomeans and the extreme arms
+are each an aggregate over the blocks' `--block --compare` lines, one per class,
+so they are read off those lines and never off a population assembled
+for the purpose: Run 20 assembled its own twice and was wrong both times ---
+once on the split, once on a low end that excluded a class the sentence said
+it covered. Where a figure genuinely cannot come off those lines, because
+a class's own maximum is a degenerate cell, the paragraph says so rather
+than quoting it as though it could.
+
+Then one block per class, in `classViews`' order --- which `Main.hs` fixes
+and the run file follows, so a class landing or retiring moves the blocks
+and not a list there --- each carrying the same six things and nothing else:
+
+1. a bolded lead naming the class, the mechanism it models in a clause,
+   and its shapes with their `l` and `sInner`, which is what makes the table
+   under it readable without `Main.hs` open;
+2. the table `--block --in-place` installs from `$R-<basis>-$c.json`, whole
+   and never edited --- six columns, with the emphasis carried over
+   from the main table so the `mut-odo-vecdims` row is found at a glance,
+   and `needs` left to that table as a property of a strategy rather than
+   of a population;
+3. its own controls, off `--aa`: the A/A deviations with their spans, the two
+   `sum-only` halves, and the in-situ term from the `-nosum` arms ---
+   this process's own floor and its own three gates, neither inherited nor lent
+   --- and where the paragraph quotes the OTHER half's figure, it says so
+   in the form `the other half's own eight pairs span N%` and never
+   with the word *floor* beside the number, which `--check-doc` holds
+   to this table's column (Run 23 was refused four times before it learned
+   the shape);
+4. its provenance and its anchor: elapsed time and the two heap peaks
+   from that process's stderr line, its population's size from the reader's
+   first line ([why not both from one place](#making-a-major-benchmark-run)),
+   and `list`'s absolute per-call time on one of its shapes, raw and net.
+   The main set's three anchors guard a baseline that moves for every population
+   at once; this one guards a baseline that could move for this mechanism alone,
+   which is the case a table of ratios hides completely. A three-shape class
+   adds one line here --- the bolded rows' per-shape net ratios, in the lead's
+   shape order --- because its table under-determines its cells, where
+   a two-shape table carried them already, `time` and `worst` jointly fixing
+   both; every class is three shapes or more now, so the line always prints;
+5. the cross-half reading, one line, which `--block --compare` against the other
+   half's JSON now emits and `install-tables.sh` writes in with the other three
+   --- how many of the population's arms move, which way, and the spread;
+   a margin on this line is judged against the WIDER of the two halves' floors
+   ([the floor section][floor]). Both halves have run every class since
+   2026-08-14 and this is where that is read: a pair's variable can act
+   on a class and not on the main set, which is how Run 14 answered its `scaled`
+   question. A run whose halves differ in nothing a class can see says so
+   in a clause;
+6. one paragraph of what the class says, and none where it says nothing:
+   an ordering that inverted, a `worst` above 1, an allocation tier that moved,
+   a mechanism showing through a single cell. A class that reproduces the main
+   ordering gets one sentence saying so, that being a result and reading as one.
+
+`./read-run.py RUN.json --block --compare OTHER.json` assembles items 3 through
+5's mechanical parts and, given both sweeps with `--counts`, item 6's figures,
+and `install-tables.sh` writes them in in one call --- table, controls,
+the provenance and anchor skeleton, a three-shape population's per-shape line,
+the cross-half line, and item 6 with `___` where the finding goes,
+over the carried paragraph or an unfilled one and never over a written one;
+the lead and the finding stay the author's. Item 2's own table is NOT among what
+that call prints, which is why the list above starts where it does: it comes
+from the separate `--block --in-place` call item 2 itself names.
+**The cross-half line carries its own disqualification**: where `list` moves
+more than 0.7% between the halves the line says so and says it is not read
+for the pair's variable --- a reading Run 18 needed, and which no other output
+showed.
+
+The blocks carry no headings of their own. One per class would crowd
+the contents and the replace list alike, where a bolded lead reads the same
+and lets one link cover the section --- which is what `--check-doc`'s coverage
+check counts.
+
+A floor's movement between runs is not a sentence under the table: what moves
+the floors is [an open question][open], and `--check-doc` holds any such
+movement a run writes to the class table's own column.
+
+
 ### What moves a figure when no strategy changed
 
 **And one thing that moves a COUNTED figure when no strategy changed, found
@@ -14551,11 +14824,12 @@ is the failure this list was rewritten to escape.
   cites the position figures a run measures and whose decomposition entry cites
   the question a run leaves open --- the one part of the harness chapter a run
   touches at all;
-- the `alloc` column's shape-dependence, refuted and confirmed refuted at full
-  budget: every multiple quoted anywhere is a property of a strategy
-  *and* a shape set, so pin the shape set before comparing across runs,
-  as `time` already asks --- and now a property of the regime too, three
-  of the column's levels having moved with the flag alone;
+- [Reading a run file](#reading-a-run-file), whose figures are the evidence
+  its rulings were taken on and which a run does NOT replace --- among them
+  the `alloc` column's shape-dependence, refuted and confirmed refuted at full
+  budget, so that every multiple quoted anywhere is a property of a strategy
+  *and* a shape set, and of the regime too, three of the column's levels having
+  moved with the flag alone;
 - [What is open](#what-is-open), whose whole content is questions a run answers
   and figures a run moves;
 - this section, whose delta chain gains a bullet for the run just read;
