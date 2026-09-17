@@ -1149,6 +1149,80 @@ def phantom4_listing(tmp):
     return {'dis': path}
 
 
+# A sixth site, `run35-exit` from 0x41f8f0 to 0x41f962, read 2026-09-18:
+# an info table's last zero byte and the `movq $0x41f978,-0x8(%rbp)` after
+# it, the continuation push, read one byte out of step, the immediate's
+# low bytes `78 f9` decoding as `js -7` back to that zero byte. Seven
+# bytes at offset 63, so it straddles and its exit span is astride, and
+# the four tells pass it: the flow is straight, no `(bad)`, no zero run,
+# no nop. The tell is the `45` the sweep landed on, the movq's ModRM
+# byte, which objdump prints as the prefix `rex.RB` since the `clc` it
+# read next takes none of it: a stray REX names a sweep that entered an
+# instruction mid-way. Over the twenty-four run binaries on disk the tell
+# marks three bodies and no real loop, and moves no `--library` figure;
+# the totals it moves are run35-exit's, nine straddling and one astride
+# to eight and none, run35-gheadexit's nine straddling to eight, and
+# run30-libcase's 63 astride to 62. It refuses the second site too,
+# whose body carries a `rex.RB clc` of its own, which is why the mutant
+# for that site drops three tells.
+PHANTOM5_LISTING = """\
+
+run35-exit:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+000000000041f8f0 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x13d00>:
+\t...
+  41f8f8:\t0e                   \t(bad)
+  41f8f9:\t00 00                \tadd    %al,(%rax)
+  41f8fb:\t00 00                \tadd    %al,(%rax)
+  41f8fd:\t00 00                \tadd    %al,(%rax)
+  41f8ff:\t00 48 8d             \tadd    %cl,-0x73(%rax)
+  41f902:\t45 e0 4c             \trex.RB loopne 41f951 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x13d61>
+  41f905:\t39 f8                \tcmp    %edi,%eax
+  41f907:\t0f 82 ec 00 00 00    \tjb     41f9f9 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x13e09>
+  41f90d:\t48 c7 45 f0 40 f9 41 \tmovq   $0x41f940,-0x10(%rbp)
+  41f914:\t00 
+  41f915:\t4c 89 f3             \tmov    %r14,%rbx
+  41f918:\t48 89 75 f8          \tmov    %rsi,-0x8(%rbp)
+  41f91c:\t48 83 c5 f0          \tadd    $0xfffffffffffffff0,%rbp
+  41f920:\tf6 c3 07             \ttest   $0x7,%bl
+  41f923:\t75 1b                \tjne    41f940 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x13d50>
+  41f925:\t48 8b 03             \tmov    (%rbx),%rax
+  41f928:\tff e0                \tjmp    *%rax
+  41f92a:\t66 0f 1f 44 00 00    \tnopw   0x0(%rax,%rax,1)
+  41f930:\t01 00                \tadd    %eax,(%rax)
+  41f932:\t00 00                \tadd    %al,(%rax)
+  41f934:\t00 00                \tadd    %al,(%rax)
+  41f936:\t00 00                \tadd    %al,(%rax)
+  41f938:\t1e                   \t(bad)
+  41f939:\t00 00                \tadd    %al,(%rax)
+  41f93b:\t00 00                \tadd    %al,(%rax)
+  41f93d:\t00 00                \tadd    %al,(%rax)
+  41f93f:\t00 48 c7             \tadd    %cl,-0x39(%rax)
+  41f942:\t45 f8                \trex.RB clc
+  41f944:\t78 f9                \tjs     41f93f <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x13d4f>
+  41f946:\t41 00 48 8b          \tadd    %cl,-0x75(%r8)
+  41f94a:\t43 0f 48 8b 5b 07 48 \trex.XB cmovs -0x76b7f8a5(%r11),%ecx
+  41f951:\t89 
+  41f952:\t45 00 48 83          \tadd    %r9b,-0x7d(%r8)
+  41f956:\tc5 f8 f6             \t(bad)
+  41f959:\tc3                   \tret
+  41f95a:\t07                   \t(bad)
+  41f95b:\t75 1b                \tjne    41f978 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x13d88>
+  41f95d:\t48 8b 03             \tmov    (%rbx),%rax
+  41f960:\tff e0                \tjmp    *%rax
+"""
+
+
+def phantom5_listing(tmp):
+    """The sixth saved site, planted for `--survey`: {'dis': path}."""
+    path = os.path.join(tmp, 'run35-exit-0x41f8f0.dis')
+    write(path, PHANTOM5_LISTING)
+    return {'dis': path}
+
+
 # The run-fill loop this README prices, 28 bytes and eight instructions, as
 # `run25-g912` carries it at 0x434558; a second body differs in one
 # register so the two group apart. Listings built from them are what the
@@ -5283,6 +5357,11 @@ TIER1 = {
                       trigger='a nopl pad after an unconditional jump, followed by an info-table word decoding as a short backward jcc to the pad',
                       ok='a body whose head is a nop is a pad and not a loop',
                       bug='the pad passed the flow test, the (bad) tell and the zero-run tell, and its six bytes cannot straddle, so only the exit-span count ever saw it'),
+    'survey-counts-a-return-address-word-as-a-loop': dict(family='scan-for-parse', discovery='in-use', harm='fired', harm_count=1, proved='ran',
+                      notes="read on run35-exit against the shim's verified line, 2026-09-18: nine straddling and one exit span astride against eight and none; run35-gheadexit carries a straddler of the shape and run30-libcase an exit span astride",
+                      trigger="an info table's last zero byte read as the start of the continuation push after it, whose immediate's low bytes decode as a short backward jcc to that byte",
+                      ok='a body carrying a stray REX prefix, rex.* in the mnemonic column, is the sweep out of step over code and not a loop',
+                      bug='the body passed the flow test, the (bad) tell, the zero-run tell and the nop tell, and its seven bytes at offset 63 both straddle and put its exit span astride'),
     'delta-sees-a-group-that-grows-past-the-threshold': dict(family='quiet-failure', discovery='review', harm='fired', harm_count=1, proved='ran',
                       notes='watched on run24-g912 against run25-g912 at --len 0, 2026-09-04, at both thresholds',
                       trigger='a group under --min-copies in OLD and over it in NEW',
@@ -8605,6 +8684,17 @@ RECORDS = [
          argv=['--survey', '{dis}'],
          ok=V(exit=0, has=['0 self-loops of at most 64 B'],
               hasnt=['0x4968a4']),
+         bug=V(exit=0, has=['1 self-loops of at most 64 B'])),
+
+    case('survey-counts-a-return-address-word-as-a-loop', 'loop-offsets.py',
+         'e4f0624',
+         "an info table's last byte and the continuation push after it,"
+         ' read as a seven-byte self-loop at offset 63, counted straddling'
+         ' and astride where the shim counted neither',
+         plant=phantom5_listing,
+         argv=['--survey', '{dis}'],
+         ok=V(exit=0, has=['0 self-loops of at most 64 B'],
+              hasnt=['0x41f93f']),
          bug=V(exit=0, has=['1 self-loops of at most 64 B'])),
 
     # ---- read-all.sh ---------------------------------------------------
