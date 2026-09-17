@@ -7803,34 +7803,9 @@ to reconstruct by reading:
     ./read-run.py --checklist pre|run|post   # a PREPARATION owes `pre` ALONE
     ./run-status.sh $R                       # what is done, off the artifacts
 
-**What follows those two lines is the three lists themselves**, and the reasons
-behind them are at the END of this chapter, under *The reasons behind the three
-lists* --- so a session reading top to bottom meets the pre-run list and
-not a hundred lines of framing. Take a paragraph of it when a step surprises
-you; every `why:` line names one by its bolded lead. *Why the chapter is ordered
-this way:* the pointer to `--checklist` used to sit inside the framing,
-so a session arriving cold had to read the chapter to learn how not to read
-it --- Run 24's preparation read hundreds of lines with `sed` before meeting
-it (2026-09-03). Putting the two commands first was not enough on its own: Run
-26 met this block and still read some 250 lines of framing before starting,
-and Run 27 read some 285 before running either command (2026-09-07). **Three
-failures of the same shape said the fix was reading ORDER and not emphasis**,
-so the framing moved below the lists on 2026-09-07. What that move was thought
-to cost, and did not, was the `why:` pointers: they resolve by bolded lead
-through `--para` and not by position, so every one of them still lands.
-
-**The pre-run half as a list, because its actions are spread over eight hundred
-lines and every one of them earns its place separately.** **The three lists
-below carry every operative fact in this chapter, and the prose carries
-the reasons and does not restate them.** That is a contract and was audited
-into being: a pass over the prose in 2026-08-14 found seventy-nine facts
-that changed what an executor DOES and were in no list, which is why sessions
-kept reading all thousand lines. So execute from the lists; read the prose where
-a step surprises you, and where you want to know why it is there. A fact
-that changes what you do belongs in a list --- if you find one that is not,
-that is the defect, not your reading. And a rule's evidence goes at the end
-of its paragraph, as a date and an outcome --- never inside an instruction,
-and never as a chronology.
+**Stop reading here and run them.** What follows is the three lists and,
+at the chapter's end under *The reasons behind the three lists*, why each step
+is what it is; a step that surprises you names its paragraph on a `why:` line.
 
     # READ THIS LIST AND THE LAST RUN'S FILE, AND START. The prose around
     # these three lists is reasons and restates no fact you need; a step
@@ -8587,14 +8562,12 @@ Unsandboxed throughout:
     #      THIS LIST OWES, HERE AND NOT INSIDE THE EVENING BELOW. Read
     #      now: the PREVIOUS run's registered predictions and their
     #      verdicts, in its own file, where they have lived since
-    #      2026-08-29 -- `--para 'What Run'` reads the pointer and not
-    #      the registration, and an empty-looking answer is not a
-    #      blocker; the open list by its status markers (READ NOW: item
-    #      7); the last run's own file, its head and Results prose (READ
-    #      NOW: item 2), which shapes the whole write-up; and the post-run
-    #      list's first half, `--checklist post-a`. NOT the replace list:
-    #      it is walked at post-run step 6 and gains nothing from being
-    #      read six hours early.
+    #      2026-08-29 -- `--para 'What Run'` reads the pointer and not the
+    #      registration, and an empty-looking answer is not a blocker;
+    #      the open list by its status markers (READ NOW: item 7); and
+    #      the post-run list's first half, `--checklist post-a`. NOT the
+    #      replace list: it is walked at post-run step 6 and gains nothing
+    #      from being read six hours early.
     #      ITEMS 2, 4, 5 AND 6 ARE NOT READ HERE: they are the sections
     #      post-run 4, 5 and 6a rewrite, and are read there with the text
     #      open. No agent is spawned for them, by the ruling of
@@ -8667,13 +8640,6 @@ Unsandboxed throughout:
     #      gate that FAILED mechanically stopped the driver instead, and
     #      that is the apparatus: read run-gate.sh's block in the note
     #      why: --para 'A paired run has one gate more'
-    #  15. TAKEN AT 13a, BEFORE THE LAUNCH, and not here: the number is
-    #      kept so that every pointer to it still lands. What stood here
-    #      was the previous run's registrations and the open list, read
-    #      `once sequence: start is on the stage monitor` -- the second
-    #      of two placements inside the evening, both of which a run
-    #      then measured as an intrusion. Nothing is owed at this point
-    #      of the evening but watching it
     #  16. THE ALARM, its second stage: two reads of /proc/stat two seconds
     #      apart, refused above 5% non-idle, MAXBUSY overriding -- the
     #      reading the riders take. An alarm and never a permission: the
@@ -8703,10 +8669,6 @@ Unsandboxed throughout:
     #      the ones that need no asking (19a); a filtered probe takes ONE
     #      -m MODE then its patterns, and its benchmarking lines are
     #      counted before any number is read
-    #  18. TAKEN AT 13a TOO, with the rest of the readings: the last
-    #      run's own file, its head and Results prose (READ NOW: item 2),
-    #      which shapes the whole write-up. The number is kept for the
-    #      pointers into it
     #  19. THE RIDERS, its fourth stage: run-alonelegs.sh on each half,
     #      control first, clean (SATURATE stripped from the launch
     #      environment) and then `SAT=1` where the note's RIDERS: line
@@ -9501,11 +9463,9 @@ not otherwise.
     #      FIRST MEANS BEFORE 11 AND NOT BEFORE 1: where step 2 may name
     #      an intrusion and 3 a rerun, take 1 and 2 before this, its
     #      compiles being the one thing on this list that loads the box
-    #      a rerun would want quiet. AND THE COMPILE MAY WAIT ON THE
-    #      COUNTS for the same reason: the naming that needs no build is
-    #      two minutes and takes its place here, while the twin's build
-    #      goes after step 20's sweep. Nothing later than 11 is at risk
-    #      from the wait; a rerun is.
+    #      a rerun would want quiet. AND THE TWIN'S BUILD RUNS BESIDE
+    #      step 20's counts, an instruction count being insensitive to
+    #      load, where no rerun is owed.
     #      The naming is what the step is FOR and reads like housekeeping:
     #      it turns `[0, 24, 0, 4]` into four arms, which is the only form
     #      in which an offset this README quotes can be tied to one.
@@ -9715,8 +9675,10 @@ not otherwise.
     #      figure is lost. Do not write a second reader
     #      why: --para 'The properties are part of this'
     #  4a. THE HALF-LOCAL MOVERS, each half against the PREVIOUS run's
-    #      same half over every population, BEFORE any cross-half figure
-    #      is attributed to the pair's variable:
+    #      same half over every population, BEFORE any cross-half
+    #      figure is attributed to the pair's variable, AND AFTER
+    #      $R-evening.txt reads EVENING COMPLETE, its counts columns
+    #      reading `--` until the counts have landed:
     ./read-run.py --half-movers $R $PREV     # a 3% bar; --movers PCT sets it
     #      why: --para 'The physical frame of a code page is a placement term too'
     #      An arm it flags with its counts level is that half's binary or
@@ -10046,9 +10008,10 @@ not otherwise.
     #      CONSTRUCTION -- step 9's record and step 10's open list being
     #      the bulk of it. Moved here 2026-09-15, after Run 32 did it by
     #      accident and had both read by the pass.
-    #      the step; START the second pass on it AND 6e in the same
-    #      turn; THEN FREEZE WRITES to both documents until 7, a finding
-    #      quoting a phrase you may otherwise have changed. THAT COMMIT'S
+    #      the step; SEND the second pass to the same agent once its
+    #      first has returned, run 6e meanwhile, and FREEZE WRITES to
+    #      both documents until 7, a finding quoting a phrase you may
+    #      otherwise have changed. THAT COMMIT'S
     #      DIFF IS WHAT THE AGENT WORKS ON, one commit and not two: the
     #      pass reads BOTH files, the one pass that can and the first
     #      moment all of a run's prose exists, and two commits would let
@@ -10079,11 +10042,14 @@ not otherwise.
     #      A new column needs a route sharing no code with the reader --
     #      difference wall, or user AND system, at two iteration counts.
     #      Two instruments disagreeing is the finding: locate it, and
-    #      until then neither is evidence. If any edit was scripted,
-    #      assert its extent and read a `wrap80 --unwrap` diff of both
-    #      sides: nothing else sees a lost paragraph. Then --lint,
-    #      --check-doc --worklists, adjudicate them, read end to end, and
-    #      walk the diff against the writing rules.
+    #      until then neither is evidence. Assert every scripted edit's
+    #      extent, and read a `wrap80 --unwrap` diff of both documents'
+    #      paragraph lists against step 5's copy: nothing else sees
+    #      a lost paragraph. Then --lint; --check-doc --worklists,
+    #      adjudicating the items it marks ADDED BY THIS DIFF and no
+    #      others; a superlative walk of the sentences this write-up
+    #      wrote; and a walk of the diff against the writing rules. The
+    #      end-to-end read is 7a's probe's and not this step's.
     #      WHAT IS VERIFIED IS EVERY FILE THIS RUN WROTE, which is more
     #      than the run's own: `runs/$R.md` and `README.md` always, both
     #      halves of 6 being edits, and -- where 6c reached them --
@@ -10865,6 +10831,15 @@ order did. Take a paragraph from here when a step surprises you: every `why:`
 line in the lists names one by its bolded lead, which `--para` resolves wherever
 the paragraph sits.
 
+**The three lists carry every operative fact in this chapter, and the prose
+carries the reasons and does not restate them.** That is a contract
+and was audited into being: a pass over the prose in 2026-08-14 found
+seventy-nine facts that changed what an executor DOES and were in no list.
+A fact that changes what you do belongs in a list --- if you find one
+that is not, that is the defect, not your reading. And a rule's evidence goes
+at the end of its paragraph, as a date and an outcome --- never inside
+an instruction, and never as a chronology.
+
 **A RUN IS ALWAYS TWO SESSIONS, and which one you are decides everything
 in the three lists above.** One PREPARES the run, through step 12 of the pre-run
 list, and hands over `$R-pair.txt`; another EXECUTES it from step 13 and writes
@@ -11045,7 +11020,7 @@ the roster, the note and what this run is for, and nothing else does.
 **The EXECUTION owes 1 --- the run and post-run lists --- with 2, 4, 5, 6
 and 8's replace list**, every one of which answers a question the write-up asks:
 the replace list is walked at post-run step 6 and gains nothing from being read
-hours early, which run list step 15 already says of it, and the class blocks'
+hours early, which run list step 13a already says of it, and the class blocks'
 form is not used until a block is written. **ONE OF THOSE CROSSES BACK,
 and it is 5.** A roster change that parks or drops an arm can leave a live
 property naming an untimed one, which `--lint` refuses at step 7 ---
