@@ -1206,6 +1206,46 @@ def winsor_table(cells, shapes, strategies):
     print('for reading the table and `--pair` for a margin; for a row across'
           ' two runs')
     print('quote `--compare`, which flags that division itself.')
+    # AND THE CENSUS OVER EVERY PAIR OF THOSE ROWS, since 2026-09-17: two
+    # rows' published figures divide to a ratio the paired geomean can
+    # part from in SIGN, and a sentence saying which pairs do is a claim
+    # about every pair. Run 34 took that census by hand to write `DO NOT
+    # DIVIDE`. A pair with a sunk cell is left out and counted, and `list`
+    # is left out, its column being the one the table above reads. The
+    # widest is relative, column over paired, which a ratio of thirty does
+    # not swamp.
+    rows = [st for st in sorted(strategies) if st != 'list'
+            and not no_net(st) and live_shapes(cells, shapes, st)]
+    parted, widest, n_pairs, sunk_pairs = [], None, 0, 0
+    for i, a in enumerate(rows):
+        for b in rows[i + 1:]:
+            key, sunk = pair_sunk(cells, shapes, a, b)
+            if sunk:
+                sunk_pairs += 1
+                continue
+            col = time_of(cells, shapes, a) / time_of(cells, shapes, b)
+            paired = geomean([cells[x][a][key] / cells[x][b][key]
+                              for x in shapes])
+            if col != col:
+                continue
+            n_pairs += 1
+            if (col - 1) * (paired - 1) < 0:
+                parted.append((a, b, col, paired))
+            if widest is None or (abs(math.log(col / paired))
+                                  > abs(math.log(widest[2] / widest[3]))):
+                widest = (a, b, col, paired)
+    print('\n%d pair(s) of timed rows other than `list`%s: %d part in sign'
+          ' between the'
+          ' published column\'s ratio and the paired geomean%s'
+          % (n_pairs, ', %d more with a sunk cell left out' % sunk_pairs
+             if sunk_pairs else '', len(parted),
+             ' -- %s' % '; '.join('`%s` over `%s` column %.4f, paired %.4f'
+                                  % p_ for p_ in parted[:6])
+             + ('; ...' if len(parted) > 6 else '') if parted else ''))
+    if widest:
+        print('  the widest disagreement: `%s` over `%s`, column %.4f against'
+              ' paired %.4f, the column %+.1f%% off it'
+              % (widest + ((widest[2] / widest[3] - 1) * 100,)))
     return 0
 
 
@@ -6262,6 +6302,39 @@ SUPERLATIVE_RE = [re.compile(p, re.I) for p in (
     r'|one|two|three)\b',
     r'\bnever (?:slower|faster|above|below|past|worse|better)\b')]
 
+# THE MODE WHOSE SORTED OUTPUT SETTLES A SUPERLATIVE, by what the sentence
+# is about, the first that matches: a sentence about pairs parting in sign
+# is --winsor's census, about a floor --floor-pairs's, about movement
+# --movers's, about counts --counts's, about classes or populations
+# --cross-classes's, and about shapes or cells a sort of --cells. Named
+# beside each hit since 2026-09-17: Run 34's quantifiers kept reaching its
+# checker and probe unsorted, each settled at last by one mode's output.
+SETTLE_BY = [(re.compile(p, re.I), mode) for p, mode in (
+    (r'\bpart(?:s|ed|ing)? in sign\b|\bcapped\b|\bwinsori', '--winsor'),
+    (r'\bfloors?\b|\bA/A\b', '--floor-pairs'),
+    (r'\bmov(?:e|es|ed|er|ers|ing)\b', '--compare --movers'),
+    (r'\bcounts?\b|\binstructions?\b', '--compare --counts'),
+    (r'\bclass(?:es)?\b|\bpopulations?\b', '--cross-classes'),
+    (r'\bshapes?\b|\bcells?\b|\bviews?\b', '--cells, sorted'))]
+
+
+def settling_mode(line):
+    """The mode `SETTLE_BY` names for a superlative's sentence.
+
+    The SENTENCE and not the hit: a hit is a whole unwrapped paragraph, and
+    keyed on that, a paragraph naming a floor anywhere sent its every
+    superlative to --floor-pairs -- ninety-three of the live documents'
+    hundred and seventy-three when this was first run.
+    """
+    at = min((m.start() for rx in SUPERLATIVE_RE for m in [rx.search(line)]
+              if m), default=0)
+    start = max(line.rfind('. ', 0, at) + 1, 0)
+    end = line.find('. ', at)
+    sentence = line[start:end if end >= 0 else len(line)]
+    return next((mode for rx, mode in SETTLE_BY if rx.search(sentence)),
+                '--compare or --pair --per-shape, sorted')
+
+
 # An absolute millisecond figure is foreign here -- a run's own figures are
 # ratios -- so it was measured in another repo and no run here replaces it.
 # Like the sweep above, listed for judging: check it against its source.
@@ -9931,7 +10004,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                 return True
         return False
 
-    def sweep(hits, headline):
+    def sweep(hits, headline, settle=None):
         """Print a sweep, NEW FIRST and counted apart.
 
         The whole value of these lists is which entries a write-up just
@@ -9955,10 +10028,12 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         else:
             print('note: %d %s -- none added by this diff:'
                   % (len(hits), headline))
+        tail = (lambda l: '  -- settle by %s' % settle(l)) if settle \
+            else (lambda l: '')
         for i, l in fresh:
-            print('    NEW %s: %s' % (i, l[:60]))
+            print('    NEW %s: %s%s' % (i, l[:60], tail(l)))
         for i, l in old_:
-            print('        %s: %s' % (i, l[:60]))
+            print('        %s: %s%s' % (i, l[:60], tail(l)))
 
     for line in note:
         print('ok:   ' + line)
@@ -9971,7 +10046,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     if superlatives:
         sweep(superlatives, 'superlative(s) in prose; each is a claim about'
               ' the whole table, so derive it by sorting rather than from'
-              ' the arms the sentence is about')
+              ' the arms the sentence is about', settle=settling_mode)
     if foreign:
         sweep([(where(i), l)
                for i, l in foreign],

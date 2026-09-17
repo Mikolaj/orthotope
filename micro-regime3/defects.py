@@ -7191,6 +7191,16 @@ RECORDS = [
          ok=V(has=['superseded figure(s) quoted'],
               hasnt=['none added by this diff'])),
 
+    case('superlative-worklist-names-its-settling-mode', 'read-run.py', None,
+         'CONTROL: each superlative the sweep lists names the mode whose'
+         ' sorted output settles it',
+         # Run 34's checker and probe found a quantifier written without
+         # the population sorted, again and again, each settled in the end
+         # by one mode's output that the sweep had not named.
+         plant=untracked_doc,
+         argv=['--check-doc', '--worklists', '--readme', '{doc}'],
+         ok=V(has=['settle by --cross-classes'])),
+
     case('alloc-fit-on-an-unknown-shape', 'read-run.py', 'a6c32e8',
          'a missing alloc read as "allocated nothing", silencing the warning',
          plant=lambda t: {'run': doctored(
@@ -7792,6 +7802,21 @@ RECORDS = [
          ok=V(exit=0,
               has=['winsorizing, per timed row', 'plain', 'published',
                    'capped', 'lib-stage1'])),
+
+    case('winsor-censuses-the-pairs-that-part-in-sign', 'read-run.py', None,
+         'CONTROL: --winsor counts the pairs of timed rows whose column'
+         ' ratio and paired geomean part in sign, and names the widest'
+         ' disagreement',
+         # Run 34 wrote `DO NOT DIVIDE` over a census it took by hand, and
+         # a sentence about which pairs part in sign is a superlative over
+         # every pair, which no mode sorted.
+         plant=lambda t: {
+             'run': synth_json(t, 'main', name='a.json',
+                               skew=[(main_shapes()[0], 'lib-stage1', 40),
+                                     (main_shapes()[1], 'lib-stage1', 30)])},
+         argv=['{run}', '--winsor'],
+         ok=V(exit=0, has=['pair(s) of timed rows', 'part in sign',
+                           'the widest disagreement'])),
 
     case('replace-takes-an-abutting-heading', 'read-run.py', None,
          'a paragraph that abuts a heading took the heading with it',
