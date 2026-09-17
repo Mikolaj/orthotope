@@ -2408,8 +2408,10 @@ fbMutOdoVecdimsAddInLeafU1Base sh (T (Strides ats) ao v) =
 -- pointer, costs four to five instructions a run, which at the main
 -- set's inner extents of two to thirteen is 1.0581 of '-u1''s corrected
 -- instructions over the set; 'fbMutOdoVecdimsAddInLeafU1Ptr' below
--- carries the pointers through every level and is the timed form. Its
--- ':: Ptr Double' is the GHC #27778 workaround, explained there.
+-- carries the pointers through every level and is
+-- the timed form. Its ':: Ptr Double' is the GHC
+-- https://gitlab.haskell.org/ghc/ghc/-/work_items/27778 workaround,
+-- explained there.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU1PtrLeaf #-}
 fbMutOdoVecdimsAddInLeafU1PtrLeaf :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU1PtrLeaf sh (T (Strides ats) ao v) =
@@ -2480,12 +2482,13 @@ fbMutOdoVecdimsAddInLeafU1PtrLeaf sh (T (Strides ats) ao v) =
 -- clock (README.md#the-mutable-ceiling-taken, the twenty-first
 -- reading). ON GHC HEAD IT INVERTED: 1.0235 in counts, 1.3084 in time
 -- and 1.41x the result vector allocated where the basis allocates
--- 1.00x, which is that compiler and not this code -- GHC #27778, found
--- 2026-09-06: a bang-bound 'plusPtr' result let-generalises to
--- 'forall b. Ptr b', and from 9.14 the simplifier keeps the case on that
--- type lambda, so a 'Ptr' is allocated and taken apart on every run.
--- The ':: Ptr Double' on every such binding in the three pointer arms
--- is the workaround, and the 9.12 code is unchanged by it.
+-- 1.00x, which is that compiler and not this code -- GHC
+-- https://gitlab.haskell.org/ghc/ghc/-/work_items/27778, found 2026-09-06:
+-- a bang-bound 'plusPtr' result let-generalises to 'forall b. Ptr b', and
+-- from 9.14 the simplifier keeps the case on that type lambda, so a 'Ptr'
+-- is allocated and taken apart on every run. The ':: Ptr Double' on every
+-- such binding in the three pointer arms is the workaround, and the 9.12
+-- code is unchanged by it.
 -- Not kept in step with 'fbMutOdoVecdimsAddInLeafU2' past the one
 -- change it exists to price: whatever improved that leaf since is not
 -- here.
@@ -2559,8 +2562,9 @@ fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
 -- nearer, which is the opposite of what the twentieth reading
 -- registered. ON GHC HEAD it inverted
 -- hardest of any arm on the roster: 1.8842 in counts, 2.6731 in time
--- and 2.61x the result vector allocated against 1.00x here -- GHC
--- #27778, worked around by the ':: Ptr Double' annotations as in
+-- and 2.61x the result vector allocated against 1.00x here --
+-- GHC https://gitlab.haskell.org/ghc/ghc/-/work_items/27778,
+-- worked around by the ':: Ptr Double' annotations as in
 -- 'fbMutOdoVecdimsAddInLeafU1Ptr' above.
 -- Not kept in step with 'fbMutOdoVecdimsAddInLeafU2' past the one
 -- change it exists to price: whatever improved that leaf since is not
@@ -3483,7 +3487,8 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
 -- where it is, where the leaf family prices the first under the arms'
 -- own odometer, '-u2' over '-u1' at 0.9644 in time and 0.9208 in counts
 -- on Run 26's main set. Added 2026-09-07 for Run 27.
--- Not where the fill is rank 1: GHC #27799's latch costs this
+-- Not where the fill is rank 1: the latch of GHC
+-- https://gitlab.haskell.org/ghc/ghc/-/work_items/27799 costs this
 -- loop one instruction an element there, on one half or the other
 -- (README.md#what-is-open). Price the unrolling on the main set, or off
 -- a rank-2 view.

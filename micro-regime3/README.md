@@ -960,16 +960,17 @@ rather than a slot in the next run, observed again:
   of the corner's loss at 0.9408 against it on 22 shapes of 24, is in [the
   mutable ceiling][ceiling]'s own write-up.
 - `ANSWERED` **GHC HEAD compiles a `Ptr`-walking fill into an allocating one,
-  and 9.12.4 does not --- GHC #27778, worked around 2026-09-06.** Run 26 timed
-  `mut-odo-vecdims-add-in-leaf-u1-ptr` and `-u2-ptr`, the two leaf fills
-  rewritten to walk a `Ptr`, on both halves of a compiler pair. On the 9.12.4
-  basis they allocate **1.00x** the result vector, as every other fill does,
-  and execute 0.8944 and 0.8357 of their parents' corrected instructions ---
-  though only `-u1-ptr` is ahead of its parent in time on a reading both
-  of this file's statistics agree about. On the in-tree GHC HEAD stage1,
-  `10.1.20260803`, they allocate **1.41x and 2.61x** and `-u2-ptr` executes
-  **1.8842** of `-u2`'s instructions --- so the same source, the same shim,
-  the same flags and the same roster give a fill that allocates nothing
+  and 9.12.4 does not --- GHC
+  [#27778](https://gitlab.haskell.org/ghc/ghc/-/work_items/27778), worked around
+  2026-09-06.** Run 26 timed `mut-odo-vecdims-add-in-leaf-u1-ptr` and `-u2-ptr`,
+  the two leaf fills rewritten to walk a `Ptr`, on both halves of a compiler
+  pair. On the 9.12.4 basis they allocate **1.00x** the result vector, as every
+  other fill does, and execute 0.8944 and 0.8357 of their parents' corrected
+  instructions --- though only `-u1-ptr` is ahead of its parent in time
+  on a reading both of this file's statistics agree about. On the in-tree GHC
+  HEAD stage1, `10.1.20260803`, they allocate **1.41x and 2.61x** and `-u2-ptr`
+  executes **1.8842** of `-u2`'s instructions --- so the same source, the same
+  shim, the same flags and the same roster give a fill that allocates nothing
   under one compiler and two and a half result vectors under the other.
   It is the only allocation level either half of that pair moves and the only
   pair of arms out of twenty-six whose counts differ by more than a percent
@@ -1017,22 +1018,24 @@ rather than a slot in the next run, observed again:
   a renaming reverses it and why `-dinitial-unique`, which shifts the supply
   without permuting it, moves nothing. Block layout then multiplies the latch's
   edge by 0.96875 for leaving a conditional branch (`relevantWeight`, Note
-  [Layout relevant edge weights], GHC #18053) while the competitor arrives
-  unconditionally at full weight, and the latch loses a contest it led. Filed
-  as GHC #27799, the record being horde-ad's
-  `docs/ghc-issue-latch-loses-fallthrough.md`. **What it costs this suite**:
-  where the fill is rank 1, `lib-stage2-lean-u1`'s corrected count carries one
-  instruction an element that is not the unroll --- `flip-whole-square`
-  and `scaled-rank1-m1` gain one and `compose-scalar` loses one, while every
-  other view's arms move with their siblings --- so price that unrolling
-  on the main set, where the two halves agree to 0.08%, or off a rank-2 view.
-  Registration (13)'s `bcast` span, read short at 1.0818 and 1.0822,
-  is not this: no `bcast` view moves. **And an edit that touches neither fill
-  can move the shape**, the uniques deciding it, so a run that meets
-  a one-instruction step on this arm should read this entry before it reaches
-  for a strategy. Post-run step 0's refusals were the nearest open thread
-  and are read, 2026-09-11: Run 28's six are the four `-u2` leaf fills, which
-  the BASIS half's `-g3` twin names by the same byte identity,
+  [Layout relevant edge weights], GHC
+  [#18053](https://gitlab.haskell.org/ghc/ghc/-/work_items/18053)) while
+  the competitor arrives unconditionally at full weight, and the latch loses
+  a contest it led. Filed as GHC
+  [#27799](https://gitlab.haskell.org/ghc/ghc/-/work_items/27799), the record
+  being horde-ad's `docs/ghc-issue-latch-loses-fallthrough.md`. **What it costs
+  this suite**: where the fill is rank 1, `lib-stage2-lean-u1`'s corrected count
+  carries one instruction an element that is not the unroll ---
+  `flip-whole-square` and `scaled-rank1-m1` gain one and `compose-scalar` loses
+  one, while every other view's arms move with their siblings --- so price
+  that unrolling on the main set, where the two halves agree to 0.08%, or off
+  a rank-2 view. Registration (13)'s `bcast` span, read short at 1.0818
+  and 1.0822, is not this: no `bcast` view moves. **And an edit that touches
+  neither fill can move the shape**, the uniques deciding it, so a run
+  that meets a one-instruction step on this arm should read this entry before
+  it reaches for a strategy. Post-run step 0's refusals were the nearest open
+  thread and are read, 2026-09-11: Run 28's six are the four `-u2` leaf fills,
+  which the BASIS half's `-g3` twin names by the same byte identity,
   and `fillStage2`'s broadcast and stepping runs, which no `-g3` build holds
   byte-identical on either compiler and which the register-masked signature
   names. **`fillStage2U1` is among none of them.** GHC
@@ -3004,29 +3007,29 @@ rather than a slot in the next run, observed again:
   not explain the level either**: the basis's margin is the larger running
   second in only 5 of the 8 class-by-pair comparisons. **And most of the margin
   is the compiler**, shrinking from 0.8976--0.9687 to 0.9538--1.0103 once
-  the GHC #27778 workaround is in the build, which Run 27's item (1) adjudicates
-  on the main set. **Read this per class and not off the summary**:
-  `--cross-classes` prints an *all below 1* line that answers whether every
-  class agrees rather than whether the margin moved, and taking it
-  for the latter says position where the per-class geomeans say the half.
-  The `scaled` process interrupted on 2026-09-06 is parked
-  under a `.partial-interrupted` suffix and is no part of the above.
-  **AND THE HEADLINE PATTERN HAS NOT CONTINUED, counted 2026-09-07 over Runs 24,
-  25 and 26 off artifacts already on disk, which wanted no machine and no new
-  run**: over those three runs' 32 population-pairs the basis is the wider half
-  in **13 of 32**, against the 24 of 32 Runs 15 to 18 gave, so pooled it is 37
-  of 64 and the asymmetry this entry is named for has been absent for three
-  runs. **No position term is visible in them either.** The control ran first
-  in every pair of all three, so first-against-second is those same 32
-  comparisons read the other way and the first process is wider in **19 of 32**;
-  across all 64 processes the rank correlation of a process's position
-  in its evening with its floor is **-0.06, -0.04 and +0.16** by run and -0.04
-  pooled, and with the saturating preamble's victim reading +0.07, +0.04
-  and +0.18, so neither the floor nor the box drifts down an evening. **What
-  those 64 processes do show is the order-statistic reading**: a process's floor
-  against the median half-width beneath it correlates **+0.26, +0.49 and +0.52**
-  by run, which is [the floor section][floor]'s within-binary finding met across
-  runs. **So the 8 of 8 is not a law, and this reading agrees
+  the GHC [#27778](https://gitlab.haskell.org/ghc/ghc/-/work_items/27778)
+  workaround is in the build, which Run 27's item (1) adjudicates on the main
+  set. **Read this per class and not off the summary**: `--cross-classes` prints
+  an *all below 1* line that answers whether every class agrees rather
+  than whether the margin moved, and taking it for the latter says position
+  where the per-class geomeans say the half. The `scaled` process interrupted
+  on 2026-09-06 is parked under a `.partial-interrupted` suffix and is no part
+  of the above. **AND THE HEADLINE PATTERN HAS NOT CONTINUED, counted 2026-09-07
+  over Runs 24, 25 and 26 off artifacts already on disk, which wanted no machine
+  and no new run**: over those three runs' 32 population-pairs the basis
+  is the wider half in **13 of 32**, against the 24 of 32 Runs 15 to 18 gave,
+  so pooled it is 37 of 64 and the asymmetry this entry is named for has
+  been absent for three runs. **No position term is visible in them either.**
+  The control ran first in every pair of all three, so first-against-second
+  is those same 32 comparisons read the other way and the first process is wider
+  in **19 of 32**; across all 64 processes the rank correlation of a process's
+  position in its evening with its floor is **-0.06, -0.04 and +0.16** by run
+  and -0.04 pooled, and with the saturating preamble's victim reading +0.07,
+  +0.04 and +0.18, so neither the floor nor the box drifts down an evening.
+  **What those 64 processes do show is the order-statistic reading**:
+  a process's floor against the median half-width beneath it correlates **+0.26,
+  +0.49 and +0.52** by run, which is [the floor section][floor]'s within-binary
+  finding met across runs. **So the 8 of 8 is not a law, and this reading agrees
   with the replication above rather than adding to it.** Its own caveat is why
   the reversed classes and not this count are what decide the question:
   consecutive positions in a recorded run are different POPULATIONS, whose
@@ -3248,9 +3251,10 @@ rather than a slot in the next run, observed again:
   permanently slows a later one --- the condition is named SMALL-PINNED CHURN
   and its cost the churn tax.** Run 14's probes found it (2026-08-15/16),
   its counter signature has held through everything since, **and it is
-  not the pinned-spray pool condition of GHC #27601**. The account is in [the
-  floor section][floor]; the measurements, their tables and the recipes
-  to re-take them
+  not the pinned-spray pool condition of GHC
+  [#27601](https://gitlab.haskell.org/ghc/ghc/-/work_items/27601)**. The account
+  is in [the floor section][floor]; the measurements, their tables
+  and the recipes to re-take them
   are `small-pinned-churn-investigation/nursery-position-findings2.txt`'s.
 
 - `OPEN` **One residue of the small-pinned churn, one answered, neither blocking
@@ -6360,29 +6364,30 @@ copy behind the top guard and the fused `run`-level copy every rank-2+ shape
 executes --- and the two differ in exactly the property at issue, so which copy
 a reading names decides what it says: `scaled-rank1-m1` runs the rank-1 copy
 for every fill arm and `flip-whole-square` for the canonicalizing ones, two
-of the three rank-1 views GHC #27799's entry in [the open list](#what-is-open)
-prices. `-add-in-leaf-u2`'s rank-1 copy is the twelve-instruction body
-the second probe read, no load beyond the two `movsd` pairs; **its `run`-level
-copy is seventeen, with the source base and the output base reloaded
-from the stack before every load and every store** --- four reloads per two
-elements, three loads per element where one is the work --- the fused level
-keeping `k`, `boff`, `st`, `sInner` and `op` live across the fill where
-the rank-1 copy keeps nothing. `-add-in-leaf-down`'s is eight per element
-with one reload, `-add-in-leaf`'s nine with one, and plain `mut-odo-vecdims`'s,
-which has no fused level, eight with none. **So the corner's Run 20 lead
-is the spill and nothing else**: on every long-run shape the shipped arm
-executes more instructions and more loads per element than the arm it beat
-on the probe, and where runs are 1 to 3 the loop never reaches steady state,
-which is the run-length pattern the per-shape ratios show --- `-down` at 0.82
-to 0.87 of `-u2` on `stretch-wide-2xM`, `-inner256`, `-tab7MB` and the `bcast`
-class, at 1.0 to 1.25 on the k3 conv shapes, `stretch-inner1`
-and `window-64x64-k1x9`, on both compilers. The same spill is why `-u2` trails
-plain `mut-odo-vecdims` on `stretch-primes`, `-inner256` and `-pow2stride`;
-`stretch-tall-Mx2`, runs of 2, is the one shape where the per-run step
-and not the loop decides and the loss is not yet separated. **With the bases
-in registers the order is the probe's**: six instructions per element against
-seven, or six once the redundant `test` after `dec` goes, with half
-the branches; nothing in Run 20 argues for `-down` under an allocator
+of the three rank-1 views GHC
+[#27799](https://gitlab.haskell.org/ghc/ghc/-/work_items/27799)'s entry in [the
+open list](#what-is-open) prices. `-add-in-leaf-u2`'s rank-1 copy
+is the twelve-instruction body the second probe read, no load beyond the two
+`movsd` pairs; **its `run`-level copy is seventeen, with the source base
+and the output base reloaded from the stack before every load and every store**
+--- four reloads per two elements, three loads per element where one is the work
+--- the fused level keeping `k`, `boff`, `st`, `sInner` and `op` live across
+the fill where the rank-1 copy keeps nothing. `-add-in-leaf-down`'s is eight per
+element with one reload, `-add-in-leaf`'s nine with one, and plain
+`mut-odo-vecdims`'s, which has no fused level, eight with none.
+**So the corner's Run 20 lead is the spill and nothing else**: on every long-run
+shape the shipped arm executes more instructions and more loads per element
+than the arm it beat on the probe, and where runs are 1 to 3 the loop never
+reaches steady state, which is the run-length pattern the per-shape ratios show
+--- `-down` at 0.82 to 0.87 of `-u2` on `stretch-wide-2xM`, `-inner256`,
+`-tab7MB` and the `bcast` class, at 1.0 to 1.25 on the k3 conv shapes,
+`stretch-inner1` and `window-64x64-k1x9`, on both compilers. The same spill
+is why `-u2` trails plain `mut-odo-vecdims` on `stretch-primes`, `-inner256`
+and `-pow2stride`; `stretch-tall-Mx2`, runs of 2, is the one shape where
+the per-run step and not the loop decides and the loss is not yet separated.
+**With the bases in registers the order is the probe's**: six instructions per
+element against seven, or six once the redundant `test` after `dec` goes,
+with half the branches; nothing in Run 20 argues for `-down` under an allocator
 that behaves, and what would refute that is a `-down` lead surviving on a build
 where `-u2`'s `run`-level loop reads twelve. The trigger is the live-value class
 of GHC [#27737](https://gitlab.haskell.org/ghc/ghc/-/work_items/27737), whose
@@ -6493,20 +6498,21 @@ from outside, is that map's traversal order showing through. The graph allocator
 has the slot and does not fill it either --- `GHC.CmmToAsm.Reg.Graph.SpillCost`
 writes Chaitin's cost with a frequency term and then says *There are no loops
 in our code at the moment, so we can set the freq's to 1* --- and it is disabled
-regardless (GHC #7679). **The allocator IS loop-aware in one place, and
-it is not this one**: `findPrefRealReg` prefers the register a vreg was first
-assigned to, for the stated reason that a loop's variables then land in the same
-registers at its head and its tail. And the restore an iteration is a block
-boundary's rather than the fill's --- it sits at the end of the body block,
-before a label another edge also targets, reloading a value that block never
-reads, which is the assignment reconciliation
-`GHC.CmmToAsm.Reg.Linear.JoinToTargets` opens by describing. The `Ptr`-walking
-fill above would have sidestepped the question rather than answered it ([dead
-ideas][dead]). **What it does not do is rescue `-u2-down`**, fourteen against
-thirteen with both arms spill-free: the count-down form maintains a counter
-AND the output cursor where the up form maintains the cursor and tests
-it against an invariant, so it is one instruction heavier per two elements
-under an allocator that behaves, and the run's 16% is that deficit amplified.
+regardless (GHC [#7679](https://gitlab.haskell.org/ghc/ghc/-/work_items/7679)).
+**The allocator IS loop-aware in one place, and it is not this one**:
+`findPrefRealReg` prefers the register a vreg was first assigned to,
+for the stated reason that a loop's variables then land in the same registers
+at its head and its tail. And the restore an iteration is a block boundary's
+rather than the fill's --- it sits at the end of the body block, before a label
+another edge also targets, reloading a value that block never reads, which
+is the assignment reconciliation `GHC.CmmToAsm.Reg.Linear.JoinToTargets` opens
+by describing. The `Ptr`-walking fill above would have sidestepped the question
+rather than answered it ([dead ideas][dead]). **What it does not do is rescue
+`-u2-down`**, fourteen against thirteen with both arms spill-free:
+the count-down form maintains a counter AND the output cursor where the up form
+maintains the cursor and tests it against an invariant, so it is one instruction
+heavier per two elements under an allocator that behaves, and the run's 16%
+is that deficit amplified.
 
 **What the same numbers say about `-u2` against `-down` --- arithmetic
 over the sixth reading and not a further measurement, so it predicts rather
@@ -6944,15 +6950,15 @@ and the loop's own three, and with the reload gone the three read 6, 5.5 and 8.
 The ordering does not move with such a fix; the margin halves. **`-fregs-graph`
 is not a stand-in for it**: here the graph allocator spills more, three reloads
 in `-u1`'s loop and six in `-u2`'s, nine and sixteen instructions, where GHC
-#27742's own table showed it curing a `mulq`/`shrq` spill this loop does
-not have --- so whether that fix cures this spill is the patched compiler's
-to say. **Nor is `-fllvm`**: at 6, 6 and 7 it hoists what the native leaf
-reloads and grows `-u2` its own induction, and orders the two the other way.
-**Registered here for want of a run, for the first pair on a patched compiler**:
-`-u2` over `-u1` at about 0.92 in corrected instructions on the long-run shapes,
-from 0.86 today, and ahead in time by less than Run 25's 3.5 to 5 points;
-and the `0x40(%rsp)` line gone from all three loops, which the recipe above
-reads in a minute.
+[#27742](https://gitlab.haskell.org/ghc/ghc/-/work_items/27742)'s own table
+showed it curing a `mulq`/`shrq` spill this loop does not have --- so whether
+that fix cures this spill is the patched compiler's to say. **Nor is `-fllvm`**:
+at 6, 6 and 7 it hoists what the native leaf reloads and grows `-u2` its own
+induction, and orders the two the other way. **Registered here for want
+of a run, for the first pair on a patched compiler**: `-u2` over `-u1` at about
+0.92 in corrected instructions on the long-run shapes, from 0.86 today,
+and ahead in time by less than Run 25's 3.5 to 5 points; and the `0x40(%rsp)`
+line gone from all three loops, which the recipe above reads in a minute.
 
 **A twenty-first reading, 2026-09-05, dodges the spill at the source in both
 loops, and prices the unrolling alone at a quarter.** **Both arms
@@ -7039,25 +7045,26 @@ at 1.41x beside it, where every fill on the basis half and every non-pointer
 fill on HEAD allocates 1.00x. So a ceiling read on one codegen is not a ceiling,
 and the `Ptr` form is the one shape in this family whose codegen the two
 compilers do not agree on. The disagreement has a name and a workaround since
-2026-09-06, GHC #27778 in the open list's answered entry: the boxed value
-is the run's let-generalised end pointer, and a type annotation on it gives HEAD
-the basis's code.
+2026-09-06, GHC [#27778](https://gitlab.haskell.org/ghc/ghc/-/work_items/27778)
+in the open list's answered entry: the boxed value is the run's let-generalised
+end pointer, and a type annotation on it gives HEAD the basis's code.
 
-**A twenty-third reading, Run 27, times the same two arms with GHC #27778 worked
-around --- and every reading the twenty-second could take on one codegen only
-now holds on both.** The workaround is the `:: Ptr Double` annotation on each
-bang-bound `plusPtr` result, landed 2026-09-06; with it the HEAD half reads
-`-u1-ptr` over `-u1` at **0.9751** against the basis's 0.9713, `-u2-ptr`
-over `-u2` at **0.9386** against 0.9419 and `-u2-ptr` over `-u1-ptr`
-at **0.9239** against 0.9357, and **both pointer fills allocate 1.00x the result
-on both halves** where Run 26's HEAD read 1.41x and 2.61x. So the ceiling
-is a ceiling on two codegens, which is what the twenty-second reading said
-it was not. **The unrolled fill's ceiling is established this time**: `-u2-ptr`
-reads 0.9419 of `-u2` at 14 of 19 where Run 26 read 0.9479 at 13 of 19 with p
-0.17, and the published column reads 1.0027 rather than Run 26's 1.0688 ---
-still parting in sign from the paired figure, still because the row is wide
-across shapes, but by a thousandth rather than by twelve points. **And the RATE
-reads a third to a half again, on a third set of spans.** The three corrected
+**A twenty-third reading, Run 27, times the same two arms with GHC
+[#27778](https://gitlab.haskell.org/ghc/ghc/-/work_items/27778) worked around
+--- and every reading the twenty-second could take on one codegen only now holds
+on both.** The workaround is the `:: Ptr Double` annotation on each bang-bound
+`plusPtr` result, landed 2026-09-06; with it the HEAD half reads `-u1-ptr`
+over `-u1` at **0.9751** against the basis's 0.9713, `-u2-ptr` over `-u2`
+at **0.9386** against 0.9419 and `-u2-ptr` over `-u1-ptr` at **0.9239** against
+0.9357, and **both pointer fills allocate 1.00x the result on both halves**
+where Run 26's HEAD read 1.41x and 2.61x. So the ceiling is a ceiling on two
+codegens, which is what the twenty-second reading said it was not.
+**The unrolled fill's ceiling is established this time**: `-u2-ptr` reads 0.9419
+of `-u2` at 14 of 19 where Run 26 read 0.9479 at 13 of 19 with p 0.17,
+and the published column reads 1.0027 rather than Run 26's 1.0688 --- still
+parting in sign from the paired figure, still because the row is wide across
+shapes, but by a thousandth rather than by twelve points. **And the RATE reads
+a third to a half again, on a third set of spans.** The three corrected
 instruction ratios come back at **0.8944, 0.8358 and 0.8605**, reproducing Run
 26's derivation to four figures on a roster five arms larger, and against
 the times they give **27%, 35% and 46%** where Run 26 read 29%, 32% and 41%.
@@ -7078,24 +7085,25 @@ the `run`-level one, in one process on one input: the canonicalized form against
 the raw rank-2 view of the same data. Its margin is that `0x40(%rsp)` line
 and not the rank it sheds --- **11 instructions a pair against 12**, where
 the `Ptr` form reaches nine, and the 1340 run-loop iterations the merge saves
-are a fortieth of it. It is not GHC #27799's latch, which is in the un-unrolled
-loop: both copies here are fused, and the pair has read **0.9154** in corrected
-instructions on both halves of Runs 25, 26, 27 and 28. **AND THE TWO ARMS EVERY
-READING ABOVE RESTS ON ARE PARKED, 2026-09-13, so no twenty-fourth reading
-of this kind is available off the roster.** `mut-odo-vecdims-add-in-leaf-u1-ptr`
-and `-u2-ptr` went `Only` with their question answered, Runs 29 and 30 having
-settled that neither -O2 pass reaches the ceiling they price --- `-u2-ptr`
-over `-u2` read 0.9385 and 0.9268 on Run 30's two halves, 0.9366 and 0.9372
-on Run 29's and 0.9532 on Run 28's basis. Runs 31 to 34 time neither,
-so the ceiling is recorded at those five readings and a run that wants a sixth
-has to un-park an arm. What Runs 32 to 34 do say about the form is
-from the naming side rather than the timing one: post-run step 0 still finds
-`fbMutOdoVecdimsAddInLeafU2Ptr` among the straddling loops of BOTH halves ---
-by byte identity off the half's own -g3 twin on ghc-9.12.4 and off the OTHER
-half's twin on GHC HEAD, which is what giving `--match` both twins is for ---
-parking having taken the arm off the roster and not out of the binary. Runs 33
-and 34 read it there under the exit span as well, which moves the straddler
-count on neither half: eight on each, as Run 32 read.
+are a fortieth of it. It is not GHC
+[#27799](https://gitlab.haskell.org/ghc/ghc/-/work_items/27799)'s latch, which
+is in the un-unrolled loop: both copies here are fused, and the pair has read
+**0.9154** in corrected instructions on both halves of Runs 25, 26, 27 and 28.
+**AND THE TWO ARMS EVERY READING ABOVE RESTS ON ARE PARKED, 2026-09-13,
+so no twenty-fourth reading of this kind is available off the roster.**
+`mut-odo-vecdims-add-in-leaf-u1-ptr` and `-u2-ptr` went `Only` with their
+question answered, Runs 29 and 30 having settled that neither -O2 pass reaches
+the ceiling they price --- `-u2-ptr` over `-u2` read 0.9385 and 0.9268 on Run
+30's two halves, 0.9366 and 0.9372 on Run 29's and 0.9532 on Run 28's basis.
+Runs 31 to 34 time neither, so the ceiling is recorded at those five readings
+and a run that wants a sixth has to un-park an arm. What Runs 32 to 34 do say
+about the form is from the naming side rather than the timing one: post-run step
+0 still finds `fbMutOdoVecdimsAddInLeafU2Ptr` among the straddling loops of BOTH
+halves --- by byte identity off the half's own -g3 twin on ghc-9.12.4 and off
+the OTHER half's twin on GHC HEAD, which is what giving `--match` both twins
+is for --- parking having taken the arm off the roster and not out
+of the binary. Runs 33 and 34 read it there under the exit span as well, which
+moves the straddler count on neither half: eight on each, as Run 32 read.
 
 
 ### The C-gap: still a deeper ceiling
@@ -7748,8 +7756,9 @@ and not this module's. **It is not inert in the code it emits, which
 is the other question and was answered the other way on 2026-09-11**: toggling
 it moves which loop latches fuse, on this module and on both compilers --- seven
 of seven against six of seven one way and the reverse the other --- which
-is [the open list][open]'s GHC #27799 entry, and is why a build compared across
-that flag is not comparing the same code.
+is [the open list][open]'s GHC
+[#27799](https://gitlab.haskell.org/ghc/ghc/-/work_items/27799) entry,
+and is why a build compared across that flag is not comparing the same code.
 
 `micro.cabal` builds at -O1, which is what a default `cabal build` of orthotope
 takes --- **and since 2026-09-13 that is the regime the figures are read
@@ -12284,10 +12293,11 @@ size class.** Run 14's probes found it (2026-08-15/16): `vgg-14-c512-k3/list`
 read 14.1 ms with nothing before it and 22.3 ms after certain shapes, the same
 ladder was flat at `-A4m`, and the victim's added cost was mutator LLC misses
 at flat instructions and dTLB --- the counter signature that has held through
-everything since. **It is not the pinned-spray pool condition of GHC #27601**,
-by controls and by a conceptual objection that stands: on one machine and one
-compiler `+RTS -H2G` removes that reproducer's penalty and leaves this one
-whole, `max_mem_in_use_bytes` moves 2.7% here against a doubling there,
+everything since. **It is not the pinned-spray pool condition of GHC
+[#27601](https://gitlab.haskell.org/ghc/ghc/-/work_items/27601)**, by controls
+and by a conceptual objection that stands: on one machine and one compiler
+`+RTS -H2G` removes that reproducer's penalty and leaves this one whole,
+`max_mem_in_use_bytes` moves 2.7% here against a doubling there,
 and that issue's mechanism needs rare collections to let block groups accumulate
 where this condition's disturbance is full size at 4 MB and merely unpaid.
 Everything reproduces on GHC HEAD, where that issue is itself unfixed. Run 15
@@ -13061,25 +13071,27 @@ as the machine does, so on this loop no placement defeats them, for any
 of the four arms that run it. **HEAD's penalty on it is two blocks
 of the compiler's own making and one of placement**: HEAD emits the outer head's
 test as `cmpq; jl` into the checks, a taken branch every run where 9.12.4's
-`jge` falls through, GHC #27799's shape at a loop head, and lays the loop's exit
-block inside the cycle, 100 bytes that cannot fit two lines without a crossing
---- six taken branches and seven fetch blocks a run against five and five, 8.1
-cycles against 6.15. Pinned at 0 on HEAD it reads 7.40 cycles and seven blocks
-against the plain half's 8.10 --- but that plain half is Run 32's, built
-from the tree of the day before, and a comparison inside one tree, the block
-rules' half at 0 against the same tree pinned at 30, reads 0.9999 on `runs-3`,
-0.995 on stage 7's and 1.028 on the window view, level: on HEAD the residue
-of this head is worth nothing, the 0.93 first read here was the two trees
-parting, and the whole of HEAD's penalty is code order. **Where HEAD's planners
-actually put it, read off the binaries by the loop's five-instruction shape
-rather than by a pattern's first match, which had named another copy and cost
-this entry a wrong 37 and 41 for an hour**: the plain form at 30, the exit span
-at 3, the block rules at 0, every one free by the rules and the planner's trace
-confirming the block rules chose 0 with a budget of 29 at the head's own dead
-spot. So no cost failed to act on HEAD, and the free band hides nothing there
-either: 0, 3 and 30 read level inside one tree, and the differences first read
-between them were the trees parting. The same holds for stages 7, 10 and 11,
-which run this loop.
+`jge` falls through, GHC
+[#27799](https://gitlab.haskell.org/ghc/ghc/-/work_items/27799)'s shape
+at a loop head, and lays the loop's exit block inside the cycle, 100 bytes
+that cannot fit two lines without a crossing --- six taken branches and seven
+fetch blocks a run against five and five, 8.1 cycles against 6.15. Pinned at 0
+on HEAD it reads 7.40 cycles and seven blocks against the plain half's 8.10 ---
+but that plain half is Run 32's, built from the tree of the day before,
+and a comparison inside one tree, the block rules' half at 0 against the same
+tree pinned at 30, reads 0.9999 on `runs-3`, 0.995 on stage 7's and 1.028
+on the window view, level: on HEAD the residue of this head is worth nothing,
+the 0.93 first read here was the two trees parting, and the whole of HEAD's
+penalty is code order. **Where HEAD's planners actually put it, read off
+the binaries by the loop's five-instruction shape rather than by a pattern's
+first match, which had named another copy and cost this entry a wrong 37 and 41
+for an hour**: the plain form at 30, the exit span at 3, the block rules at 0,
+every one free by the rules and the planner's trace confirming the block rules
+chose 0 with a budget of 29 at the head's own dead spot. So no cost failed
+to act on HEAD, and the free band hides nothing there either: 0, 3 and 30 read
+level inside one tree, and the differences first read between them
+were the trees parting. The same holds for stages 7, 10 and 11, which run
+this loop.
 
 **The physical frame of a code page is a placement term too, priced 2026-09-16
 at 15 percent on a 27-byte loop, and it is the one term here that neither
@@ -14295,35 +14307,37 @@ tables and its fingerprint say so.
   are TODAY's LESS SIX. **Its delta against RUN 26** is the commits
   of 2026-09-06 and 2026-09-07: the four arms Run 26 lifted out of parking put
   back, the `:: Ptr Double` annotation on every bang-bound `plusPtr` result
-  in the three pointer arms, which is the GHC #27778 workaround and changes
-  no 9.12 code ([the open list][open]), and then ten arms landing ---
-  `libunord-stage4` and `libunord-stage5`, the four `-sum` reducing consumers,
-  `liblist-stage3` and `liblist-stage4`, `mut-odo-vecdims-add-in-leaf-u2-last`
-  and `lib-stage2-lean-u1` --- with `check`'s laziness gate beside them
-  and `lib-stage2-disp` retired that evening, ten in and five out and five net,
-  no shape and no class view moving either way. `bb6d113`, the tip both halves
-  were built from, is that gate's byte count moved behind its failure branch,
-  which is what makes a compiler pair's two `check` outputs byte-identical
-  again; `a990b2f`, which the driver stamped, landed after the build. So NEITHER
-  half reproduces an earlier binary and no md5 here matches one on record;
-  a distance from Run 26's published column carries a roster term of ten arms,
-  **and the nineteen main-set shapes are unmoved between the two runs,
-  so a cross-run figure is over all nineteen**. What a reader has to carry
-  is which half a figure came from: everything published in its file
-  is `run27-g912`, ghc-9.12.4, and `run27-ghead` --- the same source, shim
-  and shim environment built through `cabal.project.ghead` against the in-tree
-  GHC HEAD stage1, unmoved since Run 24, so the halves differ in the compiler
-  and in the boot libraries that come with it and in nothing else ---
-  contributes the second column of `runs/run27.md`. Its `list` moved 0.33%
-  between the halves, INSIDE the 0.7% bar, so its two columns may be subtracted,
-  which no run since Run 24 could say. **The box DID move, and a BIOS change
-  is why**, confirmed by the machine's owner after the run: its gate machine
-  check read -3.66% on `list`'s net against Run 26's fingerprint, over all 19
-  shapes, three of them past 5% and every one moving together, so no absolute
-  of its crosses to Run 26 unadjusted and its cross-run column is read through
-  `--bridge`. **Run 27 therefore opens a third machine era**, as the BIOS change
-  before Run 18 opened the second. Its sequence ran in one window and its `runs`
-  class in a second: two intrusions by the instrument's own bar, one bench
+  in the three pointer arms, which is the GHC
+  [#27778](https://gitlab.haskell.org/ghc/ghc/-/work_items/27778) workaround
+  and changes no 9.12 code ([the open list][open]), and then ten arms landing
+  --- `libunord-stage4` and `libunord-stage5`, the four `-sum` reducing
+  consumers, `liblist-stage3` and `liblist-stage4`,
+  `mut-odo-vecdims-add-in-leaf-u2-last` and `lib-stage2-lean-u1` ---
+  with `check`'s laziness gate beside them and `lib-stage2-disp` retired
+  that evening, ten in and five out and five net, no shape and no class view
+  moving either way. `bb6d113`, the tip both halves were built from,
+  is that gate's byte count moved behind its failure branch, which is what makes
+  a compiler pair's two `check` outputs byte-identical again; `a990b2f`, which
+  the driver stamped, landed after the build. So NEITHER half reproduces
+  an earlier binary and no md5 here matches one on record; a distance from Run
+  26's published column carries a roster term of ten arms, **and the nineteen
+  main-set shapes are unmoved between the two runs, so a cross-run figure
+  is over all nineteen**. What a reader has to carry is which half a figure came
+  from: everything published in its file is `run27-g912`, ghc-9.12.4,
+  and `run27-ghead` --- the same source, shim and shim environment built through
+  `cabal.project.ghead` against the in-tree GHC HEAD stage1, unmoved since Run
+  24, so the halves differ in the compiler and in the boot libraries that come
+  with it and in nothing else --- contributes the second column
+  of `runs/run27.md`. Its `list` moved 0.33% between the halves, INSIDE the 0.7%
+  bar, so its two columns may be subtracted, which no run since Run 24 could
+  say. **The box DID move, and a BIOS change is why**, confirmed
+  by the machine's owner after the run: its gate machine check read -3.66%
+  on `list`'s net against Run 26's fingerprint, over all 19 shapes, three
+  of them past 5% and every one moving together, so no absolute of its crosses
+  to Run 26 unadjusted and its cross-run column is read through `--bridge`.
+  **Run 27 therefore opens a third machine era**, as the BIOS change before Run
+  18 opened the second. Its sequence ran in one window and its `runs` class
+  in a second: two intrusions by the instrument's own bar, one bench
   of its basis main set at 0.28 of a core and left as it stands, and four
   consecutive benches of `runs-512` on its HEAD half at 0.9 to 1.0, at about
   06:38 by the log's own clock and three minutes from where
@@ -14339,22 +14353,23 @@ tables and its fingerprint say so.
   at SIX --- so its delta against TODAY is the edits that prepare Run 27, none
   of which touches a shape or a class view: the four lifted arms parked again
   and the `:: Ptr Double` annotation on every bang-bound `plusPtr` result
-  in the three pointer arms, the GHC #27778 workaround ([the open list][open]),
-  which changes no 9.12 code, both of 2026-09-06; the ten arms of 2026-09-07 ---
-  the lazy candidates, the reducing consumers, the hoisted-bound fill
-  and the fill not unrolled under the lean dispatch ([the stride
-  classes](#the-stride-classes-and-what-they-cover)) --- with `check`'s laziness
-  gate landing beside them and `lib-stage2-disp` retired that evening, ten arms
-  in and five out; and, later the same day, that gate's byte count moved behind
-  its failure branch, which is what makes a compiler pair's two `check` outputs
-  byte-identical again. `9702f20` had moved `Main.hs` by comments alone after
-  the pair was built. **Its delta against RUN 25** is the eight commits
-  of 2026-09-05 and 2026-09-06: the lean dispatch for every arm that admits it,
-  `libunord-stage3` and the two pointer fills joining the timed roster,
-  `cnn-L1-6x6-c1` back from the retired list with `flip-inner-gap64`,
-  `flip-outer-gap64` and `small-patch-r5`, `mut-odo-vecdims-add-in-leaf` going
-  to `Only`, and four arms parked after Run 23 ---
-  `mut-odo-vecdims-add-in-leaf-down`, `canon-vecdims`, `lib-stage2`
+  in the three pointer arms, the GHC
+  [#27778](https://gitlab.haskell.org/ghc/ghc/-/work_items/27778) workaround
+  ([the open list][open]), which changes no 9.12 code, both of 2026-09-06;
+  the ten arms of 2026-09-07 --- the lazy candidates, the reducing consumers,
+  the hoisted-bound fill and the fill not unrolled under the lean dispatch ([the
+  stride classes](#the-stride-classes-and-what-they-cover)) --- with `check`'s
+  laziness gate landing beside them and `lib-stage2-disp` retired that evening,
+  ten arms in and five out; and, later the same day, that gate's byte count
+  moved behind its failure branch, which is what makes a compiler pair's two
+  `check` outputs byte-identical again. `9702f20` had moved `Main.hs`
+  by comments alone after the pair was built. **Its delta against RUN 25**
+  is the eight commits of 2026-09-05 and 2026-09-06: the lean dispatch for every
+  arm that admits it, `libunord-stage3` and the two pointer fills joining
+  the timed roster, `cnn-L1-6x6-c1` back from the retired list
+  with `flip-inner-gap64`, `flip-outer-gap64` and `small-patch-r5`,
+  `mut-odo-vecdims-add-in-leaf` going to `Only`, and four arms parked after Run
+  23 --- `mut-odo-vecdims-add-in-leaf-down`, `canon-vecdims`, `lib-stage2`
   and `lib-stage2-short` --- timed again for this run alone, each back
   in its old slot. So NEITHER half reproduces an earlier binary and no md5 here
   matches one on record; a distance from Run 25's published column carries one

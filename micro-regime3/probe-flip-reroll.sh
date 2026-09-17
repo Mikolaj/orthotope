@@ -127,7 +127,8 @@ fi
 # doses the block pool before the first bench; the run used 1. If the fill
 # family reorders itself between dose 0, 1 and 4 on ONE binary, then what
 # decides this view's cells is the state of the pool and nothing else, which
-# is the claim GHC #27601 makes about that allocator.
+# is the claim GHC https://gitlab.haskell.org/ghc/ghc/-/work_items/27601
+# makes about that allocator.
 for rep in $(seq 1 "$REPS"); do
   SAT=0 leg g912 S0 "$rep"
   SAT=4 leg g912 S4 "$rep"

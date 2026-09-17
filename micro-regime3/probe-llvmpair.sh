@@ -1,11 +1,12 @@
 #!/bin/bash
 # The same change under the LLVM backend, because the mechanism is
 # register allocation and the two backends do not allocate alike: [the
-# ceiling]'s sixth reading has GHC's NCG picking a spill victim with no
-# next-use information at all (GHC #27742) where LLVM got these loops
-# spill-free. A win that is the NCG's alone is still worth having -- the
-# NCG is what a default build uses -- but it must be scoped, and this is
-# what scopes it.
+# ceiling]'s sixth reading has GHC's NCG picking a
+# spill victim with no next-use information at all (GHC
+# https://gitlab.haskell.org/ghc/ghc/-/work_items/27742) where LLVM got
+# these loops spill-free. A win that is the NCG's alone is still worth
+# having -- the NCG is what a default build uses -- but it must be
+# scoped, and this is what scopes it.
 #
 # BOTH SOURCES COME FROM GIT, and the first version of this took them
 # from /tmp instead: a tracked script whose recipe reads a scratch path
