@@ -1191,16 +1191,17 @@ rather than a slot in the next run, observed again:
   and not a reading. **What would settle it** is the cell timed on the original
   and one copy in one filtered process, interleaved, and the same
   on a byte-identical copy of the binary. Registered 2026-09-17.
-- `OPEN` **The chapter's own two reading windows land INSIDE a timed process,
-  and this run measured what that costs.** Run list step 15 puts the previous
-  run's registered predictions and the open list *after `sequence: start`*,
-  on the argument that the sequence is hours and a document read is minutes ---
-  a line written after Run 32's reading intruded on its GATE, one step earlier.
-  The reading-list digest puts the carrier's four `--section` reads in the same
-  window, saying outright that there it *costs nothing*. Run 33 obeyed both
-  and intruded on `run33-gheadexit-main`, the sequence's FIRST process: 3
-  of its 627 benches at or above 0.25 of a core, peak 0.35,
-  on `lenet-L1-28-c1-k5/mut-odo-vecdims-add-in-leaf-u2-aa-distant`,
+- `OPEN` **The chapter's two reading windows landed INSIDE a timed process until
+  2026-09-16, and what a reading costs the process it lands on is still
+  unmeasured.** Run list step 15, since folded into 13a before the launch, put
+  the previous run's registered predictions and the open list *after
+  `sequence: start`*, on the argument that the sequence is hours and a document
+  read is minutes --- a line written after Run 32's reading intruded
+  on its GATE, one step earlier. The reading-list digest puts the carrier's four
+  `--section` reads in the same window, saying outright that there it *costs
+  nothing*. Run 33 obeyed both and intruded on `run33-gheadexit-main`,
+  the sequence's FIRST process: 3 of its 627 benches at or above 0.25 of a core,
+  peak 0.35, on `lenet-L1-28-c1-k5/mut-odo-vecdims-add-in-leaf-u2-aa-distant`,
   `cnn-L1-6x6-c1/lib-stage2-lean`
   and `cnn-L1-6x6-c1/mut-odo-vecdims-add-in-leaf-u2-aa` --- registration (1)'s
   own arm and two of the copies the floor is read from. The rerun post-run step
@@ -1265,9 +1266,9 @@ rather than a slot in the next run, observed again:
 - `OPEN` **Class property 1's `bq-expand` clause breaks on ONE main-set cell,
   `stretch-pow2stride`, where the two arms tie.** The clause is a sanity check,
   `mut-odo-vecdims` ahead of `bq-expand` on every shape. It holds on every shape
-  of all ten classes on both halves, and on this one cell runs have read
-  `mut-odo-vecdims` on both sides of 1, every reading behind `bq-expand` inside
-  the floor of the half it was read on.
+  of all ten classes on both halves, and on this one cell the runs on disk have
+  read `mut-odo-vecdims` on both sides of 1, every reading behind `bq-expand`
+  inside the floor of the half it was read on.
   `./read-run.py --series mut-odo-vecdims bq-expand stretch-pow2stride` prints
   every run's reading on disk beside its half's floor. The entry stays OPEN
   on one question: whether any run reads `mut-odo-vecdims` BEHIND `bq-expand`
@@ -3625,26 +3626,26 @@ the cross priors and the prose to read by hand, which is most of pre-run step
 12b done mechanically. A STEP SKIPPED: none.
 
 **THE WRITE-UP SESSION'S HALF, and the first item is one the chapter caused.**
-**THIS RUN INTRUDED ON ITS OWN GATE, AND RUN LIST STEP 15 IS WHY.** Step 14
-launches the whole evening as one command and step 15 says *WHILE IT RUNS, READ*
---- but the evening's FIRST stage is the gate, a half hour, and the reading
-lands inside it: `run32-gate-nospec-a` carries 2 of its 95 benches at or above
-0.25 of a core, 0.82 and 0.68 on `cnn-L1-6x6-c1`, while the other three gate
-processes, all twenty-two sequence processes and all eighty-eight alone-leg logs
-are clean. Nothing was lost --- no figure this run publishes comes from a gate
-process, and the gate's verdict survives dropping that shape from both passes,
-no spread moving more than 0.17 of a point --- but the instruction as written
-asks for the intrusion. **THE TASK IT LEAVES** is to scope steps 15 and 18
-to the SEQUENCE rather than to the evening: the reading is safe
-from `sequence: start` onward and is not safe before it, which the stage monitor
-already announces. **A CHECK THAT WOULD HAVE CAUGHT AN ERROR, and did.**
-The head was about to claim that no pair here had ever moved no arm past 3%;
-ranking the population instead --- one `--movers` loop over the nine pairs whose
-halves are both still on disk --- refuted it in one call, Run 28's compiler pair
-having read the same. The superlative rule wants the population SORTED
-and this is the run where that bought something. **A DEFECT FOUND
-IN THE PUBLISHED COLUMN, and it is this run's durable finding about
-the tooling.** `lib-stage2-lean-u1` prints 0.025 in the `time` column here
+**THIS RUN INTRUDED ON ITS OWN GATE, AND RUN LIST STEP 15 WAS WHY.** Step 14
+launched the whole evening as one command and step 15, since folded into 13a,
+said *WHILE IT RUNS, READ* --- but the evening's FIRST stage is the gate, a half
+hour, and the reading lands inside it: `run32-gate-nospec-a` carries 2 of its 95
+benches at or above 0.25 of a core, 0.82 and 0.68 on `cnn-L1-6x6-c1`, while
+the other three gate processes, all twenty-two sequence processes and all
+eighty-eight alone-leg logs are clean. Nothing was lost --- no figure this run
+publishes comes from a gate process, and the gate's verdict survives dropping
+that shape from both passes, no spread moving more than 0.17 of a point ---
+but the instruction as written asks for the intrusion. **THE TASK IT LEAVES**
+is to scope steps 15 and 18 to the SEQUENCE rather than to the evening:
+the reading is safe from `sequence: start` onward and is not safe before it,
+which the stage monitor already announces. **A CHECK THAT WOULD HAVE CAUGHT
+AN ERROR, and did.** The head was about to claim that no pair here had ever
+moved no arm past 3%; ranking the population instead --- one `--movers` loop
+over the nine pairs whose halves are both still on disk --- refuted it in one
+call, Run 28's compiler pair having read the same. The superlative rule wants
+the population SORTED and this is the run where that bought something.
+**A DEFECT FOUND IN THE PUBLISHED COLUMN, and it is this run's durable finding
+about the tooling.** `lib-stage2-lean-u1` prints 0.025 in the `time` column here
 and 0.029 on `run31-nospec`, fourteen points from level, where the cross-run
 PAIRED reading is 0.9839 and the plain per-shape geomean moves from 0.03036
 to 0.02978. The column is a winsorized geomean with four of nineteen cells
@@ -4609,8 +4610,8 @@ codegen rather than that it cannot be built.
   one, bought with a rewrite of the write-up procedure, and the cross-class
   summary's emphasis is a per-run judgement no ledger can render either.
   **The direction since 2026-09-17 is the installers', extended one section
-  at a time**, each installment a mode that emits or writes prose a write-up
-  used to type: the class paragraph's figures with `___` for its finding
+  at a time**, each installment taking out of a write-up's hands prose it used
+  to type: the class paragraph's figures with `___` for its finding
   (`--block --compare`, installed by `install-tables.sh`), each registration
   item's span readings (`--predictions --in-place`), the apparatus every run
   file carried, kept once in [Reading a run file](#reading-a-run-file), and one
@@ -9402,8 +9403,9 @@ not otherwise.
     #      foreign CPU during its samples. That last is what tells a WILD
     #      CELL from an external intrusion -- both being a moved mutator
     #      clock at flat RTS totals, and the difference being whether
-    #      anything else was running. Reach for it when a cell in step 1's
-    #      worst-cell column wants explaining, not on every process.
+    #      anything else was running. Step 4's post-run-readings.sh takes
+    #      it over every log, as wild-LOG.txt; read a log's own table
+    #      when a cell in step 1's worst-cell column wants explaining.
     #      THE `fgn/core` COLUMN IS A RATIO OF ONE CORE, NOT A PERCENT,
     #      and at or above 0.25 the reader calls it an INTRUSION and
     #      says so in one line at the foot of the table. READ THAT LINE
@@ -9482,11 +9484,9 @@ not otherwise.
     #      call: every A/A copy against its original, per population and
     #      half, with each population's floor and the pair that carries
     #      it
-    #      main-<half>-deflation.txt, on both halves:
-    #      THE DECOMPOSITION IS A HEAD FIGURE and is taken here rather
-    #      than at 10a: the head's own paragraph quotes it, so a
-    #      write-up reaching it at 10a reaches it after the paragraph is
-    #      written. 10a keeps the number
+    #      main-<half>-deflation.txt, on both halves: THE DECOMPOSITION
+    #      IS PROVENANCE'S and is taken here with the rest; 10a keeps the
+    #      number
     #      AND THE BAR THE CROSS-HALF FIGURES ARE READ AGAINST comes off
     #      the plain `--compare` file, which prints how far an arm and
     #      its own A/A duplicate part IN THAT COMPARISON and names the
@@ -9677,9 +9677,10 @@ not otherwise.
     #      it generalises over figures not yet adjudicated. The class
     #      blocks, the registration verdicts and Provenance are
     #      mechanical and settle their own figures; the head then
-    #      summarises settled ones, in FIVE PARAGRAPHS -- the pair, the
-    #      headline, the registration tally, anomalies and what the
-    #      next run takes -- which `--check-doc` holds it to: the gate,
+    #      summarises settled ones, in at most FIVE PARAGRAPHS -- the
+    #      pair and its headline, what the registration was built to
+    #      show, the registration tally, anomalies and what the next
+    #      run takes -- which `--check-doc` holds it to: the gate,
     #      window, intrusion, repetition, `.text`, regime, straddlers and
     #      decomposition are Provenance's. TWO TABLES HERE ARE
     #      HAND-EDITED and neither is installed: the two-column geomeans
@@ -11485,24 +11486,25 @@ and not a list there --- each carrying the same six things and nothing else:
    on a class and not on the main set, which is how Run 14 answered its `scaled`
    question. A run whose halves differ in nothing a class can see says so
    in a clause;
-6. one paragraph of what the class says, and none where it says nothing:
-   an ordering that inverted, a `worst` above 1, an allocation tier that moved,
-   a mechanism showing through a single cell. A class that reproduces the main
-   ordering gets one sentence saying so, that being a result and reading as one.
+6. one paragraph of what the class says, and none where it says nothing,
+   the install's skeleton then being deleted: an ordering that inverted,
+   a `worst` above 1, an allocation tier that moved, a mechanism showing through
+   a single cell. A class that reproduces the main ordering gets one sentence
+   saying so, that being a result and reading as one.
 
 `./read-run.py RUN.json --block --compare OTHER.json` assembles items 3 through
-5's mechanical parts and, given both sweeps with `--counts`, item 6's figures,
-and `install-tables.sh` writes them in in one call --- table, controls,
-the provenance and anchor skeleton, a three-shape population's per-shape line,
-the cross-half line, and item 6 with `___` where the finding goes,
-over the carried paragraph or an unfilled one and never over a written one;
-the lead and the finding stay the author's. Item 2's own table is NOT among what
-that call prints, which is why the list above starts where it does: it comes
-from the separate `--block --in-place` call item 2 itself names.
-**The cross-half line carries its own disqualification**: where `list` moves
-more than 0.7% between the halves the line says so and says it is not read
-for the pair's variable --- a reading Run 18 needed, and which no other output
-showed.
+5's mechanical parts and item 6's figures, its counts geomean where both sweeps
+are given with `--counts`, and `install-tables.sh` writes them in in one call
+--- table, controls, the provenance and anchor skeleton, a three-shape
+population's per-shape line, the cross-half line, and item 6 with `___` where
+the finding goes, over the carried paragraph or an unfilled one and never
+over a written one; the lead and the finding stay the author's. Item 2's own
+table is NOT among what that call prints, which is why the list above starts
+where it does: it comes from the separate `--block --in-place` call item 2
+itself names. **The cross-half line carries its own disqualification**: where
+`list` moves more than 0.7% between the halves the line says so and says
+it is not read for the pair's variable --- a reading Run 18 needed, and which
+no other output showed.
 
 The blocks carry no headings of their own. One per class would crowd
 the contents and the replace list alike, where a bolded lead reads the same
@@ -11956,8 +11958,8 @@ benches, 12m08s, 21334 sample records. **Run 17 has since reproduced the finding
 at scale and out of a recorded run**, at 74.48% on `revsome-inner-primes`
 with allocation, heap and collector flat across a 67% mutator difference,
 so what this probe established on one hand-run process the roster now
-establishes on its own; the run file's head carries it. **The 43.43% cell did
-not come back** --- `mut-odo-aa-distant`'s worst is 15.35% here and
+establishes on its own; the run file's Provenance carries it. **The 43.43% cell
+did not come back** --- `mut-odo-aa-distant`'s worst is 15.35% here and
 on a different shape, its adjacent twin's 12.59% --- which is itself
 the standing ruling holding: the magnitude does not repeat. What the per-sample
 record settles is what the spread is NOT made of. Between an arm and its own
@@ -14569,17 +14571,18 @@ of the structure and would rot the first time a lead was reworded, which
 is the failure this list was rewritten to escape.
 
 - [the run's own file](runs/run34.md) ENTIRE, which is what makes it a file:
-  its head of five paragraphs, the pair, the headline, the registration tally,
-  anomalies and what the next run takes; the Results table and the findings
-  under it, with which half published what; its own two-column geomeans
-  and the two-column per-shape fingerprint, which are the only record kept once
-  the JSON is deleted; the properties, where a run reports which held rather
-  than re-deriving them; each class's own table, controls, provenance, anchor
-  and paragraph; and its own Provenance, carrying what the pair was, its regime,
-  scale and source commit, how the sequence ran and was gated, the three
-  main-set anchors with the class ones, the straddlers and the layout span
-  a roster order change alone is worth, the decomposition, and the correction's
-  span. The bullets that used to name those sections one by one are this one,
+  its head of at most five paragraphs, the pair and its headline, what
+  the registration was built to show, the registration tally, anomalies and what
+  the next run takes; the Results table and the findings under it, with which
+  half published what; its own two-column geomeans and the two-column per-shape
+  fingerprint, which are the only record kept once the JSON is deleted;
+  the properties, where a run reports which held rather than re-deriving them;
+  each class's own table, controls, provenance, anchor and paragraph;
+  and its own Provenance, carrying what the pair was, its regime, scale
+  and source commit, how the sequence ran and was gated, the three main-set
+  anchors with the class ones, the straddlers and the layout span a roster order
+  change alone is worth, the decomposition, and the correction's span.
+  The bullets that used to name those sections one by one are this one,
   and the coverage check below reads it as covering every heading in that file;
 - [the recommended tasks after Run 34](#recommended-tasks-after-run-34), which
   is run-scoped by its own title: a task taken or superseded leaves it --- which

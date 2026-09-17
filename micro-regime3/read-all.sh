@@ -707,10 +707,11 @@ for_brief () {
             | head -1)
   # THE REST OFF post-run-readings.sh's FILES, since 2026-09-17: the
   # cross-run span, the intrusion verdict, the class shape counts, the
-  # counted work's range and the registration tally were each typed from
-  # a reading that script had already written, and Run 34 typed all five.
-  # A file absent leaves its slot <yours>, naming the command that writes
-  # it; what stays typed is the pair's variable and the largest finding.
+  # counted work's range and the registration tally were each typed by hand
+  # from a reading, Run 34's five among them, and that script now writes
+  # every one of those readings. A file absent leaves its slot <yours>,
+  # naming the command that writes it; what stays typed is the pair's
+  # variable and the largest finding.
   RD="log-read-$R"
   want () { echo "<yours: $1 -- no $2 in $RD/, which ./post-run-readings.sh $R writes${3:-}>"; }
   count () { n=0; for f in "$@"; do [ -f "$f" ] && n=$((n + 1)); done; echo "$n"; }

@@ -1231,7 +1231,7 @@ def parked_arm():
 
 def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
                                lead_extra=None, unscoped=False, bare=False,
-                               script='read-run.py'):
+                               script='read-run.py', views_only=False):
     """The README plus a synthetic OPEN registration, at the end.
 
     SYNTHETIC and not an edit of the live one, which is the whole point:
@@ -1275,6 +1275,9 @@ def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
                   " `script: %s`." % (arm, script))
     if bare:
         entry += " (5) *The unread.* Something moves; killed by nothing."
+    if views_only:
+        entry += (" (6) *The views.* `predict: countdiff mut-odo-vecdims"
+                  " bq-expand under 100 on views stretch-primes both`.")
     if task:
         entry += " (3) *The additions.* Task %s's, read there." % task
     if task_arm:
@@ -9887,6 +9890,17 @@ RECORDS = [
                                class_names()[0])],
               hasnt=['rc='])),
 
+    case('readings-count-a-crashed-reading', 'post-run-readings.sh', None,
+         'CONTROL: a reading that dies in a traceback exits 1, which is a'
+         ' reading\'s own verdict code, and is counted as not having happened',
+         # Found by review, 2026-09-17: the exit rule read the status alone.
+         shadow=dict(extra=readings_run('zzpr6', complete=False),
+                     mutate=[('read-run.py', 'def winsor_table(cells, shapes,'
+                              ' strategies):', 'def winsor_table(cells, shapes,'
+                              ' strategies):\n    raise RuntimeError("planted")')]),
+         argv=['zzpr6'],
+         ok=V(exit=1, has=['crashed: main-a1g-winsor.txt main-lookrts-winsor.txt'])),
+
     case('readings-cells-dump-is-stdout-alone', 'post-run-readings.sh', None,
          'CONTROL: a -cells.tsv carries the TSV alone, the reader\'s'
          ' header and warnings on stderr being in the other files',
@@ -11269,6 +11283,18 @@ RECORDS = [
              t, unscoped=True)},
          argv=['--lint', '--readme', '{readme}'],
          ok=V(exit=1, has=['carries no scope'])),
+
+    case('registration-views-are-no-population-scope', 'read-run.py', None,
+         'CONTROL: `on views S` names shapes and not a population, so a'
+         ' countdiff span carrying it and no `on POP` is refused as unscoped',
+         # The scope test once looked for an `on` token anywhere, and the
+         # `on` of `on views` satisfied it, so the span passed lint and was
+         # read on every file it was handed. Found by review, 2026-09-17.
+         plant=lambda t: {'readme': readme_with_a_registration(
+             t, views_only=True)},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(exit=1, has=['item (6) span `predict: countdiff',
+                           'carries no scope'])),
 
     case('registration-item-is-adjudicable', 'read-run.py', None,
          'CONTROL: an item with neither a span nor a committed script is'

@@ -2736,7 +2736,7 @@ def predictions_in_place(args):
     `--predictions` reads one population and one half a call, and post-run
     step 5c looped it over every population on both halves and then
     transcribed each reading beside its item: Run 34's did that for five
-    items and ten populations. This takes the loop -- every `RUN-HALF-POP`
+    items over eleven populations. This takes the loop -- every `RUN-HALF-POP`
     JSON beside the one given, each half against the other, the two sweeps
     where both are on disk -- and writes one paragraph per item carrying
     spans and no `script:`, led `**Read by --predictions, item (N):**`,
@@ -3576,15 +3576,15 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
              % ', '.join('(%s)' % u for u in unspanned) if unspanned
              else '; every item carries a span or a script'))
     # WHICH POPULATIONS EACH ITEM IS READ ON, added 2026-09-13. This mode
-    # adjudicates every span on whatever file it is handed, and an item
+    # adjudicates an unscoped span on whatever file it is handed, and an item
     # naming `runs` read on the main set comes back KILLED for being asked
     # the wrong question -- thirteen of Run 30's twenty-one main-set spans
     # were exactly that. The item says where it is read; nothing read it,
     # so the write-up hand-rolled the mapping in a throwaway script, which
     # the chapter calls a defect report against the reader. This prints the
-    # mapping and the call each population owes; the spans are still
-    # adjudicated one population at a time, which is what the loop below
-    # names rather than hides.
+    # mapping and the call each population owes; a span is adjudicated one
+    # population at a time, which is what the loop below names rather than
+    # hides, and `--predictions --in-place` takes that loop itself.
     if pop_paths:
         # The main set is the file the spans above were read on, so it is
         # available whether or not its JSON is among the paths; without
@@ -5533,13 +5533,13 @@ def series_table(a, b, shape, args, where='.'):
 
     `a` over `b` on SHAPE, on each run's main set on each half, off the
     notes and JSONs in WHERE: the cell's ratio on `net`, or on `slope`
-    where either arm has no corrected time, beside that half's main-set
-    floor, so whether a reading clears it is read off the row. Written
-    2026-09-17 for `mut-odo-vecdims` over `bq-expand` on
+    where either arm has no corrected time, beside that half's
+    main-set floor, so whether a reading clears it is read off the
+    row. Written 2026-09-17 for `mut-odo-vecdims` over `bq-expand` on
     `stretch-pow2stride`, whose readings Runs 30 to 34 requoted in the
-    properties, the head, README's opening and an open entry, every one
-    listing every run. A reading and not a gate: exit 0, and 2 where no
-    run on disk carries the cell.
+    properties, the head, README's opening and an open entry, the entry and
+    the properties listing every run. A reading and not a gate: exit 0, and
+    2 where no run on disk carries the cell.
     """
     def run_no(path):
         return int(re.match(r'run(\d+)', os.path.basename(path)).group(1))
@@ -6580,7 +6580,8 @@ SETTLE_BY = [(re.compile(p, re.I), mode) for p, mode in (
 def settling_mode(line):
     """The mode `SETTLE_BY` names for a superlative's sentence.
 
-    The SENTENCE and not the hit: a hit is a whole unwrapped paragraph, and
+    The SENTENCE carrying the hit's first superlative and not the hit, one
+    mode a line of the sweep: a hit is a whole unwrapped paragraph, and
     keyed on that, a paragraph naming a floor anywhere sent its every
     superlative to --floor-pairs -- ninety-three of the live documents'
     hundred and seventy-three when this was first run.
@@ -10929,9 +10930,11 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         m = re.search(r'^## ', text, re.M)
         return (text[:m.start()], text[m.start():]) if m else (text, '')
 
-    # THE HEAD IS FIVE PARAGRAPHS past the preamble, since 2026-09-17: the
-    # pair, the headline, the registration tally, anomalies and what the
-    # next run takes. Run 34's ran to twenty-one, most of them restating
+    # THE HEAD IS AT MOST FIVE PARAGRAPHS past the preamble, since
+    # 2026-09-17: the pair and its headline, what the registration was built
+    # to show, the registration tally, anomalies and what the next run
+    # takes. An upper bound and not a form check: which paragraph is which
+    # stays the reading's. Run 34's ran to twenty-one, most of them restating
     # Provenance or a class block -- the gate, the window, intrusion,
     # repetition, `.text`, the regime, the straddlers and the
     # decomposition -- each restatement one more site two copies of a
@@ -10941,11 +10944,12 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                                    figures_only=False)) - 1
         if n_head > HEAD_PARAGRAPHS:
             bad.append("%s's head carries %d paragraphs past its preamble,"
-                       ' and the form is %d: the pair, the headline, the'
-                       ' registration tally, anomalies and what the next run'
-                       ' takes -- the gate, window, intrusion, repetition,'
-                       ' regime, straddlers and decomposition are'
-                       " Provenance's"
+                       ' and the form is at most %d: the pair and its'
+                       ' headline, what the registration was built to show,'
+                       ' the registration tally, anomalies and what the next'
+                       ' run takes -- the gate, window, intrusion,'
+                       ' repetition, `.text`, regime, straddlers and'
+                       " decomposition are Provenance's"
                        % (os.path.basename(run_doc), n_head,
                           HEAD_PARAGRAPHS))
         else:
@@ -12330,8 +12334,16 @@ def lint(main_hs, readme, run_doc=None):
                 scripts = re.findall(r'`script: ([^`]+)`', body)
                 for sp in spans:
                     tk = sp.split()
-                    if 'on' not in tk or not {'basis', 'control',
-                                              'both'} & set(tk):
+                    # AN `on` NAMING A POPULATION, and not the `on` of
+                    # `on views S,...`, which names shapes: the first form
+                    # of this test took either, so a countdiff span naming
+                    # views and no population passed and was read on
+                    # every file. Case: `registration-views-are-no-
+                    # population-scope`.
+                    pops = [tk[k + 1] for k in range(len(tk) - 1)
+                            if tk[k] == 'on' and tk[k + 1] != 'views']
+                    if not pops or not {'basis', 'control',
+                                        'both'} & set(tk):
                         trouble.append("Run %s's item (%s) span `predict:"
                                        " %s` carries no scope: it wants"
                                        ' `on POP,...` and basis, control or'
@@ -13012,7 +13024,8 @@ def main():
                         ' note asks for leg by leg')
     p.add_argument('--movement', action='store_true',
                    help="the published `time` column of this run against"
-                        " the table in --run-doc, row by row -- post-run"
+                        " the table in --run-doc, the note's COMPARE run's"
+                        ' file unless given, row by row -- post-run'
                         ' step 5a, whose window the install closes')
     p.add_argument('--floor-pairs', dest='floor_pairs', metavar='RUN',
                    help="every A/A copy of RUN against its original, per"

@@ -33,9 +33,9 @@
 # READ_JOBS sets how many run at once, 6 unless given. Each
 # reading's exit prints beside its file, and the files are for grep, as
 # the chapter's step 4 says. Exit 0 when every reading ran, 1 when any
-# exited 2 or worse -- did not happen, a --wild over a log with no
-# samples excepted -- and 2 when nothing could be read: usage, no note,
-# no JSON on the basis half.
+# did not -- exited 2 or worse, a --wild over a log whose file says it
+# carries no samples excepted, or died in a traceback -- and 2 when
+# nothing could be read: usage, no note, no JSON on the basis half.
 set -u
 cd "$(dirname "$0")" || exit 2
 LIST=0
@@ -140,11 +140,24 @@ cat "$JOBS.rc"
 N=$(grep -c . "$JOBS.rc")
 # A --wild reading exits 2 on a log carrying no samples, which the run's
 # wallclock log and its riders' driver logs never do: that is the verdict
-# --for-brief quotes, and not a reading that did not happen.
-LOST=$(awk '{ sub(/^rc=/, "", $1) } $1 + 0 >= 2 && $2 !~ /^wild-/' "$JOBS.rc" | grep -c .)
-BARE=$(awk '{ sub(/^rc=/, "", $1) } $1 + 0 == 2 && $2 ~ /^wild-/' "$JOBS.rc" | grep -c .)
+# --for-brief quotes, and not a reading that did not happen -- where its
+# file says so, a --wild exit 2 for any other reason counting as lost.
+# And a reading that died in a traceback exits 1, a reading's own verdict
+# code, so the files are read for one.
+LOST=0; BARE=0
+while read -r rc out; do
+  case $rc in rc=0|rc=1) continue ;; esac
+  if [ "$rc" = rc=2 ] && [ "${out#wild-}" != "$out" ] \
+     && grep -q 'no paired `@@wild` samples\|^NO LOAD FIELDS' "$D/$out"; then
+    BARE=$((BARE + 1))
+  else
+    LOST=$((LOST + 1))
+  fi
+done < "$JOBS.rc"
+CRASHED=$(cd "$D" && grep -l 'Traceback (most recent call last)' -- * 2>/dev/null | sort | tr '\n' ' ')
 rm -f "$JOBS" "$JOBS.rc"
 echo "$N reading(s) into $D/, $LOST of them exiting 2 or worse; $BARE log(s) carry no --wild samples"
+[ -z "$CRASHED" ] || { echo "!! crashed: ${CRASHED% }"; LOST=$((LOST + 1)); }
 if [ "$COMPLETE" = 0 ]; then
   echo "-- the counts comparisons and --half-movers: not before EVENING COMPLETE,"
   echo "   which $R-evening.txt does not end with yet; run this again then"
