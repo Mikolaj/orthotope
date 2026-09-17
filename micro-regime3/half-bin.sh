@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Where a half is LAUNCHED from, since 2026-09-16: its byte-identical copy
 # in hugebin/, a tmpfs mounted `huge=always` under this directory, so that
-# the physical frames of its code pages are a function of the layout and
-# not a draw the page cache made when the on-disk file was first read --
+# a code page sits at its layout's offset in a 2 MiB frame and not in the
+# 4 KiB frame the page cache drew when the on-disk file was first read --
 # README's placement section prices that draw at 15 percent on one arm of
-# Run 33's basis and 11 on one of its control. The on-disk file stays the
-# record: it is what the note provenances, what preflight reads, and what
-# is offered for deletion; the copy is refreshed here whenever its md5
-# parts from the record's.
+# Run 33's basis and 11 on one of its control. Which 2 MiB frame a copy
+# gets is still a draw: two mounted copies of run34-exit parted by 7.5
+# percent on one cell. The on-disk file stays the record: it is what the
+# note provenances, what preflight reads, and what is offered for deletion;
+# the copy is refreshed here whenever its md5 parts from the record's.
 #
 #     B=$(./half-bin.sh RUN HALF) || exit 2
 #
