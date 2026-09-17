@@ -22,8 +22,9 @@
 # ONCE $R-evening.txt ENDS `EVENING COMPLETE:`, and not before, the
 # readings that want the counts: --compare --counts per population,
 # basis first, as POP-counts-cmp.txt, and --half-movers against the
-# note's COMPARE run as half-movers.txt, and each -pred.txt reads the two
-# sweeps beside its comparison, so a counts or countdiff span is read.
+# note's COMPARE run as half-movers.txt; and each -pred.txt and class
+# -blockcmp.txt reads the two sweeps beside its comparison, so a counts or
+# countdiff span is read and the class paragraph quotes its counts.
 # Before then a counts column reads `--`, and Run 34 took its 4a that way
 # and took it again.
 #
@@ -77,7 +78,7 @@ for p in $POPS; do
       pc=""; [ "$COMPLETE" = 1 ] && pc=" --counts $R-counts-$h$s.txt $R-counts-$o$s.txt"
       job "$p-$h-compare.txt ./read-run.py $j --compare $R-$o-$p.json"
       job "$p-$h-pred.txt ./read-run.py $j --compare $R-$o-$p.json --predictions$pc"
-      [ "$p" = main ] || job "$p-$h-blockcmp.txt ./read-run.py $j --block --compare $R-$o-$p.json --brief"
+      [ "$p" = main ] || job "$p-$h-blockcmp.txt ./read-run.py $j --block --compare $R-$o-$p.json --brief$pc"
     fi
   done
 done

@@ -272,7 +272,23 @@ if sorted(leads) != sorted(LEADS.split()):
           ' figures overwrite its own')
     sys.exit(1)
 order = sorted(leads.items(), key=lambda kv: kv[1])
-done = 0
+done = says_new = says_kept = 0
+# WHAT THE CLASS SAYS IS PROSE ONCE WRITTEN, so its skeleton is installed
+# only over the CARRIED copy -- the paragraph as the run file's first
+# commit had it, which is the previous run's -- or over a skeleton still
+# carrying `___`, and any other is the author's and kept. A file git has
+# no commit of carries nothing to tell apart, so only a `___` is replaced.
+carried = set()
+added = subprocess.run(['git', 'log', '--diff-filter=A', '--format=%H', '--',
+                        DOC], capture_output=True, text=True)
+rel = subprocess.run(['git', 'ls-files', '--full-name', DOC],
+                     capture_output=True, text=True).stdout.strip()
+if added.returncode == 0 and added.stdout.split() and rel:
+    first = subprocess.run(['git', 'show', '%s:%s' % (added.stdout.split()[-1],
+                                                      rel)],
+                           capture_output=True, text=True)
+    if first.returncode == 0:
+        carried = {' '.join(q.split()) for q in first.stdout.split('\n\n')}
 for n, (c, start) in enumerate(reversed(order)):
     k = [x for x, _ in order].index(c)
     # The LAST block ends at the next heading, not at the end of the file.
@@ -312,9 +328,13 @@ for n, (c, start) in enumerate(reversed(order)):
         print(f'  note {c}: no {other_json}, so no cross-half line is'
               f' installed -- correct for a run that recorded one half,'
               f' and a wrong OTHER otherwise')
+    sweeps = [f'{R}-counts-{BASIS}-{c}.txt', f'{R}-counts-{OTHER}-{c}.txt']
     got = subprocess.run(['./read-run.py', f'{R}-{BASIS}-{c}.json', '--block',
                           '--brief']
-                         + (['--compare', other_json] if have_other else []),
+                         + (['--compare', other_json] if have_other else [])
+                         + (['--counts'] + sweeps
+                            if have_other and all(map(os.path.exists, sweeps))
+                            else []),
                          capture_output=True, text=True)
     if got.returncode != 0:
         # The reader's own words, not a guess about the block's shape: an
@@ -335,6 +355,7 @@ for n, (c, start) in enumerate(reversed(order)):
         return ' '.join(g.group(1).split()) if g else None
     ctrl, prov, per = grab('Controls:'), grab('Provenance:'), grab('Per shape')
     across = grab('Across the halves:') if have_other else None
+    says = grab('What the class says:') if have_other else None
     if have_other and not across:
         print(f'  REFUSED {c}: the other half is on disk and --block emitted'
               f' no cross-half line, so item 5 of the form would be left'
@@ -375,6 +396,11 @@ for n, (c, start) in enumerate(reversed(order)):
         elif s.startswith('Per shape'): paras[j] = per; done += 1
         elif across and s.startswith('Across the halves:'):
             paras[j] = across; done += 1
+        elif says and s.startswith('What the class says:'):
+            if '___' in paras[j] or ' '.join(paras[j].split()) in carried:
+                paras[j] = says; says_new += 1
+            else:
+                says_kept += 1
     # Item 5 owed -- the other half on disk, the line emitted -- and no
     # `Across the halves:` slot in the block to fill: the loop above
     # matched nothing and moved on, which dropped the line in silence.
@@ -394,6 +420,12 @@ for n, (c, start) in enumerate(reversed(order)):
         print(f'  {c}: per-shape line ADDED, the block had none')
 open(DOC, 'w').write('\n\n'.join(paras))
 print(f'  {done} computed paragraph(s) installed across {len(order)} class block(s)')
+if says_new:
+    print(f'  {says_new} `What the class says:` skeleton(s) installed, each'
+          f' `___` the finding the block owes')
+if says_kept:
+    print(f'  {says_kept} `What the class says:` paragraph(s) kept, written'
+          f' since the run file was first committed')
 ENDPY
 
 # The one rank, and the one thing here that writes nothing. Assigned and

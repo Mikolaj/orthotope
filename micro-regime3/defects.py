@@ -2422,7 +2422,7 @@ def doc_expr(blocks):
 
 
 def synth_counts(tmp, name, ratio=1.0, refuse=(), extra_arms=(), n=50,
-                 cheap_sum_only=False):
+                 cheap_sum_only=False, shapes=None):
     """One half's `run-counts.sh` artifact, derived as `synth_run` is.
 
     The arms come from Main.hs's roster through the reader's own parser and
@@ -2447,7 +2447,7 @@ def synth_counts(tmp, name, ratio=1.0, refuse=(), extra_arms=(), n=50,
     main_hs = os.path.join(HERE, 'Main.hs')
     roster = m.roster_of(open(main_hs).read())
     arms = [a for a, role, _ in roster if role != 'Only'] + list(extra_arms)
-    shapes = main_shapes()
+    shapes = main_shapes() if shapes is None else shapes
     path = os.path.join(tmp, name)
     refused = {(s, a) for s, a in refuse}
     with open(path, 'w') as f:
@@ -2515,6 +2515,22 @@ def rundoc_without_across(tmp):
         raise AssertionError('no `Across the halves:` paragraph in the run'
                              ' file to delete')
     return write_rundoc(tmp, '\n\n'.join(kept))
+
+
+def rundoc_with_unwritten_class_says(tmp):
+    """The run file with every class block's `What the class says:`
+    paragraph a skeleton still carrying its `___`, as install-tables.sh
+    writes one: the state in which the install owes it afresh."""
+    paras = rundoc_text().split('\n\n')
+    n = 0
+    for i, p in enumerate(paras):
+        if p.lstrip().lstrip('*').startswith('What the class says:'):
+            paras[i] = '**What the class says:** ___ a skeleton left unfilled.'
+            n += 1
+    if not n:
+        raise AssertionError('no `What the class says:` paragraph in the run'
+                             ' file')
+    return write_rundoc(tmp, '\n\n'.join(paras))
 
 
 def an_across_paragraph():
@@ -7803,6 +7819,23 @@ RECORDS = [
               has=['winsorizing, per timed row', 'plain', 'published',
                    'capped', 'lib-stage1'])),
 
+    case('block-compare-writes-what-the-class-says', 'read-run.py', None,
+         'CONTROL: --block --compare with both sweeps prints the class'
+         ' paragraph\'s figures with `___` where the finding goes',
+         # Run 34 wrote ten such paragraphs, each restating the verdict
+         # lines, the cross-half line and the counts comparison by hand.
+         plant=lambda t: {
+             'a': synth_json(t, 'bcast', name='a.json'),
+             'b': synth_json(t, 'bcast', name='b.json'),
+             'ca': synth_counts(t, 'ca.txt', cheap_sum_only=True,
+                                shapes=class_shapes('bcast')),
+             'cb': synth_counts(t, 'cb.txt', cheap_sum_only=True,
+                                shapes=class_shapes('bcast'))},
+         argv=['{a}', '--block', '--brief', '--compare', '{b}', '--counts',
+               '{ca}', '{cb}'],
+         ok=V(exit=0, has=['**What the class says:** property 1',
+                           'A/A bar of', 'counts geomean of 1.0000', '___'])),
+
     case('winsor-censuses-the-pairs-that-part-in-sign', 'read-run.py', None,
          'CONTROL: --winsor counts the pairs of timed rows whose column'
          ' ratio and paired geomean part in sign, and names the widest'
@@ -9796,7 +9829,15 @@ RECORDS = [
          ok=V(exit=0, has=['main-a1g-pred.txt ./read-run.py'
                            ' zzpr5-a1g-main.json --compare'
                            ' zzpr5-lookrts-main.json --predictions --counts'
-                           ' zzpr5-counts-a1g.txt zzpr5-counts-lookrts.txt'],
+                           ' zzpr5-counts-a1g.txt zzpr5-counts-lookrts.txt',
+                           # and the class block, whose item 6 quotes the
+                           # counts geomean
+                           '{0}-a1g-blockcmp.txt ./read-run.py'
+                           ' zzpr5-a1g-{0}.json --block --compare'
+                           ' zzpr5-lookrts-{0}.json --brief --counts'
+                           ' zzpr5-counts-a1g-{0}.txt'
+                           ' zzpr5-counts-lookrts-{0}.txt'.format(
+                               class_names()[0])],
               hasnt=['rc='])),
 
     case('readings-cells-dump-is-stdout-alone', 'post-run-readings.sh', None,
@@ -10621,6 +10662,32 @@ RECORDS = [
          ok=V(exit=1, has=['carries a hyphen'], hasnt=['table(s) installed']),
          bug=V(exit=1, has=['REFUSED', 'across %d class block(s)' % (len(recorded_classes()) - 1)],
                hasnt=['carries a hyphen'])),
+
+    case('install-writes-what-the-class-says', 'install-tables.sh', None,
+         'CONTROL: a block whose `What the class says:` paragraph still'
+         ' carries `___` gets this run\'s skeleton, figures in place',
+         plant=lambda t: {'doc': rundoc_with_unwritten_class_says(t)},
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                             prefix='zzws',
+                                             classes=recorded_classes())),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['zzws'],
+         probe=lambda subs: open(subs['doc']).read(),
+         ok=V(exit=0, has=['`What the class says:` skeleton(s) installed',
+                           '**What the class says:** property 1'],
+              hasnt=['a skeleton left unfilled'])),
+
+    case('install-keeps-a-written-class-says', 'install-tables.sh', None,
+         'CONTROL: a `What the class says:` paragraph with no `___` is the'
+         ' author\'s, and a rerun of the install leaves it',
+         plant=lambda t: {'doc': edited_rundoc(t)},
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                             prefix='zzwk',
+                                             classes=recorded_classes())),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['zzwk'],
+         ok=V(exit=0, has=['`What the class says:` paragraph(s) kept'],
+              hasnt=['skeleton(s) installed'])),
 
     case('install-is-idempotent', 'install-tables.sh', None,
          'CONTROL: a full pass over an untouched run file rewrites no table',

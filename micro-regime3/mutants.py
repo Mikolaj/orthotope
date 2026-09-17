@@ -31,8 +31,8 @@ MUTANTS = [
     # the bar printed and empties the list.
     ('the A/A bar names no arm that clears it',
      'read-run.py',
-     '        past = sorted(t for d, t in arms if d > bar)',
-     '        past = []',
+     '    past = sorted(t for d, t in arms if d > bar)',
+     '    past = []',
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\na = d.synth_json(t, \'main\', name=\'a.json\')\nb = d.synth_json(t, \'main\', name=\'b.json\', skew=[(d.main_shapes()[0], \'lib-stage1\', 4)])\nr = subprocess.run([sys.executable, \'{file}\', a, \'--compare\', b], capture_output=True, text=True)\nsys.exit(0 if \'move further than the bar: \' in r.stdout and \'lib-stage1\' in r.stdout else 1)"'),
 
     # THE DRIFT LINE FIRES ON A ROW WHOSE TWO PUBLISHED FIGURES DIVIDE TO

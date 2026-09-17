@@ -1292,6 +1292,16 @@ def strategy_rows(cells, shapes, strategies):
 
 
 
+def property_closest(cells, shapes, key, a, b):
+    """A property clause's closest shape: ((largest a/b on `key`, its
+    shape), shapes read), or None where no shape reads both."""
+    rs = [(cells[sh][a][key] / cells[sh][b][key], sh) for sh in shapes
+          if cells[sh].get(a, {}).get(key) is not None
+          and cells[sh].get(b, {}).get(key) is not None
+          and cells[sh][b][key] > 0 and cells[sh][a][key] >= 0]
+    return (max(rs), len(rs)) if rs else None
+
+
 def property_clauses(cells, shapes, strategies):
     """Properties 1 and 2 of the class blocks, read per shape.
 
@@ -1311,15 +1321,8 @@ def property_clauses(cells, shapes, strategies):
     `--block` for a class and by the default mode for the main set, which
     `--block` refuses, so both kinds of population get the same reading.
     """
-    def closest(key, a, b):
-        rs = [(cells[sh][a][key] / cells[sh][b][key], sh) for sh in shapes
-              if cells[sh].get(a, {}).get(key) is not None
-              and cells[sh].get(b, {}).get(key) is not None
-              and cells[sh][b][key] > 0 and cells[sh][a][key] >= 0]
-        return (max(rs), len(rs)) if rs else None
-
     def clause(label, key, a, b, bound):
-        c = closest(key, a, b)
+        c = property_closest(cells, shapes, key, a, b)
         if c is None:
             print('  %s: not read, no shape has a readable `%s` for both'
                   ' `%s` and `%s`' % (label, key, a, b))
@@ -2594,36 +2597,13 @@ def compare_table(cells, shapes, strategies, meta, other, main_hs,
     # without it and called the compiler worth nothing this roster can
     # measure, where three of eight strategies clear 0.81 points.
     # Case: `compare-prints-no-aa-bar`.
-    def cross(st):
-        rs = [cells[sh][st]['net'] / b_cells[sh][st]['net'] for sh in both_sh
-              if cells[sh][st]['net'] > 0 and b_cells[sh][st]['net'] > 0]
-        return geomean(rs) if rs else None
-
-    # `carrier is None` MEANS NO PAIR IS HERE and never `every pair agreed
-    # exactly`: initialised at a bar of 0.0 with a strict `>`, two files
-    # whose A/A copies match to the digit -- which is what a synthetic pair
-    # is, and what a repetition would be -- set no carrier and reported the
-    # pairs as absent. Caught by `compare-prints-no-aa-bar` the day the
-    # line was written.
-    bar, carrier = 0.0, None
-    for st in both_st:
-        base = twin_of(st)
-        if base is None or base not in both_st:
-            continue
-        a, b = cross(st), cross(base)
-        if not a or not b:
-            continue
-        if carrier is None or abs(a / b - 1) > bar:
-            bar, carrier = abs(a / b - 1), (st, a, base, b)
-    arms = [(abs(cross(t) - 1), t) for t in both_st
-            if not is_control(t) and not no_net(t) and cross(t)]
+    bar, carrier, arms, past = aa_bar(cells, b_cells, both_sh, both_st)
     if carrier is None:
         print('\nNO A/A pair is in both files, so this comparison has no bar'
               ' of its own:\n  read it against the population floor `--aa`'
               ' prints and say which you used')
     else:
         st, a, base, b = carrier
-        past = sorted(t for d, t in arms if d > bar)
         print('\nA/A bar for this comparison %.2f%%, the widest an arm and'
               ' its own duplicate part here:' % (bar * 100))
         print('  `%s` %.4f against `%s` %.4f' % (st, a, base, b))
@@ -6092,6 +6072,101 @@ def extremes_table(paths, main_hs, args):
     return 0
 
 
+def class_says(cells, shapes, strategies, meta, args):
+    """Item 6 of the class-block form with its figures in place and `___`
+    where the finding goes: the properties, `worst` and the allocation
+    tiers, the best arm outside the family priced against the plain arm
+    and the floor, whether the two columns may be differenced and the
+    class geomean across the halves, the A/A bar of that comparison and
+    the strategies past it, and the counts geomean where both sweeps are
+    given. Run 34 restated every one of those by hand in ten paragraphs;
+    what the class says that no reading does stays the author's.
+    install-tables.sh installs it where the block's paragraph is the
+    carried copy or an unfilled skeleton, and nowhere else.
+    """
+    led = table_leaders(cells, shapes, strategies, args)
+    if led is None or not led.timed:
+        return
+    floor = aa_floor(aa_pairs(cells, shapes, strategies))
+    plain = next((r for r in led.timed if r[1] == PLAIN), None)
+
+    def verdict(*holds):
+        if any(h is None for h in holds):
+            return 'is not read'
+        return 'HOLDS' if all(holds) else 'BREAKS'
+
+    c1 = property_closest(cells, shapes, 'net', PLAIN, LAST_CANDIDATE)
+    c2 = [property_closest(cells, shapes, 'alloc', PLAIN, b)
+          for b in ('list', LAST_CANDIDATE)]
+    p1 = verdict(None if plain is None else plain[6] < 1,
+                 None if c1 is None else c1[0][0] < 1)
+    p2 = verdict(*[None if c is None else c[0][0] < 1.01 for c in c2])
+    tiers = dict((r[1], r[5]) for r in led.rows)
+    out = ['**What the class says:** property 1 %s and property 2 %s ---'
+           ' `worst` %s, tiers at %s ---'
+           % (p1, p2, '--' if plain is None else '%.3f' % plain[6],
+              ', '.join('--' if tiers.get(st) is None
+                        else '%.2fx' % tiers[st]
+                        for st in (PLAIN, LAST_CANDIDATE, 'list')))]
+    if led.outside and plain and led.outside[0][0] < plain[0]:
+        t, an = led.outside[0][0], led.outside[0][1]
+        m = break_margin(cells, shapes, an, PLAIN)
+        if m is None or floor is None:
+            out.append('and `%s` leads outside the family at %.3f, not'
+                       ' priced.' % (an, t))
+        else:
+            out.append('and `%s` leads outside the family at %.3f, priced'
+                       ' against `%s` at %.4f over %d of %d shapes at sign'
+                       ' p %.2g, a margin of %.2f%% against this class\'s'
+                       ' %.2f%% floor (`%s`).'
+                       % (an, t, PLAIN, m.g, m.k, m.n, m.p,
+                          abs(m.g - 1) * 100, abs(floor.g - 1) * 100,
+                          floor.a))
+    elif led.outside:
+        out.append('and nothing outside the family is ahead of `%s`, `%s`'
+                   ' the best at %.3f.' % (PLAIN, led.outside[0][1],
+                                          led.outside[0][0]))
+    out.append('___ (what is this class\'s own).')
+    rows, lst, partial = cross_half_rows(cells, shapes, strategies,
+                                         args.compare, args.main, meta)
+    vote = [r for r in rows if r[1] not in partial] or rows
+    if vote and lst is not None:
+        out.append('Its two columns %s be differenced, `list` having moved'
+                   ' %.2f of a point, at a class geomean of %.4f over the'
+                   ' %d arms,'
+                   % ('MAY' if abs(lst - 1) <= 0.007 else 'may NOT',
+                      abs(lst - 1) * 100, geomean([g for g, _ in vote]),
+                      len(vote)))
+        b_cells, b_shapes, b_strategies = load_other(args.compare, args.main,
+                                                     shapes, meta)
+        both_sh = [sh for sh in shapes if sh in b_shapes]
+        both_st = [st for st in strategies if st in b_strategies]
+        bar, carrier, arms, past = aa_bar(cells, b_cells, both_sh, both_st)
+        out.append('with %d of %d strategies past an A/A bar of %.2f points.'
+                   % (len(past), len(arms), bar * 100) if carrier
+                   else 'with no A/A pair in both halves to set a bar.')
+    else:
+        out.append('No `list` on both halves, so the columns are not'
+                   ' differenced.')
+    if args.counts and len(args.counts) == 2 and vote:
+        a_counts = parse_counts(args.counts[0])[0]
+        b_counts = parse_counts(args.counts[1])[0]
+        gs = []
+        for _g, st in vote:
+            rs = [a_counts[sh][st] / b_counts[sh][st] for sh in shapes
+                  if a_counts.get(sh, {}).get(st)
+                  and b_counts.get(sh, {}).get(st)]
+            if rs:
+                gs.append(geomean(rs))
+        out.append('The counted work reads a counts geomean of %.4f over the'
+                   ' same arms, %d of them counted.'
+                   % (geomean(gs), len(gs)) if gs
+                   else 'The counted work reads no count for these arms.')
+    out.append('___')
+    print()
+    print(textwrap.fill(' '.join(out), width=72))
+
+
 def block_skeleton(cells, shapes, strategies, meta, args, terms):
     """A stride-class block's mechanical parts in one place, in the form's
     order, which the run file's class section keeps: the six-column table,
@@ -6100,8 +6175,9 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
     copied from the process's stderr line rather than guessed -- and, for
     a three-shape population, the bolded rows' per-shape ratios in run
     order, which is the order the block's lead lists its shapes in. The
-    judgement stays with the author: the lead and the class's paragraph
-    are deliberately not scaffolded, a skeleton writing no findings.
+    judgement stays with the author: the lead is deliberately not
+    scaffolded, and the class's paragraph only in its figures, given the
+    other half, with `___` where the finding goes (`class_says`).
 
     Born checked: pointed at the main set it refuses with exit 1 naming
     the population, and its rev output matched the hand-written rev block
@@ -6215,6 +6291,8 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
     else:
         print('Steps: none past 2% at t over 40.')
     block_verdicts(cells, shapes, strategies, meta, args)
+    if getattr(args, 'compare', None):
+        class_says(cells, shapes, strategies, meta, args)
 
 
 ARM_RE = re.compile(r'^\s*[\[,]\s*\("([^"]+)",\s*'
@@ -7470,6 +7548,42 @@ def splice(docs, anchor, source):
     with open(readme, 'w') as f:
         f.write('\n\n'.join(paras))
     return 0
+
+
+def aa_bar(cells, b_cells, both_sh, both_st):
+    """This comparison's A/A bar: (bar, carrier, arms, past).
+
+    `bar` is the widest an A/A copy and its base part ACROSS the two files,
+    `carrier` that pair as (copy, its figure, base, its figure) or None
+    where no pair is in both, `arms` every non-control arm's distance from
+    1, and `past` the arms further than the bar. Lifted out of --compare
+    on 2026-09-17 for the class paragraph's skeleton, which quotes it.
+    """
+    def cross(st):
+        rs = [cells[sh][st]['net'] / b_cells[sh][st]['net'] for sh in both_sh
+              if cells[sh][st]['net'] > 0 and b_cells[sh][st]['net'] > 0]
+        return geomean(rs) if rs else None
+
+    # `carrier is None` MEANS NO PAIR IS HERE and never `every pair agreed
+    # exactly`: initialised at a bar of 0.0 with a strict `>`, two files
+    # whose A/A copies match to the digit -- which is what a synthetic pair
+    # is, and what a repetition would be -- set no carrier and reported the
+    # pairs as absent. Caught by `compare-prints-no-aa-bar` the day the
+    # line was written.
+    bar, carrier = 0.0, None
+    for st in both_st:
+        base = twin_of(st)
+        if base is None or base not in both_st:
+            continue
+        a, b = cross(st), cross(base)
+        if not a or not b:
+            continue
+        if carrier is None or abs(a / b - 1) > bar:
+            bar, carrier = abs(a / b - 1), (st, a, base, b)
+    arms = [(abs(cross(t) - 1), t) for t in both_st
+            if not is_control(t) and not no_net(t) and cross(t)]
+    past = sorted(t for d, t in arms if d > bar)
+    return bar, carrier, arms, past
 
 
 def cross_half_rows(cells, shapes, strategies, other, main, meta):
@@ -13426,7 +13540,7 @@ def main():
         sys.exit(predictions_table(cells, shapes, strategies, meta,
                                    args.compare, args.main, args.run, rd,
                                    args.readme, args.counts, args.classes))
-    elif args.compare and args.counts:
+    elif args.compare and args.counts and not args.block:
         # Before the plain --compare arm below, as every other second-file
         # mode is: --counts is a reading OF a comparison and not a mode
         # beside one, both its columns being this run over the other.
