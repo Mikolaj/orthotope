@@ -179,6 +179,10 @@ Modes:
                     shape's raw difference A - B beside how far the
                     sweep's two copies of the forcing pass part, the
                     resolution such a difference is read against
+  --series A B SHAPE [DIR]  A over B on SHAPE on every run's main set in
+                    DIR, run by run and half by half, each beside that
+                    half's floor: one cell's readings as a table rather
+                    than a list requoted in prose run after run
   --steps           every cell read at sample level for a mid-bench change
                     of level, which the fitted slope averages away and no
                     other column here can show
@@ -5522,6 +5526,59 @@ def run_populations(run):
             continue
         out.append(path)
     return out
+
+
+def series_table(a, b, shape, args, where='.'):
+    """One cell's reading on every run on disk, run by run and half by half.
+
+    `a` over `b` on SHAPE, on each run's main set on each half, off the
+    notes and JSONs in WHERE: the cell's ratio on `net`, or on `slope`
+    where either arm has no corrected time, beside that half's main-set
+    floor, so whether a reading clears it is read off the row. Written
+    2026-09-17 for `mut-odo-vecdims` over `bq-expand` on
+    `stretch-pow2stride`, whose readings Runs 30 to 34 requoted in the
+    properties, the head, README's opening and an open entry, every one
+    listing every run. A reading and not a gate: exit 0, and 2 where no
+    run on disk carries the cell.
+    """
+    def run_no(path):
+        return int(re.match(r'run(\d+)', os.path.basename(path)).group(1))
+    notes = sorted(glob.glob(os.path.join(where, 'run[0-9]*-pair.txt')),
+                   key=run_no)
+    print('`%s` over `%s` on `%s`, main set, every run in %s: below 1 is'
+          ' `%s` the faster' % (a, b, shape, where, a))
+    print()
+    print('| run | basis | ratio | floor | control | ratio | floor |')
+    print('|---|---|---:|---:|---|---:|---:|')
+    read = 0
+    for note in notes:
+        run = note[:-len('-pair.txt')]
+        halves = note_halves(run)
+        if not halves:
+            continue
+        cols = []
+        for h in halves:
+            path = '%s-%s-main.json' % (run, h)
+            ratio = floor = '--'
+            if os.path.exists(path):
+                cells, shapes, strategies, _meta = load(path, args.main)
+                apply_correction(cells, shapes, strategies, args.corr)
+                fl = aa_floor(aa_pairs(cells, shapes, strategies))
+                floor = '%.2f%%' % (abs(fl.g - 1) * 100) if fl else '--'
+                if shape in shapes and a in strategies and b in strategies:
+                    key, sunk = pair_sunk(cells, [shape], a, b)
+                    if not sunk:
+                        ratio = '%.4f' % (cells[shape][a][key]
+                                          / cells[shape][b][key])
+                        read += 1
+            cols += [h, ratio, floor]
+        print('| %s | %s | %s | %s | %s | %s | %s |'
+              % ((os.path.basename(run),) + tuple(cols)))
+    if not read:
+        sys.stderr.write('--series: no run in %s carries `%s` and `%s` on'
+                         ' `%s`\n' % (where, a, b, shape))
+        return 2
+    return 0
 
 
 def floor_pairs(run, args):
@@ -11225,28 +11282,6 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
              (),
              'the main set is one number and the class range another, so a'
              ' site quoting the first is quoting this one'),
-            # THE FILL FAMILY'S COUNTS RANGE, added the same day and for
-            # the same reason: the counted-work paragraph is written into
-            # both documents every run, and Run 31's two copies of its
-            # clock clause disagreed for a whole commit -- one saying the
-            # clocks sit within half a point, the corrected one saying
-            # nine of ten sit within a point and naming the tenth. That
-            # clause carries no figure a check can hold; this range does,
-            # it is the same paragraph's, and a copy that went stale on
-            # one side would be caught by it. NON-VACUITY BY HAND,
-            # 2026-09-14: 1.0530 planted as 1.0555 in the run file makes
-            # this report both sites. ITS CAPTURES ARE RATIOS AND THE
-            # REPORT PRINTS A `%` AFTER THEM, this table having carried
-            # percentages alone until today; the rule names itself, so
-            # `1.0380%` is legible where it stands, and giving each rule
-            # its own unit would reshape a tuple five other rules share.
-            ('fill family\'s counts range',
-             (r'fill[- ]family (?:arms )?run(?:ning)? \*{0,2}([\d.]+) to'
-              r' ([\d.]+)\*{0,2}',),
-             (),
-             'the counted-work paragraph is written into both documents,'
-             ' so one copy going stale is the failure this catches'),
-
             ('carry-back figure',
              (r'pairs that carry back to Run 10[^.]*?\*{0,2}([\d.]+)%\*{0,2}'
               r' and \*{0,2}([\d.]+)%',
@@ -12984,6 +13019,11 @@ def main():
                         ' population and half, judged against that'
                         " population's own floor -- the standing"
                         ' floor-pair registration, read in one call')
+    p.add_argument('--series', nargs='+', metavar='ARG',
+                   help='A B SHAPE [DIR]: A over B on SHAPE on every run'
+                        "'s main set in DIR, run by run and half by half,"
+                        " each beside that half's floor -- one cell's"
+                        ' readings as a table, where prose requoted them')
     p.add_argument('--over-list', dest='over_list', metavar='RUN',
                    help='every timed non-control cell of RUN slower'
                         " than its shape's `list`, over every"
@@ -13460,6 +13500,11 @@ def main():
         sys.exit(lint(args.main, args.readme, args.run_doc))
     if args.counts_totals:
         sys.exit(counts_totals(args.counts_totals, args))
+    if args.series:
+        if len(args.series) not in (3, 4):
+            p.error('--series takes A B SHAPE and an optional DIR')
+        sys.exit(series_table(*args.series[:3], args=args,
+                              where=(args.series[3:] or ['.'])[0]))
     if args.floor_pairs:
         sys.exit(floor_pairs(args.floor_pairs, args))
     if args.half_movers:

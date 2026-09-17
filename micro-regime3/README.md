@@ -55,13 +55,10 @@ from `hugebin/`. So raising the level costs the headline better than six tenths
 of a multiple, `-O2` speeding `bq-expand` by 29% and leaving the fill where
 it is, while changing the compiler moves it by a hundredth or two, down on Run
 32 and up on Runs 33 and 34; the gap this ratio reports is the one the library
-actually compiles in. **The nineteenth shape is what WAS new, and it sits
-on the line**: `stretch-pow2stride` reads **0.9989** on Run 34's basis, the fill
-a ninth of a point ahead of `bq-expand`, and **1.0016** on the GHC HEAD half,
-where it is behind and class property 1 breaks --- Run 33's two readings
-with the halves exchanged again. Five runs have now read that cell on both sides
-of a tie, nine of their ten readings within a point and a quarter of it,
-so it sits on the line rather than having turned over. **The mutable fills hold
+actually compiles in. **One main-set shape sits on the line**:
+on `stretch-pow2stride` the fill and `bq-expand` tie, class property 1 breaking
+on whichever half reads the fill behind, and whether any run reads it behind
+by more than its floor is [an open question][open]. **The mutable fills hold
 the top of the table** --- `lib-stage2-lean` at 0.025 and the shipped leaf
 at 0.027, against `mut-odo-vecdims`'s 0.045 --- and every one of them needs
 a new `Vector`-class method, which this README argued against for as long
@@ -1265,55 +1262,17 @@ rather than a slot in the next run, observed again:
   between the launch and the write-up, where a page of conclusions outlives
   a transcript --- and that case wants the four `--section` calls written
   to a file by the session, 0.08 s each, and not an agent.
-- `OPEN` **Class property 1 breaks on ONE main-set cell that was already a tie,
-  and which side of 1 it lands on has now changed five times in five runs ---
-  and three times WITHIN a pair.** `mut-odo-vecdims` is behind `bq-expand`
-  on `stretch-pow2stride` at **1.0009** on Run 31's plain -O1 half
-  and **1.0109** on its `-O2` half, where Run 30 read 0.9997 on the same recipe
-  and its own head called that a win by three ten-thousandths inside a 0.57%
-  floor. Run 32 then read it ahead at 0.9934 on its basis and behind at 1.0003
-  on its control, Run 33 read the same split with the halves exchanged, behind
-  at **1.0007** on its basis and ahead at **0.9961** on its control, and Run 34
-  exchanges them back, ahead at **0.9989** on its basis and behind at **1.0016**
-  on its control. Nine of the ten margins across those five runs are
-  at or inside the floor of the half they were read on, Run 30's control
-  the exception --- Run 34's two are 0.11 of a point against 0.51% and 0.16
-  against 0.49% --- so the cell has now been read by two compilers, two levels
-  and the exit span without any of them settling it, which is what a tie looks
-  like when a chapter keeps asking. The clause holds on every shape of all ten
-  classes on both halves, so what broke is one main-set shape and
-  not the property's reach. It matters because this is the clause the stride
-  classes exist to test and the only one here that bears
-  on `Data/Array/Internal.hs` directly: `bq-expand` is the route the shipped
-  file took before the fill, and an arm that is not ahead of it everywhere
-  is an arm whose replacement of it is not unconditional. **What would settle
-  whether it is the shape's or the run's** is the next run's reading of that one
-  cell ---
-  `./read-run.py run<N>-<basis>-main.json --pair bq-expand mut-odo-vecdims --per-shape`,
-  whose `range` line this run reads at 0.999 on `stretch-pow2stride` and Run 30
-  at 1.000, the per-shape lines below giving 0.9991 and 1.0003. Three readings
-  on the same side of 1 make it the shape's property; two are consistent
-  with a cell sitting on the line and a floor of 0.61%. Registered here
-  2026-09-14. **RUN 32 TOOK THAT READING AND IT PARTS BETWEEN ITS HALVES**,
-  which is the answer neither branch of the question expected: `mut-odo-vecdims`
-  is AHEAD on `stretch-pow2stride` by 0.66 of a point on the ghc-9.12.4 half,
-  at 0.9934, and BEHIND by three hundredths on the GHC HEAD half, at 1.0003,
-  against main-set floors of 0.66% and 0.68%. So TEN readings of that cell now
-  exist across Runs 30 to 34 --- 0.9997 and 0.9748 on Run 30's two halves,
-  1.0009 and 1.0109 on Run 31's, 0.9934 and 1.0003 on Run 32's, 1.0007
-  and 0.9961 on Run 33's and 0.9989 and 1.0016 on Run 34's, three pairs parting
-  between their halves and in alternating directions --- they straddle 1, NINE
-  of the ten sit at or inside the floor of the half they were read on --- Run
-  32's basis reading is exactly its own 0.66% floor and does not clear it, Run
-  33's two are 0.07 of a point against 0.47% and 0.39 against 0.62%, and Run
-  34's 0.11 against 0.51% and 0.16 against 0.49% --- the tenth is Run 30's
-  control at 0.9748 against a 0.84% floor and is the fill AHEAD by two
-  and a half points, and the three pairs that a compiler alone separates, Runs
-  32 to 34, all part in sign, Runs 32 and 34 with the basis ahead and Run 33
-  the other way. That is a cell sitting on the line rather than a property
-  of the shape, and the entry STAYS OPEN on a narrower question: whether any run
-  reads it outside its own floor. Until one does, a break here is not evidence
-  that the fill fails to replace `bq-expand` on that shape.
+- `OPEN` **Class property 1's `bq-expand` clause breaks on ONE main-set cell,
+  `stretch-pow2stride`, where the two arms tie.** The clause is a sanity check,
+  `mut-odo-vecdims` ahead of `bq-expand` on every shape. It holds on every shape
+  of all ten classes on both halves, and on this one cell runs have read
+  `mut-odo-vecdims` on both sides of 1, every reading behind `bq-expand` inside
+  the floor of the half it was read on.
+  `./read-run.py --series mut-odo-vecdims bq-expand stretch-pow2stride` prints
+  every run's reading on disk beside its half's floor. The entry stays OPEN
+  on one question: whether any run reads `mut-odo-vecdims` BEHIND `bq-expand`
+  on that cell by more than its own half's floor. Until one does, a break there
+  is a tie and not a failure of the clause.
 - `OPEN` **`-O2` changes what the preamble's spray leaves RESIDENT, and no pair
   before it did.** Run 31's twenty-two processes carry one `keep` value,
   `8.19844333056e12`, and TWO `inuse` values --- 95420416 on every plain -O1
@@ -1666,33 +1625,28 @@ rather than a slot in the next run, observed again:
   between two rows must clear is a ruling and not a measurement, and five runs
   have now said so. RULED 2026-09-13: the whole-set floor is the bar
   and the carry-back figure the series.** The shipped fill's own A/A copies
-  landed 2026-09-09, so the floor is a maximum over EIGHT pairs and reads
-  **0.51%** on Run 34's basis where the four pairs that carry back to Run 10
-  read **0.49%**, the shipped leaf's distant copy carrying the first
-  and `bq-expand-aa-distant` the second; on its control the two are closed,
-  **0.49%** against 0.49% with `bq-expand-aa-distant` carrying each, as Run 33
-  closed them on both halves at 0.47% and 0.62% with that one pair carrying all
-  four. Runs 28 and 29 read the two apart, the fill's own pair carrying
-  the whole-set figure both times, and Runs 30, 31 and 32 put
-  it on `bq-expand`'s pair instead ON THE PUBLISHED HALF, Run 31's CONTROL half
-  reading the fill pair's on two wild cells where Run 32's reads the family
-  root's on none, Run 30 also reading one unchanged binary at 0.82% and 0.57%
-  a day apart; the five runs' figures and that repetition are [in the floor
-  section][floor], which until 2026-09-13 named the RESTRICTED figure as the bar
-  while every verdict in `runs/run30.md` used the whole-set pair. **RULED
-  2026-09-13**: a margin between two rows clears the floor of every pair
-  the roster carries, the widest an arm disagrees with its own duplicate
-  by on that half that evening, quoted to one decimal where it stands as a bar;
-  the carry-back figure, over the pairs that carry back to Run 10, is the series
-  that keeps fourteen runs comparable and is never the bar. Run 30 is the run
-  that showed those are not the same arm twice running, and its verdicts already
-  read the whole-set pair, as the reader's default tolerance does. **The rename
-  this entry also carried is TAKEN and stays taken**, 2026-09-11: the figure
-  is the carry-back figure, named for the pairs that carry back to Run 10 rather
-  than for a population size, in this file, on `read-run.py`'s `--chapter` line
-  and in its agreement row, and in the corpus case's expected text ---
-  a cross-site agreement check keying on the SIZE of a population being exactly
-  what a roster change breaks.
+  landed 2026-09-09, so the floor is a maximum over EIGHT pairs, and a run's
+  floor and carry-back figure on each half stand in its own file's Results. Runs
+  28 and 29 read the two apart, the fill's own pair carrying the whole-set
+  figure both times, and Runs 30, 31 and 32 put it on `bq-expand`'s pair instead
+  ON THE PUBLISHED HALF, Run 31's CONTROL half reading the fill pair's on two
+  wild cells where Run 32's reads the family root's on none, Run 30 also reading
+  one unchanged binary at 0.82% and 0.57% a day apart; the five runs' figures
+  and that repetition are [in the floor section][floor], which until 2026-09-13
+  named the RESTRICTED figure as the bar while every verdict in `runs/run30.md`
+  used the whole-set pair. **RULED 2026-09-13**: a margin between two rows
+  clears the floor of every pair the roster carries, the widest an arm disagrees
+  with its own duplicate by on that half that evening, quoted to one decimal
+  where it stands as a bar; the carry-back figure, over the pairs that carry
+  back to Run 10, is the series that keeps fourteen runs comparable and is never
+  the bar. Run 30 is the run that showed those are not the same arm twice
+  running, and its verdicts already read the whole-set pair, as the reader's
+  default tolerance does. **The rename this entry also carried is TAKEN
+  and stays taken**, 2026-09-11: the figure is the carry-back figure, named
+  for the pairs that carry back to Run 10 rather than for a population size,
+  in this file, on `read-run.py`'s `--chapter` line and in its agreement row,
+  and in the corpus case's expected text --- a cross-site agreement check keying
+  on the SIZE of a population being exactly what a roster change breaks.
 - `ANSWERED` **The arm that leads Run 28's table is the branch's own driver
   and not a member of the family the fix shipped.** `lib-stage2-lean` reads
   0.027 on the main set against the shipped `mut-odo-vecdims-add-in-leaf-u2`'s
@@ -13987,11 +13941,8 @@ tables and its fingerprint say so.
   views, with the exit span, the shim and the launch besides. Its sequence ran
   in ONE window, 02:20:29 to 10:12:17, and no process of the run, the gate's
   and the riders' included, was intruded on. **And its floor is a maximum
-  over EIGHT A/A pairs**, 0.51% on the basis, carried
-  by `mut-odo-vecdims-add-in-leaf-u2-aa-distant`, and 0.49% on the control,
-  carried by `bq-expand-aa-distant`; its restricted four-pair reading is 0.49%
-  on both halves, so the two thresholds part on the basis and are closed
-  on the control.
+  over EIGHT A/A pairs**, both halves' figures in [its
+  Results](runs/run34.md#results).
 - Run 33 measured TODAY's shapes exactly and, less the three `runs` views
   of 2026-09-16, today's class views and, less one arm and one guard, today's
   roster, nothing having moved since it ran but 2026-09-16's three commits,

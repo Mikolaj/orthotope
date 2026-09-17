@@ -11091,6 +11091,25 @@ RECORDS = [
          argv=['--half-movers', '{run}'],
          ok=V(exit=2, has=['COMPARE: run<N>'])),
 
+    case('series-reads-one-cell-over-every-run', 'read-run.py', None,
+         'CONTROL: --series prints one cell\'s ratio run by run and half by'
+         ' half, each beside that half\'s floor, off the notes and JSONs in'
+         ' a directory',
+         # Run 34's write-up requoted `mut-odo-vecdims` over `bq-expand` on
+         # `stretch-pow2stride` for every run since Run 30 in four places.
+         plant=lambda t: {'dir': (
+             write(os.path.join(t, 'run98-pair.txt'), NOTE_STUB),
+             write(os.path.join(t, 'run99-pair.txt'), 'a stand-in pair note.\n'
+                   'HALVES: basis=nospec other=ghead\n'),
+             [synth_json(t, 'main', name='%s-main.json' % n)
+              for n in ('run98-lookrts', 'run98-a1g', 'run99-nospec',
+                        'run99-ghead')], t)[-1]},
+         argv=['--series', 'mut-odo-vecdims', 'bq-expand',
+               'stretch-pow2stride', '{dir}'],
+         ok=V(exit=0, has=['| run98 | lookrts | ', '| run99 | nospec | ',
+                           '| run | basis | ratio | floor | control | ratio'
+                           ' | floor |'])),
+
     case('floor-pairs-reads-every-population', 'read-run.py', None,
          'the standing floor-pair registration -- the A/A copies against'
          ' their originals -- had no mode, so Run 32 read it as sixteen'
