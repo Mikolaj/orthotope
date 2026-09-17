@@ -2720,6 +2720,128 @@ PREDICT_RE = re.compile(r'`predict: ([^`]+)`')
 CARRIED_RE = re.compile(r'(?<![\w.$-])(\d\.\d{2,4})(?![\w%])(?!\.\d)')
 
 
+SPAN_LINE_RE = re.compile(r'^  \((\S+)\) (.*?)\s+(read -?\d.*|A - B up to .*'
+                          r'|out of scope, .*|NOT READ: .*)$')
+
+
+def predictions_in_place(args):
+    """Every span's readings, written under its item in the run file.
+
+    `--predictions` reads one population and one half a call, and post-run
+    step 5c looped it over every population on both halves and then
+    transcribed each reading beside its item: Run 34's did that for five
+    items and ten populations. This takes the loop -- every `RUN-HALF-POP`
+    JSON beside the one given, each half against the other, the two sweeps
+    where both are on disk -- and writes one paragraph per item carrying
+    spans and no `script:`, led `**Read by --predictions, item (N):**`,
+    under that item, replacing the one an earlier call wrote. The item's
+    verdict, its kill condition applied across these readings, and the
+    tally sentence stay the write-up's. It writes only a registration that
+    has moved into the run file, a README entry being the wrong document.
+    """
+    at = json_run_half(args.run)
+    halves = note_halves(at[0]) if at else None
+    if not halves:
+        sys.stderr.write('--predictions --in-place: %s is not a run\'s'
+                         ' RUN-HALF-POP.json beside a note carrying HALVES,'
+                         ' so its populations cannot be found\n' % args.run)
+        return 2
+    doc = want_run_doc(args)
+    src, items, _flat = registration_items(args.run, doc, args.readme)
+    if src is None:
+        return 2
+    if os.path.abspath(src) != os.path.abspath(doc):
+        sys.stderr.write('--predictions --in-place: the registration is still'
+                         ' %s\'s, and its readings go into the run file --'
+                         ' move it with --move-registration first\n'
+                         % os.path.basename(src))
+        return 2
+    prefix, base = at[0], os.path.basename(at[0])
+    head = '%s-%s-' % (base, halves[0])
+    pops = sorted(os.path.basename(f)[len(head):-5]
+                  for f in glob.glob('%s-%s-*.json' % (prefix, halves[0])))
+    readings = collections.defaultdict(list)
+    for pop in pops:
+        sfx = '' if pop == 'main' else '-' + pop
+        for k, role in ((0, 'basis'), (1, 'control')):
+            this = '%s-%s-%s.json' % (prefix, halves[k], pop)
+            that = '%s-%s-%s.json' % (prefix, halves[1 - k], pop)
+            if not os.path.exists(that):
+                continue
+            counts = ['%s-counts-%s%s.txt' % (prefix, halves[j], sfx)
+                      for j in (k, 1 - k)]
+            cells, shapes, strategies, meta = load(this, args.main)
+            apply_correction(cells, shapes, strategies, args.corr)
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                predictions_table(cells, shapes, strategies, meta, that,
+                                  args.main, this, doc, args.readme,
+                                  counts if all(map(os.path.exists, counts))
+                                  else None)
+            for line in buf.getvalue().split('\n'):
+                m = SPAN_LINE_RE.match(line)
+                if m:
+                    readings[(m.group(1), m.group(2))].append(
+                        (pop, role, m.group(3)))
+    # Stripped of newlines at both ends, a paragraph and the file alike: a
+    # file's own final newline, left on its last paragraph, opened the
+    # next one written after it with `\n`, and a rerun then missed its lead
+    # and wrote the paragraph again.
+    paras = [q.strip('\n') for q in open(doc).read().strip('\n')
+             .split('\n\n')]
+    sec = next(i for i, q in enumerate(paras) if q.startswith(REG_HEAD))
+    end = next((i for i in range(sec + 1, len(paras))
+                if paras[i].startswith('## ')), len(paras))
+    written = 0
+    # IN ITEM ORDER, each placed after its item and after any paragraph an
+    # earlier item placed there, so a registration written as one
+    # paragraph gets its readings in its own order.
+    for num, body in items:
+        spans = PREDICT_RE.findall(body)
+        if not spans or '`script: ' in body:
+            continue
+        parts = []
+        for sp in spans:
+            got = []
+            for pop, role, text in readings.get((num, sp), []):
+                if text.startswith('out of scope'):
+                    continue
+                v = re.search(r': (HELD|KILLED)', text)
+                if text.startswith('NOT READ'):
+                    got.append('NOT READ on %s %s, %s'
+                               % (pop, role, text[10:]))
+                elif v:
+                    got.append('%s on %s %s, %s'
+                               % (v.group(1), pop, role,
+                                  text[:v.start()]))
+            parts.append('`%s`: %s' % (sp, '; '.join(got) if got else
+                                       'read on no population and half here'))
+        lead = '**Read by --predictions, item (%s):**' % num
+        para = '%s %s.' % (lead, ' --- '.join(parts))
+        old = [i for i in range(sec, end) if paras[i].startswith(lead)]
+        if old:
+            paras[old[0]] = para
+        else:
+            host = next((i for i in range(sec, end)
+                         if paras[i].startswith('(%s) *' % num)),
+                        next((i for i in range(sec, end)
+                              if '(%s) *' % num in paras[i]), None))
+            if host is None:
+                continue
+            at_i = host + 1
+            while at_i < end and paras[at_i].startswith(
+                    '**Read by --predictions, item ('):
+                at_i += 1
+            paras.insert(at_i, para)
+            end += 1
+        written += 1
+    open(doc, 'w').write('\n\n'.join(paras) + '\n')
+    print('wrote %d item paragraph(s) of span readings into %s, over %d'
+          ' population(s) on both halves; the verdicts and the tally are'
+          ' yours' % (written, os.path.basename(doc), len(pops)))
+    return 0
+
+
 def carried_figures(run, run_doc, readme, others, main_hs, verbose=False):
     """Every figure a registration carries in, against the run it names.
 
@@ -13109,9 +13231,9 @@ def main():
     # wrote nothing and exited 0, which is the silence this loop
     # exists to refuse.
     if args.in_place and not (args.markdown or args.fingerprint
-                              or args.block):
-        p.error('--in-place is a modifier of --markdown, --fingerprint'
-                ' or --block and does nothing alone')
+                              or args.block or args.predictions):
+        p.error('--in-place is a modifier of --markdown, --fingerprint,'
+                ' --block or --predictions and does nothing alone')
     def asked(v):
         """Was this flag given? False and 0 are given; None is not."""
         return v is not None and v is not False
@@ -13530,6 +13652,8 @@ def main():
     elif args.compare and args.movers is not None:
         sys.exit(movers_table(cells, shapes, strategies, meta, args.compare,
                               args.main, args.movers, not args.verbose))
+    elif args.compare and args.predictions and args.in_place:
+        sys.exit(predictions_in_place(args))
     elif args.compare and args.predictions:
         rd = args.run_doc
         if not rd:

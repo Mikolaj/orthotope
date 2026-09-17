@@ -1699,6 +1699,25 @@ def scoped_spans_run(tmp):
             'rundoc': write_rundoc(tmp, doc, name='run99.md')}
 
 
+def scoped_spans_in_place(tmp, stale=False):
+    """`scoped_spans_run` laid out as a run is, for --predictions
+    --in-place to find by name: the sweeps as `run99-counts-HALF.txt`,
+    and, where `stale`, a verdict paragraph for item (1) already written
+    by an earlier call, which a rerun replaces rather than repeats.
+    """
+    r = scoped_spans_run(tmp)
+    shutil.copy(r['ca'], os.path.join(tmp, 'run99-counts-lookrts.txt'))
+    shutil.copy(r['cb'], os.path.join(tmp, 'run99-counts-a1g.txt'))
+    if stale:
+        # Appended as a first call leaves it, after the file's own final
+        # newline: stripped first, the paragraph read back clean and hid a
+        # rerun writing item (1) twice.
+        text = open(r['rundoc']).read()
+        write(r['rundoc'], text + '\n\n**Read by --predictions, item (1):**'
+              ' STALE, from an earlier call.')
+    return r
+
+
 def doc_of_a_list(tmp, items=4):
     """A document whose one list has no blank line between its items.
 
@@ -11165,6 +11184,34 @@ RECORDS = [
          ok=V(has=['out of scope, this file being main on the control half',
                    '6 span(s): 3 HELD, 1 KILLED, 0 not read, 2 out of'
                    ' scope'])),
+
+    case('predictions-write-the-span-readings-in-place', 'read-run.py', None,
+         'CONTROL: --predictions --in-place reads every population on both'
+         ' halves and writes the readings under each item carrying spans'
+         ' and no script, leaving the verdict and the tally to write',
+         plant=lambda t: scoped_spans_in_place(t),
+         argv=['{a}', '--compare', '{b}', '--predictions', '--in-place',
+               '--run-doc', '{rundoc}'],
+         probe=lambda subs: open(subs['rundoc']).read(),
+         ok=V(exit=0, has=['**Read by --predictions, item (1):** `cross list'
+                           ' 1.0 within 99% on main both`: HELD on main'
+                           ' basis', 'HELD on main control',
+                           '**Read by --predictions, item (6):**',
+                           'KILLED on main basis',
+                           'read on no population and half here'],
+              hasnt=['item (7):'])),
+
+    case('predictions-in-place-replaces-its-own-paragraph', 'read-run.py',
+         None,
+         'CONTROL: a rerun replaces the paragraph an earlier call wrote and'
+         ' does not add a second',
+         plant=lambda t: scoped_spans_in_place(t, stale=True),
+         argv=['{a}', '--compare', '{b}', '--predictions', '--in-place',
+               '--run-doc', '{rundoc}'],
+         probe=lambda subs: (lambda t: 'item-1-paragraphs=%d stale=%s' % (
+             t.count('item (1):**'), 'STALE' in t))(
+                 open(subs['rundoc']).read()),
+         ok=V(exit=0, has=['item-1-paragraphs=1 stale=False'])),
 
     case('registration-span-carries-its-scope', 'read-run.py', None,
          'CONTROL: an OPEN registration\'s span with no `on POP` and no half'

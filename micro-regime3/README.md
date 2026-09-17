@@ -9747,26 +9747,24 @@ not otherwise.
     #      assembled LAST, transcribed from the class tables
     #      why: --para 'Install the tables with'
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --predictions --counts $R-counts-<basis>.txt $R-counts-<other>.txt
-    #  5c. THE REGISTRATION'S SPANS, which step 5 called its third act
-    #      until 2026-09-05, and which comes here rather than beside the
-    #      move because it READS THE COUNTS, which the run list
-    #      launches at step 20 -- after the box is handed back, so on any
-    #      run whose write-up starts promptly they are still being taken
-    #      while 5a and 5b are done. Every `predict:` span of the
-    #      registration adjudicated from the JSONs, HELD or KILLED with
-    #      the figure read, and the items carrying no span named as
-    #      yours. Write each verdict beside its prediction FROM THIS
-    #      OUTPUT -- ONCE PER POPULATION THE ITEM NAMES, the loop and
-    #      the default being one section, titled whole for a grep:
-    #      Which population answers a question, and how to ask all of them
-    #      One run of it on
-    #      main is not the item's verdict: the verdict is its KILL
-    #      CONDITION applied across those readings, and the write-up
-    #      records the reading per population, quoting each figure and
-    #      the population it came from. Run 26 read only main, and its
-    #      registration (1) carries what that costs. What it calls
-    #      yours is the whole
-    #      of the adjudication left to judgement
+    ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json \
+      --predictions --in-place       # 5c. THE REGISTRATION'S SPANS, which
+    #      step 5 called its third act until 2026-09-05, and which comes
+    #      here rather than beside the move because it READS THE COUNTS,
+    #      which the run list launches at step 20 -- after the box is
+    #      handed back, so on any run whose write-up starts promptly
+    #      they are still being taken while 5a and 5b are done. Every
+    #      `predict:` span read on each population and half its scope
+    #      names, HELD or KILLED with the figure read, and written under
+    #      its item in the run file as `**Read by --predictions, item
+    #      (N):**`, a rerun replacing it; an item carrying a `script:`
+    #      is that script's to read, and one carrying neither is yours.
+    #      Those readings are not the item's verdict: the verdict is
+    #      its KILL CONDITION applied across them, written beside the
+    #      item with the population each figure came from. Run 26
+    #      read only main, and its registration (1) carries what that
+    #      costs. The verdicts and the tally sentence are the whole of
+    #      the adjudication left to judgement
     #   6. walk the replace list under Provenance (READ NOW: item 8, the
     #      list itself and its delta bullets), re-run the two sweeps it
     #      names, and map every hit to the bullet covering it -- running
