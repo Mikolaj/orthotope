@@ -5347,6 +5347,14 @@ TIER1 = {
               ' reads a pass. The shell semantics were confirmed'
               ' directly: `bash -c \'if ! (exit 7); then echo $?; fi\''
               ' prints 0.'),
+    'readings-rewrite-their-directory-whole': dict(
+        family='unverified-state', discovery='review', harm='latent',
+        trigger='log-read-RUN/ holding a vs-compare reading from an earlier'
+                ' call, the note\'s COMPARE line since removed',
+        ok='the directory is rewritten whole, the stale reading gone',
+        bug='the stale reading stayed beside the fresh ones',
+        notes='Found 2026-09-17 reading the script after its first call on'
+              ' a real run, Run 34.'),
 }
 
 
@@ -9913,12 +9921,10 @@ RECORDS = [
          ok=V(hasnt=['criterion 1.6'])),
 
     case('readings-rewrite-their-directory-whole', 'post-run-readings.sh',
-         None,
+         '6581d06',
          'a reading an earlier call left, against a COMPARE run the note no'
-         ' longer names, stayed in the directory and --for-brief quoted it'
+         ' longer names, stayed in the directory, where --for-brief reads it'
          ' as this call\'s',
-         # Found by review, 2026-09-17, the first real call writing into a
-         # directory a later one reuses.
          shadow=dict(extra=readings_run('zzpr7', complete=False)),
          plant=lambda tmp: (os.makedirs(os.path.join(
              tmp, 'shadow', 'log-read-zzpr7'), exist_ok=True), write(
@@ -9928,7 +9934,8 @@ RECORDS = [
          argv=['zzpr7'],
          probe=lambda subs: ' '.join(sorted(os.listdir(os.path.join(
              str(subs['at']), 'log-read-zzpr7')))),
-         ok=V(hasnt=['main-lookrts-vs-compare.txt'])),
+         ok=V(hasnt=['main-lookrts-vs-compare.txt']),
+         bug=V(has=['main-lookrts-vs-compare.txt'])),
 
     # ---- run-evening.sh, the run list's quiet machine steps as one command
     case('evening-chains-the-stages', 'run-evening.sh', None,
