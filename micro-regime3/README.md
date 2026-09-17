@@ -9447,7 +9447,7 @@ not otherwise.
     #      class block. `--section 'The properties the next run should
     #      test' --run-doc runs/$PREV.md` and `--section 'The stride
     #      classes, run by run' --run-doc runs/$PREV.md` are the reads
-    ./post-run-readings.sh $R        #    EVERY READING OF 4, 4a AND 10a,
+    ./post-run-readings.sh $R        #    EVERY READING OF 4, 4a, 4b AND 10a,
     #      in parallel, a file each in log-read-$R/, the script's header
     #      naming which file holds which; the count-dependent ones only
     #      once $R-evening.txt reads EVENING COMPLETE, so it is run again
@@ -9530,7 +9530,8 @@ not otherwise.
     #      share are read and not guessed
     #  4b. EVERY CELL ACROSS THE HALVES, time beside counts over every
     #      population, ranked by what the counts do not explain:
-    ./read-run.py --cell-movers $R > cell-movers.txt   # 20 rows; `$R 80` below
+    #      cell-movers.txt, step 4's, 20 rows; `--cell-movers $R 80` takes
+    #      more
     #      why: --para 'latch keeps its fall-through only where the block'
     #      4a and every table above read ARMS, and an arm is a geomean
     #      over its population's shapes: a cell at 1.25 among seventeen

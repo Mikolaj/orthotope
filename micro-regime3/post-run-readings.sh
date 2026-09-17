@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Post-run step 4's readings, and 4a's and 10a's, taken in parallel into
-# one directory, a file a reading --
+# Post-run step 4's readings, and 4a's, 4b's and 10a's, taken in parallel
+# into one directory, a file a reading --
 #
 #     ./post-run-readings.sh run35            # writes log-read-run35/
 #     ./post-run-readings.sh run35 --list     # prints what it would take
@@ -21,12 +21,13 @@
 #
 # ONCE $R-evening.txt ENDS `EVENING COMPLETE:`, and not before, the
 # readings that want the counts: --compare --counts per population,
-# basis first, as POP-counts-cmp.txt, and --half-movers against the
-# note's COMPARE run as half-movers.txt; and each -pred.txt and class
-# -blockcmp.txt reads the two sweeps beside its comparison, so a counts or
-# countdiff span is read and the class paragraph quotes its counts.
-# Before then a counts column reads `--`, and Run 34 took its 4a that way
-# and took it again.
+# basis first, as POP-counts-cmp.txt, step 4b's --cell-movers as
+# cell-movers.txt, whose rank is the time ratio over the count ratio,
+# and --half-movers against the note's COMPARE run as half-movers.txt;
+# and each -pred.txt and class -blockcmp.txt reads the two sweeps beside
+# its comparison, so a counts or countdiff span is read and the class
+# paragraph quotes its counts. Before then a counts column reads `--`,
+# and Run 34 took its 4a that way and took it again.
 #
 # Run 34's session wrote the step-4 readings by hand, a population and
 # a half at a time. It only reads, so a busy machine is fine;
@@ -112,6 +113,7 @@ if [ "$COMPLETE" = 1 ]; then
     s="-$p"; [ "$p" = main ] && s=""
     job "$p-counts-cmp.txt ./read-run.py $R-$BASIS-$p.json --compare $R-$OTHER-$p.json --counts $R-counts-$BASIS$s.txt $R-counts-$OTHER$s.txt"
   done
+  job "cell-movers.txt ./read-run.py --cell-movers $R"
   if [ -n "$COMPARE" ]; then
     job "half-movers.txt ./read-run.py --half-movers $R"
   fi

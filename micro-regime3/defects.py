@@ -9850,15 +9850,18 @@ RECORDS = [
          ok=V(has=['rc=0 main-lookrts-aa.txt', 'rc=0 main-a1g-pred.txt',
                    'rc=0 %s-a1g-block.txt' % class_names()[0],
                    'not before EVENING COMPLETE'],
-              hasnt=['main-counts-cmp.txt', 'half-movers.txt'])),
+              hasnt=['main-counts-cmp.txt', 'half-movers.txt',
+                     'cell-movers.txt'])),
 
     case('readings-take-the-counts-once-complete', 'post-run-readings.sh',
          None,
-         'CONTROL: after EVENING COMPLETE the counts comparison is taken, and'
-         ' --half-movers is skipped naming the missing COMPARE line',
+         'CONTROL: after EVENING COMPLETE the counts comparison and step 4b\'s'
+         ' cell ranking are taken, and --half-movers is skipped naming the'
+         ' missing COMPARE line',
          shadow=dict(extra=readings_run('zzpr2', complete=True)),
          argv=['zzpr2'],
-         ok=V(has=['rc=0 main-counts-cmp.txt', 'no COMPARE line'],
+         ok=V(has=['rc=0 main-counts-cmp.txt', 'rc=0 cell-movers.txt',
+                   'no COMPARE line'],
               hasnt=['not before EVENING COMPLETE'])),
 
     case('readings-read-the-compare-run-and-every-log', 'post-run-readings.sh',
