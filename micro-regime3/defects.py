@@ -3575,16 +3575,26 @@ def whole_run(halves_of, samples=2, prefix=SRC, short_class=None,
     return _WHOLE[key]
 
 
-def readings_run(prefix, complete):
+def readings_run(prefix, complete, compare=None):
     """A paired run's main set and one class on both halves, with its
     note, as `extra` for a shadow -- and, where `complete`, its counts
     sweeps and an evening file ending EVENING COMPLETE, which is what
     post-run-readings.sh waits for before a count-dependent reading.
+    `compare` names a COMPARE run on the note, and gives that run a note
+    and a main set on both halves, its halves named apart from these.
     """
     def extra():
         out = list(whole_run(['lookrts', 'a1g'], prefix=prefix,
                              classes=class_names()[:1]))
-        out.append(('%s-pair.txt' % prefix, NOTE_STUB))
+        out.append(('%s-pair.txt' % prefix, NOTE_STUB + (
+            'COMPARE: %s\n' % compare if compare else '')))
+        if compare:
+            out.append(('%s-pair.txt' % compare,
+                        'a stand-in pair note.\n'
+                        'HALVES: basis=nospec other=ghead\n'))
+            out += [('%s-%s-main.json' % (compare, h),
+                     synth_text(main_shapes(), samples=2))
+                    for h in ('nospec', 'ghead')]
         if complete:
             tmp = tempfile.mkdtemp(prefix='zz-synth-')
             try:
@@ -3988,6 +3998,60 @@ def for_brief_note(tmp):
                 ' they do\n'
                 '                   NOT agree, the other half larger by'
                 ' 111 bytes.\n')
+    return r
+
+
+def for_brief_readings(tmp):
+    """A run in the shadow with the files post-run-readings.sh writes for
+    --for-brief to fill its slots from: a cross-run comparison and its
+    bridge, two --wild readings, four classes' A/A headers, three counts
+    comparisons and two predictions sweeps, each in the reader's own words.
+    """
+    into = os.path.join(tmp, 'shadow')
+    r = synthetic_run(tmp, into=into)
+    d = os.path.join(into, 'log-read-%s' % r['tag'])
+    os.mkdir(d)
+    head = 'x.json: criterion 1.6.5.0, 10 reports = 5 benchmarks over %d shapes of the %s class\n'
+    counts = ('counts geomean over the 16 arm(s) above, which are the arms'
+              ' with a\ncorrected time: %s\n')
+    files = {
+        'main-lookrts-vs-compare.txt':
+            'x.json: criterion 1.6.5.0\n\n\nthis run / zzprev-nospec-main.json,'
+            ' per arm, over 3 shared shape(s)\n\narm   ratio    recip   faster'
+            '      range\nlib-stage2-lean  0.9952   1.0048    2/3  0.9..1.0\n'
+            'list  1.0002   0.9998    1/3  0.9..1.0\n'
+            'bq-expand  1.0128   0.9874    1/3  0.9..1.0\n\n'
+            # The reducing consumers' own table follows, raw, under a
+            # header of the same shape: Run 34's span read both as one.
+            'reducing consumers, 1 arm(s), on RAW `slope`\n'
+            'arm   ratio    recip   faster      range\n'
+            'liblist-stage2-sum  0.9000   1.1111    3/3  0.9..1.0\n',
+        'main-lookrts-bridge.txt':
+            'geomean over the 2 arm(s) 1.0030; 0 outside the 3.3% drift band\n',
+        'wild-runzz-lookrts-rev.txt':
+            'NO bench reaches 0.25 foreign: nothing else was running on this'
+            ' machine\n',
+        'wild-runzz-wallclock.txt':
+            'runzz-wallclock.log: no paired `@@wild` samples here.\n',
+        # A warning ahead of the header, as stderr lands before a buffered
+        # stdout: Run 34's `runs` read that way and was left out.
+        'runs-lookrts-aa.txt':
+            'warning: 1 cell(s) with R2 < 0.99\n' + head % (17, 'runs'),
+        'window-lookrts-aa.txt': head % (8, 'window'),
+        'bcast-lookrts-aa.txt': head % (6, 'bcast'),
+        'flip-lookrts-aa.txt': head % (6, 'flip'),
+        'main-counts-cmp.txt': counts % '1.0053',
+        'window-counts-cmp.txt': counts % '0.9989',
+        'runs-counts-cmp.txt': counts % '1.0098',
+        'main-lookrts-pred.txt':
+            '5 span(s): 1 HELD, 4 KILLED, 0 not read; item(s) with no span,'
+            ' yours to adjudicate: (4)\n',
+        'main-a1g-pred.txt':
+            '5 span(s): 5 HELD, 0 KILLED, 0 not read; every item carries a'
+            ' span\n',
+    }
+    for name, text in files.items():
+        write(os.path.join(d, name), text)
     return r
 
 
@@ -8477,6 +8541,34 @@ RECORDS = [
               hasnt=['one-sided']),
          bug=V(has=['one-sided'], hasnt=['they do NOT agree'])),
 
+    case('for-brief-fills-its-slots-from-the-readings', 'read-all.sh', None,
+         'CONTROL: every <yours> an artifact settles is filled off'
+         ' post-run-readings.sh\'s files, and only the largest finding and'
+         ' the pair\'s variable are left typed',
+         shadow=dict(),
+         plant=for_brief_readings,
+         argv=['{tag}', '--for-brief'],
+         ok=V(has=['the 3 shared timed arms span 0.9952 on `lib-stage2-lean`'
+                   ' to 1.0128 on `bq-expand`',
+                   'geomean over the 2 arm(s) 1.0030',
+                   'THE PUBLISHED BASIS IS runzz-lookrts.',
+                   'THE INTRUSION VERDICT IS CLEAN',
+                   'runs 17, window 8, bcast and flip 6',
+                   '0.9989 on window to 1.0098 on runs',
+                   '6 HELD, 4 KILLED', "<yours: the pair's variable>",
+                   "<yours: what this run's largest finding is>"],
+              hasnt=['<yours: the intrusion verdict from --wild over every'
+                     ' log, the'])),
+
+    case('for-brief-names-the-readings-it-wants', 'read-all.sh', None,
+         'CONTROL: with no readings directory each slot says which command'
+         ' writes what it is filled from',
+         shadow=dict(),
+         plant=lambda t: synthetic_run(t, into=os.path.join(t, 'shadow')),
+         argv=['{tag}', '--for-brief'],
+         ok=V(has=['./post-run-readings.sh runzz'],
+              hasnt=['THE INTRUSION VERDICT IS CLEAN'])),
+
     # ---- read-run.py, beside the drivers -----------------------------------
     case('table-row-narrower-than-its-header', 'read-run.py', '0e2934c',
          'a row two cells short put its values under the wrong runs',
@@ -9601,6 +9693,22 @@ RECORDS = [
          argv=['zzpr2'],
          ok=V(has=['rc=0 main-counts-cmp.txt', 'no COMPARE line'],
               hasnt=['not before EVENING COMPLETE'])),
+
+    case('readings-read-the-compare-run-and-every-log', 'post-run-readings.sh',
+         None,
+         'CONTROL: the note\'s COMPARE run is read on the main set, each half'
+         ' against its own, and --wild over every log, --for-brief last',
+         shadow=dict(extra=readings_run('zzpr4', complete=True,
+                                        compare='run97')),
+         argv=['zzpr4'],
+         # --wild exits 2 on every stand-in log, none carrying samples, and
+         # is not counted with the readings that did not happen: Run 34's
+         # wallclock log and its riders' four driver logs carry none
+         # either. --deflation's two, with no riders here, are counted.
+         ok=V(has=['2 of them exiting 2 or worse; 4 log(s) carry no --wild'
+                   ' samples', 'rc=0 main-lookrts-vs-compare.txt',
+                   'rc=0 main-a1g-bridge.txt', 'rc=0 half-movers.txt',
+                   'wild-zzpr4-a1g-main.txt', 'for-brief.txt'])),
 
     case('readings-cells-dump-is-stdout-alone', 'post-run-readings.sh', None,
          'CONTROL: a -cells.tsv carries the TSV alone, the reader\'s'

@@ -61,9 +61,10 @@ if [ $# -lt 1 ]; then
   echo "  --brief-facts  and derive, from the same readings, the facts the"
   echo "                 checker's brief states in prose for its two agents"
   echo "  --for-brief    and print those facts already written into the"
-  echo "                 brief's items 5 and 6, to paste over them; implies"
-  echo "                 --brief-facts. What it cannot derive it marks"
-  echo "                 <yours>, as the pair note's --fill-in does"
+  echo "                 brief's items 5 and 6, to paste over them, the rest"
+  echo "                 off log-read-RUN/ as post-run-readings.sh writes it;"
+  echo "                 implies --brief-facts. What it cannot derive it"
+  echo "                 marks <yours>, as the pair note's --fill-in does"
   exit 2
 fi
 R=""
@@ -701,15 +702,95 @@ for_brief () {
   # printing an empty row rather than failing -- which is this tree's
   # silent-shortfall family in one character.
   row () { printf '%s\n' "$facts" | sed -n 's|^  '"$1"' *||p' | head -1; }
+  BASIS=$(sed -n 's/.*; \([A-Za-z0-9]*\) is the basis.*/\1/p' "$LOG" \
+            | head -1)
+  # THE REST OFF post-run-readings.sh's FILES, since 2026-09-17: the
+  # cross-run span, the intrusion verdict, the class shape counts, the
+  # counted work's range and the registration tally were each typed from
+  # a reading that script had already written, and Run 34 typed all five.
+  # A file absent leaves its slot <yours>, naming the command that writes
+  # it; what stays typed is the pair's variable and the largest finding.
+  RD="log-read-$R"
+  want () { echo "<yours: $1 -- no $2 in $RD/, which ./post-run-readings.sh $R writes${3:-}>"; }
+  count () { n=0; for f in "$@"; do [ -f "$f" ] && n=$((n + 1)); done; echo "$n"; }
+  prev_span () {
+    f="$RD/main-$BASIS-vs-compare.txt"
+    [ -f "$f" ] || { want "the shared-arm span against PREVBASIS" "$(basename "$f")" " where the note names a COMPARE run"; return; }
+    awk '/^this run \/ / { other = $4; sub(/,$/, "", other) }
+         /^arm +ratio/ && !seen { t = seen = 1; next }
+         t && NF == 0 { t = 0 }
+         t { n++
+             if (lo == "" || $2 + 0 < lo + 0) { lo = $2; loa = $1 }
+             if (hi == "" || $2 + 0 > hi + 0) { hi = $2; hia = $1 }
+             if ($1 == "list") l = $2 }
+         END { printf "Against PREVBASIS, %s, the %d shared timed arms span %s on `%s` to %s on `%s`, `list` at %s, this run over PREVBASIS so below 1 means this run is faster", other, n, lo, loa, hi, hia, (l == "" ? "--" : l) }' "$f"
+    sed -n 's/^geomean over the/; --bridge reads a geomean over the/p' \
+      "$RD/main-$BASIS-bridge.txt" 2>/dev/null | head -1 | tr -d '\n'
+  }
+  intrusion () {
+    set -- "$RD"/wild-*.txt
+    [ -f "$1" ] || { want "the intrusion verdict" "wild-*.txt"; return; }
+    awk -v logs="$(count "$R"-*.log)" '
+      FNR == 1 { n++; name = FILENAME; sub(/.*\/wild-/, "", name)
+                 sub(/\.txt$/, "", name) }
+      /IN ONE LINE:/ { s = $0; sub(/.*IN ONE LINE: /, "", s)
+                       loud = loud (loud == "" ? "" : "; ") name ": " s; nl++ }
+      /^NO bench reaches/ { clean++ }
+      /no paired `@@wild` samples|^NO LOAD FIELDS/ {
+        none = none (none == "" ? "" : ", ") name; nn++ }
+      END { of = (n == logs) ? "the " n : "only " n " of the " logs
+            if (nl)
+              printf "AN INTRUSION: --wild over %s log(s) this run wrote finds a bench at or above 0.25 foreign in %d: %s", of, nl, loud
+            else
+              printf "THE INTRUSION VERDICT IS CLEAN: --wild over %s log(s) this run wrote finds no bench at 0.25 foreign in the %d that carry samples; the other %d carry none: %s", of, clean, nn, none }' "$@"
+  }
+  class_counts () {
+    set -- "$RD"/*-"$BASIS"-aa.txt
+    [ -f "$1" ] || { want "the class shape counts" "*-$BASIS-aa.txt"; return; }
+    for f in "$@"; do grep -m1 ' shapes of the ' "$f"; done \
+      | sed -n 's/.* over \([0-9]*\) shapes of the \([A-Za-z0-9]*\) class.*/\1 \2/p' \
+      | sort -k1,1nr -k2,2 \
+      | awk 'function flush(  i, s) {
+               s = g[1]
+               for (i = 2; i <= m; i++) s = s (i == m ? " and " : ", ") g[i]
+               out = out (out == "" ? "" : ", ") s " " k; m = 0 }
+             { if ($1 != k && m) flush(); k = $1; g[++m] = $2 }
+             END { if (m) flush(); printf "Class shape counts: %s", out }'
+  }
+  counts_range () {
+    set -- "$RD"/*-counts-cmp.txt
+    [ -f "$1" ] || { want "the counted work's range" "*-counts-cmp.txt" " once $R-evening.txt reads EVENING COMPLETE"; return; }
+    refused=$(cat "$R"-counts-*.txt 2>/dev/null | grep -c '^!!')
+    sweeps=$(count "$R"-counts-*.txt)
+    awk -v refused="$refused" -v sweeps="$sweeps" '
+      FNR == 1 { pop = FILENAME; sub(/.*\//, "", pop); sub(/-counts-cmp\.txt$/, "", pop) }
+      /^counts geomean over the .* arm\(s\) above/ { getline; v = $0; sub(/.*: /, "", v)
+        if (pop == "main") main = v
+        else { nc++
+               if (lo == "" || v + 0 < lo + 0) { lo = v; lop = pop }
+               if (hi == "" || v + 0 > hi + 0) { hi = v; hip = pop } } }
+      END { printf "The counted work: counts geomean over the timed arms %s on main, %s on %s to %s on %s over %d class(es); %d cell(s) refused over %d sweep file(s)", (main == "" ? "--" : main), lo, lop, hi, hip, nc, refused, sweeps }' "$@"
+  }
+  tally () {
+    set -- "$RD"/*-pred.txt
+    [ -f "$1" ] || { want "the registration tally" "*-pred.txt"; return; }
+    awk '/^[0-9]+ span\(s\): / { n += $1; h += $3; k += $5; u += $7
+           if (match($0, /yours to adjudicate: .*/)) {
+             s = substr($0, RSTART + 21); m = split(s, it, ", ")
+             for (i = 1; i <= m; i++) if (!(it[i] in seen)) {
+               seen[it[i]] = 1; items = items (items == "" ? "" : ", ") it[i] } } }
+         END { printf "Registrations, span by span over %d predictions file(s): %d reading(s), %d HELD, %d KILLED, %d not read; %s", ARGC - 1, n, h, k, u, (items == "" ? "every item carries a span" : "item(s) with no span, adjudicated by hand: " items) }' "$@"
+  }
   echo
   echo "--- paste over checker-brief.txt items 5 and 6; <yours> is prose ---"
   echo " 5. THIS RUN ONLY -- THE BOX AND THE PAIR. The gate machine check"
-  echo "    read $(row 'machine check'). Against PREVBASIS: <yours: the"
-  echo "    shared-arm span, from --compare>. The binaries are"
+  echo "    read $(row 'machine check'). $(prev_span)."
+  echo "    The binaries are"
   echo "    $(row 'md5s')with .text $(row 'text')"
   echo "    Repetition: $(row 'repetition')"
   echo "    THE TWO HALVES DIFFER IN <yours: the pair's variable> AND IN"
-  echo "    NOTHING ELSE. THE PUBLISHED BASIS IS <yours>. The two columns"
+  PUB="<yours>"; [ -z "$BASIS" ] || PUB="$R-$BASIS"
+  echo "    NOTHING ELSE. THE PUBLISHED BASIS IS $PUB. The two columns"
   echo "    may be differenced where \`list\` sits inside the 0.7% bar:"
   printf '%s\n' "$facts" | sed -n '/list vs the 0.7% bar/,/^  list, as the/p' \
     | sed -n 's/^    /      /p'
@@ -724,9 +805,11 @@ for_brief () {
   echo "    Sunk cells: $(printf '%s\n' "$facts" | sed -n 's/^  sunk /sunk /p' \
                             | sed 's/[[:space:]]*$//; s/^\(sunk [a-z]*\)$/\1 none/' \
                             | tr '\n' ';' | sed 's/;$//')"
-  echo "    <yours: the intrusion verdict from --wild over every log, the"
-  echo "    class shape counts, the counted work's range, the registration"
-  echo "    tally, and what this run's largest finding is>"
+  echo "    $(intrusion)."
+  echo "    $(class_counts)."
+  echo "    $(counts_range)."
+  echo "    $(tally)."
+  echo "    <yours: what this run's largest finding is>"
 }
 
 if [ "$BRIEF" = 0 ]; then

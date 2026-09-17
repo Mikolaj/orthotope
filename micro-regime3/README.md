@@ -9942,11 +9942,13 @@ not otherwise.
     #      advanced in the brief afterwards as a record, the commit that
     #      carries its edit being unable to name itself.
     #      THE BRIEF IS `checker-brief.txt`, and its two THIS RUN ONLY
-    #      items are PASTED FROM `./read-all.sh $R --for-brief` rather
-    #      than retyped: it prints them with every figure an artifact can
-    #      settle in place and `<yours>` where prose is owed. Run 32's
-    #      hand copy carried a count the reader contradicts, the write-up
-    #      copied it into the run file, and the checker found it there.
+    #      items are PASTED FROM `log-read-$R/for-brief.txt`, which step
+    #      4's post-run-readings.sh writes last, rather than retyped:
+    #      it carries them with every figure an artifact can settle in
+    #      place and `<yours>` for the pair's variable and the largest
+    #      finding. Run 32's hand copy carried a count the reader
+    #      contradicts, the write-up copied it into the run file, and the
+    #      checker found it there.
     #      EDITED EVERY RUN BEFORE
     #      EITHER PASS IS LAUNCHED -- a STALE brief looks exactly like a
     #      used one. Its head says which three things change; WALK THE

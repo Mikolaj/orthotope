@@ -11,9 +11,12 @@
 # and -blockcmp.txt, --block refusing the main set. On the main set,
 # basis first: --chapter and --alloc as main-chapter.txt and
 # main-alloc.txt, and per half --deflation and --winsor as
-# main-HALF-deflation.txt and main-HALF-winsor.txt. Over the run:
-# --floor-pairs and read-all.sh --for-brief, as floor-pairs.txt and
-# for-brief.txt.
+# main-HALF-deflation.txt and main-HALF-winsor.txt. Where the note names a
+# COMPARE run, per half --compare against that run's same half and
+# --bridge, as main-HALF-vs-compare.txt and main-HALF-bridge.txt. Over the
+# run: --floor-pairs as floor-pairs.txt, and --wild over every $R-*.log
+# as wild-LOG.txt. LAST, once the rest have landed, read-all.sh
+# --for-brief as for-brief.txt, which fills the brief's slots off them.
 #
 # ONCE $R-evening.txt ENDS `EVENING COMPLETE:`, and not before, the
 # readings that want the counts: --compare --counts per population,
@@ -26,8 +29,9 @@
 # READ_JOBS sets how many run at once, 6 unless given. Each
 # reading's exit prints beside its file, and the files are for grep, as
 # the chapter's step 4 says. Exit 0 when every reading ran, 1 when any
-# exited 2 or worse -- did not happen -- and 2 when nothing could be
-# read: usage, no note, no JSON on the basis half.
+# exited 2 or worse -- did not happen, a --wild over a log with no
+# samples excepted -- and 2 when nothing could be read: usage, no note,
+# no JSON on the basis half.
 set -u
 cd "$(dirname "$0")" || exit 2
 if [ $# -ne 1 ]; then
@@ -76,7 +80,24 @@ done
 job "main-chapter.txt ./read-run.py $R-$BASIS-main.json --compare $R-$OTHER-main.json --chapter"
 job "main-alloc.txt ./read-run.py $R-$BASIS-main.json --compare $R-$OTHER-main.json --alloc"
 job "floor-pairs.txt ./read-run.py --floor-pairs $R"
-job "for-brief.txt ./read-all.sh $R --for-brief"
+for f in "$R"-*.log; do
+  [ -f "$f" ] && job "wild-${f%.log}.txt ./read-run.py $f --wild"
+done
+# The COMPARE run's halves off its own note, and by role: its basis is
+# this basis's counterpart whatever either is called. Out of the
+# environment first, since pair-halves.sh holds an inherited BASIS to the
+# note it reads.
+if [ -n "$COMPARE" ]; then
+  CH=$(env -u BASIS -u OTHER -u COMPARE ./pair-halves.sh "$COMPARE" 2>/dev/null)
+  CB=$(printf '%s\n' "$CH" | sed -n 's/^BASIS=\([A-Za-z0-9_]*\);.*/\1/p')
+  CO=$(printf '%s\n' "$CH" | sed -n 's/.*OTHER=\([A-Za-z0-9_]*\);.*/\1/p')
+  for pair in "$BASIS $CB" "$OTHER $CO"; do
+    set -- $pair
+    [ -n "${2:-}" ] && [ -f "$COMPARE-$2-main.json" ] || continue
+    job "main-$1-vs-compare.txt ./read-run.py $R-$1-main.json --compare $COMPARE-$2-main.json"
+    job "main-$1-bridge.txt ./read-run.py $R-$1-main.json --compare $COMPARE-$2-main.json --bridge"
+  done
+fi
 if [ "$COMPLETE" = 1 ]; then
   for p in $POPS; do
     s="-$p"; [ "$p" = main ] && s=""
@@ -97,11 +118,17 @@ xargs -P "${READ_JOBS:-6}" -L 1 sh -c \
      *) "$@" > "'"$D"'/$out" 2>&1 ;;
    esac; echo "rc=$? $out"' sh \
   < "$JOBS" | sort -k2 > "$JOBS.rc"
+./read-all.sh "$R" --for-brief > "$D/for-brief.txt" 2>&1
+echo "rc=$? for-brief.txt" >> "$JOBS.rc"
 cat "$JOBS.rc"
 N=$(grep -c . "$JOBS.rc")
-LOST=$(awk '{ sub(/^rc=/, "", $1) } $1 + 0 >= 2' "$JOBS.rc" | grep -c .)
+# A --wild reading exits 2 on a log carrying no samples, which the run's
+# wallclock log and its riders' driver logs never do: that is the verdict
+# --for-brief quotes, and not a reading that did not happen.
+LOST=$(awk '{ sub(/^rc=/, "", $1) } $1 + 0 >= 2 && $2 !~ /^wild-/' "$JOBS.rc" | grep -c .)
+BARE=$(awk '{ sub(/^rc=/, "", $1) } $1 + 0 == 2 && $2 ~ /^wild-/' "$JOBS.rc" | grep -c .)
 rm -f "$JOBS" "$JOBS.rc"
-echo "$N reading(s) into $D/, $LOST of them exiting 2 or worse"
+echo "$N reading(s) into $D/, $LOST of them exiting 2 or worse; $BARE log(s) carry no --wild samples"
 if [ "$COMPLETE" = 0 ]; then
   echo "-- the counts comparisons and --half-movers: not before EVENING COMPLETE,"
   echo "   which $R-evening.txt does not end with yet; run this again then"
