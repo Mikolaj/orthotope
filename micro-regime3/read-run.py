@@ -5855,6 +5855,156 @@ def half_movers(run, prev, args):
               ' probe-pageflags.py while the slow instance runs.')
     return 0
 
+# The count-led offenders a cell reading meets again and again, by arm:
+# what the mode says under the table when a cell of that arm is count-led,
+# so that the account is met where the figure is read and not only in the
+# open list. One entry so far, the latch of GHC #27799.
+KNOWN_COUNT_LED = {
+    'lib-stage2-lean-u1':
+        "GHC #27799's latch on a rank-1 view, one instruction an element that"
+        " the uniques choose and not the compiler; the open list's *A loop's"
+        " latch keeps its fall-through* entry, which says where to price"
+        " the unrolling instead",
+}
+# And the time-led one a compiler pair meets on the reducers' short runs,
+# by arm suffix, said under a table where such a row reads the basis the
+# faster: the shared per-run loop of the `-sum` consumers, whose HEAD half
+# lays the exit block inside the cycle.
+KNOWN_TIME_LED = {
+    '-sum':
+        "on three-element runs, HEAD's code order on the shared"
+        " per-run loop of the reducers, a taken branch and two fetch blocks"
+        " a run more; the placement section's *The two stage arms'"
+        " mechanism* paragraph, and not a placement the shim can move",
+}
+
+
+def cell_movers(run, top, args):
+    """Every cell of RUN across its two halves, time beside counts, the
+    TOP ranked by what the counts do not explain: post-run step 4b.
+
+    Every other reading of a pair is an arm's geomean over its
+    population's shapes, and a geomean dilutes one cell by the shape
+    count: a cell at 1.25 among seventeen is an arm at 1.01, which no bar
+    here flags. Run 34's record was written from those readings and
+    carried none of the run's largest cells -- the `mut-odo-vecdims`
+    family at 1.23 on one `runs` view with counts level, one branch
+    mispredict a run on `compose-zero-mid`, and the latch of GHC #27799
+    on `lib-stage2-lean-u1`'s rank-1 views, the run's largest count
+    differences -- found only when the cells were ranked by hand on
+    2026-09-17.
+
+    The direction is `--compare`'s: the basis over the other half, both
+    columns, so a row reads without inverting either. The rank is the
+    time ratio over the count ratio, or the time ratio alone where the
+    half's sweep has no count for the cell. A count-led row is the
+    codegen's and `KNOWN_COUNT_LED` names the offender where it has one;
+    a time-led row with counts level is one half's binary, instance or
+    process, which the copy test of step 4a and the cell in a fresh
+    process tell apart, and one whose twins part is bench position. A
+    reading and not a gate: exit 0 whatever it finds, 2 where nothing
+    could be read.
+    """
+    h = note_halves(run)
+    if not h:
+        sys.stderr.write('%s-pair.txt: no HALVES line, so the halves were'
+                         ' not read and no cell was compared\n' % run)
+        return 2
+    head = '%s-%s-' % (os.path.basename(run), h[0])
+    pops = [os.path.basename(p)[len(head):-5]
+            for p in sorted(glob.glob('%s-%s-*.json' % (run, h[0])))]
+    if not pops:
+        sys.stderr.write('%s: no population JSON on its basis half, so no'
+                         ' cell was compared\n' % run)
+        return 2
+
+    def sweep_of(half, pop):
+        p = '%s-counts-%s%s.txt' % (run, half,
+                                    '' if pop == 'main' else '-' + pop)
+        return parse_counts(p)[0] if os.path.exists(p) else None
+
+    rows, read = [], 0
+    for pop in pops:
+        this = '%s-%s-%s.json' % (run, h[0], pop)
+        that = '%s-%s-%s.json' % (run, h[1], pop)
+        if not os.path.exists(that):
+            print('%s -- NOT READ: no JSON on the %s half' % (pop, h[1]))
+            continue
+        read += 1
+        cells, shapes, strategies, meta = load(this, args.main)
+        apply_correction(cells, shapes, strategies, args.corr)
+        b_cells, b_shapes, b_strategies = load_other(that, args.main,
+                                                     shapes, meta)
+        ca, cb = sweep_of(h[0], pop), sweep_of(h[1], pop)
+        for sh in shapes:
+            if sh not in b_shapes:
+                continue
+            for st in strategies:
+                if (st not in b_strategies or st not in b_cells[sh]
+                        or st not in cells[sh]):
+                    continue
+                key = 'slope' if no_net(st) else 'net'
+                a = cells[sh][st].get(key)
+                b = b_cells[sh][st].get(key)
+                if not a or not b or a <= 0 or b <= 0:
+                    continue
+                tr = a / b
+                cr = None
+                if ca and cb and ca.get(sh, {}).get(st) \
+                        and cb.get(sh, {}).get(st):
+                    cr = ca[sh][st] / cb[sh][st]
+                dev = abs(math.log(tr / cr if cr else tr))
+                rows.append((dev, pop, sh, st, tr, cr))
+    if not rows:
+        sys.stderr.write('%s: no cell is on both halves of any population,'
+                         ' so nothing was compared\n' % run)
+        return 2
+    rows.sort(key=lambda r: -r[0])
+    print('cell movers of %s: every cell of every population across the'
+          ' halves, %s over %s on both columns, the %d of %d ranked by the'
+          ' time ratio over the count ratio, or by the time ratio where'
+          ' the sweep has no count'
+          % (os.path.basename(run), h[0], h[1], min(top, len(rows)),
+             len(rows)))
+    print('  %-9s %-24s %-40s %8s %8s %12s'
+          % ('pop', 'shape', 'arm', 'time', 'counts', 'time/counts'))
+    shown = rows[:top]
+    for _dev, pop, sh, st, tr, cr in shown:
+        print('  %-9s %-24s %-40s %8.4f %8s %12s'
+              % (pop, sh, st, tr,
+                 '--' if cr is None else '%.4f' % cr,
+                 '--' if cr is None else '%.4f' % (tr / cr)))
+    # THE COUNT-LED CELLS ARE LISTED WHATEVER THEIR RANK: the table above
+    # is the time's, and a count step of a few percent ranked below the
+    # reducers' term on Run 34, which is how the latch went
+    # unnamed on Run 34 -- the latch's count differences, the run's
+    # largest, sat outside every top twenty read by time.
+    led = sorted([(abs(math.log(cr)), pop, sh, st, tr, cr)
+                  for _d, pop, sh, st, tr, cr in rows
+                  if cr is not None and abs(math.log(cr)) > 0.03],
+                 key=lambda r: -r[0])
+    if led:
+        print('\ncount-led cells, the counts past 3%%, the codegen\'s, all'
+              ' %d ranked by the counts:' % len(led))
+        for _d, pop, sh, st, tr, cr in led:
+            print('  %-9s %-24s %-40s %8.4f %8.4f %12.4f'
+                  % (pop, sh, st, tr, cr, tr / cr))
+        for st in sorted({st for _d, _p, _s, st, _t, _c in led}):
+            if st in KNOWN_COUNT_LED:
+                print('  %s: %s' % (st, KNOWN_COUNT_LED[st]))
+    else:
+        print('\nno cell is count-led past 3%.')
+    print('\nA time-led cell with its counts level is one half\'s binary,'
+          ' file instance or process, which the copy test of step 4a and'
+          ' the cell timed in a fresh process tell apart, or bench'
+          ' position where the arm\'s twins part from it.')
+    for suffix, note in KNOWN_TIME_LED.items():
+        if any(st.endswith(suffix) and tr < 1
+               for _d, _p, _s, st, tr, _c in shown):
+            print('  `%s` arms above: %s' % (suffix, note))
+    print('\n%d cell(s) over %d population(s) read.' % (len(rows), read))
+    return 0
+
 
 def movement(path, args):
     """The published column this install is about to overwrite, against the
@@ -13052,6 +13202,14 @@ def main():
                         ' on the other -- the term a file instance or a'
                         ' binary carries, which no within-pair reading'
                         ' sees; post-run step 4a')
+    p.add_argument('--cell-movers', dest='cell_movers', nargs='+',
+                   metavar='RUN',
+                   help='RUN [N]: every cell of RUN across its halves,'
+                        ' time beside counts over every population,'
+                        ' the N (default 20) ranked by what the counts'
+                        ' do not explain -- the single cell an arm'
+                        ' geomean dilutes, and the count-led offender'
+                        ' named where it has a name; post-run step 4b')
     p.add_argument('--extremes', action='store_true',
                    help='which class holds each extreme -- the tightest'
                         ' floor, the widest gap, the best class for an arm'
@@ -13535,6 +13693,11 @@ def main():
                                  ' one, or add the line\n' % (run, run))
                 sys.exit(2)
         sys.exit(half_movers(run, prev, args))
+    if args.cell_movers:
+        if len(args.cell_movers) > 2:
+            p.error('--cell-movers takes RUN and at most one N')
+        top = int(args.cell_movers[1]) if args.cell_movers[1:] else 20
+        sys.exit(cell_movers(args.cell_movers[0], top, args))
     if args.movement:
         at = json_run_half(args.run or '')
         cmp_run = (note_compare(at[0])

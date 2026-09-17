@@ -1040,7 +1040,8 @@ rather than a slot in the next run, observed again:
   changing the emitted code, filed from here --- is this same mechanism
   with the fixup landing on the other arm, and on HEAD it reaches the fills
   themselves, which is why that half's own twin named one straddler of seven
-  where the basis's named five of its own seven.
+  where the basis's named five of its own seven. Post-run step 4b meets
+  it as that arm's count-led cells, and the mode names it there.
 
 - `ANSWERED` **The published `time` column moves a row across runs by far more
   than the arm moves, because its winsorizing BAND collapses under it ---
@@ -2146,10 +2147,10 @@ rather than a slot in the next run, observed again:
   **The instrument is usable when the machine lets it be, and `run-counts.sh`
   asserts that rather than assuming it**: `perf` is installed,
   and `kernel.perf_event_paranoid` has to read 1 or lower before it counts
-  anything, which it is set to do here. Lowering it is a `sudo sysctl -w`
-  in a plain terminal, not something a session can do. `run-counts.sh` refuses
-  up front rather than spending its full sweep writing NaN, which is what
-  a blocked `perf` used to buy. This is one filtered process rather than a run.
+  anything, which it is set to do here. Lowering it is a `sysctl -w` in a plain
+  terminal, not something a session can do. `run-counts.sh` refuses up front
+  rather than spending its full sweep writing NaN, which is what a blocked
+  `perf` used to buy. This is one filtered process rather than a run.
   The offsets move with every relink, so take them from the binary being sampled
   rather than from this entry.
 
@@ -2504,7 +2505,7 @@ rather than a slot in the next run, observed again:
   **`perf` needs `kernel.perf_event_paranoid` at 1 or lower before it counts
   anything** --- above that it reports `cpu-cycles:u <not supported>`, Ubuntu's
   level 4 being its own and above the upstream maximum of 3 --- and lowering
-  it is a `sudo sysctl -w` in a plain terminal, not something a session can do.
+  it is a `sysctl -w` in a plain terminal, not something a session can do.
   **It is set persistently here since 2026-08-26**, so a sweep meets it ready
   and no checklist asks anyone to read it first; what `run-counts.sh` still
   probes is whether perf COUNTS, a capability a container or a missing binary
@@ -3050,29 +3051,29 @@ rather than a slot in the next run, observed again:
   and the note naming every switch. Read in two stages: the heads the two costs
   place differently, which `ALIGN_AS_VERBOSE=1` names and which were most
   of the tree on 2026-09-15, then the pair with `--pair` and, per cell,
-  the op-cache fetch counter, raw event 0x28F, taken branches plus window
-  crossings. What settles it: B ahead of A on the heads named, past their
-  floors, with the sweep's mispredicted residues not among them, buys the entry
-  count the basis; level, or behind, the exit span is the cheaper rule
-  and stands, and the entry count is parked with the sweep beside it. **Answered
-  2026-09-15 off the two probes that need no quiet run, the readings in [the
-  placement section][floor]**: B crosses more windows than A almost everywhere,
-  two more a run on the fill loop, and reads level with A on thirteen cells
-  on both compilers, medians within a percent; it loses 7 percent on one
-  reducer's per-run loop, `window-224x224-k3`'s stage 9, the population
-  the thirteen did not hold; and A read the fix itself against Run 32's HEAD
-  binary at 4 to 9 percent on the four short-run cells. So A is the simpler rule
-  and the candidate basis, and B stays in the shim, off, with the sweep beside
-  it. Run 33 then ran it: the exit span on both halves, the compiler
-  the variable, and the switch against Run 32's basis read as the one-step
-  comparison, which is that run's registration (6) and which HELD on all three
-  of its spans --- the switch worth 0.17 of a point to `lib-stage2-lean`, 1.83
-  to `lib-stage2-lean-u1` and 0.14 to `list` across the two builds. So A stands
-  as the basis it was made the candidate for. Run 34 then took Run 33's pair
-  again, rebuilt from the moved source and read against Run 32, and its verdicts
-  are in [Run 34's file](runs/run34.md). The two `-O2` passes against neither,
-  which [Run 33's file](runs/run33.md) declared for Run 34, are deferred to
-  Run 35.
+  the op-cache fetch counter, raw event 0x28F, `r20000078f` to perf, taken
+  branches plus window crossings. What settles it: B ahead of A on the heads
+  named, past their floors, with the sweep's mispredicted residues not among
+  them, buys the entry count the basis; level, or behind, the exit span
+  is the cheaper rule and stands, and the entry count is parked with the sweep
+  beside it. **Answered 2026-09-15 off the two probes that need no quiet run,
+  the readings in [the placement section][floor]**: B crosses more windows
+  than A almost everywhere, two more a run on the fill loop, and reads level
+  with A on thirteen cells on both compilers, medians within a percent; it loses
+  7 percent on one reducer's per-run loop, `window-224x224-k3`'s stage 9,
+  the population the thirteen did not hold; and A read the fix itself against
+  Run 32's HEAD binary at 4 to 9 percent on the four short-run cells. So
+  A is the simpler rule and the candidate basis, and B stays in the shim, off,
+  with the sweep beside it. Run 33 then ran it: the exit span on both halves,
+  the compiler the variable, and the switch against Run 32's basis read
+  as the one-step comparison, which is that run's registration (6) and which
+  HELD on all three of its spans --- the switch worth 0.17 of a point
+  to `lib-stage2-lean`, 1.83 to `lib-stage2-lean-u1` and 0.14 to `list` across
+  the two builds. So A stands as the basis it was made the candidate for. Run 34
+  then took Run 33's pair again, rebuilt from the moved source and read against
+  Run 32, and its verdicts are in [Run 34's file](runs/run34.md). The two `-O2`
+  passes against neither, which [Run 33's file](runs/run33.md) declared for Run
+  34, are deferred to Run 35.
 - `ANSWERED` **Why `libunord-stage10-sum` trails `libunord-stage9-sum` by 19
   to 39 percent on the `window` views while retiring 40 to 60 percent fewer
   instructions, and why HEAD moves stage 9 and not stage 10 --- asked
@@ -9524,9 +9525,63 @@ not otherwise.
     #      names changed; then, BEFORE anything evicts the file -- a
     #      reboot, a copy over it, the fadvise -- the frames off the slow
     #      instance while it runs:
-    sudo python3 probe-pageflags.py <pid> <addr of the hot line> --heap
+    python3 probe-pageflags.py <pid> <addr of the hot line> --heap   # as root
     #      which prints the code frame beside the heap's, so the bits they
     #      share are read and not guessed
+    #  4b. EVERY CELL ACROSS THE HALVES, time beside counts over every
+    #      population, ranked by what the counts do not explain:
+    ./read-run.py --cell-movers $R > cell-movers.txt   # 20 rows; `$R 80` below
+    #      why: --para 'latch keeps its fall-through only where the block'
+    #      4a and every table above read ARMS, and an arm is a geomean
+    #      over its population's shapes: a cell at 1.25 among seventeen
+    #      is an arm at 1.01, under every bar in this list, which is how
+    #      Run 34's record missed cells at 1.23 with counts level and
+    #      the latch's count differences, the run's largest. Read the rows
+    #      in three kinds. COUNT-LED: the codegen's, and on
+    #      `lib-stage2-lean-u1` the known offender, GHC #27799's latch
+    #      on a rank-1 view, which the mode names under the table.
+    #      TIME-LED with counts level and the arm's twins agreeing: one
+    #      half's binary, file instance or process -- the copy test of
+    #      4a and the cell timed in a fresh process tell those apart.
+    #      TIME-LED with the twins parting: bench position.
+    #      WHAT THE READING FOUND ON RUN 34 ACROSS ITS HALVES, kind by
+    #      kind with the instrument that settled each, basis over HEAD,
+    #      read at 80 rows; the reducers' `-sum` cells on two- and
+    #      three-element runs head the table, the three-element ones the
+    #      known term the mode names, and are left out here:
+    #        count-led: `lib-stage2-lean-u1` on compose-scalar 1.0714
+    #          and on flip-whole-square and scaled-rank1-m1 0.9412,
+    #          time level -- the latch above; `lib-stage1` on
+    #          cnn-L1-24x24-c1 and its `rev` view, 1.12 in time on
+    #          1.03 in counts, three instructions of a hundred a run on
+    #          a per-run-bound cell and the same in Run 32 -- codegen
+    #          in stage 1's own per-run path
+    #        time-led, counts level, twins agreeing: `mut-odo-vecdims`
+    #          on compose-zero-mid 1.11 -- one mispredict a run, 18000
+    #          an iteration on the basis and none on HEAD, read with
+    #          `perf stat -e branch-misses:u` over -n 2N less -n N;
+    #          the same family on runs-16384 1.23 -- the evening's
+    #          process, all four instances level under criterion in
+    #          fresh processes; the leaf `u1` on scaled-rank1-m1 1.24
+    #          -- the basis file instance, 4a's copy test
+    #        time-led, twins parting: the leaf `u2` on flip-last-rows,
+    #          the original 0.91 against its twins at 1.11 and 1.13 --
+    #          bench position, the open list's entry
+    #        unread: the lean fill and `u1` on cnn-slice-c32 and
+    #          cnn-L1-6x6-c1 near 0.89 and 1.13, and `u1` on
+    #          cnn-L1-24x24-c1 at 0.87, on the last of which instructions,
+    #          taken branches, mispredicts, both branch-target buffers,
+    #          decoder redirects, resyncs, op-cache hits and misses, icache
+    #          and TLB misses all read level between each half's Run 34
+    #          binary and its Run 32 and 33 ones, and what moves, a
+    #          quarter, is perf's `r28F`, event 0x8F with umask 2 under the
+    #          raw encoding and not the 0x28F the chapter reads as
+    #          `r20000078f`; every fill loop of the three
+    #          sits at its residue. On cnn-slice-c32 criterion reads it in
+    #          fresh processes on a fresh copy of each Run 34 binary and
+    #          on neither Run 33's nor Run 32's: a term of that build on
+    #          both compilers, some 250 cycles a call, the lean fill and
+    #          `u1` moving in opposite directions on each half
     #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
     #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT
     #      (reading item 2 HERE, off the copy you have just made, which
@@ -13094,9 +13149,9 @@ and the mechanism stays open. Two readings reach the term and nothing else here
 does: `--half-movers RUN PREV`, each half against the previous run's same half
 over every population, since the A/A pairs share the binary and the counts share
 the code; and the copy test, the half copied to a probe name and the cell timed
-on both, a minute. `probe-pageflags.py` reads the frames of a running instance
-under sudo, its `--heap` form beside the heap's, and is what to run on the next
-slow instance BEFORE anything evicts it, which a reboot, a copy over the file
+on both, a minute. `probe-pageflags.py` reads the frames of a running instance,
+its `--heap` form beside the heap's, and is what to run on the next slow
+instance BEFORE anything evicts it, which a reboot, a copy over the file
 or the eviction itself all do. A tmpfs makes the frame a function of the layout
 --- deterministic, and the shim's kind of term: the box's `/tmp` hands out 128
 KiB compound pages, and a copy run from it read its code lines in runs of 32

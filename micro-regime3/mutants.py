@@ -121,6 +121,17 @@ MUTANTS = [
      "            local = (False",
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nsk = [(sh, \'lib-stage1\', 1.3) for sh in d.class_shapes(\'runs\')]\nd.synth_json(t, \'runs\', name=\'r0-a-runs.json\')\nd.synth_json(t, \'runs\', name=\'r0-b-runs.json\')\nd.synth_json(t, \'runs\', name=\'r1-a-runs.json\', skew=sk)\nd.synth_json(t, \'runs\', name=\'r1-b-runs.json\')\nfor r in (\'r0\', \'r1\'):\n    open(os.path.join(t, r + \'-pair.txt\'), \'w\').write(\'HALVES: basis=a other=b\\n\')\nr = subprocess.run([sys.executable, \'{file}\', \'--half-movers\', os.path.join(t, \'r1\'), os.path.join(t, \'r0\')], capture_output=True, text=True)\nsys.exit(0 if \'1 half-local mover(s)\' in r.stdout and \'lib-stage1\' in r.stdout else 1)"'),
 
+    # AND --cell-movers RANKS THE CELLS, or it is the per-shape table
+    # again with the reader left to find the row -- which is the reading
+    # Run 34's record did not take, its arm geomeans hiding a cell of
+    # 1.25 in an arm near 1. The judge skews one cell of one arm
+    # on the last shape of `runs` and wants it first; with the rank
+    # switched off the first row is whatever came first.
+    ('--cell-movers stops ranking', 'read-run.py',
+     '    rows.sort(key=lambda r: -r[0])',
+     '    rows.sort(key=lambda r: 0)',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nlast = d.class_shapes(\'runs\')[-1]\nd.synth_json(t, \'runs\', name=\'r1-a-runs.json\', skew=[(last, \'lib-stage1\', 1.3)])\nd.synth_json(t, \'runs\', name=\'r1-b-runs.json\')\nopen(os.path.join(t, \'r1-pair.txt\'), \'w\').write(\'HALVES: basis=a other=b\\n\')\nr = subprocess.run([sys.executable, \'{file}\', \'--cell-movers\', os.path.join(t, \'r1\'), \'3\'], capture_output=True, text=True)\nrows = [l for l in r.stdout.splitlines() if l.startswith(\'  runs \')]\nsys.exit(0 if rows and last in rows[0] and \'lib-stage1\' in rows[0] else 1)"'),
+
     # AND --note-check WANTS THE NOTE'S ENTRY POINT. Run list step 13
     # reads the [EXEC] blocks, and its `or the whole note` branch was
     # taken by both runs that met it -- eight hundred lines and 745.
