@@ -4598,25 +4598,25 @@ codegen rather than that it cannot be built.
   misses, ASLR and huge pages were each measured not to be, leaving physical
   page placement --- a term no in-process control sees and one this regime would
   draw afresh per trial, so the pilot is refused.
-- `OPEN` **Render the run-scoped prose from a ledger --- speculative likewise.**
-  The end state is verdicts, statuses, floors and tallies kept in one small
-  machine-readable file beside the roster, `read-run.py` rendering them
-  into the run's file as `--in-place` renders the tables, so that everything
-  rendered cannot go stale and the checker fleet stops growing a check per
-  defect class. The mechanism is not in doubt; the cost is a rewrite
-  of the write-up procedure. **Its pilot was the registration verdicts and
-  it is taken** (2026-08-16), which left the question the pilot cannot answer:
-  whether one ledger file beats an installer per section. **REFUSED 2026-08-26,
-  and the installers answered it by arriving.** Four now write into the run file
-  --- the Results table, the fingerprint, and a block per class ---
-  so the ledger would be a second home for what already has one, bought
-  with a rewrite of the write-up procedure. And the one thing it would have
-  to carry that no installer can, the cross-class summary's emphasis,
-  is a per-run judgement that no ledger can render either: it is written because
-  it is decided, not because it is stored. So the fleet stops growing a check
-  per defect class by the installers absorbing the defect classes, which
-  is the outcome this entry wanted and not the mechanism it proposed. Kept
-  as a ruling because the mechanism is attractive and was proposed twice.
+- `STANDING` **Render the run-scoped prose from what the reader already
+  computes, section by section, and never from a ledger file.** The end state
+  this entry first proposed was verdicts, statuses, floors and tallies kept
+  in one small machine-readable file beside the roster, `read-run.py` rendering
+  them into the run's file as `--in-place` renders the tables. **REFUSED
+  2026-08-26 as a single file, and the installers answered it by arriving**:
+  they write the Results table, the fingerprint and a block per class
+  into the run file, so a ledger would be a second home for what already has
+  one, bought with a rewrite of the write-up procedure, and the cross-class
+  summary's emphasis is a per-run judgement no ledger can render either.
+  **The direction since 2026-09-17 is the installers', extended one section
+  at a time**, each installment a mode that emits or writes prose a write-up
+  used to type: the class paragraph's figures with `___` for its finding
+  (`--block --compare`, installed by `install-tables.sh`), each registration
+  item's span readings (`--predictions --in-place`), the apparatus every run
+  file carried, kept once in [Reading a run file](#reading-a-run-file), and one
+  cell's readings over every run as a generated table (`--series`). Kept
+  as a ruling because the single-file mechanism is attractive and was proposed
+  twice.
 
 - `ANSWERED` **The repoint stays hand-work --- REFUSED 2026-08-26,
   and the entry's own argument is what refuses it.** Post-run step 5 used
