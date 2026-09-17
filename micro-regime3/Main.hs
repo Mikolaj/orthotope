@@ -5783,9 +5783,11 @@ runsShapes =
     -- Run 33 read stage eleven at 0.289 ns an element on runs of 9 and
     -- 0.380 on runs of 96, and a fit to its curve put a minimum between
     -- them. A probe the same day (probe-runsdip-basis.json, the basis
-    -- recipe, not a run) read 0.31 at 32 and 0.38 at 48 and 64 against
-    -- 0.31 at 9 and 0.39 at 96 in the same process: a plateau to 32 and
-    -- a step by 48, no dip. Not in Run 33; Run 34 records the column.
+    -- recipe, not a run) read 0.31 at 32 and 0.38 at 48 and 64 against 0.31
+    -- at 9 and 0.39 at 96 in the same process: a plateau to 32 and a step
+    -- by 48, no dip. Run 34 read stage eleven on the basis at 0.300 at 32,
+    -- 0.362 at 48, 0.371 at 64 and 0.380 at 96 against 0.290 at 9: the step
+    -- under way by 48 and not done there (runs/run34.md, registration (4)).
   , ("runs-32",       [56250, 32])      -- 1800000
   , ("runs-48",       [37500, 48])      -- 1800000
   , ("runs-64",       [28125, 64])      -- 1800000

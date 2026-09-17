@@ -1140,7 +1140,41 @@ rather than a slot in the next run, observed again:
   The main-set residues this entry also named, the lean fill at 1.0354
   and `lib-stage1` at 1.0298, stand as the compiler's placement-and-runtime
   term: HEAD's fills gained about two points against Run 32 under the exit span
-  while the basis's lean fill read level, its loop on another page.
+  while the basis's lean fill read level, its loop on another page. **Run 34,
+  the same recipe launched from `hugebin/` on a moved source, reads
+  `lib-stage2-lean-u1` at 1.0027 across the halves on `runs` and the lean fill
+  at 1.0047 on the main set**, both with their counts level --- and four other
+  half-local movers against Run 32 whose copy test that run did not take,
+  at the head of [Run 34's file](runs/run34.md).
+- `OPEN` **Four arms moved past 3% against Run 32 on ONE half each, with their
+  counts level, and nobody took the copy test that says whether each
+  is the binary's or its file instance's.** Run 34's `--half-movers run34 run32`
+  names `mut-odo-vecdims-add-in-leaf-u1` on `scaled` on the basis half
+  at 1.0636, both of the shipped leaf's A/A copies on `small` on the control
+  at 0.9662, and `lib-stage2-lean` on `rev` on the control at 1.0322, the other
+  half moving under 2.3 points on each and every count within 0.20 of a point.
+  Every process of that run launched from `hugebin/`, the mount introduced
+  against Run 33's file-page frame term, so what these four are is open. **What
+  would settle each** is post-run step 4a's copy test --- the flagged cell timed
+  on the half's binary and on a byte-identical copy, interleaved, on a quiet
+  box, `probe-r33-instance.sh`'s part 1 with the names changed --- and, where
+  the two part, `probe-pageflags.py` on the slow instance while it runs.
+  It needs `run34-exit` and `run34-gheadexit`, so it is owed before
+  those are deleted. Registered 2026-09-17.
+- `OPEN` **On `flip-last-rows` the shipped leaf's own cell parts from BOTH
+  its A/A copies by 22% in one process, and the copies agree with each other.**
+  Run 34's `run34-exit-flip` reads `mut-odo-vecdims-add-in-leaf-u2-aa` 22.29%
+  and `-aa-distant` 21.42% slower than `mut-odo-vecdims-add-in-leaf-u2`
+  on that one shape, which sets that process's floor at 3.35% where the control
+  half's reads 0.86%; `--wild` clears the log of foreign CPU, and its per-sample
+  table puts the parting in the mutator time with the three arms' allocation
+  alike. Run 33's widest A/A cell was on the same shape, 7.15% on its control
+  half. Two copies agreeing and the original parting is the shape a placement
+  or instance term on the original's code would leave, and the leaf's function
+  is among the straddlers post-run step 0 names on that half --- a lead
+  and not a reading. **What would settle it** is the cell timed on the original
+  and one copy in one filtered process, interleaved, and the same
+  on a byte-identical copy of the binary. Registered 2026-09-17.
 - `OPEN` **The chapter's own two reading windows land INSIDE a timed process,
   and this run measured what that costs.** Run list step 15 puts the previous
   run's registered predictions and the open list *after `sequence: start`*,
@@ -1612,33 +1646,32 @@ rather than a slot in the next run, observed again:
   have now said so. RULED 2026-09-13: the whole-set floor is the bar
   and the carry-back figure the series.** The shipped fill's own A/A copies
   landed 2026-09-09, so the floor is a maximum over EIGHT pairs and reads
-  **0.47%** on Run 33's basis where the four pairs that carry back to Run 10
-  read **0.47%** as well, `bq-expand-aa-distant` carrying both; on its control
-  the two are closed as well, **0.62%** against 0.62% with that same pair
-  carrying each, which is the SECOND control half in the eight-pair series
-  to close them, Run 32's having been the first --- and where that one put
-  the control's figure on the family ROOT's distant pair, this run puts both
-  halves on `bq-expand`'s, which no pair had done before. Runs 28 and 29 read
-  the two apart, the fill's own pair carrying the whole-set figure both times,
-  and Runs 30, 31 and 32 put it on `bq-expand`'s pair instead ON THE PUBLISHED
-  HALF, Run 31's CONTROL half reading the fill pair's on two wild cells where
-  Run 32's reads the family root's on none, Run 30 also reading one unchanged
-  binary at 0.82% and 0.57% a day apart; the five runs' figures
-  and that repetition are [in the floor section][floor], which until 2026-09-13
-  named the RESTRICTED figure as the bar while every verdict in `runs/run33.md`
-  used the whole-set pair. **RULED 2026-09-13**: a margin between two rows
-  clears the floor of every pair the roster carries, the widest an arm disagrees
-  with its own duplicate by on that half that evening, quoted to one decimal
-  where it stands as a bar; the carry-back figure, over the pairs that carry
-  back to Run 10, is the series that keeps fourteen runs comparable and is never
-  the bar. Run 30 is the run that showed those are not the same arm twice
-  running, and its verdicts already read the whole-set pair, as the reader's
-  default tolerance does. **The rename this entry also carried is TAKEN
-  and stays taken**, 2026-09-11: the figure is the carry-back figure, named
-  for the pairs that carry back to Run 10 rather than for a population size,
-  in this file, on `read-run.py`'s `--chapter` line and in its agreement row,
-  and in the corpus case's expected text --- a cross-site agreement check keying
-  on the SIZE of a population being exactly what a roster change breaks.
+  **0.51%** on Run 34's basis where the four pairs that carry back to Run 10
+  read **0.49%**, the shipped leaf's distant copy carrying the first
+  and `bq-expand-aa-distant` the second; on its control the two are closed,
+  **0.49%** against 0.49% with `bq-expand-aa-distant` carrying each, as Run 33
+  closed them on both halves at 0.47% and 0.62% with that one pair carrying all
+  four. Runs 28 and 29 read the two apart, the fill's own pair carrying
+  the whole-set figure both times, and Runs 30, 31 and 32 put
+  it on `bq-expand`'s pair instead ON THE PUBLISHED HALF, Run 31's CONTROL half
+  reading the fill pair's on two wild cells where Run 32's reads the family
+  root's on none, Run 30 also reading one unchanged binary at 0.82% and 0.57%
+  a day apart; the five runs' figures and that repetition are [in the floor
+  section][floor], which until 2026-09-13 named the RESTRICTED figure as the bar
+  while every verdict in `runs/run33.md` used the whole-set pair. **RULED
+  2026-09-13**: a margin between two rows clears the floor of every pair
+  the roster carries, the widest an arm disagrees with its own duplicate
+  by on that half that evening, quoted to one decimal where it stands as a bar;
+  the carry-back figure, over the pairs that carry back to Run 10, is the series
+  that keeps fourteen runs comparable and is never the bar. Run 30 is the run
+  that showed those are not the same arm twice running, and its verdicts already
+  read the whole-set pair, as the reader's default tolerance does. **The rename
+  this entry also carried is TAKEN and stays taken**, 2026-09-11: the figure
+  is the carry-back figure, named for the pairs that carry back to Run 10 rather
+  than for a population size, in this file, on `read-run.py`'s `--chapter` line
+  and in its agreement row, and in the corpus case's expected text ---
+  a cross-site agreement check keying on the SIZE of a population being exactly
+  what a roster change breaks.
 - `ANSWERED` **The arm that leads Run 28's table is the branch's own driver
   and not a member of the family the fix shipped.** `lib-stage2-lean` reads
   0.027 on the main set against the shipped `mut-odo-vecdims-add-in-leaf-u2`'s
@@ -3499,6 +3532,54 @@ rather than a slot in the next run, observed again:
 
 
 ### Recommended tasks after Run 34
+
+**What Run 34 made cheaper for the next run, which is not a figure and no other
+step gathers --- and it is TWO sessions' worth, the preparation's reaching
+this one only through the pair note.** **THE PREPARATION'S HALF, taken
+2026-09-16 and 17 and recorded in the note.** A CHECK THAT WOULD HAVE CAUGHT
+AN ERROR, AND DID: preflight's 10c failed on a gate JSON the note named before
+the gate had written it. One that would have and does not exist: `--draft`
+substituted `run33` to `run34` inside a HISTORICAL sentence of the note's
+`NAMING THE HALVES` block, turning Run 33's true `run33-ghead-exit` rename
+into a false `run34-ghead-exit` one, which only the reading caught.
+A COMPUTATION IMPROVISED: every re-pointed prior in the registration, Run 32
+having timed no stage eleven or twelve, so each was built from Run 32's cells
+with the stage whose route stage eleven or twelve takes standing in, per shape,
+by a hand-written script over `--cells`; no mode builds a span from a stand-in
+arm. A STEP SKIPPED: `--carry-over`, the registration not being a carried one.
+A CAPABILITY FOUND: `--machine --run-doc runs/runNN.md` reads a run's absolutes
+against ANY run's fingerprint, which run-gate.sh does not expose and which
+the owner's ruling needed at the gate.
+
+**THE WRITE-UP SESSION'S HALF.** **THE READINGS AT STEP 13a KEPT THE EVENING
+CLEAN**, the first evening since the step moved: `--wild` finds no bench at 0.25
+of a core in any sequence, gate or rider log, where Runs 32 and 33 each intruded
+on their own. A COMPUTATION IMPROVISED, FOUR TIMES, all of them registration
+clauses naming a SHAPE or a COUNT rather than a population: (1)'s moved views
+within a point of stage six, (4)'s per-element ratios over three `runs` lengths,
+(5)'s last clause against a prior built from Run 32's cells with each view
+classed by this run's own basis cell, and (2)'s count clause, which no mode
+reads because `--counts --pair` corrects a reducing consumer to nothing ---
+every one a script over `--cells` or over the counts files directly. **A CHECK
+THAT DOES NOT EXIST**: `--predictions` reads every span of the registration
+on every population it is handed, so an item naming `window` alone comes back
+KILLED on the other ten populations and a session filters by hand; and it reads
+a `pair` span on whichever half the file handed first is, where the item may
+name no half --- (1) holds on the basis and misses within the control,
+and nothing but the reading says which the item meant. **A RESOLUTION NOBODY HAD
+PRICED**: the counted work's identical-code pair, `sum-only-early` against
+`sum-only-late`, differs by up to 14 instructions a call over `window`
+on the basis and by up to 2925 over `runs`, so a registration clause resting
+on the sign of a difference under a hundred instructions sits inside
+the instrument's resolution on some populations and outside it on others,
+and wants that pair's figure beside it. **A STEP SKIPPED, AND IT IS OWED**:
+post-run 4a's copy test on the four half-local movers against Run 32, which
+wants the box quiet and so wants asking, the session having nobody to ask;
+the four stand unattributed in the head. And `--half-movers` was first run
+before the counts had landed, so its counts columns read `--`; it reads them
+only when rerun after step 20. THE READINGS: no carrier ran, by the ruling
+of 2026-09-16, and the readings at run list step 13a were all taken before
+the launch.
 
 **What Run 33 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
