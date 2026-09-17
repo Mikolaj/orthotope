@@ -2718,17 +2718,28 @@ canonView sh ats = canonViewOfPairs (zip ats sh)
 -- RETURNS pairs.
 canonViewOfPairs :: [(Int, Int)] -> (ShapeL, [Int])
 canonViewOfPairs ps =
-  let merge (!st, !n) ((st', n') : rest)
-        | st == n' * st' = (st', n * n') : rest
-      merge p rest = p : rest
-      -- Lazy in the pair on the second equation, and read as fine
-      -- (2026-09-14, moved here from 'canonView' with its fields
-      -- swapped): the guard above forces both fields where they are
-      -- compared, and the pair passes to the result unopened otherwise.
-      -- checks.py's bang-shapes step prints this; bang-lazy-allow.txt
-      -- carries the reading.
-      merged = foldr merge [] [p | p@(_, n) <- ps, n /= 1]
+  let merged = foldr mergeInto [] [p | p@(_, n) <- ps, n /= 1]
   in  (map snd merged, map fst merged)
+
+-- The merge step, one axis against the already merged axes inside it:
+-- merged into the first of them wherever this one's stride is that
+-- one's stride times its extent, so that the two are walked as one
+-- (the merge equation of the library's 'canonicalizeT', over
+-- (stride, extent) pairs), and put in front of them otherwise.  Axes
+-- of extent 1 are the caller's to drop first, and every caller folds it
+-- from the innermost axis out.  Lazy in the pair on the second
+-- equation, and read as fine: the guard forces both fields where they
+-- are compared, and the pair passes to the result unopened otherwise.
+mergeInto :: (Int, Int) -> [(Int, Int)] -> [(Int, Int)]
+mergeInto (!st, !n) ((st', n') : rest)
+  | st == n' * st' = (st', n * n') : rest
+mergeInto p rest = p : rest
+{-# INLINE mergeInto #-}
+
+-- The (stride, extent) pairs as the shape and the strides.
+unzipAxes :: [(Int, Int)] -> (ShapeL, [Int])
+unzipAxes axes = (map snd axes, map fst axes)
+{-# INLINE unzipAxes #-}
 
 -- 'fbMutOdoVecdims' behind 'canonView', the canonical natural-stride
 -- case returned as an O(1) slice of the source -- the regime-1 hit the
@@ -4033,12 +4044,7 @@ fbLibListStage3 sh a@(T _ _ v) = fillRoute (routeList3 sh a) v
 routeList4 :: ShapeL -> T -> Route
 routeList4 sh (T (Strides ats) ao _)
   | l == 0 = RBlock 0 0
-  | otherwise = case canonView sh ats of
-      ([], _) -> RBlock ao l
-      ([_], [1]) -> RBlock ao l
-      (csh, cats)
-        | last cats == 1 -> RRuns csh cats ao
-        | otherwise -> RFill csh cats ao l
+  | otherwise = routeOf ao l (canonView sh ats)
   where !l = product sh
 
 lsListStage4 :: ShapeL -> T -> [VS.Vector Double]
@@ -4305,21 +4311,29 @@ concatLazyRuns :: ShapeL -> [Int] -> Int -> VS.Vector Double
                -> VS.Vector Double
 concatLazyRuns ssh sats !o v = VS.concat (lazyRuns ssh sats o v)
 
+-- The route of a canonicalized view, given its start offset and its
+-- element count: one slice where no axis is left or the one left has
+-- stride 1, runs where the innermost stride is 1, the fill otherwise.
+-- Shared by the dispatches that hand back a 'Route', so that it is
+-- written once.
+routeOf :: Int -> Int -> (ShapeL, [Int]) -> Route
+routeOf start l canonical = case canonical of
+  ([], _) -> RBlock start l
+  ([_], [1]) -> RBlock start l
+  (csh, cats)
+    | last cats == 1 -> RRuns csh cats start
+    | otherwise -> RFill csh cats start l
+{-# INLINE routeOf #-}
+
 -- The lean dispatch over an axis order: the (stride, extent) pairs the
--- order hands back are canonicalized, and the rank test reads them --
--- one block as a slice, runs where the innermost stride is 1, the fill
--- otherwise. Stages three and five to ten are this over their own
--- order, so a pair of them differs in the order function alone; stage
--- four keeps the natural-strides test and is written out.
+-- order hands back are canonicalized, and 'routeOf' reads them. Stages
+-- three and five to twelve are this over their own order, so a pair of
+-- them differs in the order function alone; stage four keeps the
+-- natural-strides test and is written out.
 dispatchLean :: (ShapeL -> [Int] -> [(Int, Int)]) -> ShapeL -> T -> Route
 dispatchLean order sh (T (Strides ats) ao _)
   | l == 0 = RBlock 0 0
-  | otherwise = case canonViewOfPairs (order sh ats) of
-      ([], _) -> RBlock start l
-      ([_], [1]) -> RBlock start l
-      (ssh, sats)
-        | last sats == 1 -> RRuns ssh sats start
-        | otherwise -> RFill ssh sats start l
+  | otherwise = routeOf start l (canonViewOfPairs (order sh ats))
   where !l = product sh
         !start = startOf sh ats ao
 {-# INLINE dispatchLean #-}
@@ -4789,6 +4803,140 @@ lsUnordStage12 sh a@(T _ _ v) = listRoute (routeUnord12 sh a) v
 fbLibUnordStage12 :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage12 sh a@(T _ _ v) = fillRoute (routeUnord12 sh a) v
 
+-- Stage thirteen, this file's candidate for the library's
+-- 'toUnorderedVectorListT' on the pr-mikolaj-toVectorListT branch: the
+-- view's elements as an unordered list of slices, found from the shape
+-- and the strides in as few passes over them as the answer allows.
+-- How it fits here: it is stage twelve's route, slice for slice, so
+-- that its pair with 'libunord-stage12-sum' prices the dispatch alone,
+-- one change per population; counted as run-counts.sh counts, on one
+-- plain build of 2026-09-17, the sum consumer retires 4369 instructions
+-- a call against stage twelve's 6233 on 'cnn-L1-6x6-c1', 2979 against
+-- 3869 on 'small-flat64' and 4218 against 4513 on 'small-row96'; added
+-- 2026-09-17 for Run 35.  In the library, the three cases of 'routeOf'
+-- are the slice, the run list and the fill that 'toVectorListT'
+-- produces there.  From here down nothing names a stage or this
+-- harness: the account after the function explains the dispatch on its
+-- own terms.
+routeUnord13 :: ShapeL -> T -> Route
+routeUnord13 sh (T (Strides ats) ao _)
+  | l == 0 = RBlock 0 0
+  | otherwise = routeOf start l (unzipAxes (zeroStrideOutermost merged))
+  where
+    !l = product sh
+    (axes, !start) = absAxesAndStart ao ats sh
+    merged = foldr mergeInto [] (sortBy byStrideRank axes)
+
+-- The dispatch of 'routeUnord13', piece by piece.
+--
+-- Overview.  A consumer that folds with a commutative and associative
+-- operation needs the view's elements as a multiset, not in order.  So
+-- the axes may be reordered freely, a reversed axis may be walked
+-- forwards, and the question is only which slices of the vector, taken
+-- together, hold each element as often as the view holds it.  The
+-- answer: sort the axes by stride, merge the axes that are walked as
+-- one, move a broadcast axis outermost, and read the route off what is
+-- left, one slice, runs, or a fill.  The passes over the axes are
+-- ordered so that each sees as few axes as it can, and the account
+-- below takes them in the order they run.
+--
+-- Why one walk first.  Three things are read off the shape and the
+-- strides as given: which axes have extent 1, the absolute value of
+-- each stride, and the start offset (below).  Each is a pass over the
+-- two lists, and 'absAxesAndStart' takes all three in one, returning
+-- the (absolute stride, extent) pairs of the axes that matter with the
+-- start offset beside them.
+--
+-- Why drop the axes of extent 1 before the sort.  An axis of extent 1
+-- selects one index and is walked no distance, so its stride says
+-- nothing about which cells are touched, and canonicalization drops it
+-- whatever its stride.  Dropped before the sort, it leaves the sort
+-- fewer axes to order, and on a view where such an axis shares a stride
+-- with another --- the channel axis of a one-channel convolution patch,
+-- extent 1 at the output axis's stride --- the sort meets no tie and
+-- has no order to undo, where a sort that meets one pays several
+-- hundred instructions to reorder five axes.  A zero stride on such an
+-- axis goes with it, so no later test has to see past it.
+--
+-- Why abs.  A negative stride walks an axis backwards over the same
+-- cells a positive one walks forwards.  Order is not asked for here, so
+-- only the magnitude says which cells are touched; the sign is used
+-- once, in the same walk, to find where the lowest address is.
+--
+-- Why sort.  A transposition reorders the axes and their strides
+-- together without changing which cells are touched.  Sorting by stride
+-- magnitude, descending, puts the axes from outermost to innermost,
+-- which is the order in which two axes walked as one stand next to
+-- each other, and in which the innermost axis, the run, is last.
+-- 'byStrideRank' is that order, and on a tie at stride 1 it puts the
+-- axis whose extent makes the better run innermost.
+--
+-- Why merge after the sort.  Two adjacent axes are one axis when the
+-- outer stride is the inner stride times the inner extent: walking the
+-- inner axis to its end and stepping the outer axis once lands where
+-- one axis of the combined extent would.  'mergeInto' merges every such
+-- pair.  Done after the sort, the merge finds every pair that any order
+-- of the axes would have put together, so a view that is one block of
+-- the vector merges to a single axis of stride 1 and reads as one
+-- slice, whatever order its axes came in.
+--
+-- Why the zero-stride axis moves outermost, and why after the merge.
+-- A broadcast axis, stride 0, reads the same cells at every index.
+-- Sorted by stride it lands innermost, and there it makes the route a
+-- fill, each element copied as many times as the broadcast repeats it.
+-- Moved outermost over a unit-stride axis it makes the route runs, and
+-- the runs branch repeats one slice as many times, the same multiset
+-- with nothing copied.  Decided after the merge, the move is one look
+-- at the last two axes: a zero stride merges with nothing but another
+-- zero stride, so there is at most one such axis, and it sorts after
+-- every other stride, so it is last; and a unit-stride axis worth
+-- moving it over is the one before it.  'zeroStrideOutermost' does the
+-- look and the move.
+--
+-- Why start.  The slices must begin at the block's lowest address, and
+-- the offset ao is not it: ao is where index (0, ..., 0) sits, which is
+-- the lowest address only when every stride is positive.  An axis with
+-- a negative stride has its lowest address at its last index, and
+-- contributes (extent - 1) * stride, a negative amount.  So start is ao
+-- plus those amounts, one per reversed axis, and the walk adds each as
+-- it takes the stride's absolute value, the sign being in hand there
+-- and nowhere later.
+
+-- The (absolute stride, extent) pairs of the axes of extent above 1,
+-- in the order given, and the offset of the view's lowest address.
+absAxesAndStart :: Int -> [Int] -> ShapeL -> ([(Int, Int)], Int)
+absAxesAndStart ao = go
+  where
+    go :: [Int] -> ShapeL -> ([(Int, Int)], Int)
+    go (s : ss) (n : ns)
+      | n == 1 = go ss ns
+      | s < 0 = case go ss ns of
+          (axes, !start) -> ((negate s, n) : axes, start + (n - 1) * s)
+      | otherwise = case go ss ns of
+          (axes, !start) -> ((s, n) : axes, start)
+    go _ _ = ([], ao)
+{-# INLINE absAxesAndStart #-}
+
+-- The merged axes with their zero-stride axis, if they end in a
+-- unit-stride axis followed by one, moved to the front.
+zeroStrideOutermost :: [(Int, Int)] -> [(Int, Int)]
+zeroStrideOutermost axes
+  | unitThenZero axes = last axes : init axes
+  | otherwise = axes
+
+-- Whether the axes end in one of stride 1 followed by one of stride 0.
+unitThenZero :: [(Int, Int)] -> Bool
+unitThenZero [(1, _), (0, _)] = True
+unitThenZero (_ : axes@(_ : _ : _)) = unitThenZero axes
+unitThenZero _ = False
+
+lsUnordStage13 :: ShapeL -> T -> [VS.Vector Double]
+lsUnordStage13 sh a@(T _ _ v) = listRoute (routeUnord13 sh a) v
+
+{-# NOINLINE fbLibUnordStage13 #-}
+fbLibUnordStage13 :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage13 sh a@(T _ _ v) = fillRoute (routeUnord13 sh a) v
+
 -- The two ports' lists: master's and the branch's 'toVectorListT', and
 -- the unordered one-block tests in front of them. The four port Fill
 -- arms are 'concatParts' over these since 2026-09-09, Run 27 having
@@ -4940,6 +5088,11 @@ fbLibUnordStage12Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage12Sum sh a@(T _ _ v) =
   VS.singleton (sumRoute (routeUnord12 sh a) v)
 
+{-# NOINLINE fbLibUnordStage13Sum #-}
+fbLibUnordStage13Sum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage13Sum sh a@(T _ _ v) =
+  VS.singleton (sumRoute (routeUnord13 sh a) v)
+
 -- The cross-over of 'fbLibUnordStage6ListSum' and 'fbLibUnordStage10Sum':
 -- base's 'sum' over stage TEN's list, the consumer a user of
 -- 'toUnorderedVectorListT' writes, carried from stage six's route to the
@@ -5044,7 +5197,8 @@ lazinessGate = do
         , ("libunord-stage9", lsUnordStage9, Just True, Just True)
         , ("libunord-stage10", lsUnordStage10, Just True, Just True)
         , ("libunord-stage11", lsUnordStage11, Just True, Just True)
-        , ("libunord-stage12", lsUnordStage12, Just True, Just True) ]
+        , ("libunord-stage12", lsUnordStage12, Just True, Just True)
+        , ("libunord-stage13", lsUnordStage13, Just True, Just True) ]
       gate view sh a n ls ask = case ask of
         Nothing -> return ()
         Just want -> do
@@ -6403,6 +6557,8 @@ roster =
   , ("libunord-stage11",           Only fbLibUnordStage11)
     -- stage twelve, the run chosen by length, checked likewise
   , ("libunord-stage12",           Only fbLibUnordStage12)
+    -- stage thirteen, stage twelve's passes reordered, checked likewise
+  , ("libunord-stage13",           Only fbLibUnordStage13)
     -- The ordered list's consumers, added 2026-09-09 for Run 28 as the
     -- thirteen above retired: 'sumT'-shaped over each stage's ordered
     -- list, master's and the port's under 'sumRuns', stages three and
@@ -6482,6 +6638,13 @@ roster =
     -- over it, and 'libunord-stage6-sum' is what it should read level
     -- with on the three 'window' views it moves.
   , ("libunord-stage12-sum",       Fill fbLibUnordStage12Sum)
+    -- Stage twelve's route found with fewer passes over the axes, added
+    -- 2026-09-17 for Run 35 at the tail of the consumers, where a new
+    -- entry moves no existing one; reasons at 'routeUnord13'. Its
+    -- control is 'libunord-stage12-sum', and it should read at or under
+    -- it on every view, furthest under where a call is short: the
+    -- 'small' views and the three c1 conv views.
+  , ("libunord-stage13-sum",       Fill fbLibUnordStage13Sum)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
