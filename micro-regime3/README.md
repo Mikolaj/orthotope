@@ -7892,9 +7892,13 @@ and never as a chronology.
     #      the part written by hand.
     #      THE HALVES LAUNCH FROM hugebin/, since 2026-09-16: a tmpfs
     #      mounted `huge=always` under this directory, so that a code
-    #      page's physical frame is the layout's and not the page cache's
-    #      draw, which the placement section prices at 15 percent on one
-    #      arm of Run 33's basis. Nothing here copies by hand: every
+    #      page sits at its layout's offset in a 2 MiB frame and not
+    #      at the page cache's 4 KiB draw, which the placement section
+    #      prices at 15 percent on one arm of Run 33's basis. WHICH 2
+    #      MiB FRAME A COPY GETS IS STILL A DRAW: two mounted copies of
+    #      run34-exit parted by 7.5 percent on one cell, the placement
+    #      section's last reading, so the mount does not remove the
+    #      term. Nothing here copies by hand: every
     #      driver that spends the machine asks half-bin.sh for the path,
     #      which refreshes the copy from the on-disk file by md5, and the
     #      on-disk file stays the record the note provenances and this
