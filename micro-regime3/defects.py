@@ -10364,7 +10364,8 @@ RECORDS = [
          argv=['zzev'],
          probe=lambda subs: open(os.path.join(subs['at'],
                                               'zzev-evening.txt')).read(),
-         ok=V(exit=0, has=['gate: inherited', 'alarm:', 'sequence: done, rc=0',
+         ok=V(exit=0, has=['gate: inherited', 'alarm:',
+                           'instance gate: done, rc=0', 'sequence: done, rc=0',
                            'riders a1g clean: done, rc=0',
                            'riders lookrts clean: done, rc=0',
                            'RIDERS DONE AND THE MACHINE IS FREE'],
@@ -10402,6 +10403,86 @@ RECORDS = [
          argv=['zzem'],
          ok=V(exit=1, has=['lacks a machine line', 'LAUNCH:', 'RIDERS:'],
               hasnt=['evening begins'])),
+
+    case('evening-refuses-the-harness-without-the-reaper-switch',
+         'run-evening.sh', None,
+         'under the harness with its memory-pressure reaper live, the'
+         ' evening is refused before the note is read',
+         # Run 35's driver, 2026-09-18 03:52: killed two and a half hours
+         # in on a kernel memory-stall trigger fed by swap-ins, with 43 GB
+         # free. The switch lives in the user settings; a session started
+         # before it lacks it, and this is where that session is stopped.
+         env={'CLAUDE_CODE_SESSION_ID': 'zz',
+              'CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP': ''},
+         argv=['zzem'],
+         ok=V(exit=2, has=['CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1',
+                           'Nothing ran'],
+              hasnt=['evening begins'])),
+
+    # ---- instance-gate.sh, run list step 16a ----------------------------
+    # A half's launch instance against a fresh copy, since 2026-09-18: Run
+    # 34's mounted instance read 1.075 of a copy the day after its evening
+    # and 1.10 a day later still, untouched, so a draw is gated once per launch
+    # (README, the placement section). The verdict logic runs on faked
+    # cycles with the shadow itself standing in for the mount; the no-mount
+    # exit and usage are the other two paths.
+    case('instance-gate-refuses-usage', 'instance-gate.sh', None,
+         'CONTROL: no run named is usage, exit 2',
+         argv=[], ok=V(exit=2, has=['usage:'])),
+
+    case('instance-gate-has-nothing-to-gate-for-a-stub-half',
+         'instance-gate.sh', None,
+         'CONTROL: a half that is no ELF binary launches from disk, so there'
+         ' is no instance to gate, said so at exit 0',
+         # The shadow symlinks the real hugebin/, so the no-mount exit is
+         # not reachable from a case; a copy of the script in a bare
+         # directory takes it, and did on 2026-09-18. What the evening's
+         # stand-ins meet is this path: half-bin.sh keeps a non-ELF half
+         # off the mount and hands back its disk path.
+         shadow=dict(extra=[('zzig-pair.txt', NOTE_STUB)]
+                     + halves('zzig-lookrts', 'zzig-a1g')),
+         argv=['zzig'],
+         ok=V(exit=0, has=['launches from disk', 'nothing to gate'],
+              hasnt=['REDRAWN', 'UNTESTED'])),
+
+    case('instance-gate-swaps-in-the-copy-when-the-launch-draw-is-slow',
+         'instance-gate.sh', None,
+         'CONTROL: a launch instance 10% slower than its fresh copy is'
+         ' parked as .slow and the copy takes its name',
+         shadow=dict(extra=[('zzig-pair.txt', NOTE_STUB)]
+                     + halves('zzig-lookrts', 'zzig-a1g')),
+         env={'INSTANCE_DIR': '.', 'INSTANCE_FAKE': '1100,1000'},
+         argv=['zzig'],
+         probe=lambda subs: ' '.join(sorted(
+             f for f in os.listdir(subs['at']) if f.startswith('zzig-'))),
+         ok=V(exit=0, has=['launch/copy 1.1000', 'REDRAWN',
+                           'zzig-a1g.slow', 'zzig-lookrts.slow'],
+              hasnt=['UNTESTED', '.gate'])),
+
+    case('instance-gate-lets-a-level-launch-instance-stand',
+         'instance-gate.sh', None,
+         'CONTROL: within the bar the copy is discarded and nothing is'
+         ' renamed',
+         shadow=dict(extra=[('zzig-pair.txt', NOTE_STUB)]
+                     + halves('zzig-lookrts', 'zzig-a1g')),
+         env={'INSTANCE_DIR': '.', 'INSTANCE_FAKE': '1020,1000'},
+         argv=['zzig'],
+         probe=lambda subs: ' '.join(sorted(
+             f for f in os.listdir(subs['at']) if f.startswith('zzig-'))),
+         ok=V(exit=0, has=['level within 5%'],
+              hasnt=['REDRAWN', '.slow', '.gate'])),
+
+    case('instance-gate-discards-a-slow-copy', 'instance-gate.sh', None,
+         'CONTROL: a copy slower than the launch instance is the one'
+         ' discarded, and the launch instance stands under its name',
+         shadow=dict(extra=[('zzig-pair.txt', NOTE_STUB)]
+                     + halves('zzig-lookrts', 'zzig-a1g')),
+         env={'INSTANCE_DIR': '.', 'INSTANCE_FAKE': '1000,1200'},
+         argv=['zzig'],
+         probe=lambda subs: ' '.join(sorted(
+             f for f in os.listdir(subs['at']) if f.startswith('zzig-'))),
+         ok=V(exit=0, has=['copy was the slow draw'],
+              hasnt=['REDRAWN', '.slow', '.gate'])),
 
     # ---- run-counts-all.sh, the evening's second call -------------------
     # The counted work left run-evening.sh on 2026-09-03 so that the box
@@ -12646,9 +12727,14 @@ CONFIG = {
     'timeout': 600,
     # A session's own launch habit must not reach a case: BASIS or OTHER
     # exported in the shell makes every stub note refuse, and the switches
-    # would dose or restrict a driver the case did not ask to.
+    # would dose or restrict a driver the case did not ask to. Nor the
+    # harness's own marker, which would make every evening case refuse in a
+    # session that predates the reaper switch; the one case that wants it
+    # sets it itself.
     'strip_env': ['BASIS', 'OTHER', 'SATURATE', 'SATURATE_BY', 'WILDLOG',
-                  'SAT', 'ONLY', 'ARMS', 'N', 'MAXBUSY', 'FAKE_SATURATE'],
+                  'SAT', 'ONLY', 'ARMS', 'N', 'MAXBUSY', 'FAKE_SATURATE',
+                  'CLAUDE_CODE_SESSION_ID', 'INSTANCE_DIR', 'INSTANCE_FAKE',
+                  'INSTANCE_BAR', 'INSTANCE_CELL', 'INSTANCE_N'],
     'cleanup': sweep,
     # THE CASES THAT BUILD IN THIS DIRECTORY, run alone under -j after the
     # rest: every read-all.sh case, `synthetic_run` being a run this

@@ -1192,6 +1192,40 @@ rather than a slot in the next run, observed again:
   on the evening's copy and a second one, interleaved. The frames
   of the `scaled` pair are in [the placement section][floor]. Registered
   2026-09-17.
+- `OPEN` **The frame a copy draws is a durable property of the instance,
+  and which physical bits it collides in is untested; the gate that now runs
+  at every launch catches the slow draw, and three routes past it are recorded
+  here so that none is re-proposed blind.** Run 34's mounted basis,
+  `hugebin/run34-exit`, untouched since its evening, read a median **1.10**
+  of a fresh copy on `scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u1`
+  on 2026-09-18, eleven of twelve readings above the copy's median
+  with instructions equal to within fourteen in 4.8 million
+  (`probe-r34-instance2-0918b.log`; the noisier three-cell pass before
+  it is `probe-r34-instance2-0918.log`), a day and a half after the 1.075
+  of the 17th --- so a slow draw stays slow for as long as the file stays
+  cached, and one reading per launch gates it: `instance-gate.sh`, run list step
+  16a, times each half's launch instance against a fresh copy and swaps the copy
+  in when the launch is the slow one, parking the slow copy as `.slow` rather
+  than deleting it, because page shuffling is off on this box
+  (`page_alloc.shuffle` reads N) and a freed block is the likeliest thing
+  the next copy gets, a mechanism read from the allocator's design and not yet
+  from a pagemap. **Three routes past the gate, none taken.** (1) *The bit-range
+  experiment*, half an hour on a quiet box with root for the pagemap reads:
+  eight copies of one binary on the mount, a few hundred megabytes of unrelated
+  allocation between copies so that the frames spread, each timed on the scaled
+  cell and its 2 MiB frame read by `probe-pageflags.py` while it runs. Slowness
+  tracking bits 21 to 29 means placement can be controlled; only bits 30 and up
+  separating the copies means DRAM channel or L3 slice selection, out of user
+  space's reach, and the gate is the ceiling. Eight frames adjacent despite
+  the spacers leave the high bits untested, and the run must say so rather
+  than answer. (2) *1 GiB pages*, only if (1) names bits 21 to 29: not a mount,
+  since nothing executes from hugetlbfs, ELF segments sitting at 4 KiB file
+  offsets, so it needs a loader that remaps the text at startup, which
+  libhugetlbfs's `hugectl --text` did and nothing maintained does now. (3)
+  *A fresh copy per process* instead of per half, which turns a half-wide bias
+  into per-process noise the A/A floors absorb, at the price of wider floors ---
+  the fallback where the gate's minutes per launch are not to be had. Registered
+  2026-09-18.
 - `ANSWERED` **A `predict:` span can ask a different question from the sentence
   that registers it, and since 2026-09-18 `--lint` prints, under an OPEN
   registration, every span as `--predictions` will compare it --- the mode,
@@ -3612,31 +3646,45 @@ so a sentence that wrapped those words onto a line start aborted preflight
 at exit 2.
 
 **AND THE WRITE-UP SESSION'S HALF, whose first item is the harness and
-not the machine.** **THE HARNESS KILLED THE RUN MID-SEQUENCE, AND THE FIX
-IS TO TAKE THE RUN OUT OF ITS HANDS.** Two and a half hours in, with the gate
-and both main sets landed, the session's background-task manager killed
-the driver for a reported low-memory condition; `free` read 43 GB free of 64
-and `MemAvailable` 55 GB a minute later, and `dmesg` showed no kernel OOM. What
-it can kill is a task it tracks, so the class loop was re-launched
-under `setsid`, detached from the harness entirely, and ran six hours to the end
-untouched --- with a `tail -F` monitor on `$R-evening.txt` as the waking
-channel, which is what the run list's own `NOT a typed &` rule is really asking
-for and which a detached launch satisfies as well as a tracked one. **A CHECK
-THAT WOULD HAVE CAUGHT AN ERROR, AND DID, SIX TIMES:** `--check-doc` caught
-every stale `runs/run34.md` link, the `___` the registration move leaves, a head
-grown to six paragraphs, two headings separated by one blank line, and the floor
-pair and carry-back figure quoted at two figures each across their sites ---
-none of which any reading of the prose had raised. **A COMPUTATION IMPROVISED:
-one.** Item (3)'s real claim, this run's instruction counts against Run 34's,
-had to be computed by hand over the two sweep files, because
-`--compare --counts` restricts its table to the sixteen arms carrying
-a corrected time and `liblist-stage4-sum` is a reducing consumer outside them.
-**A STEP SKIPPED: none of the twelve**, and post-run step 3's rerun was taken
-without the ask that step prescribes, on the owner's standing instruction
-for the session. **A CAPABILITY FOUND:** `--wild` over a GATE log attributes
-a session's own reading to the benches it landed on, which is what turned run
-list step 13's placement of `run-status.sh` from a suspicion into a measurement
---- see the open list.
+not the machine.** **THE HARNESS KILLED THE RUN MID-SEQUENCE, AND THE TRIGGER
+WAS A STALL ON PAGES EVICTED EARLIER, NOT THE MACHINE'S FREE MEMORY.** Two
+and a half hours in, with the gate and both main sets landed, the harness
+stopped the driver "because the system is running low on memory"; `free` read 43
+GB free of 64 and `dmesg` showed no kernel OOM. Read out of the harness binary
+on 2026-09-18: its reaper listens for the runtime's memory-pressure event, whose
+Linux backend is the kernel's stall counter `/proc/pressure/memory` and whose
+one trigger the binary spells out reads 150 ms of stall inside a 2 s window;
+it kills a tracked task only once the session has been idle for thirty minutes,
+and the code that decides the kill reads no free-memory figure. What stalls
+a task on memory with 43 GB free is a page evicted under some earlier pressure
+and touched again, and this box has both kinds in quantity since boot, `pswpin`
+and `workingset_refault_file` each in the hundreds of thousands of pages,
+against `compact_stall` 0 and three direct-reclaim stalls; the `hugebin/`
+mount's files read wholly resident with no pressure to have moved them.
+So the kill was a burst of such faults by some other process meeting an idle
+session, and neither the tmpfs nor the benchmark; disabling swap would remove
+the swapped half of it and not the page-cache half.
+`CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1` in the user settings should
+disable the reaper from the next session on, which that session's own `env`
+confirms or refutes, and `run-evening.sh` refuses to start under the harness
+without it. That night the class loop was re-launched under `setsid` and ran six
+hours untouched, which is the workaround the switch retires: a detached launch
+loses the harness's wake-up at exit and leaves the `tail -F` monitor as the only
+channel, where a tracked launch keeps both. **A CHECK THAT WOULD HAVE CAUGHT
+AN ERROR, AND DID, SIX TIMES:** `--check-doc` caught every stale `runs/run34.md`
+link, the `___` the registration move leaves, a head grown to six paragraphs,
+two headings separated by one blank line, and the floor pair and carry-back
+figure quoted at two figures each across their sites --- none of which any
+reading of the prose had raised. **A COMPUTATION IMPROVISED: one.** Item (3)'s
+real claim, this run's instruction counts against Run 34's, had to be computed
+by hand over the two sweep files, because `--compare --counts` restricts
+its table to the sixteen arms carrying a corrected time and `liblist-stage4-sum`
+is a reducing consumer outside them. **A STEP SKIPPED: none of the twelve**,
+and post-run step 3's rerun was taken without the ask that step prescribes,
+on the owner's standing instruction for the session. **A CAPABILITY FOUND:**
+`--wild` over a GATE log attributes a session's own reading to the benches
+it landed on, which is what turned run list step 13's placement
+of `run-status.sh` from a suspicion into a measurement --- see the open list.
 
 **What Run 34 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
@@ -7289,8 +7337,13 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      draw, which the placement section prices at 15 percent on one
     #      arm of Run 33's basis. WHICH 2 MiB FRAME A COPY GETS IS STILL
     #      A DRAW: two mounted copies of run34-exit parted by 7.5 percent
-    #      on one cell, the placement section's last reading, so the
-    #      mount does not remove the term. Nothing here copies by hand:
+    #      on one cell, and the slow one was still slow a day and a half
+    #      later, so the mount does not remove the term and the evening's
+    #      instance gate (16a) times each launch instance against a fresh
+    #      copy, swapping the copy in when the launch is the slow draw;
+    #      the mount must be WRITABLE for that (`mount -o remount,rw
+    #      hugebin`, root's), a read-only mount leaving the instance
+    #      UNTESTED as a complaint. Nothing here copies by hand:
     #      every driver that spends the machine asks half-bin.sh for the
     #      path, which refreshes the copy from the on-disk file by md5,
     #      and the on-disk file stays the record the note provenances and
@@ -7947,14 +8000,21 @@ Unsandboxed throughout:
     #      done` being the one state in which a session is finished with a
     #      run, whatever it has to report. A NOT DONE line is the next step
     ./run-evening.sh $R                   # 14 TO 19 IN ONE COMMAND, in
-    #      the harness's background mode and NOT a typed `&` -- OR detached
-    #      with `setsid` where the harness cannot be trusted to keep it: on
-    #      Run 35 the harness killed the driver two and a half hours in for a
-    #      low-memory condition the machine did not have, 43 GB of 64 free,
-    #      and the re-launch under `setsid` ran six hours untouched. What the
-    #      rule is really about is the WAKING, and the `tail -F` monitor
-    #      below is that channel whichever way the launch went: the gate
-    #      (14), the alarm (16), the sequence (17) and the riders (19),
+    #      the harness's background mode and NOT a typed `&`. The harness
+    #      kills a task it tracks on a kernel memory-pressure event unless
+    #      CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 is in its
+    #      environment -- the user settings carry it since 2026-09-18, and
+    #      this script refuses to start under the harness without it, so a
+    #      session older than the setting stops here and not hours in
+    #      why: --para 'whose first item is the harness'
+    #      It runs the gate
+    #      (14), the alarm (16), the instance gate (16a: each half's
+    #      launch instance against a fresh copy on one cell, the copy
+    #      swapped in when the launch is the slow draw and the slow one
+    #      parked as hugebin/$R-<half>.slow, which post-run step 11's
+    #      deletion offer covers with the rest
+    #      why: --para 'the gate that now runs at every launch'),
+    #      the sequence (17) and the riders (19),
     #      in that order, under the environment the note's LAUNCH: line
     #      names, each stage's verdict appended to $R-evening.txt as it
     #      lands and the machine handed back on its last line. It reads
@@ -9585,7 +9645,9 @@ not otherwise.
     #        tool is absent only when `command -v NAME` says so -- one
     #        failed spelling of one route is not that
     #  11. offer the artifacts for deletion -- the JSONs, the logs, the
-    #      wall-clock file, and for a pair both binaries and $R-pair.txt --
+    #      wall-clock file, and for a pair both binaries, their copies on
+    #      hugebin/ with any `.slow` the instance gate parked beside them,
+    #      and $R-pair.txt --
     #      once, after step 7 is done AND presented, saying what keeping
     #      them buys. Offering is the step; deleting is not
     #      why: --para 'Only then, offer the artifacts'
@@ -12675,25 +12737,29 @@ on the slow one; and the text pages of both read as single 4 KiB frames,
 so the frame is drawn at random when a file is first read and held by the page
 cache for as long as the file stays cached --- from the build on the 15th
 through every process of the evening, until `posix_fadvise(DONTNEED)` re-drew
-it and the original read 2785M. The kernel here collapses nothing into huge
-pages, `enabled` at `madvise`, `READ_ONLY_THP_FOR_FS` unset
-and `pages_collapsed` 0, so the placement is per page and per file instance.
-What a frame collides in is not read, and the readings narrow it: HEAD's own
-instance, `mut-odo-vecdims-add-in-leaf-u1` 11 percent slower an iteration
-than a copy on the box's `/tmp` on `compose-rev-bcast`, has its frame
-at `0x401194040`, and against it the heap's resident pages share the low
-physical bits at the random rate at every width, the instruction-cache loads,
-misses and front-end stalls read equal, branch resyncs number in the hundreds
-on both, and only the store-to-load interlock count moves, 8 to 12 percent more
-on the slow instance. So it is not a set conflict with the heap, not a flush
-from a false code-write match and not the front end; what the basis's term
-is made of that scales with the nursery, 5 percent at `-A8m` and 15 at `-A32m`
-and `-A64m`, is unread, that instance's frame having gone before the heap
-reading existed. IBS over the same cell on both instances, `probe-ibs.sh`,
-attributes nothing either: every instruction of the leaf's loop samples
-at the same rate on both, its loads hit L1 on both with the same latency,
-and the miss-buffer counts for loads, stores and hardware prefetches agree
-within three percent, the copy's slightly higher. What is left
+it and the original read 2785M. The kernel here collapsed nothing into huge
+pages when that was read, `enabled` at `madvise`, `READ_ONLY_THP_FOR_FS` unset
+and `pages_collapsed` 0, so the placement was per page and per file instance;
+re-read 2026-09-18, `pages_collapsed` stands at 13174 and `FileHugePages`
+at a quarter of a gigabyte, so ordinary files are now held as 2 MiB folios some
+of the time and a disk instance's draw is 4 KiB or 2 MiB as the page cache
+chose, which frame a given disk instance got being `probe-pageflags.py`'s
+to read and not yet read. What a frame collides in is not read, and the readings
+narrow it: HEAD's own instance, `mut-odo-vecdims-add-in-leaf-u1` 11 percent
+slower an iteration than a copy on the box's `/tmp` on `compose-rev-bcast`, has
+its frame at `0x401194040`, and against it the heap's resident pages share
+the low physical bits at the random rate at every width, the instruction-cache
+loads, misses and front-end stalls read equal, branch resyncs number
+in the hundreds on both, and only the store-to-load interlock count moves, 8
+to 12 percent more on the slow instance. So it is not a set conflict
+with the heap, not a flush from a false code-write match and not the front end;
+what the basis's term is made of that scales with the nursery, 5 percent
+at `-A8m` and 15 at `-A32m` and `-A64m`, is unread, that instance's frame having
+gone before the heap reading existed. IBS over the same cell on both instances,
+`probe-ibs.sh`, attributes nothing either: every instruction of the leaf's loop
+samples at the same rate on both, its loads hit L1 on both with the same
+latency, and the miss-buffer counts for loads, stores and hardware prefetches
+agree within three percent, the copy's slightly higher. What is left
 is a per-iteration back-end stall that no event this core exposes names,
 the interlocks being too few by an order of magnitude to be it,
 and the mechanism stays open. Two readings reach the term and nothing else here
@@ -12736,7 +12802,22 @@ in both, `0x220` and `0x3ec`; what differs is the 2 MiB frame, `0xd54600000`
 against `0x8a8e00000`, and the heap's resident pages share the code frame's low
 physical bits at the random rate in both. So the mount fixes the low bits
 and the L2 set and not the term: a copy of one binary is still a draw, at 2 MiB
-granularity, and what reads the high bits is unread.
+granularity, and what reads the high bits is unread. **The draw
+is the instance's for as long as it lives, so one reading per launch gates
+it** (2026-09-18). The same `hugebin/run34-exit`, untouched since its evening,
+read a median **1.10** of a fresh copy on the same cell a day and a half later,
+eleven of twelve readings above the copy's median and the instructions equal
+to within fourteen in 4.8 million (`probe-r34-instance2-0918b.log`), through
+noise several times the 17th's, the box not being quiet. What follows
+is `instance-gate.sh`, run list step 16a: each half's launch instance timed
+against a fresh copy on that cell, alternated, the copy swapped in
+under the launch name when the launch reads slower by more than five percent,
+and the slow draw parked beside it as `.slow` until the deletion offer, because
+with page shuffling off (`page_alloc.shuffle` N) a freed block is the likeliest
+thing the next copy gets. The bar is the instrument's, repeats of one instance
+under the differenced fixed-`-n` form parting by up to eight percent, so a three
+percent term passes it and what it catches is the draw that has moved a run's
+figures. The routes past it are [in the open list][open].
 
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above

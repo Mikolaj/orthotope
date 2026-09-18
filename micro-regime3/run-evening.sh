@@ -31,12 +31,15 @@
 #     LAUNCH: WILDLOG=1 SATURATE=1         or `LAUNCH: none`
 #     RIDERS: clean sat                    or `RIDERS: clean`, or `none`
 # A note without them is refused before anything runs, naming the line.
+# So is a launch under the harness without the reaper switch, exit 2, the
+# check below saying why.
 #
 # WHAT STOPS IT AND WHAT DOES NOT. The gate refusing (exit 1) is the
 # apparatus and stops the evening, as README's gate step says; a gate the
 # note already records as mechanically clean is not re-run. A busy box
 # at the alarm stops it, the sequence being hours. After that nothing
-# stops it: run-major.sh's complaints and a refused rider are each
+# stops it: a half the instance gate could not test, run-major.sh's
+# complaints and a refused rider are each
 # recorded as a complaint and the next stage runs, a sound sequence being
 # worth more than a stop -- and the last line hands the machine back,
 # with the complaint count where there is one, which is also the exit
@@ -64,6 +67,21 @@ R=$1
 NOTE="$R-pair.txt"
 STATUS="$R-evening.txt"
 OUT="$R-evening-out.txt"
+
+# Under the harness a tracked task can be killed on a kernel memory-pressure
+# event, which took Run 35's driver two and a half hours in (README, the
+# recommended tasks after Run 35); the user settings disable that reaper
+# with the variable below, and a session started before the setting lacks
+# it. Refused here, before the hours; a plain terminal has no reaper and is
+# not asked.
+if [ -n "${CLAUDE_CODE_SESSION_ID:-}" ] &&
+   [ "${CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP:-}" != 1 ]; then
+  echo "under the harness without CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1:"
+  echo "   its memory-pressure reaper can kill this evening hours in, as it"
+  echo "   did Run 35's. The user settings set it; a session started before"
+  echo "   they did lacks it. Start a new session. Nothing ran."
+  exit 2
+fi
 
 HALVES=$(./pair-halves.sh "$R") || exit 1
 eval "$HALVES"
@@ -208,6 +226,15 @@ if awk -v x="$BUSY" -v m="${MAXBUSY:-5}" 'BEGIN{exit !(x>m)}'; then
   exit 1
 fi
 stamp "alarm: ${BUSY}% busy, under the ${MAXBUSY:-5}% bar"
+
+# 16a. THE INSTANCE GATE, since 2026-09-18: each half's launch instance
+# against a fresh copy on one cell, the copy swapped in when the launch
+# instance is the slow draw -- instance-gate.sh says how, and README's
+# placement section why. After the alarm because it times, before the
+# sequence because the sequence is what it protects. Its processes are not
+# the run's, so WILDLOG is stripped as the clean riders strip SATURATE. A
+# half it cannot test is a complaint and not a stop.
+stage "instance gate" env -u WILDLOG ./instance-gate.sh "$R" || true
 
 # 17. THE SEQUENCE. Its complaints are not fatal (run-major.sh says why)
 # and neither are they here; the exit status carries them out.

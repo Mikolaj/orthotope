@@ -550,6 +550,26 @@ MUTANTS = [
      'printf \'a stand-in pair note.\\nHALVES: basis=lookrts other=a1g\\n'
      '# a header explaining <yours>\\n\' > "{dir}/run97-pair.txt"; '
      '{file} run97 2>&1 | grep -q "no <yours> slot left"'),
+    # The instance gate swaps a slow launch draw for its copy; the mutant
+    # raises the bar past any ratio, so nothing is ever redrawn. The judge
+    # plants a stand-in pair in the copy's own directory as the mount,
+    # fakes a launch instance 10% slower than its copy, and wants the swap.
+    ('instance-gate never redraws a slow launch instance', 'instance-gate.sh',
+     "'BEGIN{exit !(r > 1 + bar / 100)}'",
+     "'BEGIN{exit !(r > 2 + bar / 100)}'",
+     'printf \'a stand-in pair note.\\nHALVES: basis=lookrts other=a1g\\n\''
+     ' > "{dir}/zzig-pair.txt"; cp /bin/true "{dir}/zzig-lookrts";'
+     ' cp /bin/true "{dir}/zzig-a1g";'
+     ' INSTANCE_DIR=. INSTANCE_FAKE=1100,1000 {file} zzig 2>&1 | grep -q REDRAWN'),
+    # The reaper refusal reads the switch; the mutant makes it never fire.
+    # The judge launches under a fake harness marker with the switch empty
+    # and wants the refusal named.
+    ('run-evening starts under the harness without the reaper switch',
+     'run-evening.sh',
+     '   [ "${CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP:-}" != 1 ]; then',
+     '   [ "${CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP:-}" = 2 ]; then',
+     'CLAUDE_CODE_SESSION_ID=zz CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP= '
+     '{file} zznone 2>&1 | grep -q "PRESSURE_REAP=1"'),
     # A refused gate is a row UNCHECKED and not a row dropped: --show
     # exits before printing on a missing binary, and the mutant puts back
     # the `if gf:` that left `want` without the row at a PASS. The judge
