@@ -1209,23 +1209,28 @@ rather than a slot in the next run, observed again:
   than deleting it, because page shuffling is off on this box
   (`page_alloc.shuffle` reads N) and a freed block is the likeliest thing
   the next copy gets, a mechanism read from the allocator's design and not yet
-  from a pagemap. **Three routes past the gate, none taken.** (1) *The bit-range
-  experiment*, half an hour on a quiet box with root for the pagemap reads:
-  eight copies of one binary on the mount, a few hundred megabytes of unrelated
-  allocation between copies so that the frames spread, each timed on the scaled
-  cell and its 2 MiB frame read by `probe-pageflags.py` while it runs. Slowness
-  tracking bits 21 to 29 means placement can be controlled; only bits 30 and up
-  separating the copies means DRAM channel or L3 slice selection, out of user
-  space's reach, and the gate is the ceiling. Eight frames adjacent despite
-  the spacers leave the high bits untested, and the run must say so rather
-  than answer. (2) *1 GiB pages*, only if (1) names bits 21 to 29: not a mount,
-  since nothing executes from hugetlbfs, ELF segments sitting at 4 KiB file
-  offsets, so it needs a loader that remaps the text at startup, which
-  libhugetlbfs's `hugectl --text` did and nothing maintained does now. (3)
-  *A fresh copy per process* instead of per half, which turns a half-wide bias
-  into per-process noise the A/A floors absorb, at the price of wider floors ---
-  the fallback where the gate's minutes per launch are not to be had. Registered
-  2026-09-18.
+  from a pagemap. Its first real run, the same day on a box at a load near two,
+  read Run 35's control instance at **1.135** of a fresh copy and swapped it,
+  the basis's at 0.959 and left it, four readings a side with the spread
+  of a busy box (`log-instance-gate-run35.txt`; [Run 35's file](runs/run35.md)
+  says what that moved); a swap made on noise costs one copy and nothing else,
+  which is the asymmetry the bar is set by. **Three routes past the gate, none
+  taken.** (1) *The bit-range experiment*, half an hour on a quiet box with root
+  for the pagemap reads: eight copies of one binary on the mount, a few hundred
+  megabytes of unrelated allocation between copies so that the frames spread,
+  each timed on the scaled cell and its 2 MiB frame read by `probe-pageflags.py`
+  while it runs. Slowness tracking bits 21 to 29 means placement can
+  be controlled; only bits 30 and up separating the copies means DRAM channel
+  or L3 slice selection, out of user space's reach, and the gate is the ceiling.
+  Eight frames adjacent despite the spacers leave the high bits untested,
+  and the run must say so rather than answer. (2) *1 GiB pages*, only if (1)
+  names bits 21 to 29: not a mount, since nothing executes from hugetlbfs, ELF
+  segments sitting at 4 KiB file offsets, so it needs a loader that remaps
+  the text at startup, which libhugetlbfs's `hugectl --text` did and nothing
+  maintained does now. (3) *A fresh copy per process* instead of per half, which
+  turns a half-wide bias into per-process noise the A/A floors absorb,
+  at the price of wider floors --- the fallback where the gate's minutes per
+  launch are not to be had. Registered 2026-09-18.
 - `ANSWERED` **A `predict:` span can ask a different question from the sentence
   that registers it, and since 2026-09-18 `--lint` prints, under an OPEN
   registration, every span as `--predictions` will compare it --- the mode,
