@@ -59,7 +59,14 @@ if [ ! -f "$NOTE" ]; then
   echo "HALVES: line is where the two halves' names live" >&2
   exit 1
 fi
-LINE=$(grep -m1 '^HALVES:' "$NOTE")
+# THE FIRST LINE THAT PARSES, and not the first that begins with the word:
+# a sentence of the note's own prose can wrap `HALVES:` onto a line start,
+# and reading that one refused a whole pair before a step ran (defects.py,
+# halves-skip-a-prose-line-before-the-machine-line, Run 35's preparation).
+# A `^HALVES:` line that does NOT parse is still picked up below, so a
+# malformed machine line keeps its own refusal instead of reading as absent.
+LINE=$(awk '/^HALVES:/ && /basis=[^ ]/ && /other=[^ ]/ { print; exit }' "$NOTE")
+[ -n "$LINE" ] || LINE=$(grep -m1 '^HALVES:' "$NOTE")
 if [ -z "$LINE" ]; then
   echo "!! $NOTE has no 'HALVES: basis=<b> other=<o>' line, which is the" >&2
   echo "   one place the halves are named since 2026-09-02. Add it under" >&2
