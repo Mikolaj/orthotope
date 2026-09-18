@@ -19,14 +19,21 @@ whose innermost run is strided and nothing else, and `lib-stage2` and
 which is the control: it must come out equal, both arms being timed
 through it.
 
-Main.hs is read from the working tree unless a second argument names the
-copy the twin was built from -- `git show <rev>:./Main.hs > FILE` -- and
-it should, the histogram's line numbers being that build's.
+Main.hs is the twin's: the histogram's `# Main.hs at HASH` line, which
+probe-attr.sh reads off the run's pair note, names the build, and it is
+read with `git show`; a second argument overrides it with a file, and a
+histogram naming no build is read against the working tree with a
+warning. The harness bucket is the check on that: it is the one span
+every arm passes through, so an arm with none of its samples there was
+read against the wrong file, and the reader refuses.
 
-Exit 2 on usage, a lost anchor or a file with no arm sections, 1 if a file
-names an arm this does not know, 0 clean.
+Exit 2 on usage, a lost anchor, a file with no arm sections or a Main.hs
+the harness shows is not the twin's; 1 if a file names an arm this does not
+know or the harness differs across arms; 0 clean.
 """
+import os
 import re
+import subprocess
 import sys
 
 
@@ -94,8 +101,7 @@ ROLES = ['ends', 'loop', 'run', 'odo']
 HARNESS = re.compile(r'^\s*arm sh a \(n, (Fill|Term)')
 
 
-def spans(main_hs):
-    src = open(main_hs).read()
+def spans(src, main_hs):
     lines = src.splitlines()
     starts = {}
     for arm, name in FUNCS.items():
@@ -162,9 +168,11 @@ def spans(main_hs):
 def main():
     if len(sys.argv) not in (2, 3):
         die(__doc__)
-    sp, harness = spans(sys.argv[2] if len(sys.argv) == 3 else 'Main.hs')
-    arms, cur = {}, None
+    arms, cur, built = {}, None, None
     for ln in open(sys.argv[1]):
+        m = re.match(r'^# Main\.hs at ([0-9a-f]{7,})\s*$', ln)
+        if m:
+            built = m.group(1)
         m = re.match(r'^=== (\S+) ', ln)
         if m:
             cur = m.group(1)
@@ -175,6 +183,22 @@ def main():
             arms[cur][m.group(2)] = arms[cur].get(m.group(2), 0) + int(m.group(1))
     if not arms:
         die('no arm sections in that file')
+    here = os.path.dirname(os.path.abspath(__file__))
+    if len(sys.argv) == 3:
+        main_hs, src = sys.argv[2], open(sys.argv[2]).read()
+    elif built:
+        main_hs = 'Main.hs at %s' % built
+        got = subprocess.run(['git', 'show', '%s:./Main.hs' % built],
+                             capture_output=True, text=True, cwd=here)
+        if got.returncode != 0:
+            die('%s: git show refused -- %s' % (main_hs, got.stderr.strip()))
+        src = got.stdout
+    else:
+        main_hs = os.path.join(here, 'Main.hs')
+        src = open(main_hs).read()
+        print('!! the histogram names no Main.hs build, so this reads the'
+              ' working tree, whose line numbers may not be the twin\'s')
+    sp, harness = spans(src, main_hs)
 
     def bucket(arm, counts):
         out = dict.fromkeys(ROLES, 0)
@@ -197,6 +221,17 @@ def main():
                 out['elsewhere'] += n
         return out
 
+    # THE HARNESS IS THE CHECK ON THE FILE: every arm is timed through it,
+    # so an arm with no sample there was read against a Main.hs whose
+    # line numbers are not the twin's, and the table was wrong in every
+    # column and said nothing (2026-09-18). Refused before it is printed.
+    for arm, counts in arms.items():
+        if (arm, ROLES[0]) in sp and not any(
+                int(m.group(1)) in harness for m in
+                (re.match(r'^Main\.hs:(\d+)$', s) for s in counts) if m):
+            die('%s: no sample of %s falls in the harness, so %s is not the'
+                ' file the twin was built from; give that build\'s Main.hs'
+                ' as the second argument' % (sys.argv[1], arm, main_hs))
     hdr = ROLES + ['harness', 'elsewhere', 'total']
     print(('%-16s' + '%11s' * len(hdr)) % tuple(['arm'] + hdr))
     got, unknown = {}, 0
@@ -220,6 +255,14 @@ def main():
         print(('%-16s' + '%11d' * (len(hdr) + 1) + '   <-- %s minus %s')
               % tuple(['difference'] + [b[c] - a[c] for c in hdr]
                       + [sum(b.values()) - sum(a.values()), nb, na]))
+    # AND EQUAL ACROSS THE ARMS, which is what makes it the control: a
+    # harness a hundredth apart is the sampling; wider is a finding.
+    hs = [b['harness'] for b in got.values()]
+    if len(hs) > 1 and max(hs) - min(hs) > 0.01 * max(hs):
+        print('!! the harness bucket differs across the arms by more than'
+              ' 1%%: %s' % ', '.join('%s %d' % (a, b['harness'])
+                                      for a, b in got.items()))
+        unknown = 1
     return unknown
 
 

@@ -19,14 +19,19 @@
 # the run stages read what landed in the documents instead, and say so.
 # The two document gates are RUN here, seconds each, rather than inferred.
 #
-# Non-vacuity, 2026-09-02: on run23, written up and committed, every
-# checkable step reads done and it exits 0; on a run name with no artifact
-# at all every artifact-reading step reads NOT DONE and it exits 1, the
-# two document gates alone reading done, being about the tree and not the
-# run; and on run23 with the run file's `What this run was built to
-# answer` heading edited out, step 5 reads NOT DONE naming the heading,
-# and 7 with it, --check-doc finding the anchor dead. Re-aim the first
-# two whenever run23's artifacts are offered for deletion.
+# Non-vacuity, re-aimed 2026-09-18: on run35, written up and committed
+# with its artifacts on disk, every checkable step reads done and it
+# exits 0; on a run name with no artifact at all every artifact-reading
+# step reads NOT DONE and it exits 1, the two document gates alone
+# reading done, being about the tree and not the run (the case
+# `status-reads-an-unstarted-run`); and with the run file's `What this
+# run was built to answer` heading edited out, step 5 reads NOT DONE
+# naming the heading, and 7 with it, --check-doc finding the anchor
+# dead. Re-aim the first whenever run35's artifacts are offered for
+# deletion: a finished run whose note and twins are gone reads steps 0,
+# 2 and 14 NOT DONE, and any step born after it, so it is no control --
+# run23 read four such on 2026-09-18, which this comment had named as
+# reading all done.
 #
 # Step 2c is proved in defects.py and mutants.py rather than here, which
 # is where a proof outlives the code it is about: the two directions are

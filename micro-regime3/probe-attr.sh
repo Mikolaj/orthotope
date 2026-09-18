@@ -68,11 +68,25 @@ fi
 # code. RAISE N, never lower PERIOD -- a shorter period throttles the
 # counter and costs the scale, where more iterations cost seconds.
 OUT=probe-attr-$SH${TAG:+-$TAG}.txt
+case $(basename "$B") in
+  *-run[0-9]*|*-r[0-9]*)
+    RUN=run$(basename "$B" | sed 's/.*-r\(un\)\{0,1\}\([0-9]*\)$/\2/')
+    HASH=$(sed -n 's/^  Main\.hs at *\([0-9a-f]\{7,\}\).*/\1/p' "$RUN-pair.txt" 2>/dev/null | head -1)
+    HASH=${HASH:-"unknown: no $RUN-pair.txt here, or no Main.hs at row in it"} ;;
+  *) HASH="unknown: $(basename "$B") is named for no run" ;;
+esac
 [ -e "$OUT" ] && { echo "$OUT exists; move it aside first"; exit 2; }
 BAD=0
 {
   echo "# $B $(md5sum "$B" | cut -d' ' -f1) $(date -Is) sel=${SEL:-main}"
   echo "# shape=$SH N=$N period=$PERIOD event=instructions:u"
+  # THE MAIN.HS THE TWIN WAS BUILT FROM, for the reader: the line numbers
+  # below are that build's, and read against today's file they bucket
+  # the harness as `elsewhere` in silence (2026-09-18). A twin is named
+  # for its run, `probe-g3-<half>-run<N>` or `-r<N>`, and the run's pair
+  # note carries the hash on its `Main.hs at` row; a binary named for no
+  # run says so, and the reader then wants the file as an argument.
+  echo "# Main.hs at $HASH"
   echo "# A -g3 TWIN, so the counts are its own; the control is that its"
   echo "# per-iteration total matches the timed binary's counted work."
 } > "$OUT"
