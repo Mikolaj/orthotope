@@ -242,10 +242,11 @@ def listing(path):
     return got.stdout
 
 
-def reaches(insns, k, n, targets):
-    """Whether straight-line flow from the head at `k` reaches the closing
-    branch at `n`: fall-through past anything but an unconditional
-    transfer, plus any instruction some direct branch targets.
+def reaches(insns, k, n):
+    """Whether flow from the head at `k` reaches the closing branch at `n`
+    through the body's own edges: fall-through past anything but an
+    unconditional transfer, plus the direct branches inside the body whose
+    targets are inside it.
 
     A backward branch whose bytes sum is not yet a loop. `objdump -d`
     sweeps tables-next-to-code linearly, so an info table decodes as
@@ -297,17 +298,51 @@ def reaches(insns, k, n, targets):
     six to four. Since 2026-09-18 the tell also asks for an instruction of
     two zero bytes, Run 36's basis half having read a table's `00 00 78 fc`
     as a loop astride; `zero_run` says what that moved.
+
+    A shape of another kind, no phantom of the sweep: a backward branch into a
+    block that leaves the body unconditionally, which control enters from
+    the branch and never from the head. Until 2026-09-19 the flow resumed
+    at any instruction some branch ANYWHERE targets, so the check after
+    such a block, entered by a forward branch, carried the flow to the
+    back edge and the body counted: the heap-check failure block, `movq
+    $imm32,0x388(%r13)` and a jump to the collector with the check's `ja`
+    branching back to it, is the common member, invisible until 2cbaeb6
+    for its eleven-byte push, and run36-gheadtwopass's 0x482d4d, an error
+    block entered on a negative byte count, straddled and read as the
+    ninth straddler where the shim's verified line had eight. Following
+    the body's own edges refuses the class and keeps what the blanket form
+    lost: 22 to 39 Main loops a binary carry an unconditional transfer and
+    stay, every one read in run36-gheadnospec closed by a `jmp` back to
+    its head. Over the twelve run binaries on disk it
+    refuses 13 to 29 Main bodies and 832 to 968 library bodies a binary,
+    the statistics Quantile pair the run notes read as straddling among
+    them, a `max` returning either argument; takes that half's straddling
+    back to 8; holds every LOOP_EXITSPAN
+    half's exit spans astride at 0, and reads Run 31's and 32's four
+    halves at 66, 51, 73 and 66 for 67, 52, 75 and 68. Survey totals
+    recorded between the two dates are higher and stand as taken.
     """
-    live = False
-    for i in range(k, n + 1):
-        addr, _nb, _raw, mnem, _op, _sym = insns[i]
-        if i == k or addr in targets:
-            live = True
-        if i == n:
-            return live
-        if live and (mnem in ('jmp', 'jmpq') or mnem.startswith('ret')):
-            live = False
-    return False
+    inside = {insns[i][0]: i - k for i in range(k, n + 1)}
+    live = [False] * (n - k + 1)
+    live[0] = True
+    changed = True
+    while changed:
+        changed = False
+        for i in range(k, n + 1):
+            if not live[i - k]:
+                continue
+            _addr, _nb, _raw, mnem, op, _sym = insns[i]
+            if JMP.match(mnem):
+                t = TARGET.match(op.strip())
+                j = inside.get(int(t.group(1), 16)) if t else None
+                if j is not None and not live[j]:
+                    live[j] = True
+                    changed = True
+            if (i < n and not live[i - k + 1]
+                    and not (mnem in ('jmp', 'jmpq') or mnem.startswith('ret'))):
+                live[i - k + 1] = True
+                changed = True
+    return live[n - k]
 
 
 def zero_run(insns, k, n, run_of=4):
@@ -372,8 +407,9 @@ def parse(path):
     they admit 27 to 113 Main loops and 559 to 707 library loops a binary
     and lose none; every straddling count holds but run36-gheadtwopass's,
     8 to 9, the ninth at 0x482d4d a backward branch into a block that
-    tail-calls out, so the survey reads one straddler there that the shim's
-    verified line does not; every LOOP_EXITSPAN
+    tail-calls out, so the survey read one straddler there that the shim's
+    verified line does not, until `reaches` refused it (2026-09-19); every
+    LOOP_EXITSPAN
     half's exit spans astride hold at 0, and Run 31's and 32's four halves,
     built without the switch, read 67, 52, 75 and 68 for 64, 40, 72 and
     65. Survey totals recorded before then are lower and stand as taken.
@@ -404,12 +440,6 @@ def parse(path):
 def scan(path, length):
     insns = parse(path)
     at = {i[0]: n for n, i in enumerate(insns)}
-    targets = set()
-    for _addr, _nb, _raw, mnem, op, _sym in insns:
-        if JMP.match(mnem) or mnem.startswith('call'):
-            t = TARGET.match(op.strip())
-            if t:
-                targets.add(int(t.group(1), 16))
     found = []
     for n, (addr, nb, _raw, mnem, op, _sym) in enumerate(insns):
         if not JMP.match(mnem):
@@ -434,7 +464,7 @@ def scan(path, length):
         body = ''.join(i[2] for i in insns[k:n + 1])
         if len(body) != 2 * span:     # a jump into the middle of an instruction
             continue
-        if not reaches(insns, k, n, targets):
+        if not reaches(insns, k, n):
             continue
         # No code GHC emits decodes as (bad): a body holding one is the
         # sweep out of step over a table, the second site in `reaches`.
