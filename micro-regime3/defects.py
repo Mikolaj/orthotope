@@ -7679,6 +7679,11 @@ RECORDS = [
          # is still visible as a kind with a count of one. The check is the
          # withheld line, not the size: a summary that named only a total
          # would pass this and hide a new kind.
+         # Over the newest run alone since 2026-09-18, as checks.py runs the
+         # properties: over every run on disk this one case was 212 s of
+         # the suite's 706, and the withheld line it asserts prints for
+         # one run as for all.
+         env={'CORPUS_RUN': 'newest'},
          argv=[],
          ok=V(exit=0, has=['line(s) of reader warning withheld',
                            'kind(s)']),
@@ -12645,4 +12650,22 @@ CONFIG = {
     'strip_env': ['BASIS', 'OTHER', 'SATURATE', 'SATURATE_BY', 'WILDLOG',
                   'SAT', 'ONLY', 'ARMS', 'N', 'MAXBUSY', 'FAKE_SATURATE'],
     'cleanup': sweep,
+    # THE CASES THAT BUILD IN THIS DIRECTORY, run alone under -j after the
+    # rest: every read-all.sh case, `synthetic_run` being a run this
+    # directory has to hold; the four --deflation cases, whose legs sit
+    # beside the run; the staged and untracked documents, beside which a
+    # case of each direction died in a traceback in the first parallel run
+    # and passed alone; and preflight's step-9 case. Every other case
+    # builds in its temp directory or a shadow. Derived 2026-09-18 from the
+    # users of `here_file`, transitively, by name and not by call -- a
+    # plant is passed as `plant=staged_doc` -- and the two undeclared ones
+    # showed as a traceback in each direction of the first parallel run.
+    'serial': ['read-all.sh',
+               'deflation-ignores-the-saturated-legs',
+               'deflation-legs-beside-the-run-not-the-cwd',
+               'deflation-names-which-leg-set-is-missing',
+               'deflation-skips-a-leg-with-no-positive-slope',
+               'added-lines-over-head', 'added-lines-untracked',
+               'superlative-worklist-names-its-settling-mode',
+               'step-9-asserts-specconstr-of-every-basis'],
 }

@@ -51,9 +51,14 @@ STEPS = [
     ('properties',             ['bash', '-c',
                                 'cd "{root}" && CORPUS_RUN=newest'
                                 ' python3 properties.py']),
-    ('cases, ok direction',    ['python3', '{bin}/defect-run.py', '{root}']),
-    ('cases, bug direction',   ['python3', '{bin}/defect-run.py', '--audit', '{root}']),
-    ('selftest mutants',       ['python3', '{bin}/selftest-mutants.py', '{root}']),
+    # Seven at once since 2026-09-18: run one at a time, these three were
+    # nine tenths of a suite of some seventeen minutes, and the whole now
+    # runs in some five. Seven and not the box's sixteen, so that a run
+    # and the session beside it keep their cores. The cases defects.py's
+    # CONFIG names `serial` build here and run alone after the rest.
+    ('cases, ok direction',    ['python3', '{bin}/defect-run.py', '-j', '7', '{root}']),
+    ('cases, bug direction',   ['python3', '{bin}/defect-run.py', '--audit', '-j', '7', '{root}']),
+    ('selftest mutants',       ['python3', '{bin}/selftest-mutants.py', '-j', '7', '{root}']),
 ]
 
 # Programs with no check, each with its reason: said on every run and never
