@@ -5528,6 +5528,87 @@ TIER1 = {
         bug='the stale reading stayed beside the fresh ones',
         notes='Found 2026-09-17 reading the script after its first call on'
               ' a real run, Run 34.'),
+    # The review pass of 2026-09-18 over every script here.
+    'status-counts-the-short-named-twins': dict(family='two-spellings', discovery='review', harm='fired',
+                      trigger='run23, run24 or run25, whose twins are named -r<N>',
+                      ok='step 0 reads done off the -r<N> twins',
+                      bug='step 0 read NOT DONE for ever on three finished runs',
+                      notes='Runs 23 to 25, every status read since their twins were built.'),
+    'view-floor-skips-the-legs-that-are-not-classes': dict(family='vacuous-check', discovery='review', harm='fired',
+                      trigger='a run with alone legs or gate processes on disk',
+                      ok='the alone, gate and main legs are passed over',
+                      bug='each read as a class with no A/A group, raising the exit to 2',
+                      notes='Run 32: 92 such lines before the per-class tables.'),
+    'two-modes-at-once-off-the-roll-call': dict(family='silent-option', discovery='review', harm='latent',
+                      trigger='--stale --lint, or any of the six beside a listed mode',
+                      ok='refuses at exit 2, one mode at a time',
+                      bug='ran the first and dropped the second without a word'),
+    'properties-limit-counts-a-class-run-it-opened': dict(family='two-spellings', discovery='review', harm='latent',
+                      trigger='CORPUS_LIMIT over a corpus holding a class run',
+                      ok='the limit counts every run opened',
+                      bug='a class run was opened uncounted, the limit bounding main tables'),
+    'properties-help-before-the-corpus': dict(family='other:exit-at-import', discovery='review', harm='latent',
+                      trigger='--help in a tree with no runs/run<N>.md',
+                      ok='the help text, at exit 0',
+                      bug='BLOCKED at exit 2 before main() read the flag'),
+    'install-says-the-file-stands-on-a-refusal': dict(family='quiet-failure', discovery='review', harm='latent',
+                      trigger='a refusal on any class after the first',
+                      ok='says nothing was written; ADDED lines print after the write',
+                      bug='an ADDED line stood on the screen over an unchanged file'),
+    'counts-did-not-run-is-exit-2': dict(family='two-spellings', discovery='review', harm='latent',
+                      trigger='no perf, a blocked counter, no temp path, no binary, no roster',
+                      ok='exit 2, as the usage guard and the sibling probes say did-not-run',
+                      bug='exit 1, the code of a sweep that ran and came out wrong'),
+    'attr-reader-binds-lib-stage1-to-the-leaf': dict(family='other:binding-outlived-the-dispatch', discovery='review', harm='fired',
+                      trigger='any probe-attr histogram naming lib-stage1',
+                      ok='lib-stage1 buckets by the fillStage2 spans its samples land in',
+                      bug='refused: lib-stage1/odo overlapping the role before it by 73 lines',
+                      proved='ran', notes='Both Run 32 samples naming lib-stage1 refused; watched 2026-09-18.'),
+    'figures-drops-a-refused-gate-row': dict(family='quiet-failure', discovery='review', harm='latent',
+                      trigger='a pair whose run-gate.sh --show refuses before printing',
+                      ok='gate arms: the artifact gave nothing to check',
+                      bug='the row left the check at a PASS', proved='asserted'),
+    'attr-probe-divides-by-a-zero-count': dict(family='domain-unchecked', discovery='review', harm='latent',
+                      trigger='perf stat reporting 0 instructions:u for an arm',
+                      ok='no count, BAD=1, the loop goes on',
+                      bug='division by 0 unwound the arm loop at exit 0', proved='asserted'),
+    'readings-wait-took-the-pred-file-at-any-rc': dict(family='vacuous-check', discovery='review', harm='latent',
+                      trigger='--predictions exiting 2 or raising in the readings stub',
+                      ok='the case refuses rc=2 and !! crashed',
+                      bug='the bare name matched either line', proved='asserted'),
+    'reroll-sweep-ends-on-a-dead-leg': dict(family='unverified-state', discovery='review', harm='latent',
+                      trigger='a run27 binary killed mid-group',
+                      ok='the leg is set aside as *.failed.json, the sweep goes on, exit 1',
+                      bug='the sweep ended silently and the next run skipped the leg as done',
+                      proved='ran', notes='Watched on stub halves, one exiting 137 after opening --json.'),
+    'reroll-reader-averages-a-nan-floor': dict(family='domain-unchecked', discovery='review', harm='latent',
+                      trigger='a leg with no A/A copies, or a net at or below zero',
+                      ok='the leg is named and left out of the median, rc 1',
+                      bug='statistics.median over a nan: a finite wrong floor, or nan and nothing flagged',
+                      proved='asserted'),
+    'read-all-drops-a-refused-compare-from-the-range': dict(family='quiet-failure', discovery='review', harm='latent',
+                      trigger='a class whose other-half JSON --compare refuses',
+                      ok='!! <pop>: --compare gave no list line, so the range omits it',
+                      bug='the population left the range with no mark', proved='asserted'),
+    'checks-pyflakes-guard-accepts-what-the-step-does-not-run': dict(family='two-spellings', discovery='review', harm='latent',
+                      trigger='a pyflakes script on PATH and no importable module',
+                      ok='the step runs whichever it found',
+                      bug='the guard passed and python3 -m pyflakes failed on a traceback',
+                      proved='asserted'),
+    'property-judges-read-only-greps-status': dict(family='error-as-value', discovery='review', harm='latent',
+                      trigger='a reader that prints HOLDS and then exits non-zero',
+                      ok='pipefail: the judge is red',
+                      bug='the judge was green on grep alone', proved='asserted'),
+    'deadspot-probe-exits-with-tees-status': dict(family='quiet-failure', discovery='review', harm='latent',
+                      trigger='a half whose probe-times.sh complained',
+                      ok='exit 1 off a BAD count, as the sibling probes',
+                      bug='exit 0, the status being tee\'s', proved='asserted'),
+    'busy-compare-fails-behind-a-bash-error': dict(family='domain-unchecked', discovery='review', harm='latent',
+                      trigger='machine-busy.sh printing nothing or a non-number',
+                      ok='refuses naming the reading, exit 2',
+                      bug='[ "" -lt 5 ] refused at exit 2 behind a bash error and a message naming an empty percentage',
+                      proved='ran', notes='The old line replayed in bash with an empty reading, 2026-09-18.'),
+
 }
 
 
@@ -7396,18 +7477,20 @@ RECORDS = [
          ok=V(exit=2, has=['one mode at a time']),
          bug=V(exit=0)),
 
-    case('two-modes-at-once-off-the-roll-call', 'read-run.py', None,
-         'CONTROL: a mode the dispatch chain reaches late -- --stale,'
-         ' --brief-update, --series, --cell-movers, --movement, --winsor'
-         ' -- is refused beside another mode, not dropped',
+    case('two-modes-at-once-off-the-roll-call', 'read-run.py', '18021d0',
+         'six modes late in the dispatch chain -- --stale, --brief-update,'
+         ' --series, --cell-movers, --movement, --winsor -- were off the'
+         ' one-mode roll call, so one beside another mode was dropped',
          # Six `if args.X: sys.exit(...)` branches of the same chain were
          # outside the roll call, so `--stale --lint` printed the stale
          # report at exit 0 and ran no lint -- the silent drop the comment
-         # beside the list says it prevents. Found 2026-09-18 by review; a
-         # control until the fix has a hash.
+         # beside the list says it prevents.
          plant=lambda t: {'doc': edited_rundoc(t)},
          argv=['--stale', '--lint', '--run-doc', '{doc}'],
-         ok=V(exit=2, has=['one mode at a time', '--stale', '--lint'])),
+         ok=V(exit=2, has=['one mode at a time', '--stale', '--lint']),
+         # The bug is the missing refusal and not an exit: --stale on a
+         # fixture outside a git checkout exits 2 on its own account.
+         bug=V(hasnt=['one mode at a time'])),
 
     # A CONTROL and not a replay, which is a property of the repair rather
     # than a gap in it: `--len 0` said `any length` for a report `scan`
@@ -9697,6 +9780,21 @@ RECORDS = [
          ok=V(exit=2, has=['perf will not count instructions here',
                            'Nothing ran'])),
 
+    case('counts-did-not-run-is-exit-2', 'run-counts.sh', '18021d0',
+         'a sweep that did not run exited 1, the code of one that ran and'
+         ' came out wrong',
+         # The usage guard and the sibling probes say did-not-run at 2;
+         # the perf, paranoid, mktemp, binary, output and roster guards
+         # here said 1. The one caller reads no code apart, which is why
+         # this is a record and not a fired defect.
+         shadow=dict(extra=[('zzct6-g912', FAKE_HALF)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_BLOCKED)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
+              'ARMS': 'list', 'N': '1'},
+         argv=['zzct6', 'g912'],
+         ok=V(exit=2, has=['Nothing ran']),
+         bug=V(exit=1, has=['Nothing ran'])),
+
     case('counts-refuses-an-unwritable-tmp', 'run-counts.sh', None,
          'a broken temp path bought the same sweep-long run of NaN',
          # The second route to an all-NaN sweep, and the quieter one:
@@ -10965,6 +11063,24 @@ RECORDS = [
          ok=V(exit=1, has=['REFUSED', 'no `Across the halves:`',
                            'nothing written'])),
 
+    case('install-says-the-file-stands-on-a-refusal', 'install-tables.sh',
+         '18021d0',
+         'a refusal on a late class left an earlier ADDED line on the'
+         ' screen over a file that was never written',
+         # The write is one, after every class, so every in-loop exit
+         # leaves the file as it was; the refusal now says so, and the
+         # ADDED lines print after the write. The header named
+         # `git checkout --` as the undo besides, which discards every
+         # uncommitted edit with the install; it names a copy aside now.
+         plant=lambda t: {'doc': edited_rundoc(t, (
+             '\n\n' + an_across_paragraph(), ''))},
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                     prefix='zzx5', classes=recorded_classes())),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['zzx5'],
+         ok=V(exit=1, has=['nothing written']),
+         bug=V(exit=1, has=['REFUSED'], hasnt=['nothing written'])),
+
     case('basis-glob-catches-no-other-half', 'install-tables.sh', '440b22d',
          'a control half named <basis>-pa was installed as the basis',
          plant=lambda t: {'doc': edited_rundoc(t)},
@@ -11840,32 +11956,123 @@ RECORDS = [
          ok=V(has=['no <yours> slot left'],
               hasnt=['slot(s) still <yours>'])),
 
-    case('status-counts-the-short-named-twins', 'run-status.sh', None,
-         'CONTROL: step 0 counts the twins of Runs 23 to 25, which their'
-         ' own scripts name `probe-g3-<half>-r<N>`',
+    case('status-counts-the-short-named-twins', 'run-status.sh', '18021d0',
+         'step 0 missed the twins of Runs 23 to 25, which their own'
+         ' scripts name `probe-g3-<half>-r<N>`',
          # The three twin scripts before Run 27 build `probe-g3-<half>-r23`
          # and the glob read `-run23` alone, so those three finished runs
          # read step 0 NOT DONE for ever -- run23 being the run this
-         # script's own non-vacuity note says reads all done. Found
-         # 2026-09-18 by review; a control until the fix has a hash.
+         # script's own non-vacuity note says reads all done.
          shadow=dict(extra=[('probe-g3-a-r97', '#!/bin/sh\n'),
                             ('probe-g3-b-r97', '#!/bin/sh\n')]),
          argv=['run97'],
-         ok=V(has=['2 -g3 twin(s) here'])),
+         ok=V(has=['2 -g3 twin(s) here']),
+         bug=V(hasnt=['2 -g3 twin(s) here'])),
 
     # ---- view-floor.py, the per-view floor -----------------------------
     case('view-floor-skips-the-legs-that-are-not-classes', 'view-floor.py',
-         None,
-         'CONTROL: the main set, the alone legs and the gate processes are'
-         ' passed over, not read as classes with no A/A group',
+         '18021d0',
+         'the skip of the main set, the alone legs and the gate processes'
+         ' skipped nothing, each read as a class with no A/A group',
          # `if cls in (...): pass` skipped nothing, and tested the class
          # where the alone and gate legs carry their marker in the half's
          # place, so every such leg of a finished run raised the exit to 2
          # with a `carries no A/A group` line apiece -- 92 on Run 32.
-         # Found 2026-09-18 by review; a control until the fix has a hash.
          plant=lambda t: {'dir': floor_legs(t)},
          argv=['zzvf', '-d', '{dir}'],
-         ok=V(exit=0, hasnt=['carries no A/A group'])),
+         ok=V(exit=0, hasnt=['carries no A/A group']),
+         bug=V(exit=2, has=['carries no A/A group'])),
+
+    # ---- the review of 2026-09-18: records whose program has no case ----
+    # The probes carry none by policy (checks.py), and preflight.sh and
+    # read-all.sh's are mutants in mutants.py, the fixtures a case would
+    # want being unbuildable here; each record says what was watched.
+    case('attr-reader-binds-lib-stage1-to-the-leaf', 'probe-attr-read.py',
+         '18021d0',
+         'lib-stage1 was anchored inside the add-in-leaf function, where'
+         ' its samples land in fillStage2',
+         # Main.hs dispatches lib-stage1 to fbLibStage1, ten lines that
+         # hand every strided view to fillStage2; the reader's table said
+         # fbMutOdoVecdimsAddInLeafU2, so every lib-stage1 span sat in
+         # the wrong body and the reader refused on the overlap, on every
+         # sample of Run 32. Each arm now names the function its samples
+         # land in, and the Main.hs the twin was built from is an
+         # argument, the histogram's line numbers being that build's.
+         argv=None, ok=None),
+
+    case('figures-drops-a-refused-gate-row', 'preflight.sh', '18021d0',
+         '--figures dropped the gate row at a PASS when run-gate.sh --show'
+         ' refused before printing',
+         # Mutant `--figures drops a refused gate row instead of leaving
+         # it unchecked`; watched in a shadow with a note and no binaries.
+         argv=None, ok=None),
+
+    case('attr-probe-divides-by-a-zero-count', 'probe-attr.sh', '18021d0',
+         'a perf count of 0 passed the digits guard and divided by zero,'
+         ' which unwinds the arm loop at exit 0 with BAD still 0',
+         argv=None, ok=None),
+
+    case('readings-wait-took-the-pred-file-at-any-rc', 'defects.py', '18021d0',
+         "the readings-wait control's bare file name let rc=2 and a"
+         ' traceback through',
+         # The hasnt list refuses `rc=2 main-a1g-pred.txt` and `!! crashed`
+         # now, both as post-run-readings.sh prints them.
+         argv=None, ok=None),
+
+    case('reroll-sweep-ends-on-a-dead-leg', 'probe-flip-reroll.sh', '18021d0',
+         'under set -e a dead leg ended the sweep before its exit line,'
+         ' and its half-written JSON read as a finished leg next time',
+         # criterion opens --json before its first bench. The leg is set
+         # aside as `*.failed.json`, the sweep goes on and exits 1; the
+         # alone leg of probe-flip-counters.sh had the same shape beside a
+         # perf leg that carried `|| true`, and is set aside the same way.
+         # Watched on stub halves, one exiting 137 mid-write.
+         argv=None, ok=None),
+
+    case('reroll-reader-averages-a-nan-floor', 'probe-flip-reroll-read.py',
+         '18021d0',
+         'a leg with no A/A floor put a nan into statistics.median, which'
+         ' hands back whichever value sorts to the middle',
+         # Under a nan median every `>` is False and every arm reads
+         # fixed; under a finite wrong one the verdict is wrong and says
+         # nothing. The floorless leg is named and left out, at rc 1, and
+         # a JSON the reader cannot parse is named rather than a
+         # traceback. Watched on synthesized legs.
+         argv=None, ok=None),
+
+    case('read-all-drops-a-refused-compare-from-the-range',
+         'read-all.sh', '18021d0',
+         "a population whose --compare refused left the delta bullet's"
+         ' range with no mark on it',
+         # Mutant `a refused --compare drops its population from the delta
+         # range in silence`; watched in a shadow of Run 35 with both rev
+         # JSONs cut off mid-file.
+         argv=None, ok=None),
+
+    case('checks-pyflakes-guard-accepts-what-the-step-does-not-run',
+         'checks.py', '18021d0',
+         'the guard passed on a pyflakes script while the lint ran the'
+         ' module, so a box with the script alone failed on a traceback',
+         argv=None, ok=None),
+
+    case('property-judges-read-only-greps-status', 'mutants.py', '18021d0',
+         "the two per-shape property judges' status was grep's alone, the"
+         " reader's exit lost in the pipe",
+         argv=None, ok=None),
+
+    case('deadspot-probe-exits-with-tees-status', 'probe-ds-run.sh', '18021d0',
+         "the probe's exit was tee's, its halves' complaints swallowed by"
+         ' an echo',
+         argv=None, ok=None),
+
+    case('busy-compare-fails-behind-a-bash-error', 'probe-cache-run.sh',
+         '18021d0',
+         'an empty machine-busy.sh reading refused behind `integer'
+         ' expression expected` and a message naming an empty percentage',
+         # probe-order-reversal.sh and probe-within-evening.sh carried the
+         # same line and take the same form: an unreadable reading refuses
+         # by name, and awk compares the percentage.
+         argv=None, ok=None),
 
     case('status-blocks-without-wrap80', 'run-status.sh', '87c77f0',
          'with wrap80 off PATH the README verdicts were read off an empty file',
@@ -11981,30 +12188,29 @@ RECORDS = [
          bug=V(has=['in 2 run(s)'], hasnt=['in 1 run(s)'])),
 
     case('properties-limit-counts-a-class-run-it-opened', 'properties.py',
-         None,
-         'CONTROL: CORPUS_LIMIT bounds the runs the round-trip opens, a'
-         ' class run among them, and not the main tables it reads back',
+         '18021d0',
+         'CORPUS_LIMIT bounded the main tables the round-trip read back,'
+         ' opening every run on disk, a class run uncounted',
          # The break sat after the population filter, so a class run was
          # opened and passed over uncounted and every run on disk was
          # loaded whatever the limit -- the shape the record above holds
-         # one loop in, in the loop beside it. Found 2026-09-18 by review;
-         # a control until the fix has a hash.
+         # one loop in, in the loop beside it.
          plant=corpus_with_a_class_run,
          env={'CORPUS': '{corpus}', 'CORPUS_LIMIT': '2'},
          argv=[],
          ok=V(has=['over 1 population(s) on disk'],
-              hasnt=['over 2 population(s) on disk'])),
+              hasnt=['over 2 population(s) on disk']),
+         bug=V(has=['over 2 population(s) on disk'])),
 
-    case('properties-help-before-the-corpus', 'properties.py', None,
-         'CONTROL: --help prints from a tree with no runs/run<N>.md, where'
-         ' the newest run doc used to be resolved at import and exit 2'
-         ' before main() saw the flag',
+    case('properties-help-before-the-corpus', 'properties.py', '18021d0',
+         '--help exited 2 from a tree with no runs/run<N>.md, the newest'
+         ' run doc being resolved at import before main() saw the flag',
          # A second exit-2 route the docstring did not name, and it hid
-         # the help text exactly where a reader wants it. Found 2026-09-18
-         # by review; a control until the fix has a hash.
+         # the help text exactly where a reader wants it.
          shadow=dict(extra=[('runs', '')]),
          argv=['--help'],
-         ok=V(exit=0, has=['properties.py'], hasnt=['BLOCKED'])),
+         ok=V(exit=0, has=['properties.py'], hasnt=['BLOCKED']),
+         bug=V(exit=2, has=['BLOCKED'])),
 
     case('properties-refuse-a-limit-that-is-not-a-count', 'properties.py',
          '4ea1464',
