@@ -1211,23 +1211,30 @@ rather than a slot in the next run, observed again:
   will actually compare, for the registration's author to read back against
   their own sentence --- the cheapest form being one line a span at pre-run 12b,
   where the registration is already being read. Registered 2026-09-18.
-- `OPEN` **Nine consumers part by a quarter on ONE shape across a compiler pair
-  with their instruction counts identical, and no term the chapter prices
-  explains a block that size.** On Run 35's `runs-3`, `liblist-stage4-sum`,
-  `libunord-stage7-sum`, `-stage10-sum`, `-stage13-sum`, `-stage11-sum`,
-  `liblist-stage3-sum`, `libunord-stage12-sum`, `-stage6-sum` and `-stage9-sum`
-  read **0.7563 to 0.7581** basis over control with counts at **1.0000**
-  on every one of them, which fills the top of `--cell-movers`. A per-arm
-  reading sees none of it: `runs`'s class geomean is 1.0027 and its `list` moved
-  0.25 of a point, so the class's two columns are differenceable and its table
-  says nothing is happening. The arms are the reducing consumers, whose figures
-  are raw `slope` rather than corrected net, and `runs-3` is a three-element run
-  --- the length at which the per-run overhead dominates. **What would settle
-  it** is the nine cells timed in fresh processes on both binaries, interleaved,
-  and `perf stat` over one of them for branch misses and front-end stalls:
-  a quarter on identical instructions is either the loop's placement
-  or its prediction, and the two are told apart by counters rather than
-  by the clock. Registered 2026-09-18.
+- `ANSWERED` **Nine consumers part by a quarter on ONE shape across a compiler
+  pair with their instruction counts identical, and the term is the one [the
+  placement section][floor]'s *The two stage arms' mechanism* paragraph already
+  prices: HEAD's code order on `sumLazyRuns`'s per-run loop, one taken branch
+  and two fetch blocks a run more.** On Run 35's `runs-3` nine `-sum` arms read
+  **0.7563 to 0.7581** basis over control with counts at **1.0000**, which fills
+  the top of `--cell-movers`, whose own footnote under the table names
+  the paragraph; the two `-list-sum` arms, which bring base's `sum` as their
+  fold and hold no route, read 0.874. What this entry adds to the paragraph
+  is only that a per-arm reading sees none of it: `runs`'s class geomean
+  is 1.0027 with its two columns differenceable, so a class table can hide
+  a quarter on one shape. No fresh process was needed for the first half of what
+  would have settled it, the series having the block on every pair --- 0.80
+  to 0.81 on Run 32, 0.766 on Run 33, 0.785 to 0.793 on Run 34, four builds
+  a side --- and `runs-2` the other way on every pair, at 1.06 to 1.19.
+  The counters took the second half: `perf stat`
+  over `runs-3/libunord-stage13-sum` on the two Run 35 binaries, two
+  fixed-iteration processes differenced as `run-counts.sh` counts, reads per
+  three-element run **6.23 to 6.28** cycles against **8.10 to 8.24**, the cycles
+  read twice interleaved, the same 38.0 instructions, 30.0 ops and 10.0
+  branches, no branch miss on either, and **5.00 taken branches and 5.00
+  op-cache fetches against 6.00 and 7.00** --- the paragraph's five and five
+  against six and seven, to the count. So it is neither a placement the shim can
+  move nor prediction. Answered 2026-09-18.
 - `OPEN` **On `flip-last-rows` the shipped leaf's own cell parts from BOTH
   its A/A copies by 22% in one process, and the copies agree with each other.**
   Run 34's `run34-exit-flip` reads `mut-odo-vecdims-add-in-leaf-u2-aa` 22.29%
