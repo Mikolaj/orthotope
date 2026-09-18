@@ -1436,6 +1436,112 @@ def longinsn_listing(tmp):
     return {'dis': path}
 
 
+# An eleventh site, `run36-gheadtwopass` from 0x482cf4 to 0x482d8b, read
+# 2026-09-19: the ninth straddler the parser fix of 2cbaeb6 made the
+# survey read where the shim's verified line has eight. At 0x482d4d a
+# block loads an error closure, pops the stack and tail-calls
+# `stg_ap_0_fast`; the check after it, entered by a forward branch,
+# turns an element count into bytes and branches back to that block on
+# a negative result, `jl -54`. No path from the head reaches the back
+# edge, so it is a branch into an exit block and no loop, the shape of
+# every heap-check failure block; the flow test admitted it for the
+# forward branch targeting the check, the `je` at 0x482cf4 that opens
+# this window, and follows the body's own edges since 2026-09-19.
+# Straddles: 54 bytes at offset 13.
+EXITBLOCK_LISTING = """\
+
+run36-gheadtwopass:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000482cf4 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x74a14>:
+  482cf4:\t74 67                \tje     482d5d <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x74a7d>
+  482cf6:\t48 8b 5b 07          \tmov    0x7(%rbx),%rbx
+  482cfa:\t48 85 c0             \ttest   %rax,%rax
+  482cfd:\t0f 8e 9a 00 00 00    \tjle    482d9d <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x74abd>
+  482d03:\t48 85 c0             \ttest   %rax,%rax
+  482d06:\t0f 8c 98 00 00 00    \tjl     482da4 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x74ac4>
+  482d0c:\t48 ba ff ff ff ff ff \tmovabs $0xfffffffffffffff,%rdx
+  482d13:\tff ff 0f 
+  482d16:\t48 39 d0             \tcmp    %rdx,%rax
+  482d19:\t0f 8f a1 00 00 00    \tjg     482dc0 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x74ae0>
+  482d1f:\t48 c1 e0 03          \tshl    $0x3,%rax
+  482d23:\t48 85 c0             \ttest   %rax,%rax
+  482d26:\t7c 25                \tjl     482d4d <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x74a6d>
+  482d28:\t48 c7 45 f8 40 30 48 \tmovq   $0x483040,-0x8(%rbp)
+  482d2f:\t00 
+  482d30:\t41 be 08 00 00 00    \tmov    $0x8,%r14d
+  482d36:\t48 89 da             \tmov    %rbx,%rdx
+  482d39:\t48 89 c3             \tmov    %rax,%rbx
+  482d3c:\t48 89 4d 00          \tmov    %rcx,0x0(%rbp)
+  482d40:\t48 89 55 20          \tmov    %rdx,0x20(%rbp)
+  482d44:\t48 83 c5 f8          \tadd    $0xfffffffffffffff8,%rbp
+  482d48:\te9 c3 13 2d 01       \tjmp    1754110 <stg_newAlignedPinnedByteArrayzh>
+  482d4d:\t48 8d 1d 5c 4c 4a 01 \tlea    0x14a4c5c(%rip),%rbx        # 19279b0 <ghczminternal_GHCziInternalziForeignPtr_mallocPlainForeignPtrAlignedBytes2_closure>
+  482d54:\t48 83 c5 38          \tadd    $0x38,%rbp
+  482d58:\te9 93 f3 2c 01       \tjmp    17520f0 <stg_ap_0_fast>
+  482d5d:\t48 85 c0             \ttest   %rax,%rax
+  482d60:\t7e 4e                \tjle    482db0 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x74ad0>
+  482d62:\t48 85 c0             \ttest   %rax,%rax
+  482d65:\t7c 4d                \tjl     482db4 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x74ad4>
+  482d67:\t48 bb ff ff ff ff ff \tmovabs $0xfffffffffffffff,%rbx
+  482d6e:\tff ff 0f 
+  482d71:\t48 39 d8             \tcmp    %rbx,%rax
+  482d74:\t0f 8f 86 00 00 00    \tjg     482e00 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x74b20>
+  482d7a:\t48 c1 e0 03          \tshl    $0x3,%rax
+  482d7e:\t48 85 c0             \ttest   %rax,%rax
+  482d81:\t7c ca                \tjl     482d4d <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x74a6d>
+  482d83:\t48 c7 45 08 40 31 48 \tmovq   $0x483140,0x8(%rbp)
+  482d8a:\t00 
+  482d8b:\t41 be 08 00 00 00    \tmov    $0x8,%r14d
+"""
+
+
+def exitblock_listing(tmp):
+    """The eleventh saved site, planted for `--survey`: {'dis': path}."""
+    path = os.path.join(tmp, 'run36-gheadtwopass-0x482cf4.dis')
+    write(path, EXITBLOCK_LISTING)
+    return {'dis': path}
+
+
+# A twelfth site, `run36-gheadnospec` from 0x432411 to 0x432434, and a
+# control: a real 24-byte copy loop at 0x43241c, entered by a `jmp` into
+# its compare and closed by a `jmp` back to its head after the `jge`
+# that exits it. The blanket flow test of 2026-09-04, refusing any
+# unconditional transfer inside a body, lost this shape; the one that
+# follows the body's own edges keeps it, the closing `jmp` being reached
+# by fall-through from the `jge`.
+ROTATED_LISTING = """\
+
+run36-gheadnospec:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000432411 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x24409>:
+  432411:\t48 89 f0             \tmov    %rsi,%rax
+  432414:\t48 89 f3             \tmov    %rsi,%rbx
+  432417:\t48 01 d3             \tadd    %rdx,%rbx
+  43241a:\teb 11                \tjmp    43242d <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x24425>
+  43241c:\tf2 41 0f 10 04 f8    \tmovsd  (%r8,%rdi,8),%xmm0
+  432422:\tf2 0f 11 04 f1       \tmovsd  %xmm0,(%rcx,%rsi,8)
+  432427:\t4c 01 cf             \tadd    %r9,%rdi
+  43242a:\t48 ff c6             \tinc    %rsi
+  43242d:\t48 39 de             \tcmp    %rbx,%rsi
+  432430:\t7d 27                \tjge    432459 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x24451>
+  432432:\teb e8                \tjmp    43241c <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x24414>
+  432434:\t41 ff 65 f8          \tjmp    *-0x8(%r13)
+"""
+
+
+def rotated_listing(tmp):
+    """The twelfth saved site, planted for `--survey`: {'dis': path}."""
+    path = os.path.join(tmp, 'run36-gheadnospec-0x432411.dis')
+    write(path, ROTATED_LISTING)
+    return {'dis': path}
+
+
 # The run-fill loop this README prices, 28 bytes and eight instructions, as
 # `run25-g912` carries it at 0x434558; a second body differs in one
 # register so the two group apart. Listings built from them are what the
@@ -5738,6 +5844,11 @@ TIER1 = {
                       trigger='a self-loop of at most a line holding an instruction of eight bytes or more, which objdump prints over two lines',
                       ok="the second line's bytes belong to the instruction, so the body's byte sum meets its span and the loop is counted",
                       bug='the second line was read as an instruction of its own when it held two bytes or more and not at all when it held one, so the body fell short of its span and scan dropped it as a jump into an instruction'),
+    'survey-counts-a-branch-into-an-exit-block-as-a-loop': dict(family='scan-for-parse', discovery='in-use', harm='fired', harm_count=1, proved='ran',
+                      notes="read on run36-gheadtwopass against the shim's verified line, 2026-09-19, after 2cbaeb6 let the survey see it: nine straddling against eight; the heap-check failure block is the same shape and every binary carries them",
+                      trigger='a backward branch into a block that leaves the body by an unconditional transfer, the code after that block entered by a forward branch from outside',
+                      ok="a body whose head does not reach its closing branch through the body's own edges, fall-through and the branches inside it, is no loop",
+                      bug='the flow test resumed at any instruction some branch anywhere targets, so the forward branch into the check carried the flow to the back edge'),
     'delta-sees-a-group-that-grows-past-the-threshold': dict(family='quiet-failure', discovery='review', harm='fired', harm_count=1, proved='ran',
                       notes='watched on run24-g912 against run25-g912 at --len 0, 2026-09-04, at both thresholds',
                       trigger='a group under --min-copies in OLD and over it in NEW',
@@ -9265,6 +9376,26 @@ RECORDS = [
          argv=['--survey', '{dis}'],
          ok=V(exit=0, has=['1 self-loops of at most 64 B']),
          bug=V(exit=0, has=['0 self-loops of at most 64 B'])),
+
+    case('survey-counts-a-branch-into-an-exit-block-as-a-loop',
+         'loop-offsets.py', '886bbf5',
+         'a backward branch into a block that leaves the body'
+         ' unconditionally, the check after it entered by a forward branch,'
+         ' read as a straddling loop where the shim counted none',
+         plant=exitblock_listing,
+         argv=['--survey', '{dis}'],
+         ok=V(exit=0, has=['0 self-loops of at most 64 B'],
+              hasnt=['0x482d4d']),
+         bug=V(exit=0, has=['1 self-loops of at most 64 B',
+                            'still straddling   : 1'])),
+
+    case('survey-keeps-a-loop-closed-by-a-jmp', 'loop-offsets.py', None,
+         'CONTROL: a loop entered by a jmp into its compare and closed by'
+         ' a jmp back to its head is a loop, which the blanket flow test'
+         ' of 2026-09-04 denied',
+         plant=rotated_listing,
+         argv=['--survey', '{dis}'],
+         ok=V(exit=0, has=['1 self-loops of at most 64 B'])),
 
     # ---- read-all.sh ---------------------------------------------------
     case('aa-worst-cell-is-not-an-insitu-row', 'read-all.sh', '8ee1e5b',

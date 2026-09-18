@@ -627,7 +627,7 @@ MUTANTS = [
     # refuses too since that day, so this mutant survived it; the ninth is
     # the shape the flow test refuses alone.
     ('survey counts a data word as a loop again', 'loop-offsets.py',
-     '        if not reaches(insns, k, n, targets):\n            continue\n',
+     '        if not reaches(insns, k, n):\n            continue\n',
      '',
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
@@ -736,6 +736,31 @@ MUTANTS = [
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
      'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
      'f = m.longinsn_listing(tempfile.mkdtemp())[\'dis\']\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'1 self-loops of at most\' in r.stdout else 1)"'),
+    # The flow test answering yes to everything: the eleventh site's
+    # branch into an exit block counts as a straddling loop again.
+    ('the survey counts a branch into an exit block as a loop again', 'loop-offsets.py',
+     "    return live[n - k]\n",
+     "    return True\n",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.exitblock_listing(tempfile.mkdtemp())[\'dis\']\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'0 self-loops of at most\' in r.stdout else 1)"'),
+    # The blanket form of 2026-09-04 back, refusing any unconditional
+    # transfer inside a body: the twelfth site's loop, closed by a jmp to
+    # its head, is lost again.
+    ('the survey refuses a loop closed by a jmp again', 'loop-offsets.py',
+     "    return live[n - k]\n",
+     "    return live[n - k] and not any(UNCOND.match(i[3]) for i in insns[k:n + 1])\n",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.rotated_listing(tempfile.mkdtemp())[\'dis\']\n'
      'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'1 self-loops of at most\' in r.stdout else 1)"'),
