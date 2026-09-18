@@ -709,6 +709,106 @@ been asking for and leaves nothing measured on an ungrown pool.
 specified --- the rule about a discriminating measurement deserving one now
 rather than a slot in the next run, observed again:
 
+- `OPEN` **What the next run's two binaries are is declared in TWO places,
+  and that is a source of contradictions rather than a redundancy worth
+  checking.** A pair is spelled out in the previous run's *What the next run
+  compares against*, recipes and all, and again in the open list's registration,
+  which the pair note then names; the two are written days apart, often
+  by different sessions. Run 35 met the collision outright --- README registered
+  one pair on 2026-09-17 while `runs/run34.md` went on declaring the deferred
+  `-O2` one, both committed, both naming Run 35 --- and an owner's ruling
+  of 2026-09-18 settled it, the section amended in a commit of its own. What
+  stands today is a POINTER and a check and not a fix: `--lint` refuses
+  a registration the previous run's section does not point at, and Run 36
+  is the first preparation held to it, which is how the duplication was noticed
+  again rather than removed. **THE FIX IS ONE DECLARATION SITE** --- the recipes
+  and the half names in exactly one place, everything else naming it rather
+  than restating it --- and WHICH site is the owner's to rule, the two
+  candidates being the previous run's section, where a reader looks for what
+  the next run does, and the registration, which is what the run is judged
+  against. Raised by the owner 2026-09-18, during Run 36's preparation, on being
+  shown the pointer that the check asks for.
+- `OPEN` **What Run 36 is built to answer, registered before it runs.** The pair
+  is the REGIME: both halves are GHC HEAD at the `-O1` level in the dead-spot
+  form under the exit span, one source (`Main.hs` at `0eda736`), one shim
+  (`align-as.py` at `f31bd1c`), one shim environment, one roster, one shape set
+  and one launch from `hugebin/`, and the control half's command line carries
+  `-fspec-constr -fliberate-case` besides, nothing else differing --- so every
+  span below reads the two `-O2` passes TOGETHER, in `--compare`'s orientation
+  of the unflagged basis over the flagged control, which is the half
+  `on main basis` names, the population being the rest of it. It is the pair Run
+  31's arithmetic wanted and no run since could supply. Off
+  `run31-nospec-main.json` against `run31-o2-main.json`, re-derived here rather
+  than quoted, the whole `-O2` level read **1.2974** on `list` and **1.2943**
+  on `bq-expand`, where the two passes measured ONE AT A TIME on Runs 29 and 30
+  --- 1.1379 and 1.1710 on `list`, 1.2804 and 1.0127 on `bq-expand`, off
+  those runs' own files, `runs/run29.md` and `runs/run30.md`, their artifacts
+  being gone --- and Run 29's two are the RECIPROCALS of what its file
+  publishes, that run's basis having been the FLAGGED half: it reads `list`
+  at **0.8788** and `bq-expand` at **0.7810**, and says `list` is 13.79% slower
+  without the flag --- multiply to **1.3325** and **1.2967**. So the composition
+  overshoots the level by 3.51 points on `list` and sits 0.24 of a point
+  from it on `bq-expand`: this pair separates the two accounts on `list`
+  and CANNOT on `bq-expand`, which is what makes the second arm the first one's
+  control rather than a second reading of the same question. TWO LIMITS, both
+  named before it runs and neither removable by it: the compiler moved
+  under the ruled recipe on 2026-09-18, to a HEAD of that date where Runs 29
+  to 31 were ghc-9.12.4 builds, so every distance from their figures carries
+  the two passes AND two compiler steps, across neither of which has any run
+  here measured what these two passes are worth; and the dependency stack
+  rebuilt with it, criterion included. (1) *The two passes together are worth
+  on `list` what the whole level was worth, not what composing the two
+  single-pass runs gives.*
+  `predict: cross list 1.2974 within 1.3% on main basis`. The band is 1.3 points
+  against the 3.51-point gap it has to resolve, so a reading above 1.3104 falls
+  on the composition's side and says `-O2`'s other passes hand `list` back,
+  while one below 1.2844 is neither account; which of those to read
+  as the compiler is what item (2) says. (2) *And `bq-expand`, where the two
+  accounts agree to a quarter of a point, reads where both put it.*
+  `predict: cross bq-expand 1.2943 within 1.5% on main basis`. This span cannot
+  tell the two accounts apart and is not asked to: inside it, these passes
+  are worth on this HEAD what they were worth on 9.12.4 for that arm and item
+  (1) is the composition question; outside it, the compiler has moved
+  the regime's worth and item (1) prices these two passes on this HEAD while
+  settling nothing about Run 31's arithmetic. (3) *The gain is confined
+  to the `list` and `bq-expand` families, and no arm Run 31 timed outside them
+  joins them.* Run 31's sixteen arms with a corrected time rank into exactly two
+  groups with nothing between them: the six of those two families at 1.2887
+  to 1.2974, and the other ten at 0.9745 to 1.0097, the widest being
+  `mut-odo-vecdims-add-in-leaf-u1` at 2.55 points the basis's way. The ten bands
+  below are set AT that widest reading rather than under it, so each tolerates
+  its own arm's Run 31 movement repeating and refuses only an arm joining
+  the families --- `predict: cross mut-odo-vecdims 1.0 within 3% on main basis`,
+  `predict: cross mut-odo-vecdims-aa 1.0 within 3% on main basis`,
+  `predict: cross mut-odo-vecdims-aa-distant 1.0 within 3% on main basis`,
+  `predict: cross mut-odo-vecdims-add-in-leaf-u1 1.0 within 3% on main basis`,
+  `predict: cross mut-odo-vecdims-add-in-leaf-u2 1.0 within 3% on main basis`,
+  `predict: cross mut-odo-vecdims-add-in-leaf-u2-aa 1.0 within 3% on main basis`,
+  `predict: cross mut-odo-vecdims-add-in-leaf-u2-aa-distant 1.0 within 3% on main basis`,
+  `predict: cross lib-stage1 1.0 within 3% on main basis`,
+  `predict: cross lib-stage2-lean 1.0 within 3% on main basis`,
+  `predict: cross lib-stage2-lean-u1 1.0 within 3% on main basis`, and the two
+  families' own members at the level's figures for them:
+  `predict: cross list-aa-adjacent 1.2921 within 1.5% on main basis`,
+  `predict: cross list-aa-distant 1.2887 within 1.5% on main basis`,
+  `predict: cross bq-expand-aa-adjacent 1.2937 within 1.5% on main basis`,
+  `predict: cross bq-expand-aa-distant 1.2967 within 1.5% on main basis`.
+  The arms this roster times that Run 31's did not carry no prior here
+  and no span. (4) *And the counted work parts on all four arms this item spans,
+  the two families far further than the two outside them.* Off Run 31's own
+  sweeps, `run31-counts-nospec.txt` against `run31-counts-o2.txt`, the level's
+  counts read **1.3120** on `list` and **1.4423** on `bq-expand` against 1.0380
+  to 1.0530 on the ten arms outside those families --- not one of its arms read
+  1.0000, which is why this item's lead says every arm and its timed twin at (3)
+  says none: `predict: counts list 1.3120 within 1.5% on main basis`,
+  `predict: counts bq-expand 1.4423 within 2% on main basis`,
+  `predict: counts mut-odo-vecdims 1.0380 within 1% on main basis`,
+  `predict: counts lib-stage2-lean 1.0516 within 1% on main basis`, read
+  with `--counts` over the main set's own sweep, which run list step 20 takes.
+  A `counts` span here reads the two HALVES and so asks the passes' question
+  in the same vocabulary its prose uses, which is what [Run 35's own item
+  (3)](runs/run35.md#what-this-run-was-built-to-answer-and-what-it-answered)
+  wanted and did not have.
 - `ANSWERED` **What Run 35 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 35's own
@@ -8538,14 +8638,15 @@ since 2026-09-15, where it used to cut at the first hyphen and hand every driver
 a truncated tag --- Run 33's pair was declared `run33-ghead-exit` and renamed
 for exactly that. The roll of tags this chapter has used is `aligned`,
 `maxskip`, `maxskippa`, `lookrts`, `a1g`, `a32m`, `g912`, `g914`, `ghead`,
-`spot`, `spec`, `nospec`, `libcase`, `o2`, `exit` and `gheadexit`,
-`maxskip`/`maxskippa` being a bare prefix and safe, the hyphen alone colliding.
-**The roll lives here and not in a pair note**, which is where it used to live
-and where it drifted twice over: `g914` was missing from one until 2026-09-12,
-`--draft` rewrote two of its members every draft until a backtick bounded
-that rename the same day, and the copy in `pair-note-template.txt` had fallen
-four tags short of the notes' by Run 35. A note names its own two halves
-and points here for the rest.
+`spot`, `spec`, `nospec`, `libcase`, `o2`, `exit`, `gheadexit`, `gheadnospec`
+and `gheadtwopass`, `maxskip` before `maxskippa`, and `ghead` before
+`gheadexit`, `gheadnospec` and `gheadtwopass`, being bare prefixes and safe,
+the hyphen alone colliding. **The roll lives here and not in a pair note**,
+which is where it used to live and where it drifted twice over: `g914`
+was missing from one until 2026-09-12, `--draft` rewrote two of its members
+every draft until a backtick bounded that rename the same day, and the copy
+in `pair-note-template.txt` had fallen four tags short of the notes' by Run 35.
+A note names its own two halves and points here for the rest.
 
 **Name the artifacts by half, and drive every `--in-place` from the basis
 half.** The sequence below builds every filename off `$R`, which a paired run
