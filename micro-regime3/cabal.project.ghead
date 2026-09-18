@@ -19,10 +19,11 @@
 -- verify.
 --
 -- The compiler is the in-tree stage1 of the GHC checkout under
--- ~/r/horde-ad/ghc, at 10.1.20260803. Its path is spelled out because there is
--- no such compiler on PATH; a HEAD that moves is a different compiler and a
--- different pair, so a run repeating this one reads the version back out of the
--- binary rather than off this line.
+-- ~/r/horde-ad/ghc, at 10.1.20260918 since 2026-09-18, where Runs 32 to 35
+-- read 10.1.20260803 (preserved under ~/r/horde-ad/ghc.old). Its path is
+-- spelled out because there is no such compiler on PATH; a HEAD that moves is
+-- a different compiler and a different pair, so a run repeating this one reads
+-- the version back out of the binary rather than off this line.
 packages: .
 with-compiler: /home/mikolaj/r/horde-ad/ghc/_build/stage1/bin/ghc
 index-state: hackage.haskell.org 2026-07-25T13:22:10Z
@@ -35,3 +36,16 @@ constraints: base installed,
              vector ==0.13.2.0,
              vector +boundschecks -unsafechecks,
              hashable ==1.5.0.0
+
+-- data-default-class-0.2.0.0's cabal file declares only `data-default` and not
+-- `base`, and every module on this HEAD implicitly imports `GHC.Essentials`,
+-- which is a hidden module of base -- so that package cannot compile with base
+-- hidden, and the whole criterion stack fails behind it. The flag below, which
+-- GHC's own error names, has it look known entities up in scope instead.  It
+-- meets the same KIND of under-declaration as the hashable constraint above
+-- and by a different remedy: that one pins a version, this one passes a flag,
+-- the version the freeze resolves being fine. The stanza is scoped to the
+-- one package so that the flag reaches nothing else, measured code included.
+-- Added 2026-09-18, Run 36.
+package data-default-class
+  ghc-options: -frebindable-known-names
