@@ -10405,9 +10405,10 @@ RECORDS = [
               hasnt=['evening begins'])),
 
     case('evening-refuses-the-harness-without-the-reaper-switch',
-         'run-evening.sh', None,
+         'run-evening.sh', '1be8870',
          'under the harness with its memory-pressure reaper live, the'
-         ' evening is refused before the note is read',
+         ' evening is refused before the note is read; before the fix it'
+         ' went on to read the note, and would have run the hours',
          # Run 35's driver, 2026-09-18 03:52: killed two and a half hours
          # in on a kernel memory-stall trigger fed by swap-ins, with 43 GB
          # free. The switch lives in the user settings; a session started
@@ -10417,7 +10418,9 @@ RECORDS = [
          argv=['zzem'],
          ok=V(exit=2, has=['CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1',
                            'Nothing ran'],
-              hasnt=['evening begins'])),
+              hasnt=['evening begins']),
+         bug=V(exit=1, has=['no zzem-pair.txt'],
+               hasnt=['CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP'])),
 
     # ---- instance-gate.sh, run list step 16a ----------------------------
     # A half's launch instance against a fresh copy, since 2026-09-18: Run
