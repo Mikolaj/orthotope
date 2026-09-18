@@ -1925,6 +1925,48 @@ def inherited_pair(tmp, n=97, share=True, half=False):
     return {'doc': doc}
 
 
+def stale_pair(tmp, n=97, kept=True):
+    """A run file whose step-5 copy is a commit, and which edited a figure
+    -- or did not.
+
+    `--stale` reads the run file against the commit that ADDED it, which
+    is step 5's copy of the previous run's file, so the fixture has to be
+    a git checkout and not two loose files: the copy is the commit and the
+    working file is the write-up. `kept=True` plants the defect the mode
+    exists for, a paragraph whose lead was rewritten for this run around a
+    figure that was not; `kept=False` is the control, the same edit with
+    the figure moved too, on which the mode must find nothing.
+
+    The figure is a percentage, which is the shape of a measured one --
+    the mode leads with decimals, percentages and two-digit counts, a
+    first draft having printed every `one` and `two` in the document.
+    """
+    m = _reader()
+    d = os.path.join(tmp, m.RUNS_DIR)
+    os.makedirs(d, exist_ok=True)
+    doc = os.path.join(d, 'run%d.md' % n)
+    copy = ('# Run %d\n\nA head paragraph.\n\n**On Run %d the floor is'
+            ' 0.31%% on the basis half.** It is read over the six A/A pairs'
+            ' this roster carries, and the pair that carries it is named'
+            ' beside the figure in the table above.\n' % (n - 1, n - 1))
+    write(doc, copy)
+    env = dict(os.environ, GIT_AUTHOR_NAME='t', GIT_AUTHOR_EMAIL='t@t',
+               GIT_COMMITTER_NAME='t', GIT_COMMITTER_EMAIL='t@t')
+    for cmd in (['init', '-q'], ['add', '--', os.path.relpath(doc, tmp)],
+                ['-c', 'commit.gpgsign=false', 'commit', '-q', '-m',
+                 'copy run%d to run%d' % (n - 1, n)]):
+        subprocess.run(['git', '-C', tmp] + cmd, check=True, env=env,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    figure = '0.31%' if kept else '0.44%'
+    write(doc, '# Run %d\n\nA head paragraph of its own, rewritten for this'
+               ' run.\n\n**On Run %d the floor is %s on the basis half, the'
+               ' widest of the eight A/A pairs.** It is read over the eight'
+               ' pairs this roster carries, and this run names the pair that'
+               ' carries it beside the figure in the table above.\n'
+               % (n, n, figure))
+    return {'doc': doc, 'figure': figure}
+
+
 def rundoc_heading_spacing(tmp, blanks=1):
     """A run file whose second heading is preceded by `blanks` blank lines.
 

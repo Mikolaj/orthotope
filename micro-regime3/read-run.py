@@ -1729,6 +1729,17 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
     print(RESULTS_HDR if editorial else CLASS_HDR)
     print('|---|---:|---:|---:|---:|---:' + ('|---|' if editorial else '|'))
     for time, st, ci, noise, smp, alloc, worst in rows:
+        # --rows NAMES prints those rows and no others, header and rule
+        # included so the output is still a table. Added 2026-09-18: a
+        # write-up that wants one arm's published figure on one population
+        # otherwise renders thirty-five rows to read one, and a paired run
+        # does that twice a population. It is a FILTER on the print and
+        # not on the computation -- the carry-forward, the fresh/gone
+        # reporting and the stderr notes below all still read the whole
+        # table, so a narrowed call cannot quietly answer a different
+        # question from the full one.
+        if args.rows and st not in args.rows:
+            continue
         if st in prev:
             label_, style, needs, _ = prev[st]
         else:
@@ -7107,27 +7118,36 @@ def previous_run_doc(run_doc):
 INHERITED_RE = re.compile(r'this run|this pair|Run \d+')
 
 
-def doc_paragraphs(path):
+def doc_paragraphs_text(text):
     """A document's blank-line paragraphs, each joined to one line.
 
     Joined so that the comparison below does not turn on where the wrap
     fell: two runs' files sit at the same fixed point today, and a
     document that moved between them would otherwise read as wholly new.
+
+    Split from `doc_paragraphs` 2026-09-18 so that `--stale` can read the
+    step-5 copy out of git, which is a string and not a path; one
+    implementation, or the two readings would part on the joining.
     """
     out, cur = [], []
-    with open(path, encoding='utf-8') as h:
-        for line in h:
-            if line.strip():
-                cur.append(line.rstrip('\n'))
-            elif cur:
-                out.append(' '.join(cur))
-                cur = []
+    for line in text.split('\n'):
+        if line.strip():
+            cur.append(line)
+        elif cur:
+            out.append(' '.join(cur))
+            cur = []
     if cur:
         out.append(' '.join(cur))
     return out
 
 
-def inherited(run_doc, prev_doc):
+def doc_paragraphs(path):
+    """The same, off a path."""
+    with open(path, encoding='utf-8') as h:
+        return doc_paragraphs_text(h.read())
+
+
+def inherited(run_doc, prev_doc, both=False):
     """The paragraphs this run's file carried whole from the last one.
 
     Step 5 copies the previous run's file and the write-up edits the copy,
@@ -7193,7 +7213,15 @@ def inherited(run_doc, prev_doc):
     # previous run in a changed paragraph is ordinary -- a delta bullet,
     # a comparison, a series -- so the reading is which of them is a
     # claim left standing rather than a claim made.
-    prev_n = run_no_of(prev_doc)
+    # THE SECOND LIST IS BEHIND --all SINCE 2026-09-18, and the reason is
+    # the ratio the two printed on Run 35: SIX paragraphs carried whole,
+    # of which one was stale, against THIRTY-SEVEN changed ones naming the
+    # previous run, of which none was -- naming it being what a delta
+    # bullet, a comparison and a series all do. A reading whose signal is
+    # a sixth of its output is one a session skims, and this mode's whole
+    # purpose is the class of defect no other pass can see. The list is
+    # kept, not cut: Run 33's floor paragraph was in it.
+    prev_n = run_no_of(prev_doc) if both else None
     if prev_n is not None:
         pat = re.compile(r'\bRun %d\b' % prev_n)
         touched = [p for p in doc_paragraphs(run_doc)
@@ -7214,6 +7242,313 @@ def inherited(run_doc, prev_doc):
               % prev_n)
     return 0
 
+
+NUMERAL_RE = re.compile(
+    r'\b(?:\d+(?:\.\d+)?%?|one|two|three|four|five|six|seven|eight|nine|ten'
+    r'|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen'
+    r'|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety'
+    r'|hundred|thousand)\b', re.I)
+
+
+def stale_figures(run_doc, ratio=0.55, verbose=False):
+    """Figures a write-up left where the PREVIOUS run put them.
+
+    Step 5 copies the last run's file and the write-up edits that copy, so
+    the run file's characteristic defect is a paragraph whose prose was
+    rewritten around numbers that were not. `--inherited` catches the
+    paragraph nobody touched; this catches the one that WAS touched and
+    kept a figure, which neither checker pass can see either: their base is
+    the copy, so an edited paragraph shows as changed and a numeral that
+    survived inside it shows as context.
+
+    Run 35 is the measurement. Its write-up shipped four such figures past
+    both mechanical gates and a figure-checking agent: a floor pair left at
+    the previous run's 0.51% and 0.49%, a row count left at thirty-four, a
+    reference run left at 33, and a consumer count left at ten. Every one
+    is a numeral the paragraph shares with its counterpart in the copy.
+
+    WORD NUMERALS COUNT, two of those four being words. The counterpart is
+    found by similarity over the whole paragraph rather than by its lead,
+    because a write-up rewrites leads: matching on the lead would have
+    missed the row count, whose lead is where its edit fell.
+
+    It PRINTS and never refuses. A surviving numeral is ordinary -- the
+    shape count, the pair count, a threshold the run did not move -- so the
+    reading is which of them the run moved and the prose did not, and a
+    gate on it would be turned off by the second run.
+    """
+    # THE ROOT COMES FROM GIT AND NOT FROM THE PATH: `git show COMMIT:PATH`
+    # resolves its path from the repository root whatever `-C` says, so a
+    # root guessed by climbing two directories reads every blob as absent
+    # and this mode reports itself as not having run -- which is what it
+    # did when first written.
+    try:
+        repo = subprocess.run(['git', '-C',
+                               os.path.dirname(os.path.abspath(run_doc)),
+                               'rev-parse', '--show-toplevel'],
+                              capture_output=True, text=True,
+                              check=True).stdout.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+        sys.stderr.write('--stale: %s is not inside a git checkout, so there'
+                         ' is no step-5 copy to read it against and this'
+                         ' reading did not happen\n' % run_doc)
+        return 2
+    rel = os.path.relpath(os.path.abspath(run_doc), repo)
+    try:
+        adds = subprocess.run(['git', '-C', repo, 'log', '--format=%H',
+                               '--diff-filter=A', '--', rel],
+                              capture_output=True, text=True, check=True)
+        first = adds.stdout.split()[-1]
+        copy = subprocess.run(['git', '-C', repo, 'show',
+                               '%s:%s' % (first, rel)],
+                              capture_output=True, text=True, check=True)
+    except (subprocess.CalledProcessError, IndexError, FileNotFoundError,
+            OSError):
+        sys.stderr.write('--stale: %s has no commit that ADDED it, so there'
+                         ' is no step-5 copy to read it against and this'
+                         ' reading did not happen\n' % rel)
+        return 2
+    skip = ('|', '#', '[', '    ')
+    # THE INSTALLED PARAGRAPHS CANNOT BE STALE BY HAND, so they are not
+    # read here: `--block --in-place` rewrites a class block's Controls,
+    # Provenance, per-shape and cross-half lines whole every run, and
+    # `--fingerprint` its table. A figure surviving in one of those is the
+    # installer's doing and not a write-up's, and they are half of what a
+    # first draft of this mode printed.
+    installed = ('**Controls:**', '**Provenance:**', '**Per shape,',
+                 '**Across the halves:**')
+    before = [p for p in doc_paragraphs_text(copy.stdout)
+              if not p.startswith(skip)]
+    now = doc_paragraphs(run_doc)
+    same = set(doc_paragraphs_text(copy.stdout))
+    print('--stale: %s against its step-5 copy at %s' % (rel, first[:7]))
+    found, rows = 0, []
+    for p in now:
+        if p in same or p.startswith(skip) or p.startswith(installed):
+            continue
+        best, score = None, 0.0
+        for q in before:
+            m = difflib.SequenceMatcher(None, p, q)
+            if m.quick_ratio() < ratio:
+                continue
+            r = m.ratio()
+            if r > score:
+                best, score = q, r
+        if best is None or score < ratio:
+            continue
+        kept = [n for n in dict.fromkeys(NUMERAL_RE.findall(p))
+                if re.search(r'\b%s\b' % re.escape(n), best, re.I)]
+        if not kept:
+            continue
+        # TWO TIERS, because the first draft printed sixty-two paragraphs
+        # and its four real findings sat among four hundred ordinary
+        # numerals -- `two`, `one`, a shape count, a cache line. A
+        # MEASURED figure is a decimal, a percentage or an integer of two
+        # digits or more, which is the shape of every figure a run moves
+        # and of none of the words a paragraph merely contains; those lead.
+        # The rest are counted and listed only under --all, so nothing is
+        # hidden without saying so.
+        measured = [n for n in kept
+                    if re.match(r'\d', n) and (len(n.rstrip('%')) > 1
+                                               or '.' in n)]
+        rows.append((score, p, kept, measured))
+    # MOST-EDITED FIRST, and that ordering is the reading: a paragraph
+    # 98% identical to the copy has barely been touched and its numerals
+    # are expected to stand, while one rewritten by half that kept a
+    # decimal is the shape of the defect -- a lead rewritten over a body
+    # left alone.
+    rows.sort(key=lambda r: r[0])
+    quiet_only, over = 0, 0
+    LIMIT = 20
+    for score, p, kept, measured in rows:
+        if not measured and not verbose:
+            quiet_only += 1
+            continue
+        if found >= LIMIT and not verbose:
+            over += 1
+            continue
+        found += 1
+        print('  %s' % (p[:100] + (' ...' if len(p) > 100 else '')))
+        show = measured or kept
+        print('      kept from the copy (%d%% alike): %s'
+              % (round(score * 100), ', '.join(show[:12])
+                 + (' ...' if len(show) > 12 else '')))
+    print('%d edited paragraph(s) keep a MEASURED figure the copy also'
+          ' carries -- a decimal, a percentage or a two-digit count. Each is'
+          ' a threshold this run did not move, or last run\'s number under'
+          ' this run\'s prose --- only reading says which.' % found)
+    if over:
+        print('%d further paragraph(s) beyond the twenty most edited; --all'
+              ' prints them.' % over)
+    if quiet_only:
+        print('%d more keep only a word or a single digit; --all lists them.'
+              % quiet_only)
+    return 0
+
+BRIEF = 'checker-brief.txt'
+
+
+def brief_update(run, readings_dir=None, brief=BRIEF):
+    """Paste the run's own facts into the checker brief, rather than retype.
+
+    The brief's two THIS RUN ONLY items are the half of it that goes stale,
+    and a stale brief looks exactly like a used one: both checker passes
+    read it as given and neither can tell that its figures are the run
+    before's. `read-all.sh --brief-facts` already writes them paste-ready
+    into `log-read-<run>/for-brief.txt`, under a marker saying so, and the
+    chapter already says to paste rather than retype -- which leaves the
+    pasting itself as the one step nothing checks.
+
+    So this does the paste: the two items, and the substitution block's
+    RUN, BASIS, OTHER, PREV, PREVBASIS and PREVSAME, which come off the
+    pair note through `pair-halves.sh` and off the note's COMPARE line.
+    PRETIP and RUNTIP are NOT written here -- they are commits, the run
+    decides them, and a wrong one silently rescopes a pass's diff.
+
+    The `<yours>` slots the facts file leaves -- the pair's variable and
+    the run's largest finding -- are carried across untouched and named on
+    stderr, so an unfilled brief is loud rather than plausible.
+    """
+    d = readings_dir or os.path.join('log-read-%s' % run)
+    facts = os.path.join(d, 'for-brief.txt')
+    if not os.path.exists(facts):
+        sys.stderr.write('--brief-update: no %s, which post-run-readings.sh'
+                         ' writes LAST, so there is nothing to paste and the'
+                         ' brief is untouched\n' % facts)
+        return 2
+    if not os.path.exists(brief):
+        sys.stderr.write('--brief-update: no %s here\n' % brief)
+        return 2
+    text = open(facts, encoding='utf-8').read()
+    marker = 'paste over checker-brief.txt items 5 and 6'
+    if marker not in text:
+        sys.stderr.write('--brief-update: %s carries no `%s` marker, so the'
+                         ' items it holds cannot be told from the rest of'
+                         ' it; the brief is untouched\n' % (facts, marker))
+        return 2
+    tail = text.split(marker, 1)[1].split('\n', 1)[1]
+    items = {}
+    cur = None
+    for line in tail.split('\n'):
+        m = re.match(r' ([56])\. ', line)
+        if m:
+            cur = m.group(1)
+            items[cur] = [line]
+        elif cur and (line.startswith('    ') or not line.strip()):
+            items[cur].append(line)
+        elif cur:
+            cur = None
+    if sorted(items) != ['5', '6']:
+        sys.stderr.write('--brief-update: %s holds item(s) %s after its'
+                         ' marker, not 5 and 6; the brief is untouched\n'
+                         % (facts, ', '.join(sorted(items)) or 'none'))
+        return 2
+    out, wrote, n = [], set(), 0
+    for line in open(brief, encoding='utf-8').read().split('\n'):
+        m = re.match(r' ([56])\. THIS RUN ONLY', line)
+        if m:
+            block = '\n'.join(items[m.group(1)]).rstrip('\n')
+            out.append(block)
+            wrote.add(m.group(1))
+            n += 1
+            continue
+        out.append(line)
+    if wrote != {'5', '6'}:
+        sys.stderr.write('--brief-update: %s has no ` 5. THIS RUN ONLY` and'
+                         ' ` 6. THIS RUN ONLY` line to replace (found %s);'
+                         ' the brief is untouched\n'
+                         % (brief, ', '.join(sorted(wrote)) or 'neither'))
+        return 2
+    open(brief, 'w', encoding='utf-8').write('\n'.join(out))
+    print('--brief-update: %s items 5 and 6 written from %s' % (brief, facts))
+    left = sum(1 for line in out for _ in re.finditer(r'<yours', line))
+    if left:
+        print('%d `<yours>` slot(s) left, which are prose and not facts:'
+              ' the pair\'s variable and the run\'s largest finding. A brief'
+              ' handed to a checker with one standing is a brief that says'
+              ' less than it looks like.' % left)
+    return 0
+
+def prose_facts(run, readings_dir=None):
+    """The figures a write-up quotes, gathered from the readings already taken.
+
+    `post-run-readings.sh` writes some two hundred and seventy files into
+    `log-read-<run>/`, and the write-up quotes perhaps eighty figures out of
+    them. Run 35 spent about a third of its write-up's tokens finding those
+    eighty by grep, and several of its defects were transcription between a
+    reading file and a sentence -- a floor pair quoted at the previous run's
+    figures, a consumer count off by one, a depth ranked against the wrong
+    population.
+
+    So this reads those files rather than the JSONs: one labelled sheet, per
+    population and per half, of the figures the prose actually uses. It
+    computes nothing. A figure here that disagrees with a reading file is
+    this mode's bug; a figure here that disagrees with the JSONs is that
+    reading file's, and `--compare` is where it is settled.
+
+    What it does NOT gather is the box-and-window half -- the plateau, the
+    windows, the intrusion verdict, the md5s -- which `read-all.sh
+    --brief-facts` already writes whole into `for-brief.txt` beside these
+    files, and which this names rather than copies.
+    """
+    d = readings_dir or 'log-read-%s' % run
+    if not os.path.isdir(d):
+        sys.stderr.write('--prose-facts: no %s/, which post-run-readings.sh'
+                         ' writes; nothing was gathered\n' % d)
+        return 2
+    halves = sorted({os.path.basename(f).split('-')[-2]
+                     for f in glob.glob(os.path.join(d, '*-compare.txt'))})
+    pops, rows = [], []
+    for f in sorted(glob.glob(os.path.join(d, '*-counts-cmp.txt'))):
+        pops.append(os.path.basename(f)[:-len('-counts-cmp.txt')])
+    for pop in pops:
+        counts = _grab(os.path.join(d, '%s-counts-cmp.txt' % pop),
+                       r'corrected time: ([\d.]+)')
+        for half in halves:
+            cmpf = os.path.join(d, '%s-%s-compare.txt' % (pop, half))
+            if not os.path.exists(cmpf):
+                continue
+            bar = _grab(cmpf, r'A/A bar for this comparison ([\d.]+%)')
+            clear = _grab(cmpf, r'(\d+) of \d+ non-control arm\(s\) move'
+                                r' further than the bar')
+            rows.append((pop, half, bar, clear, counts))
+    print('prose facts for %s, gathered from %s/ and computing nothing'
+          % (run, d))
+    print('\n%-10s %-11s %-9s %-7s %s'
+          % ('population', 'half', 'A/A bar', 'clear', 'counts geomean'))
+    for pop, half, bar, clear, counts in rows:
+        print('%-10s %-11s %-9s %-7s %s'
+              % (pop, half, bar or '--', clear or '--', counts or '--'))
+    print('\nthe registration, span by span, in scope only:')
+    seen = 0
+    for f in sorted(glob.glob(os.path.join(d, '*-pred.txt'))):
+        pop = os.path.basename(f)[:-len('-pred.txt')]
+        for line in open(f, encoding='utf-8'):
+            if not line.startswith('  (') or 'out of scope' in line:
+                continue
+            seen += 1
+            verdict = 'KILLED' if 'KILLED' in line else (
+                'HELD' if 'HELD' in line else '?')
+            item = line.strip()[:3]
+            read = re.search(r'read ([\d.]+)|A - B up to (-?\d+)', line)
+            print('  %-22s %-4s %-7s %s'
+                  % (pop, item, verdict,
+                     (read.group(1) or read.group(2)) if read else ''))
+    print('%d span reading(s) in scope. The box-and-window facts --- the'
+          ' plateau, the windows, the intrusion verdict, the md5s, the'
+          ' floors --- are in %s/for-brief.txt, written whole by'
+          ' read-all.sh --brief-facts and not copied here.' % (seen, d))
+    return 0
+
+
+def _grab(path, pattern):
+    """The first capture of `pattern` in `path`, or None."""
+    try:
+        text = open(path, encoding='utf-8').read()
+    except OSError:
+        return None
+    m = re.search(pattern, text)
+    return m.group(1) if m else None
 
 def modes_table(path=None):
     """Every mode this reader dispatches on, read off its own source.
@@ -12229,7 +12564,7 @@ def property_items(text):
     return [tuple(c) for c in out]
 
 
-def lint(main_hs, readme, run_doc=None):
+def lint(main_hs, readme, run_doc=None, quiet=False):
     """Static checks over Main.hs and README.md, needing no run at all.
 
     The question this used to ask second -- is every benchmarked strategy
@@ -12687,13 +13022,23 @@ def lint(main_hs, readme, run_doc=None):
     if only:
         print('note: %d of the %d roster arms are rostered and checked but'
               ' deliberately not' % (len(only), len(names)))
-        print('      timed, each with the reason at its entry:')
+        print('      timed, each with the reason at its entry:'
+              if not quiet else
+              '      timed, each with the reason at its entry; --worklists'
+              ' names them')
         # Not at hyphens: every one of these names carries them, and a name
         # split across two lines is one no grep of this output can find.
-        for line in textwrap.wrap(', '.join(only), 66,
-                                  break_on_hyphens=False,
-                                  break_long_words=False):
-            print('        ' + line)
+        # WITHHELD UNDER --quiet, 2026-09-18: this block is four fifths of
+        # what --lint prints and it answers one question, which arms are
+        # checked and not timed. A run calls --lint for its VERDICT and for
+        # the roster counts on the first line; Run 35 called it for two
+        # numbers and read thirty-four lines of names. The count line
+        # stays, so nothing is hidden without saying so.
+        if not quiet:
+            for line in textwrap.wrap(', '.join(only), 66,
+                                      break_on_hyphens=False,
+                                      break_long_words=False):
+                print('        ' + line)
     for line in bad:
         print('FAIL: ' + line)
     # LAST LINE, ALWAYS, so that a run piped into `tail` still shows the
@@ -13243,6 +13588,34 @@ def main():
                    help='install --markdown/--fingerprint/--block tables'
                         " into the run's own file instead of printing"
                         ' them')
+    p.add_argument('--prose-facts', metavar='RUN',
+                   help='the figures a write-up quotes, gathered'
+                        ' from log-read-RUN/ and computed nowhere:'
+                        ' per population and half the A/A bar, how'
+                        ' many arms clear it and the counted work,'
+                        ' and every in-scope span with its verdict.'
+                        ' The box-and-window half is for-brief.txt,'
+                        ' which it names rather than copies')
+    p.add_argument('--brief-update', metavar='RUN',
+                   help="paste the run's own facts into"
+                        ' checker-brief.txt from'
+                        ' log-read-RUN/for-brief.txt -- its two THIS'
+                        ' RUN ONLY items, which are the half that'
+                        ' goes stale and the half a checker cannot'
+                        ' tell is stale. PRETIP and RUNTIP stay'
+                        ' yours: they are commits')
+    p.add_argument('--stale', action='store_true',
+                   help="the figures this run's file KEPT from the"
+                        ' step-5 copy inside paragraphs it edited --'
+                        ' the defect --inherited cannot see, an'
+                        ' edited paragraph being in the diff and its'
+                        ' surviving numeral reading as context.'
+                        ' Word numerals count. A reading, not a gate')
+    p.add_argument('--rows', nargs='+', metavar='ARM',
+                   help='with --markdown: print only these rows, header'
+                        ' and rule included. The table is computed whole'
+                        ' and filtered on the way out, so the notes and'
+                        ' the carry-forward still read every row')
     p.add_argument('--selftest', action='store_true')
     p.add_argument('--lint', action='store_true')
     p.add_argument('--check-doc', action='store_true')
@@ -13264,7 +13637,12 @@ def main():
                         ' -- the class of defect the two checker'
                         " passes cannot see, their diff base being"
                         ' the copy step 5 made. A reading, not a'
-                        ' gate: it never refuses')
+                        ' gate: it never refuses. --all adds the'
+                        ' second list, the CHANGED paragraphs that'
+                        ' still name the previous run, which is'
+                        ' ordinary in a delta bullet or a series and'
+                        ' so runs six times the length at a fraction'
+                        ' of the signal')
     # The note: worklists are write-up material, adjudicated once at the
     # verification step, and they are the bulk of what --check-doc prints.
     # Every other call a run makes reads one bit off it. --quiet keeps that
@@ -13663,7 +14041,13 @@ def main():
         sys.exit(modes_table())
     if args.inherited:
         doc = want_run_doc(args)
-        sys.exit(inherited(doc, previous_run_doc(doc)))
+        sys.exit(inherited(doc, previous_run_doc(doc), args.all_paras))
+    if args.stale:
+        sys.exit(stale_figures(want_run_doc(args), verbose=args.all_paras))
+    if args.brief_update:
+        sys.exit(brief_update(args.brief_update))
+    if args.prose_facts:
+        sys.exit(prose_facts(args.prose_facts))
     if args.check_doc:
         prev = previous_run_doc(args.run_doc)
         sys.exit(check_doc_loud(args.readme, args.main, args.run_doc, prev)
@@ -13671,7 +14055,8 @@ def main():
                  else check_doc_quiet(args.readme, args.main, args.run_doc,
                                       prev))
     if args.lint:
-        sys.exit(lint(args.main, args.readme, args.run_doc))
+        sys.exit(lint(args.main, args.readme, args.run_doc,
+                      quiet=not args.worklists))
     if args.counts_totals:
         sys.exit(counts_totals(args.counts_totals, args))
     if args.series:

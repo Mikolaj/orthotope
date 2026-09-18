@@ -14,13 +14,31 @@ reading of a check that needs a run.
 COPY = 'tracked'
 # The properties over every run on disk are minutes a sweep and the judges
 # below sweep three times; a property is shown to fail on a run or two.
-ENV = {'CORPUS': '{root}', 'CORPUS_LIMIT': '2'}
+# CORPUS_RUN=newest SINCE 2026-09-18, and for the reason READER above
+# carries: the corpus was the first two `.json` files by name, which is
+# whatever sorts first rather than anything a judge needs. Deleting Runs
+# 24 to 30 that day made those two a probe's, and six judges went LOST
+# and two MISSED without a line of the code they judge moving -- a probe
+# carries whatever roster its own question wanted, so a judge reading one
+# is judging a roster and not a run. `newest` is what checks.py already
+# hands properties.py, and it narrows to the run a mutant is about.
+ENV = {'CORPUS': '{root}', 'CORPUS_LIMIT': '2', 'CORPUS_RUN': 'newest'}
 TIMEOUT = 900
 
 # The reader's selftest is asked of the first run on disk; the properties
 # and the corpus module run from the copy, over the runs on disk.
-READER = ('f=$(ls "{root}"/*.json 2>/dev/null | head -1); test -n "$f" '
-          '&& python3 "{file}" "$f" --selftest')
+# A RUN'S MAIN-SET JSON AND NOT WHATEVER SORTS FIRST. This took the
+# alphabetically first `.json` in the directory until 2026-09-18, which is
+# a probe's the moment a probe outranks the oldest run on disk -- and a
+# probe carries whatever roster its own question wanted. Deleting Runs 24
+# to 30 that day made `probe-ds-off-main.json` the first file, and two
+# mutants went from caught to MISSED without a line of the reader moving:
+# the emphasis column's and the rate column's, whose judges need arms that
+# probe does not time. The fallback stays, so a tree with no run still
+# runs something rather than reporting nothing.
+READER = ('f=$(ls "{root}"/run*-*-main.json 2>/dev/null | tail -1); '
+          'test -n "$f" || f=$(ls "{root}"/*.json 2>/dev/null | head -1); '
+          'test -n "$f" && python3 "{file}" "$f" --selftest')
 PROPS = 'python3 "{dir}/properties.py"'
 
 MUTANTS = [
@@ -65,7 +83,24 @@ MUTANTS = [
      'read-run.py',
      '                   if p not in before and pat.search(p)]',
      '                   if False and pat.search(p)]',
-     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nf = d.inherited_pair(t, half=True)\nr = subprocess.run([sys.executable, \'{file}\', \'--inherited\', \'--run-doc\', f[\'doc\']], capture_output=True, text=True)\nsys.exit(0 if \'1 paragraph(s) this run CHANGED\' in r.stdout else 1)"'),
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nf = d.inherited_pair(t, half=True)\nr = subprocess.run([sys.executable, \'{file}\', \'--inherited\', \'--all\', \'--run-doc\', f[\'doc\']], capture_output=True, text=True)\nsys.exit(0 if \'1 paragraph(s) this run CHANGED\' in r.stdout else 1)"'),
+
+    # AND --stale READS THE FIGURES AN EDITED PARAGRAPH KEPT. --inherited
+    # above catches the paragraph nobody touched; this catches the one
+    # touched around a number that was not, which no checker pass sees
+    # either -- an edited paragraph is IN the diff and its surviving
+    # numeral reads as context. Run 35 shipped four of them past both
+    # gates and a figure-checking agent: a floor pair, a row count, a
+    # reference run and a consumer count. Emptying the membership test
+    # leaves the mode printing nothing and reporting zero, which is what
+    # a clean run looks like. The judge plants one and asks for the
+    # count; the fixture's control, `kept=False`, is the same edit with
+    # the figure moved and reports zero honestly.
+    ('--stale stops reading the figures an edited paragraph kept',
+     'read-run.py',
+     "                if re.search(r'\\b%s\\b' % re.escape(n), best, re.I)]",
+     '                if False]',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nf = d.stale_pair(t)\nr = subprocess.run([sys.executable, \'{file}\', \'--stale\', \'--run-doc\', f[\'doc\']], capture_output=True, text=True)\nsys.exit(0 if \'1 edited paragraph(s) keep a MEASURED\' in r.stdout else 1)"'),
 
     # AND --lint HOLDS THE REGISTRATION'S LEAD TO THE MOVER'S KEY.
     # `--move-registration` matches that lead whole and refuses anything
