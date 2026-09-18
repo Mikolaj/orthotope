@@ -11803,6 +11803,20 @@ RECORDS = [
          ok=V(exit=0, has=['every arm the OPEN registration(s) name is'
                            ' timed'])),
 
+    case('registration-span-reads-are-printed', 'read-run.py', 'b104ba1',
+         'under an OPEN registration --lint prints each span as'
+         ' --predictions will compare it -- the mode, the operands and their'
+         ' orientation -- for the author to read against the sentence',
+         # Run 35's item (3) spanned a claim about the PREVIOUS run as
+         # `counts`, which compares the two HALVES, and --lint held the
+         # span's arms and scope only; registered and answered 2026-09-18.
+         plant=lambda t: {'readme': readme_with_a_registration(t)},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(exit=0, has=['`predict: cross list 1.0 within 3% on main'
+                           ' both`', 'on THIS half over the same arm on'
+                           ' the OTHER']),
+         bug=V(exit=0, hasnt=['on THIS half over the same arm'])),
+
     case('gate-show-derives-the-selection', 'run-gate.sh', None,
          'CONTROL: --show prints SEL and the count it derives, and spends'
          ' no machine',

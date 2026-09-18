@@ -457,6 +457,16 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--lint\', \'--readme\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'does not time\' in r.stdout + r.stderr else 1)"'),
+    ('--lint stops saying what a span compares', 'read-run.py',
+     "            if reads:\n                print(\"      Run %s's %d span(s)",
+     "            if not reads:\n                print(\"      Run %s's %d span(s)",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.readme_with_a_registration(tempfile.mkdtemp())\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--lint\', \'--readme\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'on THIS half over the same arm\' in r.stdout + r.stderr else 1)"'),
     ('--lint stops resolving a registration\'s task pointers', 'read-run.py',
      "re.findall(r'\\b[Tt]ask (\\d+)', t)",
      "re.findall(r'\\bnosuchword (\\d+)', t)",
