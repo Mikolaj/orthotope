@@ -32,9 +32,13 @@
 #       variable leaves no trace. There is no general form of it, and a
 #       script that guessed one would report a pair sound on a reading
 #       that was never about that pair.
-#   10a/10b, the --survey legs -- the build's, and their answer is the
-#       binary's rather than the reading session's, so they go in the note
-#       at step 2 and not here. And 10's own `--library` figure is a registered
+#   10a/10b's FIGURES -- the build's, and their answer is the binary's
+#       rather than the reading session's, so they go in the note at step 2
+#       and not here. What this script does read of those two steps, since
+#       2026-09-19, is the ASTRIDE COUNT, beside 4,5 rather than in the
+#       fill-in block, because run-list step 11 is gated on it; the survey
+#       line rides along on the verdict for --fill-in to quote.
+#       And 10's own `--library` figure is a registered
 #       variable of the pair, read against the note and not against any
 #       threshold here, so its PASS says the figure was read and no more.
 #   11 and 12, the smoke sweep and the roster pass -- machine time, and
@@ -537,6 +541,22 @@ if [ "$REST" = 1 ]; then
 # move. `check` is a correctness pass and times nothing, so contention
 # reaches no figure. Halved 2026-09-10; before it they ran one after the
 # other for no reason but the order the list writes them in.
+# The survey line of one half, as steps 10a and 10b read it. Hoisted out of
+# the fill-in block on 2026-09-19 so that the ASTRIDE count is read beside
+# 4,5 rather than after 8b: a nonzero count is step 10a's stop, the sweep at
+# run-list step 11 must not start in front of the surveys, and step 11 says
+# to launch the moment `4,5  PASS` appears. Those two cannot both be obeyed
+# while this runs last -- Run 36's preparation read `1 exit spans astride`
+# after 8b with the sweep waiting on it, and the reading was a phantom
+# either way. The figures stay the NOTE's, which is what the header above
+# says of 10a and 10b; what is a verdict here is the astride count alone.
+srv () { ./loop-offsets.py --survey "$1" 2>/dev/null \
+           | awk '/self-loops/ && !a { sub(/^[^:]*: */, ""); a = $0 }
+                  /at offset 0/{b=$NF} /still straddling/{c=$NF}
+                  /exit spans astride :/{d=$NF}
+                  END{print a", "b" at offset 0, "c" straddling, "\
+                            d" exit spans astride"}'; }
+
 "./$R-$BASIS" check > "$TMP/a.log" 2>&1 & pa=$!
 "./$R-$OTHER" check > "$TMP/b.log" 2>&1 & pb=$!
 wait "$pa"; ra=$?
@@ -555,6 +575,24 @@ check exited $ra and $rb"
 else
   say '4,5' FAIL "the halves' check output DIFFERS -- the pair is not sound"
 fi
+
+# 10a AND 10b, THE ASTRIDE COUNT ONLY, here because step 11 is gated on it.
+# A half built under LOOP_EXITSPAN=1 owes 0; anything else is a stop before
+# the sweep, and step 10a's own line names the three causes. The whole survey
+# line is carried on the verdict so that --fill-in quotes this reading rather
+# than taking a second one.
+srv_say () {  # srv_say STEP TAG SURVEY-LINE
+  case "$3" in
+    *'0 exit spans astride') say "$1" PASS "$2 $3" ;;
+    '') say "$1" FAIL "$2: --survey read nothing -- objdump or the binary" ;;
+    *) say "$1" FAIL "$2 $3 -- step 10a's stop: dump the head's bytes, then \
+read the shim's own verified line under ALIGN_AS_VERBOSE, before step 11" ;;
+  esac
+}
+SRV_B=$(srv "./$R-$BASIS")
+SRV_O=$(srv "./$R-$OTHER")
+srv_say 10a "$BASIS" "$SRV_B"
+srv_say 10b "$OTHER" "$SRV_O"
 
 "./$R-$BASIS" --list 2>/dev/null > "$TMP/la"
 "./$R-$OTHER" --list 2>/dev/null > "$TMP/lb"
@@ -816,12 +854,6 @@ fill_in () {
   # B" that says what a self-loop is here.
   # And the exit-span count beside them (2026-09-16): 0 on a half built
   # under LOOP_EXITSPAN=1, a figure to keep on one built without it.
-  srv () { ./loop-offsets.py --survey "$1" 2>/dev/null \
-             | awk '/self-loops/ && !a { sub(/^[^:]*: */, ""); a = $0 }
-                    /at offset 0/{b=$NF} /still straddling/{c=$NF}
-                    /exit spans astride :/{d=$NF}
-                    END{print a", "b" at offset 0, "c" straddling, "\
-                              d" exit spans astride"}'; }
   # The run behind this one, for the two cross-run reads: the highest
   # runs/run<N>.md below this N, and its basis binary if it is still here.
   # Both degrade to a named absence rather than to silence -- an artifact
@@ -903,8 +935,9 @@ against the previous build of this recipe is not available"
     printf '  %-16s %s\n' '' "no run file below $R in runs/, so there is no \
 previous build of this recipe to read --delta against"
   fi
-  printf '  %-16s %s\n' 'straddle' "$BASIS $(srv "./$R-$BASIS")"
-  printf '  %-16s %s\n' '' "$OTHER $(srv "./$R-$OTHER")"
+  printf '  %-16s %s\n' 'straddle' \
+    "$BASIS ${SRV_B:-$(srv "./$R-$BASIS")}"
+  printf '  %-16s %s\n' '' "$OTHER ${SRV_O:-$(srv "./$R-$OTHER")}"
   printf '  %-16s %s\n' 'regime' "$(vd 9)"
   printf '  %-16s %s\n' 'check' "$(vd '4,5')"
   printf '  %-16s %s\n' '--list' "$(vd 6)"
