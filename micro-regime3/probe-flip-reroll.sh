@@ -107,7 +107,7 @@ leg () {           # leg <half> <cond> <rep> [-- rtsopts...]; SAT overrides dose
   # bare command ended the sweep before its exit line, and criterion opens
   # --json before its first bench, so the file it left read as a finished
   # leg to the guard above and as broken JSON to the reader (2026-09-18).
-  [ "$rc" = 0 ] || { mv -f "$json" "$OUT/reroll-$tag.failed.json" 2>/dev/null
+  [ "$rc" = 0 ] || { mv -f "$json" "$OUT/reroll-$tag.failed.json" 2>/dev/null || true
                      BAD=$((BAD + 1)); }
 }
 BAD=0
@@ -144,5 +144,5 @@ done
 
 echo
 echo "read it with:  ./probe-flip-reroll-read.py $OUT"
-[ "$BAD" = 0 ] || echo "!! $BAD leg(s) exited non-zero; their JSONs are set aside as *.failed.json"
+[ "$BAD" = 0 ] || echo "!! $BAD leg(s) exited non-zero; a JSON one wrote is set aside as *.failed.json"
 exit $((BAD > 0))

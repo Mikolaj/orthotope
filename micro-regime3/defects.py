@@ -2711,6 +2711,15 @@ INLINE_REG = ('- `%s` **What Run 99 was built to answer, registered'
               ' (1) *The knob*: **HELD.** (2) *The dial*: %s\n\n')
 
 
+def rundoc_without_a_per_shape_line(tmp):
+    """The run's own file with its first class block's per-shape
+    paragraph removed, which is what the ADDED branch repairs."""
+    paras = rundoc_text().split('\n\n')
+    gone = next(p for p in paras
+                if p.lstrip().lstrip('*').startswith('Per shape'))
+    return edited_rundoc(tmp, ('\n\n' + gone, ''))
+
+
 def rundoc_without_across(tmp):
     """The run file with every `Across the halves:` paragraph deleted: a
     run that recorded one half, as install-tables.sh must meet it."""
@@ -5553,7 +5562,7 @@ TIER1 = {
                       trigger='run23, run24 or run25, whose twins are named -r<N>',
                       ok='step 0 reads done off the -r<N> twins',
                       bug='step 0 read NOT DONE for ever on three finished runs',
-                      notes='Runs 23 to 25, every status read since their twins were built.'),
+                      notes='Runs 24 and 25 read step 0 NOT DONE on 2026-09-18 with their twins on disk; run23, its twins gone, reads it by the absence branch either way.'),
     'view-floor-skips-the-legs-that-are-not-classes': dict(family='vacuous-check', discovery='review', harm='fired',
                       trigger='a run with alone legs or gate processes on disk',
                       ok='the alone, gate and main legs are passed over',
@@ -5576,7 +5585,7 @@ TIER1 = {
                       ok='says nothing was written; ADDED lines print after the write',
                       bug='an ADDED line stood on the screen over an unchanged file'),
     'counts-did-not-run-is-exit-2': dict(family='two-spellings', discovery='review', harm='latent',
-                      trigger='no perf, a blocked counter, no temp path, no binary, no roster',
+                      trigger='no perf, a blocked counter, no temp path, no binary, an output already there, no roster',
                       ok='exit 2, as the usage guard and the sibling probes say did-not-run',
                       bug='exit 1, the code of a sweep that ran and came out wrong'),
     'attr-reader-binds-lib-stage1-to-the-leaf': dict(family='other:binding-outlived-the-dispatch', discovery='review', harm='fired',
@@ -5591,7 +5600,8 @@ TIER1 = {
     'attr-probe-divides-by-a-zero-count': dict(family='domain-unchecked', discovery='review', harm='latent',
                       trigger='perf stat reporting 0 instructions:u for an arm',
                       ok='no count, BAD=1, the loop goes on',
-                      bug='division by 0 unwound the arm loop at exit 0', proved='asserted'),
+                      bug='division by 0 ended the probe at exit 1, the later arms unrun and $OUT short of them',
+                      proved='asserted'),
     'readings-wait-took-the-pred-file-at-any-rc': dict(family='vacuous-check', discovery='review', harm='latent',
                       trigger='--predictions exiting 2 or raising in the readings stub',
                       ok='the case refuses rc=2 and !! crashed',
@@ -9826,7 +9836,7 @@ RECORDS = [
               'ARMS': 'list', 'N': '1'},
          argv=['zzct3', 'g912'],
          # Exit 2 since 2026-09-18, the did-not-run code the usage guard
-         # and every sibling probe use; 1 read as a sweep that ran wrong.
+         # and the sibling probes use; 1 read as a sweep that ran wrong.
          ok=V(exit=2, has=['perf will not count instructions here',
                            'Nothing ran'])),
 
@@ -9859,7 +9869,7 @@ RECORDS = [
          env={'PATH': '{stub}:/usr/bin:/bin', 'TMPDIR': '/nonexistent-zz',
               'ONLY': 'shape-a', 'ARMS': 'list', 'N': '1'},
          argv=['zzct5', 'g912'],
-         # Exit 2 since 2026-09-18, with every did-not-run guard there.
+         # Exit 2 since 2026-09-18, as every guard here that says Nothing ran.
          ok=V(exit=2, has=['mktemp gives no writable file', 'Nothing ran'])),
 
     case('counts-runs-under-a-perf-that-answers', 'run-counts.sh', None,
@@ -11148,6 +11158,23 @@ RECORDS = [
          ok=V(exit=1, has=['nothing written']),
          bug=V(exit=1, has=['REFUSED'], hasnt=['nothing written'])),
 
+    case('install-adds-a-missing-per-shape-line-after-the-write',
+         'install-tables.sh', None,
+         'CONTROL: a block with no per-shape paragraph gets one, and the'
+         ' ADDED line is printed once the file is written',
+         # The other side of the record above: the one path that prints
+         # a success line per class, now deferred to after the write.
+         # Watched 2026-09-18 on this fixture, the paragraph back in the
+         # file and the line under the write.
+         plant=lambda t: {'doc': rundoc_without_a_per_shape_line(t)},
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                     prefix='zzad', classes=recorded_classes())),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['zzad'],
+         ok=V(exit=0, has=['per-shape line ADDED, the block had none',
+                           'computed paragraph(s) installed'],
+              hasnt=['REFUSED', 'nothing written'])),
+
     case('basis-glob-catches-no-other-half', 'install-tables.sh', '440b22d',
          'a control half named <basis>-pa was installed as the basis',
          plant=lambda t: {'doc': edited_rundoc(t)},
@@ -12050,16 +12077,19 @@ RECORDS = [
          ok=V(exit=0, hasnt=['carries no A/A group']),
          bug=V(exit=2, has=['carries no A/A group'])),
 
-    # ---- the review of 2026-09-18: records whose program has no case ----
-    # The probes carry none by policy (checks.py), and preflight.sh and
-    # read-all.sh's are mutants in mutants.py, the fixtures a case would
-    # want being unbuildable here; each record says what was watched.
+    # ---- the review of 2026-09-18: records whose fix has no case ------
+    # The probes carry none by policy (checks.py); preflight.sh's and
+    # read-all.sh's proofs are that day's two mutants in mutants.py, the
+    # fixtures a case would want being unbuildable here; the rest are this
+    # suite's own instruments, which no case runs. Each says what was
+    # watched.
     case('attr-reader-binds-lib-stage1-to-the-leaf', 'probe-attr-read.py',
          '18021d0',
          'lib-stage1 was anchored inside the add-in-leaf function, where'
          ' its samples land in fillStage2',
-         # Main.hs dispatches lib-stage1 to fbLibStage1, ten lines that
-         # hand every strided view to fillStage2; the reader's table said
+         # Main.hs dispatches lib-stage1 to fbLibStage1, a dispatcher that
+         # hands fillStage2 a view whose innermost run is strided and
+         # nothing else; the reader's table said
          # fbMutOdoVecdimsAddInLeafU2, so every lib-stage1 span sat in
          # the wrong body and the reader refused on the overlap, on every
          # sample of Run 32. Each arm now names the function its samples
@@ -12076,7 +12106,7 @@ RECORDS = [
 
     case('attr-probe-divides-by-a-zero-count', 'probe-attr.sh', '18021d0',
          'a perf count of 0 passed the digits guard and divided by zero,'
-         ' which unwinds the arm loop at exit 0 with BAD still 0',
+         ' which ends the probe at exit 1 with the arms after it unrun',
          argv=None, ok=None),
 
     case('readings-wait-took-the-pred-file-at-any-rc', 'defects.py', '18021d0',

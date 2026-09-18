@@ -31,10 +31,10 @@
 #
 # WRITES THE RUN'S OWN FILE and nothing else -- every table a run
 # publishes is in `runs/run<N>.md`, which is why one `DOC` can serve every
-# install. Copy that file aside first, `cp runs/run<N>.md /tmp/run<N>.md`,
-# and copy it back to undo: `git checkout --` discards every uncommitted
-# edit with the install. Read the diff afterwards rather than the
-# terminal: install prints what it replaced, not what the file now says.
+# install. Copy that file aside first and copy it back to undo:
+# `git checkout --` discards every uncommitted edit with the install.
+# Read the diff afterwards rather than the terminal: install prints what
+# it replaced, not what the file now says.
 #
 # Measured over Run 13's artifacts, 2026-08-15, against a copy: ten calls
 # write eleven tables; a full pass over a document that already carries them

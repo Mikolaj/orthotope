@@ -104,8 +104,8 @@ for A in "$@"; do
     BAD=1
   fi
   # A COUNT OF 0 IS NO COUNT: it passed the digits test and divided by
-  # zero below, which in bash unwinds the whole arm loop at exit 0 with
-  # BAD still 0 (2026-09-18, by review).
+  # zero below, which ends the probe at exit 1 with the arms after it
+  # unrun and $OUT short of them (2026-09-18, by review).
   case ${TRUE:-} in
     ''|0|*[!0-9]*) echo "!! $A: perf stat gave no count, so the histogram's scale"\
                       "is unchecked" | tee -a "$OUT"; BAD=1 ;;

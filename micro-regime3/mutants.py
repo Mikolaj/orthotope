@@ -557,9 +557,10 @@ MUTANTS = [
      ' benches\\n\' > "{dir}/zzpf-pair.txt"; '
      '{file} zzpf --figures 2>&1 | grep -q "gate arms .*gave nothing to check"'),
     # A refused --compare is a row of the delta bullet's range, and the
-    # mutant makes it the silence it was. The judge shadows the newest run
-    # with both rev JSONs cut off mid-file, so --compare refuses that
-    # population; LOST with no rev JSON on disk, as every corpus judge.
+    # mutant makes it the silence it was. The judge shadows the run whose
+    # rev JSON sorts last with both such JSONs cut off mid-file, so
+    # --compare refuses that population; LOST with no rev JSON on disk,
+    # as every corpus judge.
     ('a refused --compare drops its population from the delta range in silence',
      'read-all.sh',
      '      || echo "!! $pop: --compare gave no list line, so the range omits it"',

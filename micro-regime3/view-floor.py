@@ -136,8 +136,8 @@ def main():
         # `gate` where a half's name sits. `if ...: pass` skipped nothing
         # and tested the class for a marker the half carries, so every
         # such leg raised the exit to 2 with a `carries no A/A group`
-        # line apiece -- 92 on Run 32 (2026-09-18, by review). A class
-        # named with -c is read whatever it is.
+        # line apiece -- 92 on Run 32 (2026-09-18, by review). The main
+        # set named with -c is read.
         if half in ('al', 'gate', 'counts') or (cls == 'main'
                                                  and not a.classes):
             continue

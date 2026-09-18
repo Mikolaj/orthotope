@@ -13,9 +13,9 @@ being unique fails loudly instead of silently mapping to the wrong span.
 The arms are not symmetric in source -- the add-in-leaf arm carries its
 run loop in `runs` where `fillStage2` reaches it through `runsWith` --
 and an arm's samples do not always land in the function the dispatch
-table names: `lib-stage1` is ten lines handing every strided view to
-`fillStage2`, which `lib-stage2` and `lib-stage2-lean` reach too, so all
-three bucket by that fill's spans.  `harness` is the shared forcing pass,
+table names: `lib-stage1` is a dispatcher that hands `fillStage2` a view
+whose innermost run is strided and nothing else, and `lib-stage2` and
+`lib-stage2-lean` reach that fill too, so all three bucket by its spans.  `harness` is the shared forcing pass,
 which is the control: it must come out equal, both arms being timed
 through it.
 
@@ -37,15 +37,16 @@ def die(msg):
     sys.exit(2)
 
 # arm -> the function its samples land in, which is NOT always the one
-# the dispatch table names: `lib-stage1` is `fbLibStage1`, ten lines that
-# hand every strided view to `fillStage2`, and the two stage-two arms
-# reach that fill through `canonView`. Until 2026-09-18 `lib-stage1` was
+# the dispatch table names: `lib-stage1` is `fbLibStage1`, a dispatcher
+# that hands `fillStage2` a view whose innermost run is strided and
+# nothing else, and the two stage-two arms reach that fill through
+# `canonView`. Until 2026-09-18 `lib-stage1` was
 # bound to the add-in-leaf function here, so every lib-stage1 span sat
 # in the wrong body and the reader refused on the overlap. The name must
 # be unique in the file; the sub-anchors searched from it need only be
-# unique WITHIN the function: `let writeRun !outPos !baseOff =` occurs
-# seventeen times, the whole add-in-leaf family sharing that text, which
-# a first version asserted unique in the file and refused on.
+# unique WITHIN the function: `let writeRun !outPos !baseOff =` recurs
+# across the add-in-leaf family, which a first version asserted unique
+# in the file and refused on.
 LEAF = 'fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v)'
 FILL = 'fillStage2 sh ats !ao !l !v = VS.create'
 FUNCS = {
@@ -210,8 +211,9 @@ def main():
         print(('%-16s' + '%11d' * len(hdr))
               % tuple([arm] + [b[c] for c in hdr[:-1]] + [sum(b.values())]))
     # The difference row is the file's two bucketed arms, second minus
-    # first, and not a pair of names: the probes since Run 32 pair the
-    # add-in-leaf arm with `lib-stage1` or `lib-stage2-lean`.
+    # first, where it carries exactly two, and not a pair of names: the
+    # histograms here carry the add-in-leaf arm beside `lib-stage2-lean`,
+    # and no `lib-stage2` at all.
     if len(got) == 2:
         (na, a), (nb, b) = got.items()
         hdr = ROLES + ['harness', 'elsewhere']

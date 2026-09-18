@@ -89,15 +89,6 @@ UNCOVERED = {
                    'tmpfs under it',
     'smoke-l1.sh': 'the reader\'s smoke sweep, driven by the run chapter; '
                    'no case yet',
-    'view-floor.py': 'a reading and not a gate: it reports each view\'s own '
-                     'A/A spread beside its class floor, so that a clause '
-                     'about ONE view is adjudicated against that view rather '
-                     'than against the class geomean. What it finds is a '
-                     'property of a finished run and not of this tree -- Run '
-                     '27 carries six cells at or past 6% and Run 25 none -- '
-                     'so a step on it would stand red for as long as such a '
-                     'run is on disk. The run chapter invokes it, and '
-                     'mutants.py proves it bites',
     'check-scripts.py': 'retired into defects.py and the shared tools on '
                         '2026-09-02; the records naming it are memory',
 }
