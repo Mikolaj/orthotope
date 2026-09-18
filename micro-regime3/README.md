@@ -720,9 +720,9 @@ rather than a slot in the next run, observed again:
   and -136 instructions where the item asked for more than -200, and holding
   on the other ten populations; (3) KILLED by its spans while its own sentence
   holds --- a `counts` span under `--compare` reads one half against the other
-  rather than against Run 34, and Run 34's own pair reads 1.0063 where the item
-  allowed 0.1%, so the span was unholdable when written, where the claim
-  it states reads 1.0000 across the runs.
+  rather than against Run 34, and the two earlier runs of this pair read 1.0062
+  and 1.0063 where the item allowed 0.1%, so the span was unholdable when
+  written, where the claim it states reads 1.0000 across the runs.
 - `ANSWERED` **What Run 34 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 34's own file](runs/run34.md), where a run's
@@ -1199,25 +1199,24 @@ rather than a slot in the next run, observed again:
   states it the claim HOLDS to three ten-thousandths --- this run's counts
   against Run 34's, same half, geomean 1.0000 over all 34 arms the sweep
   carries. The span reads something else: a `counts` span under `--compare`
-  is THIS half over the OTHER, a comparison of the two compilers, on which Run
-  34's own pair reads **1.0063** where the item allowed 0.1% --- so the span
-  was unholdable the day it was written and was KILLED on four populations.
-  `--lint` holds a registration's arms to the roster and its populations
-  to the class list; nothing holds its span's VOCABULARY to the quantity
-  its prose names, and the preparation that wrote it had the figure in hand off
-  a different mode. **What would settle it** is `--lint` printing, per span,
-  the mode and the two operands the reader will actually compare,
-  for the registration's author to read back against their own sentence ---
-  the cheapest form being one line a span at pre-run 12b, where the registration
-  is already being read. Registered 2026-09-18.
-- `OPEN` **Ten consumers part by a quarter on ONE shape across a compiler pair
+  is THIS half over the OTHER, a comparison of the two compilers, on which
+  the two earlier runs of this pair read **1.0062** and **1.0063** where
+  the item allowed 0.1% --- so the span was unholdable the day it was written
+  and was KILLED on four populations. `--lint` holds a registration's arms
+  to the roster and its populations to the class list; nothing holds its span's
+  VOCABULARY to the quantity its prose names, and the preparation that wrote
+  it had the figure in hand off a different mode. **What would settle
+  it** is `--lint` printing, per span, the mode and the two operands the reader
+  will actually compare, for the registration's author to read back against
+  their own sentence --- the cheapest form being one line a span at pre-run 12b,
+  where the registration is already being read. Registered 2026-09-18.
+- `OPEN` **Nine consumers part by a quarter on ONE shape across a compiler pair
   with their instruction counts identical, and no term the chapter prices
   explains a block that size.** On Run 35's `runs-3`, `liblist-stage4-sum`,
   `libunord-stage7-sum`, `-stage10-sum`, `-stage13-sum`, `-stage11-sum`,
-  `liblist-stage3-sum`, `libunord-stage12-sum`, `-stage6-sum`, `-stage9-sum`
-  and their neighbour read **0.7563 to 0.7581** basis over control with counts
-  at **1.0000** on every one of them, which fills the top of `--cell-movers`
-  and is the largest block of agreeing cells that mode has printed. A per-arm
+  `liblist-stage3-sum`, `libunord-stage12-sum`, `-stage6-sum` and `-stage9-sum`
+  read **0.7563 to 0.7581** basis over control with counts at **1.0000**
+  on every one of them, which fills the top of `--cell-movers`. A per-arm
   reading sees none of it: `runs`'s class geomean is 1.0027 and its `list` moved
   0.25 of a point, so the class's two columns are differenceable and its table
   says nothing is happening. The arms are the reducing consumers, whose figures
@@ -8673,7 +8672,13 @@ Unsandboxed throughout:
     #      criterion writes that file as it goes, so a killed process
     #      leaves a truncated one;
     #      `python3 -c 'import json,sys; json.load(open(sys.argv[1]))'
-    #      "$out.json" 2>/dev/null && continue` is the test. Check each
+    #      "$out.json" 2>/dev/null && continue` is the test. PARK THE
+    #      TRUNCATED ONE UNDER A NAME THAT DOES NOT END IN `.json`,
+    #      `probe-killed-$R-<half>-<pop>.json.truncated`: `probe-` alone
+    #      keeps it out of read-all.sh's plateau glob and NOT out of
+    #      properties.py's corpus, which globs every `.json` here and
+    #      failed three of its four properties on Run 35's until the
+    #      suffix moved. Check each
     #      benchmarking count against `classes --list`, append to the same
     #      $R-wallclock.log, and say in the write-up that the populations
     #      ran in more than one window. Pre-registered probes are appended
@@ -14133,14 +14138,14 @@ and its fingerprint say so.
   the merge step `mergeInto` and the route tail `routeOf` to top level --- while
   the shim stood at `f31bd1c` and both halves launched from the `hugebin/`
   mount, as Run 34's did. It is read against RUN 34, whose recipe it repeats
-  to the commit, so this is the FIRST step of the chain whose two published
-  bases differ in the source alone. Its sequence ran in THREE windows, 01:54:33
-  to 03:49:22, 03:55:00 to 10:05:35 and 11:24:11 to 11:48:34 --- a harness kill
-  between the first two and a rerun of `bcastmid` on both halves in the third,
-  after `--wild` named a root cron job inside the first `bcastmid` process.
-  No process of the SEQUENCE was intruded on; one gate process was,
-  by this session's own status call. **And its floor is a maximum over EIGHT A/A
-  pairs**, both halves' figures in [Run 35's Results](runs/run35.md#results).
+  to the commit, so the one term between its published basis and Run 34's
+  is the source. Its sequence ran in THREE windows, 01:54:33 to 03:49:22,
+  03:55:00 to 10:05:35 and 11:24:11 to 11:48:34 --- a harness kill between
+  the first two and a rerun of `bcastmid` on both halves in the third, after
+  `--wild` named a root cron job inside the first `bcastmid` process. No process
+  of the SEQUENCE was intruded on; one gate process was, by this session's own
+  status call. **And its floor is a maximum over EIGHT A/A pairs**, both halves'
+  figures in [Run 35's Results](runs/run35.md#results).
 - Run 34 measured 34 timed arms over 19 main-set shapes and 61 class views
   in TEN classes, 646 benches and 2074, EIGHT A/A pairs, the `runs` class
   at SEVENTEEN, `window` at EIGHT, `bcast` and `flip` at SIX, `block`
