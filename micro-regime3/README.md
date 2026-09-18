@@ -1222,7 +1222,7 @@ rather than a slot in the next run, observed again:
   says nothing is happening. The arms are the reducing consumers, whose figures
   are raw `slope` rather than corrected net, and `runs-3` is a three-element run
   --- the length at which the per-run overhead dominates. **What would settle
-  it** is the ten cells timed in fresh processes on both binaries, interleaved,
+  it** is the nine cells timed in fresh processes on both binaries, interleaved,
   and `perf stat` over one of them for branch misses and front-end stalls:
   a quarter on identical instructions is either the loop's placement
   or its prediction, and the two are told apart by counters rather than
@@ -1290,11 +1290,14 @@ rather than a slot in the next run, observed again:
   under `run-evening.sh` --- landed inside the GATE's first process and put 2
   of its 95 benches at or above the bar, peak **0.81** of a core
   on `cnn-L1-6x6-c1/mut-odo-vecdims` and 0.65 on `cnn-L1-6x6-c1/bq-expand`,
-  the third and fourth benches of that process; its other twenty-one sequence
-  logs, three gate logs and 88 rider logs are clean. So one sub-second status
-  call costs the two benches it overlaps two thirds to four fifths of a core ---
-  more than twice what Run 33's document reads cost on the benches they landed
-  on, and the largest of the three readings taken. **What that left
+  the third and fourth benches of that process; all twenty-two of its sequence
+  logs, its other three gate logs and its 88 rider logs are clean. So one
+  sub-second status call costs the two benches it overlaps two thirds to four
+  fifths of a core --- against Run 33's document reads at 0.35, 0.33 and 0.26
+  on the benches they landed on, so between 1.9 and 2.3 times the widest
+  of those. It is the SECOND largest of the three readings taken,
+  by a hundredth: Run 32's gate reading peaked at 0.82 of a core, also 2 of 95
+  benches of a gate log, which is the same shape twice. **What that left
   was the list's own line**: the readings moved to 13a in the ruling
   of 2026-09-16 and `./run-status.sh $R` did not move with them, and it is moved
   above the launch now --- the done-condition reads the same before the evening
@@ -11909,7 +11912,7 @@ the series and not the bar ([the open list][open]). Read the floor as the run's
 and never inherited. **And both of the checks from OUTSIDE the declared pairs
 are still gone with their arms.** `lib-stage2-disp` was parked on 2026-09-07
 and the two undeclared pairs that stood in its place on Run 28 both lost
-a member to the parking of 2026-09-11, so this run, like Runs 29 to 33, has
+a member to the parking of 2026-09-11, so this run, like Runs 29 to 34, has
 no check on the declared eight from outside them at all. A run that wants
 that check again has to land an arm for it.
 
@@ -12078,39 +12081,41 @@ half over the eight pairs this roster carries, while the four pairs carrying
 back to Run 10 give 0.49% and 0.36% --- fifteen hundredths under the whole-set
 figure on the basis and four under it on the control, so the two part on BOTH
 halves this run, where Run 34 parted on the basis alone, Runs 32 and 33 had them
-equal on both halves, Runs 30 and 31 parted on the basis alone and Runs 28
-and 29 read the two apart, and the rule since 2026-09-13 names the WHOLE-SET
-figure as what two rows of one table must clear, the restricted one having
-been the rule until Run 30 re-opened it, the wider figure being the conservative
-reading --- and 2.1% is the across-run drift band an arm must clear to have
-moved between runs on this box, Run 23's one-binary reading, where Run 11's
-was 3.3%. **All three are the word *floor*, over different populations, and two
-things that are not it wear it easily.** A class's `floor` column is the same
-statistic again over that population's A/A pairs, so it is a fourth member
-of the family and not a fourth sense. **And a margin read ACROSS a pair's two
-halves on a class is judged against the WIDER of the two halves' floors,
-and a registration's kill condition on a class says so**: the narrower floor
-is the one that makes a kill and the wider the one that makes a tie honest,
-and a pair whose halves' floors differ threefold --- Run 23's `reshape1`, 3.09%
-on the basis and 10.75% on the dead-spot half --- is exactly where a reader
-should not get to choose. Ruled 2026-09-02, after that run's registration 3
-was read two ways; under it that registration's first half is a split and
-not a kill. **The worst single A/A cell is not a floor at all** --- 16.66%
-on Run 24's basis main set and 19.72% on one of its class processes, against
-2.04% and 5.48% on Run 25's two main sets --- and the procedure says so where
-it is read; it is one cell where these are geomeans over a population,
-and quoting it as one overstates the instrument by an order of magnitude.
-Nor is the residue [the alignment question][open] asks about, which is an effect
-size that survived a control rather than a spread the run measured.
-The exceptions are `build` and `mut-odo`, one worker at two slots, whose cells
-reached 1.092 on Run 23's basis and 0.828 on that run's dead-spot half ---
-and Run 21 is the run that took the reading those two have always wanted:
-post-run step 0 named the tracked two-copy group off a `-g3` twin and
-it IS `fbBuild` and `fbMutOdo`, both at offset 0 in their cache line on BOTH
-halves, on Run 23's two as on Run 21's and Run 22's. So the residue the pairing
-cannot reach is not a cache-line offset; what Run 23 adds is that placing every
-OTHER pad off the execution path opens the pair from a tie to 0.9449
-on the dead-spot half, and what it is remains [the open list][open]'s.
+equal on both halves, Runs 30 and 31 parted on the CONTROL alone --- 0.84%
+against 0.56% and 1.58% against 0.43%, equal on the basis at 0.57% and 0.61% ---
+and Runs 28 and 29 parted on the basis alone, and the rule since 2026-09-13
+names the WHOLE-SET figure as what two rows of one table must clear,
+the restricted one having been the rule until Run 30 re-opened it, the wider
+figure being the conservative reading --- and 2.1% is the across-run drift band
+an arm must clear to have moved between runs on this box, Run 23's one-binary
+reading, where Run 11's was 3.3%. **All three are the word *floor*,
+over different populations, and two things that are not it wear it easily.**
+A class's `floor` column is the same statistic again over that population's A/A
+pairs, so it is a fourth member of the family and not a fourth sense.
+**And a margin read ACROSS a pair's two halves on a class is judged against
+the WIDER of the two halves' floors, and a registration's kill condition
+on a class says so**: the narrower floor is the one that makes a kill
+and the wider the one that makes a tie honest, and a pair whose halves' floors
+differ threefold --- Run 23's `reshape1`, 3.09% on the basis and 10.75%
+on the dead-spot half --- is exactly where a reader should not get to choose.
+Ruled 2026-09-02, after that run's registration 3 was read two ways;
+under it that registration's first half is a split and not a kill. **The worst
+single A/A cell is not a floor at all** --- 16.66% on Run 24's basis main set
+and 19.72% on one of its class processes, against 2.04% and 5.48% on Run 25's
+two main sets --- and the procedure says so where it is read; it is one cell
+where these are geomeans over a population, and quoting it as one overstates
+the instrument by an order of magnitude. Nor is the residue [the alignment
+question][open] asks about, which is an effect size that survived a control
+rather than a spread the run measured. The exceptions are `build` and `mut-odo`,
+one worker at two slots, whose cells reached 1.092 on Run 23's basis and 0.828
+on that run's dead-spot half --- and Run 21 is the run that took the reading
+those two have always wanted: post-run step 0 named the tracked two-copy group
+off a `-g3` twin and it IS `fbBuild` and `fbMutOdo`, both at offset 0 in their
+cache line on BOTH halves, on Run 23's two as on Run 21's and Run 22's.
+So the residue the pairing cannot reach is not a cache-line offset; what Run 23
+adds is that placing every OTHER pad off the execution path opens the pair
+from a tie to 0.9449 on the dead-spot half, and what it is remains [the open
+list][open]'s.
 
 **And a busy machine has now been measured rather than only avoided, which
 is what says the wild cell is not one.** Run 11's sequence was launched twice;
