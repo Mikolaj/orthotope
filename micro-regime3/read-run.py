@@ -2732,6 +2732,102 @@ HEAD_PARAGRAPHS = 5      # the run file's head past its preamble
 PREDICT_RE = re.compile(r'`predict: ([^`]+)`')
 
 
+def parse_span(spec):
+    """One `predict:` span as --predictions reads it: its kind, its
+    positional arguments, and the modifiers -- `within X%`, `excluding
+    S,...`, `on views S,...`, `on POP,...` and basis, control or both.
+    `within` is 'bad' where it is not a number. Lifted out of
+    --predictions on 2026-09-18 so that --lint reads a span by the same
+    grammar and can say what the reader will compare."""
+    toks = spec.split()
+    kind, rest, within, excl, args_ = toks[0], toks[1:], None, [], []
+    on_pops = views = half = None
+    i = 0
+    while i < len(rest):
+        if rest[i] == 'within' and i + 1 < len(rest):
+            try:
+                within = float(rest[i + 1].rstrip('%'))
+            except ValueError:
+                within = 'bad'
+            i += 2
+        elif rest[i] == 'excluding' and i + 1 < len(rest):
+            excl = rest[i + 1].split(',')
+            i += 2
+        elif rest[i] == 'on' and i + 2 < len(rest) \
+                and rest[i + 1] == 'views':
+            views = rest[i + 2].split(',')
+            i += 3
+        elif rest[i] == 'on' and i + 1 < len(rest):
+            on_pops = rest[i + 1].split(',')
+            i += 2
+        elif rest[i] in ('basis', 'control', 'both'):
+            half = rest[i]
+            i += 1
+        else:
+            args_.append(rest[i])
+            i += 1
+    return kind, args_, within, excl, on_pops, views, half
+
+
+def span_reads(spec):
+    """What the reader will compare for one span, in words: the mode, its
+    two operands and their orientation, the key, and which half.
+
+    --lint prints this under an OPEN registration so that the author reads
+    every span back against the sentence beside it. The grammar was the
+    trap: Run 35's item (3) claimed this run's counts read the PREVIOUS
+    run's and wrote `predict: counts ARM 1.0 within 0.1%`, and a `counts`
+    span compares the two HALVES -- the compilers -- on which the two
+    earlier runs of the pair had read 1.0062 and 1.0063. The span was
+    unholdable the day it was written and nothing said so until the run
+    had been spent; --lint held its arms to the roster and its scope to
+    the class list, and no check held its vocabulary to its sentence.
+    """
+    kind, args_, within, excl, on_pops, views, half = parse_span(spec)
+    if kind == 'cross' and len(args_) == 2:
+        key = 'raw slope' if no_net(args_[0]) else 'net'
+        what = ('--compare: `%s` on THIS half over the same arm on the'
+                ' OTHER, per shape then geomean, on %s -- the pair\'s'
+                ' variable' % (args_[0], key))
+    elif kind == 'counts' and len(args_) == 2:
+        what = ('--compare --counts: `%s`\'s instructions on THIS half\'s'
+                ' sweep over the OTHER half\'s, per shape then geomean --'
+                ' the two halves compared, never this run against a'
+                ' previous one' % args_[0])
+    elif kind == 'pair' and len(args_) == 3:
+        key = ('raw slope' if no_net(args_[0]) or no_net(args_[1])
+               else 'net')
+        what = ('--pair: `%s` over `%s` WITHIN one half, per shape then'
+                ' geomean, on %s' % (args_[0], args_[1], key))
+    elif kind == 'cell' and len(args_) == 4 and args_[1] == 'over':
+        what = ('--cells: the one cell `%s` over the one cell `%s` WITHIN'
+                ' one half' % (args_[0], args_[2]))
+    elif kind == 'countdiff' and len(args_) == 4 and args_[2] == 'under':
+        what = ('--counts: `%s`\'s instructions minus `%s`\'s WITHIN one'
+                ' half\'s own sweep, per view, every view under %s'
+                % (args_[0], args_[1], args_[3]))
+    else:
+        return 'no mode reads a span of this shape; --predictions says so'
+    where = []
+    if on_pops:
+        where.append('on ' + ', '.join(on_pops))
+    if views:
+        where.append('views ' + ', '.join(views))
+    if half:
+        where.append({'basis': 'the basis half', 'control': 'the control'
+                      ' half', 'both': 'each half in turn'}[half])
+    if excl:
+        where.append('excluding ' + ', '.join(excl))
+    if kind != 'countdiff':
+        if within is not None and within != 'bad':
+            where.append('within %g%%' % within)
+        elif kind == 'counts':
+            where.append('within 0.1%')
+        else:
+            where.append("within the population's own A/A floor")
+    return what + '; ' + ', '.join(where)
+
+
 # A figure as a registration writes one: two to four places, not a percent,
 # not a version, not a date. TWO places at least, which is what the error
 # this exists for was written in -- `1.16 to 1.36`; one place alone takes
@@ -3348,33 +3444,7 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     a_counts = b_counts = None
     held = killed = unread = outside = 0
     for num, spec in specs:
-        toks = spec.split()
-        kind, rest, within, excl, args_ = toks[0], toks[1:], None, [], []
-        on_pops = views = half = None
-        i = 0
-        while i < len(rest):
-            if rest[i] == 'within' and i + 1 < len(rest):
-                try:
-                    within = float(rest[i + 1].rstrip('%'))
-                except ValueError:
-                    within = 'bad'
-                i += 2
-            elif rest[i] == 'excluding' and i + 1 < len(rest):
-                excl = rest[i + 1].split(',')
-                i += 2
-            elif rest[i] == 'on' and i + 2 < len(rest) \
-                    and rest[i + 1] == 'views':
-                views = rest[i + 2].split(',')
-                i += 3
-            elif rest[i] == 'on' and i + 1 < len(rest):
-                on_pops = rest[i + 1].split(',')
-                i += 2
-            elif rest[i] in ('basis', 'control', 'both'):
-                half = rest[i]
-                i += 1
-            else:
-                args_.append(rest[i])
-                i += 1
+        kind, args_, within, excl, on_pops, views, half = parse_span(spec)
         # THE SCOPE FIRST, since 2026-09-17: a span naming its population
         # and half is read there and nowhere else, where a span naming
         # none was read on every file handed in and thirteen of Run 30's
@@ -12861,6 +12931,7 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
         trouble = []
         for t in regs:
             num = re.search(r'What Run (\d+)', t).group(1)
+            reads = []
             # THE LEAD IS THE MOVER'S KEY, held here because nothing held
             # it where it is written. `--move-registration` matches the
             # bold lead WHOLE -- `...is built to answer, registered before
@@ -12909,17 +12980,17 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
                 spans = PREDICT_RE.findall(body)
                 scripts = re.findall(r'`script: ([^`]+)`', body)
                 for sp in spans:
-                    tk = sp.split()
+                    _k, _a, _w, _x, pops, _v, half = parse_span(sp)
+                    reads.append('(%s) `predict: %s`\n'
+                                 '              -> %s'
+                                 % (inum, sp, span_reads(sp)))
                     # AN `on` NAMING A POPULATION, and not the `on` of
                     # `on views S,...`, which names shapes: the first form
                     # of this test took either, so a countdiff span naming
                     # views and no population passed and was read on
                     # every file. Case: `registration-views-are-no-
                     # population-scope`.
-                    pops = [tk[k + 1] for k in range(len(tk) - 1)
-                            if tk[k] == 'on' and tk[k + 1] != 'views']
-                    if not pops or not {'basis', 'control',
-                                        'both'} & set(tk):
+                    if not pops or not half:
                         trouble.append("Run %s's item (%s) span `predict:"
                                        " %s` carries no scope: it wants"
                                        ' `on POP,...` and basis, control or'
@@ -12964,6 +13035,18 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
                     trouble.append("Run %s's registration defers to task %s,"
                                    ' which names arms the roster does not'
                                    ' time: %s' % (num, n, ', '.join(away)))
+            # WHAT EACH SPAN COMPARES, since 2026-09-18, for the author
+            # to read against the sentence beside it at pre-run 12b:
+            # the mode, the operands and their orientation. The
+            # arms-and-scope checks above cannot see a span that asks
+            # a question its sentence does not, which is what killed
+            # Run 35's item (3) before it ran; span_reads says why.
+            if reads:
+                print("      Run %s's %d span(s), each as --predictions will"
+                      ' compare it; read every line against the sentence'
+                      ' beside its span:' % (num, len(reads)))
+                for r in reads:
+                    print('          ' + r)
         if trouble:
             bad.append('%d problem(s) in the OPEN registration(s), which no'
                        ' other check here reads:\n        %s'

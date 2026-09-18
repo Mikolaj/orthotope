@@ -1192,9 +1192,12 @@ rather than a slot in the next run, observed again:
   on the evening's copy and a second one, interleaved. The frames
   of the `scaled` pair are in [the placement section][floor]. Registered
   2026-09-17.
-- `OPEN` **A `predict:` span can ask a different question from the sentence
-  that registers it, and nothing checks the two against each other.** Run 35's
-  item (3) claimed that the shared code left two ported library arms'
+- `ANSWERED` **A `predict:` span can ask a different question from the sentence
+  that registers it, and since 2026-09-18 `--lint` prints, under an OPEN
+  registration, every span as `--predictions` will compare it --- the mode,
+  the two operands and their orientation, the key and the half ---
+  for the author to read back against their own sentence at pre-run 12b.** Run
+  35's item (3) claimed that the shared code left two ported library arms'
   instruction counts where Run 34 read them, and wrote
   it as `predict: counts lib-stage2-lean 1.0 within 0.1%`. Read as the prose
   states it the claim HOLDS to six hundred-thousandths --- this run's counts
@@ -1203,14 +1206,14 @@ rather than a slot in the next run, observed again:
   is THIS half over the OTHER, a comparison of the two compilers, on which
   the two earlier runs of this pair read **1.0062** and **1.0063** where
   the item allowed 0.1% --- so the span was unholdable the day it was written
-  and was KILLED on four populations. `--lint` holds a registration's arms
-  to the roster and its populations to the class list; nothing holds its span's
-  VOCABULARY to the quantity its prose names, and the preparation that wrote
-  it had the figure in hand off a different mode. **What would settle
-  it** is `--lint` printing, per span, the mode and the two operands the reader
-  will actually compare, for the registration's author to read back against
-  their own sentence --- the cheapest form being one line a span at pre-run 12b,
-  where the registration is already being read. Registered 2026-09-18.
+  and was KILLED on four populations. `--lint` held a registration's arms
+  to the roster and its populations to the class list, and nothing held
+  its span's VOCABULARY to the quantity its prose names. The line it prints now
+  reads, for that span, *`lib-stage2-lean`'s instructions on THIS half's sweep
+  over the OTHER half's, per shape then geomean -- the two halves compared,
+  never this run against a previous one*, which is the sentence's own
+  refutation; its case is `registration-span-reads-are-printed`. Registered
+  and answered 2026-09-18.
 - `ANSWERED` **Nine consumers part by a quarter on ONE shape across a compiler
   pair with their instruction counts identical, and the term is the one [the
   placement section][floor]'s *The two stage arms' mechanism* paragraph already
@@ -7737,6 +7740,13 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      IT CAME FROM, never from the sentence beside it, and then read
     #      both back end to end. It costs minutes, and it is not a
     #      substitute for post-run step 6b's independent reader
+    #      AND `--lint` PRINTS EVERY SPAN AS `--predictions` WILL COMPARE
+    #      IT, under the registration it reads -- the mode, the two
+    #      operands and their orientation, the key, the half: read each
+    #      line against the sentence beside its span, since 2026-09-18.
+    #      Run 35's item (3) spanned a claim about the PREVIOUS run as
+    #      `counts`, which compares the two HALVES, and was unholdable
+    #      the day it was written
     #      THREE OF THOSE ERRORS ARE A MACHINE'S NOW, and preflight runs
     #      them as 10e: `./read-run.py --note-check $R-pair.txt` reads the
     #      note's CARRIED blocks for a continuity claim that stops short
