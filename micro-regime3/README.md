@@ -7420,6 +7420,17 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      is not always nothing: a preparation can arrive to find 12a and
     #      12c taken, the registration having landed with the roster
     #      commits days before the pair
+    #      AND IT IS THE ONLY CHECK THAT READS THE NOTE AS THE DRIVERS
+    #      WILL -- the four machine lines through pair-halves.sh, the GATE
+    #      block, the `<yours>` slots -- so it is run AGAIN after the last
+    #      edit to the note, which 12c repeats. Run 36 reflowed the note's
+    #      paragraphs and folded `HALVES:` and `COMPARE:` into the prose,
+    #      and the readings part three ways, measured 2026-09-19 on a folded
+    #      copy: --note-check, --check-doc and --lint all PASS it, being
+    #      predicates over prose; preflight REFUSES, exit 2 with no step
+    #      line at all, which reads like a tooling fault rather than a note
+    #      defect; and this names the cause, `2b NOT DONE ... has no
+    #      'HALVES: basis=<b> other=<o>' line`
     #   1. NOTHING NAMED FOR THIS RUN MAY EXIST YET, and step 0 above
     #      has already said so, as the first line of its pre-run block:
     #      `nothing named $R-* here` for a run about to be prepared, and
@@ -7438,8 +7449,13 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      recipe. READ NOW, BEFORE ANY OF THIS STEP: items 3 and 10, the
     #      compares-against prose and the previous run's note, which
     #      settle what the pair varies and which this step's own writing
-    #      needs. It is a STEP and a session's to run, and the note is
-    #      the part written by hand.
+    #      needs. READING 3 IS ONE CALL AND IT WANTS ITS TABLE:
+    #      `./read-run.py --section 'What the next run compares against'
+    #      --with-tables 1`, the first table being the two-column one the
+    #      reading list asks for -- without the flag the mode prints the
+    #      prose and says only afterwards that a table was withheld, which
+    #      is the section paid for twice. It is a STEP and a session's to
+    #      run, and the note is the part written by hand.
     #      THE HALVES LAUNCH FROM hugebin/: a tmpfs mounted `huge=always`
     #      under this directory, so that a code page sits at its layout's
     #      offset in a 2 MiB frame and not at the page cache's 4 KiB
@@ -7468,6 +7484,15 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      There is no builder, every pair being two shims typed out, so
     #      write the note FIRST, from pair-note-template.txt -- it is the
     #      only copy of both recipes, and the template is what says what a note owes.
+    #      AND THE NOTE IS NEVER REFLOWED, by any tool: `wrap80` is for
+    #      Markdown and `par` for comment blocks, and this file is plain
+    #      text carrying FOUR machine-read lines -- `HALVES:`, `COMPARE:`,
+    #      `LAUNCH:` and `RIDERS:`. Run 36 ran `par` over the paragraphs a
+    #      batch of substitutions had left long, and it folded `HALVES:`
+    #      and `COMPARE:` into the prose: no word was lost, the note still
+    #      READ correctly, and pair-halves.sh could not find the halves at
+    #      all. Break a long line by hand where one bothers you, or leave
+    #      it long
     #      TWO COMMANDS DO THE READING AND THE COPYING, and they are here
     #      rather than only at item 10 because a preparation that meets
     #      them in the framing has forgotten them by the time it writes:
@@ -7608,8 +7633,10 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      `./preflight.sh $R`, which is all of it and nothing to sequence
     #      4-10 IN ONE CALL: PASS or FAIL
     #      per step with what it read, the exit status the verdict, so
-    #      none is skipped by being forgotten. Not 9b, 10a/10b, 11 or 12,
-    #      whose own lines follow; its own 10c, the note's paths, runs
+    #      none is skipped by being forgotten. IT DOES RUN 10a AND 10b
+    #      since 2026-09-19, straight after 4,5 and on their astride count
+    #      alone, the figures staying the note's -- so what it does NOT run
+    #      is 9b, 11 and 12, whose own lines follow; its own 10c, the note's paths, runs
     #      third, a fresh note being the likeliest thing to fail, and its
     #      10d holds the note's recipes to its HALVES line. The steps below are what it runs and
     #      what to reach for when one FAILs
@@ -7784,7 +7811,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      The sweep holds
     #      each process to the arm count `--list` gives for that shape.
     #      AND NOT BEFORE PREFLIGHT'S 4,5, NOR BEFORE 10a AND 10b, which
-    #      is the one ordering here that looks like waste and is not: a
+    #      since 2026-09-19 are the two verdicts printed straight after
+    #      it, so the ordering costs nothing and reads as none: a
     #      nonzero astride count stops before this pass by 10a's own
     #      line, so a pass launched in front of it spends its hour on
     #      binaries a stop may retire. Those two `check` runs are
@@ -7795,35 +7823,31 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      the parallelism inside 4,5: the two halves check concurrently,
     #      which costs nothing and risks nothing, the assertion being
     #      that their logs agree
-    #      THE WAIT IS ON THE LOG LINE AND NOT ON THE CALL: launch these
-    #      two the moment preflight's log shows `4,5  PASS`, which is
-    #      minutes before that call returns -- the rest of a preflight is
-    #      cheap and the two `check` runs are not.
-    #      READ THAT LINE BY APPENDING `command grep -c '4,5  PASS'` OF
-    #      THE LOG TO THE CALLS YOU ARE MAKING ANYWAY -- a `tail` window
-    #      MISSES IT where several lines land between two polls, which is
-    #      how Run 35 came to see 7, 8 and 8b with 4,5 already past --
-    #      the note's own writing is a dozen of
-    #      them and each carries the poll for nothing -- AND SET NO
-    #      WAITER FOR IT. The log writes the line INDENTED BY TWO SPACES,
-    #      so a pattern anchored at the start of a line never fires, and
-    #      a blocking waiter hangs the call rather than losing the
-    #      minutes it was set to save
-    #      IN THE BACKGROUND, AND WHICH BACKGROUND MATTERS -- the command
-    #      lines above carry no `&` for that reason. A SESSION uses the
-    #      harness's own background mode, which registers a task and
-    #      wakes it as each ends; a PERSON at a terminal types `&`. What
-    #      a session must not do is type one: a bare `&` detaches and
-    #      runs to completion exactly as well and registers nothing, so
-    #      no notification can name it and nothing wakes you -- and the
-    #      no-waiter rule under 12 then rests on a wake-up that will not
-    #      come.
+    #      THE WAIT IS ON THE LOG LINES AND NOT ON THE CALL: launch these
+    #      two the moment preflight's log shows `4,5  PASS` with `10a` and
+    #      `10b` PASS under it, which since 2026-09-19 is three adjacent
+    #      lines and still minutes before that call returns -- the two
+    #      surveys were hoisted to sit beside 4,5 for exactly this, the
+    #      astride stop above being unreadable until they had run.
+    #      READ THOSE LINES BY APPENDING `command grep -cE '(4,5|10a|10b)
+    #      +PASS'` OF THE LOG TO THE CALLS YOU ARE MAKING ANYWAY, and
+    #      expect 3 -- a `tail` window MISSES THEM where several lines
+    #      land between two polls, which is how Run 35 came to see 7, 8
+    #      and 8b with 4,5 already past -- the note's own writing is a
+    #      dozen of them and each carries the poll for nothing. The log
+    #      writes every verdict INDENTED BY TWO SPACES, so a pattern
+    #      anchored at the start of a line never fires
+    #      IN THE BACKGROUND, THROUGH THE HARNESS'S OWN MODE, NEVER A
+    #      TYPED `&`, AND WITH NO WAITER SET -- the mechanism is
+    #      horde-ad's portable notes, under the session facts, and is not
+    #      restated here; the command lines above carry no `&` for it.
     #      AND A BACKGROUNDED CALL'S STATUS IS ITS LAST COMMAND'S: end one
     #      with `; echo "exit $?"` and what the harness announces is the
     #      ECHO's 0, for a step that exited 2 -- which is how Run 35 read
-    #      an aborted preflight as a clean one. End the call with the
-    #      command itself, or read the status in the task output rather
-    #      than in the redirected log alone
+    #      an aborted preflight as a clean one and how Run 36 read a
+    #      failed one twice. End the call with the command itself, or read
+    #      the status in the task output rather than in the redirected log
+    #      alone
     #      why: --para 'And one more, nearly free'
     #  12. THE ROSTER PASS, owed ONLY
     #      if `--list` changed membership AND the pair note records none
@@ -7905,6 +7929,14 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      reads as an item already adjudicated. READ NOW: items 7 and
     #      8 -- the open list by its markers, Provenance's delta bullets
     #      -- and item 5 where this preparation parks or drops an arm.
+    #      THOSE TWO READINGS ARE A CARRIER AGENT'S, as 12b's
+    #      re-derivation is. Every live entry is a paragraph and there are
+    #      two dozen of them, so a session reading them itself carries
+    #      tens of thousands of tokens of prose for a handful of claims --
+    #      Run 36 read some sixty kilobytes of open list and older run
+    #      files verbatim for facts that fitted on a page. Brief ONE
+    #      carrier for both: which live entries this pair can advance,
+    #      what each claims, and every figure with the file it came off.
     #      It goes in the open list and NOT in the note, which names it;
     #      two copies of a registration is one copy that goes stale. The
     #      form is the previous run's, in that run's own file. EVERY
@@ -8026,7 +8058,11 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      session acts on. `--note-check` refuses a note without one
     #  12c. COMMIT, AND REVIEW BEFORE YOU DO, not after: walk what this
     #      half wrote for errors -- 12b is the figures, this is the shape
-    #      of the changes -- and commit once at the end. A review after
+    #      of the changes -- and commit once at the end. RUN
+    #      `./run-status.sh $R` AS THE LAST THING BEFORE THE COMMIT: it is
+    #      the only check that reads the note as the drivers will, so it
+    #      is what catches an edit that left the note readable and
+    #      unusable, which step 0's line records. A review after
     #      12c pays a history rewrite per error found, and the whole-tree
     #      checks again with it, since a document edit is content those
     #      checks read. This is the user-scope rule about committing at
@@ -8041,6 +8077,46 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #  that is the preparation. What wants a quiet machine is the run
     #      list below, which starts on an explicit
     #      go-ahead and never on a session's own reading of the box
+
+**The shape of a registration, which pre-run step 12a writes and post-run step 5
+moves whole.** ONE paragraph, one `OPEN` entry of the open list, led
+`What Run N is built to answer, registered before it runs` and carrying numbered
+items; the previous run's own file holds a worked example, and this is what
+a session needs BEFORE reading one, a finished registration running to twenty
+kilobytes with its verdicts. **Four facts a draft gets wrong, each of which has
+cost a run.** A span's `within P%` is P POINTS of the ratio and not P percent
+of the target, so `within 1.3%` on 1.2974 admits 1.2844 to 1.3104. A `cross`
+or `counts` span is CROSS-HALF, so a scope of `both` reads it once in each
+half's own orientation and the two readings are reciprocals --- `--lint` refuses
+`both` on a target away from 1. It would NOT have caught Run 35's item (3),
+whose target WAS 1.0 and so legal: that one carried a band of a tenth of a point
+against halves 0.62 apart, and died of a band set to a quantity nobody had
+measured. Catching that is the span readback's, below, and not this refusal's.
+`pair`, `cell` and `countdiff` are within-half and take `both` at any target.
+And every span carries `on POP,...` and one of `basis`, `control` or `both`; one
+carrying no scope is refused. The skeleton, two items of the two kinds ---
+the open list's own `- ` bullet goes in front of the lead and is left off here,
+`wrap80` reflowing an indented block whose first line begins with one:
+
+      `OPEN` **What Run N is built to answer, registered before it runs.**
+        The pair is <the variable>: <what the halves share, and the one thing
+        they do not>, so every span below reads <what a cross reads here> in
+        `--compare`'s orientation of the unflagged basis over the control.
+        <Each prior, with the artifact it was derived from named -- a JSON, a
+        sweep, a run file -- and never quoted from a third document.>
+        <Any limit the run cannot remove, named before it runs.>
+        (1) *<The claim, one line, italic.>* `predict: cross list 1.2974
+        within 1.3% on main basis`. <What a reading outside the band says,
+        and which item tells the variable from a term it carries.>
+        (2) *<The counted claim.>* `predict: counts list 1.3120 within 1.5%
+        on main basis`, read with `--counts` over each population's own
+        sweep, which run-list step 20 takes.
+
+`--lint` prints every span as `--predictions` will compare it, which
+is the check that the prose and the vocabulary ask ONE question; read each
+printed line against the sentence beside its span. NO VERDICT WORD in the entry
+--- `--check-doc` reads HELD, KILLED and their kin as an item already
+adjudicated.
 
 **THE RUN'S PREFIX BELONGS TO THE RUN'S OWN PROCESSES, and nothing else may take
 it.** `$R-gate-*` and `$R-al-*` are the two exceptions the drivers were taught
