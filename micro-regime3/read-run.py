@@ -7249,6 +7249,20 @@ def inherited(run_doc, prev_doc, both=False):
     return 0
 
 
+# A MEASURED FIGURE, which is what the default view leads with: a decimal, a
+# percentage, an integer of two digits or more, or a WORD numeral from ten
+# up. The words were excluded until 2026-09-18 and the exclusion made this
+# mode's own justification false: of the four figures Run 35 shipped stale,
+# `thirty-four` rows and `ten` consumers are words, so two of the four sat
+# in the bucket only --all prints while the docstring said the mode printed
+# them. `one` to `nine` stay out, being ordinary prose rather than a figure
+# a run moves -- which is the distinction the first draft was reaching for
+# and drew in the wrong place.
+MEASURED_RE = re.compile(
+    r'^(?:\d+\.\d+%?|\d\d+%?|\d+%|ten|eleven|twelve|thirteen|fourteen'
+    r'|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty'
+    r'|fifty|sixty|seventy|eighty|ninety|hundred|thousand)$', re.I)
+
 NUMERAL_RE = re.compile(
     r'\b(?:\d+(?:\.\d+)?%?|one|two|three|four|five|six|seven|eight|nine|ten'
     r'|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen'
@@ -7349,14 +7363,13 @@ def stale_figures(run_doc, ratio=0.55, verbose=False):
         # TWO TIERS, because the first draft printed sixty-two paragraphs
         # and its four real findings sat among four hundred ordinary
         # numerals -- `two`, `one`, a shape count, a cache line. A
-        # MEASURED figure is a decimal, a percentage or an integer of two
-        # digits or more, which is the shape of every figure a run moves
-        # and of none of the words a paragraph merely contains; those lead.
+        # MEASURED figure is a decimal, a percentage, an integer of two
+        # digits or more, or a word numeral from ten up -- the shape of a
+        # figure a run moves, where `one` to `nine` are ordinary prose;
+        # those lead. MEASURED_RE above carries the rule and why.
         # The rest are counted and listed only under --all, so nothing is
         # hidden without saying so.
-        measured = [n for n in kept
-                    if re.match(r'\d', n) and (len(n.rstrip('%')) > 1
-                                               or '.' in n)]
+        measured = [n for n in kept if MEASURED_RE.match(n)]
         rows.append((score, p, kept, measured))
     # MOST-EDITED FIRST, and that ordering is the reading: a paragraph
     # 98% identical to the copy has barely been touched and its numerals
@@ -7380,18 +7393,52 @@ def stale_figures(run_doc, ratio=0.55, verbose=False):
               % (round(score * 100), ', '.join(show[:12])
                  + (' ...' if len(show) > 12 else '')))
     print('%d edited paragraph(s) keep a MEASURED figure the copy also'
-          ' carries -- a decimal, a percentage or a two-digit count. Each is'
+          ' carries -- a decimal, a percentage, a two-digit count or a'
+          ' word from ten up. Each is'
           ' a threshold this run did not move, or last run\'s number under'
           ' this run\'s prose --- only reading says which.' % found)
     if over:
         print('%d further paragraph(s) beyond the twenty most edited; --all'
               ' prints them.' % over)
     if quiet_only:
-        print('%d more keep only a word or a single digit; --all lists them.'
+        print('%d more keep only a single digit or a word under ten;'
+              ' --all lists them.'
               % quiet_only)
     return 0
 
 BRIEF = 'checker-brief.txt'
+
+
+def _brief_substitutions(run, where='.'):
+    """RUN, BASIS, OTHER, PREV and the previous run's two half names.
+
+    Every driver reads the halves through `pair-halves.sh`, so this does
+    too rather than parsing the note a second way; PREV comes from the same
+    call's COMPARE, and PREVBASIS/PREVSAME are that run's basis half read
+    out of ITS note. Returns {} when the note cannot be read, so the caller
+    says the block was not written instead of writing a guess.
+    """
+    def halves(name):
+        try:
+            out = subprocess.run([os.path.join(where, 'pair-halves.sh'), name],
+                                 capture_output=True, text=True, check=True,
+                                 cwd=where).stdout
+        except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+            return {}
+        return dict(kv.split('=', 1) for kv in
+                    (p_.strip() for p_ in out.strip().split(';')) if '=' in kv)
+    mine = halves(run)
+    if not mine.get('BASIS'):
+        return {}
+    subs = {'RUN': run, 'BASIS': mine['BASIS'], 'OTHER': mine.get('OTHER', '')}
+    prev = mine.get('COMPARE')
+    if prev:
+        subs['PREV'] = prev
+        theirs = halves(prev)
+        if theirs.get('BASIS'):
+            subs['PREVBASIS'] = '%s-%s' % (prev, theirs['BASIS'])
+            subs['PREVSAME'] = '%s-%s' % (prev, theirs['BASIS'])
+    return subs
 
 
 def brief_update(run, readings_dir=None, brief=None, where='.'):
@@ -7412,8 +7459,10 @@ def brief_update(run, readings_dir=None, brief=None, where='.'):
     decides them, and a wrong one silently rescopes a pass's diff.
 
     The `<yours>` slots the facts file leaves -- the pair's variable and
-    the run's largest finding -- are carried across untouched and named on
-    stderr, so an unfilled brief is loud rather than plausible.
+    the run's largest finding -- are carried across untouched and counted
+    on stdout beside the write, so an unfilled brief is loud rather than
+    plausible. Stdout and not stderr: a refusal is stderr's and this is a
+    report on a write that happened.
     """
     # BOTH PATHS ARE RESOLVED UNDER `where`, which is the directory the
     # run's artifacts and its brief sit in and defaults to the working
@@ -7472,8 +7521,31 @@ def brief_update(run, readings_dir=None, brief=None, where='.'):
                          ' the brief is untouched\n'
                          % (brief, ', '.join(sorted(wrote)) or 'neither'))
         return 2
+    # THE SUBSTITUTION BLOCK TOO, which the docstring promised and the code
+    # did not write until 2026-09-18 -- found by re-opening the claim rather
+    # than by any gate, the mode's output having matched its code and not
+    # its purpose. Its values come from `pair-halves.sh`, which is where
+    # every driver gets them, and from the previous run's own note; PRETIP
+    # and RUNTIP are NOT written, being commits the run decides.
+    subs = _brief_substitutions(run, where)
+    if subs:
+        for i, line in enumerate(out):
+            for key, val in subs.items():
+                if re.match(r'\s*%s=' % key, line) or (
+                        key in line and '=' in line):
+                    line = re.sub(r'\b%s=\S+' % key, '%s=%s' % (key, val),
+                                  line)
+            out[i] = line
     open(brief, 'w', encoding='utf-8').write('\n'.join(out))
     print('--brief-update: %s items 5 and 6 written from %s' % (brief, facts))
+    if subs:
+        print('and the substitution block: %s. PRETIP and RUNTIP are'
+              ' untouched, being commits.'
+              % ', '.join('%s=%s' % kv for kv in sorted(subs.items())))
+    else:
+        print('the substitution block was NOT written: pair-halves.sh could'
+              ' not read %s-pair.txt, so RUN, BASIS, OTHER and PREV stand as'
+              ' they were and are yours to check.' % run)
     left = sum(1 for line in out for _ in re.finditer(r'<yours', line))
     if left:
         print('%d `<yours>` slot(s) left, which are prose and not facts:'
@@ -7495,7 +7567,9 @@ def prose_facts(run, readings_dir=None):
 
     So this reads those files rather than the JSONs: one labelled sheet, per
     population and per half, of the figures the prose actually uses. It
-    computes nothing. A figure here that disagrees with a reading file is
+    derives no figure of its own: each is grabbed verbatim out of a
+    reading file and only the span tally is counted here. A figure here
+    that disagrees with a reading file is
     this mode's bug; a figure here that disagrees with the JSONs is that
     reading file's, and `--compare` is where it is settled.
 
@@ -7525,7 +7599,8 @@ def prose_facts(run, readings_dir=None):
             clear = _grab(cmpf, r'(\d+) of \d+ non-control arm\(s\) move'
                                 r' further than the bar')
             rows.append((pop, half, bar, clear, counts))
-    print('prose facts for %s, gathered from %s/ and computing nothing'
+    print('prose facts for %s, gathered from %s/ and deriving no figure'
+          ' of its own'
           % (run, d))
     print('\n%-10s %-11s %-9s %-7s %s'
           % ('population', 'half', 'A/A bar', 'clear', 'counts geomean'))
@@ -13927,8 +14002,8 @@ def main():
                          'fingerprint', 'block', 'selftest', 'lint',
                          'check_doc', 'para', 'wild', 'deflation',
                          'extremes', 'inherited', 'modes', 'stale',
-                         'brief_update', 'series', 'cell_movers',
-                         'movement', 'winsor')
+                         'brief_update', 'prose_facts', 'series',
+                         'cell_movers', 'movement', 'winsor')
              if getattr(args, f)]
     # --block takes --compare as a SUB-FLAG, the way --chapter and --alloc
     # do, because item 5 of the class-block form is a cross-half line and

@@ -1925,7 +1925,7 @@ def inherited_pair(tmp, n=97, share=True, half=False):
     return {'doc': doc}
 
 
-def stale_pair(tmp, n=97, kept=True):
+def stale_pair(tmp, n=97, kept=True, word=False):
     """A run file whose step-5 copy is a commit, and which edited a figure
     -- or did not.
 
@@ -1945,10 +1945,16 @@ def stale_pair(tmp, n=97, kept=True):
     d = os.path.join(tmp, m.RUNS_DIR)
     os.makedirs(d, exist_ok=True)
     doc = os.path.join(d, 'run%d.md' % n)
+    # `word=True` plants the shape two of Run 35's four stale figures had,
+    # a WORD numeral: the mode's first tiers admitted digits alone, so those
+    # two sat in the bucket only --all prints while its docstring claimed
+    # the default view printed them.
+    planted = 'thirty-four' if word else '0.31%'
     copy = ('# Run %d\n\nA head paragraph.\n\n**On Run %d the floor is'
-            ' 0.31%% on the basis half.** It is read over the six A/A pairs'
+            ' %s on the basis half.** It is read over the six A/A pairs'
             ' this roster carries, and the pair that carries it is named'
-            ' beside the figure in the table above.\n' % (n - 1, n - 1))
+            ' beside the figure in the table above.\n'
+            % (n - 1, n - 1, planted))
     write(doc, copy)
     env = dict(os.environ, GIT_AUTHOR_NAME='t', GIT_AUTHOR_EMAIL='t@t',
                GIT_COMMITTER_NAME='t', GIT_COMMITTER_EMAIL='t@t')
@@ -1957,7 +1963,7 @@ def stale_pair(tmp, n=97, kept=True):
                  'copy run%d to run%d' % (n - 1, n)]):
         subprocess.run(['git', '-C', tmp] + cmd, check=True, env=env,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    figure = '0.31%' if kept else '0.44%'
+    figure = planted if kept else ('forty-one' if word else '0.44%')
     write(doc, '# Run %d\n\nA head paragraph of its own, rewritten for this'
                ' run.\n\n**On Run %d the floor is %s on the basis half, the'
                ' widest of the eight A/A pairs.** It is read over the eight'
@@ -1967,7 +1973,7 @@ def stale_pair(tmp, n=97, kept=True):
     return {'doc': doc, 'figure': figure}
 
 
-def brief_pair(tmp, run='run97', whole=True):
+def brief_pair(tmp, run='run97', whole=True, stale_block=False):
     """A facts file and a checker brief, the brief missing an item or not.
 
     `--brief-update` writes the brief's two THIS RUN ONLY items from the
@@ -1992,8 +1998,22 @@ def brief_pair(tmp, run='run97', whole=True):
     body = ' 5. THIS RUN ONLY -- THE BOX AND THE PAIR. Last run\'s.\n'
     if whole:
         body += ' 6. THIS RUN ONLY -- THE WINDOW AND THE INSTRUMENTS. Last run\'s.\n'
-    brief = write(os.path.join(tmp, 'checker-brief.txt'),
-                  'The brief.\n\n' + body)
+    # A SUBSTITUTION BLOCK NAMING ANOTHER RUN, for the case that the mode
+    # rewrites it: it wrote the two items alone while its docstring said it
+    # wrote this too. The halves come from pair-halves.sh, so the fixture
+    # ships that script and a note for it to read.
+    head = 'The brief.\n\n'
+    if stale_block:
+        head = ('The brief.\n\nSubstitute per run: RUN=run11 BASIS=wrong'
+                ' OTHER=alsowrong PREV=run9\n\n')
+        here = os.path.dirname(os.path.abspath(__file__))
+        shutil.copy(os.path.join(here, 'pair-halves.sh'), tmp)
+        write(os.path.join(tmp, '%s-pair.txt' % run),
+              'a stand-in pair note.\nHALVES: basis=exit other=ghead\n'
+              'COMPARE: run96\n')
+        write(os.path.join(tmp, 'run96-pair.txt'),
+              'the previous run.\nHALVES: basis=nospec other=ghead\n')
+    brief = write(os.path.join(tmp, 'checker-brief.txt'), head + body)
     return {'brief': brief, 'run': run, 'dir': tmp}
 
 
@@ -8260,6 +8280,22 @@ RECORDS = [
          argv=['--check-doc', '--worklists', '--run-doc', '{rundoc}'],
          ok=V(has=['--inherited'])),
 
+    case('stale-names-a-word-numeral-in-its-default-view', 'read-run.py',
+         None,
+         'a figure kept as a WORD reaches the default view, two of the four'
+         ' this mode was written for being words',
+         # The mode's first tiers led with digits alone, so `thirty-four
+         # rows` and `ten consumers` -- two of the four figures Run 35
+         # shipped stale, and half its own justification -- sat in the
+         # bucket only --all prints while the docstring said it printed
+         # them. Found by re-opening that claim rather than by any gate:
+         # nothing here could have caught a mode whose output matched its
+         # code and not its purpose. `one` to `nine` stay out, being prose.
+         plant=lambda t: stale_pair(t, word=True),
+         argv=['--stale', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['thirty', '1 edited paragraph(s)'],
+              hasnt=['1 more keep only'])),
+
     case('brief-update-refuses-a-brief-it-cannot-place', 'read-run.py',
          None,
          'the brief is left byte for byte when one of its two THIS RUN'
@@ -8276,6 +8312,20 @@ RECORDS = [
          argv=['--brief-update', '{run}', '--brief-dir', '{dir}'],
          ok=V(exit=2, has=['no ` 5. THIS RUN ONLY`', 'untouched']),
          probe=lambda subs: open(subs['brief']).read()),
+
+    case('brief-update-writes-the-substitution-block', 'read-run.py', None,
+         'RUN, BASIS, OTHER and PREV are written from pair-halves.sh, which'
+         ' the docstring promised and the code did not do',
+         # The mode wrote the two items and nothing else while its
+         # docstring, the chapter line naming it and its commit message all
+         # said it wrote the block too. No gate could see it: the output
+         # matched the code. Found by re-opening the claim. The fixture
+         # plants a block naming another run, and every driver reads the
+         # halves through pair-halves.sh, so this does too.
+         plant=lambda t: brief_pair(t, stale_block=True),
+         argv=['--brief-update', '{run}', '--brief-dir', '{dir}'],
+         ok=V(exit=0, has=['substitution block', 'RUN=run97'],
+              hasnt=['RUN=run11'])),
 
     case('brief-update-writes-both-items', 'read-run.py', None,
          'both THIS RUN ONLY items come from the facts file, and the'
@@ -10576,6 +10626,23 @@ RECORDS = [
                                        WILD_MIXED)},
          argv=['{log}', '--wild'],
          ok=V(exit=0, has=['fgn/core'], hasnt=[' foreign   load'])),
+
+    case('prose-facts-joins-the-one-mode-guard', 'read-run.py', None,
+         'the mode added 2026-09-18 was outside the guard that refuses two'
+         ' at once, so --prose-facts --lint ran the first and dropped the'
+         ' lint',
+         # THE THIRD RECURRENCE of one defect: two modes in 2026-09-08, six
+         # in the review of 2026-09-18, and this one the same day, added
+         # beside two that DID join the roll call in that review's own fix.
+         # A structural test was considered and refused: `--modes` prints
+         # every `args.X` the dispatch branches on, but a dozen of them are
+         # not single modes at all -- --replace, --section, --note,
+         # --checklist, --carried and the rest -- so the check would want a
+         # curated exemption list, which is the same list going stale one
+         # level up. An instance case apiece is cheaper and cannot rot.
+         argv=['--prose-facts', 'run97', '--lint'],
+         ok=V(exit=2, has=['one mode at a time', '--prose-facts',
+                           '--lint'])),
 
     case('new-modes-join-the-one-mode-guard', 'read-run.py', None,
          'two modes added 2026-09-08 were outside the guard that refuses'

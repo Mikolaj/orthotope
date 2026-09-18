@@ -9313,9 +9313,9 @@ not otherwise.
     #      is the one step of this half nothing checked: a stale brief
     #      looks exactly like a used one, and both passes read it as
     #      given. It writes the two items and the substitution block's
-    #      RUN, BASIS, OTHER and PREV, names on stderr every `<yours>`
-    #      slot it left, and does NOT write PRETIP or RUNTIP, which are
-    #      commits and yours:
+    #      RUN, BASIS, OTHER, PREV, PREVBASIS and PREVSAME, counts every
+    #      `<yours>` slot it left, and does NOT write PRETIP or RUNTIP,
+    #      which are commits and yours:
     #      it carries them with every figure an artifact can settle in
     #      place and `<yours>` for the pair's variable and the largest
     #      finding.
