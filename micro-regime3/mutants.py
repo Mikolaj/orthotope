@@ -202,17 +202,16 @@ MUTANTS = [
      "    return []",
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nb = chr(96)\nrun = d.synth_json(t)\nother = d.synth_json(t, name=\'other.json\')\nruns = d.synth_json(t, pop=\'runs\', name=\'x-runs.json\')\ndoc = d.write(os.path.join(t, \'r.md\'), \'# Run 99\\n\\n## What this run was built to answer, and what it answered\\n\\n(1) *a* On \' + b + \'runs\' + b + \': \' + b + \'predict: cross list 1.0 within 1%\' + b + \'.\\n\')\nr = subprocess.run([sys.executable, \'{file}\', run, \'--compare\', other, \'--predictions\', \'--run-doc\', doc, \'--classes\', runs], capture_output=True, text=True)\nsys.exit(0 if \'(1) runs\' in r.stdout else 1)"'),
     # The per-view floor's whole judgement is one comparison, so inverting
-    # it is a mutant of the tool. The judge greps for the finding the tool
-    # was written to make -- `flip-last-rows` starred in the
-    # `mut-odo-vecdims` group on Run 27's HEAD half, 6.14% against a 0.32%
-    # class floor -- and a mutant that stops the star fails it. LOST rather
-    # than green with no run on disk, as every corpus judge here is.
-    ('the per-view floor stars a view no wider than its class',
-     'view-floor.py',
+    # it is a mutant of the tool. The judge reads every star's own
+    # annotation back on the newest run on disk -- `ARM P% against F%`,
+    # the view's spread against its class floor -- and wants P above F
+    # on all of them and at least one star; inverted, the stars land on
+    # the views UNDER the floor. It named Run 27's `flip-last-rows` until
+    # 2026-09-18, when that run's artifacts were deleted and it read LOST.
+    ('the per-view floor stars a view no wider than its class', 'view-floor.py',
      '                over = b in floor and sp > a.factor * floor[b]',
      '                over = b in floor and sp < a.factor * floor[b]',
-     'python3 "{file}" run27 -d "{root}" -c flip | '
-     'grep -q "flip-last-rows.*mut-odo-vecdims 6\\."'),
+     'R=$(ls {root}/run*-*-main.json | sed "s|.*/\\(run[0-9]*\\)-.*|\\1|" | sort -V | tail -1); python3 "{file}" $R -d "{root}" -c flip | python3 -c "import re, sys\np = re.findall(r\'([0-9.]+)% against ([0-9.]+)%\', sys.stdin.read())\nsys.exit(0 if p and all(float(a) > float(b) for a, b in p) else 1)"'),
     # The health line enumerating again: the cells go back in front of the
     # count, which is the shape the cut of 2026-09-08 removed, and
     # `prop_health_names_rows_not_cells` fails on the first run on disk
@@ -237,11 +236,10 @@ MUTANTS = [
     # so a reversal shows on six of ten rows. It takes the NEWEST run's
     # classes alone: `--extremes` refuses a class named twice, so a glob
     # spanning two runs on disk makes its own baseline red.
-    ('the emphasis column bolds the slower of the two cells',
-     'read-run.py',
+    ('the emphasis column bolds the slower of the two cells', 'read-run.py',
      "                 r.floor, 'outside' if r.out < r.ceil else 'ceiling'))",
      "                 r.floor, 'outside' if r.out > r.ceil else 'ceiling'))",
-     'PATH="{bin}:$PATH" python3 -c "import glob, os, re, subprocess, sys\nms = sorted(glob.glob(os.path.join(\'{root}\', \'run*-g912-main.json\')))\nif not ms: sys.exit(2)\nrun = os.path.basename(ms[-1]).split(\'-g912-\')[0]\ncs = sorted(glob.glob(os.path.join(\'{root}\', run + \'-g912-*.json\')))\ncs = [c for c in cs if not re.search(r\'-(main|gate|al)[-.]\', c)]\nif len(cs) < 3: sys.exit(2)\nr = subprocess.run([sys.executable, \'{file}\', \'--extremes\', \'--classes\'] + cs, capture_output=True, text=True).stdout\nrows = re.findall(r\'^(\\\\w+)\\\\s+\\\\d+\\\\s+[\\\\d.]+\\\\s+[\\\\d.]+\\\\s+\\\\S+ ([\\\\d.]+)\\\\s+[-\\\\d.]+\\\\s+[-\\\\d.]+\\\\s+([\\\\d.]+)\\\\s+[\\\\d.]+%\\\\s+(outside|ceiling)\', r, re.M)\nif len(rows) < 3: sys.exit(1)\nbad = [n for n, o, c, b in rows if float(o) != float(c)\n       and b != (\'outside\' if float(o) < float(c) else \'ceiling\')]\nsys.exit(1 if bad else 0)"'),
+     'PATH="{bin}:$PATH" python3 -c "import glob, os, re, subprocess, sys\nms = [m for m in glob.glob(os.path.join(\'{root}\', \'run*-*-main.json\')) if re.match(r\'run\\d+-[a-z0-9]+-main\\.json$\', os.path.basename(m))]\nif not ms: sys.exit(2)\nms.sort(key=lambda m: int(re.match(r\'run(\\d+)\', os.path.basename(m)).group(1)))\nrun, half = re.match(r\'(run\\d+)-([a-z0-9]+)-main\', os.path.basename(ms[-1])).groups()\ncs = sorted(glob.glob(os.path.join(\'{root}\', run + \'-\' + half + \'-*.json\')))\ncs = [c for c in cs if not re.search(r\'-(main|gate|al)[-.]\', c)]\nif len(cs) < 3: sys.exit(2)\nr = subprocess.run([sys.executable, \'{file}\', \'--extremes\', \'--classes\'] + cs, capture_output=True, text=True).stdout\nrows = re.findall(r\'^(\\w+)\\s+\\d+\\s+[\\d.]+\\s+[\\d.]+\\s+\\S+ ([\\d.]+)\\s+[-\\d.]+\\s+[-\\d.]+\\s+([\\d.]+)\\s+[\\d.]+%\\s+(outside|ceiling)\', r, re.M)\nif len(rows) < 3: sys.exit(1)\nbad = [n for n, o, c, b in rows if float(o) != float(c)\n       and b != (\'outside\' if float(o) < float(c) else \'ceiling\')]\nsys.exit(1 if bad else 0)"'),
     # The rate column taking the RAW count ratio where the CORRECTED one
     # belongs -- not hypothetical: Run 28 hand-rolled this arithmetic
     # before the column existed, read the raw field by an off-by-one into
@@ -250,11 +248,10 @@ MUTANTS = [
     # and `--pair`'s own time geomean, so it catches the swap AND a column
     # blinded to `--`; it exits 0 with no run on disk, which is LOST
     # rather than caught, as every corpus judge here is.
-    ('the rate column prices a saving against the raw counts',
-     'read-run.py',
+    ('the rate column prices a saving against the raw counts', 'read-run.py',
      "                rate = ('%6.1f%%' % ((1 - t) / (1 - gnet) * 100)",
      "                rate = ('%6.1f%%' % ((1 - t) / (1 - geomean(raw)) * 100)",
-     'PATH="{bin}:$PATH" python3 -c "import glob, os, re, subprocess, sys\nsw = sorted(glob.glob(os.path.join(\'{root}\', \'run*-counts-g912.txt\')))\nif not sw: sys.exit(2)\nrun = os.path.basename(sw[-1]).split(\'-counts-\')[0]\njs = os.path.join(\'{root}\', run + \'-g912-main.json\')\nif not os.path.exists(js): sys.exit(2)\nA = [\'mut-odo-vecdims-add-in-leaf-u1-ptr\', \'mut-odo-vecdims-add-in-leaf-u1\']\nrd = lambda e: subprocess.run([sys.executable, \'{file}\', js] + e, capture_output=True, text=True).stdout\no = rd([\'--counts\', sw[-1], \'--pair\'] + A)\nm = re.search(r\'([0-9.]+)\\\\s+([0-9.]+)\\\\s+([0-9]+)\\\\s+(-?[0-9.]+)%\', o)\nif not m: sys.exit(1)\nt = re.search(A[0] + \' / \' + A[1] + r\'\\\\s+([0-9.]+)\', rd([\'--pair\'] + A))\nif not t: sys.exit(0)\nw = (1 - float(t.group(1))) / (1 - float(m.group(1))) * 100\nsys.exit(0 if abs(w - float(m.group(4))) < 0.15 else 1)"'),
+     'PATH="{bin}:$PATH" python3 -c "import glob, os, re, subprocess, sys\nsw = [f for f in glob.glob(os.path.join(\'{root}\', \'run*-counts-*.txt\')) if re.match(r\'run\\d+-counts-[a-z0-9]+\\.txt$\', os.path.basename(f))]\nif not sw: sys.exit(2)\nsw.sort(key=lambda f: int(re.match(r\'run(\\d+)\', os.path.basename(f)).group(1)))\nrun, half = re.match(r\'(run\\d+)-counts-([a-z0-9]+)\\.txt\', os.path.basename(sw[-1])).groups()\njs = os.path.join(\'{root}\', run + \'-\' + half + \'-main.json\')\nif not os.path.exists(js): sys.exit(2)\nA = [\'mut-odo-vecdims-add-in-leaf-u2\', \'mut-odo-vecdims-add-in-leaf-u1\']\nrd = lambda e: subprocess.run([sys.executable, \'{file}\', js] + e, capture_output=True, text=True).stdout\no = rd([\'--counts\', sw[-1], \'--pair\'] + A)\nm = re.search(r\'([0-9.]+)\\s+([0-9.]+)\\s+([0-9]+)\\s+(-?[0-9.]+)%\', o)\nif not m: sys.exit(1)\nt = re.search(A[0] + \' / \' + A[1] + r\'\\s+([0-9.]+)\', rd([\'--pair\'] + A))\nif not t: sys.exit(0)\nw = (1 - float(t.group(1))) / (1 - float(m.group(1))) * 100\nsys.exit(0 if abs(w - float(m.group(4))) < 0.15 else 1)"'),
     # The ANSWERED stub's `___` gate, blinded: the comprehension keeps no
     # entry, so a README whose newest run entry is still the bare
     # placeholder passes. That is the state Run 28 reached the second
@@ -515,19 +512,18 @@ MUTANTS = [
     # `list`, so a pair whose variable moves `list` failed on its own
     # variable; the gate is the `inuse`/`keep` the same line carries now.
     # Collapsing the distinct-state key makes every process look alike and
-    # the gate never fire. The judge plants a real run beside the mutated
-    # driver -- the only fixture with the logs AND the JSONs this driver
-    # needs -- and moves one process's `inuse`, so it is LOST rather than
-    # green once those artifacts are deleted, which is the honest reading
-    # of a check that needs a run. read-all.sh had no mutant at all before
-    # this, which is why the gate could be rewritten without one.
+    # the gate never fire. The judge plants the newest run on disk beside
+    # the mutated driver -- the only fixture with the logs AND the JSONs
+    # this driver needs -- and moves one process's `inuse` on its
+    # `@@saturate` line, so it is LOST rather than green with no run on
+    # disk, which is the honest reading of a check that needs a run; it
+    # named Run 29 until 2026-09-18, when that run's artifacts were
+    # deleted. read-all.sh had no mutant at all before this, which is why
+    # the gate could be rewritten without one.
     ('the plateau gate cannot tell two states apart', 'read-all.sh',
      'NF >= 3 { n++; k[$2 " " $3] = 1 }',
      'NF >= 3 { n++; k["one"] = 1 }',
-     'ln -s {root}/run29-*.json "{dir}/" 2>/dev/null; '
-     'cp {root}/run29-*.log "{dir}/" 2>/dev/null; '
-     'sed -i "s/inuse=95420416/inuse=7/" "{dir}/run29-spec-rev.log"; '
-     '{file} run29 2>&1 | grep -q "did not assert ONE state"'),
+     'R=$(ls {root}/run*-*-main.json | sed "s|.*/\\(run[0-9]*\\)-.*|\\1|" | sort -V | tail -1); ln -s {root}/$R-*.json "{dir}/" 2>/dev/null; cp {root}/$R-*.log {root}/$R-pair.txt "{dir}/" 2>/dev/null; L=$(ls "{dir}"/$R-*-rev.log | head -1); sed -i "/^@@saturate /s/inuse=[0-9]*/inuse=7/" "$L"; {file} $R 2>&1 | grep -q "did not assert ONE state"'),
 
     # The heading-spacing gate, made blind: `n != 2` becomes `False`, so
     # a heading run straight into the paragraph above it passes -- the
