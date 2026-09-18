@@ -3930,8 +3930,8 @@ block in `run30-pair.txt`.** A CHECK THAT WOULD HAVE CAUGHT AN ERROR:
 `Half names` block into a sentence that was false twice for this pair ---
 it renames tags and cannot know the tags now mean something else, so every
 `[SAME]` block was re-read and three were rewritten. A COMPUTATION IMPROVISED:
-none; the counts scale came from the previous run's own counts files,
-`run29-counts-nospec.txt` and its ten class siblings, read at their opening
+none; the counts scale came from the previous run's own counts files, Run 29's
+main-set counts sweep and its ten class siblings, read at their opening
 and `# end` stamps rather than from the previous note, and it predicted all
 eleven of this run's `nospec` legs to within a second or two, overshooting six
 of the eleven `libcase` ones by up to 44 seconds --- it reads Run 29's unflagged
@@ -4000,7 +4000,7 @@ requoted figures. **A READER DEFECT FOUND, AND FIXED AFTER THE WRITE-UP**:
 matched nothing where its brackets balanced and raised where they did not.
 It cost one call here, and [the open list][open] carries the fix. **WHAT
 THE AGENTS COST AND BOUGHT.** The carrier read four sections of Run 29's file
-and returned `run30-readings.txt`, which post-run steps 4, 5 and 6a then read
+and returned Run 30's readings file, which post-run steps 4, 5 and 6a then read
 a block at a time; its item 4 was re-derived here by hand and agreed.
 The independent checker ran its two passes on the two commits.
 
@@ -4101,7 +4101,7 @@ file had it right at four sites and the delta chain had it wrong at one, which
 is how the two disagreed loudly enough to check.
 
 **WHAT THE FOUR AGENTS COST AND BOUGHT.** The carrier read four sections of Run
-28's file and returned `run29-readings.txt`, which post-run steps 4, 5 and 6a
+28's file and returned Run 29's readings file, which post-run steps 4, 5 and 6a
 read back; its item-5 finding is what the properties section is built on.
 Checker pass 1 read the run file alone and returned **26** findings, of which
 it had verified 473 installed table rows and 70 hand-edited cells and found none
@@ -4182,21 +4182,21 @@ only separates a tie the column itself cannot.** The second is the conversion
 rate, `(1 - time) / (1 - counts)`, which this file quotes every run
 and no reader mode computes. **WHAT THE THREE AGENTS COST AND BOUGHT, which
 is the reading this list has not carried before.** The carrier read four
-sections of Run 27's file and returned `run28-readings.txt`; it found two errors
-in Run 27's PUBLISHED file that no gate here reads --- its stride-class prose
-naming three bolded rows where its own table bolds two, and that section calling
-`libunord-stage3` and `-u2-ptr` new to the timed roster when Run 26 timed both.
-Checker pass 1 returned 31 findings on the run file alone. Pass 2, over both
-documents after those were fixed, returned 17 --- **of which SIX were MADE
-by the first round of fixes**: a summary-table cell tie-broken with the wrong
-statistic, a figure corrected to a value the reader does not print, a row list
-moved to the wrong count, and three sentences left naming what they named before
-the count under them changed. That is Run 21's ratio again and it
-is the argument for the second pass. The comprehension probe then returned 29.
-ONE of them was an error the step-7 cycle had itself introduced ---
-the cross-class table's bolding key, left at four and six after that cycle
-corrected `rev`'s cell to make it five and five --- and its most serious
-was older than any fix: the run's HEADLINE, written at 6a and stated
+sections of Run 27's file and returned Run 28's readings file; it found two
+errors in Run 27's PUBLISHED file that no gate here reads --- its stride-class
+prose naming three bolded rows where its own table bolds two, and that section
+calling `libunord-stage3` and `-u2-ptr` new to the timed roster when Run 26
+timed both. Checker pass 1 returned 31 findings on the run file alone. Pass 2,
+over both documents after those were fixed, returned 17 --- **of which SIX
+were MADE by the first round of fixes**: a summary-table cell tie-broken
+with the wrong statistic, a figure corrected to a value the reader does
+not print, a row list moved to the wrong count, and three sentences left naming
+what they named before the count under them changed. That is Run 21's ratio
+again and it is the argument for the second pass. The comprehension probe
+then returned 29. ONE of them was an error the step-7 cycle had itself
+introduced --- the cross-class table's bolding key, left at four and six after
+that cycle corrected `rev`'s cell to make it five and five --- and its most
+serious was older than any fix: the run's HEADLINE, written at 6a and stated
 as a universal the file refutes three times. **So three of this run's four
 rounds of fixes are KNOWN to have made errors, each found by the round after
 it --- and the fourth has since been read too, by this request's own passes
@@ -4233,31 +4233,31 @@ steps 7 and 8 both PASSED with all four standing. **The executing session's
 half, and it is four things.** **TWO TOOL DEFECTS FIRED ON THIS RUN'S OWN
 ARTIFACTS AND BOTH ARE FIXED, each with a case in both directions.**
 `run-status.sh` judged the carrier's return by `^ITEM ${it}[^0-9]`, which cannot
-match a header at end of line, so a complete `run27-readings.txt` read as absent
-four times over and post-run steps 4, 5 and 6a could never have cleared
-(`e8f1c31`; the mutant that had covered that line was LOST by the fix
-and is repaired beside it). `--predictions` exited 2 out of the middle
-of the registration walk on the first pair whose cells the arm empties --- item
-(6)'s, on the main set, where the item itself says the span is read
-on the classes --- leaving items (7) to (14) unadjudicated and stdout silent
-about which; the span is recorded NOT READ and the walk goes on (`e55f8d3`).
-**The checks that would have caught the errors were mechanical throughout.**
-`--check-doc` refused, in order and each on a real defect: five failure kinds
-the moment `runs/run27.md` existed, the ten `?` cells the install leaves, ten
-class paragraphs quoting the previous run's floors, an artifact path named
-in a file that outlives it, a lost class-process-count site, and an ANSWERED
-entry my own addition had pushed past 500 words. Not one needed a reading
-to find. **ONE COMPUTATION WAS IMPROVISED AND ONE WAS IMPROVISED FOR NOTHING.**
-The one that earns its place is the pair of correlations registration (5) asks
-for, a process's floor against the median A/A half-width beneath it and against
-its position in the evening: no mode emits them and the item asks for them every
-time it is registered. **The other is a mode this file already records
-as TAKEN.** The within-half corrected instruction ratio for a pair --- which
-registrations (4), (13) and (14) all turn on --- was hand-rolled here
-from the counts files, and `--counts SWEEP.txt --pair A B` has printed it since
-2026-09-05, as the retirement record below says, in the words the item itself
-used, *it is a mode now*. Run against this run's own sweep it gives 0.8944,
-0.8358, 0.8605, 0.9691 and 1.0878, every figure the hand computation produced,
+match a header at end of line, so a complete readings file read as absent four
+times over and post-run steps 4, 5 and 6a could never have cleared (`e8f1c31`;
+the mutant that had covered that line was LOST by the fix and is repaired beside
+it). `--predictions` exited 2 out of the middle of the registration walk
+on the first pair whose cells the arm empties --- item (6)'s, on the main set,
+where the item itself says the span is read on the classes --- leaving items (7)
+to (14) unadjudicated and stdout silent about which; the span is recorded
+NOT READ and the walk goes on (`e55f8d3`). **The checks that would have caught
+the errors were mechanical throughout.** `--check-doc` refused, in order
+and each on a real defect: five failure kinds the moment `runs/run27.md`
+existed, the ten `?` cells the install leaves, ten class paragraphs quoting
+the previous run's floors, an artifact path named in a file that outlives it,
+a lost class-process-count site, and an ANSWERED entry my own addition had
+pushed past 500 words. Not one needed a reading to find. **ONE COMPUTATION
+WAS IMPROVISED AND ONE WAS IMPROVISED FOR NOTHING.** The one that earns
+its place is the pair of correlations registration (5) asks for, a process's
+floor against the median A/A half-width beneath it and against its position
+in the evening: no mode emits them and the item asks for them every time
+it is registered. **The other is a mode this file already records as TAKEN.**
+The within-half corrected instruction ratio for a pair --- which registrations
+(4), (13) and (14) all turn on --- was hand-rolled here from the counts files,
+and `--counts SWEEP.txt --pair A B` has printed it since 2026-09-05,
+as the retirement record below says, in the words the item itself used, *it
+is a mode now*. Run against this run's own sweep it gives 0.8944, 0.8358,
+0.8605, 0.9691 and 1.0878, every figure the hand computation produced,
 to the digit. **What went wrong is the reading**: `--help` describes `--counts`
 as *with --compare*, which is one of its two arities, and the modifier's own
 docstring names the other. A one-line summary is not the mode list,
