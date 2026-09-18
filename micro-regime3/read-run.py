@@ -1738,7 +1738,13 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
         # reporting and the stderr notes below all still read the whole
         # table, so a narrowed call cannot quietly answer a different
         # question from the full one.
-        if args.rows and st not in args.rows:
+        # getattr AND NOT args.rows: properties.py renders this table
+        # through a stand-in args object carrying only the fields it needs,
+        # so a new one read directly raises AttributeError and takes every
+        # property with it -- which is what a plain `args.rows` did on
+        # 2026-09-18, turning six mutants LOST and two MISSED and being
+        # mistaken at first for fallout from that day's artifact deletion.
+        if getattr(args, 'rows', None) and st not in args.rows:
             continue
         if st in prev:
             label_, style, needs, _ = prev[st]

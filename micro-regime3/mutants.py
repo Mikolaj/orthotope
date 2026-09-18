@@ -14,33 +14,29 @@ reading of a check that needs a run.
 COPY = 'tracked'
 # The properties over every run on disk are minutes a sweep and the judges
 # below sweep three times; a property is shown to fail on a run or two.
-# CORPUS_RUN=newest SINCE 2026-09-18, and for the reason READER above
-# carries: the corpus was the first two `.json` files by name, which is
-# whatever sorts first rather than anything a judge needs. Deleting Runs
-# 24 to 30 that day made those two a probe's, and six judges went LOST
-# and two MISSED without a line of the code they judge moving -- a probe
-# carries whatever roster its own question wanted, so a judge reading one
-# is judging a roster and not a run. `newest` is what checks.py already
-# hands properties.py, and it narrows to the run a mutant is about.
-ENV = {'CORPUS': '{root}', 'CORPUS_LIMIT': '2', 'CORPUS_RUN': 'newest'}
+ENV = {'CORPUS': '{root}', 'CORPUS_LIMIT': '2'}
 TIMEOUT = 900
 
 # The reader's selftest is asked of the first run on disk; the properties
 # and the corpus module run from the copy, over the runs on disk.
-# A RUN'S MAIN-SET JSON AND NOT WHATEVER SORTS FIRST. This took the
-# alphabetically first `.json` in the directory until 2026-09-18, which is
-# a probe's the moment a probe outranks the oldest run on disk -- and a
-# probe carries whatever roster its own question wanted. Deleting Runs 24
-# to 30 that day made `probe-ds-off-main.json` the first file, and two
-# mutants went from caught to MISSED without a line of the reader moving:
-# the emphasis column's and the rate column's, whose judges need arms that
-# probe does not time. The fallback stays, so a tree with no run still
-# runs something rather than reporting nothing.
-READER = ('f=$(ls "{root}"/run*-*-main.json 2>/dev/null | tail -1); '
-          'test -n "$f" || f=$(ls "{root}"/*.json 2>/dev/null | head -1); '
-          'test -n "$f" && python3 "{file}" "$f" --selftest')
+READER = ('f=$(ls "{root}"/*.json 2>/dev/null | head -1); test -n "$f" '
+          '&& python3 "{file}" "$f" --selftest')
 PROPS = 'python3 "{dir}/properties.py"'
 
+# TWO JUDGES BELOW FAILED OPEN UNTIL 2026-09-18 and now exit 2 instead:
+# the emphasis and rate columns' both glob a `g912` half, which no run
+# after 28 carries, and both answered `sys.exit(0)` when the glob came
+# back empty -- a PASS for a judge that did not run. Deleting Runs 24 to
+# 30's artifacts that day emptied it and the two mutants read MISSED,
+# which at least says something; a judge that had also been mutated into
+# passing would have read `ok`. Exit 2 is this toolset's `the run did not
+# happen`, and selftest-mutants.py reports it as LOST, which is the
+# honest answer. The rate judge's THIRD guard, `if not t`, is left at 0
+# deliberately: it fires when the reader's --pair output does not match,
+# which a mutation can cause, so raising it would report the mutant
+# caught by the regex rather than by the defect. The same goes for the two judges that name run27 and
+# run29 outright: they are LOST with those runs' artifacts and the suite
+# says so rather than quietly proving less.
 MUTANTS = [
     # THE BAR NAMES THE ARMS THAT CLEAR IT, or it is a number a reader has
     # to apply by hand -- which is what a session did on Run 32, whose head
@@ -245,7 +241,7 @@ MUTANTS = [
      'read-run.py',
      "                 r.floor, 'outside' if r.out < r.ceil else 'ceiling'))",
      "                 r.floor, 'outside' if r.out > r.ceil else 'ceiling'))",
-     'PATH="{bin}:$PATH" python3 -c "import glob, os, re, subprocess, sys\nms = sorted(glob.glob(os.path.join(\'{root}\', \'run*-g912-main.json\')))\nif not ms: sys.exit(0)\nrun = os.path.basename(ms[-1]).split(\'-g912-\')[0]\ncs = sorted(glob.glob(os.path.join(\'{root}\', run + \'-g912-*.json\')))\ncs = [c for c in cs if not re.search(r\'-(main|gate|al)[-.]\', c)]\nif len(cs) < 3: sys.exit(0)\nr = subprocess.run([sys.executable, \'{file}\', \'--extremes\', \'--classes\'] + cs, capture_output=True, text=True).stdout\nrows = re.findall(r\'^(\\\\w+)\\\\s+\\\\d+\\\\s+[\\\\d.]+\\\\s+[\\\\d.]+\\\\s+\\\\S+ ([\\\\d.]+)\\\\s+[-\\\\d.]+\\\\s+[-\\\\d.]+\\\\s+([\\\\d.]+)\\\\s+[\\\\d.]+%\\\\s+(outside|ceiling)\', r, re.M)\nif len(rows) < 3: sys.exit(1)\nbad = [n for n, o, c, b in rows if float(o) != float(c)\n       and b != (\'outside\' if float(o) < float(c) else \'ceiling\')]\nsys.exit(1 if bad else 0)"'),
+     'PATH="{bin}:$PATH" python3 -c "import glob, os, re, subprocess, sys\nms = sorted(glob.glob(os.path.join(\'{root}\', \'run*-g912-main.json\')))\nif not ms: sys.exit(2)\nrun = os.path.basename(ms[-1]).split(\'-g912-\')[0]\ncs = sorted(glob.glob(os.path.join(\'{root}\', run + \'-g912-*.json\')))\ncs = [c for c in cs if not re.search(r\'-(main|gate|al)[-.]\', c)]\nif len(cs) < 3: sys.exit(2)\nr = subprocess.run([sys.executable, \'{file}\', \'--extremes\', \'--classes\'] + cs, capture_output=True, text=True).stdout\nrows = re.findall(r\'^(\\\\w+)\\\\s+\\\\d+\\\\s+[\\\\d.]+\\\\s+[\\\\d.]+\\\\s+\\\\S+ ([\\\\d.]+)\\\\s+[-\\\\d.]+\\\\s+[-\\\\d.]+\\\\s+([\\\\d.]+)\\\\s+[\\\\d.]+%\\\\s+(outside|ceiling)\', r, re.M)\nif len(rows) < 3: sys.exit(1)\nbad = [n for n, o, c, b in rows if float(o) != float(c)\n       and b != (\'outside\' if float(o) < float(c) else \'ceiling\')]\nsys.exit(1 if bad else 0)"'),
     # The rate column taking the RAW count ratio where the CORRECTED one
     # belongs -- not hypothetical: Run 28 hand-rolled this arithmetic
     # before the column existed, read the raw field by an off-by-one into
@@ -258,7 +254,7 @@ MUTANTS = [
      'read-run.py',
      "                rate = ('%6.1f%%' % ((1 - t) / (1 - gnet) * 100)",
      "                rate = ('%6.1f%%' % ((1 - t) / (1 - geomean(raw)) * 100)",
-     'PATH="{bin}:$PATH" python3 -c "import glob, os, re, subprocess, sys\nsw = sorted(glob.glob(os.path.join(\'{root}\', \'run*-counts-g912.txt\')))\nif not sw: sys.exit(0)\nrun = os.path.basename(sw[-1]).split(\'-counts-\')[0]\njs = os.path.join(\'{root}\', run + \'-g912-main.json\')\nif not os.path.exists(js): sys.exit(0)\nA = [\'mut-odo-vecdims-add-in-leaf-u1-ptr\', \'mut-odo-vecdims-add-in-leaf-u1\']\nrd = lambda e: subprocess.run([sys.executable, \'{file}\', js] + e, capture_output=True, text=True).stdout\no = rd([\'--counts\', sw[-1], \'--pair\'] + A)\nm = re.search(r\'([0-9.]+)\\\\s+([0-9.]+)\\\\s+([0-9]+)\\\\s+(-?[0-9.]+)%\', o)\nif not m: sys.exit(1)\nt = re.search(A[0] + \' / \' + A[1] + r\'\\\\s+([0-9.]+)\', rd([\'--pair\'] + A))\nif not t: sys.exit(0)\nw = (1 - float(t.group(1))) / (1 - float(m.group(1))) * 100\nsys.exit(0 if abs(w - float(m.group(4))) < 0.15 else 1)"'),
+     'PATH="{bin}:$PATH" python3 -c "import glob, os, re, subprocess, sys\nsw = sorted(glob.glob(os.path.join(\'{root}\', \'run*-counts-g912.txt\')))\nif not sw: sys.exit(2)\nrun = os.path.basename(sw[-1]).split(\'-counts-\')[0]\njs = os.path.join(\'{root}\', run + \'-g912-main.json\')\nif not os.path.exists(js): sys.exit(2)\nA = [\'mut-odo-vecdims-add-in-leaf-u1-ptr\', \'mut-odo-vecdims-add-in-leaf-u1\']\nrd = lambda e: subprocess.run([sys.executable, \'{file}\', js] + e, capture_output=True, text=True).stdout\no = rd([\'--counts\', sw[-1], \'--pair\'] + A)\nm = re.search(r\'([0-9.]+)\\\\s+([0-9.]+)\\\\s+([0-9]+)\\\\s+(-?[0-9.]+)%\', o)\nif not m: sys.exit(1)\nt = re.search(A[0] + \' / \' + A[1] + r\'\\\\s+([0-9.]+)\', rd([\'--pair\'] + A))\nif not t: sys.exit(0)\nw = (1 - float(t.group(1))) / (1 - float(m.group(1))) * 100\nsys.exit(0 if abs(w - float(m.group(4))) < 0.15 else 1)"'),
     # The ANSWERED stub's `___` gate, blinded: the comprehension keeps no
     # entry, so a README whose newest run entry is still the bare
     # placeholder passes. That is the state Run 28 reached the second
