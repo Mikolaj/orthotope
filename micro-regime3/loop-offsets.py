@@ -159,6 +159,7 @@ import subprocess
 import sys
 
 INSN = re.compile(r'^\s*([0-9a-f]+):\t((?:[0-9a-f]{2} )+)\s*\t?(\S+)\s*(.*)$')
+CONT = re.compile(r'^\s*([0-9a-f]+):\t((?:[0-9a-f]{2} )+)\s*$')  # bytes 8 on
 SYM = re.compile(r'^([0-9a-f]+) <(.+)>:$')
 JMP = re.compile(r'^j')
 TARGET = re.compile(r'^([0-9a-f]+)\b')
@@ -358,13 +359,38 @@ _PARSED = {}
 
 def parse(path):
     """The listing's instructions, read once per path: (address, byte
-    count, hex, mnemonic, operands, enclosing symbol)."""
+    count, hex, mnemonic, operands, enclosing symbol).
+
+    An instruction past seven bytes objdump prints over two lines, the
+    second carrying its address and the remaining bytes and no mnemonic.
+    Until 2026-09-18 that line was read as `INSN` or not at all -- one byte
+    dropped, two or more parsed as an instruction whose mnemonic was its
+    last byte -- so every body holding such an instruction failed `scan`'s
+    byte sum and was dropped unsaid, the `movq $imm32,disp(%rbp)` of a
+    return-frame push and the `movq $imm32,0x388(%r13)` of a heap-check
+    failure among them. Read whole, over the twelve run binaries on disk,
+    they admit 27 to 113 Main loops and 559 to 707 library loops a binary
+    and lose none; every straddling count holds but run36-gheadtwopass's,
+    8 to 9, the ninth at 0x482d4d a backward branch into a block that
+    tail-calls out, so the survey reads one straddler there that the shim's
+    verified line does not; every LOOP_EXITSPAN
+    half's exit spans astride hold at 0, and Run 31's and 32's four halves,
+    built without the switch, read 67, 52, 75 and 68 for 64, 40, 72 and
+    65. Survey totals recorded before then are lower and stand as taken.
+    """
     if path not in _PARSED:
         cur, insns = None, []
         for line in listing(path).split('\n'):
             m = SYM.match(line)
             if m:
                 cur = m.group(2)
+                continue
+            m = CONT.match(line)
+            if m and insns:
+                addr, nb, raw, mnem, op, sym = insns[-1]
+                more = m.group(2).split()
+                insns[-1] = (addr, nb + len(more), raw + ''.join(more),
+                             mnem, op, sym)
                 continue
             m = INSN.match(line)
             if m:
