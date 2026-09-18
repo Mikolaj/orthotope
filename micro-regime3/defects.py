@@ -5634,10 +5634,6 @@ TIER1 = {
                       trigger='a reader that prints HOLDS and then exits non-zero',
                       ok='pipefail: the judge is red',
                       bug='the judge was green on grep alone', proved='asserted'),
-    'deadspot-probe-exits-with-tees-status': dict(family='quiet-failure', discovery='review', harm='latent',
-                      trigger='a half whose probe-times.sh complained',
-                      ok='exit 1 off a BAD count, as the sibling probes',
-                      bug='exit 0, the status being tee\'s', proved='asserted'),
     'busy-compare-fails-behind-a-bash-error': dict(family='domain-unchecked', discovery='review', harm='latent',
                       trigger='machine-busy.sh printing nothing or a non-number',
                       ok='refuses naming the reading, exit 2',
@@ -12186,11 +12182,6 @@ RECORDS = [
     case('property-judges-read-only-greps-status', 'mutants.py', '18021d0',
          "the two per-shape property judges' status was grep's alone, the"
          " reader's exit lost in the pipe",
-         argv=None, ok=None),
-
-    case('deadspot-probe-exits-with-tees-status', 'probe-ds-run.sh', '18021d0',
-         "the probe's exit was tee's, its halves' complaints swallowed by"
-         ' an echo',
          argv=None, ok=None),
 
     case('busy-compare-fails-behind-a-bash-error', 'probe-cache-run.sh',
