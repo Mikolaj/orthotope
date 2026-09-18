@@ -1967,6 +1967,36 @@ def stale_pair(tmp, n=97, kept=True):
     return {'doc': doc, 'figure': figure}
 
 
+def brief_pair(tmp, run='run97', whole=True):
+    """A facts file and a checker brief, the brief missing an item or not.
+
+    `--brief-update` writes the brief's two THIS RUN ONLY items from the
+    facts file `post-run-readings.sh` leaves, which is the one step of the
+    verification half nothing checked -- a stale brief looks exactly like a
+    used one, and both checker passes read it as given.
+
+    `whole=False` is the shape the case is about: a brief carrying item 5
+    and not item 6, which is what a half-finished edit or a renumbering
+    leaves. A mode that wrote what it could would leave one item this run's
+    and one the run before's, which is worse than either, so the refusal is
+    the behaviour and the brief must come back byte for byte.
+    """
+    d = os.path.join(tmp, 'log-read-%s' % run)
+    os.makedirs(d, exist_ok=True)
+    write(os.path.join(d, 'for-brief.txt'),
+          'some facts above the marker\n\n'
+          '--- paste over checker-brief.txt items 5 and 6; <yours> is prose ---\n'
+          ' 5. THIS RUN ONLY -- THE BOX AND THE PAIR. The basis is %s-exit.\n'
+          ' 6. THIS RUN ONLY -- THE WINDOW AND THE INSTRUMENTS. One window.\n'
+          % run)
+    body = ' 5. THIS RUN ONLY -- THE BOX AND THE PAIR. Last run\'s.\n'
+    if whole:
+        body += ' 6. THIS RUN ONLY -- THE WINDOW AND THE INSTRUMENTS. Last run\'s.\n'
+    brief = write(os.path.join(tmp, 'checker-brief.txt'),
+                  'The brief.\n\n' + body)
+    return {'brief': brief, 'run': run, 'dir': tmp}
+
+
 def rundoc_heading_spacing(tmp, blanks=1):
     """A run file whose second heading is preceded by `blanks` blank lines.
 
@@ -8112,6 +8142,34 @@ RECORDS = [
          argv=['--check-doc', '--worklists', '--run-doc', '{rundoc}'],
          ok=V(has=['--inherited'])),
 
+    case('brief-update-refuses-a-brief-it-cannot-place', 'read-run.py',
+         None,
+         'the brief is left byte for byte when one of its two THIS RUN'
+         ' ONLY items is not there to replace',
+         # The brief's two run-specific items are the half that goes stale,
+         # and a stale brief looks exactly like a used one: both checker
+         # passes read it as given and neither can tell its figures are the
+         # run before's. Writing what it can would leave one item this
+         # run's and one the last run's, which no reader of the brief can
+         # see and which is worse than leaving both stale -- so a brief
+         # missing item 6 is refused whole, with the brief untouched. The
+         # control below is the same call on a brief carrying both.
+         plant=lambda tmp: brief_pair(tmp, whole=False),
+         argv=['--brief-update', '{run}', '--brief-dir', '{dir}'],
+         ok=V(exit=2, has=['no ` 5. THIS RUN ONLY`', 'untouched']),
+         probe=lambda subs: open(subs['brief']).read()),
+
+    case('brief-update-writes-both-items', 'read-run.py', None,
+         'both THIS RUN ONLY items come from the facts file, and the'
+         ' `<yours>` slots left in them are named',
+         # The control for the refusal above, and the mode's own purpose:
+         # the chapter has said since 2026-09-05 that these items are
+         # pasted and not retyped, and the pasting was the step nothing
+         # checked.
+         plant=brief_pair,
+         argv=['--brief-update', '{run}', '--brief-dir', '{dir}'],
+         ok=V(exit=0, has=['items 5 and 6 written'])),
+
     case('replace-refusal-does-not-name-delete', 'read-run.py', None,
          'the table refusal names --delete, the mode that removes the'
          ' table it is refusing to take',
@@ -10437,7 +10495,7 @@ RECORDS = [
          'CONTROL: a run file sharing no paragraph with the previous run'
          ' reports none, so the report cannot be read as always firing',
          plant=lambda t: inherited_pair(t, share=False),
-         argv=['--inherited', '--run-doc', '{doc}'],
+         argv=['--inherited', '--all', '--run-doc', '{doc}'],
          ok=V(exit=0, has=['0 paragraph(s)',
                            '0 paragraph(s) this run CHANGED that still'
                            ' name Run 96'])),
@@ -10456,7 +10514,7 @@ RECORDS = [
          # contradicted it; one checker pass read that diff and passed
          # both, and the next found them by reading the finished file.
          plant=lambda t: inherited_pair(t, half=True),
-         argv=['--inherited', '--run-doc', '{doc}'],
+         argv=['--inherited', '--all', '--run-doc', '{doc}'],
          ok=V(exit=0, has=['1 paragraph(s) this run CHANGED that still'
                            ' name Run 96', 'On Run 97 the floor'])),
 

@@ -7394,7 +7394,7 @@ def stale_figures(run_doc, ratio=0.55, verbose=False):
 BRIEF = 'checker-brief.txt'
 
 
-def brief_update(run, readings_dir=None, brief=BRIEF):
+def brief_update(run, readings_dir=None, brief=None, where='.'):
     """Paste the run's own facts into the checker brief, rather than retype.
 
     The brief's two THIS RUN ONLY items are the half of it that goes stale,
@@ -7415,7 +7415,14 @@ def brief_update(run, readings_dir=None, brief=BRIEF):
     the run's largest finding -- are carried across untouched and named on
     stderr, so an unfilled brief is loud rather than plausible.
     """
-    d = readings_dir or os.path.join('log-read-%s' % run)
+    # BOTH PATHS ARE RESOLVED UNDER `where`, which is the directory the
+    # run's artifacts and its brief sit in and defaults to the working
+    # one. A case runs this against a fixture elsewhere, and with the
+    # paths hard-wired relative to the cwd both of its cases took the
+    # missing-directory branch -- the refusal one PASSING for the wrong
+    # reason, which is a case proving nothing while reading green.
+    d = readings_dir or os.path.join(where, 'log-read-%s' % run)
+    brief = brief or os.path.join(where, BRIEF)
     facts = os.path.join(d, 'for-brief.txt')
     if not os.path.exists(facts):
         sys.stderr.write('--brief-update: no %s, which post-run-readings.sh'
@@ -13602,6 +13609,10 @@ def main():
                         ' and every in-scope span with its verdict.'
                         ' The box-and-window half is for-brief.txt,'
                         ' which it names rather than copies')
+    p.add_argument('--brief-dir', metavar='DIR', default='.',
+                   help='with --brief-update: the directory holding'
+                        ' log-read-RUN/ and checker-brief.txt, the'
+                        ' working one by default')
     p.add_argument('--brief-update', metavar='RUN',
                    help="paste the run's own facts into"
                         ' checker-brief.txt from'
@@ -14051,7 +14062,8 @@ def main():
     if args.stale:
         sys.exit(stale_figures(want_run_doc(args), verbose=args.all_paras))
     if args.brief_update:
-        sys.exit(brief_update(args.brief_update))
+        sys.exit(brief_update(args.brief_update,
+                              where=args.brief_dir))
     if args.prose_facts:
         sys.exit(prose_facts(args.prose_facts))
     if args.check_doc:
