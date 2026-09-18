@@ -716,13 +716,14 @@ rather than a slot in the next run, observed again:
   where a run's registrations have lived since 2026-08-29; in a clause each: (1)
   HELD on all twenty-two readings, stage thirteen under stage twelve where
   a call is short and level where it is long, deepest on `small` at 0.8410
-  and 0.8518; (2) KILLED on `scaled` alone, its thinnest view reaching -138
-  and -136 instructions where the item asked for more than -200, and holding
-  on the other ten populations; (3) KILLED by its spans while its own sentence
-  holds --- a `counts` span under `--compare` reads one half against the other
-  rather than against Run 34, and the two earlier runs of this pair read 1.0062
-  and 1.0063 where the item allowed 0.1%, so the span was unholdable when
-  written, where the claim it states reads 1.0000 across the runs.
+  and 0.8518; (2) KILLED on `scaled` alone, its thinnest view saving only 138
+  and 136 instructions where the item asked for more than two hundred on every
+  view, and holding on the other ten populations; (3) KILLED by its spans while
+  its own sentence holds --- a `counts` span under `--compare` reads one half
+  against the other rather than against Run 34, and the two earlier runs
+  of this pair read 1.0062 and 1.0063 where the item allowed 0.1%, so the span
+  was unholdable when written, where the claim it states reads 1.0000 across
+  the runs.
 - `ANSWERED` **What Run 34 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 34's own file](runs/run34.md), where a run's
@@ -1196,7 +1197,7 @@ rather than a slot in the next run, observed again:
   item (3) claimed that the shared code left two ported library arms'
   instruction counts where Run 34 read them, and wrote
   it as `predict: counts lib-stage2-lean 1.0 within 0.1%`. Read as the prose
-  states it the claim HOLDS to three ten-thousandths --- this run's counts
+  states it the claim HOLDS to six hundred-thousandths --- this run's counts
   against Run 34's, same half, geomean 1.0000 over all 34 arms the sweep
   carries. The span reads something else: a `counts` span under `--compare`
   is THIS half over the OTHER, a comparison of the two compilers, on which
@@ -1249,16 +1250,17 @@ rather than a slot in the next run, observed again:
   runs of one recipe parting by twenty points on one cell says, and it narrows
   what would settle it to the process rather than the binary.
 - `OPEN` **The chapter's two reading windows landed INSIDE a timed process until
-  2026-09-16, and what a reading costs the process it lands on is still
-  unmeasured.** Run list step 15, since folded into 13a before the launch, put
-  the previous run's registered predictions and the open list *after
-  `sequence: start`*, on the argument that the sequence is hours and a document
-  read is minutes --- a line written after Run 32's reading intruded
-  on its GATE, one step earlier. The reading-list digest puts the carrier's four
-  `--section` reads in the same window, saying outright that there it *costs
-  nothing*. Run 33 obeyed both and intruded on `run33-gheadexit-main`,
-  the sequence's FIRST process: 3 of its 627 benches at or above 0.25 of a core,
-  peak 0.35, on `lenet-L1-28-c1-k5/mut-odo-vecdims-add-in-leaf-u2-aa-distant`,
+  2026-09-16, and what a reading costs the process it lands on went unmeasured
+  until Run 35 measured it.** Run list step 15, since folded into 13a before
+  the launch, put the previous run's registered predictions and the open list
+  *after `sequence: start`*, on the argument that the sequence is hours
+  and a document read is minutes --- a line written after Run 32's reading
+  intruded on its GATE, one step earlier. The reading-list digest puts
+  the carrier's four `--section` reads in the same window, saying outright
+  that there it *costs nothing*. Run 33 obeyed both and intruded
+  on `run33-gheadexit-main`, the sequence's FIRST process: 3 of its 627 benches
+  at or above 0.25 of a core, peak 0.35,
+  on `lenet-L1-28-c1-k5/mut-odo-vecdims-add-in-leaf-u2-aa-distant`,
   `cnn-L1-6x6-c1/lib-stage2-lean`
   and `cnn-L1-6x6-c1/mut-odo-vecdims-add-in-leaf-u2-aa` --- registration (1)'s
   own arm and two of the copies the floor is read from. The rerun post-run step
@@ -1282,11 +1284,12 @@ rather than a slot in the next run, observed again:
   and a reading this cheap has no claim on the hours. **Run 34 is the first
   evening read that way, and it is clean**: `--wild` finds no bench at 0.25
   of a core in any of its twenty-two sequence logs, its four gate logs or its 88
-  rider logs. What is NOT settled, and is why this stays open: nobody has
-  measured what a session's reading costs the process it lands on, only
-  that twice it cleared the 0.25-of-a-core bar the reader calls an intrusion.
-  **Run 35 measured it, and on a command the list itself still placed after
-  the launch.** Its `./run-status.sh run35` --- the line the run list printed
+  rider logs. What stays open is the other half: all three readings are
+  of a SESSION's own commands landing on a process, and nobody has priced one
+  against a control --- the same command run beside a process rather than
+  on it --- so what a reading costs is known only where it landed. **Run 35
+  measured it, and on a command the list itself still placed after the launch.**
+  Its `./run-status.sh run35` --- the line the run list printed
   under `run-evening.sh` --- landed inside the GATE's first process and put 2
   of its 95 benches at or above the bar, peak **0.81** of a core
   on `cnn-L1-6x6-c1/mut-odo-vecdims` and 0.65 on `cnn-L1-6x6-c1/bq-expand`,
@@ -6133,11 +6136,11 @@ over the 24 shapes Run 23 had. It has now read 1.80x at -O1, 1.68x on Run 8,
 18 and again on Run 19 --- a paired figure that moved five ten-thousandths
 across a REPETITION of one binary, Run 18's basis and Run 19's being both
 ghc-9.12.4 and byte-identical --- 1.83x on Run 20, 1.84x on Run 21 and Run 22,
-1.83x on Run 23 and **1.83x** on Run 24, the figure moving three ten-thousandths
-from Run 23's published 0.5466 --- that column being the max-skip half's,
-so the step crosses the basis recipe as well as a roster change, where
-the previous build of THIS recipe, Run 23's dead-spot half, read 0.5527.
-**This is the reading that shows the shape set has to be pinned before
+1.83x on Run 23 and **1.83x** on Run 24, the figure moving six
+hundred-thousandths from Run 23's published 0.5466 --- that column being
+the max-skip half's, so the step crosses the basis recipe as well as a roster
+change, where the previous build of THIS recipe, Run 23's dead-spot half, read
+0.5527. **This is the reading that shows the shape set has to be pinned before
 the figure is compared**: over Run 24's own 26 shapes the same pair reads
 0.5493, and over the 25 that exclude `stretch-inner1` 0.5312, so a run quoting
 its own population against a predecessor's would have reported a movement
@@ -8597,7 +8600,7 @@ Unsandboxed throughout:
     #      and whenever the run seems finished, and NEVER between the launch
     #      below and the riders' last line: Run 35 ran it on the line after
     #      the launch, where it landed inside the gate's first process and
-    #      cost two of that process's 95 benches four fifths of a core (the
+    #      cost two of that process's 95 benches two thirds and four fifths of a core (the
     #      open list's reading-windows entry). Every step of the three
     #      lists an artifact or the repository can answer for, `STATUS: all
     #      done` being the one state in which a session is finished with a
@@ -11898,15 +11901,15 @@ eighteen runs now agree on.** The carry-back figure has read 0.54%, 0.49%,
 while the whole-set figure ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12%, 2.03%
 and 1.26% before it stopped, so the pairs outside the four were what moved.
 **Run 27's 0.83% still does not survive as a trend**, and neither does the rise
-Runs 28 to 32 traced: Run 33's 0.47% and Run 34's 0.49% were back INSIDE
-the 0.31%-to-0.54% band the series held for nine runs, and THIS run's 0.64%
-is outside it again --- the fourth reading above that band in eight, on a pair
-whose recipe did not change, so what the band describes is the spread
-of the measurement and not a property a run can be said to have left
-or rejoined. The threshold this run supports is TWO figures a half --- **0.49%
-and 0.64%** on the basis and **0.36% and 0.40%** on the control, the restricted
-four-pair reading and the whole set over the eight --- and since 2026-09-13
-a margin between two rows clears the whole-set one, the carry-back figure being
+Runs 28 to 32 traced: Run 33's 0.47%, Run 34's 0.49% and this run's 0.49%
+are all INSIDE the 0.31%-to-0.54% band the series held for nine runs, three
+readings running after three above it. The figure that moved this run
+is the WHOLE-SET one, to 0.64%, and it is a different statistic --- which
+is what the four-statistics warning at the head of this paragraph is for.
+The threshold this run supports is TWO figures a half --- **0.49% and 0.64%**
+on the basis and **0.36% and 0.40%** on the control, the restricted four-pair
+reading and the whole set over the eight --- and since 2026-09-13 a margin
+between two rows clears the whole-set one, the carry-back figure being
 the series and not the bar ([the open list][open]). Read the floor as the run's
 *and the half's*, re-measured every time, never as a constant of the harness
 and never inherited. **And both of the checks from OUTSIDE the declared pairs
@@ -14169,7 +14172,7 @@ and its fingerprint say so.
   the shim and the launch besides. Its sequence ran in ONE window, 02:20:29
   to 10:12:17, and no process of the run, the gate's and the riders' included,
   was intruded on. **And its floor is a maximum over EIGHT A/A pairs**, both
-  halves' figures in [Run 34's Results](runs/run34.md).
+  halves' figures in [Run 34's own file](runs/run34.md).
 - Run 33 measured 33 timed arms over 19 main-set shapes and 58 class views
   in TEN classes, 627 benches and 1914, EIGHT A/A pairs, the `runs` class
   at FOURTEEN, `window` at EIGHT, `bcast` and `flip` at SIX, `block` and `small`
