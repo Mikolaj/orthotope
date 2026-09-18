@@ -14147,10 +14147,11 @@ and its fingerprint say so.
   is the source. Its sequence ran in THREE windows, 01:54:33 to 03:49:22,
   03:55:00 to 10:05:35 and 11:24:11 to 11:48:34 --- a harness kill between
   the first two and a rerun of `bcastmid` on both halves in the third, after
-  `--wild` named a root cron job inside the first `bcastmid` process. No process
-  of the SEQUENCE was intruded on; one gate process was, by this session's own
-  status call. **And its floor is a maximum over EIGHT A/A pairs**, both halves'
-  figures in [Run 35's Results](runs/run35.md#results).
+  `--wild` named an intrusion inside the first `bcastmid` process, which
+  the journal attributes to a root cron session. No process of the SEQUENCE
+  was intruded on; one gate process was, by this session's own status call.
+  **And its floor is a maximum over EIGHT A/A pairs**, both halves' figures
+  in [Run 35's Results](runs/run35.md#results).
 - Run 34 measured 34 timed arms over 19 main-set shapes and 61 class views
   in TEN classes, 646 benches and 2074, EIGHT A/A pairs, the `runs` class
   at SEVENTEEN, `window` at EIGHT, `bcast` and `flip` at SIX, `block`
