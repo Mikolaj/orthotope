@@ -251,8 +251,10 @@ echo "post-run"
 # 0 IS THE ONE STEP WHOSE WINDOW CLOSES, and until 2026-09-13 it was the one
 # step this file could not prompt: it spends the binaries, so a run that
 # reaches step 11 without it cannot go back. The twins are what it leaves,
-# one per half, named for the run.
-TWINS=$(ls probe-g3-*-"$R" 2>/dev/null | wc -l)
+# one per half, named for the run -- `probe-g3-<half>-run<N>` since Run 27
+# and `-r<N>` by the three twin scripts before it, which the first form
+# of this glob missed, reading those finished runs NOT DONE for ever.
+TWINS=$(ls probe-g3-*-"$R" probe-g3-*-"${R/run/r}" 2>/dev/null | wc -l)
 if [ "$TWINS" -ge 2 ]; then
   say 0 "done" "$TWINS -g3 twin(s) here; the fill groups are named off them"
 elif [ -f "$DOC" ] || ls "$R"-*.json >/dev/null 2>&1; then

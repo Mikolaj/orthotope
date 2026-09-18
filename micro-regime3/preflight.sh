@@ -269,8 +269,11 @@ gate = sh('./run-gate.sh %s --show 2>/dev/null' % R)
 gf = [m.group(1) for m in
       (re.search(r'arms\s+(\d+)', gate), re.search(r'expect (\d+) benches', gate))
       if m]
-if gf:
-    want.append(('gate arms', gf))
+# A GATE THAT REFUSED IS A ROW UNCHECKED, not a row skipped: --show exits
+# before printing on a missing binary or a SEL off the roster, and the
+# row then left `want` at a PASS that had compared it to nothing
+# (2026-09-18, by review). An empty figure takes the `unchecked` path.
+want.append(('gate arms', gf or ['']))
 bad, checked, seen = list(extra), 0, {}
 # THE ORDER RULE IS FOR THE TWO ROWS THAT CARRY BOTH HALVES UNDER ONE
 # LABEL AND DIFFERENT FIGURES IN THEM -- `.text` and `compilers`. Applied

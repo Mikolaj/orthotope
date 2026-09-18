@@ -665,9 +665,15 @@ second window"
     a="$R-$BASIS-$pop.json"
     b=$(printf '%s\n' $FILES | grep -v -- "-$BASIS-" | grep -- "-$pop\.json")
     { [ -f "$a" ] && [ -n "$b" ]; } || continue
-    ./read-run.py "$a" --compare "$b" 2>/dev/null \
-      | awk -v p="$pop" '$1 == "list" { print p, $2; exit }'
+    got=$(./read-run.py "$a" --compare "$b" 2>/dev/null \
+            | awk -v p="$pop" '$1 == "list" { print p, $2; exit }')
+    # A REFUSED --compare IS A ROW: a partial or unreadable other half
+    # exits 2 with nothing on stdout, and the range below then left the
+    # population out with no mark on it (2026-09-18, by review).
+    [ -n "$got" ] && printf '%s\n' "$got" \
+      || echo "!! $pop: --compare gave no list line, so the range omits it"
   done | awk '
+      $1 == "!!" { print "    " $0; next }
       { if ($1 == "main") main = $2
         else { if (lo == "" || $2 + 0 < lo + 0) { lo = $2; lop = $1 }
                if (hi == "" || $2 + 0 > hi + 0) { hi = $2; hip = $1 } } }

@@ -2896,6 +2896,28 @@ def corpus_of_two(tmp):
     return {'corpus': d}
 
 
+def corpus_with_a_class_run(tmp):
+    """Two built main runs behind a class run that sorts first, for a
+    limit that must count runs opened and not main tables read back."""
+    d = corpus_of_two(tmp)['corpus']
+    synth_json(d, 'flip', name='0-flip.json')
+    return {'corpus': d}
+
+
+def floor_legs(tmp):
+    """A paired class leg beside an alone leg, as view-floor.py globs
+    them: `zzvf-<half>-flip.json` twice and one `zzvf-al-<half>-<shape>-r1`
+    holding a single arm, which is no class and carries no A/A group."""
+    d = os.path.join(tmp, 'legs')
+    os.mkdir(d)
+    for half in ('ghead', 'g912'):
+        synth_json(d, 'flip', name='zzvf-%s-flip.json' % half)
+    write(os.path.join(d, 'zzvf-al-ghead-cnn-r1.json'), json.dumps(
+        [['criterion'], [], [{'reportName': 'cnn/list', 'reportAnalysis': {
+            'anRegress': [{'regCoeffs': {'iters': {'estPoint': 1.0}}}]}}]]))
+    return d
+
+
 def corpus_with_an_unreadable_run(tmp):
     """One built run beside a JSON cut off mid-file, as a killed process
     leaves one."""
@@ -7374,6 +7396,19 @@ RECORDS = [
          ok=V(exit=2, has=['one mode at a time']),
          bug=V(exit=0)),
 
+    case('two-modes-at-once-off-the-roll-call', 'read-run.py', None,
+         'CONTROL: a mode the dispatch chain reaches late -- --stale,'
+         ' --brief-update, --series, --cell-movers, --movement, --winsor'
+         ' -- is refused beside another mode, not dropped',
+         # Six `if args.X: sys.exit(...)` branches of the same chain were
+         # outside the roll call, so `--stale --lint` printed the stale
+         # report at exit 0 and ran no lint -- the silent drop the comment
+         # beside the list says it prevents. Found 2026-09-18 by review; a
+         # control until the fix has a hash.
+         plant=lambda t: {'doc': edited_rundoc(t)},
+         argv=['--stale', '--lint', '--run-doc', '{doc}'],
+         ok=V(exit=2, has=['one mode at a time', '--stale', '--lint'])),
+
     # A CONTROL and not a replay, which is a property of the repair rather
     # than a gap in it: `--len 0` said `any length` for a report `scan`
     # caps at one cache line, and what made that checkable without a
@@ -9657,7 +9692,9 @@ RECORDS = [
          env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
               'ARMS': 'list', 'N': '1'},
          argv=['zzct3', 'g912'],
-         ok=V(exit=1, has=['perf will not count instructions here',
+         # Exit 2 since 2026-09-18, the did-not-run code the usage guard
+         # and every sibling probe use; 1 read as a sweep that ran wrong.
+         ok=V(exit=2, has=['perf will not count instructions here',
                            'Nothing ran'])),
 
     case('counts-refuses-an-unwritable-tmp', 'run-counts.sh', None,
@@ -9674,7 +9711,8 @@ RECORDS = [
          env={'PATH': '{stub}:/usr/bin:/bin', 'TMPDIR': '/nonexistent-zz',
               'ONLY': 'shape-a', 'ARMS': 'list', 'N': '1'},
          argv=['zzct5', 'g912'],
-         ok=V(exit=1, has=['mktemp gives no writable file', 'Nothing ran'])),
+         # Exit 2 since 2026-09-18, with every did-not-run guard there.
+         ok=V(exit=2, has=['mktemp gives no writable file', 'Nothing ran'])),
 
     case('counts-runs-under-a-perf-that-answers', 'run-counts.sh', None,
          'CONTROL: the guard passes and the sweep writes its counts',
@@ -10037,21 +10075,23 @@ RECORDS = [
          ' the count-dependent ones are not',
          shadow=dict(extra=readings_run('zzpr', complete=False)),
          argv=['zzpr'],
-         # THE PRED JOB IS ASKED FOR BY NAME AND NOT BY ITS rc, since
+         # THE PRED JOB IS ASKED FOR BY NAME AT rc 0 OR 1, since
          # 2026-09-18: its exit code belongs to the REGISTRATION and not to
          # this script. `--predictions` returns `1 if unread else 0`, and a
          # `counts` or `countdiff` span cannot be read before the sweeps
          # exist -- which is precisely the state this control is in. Run
          # 35's registration was the first to carry such spans and turned
          # this case red with nothing in post-run-readings.sh having moved.
-         # The other two rc=0 assertions stay: those readings owe nothing
-         # to a registration. What this case is about is WHICH readings are
-         # taken before EVENING COMPLETE, which the hasnt list below and
-         # this name together settle.
+         # The bare name alone let rc=2 and a traceback through, so the
+         # hasnt list refuses both. The other two rc=0 assertions stay:
+         # those readings owe nothing to a registration. What this case is
+         # about is WHICH readings are taken before EVENING COMPLETE, which
+         # the hasnt list below and this name together settle.
          ok=V(has=['rc=0 main-lookrts-aa.txt', 'main-a1g-pred.txt',
                    'rc=0 %s-a1g-block.txt' % class_names()[0],
                    'not before EVENING COMPLETE'],
-              hasnt=['main-counts-cmp.txt', 'half-movers.txt',
+              hasnt=['rc=2 main-a1g-pred.txt', '!! crashed',
+                     'main-counts-cmp.txt', 'half-movers.txt',
                      'cell-movers.txt'])),
 
     case('readings-take-the-counts-once-complete', 'post-run-readings.sh',
@@ -10919,7 +10959,11 @@ RECORDS = [
                                      prefix='zzx5', classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['zzx5'],
-         ok=V(exit=1, has=['REFUSED', 'no `Across the halves:`'])),
+         # AND SAYS THE FILE STANDS: the write is one, after every class,
+         # so a refusal on a late class left an earlier class's ADDED line
+         # on the screen over a file that never changed (2026-09-18).
+         ok=V(exit=1, has=['REFUSED', 'no `Across the halves:`',
+                           'nothing written'])),
 
     case('basis-glob-catches-no-other-half', 'install-tables.sh', '440b22d',
          'a control half named <basis>-pa was installed as the basis',
@@ -11796,6 +11840,33 @@ RECORDS = [
          ok=V(has=['no <yours> slot left'],
               hasnt=['slot(s) still <yours>'])),
 
+    case('status-counts-the-short-named-twins', 'run-status.sh', None,
+         'CONTROL: step 0 counts the twins of Runs 23 to 25, which their'
+         ' own scripts name `probe-g3-<half>-r<N>`',
+         # The three twin scripts before Run 27 build `probe-g3-<half>-r23`
+         # and the glob read `-run23` alone, so those three finished runs
+         # read step 0 NOT DONE for ever -- run23 being the run this
+         # script's own non-vacuity note says reads all done. Found
+         # 2026-09-18 by review; a control until the fix has a hash.
+         shadow=dict(extra=[('probe-g3-a-r97', '#!/bin/sh\n'),
+                            ('probe-g3-b-r97', '#!/bin/sh\n')]),
+         argv=['run97'],
+         ok=V(has=['2 -g3 twin(s) here'])),
+
+    # ---- view-floor.py, the per-view floor -----------------------------
+    case('view-floor-skips-the-legs-that-are-not-classes', 'view-floor.py',
+         None,
+         'CONTROL: the main set, the alone legs and the gate processes are'
+         ' passed over, not read as classes with no A/A group',
+         # `if cls in (...): pass` skipped nothing, and tested the class
+         # where the alone and gate legs carry their marker in the half's
+         # place, so every such leg of a finished run raised the exit to 2
+         # with a `carries no A/A group` line apiece -- 92 on Run 32.
+         # Found 2026-09-18 by review; a control until the fix has a hash.
+         plant=lambda t: {'dir': floor_legs(t)},
+         argv=['zzvf', '-d', '{dir}'],
+         ok=V(exit=0, hasnt=['carries no A/A group'])),
+
     case('status-blocks-without-wrap80', 'run-status.sh', '87c77f0',
          'with wrap80 off PATH the README verdicts were read off an empty file',
          # `wrap80 --unwrap README.md > $TMP/readme 2>/dev/null` dropped
@@ -11908,6 +11979,32 @@ RECORDS = [
          ok=V(exit=0, has=['prop_abs_round_trip', 'in 1 run(s)'],
               hasnt=['in 2 run(s)']),
          bug=V(has=['in 2 run(s)'], hasnt=['in 1 run(s)'])),
+
+    case('properties-limit-counts-a-class-run-it-opened', 'properties.py',
+         None,
+         'CONTROL: CORPUS_LIMIT bounds the runs the round-trip opens, a'
+         ' class run among them, and not the main tables it reads back',
+         # The break sat after the population filter, so a class run was
+         # opened and passed over uncounted and every run on disk was
+         # loaded whatever the limit -- the shape the record above holds
+         # one loop in, in the loop beside it. Found 2026-09-18 by review;
+         # a control until the fix has a hash.
+         plant=corpus_with_a_class_run,
+         env={'CORPUS': '{corpus}', 'CORPUS_LIMIT': '2'},
+         argv=[],
+         ok=V(has=['over 1 population(s) on disk'],
+              hasnt=['over 2 population(s) on disk'])),
+
+    case('properties-help-before-the-corpus', 'properties.py', None,
+         'CONTROL: --help prints from a tree with no runs/run<N>.md, where'
+         ' the newest run doc used to be resolved at import and exit 2'
+         ' before main() saw the flag',
+         # A second exit-2 route the docstring did not name, and it hid
+         # the help text exactly where a reader wants it. Found 2026-09-18
+         # by review; a control until the fix has a hash.
+         shadow=dict(extra=[('runs', '')]),
+         argv=['--help'],
+         ok=V(exit=0, has=['properties.py'], hasnt=['BLOCKED'])),
 
     case('properties-refuse-a-limit-that-is-not-a-count', 'properties.py',
          '4ea1464',

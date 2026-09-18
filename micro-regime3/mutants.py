@@ -544,6 +544,41 @@ MUTANTS = [
      'printf \'a stand-in pair note.\\nHALVES: basis=lookrts other=a1g\\n'
      '# a header explaining <yours>\\n\' > "{dir}/run97-pair.txt"; '
      '{file} run97 2>&1 | grep -q "no <yours> slot left"'),
+    # A refused gate is a row UNCHECKED and not a row dropped: --show
+    # exits before printing on a missing binary, and the mutant puts back
+    # the `if gf:` that left `want` without the row at a PASS. The judge
+    # plants a note carrying the row and no binaries, so the gate refuses.
+    ('--figures drops a refused gate row instead of leaving it unchecked',
+     'preflight.sh',
+     "want.append(('gate arms', gf or ['']))",
+     "want.append(('gate arms', gf)) if gf else None",
+     'printf \'a stand-in pair note.\\nHALVES: basis=lookrts other=a1g\\n\\n'
+     'Verified when built, 2026-09-18:\\n  gate arms        7 arms, expect 21'
+     ' benches\\n\' > "{dir}/zzpf-pair.txt"; '
+     '{file} zzpf --figures 2>&1 | grep -q "gate arms .*gave nothing to check"'),
+    # A refused --compare is a row of the delta bullet's range, and the
+    # mutant makes it the silence it was. The judge shadows the newest run
+    # with both rev JSONs cut off mid-file, so --compare refuses that
+    # population; LOST with no rev JSON on disk, as every corpus judge.
+    ('a refused --compare drops its population from the delta range in silence',
+     'read-all.sh',
+     '      || echo "!! $pop: --compare gave no list line, so the range omits it"',
+     '      || :',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\n'
+     'd = importlib.util.module_from_spec(spec)\n'
+     'spec.loader.exec_module(d)\n'
+     'revs = sorted(f for f in os.listdir(\'{root}\') if f.startswith(\'run\') and f.endswith(\'-rev.json\') and not f.startswith(\'runzz\'))\n'
+     'if not revs: sys.exit(2)\n'
+     'run = revs[-1].split(\'-\')[0]\n'
+     'extra = []\n'
+     'for f in revs:\n'
+     '    if f.startswith(run + \'-\'):\n'
+     '        whole = open(os.path.join(\'{root}\', f)).read()\n'
+     '        extra.append((f, whole[:len(whole) // 2]))\n'
+     'sd = d.shadow_dir(tempfile.mkdtemp(), \'read-all.sh\', open(\'{file}\').read(), extra=extra)\n'
+     'r = subprocess.run([os.path.join(sd, \'read-all.sh\'), run, \'--brief-facts\'], capture_output=True, text=True)\n'
+     'sys.exit(0 if \'!! rev: --compare gave no list line\' in r.stdout else 1)"'),
     # The out-of-range refusal, removed: a table number past the section
     # falls through to an index that is not there. Silence and a traceback
     # both read like a section carrying no table, which is the reading
@@ -816,18 +851,20 @@ MUTANTS = [
     # newest main-set run on disk through the default mode, which prints
     # them for the main set as --block does for a class. Each mutant
     # swaps a clause's two arms, so a run on which it holds reads BREAKS.
+    # Under pipefail since 2026-09-18: the status was grep's alone, so a
+    # reader that printed HOLDS and then died read as a clean baseline.
     ('property 1 stops reading mut-odo-vecdims against bq-expand', 'read-run.py',
      "    clause('property 1, ahead of `bq-expand` on every shape', 'net',\n"
      "           PLAIN, LAST_CANDIDATE, 1.0)",
      "    clause('property 1, ahead of `bq-expand` on every shape', 'net',\n"
      "           LAST_CANDIDATE, PLAIN, 1.0)",
-     'f=$(ls "{root}"/run[0-9]*-rev.json 2>/dev/null | tail -1); test -n "$f" '
+     'set -o pipefail; f=$(ls "{root}"/run[0-9]*-rev.json 2>/dev/null | tail -1); test -n "$f" '
      '&& python3 "{file}" "$f" --block 2>/dev/null | grep -q "property 1, ahead of .bq-expand. on every shape: HOLDS"'),
     ('property 2 stops reading mut-odo-vecdims against list', 'read-run.py',
      "    clause('property 2, allocation at most 1% over `list` on every shape',\n"
      "           'alloc', PLAIN, 'list', 1.01)",
      "    clause('property 2, allocation at most 1% over `list` on every shape',\n"
      "           'alloc', 'list', PLAIN, 1.01)",
-     'f=$(ls "{root}"/run[0-9]*-main.json 2>/dev/null | tail -1); test -n "$f" '
+     'set -o pipefail; f=$(ls "{root}"/run[0-9]*-main.json 2>/dev/null | tail -1); test -n "$f" '
      '&& python3 "{file}" "$f" 2>/dev/null | grep -q "property 2, allocation at most 1% over .list. on every shape: HOLDS"'),
 ]

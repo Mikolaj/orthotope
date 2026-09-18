@@ -9,8 +9,8 @@ the shell drivers, which the AST families cannot reach. An absent linter is
 a finding and not a skip, and absent means every invocation the step can
 run fails: pyflakes was once reported absent after one failed import while
 a `pyflakes` script sat on PATH, and today the script is gone while the
-module runs, so the step tries both, and their joint silence fails the step
-by name.
+module runs, so the step tries both, runs whichever it found, and their
+joint silence fails the step by name.
 """
 
 # Every tracked shebang file here, the subdirectories being investigations
@@ -22,7 +22,7 @@ STEPS = [
     ('records validate',       ['python3', '{bin}/defect-cases.py', '{root}']),
     ('source lint',            ['python3', '{bin}/defect-lint.py', '{root}']),
     ('pyflakes',               ['bash', '-c',
-                                'cd "{root}" && { command -v pyflakes >/dev/null || python3 -m pyflakes --version >/dev/null 2>&1 || { echo "pyflakes is not on PATH (command -v pyflakes finds nothing), so the Python here went unlinted"; exit 1; }; } && python3 -m pyflakes *.py']),
+                                'cd "{root}" && if command -v pyflakes >/dev/null; then pyflakes *.py; elif python3 -m pyflakes --version >/dev/null 2>&1; then python3 -m pyflakes *.py; else echo "pyflakes is not on PATH (command -v pyflakes finds nothing) and python3 -m pyflakes does not import, so the Python here went unlinted"; exit 1; fi']),
     ('shellcheck',             ['bash', '-c',
                                 'cd "{root}" && { command -v shellcheck >/dev/null || { echo "shellcheck is not on PATH (command -v shellcheck finds nothing), so the shell scripts here went unlinted"; exit 1; }; } && shellcheck -S warning -f gcc *.sh']),
     # The bang checker is horde-ad's, reached through the sibling checkout

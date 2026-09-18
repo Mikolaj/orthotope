@@ -103,8 +103,11 @@ for A in "$@"; do
          "whatever ran when sampling resumed -- raise PERIOD" | tee -a "$OUT"
     BAD=1
   fi
+  # A COUNT OF 0 IS NO COUNT: it passed the digits test and divided by
+  # zero below, which in bash unwinds the whole arm loop at exit 0 with
+  # BAD still 0 (2026-09-18, by review).
   case ${TRUE:-} in
-    ''|*[!0-9]*) echo "!! $A: perf stat gave no count, so the histogram's scale"\
+    ''|0|*[!0-9]*) echo "!! $A: perf stat gave no count, so the histogram's scale"\
                       "is unchecked" | tee -a "$OUT"; BAD=1 ;;
     *) if [ "$(( 100 * TOT / TRUE ))" -lt 95 ] || [ "$(( 100 * TOT / TRUE ))" -gt 105 ]
        then

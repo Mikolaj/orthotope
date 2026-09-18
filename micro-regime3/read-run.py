@@ -13918,12 +13918,17 @@ def main():
     # `inherited` and `modes` joined the roll call 2026-09-08, an hour
     # after they were written: a mode added outside this list is exactly
     # the silent drop the list exists to refuse, and `--inherited --lint`
-    # printed the report and said nothing of the lint it never ran.
+    # printed the report and said nothing of the lint it never ran. Six
+    # more joined 2026-09-18, by review, having sat in the same chain
+    # outside it since they were written: `--stale --lint` printed the
+    # stale report at exit 0 and ran no lint.
     modes = [f for f in ('shapes', 'aa', 'pair', 'compare',
                          'machine', 'steps', 'cells', 'markdown',
                          'fingerprint', 'block', 'selftest', 'lint',
                          'check_doc', 'para', 'wild', 'deflation',
-                         'extremes', 'inherited', 'modes')
+                         'extremes', 'inherited', 'modes', 'stale',
+                         'brief_update', 'series', 'cell_movers',
+                         'movement', 'winsor')
              if getattr(args, f)]
     # --block takes --compare as a SUB-FLAG, the way --chapter and --alloc
     # do, because item 5 of the class-block form is a cross-half line and

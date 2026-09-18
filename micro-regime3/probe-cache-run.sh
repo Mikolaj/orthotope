@@ -16,8 +16,12 @@ BIN=./probe-cache-spot
 for f in probe-cache-runs.json probe-cache-runs.log; do
   [ -e "$f" ] && { echo "$f exists already; move it aside first"; exit 2; }
 done
-BUSY=$(./machine-busy.sh)
-[ "${BUSY%.*}" -lt 5 ] || { echo "machine $BUSY% busy: not a quiet window"; exit 2; }
+# AN UNREADABLE READING REFUSES BY NAME: `[ "" -lt 5 ]` refused too, at
+# exit 2, behind `integer expression expected` and a message naming an
+# empty percentage (2026-09-18, by review).
+BUSY=$(./machine-busy.sh) || BUSY=
+case $BUSY in ''|*[!0-9.]*) echo "machine-busy.sh gave no reading (${BUSY:-empty})"; exit 2 ;; esac
+awk -v x="$BUSY" 'BEGIN { exit !(x < 5) }' || { echo "machine $BUSY% busy: not a quiet window"; exit 2; }
 SEL=()
 for arm in list sum-only-early sum-only-late \
            lib-stage1 lib-stage2 lib-stage2-disp mut-odo-vecdims; do

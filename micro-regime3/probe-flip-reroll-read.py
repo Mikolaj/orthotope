@@ -33,7 +33,12 @@ AA = ['mut-odo-vecdims', 'mut-odo-vecdims-aa', 'mut-odo-vecdims-aa-distant']
 
 def leg_cells(path):
     """Net per-call slope in ms for every arm of one leg, forcing term out."""
-    d = json.load(open(path))
+    try:
+        d = json.load(open(path))
+    except ValueError:
+        # criterion opens --json before its first bench, so a leg killed
+        # mid-group leaves a file cut off mid-write.
+        return None, '%s is not readable JSON: a leg that died mid-write' % path
     rep = {r['reportName']:
            r['reportAnalysis']['anRegress'][0]['regCoeffs']['iters']['estPoint']
            for r in d[2]}
@@ -88,7 +93,19 @@ def main():
         floors[t] = spread(v)
         print('   %-22s %s   spread %5.2f%%'
               % (t, ' '.join('%8.4f' % x for x in v), floors[t]))
-    med_floor = statistics.median(floors.values())
+    # A LEG WITH NO FLOOR IS SAID, NOT AVERAGED IN: spread() is nan for
+    # a leg missing its A/A copies, and statistics.median over a list
+    # with one nan hands back whichever value sorts to the middle -- a
+    # finite figure, or nan by position, under which every `>` below is
+    # False and every arm reads fixed (2026-09-18, by review).
+    floorless = [t for t in order if floors[t] != floors[t]]
+    for t in floorless:
+        print('!! %s carries no A/A floor, so the median leaves it out' % t)
+    with_floor = [floors[t] for t in order if t not in floorless]
+    if not with_floor:
+        print('no leg carries an A/A floor; the probe did not run')
+        return 2
+    med_floor = statistics.median(with_floor)
 
     print('\n2. net ms per arm per leg')
     print('   %-38s %s' % ('arm', ' '.join('%10s' % t[:10] for t in order)))
@@ -170,7 +187,7 @@ def main():
     print('   --- %d of %d arms reproduce inside 3x the %.2f%% median floor;'
           ' the split is per arm and not per run.'
           % (len(fixed), len(fixed) + len(rolling), med_floor))
-    rc = 1 if rolling else 0
+    rc = 1 if rolling or floorless else 0
     if len(seen) > 1:
         print('   the fill family orders itself %d ways across these legs,'
               ' so no ordering on this view is a property of the code.'

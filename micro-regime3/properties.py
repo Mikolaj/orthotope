@@ -31,7 +31,7 @@ sweeps everything it is given and still prints what it covered -- read that
 line, since under this setting it names one run and the coverage the older
 runs would have added is not taken. Exit 0 when every property holds over something, 1 when one
 fails or the corpus holds nothing a property reads, 2 when CORPUS_LIMIT is
-not a count.
+not a count or no `runs/run<N>.md` is here to build the fixtures against.
 """
 
 import collections
@@ -77,7 +77,8 @@ def _newest_run_doc():
     return max(got)[1]
 
 
-RUNDOC = _newest_run_doc()
+RUNDOC = None    # the newest run doc; main() resolves it, after --help,
+                 # where at import it exited 2 before any flag was read
 # Where the properties look for runs: this directory, or what a case names,
 # which is how an empty corpus is handed to them.
 CORPUS = os.environ.get('CORPUS', HERE)
@@ -207,8 +208,15 @@ def prop_table_reads_back(m):
     the two runs of the pair needs no expected table, so it is asked of
     every population on disk.
     """
-    bad, n = [], 0
+    bad, n, runs = [], 0, 0
     for f in runs_on_disk():
+        # Per RUN opened, as the sibling above counts: placed after the
+        # population filter this bounded the main tables read back and
+        # opened every run on disk whatever the limit. Case:
+        # `properties-limit-counts-a-class-run-it-opened`.
+        if LIMIT and runs >= LIMIT:
+            break
+        runs += 1
         try:
             cells, shapes, strategies, meta = m.load(
                 os.path.join(CORPUS, f), MAIN)
@@ -223,8 +231,6 @@ def prop_table_reads_back(m):
         # asking the reader to break a rule it is keeping.
         if m.population_of(shapes, meta['dims'])[0] != 'main':
             continue
-        if LIMIT and n >= LIMIT:
-            break
         m.apply_correction(cells, shapes, strategies)
 
         class A:                      # the reader's own argument object
@@ -442,6 +448,8 @@ def main():
               ' 0 for every one' % raw, file=sys.stderr)
         return 2
     LIMIT = int(raw)
+    global RUNDOC
+    RUNDOC = _newest_run_doc()
     print('properties over the live corpus:')
     bad = properties(warnings=bool(args))
     if bad:

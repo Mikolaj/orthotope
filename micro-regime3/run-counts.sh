@@ -42,9 +42,9 @@ C="${3-}"
 # The same instance the evening ran, through half-bin.sh: a count owes
 # placement nothing, but one binary per run is one fewer thing to say.
 B=$(./half-bin.sh "$R" "$H") || exit 2
-[ -x "$B" ] || { echo "no $B here -- $R-pair.txt has the recipe"; exit 1; }
+[ -x "$B" ] || { echo "no $B here -- $R-pair.txt has the recipe"; exit 2; }
 OUT=$R-counts-$H${C:+-$C}.txt
-[ -e "$OUT" ] && { echo "$OUT exists; move it aside first"; exit 1; }
+[ -e "$OUT" ] && { echo "$OUT exists; move it aside first"; exit 2; }
 N=${N:-50}
 # PERF FIRST, BECAUSE THE WHOLE SWEEP IS WORTHLESS WITHOUT IT. Every cell
 # is two `perf stat` processes and a machine that refuses the counter
@@ -55,11 +55,13 @@ N=${N:-50}
 # The probe asks whether perf can count HERE AND NOW, which is a capability
 # and not a setting: a counter can be refused by a container, by a missing
 # perf, or by kernel.perf_event_paranoid raised for a reason of somebody
-# else's, and the sweep cannot tell those apart nor needs to.
+# else's, and the sweep cannot tell those apart nor needs to. Exit 2, as
+# the usage guard and the sibling probes say did-not-run, not 1, which
+# reads as a sweep that ran and came out wrong (2026-09-18).
 # Case: `counts-refuses-a-blocked-perf`.
 if ! command -v perf > /dev/null 2>&1; then
   echo "!! no perf on PATH, so no cell here could be counted. Nothing ran."
-  exit 1
+  exit 2
 fi
 if ! perf stat -x, -e instructions:u /bin/true 2>&1 | grep -q '^[0-9]\+,'; then
   echo "!! perf will not count instructions here, so every cell would come"
@@ -68,7 +70,7 @@ if ! perf stat -x, -e instructions:u /bin/true 2>&1 | grep -q '^[0-9]\+,'; then
  $(cat /proc/sys/kernel/perf_event_paranoid 2>/dev/null || echo '?'), and anything above 1 is the"
   echo "   usual cause. That is what it READ and not a diagnosis."
   echo "   Nothing ran and no $OUT was written."
-  exit 1
+  exit 2
 fi
 # AND THE TEMP PATH, which buys the same sweep-long run of NaN by another
 # route: `count()` hands perf a `mktemp` file per cell, and where that
@@ -81,21 +83,21 @@ _probe=$(mktemp 2>/dev/null) && printf x > "$_probe" 2>/dev/null || {
   echo "!! mktemp gives no writable file here (TMPDIR=${TMPDIR:-unset}), so"
   echo "   perf would write its counts nowhere and every cell would be NaN."
   echo "   Nothing ran and no $OUT was written."
-  rm -f "$_probe"; exit 1; }
+  rm -f "$_probe"; exit 2; }
 rm -f "$_probe"
 # SEL is the binary's own selector and is empty for the main set, so it is
 # deliberately unquoted at the call site: quoted, an empty SEL would pass an
 # empty argument and select nothing.
 SEL=${C:+classes}
 LIST=$("$B" $SEL --list 2>/dev/null)
-[ -n "$LIST" ] || { echo "!! --list gave nothing; wrong binary?"; exit 1; }
+[ -n "$LIST" ] || { echo "!! --list gave nothing; wrong binary?"; exit 2; }
 if [ -n "$C" ]; then
   LIST=$(printf '%s\n' "$LIST" | grep "^$C-") || LIST=
   # A class naming no bench is the one way this can run to completion over
   # nothing and exit 0, which is the shape of failure every driver here
   # refuses. run-major.sh reports the same state per class.
   [ -n "$LIST" ] || { echo "!! class prefix $C- matches no bench of"\
-      " $B classes --list -- nothing ran and no $OUT was written"; exit 1; }
+      " $B classes --list -- nothing ran and no $OUT was written"; exit 2; }
 fi
 # Both restrictions are read BEFORE the defaults overwrite them: `ARMS` is
 # its own default's variable, so after the line below there is no telling

@@ -111,8 +111,13 @@ for h in g912 ghead; do
     j="$OUT/alone-$h-$arm.json"
     [ -f "$j" ] || {
       echo "== alone $h $arm"
+      # Set aside on failure, as the perf leg's `|| true` keeps the sweep
+      # going: under set -e a dead alone leg ended it, leaving the JSON
+      # criterion had opened for the next run to skip (2026-09-18).
       "$BIN/run27-$h" classes -m glob "$sel" --json "$j" \
-           > "$OUT/alone-$h-$arm.log" 2>&1
+           > "$OUT/alone-$h-$arm.log" 2>&1 \
+        || { echo "!! alone $h $arm exited $?; its JSON is set aside"
+             mv -f "$j" "$OUT/alone-$h-$arm.failed.json" 2>/dev/null || true; }
     }
     # (2) the counter legs, fresh process each, differenced by the reader.
     for n in 100 200; do

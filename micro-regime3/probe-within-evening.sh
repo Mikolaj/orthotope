@@ -41,8 +41,12 @@ log () { echo "=== $(date -Is) $*" | tee -a "$LOG"; }
 # says what busy means. Taken ONCE, before the first process: a later
 # process runs in whatever the box has become, which is what the log is
 # for.
-BUSY=$(./machine-busy.sh)
-[ "${BUSY%.*}" -lt "$MAXBUSY" ] \
+# AN UNREADABLE READING REFUSES BY NAME: `[ "" -lt 5 ]` refused too, at
+# exit 2, behind `integer expression expected` and a message naming an
+# empty percentage (2026-09-18, by review).
+BUSY=$(./machine-busy.sh) || BUSY=
+case $BUSY in ''|*[!0-9.]*) echo "machine-busy.sh gave no reading (${BUSY:-empty})"; exit 2 ;; esac
+awk -v x="$BUSY" -v m="$MAXBUSY" 'BEGIN { exit !(x < m) }' \
   || { echo "machine $BUSY% busy: not a quiet window"; exit 2; }
 
 export WILDLOG=1 SATURATE=1

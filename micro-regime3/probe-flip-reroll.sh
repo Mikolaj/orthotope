@@ -99,10 +99,18 @@ leg () {           # leg <half> <cond> <rep> [-- rtsopts...]; SAT overrides dose
   local json="$OUT/reroll-$tag.json"
   [ -f "$json" ] && { echo "skip $tag (already there)"; return; }
   echo "== $tag dose=${SAT-$SATURATE} $(date +%H:%M:%S)"
+  local rc=0
   SATURATE="${SAT-$SATURATE}" "$BIN/run27-$half" classes "$GROUP" \
-    --json "$json" "$@" > "$OUT/reroll-$tag.log" 2>&1
-  echo "   exit $? $(date +%H:%M:%S)"
+    --json "$json" "$@" > "$OUT/reroll-$tag.log" 2>&1 || rc=$?
+  echo "   exit $rc $(date +%H:%M:%S)"
+  # A LEG THAT DIED IS SET ASIDE, NOT SKIPPED NEXT TIME: under set -e the
+  # bare command ended the sweep before its exit line, and criterion opens
+  # --json before its first bench, so the file it left read as a finished
+  # leg to the guard above and as broken JSON to the reader (2026-09-18).
+  [ "$rc" = 0 ] || { mv -f "$json" "$OUT/reroll-$tag.failed.json" 2>/dev/null
+                     BAD=$((BAD + 1)); }
 }
+BAD=0
 
 # Interleaved, control then basis, adjacent -- the run's own protocol, so a
 # drift over the evening lands on both halves rather than on one.
@@ -136,3 +144,5 @@ done
 
 echo
 echo "read it with:  ./probe-flip-reroll-read.py $OUT"
+[ "$BAD" = 0 ] || echo "!! $BAD leg(s) exited non-zero; their JSONs are set aside as *.failed.json"
+exit $((BAD > 0))

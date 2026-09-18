@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Bucket a probe-attr histogram by ROLE, and difference the two arms.
 
-    ./probe-attr-read.py probe-attr-<shape>.txt
+    ./probe-attr-read.py probe-attr-<shape>.txt [Main.hs]
 
 perf gives instructions per source line; the question item 4 asks is
 whether the excess sits in the element loop or in the loop nest around
@@ -10,12 +10,18 @@ spans are derived from Main.hs by anchor phrase rather than written down,
 so an edit that moves the file moves them with it and a phrase that stops
 being unique fails loudly instead of silently mapping to the wrong span.
 
-The two arms are not symmetric in source -- stage one carries its run
-loop inside `go` where stage two has it in `runsWith` -- so the roles
-compared are `fill`, the innermost element loop of each, and `driver`,
-everything else inside the same function.  `harness` is the shared
-forcing pass, which is the control: it must come out equal, both arms
-being timed through it.
+The arms are not symmetric in source -- the add-in-leaf arm carries its
+run loop in `runs` where `fillStage2` reaches it through `runsWith` --
+and an arm's samples do not always land in the function the dispatch
+table names: `lib-stage1` is ten lines handing every strided view to
+`fillStage2`, which `lib-stage2` and `lib-stage2-lean` reach too, so all
+three bucket by that fill's spans.  `harness` is the shared forcing pass,
+which is the control: it must come out equal, both arms being timed
+through it.
+
+Main.hs is read from the working tree unless a second argument names the
+copy the twin was built from -- `git show <rev>:./Main.hs > FILE` -- and
+it should, the histogram's line numbers being that build's.
 
 Exit 2 on usage, a lost anchor or a file with no arm sections, 1 if a file
 names an arm this does not know, 0 clean.
@@ -30,44 +36,56 @@ def die(msg):
     sys.stderr.write(msg.rstrip('\n') + '\n')
     sys.exit(2)
 
-# arm -> (the function's own name, which IS unique, then the sub-anchors
-# searched from it). The sub-anchors must NOT be required unique in the
-# file: `let writeRun !outPos !baseOff =` occurs seventeen times, the
-# whole add-in-leaf family sharing that text, which is what a first
-# version of this asserted and what it refused on. Unique WITHIN the
-# function is the property that holds and the one checked.
+# arm -> the function its samples land in, which is NOT always the one
+# the dispatch table names: `lib-stage1` is `fbLibStage1`, ten lines that
+# hand every strided view to `fillStage2`, and the two stage-two arms
+# reach that fill through `canonView`. Until 2026-09-18 `lib-stage1` was
+# bound to the add-in-leaf function here, so every lib-stage1 span sat
+# in the wrong body and the reader refused on the overlap. The name must
+# be unique in the file; the sub-anchors searched from it need only be
+# unique WITHIN the function: `let writeRun !outPos !baseOff =` occurs
+# seventeen times, the whole add-in-leaf family sharing that text, which
+# a first version asserted unique in the file and refused on.
+LEAF = 'fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v)'
+FILL = 'fillStage2 sh ats !ao !l !v = VS.create'
 FUNCS = {
-    'lib-stage1': 'fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v)',
-    'lib-stage2': 'fillStage2 sh ats !ao !l !v = VS.create',
+    'mut-odo-vecdims-add-in-leaf-u2': LEAF,
+    'lib-stage1': FILL,
+    'lib-stage2': FILL,
+    'lib-stage2-lean': FILL,
 }
 # FOUR ROLES AND NOT TWO, because the short-run residue is not where the
 # long-run one was: an inner run of three does ONE unrolled pair and then
 # the epilogue, so the loop's ends are paid once a run where its body is
 # paid once a pair, and lumping them hides exactly the term that matters
 # on a conv-shaped view. `ends` is the per-run prologue and epilogue,
-# `loop` the unrolled body, `run` the loop over runs, `odo` the odometer
-# levels above it. The two arms are not symmetric in source -- stage one
-# writes its run loop into `go` where stage two reaches it through
-# `runsWith` -- so `run` is each arm's own way of doing that, which is the
-# comparison the question wants.
-SPANS = {
-    ('lib-stage1', 'ends'): ('  let writeRun !outPos !baseOff =',
-                             '                  else VSM.unsafeWrite out o (VS.unsafeIndex v src)'),
-    ('lib-stage1', 'loop'): ('              | otherwise = do',
-                             '        in  inner outPos baseOff'),
-    ('lib-stage1', 'run'): ('      go !lev !outPos !baseOff',
-                            '            in  run n outPos baseOff'),
-    ('lib-stage1', 'odo'): ('        | otherwise =',
-                            '  _ <- go 0 0 ao'),
-    ('lib-stage2', 'ends'): ('  let {-# INLINE writeRunStep #-}',
-                             '                  else VSM.unsafeWrite out o (VS.unsafeIndex v src)'),
-    ('lib-stage2', 'loop'): ('              | otherwise = do',
-                             '        in  inner outPos baseOff'),
-    ('lib-stage2', 'run'): ('      {-# INLINE writeRunSet #-}',
-                            '            in  run n outPos baseOff'),
-    ('lib-stage2', 'odo'): ('      go !lev !outPos !baseOff',
-                            '  _ <- go 0 0 ao'),
+# `loop` the unrolled body, `run` the loop over runs with the broadcast
+# leaf beside it, `odo` the odometer levels above it. The two bodies are
+# not symmetric in source -- the leaf writes its run loop into `runs`
+# where the fill reaches it through `runsWith` -- so `run` is each body's
+# own way of doing that, which is the comparison the question wants.
+LEAF_SPANS = {
+    'ends': ('  let writeRun !outPos !baseOff =',
+             '                  else VSM.unsafeWrite out o (VS.unsafeIndex v src)'),
+    'loop': ('              | otherwise = do',
+             '        in  inner outPos baseOff'),
+    'run': ('      writeRunSet !outPos !baseOff =',
+            '        in  run n outPos baseOff'),
+    'odo': ('      go !lev !outPos !baseOff',
+            '  _ <- go 0 0 ao'),
 }
+FILL_SPANS = {
+    'ends': ('  let {-# INLINE writeRunStep #-}',
+             '                  else VSM.unsafeWrite out o (VS.unsafeIndex v src)'),
+    'loop': ('              | otherwise = do',
+             '        in  inner outPos baseOff'),
+    'run': ('      {-# INLINE writeRunSet #-}',
+            '            in  run n outPos baseOff'),
+    'odo': ('      go !lev !outPos !baseOff',
+            '  _ <- go 0 0 ao'),
+}
+SPANS = {(arm, role): span for arm, fn in FUNCS.items()
+         for role, span in (LEAF_SPANS if fn is LEAF else FILL_SPANS).items()}
 ROLES = ['ends', 'loop', 'run', 'odo']
 
 # The shared forcing pass, `VS.sum . f sh`, which both arms are timed
@@ -141,9 +159,9 @@ def spans(main_hs):
 
 
 def main():
-    if len(sys.argv) != 2:
+    if len(sys.argv) not in (2, 3):
         die(__doc__)
-    sp, harness = spans('Main.hs')
+    sp, harness = spans(sys.argv[2] if len(sys.argv) == 3 else 'Main.hs')
     arms, cur = {}, None
     for ln in open(sys.argv[1]):
         m = re.match(r'^=== (\S+) ', ln)
@@ -191,12 +209,15 @@ def main():
         got[arm] = b
         print(('%-16s' + '%11d' * len(hdr))
               % tuple([arm] + [b[c] for c in hdr[:-1]] + [sum(b.values())]))
-    if 'lib-stage1' in got and 'lib-stage2' in got:
-        a, b = got['lib-stage2'], got['lib-stage1']
+    # The difference row is the file's two bucketed arms, second minus
+    # first, and not a pair of names: the probes since Run 32 pair the
+    # add-in-leaf arm with `lib-stage1` or `lib-stage2-lean`.
+    if len(got) == 2:
+        (na, a), (nb, b) = got.items()
         hdr = ROLES + ['harness', 'elsewhere']
-        print(('%-16s' + '%11d' * (len(hdr) + 1) + '   <-- stage two minus one')
-              % tuple(['difference'] + [a[c] - b[c] for c in hdr]
-                      + [sum(a.values()) - sum(b.values())]))
+        print(('%-16s' + '%11d' * (len(hdr) + 1) + '   <-- %s minus %s')
+              % tuple(['difference'] + [b[c] - a[c] for c in hdr]
+                      + [sum(b.values()) - sum(a.values()), nb, na]))
     return unknown
 
 

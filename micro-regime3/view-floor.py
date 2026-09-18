@@ -131,8 +131,16 @@ def main():
         half, cls = parts
         if a.classes and cls not in a.classes:
             continue
-        if cls in ('main',) or cls.startswith(('al', 'gate', 'counts')):
-            pass
+        # NOT CLASS LEGS: the main set, whose floor the run publishes,
+        # and the alone legs and gate processes, which put `al` and
+        # `gate` where a half's name sits. `if ...: pass` skipped nothing
+        # and tested the class for a marker the half carries, so every
+        # such leg raised the exit to 2 with a `carries no A/A group`
+        # line apiece -- 92 on Run 32 (2026-09-18, by review). A class
+        # named with -c is read whatever it is.
+        if half in ('al', 'gate', 'counts') or (cls == 'main'
+                                                 and not a.classes):
+            continue
         legs.append((half, cls, f))
     if not legs:
         print('no %s-<half>-<class>.json under %s' % (a.run, a.d))

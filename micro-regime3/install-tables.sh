@@ -31,10 +31,10 @@
 #
 # WRITES THE RUN'S OWN FILE and nothing else -- every table a run
 # publishes is in `runs/run<N>.md`, which is why one `DOC` can serve every
-# install. Commit or park that file first --
-# `git checkout -- runs/run<N>.md` is the undo, and there is no other. Read
-# the diff afterwards rather than the terminal: install prints what it
-# replaced, not what the file now says.
+# install. Copy that file aside first, `cp runs/run<N>.md /tmp/run<N>.md`,
+# and copy it back to undo: `git checkout --` discards every uncommitted
+# edit with the install. Read the diff afterwards rather than the
+# terminal: install prints what it replaced, not what the file now says.
 #
 # Measured over Run 13's artifacts, 2026-08-15, against a copy: ten calls
 # write eleven tables; a full pass over a document that already carries them
@@ -289,6 +289,16 @@ if added.returncode == 0 and added.stdout.split() and rel:
                            capture_output=True, text=True)
     if first.returncode == 0:
         carried = {' '.join(q.split()) for q in first.stdout.split('\n\n')}
+# NOTHING IS WRITTEN UNTIL EVERY CLASS HAS PASSED, so a refusal on a late
+# class leaves the file as it was -- and says so, since 2026-09-18, where
+# an earlier class's ADDED line used to stand on the screen over a file
+# that never changed. The ADDED lines are printed after the write.
+added = []
+def refuse(*lines):
+    for line in lines:
+        print(line)
+    print(f'  nothing written: {DOC} stands as it was')
+    sys.exit(1)
 for n, (c, start) in enumerate(reversed(order)):
     k = [x for x, _ in order].index(c)
     # The LAST block ends at the next heading, not at the end of the file.
@@ -340,15 +350,14 @@ for n, (c, start) in enumerate(reversed(order)):
         # The reader's own words, not a guess about the block's shape: an
         # absent JSON used to surface as `--block emitted no Controls`,
         # which names the form and hides the missing file.
-        print(f'  REFUSED {c}: read-run.py exited {got.returncode}:')
-        print('    ' + (got.stderr.strip().replace('\n', '\n    ')
-                        or '(no stderr)'))
-        sys.exit(1)
+        refuse(f'  REFUSED {c}: read-run.py exited {got.returncode}:',
+               '    ' + (got.stderr.strip().replace('\n', '\n    ')
+                         or '(no stderr)'))
     blk = got.stdout
     log = open(f'{R}-{BASIS}-{c}.log').read()
     m = re.search(r'elapsed (\S+); peak (\d+) MiB in use, (\d+) MiB max', log)
     if not m:
-        print(f'  REFUSED {c}: no provenance line in {R}-{BASIS}-{c}.log'); sys.exit(1)
+        refuse(f'  REFUSED {c}: no provenance line in {R}-{BASIS}-{c}.log')
     el, pk, mr = m.groups()
     def grab(tag):
         g = re.search(r'\n(\*{0,2}' + tag + r'.*?)(?=\n\n|\Z)', blk, re.S)
@@ -357,23 +366,20 @@ for n, (c, start) in enumerate(reversed(order)):
     across = grab('Across the halves:') if have_other else None
     says = grab('What the class says:') if have_other else None
     if have_other and not across:
-        print(f'  REFUSED {c}: the other half is on disk and --block emitted'
+        refuse(f'  REFUSED {c}: the other half is on disk and --block emitted'
               f' no cross-half line, so item 5 of the form would be left'
               f' standing from the previous run')
-        sys.exit(1)
     if not (ctrl and prov and per):
-        print(f'  REFUSED {c}: --block emitted no ' +
+        refuse(f'  REFUSED {c}: --block emitted no ' +
               ('Controls' if not ctrl else 'Provenance' if not prov else 'per-shape'))
-        sys.exit(1)
     if not have_other and any(paras[j].lstrip().lstrip('*')
                                   .startswith('Across the halves:')
                               for j in range(start, end)):
-        print(f'  REFUSED {c}: no {other_json}, and the block carries an'
+        refuse(f'  REFUSED {c}: no {other_json}, and the block carries an'
               f' `Across the halves:` paragraph -- a cross-half line left'
               f' standing from a previous run, or the note\'s HALVES line'
               f' names the wrong other half ({OTHER}); delete the paragraph'
               f' or fix the note, then rerun')
-        sys.exit(1)
     ctrl = ctrl.replace('Controls:** ___ (the reading is yours). ', 'Controls:** ')
     prov = (prov.replace('elapsed ___', 'elapsed ' + el)
                 .replace('peak ___ MiB', f'peak {pk} MiB')
@@ -384,10 +390,9 @@ for n, (c, start) in enumerate(reversed(order)):
     # `___` into the run file at exit 0, and nothing sweeps for it the way
     # `check_doc` sweeps a published `?`. 2026-08-17.
     if '___' in ctrl or '___' in prov:
-        print(f'  REFUSED {c}: a `___` placeholder survived the fill, so the'
+        refuse(f'  REFUSED {c}: a `___` placeholder survived the fill, so the'
               f' wording read-run.py emits has moved and this script is'
               f' filling a form that no longer exists')
-        sys.exit(1)
     prov_at = None
     for j in range(start, end):
         s = paras[j].lstrip().lstrip('*')
@@ -408,17 +413,18 @@ for n, (c, start) in enumerate(reversed(order)):
     if across and not any(paras[j].lstrip().lstrip('*')
                               .startswith('Across the halves:')
                           for j in range(start, end)):
-        print(f'  REFUSED {c}: the other half is on disk, --block emitted'
+        refuse(f'  REFUSED {c}: the other half is on disk, --block emitted'
               f' the cross-half line, and the block has no `Across the'
               f" halves:` paragraph to fill -- item 5 of the form would be"
               f' dropped in silence')
-        sys.exit(1)
     if prov_at is not None and not any(
             paras[j].lstrip().lstrip('*').startswith('Per shape')
             for j in range(start, end)):
         paras.insert(prov_at + 1, per); done += 1   # every class is three-shape now
-        print(f'  {c}: per-shape line ADDED, the block had none')
+        added.append(f'  {c}: per-shape line ADDED, the block had none')
 open(DOC, 'w').write('\n\n'.join(paras))
+for line in added:
+    print(line)
 print(f'  {done} computed paragraph(s) installed across {len(order)} class block(s)')
 if says_new:
     print(f'  {says_new} `What the class says:` skeleton(s) installed, each'
