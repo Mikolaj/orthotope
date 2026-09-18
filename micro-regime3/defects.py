@@ -1379,6 +1379,63 @@ def phantom8_listing(tmp):
     return {'dis': path}
 
 
+# A tenth site, `run36-gheadnospec` from 0x42ea22 to 0x42ea7c, saved
+# 2026-09-18, and a real loop rather than a phantom: 44 bytes at 0x42ea40
+# walking a list, `mov 0xe(%rbx),%rbx` and `jne` back, with the
+# return-frame push `movq $0x42ea40,0x0(%rbp)` inside it, eight bytes
+# that objdump prints as seven and a second line of one. `parse` read the
+# first line alone until that day, so the body's byte sum fell one short
+# of its span and `scan` dropped it as a jump into an instruction. The
+# window carries the pad and table words before the head, and a second
+# such push after the loop.
+LONGINSN_LISTING = """\
+
+run36-gheadnospec:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+000000000042ea22 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x20a1a>:
+  42ea22:\t48 8d 05 2f 6c 3a 01 \tlea    0x13a6c2f(%rip),%rax        # 17d5658 <microzm0zi1zminplacezmmicro_Main_main61_closure+0x710>
+  42ea29:\t48 8b 5d 18          \tmov    0x18(%rbp),%rbx
+  42ea2d:\teb 15                \tjmp    42ea44 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x20a3c>
+  42ea2f:\t90                   \tnop
+  42ea30:\t88 1c 00             \tmov    %bl,(%rax,%rax,1)
+  42ea33:\t00 00                \tadd    %al,(%rax)
+  42ea35:\t00 00                \tadd    %al,(%rax)
+  42ea37:\t00 1e                \tadd    %bl,(%rsi)
+  42ea39:\t00 00                \tadd    %al,(%rax)
+  42ea3b:\t00 70 f8             \tadd    %dh,-0x8(%rax)
+  42ea3e:\t3a 01                \tcmp    (%rcx),%al
+  42ea40:\t48 8b 45 08          \tmov    0x8(%rbp),%rax
+  42ea44:\t48 89 d9             \tmov    %rbx,%rcx
+  42ea47:\t83 e1 07             \tand    $0x7,%ecx
+  42ea4a:\t48 83 f9 01          \tcmp    $0x1,%rcx
+  42ea4e:\t74 21                \tje     42ea71 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x20a69>
+  42ea50:\t48 c7 45 00 40 ea 42 \tmovq   $0x42ea40,0x0(%rbp)
+  42ea57:\t00 
+  42ea58:\t48 89 d8             \tmov    %rbx,%rax
+  42ea5b:\t48 8b 5b 0e          \tmov    0xe(%rbx),%rbx
+  42ea5f:\t48 8b 40 06          \tmov    0x6(%rax),%rax
+  42ea63:\t48 89 45 08          \tmov    %rax,0x8(%rbp)
+  42ea67:\tf6 c3 07             \ttest   $0x7,%bl
+  42ea6a:\t75 d4                \tjne    42ea40 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x20a38>
+  42ea6c:\t48 8b 03             \tmov    (%rbx),%rax
+  42ea6f:\tff e0                \tjmp    *%rax
+  42ea71:\t48 c7 45 08 a0 ea 42 \tmovq   $0x42eaa0,0x8(%rbp)
+  42ea78:\t00 
+  42ea79:\t48 89 c3             \tmov    %rax,%rbx
+  42ea7c:\t48 83 c5 08          \tadd    $0x8,%rbp
+"""
+
+
+def longinsn_listing(tmp):
+    """The tenth saved site, planted for `--survey`: {'dis': path}."""
+    path = os.path.join(tmp, 'run36-gheadnospec-0x42ea22.dis')
+    write(path, LONGINSN_LISTING)
+    return {'dis': path}
+
+
 # The run-fill loop this README prices, 28 bytes and eight instructions, as
 # `run25-g912` carries it at 0x434558; a second body differs in one
 # register so the two group apart. Listings built from them are what the
@@ -5676,6 +5733,11 @@ TIER1 = {
                       trigger='a two-byte pad after an unconditional jump, followed by an info-table word decoding as a short backward jcc to the pad',
                       ok="a body whose head objdump spells nop, nopl, nopw or xchg %ax,%ax, behind any prefix, is a pad and not a loop",
                       bug="the pad tell read the mnemonic's spelling, nop, and objdump spells the two-byte pad xchg %ax,%ax, so the fifth site's shape passed it at two bytes"),
+    'survey-drops-a-body-with-an-eight-byte-instruction': dict(family='scan-for-parse', discovery='review', harm='fired', harm_count=12, proved='ran',
+                      notes="found by a census of the twelve run binaries on disk taken for the Run 36 phantoms, 2026-09-18: 27 to 113 Main loops a binary dropped, every one holding an instruction of eight bytes or more, the return-frame push among them",
+                      trigger='a self-loop of at most a line holding an instruction of eight bytes or more, which objdump prints over two lines',
+                      ok="the second line's bytes belong to the instruction, so the body's byte sum meets its span and the loop is counted",
+                      bug='the second line was read as an instruction of its own when it held two bytes or more and not at all when it held one, so the body fell short of its span and scan dropped it as a jump into an instruction'),
     'delta-sees-a-group-that-grows-past-the-threshold': dict(family='quiet-failure', discovery='review', harm='fired', harm_count=1, proved='ran',
                       notes='watched on run24-g912 against run25-g912 at --len 0, 2026-09-04, at both thresholds',
                       trigger='a group under --min-copies in OLD and over it in NEW',
@@ -9194,6 +9256,16 @@ RECORDS = [
               hasnt=['0x43f256']),
          bug=V(exit=0, has=['1 self-loops of at most 64 B'])),
 
+    case('survey-drops-a-body-with-an-eight-byte-instruction',
+         'loop-offsets.py', '2cbaeb6',
+         "an instruction objdump prints over two lines read from the first"
+         ' alone, so a loop holding one failed the byte sum and was dropped'
+         ' unsaid',
+         plant=longinsn_listing,
+         argv=['--survey', '{dis}'],
+         ok=V(exit=0, has=['1 self-loops of at most 64 B']),
+         bug=V(exit=0, has=['0 self-loops of at most 64 B'])),
+
     # ---- read-all.sh ---------------------------------------------------
     case('aa-worst-cell-is-not-an-insitu-row', 'read-all.sh', '8ee1e5b',
          'with every twin filtered out an in-situ row was read as the A/A',
@@ -12274,9 +12346,12 @@ RECORDS = [
          # had compared, so a pair sharing no group at all read `0 group(s)
          # kept every offset; 0 group(s) moved at all` -- which is what
          # `nothing moved` looks like and means `nothing was compared`.
+         # The count itself is /bin/sh's and not this case's: it read 3
+         # until the survey parsed long instructions whole and 4 after, so
+         # the claim is that it is not 0.
          ok=V(exit=0, has=['IN /bin/sh ONLY',
-                           '3 matched nothing on the other side'],
-              hasnt=['group(s) moved at all'])),
+                           'matched nothing on the other side'],
+              hasnt=[' 0 matched nothing', 'group(s) moved at all'])),
 
     case('delta-sees-a-group-that-grows-past-the-threshold',
          'loop-offsets.py', 'b39ff49',

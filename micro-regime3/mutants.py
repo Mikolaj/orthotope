@@ -726,6 +726,19 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'0 self-loops of at most\' in r.stdout else 1)"'),
+    # The continuation line dropped from `parse` again: the tenth site's
+    # loop, holding an eight-byte push, falls one byte short of its span and
+    # the survey counts nothing.
+    ('the survey drops a body with an eight-byte instruction again', 'loop-offsets.py',
+     "            m = CONT.match(line)\n            if m and insns:\n",
+     "            m = None\n            if m and insns:\n",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.longinsn_listing(tempfile.mkdtemp())[\'dis\']\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'1 self-loops of at most\' in r.stdout else 1)"'),
     # The exit-span count's two halves, each broken on its own over the
     # fourth listing: the crossing test dropped, so the stepping loop at
     # residue 9 with its exit ending at byte 65 reads as in line; and the
