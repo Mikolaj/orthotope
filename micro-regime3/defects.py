@@ -5593,6 +5593,11 @@ TIER1 = {
                       ok='lib-stage1 buckets by the fillStage2 spans its samples land in',
                       bug='refused: lib-stage1/odo overlapping the role before it by 73 lines',
                       proved='ran', notes='Both Run 32 samples naming lib-stage1 refused; watched 2026-09-18.'),
+    'attr-reader-reads-the-working-tree-in-silence': dict(family='quiet-failure', discovery='review', harm='latent',
+                      trigger='a histogram read after Main.hs moved, with no file given',
+                      ok='refuses, naming the arm and the file; the header names the build',
+                      bug='harness 0, everything in elsewhere, no word said',
+                      proved='ran', notes="Run 32's histograms against the tree of 2026-09-18, and a header naming 0eda736."),
     'figures-drops-a-refused-gate-row': dict(family='quiet-failure', discovery='review', harm='latent',
                       trigger='a pair whose run-gate.sh --show refuses before printing',
                       ok='gate arms: the artifact gave nothing to check',
@@ -12109,6 +12114,18 @@ RECORDS = [
          # sample of Run 32. Each arm now names the function its samples
          # land in, and the Main.hs the twin was built from is an
          # argument, the histogram's line numbers being that build's.
+         argv=None, ok=None),
+
+    case('attr-reader-reads-the-working-tree-in-silence',
+         'probe-attr-read.py', '7b80fa9',
+         "a histogram read against a Main.hs that was not its twin's"
+         ' bucketed the harness as elsewhere and said nothing',
+         # The build now rides in the histogram's header, off the pair
+         # note through the twin's name, and the harness bucket is the
+         # check: the control every arm passes through, empty for an arm
+         # only when the file is not the build's, refused at exit 2.
+         # Watched 2026-09-18 on Run 32's histograms against a tree past
+         # their twins, and on a header naming a later build.
          argv=None, ok=None),
 
     case('figures-drops-a-refused-gate-row', 'preflight.sh', '18021d0',
