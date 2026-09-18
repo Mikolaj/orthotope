@@ -8556,13 +8556,13 @@ to require of a max-skip one, which leaves a resident loop where it fell; what
 The exit-span count the survey prints beside the straddlers (2026-09-16) is read
 the same way and is sharper: under `LOOP_EXITSPAN=1` it is 0 on both halves
 by the shim's own claim, so a nonzero there is a recipe or shim defect,
-or the reader's --- Run 35's one astride was a table byte the survey took
-for a loop, settled against the shim's own verified line and refused since
-e4f0624 --- and never a placement, while a half built without the switch records
-it, 65 and 72 on Run 32's. The sequence below runs each half in turn,
-and `run-major.sh` does it for you; what neither can do is interleave two
-processes of this size within a population, so the order they ran in is written
-down and is one of the two things left uncontrolled.
+or the reader's --- Run 35's one astride and Run 36's two were table bytes
+the survey took for loops, settled against the shim's own verified line
+and refused since e4f0624 and b1a488d --- and never a placement, while a half
+built without the switch records it, 65 and 72 on Run 32's. The sequence below
+runs each half in turn, and `run-major.sh` does it for you; what neither can do
+is interleave two processes of this size within a population, so the order they
+ran in is written down and is one of the two things left uncontrolled.
 
 **The other was that the halves differed by more than Main's alignment,
 and that one is fixed.** Aligning grows `.text` by 12 KB, so everything linked

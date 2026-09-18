@@ -620,19 +620,22 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--section\', \'Middle\','
      ' \'--with-tables\', \'9\', \'--readme\', f], capture_output=True, text=True)\n'
      'sys.exit(0 if \'this section carries 3 table\' in r.stdout + r.stderr else 1)"'),
-    # The survey's reachability guard, removed: the saved site's data word
-    # counts as a straddling loop again. The judge plants the listing from
-    # defects.py and asks the survey for its straddle count.
+    # The survey's reachability guard, removed: the ninth saved site's
+    # table word counts as a self-loop again. The judge plants the listing
+    # from defects.py and asks the survey for its count. Over the first
+    # listing until 2026-09-18, whose body the zero tell's instruction form
+    # refuses too since that day, so this mutant survived it; the ninth is
+    # the shape the flow test refuses alone.
     ('survey counts a data word as a loop again', 'loop-offsets.py',
      '        if not reaches(insns, k, n, targets):\n            continue\n',
      '',
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
      'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
-     'f = m.phantom_listing(tempfile.mkdtemp())[\'dis\']\n'
+     'f = m.phantom8_listing(tempfile.mkdtemp())[\'dis\']\n'
      'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
      ' capture_output=True, text=True)\n'
-     'sys.exit(0 if \'still straddling   : 0\' in r.stdout else 1)"'),
+     'sys.exit(0 if \'0 self-loops of at most\' in r.stdout else 1)"'),
     # THREE TABLE TELLS dropped: the continuation the sweep decoded out of
     # step counts as a straddling loop again, over the second listing. It
     # takes all three because they COINCIDE on that site -- its body
@@ -646,9 +649,9 @@ MUTANTS = [
     # stray-REX tell the sixth listing's, whose body carries neither.
     ('survey counts a swallowed jump as a loop again', 'loop-offsets.py',
      "        if any(i[3] == '(bad)' for i in insns[k:n + 1]):\n            continue\n"
-     "        # Nor does it carry a run of zero bytes: such a body IS a table,\n"
-     "        # the third site in `reaches`.\n"
-     "        if zero_run(body):\n            continue\n"
+     "        # Nor does it carry a run of zero bytes, or an instruction of two:\n"
+     "        # such a body IS a table, the third site in `reaches`.\n"
+     "        if zero_run(insns, k, n):\n            continue\n"
      "        # Nor a stray REX prefix, `rex.*` in the mnemonic column: the sweep\n"
      "        # entered an instruction mid-way, a fifth shape, the sixth site in\n"
      "        # defects.py (2026-09-18), which carries the totals it moves.\n"
@@ -664,7 +667,7 @@ MUTANTS = [
     # The zero-run tell dropped: the info table whose own words are the
     # body counts as a straddling loop again, over the third listing.
     ('survey counts a table body as a loop again', 'loop-offsets.py',
-     '        if zero_run(body):\n            continue\n',
+     '        if zero_run(insns, k, n):\n            continue\n',
      '',
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
@@ -673,10 +676,10 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'still straddling   : 0\' in r.stdout else 1)"'),
-    # The nop-head tell dropped: the pad and the table word after it count
+    # The pad-head tell dropped: the pad and the table word after it count
     # as a six-byte self-loop again, over the fifth listing.
     ('survey counts a nop pad and its table word as a loop again', 'loop-offsets.py',
-     "        if insns[k][3].startswith('nop'):\n            continue\n",
+     "        if PAD.match(insns[k][3] + ' ' + insns[k][4]):\n            continue\n",
      '',
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
@@ -694,6 +697,32 @@ MUTANTS = [
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
      'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
      'f = m.phantom5_listing(tempfile.mkdtemp())[\'dis\']\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'0 self-loops of at most\' in r.stdout else 1)"'),
+    # The zero tell's instruction form dropped, its run of four kept: the
+    # seventh site's two table bytes and their word read as a four-byte
+    # loop again.
+    ('survey counts a table word pair as a loop again', 'loop-offsets.py',
+     "    return any(i[2] == '0000' for i in insns[k:n + 1])\n",
+     "    return False\n",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.phantom6_listing(tempfile.mkdtemp())[\'dis\']\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'0 self-loops of at most\' in r.stdout else 1)"'),
+    # The pad tell narrowed back to the `nop` spelling alone: the eighth
+    # site's `xchg %ax,%ax` pad and its table word read as a four-byte loop
+    # again.
+    ('survey counts a two-byte pad and its table word as a loop again', 'loop-offsets.py',
+     "        if PAD.match(insns[k][3] + ' ' + insns[k][4]):\n            continue\n",
+     "        if insns[k][3].startswith('nop'):\n            continue\n",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.phantom7_listing(tempfile.mkdtemp())[\'dis\']\n'
      'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'0 self-loops of at most\' in r.stdout else 1)"'),

@@ -1223,6 +1223,162 @@ def phantom5_listing(tmp):
     return {'dis': path}
 
 
+# A seventh site, `run36-gheadnospec` from 0x4a4819 to 0x4a4841, read
+# 2026-09-18 against the shim's verified line, which read no exit span
+# astride where the survey read one: a `jmp stg_gc_unbx_r1`, a two-byte
+# pad, and the info table before the function's prologue at 0x4a4838,
+# whose words decode as `add %al,(%rax)` and `adc`. The body is two of
+# its zero bytes and the low bytes of the word after them, `78 fc`, a
+# `js -4` back to the head: the third site's shape, with two zero bytes
+# where `zero_run` asks four. Every tell passed it, and four bytes at
+# offset 50 cannot straddle, so only the exit-span count met it. The
+# tell is an instruction of two zero bytes, which no compiler emits.
+PHANTOM6_LISTING = """\
+
+run36-gheadnospec:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+00000000004a4819 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x96811>:
+  4a4819:\t48 c7 45 00 e8 47 4a \tmovq   $0x4a47e8,0x0(%rbp)
+  4a4820:\t00 
+  4a4821:\te9 42 d4 2a 01       \tjmp    1751c68 <stg_gc_unbx_r1>
+  4a4826:\t66 90                \txchg   %ax,%ax
+  4a4828:\t01 00                \tadd    %eax,(%rax)
+  4a482a:\t00 00                \tadd    %al,(%rax)
+  4a482c:\t00 00                \tadd    %al,(%rax)
+  4a482e:\t00 00                \tadd    %al,(%rax)
+  4a4830:\t10 00                \tadc    %al,(%rax)
+  4a4832:\t00 00                \tadd    %al,(%rax)
+  4a4834:\t78 fc                \tjs     4a4832 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x9682a>
+  4a4836:\t34 01                \txor    $0x1,%al
+  4a4838:\t48 8d 45 f0          \tlea    -0x10(%rbp),%rax
+  4a483c:\t4c 39 f8             \tcmp    %r15,%rax
+  4a483f:\t72 3d                \tjb     4a487e <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x96876>
+  4a4841:\t48 c7 45 f0 d0 74 75 \tmovq   $0x17574d0,-0x10(%rbp)
+"""
+
+
+def phantom6_listing(tmp):
+    """The seventh saved site, planted for `--survey`: {'dis': path}."""
+    path = os.path.join(tmp, 'run36-gheadnospec-0x4a4819.dis')
+    write(path, PHANTOM6_LISTING)
+    return {'dis': path}
+
+
+# An eighth site, `run36-gheadtwopass` from 0x43f237 to 0x43f28c, read
+# the same day against the same line: a `jmp *0x0(%rbp)`, the two-byte
+# pad to the next info table, `66 90`, and that table's first word,
+# `70 fc`, decoding as `jo -4` back to the pad -- the fifth site's shape
+# with a pad objdump spells `xchg %ax,%ax` and not `nop`, so the pad
+# tell, reading for `nop`, passed it. The tell reads that spelling too
+# since 2026-09-18.
+PHANTOM7_LISTING = """\
+
+run36-gheadtwopass:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+000000000043f237 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x30f57>:
+  43f237:\t48 8b 7d 30          \tmov    0x30(%rbp),%rdi
+  43f23b:\t48 89 de             \tmov    %rbx,%rsi
+  43f23e:\t4c 8b 75 08          \tmov    0x8(%rbp),%r14
+  43f242:\t48 8b 5d 28          \tmov    0x28(%rbp),%rbx
+  43f246:\t48 83 c5 10          \tadd    $0x10,%rbp
+  43f24a:\te9 01 fd ff ff       \tjmp    43ef50 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x30c70>
+  43f24f:\t48 83 c5 40          \tadd    $0x40,%rbp
+  43f253:\tff 65 00             \tjmp    *0x0(%rbp)
+  43f256:\t66 90                \txchg   %ax,%ax
+  43f258:\t70 fc                \tjo     43f256 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x30f76>
+  43f25a:\tff                   \t(bad)
+  43f25b:\tff                   \t(bad)
+  43f25c:\tff                   \t(bad)
+  43f25d:\tff                   \t(bad)
+  43f25e:\tff                   \t(bad)
+  43f25f:\tff 05 03 00 00 00    \tincl   0x3(%rip)        # 43f268 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x30f88>
+  43f265:\t00 00                \tadd    %al,(%rax)
+  43f267:\t00 00                \tadd    %al,(%rax)
+  43f269:\t00 00                \tadd    %al,(%rax)
+  43f26b:\t00 05 00 00 00 02    \tadd    %al,0x2000000(%rip)        # 243f271 <_end+0xaf7cf9>
+  43f271:\t00 00                \tadd    %al,(%rax)
+  43f273:\t00 00                \tadd    %al,(%rax)
+  43f275:\t00 00                \tadd    %al,(%rax)
+  43f277:\t00 0e                \tadd    %cl,(%rsi)
+  43f279:\t00 00                \tadd    %al,(%rax)
+  43f27b:\t00 00                \tadd    %al,(%rax)
+  43f27d:\t00 00                \tadd    %al,(%rax)
+  43f27f:\t00 48 8d             \tadd    %cl,-0x73(%rax)
+  43f282:\t45 b0 4c             \trex.RB mov $0x4c,%r8b
+  43f285:\t39 f8                \tcmp    %edi,%eax
+  43f287:\t72 0c                \tjb     43f295 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x30fb5>
+  43f289:\t48 89 f0             \tmov    %rsi,%rax
+  43f28c:\t48 8d 1d ad 16 3a 01 \tlea    0x13a16ad(%rip),%rbx        # 17e0940 <microzm0zi1zminplacezmmicro_Main_main67_closure+0x23e0>
+"""
+
+
+def phantom7_listing(tmp):
+    """The eighth saved site, planted for `--survey`: {'dis': path}."""
+    path = os.path.join(tmp, 'run36-gheadtwopass-0x43f237.dis')
+    write(path, PHANTOM7_LISTING)
+    return {'dis': path}
+
+
+# A ninth site, `run33-gheadexit` from 0x4a52b6 to 0x4a52ff, saved
+# 2026-09-18 for the flow test's mutant and for no case: a `jmp
+# stg_gc_noregs`, the `nopl` pad after it and the table word `78 f4`, a
+# `js -12` back to the jmp itself. The flow test alone refuses it, the
+# head being the jmp; the first site, which that mutant judged over until
+# this day, carries `add %al,(%rax)` words the zero tell's instruction
+# form now refuses too, so dropping the flow test there counted nothing.
+# The same shape sits in run34-gheadexit and run35-gheadexit.
+PHANTOM8_LISTING = """\
+
+run33-gheadexit:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+00000000004a52b6 <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x9732e>:
+  4a52b6:\t48 c7 45 e8 40 52 4a \tmovq   $0x4a5240,-0x18(%rbp)
+  4a52bd:\t00 
+  4a52be:\t4c 89 75 f0          \tmov    %r14,-0x10(%rbp)
+  4a52c2:\t48 89 5d f8          \tmov    %rbx,-0x8(%rbp)
+  4a52c6:\t48 89 75 00          \tmov    %rsi,0x0(%rbp)
+  4a52ca:\t48 83 c5 e8          \tadd    $0xffffffffffffffe8,%rbp
+  4a52ce:\te9 8d 5b 33 01       \tjmp    17dae60 <stg_gc_noregs>
+  4a52d3:\t0f 1f 44 00 00       \tnopl   0x0(%rax,%rax,1)
+  4a52d8:\t78 f4                \tjs     4a52ce <microzm0zi1zminplacezmmicro_Main_zdfNFDataTzuzdcrnf_info+0x97346>
+  4a52da:\tff                   \t(bad)
+  4a52db:\tff                   \t(bad)
+  4a52dc:\tff                   \t(bad)
+  4a52dd:\tff                   \t(bad)
+  4a52de:\tff                   \t(bad)
+  4a52df:\tff 06                \tincl   (%rsi)
+  4a52e1:\t07                   \t(bad)
+  4a52ea:\t00 00                \tadd    %al,(%rax)
+  4a52ec:\t06                   \t(bad)
+  4a52ed:\t00 00                \tadd    %al,(%rax)
+  4a52ef:\t00 02                \tadd    %al,(%rdx)
+  4a52f1:\t00 00                \tadd    %al,(%rax)
+  4a52f3:\t00 00                \tadd    %al,(%rax)
+  4a52f5:\t00 00                \tadd    %al,(%rax)
+  4a52f7:\t00 0e                \tadd    %cl,(%rsi)
+  4a52f9:\t00 00                \tadd    %al,(%rax)
+  4a52fb:\t00 00                \tadd    %al,(%rax)
+  4a52fd:\t00 00                \tadd    %al,(%rax)
+  4a52ff:\t00 48 8d             \tadd    %cl,-0x73(%rax)
+"""
+
+
+def phantom8_listing(tmp):
+    """The ninth saved site, planted for `--survey`: {'dis': path}."""
+    path = os.path.join(tmp, 'run33-gheadexit-0x4a52b6.dis')
+    write(path, PHANTOM8_LISTING)
+    return {'dis': path}
+
+
 # The run-fill loop this README prices, 28 bytes and eight instructions, as
 # `run25-g912` carries it at 0x434558; a second body differs in one
 # register so the two group apart. Listings built from them are what the
@@ -5510,6 +5666,16 @@ TIER1 = {
                       trigger="an info table's last zero byte read as the start of the continuation push after it, whose immediate's low bytes decode as a short backward jcc to that byte",
                       ok='a body carrying a stray REX prefix, rex.* in the mnemonic column, is the sweep out of step over code and not a loop',
                       bug='the body passed the flow test, the (bad) tell, the zero-run tell and the nop tell, and its seven bytes at offset 63 both straddle and put its exit span astride'),
+    'survey-counts-a-table-word-pair-as-a-loop': dict(family='scan-for-parse', discovery='in-use', harm='fired', harm_count=1, proved='ran',
+                      notes="read on run36-gheadnospec against the shim's verified line, 2026-09-18: one exit span astride against none, on a body of four bytes",
+                      trigger='two zero bytes of an info table followed by a word whose low bytes decode as a short backward jcc to them',
+                      ok='a body carrying an instruction of two zero bytes, add %al,(%rax), is a table and not a loop, no compiler emitting one',
+                      bug='the zero-run tell asked four zero bytes and the body had two, so it passed every tell, and four bytes at offset 50 put its exit span astride'),
+    'survey-counts-a-two-byte-pad-and-its-table-word-as-a-loop': dict(family='scan-for-parse', discovery='in-use', harm='fired', harm_count=1, proved='ran',
+                      notes="read on run36-gheadtwopass against the shim's verified line, 2026-09-18: one exit span astride against none, the pad sitting after a jmp *0x0(%rbp) that nothing falls through",
+                      trigger='a two-byte pad after an unconditional jump, followed by an info-table word decoding as a short backward jcc to the pad',
+                      ok="a body whose head objdump spells nop, nopl, nopw or xchg %ax,%ax, behind any prefix, is a pad and not a loop",
+                      bug="the pad tell read the mnemonic's spelling, nop, and objdump spells the two-byte pad xchg %ax,%ax, so the fifth site's shape passed it at two bytes"),
     'delta-sees-a-group-that-grows-past-the-threshold': dict(family='quiet-failure', discovery='review', harm='fired', harm_count=1, proved='ran',
                       notes='watched on run24-g912 against run25-g912 at --len 0, 2026-09-04, at both thresholds',
                       trigger='a group under --min-copies in OLD and over it in NEW',
@@ -9004,6 +9170,28 @@ RECORDS = [
          argv=['--survey', '{dis}'],
          ok=V(exit=0, has=['0 self-loops of at most 64 B'],
               hasnt=['0x41f93f']),
+         bug=V(exit=0, has=['1 self-loops of at most 64 B'])),
+
+    case('survey-counts-a-table-word-pair-as-a-loop', 'loop-offsets.py',
+         'b1a488d',
+         'two zero bytes of an info table and the low bytes of the word'
+         ' after them, read as a four-byte self-loop and counted astride'
+         ' where the shim counted none',
+         plant=phantom6_listing,
+         argv=['--survey', '{dis}'],
+         ok=V(exit=0, has=['0 self-loops of at most 64 B'],
+              hasnt=['0x4a4832']),
+         bug=V(exit=0, has=['1 self-loops of at most 64 B'])),
+
+    case('survey-counts-a-two-byte-pad-and-its-table-word-as-a-loop',
+         'loop-offsets.py', 'b1a488d',
+         'a two-byte pad after an unconditional jump, xchg %ax,%ax, and'
+         ' the table word after it, read as a four-byte self-loop and'
+         ' counted astride where the shim counted none',
+         plant=phantom7_listing,
+         argv=['--survey', '{dis}'],
+         ok=V(exit=0, has=['0 self-loops of at most 64 B'],
+              hasnt=['0x43f256']),
          bug=V(exit=0, has=['1 self-loops of at most 64 B'])),
 
     # ---- read-all.sh ---------------------------------------------------
