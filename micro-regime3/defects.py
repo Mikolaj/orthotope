@@ -10211,6 +10211,26 @@ RECORDS = [
          bug=V(exit=0, has=['BASIS=lookrts; OTHER=a1g'],
                hasnt=["a half's tag"])),
 
+    case('halves-skip-a-prose-line-before-the-machine-line',
+         'pair-halves.sh', '1aaea4d',
+         'a sentence of the note that wrapped the word `HALVES:` onto a'
+         ' line start was read as the machine line, so every driver refused'
+         ' a pair whose real line sat right below it',
+         # Run 35's preparation, 2026-09-18: THE BASIS block says that every
+         # script reads the HALVES: line through this script, and the wrap
+         # put those two words first on a line. preflight aborted at exit 2
+         # before a step ran, and the note read right to a human. The first
+         # line that PARSES is the machine line; a `^HALVES:` that does not
+         # is prose.
+         shadow=dict(extra=[('zzph6-pair.txt',
+                             'a stand-in pair note. Every script that takes'
+                             ' a run reads the\n'
+                             'HALVES: line below through pair-halves.sh.\n'
+                             'HALVES: basis=lookrts other=a1g\n')]),
+         argv=['zzph6'],
+         ok=V(exit=0, has=['BASIS=lookrts; OTHER=a1g']),
+         bug=V(exit=1, has=['does not parse'], hasnt=['BASIS='])),
+
     case('halves-fall-back-to-the-environment-without-a-note',
          'pair-halves.sh', None,
          'CONTROL: no note at all takes the environment, and says so',
