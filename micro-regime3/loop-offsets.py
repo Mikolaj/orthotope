@@ -128,9 +128,9 @@ which no recipe sets, so this is the reading a run has off the binary it
 timed. Under `LOOP_EXITSPAN=1` it is an invariant: Run 33's two halves read
 0 and 0 where Run 32's read 65 and 72, and a nonzero on a half built with
 the switch says the recipe lacked it, the shim regressed, or `scan` met a
-table shape it has no tell for yet, as Run 35's one astride was
-(2026-09-18): read the head's bytes before the recipe. It counts a
-placement and not a cost.
+table shape it has no tell for yet, as Run 35's one astride and Run 36's
+two were (2026-09-18): read the head's bytes before the recipe. It counts
+a placement and not a cost.
 
 Its defects are kept as cases in `defects.py` -- objdump's status
 and addr2line's -- and a fix here wants one there first.
@@ -170,6 +170,11 @@ KEYWORD = {'type', 'data', 'newtype', 'class', 'instance', 'import', 'module',
            'infix', 'infixl', 'infixr', 'foreign', 'pattern'}
 LINE = 64  # the cache line, and the op cache's window on this Zen 3
 UNCOND = re.compile(r'^(?:jmp|ret|ud2|hlt)')   # nothing falls through it
+# A pad as objdump spells it, mnemonic and operands: `nop`, `nopl`, `nopw`
+# behind any `cs` or `data16` prefixes, and the two-byte `66 90`, which it
+# spells `xchg %ax,%ax`. By spelling and not by encoding: `0f 1f` takes any
+# ModRM, and `nopl (%rsi)` is a pad an encoding list did not have.
+PAD = re.compile(r'^(?:(?:cs|data16) )*(?:nop|xchg\s+%ax,%ax)')
 EXITEND = re.compile(r'^(?:j|ret|ud2|hlt)')    # where a fall-through exit ends
 
 
@@ -288,7 +293,9 @@ def reaches(insns, k, n, targets):
     real loop. Survey totals recorded before then are higher by one or two
     wherever it fires and stand as taken; the two STRADDLER counts it moves
     are `run28-g912`'s, from eight to seven, and Run 26's HEAD twin's, from
-    six to four.
+    six to four. Since 2026-09-18 the tell also asks for an instruction of
+    two zero bytes, Run 36's basis half having read a table's `00 00 78 fc`
+    as a loop astride; `zero_run` says what that moved.
     """
     live = False
     for i in range(k, n + 1):
@@ -302,19 +309,29 @@ def reaches(insns, k, n, targets):
     return False
 
 
-def zero_run(body, n=4):
-    """Does this body carry `n` consecutive zero bytes -- the third site in
-    `reaches`, where the body is an info table rather than code.
+def zero_run(insns, k, n, run_of=4):
+    """Does this body carry `run_of` consecutive zero bytes, or an
+    instruction of two, `add %al,(%rax)` -- the third site in `reaches`,
+    where the body is an info table rather than code.
 
     Byte-aligned, and that is the point: the hex string of `10 00 00 00 01`
-    holds eight zero characters and only three zero bytes.
+    holds eight zero characters and only three zero bytes. The instruction
+    form is the same tell at two bytes, which no run of four can see and no
+    compiler emits: Run 36's basis half read `00 00 78 fc` at 0x4a4832 as
+    a four-byte loop astride, two table bytes and the low bytes of the
+    word after them (2026-09-18). Neither form subsumes the other over the
+    twelve run binaries on disk, so both are asked. There the instruction
+    form marks five Main bodies, each a table's words, and 28 to 50 library
+    bodies a binary; it moves no straddling count, and run31-nospec's exit
+    spans astride, a half built without the switch, from 65 to 64.
     """
+    body = ''.join(i[2] for i in insns[k:n + 1])
     run = 0
     for i in range(0, len(body), 2):
         run = run + 1 if body[i:i + 2] == '00' else 0
-        if run >= n:
+        if run >= run_of:
             return True
-    return False
+    return any(i[2] == '0000' for i in insns[k:n + 1])
 
 
 def signature(insns, k, n):
@@ -397,22 +414,27 @@ def scan(path, length):
         # sweep out of step over a table, the second site in `reaches`.
         if any(i[3] == '(bad)' for i in insns[k:n + 1]):
             continue
-        # Nor does it carry a run of zero bytes: such a body IS a table,
-        # the third site in `reaches`.
-        if zero_run(body):
+        # Nor does it carry a run of zero bytes, or an instruction of two:
+        # such a body IS a table, the third site in `reaches`.
+        if zero_run(insns, k, n):
             continue
         # Nor a stray REX prefix, `rex.*` in the mnemonic column: the sweep
         # entered an instruction mid-way, a fifth shape, the sixth site in
         # defects.py (2026-09-18), which carries the totals it moves.
         if any(i[3].startswith('rex.') for i in insns[k:n + 1]):
             continue
-        # Nor does it begin with a nop: a `nopl` pad after an unconditional
+        # Nor does it begin with a pad: a `nopl` pad after an unconditional
         # jump, closed by the info-table word after it read as a short
         # backward jcc, is a fourth table shape -- six bytes that cannot straddle,
         # so only the exit-span count met it, two on run33-gheadexit and one
         # on run32-ghead (2026-09-16). Survey totals recorded before then are
-        # higher by that on those two and stand as taken.
-        if insns[k][3].startswith('nop'):
+        # higher by that on those two and stand as taken. With `xchg
+        # %ax,%ax` beside `nop` since 2026-09-18, when Run 36's HEAD half
+        # read a two-byte pad so spelled and its table word as a four-byte
+        # loop astride. Over the twelve run binaries on disk that spelling
+        # marks the site, run31-o2's twin of it and one library body a
+        # binary, and moves run31-o2's exit spans astride from 41 to 40.
+        if PAD.match(insns[k][3] + ' ' + insns[k][4]):
             continue
         found.append({'start': tgt, 'bytes': body, 'sym': insns[k][5],
                       'len': span, 'ninsn': n - k + 1, 'mod': tgt % LINE,

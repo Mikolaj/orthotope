@@ -7755,9 +7755,9 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      spans astride, the span as align-as.py costs it under
     #      LOOP_EXITSPAN. On a half built with that switch it is 0, or
     #      the recipe lacks the switch, the shim regressed, or the survey
-    #      read a table as a loop, Run 35's case: dump the head's bytes
-    #      first, and stop before 11 for the other two; on a half built
-    #      without it, a figure for the note
+    #      read a table as a loop, Run 35's case and Run 36's: dump the
+    #      head's bytes first, and stop before 11 for the other two; on a
+    #      half built without it, a figure for the note
     ./smoke-sweep.sh $R                   # 11. the smoke sweep, STARTED NOW
     ./smoke-l1.sh $R [CLASS ...]          #     in the background with 12 where
     #      the diff at 6 says it is owed, and 12a and 12b taken under
