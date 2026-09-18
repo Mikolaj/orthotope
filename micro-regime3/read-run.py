@@ -8984,23 +8984,44 @@ def note_check(path, readme, run_doc=None):
                                  ' carries %d'
                               % (q.group(0), os.path.basename(src), top)))
 
-    # 3. A HALF TAG MISSING FROM THE NOTE'S OWN ROLL OF THEM. The roll is
-    # the paragraph led NAMING THE HALVES, and `--draft` holds its tag
-    # substitution off it deliberately -- so a run whose tags are new
-    # appends them by hand or the roll silently stops being a roll.
+    # 3. A HALF TAG MISSING FROM THE ROLL OF THEM. The roll moved into
+    # README's *Which two halves a pair has* on 2026-09-18 -- two copies
+    # is how it drifted, `g914` missing from one and the template's four
+    # tags short of the notes' -- so the tags are held to the CHAPTER's
+    # roll where the chapter has one, and to the note's where it does not,
+    # which is every note written before the move. The note keeps its
+    # NAMING THE HALVES block either way: it is now the pointer.
+    # THE CHAPTER IS WRAPPED, so the roll's own sentence can fall across a
+    # line break and a plain search of it finds nothing; the paragraphs
+    # are read with their whitespace flattened, which is the same reason
+    # every search of prose here reads the unwrapped form.
     roll = next((p for p in text.split('\n\n')
                  if p.lstrip('\n').startswith('NAMING THE HALVES')), None)
+    chapter_roll = None
+    try:
+        rtext = io.open(readme, encoding='utf-8').read()
+    except (OSError, TypeError):
+        rtext = ''
+    for p in re.split(r'\n\s*\n', rtext):
+        flat = re.sub(r'\s+', ' ', p)
+        if 'The roll of tags this chapter has used' in flat:
+            chapter_roll = flat
+            break
     halves = re.search(r'^HALVES: basis=(\S+) other=(\S+)\s*$',
                        text, re.M)
     if roll is None:
-        found.append((0, 'no paragraph led NAMING THE HALVES, which is the'
-                         ' roll of the halves this chapter has used'))
+        found.append((0, 'no paragraph led NAMING THE HALVES, which is'
+                         " where a note points at the chapter's roll of"
+                         ' the halves this chapter has used'))
     elif halves:
+        where = chapter_roll if chapter_roll is not None else roll
+        what = ("README's *Which two halves a pair has*"
+                if chapter_roll is not None else 'NAMING THE HALVES')
         for tag in (halves.group(1), halves.group(2)):
-            if '`%s`' % tag not in roll:
+            if '`%s`' % tag not in where:
                 found.append((text[:text.index(roll)].count('\n') + 1,
-                              'the half `%s` is not on the roll in NAMING'
-                              ' THE HALVES, which this run appends to' % tag))
+                              'the half `%s` is not on the roll in %s,'
+                              ' which this run appends to' % (tag, what)))
 
     # 4. AND AN ENTRY POINT THE EXECUTING SESSION CAN READ IN A MINUTE.
     # Run list step 13 tells that session to read the note's `[EXEC]`
@@ -9309,10 +9330,28 @@ def pair_note(path, draft=None, halves=None):
         opts = sorted(set(re.findall(r'(?<![-\w])-(?:f[a-z][\w-]*|O\d)',
                                      para)))
         if old_runs or opts:
-            flagged.append((_note_title(lead), old_runs, opts))
+            # AND THE LINES THEMSELVES, not the block alone. A flagged
+            # block runs to a dozen lines and what is stale in it is one
+            # clause or two, so a preparation told only the title reads
+            # the whole block back looking for what this notice has
+            # already located. Run 35's draft flagged five blocks and
+            # every rewrite it wanted was a sentence inside one
+            # (2026-09-18). Located and never changed, as above: which
+            # line is stale is still the preparation's to decide.
+            # BOTH SPELLINGS, since the two fail differently: `Run 33`
+            # in prose, where the number stands alone, and `run33-exit`
+            # in a name, where it is preceded by a word character and a
+            # bare-number pattern never fires -- which is the half a
+            # carried block quotes a previous build by.
+            hits = [l.strip() for l in para.split('\n')
+                    if any(('run%s' % n) in l
+                           or re.search(r'(?<![\w.])%s(?![\w.])' % n, l)
+                           for n in old_runs)
+                    or any(o in l for o in opts)]
+            flagged.append((_note_title(lead), old_runs, opts, hits))
     if flagged:
         rows = []
-        for t, r, o in flagged:
+        for t, r, o, hits in flagged:
             why = []
             if r:
                 why.append('names %s %s'
@@ -9320,6 +9359,11 @@ def pair_note(path, draft=None, halves=None):
             if o:
                 why.append('asserts %s' % ', '.join(o))
             rows.append('#   %-44s %s' % (t[:44], ' and '.join(why)))
+            for h in hits[:4]:
+                rows.append('#     | %s' % h[:64])
+            if len(hits) > 4:
+                rows.append('#     | ... and %d more line(s) in that block'
+                            % (len(hits) - 4))
         marks = '\n'.join(rows)
         body = ('# CHECK THESE CARRIED BLOCKS: each names a run this draft'
                 ' did not rename, or\n# asserts a compile option -- so a'
@@ -13035,6 +13079,69 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
                     trouble.append("Run %s's registration defers to task %s,"
                                    ' which names arms the roster does not'
                                    ' time: %s' % (num, n, ', '.join(away)))
+            # THE PREVIOUS RUN FILE MUST NAME THIS REGISTRATION, since
+            # 2026-09-18. Two committed documents declared Run 35 for
+            # different pairs -- the open list registered Run 34's compiler
+            # pair rebuilt from the moved source, and runs/run34.md's
+            # compares-against went on declaring the two -O2 passes -- and
+            # every mechanical pass here stayed green, this one reading a
+            # registration's ARMS and not its pair. A preparation reads
+            # what the pair varies in that section and what the run
+            # answers in the registration, so where both exist the section
+            # points at the registration; which of them is right stays the
+            # owner's, and this only refuses the silence.
+            prev_doc = os.path.join(os.path.dirname(os.path.abspath(readme)),
+                                    'runs', 'run%d.md' % (int(num) - 1))
+            if os.path.exists(prev_doc):
+                try:
+                    txt = io.open(prev_doc, encoding='utf-8').read()
+                except OSError:
+                    txt = ''
+                m = re.search(r'^## What the next run compares against$'
+                              r'(.*?)(?=^## |\Z)', txt, re.M | re.S)
+                if m and not re.search(r'\[registered[^\]]*\]\[open\]',
+                                       m.group(1)):
+                    trouble.append(
+                        "Run %s is registered in the open list and"
+                        " runs/run%d.md's compares-against section names no"
+                        " registration -- the two can declare DIFFERENT"
+                        " pairs with every check here green, which is what"
+                        " Run 35 met. Point the section at it, as"
+                        " `[registered <date>][open]`"
+                        % (num, int(num) - 1))
+            # AND A COUNT PRIOR NO ARTIFACT HERE CAN RE-DERIVE, which is a
+            # note and not a refusal: the sweep may be a probe's, kept
+            # elsewhere or not kept at all, and the prior may be quoted
+            # from a run whose files are gone. Run 35's items (2) and (3)
+            # quoted a plain build's instruction counts and no counts file
+            # here named the arm, so pre-run 12b read their times back and
+            # not their instructions -- the reading, not the figure, is
+            # what goes missing.
+            arms = {a for pair in
+                    re.findall(r'predict:\s+count(?:diff)?\s+([\w-]+)'
+                               r'(?:\s+([\w-]+))?', t)
+                    for a in pair if a}
+            if arms:
+                have = set()
+                for f in sorted(glob.glob(os.path.join(
+                        os.path.dirname(os.path.abspath(readme)),
+                        '*counts*.txt'))):
+                    try:
+                        have |= {a for a in arms
+                                 if a in io.open(f, encoding='utf-8',
+                                                 errors='replace').read()}
+                    except OSError:
+                        pass
+                    if have >= arms:
+                        break
+                lost = sorted(arms - have)
+                if lost:
+                    print('note: Run %s quotes a count prior for %s, and no'
+                          ' counts file here names %s -- the sweep behind it'
+                          ' is not on disk, so pre-run 12b can read the'
+                          ' times back and not the instructions'
+                          % (num, ', '.join(lost),
+                             'them' if len(lost) > 1 else 'it'))
             # WHAT EACH SPAN COMPARES, since 2026-09-18, for the author
             # to read against the sentence beside it at pre-run 12b:
             # the mode, the operands and their orientation. The

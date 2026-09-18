@@ -1373,6 +1373,25 @@ def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
     return write(os.path.join(tmp, 'R.md'), text + '\n' + entry + '\n')
 
 
+def prev_rundoc_for_a_registration(tmp, pointer):
+    """`runs/run98.md` beside a fixture README registering Run 99.
+
+    Its compares-against section declares the next run's pair, which is
+    what a run file's does, and `pointer` is whether it also names the
+    registration. Those are the two committed declarations Run 35 had of
+    itself -- the open list's and the previous run file's -- and they
+    named different pairs with every check here green, the registration
+    check reading arms and not pairs.
+    """
+    d = os.path.join(tmp, 'runs')
+    os.makedirs(d, exist_ok=True)
+    ref = ' [registered 2026-09-18][open]' if pointer else ''
+    return write(os.path.join(d, 'run98.md'),
+                 '# Run 98\n\n## What the next run compares against\n\n'
+                 '**Run 99 is the pair below%s.** One variable and nothing'
+                 ' else.\n\n## Another section\n\nProse.\n' % ref)
+
+
 def readme_with_an_uncovered_figure(tmp, kind):
     """The README plus a section no replace-list bullet links, carrying a
     figure the coverage check could not see until 2026-09-04: `wrapped`,
@@ -2101,10 +2120,16 @@ def note_for_the_check(tmp, broken=True):
     appends is the one read, and a `runs/run98.md` beside it so the
     previous run resolves to 98. Broken, the note carries one of each
     kind: a continuity claim reaching only Run 96, an item (5) where that
-    registration carries one, and a roll missing the `d` half.
+    registration carries one, and a half that is on no roll.
+
+    THE HALVES ARE REAL TAGS since 2026-09-18, when the roll moved out of
+    the notes into README's *Which two halves a pair has*: the check reads
+    the CHAPTER's roll now, so a fixture naming `c` and `d` failed its own
+    control for the tags rather than for what it was built to test. The
+    broken half is a tag no roll carries, which is the finding.
     """
     write(os.path.join(_mkruns(tmp), 'run98.md'), '# Run 98\n')
-    roll = '`c` and `d`' if not broken else '`c`'
+    other = 'zzhalf' if broken else 'ghead'
     # The ENTRY POINT the executing session reads, tagged as run list step
     # 13 wants it and as pre-run 12c now requires: without it that step
     # falls back to reading the note whole, which both runs that met the
@@ -2113,16 +2138,16 @@ def note_for_the_check(tmp, broken=True):
              'ENTRY POINT FOR THE SESSION THAT RUNS THIS [EXEC]: pre-run'
              ' is spent; the gate at 14 is owed.\n\n')
     return write(os.path.join(tmp, 'run99-pair.txt'),
-                 'The pair run99-c and run99-d, Run 99s, written by hand'
-                 ' 2026-01-01\n\n'
+                 'The pair run99-exit and run99-%s, Run 99s, written by'
+                 ' hand 2026-01-01\n\n'
+                 % other
                  + entry +
-                 'HALVES: basis=c other=d\n\n'
-                 'NAMING THE HALVES [SAME]: every half on record is'
-                 ' hyphen-free (%s).\n\n'
+                 'HALVES: basis=exit other=%s\n\n'
+                 'NAMING THE HALVES [SAME]: the roll is the chapter\'s.\n\n'
                  'THE COUNTS [SAME]: run-status.sh holds this run to 22'
                  ' counts files,\nas it held Runs 20 to %d.\n\n'
                  'WHAT THE PAIR PRICES [PAIRS]: what item (%d) asks.\n'
-                 % (roll, 96 if broken else 98, 5 if broken else 1))
+                 % (other, 96 if broken else 98, 5 if broken else 1))
 
 
 def doc_of_a_big_paragraph(tmp, n=1800):
@@ -11567,6 +11592,27 @@ RECORDS = [
                            'names Run 21'],
               hasnt=['MINE                ', 'names Run 23'])),
 
+    case('draft-notice-names-the-line-and-not-only-the-block',
+         'read-run.py', None,
+         'CONTROL: a flagged [SAME] block carries the LINES that name the'
+         ' old run under it, and an innocent line of the same block does'
+         ' not come with them',
+         # The block-level notice says which block is stale and leaves a
+         # dozen lines to re-read for the clause that is; Run 35's five
+         # rewrites were each one sentence inside a flagged block. Both
+         # directions in one fixture: the second line names run21 and must
+         # appear under the row, the first names nothing and must not.
+         plant=lambda t: {'note': write(
+             os.path.join(t, 'run23-pair.txt'),
+             "hdr\n\nOLD [SAME]: a line that names nothing.\n"
+             "against run21-g912, the previous build of this recipe.\n"
+             "\nHALVES: basis=g912 other=spot\n")},
+         argv=['--note', '{note}', '--draft', 'run24',
+               '--halves', 'g912,ghead'],
+         ok=V(exit=0, has=['names Run 21',
+                           '| against run21-g912, the previous build'],
+              hasnt=['| a line that names nothing'])),
+
     case('draft-flags-a-carried-block-asserting-a-compile-option',
          'read-run.py', None,
          'CONTROL: a carried [SAME] block naming a compile option is'
@@ -11782,6 +11828,48 @@ RECORDS = [
          plant=lambda t: {'readme': readme_with_a_registration(t)},
          argv=['--lint', '--readme', '{readme}'],
          ok=V(hasnt=['not the form --move-registration matches'])),
+
+    case('lint-names-a-section-that-points-at-no-registration',
+         'read-run.py', None,
+         'a compares-against section declaring the next run\'s pair while'
+         ' the open list registers one, with no pointer between them, went'
+         ' unnamed -- and on Run 35 the two declared DIFFERENT pairs, this'
+         ' check reading a registration\'s arms and not its pair',
+         plant=lambda t: {'readme': readme_with_a_registration(t),
+                          'prev': prev_rundoc_for_a_registration(t, False)},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(exit=1, has=['names no registration'])),
+
+    case('lint-passes-a-section-that-names-the-registration',
+         'read-run.py', None,
+         'CONTROL: the same section carrying its `[registered ...][open]`'
+         ' pointer is not named',
+         plant=lambda t: {'readme': readme_with_a_registration(t),
+                          'prev': prev_rundoc_for_a_registration(t, True)},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(hasnt=['names no registration'])),
+
+    case('lint-notes-a-count-prior-with-no-sweep', 'read-run.py', None,
+         'a registration quoting an instruction count whose sweep is on no'
+         ' disk here is a figure pre-run 12b cannot read back: Run 35\'s'
+         ' items (2) and (3) quoted a plain build\'s counts and 12b could'
+         ' re-derive their times and not their instructions',
+         plant=lambda t: {'readme': readme_with_a_registration(
+             t, views_only=True)},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(has=['quotes a count prior for'])),
+
+    case('lint-passes-a-count-prior-whose-sweep-is-here', 'read-run.py', None,
+         'CONTROL: the same span with a counts file naming both arms is'
+         ' not noted',
+         plant=lambda t: {'readme': readme_with_a_registration(
+             t, views_only=True),
+                          'sweep': write(
+                              os.path.join(t, 'run98-counts-exit.txt'),
+                              'shape mut-odo-vecdims 10 100\n'
+                              'shape bq-expand 10 200\n')},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(hasnt=['quotes a count prior'])),
 
     case('registration-arm-is-not-timed', 'read-run.py', 'f40fad2',
          'nothing here read a registration, and Run 24 lost a clause of one',
