@@ -105,22 +105,12 @@ HALVES: basis=<basis> other=<other>
 COMPARE: <previous run, as run<N>>
 
 NAMING THE HALVES [SAME]: neither name may begin with the other's followed by a
-hyphen. install-tables.sh finds the basis's class JSONs by globbing
-`$R-<basis>-*.json`, so a control called `<basis>-pa` is caught by it, and
-`ls` sorts that file after the basis's own -- leaving the CONTROL half's
-table in every class block under a driver that says every table comes from
-the basis, with nothing downstream able to see it. Refused there since
-2026-08-17 rather than left to the naming. Every half on record is
-hyphen-free (`aligned`, `maxskip`, `maxskippa`, `lookrts`, `a1g`, `a32m`,
-`g912`, `g914`, `ghead`, `spot`, `spec`, `nospec`);
-note that `maxskip`/`maxskippa` is a bare prefix and safe -- it is the
-hyphen that collides. THAT ROLL IS HISTORICAL, and the backticks are what
-keep `--draft` off it: the bare-tag rename skips a match with a backtick on
-either side, so the roll comes back unchanged and only the live halves,
-spelled bare, are renamed. Before that boundary landed on 2026-09-12 it
-rewrote two of the roll's members every draft. Spell a rolled tag in
-backticks and a live one bare, and check the roll anyway -- it had drifted by
-hand besides, `g914` missing from Run 18 until the same day.
+hyphen, and a tag is one token of `[A-Za-z0-9_]`: install-tables.sh's
+`$R-<basis>-*.json` glob and pair-halves.sh both require it. WHY, and the
+roll of every tag this chapter has used, are in README's *Which two halves
+a pair has*, since 2026-09-18. READ THEM THERE AND DO NOT COPY THE ROLL
+BACK HERE: it lived in the notes until that day and drifted twice over,
+`g914` missing from one and this template's copy four tags short of it.
 
 WHY THE BASIS IS THIS RECIPE [PAIR'S], decided YYYY-MM-DD: a decision and not a
 measurement, so the reason belongs here where the next session meets it.

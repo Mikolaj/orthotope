@@ -7295,7 +7295,11 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     # this preparation PARKS or DROPS an arm, and step 7 is what tells
     # you which of the two you are. Nothing else in the chapter is owed,
     # and reading the executing session's half is the largest avoidable
-    # spend here.
+    # spend here. AND `--imperative` PRINTS THIS LIST AS ITS COMMANDS AND
+    # STEP LINES ALONE, a fifteenth as long: the form to come back to once
+    # you have read this one, and the cheapest way to re-enter a spent
+    # preparation. The full form is the first reading and stays the
+    # default.
     cd ~/r/orthotope/micro-regime3        # and re-set R, PREV and REGIME
     #      per call
     #      NN is one past the newest file in runs/, which is the run
@@ -7483,7 +7487,9 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      Provenance records the shim's beside the compiler's
     #      THREE COMMANDS, ONE STEP, after the build because nothing can
     #      be summed or checked against a transcription until both halves
-    #      exist
+    #      exist -- AND WHERE PREFLIGHT HAS RUN WITH `--fill-in`, ITS
+    #      BLOCK CARRIES ALL THREE ALREADY, so this step is that block
+    #      read back rather than three calls of its own
     #  the :/ pathspec resolves from the repo root, so these answer the same
     #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
     #  and exits 0, which reads exactly like an unmoved source
@@ -7677,8 +7683,11 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      sequencing.
     #      The sweep holds
     #      each process to the arm count `--list` gives for that shape.
-    #      AND NOT BEFORE PREFLIGHT'S 4,5, which is the one ordering here
-    #      that looks like waste and is not. Those two `check` runs are
+    #      AND NOT BEFORE PREFLIGHT'S 4,5, NOR BEFORE 10a AND 10b, which
+    #      is the one ordering here that looks like waste and is not: a
+    #      nonzero astride count stops before this pass by 10a's own
+    #      line, so a pass launched in front of it spends its hour on
+    #      binaries a stop may retire. Those two `check` runs are
     #      nearly all of a preflight and sit in front of this pass, so
     #      overlapping them buys minutes -- and 4,5 is the step whose
     #      FAILURE retires the binaries, so a pass started early spends
@@ -7690,8 +7699,11 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      two the moment preflight's log shows `4,5  PASS`, which is
     #      minutes before that call returns -- the rest of a preflight is
     #      cheap and the two `check` runs are not.
-    #      READ THAT LINE BY APPENDING A `tail` OF THE LOG TO THE CALLS
-    #      YOU ARE MAKING ANYWAY -- the note's own writing is a dozen of
+    #      READ THAT LINE BY APPENDING `command grep -c '4,5  PASS'` OF
+    #      THE LOG TO THE CALLS YOU ARE MAKING ANYWAY -- a `tail` window
+    #      MISSES IT where several lines land between two polls, which is
+    #      how Run 35 came to see 7, 8 and 8b with 4,5 already past --
+    #      the note's own writing is a dozen of
     #      them and each carries the poll for nothing -- AND SET NO
     #      WAITER FOR IT. The log writes the line INDENTED BY TWO SPACES,
     #      so a pattern anchored at the start of a line never fires, and
@@ -7705,7 +7717,13 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      runs to completion exactly as well and registers nothing, so
     #      no notification can name it and nothing wakes you -- and the
     #      no-waiter rule under 12 then rests on a wake-up that will not
-    #      come
+    #      come.
+    #      AND A BACKGROUNDED CALL'S STATUS IS ITS LAST COMMAND'S: end one
+    #      with `; echo "exit $?"` and what the harness announces is the
+    #      ECHO's 0, for a step that exited 2 -- which is how Run 35 read
+    #      an aborted preflight as a clean one. End the call with the
+    #      command itself, or read the status in the task output rather
+    #      than in the redirected log alone
     #      why: --para 'And one more, nearly free'
     #  12. THE ROSTER PASS, owed ONLY
     #      if `--list` changed membership AND the pair note records none
@@ -7717,7 +7735,11 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      one of them, so the classes whose VIEWS moved are not the ones
     #      at risk. Name a SUBSET -- `scaled` plus whatever population
     #      moved -- only where the roster gained no arm. A pass naming
-    #      every class runs about an hour, which is what to plan for.
+    #      every class runs about an hour, which is what to plan for --
+    #      AND WHERE THE OWNER IS AT HAND, SAY THAT COST AND TAKE A WORD
+    #      BEFORE LAUNCHING IT: it is the longest thing this half spends
+    #      and it fills one row, and Run 35's was stopped at minute
+    #      twenty and then ruled not owed, its main leg standing.
     #      Artifacts are
     #      `smoke-l1-$R-*`, never `$R-*` (the prefix rule below), and a
     #      previous attempt's are refused. Record it on an `L1 ROSTER
@@ -7833,7 +7855,10 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      hook moving it
     #      AND THE RE-DERIVATION IS A CARRIER AGENT'S: it is a dozen
     #      reader calls whose tables nothing will quote, so only the
-    #      verdicts need come back
+    #      verdicts need come back -- AND THE ARTIFACTS IT WILL READ ARE
+    #      CONFIRMED ON DISK BEFORE IT IS BRIEFED, a registration quoting
+    #      a probe's counts otherwise sending it at a sweep nobody kept,
+    #      which comes back unanswerable rather than wrong
     #      AND WHEN IT IS DONE, `./run-status.sh $R` READS `2c done: no
     #      <yours> slot left`, which is the one check that says the note
     #      is finished rather than merely written
@@ -8501,6 +8526,26 @@ the basis *the aligned half*: its control is `maxskippa`, the half that carries
 a sentence below says *aligned* it is about alignment, not about a role; where
 it is plainly about one past pair --- as the paragraph on the 12 KB of `.text`
 is, every figure in it being Run 10's --- it keeps that pair's half names.
+
+**Every half tag on record is hyphen-free, and two tools require it.**
+`install-tables.sh` finds the basis's class JSONs by globbing
+`$R-<basis>-*.json`, so a control called `<basis>-pa` is caught by that glob
+and `ls` sorts it after the basis's own --- leaving the CONTROL half's table
+in every class block under a driver that says every table comes from the basis,
+with nothing downstream able to see it; refused there since 2026-08-17 rather
+than left to the naming. `pair-halves.sh` refuses a tag outside `[A-Za-z0-9_]`
+since 2026-09-15, where it used to cut at the first hyphen and hand every driver
+a truncated tag --- Run 33's pair was declared `run33-ghead-exit` and renamed
+for exactly that. The roll of tags this chapter has used is `aligned`,
+`maxskip`, `maxskippa`, `lookrts`, `a1g`, `a32m`, `g912`, `g914`, `ghead`,
+`spot`, `spec`, `nospec`, `libcase`, `o2`, `exit` and `gheadexit`,
+`maxskip`/`maxskippa` being a bare prefix and safe, the hyphen alone colliding.
+**The roll lives here and not in a pair note**, which is where it used to live
+and where it drifted twice over: `g914` was missing from one until 2026-09-12,
+`--draft` rewrote two of its members every draft until a backtick bounded
+that rename the same day, and the copy in `pair-note-template.txt` had fallen
+four tags short of the notes' by Run 35. A note names its own two halves
+and points here for the rest.
 
 **Name the artifacts by half, and drive every `--in-place` from the basis
 half.** The sequence below builds every filename off `$R`, which a paired run

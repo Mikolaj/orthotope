@@ -72,6 +72,8 @@ echo "run status for $R, off the artifacts and the repository:"
 # reaches a session that never meant to read the chapter at all.
 echo "  execute from \`./read-run.py --checklist pre\`, or run or post"
 echo "  for the other halves; do not read README's run chapter to find it"
+echo "  --imperative beside it prints that same list as its commands and"
+echo "  step lines alone, a fifteenth as long: the re-read, not the first"
 echo "pre-run"
 # STEP 1 FIRST, since it is the one step whose answer is a listing rather
 # than a verdict: nothing named for this run may exist yet, and `ls $R-*`
