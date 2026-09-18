@@ -10037,7 +10037,18 @@ RECORDS = [
          ' the count-dependent ones are not',
          shadow=dict(extra=readings_run('zzpr', complete=False)),
          argv=['zzpr'],
-         ok=V(has=['rc=0 main-lookrts-aa.txt', 'rc=0 main-a1g-pred.txt',
+         # THE PRED JOB IS ASKED FOR BY NAME AND NOT BY ITS rc, since
+         # 2026-09-18: its exit code belongs to the REGISTRATION and not to
+         # this script. `--predictions` returns `1 if unread else 0`, and a
+         # `counts` or `countdiff` span cannot be read before the sweeps
+         # exist -- which is precisely the state this control is in. Run
+         # 35's registration was the first to carry such spans and turned
+         # this case red with nothing in post-run-readings.sh having moved.
+         # The other two rc=0 assertions stay: those readings owe nothing
+         # to a registration. What this case is about is WHICH readings are
+         # taken before EVENING COMPLETE, which the hasnt list below and
+         # this name together settle.
+         ok=V(has=['rc=0 main-lookrts-aa.txt', 'main-a1g-pred.txt',
                    'rc=0 %s-a1g-block.txt' % class_names()[0],
                    'not before EVENING COMPLETE'],
               hasnt=['main-counts-cmp.txt', 'half-movers.txt',
