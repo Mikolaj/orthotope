@@ -454,6 +454,24 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--lint\', \'--readme\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'does not time\' in r.stdout + r.stderr else 1)"'),
+    # AND --lint REFUSES `both` ON A CROSS-HALF SPAN AWAY FROM 1, since
+    # 2026-09-19. `cross` and `counts` read THIS half over the other, so
+    # `both` reads one span twice and the two figures are reciprocals: a
+    # target away from 1 holds on at most one half. Run 36's registration
+    # wanted `cross list 1.2974`, where `both` would have killed half its
+    # spans the day they were written. NOT Run 35's item (3), whose target
+    # was 1.0 and which this refusal allows; that one died of its band.
+    ('--lint stops refusing `both` on a cross span away from 1',
+     'read-run.py',
+     "                        if x and x > 0 and abs(1.0 / x - x) * 100 > band:",
+     "                        if x and x > 0 and abs(1.0 / x - x) * 100 < band:",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.readme_with_a_registration(tempfile.mkdtemp(), cross_both_target=\'1.2974\')\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--lint\', \'--readme\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'on a cross-half kind with a target away from 1\' in r.stdout + r.stderr else 1)"'),
     ('--lint stops saying what a span compares', 'read-run.py',
      "            if reads:\n                print(\"      Run %s's %d span(s)",
      "            if not reads:\n                print(\"      Run %s's %d span(s)",

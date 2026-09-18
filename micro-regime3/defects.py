@@ -1624,7 +1624,8 @@ def parked_arm():
 
 def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
                                lead_extra=None, unscoped=False, bare=False,
-                               script='read-run.py', views_only=False):
+                               script='read-run.py', views_only=False,
+                               cross_both_target=None):
     """The README plus a synthetic OPEN registration, at the end.
 
     SYNTHETIC and not an edit of the live one, which is the whole point:
@@ -1641,6 +1642,9 @@ def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
     scoped `predict:` span, a committed `script:`, or a task deferral.
     `unscoped` drops the span's scope, `bare` adds an item with neither
     span nor script, and `script` names the script item (2) carries.
+    `cross_both_target` moves item (1)'s target off 1, which is the
+    defect direction for the `both` check: a cross-half span reads the
+    two halves as reciprocals, so only a unity target holds on both.
 
     `task_arm` is the other half of the deferral: it PLANTS a task 99
     under the live tasks heading naming that arm, and defers to it. A
@@ -1661,8 +1665,9 @@ def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
     entry = ("- `OPEN` **What Run 99 is built to answer, registered before"
              " it runs%s Registered for this fixture and for nothing else."
              " (1) *The box.* `list` moves under 3%%, `predict: cross list"
-             " 1.0 within 3%%%s`; killed by more."
-             % (tail, '' if unscoped else ' on main both'))
+             " %s within 3%%%s`; killed by more."
+             % (tail, cross_both_target or '1.0',
+                '' if unscoped else ' on main both'))
     if arm:
         entry += (" (2) *The arm.* `%s` leads its family; killed by a loss,"
                   " `script: %s`." % (arm, script))
@@ -12368,6 +12373,62 @@ RECORDS = [
          argv=['--lint', '--readme', '{readme}'],
          ok=V(exit=1, has=['item (6) span `predict: countdiff',
                            'carries no scope'])),
+
+    case('section-falls-back-to-a-bolded-lead', 'read-run.py', None,
+         'CONTROL: `--section` on a name that is a BOLDED LEAD and not a'
+         ' heading prints that paragraph and says which it was',
+         # Half the chapter's named subjects are leads rather than
+         # headings, and note-check's own roll message sends a reader to
+         # one by name. Refusing outright sent Run 36's preparation to
+         # `grep` for a tag and `sed` for a window -- the path into the
+         # chapter this mode exists to avoid. Added 2026-09-19.
+         plant=lambda t: {'readme': README},
+         argv=['--section', 'Which two halves a pair has',
+               '--readme', '{readme}'],
+         ok=V(exit=0, has=['this is a BOLDED LEAD',
+                           'Which two halves a pair has is a property'])),
+
+    case('section-lead-is-narrowed', 'read-run.py', None,
+         'CONTROL: `--section` on a name several bolded leads carry lists'
+         ' them and refuses, as the heading branch does, rather than'
+         ' printing the first',
+         # The first draft of the fallback printed match one and returned
+         # 0, so `--section 'the note'` handed back one of seven leads and
+         # read as an answer. Found by the transcript pass the day the
+         # fallback landed, 2026-09-19.
+         plant=lambda t: {'readme': README},
+         argv=['--section', 'the note', '--readme', '{readme}'],
+         ok=V(exit=1, has=['bolded lead(s) do; narrow it to one'])),
+
+    case('section-names-para-when-nothing-matches', 'read-run.py', None,
+         'CONTROL: `--section` on a name that is neither heading nor lead'
+         ' still refuses, and names `--para` -- which is what says the'
+         ' case above did not pass for matching everything',
+         plant=lambda t: {'readme': README},
+         argv=['--section', 'No such subject anywhere', '--readme',
+               '{readme}'],
+         ok=V(exit=1, has=['no heading and no bolded lead matches',
+                           '`--para PATTERN` searches every paragraph'])),
+
+    case('registration-both-on-a-non-unity-cross', 'read-run.py', None,
+         'CONTROL: `both` on a cross-half span whose target is away from 1'
+         ' is refused, the two halves reading it as reciprocals',
+         # `cross` and `counts` read THIS half over the other, so `both`
+         # reads one span twice, once each way. Run 36's registration
+         # wanted `cross list 1.2974`; had it written `both`, half its
+         # spans would have been unholdable the day they were written.
+         # A SECOND WAY for a span's vocabulary to ask what its prose did
+         # not, and not Run 35's item (3), whose target was 1.0 and which
+         # this refusal allows: that one died of its band. The grammar
+         # admits
+         # it and the arms-and-scope checks cannot see it. Found
+         # preparing Run 36, refused since 2026-09-19.
+         plant=lambda t: {'readme': readme_with_a_registration(
+             t, cross_both_target='1.2974')},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(exit=1, has=['item (1) span `predict: cross list 1.2974',
+                           'scoped `both` on a cross-half kind',
+                           '0.7708 on the control'])),
 
     case('registration-item-is-adjudicable', 'read-run.py', None,
          'CONTROL: an item with neither a span nor a committed script is'

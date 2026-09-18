@@ -3378,6 +3378,18 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     apart; one naming no scope is read on every file handed in, which
     `--lint` refuses in an OPEN registration.
 
+    A CROSS-HALF KIND SCOPED `both` IS READ TWICE, ONCE IN EACH HALF'S
+    OWN ORIENTATION, so its two readings are RECIPROCALS: `cross` and
+    `counts` compare this file's half over the OTHER, which off the
+    control file is the basis reading inverted. A target away from 1
+    therefore holds on at most one half -- Run 35's item (3) read 1.0062
+    on the basis and 0.9938 on the control off one span, its own target
+    being 1.0 and so legal here -- so `--lint`
+    refuses `both` on a `cross` or `counts` span whose band does not
+    reach both orientations, and the author names `basis` or `control`.
+    `pair`, `cell` and `countdiff` are within-half and take `both` at any
+    target.
+
     HELD when the figure read is within P points of X, or for countdiff
     when every difference is under N, KILLED otherwise; P defaults to the
     A/A floor of the POPULATION READ for cross, pair and cell -- this
@@ -8622,7 +8634,48 @@ def section(docs, name, with_tables=None):
             if m and name.lower() in m.group(2).lower():
                 hits.append((path, lines, i, len(m.group(1)), m.group(2)))
     if not hits:
-        sys.stderr.write("--section: no heading matches %r in %s\n"
+        # A BOLDED LEAD IS NOT A HEADING, and half the chapter's named
+        # subjects are leads: *Which two halves a pair has* is one, and
+        # note-check's own roll message sends a reader there by that name.
+        # Refusing outright sent Run 36's preparation to `grep` for a tag
+        # and `sed` for a window, which is the path into the chapter this
+        # mode exists to avoid. So fall back to the lead and say which it
+        # was. Case: `section-falls-back-to-a-bolded-lead`.
+        leads = []
+        for path in docs:
+            try:
+                lines = open(path).read().split('\n')
+            except OSError:
+                continue
+            for first, para, _sp in unwrapped_paragraphs(lines):
+                if re.match(r'\*\*', para.lstrip()) \
+                        and name.lower() in para[:400].lower():
+                    leads.append((path, first, para))
+        # NARROWED LIKE THE HEADING BRANCH and never guessed: the first
+        # draft of this fallback printed the first match and returned 0, so
+        # `--section 'the note'` handed back one of a dozen leads and read
+        # as an answer. A wrong paragraph that looks right is the one
+        # outcome this mode must not have. Case: `section-lead-is-narrowed`.
+        if len(leads) == 1:
+            path, first, para = leads[0]
+            print('%s:%d: no heading of that name -- this is a BOLDED LEAD,'
+                  ' printed whole; `--para` is the mode for one'
+                  % (os.path.basename(path), first))
+            print()
+            print(para)
+            return 0
+        if leads:
+            print('no heading matches %r, and %d bolded lead(s) do; narrow'
+                  ' it to one, or read them with `--para`:'
+                  % (name, len(leads)))
+            for path, first, para in leads:
+                print('  %s:%d  %s'
+                      % (os.path.basename(path), first,
+                         para.lstrip()[:96].replace('\n', ' ')))
+            return 1
+        sys.stderr.write("--section: no heading and no bolded lead matches"
+                         " %r in %s -- `--para PATTERN` searches every"
+                         " paragraph\n"
                          % (name, ', '.join(os.path.basename(q)
                                             for q in docs)))
         return 1
@@ -9021,7 +9074,12 @@ def note_check(path, readme, run_doc=None):
             if '`%s`' % tag not in where:
                 found.append((text[:text.index(roll)].count('\n') + 1,
                               'the half `%s` is not on the roll in %s,'
-                              ' which this run appends to' % (tag, what)))
+                              ' which this run appends to --'
+                              " `./read-run.py --para 'The roll of tags'`"
+                              ' prints the roll itself, the section'
+                              ' named above opening three paragraphs'
+                              ' earlier'
+                              % (tag, what)))
 
     # 4. AND AN ENTRY POINT THE EXECUTING SESSION CAN READ IN A MINUTE.
     # Run list step 13 tells that session to read the note's `[EXEC]`
@@ -13040,6 +13098,39 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
                                        ' `on POP,...` and basis, control or'
                                        ' both, or it is read on every file'
                                        ' handed in' % (num, inum, sp))
+                    # AND `both` ON A CROSS-HALF KIND WHOSE TARGET IS
+                    # NOT RECIPROCAL-SAFE, refused since 2026-09-19:
+                    # `cross` and `counts` read this half over the other,
+                    # so `both` reads them once each way and the two
+                    # figures are reciprocals. A target away from 1 holds
+                    # on at most one half, which is Run 35's item (3) in
+                    # a new dress -- and Run 36's registration wanted
+                    # `cross list 1.2974`, where `both` would have
+                    # killed half its spans by construction. Nothing
+                    # said so: the grammar admits it and the arms-and-
+                    # scope checks above cannot see it. Case:
+                    # `registration-both-on-a-non-unity-cross`.
+                    if half == 'both' and _k in ('cross', 'counts') \
+                            and len(_a) == 2:
+                        try:
+                            x = float(_a[1])
+                        except ValueError:
+                            x = None
+                        band = _w if isinstance(_w, float) else (
+                            0.1 if _k == 'counts' else 1.0)
+                        if x and x > 0 and abs(1.0 / x - x) * 100 > band:
+                            trouble.append(
+                                "Run %s's item (%s) span `predict: %s` is"
+                                ' scoped `both` on a cross-half kind with'
+                                ' a target away from 1: it will be read'
+                                ' %.4f on the basis and %.4f on the'
+                                ' control, which %s points apart cannot'
+                                ' both be within %s. Name `basis` or'
+                                ' `control`'
+                                % (num, inum, sp, x, 1.0 / x,
+                                   round(abs(1.0 / x - x) * 100, 2),
+                                   ('%g%%' % _w) if isinstance(_w, float)
+                                   else 'the default band'))
                 for sc in scripts:
                     name = sc.split()[0]
                     known = subprocess.run(
