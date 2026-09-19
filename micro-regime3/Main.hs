@@ -3212,12 +3212,17 @@ mkStrided normalSh =
 -- the library code and not a strategy of its own; their pairs are what
 -- an orthotope user would measure.
 --
--- Stage one as it shipped (Data/Array/Internal.hs at 0386073): regime 1
--- the vector itself or a slice, regime 2 one slice per maximal normal
--- suffix and a concatenation, regime 3 the fill 'genericFillStrided',
--- which is 'fillStage2' since 2026-09-11 here as in the library, and
--- was the leaf 'fbMutOdoVecdimsAddInLeafU2' before; 'liblist-stage1'
--- below fills through the same. The arm is the shipped route whole.
+-- Stage one as it shipped, Data/Array/Internal.hs on the branch
+-- speedup-strided-tovector (landed at 6ae326e):
+-- regime 1 the vector itself or a slice, regime 2 one slice per maximal
+-- normal suffix and a concatenation, regime 3 the fill
+-- 'genericFillStrided', which is 'fillStage2' since 2026-09-11 here as
+-- in the library, and was the leaf 'fbMutOdoVecdimsAddInLeafU2' before;
+-- 'liblist-stage1' below fills through the same. The arm is the shipped
+-- route whole, read against that file's 'toVectorListT' branch for
+-- branch on 2026-09-19 at 570a485: the slice list is a difference list
+-- there, concatenated by 'toVectorT' unless it is one slice, and a plain
+-- list concatenated here, and nothing else differs.
 -- Non-vacuity, 2026-08-28: dropping the regime-2 branch (so those views
 -- take the fill) leaves @check@ green, the fill being correct there --
 -- which is why the runs class prices it rather than a check; slicing
@@ -3236,10 +3241,13 @@ fbLibStage1 sh (T (Strides ats) ao v)
           | otherwise = concat [loop bs ns ts (i * t + o) | i <- [0 .. n - 1]]
         loop _ _ _ _ = error "fbLibStage1: impossible"
 
--- Stage two as the branch pr-mikolaj-toVectorListT has it: the view
+-- Stage two as the branch pr-mikolaj-toVectorListT had it until
+-- 2026-09-05, when its 'regimeT' took the lean form below: the view
 -- canonicalized ('canonView'), natural canonical strides the vector or a
 -- slice, and everything else -- contiguous runs included -- filled by
--- 'fillStage2', the branch's driver. One change over 'fbLibStage1' per
+-- 'fillStage2' -- the dispatch is that branch's of before the ruling,
+-- the fill is ahead of that branch's own copy, reasons at 'fillStage2'.
+-- One change over 'fbLibStage1' per
 -- population: on the main set none (both fill, the same loop), on the
 -- runs class the route, on the broadcast classes the conditions.
 -- The one dispatch that keeps the strides comparison after the ruling of
@@ -3381,7 +3389,14 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
           | otherwise = VS.slice ao l v
 
 -- The fill the library's 'genericFillStrided' is ported from, at
--- Storable Double, the two kept in step by hand; 'check' holds it to
+-- Storable Double, the two kept in step by hand: the library is
+-- Data/Array/Internal.hs on the branch speedup-strided-tovector, and on
+-- 2026-09-19, at that file's 570a485, its copy read identical to this
+-- one body for body, the generic wrapper and its local type signatures
+-- aside. The copy on pr-mikolaj-toVectorListT is NOT this fill: it
+-- stands at its 2026-08-30 form (d7b9086), one copy per block and the
+-- broadcast run one write per iteration, before the doubling copy and
+-- the broadcast unroll of 2026-09-09. 'check' holds this one to
 -- the reference on every view. The two zero-stride bodies say at their
 -- definitions what each buys, and the fills that keep older forms say
 -- so at theirs.
@@ -6484,8 +6499,11 @@ roster =
     -- The library-shaped block, added 2026-08-28: what a user's
     -- toVectorT costs under stage one, under stage two, and under stage
     -- two with contiguous runs routed to slices -- each a port of the
-    -- library code, reasons at the definitions. Appended for the
-    -- family block's own reason -- no existing control moves.
+    -- library code -- stage one Data/Array/Internal.hs on the branch
+    -- speedup-strided-tovector, stage two pr-mikolaj-toVectorListT's
+    -- dispatch over stage one's fill -- which copy each matches, and
+    -- when it was read, at the definitions. Appended for the family
+    -- block's own reason -- no existing control moves.
   , ("lib-stage1",                 Fill fbLibStage1)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does):
     -- the two halves that bracketed 'dispRun', spent once the arm below
