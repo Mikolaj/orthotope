@@ -555,7 +555,12 @@ def plant_main_shapes_exempt(tmp):
                          capture_output=True, text=True, check=True).stdout
     # README quotes the run's population too, so both documents move.
     pat = re.compile(r'\bover (all )?%d shapes' % was, re.I)
-    assert pat.search(doc), 'the run file quotes no `over %d shapes`' % was
+    assert pat.search(doc), (
+        'the run file quotes no `over %d shapes`, so this fixture cannot'
+        ' build and the case and its mutant go with it. A write-up that'
+        ' spells the figure in words removes the only digit form the file'
+        ' carried -- Run 36 wrote `nineteen main-set shapes` -- so keep'
+        ' the digits where a sentence names the main set' % was)
     down = lambda m: 'over %s%d shapes' % (m.group(1) or '', now)  # noqa: E731
     doc = pat.sub(down, doc)
     readme = pat.sub(down, readme)
@@ -6491,6 +6496,24 @@ RECORDS = [
          plant=lambda t: {'run': synth_json(t, 'main', name='a.json')},
          argv=['{run}', '--movers', '0'],
          ok=V(exit=2, has=['does nothing alone'])),
+
+    case('block-compare-prose-comes-out-wrapped', 'read-run.py', None,
+         'the two paragraphs install-tables.sh does NOT write, in the'
+         ' form the run file keeps',
+         # THE ARM THAT MATTERS, and the one Run 36's defect landed in.
+         # install-tables.sh writes Controls, Provenance and the per-shape
+         # line; `Across the halves` and `What the class says` exist only
+         # with the second JSON and are placed by hand, so they are the two
+         # a session joins -- and `lib- stage2-lean-u1` reached the page in
+         # a `What the class says` paragraph. The assertion is a span of
+         # the cross-half boilerplate too long to survive an eighty-column
+         # wrap. This arm honours no --in-place and never did.
+         plant=lambda t: {'run': synth_json(t, 'rev', name='a.json'),
+                          'other': synth_json(t, 'rev', name='b.json')},
+         argv=['{run}', '--block', '--compare', '{other}', '--brief'],
+         ok=V(exit=0,
+              has=['**Across the halves:** 0 of the 16 arms are faster on'
+                   ' this half and 16 slower, at a geomean of'])),
 
     case('block-prose-comes-out-wrapped-for-a-caller-to-join', 'read-run.py',
          None,
@@ -12753,6 +12776,32 @@ RECORDS = [
                    'gate: start'],
               hasnt=['gate: inherited']),
          bug=V(has=['gate: inherited'], hasnt=['gate: start'])),
+
+
+    case('evening-reads-the-pair-and-not-each-half-against-itself',
+         'run-evening.sh', None,
+         'CONTROL: the gate emits the two cross-half passes AND each half'
+         ' over its own two legs',
+         # BORN 2026-09-19. The palindrome gives four processes and the
+         # driver read two PAIRS of them, which answers whether the passes
+         # agree and not what a disagreement IS. Run 36's `list` parted 1.60
+         # points across the passes and the gate was sound: the control
+         # half's own `a` over its `b` read 1.0128 where the basis's read
+         # 1.0004, and those two account for 1.28 of the 1.60. That session
+         # ran them by hand, inside the one window where nothing else may
+         # run. They are the same two commands the driver already makes,
+         # against different JSONs, so the window pays nothing extra.
+         shadow=dict(extra=lambda: evening_fixture('zzel', md5=False)),
+         env={'MAXBUSY': '100', 'FAKE_SATURATE': '1',
+              'ONLY': main_shapes()[0]},
+         argv=['zzel'],
+         probe=lambda subs: open(os.path.join(subs['at'],
+                                              'zzel-evening-out.txt')).read(),
+         # FOUR readings, not two headings: the heading survives a
+         # dropped reading, so the count is what the assertion is on.
+         ok=V(has=['##### gate reading, -a pair then -b pair',
+                   '##### each half against ITSELF, -a over -b',
+                   'per arm, over'])),
 
 
     case('status-counts-the-slots-a-note-still-owes', 'run-status.sh', None,

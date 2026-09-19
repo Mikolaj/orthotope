@@ -8424,7 +8424,8 @@ Unsandboxed throughout:
     #      THE FILTER ON THE STAGE TAIL IS WHAT KEEPS STEP 20 CHEAP, and
     #      it drops nothing else: the counted work writes two lines a leg
     #      over twenty-two legs, which unfiltered is some twenty wake-ups
-    #      in forty minutes, each a model invocation on a context that
+    #      in the forty-two minutes it takes, each a model invocation on
+    #      a context that
     #      only grows. A counts leg that COMPLAINS or exits nonzero still
     #      fires, the pattern dropping only `: start` and `: done, rc=0`
     #      on a line naming counts, and every stage line of the evening
@@ -8443,10 +8444,17 @@ Unsandboxed throughout:
     #      why: --para 'run-major.sh is that sequence'
     #      why: --para 'The heartbeat ticks at FORTY-FIVE MINUTES'
     #  14. THE GATE, its first stage: run-gate.sh on both halves twice in a
-    #      palindrome, the two --compare readings, the -a pair and the -b
-    #      pair, put in $R-evening-out.txt. The verdict is the two
+    #      palindrome, FOUR --compare readings put in $R-evening-out.txt:
+    #      the two cross-half passes, the -a pair and the -b pair, and then
+    #      EACH HALF over its own two legs. The verdict is the two passes
     #      agreeing, and a gate answers sound or not sound -- never quote a
-    #      magnitude from one. It is owed on every pair, both halves being
+    #      magnitude from one. THE SECOND PAIR OF READINGS IS WHAT A SPREAD
+    #      BETWEEN THE PASSES IS, before it is the pair's: Run 36's `list`
+    #      parted 1.60 points across the passes and read SOUND, its control
+    #      half's own legs at 1.0128 against the basis's 1.0004 predicting
+    #      the second pass at 1.0124 times the first against an observed
+    #      1.0123. They are the driver's since 2026-09-19; that run took
+    #      them by hand, in the one window where nothing else may run. It is owed on every pair, both halves being
     #      two builds by the BOTH HALVES ARE BUILT ANEW ruling, and again
     #      after either half is rebuilt: run-evening.sh inherits a recorded
     #      gate only for the binaries its block names by md5
@@ -9433,7 +9441,15 @@ not otherwise.
     #      against the other, which is how a `pair` span is read within
     #      the control half: a pair's variable can act on a class and not
     #      on the main set.
-    #      --alloc takes the same pair where allocation is the question,
+    #      --alloc --per-shape takes the same pair where allocation is the
+    #      question, and the `--per-shape` half is the one to read: the
+    #      plain form counts cells inside 1e-4 and names the worst, which
+    #      says whether the halves AGREE, where a pair whose variable moves
+    #      allocation wants the size PER ARM. The `alloc` column cannot
+    #      give it -- a median over shapes, not to be divided across halves
+    #      -- and Run 36 computed it in a script whose print took an
+    #      absolute deviation, so `2 - ratio` reached the page on one arm.
+    #      post-run-readings.sh takes this form into main-alloc.txt.
     #      and `--exclude ARM` composes with `--compare` as it does with
     #      the default table, which is how a cross-half geomean is taken
     #      with an arm dropped --- what says WHOSE a movement is when one
@@ -9697,6 +9713,22 @@ not otherwise.
     #      next run compares against with its hand-edited two-column
     #      table, the properties, the class leads and paragraphs, its
     #      Provenance and its registrations.
+    #      THE TEN CLASS BLOCKS ARE PLACED AND NOT RE-TYPED, and the
+    #      labour divides in two. install-tables.sh at 5b writes the
+    #      table and THREE of the five paragraphs -- Controls, Provenance
+    #      and the per-shape line -- one line each. The other two exist
+    #      only WITH the second JSON and are yours to place from
+    #      `./read-run.py $R-<basis>-<class>.json --block --compare
+    #      $R-<other>-<class>.json --brief`, which since 2026-09-19
+    #      prints every bolded paragraph ONE LINE EACH, the form this
+    #      file keeps; that arm honours no --in-place and never did.
+    #      COPY THEM, DO NOT JOIN THEM: Run 36 joined the wrapped form in
+    #      a script of its own, a break fell inside `lib-stage2-lean-u1`,
+    #      and `lib- stage2-lean-u1` reached the page in a `What the class
+    #      says` paragraph -- an arm name that renders wrong, matches no
+    #      row of the table above it and answers no search for the arm.
+    #      The `___` slots in all five are yours and run-status.sh
+    #      refuses a run file still carrying one.
     #      FIRST, BEFORE A WORD OF IT: `./read-run.py --inherited`,
     #      which names the paragraphs this file carried WHOLE from
     #      the last run's and which claim something about the run in

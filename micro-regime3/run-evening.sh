@@ -205,6 +205,20 @@ else
     echo "##### above the note's GATE block from these)"
     ./read-run.py "$R-gate-$BASIS-a.json" --compare "$R-gate-$OTHER-a.json"
     ./read-run.py "$R-gate-$BASIS-b.json" --compare "$R-gate-$OTHER-b.json"
+    # AND EACH HALF AGAINST ITSELF, which is what says whether a spread
+    # between the two passes above is the PAIR disagreeing or one half
+    # moving between its own two legs. Run 36's `list` parted 1.60 points
+    # across the passes and read SOUND anyway: its control half's own `a`
+    # over its `b` was 1.0128 where the basis's was 1.0004, which predicts
+    # the second pass at 1.0124 times the first against an observed 1.0123
+    # -- two readings that took a session two hand-rolled calls the chapter
+    # does not name, at a moment when nothing else may run (2026-09-19).
+    # They cost what the two above cost and run in the same window, after
+    # the gate's last process has exited.
+    echo; echo "##### each half against ITSELF, -a over -b: what a spread"
+    echo "##### between the two passes above is, before it is the pair's"
+    ./read-run.py "$R-gate-$BASIS-a.json" --compare "$R-gate-$BASIS-b.json"
+    ./read-run.py "$R-gate-$OTHER-a.json" --compare "$R-gate-$OTHER-b.json"
   } >> "$OUT" 2>&1
   stamp "gate: the two --compare readings are in $OUT; the verdict is yours\
  to write into $NOTE (step 14a) at 19a, WHEN THE EVENING HAS LANDED, and\

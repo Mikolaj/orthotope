@@ -10,8 +10,12 @@
 # POP-HALF-compare.txt, -pred.txt, -aa.txt and -cells.tsv, and on a class
 # --block --brief and --block --compare --brief, as CLASS-HALF-block.txt
 # and -blockcmp.txt, --block refusing the main set. On the main set,
-# basis first: --chapter and --alloc as main-chapter.txt and
-# main-alloc.txt, and per half --deflation and --winsor as
+# basis first: --chapter and --alloc --per-shape as main-chapter.txt
+# and main-alloc.txt -- the per-shape half being the PER-ARM allocation
+# ratio across the halves, which a pair whose variable moves allocation
+# needs and which the agreement counts above it do not give; Run 36
+# computed it in a script instead and published its reciprocal's
+# complement on one arm -- and per half --deflation and --winsor as
 # main-HALF-deflation.txt and main-HALF-winsor.txt. Where the note names a
 # COMPARE run, per half --compare against that run's same half and
 # --bridge, as main-HALF-vs-compare.txt and main-HALF-bridge.txt. Over the
@@ -88,7 +92,7 @@ for h in $BASIS $OTHER; do
   job "main-$h-winsor.txt ./read-run.py $R-$h-main.json --winsor"
 done
 job "main-chapter.txt ./read-run.py $R-$BASIS-main.json --compare $R-$OTHER-main.json --chapter"
-job "main-alloc.txt ./read-run.py $R-$BASIS-main.json --compare $R-$OTHER-main.json --alloc"
+job "main-alloc.txt ./read-run.py $R-$BASIS-main.json --compare $R-$OTHER-main.json --alloc --per-shape"
 job "floor-pairs.txt ./read-run.py --floor-pairs $R"
 for f in "$R"-*.log; do
   [ -f "$f" ] && job "wild-${f%.log}.txt ./read-run.py $f --wild"

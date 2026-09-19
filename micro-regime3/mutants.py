@@ -38,6 +38,38 @@ PROPS = 'python3 "{dir}/properties.py"'
 # run29 outright: they are LOST with those runs' artifacts and the suite
 # says so rather than quietly proving less.
 MUTANTS = [
+    # THE PALINDROME READ AS TWO PAIRS AND NOT AS FOUR LEGS: the driver
+    # emits each half over its own two legs beside the two cross-half
+    # passes, because a spread between the passes is the pair disagreeing
+    # or one half moving against itself, and the pairs alone cannot tell
+    # those apart. Run 36 needed it and ran it by hand inside the window
+    # where nothing else may run. The judge builds the same shadow the
+    # case does, out of the MUTATED text, and greps the driver's own OUT
+    # file: defect-run.py cannot be the judge here. What was MEASURED is
+    # that it exits 2 in the copy and the mutant reads LOST, which is
+    # this toolset's `the run did not happen`; the siblings below lay
+    # that on the copy being in no git repository and this judge did not
+    # test the cause, so it says what it saw (2026-09-19).
+    ('the gate reads the pair and not each half against itself',
+     'run-evening.sh',
+     '    ./read-run.py "$R-gate-$OTHER-a.json" --compare'
+     ' "$R-gate-$OTHER-b.json"',
+     '    :',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess,'
+     ' sys, tempfile\n'
+     'spec = importlib.util.spec_from_file_location(\'d\','
+     ' \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     't = tempfile.mkdtemp()\n'
+     'at = m.shadow_dir(t, \'run-evening.sh\', open(\'{file}\').read(),'
+     ' extra=m.evening_fixture(\'zzmu\', md5=False))\n'
+     'e = dict(os.environ, MAXBUSY=\'100\', FAKE_SATURATE=\'1\','
+     ' ONLY=m.main_shapes()[0])\n'
+     'subprocess.run([os.path.join(at, \'run-evening.sh\'), \'zzmu\'],'
+     ' cwd=at, env=e, capture_output=True, text=True)\n'
+     'p = os.path.join(at, \'zzmu-evening-out.txt\')\n'
+     'out = open(p).read() if os.path.exists(p) else \'\'\n'
+     'sys.exit(0 if out.count(\'per arm, over\') >= 4 else 1)"'),
     # THE CLASS BLOCK'S PROSE EMITTED WRAPPED, which is the form Run 36 had
     # to join by hand and the join is what broke an arm name in half. The
     # mutant puts the line-at-a-time write back; the judge plants a synthetic
@@ -47,7 +79,7 @@ MUTANTS = [
     ('a class block\'s prose is emitted wrapped for a caller to join',
      'read-run.py',
      "            para = ' '.join(para.split())",
-     "            para = para",
+     "            para = para + ''",
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile,'
      ' subprocess\n'
      'spec = importlib.util.spec_from_file_location(\'d\','

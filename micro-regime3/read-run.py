@@ -1652,6 +1652,24 @@ def install(readme, table, src, after=None):
                         os.path.basename(src), len(table), was))
 
 
+def flatten_paragraphs(text, only_bolded=False):
+    """Blank-line blocks joined to ONE LINE EACH, which is the run file's form.
+
+    Both arms that emit a class block print through this, so there is one
+    behaviour and one line for a mutant to break. A caller that joins the
+    wrapped form itself is the thing this removes: Run 36 did, a break fell
+    inside `lib-stage2-lean-u1`, and `lib- stage2-lean-u1` reached the page.
+    `only_bolded` leaves the terminal tables of the --compare arm alone,
+    their columns being alignment rather than prose.
+    """
+    out = []
+    for para in text.split('\n\n'):
+        if not only_bolded or para.lstrip().startswith('**'):
+            para = ' '.join(para.split())
+        out.append(para.rstrip('\n'))
+    return out
+
+
 def emit_or_install(text, args, shapes, meta, block=False):
     """Print an emitter's output, or install its tables into README.
 
@@ -1686,8 +1704,7 @@ def emit_or_install(text, args, shapes, meta, block=False):
         # stay, and run-status.sh refuses a run file that still carries one.
         prose = '\n'.join(l for l in text.split('\n')
                           if not l.startswith('|'))
-        for para in prose.split('\n\n'):
-            para = ' '.join(para.split())
+        for para in flatten_paragraphs(prose):
             sys.stdout.write((para + '\n\n') if para else '')
 
 
@@ -13879,7 +13896,12 @@ def main():
                         ' difference beside the sum-only-early/late'
                         ' spread; with --compare or'
                         ' --compare --counts, one line per arm of the'
-                        ' per-shape ratios in shape order')
+                        ' per-shape ratios in shape order; with'
+                        ' --compare --alloc, how much the OTHER half'
+                        ' ALLOCATES per arm, both directions printed,'
+                        ' which is the reading the `alloc` column'
+                        ' cannot give, being a median that must not be'
+                        ' divided across halves')
     p.add_argument('--pair', nargs=2, action='append', default=[],
                    metavar=('A', 'B'))
     p.add_argument('--compare', metavar='OTHER.json',
@@ -14681,7 +14703,19 @@ def main():
         # --block owns the pair here: --compare is its second file and not
         # a mode of its own, so it has to be tested before the plain
         # --compare arm below claims it.
-        block_skeleton(cells, shapes, strategies, meta, args, terms)
+        # FLATTENED AS THE PLAIN ARM'S IS, and this is the arm that
+        # matters: install-tables.sh installs Controls, Provenance and the
+        # per-shape line one line each, and the other two paragraphs of
+        # the form -- `Across the halves` and `What the class says` --
+        # exist only WITH the second JSON and are the session's to place.
+        # They came out wrapped, so Run 36 joined them in a script and
+        # `lib-stage2-lean-u1` reached the page as `lib- stage2-lean-u1`,
+        # in a `What the class says` paragraph. Printing is all that
+        # changes: this arm honours no --in-place and did not before.
+        text = capture(block_skeleton, cells, shapes, strategies, meta,
+                       args, terms)
+        for para in flatten_paragraphs(text, only_bolded=True):
+            sys.stdout.write(para + '\n\n')
     elif args.compare and args.chapter:
         chapter_skeleton(cells, shapes, strategies, meta,
                          args.compare, args.main)
