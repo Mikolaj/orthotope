@@ -292,21 +292,18 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 -- Two zero-stride conditions sit inside it, each decided per level of
 -- the odometer and never per element: a run of innermost stride 0 reads
 -- its one element once and stores it, and an outer level of stride 0
--- fills the block below it once and block-copies it to its remaining
--- positions.
+-- fills the block below it once and copies it onto the level's remaining
+-- positions by doubling.
 -- Given canonical dimensions ('canonicalizeT') the conditions fire
 -- wherever they can; given any other dimensions the fill is still
 -- correct.  Written once against 'Data.Vector.Generic', which supplies
 -- the mutable machinery orthotope's own 'Vector' class deliberately does
 -- not; each vector-backed instance reuses it verbatim.  Ported
--- bang-for-bang from the fastest fill of a micro-benchmark (its arm
--- mut-odo-vecdims-add-in-leaf-u2), with the two conditions from two more
--- of its arms (bcast-set and mid-copy): the bang patterns are part of
--- what was measured.  One deliberate divergence from that arm since
--- 2026-08-30, marked at the line it is on: it is for the NCG and costs
--- -fllvm a little. The benchmarks are preserved
+-- bang-for-bang from the fastest fill of the micro-benchmark preserved
 -- at https://github.com/Mikolaj/orthotope/blob/speedup-strided-tovector/micro-regime3/
--- and the implementation is similar to what once was in orthotope file
+-- (the bang patterns are part of what was measured); one choice made
+-- for the NCG, marked at the line it is on, costs -fllvm a little.
+-- The implementation is similar to what once was in orthotope file
 -- FastReshape.hs (a Storable-only odometer flatten behind an unsafeCast to
 -- Double or Float, never in the cabal file, removed once subsumed by this),
 -- but independently discovered and improved on by Opus Fable.
@@ -346,7 +343,11 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
                       inner (o + 2) (src' + tInner)
             in  inner outPos baseOff
           -- The broadcast run, innermost stride 0: the run's one
-          -- element read once and stored sInner times.
+          -- element read once, then the stores, unrolled by two as the
+          -- stepping run is.  Without the unroll, a store and a compare
+          -- per element read 1.20 of the stepping run serving the
+          -- broadcast, a read and a store per element unrolled by two,
+          -- at a run of two elements; unrolled, the hoisted read wins.
           {-# INLINE writeRunSet #-}
           writeRunSet :: Int -> Int -> ST s ()
           writeRunSet !outPos !baseOff =
@@ -354,21 +355,38 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
                 !oEnd = outPos + sInner
                 inner :: Int -> ST s ()
                 inner !o
-                  | o >= oEnd = return ()
-                  | otherwise = VGM.unsafeWrite out o x >> inner (o + 1)
+                  | o + 1 >= oEnd =
+                      if o >= oEnd then return ()
+                      else VGM.unsafeWrite out o x
+                  | otherwise = do
+                      VGM.unsafeWrite out o x
+                      VGM.unsafeWrite out (o + 1) x
+                      inner (o + 2)
             in  inner outPos
           -- A zero-stride outer level: everything below it repeats
           -- verbatim, so the block below is filled once and copied to
           -- the level's remaining n - 1 positions.  Zero levels compose,
           -- the topmost firing and the ones below it falling inside the
-          -- one block it fills.
-          copies :: Int -> Int -> Int -> Int -> ST s Int
-          copies !n !blk !src !dst
-            | n <= 1 = return dst
-            | otherwise = do
-                VGM.unsafeCopy (VGM.unsafeSlice dst blk out)
-                               (VGM.unsafeSlice src blk out)
-                copies (n - 1) blk src (dst + blk)
+          -- one block it fills.  The block at src, already written, to n
+          -- copies in all: each pass copies everything written so far
+          -- onto what follows, so the length doubles and the last pass
+          -- is clipped.  One copy per block read 2.3 of the stepping run
+          -- refilling the level on 200000 copies of 24 bytes; by
+          -- doubling, the copy wins.
+          copies :: Int -> Int -> Int -> ST s Int
+          copies !n !blk !src
+            | n <= 1 = return (src + blk)
+            | otherwise = grow blk
+            where
+              !end = src + n * blk
+              grow :: Int -> ST s Int
+              grow !have
+                | src + have >= end = return end
+                | otherwise = do
+                    let !len = min have (end - src - have)
+                    VGM.unsafeCopy (VGM.unsafeSlice (src + have) len out)
+                                   (VGM.unsafeSlice src len out)
+                    grow (have + len)
           -- The fused level: n runs, the run body a static argument, so
           -- that each of the two uses below inlines it with the body
           -- known, and the choice between the bodies is made once per
@@ -377,8 +395,7 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
           runsWith :: (Int -> Int -> ST s ())
                    -> Int -> Int -> Int -> Int -> ST s Int
           runsWith writeRun !n !st !outPos !baseOff
-            | st == 0 = writeRun outPos baseOff
-                        >> copies n sInner outPos (outPos + sInner)
+            | st == 0 = writeRun outPos baseOff >> copies n sInner outPos
             | otherwise =
                 let run :: Int -> Int -> Int -> ST s Int
                     run !k !op !boff
@@ -403,7 +420,7 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
                     else runsWith writeRunStep n st outPos baseOff
                 | st == 0 = do
                     op' <- go (lev + 1) outPos baseOff
-                    copies n (op' - outPos) outPos op'
+                    copies n (op' - outPos) outPos
                 | otherwise =
                     let dim :: Int -> Int -> Int -> ST s Int
                         dim !k !op !boff
