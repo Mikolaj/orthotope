@@ -227,7 +227,10 @@ test = testGroup "DynamicU" $
       reduce_4 = assertEqual "4" (scalar 12) (reduce (+) 0 (slice [(0,2),(0,2)] a1))
       -- Unordered reductions over views: a transposition, reversals
       -- of one and of both axes, unit dimensions from a reshape, a
-      -- slice at an offset and a broadcast, each against the list.
+      -- slice at an offset, a broadcast, and two windows, whose axes
+      -- tie on stride so that the run is chosen among the tied ones by
+      -- its length, the tied lengths of the second in one tier of that
+      -- choice; each against the list.
       sumV x = assertEqual "sum" (sum (toList x)) (sumA x)
       maxV x = assertEqual "max" (maximum (toList x)) (maximumA x)
       sumA_1 = sumV a1 >> sumV a2
@@ -237,6 +240,9 @@ test = testGroup "DynamicU" $
       sumA_5 = sumV (reshape [1,2,3,1] a2) >> maxV (reshape [1,2,3,1] a2)
       sumA_6 = sumV (slice [(1,1),(0,3)] a1) >> maxV (slice [(0,2),(1,2)] a1)
       sumA_7 = sumV (stretch [2,2,3,2] (reshape [1,2,3,1] a1))
+      sumA_8 = sumV (window [3,2] a6) >> maxV (window [3,2] a6)
+      sumA_9 = sumV (window [2,4] (reshape [4,6] a5))
+               >> maxV (window [2,4] (reshape [4,6] a5))
       -- allSame over views, each against the list: dense and
       -- transposed, a constant array and its transposition, a row
       -- broadcast over a longer vector, a strided view no slice covers,
@@ -336,6 +342,8 @@ test = testGroup "DynamicU" $
         , testCase "sumA_5" sumA_5
         , testCase "sumA_6" sumA_6
         , testCase "sumA_7" sumA_7
+        , testCase "sumA_8" sumA_8
+        , testCase "sumA_9" sumA_9
         , testCase "allSameA_1" allSameA_1
         , testCase "allSameA_2" allSameA_2
         , testCase "allSameA_3" allSameA_3
