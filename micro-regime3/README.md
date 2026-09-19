@@ -5147,8 +5147,12 @@ and `libunord-stage11-sum`, landing 2026-09-15 for Run 33, took the roster
 to 627 benches, and `libunord-stage12-sum`, landing 2026-09-16 for Run 34
 with its fill `libunord-stage12` rostered `Only` beside it, took the roster
 to 646 benches, and `libunord-stage13-sum`, landing 2026-09-17 for Run 35
-with its fill `libunord-stage13` rostered `Only` beside it, takes the roster
-to 665 benches.
+with its fill `libunord-stage13` rostered `Only` beside it, took the roster
+to 665 benches; and the retirement of 2026-09-19 --- `libunord-stage10-sum`,
+its question answered at [its entry][open] and its route carried by every stage
+above it, `libunord-stage10-list-sum`, its pair, and `libunord-stage11-sum`,
+its guard carried by stages twelve and thirteen, reasons at their entries ---
+takes the roster to 608 benches.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -7361,12 +7365,14 @@ stage ten with its zero-stride move guarded, landing 2026-09-15, took the roster
 to 627 benches, and `libunord-stage12-sum`, stage eleven with the run chosen
 by length, landing 2026-09-16, took the roster to 646 benches,
 and `libunord-stage13-sum`, stage twelve's route in fewer passes over the axes,
-landing 2026-09-17, takes the roster to 665 benches, so with the controls
-the run is 35 arms. **Run 26 timed four parked arms for that run alone**:
-`mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02; `canon-vecdims`
-and `lib-stage2`, parked by this prune; and `lib-stage2-short`, parked
-by the ruling on the short bodies of the same day ([the stride
-classes](#the-stride-classes-and-what-they-cover)). Each was parked
+landing 2026-09-17, took the roster to 665 benches, and the retirement
+of 2026-09-19 --- `libunord-stage10-sum`, `libunord-stage10-list-sum`
+and `libunord-stage11-sum`, reasons at their entries --- takes the roster to 608
+benches, so with the controls the run is 32 arms. **Run 26 timed four parked
+arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked
+2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
+and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
+([the stride classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration
 unreadable --- Run 24 lost a clause, Run 25 five, and the two-window item
 was withdrawn beside them, seven in all ([the open list][open]) --- so Run 26

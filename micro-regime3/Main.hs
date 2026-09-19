@@ -6632,12 +6632,21 @@ roster =
     -- Stage seven's tie-break under stage nine's move, added 2026-09-11
     -- for Run 29 at the tail of the consumers, beside the two it
     -- composes; reasons at 'routeUnord10'.
-  , ("libunord-stage10-sum",       Fill fbLibUnordStage10Sum)
+    -- RETIRED 2026-09-19, checked and not timed: why it trails stage
+    -- nine on 'window' and stage seven on the tiny views was answered
+    -- 2026-09-15 (README.md#what-is-open, stage ten's entry), and stage
+    -- eleven is this arm with the move guarded, which Run 33 read level
+    -- with stage seven where no stride is zero and with this arm where
+    -- one is. Its route stays in every stage above it.
+  , ("libunord-stage10-sum",       Only fbLibUnordStage10Sum)
     -- Base's 'sum' over stage ten's list, added 2026-09-13 for Run 31 at
     -- the tail of the consumers as stage ten's own was, beside the entry
     -- it pairs with and so that no existing control's span moves.
     -- Reasons at the definition.
-  , ("libunord-stage10-list-sum",  Fill fbLibUnordStage10ListSum)
+    -- RETIRED 2026-09-19 with its pair, the question it was added for
+    -- answered on Run 31 as the definition says and again by Run 32's
+    -- item (15), which HELD.
+  , ("libunord-stage10-list-sum",  Only fbLibUnordStage10ListSum)
     -- Base's 'sum' over stage four's list, added 2026-09-14 for Run 32 at
     -- the tail of the consumers, so that a fold keeping vector's 'sum'
     -- stands against the shared loop on the lean route as on the
@@ -6649,12 +6658,18 @@ roster =
     -- 'libunord-stage10-sum', one change over it, and 'libunord-stage7-sum'
     -- is what it should read level with on every view without a zero
     -- stride.
-  , ("libunord-stage11-sum",       Fill fbLibUnordStage11Sum)
+    -- RETIRED 2026-09-19, checked and not timed, with its control: Run
+    -- 33 held both halves of its prediction, and stages twelve and
+    -- thirteen carry its guard.
+  , ("libunord-stage11-sum",       Only fbLibUnordStage11Sum)
     -- Stage eleven with the run chosen among tied unit-stride axes by
     -- its length, added 2026-09-16 for Run 34 at the tail; reasons at
-    -- 'routeUnord12'. Its control is 'libunord-stage11-sum', one change
-    -- over it, and 'libunord-stage6-sum' is what it should read level
-    -- with on the three 'window' views it moves.
+    -- 'routeUnord12'. Its control was 'libunord-stage11-sum', one change
+    -- over it, until that arm was retired 2026-09-19. What it should
+    -- read level with: 'libunord-stage6-sum' on the three 'window' views
+    -- it moves, 'libunord-stage7-sum' on every other view without a zero
+    -- stride; on the views with one, 'libunord-stage13-sum' is the one
+    -- timed arm on its route.
   , ("libunord-stage12-sum",       Fill fbLibUnordStage12Sum)
     -- Stage twelve's route found with fewer passes over the axes, added
     -- 2026-09-17 for Run 35 at the tail of the consumers, where a new
