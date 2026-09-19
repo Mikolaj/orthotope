@@ -3259,7 +3259,21 @@ def carry_over(run, run_doc, readme):
     """
     src, items, _flat = registration_items(run, run_doc, readme)
     if not items:
-        return 1
+        # SAID AND EXIT 2, not a silent 1. `registration_items` says its own
+        # piece when it finds no registration AT ALL; this is the other
+        # shape, an entry that is there and carries no numbered item yet,
+        # which is every registration between the commit that declares the
+        # pair and the preparation that predicts. A preparation running the
+        # mode there got a bare exit 1 and no line, and 1 is this tree's
+        # code for findings, so the empty selection read as a finding it
+        # could not see. 2 is the code for a run that did not happen.
+        sys.stderr.write(
+            '%s: the registration for %s carries no numbered item, so there'
+            ' is nothing to compare against the previous one -- this is an'
+            ' empty selection and not a clean carry-over. Write the'
+            ' `predict:` items first; pre-run step 12a is where they go\n'
+            % (os.path.basename(src or 'README.md'), os.path.basename(run)))
+        return 2
     m = re.match(r'run(\d+)', os.path.basename(run))
     if not m:
         sys.stderr.write('--carry-over wants a run named run<N>, to know'
