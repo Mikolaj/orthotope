@@ -3899,13 +3899,9 @@ confirmed here on a NEW compiler. A previous run's half, still on disk, answers
 for itself --- `size -A`, `diag` and `loop-offsets.py` over `run35-gheadexit`
 gave its `.text`, its fill groups, its self-loop counts and its two `diag`
 figures --- so a cross-run row need not be copied out of the previous note.
-And **RUN 31'S WHOLE PAIR IS STILL ON DISK**, both binaries, 114 JSONs and 22
-counts files, which is why this registration derives its `-O2` priors instead
-of quoting them: whoever offers artifacts for deletion should know
-that this run's registration depends on Run 31's surviving. **And a hazard met
-in the note itself**: `par` reflowed five of its paragraphs to bring lines back
-under 80 after a batch of substitutions had joined them, and one
-of those carried the `HALVES:` and `COMPARE:` lines, which it folded
+**And a hazard met in the note itself**: `par` reflowed five of its paragraphs
+to bring lines back under 80 after a batch of substitutions had joined them,
+and one of those carried the `HALVES:` and `COMPARE:` lines, which it folded
 into the prose. No word was lost and the note still READ correctly, while
 `pair-halves.sh` could no longer find the halves at all --- and the readings
 part three ways: `--note-check`, `--check-doc` and `--lint` all PASS a folded
