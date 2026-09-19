@@ -258,13 +258,28 @@ constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 -- work.
 {-# INLINE canonicalizeT #-}
 canonicalizeT :: ShapeL -> [Int] -> (ShapeL, [Int])
-canonicalizeT sh ats = canon sh ats
-  where canon [] [] = ([], [])
-        canon (1 : ns) (_ : ts) = canon ns ts
-        canon (n : ns) (t : ts) = case canon ns ts of
-          (n' : ns', t' : ts') | t == n' * t' -> (n * n' : ns', t' : ts')
-          (ns', ts') -> (n : ns', t : ts')
-        canon _ _ = error $ "canonicalizeT: rank mismatch " ++ show (sh, ats)
+canonicalizeT sh ats = canonicalAxesT (zip ats sh)
+
+-- The same over (stride, extent) pairs, which is where the work is
+-- done: the axes of extent 1 dropped and each remaining axis merged
+-- into the one inside it where its stride is that one's stride times
+-- its extent, folded from the innermost axis out; returned as the
+-- shape and the strides.  'toUnorderedVectorListT' reaches it with
+-- the pairs it has sorted.
+canonicalAxesT :: [(Int, Int)] -> (ShapeL, [Int])
+canonicalAxesT ps =
+  let merged = foldr mergeInto [] [ p | p@(_, n) <- ps, n /= 1 ]
+  in  (map snd merged, map fst merged)
+
+-- The merge step, one axis against the already merged axes inside it:
+-- merged into the first of them wherever this one's stride is that
+-- one's stride times its extent, so that the two are walked as one,
+-- and put in front of them otherwise.
+mergeInto :: (Int, Int) -> [(Int, Int)] -> [(Int, Int)]
+mergeInto (!st, !n) ((st', n') : rest)
+  | st == n' * st' = (st', n * n') : rest
+mergeInto p rest = p : rest
+{-# INLINE mergeInto #-}
 
 -- Base offset (into the values vector) of each innermost run of an array,
 -- in row-major order over the outer dimensions (all dimensions but the
@@ -439,7 +454,8 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
     !oatsV = VU.fromList (init ats)
 
 -- The regime a view falls in once canonicalized, which is what
--- 'toVectorListT' and 'toVectorT' dispatch on.  Classified on the
+-- 'toVectorListT', 'toVectorT' and, on the view with its axes
+-- reordered, 'toUnorderedVectorListT' dispatch on.  Classified on the
 -- canonical dimensions, so a unit dimension's arbitrary stride and a
 -- reshape's appended dimensions no longer decide it.  The element count
 -- (@product sh@) is passed in because every caller already has it, as
@@ -466,7 +482,15 @@ data Regime
 
 {-# INLINE regimeT #-}
 regimeT :: (Vector v, VecElem v a) => ShapeL -> Int -> T v a -> Regime
-regimeT sh l (T ats ao v) = case canonicalizeT sh ats of
+regimeT sh l (T ats ao v) = regimeOfT ao l v (canonicalizeT sh ats)
+
+-- The regime of a view given as a canonical shape and strides, at an
+-- offset into the vector: 'regimeT' reads it for the view as it is and
+-- 'toUnorderedVectorListT' for the view with its axes reordered.
+{-# INLINE regimeOfT #-}
+regimeOfT :: (Vector v, VecElem v a)
+          => Int -> Int -> v a -> (ShapeL, [Int]) -> Regime
+regimeOfT ao l v canonical = case canonical of
   ([], _) -> whole
   ([_], [1]) -> whole
   (csh, cats)
@@ -478,8 +502,8 @@ regimeT sh l (T ats ao v) = case canonicalizeT sh ats of
 -- The slices of a view of contiguous runs, one per canonical outer
 -- index in row-major order, produced on demand.  The arguments are the
 -- canonical shape and strides, the offset of the first run and the
--- vector, then the cons and nil of the 'build' 'toVectorListT' is
--- written under, so that a consumer folding the list fuses with the
+-- vector, then the cons and nil of the 'build' the list entry points
+-- are written under, so that a consumer folding the list fuses with the
 -- walk, holds no more of the list than it has reached and, stopping
 -- early, does no more of the walk.  The innermost outer level is a
 -- counter and a cursor; the levels above it are an odometer of
@@ -527,37 +551,33 @@ runSlicesT csh cats !start !v cons nil =
 -- all the elements in the natural order.
 -- An invariant: if the input array is non-empty the returned list
 -- will have no empty vectors.
--- The minimum/maximum operations rely on this invariant.
 -- The list is produced lazily: a consumer folds it slice by slice,
--- holding no more of it than it has reached, and 'anyT' and 'allT'
--- stop at the first slice that decides, where a table of the runs'
--- offsets would do all its work before the consumer sees an element.
--- Written under one 'build' with the dispatch inside
+-- holding no more of it than it has reached, where a table of the
+-- runs' offsets would do all its work before the consumer sees an
+-- element.  Written under one 'build' with the dispatch inside
 -- it, so that a fold applied to this list fuses with it whichever case
 -- the view takes.
 {-# INLINE toVectorListT #-}
 toVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
-toVectorListT sh a = build (orderedSlicesT sh a)
-
--- The list 'toVectorListT' returns, as the cons and nil of the 'build'
--- it is written under, so that 'toUnorderedVectorListT' can take it
--- inside its own 'build' and a consumer of either list meets one
--- 'build' whichever case the view takes.
-{-# INLINE orderedSlicesT #-}
-orderedSlicesT :: (Vector v, VecElem v a)
-               => ShapeL -> T v a -> (v a -> b -> b) -> b -> b
-orderedSlicesT sh a@(T _ ao v) cons nil
-  | l == 0 = nil
-  | otherwise = case regimeT sh l a of
-      Whole -> cons v nil
-      Slice -> cons (vSlice ao l v) nil
-      Runs csh cats -> runSlicesT csh cats ao v cons nil
-      Strided csh cats ->
-        -- No slice can be taken.  Fill the result through
-        -- 'vFillStrided', whose vector-backed instances write a mutable
-        -- buffer directly.
-        cons (vFillStrided csh cats ao l v) nil
+toVectorListT sh a@(T _ ao v) = build $ \cons nil ->
+  if l == 0 then nil else regimeSlicesT ao l v (regimeT sh l a) cons nil
   where !l = product sh
+
+-- The slices a regime stands for, at an offset into the vector, as the
+-- cons and nil of a 'build': the vector or one slice of it, one slice
+-- per run, or the view filled as one vector where no run is longer
+-- than one element.
+{-# INLINE regimeSlicesT #-}
+regimeSlicesT :: (Vector v, VecElem v a)
+              => Int -> Int -> v a -> Regime -> (v a -> b -> b) -> b -> b
+regimeSlicesT ao l v regime cons nil = case regime of
+  Whole -> cons v nil
+  Slice -> cons (vSlice ao l v) nil
+  Runs csh cats -> runSlicesT csh cats ao v cons nil
+  Strided csh cats ->
+    -- No slice can be taken.  Fill the result through 'vFillStrided',
+    -- whose vector-backed instances write a mutable buffer directly.
+    cons (vFillStrided csh cats ao l v) nil
 
 -- Convert an array to one vector holding all the elements in the
 -- natural order.  Dispatches as 'toVectorListT' does, except that a
@@ -578,89 +598,185 @@ toVectorT sh a@(T _ ao v)
       Strided csh cats -> vFillStrided csh cats ao l v
   where !l = product sh
 
+-- The axes of a view as (absolute stride, extent) pairs in the order
+-- the unordered list walks them: absolute stride descending, a tie at
+-- stride 1 broken so that the better run is innermost, and, where a
+-- zero stride sits on an axis of extent above 1, every zero-stride axis
+-- moved outermost.  The account after 'toUnorderedVectorListT' says
+-- why each.
+unorderedAxesT :: ShapeL -> [Int] -> [(Int, Int)]
+unorderedAxesT sh ats
+  | zeroAxis sh ats = zerosOutermost sorted
+  | otherwise = sorted
+  where sorted = sortBy byStrideRank (zip (map abs ats) sh)
+
+-- Absolute stride descending; on a tie at stride 1 the length 'runRank'
+-- prefers last, so that it is the run, and on any other tie the extent
+-- ascending.  In case form rather than over '<>', and the strides
+-- banged and the extents not, as measured: the '<>' form retired 42 to
+-- 128 instructions a call more than this, and a bang on the extents 69
+-- to 162 more, the tie branch being the one most comparisons never
+-- reach.  'sortBy' calls the comparator unknown, so a banged field is
+-- an unbox at every entry.
+byStrideRank :: (Int, Int) -> (Int, Int) -> Ordering
+byStrideRank (!s1, n1) (!s2, n2) = case compare s2 s1 of
+  EQ | s1 == 1 -> runRank n2 n1
+     | otherwise -> compare n1 n2
+  o -> o
+
+-- The corners of the curve of a reducing consumer's cost per element
+-- against the run length, measured on one machine: where the plateau
+-- begins, where it ends, and the shelf's end, past which a run loses
+-- to a run of 3.
+runLo, runHi, runFar :: Int
+runLo = 5
+runHi = 32
+runFar = 96
+
+-- Which of two run lengths a reducing consumer prefers, LT the faster:
+-- by tier, the plateau, the shelf above it, runs of 3 and 4, the climb
+-- past the shelf, then 2 and 1; and within a tier the longer on the
+-- plateau and among the short runs, where the rate falls or is flat,
+-- and the shorter on the shelf, which rises across its width, and on
+-- the climb.
+runRank :: Int -> Int -> Ordering
+runRank !a !b = case compare ta tb of
+  EQ | ta == 1 || ta == 3 -> compare a b
+     | otherwise -> compare b a
+  o -> o
+  where
+    !ta = tier a
+    !tb = tier b
+    tier :: Int -> Int
+    tier n
+      | n <= 2 = 4
+      | n < runLo = 2
+      | n <= runHi = 0
+      | n <= runFar = 1
+      | otherwise = 3
+{-# INLINE runRank #-}
+
+-- A zero stride on an axis the move can act on: one of extent above 1,
+-- an axis of extent 1 being dropped by canonicalization whatever its
+-- stride.  A one-list 'any' first, so that a view with no zero stride
+-- walks one spine, and behind it one loop over both lists that stops
+-- at the first such zero; measured against 'or' over 'zipWith', which
+-- cost 40 to 50 instructions a call on views with no zero stride.  The
+-- raw strides, not the sorted pairs, since the sort is what a miss here
+-- skips.
+zeroAxis :: ShapeL -> [Int] -> Bool
+zeroAxis sh ats = any (== 0) ats && go ats sh
+  where go :: [Int] -> ShapeL -> Bool
+        go (0 : ss) (n : ns) = n /= 1 || go ss ns
+        go (_ : ss) (_ : ns) = go ss ns
+        go _ _ = False
+{-# INLINE zeroAxis #-}
+
+-- The zero-stride axes moved in front of the rest, whose order stays,
+-- where a unit-stride axis will then be innermost and the list repeats
+-- one slice; unchanged otherwise, so the fill keeps its zero strides
+-- innermost under the hoisted read.  Two filters and not a 'span',
+-- though the pairs come sorted and the zeros are their suffix: the
+-- span's lazy prefix and pair measured dearer than a second pass over
+-- a view's few pairs.
+zerosOutermost :: [(Int, Int)] -> [(Int, Int)]
+zerosOutermost ps
+  | any (\(s, n) -> s == 1 && n /= 1) ps =
+      filter ((== 0) . fst) ps ++ filter ((/= 0) . fst) ps
+  | otherwise = ps
+
 -- Convert to a list of vectors containing altogether the right elements,
 -- but not necessarily in the right order.
 -- This is used for reduction with commutative&associative operations.
--- The one-block test is explained right below.
+-- An invariant: if the input array is non-empty the returned list
+-- will have no empty vectors; the minimum/maximum operations rely on
+-- it.  The list is produced lazily, as 'toVectorListT''s is, so 'anyT'
+-- and 'allT' stop at the first slice that decides.
+-- The dispatch is explained right below.
 {-# INLINE toUnorderedVectorListT #-}
 toUnorderedVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
-toUnorderedVectorListT sh a@(T ats ao v) = build $ \cons nil ->
-  -- Under one 'build' with the test inside it, as 'toVectorListT' is
-  -- and for the same reason: written as a case returning a list per
+toUnorderedVectorListT sh (T ats ao v) = build $ \cons nil ->
+  -- Under one 'build' with the dispatch inside it, as 'toVectorListT'
+  -- is and for the same reason: written as a case returning a list per
   -- branch, a fold over this list would meet the case and never fuse.
   if l == 0 then nil else
-      let (csh, cats) = canonicalizeT sh ats
-          oneBlock =
-            let (acats, csh') =
-                  unzip $ sortBy (flip compare) $ zip (map abs cats) csh
-                _ : ts = getStridesT csh'
-            in  acats == ts
-      in  if oneBlock
-          then let !start =
-                     ao + sum [ (n - 1) * st | (n, st) <- zip csh cats, st < 0 ]
-               in  cons (vSlice start l v) nil
-          else orderedSlicesT sh a cons nil
+    let !start = ao + sum [ (n - 1) * st | (n, st) <- zip sh ats, st < 0 ]
+        axes = canonicalAxesT (unorderedAxesT sh ats)
+    in  regimeSlicesT start l v (regimeOfT start l v axes) cons nil
   where !l = product sh
 
--- The one-block test of 'toUnorderedVectorListT', piece by piece.
+-- The dispatch of 'toUnorderedVectorListT', piece by piece.
 --
 -- Overview.  A consumer that folds with a commutative and associative
--- operation needs the array's elements as a multiset, not in order.  So
--- the question is whether the view reads each element of one contiguous
--- block of the vector exactly once, in whatever order; if it does, that
--- block is the answer as a single slice, and only otherwise are the
--- elements materialized in row-major order through 'toVectorListT'.
---
--- Why canonicalizeT.  Unit dimensions carry arbitrary strides and would
--- fail any stride test while touching nothing; merging adjacent
--- dimensions makes the test below exact rather than sufficient (two
--- dimensions that are one contiguous run read as one natural stride,
--- not as two that happen to compose).  Canonicalization preserves the
--- element sequence, so it preserves the multiset the consumer wants.
+-- operation needs the view's elements as a multiset, not in order.  So
+-- the axes may be reordered freely, a reversed axis may be walked
+-- forwards, and the question is only which slices of the vector, taken
+-- together, hold each element as often as the view holds it.  The
+-- answer: sort the axes by stride, move a broadcast axis outermost,
+-- merge the axes that are walked as one, and read the regime off what
+-- is left, one slice, runs, or a fill.
 --
 -- Why abs.  A negative stride walks an axis backwards over the same
 -- cells a positive one walks forwards.  Order is not asked for here, so
--- only the magnitude says which cells are touched; the sign is used once
--- more, below, to find where the block begins.
+-- only the magnitude says which cells are touched; the sign is used
+-- once more, below, to find where the lowest address is.
 --
--- Why sort.  A transposition reorders the dimensions and their strides
+-- Why sort.  A transposition reorders the axes and their strides
 -- together without changing which cells are touched (an index sum does
 -- not care about the order of its terms).  Sorting by stride magnitude,
--- descending, picks the one ordering in which a block-covering view has
--- its dimensions from outermost to innermost, so the test need not try
--- the permutations.
+-- descending, puts the axes from outermost to innermost, which is the
+-- order in which two axes walked as one stand next to each other, and
+-- in which the innermost axis, the run, is last.  'byStrideRank' is
+-- that order.  Equal strides alias, one step along either axis reading
+-- the same element, so a tie exists only in a self-overlapping view, a
+-- window over an array among them; on a tie at stride 1 the comparator
+-- puts the axis whose extent makes the better run innermost, and on
+-- any other tie the shorter axis outside.
 --
--- Why acats == ts.  Take a plain array with shape csh' built by
--- 'fromVectorT': its strides are 'getStridesT' csh' without the head,
--- the innermost 1 and each outer one the product of the extents inside
--- it, and its elements are exactly the vector's first product csh'
--- cells, each once.  The sorted view has the same extents; if its stride
--- magnitudes equal those natural strides, then index for index it
--- addresses the same cells as that plain array would, shifted by start
--- --- so it is such an array up to transposition and reversals, and
--- covers one block of product csh' cells exactly once.  Any other
--- magnitudes fail: 0 reads one cell many times (a broadcast), a larger
--- stride leaves gaps (a strided or interior slice), a smaller one
--- overlaps (a window).  The plain array is never built; only the
--- strides it would have are computed and compared.
+-- Why the run's length is ranked.  A reducing consumer's chain of adds
+-- runs at one add latency an element on a long run and overlaps the
+-- next run's on a short one, so its cost per element falls from the
+-- shortest runs to a plateau, stays flat across it, sits on a shelf
+-- above it, and climbs past the shelf towards the long-run rate, with
+-- runs of 3 and 4 a hair above the shelf.  'runRank' orders the tiers
+-- and the lengths within them; its corners are one machine's, and a
+-- tie at stride 1 is the only place they decide anything.
 --
--- Why start.  The slice has to begin at the block's lowest address, and
+-- Why the zero-stride axes move outermost, and why under a guard.  A
+-- broadcast axis, stride 0, reads the same cells at every index.  Sorted
+-- by stride it lands innermost, and there it makes the regime a fill,
+-- each element copied as many times as the broadcast repeats it.
+-- Moved outermost over a unit-stride axis it makes the regime runs,
+-- and the runs walk repeats one slice as many times, the same multiset
+-- with nothing copied.  So the move fires only where a unit-stride
+-- axis of extent above 1 will then be innermost, which is
+-- 'zerosOutermost''s own test, and it is asked at all only where a
+-- zero stride sits on an axis of extent above 1, 'zeroAxis': a view
+-- without one walks one pass over its strides and no more, the move's
+-- two filters having cost a view of a few hundred elements a tenth to
+-- a quarter of its call.
+--
+-- Why merge after the sort.  Two adjacent axes are one axis when the
+-- outer stride is the inner stride times the inner extent: walking the
+-- inner axis to its end and stepping the outer axis once lands where
+-- one axis of the combined extent would.  'mergeInto' merges every such
+-- pair.  Done after the sort, the merge finds every pair the sorted
+-- order stands next to each other, which in a view without a stride
+-- tie is every pair any order of the axes would have put together; a
+-- view that is one block of the vector has no tie, so it merges to a
+-- single axis of stride 1 and reads as one slice, whatever order its
+-- axes came in, and 'regimeOfT' decides that off the merged form with
+-- no stride list built.
+--
+-- Why start.  The slices must begin at the block's lowest address, and
 -- the offset ao is not it: ao is where index (0, ..., 0) sits, which is
 -- the lowest address only when every stride is positive.  The address
 -- of index (i_0, ..., i_k) is ao + sum i_d * st_d, and the sum is
 -- smallest when each term is: at i_d = 0 for a positive stride, at
 -- i_d = n_d - 1, the last index, for a negative one, where the term is
 -- (n_d - 1) * st_d and negative.  So start is ao plus those negative
--- terms, one per reversed axis.
---
--- Why st < 0.  Only the reversed axes move the block's start; a positive
--- stride's smallest term is 0 and would add nothing to the sum, so the
--- filter leaves it out rather than adding it as 0.  A stride of 0 cannot
--- reach this branch, oneBlock having rejected it.  The strides here are
--- the canonical ones, not the sorted magnitudes: the sign is what the
--- sort threw away and this sum needs, and the extents must pair with
--- their own strides, which zip csh cats does and the sorted lists,
--- being reordered, would not.
+-- terms, one per reversed axis, read off the strides as given, where
+-- the sign still is.
 
 {-# INLINE toUnorderedVectorT #-}
 toUnorderedVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
