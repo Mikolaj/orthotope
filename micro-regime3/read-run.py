@@ -1676,9 +1676,19 @@ def emit_or_install(text, args, shapes, meta, block=False):
     if block:
         sys.stderr.write('the block\'s prose is yours: controls, provenance'
                          ' and the paragraph are not installed\n')
-        for line in text.split('\n'):
-            if not line.startswith('|'):
-                sys.stdout.write(line + '\n')
+        # FLATTENED TO ONE LINE A PARAGRAPH, which is the form the run file
+        # keeps and the form a caller would otherwise produce by hand. Run 36
+        # did produce it by hand, joining this output's wrapped lines, and a
+        # break that fell inside `lib-stage2-lean-u1` came back as `lib-
+        # stage2-lean-u1` -- an arm name that renders wrong, matches no row of
+        # the table above it and answers no search for the arm. Printing the
+        # paragraph already joined is what removes the seam; the `___` slots
+        # stay, and run-status.sh refuses a run file that still carries one.
+        prose = '\n'.join(l for l in text.split('\n')
+                          if not l.startswith('|'))
+        for para in prose.split('\n\n'):
+            para = ' '.join(para.split())
+            sys.stdout.write((para + '\n\n') if para else '')
 
 
 def markdown_table(cells, shapes, strategies, meta, args, terms):
@@ -2185,7 +2195,8 @@ def small_ceiling(small):
     return max(r[3] for r in small if r[0] > 1e-4)
 
 
-def compare_alloc(cells, shapes, strategies, meta, other, main_hs):
+def compare_alloc(cells, shapes, strategies, meta, other, main_hs,
+                  per_shape=False):
     """Whether two halves of a pair agree on what each arm allocates.
 
     Allocation is deterministic per call, so a pair whose halves differ only
@@ -2273,6 +2284,39 @@ def compare_alloc(cells, shapes, strategies, meta, other, main_hs):
               % (n, small_ceiling(small)))
         print('    there; it is a property of fitting a near-zero'
               ' allocation and not of this pair')
+    if per_shape:
+        # PER ARM, WHICH THE AGREEMENT LINES ABOVE CANNOT GIVE. Those count
+        # cells inside 1e-4 and name the worst; a pair whose variable DOES
+        # move allocation wants to know by how much, per arm, and the only
+        # other route on offer is the `alloc` column -- a MEDIAN over shapes,
+        # which must not be divided across halves. Run 36 divided it anyway,
+        # in a script: 2.11x over 2.78x gives 0.759 on `bq-expand` where the
+        # per-shape geomean below is 0.8119, and that script's own print then
+        # took an absolute deviation, so `2 - ratio` reached the page on a
+        # third arm and reversed its direction. Both columns print here for
+        # that reason: there is no direction left to infer.
+        rows = []
+        for st in both_st:
+            rs = []
+            for sh in both_sh:
+                a_b = cells[sh][st]['alloc_bytes']
+                b_b = b_cells[sh][st]['alloc_bytes']
+                if a_b is None or b_b is None or max(a_b, b_b) < FLOOR:
+                    continue
+                rs.append((b_b / a_b, sh))
+            if rs:
+                g = math.exp(sum(math.log(r) for r, _ in rs) / len(rs))
+                rows.append((g, st, len(rs), min(rs), max(rs)))
+        if rows:
+            print('\nper arm, over the cells above %d bytes a call: how much'
+                  ' the OTHER half allocates' % FLOOR)
+            print('  below 1 = %s allocates less, above 1 = it allocates more'
+                  % os.path.basename(other))
+            print('\n%-42s %8s %8s %5s   %s'
+                  % ('arm', 'other/this', 'this/other', 'n', 'range'))
+            for g, st, n, lo, hi in sorted(rows):
+                print('%-42s %8.4f %8.4f %5d   %.3f (%s) .. %.3f (%s)'
+                      % (st, g, 1.0 / g, n, lo[0], lo[1], hi[0], hi[1]))
     print('\nThe multiple the alloc column publishes is these bytes divided'
           '\nby a constant per shape, so it agrees exactly where these do and'
           '\nthere is no second column to prefer. Allocation is deterministic'
@@ -14666,7 +14710,7 @@ def main():
                               per_shape=args.per_shape))
     elif args.compare and args.alloc:
         compare_alloc(cells, shapes, strategies, meta, args.compare,
-                      args.main)
+                      args.main, args.per_shape)
     elif args.compare and args.ci:
         sys.exit(compare_ci(cells, shapes, strategies, meta, args.compare,
                             args.main))

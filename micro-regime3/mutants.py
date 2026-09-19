@@ -38,6 +38,55 @@ PROPS = 'python3 "{dir}/properties.py"'
 # run29 outright: they are LOST with those runs' artifacts and the suite
 # says so rather than quietly proving less.
 MUTANTS = [
+    # THE CLASS BLOCK'S PROSE EMITTED WRAPPED, which is the form Run 36 had
+    # to join by hand and the join is what broke an arm name in half. The
+    # mutant puts the line-at-a-time write back; the judge plants a synthetic
+    # class beside a copy of the newest run file and fails when a span of the
+    # Provenance boilerplate too long to survive an eighty-column wrap is not
+    # contiguous.
+    ('a class block\'s prose is emitted wrapped for a caller to join',
+     'read-run.py',
+     "            para = ' '.join(para.split())",
+     "            para = para",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile,'
+     ' subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\','
+     ' \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     't = tempfile.mkdtemp()\n'
+     'run = m.synth_json(t, \'rev\', name=\'a.json\')\n'
+     'doc = m.write_rundoc(t, open(m.RUNDOC).read())\n'
+     'r = subprocess.run([sys.executable, \'{file}\', run, \'--block\','
+     ' \'--brief\', \'--in-place\', \'--run-doc\', doc],'
+     ' capture_output=True, text=True)\n'
+     'want = \'MiB max residency (copy from the process\'\n'
+     'sys.exit(0 if want in r.stdout else 1)"'),
+    # THE PER-ARM ALLOCATION READING, BLINDED THE WAY RUN 36 BLINDED IT BY
+    # HAND: that run needed the size of an allocation move per arm, had no
+    # mode for it, computed it in a script, and the script's print took an
+    # ABSOLUTE deviation -- so `2 - ratio` reached the page and one arm's
+    # direction was published backwards in three places. The mutant is that
+    # arithmetic, `1 + |g-1|`, put where the geomean belongs; a pair whose
+    # flagged half allocates 0.8 of the other then reads 1.2000, which is
+    # the same number of points the wrong way round. The judge plants the
+    # skewed pair through defects.py's own builder and runs the MUTATED
+    # copy on it, rather than going through defect-run.py, which would run
+    # the tree's reader.
+    ('the per-arm allocation ratio reads its own distance from 1',
+     'read-run.py',
+     '                g = math.exp(sum(math.log(r) for r, _ in rs) / len(rs))',
+     '                g = 1.0 + abs(math.exp(sum(math.log(r) for r, _ in rs)'
+     ' / len(rs)) - 1.0)',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile,'
+     ' subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\','
+     ' \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'out = m.plant_alloc_skewed_pair(tempfile.mkdtemp())\n'
+     'r = subprocess.run([sys.executable, \'{file}\', out[\'run\'],'
+     ' \'--compare\', out[\'other\'], \'--alloc\', \'--per-shape\'],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'0.8000\' in r.stdout + r.stderr else 1)"'),
     # THE BAR NAMES THE ARMS THAT CLEAR IT, or it is a number a reader has
     # to apply by hand -- which is what a session did on Run 32, whose head
     # claimed the compiler worth nothing this roster can measure while

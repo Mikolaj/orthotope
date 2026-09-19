@@ -8410,7 +8410,9 @@ Unsandboxed throughout:
     #      output, a blocked write leaving a launch that never happened
     #      looking like one in progress.
     #      AND ARM TWO MONITORS IN THE SAME TURN, both owed:
-    #          tail -F -n +1 $R-evening.txt 2>/dev/null   # the stages
+    #          tail -F -n +1 $R-evening.txt 2>/dev/null \
+    #            | grep -vE --line-buffered 'counts .*: (start|done, rc=0)$'
+    #                                                     # the stages
     #          ./run-heartbeat.sh $R                      # persistent
     #      `-F` AND NOT `-f`, AND THE REDIRECT IS NOT OPTIONAL: the file
     #      does not exist at arming time, `-F` retries by name and `-n +1`
@@ -8419,6 +8421,18 @@ Unsandboxed throughout:
     #      is what makes the pace visible while it is still a pace -- one
     #      line every 45 minutes carrying the JSON count, the last stage
     #      line and $R-wallclock.log's last line.
+    #      THE FILTER ON THE STAGE TAIL IS WHAT KEEPS STEP 20 CHEAP, and
+    #      it drops nothing else: the counted work writes two lines a leg
+    #      over twenty-two legs, which unfiltered is some twenty wake-ups
+    #      in forty minutes, each a model invocation on a context that
+    #      only grows. A counts leg that COMPLAINS or exits nonzero still
+    #      fires, the pattern dropping only `: start` and `: done, rc=0`
+    #      on a line naming counts, and every stage line of the evening
+    #      proper is untouched (2026-09-19).
+    #      AND A SESSION ANSWERS NEITHER MONITOR: acknowledging a tick is
+    #      a turn end and costs what the tick cost again, so the reply to
+    #      a stage line is the next tool call this list asks for, and to
+    #      every other tick nothing at all.
     #      EACH MONITOR'S `description` IS A TAG AND NOT A LEGEND --
     #      `$R stages` and `$R heartbeat`, two or three words: the harness
     #      reprints it on every tick.
@@ -9322,6 +9336,15 @@ not otherwise.
     #      figures live
     #      why: --para 'Name the fill groups'
     ./read-all.sh $R --brief-facts                    # 1. GATE EVERY
+    #      PROCESS -- and EVERY gate on this list is run BARE, its
+    #      status read from its own exit: no pipe, no `&&` chain, no
+    #      redirect. The three ways that status gets lost, with the
+    #      measurements, are at this list's FOOT under `A GATE IS NEVER
+    #      FILTERED`, four hundred lines from here, which is why the
+    #      rule is named at the first step that runs one: Run 36 read
+    #      `RC=0` off `--check-doc | head` on a FAILING gate, and off a
+    #      redirect a sandboxed call had refused, where the `tail`
+    #      beside it printed an older log of the same name.
     #      PROCESS AND DERIVE THE HEAD'S FACTS IN ONE CALL -- the flag
     #      rides that same invocation and the facts come off the readings
     #      just taken, so a bare `./read-all.sh $R` beside it would gate
@@ -9606,6 +9629,12 @@ not otherwise.
     #      with the population each figure came from. The verdicts and
     #      the tally sentence are the whole of the adjudication left to
     #      judgement
+    #   READ THIS HALF ONCE AND COME BACK TO `--imperative`. It is the
+    #   longest of the three lists and it is met six hours in, where the
+    #   pre-run list's own head says why the short form is the re-read:
+    #   `./read-run.py --checklist post-b --imperative` is these steps
+    #   and their commands without the prose, and is what to re-open
+    #   between 6a and 7a rather than this.
     #   6. walk the replace list under Provenance (READ NOW: item 8, the
     #      list itself and its delta bullets), re-run the two sweeps it
     #      names, and map every hit to the bullet covering it -- running
@@ -9678,6 +9707,15 @@ not otherwise.
     #      run re-carries, or it is last run's claim under this run's
     #      name. RUN IT HERE AND NOT AT 6d: after the prose is written
     #      every hit is a rewrite.
+    #      AND READ EACH HIT AGAINST THE TABLE BESIDE IT, not only for
+    #      whether it names a run: a paragraph describing an INSTALLED
+    #      table's shape is apparatus by its wording and this run's
+    #      claim by its content, and 5b has already replaced the table
+    #      under it. Run 36's two class-preamble hits described Run
+    #      35's bold distribution and Run 35's five three-decimal ties
+    #      above a table that now showed a different six and a
+    #      different five; both read as apparatus, both went in, and
+    #      the independent checker found them.
     #      AND ITS SIBLING, `./read-run.py --stale`, WHICH READS THE
     #      OTHER HALF OF THE SAME DEFECT: the paragraph this run DID
     #      edit around a figure it did not. Neither checker pass sees
@@ -9775,6 +9813,15 @@ not otherwise.
     #      to tens of minutes and 6c is often shorter, so waiting idles
     #      the session for nothing and the one barrier this list has is
     #      7's
+    #      AND SEND PASS 2 THE MOMENT PASS 1 LANDS, wherever that falls
+    #      -- beside 6e if it lands there -- rather than carrying it to
+    #      7a. 6d's condition is on pass 1 RETURNING and not on 6c being
+    #      done, and a session that reads it the other way runs THREE
+    #      agents at once where this list intends two: Run 36 did, its
+    #      pass 2 arriving beside 7a's blind reader and its probe. It
+    #      cost that run nothing -- pass 2 then read the SETTLED commit
+    #      rather than 6d's -- but a report that lands after its object
+    #      has moved is what the ordering is for
     #      KEEP CHAPTER EDITS OUT OF THE WRITE-UP'S COMMITS, which is what
     #      makes `that commit's diff` mean anything; where they have
     #      already happened, bound README's diff at the run's own last
@@ -9831,7 +9878,16 @@ not otherwise.
     #      produces, and 10c's own line says everything committed after
     #      RUNTIP is unreviewed BY CONSTRUCTION -- step 9's record and
     #      step 10's open list being the bulk of it. SEND the second
-    #      pass to the same agent once its first has returned, run 6e
+    #      pass WITH NOTHING BUT THE STEP AND THE TWO DIFF COMMANDS:
+    #      the brief already scopes it to this commit's diff and to
+    #      nothing pass 1 verified, and a covering message that says
+    #      `the file has moved under you, re-read it` undoes that
+    #      scoping in one sentence -- Run 36's did, and its pass 2
+    #      re-derived the whole run file to find ten findings, nine of
+    #      them in README, which pass 1 had never seen and which the
+    #      brief alone would have pointed it at. Name the fixes, not
+    #      the prose.
+    #      Send it to the same agent once its first has returned, run 6e
     #      meanwhile, and FREEZE WRITES to both documents until 7, a
     #      finding quoting a phrase you may otherwise have changed. THAT
     #      COMMIT'S DIFF IS WHAT THE AGENT WORKS ON, one commit and not
@@ -10032,6 +10088,17 @@ not otherwise.
     #        not: defects.py derives fixtures from BOTH documents,
     #        `RUNDOC` being the newest run file and read at many
     #        sites, so a paragraph either side can move a case.
+    #        AND `AFTER THE STRETCH` MEANS AT THE END OF 6a, BEFORE
+    #        6b's COMMIT, and not after 10c: a case asserts on the
+    #        run file's LITERAL text, so a rewrite that spells a
+    #        figure differently breaks one and no document pass
+    #        sees it. Run 36 wrote `nineteen main-set shapes` where
+    #        a case reads `over 19 shapes`, shipped it through both
+    #        gates, three independent readers and every commit of
+    #        this list, and the owner fixed it afterwards off a
+    #        case replay. Spelling a figure in words is what does
+    #        it, so prefer the digits the previous run used
+    #        wherever a sentence is rewritten around one.
     #        The checker's brief is the one document it never
     #        reads, and an edit to that alone owes nothing
     #      Main.hs, even a comment: `./read-run.py --lint`
@@ -10602,7 +10669,16 @@ size comes from the reader's first line;
     The offer comes after the verification is presented and not after
     the writing --- Run 6's artifact went as soon as its write-up was drafted,
     which cost the ability to re-check anything needing the raw samples when
-    that write-up was later questioned.
+    that write-up was later questioned. **AND IT IS NOT ONE RUN'S OFFER: a pair
+    a LIVE registration derives its priors from outlives the run that used it.**
+    Run 36's registration takes its `-O2` figures off Run 31's own binaries,
+    JSONs and counts files rather than quoting them, which Run 36's preparation
+    could only do because that pair is still on disk --- so the offer says which
+    earlier pair this run leaned on, and the session making it checks the open
+    list for a registration resting on one before naming it. **And it waits
+    on a quiet tree**: Run 36's offer was held because another session
+    was timing probes against its two binaries hours after the write-up closed,
+    which the directory's own mtimes showed and nothing else would have.
 
     **They are not required to go, and this README no longer says they are.**
     The rule used to be that the normal state of this directory is no run
@@ -11379,25 +11455,34 @@ being under the run file's properties with the tier it splits:
   call buys fewer samples; this is where that shows.
 - **alloc** is bytes per call as a multiple of the result vector (`8*l`),
   the median over shapes of the `allocated` fit the harness now runs on every
-  bench of every shape. The multiples were held to be shape-independent ---
-  refitted on a different shape, every one reproduced to within 0.4% ---
-  so that the median was a formality rather than a smoothing and the column did
-  not move with what it was fitted on. **That is wrong**, and Run 6 (-O1)
-  reproduced the refutation at full budget where a rough pass had found it.
-  Re-derived on Run 9's cells and roster it is unanimous: **every one of the 32
-  benched rows** varies by more than 5% from shape to shape, the median row
-  by 2.00x and the worst by 5.10x (`bq-expand-b`, 1.00x to 5.10x), and the four
-  shapes of identical `l` = 1800000 give `bq-expand` 2.000x, 2.111x, 1.000x
-  and 2.639x. The spread narrowed as the roster was cut --- Run 6's worst
-  was an arm nothing times any more --- and the property it measures did not.
-  Every allocated fit sat at R^2 1.000 on Run 6, so the spread is the quantity
-  and not the measurement, and allocation being deterministic per call
-  the budget does not bear on it either way. What does survive is the column:
-  a median over a *pinned* shape set reproduces, every allocation tier returning
-  on its own level across a roster change. So read `alloc` as a statistic
-  of a strategy **and** a shape set, and pin the shape set before comparing
-  it across runs, exactly as the `time` column already asks. It is the one
-  column the correction does not touch.
+  bench of every shape. **So two of its entries are not to be divided either**,
+  for the same reason the `time` column's are not and with no rule of its own
+  until 2026-09-19: a median is not a geomean of ratios, and on Run 36 dividing
+  the two halves' published `bq-expand` tiers, 2.11x by 2.78x, gives 0.759 where
+  the per-shape geomean of that arm's allocation across the halves
+  is **0.8119**. What answers a cross-half allocation question
+  is `--compare --alloc --per-shape`, which prints that geomean per arm;
+  the tiers answer what an arm allocates WITHIN one half, and a run that wants
+  both quotes them as two statistics. The multiples were held
+  to be shape-independent --- refitted on a different shape, every one
+  reproduced to within 0.4% --- so that the median was a formality rather
+  than a smoothing and the column did not move with what it was fitted on.
+  **That is wrong**, and Run 6 (-O1) reproduced the refutation at full budget
+  where a rough pass had found it. Re-derived on Run 9's cells and roster
+  it is unanimous: **every one of the 32 benched rows** varies by more than 5%
+  from shape to shape, the median row by 2.00x and the worst by 5.10x
+  (`bq-expand-b`, 1.00x to 5.10x), and the four shapes of identical `l` =
+  1800000 give `bq-expand` 2.000x, 2.111x, 1.000x and 2.639x. The spread
+  narrowed as the roster was cut --- Run 6's worst was an arm nothing times any
+  more --- and the property it measures did not. Every allocated fit sat at R^2
+  1.000 on Run 6, so the spread is the quantity and not the measurement,
+  and allocation being deterministic per call the budget does not bear
+  on it either way. What does survive is the column: a median over a *pinned*
+  shape set reproduces, every allocation tier returning on its own level across
+  a roster change. So read `alloc` as a statistic of a strategy **and** a shape
+  set, and pin the shape set before comparing it across runs, exactly
+  as the `time` column already asks. It is the one column the correction does
+  not touch.
 
 **What the next run compares against.** Four rulings stand under that section's
 comparisons, and two notes on its tables follow them.

@@ -2908,6 +2908,20 @@ def synth_json(tmp, pop='main', name=None, **kw):
     return synth_run(os.path.join(tmp, name or '%s.json' % pop), shapes, **kw)
 
 
+def plant_alloc_skewed_pair(tmp):
+    """Two halves alike but for what ONE arm allocates.
+
+    Named rather than inlined because the mutant of the per-arm allocation
+    reading plants it too, and a mutant's judge cannot go through
+    defect-run.py: that would run the tree's reader where the point is to
+    run the mutated copy. One builder, two readers of it.
+    """
+    return {'run': synth_json(tmp, 'main', name='a.json'),
+            'other': synth_json(tmp, 'main', name='b.json',
+                                alloc_skew=[(sh, 'bq-expand', 0.8)
+                                            for sh in main_shapes()])}
+
+
 def compared_arm_count():
     """How many arms a `--compare` of two synthetic runs puts in its table.
 
@@ -4322,7 +4336,7 @@ TERM = 4e-10        # the forcing term per element: one pass, so it scales
 
 
 def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=(),
-              slow=1.0, drop_arms=(), fingerprint=None):
+              slow=1.0, drop_arms=(), fingerprint=None, alloc_skew=()):
     """A criterion run over `shapes`, built rather than captured.
 
     Kilobytes where a real run's JSON is megabytes, and DERIVED: the arms
@@ -4446,6 +4460,15 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=(),
                 if (sh, name) == (s_sh, s_name):
                     slope *= factor
             alloc = 0.0 if role == 'Term' else 8.0 * l * _spread(fn, 0.9, 1.4)
+            # ALLOCATION IS THE ONLY AXIS A PAIR CAN MOVE WITHOUT MOVING
+            # TIME, and until 2026-09-19 no fixture could: `skew` scales a
+            # slope and every synthetic pair allocated identically, so the
+            # per-arm reading `--alloc --per-shape` gives had nothing to
+            # bite on. Two of `-O2`'s passes do exactly this on a live
+            # pair, which is what the mode was written for.
+            for sh_w, arm_w, f_w in alloc_skew:
+                if sh_w == sh and arm_w == name:
+                    alloc *= f_w
             reports.append(_synth_report('%s/%s' % (sh, name), slope, alloc,
                                          samples))
     with open(path, 'w') as f:
@@ -6468,6 +6491,61 @@ RECORDS = [
          plant=lambda t: {'run': synth_json(t, 'main', name='a.json')},
          argv=['{run}', '--movers', '0'],
          ok=V(exit=2, has=['does nothing alone'])),
+
+    case('block-prose-comes-out-wrapped-for-a-caller-to-join', 'read-run.py',
+         None,
+         'the class block a run file pastes, emitted in the form it keeps',
+         # BORN 2026-09-19 OUT OF AN ARM NAME BROKEN IN HALF. `--in-place`
+         # installs a block's TABLE and leaves its prose to the author, by a
+         # ruling this mode's docstring carries -- and it printed that prose
+         # WRAPPED, where the run file keeps one line a paragraph. Run 36
+         # joined the wrapped lines in a script of its own, a break fell
+         # inside `lib-stage2-lean-u1`, and `lib- stage2-lean-u1` reached the
+         # page: an arm name that renders wrong, matches no row of the table
+         # above it, and answers no search for the arm. The seam was the
+         # joining, so the prose is emitted already joined. The assertion is
+         # a ninety-four-character span of the Provenance boilerplate, which
+         # cannot be contiguous in anything wrapped at eighty.
+         plant=lambda t: {'run': synth_json(t, 'rev', name='a.json'),
+                          'doc': write_rundoc(t, open(RUNDOC).read())},
+         argv=['{run}', '--block', '--brief', '--in-place',
+               '--run-doc', '{doc}'],
+         ok=V(exit=0,
+              has=['**Provenance:** elapsed ___, peak ___ MiB in use, ___'
+                   ' MiB max residency (copy from the process'])),
+
+    case('alloc-per-shape-gives-no-per-arm-reading', 'read-run.py', None,
+         'CONTROL: the per-arm allocation ratio a pair whose variable moves it needs',
+         # BORN 2026-09-19, OUT OF A FIGURE COMPUTED BY HAND AND GOT WRONG.
+         # `--compare --alloc` counts cells inside 1e-4 and names the worst,
+         # which answers whether a pair AGREES and not by how much it parts.
+         # Run 36's pair parts on two families, and the write-up needed the
+         # size per arm: the only other route is the `alloc` column, a MEDIAN
+         # over shapes that must not be divided across halves, so the figure
+         # went into a script instead -- whose print took an absolute
+         # deviation and put `2 - ratio` on the page, reversing one arm's
+         # direction in three places. The mode prints both columns for that
+         # reason. This case is the moving direction; the one below is the
+         # level one, and a mode that answered only one of them would pass
+         # nothing worth having.
+         plant=plant_alloc_skewed_pair,
+         argv=['{run}', '--compare', '{other}', '--alloc', '--per-shape'],
+         ok=V(exit=0,
+              has=['per arm, over the cells above', 'other/this', 'this/other',
+                   'bq-expand', '0.8000', '1.2500'])),
+
+    case('alloc-per-shape-invents-a-movement', 'read-run.py', None,
+         'CONTROL: two halves built alike read 1.0000 on every arm',
+         # The other direction, and the one that would hide a sign error:
+         # a pair that moves no allocation must read 1.0000 both ways, so
+         # that a run quoting a figure from this table is quoting a
+         # movement and not an artefact of the fit.
+         plant=lambda t: {
+             'run': synth_json(t, 'main', name='a.json'),
+             'other': synth_json(t, 'main', name='b.json')},
+         argv=['{run}', '--compare', '{other}', '--alloc', '--per-shape'],
+         ok=V(exit=0, has=['per arm, over the cells above', '1.0000'],
+              hasnt=['0.8000'])),
 
     case('movers-with-none-says-so', 'read-run.py', None,
          'CONTROL: no arm past the threshold is an answer, not a silence',
