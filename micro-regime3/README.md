@@ -1563,25 +1563,30 @@ rather than a slot in the next run, observed again:
   and not when the compiler that runs the passes changes. Four readings now
   exist and the question is narrowed rather than answered: nothing here says why
   an optimisation pass should move an allocation multiple at all, and a compiler
-  change at one level is now known not to. **Run 36 is the FIFTH reading
-  and the first with both passes on one half**, and it composes: `bq-expand`
-  reads **2.11x** on the flagged half against 2.78x on the plain one, which
-  is Run 29's `-fspec-constr` shape (2.06x against 2.76x) and not Run 30's
-  `-fliberate-case`, which left that arm alone; and `list` reads **23.45x**
-  against 25.20x, DOWNWARD, so SpecConstr's fall beats LiberateCase's rise when
-  the two run together. Those are tiers, medians of the per-shape multiple,
-  and are not to be divided; read per cell the flagged half allocates **0.8119**
-  of the basis on `bq-expand` and each of its three twins and **0.9342**
-  on `list` and both of its, on the main set and in the same shape on all ten
-  classes --- `list` from 0.9073 on `block` to 0.9342 on the main set,
-  `bq-expand` from 0.7263 on `window` to 0.9705 on `block` --- while every other
-  timed arm reads 1.0000 to within two tenths of a point. ONE arm outside
-  the two families moves and it moves UPWARD: `liblist-stage2-sum`, a reducing
-  consumer, at 1.0904 on `block`, 1.0900 on `runs`, 1.0312 on `flip`, 1.0116
-  on `window` and 1.0099 on `small`. **What this adds to the question
-  is that the effect is not a level's**: two passes of `-O2` carry all of it,
-  on exactly the arms whose time they move, and they break [the run file's
-  property 3 LEVEL
+  change at one level is now known not to. **Run 36 is the FIFTH reading,
+  the first with both passes on one half, and it reproduces Run 31's WHOLE LEVEL
+  exactly**: `bq-expand` reads **2.11x** on the flagged half against 2.78x
+  on the plain one and `list` **23.45x** against 25.20x, which are Run 31's
+  `-O2` and plain halves to the published decimal, on a different compiler ---
+  and across the classes the flagged half's 1.00x to 2.75x and 19.00x to 26.55x
+  are Run 31's too. So the allocation signature of the level is carried
+  by these two passes and by nothing else in it. Their direction
+  is `-fspec-constr`'s of Run 29, 2.06x against 2.76x, and not Run 30's
+  `-fliberate-case`, which left `bq-expand` alone and took `list` UPWARD:
+  SpecConstr's fall beats LiberateCase's rise when the two run together.
+  Those are tiers, medians of the per-shape multiple, and are not to be divided;
+  read per cell the flagged half allocates **0.8119** of the basis
+  on `bq-expand` and each of its three twins and **0.9342** on `list` and both
+  of its, on the main set and in the same shape on all ten classes --- `list`
+  from 0.9073 on `block` to 0.9342 on the main set, `bq-expand` from 0.7263
+  on `window` to 0.9705 on `block` --- while every other timed arm reads 1.0000
+  to within two tenths of a point. ONE arm outside the two families moves,
+  the same way and by a tenth of what they get: `liblist-stage2-sum`, a reducing
+  consumer, at **0.9096** on `block`, 0.9100 on `runs`, 0.9688 on `flip`, 0.9884
+  on `window` and 0.9901 on `small`, and 1.0000 on the other six, the main set
+  among them. **What this adds to the question is that the effect is
+  not a level's**: two passes of `-O2` carry all of it, on exactly the arms
+  whose time they move, and they break [the run file's property 3 LEVEL
   clause](runs/run36.md#the-properties-the-next-run-should-test) in every one
   of eleven populations, the first run to do so. Run 29's and Run 30's figures
   are over eighteen shapes and this run's over nineteen, so the two sets order
