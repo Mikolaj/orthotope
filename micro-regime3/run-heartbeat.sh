@@ -7,6 +7,11 @@
 #                                   # description is the tag `run31
 #                                   # heartbeat` and nothing more
 #
+# NOT ARMED BY THE RUN LIST since 2026-09-19: the stage monitor tails the
+# wall-clock log too, whose per-process stamps keep the session's prompt
+# cache warm, so this stays for a probe watching itself and for the cases
+# in defects.py. README's heartbeat paragraph carries the ruling.
+#
 # WHY IT IS A SCRIPT. The loop lived in README's run list, eleven lines of
 # `while true`, two `2>/dev/null` redirects and a `cut -c1-90` that a
 # session retyped every run -- and the list is where a fact that changes
@@ -26,8 +31,7 @@
 # never as an error.
 #
 # IT NEVER EXITS, which is what `persistent` means for the monitor that
-# carries it; the run list says where it is stopped, at step 20's woken
-# step, and nothing here stops it.
+# carries it; whoever arms it stops it, and nothing here does.
 #
 # Driven by the cases in defects.py: one tick over a planted run, and the
 # tick a run that has produced nothing yet still owes.
@@ -37,7 +41,8 @@ cd "$(dirname "$0")" || exit 1
 if [ $# -ne 1 ]; then
   echo "usage: ./run-heartbeat.sh RUN     # e.g. run31, armed as a" >&2
   echo "                                  # persistent monitor; README's" >&2
-  echo "                                  # run list step 14 says how" >&2
+  echo "                                  # heartbeat paragraph says why" >&2
+  echo "                                  # the run list no longer arms it" >&2
   exit 2
 fi
 R=$1

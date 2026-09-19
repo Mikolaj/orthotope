@@ -8474,18 +8474,24 @@ Unsandboxed throughout:
     #      begins` in $R-evening.txt and never by the launching shell's
     #      output, a blocked write leaving a launch that never happened
     #      looking like one in progress.
-    #      AND ARM TWO MONITORS IN THE SAME TURN, both owed:
-    #          tail -F -n +1 $R-evening.txt 2>/dev/null \
+    #      AND ARM ONE MONITOR IN THE SAME TURN, the stages:
+    #          tail -F -n +1 $R-evening.txt $R-wallclock.log 2>/dev/null \
+    #            | grep -E --line-buffered '^=== ' \
     #            | grep -vE --line-buffered 'counts .*: (start|done, rc=0)$'
-    #                                                     # the stages
-    #          ./run-heartbeat.sh $R                      # persistent
-    #      `-F` AND NOT `-f`, AND THE REDIRECT IS NOT OPTIONAL: the file
-    #      does not exist at arming time, `-F` retries by name and `-n +1`
-    #      replays the stamps already written. The stage monitor is SILENT
-    #      for the five or six hours the sequence runs, so the heartbeat
-    #      is what makes the pace visible while it is still a pace -- one
-    #      line every 45 minutes carrying the JSON count, the last stage
-    #      line and $R-wallclock.log's last line.
+    #      `-F` AND NOT `-f`, AND THE REDIRECT IS NOT OPTIONAL: neither
+    #      file exists at arming time, `-F` retries by name and `-n +1`
+    #      replays the stamps already written. THE WALL-CLOCK LOG IS ON
+    #      THE TAIL because $R-evening.txt alone is silent for the eight
+    #      hours the sequence runs -- Run 36's wrote nothing between
+    #      `sequence: start` and `sequence: done` -- where the wall-clock
+    #      log stamps a `start` and a `done` per process, nine to
+    #      fifty-seven minutes apart on Run 36, so the run's own ticks
+    #      keep the session's prompt cache warm; the `^=== ` filter keeps
+    #      the stamped lines and drops the unstamped ones that log opens
+    #      with and the `==>` headers `tail` prints when it switches
+    #      files. THE HEARTBEAT IS NOT ARMED, ruled 2026-09-19:
+    #      run-heartbeat.sh stays for a probe watching itself, and
+    #      nothing in this list runs it.
     #      THE FILTER ON THE STAGE TAIL IS WHAT KEEPS STEP 20 CHEAP, and
     #      it drops nothing else: the counted work writes two lines a leg
     #      over twenty-two legs, which unfiltered is some twenty wake-ups
@@ -8495,19 +8501,31 @@ Unsandboxed throughout:
     #      fires, the pattern dropping only `: start` and `: done, rc=0`
     #      on a line naming counts, and every stage line of the evening
     #      proper is untouched (2026-09-19).
-    #      AND A SESSION ANSWERS NEITHER MONITOR: acknowledging a tick is
-    #      a turn end and costs what the tick cost again, so the reply to
-    #      a stage line is the next tool call this list asks for, and to
-    #      every other tick nothing at all.
-    #      EACH MONITOR'S `description` IS A TAG AND NOT A LEGEND --
-    #      `$R stages` and `$R heartbeat`, two or three words: the harness
-    #      reprints it on every tick.
-    #      NEITHER IS STOPPED before $R-evening.txt reads EVENING
+    #      AND A TICK IS ANSWERED ONLY WHEN IT IS NEWS, ruled 2026-09-19.
+    #      A tick landing more than THIRTY MINUTES after the previous one,
+    #      or one that opens or closes a phase -- `evening begins`, the
+    #      gate's, the instance gate's and the sequence's `start` and
+    #      `done`, the riders' first `start` and RIDERS DONE, `counted
+    #      work begins` and EVENING COMPLETE -- and any line carrying a
+    #      COMPLAINT or a nonzero rc, gets a SHORT INFORMATIVE REPLY:
+    #      which phase or process the line opens or closes, its verdict,
+    #      how long it took and what runs next, with the tool call this
+    #      list asks for at that line where it asks for one. EVERY OTHER
+    #      TICK GETS NO REPLY AT ALL -- a process's `start` or `done`
+    #      inside the sequence under thirty minutes from the last tick, a
+    #      rider's own lines -- an acknowledgement being a turn end that
+    #      costs what the tick cost again. A reply with no tool call in
+    #      it IS a turn end, which is what the hold set at the first wait
+    #      is for (~/.claude/rules/turn-end-hold.md).
+    #      THE MONITOR'S `description` IS A TAG AND NOT A LEGEND --
+    #      `$R stages`, two or three words: the harness reprints it on
+    #      every tick.
+    #      IT IS NOT STOPPED before $R-evening.txt reads EVENING
     #      COMPLETE, which the counted work writes and this command does
-    #      not; stopping them is an act and it is written at 20's woken
+    #      not; stopping it is an act and it is written at 20's woken
     #      step, where it happens.
     #      why: --para 'run-major.sh is that sequence'
-    #      why: --para 'The heartbeat ticks at FORTY-FIVE MINUTES'
+    #      why: --para 'The heartbeat is not armed'
     #  14. THE GATE, its first stage: run-gate.sh on both halves twice in a
     #      palindrome, FOUR --compare readings put in $R-evening-out.txt:
     #      the two cross-half passes, the -a pair and the -b pair, and then
@@ -8617,8 +8635,8 @@ Unsandboxed throughout:
     #      probes it on /bin/true and refuses in a millisecond, and
     #      run-counts-all.sh refuses a stage still running besides --
     #      counted beside a timed process, both readings are spoilt
-    #  THEN, WOKEN AGAIN: STOP BOTH MONITORS FIRST -- the stage one and
-    #      the heartbeat armed at 14 -- and only then read the counts
+    #  THEN, WOKEN AGAIN: STOP THE STAGE MONITOR FIRST -- the one armed
+    #      with the launch at 14 -- and only then read the counts
     #      stages in $R-evening.txt, whose last line is EVENING COMPLETE
     #      and whose tally is the complaints of both commands; report each
     #      rather than folding them into a later summary, and start the
@@ -9237,13 +9255,16 @@ and its header says how: every process's bench count against the binary's own
 listing, loud in the log and not fatal, the exit status carrying the count
 of complaints out to whatever collected it.
 
-**The heartbeat ticks at FORTY-FIVE MINUTES for a reason that is the SESSION's
-and not the run's.** A session's prompt cache holds for an hour, so a tick
-inside that window costs a cache read while the first message after a longer
-silence pays to rebuild the whole conversation. 45 leaves room for a tick
-that lands late. The two costs are within a small factor of each other
-over an evening, so the heartbeat is not bought FOR the cache -- it is bought
-for the pace, and the cache is only what fixes the interval.
+**The heartbeat is not armed, ruled 2026-09-19, and `run-heartbeat.sh` stays
+for a probe watching itself.** It ticked at forty-five minutes for a reason
+that was the session's and not the run's: a session's prompt cache holds
+for an hour, so a tick inside that window costs a cache read while the first
+message after a longer silence pays to rebuild the whole conversation,
+and the stage file alone writes nothing through the eight-hour sequence.
+The stage monitor now tails the wall-clock log too, whose per-process stamps
+land under an hour apart, so the ticks that keep the cache warm are the run's
+own and a second monitor bought nothing they do not. Which ticks a session
+answers is said at the arming site, run list step 14, and nowhere else.
 
 Everything else is already a default. The allocation fit
 `--regress allocated:iters` is on (it is well-conditioned at 5s), so `alloc`
