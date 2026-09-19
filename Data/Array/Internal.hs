@@ -264,9 +264,8 @@ canonicalizeT sh ats = canonicalAxesT (zip ats sh)
 -- done: the axes of extent 1 dropped and each remaining axis merged
 -- into the one inside it where its stride is that one's stride times
 -- its extent, folded from the innermost axis out; returned as the
--- shape and the strides.  'toUnorderedVectorListT' does the same over
--- the pairs it has sorted, dropping the axes of extent 1 in its own
--- walk.
+-- shape and the strides.  'unorderedRegimeT' does the same over the
+-- pairs it has sorted, dropping the axes of extent 1 in its own walk.
 canonicalAxesT :: [(Int, Int)] -> (ShapeL, [Int])
 canonicalAxesT ps =
   unzipAxesT (foldr mergeInto [] [ p | p@(_, n) <- ps, n /= 1 ])
@@ -460,7 +459,8 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
 
 -- The regime a view falls in once canonicalized, which is what
 -- 'toVectorListT', 'toVectorT' and, on the view with its axes
--- reordered, 'toUnorderedVectorListT' dispatch on.  Classified on the
+-- reordered, the two unordered entry points dispatch on.  Classified
+-- on the
 -- canonical dimensions, so a unit dimension's arbitrary stride and a
 -- reshape's appended dimensions no longer decide it.  The element count
 -- (@product sh@) is passed in because every caller already has it, as
@@ -596,19 +596,25 @@ regimeSlicesT ao l v regime cons nil = case regime of
 toVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
 toVectorT sh a@(T _ ao v)
   | l == 0 = vConcat []
-  | otherwise = case regimeT sh l a of
-      Whole -> v
-      Slice -> vSlice ao l v
-      Runs csh cats -> vFillStrided csh cats ao l v
-      Strided csh cats -> vFillStrided csh cats ao l v
+  | otherwise = regimeVectorT ao l v (regimeT sh l a)
   where !l = product sh
+
+-- The vector a regime stands for, at an offset into the vector: the
+-- vector itself, one slice of it, or the view filled as one vector,
+-- runs included.  'toVectorT' and 'toUnorderedVectorT' both take it.
+{-# INLINE regimeVectorT #-}
+regimeVectorT :: (Vector v, VecElem v a) => Int -> Int -> v a -> Regime -> v a
+regimeVectorT ao l v regime = case regime of
+  Whole -> v
+  Slice -> vSlice ao l v
+  Runs csh cats -> vFillStrided csh cats ao l v
+  Strided csh cats -> vFillStrided csh cats ao l v
 
 -- The (absolute stride, extent) pairs of the axes of extent above 1,
 -- in the order given, and the offset of the view's lowest address, in
 -- one walk over the strides and the shape; the view is non-empty,
 -- which the caller has checked, so no extent is 0.  The account after
--- 'toUnorderedVectorListT' says why one walk and why each of the
--- three.
+-- 'unorderedRegimeT' says why one walk and why each of the three.
 absAxesAndStartT :: Int -> [Int] -> ShapeL -> ([(Int, Int)], Int)
 absAxesAndStartT ao = go
   where
@@ -681,35 +687,20 @@ unitThenZero [(1, _), (0, _)] = True
 unitThenZero (_ : axes@(_ : _ : _)) = unitThenZero axes
 unitThenZero _ = False
 
--- Convert to a list of vectors containing altogether the right elements,
--- but not necessarily in the right order.
--- This is used for reduction with commutative&associative operations.
--- This is over-optimized: the dispatch is long, its order of passes is
--- tuned, and it carries three magic constants read off one machine.
--- The two milder versions in the commit history --- a one-block test
--- with a fall-back, then the sorted axes with a guarded move --- were
--- already hard to follow and needed a battery of implementation notes
--- each, so this one is at least really sharp, and the account below
--- says why each piece.
--- An invariant: if the input array is non-empty the returned list
--- will have no empty vectors; the minimum/maximum operations rely on
--- it.  The list is produced lazily, as 'toVectorListT''s is, so 'anyT'
--- and 'allT' stop at the first slice that decides.
--- The dispatch is explained right below.
-{-# INLINE toUnorderedVectorListT #-}
-toUnorderedVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
-toUnorderedVectorListT sh (T ats ao v) = build $ \cons nil ->
-  -- Under one 'build' with the dispatch inside it, as 'toVectorListT'
-  -- is and for the same reason: written as a case returning a list per
-  -- branch, a fold over this list would meet the case and never fuse.
-  if l == 0 then nil else
-    let (axes, !start) = absAxesAndStartT ao ats sh
-        merged = foldr mergeInto [] (sortBy byStrideRank axes)
-        canonical = unzipAxesT (zeroStrideOutermost merged)
-    in  regimeSlicesT start l v (regimeOfT start l v canonical) cons nil
-  where !l = product sh
+-- The regime of a non-empty view with its axes reordered for a
+-- consumer that owes no order, and the offset the reordered view
+-- starts at: what the two unordered entry points dispatch on.  The
+-- account below says why each piece.
+{-# INLINE unorderedRegimeT #-}
+unorderedRegimeT :: (Vector v, VecElem v a)
+                 => ShapeL -> Int -> T v a -> (Int, Regime)
+unorderedRegimeT sh l (T ats ao v) =
+  let (axes, !start) = absAxesAndStartT ao ats sh
+      merged = foldr mergeInto [] (sortBy byStrideRank axes)
+      canonical = unzipAxesT (zeroStrideOutermost merged)
+  in  (start, regimeOfT start l v canonical)
 
--- The dispatch of 'toUnorderedVectorListT', piece by piece.
+-- The dispatch of 'unorderedRegimeT', piece by piece.
 --
 -- Overview.  A consumer that folds with a commutative and associative
 -- operation needs the view's elements as a multiset, not in order.  So
@@ -745,14 +736,14 @@ toUnorderedVectorListT sh (T ats ao v) = build $ \cons nil ->
 -- only the magnitude says which cells are touched; the sign is used
 -- once, in the same walk, to find where the lowest address is.
 --
--- Why start.  The slices must begin at the block's lowest address, and
--- the offset ao is not it: ao is where index (0, ..., 0) sits, which is
--- the lowest address only when every stride is positive.  An axis with
--- a negative stride has its lowest address at its last index, and
--- contributes (extent - 1) * stride, a negative amount.  So start is ao
--- plus those amounts, one per reversed axis, and the walk adds each as
--- it takes the stride's absolute value, the sign being in hand there
--- and nowhere later.
+-- Why start.  The slices, or the fill, must begin at the block's
+-- lowest address, and the offset ao is not it: ao is where index
+-- (0, ..., 0) sits, which is the lowest address only when every stride
+-- is positive.  An axis with a negative stride has its lowest address
+-- at its last index, and contributes (extent - 1) * stride, a negative
+-- amount.  So start is ao plus those amounts, one per reversed axis,
+-- and the walk adds each as it takes the stride's absolute value, the
+-- sign being in hand there and nowhere later.
 --
 -- Why sort.  A transposition reorders the axes and their strides
 -- together without changing which cells are touched (an index sum does
@@ -791,20 +782,53 @@ toUnorderedVectorListT sh (T ats ao v) = build $ \cons nil ->
 -- A broadcast axis, stride 0, reads the same cells at every index.
 -- Sorted by stride it lands innermost, and there it makes the regime a
 -- fill, each element copied as many times as the broadcast repeats it.
--- Moved outermost over a unit-stride axis it makes the regime runs,
--- and the runs walk repeats one slice as many times, the same multiset
--- with nothing copied.  Decided after the merge, the move is one look
+-- Moved outermost over a unit-stride axis it makes the regime runs:
+-- the runs walk repeats one slice as many times, the same multiset
+-- with nothing copied, and the fill writes the block once and copies it
+-- by doubling.  Decided after the merge, the move is one look
 -- at the last two axes: a zero stride merges with nothing but another
 -- zero stride, so there is at most one such axis, and it sorts after
 -- every other stride, so it is last; and a unit-stride axis worth
 -- moving it over is the one before it.  'zeroStrideOutermost' does the
 -- look and the move.
 
+-- Convert to a list of vectors containing altogether the right elements,
+-- but not necessarily in the right order.
+-- This is used for reduction with commutative&associative operations.
+-- This is over-optimized: the dispatch is long, its order of passes is
+-- tuned, and it carries three magic constants read off one machine.
+-- The two milder versions in the commit history --- a one-block test
+-- with a fall-back, then the sorted axes with a guarded move --- were
+-- already hard to follow and needed a battery of implementation notes
+-- each, so this one is at least really sharp, and the account at
+-- 'unorderedRegimeT' says why each piece.
+-- An invariant: if the input array is non-empty the returned list
+-- will have no empty vectors; the minimum/maximum operations rely on
+-- it.  The list is produced lazily, as 'toVectorListT''s is, so 'anyT'
+-- and 'allT' stop at the first slice that decides.
+{-# INLINE toUnorderedVectorListT #-}
+toUnorderedVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
+toUnorderedVectorListT sh a@(T _ _ v) = build $ \cons nil ->
+  -- Under one 'build' with the dispatch inside it, as 'toVectorListT'
+  -- is and for the same reason: written as a case returning a list per
+  -- branch, a fold over this list would meet the case and never fuse.
+  if l == 0 then nil else
+    case unorderedRegimeT sh l a of
+      (start, regime) -> regimeSlicesT start l v regime cons nil
+  where !l = product sh
+
+-- Convert to one vector holding all the elements, not necessarily in
+-- the right order.  Dispatches as 'toUnorderedVectorListT' does and
+-- takes the vector as 'toVectorT' does: a view of runs is filled, a
+-- repeated block once and then copied by doubling, where the list would
+-- hand one slice per repeat to a concatenation.
 {-# INLINE toUnorderedVectorT #-}
 toUnorderedVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
-toUnorderedVectorT sh a = case toUnorderedVectorListT sh a of
-  [v] -> v
-  l -> vConcat l
+toUnorderedVectorT sh a@(T _ _ v)
+  | l == 0 = vConcat []
+  | otherwise = case unorderedRegimeT sh l a of
+      (start, regime) -> regimeVectorT start l v regime
+  where !l = product sh
 
 -- Convert from a vector.
 {-# INLINE fromVectorT #-}
