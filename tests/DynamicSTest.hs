@@ -80,6 +80,11 @@ test = testGroup "DynamicS" $
                                                 9,9,9,9,9,9,9,9,9,9])
                               (pad [(1,2),(3,4)] 9 a1)
       pad_2 = assertThrows "2" (pad [(1,1),(1,1),(1,1)] 0 a1)
+      -- A pad list shorter than the rank leaves a core of two axes: a
+      -- view of runs, and a strided one, each taken as one vector.
+      pad_3 = assertEqual "3" (fromList [2,2] [1,2,4,5])
+                              (pad [] 0 (slice [(0,2),(0,2)] a1))
+      pad_4 = assertEqual "4" a2 (pad [] 0 a2)
       a5 :: Array Int
       a5 = fromList [2,3,4] [1..24]
       transpose_1 = assertEqual "1" (fromList [2,3,4] [1,2,3,4,
@@ -305,6 +310,8 @@ test = testGroup "DynamicS" $
         , testCase "zipWith3A_1" zipWith3A_1
         , testCase "pad_1" pad_1
         , testCase "pad_2" pad_2
+        , testCase "pad_3" pad_3
+        , testCase "pad_4" pad_4
         , testCase "transpose_1" transpose_1
         , testCase "transpose_2" transpose_2
         , testCase "transpose_3" transpose_3
