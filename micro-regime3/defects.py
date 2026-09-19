@@ -1630,7 +1630,7 @@ def parked_arm():
 def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
                                lead_extra=None, unscoped=False, bare=False,
                                script='read-run.py', views_only=False,
-                               cross_both_target=None):
+                               cross_both_target=None, no_items=False):
     """The README plus a synthetic OPEN registration, at the end.
 
     SYNTHETIC and not an edit of the live one, which is the whole point:
@@ -1667,6 +1667,18 @@ def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
     # `runs.**`, so one clause more is a refusal at post-run step 5 that
     # nothing catches at pre-run 7.
     tail = (' --- %s.**' % lead_extra) if lead_extra else '.**'
+    if no_items:
+        # A registration as the OWNER leaves it and before the preparation
+        # predicts: the entry is committed with the pair and the numbered
+        # items come later, at pre-run step 12a. Every other shape this
+        # helper builds carries at least item (1), so no case could reach
+        # the readers' empty-selection paths until this one.
+        entry = ("- `OPEN` **What Run 99 is built to answer, registered"
+                 " before it runs%s Registered for this fixture and for"
+                 " nothing else. What the run predicts, item by item, is"
+                 " the preparation's to add here before it runs, and none"
+                 " is registered yet." % tail)
+        return write(os.path.join(tmp, 'R.md'), text + '\n' + entry + '\n')
     entry = ("- `OPEN` **What Run 99 is built to answer, registered before"
              " it runs%s Registered for this fixture and for nothing else."
              " (1) *The box.* `list` moves under 3%%, `predict: cross list"
@@ -13078,6 +13090,24 @@ RECORDS = [
          argv=['{run}', '--compare', '{other}', '--predictions', '--alloc'],
          ok=V(exit=2, has=['are 2 readings of --compare']),
          bug=V(hasnt=['readings of --compare'])),
+
+    case('carry-over-is-silent-on-a-registration-with-no-item',
+         'read-run.py', '3a9ba3f',
+         '--carry-over exited 1 saying nothing where the registration'
+         ' carried no numbered item yet',
+         # The window is every registration between the commit that
+         # declares the pair and the preparation that predicts, which is
+         # where a preparation actually runs the mode. `if not items:
+         # return 1` printed nothing, and 1 is this tree's code for
+         # findings, so an empty selection read as a finding with no line
+         # to read. Met in use on 2026-09-19, at Run 37's preparation,
+         # which had to open the source to find out why.
+         plant=lambda t: {
+             'readme': readme_with_a_registration(t, no_items=True)},
+         argv=['run99', '--carry-over', '--readme', '{readme}'],
+         ok=V(exit=2, has=['carries no numbered item',
+                           'empty selection']),
+         bug=V(exit=1, hasnt=['numbered item'])),
 
     case('properties-limit-bounds-runs-not-figures', 'properties.py', 'ae6cbce',
          'CORPUS_LIMIT broke the innermost loop of the round-trip, bounding'
