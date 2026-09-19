@@ -5099,60 +5099,13 @@ a canonical innermost extent of 4, so the short bodies' one unexercised branch
 was invisible even to `check` -- and `runs-256` and `runs-512`, bracketing
 `dispRun` within a factor of two. Each runs on every population, so a library
 change is read where a user would meet it, class by class, whichever of the two
-entry points the user takes, and the `runs` class is where the routes part;
-with the timed `-u2-down` the dispatch arm, the three fill candidates
-and the unordered pair the block took the roster to 1320 benches,
-and the composite arm with the six parkings and two main-set shapes
-of 2026-09-02 took the roster to 1352 benches, and the retirement of eight
-main-set shapes on 2026-09-04 took the roster to 936 benches, eight superseded
-arms parked permanently since Run 21, `offtab`'s twins removed with it;
-the prune of the same day parks `lib-stage2` and `lib-stage2-concat` among
-sixteen arms, `lib-stage2` timed again for Run 26 alone as the lean arm's
-control, ([what the benchmark does](#what-the-benchmark-does)), took the roster
-to 432 benches, the `-u1` arm with its re-timed control, added the same day
-for Run 25, took it to 468, and the ruling on the short bodies, parking two,
-took it back to 432; `libunord-stage3`, added 2026-09-05 for Run 26, makes
-it 450, and `cnn-L1-6x6-c1`, timed again the same day, takes it to 475,
-and the pointer pair of 2026-09-05 makes it 513; parking the leaf arm whose
-bound-control run is over took it to 494, the four parkings Run 26 lifted
-for that run alone ([what the benchmark does](#what-the-benchmark-does)) being
-back since 2026-09-06; and the addition of 2026-09-07, eight arms --- the two
-lazy unordered candidates, the two lazy ordered ones and the four reducing
-consumers --- takes it to 646, the hoisted-bound fill of the same day,
-`mut-odo-vecdims-add-in-leaf-u2-last`, to 665, the retirement of lib-stage2-disp
-that evening to 646, and `lib-stage2-lean-u1`, the fill not unrolled
-under the lean dispatch, to 665; the sort-first stage with its three
-reorderings, their consumers, the fold entry point and the ceiling's consumer,
-2026-09-09, and the same day's retirement of the thirteen arms concatenating
-a list, with the ordered list's four consumers in their place, base's `sum`
-over stage six's list later the same day, and the shipped fill's A/A pair
-of 2026-09-09, took the roster to 741 benches; the parking
-of `libunord-stage8-sum` on 2026-09-11, refuted at Run 28's registration (6)
-([dead ideas][dead]), took the roster to 722 benches; and the same day's parking
-of `-u2-last`, `-u2-down` and `libunord-stage4-sum` on readings Run 28 repeated,
-with `libunord-stage10-sum` --- stage seven's tie-break under stage nine's move
---- landing beside the two it composes and its list `libunord-stage10` checked
-and not timed like the stages before it, took the roster to 684 benches;
-and the parking of 2026-09-13 --- the two pointer fills, their ceiling read
-on Runs 26 to 30 and moved by neither -O2 pass, and `libunord-stage2-sum`,
-`libunord-stage3-sum`, `libunord-stage5-sum` and `libunord-stage6-list-sum`,
-their questions answered, reasons at their entries --- took the roster to 570
-benches; and `libunord-stage10-list-sum`, base's `sum` over stage ten's list
-and the cross-over of that consumer with `libunord-stage10-sum`, landing
-the same day for Run 31 at the tail of the consumers where stage ten's own
-landed so that no control's span moves, took the roster to 589 benches;
-and `liblist-stage4-list-sum`, the same fold over stage four's list, landing
-2026-09-14 for Run 32 at the same tail, took the roster to 608 benches,
-and `libunord-stage11-sum`, landing 2026-09-15 for Run 33, took the roster
-to 627 benches, and `libunord-stage12-sum`, landing 2026-09-16 for Run 34
-with its fill `libunord-stage12` rostered `Only` beside it, took the roster
-to 646 benches, and `libunord-stage13-sum`, landing 2026-09-17 for Run 35
-with its fill `libunord-stage13` rostered `Only` beside it, took the roster
-to 665 benches; and the retirement of 2026-09-19 --- `libunord-stage10-sum`,
-its question answered at [its entry][open] and its route carried by every stage
-above it, `libunord-stage10-list-sum`, its pair, and `libunord-stage11-sum`,
-its guard carried by stages twelve and thirteen, reasons at their entries ---
-takes the roster to 608 benches.
+entry points the user takes, and the `runs` class is where the routes part; what
+each landing and parking among them did to the bench count, at its date,
+is in the roster arithmetic under [What the benchmark
+does](#what-the-benchmark-does), the one copy of it, and the reason for each
+is at its roster entry; the last of them, the retirement of 2026-09-19, takes
+the roster to 608 benches --- the figure's second site, which `--check-doc`
+holds to `Main.hs` beside the chain's.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -7272,17 +7225,10 @@ than absent, since that case ran benchmarks of a different scale.
 
 **Two rulings taken 2026-08-08 cut the timed roster from 38 strategies to 15,
 the arms written since brought it back to 28, and a third cut on 2026-09-04,
-the prune, takes it to twelve with `list`; the `-u1` arm timed for Run 25,
-`libunord-stage3` and the two pointer fills of 2026-09-05 make sixteen,
-and the ten of 2026-09-07, less `lib-stage2-disp` retired that evening,
-twenty-five, and the sort-first stage of 2026-09-09 with its three reorderings,
-their consumers, the fold entry point and the ceiling's consumer, thirty-five,
-less the thirteen arms concatenating a list, retired the same day, and plus
-the ordered list's four consumers, twenty-six, and base's `sum` over stage six's
-list, later the same day, twenty-seven, the four parkings of 2026-09-11
-with stage ten's consumer landing twenty-four, the six parkings of 2026-09-13
-eighteen, and `libunord-stage10-list-sum` landing the same day nineteen** ---
-the 28 being the four unconditional forms the precondition ruling itself called
+the prune, with every landing and parking since --- each dated in the bench
+arithmetic at the end of this paragraph --- leaves twenty-odd timed strategies,
+a run's own count being its bullet in [Provenance](#provenance)** --- the 28
+being the four unconditional forms the precondition ruling itself called
 for (below), the four FastReshape arms, of the five Run 20 arms beside them
 the three the probes left timed ([the mutable
 ceiling](#the-mutable-ceiling-taken)), and the rework's five less the three
@@ -7354,8 +7300,9 @@ consumers in their place, and base's `sum` over stage six's list later the same
 day, and the shipped fill's A/A pair of 2026-09-09, took the roster to 741
 benches, and the parking of `libunord-stage8-sum` on 2026-09-11 took the roster
 to 722 benches, and the same day's parking of `-u2-last`, `-u2-down`
-and `libunord-stage4-sum`, with `libunord-stage10-sum` landing, took the roster
-to 684 benches, and the parking of 2026-09-13 ---
+and `libunord-stage4-sum`, with `libunord-stage10-sum` landing and its list
+`libunord-stage10` checked and not timed like the stages before it, took
+the roster to 684 benches, and the parking of 2026-09-13 ---
 `mut-odo-vecdims-add-in-leaf-u1-ptr` and `-u2-ptr`, `libunord-stage2-sum`,
 `libunord-stage3-sum`, `libunord-stage5-sum` and `libunord-stage6-list-sum` ---
 took the roster to 570 benches, and `libunord-stage10-list-sum`, landing
@@ -7363,16 +7310,18 @@ the same day, took the roster to 589 benches, and `liblist-stage4-list-sum`,
 landing 2026-09-14, took the roster to 608 benches, and `libunord-stage11-sum`,
 stage ten with its zero-stride move guarded, landing 2026-09-15, took the roster
 to 627 benches, and `libunord-stage12-sum`, stage eleven with the run chosen
-by length, landing 2026-09-16, took the roster to 646 benches,
-and `libunord-stage13-sum`, stage twelve's route in fewer passes over the axes,
-landing 2026-09-17, took the roster to 665 benches, and the retirement
-of 2026-09-19 --- `libunord-stage10-sum`, `libunord-stage10-list-sum`
-and `libunord-stage11-sum`, reasons at their entries --- takes the roster to 608
-benches, so with the controls the run is 32 arms. **Run 26 timed four parked
-arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked
-2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
-and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
-([the stride classes](#the-stride-classes-and-what-they-cover)). Each was parked
+by length, landing 2026-09-16 with its fill `libunord-stage12` rostered `Only`
+beside it, took the roster to 646 benches, and `libunord-stage13-sum`, stage
+twelve's route in fewer passes over the axes, landing 2026-09-17 with its fill
+`libunord-stage13` rostered `Only` beside it, took the roster to 665 benches,
+and the retirement of 2026-09-19 --- `libunord-stage10-sum`,
+`libunord-stage10-list-sum` and `libunord-stage11-sum`, reasons at their entries
+--- takes the roster to 608 benches, so with the controls the run is 32 arms.
+**Run 26 timed four parked arms for that run alone**:
+`mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02; `canon-vecdims`
+and `lib-stage2`, parked by this prune; and `lib-stage2-short`, parked
+by the ruling on the short bodies of the same day ([the stride
+classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration
 unreadable --- Run 24 lost a clause, Run 25 five, and the two-window item
 was withdrawn beside them, seven in all ([the open list][open]) --- so Run 26
