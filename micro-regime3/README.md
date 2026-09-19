@@ -767,11 +767,12 @@ rather than a slot in the next run, observed again:
   `LOOP_ENTRIES`, `LOOP_BLOCKRULES`, `LOOP_PIN` and `LOOP_TRACE` are unset
   on both. Every build wants `-fforce-recomp` and a fresh `--builddir`,
   the switches being an environment change cabal does not see; every driver
-  takes its half from `hugebin/` through `half-bin.sh`; and under the exit span
-  `loop-offsets.py --survey` reads 0 exit spans astride off a timed binary,
-  so the preparation's legs 10a and 10b stop on anything else. **The PROJECT
-  FILE is new as well**: `cabal.project.ghead` is since 2026-09-19 the minimum
-  that compiles on a current index, where Run 36 built through what is now
+  still asks `half-bin.sh` for its half, which hands back the on-disk path while
+  the mount is suspended; and under the exit span `loop-offsets.py --survey`
+  reads 0 exit spans astride off a timed binary, so the preparation's legs 10a
+  and 10b stop on anything else. **The PROJECT FILE is new as well**:
+  `cabal.project.ghead` is since 2026-09-19 the minimum that compiles
+  on a current index, where Run 36 built through what is now
   `cabal.project.ghead.2026-07-25`, and this run's arms against Run 36's
   are expected inside the drift band. **What is new besides is the MACHINE: Run
   37 runs on a rebooted box, ruled 2026-09-19, and the reboot is what two
@@ -824,9 +825,64 @@ rather than a slot in the next run, observed again:
   1.075 and 1.10, with both instances equally PMD-mapped at 16384 kB ---
   so the gap is which frames each drew and not whether either got folios ---
   while the after side wants the mount raised, which the suspension makes
-  an emergency rather than this run's default. What the run predicts, item
-  by item with a `predict:` span apiece, is the preparation's to add here before
-  it runs, and none is registered yet.
+  an emergency rather than this run's default --- **and the owner ruled
+  on 2026-09-20 that this is not emergency enough, so Run 37 raises nothing
+  and the after side is not taken.** What that costs is not recoverable
+  and is worth saying once: `hugebin/` is a tmpfs, so the instance
+  those readings were taken of died with the reboot, and 1.075, 1.10 and 1.0419
+  are the whole of what will ever be known about it. The [frame-draw
+  entry][open] keeps the answer it has --- that one instance held its sign
+  over two and a half days while its magnitude halved --- and loses the instance
+  that could have extended it. A later run wanting more raises the mount
+  and draws a fresh one, which is a new series and not a continuation of this.
+  **What the run predicts, registered 2026-09-20 before it runs. EVERY PRIOR
+  BELOW IS RUN 36'S OWN READING OF THIS SAME PAIR**, re-derived from its JSONs
+  with `--predictions` and not quoted from its prose --- which is the one thing
+  its own registration got wrong, drawing four bands off Run 31's level
+  and losing them together. (1) *The two passes are worth on `list` what they
+  were worth on Run 36, across a rebooted box and a moved source.*
+  `predict: cross list 1.3360 within 3% on main basis`, and over the eighteen
+  shapes left when this run's wild cell is set aside,
+  `predict: cross list 1.3129 within 2% on main basis excluding stretch-coprime-r7`.
+  Run 36's basis floor is 1.63%, so 2% is that floor and a third of a point,
+  and 3% adds beside it the 2.31 points one wild cell moved the whole-set figure
+  on Run 36. THE NARROW SPAN IS THE ONE THAT DECIDES: if the wild cell does
+  not recur the whole-set reading lands near 1.3129 and the wide span holds
+  either way, so the wide span alone would say nothing. (2) *`bq-expand` repeats
+  as well, on the arm where three accounts already agreed to a quarter
+  of a point.* `predict: cross bq-expand 1.2980 within 1.5% on main basis`.
+  A reading outside is the first sign that something other than the two passes
+  moved between the runs --- the source, the launch from disk, or the box. (3)
+  *No arm outside the two families joins them on a second reading.*
+  `predict: cross mut-odo-vecdims 1.0 within 3% on main basis`,
+  `predict: cross mut-odo-vecdims-aa 1.0 within 3% on main basis`,
+  `predict: cross mut-odo-vecdims-aa-distant 1.0 within 3% on main basis`,
+  `predict: cross mut-odo-vecdims-add-in-leaf-u1 1.0 within 3% on main basis`,
+  `predict: cross mut-odo-vecdims-add-in-leaf-u2 1.0 within 3% on main basis`,
+  `predict: cross mut-odo-vecdims-add-in-leaf-u2-aa 1.0 within 3% on main basis`,
+  `predict: cross mut-odo-vecdims-add-in-leaf-u2-aa-distant 1.0 within 3% on main basis`,
+  `predict: cross lib-stage1 1.0 within 3% on main basis`,
+  `predict: cross lib-stage2-lean 1.0 within 3% on main basis`,
+  `predict: cross lib-stage2-lean-u1 1.0 within 3% on main basis`. THESE TEN
+  ARE ONE CLAIM READ TEN WAYS and a single miss is one arm joining the families
+  rather than ten results, which is the tally Run 36's own write-up had
+  to disentangle. The band is set on Run 36's measured spread over these same
+  ten, 0.9920 to 1.0119: 3% is its widest (1.19 points) with the 1.63% floor
+  beside it. (4) *The counted work parts on the arms the clock parts on,
+  and it repeats more tightly than the clock does.*
+  `predict: counts list 1.2926 within 1.5% on main basis`,
+  `predict: counts bq-expand 1.5063 within 2% on main basis`,
+  `predict: counts mut-odo-vecdims 1.0383 within 1% on main basis`,
+  `predict: counts lib-stage2-lean 1.0522 within 1% on main basis`.
+  THESE ARE NOT DOWNSTREAM OF (1), and Run 36 is the evidence: its two null
+  counts spans, drawn from Run 31 and read across a compiler change, landed 0.03
+  and 0.06 of a point off, while its two family counts spans, from the same
+  prior, missed by 1.94 and 6.40. So counts carry across runs where times need
+  not, and the bands here are tight where that history says they can be and wide
+  where it says they cannot. **The two reboot readings are NOT registered
+  as items and are the owner's to rule**, for the reason the paragraph above
+  gives: the first is already answered by the counters, before the run rather
+  than by it, and the second wants a mount the same day's ruling suspended.
 - `ANSWERED` **What Run 36 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 36's own
@@ -1324,9 +1380,10 @@ rather than a slot in the next run, observed again:
   of the `scaled` pair are in [the placement section][floor]. Registered
   2026-09-17.
 - `OPEN` **The frame a copy draws is a durable property of the instance,
-  and which physical bits it collides in is untested; the gate that now runs
-  at every launch catches the slow draw, and three routes past it are recorded
-  here so that none is re-proposed blind.** Run 34's mounted basis,
+  and which physical bits it collides in is untested; the gate written to catch
+  the slow draw ran at every launch until the mount was suspended
+  and is suspended with it, and three routes past it are recorded here
+  so that none is re-proposed blind.** Run 34's mounted basis,
   `hugebin/run34-exit`, untouched since its evening, read a median **1.10**
   of a fresh copy on `scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u1`
   on 2026-09-18, eleven of twelve readings above the copy's median
@@ -8116,8 +8173,18 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      twenty and then ruled not owed, its main leg standing.
     #      Artifacts are
     #      `smoke-l1-$R-*`, never `$R-*` (the prefix rule below), and a
-    #      previous attempt's are refused. Record it on an `L1 ROSTER
-    #      PASS:` line
+    #      previous attempt's are refused. A PASS YOU STOPPED IS A PREVIOUS
+    #      ATTEMPT, so clear its artifacts before relaunching, and CLEAR THEM
+    #      BY `smoke-l1-$R*` AND NOT `smoke-l1-$R-*`: the driver's own log is
+    #      `smoke-l1-$R.log`, with no hyphen, so the obvious glob leaves
+    #      exactly the one file the refusal reads and the relaunch dies
+    #      again on it. Both halves of that were met on 2026-09-20.
+    #      AND A STOPPED LEG LEAVES A HALF-WRITTEN JSON, which is not merely
+    #      clutter: 8c reads every run JSON here, so a truncated one fails
+    #      prop_selftest_over_the_corpus with a traceback and takes the cases
+    #      and the mutants down with it, three steps red for one file and no
+    #      message naming it. Clear it before any check runs, not before the
+    #      next pass. Record the outcome on an `L1 ROSTER PASS:` line
     #  11 and 12 here, and 14 in the run list below, all belong to the
     #      PAIR: on passing, write each into $R-pair.txt, or the next
     #      session repays the hour
@@ -8474,7 +8541,7 @@ Unsandboxed throughout:
     #      when the launch is the slow draw and the slow one parked as
     #      hugebin/$R-<half>.slow, which post-run step 11's deletion
     #      offer covers with the rest
-    #      why: --para 'the gate that now runs at every launch'),
+    #      why: --para 'the gate written to catch the slow draw'),
     #      the sequence (17) and the riders (19),
     #      in that order, under the environment the note's LAUNCH: line
     #      names, each stage's verdict appended to $R-evening.txt as it
