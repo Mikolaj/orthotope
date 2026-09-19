@@ -21,6 +21,8 @@ Substitute per run: RUN=run36 BASIS=gheadnospec OTHER=gheadtwopass PREV=run35
 
 You are an independent checker for a benchmark write-up. Report DISCREPANCIES, not opinions or style preferences.
 
+SPAWN NO AGENT OF YOUR OWN. You are a leaf: what you cannot reach within your budget comes back unfinished and named in your report, never delegated.
+
 WHERE YOU ARE. Work in /home/mikolaj/r/orthotope/micro-regime3. That is an orthotope checkout, NOT the horde-ad repo your session started in. Your evidence is THIS RUN'S OWN ARTIFACTS in that directory, with the reader ./read-run.py there. They are MORE THAN THE JSONS, and a claim you cannot settle from the JSONs is usually settled by one of the rest:
   RUN-HALF-POP.json  the twenty-two timed processes; every published table
   RUN-HALF-POP.log   the same processes' per-sample stamps -- allocation,
@@ -112,7 +114,7 @@ Report a numbered list of discrepancies only -- the claim as written, what you c
 === THE SAME AGENT, PASS 2 (checklist 6d: after 6b AND 6c, over BOTH
     documents, on the single commit that carries them) ===
 
-IT READS BOTH FILES and this is the only pass that can: the run file with pass one's fixes in it, and README with 6c's requotes. That is the first moment all of a run's prose exists. A figure quoted in BOTH -- the floor pair, the six-pair one -- is checked here on both sides for the first and only time.
+SPAWN NO AGENT OF YOUR OWN, as in pass 1. IT READS BOTH FILES and this is the only pass that can: the run file with pass one's fixes in it, and README with 6c's requotes. That is the first moment all of a run's prose exists. A figure quoted in BOTH -- the floor pair, the six-pair one -- is checked here on both sides for the first and only time.
 
 YOUR SCOPE IS THIS COMMIT'S DIFF AND NOTHING PASS 1 ALREADY VERIFIED. Do not recompute an installed table row: `--in-place` matches by whole line and asserts the count, and pass 1 has read every row once. Run 16's first pass recomputed 487 rows and found not one wrong; Run 18's recomputed 491, also none -- and both runs' real findings were in the prose. What you owe on a table is the rows a FIX touched, plus the two figures that live in BOTH documents, which is the check only this pass can make.
 
@@ -122,7 +124,7 @@ Send it the fixes, not the prose again. On Runs 15 and 16 most of the second pas
 === THE COMPREHENSION PROBE (checklist 7a: a DIFFERENT agent, once
     7's fixes are committed and the documents have settled) ===
 
-It must be uncontaminated: a fresh agent, never the checker, which has seen everything. It reads the two documents and nothing else -- no reader, no JSONs, no other repo -- and answers their own questions with citations, quoting the sentence and naming its section and its file.
+It must be uncontaminated: a fresh agent, never the checker, which has seen everything, and it spawns no agent of its own, what it cannot reach coming back named as unreached. It reads the two documents and nothing else -- no reader, no JSONs, no other repo -- and answers their own questions with citations, quoting the sentence and naming its section and its file.
 
 Ask nine-ish questions that CROSS section boundaries, since that is the class of defect nothing else can see. The ones that earned their place on Run 16: this run's floor per half with its carrying pair and the threshold two table rows must clear; which area the published tables use and which half publishes; whether a nursery pair's columns may be subtracted and how many such pairs exist; whether the regime 3 fix is ever slower than what it replaced; which half of the previous run a figure is compared against and whether that depends on the kind of figure; what each probe concluded and whether it confirmed or refuted its registration; what a large single A/A cell should tell a reader; the placement-sensitive arms and what is known about why; and whether the machine was undisturbed.
 

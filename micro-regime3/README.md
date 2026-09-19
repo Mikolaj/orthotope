@@ -3938,30 +3938,29 @@ mechanical tells a wild cell from a real movement, and `stretch-coprime-r7/list`
 at an A/A spread of 28.36% was found only by reading
 `read-all.sh --brief-facts`'s worst-cell column, which the chapter tells
 the reader to read and no gate reads. **TWO COMPUTATIONS IMPROVISED, and both
-want a mode.** The per-arm ALLOCATION ratio across the halves had to be computed
-from `--cells`'s `alloc_bytes` column, because `--alloc` reports agreement
-counts and the `alloc` column is a MEDIAN of the per-shape multiple --- dividing
-the two published tiers gives 0.759 on `bq-expand` where the per-cell geomean
-is 0.8119, a different statistic and the same trap `DO NOT DIVIDE TWO ROWS`
-names for time. And the gate's palindrome spread: `list` parted by 1.60 points
-between the two passes with nothing printed to say why, and comparing each
-half's own two legs, `--compare` of its `-a` against its `-b`, accounted
-for 1.28 of it in two commands that this chapter does not name. **TWO
-CAPABILITIES FOUND.** `--exclude-shape` prices a wild cell against the arm
-it sits in, which is what turned this run's anomaly from a caveat into a figure,
-1.3360 against 1.3129; and `--over-list` settles the wider statement in ONE call
-over all twenty-two population-halves, where reading it per class is twenty.
-**AND ONE MONITOR COSTS MORE THAN IT LOOKS**: the stage monitor the run list
-arms at step 14 is silent for the eight-hour sequence and then writes two lines
-per counts leg, which arrive batched as some twenty wake-ups in the forty-two
-minutes the counted work takes, each a model invocation.
-A `grep -E --line-buffered 'rc=[^0]|COMPLAINT|COMPLETE|refus'` on that tail
-would cut them to the lines a session acts on, at the price of the pace
-the chapter arms it for. **AND TWO THINGS THIS SESSION GOT WRONG ABOUT ITS OWN
-AGENTS, both raised by the owner mid-run and neither caught by any list here.**
-**The checker's SECOND pass is sent at 6d and this session sent it at 7a**: pass
-1 had not returned when 6c ended, and rather than idle the session went
-on to the fix cycle, so pass 2 arrived beside 7a's blind reader
+are modes since 2026-09-19.** The per-arm ALLOCATION ratio across the halves had
+to be computed from `--cells`'s `alloc_bytes` column, because `--alloc` reports
+agreement counts and the `alloc` column is a MEDIAN of the per-shape multiple
+--- dividing the two published tiers gives 0.759 on `bq-expand` where
+the per-cell geomean is 0.8119, a different statistic and the same trap
+`DO NOT DIVIDE TWO ROWS` names for time. And the gate's palindrome spread:
+`list` parted by 1.60 points between the two passes with nothing printed to say
+why, and comparing each half's own two legs, `--compare` of its `-a` against
+its `-b`, accounted for 1.28 of it in two commands that this chapter does
+not name. **TWO CAPABILITIES FOUND.** `--exclude-shape` prices a wild cell
+against the arm it sits in, which is what turned this run's anomaly
+from a caveat into a figure, 1.3360 against 1.3129; and `--over-list` settles
+the wider statement in ONE call over all twenty-two population-halves, where
+reading it per class is twenty. **AND ONE MONITOR COSTS MORE THAN IT LOOKS**:
+the stage monitor the run list arms at step 14 is silent for the eight-hour
+sequence and then writes two lines per counts leg, which arrive batched as some
+twenty wake-ups in the forty-two minutes the counted work takes, each a model
+invocation. The tail drops the counts legs' clean `start` and `done` lines since
+2026-09-19, which is what those wake-ups were. **AND TWO THINGS THIS SESSION GOT
+WRONG ABOUT ITS OWN AGENTS, both raised by the owner mid-run and neither caught
+by any list here.** **The checker's SECOND pass is sent at 6d and this session
+sent it at 7a**: pass 1 had not returned when 6c ended, and rather than idle
+the session went on to the fix cycle, so pass 2 arrived beside 7a's blind reader
 and comprehension probe and THREE agents ran at once where the list intends two.
 It cost nothing here --- pass 2 then had the settled commit to read rather
 than 6d's, which is arguably the better object --- but a report arriving after
@@ -3973,7 +3972,7 @@ and all three of this run's agents honoured it --- zero `tool_use` blocks naming
 the Agent tool across the three transcripts, counted rather than assumed ---
 which is their restraint and not this session's instruction. A brief
 that already bounds a reader at thirty tool calls can say *and spawn none*
-in three words.
+in three words, and does since 2026-09-19, in `checker-brief.txt` and at 7a.
 
 **What Run 35 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
@@ -10077,7 +10076,8 @@ not otherwise.
     #      the two documents say; a sentence that cannot be parsed or
     #      that says what the writer plainly did not mean; and anything
     #      reading as left over from an earlier version. Bound it at
-    #      THIRTY tool calls and have it report what it did not reach.
+    #      THIRTY tool calls, spawning none, and have it report what it
+    #      did not reach.
     #      On Run 35 it found EIGHTEEN, against six for the session's own
     #      end-to-end read and seven for the figure checker's second
     #      pass, and its worst was a whole-set floor figure spliced into
