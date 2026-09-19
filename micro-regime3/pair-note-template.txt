@@ -2,8 +2,9 @@ TEMPLATE for $R-pair.txt. Copy it, fill it, delete this line and the two
 below it -- but KEEP EVERY [SAME] AND [PAIR'S] MARKER in the note you
 write. A marked note shows at a glance which of its blocks would be a
 COPYING ERROR to carry forward, which is the one thing a session cannot
-tell by reading. Every pair here is hand-built and its note is the only
-copy of both recipes, so the note is written BEFORE either binary exists
+tell by reading. Every pair here is hand-built and its note is filled
+from the registration that declares its recipes (the one declaration
+site, ruled 2026-09-19), so the note is written BEFORE either binary exists
 -- which is also why this is a template and not a generator: what goes in
 it is a person's, and only the slots are known in advance.
 
@@ -118,13 +119,14 @@ measurement, so the reason belongs here where the next session meets it.
 WHAT THE PAIR PRICES [PAIR'S], said plainly: what a reader of the run should think
 the figures are about.
 
-REGISTERED BEFORE IT RAN [PAIR'S], and in TWO places rather than one,
-which this line used to say was all one: the PREDICTION lives in the open
-list, as `What Run NN is built to answer, registered before it runs` at
-README.md#what-is-open, while the PREVIOUS run's own file, under `What
-the next run compares against`, carries the regime, the roster, the basis
-and what the pair varies. A note that names only the second sends the
-next session to a section its prediction is not in.
+REGISTERED BEFORE IT RAN [PAIR'S], in ONE place since the ruling of
+2026-09-19: the PREDICTION, the pair, its half names and its recipes all
+live in the open list, as `What Run NN is built to answer, registered
+before it runs` at README.md#what-is-open, while the PREVIOUS run's own
+file, under `What the next run compares against`, carries the reference
+the run reads against and points at that entry as `[registered
+<date>][open]`, restating nothing. A note that names only the section
+sends the next session to a place its pair and its prediction are not in.
   A registration moves house once, at post-run step 5, from the open
   list into `runs/$R.md`'s last section, the open list keeping an
   `ANSWERED` pointer; so `--para 'What Run'` reads the pointer for a
@@ -132,7 +134,8 @@ next session to a section its prediction is not in.
   - each prediction, with what would kill it, in the open list. NAME the
     entry here; do NOT copy it. Two copies of a registration is one copy
     that goes stale, and this note is the one nobody re-reads;
-  - what the pair varies and against what, in the compares-against section;
+  - what the pair varies, in the registration; against what, in the
+    compares-against section;
   - anything the pair answers that no earlier pair could.
 
 THE ROSTER [PAIR'S]: N benches, M timed arms over K shapes. Say what landed since

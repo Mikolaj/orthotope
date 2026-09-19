@@ -714,7 +714,7 @@ been asking for and leaves nothing measured on an ungrown pool.
 specified --- the rule about a discriminating measurement deserving one now
 rather than a slot in the next run, observed again:
 
-- `OPEN` **What the next run's two binaries are is declared in TWO places,
+- `ANSWERED` **What the next run's two binaries are is declared in TWO places,
   and that is a source of contradictions rather than a redundancy worth
   checking.** A pair is spelled out in the previous run's *What the next run
   compares against*, recipes and all, and again in the open list's registration,
@@ -732,7 +732,68 @@ rather than a slot in the next run, observed again:
   candidates being the previous run's section, where a reader looks for what
   the next run does, and the registration, which is what the run is judged
   against. Raised by the owner 2026-09-18, during Run 36's preparation, on being
-  shown the pointer that the check asks for.
+  shown the pointer that the check asks for. **Ruled 2026-09-19 by the owner:
+  the REGISTRATION is the declaration site.** The pair, its half names
+  and its recipes are written once, in the open list's
+  `What Run N is built to answer` entry, which is where the predictions
+  are written before a run and what the run is judged against; the previous
+  run's *What the next run compares against* names
+  it as `[registered <date>][open]` and restates nothing, and the pair note
+  is filled in from it. Run 37's registration is the first written to the ruling
+  and Run 36's section the first amended to it.
+- `OPEN` **What Run 37 is built to answer, registered before it runs.** The pair
+  is Run 36's, EXACTLY, ruled by the owner 2026-09-19, and THIS ENTRY IS ITS ONE
+  DECLARATION SITE by the ruling of the same day recorded in the entry above:
+  both halves GHC HEAD `10.1.20260918` through `cabal.project.ghead` at plain
+  `-O1` in the dead-spot form under the exit span, one source (`Main.hs`
+  at `0eda736`), one shim (`align-as.py` at `f31bd1c`) under the four switches,
+  one roster, one shape set and one launch from `hugebin/`, and the control
+  half's command line carrying `-fspec-constr -fliberate-case` besides, nothing
+  else differing, so `--compare` reads the unflagged basis over the flagged
+  control as Run 36's did; [Run 36's *What the next run compares
+  against*](runs/run36.md#what-the-next-run-compares-against) names this entry
+  and restates nothing. The recipes, the half names being the preparation's
+  to hold to the tag grammar: `run37-gheadnospec` is, from this directory,
+  `LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1 LOOP_DEADSPOT=1 LOOP_EXITSPAN=1 cabal build micro --project-file=cabal.project.ghead --builddir=db-r37a --ghc-options="-fobject-determinism" --ghc-options="-pgma $PWD/align-as.py -fforce-recomp"`,
+  then
+  `cp $(cabal list-bin micro --project-file=cabal.project.ghead --builddir=db-r37a) run37-gheadnospec`
+  and `rm -rf db-r37a`; `run37-gheadtwopass` is the same on the same source
+  with `--builddir=db-r37b`
+  and `--ghc-options="-fspec-constr -fliberate-case -fobject-determinism"`.
+  `LOOP_MAXSKIP` and `LOOP_LOOKTHROUGH` are inert under the dead-spot form
+  and stay on both lines so that the lines differ in the regime flags alone;
+  `LOOP_ENTRIES`, `LOOP_BLOCKRULES`, `LOOP_PIN` and `LOOP_TRACE` are unset
+  on both. Every build wants `-fforce-recomp` and a fresh `--builddir`,
+  the switches being an environment change cabal does not see; every driver
+  takes its half from `hugebin/` through `half-bin.sh`; and under the exit span
+  `loop-offsets.py --survey` reads 0 exit spans astride off a timed binary,
+  so the preparation's legs 10a and 10b stop on anything else. **What is new
+  is the MACHINE: Run 37 runs on a rebooted box, ruled 2026-09-19,
+  and the reboot is what two of its readings are about.** [The placement
+  section][floor] records ordinary files coming to be held as 2 MiB folios
+  between 2026-09-16 and 2026-09-18, `pages_collapsed` from 0 to 13174
+  and `FileHugePages` to a quarter of a gigabyte, and every huge-page reading
+  so far is a hand probe's: the run list's step 16a times each launch instance
+  against a fresh copy and records no frame, and which frame an instance got
+  is `probe-pageflags.py`'s to read, read so far by hand and after the fact,
+  for Run 33's and Run 34's instances, and at no run's gate. So, first, whether
+  that huge-page state persists across the reboot: the kernel's
+  `pages_collapsed`, `FileHugePages` and `ShmemPmdMapped` read before the gate
+  and again after the evening, beside the instance gate's two readings,
+  and the frames of both launch instances read by `probe-pageflags.py`, as root,
+  while the gate's process runs. Second, whether the Run 34 basis that read
+  slower than its own byte-identical copy still does: `hugebin/run34-exit` read
+  a median 1.075 of a fresh copy
+  on `scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u1` on 2026-09-17 and 1.10
+  on 2026-09-18, and `hugebin/` is a tmpfs, so the reboot destroys that INSTANCE
+  and keeps the on-disk `run34-exit`; what Run 37 reads is the same bytes
+  re-placed on the remounted `hugebin/` against a second copy,
+  `probe-r34-instance2.sh`'s form, on the quiet box before the gate. A fresh
+  draw slow again says the term is the bytes' layout and not the draw; a level
+  pair says the 17th's instance was one slow draw, which is what the placement
+  section holds. What the run predicts, item by item with a `predict:` span
+  apiece, is the preparation's to add here before it runs; the two reboot
+  readings above become its items, and none is registered yet.
 - `ANSWERED` **What Run 36 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 36's own
@@ -7625,9 +7686,9 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      why: --para 'A preparation already spent'
     #   2. BUILD BOTH HALVES -- unconditional, from the note's own
     #      recipe. READ NOW, BEFORE ANY OF THIS STEP: items 3 and 10, the
-    #      compares-against prose and the previous run's note, which
-    #      settle what the pair varies and which this step's own writing
-    #      needs. READING 3 IS ONE CALL AND IT WANTS ITS TABLE:
+    #      registration the compares-against prose points at and the
+    #      previous run's note, which settle what the pair varies and
+    #      which this step's own writing needs. READING 3 IS ONE CALL AND IT WANTS ITS TABLE:
     #      `./read-run.py --section 'What the next run compares against'
     #      --with-tables 1`, the first table being the two-column one the
     #      reading list asks for -- without the flag the mode prints the
@@ -7660,8 +7721,9 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      and a real pair whose row reads `./` launched from disk with
     #      its frames drawn.
     #      There is no builder, every pair being two shims typed out, so
-    #      write the note FIRST, from pair-note-template.txt -- it is the
-    #      only copy of both recipes, and the template is what says what a note owes.
+    #      write the note FIRST, from pair-note-template.txt -- its
+    #      recipes come from the registration, the one place that
+    #      declares them, and the template is what says what a note owes.
     #      AND THE NOTE IS NEVER REFLOWED, by any tool: `wrap80` is for
     #      Markdown and `par` for comment blocks, and this file is plain
     #      text carrying FOUR machine-read lines -- `HALVES:`, `COMPARE:`,
@@ -7691,10 +7753,13 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      $R-pair.txt and edit there. Hand-copying the `[SAME]` blocks is
     #      what the second removes
     #      WHAT THE PAIR VARIES is not in this list and not in the
-    #      template: it is settled in *What the next run compares against*, and
-    #      the recipe to vary is the previous run's note. Read both before
-    #      writing this one -- a session executing the list top to bottom
-    #      arrives here with neither.
+    #      template: it is settled in the registration, `What Run N is
+    #      built to answer` in the open list, which *What the next run
+    #      compares against* points at and which carries the recipes
+    #      (ruled 2026-09-19, one declaration site); the previous run's
+    #      note is what that run built. Read both before writing this one
+    #      -- a session executing the list top to bottom arrives here
+    #      with neither.
     #      WHERE THE REQUEST DIFFERS from that section, the request wins,
     #      and the section and the open list's task recording the
     #      decision are amended first, in a commit of their own
