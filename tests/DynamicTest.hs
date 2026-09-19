@@ -268,6 +268,26 @@ test = testGroup "Dynamic" $
       sumA_5 = sumV (reshape [1,2,3,1] a2) >> maxV (reshape [1,2,3,1] a2)
       sumA_6 = sumV (slice [(1,1),(0,3)] a1) >> maxV (slice [(0,2),(1,2)] a1)
       sumA_7 = sumV (stretch [2,2,3,2] (reshape [1,2,3,1] a1))
+      -- allSame over views, each against the list: dense and
+      -- transposed, a constant array and its transposition, a row
+      -- broadcast over a longer vector, a strided view no slice covers,
+      -- the arrays of at most one element, and an empty view of a
+      -- longer vector, whose first element must not be asked for.
+      sameV x = assertEqual "same"
+                  (let l = toList x in and (zipWith (==) l (drop 1 l)))
+                  (allSameA x)
+      c7 = fromList [2,3] (replicate 6 7) :: Array Int
+      bcast r = stretch [2,3] (reshape [1,3] (fromList [3] r)) :: Array Int
+      strided r = transpose [1,0] (slice [(0,2),(0,2)] (fromList [2,3] r))
+                    :: Array Int
+      allSameA_1 = sameV a1 >> sameV a2
+      allSameA_2 = sameV c7 >> sameV (transpose [1,0] c7)
+      allSameA_3 = sameV (bcast [7,7,7]) >> sameV (bcast [7,8,7])
+      allSameA_4 = sameV (strided [7,7,9,7,7,9])
+                   >> sameV (strided [7,8,9,7,7,9])
+      allSameA_5 = sameV (stretch [3] a3) >> sameV a4
+                   >> sameV (fromList [0,3] [] :: Array Int)
+                   >> sameV (slice [(0,0),(0,3)] a1)
 
       -- Test fast toVector
       toVector_10 =
@@ -373,6 +393,11 @@ test = testGroup "Dynamic" $
         , testCase "sumA_5" sumA_5
         , testCase "sumA_6" sumA_6
         , testCase "sumA_7" sumA_7
+        , testCase "allSameA_1" allSameA_1
+        , testCase "allSameA_2" allSameA_2
+        , testCase "allSameA_3" allSameA_3
+        , testCase "allSameA_4" allSameA_4
+        , testCase "allSameA_5" allSameA_5
         , testCase "toVector_10" toVector_10
         , testCase "toVector_11" toVector_11
         , testCase "toVector_12" toVector_12
