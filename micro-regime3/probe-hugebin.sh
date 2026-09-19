@@ -6,10 +6,14 @@
 # is a placement term the shim cannot set, and a 2 MiB page fixes every
 # frame below 2 MiB to its virtual bits.
 #
-# THE MOUNT IS ROOT'S AND IS NOT MADE HERE. Once, and in /etc/fstab so it
-# survives a reboot, the path under the checkout so a session sees it:
+# THE MOUNT IS ROOT'S AND IS NOT MADE HERE, and since 2026-09-19 it is
+# SUSPENDED: half-bin.sh's header carries the ruling, what the suspension
+# costs and the only copy of the fstab line to trust. It does NOT survive a
+# reboot, which this header claimed until 2026-09-20 -- without `noauto` the
+# generated unit runs before /home is unlocked and exits 32. The line, kept
+# here because this probe is the one thing that still wants the mount:
 #
-#   tmpfs  /home/mikolaj/r/orthotope/micro-regime3/hugebin  tmpfs  size=1g,huge=always,mode=0755,uid=1000,gid=1000  0  0
+#   tmpfs  /home/mikolaj/r/orthotope/micro-regime3/hugebin  tmpfs  noauto,size=1g,huge=always,mode=0755,uid=1000,gid=1000  0  0
 #   mkdir -p ~/r/orthotope/micro-regime3/hugebin && sudo mount hugebin
 #
 # Then, for a half named on the command line, this copies it into the

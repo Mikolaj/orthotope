@@ -811,13 +811,19 @@ rather than a slot in the next run, observed again:
   at the reboot, so both halves launch from disk and the placement term
   the mount removed is back in both --- a term on a Run 36 comparison
   and on neither of this run's own two columns. THE PROJECT FILE was already
-  declared new above, and what it RESOLVES is unchanged for every measured
-  package, criterion 1.6.5.0 and vector 0.13.2.0 with `boundschecks` on, read
-  off the build plan rather than off the file. **And the two reboot readings
-  are no longer symmetrical, which is the owner's to rule before either becomes
-  an item.** The box was rebooted at 23:04 and the counters answered the first
-  question at once: `pages_collapsed` 18951 to 0 and `ShmemHugePages` 290816 kB
-  to 0, while `FileHugePages` read 63488 kB on both sides of the boot
+  declared new above, and what it RESOLVES is unchanged at every version
+  the dropped pins had named --- criterion 1.6.5.0, vector 0.13.2.0
+  with `boundschecks` True and `unsafechecks` False, base 4.23.0.0 and hashable
+  1.5.0.0, with ghc-prim 0.14.0 beside them --- read off the build's own
+  `plan.json` and not off the file. That is the set the old file constrained
+  and so the set a dropped constraint could have moved; it is not a survey
+  of every package the binary links, which nothing here has taken. The one
+  package the new file's header names as moving, aeson 2.3.2.0 against 2.2.5.0,
+  is criterion's JSON writer and reaches no timed code. **And the two reboot
+  readings are no longer symmetrical, which is the owner's to rule before either
+  becomes an item.** The box was rebooted at 23:04 and the counters answered
+  the first question at once: `pages_collapsed` 18951 to 0 and `ShmemHugePages`
+  290816 kB to 0, while `FileHugePages` read 63488 kB on both sides of the boot
   and so carries no signal about it. The second has its BEFORE side taken
   and its after side out of reach: `probe-r34-instance2.sh` on the quiet box put
   `hugebin/run34-exit` at a median 1.0419 of a fresh copy
@@ -835,14 +841,17 @@ rather than a slot in the next run, observed again:
   over two and a half days while its magnitude halved --- and loses the instance
   that could have extended it. A later run wanting more raises the mount
   and draws a fresh one, which is a new series and not a continuation of this.
-  **What the run predicts, registered 2026-09-20 before it runs. EVERY PRIOR
-  BELOW IS RUN 36'S OWN READING OF THIS SAME PAIR**, re-derived from its JSONs
-  with `--predictions` and not quoted from its prose --- which is the one thing
-  its own registration got wrong, drawing four bands off Run 31's level
-  and losing them together. (1) *The two passes are worth on `list` what they
-  were worth on Run 36, across a rebooted box and a moved source.*
-  `predict: cross list 1.3360 within 3% on main basis`, and over the eighteen
-  shapes left when this run's wild cell is set aside,
+  **What the run predicts, registered 2026-09-20 before it runs. EVERY FIGURE
+  BELOW COMES FROM RUN 36'S OWN READING OF THIS SAME PAIR**, re-derived
+  from its JSONs with `--predictions` and not quoted from its prose. In items
+  (1), (2) and (4) that figure is the TARGET; in item (3) the target is 1.0,
+  which is a null and nobody's reading, and what Run 36 supplies there
+  is the BAND, off the spread its ten arms actually read. Run 36 drew four
+  of its own bands off Run 31's `-O2` level instead and lost them together,
+  which is what this is written to avoid. (1) *The two passes are worth
+  on `list` what they were worth on Run 36, across a rebooted box and a moved
+  source.* `predict: cross list 1.3360 within 3% on main basis`, and
+  over the eighteen shapes left when this run's wild cell is set aside,
   `predict: cross list 1.3129 within 2% on main basis excluding stretch-coprime-r7`.
   Run 36's basis floor is 1.63%, so 2% is that floor and a third of a point,
   and 3% adds beside it the 2.31 points one wild cell moved the whole-set figure
@@ -8532,9 +8541,9 @@ Unsandboxed throughout:
     #      why: --para 'whose first item is the harness'
     #      It runs the gate
     #      (14), the alarm (16), the instance gate (16a: SUSPENDED WITH
-    #      hugebin/ since 2026-09-19 and skipping itself, there being no
-    #      instance to gate when the halves launch from disk --
-    #      instance-gate.sh says exactly that and exits 0, so the stage
+    #      hugebin/ since 2026-09-19, there being no instance to gate when
+    #      the halves launch from disk -- instance-gate.sh walks the halves
+    #      and says so PER HALF, naming each, and exits 0, so the stage
     #      still runs and costs nothing. Where a run raises the mount as
     #      the emergency step 2 describes, this is each half's launch
     #      instance against a fresh copy on one cell, the copy swapped in
