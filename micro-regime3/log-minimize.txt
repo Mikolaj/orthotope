@@ -1,0 +1,23 @@
+== baseline: ghead2 minus index-state ==
+baseline build rc=0 in 16s
+KEEP  allow base                             build FAILS in 1s: Error: [Cabal-7107]
+KEEP  allow ghc-prim                         build FAILS in 1s: Error: [Cabal-7107]
+KEEP  allow ghc-bignum                       build FAILS in 1s: Error:
+KEEP  allow template-haskell                 build FAILS in 5s: Failed to build template-haskell-2.22.0.0.
+KEEP  allow containers                       build FAILS in 39s: Failed to build binary-0.8.9.3.
+DROP  cons criterion==1.6.5.0                build OK in 16s
+KEEP  cons hashable==1.5.0.0                 build FAILS in 2s: Failed to build hashable-1.5.1.0.
+KEEP  flag -frebindable-known-names          build FAILS in 1s: Failed to build data-default-class-0.2.0.0.
+final build rc=0 in 16s
+final plan: 100 packages; criterion 1.6.5.0, vector 0.13.2.0, hashable 1.5.0.0, aeson 2.3.2.0, data-default-class 0.2.0.0
+=== final project file ===
+packages: .
+with-compiler: /home/mikolaj/r/horde-ad/ghc/_build/stage1/bin/ghc
+
+allow-newer: base, ghc-prim, ghc-bignum, template-haskell, containers
+
+constraints: hashable ==1.5.0.0
+
+package data-default-class
+  ghc-options: -frebindable-known-names
+

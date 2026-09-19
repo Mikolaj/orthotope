@@ -1,51 +1,30 @@
--- The GHC HEAD half of Run 19: the same source, shim and roster as
--- cabal.project on a compiler no released freeze can name. Select it with
--- --project-file=cabal.project.ghead; cabal.project.ghead.freeze beside it
--- pins the resolved plan as cabal.project.freeze and cabal.project.ghc914.freeze
--- pin theirs, at the same index-state, so the three plans differ in the boot
--- libraries and in nothing else a freeze can see.
+-- The GHC HEAD project file since 2026-09-19: the minimum that
+-- compiles here, found by dropping one directive at a time from
+-- cabal.project.ghead.2026-07-25 and building micro after each
+-- (log-minimize.txt). It has no freeze, so its plan is not that file's,
+-- aeson 2.3.2.0 against 2.2.5.0; the index-state, which no build needs, is
+-- what keeps it from floating.
 --
--- cabal.project.freeze pins base ==4.21.2.0 and so refuses every other
--- compiler, which is why HEAD wants a project file of its own. The constraints
--- below are what the resolver needs before a freeze exists, and are kept here
--- rather than left to the freeze because a freeze is regenerated and these are
--- decisions: `base installed` takes the compiler's own boot base; vector and
--- criterion are pinned at the versions every run in this README was taken on,
--- vector with the +boundschecks -unsafechecks that makes the gen-quotrem
--- against gen-unsafe pair price a bounds check at all; and hashable needs
--- naming outright, 1.5.1.0's cabal file not declaring the ghc-bignum its
--- source imports, where 1.5.0.0's does. head.hackage is neither needed nor
--- helpful -- its index here is stale enough that the tarball hashes no longer
--- verify.
+-- Each constraint and allow-newer entry is named by the failure it
+-- prevents. Without `base`, `ghc-prim` or `ghc-bignum` there is no plan
+-- at all, vector, vector-stream and hashable bounding those three boot
+-- libraries below what this compiler ships. `template-haskell` and
+-- `containers` can be replaced from hackage, and the replacements fail to
+-- build: template-haskell-2.22.0.0 with GHC-83865, binary-0.8.9.3 under
+-- containers 0.7 with GHC-76037. hashable 1.5.1.0 fails with GHC-87110 on
+-- `GHC.Num.BigNat`, its cabal file not declaring the ghc-bignum it imports;
+-- data-default-class-0.2.0.0 fails with GHC-49917 on the implicit import of
+-- `GHC.Essentials`, and the flag is scoped to that package alone.
 --
--- The compiler is the in-tree stage1 of the GHC checkout under
--- ~/r/horde-ad/ghc, at 10.1.20260918 since 2026-09-18, where Runs 32 to 35
--- read 10.1.20260803 (preserved under ~/r/horde-ad/ghc.old). Its path is
--- spelled out because there is no such compiler on PATH; a HEAD that moves is
--- a different compiler and a different pair, so a run repeating this one reads
--- the version back out of the binary rather than off this line.
+-- The path below names a moving target: a HEAD that moves is a different
+-- compiler, so read the version out of the binary.
 packages: .
 with-compiler: /home/mikolaj/r/horde-ad/ghc/_build/stage1/bin/ghc
-index-state: hackage.haskell.org 2026-07-25T13:22:10Z
+index-state: hackage.haskell.org 2026-09-19T16:13:55Z
 
-allow-newer: base, ghc-prim, ghc-bignum, template-haskell,
-             deepseq, bytestring, containers, text, time
+allow-newer: base, ghc-prim, ghc-bignum, template-haskell, containers
 
-constraints: base installed,
-             criterion ==1.6.5.0,
-             vector ==0.13.2.0,
-             vector +boundschecks -unsafechecks,
-             hashable ==1.5.0.0
+constraints: hashable ==1.5.0.0
 
--- data-default-class-0.2.0.0's cabal file declares only `data-default` and not
--- `base`, and every module on this HEAD implicitly imports `GHC.Essentials`,
--- which is a hidden module of base -- so that package cannot compile with base
--- hidden, and the whole criterion stack fails behind it. The flag below, which
--- GHC's own error names, has it look known entities up in scope instead.  It
--- meets the same KIND of under-declaration as the hashable constraint above
--- and by a different remedy: that one pins a version, this one passes a flag,
--- the version the freeze resolves being fine. The stanza is scoped to the
--- one package so that the flag reaches nothing else, measured code included.
--- Added 2026-09-18, Run 36.
 package data-default-class
   ghc-options: -frebindable-known-names

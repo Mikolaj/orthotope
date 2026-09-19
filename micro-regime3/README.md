@@ -767,23 +767,26 @@ rather than a slot in the next run, observed again:
   the switches being an environment change cabal does not see; every driver
   takes its half from `hugebin/` through `half-bin.sh`; and under the exit span
   `loop-offsets.py --survey` reads 0 exit spans astride off a timed binary,
-  so the preparation's legs 10a and 10b stop on anything else. **What is new
-  is the MACHINE: Run 37 runs on a rebooted box, ruled 2026-09-19,
-  and the reboot is what two of its readings are about.** [The placement
-  section][floor] records ordinary files coming to be held as 2 MiB folios
-  between 2026-09-16 and 2026-09-18, `pages_collapsed` from 0 to 13174
-  and `FileHugePages` to a quarter of a gigabyte, and every huge-page reading
-  so far is a hand probe's: the run list's step 16a times each launch instance
-  against a fresh copy and records no frame, and which frame an instance got
-  is `probe-pageflags.py`'s to read, read so far by hand and after the fact,
-  for Run 33's and Run 34's instances, and at no run's gate. So, first, whether
-  that huge-page state persists across the reboot: the kernel's
-  `pages_collapsed`, `FileHugePages` and `ShmemPmdMapped` read before the gate
-  and again after the evening, beside the instance gate's two readings,
-  and the frames of both launch instances read by `probe-pageflags.py`, as root,
-  while the gate's process runs. Second, whether the Run 34 basis that read
-  slower than its own byte-identical copy still does: `hugebin/run34-exit` read
-  a median 1.075 of a fresh copy
+  so the preparation's legs 10a and 10b stop on anything else. **The PROJECT
+  FILE is new as well**: `cabal.project.ghead` is since 2026-09-19 the minimum
+  that compiles on a current index, where Run 36 built through what is now
+  `cabal.project.ghead.2026-07-25`, and this run's arms against Run 36's
+  are expected inside the drift band. **What is new besides is the MACHINE: Run
+  37 runs on a rebooted box, ruled 2026-09-19, and the reboot is what two
+  of its readings are about.** [The placement section][floor] records ordinary
+  files coming to be held as 2 MiB folios between 2026-09-16 and 2026-09-18,
+  `pages_collapsed` from 0 to 13174 and `FileHugePages` to a quarter
+  of a gigabyte, and every huge-page reading so far is a hand probe's: the run
+  list's step 16a times each launch instance against a fresh copy and records
+  no frame, and which frame an instance got is `probe-pageflags.py`'s to read,
+  read so far by hand and after the fact, for Run 33's and Run 34's instances,
+  and at no run's gate. So, first, whether that huge-page state persists across
+  the reboot: the kernel's `pages_collapsed`, `FileHugePages`
+  and `ShmemPmdMapped` read before the gate and again after the evening, beside
+  the instance gate's two readings, and the frames of both launch instances read
+  by `probe-pageflags.py`, as root, while the gate's process runs. Second,
+  whether the Run 34 basis that read slower than its own byte-identical copy
+  still does: `hugebin/run34-exit` read a median 1.075 of a fresh copy
   on `scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u1` on 2026-09-17 and 1.10
   on 2026-09-18, and `hugebin/` is a tmpfs, so the reboot destroys that INSTANCE
   and keeps the on-disk `run34-exit`; what Run 37 reads is the same bytes
@@ -11138,18 +11141,15 @@ section](#sum-only-and-the-correction-now-applied) has what that trades away.
 
 **Compiling with a GHC HEAD build wants a project file of its own,
 and `cabal.project.ghead` is it** --- `cabal.project.freeze` pins `base`
-and so refuses every other compiler. It names the checkout's stage1 `ghc`
-in `with-compiler`, carries `allow-newer` for the boot packages
-and `constraints: base installed`, and pins by hand what a freeze would
-otherwise have held: `criterion ==1.6.5.0` and `vector ==0.13.2.0`
-with `vector`'s `+boundschecks -unsafechecks`, those being what every run here
-was taken on, and `hashable ==1.5.0.0`, whose cabal file declares
-the `ghc-bignum` its source imports where 1.5.1.0's does not, so the newer one
-does not compile here at all. `cabal.project.ghead.freeze` beside it pins
-the rest at the index-state the other two plans hold. head.hackage is neither
-needed nor helpful --- its index here is stale enough that the tarball hashes
-no longer verify. Why each pin is there is in the file's own comments,
-so a session building on HEAD reads that and not this.
+and so refuses every other compiler. Two of its lines are the ones a session
+would not arrive at by itself: `hashable ==1.5.0.0`, because 1.5.1.0's cabal
+file does not declare the `ghc-bignum` its source imports and so does
+not compile here at all, and `-frebindable-known-names` for data-default-class
+alone, whose cabal file declares no `base` and which therefore cannot compile
+with base hidden. head.hackage is neither needed nor helpful --- its index here
+is stale enough that the tarball hashes no longer verify. Why each line is there
+is in the file's own comments, so a session building on HEAD reads that
+and not this.
 
 **And what the vecdims family reads under each, from probe legs and not
 from a recorded run** (2026-08-21, one bench per process so that every arm sits
