@@ -67,6 +67,21 @@ test = testGroup "RankedS" $
                                   (stretch [2,2,3,2] (reshape [1,2,3,1] a1 :: Array 4 Int))
       stretch_3 = assertThrows "3" (stretch [1,2] a3)
       stretch_4 = assertThrows "4" (stretch [4,3] a1)
+      -- Test fast toVector on views with a zero stride, which take the
+      -- fill's broadcast run and block copy: the innermost stride 0 at
+      -- an even and an odd extent, a zero stride on the level just
+      -- outside the run, a zero stride further out at an extent the
+      -- doubling copy has to clip, and both kinds under a reversed axis.
+      toVector_3 = assertEqual "3" (V.fromList [1,1,2,2,3,3,4,4,5,5,6,6])
+                                   (toVector $ stretch [2,3,2] (reshape [2,3,1] a1 :: Array 3 Int))
+      toVector_4 = assertEqual "4" (V.fromList [1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6])
+                                   (toVector $ stretch [2,3,3] (reshape [2,3,1] a1 :: Array 3 Int))
+      toVector_5 = assertEqual "5" (V.fromList $ concat (replicate 5 [1,3,5]) ++ concat (replicate 5 [2,4,6]))
+                                   (toVector $ stretch [2,5,3] $ transpose [2,1,0] (fromList [3,1,2] [1..6] :: Array 3 Int))
+      toVector_6 = assertEqual "6" (V.fromList $ concat $ replicate 3 [1,7,4,10,2,8,5,11,3,9,6,12])
+                                   (toVector $ stretch [3,3,2,2] $ transpose [0,3,2,1] (fromList [1,2,2,3] [1..12] :: Array 4 Int))
+      toVector_7 = assertEqual "7" (V.fromList $ concat $ replicate 2 [4,4,5,5,6,6,1,1,2,2,3,3])
+                                   (toVector $ rev [1] $ stretch [2,2,3,2] (reshape [1,2,3,1] a1 :: Array 4 Int))
       scalar_1 = assertEqual "1" a4 (scalar 5)
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
       constant_1 = assertEqual "1" (fromList [2,3] [1,1,1,1,1,1]) (constant [2,3] 1 :: Array 2 Int)
@@ -256,6 +271,11 @@ test = testGroup "RankedS" $
         , testCase "stretch_2" stretch_2
         , testCase "stretch_3" stretch_3
         , testCase "stretch_4" stretch_4
+        , testCase "toVector_3" toVector_3
+        , testCase "toVector_4" toVector_4
+        , testCase "toVector_5" toVector_5
+        , testCase "toVector_6" toVector_6
+        , testCase "toVector_7" toVector_7
         , testCase "scalar_1" scalar_1
         , testCase "unScalar_1" unScalar_1
         , testCase "constant_1" constant_1
