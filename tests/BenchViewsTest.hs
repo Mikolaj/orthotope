@@ -57,7 +57,8 @@ test = testGroup "BenchViews"
       $  [ testCase n (allocUnder 16384 sumA l) | (n, l) <- mainViews ]
       ++ [ testCase n (allocUnder (scaled sumAFactor l) sumA l) | (n, l) <- otherViews ]
     -- The head of a list of vectors of a view of runs is one run, built
-    -- in under 32768 bytes, the lists being lazy.
+    -- in under 32768 bytes, the lists being lazy; so is the unordered
+    -- list's head of the same runs transposed.
   , optimisedGroup "list heads"
       [ testCase "ordered, runs"
           (allocUnder 32768 (headOf I.toVectorListT) runsBlock)
@@ -70,8 +71,7 @@ test = testGroup "BenchViews"
           (allocOver (scaled orderedHeadFactor transposedBlock)
                      (headOf elementwise) transposedBlock)
       , testCase "unordered, transposed runs"
-          (allocUnder (scaled unorderedHeadFactor transposedBlock)
-                      (headOf I.toUnorderedVectorListT) transposedBlock) ]
+          (allocUnder 32768 (headOf I.toUnorderedVectorListT) transposedBlock) ]
     -- == compares a broadcast of a view that skips elements without its
     -- broadcast dimensions, and == and mapA take an empty view at once, in
     -- under 32768 bytes.
@@ -120,12 +120,6 @@ sumAFactor = 4
 -- bound that listing it element by element, 21, exceeds.
 orderedHeadFactor :: Double
 orderedHeadFactor = 4
-
--- The same for the unordered list, which could instead walk the runs in
--- the order of the vector and build its head in under 32768 bytes, as it
--- does for the runs untransposed.
-unorderedHeadFactor :: Double
-unorderedHeadFactor = 64
 
 -- A factor times the size of a view of Doubles, plus 32768 bytes for the
 -- costs of a call, which a small view's size does not cover.
