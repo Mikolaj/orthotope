@@ -612,16 +612,26 @@ runSlicesT csh cats !start !v cons nil =
 -- the view takes.
 {-# INLINE toVectorListT #-}
 toVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
-toVectorListT sh a@(T _ ao v) = build $ \cons nil ->
-  if l == 0 then nil else case regimeT sh l a of
-    Whole -> cons v nil
-    Slice -> cons (vSlice ao l v) nil
-    Runs csh cats -> runSlicesT csh cats ao v cons nil
-    Strided csh cats ->
-      -- No slice can be taken.  Fill the result through
-      -- 'vFillStrided', whose vector-backed instances write a mutable
-      -- buffer directly.
-      cons (vFillStrided csh cats ao l v) nil
+toVectorListT sh a = build (orderedSlicesT sh a)
+
+-- The list 'toVectorListT' returns, as the cons and nil of the 'build'
+-- it is written under, so that 'toUnorderedVectorListT' can take it
+-- inside its own 'build' and a consumer of either list meets one
+-- 'build' whichever case the view takes.
+{-# INLINE orderedSlicesT #-}
+orderedSlicesT :: (Vector v, VecElem v a)
+               => ShapeL -> T v a -> (v a -> b -> b) -> b -> b
+orderedSlicesT sh a@(T _ ao v) cons nil
+  | l == 0 = nil
+  | otherwise = case regimeT sh l a of
+      Whole -> cons v nil
+      Slice -> cons (vSlice ao l v) nil
+      Runs csh cats -> runSlicesT csh cats ao v cons nil
+      Strided csh cats ->
+        -- No slice can be taken.  Fill the result through
+        -- 'vFillStrided', whose vector-backed instances write a mutable
+        -- buffer directly.
+        cons (vFillStrided csh cats ao l v) nil
   where !l = product sh
 
 -- Convert an array to one vector holding all the elements in the
@@ -665,9 +675,11 @@ normalizeT sh t@(T ats ao v)
 -- The one-block test is explained right below.
 {-# INLINE toUnorderedVectorListT #-}
 toUnorderedVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
-toUnorderedVectorListT sh a@(T ats ao v)
-  | l == 0 = []
-  | otherwise =
+toUnorderedVectorListT sh a@(T ats ao v) = build $ \cons nil ->
+  -- Under one 'build' with the test inside it, as 'toVectorListT' is
+  -- and for the same reason: written as a case returning a list per
+  -- branch, a fold over this list would meet the case and never fuse.
+  if l == 0 then nil else
       let (csh, cats) = canonicalizeT sh ats
           oneBlock =
             let (acats, csh') =
@@ -677,8 +689,8 @@ toUnorderedVectorListT sh a@(T ats ao v)
       in  if oneBlock
           then let !start =
                      ao + sum [ (n - 1) * st | (n, st) <- zip csh cats, st < 0 ]
-               in  [vSlice start l v]
-          else toVectorListT sh a
+               in  cons (vSlice start l v) nil
+          else orderedSlicesT sh a cons nil
   where !l = product sh
 
 -- The one-block test of 'toUnorderedVectorListT', piece by piece.
@@ -793,6 +805,11 @@ mapT sh f t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip bs 
   where (bs, rsh, r) = dropBroadcastT sh t
 
 -- Zip two arrays with a function.
+-- TODO: the two branches that map over one array hand 'mapT' the other
+-- array's one element unforced, so the map unboxes it again for every element
+-- of an unboxed vector.  A bang would also force a boxed element that may
+-- never be read; forcing only unboxed elements, as 'VG.elemseq' does in
+-- 'genericFillStrided', needs a method the 'Vector' class does not have.
 {-# INLINE zipWithT #-}
 zipWithT :: (Vector v, VecElem v a, VecElem v b, VecElem v c) =>
             ShapeL -> (a -> b -> c) -> T v a -> T v b -> T v c
@@ -893,18 +910,23 @@ traverseT
   => ShapeL -> (a -> f b) -> T v a -> f (T v b)
 traverseT sh f a = fmap (fromListT sh) (traverse f (toListT sh a))
 
--- Fast check if all elements are equal, comparing the first with the others,
--- as allSame does.
+-- Fast check if all elements are equal, agreeing with allSame.  Of two or
+-- more elements, the first is compared with all, itself included, which
+-- gives allSame's answer as long as an element unequal to itself, as NaN
+-- is, is unequal to all others.
 {-# INLINABLE allSameT #-}
 allSameT :: (Vector v, VecElem v a, Eq a) => ShapeL -> T v a -> Bool
-allSameT sh t@(T _ _ v)
+allSameT sh t@(T _ ao v)
   | product sh <= 1 = True
   | vLength v == 1 = let !x = vIndex v 0 in x == x
   | otherwise =
-    case toVectorListT sh t of
-      v0 : vs -> let !x = vIndex v0 0
-                 in  all (vAll (x ==)) (vSlice 1 (vLength v0 - 1) v0 : vs)
-      [] -> True
+    -- Order does not matter, so the unordered list, which is one slice
+    -- for a dense view under any transposition.  The element at index
+    -- zero sits at the offset, so no slice is held for it.  The fold sits
+    -- on the list expression, where it fuses with the walk and stops at
+    -- the first element that differs.
+    let !x = vIndex v ao
+    in  all (vAll (x ==)) (toUnorderedVectorListT sh t)
 
 newtype Rect = Rect { unRect :: [String] }  -- A rectangle of text
 
@@ -996,6 +1018,10 @@ zipWithLong2 :: (a -> b -> b) -> [a] -> [b] -> [b]
 zipWithLong2 f (a:as) (b:bs) = f a b : zipWithLong2 f as bs
 zipWithLong2 _     _     bs  = bs
 
+-- TODO: 'vReplicate' gets the padding value unforced, so an unboxed
+-- vector's replicate may unbox it again for every element it writes, as
+-- Data.Vector.Unboxed's does.  A bang would also force a boxed padding value
+-- that may never be read; see the TODO at 'zipWithT'.
 {-# INLINABLE padT #-}
 padT :: forall v a . (Vector v, VecElem v a) => a -> [(Int, Int)] -> ShapeL -> T v a -> ([Int], T v a)
 padT v aps ash at = (ss, fromVectorT ss $ vConcat $ pad' aps ash st at)
