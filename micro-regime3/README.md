@@ -5255,6 +5255,31 @@ and `mut-odo-vecdims`, whose dimension vectors were Storable when its 0.051
 was taken, read 0.056 on those same shapes --- neither priced by a probe
 that had measured the `m`-table's flavour and not theirs.
 
+**The shipped fill's own two tables were priced the same way on 2026-09-19,
+and there the flavour is worth nothing.** After that day's retirement the one
+unboxed vector the three library arms `lib-stage2-lean`, `liblist-stage4-sum`
+and `libunord-stage13-sum` reach is `fillStage2`'s pair of dimension tables,
+`oshV` and `oatsV`, one entry per outer axis and read once per odometer level,
+where `bq-expand`'s table has an entry per run and is read per element.
+`probe-vsdims.sh` timed each arm beside a twin --- `lib-stage2-lean-vsdims`,
+`liblist-stage4-vsdims-sum` and `libunord-stage13-vsdims-sum` --- whose tables
+are Storable and whose code is otherwise `fillStage2`'s line for line, one
+process over the nineteen main-set shapes on Run 36's basis recipe --- plain -O1
+on the HEAD stage1 under the exit span, launched from `hugebin/`
+under `WILDLOG=1 SATURATE=1` at criterion's default budget --- on a quiet box,
+no bench above 0.07 of a foreign core. Paired, twin over original:
+`lib-stage2-lean` **0.9971** (interval 0.9882..1.0049, 12 of 19 shapes, sign p
+0.36), `liblist-stage4-sum` **1.0052** (0.9997..1.0122, 8 of 19, p 0.65)
+and `libunord-stage13-sum` **1.0002** (1.0000..1.0006, widest cell 1.003),
+the first two intervals covering 1 and all three inside Run 36's basis floor
+of 1.63%. On `cnn-L1-6x6-c1` the same fill parts in OPPOSITE directions, 0.942
+for the fill arm, its widest cell, and 1.040 for the ordered sum, which
+is placement and not flavour. So the 5.7% the flavour bought on a table read per
+element does not carry to two tables of two to four entries read per level,
+the shipped fill keeps its unboxed tables, and the twins are parked `Only`;
+the probe's `probevs-main.json`, its `.log` and the binary `probevs-ghead`
+are offered for deletion with this record.
+
 **Both were put to a twin probe, 2026-08-08 at -O1**, each twin differing
 from its base in that flavour alone and sitting in the slot beside it, ten arms
 over the whole shape set with `list` and both `sum-only` halves

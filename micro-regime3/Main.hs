@@ -3502,6 +3502,102 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
 
+-- 'fillStage2' with its two dimension vectors Storable instead of
+-- unboxed, and nothing else changed -- comments stripped, the code
+-- copied. Those two tables are the one use of 'VU' the three library
+-- arms 'lib-stage2-lean', 'liblist-stage4-sum' and
+-- 'libunord-stage13-sum' reach, so their three '-vsdims' twins price
+-- the scratch flavour for the shipped fill, where the probe of
+-- 2026-08-08 priced it for 'bq-expand''s table
+-- (README.md#the-scratch-vector-flavour). Added 2026-09-19 for that
+-- probe, which read the two flavours level on all three arms, every
+-- pair inside Run 36's floor, so the shipped fill keeps its unboxed
+-- tables; not kept in step with 'fillStage2'.
+{-# NOINLINE fillStage2VSdims #-}
+fillStage2VSdims :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
+           -> VS.Vector Double
+fillStage2VSdims sh ats !ao !l !v = VS.create $ do
+  out <- VSM.unsafeNew l
+  let {-# INLINE writeRunStep #-}
+      writeRunStep !outPos !baseOff =
+        let !oEnd = outPos + sInner
+            inner !o !src
+              | o + 1 >= oEnd =
+                  if o >= oEnd then return ()
+                  else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+              | otherwise = do
+                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                  let !src' = src + tInner
+                  VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
+                  inner (o + 2) (src' + tInner)
+        in  inner outPos baseOff
+      {-# INLINE writeRunSet #-}
+      writeRunSet !outPos !baseOff =
+        let !x = VS.unsafeIndex v baseOff
+            !oEnd = outPos + sInner
+            inner !o
+              | o + 1 >= oEnd =
+                  if o >= oEnd then return ()
+                  else VSM.unsafeWrite out o x
+              | otherwise = do
+                  VSM.unsafeWrite out o x
+                  VSM.unsafeWrite out (o + 1) x
+                  inner (o + 2)
+        in  inner outPos
+      copies !n !blk !src
+        | n <= 1 = return (src + blk)
+        | otherwise = grow blk
+        where
+          !end = src + n * blk
+          grow !have
+            | src + have >= end = return end
+            | otherwise = do
+                let !len = min have (end - src - have)
+                VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
+                               (VSM.unsafeSlice src len out)
+                grow (have + len)
+      {-# INLINE runsWith #-}
+      runsWith writeRun !n !st !outPos !baseOff
+        | st == 0 = writeRun outPos baseOff
+                    >> copies n sInner outPos
+        | otherwise =
+            let run !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = writeRun op boff
+                                >> run (k - 1) (op + sInner) (boff + st)
+            in  run n outPos baseOff
+      go !lev !outPos !baseOff
+        | lev >= rOuter =
+            (if tInner == 0 then writeRunSet else writeRunStep)
+              outPos baseOff
+            >> return (outPos + sInner)
+        | otherwise =
+            level (VS.unsafeIndex oshV lev) (VS.unsafeIndex oatsV lev)
+        where
+          level !n !st
+            | lev == rOuter - 1 =
+                if tInner == 0
+                then runsWith writeRunSet n st outPos baseOff
+                else runsWith writeRunStep n st outPos baseOff
+            | st == 0 = do
+                op' <- go (lev + 1) outPos baseOff
+                copies n (op' - outPos) outPos
+            | otherwise =
+                let dim !k !op !boff
+                      | k <= 0    = return op
+                      | otherwise = go (lev + 1) op boff
+                                    >>= \op' -> dim (k - 1) op' (boff + st)
+                in  dim n outPos baseOff
+  _ <- go 0 0 ao
+  return out
+  where !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV :: VS.Vector Int
+        !oshV  = VS.fromList (init sh)
+        !oatsV = VS.fromList (init ats)
+
+
 -- 'fillStage2' with neither run unrolled: the stepping run
 -- 'fbMutOdoVecdimsAddInLeafU1''s loop in place of '-u2''s, the cursor
 -- bound and one element per iteration, and, since 2026-09-09, the
@@ -3918,6 +4014,22 @@ fbLibStage2Lean sh (T (Strides ats) ao v)
     whole | ao == 0 && VS.length v == l = v
           | otherwise = VS.slice ao l v
 
+-- 'fbLibStage2Lean' with 'fillStage2VSdims' for its fill -- one change,
+-- the dimension vectors' flavour; the probe of 2026-09-19, reasons at
+-- that fill.
+{-# NOINLINE fbLibStage2LeanVSdims #-}
+fbLibStage2LeanVSdims :: ShapeL -> T -> VS.Vector Double
+fbLibStage2LeanVSdims sh (T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | otherwise = case canonView sh ats of
+      ([], _) -> whole
+      ([_], [1]) -> whole
+      (csh, cats) -> fillStage2VSdims csh cats ao l v
+  where
+    l = product sh
+    whole | ao == 0 && VS.length v == l = v
+          | otherwise = VS.slice ao l v
+
 -- 'fbLibStage2Lean' with 'fillStage2U1' for its fill -- one change, the
 -- run body, so that arm is its control; reasons at 'fillStage2U1'.
 -- Added 2026-09-07 for Run 27.
@@ -4272,6 +4384,13 @@ sumRoute :: Route -> VS.Vector Double -> Double
 sumRoute (RBlock o l) v = VS.sum (VS.slice o l v)
 sumRoute (RRuns ssh sats o) v = sumLazyRuns ssh sats o v
 sumRoute (RFill ssh sats o l) v = VS.sum (fillStage2 ssh sats o l v)
+
+-- 'sumRoute' with its fill case through 'fillStage2VSdims'; the probe of
+-- 2026-09-19, reasons at that fill.
+sumRouteVSdims :: Route -> VS.Vector Double -> Double
+sumRouteVSdims (RBlock o l) v = VS.sum (VS.slice o l v)
+sumRouteVSdims (RRuns ssh sats o) v = sumLazyRuns ssh sats o v
+sumRouteVSdims (RFill ssh sats o l) v = VS.sum (fillStage2VSdims ssh sats o l v)
 
 -- The offset of a view's lowest address: its offset plus, for every
 -- axis walked backwards, the whole of that axis.
@@ -5045,6 +5164,14 @@ fbLibListStage4Sum :: ShapeL -> T -> VS.Vector Double
 fbLibListStage4Sum sh a@(T _ _ v) =
   VS.singleton (sumRoute (routeList4 sh a) v)
 
+-- 'fbLibListStage4Sum' through 'sumRouteVSdims' -- one change, the fill
+-- case's dimension vectors; the probe of 2026-09-19, reasons at
+-- 'fillStage2VSdims'.
+{-# NOINLINE fbLibListStage4SumVSdims #-}
+fbLibListStage4SumVSdims :: ShapeL -> T -> VS.Vector Double
+fbLibListStage4SumVSdims sh a@(T _ _ v) =
+  VS.singleton (sumRouteVSdims (routeList4 sh a) v)
+
 {-# NOINLINE fbLibUnordStage1Sum #-}
 fbLibUnordStage1Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage1Sum sh a = VS.singleton (sumRuns (lsUnordStage1 sh a))
@@ -5107,6 +5234,14 @@ fbLibUnordStage12Sum sh a@(T _ _ v) =
 fbLibUnordStage13Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage13Sum sh a@(T _ _ v) =
   VS.singleton (sumRoute (routeUnord13 sh a) v)
+
+-- 'fbLibUnordStage13Sum' through 'sumRouteVSdims' -- one change, the
+-- fill case's dimension vectors; the probe of 2026-09-19, reasons at
+-- 'fillStage2VSdims'.
+{-# NOINLINE fbLibUnordStage13SumVSdims #-}
+fbLibUnordStage13SumVSdims :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage13SumVSdims sh a@(T _ _ v) =
+  VS.singleton (sumRouteVSdims (routeUnord13 sh a) v)
 
 -- The cross-over of 'fbLibUnordStage6ListSum' and 'fbLibUnordStage10Sum':
 -- base's 'sum' over stage TEN's list, the consumer a user of
@@ -6545,6 +6680,11 @@ roster =
     -- Outside the laziness ruling of 2026-09-07, 'toVectorT' being
     -- strict (README.md#dead-ideas), reasons at the definition.
   , ("lib-stage2-lean",            Fill fbLibStage2Lean)
+    -- The flavour twin of 2026-09-19: the arm above with 'fillStage2''s
+    -- two dimension vectors Storable, beside its original as the twin of
+    -- 2026-08-08 stood beside 'bq-expand'. Parked 'Only' the same day,
+    -- the probe having read the pair level; reasons at 'fillStage2VSdims'.
+  , ("lib-stage2-lean-vsdims",     Only fbLibStage2LeanVSdims)
     -- The fill not unrolled under the lean dispatch, added 2026-09-07
     -- beside its control for Run 27; reasons at 'fillStage2U1'.
   , ("lib-stage2-lean-u1",         Fill fbLibStage2LeanU1)
@@ -6585,6 +6725,11 @@ roster =
   , ("liblist-stage2-sum",         Fill fbLibListStage2Sum)
   , ("liblist-stage3-sum",         Fill fbLibListStage3Sum)
   , ("liblist-stage4-sum",         Fill fbLibListStage4Sum)
+    -- The flavour twin of 2026-09-19: the arm above with 'fillStage2''s
+    -- two dimension vectors Storable, beside its original as the twin of
+    -- 2026-08-08 stood beside 'bq-expand'. Parked 'Only' the same day,
+    -- the probe having read the pair level; reasons at 'fillStage2VSdims'.
+  , ("liblist-stage4-vsdims-sum",  Only fbLibListStage4SumVSdims)
     -- The reducing consumer over each stage's list, added the same day:
     -- 'sumT' as the library composes it, one slice at a time and no
     -- concatenation, a lazy stage's consumer against the stage-one one
@@ -6678,6 +6823,11 @@ roster =
     -- it on every view, furthest under where a call is short: the
     -- 'small' views and the three c1 conv views.
   , ("libunord-stage13-sum",       Fill fbLibUnordStage13Sum)
+    -- The flavour twin of 2026-09-19: the arm above with 'fillStage2''s
+    -- two dimension vectors Storable, beside its original as the twin of
+    -- 2026-08-08 stood beside 'bq-expand'. Parked 'Only' the same day,
+    -- the probe having read the pair level; reasons at 'fillStage2VSdims'.
+  , ("libunord-stage13-vsdims-sum", Only fbLibUnordStage13SumVSdims)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
