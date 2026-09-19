@@ -40,31 +40,36 @@ with no regression and needs no extension to orthotope classes.
 
 **A direct mutable result buffer is faster still**: `mut-odo` walks the outer
 odometer and writes each innermost run, and `mut-odo-vecdims` --- the same fill
-with its dimension lists replaced by unboxed vectors --- is on Run 34 (plain
--O1, -A32m, exit span, ghc-9.12.4) **2.83x** over `bq-expand` paired, ahead
-on ALL nineteen shapes. **That headline moves with the published REGIME
-and not with either arm, and not with the COMPILER either**: Run 29 read 2.22x
-on a `-fspec-constr` basis and 2.83x on its own unflagged half, Run 30 read
-2.87x on that same unflagged recipe --- the same binary as Run 29's unflagged
-half, md5 and `.text` alike, so that step was two evenings of drift on one build
---- Run 31 read 2.84x on the recipe and 2.19x on its `-O2` half, Run 32 read
-**2.85x** on the recipe and **2.84x** on its GHC HEAD half, Run 33 read
-**2.84x** and **2.86x** under the exit span, and Run 34 reads **2.83x**
-on its basis and **2.84x** on its HEAD half, from the moved source and launched
-from `hugebin/`. So raising the level costs the headline better than six tenths
-of a multiple, `-O2` speeding `bq-expand` by 29% and leaving the fill where
+with its dimension lists replaced by unboxed vectors --- is on Run 36 (plain
+-O1, -A32m, exit span, GHC HEAD `10.1.20260918`) **2.83x** over `bq-expand`
+paired, ahead on ALL nineteen shapes. **That headline moves with the published
+REGIME and not with either arm, and not with the COMPILER either**: Run 29 read
+2.22x on a `-fspec-constr` basis and 2.83x on its own unflagged half, Run 30
+read 2.87x on that same unflagged recipe --- the same binary as Run 29's
+unflagged half, md5 and `.text` alike, so that step was two evenings of drift
+on one build --- Run 31 read 2.84x on the recipe and 2.19x on its `-O2` half,
+Run 32 read **2.85x** on the recipe and **2.84x** on its GHC HEAD half, Run 33
+read **2.84x** and **2.86x** under the exit span, Run 34 read **2.83x**
+on its basis and **2.84x** on its HEAD half, Run 35 read **2.83x**
+and **2.86x**, and Run 36 reads **2.83x** on its plain -O1 half and **2.20x**
+on the half carrying `-fspec-constr -fliberate-case`. **TWO of `-O2`'s passes
+cost this headline what the whole level cost it**, 2.20x against Run 31's 2.19x,
+a hundredth apart and across two compilers --- so raising the level costs
+the headline better than six tenths of a multiple and those two passes are where
+the cost lives, `-O2` speeding `bq-expand` by 29% and leaving the fill where
 it is, while changing the compiler moves it by a hundredth or two, down on Run
-32 and up on Runs 33 and 34; the gap this ratio reports is the one the library
+32 and up on Runs 33 to 35; the gap this ratio reports is the one the library
 actually compiles in. **One main-set shape sits on the line**:
 on `stretch-pow2stride` the fill and `bq-expand` tie, class property 1 breaking
 on whichever half reads the fill behind, and whether any run reads it behind
-by more than its floor is [an open question][open]. **The mutable fills hold
-the top of the table** --- `lib-stage2-lean` at 0.025 and the shipped leaf
-at 0.027, against `mut-odo-vecdims`'s 0.045 --- and every one of them needs
-a new `Vector`-class method, which this README argued against for as long
-as the ceiling stood --- to keep orthotope's `Vector` API pure and minimal,
-a bar an in-tree precedent softened to a weight --- and which the decision
-of 2026-08-22 **took**, `vFillStrided` landing 2026-08-24
+by more than its floor is [an open question][open] --- Run 36 reads that shape
+at 0.9970 on its plain half and 0.9826 on its flagged one, the fill ahead
+on both. **The mutable fills hold the top of the table** --- `lib-stage2-lean`
+at 0.027 and the shipped leaf at 0.028, against `mut-odo-vecdims`'s 0.044 ---
+and every one of them needs a new `Vector`-class method, which this README
+argued against for as long as the ceiling stood --- to keep orthotope's `Vector`
+API pure and minimal, a bar an in-tree precedent softened to a weight ---
+and which the decision of 2026-08-22 **took**, `vFillStrided` landing 2026-08-24
 ([below](#the-mutable-ceiling-taken)). Plain `mut-odo` no longer argues
 for it at all: it and `bq-expand`, which survives in `Data/Array/Internal.hs`
 only as that method's class default, the three vector-backed instances
@@ -1430,6 +1435,45 @@ rather than a slot in the next run, observed again:
   on one question: whether any run reads `mut-odo-vecdims` BEHIND `bq-expand`
   on that cell by more than its own half's floor. Until one does, a break there
   is a tie and not a failure of the clause.
+- `OPEN` **Which of the two `-O2` passes carries the 33.60 points, on a compiler
+  this series still builds with.** Run 36 put `-fspec-constr`
+  and `-fliberate-case` TOGETHER on one half and neither on the other and read
+  `list` at **1.3360** and `bq-expand` at **1.2980** on the main set; the only
+  readings of either pass ALONE are Runs 29's and 30's, taken on ghc-9.12.4,
+  on a roster three sources back, and with the `-fspec-constr` half
+  as that run's basis so that its published figures are the reciprocals
+  of this orientation. Their composition, 1.3325 on `list`, is what Run 36
+  confirms, so the two together are accounted for and the SPLIT is not: nothing
+  says whether SpecConstr carries it, as its allocation signature suggests,
+  or whether LiberateCase carries part of it on this HEAD. **What settles
+  it is one pair and one variable**: either flag alone against the unflagged
+  half, built by Run 36's own recipe --- GHC HEAD `10.1.20260918` through
+  `cabal.project.ghead`, `Main.hs` at `0eda736`, the shim at `f31bd1c`
+  under the four switches, launched from `hugebin/` --- which reads against
+  `run36-gheadnospec` with the box as the only term, this run's basis being
+  the first published one on that compiler. Registered here rather than
+  in a run's registration because it is a pair to ask for and not a prediction
+  to hold.
+- `OPEN` **A single wild cell moved this run's headline by 2.31 points and every
+  mechanical gate passed it.** On Run 36's basis half `list`
+  on `stretch-coprime-r7` read a net slope with a criterion CI of 10.07%
+  and an R2 of 0.9395 where its own two A/A copies, in the same process, agreed
+  with each other to 0.22 of a point and sat 39% below it --- so the ORIGINAL
+  was the wild one and its duplicates were clean. `read-all.sh` gated
+  that process clean, `--check-doc` and `--lint` passed, the intrusion verdict
+  was clean over all 119 logs, and the only instruments that showed it
+  were the R2 warning the reader prints above its table and the A/A worst-cell
+  column, which the chapter tells a reader to read and no gate reads. It cost
+  the run's own registration item (1) its margin: 1.3360 over the nineteen
+  shapes against **1.3129** with that one shape excluded, which
+  is the difference between landing past both accounts of the two passes
+  and landing between them. **What would settle it is a gate rather
+  than a reading**: a cell whose A/A copies agree far better than the cell does
+  is a defect the reader can name mechanically --- the copies are the same code
+  in the same process --- where the R2 and CI columns only say a cell measured
+  loosely and say it of cells that are fine. Until then the worst-cell column
+  is read by hand at post-run step 1, and a run whose headline rests on a cell
+  that column flags quotes both figures, as this one does.
 - `OPEN` **`-O2` changes what the preamble's spray leaves RESIDENT, and no pair
   before it did.** Run 31's twenty-two processes carry one `keep` value,
   `8.19844333056e12`, and TWO `inuse` values --- 95420416 on every plain -O1
@@ -1454,7 +1498,17 @@ rather than a slot in the next run, observed again:
   So the resident level and the allocation multiples moved together on Run 31
   and stayed together here, which is what *the two are one fact* predicts
   and is not the same as having read the two against each other inside one run
-  --- that reading is still owed, and still costs no machine time.
+  --- that reading is still owed, and still costs no machine time. **Run 36
+  supplies the reading that was owed, and it is the same fact again.** Its two
+  halves differ in `-fspec-constr -fliberate-case` alone, and its plateau splits
+  exactly by half: the victim runs 21.2040 to 21.5794 ms/iter over the plain
+  half's eleven processes and 16.6997 to 17.0044 over the flagged half's, each
+  flat within 1.9% and the pair 29.22% apart, which `read-all.sh` refuses
+  at its 5% band and the pair note had declared before the run. Inside one run,
+  the SAME two passes that move the resident state also move the allocation
+  multiples --- `bq-expand` from 2.78x to 2.11x and `list` from 25.20x to 23.45x
+  --- so the two facts are read against each other here for the first time
+  and they move together, on the two families and on nothing else.
 - `OPEN` **Each -O2 pass changes what an arm ALLOCATES and not only how fast
   it runs, they disagree on WHICH arms and move `list`'s multiple in OPPOSITE
   directions, and nothing here says why an optimisation pass should move
@@ -1509,7 +1563,31 @@ rather than a slot in the next run, observed again:
   and not when the compiler that runs the passes changes. Four readings now
   exist and the question is narrowed rather than answered: nothing here says why
   an optimisation pass should move an allocation multiple at all, and a compiler
-  change at one level is now known not to.
+  change at one level is now known not to. **Run 36 is the FIFTH reading
+  and the first with both passes on one half**, and it composes: `bq-expand`
+  reads **2.11x** on the flagged half against 2.78x on the plain one, which
+  is Run 29's `-fspec-constr` shape (2.06x against 2.76x) and not Run 30's
+  `-fliberate-case`, which left that arm alone; and `list` reads **23.45x**
+  against 25.20x, DOWNWARD, so SpecConstr's fall beats LiberateCase's rise when
+  the two run together. Those are tiers, medians of the per-shape multiple,
+  and are not to be divided; read per cell the flagged half allocates **0.8119**
+  of the basis on `bq-expand` and each of its three twins and **0.9342**
+  on `list` and both of its, on the main set and in the same shape on all ten
+  classes --- `list` from 0.9073 on `block` to 0.9342 on the main set,
+  `bq-expand` from 0.7263 on `window` to 0.9705 on `block` --- while every other
+  timed arm reads 1.0000 to within two tenths of a point. ONE arm outside
+  the two families moves and it moves UPWARD: `liblist-stage2-sum`, a reducing
+  consumer, at 1.0904 on `block`, 1.0900 on `runs`, 1.0312 on `flip`, 1.0116
+  on `window` and 1.0099 on `small`. **What this adds to the question
+  is that the effect is not a level's**: two passes of `-O2` carry all of it,
+  on exactly the arms whose time they move, and they break [the run file's
+  property 3 LEVEL
+  clause](runs/run36.md#the-properties-the-next-run-should-test) in every one
+  of eleven populations, the first run to do so. Run 29's and Run 30's figures
+  are over eighteen shapes and this run's over nineteen, so the two sets order
+  the same way and do not subtract. What is still unanswered is the same thing:
+  nothing here says why an optimisation pass should move an allocation multiple
+  at all.
 
 - `OPEN` **The flagged half carries FEWER self-loops than the unflagged one
   and a LARGER `.text`, and the two facts point opposite ways --- the loops
@@ -1570,6 +1648,15 @@ rather than a slot in the next run, observed again:
   and no compiler pair's ever has been --- Runs 24 to 28 read 140922, 140922,
   145018, 140922 and 145018 and Run 32 reads 153210. So whatever makes a gap
   a round multiple is a pass being added and not a code generator changing.
+  **Run 36 reads the widest gap of the series and on the smallest `.text`
+  difference yet.** `--survey` reads 387 self-loops of at most 64 B
+  in `_Main_`-compiled code on the plain half against **310** on the flagged
+  one, a gap of seventy-seven where Run 29's was sixty-two, while the `.text`
+  gap is **4096 bytes**, one page, the flagged half the larger --- 20383551
+  against 20379455. So the two facts point opposite ways again,
+  and the round-page multiple holds for a fourth flag pair at the smallest
+  multiple the series has: one page where the three before it read four, five
+  and three.
 
 - `OPEN` **A saving in instructions reaches the clock at anything from NONE
   of it to ALL of it WITHIN ONE BINARY, where the rate on record is three
@@ -1653,7 +1740,17 @@ rather than a slot in the next run, observed again:
   arms that do convert, convert nearly all: `list` turns 23.8%
   of its instructions into 22.9% of its time and `bq-expand` 30.7% into 22.7%.
   So the rate on one pair of one binary spans none to nineteen twentieths,
-  and the three-quarters figure is not a constant of this box either.
+  and the three-quarters figure is not a constant of this box either. **Run 36
+  spans the same range on sixteen arms at once and adds a case at the far end.**
+  Its `time/counts` column over the main set puts the `bq-expand` trio
+  at **0.8617** to 0.8645 --- 50.6% more instructions on the plain half buying
+  29.8% more time, three fifths of the saving reaching the clock --- the eight
+  fills at 0.9448 to 0.9713, four to five percent of instructions buying
+  under two of time, and the `list` trio at 1.0139 to **1.0336**, where
+  the clock moves FURTHER than the counts. So one pair of one binary now
+  carries, in one table, a family converting three fifths, a family converting
+  almost none, and a family converting more than all of it; the rate
+  is a property of the arm and the pass together and of neither alone.
 
 - `ANSWERED` **`lib-stage2-disp` and `lib-stage2-lean` are NOT the same code
   at a few hundred elements, which the lean ruling was written to make them.**
@@ -3667,6 +3764,92 @@ rather than a slot in the next run, observed again:
 
 
 ### Recommended tasks after Run 36
+
+**What Run 36 made cheaper for the next run, which is not a figure and no other
+step gathers --- and it is TWO sessions' worth, the preparation's first.** **TWO
+CHECKS CAUGHT AN ERROR BEFORE THE HOURS WERE SPENT.** `--lint`'s span readback,
+new on 2026-09-18, printed each of the twenty spans with the comparison it will
+be read by, which told this registration's prose and its vocabulary apart BEFORE
+the run rather than after --- Run 35's own lesson working the first time
+it was available --- and `--lint`'s cross-declaration check refused a state Run
+35 had had to rule by hand. **What no check caught was a chain of quotes**:
+the first draft of the registration took Run 29's two figures
+from `runs/run35.md`'s prose, where they already appear inverted, and called
+them Run 29's own; only re-reading `runs/run29.md` found 0.8788 and 0.7810
+and the sentence that inverts them. A check holding a quoted figure to the FILE
+the sentence names would have caught it and nothing here does. **A computation
+improvised**: the composition arithmetic, 1.1379 x 1.1710 and 1.2804 x 1.0127
+against the level's own 1.2974 and 1.2943, and the band against the gap it has
+to resolve --- the products and both gaps re-computed exactly and the band
+comparison did not, reading *under a third* where 1.3 of 3.51 points is 0.371,
+so the numerals stayed and the fraction went. **A step skipped, ruled rather
+than forgotten**: step 12's -L1 roster pass, whose condition does not fire
+on an unchanged roster. **Three capabilities found.** The shim's own verified
+line under `ALIGN_AS_VERBOSE` settles step 10a's first two causes in ONE build
+and is what to reach for the moment a survey reads a nonzero astride count,
+confirmed here on a NEW compiler. A previous run's half, still on disk, answers
+for itself --- `size -A`, `diag` and `loop-offsets.py` over `run35-gheadexit`
+gave its `.text`, its fill groups, its self-loop counts and its two `diag`
+figures --- so a cross-run row need not be copied out of the previous note.
+And **RUN 31'S WHOLE PAIR IS STILL ON DISK**, both binaries, 114 JSONs and 22
+counts files, which is why this registration derives its `-O2` priors instead
+of quoting them: whoever offers artifacts for deletion should know
+that this run's registration depends on Run 31's surviving. **And a hazard met
+in the note itself**: `par` reflowed five of its paragraphs to bring lines back
+under 80 after a batch of substitutions had joined them, and one
+of those carried the `HALVES:` and `COMPARE:` lines, which it folded
+into the prose. No word was lost and the note still READ correctly, while
+`pair-halves.sh` could no longer find the halves at all --- and the readings
+part three ways: `--note-check`, `--check-doc` and `--lint` all PASS a folded
+copy, being predicates over prose; `preflight.sh --note` and `--figures` both
+REFUSE at exit 2 with no step line, which reads like a tooling fault;
+and `run-status.sh` prints `2b NOT DONE`. So a reflow of that file must skip any
+paragraph holding a machine-read line, not merely any indented one,
+and the check that catches it is `run-status.sh` and no document pass.
+
+**AND THE WRITE-UP SESSION'S HALF, whose first item is a hazard
+of this directory and not of this run.** **A SANDBOXED REDIRECT
+INTO THIS DIRECTORY IS REFUSED AND THE COMMAND DOES NOT RUN, AND THE NEXT LINE
+CAN READ AN OLD FILE OF THAT NAME AND CALL IT THE RESULT.**
+`./read-run.py --check-doc --quiet > log-checkdoc.txt` from a session rooted
+in another repository fails before exec, so nothing ran;
+the `tail log-checkdoc.txt` beside it then printed a `VERDICT: PASS` left
+by an earlier session, which is indistinguishable from the gate having passed.
+This directory holds scores of `log-*` scratch files, so the stale file
+is the normal case and not bad luck. Every command that writes here runs
+unsandboxed, and a gate is run BARE with its own exit status read after it,
+never redirected and never piped --- the same reading a pipe destroys, measured
+again here when `--check-doc | head` reported `CHECKDOC_RC=0` on a failing gate.
+**A CHECK CAUGHT WHAT THE PROSE REWRITE LEFT BEHIND, twice.** `--check-doc`'s
+floor-pair agreement check named the one site still restating 0.64% and 0.40%
+after the floor paragraph itself had been rewritten to 1.63% and 0.53%,
+and its Results-half check named three `run35-gheadexit` tokens the rewritten
+Results had kept --- both of them classes of defect a reading of either
+paragraph alone passes over. **What no check caught is the wild cell**: nothing
+mechanical tells a wild cell from a real movement, and `stretch-coprime-r7/list`
+at an A/A spread of 28.36% was found only by reading
+`read-all.sh --brief-facts`'s worst-cell column, which the chapter tells
+the reader to read and no gate reads. **TWO COMPUTATIONS IMPROVISED, and both
+want a mode.** The per-arm ALLOCATION ratio across the halves had to be computed
+from `--cells`'s `alloc_bytes` column, because `--alloc` reports agreement
+counts and the `alloc` column is a MEDIAN of the per-shape multiple --- dividing
+the two published tiers gives 0.759 on `bq-expand` where the per-cell geomean
+is 0.8119, a different statistic and the same trap `DO NOT DIVIDE TWO ROWS`
+names for time. And the gate's palindrome spread: `list` parted by 1.60 points
+between the two passes with nothing printed to say why, and comparing each
+half's own two legs, `--compare` of its `-a` against its `-b`, accounted
+for 1.28 of it in two commands that this chapter does not name. **TWO
+CAPABILITIES FOUND.** `--exclude-shape` prices a wild cell against the arm
+it sits in, which is what turned this run's anomaly from a caveat into a figure,
+1.3360 against 1.3129; and `--over-list` settles the wider statement in ONE call
+over all twenty-two population-halves, where reading it per class is twenty.
+**AND ONE MONITOR COSTS MORE THAN IT LOOKS**: the stage monitor the run list
+arms at step 14 is silent for the eight-hour sequence and then fires TWICE PER
+COUNTS LEG, some twenty wake-ups in the fifty minutes the counted work takes,
+each a model invocation.
+A `grep -E --line-buffered 'rc=[^0]|COMPLAINT|COMPLETE|refus'` on that tail
+would cut them to the lines a session acts on, at the price of the pace
+the chapter arms it for.
 
 **What Run 35 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
