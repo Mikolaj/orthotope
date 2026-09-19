@@ -24,10 +24,11 @@
 #     ./instance-gate.sh RUN            # both halves, from the note's HALVES line
 #
 # Exit 0 when every half is level or has been swapped, or when there is no
-# instance to gate: no mount -- WHICH IS THE ORDINARY CASE since the owner
-# suspended hugebin/ on 2026-09-19, so this gate normally skips itself and
-# the run list's step 16a is suspended with it -- or a half that is no ELF
-# binary, which is the corpus's stub. Exit 1 when a half could not be tested -- hugebin/ mounted
+# instance to gate: no mount -- WHICH IS THE ORDINARY CASE since hugebin/ was
+# suspended on 2026-09-19, and the run list's step 16a is suspended with it --
+# or a half that is no ELF binary, which is the corpus's stub. Either way it
+# walks the halves and says so per half rather than exiting up front, so what
+# a reader sees names the half it is about. Exit 1 when a half could not be tested -- hugebin/ mounted
 # read-only, perf missing, a copy refused -- which run-evening.sh records
 # as a complaint and goes on from, the launch instance then UNTESTED and
 # said so. Exit 2 on usage.
@@ -51,9 +52,15 @@ CELL=${INSTANCE_CELL:-scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u1}
 N=${INSTANCE_N:-4000}
 BAR=${INSTANCE_BAR:-5}
 if [ -z "${INSTANCE_DIR:-}" ] && ! mountpoint -q hugebin 2>/dev/null; then
-  echo "instance gate: hugebin/ is not mounted, so the halves launch from" \
-       "disk and there is no instance to gate (README, the placement section)"
-  exit 0
+  # SAID, NOT EXITED ON, since 2026-09-20. This used to `exit 0` here, which
+  # left the per-half branch below -- the one saying the same thing in other
+  # words -- unreachable whenever the mount was down, so the control written
+  # for that branch passed only on a box with hugebin/ up and went red the
+  # day the mount was suspended. It read the box, not the script, and said so
+  # in prose that no check could act on. The loop now speaks per half in every
+  # case, one wording instead of two, and this line is the heading over it.
+  echo "instance gate: hugebin/ is not mounted (suspended 2026-09-19; README," \
+       "the placement section), so every half below launches from disk"
 fi
 
 TMP=$(mktemp)
@@ -87,8 +94,9 @@ for h in $OTHER $BASIS; do
       || { echo "instance gate $h: half-bin.sh refuses ./$R-$h"; RC=1; continue; }
     case $B in
       hugebin/*) ;;
-      *) echo "instance gate $h: $B launches from disk, no ELF binary being" \
-              "on the mount for it; nothing to gate"; continue ;;
+      *) echo "instance gate $h: $B launches from disk -- hugebin/ unmounted," \
+              "or no ELF binary on the mount for it; nothing to gate"
+         continue ;;
     esac
   fi
   G=$B.gate
