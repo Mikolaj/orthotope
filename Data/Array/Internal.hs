@@ -475,29 +475,78 @@ regimeT sh l (T ats ao v) = case canonicalizeT sh ats of
   where whole | ao == 0 && vLength v == l = Whole
               | otherwise = Slice
 
+-- The slices of a view of contiguous runs, one per canonical outer
+-- index in row-major order, produced on demand.  The arguments are the
+-- canonical shape and strides, the offset of the first run and the
+-- vector, then the cons and nil of the 'build' 'toVectorListT' is
+-- written under, so that a consumer folding the list fuses with the
+-- walk, holds no more of the list than it has reached and, stopping
+-- early, does no more of the walk.  The innermost outer level is a
+-- counter and a cursor; the levels above it are an odometer of
+-- (index, extent, stride) triples touched only on a carry, the levels
+-- exhausted on the way out reset and put back on the front in their
+-- order.  One flat loop, and not a fold per level with the rest of
+-- the list passed down as a continuation: fused with a consumer's
+-- fold, the level form met at every level's exit a continuation it
+-- could not see and passed the accumulator to it lazily and boxed, a
+-- thunk and a box per run; here every continuation is 'go', 'carry'
+-- or nil, all known to the compiler, so base's own left folds, 'sum'
+-- among them, see a strict known call and allocate nothing per run.
+-- Entered on a view of canonical rank two or more, which is what
+-- 'Runs' means, so there is at least one outer level and one run.
+-- The bang on the vector is measured, not style: every use of it sits
+-- under the consumer's cons, so without the bang the walk is lazy in
+-- it, takes it boxed and re-enters it on every run for its length and
+-- address, most of the instructions a run of two elements costs.  The
+-- bang on the offset 'carry' ignores is the same: without it 'carry'
+-- is lazy in its offset, 'go' boxes it for the one call a level makes,
+-- and the heap check for that box sits at the head of 'go' and is paid
+-- every run.
+{-# INLINE runSlicesT #-}
+runSlicesT :: forall v a b. (Vector v, VecElem v a)
+           => ShapeL -> [Int] -> Int -> v a -> (v a -> b -> b) -> b -> b
+runSlicesT csh cats !start !v cons nil =
+  let !n = last csh
+      dims = init csh
+      strs = init cats
+      !dk = last dims
+      !sk = last strs
+      go :: Int -> Int -> [(Int, Int, Int)] -> b
+      go !i !o outer
+        | i < dk = cons (vSlice o n v) (go (i + 1) (o + sk) outer)
+        | otherwise = carry outer (o - dk * sk) []
+      carry :: [(Int, Int, Int)] -> Int -> [(Int, Int, Int)] -> b
+      carry [] !_ _ = nil
+      carry ((j, d, s) : rest) !o reset
+        | j + 1 < d =
+            go 0 (o + s) (foldl' (flip (:)) ((j + 1, d, s) : rest) reset)
+        | otherwise = carry rest (o + s - d * s) ((0, d, s) : reset)
+  in  go 0 start (reverse (zip3 (repeat 0) (init dims) (init strs)))
+
 -- Convert an array to a list of vectors, which together contain
 -- all the elements in the natural order.
 -- An invariant: if the input array is non-empty the returned list
 -- will have no empty vectors.
 -- The minimum/maximum operations rely on this invariant.
+-- The list is produced lazily: a consumer folds it slice by slice,
+-- holding no more of it than it has reached, and 'anyT' and 'allT'
+-- stop at the first slice that decides, where a table of the runs'
+-- offsets would do all its work before the consumer sees an element.
+-- Written under one 'build' with the dispatch inside
+-- it, so that a fold applied to this list fuses with it whichever case
+-- the view takes.
 {-# INLINE toVectorListT #-}
 toVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
-toVectorListT sh a@(T _ ao v)
-  | l == 0 = []
-  | otherwise = case regimeT sh l a of
-      Whole -> [v]
-      Slice -> [vSlice ao l v]
-      Runs csh cats ->
-        -- One slice per canonical run, the runs' base offsets built by
-        -- expansion as the pure fill builds them.
-        let !n = last csh
-        in  map (\o -> vSlice o n v)
-                (VU.toList (runBaseOffsetsT ao (init csh) (init cats)))
-      Strided csh cats ->
-        -- No slice can be taken.  Fill the result through
-        -- 'vFillStrided', whose vector-backed instances write a mutable
-        -- buffer directly.
-        [vFillStrided csh cats ao l v]
+toVectorListT sh a@(T _ ao v) = build $ \cons nil ->
+  if l == 0 then nil else case regimeT sh l a of
+    Whole -> cons v nil
+    Slice -> cons (vSlice ao l v) nil
+    Runs csh cats -> runSlicesT csh cats ao v cons nil
+    Strided csh cats ->
+      -- No slice can be taken.  Fill the result through
+      -- 'vFillStrided', whose vector-backed instances write a mutable
+      -- buffer directly.
+      cons (vFillStrided csh cats ao l v) nil
   where !l = product sh
 
 -- Convert an array to one vector holding all the elements in the
