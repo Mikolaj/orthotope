@@ -28,13 +28,22 @@
 # THE MOUNT ANY MORE: preflight's `launch` row and the run list did until
 # 2026-09-19 and now only report which path was taken, so no refusal here
 # was needed to lift it and none was added -- this script is unchanged
-# below its header. The mount, for a run that wants it, once in /etc/fstab:
+# below its header. The mount, for a run that wants it, once in /etc/fstab
+# -- AND THE `noauto` IS WHY THE SUSPENSION HAPPENED, so it is not optional:
 #
-#   tmpfs  /home/mikolaj/r/orthotope/micro-regime3/hugebin  tmpfs  size=1g,huge=always,mode=0755,uid=1000,gid=1000  0  0
+#   tmpfs  /home/mikolaj/r/orthotope/micro-regime3/hugebin  tmpfs  noauto,size=1g,huge=always,mode=0755,uid=1000,gid=1000  0  0
 #
-# then `mkdir -p hugebin && sudo mount hugebin`. A session started before
-# the mount sees it from an unsandboxed call and not from a sandboxed one;
-# a session started after sees it from both.
+# then `mkdir -p hugebin && sudo mount hugebin` when a run wants it.
+# WITHOUT `noauto` systemd generates a mount unit that runs AT BOOT, and on
+# this box /home is not unlocked by then: the unit exits 32 with `mount point
+# does not exist`, and the journal's next line is `Failed to create mount
+# point ... Required key not available`, which is fscrypt saying the
+# directory it wants is still encrypted. The mount point is there once
+# someone has logged in, so the failure looks like a missing directory and is
+# an ordering problem. Measured 2026-09-19, twice, on two reboots; the line
+# above carried no `noauto` until 2026-09-20 and so failed every boot.
+# A session started before the mount sees it from an unsandboxed call and not
+# from a sandboxed one; a session started after sees it from both.
 set -u
 cd "$(dirname "$0")" || exit 2
 [ $# -eq 2 ] || { echo "usage: B=\$(./half-bin.sh RUN HALF) || exit 2" >&2; exit 2; }
