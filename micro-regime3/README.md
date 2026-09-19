@@ -3896,7 +3896,23 @@ per counts leg, which arrive batched as some twenty wake-ups in the forty-two
 minutes the counted work takes, each a model invocation.
 A `grep -E --line-buffered 'rc=[^0]|COMPLAINT|COMPLETE|refus'` on that tail
 would cut them to the lines a session acts on, at the price of the pace
-the chapter arms it for.
+the chapter arms it for. **AND TWO THINGS THIS SESSION GOT WRONG ABOUT ITS OWN
+AGENTS, both raised by the owner mid-run and neither caught by any list here.**
+**The checker's SECOND pass is sent at 6d and this session sent it at 7a**: pass
+1 had not returned when 6c ended, and rather than idle the session went
+on to the fix cycle, so pass 2 arrived beside 7a's blind reader
+and comprehension probe and THREE agents ran at once where the list intends two.
+It cost nothing here --- pass 2 then had the settled commit to read rather
+than 6d's, which is arguably the better object --- but a report arriving after
+its object has moved is what the ordering exists to prevent, and 6d's condition
+is on pass 1 returning and not on 6c being done. **And no prompt told an agent
+not to spawn one**: the leaf rule is the user-scope file's, it is what
+an orthotope blind reader broke on 2026-09-11 while losing part of its report,
+and all three of this run's agents honoured it --- zero `tool_use` blocks naming
+the Agent tool across the three transcripts, counted rather than assumed ---
+which is their restraint and not this session's instruction. A brief
+that already bounds a reader at thirty tool calls can say *and spawn none*
+in three words.
 
 **What Run 35 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
