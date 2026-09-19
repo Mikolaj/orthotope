@@ -5,7 +5,7 @@ fallback in `Data/Array/Internal.hs` --- the per-element path taken when
 the innermost dimension is strided, so no contiguous run longer than one element
 can be sliced out. What the branch carries in code is the stage-one fix, landed
 2026-08-24 (stage two is on
-[`pr-mikolaj-toVectorListT`][https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT],
+[`pr-mikolaj-toVectorListT`](https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT),
 a regression on every regime-3 population when Run 21 measured it and at parity
 there since the unboxing fix of 2026-08-29, [the
 ceiling](#the-mutable-ceiling-taken)'s tenth reading): `vFillStrided`, the class
@@ -179,7 +179,7 @@ of `toVectorListT`'s whole dispatch, all regimes, whose own evidence is what
 killed the redirect --- it shows the redirect's constituency dissolving
 at the dispatch, and what remains of regime 3 after it is stage one's arm.
 **It is implemented, 2026-08-27, on the permanent branch
-[`pr-mikolaj-toVectorListT`][https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT],
+[`pr-mikolaj-toVectorListT`](https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT),
 eight commits over stage one, each one piece: the canonicalization, the dispatch
 on it, `toUnorderedVectorListT`'s one-block test on it, `toVectorT`'s route
 through the fill, the two zero-stride conditions in the driver, the Storable
@@ -1458,15 +1458,15 @@ rather than a slot in the next run, observed again:
   mechanical gate passed it.** On Run 36's basis half `list`
   on `stretch-coprime-r7` read a net slope with a criterion CI of 10.07%
   and an R2 of 0.9395 where its own two A/A copies, in the same process, agreed
-  with each other to 0.22 of a point and sat 39% below it --- so the ORIGINAL
-  was the wild one and its duplicates were clean. `read-all.sh` gated
-  that process clean, `--check-doc` and `--lint` passed, the intrusion verdict
-  was clean over all 119 logs, and the only instruments that showed it
-  were the R2 warning the reader prints above its table and the A/A worst-cell
-  column, which the chapter tells a reader to read and no gate reads. It cost
-  the run's own registration item (1) its margin: 1.3360 over the nineteen
-  shapes against **1.3129** with that one shape excluded, which
-  is the difference between landing past both accounts of the two passes
+  with each other to 0.22 of a point and stand 28.4% below it ---
+  so the ORIGINAL was the wild one and its duplicates were clean. `read-all.sh`
+  gated that process clean, `--check-doc` and `--lint` passed, the intrusion
+  verdict was clean over all 119 logs, and the only instruments that showed
+  it were the R2 warning the reader prints above its table and the A/A
+  worst-cell column, which the chapter tells a reader to read and no gate reads.
+  It cost the run's own registration item (1) its margin: 1.3360
+  over the nineteen shapes against **1.3129** with that one shape excluded,
+  which is the difference between landing past both accounts of the two passes
   and landing between them. **What would settle it is a gate rather
   than a reading**: a cell whose A/A copies agree far better than the cell does
   is a defect the reader can name mechanically --- the copies are the same code
@@ -1474,6 +1474,40 @@ rather than a slot in the next run, observed again:
   loosely and say it of cells that are fine. Until then the worst-cell column
   is read by hand at post-run step 1, and a run whose headline rests on a cell
   that column flags quotes both figures, as this one does.
+- `OPEN` **The write-up's vocabulary and its Contents map have gaps a fresh
+  reader falls into, found by Run 36's comprehension probe and none of them
+  this run's doing.** A probe that had not read the artifacts read both
+  documents and could not do six things. **`strategy` carries two counts
+  and the smaller is defined nowhere**: the Results table heads its first column
+  `strategy` over thirty-five rows, while the head and every class block say
+  `N of 8 strategies`, which is the timed arms minus their A/A copies;
+  **`A/A bar` is never defined either**, appearing ten times in a run file
+  and once here inside a procedure comment, its only gloss an unnamed one
+  in the head. **The plateau vocabulary --- `the plateau`, `the victim`,
+  `the preamble`, the alone-leg riders --- has no reader-facing definition
+  anywhere**, only procedure comments and open-list entries, so a reader cannot
+  say what the 29.22% spread is a spread of. **Three sign conventions for one
+  shape of ratio sit in one run file**, each glossed separately and none flagged
+  as different: the pair's cross figures (above 1 = the flagged half faster),
+  the cross-run ones (below 1 = this run faster) and property 1's
+  fill-against-`bq-expand` figures (below 1 = the fill ahead, direction
+  unstated). **`points` is the file's central unit and neither document says
+  it means `(ratio - 1) x 100`**, which is why one class block can read `29.16%`
+  and `29.16 of a point` two paragraphs apart. **Contents omits
+  `Which population answers a question, and how to ask all of them`**, the one
+  section that opens by calling itself the statement everything else points
+  to --- the only heading in this file the map leaves out.
+  And **`Recommended tasks after Run N` holds no recommended task**, only four
+  runs' post-mortems and spent-item records, so a reader asking what the next
+  run should do is sent to the wrong heading. **What settles each is a sentence,
+  not a measurement**, which is why they are here rather than in a run's
+  registration: a gloss for the two counts and the bar where the table first
+  uses them, one for the plateau where Provenance first names it, one statement
+  of the sign rule in each run file's head covering all three uses, one sentence
+  on `points` in *Reading a run file*, the missing anchor in Contents,
+  and either a recommended task under that heading or a pointer from it
+  to the open list, where Run 36's candidate pair actually lives. The probe read
+  about a tenth of this file; nothing says the same gaps do not run further.
 - `OPEN` **`-O2` changes what the preamble's spray leaves RESIDENT, and no pair
   before it did.** Run 31's twenty-two processes carry one `keep` value,
   `8.19844333056e12`, and TWO `inuse` values --- 95420416 on every plain -O1
@@ -1499,16 +1533,22 @@ rather than a slot in the next run, observed again:
   and stayed together here, which is what *the two are one fact* predicts
   and is not the same as having read the two against each other inside one run
   --- that reading is still owed, and still costs no machine time. **Run 36
-  supplies the reading that was owed, and it is the same fact again.** Its two
-  halves differ in `-fspec-constr -fliberate-case` alone, and its plateau splits
-  exactly by half: the victim runs 21.2040 to 21.5794 ms/iter over the plain
-  half's eleven processes and 16.6997 to 17.0044 over the flagged half's, each
-  flat within 1.9% and the pair 29.22% apart, which `read-all.sh` refuses
-  at its 5% band and the pair note had declared before the run. Inside one run,
-  the SAME two passes that move the resident state also move the allocation
-  multiples --- `bq-expand` from 2.78x to 2.11x and `list` from 25.20x to 23.45x
-  --- so the two facts are read against each other here for the first time
-  and they move together, on the two families and on nothing else.
+  supplies the reading that was owed, and it SEPARATES the two facts.** Its two
+  halves differ in `-fspec-constr -fliberate-case` alone, which are two
+  of the passes Run 31's level carried --- and its twenty-two processes carry
+  ONE `inuse` value, **95420416**, eleven on each half and not a byte apart,
+  where Run 31's carried two split exactly by half, 95420416 on every plain
+  process and 74448896 on every `-O2` one. Yet the allocation multiples move
+  exactly as Run 31's did, `bq-expand` from 2.78x to 2.11x and `list`
+  from 25.20x to 23.45x. **So the resident level and the allocation multiples
+  are NOT one fact**: these two passes take the whole of the second and none
+  of the first, and whatever in `-O2` changes what the spray leaves resident
+  is some other pass of it. What this run's plateau band does refuse
+  is a different quantity read off the same `@@saturate` line --- the victim
+  at 21.2040 to 21.5794 ms/iter against 16.6997 to 17.0044, 29.22% apart
+  and flat within 1.9% inside each half --- which is the pair's own variable
+  on the clock and not a resident level, and which the pair note had declared
+  before the run.
 - `OPEN` **Each -O2 pass changes what an arm ALLOCATES and not only how fast
   it runs, they disagree on WHICH arms and move `list`'s multiple in OPPOSITE
   directions, and nothing here says why an optimisation pass should move
@@ -1581,18 +1621,20 @@ rather than a slot in the next run, observed again:
   from 0.9073 on `block` to 0.9342 on the main set, `bq-expand` from 0.7263
   on `window` to 0.9705 on `block` --- while every other timed arm reads 1.0000
   to within two tenths of a point. ONE arm outside the two families moves,
-  the same way and by a tenth of what they get: `liblist-stage2-sum`, a reducing
-  consumer, at **0.9096** on `block`, 0.9100 on `runs`, 0.9688 on `flip`, 0.9884
-  on `window` and 0.9901 on `small`, and 1.0000 on the other six, the main set
-  among them. **What this adds to the question is that the effect is
-  not a level's**: two passes of `-O2` carry all of it, on exactly the arms
-  whose time they move, and they break [the run file's property 3 LEVEL
+  the same way and less far: `liblist-stage2-sum`, a reducing consumer,
+  at a geomean deviation of 2.18% over the eleven populations against `list`'s
+  7.89% and `bq-expand`'s 12.52%, reading **0.9096** on `block`, 0.9100
+  on `runs`, 0.9688 on `flip`, 0.9884 on `window` and 0.9901 on `small`,
+  and 1.0000 on the other six, the main set among them. **What this adds
+  to the question is that the effect is not a level's**: two passes of `-O2`
+  carry all of it, on exactly the arms whose time they move, and they break [the
+  run file's property 3 LEVEL
   clause](runs/run36.md#the-properties-the-next-run-should-test) in every one
-  of eleven populations, the first run to do so. Run 29's and Run 30's figures
-  are over eighteen shapes and this run's over nineteen, so the two sets order
-  the same way and do not subtract. What is still unanswered is the same thing:
-  nothing here says why an optimisation pass should move an allocation multiple
-  at all.
+  of eleven populations, as Run 31's whole level did and its registration (10)
+  died on. Run 29's and Run 30's figures are over eighteen shapes and this run's
+  over nineteen, so the two sets order the same way and do not subtract. What
+  is still unanswered is the same thing: nothing here says why an optimisation
+  pass should move an allocation multiple at all.
 
 - `OPEN` **The flagged half carries FEWER self-loops than the unflagged one
   and a LARGER `.text`, and the two facts point opposite ways --- the loops
@@ -1653,15 +1695,15 @@ rather than a slot in the next run, observed again:
   and no compiler pair's ever has been --- Runs 24 to 28 read 140922, 140922,
   145018, 140922 and 145018 and Run 32 reads 153210. So whatever makes a gap
   a round multiple is a pass being added and not a code generator changing.
-  **Run 36 reads the widest gap of the series and on the smallest `.text`
-  difference yet.** `--survey` reads 387 self-loops of at most 64 B
+  **Run 36 reads the second widest gap of the series and the smallest `.text`
+  difference of it.** `--survey` reads 387 self-loops of at most 64 B
   in `_Main_`-compiled code on the plain half against **310** on the flagged
-  one, a gap of seventy-seven where Run 29's was sixty-two, while the `.text`
-  gap is **4096 bytes**, one page, the flagged half the larger --- 20383551
-  against 20379455. So the two facts point opposite ways again,
-  and the round-page multiple holds for a fourth flag pair at the smallest
-  multiple the series has: one page where the three before it read four, five
-  and three.
+  one, a gap of seventy-seven, one under Run 31's seventy-eight and where Run
+  29's was sixty-two, while the `.text` gap is **4096 bytes**, one page,
+  the flagged half the larger --- 20383551 against 20379455. So the two facts
+  point opposite ways again, and the round-page multiple holds for a fourth flag
+  pair at the smallest multiple the series has: one page where the three before
+  it read four, five and three.
 
 - `OPEN` **A saving in instructions reaches the clock at anything from NONE
   of it to ALL of it WITHIN ONE BINARY, where the rate on record is three
@@ -1749,8 +1791,8 @@ rather than a slot in the next run, observed again:
   spans the same range on sixteen arms at once and adds a case at the far end.**
   Its `time/counts` column over the main set puts the `bq-expand` trio
   at **0.8617** to 0.8645 --- 50.6% more instructions on the plain half buying
-  29.8% more time, three fifths of the saving reaching the clock --- the eight
-  fills at 0.9448 to 0.9713, four to five percent of instructions buying
+  29.8% more time, three fifths of the saving reaching the clock --- the ten
+  others at 0.9448 to 0.9713, four to five percent of instructions buying
   under two of time, and the `list` trio at 1.0139 to **1.0336**, where
   the clock moves FURTHER than the counts. So one pair of one binary now
   carries, in one table, a family converting three fifths, a family converting
@@ -3849,9 +3891,9 @@ it sits in, which is what turned this run's anomaly from a caveat into a figure,
 1.3360 against 1.3129; and `--over-list` settles the wider statement in ONE call
 over all twenty-two population-halves, where reading it per class is twenty.
 **AND ONE MONITOR COSTS MORE THAN IT LOOKS**: the stage monitor the run list
-arms at step 14 is silent for the eight-hour sequence and then fires TWICE PER
-COUNTS LEG, some twenty wake-ups in the fifty minutes the counted work takes,
-each a model invocation.
+arms at step 14 is silent for the eight-hour sequence and then writes two lines
+per counts leg, which arrive batched as some twenty wake-ups in the forty-two
+minutes the counted work takes, each a model invocation.
 A `grep -E --line-buffered 'rc=[^0]|COMPLAINT|COMPLETE|refus'` on that tail
 would cut them to the lines a session acts on, at the price of the pace
 the chapter arms it for.
@@ -5520,7 +5562,7 @@ from plain `mut-odo-vecdims` rests on the two paired probes the ceiling records.
 `bq-expand`, the last candidate, is what every figure below was measured
 against; the branch no longer carries it. This branch's library stays at stage
 one; stage two is
-[`pr-mikolaj-toVectorListT`][https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT],
+[`pr-mikolaj-toVectorListT`](https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT),
 and its figures were taken on Run 21, where it ran several times stage one
 on every population whose views will not canonicalize. **Run 22 measured
 the unboxing and the doubled cursor at full budget and the regression is gone,
@@ -11689,13 +11731,13 @@ and by the shipped leaf's distant copy on the control --- where Run 35 parted
 on both, Run 34 on the basis alone, Run 33 closed them on both halves, and Run
 28 read 0.50% against 0.39% and Run 29 0.51% against 0.26%. **And the control
 half's floor is no longer the narrowest of the eight-pair series**, 0.53%
-against Run 35's 0.40%, though it is the second narrowest and sits well inside
-the band the series has held since Run 28. The worst A/A cells of this run's two
-main sets are **28.36%** on `stretch-coprime-r7` on the basis and 2.72%
-on `stretch-r5-8x432` on the control, and NO process of this run was intruded
-on, the gate's four and the riders' included, which is what `--wild` over all
-119 logs says. No registration of this run names the floor pairs;
-`--floor-pairs` reads the eight on every population on both halves, 176
+against Run 35's 0.40% and Run 34's 0.49%, so the third narrowest of the nine,
+and well inside the band the series has held since Run 28. The worst A/A cells
+of this run's two main sets are **28.36%** on `stretch-coprime-r7` on the basis
+and 2.72% on `stretch-r5-8x432` on the control, and NO process of this run
+was intruded on, the gate's four and the riders' included, which is what
+`--wild` over all 119 logs says. No registration of this run names the floor
+pairs; `--floor-pairs` reads the eight on every population on both halves, 176
 readings, and SEVEN of the eight carry a floor somewhere --- `list-aa-adjacent`
 in NINE of the twenty-two populations, where Run 35 had none in more than five,
 which is the same instability the whole-set figure above reads. **What this run
@@ -11714,18 +11756,19 @@ on the basis while the whole-set figure ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12%,
 moved. **Run 27's 0.83% still does not survive as a trend**, and neither does
 the rise Runs 28 to 32 traced: Run 33's 0.47%, Run 34's 0.49% and Run 35's 0.49%
 are all INSIDE the 0.31%-to-0.54% band the series held for nine runs,
-and this run's 0.75% is above that band as three earlier readings of the series
-were, though under Run 27's 0.83%. The figure that moved furthest this run
-is the WHOLE-SET one, to 1.63%, and it is a different statistic --- which
-is what the four-statistics warning at the head of this paragraph is for.
-The threshold this run supports is TWO figures a half --- **0.75% and 1.63%**
-on the basis and **0.42% and 0.53%** on the control, the restricted four-pair
-reading and the whole set over the eight --- and since 2026-09-13 a margin
-between two rows clears the whole-set one, the carry-back figure being
-the series and not the bar ([the open list][open]). Read the floor as the run's
-*and the half's*, re-measured every time, never as a constant of the harness
-and never inherited. **And of these series, only the readings from Run 31 on can
-still be re-derived**: Runs 24 to 30's artifacts were deleted 2026-09-18
+and this run's 0.75% is above that band as four earlier readings of the series
+were --- 0.57%, 0.61%, 0.66% and Run 27's 0.83% --- and under the widest
+of them. The figure that moved furthest this run is the WHOLE-SET one, to 1.63%,
+and it is a different statistic --- which is what the four-statistics warning
+at the head of this paragraph is for. The threshold this run supports is TWO
+figures a half --- **0.75% and 1.63%** on the basis and **0.42% and 0.53%**
+on the control, the restricted four-pair reading and the whole set
+over the eight --- and since 2026-09-13 a margin between two rows clears
+the whole-set one, the carry-back figure being the series and not the bar ([the
+open list][open]). Read the floor as the run's *and the half's*, re-measured
+every time, never as a constant of the harness and never inherited.
+**And of these series, only the readings from Run 31 on can still
+be re-derived**: Runs 24 to 30's artifacts were deleted 2026-09-18
 at the owner's word, so `--series` starts at Run 31 and every figure before
 it is a RECORD here and in that run's own file rather than something a later
 session can check. That is the run-file split working as designed --- an older
@@ -13985,7 +14028,7 @@ and its fingerprint say so.
   are that one stage1 at plain `-O1` under the exit span and the control's
   command line carries `-fspec-constr -fliberate-case` besides, so it is read
   against Run 35's HEAD half `run35-gheadexit`, whose recipe its BASIS repeats,
-  and every one of the sixteen shared timed arms reads within a point of it.
+  and every one of the sixteen shared timed arms reads within 1.02 points of it.
   Its sequence ran in ONE window, 02:06:14 to 10:11:57, 20 class processes
   and two main-set ones, and NO process of the run was intruded on, the gate's
   four and the riders' included. `list` having moved 33.60 points on this run's
