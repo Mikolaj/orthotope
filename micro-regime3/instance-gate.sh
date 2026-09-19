@@ -24,8 +24,10 @@
 #     ./instance-gate.sh RUN            # both halves, from the note's HALVES line
 #
 # Exit 0 when every half is level or has been swapped, or when there is no
-# instance to gate: no mount, or a half that is no ELF binary, which is the
-# corpus's stub. Exit 1 when a half could not be tested -- hugebin/ mounted
+# instance to gate: no mount -- WHICH IS THE ORDINARY CASE since the owner
+# suspended hugebin/ on 2026-09-19, so this gate normally skips itself and
+# the run list's step 16a is suspended with it -- or a half that is no ELF
+# binary, which is the corpus's stub. Exit 1 when a half could not be tested -- hugebin/ mounted
 # read-only, perf missing, a copy refused -- which run-evening.sh records
 # as a complaint and goes on from, the launch instance then UNTESTED and
 # said so. Exit 2 on usage.

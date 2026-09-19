@@ -10979,11 +10979,20 @@ RECORDS = [
          'instance-gate.sh', None,
          'CONTROL: a half that is no ELF binary launches from disk, so there'
          ' is no instance to gate, said so at exit 0',
-         # The shadow symlinks the real hugebin/, so the no-mount exit is
-         # not reachable from a case; a copy of the script in a bare
-         # directory takes it, and did on 2026-09-18. What the evening's
-         # stand-ins meet is this path: half-bin.sh keeps a non-ELF half
-         # off the mount and hands back its disk path.
+         # The shadow symlinks the real hugebin/, so THIS CASE READS THE BOX
+         # and goes red whenever that mount is down -- which, since hugebin/
+         # was suspended on 2026-09-19, is the ordinary state. The early
+         # no-mount exit fires before the per-half loop and says the same
+         # thing in different words, so neither string below is printed.
+         # INSTANCE_DIR does NOT lift it: setting it takes the other branch,
+         # which derives B from $DIR directly and never calls half-bin.sh.
+         # What would lift it is dropping that early exit and letting the
+         # loop say it per half, one wording instead of two -- a change to
+         # the driver rather than to this case, and not one to improvise.
+         # A copy of the script in a bare directory takes the no-mount exit,
+         # and did on 2026-09-18. What the evening's stand-ins meet is this
+         # path: half-bin.sh keeps a non-ELF half off the mount and hands
+         # back its disk path.
          shadow=dict(extra=[('zzig-pair.txt', NOTE_STUB)]
                      + halves('zzig-lookrts', 'zzig-a1g')),
          argv=['zzig'],

@@ -906,12 +906,13 @@ and $OTHER $("./$R-$OTHER" +RTS --info 2>/dev/null \
 -- the FIRST column of size -A, the second being the load address"
   printf '  %-16s %s\n' "md5 $BASIS" "$(md5sum "./$R-$BASIS" | cut -d' ' -f1)"
   printf '  %-16s %s\n' "md5 $OTHER" "$(md5sum "./$R-$OTHER" | cut -d' ' -f1)"
-  # WHERE THE HALVES LAUNCH FROM, since 2026-09-16: half-bin.sh's answer,
-  # the tmpfs copy under hugebin/ where that is mounted and the on-disk
-  # file where it is not. A real pair wants the mount (README, the
-  # placement section: a code page's physical frame is a placement term,
-  # and the tmpfs makes it the layout's); this row is where a note shows
-  # which it got, and a row reading `./` on a real pair is the finding.
+  # WHERE THE HALVES LAUNCH FROM: half-bin.sh's answer, the on-disk file
+  # while hugebin/ is suspended and the tmpfs copy on a run that raised
+  # the mount. SUSPENDED 2026-09-19, the mount having failed to come up at
+  # a reboot (README, the pre-run list's step 2), which REVERSES what this
+  # row is read for: `./` is now the expected reading and `hugebin/` is
+  # what wants a sentence in the note, where from Run 34 to Run 36 it was
+  # the other way about. The row reports and does not judge either way.
   printf '  %-16s %s\n' 'launch' \
     "$BASIS from $(./half-bin.sh "$R" "$BASIS" 2>/dev/null || echo '(refused)'), \
 $OTHER from $(./half-bin.sh "$R" "$OTHER" 2>/dev/null || echo '(refused)'); \

@@ -742,15 +742,17 @@ rather than a slot in the next run, observed again:
   is filled in from it. Run 37's registration is the first written to the ruling
   and Run 36's section the first amended to it.
 - `OPEN` **What Run 37 is built to answer, registered before it runs.** The pair
-  is Run 36's, EXACTLY, ruled by the owner 2026-09-19, and THIS ENTRY IS ITS ONE
-  DECLARATION SITE by the ruling of the same day recorded in the entry above:
-  both halves GHC HEAD `10.1.20260918` through `cabal.project.ghead` at plain
-  `-O1` in the dead-spot form under the exit span, one source (`Main.hs`
-  at `0eda736`), one shim (`align-as.py` at `f31bd1c`) under the four switches,
-  one roster, one shape set and one launch from `hugebin/`, and the control
-  half's command line carrying `-fspec-constr -fliberate-case` besides, nothing
-  else differing, so `--compare` reads the unflagged basis over the flagged
-  control as Run 36's did; [Run 36's *What the next run compares
+  is Run 36's IN ITS VARIABLE, ruled by the owner 2026-09-19 --- not in every
+  input, three of which moved after this entry was written and are amended
+  into it at the foot --- and THIS ENTRY IS ITS ONE DECLARATION SITE
+  by the ruling of the same day recorded in the entry above: both halves GHC
+  HEAD `10.1.20260918` through `cabal.project.ghead` at plain `-O1`
+  in the dead-spot form under the exit span, one source (`Main.hs`
+  at `05cfe93`), one shim (`align-as.py` at `f31bd1c`) under the four switches,
+  one roster, one shape set and one launch FROM DISK, and the control half's
+  command line carrying `-fspec-constr -fliberate-case` besides, nothing else
+  differing, so `--compare` reads the unflagged basis over the flagged control
+  as Run 36's did; [Run 36's *What the next run compares
   against*](runs/run36.md#what-the-next-run-compares-against) names this entry
   and restates nothing. The recipes, the half names being the preparation's
   to hold to the tag grammar: `run37-gheadnospec` is, from this directory,
@@ -794,9 +796,37 @@ rather than a slot in the next run, observed again:
   `probe-r34-instance2.sh`'s form, on the quiet box before the gate. A fresh
   draw slow again says the term is the bytes' layout and not the draw; a level
   pair says the 17th's instance was one slow draw, which is what the placement
-  section holds. What the run predicts, item by item with a `predict:` span
-  apiece, is the preparation's to add here before it runs; the two reboot
-  readings above become its items, and none is registered yet.
+  section holds. **THREE INPUTS MOVED AFTER THIS ENTRY WAS COMMITTED
+  at `7650b6b` (18:29), and the preparation of that evening amended
+  the declaration above rather than leave them to be discovered.** THE SOURCE:
+  `Main.hs` went `0eda736` to `05cfe93` in three of the owner's own commits,
+  of which `2973582` retires stage ten's two consumers and stage eleven's
+  to Only --- named there and not here, this entry being held to the TIMED
+  roster --- and `05cfe93` adds three Storable-table twins, also Only ---
+  so `roster-delta.py` reads 665 to 608 benches and 35 to 32 timed arms, three
+  out and none in, with the 19 shapes and all 61 class views unmoved,
+  and a cross-run reading against Run 36 is over the 32 survivors. THE LAUNCH:
+  `hugebin/` was suspended the same evening, having failed to come up
+  at the reboot, so both halves launch from disk and the placement term
+  the mount removed is back in both --- a term on a Run 36 comparison
+  and on neither of this run's own two columns. THE PROJECT FILE was already
+  declared new above, and what it RESOLVES is unchanged for every measured
+  package, criterion 1.6.5.0 and vector 0.13.2.0 with `boundschecks` on, read
+  off the build plan rather than off the file. **And the two reboot readings
+  are no longer symmetrical, which is the owner's to rule before either becomes
+  an item.** The box was rebooted at 23:04 and the counters answered the first
+  question at once: `pages_collapsed` 18951 to 0 and `ShmemHugePages` 290816 kB
+  to 0, while `FileHugePages` read 63488 kB on both sides of the boot
+  and so carries no signal about it. The second has its BEFORE side taken
+  and its after side out of reach: `probe-r34-instance2.sh` on the quiet box put
+  `hugebin/run34-exit` at a median 1.0419 of a fresh copy
+  on `scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u1`, a third reading after
+  1.075 and 1.10, with both instances equally PMD-mapped at 16384 kB ---
+  so the gap is which frames each drew and not whether either got folios ---
+  while the after side wants the mount raised, which the suspension makes
+  an emergency rather than this run's default. What the run predicts, item
+  by item with a `predict:` span apiece, is the preparation's to add here before
+  it runs, and none is registered yet.
 - `ANSWERED` **What Run 36 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 36's own
@@ -7673,31 +7703,30 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      prose and says only afterwards that a table was withheld, which
     #      is the section paid for twice. It is a STEP and a session's to
     #      run, and the note is the part written by hand.
-    #      THE HALVES LAUNCH FROM hugebin/: a tmpfs mounted `huge=always`
-    #      under this directory, so that a code page sits at its layout's
-    #      offset in a 2 MiB frame and not at the page cache's 4 KiB
-    #      draw, which the placement section prices at 15 percent on one
-    #      arm of Run 33's basis. WHICH 2 MiB FRAME A COPY GETS IS STILL
-    #      A DRAW: two mounted copies of run34-exit parted by 7.5 percent
-    #      on one cell, and the slow one was still slow a day and a half
-    #      later, so the mount does not remove the term and the evening's
-    #      instance gate (16a) times each launch instance against a fresh
-    #      copy, swapping the copy in when the launch is the slow draw;
-    #      the mount must be WRITABLE for that (`mount -o remount,rw
-    #      hugebin`, root's), a read-only mount leaving the instance
-    #      UNTESTED as a complaint. Nothing here copies by hand:
-    #      every driver that spends the machine asks half-bin.sh for the
-    #      path, which refreshes the copy from the on-disk file by md5,
-    #      and the on-disk file stays the record the note provenances and
-    #      this list offers for deletion. The mount is root's, once, the
-    #      fstab line in half-bin.sh's header; a session started before
-    #      the mount sees it from an unsandboxed call and not from a
-    #      sandboxed one, and a session started after sees it from both,
-    #      so a `mountpoint -q hugebin` that says NOT mounted wants the
-    #      unsandboxed reading before it is believed. The note's `launch`
-    #      row, which preflight fills, says which instance each half got,
-    #      and a real pair whose row reads `./` launched from disk with
-    #      its frames drawn.
+    #      THE HALVES LAUNCH FROM DISK, `./$R-<half>`, hugebin/ BEING
+    #      SUSPENDED -- ruled 2026-09-19, the mount having failed to come
+    #      up at that day's reboot: its unit runs before /home is
+    #      unlocked and exits 32, `mount point does not exist` with
+    #      `Required key not available` under it, so the directory is
+    #      there only once someone has logged in, and a facility wanting
+    #      a root command every boot is not one a run may depend on.
+    #      WHAT IT COSTS, stated here so no run re-derives it: a code
+    #      page sits at the page cache's 4 KiB draw and not at its
+    #      layout's offset in a 2 MiB frame, which the placement section
+    #      prices at 15 percent on one arm of Run 33's basis. That term
+    #      is back in BOTH halves, so it bears on cross-run absolutes and
+    #      not on a pair's own two columns.
+    #      NO SCRIPT CHANGED AND NONE NEEDED TO -- half-bin.sh prints the
+    #      on-disk path with no mount, preflight's `launch` row reports
+    #      whichever it got, instance-gate.sh exits 0 -- so A ROW READING
+    #      `./` IS THE EXPECTED READING, where from Run 34 to Run 36 it
+    #      was the finding, and `hugebin/` is now what wants a sentence.
+    #      THE MOUNT IS AN EMERGENCY MEASURE: a run whose question IS the
+    #      placement term raises it by hand (`mkdir -p hugebin && sudo
+    #      mount hugebin`, root's, the fstab line in half-bin.sh's
+    #      header), says in its note that it did and on whose word, and
+    #      takes 16a with it, the mount WRITABLE or 16a leaves the
+    #      instance UNTESTED. Every other run leaves it unmounted.
     #      There is no builder, every pair being two shims typed out, so
     #      write the note FIRST, from pair-note-template.txt -- its
     #      recipes come from the registration, the one place that
@@ -8435,11 +8464,16 @@ Unsandboxed throughout:
     #      session older than the setting stops here and not hours in
     #      why: --para 'whose first item is the harness'
     #      It runs the gate
-    #      (14), the alarm (16), the instance gate (16a: each half's
-    #      launch instance against a fresh copy on one cell, the copy
-    #      swapped in when the launch is the slow draw and the slow one
-    #      parked as hugebin/$R-<half>.slow, which post-run step 11's
-    #      deletion offer covers with the rest
+    #      (14), the alarm (16), the instance gate (16a: SUSPENDED WITH
+    #      hugebin/ since 2026-09-19 and skipping itself, there being no
+    #      instance to gate when the halves launch from disk --
+    #      instance-gate.sh says exactly that and exits 0, so the stage
+    #      still runs and costs nothing. Where a run raises the mount as
+    #      the emergency step 2 describes, this is each half's launch
+    #      instance against a fresh copy on one cell, the copy swapped in
+    #      when the launch is the slow draw and the slow one parked as
+    #      hugebin/$R-<half>.slow, which post-run step 11's deletion
+    #      offer covers with the rest
     #      why: --para 'the gate that now runs at every launch'),
     #      the sequence (17) and the riders (19),
     #      in that order, under the environment the note's LAUNCH: line
@@ -8533,8 +8567,9 @@ Unsandboxed throughout:
     #  17. THE SEQUENCE, its third stage: run-major.sh, many processes,
     #      several hours, its complaints recorded and not fatal. Each
     #      process's `start` line in the wallclock log names the instance
-    #      it launched, `from hugebin/$R-<half>` on a real pair; read it
-    #      back rather than assuming the mount held. NOTHING
+    #      it launched, `from ./$R-<half>` while hugebin/ is suspended and
+    #      `from hugebin/$R-<half>` on a run that raised it; read it back
+    #      rather than assuming either. NOTHING
     #      ELSE ON THE MACHINE, AND NO EDIT TO THE TREE, until the evening
     #      ends: the driver's git lines are the binary's provenance. Never
     #      raise -L on a recorded run. A process far slower than its
@@ -10214,9 +10249,10 @@ not otherwise.
     #        tool is absent only when `command -v NAME` says so -- one
     #        failed spelling of one route is not that
     #  11. offer the artifacts for deletion -- the JSONs, the logs, the
-    #      wall-clock file, and for a pair both binaries, their copies on
-    #      hugebin/ with any `.slow` the instance gate parked beside them,
-    #      and $R-pair.txt --
+    #      wall-clock file, and for a pair both binaries, $R-pair.txt, and
+    #      on a run that raised the mount their copies on hugebin/ with any
+    #      `.slow` the instance gate parked beside them, which a suspended
+    #      run has none of, the tmpfs emptying itself at the next reboot --
     #      once, after step 7 is done AND presented, saying what keeping
     #      them buys. Offering is the step; deleting is not
     #      why: --para 'Only then, offer the artifacts'
@@ -13368,17 +13404,24 @@ on the two hot lines, and read fast. Those pages are still mapped 4 KiB
 at a time, `FilePmdMapped` 0, so the TLB sees what it saw; what changes
 is that a collision, if one lands, recurs on every launch and rebuild
 with that layout, readable with the probes and movable by the shim, where today
-it is drawn afresh per file instance. Adopted 2026-09-16: `hugebin/` is such
-a mount, every driver that spends the machine launches a half through
-`half-bin.sh` from its copy there, and the note's `launch` row says which
-instance each half got. On the one cell timed, HEAD's slow original read 245k
-to 250k cycles an iteration against its mounted copy's 230k to 231k, the copy
-reading as the fresh instances had. `probe-pageflags.py` on the mounted copy
-reads both hot lines in one 2 MiB compound page at `0x400000`, `THP`
-in the flags, physical equal to virtual modulo 2 MiB and the L2 sets `0x141`
-and `0x292` the virtual ones --- mapped by 4 KiB entries still, `FilePmdMapped`
-0, so the TLB sees what it saw. **Run 34 is the first pair launched from it,
-and the term survives the mount.**
+it is drawn afresh per file instance. Adopted 2026-09-16 and SUSPENDED
+2026-09-19: `hugebin/` is such a mount, and every driver that spends the machine
+still asks `half-bin.sh` for its path --- but the mount does not survive
+a reboot, its unit running before `/home` is unlocked and exiting 32,
+so the owner ruled it an emergency measure rather than the normal path
+and `half-bin.sh` now answers with the on-disk file. The note's `launch` row
+still says which instance each half got, and `./` is what it reads
+on an ordinary run; the run chapter's pre-run step 2 carries the ruling and what
+it costs, and step 16a is suspended with it. So the 4 KiB draw below is what
+a run takes today, and the figures in this section are what raising the mount
+by hand buys a run whose question IS the placement term. On the one cell timed,
+HEAD's slow original read 245k to 250k cycles an iteration against its mounted
+copy's 230k to 231k, the copy reading as the fresh instances had.
+`probe-pageflags.py` on the mounted copy reads both hot lines in one 2 MiB
+compound page at `0x400000`, `THP` in the flags, physical equal to virtual
+modulo 2 MiB and the L2 sets `0x141` and `0x292` the virtual ones --- mapped
+by 4 KiB entries still, `FilePmdMapped` 0, so the TLB sees what it saw. **Run 34
+is the first pair launched from it, and the term survives the mount.**
 On `scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u1`, the cell carrying
 that run's one basis-half mover against Run 32, the evening's mounted instance
 `hugebin/run34-exit` reads a median 1.075 of a second mounted copy's cycles

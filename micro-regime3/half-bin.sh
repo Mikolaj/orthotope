@@ -1,24 +1,34 @@
 #!/usr/bin/env bash
-# Where a half is LAUNCHED from, since 2026-09-16: its byte-identical copy
-# in hugebin/, a tmpfs mounted `huge=always` under this directory, so that
-# a code page sits at its layout's offset in a 2 MiB frame and not in the
-# 4 KiB frame the page cache drew when the on-disk file was first read --
-# README's placement section prices that draw at 15 percent on one arm of
-# Run 33's basis and 11 on one of its control. Which 2 MiB frame a copy
-# gets is still a draw: two mounted copies of run34-exit parted by 7.5
-# percent on one cell. The on-disk file stays the record: it is what the
-# note provenances, what preflight reads, and what is offered for deletion;
-# the copy is refreshed here whenever its md5 parts from the record's.
+# Where a half is LAUNCHED from: the on-disk file, hugebin/ BEING SUSPENDED
+# since 2026-09-19. That mount -- a tmpfs `huge=always` under this directory
+# -- held a code page at its layout's offset in a 2 MiB frame rather than in
+# the 4 KiB frame the page cache drew when the on-disk file was first read,
+# which README's placement section prices at 15 percent on one arm of Run
+# 33's basis and 11 on one of its control. It was suspended because it does
+# not come up at boot: its unit runs before /home is unlocked and exits 32,
+# so it wants a root command every boot and a run may not depend on one.
+# SO THE 4 KiB DRAW IS BACK, in both halves of a pair alike, and it bears on
+# cross-run absolutes rather than on a pair's own two columns.
+# THE MOUNT IS NOW AN EMERGENCY MEASURE, for a run whose question IS the
+# placement term; the recipe below still stands for one. Which 2 MiB frame a
+# copy gets was never settled anyway: two mounted copies of run34-exit parted
+# by 7.5 percent on one cell, and a third reading on 2026-09-19 put the same
+# instance 4.19 percent over a fresh copy, so the mount narrowed the term
+# without removing it. The on-disk file is the record either way: it is what
+# the note provenances, what preflight reads, and what is offered for
+# deletion; a copy, where one is made, is refreshed here whenever its md5
+# parts from the record's.
 #
 #     B=$(./half-bin.sh RUN HALF) || exit 2
 #
 # Prints the path to launch. Refuses, exit 2, when the on-disk half is not
 # here or not executable. With NO mount at hugebin/ it prints the on-disk
-# path and says so
-# on stderr, which is the corpus's stub halves and a box without the
-# mount -- a real pair is held to the mount by preflight's `launch` row
-# and the run list, not here, since a refusal here would make every
-# driver case want a mount. The mount, once, in /etc/fstab:
+# path and says so on stderr, which since the suspension is the ordinary
+# case rather than the corpus's stub halves alone. NOTHING HOLDS A PAIR TO
+# THE MOUNT ANY MORE: preflight's `launch` row and the run list did until
+# 2026-09-19 and now only report which path was taken, so no refusal here
+# was needed to lift it and none was added -- this script is unchanged
+# below its header. The mount, for a run that wants it, once in /etc/fstab:
 #
 #   tmpfs  /home/mikolaj/r/orthotope/micro-regime3/hugebin  tmpfs  size=1g,huge=always,mode=0755,uid=1000,gid=1000  0  0
 #
