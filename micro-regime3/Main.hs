@@ -3226,12 +3226,16 @@ mkStrided normalSh =
 -- take the fill) leaves @check@ green, the fill being correct there --
 -- which is why the runs class prices it rather than a check; slicing
 -- from @o + 1@ fails @check@ at @runs-2@.
+-- Non-vacuity, 2026-09-21: dropping the @l == 0@ guard, which master's
+-- list fallback did not need, fails @check@ at @degenerate-m0@ on the
+-- fills' assertion.
 {-# NOINLINE fbLibStage1 #-}
 fbLibStage1 :: ShapeL -> T -> VS.Vector Double
 fbLibStage1 sh (T (Strides ats) ao v)
   | ats == ts' && VS.length v == l = v
   | null sh = VS.slice ao 1 v
   | oks !! (length sh - 1) = VS.concat (loop oks sh ats ao)
+  | l == 0 = VS.empty
   | otherwise = fillStage2 sh ats ao l v
   where l : ts' = getStridesT sh
         oks = scanr (&&) True (zipWith (==) ats ts')
@@ -3402,8 +3406,9 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
 -- The fills take @l > 0@, asserted at each entry: a zero-stride level
 -- writes its run or block before reading the extent, so a zero extent
 -- there would write into an empty result. Every dispatch guards
--- @l == 0@ before calling one; 'edge-bcastmid-b0' is the view that
--- reaches the assertion through one that does not.
+-- @l == 0@ before calling one, the stage-1 ports since 2026-09-21; the
+-- degenerate and @edge-bcastmid-b0@ views are where @check@ fails when one
+-- does not.
 {-# NOINLINE fillStage2 #-}
 fillStage2 :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
            -> VS.Vector Double
@@ -5086,11 +5091,14 @@ lsUnordStage1 sh a@(T (Strides ats) ao v)
   where (ats', sh') = unzip (sortBy (flip compare) (zip ats sh))
         l : ts' = getStridesT sh'
 
+-- Non-vacuity, 2026-09-21: dropping the @l == 0@ guard fails @check@ at
+-- @degenerate-m0@ on the fills' assertion.
 lsListStage1 :: ShapeL -> T -> [VS.Vector Double]
 lsListStage1 sh (T (Strides ats) ao v)
   | ats == ts' && VS.length v == l = [v]
   | null sh = [VS.slice ao 1 v]
   | oks !! (length sh - 1) = loop oks sh ats ao
+  | l == 0 = [VS.empty]
   | otherwise = [fillStage2 sh ats ao l v]
   where l : ts' = getStridesT sh
         oks = scanr (&&) True (zipWith (==) ats ts')
@@ -5858,6 +5866,10 @@ retiredShapesKnown = all (`elem` map fst allShapes) retiredShapes
 --     zero: every magic-precomputing strategy binds its magic strictly, so
 --     @l == 0@ spares none of them. 'fbFused''s @max 1 s@ run count is the
 --     same story with a different guard.
+--
+-- The first is also where the stage-1 dispatches' @l == 0@ guards fail
+-- when dropped, on the fills' assertion (2026-09-21): @check@ reaches it
+-- before the edge class's extent-0 views, which are those guards' own test.
 --
 -- Rank 1 and below cannot serve: @[]@, @[100000]@ and @[0]@ are all regime 1,
 -- there being no second dimension to transpose against.
