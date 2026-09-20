@@ -745,10 +745,10 @@ rather than a slot in the next run, observed again:
   and Run 36's section the first amended to it.
 - `ANSWERED` **An arm parts 3.70 points across the halves and it is one half's
   BINARY OR ITS FILE INSTANCE, which only the half-local reading can say ---
-  and it is the binary, taken 2026-09-20.** On Run 37
-  `mut-odo-vecdims-add-in-leaf-u1` reads **0.9630** on the main set against
-  a 0.51% A/A bar --- the one arm outside the `list` and `bq-expand` families
-  to break [its
+  and it is the INSTANCE, taken 2026-09-20 in two passes, the first of which
+  answered wrong.** On Run 37 `mut-odo-vecdims-add-in-leaf-u1` reads **0.9630**
+  on the main set against a 0.51% A/A bar --- the one arm outside the `list`
+  and `bq-expand` families to break [its
   registration's](runs/run37.md#what-this-run-was-built-to-answer-and-what-it-answered)
   3% band --- and it is the low extreme in NINE of the ten classes besides, down
   to **0.7053** on `bcast`. Its counted work is level with its family, 1.0501
@@ -762,22 +762,27 @@ rather than a slot in the next run, observed again:
   with the counted work at **1.0000** on both halves in every one of the eleven.
   So this run's control binary is slower on that arm than Run 36's control
   binary was, executing the same instructions to the fourth decimal. [Run 37's
-  Results](runs/run37.md#results) carries the reading, and step 4a's copy test
-  was taken on 2026-09-20 on a quiet box: a fresh disk copy beside the cached
-  launch instance, eight readings a side, reads the instance over the copy
-  at 1.001 on the scaled cell, 1.004 on `alexnet-L1-55-c3-k11` and 1.014
-  on `bcast-tall-Mx2`, the two cells that moved most, and the instance
-  is the one that ran, its hot-page frames unchanged between the morning
-  and evening root reads (`probe-chain-0920.sh`, `log-chain-0920.txt`,
-  `log-frames-0920.txt`). A third reading of the main set on both binaries
-  the same evening, from disk as the run
-  was (`probe-third-run37-gheadnospec-main.json` and its control twin), repeats
-  the arm at **0.9598** with the same three lowest cells, `alexnet-L1-55-c3-k11`
-  at 0.7846 first, each half within 0.7 points of its own main set on every
-  timed arm. A term that survives a fresh copy and a second process
-  is the control binary's layout, three source commits from Run 36's control;
-  which commit is unread, and Run 36's control instance, the other candidate,
-  died with the reboot.
+  Results](runs/run37.md#results) carries the reading. **Taken 2026-09-20 in two
+  passes** (`probe-chain-0920.sh`, `probe-ab-0920.sh` and `probe-inst2-0920.sh`,
+  with `log-chain-0920.txt`, `log-ab-0920.txt` and `log-inst2-0920.txt` beside
+  them). The first read the cached launch instance level with ONE fresh disk
+  copy on the scaled cell, `alexnet-L1-55-c3-k11` and `bcast-tall-Mx2`,
+  and a third reading of the main set on both binaries repeated the arm
+  at **0.9598** with the same lowest cell, so it read as the control binary's
+  layout. The second refuted that: both controls through THREE fresh disk copies
+  apiece read Run 37's over Run 36's at 0.935 on `alexnet-L1-55-c3-k11`
+  and within 2.5 points of level on every other cell that measured, the two hot
+  loops byte-identical at the same offsets modulo 64, while Run 37's launch
+  instance against three fresh copies reads **1.139** on `alexnet-L1-55-c3-k11`
+  and 1.024 on the scaled cell. So the cause is the control's file instance,
+  a slow 4 KiB draw costing one cell 14% and another 2%, as Run 33's cost one
+  cell 15%; the third reading repeated the arm because it ran on that instance,
+  as the run had; and the first pass's one copy read level because it
+  was a second slow draw, both at 6.05M cycles an iteration where fresh copies
+  read 5.6M, the case `instance-gate.sh`'s header says two
+  of are indistinguishable, so a one-copy gate is blind one launch in ten. Run
+  36's control instance died with the reboot; the bytes say the two controls'
+  arms are level.
 - `ANSWERED` **What Run 37 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 37's own
