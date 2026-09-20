@@ -3399,10 +3399,15 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
 -- the reference on every view. The two zero-stride bodies say at their
 -- definitions what each buys, and the fills that keep older forms say
 -- so at theirs.
+-- The fills take @l > 0@, asserted at each entry: a zero-stride level
+-- writes its run or block before reading the extent, so a zero extent
+-- there would write into an empty result. Every dispatch guards
+-- @l == 0@ before calling one; 'edge-bcastmid-b0' is the view that
+-- reaches the assertion through one that does not.
 {-# NOINLINE fillStage2 #-}
 fillStage2 :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
            -> VS.Vector Double
-fillStage2 sh ats !ao !l !v = VS.create $ do
+fillStage2 sh ats !ao !l !v = assert (l > 0) $ VS.create $ do
   out <- VSM.unsafeNew l
   let {-# INLINE writeRunStep #-}
       writeRunStep !outPos !baseOff =
@@ -3515,7 +3520,7 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
 {-# NOINLINE fillStage2VSdims #-}
 fillStage2VSdims :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
            -> VS.Vector Double
-fillStage2VSdims sh ats !ao !l !v = VS.create $ do
+fillStage2VSdims sh ats !ao !l !v = assert (l > 0) $ VS.create $ do
   out <- VSM.unsafeNew l
   let {-# INLINE writeRunStep #-}
       writeRunStep !outPos !baseOff =
@@ -3619,7 +3624,7 @@ fillStage2VSdims sh ats !ao !l !v = VS.create $ do
 {-# NOINLINE fillStage2U1 #-}
 fillStage2U1 :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
            -> VS.Vector Double
-fillStage2U1 sh ats !ao !l !v = VS.create $ do
+fillStage2U1 sh ats !ao !l !v = assert (l > 0) $ VS.create $ do
   out <- VSM.unsafeNew l
   let {-# INLINE writeRunStep #-}
       writeRunStep !outPos !baseOff =
@@ -3721,7 +3726,7 @@ fillStage2U1 sh ats !ao !l !v = VS.create $ do
 {-# NOINLINE fillStage2U4 #-}
 fillStage2U4 :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
              -> VS.Vector Double
-fillStage2U4 sh ats !ao !l !v = VS.create $ do
+fillStage2U4 sh ats !ao !l !v = assert (l > 0) $ VS.create $ do
   out <- VSM.unsafeNew l
   let {-# INLINE writeRunStep #-}
       writeRunStep !outPos !baseOff =
@@ -3831,7 +3836,7 @@ fillStage2U4 sh ats !ao !l !v = VS.create $ do
 {-# NOINLINE fillStage2Short #-}
 fillStage2Short :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
                 -> VS.Vector Double
-fillStage2Short sh ats !ao !l !v = VS.create $ do
+fillStage2Short sh ats !ao !l !v = assert (l > 0) $ VS.create $ do
   out <- VSM.unsafeNew l
   let {-# INLINE writeRunStep #-}
       writeRunStep !outPos !baseOff =
@@ -5931,10 +5936,16 @@ broadcastMidShapes =
 -- get wrong and no timed view has --- 2, one more than a power of two,
 -- and one more than the next. A copy stopping one block short passed
 -- @check@ on every timed view on 2026-09-09, the class's extents being
--- 4, 32, 89 and 200000; these are where it fails.
+-- 4, 32, 89 and 200000; these are where it fails. And 0, added 2026-09-21:
+-- a zero extent at the zero stride, where the 'fillStage2' fills would
+-- write a run or block into an empty result before reading the extent -- the
+-- horde-ad segfault of 2026-09-20 -- which their @l > 0@ assertion turns
+-- into a failure of @check@ at any dispatch that does not guard it.
 edgeMidShapes :: [(String, Int, ShapeL)]
 edgeMidShapes =
-  [ ("edge-bcastmid-b2", 2, [3, 3])  -- 18, one copy
+  [ ("edge-bcastmid-b0", 0, [3, 3])  -- 0, a zero extent at the zero stride
+  , ("edge-bcastmid-b0-deep", 0, [2, 3, 3])  -- 0, the zero stride one level up
+  , ("edge-bcastmid-b2", 2, [3, 3])  -- 18, one copy
   , ("edge-bcastmid-b3", 3, [3, 3])  -- 27, the clipped last pass
   , ("edge-bcastmid-b5", 5, [3, 3])  -- 45, a doubling then the clipped pass
   ]
