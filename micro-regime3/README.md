@@ -8670,6 +8670,13 @@ Unsandboxed throughout:
     ./run-counts-all.sh $R                # 20, IN THE SAME TURN, in the
     #      harness's background mode again, as at 14: a typed `&` would
     #      detach and wake nobody
+    #      AND IT ANNOUNCES ITSELF THREE WAYS, so nothing between them
+    #      is worth a tool call: `counted work begins` and EVENING
+    #      COMPLETE both pass the stage tail's filter, which drops only
+    #      a per-leg `: start` or `: done, rc=0`, and the harness
+    #      reports the backgrounded task's own exit besides. Run 37
+    #      polled `ls $R-counts-*.txt` eight times between them and
+    #      learned nothing the three had not already said (2026-09-20)
     #  20. THE COUNTS, THE SECOND COMMAND: run-counts-all.sh, which is
     #      run-counts.sh over EVERY population, the main set and each
     #      class, control then basis apiece, a
