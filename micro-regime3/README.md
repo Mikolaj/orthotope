@@ -92,7 +92,7 @@ is the point of them, a ruling since having stopped this suite timing any arm
 that needs one ([what the benchmark does](#what-the-benchmark-does)).
 Of the trade-offs, allocation and the noise floor --- measured per run
 over the A/A pairs of each half, and quoted with its carrying pair in [the floor
-section][floor], which owns it --- are in [Results](runs/run36.md#results), each
+section][floor], which owns it --- are in [Results](runs/run37.md#results), each
 arm's precondition is at its entry in `Main.hs`'s roster, and the division sites
 are in [the Lemire
 section](#lemire-multiplicative-inverses-at-the-two-division-sites).
@@ -417,7 +417,7 @@ the chronology of how the instructions got here.
   proposal](#the-two-stage-plan-and-the-rework-proposal)
 - [What is settled, and where](#what-is-settled-and-where)
 - [What is open](#what-is-open)
-  - [Recommended tasks after Run 36](#recommended-tasks-after-run-36)
+  - [Recommended tasks after Run 37](#recommended-tasks-after-run-37)
   - [Non-urgent TODO list](#non-urgent-todo-list)
 - [The goal of these benchmarks](#the-goal-of-these-benchmarks)
   - [How the strictly positive picture
@@ -451,17 +451,17 @@ the chronology of how the instructions got here.
     detector](#r2-is-the-ramp-detector-not-the-noise-detector)
   - [sum-only, and the correction now
     applied](#sum-only-and-the-correction-now-applied)
-- [Run 36](runs/run36.md)
-  - [Results](runs/run36.md#results)
+- [Run 37](runs/run37.md)
+  - [Results](runs/run37.md#results)
   - [What the next run compares
-    against](runs/run36.md#what-the-next-run-compares-against)
+    against](runs/run37.md#what-the-next-run-compares-against)
   - [The properties the next run should
-    test](runs/run36.md#the-properties-the-next-run-should-test)
+    test](runs/run37.md#the-properties-the-next-run-should-test)
   - [The stride classes, run
-    by run](runs/run36.md#the-stride-classes-run-by-run)
-  - [Provenance](runs/run36.md#provenance)
+    by run](runs/run37.md#the-stride-classes-run-by-run)
+  - [Provenance](runs/run37.md#provenance)
   - [What this run was built to answer, and what it
-    answered](runs/run36.md#what-this-run-was-built-to-answer-and-what-it-answered)
+    answered](runs/run37.md#what-this-run-was-built-to-answer-and-what-it-answered)
 - [Provenance](#provenance), README's own
 
 
@@ -741,165 +741,29 @@ rather than a slot in the next run, observed again:
   it as `[registered <date>][open]` and restates nothing, and the pair note
   is filled in from it. Run 37's registration is the first written to the ruling
   and Run 36's section the first amended to it.
-- `OPEN` **What Run 37 is built to answer, registered before it runs.** The pair
-  is Run 36's IN ITS VARIABLE, ruled by the owner 2026-09-19 --- not in every
-  input, three of which moved after this entry was written and are amended
-  into it at the foot --- and THIS ENTRY IS ITS ONE DECLARATION SITE
-  by the ruling of the same day recorded in the entry above: both halves GHC
-  HEAD `10.1.20260918` through `cabal.project.ghead` at plain `-O1`
-  in the dead-spot form under the exit span, one source (`Main.hs`
-  at `05cfe93`), one shim (`align-as.py` at `f31bd1c`) under the four switches,
-  one roster, one shape set and one launch FROM DISK, and the control half's
-  command line carrying `-fspec-constr -fliberate-case` besides, nothing else
-  differing, so `--compare` reads the unflagged basis over the flagged control
-  as Run 36's did; [Run 36's *What the next run compares
-  against*](runs/run36.md#what-the-next-run-compares-against) names this entry
-  and restates nothing. The recipes, the half names being the preparation's
-  to hold to the tag grammar: `run37-gheadnospec` is, from this directory,
-  `LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1 LOOP_DEADSPOT=1 LOOP_EXITSPAN=1 cabal build micro --project-file=cabal.project.ghead --builddir=db-r37a --ghc-options="-fobject-determinism" --ghc-options="-pgma $PWD/align-as.py -fforce-recomp"`,
-  then
-  `cp $(cabal list-bin micro --project-file=cabal.project.ghead --builddir=db-r37a) run37-gheadnospec`
-  and `rm -rf db-r37a`; `run37-gheadtwopass` is the same on the same source
-  with `--builddir=db-r37b`
-  and `--ghc-options="-fspec-constr -fliberate-case -fobject-determinism"`.
-  `LOOP_MAXSKIP` and `LOOP_LOOKTHROUGH` are inert under the dead-spot form
-  and stay on both lines so that the lines differ in the regime flags alone;
-  `LOOP_ENTRIES`, `LOOP_BLOCKRULES`, `LOOP_PIN` and `LOOP_TRACE` are unset
-  on both. Every build wants `-fforce-recomp` and a fresh `--builddir`,
-  the switches being an environment change cabal does not see; every driver
-  still asks `half-bin.sh` for its half, which hands back the on-disk path while
-  the mount is suspended; and under the exit span `loop-offsets.py --survey`
-  reads 0 exit spans astride off a timed binary, so the preparation's legs 10a
-  and 10b stop on anything else. **The PROJECT FILE is new as well**:
-  `cabal.project.ghead` is since 2026-09-19 the minimum that compiles
-  on a current index, where Run 36 built through what is now
-  `cabal.project.ghead.2026-07-25`, and this run's arms against Run 36's
-  are expected inside the drift band. **What is new besides is the MACHINE: Run
-  37 runs on a rebooted box, ruled 2026-09-19, and the reboot is what two
-  of its readings are about.** [The placement section][floor] records ordinary
-  files coming to be held as 2 MiB folios between 2026-09-16 and 2026-09-18,
-  `pages_collapsed` from 0 to 13174 and `FileHugePages` to a quarter
-  of a gigabyte, and every huge-page reading so far is a hand probe's: the run
-  list's step 16a times each launch instance against a fresh copy and records
-  no frame, and which frame an instance got is `probe-pageflags.py`'s to read,
-  read so far by hand and after the fact, for Run 33's and Run 34's instances,
-  and at no run's gate. So, first, whether that huge-page state persists across
-  the reboot: the kernel's `pages_collapsed`, `FileHugePages`
-  and `ShmemPmdMapped` read before the gate and again after the evening, beside
-  the instance gate's two readings, and the frames of both launch instances read
-  by `probe-pageflags.py`, as root, while the gate's process runs. Second,
-  whether the Run 34 basis that read slower than its own byte-identical copy
-  still does: `hugebin/run34-exit` read a median 1.075 of a fresh copy
-  on `scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u1` on 2026-09-17 and 1.10
-  on 2026-09-18, and `hugebin/` is a tmpfs, so the reboot destroys that INSTANCE
-  and keeps the on-disk `run34-exit`; what Run 37 reads is the same bytes
-  re-placed on the remounted `hugebin/` against a second copy,
-  `probe-r34-instance2.sh`'s form, on the quiet box before the gate. A fresh
-  draw slow again says the term is the bytes' layout and not the draw; a level
-  pair says the 17th's instance was one slow draw, which is what the placement
-  section holds. **THREE INPUTS MOVED AFTER THIS ENTRY WAS COMMITTED
-  at `7650b6b` (18:29), and the preparation of that evening amended
-  the declaration above rather than leave them to be discovered.** THE SOURCE:
-  `Main.hs` went `0eda736` to `05cfe93` in three of the owner's own commits,
-  of which `2973582` retires stage ten's two consumers and stage eleven's
-  to Only --- named there and not here, this entry being held to the TIMED
-  roster --- and `05cfe93` adds three Storable-table twins, also Only ---
-  so `roster-delta.py` reads 665 to 608 benches and 35 to 32 timed arms, three
-  out and none in, with the 19 shapes and all 61 class views unmoved,
-  and a cross-run reading against Run 36 is over the 32 survivors. THE LAUNCH:
-  `hugebin/` was suspended the same evening, having failed to come up
-  at the reboot, so both halves launch from disk and the placement term
-  the mount removed is back in both --- a term on a Run 36 comparison
-  and on neither of this run's own two columns. THE PROJECT FILE was already
-  declared new above, and what it RESOLVES is unchanged at every version
-  the dropped pins had named --- criterion 1.6.5.0, vector 0.13.2.0
-  with `boundschecks` True and `unsafechecks` False, base 4.23.0.0 and hashable
-  1.5.0.0, with ghc-prim 0.14.0 beside them --- read off the build's own
-  `plan.json` and not off the file. That is the set the old file constrained
-  and so the set a dropped constraint could have moved; it is not a survey
-  of every package the binary links, which nothing here has taken. The one
-  package the new file's header names as moving, aeson 2.3.2.0 against 2.2.5.0,
-  is criterion's JSON writer and reaches no timed code. **And the two reboot
-  readings are no longer symmetrical, which is the owner's to rule before either
-  becomes an item.** The box was rebooted at 23:04 and the counters answered
-  the first question at once: `pages_collapsed` 18951 to 0 and `ShmemHugePages`
-  290816 kB to 0, while `FileHugePages` read 63488 kB on both sides of the boot
-  and so carries no signal about it. The second has its BEFORE side taken
-  and its after side out of reach: `probe-r34-instance2.sh` on the quiet box put
-  `hugebin/run34-exit` at a median 1.0419 of a fresh copy
-  on `scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u1`, a third reading after
-  1.075 and 1.10, with both instances equally PMD-mapped at 16384 kB ---
-  so the gap is which frames each drew and not whether either got folios ---
-  while the after side wants the mount raised, which the suspension makes
-  an emergency rather than this run's default --- **and the owner ruled
-  on 2026-09-20 that this is not emergency enough, so Run 37 raises nothing
-  and the after side is not taken.** What that costs is not recoverable
-  and is worth saying once: `hugebin/` is a tmpfs, so the instance
-  those readings were taken of died with the reboot, and 1.075, 1.10 and 1.0419
-  are the whole of what will ever be known about it. The [frame-draw
-  entry][open] keeps the answer it has --- that one instance held its sign
-  over two and a half days while its magnitude halved --- and loses the instance
-  that could have extended it. A later run wanting more raises the mount
-  and draws a fresh one, which is a new series and not a continuation of this.
-  **What the run predicts, registered 2026-09-20 before it runs. EVERY FIGURE
-  BELOW COMES FROM RUN 36'S OWN READING OF THIS SAME PAIR**, re-derived
-  from its JSONs with `--predictions` and not quoted from its prose. In items
-  (1), (2) and (4) that figure is the TARGET; in item (3) the target is 1.0,
-  which is a null and nobody's reading, and what Run 36 supplies there
-  is the BAND, off the spread its ten arms actually read. Run 36 drew four
-  of its own bands off Run 31's `-O2` level instead and lost them together,
-  which is what this is written to avoid. (1) *The two passes are worth
-  on `list` what they were worth on Run 36, across a rebooted box and a moved
-  source.* `predict: cross list 1.3360 within 3% on main basis`, and
-  over the eighteen shapes left when this run's wild cell is set aside,
-  `predict: cross list 1.3129 within 2% on main basis excluding stretch-coprime-r7`.
-  Run 36's basis floor is 1.63%, so 2% is that floor and a third of a point,
-  and 3% adds beside it the 2.31 points one wild cell moved the whole-set figure
-  on Run 36. THE NARROW SPAN IS THE ONE THAT DECIDES: if the wild cell does
-  not recur the whole-set reading lands near 1.3129 and the wide span holds
-  either way, so the wide span alone would say nothing. (2) *`bq-expand` repeats
-  as well, on the arm where three accounts already agreed to a quarter
-  of a point.* `predict: cross bq-expand 1.2980 within 1.5% on main basis`.
-  A reading outside is the first sign that something other than the two passes
-  moved between the runs --- the source, the launch from disk, or the box. (3)
-  *No arm outside the two families joins them on a second reading.*
-  `predict: cross mut-odo-vecdims 1.0 within 3% on main basis`,
-  `predict: cross mut-odo-vecdims-aa 1.0 within 3% on main basis`,
-  `predict: cross mut-odo-vecdims-aa-distant 1.0 within 3% on main basis`,
-  `predict: cross mut-odo-vecdims-add-in-leaf-u1 1.0 within 3% on main basis`,
-  `predict: cross mut-odo-vecdims-add-in-leaf-u2 1.0 within 3% on main basis`,
-  `predict: cross mut-odo-vecdims-add-in-leaf-u2-aa 1.0 within 3% on main basis`,
-  `predict: cross mut-odo-vecdims-add-in-leaf-u2-aa-distant 1.0 within 3% on main basis`,
-  `predict: cross lib-stage1 1.0 within 3% on main basis`,
-  `predict: cross lib-stage2-lean 1.0 within 3% on main basis`,
-  `predict: cross lib-stage2-lean-u1 1.0 within 3% on main basis`. THESE TEN
-  ARE ONE CLAIM READ TEN WAYS and a single miss is one arm joining the families
-  rather than ten results, which is the tally Run 36's own write-up had
-  to disentangle. The band is set on Run 36's measured spread over these same
-  ten, 0.9920 to 1.0119: 3% is its widest (1.19 points) with the 1.63% floor
-  beside it. (4) *The counted work parts on the arms the clock parts on,
-  and it repeats more tightly than the clock does.*
-  `predict: counts list 1.2926 within 1.5% on main basis`,
-  `predict: counts bq-expand 1.5063 within 2% on main basis`,
-  `predict: counts mut-odo-vecdims 1.0383 within 1% on main basis`,
-  `predict: counts lib-stage2-lean 1.0522 within 1% on main basis`.
-  THESE ARE NOT DOWNSTREAM OF (1), and Run 36 is the evidence: its two null
-  counts spans, drawn from Run 31 and read across a compiler change, landed 0.03
-  and 0.06 of a point off, while its two family counts spans, from the same
-  prior, missed by 1.94 and 6.40. So counts carry across runs where times need
-  not, and the bands here are tight where that history says they can be and wide
-  where it says they cannot. **The two reboot readings are NOT registered
-  as items and are the owner's to rule**, for the reason the paragraph above
-  gives: the first is already answered by the counters, before the run rather
-  than by it, and the second wants a mount the same day's ruling suspended.
+- `ANSWERED` **What Run 37 was built to answer, registered before it ran ---
+  and what it answered.** The registrations, their kill conditions and their
+  verdicts are [in Run 37's own
+  file](runs/run37.md#what-this-run-was-built-to-answer-and-what-it-answered),
+  where a run's registrations have lived since 2026-08-29; in a clause each: (1)
+  the WIDE `list` span KILLED at 1.2960 against 1.3360 and the NARROW one HELD
+  at 1.2950 against 1.3129, which is Run 36's wild cell not recurring rather
+  than the passes moving, and is the outcome the item's own text called
+  decisive; (2) HELD on `bq-expand` at 1.3101 against 1.2980, so neither
+  the moved source, the launch from disk nor the reboot shows on that arm; (3)
+  the sentence HOLDS, no arm outside the two families joining them, while ONE
+  of its ten null spans is killed by `mut-odo-vecdims-add-in-leaf-u1` at 0.9630
+  moving the BASIS's way, which step 4a puts on the control half at counts level
+  and which is now an open entry of its own; (4) HELD on all four counts spans,
+  three of them at 0.00 points, which makes the counted work the one thing
+  this pair repeats exactly.
 - `ANSWERED` **What Run 36 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 36's own
-  file](runs/run36.md#what-this-run-was-built-to-answer-and-what-it-answered),
-  where a run's registrations have lived since 2026-08-29; in a clause each: (1)
-  KILLED on `list`, the two passes reading 1.3360 where the whole `-O2` level
-  read 1.2974 and the two single-pass runs compose to 1.3325, so the level's
-  other passes hand `list` back; (2) HELD on `bq-expand` at 1.2980, where both
+  verdicts are [in Run 36's own file](runs/run36.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: (1) KILLED
+  on `list`, the two passes reading 1.3360 where the whole `-O2` level read
+  1.2974 and the two single-pass runs compose to 1.3325, so the level's other
+  passes hand `list` back; (2) HELD on `bq-expand` at 1.2980, where both
   accounts agree, which is what makes (1) the composition question and
   not the compiler's; (3) the sentence HOLDS, no arm outside the two families
   joining them and the widest at 1.0119, while its two `list`-family spans die
@@ -1789,7 +1653,7 @@ rather than a slot in the next run, observed again:
   to the question is that the effect is not a level's**: two passes of `-O2`
   carry all of it, on exactly the arms whose time they move, and they break [the
   run file's property 3 LEVEL
-  clause](runs/run36.md#the-properties-the-next-run-should-test) in every one
+  clause](runs/run37.md#the-properties-the-next-run-should-test) in every one
   of eleven populations, as Run 31's whole level did and its registration (10)
   died on. Run 29's and Run 30's figures are over eighteen shapes and this run's
   over nineteen, so the two sets order the same way and do not subtract. What
@@ -2913,7 +2777,7 @@ rather than a slot in the next run, observed again:
      control, inside it rather than outside.
   3. **Winsorizing is a defence and not only an estimator choice.** It is what
      held `bq-expand`'s row to 0.103 with a 35% cell inside it. [The `time`
-     column](runs/run36.md#results) argues for it on estimator grounds ---
+     column](runs/run37.md#results) argues for it on estimator grounds ---
      bounded influence rather than deleted evidence --- and this is the second
      and larger reason to keep it.
   4. **It gives the per-shape caution its mechanism.** [The per-shape
@@ -3049,7 +2913,7 @@ rather than a slot in the next run, observed again:
   a dispersion belonging to the *worker* from one belonging to the *slot*
   is a run with the two arms' roster positions exchanged --- which asks
   for an aligned build, a form this README has moved past ([the tasks' closing
-  ruling](#recommended-tasks-after-run-36)).
+  ruling](#recommended-tasks-after-run-37)).
 - `OPEN` **A second instrument says different arms are unstable, and the two
   disagree --- which is the finding rather than something to average.**
   The entry above prices instability by the `CI%` column, which is sampling
@@ -3970,7 +3834,7 @@ rather than a slot in the next run, observed again:
   that run's tables.
 
 
-### Recommended tasks after Run 36
+### Recommended tasks after Run 37
 
 **What Run 36 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's first.** **TWO
@@ -4025,7 +3889,7 @@ never redirected and never piped --- the same reading a pipe destroys, measured
 again here when `--check-doc | head` reported `CHECKDOC_RC=0` on a failing gate.
 **A CHECK CAUGHT WHAT THE PROSE REWRITE LEFT BEHIND, twice.** `--check-doc`'s
 floor-pair agreement check named the one site still restating 0.64% and 0.40%
-after the floor paragraph itself had been rewritten to 1.63% and 0.53%,
+after the floor paragraph itself had been rewritten to Run 36's own pair,
 and its Results-half check named three `run35-gheadexit` tokens the rewritten
 Results had kept --- both of them classes of defect a reading of either
 paragraph alone passes over. **What no check caught is the wild cell**: nothing
@@ -4406,7 +4270,7 @@ codegen rather than that it cannot be built.
   recorded runs agree: the overlap *lifts* every ratio rather than lowering it,
   so the main set's pessimism about this case was about absolute cost, never
   about the fallback's standing against `list`. The window block in [The stride
-  classes, run by run](runs/run36.md#the-stride-classes-run-by-run) carries
+  classes, run by run](runs/run37.md#the-stride-classes-run-by-run) carries
   the figures.
 - `ANSWERED` **The roster order biases the table, and nothing corrects for it.**
   The warm-up drift above means a strategy's figure depends on its slot, `list`
@@ -5612,7 +5476,7 @@ anyway:
 Ordered by `sInner`, 1 at the top and half the length at the bottom, which
 is the axis the orderings turn on; the fuller per-shape record is in [What
 the next run compares
-against](runs/run36.md#what-the-next-run-compares-against).
+against](runs/run37.md#what-the-next-run-compares-against).
 
 **The fingerprint is a per-shape summary computed from the run alone, since
 2026-09-04.** Two tables under the run file's *What the next run compares
@@ -7213,8 +7077,8 @@ for a different reason: it describes the instrument rather than any result.
 Every generic instruction for making, reading and checking a run is here,
 and a session told to make one can work from this chapter alone --- but
 for the two layouts a write-up pastes into, which sit beside the figures they
-explain: the [Results](runs/run36.md#results) columns and the [per-class
-blocks](runs/run36.md#the-stride-classes-run-by-run). What is *not* here
+explain: the [Results](runs/run37.md#results) columns and the [per-class
+blocks](runs/run37.md#the-stride-classes-run-by-run). What is *not* here
 is anything a particular future run has to settle --- that is [What
 is open](#what-is-open), the chapter at the front, which is where everything
 that goes stale as soon as a run reports is now collected.
@@ -8590,21 +8454,27 @@ Unsandboxed throughout:
     #      on a line naming counts, and every stage line of the evening
     #      proper is untouched (2026-09-19).
     #      AND A TICK IS ANSWERED ONLY WHEN IT IS NEWS, ruled 2026-09-19.
-    #      A tick landing more than THIRTY MINUTES after the previous one,
-    #      or one that opens or closes a phase -- `evening begins`, the
-    #      gate's, the instance gate's and the sequence's `start` and
-    #      `done`, the riders' first `start` and RIDERS DONE, `counted
-    #      work begins` and EVENING COMPLETE -- and any line carrying a
-    #      COMPLAINT or a nonzero rc, gets a SHORT INFORMATIVE REPLY:
-    #      which phase or process the line opens or closes, its verdict,
-    #      how long it took and what runs next, with the tool call this
-    #      list asks for at that line where it asks for one. EVERY OTHER
-    #      TICK GETS NO REPLY AT ALL -- a process's `start` or `done`
-    #      inside the sequence under thirty minutes from the last tick, a
-    #      rider's own lines -- an acknowledgement being a turn end that
-    #      costs what the tick cost again. A reply with no tool call in
-    #      it IS a turn end, which is what the hold set at the first wait
-    #      is for (~/.claude/rules/turn-end-hold.md).
+    #      A tick landing more than THIRTY MINUTES after the previous
+    #      NON-TRIVIALLY ANSWERED tick (amended 2026-09-20: the clock
+    #      ran from the previous tick, under which a run of quiet ticks
+    #      never accumulates into a reply), or one that opens or closes
+    #      a phase -- `evening begins`, the gate's, the instance gate's
+    #      and the sequence's `start` and `done`, the riders' first
+    #      `start` and RIDERS DONE, `counted work begins` and EVENING
+    #      COMPLETE -- and any line carrying a COMPLAINT or a nonzero
+    #      rc, gets a SHORT INFORMATIVE REPLY: which phase or process
+    #      the line opens or closes, its verdict, how long it took and
+    #      what runs next, with the tool call this list asks for at that
+    #      line where it asks for one. EVERY OTHER TICK GETS THE
+    #      SMALLEST TEXT THAT CAN BE GENERATED, the empty string where
+    #      the harness allows one and a single character otherwise -- a
+    #      process's `start` or `done` inside the sequence under thirty
+    #      minutes from the last answered tick, a rider's own lines --
+    #      an acknowledgement being a turn end that costs what the tick
+    #      cost again, and a sentence saying no reply is owed costing
+    #      what a reply costs. A reply with no tool call in it IS a turn
+    #      end, which is what the hold set at the first wait is for
+    #      (~/.claude/rules/turn-end-hold.md).
     #      THE MONITOR'S `description` IS A TAG AND NOT A LEGEND --
     #      `$R stages`, two or three words: the harness reprints it on
     #      every tick.
@@ -11140,10 +11010,10 @@ the prose itself.** It was the shape of a preparation on 2026-08-30, which read
 the whole post-run list and an example class block and used neither, and it
 is a spend the split makes invisible: nothing in a handover shows what
 the session before it read for nothing. Items 2 to 6 are [the last run's own
-file](runs/run36.md#results), 3 and 4 being [what the next run compares
-against](runs/run36.md#what-the-next-run-compares-against), 5 [the
-properties](runs/run36.md#the-properties-the-next-run-should-test) and 6 [the
-class blocks](runs/run36.md#the-stride-classes-run-by-run) --- and `--section`
+file](runs/run37.md#results), 3 and 4 being [what the next run compares
+against](runs/run37.md#what-the-next-run-compares-against), 5 [the
+properties](runs/run37.md#the-properties-the-next-run-should-test) and 6 [the
+class blocks](runs/run37.md#the-stride-classes-run-by-run) --- and `--section`
 takes the heading's own words, never the anchor those links spell, which
 it refuses by name:
 
@@ -12007,39 +11877,40 @@ met it once will otherwise meet it again. The three distant spans grew, 3, 25
 and 22 on Run 13 to 10, 41 and 37, the roster having gained arms between
 those twins and their bases; the three adjacent spans are unchanged.
 
-**On Run 36 the floor is 1.63% on the basis half and 0.53% on the control,
-carried by `list-aa-adjacent`
-and by `mut-odo-vecdims-add-in-leaf-u2-aa-distant`, and it is the NINTH run read
+**On Run 37 the floor is 0.59% on the basis half and 0.48% on the control,
+carried by `bq-expand-aa-distant` on each, and it is the TENTH run read
 over these EIGHT pairs.** The eight are `list`, `bq-expand`, `mut-odo-vecdims`
 and `mut-odo-vecdims-add-in-leaf-u2`, each with an adjacent and a distant twin,
 unmoved since the shipped fill's own copies landed 2026-09-09 --- against Run
-35's 0.64% and 0.40%, Run 34's 0.51% and 0.49%, Run 33's 0.47% and 0.62%, Run
-32's 0.66% and 0.68%, Run 31's 0.61% and 1.58%, Run 30's 0.57% and 0.84%, Run
-29's 0.51% and 0.82% and Run 28's 0.50% and 0.65% over the same eight, and Run
-27's 0.83% and 0.63% and Run 26's 0.31% and 0.46% over six, and Run 25's 0.40%
-and 0.61%, and against Run 24's 1.26% and 2.11%, Run 23's 2.03% and 2.80%, Run
-22's 2.12% and 1.08% and Run 21's 2.92% and 2.16%, all over sixteen, and Run
-20's 1.51% and 1.18%, Run 19's 2.32% and 1.71%, Run 18's 1.36% and 1.42%, Run
-17's 3.70% and 3.89% and Run 16's 2.32% and 1.22%, every one of those five
-over eighteen. **A max over six pairs, one over eight, one over sixteen and one
-over eighteen are four different statistics**, so the sixteen-pair and six-pair
-figures are not a series this run's whole-set figure continues; what it does
-continue is the eight-pair one, whose nine basis readings are now 0.50%, 0.51%,
-0.57%, 0.61%, 0.66%, 0.47%, 0.51%, 0.64% and 1.63% --- the last of them two
-and a half times the widest before it, and it has a named cause rather
-than a trend: the basis half's `list` on `stretch-coprime-r7` is the one wild
-cell of Run 36, at an R2 of 0.9395 and a CI of 10.07% where its own two A/A
-copies agree to 0.22 of a point, so the pair carrying this floor is carrying
-that cell. Over the four pairs that carry back to Run 10 this run reads
-**0.75%** and **0.42%**, both halves naming `bq-expand-aa-distant`. **So the two
-thresholds PART on BOTH halves this run**, 1.63% against 0.75% and 0.53% against
-0.42%, the whole-set figure carried by `list`'s adjacent copy on the basis
-and by the shipped leaf's distant copy on the control --- where Run 35 parted
+36's 1.63% and 0.53%, Run 35's 0.64% and 0.40%, Run 34's 0.51% and 0.49%, Run
+33's 0.47% and 0.62%, Run 32's 0.66% and 0.68%, Run 31's 0.61% and 1.58%, Run
+30's 0.57% and 0.84%, Run 29's 0.51% and 0.82% and Run 28's 0.50% and 0.65%
+over the same eight, and Run 27's 0.83% and 0.63% and Run 26's 0.31% and 0.46%
+over six, and Run 25's 0.40% and 0.61%, and against Run 24's 1.26% and 2.11%,
+Run 23's 2.03% and 2.80%, Run 22's 2.12% and 1.08% and Run 21's 2.92% and 2.16%,
+all over sixteen, and Run 20's 1.51% and 1.18%, Run 19's 2.32% and 1.71%, Run
+18's 1.36% and 1.42%, Run 17's 3.70% and 3.89% and Run 16's 2.32% and 1.22%,
+every one of those five over eighteen. **A max over six pairs, one over eight,
+one over sixteen and one over eighteen are four different statistics**,
+so the sixteen-pair and six-pair figures are not a series this run's whole-set
+figure continues; what it does continue is the eight-pair one, whose ten basis
+readings are now 0.50%, 0.51%, 0.57%, 0.61%, 0.66%, 0.47%, 0.51%, 0.64%, 1.63%
+and 0.59% --- the NINTH of them two and a half times the widest before it,
+and it had a named cause rather than a trend: the basis half's `list`
+on `stretch-coprime-r7` was the one wild cell of Run 36, at an R2 of 0.9395
+and a CI of 10.07% where its own two A/A copies agreed to 0.22 of a point,
+so the pair carrying that floor was carrying that cell. **Run 37 reads that same
+cell clean, at an R2 of 0.999839 and a CI of 0.52%, and its floor falls back
+into the series**: 0.59%, inside the 0.47% to 0.66% of the seven readings before
+Run 36's. Over the four pairs that carry back to Run 10 this run reads **0.59%**
+and **0.48%**, both halves naming `bq-expand-aa-distant`. **So the two
+thresholds COINCIDE on BOTH halves this run**, 0.59% against 0.59% and 0.48%
+against 0.48%, `bq-expand-aa-distant` carrying the whole-set figure
+and the restricted one alike on each half --- where Run 36 and Run 35 parted
 on both, Run 34 on the basis alone, Run 33 closed them on both halves, and Run
 28 read 0.50% against 0.39% and Run 29 0.51% against 0.26%. **And the control
-half's floor is no longer the narrowest of the eight-pair series**, 0.53%
-against Run 35's 0.40% and Run 34's 0.49%, so the third narrowest of the nine,
-and well inside the band the series has held since Run 28. The worst A/A cells
+half's floor, 0.48%, sits between Run 35's 0.40% and Run 34's 0.49%**, well
+inside the band the eight-pair series has held since Run 28. The worst A/A cells
 of this run's two main sets are **28.36%** on `stretch-coprime-r7` on the basis
 and 2.72% on `stretch-r5-8x432` on the control, and NO process of this run
 was intruded on, the gate's four and the riders' included, which is what
@@ -12062,20 +11933,22 @@ on the basis while the whole-set figure ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12%,
 2.03% and 1.26% before it stopped, so the pairs outside the four were what
 moved. **Run 27's 0.83% still does not survive as a trend**, and neither does
 the rise Runs 28 to 32 traced: Run 33's 0.47%, Run 34's 0.49% and Run 35's 0.49%
-are all INSIDE the 0.31%-to-0.54% band the series held for nine runs,
-and this run's 0.75% is above that band as four earlier readings of the series
-were --- 0.57%, 0.61%, 0.66% and Run 27's 0.83% --- and under the widest
-of them. The figure that moved furthest this run is the WHOLE-SET one, to 1.63%,
-and it is a different statistic --- which is what the four-statistics warning
-at the head of this paragraph is for. The threshold this run supports is TWO
-figures a half --- **0.75% and 1.63%** on the basis and **0.42% and 0.53%**
+are all INSIDE the 0.31%-to-0.54% band the series held for nine runs, and Run
+36's 0.75% was above that band as four earlier readings of the series were ---
+0.57%, 0.61%, 0.66% and Run 27's 0.83% --- and under the widest of them.
+**This run's 0.59% is back inside it on the basis and its 0.48%
+on the control**, and the figure that moved furthest between the two runs
+is the WHOLE-SET one, from Run 36's 1.63% to 0.59%, which is a different
+statistic from the restricted reading beside it --- which is what
+the four-statistics warning at the head of this paragraph is for. The threshold
+this run supports is ONE figure a half --- **0.59%** on the basis and **0.48%**
 on the control, the restricted four-pair reading and the whole set
-over the eight --- and since 2026-09-13 a margin between two rows clears
-the whole-set one, the carry-back figure being the series and not the bar ([the
-open list][open]). Read the floor as the run's *and the half's*, re-measured
-every time, never as a constant of the harness and never inherited.
-**And of these series, only the readings from Run 31 on can still
-be re-derived**: Runs 24 to 30's artifacts were deleted 2026-09-18
+over the eight having closed on both --- and since 2026-09-13 a margin between
+two rows clears the whole-set one, the carry-back figure being the series
+and not the bar ([the open list][open]). Read the floor as the run's
+*and the half's*, re-measured every time, never as a constant of the harness
+and never inherited. **And of these series, only the readings from Run 31 on can
+still be re-derived**: Runs 24 to 30's artifacts were deleted 2026-09-18
 at the owner's word, so `--series` starts at Run 31 and every figure before
 it is a RECORD here and in that run's own file rather than something a later
 session can check. That is the run-file split working as designed --- an older
@@ -12241,30 +12114,31 @@ the layout underneath it. Two consequences worth keeping when the run file
 carrying them is replaced: a margin of a few percent between two runs is still
 not evidence, and a margin between two *arms* of one run has to clear
 the whole-set floor of the half it is read on, ruled 2026-09-13, where until
-then it was held to the carry-back figure of the half it is read on --- 0.75%
-on Run 36's basis --- which is the A/A floor above restricted to the pairs
+then it was held to the carry-back figure of the half it is read on --- 0.59%
+on Run 37's basis --- which is the A/A floor above restricted to the pairs
 that carry, was a different quantity from the whole-set floor until the prune
 of 2026-09-04 left six pairs in all, and is now the series across runs rather
-than the bar. **Two rules are in play again, having been one on both halves
-for two runs, and each reads as two numerals because there are two halves**:
-1.63% and 0.53% are the widest an arm differs from its own duplicate by on each
-half over the eight pairs this roster carries, while the four pairs carrying
-back to Run 10 give 0.75% and 0.42% --- eighty-eight hundredths
-under the whole-set figure on the basis and eleven under it on the control,
-so the two part on BOTH halves this run, as they did on Run 35, where Run 34
-parted on the basis alone, Runs 32 and 33 had them equal on both halves, Runs 30
-and 31 parted on the CONTROL alone --- 0.84% against 0.56% and 1.58% against
-0.43%, equal on the basis at 0.57% and 0.61% --- and Runs 28 and 29 parted
-on the basis alone, and the rule since 2026-09-13 names the WHOLE-SET figure
-as what two rows of one table must clear, the restricted one having
-been the rule until Run 30 re-opened it, the wider figure being the conservative
-reading --- and 2.1% is the across-run drift band an arm must clear to have
-moved between runs on this box, Run 23's one-binary reading, where Run 11's
-was 3.3%. **All three are the word *floor*, over different populations, and two
-things that are not it wear it easily.** A class's `floor` column is the same
-statistic again over that population's A/A pairs, so it is a fourth member
-of the family and not a fourth sense. **And a margin read ACROSS a pair's two
-halves on a class is judged against the WIDER of the two halves' floors,
+than the bar. **The two rules are ONE again on both halves, as they were on Runs
+32 and 33, and each reads as two numerals because there are two halves**: 0.59%
+and 0.48% are the widest an arm differs from its own duplicate by on each half
+over the eight pairs this roster carries, and 0.59% and 0.48% are the same
+over the four pairs that carry back to Run 10, `bq-expand-aa-distant` carrying
+both figures on both halves --- so the restriction costs nothing this run, where
+on Run 36 it cost eighty-eight hundredths of a point on the basis and eleven
+on the control. The two parted on BOTH halves on Runs 35 and 36, Run 34 parted
+on the basis alone, Runs 32 and 33 had them equal on both halves, Runs 30 and 31
+parted on the CONTROL alone --- 0.84% against 0.56% and 1.58% against 0.43%,
+equal on the basis at 0.57% and 0.61% --- and Runs 28 and 29 parted on the basis
+alone, and the rule since 2026-09-13 names the WHOLE-SET figure as what two rows
+of one table must clear, the restricted one having been the rule until Run 30
+re-opened it, the wider figure being the conservative reading --- and 2.1%
+is the across-run drift band an arm must clear to have moved between runs
+on this box, Run 23's one-binary reading, where Run 11's was 3.3%. **All three
+are the word *floor*, over different populations, and two things that are
+not it wear it easily.** A class's `floor` column is the same statistic again
+over that population's A/A pairs, so it is a fourth member of the family
+and not a fourth sense. **And a margin read ACROSS a pair's two halves
+on a class is judged against the WIDER of the two halves' floors,
 and a registration's kill condition on a class says so**: the narrower floor
 is the one that makes a kill and the wider the one that makes a tie honest,
 and a pair whose halves' floors differ threefold --- Run 23's `reshape1`, 3.09%
@@ -12798,7 +12672,7 @@ answers the quantification: over the whole table the baseline moves **5.13%**
 and every ratio with it, so the two halves' `time` columns are not subtractable
 and the arm-by-arm reading is the one to use --- which is now the standing rule
 for every pair that varies the area, [stated under what the next run compares
-against](runs/run36.md#what-the-next-run-compares-against), those runs' own
+against](runs/run37.md#what-the-next-run-compares-against), those runs' own
 files having since been replaced.
 
 **The predictor, recorded before the run that would test it.** What decides
@@ -14294,7 +14168,7 @@ fails the run.
 **The half of a run's provenance that outlives the run.** A run's own --- what
 its pair was, how the sequence ran, what moved and what did not, its anchors
 and its correction --- is under [Provenance in the run's
-file](runs/run36.md#provenance) and is replaced with the rest of it. What
+file](runs/run37.md#provenance) and is replaced with the rest of it. What
 is here is what a run does not replace: the delta chain below, which gains
 a bullet per run and is the only record of which shape set and roster each
 measured, and the list of what a run replaces OUTSIDE its own file, which
@@ -14328,6 +14202,29 @@ half arrives with the pairing and is not a delta at all**: which half
 of the pair a figure came from, which is why the run file's tables
 and its fingerprint say so.
 
+- Run 37 measured 32 timed arms over 19 main-set shapes and 61 class views
+  in TEN classes, 608 benches and 1952, EIGHT A/A pairs, the `runs` class
+  at SEVENTEEN, `window` at EIGHT, `bcast` and `flip` at SIX, `block`
+  and `small` at FIVE, `bcastmid` and `compose` at FOUR and `rev` and `scaled`
+  at THREE. **Its delta against RUN 36 is NONE IN, THREE OUT AND NO CLASS VIEW
+  MOVED**: `libunord-stage10-list-sum`, `libunord-stage10-sum`
+  and `libunord-stage11-sum` went to `Only` in the owner's commit `2973582`,
+  carrying `Main.hs` from `0eda736` to `05cfe93`, while the shim stands
+  at `f31bd1c` unmoved and the COMPILER is Run 36's `10.1.20260918` unmoved ---
+  so what moved under the recipe is the source, the project file, rewritten
+  to the minimum that compiles on a current index, and the launch, off
+  the suspended `hugebin/` mount and onto disk. **It is a REGIME pair and Run
+  36's repeated**: both halves are that one stage1 at plain `-O1` under the exit
+  span and the control's command line carries `-fspec-constr -fliberate-case`
+  besides, so it is read against Run 36's basis `run36-gheadnospec`, whose
+  recipe its own BASIS repeats, and every one of the sixteen shared timed arms
+  reads within 1.90 points of it. Its sequence ran in ONE window, 02:44:57
+  to 10:09:25, 20 class processes and two main-set ones, and NO process
+  of the run was intruded on, the gate's four and the riders' included. `list`
+  having moved 29.60 points on this run's main set, none of its eleven
+  populations may have its two columns differenced. **And its floor is a maximum
+  over EIGHT A/A pairs**, both halves' figures in [Run 37's own
+  file](runs/run37.md).
 - Run 36 measured 35 timed arms over 19 main-set shapes and 61 class views
   in TEN classes, 665 benches and 2135, EIGHT A/A pairs, the `runs` class
   at SEVENTEEN, `window` at EIGHT, `bcast` and `flip` at SIX, `block`
@@ -14345,7 +14242,7 @@ and its fingerprint say so.
   and every one of the sixteen shared timed arms reads within 1.02 points of it.
   Its sequence ran in ONE window, 02:06:14 to 10:11:57, 20 class processes
   and two main-set ones, and NO process of the run was intruded on, the gate's
-  four and the riders' included. `list` having moved 33.60 points on this run's
+  four and the riders' included. `list` having moved 33.60 points on Run 36's
   main set, none of its eleven populations may have its two columns differenced.
   **And its floor is a maximum over EIGHT A/A pairs**, both halves' figures
   in [Run 36's own file](runs/run36.md).
@@ -15013,7 +14910,7 @@ and not a stored list of paragraph names: a stored one would be a second copy
 of the structure and would rot the first time a lead was reworded, which
 is the failure this list was rewritten to escape.
 
-- [the run's own file](runs/run36.md) ENTIRE, which is what makes it a file:
+- [the run's own file](runs/run37.md) ENTIRE, which is what makes it a file:
   its head of at most five paragraphs, the pair and its headline, what
   the registration was built to show, the registration tally, anomalies and what
   the next run takes; the Results table and the findings under it, with which
@@ -15027,7 +14924,7 @@ is the failure this list was rewritten to escape.
   change alone is worth, the decomposition, and the correction's span.
   The bullets that used to name those sections one by one are this one,
   and the coverage check below reads it as covering every heading in that file;
-- [the recommended tasks after Run 36](#recommended-tasks-after-run-36), which
+- [the recommended tasks after Run 37](#recommended-tasks-after-run-37), which
   is run-scoped by its own title: a task taken or superseded leaves it --- which
   RENUMBERS the rest, so `grep -n 'task [0-9]'` over this file and the run's
   is owed with the departure, nothing else catching a pointer left behind ---
@@ -15165,7 +15062,7 @@ of the list above is one of the steps.
 [jcc]: https://www.intel.com/content/www/us/en/developer/articles/technical/software-security-guidance/best-practices/mitigation-strategies-jcc-microcode.html
 [lemire]: #lemire-multiplicative-inverses-at-the-two-division-sites
 [open]: #what-is-open
-[open-tasks]: #recommended-tasks-after-run-36
+[open-tasks]: #recommended-tasks-after-run-37
 [opening]: #regime-3-micro-benchmark-the-regime-3-fix
 [pershape]: #per-shape-where-the-geomean-hides-the-ordering
 [pos-effect]: https://github.com/Mikolaj/horde-ad/blob/master/docs/position-effect.md
@@ -15174,7 +15071,7 @@ of the list above is one of the steps.
 [prov]: #provenance
 [ramp]: #r2-is-the-ramp-detector-not-the-noise-detector
 [reader]: #the-reader-read-runpy
-[results]: runs/run36.md#results
+[results]: runs/run37.md#results
 [scratch]: #the-scratch-vector-flavour
 [settled]: #what-is-settled-and-where
 [shapeset]: #the-shape-set
