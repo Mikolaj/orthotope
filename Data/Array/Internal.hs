@@ -28,6 +28,7 @@
 {-# LANGUAGE UndecidableSuperClasses #-}
 module Data.Array.Internal(module Data.Array.Internal) where
 import Control.DeepSeq
+import Control.Exception(assert)
 import Control.Monad.ST(ST)
 import Data.Data(Data)
 import qualified Data.DList as DL
@@ -82,7 +83,10 @@ class Vector v where
   -- | Materialize a strided view in row-major order.  The arguments are
   -- the shape, the strides, the offset, the total element count
   -- (@product sh@, passed in because every caller already has it) and
-  -- the source vector; the shape must be non-empty.  This method is
+  -- the source vector; the shape must be non-empty and the count
+  -- positive, a fill writing a run before it reads an extent, so a
+  -- zero extent at a zero stride would write into an empty result.
+  -- This method is
   -- what makes a fast 'toVectorListT' possible, and that function's
   -- strided fallback goes through it: when
   -- the innermost dimension is strided no slice can be taken, and the
@@ -276,7 +280,7 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 {-# INLINE genericFillStrided #-}
 genericFillStrided :: forall w a. (VG.Vector w a)
                    => ShapeL -> [Int] -> Int -> Int -> w a -> w a
-genericFillStrided sh ats !ao !l !v = VG.create fill
+genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
   where
     fill :: forall s. ST s (VG.Mutable w s a)
     fill = do
@@ -417,6 +421,9 @@ toVectorListT sh (T ats ao v) =
       else if oks !! (length sh - 1) then  -- Special case for speed.
         -- Innermost dimension is normal, so slices are non-trivial.
         DL.toList $ loop oks sh ats ao
+      else if l == 0 then
+        -- An empty array: 'vFillStrided' takes a positive count.
+        [vFromListN 0 []]
       else
         -- Innermost dimension is strided, so every contiguous run has
         -- length 1 and no slice can be taken.  Fill the result through
