@@ -744,10 +744,10 @@ rather than a slot in the next run, observed again:
   is filled in from it. Run 37's registration is the first written to the ruling
   and Run 36's section the first amended to it.
 - `OPEN` **An arm parts 3.70 points across the halves and it is one half's
-  BINARY, which only the half-local reading can say.** On Run 37
-  `mut-odo-vecdims-add-in-leaf-u1` reads **0.9630** on the main set against
-  a 0.51% A/A bar --- the one arm outside the `list` and `bq-expand` families
-  to break [its
+  BINARY OR ITS FILE INSTANCE, which only the half-local reading can say.**
+  On Run 37 `mut-odo-vecdims-add-in-leaf-u1` reads **0.9630** on the main set
+  against a 0.51% A/A bar --- the one arm outside the `list` and `bq-expand`
+  families to break [its
   registration's](runs/run37.md#what-this-run-was-built-to-answer-and-what-it-answered)
   3% band --- and it is the low extreme in NINE of the ten classes besides, down
   to **0.7053** on `bcast`. Its counted work is level with its family, 1.0501
@@ -755,12 +755,13 @@ rather than a slot in the next run, observed again:
   copies agree, so it is not the process. **What settles the half is post-run
   step 4a**: read against Run 36's same half, the arm is LEVEL on the basis,
   0.9836 to 1.0085 over the eleven populations, and moves on the CONTROL
-  in eight of them --- 1.0337 on the main set, 1.1165 on `flip`, 1.1460
-  on `block`, 1.2677 on `runs`, 1.3571 on `compose` and **1.4164** on `bcast`
-  --- with the counted work at **1.0000** on both halves in every one
-  of the eleven. So this run's control binary is slower on that arm than Run
-  36's control binary was, executing the same instructions to the fourth
-  decimal. **What would settle it and was not taken**: step 4a's copy test,
+  in eight of them --- 1.0312 on `rev`, 1.0337 on the main set, 1.0598
+  on `scaled`, 1.1165 on `flip`, 1.1460 on `block`, 1.2677 on `runs`, 1.3571
+  on `compose` and **1.4164** on `bcast`, which is all eight ---
+  with the counted work at **1.0000** on both halves in every one of the eleven.
+  So this run's control binary is slower on that arm than Run 36's control
+  binary was, executing the same instructions to the fourth decimal. **What
+  would settle it and was not taken**: step 4a's copy test,
   `cp run37-gheadtwopass probe-copy-run37-gheadtwopass` with a flagged cell
   timed on both interleaved, and then, before anything evicts the file,
   the frames off the slow instance with `probe-pageflags.py` while it runs. Both
@@ -1504,13 +1505,13 @@ rather than a slot in the next run, observed again:
   nothing says whether SpecConstr carries it, as its allocation signature
   suggests, or whether LiberateCase carries part of it on this HEAD. **What
   settles it is one pair and one variable**: either flag alone against
-  the unflagged half, built by Run 36's own recipe --- GHC HEAD `10.1.20260918`
-  through `cabal.project.ghead`, `Main.hs` at `0eda736`, the shim at `f31bd1c`
-  under the four switches, launched from `hugebin/` --- which reads against
-  `run36-gheadnospec` with the box as the only term, this run's basis being
-  the first published one on that compiler. Registered here rather than
-  in a run's registration because it is a pair to ask for and not a prediction
-  to hold.
+  the unflagged half, built by Run 37's own recipe --- GHC HEAD `10.1.20260918`
+  through `cabal.project.ghead`, `Main.hs` at `05cfe93`, the shim at `f31bd1c`
+  under the four switches, launched FROM DISK, `hugebin/` being suspended ---
+  which reads against `run37-gheadnospec` with the box as the only term,
+  this run's basis being the second published one on that compiler. Registered
+  here rather than in a run's registration because it is a pair to ask
+  for and not a prediction to hold.
 - `OPEN` **A single wild cell moved this run's headline by 2.31 points and every
   mechanical gate passed it.** On Run 36's basis half `list`
   on `stretch-coprime-r7` read a net slope with a criterion CI of 10.07%
@@ -1565,6 +1566,22 @@ rather than a slot in the next run, observed again:
   and either a recommended task under that heading or a pointer from it
   to the open list, where Run 36's candidate pair actually lives. The probe read
   about a tenth of this file; nothing says the same gaps do not run further.
+  **Run 37's probe hit ALL SIX again and none was fixed between the runs**,
+  which makes this the second run publishing documents a fresh reader cannot
+  navigate and moves the entry from a finding to a backlog: `points` is still
+  unglossed where the `rev` block reads "27.24 of a point" three sentences after
+  "moved 27.24%", and the sign rule is still unstated for property 1's own
+  figures, which Run 37's head fixed for the cross-half and cross-run cases
+  alone. **It found TWO more of the same kind.** The `needs` cell of the shipped
+  leaf's row calls it what `genericFillStrided` is a port of, a relation [the
+  branch's own paragraph](#regime-3-micro-benchmark-the-regime-3-fix) retired
+  on 2026-09-11 in favour of `fillStage2`, so a published table asserts what
+  this file denies nine days earlier --- and it is a `Main.hs` comment,
+  so no document gate reads it and `--lint` is what would. And the run chapter
+  carries TWO numberings of step 4: a prose `4a. Analyse with ./read-run.py`
+  and, inside the post-run list's comment block, a different 4a and 4b, which
+  is where a run file's reference to "post-run step 4b" actually lands; a reader
+  following the link meets the wrong one first.
 - `OPEN` **`-O2` changes what the preamble's spray leaves RESIDENT, and no pair
   before it did.** Run 31's twenty-two processes carry one `keep` value,
   `8.19844333056e12`, and TWO `inuse` values --- 95420416 on every plain -O1
@@ -3887,8 +3904,8 @@ named the figures the copy hands you inside paragraphs you DO edit.
 `--check-doc` then caught what both left: a link written for README and pasted
 into the run file, where `runs/run36.md` resolves to nothing; the floor pair
 stale at two of four sites and the carry-back figure at one of three; and three
-headings left with one blank line before them. **A COMPUTATION IMPROVISED:
-three.** The gate's second-pass prediction, the control half's own legs
+headings left with one blank line before them. **THREE COMPUTATIONS
+IMPROVISED.** The gate's second-pass prediction, the control half's own legs
 over the basis's, taken by hand off the four `--compare` readings; the machine
 check with the fingerprint's wild shape set aside, -0.55% against the whole
 set's -2.24%, taken with `--exclude-shape`; and the per-class spread of counted
@@ -11974,7 +11991,7 @@ on `stretch-coprime-r7` was the one wild cell of Run 36, at an R2 of 0.9395
 and a CI of 10.07% where its own two A/A copies agreed to 0.22 of a point,
 so the pair carrying that floor was carrying that cell. **Run 37 reads that same
 cell clean, at an R2 of 0.999839 and a CI of 0.52%, and its floor falls back
-into the series**: 0.59%, inside the 0.47% to 0.66% of the seven readings before
+into the series**: 0.59%, inside the 0.47% to 0.66% of the eight readings before
 Run 36's. Over the four pairs that carry back to Run 10 this run reads **0.59%**
 and **0.48%**, both halves naming `bq-expand-aa-distant`. **So the two
 thresholds COINCIDE on BOTH halves this run**, 0.59% against 0.59% and 0.48%
@@ -11984,22 +12001,23 @@ on both, Run 34 on the basis alone, Run 33 closed them on both halves, and Run
 28 read 0.50% against 0.39% and Run 29 0.51% against 0.26%. **And the control
 half's floor, 0.48%, sits between Run 35's 0.40% and Run 34's 0.49%**, well
 inside the band the eight-pair series has held since Run 28. The worst A/A cells
-of this run's two main sets are **28.36%** on `stretch-coprime-r7` on the basis
-and 2.72% on `stretch-r5-8x432` on the control, and NO process of this run
+of this run's two main sets are **3.09%** on `stretch-wide-2xM` on the basis
+and **5.79%** on `alexnet-L2-27-c48-k5` on the control, where Run 36's basis
+carried a 28.36% outlier on `stretch-coprime-r7`, and NO process of this run
 was intruded on, the gate's four and the riders' included, which is what
 `--wild` over all 119 logs says. No registration of this run names the floor
 pairs; `--floor-pairs` reads the eight on every population on both halves, 176
 readings, and SEVEN of the eight carry a floor somewhere --- `list-aa-adjacent`
 in NINE of the twenty-two populations, where Run 35 had none in more than five,
 which is the same instability the whole-set figure above reads. **What this run
-cannot restate is Run 19's finding**, there being no repetition: `Main.hs` has
-not moved since Run 35's build, so a repetition was there to be read
-and the COMPILER moved instead, and no floor here is read twice on one binary.
-The three readings that did that stand as they were --- Run 19's factor of 1.7,
-Run 23's twentieth and Run 30's 1.44 --- and they still say that a floor moves
-by up to seven tenths on a binary that has not changed at all, and that no run's
-floor is inheritable by the run after it. **Where the movement lives is the one
-thing nineteen runs now agree on.** The carry-back figure has read 0.54%, 0.49%,
+cannot restate is Run 19's finding**, there being no repetition: `Main.hs` moved
+three commits and `cabal.project.ghead` was rewritten under a COMPILER that did
+not move, so no floor here is read twice on one binary. The three readings
+that did that stand as they were --- Run 19's factor of 1.7, Run 23's twentieth
+and Run 30's 1.44 --- and they still say that a floor moves by up to seven
+tenths on a binary that has not changed at all, and that no run's floor
+is inheritable by the run after it. **Where the movement lives is the one thing
+nineteen runs now agree on.** The carry-back figure has read 0.54%, 0.49%,
 0.44%, 0.46%, 0.37%, 0.39%, 0.34%, 0.40%, 0.31%, 0.83%, 0.39%, 0.26%, 0.57%,
 0.61%, 0.66%, 0.47%, 0.49%, 0.49% and now **0.75%** across those nineteen
 on the basis while the whole-set figure ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12%,
