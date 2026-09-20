@@ -6049,6 +6049,35 @@ TIER1 = {
                       bug='[ "" -lt 5 ] refused at exit 2 behind a bash error and a message naming an empty percentage',
                       proved='ran', notes='The old line replayed in bash with an empty reading, 2026-09-18.'),
 
+    # ---- the seams Run 37's write-up met, 2026-09-20 ----
+    'checklist-prints-no-execution-order': dict(
+        family='two-spellings', discovery='in-use', harm='fired',
+        proved='ran',
+        trigger='the post list executed in the order it prints in',
+        ok='prints the execution order beside the list and names the'
+           ' steps that run out of printed turn',
+        bug='printed the steps in numeric order with nothing saying which'
+            ' run out of it, so Run 37 took 9 and 10 after 6d and had to'
+            ' record the deviation in its own post-mortem'),
+    'brief-update-reopens-filled-slots': dict(
+        family='quiet-failure', discovery='in-use', harm='fired',
+        proved='ran',
+        trigger='a second --brief-update over a brief whose `<yours>`'
+                ' slots had been filled',
+        ok='says how many filled slots the paste re-opened and that git'
+           ' holds what it overwrote',
+        bug='pasted the facts file\'s empty slots back over the prose and'
+            ' said nothing but a higher slot count, which reads as the'
+            ' ordinary reminder'),
+    'class-block-second-slot-unnamed': dict(
+        family='false-comment', discovery='in-use', harm='fired',
+        proved='ran',
+        trigger='a class block, which carries two `___` where only the'
+                ' first said what it wanted',
+        ok='both slots name what goes in them',
+        bug='the second stood bare, so a session that filled the first'
+            ' met a check reporting ten still open and had to find out'
+            ' why'),
 }
 
 
@@ -13346,6 +13375,39 @@ RECORDS = [
          # derives unknown, which FAILs saying the regime is UNCONFIRMED
          # rather than passing on a guess.
          argv=None, ok=None),
+
+    case('checklist-prints-no-execution-order', 'read-run.py',
+         'e4894dc',
+         'the post list printed its steps in numeric order and nothing'
+         ' said which of them run out of that order, so a session'
+         ' executing it in the order given took 9 and 10 after 6d',
+         # The numbers are stable because pointers resolve to them, so
+         # the fix is a second, derived statement of the order rather
+         # than a renumbering. Read off the live README: the constant
+         # is checked against the list's own numbers, so this case also
+         # fails if a step is added without POST_EXEC.
+         argv=['--checklist', 'post', '--imperative'],
+         ok=V(exit=0, has=['EXECUTION ORDER',
+                           'run out of printed turn']),
+         bug=V(exit=0, hasnt=['EXECUTION ORDER'])),
+
+    case('brief-update-reopens-filled-slots', 'read-run.py', 'e4894dc',
+         'a second paste brought the facts file\'s empty `<yours>` back'
+         ' over prose a session had written, and said nothing',
+         # TIER 1 ONLY. The fixture is a brief and a facts file whose
+         # shapes this runner would have to be told; written from the
+         # live loss rather than guessed at, and the mutant `the brief
+         # re-opens filled slots without saying so` carries the
+         # non-vacuity in mutants.py.
+         None, None),
+
+    case('class-block-second-slot-unnamed', 'read-run.py', 'e4894dc',
+         'a class block carried two `___` and only the first said what'
+         ' it wanted, so the second read as already done',
+         # TIER 1 ONLY: the invocation wants a class JSON and its twin,
+         # which post-run 11 offers for deletion, so a case built on one
+         # goes LOST with the run rather than proving anything later.
+         None, None),
 
     case('step-9-derives-the-regime-from-a-flag-name-in-prose',
          'preflight.sh', 'dace8e7',
