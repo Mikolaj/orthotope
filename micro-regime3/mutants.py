@@ -1060,4 +1060,61 @@ MUTANTS = [
      "           'alloc', 'list', PLAIN, 1.01)",
      'set -o pipefail; f=$(ls "{root}"/run[0-9]*-main.json 2>/dev/null | tail -1); test -n "$f" '
      '&& python3 "{file}" "$f" 2>/dev/null | grep -q "property 2, allocation at most 1% over .list. on every shape: HOLDS"'),
+    # THE EXECUTION ORDER GOING STALE UNDER THE LIST. POST_EXEC is a
+    # second statement of the post list's shape, so the one way it can
+    # lie is a step moving and the constant not; _exec_order compares
+    # the two SETS and prints nothing when they part, naming the step.
+    # Mutated by dropping 10a, which is exactly what a renumbering
+    # would do. Judged on the banner's presence and not its content:
+    # the order itself is prose-derived and a judge reading it would
+    # be asserting this constant against itself.
+    ('the execution order goes stale under a renumbered list',
+     'read-run.py',
+     "'9', '10', '10a', '6', '6a'",
+     "'9', '10', '6', '6a'",
+     'set -o pipefail; python3 "{file}" --checklist post --imperative'
+     ' --readme "{dir}/README.md" 2>/dev/null | grep -q "EXECUTION ORDER"'),
+    # THE NOTE PROMISING A BLOCK IT DOES NOT CARRY. Run 37's note put
+    # its post-run step 9 half `at the foot of this note under
+    # LEARNED` and carried none; that half is one session's and went
+    # with it. Mutated by making the presence test vacuous, which is
+    # how such a check usually dies. Judged on a stand-in note built
+    # in the copy, so it does not go LOST with the run's own note at
+    # post-run 11's deletion offer.
+    ('note-check stops asking whether a promised block is there',
+     'read-run.py',
+     "        if not re.search(r'^%s\\b' % re.escape(name), text, re.M):",
+     "        if False:",
+     # NO pipefail here: --note-check exits 1 whenever it finds
+     # anything, which a stand-in note always does, so a pipefail
+     # pipeline reads red on the UNMUTATED file and the mutant is
+     # LOST. The status is split from the grep instead.
+     ' printf \'A stand-in pair note [EXEC].\\nWHAT THE PREPARATION'
+     ' LEARNED is at the foot of this note under LEARNED.\\nHALVES:'
+     ' basis=gheadnospec other=gheadtwopass\\n\' >'
+     ' "{dir}/run97-pair.txt";'
+     ' python3 "{file}" --note-check "{dir}/run97-pair.txt"'
+     ' > "{dir}/nc.out" 2>/dev/null;'
+     ' grep -q "promises a block" "{dir}/nc.out"'),
+    # THE BRIEF'S PASTE DISCARDING PROSE WITHOUT SAYING SO. It
+    # re-pastes items 5 and 6 from the facts file, whose `<yours>`
+    # slots are empty, so a second run over a filled brief silently
+    # overwrites what a session wrote there -- Run 37 did it while
+    # testing something else and found it by reading its own diff.
+    # Refusing would be wrong, the figures above wanting the paste,
+    # so the guard only SAYS it; mutated by making it vacuous.
+    ('the brief re-opens filled slots without saying so',
+     'read-run.py',
+     '    if now > was:',
+     '    if False:',
+     'set -o pipefail; d="{dir}/briefmut";'
+     ' mkdir -p "$d/log-read-run97";'
+     ' printf \' 5. THIS RUN ONLY\\n    A FILLED SENTENCE.\\n'
+     ' 6. THIS RUN ONLY\\n    ANOTHER FILLED ONE.\\n\''
+     ' > "$d/checker-brief.txt";'
+     ' printf \'paste over checker-brief.txt items 5 and 6\\n'
+     ' 5. THIS RUN ONLY\\n    <yours: a>\\n 6. THIS RUN ONLY\\n'
+     '    <yours: b>\\n\' > "$d/log-read-run97/for-brief.txt";'
+     ' cd "$d" && python3 "{file}" --brief-update run97'
+     ' --brief-dir . 2>&1 | grep -q "RE-OPENED"'),
 ]

@@ -6670,7 +6670,12 @@ def class_says(cells, shapes, strategies, meta, args):
                    ' same arms, %d of them counted.'
                    % (geomean(gs), len(gs)) if gs
                    else 'The counted work reads no count for these arms.')
-    out.append('___')
+    # NAMED, as the slot above it is. A block carries TWO `___` and only
+    # one used to say what it wanted, so a session that filled the first
+    # met a check reporting ten still open and had to find out why
+    # (Run 37). The label costs a parenthetical and is dropped with the
+    # slot when it is filled.
+    out.append("___ (how this class's counted work compares with its clock).")
     print()
     print(textwrap.fill(' '.join(out), width=72))
 
@@ -7342,12 +7347,24 @@ def inherited(run_doc, prev_doc, both=False):
                          % os.path.basename(run_doc))
         return 2
     before = set(doc_paragraphs(prev_doc))
-    carried = [p for p in doc_paragraphs(run_doc)
-               if p in before and INHERITED_RE.search(p)]
+    now = doc_paragraphs(run_doc)
+    carried = [p for p in now if p in before and INHERITED_RE.search(p)]
+    same = len([p for p in now if p in before])
     print('%d paragraph(s) carried whole from %s that name a run or call'
           ' themselves this run\'s, out of %d identical in all:'
-          % (len(carried), os.path.basename(prev_doc),
-             len([p for p in doc_paragraphs(run_doc) if p in before])))
+          % (len(carried), os.path.basename(prev_doc), same))
+    # HOW LATE THIS READING IS, said rather than left to be noticed. The
+    # step asks for it BEFORE the first paragraph, because after the
+    # prose is written every hit below is a rewrite; run late it still
+    # finds them and costs more to act on. No threshold: the number is
+    # the statement, and a session that means to run it early sees a
+    # small one. Run 37 ran it with most of the write-up already
+    # written and rewrote six of its hits.
+    print('   %d of %d paragraph(s) already differ from %s, so this is'
+          ' being read after that much of the write-up -- each hit below'
+          ' is a rewrite rather than a draft, and the step asks for it'
+          ' before the first paragraph.'
+          % (len(now) - same, len(now), os.path.basename(prev_doc)))
     for p in carried:
         # The LEAD and the TRIGGER, because the stale clause is rarely
         # the opening: this mode's own non-vacuity check was misread once
@@ -7598,6 +7615,41 @@ def _brief_substitutions(run, where='.'):
     return subs
 
 
+def _brief_tips(run, where='.'):
+    """PRETIP and RUNTIP as CANDIDATES. They are still not written.
+
+    The refusal above is right and stays -- a wrong tip silently rescopes
+    a pass's diff, so the run decides them -- but a session that has to
+    reverse-engineer them from the brief's own diff commands sets them
+    from memory instead, which is the worse failure. Run 37 did exactly
+    that. So git is asked, and the answer is printed beside the write for
+    a person to accept or refuse: the commit that ADDED the run file,
+    which is step 5's copy, and the newest commit whose subject names
+    this run and a step, which is what 6d leaves behind. An empty string
+    where git cannot say, never a guess.
+    """
+    def git(*args):
+        try:
+            done = subprocess.run(('git', '-C', where) + args,
+                                  capture_output=True, text=True, timeout=20)
+        except (OSError, subprocess.SubprocessError):
+            return ''
+        return done.stdout.strip() if done.returncode == 0 else ''
+
+    added = git('log', '--diff-filter=A', '--format=%h', '--',
+                'runs/%s.md' % run)
+    pre = added.split('\n')[-1] if added else ''
+    want = re.compile(r'\bRun %s\b.*\bstep\b'
+                      % re.escape(run[3:] if run.startswith('run') else run),
+                      re.I)
+    tip = ''
+    for line in git('log', '--format=%h %s', '-40').split('\n'):
+        if want.search(line):
+            tip = line.split(' ', 1)[0]
+            break
+    return pre, tip
+
+
 def brief_update(run, readings_dir=None, brief=None, where='.'):
     """Paste the run's own facts into the checker brief, rather than retype.
 
@@ -7663,6 +7715,7 @@ def brief_update(run, readings_dir=None, brief=None, where='.'):
                          % (facts, ', '.join(sorted(items)) or 'none'))
         return 2
     out, wrote, n = [], set(), 0
+    was = open(brief, encoding='utf-8').read().count('<yours')
     for line in open(brief, encoding='utf-8').read().split('\n'):
         m = re.match(r' ([56])\. THIS RUN ONLY', line)
         if m:
@@ -7693,12 +7746,35 @@ def brief_update(run, readings_dir=None, brief=None, where='.'):
                     line = re.sub(r'\b%s=\S+' % key, '%s=%s' % (key, val),
                                   line)
             out[i] = line
+    # THE PASTE IS NOT IDEMPOTENT, and until 2026-09-20 it did not say so.
+    # It re-pastes items 5 and 6 from the facts file, whose `<yours>` slots
+    # come back empty -- so a second run over a brief whose prose was
+    # written DISCARDS that prose, silently, and the only sign is the slot
+    # count below going up. Run 37 filled the two, ran this again while
+    # testing something else, and found the loss by reading its own diff.
+    # Refusing is wrong: the numbers above it do want re-pasting when a
+    # reading is retaken. Saying so is enough, and git holds what went.
+    now = sum(line.count('<yours') for line in out)
     open(brief, 'w', encoding='utf-8').write('\n'.join(out))
     print('--brief-update: %s items 5 and 6 written from %s' % (brief, facts))
+    if now > was:
+        print('AND IT RE-OPENED %d SLOT(S) THAT WERE FILLED: this paste'
+              ' brings the facts file\'s empty `<yours>` back over prose'
+              ' that stood there. What it overwrote is in git --'
+              ' `git diff -- %s` -- and is yours to write back.'
+              % (now - was, os.path.basename(brief)))
     if subs:
         print('and the substitution block: %s. PRETIP and RUNTIP are'
               ' untouched, being commits.'
               % ', '.join('%s=%s' % kv for kv in sorted(subs.items())))
+    pre, tip = _brief_tips(run, where)
+    if pre or tip:
+        print('and git offers them, to accept or refuse rather than to'
+              ' reverse-engineer: PRETIP=%s, the commit that ADDED'
+              ' runs/%s.md and so step 5\'s copy; RUNTIP=%s, the newest'
+              ' commit whose subject names this run and a step, which'
+              ' at 6e is 6d\'s. Neither is written.'
+              % (pre or '?', run, tip or '?'))
     else:
         print('the substitution block was NOT written: pair-halves.sh could'
               ' not read %s-pair.txt, so RUN, BASIS, OTHER and PREV stand as'
@@ -9171,6 +9247,28 @@ def note_check(path, readme, run_doc=None):
                          ' 33. Mark the block the executing session ACTS'
                          ' on, what is spent and what is still owed'))
 
+    # 5. A BLOCK THE HEAD PROMISES AND THE BODY LACKS. Run 37's note said
+    # its post-run step 9 half was `at the foot of this note under
+    # LEARNED` and carried no such block; that half met the same list a
+    # day earlier and went with the session, so nothing could recover it
+    # and no pass looked. Keyed on the phrase that NAMES a block rather
+    # than on `under NAME`, which over the seven notes on disk also
+    # catches `under WILDLOG`, `under CORPUS_RUN` and `under HEAD` --
+    # environment variables and ordinary words. Read flattened, a note
+    # being hand-wrapped and the phrase able to straddle a break.
+    for q in re.finditer(r'(?:at|near) the foot of this note under'
+                         r' ([A-Z][A-Z0-9_]{3,})', re.sub(r'\s+', ' ', text)):
+        name = q.group(1)
+        if not re.search(r'^%s\b' % re.escape(name), text, re.M):
+            found.append((text[:text.index(name)].count('\n') + 1
+                          if name in text else 0,
+                          'the head promises a block `%s` at the foot of'
+                          ' this note and no line of it begins `%s` --'
+                          ' write the block or drop the promise, since what'
+                          " it holds is the preparation's half of post-run"
+                          ' step 9 and reaches the executing session only'
+                          ' here' % (name, name)))
+
     if not found:
         print('note-check %s: clean -- %d line(s), previous run %d,'
               ' registration of %d item(s)' % (base, len(lines), prev, top))
@@ -9550,6 +9648,48 @@ CHECKLISTS = {
     'post': '#   0. NAME THE FILL GROUPS',
 }
 
+# THE POST LIST'S EXECUTION ORDER, which is not the order it prints in.
+# The numbers are stable on purpose -- pointers in both documents and in
+# several tools resolve to them -- so a step that runs out of turn keeps
+# its number and each says why in its own text: 0 after 1, 2 and 3 by
+# its `FIRST MEANS BEFORE 11 AND NOT BEFORE 1`, 9 and 10 before 6d by
+# their own first words, 10a with the last reading before the writing
+# starts. Saying it once here is what a session gets BEFORE step 0
+# rather than at step 9. Declared and not derived: the reasons are
+# prose and no pattern reads them. Added 2026-09-20, after Run 37 took
+# 9 and 10 in printed order and recorded the deviation in its own
+# post-mortem -- the third run running to meet this seam.
+POST_EXEC = ['1', '2', '3', '0', '4', '4a', '4b', '5', '5a', '5b', '5c',
+             '9', '10', '10a', '6', '6a', '6b', '6c', '6d', '6e', '7',
+             '7a', '8', '10b', '10c', '11']
+
+
+def _exec_order(block):
+    """The post list's execution order against its printed one.
+
+    Returns (order, moved, mismatch). `moved` is the smallest set of
+    steps that has to move, read off the longest common subsequence of
+    the two orders rather than by comparing positions, which would name
+    most of the list. A step in the block and not in POST_EXEC, or the
+    reverse, comes back in `mismatch` and the banner is not printed:
+    this is a second statement of the list's shape, so it fails loudly
+    when the list moves under it instead of printing a stale order.
+    """
+    printed = []
+    for line in block:
+        m = re.search(r'#\s{0,4}(\d+[a-z]?)\.\s', line)
+        if m and m.group(1) not in printed:
+            printed.append(m.group(1))
+    want = [n for n in POST_EXEC if n in printed]
+    if sorted(printed) != sorted(want):
+        return None, None, sorted(set(printed) ^ set(want))
+    sm = difflib.SequenceMatcher(None, printed, want)
+    kept = set()
+    for tag, i1, i2, _j1, _j2 in sm.get_opcodes():
+        if tag == 'equal':
+            kept.update(printed[i1:i2])
+    return want, [n for n in want if n not in kept], []
+
 # The post list alone is longer than the other two together, and it has a
 # seam: nothing from step 6 on is actionable until 5b's tables are in, so a
 # session reading it whole reads half of it hours before it can act. `post-a`
@@ -9707,6 +9847,23 @@ def checklist(readme, which, steps_only=False):
         block = [l for l in block
                  if re.match(r'^ {4}#? {0,3}\d+[a-z]?\.', l)
                  or (l.startswith('    ') and not l.strip().startswith('#'))]
+        if which == 'post':
+            order, moved, mismatch = _exec_order(block)
+            if mismatch:
+                sys.stderr.write(
+                    '--checklist %s --imperative: POST_EXEC and the list'
+                    ' disagree on %s, so no execution order is printed --'
+                    ' a step moved and this constant did not\n'
+                    % (which, ', '.join(mismatch)))
+            else:
+                print('    # EXECUTION ORDER, which is NOT the order below:')
+                print('    #   %s' % ' '.join(order))
+                if moved:
+                    print('    #   %s %s out of printed turn, saying why in'
+                          ' its own text.'
+                          % (', '.join(moved),
+                             'runs' if len(moved) == 1 else 'run'))
+                print()
     print('\n'.join(block))
     return 0
 

@@ -1445,22 +1445,26 @@ rather than a slot in the next run, observed again:
   above the launch now --- the done-condition reads the same before the evening
   as after it, and the one place it must not run is between them.
 - `ANSWERED` **The readings carrier is retired, 2026-09-16: the reading it saved
-  is a reading the write-up cannot avoid.** From 2026-09-05 reading-list items
-  2, 4, 5 and 6 --- the previous run's head and Results prose, its two-column
-  table, its properties and its class blocks --- were one agent's batch,
-  returned as `run<N>-readings.txt`, one `ITEM N` block apiece, on the argument
-  that a session should read that prose once for a verdict apiece rather
-  than carry it whole. **What retires it is that post-run step 5 copies
-  the previous run's file and the write-up edits the copy paragraph
-  by paragraph**, so the session reads those four sections as the text
-  it is replacing, whatever a carrier reads. The carrier read them a second
-  time, in another process, to summarise what the session was about to have
-  open: on Run 33 that cost 111,877 tokens, ten tool calls and 2m16s for an 11.6
-  KB file. **And the file went unopened on two of the three runs that used one**
-  --- Run 26 read its summary off the task notification, which the instruction
-  at step 5 then warned about by name, and Run 33 did the same thing anyway.
-  `run-status.sh` could not see it: it marked steps 4, 5 and 6a done when
-  the `ITEM N` blocks EXISTED, which is a check that the carrier ran
+  is a reading the write-up cannot avoid.** **IT RETIRED A CARRIER
+  FOR THE PREVIOUS RUN'S SECTIONS AND NOT CARRIERS**, which Run 37 read it as,
+  spawning none until 6e and reading `log-read-$R/`'s files itself:
+  those are this run's own readings, they are not sections the write-up has
+  open, and a carrier over them is the ordinary case the user-scope file names.
+  From 2026-09-05 reading-list items 2, 4, 5 and 6 --- the previous run's head
+  and Results prose, its two-column table, its properties and its class blocks
+  --- were one agent's batch, returned as `run<N>-readings.txt`, one `ITEM N`
+  block apiece, on the argument that a session should read that prose once
+  for a verdict apiece rather than carry it whole. **What retires it
+  is that post-run step 5 copies the previous run's file and the write-up edits
+  the copy paragraph by paragraph**, so the session reads those four sections
+  as the text it is replacing, whatever a carrier reads. The carrier read them
+  a second time, in another process, to summarise what the session was about
+  to have open: on Run 33 that cost 111,877 tokens, ten tool calls and 2m16s
+  for an 11.6 KB file. **And the file went unopened on two of the three runs
+  that used one** --- Run 26 read its summary off the task notification, which
+  the instruction at step 5 then warned about by name, and Run 33 did the same
+  thing anyway. `run-status.sh` could not see it: it marked steps 4, 5 and 6a
+  done when the `ITEM N` blocks EXISTED, which is a check that the carrier ran
   and not that anyone read it, so the one instrument that would have noticed
   confirmed the opposite. **What was worth keeping is the QUESTION each item
   carries** --- does the two-column table carry the last run's columns, which
@@ -8516,6 +8520,16 @@ Unsandboxed throughout:
     #      begins` in $R-evening.txt and never by the launching shell's
     #      output, a blocked write leaving a launch that never happened
     #      looking like one in progress.
+    #      AND A DEAD ATTEMPT IS PARKED, NOT DELETED. Where the box
+    #      goes busy mid-gate, or a stage is killed, stop the driver,
+    #      check no child survived, and move what it left aside:
+    #      `probe-killed-$R-...`, with NO `.json` suffix on a JSON --
+    #      criterion writes that file as it goes, so a killed process
+    #      leaves a truncated one and properties.py globs every
+    #      `.json` here. run-evening.sh then refuses over the dead
+    #      attempt's $R-evening.txt and says to move it aside, which
+    #      is the whole of the recovery. Run 37 relaunched this way
+    #      twelve minutes in and published the second launch.
     #      AND ARM ONE MONITOR IN THE SAME TURN, the stages:
     #          tail -F -n +1 $R-evening.txt $R-wallclock.log 2>/dev/null \
     #            | grep -E --line-buffered '^=== ' \
@@ -9727,6 +9741,12 @@ not otherwise.
     #      `runs/` keeps every run, so read the diff. REPOINT ON
     #      THE UNWRAPPED FORM -- a literal rename over the wrapped
     #      document misses link text a line break falls inside -- and
+    #      A LINE NUMBER INTO EITHER DOCUMENT DIES AT THE NEXT COMMIT,
+    #      the hook rewrapping README there, so carry the bolded lead
+    #      and not the number; and step 6's `--replace ANCHOR --with
+    #      FILE` is the form for every paragraph edit from here on,
+    #      this step's included, the habit otherwise forming here and
+    #      meeting the rule at 6 --
     #      --check-doc fails any that still name it; no source file names
     #      a run file. Repointing is not re-verifying: walk the links
     #      --check-doc lists, and the section links it does not, against
@@ -9776,8 +9796,12 @@ not otherwise.
     #      COUNTS, which the run list launches at step 20 -- after the
     #      box is handed back, so on any run whose write-up starts
     #      promptly they are still being taken while 5a and 5b are
-    #      done. Every `predict:` span read on each population and
-    #      half its scope names, HELD or KILLED with the figure read,
+    #      done. WHILE THEY ARE TAKEN, read `--checklist post-b` and run
+    #      6a's three readers: this is the list's one long wait, the
+    #      only work in it is 6a's, and a session that fills it
+    #      unbriefed writes a third of 6a before meeting step 6 --
+    #      Run 37 did. Every `predict:` span read on each population
+    #      and half its scope names, HELD or KILLED with the figure read,
     #      and written under its item in the run file as `**Read by
     #      --predictions, item (N):**`, a rerun replacing it; an item
     #      carrying a `script:` is that script's to read, and one
@@ -9870,7 +9894,11 @@ not otherwise.
     #      says` paragraph -- an arm name that renders wrong, matches no
     #      row of the table above it and answers no search for the arm.
     #      The `___` slots in all five are yours and run-status.sh
-    #      refuses a run file still carrying one.
+    #      refuses a run file still carrying one. Each says what it
+    #      wants: a class block carries TWO.
+    ./read-run.py --prose-facts $R        # 6a's THREE READERS, and they
+    ./read-run.py --inherited             # come BEFORE the first
+    ./read-run.py --stale                 # paragraph, not after it
     #      FIRST, BEFORE A WORD OF IT: `./read-run.py --inherited`,
     #      which names the paragraphs this file carried WHOLE from
     #      the last run's and which claim something about the run in
@@ -10405,12 +10433,15 @@ because by then the run read finished; putting it first is what retires that.
    is no combined figure to compute, so a sentence comparing populations
    compares their tables.
 4a. Analyse with `./read-run.py`, which is where every table in this file comes
-from --- read [the reader's own section](#the-reader-read-runpy) first, and do
-not write another reader. **The properties are part of this and are the thing
-these steps are likeliest to leave out**: they are the same job three times
-a population, off the verdicts `--block` emits, and the set is restated
-for the next run on this run's basis while the readings are still in front
-of you. **A paired run's own mode is `--compare`**, and its direction
+from --- and this 4a is THIS list's, not the post-run list's, whose own 4a
+and 4b are the half-local movers and the cell movers; a run file citing
+`post-run step 4b` means those, and `./read-run.py --checklist post-a` prints
+them alone --- read [the reader's own section](#the-reader-read-runpy) first,
+and do not write another reader. **The properties are part of this and
+are the thing these steps are likeliest to leave out**: they are the same job
+three times a population, off the verdicts `--block` emits, and the set
+is restated for the next run on this run's basis while the readings are still
+in front of you. **A paired run's own mode is `--compare`**, and its direction
 is the list's convention: the run given first is the one the ratios are *of*,
 so `basis --compare control` puts a figure below 1 where the basis is faster,
 which for Run 10 was where alignment was faster.
@@ -12001,24 +12032,24 @@ cell clean, at an R2 of 0.999839 and a CI of 0.52%, and its floor falls back
 into the series**: 0.59%, inside the 0.47% to 0.66% of the eight readings before
 Run 36's. Over the four pairs that carry back to Run 10 this run reads **0.59%**
 and **0.48%**, both halves naming `bq-expand-aa-distant`. **So the two
-thresholds COINCIDE on BOTH halves this run**, 0.59% against 0.59% and 0.48%
-against 0.48%, `bq-expand-aa-distant` carrying the whole-set figure
-and the restricted one alike on each half --- where Run 36 and Run 35 parted
-on both, Run 34 on the basis alone, Run 33 closed them on both halves, and Run
-28 read 0.50% against 0.39% and Run 29 0.51% against 0.26%. **And the control
-half's floor, 0.48%, sits between Run 35's 0.40% and Run 34's 0.49%**, well
-inside the band the eight-pair series has held since Run 28. The worst A/A cells
-of this run's two main sets are **3.09%** on `stretch-wide-2xM` on the basis
-and **5.79%** on `alexnet-L2-27-c48-k5` on the control, where Run 36's basis
-carried a 28.36% outlier on `stretch-coprime-r7`, and NO process of this run
-was intruded on, the gate's four and the riders' included, which is what
-`--wild` over all 119 logs says. No registration of this run names the floor
-pairs; `--floor-pairs` reads the eight on every population on both halves, 176
-readings, and SEVEN of the eight carry a floor somewhere --- `list-aa-adjacent`
-in NINE of the twenty-two populations, where Run 35 had none in more than five,
-which is the same instability the whole-set figure above reads. **What this run
-cannot restate is Run 19's finding**, there being no repetition: `Main.hs` moved
-three commits and `cabal.project.ghead` was rewritten under a COMPILER that did
+thresholds COINCIDE on BOTH halves this run**, `bq-expand-aa-distant` carrying
+the whole-set figure and the restricted one alike on each half --- where Run 36
+and Run 35 parted on both, Run 34 on the basis alone, Run 33 closed them on both
+halves, and Run 28 read 0.50% against 0.39% and Run 29 0.51% against 0.26%.
+**And the control half's floor, 0.48%, sits between Run 35's 0.40% and Run 34's
+0.49%**, well inside the band the eight-pair series has held since Run 28.
+The worst A/A cells of this run's two main sets are **3.09%**
+on `stretch-wide-2xM` on the basis and **5.79%** on `alexnet-L2-27-c48-k5`
+on the control, where Run 36's basis carried a 28.36% outlier
+on `stretch-coprime-r7`, and NO process of this run was intruded on, the gate's
+four and the riders' included, which is what `--wild` over all 119 logs says.
+No registration of this run names the floor pairs; `--floor-pairs` reads
+the eight on every population on both halves, 176 readings, and SEVEN
+of the eight carry a floor somewhere --- `list-aa-adjacent` in NINE
+of the twenty-two populations, where Run 35 had none in more than five, which
+is the same instability the whole-set figure above reads. **What this run cannot
+restate is Run 19's finding**, there being no repetition: `Main.hs` moved three
+commits and `cabal.project.ghead` was rewritten under a COMPILER that did
 not move, so no floor here is read twice on one binary. The three readings
 that did that stand as they were --- Run 19's factor of 1.7, Run 23's twentieth
 and Run 30's 1.44 --- and they still say that a floor moves by up to seven
@@ -12039,11 +12070,10 @@ on the control**, and the figure that moved furthest between the two runs
 is the WHOLE-SET one, from Run 36's 1.63% to 0.59%, which is a different
 statistic from the restricted reading beside it --- which is what
 the four-statistics warning at the head of this paragraph is for. The threshold
-this run supports is ONE figure a half --- **0.59%** on the basis and **0.48%**
-on the control, the restricted four-pair reading and the whole set
-over the eight having closed on both --- and since 2026-09-13 a margin between
-two rows clears the whole-set one, the carry-back figure being the series
-and not the bar ([the open list][open]). Read the floor as the run's
+this run supports is ONE figure a half, the restricted four-pair reading
+and the whole set over the eight having closed on both --- and since 2026-09-13
+a margin between two rows clears the whole-set one, the carry-back figure being
+the series and not the bar ([the open list][open]). Read the floor as the run's
 *and the half's*, re-measured every time, never as a constant of the harness
 and never inherited. **And of these series, only the readings from Run 31 on can
 still be re-derived**: Runs 24 to 30's artifacts were deleted 2026-09-18
@@ -12219,10 +12249,10 @@ of 2026-09-04 left six pairs in all, and is now the series across runs rather
 than the bar. **The two rules are ONE again on both halves, as they were on Runs
 32 and 33, and each reads as two numerals because there are two halves**: 0.59%
 and 0.48% are the widest an arm differs from its own duplicate by on each half
-over the eight pairs this roster carries, and 0.59% and 0.48% are the same
-over the four pairs that carry back to Run 10, `bq-expand-aa-distant` carrying
-both figures on both halves --- so the restriction costs nothing this run, where
-on Run 36 it cost eighty-eight hundredths of a point on the basis and eleven
+over the eight pairs this roster carries, and the four pairs that carry back
+to Run 10 read the same two figures, `bq-expand-aa-distant` carrying both
+on both halves --- so the restriction costs nothing this run, where on Run 36
+it cost eighty-eight hundredths of a point on the basis and eleven
 on the control. The two parted on BOTH halves on Runs 35 and 36, Run 34 parted
 on the basis alone, Runs 32 and 33 had them equal on both halves, Runs 30 and 31
 parted on the CONTROL alone --- 0.84% against 0.56% and 1.58% against 0.43%,
@@ -14277,6 +14307,13 @@ cycle counts the [Lemire
 section](#lemire-multiplicative-inverses-at-the-two-division-sites) rests on.
 A run elsewhere is a different measurement rather than a repetition, and should
 name its machine at the head of its own file, where this one does.
+
+**A FIGURE QUOTED AS AN EARLIER RUN'S NAMES THAT RUN IN THE SAME CLAUSE**, which
+is what lets the agreement checks below tell a history from a live claim: they
+match a phrasing, not an intent, so `this run's main set` in a bullet about Run
+36 reads to them as Run 37's and fails. Run 37 had to launder two such sentences
+that were true where they stood --- a delta bullet and a post-mortem ---
+and the laundering is the convention, not the repair.
 
 **The delta, so the population is recoverable.** What follows is the *only* form
 in which a shape set or roster is recorded here: each run's difference
