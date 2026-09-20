@@ -40,36 +40,38 @@ with no regression and needs no extension to orthotope classes.
 
 **A direct mutable result buffer is faster still**: `mut-odo` walks the outer
 odometer and writes each innermost run, and `mut-odo-vecdims` --- the same fill
-with its dimension lists replaced by unboxed vectors --- is on Run 36 (plain
--O1, -A32m, exit span, GHC HEAD `10.1.20260918`) **2.83x** over `bq-expand`
-paired, ahead on ALL nineteen shapes. **That headline moves with the published
-REGIME and not with either arm, and not with the COMPILER either**: Run 29 read
-2.22x on a `-fspec-constr` basis and 2.83x on its own unflagged half, Run 30
-read 2.87x on that same unflagged recipe --- the same binary as Run 29's
-unflagged half, md5 and `.text` alike, so that step was two evenings of drift
-on one build --- Run 31 read 2.84x on the recipe and 2.19x on its `-O2` half,
-Run 32 read **2.85x** on the recipe and **2.84x** on its GHC HEAD half, Run 33
-read **2.84x** and **2.86x** under the exit span, Run 34 read **2.83x**
-on its basis and **2.84x** on its HEAD half, Run 35 read **2.83x**
-and **2.86x**, and Run 36 reads **2.83x** on its plain -O1 half and **2.20x**
-on the half carrying `-fspec-constr -fliberate-case`. **TWO of `-O2`'s passes
-cost this headline what the whole level cost it**, 2.20x against Run 31's 2.19x,
-a hundredth apart and across two compilers --- so raising the level costs
-the headline better than six tenths of a multiple and those two passes are where
-the cost lives, `-O2` speeding `bq-expand` by 29% and leaving the fill where
-it is, while changing the compiler moves it by a hundredth or two, down on Run
-32 and up on Runs 33 to 35; the gap this ratio reports is the one the library
-actually compiles in. **One main-set shape sits on the line**:
-on `stretch-pow2stride` the fill and `bq-expand` tie, class property 1 breaking
-on whichever half reads the fill behind, and whether any run reads it behind
-by more than its floor is [an open question][open] --- Run 36 reads that shape
-at 0.9970 on its plain half and 0.9826 on its flagged one, the fill ahead
-on both. **The mutable fills hold the top of the table** --- `lib-stage2-lean`
-at 0.027 and the shipped leaf at 0.028, against `mut-odo-vecdims`'s 0.044 ---
-and every one of them needs a new `Vector`-class method, which this README
-argued against for as long as the ceiling stood --- to keep orthotope's `Vector`
-API pure and minimal, a bar an in-tree precedent softened to a weight ---
-and which the decision of 2026-08-22 **took**, `vFillStrided` landing 2026-08-24
+with its dimension lists replaced by unboxed vectors --- is on Run 37 (plain
+-O1, -A32m, exit span, GHC HEAD `10.1.20260918`, launched from disk) **2.85x**
+over `bq-expand` paired, ahead on ALL nineteen shapes. **That headline moves
+with the published REGIME and not with either arm, and not with the COMPILER
+either**: Run 29 read 2.22x on a `-fspec-constr` basis and 2.83x on its own
+unflagged half, Run 30 read 2.87x on that same unflagged recipe --- the same
+binary as Run 29's unflagged half, md5 and `.text` alike, so that step was two
+evenings of drift on one build --- Run 31 read 2.84x on the recipe and 2.19x
+on its `-O2` half, Run 32 read **2.85x** on the recipe and **2.84x** on its GHC
+HEAD half, Run 33 read **2.84x** and **2.86x** under the exit span, Run 34 read
+**2.83x** on its basis and **2.84x** on its HEAD half, Run 35 read **2.83x**
+and **2.86x**, Run 36 read **2.83x** on its plain -O1 half and **2.20x**
+on the half carrying `-fspec-constr -fliberate-case`, and Run 37 reads **2.85x**
+and **2.19x** on that same pair repeated. **TWO of `-O2`'s passes cost
+this headline what the whole level cost it**, 2.19x and 2.20x against Run 31's
+2.19x, a hundredth apart over three readings and across two compilers ---
+so raising the level costs the headline better than six tenths of a multiple
+and those two passes are where the cost lives, `-O2` speeding `bq-expand` by 29%
+and leaving the fill where it is, while changing the compiler moves it
+by a hundredth or two, down on Run 32 and up on Runs 33 to 35; the gap
+this ratio reports is the one the library actually compiles in. **One main-set
+shape sits on the line**: on `stretch-pow2stride` the fill and `bq-expand` tie,
+class property 1 breaking on whichever half reads the fill behind, and whether
+any run reads it behind by more than its floor is [an open question][open] ---
+Run 37 reads that shape at 0.9945 on its plain half and 0.9810 on its flagged
+one, the fill ahead on both and by more than Run 36's 0.9970 and 0.9826.
+**The mutable fills hold the top of the table** --- `lib-stage2-lean` at 0.023
+and the shipped leaf at 0.027, against `mut-odo-vecdims`'s 0.045 --- and every
+one of them needs a new `Vector`-class method, which this README argued against
+for as long as the ceiling stood --- to keep orthotope's `Vector` API pure
+and minimal, a bar an in-tree precedent softened to a weight --- and which
+the decision of 2026-08-22 **took**, `vFillStrided` landing 2026-08-24
 ([below](#the-mutable-ceiling-taken)). Plain `mut-odo` no longer argues
 for it at all: it and `bq-expand`, which survives in `Data/Array/Internal.hs`
 only as that method's class default, the three vector-backed instances
@@ -741,6 +743,32 @@ rather than a slot in the next run, observed again:
   it as `[registered <date>][open]` and restates nothing, and the pair note
   is filled in from it. Run 37's registration is the first written to the ruling
   and Run 36's section the first amended to it.
+- `OPEN` **An arm parts 3.70 points across the halves and it is one half's
+  BINARY, which only the half-local reading can say.** On Run 37
+  `mut-odo-vecdims-add-in-leaf-u1` reads **0.9630** on the main set against
+  a 0.51% A/A bar --- the one arm outside the `list` and `bq-expand` families
+  to break [its
+  registration's](runs/run37.md#what-this-run-was-built-to-answer-and-what-it-answered)
+  3% band --- and it is the low extreme in NINE of the ten classes besides, down
+  to **0.7053** on `bcast`. Its counted work is level with its family, 1.0501
+  against the shipped leaf's 1.0521, so it is not codegen; the family's A/A
+  copies agree, so it is not the process. **What settles the half is post-run
+  step 4a**: read against Run 36's same half, the arm is LEVEL on the basis,
+  0.9836 to 1.0085 over the eleven populations, and moves on the CONTROL
+  in eight of them --- 1.0337 on the main set, 1.1165 on `flip`, 1.1460
+  on `block`, 1.2677 on `runs`, 1.3571 on `compose` and **1.4164** on `bcast`
+  --- with the counted work at **1.0000** on both halves in every one
+  of the eleven. So this run's control binary is slower on that arm than Run
+  36's control binary was, executing the same instructions to the fourth
+  decimal. **What would settle it and was not taken**: step 4a's copy test,
+  `cp run37-gheadtwopass probe-copy-run37-gheadtwopass` with a flagged cell
+  timed on both interleaved, and then, before anything evicts the file,
+  the frames off the slow instance with `probe-pageflags.py` while it runs. Both
+  want the box quiet again, which is asked for and not taken by a write-up.
+  `hugebin/` being suspended is why the run itself could not answer it:
+  with the mount down both halves launched from disk and step 16a had no second
+  instance to gate. [Run 37's Results](runs/run37.md#results) carries
+  the reading.
 - `ANSWERED` **What Run 37 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 37's own
@@ -1459,20 +1487,25 @@ rather than a slot in the next run, observed again:
   on one question: whether any run reads `mut-odo-vecdims` BEHIND `bq-expand`
   on that cell by more than its own half's floor. Until one does, a break there
   is a tie and not a failure of the clause.
-- `OPEN` **Which of the two `-O2` passes carries the 33.60 points, on a compiler
-  this series still builds with.** Run 36 put `-fspec-constr`
-  and `-fliberate-case` TOGETHER on one half and neither on the other and read
-  `list` at **1.3360** and `bq-expand` at **1.2980** on the main set; the only
+- `OPEN` **Which of the two `-O2` passes carries the regime's points,
+  on a compiler this series still builds with --- and, since Run 37, how many
+  points there are.** Run 36 put `-fspec-constr` and `-fliberate-case` TOGETHER
+  on one half and neither on the other and read `list` at **1.3360**
+  and `bq-expand` at **1.2980** on the main set; **Run 37 repeated that pair
+  and read 1.2960 and 1.3101**, so the two readings of one pair straddle Run
+  31's whole-level 1.2974 --- Run 36's corrected 1.3129 a point and a half above
+  it, Run 37's 1.2950 a quarter-point below --- and agree only
+  that the composition of the two single-pass runs, 1.3325, overshoots. The only
   readings of either pass ALONE are Runs 29's and 30's, taken on ghc-9.12.4,
   on a roster three sources back, and with the `-fspec-constr` half
   as that run's basis so that its published figures are the reciprocals
-  of this orientation. Their composition, 1.3325 on `list`, is what Run 36
-  confirms, so the two together are accounted for and the SPLIT is not: nothing
-  says whether SpecConstr carries it, as its allocation signature suggests,
-  or whether LiberateCase carries part of it on this HEAD. **What settles
-  it is one pair and one variable**: either flag alone against the unflagged
-  half, built by Run 36's own recipe --- GHC HEAD `10.1.20260918` through
-  `cabal.project.ghead`, `Main.hs` at `0eda736`, the shim at `f31bd1c`
+  of this orientation. So the two together are NOT accounted for to better
+  than a point and three quarters, and the SPLIT is not accounted for at all:
+  nothing says whether SpecConstr carries it, as its allocation signature
+  suggests, or whether LiberateCase carries part of it on this HEAD. **What
+  settles it is one pair and one variable**: either flag alone against
+  the unflagged half, built by Run 36's own recipe --- GHC HEAD `10.1.20260918`
+  through `cabal.project.ghead`, `Main.hs` at `0eda736`, the shim at `f31bd1c`
   under the four switches, launched from `hugebin/` --- which reads against
   `run36-gheadnospec` with the box as the only term, this run's basis being
   the first published one on that compiler. Registered here rather than
@@ -3835,6 +3868,46 @@ rather than a slot in the next run, observed again:
 
 
 ### Recommended tasks after Run 37
+
+**What Run 37 made cheaper for the next run, which is not a figure and no other
+step gathers --- and it is ONE session's worth where it should be two.**
+**THE PREPARATION'S HALF IS MISSING**: `run37-pair.txt` says at its head
+that what the preparation learned is "at the foot of this note under LEARNED",
+and the note carries no such block --- a grep for it finds only the two lines
+that promise it. That half met the same list a day earlier and is gone
+with the session, so it is not recoverable, and what a note promises it does
+not carry is worth more to the next preparation than the block would have been.
+**THREE READERS CAUGHT WHAT NO DIFF COULD.** `--inherited` named eighteen
+paragraphs carried whole from Run 36's file, of which SIX were that run's claims
+standing under this run's name --- the straddler count, the provenance of source
+against compiler, the correction's five low-R2 cells, the control-half
+standings, the bold distribution and the `lib-stage1` over-`list` figures ---
+and the diff cannot see one of them, its base being step 5's copy. `--stale`
+named the figures the copy hands you inside paragraphs you DO edit.
+`--check-doc` then caught what both left: a link written for README and pasted
+into the run file, where `runs/run36.md` resolves to nothing; the floor pair
+stale at two of four sites and the carry-back figure at one of three; and three
+headings left with one blank line before them. **A COMPUTATION IMPROVISED:
+three.** The gate's second-pass prediction, the control half's own legs
+over the basis's, taken by hand off the four `--compare` readings; the machine
+check with the fingerprint's wild shape set aside, -0.55% against the whole
+set's -2.24%, taken with `--exclude-shape`; and the per-class spread of counted
+work against the clock, differenced per class rather than read from any file.
+**STEPS OUT OF ORDER: two, and both are this session's.** Steps 9 and 10 are due
+BEFORE 6d and committed with it, and both are in 7a's commit instead; and 6a
+and 6c were written interleaved rather than as the two halves the list names,
+so 6b's commit carried the run file alone and 6d's README alone, which
+is the partition the list wants even though the order was not. **A STEP
+NOT TAKEN, and named rather than skipped quietly**: post-run step 4a's copy test
+on `mut-odo-vecdims-add-in-leaf-u1`, which wants the box quiet again
+and is therefore asked for --- the open entry below says what it would settle.
+**TWO CAPABILITIES FOUND.** Step 4a's half-local reading is what turns
+a cross-half miss into a finding: it named the half AND showed the counted work
+level on both, which no cross-half figure can do, and it did it for an arm
+the registration had already killed a span on. And post-run step 0's `-g3` twins
+build beside step 20's counts for nothing --- about twenty minutes of a box
+already handed back --- so a preparation that leaves the naming NOT TAKEN
+for want of time is trading a reading for no saving.
 
 **What Run 36 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's first.** **TWO
