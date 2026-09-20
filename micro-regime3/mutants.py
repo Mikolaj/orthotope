@@ -1070,8 +1070,8 @@ MUTANTS = [
     # be asserting this constant against itself.
     ('the execution order goes stale under a renumbered list',
      'read-run.py',
-     "'9', '10', '10a', '6', '6a'",
-     "'9', '10', '6', '6a'",
+     "'4b', '10a', '5', '5a',",
+     "'4b', '5', '5a',",
      'set -o pipefail; python3 "{file}" --checklist post --imperative'
      ' --readme "{dir}/README.md" 2>/dev/null | grep -q "EXECUTION ORDER"'),
     # THE NOTE PROMISING A BLOCK IT DOES NOT CARRY. Run 37's note put

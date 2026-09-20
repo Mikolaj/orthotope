@@ -9653,15 +9653,16 @@ CHECKLISTS = {
 # several tools resolve to them -- so a step that runs out of turn keeps
 # its number and each says why in its own text: 0 after 1, 2 and 3 by
 # its `FIRST MEANS BEFORE 11 AND NOT BEFORE 1`, 9 and 10 before 6d by
-# their own first words, 10a with the last reading before the writing
-# starts. Saying it once here is what a session gets BEFORE step 0
-# rather than at step 9. Declared and not derived: the reasons are
+# their own first words, 10a with the readings of 4, which is where
+# post-run-readings.sh takes it and where step 4 says it is taken.
+# Saying it once here is what a session gets BEFORE step 0 rather
+# than at step 9. Declared and not derived: the reasons are
 # prose and no pattern reads them. Added 2026-09-20, after Run 37 took
 # 9 and 10 in printed order and recorded the deviation in its own
 # post-mortem -- the third run running to meet this seam.
-POST_EXEC = ['1', '2', '3', '0', '4', '4a', '4b', '5', '5a', '5b', '5c',
-             '9', '10', '10a', '6', '6a', '6b', '6c', '6d', '6e', '7',
-             '7a', '8', '10b', '10c', '11']
+POST_EXEC = ['1', '2', '3', '0', '4', '4a', '4b', '10a', '5', '5a',
+             '5b', '5c', '9', '10', '6', '6a', '6b', '6c', '6d', '6e',
+             '7', '7a', '8', '10b', '10c', '11']
 
 
 def _exec_order(block):
