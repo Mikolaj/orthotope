@@ -536,9 +536,8 @@ baseOffsetsExpand32 o0 osh (Strides oats) =
 -- does not. What the guard does NOT protect against is a division: 'magicOf'
 -- is total at 0, so a zero hoisted radix is harmless by itself. The two
 -- guards are independent and both live, and 'degenerateShapes' is the
--- regression test for each. Unreachable in this harness, which has no zero
--- dimension -- but orthotope has zero-size arrays, and this builder is
--- proposed for it.
+-- regression test for each. No timed shape has a zero dimension, but
+-- orthotope has zero-size arrays, and this builder is proposed for it.
 {-# INLINE baseOffsetsScan #-}
 baseOffsetsScan :: Int -> ShapeL -> Strides -> VU.Vector Int
 baseOffsetsScan o0 osh (Strides oats)
