@@ -7767,6 +7767,15 @@ def brief_update(run, readings_dir=None, brief=None, where='.'):
         print('and the substitution block: %s. PRETIP and RUNTIP are'
               ' untouched, being commits.'
               % ', '.join('%s=%s' % kv for kv in sorted(subs.items())))
+    else:
+        print('the substitution block was NOT written: pair-halves.sh could'
+              ' not read %s-pair.txt, so RUN, BASIS, OTHER and PREV stand as'
+              ' they were and are yours to check.' % run)
+    # AFTER that pair and not inside it: inserted between the `if subs`
+    # and its `else` on 2026-09-20, this took the `else` over, so a run
+    # with no substitutions but a tip to offer printed no warning, and
+    # one with both printed the warning beside the block it denies.
+    # Found by a blind reader of the diff, no gate seeing it.
     pre, tip = _brief_tips(run, where)
     if pre or tip:
         print('and git offers them, to accept or refuse rather than to'
@@ -7775,10 +7784,6 @@ def brief_update(run, readings_dir=None, brief=None, where='.'):
               ' commit whose subject names this run and a step, which'
               ' at 6e is 6d\'s. Neither is written.'
               % (pre or '?', run, tip or '?'))
-    else:
-        print('the substitution block was NOT written: pair-halves.sh could'
-              ' not read %s-pair.txt, so RUN, BASIS, OTHER and PREV stand as'
-              ' they were and are yours to check.' % run)
     left = sum(1 for line in out for _ in re.finditer(r'<yours', line))
     if left:
         print('%d `<yours>` slot(s) left, which are prose and not facts:'
@@ -9659,13 +9664,13 @@ CHECKLISTS = {
 # than at step 9. Declared and not derived: the reasons are
 # prose and no pattern reads them. Added 2026-09-20, after Run 37 took
 # 9 and 10 in printed order and recorded the deviation in its own
-# post-mortem -- the third run running to meet this seam.
+# post-mortem.
 POST_EXEC = ['1', '2', '3', '0', '4', '4a', '4b', '10a', '5', '5a',
              '5b', '5c', '9', '10', '6', '6a', '6b', '6c', '6d', '6e',
              '7', '7a', '8', '10b', '10c', '11']
 
 
-def _exec_order(block):
+def _exec_order(block, whole=False):
     """The post list's execution order against its printed one.
 
     Returns (order, moved, mismatch). `moved` is the smallest set of
@@ -9682,8 +9687,15 @@ def _exec_order(block):
         if m and m.group(1) not in printed:
             printed.append(m.group(1))
     want = [n for n in POST_EXEC if n in printed]
-    if sorted(printed) != sorted(want):
-        return None, None, sorted(set(printed) ^ set(want))
+    # BOTH DIRECTIONS, and only the second needs `whole`: a half prints
+    # part of the list, so POST_EXEC holding steps it lacks is ordinary
+    # there and a fault on the whole list. Until 2026-09-20 the test was
+    # `printed` against a subset of itself, which could only ever catch
+    # a step ADDED to the README and never one deleted from it, while
+    # the sentence above claimed both.
+    gone = set(POST_EXEC) - set(printed) if whole else set()
+    if set(printed) - set(POST_EXEC) or gone:
+        return None, None, sorted((set(printed) - set(POST_EXEC)) | gone)
     sm = difflib.SequenceMatcher(None, printed, want)
     kept = set()
     for tag, i1, i2, _j1, _j2 in sm.get_opcodes():
@@ -9849,7 +9861,7 @@ def checklist(readme, which, steps_only=False):
                  if re.match(r'^ {4}#? {0,3}\d+[a-z]?\.', l)
                  or (l.startswith('    ') and not l.strip().startswith('#'))]
         if which == 'post':
-            order, moved, mismatch = _exec_order(block)
+            order, moved, mismatch = _exec_order(block, whole=half is None)
             if mismatch:
                 sys.stderr.write(
                     '--checklist %s --imperative: POST_EXEC and the list'

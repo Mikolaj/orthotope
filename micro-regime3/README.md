@@ -1446,41 +1446,42 @@ rather than a slot in the next run, observed again:
   as after it, and the one place it must not run is between them.
 - `ANSWERED` **The readings carrier is retired, 2026-09-16: the reading it saved
   is a reading the write-up cannot avoid.** **IT RETIRED A CARRIER
-  FOR THE PREVIOUS RUN'S SECTIONS AND NOT CARRIERS**, which Run 37 read it as,
-  spawning none until 6e and reading `log-read-$R/`'s files itself:
-  those are this run's own readings, they are not sections the write-up has
-  open, and a carrier over them is the ordinary case the user-scope file names.
-  From 2026-09-05 reading-list items 2, 4, 5 and 6 --- the previous run's head
-  and Results prose, its two-column table, its properties and its class blocks
-  --- were one agent's batch, returned as `run<N>-readings.txt`, one `ITEM N`
-  block apiece, on the argument that a session should read that prose once
-  for a verdict apiece rather than carry it whole. **What retires it
-  is that post-run step 5 copies the previous run's file and the write-up edits
-  the copy paragraph by paragraph**, so the session reads those four sections
-  as the text it is replacing, whatever a carrier reads. The carrier read them
-  a second time, in another process, to summarise what the session was about
-  to have open: on Run 33 that cost 111,877 tokens, ten tool calls and 2m16s
-  for an 11.6 KB file. **And the file went unopened on two of the three runs
-  that used one** --- Run 26 read its summary off the task notification, which
-  the instruction at step 5 then warned about by name, and Run 33 did the same
-  thing anyway. `run-status.sh` could not see it: it marked steps 4, 5 and 6a
-  done when the `ITEM N` blocks EXISTED, which is a check that the carrier ran
-  and not that anyone read it, so the one instrument that would have noticed
-  confirmed the opposite. **What was worth keeping is the QUESTION each item
-  carries** --- does the two-column table carry the last run's columns, which
-  properties are live and how many, what the six-part class-block form is ---
-  and those now sit at the steps that rewrite those sections, where the text
-  is open and the question costs nothing. **What went with the check**:
-  `run-status.sh`'s digest block, the four defect cases
-  `status-wants-the-carriers-digest`, `status-reads-the-carriers-digest`,
-  `status-reads-a-bare-item-header` and `status-wants-no-digest-before-run-26`,
-  the two mutants that proved it bit, and `defects.py`'s `readings_digest`
-  fixture --- all in git under those names. **What would reopen it**: a run
-  whose write-up does NOT edit the previous run's file in place, which is what
-  post-run step 5 would have to stop doing; or a handover, a session dying
-  between the launch and the write-up, where a page of conclusions outlives
-  a transcript --- and that case wants the four `--section` calls written
-  to a file by the session, 0.08 s each, and not an agent.
+  FOR THE PREVIOUS RUN'S SECTIONS AND NOT CARRIERS IN GENERAL.** Run 37 read
+  it as the second, spawned none until 6e and read `log-read-$R/`'s files
+  itself: those are this run's own readings, they are not sections the write-up
+  has open, and a carrier over them is the ordinary case the user-scope file
+  names. From 2026-09-05 reading-list items 2, 4, 5 and 6 --- the previous run's
+  head and Results prose, its two-column table, its properties and its class
+  blocks --- were one agent's batch, returned as `run<N>-readings.txt`, one
+  `ITEM N` block apiece, on the argument that a session should read that prose
+  once for a verdict apiece rather than carry it whole. **What retires
+  it is that post-run step 5 copies the previous run's file and the write-up
+  edits the copy paragraph by paragraph**, so the session reads those four
+  sections as the text it is replacing, whatever a carrier reads. The carrier
+  read them a second time, in another process, to summarise what the session
+  was about to have open: on Run 33 that cost 111,877 tokens, ten tool calls
+  and 2m16s for an 11.6 KB file. **And the file went unopened on two
+  of the three runs that used one** --- Run 26 read its summary off the task
+  notification, which the instruction at step 5 then warned about by name,
+  and Run 33 did the same thing anyway. `run-status.sh` could not see it:
+  it marked steps 4, 5 and 6a done when the `ITEM N` blocks EXISTED, which
+  is a check that the carrier ran and not that anyone read it, so the one
+  instrument that would have noticed confirmed the opposite. **What was worth
+  keeping is the QUESTION each item carries** --- does the two-column table
+  carry the last run's columns, which properties are live and how many, what
+  the six-part class-block form is --- and those now sit at the steps
+  that rewrite those sections, where the text is open and the question costs
+  nothing. **What went with the check**: `run-status.sh`'s digest block,
+  the four defect cases `status-wants-the-carriers-digest`,
+  `status-reads-the-carriers-digest`, `status-reads-a-bare-item-header`
+  and `status-wants-no-digest-before-run-26`, the two mutants that proved
+  it bit, and `defects.py`'s `readings_digest` fixture --- all in git
+  under those names. **What would reopen it**: a run whose write-up does
+  NOT edit the previous run's file in place, which is what post-run step 5 would
+  have to stop doing; or a handover, a session dying between the launch
+  and the write-up, where a page of conclusions outlives a transcript ---
+  and that case wants the four `--section` calls written to a file
+  by the session, 0.08 s each, and not an agent.
 - `OPEN` **Class property 1's `bq-expand` clause breaks on ONE main-set cell,
   `stretch-pow2stride`, where the two arms tie.** The clause is a sanity check,
   `mut-odo-vecdims` ahead of `bq-expand` on every shape. It holds on every shape
@@ -8523,10 +8524,11 @@ Unsandboxed throughout:
     #      AND A DEAD ATTEMPT IS PARKED, NOT DELETED. Where the box
     #      goes busy mid-gate, or a stage is killed, stop the driver,
     #      check no child survived, and move what it left aside:
-    #      `probe-killed-$R-...`, with NO `.json` suffix on a JSON --
-    #      criterion writes that file as it goes, so a killed process
-    #      leaves a truncated one and properties.py globs every
-    #      `.json` here. run-evening.sh then refuses over the dead
+    #      on the name step 17 already fixes for a killed process,
+    #      `probe-killed-$R-<half>-<pop>.json.truncated` -- criterion
+    #      writes that file as it goes, so a killed process leaves a
+    #      truncated one and properties.py reads every `.json` here
+    #      that does not begin `zz`. run-evening.sh then refuses over the dead
     #      attempt's $R-evening.txt and says to move it aside, which
     #      is the whole of the recovery. Run 37 relaunched this way
     #      twelve minutes in and published the second launch.
@@ -9741,12 +9743,6 @@ not otherwise.
     #      `runs/` keeps every run, so read the diff. REPOINT ON
     #      THE UNWRAPPED FORM -- a literal rename over the wrapped
     #      document misses link text a line break falls inside -- and
-    #      A LINE NUMBER INTO EITHER DOCUMENT DIES AT THE NEXT COMMIT,
-    #      the hook rewrapping README there, so carry the bolded lead
-    #      and not the number; and step 6's `--replace ANCHOR --with
-    #      FILE` is the form for every paragraph edit from here on,
-    #      this step's included, the habit otherwise forming here and
-    #      meeting the rule at 6 --
     #      --check-doc fails any that still name it; no source file names
     #      a run file. Repointing is not re-verifying: walk the links
     #      --check-doc lists, and the section links it does not, against
@@ -9796,11 +9792,12 @@ not otherwise.
     #      COUNTS, which the run list launches at step 20 -- after the
     #      box is handed back, so on any run whose write-up starts
     #      promptly they are still being taken while 5a and 5b are
-    #      done. WHILE THEY ARE TAKEN, read `--checklist post-b` and run
-    #      6a's three readers: this is the list's one long wait, the
-    #      only work in it is 6a's, and a session that fills it
-    #      unbriefed writes a third of 6a before meeting step 6 --
-    #      Run 37 did. Every `predict:` span read on each population
+    #      done. WHILE THEY ARE TAKEN, read `--checklist post-b`, then take
+    #      steps 9 and 10, which want no counts, and 6a's three
+    #      readers: this is the list's one long wait and the work that
+    #      fits it is named rather than left to be found, a session
+    #      that fills it unbriefed writing a third of 6a before it
+    #      meets step 6 -- Run 37 did. Every `predict:` span read on each population
     #      and half its scope names, HELD or KILLED with the figure read,
     #      and written under its item in the run file as `**Read by
     #      --predictions, item (N):**`, a rerun replacing it; an item
@@ -9896,9 +9893,9 @@ not otherwise.
     #      The `___` slots in all five are yours and run-status.sh
     #      refuses a run file still carrying one. Each says what it
     #      wants: a class block carries TWO.
-    ./read-run.py --prose-facts $R        # 6a's THREE READERS, and they
-    ./read-run.py --inherited             # come BEFORE the first
-    ./read-run.py --stale                 # paragraph, not after it
+    ./read-run.py --inherited             # 6a's THREE READERS, in the
+    ./read-run.py --stale                 # order the body gives them,
+    ./read-run.py --prose-facts $R        # and BEFORE the first paragraph
     #      FIRST, BEFORE A WORD OF IT: `./read-run.py --inherited`,
     #      which names the paragraphs this file carried WHOLE from
     #      the last run's and which claim something about the run in
@@ -10435,16 +10432,17 @@ because by then the run read finished; putting it first is what retires that.
 4a. Analyse with `./read-run.py`, which is where every table in this file comes
 from --- and this 4a is THIS list's, not the post-run list's, whose own 4a
 and 4b are the half-local movers and the cell movers; a run file citing
-`post-run step 4b` means those, and `./read-run.py --checklist post-a` prints
-them alone --- read [the reader's own section](#the-reader-read-runpy) first,
-and do not write another reader. **The properties are part of this and
-are the thing these steps are likeliest to leave out**: they are the same job
-three times a population, off the verdicts `--block` emits, and the set
-is restated for the next run on this run's basis while the readings are still
-in front of you. **A paired run's own mode is `--compare`**, and its direction
-is the list's convention: the run given first is the one the ratios are *of*,
-so `basis --compare control` puts a figure below 1 where the basis is faster,
-which for Run 10 was where alignment was faster.
+`post-run step 4b` means those, and `./read-run.py --checklist post-a`
+is the half they sit in --- read [the reader's own
+section](#the-reader-read-runpy) first, and do not write another reader.
+**The properties are part of this and are the thing these steps are likeliest
+to leave out**: they are the same job three times a population, off the verdicts
+`--block` emits, and the set is restated for the next run on this run's basis
+while the readings are still in front of you. **A paired run's own mode
+is `--compare`**, and its direction is the list's convention: the run given
+first is the one the ratios are *of*, so `basis --compare control` puts a figure
+below 1 where the basis is faster, which for Run 10 was where alignment
+was faster.
 5. **Make the run's own file, COMMIT THE COPY, and repoint README at it,
    and not before this step.** `runs/run<N>.md` is one run's write-up entire ---
    *Results*, *What the next run compares against*, *The properties the next run
@@ -14309,11 +14307,11 @@ A run elsewhere is a different measurement rather than a repetition, and should
 name its machine at the head of its own file, where this one does.
 
 **A FIGURE QUOTED AS AN EARLIER RUN'S NAMES THAT RUN IN THE SAME CLAUSE**, which
-is what lets the agreement checks below tell a history from a live claim: they
-match a phrasing, not an intent, so `this run's main set` in a bullet about Run
-36 reads to them as Run 37's and fails. Run 37 had to launder two such sentences
-that were true where they stood --- a delta bullet and a post-mortem ---
-and the laundering is the convention, not the repair.
+is what lets `--check-doc`'s agreement checks tell a history from a live claim:
+they match a phrasing, not an intent, so `this run's main set` in a bullet about
+Run 36 reads to them as Run 37's and fails. Run 37 had to launder two such
+sentences that were true where they stood --- a delta bullet and a post-mortem
+--- and the laundering is the convention, not the repair.
 
 **The delta, so the population is recoverable.** What follows is the *only* form
 in which a shape set or roster is recorded here: each run's difference
