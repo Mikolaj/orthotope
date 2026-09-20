@@ -743,11 +743,12 @@ rather than a slot in the next run, observed again:
   it as `[registered <date>][open]` and restates nothing, and the pair note
   is filled in from it. Run 37's registration is the first written to the ruling
   and Run 36's section the first amended to it.
-- `OPEN` **An arm parts 3.70 points across the halves and it is one half's
-  BINARY OR ITS FILE INSTANCE, which only the half-local reading can say.**
-  On Run 37 `mut-odo-vecdims-add-in-leaf-u1` reads **0.9630** on the main set
-  against a 0.51% A/A bar --- the one arm outside the `list` and `bq-expand`
-  families to break [its
+- `ANSWERED` **An arm parts 3.70 points across the halves and it is one half's
+  BINARY OR ITS FILE INSTANCE, which only the half-local reading can say ---
+  and it is the binary, taken 2026-09-20.** On Run 37
+  `mut-odo-vecdims-add-in-leaf-u1` reads **0.9630** on the main set against
+  a 0.51% A/A bar --- the one arm outside the `list` and `bq-expand` families
+  to break [its
   registration's](runs/run37.md#what-this-run-was-built-to-answer-and-what-it-answered)
   3% band --- and it is the low extreme in NINE of the ten classes besides, down
   to **0.7053** on `bcast`. Its counted work is level with its family, 1.0501
@@ -760,16 +761,23 @@ rather than a slot in the next run, observed again:
   on `compose` and **1.4164** on `bcast`, which is all eight ---
   with the counted work at **1.0000** on both halves in every one of the eleven.
   So this run's control binary is slower on that arm than Run 36's control
-  binary was, executing the same instructions to the fourth decimal. **What
-  would settle it and was not taken**: step 4a's copy test,
-  `cp run37-gheadtwopass probe-copy-run37-gheadtwopass` with a flagged cell
-  timed on both interleaved, and then, before anything evicts the file,
-  the frames off the slow instance with `probe-pageflags.py` while it runs. Both
-  want the box quiet again, which is asked for and not taken by a write-up.
-  `hugebin/` being suspended is why the run itself could not answer it:
-  with the mount down both halves launched from disk and step 16a had no second
-  instance to gate. [Run 37's Results](runs/run37.md#results) carries
-  the reading.
+  binary was, executing the same instructions to the fourth decimal. [Run 37's
+  Results](runs/run37.md#results) carries the reading, and step 4a's copy test
+  was taken on 2026-09-20 on a quiet box: a fresh disk copy beside the cached
+  launch instance, eight readings a side, reads the instance over the copy
+  at 1.001 on the scaled cell, 1.004 on `alexnet-L1-55-c3-k11` and 1.014
+  on `bcast-tall-Mx2`, the two cells that moved most, and the instance
+  is the one that ran, its hot-page frames unchanged between the morning
+  and evening root reads (`probe-chain-0920.sh`, `log-chain-0920.txt`,
+  `log-frames-0920.txt`). A third reading of the main set on both binaries
+  the same evening, from disk as the run
+  was (`probe-third-run37-gheadnospec-main.json` and its control twin), repeats
+  the arm at **0.9598** with the same three lowest cells, `alexnet-L1-55-c3-k11`
+  at 0.7846 first, each half within 0.7 points of its own main set on every
+  timed arm. A term that survives a fresh copy and a second process
+  is the control binary's layout, three source commits from Run 36's control;
+  which commit is unread, and Run 36's control instance, the other candidate,
+  died with the reboot.
 - `ANSWERED` **What Run 37 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 37's own
@@ -1320,7 +1328,43 @@ rather than a slot in the next run, observed again:
   maintained does now. (3) *A fresh copy per process* instead of per half, which
   turns a half-wide bias into per-process noise the A/A floors absorb,
   at the price of wider floors --- the fallback where the gate's minutes per
-  launch are not to be had. Registered 2026-09-18.
+  launch are not to be had. Registered 2026-09-18. **Raised by hand
+  on 2026-09-20 for a day of probes, and the draw was counted on both media
+  over every binary still on disk, Runs 31 to 37, both halves of each**:
+  `probe-frames-0920.sh` read every disk instance and every mounted instance
+  under root, `probe-instances-0920.sh` timed each disk instance against
+  its mounted instance and a fresh mounted copy, and `probe-draws-0920.sh` timed
+  each binary's cached disk instance beside three fresh disk copies and three
+  fresh mounted copies held at once, four readings each on the scaled cell, all
+  in `log-frames-0920.txt`, `log-instances-0920.txt`, `log-chain-0920.txt`
+  and `log-draws-0920.txt` beside them. **The rate is about one draw in ten
+  on both media, and the binary's era does not enter**: parting from the other
+  draws of its medium by more than the 5% bar, the disk drew 5 slow of 56
+  and the mount 3 slow and 1 fast of 42, the sweep before it 2 slow mounted
+  copies of 14 and the copy test 1 slow disk copy of 2, every slow draw 6 to 10
+  percent over its siblings and consistent across its readings, on both
+  compilers, both regimes and builds from Run 31's to Run 37's alike; the Run 35
+  basis's cached disk instance read slow at both ends of the day, against
+  its mounted instance in the morning and against three fresh disk copies
+  in the evening. **All 28 instances kept their frames through the day**, every
+  one of the 56 hot pages at the same physical address in the morning read
+  and the evening one, the disk ones 4 KiB pages and the mounted ones each
+  in one 2 MiB folio at physical equal to virtual modulo 2 MiB --- so the mount
+  held the L2 sets fixed and the rate stayed the disk's, which is Run 34's
+  finding again over fourteen binaries: the term lives in bits 21 and up.
+  **The folio state of the 18th did not return after the reboot**:
+  `FileHugePages` read 59392 kB through fourteen batches of fresh disk copies,
+  every probed page stayed 4 KiB, and `pages_collapsed` went 0 to 39
+  over the morning and to 1925 by evening on pages the probes did not read.
+  Route (1) has a cheaper form now: the sweep's fourteen mounted copies still
+  sit on the mount beside their instances, two of them slow, the instances'
+  frames in the log and the copies' one root read away --- fourteen same-bytes
+  pairs with both frames known, where the route wanted eight spacers. Beside it,
+  a counter sweep on the Run 35 basis's slow instance against a fresh copy
+  over the memory-side events would say whether the store-to-load count in [the
+  placement section][floor] moves again. And while the mount stands,
+  `half-bin.sh` hands the next run its mounted copy: a run that wants the disk
+  launch the suspension ruled unmounts first.
 - `ANSWERED` **A `predict:` span can ask a different question from the sentence
   that registers it, and since 2026-09-18 `--lint` prints, under an OPEN
   registration, every span as `--predictions` will compare it --- the mode,
@@ -1516,7 +1560,19 @@ rather than a slot in the next run, observed again:
   which reads against `run37-gheadnospec` with the box as the only term,
   this run's basis being the second published one on that compiler. Registered
   here rather than in a run's registration because it is a pair to ask
-  for and not a prediction to hold.
+  for and not a prediction to hold. **A third reading of the pair, 2026-09-20,
+  says which of the two was the outlier**: the same two Run 37 binaries,
+  the main set once more from disk on a quiet evening
+  (`probe-third-run37-gheadnospec-main.json` and its control twin, made
+  by `probe-chain-0920.sh`), read `list` at **1.2986** and `bq-expand`
+  at **1.3091** --- a quarter-point and a tenth from Run 37's own and 1.4 points
+  under Run 36's corrected 1.3129 --- so three readings of one pair stand
+  at 1.3129, 1.2960 and 1.2986, Run 36's apart, and the two passes together sit
+  0.12 of a point above the level's 1.2974; Run 36's reading that the level's
+  other passes hand `list` back does not survive it. Each half against its own
+  Run 37 main set reads every timed arm within 0.7 points, the evening's process
+  the faster on all sixteen of the basis's. The split is untouched by
+  it and stays the pair to ask for.
 - `OPEN` **A single wild cell moved this run's headline by 2.31 points and every
   mechanical gate passed it.** On Run 36's basis half `list`
   on `stretch-coprime-r7` read a net slope with a criterion CI of 10.07%
@@ -1536,7 +1592,11 @@ rather than a slot in the next run, observed again:
   in the same process --- where the R2 and CI columns only say a cell measured
   loosely and say it of cells that are fine. Until then the worst-cell column
   is read by hand at post-run step 1, and a run whose headline rests on a cell
-  that column flags quotes both figures, as this one does.
+  that column flags quotes both figures, as this one does. The shape recurred
+  on 2026-09-20 in the instance probes: two single readings of 3.7M and 4.1M
+  cycles an iteration, on the Run 36 and Run 37 basis instances, among eleven
+  others of the same instance at 1.6M to 1.8M, transients the medians set aside
+  (`log-instances-0920.txt`).
 - `OPEN` **The write-up's vocabulary and its Contents map have gaps a fresh
   reader falls into, found by Run 36's comprehension probe and none of them
   this run's doing.** A probe that had not read the artifacts read both
@@ -13527,7 +13587,14 @@ with page shuffling off (`page_alloc.shuffle` N) a freed block is the likeliest
 thing the next copy gets. The bar is the instrument's, repeats of one instance
 under the differenced fixed-`-n` form parting by up to eight percent, so a three
 percent term passes it and what it catches is the draw that has moved a run's
-figures. The routes past it are [in the open list][open].
+figures. The routes past it are [in the open list][open]. **Read again
+on 2026-09-20 after the reboot, over every binary on disk, and the term
+is unchanged while the folio state is not**: the rate on both media, the frames
+held over a day, the 4 KiB disk draws with `FileHugePages` unmoved
+and the mount's draws parting at the disk's rate are in the frame-draw entry
+of the open list; what it adds to the mechanism is only that the term
+is the box's and not any binary's, Run 31's drawing slow instances as Run 37's
+do.
 
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above
