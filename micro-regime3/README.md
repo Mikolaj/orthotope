@@ -1356,15 +1356,30 @@ rather than a slot in the next run, observed again:
   `FileHugePages` read 59392 kB through fourteen batches of fresh disk copies,
   every probed page stayed 4 KiB, and `pages_collapsed` went 0 to 39
   over the morning and to 1925 by evening on pages the probes did not read.
-  Route (1) has a cheaper form now: the sweep's fourteen mounted copies still
-  sit on the mount beside their instances, two of them slow, the instances'
-  frames in the log and the copies' one root read away --- fourteen same-bytes
-  pairs with both frames known, where the route wanted eight spacers. Beside it,
-  a counter sweep on the Run 35 basis's slow instance against a fresh copy
-  over the memory-side events would say whether the store-to-load count in [the
-  placement section][floor] moves again. And while the mount stands,
-  `half-bin.sh` hands the next run its mounted copy: a run that wants the disk
-  launch the suspension ruled unmounts first.
+  **Route (1) was then taken the same evening in a cheaper form, and its one
+  candidate rule is REFUTED, recorded here so it is not re-proposed.**
+  The sweep's fourteen mounted copies had their frames read under root beside
+  their instances' (`probe-frames-copies-0920.sh`), fourteen same-bytes pairs
+  with both frames known, and the two slow copies were the only two of all 28
+  mounted instances and copies whose physical bits 25 to 28 read 0 or 1,
+  the other 26 spanning 2 to f --- so a prediction was registered before
+  the next step, in `probe-reuse-0920.sh`'s header: a fresh copy landing
+  in a frame with those bits at 0 or 1 reads slow whichever binary it is, any
+  other level. The copies were deleted and fourteen made again in reverse order;
+  the freed frames were not handed back, the new copies landing at 2 MiB frames
+  `0x32ea` to `0x339b` in units of 2 MiB, and exactly one of them
+  in the predicted region, `run32-nospec`'s at `0x3314`. Timed at four readings
+  a side against its mounted instance (`probe-retime-0920.sh`,
+  `log-retime-0920.txt`, the earlier two-reading pass in `log-reuse-0920.txt`
+  being too thin to judge), that copy read **1.021**, level, while the one copy
+  past the bar, the Run 36 basis's at **1.067**, sits at bits 9,
+  in the predicted-level region. So bits 25 to 28 do not carry the term,
+  and the morning's two slow frames were two draws of the one-in-ten kind
+  that the allocator had handed out back to back. The counter sweep on the Run
+  35 basis's slow instance was taken too, and what it found is in [the placement
+  section][floor]: the store-to-load count did not move. And while the mount
+  stands, `half-bin.sh` hands the next run its mounted copy: a run that wants
+  the disk launch the suspension ruled unmounts first.
 - `ANSWERED` **A `predict:` span can ask a different question from the sentence
   that registers it, and since 2026-09-18 `--lint` prints, under an OPEN
   registration, every span as `--predictions` will compare it --- the mode,
@@ -13594,7 +13609,29 @@ held over a day, the 4 KiB disk draws with `FileHugePages` unmoved
 and the mount's draws parting at the disk's rate are in the frame-draw entry
 of the open list; what it adds to the mechanism is only that the term
 is the box's and not any binary's, Run 31's drawing slow instances as Run 37's
-do.
+do. **The same evening two counter sweeps on one slow pair named the stall
+the term is made of** --- the Run 35 basis's cached disk instance, slow all day,
+against a fresh disk copy, eight readings alternated, every count an iteration
+by the differenced fixed-`-n` form (`probe-counters-0920.sh`,
+`probe-counters2-0920.sh`, their logs beside them; the event names are perf's
+own tables', mapped code by code in `perf-codes-0920.txt` because the wrapper
+hides them from a session, and event 0xaf is in no table for this CPU).
+Instructions equal to two in 4.8 million; loads dispatched, stores dispatched,
+data-cache accesses, L2 requests, refills from system, L1 DTLB misses
+and miss-buffer allocations all level to a percent; store-to-load interlocks,
+store forwards and branch resyncs a few hundred an iteration at most, two orders
+under the gap. **The whole cycle gap, about 120k of 1.67M an iteration,
+is `de_dis_dispatch_token_stalls1.int_sched_misc_token_stall`**, 1.02M against
+0.90M, its gap 127k; the front end shows the same wait
+as `ic_fetch_stall.ic_stall_any` up 96k with the back-pressure
+and decode-queue-empty masks at noise, and the store-queue token stall reads 49k
+against 4k, the one memory-side count that moves, small beside the gap. Both
+instances spend most of their cycles unable to dispatch for want of an integer
+scheduler token; the slow one waits longer in that one place with the loads
+hitting L1 at the same rate. What in a code page's physical placement lengthens
+the wait, with every memory-side count level, is the question the mechanism now
+comes to, and the bit-range rule the same evening proposed for it is refuted
+in the frame-draw entry.
 
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above
