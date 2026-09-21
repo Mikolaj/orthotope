@@ -3402,15 +3402,9 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
           | otherwise = VS.slice ao l v
 
 -- The fill the library's 'genericFillStrided' is ported from, at
--- Storable Double, the two kept in step by hand: the library is
--- Data/Array/Internal.hs on the branch speedup-strided-tovector, and
--- on 2026-09-19, at that file's 570a485, its copy read identical to
--- this one body for body, the generic wrapper and its local type
--- signatures aside. The copy on pr-mikolaj-toVectorListT is NOT this
--- fill: it stands at its 2026-08-30 form (d7b9086), one copy per block
--- and the broadcast run one write per iteration, before the doubling
--- copy and the broadcast unroll of 2026-09-09. 'check' holds this one
--- to the reference on every view. The two zero-stride bodies say at
+-- Storable Double, the two kept in step by hand; the library's copy
+-- is in its Data/Array/Internal.hs. 'check' holds this one to the
+-- reference on every view. The two zero-stride bodies say at
 -- their definitions what each buys, and the fills that keep older forms
 -- say so at theirs. The fills take @l > 0@, asserted at each entry: a
 -- zero-stride innermost run reads its one element, and a zero-stride
@@ -4391,7 +4385,8 @@ lazyRunsFB ssh sats !start !v cons nil =
 -- dearer than the others -- the per-copy code generation the ceiling
 -- readings know -- which a pair of stages would have read as a design's
 -- cost. One loop, one code; the pair prices the dispatch alone.
--- The library's 'Route' on pr-mikolaj-toVectorListT, field for field.
+-- The library's 'Route' as ported here, the two kept in step by hand
+-- as the fill is.
 data Route = RSlice !Int !Int              -- start and length of one slice
            | RRuns ShapeL [Int] !Int !Int  -- canonical dims, run start,
                                            -- length (the fill's)
