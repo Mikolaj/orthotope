@@ -460,11 +460,10 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
 -- The regime a view falls in once canonicalized, which is what
 -- 'toVectorListT', 'toVectorT' and, on the view with its axes
 -- reordered, the two unordered entry points dispatch on.  Classified
--- on the
--- canonical dimensions, so a unit dimension's arbitrary stride and a
--- reshape's appended dimensions no longer decide it.  The element count
--- (@product sh@) is passed in because every caller already has it, as
--- 'vFillStrided' takes it.
+-- on the canonical dimensions alone, so a unit dimension's arbitrary
+-- stride and a reshape's appended dimensions no longer decide it, and
+-- neither the offset nor the vector does: whether a slice is the whole
+-- vector is 'wholeOrSliceT''s to see, where the vector is handed out.
 -- Whether the canonical strides are the natural ones is decided by the
 -- canonical rank alone, so no stride list is built and compared: natural
 -- strides at rank 2 or more are the merge equation of 'canonicalizeT'
@@ -472,12 +471,9 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
 -- equation, so a canonical view is natural only at rank 0, or at rank 1
 -- with stride 1.
 data Regime
-  = Whole                  -- the canonical strides are the natural ones,
-                           -- the offset 0 and the vector's length the
-                           -- array's: the vector itself, as is
-  | Slice                  -- the natural strides at an offset or over a
-                           -- longer vector: a contiguous slice of it.
-                           -- Rank 0 lands here or above: no dimensions,
+  = Slice                  -- the canonical strides are the natural ones:
+                           -- a contiguous slice of the vector, at the
+                           -- offset.  Rank 0 lands here: no dimensions,
                            -- no strides, the one element at the offset
   | Runs ShapeL [Int]      -- canonical innermost stride 1 under other
                            -- dimensions: contiguous runs, one per
@@ -486,23 +482,20 @@ data Regime
                            -- one element
 
 {-# INLINE regimeT #-}
-regimeT :: (Vector v, VecElem v a) => ShapeL -> Int -> T v a -> Regime
-regimeT sh l (T ats ao v) = regimeOfT ao l v (canonicalizeT sh ats)
+regimeT :: ShapeL -> T v a -> Regime
+regimeT sh (T ats _ _) = regimeOfT (canonicalizeT sh ats)
 
--- The regime of a view given as a canonical shape and strides, at an
--- offset into the vector: 'regimeT' reads it for the view as it is and
--- 'toUnorderedVectorListT' for the view with its axes reordered.
+-- The regime of a view given as a canonical shape and strides:
+-- 'regimeT' reads it for the view as it is and 'unorderedRegimeT' for
+-- the view with its axes reordered.
 {-# INLINE regimeOfT #-}
-regimeOfT :: (Vector v, VecElem v a)
-          => Int -> Int -> v a -> (ShapeL, [Int]) -> Regime
-regimeOfT ao l v canonical = case canonical of
-  ([], _) -> whole
-  ([_], [1]) -> whole
+regimeOfT :: (ShapeL, [Int]) -> Regime
+regimeOfT canonical = case canonical of
+  ([], _) -> Slice
+  ([_], [1]) -> Slice
   (csh, cats)
     | last cats == 1 -> Runs csh cats
     | otherwise -> Strided csh cats
-  where whole | ao == 0 && vLength v == l = Whole
-              | otherwise = Slice
 
 -- The slices of a view of contiguous runs, one per canonical outer
 -- index in row-major order, produced on demand.  The arguments are the
@@ -565,19 +558,27 @@ runSlicesT csh cats !start !v cons nil =
 {-# INLINE toVectorListT #-}
 toVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
 toVectorListT sh a@(T _ ao v) = build $ \cons nil ->
-  if l == 0 then nil else regimeSlicesT ao l v (regimeT sh l a) cons nil
+  if l == 0 then nil else regimeSlicesT ao l v (regimeT sh a) cons nil
   where !l = product sh
 
+-- The slice of the vector a 'Slice' regime stands for, at an offset
+-- and of a length: the vector itself where the slice is all of it, so
+-- that a dense array's conversion hands back no new header.
+{-# INLINE wholeOrSliceT #-}
+wholeOrSliceT :: (Vector v, VecElem v a) => Int -> Int -> v a -> v a
+wholeOrSliceT ao l v
+  | ao == 0 && vLength v == l = v
+  | otherwise = vSlice ao l v
+
 -- The slices a regime stands for, at an offset into the vector, as the
--- cons and nil of a 'build': the vector or one slice of it, one slice
--- per run, or the view filled as one vector where no run is longer
--- than one element.
+-- cons and nil of a 'build': one slice of the vector, one slice per
+-- run, or the view filled as one vector where no run is longer than
+-- one element.
 {-# INLINE regimeSlicesT #-}
 regimeSlicesT :: (Vector v, VecElem v a)
               => Int -> Int -> v a -> Regime -> (v a -> b -> b) -> b -> b
 regimeSlicesT ao l v regime cons nil = case regime of
-  Whole -> cons v nil
-  Slice -> cons (vSlice ao l v) nil
+  Slice -> cons (wholeOrSliceT ao l v) nil
   Runs csh cats -> runSlicesT csh cats ao v cons nil
   Strided csh cats ->
     -- No slice can be taken.  Fill the result through 'vFillStrided',
@@ -596,17 +597,16 @@ regimeSlicesT ao l v regime cons nil = case regime of
 toVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
 toVectorT sh a@(T _ ao v)
   | l == 0 = vConcat []
-  | otherwise = regimeVectorT ao l v (regimeT sh l a)
+  | otherwise = regimeVectorT ao l v (regimeT sh a)
   where !l = product sh
 
--- The vector a regime stands for, at an offset into the vector: the
--- vector itself, one slice of it, or the view filled as one vector,
--- runs included.  'toVectorT' and 'toUnorderedVectorT' both take it.
+-- The vector a regime stands for, at an offset into the vector: one
+-- slice of it, or the view filled as one vector, runs included.
+-- 'toVectorT' and 'toUnorderedVectorT' both take it.
 {-# INLINE regimeVectorT #-}
 regimeVectorT :: (Vector v, VecElem v a) => Int -> Int -> v a -> Regime -> v a
 regimeVectorT ao l v regime = case regime of
-  Whole -> v
-  Slice -> vSlice ao l v
+  Slice -> wholeOrSliceT ao l v
   Runs csh cats -> vFillStrided csh cats ao l v
   Strided csh cats -> vFillStrided csh cats ao l v
 
@@ -692,13 +692,12 @@ unitThenZero _ = False
 -- starts at: what the two unordered entry points dispatch on.  The
 -- account below says why each piece.
 {-# INLINE unorderedRegimeT #-}
-unorderedRegimeT :: (Vector v, VecElem v a)
-                 => ShapeL -> Int -> T v a -> (Int, Regime)
-unorderedRegimeT sh l (T ats ao v) =
+unorderedRegimeT :: ShapeL -> T v a -> (Int, Regime)
+unorderedRegimeT sh (T ats ao _) =
   let (axes, !start) = absAxesAndStartT ao ats sh
       merged = foldr mergeInto [] (sortBy byStrideRank axes)
       canonical = unzipAxesT (zeroStrideOutermost merged)
-  in  (start, regimeOfT start l v canonical)
+  in  (start, regimeOfT canonical)
 
 -- The dispatch of 'unorderedRegimeT', piece by piece.
 --
@@ -813,7 +812,7 @@ toUnorderedVectorListT sh a@(T _ _ v) = build $ \cons nil ->
   -- is and for the same reason: written as a case returning a list per
   -- branch, a fold over this list would meet the case and never fuse.
   if l == 0 then nil else
-    case unorderedRegimeT sh l a of
+    case unorderedRegimeT sh a of
       (start, regime) -> regimeSlicesT start l v regime cons nil
   where !l = product sh
 
@@ -826,7 +825,7 @@ toUnorderedVectorListT sh a@(T _ _ v) = build $ \cons nil ->
 toUnorderedVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
 toUnorderedVectorT sh a@(T _ _ v)
   | l == 0 = vConcat []
-  | otherwise = case unorderedRegimeT sh l a of
+  | otherwise = case unorderedRegimeT sh a of
       (start, regime) -> regimeVectorT start l v regime
   where !l = product sh
 
