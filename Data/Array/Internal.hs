@@ -80,12 +80,12 @@ class Vector v where
   vAny      :: (VecElem v a) => (a -> Bool) -> v a -> Bool
 
   -- | Materialize a strided view in row-major order.  The arguments are
-  -- the shape, the strides, the offset, the total element count
-  -- (@product sh@, passed in because every caller already has it) and
-  -- the source vector; the shape must be non-empty.  This method is
+  -- the view's canonical axes ('Axes', a non-empty view by type), the
+  -- offset, the total element count (@product sh@, passed in because
+  -- every caller already has it) and the source vector.  This method is
   -- what makes a fast 'toVectorListT' and 'toVectorT' possible: every
   -- view that is not a slice of the source goes through it, over the
-  -- view's canonical dimensions ('canonicalizeT'), and the fast fills
+  -- view's canonical axes ('canonicalizeT'), and the fast fills
   -- write a mutable result buffer across runs, which no existing
   -- method can express ('vGenerate' is stateless).
   --
@@ -94,11 +94,9 @@ class Vector v where
   -- per element.  The vector-backed instances override it with
   -- the faster mutable fill 'genericFillStrided'.  If the default's
   -- speed mattered, which it does not, -fspec-constr would improve it.
-  vFillStrided :: (VecElem v a) => ShapeL -> [Int] -> Int -> Int -> v a -> v a
-  vFillStrided sh ats !ao !l !v =
-    let !sInner = last sh
-        !tInner = last ats
-        !baseOffsets = runBaseOffsetsT ao (init sh) (init ats)
+  vFillStrided :: (VecElem v a) => Axes -> Int -> Int -> v a -> v a
+  vFillStrided (Axes tInner sInner outerAxes) !ao !l !v =
+    let !baseOffsets = runBaseOffsetsT ao (outerFirst outerAxes)
         gen i = case i `quotRem` sInner of
           (!q, !r) -> vIndex v (VU.unsafeIndex baseOffsets q + r * tInner)
     in  vGenerate l gen
@@ -251,68 +249,58 @@ constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 
 -- Canonicalize a view for dispatch.  The invariant, holding before and
 -- after: for an array of shape @sh@ and strides @ats@ over a vector at
--- some offset, the pair returned describes, over the same vector and
--- offset, an array with the same row-major element sequence --- the
--- array's elements listed with the last index varying fastest, the
--- order 'toVectorT' materializes.  Two rewrites keep it: drop the
--- dimensions of extent 1, which contribute @0 * stride@ to every index
--- whatever their stride; then merge each adjacent pair of dimensions
--- where @st_outer == n_inner * st_inner@, the index sum's own
--- distributivity, so it holds for negative strides too.  After it the
--- shape has no extent 1 and the strides no adjacent pair satisfying
--- that equation.
+-- some offset, the (stride, extent) pairs returned describe, over the
+-- same vector and offset, an array with the same row-major element
+-- sequence --- the array's elements listed with the last index varying
+-- fastest, the order 'toVectorT' materializes.  Two rewrites keep it:
+-- drop the dimensions of extent 1, which contribute @0 * stride@ to
+-- every index whatever their stride; then merge each adjacent pair of
+-- dimensions where @st_outer == n_inner * st_inner@, the index sum's
+-- own distributivity, so it holds for negative strides too.  After it
+-- no extent is 1 and no adjacent pair satisfies that equation.
 --
 -- So a dense array (its elements filling a contiguous piece of the
 -- vector in row-major order) has the natural strides at whatever rank
 -- it was given, and a broadcast axis (a dimension of stride 0, all its
 -- indices reading one element) adjacent to another has become one with
 -- it; what the walks of the innermost dimension are, and are not, is
--- said at 'runSlicesT'.  O(rank) list work.
+-- said at 'runSlicesT'.  One pass of O(rank) list work.
+--
+-- Returned innermost first, as 'InnerFirst', so that the innermost axis
+-- and the axes outside it are a pattern match wherever a consumer takes
+-- them apart, and empty exactly for a view of one element, rank 0 or
+-- every extent 1, since every axis kept has extent 2 or more.
 {-# INLINE canonicalizeT #-}
-canonicalizeT :: ShapeL -> [Int] -> (ShapeL, [Int])
-canonicalizeT sh ats = canonicalAxesT (zip ats sh)
+canonicalizeT :: ShapeL -> [Int] -> InnerFirst
+canonicalizeT sh ats = InnerFirst (foldl' mergeInner [] (zip ats sh))
 
--- The same over (stride, extent) pairs, which is where the work is
--- done: the axes of extent 1 dropped and each remaining axis merged
--- into the one inside it where its stride is that one's stride times
--- its extent, folded from the innermost axis out; returned as the
--- shape and the strides.  'unorderedRouteT' does the same over the
--- pairs it has sorted, dropping the axes of extent 1 in its own walk.
-canonicalAxesT :: [(Int, Int)] -> (ShapeL, [Int])
-canonicalAxesT ps =
-  unzipAxesT (foldr mergeInto [] [ p | p@(_, n) <- ps, n /= 1 ])
-
--- The (stride, extent) pairs as the shape and the strides.
-unzipAxesT :: [(Int, Int)] -> (ShapeL, [Int])
-unzipAxesT axes = (map snd axes, map fst axes)
-{-# INLINE unzipAxesT #-}
-
--- The merge step, one axis against the already merged axes inside it:
--- merged into the first of them wherever this one's stride is that
--- one's stride times its extent, so that the two are walked as one,
--- and put in front of them otherwise.
-mergeInto :: (Int, Int) -> [(Int, Int)] -> [(Int, Int)]
-mergeInto (!st, !n) ((st', n') : rest)
-  | st == n' * st' = (st', n * n') : rest
-mergeInto p rest = p : rest
-{-# INLINE mergeInto #-}
+-- The merge step, one axis added inside the axes so far, whose head is
+-- the axis just outside it: dropped where its extent is 1, merged into
+-- the head where that one's stride is this one's stride times its
+-- extent, so that the two are walked as one, and put in front of it
+-- otherwise.  'unorderedRouteT' folds it over the pairs it has sorted,
+-- from which its own walk has dropped the axes of extent 1 already.
+mergeInner :: [(Int, Int)] -> (Int, Int) -> [(Int, Int)]
+mergeInner acc (_, 1) = acc
+mergeInner ((st', n') : rest) (!st, n)
+  | st' == n * st = (st, n' * n) : rest
+mergeInner acc p = p : acc
+{-# INLINE mergeInner #-}
 
 -- Base offset (into the values vector) of each innermost run of an array,
 -- in row-major order over the outer dimensions (all dimensions but the
--- innermost).  The outer offset grid is separable (@o0 + sum idx_d *
--- stride_d@), so it is built by iterated expansion: from the singleton
--- @[o0]@, each outer dimension expands every partial base-offset @a@ into
+-- innermost), given as (stride, extent) pairs outermost first.  The
+-- outer offset grid is separable (@o0 + sum idx_d * stride_d@), so it
+-- is built by iterated expansion: from the singleton @[o0]@, each outer
+-- dimension expands every partial base-offset @a@ into
 -- @enumFromStepN a stride_d n_d@ (constant stride, no division), all
 -- inside vector's stream framework rather than a hand-written loop.  The
 -- result is the unboxed Int scratch 'vFillStrided''s default indexes; it
--- has @product osh@ elements.
+-- has as many elements as the outer dimensions have indices.
 {-# INLINE runBaseOffsetsT #-}
-runBaseOffsetsT :: Int    -- ^ the array offset to start from
-                -> [Int]  -- ^ outer dimensions, i.e. @init sh@
-                -> [Int]  -- ^ outer strides, i.e. @init (strides a)@
-                -> VU.Vector Int
-runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
-  where expand !acc (!nd, !sd) =
+runBaseOffsetsT :: Int -> [(Int, Int)] -> VU.Vector Int
+runBaseOffsetsT o0 outer = foldl' expand (VU.singleton o0) outer
+  where expand !acc (!sd, !nd) =
           VU.concatMap (\a -> VU.enumFromStepN a sd nd) acc
 
 -- The measured-fastest fill for 'vFillStrided': an allocate-once
@@ -355,8 +343,9 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 -- but independently discovered and improved on by Opus Fable.
 {-# INLINE genericFillStrided #-}
 genericFillStrided :: forall w a. (VG.Vector w a)
-                   => ShapeL -> [Int] -> Int -> Int -> w a -> w a
-genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
+                   => Axes -> Int -> Int -> w a -> w a
+genericFillStrided (Axes tInner sInner outerAxes) !ao !l !v =
+  assert (l > 0) $ VG.create fill
   where
     fill :: forall s. ST s (VG.Mutable w s a)
     fill = do
@@ -479,13 +468,14 @@ genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
                     in  dim n outPos baseOff
       _ <- go 0 0 ao
       return out
-    !sInner = last sh
-    !tInner = last ats
     -- No doubled stride here any more; see the fill's own note.
-    !rOuter = length sh - 1
+    !rOuter = length levels
+    -- The odometer's levels are numbered outermost first.
+    levels :: [(Int, Int)]
+    levels = outerFirst outerAxes
     oshV, oatsV :: VU.Vector Int
-    !oshV  = VU.fromList (init sh)
-    !oatsV = VU.fromList (init ats)
+    !oshV  = VU.fromList (map snd levels)
+    !oatsV = VU.fromList (map fst levels)
 
 -- | The route a non-empty view takes once canonicalized: what its
 -- consumer does with it, which is what 'toVectorListT', 'toVectorT'
@@ -523,28 +513,47 @@ data Route
       -- ^ the canonical strides are the natural ones: one contiguous
       -- slice of the vector, at the start and of the count.  Rank 0
       -- lands here: no dimensions, no strides, one element
-  | RRuns ShapeL [Int] !Int !Int
+  | RRuns Axes !Int !Int
       -- ^ canonical innermost stride 1 under other dimensions:
-      -- contiguous runs, one per canonical outer index, from the start;
-      -- the count is not needed to walk them, and is what they are
-      -- filled by where one vector is asked
-  | RFill ShapeL [Int] !Int !Int
+      -- contiguous runs of the innermost extent, one per canonical
+      -- outer index, from the start; the count is not needed to walk
+      -- them, and is what they are filled by where one vector is asked
+  | RFill Axes !Int !Int
       -- ^ any other canonical view: no run longer than one element, so
-      -- the view is filled as one vector of the count
+      -- the view is filled as one vector of the count, from the start
+
+-- | Axes as (stride, extent) pairs, innermost first: the orientation
+-- 'canonicalizeT' writes and every consumer of a canonical view reads.
+-- A newtype so that the one place the orientation flips, the fills'
+-- odometer numbering its levels outermost first, is 'outerFirst' and
+-- nowhere else.
+newtype InnerFirst = InnerFirst { innerFirst :: [(Int, Int)] }
+
+-- The same axes outermost first, the one flip of the orientation.
+{-# INLINE outerFirst #-}
+outerFirst :: InnerFirst -> [(Int, Int)]
+outerFirst = reverse . innerFirst
+
+-- | The canonical axes of a non-empty view: the innermost stride and
+-- extent, then the axes outside it, innermost first.  What
+-- 'vFillStrided' and the runs walker take, so that neither has to find
+-- the innermost axis in a list.
+data Axes = Axes !Int !Int InnerFirst
 
 {-# INLINE routeT #-}
 routeT :: ShapeL -> Int -> T v a -> Route
 routeT sh l (T ats ao _) = routeOfT ao l (canonicalizeT sh ats)
 
--- The route of a view given as a canonical shape and strides, at a
--- start offset and of an element count: 'routeT' reads it for the view
--- as it is and 'unorderedRouteT' for the view with its axes reordered.
+-- The route of a view given as its canonical axes, innermost first, at
+-- a start offset and of an element count: 'routeT' reads it for the
+-- view as it is and 'unorderedRouteT' for the view with its axes
+-- reordered.
 --
--- Decided on the canonical dimensions alone ('canonicalizeT'), so a
--- unit dimension's arbitrary stride and a reshape's appended dimensions
--- do not decide it, and the underlying vector never does: whether a
--- slice is the whole vector is 'wholeOrSliceT''s to see, where the
--- vector is handed out.
+-- Decided on the canonical axes alone ('canonicalizeT'), so a unit
+-- dimension's arbitrary stride and a reshape's appended dimensions do
+-- not decide it, and the underlying vector never does: whether a slice
+-- is the whole vector is 'wholeOrSliceT''s to see, where the vector is
+-- handed out.
 --
 -- The uniform run length of a canonical view is the innermost extent
 -- where the innermost stride is 1, and one element otherwise, and the
@@ -558,21 +567,21 @@ routeT sh l (T ats ao _) = routeOfT ao l (canonicalizeT sh ats)
 -- satisfies that equation, so a canonical view is natural only at rank
 -- 0, or at rank 1 with stride 1.
 {-# INLINE routeOfT #-}
-routeOfT :: Int -> Int -> (ShapeL, [Int]) -> Route
-routeOfT start l canonical = case canonical of
-  ([], _) -> RSlice start l
-  ([_], [1]) -> RSlice start l
-  (csh, cats)
-    | last cats == 1 -> RRuns csh cats start l
-    | otherwise -> RFill csh cats start l
+routeOfT :: Int -> Int -> InnerFirst -> Route
+routeOfT start l (InnerFirst axes) = case axes of
+  [] -> RSlice start l
+  [(1, _)] -> RSlice start l
+  (1, n) : rest -> RRuns (Axes 1 n (InnerFirst rest)) start l
+  (t, n) : rest -> RFill (Axes t n (InnerFirst rest)) start l
 
 -- The slices of a view of contiguous runs, one per canonical outer
 -- index in row-major order, produced on demand.  The arguments are the
--- canonical shape and strides, the offset of the first run and the
--- vector, then the cons and nil of the 'build' the list entry points
--- are written under, so that a consumer folding the list fuses with the
--- walk, holds no more of the list than it has reached and, stopping
--- early, does no more of the walk.
+-- canonical axes, the innermost at stride 1 and its extent the run
+-- length, the offset of the first run and the vector, then the cons
+-- and nil of the 'build' the list entry points are written under, so
+-- that a consumer folding the list fuses with the walk, holds no more
+-- of the list than it has reached and, stopping early, does no more of
+-- the walk.
 --
 -- The innermost outer level is a counter and a cursor; the levels
 -- above it are an odometer of (index, extent, stride) triples touched
@@ -612,11 +621,10 @@ routeOfT start l canonical = case canonical of
 -- measured.
 --
 -- Entered on a view of canonical rank two or more, which is what
--- 'RRuns' means, so there is at least one outer level and one run: the
--- assert says so, ahead of the banged 'last's that would otherwise fail
--- first and unnamed; live in an unoptimized build only, GHC dropping
--- asserts at -O, and checked there by planting a rank-1 stride-1 route
--- in 'routeOfT', which fails the test suite on it (2026-09-21).
+-- 'RRuns' means, so there is at least one outer level and one run.  The
+-- arm for no outer level, which no route reaches, is the one run as
+-- one slice: correct rather than an error, so the walker is total on
+-- its own terms and the type asks nothing of the route that builds it.
 --
 -- The bang on the vector is measured, not style: every use of it sits
 -- under the consumer's cons, so without the bang the walk is lazy in
@@ -628,25 +636,24 @@ routeOfT start l canonical = case canonical of
 -- every run.
 {-# INLINE runSlicesT #-}
 runSlicesT :: forall v a b. (Vector v, VecElem v a)
-           => ShapeL -> [Int] -> Int -> v a -> (v a -> b -> b) -> b -> b
-runSlicesT csh cats !start !v cons nil =
-  assert (length csh >= 2 && length csh == length cats) $
-  let !n = last csh
-      dims = init csh
-      strs = init cats
-      !dk = last dims
-      !sk = last strs
-      go :: Int -> Int -> [(Int, Int, Int)] -> b
-      go !i !o outer
-        | i < dk = cons (vSlice o n v) (go (i + 1) (o + sk) outer)
-        | otherwise = carry outer (o - dk * sk) []
-      carry :: [(Int, Int, Int)] -> Int -> [(Int, Int, Int)] -> b
-      carry [] !_ _ = nil
-      carry ((j, d, s) : rest) !o reset
-        | j + 1 < d =
-            go 0 (o + s) (foldl' (flip (:)) ((j + 1, d, s) : rest) reset)
-        | otherwise = carry rest (o + s - d * s) ((0, d, s) : reset)
-  in  go 0 start (reverse (zip3 (repeat 0) (init dims) (init strs)))
+           => Axes -> Int -> v a -> (v a -> b -> b) -> b -> b
+runSlicesT (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
+  case outerAxes of
+    [] -> cons (vSlice start n v) nil
+      -- Currently impossible: 'routeOfT' sends a view of one run to
+      -- 'RSlice', where it is the vector or one slice of it.
+    (!sk, !dk) : above ->
+      let go :: Int -> Int -> [(Int, Int, Int)] -> b
+          go !i !o outer
+            | i < dk = cons (vSlice o n v) (go (i + 1) (o + sk) outer)
+            | otherwise = carry outer (o - dk * sk) []
+          carry :: [(Int, Int, Int)] -> Int -> [(Int, Int, Int)] -> b
+          carry [] !_ _ = nil
+          carry ((j, d, s) : rest) !o reset
+            | j + 1 < d =
+                go 0 (o + s) (foldl' (flip (:)) ((j + 1, d, s) : rest) reset)
+            | otherwise = carry rest (o + s - d * s) ((0, d, s) : reset)
+      in  go 0 start [ (0, d, s) | (s, d) <- above ]
 
 -- Convert an array to a list of vectors, which together contain
 -- all the elements in the natural order.
@@ -662,7 +669,7 @@ runSlicesT csh cats !start !v cons nil =
 -- the view takes.
 {-# INLINE toVectorListT #-}
 toVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
-toVectorListT sh a@(T _ ao v) = build $ \cons nil ->
+toVectorListT sh a@(T _ _ v) = build $ \cons nil ->
   if l == 0 then nil else routeSlicesT v (routeT sh l a) cons nil
   where !l = product sh
 
@@ -683,11 +690,11 @@ routeSlicesT :: (Vector v, VecElem v a)
              => v a -> Route -> (v a -> b -> b) -> b -> b
 routeSlicesT v route cons nil = case route of
   RSlice ao l -> cons (wholeOrSliceT ao l v) nil
-  RRuns csh cats ao _ -> runSlicesT csh cats ao v cons nil
-  RFill csh cats ao l ->
+  RRuns axes ao _ -> runSlicesT axes ao v cons nil
+  RFill axes ao l ->
     -- No slice can be taken.  Fill the result through 'vFillStrided',
     -- whose vector-backed instances write a mutable buffer directly.
-    cons (vFillStrided csh cats ao l v) nil
+    cons (vFillStrided axes ao l v) nil
 
 -- Convert an array to one vector holding all the elements in the
 -- natural order.  Dispatches as 'toVectorListT' does, except that a
@@ -711,8 +718,8 @@ toVectorT sh a@(T _ _ v)
 routeVectorT :: (Vector v, VecElem v a) => v a -> Route -> v a
 routeVectorT v route = case route of
   RSlice ao l -> wholeOrSliceT ao l v
-  RRuns csh cats ao l -> vFillStrided csh cats ao l v
-  RFill csh cats ao l -> vFillStrided csh cats ao l v
+  RRuns axes ao l -> vFillStrided axes ao l v
+  RFill axes ao l -> vFillStrided axes ao l v
 
 -- The (absolute stride, extent) pairs of the axes of extent above 1,
 -- in the order given, and the offset of the view's lowest address, in
@@ -780,18 +787,12 @@ runRank !a !b = case compare ta tb of
       | otherwise = 3
 {-# INLINE runRank #-}
 
--- The merged axes with their zero-stride axis, if they end in a
--- unit-stride axis followed by one, moved to the front.
-zeroStrideOutermost :: [(Int, Int)] -> [(Int, Int)]
-zeroStrideOutermost axes
-  | unitThenZero axes = last axes : init axes
-  | otherwise = axes
-
--- Whether the axes end in one of stride 1 followed by one of stride 0.
-unitThenZero :: [(Int, Int)] -> Bool
-unitThenZero [(1, _), (0, _)] = True
-unitThenZero (_ : axes@(_ : _ : _)) = unitThenZero axes
-unitThenZero _ = False
+-- The merged axes, innermost first, with their zero-stride axis, if
+-- they begin with one followed by a unit-stride axis, moved to the end.
+zeroStrideOutermost :: InnerFirst -> InnerFirst
+zeroStrideOutermost (InnerFirst ((0, z) : axes@((1, _) : _))) =
+  InnerFirst (axes ++ [(0, z)])
+zeroStrideOutermost axes = axes
 
 -- The route of a non-empty view with its axes reordered for a consumer
 -- that owes no order, from the offset the reordered view starts at:
@@ -801,9 +802,8 @@ unitThenZero _ = False
 unorderedRouteT :: ShapeL -> Int -> T v a -> Route
 unorderedRouteT sh l (T ats ao _) =
   let (axes, !start) = absAxesAndStartT ao ats sh
-      merged = foldr mergeInto [] (sortBy byStrideRank axes)
-      canonical = unzipAxesT (zeroStrideOutermost merged)
-  in  routeOfT start l canonical
+      merged = InnerFirst (foldl' mergeInner [] (sortBy byStrideRank axes))
+  in  routeOfT start l (zeroStrideOutermost merged)
 
 -- The dispatch of 'unorderedRouteT', piece by piece.
 --
@@ -874,8 +874,8 @@ unorderedRouteT sh l (T ats ao _) =
 -- Why merge after the sort.  Two adjacent axes are one axis when the
 -- outer stride is the inner stride times the inner extent: walking the
 -- inner axis to its end and stepping the outer axis once lands where
--- one axis of the combined extent would.  'mergeInto' merges every such
--- pair.  Done after the sort, the merge finds every pair the sorted
+-- one axis of the combined extent would.  'mergeInner' merges every
+-- such pair.  Done after the sort, the merge finds every pair the sorted
 -- order stands next to each other, which in a view without a stride
 -- tie is every pair any order of the axes would have put together; a
 -- view that is one block of the vector has no tie, so it merges to a
@@ -890,12 +890,12 @@ unorderedRouteT sh l (T ats ao _) =
 -- Moved outermost over a unit-stride axis it makes the route runs:
 -- the runs walk repeats one slice as many times, the same multiset
 -- with nothing copied, and the fill writes the block once and copies it
--- by doubling.  Decided after the merge, the move is one look
--- at the last two axes: a zero stride merges with nothing but another
--- zero stride, so there is at most one such axis, and it sorts after
--- every other stride, so it is last; and a unit-stride axis worth
--- moving it over is the one before it.  'zeroStrideOutermost' does the
--- look and the move.
+-- by doubling.  Decided after the merge, the move is one look at the
+-- first two merged axes, innermost first: a zero stride merges with
+-- nothing but another zero stride, so there is at most one such axis,
+-- and it sorts after every other stride, so it is innermost, the head;
+-- and a unit-stride axis worth moving it over is the one after it.
+-- 'zeroStrideOutermost' does the look and the move.
 
 -- Convert to a list of vectors containing altogether the right elements,
 -- but not necessarily in the right order.
