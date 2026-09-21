@@ -7,3 +7,4 @@
 # to notice: delete or re-read its entry then, and a new candidate fails the
 # step until it is read and listed here or fixed.
 Main.hs:mergeInto 1  # the merge step, read 2026-09-14 as canonViewOfPairs's local fold where canonView's was read 2026-09-13, and lifted to the top level 2026-09-17 to be shared with routeUnord13, its bang shape unchanged: the guard forces both fields where they are compared, and the pair passes to the result unopened otherwise
+Main.hs:mergeInner 2  # the library's merge step, read 2026-09-21: the first equation's literal forces the new axis's extent, the second bangs its stride where the guard compares it, and the third passes the pair to the result unopened
