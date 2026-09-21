@@ -91,7 +91,7 @@ class Vector v where
   --
   -- The default is a terse but fast pure form, where the base-offsets
   -- table is built by expansion ('runBaseOffsetsT'), one division
-  -- per element. The vector-backed instances override it with
+  -- per element.  The vector-backed instances override it with
   -- the faster mutable fill 'genericFillStrided'.  If the default's
   -- speed mattered, which it does not, -fspec-constr would improve it.
   vFillStrided :: (VecElem v a) => ShapeL -> [Int] -> Int -> Int -> v a -> v a
@@ -149,6 +149,16 @@ prettyShowL l = render . pPrintPrec l 0
 -- | The type /T/ is the internal type of arrays.  In general,
 -- operations on /T/ do no sanity checking as that should be done
 -- at the point of call.
+--
+-- A @T@ is a view of its vector: it reads the vector through the offset
+-- and the strides and copies nothing, so a slice, a transposition or
+-- a broadcast of an array is another @T@ view over the same vector.
+-- The comments below say /view/ for a @T@ taken with its shape; /walk/
+-- for one traversal of a view's innermost axis; /innermost run/ for
+-- what one walk yields, consecutive in the result whatever its stride;
+-- and /run/ for a stretch of a view's elements that lie in the vector
+-- consecutively and in the view's order, which an innermost run is at
+-- innermost stride 1.
 --
 -- To avoid manipulating the data the indexing into the vector containing
 -- the data is somewhat complex.  To find where item /i/ of the outermost
@@ -252,13 +262,12 @@ constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 -- shape has no extent 1 and the strides no adjacent pair satisfying
 -- that equation.
 --
--- So a maximal run of the array's elements that are consecutive in the
--- vector is one canonical dimension of stride 1; a dense array (its
--- elements filling a contiguous piece of the vector in row-major order)
--- has the natural strides at whatever rank it was given; and a
--- broadcast axis (a dimension of stride 0, all its indices reading one
--- element) adjacent to another has become one with it.  O(rank) list
--- work.
+-- So a dense array (its elements filling a contiguous piece of the
+-- vector in row-major order) has the natural strides at whatever rank
+-- it was given, and a broadcast axis (a dimension of stride 0, all its
+-- indices reading one element) adjacent to another has become one with
+-- it; what the walks of the innermost dimension are, and are not, is
+-- said at 'runSlicesT'.  O(rank) list work.
 {-# INLINE canonicalizeT #-}
 canonicalizeT :: ShapeL -> [Int] -> (ShapeL, [Int])
 canonicalizeT sh ats = canonicalAxesT (zip ats sh)
@@ -293,7 +302,7 @@ mergeInto p rest = p : rest
 -- innermost).  The outer offset grid is separable (@o0 + sum idx_d *
 -- stride_d@), so it is built by iterated expansion: from the singleton
 -- @[o0]@, each outer dimension expands every partial base-offset @a@ into
--- @enumFromStepN a stride_d n_d@ (a constant-stride run, no division), all
+-- @enumFromStepN a stride_d n_d@ (constant stride, no division), all
 -- inside vector's stream framework rather than a hand-written loop.  The
 -- result is the unboxed Int scratch 'vFillStrided''s default indexes; it
 -- has @product osh@ elements.
@@ -306,29 +315,31 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
   where expand !acc (!nd, !sd) =
           VU.concatMap (\a -> VU.enumFromStepN a sd nd) acc
 
--- The measured-fastest fill for 'vFillStrided': an allocate-once mutable
--- result, an odometer recursion over the outer dimensions with the input
--- offset stepped additively, the innermost outer level fused into a
--- dedicated run loop, and the run fill unrolled by two with its bound on
--- the output cursor, so it is sound for zero and negative strides.
+-- The measured-fastest fill for 'vFillStrided': an allocate-once
+-- mutable result, an odometer recursion over the outer dimensions with
+-- the input offset stepped additively, the innermost outer level fused
+-- into a dedicated loop over the innermost runs, and the innermost-run
+-- fill unrolled by two with its bound on the output cursor, so it is
+-- sound for zero and negative strides.
 --
 -- Two zero-stride conditions sit inside it, each decided per level
--- of the odometer and never per element: a run of innermost stride
+-- of the odometer and never per element: an innermost run at stride
 -- 0 reads its one element once and stores it, and an outer level
 -- of stride 0 fills the block below it once and copies it onto the
 -- level's remaining positions by doubling.  Given canonical dimensions
 -- ('canonicalizeT') the conditions fire wherever they can; given any
 -- other dimensions the fill is still correct.
 --
--- The count must be positive, asserted at entry: a zero-stride run
--- reads its one element, and a zero-stride level writes its run or
--- block, before reading the extent, so a zero extent would read past
--- the source or write into an empty result.  Every entry point of this
--- module returns the empty vector or list before routing an empty view
--- here, and a caller of 'vFillStrided' from outside owes the same; the
--- assert is live in an unoptimized build only, GHC dropping asserts
--- at -O, and is checked there by disabling 'toVectorT''s guard, which
--- fails the Dynamic modules' 'toVector_3' on it (2026-09-21).
+-- The count must be positive, asserted at entry: a zero-stride
+-- innermost run reads its one element, and a zero-stride level writes
+-- its innermost run or block, before reading the extent, so a zero
+-- extent would read past the source or write into an empty result.
+-- Every entry point of this module returns the empty vector or list
+-- before routing an empty view here, and a caller of 'vFillStrided'
+-- from outside owes the same; the assert is live in an unoptimized
+-- build only, GHC dropping asserts at -O, and is checked there by
+-- disabling 'toVectorT''s guard, which fails the Dynamic modules'
+-- 'toVector_3' on it (2026-09-21).
 --
 -- Written once against 'Data.Vector.Generic', which supplies
 -- the mutable machinery orthotope's own 'Vector' class deliberately does
@@ -350,10 +361,11 @@ genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
     fill :: forall s. ST s (VG.Mutable w s a)
     fill = do
       out <- VGM.unsafeNew l
-      let -- The stepping run: the source cursor advances by the
-          -- innermost stride, the fill unrolled by two.  Both bodies are
-          -- INLINE so that inlining at their two sites each is the
-          -- source's property and not a size threshold's.
+      let -- The stepping run, an innermost run at nonzero stride: the
+          -- source cursor advances by the stride, the fill unrolled
+          -- by two.  Both bodies are INLINE so that inlining at their
+          -- two sites each is the source's property and not a size
+          -- threshold's.
           {-# INLINE writeRunStep #-}
           writeRunStep :: Int -> Int -> ST s ()
           writeRunStep !outPos !baseOff =
@@ -366,23 +378,24 @@ genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
                   -- FOR THE NCG, AND A REGRESSION UNDER -fllvm.  The
                   -- cursor steps twice by tInner instead of once by a
                   -- doubled stride: one live value fewer, which is what
-                  -- lets the NCG's allocator keep the output base in a
-                  -- register instead of reloading it twice a pair.  Worth
-                  -- 5 to 25% of the fill's instructions there, most at
-                  -- long runs; -fllvm needs neither, keeps two induction
-                  -- variables and loses 1 to 8%.
+                  -- lets the NCG's allocator keep the output base in
+                  -- a register instead of reloading it twice a pair.
+                  -- Worth 5 to 25% of the fill's instructions there,
+                  -- most at long innermost runs; -fllvm needs neither,
+                  -- keeps two induction variables and loses 1 to 8%.
                   | otherwise = do
                       VGM.unsafeWrite out o (VG.unsafeIndex v src)
                       let !src' = src + tInner
                       VGM.unsafeWrite out (o + 1) (VG.unsafeIndex v src')
                       inner (o + 2) (src' + tInner)
             in  inner outPos baseOff
-          -- The broadcast run, innermost stride 0: the run's one
-          -- element read once, then the stores, unrolled by two as the
-          -- stepping run is.  Without the unroll, a store and a compare
-          -- per element read 1.20 of the stepping run serving the
-          -- broadcast, a read and a store per element unrolled by two,
-          -- at a run of two elements; unrolled, the hoisted read wins.
+          -- The broadcast run, the innermost run at stride 0: its one
+          -- element read once, then the stores, unrolled by two as
+          -- the stepping run is.  Without the unroll, a store and a
+          -- compare per element read 1.20 of the stepping run serving
+          -- the broadcast, a read and a store per element unrolled by
+          -- two, at an innermost run of two elements; unrolled, the
+          -- hoisted read wins.
           {-# INLINE writeRunSet #-}
           writeRunSet :: Int -> Int -> ST s ()
           writeRunSet !outPos !baseOff =
@@ -422,10 +435,11 @@ genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
                     VGM.unsafeCopy (VGM.unsafeSlice (src + have) len out)
                                    (VGM.unsafeSlice src len out)
                     grow (have + len)
-          -- The fused level: n runs, the run body a static argument, so
-          -- that each of the two uses below inlines it with the body
-          -- known, and the choice between the bodies is made once per
-          -- entry here, a row of runs, never per run.
+          -- The fused level: n innermost runs, the run body a static
+          -- argument, so that each of the two uses below inlines it
+          -- with the body known, and the choice between the bodies is
+          -- made once per entry here, a row of innermost runs, never
+          -- per innermost run.
           {-# INLINE runsWith #-}
           runsWith :: (Int -> Int -> ST s ())
                    -> Int -> Int -> Int -> Int -> ST s Int
@@ -473,41 +487,50 @@ genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
     !oshV  = VU.fromList (init sh)
     !oatsV = VU.fromList (init ats)
 
--- The route a view takes once canonicalized, what its consumer does
--- with it, which is what 'toVectorListT', 'toVectorT' and, on the view
--- with its axes reordered, the two unordered entry points dispatch on.
+-- | The route a non-empty view takes once canonicalized: what its
+-- consumer does with it, which is what 'toVectorListT', 'toVectorT'
+-- and, on the view with its axes reordered, the two unordered entry
+-- points dispatch on.  A view of no elements (@product sh == 0@) has no
+-- route: each of the four entry points returns the empty vector or list
+-- before computing one.
 --
--- Classified on the canonical dimensions alone, so a unit dimension's
--- arbitrary stride and a reshape's appended dimensions no longer decide
--- it, and the vector never does: whether a slice is the whole vector is
--- 'wholeOrSliceT''s to see, where the vector is handed out.  Every
--- route carries the offset it starts at and the element count
--- (@product sh@), which every caller has in hand, so that a consumer
--- takes the route and the vector and nothing beside them.
+-- Three constructors, one per thing that can be done with a view: slice
+-- it, walk its runs as slices, or only expensively fill a vector from
+-- it element by element.  Every route carries the offset it starts at
+-- and the element count (@product sh@), which every caller has in hand,
+-- so that a consumer takes the route and the vector and nothing beside
+-- them; each constructor carries what its way takes and no more, and
+-- 'RRuns' is the list consumer's alone, 'routeVectorT' filling it as it
+-- fills 'RFill'.
 --
--- Whether the canonical strides are the natural ones is decided by the
--- canonical rank alone, so no stride list is built and compared: natural
--- strides at rank 2 or more are the merge equation of 'canonicalizeT'
--- holding at every adjacent pair, and after it no pair satisfies that
--- equation, so a canonical view is natural only at rank 0, or at rank 1
--- with stride 1.
---
--- The micro-benchmark's 'Route' is this type, field for field.
+-- The choice of constructors is partly arbitrary, motivated by
+-- performance, partly systematic, following the runs a view contains,
+-- and limited throughout by what the vector API underneath can express.
+-- The set changes only when the vector API under it changes (e.g., a
+-- reverse copy would give a reversed contiguous view a route of its
+-- own) or another way of copying a view into a vector through the API
+-- as it stands is measured to pay (the per-run memcpy 'toVectorT'
+-- names was tried and did not).  The set does not need to change when
+-- a new pattern of shape and strides arrives (e.g., windows whose runs
+-- overlap), typically one a newly added array operation produces.  The
+-- performance for such new patterns may not be ideal, but the routes
+-- are correct, because the uniform run length is uniquely determined
+-- for every non-empty canonical view and 'routeOfT' reads the route off
+-- it alone; the note at 'runSlicesT' says what the length is and is
+-- not.
 data Route
-  = RSlice !Int !Int              -- the canonical strides are the
-                                  -- natural ones: one contiguous slice
-                                  -- of the vector, at the start and of
-                                  -- the count.  Rank 0 lands here: no
-                                  -- dimensions, no strides, one element
-  | RRuns ShapeL [Int] !Int !Int  -- canonical innermost stride 1 under
-                                  -- other dimensions: contiguous runs,
-                                  -- one per canonical outer index, from
-                                  -- the start; the count is not needed
-                                  -- to walk them, and is what they are
-                                  -- filled by where one vector is asked
-  | RFill ShapeL [Int] !Int !Int  -- any other canonical view: no run
-                                  -- longer than one element, so the view
-                                  -- is filled as one vector of the count
+  = RSlice !Int !Int
+      -- ^ the canonical strides are the natural ones: one contiguous
+      -- slice of the vector, at the start and of the count.  Rank 0
+      -- lands here: no dimensions, no strides, one element
+  | RRuns ShapeL [Int] !Int !Int
+      -- ^ canonical innermost stride 1 under other dimensions:
+      -- contiguous runs, one per canonical outer index, from the start;
+      -- the count is not needed to walk them, and is what they are
+      -- filled by where one vector is asked
+  | RFill ShapeL [Int] !Int !Int
+      -- ^ any other canonical view: no run longer than one element, so
+      -- the view is filled as one vector of the count
 
 {-# INLINE routeT #-}
 routeT :: ShapeL -> Int -> T v a -> Route
@@ -516,6 +539,24 @@ routeT sh l (T ats ao _) = routeOfT ao l (canonicalizeT sh ats)
 -- The route of a view given as a canonical shape and strides, at a
 -- start offset and of an element count: 'routeT' reads it for the view
 -- as it is and 'unorderedRouteT' for the view with its axes reordered.
+--
+-- Decided on the canonical dimensions alone ('canonicalizeT'), so a
+-- unit dimension's arbitrary stride and a reshape's appended dimensions
+-- do not decide it, and the underlying vector never does: whether a
+-- slice is the whole vector is 'wholeOrSliceT''s to see, where the
+-- vector is handed out.
+--
+-- The uniform run length of a canonical view is the innermost extent
+-- where the innermost stride is 1, and one element otherwise, and the
+-- route is that length against the count: all of it, 'RSlice'; less
+-- than it, 'RRuns'; one element, 'RFill'.
+--
+-- Whether the canonical strides are the natural ones is decided by
+-- the canonical rank alone, so no stride list is built and compared:
+-- natural strides at rank 2 or more are the merge equation of
+-- 'canonicalizeT' holding at every adjacent pair, and after it no pair
+-- satisfies that equation, so a canonical view is natural only at rank
+-- 0, or at rank 1 with stride 1.
 {-# INLINE routeOfT #-}
 routeOfT :: Int -> Int -> (ShapeL, [Int]) -> Route
 routeOfT start l canonical = case canonical of
@@ -544,6 +585,31 @@ routeOfT start l canonical = case canonical of
 -- 'go', 'carry' or nil, all known to the compiler, so base's own left
 -- folds, 'sum' among them, see a strict known call and allocate nothing
 -- per run.
+--
+-- Each run that this function gives has the view's uniform run length:
+-- the run length of the coarsest partition of the view into equal runs.
+-- Each run is an innermost run at stride 1, and a walk stops at each
+-- carry.  Thus the canonical dimensions and the start offset give the
+-- number of runs and the start of each run.  A longer block of equal
+-- runs is not possible, because it contains the first carry.  That one
+-- is adjacent only when the merge equation holds, which the canonical
+-- form does not permit.
+--
+-- These runs are not the maximal runs.  A maximal run continues through
+-- a carry across two or more axes when that carry is adjacent.  Shape
+-- [2,2,2] has such a carry at strides [7,5,1], and at strides [2,0,1],
+-- which a stretched unit axis gives.  Thus the maximal runs are a
+-- property of the stride values, and the uniform runs are a property of
+-- the canonical structure.
+--
+-- To join two adjacent runs, the walk must compare the start of each
+-- run with the end of the run before it.  The walk must also hold one
+-- slice until the next run does not extend it.  The flat loop gives
+-- each slice to the consumer as soon as the walk reaches it and holds
+-- no slice back.  A slice held back is live across iterations, so a
+-- join can change the measured cost of the loop.  The join has a cost
+-- for each view of runs and a gain only for such strides, so it is not
+-- measured.
 --
 -- Entered on a view of canonical rank two or more, which is what
 -- 'RRuns' means, so there is at least one outer level and one run: the
