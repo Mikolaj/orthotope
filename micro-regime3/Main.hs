@@ -2739,7 +2739,7 @@ mergeInto p rest = p : rest
 -- Axes as (stride, extent) pairs, innermost first, as the library's
 -- 'InnerFirst': the orientation the canonicalization below writes and
 -- every route consumer reads, a newtype so that the one place it
--- flips, the fills' odometer numbering its levels outermost first, is
+-- flips, for a level form that numbers its levels outermost first, is
 -- 'outerFirst' and nowhere else.
 newtype InnerFirst = InnerFirst { innerFirst :: [(Int, Int)] }
 
@@ -2760,9 +2760,9 @@ data Axes = Axes !Int !Int InnerFirst
 -- order function has in hand, so that 'dispatchLean' need not unzip
 -- them for it; it does not carry the 'Pairs' suffix of
 -- 'sortedAbsPairs' and 'canonSortedPairs', which names a function that
--- RETURNS pairs.  Both write the innermost axis at the head, where
--- 'canonView' above writes the dims outermost first for the arms that
--- keep the natural-strides test.
+-- RETURNS pairs.  This and 'canonAxes' below write the innermost axis
+-- at the head, where 'canonView' above writes the dims outermost
+-- first for the arms that keep the natural-strides test.
 canonViewOfPairs :: [(Int, Int)] -> InnerFirst
 canonViewOfPairs ps = InnerFirst (foldl' mergeInner [] ps)
 {-# INLINE canonViewOfPairs #-}
@@ -2785,9 +2785,10 @@ mergeInner ((st', n') : rest) (!st, n)
 mergeInner acc p = p : acc
 {-# INLINE mergeInner #-}
 
--- The canonical dims an older arm holds as a shape and strides, as the
--- 'Axes' the fills take: rank 0 is one element at the offset, an axis
--- of extent 1 at stride 0, which the fill writes once.
+-- The dims an older arm holds as a shape and strides, canonical or as
+-- given, as the 'Axes' the fills and the routes take: rank 0 is one
+-- element at the offset, an axis of extent 1 at stride 0, which the
+-- fill writes once.
 axesOfDims :: ShapeL -> [Int] -> Axes
 axesOfDims sh ats = case reverse (zip ats sh) of
   [] -> Axes 0 1 (InnerFirst [])
@@ -3447,7 +3448,9 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
 
 -- The fill the library's 'genericFillStrided' is ported from, at
 -- Storable Double, the two kept in step by hand; the library's copy
--- is in its Data/Array/Internal.hs. 'check' holds this one to the
+-- is in its Data/Array/Internal.hs. This one numbers the odometer's
+-- levels innermost first, and 'fillStage2Axes' below keeps them
+-- numbered outermost first, as ported. 'check' holds this one to the
 -- reference on every view. The two zero-stride bodies say at
 -- their definitions what each buys, and the fills that keep older forms
 -- say so at theirs. The fills take @l > 0@, asserted at each entry: a
@@ -3528,6 +3531,102 @@ fillStage2 (Axes tInner sInner outerAxes) !ao !l !v =
                                 >> run (k - 1) (op + sInner) (boff + st)
             in  run n outPos baseOff
       go !lev !outPos !baseOff
+        | lev < 0 =
+            (if tInner == 0 then writeRunSet else writeRunStep)
+              outPos baseOff
+            >> return (outPos + sInner)
+        | otherwise =
+            level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
+        where
+          level !n !st
+            | lev == 0 =
+                if tInner == 0
+                then runsWith writeRunSet n st outPos baseOff
+                else runsWith writeRunStep n st outPos baseOff
+            | st == 0 = do
+                op' <- go (lev - 1) outPos baseOff
+                copies n (op' - outPos) outPos
+            | otherwise =
+                let dim !k !op !boff
+                      | k <= 0    = return op
+                      | otherwise = go (lev - 1) op boff
+                                    >>= \op' -> dim (k - 1) op' (boff + st)
+                in  dim n outPos baseOff
+  _ <- go (rOuter - 1) 0 ao
+  return out
+  where -- No doubled stride here any more; see the fill's own note.
+        !rOuter = length levels
+        -- The odometer's levels are numbered innermost first, the fused
+        -- level 0 and the run below it, so nothing is reversed.
+        levels :: [(Int, Int)]
+        levels = innerFirst outerAxes
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (map snd levels)
+        !oatsV = VU.fromList (map fst levels)
+
+-- 'fillStage2' with the odometer's levels numbered outermost first,
+-- the outer axes reversed for it in the prologue, one change: the
+-- form the library carried when it was ported here; comments
+-- stripped, the code copied, as 'fillStage2VSdims' is. The fill of
+-- 'liblist-stage4', 'libunord-stage13' and 'lib-stage2-lean', kept on
+-- it so that an earlier run read against a later one prices the
+-- port's prologue on them, and each against its inward twin,
+-- 'liblist-stage5', 'libunord-stage14' and 'lib-stage3-lean', prices
+-- the numbering.
+{-# NOINLINE fillStage2Axes #-}
+fillStage2Axes :: Axes -> Int -> Int -> VS.Vector Double -> VS.Vector Double
+fillStage2Axes (Axes tInner sInner outerAxes) !ao !l !v =
+  assert (l > 0) $ VS.create $ do
+  out <- VSM.unsafeNew l
+  let {-# INLINE writeRunStep #-}
+      writeRunStep !outPos !baseOff =
+        let !oEnd = outPos + sInner
+            inner !o !src
+              | o + 1 >= oEnd =
+                  if o >= oEnd then return ()
+                  else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+              | otherwise = do
+                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                  let !src' = src + tInner
+                  VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
+                  inner (o + 2) (src' + tInner)
+        in  inner outPos baseOff
+      {-# INLINE writeRunSet #-}
+      writeRunSet !outPos !baseOff =
+        let !x = VS.unsafeIndex v baseOff
+            !oEnd = outPos + sInner
+            inner !o
+              | o + 1 >= oEnd =
+                  if o >= oEnd then return ()
+                  else VSM.unsafeWrite out o x
+              | otherwise = do
+                  VSM.unsafeWrite out o x
+                  VSM.unsafeWrite out (o + 1) x
+                  inner (o + 2)
+        in  inner outPos
+      copies !n !blk !src
+        | n <= 1 = return (src + blk)
+        | otherwise = grow blk
+        where
+          !end = src + n * blk
+          grow !have
+            | src + have >= end = return end
+            | otherwise = do
+                let !len = min have (end - src - have)
+                VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
+                               (VSM.unsafeSlice src len out)
+                grow (have + len)
+      {-# INLINE runsWith #-}
+      runsWith writeRun !n !st !outPos !baseOff
+        | st == 0 = writeRun outPos baseOff
+                    >> copies n sInner outPos
+        | otherwise =
+            let run !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = writeRun op boff
+                                >> run (k - 1) (op + sInner) (boff + st)
+            in  run n outPos baseOff
+      go !lev !outPos !baseOff
         | lev >= rOuter =
             (if tInner == 0 then writeRunSet else writeRunStep)
               outPos baseOff
@@ -3553,7 +3652,6 @@ fillStage2 (Axes tInner sInner outerAxes) !ao !l !v =
   return out
   where -- No doubled stride here any more; see the fill's own note.
         !rOuter = length levels
-        -- The odometer's levels are numbered outermost first.
         levels :: [(Int, Int)]
         levels = outerFirst outerAxes
         oshV, oatsV :: VU.Vector Int
@@ -3626,7 +3724,7 @@ fillStage2VSdims (Axes tInner sInner outerAxes) !ao !l !v =
                                 >> run (k - 1) (op + sInner) (boff + st)
             in  run n outPos baseOff
       go !lev !outPos !baseOff
-        | lev >= rOuter =
+        | lev < 0 =
             (if tInner == 0 then writeRunSet else writeRunStep)
               outPos baseOff
             >> return (outPos + sInner)
@@ -3634,24 +3732,24 @@ fillStage2VSdims (Axes tInner sInner outerAxes) !ao !l !v =
             level (VS.unsafeIndex oshV lev) (VS.unsafeIndex oatsV lev)
         where
           level !n !st
-            | lev == rOuter - 1 =
+            | lev == 0 =
                 if tInner == 0
                 then runsWith writeRunSet n st outPos baseOff
                 else runsWith writeRunStep n st outPos baseOff
             | st == 0 = do
-                op' <- go (lev + 1) outPos baseOff
+                op' <- go (lev - 1) outPos baseOff
                 copies n (op' - outPos) outPos
             | otherwise =
                 let dim !k !op !boff
                       | k <= 0    = return op
-                      | otherwise = go (lev + 1) op boff
+                      | otherwise = go (lev - 1) op boff
                                     >>= \op' -> dim (k - 1) op' (boff + st)
                 in  dim n outPos baseOff
-  _ <- go 0 0 ao
+  _ <- go (rOuter - 1) 0 ao
   return out
   where !rOuter = length levels
         levels :: [(Int, Int)]
-        levels = outerFirst outerAxes
+        levels = innerFirst outerAxes
         oshV, oatsV :: VS.Vector Int
         !oshV  = VS.fromList (map snd levels)
         !oatsV = VS.fromList (map fst levels)
@@ -3961,7 +4059,7 @@ fillStage2Short (Axes tInner sInner outerAxes) !ao !l !v =
                                 >> run (k - 1) (op + sInner) (boff + st)
             in  run n outPos baseOff
       go !lev !outPos !baseOff
-        | lev >= rOuter =
+        | lev < 0 =
             (if tInner == 0 then writeRunSet else writeRunStep)
               outPos baseOff
             >> return (outPos + sInner)
@@ -3969,7 +4067,7 @@ fillStage2Short (Axes tInner sInner outerAxes) !ao !l !v =
             level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
         where
           level !n !st
-            | lev == rOuter - 1 =
+            | lev == 0 =
                 -- The choice, once per row: the broadcast body first,
                 -- as in the control, then the short bodies by length.
                 if tInner == 0
@@ -3981,19 +4079,19 @@ fillStage2Short (Axes tInner sInner outerAxes) !ao !l !v =
                   5 -> runsWith writeRun5 n st outPos baseOff
                   _ -> runsWith writeRunStep n st outPos baseOff
             | st == 0 = do
-                op' <- go (lev + 1) outPos baseOff
+                op' <- go (lev - 1) outPos baseOff
                 copies n (op' - outPos) outPos op'
             | otherwise =
                 let dim !k !op !boff
                       | k <= 0    = return op
-                      | otherwise = go (lev + 1) op boff
+                      | otherwise = go (lev - 1) op boff
                                     >>= \op' -> dim (k - 1) op' (boff + st)
                 in  dim n outPos baseOff
-  _ <- go 0 0 ao
+  _ <- go (rOuter - 1) 0 ao
   return out
   where !rOuter = length levels
         levels :: [(Int, Int)]
-        levels = outerFirst outerAxes
+        levels = innerFirst outerAxes
         oshV, oatsV :: VU.Vector Int
         !oshV  = VU.fromList (map snd levels)
         !oatsV = VU.fromList (map fst levels)
@@ -4068,13 +4166,30 @@ fbLibStage2Lean sh (T (Strides ats) ao v)
   | otherwise = case canonView sh ats of
       ([], _) -> whole
       ([_], [1]) -> whole
+      (csh, cats) -> fillStage2Axes (axesOfDims csh cats) ao l v
+  where
+    l = product sh
+    whole | ao == 0 && VS.length v == l = v
+          | otherwise = VS.slice ao l v
+
+-- 'fbLibStage2Lean' over 'fillStage2', the odometer numbered innermost
+-- first, where that arm keeps 'fillStage2Axes': one change, so that
+-- arm is its control and the pair prices the numbering under the lean
+-- dispatch; reasons at 'fillStage2Axes'. Added 2026-09-21.
+{-# NOINLINE fbLibStage3Lean #-}
+fbLibStage3Lean :: ShapeL -> T -> VS.Vector Double
+fbLibStage3Lean sh (T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | otherwise = case canonView sh ats of
+      ([], _) -> whole
+      ([_], [1]) -> whole
       (csh, cats) -> fillStage2 (axesOfDims csh cats) ao l v
   where
     l = product sh
     whole | ao == 0 && VS.length v == l = v
           | otherwise = VS.slice ao l v
 
--- 'fbLibStage2Lean' with 'fillStage2VSdims' for its fill -- one change,
+-- 'fbLibStage3Lean' with 'fillStage2VSdims' for its fill -- one change,
 -- the dimension vectors' flavour; the probe of 2026-09-19, reasons at
 -- that fill.
 {-# NOINLINE fbLibStage2LeanVSdims #-}
@@ -4238,11 +4353,22 @@ routeList4 sh (T (Strides ats) ao _)
   where !l = product sh
 
 lsListStage4 :: ShapeL -> T -> [VS.Vector Double]
-lsListStage4 sh a@(T _ _ v) = listRoute (routeList4 sh a) v
+lsListStage4 sh a@(T _ _ v) = listRouteAxes (routeList4 sh a) v
 
 {-# NOINLINE fbLibListStage4 #-}
 fbLibListStage4 :: ShapeL -> T -> VS.Vector Double
-fbLibListStage4 sh a@(T _ _ v) = fillRoute (routeList4 sh a) v
+fbLibListStage4 sh a@(T _ _ v) = fillRouteAxes (routeList4 sh a) v
+
+-- Stage four's route under the fill numbered innermost first: the
+-- readers over 'fillStage2' where stage four's are over
+-- 'fillStage2Axes', the fill the one change, so that the pair prices
+-- the numbering; reasons at 'fillStage2Axes'. Added 2026-09-21.
+lsListStage5 :: ShapeL -> T -> [VS.Vector Double]
+lsListStage5 sh a@(T _ _ v) = listRoute (routeList4 sh a) v
+
+{-# NOINLINE fbLibListStage5 #-}
+fbLibListStage5 :: ShapeL -> T -> VS.Vector Double
+fbLibListStage5 sh a@(T _ _ v) = fillRoute (routeList4 sh a) v
 
 -- The unordered-list consumer under each stage: 'toUnorderedVectorListT'
 -- and one concatenation, the third entry point the branch changes and
@@ -4469,6 +4595,28 @@ sumRoute :: Route -> VS.Vector Double -> Double
 sumRoute (RSlice o l) v = VS.sum (VS.slice o l v)
 sumRoute (RRuns axes o _) v = sumLazyRuns axes o v
 sumRoute (RFill axes o l) v = VS.sum (fillStage2 axes o l v)
+
+-- 'listRoute', 'fillRoute' and 'sumRoute' over 'fillStage2Axes', the
+-- readers of the stages kept on that fill: copies, the fill the one
+-- change.
+listRouteAxes :: Route -> VS.Vector Double -> [VS.Vector Double]
+listRouteAxes r v = build $ \cons nil -> case r of
+  RSlice o l
+    | l == 0 -> nil
+    | otherwise -> cons (wholeOrSlice o l v) nil
+  RRuns axes o _ -> lazyRunsFB axes o v cons nil
+  RFill axes o l -> cons (fillStage2Axes axes o l v) nil
+{-# INLINE listRouteAxes #-}
+
+fillRouteAxes :: Route -> VS.Vector Double -> VS.Vector Double
+fillRouteAxes (RSlice o l) v = wholeOrSlice o l v
+fillRouteAxes (RRuns axes o l) v = fillStage2Axes axes o l v
+fillRouteAxes (RFill axes o l) v = fillStage2Axes axes o l v
+
+sumRouteAxes :: Route -> VS.Vector Double -> Double
+sumRouteAxes (RSlice o l) v = VS.sum (VS.slice o l v)
+sumRouteAxes (RRuns axes o _) v = sumLazyRuns axes o v
+sumRouteAxes (RFill axes o l) v = VS.sum (fillStage2Axes axes o l v)
 
 -- 'sumRoute' with its fill case through 'fillStage2VSdims'; the probe of
 -- 2026-09-19, reasons at that fill.
@@ -5153,11 +5301,22 @@ zeroStrideOutermost (InnerFirst ((0, z) : axes@((1, _) : _))) =
 zeroStrideOutermost axes = axes
 
 lsUnordStage13 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage13 sh a@(T _ _ v) = listRoute (routeUnord13 sh a) v
+lsUnordStage13 sh a@(T _ _ v) = listRouteAxes (routeUnord13 sh a) v
 
 {-# NOINLINE fbLibUnordStage13 #-}
 fbLibUnordStage13 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage13 sh a@(T _ _ v) = fillRoute (routeUnord13 sh a) v
+fbLibUnordStage13 sh a@(T _ _ v) = fillRouteAxes (routeUnord13 sh a) v
+
+-- Stage thirteen's route under the fill numbered innermost first:
+-- the readers over 'fillStage2' where stage thirteen's are over
+-- 'fillStage2Axes', the fill the one change, so that the pair prices
+-- the numbering; reasons at 'fillStage2Axes'. Added 2026-09-21.
+lsUnordStage14 :: ShapeL -> T -> [VS.Vector Double]
+lsUnordStage14 sh a@(T _ _ v) = listRoute (routeUnord13 sh a) v
+
+{-# NOINLINE fbLibUnordStage14 #-}
+fbLibUnordStage14 :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage14 sh a@(T _ _ v) = fillRoute (routeUnord13 sh a) v
 
 -- The two ports' lists: master's and the branch's 'toVectorListT', and
 -- the unordered one-block tests in front of them. The four port Fill
@@ -5253,9 +5412,14 @@ fbLibListStage3Sum sh a@(T _ _ v) =
 {-# NOINLINE fbLibListStage4Sum #-}
 fbLibListStage4Sum :: ShapeL -> T -> VS.Vector Double
 fbLibListStage4Sum sh a@(T _ _ v) =
+  VS.singleton (sumRouteAxes (routeList4 sh a) v)
+
+{-# NOINLINE fbLibListStage5Sum #-}
+fbLibListStage5Sum :: ShapeL -> T -> VS.Vector Double
+fbLibListStage5Sum sh a@(T _ _ v) =
   VS.singleton (sumRoute (routeList4 sh a) v)
 
--- 'fbLibListStage4Sum' through 'sumRouteVSdims' -- one change, the fill
+-- 'fbLibListStage5Sum' through 'sumRouteVSdims' -- one change, the fill
 -- case's dimension vectors; the probe of 2026-09-19, reasons at
 -- 'fillStage2VSdims'.
 {-# NOINLINE fbLibListStage4SumVSdims #-}
@@ -5324,9 +5488,14 @@ fbLibUnordStage12Sum sh a@(T _ _ v) =
 {-# NOINLINE fbLibUnordStage13Sum #-}
 fbLibUnordStage13Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage13Sum sh a@(T _ _ v) =
+  VS.singleton (sumRouteAxes (routeUnord13 sh a) v)
+
+{-# NOINLINE fbLibUnordStage14Sum #-}
+fbLibUnordStage14Sum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage14Sum sh a@(T _ _ v) =
   VS.singleton (sumRoute (routeUnord13 sh a) v)
 
--- 'fbLibUnordStage13Sum' through 'sumRouteVSdims' -- one change, the
+-- 'fbLibUnordStage14Sum' through 'sumRouteVSdims' -- one change, the
 -- fill case's dimension vectors; the probe of 2026-09-19, reasons at
 -- 'fillStage2VSdims'.
 {-# NOINLINE fbLibUnordStage13SumVSdims #-}
@@ -5372,7 +5541,7 @@ fbLibUnordStage10ListSum sh a@(T _ _ v) =
 {-# NOINLINE fbLibListStage4ListSum #-}
 fbLibListStage4ListSum :: ShapeL -> T -> VS.Vector Double
 fbLibListStage4ListSum sh a@(T _ _ v) =
-  VS.singleton (sum (map VS.sum (listRoute (routeList4 sh a) v)))
+  VS.singleton (sum (map VS.sum (listRouteAxes (routeList4 sh a) v)))
 
 -- One row per list producer, in family and stage order, the roster the
 -- two list gates below read, with what each of 'lazinessGate''s views
@@ -5398,6 +5567,7 @@ listProducers =
     -- the fill, as master's, so not asked
   , ("liblist-stage3", lsListStage3, Just True, Nothing)
   , ("liblist-stage4", lsListStage4, Just True, Nothing)
+  , ("liblist-stage5", lsListStage5, Just True, Nothing)
     -- master's unordered list: its one-block test fails on both
     -- views, the gap between rows seeing to that, so it is the
     -- ordered list and reads as liblist-stage1 does
@@ -5417,7 +5587,8 @@ listProducers =
   , ("libunord-stage10", lsUnordStage10, Just True, Just True)
   , ("libunord-stage11", lsUnordStage11, Just True, Just True)
   , ("libunord-stage12", lsUnordStage12, Just True, Just True)
-  , ("libunord-stage13", lsUnordStage13, Just True, Just True) ]
+  , ("libunord-stage13", lsUnordStage13, Just True, Just True)
+  , ("libunord-stage14", lsUnordStage14, Just True, Just True) ]
 
 -- The laziness gate, in 'check' and never timed: the ruling that the
 -- list stays lazy (README.md#dead-ideas) as a predicate. On a view of
@@ -6812,10 +6983,14 @@ roster =
     -- Outside the laziness ruling of 2026-09-07, 'toVectorT' being
     -- strict (README.md#dead-ideas), reasons at the definition.
   , ("lib-stage2-lean",            Fill fbLibStage2Lean)
+    -- The lean arm over the fill numbered innermost first, added
+    -- 2026-09-21 beside its control; reasons at 'fbLibStage3Lean'.
+  , ("lib-stage3-lean",            Fill fbLibStage3Lean)
     -- The flavour twin of 2026-09-19: the arm above with 'fillStage2''s
     -- two dimension vectors Storable, beside its original as the twin of
     -- 2026-08-08 stood beside 'bq-expand'. Parked 'Only' the same day,
     -- the probe having read the pair level; reasons at 'fillStage2VSdims'.
+    -- Its control is 'lib-stage3-lean' since 2026-09-21, both inward.
   , ("lib-stage2-lean-vsdims",     Only fbLibStage2LeanVSdims)
     -- The fill not unrolled under the lean dispatch, added 2026-09-07
     -- beside its control for Run 27; reasons at 'fillStage2U1'.
@@ -6832,6 +7007,7 @@ roster =
   , ("liblist-stage2",             Only fbLibListStage2)
   , ("liblist-stage3",             Only fbLibListStage3)
   , ("liblist-stage4",             Only fbLibListStage4)
+  , ("liblist-stage5",             Only fbLibListStage5)
   , ("libunord-stage1",            Only fbLibUnordStage1)
   , ("libunord-stage2",            Only fbLibUnordStage2)
   , ("libunord-stage3",            Only fbLibUnordStage3)
@@ -6849,6 +7025,8 @@ roster =
   , ("libunord-stage12",           Only fbLibUnordStage12)
     -- stage thirteen, stage twelve's passes reordered, checked likewise
   , ("libunord-stage13",           Only fbLibUnordStage13)
+    -- stage fourteen, stage thirteen over the inward fill, checked likewise
+  , ("libunord-stage14",           Only fbLibUnordStage14)
     -- The ordered list's consumers, added 2026-09-09 for Run 28 as the
     -- thirteen above retired: 'sumT'-shaped over each stage's ordered
     -- list, master's and the port's under 'sumRuns', stages three and
@@ -6857,10 +7035,15 @@ roster =
   , ("liblist-stage2-sum",         Fill fbLibListStage2Sum)
   , ("liblist-stage3-sum",         Fill fbLibListStage3Sum)
   , ("liblist-stage4-sum",         Fill fbLibListStage4Sum)
+    -- The inward twin of 2026-09-21: stage four's route under the fill
+    -- numbered innermost first, against the arm above, which keeps
+    -- 'fillStage2Axes'; reasons at that fill.
+  , ("liblist-stage5-sum",         Fill fbLibListStage5Sum)
     -- The flavour twin of 2026-09-19: the arm above with 'fillStage2''s
     -- two dimension vectors Storable, beside its original as the twin of
     -- 2026-08-08 stood beside 'bq-expand'. Parked 'Only' the same day,
     -- the probe having read the pair level; reasons at 'fillStage2VSdims'.
+    -- Its control is 'liblist-stage5-sum' since 2026-09-21, both inward.
   , ("liblist-stage4-vsdims-sum",  Only fbLibListStage4SumVSdims)
     -- The reducing consumer over each stage's list, added the same day:
     -- 'sumT' as the library composes it, one slice at a time and no
@@ -6928,7 +7111,8 @@ roster =
     -- the tail of the consumers, so that a fold keeping vector's 'sum'
     -- stands against the shared loop on the lean route as on the
     -- composed one. Reasons at the definition.
-  , ("liblist-stage4-list-sum",    Fill fbLibListStage4ListSum)
+    -- Parked 'Only' 2026-09-21.
+  , ("liblist-stage4-list-sum",    Only fbLibListStage4ListSum)
     -- Stage ten with its zero-stride move guarded, added 2026-09-15 for
     -- Run 33 at the tail of the consumers, so that no existing control's
     -- span moves; reasons at 'routeUnord11'. Its control is
@@ -6959,7 +7143,13 @@ roster =
     -- two dimension vectors Storable, beside its original as the twin of
     -- 2026-08-08 stood beside 'bq-expand'. Parked 'Only' the same day,
     -- the probe having read the pair level; reasons at 'fillStage2VSdims'.
+    -- Its control is 'libunord-stage14-sum' since 2026-09-21, both inward.
   , ("libunord-stage13-vsdims-sum", Only fbLibUnordStage13SumVSdims)
+    -- The inward twin of 2026-09-21, at the tail of the consumers as
+    -- stage thirteen's was: its route under the fill numbered innermost
+    -- first, against 'libunord-stage13-sum', which keeps
+    -- 'fillStage2Axes'; reasons at that fill.
+  , ("libunord-stage14-sum",       Fill fbLibUnordStage14Sum)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
