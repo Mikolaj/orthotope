@@ -13433,6 +13433,55 @@ RECORDS = [
          # and spec for o2, run30-pair.txt derives o1 for BOTH of its
          # halves, and a name with no block derives unknown.
          argv=None, ok=None),
+    # ---- --draft's fill-in skeleton, and the column it writes a row at --
+    # A ROW WHOSE LABEL IS SIXTEEN CHARACTERS WIDE WENT OUT WITH ONE SPACE
+    # AFTER IT, where `FILL_LABEL` wants two -- so the row `--draft` wrote
+    # could be read back by nothing: not by the next `--draft`, not by
+    # `_fill_trimmed`, not by preflight's `--figures`. `md5 gheadtwopass`
+    # is sixteen. Run 38's preparation was handed a draft carrying no such
+    # row and `--figures` answered `md5 gheadtwopass NO SUCH ROW in the
+    # note` against a note that carried it plainly at its own column;
+    # Run 37's note has the same unreadable row, so it had bitten twice
+    # and a hand had supplied the row both times.
+    # THE COLUMN IS NOW 20, written as a 16-wide field and TWO literal
+    # spaces rather than as a wider field: a half tag long enough to push
+    # a label past sixteen still gets its two spaces, where `%-18s` would
+    # only have moved the failure to eighteen.
+    # WHAT THE `has` BELOW STANDS FOR is the round trip -- a draft's own
+    # block read back as the next note's -- which one invocation cannot
+    # run. Taken by hand on 2026-09-21 before this case was written: fed a
+    # note at column 20, `--draft` wrote `md5 gheadtwopass` back at 19,
+    # and feeding THAT draft in again produced a block holding `Main.hs
+    # at` and `md5 gheadnospec` and no md5 of the other half at all.
+    case('draft-writes-a-fill-row-no-reader-can-read',
+         'read-run.py', '5d645f1',
+         'a provenance row vanished from the draft a preparation was handed',
+         plant=lambda t: {
+             'a': write(os.path.join(t, 'zz-pair.txt'),
+                        'The pair zz-gheadnospec and zz-gheadtwopass,'
+                        ' written by hand 2026-01-01.\n'
+                        '\n'
+                        'Half names [SAME]: gheadnospec is the basis,'
+                        ' gheadtwopass the other.\n'
+                        'HALVES: basis=gheadnospec other=gheadtwopass\n'
+                        'COMPARE: run98\n'
+                        '\n'
+                        'Verified when built, 2026-01-01:\n'
+                        '  Main.hs at        abc1234, tree clean\n'
+                        '  md5 gheadnospec   0123456789abcdef'
+                        '0123456789abcdef\n'
+                        '  md5 gheadtwopass  fedcba9876543210'
+                        'fedcba9876543210\n')},
+         argv=['--note', '{tmp}/zz-pair.txt', '--draft', 'run99',
+               '--halves', 'gheadnospec,gheadtwopass'],
+         ok=V(exit=0,
+              has=['  md5 gheadtwopass  <yours>',
+                   '  md5 gheadnospec   <yours>',
+                   '  Main.hs at        <yours>']),
+         bug=V(exit=0,
+               has=['  md5 gheadtwopass <yours>'],
+               hasnt=['  md5 gheadtwopass  <yours>'])),
+
 ]
 
 
