@@ -547,8 +547,8 @@ runSlicesT csh cats !start !v cons nil =
 
 -- Convert an array to a list of vectors, which together contain
 -- all the elements in the natural order.
--- An invariant: if the input array is non-empty the returned list
--- will have no empty vectors.
+-- An invariant: the returned list has no empty vectors, an empty
+-- array yielding the empty list.
 -- The list is produced lazily: a consumer folds it slice by slice,
 -- holding no more of it than it has reached, where a table of the
 -- runs' offsets would do all its work before the consumer sees an
@@ -801,9 +801,9 @@ unorderedRegimeT sh (T ats ao _) =
 -- already hard to follow and needed a battery of implementation notes
 -- each, so this one is at least really sharp, and the account at
 -- 'unorderedRegimeT' says why each piece.
--- An invariant: if the input array is non-empty the returned list
--- will have no empty vectors; the minimum/maximum operations rely on
--- it.  The list is produced lazily, as 'toVectorListT''s is, so 'anyT'
+-- An invariant: the returned list has no empty vectors, an empty
+-- array yielding the empty list; the minimum/maximum operations rely
+-- on it.  The list is produced lazily, as 'toVectorListT''s is, so 'anyT'
 -- and 'allT' stop at the first slice that decides.
 {-# INLINE toUnorderedVectorListT #-}
 toUnorderedVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
