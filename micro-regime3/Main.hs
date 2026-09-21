@@ -4108,14 +4108,16 @@ concatKnown !l parts = case parts of
 -- 'unstream' over 'Bundle.fromVectors', whose size is a 'foldl'' of the
 -- lengths before the first element streams (read in the cabal store,
 -- 2026-09-07), so no liblist arm can see a list's laziness; 'check''s
--- laziness gate does. The Fill arms over these lists -- 'concatParts'
--- over 'lsListStage1' and 'lsListStage2', 'fillRoute' over stages three
--- and four's routes -- hand a one-element list's element back as
--- 'toVectorT' hands it and concatenate only runs; until 2026-09-09 they
--- concatenated a singleton too, vector's 'concat' copying it, so every
--- one read 2.00x allocation and a result-sized copy on every view the
--- library fills once. All four are checked and not timed since that
--- day, their consumers timed in their place.
+-- laziness gate does. The Fill arms over the two ports' lists,
+-- 'concatParts' over 'lsListStage1' and 'lsListStage2', hand a
+-- one-element list's element back as master's 'toVectorT' hands it and
+-- concatenate only runs; until 2026-09-09 they concatenated a singleton
+-- too, vector's 'concat' copying it, so every one read 2.00x allocation
+-- and a result-sized copy on every view the library fills once. All
+-- four are checked and not timed since that day, their consumers timed
+-- in their place; and 'fillRoute', the Fill arm over stages three and
+-- four's routes, fills its runs as the library's 'toVectorT' does since
+-- 2026-09-21.
 --
 -- Stage one's list (Data/Array/Internal.hs at 0386073): regime 1 the
 -- vector, regime 2 the slice recursion over the normal suffix, regime 3
@@ -4134,26 +4136,27 @@ fbLibListStage1 sh a = concatParts (lsListStage1 sh a)
 fbLibListStage2 :: ShapeL -> T -> VS.Vector Double
 fbLibListStage2 sh a = concatParts (lsListStage2 sh a)
 
--- Stage three of the list entry point, 'toVectorListT' kept lazy up to
--- the exception: the ordered list built as master builds it -- the
+-- Stage three of the list entry point, 'toVectorListT' kept lazy up
+-- to the exception: the ordered list built as master builds it -- the
 -- vector or a slice at the natural strides, a lazy list of slices where
 -- the innermost canonical stride is 1, one strict fill only where no
--- run is longer than one element -- with two things master does not
--- do. 'canonView' first, so a unit or mergeable dimension moves the
--- view to a lazier pattern, the exception's case: 'runs-r3-48x30''s
--- three canonical levels merge into runs of 1440 where master reads runs
--- of 30, and 'small-flat64' is one slice where master reads 64 runs --
+-- run is longer than one element -- with two things master does not do.
+-- 'canonView' first, so a unit or mergeable dimension moves the view
+-- to a lazier pattern, the exception's case: 'runs-r3-48x30''s three
+-- canonical levels merge into runs of 1440 where master reads runs of
+-- 30, and 'small-flat64' is one slice where master reads 64 runs --
 -- the two timed views it moves, read off a replica of the dispatches
 -- over every checked view, 2026-09-07. And 'lazyRuns' in place of the
 -- per-level 'concat', one slice per run on demand and no table. The
 -- dispatch keeps the natural-strides comparison, as 'fbLibStage2' does,
 -- so 'fbLibListStage4' is one change over it. Checked and not timed
--- since 2026-09-09, as every arm concatenating a list; what is timed is
--- its consumer, 'fbLibListStage3Sum', which against master's prices the
--- canonicalization and the odometer against the slice recursion, and
--- 'fbLibListStage4Sum', under the lean dispatch, which prices the
--- odometer against the strict base-offset table. Added 2026-09-07 for
--- Run 27.
+-- since 2026-09-09, when every arm concatenating a list went to 'Only';
+-- its runs are filled as the library's 'toVectorT' fills them since
+-- 2026-09-21. What is timed is its consumer, 'fbLibListStage3Sum',
+-- which against master's prices the canonicalization and the odometer
+-- against the slice recursion, and 'fbLibListStage4Sum', under the lean
+-- dispatch, which prices the odometer against the strict base-offset
+-- table. Added 2026-09-07 for Run 27.
 routeList3 :: ShapeL -> T -> Route
 routeList3 sh (T (Strides ats) ao _)
   | l == 0 = RSlice 0 0
@@ -4253,9 +4256,11 @@ fbLibUnordStage2 sh a = concatParts (lsUnordStage2 sh a)
 -- extents to 3 and strides to 4, a mutant skipping the
 -- re-canonicalization failing it. Since 2026-09-09 the arm is stage
 -- five's route with its runs turned into fills, which is what it always
--- was, and 'fbLibUnordStage3Sum' is the fill's consumer: what a
--- reduction pays over the ceiling, the pair with stage five's consumer
--- pricing the list against the fill it replaces.
+-- was -- and equal in effect to stage five's fill arm since 2026-09-21,
+-- 'fillRoute' filling runs itself -- and 'fbLibUnordStage3Sum' is the
+-- fill's consumer: what a reduction pays over the ceiling, the pair
+-- with stage five's consumer pricing the list against the fill it
+-- replaces.
 routeUnord3 :: ShapeL -> T -> Route
 routeUnord3 sh a = case routeUnord5 sh a of
   RRuns ssh sats o l -> RFill ssh sats o l
@@ -4290,9 +4295,9 @@ fbLibUnordStage3 sh a@(T _ _ v) = fillRoute (routeUnord3 sh a) v
 -- this moves most shapes. The fold has to sit on the list
 -- expression itself: applied to a case-bound variable, or partially
 -- applied and floated to the top level, it never meets the 'build'. A
--- consumer that cannot fuse, 'VS.concat' under the Fill arms, pays the
--- form nothing once compiled once ('concatLazyRuns'); inlined beside it
--- the probe read 16 bytes a run more.
+-- consumer that cannot fuse, 'VS.concat' under the Fill arms until
+-- 2026-09-21, paid the form nothing once compiled once; inlined beside
+-- it the probe read 16 bytes a run more.
 lazyRuns :: ShapeL -> [Int] -> Int -> VS.Vector Double -> [VS.Vector Double]
 lazyRuns ssh sats start v = build (lazyRunsFB ssh sats start v)
 {-# INLINE lazyRuns #-}
@@ -4362,24 +4367,24 @@ lazyRunsFB ssh sats !start !v cons nil =
 {-# INLINE lazyRunsFB #-}
 
 -- A lazy stage's dispatch as a value: one slice, the runs 'lazyRuns'
--- will walk, or one fill. Four readers share it -- the list, for the
+-- will walk, or one fill. Five readers share it -- the list, for the
 -- laziness gate and as the library-shaped function; the Fill arm, which
--- hands a slice or a fill back as master's 'toVectorT' does and
--- concatenates only runs, vector's 'concat' copying a singleton too;
--- and the sum consumer, whose fused run loop is compiled ONCE as
--- 'sumLazyRuns' and reached by every stage through its route; and the
--- loop arm's fold, 'loopSumRoute', the fourth. That
--- last is why the dispatch is data rather than the list itself: the
--- fusion probe's overhaul first inlined each stage's list function
--- into its consumer, and two of six copies of the identical loop came
--- out 8 bytes and several ns a run dearer than the others -- the
--- per-copy code generation the ceiling readings know -- which a pair
--- of stages would have read as a design's cost. One loop, one code;
--- the pair prices the dispatch alone.
+-- hands a slice or a fill back as the library's 'toVectorT' does, the
+-- runs filled too since 2026-09-21, where until then it concatenated
+-- them as master's did; and the sum consumer, whose fused run loop is
+-- compiled ONCE as 'sumLazyRuns' and reached by every stage through
+-- its route, with its 'fillStage2VSdims' twin; and the loop arm's
+-- fold, 'loopSumRoute', the fifth. That last is why the dispatch is
+-- data rather than the list itself: the fusion probe's overhaul first
+-- inlined each stage's list function into its consumer, and two of six
+-- copies of the identical loop came out 8 bytes and several ns a run
+-- dearer than the others -- the per-copy code generation the ceiling
+-- readings know -- which a pair of stages would have read as a design's
+-- cost. One loop, one code; the pair prices the dispatch alone.
 -- The library's 'Route' on pr-mikolaj-toVectorListT, field for field.
 data Route = RSlice !Int !Int              -- start and length of one slice
            | RRuns ShapeL [Int] !Int !Int  -- sorted canonical dims, run
-                                           -- start, length
+                                           -- start, length (the fill's)
            | RFill ShapeL [Int] !Int !Int  -- dims, start, length
 
 -- The slice an 'RSlice' route stands for, the vector itself where the
@@ -4413,7 +4418,7 @@ listRoute r v = build $ \cons nil -> case r of
 
 fillRoute :: Route -> VS.Vector Double -> VS.Vector Double
 fillRoute (RSlice o l) v = wholeOrSlice o l v
-fillRoute (RRuns ssh sats o _) v = concatLazyRuns ssh sats o v
+fillRoute (RRuns ssh sats o l) v = fillStage2 ssh sats o l v
 fillRoute (RFill ssh sats o l) v = fillStage2 ssh sats o l v
 
 sumRoute :: Route -> VS.Vector Double -> Double
@@ -4433,8 +4438,9 @@ sumRouteVSdims (RFill ssh sats o l) v = VS.sum (fillStage2VSdims ssh sats o l v)
 startOf :: ShapeL -> [Int] -> Int -> Int
 startOf sh ats ao = ao + sum [ (n - 1) * st | (n, st) <- zip sh ats, st < 0 ]
 
--- A port's list as its Fill arm returns it: 'toVectorT''s shape, a
--- one-element list's element as it is and only runs concatenated.
+-- A port's list as its Fill arm returns it, master's 'toVectorT''s
+-- shape: a one-element list's element as it is and only runs
+-- concatenated.
 concatParts :: [VS.Vector Double] -> VS.Vector Double
 concatParts [p] = p
 concatParts ps = VS.concat ps
@@ -4473,13 +4479,6 @@ sumNoSpec p = go 0 0
         go !i !acc | i < n = go (i + 1) (acc + VS.unsafeIndex p i)
                    | otherwise = acc
 {-# INLINE sumNoSpec #-}
-
--- 'VS.concat' is no good consumer, so this materializes the list; once
--- for the same reason.
-{-# NOINLINE concatLazyRuns #-}
-concatLazyRuns :: ShapeL -> [Int] -> Int -> VS.Vector Double
-               -> VS.Vector Double
-concatLazyRuns ssh sats !o v = VS.concat (lazyRuns ssh sats o v)
 
 -- The route of a canonicalized view, given its start offset and its
 -- element count: one slice where no axis is left or the one left has
