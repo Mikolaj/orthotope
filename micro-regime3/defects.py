@@ -13484,7 +13484,10 @@ RECORDS = [
 
     # ---- --lint, and a prior with nothing beside it that derives it ----
     # THE ERROR NO PASS HERE COULD SEE was a figure quoted against the
-    # wrong mode. Run 38's registration called 0.51 an A/A floor where
+    # wrong mode IN AN ITEM'S PROSE. `--carried` derives what a `pair`
+    # span quotes and names an item matching nothing, so a span's own
+    # figures are read; the sentence beside a span is read by nothing,
+    # and that is where this one sat. Run 38's registration called 0.51 an A/A floor where
     # `--aa` gives 0.59% for that and the 0.51 is `--compare`'s widest
     # arm-to-duplicate gap; both numbers are real, and only the pairing
     # was wrong, which every arms-and-scope check passes over. What let
@@ -13500,7 +13503,7 @@ RECORDS = [
     # so a case keyed on the open list's current text goes LOST the day
     # the run ends.
     case('registration-prior-names-no-mode', 'read-run.py', '2bc393e',
-         'a prior read off the wrong mode was invisible to every check',
+         'a prior read off the wrong mode sat in prose no pass reads',
          plant=lambda t: {'readme': edited_readme(t, (
              a_registration_lead(),
              '- `OPEN` **What Run 99 is built to answer, registered before'
@@ -13542,7 +13545,8 @@ RECORDS = [
     case('launch-path-reported-and-never-judged', 'preflight.sh', '2bc393e',
          'a mount raised between runs would have taken the placement term',
          # The fill-in block's `launch` row names the path and says
-         # outright that it does not judge, and nothing else did either --
+         # outright that it does not judge, and no other step of the
+         # preparation judged it --
          # so `hugebin/` standing mounted puts a 2 MiB-frame placement
          # term, 15 percent on one arm of Run 33's basis, into every
          # cross-run absolute a run publishes, and the only sign is a row

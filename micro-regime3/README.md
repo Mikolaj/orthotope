@@ -990,7 +990,7 @@ rather than a slot in the next run, observed again:
   leaves a preparation to notice an absence. **THE FIX IS THE EMITTER'S
   AND NOT THE READER'S**, ruled by the owner on 2026-09-21 of the three
   that were open: `FILL_LABEL` is unchanged, `_fill_skeleton` and preflight's
-  thirty-one `--fill-in` rows now write a 16-wide label field and TWO literal
+  every `--fill-in` line now writes a 16-wide label field and TWO literal
   spaces, and `pair-note-template.txt`'s own block moved with them, so every row
   of a block lands at column 20. Written that way rather than as a wider field
   on purpose: a half tag long enough to push a label past sixteen still gets
@@ -8071,7 +8071,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      build reads: write that, build the halves on it, and write the
     #      rest of the prose UNDER the build and the preflight, which are
     #      minutes each. A preparation that writes the whole note before
-    #      building holds the machine idle for its longest hand step.
+    #      building holds the machine idle while it writes.
     #      AND THE NOTE IS NEVER REFLOWED, by any tool: `wrap80` is for
     #      Markdown and `par` for comment blocks, and this file is plain
     #      text carrying FOUR machine-read lines -- `HALVES:`, `COMPARE:`,
@@ -8300,8 +8300,9 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      why: --para 'Steps 7 and 8 are the whole'
     ./read-run.py --check-doc --quiet     # 8. anchors, paths, widths, sweeps
     #      7+8 are the WHOLE document check here; no other repo's checkers,
-    #      now or at post-run step 7. THEY RUN TWICE: here, and again after
-    #      12a, which is where the registration they check is written. The
+    #      now or at post-run step 7. THEY ARE OWED TWICE: here, and again
+    #      after 12a, which is where the registration they check is
+    #      written. The
     #      SECOND is the verdict -- a clean pass here says nothing about
     #      text that does not exist yet. Exit code is the verdict: `note:`
     #      lines are write-up material (6e's --worklists prints them), and
