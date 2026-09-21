@@ -838,7 +838,7 @@ fill_in () {
   if [ "$REST" = 0 ]; then
     echo
     echo "--- the fill-in row --corpus fills, for $R-pair.txt ---"
-    printf '  %-16s %s\n' 'script checks' \
+    printf '  %-16s  %s\n' 'script checks' \
       "8b, and now 8c $(vd 8c); 8d $(vd 8d)"
     echo "--- replaces the 8c/8d line the earlier pass left <yours> ---"
     return 0
@@ -884,28 +884,28 @@ fill_in () {
   echo
   echo "--- the note's fill-in block, derived; paste into $R-pair.txt ---"
   printf 'Verified when built, %s:\n' "$D"
-  printf '  %-16s %s\n' 'Main.hs at' \
+  printf '  %-16s  %s\n' 'Main.hs at' \
     "$(git log -1 --format=%h -- :/micro-regime3/Main.hs), tree $(git status \
        --porcelain -- :/micro-regime3/Main.hs | grep -q . && echo DIRTY \
        || echo clean) against it"
-  printf '  %-16s %s\n' 'shim at' \
+  printf '  %-16s  %s\n' 'shim at' \
     "$(git log -1 --format=%h -- :/micro-regime3/align-as.py), tree $(git status \
        --porcelain -- :/micro-regime3/align-as.py | grep -q . && echo DIRTY \
        || echo clean) against it"
-  printf '  %-16s %s\n' 'compilers' \
+  printf '  %-16s  %s\n' 'compilers' \
     "on PATH $(ghc --numeric-version 2>/dev/null); in the binaries, \
 $BASIS $(ver "./$R-$BASIS") and $OTHER $(ver "./$R-$OTHER")"
-  printf '  %-16s %s\n' 'baked RTS' \
+  printf '  %-16s  %s\n' 'baked RTS' \
     "$("./$R-$BASIS" +RTS --info 2>/dev/null | sed -n 's/.*"Flag -with-rtsopts", "\(.*\)").*/\1/p'), \
 and $OTHER $("./$R-$OTHER" +RTS --info 2>/dev/null \
              | sed -n 's/.*"Flag -with-rtsopts", "\(.*\)").*/\1/p')"
-  printf '  %-16s %s\n' 'instruments' \
+  printf '  %-16s  %s\n' 'instruments' \
     "$BASIS $(ins "./$R-$BASIS"); $OTHER $(ins "./$R-$OTHER")"
-  printf '  %-16s %s\n' '.text' \
+  printf '  %-16s  %s\n' '.text' \
     "$(txt "./$R-$BASIS") bytes on $BASIS, $(txt "./$R-$OTHER") on $OTHER \
 -- the FIRST column of size -A, the second being the load address"
-  printf '  %-16s %s\n' "md5 $BASIS" "$(md5sum "./$R-$BASIS" | cut -d' ' -f1)"
-  printf '  %-16s %s\n' "md5 $OTHER" "$(md5sum "./$R-$OTHER" | cut -d' ' -f1)"
+  printf '  %-16s  %s\n' "md5 $BASIS" "$(md5sum "./$R-$BASIS" | cut -d' ' -f1)"
+  printf '  %-16s  %s\n' "md5 $OTHER" "$(md5sum "./$R-$OTHER" | cut -d' ' -f1)"
   # WHERE THE HALVES LAUNCH FROM: half-bin.sh's answer, the on-disk file
   # while hugebin/ is suspended and the tmpfs copy on a run that raised
   # the mount. SUSPENDED 2026-09-19, the mount having failed to come up at
@@ -913,35 +913,35 @@ and $OTHER $("./$R-$OTHER" +RTS --info 2>/dev/null \
   # row is read for: `./` is now the expected reading and `hugebin/` is
   # what wants a sentence in the note, where from Run 34 to Run 36 it was
   # the other way about. The row reports and does not judge either way.
-  printf '  %-16s %s\n' 'launch' \
+  printf '  %-16s  %s\n' 'launch' \
     "$BASIS from $(./half-bin.sh "$R" "$BASIS" 2>/dev/null || echo '(refused)'), \
 $OTHER from $(./half-bin.sh "$R" "$OTHER" 2>/dev/null || echo '(refused)'); \
 hugebin/ $(mountpoint -q hugebin && echo mounted || echo NOT MOUNTED)"
-  printf '  %-16s %s\n' 'repetition' '<yours> -- available only where the'
-  printf '  %-16s %s\n' '' 'source did not move; say which and why'
-  printf '  %-16s %s\n' 'fills' "$(vd 10)"
+  printf '  %-16s  %s\n' 'repetition' '<yours> -- available only where the'
+  printf '  %-16s  %s\n' '' 'source did not move; say which and why'
+  printf '  %-16s  %s\n' 'fills' "$(vd 10)"
   if [ -n "$PB" ]; then
-    printf '  %-16s %s\n' '' "against $PB, the previous build of this recipe:"
+    printf '  %-16s  %s\n' '' "against $PB, the previous build of this recipe:"
     ./loop-offsets.py --delta "$PB" "./$R-$BASIS" 2>/dev/null \
       | grep -E '^ +(every mod-64|NO address|[0-9]+ displacement|of the)' \
       | sed 's/^ */                   /'
   elif [ -n "$PN" ]; then
-    printf '  %-16s %s\n' '' "no basis half of run$PN is here -- neither \
+    printf '  %-16s  %s\n' '' "no basis half of run$PN is here -- neither \
 run$PN-$BASIS nor the half run$PN-pair.txt names -- so the --delta reading \
 against the previous build of this recipe is not available"
   else
     # Named apart from the missing-binary case: with no earlier run file
     # at all there is no name to miss, and the branch above would have
     # spelled one out of an empty number as `run-$BASIS`.
-    printf '  %-16s %s\n' '' "no run file below $R in runs/, so there is no \
+    printf '  %-16s  %s\n' '' "no run file below $R in runs/, so there is no \
 previous build of this recipe to read --delta against"
   fi
-  printf '  %-16s %s\n' 'straddle' \
+  printf '  %-16s  %s\n' 'straddle' \
     "$BASIS ${SRV_B:-$(srv "./$R-$BASIS")}"
-  printf '  %-16s %s\n' '' "$OTHER ${SRV_O:-$(srv "./$R-$OTHER")}"
-  printf '  %-16s %s\n' 'regime' "$(vd 9)"
-  printf '  %-16s %s\n' 'check' "$(vd '4,5')"
-  printf '  %-16s %s\n' '--list' "$(vd 6)"
+  printf '  %-16s  %s\n' '' "$OTHER ${SRV_O:-$(srv "./$R-$OTHER")}"
+  printf '  %-16s  %s\n' 'regime' "$(vd 9)"
+  printf '  %-16s  %s\n' 'check' "$(vd '4,5')"
+  printf '  %-16s  %s\n' '--list' "$(vd 6)"
   if [ -n "$PB" ]; then
     # The membership lines by what they SAY, not by line number: a slice of
     # the first three printed the arms that left and not the ones that
@@ -953,22 +953,22 @@ previous build of this recipe to read --delta against"
     # A named absence, as the comment at PB promises and as the --delta
     # branch above has always given: silence here read as a roster nobody
     # owed a delta for, on the one run where the delta was the point.
-    printf '  %-16s %s\n' '' "no previous basis half here, so the membership \
+    printf '  %-16s  %s\n' '' "no previous basis half here, so the membership \
 delta is step 6c's to take by hand"
   fi
-  printf '  %-16s %s\n' 'smoke sweep' '<yours> -- step 11, and it is the pair'\''s'
-  printf '  %-16s %s\n' 'L1 ROSTER PASS:' '<yours> -- step 12: taken or not owed,'
-  printf '  %-16s %s\n' '' 'on which roster, and WHAT IT FOUND'
-  printf '  %-16s %s\n' 'document checks' "7 $(vd 7); 8 $(vd 8)"
-  printf '  %-16s %s\n' 'script checks' "8b $(vd 8b)"
+  printf '  %-16s  %s\n' 'smoke sweep' '<yours> -- step 11, and it is the pair'\''s'
+  printf '  %-16s  %s\n' 'L1 ROSTER PASS:' '<yours> -- step 12: taken or not owed,'
+  printf '  %-16s  %s\n' '' 'on which roster, and WHAT IT FOUND'
+  printf '  %-16s  %s\n' 'document checks' "7 $(vd 7); 8 $(vd 8)"
+  printf '  %-16s  %s\n' 'script checks' "8b $(vd 8b)"
   if [ "$CORPUS" = 1 ]; then
-    printf '  %-16s %s\n' '' "8c $(vd 8c); 8d $(vd 8d)"
+    printf '  %-16s  %s\n' '' "8c $(vd 8c); 8d $(vd 8d)"
   else
-    printf '  %-16s %s\n' '' '8c and 8d <yours> -- --corpus takes them'
+    printf '  %-16s  %s\n' '' '8c and 8d <yours> -- --corpus takes them'
   fi
-  printf '  %-16s %s\n' 'scripts set' \
+  printf '  %-16s  %s\n' 'scripts set' \
     'NOTHING TO SET: the halves come from the HALVES line'
-  printf '  %-16s %s\n' 'gate arms' "$(vd 6b)"
+  printf '  %-16s  %s\n' 'gate arms' "$(vd 6b)"
   echo "--- end of the derived block ---"
 }
 

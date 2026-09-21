@@ -9001,7 +9001,7 @@ def _fill_skeleton(para):
     for line in para.split('\n')[1:]:
         m = FILL_LABEL.match(line)
         if m:
-            out.append('  %-16s <yours>' % m.group(1))
+            out.append('  %-16s  <yours>' % m.group(1))
     return '\n'.join(out)
 
 

@@ -966,8 +966,9 @@ rather than a slot in the next run, observed again:
   on a run that is not a placement run; the `launch` row of a pair note
   is the only place it would show, and it shows as the `./` a session reads
   as expected.
-- `OPEN` **A fill-in row whose label is sixteen characters long is invisible
-  to every reader of the block, and the draft emitter writes one.** `FILL_LABEL`
+- `ANSWERED` **A fill-in row whose label is sixteen characters long
+  was invisible to every reader of the block, and the draft emitter wrote one
+  --- FIXED 2026-09-21 by moving the block's value column to 20.** `FILL_LABEL`
   in `read-run.py` matches two leading spaces, then `(\S(?:.*?\S)?)\s{2,}\S`,
   and `preflight.sh` carries the same rule, so a row parses only where TWO
   spaces follow the label; `_fill_skeleton` emits the label through a `%-16s`
@@ -981,16 +982,22 @@ rather than a slot in the next run, observed again:
   so this has bitten twice and a hand supplied the row both times. **What
   it costs is one provenance row per run, and the `--draft` half is SILENT** ---
   the reader's own `--figures` is loud, but a draft that quietly omits a row
-  leaves a preparation to notice an absence. **WHAT IS NOT DECIDED IS WHICH
-  FIX**, and there are three: widen the emitter's field so a row is always
-  written with two spaces, which closes new drafts and leaves every hand-written
-  note unreadable; derive the block's value COLUMN once per block and split
-  every line there, which reads both and is a change to three call sites;
-  or hold the lines to the label set `pair-note-template.txt` declares, which
-  reads both and makes the template load-bearing. Each owes a case and a mutant.
-  Raised by Run 38's preparation, which widened its own note's column to 18
-  and changed no script, the -L1 roster pass being under way and the pre-run
-  list forbidding an edit to the reader while it runs.
+  leaves a preparation to notice an absence. **THE FIX IS THE EMITTER'S
+  AND NOT THE READER'S**, ruled by the owner on 2026-09-21 of the three
+  that were open: `FILL_LABEL` is unchanged, `_fill_skeleton` and preflight's
+  thirty-one `--fill-in` rows now write a 16-wide label field and TWO literal
+  spaces, and `pair-note-template.txt`'s own block moved with them, so every row
+  of a block lands at column 20. Written that way rather than as a wider field
+  on purpose: a half tag long enough to push a label past sixteen still gets
+  its two spaces, where `%-18s` would only have moved the failure to eighteen.
+  **WHAT IT DOES NOT REACH is a note already written at column 19** --- Run 37's
+  row stays unreadable, which is what choosing the emitter costs, and every note
+  from Run 38's onward parses. Case
+  `draft-writes-a-fill-row-no-reader-can-read`, watched failing on all three
+  of its rows before the fix; the round trip it stands for, which one invocation
+  cannot run, was taken by hand first --- a draft fed back as the next note's
+  came out holding `Main.hs at` and `md5 gheadnospec` and no md5 of the other
+  half at all.
 - `ANSWERED` **What Run 37 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 37's own
