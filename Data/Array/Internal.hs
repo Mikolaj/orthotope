@@ -316,7 +316,16 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 -- positions by doubling.
 -- Given canonical dimensions ('canonicalizeT') the conditions fire
 -- wherever they can; given any other dimensions the fill is still
--- correct.  Written once against 'Data.Vector.Generic', which supplies
+-- correct.  The count must be positive, asserted at entry: a zero-stride
+-- run reads its one element, and a zero-stride level writes its run or
+-- block, before reading the extent, so a zero extent would read past the
+-- source or write into an empty result.  Every entry point of this
+-- module returns the empty vector or list before routing an empty view
+-- here, and a caller of 'vFillStrided' from outside owes the same; the
+-- assert is live in an unoptimized build only, GHC dropping asserts at
+-- -O, and is checked there by disabling 'toVectorT''s guard, which
+-- fails the Dynamic modules' 'toVector_3' on it (2026-09-21).
+-- Written once against 'Data.Vector.Generic', which supplies
 -- the mutable machinery orthotope's own 'Vector' class deliberately does
 -- not; each vector-backed instance reuses it verbatim.  Ported
 -- bang-for-bang from the fastest fill of the micro-benchmark preserved
@@ -330,7 +339,7 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 {-# INLINE genericFillStrided #-}
 genericFillStrided :: forall w a. (VG.Vector w a)
                    => ShapeL -> [Int] -> Int -> Int -> w a -> w a
-genericFillStrided sh ats !ao !l !v = VG.create fill
+genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
   where
     fill :: forall s. ST s (VG.Mutable w s a)
     fill = do

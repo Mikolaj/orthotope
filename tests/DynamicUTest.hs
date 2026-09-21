@@ -50,6 +50,10 @@ test = testGroup "DynamicU" $
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
       toVector_2 = assertEqual "2" (V.fromList [1,4,2,5,3,6]) (toVector a2)
+      -- An empty view transposed so that no axis merges away: the entry
+      -- point returns before any fill is asked for.
+      toVector_3 = assertEqual "3" V.empty
+                     (toVector (transpose [1,0] (fromList [0,3] [] :: Array Int)))
       fromList_1 = assertThrows "sh" (fromList [] [1,2::Int])
       fromList_2 = assertThrows "sh" (fromList [4,5] [1,2::Int])
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
@@ -289,6 +293,7 @@ test = testGroup "DynamicU" $
         , testCase "toList_2" toList_2
         , testCase "toVector_1" toVector_1
         , testCase "toVector_2" toVector_2
+        , testCase "toVector_3" toVector_3
         , testCase "fromList_1" fromList_1
         , testCase "fromList_2" fromList_2
         , testCase "fromVector_1" fromVector_1
