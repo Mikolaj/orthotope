@@ -150,9 +150,9 @@ THE COMPILER [PAIR'S], and the first of the blocks that each answer for ONE
 input -- the compiler, the shim, the source, the roster, the project file:
 EACH OF THOSE BLOCKS IS THE ONE PLACE THAT SAYS WHETHER ITS INPUT MOVED. A
 summary block above them and the machine block below point here and restate
-nothing, two copies of a verdict being one that goes stale; Run 38's note said
-`the compiler, the shim, the project file and the launch are Run 37's to the
-commit` three times over.
+nothing, two copies of a verdict being one that goes stale; Run 38's note
+restated that its compiler, shim, project file and launch were the previous
+run's in block after block.
 What `ghc --version` said at build time. The recipe below
 carries --ghc-options and not the compiler, so nothing else here records
 it, post-run step 9 asks this note for it, and a repetition read against

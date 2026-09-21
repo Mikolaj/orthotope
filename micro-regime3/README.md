@@ -930,10 +930,10 @@ rather than a slot in the next run, observed again:
   ASKED THE NEXT REGISTRATION TO COPY: its four bands, drawn at one and two
   percent off Run 36's counts, came in 0.00, 0.00, 0.00 and 0.04 of a point out,
   where its time bands drawn from the same run were out by 1.21 to 4.00. So 1%
-  is an order of magnitude wider than the miss that history records --- and what
-  this run adds to the question is the SOURCE, fourteen commits where Run 37
-  carried three, which is the term those four figures have never been read
-  across at this size. A miss here, with item (1) inside its span,
+  is more than an order of magnitude wider than the miss that history records
+  --- and what this run adds to the question is the SOURCE, fourteen commits
+  where Run 37 carried three, which is the term those four figures have never
+  been read across at this size. A miss here, with item (1) inside its span,
   is the counted work having stopped carrying and is the one outcome that would
   retire this item's form. (6) *The fill numbering the pairing of 2026-09-21
   added is worth nothing outside the floor.*
@@ -967,18 +967,20 @@ rather than a slot in the next run, observed again:
   driver would have launched from it and taken the placement term --- 15 percent
   on one arm of Run 33's basis, by the placement section --- back into both
   halves. The owner unmounted it on being asked, before any half was copied
-  anywhere. Nothing in the list or in any script refuses a mounted `hugebin/`
-  on a run that is not a placement run; the `launch` row of a pair note
-  is the only place it would show, and it shows as the `./` a session reads
-  as expected.
+  anywhere. Nothing in the list or in any script refused a mounted `hugebin/`
+  on a run that was not a placement run, and the `launch` row of a pair note
+  was the only place it would have shown --- as the `./` a session reads
+  as expected. **That is no longer so, and this finding is why**: preflight's
+  10f, added 2026-09-22, FAILs where a half would launch from the mount on a run
+  that set no `PLACEMENT`.
 - `ANSWERED` **A fill-in row whose label is sixteen characters long
   was invisible to every reader of the block, and the draft emitter wrote one
   --- FIXED 2026-09-21 by moving the block's value column to 20.** `FILL_LABEL`
   in `read-run.py` matches two leading spaces, then `(\S(?:.*?\S)?)\s{2,}\S`,
   and `preflight.sh` carries the same rule, so a row parses only where TWO
-  spaces follow the label; `_fill_skeleton` emits the label through a `%-16s`
+  spaces follow the label; `_fill_skeleton` emitted the label through a `%-16s`
   field and then a single literal space before `<yours>`, which for a label
-  of exactly sixteen leaves the padding empty and that one space alone.
+  of exactly sixteen left the padding empty and that one space alone.
   `md5 gheadtwopass` is sixteen. Measured 2026-09-21: the row is absent from Run
   37's note as read by `--note`, absent from the `--draft` Run 38's preparation
   was handed, and `--figures` answered
@@ -992,17 +994,17 @@ rather than a slot in the next run, observed again:
   that were open: `FILL_LABEL` is unchanged, `_fill_skeleton` and preflight's
   every `--fill-in` line now writes a 16-wide label field and TWO literal
   spaces, and `pair-note-template.txt`'s own block moved with them, so every row
-  of a block lands at column 20. Written that way rather than as a wider field
-  on purpose: a half tag long enough to push a label past sixteen still gets
-  its two spaces, where `%-18s` would only have moved the failure to eighteen.
-  **WHAT IT DOES NOT REACH is a note already written at column 19** --- Run 37's
-  row stays unreadable, which is what choosing the emitter costs, and every note
-  from Run 38's onward parses. Case
-  `draft-writes-a-fill-row-no-reader-can-read`, watched failing on all three
-  of its rows before the fix; the round trip it stands for, which one invocation
-  cannot run, was taken by hand first --- a draft fed back as the next note's
-  came out holding `Main.hs at` and `md5 gheadnospec` and no md5 of the other
-  half at all.
+  of a block PARSES and every label the block carries today lands its value
+  at column 20. Written that way rather than as a wider field on purpose: a half
+  tag long enough to push a label past sixteen still gets its two spaces, where
+  `%-18s` would only have moved the failure to eighteen. **WHAT IT DOES
+  NOT REACH is a note already written at column 19** --- Run 37's row stays
+  unreadable, which is what choosing the emitter costs, and every note from Run
+  38's onward parses. Case `draft-writes-a-fill-row-no-reader-can-read`, watched
+  failing on all three of its rows before the fix; the round trip it stands for,
+  which one invocation cannot run, was taken by hand first --- a draft fed back
+  as the next note's came out holding `Main.hs at` and `md5 gheadnospec`
+  and no md5 of the other half at all.
 - `ANSWERED` **What Run 37 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 37's own
@@ -8542,6 +8544,11 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      provenance is checked against no item, which is how Run 38's
     #      registration came to call 0.51 an A/A floor where `--aa` gives
     #      0.59% and the 0.51 is `--compare`'s widest arm-to-duplicate gap.
+    #      WHAT IT ENFORCES IS A FLOOR AND NOT THE TIE: it asks that the
+    #      item name SOME mode or file, not that the figure came off the
+    #      one named, so an item calling 0.51 `the floor --aa gives` would
+    #      satisfy it. Tying a figure to its mode is 12b's reading, and
+    #      nothing mechanical here does it.
     #      What an item that names none means, and how to ask every
     #      population at once, is one section and not repeated here --
     #      its title, whole, for a grep or a --section:
@@ -8662,7 +8669,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      them. Those are yours, in one pass and not one call per figure
     #      AND NAME THAT FILE WHERE YOU WRITE THE FIGURE, or the next
     #      reader copies you (post-run 6e says why). `./preflight.sh $R
-    #      --note` re-checks 10c to 10f and 8 after these edits, in seconds
+    #      --note` re-checks 10c, 10d, 10e and 8 after these edits, in seconds
     #      AND WALK THE ARMS OF EVERY TASK THE REGISTRATION DEFERS TO,
     #      not only its own: `--lint` holds the registration's backticked
     #      arms to the timed roster and the arms of the task it defers

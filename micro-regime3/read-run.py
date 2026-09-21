@@ -10522,6 +10522,8 @@ def wrap_verdict(path, cur, bad, note):
                     # either form would change.
                     hb = hand[0]
                     hok = set(wp[hb].split('\n')) | set(fp[hb].split('\n'))
+                    # Non-empty by construction: the block entered `hand`
+                    # because a line of it was outside this very set.
                     off = [l for l in cp[hb].split('\n') if l not in hok]
                     bad.append('%d paragraph(s) of %s are wrapped by hand --'
                                ' first at line %d, whose first line in'
@@ -10531,7 +10533,8 @@ def wrap_verdict(path, cur, bad, note):
                                ' file with no commit. Never re-wrap a line by'
                                ' hand'
                                % (len(hand), os.path.basename(path), at,
-                                  (off[0][:60] + '...') if off else '(none)',
+                                  off[0][:60] + ('...' if len(off[0]) > 60
+                                                  else ''),
                                   os.path.basename(path)))
                 else:
                     note.append('no paragraph of %s is wrapped by'
@@ -13417,8 +13420,11 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
                                    ' but a reading by hand' % (num, inum))
                 # AND A PRIOR NAMES WHAT DERIVED IT, since 2026-09-22. A
                 # span whose target is not 1.0 quotes a FIGURE from an
-                # earlier run, and the one error no pass here can see is a
-                # figure quoted against the wrong mode -- Run 38's item (1)
+                # earlier run, and the error no pass here can see is a
+                # figure quoted against the wrong mode IN AN ITEM'S PROSE:
+                # `--carried` derives what a `pair` span quotes, so a
+                # span's own figures are read, and the sentence beside a
+                # span is read by nothing -- Run 38's item (1)
                 # called 0.51 an A/A floor where `--aa` gives 0.59% and the
                 # 0.51 is `--compare`'s widest arm-to-duplicate gap. That
                 # registration stated its provenance ONCE, at the head, for
@@ -13426,6 +13432,12 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
                 # a collective claim is checked against no item. A 1.0 span
                 # quotes nothing and is exempt, which is what keeps the null
                 # families out of this.
+                # IT IS A FLOOR AND NOT THE TIE: a mode or a file named
+                # ANYWHERE in the item satisfies it, so an item calling
+                # 0.51 `the floor --aa gives` passes. What it buys is that
+                # provenance is stated per item, where a collective claim
+                # at the head is checked against none; tying a figure to
+                # its mode stays pre-run 12b's reading.
                 quoted = [sp for sp in spans if re.search(
                     r'\s(?!1\.0\b)\d+\.\d+\s+within', sp)]
                 if quoted and not re.search(

@@ -2,7 +2,7 @@
 # The pre-run list's steps 4 to 10, in one call.
 #
 #     ./preflight.sh run19            # the halves from the note's HALVES line
-#     ./preflight.sh run19 --note     # 10c to 10f and 8 alone, seconds
+#     ./preflight.sh run19 --note     # 10c, 10d, 10e and 8 alone, seconds
 #     ./preflight.sh run19 --figures  # step 12b: the note's fill-in
 #                                     # figures against the artifacts
 #
@@ -119,7 +119,7 @@ cd "$(dirname "$0")" || exit 1
 
 if [ $# -lt 1 ]; then
   echo "usage: ./preflight.sh RUN [--note|--no-corpus|--corpus] [--figures] [--fill-in]"
-  echo "  --note        steps 10c to 10f and 8 alone -- the ones that read"
+  echo "  --note        steps 10c, 10d, 10e and 8 alone -- the ones that read"
   echo "                the preparation WROTE, in seconds and with no binary"
   echo "  --no-corpus   everything but 8c and 8d, the two that read every run"
   echo "                JSON on disk: run this, launch 11 and 12, and take"
@@ -190,7 +190,7 @@ fi
 # --note runs neither half, so a corpus flag beside it was taken and
 # ignored: absorbed without effect is the defect family this tree counts.
 if [ "$NOTE_ONLY" = 1 ] && { [ "$CORPUS" = 0 ] || [ "$REST" = 0 ]; }; then
-  echo "--note runs 10c to 10f and 8 alone, so a corpus flag beside it means"
+  echo "--note runs 10c, 10d, 10e and 8 alone, so a corpus flag beside it means"
   echo "nothing; drop one of them."; exit 2
 fi
 HALVES_SET=$(./pair-halves.sh "$R") || exit 2   # the note's HALVES line,
@@ -527,19 +527,34 @@ step_10f () {  # 10f. AND WHERE THE HALVES WILL ACTUALLY LAUNCH FROM,
   # PLACEMENT=1 is the acknowledgement, for a run whose question IS the
   # placement term; its note then says it raised the mount and on whose
   # word, which the pre-run list's step 2 already asks of such a run.
+  # WHAT THE PASS LINE MAY SAY is only what was read: that no returned path
+  # is under hugebin/. It may NOT say the mount is suspended -- half-bin.sh
+  # hands back the on-disk path for a mounted hugebin whenever the half is
+  # no ELF binary, which is every stub half the corpus builds.
   [ -x "./$R-$BASIS" ] || return 0
-  MOUNTED=$(for h in $BASIS $OTHER; do
-              case "$(./half-bin.sh "$R" "$h" 2>/dev/null)" in
-                hugebin/*) echo "$h" ;;
-              esac
-            done)
-  if [ -z "$MOUNTED" ]; then
-    say 10f PASS "both halves launch from disk, hugebin/ being suspended"
-  elif [ -n "${PLACEMENT:-}" ]; then
-    say 10f PASS "$(echo $MOUNTED) launches from hugebin/ and PLACEMENT is set: \
+  MOUNTED=''
+  REFUSED=''
+  for h in $BASIS $OTHER; do
+    if LP=$(./half-bin.sh "$R" "$h" 2>/dev/null); then
+      case "$LP" in hugebin/*) MOUNTED="$MOUNTED $h" ;; esac
+    else
+      REFUSED="$REFUSED $h"
+    fi
+  done
+  # A REFUSAL IS NOT A PASS. half-bin.sh exits 2 with no path where a half is
+  # missing or not executable, and its stderr is discarded here -- so without
+  # this branch an unread half contributes an empty string and the step would
+  # report the pair launching from disk having read one of them.
+  if [ -n "$REFUSED" ]; then
+    say 10f FAIL "half-bin.sh names no launch path for$REFUSED, so where \
+it would run from is unread"
+  elif [ -z "$MOUNTED" ]; then
+    say 10f PASS "neither half's launch path is under hugebin/"
+  elif [ "${PLACEMENT:-}" = 1 ]; then
+    say 10f PASS "$MOUNTED launches from hugebin/ and PLACEMENT=1: \
 a placement run, whose note owes the word it was raised on"
   else
-    say 10f FAIL "$(echo $MOUNTED) would launch from hugebin/ and not from disk: \
+    say 10f FAIL "$MOUNTED would launch from hugebin/ and not from disk: \
 the mount is up and this run declares no placement question. Unmount it \
 (root's: sudo umount hugebin), or set PLACEMENT=1 to take the term deliberately \
 and say so in the note"
@@ -551,7 +566,6 @@ if [ "$NOTE_ONLY" = 1 ]; then
   step_10c
   step_10d
   step_10e
-  step_10f
   step_8
   echo
   if [ "$BAD" -eq 0 ]; then
@@ -818,13 +832,14 @@ if [ "$CORPUS" = 1 ]; then
   && say 8c PASS "properties over every run JSON here" \
   || say 8c FAIL "properties: $(grep -m1 FAIL "$TMP/prop")"
 
-# 8d IS WHAT THE EDITS SINCE THE LAST RUN OWE, which is what the pre-run
 # THE `=` IS LOAD-BEARING and was missing here until 2026-09-22: written
 # `--changed $REV .` the revision is read as a second ROOT, that root answers
 # BLOCKED, and the real root falls back to HEAD -- so this step dated from
 # HEAD, selected nothing whenever the preparation itself had changed no
 # script, and said so in a line that reads like a finding about the tree. The
-# BLOCKED line was below the one `tail -1` showed.
+# BLOCKED line came FIRST and `tail -1` shows the last, so the verdict
+# carried the HEAD line alone.
+# 8d IS WHAT THE EDITS SINCE THE LAST RUN OWE, which is what the pre-run
 # list asks for -- `defect-run.py --changed=<last run's commit> .`, glossed
 # there as *if any script here has changed since the last run* -- and not
 # what this ran until 2026-09-13. The bare form replays the WHOLE corpus,

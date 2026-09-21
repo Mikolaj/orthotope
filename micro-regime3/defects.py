@@ -5309,7 +5309,8 @@ TIER1 = {
         notes='Watched 2026-09-13 at Run 30\'s preparation, which reported'
               ' the step still running three times before asking why: the'
               ' call was `defect-run.py .` where the list says'
-              ' `--changed <last run\'s commit>`. Slower and not weaker, so'
+              ' `--changed <last run\'s commit>`, as the list then spelled'
+              ' it. Slower and not weaker, so'
               ' what it cost is a step nobody runs twice. MEASURED WITH THE'
               ' FIX: the changed set is 277 of 376 cases here, read-run.py'
               ' alone owning 222, so the saving appears only on a run that'
@@ -13556,11 +13557,44 @@ RECORDS = [
          # KEYED ON THE PATH half-bin.sh RETURNS and not on `mountpoint`,
          # so what is judged is where a half will run from; PLACEMENT=1 is
          # the acknowledgement for a run whose question IS that term.
-         # WATCHED 2026-09-22 over all three branches, half-bin.sh stubbed
-         # to return a mount path and restored at an identical md5: disk
-         # PASSes, the mount with no PLACEMENT FAILs naming both halves,
-         # and the mount with PLACEMENT=1 PASSes.
+         # IT IS NOT IN THE `--note` PATH. That flag's own gloss promises
+         # steps that run with no binary, and this one returns without a
+         # verdict where the basis half is not there, so it would have been
+         # a step that silently did not happen in the case the flag
+         # advertises.
+         # WATCHED 2026-09-22 over all five branches, half-bin.sh stubbed
+         # and restored at an identical md5, by running the function's own
+         # text out of the file: no path under hugebin/ PASSes; the mount
+         # with PLACEMENT unset FAILs; with PLACEMENT=1 PASSes; with
+         # PLACEMENT=0 FAILs, the flag being tested for its documented
+         # value and not for emptiness; and a half-bin.sh that refuses
+         # FAILs rather than reading as a half launching from disk.
          argv=None, ok=None),
+
+    # ---- --check-doc's hand-wrap verdict, which named no line ----------
+    # `wrapped by hand` is the usual cause and not the only one: a
+    # paragraph is flagged when a line of it is in NEITHER fixed point,
+    # and a LONG line can be in neither -- two literal spaces inside
+    # backticks survive in the file and are collapsed by `--unwrap`, so
+    # the line the file has is one no form produces. The verdict named
+    # the paragraph's first line number and nothing else, which sent a
+    # session hunting a hand-wrapped paragraph that did not exist.
+    # THE FIRST DRAFT OF THE FIX NAMED THE WRONG LINE, caught by watching
+    # it: `ok` is the comparison loop's and by the time the message is
+    # built it holds the LAST block's, so the set was rebuilt for the
+    # block being reported.
+    case('hand-wrap-verdict-names-no-line', 'read-run.py', '2bc393e',
+         'the verdict named a paragraph and not what was wrong with it',
+         plant=lambda t: {'readme': edited_readme(t, (
+             a_registration_lead(),
+             '- `OPEN` **A planted line no fixed point produces.** It quotes'
+             ' `a  b`, two literal spaces inside backticks, which --unwrap'
+             ' collapses.\n' + a_registration_lead()))},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=1,
+              has=['whose first line in neither form is',
+                   'A planted line no fixed point produces']),
+         bug=V(hasnt=['whose first line in neither form'])),
 
 ]
 
