@@ -5033,44 +5033,61 @@ routeUnord13 sh (T (Strides ats) ao _)
 -- only the magnitude says which cells are touched; the sign is used
 -- once, in the same walk, to find where the lowest address is.
 --
+-- Why start.  The slices, or the fill, must begin at the block's
+-- lowest address, and the offset ao is not it: ao is where index
+-- (0, ..., 0) sits, which is the lowest address only when every stride
+-- is positive.  An axis with a negative stride has its lowest address
+-- at its last index, and contributes (extent - 1) * stride, a negative
+-- amount.  So start is ao plus those amounts, one per reversed axis,
+-- and the walk adds each as it takes the stride's absolute value, the
+-- sign being in hand there and nowhere later.
+--
 -- Why sort.  A transposition reorders the axes and their strides
--- together without changing which cells are touched.  Sorting by stride
--- magnitude, descending, puts the axes from outermost to innermost,
--- which is the order in which two axes walked as one stand next to
--- each other, and in which the innermost axis, the run, is last.
--- 'byStrideRank' is that order, and on a tie at stride 1 it puts the
--- axis whose extent makes the better run innermost.
+-- together without changing which cells are touched (an index sum does
+-- not care about the order of its terms).  Sorting by stride magnitude,
+-- descending, puts the axes from outermost to innermost, which is the
+-- order in which two axes walked as one stand next to each other, and
+-- in which the innermost axis, the run, is last.  'byStrideRank' is
+-- that order.  Equal strides alias, one step along either axis reading
+-- the same element, so a tie exists only in a self-overlapping view, a
+-- window over an array among them; on a tie at stride 1 the comparator
+-- puts the axis whose extent makes the better run innermost, and on
+-- any other tie the shorter axis outside.
+--
+-- Why the run's length is ranked.  A reducing consumer's chain of adds
+-- runs at one add latency an element on a long run and overlaps the
+-- next run's on a short one, so its cost per element falls from the
+-- shortest runs to a plateau, stays flat across it, sits on a shelf
+-- above it, and climbs past the shelf towards the long-run rate, with
+-- runs of 3 and 4 a hair above the shelf.  'runRank' orders the tiers
+-- and the lengths within them; its corners are one machine's, and a
+-- tie at stride 1 is the only place they decide anything.
 --
 -- Why merge after the sort.  Two adjacent axes are one axis when the
 -- outer stride is the inner stride times the inner extent: walking the
 -- inner axis to its end and stepping the outer axis once lands where
 -- one axis of the combined extent would.  'mergeInto' merges every such
--- pair.  Done after the sort, the merge finds every pair that any order
--- of the axes would have put together, so a view that is one block of
--- the vector merges to a single axis of stride 1 and reads as one
--- slice, whatever order its axes came in.
+-- pair.  Done after the sort, the merge finds every pair the sorted
+-- order stands next to each other, which in a view without a stride
+-- tie is every pair any order of the axes would have put together; a
+-- view that is one block of the vector has no tie, so it merges to a
+-- single axis of stride 1 and reads as one slice, whatever order its
+-- axes came in, and 'routeOf' decides that off the merged form with
+-- no stride list built.
 --
 -- Why the zero-stride axis moves outermost, and why after the merge.
 -- A broadcast axis, stride 0, reads the same cells at every index.
 -- Sorted by stride it lands innermost, and there it makes the route a
 -- fill, each element copied as many times as the broadcast repeats it.
--- Moved outermost over a unit-stride axis it makes the route runs, and
--- the runs branch repeats one slice as many times, the same multiset
--- with nothing copied.  Decided after the merge, the move is one look
+-- Moved outermost over a unit-stride axis it makes the route runs:
+-- the runs walk repeats one slice as many times, the same multiset
+-- with nothing copied, and the fill writes the block once and copies it
+-- by doubling.  Decided after the merge, the move is one look
 -- at the last two axes: a zero stride merges with nothing but another
 -- zero stride, so there is at most one such axis, and it sorts after
 -- every other stride, so it is last; and a unit-stride axis worth
 -- moving it over is the one before it.  'zeroStrideOutermost' does the
 -- look and the move.
---
--- Why start.  The slices must begin at the block's lowest address, and
--- the offset ao is not it: ao is where index (0, ..., 0) sits, which is
--- the lowest address only when every stride is positive.  An axis with
--- a negative stride has its lowest address at its last index, and
--- contributes (extent - 1) * stride, a negative amount.  So start is ao
--- plus those amounts, one per reversed axis, and the walk adds each as
--- it takes the stride's absolute value, the sign being in hand there
--- and nowhere later.
 
 -- The (absolute stride, extent) pairs of the axes of extent above 1,
 -- in the order given, and the offset of the view's lowest address.
