@@ -13482,6 +13482,82 @@ RECORDS = [
                has=['  md5 gheadtwopass <yours>'],
                hasnt=['  md5 gheadtwopass  <yours>'])),
 
+    # ---- --lint, and a prior with nothing beside it that derives it ----
+    # THE ERROR NO PASS HERE COULD SEE was a figure quoted against the
+    # wrong mode. Run 38's registration called 0.51 an A/A floor where
+    # `--aa` gives 0.59% for that and the 0.51 is `--compare`'s widest
+    # arm-to-duplicate gap; both numbers are real, and only the pairing
+    # was wrong, which every arms-and-scope check passes over. What let
+    # it in is that the registration stated its provenance ONCE, at the
+    # head, for every prior at once: a collective claim is checked
+    # against no item.
+    # A 1.0 SPAN IS EXEMPT BY DESIGN and item (2) below is the control for
+    # it -- a null quotes no earlier figure, so it has no provenance to
+    # name, and flagging the null families would have made this refuse
+    # ten times over on a registration that was right.
+    # THE FIXTURE IS SYNTHETIC and not the live registration: post-run
+    # step 5 MOVES a registration out of README into the run's own file,
+    # so a case keyed on the open list's current text goes LOST the day
+    # the run ends.
+    case('registration-prior-names-no-mode', 'read-run.py', '2bc393e',
+         'a prior read off the wrong mode was invisible to every check',
+         plant=lambda t: {'readme': edited_readme(t, (
+             a_registration_lead(),
+             '- `OPEN` **What Run 99 is built to answer, registered before'
+             ' it runs.** (1) *A prior quoted with nothing beside it that'
+             ' derives it.* `predict: cross list 1.2950 within 1% on main'
+             ' basis`. A band drawn off the run before, and no mode named.'
+             ' (2) *And a null, which quotes nothing and is exempt.*'
+             ' `predict: cross bq-expand 1.0 within 3% on main basis`.'
+             '\n\n' + a_registration_lead()))},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(exit=1,
+              has=["Run 99's item (1) quotes a prior and names neither"
+                   ' the mode nor the file that derives it'],
+              hasnt=["Run 99's item (2) quotes a prior"]),
+         bug=V(hasnt=['quotes a prior and names neither'])),
+
+    # ---- preflight.sh, 8d's baseline and 10f ---------------------------
+    # NO CASE for either, for the reason the preflight records above give
+    # and checks.py's UNCOVERED repeats: these are STEPS, so a case would
+    # run this suite twice. Both directions were WATCHED, on the live run.
+    case('8d-baseline-never-reached-the-tool', 'preflight.sh', '2bc393e',
+         'the step dated from HEAD while saying it dated from the last run',
+         # `defect-run.py --changed "$PREV_COMMIT" .` -- with a SPACE. The
+         # flag is `--changed[=REV]`, so the hash went in as a second ROOT,
+         # that root answered BLOCKED for holding no defects.py, and the
+         # real root took the flag's default, which is HEAD. `tail -1`
+         # then showed the HEAD line alone and the BLOCKED one never
+         # reached the verdict. So the step selected what differs from
+         # HEAD -- nothing, whenever the preparation itself had changed no
+         # script -- and reported an empty selection as though that were a
+         # reading of the tree. The pre-run list spelled the same flag the
+         # same wrong way, at three sites.
+         # WATCHED 2026-09-22 both ways on run38: before, `8d FAIL
+         # defect-run: no program ... differs from HEAD ... an empty
+         # selection`; after, `8d PASS every defect of what changed since
+         # run37's file refused again`, which selects and replays.
+         argv=None, ok=None),
+
+    case('launch-path-reported-and-never-judged', 'preflight.sh', '2bc393e',
+         'a mount raised between runs would have taken the placement term',
+         # The fill-in block's `launch` row names the path and says
+         # outright that it does not judge, and nothing else did either --
+         # so `hugebin/` standing mounted puts a 2 MiB-frame placement
+         # term, 15 percent on one arm of Run 33's basis, into every
+         # cross-run absolute a run publishes, and the only sign is a row
+         # a session reads as the expected `./`. It stood mounted, empty
+         # and writable, when Run 38's preparation began on 2026-09-21,
+         # and a hand caught it before either sweep ran.
+         # KEYED ON THE PATH half-bin.sh RETURNS and not on `mountpoint`,
+         # so what is judged is where a half will run from; PLACEMENT=1 is
+         # the acknowledgement for a run whose question IS that term.
+         # WATCHED 2026-09-22 over all three branches, half-bin.sh stubbed
+         # to return a mount path and restored at an identical md5: disk
+         # PASSes, the mount with no PLACEMENT FAILs naming both halves,
+         # and the mount with PLACEMENT=1 PASSes.
+         argv=None, ok=None),
+
 ]
 
 
