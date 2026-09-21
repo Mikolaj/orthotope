@@ -4388,9 +4388,15 @@ wholeOrSlice o l v
 -- route takes: written as a case returning a list per branch, the fold
 -- stays outside the case and never fuses, which is what
 -- 'libunord-stage6-list-sum' read on 2026-09-09, 160 bytes a run.
+-- The block of length zero, which is what every dispatch hands an
+-- empty view, yields nil and not one empty vector, the invariant the
+-- library's 'toVectorListT' states and 'emptyListGate' asks; the fill
+-- and sum arms need no such case, an empty slice being their answer.
 listRoute :: Route -> VS.Vector Double -> [VS.Vector Double]
 listRoute r v = build $ \cons nil -> case r of
-  RBlock o l -> cons (wholeOrSlice o l v) nil
+  RBlock o l
+    | l == 0 -> nil
+    | otherwise -> cons (wholeOrSlice o l v) nil
   RRuns ssh sats o -> lazyRunsFB ssh sats o v cons nil
   RFill ssh sats o l -> cons (fillStage2 ssh sats o l v) nil
 {-# INLINE listRoute #-}
@@ -5306,6 +5312,51 @@ fbLibListStage4ListSum :: ShapeL -> T -> VS.Vector Double
 fbLibListStage4ListSum sh a@(T _ _ v) =
   VS.singleton (sum (map VS.sum (listRoute (routeList4 sh a) v)))
 
+-- One row per list producer, in family and stage order, the roster the
+-- two list gates below read, with what each of 'lazinessGate''s views
+-- asks of it: @Just True@ that the head allocate under the bound, @Just
+-- False@ that it reach the bound, either failing 'check' when it does
+-- not; @Nothing@ forces nothing and asserts nothing, the gate having
+-- no question there, and the reason is at the row -- a strict reading
+-- there is the pattern's own and not a claim that gate makes. Every
+-- cell was read on 2026-09-07, the unasked ones included: a lazy head
+-- costs one to two KB here, the branch's table on the block 6.4 MB en
+-- route to its 1.6 MB, and a producer that fills 32 MB, the result.
+listProducers :: [(String, ShapeL -> T -> [VS.Vector Double],
+                   Maybe Bool, Maybe Bool)]
+listProducers =
+  [ -- master's ordered list: lazy in regime 2; on the transposed
+    -- block, regime 3 to it, the fill, its own pattern and not the
+    -- ruling's, so not asked
+    ("liblist-stage1", lsListStage1, Just True, Nothing)
+    -- the branch's port: the table on the block, the fill on the
+    -- transposed, strict either way and required to be
+  , ("liblist-stage2", lsListStage2, Just False, Just False)
+    -- the ordered candidates: lazy on the block; on the transposed
+    -- the fill, as master's, so not asked
+  , ("liblist-stage3", lsListStage3, Just True, Nothing)
+  , ("liblist-stage4", lsListStage4, Just True, Nothing)
+    -- master's unordered list: its one-block test fails on both
+    -- views, the gap between rows seeing to that, so it is the
+    -- ordered list and reads as liblist-stage1 does
+  , ("libunord-stage1", lsUnordStage1, Just True, Nothing)
+    -- the branch's port, as liblist-stage2
+  , ("libunord-stage2", lsUnordStage2, Just False, Just False)
+    -- libunord-stage3 has no row: a Fill arm, its fill half the
+    -- ruling forecloses and its dispatch half stage five's
+    -- the unordered candidates: lazy on both, the transposed block
+    -- being runs of 20 in address order to them, the exception's move
+  , ("libunord-stage4", lsUnordStage4, Just True, Just True)
+  , ("libunord-stage5", lsUnordStage5, Just True, Just True)
+  , ("libunord-stage6", lsUnordStage6, Just True, Just True)
+  , ("libunord-stage7", lsUnordStage7, Just True, Just True)
+  , ("libunord-stage8", lsUnordStage8, Just True, Just True)
+  , ("libunord-stage9", lsUnordStage9, Just True, Just True)
+  , ("libunord-stage10", lsUnordStage10, Just True, Just True)
+  , ("libunord-stage11", lsUnordStage11, Just True, Just True)
+  , ("libunord-stage12", lsUnordStage12, Just True, Just True)
+  , ("libunord-stage13", lsUnordStage13, Just True, Just True) ]
+
 -- The laziness gate, in 'check' and never timed: the ruling that the
 -- list stays lazy (README.md#dead-ideas) as a predicate. On a view of
 -- 200000 runs of 20 -- regime 2 on master -- forcing the HEAD of each
@@ -5330,48 +5381,6 @@ lazinessGate = do
   let (bsh, ba) = mkBlock [200000, 20] [200000, 32] 0
       (tsh, ta) = mkCompose [20, 200000] (Strides [1, 32]) 0
       bound = 32768 :: Int64
-      -- One row per list producer, in family and stage order, with what
-      -- each view asks of it: @Just True@ that the head allocate under
-      -- the bound, @Just False@ that it reach the bound, either failing
-      -- 'check' when it does not; @Nothing@ forces nothing and asserts
-      -- nothing, the gate having no question there, and the reason is at
-      -- the row -- a strict reading there is the pattern's own and not a
-      -- claim this gate makes. Every cell was read
-      -- on 2026-09-07, the unasked ones included: a lazy head costs one
-      -- to two KB here, the branch's table on the block 6.4 MB en route
-      -- to its 1.6 MB, and a producer that fills 32 MB, the result.
-      rows =
-        [ -- master's ordered list: lazy in regime 2; on the transposed
-          -- block, regime 3 to it, the fill, its own pattern and not the
-          -- ruling's, so not asked
-          ("liblist-stage1", lsListStage1, Just True, Nothing)
-          -- the branch's port: the table on the block, the fill on the
-          -- transposed, strict either way and required to be
-        , ("liblist-stage2", lsListStage2, Just False, Just False)
-          -- the ordered candidates: lazy on the block; on the transposed
-          -- the fill, as master's, so not asked
-        , ("liblist-stage3", lsListStage3, Just True, Nothing)
-        , ("liblist-stage4", lsListStage4, Just True, Nothing)
-          -- master's unordered list: its one-block test fails on both
-          -- views, the gap between rows seeing to that, so it is the
-          -- ordered list and reads as liblist-stage1 does
-        , ("libunord-stage1", lsUnordStage1, Just True, Nothing)
-          -- the branch's port, as liblist-stage2
-        , ("libunord-stage2", lsUnordStage2, Just False, Just False)
-          -- libunord-stage3 has no row: a Fill arm, its fill half the
-          -- ruling forecloses and its dispatch half stage five's
-          -- the unordered candidates: lazy on both, the transposed block
-          -- being runs of 20 in address order to them, the exception's move
-        , ("libunord-stage4", lsUnordStage4, Just True, Just True)
-        , ("libunord-stage5", lsUnordStage5, Just True, Just True)
-        , ("libunord-stage6", lsUnordStage6, Just True, Just True)
-        , ("libunord-stage7", lsUnordStage7, Just True, Just True)
-        , ("libunord-stage8", lsUnordStage8, Just True, Just True)
-        , ("libunord-stage9", lsUnordStage9, Just True, Just True)
-        , ("libunord-stage10", lsUnordStage10, Just True, Just True)
-        , ("libunord-stage11", lsUnordStage11, Just True, Just True)
-        , ("libunord-stage12", lsUnordStage12, Just True, Just True)
-        , ("libunord-stage13", lsUnordStage13, Just True, Just True) ]
       gate view sh a n ls ask = case ask of
         Nothing -> return ()
         Just want -> do
@@ -5398,9 +5407,37 @@ lazinessGate = do
           unless ok $ error ("LAZINESS GATE FAILED: " ++ n ++ " on " ++ view)
   _ <- evaluate (force (bsh, ba))
   _ <- evaluate (force (tsh, ta))
-  mapM_ (\(n, ls, onBlock, _) -> gate "runs-block" bsh ba n ls onBlock) rows
+  mapM_ (\(n, ls, onBlock, _) -> gate "runs-block" bsh ba n ls onBlock)
+        listProducers
   mapM_ (\(n, ls, _, onTransposed) ->
-           gate "transposed" tsh ta n ls onTransposed) rows
+           gate "transposed" tsh ta n ls onTransposed) listProducers
+
+-- The empty-list gate, in 'check' and never timed: on an empty view
+-- every list producer of the branch's lineage yields the empty list,
+-- the invariant the library's 'toVectorListT' states, "the returned
+-- list has no empty vectors, an empty array yielding the empty list".
+-- Master's two ports yield master's one empty vector by design, so
+-- they are left out rather than asked.  Every row is printed and the
+-- failures collected before the gate dies, so one run shows the whole
+-- spread.
+-- Non-vacuity, 2026-09-21: before 'listRoute' yielded nil on a block
+-- of length zero, every stage from three up failed here on both
+-- degenerate views, and the stage-2 ports, which test the length
+-- themselves, passed.
+emptyListGate :: IO ()
+emptyListGate = do
+  bad <- fmap concat $ mapM (\(view, normalSh) -> do
+    let (sh, a) = mkStrided normalSh
+    _ <- evaluate (force (sh, a))
+    fmap concat $ mapM (\(n, ls) -> do
+      let ok = null (ls sh a)
+      putStrLn $ "empty " ++ view ++ " " ++ n ++ ": "
+                 ++ (if ok then "the empty list" else "a non-empty list FAILED")
+      return [n ++ " on " ++ view | not ok])
+      [ (n, ls) | (n, ls, _, _) <- listProducers, n `notElem` mastersPorts ])
+    degenerateShapes
+  unless (null bad) $ error ("EMPTY-LIST GATE FAILED: " ++ unwords bad)
+  where mastersPorts = ["liblist-stage1", "libunord-stage1"]
 
 {-# NOINLINE allocOfHead #-}
 allocOfHead :: [VS.Vector Double] -> IO Int64
@@ -7499,11 +7536,13 @@ check = do
   mapM_ oneBlock blockViews
   mapM_ oneSmall smallViews
   mapM_ oneCompose composeViews
-  -- Last, the laziness gate of 2026-09-07, which asks a predicate no
-  -- view above can: whether each list producer is as lazy as master's
-  -- list, 'lazinessGate' saying which are required to be and which are
-  -- required not to be.
+  -- Last, the two list gates, which ask predicates no view above can:
+  -- the laziness gate of 2026-09-07, whether each list producer is as
+  -- lazy as master's list, 'lazinessGate' saying which are required to
+  -- be and which are required not to be; and the empty-list gate of
+  -- 2026-09-21, whether each yields the empty list on an empty view.
   lazinessGate
+  emptyListGate
   where
     one (name, normalSh) = do
       let (sh, a@(T (Strides ats) ao _)) = mkStrided normalSh
