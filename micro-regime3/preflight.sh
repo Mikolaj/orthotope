@@ -511,12 +511,47 @@ step_10e () {  # 10e. AND THE NOTE'S PROSE, which 10c and 10d do not read:
     say 10e FAIL "$(head -1 "$TMP/notecheck") -- first: $(sed -n '2p' "$TMP/notecheck" | sed 's/^ *//')"
   fi
 }
+step_10f () {  # 10f. AND WHERE THE HALVES WILL ACTUALLY LAUNCH FROM,
+  # judged rather than reported. The fill-in block's `launch` row names the
+  # path and says outright that it does not judge, and until 2026-09-22
+  # nothing else here did either -- so a mount raised between runs puts the
+  # placement term, 15 percent on one arm of Run 33's basis by README's
+  # placement section, back into every cross-run absolute a run publishes,
+  # and the only sign is a row a session reads as the expected `./`. Met on
+  # 2026-09-21: hugebin/ stood mounted, empty and writable, when Run 38's
+  # preparation began, and a hand caught it before either sweep ran.
+  # KEYED ON THE PATH half-bin.sh RETURNS and not on `mountpoint`, so what
+  # is judged is where a half will run from, whatever put it there. That is
+  # also why the refusal is here and not in half-bin.sh, which serves the
+  # corpus's stub halves and was deliberately left without one.
+  # PLACEMENT=1 is the acknowledgement, for a run whose question IS the
+  # placement term; its note then says it raised the mount and on whose
+  # word, which the pre-run list's step 2 already asks of such a run.
+  [ -x "./$R-$BASIS" ] || return 0
+  MOUNTED=$(for h in $BASIS $OTHER; do
+              case "$(./half-bin.sh "$R" "$h" 2>/dev/null)" in
+                hugebin/*) echo "$h" ;;
+              esac
+            done)
+  if [ -z "$MOUNTED" ]; then
+    say 10f PASS "both halves launch from disk, hugebin/ being suspended"
+  elif [ -n "${PLACEMENT:-}" ]; then
+    say 10f PASS "$(echo $MOUNTED) launches from hugebin/ and PLACEMENT is set: \
+a placement run, whose note owes the word it was raised on"
+  else
+    say 10f FAIL "$(echo $MOUNTED) would launch from hugebin/ and not from disk: \
+the mount is up and this run declares no placement question. Unmount it \
+(root's: sudo umount hugebin), or set PLACEMENT=1 to take the term deliberately \
+and say so in the note"
+  fi
+}
 if [ "$NOTE_ONLY" = 1 ]; then
   echo "preflight for $R: the note and the documents alone"
   echo
   step_10c
   step_10d
   step_10e
+  step_10f
   step_8
   echo
   if [ "$BAD" -eq 0 ]; then
@@ -623,6 +658,7 @@ fi
 step_10c
 step_10d
 step_10e
+step_10f
 
 ./read-run.py --lint > "$TMP/lint" 2>&1 \
   && say 7 PASS "roster and shape annotations" \
@@ -783,7 +819,13 @@ if [ "$CORPUS" = 1 ]; then
   || say 8c FAIL "properties: $(grep -m1 FAIL "$TMP/prop")"
 
 # 8d IS WHAT THE EDITS SINCE THE LAST RUN OWE, which is what the pre-run
-# list asks for -- `defect-run.py --changed <last run's commit> .`, glossed
+# THE `=` IS LOAD-BEARING and was missing here until 2026-09-22: written
+# `--changed $REV .` the revision is read as a second ROOT, that root answers
+# BLOCKED, and the real root falls back to HEAD -- so this step dated from
+# HEAD, selected nothing whenever the preparation itself had changed no
+# script, and said so in a line that reads like a finding about the tree. The
+# BLOCKED line was below the one `tail -1` showed.
+# list asks for -- `defect-run.py --changed=<last run's commit> .`, glossed
 # there as *if any script here has changed since the last run* -- and not
 # what this ran until 2026-09-13. The bare form replays the WHOLE corpus,
 # minutes where the list's is seconds, and the two disagreed in plain sight:
@@ -801,9 +843,9 @@ PREV_COMMIT=""
 [ -n "$PRN" ] && PREV_COMMIT=$(git log --reverse --format=%H \
                                  -- "runs/run$PRN.md" 2>/dev/null | head -1)
 if [ -n "$PREV_COMMIT" ]; then
-  defect-run.py --changed "$PREV_COMMIT" . > "$TMP/cs" 2>&1 \
+  defect-run.py --changed="$PREV_COMMIT" . > "$TMP/cs" 2>&1 \
     && say 8d PASS "every defect of what changed since run$PRN's file refused again" \
-    || say 8d FAIL "defect-run: $(tail -1 "$TMP/cs")"
+    || say 8d FAIL "defect-run: $(grep -m1 BLOCKED "$TMP/cs" || tail -1 "$TMP/cs")"
 else
   # NEVER SILENTLY LESS: with no previous run file to date from, the whole
   # corpus runs, which is what this step did unconditionally before. The

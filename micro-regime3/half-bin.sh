@@ -27,8 +27,12 @@
 # case rather than the corpus's stub halves alone. NOTHING HOLDS A PAIR TO
 # THE MOUNT ANY MORE: preflight's `launch` row and the run list did until
 # 2026-09-19 and now only report which path was taken, so no refusal here
-# was needed to lift it and none was added -- this script is unchanged
-# below its header. The mount, for a run that wants it, once in /etc/fstab
+# was needed to lift it and none was added here. SINCE 2026-09-22
+# PREFLIGHT'S 10f JUDGES THE PATH THIS SCRIPT RETURNS, failing a half that
+# would launch from the mount on a run that set no PLACEMENT; the refusal is
+# there and not here because this script also answers for the corpus's stub
+# halves, which must keep launching wherever a case put them.
+# The mount, for a run that wants it, once in /etc/fstab
 # -- AND THE `noauto` IS WHY THE SUSPENSION HAPPENED, so it is not optional:
 #
 #   tmpfs  /home/mikolaj/r/orthotope/micro-regime3/hugebin  tmpfs  noauto,size=1g,huge=always,mode=0755,uid=1000,gid=1000  0  0

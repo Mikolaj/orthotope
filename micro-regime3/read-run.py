@@ -10505,12 +10505,33 @@ def wrap_verdict(path, cur, bad, note):
                     # the done-case fix taught the next to wrap for a check:
                     # the remedy is the unwrap, and the commit hook wraps a
                     # tracked document back (2026-09-02).
+                    # AND THE LINE ITSELF, since 2026-09-22. `wrapped by
+                    # hand` names the usual cause and not the only one: a
+                    # line is flagged when it is in NEITHER form, and a
+                    # long line can be in neither -- Run 38's open entry
+                    # quoted a regex holding two literal spaces, which
+                    # `--unwrap` collapses, so the line the file had was
+                    # not the line either fixed point produces. The
+                    # remedy named is right in both cases; the message
+                    # sent a session hunting a wrapped paragraph that did
+                    # not exist. Quoting the offender ends that in one read.
+                    # `ok` above is the LOOP's, and by here it holds the
+                    # last block's, not this one's -- so the set is rebuilt
+                    # for the block being named. Watched 2026-09-22: the
+                    # leaked binding named a line that holds nothing
+                    # either form would change.
+                    hb = hand[0]
+                    hok = set(wp[hb].split('\n')) | set(fp[hb].split('\n'))
+                    off = [l for l in cp[hb].split('\n') if l not in hok]
                     bad.append('%d paragraph(s) of %s are wrapped by hand --'
-                               ' first at line %d; unwrap it (`wrap80 --unwrap'
-                               ' -i %s`) and work there, the commit hook'
-                               ' wrapping it back; `wrap80 -i` is for a file'
-                               ' with no commit. Never re-wrap a line by hand'
+                               ' first at line %d, whose first line in'
+                               ' neither form is %r; unwrap it (`wrap80'
+                               ' --unwrap -i %s`) and work there, the commit'
+                               ' hook wrapping it back; `wrap80 -i` is for a'
+                               ' file with no commit. Never re-wrap a line by'
+                               ' hand'
                                % (len(hand), os.path.basename(path), at,
+                                  (off[0][:60] + '...') if off else '(none)',
                                   os.path.basename(path)))
                 else:
                     note.append('no paragraph of %s is wrapped by'
@@ -13394,6 +13415,26 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
                                    ' `predict:` span nor a committed'
                                    ' `script:`, so nothing adjudicates it'
                                    ' but a reading by hand' % (num, inum))
+                # AND A PRIOR NAMES WHAT DERIVED IT, since 2026-09-22. A
+                # span whose target is not 1.0 quotes a FIGURE from an
+                # earlier run, and the one error no pass here can see is a
+                # figure quoted against the wrong mode -- Run 38's item (1)
+                # called 0.51 an A/A floor where `--aa` gives 0.59% and the
+                # 0.51 is `--compare`'s widest arm-to-duplicate gap. That
+                # registration stated its provenance ONCE, at the head, for
+                # every prior at once, which is exactly what let it through:
+                # a collective claim is checked against no item. A 1.0 span
+                # quotes nothing and is exempt, which is what keeps the null
+                # families out of this.
+                quoted = [sp for sp in spans if re.search(
+                    r'\s(?!1\.0\b)\d+\.\d+\s+within', sp)]
+                if quoted and not re.search(
+                        r'`--[a-z][a-z-]*`|[\w-]+\.(?:json|txt)', body):
+                    trouble.append(
+                        "Run %s's item (%s) quotes a prior and names neither"
+                        ' the mode nor the file that derives it, so a figure'
+                        ' read off the wrong mode is invisible here'
+                        % (num, inum))
             lost = sorted(deferred - set(tasks))
             if lost:
                 trouble.append("Run %s's registration defers to task(s) that"

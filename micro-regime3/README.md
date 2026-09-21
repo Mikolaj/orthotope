@@ -875,13 +875,16 @@ rather than a slot in the next run, observed again:
   are registered rather than the narrow one alone. (2) *`bq-expand` repeats
   a third time, on the arm where five accounts now sit inside 1.6 points.*
   `predict: cross bq-expand 1.3101 within 1.5% on main basis`. The prior is Run
-  37's own, the probe on its binaries reads 1.3091 a tenth of a point away,
-  and the band is that tenth with the 0.59% population floor and room
-  for the 1.21 points Runs 36 and 37 parted by on this arm. A reading outside
-  is the first sign that something other than the two passes moved between
-  the runs, and the SOURCE is the only candidate this run has, the compiler,
-  the shim, the project file and the launch being unmoved. (3) *No arm outside
-  the two families joins them on a third reading.*
+  37's own, off `--compare` between `run37-gheadnospec-main.json`
+  and `run37-gheadtwopass-main.json`; the probe on that run's binaries reads
+  1.3091 a tenth of a point away, by the same mode
+  over `probe-third-run37-gheadnospec-main.json` and its twin, and the band
+  is that tenth with the 0.59% population floor and room for the 1.21 points
+  Runs 36 and 37 parted by on this arm. A reading outside is the first sign
+  that something other than the two passes moved between the runs,
+  and the SOURCE is the only candidate this run has, the compiler, the shim,
+  the project file and the launch being unmoved. (3) *No arm outside the two
+  families joins them on a third reading.*
   `predict: cross mut-odo-vecdims 1.0 within 2.5% on main basis`,
   `predict: cross mut-odo-vecdims-aa 1.0 within 2.5% on main basis`,
   `predict: cross mut-odo-vecdims-aa-distant 1.0 within 2.5% on main basis`,
@@ -921,17 +924,19 @@ rather than a slot in the next run, observed again:
   `predict: counts bq-expand 1.5063 within 1% on main basis`,
   `predict: counts mut-odo-vecdims 1.0383 within 1% on main basis`,
   `predict: counts lib-stage2-lean 1.0522 within 1% on main basis`. The four
-  priors are Run 37's own MEASURED counts and not its predictions. THIS
-  IS THE ITEM RUN 37'S OWN SECTION ASKED THE NEXT REGISTRATION TO COPY: its four
-  bands, drawn at one and two percent off Run 36's counts, came in 0.00, 0.00,
-  0.00 and 0.04 of a point out, where its time bands drawn from the same run
-  were out by 1.21 to 4.00. So 1% is an order of magnitude wider than the miss
-  that history records --- and what this run adds to the question is the SOURCE,
-  fourteen commits where Run 37 carried three, which is the term those four
-  figures have never been read across at this size. A miss here, with item (1)
-  inside its span, is the counted work having stopped carrying and is the one
-  outcome that would retire this item's form. (6) *The fill numbering
-  the pairing of 2026-09-21 added is worth nothing outside the floor.*
+  priors are Run 37's own MEASURED counts and not its predictions, off
+  `--compare --counts` between `run37-counts-gheadnospec.txt`
+  and `run37-counts-gheadtwopass.txt`. THIS IS THE ITEM RUN 37'S OWN SECTION
+  ASKED THE NEXT REGISTRATION TO COPY: its four bands, drawn at one and two
+  percent off Run 36's counts, came in 0.00, 0.00, 0.00 and 0.04 of a point out,
+  where its time bands drawn from the same run were out by 1.21 to 4.00. So 1%
+  is an order of magnitude wider than the miss that history records --- and what
+  this run adds to the question is the SOURCE, fourteen commits where Run 37
+  carried three, which is the term those four figures have never been read
+  across at this size. A miss here, with item (1) inside its span,
+  is the counted work having stopped carrying and is the one outcome that would
+  retire this item's form. (6) *The fill numbering the pairing of 2026-09-21
+  added is worth nothing outside the floor.*
   `predict: pair lib-stage3-lean lib-stage2-lean 1.0 within 2% on main basis`,
   `predict: pair liblist-stage5-sum liblist-stage4-sum 1.0 within 2% on main basis`,
   `predict: pair libunord-stage14-sum libunord-stage13-sum 1.0 within 2% on main basis`.
@@ -7968,11 +7973,9 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     # this preparation PARKS or DROPS an arm, and step 7 is what tells
     # you which of the two you are. Nothing else in the chapter is owed,
     # and reading the executing session's half is the largest avoidable
-    # spend here. AND `--imperative` PRINTS THIS LIST AS ITS COMMANDS AND
-    # STEP LINES ALONE, a fifteenth as long: the form to come back to once
-    # you have read this one, and the cheapest way to re-enter a spent
-    # preparation. The full form is the first reading and stays the
-    # default.
+    # spend here. This full form is the first reading and stays the
+    # default; step 0's own output names the shorter one and when to want
+    # it.
     cd ~/r/orthotope/micro-regime3        # and re-set R, PREV and REGIME
     #      per call
     #      NN is one past the newest file in runs/, which is the run
@@ -8019,10 +8022,17 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      older than this run's own preparation is ever inherited
     #      why: --para 'A preparation already spent'
     #   2. BUILD BOTH HALVES -- unconditional, from the note's own
-    #      recipe. READ NOW, BEFORE ANY OF THIS STEP: items 3 and 10, the
-    #      registration the compares-against prose points at and the
-    #      previous run's note, which settle what the pair varies and
-    #      which this step's own writing needs. READING 3 IS ONE CALL AND IT WANTS ITS TABLE:
+    #      recipe. READ NOW, BEFORE ANY OF THIS STEP: items 3, 9 and 10 --
+    #      the registration the compares-against prose points at, the
+    #      preparation half of read-run.py's docstring, and the previous
+    #      run's note. The first and the last settle what the pair varies;
+    #      ITEM 9 IS HERE AND NOT AT STEP 7 because its definitions --
+    #      corr, net, time, worst, and WHICH ROWS HAVE NO CORRECTED TIME
+    #      AND READ `--`, which is stated there and in no list -- are what
+    #      this note's prose and every `predict:` span at 12a are written
+    #      against. Go back to them the moment a figure surprises you, a
+    #      gate refuses a leg, or the roster brings an arm whose relation
+    #      to the forcing pass is new. READING 3 IS ONE CALL AND IT WANTS ITS TABLE:
     #      `./read-run.py --section 'What the next run compares against'
     #      --with-tables 1`, the first table being the two-column one the
     #      reading list asks for -- without the flag the mode prints the
@@ -8031,32 +8041,37 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      run, and the note is the part written by hand.
     #      THE HALVES LAUNCH FROM DISK, `./$R-<half>`, hugebin/ BEING
     #      SUSPENDED -- ruled 2026-09-19, the mount having failed to come
-    #      up at that day's reboot: its unit runs before /home is
-    #      unlocked and exits 32, `mount point does not exist` with
-    #      `Required key not available` under it, so the directory is
-    #      there only once someone has logged in, and a facility wanting
-    #      a root command every boot is not one a run may depend on.
+    #      up at that day's reboot. WHY it cannot come up, and the fstab
+    #      line that would, are half-bin.sh's header and are not repeated
+    #      here.
     #      WHAT IT COSTS, stated here so no run re-derives it: a code
     #      page sits at the page cache's 4 KiB draw and not at its
     #      layout's offset in a 2 MiB frame, which the placement section
     #      prices at 15 percent on one arm of Run 33's basis. That term
     #      is back in BOTH halves, so it bears on cross-run absolutes and
     #      not on a pair's own two columns.
-    #      NO SCRIPT CHANGED AND NONE NEEDED TO -- half-bin.sh prints the
-    #      on-disk path with no mount, preflight's `launch` row reports
-    #      whichever it got, instance-gate.sh exits 0 -- so A ROW READING
-    #      `./` IS THE EXPECTED READING, where from Run 34 to Run 36 it
-    #      was the finding, and `hugebin/` is now what wants a sentence.
+    #      A ROW READING `./` IS THE EXPECTED READING, where from Run 34
+    #      to Run 36 it was the finding. AND PREFLIGHT'S 10f REFUSES A
+    #      MOUNT NOBODY ASKED FOR, since 2026-09-22: it reads the path
+    #      half-bin.sh returns for each half and FAILs where that is under
+    #      `hugebin/` and PLACEMENT is unset, so a mount raised between
+    #      runs cannot take the placement term back in silence -- which is
+    #      what happened on 2026-09-21 and was caught by hand.
     #      THE MOUNT IS AN EMERGENCY MEASURE: a run whose question IS the
     #      placement term raises it by hand (`mkdir -p hugebin && sudo
     #      mount hugebin`, root's, the fstab line in half-bin.sh's
-    #      header), says in its note that it did and on whose word, and
-    #      takes 16a with it, the mount WRITABLE or 16a leaves the
+    #      header), runs preflight with PLACEMENT=1, says in its note that
+    #      it did and on whose word, and takes 16a with it, the mount WRITABLE or 16a leaves the
     #      instance UNTESTED. Every other run leaves it unmounted.
     #      There is no builder, every pair being two shims typed out, so
     #      write the note FIRST, from pair-note-template.txt -- its
     #      recipes come from the registration, the one place that
     #      declares them, and the template is what says what a note owes.
+    #      WHAT `FIRST` MEANS IS THE RECIPE BLOCK, which is the part the
+    #      build reads: write that, build the halves on it, and write the
+    #      rest of the prose UNDER the build and the preflight, which are
+    #      minutes each. A preparation that writes the whole note before
+    #      building holds the machine idle for its longest hand step.
     #      AND THE NOTE IS NEVER REFLOWED, by any tool: `wrap80` is for
     #      Markdown and `par` for comment blocks, and this file is plain
     #      text carrying FOUR machine-read lines -- `HALVES:`, `COMPARE:`,
@@ -8066,9 +8081,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      READ correctly, and pair-halves.sh could not find the halves at
     #      all. Break a long line by hand where one bothers you, or leave
     #      it long
-    #      TWO COMMANDS DO THE READING AND THE COPYING, and they are here
-    #      rather than only at item 10 because a preparation that meets
-    #      them in the framing has forgotten them by the time it writes:
+    #      TWO COMMANDS DO THE READING AND THE COPYING:
     #          ./read-run.py --note $PREV-pair.txt > $R-note-read.txt
     #          ./read-run.py --note $PREV-pair.txt --draft $R \
     #                        --halves <basis>,<other>
@@ -8078,7 +8091,13 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      The first prints the blocks a preparation DECIDES and withholds
     #      the rest -- the handover and the gate, spent with that run, and
     #      the `[SAME]` blocks, which the second carries over -- saying how
-    #      much; REDIRECT IT. The second is the WHOLE note: the `[SAME]`
+    #      much; REDIRECT IT. ON A REPETITION IT IS NOT OWED: where the
+    #      pair is the run behind you repeated, same tags and same
+    #      recipes, what those blocks change is run numbers, and the
+    #      SECOND command's own header lists every carried block that
+    #      needs re-reading with the reason each is suspect -- which is
+    #      what a preparation actually uses. Run 38's read 36 KB to use
+    #      that header. The second is the WHOLE note: the `[SAME]`
     #      blocks with the names already carried over, every other slot
     #      present and empty as `<yours>`, the template's guidance under
     #      each as `#` scaffolding to delete. SO THE NOTE IS THAT FILE
@@ -8207,6 +8226,13 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      takes them at their own line below, once 11 and 12 have landed.
     #      A session RE-ENTERING a spent preparation wants the plain
     #      `./preflight.sh $R`, which is all of it and nothing to sequence
+    #      AND 10c, 10d AND 10e ARE EXPECTED TO FAIL HERE, the note being
+    #      half written when this runs: they read the note's paths, its
+    #      recipes against the HALVES line and its carried prose, and a
+    #      draft's carried blocks still name the run before last. Read
+    #      them, do not chase them; `./preflight.sh $R --note` re-runs the
+    #      three in seconds once the note is finished, and that is the
+    #      reading that counts
     #      4-10 IN ONE CALL: PASS or FAIL
     #      per step with what it read, the exit status the verdict, so
     #      none is skipped by being forgotten. IT DOES RUN 10a AND 10b
@@ -8271,17 +8297,13 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      carries a prediction, a pointer resolving while the sentence
     #      around it is false. That half is 12b's, a reading, and this is
     #      why 12b is not optional
-    #      READ NOW: item 9's preparation half of read-run.py's
-    #      docstring -- the Modes list, --para, --section and the two
-    #      gates. AND GO BACK TO ITS DEFINITIONS -- corr, net, time,
-    #      worst -- THE MOMENT A FIGURE SURPRISES YOU, A GATE REFUSES A
-    #      LEG, OR THE ROSTER BRINGS AN ARM WHOSE RELATION TO THE FORCING
-    #      PASS IS NEW. Which rows have no corrected time and read `--`
-    #      is stated there and in no list
     #      why: --para 'Steps 7 and 8 are the whole'
     ./read-run.py --check-doc --quiet     # 8. anchors, paths, widths, sweeps
     #      7+8 are the WHOLE document check here; no other repo's checkers,
-    #      now or at post-run step 7. Exit code is the verdict: `note:`
+    #      now or at post-run step 7. THEY RUN TWICE: here, and again after
+    #      12a, which is where the registration they check is written. The
+    #      SECOND is the verdict -- a clean pass here says nothing about
+    #      text that does not exist yet. Exit code is the verdict: `note:`
     #      lines are write-up material (6e's --worklists prints them), and
     #      a wrap FAIL is a HAND-wrapped paragraph, never a long one
     #      A `FAIL: BLOCKED:` here is a root the wrapper did not mount,
@@ -8313,9 +8335,15 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      checks is this step and not `check-all`. The reader's stderr
     #      is withheld and counted by kind, a kind with a count of one
     #      being the thing to read, and `--warnings` restores it
-    defect-run.py --changed <last run's commit> .   # 8d. and if any
+    defect-run.py --changed=<last run's commit> .  # 8d. and if any
     #      script here has changed since the last run: every defect those
-    #      scripts have had, planted again and refused again. 8c and 8d
+    #      scripts have had, planted again and refused again.
+    #      THE `=` IS NOT OPTIONAL: `--changed REV` reads REV as the ROOT,
+    #      answers BLOCKED and exits 2, which is a run that did not happen
+    #      and reads nothing like a pass. AND THE LAST RUN'S COMMIT is that
+    #      run's own last commit, the tip when its write-up closed -- not
+    #      the source it built from, and not HEAD, which selects nothing at
+    #      all where this preparation changed no script. 8c and 8d
     #      write `zz-` fixtures here and remove them, so both want an
     #      unsandboxed seat; AND THEY RUN ALONE, a commit or an edit while
     #      they run reading as a case that changed the tree
@@ -8506,6 +8534,13 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      SPREAD beside it
     #      -- AND THE PROBE JSONS ALREADY ON DISK ARE READ FOR EVERY PAIR
     #      REGISTERED.
+    #      EACH ITEM NAMES THE MODE OR THE FILE ITS PRIOR CAME OFF, in the
+    #      item and not once at the head for all of them: `--lint` refuses
+    #      an item quoting a figure and naming neither, a null span at 1.0
+    #      quoting nothing and being exempt. A collective claim of
+    #      provenance is checked against no item, which is how Run 38's
+    #      registration came to call 0.51 an A/A floor where `--aa` gives
+    #      0.59% and the 0.51 is `--compare`'s widest arm-to-duplicate gap.
     #      What an item that names none means, and how to ask every
     #      population at once, is one section and not repeated here --
     #      its title, whole, for a grep or a --section:
@@ -10603,8 +10638,8 @@ not otherwise.
     #        The checker's brief is the one document it never
     #        reads, and an edit to that alone owes nothing
     #      Main.hs, even a comment: `./read-run.py --lint`
-    #      a script here, or read-run.py: `defect-run.py --changed
-    #        <REV> .` at the END of the stretch, in the background and
+    #      a script here, or read-run.py: `defect-run.py
+    #        --changed=<REV> .` at the END of the stretch, in the background and
     #        ALONE, in the sense pre-run step 8b gives that word -- no
     #        file created anywhere in the tree while it runs, which is
     #        not merely no edit and no commit -- with `-k NAME` for one
@@ -11637,7 +11672,7 @@ this are in the reader's docstring and the corpus's own.
                                             # every case, four and a half
                                             # minutes -- which is what
                                             # the two below are for
-    defect-run.py --changed [REV] .         # only the cases whose own script
+    defect-run.py --changed[=REV] .         # only the cases whose own script
                                             # differs from REV, HEAD by
                                             # default: what an edit owes, and
                                             # what step 8d asks for
