@@ -4326,31 +4326,39 @@ lazyRuns ssh sats start v = build (lazyRunsFB ssh sats start v)
 -- it 'carry' is lazy in its offset, 'go' boxes it for the one call a
 -- level makes, and the heap check for that box sits at the head of 'go'
 -- and is paid every run.
+-- Entered on a route of canonical rank two or more, which is what
+-- 'RRuns' means, so there is at least one outer level and one run: the
+-- assert says so, ahead of the banged 'last's that would otherwise die
+-- first and unnamed, in place of an arm for the rank-1 case and an
+-- error on mismatched lengths that stood here until 2026-09-21, neither
+-- reachable from 'routeOf' nor from the two written-out dispatches,
+-- which read rank 1 as a slice first, as the library's 'runSlicesT'
+-- has neither.
+-- Non-vacuity, 2026-09-21: 'routeOf' handing a rank-1 stride-1 view to
+-- 'RRuns' fails 'check' on this assert at its first view, cnn-L1-6x6-c1,
+-- a transposed dense block being one slice to every unordered stage.
 lazyRunsFB :: ShapeL -> [Int] -> Int -> VS.Vector Double
            -> (VS.Vector Double -> b -> b) -> b -> b
 lazyRunsFB ssh sats !start !v cons nil =
+  assert (length ssh >= 2 && length ssh == length sats) $
   let !n = last ssh
-  in  case (init ssh, init sats) of
-        ([], []) -> cons (VS.slice start n v) nil
-        (dims, strs)
-          | length dims /= length strs -> error "lazyRunsFB: impossible"
-          | otherwise ->
-          let !dk = last dims
-              !sk = last strs
-              go !i !o outer
-                | i < dk = cons (VS.slice o n v) (go (i + 1) (o + sk) outer)
-                | otherwise = carry outer (o - dk * sk) []
-              -- The levels exhausted on the way out, reset, go back on
-              -- the front in their order; dropping them walked a view
-              -- with two levels above the counter once through its
-              -- inner one and failed 'check' on slice-cnn-L2-24x24-c32
-              -- (2026-09-09).
-              carry [] !_ _ = nil
-              carry ((j, d, s) : rest) !o reset
-                | j + 1 < d =
-                    go 0 (o + s) (foldl' (flip (:)) ((j + 1, d, s) : rest) reset)
-                | otherwise = carry rest (o + s - d * s) ((0, d, s) : reset)
-          in  go 0 start (reverse (zip3 (repeat 0) (init dims) (init strs)))
+      dims = init ssh
+      strs = init sats
+      !dk = last dims
+      !sk = last strs
+      go !i !o outer
+        | i < dk = cons (VS.slice o n v) (go (i + 1) (o + sk) outer)
+        | otherwise = carry outer (o - dk * sk) []
+      -- The levels exhausted on the way out, reset, go back on the
+      -- front in their order; dropping them walked a view with two
+      -- levels above the counter once through its inner one and failed
+      -- 'check' on slice-cnn-L2-24x24-c32 (2026-09-09).
+      carry [] !_ _ = nil
+      carry ((j, d, s) : rest) !o reset
+        | j + 1 < d =
+            go 0 (o + s) (foldl' (flip (:)) ((j + 1, d, s) : rest) reset)
+        | otherwise = carry rest (o + s - d * s) ((0, d, s) : reset)
+  in  go 0 start (reverse (zip3 (repeat 0) (init dims) (init strs)))
 {-# INLINE lazyRunsFB #-}
 
 -- A lazy stage's dispatch as a value: one slice, the runs 'lazyRuns'
