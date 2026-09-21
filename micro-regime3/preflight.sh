@@ -107,6 +107,20 @@
 # arms with four out and one in. The defect and how it was watched are
 # `fill-in-keys-the-previous-build-on-this-run-s-tag` in defects.py.
 #
+# RE-TAKEN 2026-09-22 on the run38 pair, every row of the block having moved
+# COLUMN: the label field gained a second literal space so that a row whose
+# label is sixteen characters wide still parses, `md5 gheadtwopass` being
+# sixteen and having been invisible to every reader of the block. The
+# instruction above says to re-take whenever a ROW IS ADDED and none was, but
+# this file's own reason for having no case -- that its steps are the corpus
+# twice over -- COVERS STEPS AND NOT REPORTERS, which checks.py says outright
+# of --fill-in, and a row this gets wrong is caught by nothing else.
+# Every derived row was read against the figure this session had already
+# taken by hand, and all agreed: both md5s, both .text sizes, 646 benches
+# with identical listings, five gate arms at 95 benches, scan/mut 9.992,
+# --library 4.3%, both surveys, both baked RTS lines and both instrument
+# counts -- and every row now starts its value at column 20.
+#
 # It has no case in defects.py, deliberately: this script's own steps are
 # that corpus and the reader's gates, so a case would run them twice to
 # assert what they already assert. What is unique to it -- the three
