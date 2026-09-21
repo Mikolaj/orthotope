@@ -793,6 +793,204 @@ rather than a slot in the next run, observed again:
   of are indistinguishable, so a one-copy gate is blind one launch in ten. Run
   36's control instance died with the reboot; the bytes say the two controls'
   arms are level.
+- `OPEN` **What Run 38 is built to answer, registered before it runs.** The pair
+  is Run 37's, declared by the owner on 2026-09-21 in the words *the same
+  binaries as Run 37* --- which under the pre-run list's BOTH HALVES ARE BUILT
+  ANEW ruling is Run 37's two RECIPES built again and not its two files reused
+  --- and THIS ENTRY IS ITS ONE DECLARATION SITE by the ruling of 2026-09-19,
+  recorded in the entry led *What the next run's two binaries are is declared
+  in TWO places*: both halves GHC HEAD `10.1.20260918` through
+  `cabal.project.ghead` at plain `-O1` in the dead-spot form under the exit
+  span, one source (`Main.hs` at `bb6f0fc`), one shim (`align-as.py`
+  at `f31bd1c`) under the four switches, one roster, one shape set and one
+  launch FROM DISK, and the control half's command line carrying
+  `-fspec-constr -fliberate-case` besides, nothing else differing,
+  so `--compare` reads the unflagged basis over the flagged control as Runs 36's
+  and 37's did; [Run 37's *What the next run compares
+  against*](runs/run37.md#what-the-next-run-compares-against) is what left
+  this pair to be declared here, saying in its own words that no entry named
+  it yet. The recipes, the half names being the preparation's to hold to the tag
+  grammar: `run38-gheadnospec` is, from this directory,
+  `LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1 LOOP_DEADSPOT=1 LOOP_EXITSPAN=1 cabal build micro --project-file=cabal.project.ghead --builddir=db-r38a --ghc-options="-fobject-determinism" --ghc-options="-pgma $PWD/align-as.py -fforce-recomp"`,
+  then
+  `cp $(cabal list-bin micro --project-file=cabal.project.ghead --builddir=db-r38a) run38-gheadnospec`
+  and `rm -rf db-r38a`; `run38-gheadtwopass` is the same on the same source
+  with `--builddir=db-r38b`
+  and `--ghc-options="-fspec-constr -fliberate-case -fobject-determinism"`.
+  `LOOP_MAXSKIP` and `LOOP_LOOKTHROUGH` are inert under the dead-spot form
+  and stay on both lines so that the lines differ in the regime flags alone;
+  `LOOP_ENTRIES`, `LOOP_BLOCKRULES`, `LOOP_PIN` and `LOOP_TRACE` are unset
+  on both. Every build wants `-fforce-recomp` and a fresh `--builddir`,
+  the switches being an environment change cabal does not see. **WHAT IS NEW
+  IS THE SOURCE AND THE BOOT, and nothing else is**: `Main.hs` has moved
+  fourteen commits since Run 37 built from `05cfe93`, taking the roster from 608
+  benches and 32 timed arms to 646 and 34 --- `lib-stage3-lean`,
+  `liblist-stage5-sum` and `libunord-stage14-sum` in, with their fills
+  liblist-stage5 and libunord-stage14 rostered `Only` beside them,
+  liblist-stage4-list-sum parked, and 31 survivors in the same order ---
+  and the box has been rebooted once since that run's evening, up since
+  2026-09-21T11:09:53+02:00 by `/proc/uptime`. The compiler, the shim,
+  the project file and the launch are Run 37's to the commit, the resolved plan
+  reading criterion 1.6.5.0, vector 0.13.2.0 with `boundschecks` True, base
+  4.23.0.0, ghc-prim 0.14.0, hashable 1.5.0.0 and aeson 2.3.2.0 as that run's
+  did, so this run's step off Run 37 carries TWO terms where Run 37's off Run 36
+  carried three and two reboots. **WHY A THIRD READING**: Runs 36 and 37
+  are this same pair and their `list` figures STRADDLE the `-O2` level ---
+  1.3129 and 1.2950 over the eighteen shapes without Run 36's wild cell, against
+  Run 31's whole-level 1.2974 --- parting by 1.79 points, wider
+  than the distance from either to the level, so the two runs disagree about
+  whether the level's other passes hand `list` back. A third draw is what names
+  the outlier, and Run 37's own section asked for one. **What the run predicts,
+  registered 2026-09-21 before it runs. EVERY PRIOR BELOW IS RUN 37'S OWN
+  MEASURED READING OF THIS SAME PAIR**, re-derived
+  from `run37-gheadnospec-main.json` against `run37-gheadtwopass-main.json`,
+  and for the counts from `run37-counts-gheadnospec.txt` against its twin,
+  rather than quoted from prose --- and the spread the bands rest on is
+  not a floor but a REPETITION: the probe of 2026-09-20 re-ran the main set
+  on Run 37's own two binaries, `probe-third-run37-gheadnospec-main.json`
+  and its twin, and reads `list` 1.2986 against that run's 1.2960
+  and `bq-expand` 1.3091 against its 1.3101, so ONE DRAW READ TWICE parts
+  by 0.26 and 0.10 of a point where the two DRAWS part by 1.79 on `list`
+  over the eighteen shapes and 1.21 on `bq-expand` over the nineteen,
+  `bq-expand` having no cell to set aside; read at eighteen on both sides
+  that second figure is 1.20. (1) *Run 37's reading of `list` is the pair's,
+  and Run 36's is the outlier.*
+  `predict: cross list 1.2950 within 1% on main basis excluding stretch-coprime-r7`,
+  and over all nineteen shapes
+  `predict: cross list 1.2960 within 1.5% on main basis`. THE NARROW SPAN
+  IS THE ONE THAT DECIDES and it is built to discriminate: 1% around 1.2950 runs
+  1.2821 to 1.3080, and Run 36's 1.3129 lies OUTSIDE it, so a reading inside
+  the span names Run 36's reading the outlier and one at 1.313 names Run 37's.
+  The band is the within-draw spread above, 0.26 of a point, with 0.51 beside
+  it --- the widest an arm and its own A/A duplicate part in that run's
+  cross-half table, which `--compare` prints and which is a different quantity
+  from the 0.59% population floor `--aa` gives --- 0.77 rounded up to one;
+  the wide span adds to it whatever wild cell this run draws, the 2.31 points
+  one cell moved Run 36's whole-set figure being the scale. THE KILL CONDITION
+  IS A READING OUTSIDE THE NARROW SPAN, and it has two shapes that mean
+  different things: at 1.313 the pair's figure is Run 36's and Run 37's
+  was the outlier, while BETWEEN the two priors it is neither run's
+  and the pair's `list` figure is not repeatable to two points across draws ---
+  which is itself an answer to the straddle, and is why both spans
+  are registered rather than the narrow one alone. (2) *`bq-expand` repeats
+  a third time, on the arm where five accounts now sit inside 1.6 points.*
+  `predict: cross bq-expand 1.3101 within 1.5% on main basis`. The prior is Run
+  37's own, the probe on its binaries reads 1.3091 a tenth of a point away,
+  and the band is that tenth with the 0.59% population floor and room
+  for the 1.21 points Runs 36 and 37 parted by on this arm. A reading outside
+  is the first sign that something other than the two passes moved between
+  the runs, and the SOURCE is the only candidate this run has, the compiler,
+  the shim, the project file and the launch being unmoved. (3) *No arm outside
+  the two families joins them on a third reading.*
+  `predict: cross mut-odo-vecdims 1.0 within 2.5% on main basis`,
+  `predict: cross mut-odo-vecdims-aa 1.0 within 2.5% on main basis`,
+  `predict: cross mut-odo-vecdims-aa-distant 1.0 within 2.5% on main basis`,
+  `predict: cross mut-odo-vecdims-add-in-leaf-u2 1.0 within 2.5% on main basis`,
+  `predict: cross mut-odo-vecdims-add-in-leaf-u2-aa 1.0 within 2.5% on main basis`,
+  `predict: cross mut-odo-vecdims-add-in-leaf-u2-aa-distant 1.0 within 2.5% on main basis`,
+  `predict: cross lib-stage1 1.0 within 2.5% on main basis`,
+  `predict: cross lib-stage2-lean 1.0 within 2.5% on main basis`,
+  `predict: cross lib-stage2-lean-u1 1.0 within 2.5% on main basis`. THESE NINE
+  ARE ONE CLAIM READ NINE WAYS and a single miss is one arm joining the families
+  rather than nine results, which is the tally Run 36's write-up had
+  to disentangle and Run 37's item said again. The band is set on Run 37's
+  measured spread over these same nine, 1.0026 to 1.0160: 2.5% is its widest
+  DEPARTURE FROM 1, 1.60 points --- the extremes part by 1.34, which
+  is the other reading of that pair of figures and not the one the band is drawn
+  on --- with that run's 0.59% floor beside it. `mut-odo-vecdims-add-in-leaf-u1`
+  is deliberately NOT among them and is item (4), Run 37 having read it far
+  outside this set. (4) *`mut-odo-vecdims-add-in-leaf-u1`'s move the BASIS's way
+  belongs to Run 37's BUILD and not to the pair, so a rebuilt pair reads it back
+  among its siblings.*
+  `predict: cross mut-odo-vecdims-add-in-leaf-u1 1.0 within 2.5% on main basis`.
+  Run 37 read 0.9630 where its nine siblings read 1.0026 to 1.0160,
+  and the probe on that run's own two binaries reads 0.9598 --- so the move
+  reproduces on that DRAW, and what no reading has yet asked is whether
+  it survives a REBUILD, which is what this run supplies. THE SPAN IS TWO-SIDED
+  AND THE SENTENCE MEANS THE LOW SIDE: a reading near 0.96 again refutes
+  it and makes the movement a property of the pair's code rather than of one
+  build, which is the question the entry led *Four arms moved past 3% against
+  Run 32 on ONE half each* asks, and this arm is the first mover that entry
+  names, read here on the main set where it read it on `scaled`; a reading above
+  1.025 refutes it too and is the other finding, the arm joining the families,
+  which item (3) is written for. Run 36 read this arm at 1.0033, mid-pack inside
+  its own null spread of 0.9920 to 1.0119, so the two prior draws already
+  disagree about it. (5) *The counted work parts on the arms the clock parts on,
+  and it repeats across a moved source where the clock need not.*
+  `predict: counts list 1.2930 within 1% on main basis`,
+  `predict: counts bq-expand 1.5063 within 1% on main basis`,
+  `predict: counts mut-odo-vecdims 1.0383 within 1% on main basis`,
+  `predict: counts lib-stage2-lean 1.0522 within 1% on main basis`. The four
+  priors are Run 37's own MEASURED counts and not its predictions. THIS
+  IS THE ITEM RUN 37'S OWN SECTION ASKED THE NEXT REGISTRATION TO COPY: its four
+  bands, drawn at one and two percent off Run 36's counts, came in 0.00, 0.00,
+  0.00 and 0.04 of a point out, where its time bands drawn from the same run
+  were out by 1.21 to 4.00. So 1% is an order of magnitude wider than the miss
+  that history records --- and what this run adds to the question is the SOURCE,
+  fourteen commits where Run 37 carried three, which is the term those four
+  figures have never been read across at this size. A miss here, with item (1)
+  inside its span, is the counted work having stopped carrying and is the one
+  outcome that would retire this item's form. (6) *The fill numbering
+  the pairing of 2026-09-21 added is worth nothing outside the floor.*
+  `predict: pair lib-stage3-lean lib-stage2-lean 1.0 within 2% on main basis`,
+  `predict: pair liblist-stage5-sum liblist-stage4-sum 1.0 within 2% on main basis`,
+  `predict: pair libunord-stage14-sum libunord-stage13-sum 1.0 within 2% on main basis`.
+  The three new arms are ONE VARIABLE READ THREE WAYS --- each
+  is its counterpart's route under the fill numbered innermost first, where
+  the counterpart keeps `fillStage2Axes` and its outermost-first numbering ---
+  and they have NO prior in any run, so these are within-run comparisons
+  on the basis half and not repetitions; the band is 2%, which is between three
+  and four times Run 37's 0.59% population floor, there being no measurement
+  of this variable to draw a band from. THE THREE SPANS ARE NOT READ ON ONE
+  QUANTITY, and the reader says so on its own line: `lib-stage3-lean`
+  and `lib-stage2-lean` are fills and their pair is read on the corrected net,
+  while the two `-sum` pairs are REDUCING CONSUMERS, which carry no corrected
+  time by the ruling of 2026-09-10 and whose `--pair` line prints *compared RAW,
+  one arm has no corrected time* --- so those two ratios are damped
+  by the forcing pass both arms share, and a miss on one of them is a larger
+  real difference than the same miss on the first. **NOT REGISTERED, and each
+  for a reason**: the two reboot readings Run 37 carried are the owner's to rule
+  and are not inherited, `hugebin/` being a tmpfs that took the Run 34 instance
+  with it, and this run raises no mount and takes step 16a as skipped;
+  and no item is read on a stride class, every span above naming `main`,
+  the class JSONs of the evening being what the write-up reads the new arms'
+  classes off rather than what any prediction turns on. **AND ONE FINDING
+  THE PREPARATION MET rather than predicted**, recorded here because it bears
+  on every cross-run absolute this run publishes: `hugebin/` was MOUNTED when
+  the preparation began, raised 2026-09-21 21:11 and empty, and `half-bin.sh`
+  copies an ELF half into the mount whenever `mountpoint -q` succeeds, so every
+  driver would have launched from it and taken the placement term --- 15 percent
+  on one arm of Run 33's basis, by the placement section --- back into both
+  halves. The owner unmounted it on being asked, before any half was copied
+  anywhere. Nothing in the list or in any script refuses a mounted `hugebin/`
+  on a run that is not a placement run; the `launch` row of a pair note
+  is the only place it would show, and it shows as the `./` a session reads
+  as expected.
+- `OPEN` **A fill-in row whose label is sixteen characters long is invisible
+  to every reader of the block, and the draft emitter writes one.** `FILL_LABEL`
+  in `read-run.py` matches two leading spaces, then `(\S(?:.*?\S)?)\s{2,}\S`,
+  and `preflight.sh` carries the same rule, so a row parses only where TWO
+  spaces follow the label; `_fill_skeleton` emits the label through a `%-16s`
+  field and then a single literal space before `<yours>`, which for a label
+  of exactly sixteen leaves the padding empty and that one space alone.
+  `md5 gheadtwopass` is sixteen. Measured 2026-09-21: the row is absent from Run
+  37's note as read by `--note`, absent from the `--draft` Run 38's preparation
+  was handed, and `--figures` answered
+  `md5 gheadtwopass NO SUCH ROW in the note` against a note that carried
+  it plainly at its own column. Run 37's note has the same one-space row,
+  so this has bitten twice and a hand supplied the row both times. **What
+  it costs is one provenance row per run, and the `--draft` half is SILENT** ---
+  the reader's own `--figures` is loud, but a draft that quietly omits a row
+  leaves a preparation to notice an absence. **WHAT IS NOT DECIDED IS WHICH
+  FIX**, and there are three: widen the emitter's field so a row is always
+  written with two spaces, which closes new drafts and leaves every hand-written
+  note unreadable; derive the block's value COLUMN once per block and split
+  every line there, which reads both and is a change to three call sites;
+  or hold the lines to the label set `pair-note-template.txt` declares, which
+  reads both and makes the template load-bearing. Each owes a case and a mutant.
+  Raised by Run 38's preparation, which widened its own note's column to 18
+  and changed no script, the -L1 roster pass being under way and the pre-run
+  list forbidding an edit to the reader while it runs.
 - `ANSWERED` **What Run 37 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 37's own
