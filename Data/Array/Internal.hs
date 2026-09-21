@@ -28,6 +28,7 @@
 {-# LANGUAGE UndecidableSuperClasses #-}
 module Data.Array.Internal(module Data.Array.Internal) where
 import Control.DeepSeq
+import Control.Exception(assert)
 import Control.Monad.ST(ST)
 import Data.Data(Data)
 import Data.Kind (Type)
@@ -524,7 +525,11 @@ routeOfT start l canonical = case canonical of
 -- or nil, all known to the compiler, so base's own left folds, 'sum'
 -- among them, see a strict known call and allocate nothing per run.
 -- Entered on a view of canonical rank two or more, which is what
--- 'RRuns' means, so there is at least one outer level and one run.
+-- 'RRuns' means, so there is at least one outer level and one run: the
+-- assert says so, ahead of the banged 'last's that would otherwise fail
+-- first and unnamed; live in an unoptimized build only, GHC dropping
+-- asserts at -O, and checked there by planting a rank-1 stride-1 route
+-- in 'routeOfT', which fails the test suite on it (2026-09-21).
 -- The bang on the vector is measured, not style: every use of it sits
 -- under the consumer's cons, so without the bang the walk is lazy in
 -- it, takes it boxed and re-enters it on every run for its length and
@@ -537,6 +542,7 @@ routeOfT start l canonical = case canonical of
 runSlicesT :: forall v a b. (Vector v, VecElem v a)
            => ShapeL -> [Int] -> Int -> v a -> (v a -> b -> b) -> b -> b
 runSlicesT csh cats !start !v cons nil =
+  assert (length csh >= 2 && length csh == length cats) $
   let !n = last csh
       dims = init csh
       strs = init cats
