@@ -209,8 +209,12 @@ canonFillCpy sh (T ats ao v) =
               return out
           | otherwise -> vecdims csh (T cats ao v)
 
--- Today's regime-2 path after canonicalization: maximal slices
--- collected into a list, then concatenated (toVectorT semantics).
+-- Today's regime-2 path after canonicalization: over the longest suffix
+-- of the canonical axes whose strides are the natural ones, one slice
+-- per index of the axes outside it (not one per maximal run in the
+-- vector: from canonical rank 3 up a carry across two axes can join two
+-- such slices), collected into a list, then concatenated (toVectorT
+-- semantics).
 {-# NOINLINE r2Slices #-}
 r2Slices :: [Int] -> T -> VS.Vector Double
 r2Slices sh (T ats ao v) =
