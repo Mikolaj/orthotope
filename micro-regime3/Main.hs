@@ -3403,9 +3403,10 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
 -- the reference on every view. The two zero-stride bodies say at their
 -- definitions what each buys, and the fills that keep older forms say
 -- so at theirs.
--- The fills take @l > 0@, asserted at each entry: a zero-stride level
--- writes its run or block before reading the extent, so a zero extent
--- there would write into an empty result. Every dispatch guards
+-- The fills take @l > 0@, asserted at each entry: a zero-stride run
+-- reads its one element, and a zero-stride level writes its run or
+-- block, before reading the extent, so a zero extent there would read
+-- past the source or write into an empty result. Every dispatch guards
 -- @l == 0@ before calling one, the stage-1 ports since 2026-09-21; the
 -- degenerate and @edge-bcastmid-b0@ views are where @check@ fails when one
 -- does not.
@@ -4383,8 +4384,8 @@ lazyRunsFB ssh sats !start !v cons nil =
 -- cost. One loop, one code; the pair prices the dispatch alone.
 -- The library's 'Route' on pr-mikolaj-toVectorListT, field for field.
 data Route = RSlice !Int !Int              -- start and length of one slice
-           | RRuns ShapeL [Int] !Int !Int  -- sorted canonical dims, run
-                                           -- start, length (the fill's)
+           | RRuns ShapeL [Int] !Int !Int  -- canonical dims, run start,
+                                           -- length (the fill's)
            | RFill ShapeL [Int] !Int !Int  -- dims, start, length
 
 -- The slice an 'RSlice' route stands for, the vector itself where the
