@@ -8661,7 +8661,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      them. Those are yours, in one pass and not one call per figure
     #      AND NAME THAT FILE WHERE YOU WRITE THE FIGURE, or the next
     #      reader copies you (post-run 6e says why). `./preflight.sh $R
-    #      --note` re-checks 10c, 10d and 8 after these edits, in seconds
+    #      --note` re-checks 10c to 10f and 8 after these edits, in seconds
     #      AND WALK THE ARMS OF EVERY TASK THE REGISTRATION DEFERS TO,
     #      not only its own: `--lint` holds the registration's backticked
     #      arms to the timed roster and the arms of the task it defers
