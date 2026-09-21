@@ -4156,9 +4156,9 @@ fbLibListStage2 sh a = concatParts (lsListStage2 sh a)
 -- Run 27.
 routeList3 :: ShapeL -> T -> Route
 routeList3 sh (T (Strides ats) ao _)
-  | l == 0 = RBlock 0 0
-  | cats == ts = RBlock ao l
-  | last cats == 1 = RRuns csh cats ao
+  | l == 0 = RSlice 0 0
+  | cats == ts = RSlice ao l
+  | last cats == 1 = RRuns csh cats ao l
   | otherwise = RFill csh cats ao l
   where !l = product sh
         (csh, cats) = canonView sh ats
@@ -4179,7 +4179,7 @@ fbLibListStage3 sh a@(T _ _ v) = fillRoute (routeList3 sh a) v
 -- construction. Added 2026-09-07 for Run 27.
 routeList4 :: ShapeL -> T -> Route
 routeList4 sh (T (Strides ats) ao _)
-  | l == 0 = RBlock 0 0
+  | l == 0 = RSlice 0 0
   | otherwise = routeOf ao l (canonView sh ats)
   where !l = product sh
 
@@ -4258,7 +4258,7 @@ fbLibUnordStage2 sh a = concatParts (lsUnordStage2 sh a)
 -- pricing the list against the fill it replaces.
 routeUnord3 :: ShapeL -> T -> Route
 routeUnord3 sh a = case routeUnord5 sh a of
-  RRuns ssh sats o -> RFill ssh sats o (product sh)
+  RRuns ssh sats o l -> RFill ssh sats o l
   r -> r
 
 {-# NOINLINE fbLibUnordStage3 #-}
@@ -4368,12 +4368,14 @@ lazyRunsFB ssh sats !start !v cons nil =
 -- per-copy code generation the ceiling readings know -- which a pair
 -- of stages would have read as a design's cost. One loop, one code;
 -- the pair prices the dispatch alone.
-data Route = RBlock !Int !Int          -- start and length of one slice
-           | RRuns ShapeL [Int] !Int   -- sorted canonical dims, run start
+-- The library's 'Route' on pr-mikolaj-toVectorListT, field for field.
+data Route = RSlice !Int !Int              -- start and length of one slice
+           | RRuns ShapeL [Int] !Int !Int  -- sorted canonical dims, run
+                                           -- start, length
            | RFill ShapeL [Int] !Int !Int  -- dims, start, length
 
--- The slice a block route stands for, the vector itself where the block
--- is all of it: two comparisons in place of a slice header's
+-- The slice an 'RSlice' route stands for, the vector itself where the
+-- slice is all of it: two comparisons in place of a slice header's
 -- allocation, in the two arms that hand the vector out, the list's and
 -- the fill's.  The sum arms keep the slice, which under their fold is a
 -- known constructor and never allocated.
@@ -4388,34 +4390,34 @@ wholeOrSlice o l v
 -- route takes: written as a case returning a list per branch, the fold
 -- stays outside the case and never fuses, which is what
 -- 'libunord-stage6-list-sum' read on 2026-09-09, 160 bytes a run.
--- The block of length zero, which is what every dispatch hands an
+-- The slice of length zero, which is what every dispatch hands an
 -- empty view, yields nil and not one empty vector, the invariant the
 -- library's 'toVectorListT' states and 'emptyListGate' asks; the fill
 -- and sum arms need no such case, an empty slice being their answer.
 listRoute :: Route -> VS.Vector Double -> [VS.Vector Double]
 listRoute r v = build $ \cons nil -> case r of
-  RBlock o l
+  RSlice o l
     | l == 0 -> nil
     | otherwise -> cons (wholeOrSlice o l v) nil
-  RRuns ssh sats o -> lazyRunsFB ssh sats o v cons nil
+  RRuns ssh sats o _ -> lazyRunsFB ssh sats o v cons nil
   RFill ssh sats o l -> cons (fillStage2 ssh sats o l v) nil
 {-# INLINE listRoute #-}
 
 fillRoute :: Route -> VS.Vector Double -> VS.Vector Double
-fillRoute (RBlock o l) v = wholeOrSlice o l v
-fillRoute (RRuns ssh sats o) v = concatLazyRuns ssh sats o v
+fillRoute (RSlice o l) v = wholeOrSlice o l v
+fillRoute (RRuns ssh sats o _) v = concatLazyRuns ssh sats o v
 fillRoute (RFill ssh sats o l) v = fillStage2 ssh sats o l v
 
 sumRoute :: Route -> VS.Vector Double -> Double
-sumRoute (RBlock o l) v = VS.sum (VS.slice o l v)
-sumRoute (RRuns ssh sats o) v = sumLazyRuns ssh sats o v
+sumRoute (RSlice o l) v = VS.sum (VS.slice o l v)
+sumRoute (RRuns ssh sats o _) v = sumLazyRuns ssh sats o v
 sumRoute (RFill ssh sats o l) v = VS.sum (fillStage2 ssh sats o l v)
 
 -- 'sumRoute' with its fill case through 'fillStage2VSdims'; the probe of
 -- 2026-09-19, reasons at that fill.
 sumRouteVSdims :: Route -> VS.Vector Double -> Double
-sumRouteVSdims (RBlock o l) v = VS.sum (VS.slice o l v)
-sumRouteVSdims (RRuns ssh sats o) v = sumLazyRuns ssh sats o v
+sumRouteVSdims (RSlice o l) v = VS.sum (VS.slice o l v)
+sumRouteVSdims (RRuns ssh sats o _) v = sumLazyRuns ssh sats o v
 sumRouteVSdims (RFill ssh sats o l) v = VS.sum (fillStage2VSdims ssh sats o l v)
 
 -- The offset of a view's lowest address: its offset plus, for every
@@ -4478,10 +4480,10 @@ concatLazyRuns ssh sats !o v = VS.concat (lazyRuns ssh sats o v)
 -- written once.
 routeOf :: Int -> Int -> (ShapeL, [Int]) -> Route
 routeOf start l canonical = case canonical of
-  ([], _) -> RBlock start l
-  ([_], [1]) -> RBlock start l
+  ([], _) -> RSlice start l
+  ([_], [1]) -> RSlice start l
   (csh, cats)
-    | last cats == 1 -> RRuns csh cats start
+    | last cats == 1 -> RRuns csh cats start l
     | otherwise -> RFill csh cats start l
 {-# INLINE routeOf #-}
 
@@ -4492,7 +4494,7 @@ routeOf start l canonical = case canonical of
 -- natural-strides test and is written out.
 dispatchLean :: (ShapeL -> [Int] -> [(Int, Int)]) -> ShapeL -> T -> Route
 dispatchLean order sh (T (Strides ats) ao _)
-  | l == 0 = RBlock 0 0
+  | l == 0 = RSlice 0 0
   | otherwise = routeOf start l (canonViewOfPairs (order sh ats))
   where !l = product sh
         !start = startOf sh ats ao
@@ -4537,9 +4539,9 @@ canonSortedPairs sh ats =
 -- for Run 27; a 'Route' since 2026-09-09.
 routeUnord4 :: ShapeL -> T -> Route
 routeUnord4 sh (T (Strides ats) ao _)
-  | l == 0 = RBlock 0 0
-  | acats == ts = RBlock start l
-  | last acats == 1 = RRuns csh' acats start
+  | l == 0 = RSlice 0 0
+  | acats == ts = RSlice start l
+  | last acats == 1 = RRuns csh' acats start l
   | otherwise = RFill csh' acats start l
   where !l = product sh
         !start = startOf sh ats ao
@@ -4624,8 +4626,8 @@ foldRunsLoop f z0 ssh sats !start v = go (init ssh) (init sats) start z0
 {-# INLINE foldRunsLoop #-}
 
 loopSumRoute :: Route -> VS.Vector Double -> Double
-loopSumRoute (RBlock o l) v = VS.sum (VS.slice o l v)
-loopSumRoute (RRuns ssh sats o) v =
+loopSumRoute (RSlice o l) v = VS.sum (VS.slice o l v)
+loopSumRoute (RRuns ssh sats o _) v =
   foldRunsLoop (\ !acc p -> acc + VS.sum p) 0 ssh sats o v
 loopSumRoute (RFill ssh sats o l) v = VS.sum (fillStage2 ssh sats o l v)
 
@@ -4980,7 +4982,7 @@ fbLibUnordStage12 sh a@(T _ _ v) = fillRoute (routeUnord12 sh a) v
 -- own terms.
 routeUnord13 :: ShapeL -> T -> Route
 routeUnord13 sh (T (Strides ats) ao _)
-  | l == 0 = RBlock 0 0
+  | l == 0 = RSlice 0 0
   | otherwise = routeOf start l (unzipAxes (zeroStrideOutermost merged))
   where
     !l = product sh
