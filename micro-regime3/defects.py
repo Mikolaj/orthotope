@@ -6553,8 +6553,9 @@ RECORDS = [
                           'other': synth_json(t, 'rev', name='b.json')},
          argv=['{run}', '--block', '--compare', '{other}', '--brief'],
          ok=V(exit=0,
-              has=['**Across the halves:** 0 of the 16 arms are faster on'
-                   ' this half and 16 slower, at a geomean of'])),
+              has=['**Across the halves:** 0 of the %d arms are faster on'
+                   ' this half and %d slower, at a geomean of'
+                   % (compared_arm_count(), compared_arm_count())])),
 
     case('block-prose-comes-out-wrapped-for-a-caller-to-join', 'read-run.py',
          None,
