@@ -88,6 +88,7 @@ class Vector v where
   -- view's canonical dimensions ('canonicalizeT'), and the fast fills
   -- write a mutable result buffer across runs, which no existing
   -- method can express ('vGenerate' is stateless).
+  --
   -- The default is a terse but fast pure form, where the base-offsets
   -- table is built by expansion ('runBaseOffsetsT'), one division
   -- per element. The vector-backed instances override it with
@@ -250,6 +251,7 @@ constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 -- distributivity, so it holds for negative strides too.  After it the
 -- shape has no extent 1 and the strides no adjacent pair satisfying
 -- that equation.
+--
 -- So a maximal run of the array's elements that are consecutive in the
 -- vector is one canonical dimension of stride 1; a dense array (its
 -- elements filling a contiguous piece of the vector in row-major order)
@@ -309,22 +311,25 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 -- offset stepped additively, the innermost outer level fused into a
 -- dedicated run loop, and the run fill unrolled by two with its bound on
 -- the output cursor, so it is sound for zero and negative strides.
--- Two zero-stride conditions sit inside it, each decided per level of
--- the odometer and never per element: a run of innermost stride 0 reads
--- its one element once and stores it, and an outer level of stride 0
--- fills the block below it once and copies it onto the level's remaining
--- positions by doubling.
--- Given canonical dimensions ('canonicalizeT') the conditions fire
--- wherever they can; given any other dimensions the fill is still
--- correct.  The count must be positive, asserted at entry: a zero-stride
--- run reads its one element, and a zero-stride level writes its run or
--- block, before reading the extent, so a zero extent would read past the
--- source or write into an empty result.  Every entry point of this
+--
+-- Two zero-stride conditions sit inside it, each decided per level
+-- of the odometer and never per element: a run of innermost stride
+-- 0 reads its one element once and stores it, and an outer level
+-- of stride 0 fills the block below it once and copies it onto the
+-- level's remaining positions by doubling.  Given canonical dimensions
+-- ('canonicalizeT') the conditions fire wherever they can; given any
+-- other dimensions the fill is still correct.
+--
+-- The count must be positive, asserted at entry: a zero-stride run
+-- reads its one element, and a zero-stride level writes its run or
+-- block, before reading the extent, so a zero extent would read past
+-- the source or write into an empty result.  Every entry point of this
 -- module returns the empty vector or list before routing an empty view
 -- here, and a caller of 'vFillStrided' from outside owes the same; the
--- assert is live in an unoptimized build only, GHC dropping asserts at
--- -O, and is checked there by disabling 'toVectorT''s guard, which
+-- assert is live in an unoptimized build only, GHC dropping asserts
+-- at -O, and is checked there by disabling 'toVectorT''s guard, which
 -- fails the Dynamic modules' 'toVector_3' on it (2026-09-21).
+--
 -- Written once against 'Data.Vector.Generic', which supplies
 -- the mutable machinery orthotope's own 'Vector' class deliberately does
 -- not; each vector-backed instance reuses it verbatim.  Ported
@@ -332,6 +337,7 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 -- at https://github.com/Mikolaj/orthotope/blob/speedup-strided-tovector/micro-regime3/
 -- (the bang patterns are part of what was measured); one choice made
 -- for the NCG, marked at the line it is on, costs -fllvm a little.
+--
 -- The implementation is similar to what once was in orthotope file
 -- FastReshape.hs (a Storable-only odometer flatten behind an unsafeCast to
 -- Double or Float, never in the cabal file, removed once subsumed by this),
@@ -470,6 +476,7 @@ genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
 -- The route a view takes once canonicalized, what its consumer does
 -- with it, which is what 'toVectorListT', 'toVectorT' and, on the view
 -- with its axes reordered, the two unordered entry points dispatch on.
+--
 -- Classified on the canonical dimensions alone, so a unit dimension's
 -- arbitrary stride and a reshape's appended dimensions no longer decide
 -- it, and the vector never does: whether a slice is the whole vector is
@@ -477,12 +484,14 @@ genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
 -- route carries the offset it starts at and the element count
 -- (@product sh@), which every caller has in hand, so that a consumer
 -- takes the route and the vector and nothing beside them.
+--
 -- Whether the canonical strides are the natural ones is decided by the
 -- canonical rank alone, so no stride list is built and compared: natural
 -- strides at rank 2 or more are the merge equation of 'canonicalizeT'
 -- holding at every adjacent pair, and after it no pair satisfies that
 -- equation, so a canonical view is natural only at rank 0, or at rank 1
 -- with stride 1.
+--
 -- The micro-benchmark's 'Route' is this type, field for field.
 data Route
   = RSlice !Int !Int              -- the canonical strides are the
@@ -522,23 +531,27 @@ routeOfT start l canonical = case canonical of
 -- vector, then the cons and nil of the 'build' the list entry points
 -- are written under, so that a consumer folding the list fuses with the
 -- walk, holds no more of the list than it has reached and, stopping
--- early, does no more of the walk.  The innermost outer level is a
--- counter and a cursor; the levels above it are an odometer of
--- (index, extent, stride) triples touched only on a carry, the levels
--- exhausted on the way out reset and put back on the front in their
--- order.  One flat loop, and not a fold per level with the rest of
--- the list passed down as a continuation: fused with a consumer's
--- fold, the level form met at every level's exit a continuation it
--- could not see and passed the accumulator to it lazily and boxed, a
--- thunk and a box per run; here every continuation is 'go', 'carry'
--- or nil, all known to the compiler, so base's own left folds, 'sum'
--- among them, see a strict known call and allocate nothing per run.
+-- early, does no more of the walk.
+--
+-- The innermost outer level is a counter and a cursor; the levels
+-- above it are an odometer of (index, extent, stride) triples touched
+-- only on a carry, the levels exhausted on the way out reset and put
+-- back on the front in their order.  One flat loop, and not a fold per
+-- level with the rest of the list passed down as a continuation: fused
+-- with a consumer's fold, the level form met at every level's exit a
+-- continuation it could not see and passed the accumulator to it lazily
+-- and boxed, a thunk and a box per run; here every continuation is
+-- 'go', 'carry' or nil, all known to the compiler, so base's own left
+-- folds, 'sum' among them, see a strict known call and allocate nothing
+-- per run.
+--
 -- Entered on a view of canonical rank two or more, which is what
 -- 'RRuns' means, so there is at least one outer level and one run: the
 -- assert says so, ahead of the banged 'last's that would otherwise fail
 -- first and unnamed; live in an unoptimized build only, GHC dropping
 -- asserts at -O, and checked there by planting a rank-1 stride-1 route
 -- in 'routeOfT', which fails the test suite on it (2026-09-21).
+--
 -- The bang on the vector is measured, not style: every use of it sits
 -- under the consumer's cons, so without the bang the walk is lazy in
 -- it, takes it boxed and re-enters it on every run for its length and
@@ -571,8 +584,10 @@ runSlicesT csh cats !start !v cons nil =
 
 -- Convert an array to a list of vectors, which together contain
 -- all the elements in the natural order.
+--
 -- An invariant: the returned list has no empty vectors, an empty
 -- array yielding the empty list.
+--
 -- The list is produced lazily: a consumer folds it slice by slice,
 -- holding no more of it than it has reached, where a table of the
 -- runs' offsets would do all its work before the consumer sees an
@@ -653,12 +668,14 @@ absAxesAndStartT ao = go
 
 -- Absolute stride descending; on a tie at stride 1 the length 'runRank'
 -- prefers last, so that it is the run, and on any other tie the extent
--- ascending.  In case form rather than over '<>', and the strides
--- banged and the extents not, as measured: the '<>' form retired 42 to
--- 128 instructions a call more than this, and a bang on the extents 69
--- to 162 more, the tie branch being the one most comparisons never
--- reach.  'sortBy' calls the comparator unknown, so a banged field is
--- an unbox at every entry.
+-- ascending.
+--
+-- In case form rather than over '<>', and the strides banged and
+-- the extents not, as measured: the '<>' form retired 42 to 128
+-- instructions a call more than this, and a bang on the extents 69 to
+-- 162 more, the tie branch being the one most comparisons never reach.
+-- 'sortBy' calls the comparator unknown, so a banged field is an unbox
+-- at every entry.
 byStrideRank :: (Int, Int) -> (Int, Int) -> Ordering
 byStrideRank (!s1, n1) (!s2, n2) = case compare s2 s1 of
   EQ | s1 == 1 -> runRank n2 n1
@@ -817,6 +834,7 @@ unorderedRouteT sh l (T ats ao _) =
 -- Convert to a list of vectors containing altogether the right elements,
 -- but not necessarily in the right order.
 -- This is used for reduction with commutative&associative operations.
+--
 -- This is over-optimized: the dispatch is long, its order of passes is
 -- tuned, and it carries three magic constants read off one machine.
 -- The two milder versions in the commit history --- a one-block test
@@ -824,6 +842,7 @@ unorderedRouteT sh l (T ats ao _) =
 -- already hard to follow and needed a battery of implementation notes
 -- each, so this one is at least really sharp, and the account at
 -- 'unorderedRouteT' says why each piece.
+--
 -- An invariant: the returned list has no empty vectors, an empty
 -- array yielding the empty list; the minimum/maximum operations rely
 -- on it.  The list is produced lazily, as 'toVectorListT''s is, so 'anyT'
