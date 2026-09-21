@@ -264,7 +264,7 @@ canonicalizeT sh ats = canonicalAxesT (zip ats sh)
 -- done: the axes of extent 1 dropped and each remaining axis merged
 -- into the one inside it where its stride is that one's stride times
 -- its extent, folded from the innermost axis out; returned as the
--- shape and the strides.  'unorderedRegimeT' does the same over the
+-- shape and the strides.  'unorderedRouteT' does the same over the
 -- pairs it has sorted, dropping the axes of extent 1 in its own walk.
 canonicalAxesT :: [(Int, Int)] -> (ShapeL, [Int])
 canonicalAxesT ps =
@@ -457,45 +457,54 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
     !oshV  = VU.fromList (init sh)
     !oatsV = VU.fromList (init ats)
 
--- The regime a view falls in once canonicalized, which is what
--- 'toVectorListT', 'toVectorT' and, on the view with its axes
--- reordered, the two unordered entry points dispatch on.  Classified
--- on the canonical dimensions alone, so a unit dimension's arbitrary
--- stride and a reshape's appended dimensions no longer decide it, and
--- neither the offset nor the vector does: whether a slice is the whole
--- vector is 'wholeOrSliceT''s to see, where the vector is handed out.
+-- The route a view takes once canonicalized, what its consumer does
+-- with it, which is what 'toVectorListT', 'toVectorT' and, on the view
+-- with its axes reordered, the two unordered entry points dispatch on.
+-- Classified on the canonical dimensions alone, so a unit dimension's
+-- arbitrary stride and a reshape's appended dimensions no longer decide
+-- it, and the vector never does: whether a slice is the whole vector is
+-- 'wholeOrSliceT''s to see, where the vector is handed out.  Every
+-- route carries the offset it starts at and the element count
+-- (@product sh@), which every caller has in hand, so that a consumer
+-- takes the route and the vector and nothing beside them.
 -- Whether the canonical strides are the natural ones is decided by the
 -- canonical rank alone, so no stride list is built and compared: natural
 -- strides at rank 2 or more are the merge equation of 'canonicalizeT'
 -- holding at every adjacent pair, and after it no pair satisfies that
 -- equation, so a canonical view is natural only at rank 0, or at rank 1
 -- with stride 1.
-data Regime
-  = Slice                  -- the canonical strides are the natural ones:
-                           -- a contiguous slice of the vector, at the
-                           -- offset.  Rank 0 lands here: no dimensions,
-                           -- no strides, the one element at the offset
-  | Runs ShapeL [Int]      -- canonical innermost stride 1 under other
-                           -- dimensions: contiguous runs, one per
-                           -- canonical outer index
-  | Strided ShapeL [Int]   -- any other canonical view: no run longer than
-                           -- one element
+-- The micro-benchmark's 'Route' is this type, field for field.
+data Route
+  = RSlice !Int !Int              -- the canonical strides are the
+                                  -- natural ones: one contiguous slice
+                                  -- of the vector, at the start and of
+                                  -- the count.  Rank 0 lands here: no
+                                  -- dimensions, no strides, one element
+  | RRuns ShapeL [Int] !Int !Int  -- canonical innermost stride 1 under
+                                  -- other dimensions: contiguous runs,
+                                  -- one per canonical outer index, from
+                                  -- the start; the count is not needed
+                                  -- to walk them, and is what they are
+                                  -- filled by where one vector is asked
+  | RFill ShapeL [Int] !Int !Int  -- any other canonical view: no run
+                                  -- longer than one element, so the view
+                                  -- is filled as one vector of the count
 
-{-# INLINE regimeT #-}
-regimeT :: ShapeL -> T v a -> Regime
-regimeT sh (T ats _ _) = regimeOfT (canonicalizeT sh ats)
+{-# INLINE routeT #-}
+routeT :: ShapeL -> Int -> T v a -> Route
+routeT sh l (T ats ao _) = routeOfT ao l (canonicalizeT sh ats)
 
--- The regime of a view given as a canonical shape and strides:
--- 'regimeT' reads it for the view as it is and 'unorderedRegimeT' for
--- the view with its axes reordered.
-{-# INLINE regimeOfT #-}
-regimeOfT :: (ShapeL, [Int]) -> Regime
-regimeOfT canonical = case canonical of
-  ([], _) -> Slice
-  ([_], [1]) -> Slice
+-- The route of a view given as a canonical shape and strides, at a
+-- start offset and of an element count: 'routeT' reads it for the view
+-- as it is and 'unorderedRouteT' for the view with its axes reordered.
+{-# INLINE routeOfT #-}
+routeOfT :: Int -> Int -> (ShapeL, [Int]) -> Route
+routeOfT start l canonical = case canonical of
+  ([], _) -> RSlice start l
+  ([_], [1]) -> RSlice start l
   (csh, cats)
-    | last cats == 1 -> Runs csh cats
-    | otherwise -> Strided csh cats
+    | last cats == 1 -> RRuns csh cats start l
+    | otherwise -> RFill csh cats start l
 
 -- The slices of a view of contiguous runs, one per canonical outer
 -- index in row-major order, produced on demand.  The arguments are the
@@ -515,7 +524,7 @@ regimeOfT canonical = case canonical of
 -- or nil, all known to the compiler, so base's own left folds, 'sum'
 -- among them, see a strict known call and allocate nothing per run.
 -- Entered on a view of canonical rank two or more, which is what
--- 'Runs' means, so there is at least one outer level and one run.
+-- 'RRuns' means, so there is at least one outer level and one run.
 -- The bang on the vector is measured, not style: every use of it sits
 -- under the consumer's cons, so without the bang the walk is lazy in
 -- it, takes it boxed and re-enters it on every run for its length and
@@ -558,10 +567,10 @@ runSlicesT csh cats !start !v cons nil =
 {-# INLINE toVectorListT #-}
 toVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
 toVectorListT sh a@(T _ ao v) = build $ \cons nil ->
-  if l == 0 then nil else regimeSlicesT ao l v (regimeT sh a) cons nil
+  if l == 0 then nil else routeSlicesT v (routeT sh l a) cons nil
   where !l = product sh
 
--- The slice of the vector a 'Slice' regime stands for, at an offset
+-- The slice of the vector an 'RSlice' route stands for, at an offset
 -- and of a length: the vector itself where the slice is all of it, so
 -- that a dense array's conversion hands back no new header.
 {-# INLINE wholeOrSliceT #-}
@@ -570,17 +579,16 @@ wholeOrSliceT ao l v
   | ao == 0 && vLength v == l = v
   | otherwise = vSlice ao l v
 
--- The slices a regime stands for, at an offset into the vector, as the
--- cons and nil of a 'build': one slice of the vector, one slice per
--- run, or the view filled as one vector where no run is longer than
--- one element.
-{-# INLINE regimeSlicesT #-}
-regimeSlicesT :: (Vector v, VecElem v a)
-              => Int -> Int -> v a -> Regime -> (v a -> b -> b) -> b -> b
-regimeSlicesT ao l v regime cons nil = case regime of
-  Slice -> cons (wholeOrSliceT ao l v) nil
-  Runs csh cats -> runSlicesT csh cats ao v cons nil
-  Strided csh cats ->
+-- The slices a route stands for, as the cons and nil of a 'build': one
+-- slice of the vector, one slice per run, or the view filled as one
+-- vector where no run is longer than one element.
+{-# INLINE routeSlicesT #-}
+routeSlicesT :: (Vector v, VecElem v a)
+             => v a -> Route -> (v a -> b -> b) -> b -> b
+routeSlicesT v route cons nil = case route of
+  RSlice ao l -> cons (wholeOrSliceT ao l v) nil
+  RRuns csh cats ao _ -> runSlicesT csh cats ao v cons nil
+  RFill csh cats ao l ->
     -- No slice can be taken.  Fill the result through 'vFillStrided',
     -- whose vector-backed instances write a mutable buffer directly.
     cons (vFillStrided csh cats ao l v) nil
@@ -595,26 +603,26 @@ regimeSlicesT ao l v regime cons nil = case regime of
 -- per-run memcpy measured slower than it on every run length tried.
 {-# INLINE toVectorT #-}
 toVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
-toVectorT sh a@(T _ ao v)
+toVectorT sh a@(T _ _ v)
   | l == 0 = vConcat []
-  | otherwise = regimeVectorT ao l v (regimeT sh a)
+  | otherwise = routeVectorT v (routeT sh l a)
   where !l = product sh
 
--- The vector a regime stands for, at an offset into the vector: one
--- slice of it, or the view filled as one vector, runs included.
--- 'toVectorT' and 'toUnorderedVectorT' both take it.
-{-# INLINE regimeVectorT #-}
-regimeVectorT :: (Vector v, VecElem v a) => Int -> Int -> v a -> Regime -> v a
-regimeVectorT ao l v regime = case regime of
-  Slice -> wholeOrSliceT ao l v
-  Runs csh cats -> vFillStrided csh cats ao l v
-  Strided csh cats -> vFillStrided csh cats ao l v
+-- The vector a route stands for: one slice of the vector, or the view
+-- filled as one vector, runs included.  'toVectorT' and
+-- 'toUnorderedVectorT' both take it.
+{-# INLINE routeVectorT #-}
+routeVectorT :: (Vector v, VecElem v a) => v a -> Route -> v a
+routeVectorT v route = case route of
+  RSlice ao l -> wholeOrSliceT ao l v
+  RRuns csh cats ao l -> vFillStrided csh cats ao l v
+  RFill csh cats ao l -> vFillStrided csh cats ao l v
 
 -- The (absolute stride, extent) pairs of the axes of extent above 1,
 -- in the order given, and the offset of the view's lowest address, in
 -- one walk over the strides and the shape; the view is non-empty,
 -- which the caller has checked, so no extent is 0.  The account after
--- 'unorderedRegimeT' says why one walk and why each of the three.
+-- 'unorderedRouteT' says why one walk and why each of the three.
 absAxesAndStartT :: Int -> [Int] -> ShapeL -> ([(Int, Int)], Int)
 absAxesAndStartT ao = go
   where
@@ -687,19 +695,19 @@ unitThenZero [(1, _), (0, _)] = True
 unitThenZero (_ : axes@(_ : _ : _)) = unitThenZero axes
 unitThenZero _ = False
 
--- The regime of a non-empty view with its axes reordered for a
--- consumer that owes no order, and the offset the reordered view
--- starts at: what the two unordered entry points dispatch on.  The
--- account below says why each piece.
-{-# INLINE unorderedRegimeT #-}
-unorderedRegimeT :: ShapeL -> T v a -> (Int, Regime)
-unorderedRegimeT sh (T ats ao _) =
+-- The route of a non-empty view with its axes reordered for a consumer
+-- that owes no order, from the offset the reordered view starts at:
+-- what the two unordered entry points dispatch on.  The account below
+-- says why each piece.
+{-# INLINE unorderedRouteT #-}
+unorderedRouteT :: ShapeL -> Int -> T v a -> Route
+unorderedRouteT sh l (T ats ao _) =
   let (axes, !start) = absAxesAndStartT ao ats sh
       merged = foldr mergeInto [] (sortBy byStrideRank axes)
       canonical = unzipAxesT (zeroStrideOutermost merged)
-  in  (start, regimeOfT canonical)
+  in  routeOfT start l canonical
 
--- The dispatch of 'unorderedRegimeT', piece by piece.
+-- The dispatch of 'unorderedRouteT', piece by piece.
 --
 -- Overview.  A consumer that folds with a commutative and associative
 -- operation needs the view's elements as a multiset, not in order.  So
@@ -707,7 +715,7 @@ unorderedRegimeT sh (T ats ao _) =
 -- forwards, and the question is only which slices of the vector, taken
 -- together, hold each element as often as the view holds it.  The
 -- answer: sort the axes by stride, merge the axes that are walked as
--- one, move a broadcast axis outermost, and read the regime off what
+-- one, move a broadcast axis outermost, and read the route off what
 -- is left, one slice, runs, or a fill.  The passes over the axes are
 -- ordered so that each sees as few axes as it can, and the account
 -- below takes them in the order they run.
@@ -774,14 +782,14 @@ unorderedRegimeT sh (T ats ao _) =
 -- tie is every pair any order of the axes would have put together; a
 -- view that is one block of the vector has no tie, so it merges to a
 -- single axis of stride 1 and reads as one slice, whatever order its
--- axes came in, and 'regimeOfT' decides that off the merged form with
+-- axes came in, and 'routeOfT' decides that off the merged form with
 -- no stride list built.
 --
 -- Why the zero-stride axis moves outermost, and why after the merge.
 -- A broadcast axis, stride 0, reads the same cells at every index.
--- Sorted by stride it lands innermost, and there it makes the regime a
+-- Sorted by stride it lands innermost, and there it makes the route a
 -- fill, each element copied as many times as the broadcast repeats it.
--- Moved outermost over a unit-stride axis it makes the regime runs:
+-- Moved outermost over a unit-stride axis it makes the route runs:
 -- the runs walk repeats one slice as many times, the same multiset
 -- with nothing copied, and the fill writes the block once and copies it
 -- by doubling.  Decided after the merge, the move is one look
@@ -800,7 +808,7 @@ unorderedRegimeT sh (T ats ao _) =
 -- with a fall-back, then the sorted axes with a guarded move --- were
 -- already hard to follow and needed a battery of implementation notes
 -- each, so this one is at least really sharp, and the account at
--- 'unorderedRegimeT' says why each piece.
+-- 'unorderedRouteT' says why each piece.
 -- An invariant: the returned list has no empty vectors, an empty
 -- array yielding the empty list; the minimum/maximum operations rely
 -- on it.  The list is produced lazily, as 'toVectorListT''s is, so 'anyT'
@@ -811,9 +819,7 @@ toUnorderedVectorListT sh a@(T _ _ v) = build $ \cons nil ->
   -- Under one 'build' with the dispatch inside it, as 'toVectorListT'
   -- is and for the same reason: written as a case returning a list per
   -- branch, a fold over this list would meet the case and never fuse.
-  if l == 0 then nil else
-    case unorderedRegimeT sh a of
-      (start, regime) -> regimeSlicesT start l v regime cons nil
+  if l == 0 then nil else routeSlicesT v (unorderedRouteT sh l a) cons nil
   where !l = product sh
 
 -- Convert to one vector holding all the elements, not necessarily in
@@ -825,8 +831,7 @@ toUnorderedVectorListT sh a@(T _ _ v) = build $ \cons nil ->
 toUnorderedVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
 toUnorderedVectorT sh a@(T _ _ v)
   | l == 0 = vConcat []
-  | otherwise = case unorderedRegimeT sh a of
-      (start, regime) -> regimeVectorT start l v regime
+  | otherwise = routeVectorT v (unorderedRouteT sh l a)
   where !l = product sh
 
 -- Convert from a vector.
