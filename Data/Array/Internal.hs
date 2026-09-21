@@ -29,6 +29,7 @@
 {-# LANGUAGE UndecidableSuperClasses #-}
 module Data.Array.Internal(module Data.Array.Internal) where
 import Control.DeepSeq
+import Control.Exception(assert)
 import Control.Monad.ST(ST)
 import Data.Data(Data)
 import Data.Kind (Type)
@@ -358,14 +359,23 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 -- offset stepped additively, the innermost outer level fused into a
 -- dedicated run loop, and the run fill unrolled by two with its bound on
 -- the output cursor, so it is sound for zero and negative strides.
--- Two zero-stride conditions sit inside it, each decided per level of
--- the odometer and never per element: a run of innermost stride 0 reads
--- its one element once and stores it, and an outer level of stride 0
--- fills the block below it once and copies it onto the level's remaining
--- positions by doubling.
--- Given canonical dimensions ('canonicalizeT') the conditions fire
--- wherever they can; given any other dimensions the fill is still
--- correct.  Written once against 'Data.Vector.Generic', which supplies
+--
+-- Two zero-stride conditions sit inside it, each decided per level
+-- of the odometer and never per element: a run of innermost stride
+-- 0 reads its one element once and stores it, and an outer level
+-- of stride 0 fills the block below it once and copies it onto the
+-- level's remaining positions by doubling.  Given canonical dimensions
+-- ('canonicalizeT') the conditions fire wherever they can; given any
+-- other dimensions the fill is still correct.
+--
+-- The count must be positive, asserted at entry: a zero-stride run
+-- reads its one element, and a zero-stride level writes its run or
+-- block, before reading the extent, so a zero extent would read past
+-- the source or write into an empty result.  Every entry point of this
+-- module returns the empty vector or list before routing an empty view
+-- here, and a caller of 'vFillStrided' from outside owes the same.
+--
+-- Written once against 'Data.Vector.Generic', which supplies
 -- the mutable machinery orthotope's own 'Vector' class deliberately does
 -- not; each vector-backed instance reuses it verbatim.  Ported
 -- bang-for-bang from the fastest fill of the micro-benchmark preserved
@@ -390,7 +400,7 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 {-# INLINABLE genericFillStrided #-}
 genericFillStrided :: forall w a. (VG.Vector w a)
                    => ShapeL -> [Int] -> Int -> Int -> w a -> w a
-genericFillStrided sh ats !ao !l !v = VG.create fill
+genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
  where
   fill :: forall s. ST s (VG.Mutable w s a)
   fill = do
