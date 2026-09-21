@@ -4372,6 +4372,17 @@ data Route = RBlock !Int !Int          -- start and length of one slice
            | RRuns ShapeL [Int] !Int   -- sorted canonical dims, run start
            | RFill ShapeL [Int] !Int !Int  -- dims, start, length
 
+-- The slice a block route stands for, the vector itself where the block
+-- is all of it: two comparisons in place of a slice header's
+-- allocation, in the two arms that hand the vector out, the list's and
+-- the fill's.  The sum arms keep the slice, which under their fold is a
+-- known constructor and never allocated.
+wholeOrSlice :: Int -> Int -> VS.Vector Double -> VS.Vector Double
+wholeOrSlice o l v
+  | o == 0 && VS.length v == l = v
+  | otherwise = VS.slice o l v
+{-# INLINE wholeOrSlice #-}
+
 -- In build form with the route's case INSIDE the 'build', so that a
 -- fold applied to this list meets the 'build' whichever branch the
 -- route takes: written as a case returning a list per branch, the fold
@@ -4379,13 +4390,13 @@ data Route = RBlock !Int !Int          -- start and length of one slice
 -- 'libunord-stage6-list-sum' read on 2026-09-09, 160 bytes a run.
 listRoute :: Route -> VS.Vector Double -> [VS.Vector Double]
 listRoute r v = build $ \cons nil -> case r of
-  RBlock o l -> cons (VS.slice o l v) nil
+  RBlock o l -> cons (wholeOrSlice o l v) nil
   RRuns ssh sats o -> lazyRunsFB ssh sats o v cons nil
   RFill ssh sats o l -> cons (fillStage2 ssh sats o l v) nil
 {-# INLINE listRoute #-}
 
 fillRoute :: Route -> VS.Vector Double -> VS.Vector Double
-fillRoute (RBlock o l) v = VS.slice o l v
+fillRoute (RBlock o l) v = wholeOrSlice o l v
 fillRoute (RRuns ssh sats o) v = concatLazyRuns ssh sats o v
 fillRoute (RFill ssh sats o l) v = fillStage2 ssh sats o l v
 
