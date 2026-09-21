@@ -12,6 +12,16 @@
 -- checks each really is one, and the @check@ main mode asserts all
 -- strategies agree.
 --
+-- The words for a view's pieces are the library's, defined at the 'T'
+-- haddock of Data/Array/Internal.hs on pr-mikolaj-toVectorListT: a
+-- walk is one traversal of the innermost axis; an innermost run is
+-- what one walk yields, consecutive in the result whatever its stride;
+-- a contiguous run is a stretch consecutive in the source and in the
+-- view's order, which an innermost run is at stride 1. Unqualified, run
+-- means the innermost run in a fill's comments and the contiguous run
+-- in a route's, and a benchmark run is written Run 27, or capitalised
+-- where a sentence would otherwise read two ways.
+--
 -- The strategies are defined below in the four families README.md groups them
 -- into, base before variant; 'roster' holds the different order they are RUN
 -- in, and is the one list both the benchmark and @check@ are built from.
@@ -3393,23 +3403,22 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
 
 -- The fill the library's 'genericFillStrided' is ported from, at
 -- Storable Double, the two kept in step by hand: the library is
--- Data/Array/Internal.hs on the branch speedup-strided-tovector, and on
--- 2026-09-19, at that file's 570a485, its copy read identical to this
--- one body for body, the generic wrapper and its local type signatures
--- aside. The copy on pr-mikolaj-toVectorListT is NOT this fill: it
--- stands at its 2026-08-30 form (d7b9086), one copy per block and the
--- broadcast run one write per iteration, before the doubling copy and
--- the broadcast unroll of 2026-09-09. 'check' holds this one to
--- the reference on every view. The two zero-stride bodies say at their
--- definitions what each buys, and the fills that keep older forms say
--- so at theirs.
--- The fills take @l > 0@, asserted at each entry: a zero-stride run
--- reads its one element, and a zero-stride level writes its run or
--- block, before reading the extent, so a zero extent there would read
--- past the source or write into an empty result. Every dispatch guards
--- @l == 0@ before calling one, the stage-1 ports since 2026-09-21; the
--- degenerate and @edge-bcastmid-b0@ views are where @check@ fails when one
--- does not.
+-- Data/Array/Internal.hs on the branch speedup-strided-tovector, and
+-- on 2026-09-19, at that file's 570a485, its copy read identical to
+-- this one body for body, the generic wrapper and its local type
+-- signatures aside. The copy on pr-mikolaj-toVectorListT is NOT this
+-- fill: it stands at its 2026-08-30 form (d7b9086), one copy per block
+-- and the broadcast run one write per iteration, before the doubling
+-- copy and the broadcast unroll of 2026-09-09. 'check' holds this one
+-- to the reference on every view. The two zero-stride bodies say at
+-- their definitions what each buys, and the fills that keep older forms
+-- say so at theirs. The fills take @l > 0@, asserted at each entry: a
+-- zero-stride innermost run reads its one element, and a zero-stride
+-- level writes its innermost run or block, before reading the extent,
+-- so a zero extent there would read past the source or write into an
+-- empty result. Every dispatch guards @l == 0@ before calling one, the
+-- stage-1 ports since 2026-09-21; the degenerate and @edge-bcastmid-b0@
+-- views are where @check@ fails when one does not.
 {-# NOINLINE fillStage2 #-}
 fillStage2 :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
            -> VS.Vector Double
@@ -3429,12 +3438,12 @@ fillStage2 sh ats !ao !l !v = assert (l > 0) $ VS.create $ do
                   inner (o + 2) (src' + tInner)
         in  inner outPos baseOff
       -- Unrolled by two as the stepping run is, since 2026-09-09: one
-      -- write and a compare per element read 1.20 of master's leaf fill
-      -- at a run of 2, bcast-tall-Mx2, on Run 27. 'fillStage2U1' keeps
-      -- the one-per-iteration body, so the u1 pair prices this unroll
-      -- on the broadcast views as it prices the stepping one elsewhere.
-      -- Non-vacuity, 2026-09-09: dropping the second write fails @check@
-      -- at @bcast-inner8@.
+      -- write and a compare per element read 1.20 of master's leaf
+      -- fill at an innermost run of 2, bcast-tall-Mx2, on Run 27.
+      -- 'fillStage2U1' keeps the one-per-iteration body, so the u1 pair
+      -- prices this unroll on the broadcast views as it prices the
+      -- stepping one elsewhere. Non-vacuity, 2026-09-09: dropping the
+      -- second write fails @check@ at @bcast-inner8@.
       {-# INLINE writeRunSet #-}
       writeRunSet !outPos !baseOff =
         let !x = VS.unsafeIndex v baseOff
@@ -6378,7 +6387,7 @@ tooBig =
 -- and not only in the one that happens to read the list it guards.
 -- Non-vacuity: lower 'sizeCap', or move one 'tooBig' entry into
 -- 'convShapes', and every mode dies at startup -- run with the cap at
--- 1000000, where @check@, @diag@ and a benchmark run each exited 1 on
+-- 1000000, where @check@, @diag@ and a benchmark Run each exited 1 on
 -- AssertionFailed rather than one of them passing.
 partitioned :: Bool
 partitioned = all ((<= sizeCap) . product . snd) allShapes

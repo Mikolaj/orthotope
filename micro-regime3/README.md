@@ -38,6 +38,16 @@ the result with a single `vGenerate` doing **one** `quotRem` per element.
 It beats the original `list` fallback on every benchmarked shape
 with no regression and needs no extension to orthotope classes.
 
+The words for a view's pieces are the library's, defined at the `T` haddock
+of `Data/Array/Internal.hs` on `pr-mikolaj-toVectorListT`: a *walk* is one
+traversal of the innermost dimension; an *innermost run* is what one walk
+yields, consecutive in the result whatever its stride; a *contiguous run*
+is a stretch consecutive in the source and in the view's order, which
+an innermost run is at stride 1. Unqualified, *run* means the innermost run
+in fill prose and the contiguous run in route prose, and a benchmark run
+is written Run 27, or capitalised where a sentence would otherwise read two
+ways.
+
 **A direct mutable result buffer is faster still**: `mut-odo` walks the outer
 odometer and writes each innermost run, and `mut-odo-vecdims` --- the same fill
 with its dimension lists replaced by unboxed vectors --- is on Run 37 (plain
@@ -443,7 +453,7 @@ the chronology of how the instructions got here.
 - [About the current harness](#about-the-current-harness)
   - [What the benchmark does](#what-the-benchmark-does)
   - [Running it](#running-it)
-  - [Making a major benchmark run](#making-a-major-benchmark-run)
+  - [Making a major benchmark Run](#making-a-major-benchmark-run)
   - [Other toolchains, probed and not run](#other-toolchains-probed-and-not-run)
   - [The reader: read-run.py](#the-reader-read-runpy)
   - [Reading a run file](#reading-a-run-file)
@@ -526,7 +536,7 @@ by being a thing a later session might otherwise redo.
   list][open]; the rest is [in the floor section][floor], including why the shim
   must pad only between instructions. Two tools beside this file:
   `loop-offsets.py` reads a binary's copies, which makes the question a minute's
-  work rather than a run's, and `align-as.py` is the shim; a paired run's two
+  work rather than a run's, and `align-as.py` is the shim; a paired Run's two
   binaries are built from the recipes its own note carries, one per half. Both
   this and the recompilation trap beside it are written up and filed as GHC
   issues from horde-ad's `docs/`, which is where a reader outside this README
@@ -2223,7 +2233,7 @@ rather than a slot in the next run, observed again:
   path, a tracked loop's cache-line offset --- are both unavailable,
   and the arms that used to price placement directly were parked the same day.
   **BOTH TAKEN 2026-09-05, and the term is `list`'s own.** The roster-length
-  reading wanted no new run: the alone-leg riders time each shape's `list`
+  reading wanted no new Run: the alone-leg riders time each shape's `list`
   by itself, a roster of ONE against the main set's twenty-four. Cross-half
   `list` reads **1.0104** clean and **1.0079** saturated at one bench a process
   against 1.0107 raw at twenty-four, over the same eighteen shapes: nothing
@@ -3288,7 +3298,7 @@ rather than a slot in the next run, observed again:
   raised the question --- the paragraph that used to state such movements
   under the class table was cut on 2026-08-22 for quoting the previous run's,
   and its subject is here instead. **The measurement it registered was taken
-  2026-08-23, wanting no quiet machine and no new run, and the first branch
+  2026-08-23, wanting no quiet machine and no new Run, and the first branch
   fired.** The floor is a MAX over the A/A pairs, so a half with one wild cell
   carries a wider one at the same dispersion; read the median A/A deviation per
   half beside it, over the same JSONs, and the two halves are alike ---
@@ -3430,7 +3440,7 @@ rather than a slot in the next run, observed again:
   on 2026-09-06 is parked under a `.partial-interrupted` suffix and is no part
   of the above. **AND THE HEADLINE PATTERN HAS NOT CONTINUED, counted 2026-09-07
   over Runs 24, 25 and 26 off artifacts already on disk, which wanted no machine
-  and no new run**: over those three runs' 32 population-pairs the basis
+  and no new Run**: over those three Runs' 32 population-pairs the basis
   is the wider half in **13 of 32**, against the 24 of 32 Runs 15 to 18 gave,
   so pooled it is 37 of 64 and the asymmetry this entry is named for has
   been absent for three runs. **No position term is visible in them either.**
@@ -3656,7 +3666,7 @@ rather than a slot in the next run, observed again:
   **Run 11 had no unaligned half, and the check was left alone rather
   than widened --- the reading is that this was right.** Its two columns
   are `Run 11 (SpecConstr, aligned)` and `Run 11 (SpecConstr, max-skip)`,
-  and `--check-doc` passes on them, the rule asking that a paired run publish
+  and `--check-doc` passes on them, the rule asking that a paired Run publish
   a column per half and not one. Widening it was the alternative and is refused:
   the check would then have to know which half names count as a counterpart,
   which is a list that grows with every pair and is wrong the first time one
@@ -5778,16 +5788,17 @@ unchanged on a fast pure path, and the three vector-backed instances override
 it with `genericFillStrided`, written once against `Data.Vector.Generic`, which
 supplies the mutable machinery orthotope's own `Vector` class deliberately does
 not: an allocate-once output, the odometer with the input offset stepped
-additively, the innermost outer level fused into a dedicated run loop,
-and the run fill unrolled by two with its bound on the output cursor, so
-it is sound for zero and negative strides; since 2026-09-11 a run at innermost
-stride 0 reads its element once, and a zero-stride outer level is filled once
-and copied onto its remaining positions by doubling. The bang patterns
-are performance-essential, ported with the loop structure from the benchmarked
-arm; the shipped file does not set `-fspec-constr` --- the aligned HEAD probe
-read the flag irrelevant to the shipped family, the two builds agreeing to three
-decimals ([the ceiling](#the-mutable-ceiling-taken)) --- while it stays
-the regime every figure behind the decision was measured in.
+additively, the innermost outer level fused into a dedicated loop
+over the innermost runs, and the innermost-run fill unrolled by two
+with its bound on the output cursor, so it is sound for zero and negative
+strides; since 2026-09-11 an innermost run at stride 0 reads its element once,
+and a zero-stride outer level is filled once and copied onto its remaining
+positions by doubling. The bang patterns are performance-essential, ported
+with the loop structure from the benchmarked arm; the shipped file does not set
+`-fspec-constr` --- the aligned HEAD probe read the flag irrelevant
+to the shipped family, the two builds agreeing to three decimals ([the
+ceiling](#the-mutable-ceiling-taken)) --- while it stays the regime every figure
+behind the decision was measured in.
 
 Validation on this branch:
 
@@ -6915,7 +6926,7 @@ it is worth that in time is the twenty-second reading's, below.
 of registering it --- and it moves the twentieth's prediction the other way
 while refuting the nineteenth's RATE.** (The two pointer fills,
 `mut-odo-vecdims-add-in-leaf-u1-ptr` and `-u2-ptr`, on the timed roster
-of a full paired run: the same two leaf fills rewritten to walk a `Ptr`, which
+of a full paired Run: the same two leaf fills rewritten to walk a `Ptr`, which
 is the source-side way to take out the `0x40(%rsp)` reload the twentieth reading
 found, and not the patched compiler that reading registered for. They are timed
 as a CEILING and are still refused for the library, [dead ideas][dead].)
@@ -7720,10 +7731,10 @@ is no longer: Run 8 is a full recorded run in that regime, and the flag
 therefore goes before the `--` of every command of the sequence rather
 than being reached for once. A run whose numbers are meant to be kept
 and written into this file is a different undertaking, and has a procedure
-of its own: [Making a major benchmark run](#making-a-major-benchmark-run).
+of its own: [Making a major benchmark Run](#making-a-major-benchmark-run).
 
 
-### Making a major benchmark run
+### Making a major benchmark Run
 
 **FIRST, THE TWO COMMANDS THAT SPARE YOU MOST OF THIS CHAPTER.** The list you
 owe prints alone, and the disk says what is already done, so neither is a thing
@@ -8538,7 +8549,7 @@ Unsandboxed throughout:
     #      THERE IS NO `or the whole note` BRANCH: a note without an
     #      [EXEC] block is a note `--note-check` refuses at pre-run 12c,
     #      so by the time this step reads one the block is there
-    #      why: --para 'A paired run has one gate more'
+    #      why: --para 'A paired Run has one gate more'
     ./read-run.py --section 'What this run was built to answer' \
       --run-doc runs/$PREV.md             # 13a, AND EVERY OTHER READING
     #      THIS LIST OWES, HERE AND NOT INSIDE THE EVENING BELOW. Read
@@ -8690,7 +8701,7 @@ Unsandboxed throughout:
     #      once the evening has landed, the driver going on without it. A
     #      gate that FAILED mechanically stopped the driver instead, and
     #      that is the apparatus: read run-gate.sh's block in the note
-    #      why: --para 'A paired run has one gate more'
+    #      why: --para 'A paired Run has one gate more'
     #  16. THE ALARM, its second stage: two reads of /proc/stat two seconds
     #      apart, refused above 5% non-idle, MAXBUSY overriding -- the
     #      reading the riders take. An alarm and never a permission: the
@@ -9045,7 +9056,7 @@ thing that moves them. Seconds, and the seconds after a rebuild the flag forces
 anyway. It is the only check standing between a mistyped regime and a run
 that refutes the design it was built to test.
 
-**A paired run adds a second binary, and both are built and checked before
+**A paired Run adds a second binary, and both are built and checked before
 either is timed.** Alignment is not a regime flag: it arrives on `-pgma`, GHC
 notices neither that nor `-fproc-alignment`, and a rebuild between the two
 halves would put back the very effect the pairing measures. That is why the two
@@ -9160,7 +9171,7 @@ in `pair-note-template.txt` had fallen four tags short of the notes' by Run 35.
 A note names its own two halves and points here for the rest.
 
 **Name the artifacts by half, and drive every `--in-place` from the basis
-half.** The sequence below builds every filename off `$R`, which a paired run
+half.** The sequence below builds every filename off `$R`, which a paired Run
 has to split: one `$R-<half>-main.json` per half, and the class files
 `$R-<basis>-$c.json`, there being no others --- the infix being the binary's own
 name, so an artifact cannot be traced to the wrong half. **One scheme covers
@@ -9232,7 +9243,7 @@ them as a loop: after the trim came out, `--pair` and `--aa` both died on a name
 a removal had taken with it while `check`, `--lint`, `--check-doc`
 and `--selftest` all passed, the failure living in the two modes nobody had
 thought to run. The second file exists for `--compare`, the reader's only
-two-run mode and the one a paired run is read with, and it is the only point
+two-run mode and the one a paired Run is read with, and it is the only point
 before the evening at which the *other* half writes a JSON at all; a pair whose
 halves turn out not to be comparable has cost the hours twice. Modes are cheap
 to run and expensive to be missing, and the run artifact is the only thing
@@ -9291,7 +9302,7 @@ not a substitute for post-run step 6b's independent reader: a positional series,
 a compression and a call graph are what a session re-reading its own prose reads
 past.
 
-**A paired run has one gate more, and the first thing to do about it is read
+**A paired Run has one gate more, and the first thing to do about it is read
 rather than run it. The gate belongs to the pair, not to the session**, which
 is what stops it being paid for twice: re-running it on a pair that has passed
 costs a quiet forty minutes and can only reproduce what the note says,
@@ -9554,7 +9565,7 @@ not otherwise.
     #      The naming is what the step is FOR and reads like housekeeping:
     #      it turns `[0, 24, 0, 4]` into four arms, which is the only form
     #      in which an offset this README quotes can be tied to one.
-    #      Owed by every paired run: rebuild each recipe with -g3, export
+    #      Owed by every paired Run: rebuild each recipe with -g3, export
     #      the NAMED fills into the note, match groups by byte identity
     #      of the loop body and never by proximity, and read the count
     #      check -- a group whose twin carries fewer copies than the
@@ -10421,7 +10432,7 @@ because by then the run read finished; putting it first is what retires that.
    the open list already carries whose measurement is a compile, an allocation
    or an arithmetic re-derivation, and take it now --- the questions this run
    raises are step 10's and get their turn there. **The named fills are the one
-   owed by every paired run**: `loop-offsets.py` names a copy only in a `-g3`
+   owed by every paired Run**: `loop-offsets.py` names a copy only in a `-g3`
    build, bare offsets are what the note records otherwise, and the map
    is a property of the binary, so once the binaries go no offset this README
    quotes can ever be tied to an arm again. **What the step has produced, which
@@ -10518,7 +10529,7 @@ section](#the-reader-read-runpy) first, and do not write another reader.
 **The properties are part of this and are the thing these steps are likeliest
 to leave out**: they are the same job three times a population, off the verdicts
 `--block` emits, and the set is restated for the next run on this run's basis
-while the readings are still in front of you. **A paired run's own mode
+while the readings are still in front of you. **A paired Run's own mode
 is `--compare`**, and its direction is the list's convention: the run given
 first is the one the ratios are *of*, so `basis --compare control` puts a figure
 below 1 where the basis is faster, which for Run 10 was where alignment
@@ -10606,7 +10617,7 @@ already drifted between runs.
    already here for adjudication. Only a movement past the floor earns
    a sentence.
 6a, whose reasons these are since the recording moved there. **The commit
-the binary was built from** is transcribed for a paired run
+the binary was built from** is transcribed for a paired Run
 from `<prefix>-pair.txt`, which carries the commit, the regime, the GHC and both
 md5s because this step asks for them --- the GHC only since 2026-08-16,
 the template having had no slot for it and Run 14's note therefore having none,
@@ -10949,7 +10960,7 @@ size comes from the reader's first line;
     a probe narrowed is left as narrowed.
 11. **Only then, offer the artifacts for deletion --- once --- and abide
     by the answer.** The JSONs, the logs and the wall-clock file, and
-    for a paired run the two binaries and their `$R-pair.txt` with them,
+    for a paired Run the two binaries and their `$R-pair.txt` with them,
     that note being about a pair and worth little once the pair is gone.
     The offer comes after the verification is presented and not after
     the writing --- Run 6's artifact went as soon as its write-up was drafted,
@@ -13751,7 +13762,7 @@ agree that nothing else happened: 112 loops either way, none straddling
 in either, and the count at offset 0 going 58 to 57. So the question those 27
 raise is not what NOPs cost. It is whether one more aligned loop is worth
 re-rolling the placement of everything downstream of it, which is the term
-this README prices at a few percent and cannot predict --- a paired run's
+this README prices at a few percent and cannot predict --- a paired Run's
 to answer if anyone wants it answered.
 
 **So building everything with `-g3` is refuted, and a `-g3` build is a twin
@@ -15188,7 +15199,7 @@ is the failure this list was rewritten to escape.
   controls now disagree about between runs, and the `build`/`mut-odo` pair read
   as a second control;
 - [the opening section][opening]'s headline ratios and its regime paragraph;
-- [Making a major benchmark run](#making-a-major-benchmark-run), whose figures
+- [Making a major benchmark Run](#making-a-major-benchmark-run), whose figures
   are worked examples inside its own steps, which a run does not requote, only
   reads to see that each still illustrates the step it sits in; the pinning
   claim's record is [the floor section][floor]'s and not the chapter's, since
@@ -15287,7 +15298,7 @@ one of them, that is a finding worth its own paragraph, not an edit to be folded
 in quietly.
 
 How a run is made, and what to record beside its numbers, is [Making a major
-benchmark run](#making-a-major-benchmark-run) --- which is also where the walk
+benchmark Run](#making-a-major-benchmark-run) --- which is also where the walk
 of the list above is one of the steps.
 
 [achieved]: #how-the-strictly-positive-picture-was-achieved
