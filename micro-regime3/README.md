@@ -7399,22 +7399,23 @@ first, the two that did not die on paper at all:
   lazy list and another to a one-element list --- the laziness lost
   with the move is permitted; what is not is a pattern itself made less lazy.
   What the ruling forecloses is the fill half of `libunord-stage3`'s library
-  form, whose dispatch half stands on its own; the arm stays rostered
-  as the ceiling of what that fill would buy. What it does not reach
-  is `toVectorT`, strict whichever way it is built: the branch's fill
-  of contiguous runs there --- `lib-stage2`'s route, `lib-stage2-lean`'s
-  under the lean dispatch and `lib-stage2-disp`'s below `dispRun` --- stands
-  or falls on the runs class and not on this ruling, which a draft of this entry
-  had it under until the function's strictness was read against it the same day.
-  The branch's `Runs` regime builds its base-offset table whole,
-  by `runBaseOffsetsT`, before the first slice --- the same kind of step,
-  on the run count rather than the size, and outside the exception, the pattern
-  itself changing. No timed arm can see either, every arm being forced whole
-  through a sum; what sees it, since the same day, is `check`'s laziness gate,
-  which forces the head of each list producer on 200000 runs and requires
-  the two ports of the branch to fail it, and what prices it for the consumer
-  is the `-sum` arms ([the stride
-  classes](#the-stride-classes-and-what-they-cover)).
+  form, whose dispatch half stands on its own; the arm stayed rostered
+  as the ceiling of what that fill would buy until 2026-09-23, when it went
+  with the other vector forms of the list entry points' stages, and its consumer
+  `libunord-stage3-sum` stays. What it does not reach is `toVectorT`, strict
+  whichever way it is built: the branch's fill of contiguous runs there ---
+  `lib-stage2`'s route, `lib-stage2-lean`'s under the lean dispatch
+  and `lib-stage2-disp`'s below `dispRun` --- stands or falls on the runs class
+  and not on this ruling, which a draft of this entry had it under until
+  the function's strictness was read against it the same day. The branch's
+  `Runs` regime builds its base-offset table whole, by `runBaseOffsetsT`, before
+  the first slice --- the same kind of step, on the run count rather
+  than the size, and outside the exception, the pattern itself changing.
+  No timed arm can see either, every arm being forced whole through a sum; what
+  sees it, since the same day, is `check`'s laziness gate, which forces the head
+  of each list producer on 200000 runs and requires the two ports of the branch
+  to fail it, and what prices it for the consumer is the `-sum` arms ([the
+  stride classes](#the-stride-classes-and-what-they-cover)).
 - **Cutting a run longer than a constant C into runs of C in the unordered list,
   sketched on 2026-09-16 as a stage twelve over stage eleven, before that name
   went to the run-length tie-break, so that the one-accumulator consumer's chain

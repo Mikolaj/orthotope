@@ -13,7 +13,7 @@ the sorted shape's natural ones, stage two the ABSOLUTE values of the
 canonical ones -- so `rev`, whose every stride is negated, is one block
 for stage two and is not for stage one.
 
-Both predicates are ports of `fbLibUnordStage1` and `fbLibUnordStage2`
+Both predicates are ports of `lsUnordStage1` and `lsUnordStage2`
 in Main.hs, `canonView` and `getStridesT` with them.  THAT IS THE ONE
 THING TO RE-READ WHEN EITHER MOVES: this file is a copy of four
 definitions and nothing warns it if the originals change.  It is a probe
