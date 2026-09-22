@@ -8922,13 +8922,16 @@ RECORDS = [
     # comparison and supplied no tool until 2026-09-22, so every run
     # hand-rolled it; Run 38 wrote the script twice in one session.
     case('lost-paragraph-is-reported-and-a-rewritten-one-is-not',
-         'read-run.py', None,
+         'read-run.py', 'a40f7b8',
          'a paragraph a scripted edit removed passed every gate here',
          plant=lost_pair,
          argv=['--lost', '--run-doc', '{doc}'],
          ok=V(exit=0, has=['1 WENT BY COUNT', 'The regime was confirmed'],
               hasnt=['straddling loops',
-                     'no paragraph went by count in either document'])),
+                     'no paragraph went by count in either document']),
+         # Before the mode there was nothing to run: argparse refuses the
+         # flag, which is what `every gate here` amounted to.
+         bug=V(exit=2, hasnt=['WENT BY COUNT'])),
 
     # The control: the same edit with nothing removed, on which the mode
     # must find nothing -- a rewritten lead over the same body is
@@ -9668,12 +9671,14 @@ RECORDS = [
     # 2.42% and the eleventh, the main set's, carried the rest -- and the
     # session learned that by hand-rolling a loop over twenty-two logs,
     # because the block prints a spread and no names.
-    case('plateau-spread-names-no-process', 'read-all.sh', None,
+    case('plateau-spread-names-no-process', 'read-all.sh', 'a40f7b8',
          "a half's one outlier was indistinguishable from a half that drifted",
          plant=plateau_two_halves,
          argv=['{tag}'],
          ok=V(has=['within o2half', 'lowest o2half-rev, highest o2half-slice',
-                   'within lookrts', 'lowest lookrts-rev, highest lookrts-slice'])),
+                   'within lookrts', 'lowest lookrts-rev, highest lookrts-slice']),
+         bug=V(has=['within o2half'],
+               hasnt=['lowest o2half-rev, highest o2half-slice'])),
 
     case('aa-worst-cell-is-not-an-insitu-row', 'read-all.sh', '8ee1e5b',
          'with every twin filtered out an in-situ row was read as the A/A',
@@ -11927,7 +11932,7 @@ RECORDS = [
     # `--block`, with `summary bolds` deciding the emphasis on the
     # unrounded values.
     case('install-leaves-the-cross-class-summary-untouched',
-         'install-tables.sh', None,
+         'install-tables.sh', 'a40f7b8',
          'ten rows of figures the class blocks already carried were'
          ' transcribed by hand, and the bolding with them',
          plant=rundoc_with_a_defaced_summary,
@@ -11946,7 +11951,8 @@ RECORDS = [
          # is the one marker that would mean a row went unfilled.
          ok=V(has=['10 cross-class summary row(s) installed',
                    'in the order the table already had'],
-              hasnt=['LEFT STANDING'])),
+              hasnt=['LEFT STANDING']),
+         bug=V(hasnt=['cross-class summary row(s) installed'])),
 
     case('install-notes-a-one-half-run', 'install-tables.sh', None,
          'CONTROL: no other half and no paragraph to leave standing is a'
