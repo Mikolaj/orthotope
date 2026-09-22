@@ -722,21 +722,28 @@ routeVectorT v route = case route of
   RFill axes ao l -> vFillStrided axes ao l v
 
 -- The (absolute stride, extent) pairs of the axes of extent above 1,
--- in the order given, and the offset of the view's lowest address, in
--- one walk over the strides and the shape; the view is non-empty,
--- which the caller has checked, so no extent is 0.  The account after
--- 'unorderedRouteT' says why one walk and why each of the three.
-absAxesAndStartT :: Int -> [Int] -> ShapeL -> ([(Int, Int)], Int)
-absAxesAndStartT ao = go
+-- in reverse of the order given, and the offset of the view's lowest
+-- address, in one walk over the strides and the shape; the view is
+-- non-empty, which the caller has checked, so no extent is 0.  The
+-- offset is a strict field, so the loop carries a number and not a
+-- chain of additions, and the accumulator is the result itself.  The
+-- reversal is nothing to the sort behind it: the only order
+-- 'byStrideRank' leaves to the sort's stability is between two axes
+-- of one absolute stride and one extent, which 'mergeInner' treats
+-- alike whichever comes first.  The account after 'unorderedRouteT'
+-- says why one walk and why each of the three.
+data AxesStart = AxesStart [(Int, Int)] !Int
+
+absAxesAndStartT :: Int -> [Int] -> ShapeL -> AxesStart
+absAxesAndStartT ao = go (AxesStart [] ao)
   where
-    go :: [Int] -> ShapeL -> ([(Int, Int)], Int)
-    go (s : ss) (n : ns)
-      | n == 1 = go ss ns
-      | s < 0 = case go ss ns of
-          (axes, !start) -> ((negate s, n) : axes, start + (n - 1) * s)
-      | otherwise = case go ss ns of
-          (axes, !start) -> ((s, n) : axes, start)
-    go _ _ = ([], ao)
+    go :: AxesStart -> [Int] -> ShapeL -> AxesStart
+    go acc@(AxesStart axes start) (s : ss) (n : ns)
+      | n == 1 = go acc ss ns
+      | s < 0 = go (AxesStart ((negate s, n) : axes) (start + (n - 1) * s))
+                   ss ns
+      | otherwise = go (AxesStart ((s, n) : axes) start) ss ns
+    go acc _ _ = acc
 {-# INLINE absAxesAndStartT #-}
 
 -- Absolute stride descending; on a tie at stride 1 the length 'runRank'
@@ -801,7 +808,7 @@ zeroStrideOutermost axes = axes
 {-# INLINE unorderedRouteT #-}
 unorderedRouteT :: ShapeL -> Int -> T v a -> Route
 unorderedRouteT sh l (T ats ao _) =
-  let (axes, !start) = absAxesAndStartT ao ats sh
+  let AxesStart axes start = absAxesAndStartT ao ats sh
       merged = InnerFirst (foldl' mergeInner [] (sortBy byStrideRank axes))
   in  routeOfT start l (zeroStrideOutermost merged)
 
