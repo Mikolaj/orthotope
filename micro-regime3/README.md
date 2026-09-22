@@ -13720,18 +13720,26 @@ permits cost nothing this instrument can see on fills and references --- on one
 reducer's per-run loop they cost 7 percent, the next paragraph, which confirms
 the verdict rather than moving it --- and the pads the exit span adds cost
 nothing either; A is the simpler rule and is the candidate for the next basis,
-the entry count staying in the shim, off, with the sweep beside it for the day
-a cell contradicts this. **The same on HEAD, the same afternoon**: the two costs
-built through `cabal.project.ghead` read level on the same thirteen cells,
-medians 0.9917 to 1.0071 with per-cell ranges of one to three percent
-and `compose-scalar`'s of thirteen, while the exit span moves 527 of HEAD's 1860
-heads on the tree of that afternoon, 1901 heads once stage 11 landed,
-and the entry count 1378 more, and B crosses over half again as many windows
-on 557 of 1970 large cells. And the fix itself, the exit-span half against Run
-32's own HEAD binary in the same window --- two trees, that binary being the day
-before's, with the fill's head read by shape at 9 in it and 0 in the exit-span
-half, and the entry count's and block rules' halves reading the same 0.93
-against it: that binary reads slower by **1.0894** on `stretch-wide-2xM`, 1.0785
+the entry count staying in the shim, off, with the sweep beside it. The cell
+that contradicts it came on 2026-09-22, and the other way round:
+`probe-r38-sweep.py`, the sweep over Run 38's fill loop on `stretch-wide-2xM`,
+reads residue 0 at four op-cache fetches a run and 3.8 to 4.7 cycles in every
+page line and process read, against three fetches at residues 2 to 13, two
+of which, 3 and 4, read 6 to 9 cycles in most page lines and 5.5 to 7.1 across
+eight processes of one binary --- so the fewest fetches are not the cheapest
+residue, the count would move the head off the one placement every reading
+holds, and the exit span's free band, 0 to 13, holds both bad residues too.
+**The same on HEAD, the same afternoon**: the two costs built through
+`cabal.project.ghead` read level on the same thirteen cells, medians 0.9917
+to 1.0071 with per-cell ranges of one to three percent and `compose-scalar`'s
+of thirteen, while the exit span moves 527 of HEAD's 1860 heads on the tree
+of that afternoon, 1901 heads once stage 11 landed, and the entry count 1378
+more, and B crosses over half again as many windows on 557 of 1970 large cells.
+And the fix itself, the exit-span half against Run 32's own HEAD binary
+in the same window --- two trees, that binary being the day before's,
+with the fill's head read by shape at 9 in it and 0 in the exit-span half,
+and the entry count's and block rules' halves reading the same 0.93 against it:
+that binary reads slower by **1.0894** on `stretch-wide-2xM`, 1.0785
 on `stretch-tab7MB`, 1.0480 on `runs-2` and 1.0385 on `runs-4`, gross cycles
 an iteration on the lean fill, nine pairs each and every pair above 1.02,
 with the shipped leaf on `cnn-L2-24x24-c32` at 0.9981, its loop not having
