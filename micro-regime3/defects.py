@@ -959,6 +959,36 @@ def phantom2_listing(tmp):
     return {'dis': path}
 
 
+def listing_with_eleven_straddlers(tmp):
+    """A listing whose straddler and exit-span lists both overflow.
+
+    ELEVEN sites, because both listings stop at ten and a fixture of ten
+    says nothing about a listing that truncates. Synthetic where the two
+    above are captured: each captured site carries one loop, and a binary
+    with eleven of them dies at the deletion offer. Each site is the
+    smallest shape `scan` accepts -- a conditional back edge, so the head
+    has an exit span at all, and a fall-through jump landing past the line
+    so that span straddles too.
+    """
+    out = ['', 'zzsurvey:     file format elf64-x86-64', '', '',
+           'Disassembly of section .text:', '']
+    for i in range(11):
+        sym = 'micro_Main_zdwfbSite%d_info' % i
+        base = 0x410000 + 0x100 * i
+        a = base + 0x3e
+        out.append('%016x <%s>:' % (base, sym))
+        out.append('  %x:\t31 c0                \txor    %%eax,%%eax' % a)
+        out.append('  %x:\t75 fc                \tjne    %x <%s+0x3e>'
+                   % (a + 2, a, sym))
+        out.append('  %x:\t48 83 c0 01          \tadd    $0x1,%%rax' % (a + 4))
+        out.append('  %x:\teb 10                \tjmp    %x <%s+0x5a>'
+                   % (a + 8, a + 0x1c, sym))
+        out.append('')
+    path = os.path.join(tmp, 'zzsurvey-eleven.dis')
+    write(path, '\n'.join(out) + '\n')
+    return {'dis': path}
+
+
 # A third site, `run28-g912` from 0x41c9dc to 0x41ca10, read 2026-09-11:
 # the tail of a block, a `jmp *-0x10(%r13)`, a two-byte pad, and then the
 # info table, whose OWN words are the body. The layout word and the type
@@ -9536,6 +9566,37 @@ RECORDS = [
          'CONTROL: the header names the cap, not the lifted size filter',
          argv=['--unit', 'span_label(None)'],
          ok=V(has=["'at most 64 B'"], hasnt=['any length'])),
+
+    case('chapter-drops-the-monitor-replay-flag', 'read-run.py', None,
+         'the arming line lost `-n +1`, so every re-arm replayed nothing'
+         ' the gap before it swallowed, and no gate said so',
+         plant=lambda t: {'readme': edited_readme(
+             t, ('tail -F -n +1 $R-evening.txt', 'tail -F $R-evening.txt'))},
+         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         ok=V(exit=1, has=['monitor arming line(s) drop `-n +1`'])),
+
+    # The other branch, which no live document can reach: the check is
+    # keyed on the log's own name, so a rename leaves it reading nothing.
+    # A silent search is the failure this repo keeps naming, and here it
+    # is planted rather than trusted.
+    case('chapter-arming-line-renamed-under-the-check', 'read-run.py', None,
+         'CONTROL: the search found no arming line at all and would have'
+         ' passed on an empty reading',
+         plant=lambda t: {'readme': edited_readme(
+             t, ('$R-wallclock.log 2>/dev/null', '$R-wall.log 2>/dev/null'))},
+         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         ok=V(exit=1, has=['no wall-clock tail in the chapter'])),
+
+    case('survey-truncates-its-straddler-listing-without-saying-so',
+         'loop-offsets.py', '55216ae',
+         'ten sites under a count of eleven read as the whole of them, on'
+         ' both listings',
+         plant=listing_with_eleven_straddlers,
+         argv=['--survey', '{dis}'],
+         ok=V(exit=0, has=['still straddling   : 11, 10 longest listed',
+                           'exit spans astride : 11, 10 longest listed']),
+         bug=V(exit=0, has=['still straddling   : 11'],
+               hasnt=['longest listed'])),
 
     case('survey-reads-a-saved-listing', 'loop-offsets.py', '8b4f51d',
          'a site of a dead binary could not be held: objdump was the only'
