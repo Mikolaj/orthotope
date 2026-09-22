@@ -36,7 +36,11 @@ the base-offset of each innermost run once --- the outer-base grid is separable
 `enumFromStepN` expansion, no division and no thunk-list --- then fill
 the result with a single `vGenerate` doing **one** `quotRem` per element.
 It beats the original `list` fallback on every benchmarked shape
-with no regression and needs no extension to orthotope classes.
+with no regression and needs no extension to orthotope classes --- **that
+is the FILL**, and the route the library actually ships, `lib-stage1`, is slower
+than `list` on the two shortest runs of the `runs` class, which [the run file's
+property 1](runs/run38.md#the-properties-the-next-run-should-test) records
+and three runs have now reproduced.
 
 The words for a view's pieces are the library's, defined at the `T` haddock
 of `Data/Array/Internal.hs` on `pr-mikolaj-toVectorListT`: a *walk* is one
@@ -1657,33 +1661,34 @@ rather than a slot in the next run, observed again:
   it, Run 37's 1.2950 a quarter-point below --- and agree only
   that the composition of the two single-pass runs, 1.3325, overshoots. The only
   readings of either pass ALONE are Runs 29's and 30's, taken on ghc-9.12.4,
-  on a roster three sources back, and with the `-fspec-constr` half
-  as that run's basis so that its published figures are the reciprocals
-  of this orientation. So the two together are NOT accounted for to better
-  than a point and three quarters, and the SPLIT is not accounted for at all:
-  nothing says whether SpecConstr carries it, as its allocation signature
-  suggests, or whether LiberateCase carries part of it on this HEAD. **What
-  settles it is one pair and one variable**: either flag alone against
-  the unflagged half, built by Run 37's own recipe --- GHC HEAD `10.1.20260918`
-  through `cabal.project.ghead`, `Main.hs` at `05cfe93`, the shim at `f31bd1c`
-  under the four switches, launched FROM DISK, `hugebin/` being suspended ---
-  which reads against `run37-gheadnospec` with the box as the only term,
-  this run's basis being the second published one on that compiler. Registered
-  here rather than in a run's registration because it is a pair to ask
-  for and not a prediction to hold. **A third reading of the pair, 2026-09-20,
-  says which of the two was the outlier**: the same two Run 37 binaries,
-  the main set once more from disk on a quiet evening
-  (`probe-third-run37-gheadnospec-main.json` and its control twin, made
-  by `probe-chain-0920.sh`), read `list` at **1.2986** and `bq-expand`
-  at **1.3091** --- a quarter-point and a tenth from Run 37's own and 1.4 points
-  under Run 36's corrected 1.3129 --- so three readings of one pair stand
-  at 1.3129, 1.2960 and 1.2986, Run 36's apart, and the two passes together sit
-  0.12 of a point above the level's 1.2974; Run 36's reading that the level's
-  other passes hand `list` back does not survive it. Each half against its own
-  Run 37 main set reads every timed arm within 0.7 points, the evening's process
-  the faster on all sixteen of the basis's. The split is untouched by
-  it and stays the pair to ask for. **AND RUN 38 IS THE FOURTH READING
-  AND THE SECOND BUILD, 2026-09-22**: the same two recipes built again read
+  on an older roster, and with the `-fspec-constr` half as that run's basis
+  so that its published figures are the reciprocals of this orientation.
+  So the two together are NOT accounted for to better than a point and three
+  quarters, and the SPLIT is not accounted for at all: nothing says whether
+  SpecConstr carries it, as its allocation signature suggests, or whether
+  LiberateCase carries part of it on this HEAD. **What settles it is one pair
+  and one variable**: either flag alone against the unflagged half, built by Run
+  38's own recipe --- GHC HEAD `10.1.20260918` through `cabal.project.ghead`,
+  `Main.hs` at `bb6f0fc`, the shim at `f31bd1c` under the four switches,
+  launched FROM DISK, `hugebin/` being suspended --- which reads against
+  `run38-gheadnospec` with the box as the only term, that basis being the THIRD
+  published one on this compiler. Registered here rather than in a run's
+  registration because it is a pair to ask for and not a prediction to hold.
+  **A third reading of the pair, 2026-09-20, says which of the two
+  was the outlier**: the same two Run 37 binaries, the main set once more
+  from disk on a quiet evening (`probe-third-run37-gheadnospec-main.json`
+  and its control twin, made by `probe-chain-0920.sh`), read `list`
+  at **1.2986** and `bq-expand` at **1.3091** --- a quarter-point and a tenth
+  from Run 37's own and 1.4 points under Run 36's corrected 1.3129 --- so three
+  readings of one pair stand at 1.3129, 1.2960 and 1.2986, Run 36's apart,
+  and the two passes together sit 0.12 of a point above the level's 1.2974; Run
+  36's reading that the level's other passes hand `list` back does not survive
+  it. Each half against its own Run 37 main set reads every timed arm within 0.7
+  points, the evening's process the faster on all sixteen of the basis's.
+  The split is untouched by it and stays the pair to ask for. **AND RUN 38
+  IS THE FOURTH READING AND THE THIRD BUILD, 2026-09-22** --- readings
+  and builds differ here because the 2026-09-20 probe re-read Run 37's own two
+  binaries rather than building a pair: the same two recipes built again read
   `list` at **1.2889** over the nineteen shapes and **1.2907** over the eighteen
   without Run 36's cell, with `bq-expand` at **1.3032**. So the four readings
   on the nineteen stand at 1.3360, 1.2960, 1.2986 and 1.2889, and
@@ -1771,7 +1776,24 @@ rather than a slot in the next run, observed again:
   carries TWO numberings of step 4: a prose `4a. Analyse with ./read-run.py`
   and, inside the post-run list's comment block, a different 4a and 4b, which
   is where a run file's reference to "post-run step 4b" actually lands; a reader
-  following the link meets the wrong one first.
+  following the link meets the wrong one first. **RUN 38'S PROBE HIT ALL EIGHT
+  AGAIN, independently and before reading this entry, which makes this the THIRD
+  run to publish the same list unfixed.** **AND IT ADDED SIX, none of them
+  a figure**: the run file's Provenance enumerated every input
+  but the ALLOCATION AREA; a class floor stood with no half beside it, which
+  this file's own class-block rule forbids; the two per-shape fingerprint tables
+  carry no label of their own and sit under a paragraph announcing different
+  tables; `family` means an arm with its A/A copies in a run file's head
+  and a group of distinct strategies in its class tables, with nothing flagging
+  the shift; a reader meets EIGHT thresholds in two units --- a 0.45-point bar,
+  a 0.57% floor, a 0.7% differencing bar, a 3.3% drift band, four registration
+  bands, 5% and 3% machine bars, a 5% plateau band and a per-class A/A bar ---
+  with one sentence in either document distinguishing any two of them; and four
+  distinct pointers in one run file resolve to this section, eighty bullets
+  long. **Run 38 fixed the first three in its own file and the head's own case
+  of the same thing** --- its *no regression* sentence now says which arm
+  it is about --- **and left the last three, which are this section's shape
+  and the vocabulary's, not a run's to repair.**
 - `OPEN` **`-O2` changes what the preamble's spray leaves RESIDENT, and no pair
   before it did.** Run 31's twenty-two processes carry one `keep` value,
   `8.19844333056e12`, and TWO `inuse` values --- 95420416 on every plain -O1
@@ -4104,8 +4126,8 @@ A CHECK THAT WOULD HAVE CAUGHT AN ERROR, AND DID, SEVEN TIMES**: `--check-doc`
 caught the stale `#recommended-tasks-after-run-37` anchors, the `___`
 the registration move leaves, the floor pair stale at four sites
 and the carry-back figure at two, three headings left with one blank line before
-them, an ANSWERED entry my own addition pushed past 500 words, and two links
-to the previous run's file in a form the convention does not use --- none
+them, an ANSWERED entry this run's own addition pushed past 500 words, and two
+links to the previous run's file in a form the convention does not use --- none
 of which any reading of the prose had raised. **A CHECK THAT DID NOT EXIST**:
 nothing here refused a `--block` paragraph carrying a SPLIT arm name,
 and the reader emitted one --- `lib- stage2-lean-u1` and `mut- odo-vecdims`
@@ -12367,22 +12389,22 @@ under the widest of them. **Run 37's 0.59% and this run's 0.57% sit where Run
 36's 0.75% did, above the 0.31%-to-0.54% band and under the widest reading
 of the series**, with this run's control at 0.28%; the figure that moved
 furthest between those two runs is the CONTROL half's, 0.48% to 0.28%, where
-the basis's two readings part by two hundredths of a point, and the whole-set
-and restricted readings coincide on both halves of both runs, which
-is a different statistic from the restricted reading beside it --- which is what
-the four-statistics warning at the head of this paragraph is for. The threshold
-this run supports is ONE figure a half, the restricted four-pair reading
-and the whole set over the eight having closed on both --- and since 2026-09-13
-a margin between two rows clears the whole-set one, the carry-back figure being
-the series and not the bar ([the open list][open]). Read the floor as the run's
-*and the half's*, re-measured every time, never as a constant of the harness
-and never inherited. **And of these series, only the readings from Run 31 on can
-still be re-derived**: Runs 24 to 30's artifacts were deleted 2026-09-18
-at the owner's word, so `--series` starts at Run 31 and every figure before
-it is a RECORD here and in that run's own file rather than something a later
-session can check. That is the run-file split working as designed --- an older
-run is read by opening its file --- and it is also why this paragraph's series
-is not to be cut: it is now the only copy. **And both of the checks from OUTSIDE
+the basis's two readings part by two hundredths of a point; and on both halves
+of both runs the whole-set and restricted readings coincide,
+so the four-statistics warning at the head of this paragraph costs those two
+runs nothing. The threshold this run supports is ONE figure a half,
+the restricted four-pair reading and the whole set over the eight having closed
+on both --- and since 2026-09-13 a margin between two rows clears the whole-set
+one, the carry-back figure being the series and not the bar ([the open
+list][open]). Read the floor as the run's *and the half's*, re-measured every
+time, never as a constant of the harness and never inherited. **And
+of these series, only the readings from Run 31 on can still be re-derived**:
+Runs 24 to 30's artifacts were deleted 2026-09-18 at the owner's word,
+so `--series` starts at Run 31 and every figure before it is a RECORD here
+and in that run's own file rather than something a later session can check.
+That is the run-file split working as designed --- an older run is read
+by opening its file --- and it is also why this paragraph's series is not
+to be cut: it is now the only copy. **And both of the checks from OUTSIDE
 the declared pairs are still gone with their arms.** `lib-stage2-disp`
 was parked on 2026-09-07 and the two undeclared pairs that stood in its place
 on Run 28 both lost a member to the parking of 2026-09-11, so this run, like
@@ -14683,9 +14705,10 @@ and its fingerprint say so.
   are that one stage1 at plain `-O1` under the exit span and the control's
   command line carries `-fspec-constr -fliberate-case` besides, so it is read
   against Run 37's basis `run37-gheadnospec`, whose recipe its own BASIS
-  repeats, and every one of the sixteen shared timed arms reads within 2.09
-  points of it at a `--bridge` geomean of 0.9993. Its sequence ran in ONE
-  window, 02:14:55 to 10:07:04, 20 class processes and two main-set ones,
+  repeats, and every one of the sixteen arms that carry a corrected time and ran
+  in both reads within 2.09 points of it, at a `--bridge` geomean of 0.9993
+  over the fifteen of them left once `list` is divided out. Its sequence ran
+  in ONE window, 02:14:55 to 10:07:04, 20 class processes and two main-set ones,
   and TWO benches were intruded on, both the control half's --- one of the main
   set's 646 and one of the gate's 95 --- for which a sensitivity reading stands
   in place of a rerun. `list` having moved 28.89 points on this run's main set,
