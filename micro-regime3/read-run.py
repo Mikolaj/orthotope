@@ -5458,13 +5458,14 @@ def table_leaders(cells, shapes, strategies, args):
 def summary_row(cells, shapes, strategies, args, main_hs):
     """Check this class's row of the cross-class summary against the cells.
 
-    The summary is the last figure-bearing table with no installer, and it
-    is not getting one: its emphasis is a per-run judgement applied by
-    hand and already inconsistent -- `scaled`'s pure arm is bold in Run 14
-    and was not in Run 13 on the same arm, and `rev`'s is bold in neither
-    while naming the same arm as `bcast`'s, which is -- so a renderer
-    would have to invent or drop marks that mean something to somebody.
-    What it can have is the check the README already asks for: the summary
+    The summary was the last figure-bearing table with no installer, its
+    emphasis applied by hand and inconsistent across runs -- `scaled`'s
+    pure arm is bold in Run 14 and was not in Run 13 on the same arm, and
+    `rev`'s is bold in neither while naming the same arm as `bcast`'s,
+    which is. `install-tables.sh` has installed it since 2026-09-22,
+    taking the emphasis off `--block`'s `summary bolds` line, which
+    decides on the unrounded values and so ends that drift.
+    What this mode adds is the check the README already asks for: the summary
     is a transcription from the class tables, cell against table, and
     every cell of it is derivable right here. Eight calls a run, one per
     class, riding the `--block` each class already gets.
@@ -6430,10 +6431,9 @@ def extremes_table(paths, main_hs, args):
     sorted -- every one caught by an independent reader rather than by a
     check.
 
-    It ranks and installs nothing. The cross-class summary stays
-    hand-assembled for the reason `summary_row` gives -- its emphasis is
-    a per-run judgement -- and a superlative is a sentence, so what this
-    owes the author is the sort under it and not the words.
+    It ranks and installs nothing: `install-tables.sh` has installed the
+    summary's rows since 2026-09-22, and a superlative is a sentence, so
+    what this owes the author is the sort under it and not the words.
 
     Where the column and the paired reading name different holders of the
     same extreme, both are printed and the disagreement is said: that is
@@ -6455,9 +6455,9 @@ def extremes_table(paths, main_hs, args):
           ' then paired.')
     print('`bold` is which of those two cells the cross-class summary'
           ' EMPHASISES, and it')
-    print('is here because that table is assembled by hand and the rule was'
-          ' not written')
-    print('anywhere a session assembling it would look. The rule is the'
+    print('is here because the rule behind that emphasis is written nowhere'
+          ' a reader of')
+    print('the installed table would look. The rule is the'
           ' COLUMN, not the')
     print('paired ratio: the summary prints both cells to three decimals'
           ' and a reader')
@@ -7450,6 +7450,172 @@ NUMERAL_RE = re.compile(
     r'|hundred|thousand)\b', re.I)
 
 
+def step5_copy(path, mode):
+    """A document as step 5's commit added it, with that commit's hash.
+
+    THE ROOT COMES FROM GIT AND NOT FROM THE PATH: `git show COMMIT:PATH`
+    resolves its path from the repository root whatever `-C` says, so a
+    root guessed by climbing two directories reads every blob as absent
+    and the caller reports itself as not having run -- which is what
+    `--stale` did when first written.
+
+    Returns `(repo, rel, sha, text)`, or the exit status the caller owes: 2,
+    since a reading that could not resolve its base did not happen. Shared
+    by `--stale` and `--lost`, which read the same commit for different
+    questions -- a figure that survived an edit, and a paragraph that
+    survived nothing.
+    """
+    try:
+        repo = subprocess.run(['git', '-C',
+                               os.path.dirname(os.path.abspath(path)),
+                               'rev-parse', '--show-toplevel'],
+                              capture_output=True, text=True,
+                              check=True).stdout.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+        sys.stderr.write('%s: %s is not inside a git checkout, so there is'
+                         ' no step-5 copy to read it against and this'
+                         ' reading did not happen\n' % (mode, path))
+        return 2
+    rel = os.path.relpath(os.path.abspath(path), repo)
+    try:
+        adds = subprocess.run(['git', '-C', repo, 'log', '--format=%H',
+                               '--diff-filter=A', '--', rel],
+                              capture_output=True, text=True, check=True)
+        first = adds.stdout.split()[-1]
+        copy = subprocess.run(['git', '-C', repo, 'show',
+                               '%s:%s' % (first, rel)],
+                              capture_output=True, text=True, check=True)
+    except (subprocess.CalledProcessError, IndexError, FileNotFoundError,
+            OSError):
+        sys.stderr.write('%s: %s has no commit that ADDED it, so there is'
+                         ' no step-5 copy to read it against and this'
+                         ' reading did not happen\n' % (mode, rel))
+        return 2
+    return repo, rel, first, copy.stdout
+
+
+def lost_paragraphs(run_doc, ratio=0.45):
+    """Paragraphs step 5's copy had that this tree has no counterpart for.
+
+    THE ONLY READING THAT SEES A DELETION. Every gate here is a predicate
+    over what is PRESENT -- a link that resolves, a figure that agrees, a
+    heading spaced -- so a paragraph removed by a scripted edit leaves its
+    neighbours joining seamlessly and passes all of them. Post-run step 6e
+    asks for this comparison and supplied no tool, so every run hand-rolls
+    it; Run 38 did, in a script it wrote twice.
+
+    BOTH DOCUMENTS, against ONE commit: the run file's own step-5 copy.
+    README's first commit is years back and is not this run's base, so it
+    is read at the sha that ADDED the run file, which is what 6e means by
+    `step 5's copy`.
+
+    A rewritten paragraph is not a lost one, so the test is similarity and
+    not identity: a base paragraph with no survivor above `ratio` is
+    reported, and a lead rewritten around the same body is not. Tables,
+    code and link definitions are skipped, being installed or mechanical.
+    """
+    got = step5_copy(run_doc, '--lost')
+    if isinstance(got, int):
+        return got
+    repo, rel, sha, run_copy = got
+    readme = os.path.join(os.path.dirname(os.path.abspath(run_doc)),
+                          '..', 'README.md')
+    readme = os.path.normpath(readme)
+    pairs = [(rel, run_copy, run_doc)]
+    if os.path.exists(readme):
+        rrel = os.path.relpath(readme, repo)
+        try:
+            base = subprocess.run(['git', '-C', repo, 'show',
+                                   '%s:%s' % (sha, rrel)],
+                                  capture_output=True, text=True,
+                                  check=True).stdout
+            pairs.append((rrel, base, readme))
+        except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+            sys.stderr.write('--lost: %s is not in %s, so only the run file'
+                             ' was read\n' % (rrel, sha[:7]))
+    skip = ('|', '#', '[', '    ')
+    print('--lost: both documents against step 5\'s copy at %s' % sha[:7])
+    total = 0
+    for name, base_text, path in pairs:
+        before = [p for p in doc_paragraphs_text(base_text)
+                  if not p.startswith(skip)]
+        now = [p for p in doc_paragraphs(path) if not p.startswith(skip)]
+        gone = []
+        # A WORD-SET PRE-FILTER, precomputed once. Two paragraphs sharing
+        # few words share few characters in order, so this drops most
+        # pairs before any matching. It is a heuristic where the length
+        # bound below is exact, and it is safe in the one direction that
+        # matters: dropping a true counterpart ADDS a candidate to the
+        # listing and can never hide a paragraph that went, which the
+        # count catches regardless.
+        words = {t: set(t.lower().split()) for t in set(before) | set(now)}
+        now_set = set(now)
+        for q in before:
+            # AN UNCHANGED PARAGRAPH IS ITS OWN COUNTERPART, and most of
+            # README's are: the membership test settles them before any
+            # matching runs, where the loop below would scan the whole
+            # document to rediscover an identity.
+            if q in now_set:
+                continue
+            best, wq = 0.0, words[q]
+            for r in now:
+                wr = words[r]
+                if not wq or not wr:
+                    continue
+                if len(wq & wr) / min(len(wq), len(wr)) < 0.25:
+                    continue
+                # AN EXACT BOUND BEFORE ANY MATCHING: the ratio is
+                # 2M/T with M at most the shorter length, so two
+                # paragraphs of very different lengths cannot reach the
+                # threshold whatever they share. Skipping those took this
+                # mode from two and a half minutes to seconds over the
+                # README's five hundred paragraphs.
+                if 2.0 * min(len(q), len(r)) / (len(q) + len(r)) < ratio:
+                    continue
+                m = difflib.SequenceMatcher(None, q, r)
+                # QUICK_RATIO IS AN UPPER BOUND AND NOT THE SIMILARITY: it
+                # compares character multisets, so two unrelated English
+                # paragraphs of a length clear any threshold worth using.
+                # It is a pre-filter here and the real ratio decides --
+                # written the other way first, the case's deleted
+                # paragraph found a `counterpart` it shares no sentence
+                # with and the mode reported nothing lost.
+                if m.quick_ratio() < ratio:
+                    continue
+                sim = m.ratio()
+                if sim > best:
+                    best = sim
+                    if best >= ratio:
+                        break
+            if best < ratio:
+                gone.append((best, q))
+        # THE COUNT IS THE CHECK AND THE LISTING IS CANDIDATES. A
+        # write-up REPLACES paragraphs wholesale -- post-run step 6a asks
+        # for exactly that, from the reader's output and not by editing
+        # the copy -- so a low similarity is the ordinary case in a run
+        # file and says nothing on its own. What a deletion cannot hide
+        # from is the count.
+        went = len(before) - len(now)
+        if went > 0:
+            total += went
+            print('  %s: %d paragraph(s) then, %d now -- %d WENT BY COUNT,'
+                  ' which is a loss and not a rewrite'
+                  % (name, len(before), len(now), went))
+        else:
+            print('  %s: %d paragraph(s) then, %d now -- none went by count'
+                  % (name, len(before), len(now)))
+        print('    %d with no close counterpart, which in a run file is'
+              ' mostly the write-up replacing paragraphs as 6a asks:'
+              % len(gone))
+        for best, q in gone[:10]:
+            print('      %.2f alike at best: %s' % (best, q[:92]))
+        if len(gone) > 10:
+            print('      ... and %d more' % (len(gone) - 10))
+    if not total:
+        print('  no paragraph went by count in either document')
+    return 0
+
+
 def stale_figures(run_doc, ratio=0.55, verbose=False):
     """Figures a write-up left where the PREVIOUS run put them.
 
@@ -7477,37 +7643,10 @@ def stale_figures(run_doc, ratio=0.55, verbose=False):
     reading is which of them the run moved and the prose did not, and a
     gate on it would be turned off by the second run.
     """
-    # THE ROOT COMES FROM GIT AND NOT FROM THE PATH: `git show COMMIT:PATH`
-    # resolves its path from the repository root whatever `-C` says, so a
-    # root guessed by climbing two directories reads every blob as absent
-    # and this mode reports itself as not having run -- which is what it
-    # did when first written.
-    try:
-        repo = subprocess.run(['git', '-C',
-                               os.path.dirname(os.path.abspath(run_doc)),
-                               'rev-parse', '--show-toplevel'],
-                              capture_output=True, text=True,
-                              check=True).stdout.strip()
-    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
-        sys.stderr.write('--stale: %s is not inside a git checkout, so there'
-                         ' is no step-5 copy to read it against and this'
-                         ' reading did not happen\n' % run_doc)
-        return 2
-    rel = os.path.relpath(os.path.abspath(run_doc), repo)
-    try:
-        adds = subprocess.run(['git', '-C', repo, 'log', '--format=%H',
-                               '--diff-filter=A', '--', rel],
-                              capture_output=True, text=True, check=True)
-        first = adds.stdout.split()[-1]
-        copy = subprocess.run(['git', '-C', repo, 'show',
-                               '%s:%s' % (first, rel)],
-                              capture_output=True, text=True, check=True)
-    except (subprocess.CalledProcessError, IndexError, FileNotFoundError,
-            OSError):
-        sys.stderr.write('--stale: %s has no commit that ADDED it, so there'
-                         ' is no step-5 copy to read it against and this'
-                         ' reading did not happen\n' % rel)
-        return 2
+    got = step5_copy(run_doc, '--stale')
+    if isinstance(got, int):
+        return got
+    _repo, rel, first, copy_text = got
     skip = ('|', '#', '[', '    ')
     # THE INSTALLED PARAGRAPHS CANNOT BE STALE BY HAND, so they are not
     # read here: `--block --in-place` rewrites a class block's Controls,
@@ -7517,10 +7656,10 @@ def stale_figures(run_doc, ratio=0.55, verbose=False):
     # first draft of this mode printed.
     installed = ('**Controls:**', '**Provenance:**', '**Per shape,',
                  '**Across the halves:**')
-    before = [p for p in doc_paragraphs_text(copy.stdout)
+    before = [p for p in doc_paragraphs_text(copy_text)
               if not p.startswith(skip)]
     now = doc_paragraphs(run_doc)
-    same = set(doc_paragraphs_text(copy.stdout))
+    same = set(doc_paragraphs_text(copy_text))
     print('--stale: %s against its step-5 copy at %s' % (rel, first[:7]))
     found, rows = 0, []
     for p in now:
@@ -14286,6 +14425,12 @@ def main():
                         ' goes stale and the half a checker cannot'
                         ' tell is stale. PRETIP and RUNTIP stay'
                         ' yours: they are commits')
+    p.add_argument('--lost', action='store_true',
+                   help='the paragraphs step 5\'s copy had that this tree'
+                        ' has no counterpart for, over BOTH documents --'
+                        ' the one reading that sees a deletion, every'
+                        ' gate here being a predicate over what is'
+                        ' present. Post-run step 6e. A reading, not a gate')
     p.add_argument('--stale', action='store_true',
                    help="the figures this run's file KEPT from the"
                         ' step-5 copy inside paragraphs it edited --'
@@ -14729,6 +14874,8 @@ def main():
     if args.inherited:
         doc = want_run_doc(args)
         sys.exit(inherited(doc, previous_run_doc(doc), args.all_paras))
+    if args.lost:
+        sys.exit(lost_paragraphs(want_run_doc(args)))
     if args.stale:
         sys.exit(stale_figures(want_run_doc(args), verbose=args.all_paras))
     if args.brief_update:

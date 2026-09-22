@@ -17,9 +17,12 @@
 # It also RANKS, once, and installs nothing from it: `--extremes` over the
 # same class list, because a superlative about the classes -- widest, best,
 # tightest floor -- is a claim about every population at once and this is
-# the only program that holds them all. The cross-class summary stays
-# hand-assembled, its emphasis being a per-run judgement; what the rank
-# owes the author is the sort under the sentence, not the sentence.
+# the only program that holds them all. The cross-class summary is
+# INSTALLED since 2026-09-22, its ten rows read off each class's own
+# `--block` and its emphasis off that block's `summary bolds` line, which
+# decides on the unrounded values where the table prints three decimals;
+# what the rank owes the author is the sort under the sentence, not the
+# sentence, and the prose around the table is still the author's.
 #
 # The class list comes from the JSONs on disk rather than from a literal
 # here: run-major.sh's own class literal went out of step with the binary
@@ -299,6 +302,41 @@ def refuse(*lines):
         print(line)
     print(f'  nothing written: {DOC} stands as it was')
     sys.exit(1)
+def summary_row(blk, c):
+    """One cross-class row's cells, read off that class's own --block.
+
+    Every field is the reader's: the shape count from the header, the
+    plain arm and its `worst` from the plain-arm line, the two named arms
+    from theirs, the floor from the margin line, and WHICH COLUMN BOLDS
+    from `summary bolds` -- computed there on the unrounded values, which
+    is the whole reason it is not decided here.
+    """
+    def one(pat, what):
+        m = re.search(pat, blk, re.M)
+        if not m:
+            refuse(f'  REFUSED {c}: --block emitted no {what} line, so the'
+                   f' cross-class summary cannot be installed from it')
+        return m.groups()
+    shapes, _ = one(r'over (\d+) shapes of the (\w+) class', 'shape count')
+    plain, worst = one(r'^\s*mut-odo-vecdims\s+\(the plain arm\)\s+'
+                       r'([\d.]+)\s+worst\s+([\d.]+)', 'plain arm')
+    oarm, oval = one(r'^\s*best outside family\s+(\S+)\s+([\d.]+)',
+                     'best outside family')
+    carm, cval = one(r'^\s*ceiling \(family\)\s+(\S+)\s+([\d.]+)',
+                     'ceiling')
+    floor, _fp = one(r"floor of ([\d.]+)% \(`([^`]+)`\)", 'floor')
+    bold, = one(r'^\s*summary bolds\s+(best outside family|ceiling)',
+                'summary bolds')
+    out = f'`{oarm}` {oval}'
+    ceil = f'`{carm}` {cval}'
+    if bold == 'ceiling':
+        ceil = f'**`{carm}`** {cval}'
+    else:
+        out = f'**`{oarm}`** {oval}'
+    return f'| `{c}` | {shapes} | {plain} | {worst} | {out} | {ceil} | {floor}% |'
+
+
+summary, left_standing = {}, []
 for n, (c, start) in enumerate(reversed(order)):
     k = [x for x, _ in order].index(c)
     # The LAST block ends at the next heading, not at the end of the file.
@@ -354,6 +392,12 @@ for n, (c, start) in enumerate(reversed(order)):
                '    ' + (got.stderr.strip().replace('\n', '\n    ')
                          or '(no stderr)'))
     blk = got.stdout
+    # THE CROSS-CLASS SUMMARY'S OWN ROW, off the same block. Assembled by
+    # hand until 2026-09-22, which is a transcription of figures this
+    # output already carries -- and its bolding was the part sessions got
+    # wrong, Run 28 breaking a three-decimal tie with `--pair`, a
+    # different statistic, and bolding the wrong cell of `rev`.
+    summary[c] = summary_row(blk, c)
     log = open(f'{R}-{BASIS}-{c}.log').read()
     m = re.search(r'elapsed (\S+); peak (\d+) MiB in use, (\d+) MiB max', log)
     if not m:
@@ -422,10 +466,44 @@ for n, (c, start) in enumerate(reversed(order)):
             for j in range(start, end)):
         paras.insert(prov_at + 1, per); done += 1   # every class is three-shape now
         added.append(f'  {c}: per-shape line ADDED, the block had none')
+# THE CROSS-CLASS SUMMARY, INSTALLED AND NOT TRANSCRIBED. The row ORDER
+# is the document's own and not this script's: the table is inherited from
+# run to run and reordering it would be a change nobody asked for, so the
+# existing rows are read for their class names and refilled in place.
+head = '| class | shapes | mut-odo-vecdims | worst | best outside family'
+sumj = next((j for j, t in enumerate(paras) if t.startswith(head)), None)
+if sumj is None:
+    print('  note: no cross-class summary table here to install; the ten'
+          ' rows are printed above and are yours to place')
+elif summary:
+    rows = paras[sumj].split('\n')
+    out, filled, kept = [], 0, []
+    for line in rows:
+        m = re.match(r'\| `(\w+)` \|', line)
+        if m and m.group(1) in summary:
+            out.append(summary[m.group(1)]); filled += 1
+        else:
+            if m:
+                kept.append(m.group(1))
+            out.append(line)
+    paras[sumj] = '\n'.join(out)
+    print(f'  {filled} cross-class summary row(s) installed, in the order the'
+          f' table already had')
+    if kept:
+        # NOT a refusal: refusing writes nothing at all, and one stale row
+        # would cost the whole install mid-write-up. The document is
+        # written, the row is left as it stood, and the exit status says
+        # so -- which is the `|| BAD=$((BAD+1))` this heredoc already
+        # runs under, so the driver counts it with its other complaints.
+        print('  !! and %d row(s) LEFT STANDING, this run having no block'
+              ' for them: %s' % (len(kept), ' '.join(kept)))
+        left_standing.append(len(kept))
 open(DOC, 'w').write('\n\n'.join(paras))
 for line in added:
     print(line)
 print(f'  {done} computed paragraph(s) installed across {len(order)} class block(s)')
+if left_standing:
+    sys.exit(1)
 if says_new:
     print(f'  {says_new} `What the class says:` skeleton(s) installed, each'
           f' `___` the finding the block owes')
@@ -456,13 +534,15 @@ fi
 if [ "$BAD" -eq 0 ]; then
   echo "$DONE table(s) installed, counted off install's own lines rather"
   echo "than off the call count -- --fingerprint writes two. The cross-class"
-  echo "summary is NOT among them: it is assembled last, by hand, from the"
-  echo "class tables above, with the rank above it under its superlatives."
-  echo "AND ITS BOLDING IS NOT YOURS TO PICK: each class's \`--block\` prints"
-  echo "a \`summary bolds\` line naming which of the two columns is faster,"
-  echo "read off the column at full precision -- four of Run 29's ten rows"
-  echo "tie at the three decimals the table prints, and Run 28 broke such a"
-  echo "tie with --pair, a different statistic, and got \`rev\` backwards."
+  echo "summary is installed too since 2026-09-22, outside that count and"
+  echo "reported on its own line above: its ten rows come off each"
+  echo "class's own block and its emphasis off that block's \`summary bolds\`"
+  echo "line, which decides on the UNROUNDED values where the table prints"
+  echo "three decimals -- four of Run 29's ten rows tie at those decimals,"
+  echo "and Run 28 broke such a tie with --pair, a different statistic, and"
+  echo "got \`rev\` backwards. The rank above it is for the PROSE's"
+  echo "superlatives, which are still yours, as is every word around the"
+  echo "table."
 else
   echo "$BAD install(s) REFUSED -- a refusal is the design, never a silent"
   echo "write to the wrong place. Fix what it names -- a header it could not"

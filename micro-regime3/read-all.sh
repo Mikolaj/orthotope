@@ -243,20 +243,28 @@ STATEV=$([ -z "$PLOGS" ] || grep -H '^@@saturate ' $PLOGS 2>/dev/null \
 # spread that is flat within each half and wide across them is the pair's
 # variable and not drift. Silent where the names give no halves.
 HALFSPREAD=$([ -z "$PLOGS" ] || grep -H '^@@saturate ' $PLOGS 2>/dev/null \
-  | awk -F: -v r="$R" '{ nm = $1; sub("^" r "-", "", nm); sub(/-[^-]*\.log$/, "", nm)
+  | awk -F: -v r="$R" '{ full = $1; sub("^" r "-", "", full); sub(/\.log$/, "", full)
+                         nm = full; sub(/-[^-]*$/, "", nm)
                          line = $0; sub(/^[^:]*:/, "", line)
                          n = split(line, w, /[ \t]+/)
                          for (i = 2; i <= n; i++)
                            if (w[i] == "ms/iter" && w[i-1] + 0 > 0) {
                              v = w[i-1] + 0
-                             if (!(nm in lo) || v < lo[nm]) lo[nm] = v
-                             if (!(nm in hi) || v > hi[nm]) hi[nm] = v
+                             if (!(nm in lo) || v < lo[nm]) { lo[nm] = v; lonm[nm] = full }
+                             if (!(nm in hi) || v > hi[nm]) { hi[nm] = v; hinm[nm] = full }
                              c[nm]++ } }
      END { k = 0; for (h in lo) k++
            if (k < 2) exit
-           for (h in lo)
+           for (h in lo) {
              printf "  within %-8s %d process(es), %.4f to %.4f, spread %.2f%%\n",
-                    h, c[h], lo[h], hi[h], 100 * (hi[h] - lo[h]) / lo[h] }')
+                    h, c[h], lo[h], hi[h], 100 * (hi[h] - lo[h]) / lo[h]
+             # AND WHICH PROCESS SITS AT EACH END, which the spread alone
+             # cannot say: a half whose eleven processes are flat but for
+             # ONE reads the same spread as a half that drifted, and the
+             # two want different readings. Run 38 hand-rolled a loop over
+             # twenty-two logs to learn that one process carried the whole
+             # of its control half\047s 9.41%.
+             printf "    lowest %s, highest %s\n", lonm[h], hinm[h] } }')
 # WHAT THE PAIR NOTE DECLARES EXPECTED, on the gate-verdict pattern: a
 # pair whose VARIABLE moves what the preamble leaves resident fires the
 # state gate on every process, every time, and no reading afterwards can

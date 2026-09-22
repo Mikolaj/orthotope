@@ -4940,22 +4940,22 @@ codegen rather than that it cannot be built.
   no derived source --- taken 2026-08-22 as `--extremes`.** *Widest
   of the eight*, *best of the eight*, *tightest floor of the eight* are claims
   about every class at once, and nothing printed them: `--block` sees one class,
-  the cross-class table is hand-assembled, and the sort was left to the eye. Run
-  15 got three of them wrong in one draft --- `scaled`'s spread called narrowest
-  where `rev`'s is, `window`'s pure-slot gap called widest of the eight
-  on the column where `reshape1`'s is wider on the pair, and `offtab`'s best
-  class named before it was sorted --- every one caught by an independent reader
-  rather than by a check. The mode ranks the populations it is given
-  and `install-tables.sh` calls it once, after the installs and installing
-  nothing: the cross-class summary stays hand-assembled, its emphasis being
-  a per-run judgement, and what a rank owes the author is the sort
-  under the sentence rather than the sentence. **The gap from the family's plain
-  arm to the best arm outside the family is printed both ways and the mode says
-  where the two disagree**, which is Run 15's second error exactly: on Run 17
-  the widest is `bcastmid`'s on the published column and `rev`'s paired. **What
-  it does not rank is the main set**, which it refuses, that population having
-  no row in the table these claims are made about --- so a superlative meant
-  over all nine has no source here either.
+  the cross-class table was hand-assembled, and the sort was left to the eye.
+  Run 15 got three of them wrong in one draft --- `scaled`'s spread called
+  narrowest where `rev`'s is, `window`'s pure-slot gap called widest
+  of the eight on the column where `reshape1`'s is wider on the pair,
+  and `offtab`'s best class named before it was sorted --- every one caught
+  by an independent reader rather than by a check. The mode ranks
+  the populations it is given and `install-tables.sh` calls it once, after
+  the installs and installing nothing, a superlative being a sentence and
+  not a cell: what a rank owes the author is the sort under the sentence rather
+  than the sentence. **The gap from the family's plain arm to the best arm
+  outside the family is printed both ways and the mode says where the two
+  disagree**, which is Run 15's second error exactly: on Run 17 the widest
+  is `bcastmid`'s on the published column and `rev`'s paired. **What it does
+  not rank is the main set**, which it refuses, that population having no row
+  in the table these claims are made about --- so a superlative meant over all
+  nine has no source here either.
 - `OPEN` **Price a rotated pair as one cycle where the outer cycle is short.**
   Registered 2026-09-15 off the `sumLazyRuns` reading in [the open list][open]:
   the tiers hand a group's residue to the inner head, and for a per-run loop
@@ -9978,6 +9978,9 @@ not otherwise.
     #      `reaches 0.25 foreign` line, which is the intrusion verdict,
     #      and `--aa`'s `observed spread` line, which is the FLOOR and
     #      is not read-all.sh's worst-cell column
+    #      -- and its `sum-only` row prints LATE over EARLY, which is the
+    #      orientation a hand computation reverses: Run 38 scripted early
+    #      over late and put two reciprocals on the page
     #      -- every block in one call is a hundred KB, the write-up uses some
     #      forty lines of them
     #      THE SAME FOR THE PREDICTIONS AND COUNTS FILES, the first by
@@ -9998,6 +10001,11 @@ not otherwise.
     #      same caution per row, the published column against its own
     #      uncapped geomean, and the same `--compare` flags a row whose
     #      two published figures divide to something no arm did
+    #      AND `--winsor`'s CLOSING LINES CENSUS THE SIGN PARTINGS over
+    #      every pair of timed rows and NAME the pair that parts with both
+    #      its figures, so that count is read and never scripted: Run 38
+    #      scripted it from the same mode's two columns, having read the
+    #      table above those lines and not the lines
     #      POP-<basis>-compare.txt takes the BASIS first and the control
     #      as its argument, so below 1 means the basis is faster;
     #      POP-<other>-compare.txt is the same reversed, every figure
@@ -10138,7 +10146,8 @@ not otherwise.
     #      into `runs/$R.md`, the one document any of them writes -- so
     #      commit or park it first. Read what the driver collects at the
     #      end, the rows left to hand-fill; the cross-class summary is
-    #      assembled LAST, transcribed from the class tables
+    #      installed too since 2026-09-22, off each class's own block,
+    #      in the row order the document already has
     #      why: --para 'Install the tables with'
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --predictions --counts $R-counts-<basis>.txt $R-counts-<other>.txt
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json \
@@ -10468,9 +10477,10 @@ not otherwise.
     #      difference wall, or user AND system, at two iteration counts.
     #      Two instruments disagreeing is the finding: locate it, and
     #      until then neither is evidence. Assert every scripted edit's
-    #      extent, and read a `wrap80 --unwrap` diff of both documents'
-    #      paragraph lists against step 5's copy: nothing else sees
-    #      a lost paragraph. Then --lint; --check-doc --worklists,
+    #      extent, and run `--lost --run-doc runs/$R.md`, which reads
+    #      both documents' paragraph lists against step 5's copy and is
+    #      the one check that sees a lost paragraph. Then --lint;
+    #      --check-doc --worklists,
     #      adjudicating the items it marks ADDED BY THIS DIFF and no
     #      others; a superlative walk of the sentences this write-up
     #      wrote; and a walk of the diff against the writing rules. The
@@ -10524,8 +10534,13 @@ not otherwise.
     #      text, so it can run the moment the text settles.
     #      THEN THE
     #      COMPREHENSION PROBE -- which reads the finished documents
-    #      rather than a diff, so the commit is a fixed point and not
-    #      its input. It is HERE because its own
+    #      rather than a diff, AND READS THEM OUT OF 7a's COMMIT and not
+    #      out of the working tree, `git show <7a>:micro-regime3/runs/$R.md`:
+    #      the tree is where this pass's own findings are applied, so a
+    #      probe reading it reads text that moves under it, which is why
+    #      every other pass here is scoped to a commit. Run 38's session
+    #      edited the run file while its probe was reading it.
+    #      It is HERE because its own
     #      condition is `once the write-up settles`, which happens at 7
     #      and not before: a fresh agent, NEVER the 6b/6d one, which has
     #      read this run's JSONs and cannot be surprised by the document.
@@ -10609,6 +10624,21 @@ not otherwise.
     #      first call: the stderr a run wants is there -- the sunk-cell
     #      count, the R2 and sample warnings, `--corr=insitu`'s notice
     #      that its column compares to nothing in README.
+    #      AND EVERY GATE HERE STATES ITS VERDICT IN WORDS, which is the
+    #      channel a pipe cannot take. THREE print it labelled --
+    #      `VERDICT: PASS|FAIL (exit N)` from `--lint`, `--check-doc`
+    #      and `properties.py` -- and the rest say it in their own last
+    #      line: `N steps, M failed` from `check-all`, `N cases run in
+    #      the ok direction, M failed` from `defect-run.py --changed .`,
+    #      `N mutants, M caught, K survived` from `selftest-mutants.py
+    #      .`, and `every process gated clean` from `read-all.sh`. So the
+    #      LINE is the reading and the exit status is a second copy of
+    #      it: a session that reads the line cannot be fooled by a status
+    #      a pipe or background mode lost, and one that reads only `$?`
+    #      can be. The labelled three are not the set a grep for
+    #      `VERDICT` finds -- the other three carry the word in comments
+    #      and print no such line, which is how this paragraph first
+    #      named six.
     #      AND A HUMAN TABLE IS NOT PARSED BY FIELD INDEX, which is this
     #      chapter's own and not portable: the tables these modes print
     #      are aligned for reading, so a column's position depends on the
@@ -10856,15 +10886,19 @@ the cell then gets transcribed rather than invented at the end of a long day.
 A class table comes out six columns wide, `needs` being a property of a strategy
 rather than of a population and so stated in the main table alone.
 
-**Assemble the cross-class summary last, from the tables and not
-from the JSONs.** Every cell of it appears in one of the class tables above it,
-so it is a transcription and is checked as one --- cell against table, each
-in turn --- where recomputing it from the runs would be a second derivation able
-to disagree with the tables it summarises. **Each class's `--block` now checks
-its own row** and names the cell on stderr, so `install-tables.sh` reports
-a wrong transcription among what it leaves you; the table stays hand-assembled
-because its emphasis is a judgement no reader can derive, and the marks have
-already drifted between runs.
+**The cross-class summary is INSTALLED since 2026-09-22, from the class blocks
+and not from the JSONs.** Every cell of it appears in one of the class tables
+above it, so `install-tables.sh` reads the ten rows off each class's own
+`--block` --- the same output those tables came from, never a second derivation
+able to disagree with them --- and refills the table IN THE ORDER THE DOCUMENT
+ALREADY HAS, a table inherited from run to run being no place for a reordering
+nobody asked for. A row whose class this run has no block for is LEFT STANDING
+and the driver says so and exits nonzero. What stays the author's is the prose
+around it. **Each class's `--block` now checks its own row** and names the cell
+on stderr, so `install-tables.sh` reports a wrong transcription among what
+it leaves you. Its emphasis comes off the same block's `summary bolds`, decided
+on the unrounded values, so the drift between runs that a judgement applied
+by hand produced cannot recur.
 
 6. Walk the list under [Provenance](#provenance) of what the new numbers
    replace, and do not trust it to be complete: re-run the two sweeps it names
@@ -10940,29 +10974,29 @@ size comes from the reader's first line;
    *wrong*, which is the next paragraph, and it is the failure to expect first
    because it is the quiet one.
 
-   **That fifth pass is one mechanical read.** Unwrap both sides and diff them
-   --- `wrap80 --unwrap` over the committed version and over the working one ---
-   and read that diff for text that left without a replacement arriving.
-   **The figure sweep reads the same on either form, so nothing is wrapped
-   to read it**: `--check-doc` keys a paragraph by its collapsed text when
-   it asks whether this diff added it, and since 2026-09-02 reads the committed
-   copies from the commit that added the run file. Run 16's sweep was disabled
-   by an unwrap because the check then compared lines, and it was told 54
-   figures were new when most were untouched; that is the defect the keying
-   repaired, and not a reason to wrap. A scripted rewrite fails in two shapes
-   and neither is a wrong figure. Anchored on a *prefix*, it replaces the whole
-   paragraph and drops whatever followed the part its author had read;
-   `--check-doc` catches that one, every prose paragraph being required to end
-   a sentence. Anchored on two *markers*, it deletes every paragraph between
-   them, however many that turns out to be --- and nothing catches it:
-   the survivors still end sentences, the anchors still resolve, the figures
-   still match, and every check here is a predicate over what is **present**,
-   so none can see what is gone. Measured on 2026-08-14, when a paragraph
-   recording that the regime had been confirmed in the binary was removed
-   from this file and `--lint`, `--check-doc` and the truncation check all
-   exited 0. So assert the extent in the script, echo what it is about
-   to overwrite, and read the unwrapped diff afterwards, which is the only place
-   a lost paragraph shows.
+   **That fifth pass is one command:**
+   `./read-run.py --lost --run-doc runs/$R.md`, which reads both documents'
+   paragraph lists against step 5's copy and names what left without
+   a replacement arriving. **The figure sweep reads the same on either form,
+   so nothing is wrapped to read it**: `--check-doc` keys a paragraph
+   by its collapsed text when it asks whether this diff added it, and since
+   2026-09-02 reads the committed copies from the commit that added the run
+   file. Run 16's sweep was disabled by an unwrap because the check
+   then compared lines, and it was told 54 figures were new when most
+   were untouched; that is the defect the keying repaired, and not a reason
+   to wrap. A scripted rewrite fails in two shapes and neither is a wrong
+   figure. Anchored on a *prefix*, it replaces the whole paragraph and drops
+   whatever followed the part its author had read; `--check-doc` catches
+   that one, every prose paragraph being required to end a sentence. Anchored
+   on two *markers*, it deletes every paragraph between them, however many
+   that turns out to be --- and nothing catches it: the survivors still end
+   sentences, the anchors still resolve, the figures still match, and every
+   check here is a predicate over what is **present**, so none can see what
+   is gone. Measured on 2026-08-14, when a paragraph recording that the regime
+   had been confirmed in the binary was removed from this file and `--lint`,
+   `--check-doc` and the truncation check all exited 0. So assert the extent
+   in the script, echo what it is about to overwrite, and run `--lost`
+   afterwards, the one check here that sees a lost paragraph.
 
    **A correction is a claim, and is written under exactly the conditions
    that produce bad ones.** Whatever the verification turns up gets fixed

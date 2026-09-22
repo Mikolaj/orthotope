@@ -724,6 +724,30 @@ def rundoc_with_ragged_row(tmp):
     return write_rundoc(tmp, '\n'.join(lines))
 
 
+def rundoc_with_a_defaced_summary(tmp):
+    """The run file with every cross-class summary CELL made wrong.
+
+    The class names and the row ORDER are left alone, which is what the
+    installer keys on and preserves: a table inherited from run to run is
+    no place for a reordering, so the fixture proves the cells are
+    refilled in place rather than the table rebuilt in some order of the
+    script's own. `9.99%` is the marker -- no floor reads that -- so the
+    case can assert it is gone rather than only that a count was printed.
+    """
+    text = rundoc_text()
+    head = '| class | shapes | mut-odo-vecdims |'
+    i = text.index(head)
+    end = text.index('\n\n', i)
+    rows = text[i:end].split('\n')
+    out = []
+    for line in rows:
+        m = re.match(r'\| `(\w+)` \|', line)
+        out.append(f'| `{m.group(1)}` | 0 | 9.99 | 9.99 |'
+                   f' **`zznoarm`** 9.99 | `zznoarm` 9.99 | 9.99% |'
+                   if m else line)
+    return {'doc': write_rundoc(tmp, text[:i] + '\n'.join(out) + text[end:])}
+
+
 def rundoc_without_class_table(tmp, cls='rev'):
     lines = rundoc_lines()
     i, j = class_table_span(lines, cls)
@@ -2243,6 +2267,30 @@ def brief_facts_without_halves(tmp):
     return out
 
 
+def plateau_two_halves(tmp):
+    """A paired run's plateau logs: two halves, two processes each.
+
+    `synthetic_run`'s own plateau logs are one half's, and the by-half
+    block prints nothing under two halves, so the second half is written
+    on top of the fixture rather than into it -- the shape
+    `brief_facts_without_halves` uses, and for the same reason: a second
+    fixture would drift from the first.
+
+    The halves are deliberately unalike. `lookrts` is flat, 19.0 against
+    19.1, and `o2half` is not, 30.0 against 33.0 -- so the run-wide spread
+    and one half's are both wide while the other half is tight, which is
+    the state a pair whose variable moves `list` produces and the one a
+    reader has to tell from drift.
+    """
+    out = synthetic_run(tmp, plateau=[['19.0'], ['19.1']])
+    sat = ('@@saturate dose=1x by=list sprayed=1000000 in 6.0 s; victim'
+           ' vgg-14-c512-k3/list %s ms/iter over 20; inuse=1 keep=1\n')
+    for pop, ms in (('rev', '30.0'), ('slice', '33.0')):
+        write(here_file('%s-o2half-%s.log' % (out['tag'], pop)),
+              'benchmarking x/y\n' + sat % ms)
+    return out
+
+
 def inherited_pair(tmp, n=97, share=True, half=False):
     """Two consecutive runs' files, the later copied from the earlier.
 
@@ -2282,6 +2330,46 @@ def inherited_pair(tmp, n=97, share=True, half=False):
                 ' is installed by the reader, never by hand.\n' % n)
     doc = write(os.path.join(d, 'run%d.md' % n),
                 '# Run %d\n\nA head paragraph of its own.\n\n%s' % (n, body))
+    return {'doc': doc}
+
+
+def lost_pair(tmp, n=97, deleted=True):
+    """A run file whose step-5 copy is a commit, and which lost a paragraph.
+
+    Same shape as `stale_pair` and for the same reason: `--lost` reads the
+    run file against the commit that ADDED it, so the fixture is a git
+    checkout and not two loose files.
+
+    THE CONTROL IS BUILT IN. The copy carries THREE paragraphs: a head, one
+    the write-up REWRITES around the same body, and one the write-up
+    REMOVES. A mode that reported the rewritten one would be reporting
+    every edited paragraph, which is `--stale`'s job and not this one, so
+    the case asserts one gone and the other not named. `deleted=False`
+    keeps all three and is the control on which the mode must find nothing.
+    """
+    doc = os.path.join(tmp, 'run%d.md' % n)
+    kept_para = ('**The straddling loops stand at TEN on each half.** The'
+                 ' survey reads them off the timed binary and the count'
+                 ' moved on both halves alike, so it is the source.')
+    goes = ('**The regime was confirmed in this run own binaries before the'
+            ' hours were spent.** Diag on one shape puts the two figures'
+            ' ten times apart, which is the level this basis asks for.')
+    write(doc, '# Run %d\n\nA head paragraph.\n\n%s\n\n%s\n'
+               % (n - 1, kept_para, goes))
+    env = dict(os.environ, GIT_AUTHOR_NAME='t', GIT_AUTHOR_EMAIL='t@t',
+               GIT_COMMITTER_NAME='t', GIT_COMMITTER_EMAIL='t@t')
+    for cmd in (['init', '-q'], ['add', '--', os.path.relpath(doc, tmp)],
+                ['-c', 'commit.gpgsign=false', 'commit', '-q', '-m',
+                 'copy run%d to run%d' % (n - 1, n)]):
+        subprocess.run(['git', '-C', tmp] + cmd, check=True, env=env,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    rewritten = ('**The straddling loops stand at TWELVE on each half.** The'
+                 ' survey reads them off the timed binary and the count'
+                 ' moved on both halves alike, so it is the source.')
+    body = '# Run %d\n\nA head paragraph.\n\n%s\n' % (n, rewritten)
+    if not deleted:
+        body += '\n%s\n' % goes
+    write(doc, body)
     return {'doc': doc}
 
 
@@ -8825,6 +8913,33 @@ RECORDS = [
          ok=V(exit=0, has=['thirty', '1 edited paragraph(s)'],
               hasnt=['1 more keep only'])),
 
+    # THE ONLY READING THAT SEES A DELETION. Every gate here is a
+    # predicate over what is PRESENT, so a paragraph a scripted edit
+    # removed leaves its neighbours joining seamlessly and passes all of
+    # them -- the failure the user-scope CLAUDE.md records from orthotope,
+    # where a removed paragraph left --lint, --check-doc and a purpose-built
+    # truncation check all exiting 0. Post-run step 6e asks for this
+    # comparison and supplied no tool until 2026-09-22, so every run
+    # hand-rolled it; Run 38 wrote the script twice in one session.
+    case('lost-paragraph-is-reported-and-a-rewritten-one-is-not',
+         'read-run.py', None,
+         'a paragraph a scripted edit removed passed every gate here',
+         plant=lost_pair,
+         argv=['--lost', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['1 WENT BY COUNT', 'The regime was confirmed'],
+              hasnt=['straddling loops',
+                     'no paragraph went by count in either document'])),
+
+    # The control: the same edit with nothing removed, on which the mode
+    # must find nothing -- a rewritten lead over the same body is
+    # `--stale`'s subject and not this one's.
+    case('lost-names-no-paragraph-when-none-went', 'read-run.py', None,
+         'a mode that reported every edited paragraph would report nothing',
+         plant=lambda t: lost_pair(t, deleted=False),
+         argv=['--lost', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['none went by count',
+                           'no paragraph went by count in either document'])),
+
     case('brief-update-refuses-a-brief-it-cannot-place', 'read-run.py',
          None,
          'the brief is left byte for byte when one of its two THIS RUN'
@@ -9547,6 +9662,19 @@ RECORDS = [
          ok=V(exit=0, has=['1 self-loops of at most 64 B'])),
 
     # ---- read-all.sh ---------------------------------------------------
+    # A HALF'S SPREAD NAMED NO PROCESS, so a half that drifted and a half
+    # that is flat but for ONE outlier printed the same figure. Run 38's
+    # control half read 9.41% where ten of its eleven processes sat inside
+    # 2.42% and the eleventh, the main set's, carried the rest -- and the
+    # session learned that by hand-rolling a loop over twenty-two logs,
+    # because the block prints a spread and no names.
+    case('plateau-spread-names-no-process', 'read-all.sh', None,
+         "a half's one outlier was indistinguishable from a half that drifted",
+         plant=plateau_two_halves,
+         argv=['{tag}'],
+         ok=V(has=['within o2half', 'lowest o2half-rev, highest o2half-slice',
+                   'within lookrts', 'lowest lookrts-rev, highest lookrts-slice'])),
+
     case('aa-worst-cell-is-not-an-insitu-row', 'read-all.sh', '8ee1e5b',
          'with every twin filtered out an in-situ row was read as the A/A',
          plant=lambda t: synthetic_run(t, no_twins=True),
@@ -11790,6 +11918,35 @@ RECORDS = [
          env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'nosuchhalf'},
          argv=['zzxh'],
          ok=V(exit=1, has=['REFUSED', 'left standing', 'OTHER=nosuchhalf'])),
+
+    # THE CROSS-CLASS SUMMARY WAS TRANSCRIBED BY HAND until 2026-09-22,
+    # ten rows of figures every one of which the class blocks already
+    # carry -- and its BOLDING was the half sessions got wrong, Run 28
+    # breaking a three-decimal tie with `--pair`, a different statistic,
+    # and bolding the wrong cell of `rev`. Installed off each class's own
+    # `--block`, with `summary bolds` deciding the emphasis on the
+    # unrounded values.
+    case('install-leaves-the-cross-class-summary-untouched',
+         'install-tables.sh', None,
+         'ten rows of figures the class blocks already carried were'
+         ' transcribed by hand, and the bolding with them',
+         plant=rundoc_with_a_defaced_summary,
+         # TWO HALVES, because the summary is a paired run's table: the
+         # one-half state has a case of its own above and the driver is
+         # right to install less there.
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'o2half'],
+                                             prefix='zzsum',
+                                             classes=recorded_classes())),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'o2half'},
+         argv=['zzsum'],
+         # `hasnt` reads the driver's OUTPUT and not the document, and
+         # the per-class check reports the defaced cells there by design
+         # -- `summary row `bcast` disagrees ... says 9.99` -- so what the
+         # output can say is the count and the order, and `LEFT STANDING`
+         # is the one marker that would mean a row went unfilled.
+         ok=V(has=['10 cross-class summary row(s) installed',
+                   'in the order the table already had'],
+              hasnt=['LEFT STANDING'])),
 
     case('install-notes-a-one-half-run', 'install-tables.sh', None,
          'CONTROL: no other half and no paragraph to leave standing is a'
