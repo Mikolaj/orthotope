@@ -877,7 +877,8 @@ rather than a slot in the next run, observed again:
   passes. It also moved a mechanical figure worth keeping: `--alloc` puts 328
   of the main set's 608 cells above 100 bytes a call inside 1e-4 between
   the halves where Run 37 put 429 of 570, and the fall is these seven arms.
-  Registered 2026-09-22.
+  Registered 2026-09-22. `libunord-stage12-sum` was parked `Only` on 2026-09-23,
+  so no later run reads it here.
 - `ANSWERED` **What Run 38 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 38's own
@@ -1433,7 +1434,8 @@ rather than a slot in the next run, observed again:
   what would settle them is the cell timed with criterion's own sampling
   on the evening's copy and a second one, interleaved. The frames
   of the `scaled` pair are in [the placement section][floor]. Registered
-  2026-09-17.
+  2026-09-17. `mut-odo-vecdims-add-in-leaf-u1` was parked `Only` on 2026-09-23,
+  so no later run reads it here.
 - `OPEN` **The frame a copy draws is a durable property of the instance,
   and which physical bits it collides in is untested; the gate written to catch
   the slow draw ran at every launch until the mount was suspended
@@ -1988,6 +1990,8 @@ rather than a slot in the next run, observed again:
   THE FAMILIES* IS RUNS 36'S AND 37'S READING AND NOT RUN 38'S**: on a source
   fourteen commits on, seven unordered consumers move too, which is the entry
   above on them and is why this paragraph's count is dated rather than standing.
+  `liblist-stage2-sum` was parked `Only` on 2026-09-23, so no later run reads
+  it here.
 
 - `OPEN` **The flagged half carries FEWER self-loops than the unflagged one
   and a LARGER `.text`, and the two facts point opposite ways --- the loops
@@ -2159,6 +2163,8 @@ rather than a slot in the next run, observed again:
   carries, in one table, a family converting three fifths, a family converting
   almost none, and a family converting more than all of it; the rate
   is a property of the arm and the pass together and of neither alone.
+  `mut-odo-vecdims-add-in-leaf-u1` was parked `Only` on 2026-09-23, so no later
+  run reads it here.
 
 - `ANSWERED` **`lib-stage2-disp` and `lib-stage2-lean` are NOT the same code
   at a few hundred elements, which the lean ruling was written to make them.**
@@ -5496,9 +5502,9 @@ entry points the user takes, and the `runs` class is where the routes part; what
 each landing and parking among them did to the bench count, at its date,
 is in the roster arithmetic under [What the benchmark
 does](#what-the-benchmark-does), the one copy of it, and the reason for each
-is at its roster entry; the last of them, `lib-stage3-lean-onelevel`
-on 2026-09-23, takes the roster to 665 benches --- the figure's second site,
-which `--check-doc` holds to `Main.hs` beside the chain's.
+is at its roster entry; the last of them, the parking of 2026-09-23, takes
+the roster to 589 benches --- the figure's second site, which `--check-doc`
+holds to `Main.hs` beside the chain's.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -7743,12 +7749,15 @@ landing with their fills `liblist-stage5` and `libunord-stage14` rostered `Only`
 beside them, and `liblist-stage4-list-sum` parked, reasons at their entries ---
 took the roster to 646 benches, and `lib-stage3-lean-onelevel`, the lean arm
 over a fill that builds its table only above one outer level, landing 2026-09-23
-with the spill that keeps it out of the shipped fill named at its entry, takes
-the roster to 665 benches, so with the controls the run is 35 arms. **Run 26
-timed four parked arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`,
-parked 2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
-and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
-([the stride classes](#the-stride-classes-and-what-they-cover)). Each was parked
+with the spill that keeps it out of the shipped fill named at its entry, took
+the roster to 665 benches, and the parking of 2026-09-23 ---
+`mut-odo-vecdims-add-in-leaf-u1`, `liblist-stage2-sum`, `liblist-stage3-sum`
+and `libunord-stage12-sum` --- takes the roster to 589 benches, so
+with the controls the run is 31 arms. **Run 26 timed four parked arms
+for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02;
+`canon-vecdims` and `lib-stage2`, parked by this prune; and `lib-stage2-short`,
+parked by the ruling on the short bodies of the same day ([the stride
+classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration
 unreadable --- Run 24 lost a clause, Run 25 five, and the two-window item
 was withdrawn beside them, seven in all ([the open list][open]) --- so Run 26
@@ -13891,11 +13900,12 @@ eleven of twelve readings above the copy's median and the instructions equal
 to within fourteen in 4.8 million (`probe-r34-instance2-0918b.log`), through
 noise several times the 17th's, the box not being quiet. What follows
 is `instance-gate.sh`, run list step 16a: each half's launch instance timed
-against a fresh copy on that cell, alternated, the copy swapped in
-under the launch name when the launch reads slower by more than five percent,
-and the slow draw parked beside it as `.slow` until the deletion offer, because
-with page shuffling off (`page_alloc.shuffle` N) a freed block is the likeliest
-thing the next copy gets. The bar is the instrument's, repeats of one instance
+against a fresh copy on that cell, and on its shipped `-u2` counterpart since
+`-u1` was parked on 2026-09-23, alternated, the copy swapped in under the launch
+name when the launch reads slower by more than five percent, and the slow draw
+parked beside it as `.slow` until the deletion offer, because with page
+shuffling off (`page_alloc.shuffle` N) a freed block is the likeliest thing
+the next copy gets. The bar is the instrument's, repeats of one instance
 under the differenced fixed-`-n` form parting by up to eight percent, so a three
 percent term passes it and what it catches is the draw that has moved a run's
 figures. The routes past it are [in the open list][open]. **Read again

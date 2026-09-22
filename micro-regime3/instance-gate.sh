@@ -34,8 +34,9 @@
 # said so. Exit 2 on usage.
 #
 # INSTANCE_CELL and INSTANCE_N pick the cell, by default
-# scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u1 at 4000, the cell the Run
-# 34 instance was proved on; a half whose roster lacks the cell is a perf
+# scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u2 at 4000, the shipped fill's
+# counterpart of the '-u1' cell the Run 34 instance was proved on, '-u1'
+# having been parked on 2026-09-23; a half whose roster lacks the cell is a perf
 # failure here and a complaint there. Its processes are not the run's, so
 # run-evening.sh strips WILDLOG before calling. Two hooks for the cases:
 # INSTANCE_DIR names the directory the instances live in and wants no
@@ -48,7 +49,7 @@ R=$1
 HALVES=$(./pair-halves.sh "$R") || exit 1
 eval "$HALVES"
 DIR=${INSTANCE_DIR:-hugebin}
-CELL=${INSTANCE_CELL:-scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u1}
+CELL=${INSTANCE_CELL:-scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u2}
 N=${INSTANCE_N:-4000}
 BAR=${INSTANCE_BAR:-5}
 if [ -z "${INSTANCE_DIR:-}" ] && ! mountpoint -q hugebin 2>/dev/null; then

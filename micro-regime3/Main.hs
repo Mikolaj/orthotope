@@ -6917,7 +6917,9 @@ roster =
   , ("mut-odo-vecdims-add-in-leaf-u2-down", Only fbMutOdoVecdimsAddInLeafU2Down)
     -- The un-unrolled form of the shipped fill, added 2026-09-04 for Run
     -- 25 and placed beside its parents; reasons at its definition.
-  , ("mut-odo-vecdims-add-in-leaf-u1", Fill fbMutOdoVecdimsAddInLeafU1)
+    -- Parked 'Only' 2026-09-23 by the owner; 'instance-gate.sh' times
+    -- the shipped '-u2' cell in its place.
+  , ("mut-odo-vecdims-add-in-leaf-u1", Only fbMutOdoVecdimsAddInLeafU1)
     -- The same loop with its cursors as pointers at every level, added
     -- 2026-09-05 beside its parent: the ceiling '-u1' would reach under
     -- an allocator that spilled nothing,
@@ -7038,8 +7040,9 @@ roster =
     -- 2026-09-23: a list concatenated is the API's failure mode,
     -- 'toVectorT' being the fill for that.
   , ("liblist-stage1-sum",         Fill fbLibListStage1Sum)
-  , ("liblist-stage2-sum",         Fill fbLibListStage2Sum)
-  , ("liblist-stage3-sum",         Fill fbLibListStage3Sum)
+    -- Stages two and three parked 'Only' 2026-09-23 by the owner.
+  , ("liblist-stage2-sum",         Only fbLibListStage2Sum)
+  , ("liblist-stage3-sum",         Only fbLibListStage3Sum)
   , ("liblist-stage4-sum",         Fill fbLibListStage4Sum)
     -- The inward twin of 2026-09-21: stage four's route under the fill
     -- numbered innermost first, against the arm above, which keeps
@@ -7135,7 +7138,8 @@ roster =
     -- it moves, 'libunord-stage7-sum' on every other view without a zero
     -- stride; on the views with one, 'libunord-stage13-sum' is the one
     -- timed arm on its route.
-  , ("libunord-stage12-sum",       Fill fbLibUnordStage12Sum)
+    -- Parked 'Only' 2026-09-23 by the owner.
+  , ("libunord-stage12-sum",       Only fbLibUnordStage12Sum)
     -- Stage twelve's route found with fewer passes over the axes, added
     -- 2026-09-17 for Run 35 at the tail of the consumers, where a new
     -- entry moves no existing one; reasons at 'routeUnord13'. Its
