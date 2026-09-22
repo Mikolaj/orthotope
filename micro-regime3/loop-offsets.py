@@ -658,19 +658,21 @@ def survey(path, want='_Main_'):
     print(f'{path}: {len(mine)} self-loops of at most {LINE} B in '
           f'{want}-compiled code')
     print(f'   at offset 0        : {len(at0)}')
-    print(f'   still straddling   : {len(strad)}')
     worst = sorted(strad, key=lambda x: -x['len'])[:10]
+    cut = '' if len(worst) == len(strad) else f', {len(worst)} longest listed'
+    print(f'   still straddling   : {len(strad)}{cut}')
     named = arms(path, [f['start'] for f in worst])
     for f in worst:
         print(f'      0x{f["start"]:x}  mod {LINE} = {f["mod"]:2d}, '
               f'{f["len"]} B  {named.get(f["start"]) or f["sym"]}')
     spans = exit_spans(path, {f['start'] for f in mine})
     over = astride(mine, spans)
-    print(f'   exit spans astride : {len(over)}')
+    worst = sorted(over, key=lambda x: -spans[x['start']])[:10]
+    cut = '' if len(worst) == len(over) else f', {len(worst)} longest listed'
+    print(f'   exit spans astride : {len(over)}{cut}')
     print(f'      of {sum(1 for f in mine if spans.get(f["start"], LINE + 1) <= LINE)}'
           f' heads whose fall-through exit ends within a line of the head;'
           f' 0 is what a LOOP_EXITSPAN=1 build owes')
-    worst = sorted(over, key=lambda x: -spans[x['start']])[:10]
     named = arms(path, [f['start'] for f in worst])
     for f in worst:
         print(f'      0x{f["start"]:x}  mod {LINE} = {f["mod"]:2d}, '
