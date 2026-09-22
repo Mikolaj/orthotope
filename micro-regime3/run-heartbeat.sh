@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # The run list's heartbeat, as a command rather than as a shell loop typed
-# into the chapter: one line every 45 minutes carrying the run's JSON count,
+# into the chapter: one line per tick carrying the run's JSON count,
 # the last stage line and the wall-clock log's last line.
 #
 #     ./run-heartbeat.sh run31      # armed as a PERSISTENT monitor, whose
