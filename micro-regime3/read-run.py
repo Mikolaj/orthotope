@@ -6677,7 +6677,13 @@ def class_says(cells, shapes, strategies, meta, args):
     # slot when it is filled.
     out.append("___ (how this class's counted work compares with its clock).")
     print()
-    print(textwrap.fill(' '.join(out), width=72))
+    # NOT break_on_hyphens: this paragraph is joined again by the
+    # `--brief` arm and by install-tables.sh, and a wrap taken inside
+    # `lib-stage2-lean-u1` comes back as `lib- stage2-lean-u1` -- an arm
+    # name that renders wrong, matches no row of the table above it and
+    # answers no search. Met on Run 38's `small` block, where the fill
+    # split both that name and `mut-odo-vecdims`.
+    print(textwrap.fill(' '.join(out), width=72, break_on_hyphens=False))
 
 
 def block_skeleton(cells, shapes, strategies, meta, args, terms):

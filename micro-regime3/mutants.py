@@ -293,6 +293,22 @@ MUTANTS = [
      '                over = b in floor and sp > a.factor * floor[b]',
      '                over = b in floor and sp < a.factor * floor[b]',
      'R=$(ls {root}/run*-*-main.json | sed "s|.*/\\(run[0-9]*\\)-.*|\\1|" | sort -V | tail -1); python3 "{file}" $R -d "{root}" -c flip | python3 -c "import re, sys\np = re.findall(r\'([0-9.]+)% against ([0-9.]+)%\', sys.stdin.read())\nsys.exit(0 if p and all(float(a) > float(b) for a, b in p) else 1)"'),
+    # The class paragraph wrapped narrow and at hyphens again, which is
+    # the defect Run 38 met: a name split by the wrap is joined back with
+    # a space by the `--brief` arm and by install-tables.sh, and
+    # `prop_block_keeps_a_name_whole` reads it off the reader's own prose.
+    # Width 40 rather than the 72 the defect fell at, so the break lands
+    # inside a name on any class rather than on the one whose figures
+    # happened to put it there.
+    ('the class paragraph splits arm names at the wrap', 'read-run.py',
+     "    print(textwrap.fill(' '.join(out), width=72,"
+     " break_on_hyphens=False))",
+     "    print(textwrap.fill(' '.join(out), width=40))",
+     # NOT the shared PROPS: the env's CORPUS_LIMIT=2 bounds the runs
+     # OPENED, and the two that sort first are main sets with no class
+     # paragraph in them, so this judge reads the newest run's own
+     # twenty-two JSONs instead -- twenty of them stride classes.
+     'CORPUS_RUN=newest CORPUS_LIMIT=0 python3 "{dir}/properties.py"'),
     # The health line enumerating again: the cells go back in front of the
     # count, which is the shape the cut of 2026-09-08 removed, and
     # `prop_health_names_rows_not_cells` fails on the first run on disk

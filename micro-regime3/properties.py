@@ -350,9 +350,68 @@ def prop_health_names_rows_not_cells(m):
     return n, 'run(s) on disk, every warning line of each', bad[:5]
 
 
+def prop_block_keeps_a_name_whole(m):
+    """No backticked name in `--block`'s prose is split at a hyphen.
+
+    The class paragraph is wrapped for the terminal and joined again --
+    by the `--brief` arm here and by install-tables.sh -- so a wrap taken
+    inside a hyphenated name comes back as `lib- stage2-lean-u1`: a name
+    that renders wrong, matches no row of the table above it and answers
+    no search for the arm. It reached Run 38's `small` block that way and
+    no gate saw it, every document pass here being a predicate over what
+    is PRESENT, and a split name is present.
+
+    Quantified over the corpus rather than planted as a case because the
+    break depends on where the wrap falls in a paragraph whose figures are
+    the run's own: ten classes, four rosters and five slow factors of the
+    synthetic fixtures were tried and not one split a name, while the
+    run that met it did. Each class JSON is compared with ITSELF, which
+    needs no twin on disk and drives the same formatter; a JSON that is
+    not a stride class is skipped on the reader's own refusal and not
+    counted, while any OTHER refusal is a failure, a reader that declines
+    a file printing no prose to check.
+    """
+    split = re.compile(r'`[A-Za-z0-9][\w-]*- [A-Za-z0-9][\w-]*`')
+    bad, n, classes = [], 0, 0
+    for f in runs_on_disk():
+        if LIMIT and n >= LIMIT:
+            break
+        p = os.path.join(CORPUS, f)
+        got = subprocess.run([sys.executable,
+                              os.path.join(HERE, 'read-run.py'),
+                              p, '--block', '--compare', p],
+                             cwd=HERE, capture_output=True, text=True,
+                             timeout=300)
+        n += 1
+        if got.returncode:
+            # A REFUSAL IS NOT A CLEAN RUN, so only the two the reader
+            # NAMES are tolerated -- a JSON that is not a stride class, and
+            # a filtered probe with no `list` baseline to divide by. Any
+            # other nonzero exit is a failure here: a reader that declines
+            # a file prints no prose, and a property reading only prose
+            # would pass on every file it could not read.
+            if any(q in got.stderr for q in
+                   ('--block is for a stride-class run',
+                    '--block needs the `list` baseline in the run')):
+                continue
+            bad.append('%s: the reader exited %d, so its prose was not read'
+                       ' at all' % (f, got.returncode))
+            continue
+        classes += 1
+        for hit in dict.fromkeys(split.findall(got.stdout)):
+            bad.append('%s: `--block` splits a name: %s' % (f, hit))
+    # n COUNTS WHAT WAS OPENED and the label says how much of it carried
+    # the prose: a corpus of main sets alone has no class paragraph to
+    # check, and the runner fails a property returning 0, so the coverage
+    # line is where that gap is stated rather than hidden.
+    return (n, 'run(s) on disk opened, %d of them stride classes whose'
+            ' every backticked name was read' % classes, bad[:5])
+
+
 PROPERTIES = [prop_abs_round_trip, prop_table_reads_back,
               prop_selftest_over_the_corpus,
-              prop_health_names_rows_not_cells]
+              prop_health_names_rows_not_cells,
+              prop_block_keeps_a_name_whole]
 
 # Each is broken deliberately in `mutants.py`, which `selftest-mutants.py .`
 # replays, because a property that has never failed has proved nothing.
