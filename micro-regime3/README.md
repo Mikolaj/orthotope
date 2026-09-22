@@ -8870,7 +8870,18 @@ Unsandboxed throughout:
     #            | grep -vE --line-buffered 'counts .*: (start|done, rc=0)$'
     #      `-F` AND NOT `-f`, AND THE REDIRECT IS NOT OPTIONAL: neither
     #      file exists at arming time, `-F` retries by name and `-n +1`
-    #      replays the stamps already written. THE WALL-CLOCK LOG IS ON
+    #      replays the stamps already written.
+    #      AND `-n +1` STAYS ON EVERY RE-ARM, which is not an
+    #      optimisation to drop: a monitor is reaped at its own THIRTY
+    #      minutes whether or not the session can re-arm it, so every
+    #      re-arm has a gap behind it, and `-n +1` is what replays what
+    #      the gap swallowed. `-n 0` looks free -- it stops the
+    #      already-seen stamps arriving twice -- and buys blindness:
+    #      Run 38 re-armed with it, lost the twenty process stamps
+    #      written between 03:11 and 10:05, and read a seven-hour-old
+    #      line as the run's current state. The duplicates are the
+    #      price of a lossless re-arm; the filter and the thirty-minute
+    #      answer rule are what absorb them. THE WALL-CLOCK LOG IS ON
     #      THE TAIL because $R-evening.txt alone is silent for the eight
     #      hours the sequence runs -- Run 36's wrote nothing between
     #      `sequence: start` and `sequence: done` -- where the wall-clock
