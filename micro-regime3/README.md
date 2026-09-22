@@ -5501,9 +5501,9 @@ entry points the user takes, and the `runs` class is where the routes part; what
 each landing and parking among them did to the bench count, at its date,
 is in the roster arithmetic under [What the benchmark
 does](#what-the-benchmark-does), the one copy of it, and the reason for each
-is at its roster entry; the last of them, the pairing of 2026-09-21, takes
-the roster to 646 benches --- the figure's second site, which `--check-doc`
-holds to `Main.hs` beside the chain's.
+is at its roster entry; the last of them, `lib-stage3-lean-onelevel`
+on 2026-09-23, takes the roster to 665 benches --- the figure's second site,
+which `--check-doc` holds to `Main.hs` beside the chain's.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -7745,8 +7745,11 @@ and the retirement of 2026-09-19 --- `libunord-stage10-sum`,
 arm's and the two stages' routes under the fill numbered innermost first,
 landing with their fills `liblist-stage5` and `libunord-stage14` rostered `Only`
 beside them, and `liblist-stage4-list-sum` parked, reasons at their entries ---
-takes the roster to 646 benches, so with the controls the run is 34 arms. **Run
-26 timed four parked arms for that run alone**:
+took the roster to 646 benches, and `lib-stage3-lean-onelevel`, the lean arm
+over a fill that builds its tables only above one outer level, landing
+2026-09-23 with the spill that keeps it out of the shipped fill named
+at its entry, takes the roster to 665 benches, so with the controls the run
+is 35 arms. **Run 26 timed four parked arms for that run alone**:
 `mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02; `canon-vecdims`
 and `lib-stage2`, parked by this prune; and `lib-stage2-short`, parked
 by the ruling on the short bodies of the same day ([the stride
