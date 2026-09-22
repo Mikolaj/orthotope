@@ -168,36 +168,41 @@ already-evaluated branch `testb $7,%bl; jne` jumps straight back to it --
 before them.
 
 Heads with no dead spot between them move together, so a group gets one
-directive, at a dead spot before it: `.p2align 6, 0x90, m`, and a
-`.skip rho, 0x90` after it where the group wants the spot at a residue
-other than 0. `m` fires exactly when some head of the group would
-otherwise span a line it need not: the `.align 8` before each table
-between the spot and the heads is modelled for all 64 incoming residues,
-and the assembler counts the bytes, so relaxation cannot move a head off
-its residue -- a `.skip k` predicted from the probe's addresses did, on 458
-of 504 groups, a `jmp` across the pad growing from `rel8` to `rel32`. And
-whatever lands upstream of a group moves it by whole lines: the first
-roster change read under this form, `run23-spot` to `run24-g912` on
-2026-09-02, kept every mod-64 offset of the tracked eight heads, two
-addresses to the byte and six on one displacement of 0x940, which is 37
-lines, where the max-skip form's two roster changes, Runs 20 and 21,
-kept none (README, the floor section's build rules). The
-cost has one order inside a group: a head `overlapped` names is the outer
-of a rotated pair and yields, its straddle being paid once per exit of the
-inner loop where the inner's would be paid per iteration. Measured on that
-assembly, against the max-skip form: 4 short loops straddling of 285
-against 94, no pad byte executed against 2281, `.text` up 18190 bytes
-against 6096. The four are the fills' rotated pairs -- `fillStage2`,
-`fillStage2Short`, `fbMutOdoVecdimsAddInLeafU2` and its `Down` twin, named
-off a `-g3` twin -- which no residue resolves, two loops of 51 and 55 bytes
-42 apart not fitting a line, and the inner one is the resident. `check` is
-green with its log byte-identical, and the counter reads the shim-free
-figure on the fills. Timed against the basis on 2026-09-01 (README's task
-6): every arm whose fill carried a pad reads faster, `fillStage2`'s users
-0.943 to 0.945 and the `u2` leaves 0.951 and 0.955, the arms whose fills
-carried none within the floor. Off by default for the reason the other
-switches are: every figure published through this shim was measured under
-the max-skip form, and moving the basis is a run's decision.
+directive, at a dead spot before it: `.p2align 6, 0x90, m`, and a `.skip
+rho, 0x90` after it where the group wants the spot at a residue other than
+0. `m` fires exactly when some head of the group would otherwise span a
+line it need not: the `.align 8` before each table between the spot and the
+heads is modelled for all 64 incoming residues, and the assembler counts the
+pad's bytes, so a `.skip k` predicted from the probe's addresses -- which a
+`jmp` across the pad, growing from `rel8` to `rel32`, put off on 458 of 504
+groups -- is not needed. A jump between the spot and a head that targets
+above the spot still grows across the pad, and the head then lands off its
+residue by the bytes it grew: Run 38's control half put `.LQeN1` at 8 where
+its plan bought 0 or 1, three such jumps and nine bytes, which the verified
+count carries and the line after it names (2026-09-22); the nearer spot lost
+on budget alone, and preferring it is a basis change nobody has taken. And
+whatever lands upstream of a group moves it by whole lines: the first roster
+change read under this form, `run23-spot` to `run24-g912` on 2026-09-02,
+kept every mod-64 offset of the tracked eight heads, two addresses to the
+byte and six on one displacement of 0x940, which is 37 lines, where the
+max-skip form's two roster changes, Runs 20 and 21, kept none (README, the
+floor section's build rules). The cost has one order inside a group: a head
+`overlapped` names is the outer of a rotated pair and yields, its straddle
+being paid once per exit of the inner loop where the inner's would be paid
+per iteration. Measured on that assembly, against the max-skip form: 4
+short loops straddling of 285 against 94, no pad byte executed against
+2281, `.text` up 18190 bytes against 6096. The four are the fills' rotated
+pairs -- `fillStage2`, `fillStage2Short`, `fbMutOdoVecdimsAddInLeafU2` and
+its `Down` twin, named off a `-g3` twin -- which no residue resolves, two
+loops of 51 and 55 bytes 42 apart not fitting a line, and the inner one
+is the resident. `check` is green with its log byte-identical, and the
+counter reads the shim-free figure on the fills. Timed against the basis
+on 2026-09-01 (README's task 6): every arm whose fill carried a pad reads
+faster, `fillStage2`'s users 0.943 to 0.945 and the `u2` leaves 0.951 and
+0.955, the arms whose fills carried none within the floor. Off by default
+for the reason the other switches are: every figure published through this
+shim was measured under the max-skip form, and moving the basis is a run's
+decision.
 
 **The exit span and the entry count, `LOOP_EXITSPAN=1` and
 `LOOP_ENTRIES=1`** (2026-09-15). The span the planner protects runs from
@@ -1022,7 +1027,7 @@ def plan_dead(src, args, path):
         else:
             groups[-1][1].append(h)
         last = i
-    ins, ins_alt, unresolved = {}, {}, 0
+    ins, ins_alt, planned = {}, {}, set()
     for cands, hs in groups:
         if not cands:
             continue
@@ -1091,8 +1096,18 @@ def plan_dead(src, args, path):
             if VERBOSE:
                 print(f'align-as: {path}: {lab} pinned at residue'
                       f' {int(want) % BOUND} by LOOP_PIN', file=sys.stderr)
-        c0 = directive(chosen, ins)
-        unresolved += int(c0[0] + c0[1])
+        directive(chosen, ins)
+        # The straddles the plan itself accepts, as heads and in every
+        # cost, so that the verified count below has a like figure to
+        # read against: a short head whose residue at the chosen pad end
+        # spans a line beyond its least, which is the outer of a rotated
+        # pair yielding to its inner. The chosen cost summed and truncated
+        # was that count under the plain cost alone -- under the exit span
+        # it carried the exit's lines too, and under the block rules it was
+        # cycles, printed as `(0 planned)` beside 37 verified (2026-09-22).
+        (_, rho, _), d = chosen
+        planned |= {h for h, (i, ln, *_) in zip(hs, hl)
+                    if ln <= BOUND and extra(residue(d, i, rho), ln)}
         if VERBOSE and mode in below:
             directive(choose(below[mode]), ins_alt)
     if VERBOSE:
@@ -1101,8 +1116,10 @@ def plan_dead(src, args, path):
         sym2 = probe(marked(src, edges, dead, aligns, ins, exits, ilines),
                      args, path, DS)
         if sym2:
-            strad = sum(1 for h in L if L[h] <= BOUND
-                        and extra(sym2[f'{DS}H_{edges[h][0]}'], L[h]))
+            stradl = [h for h in sorted(L, key=lambda h: edges[h][0])
+                      if L[h] <= BOUND
+                      and extra(sym2[f'{DS}H_{edges[h][0]}'], L[h])]
+            strad = len(stradl)
             padb = sum(sym2[f'{DS}Q_{d}'] - sym2[f'{DS}D_{d}'] for d in dead)
             astride = ''
             if mode != 'plain':
@@ -1112,7 +1129,21 @@ def plan_dead(src, args, path):
             print(f'align-as: {path}: {len(L)} head(s) in {len(groups)} group(s),'
                   f' {len(ins)} dead-spot directive(s), {padb} pad byte(s);'
                   f' verified: {strad} short loop(s) straddling'
-                  f' ({unresolved} planned){astride}', file=sys.stderr)
+                  f' ({len(planned)} planned){astride}', file=sys.stderr)
+            # A head straddling that the plan did not accept is one the
+            # assembler moved off its planned residue, and naming it is
+            # what turns the two counts' disagreement into a case: Run
+            # 38's control half read 13 against 12, and the one was
+            # `.LQeN1`, a 63-byte loop pinned free at 0 or 1 by a pad at a
+            # spot fifty lines up, whose 40 bytes grew three `rel8` jumps
+            # between that spot and the head to `rel32`, nine bytes the
+            # spot-to-head distance did not carry (2026-09-22).
+            off = [h for h in stradl if h not in planned]
+            if off:
+                shown = ', '.join(off[:12])
+                shown += ', ...' if len(off) > 12 else ''
+                print(f'align-as: {path}: {len(off)} short loop(s) straddling'
+                      f' beyond the plan: {shown}', file=sys.stderr)
         # And the plan under the cost below this one, probed the same way:
         # the heads the two costs place at different residues are the ones
         # a pair of the two costs can say anything about, budgets that
@@ -1127,7 +1158,7 @@ def plan_dead(src, args, path):
             print(f'align-as: {path}: {len(names)} head(s) the {mode} cost'
                   f' places at a residue the {below[mode]} cost would not'
                   + (f': {shown}' if names else ''), file=sys.stderr)
-    return ins, len(groups), unresolved
+    return ins, len(groups), len(planned)
 
 
 def pad_note(path):
