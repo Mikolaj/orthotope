@@ -8877,9 +8877,10 @@ Unsandboxed throughout:
     #      re-arm has a gap behind it, and `-n +1` is what replays what
     #      the gap swallowed. `-n 0` looks free -- it stops the
     #      already-seen stamps arriving twice -- and buys blindness:
-    #      Run 38 re-armed with it, lost the twenty process stamps
-    #      written between 03:11 and 10:05, and read a seven-hour-old
-    #      line as the run's current state. The duplicates are the
+    #      Run 38 re-armed with it, lost every stamp the twenty
+    #      processes between 03:11 and 10:05 wrote, both of each, and
+    #      read a seven-hour-old line as the run's current state. The
+    #      duplicates are the
     #      price of a lossless re-arm; the filter and the thirty-minute
     #      answer rule are what absorb them. THE WALL-CLOCK LOG IS ON
     #      THE TAIL because $R-evening.txt alone is silent for the eight
