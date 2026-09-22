@@ -1574,30 +1574,44 @@ rather than a slot in the next run, observed again:
   and the worst foreign readings on the three intruded benches were 291, 276
   and 234 ms --- so anything concurrent trips the bar, and there is no quiet
   window inside the evening to move a reading to. There is one before it,
-  and a reading this cheap has no claim on the hours. **Run 34 is the first
-  evening read that way, and it is clean**: `--wild` finds no bench at 0.25
-  of a core in any of its twenty-two sequence logs, its four gate logs or its 88
-  rider logs. What stays open is the other half: all three readings are
-  of a SESSION's own commands landing on a process, and nobody has priced one
-  against a control --- the same command run beside a process rather than
-  on it --- so what a reading costs is known only where it landed. **Run 35
-  measured it, and on a command the list itself still placed after the launch.**
-  Its `./run-status.sh run35` --- the line the run list printed
-  under `run-evening.sh` --- landed inside the GATE's first process and put 2
-  of its 95 benches at or above the bar, peak **0.81** of a core
-  on `cnn-L1-6x6-c1/mut-odo-vecdims` and 0.65 on `cnn-L1-6x6-c1/bq-expand`,
-  the third and fourth benches of that process; all twenty-two of its sequence
-  logs, its other three gate logs and its 88 rider logs are clean. So one
-  sub-second status call costs the two benches it overlaps two thirds to four
-  fifths of a core --- against Run 33's document reads at 0.35, 0.33 and 0.26
-  on the benches they landed on, so between 1.9 and 2.3 times the widest
-  of those. It is the SECOND largest of the three readings taken,
-  by a hundredth: Run 32's gate reading peaked at 0.82 of a core, also 2 of 95
-  benches of a gate log, which is the same shape twice. **What that left
-  was the list's own line**: the readings moved to 13a in the ruling
-  of 2026-09-16 and `./run-status.sh $R` did not move with them, and it is moved
-  above the launch now --- the done-condition reads the same before the evening
-  as after it, and the one place it must not run is between them.
+  and a reading this cheap has no claim on the hours. **RUN 38 IS THE SECOND
+  EVENING READ THAT WAY AND IT SEPARATES THE SESSION'S EXPOSURE FROM THE BOX'S,
+  2026-09-22.** Its readings were all taken at step 13a before the launch,
+  as the ruling asks, and the evening still carries TWO benches at or above 0.25
+  foreign, both the control half's: `stretch-wide-2xM/bq-expand-aa-distant`
+  at 0.25, bench 310 of the main set's 646, and `stretch-bigstride/bq-expand`
+  at 0.28, bench 59 of the gate's `-b` leg's 95. **Neither is a session
+  command**: this session ran none on the box between the launch and the riders'
+  last line, both benches sit mid-process rather than at a process start,
+  and what it did inside both windows was answer a stage-monitor tick, which
+  issues no tool call and runs nothing here. **So what this entry prices
+  is COMMANDS and not attention** --- a status call at 0.81 of a core, document
+  reads at 0.26 to 0.35 --- and the residue a run still meets with every reading
+  moved out is the BOX's, which is the reading Run 34's clean evening left open
+  and this one supplies. **Run 34 is the first evening read that way, and
+  it is clean**: `--wild` finds no bench at 0.25 of a core in any
+  of its twenty-two sequence logs, its four gate logs or its 88 rider logs. What
+  stays open is the other half: all three readings are of a SESSION's own
+  commands landing on a process, and nobody has priced one against a control ---
+  the same command run beside a process rather than on it --- so what a reading
+  costs is known only where it landed. **Run 35 measured it, and on a command
+  the list itself still placed after the launch.** Its `./run-status.sh run35`
+  --- the line the run list printed under `run-evening.sh` --- landed inside
+  the GATE's first process and put 2 of its 95 benches at or above the bar, peak
+  **0.81** of a core on `cnn-L1-6x6-c1/mut-odo-vecdims` and 0.65
+  on `cnn-L1-6x6-c1/bq-expand`, the third and fourth benches of that process;
+  all twenty-two of its sequence logs, its other three gate logs and its 88
+  rider logs are clean. So one sub-second status call costs the two benches
+  it overlaps two thirds to four fifths of a core --- against Run 33's document
+  reads at 0.35, 0.33 and 0.26 on the benches they landed on, so between 1.9
+  and 2.3 times the widest of those. It is the SECOND largest of the three
+  readings taken, by a hundredth: Run 32's gate reading peaked at 0.82
+  of a core, also 2 of 95 benches of a gate log, which is the same shape twice.
+  **What that left was the list's own line**: the readings moved to 13a
+  in the ruling of 2026-09-16 and `./run-status.sh $R` did not move with them,
+  and it is moved above the launch now --- the done-condition reads the same
+  before the evening as after it, and the one place it must not run is between
+  them.
 - `ANSWERED` **The readings carrier is retired, 2026-09-16: the reading it saved
   is a reading the write-up cannot avoid.** **IT RETIRED A CARRIER
   FOR THE PREVIOUS RUN'S SECTIONS AND NOT CARRIERS IN GENERAL.** Run 37 read
