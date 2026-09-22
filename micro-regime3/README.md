@@ -79,9 +79,10 @@ at 0.9997 on its plain half and 0.9756 on its flagged one, the fill ahead
 on both, where Run 37 read 0.9945 and 0.9810 and Run 36 0.9970 and 0.9826 ---
 so the plain half's cell has come within three ten-thousandths of the line
 and the flagged half's has moved away from it. **The mutable fills hold the top
-of the table** --- `lib-stage2-lean` at 0.023 and the shipped leaf at 0.027,
-against `mut-odo-vecdims`'s 0.045 --- and every one of them needs a new
-`Vector`-class method, which this README argued against for as long
+of the table** --- `lib-stage2-lean` and `lib-stage3-lean` tied at 0.025,
+separated only by the unrounded 0.02519 against 0.02521, and the shipped leaf
+at 0.027, against `mut-odo-vecdims`'s 0.045 --- and every one of them needs
+a new `Vector`-class method, which this README argued against for as long
 as the ceiling stood --- to keep orthotope's `Vector` API pure and minimal,
 a bar an in-tree precedent softened to a weight --- and which the decision
 of 2026-08-22 **took**, `vFillStrided` landing 2026-08-24
@@ -766,34 +767,35 @@ rather than a slot in the next run, observed again:
   to **0.7053** on `bcast`. Its counted work is level with its family, 1.0501
   against the shipped leaf's 1.0521, so it is not codegen; the family's A/A
   copies agree, so it is not the process. **What settles the half is post-run
-  step 4a**: read against Run 36's same half, the arm is LEVEL on the basis,
-  0.9836 to 1.0085 over the eleven populations, and moves on the CONTROL
-  in eight of them, 1.0312 on `rev` to **1.4164** on `bcast`, with the counted
-  work at **1.0000** on both halves in every one of the eleven. So this run's
-  control binary is slower on that arm than Run 36's control binary was,
-  executing the same instructions to the fourth decimal. The reading is [in Run
-  37's own file](runs/run37.md). **Taken 2026-09-20 in two passes**,
-  by `probe-chain-0920.sh`, `probe-ab-0920.sh` and `probe-inst2-0920.sh`
-  with their logs beside them. The first read the cached launch instance level
-  with ONE fresh disk copy, and a third reading of the main set repeated the arm
-  at **0.9598**, so it read as the control binary's layout. The second refuted
-  that: both controls through THREE fresh disk copies apiece read Run 37's
-  over Run 36's at 0.935 on `alexnet-L1-55-c3-k11` and within 2.5 points
-  of level on every other cell that measured, the two hot loops byte-identical
-  at the same offsets modulo 64, while Run 37's launch instance against three
-  fresh copies reads **1.139** on `alexnet-L1-55-c3-k11` and 1.024 on the scaled
-  cell. So the cause is the control's file instance, a slow 4 KiB draw costing
-  one cell 14% and another 2%, as Run 33's cost one cell 15%; the third reading
-  repeated the arm because it ran on that instance, as the run had;
-  and the first pass's one copy read level because it was a second slow draw,
-  both at 6.05M cycles an iteration where fresh copies read 5.6M --- the case
-  `instance-gate.sh`'s header names, and why a one-copy gate is blind one launch
-  in ten. Run 36's control instance died with the reboot; the bytes say the two
-  controls' arms are level. **AND RUN 38 CONFIRMS IT, 2026-09-22**: the same two
-  recipes built again read the arm at **1.0205**, and step 4a puts this run's
-  control faster than Run 37's on it in eight of eleven populations, down
-  to 0.7144 on `bcast`, counts level throughout. A new build is a new file
-  and so a new draw --- the test the dead instance could not give.
+  step 4a**: read against Run 36's same half, the arm is level on the basis
+  in the eight populations `--half-movers` lists, 0.9836 to 1.0085, and moves
+  on the CONTROL in all eight, 1.0312 on `rev` to **1.4164** on `bcast`; read
+  over all ELEVEN the basis runs 0.9836 to 1.0416, `bcastmid` and `small`
+  sitting outside that range and past their own floors. The counted work
+  is level on both halves throughout --- 1.0000 in ten populations and 1.0014
+  against 0.9988 on `small`. So this run's control binary is slower on that arm
+  than Run 36's control binary was, executing the same instructions
+  to the fourth decimal. The reading is [in Run 37's own file](runs/run37.md).
+  **Taken 2026-09-20 in two passes**, by `probe-chain-0920.sh`,
+  `probe-ab-0920.sh` and `probe-inst2-0920.sh` with their logs beside them.
+  The second pass refuted the first: both controls through THREE fresh disk
+  copies apiece read Run 37's over Run 36's at 0.935 on `alexnet-L1-55-c3-k11`
+  and within 2.5 points of level on every other cell that measured, the two hot
+  loops byte-identical at the same offsets modulo 64, while Run 37's launch
+  instance against three fresh copies reads **1.139** on `alexnet-L1-55-c3-k11`
+  and 1.024 on the scaled cell. So the cause is the control's file instance,
+  a slow 4 KiB draw costing one cell 14% and another 2%, as Run 33's cost one
+  cell 15%; the third reading repeated the arm because it ran on that instance,
+  as the run had; and the first pass's one copy read level because it
+  was a second slow draw, both at 6.05M cycles an iteration where fresh copies
+  read 5.6M --- the case `instance-gate.sh`'s header names, and why a one-copy
+  gate is blind one launch in ten. Run 36's control instance died
+  with the reboot; the bytes say the two controls' arms are level. **AND RUN 38
+  CONFIRMS IT, 2026-09-22**: the same two recipes built again read the arm
+  at **1.0205**, and step 4a puts this run's control faster than Run 37's
+  on it in eight of eleven populations, down to 0.7144 on `bcast`, counts level
+  throughout. A new build is a new file and so a new draw --- the test the dead
+  instance could not give.
 - `OPEN` **Seven reducing consumers newly change what they ALLOCATE
   under `-fspec-constr -fliberate-case`, where one run earlier the same pair
   changed none of them.** On Run 38 the unordered consumers
@@ -803,21 +805,22 @@ rather than a slot in the next run, observed again:
   of them, `libunord-stage12-sum`, moving further than either family --- `list`
   at 7.89% and `bq-expand` at 12.52%, both unchanged from Run 37
   to the hundredth of a point. On Run 37's own JSONs, read by the same
-  `--compare --alloc --per-shape` over the same eleven populations, those arms
-  read **0.9957 to 1.0007**. The two runs are the same two recipes on one
-  compiler, one shim, one project file and one launch from disk, so the only
-  term that can reach this is the SOURCE: `Main.hs` moved fourteen commits
-  between them. **What it is NOT is a tier**: those arms allocate at the 0.01x
-  tier, hundreds of bytes a call --- `libunord-stage13-sum` reads 695 B
-  on the basis against 511 on the control on `stretch-inner256` --- so property
-  3's ORDER clause is untouched, no published multiple moves and no verdict
-  in [Run 38's file](runs/run38.md) turns on it. It is recorded because property
-  3's LEVEL clause is read as *the passes change what an arm allocates*,
-  and this run adds seven arms to the set they change. **What would settle
-  it is WHICH commit**: the fourteen are the owner's, three of them landing
-  the inward twins, and a `--alloc` reading of one half built at a few of them
-  would name the one that made these consumers sensitive to the two passes.
-  It also moved a mechanical figure worth keeping: `--alloc` puts 328
+  `--compare --alloc --per-shape` over the same eleven populations, the SIX
+  of them that exist there --- `libunord-stage14-sum` is new this run --- read
+  **0.9957 to 1.0013** cell by cell. The two runs are the same two recipes
+  on one compiler, one shim, one project file and one launch from disk,
+  so the only term that can reach this is the SOURCE: `Main.hs` moved fourteen
+  commits between them. **What it is NOT is a tier**: those arms allocate
+  at the 0.01x tier, hundreds of bytes a call --- `libunord-stage13-sum` reads
+  695 B on the basis against 511 on the control on `stretch-inner256` ---
+  so property 3's ORDER clause is untouched, no published multiple moves
+  and no verdict in [Run 38's file](runs/run38.md) turns on it. It is recorded
+  because property 3's LEVEL clause is read as *the passes change what an arm
+  allocates*, and this run adds seven arms to the set they change. **What would
+  settle it is WHICH commit**: the fourteen are the owner's, three of them
+  landing the inward twins, and a `--alloc` reading of one half built at a few
+  of them would name the one that made these consumers sensitive to the two
+  passes. It also moved a mechanical figure worth keeping: `--alloc` puts 328
   of the main set's 608 cells above 100 bytes a call inside 1e-4 between
   the halves where Run 37 put 429 of 570, and the fall is these seven arms.
   Registered 2026-09-22.
@@ -1895,7 +1898,10 @@ rather than a slot in the next run, observed again:
   died on. Run 29's and Run 30's figures are over eighteen shapes and this run's
   over nineteen, so the two sets order the same way and do not subtract. What
   is still unanswered is the same thing: nothing here says why an optimisation
-  pass should move an allocation multiple at all.
+  pass should move an allocation multiple at all. **AND ITS *ONE ARM OUTSIDE
+  THE FAMILIES* IS RUNS 36'S AND 37'S READING AND NOT RUN 38'S**: on a source
+  fourteen commits on, seven unordered consumers move too, which is the entry
+  above on them and is why this paragraph's count is dated rather than standing.
 
 - `OPEN` **The flagged half carries FEWER self-loops than the unflagged one
   and a LARGER `.text`, and the two facts point opposite ways --- the loops
@@ -4109,17 +4115,25 @@ and the `--brief` arm having joined it back with a space. Fixed at the one
 by `prop_block_keeps_a_name_whole` with a mutant, because no synthetic fixture
 this suite can build puts the wrap on a hyphen: ten classes, four rosters
 and five slow factors were swept and none did, so a planted case would have
-passed before the fix and proved nothing. **FIVE COMPUTATIONS IMPROVISED, none
-of them with a mode.** The column-against-paired SIGN partings over all 120
-pairs of the sixteen timed arms, scripted from `--winsor`'s two columns
-and the cells; the per-class rate at which an instruction saving reaches
+passed before the fix and proved nothing. **FOUR COMPUTATIONS IMPROVISED,
+AND A FIFTH THAT HAD A MODE THIS SESSION DID NOT LOOK FOR.** `--winsor`'s own
+closing lines census the column-against-paired SIGN partings over all 120 pairs
+and name the one that parts with both its figures --- added 2026-09-17
+at `c640d45`, five days before this run --- and this session scripted
+that census from the same mode's two columns and the cells instead, having read
+the table above those lines and not the lines themselves. A mode is found
+by reading the output already in hand and not only its docstring. The four
+with no mode: the per-class rate at which an instruction saving reaches
 the clock, differenced per class from the two geomeans the class paragraph
 already prints; the per-population allocation deviation of every arm, which
 found the seven unordered consumers; THE SAME STATISTIC ON RUN 37'S OWN JSONS,
 which is what turned *this is new* from an assertion into a measurement
-and is the one of the five worth a mode; and the `sum-only` early-against-late
-agreement across all twenty-two populations. **A STEP NOT TAKEN, and named
-rather than skipped quietly**: post-run step 3's rerun. Two benches reached 0.25
+and is the one of the four worth a mode; and the `sum-only` early-against-late
+agreement across all twenty-two populations --- where the script's orientation
+was the RECIPROCAL of the reader's, which prints late over early, so two figures
+reached the page inverted with their populations swapped, caught by the checker
+against this file's own class blocks. **A STEP NOT TAKEN, and named rather
+than skipped quietly**: post-run step 3's rerun. Two benches reached 0.25
 foreign, both the control half's, and Run 33's precedent --- a larger exposure
 whose rerun the owner stopped --- was followed with a sensitivity reading
 instead: the floor the exposed cell reaches reads 0.28% with its shape
@@ -12330,50 +12344,50 @@ was read with the shape and without it and reads 0.28% either way.
 No registration of this run names the floor pairs; `--floor-pairs` reads
 the eight on every population on both halves, 176 readings, and SEVEN
 of the eight carry a floor somewhere --- `list-aa-adjacent` in EIGHT
-of the twenty-two populations, where Run 37 read nine and Run 35 had none
-in more than five, which is the same instability the whole-set figure above
-reads. **What this run cannot restate is Run 19's finding**, there being
-no repetition: `Main.hs` moved fourteen commits under a compiler, a shim
-and a project file that did not move, so no floor here is read twice on one
-binary. The three readings that did that stand as they were --- Run 19's factor
-of 1.7, Run 23's twentieth and Run 30's 1.44 --- and they still say that a floor
-moves by up to seven tenths on a binary that has not changed at all, and
-that no run's floor is inheritable by the run after it. **Where the movement
-lives is the one thing twenty-one runs now agree on.** The carry-back figure has
-read 0.54%, 0.49%, 0.44%, 0.46%, 0.37%, 0.39%, 0.34%, 0.40%, 0.31%, 0.83%,
-0.39%, 0.26%, 0.57%, 0.61%, 0.66%, 0.47%, 0.49%, 0.49%, 0.75%, 0.59% and now
-**0.57%** across those twenty-one on the basis while the whole-set figure ran
-1.36%, 2.32%, 1.51%, 2.92%, 2.12%, 2.03% and 1.26% before it stopped,
-so the pairs outside the four were what moved. **Run 27's 0.83% still does
-not survive as a trend**, and neither does the rise Runs 28 to 32 traced: Run
-33's 0.47%, Run 34's 0.49% and Run 35's 0.49% are all INSIDE the 0.31%-to-0.54%
-band the series held for nine runs, and Run 36's 0.75% was above that band
-as four earlier readings of the series were --- 0.57%, 0.61%, 0.66% and Run 27's
-0.83% --- and under the widest of them. **Run 37's 0.59% was back inside
-that band on the basis and this run's 0.57% is too**, with the control at 0.28%;
-the figure that moved furthest between those two runs is the CONTROL half's,
-0.48% to 0.28%, where the basis's two readings part by two hundredths
-of a point, and the whole-set and restricted readings coincide on both halves
-of both runs, which is a different statistic from the restricted reading beside
-it --- which is what the four-statistics warning at the head of this paragraph
-is for. The threshold this run supports is ONE figure a half, the restricted
-four-pair reading and the whole set over the eight having closed on both ---
-and since 2026-09-13 a margin between two rows clears the whole-set one,
-the carry-back figure being the series and not the bar ([the open list][open]).
-Read the floor as the run's *and the half's*, re-measured every time, never
-as a constant of the harness and never inherited. **And of these series, only
-the readings from Run 31 on can still be re-derived**: Runs 24 to 30's artifacts
-were deleted 2026-09-18 at the owner's word, so `--series` starts at Run 31
-and every figure before it is a RECORD here and in that run's own file rather
-than something a later session can check. That is the run-file split working
-as designed --- an older run is read by opening its file --- and it is also why
-this paragraph's series is not to be cut: it is now the only copy. **And both
-of the checks from OUTSIDE the declared pairs are still gone with their arms.**
-`lib-stage2-disp` was parked on 2026-09-07 and the two undeclared pairs
-that stood in its place on Run 28 both lost a member to the parking
-of 2026-09-11, so this run, like Runs 29 to 37, has no check on the declared
-eight from outside them at all. A run that wants that check again has to land
-an arm for it.
+of the twenty-two populations, where Run 37 read six and Run 35 had none in more
+than five, which is the same instability the whole-set figure above reads.
+**What this run cannot restate is Run 19's finding**, there being no repetition:
+`Main.hs` moved fourteen commits under a compiler, a shim and a project file
+that did not move, so no floor here is read twice on one binary. The three
+readings that did that stand as they were --- Run 19's factor of 1.7, Run 23's
+twentieth and Run 30's 1.44 --- and they still say that a floor moves by up
+to seven tenths on a binary that has not changed at all, and that no run's floor
+is inheritable by the run after it. **Where the movement lives is the one thing
+twenty-one runs now agree on.** The carry-back figure has read 0.54%, 0.49%,
+0.44%, 0.46%, 0.37%, 0.39%, 0.34%, 0.40%, 0.31%, 0.83%, 0.39%, 0.26%, 0.57%,
+0.61%, 0.66%, 0.47%, 0.49%, 0.49%, 0.75%, 0.59% and now **0.57%** across
+those twenty-one on the basis while the whole-set figure ran 1.36%, 2.32%,
+1.51%, 2.92%, 2.12%, 2.03% and 1.26% before it stopped, so the pairs outside
+the four were what moved. **Run 27's 0.83% still does not survive as a trend**,
+and neither does the rise Runs 28 to 32 traced: Run 33's 0.47%, Run 34's 0.49%
+and Run 35's 0.49% are all INSIDE the 0.31%-to-0.54% band the series held
+for nine runs, and Run 36's 0.75% was above that band as four earlier readings
+of the series were --- 0.57%, 0.61%, 0.66% and Run 27's 0.83% --- and
+under the widest of them. **Run 37's 0.59% and this run's 0.57% sit where Run
+36's 0.75% did, above the 0.31%-to-0.54% band and under the widest reading
+of the series**, with this run's control at 0.28%; the figure that moved
+furthest between those two runs is the CONTROL half's, 0.48% to 0.28%, where
+the basis's two readings part by two hundredths of a point, and the whole-set
+and restricted readings coincide on both halves of both runs, which
+is a different statistic from the restricted reading beside it --- which is what
+the four-statistics warning at the head of this paragraph is for. The threshold
+this run supports is ONE figure a half, the restricted four-pair reading
+and the whole set over the eight having closed on both --- and since 2026-09-13
+a margin between two rows clears the whole-set one, the carry-back figure being
+the series and not the bar ([the open list][open]). Read the floor as the run's
+*and the half's*, re-measured every time, never as a constant of the harness
+and never inherited. **And of these series, only the readings from Run 31 on can
+still be re-derived**: Runs 24 to 30's artifacts were deleted 2026-09-18
+at the owner's word, so `--series` starts at Run 31 and every figure before
+it is a RECORD here and in that run's own file rather than something a later
+session can check. That is the run-file split working as designed --- an older
+run is read by opening its file --- and it is also why this paragraph's series
+is not to be cut: it is now the only copy. **And both of the checks from OUTSIDE
+the declared pairs are still gone with their arms.** `lib-stage2-disp`
+was parked on 2026-09-07 and the two undeclared pairs that stood in its place
+on Run 28 both lost a member to the parking of 2026-09-11, so this run, like
+Runs 29 to 37, has no check on the declared eight from outside them at all.
+A run that wants that check again has to land an arm for it.
 
 **The 0.7% differencing bar, measured against the pairs it is applied to ---
 and it is near the MEDIAN of that population rather than a bound on it.**
