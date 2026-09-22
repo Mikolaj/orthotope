@@ -5183,7 +5183,7 @@ routeUnord13 sh (T (Strides ats) ao _)
   | otherwise = routeOf start l (zeroStrideOutermost merged)
   where
     !l = product sh
-    (axes, !start) = absAxesAndStart ao ats sh
+    AxesStart axes start = absAxesAndStart ao ats sh
     merged = InnerFirst (foldl' mergeInner [] (sortBy byStrideRank axes))
 
 -- The dispatch of 'routeUnord13', piece by piece.
@@ -5279,18 +5279,25 @@ routeUnord13 sh (T (Strides ats) ao _)
 -- 'zeroStrideOutermost' does the look and the move.
 
 -- The (absolute stride, extent) pairs of the axes of extent above 1,
--- in the order given, and the offset of the view's lowest address.
-absAxesAndStart :: Int -> [Int] -> ShapeL -> ([(Int, Int)], Int)
-absAxesAndStart ao = go
+-- in reverse of the order given, and the offset of the view's lowest
+-- address.  The offset is a strict field, so the loop carries a number
+-- and not a chain of additions, and the accumulator is the result
+-- itself.  The reversal is nothing to the sort behind it: the only
+-- order 'byStrideRank' leaves to the sort's stability is between two
+-- axes of one absolute stride and one extent, which 'mergeInner'
+-- treats alike whichever comes first.
+data AxesStart = AxesStart [(Int, Int)] !Int
+
+absAxesAndStart :: Int -> [Int] -> ShapeL -> AxesStart
+absAxesAndStart ao = go (AxesStart [] ao)
   where
-    go :: [Int] -> ShapeL -> ([(Int, Int)], Int)
-    go (s : ss) (n : ns)
-      | n == 1 = go ss ns
-      | s < 0 = case go ss ns of
-          (axes, !start) -> ((negate s, n) : axes, start + (n - 1) * s)
-      | otherwise = case go ss ns of
-          (axes, !start) -> ((s, n) : axes, start)
-    go _ _ = ([], ao)
+    go :: AxesStart -> [Int] -> ShapeL -> AxesStart
+    go acc@(AxesStart axes start) (s : ss) (n : ns)
+      | n == 1 = go acc ss ns
+      | s < 0 = go (AxesStart ((negate s, n) : axes) (start + (n - 1) * s))
+                   ss ns
+      | otherwise = go (AxesStart ((s, n) : axes) start) ss ns
+    go acc _ _ = acc
 {-# INLINE absAxesAndStart #-}
 
 -- The merged axes, innermost first, with their zero-stride axis, if
