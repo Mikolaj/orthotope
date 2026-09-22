@@ -62,6 +62,10 @@ the old object code and reports nothing (README.md, same section).
                over the larger of ops/6 and blocks. Wants
                LOOP_DEADSPOT=1 likewise, stands alone, and is off by
                default. The same section
+  LOOP_SETTLED  the block rules plus the back edge's own rules, the spot
+               fewest jumps cross, and the plan settled against the
+               assembler. Wants LOOP_DEADSPOT=1 likewise, stands alone,
+               and is off by default. Its own section below
   PAD_BYTES    dead bytes appended after the first module's text, default 0
   LOOP_PIN     LABEL:RESIDUE, a probe's knob and never a recipe's: the group
                holding that head takes the residue that puts the head
@@ -269,6 +273,49 @@ the exit spans still astride. `probe-entries-sweep.py` is
 the exhaustive reading for one loop, predicted entries against measured
 cycles at every residue.
 
+**The settled plan, `LOOP_SETTLED=1`** (2026-09-22): the block rules with
+three rules for the back edge's own bytes, and the spot chosen and then
+checked against the assembler --- one switch, both halves being a reading
+taken over the model's, the core's on the residue and the assembler's on the
+spot. The rules are `probe-r38-sweep.py`'s, the fill loop's Run 38 bytes
+swept over the 64 residues at a fixed address: the back edge starting on
+a 16-byte boundary or crossing one costs 5 to 11.5 cycles a run against 4
+to 5 (residues 3, 4, 19, 20, 35, 36, 51 and 52 there), in the first eight
+bytes of a line up to 11.5, easing with distance (21 to 26), and in the
+last four 6 to 8.5 (43 to 46, the tail's `jmp`, which is the outer head's
+back edge); the exit's taken branch, the `jge`, crossed the line's end at
+14 and 15 for nothing, so the back edge alone is charged --- the first rule
+read on a `jl` and the other two on a `jmp`, each charged to any back edge,
+which is the switch's bet and what a pair prices. On that loop the exit
+span and the block rules rate residues 0 to 13 alike and this cost charges
+3 and 4, where the run had put every fill head: pinned at 0, the basis read
+`lib-stage2-lean` at 9.6 million cycles an iteration against 11.5 to 12.3
+at 4. The spot: a group's spots are ranked on cost, then on how many jumps
+between the spot and its heads target above the spot, the only ones a pad
+there can lengthen, then on nearness, and last on the budget, which alone
+chose `.LQeN1`'s far spot under the other costs. Then the plan is settled:
+the padded copy is assembled and read as the verbose check reads it, and
+a group whose heads cost more where they landed than its plan bought is
+planned again, at a spot no jump crosses where it has one left and otherwise
+at the same spot with the shift it was moved by folded into its residues,
+a pad that has grown a jump keeping it grown, up to three rounds; a head
+can cost more than its plan only by being moved, every dearer residue being
+inside the budget. The verbose report says how many rounds, how many groups,
+and which are still off by this cost; its straddle count stays on the lines
+criterion, so under this cost a head straddling beyond the plan is one
+the pad moved inside the free band, not one off the plan. On Run 38's two
+halves, built from the run's own recipes with the switch added: two rounds
+and one group planned again on each, 56546 and 61790 pad bytes against
+the exit span's 33297 and 32586, 38 and 33 short loops straddling by the
+lines criterion and one on each beyond the plan, the three fill heads read
+at residue 0 on both, the two `fillStage2`s' and `u1`'s, the fill cell
+on `stretch-wide-2xM` at 9.6 to 10.0 million cycles an iteration on both
+halves where the run read 11.7 to 12.9, and `check` green with its log
+byte-identical. A basis change, so off by default; wants `LOOP_DEADSPOT=1`
+beside it and refuses without; stands alone as the block rules do. Its
+controls are in `defects.py`: the back edge's rules on the rotated pair, the
+spot and the rounds on a group whose every spot a jump crosses.
+
 Its defects are kept as cases in `defects.py`: the switch read for
 truth, the head after a zero-operand instruction, the pad's announcement,
 the empty `PAD_BYTES`, for the dead-spot form the pad's place, the table
@@ -447,6 +494,7 @@ DEADSPOT = switch('LOOP_DEADSPOT')
 EXITSPAN = switch('LOOP_EXITSPAN')
 ENTRIES = switch('LOOP_ENTRIES')
 BLOCKRULES = switch('LOOP_BLOCKRULES')
+SETTLED = switch('LOOP_SETTLED')
 PIN = os.environ.get('LOOP_PIN', '')
 TRACE = os.environ.get('LOOP_TRACE', '')   # a head label: its group's plan, on stderr
 WINDOW = number('LOOP_WINDOW', 64)
@@ -454,8 +502,9 @@ ENTRY_OPS = number('LOOP_ENTRY_OPS', 8)
 VERBOSE = switch('ALIGN_AS_VERBOSE')
 PAD = number('PAD_BYTES', 0)
 BOUND = 1 << int(ALIGN)
-if (EXITSPAN or ENTRIES or BLOCKRULES) and not DEADSPOT:
-    sys.exit('align-as: LOOP_EXITSPAN, LOOP_ENTRIES and LOOP_BLOCKRULES are'
+if (EXITSPAN or ENTRIES or BLOCKRULES or SETTLED) and not DEADSPOT:
+    sys.exit('align-as: LOOP_EXITSPAN, LOOP_ENTRIES, LOOP_BLOCKRULES and'
+             ' LOOP_SETTLED are'
              ' costs of the dead-spot planner and want LOOP_DEADSPOT=1 beside'
              ' them; the recipe asked for something this shim cannot do')
 if PIN and not DEADSPOT:
@@ -727,6 +776,27 @@ def block_cost(segs, r):
     return floor + w * (whole + half / 2.0)
 
 
+def branch_cost(segs, r):
+    """Whole cycles the back edge's own bytes cost at residue `r`: the
+    three rules the sweep of 2026-09-22 fixed on Run 38's fill loop, the
+    docstring's settled section. The branch starting on a 16-byte
+    boundary or crossing one; the branch starting in the first eight
+    bytes of a line; the branch starting in its last four. `segs` is
+    `prepared`'s list and the body's last instruction is the back edge.
+    The exit's taken branch showed none of the three on that loop, so
+    it is left alone."""
+    sg = segs[0]
+    s, e = r + sg['starts'][-1], r + sg['ends'][-1]
+    cost = 0
+    if s % 16 == 0 or s // 16 != (e - 1) // 16:
+        cost += 1
+    if 1 <= s % 64 <= 7:
+        cost += 1
+    if s % 64 >= 60:
+        cost += 1
+    return cost
+
+
 def sites(src, heads):
     """Where a directive would go: (line index, label), in source order.
 
@@ -974,14 +1044,16 @@ def plan_dead(src, args, path):
     """
     edges = edges_of(src)
     dead, aligns = dead_spots(src)
-    exits = exits_of(src, edges) if (EXITSPAN or ENTRIES or BLOCKRULES) else {}
-    ilines = instr_lines(src, edges, exits) if (ENTRIES or BLOCKRULES) else set()
+    exits = exits_of(src, edges) if (EXITSPAN or ENTRIES or BLOCKRULES
+                                     or SETTLED) else {}
+    ilines = (instr_lines(src, edges, exits)
+              if (ENTRIES or BLOCKRULES or SETTLED) else set())
     mnemonic = {k: src[k].strip().split()[0] for k in ilines}
     sym = probe(marked(src, edges, dead, aligns, {}, exits, ilines),
                 args, path, DS)
     if not sym:
         return None
-    L, LX, SEGS, BC = {}, {}, {}, {}
+    L, LX, SEGS, BC, BS = {}, {}, {}, {}, {}
     index = instr_index(sym) if ilines else ([], [])
     for h, (i, js) in edges.items():
         a = sym[f'{DS}H_{i}']
@@ -992,21 +1064,27 @@ def plan_dead(src, args, path):
         x = sym.get(f'{DS}X_{i}')
         if x is not None and x - a > L[h]:
             LX[h] = x - a
-        if ENTRIES or BLOCKRULES:
+        if ENTRIES or BLOCKRULES or SETTLED:
             j = max(js)
             SEGS[h] = segments(index, i, j, exits.get(h), a,
                                sym[f'{DS}E_{i}_{j}'] - a, LX.get(h, L[h]),
                                mnemonic)
-            if BLOCKRULES and SEGS[h][0]:
+            if (BLOCKRULES or SETTLED) and SEGS[h][0]:
                 pre = prepared(SEGS[h])
                 costs = [block_cost(pre, r) for r in range(BOUND)]
                 least = min(costs)
                 BC[h] = [c - least for c in costs]
+                if SETTLED:
+                    costs = [block_cost(pre, r) + branch_cost(pre, r)
+                             for r in range(BOUND)]
+                    least = min(costs)
+                    BS[h] = [c - least for c in costs]
     outer = overlapped(spans_of(src))
     align_lines = sorted(aligns)
-    mode = ('blocks' if BLOCKRULES else 'entries' if ENTRIES
-            else 'exit' if EXITSPAN else 'plain')
-    below = {'blocks': 'exit', 'entries': 'exit', 'exit': 'plain'}
+    mode = ('settled' if SETTLED else 'blocks' if BLOCKRULES
+            else 'entries' if ENTRIES else 'exit' if EXITSPAN else 'plain')
+    below = {'settled': 'blocks', 'blocks': 'exit', 'entries': 'exit',
+             'exit': 'plain'}
 
     def residue(d, i, p):
         """Head line i's offset mod BOUND when the pad after d ends at p."""
@@ -1018,6 +1096,22 @@ def plan_dead(src, args, path):
             cur = sym[f'{DS}B_{a}']
         return (pos + sym[f'{DS}H_{i}'] - cur) % BOUND
 
+    labels = {}
+    for k, line in enumerate(src):
+        m = LABEL.match(line.strip())
+        if m:
+            labels.setdefault(m.group(1), k)
+
+    def crossing(d, i):
+        """Jumps between spot `d` and head line `i` whose target lies
+        above the spot: the only ones a pad at `d` can lengthen."""
+        n = 0
+        for k in range(d + 1, i):
+            m = JUMP.match(src[k].strip())
+            if m and labels.get(m.group(1), i) < d:
+                n += 1
+        return n
+
     groups, last = [], -1
     for h in sorted(L, key=lambda h: edges[h][0]):
         i = edges[h][0]
@@ -1027,27 +1121,42 @@ def plan_dead(src, args, path):
         else:
             groups[-1][1].append(h)
         last = i
-    ins, ins_alt, planned = {}, {}, set()
-    for cands, hs in groups:
-        if not cands:
-            continue
+    ins, ins_alt, chosen_by, hl_by = {}, {}, {}, {}
+    banned, shift = collections.defaultdict(set), collections.defaultdict(int)
+
+    def head_cost(hd, r, how):
+        i, ln, out, lx, segs, bc, bs = hd
+        if how == 'settled' and bs is not None:
+            return bs[r]
+        if how == 'blocks' and bc is not None:
+            return bc[r]
+        if how == 'entries' and segs is not None:
+            return entry_cost(segs, r)
+        v = extra(r, ln)
+        if how == 'exit' and lx:
+            v += extra(r, lx)
+        return v
+
+    def tiered(hl, residues, how):
+        c = [0, 0, 0]
+        for hd, r in zip(hl, residues):
+            tier = 2 if hd[1] > BOUND else 1 if hd[2] else 0
+            c[tier] += head_cost(hd, r, how)
+        return tuple(c)
+
+    def plan_one(g, first):
+        """Plan group `g`: its directive into `ins` and its choice into
+        `chosen_by`, the trace and the alternate plan on the first pass
+        only. A spot the settling rounds banned is not offered."""
+        cands, hs = groups[g]
+        cands = [d for d in cands if d not in banned[g]]
         hl = [(edges[h][0], L[h], h in outer, LX.get(h), SEGS.get(h),
-               BC.get(h)) for h in hs]
+               BC.get(h), BS.get(h)) for h in hs]
+        hl_by[g] = hl
 
         def cost(d, p, how):
-            c = [0, 0, 0]
-            for i, ln, out, lx, segs, bc in hl:
-                r = residue(d, i, p)
-                if how == 'blocks' and bc is not None:
-                    v = bc[r]
-                elif how == 'entries' and segs is not None:
-                    v = entry_cost(segs, r)
-                else:
-                    v = extra(r, ln)
-                    if how == 'exit' and lx:
-                        v += extra(r, lx)
-                c[2 if ln > BOUND else 1 if out else 0] += v
-            return tuple(c)
+            return tiered(hl, [(residue(d, hd[0], p) + shift[g, d]) % BOUND
+                               for hd in hl], how)
 
         def choose(how):
             best = None
@@ -1057,9 +1166,16 @@ def plan_dead(src, args, path):
                     c0 = costs[rho]
                     m = max(((BOUND - p) % BOUND for p in range(BOUND)
                              if costs[(p + rho) % BOUND] > c0), default=-1)
-                    if best is None or (c0, rho, m) < best[0]:
-                        best = ((c0, rho, m), d)
-            return best
+                    # Under the settled plan a spot no jump crosses wins
+                    # on cost alone, then the nearer spot, a pad growing
+                    # only the jumps that cross it; the other costs let
+                    # the budget decide a tie, which is what chose
+                    # `.LQeN1`'s far spot (the docstring).
+                    key = ((c0, crossing(d, hl[0][0]), hl[0][0] - d, rho, m)
+                           if SETTLED else (c0, rho, m))
+                    if best is None or key < best[0]:
+                        best = (key, ((c0, rho, m), d))
+            return best[1]
 
         def directive(chosen, into):
             (c0, rho, m), d = chosen
@@ -1072,7 +1188,7 @@ def plan_dead(src, args, path):
             return c0
 
         chosen = choose(mode)
-        if TRACE and TRACE in hs:
+        if first and TRACE and TRACE in hs:
             (tc0, trho, tm), td = chosen
             i = edges[TRACE][0]
             print(f'align-as: trace {TRACE}: group {hs}, spots at lines'
@@ -1080,10 +1196,12 @@ def plan_dead(src, args, path):
                   f' cost {tc0}; the spot\'s raw residue {sym[f"{DS}D_{td}"] % BOUND},'
                   f' the head\'s {sym[f"{DS}H_{i}"] % BOUND};'
                   f' L {L[TRACE]}, exit span {LX.get(TRACE)}', file=sys.stderr)
-            if TRACE in BC:
-                costly = [r for r in range(BOUND) if BC[TRACE][r] > 1e-9]
-                print(f'align-as: trace {TRACE}: block-rule costly residues'
-                      f' {costly}', file=sys.stderr)
+            for name, table in (('block-rule', BC), ('settled', BS)):
+                if TRACE in table:
+                    costly = [r for r in range(BOUND)
+                              if table[TRACE][r] > 1e-9]
+                    print(f'align-as: trace {TRACE}: {name} costly residues'
+                          f' {costly}', file=sys.stderr)
         if PIN and PIN.rsplit(':', 1)[0] in hs:
             # the pinned head's group: the nearest spot, the residue that
             # puts the head where asked, a budget that always fires
@@ -1091,25 +1209,78 @@ def plan_dead(src, args, path):
             d = cands[-1]
             i = edges[lab][0]
             rho = next(p for p in range(BOUND)
-                       if residue(d, i, p) == int(want) % BOUND)
+                       if (residue(d, i, p) + shift[g, d]) % BOUND
+                       == int(want) % BOUND)
             chosen = ((cost(d, rho, mode), rho, BOUND - 1), d)
-            if VERBOSE:
+            if VERBOSE and first:
                 print(f'align-as: {path}: {lab} pinned at residue'
                       f' {int(want) % BOUND} by LOOP_PIN', file=sys.stderr)
         directive(chosen, ins)
-        # The straddles the plan itself accepts, as heads and in every
-        # cost, so that the verified count below has a like figure to
-        # read against: a short head whose residue at the chosen pad end
-        # spans a line beyond its least, which is the outer of a rotated
-        # pair yielding to its inner. The chosen cost summed and truncated
-        # was that count under the plain cost alone -- under the exit span
-        # it carried the exit's lines too, and under the block rules it was
-        # cycles, printed as `(0 planned)` beside 37 verified (2026-09-22).
-        (_, rho, _), d = chosen
-        planned |= {h for h, (i, ln, *_) in zip(hs, hl)
-                    if ln <= BOUND and extra(residue(d, i, rho), ln)}
-        if VERBOSE and mode in below:
+        chosen_by[g] = chosen
+        if first and VERBOSE and mode in below:
             directive(choose(below[mode]), ins_alt)
+
+    for g, (cands, hs) in enumerate(groups):
+        if cands:
+            plan_one(g, True)
+
+    # The plan settled against the assembler: the padded copy assembled
+    # and every head read where it landed, and a group whose heads cost
+    # more there than its plan bought is planned again with that spot
+    # banned, the pad having moved something between it and the heads
+    # that the probe's distances did not carry -- `.LQeN1`'s three jumps
+    # (the docstring's settled section). A group can only cost more than
+    # its plan by being moved: every residue costing more than the chosen
+    # one is inside the budget and gets padded to it.
+    settled = None
+    if SETTLED:
+        again, off, rounds = [], [], 0
+        for rounds in range(1, 4):
+            sym2 = probe(marked(src, edges, dead, aligns, ins, exits, ilines),
+                         args, path, DS)
+            if not sym2:
+                break
+            off = [g for g, ((c0, _, _), _) in chosen_by.items()
+                   if tiered(hl_by[g], [sym2[f'{DS}H_{hd[0]}'] % BOUND
+                                        for hd in hl_by[g]], mode)
+                   > tuple(x + 1e-9 for x in c0)]
+            if not off:
+                break
+            moved = 0
+            for g in off:
+                (_, rho, _), d = chosen_by[g]
+                i0 = hl_by[g][0][0]
+                # How far the head landed from where this spot's plan put
+                # it is what the pad moved between the two; a spot no jump
+                # crosses is preferred where the group has one left, and
+                # otherwise the same spot is planned again with that
+                # shift folded into its residues, a pad that has grown a
+                # jump keeping it grown.
+                delta = (sym2[f'{DS}H_{i0}'] - residue(d, i0, rho)
+                         - shift[g, d]) % BOUND
+                clean = [x for x in groups[g][0]
+                         if x != d and x not in banned[g]
+                         and not crossing(x, i0)]
+                if clean:
+                    banned[g].add(d)
+                elif delta:
+                    shift[g, d] = (shift[g, d] + delta) % BOUND
+                else:
+                    continue                 # nothing this round can move
+                ins.pop(d, None)
+                plan_one(g, False)
+                moved += 1
+                again.append(g)
+            if not moved:
+                break
+        settled = (rounds, again, off)
+
+    planned = set()
+    for g, ((_, rho, _), d) in chosen_by.items():
+        planned |= {h for h, hd in zip(groups[g][1], hl_by[g])
+                    if hd[1] <= BOUND
+                    and extra((residue(d, hd[0], rho) + shift[g, d]) % BOUND,
+                              hd[1])}
     if VERBOSE:
         # The plan checked against the assembler, one more probe: what the
         # symbol table of the padded copy says every head's residue is.
@@ -1144,6 +1315,13 @@ def plan_dead(src, args, path):
                 shown += ', ...' if len(off) > 12 else ''
                 print(f'align-as: {path}: {len(off)} short loop(s) straddling'
                       f' beyond the plan: {shown}', file=sys.stderr)
+            if settled:
+                rounds, again, left = settled
+                names = ', '.join(groups[g][1][0] for g in left[:12])
+                print(f'align-as: {path}: settled in {rounds} round(s),'
+                      f' {len(again)} group(s) planned again'
+                      + (f', {len(left)} still off the plan: {names}'
+                         if left else ''), file=sys.stderr)
         # And the plan under the cost below this one, probed the same way:
         # the heads the two costs place at different residues are the ones
         # a pair of the two costs can say anything about, budgets that

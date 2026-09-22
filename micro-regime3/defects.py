@@ -3842,6 +3842,33 @@ ASM_ROTATED_PAIR = """\
 \tjmp\t.Lout
 """
 
+# A head whose every spot a conditional jump crosses: two `jmp *(%rbp)`
+# spots between `.Lfar` and `.Lin`, each followed by a `jl .Lfar` that a
+# pad at the spot lengthens from rel8 to rel32, the far label being just
+# over a hundred bytes up. `.Lprev` keeps the text's start out of the
+# group's spots. What the settled plan does here is what Run 38's
+# control half needed at `.LQeN1`.
+ASM_CROSSED_SPOTS = """\
+\t.text
+.Lprev:
+\tmovq %rax, %rcx
+\tcmpq %rax, %rsi
+\tjl .Lprev
+.Lfar:
+""" + '\tmovq %rax, %rcx\n' * 34 + """\
+\tjmp *(%rbp)
+\tmovq %rax, %rcx
+\tjl .Lfar
+\tjmp *(%rbp)
+\tmovq %rax, %rdx
+\tjl .Lfar
+.Lin:
+""" + '\tmovq %rax, %rcx\n' * 19 + """\
+\tcmpq %rax, %rsi
+\tjl .Lin
+\tret
+"""
+
 
 def asm_fallthrough(tmp):
     return asm(tmp, ASM_HEAD_AFTER_FALLTHROUGH)
@@ -3853,6 +3880,10 @@ def asm_table(tmp):
 
 def asm_pair(tmp):
     return asm(tmp, ASM_ROTATED_PAIR)
+
+
+def asm_crossed(tmp):
+    return asm(tmp, ASM_CROSSED_SPOTS)
 
 
 # The two costs of 2026-09-15, each with its answer worked by hand. The
@@ -9490,6 +9521,62 @@ RECORDS = [
          # and a pair's note records no default.
          ok=V(exit=1, has=['want LOOP_DEADSPOT=1 beside them'],
               hasnt=['Traceback'])),
+
+    # ---- the settled plan, LOOP_SETTLED=1 (2026-09-22) -------------------
+    # Four controls guarding the switch forward, each against the block
+    # rules it builds on: the back edge's three rules, the spot no jump
+    # crosses, and the rounds that plan again what the pad moved.
+    case('settled-charges-the-back-edge', 'align-as.py', None,
+         "the back edge on a 16-byte boundary, in a line's first eight bytes"
+         ' or its last four, charged where the block rules charge nothing',
+         plant=asm_pair,
+         # The pair's inner back edge sits 45 bytes from its head: residues
+         # 2 and 3 put it across or on the boundary at 48, 15 to 18 in the
+         # line's last four bytes, 19 on the line's end, 20 to 26 in the
+         # next line's first eight, 34 and 35 and 50 and 51 on 80 and 96.
+         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
+              'LOOP_SETTLED': '1', 'ALIGN_AS_VERBOSE': '1',
+              'LOOP_TRACE': '.Lin'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         ok=V(exit=0, has=['block-rule costly residues [18, 19, 20, 21, 56,'
+                           ' 57, 58, 59, 60, 61, 62, 63]',
+                           'settled costly residues [2, 3, 15, 16, 17, 18,'
+                           ' 19, 20, 21, 22, 23, 24, 25, 26, 34, 35, 50, 51,'
+                           ' 56, 57, 58, 59, 60, 61, 62, 63]',
+                           'settled in 1 round(s), 0 group(s) planned again'])),
+
+    case('blockrules-take-the-spot-the-budget-prefers', 'align-as.py', None,
+         'the far spot, crossed by two jumps, wins on budget alone',
+         plant=asm_crossed,
+         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
+              'LOOP_BLOCKRULES': '1', 'ALIGN_AS_VERBOSE': '1',
+              'LOOP_TRACE': '.Lin'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         ok=V(exit=0, has=['spots at lines [40, 43], chosen spot line 40'])),
+
+    case('settled-takes-the-spot-fewer-jumps-cross', 'align-as.py', None,
+         'the same group under the settled plan: the nearer spot, one'
+         ' jump across it against two',
+         plant=asm_crossed,
+         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
+              'LOOP_SETTLED': '1', 'ALIGN_AS_VERBOSE': '1',
+              'LOOP_TRACE': '.Lin'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         ok=V(exit=0, has=['spots at lines [40, 43], chosen spot line 43',
+                           'settled in 1 round(s), 0 group(s) planned again'])),
+
+    case('settled-plans-again-what-the-pad-moved', 'align-as.py', None,
+         'a pad that grows the jump across it is read off the assembler'
+         ' and the group planned again with the shift',
+         plant=asm_crossed,
+         # Pinned at 15 so that the grown jump lands the head on a costly
+         # residue, 19, which the free plan above happens to dodge.
+         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
+              'LOOP_SETTLED': '1', 'ALIGN_AS_VERBOSE': '1',
+              'LOOP_PIN': '.Lin:15'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         ok=V(exit=0, has=['settled in 2 round(s), 1 group(s) planned again'],
+              hasnt=['still off the plan', 'Traceback'])),
 
     case('planned-straddles-are-heads-in-every-cost', 'align-as.py', '6798792',
          'the planned count was the chosen cost truncated, cycles under the'
