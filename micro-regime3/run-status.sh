@@ -52,11 +52,15 @@ NOTE="$R-pair.txt"
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/run-status.XXXXXX") || exit 2
 trap 'rm -rf "$TMP"' EXIT
 
-MISSING=0; FIRST=
+MISSING=0; FIRST=; PHASE=pre; FIRSTPHASE=
 say () {  # say STEP VERDICT WHAT-IT-RESTS-ON
   printf '  %-5s %-8s %s\n' "$1" "$2" "$3"
   if [ "$2" = "NOT DONE" ]; then
     MISSING=$((MISSING + 1)); : "${FIRST:=$1}"
+    # AND WHICH LIST IT BELONGS TO, which the step label cannot say: the
+    # pre-run list numbers 0 to 12c and the post-run list 0 to 11, so a
+    # bare `7` is in both. The phase is what the caller already knows.
+    : "${FIRSTPHASE:=$PHASE}"
   fi
 }
 parses () { python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$1" 2>/dev/null; }
@@ -73,7 +77,7 @@ echo "run status for $R, off the artifacts and the repository:"
 echo "  execute from \`./read-run.py --checklist pre\`, or run or post"
 echo "  for the other halves; do not read README's run chapter to find it"
 echo "  --imperative beside it prints that same list as its commands and"
-echo "  step lines alone, a fifteenth as long: the re-read, not the first"
+echo "  step lines alone, far shorter: the re-read, not the first"
 echo "pre-run"
 # STEP 1 FIRST, since it is the one step whose answer is a listing rather
 # than a verdict: nothing named for this run may exist yet, and `ls $R-*`
@@ -180,6 +184,7 @@ else
   say 12c "NOT DONE" "the registration is not in HEAD"
 fi
 
+PHASE=run
 echo "run"
 if [ -f "$NOTE" ] && grep '^GATE: run' "$NOTE" | tail -1 | grep -q 'Mechanically clean'; then
   say 14 "done" "$NOTE's newest GATE block is mechanically clean"
@@ -254,6 +259,7 @@ if [ -f "$R-evening.txt" ]; then
     || say 14-20 "NOT DONE" "$R-evening.txt's last line: $(tail -1 "$R-evening.txt" | cut -c1-80)"
 fi
 
+PHASE=post
 echo "post-run"
 # 0 IS THE ONE STEP WHOSE WINDOW CLOSES, and until 2026-09-13 it was the one
 # step this file could not prompt: it spends the binaries, so a run that
@@ -335,4 +341,16 @@ if [ "$MISSING" -eq 0 ]; then
   exit 0
 fi
 echo "STATUS: $MISSING step(s) not done, first: $FIRST"
+# THE ONE LIST THIS SESSION OWES, and not the three the head offers: the
+# head prints before any step has been read and so cannot know which, while
+# here the phase of the first NOT DONE step says it outright. Run 38's
+# executing session read the 49 KB pre-run list it did not owe, having been
+# handed all three names at the top.
+case "$FIRSTPHASE" in
+  pre)  echo "  you owe \`./read-run.py --checklist pre\` ALONE, and none of the other two" ;;
+  run)  echo "  you owe \`./read-run.py --checklist run\`, with \`post-a\` read at step 13a;" 
+        echo "  the pre-run list is the preparation's and is spent" ;;
+  post) echo "  you owe \`./read-run.py --checklist post-a\`, and \`post-b\` at step 5c;"
+        echo "  the pre-run and run lists are spent" ;;
+esac
 exit 1
