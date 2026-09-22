@@ -3451,11 +3451,12 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
   where l = product sh
 
 -- The fill the library's 'genericFillStrided' is ported from, at
--- Storable Double, the two kept in step by hand; the library's copy
--- is in its Data/Array/Internal.hs. This one numbers the odometer's
--- levels innermost first, and 'fillStage2Axes' below keeps them
--- numbered outermost first, as ported. 'check' holds this one to the
--- reference on every view. The two zero-stride bodies say at
+-- Storable Double; the library's copy is in its Data/Array/Internal.hs.
+-- This one numbers the odometer's levels innermost first and keeps them
+-- in one table of pairs, and 'fillStage2Axes' below keeps them numbered
+-- outermost first in two tables, as ported and in step with the library.
+-- 'check' holds this one to the reference on every view. The two
+-- zero-stride bodies say at
 -- their definitions what each buys, and the fills that keep older forms
 -- say so at theirs. The fills take @l > 0@, asserted at each entry: a
 -- zero-stride innermost run reads its one element, and a zero-stride
@@ -3540,7 +3541,7 @@ fillStage2 (Axes tInner sInner outerAxes) !ao !l !v =
               outPos baseOff
             >> return (outPos + sInner)
         | otherwise =
-            level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
+            case VU.unsafeIndex levelsV lev of (!st, !n) -> level n st
         where
           level !n !st
             | lev == 0 =
@@ -3559,14 +3560,15 @@ fillStage2 (Axes tInner sInner outerAxes) !ao !l !v =
   _ <- go (rOuter - 1) 0 ao
   return out
   where -- No doubled stride here any more; see the fill's own note.
-        !rOuter = length levels
+        !rOuter = VU.length levelsV
         -- The odometer's levels are numbered innermost first, the fused
-        -- level 0 and the run below it, so nothing is reversed.
-        levels :: [(Int, Int)]
-        levels = innerFirst outerAxes
-        oshV, oatsV :: VU.Vector Int
-        !oshV  = VU.fromList (map snd levels)
-        !oatsV = VU.fromList (map fst levels)
+        -- level 0 and the run below it, so nothing is reversed. One table
+        -- of (stride, extent) pairs, which unboxed is the two arrays the
+        -- two tables were, built in one pass over the list and counted by
+        -- its length, where 'fillStage2Axes' walks the list once for its
+        -- length and twice for its tables; since 2026-09-23, for Run 39.
+        levelsV :: VU.Vector (Int, Int)
+        !levelsV = VU.fromList (innerFirst outerAxes)
 
 -- 'fillStage2' with the odometer's levels numbered outermost first,
 -- the outer axes reversed for it in the prologue, one change: the
@@ -3662,9 +3664,9 @@ fillStage2Axes (Axes tInner sInner outerAxes) !ao !l !v =
         !oshV  = VU.fromList (map snd levels)
         !oatsV = VU.fromList (map fst levels)
 
--- 'fillStage2' with the outer axes matched before its tables are built:
+-- 'fillStage2' with the outer axes matched before its table is built:
 -- no outer level writes the run alone, one walks the fused level's runs
--- through 'runsWith', and only two or more build the tables. The loop
+-- through 'runsWith', and only two or more build the table. The loop
 -- bodies are 'fillStage2''s; comments stripped, the code copied.
 -- Measured 2026-09-22 and 23 as a change to both fills, and moved out
 -- to this fill on 2026-09-23: on the small class 'lib-stage3-lean' over
@@ -3735,7 +3737,7 @@ fillStage2OneLevel (Axes tInner sInner outerAxes) !ao !l !v =
                                 >> run (k - 1) (op + sInner) (boff + st)
             in  run n outPos baseOff
   -- No outer level is the run alone and one is the fused level's runs,
-  -- neither needing the tables, which are built only where a level sits
+  -- neither needing the table, which is built only where a level sits
   -- above the fused one. Since 2026-09-22.
   _ <- case innerFirst outerAxes of
     [] ->
@@ -3747,19 +3749,18 @@ fillStage2OneLevel (Axes tInner sInner outerAxes) !ao !l !v =
       else runsWith writeRunStep n st 0 ao
     levels ->
       let -- No doubled stride here any more; see the fill's own note.
-          !rOuter = length levels
+          !rOuter = VU.length levelsV
           -- The odometer's levels are numbered innermost first, the fused
           -- level 0 and the run below it, so nothing is reversed.
-          oshV, oatsV :: VU.Vector Int
-          !oshV  = VU.fromList (map snd levels)
-          !oatsV = VU.fromList (map fst levels)
+          levelsV :: VU.Vector (Int, Int)
+          !levelsV = VU.fromList levels
           go !lev !outPos !baseOff
             | lev < 0 =
                 (if tInner == 0 then writeRunSet else writeRunStep)
                   outPos baseOff
                 >> return (outPos + sInner)
             | otherwise =
-                level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
+                case VU.unsafeIndex levelsV lev of (!st, !n) -> level n st
             where
               level !n !st
                 | lev == 0 =
@@ -3789,6 +3790,8 @@ fillStage2OneLevel (Axes tInner sInner outerAxes) !ao !l !v =
 -- probe, which read the two flavours level on all three arms, every
 -- pair inside Run 36's floor, so the shipped fill keeps its unboxed
 -- tables; not kept in step with 'fillStage2'.
+-- TODO: update wrt 2026-09-23, when 'fillStage2' took one table of
+-- pairs for its two: a flavour pair against it now prices that too.
 {-# NOINLINE fillStage2VSdims #-}
 fillStage2VSdims :: Axes -> Int -> Int -> VS.Vector Double
            -> VS.Vector Double

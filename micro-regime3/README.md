@@ -7742,14 +7742,13 @@ arm's and the two stages' routes under the fill numbered innermost first,
 landing with their fills `liblist-stage5` and `libunord-stage14` rostered `Only`
 beside them, and `liblist-stage4-list-sum` parked, reasons at their entries ---
 took the roster to 646 benches, and `lib-stage3-lean-onelevel`, the lean arm
-over a fill that builds its tables only above one outer level, landing
-2026-09-23 with the spill that keeps it out of the shipped fill named
-at its entry, takes the roster to 665 benches, so with the controls the run
-is 35 arms. **Run 26 timed four parked arms for that run alone**:
-`mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02; `canon-vecdims`
-and `lib-stage2`, parked by this prune; and `lib-stage2-short`, parked
-by the ruling on the short bodies of the same day ([the stride
-classes](#the-stride-classes-and-what-they-cover)). Each was parked
+over a fill that builds its table only above one outer level, landing 2026-09-23
+with the spill that keeps it out of the shipped fill named at its entry, takes
+the roster to 665 benches, so with the controls the run is 35 arms. **Run 26
+timed four parked arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`,
+parked 2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
+and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
+([the stride classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration
 unreadable --- Run 24 lost a clause, Run 25 five, and the two-window item
 was withdrawn beside them, seven in all ([the open list][open]) --- so Run 26
