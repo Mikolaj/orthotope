@@ -2760,17 +2760,28 @@ data Axes = Axes !Int !Int InnerFirst
 -- order function has in hand, so that 'dispatchLean' need not unzip
 -- them for it; it does not carry the 'Pairs' suffix of
 -- 'sortedAbsPairs' and 'canonSortedPairs', which names a function that
--- RETURNS pairs.  This and 'canonAxes' below write the innermost axis
--- at the head, where 'canonView' above writes the dims outermost
--- first for the arms that keep the natural-strides test.
+-- RETURNS pairs.  This and 'canonicalize' below write the innermost
+-- axis at the head, where 'canonView' above writes the dims outermost
+-- first for the arms whose fills and tables take them as lists.
 canonViewOfPairs :: [(Int, Int)] -> InnerFirst
 canonViewOfPairs ps = InnerFirst (foldl' mergeInner [] ps)
 {-# INLINE canonViewOfPairs #-}
 
--- 'canonViewOfPairs' over a shape and strides.
-canonAxes :: ShapeL -> [Int] -> InnerFirst
-canonAxes sh ats = canonViewOfPairs (zip ats sh)
-{-# INLINE canonAxes #-}
+-- 'canonViewOfPairs' over a shape and strides: the library's
+-- 'canonicalizeT', and since 2026-09-22 the pass of every dispatch that
+-- builds an 'Axes' from the canonical view, in place of 'canonView'
+-- followed by 'axesOfDims', which reversed what this writes in order.
+canonicalize :: ShapeL -> [Int] -> InnerFirst
+canonicalize sh ats = canonViewOfPairs (zip ats sh)
+{-# INLINE canonicalize #-}
+
+-- Whether canonical axes, innermost first, carry the natural strides of
+-- their extents: the comparison the arms that keep it written out ask,
+-- where they read it off the outermost-first lists with 'getStridesT'.
+naturalStrides :: [(Int, Int)] -> Bool
+naturalStrides axes =
+  and (zipWith (==) (map fst axes) (scanl (*) 1 (map snd axes)))
+{-# INLINE naturalStrides #-}
 
 -- The library's merge step, one axis added inside the axes so far,
 -- whose head is the axis just outside it: dropped where its extent is
@@ -3301,7 +3312,7 @@ fbLibStage1 sh (T (Strides ats) ao v)
 
 -- Stage two as the branch pr-mikolaj-toVectorListT had it until
 -- 2026-09-05, when its 'regimeT' took the lean form below: the view
--- canonicalized ('canonView'), natural canonical strides the vector or a
+-- canonicalized ('canonicalize'), natural canonical strides the vector or a
 -- slice, and everything else -- contiguous runs included -- filled by
 -- 'fillStage2' -- the dispatch is that branch's of before the ruling,
 -- the fill is ahead of that branch's own copy, reasons at 'fillStage2'.
@@ -3309,9 +3320,9 @@ fbLibStage1 sh (T (Strides ats) ao v)
 -- population: on the main set none (both fill, the same loop), on the
 -- runs class the route, on the broadcast classes the conditions.
 -- The one dispatch that keeps the strides comparison after the ruling of
--- 2026-09-05 at 'fbLibStage2Lean', as that arm's control; every other
--- natural-strides dispatch over 'canonView' here, and the branch's
--- 'regimeT', took the lean form.
+-- 2026-09-05 at 'fbLibStage2Lean', as that arm's control, written over
+-- the innermost-first axes since 2026-09-22; every other natural-strides
+-- dispatch here, and the branch's 'regimeT', took the lean form.
 -- The branch's 'toVectorT' fills contiguous runs where master
 -- concatenates the slice list; the laziness ruling of 2026-09-07
 -- (README.md#dead-ideas) does not reach it, 'toVectorT' being strict
@@ -3322,12 +3333,11 @@ fbLibStage1 sh (T (Strides ats) ao v)
 fbLibStage2 :: ShapeL -> T -> VS.Vector Double
 fbLibStage2 sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
-  | otherwise = case canonView sh ats of
-      (csh, cats)
-        | cats /= ts -> fillStage2 (axesOfDims csh cats) ao l v
-        | ao == 0 && VS.length v == l -> v
-        | otherwise -> VS.slice ao l v
-        where _ : ts = getStridesT csh
+  | otherwise = case canonicalize sh ats of
+      InnerFirst axes@((t, n) : rest)
+        | not (naturalStrides axes) ->
+            fillStage2 (Axes t n (InnerFirst rest)) ao l v
+      _ -> wholeOrSlice ao l v
   where l = product sh
 
 -- 'fbLibStage2' with canonical contiguous runs sent back to one slice
@@ -3339,21 +3349,18 @@ fbLibStage2 sh (T (Strides ats) ao v)
 fbLibStage2Concat :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Concat sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
-  | otherwise = case canonView sh ats of
-      ([], _) -> whole
-      ([_], [1]) -> whole
-      (csh, cats)
-        | last cats == 1 ->
-            let !n = last csh
-            in  VS.concat
-                  [ VS.slice o n v
-                  | o <- VU.toList (baseOffsetsList ao (init csh)
-                                                    (Strides (init cats))) ]
-        | otherwise -> fillStage2 (axesOfDims csh cats) ao l v
-  where
-    l = product sh
-    whole | ao == 0 && VS.length v == l = v
-          | otherwise = VS.slice ao l v
+  | otherwise = case canonicalize sh ats of
+      InnerFirst [] -> wholeOrSlice ao l v
+      InnerFirst [(1, _)] -> wholeOrSlice ao l v
+      InnerFirst ((1, n) : rest) ->
+        let outer = outerFirst (InnerFirst rest)
+        in  VS.concat
+              [ VS.slice o n v
+              | o <- VU.toList (baseOffsetsList ao (map snd outer)
+                                                (Strides (map fst outer))) ]
+      InnerFirst ((t, n) : rest) ->
+        fillStage2 (Axes t n (InnerFirst rest)) ao l v
+  where l = product sh
 
 -- The run length at or above which 'fbLibStage2Disp' sends a contiguous
 -- canonical run back to one slice, and the only thing it varies over
@@ -3430,21 +3437,18 @@ dispRun = 2048
 fbLibStage2Disp :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Disp sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
-  | otherwise = case canonView sh ats of
-      ([], _) -> whole
-      ([_], [1]) -> whole
-      (csh, cats)
-        | last cats == 1 && last csh >= dispRun ->
-            let !n = last csh
-            in  VS.concat
-                  [ VS.slice o n v
-                  | o <- VU.toList (baseOffsetsList ao (init csh)
-                                                    (Strides (init cats))) ]
-        | otherwise -> fillStage2 (axesOfDims csh cats) ao l v
-  where
-    l = product sh
-    whole | ao == 0 && VS.length v == l = v
-          | otherwise = VS.slice ao l v
+  | otherwise = case canonicalize sh ats of
+      InnerFirst [] -> wholeOrSlice ao l v
+      InnerFirst [(1, _)] -> wholeOrSlice ao l v
+      InnerFirst ((1, n) : rest) | n >= dispRun ->
+        let outer = outerFirst (InnerFirst rest)
+        in  VS.concat
+              [ VS.slice o n v
+              | o <- VU.toList (baseOffsetsList ao (map snd outer)
+                                                (Strides (map fst outer))) ]
+      InnerFirst ((t, n) : rest) ->
+        fillStage2 (Axes t n (InnerFirst rest)) ao l v
+  where l = product sh
 
 -- The fill the library's 'genericFillStrided' is ported from, at
 -- Storable Double, the two kept in step by hand; the library's copy
@@ -4096,10 +4100,12 @@ fillStage2Short (Axes tInner sInner outerAxes) !ao !l !v =
         !oshV  = VU.fromList (map snd levels)
         !oatsV = VU.fromList (map fst levels)
 
--- 'fbLibStage2Lean' over 'fillStage2U4' -- the same dispatch, the fill
--- the one change, so 'lib-stage2-lean' is the control (since 2026-09-05;
--- its readings were taken against 'lib-stage2') and every population
--- where the fill runs reads the unrolling.
+-- 'fbLibStage2Lean' over 'fillStage2U4', so that 'lib-stage2-lean' is
+-- the control (since 2026-09-05; its readings were taken against
+-- 'lib-stage2') and every population where the fill runs reads the
+-- unrolling.  Two changes since 2026-09-22, not one: the fill takes
+-- lists, so the dispatch keeps 'canonView' where the control's took
+-- 'canonicalize', and the pair carries that prologue with the fill.
 {-# NOINLINE fbLibStage2U4 #-}
 fbLibStage2U4 :: ShapeL -> T -> VS.Vector Double
 fbLibStage2U4 sh (T (Strides ats) ao v)
@@ -4122,19 +4128,17 @@ fbLibStage2U4 sh (T (Strides ats) ao v)
 fbLibStage2Short :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Short sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
-  | otherwise = case canonView sh ats of
-      ([], _) -> whole
-      ([_], [1]) -> whole
-      (csh, cats) -> fillStage2Short (axesOfDims csh cats) ao l v
-  where
-    l = product sh
-    whole | ao == 0 && VS.length v == l = v
-          | otherwise = VS.slice ao l v
+  | otherwise = case canonicalize sh ats of
+      InnerFirst [] -> wholeOrSlice ao l v
+      InnerFirst [(1, _)] -> wholeOrSlice ao l v
+      InnerFirst ((t, n) : rest) ->
+        fillStage2Short (Axes t n (InnerFirst rest)) ao l v
+  where l = product sh
 
 -- 'fbLibStage2' with the dispatch read off the merged form alone --
 -- the same 'fillStage2', so the pair prices the dispatch and nothing
 -- else. What licenses it: a canonical view of rank 2 or more can never
--- carry the natural strides, because 'canonView' merges exactly the
+-- carry the natural strides, because 'canonicalize' merges exactly the
 -- adjacent pairs the natural strides consist of -- 'getStridesT' sets
 -- each outer stride to the inner dim times the inner stride, which is
 -- the merge condition -- so the `cats /= ts` the control asks is
@@ -4163,14 +4167,12 @@ fbLibStage2Short sh (T (Strides ats) ao v)
 fbLibStage2Lean :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Lean sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
-  | otherwise = case canonView sh ats of
-      ([], _) -> whole
-      ([_], [1]) -> whole
-      (csh, cats) -> fillStage2Axes (axesOfDims csh cats) ao l v
-  where
-    l = product sh
-    whole | ao == 0 && VS.length v == l = v
-          | otherwise = VS.slice ao l v
+  | otherwise = case canonicalize sh ats of
+      InnerFirst [] -> wholeOrSlice ao l v
+      InnerFirst [(1, _)] -> wholeOrSlice ao l v
+      InnerFirst ((t, n) : rest) ->
+        fillStage2Axes (Axes t n (InnerFirst rest)) ao l v
+  where l = product sh
 
 -- 'fbLibStage2Lean' over 'fillStage2', the odometer numbered innermost
 -- first, where that arm keeps 'fillStage2Axes': one change, so that
@@ -4180,14 +4182,12 @@ fbLibStage2Lean sh (T (Strides ats) ao v)
 fbLibStage3Lean :: ShapeL -> T -> VS.Vector Double
 fbLibStage3Lean sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
-  | otherwise = case canonView sh ats of
-      ([], _) -> whole
-      ([_], [1]) -> whole
-      (csh, cats) -> fillStage2 (axesOfDims csh cats) ao l v
-  where
-    l = product sh
-    whole | ao == 0 && VS.length v == l = v
-          | otherwise = VS.slice ao l v
+  | otherwise = case canonicalize sh ats of
+      InnerFirst [] -> wholeOrSlice ao l v
+      InnerFirst [(1, _)] -> wholeOrSlice ao l v
+      InnerFirst ((t, n) : rest) ->
+        fillStage2 (Axes t n (InnerFirst rest)) ao l v
+  where l = product sh
 
 -- 'fbLibStage3Lean' with 'fillStage2VSdims' for its fill -- one change,
 -- the dimension vectors' flavour; the probe of 2026-09-19, reasons at
@@ -4196,17 +4196,18 @@ fbLibStage3Lean sh (T (Strides ats) ao v)
 fbLibStage2LeanVSdims :: ShapeL -> T -> VS.Vector Double
 fbLibStage2LeanVSdims sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
-  | otherwise = case canonView sh ats of
-      ([], _) -> whole
-      ([_], [1]) -> whole
-      (csh, cats) -> fillStage2VSdims (axesOfDims csh cats) ao l v
-  where
-    l = product sh
-    whole | ao == 0 && VS.length v == l = v
-          | otherwise = VS.slice ao l v
+  | otherwise = case canonicalize sh ats of
+      InnerFirst [] -> wholeOrSlice ao l v
+      InnerFirst [(1, _)] -> wholeOrSlice ao l v
+      InnerFirst ((t, n) : rest) ->
+        fillStage2VSdims (Axes t n (InnerFirst rest)) ao l v
+  where l = product sh
 
--- 'fbLibStage2Lean' with 'fillStage2U1' for its fill -- one change, the
--- run body, so that arm is its control; reasons at 'fillStage2U1'.
+-- 'fbLibStage2Lean' with 'fillStage2U1' for its fill, so that arm is
+-- its control; reasons at 'fillStage2U1'.  Two changes since
+-- 2026-09-22, not one: the run body, and the dispatch, which keeps
+-- 'canonView' for the fill's lists where the control's took
+-- 'canonicalize', so the pair carries that prologue too.
 -- Added 2026-09-07 for Run 27.
 {-# NOINLINE fbLibStage2LeanU1 #-}
 fbLibStage2LeanU1 :: ShapeL -> T -> VS.Vector Double
@@ -4326,12 +4327,13 @@ fbLibListStage2 sh a = concatParts (lsListStage2 sh a)
 routeList3 :: ShapeL -> T -> Route
 routeList3 sh (T (Strides ats) ao _)
   | l == 0 = RSlice 0 0
-  | cats == ts = RSlice ao l
-  | last cats == 1 = RRuns (axesOfDims csh cats) ao l
-  | otherwise = RFill (axesOfDims csh cats) ao l
+  | otherwise = case canonicalize sh ats of
+      InnerFirst axes
+        | naturalStrides axes -> RSlice ao l
+      InnerFirst ((1, n) : rest) -> RRuns (Axes 1 n (InnerFirst rest)) ao l
+      InnerFirst ((t, n) : rest) -> RFill (Axes t n (InnerFirst rest)) ao l
+      InnerFirst [] -> RSlice ao l
   where !l = product sh
-        (csh, cats) = canonView sh ats
-        _ : ts = getStridesT csh
 
 lsListStage3 :: ShapeL -> T -> [VS.Vector Double]
 lsListStage3 sh a@(T _ _ v) = listRoute (routeList3 sh a) v
@@ -4349,7 +4351,7 @@ fbLibListStage3 sh a@(T _ _ v) = fillRoute (routeList3 sh a) v
 routeList4 :: ShapeL -> T -> Route
 routeList4 sh (T (Strides ats) ao _)
   | l == 0 = RSlice 0 0
-  | otherwise = routeOf ao l (canonAxes sh ats)
+  | otherwise = routeOf ao l (canonicalize sh ats)
   where !l = product sh
 
 lsListStage4 :: ShapeL -> T -> [VS.Vector Double]
@@ -4559,9 +4561,9 @@ data Route = RSlice !Int !Int     -- start and length of one slice
 
 -- The slice an 'RSlice' route stands for, the vector itself where the
 -- slice is all of it: two comparisons in place of a slice header's
--- allocation, in the two arms that hand the vector out, the list's and
--- the fill's.  The sum arms keep the slice, which under their fold is a
--- known constructor and never allocated.
+-- allocation, in the arms that hand the vector out, the list's, the
+-- fill's and the lean dispatches'.  The sum arms keep the slice, which
+-- under their fold is a known constructor and never allocated.
 wholeOrSlice :: Int -> Int -> VS.Vector Double -> VS.Vector Double
 wholeOrSlice o l v
   | o == 0 && VS.length v == l = v
@@ -4708,12 +4710,8 @@ sortedAbsPairs :: ((Int, Int) -> (Int, Int) -> Ordering) -> ShapeL
 sortedAbsPairs cmp sh ats = sortBy cmp $ zip (map abs ats) sh
 {-# INLINE sortedAbsPairs #-}
 
--- Canonicalized first, then sorted: stages four and five.
-canonSorted :: ShapeL -> [Int] -> ([Int], ShapeL)
-canonSorted sh ats = unzip (canonSortedPairs sh ats)
-
--- The same, stopping at the pairs, for 'dispatchLean'; stage four is
--- written out around the two lists and keeps them.
+-- Canonicalized first, then sorted, outermost first, for 'dispatchLean';
+-- stage four sorts the same merged axes innermost first at 'routeUnord4'.
 canonSortedPairs :: ShapeL -> [Int] -> [(Int, Int)]
 canonSortedPairs sh ats =
   let (csh, cats) = canonView sh ats
@@ -4721,8 +4719,9 @@ canonSortedPairs sh ats =
 
 -- Stage four, the unordered list kept lazy up to the exception and read
 -- in address order: 'fbLibUnordStage2''s one-block test on the sorted
--- canonical view, the natural-strides comparison and its 'getStridesT'
--- kept, then runs by 'lazyRuns' where the sorted innermost stride is 1,
+-- canonical view, the natural-strides comparison kept and written over
+-- the sorted axes innermost first since 2026-09-22, then runs by
+-- 'lazyRuns' where the sorted innermost stride is 1,
 -- and one 'fillStage2' only where no run is longer than one element --
 -- master's own strict pattern there. What it moves between patterns is
 -- the sort, the exception's own case: a reversed axis is walked forward
@@ -4738,13 +4737,18 @@ canonSortedPairs sh ats =
 routeUnord4 :: ShapeL -> T -> Route
 routeUnord4 sh (T (Strides ats) ao _)
   | l == 0 = RSlice 0 0
-  | acats == ts = RSlice start l
-  | last acats == 1 = RRuns (axesOfDims csh' acats) start l
-  | otherwise = RFill (axesOfDims csh' acats) start l
+  | otherwise = case sorted of
+      axes | naturalStrides axes -> RSlice start l
+      (1, n) : rest -> RRuns (Axes 1 n (InnerFirst rest)) start l
+      (t, n) : rest -> RFill (Axes t n (InnerFirst rest)) start l
+      [] -> RSlice start l
   where !l = product sh
         !start = startOf sh ats ao
-        (acats, csh') = canonSorted sh ats
-        _ : ts = getStridesT csh'
+        -- Absolute stride ascending, innermost first, the extent
+        -- breaking a tie the smaller first: the reverse of
+        -- 'canonSortedPairs''s order over the same merged axes.
+        sorted = sortBy compare
+                   [ (abs t, n) | (t, n) <- innerFirst (canonicalize sh ats) ]
 
 lsUnordStage4 :: ShapeL -> T -> [VS.Vector Double]
 lsUnordStage4 sh a@(T _ _ v) = listRoute (routeUnord4 sh a) v
@@ -5369,19 +5373,17 @@ lsUnordStage2 sh a@(T (Strides ats) ao v)
 lsListStage2 :: ShapeL -> T -> [VS.Vector Double]
 lsListStage2 sh (T (Strides ats) ao v)
   | l == 0 = []
-  | otherwise = case canonView sh ats of
-      ([], _) -> whole
-      ([_], [1]) -> whole
-      (csh, cats)
-        | last cats == 1 ->
-            let !n = last csh
-            in  [ VS.slice o n v
-                | o <- VU.toList (baseOffsetsExpand ao (init csh)
-                                    (Strides (init cats))) ]
-        | otherwise -> [fillStage2 (axesOfDims csh cats) ao l v]
-  where whole | ao == 0 && VS.length v == l = [v]
-              | otherwise = [VS.slice ao l v]
-        l = product sh
+  | otherwise = case canonicalize sh ats of
+      InnerFirst [] -> [wholeOrSlice ao l v]
+      InnerFirst [(1, _)] -> [wholeOrSlice ao l v]
+      InnerFirst ((1, n) : rest) ->
+        let outer = outerFirst (InnerFirst rest)
+        in  [ VS.slice o n v
+            | o <- VU.toList (baseOffsetsExpand ao (map snd outer)
+                                (Strides (map fst outer))) ]
+      InnerFirst ((t, n) : rest) ->
+        [fillStage2 (Axes t n (InnerFirst rest)) ao l v]
+  where l = product sh
 
 -- The reducing consumer, which is what the unordered entry point exists
 -- for: 'sumT' is @sum . map vSum . toUnorderedVectorListT@, one slice at
