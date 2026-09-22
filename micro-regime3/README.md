@@ -9660,15 +9660,27 @@ listing, loud in the log and not fatal, the exit status carrying the count
 of complaints out to whatever collected it.
 
 **The heartbeat is not armed, ruled 2026-09-19, and `run-heartbeat.sh` stays
-for a probe watching itself.** It ticked at forty-five minutes for a reason
-that was the session's and not the run's: a session's prompt cache holds
-for an hour, so a tick inside that window costs a cache read while the first
-message after a longer silence pays to rebuild the whole conversation,
+for a probe watching itself.** Its `EVERY` was set to forty-five minutes
+for a reason that was the session's and not the run's: a session's prompt cache
+holds for an hour, so a tick inside that window costs a cache read while
+the first message after a longer silence pays to rebuild the whole conversation,
 and the stage file alone writes nothing through the eight-hour sequence.
-The stage monitor now tails the wall-clock log too, whose per-process stamps
-land under an hour apart, so the ticks that keep the cache warm are the run's
-own and a second monitor bought nothing they do not. Which ticks a session
-answers is said at the arming site, run list step 14, and nowhere else.
+**THAT INTERVAL NEVER GOVERNED ANYTHING UNDER A MONITOR, measured 2026-09-22**:
+a monitor's own deadline caps at THIRTY minutes --- a `timeout_ms` of 3600000
+arms at 30m, and Run 38's stage monitor lived 02:41:42 to 03:11:47 --- while
+the script ticks once at arming and only then sleeps `EVERY`, so no arming ever
+reaches the sleep and the cadence a session sees is the cadence at which
+it RE-ARMS. `EVERY` bites only where the script runs OUTSIDE a monitor, which
+is the probe case it is kept for. **What that makes the cadence is the re-arm
+chain's reliability**, and Run 38 is what it costs when a link breaks: two
+`API Error: 529` invocations, one carrying a stage line and one the expiry
+notice, left the session with no monitor and no pending wake-up from 03:11
+to 10:05 while the sequence ran on, the run itself untouched because the evening
+is a backgrounded job whose exit wakes the session regardless. The stage monitor
+now tails the wall-clock log too, whose per-process stamps land under an hour
+apart, so the ticks that keep the cache warm are the run's own and a second
+monitor bought nothing they do not. Which ticks a session answers is said
+at the arming site, run list step 14, and nowhere else.
 
 Everything else is already a default. The allocation fit
 `--regress allocated:iters` is on (it is well-conditioned at 5s), so `alloc`

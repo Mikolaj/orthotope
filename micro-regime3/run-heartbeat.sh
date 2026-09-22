@@ -18,10 +18,16 @@
 # what an executor DOES belongs, not where a program belongs. What the
 # chapter keeps is the one line that arms it and the reasons behind it.
 #
-# WHY 45 MINUTES AND NOT 60: the reason is the SESSION's and not the run's,
-# and README's own heartbeat paragraph carries it. Overridable here so a
-# short probe can watch itself without editing the chapter, and not
-# overridden by any recorded run.
+# WHY EVERY IS 45 MINUTES AND NOT 60: the reason is the SESSION's and not
+# the run's, and README's own heartbeat paragraph carries it. IT DOES NOT
+# BITE UNDER A MONITOR, measured 2026-09-22: a monitor's own deadline caps
+# at THIRTY minutes -- a timeout_ms of 3600000 arms at 30m -- while the
+# loop below ticks once at arming and only then sleeps, so no arming ever
+# reaches the sleep and the cadence a session sees is the cadence at which
+# it RE-ARMS. EVERY governs a run of this script OUTSIDE a monitor, which
+# is the probe case below. Overridable here so a short probe can watch
+# itself without editing the chapter, and not overridden by any recorded
+# run.
 #
 # THE TAILS TAKE `2>/dev/null` and the count survives a failed glob: for the
 # first half-hour neither file exists -- run-major.sh creates the wall-clock
