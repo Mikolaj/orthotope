@@ -5763,6 +5763,11 @@ TIER1 = {
                       trigger='LOOP_MAXSKIP with a probe copy that fails to assemble',
                       ok='says the output is not the max-skip form',
                       bug='no lengths returned, the max-skip half built as the unconditional one'),
+    'planned-straddles-are-heads-in-every-cost': dict(family='two-spellings', discovery='in-use', harm='fired',
+                      harm_count=1,
+                      trigger='ALIGN_AS_VERBOSE=1 with LOOP_BLOCKRULES=1 over a rotated pair',
+                      ok='(1 planned) beside the 1 verified, a head count under every cost',
+                      bug='(0 planned), the chosen cost truncated: cycles under the block rules, exit lines under the exit span'),
     # ---- loop-offsets.py ----
     'objdump-status': dict(family='error-as-value', discovery='review', harm='latent',
                       trigger='--survey of a binary objdump cannot open',
@@ -9485,6 +9490,19 @@ RECORDS = [
          # and a pair's note records no default.
          ok=V(exit=1, has=['want LOOP_DEADSPOT=1 beside them'],
               hasnt=['Traceback'])),
+
+    case('planned-straddles-are-heads-in-every-cost', 'align-as.py', '6798792',
+         'the planned count was the chosen cost truncated, cycles under the'
+         ' block rules',
+         plant=asm_pair,
+         # The rotated pair's outer head yields and straddles under every
+         # cost; the verified count said so and the planned one agreed
+         # only under the plain cost, where the cost IS the count.
+         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
+              'LOOP_BLOCKRULES': '1', 'ALIGN_AS_VERBOSE': '1'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         ok=V(exit=0, has=['1 short loop(s) straddling (1 planned)']),
+         bug=V(has=['1 short loop(s) straddling (0 planned)'])),
 
     # ---- probe-nospill-fills.py ---------------------------------------
     case('fills-entry-region-goes-to-the-previous-proc',
