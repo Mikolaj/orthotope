@@ -2767,12 +2767,12 @@ canonViewOfPairs :: [(Int, Int)] -> InnerFirst
 canonViewOfPairs ps = InnerFirst (foldl' mergeInner [] ps)
 {-# INLINE canonViewOfPairs #-}
 
--- 'canonViewOfPairs' over a shape and strides: the library's
--- 'canonicalizeT', and since 2026-09-22 the pass of every dispatch that
+-- The library's 'canonicalizeT' to the line, 'canonViewOfPairs' over
+-- the pairs it zips, and since 2026-09-22 the pass of every dispatch that
 -- builds an 'Axes' from the canonical view, in place of 'canonView'
 -- followed by 'axesOfDims', which reversed what this writes in order.
 canonicalize :: ShapeL -> [Int] -> InnerFirst
-canonicalize sh ats = canonViewOfPairs (zip ats sh)
+canonicalize sh ats = InnerFirst (foldl' mergeInner [] (zip ats sh))
 {-# INLINE canonicalize #-}
 
 -- Whether canonical axes, innermost first, carry the natural strides of
@@ -3095,7 +3095,7 @@ fbCanonFull sh (T (Strides ats) ao v)
 -- levels, 'runBaseOffsets', the accumulator @outPos + sInner@ handed
 -- lazily to a continuation that at a level's exit is the outer level's
 -- and unknown, so it may be a thunk a run. Not measured (2026-09-09);
--- 'lazyRunsFB''s flat loop is the fix if it ever matters.
+-- 'runSlices''s flat loop is the fix if it ever matters.
 {-# NOINLINE fbMutBaseOffsets #-}
 fbMutBaseOffsets :: ShapeL -> T -> VS.Vector Double
 fbMutBaseOffsets sh (T (Strides ats) ao v) = VS.create $ do
@@ -4163,16 +4163,12 @@ fbLibStage2Short sh (T (Strides ats) ao v)
 -- The fill of the runs under it is the branch's route, outside the
 -- laziness ruling of 2026-09-07 as 'fbLibStage2''s is, and the runs
 -- class is what questions it; the lean dispatch is what shipped.
+-- Since 2026-09-22 it is written as the library's 'toVectorT' is,
+-- 'routeVector' over the route 'routeList4' reads, which is also
+-- 'fbLibListStage4''s body.
 {-# NOINLINE fbLibStage2Lean #-}
 fbLibStage2Lean :: ShapeL -> T -> VS.Vector Double
-fbLibStage2Lean sh (T (Strides ats) ao v)
-  | l == 0 = VS.empty
-  | otherwise = case canonicalize sh ats of
-      InnerFirst [] -> wholeOrSlice ao l v
-      InnerFirst [(1, _)] -> wholeOrSlice ao l v
-      InnerFirst ((t, n) : rest) ->
-        fillStage2Axes (Axes t n (InnerFirst rest)) ao l v
-  where l = product sh
+fbLibStage2Lean sh a@(T _ _ v) = routeVector v (routeList4 sh a)
 
 -- 'fbLibStage2Lean' over 'fillStage2', the odometer numbered innermost
 -- first, where that arm keeps 'fillStage2Axes': one change, so that
@@ -4180,14 +4176,7 @@ fbLibStage2Lean sh (T (Strides ats) ao v)
 -- dispatch; reasons at 'fillStage2Axes'. Added 2026-09-21.
 {-# NOINLINE fbLibStage3Lean #-}
 fbLibStage3Lean :: ShapeL -> T -> VS.Vector Double
-fbLibStage3Lean sh (T (Strides ats) ao v)
-  | l == 0 = VS.empty
-  | otherwise = case canonicalize sh ats of
-      InnerFirst [] -> wholeOrSlice ao l v
-      InnerFirst [(1, _)] -> wholeOrSlice ao l v
-      InnerFirst ((t, n) : rest) ->
-        fillStage2 (Axes t n (InnerFirst rest)) ao l v
-  where l = product sh
+fbLibStage3Lean sh a@(T _ _ v) = routeVectorInward v (routeList4 sh a)
 
 -- 'fbLibStage3Lean' with 'fillStage2VSdims' for its fill -- one change,
 -- the dimension vectors' flavour; the probe of 2026-09-19, reasons at
@@ -4282,9 +4271,9 @@ concatKnown !l parts = case parts of
 -- too, vector's 'concat' copying it, so every one read 2.00x allocation
 -- and a result-sized copy on every view the library fills once. All
 -- four are checked and not timed since that day, their consumers timed
--- in their place; and 'fillRoute', the Fill arm over stages three and
--- four's routes, fills its runs as the library's 'toVectorT' does since
--- 2026-09-21.
+-- in their place; and the Fill arm over stages three and four's
+-- routes, 'routeVectorInward' and 'routeVector', fills its runs as the
+-- library's 'toVectorT' does since 2026-09-21.
 --
 -- Stage one's list (Data/Array/Internal.hs at 0386073): regime 1 the
 -- vector, regime 2 the slice recursion over the normal suffix, regime 3
@@ -4336,11 +4325,11 @@ routeList3 sh (T (Strides ats) ao _)
   where !l = product sh
 
 lsListStage3 :: ShapeL -> T -> [VS.Vector Double]
-lsListStage3 sh a@(T _ _ v) = listRoute (routeList3 sh a) v
+lsListStage3 sh a@(T _ _ v) = build (routeSlicesInward v (routeList3 sh a))
 
 {-# NOINLINE fbLibListStage3 #-}
 fbLibListStage3 :: ShapeL -> T -> VS.Vector Double
-fbLibListStage3 sh a@(T _ _ v) = fillRoute (routeList3 sh a) v
+fbLibListStage3 sh a@(T _ _ v) = routeVectorInward v (routeList3 sh a)
 
 -- Stage four of the list entry point: 'lsListStage3' under the lean
 -- dispatch, the regime read off the merged form alone and no
@@ -4353,24 +4342,25 @@ routeList4 sh (T (Strides ats) ao _)
   | l == 0 = RSlice 0 0
   | otherwise = routeOf ao l (canonicalize sh ats)
   where !l = product sh
+{-# INLINE routeList4 #-}
 
 lsListStage4 :: ShapeL -> T -> [VS.Vector Double]
-lsListStage4 sh a@(T _ _ v) = listRouteAxes (routeList4 sh a) v
+lsListStage4 sh a@(T _ _ v) = build (routeSlices v (routeList4 sh a))
 
 {-# NOINLINE fbLibListStage4 #-}
 fbLibListStage4 :: ShapeL -> T -> VS.Vector Double
-fbLibListStage4 sh a@(T _ _ v) = fillRouteAxes (routeList4 sh a) v
+fbLibListStage4 sh a@(T _ _ v) = routeVector v (routeList4 sh a)
 
 -- Stage four's route under the fill numbered innermost first: the
 -- readers over 'fillStage2' where stage four's are over
 -- 'fillStage2Axes', the fill the one change, so that the pair prices
 -- the numbering; reasons at 'fillStage2Axes'. Added 2026-09-21.
 lsListStage5 :: ShapeL -> T -> [VS.Vector Double]
-lsListStage5 sh a@(T _ _ v) = listRoute (routeList4 sh a) v
+lsListStage5 sh a@(T _ _ v) = build (routeSlicesInward v (routeList4 sh a))
 
 {-# NOINLINE fbLibListStage5 #-}
 fbLibListStage5 :: ShapeL -> T -> VS.Vector Double
-fbLibListStage5 sh a@(T _ _ v) = fillRoute (routeList4 sh a) v
+fbLibListStage5 sh a@(T _ _ v) = routeVectorInward v (routeList4 sh a)
 
 -- The unordered-list consumer under each stage: 'toUnorderedVectorListT'
 -- and one concatenation, the third entry point the branch changes and
@@ -4436,7 +4426,7 @@ fbLibUnordStage2 sh a = concatParts (lsUnordStage2 sh a)
 -- re-canonicalization failing it. Since 2026-09-09 the arm is stage
 -- five's route with its runs turned into fills, which is what it always
 -- was -- and equal in effect to stage five's fill arm since 2026-09-21,
--- 'fillRoute' filling runs itself -- and 'fbLibUnordStage3Sum' is the
+-- 'routeVectorInward' filling runs itself -- and 'fbLibUnordStage3Sum' is the
 -- fill's consumer: what a reduction pays over the ceiling, the pair
 -- with stage five's consumer pricing the list against the fill it
 -- replaces.
@@ -4447,7 +4437,7 @@ routeUnord3 sh a = case routeUnord5 sh a of
 
 {-# NOINLINE fbLibUnordStage3 #-}
 fbLibUnordStage3 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage3 sh a@(T _ _ v) = fillRoute (routeUnord3 sh a) v
+fbLibUnordStage3 sh a@(T _ _ v) = routeVectorInward v (routeUnord3 sh a)
 
 -- The lazy odometer list, shared by every lazy candidate here: one slice
 -- per run, in address or logical order over the outer levels, produced
@@ -4464,7 +4454,7 @@ fbLibUnordStage3 sh a@(T _ _ v) = fillRoute (routeUnord3 sh a) v
 -- and 19, and 88 bytes once the loop was compiled once for every stage;
 -- the thunk, the boxed accumulator and the partial application a run
 -- the level form still left went with the flat walker of the same day,
--- 'lazyRunsFB' (README.md#what-is-open). The leaf is fused, the fills' trick:
+-- 'runSlices' (README.md#what-is-open). The leaf is fused, the fills' trick:
 -- the innermost outer level conses its slices itself rather than
 -- calling 'go' once more per run, a quarter of the time and 8 bytes a
 -- run off on short runs, 9.3 ns and 80 bytes on the k3 window. The
@@ -4478,13 +4468,14 @@ fbLibUnordStage3 sh a@(T _ _ v) = fillRoute (routeUnord3 sh a) v
 -- 2026-09-21, paid the form nothing once compiled once; inlined beside
 -- it the probe read 16 bytes a run more.
 lazyRuns :: Axes -> Int -> VS.Vector Double -> [VS.Vector Double]
-lazyRuns axes start v = build (lazyRunsFB axes start v)
+lazyRuns axes start v = build (runSlices axes start v)
 {-# INLINE lazyRuns #-}
 
--- The walker with the 'build''s 'cons' and 'nil' as arguments, so that
--- 'listRoute', itself in build form, can take the runs branch inside
--- its own 'build' and a consumer of the route's list meets one
--- 'build' whichever branch the route takes.
+-- The walker with the 'build''s 'cons' and 'nil' as arguments, the
+-- library's 'runSlicesT', so that 'routeSlices' can take the runs
+-- branch inside the 'build' the list arms wrap around it and a
+-- consumer of the route's list meets one 'build' whichever branch the
+-- route takes.
 --
 -- One flat loop over the runs, and not a 'foldr' per level with the
 -- rest of the list passed down as a continuation (2026-09-09): a fold
@@ -4516,9 +4507,9 @@ lazyRuns axes start v = build (lazyRunsFB axes start v)
 -- written-out dispatches reading rank 1 as a slice first, is the one
 -- run as one slice: correct rather than an error, so the walker is
 -- total on its own terms, as the library's 'runSlicesT' is.
-lazyRunsFB :: Axes -> Int -> VS.Vector Double
+runSlices :: Axes -> Int -> VS.Vector Double
            -> (VS.Vector Double -> b -> b) -> b -> b
-lazyRunsFB (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
+runSlices (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
   case outerAxes of
     [] -> cons (VS.slice start n v) nil
     (!sk, !dk) : above ->
@@ -4535,7 +4526,7 @@ lazyRunsFB (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
                 go 0 (o + s) (foldl' (flip (:)) ((j + 1, d, s) : rest) reset)
             | otherwise = carry rest (o + s - d * s) ((0, d, s) : reset)
       in  go 0 start [ (0, d, s) | (s, d) <- above ]
-{-# INLINE lazyRunsFB #-}
+{-# INLINE runSlices #-}
 
 -- A lazy stage's dispatch as a value: one slice, the runs 'lazyRuns'
 -- will walk, or one fill. Five readers share it -- the list, for the
@@ -4565,67 +4556,85 @@ data Route = RSlice !Int !Int     -- start and length of one slice
 -- fill's and the lean dispatches'.  The sum arms keep the slice, which
 -- under their fold is a known constructor and never allocated.
 wholeOrSlice :: Int -> Int -> VS.Vector Double -> VS.Vector Double
-wholeOrSlice o l v
-  | o == 0 && VS.length v == l = v
-  | otherwise = VS.slice o l v
+wholeOrSlice ao l v
+  | ao == 0 && VS.length v == l = v
+  | otherwise = VS.slice ao l v
 {-# INLINE wholeOrSlice #-}
 
--- In build form with the route's case INSIDE the 'build', so that a
--- fold applied to this list meets the 'build' whichever branch the
--- route takes: written as a case returning a list per branch, the fold
--- stays outside the case and never fuses, which is what
--- 'libunord-stage6-list-sum' read on 2026-09-09, 160 bytes a run.
+-- The library's 'routeSlicesT', over 'fillStage2Axes', which is its
+-- fill: the slices of a route handed to a 'build''s cons and nil, so
+-- that the route's case sits INSIDE the 'build' the list arms wrap
+-- around it and a fold applied to the list meets the 'build' whichever
+-- branch the route takes: written as a case returning a list per
+-- branch, the fold stays outside the case and never fuses, which is
+-- what 'libunord-stage6-list-sum' read on 2026-09-09, 160 bytes a run.
 -- The slice of length zero, which is what every dispatch hands an
 -- empty view, yields nil and not one empty vector, the invariant the
 -- library's 'toVectorListT' states and 'emptyListGate' asks; the fill
 -- and sum arms need no such case, an empty slice being their answer.
-listRoute :: Route -> VS.Vector Double -> [VS.Vector Double]
-listRoute r v = build $ \cons nil -> case r of
-  RSlice o l
+-- The vector first, as the library takes it.
+routeSlices :: VS.Vector Double -> Route
+            -> (VS.Vector Double -> b -> b) -> b -> b
+routeSlices v route cons nil = case route of
+  RSlice ao l
     | l == 0 -> nil
-    | otherwise -> cons (wholeOrSlice o l v) nil
-  RRuns axes o _ -> lazyRunsFB axes o v cons nil
-  RFill axes o l -> cons (fillStage2 axes o l v) nil
-{-# INLINE listRoute #-}
+    | otherwise -> cons (wholeOrSlice ao l v) nil
+  RRuns axes ao _ -> runSlices axes ao v cons nil
+  RFill axes ao l -> cons (fillStage2Axes axes ao l v) nil
+{-# INLINE routeSlices #-}
 
-fillRoute :: Route -> VS.Vector Double -> VS.Vector Double
-fillRoute (RSlice o l) v = wholeOrSlice o l v
-fillRoute (RRuns axes o l) v = fillStage2 axes o l v
-fillRoute (RFill axes o l) v = fillStage2 axes o l v
+-- The library's 'routeVectorT' over the same fill.
+routeVector :: VS.Vector Double -> Route -> VS.Vector Double
+routeVector v route = case route of
+  RSlice ao l -> wholeOrSlice ao l v
+  RRuns axes ao l -> fillStage2Axes axes ao l v
+  RFill axes ao l -> fillStage2Axes axes ao l v
+{-# INLINE routeVector #-}
 
-sumRoute :: Route -> VS.Vector Double -> Double
-sumRoute (RSlice o l) v = VS.sum (VS.slice o l v)
-sumRoute (RRuns axes o _) v = sumLazyRuns axes o v
-sumRoute (RFill axes o l) v = VS.sum (fillStage2 axes o l v)
+-- The sum consumer over the same fill, which the library does not have.
+sumRoute :: VS.Vector Double -> Route -> Double
+sumRoute v route = case route of
+  RSlice ao l -> VS.sum (VS.slice ao l v)
+  RRuns axes ao _ -> sumLazyRuns axes ao v
+  RFill axes ao l -> VS.sum (fillStage2Axes axes ao l v)
+{-# INLINE sumRoute #-}
 
--- 'listRoute', 'fillRoute' and 'sumRoute' over 'fillStage2Axes', the
--- readers of the stages kept on that fill: copies, the fill the one
--- change.
-listRouteAxes :: Route -> VS.Vector Double -> [VS.Vector Double]
-listRouteAxes r v = build $ \cons nil -> case r of
-  RSlice o l
+-- The three readers over 'fillStage2', the odometer numbered innermost
+-- first: copies, the fill the one change, so that the pairs of the
+-- inward stages against the stages kept on 'fillStage2Axes' price the
+-- numbering.
+routeSlicesInward :: VS.Vector Double -> Route
+                  -> (VS.Vector Double -> b -> b) -> b -> b
+routeSlicesInward v route cons nil = case route of
+  RSlice ao l
     | l == 0 -> nil
-    | otherwise -> cons (wholeOrSlice o l v) nil
-  RRuns axes o _ -> lazyRunsFB axes o v cons nil
-  RFill axes o l -> cons (fillStage2Axes axes o l v) nil
-{-# INLINE listRouteAxes #-}
+    | otherwise -> cons (wholeOrSlice ao l v) nil
+  RRuns axes ao _ -> runSlices axes ao v cons nil
+  RFill axes ao l -> cons (fillStage2 axes ao l v) nil
+{-# INLINE routeSlicesInward #-}
 
-fillRouteAxes :: Route -> VS.Vector Double -> VS.Vector Double
-fillRouteAxes (RSlice o l) v = wholeOrSlice o l v
-fillRouteAxes (RRuns axes o l) v = fillStage2Axes axes o l v
-fillRouteAxes (RFill axes o l) v = fillStage2Axes axes o l v
+routeVectorInward :: VS.Vector Double -> Route -> VS.Vector Double
+routeVectorInward v route = case route of
+  RSlice ao l -> wholeOrSlice ao l v
+  RRuns axes ao l -> fillStage2 axes ao l v
+  RFill axes ao l -> fillStage2 axes ao l v
+{-# INLINE routeVectorInward #-}
 
-sumRouteAxes :: Route -> VS.Vector Double -> Double
-sumRouteAxes (RSlice o l) v = VS.sum (VS.slice o l v)
-sumRouteAxes (RRuns axes o _) v = sumLazyRuns axes o v
-sumRouteAxes (RFill axes o l) v = VS.sum (fillStage2Axes axes o l v)
+sumRouteInward :: VS.Vector Double -> Route -> Double
+sumRouteInward v route = case route of
+  RSlice ao l -> VS.sum (VS.slice ao l v)
+  RRuns axes ao _ -> sumLazyRuns axes ao v
+  RFill axes ao l -> VS.sum (fillStage2 axes ao l v)
+{-# INLINE sumRouteInward #-}
 
 -- 'sumRoute' with its fill case through 'fillStage2VSdims'; the probe of
 -- 2026-09-19, reasons at that fill.
-sumRouteVSdims :: Route -> VS.Vector Double -> Double
-sumRouteVSdims (RSlice o l) v = VS.sum (VS.slice o l v)
-sumRouteVSdims (RRuns axes o _) v = sumLazyRuns axes o v
-sumRouteVSdims (RFill axes o l) v = VS.sum (fillStage2VSdims axes o l v)
+sumRouteVSdims :: VS.Vector Double -> Route -> Double
+sumRouteVSdims v route = case route of
+  RSlice ao l -> VS.sum (VS.slice ao l v)
+  RRuns axes ao _ -> sumLazyRuns axes ao v
+  RFill axes ao l -> VS.sum (fillStage2VSdims axes ao l v)
+{-# INLINE sumRouteVSdims #-}
 
 -- The offset of a view's lowest address: its offset plus, for every
 -- axis walked backwards, the whole of that axis.
@@ -4642,7 +4651,7 @@ concatParts ps = VS.concat ps
 -- The fold on the list expression itself, where it fuses with the
 -- 'build'; compiled once and never inlined, so every stage runs it.
 -- Base's 'foldl'', which hands the new accumulator to the continuation
--- lazily: with 'lazyRunsFB' one flat loop, every continuation is a
+-- lazily: with 'runSlices' one flat loop, every continuation is a
 -- known strict call and the accumulator crosses it unboxed, none a run
 -- and 3.7 ns on 'runs-9' where the level-form walker read 80 bytes and
 -- 10.7 (9.12.4, 2026-09-09). A fold forcing the new accumulator first,
@@ -4751,11 +4760,11 @@ routeUnord4 sh (T (Strides ats) ao _)
                    [ (abs t, n) | (t, n) <- innerFirst (canonicalize sh ats) ]
 
 lsUnordStage4 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage4 sh a@(T _ _ v) = listRoute (routeUnord4 sh a) v
+lsUnordStage4 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord4 sh a))
 
 {-# NOINLINE fbLibUnordStage4 #-}
 fbLibUnordStage4 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage4 sh a@(T _ _ v) = fillRoute (routeUnord4 sh a) v
+fbLibUnordStage4 sh a@(T _ _ v) = routeVectorInward v (routeUnord4 sh a)
 
 -- Stage five, stage four under the lean dispatch: the sorted pairs
 -- canonicalized AGAIN, so the lean rank test decides one block and no
@@ -4769,11 +4778,11 @@ routeUnord5 :: ShapeL -> T -> Route
 routeUnord5 = dispatchLean canonSortedPairs
 
 lsUnordStage5 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage5 sh a@(T _ _ v) = listRoute (routeUnord5 sh a) v
+lsUnordStage5 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord5 sh a))
 
 {-# NOINLINE fbLibUnordStage5 #-}
 fbLibUnordStage5 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage5 sh a@(T _ _ v) = fillRoute (routeUnord5 sh a) v
+fbLibUnordStage5 sh a@(T _ _ v) = routeVectorInward v (routeUnord5 sh a)
 
 -- Stage six, stage five with the first canonicalization dropped: the
 -- RAW axes sorted by absolute stride and canonicalized once, so the
@@ -4791,11 +4800,11 @@ routeUnord6 :: ShapeL -> T -> Route
 routeUnord6 = dispatchLean (sortedAbsPairs (flip compare))
 
 lsUnordStage6 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage6 sh a@(T _ _ v) = listRoute (routeUnord6 sh a) v
+lsUnordStage6 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord6 sh a))
 
 {-# NOINLINE fbLibUnordStage6 #-}
 fbLibUnordStage6 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage6 sh a@(T _ _ v) = fillRoute (routeUnord6 sh a) v
+fbLibUnordStage6 sh a@(T _ _ v) = routeVectorInward v (routeUnord6 sh a)
 
 -- The fold as a strict loop over the levels and no list at all, over
 -- stage six's dispatch, its leaf fused as 'lazyRuns''s is so that the
@@ -4826,16 +4835,16 @@ foldRunsLoop f z0 (Axes _ n outerAxes) !start v =
                        | otherwise = loop (i + 1) (go ds (o + i * s) a)
 {-# INLINE foldRunsLoop #-}
 
-loopSumRoute :: Route -> VS.Vector Double -> Double
-loopSumRoute (RSlice o l) v = VS.sum (VS.slice o l v)
-loopSumRoute (RRuns axes o _) v =
-  foldRunsLoop (\ !acc p -> acc + VS.sum p) 0 axes o v
-loopSumRoute (RFill axes o l) v = VS.sum (fillStage2 axes o l v)
+loopSumRoute :: VS.Vector Double -> Route -> Double
+loopSumRoute v route = case route of
+  RSlice ao l -> VS.sum (VS.slice ao l v)
+  RRuns axes ao _ -> foldRunsLoop (\ !acc p -> acc + VS.sum p) 0 axes ao v
+  RFill axes ao l -> VS.sum (fillStage2 axes ao l v)
 
 {-# NOINLINE fbLibUnordStage6LoopSum #-}
 fbLibUnordStage6LoopSum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage6LoopSum sh a@(T _ _ v) =
-  VS.singleton (loopSumRoute (routeUnord6 sh a) v)
+  VS.singleton (loopSumRoute v (routeUnord6 sh a))
 
 -- The consumer as a user of 'toUnorderedVectorListT' writes it: base's
 -- 'sum' over the list itself, no route in hand and so no 'sumLazyRuns'.
@@ -4848,7 +4857,8 @@ fbLibUnordStage6LoopSum sh a@(T _ _ v) =
 {-# NOINLINE fbLibUnordStage6ListSum #-}
 fbLibUnordStage6ListSum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage6ListSum sh a@(T _ _ v) =
-  VS.singleton (sum (map VS.sum (listRoute (routeUnord6 sh a) v)))
+  VS.singleton
+    (sum (map VS.sum (build (routeSlicesInward v (routeUnord6 sh a)))))
 
 
 -- Stage seven, stage six with the sort's tie broken the other way: on
@@ -4871,11 +4881,11 @@ byStrideExtent :: (Int, Int) -> (Int, Int) -> Ordering
 byStrideExtent (s1, n1) (s2, n2) = compare s2 s1 <> compare n1 n2
 
 lsUnordStage7 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage7 sh a@(T _ _ v) = listRoute (routeUnord7 sh a) v
+lsUnordStage7 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord7 sh a))
 
 {-# NOINLINE fbLibUnordStage7 #-}
 fbLibUnordStage7 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage7 sh a@(T _ _ v) = fillRoute (routeUnord7 sh a) v
+fbLibUnordStage7 sh a@(T _ _ v) = routeVectorInward v (routeUnord7 sh a)
 
 -- Stage eight, stage six with the run chosen as the longest contiguous
 -- one rather than as the innermost sorted axis: from each unit-stride
@@ -4947,11 +4957,11 @@ dropAt :: Int -> [a] -> [a]
 dropAt i xs = take i xs ++ drop (i + 1) xs
 
 lsUnordStage8 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage8 sh a@(T _ _ v) = listRoute (routeUnord8 sh a) v
+lsUnordStage8 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord8 sh a))
 
 {-# NOINLINE fbLibUnordStage8 #-}
 fbLibUnordStage8 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage8 sh a@(T _ _ v) = fillRoute (routeUnord8 sh a) v
+fbLibUnordStage8 sh a@(T _ _ v) = routeVectorInward v (routeUnord8 sh a)
 
 -- Stage nine, stage six with every zero-stride axis outermost on the
 -- list route: a broadcast then lists one real slice as many times as
@@ -4987,11 +4997,11 @@ zerosOutermost ps
   | otherwise = ps
 
 lsUnordStage9 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage9 sh a@(T _ _ v) = listRoute (routeUnord9 sh a) v
+lsUnordStage9 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord9 sh a))
 
 {-# NOINLINE fbLibUnordStage9 #-}
 fbLibUnordStage9 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage9 sh a@(T _ _ v) = fillRoute (routeUnord9 sh a) v
+fbLibUnordStage9 sh a@(T _ _ v) = routeVectorInward v (routeUnord9 sh a)
 
 -- Stage ten, stage seven's tie-break under stage nine's move: on equal
 -- absolute strides the larger extent lands innermost, so the run is
@@ -5013,11 +5023,11 @@ zerosFirstTied :: ShapeL -> [Int] -> [(Int, Int)]
 zerosFirstTied sh ats = zerosOutermost (sortedAbsPairs byStrideExtent sh ats)
 
 lsUnordStage10 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage10 sh a@(T _ _ v) = listRoute (routeUnord10 sh a) v
+lsUnordStage10 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord10 sh a))
 
 {-# NOINLINE fbLibUnordStage10 #-}
 fbLibUnordStage10 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage10 sh a@(T _ _ v) = fillRoute (routeUnord10 sh a) v
+fbLibUnordStage10 sh a@(T _ _ v) = routeVectorInward v (routeUnord10 sh a)
 
 -- Stage eleven, stage ten with the move guarded: the zero-stride axes
 -- go outermost only where the view has one, and a view without takes
@@ -5071,11 +5081,11 @@ zeroAxis sh ats = any (== 0) ats && go ats sh
 {-# INLINE zeroAxis #-}
 
 lsUnordStage11 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage11 sh a@(T _ _ v) = listRoute (routeUnord11 sh a) v
+lsUnordStage11 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord11 sh a))
 
 {-# NOINLINE fbLibUnordStage11 #-}
 fbLibUnordStage11 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage11 sh a@(T _ _ v) = fillRoute (routeUnord11 sh a) v
+fbLibUnordStage11 sh a@(T _ _ v) = routeVectorInward v (routeUnord11 sh a)
 
 -- Stage twelve, stage eleven with the run chosen among the unit-stride
 -- axes by its extent, the run's length wherever no axis merges into it,
@@ -5160,11 +5170,11 @@ runRank !a !b = case compare ta tb of
 {-# INLINE runRank #-}
 
 lsUnordStage12 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage12 sh a@(T _ _ v) = listRoute (routeUnord12 sh a) v
+lsUnordStage12 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord12 sh a))
 
 {-# NOINLINE fbLibUnordStage12 #-}
 fbLibUnordStage12 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage12 sh a@(T _ _ v) = fillRoute (routeUnord12 sh a) v
+fbLibUnordStage12 sh a@(T _ _ v) = routeVectorInward v (routeUnord12 sh a)
 
 -- Stage thirteen, this file's candidate for the library's
 -- 'toUnorderedVectorListT' on the pr-mikolaj-toVectorListT branch: the
@@ -5189,6 +5199,7 @@ routeUnord13 sh (T (Strides ats) ao _)
     !l = product sh
     AxesStart axes start = absAxesAndStart ao ats sh
     merged = InnerFirst (foldl' mergeInner [] (sortBy byStrideRank axes))
+{-# INLINE routeUnord13 #-}
 
 -- The dispatch of 'routeUnord13', piece by piece.
 --
@@ -5312,22 +5323,22 @@ zeroStrideOutermost (InnerFirst ((0, z) : axes@((1, _) : _))) =
 zeroStrideOutermost axes = axes
 
 lsUnordStage13 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage13 sh a@(T _ _ v) = listRouteAxes (routeUnord13 sh a) v
+lsUnordStage13 sh a@(T _ _ v) = build (routeSlices v (routeUnord13 sh a))
 
 {-# NOINLINE fbLibUnordStage13 #-}
 fbLibUnordStage13 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage13 sh a@(T _ _ v) = fillRouteAxes (routeUnord13 sh a) v
+fbLibUnordStage13 sh a@(T _ _ v) = routeVector v (routeUnord13 sh a)
 
 -- Stage thirteen's route under the fill numbered innermost first:
 -- the readers over 'fillStage2' where stage thirteen's are over
 -- 'fillStage2Axes', the fill the one change, so that the pair prices
 -- the numbering; reasons at 'fillStage2Axes'. Added 2026-09-21.
 lsUnordStage14 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage14 sh a@(T _ _ v) = listRoute (routeUnord13 sh a) v
+lsUnordStage14 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord13 sh a))
 
 {-# NOINLINE fbLibUnordStage14 #-}
 fbLibUnordStage14 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage14 sh a@(T _ _ v) = fillRoute (routeUnord13 sh a) v
+fbLibUnordStage14 sh a@(T _ _ v) = routeVectorInward v (routeUnord13 sh a)
 
 -- The two ports' lists: master's and the branch's 'toVectorListT', and
 -- the unordered one-block tests in front of them. The four port Fill
@@ -5416,17 +5427,17 @@ fbLibListStage2Sum sh a = VS.singleton (sumRuns (lsListStage2 sh a))
 {-# NOINLINE fbLibListStage3Sum #-}
 fbLibListStage3Sum :: ShapeL -> T -> VS.Vector Double
 fbLibListStage3Sum sh a@(T _ _ v) =
-  VS.singleton (sumRoute (routeList3 sh a) v)
+  VS.singleton (sumRouteInward v (routeList3 sh a))
 
 {-# NOINLINE fbLibListStage4Sum #-}
 fbLibListStage4Sum :: ShapeL -> T -> VS.Vector Double
 fbLibListStage4Sum sh a@(T _ _ v) =
-  VS.singleton (sumRouteAxes (routeList4 sh a) v)
+  VS.singleton (sumRoute v (routeList4 sh a))
 
 {-# NOINLINE fbLibListStage5Sum #-}
 fbLibListStage5Sum :: ShapeL -> T -> VS.Vector Double
 fbLibListStage5Sum sh a@(T _ _ v) =
-  VS.singleton (sumRoute (routeList4 sh a) v)
+  VS.singleton (sumRouteInward v (routeList4 sh a))
 
 -- 'fbLibListStage5Sum' through 'sumRouteVSdims' -- one change, the fill
 -- case's dimension vectors; the probe of 2026-09-19, reasons at
@@ -5434,7 +5445,7 @@ fbLibListStage5Sum sh a@(T _ _ v) =
 {-# NOINLINE fbLibListStage4SumVSdims #-}
 fbLibListStage4SumVSdims :: ShapeL -> T -> VS.Vector Double
 fbLibListStage4SumVSdims sh a@(T _ _ v) =
-  VS.singleton (sumRouteVSdims (routeList4 sh a) v)
+  VS.singleton (sumRouteVSdims v (routeList4 sh a))
 
 {-# NOINLINE fbLibUnordStage1Sum #-}
 fbLibUnordStage1Sum :: ShapeL -> T -> VS.Vector Double
@@ -5447,62 +5458,62 @@ fbLibUnordStage2Sum sh a = VS.singleton (sumRuns (lsUnordStage2 sh a))
 {-# NOINLINE fbLibUnordStage3Sum #-}
 fbLibUnordStage3Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage3Sum sh a@(T _ _ v) =
-  VS.singleton (sumRoute (routeUnord3 sh a) v)
+  VS.singleton (sumRouteInward v (routeUnord3 sh a))
 
 {-# NOINLINE fbLibUnordStage4Sum #-}
 fbLibUnordStage4Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage4Sum sh a@(T _ _ v) =
-  VS.singleton (sumRoute (routeUnord4 sh a) v)
+  VS.singleton (sumRouteInward v (routeUnord4 sh a))
 
 {-# NOINLINE fbLibUnordStage5Sum #-}
 fbLibUnordStage5Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage5Sum sh a@(T _ _ v) =
-  VS.singleton (sumRoute (routeUnord5 sh a) v)
+  VS.singleton (sumRouteInward v (routeUnord5 sh a))
 
 {-# NOINLINE fbLibUnordStage6Sum #-}
 fbLibUnordStage6Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage6Sum sh a@(T _ _ v) =
-  VS.singleton (sumRoute (routeUnord6 sh a) v)
+  VS.singleton (sumRouteInward v (routeUnord6 sh a))
 
 {-# NOINLINE fbLibUnordStage7Sum #-}
 fbLibUnordStage7Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage7Sum sh a@(T _ _ v) =
-  VS.singleton (sumRoute (routeUnord7 sh a) v)
+  VS.singleton (sumRouteInward v (routeUnord7 sh a))
 
 {-# NOINLINE fbLibUnordStage8Sum #-}
 fbLibUnordStage8Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage8Sum sh a@(T _ _ v) =
-  VS.singleton (sumRoute (routeUnord8 sh a) v)
+  VS.singleton (sumRouteInward v (routeUnord8 sh a))
 
 {-# NOINLINE fbLibUnordStage9Sum #-}
 fbLibUnordStage9Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage9Sum sh a@(T _ _ v) =
-  VS.singleton (sumRoute (routeUnord9 sh a) v)
+  VS.singleton (sumRouteInward v (routeUnord9 sh a))
 
 {-# NOINLINE fbLibUnordStage10Sum #-}
 fbLibUnordStage10Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage10Sum sh a@(T _ _ v) =
-  VS.singleton (sumRoute (routeUnord10 sh a) v)
+  VS.singleton (sumRouteInward v (routeUnord10 sh a))
 
 {-# NOINLINE fbLibUnordStage11Sum #-}
 fbLibUnordStage11Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage11Sum sh a@(T _ _ v) =
-  VS.singleton (sumRoute (routeUnord11 sh a) v)
+  VS.singleton (sumRouteInward v (routeUnord11 sh a))
 
 {-# NOINLINE fbLibUnordStage12Sum #-}
 fbLibUnordStage12Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage12Sum sh a@(T _ _ v) =
-  VS.singleton (sumRoute (routeUnord12 sh a) v)
+  VS.singleton (sumRouteInward v (routeUnord12 sh a))
 
 {-# NOINLINE fbLibUnordStage13Sum #-}
 fbLibUnordStage13Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage13Sum sh a@(T _ _ v) =
-  VS.singleton (sumRouteAxes (routeUnord13 sh a) v)
+  VS.singleton (sumRoute v (routeUnord13 sh a))
 
 {-# NOINLINE fbLibUnordStage14Sum #-}
 fbLibUnordStage14Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage14Sum sh a@(T _ _ v) =
-  VS.singleton (sumRoute (routeUnord13 sh a) v)
+  VS.singleton (sumRouteInward v (routeUnord13 sh a))
 
 -- 'fbLibUnordStage14Sum' through 'sumRouteVSdims' -- one change, the
 -- fill case's dimension vectors; the probe of 2026-09-19, reasons at
@@ -5510,7 +5521,7 @@ fbLibUnordStage14Sum sh a@(T _ _ v) =
 {-# NOINLINE fbLibUnordStage13SumVSdims #-}
 fbLibUnordStage13SumVSdims :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage13SumVSdims sh a@(T _ _ v) =
-  VS.singleton (sumRouteVSdims (routeUnord13 sh a) v)
+  VS.singleton (sumRouteVSdims v (routeUnord13 sh a))
 
 -- The cross-over of 'fbLibUnordStage6ListSum' and 'fbLibUnordStage10Sum':
 -- base's 'sum' over stage TEN's list, the consumer a user of
@@ -5535,7 +5546,8 @@ fbLibUnordStage13SumVSdims sh a@(T _ _ v) =
 {-# NOINLINE fbLibUnordStage10ListSum #-}
 fbLibUnordStage10ListSum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage10ListSum sh a@(T _ _ v) =
-  VS.singleton (sum (map VS.sum (listRoute (routeUnord10 sh a) v)))
+  VS.singleton
+    (sum (map VS.sum (build (routeSlicesInward v (routeUnord10 sh a)))))
 
 -- The same fold over stage FOUR's list, the lean dispatch on the
 -- canonical view with no reordering, so that a fold keeping vector's
@@ -5550,7 +5562,7 @@ fbLibUnordStage10ListSum sh a@(T _ _ v) =
 {-# NOINLINE fbLibListStage4ListSum #-}
 fbLibListStage4ListSum :: ShapeL -> T -> VS.Vector Double
 fbLibListStage4ListSum sh a@(T _ _ v) =
-  VS.singleton (sum (map VS.sum (listRouteAxes (routeList4 sh a) v)))
+  VS.singleton (sum (map VS.sum (build (routeSlices v (routeList4 sh a)))))
 
 -- One row per list producer, in family and stage order, the roster the
 -- two list gates below read, with what each of 'lazinessGate''s views
@@ -5662,7 +5674,7 @@ lazinessGate = do
 -- they are left out rather than asked.  Every row is printed and the
 -- failures collected before the gate dies, so one run shows the whole
 -- spread.
--- Non-vacuity, 2026-09-21: before 'listRoute' yielded nil on a block
+-- Non-vacuity, 2026-09-21: before 'routeSlices' yielded nil on a block
 -- of length zero, every stage from three up failed here on both
 -- degenerate views, and the stage-2 ports, which test the length
 -- themselves, passed.
