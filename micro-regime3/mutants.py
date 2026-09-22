@@ -725,26 +725,6 @@ MUTANTS = [
     # falls through to an index that is not there. Silence and a traceback
     # both read like a section carrying no table, which is the reading
     # --section exists to make visible. The judge asks for table 9 of 3.
-    # The chapter's monitor arming line, no longer held to `-n +1`: the
-    # flag was dropped once on a live run and prose alone did not hold it,
-    # so the check that replaced the prose has to be shown to bite. The
-    # judge plants a README with the flag removed and asks the mutated
-    # reader for the failure line. NO LITERAL BACKTICK: it is a shell
-    # string, so the match is on the words either side of the flag.
-    ('the arming line may drop the monitor replay flag', 'read-run.py',
-     "    lost = [l for l in arming if '-n +1' not in l]",
-     "    lost = []",
-     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile,'
-     ' subprocess\n'
-     'spec = importlib.util.spec_from_file_location(\'d\','
-     ' \'{dir}/defects.py\')\n'
-     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
-     'f = m.edited_readme(tempfile.mkdtemp(), (\'tail -F -n +1 \','
-     ' \'tail -F \'))\n'
-     'r = subprocess.run([sys.executable, \'{file}\', \'--check-doc\','
-     ' \'--worklists\', \'--readme\', f], capture_output=True, text=True)\n'
-     'sys.exit(0 if \'monitor arming line(s) drop\' in r.stdout + r.stderr'
-     ' else 1)"'),
 
     ('--section stops refusing a table number past the end', 'read-run.py',
      '    if with_tables and with_tables > len(tabs):',

@@ -10873,31 +10873,6 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                    % (len(piped), '; '.join(x[:60] for x in piped[:3])))
     else:
         note.append('no chapter recipe pipes or chains a gate')
-    # AND THE WALL-CLOCK TAIL KEEPS `-n +1`, ruled 2026-09-22 after it was
-    # dropped once. A monitor is reaped at its own thirty minutes whatever
-    # the session does, so every re-arm has a gap behind it and `-n +1` is
-    # what replays what the gap swallowed; `-n 0` reads as an optimisation
-    # -- it stops the already-seen stamps arriving twice -- and Run 38
-    # re-armed with it, lost every stamp the twenty processes between
-    # 03:11 and 10:05 wrote, and read a seven-hour-old line as the run's
-    # current state. Prose said so and the flag went anyway, which is why
-    # this is a check. An arming line NOT found is a failure too: the
-    # search is keyed on the log's own name, and a rename would otherwise
-    # leave it silently passing.
-    arming = [l.strip() for l in open(readme, encoding='utf-8')
-              if 'tail -' in l and '-wallclock.log' in l]
-    lost = [l for l in arming if '-n +1' not in l]
-    if not arming:
-        bad.append('no wall-clock tail in the chapter, so the `-n +1`'
-                   ' check read nothing: the arming line was renamed and'
-                   ' this check went silent with it')
-    elif lost:
-        bad.append('%d monitor arming line(s) drop `-n +1`, so a re-arm'
-                   ' replays nothing the gap swallowed: %s'
-                   % (len(lost), '; '.join(x[:60] for x in lost[:2])))
-    else:
-        note.append('every wall-clock tail in the chapter keeps `-n +1`'
-                    ' (%d)' % len(arming))
     if run_doc is None:
         bad.append('BLOCKED: no run file in %s/, so the Results table, the'
                    ' fingerprint and the class blocks'

@@ -9672,26 +9672,6 @@ RECORDS = [
          argv=['--unit', 'span_label(None)'],
          ok=V(has=["'at most 64 B'"], hasnt=['any length'])),
 
-    case('chapter-drops-the-monitor-replay-flag', 'read-run.py', None,
-         'the arming line lost `-n +1`, so every re-arm replayed nothing'
-         ' the gap before it swallowed, and no gate said so',
-         plant=lambda t: {'readme': edited_readme(
-             t, ('tail -F -n +1 $R-evening.txt', 'tail -F $R-evening.txt'))},
-         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
-         ok=V(exit=1, has=['monitor arming line(s) drop `-n +1`'])),
-
-    # The other branch, which no live document can reach: the check is
-    # keyed on the log's own name, so a rename leaves it reading nothing.
-    # A silent search is the failure this repo keeps naming, and here it
-    # is planted rather than trusted.
-    case('chapter-arming-line-renamed-under-the-check', 'read-run.py', None,
-         'CONTROL: the search found no arming line at all and would have'
-         ' passed on an empty reading',
-         plant=lambda t: {'readme': edited_readme(
-             t, ('$R-wallclock.log 2>/dev/null', '$R-wall.log 2>/dev/null'))},
-         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
-         ok=V(exit=1, has=['no wall-clock tail in the chapter'])),
-
     case('survey-truncates-its-straddler-listing-without-saying-so',
          'loop-offsets.py', '55216ae',
          'ten sites under a count of eleven read as the whole of them, on'

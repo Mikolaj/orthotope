@@ -4345,15 +4345,10 @@ not name. **TWO CAPABILITIES FOUND.** `--exclude-shape` prices a wild cell
 against the arm it sits in, which is what turned this run's anomaly
 from a caveat into a figure, 1.3360 against 1.3129; and `--over-list` settles
 the wider statement in ONE call over all twenty-two population-halves, where
-reading it per class is twenty. **AND ONE MONITOR COSTS MORE THAN IT LOOKS**:
-the stage monitor the run list arms at step 14 is silent for the eight-hour
-sequence and then writes two lines per counts leg, which arrive batched as some
-twenty wake-ups in the forty-two minutes the counted work takes, each a model
-invocation. The tail drops the counts legs' clean `start` and `done` lines since
-2026-09-19, which is what those wake-ups were. **AND TWO THINGS THIS SESSION GOT
-WRONG ABOUT ITS OWN AGENTS, both raised by the owner mid-run and neither caught
-by any list here.** **The checker's SECOND pass is sent at 6d and this session
-sent it at 7a**: pass 1 had not returned when 6c ended, and rather than idle
+reading it per class is twenty. **AND TWO THINGS THIS SESSION GOT WRONG ABOUT
+ITS OWN AGENTS, both raised by the owner mid-run and neither caught by any list
+here.** **The checker's SECOND pass is sent at 6d and this session sent
+it at 7a**: pass 1 had not returned when 6c ended, and rather than idle
 the session went on to the fix cycle, so pass 2 arrived beside 7a's blind reader
 and comprehension probe and THREE agents ran at once where the list intends two.
 It cost nothing here --- pass 2 then had the settled commit to read rather
@@ -4406,14 +4401,14 @@ disable the reaper from the next session on, which that session's own `env`
 confirms or refutes, and `run-evening.sh` refuses to start under the harness
 without it. That night the class loop was re-launched under `setsid` and ran six
 hours untouched, which is the workaround the switch retires: a detached launch
-loses the harness's wake-up at exit and leaves the `tail -F` monitor as the only
-channel, where a tracked launch keeps both. **A CHECK THAT WOULD HAVE CAUGHT
-AN ERROR, AND DID, SIX TIMES:** `--check-doc` caught every stale `runs/run34.md`
-link, the `___` the registration move leaves, a head grown to six paragraphs,
-two headings separated by one blank line, and the floor pair and carry-back
-figure quoted at two figures each across their sites --- none of which any
-reading of the prose had raised. **A COMPUTATION IMPROVISED: one.** Item (3)'s
-real claim, this run's instruction counts against Run 34's, had to be computed
+loses the harness's wake-up at exit and leaves nothing to wake the session,
+where a tracked launch keeps it. **A CHECK THAT WOULD HAVE CAUGHT AN ERROR,
+AND DID, SIX TIMES:** `--check-doc` caught every stale `runs/run34.md` link,
+the `___` the registration move leaves, a head grown to six paragraphs, two
+headings separated by one blank line, and the floor pair and carry-back figure
+quoted at two figures each across their sites --- none of which any reading
+of the prose had raised. **A COMPUTATION IMPROVISED: one.** Item (3)'s real
+claim, this run's instruction counts against Run 34's, had to be computed
 by hand over the two sweep files, because `--compare --counts` restricts
 its table to the sixteen arms carrying a corrected time and `liblist-stage4-sum`
 is a reducing consumer outside them. **A STEP SKIPPED: none of the twelve**,
@@ -8021,7 +8016,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     # it.
     cd ~/r/orthotope/micro-regime3        # and re-set R, PREV and REGIME
     #      per call
-    #      NN is one past the newest file in runs/, which is the run
+    #      NN is one past the highest-numbered file in runs/, the run
     #      behind you, and the disk is where the number is written. DO
     #      NOT MAKE `runs/$R.md` YET: every
     #      mode defaults to the newest file, and everything before
@@ -8725,8 +8720,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      what it lands on
     #  12c. TAG THE NOTE'S ENTRY POINT `[EXEC]` FIRST: one block, saying
     #      what is SPENT, what is STILL OWED and what the executing
-    #      session acts on. `--note-check` refuses a note without one
-    #  12c. COMMIT, AND REVIEW BEFORE YOU DO, not after: walk what this
+    #      session acts on. `--note-check` refuses a note without one.
+    #      THEN COMMIT, AND REVIEW BEFORE YOU DO, not after: walk what this
     #      half wrote for errors -- 12b is the figures, this is the shape
     #      of the changes -- and commit once at the end. RUN
     #      `./run-status.sh $R` AS THE LAST THING BEFORE THE COMMIT: it is
@@ -8917,76 +8912,13 @@ Unsandboxed throughout:
     #      attempt's $R-evening.txt and says to move it aside, which
     #      is the whole of the recovery. Run 37 relaunched this way
     #      twelve minutes in and published the second launch.
-    #      AND ARM ONE MONITOR IN THE SAME TURN, the stages:
-    #          tail -F -n +1 $R-evening.txt $R-wallclock.log 2>/dev/null \
-    #            | grep -E --line-buffered '^=== ' \
-    #            | grep -vE --line-buffered 'counts .*: (start|done, rc=0)$'
-    #      `-F` AND NOT `-f`, AND THE REDIRECT IS NOT OPTIONAL: neither
-    #      file exists at arming time, `-F` retries by name and `-n +1`
-    #      replays the stamps already written.
-    #      AND `-n +1` STAYS ON EVERY RE-ARM, which is not an
-    #      optimisation to drop: a monitor is reaped at its own THIRTY
-    #      minutes whether or not the session can re-arm it, so every
-    #      re-arm has a gap behind it, and `-n +1` is what replays what
-    #      the gap swallowed. `-n 0` looks free -- it stops the
-    #      already-seen stamps arriving twice -- and buys blindness:
-    #      Run 38 re-armed with it, lost every stamp the twenty
-    #      processes between 03:11 and 10:05 wrote, both of each, and
-    #      read a seven-hour-old line as the run's current state. The
-    #      duplicates are the
-    #      price of a lossless re-arm; the filter and the thirty-minute
-    #      answer rule are what absorb them. THE WALL-CLOCK LOG IS ON
-    #      THE TAIL because $R-evening.txt alone is silent for the eight
-    #      hours the sequence runs -- Run 36's wrote nothing between
-    #      `sequence: start` and `sequence: done` -- where the wall-clock
-    #      log stamps a `start` and a `done` per process, nine to
-    #      fifty-seven minutes apart on Run 36, so the run's own ticks
-    #      keep the session's prompt cache warm; the `^=== ` filter keeps
-    #      the stamped lines and drops the unstamped ones that log opens
-    #      with and the `==>` headers `tail` prints when it switches
-    #      files. THE HEARTBEAT IS NOT ARMED, ruled 2026-09-19:
-    #      run-heartbeat.sh stays for a probe watching itself, and
-    #      nothing in this list runs it.
-    #      THE FILTER ON THE STAGE TAIL IS WHAT KEEPS STEP 20 CHEAP, and
-    #      it drops nothing else: the counted work writes two lines a leg
-    #      over twenty-two legs, which unfiltered is some twenty wake-ups
-    #      in the forty-two minutes it takes, each a model invocation on
-    #      a context that
-    #      only grows. A counts leg that COMPLAINS or exits nonzero still
-    #      fires, the pattern dropping only `: start` and `: done, rc=0`
-    #      on a line naming counts, and every stage line of the evening
-    #      proper is untouched (2026-09-19).
-    #      AND A TICK IS ANSWERED ONLY WHEN IT IS NEWS, ruled 2026-09-19.
-    #      A tick landing more than THIRTY MINUTES after the previous
-    #      NON-TRIVIALLY ANSWERED tick (amended 2026-09-20: the clock
-    #      ran from the previous tick, under which a run of quiet ticks
-    #      never accumulates into a reply), or one that opens or closes
-    #      a phase -- `evening begins`, the gate's, the instance gate's
-    #      and the sequence's `start` and `done`, the riders' first
-    #      `start` and RIDERS DONE, `counted work begins` and EVENING
-    #      COMPLETE -- and any line carrying a COMPLAINT or a nonzero
-    #      rc, gets a SHORT INFORMATIVE REPLY: which phase or process
-    #      the line opens or closes, its verdict, how long it took and
-    #      what runs next, with the tool call this list asks for at that
-    #      line where it asks for one. EVERY OTHER TICK GETS THE
-    #      SMALLEST TEXT THAT CAN BE GENERATED, the empty string where
-    #      the harness allows one and a single character otherwise -- a
-    #      process's `start` or `done` inside the sequence under thirty
-    #      minutes from the last answered tick, a rider's own lines --
-    #      an acknowledgement being a turn end that costs what the tick
-    #      cost again, and a sentence saying no reply is owed costing
-    #      what a reply costs. A reply with no tool call in it IS a turn
-    #      end, which is what the hold set at the first wait is for
-    #      (~/.claude/rules/turn-end-hold.md).
-    #      THE MONITOR'S `description` IS A TAG AND NOT A LEGEND --
-    #      `$R stages`, two or three words: the harness reprints it on
-    #      every tick.
-    #      IT IS NOT STOPPED before $R-evening.txt reads EVENING
-    #      COMPLETE, which the counted work writes and this command does
-    #      not; stopping it is an act and it is written at 20's woken
-    #      step, where it happens.
+    #      ARM NOTHING BESIDE IT: its exit is the session's wake-up,
+    #      and eight hours of ticks cost more than the one cold read
+    #      they forestall. ASKED MID-EVENING, answer from a `tail` of
+    #      $R-evening.txt and $R-wallclock.log and nothing heavier: a
+    #      status call costs 0.81 of a core on a box being timed.
     #      why: --para 'run-major.sh is that sequence'
-    #      why: --para 'The heartbeat is not armed'
+    #      why: --para 'Nothing is armed beside the evening'
     #  14. THE GATE, its first stage: run-gate.sh on both halves twice in a
     #      palindrome, FOUR --compare readings put in $R-evening-out.txt:
     #      the two cross-half passes, the -a pair and the -b pair, and then
@@ -9083,13 +9015,9 @@ Unsandboxed throughout:
     ./run-counts-all.sh $R                # 20, IN THE SAME TURN, in the
     #      harness's background mode again, as at 14: a typed `&` would
     #      detach and wake nobody
-    #      AND IT ANNOUNCES ITSELF THREE WAYS, so nothing between them
-    #      is worth a tool call: `counted work begins` and EVENING
-    #      COMPLETE both pass the stage tail's filter, which drops only
-    #      a per-leg `: start` or `: done, rc=0`, and the harness
-    #      reports the backgrounded task's own exit besides. Run 37
-    #      polled `ls $R-counts-*.txt` eight times between them and
-    #      learned nothing the three had not already said (2026-09-20)
+    #      AND ITS EXIT IS ITS ANNOUNCEMENT, so nothing before it is
+    #      worth a tool call: Run 37 polled `ls $R-counts-*.txt` eight
+    #      times and learned nothing the exit did not say (2026-09-20)
     #  20. THE COUNTS, THE SECOND COMMAND: run-counts-all.sh, which is
     #      run-counts.sh over EVERY population, the main set and each
     #      class, control then basis apiece, a
@@ -9104,17 +9032,11 @@ Unsandboxed throughout:
     #      probes it on /bin/true and refuses in a millisecond, and
     #      run-counts-all.sh refuses a stage still running besides --
     #      counted beside a timed process, both readings are spoilt
-    #  THEN, WOKEN AGAIN: STOP THE STAGE MONITOR FIRST -- the one armed
-    #      with the launch at 14 -- and only then read the counts
+    #  THEN, WOKEN AGAIN: read the counts
     #      stages in $R-evening.txt, whose last line is EVENING COMPLETE
     #      and whose tally is the complaints of both commands; report each
     #      rather than folding them into a later summary, and start the
     #      post-run list, its step 0 first.
-    #      THE STOP IS A LINE HERE AND NOT ONLY AT 14 because an
-    #      instruction at the arming site is read EIGHT HOURS before the
-    #      moment it fires. A monitor outlives what it watches unless
-    #      something stops it, and `persistent` means it outlives the
-    #      session's attention too.
 
 **One rule for the sandbox in this directory, since half of what a run does must
 write here.** Run everything unsandboxed except the read-only checks.
@@ -9724,28 +9646,19 @@ and its header says how: every process's bench count against the binary's own
 listing, loud in the log and not fatal, the exit status carrying the count
 of complaints out to whatever collected it.
 
-**The heartbeat is not armed, ruled 2026-09-19, and `run-heartbeat.sh` stays
-for a probe watching itself.** Its `EVERY` was set to forty-five minutes
-for a reason that was the session's and not the run's: a session's prompt cache
-holds for an hour, so a tick inside that window costs a cache read while
-the first message after a longer silence pays to rebuild the whole conversation,
-and the stage file alone writes nothing through the eight-hour sequence.
-**THAT INTERVAL NEVER GOVERNED ANYTHING UNDER A MONITOR, measured 2026-09-22**:
-a monitor's own deadline caps at THIRTY minutes --- a `timeout_ms` of 3600000
-arms at 30m, and Run 38's stage monitor lived 02:41:42 to 03:11:47 --- while
-the script ticks once at arming and only then sleeps `EVERY`, so no arming ever
-reaches the sleep and the cadence a session sees is the cadence at which
-it RE-ARMS. `EVERY` bites only where the script runs OUTSIDE a monitor, which
-is the probe case it is kept for. **What that makes the cadence is the re-arm
-chain's reliability**, and Run 38 is what it costs when a link breaks: two
-`API Error: 529` invocations, one carrying a stage line and one the expiry
-notice, left the session with no monitor and no pending wake-up from 03:11
-to 10:05 while the sequence ran on, the run itself untouched because the evening
-is a backgrounded job whose exit wakes the session regardless. The stage monitor
-now tails the wall-clock log too, whose per-process stamps land under an hour
-apart, so the ticks that keep the cache warm are the run's own and a second
-monitor bought nothing they do not. Which ticks a session answers is said
-at the arming site, run list step 14, and nowhere else.
+**Nothing is armed beside the evening, ruled 2026-09-23, and `run-heartbeat.sh`
+stays for a probe watching itself.** The evening is a backgrounded job whose
+exit wakes the session, and Run 38 showed that this is enough: two
+`API Error: 529` invocations left it with no monitor and no pending wake-up
+from 03:11 to 10:05, and the sequence ran on untouched. What a monitor bought
+was a prompt cache kept warm, and over eight hours it costs more than it saves:
+a monitor lives at most THIRTY minutes whatever its `timeout_ms` asks --- Run
+38's stage monitor lived 02:41:42 to 03:11:47 --- and each tick and each re-arm
+is a wake-up costing about a tenth of the one cold read at the evening's exit,
+so the wall-clock log's per-process stamps and two re-arms an hour come
+to several times that read. For a probe of an hour or two the arithmetic turns,
+and `HEARTBEAT_ONCE=1 ./run-heartbeat.sh` is the line a timed waiter prints
+at its wake-up.
 
 Everything else is already a default. The allocation fit
 `--regress allocated:iters` is on (it is well-conditioned at 5s), so `alloc`
