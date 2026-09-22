@@ -800,6 +800,56 @@ rather than a slot in the next run, observed again:
   on it in eight of eleven populations, down to 0.7144 on `bcast`, counts level
   throughout. A new build is a new file and so a new draw --- the test the dead
   instance could not give.
+- `OPEN` **What Run 39 is built to answer, registered before it runs.** The pair
+  is Run 38's with `LOOP_SETTLED=1` on both halves, the owner's declaration
+  of 2026-09-22, and THIS ENTRY IS ITS ONE DECLARATION SITE by the ruling
+  of 2026-09-19. Both halves GHC HEAD `10.1.20260918` through
+  `cabal.project.ghead` at plain `-O1`, one source, one shim, `align-as.py`
+  at fe6d133 or later, under Run 38's four switches with `LOOP_SETTLED=1` added
+  to both lines --- `LOOP_EXITSPAN=1` staying and inert under the settled cost,
+  as `LOOP_MAXSKIP` and `LOOP_LOOKTHROUGH` are under the dead-spot form,
+  the basis built with it on the line checksumming identical to one built
+  without --- the control's line carrying `-fspec-constr -fliberate-case`
+  besides, every process launched from disk, the half names `run39-gheadnospec`
+  and `run39-gheadtwopass`. So the pair's own `cross` figure is the two passes
+  read a fourth time, under the new basis, and the switch itself is read as each
+  half against Run 38's same half, `--half-movers run39 run38`, post-run step
+  4a's instrument and here the run's first reading. The switch is in [the shim's
+  docstring](align-as.py), its four controls in `defects.py`: the block rules
+  plus three rules for the back edge's own bytes, the spot fewest jumps cross,
+  and the plan settled against the assembler, which the shim reads back through
+  one to three more probe assemblies, a half building in some three minutes
+  and a quarter where the exit span's took one. On 2026-09-22's builds from Run
+  38's recipes it placed 776 heads on the basis and 836 on the control
+  at residues the block rules would not. **What the run predicts.** (1)
+  *The fill cell on `stretch-wide-2xM` comes back to Run 37's level on both
+  halves.* Under the switch the three fill heads read land at residue 0 on both
+  halves, and those builds read `lib-stage2-lean` and `lib-stage3-lean` there
+  at 9.6 to 10.0 million cycles an iteration on both, level
+  with `lib-stage2-lean-u1`, where Run 38 read 11.5 to 12.9.
+  `predict: cell stretch-wide-2xM/lib-stage2-lean over stretch-wide-2xM/lib-stage2-lean-u1 1.0 within 5% on main both`
+  and
+  `predict: cell stretch-wide-2xM/lib-stage3-lean over stretch-wide-2xM/lib-stage2-lean-u1 1.0 within 5% on main both`,
+  the cell against the loop the run left at 9.5 on both halves, with
+  `predict: pair lib-stage3-lean lib-stage2-lean 1.0 within 2% on main basis`,
+  Run 38's item (6) under the new basis. (2) *The back edge's rules hold beyond
+  the loop that fixed them, which is the bet the switch takes.* The first rule
+  was read on a `jl` and the other two on a `jmp`, and the switch charges all
+  three to any back edge: on `.LQeN1`, a 63-byte loop whose `jne` sits
+  in its head line's last bytes, that makes residues 0 and 1 costly where every
+  earlier cost called them free, and no reading has priced a `jne` there.
+  The reading is each half against Run 38's same half over the eleven
+  populations, a switch that moves heads on both halves alike leaving a one-half
+  mover to the instance, which `--half-movers` names, and a two-half mover
+  to the rules: `script: probe-r39-rules.py`, run
+  as `./probe-r39-rules.py run39 run38`, lists every arm slower past
+  the chapter's 3% mover bar on BOTH halves, and each is then read
+  by `LOOP_TRACE` on its hot loop's head. The prediction is that none of them
+  was moved for the first-eight or last-four rule alone; one that was
+  is the kill, and it names the rule to retire. The bar is 3% and not the floor
+  because the same reading of Run 38 against Run 37, the same recipes
+  with the source moved, names nine arms at the floor and three at 3%, `flip`
+  and `small` cells of loops no rule touched.
 - `OPEN` **Seven reducing consumers newly change what they ALLOCATE
   under `-fspec-constr -fliberate-case`, where one run earlier the same pair
   changed none of them.** On Run 38 the unordered consumers
