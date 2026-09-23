@@ -106,10 +106,10 @@ done
 N=$(grep -c -- '-- COMPLAINT,' "$STATUS")
 if [ "$N" -eq 0 ]; then
   stamp "EVENING COMPLETE: every stage of both calls exited 0. Read\
- $R-wallclock.log's '!!' lines anyway, then the post-run list, its step 0\
- first"
+ $R-wallclock.log's '!!' lines anyway, then the post-run list in the\
+ execution order its checklist prints"
   exit 0
 fi
 stamp "EVENING COMPLETE WITH $N COMPLAINT(S) OVER BOTH CALLS -- read each\
- in $OUT before any figure; the post-run list's step 0 is still first"
+ in $OUT before any figure, then the post-run list in its execution order"
 exit 1

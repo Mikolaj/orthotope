@@ -17,7 +17,7 @@ if [ $# -ne 1 ]; then
   exit 2
 fi
 R=$1
-EV=$(tail -1 "$R-evening.txt" 2>/dev/null | sed 's/^=== //' | cut -c1-110)
+EV=$(tail -1 "$R-evening.txt" 2>/dev/null | sed 's/^=== //' | cut -c1-200)
 W="$R-wallclock.log"
 if [ -f "$W" ]; then
   DONE=$(grep -c '^=== [^ ]* done ' "$W")
