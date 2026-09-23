@@ -4557,11 +4557,11 @@ but 6a's **THE HEAD IS WRITTEN LAST** was not observed --- the head was written
 after 5c's adjudication and before the class paragraphs and Provenance ---
 and the direction errors above were all three in it, which is the cost
 that instruction predicts. THE READINGS THE CARRIER TOOK AND WHAT THEY COST:
-items 2, 4, 5 and 6 came back as `run33-readings.txt`, four `--section` reads
-and about two minutes, launched during the sequence where the chapter puts them
---- and the carrier's own reads are among what intruded
-on `run33-gheadexit-main`, which is the run's procedural finding and has
-an entry of its own in the open list above.
+items 2, 4, 5 and 6 came back as one readings file, deleted with the run's
+artifacts on 2026-09-23, four `--section` reads and about two minutes, launched
+during the sequence where the chapter puts them --- and the carrier's own reads
+are among what intruded on `run33-gheadexit-main`, which is the run's procedural
+finding and has an entry of its own in the open list above.
 
 **The blocks for Runs 32 down to 25 are in `MARGINALIA` as of 2026-09-18,
 and this is where they went.** They ran to some seven hundred lines
@@ -12475,18 +12475,19 @@ set over the eight having closed on both --- and since 2026-09-13 a margin
 between two rows clears the whole-set one, the carry-back figure being
 the series and not the bar ([the open list][open]). Read the floor as the run's
 *and the half's*, re-measured every time, never as a constant of the harness
-and never inherited. **And of these series, only the readings from Run 31 on can
+and never inherited. **And of these series, only the readings from Run 36 on can
 still be re-derived**: Runs 24 to 30's artifacts were deleted 2026-09-18
-at the owner's word, so `--series` starts at Run 31 and every figure before
-it is a RECORD here and in that run's own file rather than something a later
-session can check. That is the run-file split working as designed --- an older
-run is read by opening its file --- and it is also why this paragraph's series
-is not to be cut: it is now the only copy. **And both of the checks from OUTSIDE
-the declared pairs are still gone with their arms.** `lib-stage2-disp`
-was parked on 2026-09-07 and the two undeclared pairs that stood in its place
-on Run 28 both lost a member to the parking of 2026-09-11, so this run, like
-Runs 29 to 38, has no check on the declared eight from outside them at all.
-A run that wants that check again has to land an arm for it.
+and Runs 31 to 35's 2026-09-23, at the owner's word, so `--series` starts at Run
+36 and every figure before it is a RECORD here and in that run's own file rather
+than something a later session can check. That is the run-file split working
+as designed --- an older run is read by opening its file --- and it is also why
+this paragraph's series is not to be cut: it is now the only copy. **And both
+of the checks from OUTSIDE the declared pairs are still gone with their arms.**
+`lib-stage2-disp` was parked on 2026-09-07 and the two undeclared pairs
+that stood in its place on Run 28 both lost a member to the parking
+of 2026-09-11, so this run, like Runs 29 to 38, has no check on the declared
+eight from outside them at all. A run that wants that check again has to land
+an arm for it.
 
 **The 0.7% differencing bar, measured against the pairs it is applied to ---
 and it is near the MEDIAN of that population rather than a bound on it.**
