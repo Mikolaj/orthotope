@@ -344,11 +344,14 @@ MUTANTS = [
     # recomputes the rate from the corrected column the same output prints
     # and `--pair`'s own time geomean, so it catches the swap AND a column
     # blinded to `--`; it exits 0 with no run on disk, which is LOST
-    # rather than caught, as every corpus judge here is.
+    # rather than caught, as every corpus judge here is. The pair is the
+    # shipped leaf over `mut-odo-vecdims`, both timed on every run: its first
+    # form named the `-u1` leaf, parked by c870e1e, and read red unmutated
+    # on Run 39's files, which is `could not be applied` and not a catch.
     ('the rate column prices a saving against the raw counts', 'read-run.py',
      "                rate = ('%6.1f%%' % ((1 - t) / (1 - gnet) * 100)",
      "                rate = ('%6.1f%%' % ((1 - t) / (1 - geomean(raw)) * 100)",
-     'PATH="{bin}:$PATH" python3 -c "import glob, os, re, subprocess, sys\nsw = [f for f in glob.glob(os.path.join(\'{root}\', \'run*-counts-*.txt\')) if re.match(r\'run\\d+-counts-[a-z0-9]+\\.txt$\', os.path.basename(f))]\nif not sw: sys.exit(2)\nsw.sort(key=lambda f: int(re.match(r\'run(\\d+)\', os.path.basename(f)).group(1)))\nrun, half = re.match(r\'(run\\d+)-counts-([a-z0-9]+)\\.txt\', os.path.basename(sw[-1])).groups()\njs = os.path.join(\'{root}\', run + \'-\' + half + \'-main.json\')\nif not os.path.exists(js): sys.exit(2)\nA = [\'mut-odo-vecdims-add-in-leaf-u2\', \'mut-odo-vecdims-add-in-leaf-u1\']\nrd = lambda e: subprocess.run([sys.executable, \'{file}\', js] + e, capture_output=True, text=True).stdout\no = rd([\'--counts\', sw[-1], \'--pair\'] + A)\nm = re.search(r\'([0-9.]+)\\s+([0-9.]+)\\s+([0-9]+)\\s+(-?[0-9.]+)%\', o)\nif not m: sys.exit(1)\nt = re.search(A[0] + \' / \' + A[1] + r\'\\s+([0-9.]+)\', rd([\'--pair\'] + A))\nif not t: sys.exit(0)\nw = (1 - float(t.group(1))) / (1 - float(m.group(1))) * 100\nsys.exit(0 if abs(w - float(m.group(4))) < 0.15 else 1)"'),
+     'PATH="{bin}:$PATH" python3 -c "import glob, os, re, subprocess, sys\nsw = [f for f in glob.glob(os.path.join(\'{root}\', \'run*-counts-*.txt\')) if re.match(r\'run\\d+-counts-[a-z0-9]+\\.txt$\', os.path.basename(f))]\nif not sw: sys.exit(2)\nsw.sort(key=lambda f: int(re.match(r\'run(\\d+)\', os.path.basename(f)).group(1)))\nrun, half = re.match(r\'(run\\d+)-counts-([a-z0-9]+)\\.txt\', os.path.basename(sw[-1])).groups()\njs = os.path.join(\'{root}\', run + \'-\' + half + \'-main.json\')\nif not os.path.exists(js): sys.exit(2)\nA = [\'mut-odo-vecdims-add-in-leaf-u2\', \'mut-odo-vecdims\']\nrd = lambda e: subprocess.run([sys.executable, \'{file}\', js] + e, capture_output=True, text=True).stdout\no = rd([\'--counts\', sw[-1], \'--pair\'] + A)\nm = re.search(r\'([0-9.]+)\\s+([0-9.]+)\\s+([0-9]+)\\s+(-?[0-9.]+)%\', o)\nif not m: sys.exit(1)\nt = re.search(A[0] + \' / \' + A[1] + r\'\\s+([0-9.]+)\', rd([\'--pair\'] + A))\nif not t: sys.exit(0)\nw = (1 - float(t.group(1))) / (1 - float(m.group(1))) * 100\nsys.exit(0 if abs(w - float(m.group(4))) < 0.15 else 1)"'),
     # The ANSWERED stub's `___` gate, blinded: the comprehension keeps no
     # entry, so a README whose newest run entry is still the bare
     # placeholder passes. That is the state Run 28 reached the second
