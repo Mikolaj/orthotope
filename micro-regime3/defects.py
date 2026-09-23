@@ -11286,6 +11286,23 @@ RECORDS = [
          bug=V(exit=1, has=['no zzem-pair.txt'],
                hasnt=['CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP'])),
 
+    case('evening-refuses-a-stray-run-artifact-before-the-gate',
+         'run-evening.sh', 'a35f698',
+         'a file named for the run that run-major.sh\'s relaunch guard'
+         ' refuses over let the evening spend its gate and then refuse the'
+         ' sequence, the riders running in its place on the quiet box',
+         # Run 39, 2026-09-23: the executing session sent the driver's own
+         # output to run39-evening-launch.log, which is a $R-*.log; the
+         # gate took its half hour, the sequence refused at once over that
+         # one file, and the riders ran before the hours instead of after.
+         shadow=dict(extra=lambda: evening_fixture('zzes')
+                     + [('zzes-launch.log', 'the driver\'s own output\n')]),
+         env={'MAXBUSY': '100', 'ONLY': main_shapes()[0]},
+         argv=['zzes'],
+         ok=V(exit=1, has=['zzes-launch.log', 'Nothing ran'],
+              hasnt=['evening begins']),
+         bug=V(has=['sequence: done, rc=1'])),
+
     # ---- instance-gate.sh, run list step 16a ----------------------------
     # A half's launch instance against a fresh copy, since 2026-09-18: Run
     # 34's mounted instance read 1.075 of a copy the day after its evening
