@@ -13515,6 +13515,22 @@ RECORDS = [
          argv=['run94'],
          ok=V(has=["with 1 '!!' line(s)"])),
 
+    case('lint-refuses-a-mutant-judge-naming-a-parked-arm', 'read-run.py',
+         None,
+         'CONTROL: a mutant whose judge names an arm the roster no longer'
+         ' times fails --lint, naming the mutant and the arm',
+         # The rate column's judge paired the shipped leaf with the -u1
+         # leaf, which c870e1e parked; on Run 39's files it read red
+         # unmutated and the mutant counted as not applied, found only by
+         # a check-all over the write-up (2026-09-23).
+         shadow=dict(mutate=[('mutants.py',
+                              "A = [\\'mut-odo-vecdims-add-in-leaf-u2\\',"
+                              " \\'mut-odo-vecdims\\']",
+                              "A = [\\'mut-odo-vecdims-add-in-leaf-u2\\',"
+                              " \\'mut-odo-vecdims-add-in-leaf-u1\\']")]),
+         argv=['--lint'],
+         ok=V(exit=1, has=['mutant judge', 'mut-odo-vecdims-add-in-leaf-u1'])),
+
     case('smoke-exercises-the-arm-filter', 'smoke-sweep.sh', '5ef414d',
          '--exclude was exercised on an Only arm, so it removed nothing',
          # `bq-expand-b` has been `Only` since c10e8cf, in no --list and

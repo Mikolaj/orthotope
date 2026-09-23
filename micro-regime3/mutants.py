@@ -1137,4 +1137,18 @@ MUTANTS = [
      '    <yours: b>\\n\' > "$d/log-read-run97/for-brief.txt";'
      ' cd "$d" && python3 "{file}" --brief-update run97'
      ' --brief-dir . 2>&1 | grep -q "RE-OPENED"'),
+    # --lint's mutant-judge check, blinded: a judge naming an arm the
+    # roster parked reads red unmutated and counts as not applied, which
+    # is what the rate column's judge did after c870e1e. The judge plants
+    # such a mutant in the copy's own mutants.py and wants --lint to name it.
+    ('lint stops reading mutant judges for parked arms', 'read-run.py',
+     '        if judged:',
+     '        if False:',
+     # The arm's name is built from two pieces, as its literal here
+     # would be read by the very check this proves.
+     'p=mut-odo-vecdims-add-in-;'
+     ' printf "MUTANTS.append((\'planted\', \'x\', \'a\', \'b\','
+     ' \'%sleaf-u1\'))\\n" "$p" >> "{dir}/mutants.py";'
+     ' cd "{dir}" && python3 "{file}" --lint 2>&1'
+     ' | grep -q "mutant judge(s) name arms"'),
 ]

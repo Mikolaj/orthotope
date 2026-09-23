@@ -343,6 +343,7 @@ import contextlib
 import difflib
 import functools
 import glob
+import importlib.util
 import io
 import json
 import math
@@ -13350,6 +13351,35 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
     # Loosening it to exempt a self-declaring clause is refused -- the
     # predicate would be `does the sentence admit it`, which is the
     # noise-for-signal shape this file refuses elsewhere.
+    # AND A MUTANT'S JUDGE MAY NOT NAME ONE EITHER: a judge runs against
+    # the newest run's own files, so an arm the roster parked reads red
+    # before any mutation, which selftest-mutants.py counts as `could not
+    # be applied` and not as a catch -- the rate column's judge named the
+    # -u1 leaf after c870e1e parked it, and only a check-all over Run 39's
+    # write-up met it. Case: `lint-refuses-a-mutant-judge-naming-a-parked-arm`.
+    mpath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         'mutants.py')
+    if os.path.exists(mpath):
+        spec = importlib.util.spec_from_file_location('mutants_lint', mpath)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        judged = []
+        for mut in getattr(mod, 'MUTANTS', []):
+            # Hyphenated names only: `build`, an untimed arm, is also an
+            # English word, and a judge's prose carried it as one.
+            gone = sorted(a for a in untimed if '-' in a
+                          and re.search(r'(?<![\w-])%s(?![\w-])'
+                                       % re.escape(a), mut[4]))
+            if gone:
+                judged.append('%s: %s' % (mut[0], ', '.join(gone)))
+        if judged:
+            bad.append('%d mutant judge(s) name arms the roster no longer'
+                       ' times, so each reads red unmutated:\n        %s'
+                       % (len(judged), '\n        '.join(judged)))
+        else:
+            print('ok:   no mutant judge names an untimed arm (%d read)'
+                  % len(getattr(mod, 'MUTANTS', [])))
+
     if run_doc:
         items = property_items(run_text)
         stale = []
