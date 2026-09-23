@@ -25,6 +25,16 @@ STEPS = [
                                 'cd "{root}" && if command -v pyflakes >/dev/null; then pyflakes *.py; elif python3 -m pyflakes --version >/dev/null 2>&1; then python3 -m pyflakes *.py; else echo "pyflakes is not on PATH (command -v pyflakes finds nothing) and python3 -m pyflakes does not import, so the Python here went unlinted"; exit 1; fi']),
     ('shellcheck',             ['bash', '-c',
                                 'cd "{root}" && { command -v shellcheck >/dev/null || { echo "shellcheck is not on PATH (command -v shellcheck finds nothing), so the shell scripts here went unlinted"; exit 1; }; } && shellcheck -S warning -f gcc *.sh']),
+    # EVERY TRACKED FILE OPENING WITH #! IS COMMITTED 100755, the
+    # subdirectories included, since 2026-09-23: Run 39's registration told its
+    # reader to run `./probe-r39-rules.py`, committed 100644, and the command
+    # answered `Permission denied`; probe-r38-sweep.py and other shebang files
+    # here were committed the same way. The INDEX mode and not the disk's,
+    # a chmod that was never added being the case that reaches every other
+    # checkout. Watched both ways that day: 25 files named before the chmod,
+    # none after.
+    ('executable bits',        ['bash', '-c',
+                                'cd "{root}" && bad=$(git ls-files -s -- . | awk -F"\\t" \'{ split($1, a, " "); if (a[1] == "100644") print $2 }\' | while IFS= read -r f; do [ "$(head -c2 "$f" 2>/dev/null)" = "#!" ] && printf "%s\\n" "$f"; done); if [ -n "$bad" ]; then printf "committed without the executable bit, each opening with #!:\\n%s\\n" "$bad"; exit 1; fi; echo "every tracked file opening with #! is committed 100755"']),
     # The bang checker is horde-ad's, reached through the sibling checkout
     # as the twin-sync check reaches its twin, and BLOCKED with exit 2 when
     # that checkout is not mounted, so an unrun step is never a pass. It
