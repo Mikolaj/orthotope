@@ -1084,6 +1084,15 @@ MUTANTS = [
     # first match, the writer then dies of SIGPIPE, and pipefail reads the
     # 141 as a red baseline -- which the post list's default form did the
     # day it outgrew one write (2026-09-23).
+    # THE RECOMMENDED-TASKS HEADING OUTGROWING THREE BLOCKS, the rule
+    # post-run step 5 carries and --check-doc holds, blinded.
+    ('check-doc stops counting the made-cheaper blocks', 'read-run.py',
+     '    if len(cheaper) > 3:',
+     '    if len(cheaper) > 99:',
+     'd="{dir}"; cp "$d/README.md" "$d/m4.md";'
+     ' printf \'\\n**What Run 1 made cheaper for nobody.**\\n\' >> "$d/m4.md";'
+     ' python3 "{file}" --check-doc --readme "$d/m4.md" 2>&1'
+     ' | grep "where the heading keeps three" >/dev/null'),
     # THE EXECUTION ORDER GOING STALE UNDER THE LIST. POST_EXEC is a
     # second statement of the post list's shape, so the one way it can
     # lie is a step moving and the constant not; _exec_order compares

@@ -4224,266 +4224,16 @@ build beside step 20's counts for nothing --- about twenty minutes of a box
 already handed back --- so a preparation that leaves the naming NOT TAKEN
 for want of time is trading a reading for no saving.
 
-**What Run 36 made cheaper for the next run, which is not a figure and no other
-step gathers --- and it is TWO sessions' worth, the preparation's first.** **TWO
-CHECKS CAUGHT AN ERROR BEFORE THE HOURS WERE SPENT.** `--lint`'s span readback,
-new on 2026-09-18, printed each of the twenty spans with the comparison it will
-be read by, which told this registration's prose and its vocabulary apart BEFORE
-the run rather than after --- Run 35's own lesson working the first time
-it was available --- and `--lint`'s cross-declaration check refused a state Run
-35 had had to rule by hand. **What no check caught was a chain of quotes**:
-the first draft of the registration took Run 29's two figures
-from `runs/run35.md`'s prose, where they already appear inverted, and called
-them Run 29's own; only re-reading `runs/run29.md` found 0.8788 and 0.7810
-and the sentence that inverts them. A check holding a quoted figure to the FILE
-the sentence names would have caught it and nothing here does. **A computation
-improvised**: the composition arithmetic, 1.1379 x 1.1710 and 1.2804 x 1.0127
-against the level's own 1.2974 and 1.2943, and the band against the gap it has
-to resolve --- the products and both gaps re-computed exactly and the band
-comparison did not, reading *under a third* where 1.3 of 3.51 points is 0.371,
-so the numerals stayed and the fraction went. **A step skipped, ruled rather
-than forgotten**: step 12's -L1 roster pass, whose condition does not fire
-on an unchanged roster. **Three capabilities found.** The shim's own verified
-line under `ALIGN_AS_VERBOSE` settles step 10a's first two causes in ONE build
-and is what to reach for the moment a survey reads a nonzero astride count,
-confirmed here on a NEW compiler. A previous run's half, still on disk, answers
-for itself --- `size -A`, `diag` and `loop-offsets.py` over `run35-gheadexit`
-gave its `.text`, its fill groups, its self-loop counts and its two `diag`
-figures --- so a cross-run row need not be copied out of the previous note.
-**And a hazard met in the note itself**: `par` reflowed five of its paragraphs
-to bring lines back under 80 after a batch of substitutions had joined them,
-and one of those carried the `HALVES:` and `COMPARE:` lines, which it folded
-into the prose. No word was lost and the note still READ correctly, while
-`pair-halves.sh` could no longer find the halves at all --- and the readings
-part three ways: `--note-check`, `--check-doc` and `--lint` all PASS a folded
-copy, being predicates over prose; `preflight.sh --note` and `--figures` both
-REFUSE at exit 2 with no step line, which reads like a tooling fault;
-and `run-status.sh` prints `2b NOT DONE`. So a reflow of that file must skip any
-paragraph holding a machine-read line, not merely any indented one,
-and the check that catches it is `run-status.sh` and no document pass.
-
-**AND THE WRITE-UP SESSION'S HALF, whose first item is a hazard
-of this directory and not of this run.** **A SANDBOXED REDIRECT
-INTO THIS DIRECTORY IS REFUSED AND THE COMMAND DOES NOT RUN, AND THE NEXT LINE
-CAN READ AN OLD FILE OF THAT NAME AND CALL IT THE RESULT.**
-`./read-run.py --check-doc --quiet > log-checkdoc.txt` from a session rooted
-in another repository fails before exec, so nothing ran;
-the `tail log-checkdoc.txt` beside it then printed a `VERDICT: PASS` left
-by an earlier session, which is indistinguishable from the gate having passed.
-This directory holds scores of `log-*` scratch files, so the stale file
-is the normal case and not bad luck. Every command that writes here runs
-unsandboxed, and a gate is run BARE with its own exit status read after it,
-never redirected and never piped --- the same reading a pipe destroys, measured
-again here when `--check-doc | head` reported `CHECKDOC_RC=0` on a failing gate.
-**A CHECK CAUGHT WHAT THE PROSE REWRITE LEFT BEHIND, twice.** `--check-doc`'s
-floor-pair agreement check named the one site still restating 0.64% and 0.40%
-after the floor paragraph itself had been rewritten to Run 36's own pair,
-and its Results-half check named three `run35-gheadexit` tokens the rewritten
-Results had kept --- both of them classes of defect a reading of either
-paragraph alone passes over. **What no check caught is the wild cell**: nothing
-mechanical tells a wild cell from a real movement, and `stretch-coprime-r7/list`
-at an A/A spread of 28.36% was found only by reading
-`read-all.sh --brief-facts`'s worst-cell column, which the chapter tells
-the reader to read and no gate reads. **TWO COMPUTATIONS IMPROVISED, and both
-are modes since 2026-09-19.** The per-arm ALLOCATION ratio across the halves had
-to be computed from `--cells`'s `alloc_bytes` column, because `--alloc` reports
-agreement counts and the `alloc` column is a MEDIAN of the per-shape multiple
---- dividing the two published tiers gives 0.759 on `bq-expand` where
-the per-cell geomean is 0.8119, a different statistic and the same trap
-`DO NOT DIVIDE TWO ROWS` names for time. And the gate's palindrome spread:
-`list` parted by 1.60 points between the two passes with nothing printed to say
-why, and comparing each half's own two legs, `--compare` of its `-a` against
-its `-b`, accounted for 1.28 of it in two commands that this chapter does
-not name. **TWO CAPABILITIES FOUND.** `--exclude-shape` prices a wild cell
-against the arm it sits in, which is what turned this run's anomaly
-from a caveat into a figure, 1.3360 against 1.3129; and `--over-list` settles
-the wider statement in ONE call over all twenty-two population-halves, where
-reading it per class is twenty. **AND TWO THINGS THIS SESSION GOT WRONG ABOUT
-ITS OWN AGENTS, both raised by the owner mid-run and neither caught by any list
-here.** **The checker's SECOND pass is sent at 6d and this session sent
-it at 7a**: pass 1 had not returned when 6c ended, and rather than idle
-the session went on to the fix cycle, so pass 2 arrived beside 7a's blind reader
-and comprehension probe and THREE agents ran at once where the list intends two.
-It cost nothing here --- pass 2 then had the settled commit to read rather
-than 6d's, which is arguably the better object --- but a report arriving after
-its object has moved is what the ordering exists to prevent, and 6d's condition
-is on pass 1 returning and not on 6c being done. **And no prompt told an agent
-not to spawn one**: the leaf rule is the user-scope file's, it is what
-an orthotope blind reader broke on 2026-09-11 while losing part of its report,
-and all three of this run's agents honoured it --- zero `tool_use` blocks naming
-the Agent tool across the three transcripts, counted rather than assumed ---
-which is their restraint and not this session's instruction. A brief
-that already bounds a reader at thirty tool calls can say *and spawn none*
-in three words, and does since 2026-09-19, in `checker-brief.txt` and at 7a.
-
-**What Run 35 made cheaper for the next run, which is not a figure and no other
-step gathers --- and it is TWO sessions' worth, the preparation's reaching
-this one only through the pair note.** **THE PREPARATION'S HALF, taken
-2026-09-18 and recorded in the note.** A CHECK THAT DOES NOT EXIST: nothing
-holds a run file's compares-against section to the open list's registration,
-so two committed documents declared two different Run 35 pairs and every
-mechanical pass stayed green. A SECOND: nothing holds a registration's quoted
-figures to an artifact still on disk. A CAPABILITY FOUND:
-`--counts-totals run34` answers the counts block's scale off the previous run's
-sweeps, so no note's transcription is read for it. And a hazard its own prose
-walked into: `pair-halves.sh` reads the FIRST line beginning `HALVES:`,
-so a sentence that wrapped those words onto a line start aborted preflight
-at exit 2.
-
-**AND THE WRITE-UP SESSION'S HALF, whose first item is the harness and
-not the machine.** **THE HARNESS KILLED THE RUN MID-SEQUENCE, AND THE TRIGGER
-WAS A STALL ON PAGES EVICTED EARLIER, NOT THE MACHINE'S FREE MEMORY.** Two
-and a half hours in, with the gate and both main sets landed, the harness
-stopped the driver "because the system is running low on memory"; `free` read 43
-GB free of 64 and `dmesg` showed no kernel OOM. Read out of the harness binary
-on 2026-09-18: its reaper listens for the runtime's memory-pressure event, whose
-Linux backend is the kernel's stall counter `/proc/pressure/memory` and whose
-one trigger the binary spells out reads 150 ms of stall inside a 2 s window;
-it kills a tracked task only once the session has been idle for thirty minutes,
-and the code that decides the kill reads no free-memory figure. What stalls
-a task on memory with 43 GB free is a page evicted under some earlier pressure
-and touched again, and this box has both kinds in quantity since boot, `pswpin`
-and `workingset_refault_file` each in the hundreds of thousands of pages,
-against `compact_stall` 0 and three direct-reclaim stalls; the `hugebin/`
-mount's files read wholly resident with no pressure to have moved them.
-So the kill was a burst of such faults by some other process meeting an idle
-session, and neither the tmpfs nor the benchmark; disabling swap would remove
-the swapped half of it and not the page-cache half.
-`CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1` in the user settings should
-disable the reaper from the next session on, which that session's own `env`
-confirms or refutes, and `run-evening.sh` refuses to start under the harness
-without it. That night the class loop was re-launched under `setsid` and ran six
-hours untouched, which is the workaround the switch retires: a detached launch
-loses the harness's wake-up at exit and leaves nothing to wake the session,
-where a tracked launch keeps it. **A CHECK THAT WOULD HAVE CAUGHT AN ERROR,
-AND DID, SIX TIMES:** `--check-doc` caught every stale `runs/run34.md` link,
-the `___` the registration move leaves, a head grown to six paragraphs, two
-headings separated by one blank line, and the floor pair and carry-back figure
-quoted at two figures each across their sites --- none of which any reading
-of the prose had raised. **A COMPUTATION IMPROVISED: one.** Item (3)'s real
-claim, this run's instruction counts against Run 34's, had to be computed
-by hand over the two sweep files, because `--compare --counts` restricts
-its table to the sixteen arms carrying a corrected time and `liblist-stage4-sum`
-is a reducing consumer outside them. **A STEP SKIPPED: none of the twelve**,
-and post-run step 3's rerun was taken without the ask that step prescribes,
-on the owner's standing instruction for the session. **A CAPABILITY FOUND:**
-`--wild` over a GATE log attributes a session's own reading to the benches
-it landed on, which is what turned run list step 13's placement
-of `run-status.sh` from a suspicion into a measurement --- see the open list.
-
-**What Run 34 made cheaper for the next run, which is not a figure and no other
-step gathers --- and it is TWO sessions' worth, the preparation's reaching
-this one only through the pair note.** **THE PREPARATION'S HALF, taken
-2026-09-16 and 17 and recorded in the note.** A CHECK THAT WOULD HAVE CAUGHT
-AN ERROR, AND DID: preflight's 10c failed on a gate JSON the note named before
-the gate had written it. One that would have and does not exist: `--draft`
-substituted `run33` to `run34` inside a HISTORICAL sentence of the note's
-`NAMING THE HALVES` block, turning Run 33's true `run33-ghead-exit` rename
-into a false `run34-ghead-exit` one, which only the reading caught.
-A COMPUTATION IMPROVISED: every re-pointed prior in the registration, Run 32
-having timed no stage eleven or twelve, so each was built from Run 32's cells
-with the stage whose route stage eleven or twelve takes standing in, per shape,
-by a hand-written script over `--cells`; no mode builds a span from a stand-in
-arm. A STEP SKIPPED: `--carry-over`, the registration not being a carried one.
-A CAPABILITY FOUND: `--machine --run-doc runs/runNN.md` reads a run's absolutes
-against ANY run's fingerprint, which run-gate.sh does not expose and which
-the owner's ruling needed at the gate.
-
-**THE WRITE-UP SESSION'S HALF.** **THE READINGS AT STEP 13a KEPT THE EVENING
-CLEAN**, the first evening since the step moved: `--wild` finds no bench at 0.25
-of a core in any sequence, gate or rider log, where Runs 32 and 33 each intruded
-on their own. A COMPUTATION IMPROVISED, FOUR TIMES, all of them registration
-clauses naming a SHAPE or a COUNT rather than a population: (1)'s moved views
-within a point of stage six, (4)'s per-element ratios over three `runs` lengths,
-(5)'s last clause against a prior built from Run 32's cells with each view
-classed by this run's own basis cell, and (2)'s count clause, which no mode
-read, `--counts --pair` correcting a reducing consumer's count away on most
-shapes, seventeen of nineteen on the main set --- every one a script
-over `--cells` or over the counts files directly; BUILT 2026-09-17 for (1)
-and (2), as the `cell` and `countdiff` spans at 881c250. **A CHECK THAT DID
-NOT EXIST**: `--predictions` read every span of the registration on every
-population it was handed, so an item naming `window` alone came back
-with a verdict on all ten populations it did not name --- KILLED on most,
-and HELD on `small` for one of (1)'s spans by coincidence --- and a session
-filtered by hand; and it read a `pair` span on the half handed first, so an item
-naming no half was read on the basis by that default alone --- (1) held there
-and would have missed within the control, and only the write-up's own statement
-of the convention said which the item meant. BUILT 2026-09-17, at 881c250,
-as each span's population and half. **A RESOLUTION NOBODY HAD PRICED**:
-the counted work's identical-code pair, `sum-only-early` against
-`sum-only-late`, differs by up to 14 instructions a call over `window`
-on the basis and by up to 2925 over `runs`, so a registration clause resting
-on the sign of a difference under a hundred instructions sits inside
-the instrument's resolution on some populations and outside it on others,
-and wants that pair's figure beside it, which `--counts --pair --per-shape`
-prints since 60803b9. **A STEP SKIPPED AT THE RUN AND TAKEN AFTER IT**: post-run
-4a's copy test on the four half-local movers against Run 32, which wanted
-the box quiet again and so wanted asking, the session having nobody to ask until
-the owner's go the same day; its readings are in the open list's entry
-on the four. And `--half-movers` was first run before the counts had landed,
-so its counts columns read `--`; post-run-readings.sh takes it only once
-the evening is complete, since f16d964. THE READINGS: no carrier ran,
-by the ruling of 2026-09-16, and the readings at run list step 13a were all
-taken before the launch.
-
-**What Run 33 made cheaper for the next run, which is not a figure and no other
-step gathers --- and it is TWO sessions' worth, the preparation's reaching
-this one only through the pair note.** **THE PREPARATION'S HALF, taken
-2026-09-15 and recorded in the note.** A CHECK THAT WOULD HAVE CAUGHT AN ERROR:
-none did --- the HEAD half was declared `run33-ghead-exit` and no check held
-that name to the tag grammar until `--draft` refused the hyphen at pre-run step
-2, after the recipes, the registration and their commit; `--lint` already reads
-the registration and is where that check belongs. AN INSTRUMENT THAT WOULD HAVE,
-WHICH IS NOT THE SAME THING: neither recipe sets `ALIGN_AS_VERBOSE`, so no build
-of the pair printed the shim's `verified:` line and registration (7)'s figures
-were read against it only at the close; the switch changes no byte of either
-binary, so what it would have moved is WHEN the item was caught and not what
-it says. A COMPUTATION IMPROVISED: a cross for a reducing consumer,
-for the second run running, which became a mode under `--compare` at 7249a35.
-A STEP SKIPPED: none. A CHECK THAT CAUGHT AN ERROR AFTER THE FACT:
-`properties.py` over the corpus, which failed three properties on the truncated
-JSON the stopped rerun left parked as `probe-*.json` --- the `probe-` prefix
-keeps a superseded artifact out of the readers' `$R-*` globs but not out
-of a sweep over every `*.json`, and a `.partial` suffix is what does.
-A CAPABILITY FOUND: `--note-check`, which preflight runs as 10e over the note
-and which catches a carried `[SAME]` block that is still the previous pair's.
-**AND THIS SESSION'S HALF.** A CHECK THAT WOULD HAVE CAUGHT AN ERROR,
-and this run has two. The first: `--move-registration` REFUSED at post-run step
-5 because the OPEN entry's bold lead carried a declaration clause ---
-*registered before it runs --- declared 2026-09-15 evening by request,
-the recipes in ...* --- where the mode matches the lead ending at *runs.*,
-and neither `--lint` nor `--check-doc` holds a registration's lead to the form
-the mover needs, so the defect sat from the declaration until the move.
-The second: THREE HEAD PARAGRAPHS STATED THE PAIR'S DIRECTION BACKWARDS, HEAD
-read as the slower half where a `cross` above 1 means the control is the faster;
-what caught it was reading `--cells` on one shape of one arm, and nothing
-in the gates holds prose to the direction of a ratio. The brief now carries
-the direction as a line of its own. A COMPUTATION IMPROVISED, and it is the one
-to build a mode for: item (5) is the standing floor-pair registration
-and carries no `predict:` span, so adjudicating its forty-four readings took
-a script over `--pair` per population per half against each population's own
-floor --- and the sensitivity reading the intrusion forced, `--exclude-shape`
-twice over both halves, was hand-assembled the same way. A STEP SKIPPED: none,
-but 6a's **THE HEAD IS WRITTEN LAST** was not observed --- the head was written
-after 5c's adjudication and before the class paragraphs and Provenance ---
-and the direction errors above were all three in it, which is the cost
-that instruction predicts. THE READINGS THE CARRIER TOOK AND WHAT THEY COST:
-items 2, 4, 5 and 6 came back as one readings file, deleted with the run's
-artifacts on 2026-09-23, four `--section` reads and about two minutes, launched
-during the sequence where the chapter puts them --- and the carrier's own reads
-are among what intruded on `run33-gheadexit-main`, which is the run's procedural
-finding and has an entry of its own in the open list above.
-
-**The blocks for Runs 32 down to 25 are in `MARGINALIA` as of 2026-09-18,
-and this is where they went.** They ran to some seven hundred lines
-under a heading every preparation pages through, and they are the same shape
-as the run registrations moved there on 2026-08-23: a record of what one run
-made cheaper, read by nobody once two further runs have reported. The rule
-is the registrations' --- a block leaves when the two runs after it have landed
---- so this heading carries the last three and no more. What did NOT go
-is anything that is a ruling rather than a record: the four paragraphs below
-this one, and Run 26's account of where its own spent items went, all stand
-here.
+**The blocks for Runs 36 down to 25 are in `MARGINALIA`, 32 to 25
+as of 2026-09-18 and 36 to 33 as of 2026-09-23, and this is where they went.**
+They ran to some seven hundred lines under a heading every preparation pages
+through, and they are the same shape as the run registrations moved there
+on 2026-08-23: a record of what one run made cheaper, read by nobody once two
+further runs have reported. The rule is the registrations' --- a block leaves
+when the two runs after it have landed --- so this heading carries the last
+three and no more. What did NOT go is anything that is a ruling rather
+than a record: the four paragraphs below this one, and Run 26's account of where
+its own spent items went, all stand here.
 
 **Run 26's six spent items are gone from this heading and here is where each
 went**, retired 2026-09-08 with Run 27's write-up, each one `ANSWERED`, and none
@@ -8906,7 +8656,7 @@ Unsandboxed throughout:
     #      ARM NOTHING BESIDE IT: its exit is the session's wake-up. ASKED
     #      MID-EVENING, answer with `./evening-status.sh $R`, one line off
     #      two tails, and nothing heavier.
-    #      why: --para 'whose first item is the harness'
+    #      why: --para 'The harness reaps a backgrounded job'
     #      and why: --para 'run-major.sh is that sequence'
     #      and why: --para 'Nothing is armed beside the evening'
     #      NO REDIRECT: the harness keeps the output, and a file named for
@@ -9679,6 +9429,19 @@ to several times that read. For a probe of an hour or two the arithmetic turns,
 and `HEARTBEAT_ONCE=1 ./run-heartbeat.sh` is the line a timed waiter prints
 at its wake-up.
 
+**The harness reaps a backgrounded job on memory STALL and not on free memory,
+which is why the evening launches
+with `CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1`.** Read out of the harness
+binary on 2026-09-18: its reaper listens for the kernel's stall counter
+`/proc/pressure/memory`, fires at 150 ms of stall inside a 2 s window, and kills
+a tracked task once the session has been idle for thirty minutes, reading
+no free-memory figure. A stall here comes from pages evicted under earlier
+pressure and touched again, so it can fire with most of the memory free,
+as it did mid-sequence on Run 35 with 43 GB of 64 free. `run-evening.sh` refuses
+to start under the harness without the switch. A launch detached under `setsid`
+survives the reaper and loses the harness's wake-up at exit, so it is
+not the workaround.
+
 Everything else is already a default. The allocation fit
 `--regress allocated:iters` is on (it is well-conditioned at 5s), so `alloc`
 comes out of the same process as the times rather than a side run; passing
@@ -10095,7 +9858,10 @@ not otherwise.
     #      one sentence on what this run's own head has to answer).
     #      Every install below writes that file and no other document.
     #      TWO headings take the number: the file's title, renamed by the
-    #      copy, and `Recommended tasks after Run N` in the open list.
+    #      copy, and `Recommended tasks after Run N` in the open list;
+    #      append the oldest `What Run N made cheaper` block under that
+    #      heading, with its write-up half, to MARGINALIA and delete it,
+    #      leaving two for this run's to join.
     #      Then repoint README's links from the run before to this file
     #      with `./read-run.py --repoint $PREV`, which moves every link
     #      into that file but the older run's OWN -- a link whose text
