@@ -11133,6 +11133,24 @@ RECORDS = [
                    'no COMPARE line'],
               hasnt=['not before EVENING COMPLETE'])),
 
+    case('readings-take-the-counts-after-a-complained-evening',
+         'post-run-readings.sh', 'f241d66',
+         'an evening that ended EVENING COMPLETE WITH N COMPLAINT(S) never'
+         ' got its count readings, the script matching the clean form alone',
+         # Run 39, 2026-09-23: its first sequence attempt refused and was
+         # relaunched, so the counts driver closed on the complained form,
+         # and the count-dependent readings said `not before EVENING
+         # COMPLETE` over a file whose last line read EVENING COMPLETE.
+         shadow=dict(extra=lambda: [
+             (n, '=== 2026-01-01T00:00:00+00:00 EVENING COMPLETE WITH 1'
+                 ' COMPLAINT(S) OVER BOTH CALLS -- read each\n')
+             if n.endswith('-evening.txt') else (n, t)
+             for n, t in readings_run('zzpr8', complete=True)()]),
+         argv=['zzpr8'],
+         ok=V(has=['rc=0 main-counts-cmp.txt'],
+              hasnt=['not before EVENING COMPLETE']),
+         bug=V(has=['not before EVENING COMPLETE'])),
+
     case('readings-read-the-compare-run-and-every-log', 'post-run-readings.sh',
          None,
          'CONTROL: the note\'s COMPARE run is read on the main set, each half'
@@ -13383,6 +13401,19 @@ RECORDS = [
          ok=V(has=['run97-wallclock.log says complete, no complaint'],
               hasnt=["'!!' line(s)"]),
          bug=V(has=["with 1 '!!' line(s)"], hasnt=['no complaint'])),
+
+    case('status-reads-a-complained-evening-as-complete', 'run-status.sh',
+         'f241d66',
+         'an evening file ending EVENING COMPLETE WITH N COMPLAINT(S) read'
+         ' as NOT DONE, the check matching the clean form alone',
+         # Run 39, 2026-09-23, the same line post-run-readings.sh missed.
+         shadow=dict(extra=[('run96-evening.txt',
+                             '=== 2026-09-04T00:00:00+02:00 EVENING COMPLETE'
+                             ' WITH 1 COMPLAINT(S) OVER BOTH CALLS -- read'
+                             ' each\n')]),
+         argv=['run96'],
+         ok=V(has=['run96-evening.txt ends COMPLETE']),
+         bug=V(has=["run96-evening.txt's last line"])),
 
     case('smoke-exercises-the-arm-filter', 'smoke-sweep.sh', '5ef414d',
          '--exclude was exercised on an Only arm, so it removed nothing',
