@@ -121,6 +121,12 @@
 # --library 4.3%, both surveys, both baked RTS lines and both instrument
 # counts -- and every row now starts its value at column 20.
 #
+# RE-TAKEN 2026-09-23 on the run39 pair for the rows added that day, `plan`,
+# `prev counts` and `prev machine`: each reproduced what that preparation had
+# taken by hand -- the six package versions with vector's two flags, run38's
+# 2535s at 1386s and 1149s by half, and its gate's +0.01% geomean with
+# `stretch-primes` worst at -1.28%.
+#
 # It has no case in defects.py, deliberately: this script's own steps are
 # that corpus and the reader's gates, so a case would run them twice to
 # assert what they already assert. What is unique to it -- the three
@@ -259,7 +265,7 @@ for half in (basis, other):
     want.append(('.text', sh("size -A %s | grep '^\\.text'" % b).split()[1:2],
                  True))
     want.append(('compilers', [sh("strings %s | grep -oE"
-                                  " 'ghc-internal-[0-9.]+' | sort -u"
+                                  " 'ghc-[0-9]+\\.[0-9]+\\.[0-9]+' | sort -u"
                                   % b).strip()], True))
     # THE INSTRUMENTS ROW IS A VERDICT AND NOT A FIGURE -- the note writes
     # `one @@wild and one @@saturate`, which no digit matches, and there is
@@ -915,7 +921,10 @@ fill_in () {
     return 0
   fi
   txt () { size -A "$1" | awk '$1 == ".text" { print $2 }'; }   # FIRST field
-  ver () { strings "$1" | grep -oE 'ghc-internal-[0-9.]+' | sort -u \
+  # THE COMPILER'S OWN VERSION, `ghc-10.1.20260918`, and not the
+  # ghc-internal-10.100.0 string, which both HEADs here carry alike and which
+  # every note from Run 36 to Run 39 overrode by hand (2026-09-23).
+  ver () { strings "$1" | grep -oE 'ghc-[0-9]+\.[0-9]+\.[0-9]+' | sort -u \
              | tr '\n' ' ' | sed 's/ *$//'; }
   ins () { printf '%s @@wild, %s @@saturate' \
              "$(strings "$1" | grep -c '@@wild')" \
@@ -966,6 +975,45 @@ fill_in () {
   printf '  %-16s  %s\n' 'compilers' \
     "on PATH $(ghc --numeric-version 2>/dev/null); in the binaries, \
 $BASIS $(ver "./$R-$BASIS") and $OTHER $(ver "./$R-$OTHER")"
+  # WHAT THE PLAN RESOLVES, which a note's project-file block quotes and
+  # every preparation from Run 37 took by hand: a --dry-run into a
+  # throwaway builddir under $TMP, through the project file the note's
+  # recipe names, and the packages whose versions a figure here can turn
+  # on -- vector's two check flags because gen-quotrem against gen-unsafe
+  # prices a bounds check (2026-09-23).
+  plan () {
+    local pf
+    pf=$(sed -n 's/.*--project-file=\([^ \\]*\).*/\1/p' "$R-pair.txt" \
+           2>/dev/null | head -1)
+    cabal build micro ${pf:+--project-file="$pf"} --builddir="$TMP/plan-bd" \
+      --dry-run > "$TMP/plan.log" 2>&1 \
+      || { echo "<yours> -- the dry-run through ${pf:-cabal.project} failed,\
+ $TMP/plan.log says why"; return; }
+    python3 - "$TMP/plan-bd/cache/plan.json" "${pf:-cabal.project}" <<'PY'
+import json, sys
+units = json.load(open(sys.argv[1]))['install-plan']
+got = {}
+for u in units:
+    if u.get('pkg-name') in ('criterion', 'vector', 'base', 'ghc-prim',
+                             'hashable', 'aeson'):
+        got[u['pkg-name']] = u
+out = []
+for n in ('criterion', 'vector', 'base', 'ghc-prim', 'hashable', 'aeson'):
+    u = got.get(n)
+    if u is None:
+        out.append('%s NOT IN THE PLAN' % n)
+        continue
+    s = '%s %s' % (n, u['pkg-version'])
+    if n == 'vector':
+        f = u.get('flags', {})
+        s += ' (boundschecks %s, unsafechecks %s)' % (
+            f.get('boundschecks'), f.get('unsafechecks'))
+    out.append(s)
+print('through %s: %s' % (sys.argv[2], ', '.join(out)))
+PY
+    rm -rf "$TMP/plan-bd"
+  }
+  printf '  %-16s  %s\n' 'plan' "$(plan)"
   printf '  %-16s  %s\n' 'baked RTS' \
     "$("./$R-$BASIS" +RTS --info 2>/dev/null | sed -n 's/.*"Flag -with-rtsopts", "\(.*\)").*/\1/p'), \
 and $OTHER $("./$R-$OTHER" +RTS --info 2>/dev/null \
@@ -993,8 +1041,12 @@ hugebin/ $(mountpoint -q hugebin && echo mounted || echo NOT MOUNTED)"
   printf '  %-16s  %s\n' 'fills' "$(vd 10)"
   if [ -n "$PB" ]; then
     printf '  %-16s  %s\n' '' "against $PB, the previous build of this recipe:"
+    # `offsets MOVED` TOO, which is the line 2d is read for: the filter
+    # kept the preserved case's line and dropped the moved one's, so Run
+    # 39's block printed displacements under no statement of what moved
+    # (2026-09-23).
     ./loop-offsets.py --delta "$PB" "./$R-$BASIS" 2>/dev/null \
-      | grep -E '^ +(every mod-64|NO address|[0-9]+ displacement|of the)' \
+      | grep -E '^ +(offsets MOVED|every mod-64|NO address|[0-9]+ displacement|of the)' \
       | sed 's/^ */                   /'
   elif [ -n "$PN" ]; then
     printf '  %-16s  %s\n' '' "no basis half of run$PN is here -- neither \
@@ -1026,6 +1078,25 @@ previous build of this recipe to read --delta against"
     # owed a delta for, on the one run where the delta was the point.
     printf '  %-16s  %s\n' '' "no previous basis half here, so the membership \
 delta is step 6c's to take by hand"
+  fi
+  # THE PREVIOUS RUN'S TWO FIGURES THE CARRIED BLOCKS QUOTE, derived here
+  # so that THE COUNTS and THE MACHINE carry rules and point at these rows:
+  # a draft carried both blocks' figures one run stale, and rewriting them
+  # by hand was most of Run 39's editing of carried text (2026-09-23).
+  if [ -n "$PN" ]; then
+    printf '  %-16s  %s\n' 'prev counts' \
+      "$(./read-run.py --counts-totals "run$PN" 2>/dev/null \
+         | awk -v p="run$PN" '$1 == p ":" { sub(/^[^:]*: /, ""); t = $0 }
+             $1 == "population" { a = $2; b = $3 }
+             $1 == "half" && $2 == "total" { h = $3 " on " a ", " $4 " on " b }
+             END { if (t == "") print "<yours> -- --counts-totals " p \
+                     " read no counts files";
+                   else print p ": " t "; half totals " h }')"
+    printf '  %-16s  %s\n' 'prev machine' \
+      "$(awk '/^ *machine: `list` net against/ { m = 1; next }
+             m && NF { sub(/^ */, ""); print; exit }' "run$PN-pair.txt" \
+           2>/dev/null | grep . \
+         || echo "<yours> -- run$PN-pair.txt carries no gate machine line")"
   fi
   printf '  %-16s  %s\n' 'smoke sweep' '<yours> -- step 11, and it is the pair'\''s'
   printf '  %-16s  %s\n' 'L1 ROSTER PASS:' '<yours> -- step 12: taken or not owed,'
