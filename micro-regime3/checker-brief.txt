@@ -81,60 +81,6 @@ SIX THINGS YOU CANNOT DERIVE, so they are given -- and items 5 and 6 are THIS RU
       scaled       1.3254 PAST the bar -- an ordering, not a subtraction
       small        1.2765 PAST the bar -- an ordering, not a subtraction
       window       1.2913 PAST the bar -- an ordering, not a subtraction
-    read +0.01%, worst `stretch-primes` -1.28%, 0 shape(s) past 5% -- did not fire. Against PREVBASIS, run37-gheadnospec-main.json, the 16 shared timed arms span 0.9873 on `lib-stage2-lean` to 1.0209 on `lib-stage2-lean-u1`, `list` at 1.0036, this run over PREVBASIS so below 1 means this run is faster; --bridge reads a geomean over the 15 arm(s) 0.9993; 0 outside the 3.3% drift band.
-    The binaries are
-    gheadnospec=030929d866585233fab7df151739975f gheadtwopass=52d5569e04609f540f7f6c071ec9522e with .text 20203327 bytes on gheadnospec, 20268863 on gheadtwopass -- the FIRST column of `size -A`, the second being the load address.
-    Repetition: NOT AVAILABLE, and the SOURCE is the whole of why: the compiler, the shim and the project file are Run 37's to the commit and Main.hs moved fourteen.
-    THE TWO HALVES DIFFER IN TWO GHC FLAGS ON THE CONTROL HALF'S COMMAND LINE, `-fspec-constr -fliberate-case`, TWO OF -O2'S PASSES ON TOP OF PLAIN -O1, AND IN
-    NOTHING ELSE. THE PUBLISHED BASIS IS run38-gheadnospec. The two columns
-    may be differenced where `list` sits inside the 0.7% bar:
-      bcast        1.3532 PAST the bar -- an ordering, not a subtraction
-      bcastmid     1.2454 PAST the bar -- an ordering, not a subtraction
-      block        1.3281 PAST the bar -- an ordering, not a subtraction
-      compose      1.2955 PAST the bar -- an ordering, not a subtraction
-      flip         1.2977 PAST the bar -- an ordering, not a subtraction
-      main         1.2889 PAST the bar -- an ordering, not a subtraction
-      rev          1.2779 PAST the bar -- an ordering, not a subtraction
-      runs         1.2819 PAST the bar -- an ordering, not a subtraction
-      scaled       1.2911 PAST the bar -- an ordering, not a subtraction
-      small        1.2744 PAST the bar -- an ordering, not a subtraction
-      window       1.2876 PAST the bar -- an ordering, not a subtraction
-    read -2.24%, worst `stretch-coprime-r7` -28.15%, 1 shape(s) past 5% -- did not fire. Against PREVBASIS, run36-gheadnospec-main.json, the 16 shared timed arms span 0.9810 on `list` to 1.0165 on `lib-stage2-lean`, `list` at 0.9810, this run over PREVBASIS so below 1 means this run is faster; --bridge reads a geomean over the 15 arm(s) 1.0221; 1 outside the 3.3% drift band.
-    The binaries are
-    gheadnospec=715598f39aeeebbc2b2efcab71fd0241 gheadtwopass=dd6d792006a019e55abb7f76a807063d with .text 20207423 bytes on gheadnospec, 20215615 on gheadtwopass -- the FIRST column of `size -A`, the second being the load address, 4214784 on both.
-    Repetition: NOT AVAILABLE, and not for the compiler's sake this time: the compiler and the shim are Run 36's to the commit, and Main.hs moved three commits with `cabal.project.ghead` rewritten under it, either of which is enough.
-    THE TWO HALVES DIFFER IN `-fspec-constr -fliberate-case` ON THE CONTROL HALF'S COMMAND LINE, two of `-O2`'s passes on top of plain -O1, which is Run 36's variable repeated on a moved source, a rewritten project file and a twice-rebooted box AND IN
-    NOTHING ELSE. THE PUBLISHED BASIS IS run37-gheadnospec. The two columns
-    may be differenced where `list` sits inside the 0.7% bar:
-      bcast        1.3602 PAST the bar -- an ordering, not a subtraction
-      bcastmid     1.2595 PAST the bar -- an ordering, not a subtraction
-      block        1.3103 PAST the bar -- an ordering, not a subtraction
-      compose      1.3464 PAST the bar -- an ordering, not a subtraction
-      flip         1.3055 PAST the bar -- an ordering, not a subtraction
-      main         1.2960 PAST the bar -- an ordering, not a subtraction
-      rev          1.2724 PAST the bar -- an ordering, not a subtraction
-      runs         1.3283 PAST the bar -- an ordering, not a subtraction
-      scaled       1.3298 PAST the bar -- an ordering, not a subtraction
-      small        1.2663 PAST the bar -- an ordering, not a subtraction
-      window       1.2738 PAST the bar -- an ordering, not a subtraction
-    read -0.23%, worst `stretch-square-1341` +1.63%, 0 shape(s) past 5% -- did not fire. Against PREVBASIS, run35-exit-main.json, the 16 shared timed arms span 0.9700 on `lib-stage1` to 1.0178 on `list`, `list` at 1.0178, this run over PREVBASIS so below 1 means this run is faster; --bridge reads a geomean over the 15 arm(s) 0.9763; 4 outside the 3.3% drift band.
-    The binaries are
-    gheadnospec=b85f2f04ac065eb78e499fd4fc0a164c gheadtwopass=40ad21b4e1de28c617c91d1a3d35b1ee with .text 20379455 bytes on gheadnospec, 20383551 on gheadtwopass -- the FIRST column of `size -A`, the second being the load address, 4214784 on both and run35-gheadexit's unchanged.
-    Repetition: was there to be read and the compiler moved instead -- 10.1.20260918 against 10.1.20260803.
-    THE TWO HALVES DIFFER IN TWO GHC FLAGS ON THE CONTROL HALF'S COMMAND LINE, `-fspec-constr -fliberate-case`, both halves being one GHC HEAD stage1 at plain -O1 AND IN
-    NOTHING ELSE. THE PUBLISHED BASIS IS run36-gheadnospec. The two columns
-    may be differenced where `list` sits inside the 0.7% bar:
-      bcast        1.3798 PAST the bar -- an ordering, not a subtraction
-      bcastmid     1.2497 PAST the bar -- an ordering, not a subtraction
-      block        1.3050 PAST the bar -- an ordering, not a subtraction
-      compose      1.3410 PAST the bar -- an ordering, not a subtraction
-      flip         1.3098 PAST the bar -- an ordering, not a subtraction
-      main         1.3360 PAST the bar -- an ordering, not a subtraction
-      rev          1.2983 PAST the bar -- an ordering, not a subtraction
-      runs         1.3079 PAST the bar -- an ordering, not a subtraction
-      scaled       1.3051 PAST the bar -- an ordering, not a subtraction
-      small        1.2916 PAST the bar -- an ordering, not a subtraction
-      window       1.2938 PAST the bar -- an ordering, not a subtraction
 
  6. THIS RUN ONLY -- THE WINDOW AND THE INSTRUMENTS. Window
     2026-09-23T03:10:30+02:00 to 2026-09-23T10:21:18+02:00, largest hole between one process finishing and the next starting 0m -- hours mean a second window
@@ -146,55 +92,7 @@ SIX THINGS YOU CANNOT DERIVE, so they are given -- and items 5 and 6 are THIS RU
     Class shape counts: runs 17, window 8, bcast and flip 6, block and small 5, bcastmid and compose 4, rev and scaled 3.
     The counted work: counts geomean over the timed arms 1.1607 on main, 1.1438 on block to 1.1691 on window over 10 class(es); 0 cell(s) refused over 22 sweep file(s).
     Registrations, span by span over 22 predictions file(s): 66 reading(s), 4 HELD, 1 KILLED, 0 not read, 61 out of scope; every item carries a span or a script.
-    The largest finding: the settled cost brings back the fill cell Run 38 read slow on `stretch-wide-2xM` on both halves (lib-stage2-lean and lib-stage3-lean at 1.026 and 1.031 of the -u1 loop on the basis, 1.54 and 1.81 on Run 38), the four fills 3.4 to 7.5 points faster against Run 38's basis and the other twelve timed arms within 0.8 of a point; and the one killed span, lib-stage3-lean against lib-stage2-lean at 0.9790, is c0a8aaa's rewrite of the inward fill after the registration, not the switch.
-    2026-09-22T02:14:55+02:00 to 2026-09-22T10:07:04+02:00, largest hole between one process finishing and the next starting 0m -- hours mean a second window
-    Processes: 22 gated above, from run38-wallclock.log. Plateau: 22 process(es), victim 16.7632-21.4637 ms/iter, spread 28.04%.
-    Floors over eight A/A pairs: bcast basis 0.75%; bcast other 0.69%; bcastmid basis 0.79%; bcastmid other 0.63%; block basis 0.53%; block other 2.74%; compose basis 0.54%; compose other 1.14%; flip basis 0.82%; flip other 0.97%; main basis 0.57%; main other 0.28%; rev basis 0.27%; rev other 0.38%; runs basis 3.40%; runs other 3.78%; scaled basis 0.35%; scaled other 0.83%; small basis 0.66%; small other 0.92%; window basis 0.53%; window other 0.30%; 
-    A/A worst cells past 5%: gheadtwopass-runs 6.88%; 
-    Sunk cells: sunk gheadnospec none;sunk gheadtwopass none
-    AN INTRUSION: --wild over the 119 log(s) this run wrote finds a bench at or above 0.25 foreign in 2: run38-gate-gheadtwopass-b: 1 of 95 bench(es) at or above 0.25 foreign, peak 0.28.; run38-gheadtwopass-main: 1 of 646 bench(es) at or above 0.25 foreign, peak 0.25..
-    Class shape counts: runs 17, window 8, bcast and flip 6, block and small 5, bcastmid and compose 4, rev and scaled 3.
-    The counted work: counts geomean over the timed arms 1.1596 on main, 1.1355 on small to 1.1686 on window over 10 class(es); 0 cell(s) refused over 22 sweep file(s).
-    Registrations, span by span over 22 predictions file(s): 440 reading(s), 20 HELD, 0 KILLED, 0 not read, 420 out of scope; every item carries a span or a script.
-    The largest finding is that the THIRD reading of this pair names Run 36's
-    the outlier: over the eighteen shapes without Run 36's wild cell the three
-    draws read 1.3129, 1.2950 and 1.2907 on `list`, so Runs 37 and 38 agree to
-    0.43 of a point and Run 36 sits 2.22 above both -- and the two passes read
-    UNDER Run 31's whole -O2 level of 1.2974 on the two later draws, which
-    refutes Run 36's conclusion that the level's other passes hand `list` back.
-    Beside it: all 20 registered spans held, `mut-odo-vecdims-add-in-leaf-u1`
-    came back to 1.0205 from Run 37's 0.9630, and seven unordered consumers
-    newly move in allocation where Run 37 read them at 1.0000.
-    2026-09-20T02:44:57+02:00 to 2026-09-20T10:09:25+02:00, largest hole between one process finishing and the next starting 0m -- hours mean a second window
-    Processes: 22 gated above, from run37-wallclock.log. Plateau: 22 process(es), victim 16.7931-21.3589 ms/iter, spread 27.19%.
-    Floors over eight A/A pairs: bcast basis 0.80%; bcast other 0.86%; bcastmid basis 1.21%; bcastmid other 0.22%; block basis 0.61%; block other 0.63%; compose basis 0.83%; compose other 0.42%; flip basis 0.96%; flip other 1.39%; main basis 0.59%; main other 0.48%; rev basis 0.19%; rev other 0.82%; runs basis 3.18%; runs other 3.74%; scaled basis 0.34%; scaled other 0.92%; small basis 1.64%; small other 1.52%; window basis 0.75%; window other 0.37%; 
-    A/A worst cells past 5%: gheadnospec-small 6.58%; gheadnospec-window 6.07%; gheadtwopass-flip 6.19%; gheadtwopass-main 5.79%; gheadtwopass-runs 6.62%; gheadtwopass-window 6.09%; 
-    Sunk cells: sunk gheadnospec none;sunk gheadtwopass none
-    THE INTRUSION VERDICT IS CLEAN: --wild over the 119 log(s) this run wrote finds no bench at 0.25 foreign in the 114 that carry samples; the other 5 carry none: run37-al-gheadnospec-driver, run37-al-gheadnospec-sat-driver, run37-al-gheadtwopass-driver, run37-al-gheadtwopass-sat-driver, run37-wallclock.
-    Class shape counts: runs 17, window 8, bcast and flip 6, block and small 5, bcastmid and compose 4, rev and scaled 3.
-    The counted work: counts geomean over the timed arms 1.1664 on main, 1.1435 on small to 1.1765 on window over 10 class(es); 0 cell(s) refused over 22 sweep file(s).
-    Registrations, span by span over 22 predictions file(s): 374 reading(s), 15 HELD, 2 KILLED, 0 not read, 357 out of scope; every item carries a span or a script.
-    THE PAIR REPEATS RUN 36 AND THE COUNTED WORK REPEATS IT EXACTLY: `bq-expand` 1.3101 against 1.2980 and `list` 1.2950 against 1.3129 over the eighteen shapes without Run 36's wild cell, while all four counts spans hold and three read 0.00 points off. Run 36's wild cell did not recur. The one arm outside the two families to break its 3% band, `mut-odo-vecdims-add-in-leaf-u1` at 0.9630, is NOT the passes: step 4a puts the whole move on this run's CONTROL binary against Run 36's, with counted work at 1.0000 on both halves.
-    2026-09-19T02:06:14+02:00 to 2026-09-19T10:11:57+02:00, largest hole between one process finishing and the next starting 0m -- hours mean a second window
-    Processes: 22 gated above, from run36-wallclock.log. Plateau: 22 process(es), victim 16.6997-21.5794 ms/iter, spread 29.22%.
-    Floors over eight A/A pairs: bcast basis 1.06%; bcast other 1.93%; bcastmid basis 1.36%; bcastmid other 1.21%; block basis 0.13%; block other 2.15%; compose basis 1.11%; compose other 0.96%; flip basis 1.21%; flip other 1.07%; main basis 1.63%; main other 0.53%; rev basis 0.51%; rev other 0.93%; runs basis 3.57%; runs other 3.33%; scaled basis 0.64%; scaled other 2.09%; small basis 0.63%; small other 0.80%; window basis 0.43%; window other 0.91%; 
-    A/A worst cells past 5%: gheadnospec-flip 6.49%; gheadnospec-main 28.36%; gheadnospec-runs 6.07%; gheadtwopass-block 7.29%; gheadtwopass-flip 5.40%; gheadtwopass-runs 9.21%; gheadtwopass-window 5.50%; 
-    Sunk cells: sunk gheadnospec none;sunk gheadtwopass none
-    THE INTRUSION VERDICT IS CLEAN: --wild over the 119 log(s) this run wrote finds no bench at 0.25 foreign in the 114 that carry samples; the other 5 carry none: run36-al-gheadnospec-driver, run36-al-gheadnospec-sat-driver, run36-al-gheadtwopass-driver, run36-al-gheadtwopass-sat-driver, run36-wallclock.
-    Class shape counts: runs 17, window 8, bcast and flip 6, block and small 5, bcastmid and compose 4, rev and scaled 3.
-    The counted work: counts geomean over the timed arms 1.1663 on main, 1.1424 on small to 1.1765 on window over 10 class(es); 0 cell(s) refused over 22 sweep file(s).
-    Registrations, span by span over 22 predictions file(s): 440 reading(s), 15 HELD, 5 KILLED, 0 not read, 420 out of scope; every item carries a span or a script.
-    THE LARGEST FINDING: the two passes are worth 33.60 points on `list`
-    and 29.80 on `bq-expand` and NOTHING else the roster times moves past
-    1.2%, which kills registration item (1) on the composition's side ---
-    Run 31's whole -O2 level read 1.2974 on `list` and the two single-pass
-    runs compose to 1.3325, and this pair reads 1.3360. The run's ONE
-    anomaly is a single wild cell, `stretch-coprime-r7/list` on the basis,
-    worth 2.31 of those points; excluding that shape reads 1.3129, which is
-    still outside the band but between the two accounts. Second finding: the
-    passes change what `list` and `bq-expand` ALLOCATE, 0.9342 and 0.8119 of
-    the basis, which breaks property 3's LEVEL clause in all eleven
-    populations for the first time.
+    The largest finding: the settled cost brings back the fill cell Run 38 read slow on `stretch-wide-2xM` on both halves (lib-stage2-lean and lib-stage3-lean at 1.026 and 1.031 of the -u1 loop on the basis, 1.54 and 1.81 on Run 38), three of the four fills gaining there and on the two smallest shapes and all four 3.4 to 7.5 points faster against Run 38's basis, the other twelve timed arms within 0.8 of a point; and the one killed span, lib-stage3-lean against lib-stage2-lean at 0.9790, is c0a8aaa's rewrite of the inward fill after the registration, not the switch.
 
 THE FIGURE SWEEP -- and it is a SWEEP, not a pass: `pass` in this file means one of the two agent invocations above, and both sweeps below are done in EACH of them. Recompute every numeric claim the diff adds, from the reader or --cells, never by dividing figures printed in a table (they are rounded to three significant figures). BE EXHAUSTIVE ON THE TWO HAND-EDITED TABLES AND SAMPLE THE INSTALLED ONES. A FIGURE'S POPULATION IS PART OF THE FIGURE: recompute it on the file it came from, the main set's on the main JSON and a class's on that class's, since every mode reads the file it is handed against that file's own floor -- README's `Which population answers a question, and how to ask all of them` is the rule and the loop. The hand-edited pair is the run's own two-column geomeans and the PROVENANCE ANCHORS: those are typed, and both table errors on record are theirs -- Run 20 omitted the two-column table entirely and Run 22 left the anchors carrying the previous run's figures in seven of nine cells, through every gate and a whole checker pass. The installed tables -- Results, the fingerprint, the class tables, the cross-class summary -- are matched by whole line with the count asserted. **AND THE REASON THE SAMPLE IS NOT A THINNER CHECK IS THAT A GATE ALREADY DOES IT WHOLE**: `--check-doc` RECOMPUTES every installed table from the JSONs, every run, and the session runs it before either pass is launched --- so recomputing those rows is not weaker coverage taken for speed, it is a second copy of a gate's work, and the twenty exist only to catch an install that never ran. So take a sample of the installed rows -- TWENTY, spread across the main table, two class tables and one fingerprint, which is the number and not an encouragement: SIX passes have now recomputed 487, 491, 352, 401, 418 and 454 rows and found ZERO wrong between them, the last of them reporting the overrun as this line asks and spending a third of its budget to do it, and Run 26's pass spent 401 of them to find none while nine stale PROSE paragraphs sat in the same diff. **RECOMPUTING MORE THAN TWENTY IS ITSELF A FINDING AND IS REPORTED AS ONE**, naming how many you took and why this line did not hold you: it has not held yet, Run 31's pass 1 recomputing 418 rows with this sentence in front of it, and a brief that is read and not obeyed is a defect of the brief. The pull is real and worth naming rather than resisting -- a table row is mechanical and certain and a paragraph is neither, so an agent measuring its own thoroughness counts rows. Count paragraphs instead. Spend what the sample saves on the prose, which is where every real finding of those five runs was. Say how many rows you verified, by which route, and how many disagreed. Pass 2's scope is narrower and is stated in its own block.
 

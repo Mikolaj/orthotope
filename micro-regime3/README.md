@@ -814,6 +814,23 @@ rather than a slot in the next run, observed again:
   on `c0a8aaa`'s rewrite of the inward fill, which the registration predates;
   and (2) `probe-r39-rules.py` names no arm slower past 3% on both halves in any
   population, so no back-edge rule is named for retirement.
+- `OPEN` **The inward fill's single table of pairs is worth about two points
+  to the fill and one to the list consumer, and no span has priced it alone.**
+  `c0a8aaa`, landing 2026-09-23 after Run 39's registration and before
+  its build, rebuilt `fillStage2` --- the inward fill behind `lib-stage3-lean`,
+  `liblist-stage5-sum` and `libunord-stage14-sum` --- to build one unboxed table
+  of (stride, extent) pairs in one pass, while `fillStage2Axes`, behind their
+  counterparts, keeps the library's two tables. Run 39 then reads
+  `lib-stage3-lean` over `lib-stage2-lean` at **0.9790** on the basis and 0.9783
+  on the control, where Run 38 read 1.0061 with only the numbering between them,
+  `liblist-stage5-sum` over `-stage4-sum` at **0.9889** where Run 38 read
+  1.0027, and the unordered pair at 0.9998 against 0.9996 --- the one route
+  that reads its tables off the hot path. So each pair now carries TWO
+  variables, the numbering and the table form, and the two points are read
+  as the table's only by elimination: the numbering alone was worth nothing
+  outside the floor on Run 38. **What settles it is one arm**: the table form
+  under the outermost-first numbering, beside `lib-stage2-lean`, so that each
+  variable has a pair of its own. Registered 2026-09-23.
 - `OPEN` **Seven reducing consumers newly change what they ALLOCATE
   under `-fspec-constr -fliberate-case`, where one run earlier the same pair
   changed none of them.** On Run 38 the unordered consumers
@@ -842,7 +859,12 @@ rather than a slot in the next run, observed again:
   of the main set's 608 cells above 100 bytes a call inside 1e-4 between
   the halves where Run 37 put 429 of 570, and the fall is these seven arms.
   Registered 2026-09-22. `libunord-stage12-sum` was parked `Only` on 2026-09-23,
-  so no later run reads it here.
+  so no later run reads it here. **Run 39 reads the other SIX moving again**,
+  per cell over the main set's nineteen shapes: the flagged half allocates
+  0.8037 to 0.8448 of the basis on `-stage6-sum`, `-stage6-loop-sum`,
+  `-stage7-sum`, `-stage9-sum`, `-stage13-sum` and `-stage14-sum`, where
+  `libunord-stage1-sum` reads 0.9987, and `--alloc` puts 275 of 551 cells inside
+  1e-4; the commit is still unnamed.
 - `ANSWERED` **What Run 38 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 38's own file](runs/run38.md), where a run's
@@ -1678,7 +1700,10 @@ rather than a slot in the next run, observed again:
   on the basis and 0.9756 on the control**, both ahead and the basis three
   ten-thousandths under the line against that half's 0.57% floor --- the closest
   of the three readings this pair has given the cell, and still a tie
-  by the entry's own test.
+  by the entry's own test. **Run 39 reads it at 1.0026 on the basis and 0.9835
+  on the control**, the basis BEHIND by 0.26 of a point for the first time since
+  Run 35 --- a break of the clause, and inside that half's 0.57% floor, so still
+  a tie by the entry's own test.
 - `OPEN` **Which of the two `-O2` passes carries the regime's points,
   on a compiler this series still builds with --- and, since Run 37, how many
   points there are.** Run 36 put `-fspec-constr` and `-fliberate-case` TOGETHER
@@ -1727,8 +1752,12 @@ rather than a slot in the next run, observed again:
   whole-level 1.2974 rather than above it, so Run 36's reading that the level's
   other passes hand `list` back is refuted rather than doubted, and
   it is refuted across a REBUILD and not only across a second draw of one build.
-  **The SPLIT is untouched and is still the pair to ask for**, now against
-  `run38-gheadnospec` --- `Main.hs` at `bb6f0fc` with the compiler, the shim,
+  **Run 39 is the fifth reading and the fourth build, 2026-09-23,
+  with the settled cost on both halves**: `list` at **1.2966** over the nineteen
+  shapes and **1.2959** over the eighteen, `bq-expand` at **1.2985**, inside
+  half a point of Run 38's. **The SPLIT is untouched and is still the pair
+  to ask for**, now against `run39-gheadnospec` --- `Main.hs` at `c870e1e`
+  and the shim at `fe6d133` under the settled cost, with the compiler,
   the project file and the launch unmoved --- which reads with the box
   as the only term.
 - `OPEN` **A single wild cell moved this run's headline by 2.31 points and every
@@ -2030,7 +2059,10 @@ rather than a slot in the next run, observed again:
   and the loop-count half does not, and the two facts no longer point opposite
   ways on this pair because only one of them points at all. Run 38's source
   moved fourteen commits under an unmoved compiler, shim and project file,
-  so what changed the sign is the code and not the generator.
+  so what changed the sign is the code and not the generator. **Run 39 repeats
+  that parting**: a `.text` gap of **77824 bytes**, nineteen pages, a SEVENTH
+  exact multiple, and the flagged half again carrying MORE self-loops, **344
+  against 338**.
 
 - `OPEN` **A saving in instructions reaches the clock at anything from NONE
   of it to ALL of it WITHIN ONE BINARY, where the rate on record is three
@@ -4168,8 +4200,9 @@ before anything runs, `a35f698`, with its case recorded in `1499af9`.
 The harness already keeps a backgrounded command's output, so the redirect
 bought nothing. **TWO INTRUSIONS WENT UN-RERUN BY THE OWNER'S WORD**,
 and the write-up reports their size in their place --- three control-half cells,
-3.0%, 5.8% and 1.3% against the same cells on the basis, none named by a span
---- which is the sensitivity reading Runs 33 and 38 took, made per cell rather
+3.0%, 5.8% and 1.3% on the mutator clock against the same cells on the basis,
+the first two 7.5% and 16.3% on the corrected net, none named by a span ---
+which is the sensitivity reading Runs 33 and 38 took, made per cell rather
 than per floor. **A COMMITTED REGISTRATION CAN BE OVERTAKEN BY A COMMIT BEFORE
 THE BUILD, AND NOTHING SAYS SO**: `c0a8aaa` moved one arm of a registered pair
 between the registration and the build, and the span died on it. A preparation
