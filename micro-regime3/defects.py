@@ -11167,6 +11167,21 @@ RECORDS = [
                    'no COMPARE line'],
               hasnt=['not before EVENING COMPLETE'])),
 
+    case('counts-cost-sums-the-stages-per-half', 'read-run.py', None,
+         'CONTROL: --counts-cost pairs each counts stage\'s start and done'
+         ' stamps and sums them per half, naming a stage still open',
+         shadow=dict(extra=[('zzcc-evening.txt',
+                             '=== 2026-01-01T10:00:00+00:00 counts a1g main:'
+                             ' start\n=== 2026-01-01T10:05:00+00:00 counts'
+                             ' a1g main: done, rc=0\n=== 2026-01-01T10:05:00'
+                             '+00:00 counts lookrts main: start\n'
+                             '=== 2026-01-01T10:06:40+00:00 counts lookrts'
+                             ' main: done, rc=0\n=== 2026-01-01T10:06:40'
+                             '+00:00 counts a1g rev: start\n')]),
+         argv=['--counts-cost', 'zzcc'],
+         ok=V(exit=0, has=['total a1g', ' 300 s', 'total lookrts', ' 100 s',
+                           'started and not done, so not counted: a1g rev'])),
+
     case('compare-cell-reads-one-cell-on-both-halves', 'read-run.py', None,
          'CONTROL: --compare --cell prints the cell\'s raw and net slope on'
          ' both halves with their ratio, and says where no log carries the'

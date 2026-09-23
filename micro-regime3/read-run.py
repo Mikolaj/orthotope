@@ -340,6 +340,7 @@ import argparse
 import ast
 import collections
 import contextlib
+import datetime
 import difflib
 import functools
 import glob
@@ -5380,6 +5381,51 @@ def block_verdicts(cells, shapes, strategies, meta, args):
                       for st, a in tiers))
     if unknown:
         print('  `needs` unwritten: %s' % ', '.join(unknown))
+
+
+def counts_cost(run):
+    """What each counts stage took, off the evening's own stamps.
+
+    Provenance quotes the counted work's cost per half, and Run 39's
+    session took it by pairing the `start` and `done` stamps in a script
+    of its own. A stage the status file shows started and not done is
+    named rather than counted.
+    """
+    status = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          '%s-evening.txt' % run)
+    if not os.path.exists(status):
+        sys.stderr.write('--counts-cost: no %s\n' % os.path.basename(status))
+        return 2
+    rx = re.compile(r'^=== (\S+) counts (\S+) (\S+): (start|done)')
+    began, took, open_ = {}, collections.OrderedDict(), []
+    for line in open(status, encoding='utf-8'):
+        m = rx.match(line)
+        if not m:
+            continue
+        t = datetime.datetime.fromisoformat(m.group(1))
+        key = (m.group(2), m.group(3))
+        if m.group(4) == 'start':
+            began[key] = t
+        elif key in began:
+            took[key] = (t - began.pop(key)).total_seconds()
+    open_ = sorted('%s %s' % k for k in began)
+    if not took:
+        sys.stderr.write('--counts-cost: no finished counts stage in %s\n'
+                         % os.path.basename(status))
+        return 2
+    print('counts stages of %s, seconds, off %s'
+          % (run, os.path.basename(status)))
+    halves = []
+    for (h, pop), s in took.items():
+        print('  %-14s %-10s %7.0f' % (h, pop, s))
+        if h not in halves:
+            halves.append(h)
+    for h in halves:
+        print('total %-14s %7.0f s' % (h, sum(s for (hh, _), s in took.items()
+                                             if hh == h)))
+    if open_:
+        print('started and not done, so not counted: %s' % ', '.join(open_))
+    return 0
 
 
 def compare_cell(cells, shapes, meta, path, other, main_hs, cell):
@@ -14476,6 +14522,9 @@ def main():
                         "'s main set in DIR, run by run and half by half,"
                         " each beside that half's floor -- one cell's"
                         ' readings as a table, where prose requoted them')
+    p.add_argument('--counts-cost', dest='counts_cost', metavar='RUN',
+                   help='each counts stage\'s duration off RUN-evening.txt,'
+                   ' per population and per half, with each half\'s total')
     p.add_argument('--over-list', dest='over_list', metavar='RUN',
                    help='every timed non-control cell of RUN slower'
                         " than its shape's `list`, over every"
@@ -15058,6 +15107,8 @@ def main():
                                  ' file at %s\n' % args.run_doc)
                 sys.exit(2)
         sys.exit(movement(args.run, args))
+    if args.counts_cost:
+        sys.exit(counts_cost(args.counts_cost))
     if args.over_list:
         sys.exit(over_list_sweep(args.over_list, args))
     if args.extremes:
