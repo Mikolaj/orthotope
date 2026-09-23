@@ -299,6 +299,12 @@ if [ -f "$DOC" ]; then
   grep -q '\[\[TODO\]\]' "$DOC" && say 6a "NOT DONE" "$DOC carries [[TODO]]" \
     || say 6a "done" "no [[TODO]] in $DOC"
   SUBJ=$(git log --format=%s -- "$DOC" README.md | grep -i "run $N\b\|$R\b")
+  # 10c by SUBJECT ALONE, whatever the commit touched: the tail's commit
+  # may carry no document edit at all, and a path-filtered log hid Run 39's
+  # until a sentence was invented to give it one. The other steps' commits
+  # do carry the documents and keep the filter. Case:
+  # `status-finds-a-10c-commit-without-a-document`.
+  SUBJ10C=$(git log --format=%s | grep -i "run $N\b\|$R\b")
   # 6d's commit carries 6b's and 6c's work, so a subject naming both of
   # those names it too, which is how Run 23 wrote it.
   # The tail after the checker joined them 2026-09-08 as 7b and is 10c
@@ -312,8 +318,9 @@ if [ -f "$DOC" ]; then
   # which is this file's own documented hazard, met by its own change.
   # A renumber may not un-do a finished run.
   for s in 6b 6d 7a 10c; do
-    if printf '%s\n' "$SUBJ" | grep -qi "\b$s\b" \
-       || { [ "$s" = 10c ] && printf '%s\n' "$SUBJ" | grep -qi '\b7b\b'; } \
+    S=$SUBJ; [ "$s" = 10c ] && S=$SUBJ10C
+    if printf '%s\n' "$S" | grep -qi "\b$s\b" \
+       || { [ "$s" = 10c ] && printf '%s\n' "$S" | grep -qi '\b7b\b'; } \
        || { [ "$s" = 6d ] && printf '%s\n' "$SUBJ" | grep -qi '\b6b\b.*\b6c\b'; }; then
       say "$s" "done" "a commit subject names step $s"
     else
