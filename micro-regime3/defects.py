@@ -11153,6 +11153,25 @@ RECORDS = [
                    'no COMPARE line'],
               hasnt=['not before EVENING COMPLETE'])),
 
+    case('readings-keep-a-file-they-did-not-write', 'post-run-readings.sh',
+         None,
+         'CONTROL: a file in log-read-RUN/ that no call of the script wrote'
+         ' is moved to log-read-RUN-kept/ and named, not deleted with the'
+         ' rewrite',
+         # Run 39's session kept its own readings in that directory, and
+         # the script's second call deleted them with the rest (2026-09-23).
+         shadow=dict(extra=readings_run('zzpr9', complete=False)),
+         plant=lambda tmp: (os.makedirs(os.path.join(
+             tmp, 'shadow', 'log-read-zzpr9'), exist_ok=True), write(
+                 os.path.join(tmp, 'shadow', 'log-read-zzpr9', 'mine.txt'),
+                 'a session\'s own reading\n'), None)[-1],
+         argv=['zzpr9'],
+         probe=lambda subs: ' '.join(sorted(os.listdir(os.path.join(
+             str(subs['at']), 'log-read-zzpr9-kept')))) if os.path.isdir(
+                 os.path.join(str(subs['at']), 'log-read-zzpr9-kept'))
+             else 'no kept directory',
+         ok=V(has=['mine.txt'], hasnt=['no kept directory'])),
+
     case('readings-take-the-counts-after-a-complained-evening',
          'post-run-readings.sh', 'f241d66',
          'an evening that ended EVENING COMPLETE WITH N COMPLAINT(S) never'
@@ -11242,10 +11261,14 @@ RECORDS = [
                               'main-lookrts-vs-compare.txt'),
                  'this run / run96-nospec-main.json, per arm\n'), None)[-1],
          argv=['zzpr7'],
-         probe=lambda subs: ' '.join(sorted(os.listdir(os.path.join(
-             str(subs['at']), 'log-read-zzpr7')))),
-         ok=V(hasnt=['main-lookrts-vs-compare.txt']),
-         bug=V(has=['main-lookrts-vs-compare.txt'])),
+         # A presence word and not the listing: since 2026-09-23 the script
+         # names what it moves aside, so the file's name is in its output
+         # whichever way the directory went.
+         probe=lambda subs: 'STALE PRESENT' if os.path.exists(os.path.join(
+             str(subs['at']), 'log-read-zzpr7', 'main-lookrts-vs-compare.txt'))
+             else 'stale absent',
+         ok=V(has=['stale absent'], hasnt=['STALE PRESENT']),
+         bug=V(has=['STALE PRESENT'])),
 
     # ---- run-evening.sh, the run list's quiet machine steps as one command
     case('evening-chains-the-stages', 'run-evening.sh', None,

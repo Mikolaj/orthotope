@@ -135,6 +135,23 @@ fi
 # REWRITTEN WHOLE: a file an earlier call left, a reading against a COMPARE
 # run the note has since dropped among them, is read by --for-brief as
 # this call's.
+# BUT ONLY WHAT A CALL OF THIS SCRIPT WROTE: a file here that neither this
+# call's jobs nor the previous call's `.written` names is somebody else's,
+# and it is moved to $D-kept/ and named rather than deleted with the rest.
+# Run 39's session kept readings of its own here and the second call took
+# them. Case: `readings-keep-a-file-they-did-not-write`.
+if [ -d "$D" ]; then
+  KEPT=
+  for f in "$D"/* "$D"/.[!.]*; do
+    [ -e "$f" ] || continue
+    b=${f##*/}
+    case $b in for-brief.txt|.written) continue ;; esac
+    cut -d' ' -f1 "$JOBS" | grep -qxF -- "$b" && continue
+    [ -f "$D/.written" ] && grep -qxF -- "$b" "$D/.written" && continue
+    mkdir -p "$D-kept" && mv "$f" "$D-kept/" && KEPT="$KEPT $b"
+  done
+  [ -z "$KEPT" ] || echo "kept aside in $D-kept/, being no reading this script writes:$KEPT"
+fi
 rm -rf "$D" && mkdir "$D" || exit 2
 # A -cells.tsv is stdout alone, for a script to read: the reader's header
 # and warnings go to stderr, and the same population's other files carry
@@ -167,6 +184,7 @@ while read -r rc out; do
   fi
 done < "$JOBS.rc"
 CRASHED=$(cd "$D" && grep -l 'Traceback (most recent call last)' -- * 2>/dev/null | sort | tr '\n' ' ')
+{ cut -d' ' -f1 "$JOBS"; echo for-brief.txt; } > "$D/.written"
 rm -f "$JOBS" "$JOBS.rc"
 echo "$N reading(s) into $D/: $LOST did not happen, exiting 2 or worse, and $BARE --wild reading(s) exited 2 on a log carrying no samples"
 [ -z "$CRASHED" ] || { echo "!! crashed: ${CRASHED% }"; LOST=$((LOST + 1)); }
