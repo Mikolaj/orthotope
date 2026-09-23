@@ -4544,12 +4544,24 @@ lazyRuns axes start v = build (runSlices axes start v)
 -- it 'carry' is lazy in its offset, 'go' boxes it for the one call a
 -- level makes, and the heap check for that box sits at the head of 'go'
 -- and is paid every run.
+--
 -- Entered on a route of canonical rank two or more, which is what
 -- 'RRuns' means, so there is at least one outer level and one run.  The
 -- arm for no outer level, which no route reaches, 'routeOf' and the two
 -- written-out dispatches reading rank 1 as a slice first, is the one
 -- run as one slice: correct rather than an error, so the walker is
 -- total on its own terms, as the library's 'runSlicesT' is.
+--
+-- Not kept, tried 2026-09-23: the guards of 'go' swapped,
+-- @| i >= dk = carry ...@ before @| otherwise = cons ...@, the same
+-- test; @i == dk@, the form timed on HEAD, compiles alike. GHC HEAD
+-- (10.1.20260918) then lays the head out to fall through into the run,
+-- one taken branch a run fewer and stage fourteen's sum 24% faster on
+-- runs-2; 9.12.4, which lays out the guards as written that way already,
+-- loses the fall-through and reads 11 to 14% slower there. Which order
+-- gets it is a near-tie in GHC's block layout,
+-- https://gitlab.haskell.org/ghc/ghc/-/work_items/27799, so no order
+-- suits both compilers.
 runSlices :: Axes -> Int -> VS.Vector Double
            -> (VS.Vector Double -> b -> b) -> b -> b
 runSlices (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
@@ -4557,6 +4569,11 @@ runSlices (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
     [] -> cons (VS.slice start n v) nil
     (!sk, !dk) : above ->
       let go !i !o outer
+            -- TODO: 'VS.slice' bounds-checks every run, three tests that
+            -- cannot fail on a view the odometer walks, @n >= 0@ among
+            -- them not even varying with the run; removing them wants a
+            -- vSliceUnsafe in the library's 'Vector' class, which this
+            -- port follows, rather than 'VS.unsafeSlice' here.
             | i < dk = cons (VS.slice o n v) (go (i + 1) (o + sk) outer)
             | otherwise = carry outer (o - dk * sk) []
           -- The levels exhausted on the way out, reset, go back on the
