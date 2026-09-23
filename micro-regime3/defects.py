@@ -13488,6 +13488,33 @@ RECORDS = [
          ok=V(has=['run96-evening.txt ends COMPLETE']),
          bug=V(has=["run96-evening.txt's last line"])),
 
+    # THE DRIVER'S TWO CLOSING LINES AS IT WRITES THEM, one case each: the
+    # fixtures above spell `major run complete` bare, which run-major.sh
+    # never writes, so a reader keyed on either literal form would pass
+    # them and fail a real run -- the shape of the complained-evening
+    # defect, whose form nothing held a reader to (2026-09-23).
+    case('status-reads-major-run-complete-as-written', 'run-status.sh', None,
+         'CONTROL: run-major.sh\'s clean closing line, verbatim, reads done',
+         shadow=dict(extra=[('run95-wallclock.log',
+                             '=== 2026-09-04T00:00:00+02:00 major run complete;'
+                             ' every process ran the count asked of it\n')]),
+         argv=['run95'],
+         ok=V(has=['run95-wallclock.log says complete, no complaint'])),
+
+    case('status-reads-a-complained-major-run-as-written', 'run-status.sh',
+         None,
+         'CONTROL: run-major.sh\'s complained closing line, verbatim, with'
+         ' the stamped complaint above it, reads NOT DONE naming the count',
+         shadow=dict(extra=[('run94-wallclock.log',
+                             '=== 2026-09-04T00:00:00+02:00   !! run94-a1g-main:'
+                             ' expected 5 benches, got 4 -- the selection is'
+                             ' not what was asked for\n'
+                             '=== 2026-09-04T01:00:00+02:00 major run complete,'
+                             ' with 1 complaint(s) above -- read them before'
+                             ' any figure\n')]),
+         argv=['run94'],
+         ok=V(has=["with 1 '!!' line(s)"])),
+
     case('smoke-exercises-the-arm-filter', 'smoke-sweep.sh', '5ef414d',
          '--exclude was exercised on an Only arm, so it removed nothing',
          # `bq-expand-b` has been `Only` since c10e8cf, in no --list and
