@@ -11705,6 +11705,20 @@ RECORDS = [
          argv=['--check-doc', '--quiet', '--readme', '{readme}'],
          ok=V(exit=1, has=['pipes or chains a gate'])),
 
+    case('status-finds-a-10c-commit-without-a-document', 'run-status.sh',
+         'f8dc57d',
+         '10c read NOT DONE when the tail\'s commit touched neither document,'
+         ' the subjects being read off a path-filtered log',
+         # Run 39's 10c commit had nothing left to fix and was empty; the
+         # step read NOT DONE until a sentence was added to README to give
+         # the commit a path (2026-09-23). No shadow: a shadow is no git
+         # checkout, and git's answer is what this reads.
+         argv=['run39'],
+         ok=V(has=['10c   done']),
+         no_audit='the shadow reads the real repository\'s history, and'
+                  ' Run 39\'s 10c commit carries a README edit, so no'
+                  ' revision holds the empty 10c commit the defect needs'),
+
     case('status-names-the-subject-it-looked-for', 'run-status.sh', None,
          'a NOT DONE on a step said no subject names it, without saying'
          ' that the run name is half of what it matched on',
