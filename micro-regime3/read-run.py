@@ -13547,16 +13547,25 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
                                    else 'the default band'))
                 for sc in scripts:
                     name = sc.split()[0]
-                    known = subprocess.run(
-                        ['git', 'ls-files', '--error-unmatch', name],
+                    # The committed MODE as well: a registration says to run
+                    # its script as `./NAME`, and Run 39's named one
+                    # committed at 100644, which that refuses. Case:
+                    # `registration-script-not-executable`.
+                    staged = subprocess.run(
+                        ['git', 'ls-files', '-s', '--', name],
                         cwd=os.path.dirname(os.path.abspath(main_hs)),
-                        capture_output=True).returncode == 0
-                    if not known:
+                        capture_output=True, text=True).stdout.split()
+                    if not staged:
                         trouble.append("Run %s's item (%s) names script %s,"
                                        ' which is not committed, so the'
                                        ' clause it reads is read by nothing'
                                        ' a later session can run'
                                        % (num, inum, name))
+                    elif staged[0] != '100755':
+                        trouble.append("Run %s's item (%s) names script %s,"
+                                       ' which is committed without its'
+                                       ' executable bit, so `./%s` refuses'
+                                       ' to run it' % (num, inum, name, name))
                 if not spans and not scripts \
                         and not re.search(r'\b[Tt]ask \d+', body):
                     trouble.append("Run %s's item (%s) carries neither a"
