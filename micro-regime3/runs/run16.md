@@ -17,3 +17,16 @@ Run 21's file carried, which until then was the only record of these figures.
 | `bq-expand` | 0.114 | 0.101 |
 | `build` | 0.109 | 0.097 |
 | `offtab` | 0.136 | 0.124 |
+
+
+## Its delta against the run before
+
+Moved here verbatim from README's Provenance delta chain on 2026-09-23.
+
+- Run 16 measured Run 15's shapes, class lists, membership and order,
+  so its delta against RUN 15 is empty too. What a reader has to carry there
+  is which half a figure came from: everything it published was `run16-a32m`
+  and `run16-a64m` contributed the second column of `runs/run16.md`,
+  and **its basis moved off the default nursery**, to the area of `run15-a32m`,
+  the half it is checked against, so a row's distance from any column before Run
+  16 carries the allocation area with it.

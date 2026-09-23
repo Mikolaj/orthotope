@@ -365,3 +365,20 @@ no loop, so such a pairing would no longer conflate the two --- but it would
 still buy a number Run 10's third prediction supplies for nothing, which
 was always the stronger of the two reasons. Recorded because the expiry
 of a premise is exactly what makes a dead idea look alive again.
+
+
+## Its delta against the run before
+
+Moved here verbatim from README's Provenance delta chain on 2026-09-23.
+
+- Run 10 measured Run 9's shapes, class lists and membership **in a different
+  roster ORDER**: `sum-only-early` sat at slot 5 for Run 9, moved to slot 2
+  ahead of the three distant A/A twins after that run, and to slot 1 above
+  `list` for Run 10 ([the floor section][floor]). The first move relocated
+  nothing --- a binary rebuilt from Run 9's own commit `96378d2` puts all eight
+  tracked loops at the same offsets as the moved roster does, to the byte ---
+  and the second relocated everything, which is what Run 10 spent to buy
+  the pool fix and its predictions. What a reader has to carry there is which
+  binary each of its figures came from, its Results table being
+  `micro-unaligned`'s while its fingerprint and class blocks
+  were `micro-aligned`'s. That mixed basis lasted the one run.

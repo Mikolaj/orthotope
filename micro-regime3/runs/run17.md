@@ -17,3 +17,17 @@ Run 21's file carried, which until then was the only record of these figures.
 | `bq-expand` | 0.117 | 0.115 |
 | `build` | 0.105 | 0.106 |
 | `offtab` | 0.135 | 0.141 |
+
+
+## Its delta against the run before
+
+Moved here verbatim from README's Provenance delta chain on 2026-09-23.
+
+- Run 17 measured Run 16's shapes, class lists, membership and order,
+  so its delta against RUN 16 is empty too. What a reader has to carry there
+  is which half a figure came from: everything it published was `run17-wildlog`,
+  the instrumented half, and `run17-det` contributed the second column
+  of `runs/run17.md` and a class comparison on all eight populations. **And one
+  thing that is not a delta**: its two halves differed in `.text` size,
+  so a figure crossing them carries a layout term where Runs 14 to 16 carried
+  a runtime setting.

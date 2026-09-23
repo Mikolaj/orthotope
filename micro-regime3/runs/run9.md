@@ -17,3 +17,13 @@ Run 21's file carried, which until then was the only record of these figures.
 | `bq-expand` | 0.105 |
 | `build` | 0.114 |
 | `offtab` | 0.115 |
+
+
+## Its delta against the run before
+
+Moved here verbatim from README's Provenance delta chain on 2026-09-23.
+
+- Run 9 measured Run 8's shapes and class lists, and **its delta against RUN 8
+  is the eight arms written between them** (`bq-expand-gm-mulback`,
+  `bq-odo-gm-mulback`, `mut-flat-gm`, `offtab-scan-rem` and the four
+  `mut-odo-vecdims-add-*`); which of its arms it timed is not recorded here.

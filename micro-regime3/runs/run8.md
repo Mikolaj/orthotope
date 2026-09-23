@@ -83,3 +83,19 @@ a `writeInt32Array#`, no boxing --- are identical in the two regimes,
 as are their controls', so the `expand32` pair barely moves. The `offtab32` pair
 moves furthest of the three and not for its packing at all: its arm improves 6%
 while its *control* regresses 22%.
+
+
+## Its delta against the run before
+
+Moved here verbatim from README's Provenance delta chain on 2026-09-23.
+
+- Run 8 **timed all of its roster but `concat-runs`**, winsorized likewise.
+  **Its delta against RUN 7**, which has no bullet here, **is the regime**
+  alone, so a comparison across those two carries the regime term. Against RUN 6
+  its shapes, class lists and roster moved by `stretch-pow2stride`
+  and `stretch-inner256` in, eleven main-set shapes out (`cnn-L1-12x12-c1`,
+  `cnn-L2-12x12-c16`, `cnn-slice-c64`, `lenet-L2-14-c6-k5`, `mnist-28-c1-k3`,
+  `cifar-L1-32-c3-k3`, `cifar-L3-8-c128-k3`, `cifar-32-c3-k5`, `vgg-14-c256-k3`,
+  `deep-7-c512-k3`, `slice-c512`), five arms in (the three crossed A/A twins
+  and the two `-nosum` controls), `concat-runs` no longer timed and the stride
+  classes new; which regime Run 6 ran is not recorded here.

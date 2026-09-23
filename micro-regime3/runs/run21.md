@@ -2517,3 +2517,32 @@ is the branch's cost and canonicalization is its benefit, with the boundary
 between them measurable in run length. The horde-ad regression the registrations
 were aimed at is therefore not the table an `Int` per run buys; it
 is the driver.
+
+
+## Its delta against the run before
+
+Moved here verbatim from README's Provenance delta chain on 2026-09-23.
+
+- Run 21 measured 49 timed arms over 24 main-set shapes and 33 class views
+  in NINE classes, 1176 benches and 1617, where Run 20 ran 53 arms and 26 views
+  in eight classes, 1272 and 1378. Its delta against RUN 20: six timed arms
+  landed (`mut-odo-vecdims-add-in-leaf-u2-down`, `lib-stage1`, `lib-stage2`,
+  `lib-stage2-concat`, `liblist-stage1`, `liblist-stage2`) and ten names left
+  --- eight arms parked permanently on 2026-08-28 (`bq-expand-b`,
+  `bq-expand-qr-prim`, `bq-expand-zf`, `bq-mut`, `bq-gen`, `gen-quotrem`,
+  `bq-mut-runs`, `offtab`) with `offtab`'s two A/A twins, so the floor reads
+  over SIXTEEN pairs from this run on and the eighteen-pair series ends at
+  Run 20. The `runs` class is new: seven regime-2 views sweeping run length
+  from 2 to 65536, all at `l` of about 1.8M. **So the delta against Run 20
+  is a roster and a population both**, and every figure read across
+  that boundary carries a layout term besides drift, Run 10 having priced
+  a reorder at 12 to 14% on the two arms whose loop the shim rescues ---
+  the build-time fill reading found no tracked address surviving between the two
+  builds. Which half a figure came from is the other thing to carry: everything
+  published in the run's file is `run21-g912`, the 9.12 half, and `run21-ghead`
+  contributes this file's second column --- and this pair's `list` moved 0.64%
+  between them, INSIDE the 0.7% bar, so its two columns may be differenced
+  as well as ordered, which neither Run 19's nor Run 20's could. The box did
+  not move, its machine check reading -0.33%, so absolutes cross from Run 20
+  freely and the boundary that stops them is still the BIOS change before
+  Run 18.

@@ -17,3 +17,16 @@ Run 21's file carried, which until then was the only record of these figures.
 | `bq-expand` | 0.103 | 0.103 |
 | `build` | 0.096 | 0.100 |
 | `offtab` | 0.125 | 0.123 |
+
+
+## Its delta against the run before
+
+Moved here verbatim from README's Provenance delta chain on 2026-09-23.
+
+- Run 11 measured Run 10's shapes, class lists, membership and order,
+  so its delta against RUN 10 is empty too. **Run 11 did not spend a relocation
+  again**, which is the second thing alignment bought the schedule:
+  in an aligned build a roster change relocates no loop, so the repetition
+  this README had never had was available for the first time and is what Run 11
+  took. What a reader has to carry there is that its published tables
+  were the *aligned* half's.

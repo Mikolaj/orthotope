@@ -17,3 +17,17 @@ Run 21's file carried, which until then was the only record of these figures.
 | `bq-expand` | 0.102 | 0.107 |
 | `build` | 0.103 | 0.097 |
 | `offtab` | 0.121 | 0.121 |
+
+
+## Its delta against the run before
+
+Moved here verbatim from README's Provenance delta chain on 2026-09-23.
+
+- Run 14 measured 47 timed arms over 24 main-set shapes and 24 class views
+  in eight classes, 1128 benches. **Its delta against RUN 13** is **twelve A/A
+  twins in** (`offtab`, `bq-odo-gm-mulback`, `build`, `mut-odo`, `list`
+  and `gen-unsafe`, each in both positions) and a third shape in the **five
+  class views** Run 13 ran short of one, the shapes, class lists and roster
+  **order** otherwise unchanged. What a reader has to carry there is
+  that its control was `run14-a1g`, at two hundred and fifty-six times
+  the default nursery, and that its halves' absolutes were not subtractable.

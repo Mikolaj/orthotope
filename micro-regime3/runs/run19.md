@@ -2451,3 +2451,15 @@ a margin that is absent. Either the correspondence fails on HEAD or the margin
 does not follow the slot, and this pair separates neither; the control moved
 three points between compilers in the direction the add-in pair did not. What
 is measured stands: both halves' timed offsets, and both margins.
+
+
+## Its delta against the run before
+
+Moved here verbatim from README's Provenance delta chain on 2026-09-23.
+
+- Run 19 measured 47 timed arms over 24 main-set shapes and 24 class views
+  in eight classes, 1128 benches, and its delta against RUN 18 is empty.
+  Everything published in its file is `run19-g912`, the 9.12 half; its `list`
+  moved 0.78% between the halves, so its two columns may be ordered
+  and not subtracted; and its basis half is Run 18's basis BINARY, byte
+  for byte, so absolutes cross those two runs freely.

@@ -2697,3 +2697,28 @@ ordering chosen around its old cost are each mis-cut. The registration
 a horde-ad consumer should take from this is not any one of the five: it
 is that the branch's driver has stopped being the regression this benchmark
 was built to catch.
+
+
+## Its delta against the run before
+
+Moved here verbatim from README's Provenance delta chain on 2026-09-23.
+
+- Run 22 measured 55 timed arms over 24 main-set shapes and 37 class views
+  in NINE classes, 1320 benches and 2035, where Run 21 ran 49 arms and 33 views,
+  1176 and 1617. Its delta against RUN 21: six timed arms landed ---
+  `lib-stage2-disp`, `lib-stage2-u4`, `lib-stage2-short`, `lib-stage2-lean`,
+  `libunord-stage1` and `libunord-stage2` --- and NONE left, so all 49 of Run
+  21's names are still timed, the floor still reads over SIXTEEN pairs,
+  and every slot below `lib-stage2-concat` moved by four and below
+  `liblist-stage2` by six. Its `runs` class is ELEVEN, gaining `runs-4`,
+  `runs-5`, `runs-256` and `runs-512` on 2026-08-30, before the run. **And seven
+  of Run 21's columns are different CODE rather than drift**: `fillStage2`
+  unboxed its source vector and steps its cursor twice, which reaches
+  `lib-stage2` and `lib-stage2-concat` through the call; `lib-stage2-concat`,
+  `liblist-stage2`, `-add-in-leaf-u2` and `-u2-down` changed in their own
+  bodies; and `lib-stage1` and `liblist-stage1`, byte-identical in their own
+  texts, fall back to `-add-in-leaf-u2` on every regime-3 view ---
+  so no distance from Run 21's column on any of the seven is drift or layout
+  at all. Its sequence ran in TWO WINDOWS, eighteen processes overnight
+  and the two `runs` processes after the box was handed back, which the plateau
+  gate bands at a 2.60% spread across all twenty.

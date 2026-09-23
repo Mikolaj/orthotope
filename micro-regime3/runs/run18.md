@@ -226,3 +226,16 @@ it, `g912-reshape1` at 21.76 and `g914-slice` at 21.73 leading them. So the gate
 is reading the intrusion it was built to notice, the band is the right band,
 and what a future run should not conclude from this is that the preamble
 is unstable.
+
+
+## Its delta against the run before
+
+Moved here verbatim from README's Provenance delta chain on 2026-09-23.
+
+- Run 18 measured Run 17's shapes, class lists, membership and order,
+  so its delta against RUN 17 is empty too. Everything it published
+  was `run18-g912` and `run18-g914` contributed the second column
+  of `runs/run18.md`. **And one thing that is not a delta**: the BOX moved
+  under it, its BIOS idle settings having changed before it, so no absolute
+  of Run 18's is comparable with Run 17's or earlier --- ratios are, absolutes
+  are not, and Run 18's fingerprint re-baselined them.

@@ -2586,3 +2586,23 @@ registrations, each with what killed it or did not:
    evening that every within-process gate had passed --- eighteen `--selftest`s
    and eighteen `--aa`s were clean throughout --- which is exactly what
    it was registered to do.
+
+
+## Its delta against the run before
+
+Moved here verbatim from README's Provenance delta chain on 2026-09-23.
+
+- Run 20 measured 53 timed arms over 24 main-set shapes and 26 class views
+  in eight classes, 1272 benches and 1378, where Run 19 ran 47 and 1128 over 24
+  and 24. Its delta against RUN 19: nine timed arms landed and three dropped
+  to `Only`, and `reshape1` and `bcastmid` went to four shapes. **So the delta
+  against Run 19 is a roster and it is not empty**, which every figure read
+  across that boundary carries as a layout term besides drift, Run 10 having
+  priced a reorder at 12 to 14% on the two arms whose loop the shim rescues.
+  Which half a figure came from is the other thing to carry: everything
+  published in the run's file is `run20-g912`, the 9.12 half, and `run20-ghead`
+  contributes the second column of `runs/run20.md` --- and this pair's `list`
+  moved 0.71% between them, past the 0.7% bar by a hair, so its two columns may
+  be ordered and not subtracted. The box did not move, its machine check reading
+  -0.24%, so absolutes cross from Run 19 freely and the boundary that stops them
+  is still the BIOS change before Run 18.
