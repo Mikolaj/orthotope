@@ -827,10 +827,11 @@ rather than a slot in the next run, observed again:
   1.0027, and the unordered pair at 0.9998 against 0.9996 --- the one route
   that reads its tables off the hot path. So each pair now carries TWO
   variables, the numbering and the table form, and the two points are read
-  as the table's only by elimination: the numbering alone was worth nothing
-  outside the floor on Run 38. **What settles it is one arm**: the table form
-  under the outermost-first numbering, beside `lib-stage2-lean`, so that each
-  variable has a pair of its own. Registered 2026-09-23.
+  as the table's only by elimination: the numbering alone read 0.61 of a point
+  on Run 38, four hundredths outside that half's 0.57% floor. **What settles
+  it is one arm**: the table form under the outermost-first numbering, beside
+  `lib-stage2-lean`, so that each variable has a pair of its own. Registered
+  2026-09-23.
 - `OPEN` **Seven reducing consumers newly change what they ALLOCATE
   under `-fspec-constr -fliberate-case`, where one run earlier the same pair
   changed none of them.** On Run 38 the unordered consumers
@@ -1701,9 +1702,9 @@ rather than a slot in the next run, observed again:
   ten-thousandths under the line against that half's 0.57% floor --- the closest
   of the three readings this pair has given the cell, and still a tie
   by the entry's own test. **Run 39 reads it at 1.0026 on the basis and 0.9835
-  on the control**, the basis BEHIND by 0.26 of a point for the first time since
-  Run 35 --- a break of the clause, and inside that half's 0.57% floor, so still
-  a tie by the entry's own test.
+  on the control**, the basis BEHIND by 0.26 of a point, the first break since
+  Run 35's own --- a break of the clause, and inside that half's 0.57% floor,
+  so still a tie by the entry's own test.
 - `OPEN` **Which of the two `-O2` passes carries the regime's points,
   on a compiler this series still builds with --- and, since Run 37, how many
   points there are.** Run 36 put `-fspec-constr` and `-fliberate-case` TOGETHER
@@ -1754,12 +1755,12 @@ rather than a slot in the next run, observed again:
   it is refuted across a REBUILD and not only across a second draw of one build.
   **Run 39 is the fifth reading and the fourth build, 2026-09-23,
   with the settled cost on both halves**: `list` at **1.2966** over the nineteen
-  shapes and **1.2959** over the eighteen, `bq-expand` at **1.2985**, inside
-  half a point of Run 38's. **The SPLIT is untouched and is still the pair
-  to ask for**, now against `run39-gheadnospec` --- `Main.hs` at `c870e1e`
-  and the shim at `fe6d133` under the settled cost, with the compiler,
-  the project file and the launch unmoved --- which reads with the box
-  as the only term.
+  shapes and **1.2959** over the eighteen, `bq-expand` at **1.2985**, within 0.8
+  of a point of Run 38's on `list` over the nineteen, 0.5 over the eighteen
+  and 0.5 on `bq-expand`. **The SPLIT is untouched and is still the pair to ask
+  for**, now against `run39-gheadnospec` --- `Main.hs` at `c870e1e` and the shim
+  at `fe6d133` under the settled cost, with the compiler, the project file
+  and the launch unmoved --- which reads with the box as the only term.
 - `OPEN` **A single wild cell moved this run's headline by 2.31 points and every
   mechanical gate passed it.** On Run 36's basis half `list`
   on `stretch-coprime-r7` read a net slope with a criterion CI of 10.07%
