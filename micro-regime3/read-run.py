@@ -9690,11 +9690,12 @@ def pair_note(path, draft=None, halves=None):
     line, the previous pair's text for this preparation to rewrite: those
     are the decisions, and the marker is what keeps a copied decision
     from passing for one, run-status.sh's 2c counting it as a slot until
-    the line is deleted. The handover and the fill-in block's content
-    never cross. A block marked `[SAME in shape]` is listed as yours too,
-    which is the safe direction: its shape carries over and its CONTENT
-    is this pair's, so a draft emitting it would hand back the last
-    pair's observations under this pair's heading.
+    the line is deleted. The handover and the gate's verdict never cross,
+    and the fill-in block, which the template marks `[SAME in shape,
+    PAIR'S in content]`, comes as its labels with `<yours>`: its shape
+    carries over and its CONTENT is this pair's, so a draft emitting it
+    would hand back the last pair's observations under this pair's
+    heading.
     """
     try:
         text = open(path).read()
