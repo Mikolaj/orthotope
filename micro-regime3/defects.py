@@ -14107,6 +14107,35 @@ RECORDS = [
          # handed, and this pass carrying this run's names.
          argv=None, ok=None),
 
+    case('fill-in-compilers-row-reads-ghc-internal', 'preflight.sh',
+         'a063b2d',
+         'the compilers row derived a string both HEADs here carry alike',
+         # `ghc-internal-10.100.0` is in the binaries of both HEADs this
+         # series has built, 20260803 and 20260918, so the row could not
+         # tell the compiler Run 35 used from Run 39's,
+         # and every note from Run 36 on wrote the `ghc-10.1.YYYYMMDD`
+         # string by hand over it, --figures checking the useless one. NO
+         # CASE: --fill-in is a reporter and wants a second run's binaries
+         # planted. WATCHED
+         # 2026-09-23 on Run 39's halves: the old pattern printed
+         # ghc-internal-10.100.0 for both, the new one ghc-10.1.20260918
+         # for both, and `--figures run39` passed on the new one against
+         # the note's hand-written row.
+         argv=None, ok=None),
+
+    case('fill-in-fills-row-drops-offsets-moved', 'preflight.sh', 'a063b2d',
+         "the fills row printed 2d's displacements and not what moved",
+         # The filter over `--delta` kept the lines of a group that kept
+         # its offsets and dropped `offsets MOVED: [...] -> [...]`, the
+         # line of one that did not -- which is the reading 2d exists for.
+         # Run 39's derived block printed six displacements under no
+         # statement of the move, and the preparation pasted the line in by
+         # hand. NO CASE, as above. WATCHED 2026-09-23 on run38-gheadnospec
+         # against run39-gheadnospec: the old filter passed 6 lines, the
+         # new one 7, the seventh being `offsets MOVED: [18, 15, 0, 0, 9,
+         # 2] -> [0, 0, 0, 0, 0, 0]`.
+         argv=None, ok=None),
+
     case('step-8d-replays-the-whole-corpus', 'preflight.sh', '7fc3dc6',
          'the changed-since-the-last-run step replayed every case there is',
          # NO CASE, for the reason checks.py's UNCOVERED gives preflight's
