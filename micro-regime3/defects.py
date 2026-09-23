@@ -11167,6 +11167,31 @@ RECORDS = [
                    'no COMPARE line'],
               hasnt=['not before EVENING COMPLETE'])),
 
+    case('repoint-moves-the-links-and-keeps-the-old-runs-own', 'read-run.py',
+         None,
+         'CONTROL: --repoint moves every link into the previous run\'s file'
+         ' to the newest, renames the Contents entry, and keeps and names'
+         ' the links whose own text names the previous run',
+         # Run 39's step 5 did this by hand over 26 links, three of them to
+         # keep, and a reference definition the first pass missed.
+         plant=lambda t: {
+             'readme': write(os.path.join(t, 'README.md'),
+                             '# R\n\n- [Run 96](runs/run96.md)\n'
+                             '  - [Results](runs/run96.md#results)\n\n'
+                             'See [the run file\'s property 1](runs/run96.md#p)'
+                             ' and [in Run 96\'s own\nfile](runs/run96.md#x).\n\n'
+                             '[results]: runs/run96.md#results\n'),
+             'doc': write(os.path.join(t, 'run97.md'), '# Run 97\n')},
+         argv=['--repoint', 'run96', '--readme', '{readme}',
+               '--run-doc', '{doc}'],
+         probe=lambda subs: open(subs['readme']).read(),
+         ok=V(exit=0, has=['- [Run 97](runs/run97.md)',
+                           '[Results](runs/run97.md#results)',
+                           "[the run file's property 1](runs/run97.md#p)",
+                           "file](runs/run96.md)", 'anchor dropped',
+                           '[results]: runs/run97.md#results'],
+              hasnt=['- [Run 96]'])),
+
     case('counts-cost-sums-the-stages-per-half', 'read-run.py', None,
          'CONTROL: --counts-cost pairs each counts stage\'s start and done'
          ' stamps and sums them per half, naming a stage still open',

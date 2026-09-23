@@ -5383,6 +5383,59 @@ def block_verdicts(cells, shapes, strategies, meta, args):
         print('  `needs` unwritten: %s' % ', '.join(unknown))
 
 
+def repoint(prev, readme, run_doc):
+    """Post-run step 5's repoint, which the chapter says to do site by site.
+
+    Every link into `runs/PREV.md` moves to the newest run file, except a
+    link whose OWN TEXT names PREV --- `[in Run 38's own file]`, the delta
+    chain's and the ANSWERED entry's --- which is that run's record and
+    stays; the Contents entry `- [Run PREV](runs/PREV.md)` is the one
+    link naming PREV that moves, renamed with it. Reference definitions
+    move too. Run 39's session did this by hand over twenty-six links and
+    missed the reference definition on its first pass. Each kept link is
+    printed, so the one judgement left is read rather than made.
+    """
+    m = re.match(r'run(\d+)$', prev)
+    now = run_no_of(run_doc)
+    if not m or now is None:
+        sys.stderr.write('--repoint: wants PREV as runN and a run file'
+                         ' named runM.md\n')
+        return 2
+    pn, new = m.group(1), 'run%d' % now
+    text = open(readme, encoding='utf-8').read()
+    names_prev = re.compile(r'(?i)\brun[ -]?%s\b' % pn)
+    kept, moved = [], [0]
+    text = re.sub(r'^(\s*- )\[Run %s\]\(runs/%s\.md\)' % (pn, prev),
+                  lambda mm: (moved.__setitem__(0, moved[0] + 1)
+                              or '%s[Run %d](runs/%s.md)'
+                              % (mm.group(1), now, new)),
+                  text, flags=re.M)
+
+    def link(mm):
+        if names_prev.search(mm.group(1)):
+            # KEPT WITHOUT ITS ANCHOR: --check-doc resolves an anchor into
+            # an older run's file as dead, and Run 38's ANSWERED link was
+            # met that way; the older run's links name its file whole.
+            kept.append(' '.join(mm.group(0).split())
+                        + (' (anchor dropped)' if mm.group(2) else ''))
+            return '[%s](runs/%s.md)' % (mm.group(1), prev)
+        moved[0] += 1
+        return '[%s](runs/%s.md%s)' % (mm.group(1), new, mm.group(2))
+    text = re.sub(r'\[([^\]]*)\]\(runs/%s\.md([^)]*)\)' % prev, link, text)
+
+    def ref(mm):
+        moved[0] += 1
+        return '%sruns/%s.md' % (mm.group(1), new)
+    text = re.sub(r'^(\[[^\]]+\]: )runs/%s\.md' % prev, ref, text,
+                  flags=re.M)
+    open(readme, 'w', encoding='utf-8').write(text)
+    print('--repoint: %d link(s) moved from runs/%s.md to runs/%s.md in %s'
+          % (moved[0], prev, new, os.path.basename(readme)))
+    for k in kept:
+        print('  kept, its own text naming %s: %s' % (prev, k))
+    return 0
+
+
 def counts_cost(run):
     """What each counts stage took, off the evening's own stamps.
 
@@ -14522,6 +14575,10 @@ def main():
                         "'s main set in DIR, run by run and half by half,"
                         " each beside that half's floor -- one cell's"
                         ' readings as a table, where prose requoted them')
+    p.add_argument('--repoint', metavar='PREV',
+                   help='post-run step 5: move README\'s links into'
+                   ' runs/PREV.md to the run file --run-doc names (the newest'
+                   ' by default), keeping the ones whose own text names PREV')
     p.add_argument('--counts-cost', dest='counts_cost', metavar='RUN',
                    help='each counts stage\'s duration off RUN-evening.txt,'
                    ' per population and per half, with each half\'s total')
@@ -15109,6 +15166,8 @@ def main():
         sys.exit(movement(args.run, args))
     if args.counts_cost:
         sys.exit(counts_cost(args.counts_cost))
+    if args.repoint:
+        sys.exit(repoint(args.repoint, args.readme, args.run_doc))
     if args.over_list:
         sys.exit(over_list_sweep(args.over_list, args))
     if args.extremes:
