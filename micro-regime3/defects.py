@@ -11065,11 +11065,12 @@ RECORDS = [
          # declaration in README and a run file short by exactly the
          # declared four, where the exemption must hold.
          plant=lambda t: {
-             'readme': unwrapped_readme_edit(
-                 t, '`runs-4`, `runs-5`, `runs-256` and `runs-512` on'
-                    ' 2026-08-30, before the run',
-                 '`runs-4`, `runs-5`, `runs-256` and `runs-512` were added'
-                 ' 2026-08-30, after the run'),
+             # The declaration is appended rather than edited in, the
+             # delta bullet it once edited having moved to its run's file.
+             'readme': write(os.path.join(t, 'P.md'), open(README).read()
+                             + '\n- `runs-4`, `runs-5`, `runs-256` and'
+                             ' `runs-512` were added 2026-08-30, after the'
+                             ' run.\n'),
              'rundoc': runs_summary_row(t, short_by=4)},
          argv=['--check-doc', '--quiet', '--readme', '{readme}',
                '--run-doc', '{rundoc}'],

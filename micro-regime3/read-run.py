@@ -10219,7 +10219,7 @@ def checklist(readme, which, steps_only=False):
             order, moved, mismatch = _exec_order(block, whole=half is None)
             if mismatch:
                 sys.stderr.write(
-                    '--checklist %s --imperative: POST_EXEC and the list'
+                    '--checklist %s: POST_EXEC and the list'
                     ' disagree on %s, so no execution order is printed --'
                     ' a step moved and this constant did not\n'
                     % (which, ', '.join(mismatch)))

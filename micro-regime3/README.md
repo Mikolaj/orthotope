@@ -760,7 +760,14 @@ rather than a slot in the next run, observed again:
 - `ANSWERED` **What Run 39 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 39's own
-  file](runs/run39.md#what-this-run-was-built-to-answer-and-what-it-answered).
+  file](runs/run39.md#what-this-run-was-built-to-answer-and-what-it-answered),
+  where a run's registrations have lived since 2026-08-29; in a clause each: (1)
+  the fill cell on `stretch-wide-2xM` is back on both halves, `lib-stage2-lean`
+  and `lib-stage3-lean` at 1.0259 and 1.0305 of the `-u1` loop on the basis
+  and 1.0301 and 1.0393 on the control, while its pair span died at 0.9790
+  on `c0a8aaa`'s rewrite of the inward fill, which the registration predates;
+  and (2) `probe-r39-rules.py` names no arm slower past 3% on both halves in any
+  population, so no back-edge rule is named for retirement.
 - `OPEN` **The inward fill's single table of pairs is worth about two points
   to the fill and one to the list consumer, and no span has priced it alone.**
   `c0a8aaa`, landing 2026-09-23 after Run 39's registration and before
@@ -815,7 +822,16 @@ rather than a slot in the next run, observed again:
   1e-4; the commit is still unnamed.
 - `ANSWERED` **What Run 38 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 38's own file](runs/run38.md).
+  verdicts are [in Run 38's own file](runs/run38.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: (1) the two
+  passes are worth 1.2907 on `list` over the eighteen shapes, which names Run
+  36's draw the outlier and Run 37's the pair's; (2) `bq-expand` repeats a third
+  time at 1.3032; (3) no arm outside the two families joins them, all nine null
+  spans inside 2.5%; (4) `mut-odo-vecdims-add-in-leaf-u1` reads 1.0205
+  and is back among its siblings, so its move belonged to Run 37's BUILD; (5)
+  the four counted-work spans hold at 0.00 to 0.09 of a point across a source
+  fourteen commits on; and (6) the fill numbering the pairing added is worth
+  nothing outside the floor, its three pairs at 1.0061, 1.0027 and 0.9996.
 - `ANSWERED` **A fill-in row whose label is sixteen characters long
   was invisible to every reader of the block, and the draft emitter wrote one
   --- FIXED 2026-09-21 by moving the block's value column to 20.** **THE FIX
@@ -831,29 +847,150 @@ rather than a slot in the next run, observed again:
   `draft-writes-a-fill-row-no-reader-can-read`.
 - `ANSWERED` **What Run 37 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 37's own file](runs/run37.md).
+  verdicts are [in Run 37's own file](runs/run37.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: (1) the WIDE
+  `list` span KILLED at 1.2960 against 1.3360 and the NARROW one HELD at 1.2950
+  against 1.3129, which is Run 36's wild cell not recurring rather
+  than the passes moving, and is the outcome the item's own text called
+  decisive; (2) HELD on `bq-expand` at 1.3101 against 1.2980, so neither
+  the moved source, the launch from disk nor the reboot shows on that arm; (3)
+  the sentence HOLDS, no arm outside the two families joining them, while ONE
+  of its ten null spans is killed by `mut-odo-vecdims-add-in-leaf-u1` at 0.9630
+  moving the BASIS's way, which step 4a puts on the control half at counts level
+  and which is now an open entry of its own; (4) HELD on all four counts spans,
+  three of them at 0.00 points, which makes the counted work the one thing
+  this pair repeats exactly.
 - `ANSWERED` **What Run 36 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 36's own file](runs/run36.md).
+  verdicts are [in Run 36's own file](runs/run36.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: (1) KILLED
+  on `list`, the two passes reading 1.3360 where the whole `-O2` level read
+  1.2974 and the two single-pass runs compose to 1.3325, so the level's other
+  passes hand `list` back; (2) HELD on `bq-expand` at 1.2980, where both
+  accounts agree, which is what makes (1) the composition question and
+  not the compiler's; (3) the sentence HOLDS, no arm outside the two families
+  joining them and the widest at 1.0119, while its two `list`-family spans die
+  with (1)'s and for its reason; (4) the sentence HOLDS, the counted work
+  parting at 1.2926 and 1.5063 against 1.0383 and 1.0522, while its two family
+  spans die on size.
 - `ANSWERED` **What Run 35 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 35's own file](runs/run35.md).
+  verdicts are [in Run 35's own file](runs/run35.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: (1) HELD on all
+  twenty-two readings, stage thirteen under stage twelve where a call is short
+  and level where it is long, deepest on `small` at 0.8410 and 0.8518; (2)
+  KILLED on `scaled` alone, its thinnest view saving only 138 and 136
+  instructions where the item asked for more than two hundred on every view,
+  and holding on the other ten populations; (3) KILLED by its spans while
+  its own sentence holds --- a `counts` span under `--compare` reads one half
+  against the other rather than against Run 34, and the two earlier runs
+  of this pair read 1.0062 and 1.0063 where the item allowed 0.1%, so the span
+  was unholdable when written, where the claim it states reads 1.0000 across
+  the runs.
 - `ANSWERED` **What Run 34 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 34's own file](runs/run34.md).
+  verdicts are [in Run 34's own file](runs/run34.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: (1) HELD, stage
+  twelve taking stage six's run on `window` on the basis, where an item naming
+  no half is read; (2) KILLED by its count clause, stage twelve level with stage
+  eleven on every span but retiring more instructions than it on 20 of 154
+  tie-view readings; (3) HELD, stage twelve across the halves at 0.9304
+  on `window`; (4) KILLED, `runs-48` 4.0 to 5.4% under `runs-96` an element; (5)
+  KILLED within the control half, `small-flat64` 5.06% over stage seven against
+  4%.
 - `ANSWERED` **What Run 32 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 32's own file](runs/run32.md).
+  verdicts are [in Run 32's own file](runs/run32.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: (1) the shipped
+  fill HELD on the main set and missed the class band on `window` alone; (2)
+  the reference HELD at 1.0043, inside the differencing bar, where Run 31's
+  `-O2` moved it 29.74 points; (3) the fused list KILLED, the consumer 3.09
+  points off on `runs` against a 3% bar and this run's only kill; (4)
+  the odometer over the table HELD on both halves; (5) stage ten HELD and Run
+  31's `window` cancellation reproduced on two of its three views; (6) the pass
+  where neither change fires HELD, `rev` reading 1.0111; (7) the dispatch HELD
+  for a fifth run; (8) the floor pair HELD in all forty-four readings, the two
+  halves naming different pairs at 0.66% and 0.68%; (9) the leaf fusion HELD
+  at 0.6459 and 0.6358; (10) the allocation levels HELD EXACTLY, every tier
+  identical between the halves, where Run 31's was killed; (11) the unrolling
+  HELD; (12) the odometer over master's HELD on all four spans; (13)
+  the zero-stride move HELD, its `window` span missed on the basis half alone;
+  (14) the composed route HELD everywhere; (15) and (16) the two `-list-sum`
+  arms HELD and agree to 0.23 of a point where the counts say the routes walk
+  one loop.
 - `ANSWERED` **What Run 31 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 31's own file](runs/run31.md).
+  verdicts are [in Run 31's own file](runs/run31.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: (1) the shipped
+  fill HELD where Run 30's kill fell on it, the three arms reading 0.9956,
+  0.9972 and 0.9997; (2) KILLED, `list` moving 1.2974 against a registered 1.17;
+  (3) neither kill fired and the `runs` span missed by 15.57 points, the bangs
+  of 2026-09-13 having removed what it predicted; (4) HELD, the odometer ahead
+  of the table on both halves; (5) KILLED, three `window` views putting stage
+  ten behind stage nine on both halves where Runs 29 and 30 found them parting
+  in sign; (6) HELD, `rev` reading 1.0244 as Run 30 read it; (7) HELD on all
+  four spans; (8) HELD in all forty-four readings, and the whole-set floor
+  is the `bq-expand` pair's on the basis and the fill pair's on the control; (9)
+  HELD at 0.6417 and 0.6436; (10) KILLED, `-O2` taking `bq-expand` from 2.78x
+  to 2.11x and `list` from 25.20x to 23.45x; (11) HELD on both spans; (12) HELD
+  on all four; (13) HELD on both kills with the `window` span missed on both
+  halves; (14) HELD in every reading; (15) HELD, the user's fold no longer ahead
+  of the shared loop on `runs` and `window`, which is what the walker's bangs
+  were written to do.
 
 - `ANSWERED` **What Run 30 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 30's own file](runs/run30.md).
+  verdicts are [in Run 30's own file](runs/run30.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: (1) the flag
+  on the shipped fill, KILLED on the main set at 0.9891, 1.09 points off 1
+  and so 0.09 past its 1% bar --- a margin resting on one capped cell
+  and on which statistic is read, which that item's verdict sets out and which
+  would reverse on the column the table publishes and the first -O2 pass here
+  to make the shipped fill slower rather than leave it alone; (2) the flag
+  on the reference, KILLED at 1.1710 on the main set and past the bar on all
+  eleven populations, so the two columns are an ordering; (3) the flag
+  on the fused list, NEITHER KILL FIRING, its three magnitude spans missing
+  because they are Run 29's and read in that run's orientation, the flag worth
+  18.27 points on `runs` where `-fspec-constr` was worth 2.21; (4) the odometer
+  over the table, HELD at 0.4678 and 0.3947 on `runs`; (5) the list
+  over the fill, HELD at 0.5808 and 0.4900 on `runs` and tying inside the floor
+  on all five fill classes; (6) stage ten where both changes fire, HELD on both
+  kills, its `window` span missing on the control at 0.8863 where the two views
+  Run 29 found parting in sign part by twenty-eight and nineteen points; (7)
+  stage ten where neither fires, HELD at 1.0244 and 1.0245 on `rev` --- outside
+  both floors, as when it was killed on Run 29, and inside the 3% it was amended
+  to; (8) `lib-stage1` against the lean fill, HELD and reproducing Run 28's 0.23
+  and 0.42 for a third run; (9) the floor with the fill family's pair, HELD
+  in all forty-four readings --- and its hand-read half REVERSES Run 29's,
+  `bq-expand-aa-distant` carrying the whole-set floor at 0.57% where two runs
+  had said the gap was the fill pair's own. Both kills fell on an item
+  predicting a no-op, which is the third run running.
 - `ANSWERED` **What Run 29 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 29's own file](runs/run29.md).
+  verdicts are [in Run 29's own file](runs/run29.md), where a run's
+  registrations have lived since 2026-08-29; in a clause: (1) the flag
+  on the shipped fill, HELD on the main set at 1.0001, 0.9945 and 1.0044,
+  with ten of its thirty-three class readings outside 1% on `bcast`, `bcastmid`,
+  `block` and `small`; (2) the flag on the reference, KILLED, `list` reading
+  0.8788 on the main set and past the 0.7% differencing bar on all eleven
+  populations; (3) the flag on the fused list, HELD at 0.9779 on `runs`, 0.9839
+  on `block` and 0.9771 on `window`, read raw after a reader defect found
+  and fixed in this write-up; (4) the odometer over the table without the flag,
+  HELD at 0.4915 and 0.4664 on `runs` and 0.7826 and 0.7220 on `block`; (5)
+  the list over the fill without the flag, HELD at 0.5675 and 0.5795 on `runs`
+  and 0.4453 and 0.4493 on `block`, with all five fill classes tying inside
+  their floors; (6) stage ten where both changes fire, HELD at 0.5850
+  on `bcast`, 0.6128 on `bcastmid` and 0.7433 over stage nine on `window`, both
+  per-view kills failing; (7) stage ten where neither fires, KILLED on `rev`
+  at 1.0229 and 1.0240 past floors of 0.40% and 0.21%; (8) `lib-stage1` against
+  the lean fill with one fill under both, HELD at 0.9975 and 0.9967 on `bcast`,
+  1.0075 and 0.9710 on `bcastmid`, 0.2320 and 0.2328 on `runs` and 0.4225
+  and 0.4259 on `block`; (9) the floor with the fill family's pair, HELD in all
+  forty-four readings, the whole-set floor being that pair's for a second run
+  at 0.51% against the carry-back figure's 0.26%. **Every kill fell on an item
+  predicting a no-op** --- Run 28's own finding read again on a different
+  variable, and the write-up does not claim the converse, five other no-op
+  arguments having held.
 - `ANSWERED` **Why does `bq-scan-packed-mulback` get worse
   under `-fspec-constr`, when the packing was hand-rolled to buy exactly what
   the flag hands its control for free?** Dumped in both regimes from Run 8's
@@ -1303,12 +1440,13 @@ rather than a slot in the next run, observed again:
   from Run 36 on, and `./read-run.py --record regime` prints the readings; a run
   that builds that pair again appends its row. **They settle how many points
   the two passes are worth**: every reading after Run 36's puts `list` between
-  1.2889 and 1.2986 over the main set, around Run 31's whole-level 1.2974
-  and not above it, so Run 36's 1.3360 was the outlier and its reading
-  that the level's other passes hand `list` back is refuted across a rebuild
-  and not only across a second draw of one build. The composition of the two
-  single-pass runs, 1.3325, overshoots. The only readings of either pass ALONE
-  are Runs 29's and 30's, taken on ghc-9.12.4, on an older roster, and
+  1.2889 and 1.2986 over the main set, straddling Run 31's whole-level 1.2974,
+  from 0.85 of a point under it to 0.12 above, where Run 36's 1.3360 stood 3.9
+  above it, so Run 36's was the outlier and its reading that the level's other
+  passes hand `list` back is refuted across a rebuild and not only across
+  a second draw of one build. The composition of the two single-pass runs,
+  1.3325, overshoots. The only readings of either pass ALONE are Runs 29's
+  and 30's, taken on ghc-9.12.4, on an older roster, and
   with the `-fspec-constr` half as that run's basis so that its published
   figures are the reciprocals of this orientation. So the SPLIT is not accounted
   for at all: nothing says whether SpecConstr carries it, as its allocation
@@ -1765,17 +1903,87 @@ rather than a slot in the next run, observed again:
   The margins are [in Run 28's file](runs/run28.md).
 - `ANSWERED` **What Run 28 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 28's own file](runs/run28.md).
+  verdicts are [in Run 28's own file](runs/run28.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: (1) the dispatch
+  cost of the first canonicalization, HELD on `small` at 0.9073 and 0.9363; (2)
+  the tie everywhere else, HELD on all eight populations and both halves; (3)
+  allocation, KILLED, 16 of 77 views differing at the column's own precision
+  and each on both halves; (4) the tie-break where it cannot fire, HELD, `rev`
+  outside the floor on one half alone; (5) the tie-break where it fires, HELD
+  on `window` at 0.7425 and 0.7237; (6) the longest chain, KILLED on both
+  its conditions, `window` and `small-patch-r5`; (7) zero-stride axes outermost,
+  KILLED on `rev` while every zero-stride prediction it made held; (8) the fold
+  entry point, HELD, the hand-written loop behind the fused list at 1.7249
+  and 1.7422; (9) the ports without the copy, WITHDRAWN with its arms before
+  the run; (10) the ceiling's consumer, HELD on all five named populations; (11)
+  the ordered list's consumers, KILLED by its second kill on `main`, `rev`
+  and `small` while both its primary spans held; (12) base's `sum`
+  over the list, HELD at 0.7176 and 0.7314 on `window`; (13) the two unrollings,
+  HELD, `bcast-tall-Mx2` reading 1.2061 and 1.2058; (14) the lean fill ahead
+  of the shipped leaf, HELD on its kills with both spans wrong in the arm's
+  favour; (15) the shipped fill's own A/A pair, HELD in all forty-four readings;
+  (16) the reversal read inside one process, HELD at 2.1892 and 2.1252.
 - `ANSWERED` **What Run 27 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 27's own file](runs/run27.md).
+  verdicts are [in Run 27's own file](runs/run27.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: (1) the pointer
+  fills on GHC HEAD, HELD in every clause on both halves, the three spans
+  0.9713, 0.9357 and 0.9419 against 0.9751, 0.9239 and 0.9386 and both fills
+  at 1.00x, where Run 26 read 2.6731 and 2.61x; (2) the same two arms in counts,
+  HELD at 1.0054 and 1.0051; (3) the basis half against Run 26's, KILLED,
+  and killed by a box that moved 3.66% under the run; (4) the rate
+  an instruction saving reaches the clock, HELD, 27% to 46% on the three spans;
+  (5) the class-floor asymmetry, HELD, the basis wider in 6 of the eleven; (6)
+  the lazy unordered candidates, KILLED on `runs` and `block` though their
+  crossover against the fill landed inside the predicted window; (7) the lean
+  trick on the unordered list, KILLED on `small` and `compose`; (8) the lazy
+  ordered candidates, KILLED on all three of its kill conditions; (9)
+  the reducing consumers, HELD, `libunord-stage1-sum` leading its own fill
+  in all ten classes on both halves; (10) the baseline between the halves,
+  KILLED at 0.33% where 1.1% was registered, which reopens the subtraction; (11)
+  the dispatch pair, WITHDRAWN with the arm before the run; (12) the class-level
+  margin on the four reversed classes, HELD, all four inside 0.95 to 1.01; (13)
+  the hoisted bound, KILLED at 1.0138 and 1.0157 against a 1.005 kill, its 3.1%
+  instruction saving costing 1.4% of the time; (14) the unroll
+  under the library's dispatch, HELD at 1.0516 and 1.0414.
 
 - `ANSWERED` **What Run 26 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 26's own file](runs/run26.md).
+  verdicts are [in Run 26's own file](runs/run26.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: the dispatch pair
+  KILLED on `small` alone, the roster change SPLIT with its arm-level clause
+  held and its per-shape kill fired, `libunord-stage3` HELD, Run 24's unread
+  clause HELD in all eleven populations, Run 25's orderings clause HELD,
+  the class clauses `flip` and `block` KILLED again and `small` HELD
+  at its first reading, the two window views HELD, and the pointer fills' three
+  spans KILLED with two of their three directions established and the third
+  parting between the two statistics the run file publishes --- and not one
+  clause of the eight was unreadable, where Runs 24 and 25 lost five between
+  them.
 - `ANSWERED` **What Run 25 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 25's own file](runs/run25.md).
+  verdicts are [in Run 25's own file](runs/run25.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: (1) the box, HELD
+  --- -0.08% at the gate and +0.32% and -0.77% on the two main-set processes
+  against Run 24's kept fingerprint, all inside 3%; (2) the anchors, HELD,
+  `cnn-L2-24x24-c32` -1.59% of Run 24's own net for it; (3) the pair, KILLED ---
+  `list` moved 1.10% between the halves where 0.7% was allowed, so the two
+  columns are ordered and not differenced, and its second clause was unreadable,
+  all three orderings it names turning on an arm parked that day --- two against
+  `lib-stage2` and one stated of `lib-stage2-short-lean`; (4) the additions
+  of 2026-09-03, task 10's four: `flip` KILLED by every fill on both halves,
+  a reversed run costing the regime-3 fill about twice its forward twin
+  at the same length, `block` and `compose` SPLIT and `small` unreadable; (5)
+  the retirement, HELD, nothing published moving for it and Run 24's basis
+  column giving this one's figure back on fourteen of the eighteen shared arms
+  once the shape set is pinned, a printed digit away on the other four; (6)
+  the prune, HELD, the three crossed pairs inside Run 24's floor on both halves
+  with their spans shortened; and (7) the unroll, HELD on both halves ---
+  `mut-odo-vecdims-add-in-leaf-u1` between `-add-in-leaf` and `-u2`,
+  so the shipped fill's margin is the unrolling's and the merged bound is worth
+  six and a half percent rather than the wash a shimless probe read. **Two
+  of the seven lost five clauses between them to arms parked the day after they
+  were registered**, which is the entry above this one, fired again.
 - `ANSWERED` **The baseline moved 1.10% between two halves that differ only
   in the compiler, and the counted work says it is not instructions.** **TAKEN
   2026-09-05: the term is `list`'s own**, cycles per instruction in its code
@@ -1790,7 +1998,17 @@ rather than a slot in the next run, observed again:
   compiler is what would say whose the term is.
 - `ANSWERED` **What Run 24 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 24's own file](runs/run24.md).
+  verdicts are [in Run 24's own file](runs/run24.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: (1) the short
+  bodies, SPLIT --- ahead past both floors on every k3 and k5 shape and killed
+  by its own count clause on `stretch-coprime-r7`; (2) the lean dispatch, HELD,
+  and taken 2026-09-05 ([the stride
+  classes](#the-stride-classes-and-what-they-cover)); (3) the composite, HELD
+  on every population of both halves; (4) the straddlers, HELD, and named rather
+  than counted for the first time; (5) HEAD, HELD on its orderings and
+  not on one of its figures, with one clause unreadable because the arm
+  it turned on had been parked; and (6) the threshold, HELD, the re-cut dispatch
+  now leading the `runs` class.
 - `PARKED` **A registration can name an arm the roster has parked, and the check
   written for it reaches one registration of the two a run now has --- Run 24
   lost a clause to this and Run 25 lost five.** Run 24's registration 5
@@ -1877,11 +2095,29 @@ rather than a slot in the next run, observed again:
   in an ordering the post-run list has to hold, and nothing would report a later
   reordering.
 - `ANSWERED` **What Run 23 was built to answer, registered before it ran ---
-  and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 23's own file](runs/run23.md).
+  and what it answered.** The six registrations, their kill conditions and their
+  verdicts are [in Run 23's own file](runs/run23.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: (1) the nine
+  padded arms' win reproduced within 0.7 of a point, HELD, and the counted work
+  says it is the pads, 4.0% of their instructions over the 23 readable shapes;
+  (2) the flatness control flat at count ratios of 1, HELD; (3) the classes
+  SPLIT and the `runs` monotone prediction KILLED, the margin ordering
+  with nothing; (4) `build`/`mut-odo` a tie on the basis and 0.9449
+  on the dead-spot half at counts of 1, HELD; (5) the placement-exposed workers'
+  counts equal, HELD on that and not on the size, `gen-unsafe` 4.9 points
+  from the probe's figure; (6) no Run 22 verdict re-decided by the switch,
+  and KILLED by its own terms nonetheless, the repetition of Run 22's binary
+  unseating `lib-stage2-u4`'s kill.
 - `ANSWERED` **What Run 22 was built to answer, registered before it ran ---
-  and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 22's own file](runs/run22.md).
+  and what it answered.** The five registrations, their kill conditions
+  and their verdicts are [in Run 22's own file](runs/run22.md), where a run's
+  registrations have lived since 2026-08-29; a registration is that run's record
+  and reads against that run's tables. **Two held, one split and two
+  were killed**, and unlike Run 21's one-sided set they share a subject rather
+  than a mistake: `fillStage2` got fast enough between the two runs
+  that a threshold, an unrolling and a family ordering all cut around its old
+  cost are each mis-cut. The headline is that Run 21's 2.43-to-4.54 regime-3
+  regression is gone --- 0.74 to 1.03 on the same six populations.
 
 - `ANSWERED` **`dispRun` was demonstrably mis-cut, and its right value
   is a measurement rather than a guess --- taken 2026-09-02 and re-cut
@@ -2916,7 +3152,15 @@ rather than a slot in the next run, observed again:
   which nobody has proposed.
 - `ANSWERED` **What Run 33 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
-  verdicts are [in Run 33's own file](runs/run33.md).
+  verdicts are [in Run 33's own file](runs/run33.md), where a run's
+  registrations have lived since 2026-08-29; in a clause each: (1) KILLED,
+  the lean fill 3.54 points apart on the main set where the exit span was meant
+  to level it; (2) HELD, `list` inside 2% on the main set and 3% on all ten
+  classes; (3) KILLED, the shared per-run loop level on `runs` where 0.81
+  was predicted; (4) HELD, the shipped leaf inside 2% and its fusion at 0.6428;
+  (5) HELD in all forty-four floor-pair readings; (6) HELD, the exit span worth
+  under 2% to either fill arm across the two builds; (7) NOT ADJUDICABLE,
+  the shipped shim reporting no exit span astride at all.
 - `ANSWERED` **Price the exit span against the entry count, `LOOP_EXITSPAN=1`
   against `LOOP_ENTRIES=1`, each under the dead-spot form --- registered
   2026-09-15, before either has been built into a half, and answered the same
@@ -14007,10 +14251,10 @@ is the failure this list was rewritten to escape.
   which Run 17's items did until Run 18's write-up removed them and named where
   each had gone --- a departure rule with no destination named is one nobody
   applies;
-- [the noise-floor table][floor] and its prose, from `--aa` --- including
-  the raw-slope six it compares against, the position verdict the crossed
-  controls now disagree about between runs, and the `build`/`mut-odo` pair read
-  as a second control;
+- [the noise-floor table][floor] and its prose, from `--aa`, and the run's row
+  in `series/floor.tsv` --- including the raw-slope six it compares against,
+  the position verdict the crossed controls now disagree about between runs,
+  and the `build`/`mut-odo` pair read as a second control;
 - [the opening section][opening]'s headline ratios and its regime paragraph;
 - [Making a major benchmark Run](#making-a-major-benchmark-run), whose figures
   are worked examples inside its own steps, which a run does not requote, only
