@@ -8073,7 +8073,9 @@ Unsandboxed throughout:
     #      the dead attempt's $R-evening.txt aside and launch again, OR
     #      resume it at the stage that died, `./run-evening.sh $R --from
     #      STAGE` (gate, alarm, instance, sequence or riders), which
-    #      appends to that file under a `resumed` line.
+    #      appends to that file under a `resumed` line -- a sequence only
+    #      where it left no JSON, its stray check refusing one; a sequence
+    #      that did is finished by step 17's class loop.
     #      ARM NOTHING BESIDE IT: its exit is the session's wake-up. ASKED
     #      MID-EVENING, answer with `./evening-status.sh $R`, one line off
     #      two tails, and nothing heavier.
@@ -8143,7 +8145,7 @@ Unsandboxed throughout:
     #      NO EDIT TO THE TREE, until the evening ends. Never raise -L on
     #      a recorded run. Look at a process far slower than its
     #      neighbours against the previous run's -wallclock.log, SCALED BY
-    #      THE BENCH COUNT. No resume: if it dies mid-sequence, hand-run
+    #      THE BENCH COUNT. No resume past a JSON: if it dies mid-sequence, hand-run
     #      the class loop over both halves, skipping a population on
     #      whether its JSON PARSES and never on whether it exists;
     #      `python3 -c 'import json,sys; json.load(open(sys.argv[1]))'
@@ -8187,7 +8189,8 @@ Unsandboxed throughout:
     #      launch below, in the message carrying its tool call.
     #      AND THE CLAIM ON A QUIET BOX ENDS WITH THE SAYING: anything
     #      wanting the box quiet AGAIN -- a probe the sequence did not
-    #      carry, post-run 3's rerun, a filtered A/B this run's results
+    #      carry, post-run 3's rerun unless the note's RERUN: line says
+    #      `allowed`, a filtered A/B this run's results
     #      suggest -- is ASKED FOR and waited on, one ask to a sitting.
     #      why: a fix landed mid-write-up costs every stretch after it an
     #      unwrap, each commit rewrapping README.
@@ -8807,9 +8810,10 @@ than a variable it inherits, and the evening's third stage. It refuses without
 one, the prefix being the run's identity, and refuses to start where that name
 already has artifacts, since relaunching would overwrite hours in place ---
 **which makes an interrupted sequence a hand job; expect that, since the machine
-gets wanted back.** It has no resume, so a sequence whose main sets landed
-and whose classes did not is finished by running the class loop yourself,
-with the skip-and-count discipline step 17 spells out; one process per
+gets wanted back.** It has no resume past its first JSON,
+`run-evening.sh --from sequence` refusing once one exists, so a sequence whose
+main sets landed and whose classes did not is finished by running the class loop
+yourself, with the skip-and-count discipline step 17 spells out; one process per
 population is what makes a run in two windows harmless, each carrying its own
 controls and gates, but it is a fact about the run and the run file states it.
 What the driver adds over the pasted sequence it replaced is the counting,
@@ -9417,7 +9421,9 @@ not otherwise.
     #      and the per-shape line -- one line each. The other two exist
     #      only WITH the second JSON and are yours to place from
     #      `./read-run.py $R-<basis>-<class>.json --block --compare
-    #      $R-<other>-<class>.json --brief`, which since 2026-09-19
+    #      $R-<other>-<class>.json --brief --counts
+    #      $R-counts-<basis>-<class>.txt $R-counts-<other>-<class>.txt`,
+    #      which since 2026-09-19
     #      prints every bolded paragraph ONE LINE EACH, the form this
     #      file keeps; that arm honours no --in-place and never did.
     #      COPY THEM, DO NOT JOIN THEM.
@@ -9537,7 +9543,7 @@ not otherwise.
     #      6d ANYWAY and fix both reports at 7
     #      AND SEND PASS 2 THE MOMENT PASS 1 LANDS, wherever that falls
     #      -- beside 6e if it lands there -- rather than carrying it to
-    #      7a. 6d's condition is on pass 1 RETURNING and not on 6c being
+    #      7a. Pass 2's condition is on pass 1 RETURNING and not on 6c being
     #      done; two agents at once, never three.
     #      KEEP CHAPTER EDITS OUT OF THE WRITE-UP'S COMMITS; where they
     #      have already happened, bound README's diff at the run's own
@@ -13836,9 +13842,10 @@ its pair was, how the sequence ran, what moved and what did not, its anchors
 and its correction --- is under [Provenance in the run's
 file](runs/run39.md#provenance) and is replaced with the rest of it. What
 is here is what a run does not replace: the delta chain below, which gains
-a bullet per run and is the only record of which shape set and roster each
-measured, and the list of what a run replaces OUTSIDE its own file, which
-is a recipe. Between them they say what a run's figures have to be read against.
+a bullet per run and, with Runs 30 down to 8's bullets in their own files,
+is the only record of which shape set and roster each measured, and the list
+of what a run replaces OUTSIDE its own file, which is a recipe. Between them
+they say what a run's figures have to be read against.
 
 The desktop named at the head of the run's file is the same machine whose `idiv`
 cycle counts the [Lemire
@@ -13858,22 +13865,22 @@ in which a shape set or roster is recorded here: each run's difference
 from the run before it. The newest bullet's run measured the shapes, class views
 and roster `Main.hs` defines today, but for what that bullet declares added
 or retired after the run, so a reader reaches today's state from the top
-of the chain and walks down the deltas. A snapshot would be a second copy
-of a list that already exists; a delta costs what actually moved and shrinks
-to nothing when the two agree. A roster delta has two halves now that membership
-no longer settles what ran: which arms the roster held, and which of them
-it timed. **And a third: the ORDER they ran in.** Order is not membership,
-it *can* move code layout, and Run 10 measured layout at 12 to 14% on the two
-arms whose loop the shim rescues --- so a delta stated in membership alone can
-read empty while the run is not repeatable. Whether a given reorder moves
-anything is a thing to measure rather than assume, both answers having turned up
-in one afternoon: `sum-only-early`'s slot-5-to-2 move left all eight loops
-this README tracks byte-identical, while lifting it one further place, above
-`list`, shifts every worker by ~40 KB and rerolls every alignment. So record
-the order, and read the binary before deciding what the record costs. **A fourth
-half arrives with the pairing and is not a delta at all**: which half
-of the pair a figure came from, which is why the run file's tables
-and its fingerprint say so.
+of the chain and walks down the deltas, from Run 30 down in each run's own file.
+A snapshot would be a second copy of a list that already exists; a delta costs
+what actually moved and shrinks to nothing when the two agree. A roster delta
+has two halves now that membership no longer settles what ran: which arms
+the roster held, and which of them it timed. **And a third: the ORDER they ran
+in.** Order is not membership, it *can* move code layout, and Run 10 measured
+layout at 12 to 14% on the two arms whose loop the shim rescues --- so a delta
+stated in membership alone can read empty while the run is not repeatable.
+Whether a given reorder moves anything is a thing to measure rather than assume,
+both answers having turned up in one afternoon: `sum-only-early`'s slot-5-to-2
+move left all eight loops this README tracks byte-identical, while lifting
+it one further place, above `list`, shifts every worker by ~40 KB and rerolls
+every alignment. So record the order, and read the binary before deciding what
+the record costs. **A fourth half arrives with the pairing and is not a delta
+at all**: which half of the pair a figure came from, which is why the run file's
+tables and its fingerprint say so.
 
 - Run 39 measured 31 timed arms over 19 main-set shapes and 61 class views
   in TEN classes, 589 benches and 1891, EIGHT A/A pairs, the `runs` class

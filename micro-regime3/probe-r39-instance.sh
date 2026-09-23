@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Post-run step 4a's copy test for Run 39, 2026-09-23: the eleven half-local
 # movers against Run 38 all read FASTER on this run, counts level, so each
-# is this run's binary, its file instance or the process. For each mover's
-# widest cell, cycles an iteration on the timed file, on a fresh copy of it
-# and on Run 38's same half, interleaved over three passes, each figure the
+# is this run's binary, its file instance or the process. For the widest
+# cell of every -u1 mover and of four of the six list-family ones, cycles
+# an iteration on the timed file, on a fresh copy of it and on Run 38's
+# same half, interleaved over three passes, each figure the
 # difference of an -n 2N and an -n N process over N, which drops the
 # process's start. The copy separates the instance from the binary: a copy
 # reading with the timed file is the binary, one reading with Run 38 is the

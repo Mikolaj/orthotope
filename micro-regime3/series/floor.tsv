@@ -3,7 +3,7 @@
 # with different `pairs` are different statistics. `carry-*` is the max
 # over the four pairs that carry back to Run 10. A `-` is a figure no
 # write-up recorded; Runs 16 to 35's artifacts are deleted, so their rows
-# are the only copy.
+# are records and cannot be re-derived.
 run	pairs	basis	control	carry-basis	carry-control
 16	18	2.32%	1.22%	-	-
 17	18	3.70%	3.89%	-	-

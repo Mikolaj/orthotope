@@ -5503,8 +5503,9 @@ def compare_cell(cells, shapes, meta, path, other, main_hs, cell):
     publish AND on the mutator clock `--wild` reads, the one being what a
     published figure took and the other what the intruder cost the
     process; Run 39's session read the second off two `--wild` tables by
-    grep, quoted it alone, and the checker found the net figure three
-    times larger. `this/other` is this file over the `--compare` one.
+    grep, quoted it alone, and the checker found the net figure two and
+    a half to three times larger. `this/other` is this file over the
+    `--compare` one.
     """
     sh, _, st = cell.partition('/')
     b_cells, b_shapes, _ = load_other(other, main_hs, shapes, meta)
