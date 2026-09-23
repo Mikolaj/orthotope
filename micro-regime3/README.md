@@ -6445,7 +6445,7 @@ to 1.26 on `small-patch-r5`, on both halves. `libunord-stage8-sum` is checked
 and not timed since; the route stays for `check`.
 
 Ideas that **died on paper**, recorded so they are not re-proposed --- and,
-first, the two that did not die on paper at all:
+first, those that did not die on paper at all:
 
 - **A run-length dispatch inside `toVectorT`, one memcpy per run above
   a threshold and the fill below it**, `lib-stage2-disp` with `dispRun` at 2048
@@ -6488,6 +6488,17 @@ first, the two that did not die on paper at all:
   evidenced**: the form reaches a ceiling on one compiler and allocates
   on the other, and a ceiling that exists on one codegen and not the other
   is a second reason not to ship it rather than a reason to revisit the first.
+- **Starting `sumNoSpec`'s per-run sum from the run's first element, its loop
+  tested at the bottom** --- **it works, it makes `libunord-stage14-sum` about
+  a third faster on `runs-2` under GHC HEAD and 9.12.4 alike and up to 27%
+  on `window`, and it will not be done.** NOT TAKEN 2026-09-23: the harness's
+  consumer stays close to the library's, whose `sumT` sums each run
+  with vector's `sum`.
+- **Unrolling `runSlices`'s per-run loop by two** --- **it works, it makes
+  `libunord-stage14-sum` a quarter faster on `runs-2` under GHC HEAD and a sixth
+  under 9.12.4, slower on no measured shape, and it will not be done.**
+  NOT TAKEN 2026-09-23 on code complexity: `runSlices` is already too complex
+  for a second copy of its run step.
 - **Speeding up `toVectorListT` or `toUnorderedVectorListT` by returning a less
   lazy list** --- the whole array filled as a singleton list, or a table built
   before the first slice --- **it may well be faster, and it will not be done.**
