@@ -1072,14 +1072,18 @@ MUTANTS = [
      "    clause('property 1, ahead of `bq-expand` on every shape', 'net',\n"
      "           LAST_CANDIDATE, PLAIN, 1.0)",
      'set -o pipefail; f=$(ls "{root}"/run[0-9]*-rev.json 2>/dev/null | tail -1); test -n "$f" '
-     '&& python3 "{file}" "$f" --block 2>/dev/null | grep -q "property 1, ahead of .bq-expand. on every shape: HOLDS"'),
+     '&& python3 "{file}" "$f" --block 2>/dev/null | grep "property 1, ahead of .bq-expand. on every shape: HOLDS" >/dev/null'),
     ('property 2 stops reading mut-odo-vecdims against list', 'read-run.py',
      "    clause('property 2, allocation at most 1% over `list` on every shape',\n"
      "           'alloc', PLAIN, 'list', 1.01)",
      "    clause('property 2, allocation at most 1% over `list` on every shape',\n"
      "           'alloc', 'list', PLAIN, 1.01)",
      'set -o pipefail; f=$(ls "{root}"/run[0-9]*-main.json 2>/dev/null | tail -1); test -n "$f" '
-     '&& python3 "{file}" "$f" 2>/dev/null | grep -q "property 2, allocation at most 1% over .list. on every shape: HOLDS"'),
+     '&& python3 "{file}" "$f" 2>/dev/null | grep "property 2, allocation at most 1% over .list. on every shape: HOLDS" >/dev/null'),
+    # A PIPEFAIL JUDGE READS ITS WHOLE STREAM: `grep -q` exits at the
+    # first match, the writer then dies of SIGPIPE, and pipefail reads the
+    # 141 as a red baseline -- which the post list's default form did the
+    # day it outgrew one write (2026-09-23).
     # THE EXECUTION ORDER GOING STALE UNDER THE LIST. POST_EXEC is a
     # second statement of the post list's shape, so the one way it can
     # lie is a step moving and the constant not; _exec_order compares
@@ -1093,7 +1097,7 @@ MUTANTS = [
      "'4b', '10a', '5', '5a',",
      "'4b', '5', '5a',",
      'set -o pipefail; python3 "{file}" --checklist post --imperative'
-     ' --readme "{dir}/README.md" 2>/dev/null | grep -q "EXECUTION ORDER"'),
+     ' --readme "{dir}/README.md" 2>/dev/null | grep "EXECUTION ORDER" >/dev/null'),
     # THE NOTE PROMISING A BLOCK IT DOES NOT CARRY. Run 37's note put
     # its post-run step 9 half `at the foot of this note under
     # LEARNED` and carried none; that half is one session's and went
@@ -1136,7 +1140,7 @@ MUTANTS = [
      ' 5. THIS RUN ONLY\\n    <yours: a>\\n 6. THIS RUN ONLY\\n'
      '    <yours: b>\\n\' > "$d/log-read-run97/for-brief.txt";'
      ' cd "$d" && python3 "{file}" --brief-update run97'
-     ' --brief-dir . 2>&1 | grep -q "RE-OPENED"'),
+     ' --brief-dir . 2>&1 | grep "RE-OPENED" >/dev/null'),
     # --lint's mutant-judge check, blinded: a judge naming an arm the
     # roster parked reads red unmutated and counts as not applied, which
     # is what the rate column's judge did after c870e1e. The judge plants

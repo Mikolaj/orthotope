@@ -1854,6 +1854,18 @@ def readme_with_a_pointer_and_a_buried_action(tmp):
                    '    echo hello\n')
 
 
+def readme_with_a_run_step_and_its_reasons(tmp):
+    """A run list of two steps, the first carrying reasons under `why:`."""
+    return write(os.path.join(tmp, 'R.md'),
+                 '# A run list\n\n'
+                 '    grep -i gate $R-pair.txt     # 13. has the gate passed?\n'
+                 '    #      ACTION-BEFORE-WHY: read the verdict\n'
+                 "    #      why: --para 'A paired Run has one gate more'\n"
+                 '    #      REASON-AFTER-WHY, skipped by default\n'
+                 '    ./run-evening.sh $R          # 14. the evening\n'
+                 '    #      ACTION-OF-14\n')
+
+
 def unwrapped_readme_edit(tmp, old, new, *more):
     """`edited_readme`, but against the README's UNWRAPPED form.
 
@@ -7457,6 +7469,24 @@ RECORDS = [
                            "10. the PREVIOUS run's pair note"],
               hasnt=['grep -i gate $R-pair.txt'])),
 
+    case('checklist-default-stops-at-why', 'read-run.py', None,
+         'CONTROL: a step prints through its `why:` line by default, the'
+         ' reasons under it are skipped, and the next step resumes',
+         # Plan item 21.1, 2026-09-23: the short form became the default
+         # and the chapter's steps put their action above `why:`.
+         plant=lambda t: {'readme': readme_with_a_run_step_and_its_reasons(t)},
+         argv=['--checklist', 'run', '--readme', '{readme}'],
+         ok=V(exit=0, has=['ACTION-BEFORE-WHY',
+                           "why: --para 'A paired Run has one gate more'",
+                           './run-evening.sh $R', 'ACTION-OF-14'],
+              hasnt=['REASON-AFTER-WHY'])),
+
+    case('checklist-full-prints-the-reasons', 'read-run.py', None,
+         'CONTROL: --full prints the reasons the default form skips',
+         plant=lambda t: {'readme': readme_with_a_run_step_and_its_reasons(t)},
+         argv=['--checklist', 'run', '--full', '--readme', '{readme}'],
+         ok=V(exit=0, has=['ACTION-BEFORE-WHY', 'REASON-AFTER-WHY'])),
+
     case('record-prints-a-series-aligned', 'read-run.py', None,
          'CONTROL: --record NAME prints series/NAME.tsv, its notes and'
          ' its rows; an unknown name is refused with the names it has',
@@ -11838,8 +11868,7 @@ RECORDS = [
          # is the imperative half, which is derivable: the step leads and
          # the commands, without the continuations under them.
          argv=['--checklist', 'post', '--imperative'],
-         ok=V(exit=0, has=['./run-status.sh $R', '10b.'],
-              hasnt=['why: --para'])),
+         ok=V(exit=0, has=['./run-status.sh $R', '10b.'])),
 
     case('check-doc-refuses-a-piped-gate-in-the-chapter',
          'read-run.py', None,

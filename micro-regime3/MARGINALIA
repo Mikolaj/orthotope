@@ -708,3 +708,87 @@ recorded the refusals and stopped, which is what the step told it to do.
 2026-09-15. The wrap-restore hook was suspected twice on Run 32 and is innocent both times. First reported as a hold violation -- README coming back wrapped mid-stretch with the turn-end hold set -- then corrected to a single commit-hook rewrap, which was also wrong: it rewrapped at every commit that found the file unwrapped, which is its job. The hold was honoured on all 32 Stop firings of the session, 25 of them inside a hold, checked by correlating each firing's hasOutput against the two windows my own touch and rm define, and by driving both branches with a real Stop payload and WRAP_RESTORE_HOLD_DIR pointed at a scratch directory: held prints one line and restores nothing, unheld on a clean tree prints nothing. Eighteen of the held firings had no modified Markdown in the tree at all, so their output can only have been the hold line, and --selftest is 53/53. What was actually wrong was mine: after each commit I went on editing the rewrapped file, and four exact-match batches missed for it, at 07:59, 08:29, 09:16 and 09:30, each followed within seconds by the unwrap that fixed it. The hook had printed `restored r/orthotope/micro-regime3/README.md (wrapped)` before every one of them, surfaced in the transcript as a hook_success attachment, and I read past it six times. The chapter bullet written at 09:14 to record the habit said three misses when two had happened -- and two more happened after it was written.
 
 2026-09-23. The stage monitor at run list step 14 went, and with it what had grown around it: the `tail -F -n +1` pipeline over $R-evening.txt and $R-wallclock.log, the counts filter that kept step 20 to a few wake-ups, the rule of 2026-09-19 (amended 2026-09-20) for which ticks got a reply, the stop at 20's woken step, and read-run.py's check that every arming line kept `-n +1`, added 2026-09-22 after Run 38 re-armed with `-n 0` and read a seven-hour-old line as current. run-heartbeat.sh's EVERY had been 45 minutes so that a tick landed inside the prompt cache's hour; under a monitor it never governed anything, the monitor dying at thirty. What retired all of it was pricing the wait per wait rather than per hour: a wake-up is about a tenth of one cold read, and an eight-hour evening under a monitor is dozens of them.
+
+2026-09-23, run list step 17 (checklist restructure, action above why:).
+Cut from the step's reasons: properties.py, which globs every `.json` in
+the directory, failed three of its four properties on Run 35's truncated
+probe JSON until the parking suffix moved to `.json.truncated`.
+
+2026-09-23, pre list step 0 (checklist restructure). Cut: Run 36 reflowed
+the pair note's paragraphs and folded `HALVES:` and `COMPARE:` into the
+prose; the folded copy measured 2026-09-19 is where the three-way parting
+of --note-check/--check-doc/--lint, preflight and run-status.sh came from.
+
+2026-09-23, pre list step 2. Cut: Run 36 ran `par` over the paragraphs a
+batch of substitutions had left long, folding `HALVES:` and `COMPARE:`
+into the prose, no word lost. And Run 38's preparation read 36 KB of
+`--note` output only to use the `--draft` header's re-read list.
+
+2026-09-23, pre list step 11. Cut: a `tail` window is how Run 35 came to
+see 7, 8 and 8b with 4,5 already past. Ending a backgrounded call with
+`; echo "exit $?"` is how Run 35 read an aborted preflight as a clean one
+and how Run 36 read a failed one twice.
+
+2026-09-23, pre list step 12. Cut: Run 35's roster pass was stopped at
+minute twenty and then ruled not owed, its main leg standing -- the case
+behind asking the owner before launching a pass of every class.
+
+2026-09-23, pre list step 12a. Cut: Run 38's registration called 0.51 an
+A/A floor where `--aa` gives 0.59% and the 0.51 is `--compare`'s widest
+arm-to-duplicate gap; an item calling 0.51 `the floor --aa gives` would
+satisfy --lint's provenance floor. Run 36 read some sixty kilobytes of
+open list and older run files verbatim for facts that fitted on a page.
+
+2026-09-23, pre list step 12b. Cut: Run 35's item (3) spanned a claim
+about the PREVIOUS run as `counts`, which compares the two HALVES, and was
+unholdable the day it was written; `--lint` has printed each span as
+`--predictions` will compare it since 2026-09-18.
+
+2026-09-23, post list step 1 (checklist restructure). Cut: Run 36 read
+`RC=0` off `--check-doc | head` on a FAILING gate, and off a redirect a
+sandboxed call had refused, where the `tail` beside it printed an older
+log of the same name.
+
+2026-09-23, post list step 4 (post-run-readings.sh). Cut: Run 36 computed
+per-arm allocation in a script whose print took an absolute deviation, so
+`2 - ratio` reached the page on one arm. Run 38 scripted `sum-only` early
+over late and put two reciprocals on the page. Run 38 scripted the sign
+partings count from `--winsor`'s two columns, having read the table and
+not its closing census lines.
+
+2026-09-23, post list step 6a. Cut: Run 36 joined the `--block --brief`
+wrapped form in a script of its own, a break fell inside
+`lib-stage2-lean-u1`, and `lib- stage2-lean-u1` reached a `What the class
+says` paragraph. Run 36's two class-preamble `--inherited` hits described
+Run 35's bold distribution and Run 35's five three-decimal ties above a
+table that now showed a different six and a different five; both read as
+apparatus, both went in, and the independent checker found them. Run 35
+shipped four stale figures past both gates and a figure-checking agent (a
+floor pair left at the previous run's, a row count, a reference run and a
+consumer count, two of the four word numerals) -- the case for `--stale`.
+Run 35 spent about a third of the half's tokens finding the prose facts
+by grep and made three transcription errors. Run 39 quoted its intrusion
+in five places, every correction had to find all five, and two readers
+still found them disagreeing.
+
+2026-09-23, post list steps 6b and 6d. Cut: Run 36 ran THREE agents at
+once, its pass 2 arriving beside 7a's blind reader and its probe; it cost
+nothing, pass 2 reading the SETTLED commit rather than 6d's. Run 36's
+covering message for pass 2 said the file had moved, and its pass 2
+re-derived the whole run file to find ten findings, nine of them in
+README, which pass 1 had never seen and the brief alone would have
+pointed it at.
+
+2026-09-23, post list step 7a. Cut: on Run 35 the blind reader found
+EIGHTEEN, against six for the session's own end-to-end read and seven for
+the figure checker's second pass, its worst a whole-set floor figure
+spliced into a carry-back series inside the paragraph that warns the two
+are different statistics. Run 38's session edited the run file while its
+probe was reading it.
+
+2026-09-23, post list step 10c (gate and which-check blocks). Cut: the
+verdict-line paragraph first named six labelled gates, a grep for
+`VERDICT` finding three that only carry the word in comments. Run 36
+wrote `nineteen main-set shapes` where a case reads `over 19 shapes`,
+shipped it through both gates, three independent readers and every
+commit of the list, and the owner fixed it afterwards off a case replay.

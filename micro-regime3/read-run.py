@@ -266,7 +266,9 @@ Modes:
                     run or post, alone and sized -- and `post-a` or
                     `post-b` for the post list's two halves, which are cut
                     at step 6: nothing below that is actionable until 5b's
-                    tables are in -- no run needed
+                    tables are in -- no run needed. Each step prints
+                    through its `why:` line and no further; `--full`
+                    prints the reasons under it too
   --note PREV       a previous pair note as the next PREPARATION owes it:
                     the blocks it DECIDES, which is reading-list item 10
                     made executable. Three kinds are withheld and the size
@@ -10191,19 +10193,28 @@ def checklist(readme, which, steps_only=False):
           % (os.path.basename(readme), label, steps, len(block),
              len('\n'.join(block)) // 1024, i + 1, j + 1))
     print()
-    # --imperative: THE IMPERATIVE HALF. A step's own line and the
-    # commands, without the continuation prose under them. The
-    # rationale is not duplicated anywhere -- measured 2026-09-08, no
-    # sentence over sixty characters in these blocks appears in
-    # README's prose -- so it cannot be cut, and a session doing the
-    # work wants the list it executes rather than the list that
-    # explains itself. The full form stays the default: this is a
-    # second reading of one text and not a second text. The banner
-    # above carries the sizes, live, so no count is written here.
+    # THE DEFAULT IS THE IMPERATIVE FORM, and --full the annotated one.
+    # A step is what its lines say before its `why:` line, which prints
+    # as the pointer to the reasons; the lines after it are the reasons
+    # and are skipped until the next step's head or a command line. The
+    # lines before a list's first step print too, which is where a list
+    # states its rules. The run chapter keeps each step's action above
+    # its `why:` so that this cut is the whole of the derivation. Cases:
+    # `checklist-steps-prints-the-imperative-half`,
+    # `checklist-default-stops-at-why`.
     if steps_only:
-        block = [l for l in block
-                 if re.match(r'^ {4}#? {0,3}\d+[a-z]?\.', l)
-                 or (l.startswith('    ') and not l.strip().startswith('#'))]
+        kept, quiet = [], False
+        for l in block:
+            if not l.strip():
+                continue
+            if (re.match(r'^ {4}#? {0,3}\d+[a-z]?\.', l)
+                    or not l.strip().startswith('#')):
+                quiet = False
+            if not quiet:
+                kept.append(l)
+            if re.match(r'^ {4}#\s+why:', l):
+                quiet = True
+        block = kept
         if which == 'post':
             order, moved, mismatch = _exec_order(block, whole=half is None)
             if mismatch:
@@ -14740,10 +14751,12 @@ def main():
     p.add_argument('--lint', action='store_true')
     p.add_argument('--check-doc', action='store_true')
     p.add_argument('--imperative', action='store_true',
-                   help="with --checklist: the imperative half --"
-                        ' the step lines and the commands, without the'
-                        ' prose under them. `--steps` was taken, by the'
-                        ' mode that finds a change of level mid-bench')
+                   help="with --checklist: the default form, each step"
+                        " through its `why:` line; accepted so that older"
+                        ' invocations keep working')
+    p.add_argument('--full', action='store_true',
+                   help="with --checklist: the reasons under each step's"
+                        ' `why:` line too')
     p.add_argument('--record', nargs='?', const='', metavar='NAME',
                    help='print series/NAME.tsv aligned; alone, list them')
     p.add_argument('--modes', action='store_true',
@@ -15138,20 +15151,23 @@ def main():
     if args.halves and not args.draft:
         sys.exit('--halves is --draft\'s: without it the note is READ and'
                  ' not carried over, so the new names have nowhere to go')
-    if args.imperative and not args.checklist:
+    if (args.imperative or args.full) and not args.checklist:
         # p.error, so the status is 2: this is usage, which the tree reads
         # as `the run did not happen`. The two refusals above exit 1
         # through sys.exit, which predates that convention.
-        p.error('--imperative is --checklist\'s: it drops the prose under'
-                ' each step, and there are no steps without a list to'
-                ' print. Taken alone it was read and ignored')
+        p.error('--%s is --checklist\'s: it chooses how much of each step'
+                ' prints, and there are no steps without a list to'
+                ' print. Taken alone it was read and ignored'
+                % ('imperative' if args.imperative else 'full'))
+    if args.imperative and args.full:
+        p.error('--imperative is the default form and --full the other;'
+                ' pass one')
     if args.note_check:
         sys.exit(note_check(args.note_check, args.readme, args.run_doc))
     if args.note:
         sys.exit(pair_note(args.note, args.draft, args.halves))
     if args.checklist:
-        sys.exit(checklist(args.readme, args.checklist,
-                          args.imperative))
+        sys.exit(checklist(args.readme, args.checklist, not args.full))
     if args.record is not None:
         sys.exit(record(args.record))
     if args.carried:
