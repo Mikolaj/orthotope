@@ -10167,7 +10167,8 @@ not otherwise.
     #      full, and says of every row what the chapter says once: a
     #      row's movement between runs is the winsorized column moving,
     #      so `--compare` against the COMPARE run's own JSON is what says
-    #      how far the ARM moved
+    #      how far the ARM moved, and the same with `--per-shape` which
+    #      cells carry it -- a reading Run 39 scripted by hand
     ./install-tables.sh $R                            # 5b. install, never
     #      paste: every table, from the BASIS half
     #      into `runs/$R.md`, the one document any of them writes -- so
