@@ -861,8 +861,8 @@ if [ "$CORPUS" = 1 ]; then
 # BLOCKED line came FIRST and `tail -1` shows the last, so the verdict
 # carried the HEAD line alone.
 # 8d IS WHAT THE EDITS SINCE THE LAST RUN OWE, which is what the pre-run
-# list asks for -- `defect-run.py --changed=<last run's commit> .`, glossed
-# there as *if any script here has changed since the last run* -- and not
+# list's 8d glosses as *if any script here has changed since the last run*,
+# naming this step as the one that runs it -- and not
 # what this ran until 2026-09-13. The bare form replays the WHOLE corpus,
 # minutes where the list's is seconds, and the two disagreed in plain sight:
 # the PASS line said `every planted defect` beside a list saying `if any

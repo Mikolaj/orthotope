@@ -7115,8 +7115,9 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     # --check-doc holds to a paragraph that is still there.
     # YOU ARE THE PREPARATION, and this list plus its `READ NOW` lines
     # is the whole of what you owe. Of the chapter's readings you owe 1
-    # (this list alone), 3, 7, 8's delta bullets, 9 and 10, and each is
-    # named at the step whose work needs it. Reading 5 is owed only where
+    # (this list alone), 3, 7, 8's delta bullets, 9 by the part a step
+    # needs and 10 as step 2's draft prints it, and each is named at the
+    # step whose work needs it. Reading 5 is owed only where
     # this preparation PARKS or DROPS an arm: step 7's --lint tells you,
     # refusing a property that names an untimed arm, and 12a says when to
     # read it. Nothing else in the chapter is owed,
@@ -7172,11 +7173,13 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      Rebuilding now would orphan the binaries the run's JSONs are
     #      provenanced to
     #   2. BUILD BOTH HALVES -- unconditional, from the note's own
-    #      recipe. READ NOW, BEFORE ANY OF THIS STEP: items 3, 9 and 10 --
-    #      the registration the compares-against prose points at, the
-    #      preparation half of read-run.py's docstring, and the previous
-    #      run's note. The first and the last settle what the pair varies.
-    #      Go back to them the moment a figure surprises you, a gate
+    #      recipe. READ NOW, BEFORE ANY OF THIS STEP: item 3, the
+    #      registration the compares-against prose points at; item 10,
+    #      the previous run's note, is read as the draft below prints it.
+    #      Item 9, read-run.py's docstring, is read by part when a step
+    #      needs it: `--doc modes` for a mode, `--doc definitions` for
+    #      what a figure means.
+    #      Go back to these the moment a figure surprises you, a gate
     #      refuses a leg, or the roster brings an arm whose relation to
     #      the forcing pass is new. READING 3 IS ONE CALL AND IT WANTS ITS
     #      TABLE: `./read-run.py --section 'What the next run compares
@@ -7203,27 +7206,23 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      prose UNDER the build and the preflight, which are minutes each.
     #      AND THE NOTE IS NEVER REFLOWED, by any tool. Break a long line
     #      by hand where one bothers you, or leave it long.
-    #      TWO COMMANDS DO THE READING AND THE COPYING:
-    #          ./read-run.py --note $PREV-pair.txt > $R-note-read.txt
+    #      ONE COMMAND DOES THE READING AND THE COPYING, redirected to
+    #      $R-pair.txt in an unsandboxed call:
     #          ./read-run.py --note $PREV-pair.txt --draft $R \
     #                        --halves <basis>,<other>
-    #      THE REDIRECT WANTS AN UNSANDBOXED CALL. The first prints the
-    #      blocks a preparation DECIDES and withholds the rest; REDIRECT
-    #      IT. ON A REPETITION IT IS NOT OWED: where the pair is the run
-    #      behind you repeated, same tags and same recipes, read the
-    #      SECOND command's own header, which lists every carried block
-    #      that needs re-reading with the reason each is suspect. The
-    #      second is the WHOLE note: the `[SAME]` blocks with the names
-    #      already carried over, every other slot present and empty as
-    #      `<yours>`, the template's guidance under each as `#`
-    #      scaffolding to delete. SO THE NOTE IS THAT FILE FILLED IN, not
-    #      three files assembled -- redirect it to $R-pair.txt and edit
-    #      there.
+    #      It is the WHOLE note: each `[SAME]` block from the template with
+    #      this pair's names and the previous LAUNCH and RIDERS values put
+    #      in, each `[PAIR'S]` block the previous note's under a `<yours>`
+    #      line as a model to rewrite, the handover and the fill-in rows
+    #      empty. Its header names the blocks it took from the template,
+    #      any paragraph dropped with one, and every carried block that
+    #      needs re-reading with the reason each is suspect. SO THE NOTE IS
+    #      THAT FILE FILLED IN, not three files assembled, and the
+    #      previous note needs no reading of its own.
     #      WHAT THE PAIR VARIES is settled in the registration, `What Run
     #      N is built to answer` in the open list, which *What the next
     #      run compares against* points at and which carries the recipes;
-    #      the previous run's note is what that run built. Read both
-    #      before writing this one.
+    #      the draft's models are what the previous run built.
     #      WHERE THE REQUEST DIFFERS from that section, the request wins,
     #      and the section and the open list's task recording the
     #      decision are amended first, in a commit of their own.
@@ -7512,12 +7511,12 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      run is caught HERE and by nothing else -- which is also why
     #      what an old run's artifacts still buy the checks is this step
     #      and not `check-all`.
-    defect-run.py --changed=<last run's commit> .  # 8d. and if any
-    #      script here has changed since the last run: every defect those
-    #      scripts have had, planted again and refused again.
-    #      THE `=` IS NOT OPTIONAL. AND THE LAST RUN'S COMMIT is that
-    #      run's own last commit, the tip when its write-up closed -- not
-    #      the source it built from, and not HEAD. 8c and 8d want an
+    #  8d. and if any script here has changed since the last run: every
+    #      defect those scripts have had, planted again and refused again.
+    #      NOT A CALL OF YOUR OWN: `--corpus` below runs it, as
+    #      `defect-run.py --changed=<commit> .` from the commit that FIRST
+    #      added runs/$PREV.md, which dates the last run finishing.
+    #      By hand, THE `=` IS NOT OPTIONAL. 8c and 8d want an
     #      unsandboxed seat; AND THEY RUN ALONE
     #  8c AND 8d COME AFTER 11 AND 12: `./preflight.sh $R --corpus
     #      --fill-in` runs these two alone and prints their fill-in row.
@@ -7527,8 +7526,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      why: --para 'What the three script-check steps'
     #      `--changed REV` reads REV as the ROOT, answers BLOCKED and
     #      exits 2, which is a run that did not happen and reads nothing
-    #      like a pass. HEAD selects nothing at all where this preparation
-    #      changed no script. 8c and 8d write `zz-` fixtures here and
+    #      like a pass. 8c and 8d write `zz-` fixtures here and
     #      remove them; a commit or an edit while they run reads as a case
     #      that changed the tree.
     #      The conflict runs BOTH ways: these two read every run JSON on
@@ -7567,7 +7565,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      spans astride, the span as align-as.py costs it under
     #      LOOP_EXITSPAN. On a half built with that switch it is 0, or
     #      the recipe lacks the switch, the shim regressed, or the survey
-    #      read a table as a loop, Run 35's case and Run 36's: dump the
+    #      read a table as a loop: dump the
     #      head's bytes first, and stop before 11 for the other two; on a
     #      half built without it, a figure for the note
     #      why: the answer is the binary's.
@@ -7724,6 +7722,11 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      item and not once at the head for all of them: `--lint` refuses
     #      an item quoting a figure and naming neither, a null span at 1.0
     #      quoting nothing and being exempt.
+    #      AND A FIGURE OFF A PROBE BUILD NAMES A FILE THAT HOLDS IT, in the
+    #      prose as in a span: the build's log, the shim's report, the perf
+    #      output, kept on disk beside the probe. A commit message or a
+    #      docstring is prose and not an artifact, and a figure only prose
+    #      holds is one 12b cannot re-derive.
     #      What an item that names none means, and how to ask every
     #      population at once, is one section and not repeated here --
     #      its title, whole, for a grep or a --section:
@@ -10597,33 +10600,15 @@ the section.
          carry -- the last note that built one holds that recipe, and
          `grep -n 'HOW EACH HALF IS BUILT' -A 70 $OLD-pair.txt` is how
          you take one block out of a note you do not otherwise owe
-         TWO COMMANDS DO THE SKIP AND THE COPY, and neither is a thing
-         to do by eye (both added 2026-09-03, after Run 24's
-         preparation did both by hand):
-             ./read-run.py --note $PREV-pair.txt > $R-note-read.txt
+         ONE COMMAND READS IT, and it is step 2's:
              ./read-run.py --note $PREV-pair.txt --draft $R \
                            --halves <basis>,<other>
-         The first withholds the handover below and says how much; the
-         second prints the `[SAME]` blocks alone with the names carried
-         over, every substitution listed, and every `[PAIR'S]` block
-         named as still yours. READ WHAT THE SECOND EMITS: it is a copy
-         with names changed, and the template asks for those blocks to
-         be re-read rather than re-decided
-         SKIP THE PREVIOUS RUN'S HANDOVER, which is about a third of a
-         note and none of it yours: `ENTRY POINT`, `WHAT THE
-         PREPARATION LEARNED`, `GREEN AFTER THE LAST EDIT`, the `GATE`
-         verdict and run-gate.sh's appended block, and the fill-in
-         lines recording that run's own progress -- its sequence, its
-         counts, its gate. They are addressed to the session that RAN
-         that pair and are spent. What you are here for is the two
+         It prints each of that note's `[PAIR'S]` blocks -- the two
          recipes, what the pair measured and why its basis was that
-         recipe, the roster, the compiler, the shim, and the fill-in
-         block's OBSERVATIONS, which are what this run's build is
-         compared against
-         A NOTE'S [SAME] AND [PAIR'S] MARKERS ARE A DIFFERENT AXIS and
-         answer a different question -- which of its blocks would be a
-         copying error to carry into your note. Notes carry them from
-         Run 23 on
+         recipe, the roster, the compiler, the shim -- as a model under
+         a `<yours>` line, takes the `[SAME]` blocks from the template,
+         and withholds the handover and the gate, which are spent with
+         that run
          -- the two recipes, and which of their lines the pair varies
 
 **SO THIS IS TWO LISTS, and there is no case in which a session owes all ten.**
