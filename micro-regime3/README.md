@@ -6869,8 +6869,9 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     # is the whole of what you owe. Of the chapter's readings you owe 1
     # (this list alone), 3, 7, 8's delta bullets, 9 and 10, and each is
     # named at the step whose work needs it. Reading 5 is owed only where
-    # this preparation PARKS or DROPS an arm, and step 7 is what tells
-    # you which of the two you are. Nothing else in the chapter is owed,
+    # this preparation PARKS or DROPS an arm: step 7's --lint tells you,
+    # refusing a property that names an untimed arm, and 12a says when to
+    # read it. Nothing else in the chapter is owed,
     # and reading the executing session's half is the largest avoidable
     # spend here. The default form prints each step through its `why:`
     # line; `--full` adds the reasons under it.
@@ -6936,15 +6937,17 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      run, and the note is the part written by hand.
     #      THE HALVES LAUNCH FROM DISK, `./$R-<half>`, hugebin/ BEING
     #      SUSPENDED -- ruled 2026-09-19. A ROW READING `./` IS THE
-    #      EXPECTED READING. PREFLIGHT'S 10f REFUSES A MOUNT NOBODY ASKED
-    #      FOR, since 2026-09-22: it FAILs where the path half-bin.sh
+    #      EXPECTED READING. PREFLIGHT'S 10f, a step of preflight.sh run at
+    #      4-10 below, REFUSES A MOUNT NOBODY ASKED FOR, since 2026-09-22:
+    #      it FAILs where the path half-bin.sh
     #      returns for a half is under `hugebin/` and PLACEMENT is unset.
     #      THE MOUNT IS AN EMERGENCY MEASURE: a run whose question IS the
     #      placement term raises it by hand (`mkdir -p hugebin && sudo
     #      mount hugebin`, root's, the fstab line in half-bin.sh's
     #      header), runs preflight with PLACEMENT=1, says in its note that
-    #      it did and on whose word, and takes 16a with it, the mount
-    #      WRITABLE or 16a leaves the instance UNTESTED. Every other run
+    #      it did and on whose word, and takes run-list step 16a with it,
+    #      the mount WRITABLE or 16a leaves the instance UNTESTED. Every
+    #      other run
     #      leaves it unmounted.
     #      Write the note FIRST, from pair-note-template.txt. WHAT `FIRST`
     #      MEANS IS THE RECIPE BLOCK, which is the part the build reads:
@@ -6975,7 +6978,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      before writing this one.
     #      WHERE THE REQUEST DIFFERS from that section, the request wins,
     #      and the section and the open list's task recording the
-    #      decision are amended first, in a commit of their own
+    #      decision are amended first, in a commit of their own.
     #      Every build wants -fforce-recomp and a fresh --builddir; the
     #      recipe SPELLS THE REGIME OUT rather than interpolating $REGIME.
     #      $REGIME is for the ad-hoc call, and where one is written
@@ -6992,15 +6995,18 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      those steps just read and prints the block to paste, marking
     #      `<yours>` the rows this call cannot give -- the sweeps, the
     #      roster pass, repetition, and 8c and 8d, which `--corpus
-    #      --fill-in` prints when it has run them. Steps 3, 9b and 10 are
-    #      reading the block back.
+    #      --fill-in` prints when it has run them. Steps 9b and 10 read the
+    #      block back, and 3 does on a re-entry.
     #      AND THE FILLS ARE READ BEFORE ANYTHING ELSE CHANGES, at 2d
     #      below; 2a and 2b sit between and change neither binary
     #      BUILD BOTH, ALWAYS -- the BOTH HALVES ARE BUILT ANEW ruling,
     #      whatever the source and the md5 say. ON A REPETITION THE MD5 IS
     #      ONE-SIDED, and an md5 that does not reproduce is NOT A STOP:
     #      the note records the observation, the write-up carries what
-    #      moved, and the prose gives the three reads that locate it
+    #      moved. What the recorded inputs do not cover is the dependency
+    #      store relinked at unchanged versions, which the two binaries'
+    #      ABI hashes show --
+    #      the `strings` line is in the paragraph this why names
     #      why: --para 'three rules are what they are'
     #      ITEM 9 IS HERE AND NOT AT STEP 7 because its definitions --
     #      corr, net, time, worst, and WHICH ROWS HAVE NO CORRECTED TIME
@@ -7084,8 +7090,9 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      moment both binaries exist and before anything else changes.
     #      There is no 2c: that is run-status.sh's label for a finished
     #      note.
-    #      OWED WHEREVER `--list` SHOWS A TIMED ARM THAT BRINGS A NEW
-    #      FUNCTION. Read the previous run's basis off its own note's
+    #      TAKE IT EVERY TIME: it is OWED wherever a timed arm brings a new
+    #      function, which only 6c shows, later, and it costs nothing where
+    #      it is not. Read the previous run's basis off its own note's
     #      HALVES line, which is where preflight's fill-in block reads it.
     #      why: a rebuild retires the comparison.
     #      A REBUILD RETIRES IT, and the fills read here are the
@@ -7101,12 +7108,13 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      says so on the line -- so taking it here is not a duplicate.
     #      What the claim covers, and how Runs 20 and 21 killed its strong
     #      form, are in the prose.
-    md5sum $R-<basis> $R-<other>          # 3. the note's fill-in block, read
-    git log -1 --format=%h -- :/micro-regime3/Main.hs   #    back: the two
-    git log -1 --format=%h -- :/micro-regime3/align-as.py  #    md5s, the
-    #      Main.hs commit and the SHIM's. WHERE PREFLIGHT HAS RUN WITH
-    #      `--fill-in`, ITS BLOCK CARRIES ALL THREE ALREADY, so this step
-    #      is that block read back rather than three calls of its own
+    md5sum $R-<basis> $R-<other>          # 3. three rows of the note's
+    git log -1 --format=%h -- :/micro-regime3/Main.hs   #    fill-in
+    git log -1 --format=%h -- :/micro-regime3/align-as.py  #    block: the
+    #      two md5s, the Main.hs commit and the SHIM's. In order this runs
+    #      BEFORE the preflight whose `--fill-in` prints that block; where a
+    #      re-entry has run it already, ITS BLOCK CARRIES ALL THREE, and
+    #      this step is that block read back rather than three calls
     #      why: the shim is an input to the binary.
     #      The shim is on the recipe's -pgma and is as much an input
     #      to the binary as the source is. The run file's
@@ -7130,14 +7138,16 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      sequence
     #      AND 10c, 10d AND 10e ARE EXPECTED TO FAIL HERE, the note being
     #      half written when this runs. Read them, do not chase them;
-    #      `./preflight.sh $R --note` re-runs the three in seconds once
-    #      the note is finished, and that is the reading that counts
+    #      `./preflight.sh $R --note` re-runs those three and 8 in seconds
+    #      once the note is finished, and that is the reading that counts
     #      4-10 IN ONE CALL: PASS or FAIL per step with what it read, the
     #      exit status the verdict. IT DOES RUN 10a AND 10b since
     #      2026-09-19, straight after 4,5 and on their astride count
     #      alone, the figures staying the note's -- so what it does NOT
-    #      run is 9b, 11 and 12, whose own lines follow. The steps below
-    #      are what it runs and what to reach for when one FAILs
+    #      run is 6c, 9b, 11 and 12, whose own lines follow, nor 8c and 8d
+    #      under --no-corpus; its fill-in block QUOTES 2d's and 6c's
+    #      readings without judging them. The other steps below are what
+    #      it runs and what to reach for when one FAILs
     #      why: 8c and 8d must not overlap 11 and 12.
     #      8c and 8d read every run JSON on disk and so must not run
     #      while 11 or 12 is WRITING one.
@@ -7163,8 +7173,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      to the temp directory this session actually has. Scratch names,
     #      spelled in full, and never a $R-*.log here.
     #      AND `check` IS SPENT HERE: nothing later wants it again
-    #      why: a pair whose halves compute differently has nothing to
-    #      compare.
+    #      why: halves that compute differently leave nothing to compare.
     #      A blocked redirect runs nothing at all; a $R-*.log here makes
     #      run-major.sh refuse hours later, and $TMPDIR is unset
     #      unsandboxed.
@@ -7194,12 +7203,11 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      ROSTER CHANGE WAS -- and the first tag is the PREVIOUS run's,
     #      as at 2d. Off the two binaries: benches, arms in and out,
     #      whether the survivors kept their ORDER, main-set shapes in and
-    #      out, and the class views per class. ITS PER-CLASS TALLY IS WHAT
-    #      STEP 12 NAMES ITS CLASSES FROM -- a class whose count moved is
-    #      a class that pass is owed for -- so read it here and carry the
-    #      answer down
-    #      why: a run that renames its basis leaves `$PREV-<basis>` naming
-    #      a binary that run never built.
+    #      out, and the class views per class. ITS ARMS IN AND ITS PER-CLASS
+    #      TALLY ARE WHAT STEP 12 NAMES ITS CLASSES FROM -- every class where
+    #      an arm came in, else each class whose count moved -- so read it
+    #      here and carry the answer down
+    #      why: this run's basis tag may name no binary $PREV built.
     #      It is what the note's roster block and Provenance's delta
     #      bullet both state in prose.
     ./read-run.py --lint                  # 7. roster and shape annotations,
@@ -7227,14 +7235,17 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      A clean pass here says nothing about text that does not exist
     #      yet. A name that is simply wrong cannot be told from one
     #      nothing searched
-    defect-lint.py . && python3 -m pyflakes *.py && shellcheck -S warning -f gcc *.sh
+    defect-lint.py .
+    python3 -m pyflakes *.py
+    shellcheck -S warning -f gcc *.sh
     #      8b. the defect families over the Python source here, and the
     #      two linters: pyflakes over it and shellcheck over the shell
     #      drivers, a linter off PATH failing the step by name -- the
     #      three lint steps of checks.py, which `check-all .` runs with
     #      everything else at the cost of the audit and the mutants
-    #      AND `check-all` IS RUN ALONE, which is where that condition
-    #      belongs and not only in the post-run list
+    #      AND `check-all` IS RUN ALONE -- no file created anywhere in the
+    #      tree while it runs, a log or a scratch redirect included -- which
+    #      is where that condition belongs and not only in the post-run list
     #      why: its case steps diff the working tree.
     #      Its two case steps DIFF THE WORKING TREE, so a file
     #      CREATED anywhere in it while they run -- a log, a scratch
@@ -7260,10 +7271,11 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      run's own last commit, the tip when its write-up closed -- not
     #      the source it built from, and not HEAD. 8c and 8d want an
     #      unsandboxed seat; AND THEY RUN ALONE
-    #  8c AND 8d COME AFTER 11 AND 12: `./preflight.sh $R --corpus` is
-    #      these two alone; take it when 12 reports DONE and BEFORE 12c,
-    #      which is the commit. The order is 12a and 12b under the
-    #      sweeps, then --corpus alone, then 12c
+    #  8c AND 8d COME AFTER 11 AND 12: `./preflight.sh $R --corpus
+    #      --fill-in` runs these two alone and prints their fill-in row.
+    #      Take it once 11 has printed `sweep clean` and 12, where owed,
+    #      `pass clean`, and BEFORE 12c, which is the commit. The order is
+    #      12a and 12b under the sweeps, then --corpus alone, then 12c
     #      why: --para 'What the three script-check steps'
     #      `--changed REV` reads REV as the ROOT, answers BLOCKED and
     #      exits 2, which is a run that did not happen and reads nothing
@@ -7293,10 +7305,12 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     ./loop-offsets.py $R-<other> $R-<basis>    # 10. fills, kept with the run:
     ./loop-offsets.py --library $R-<basis> $R-<other>   #     the eye's reading
     #      is the same fills at the same addresses in both, and only
-    #      `--library` prints a figure -- read it against the band the
-    #      prose gives this pair's recipes, never against a fixed line,
-    #      and not against a note's nm-based figure, which is another
-    #      number
+    #      `--library` prints a figure -- read it against the band for
+    #      this pair's recipes: near-total for one source padded to one
+    #      size and phase, a tenth to a quarter where a shim or a compiler
+    #      varies, lower still where the pads are PLACED differently. Never
+    #      against a fixed line, and not against a note's nm-based figure,
+    #      which is another number
     #      why: --para 'differed by more than Main'
     ./loop-offsets.py --survey $R-<basis>       # 10a. one leg per half,
     ./loop-offsets.py --survey $R-<other>       # 10b. both owed, both new,
@@ -7313,7 +7327,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      means is below, at the pad.
     ./smoke-sweep.sh $R                   # 11. the smoke sweep, STARTED NOW
     ./smoke-l1.sh $R [CLASS ...]          #     in the background with 12 where
-    #      the diff at 6 says it is owed, and 12a and 12b taken under
+    #      6c says it is owed, and 12a and 12b taken under
     #      them.
     #      A REPAIR TO read-run.py OR preflight.sh LANDS BEFORE STEP 11 OR
     #      WAITS FOR IT. What the pass does not hold -- pair-halves.sh,
@@ -7321,8 +7335,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      A REPAIR TO THE READER ITSELF NEED NOT WAIT IDLE: `cp
     #      read-run.py log-work-read-run.py`, edit the copy, TEST it
     #      against real JSONs, and apply it when the pass prints its
-    #      verdict. Delete the copy before 8c and 8d, which lint every
-    #      *.py here
+    #      verdict. Delete the copy once it is applied: 8b and check-all
+    #      lint every *.py here
     #      AND NOT BEFORE PREFLIGHT'S 4,5, NOR BEFORE 10a AND 10b.
     #      THE WAIT IS ON THE LOG LINES AND NOT ON THE CALL: launch these
     #      two the moment preflight's log shows `4,5  PASS` with `10a` and
@@ -7380,23 +7394,25 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      first, and read the membership off 6c above rather than off
     #      the roster delta under Provenance. The main set plus a leg per
     #      class named,
-    #      AND THE DEFAULT IS EVERY CLASS. Name a SUBSET -- `scaled` plus
-    #      whatever population moved -- only where the roster gained no
-    #      arm. A pass naming every class runs about an hour, which is
-    #      what to plan for -- AND WHERE THE OWNER IS AT HAND, SAY THAT
-    #      COST AND TAKE A WORD BEFORE LAUNCHING IT.
+    #      AND NAME EVERY CLASS where the roster gained an arm, the script's
+    #      bare default being `scaled` alone. Name a SUBSET -- `scaled` plus
+    #      each class whose count 6c's tally moved -- only where the roster
+    #      gained no arm. A pass naming every class runs about an hour,
+    #      which is what to plan for -- AND WHERE THE OWNER IS AT HAND, SAY
+    #      THAT COST AND TAKE A WORD BEFORE LAUNCHING IT.
     #      Artifacts are
-    #      `smoke-l1-$R-*`, never `$R-*` (the prefix rule below), and a
+    #      `smoke-l1-$R-*`, never `$R-*` (smoke-l1.sh's header, THE
+    #      NAMESPACE), and a
     #      previous attempt's are refused. A PASS YOU STOPPED IS A PREVIOUS
     #      ATTEMPT, so clear its artifacts before relaunching, and CLEAR THEM
     #      BY `smoke-l1-$R*` AND NOT `smoke-l1-$R-*`.
     #      AND A STOPPED LEG LEAVES A HALF-WRITTEN JSON: clear it before
     #      any check runs, not before the next pass. Record the outcome on
     #      an `L1 ROSTER PASS:` line
-    #  11 and 12 here, and 14 in the run list below, all belong to the
+    #  11 and 12 here, and run-list step 14, all belong to the
     #      PAIR: on passing, write each into $R-pair.txt
-    #  12 IS THE LONG ONE: what is read when each ends is its DONE line,
-    #      the contention in the elapsed times it records being a sanity
+    #  12 IS THE LONG ONE: what is read when each ends is its last `===`
+    #      line, the contention in the elapsed times it records being a sanity
     #      reading and not a measurement.
     #      THE TURN-END HOLD IS SET AT THE FIRST WAIT AND NOT HERE, which
     #      is step 2's build (~/.claude/rules/turn-end-hold.md). Clear it
@@ -7430,10 +7446,9 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      leg while the leg's JSON grows under it, which reads like
     #      progress and is not
     ./preflight.sh $R --corpus --fill-in  # 8c AND 8d, DEFERRED TO HERE:
-    #      run them when 11 and 12 have both printed their verdict --
-    #      `sweep clean` and `pass clean` -- and nothing is writing a JSON.
-    #      Two verdicts, and the only two of the twelve this half owes
-    #      that were not read above
+    #      run them once 11 has printed `sweep clean` and 12, where owed,
+    #      `pass clean`, and nothing is writing a JSON. Their two verdicts
+    #      are the only ones this half owes that were not read above
     #  12a. WRITE THE REGISTRATION, which is this half's largest product
     #      -- as ONE paragraph, which post-run step 5 moves whole into the
     #      run file with `--move-registration`: what this run is built to
@@ -7524,9 +7539,9 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      AND WHEN IT IS DONE, `./run-status.sh $R` READS `2c done: no
     #      <yours> slot left`, which is the one check that says the note
     #      is finished rather than merely written
-    ./read-run.py $R --carried --others $PREV-*-main.json \
-    #      $PREV-*-runs.json ...   AND THIS IS THE MECHANICAL HALF OF THE
-    #      REGISTRATION'S figures, as --figures is of the note's. It
+    ./read-run.py $R --carried --others <RUN>-*-main.json <RUN>-*-runs.json
+    #      AND THIS IS THE MECHANICAL HALF OF THE REGISTRATION'S figures,
+    #      as --figures is of the note's. It
     #      derives each `pair A B` span on the runs given and names the
     #      item where NOTHING it quotes matches ANYTHING its own span
     #      produces.
@@ -7534,8 +7549,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      ONE JSON PER POPULATION THE ITEMS ARE READ ON, both halves. It
     #      is a WARNING and never a verdict, so what it hands back is a
     #      shortlist to read, and the reading is still 12b's
-    #      AND THE RUN TO HAND IT IS THE ONE THE ITEM NAMES, WHICH IS NOT
-    #      ALWAYS $PREV
+    #      AND <RUN> IS THE RUN THE ITEM NAMES, WHICH IS NOT ALWAYS $PREV
     #  AND `./read-run.py $R --carry-over` IS THAT COMPARISON, item by
     #      item against the previous registration's PRE-RUN form, which
     #      is in GIT and not in the run file. It names the words that
@@ -7555,7 +7569,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      block, the roster counts and the previous run's totals among
     #      them. Those are yours, in one pass and not one call per figure
     #      AND NAME THAT FILE WHERE YOU WRITE THE FIGURE, or the next
-    #      reader copies you (post-run 6e says why). `./preflight.sh $R
+    #      reader copies you rather than re-deriving it. `./preflight.sh $R
     #      --note` re-checks 10c, 10d, 10e and 8 after these edits, in
     #      seconds
     #      AND WALK THE ARMS OF EVERY TASK THE REGISTRATION DEFERS TO,
@@ -7632,7 +7646,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      THEN COMMIT, AND REVIEW BEFORE YOU DO, not after: walk what this
     #      half wrote for errors -- 12b is the figures, this is the shape
     #      of the changes -- and commit once at the end. RUN
-    #      `./run-status.sh $R` AS THE LAST THING BEFORE THE COMMIT.
+    #      `./run-status.sh $R` AS THE LAST THING BEFORE THE COMMIT, and
+    #      clear the turn-end hold once the commit has landed.
     #      What the commit itself is: the registration on its own, tooling
     #      changes partitioned from it, and NOTHING PUSHED without a
     #      go-ahead. Leave nothing uncommitted. The note is gitignored and
@@ -7738,13 +7753,21 @@ rather than after them. Execute the list, its `why:` pointers being the prose;
 its machine steps are two commands, so what a session does here is read.
 Unsandboxed throughout:
 
+    #  TERMS, here and in the post-run list: $R is this run, $PREV the
+    #      one before; the note is $R-pair.txt, whose HALVES: line names
+    #      <basis> and <other>, the control; the run file is runs/$R.md;
+    #      the open list is README's `What is open`; `item N` is the
+    #      readings list, `./read-run.py --checklist readings`.
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
     #      read UP: the newest GATE: line is the script's own "reading still
     #      to do"; the hand-written verdict sits above it. The note is
-    #      always somebody else's and NOT RUN is its ordinary answer, so
+    #      always somebody else's; NOT RUN is its ordinary answer and
+    #      means the evening's first stage takes the gate, so
     #      read its [EXEC] blocks and not the note -- those are the ones
     #      this session ACTS on, where [SAME] and [PAIR'S] say who WROTE
     #      the block; the rest is the preparation's record and is skimmed.
+    #      DONE WHEN the verdict above GATE: says sound, or GATE: reads
+    #      NOT RUN.
     #      why: --para 'A paired Run has one gate more'
     #      THERE IS NO `or the whole note` BRANCH: a note without an
     #      [EXEC] block is a note `--note-check` refuses at pre-run 12c,
@@ -7857,6 +7880,8 @@ Unsandboxed throughout:
     #      once the evening has landed, the driver going on without it. A
     #      gate that FAILED mechanically stopped the driver instead, and
     #      that is the apparatus: read run-gate.sh's block in the note
+    #      for the refusal. DONE WHEN the note carries the verdict and no
+    #      `GATE: NOT RUN`.
     #      why: --para 'A paired Run has one gate more'
     #  16. THE ALARM, its second stage: two reads of /proc/stat two seconds
     #      apart, refused above 5% non-idle, MAXBUSY overriding -- the
@@ -7884,11 +7909,12 @@ Unsandboxed throughout:
     #      benchmarking count against `classes --list`, append to the same
     #      $R-wallclock.log, and say in the write-up that the populations
     #      ran in more than one window. Pre-registered probes are appended
-    #      after the classes, INSIDE THIS STAGE, and need no asking (19a);
+    #      after the classes, INSIDE THIS STAGE, and need no asking, 19a's
+    #      ask being for a probe the sequence did not carry;
     #      a filtered probe takes ONE -m MODE then its patterns, and its
     #      benchmarking lines are counted before any number is read
-    #      why: the driver's git lines are the binary's provenance.
-    #      Criterion spends its budget per bench.
+    #      why: an edit moves the driver's git lines, the binary's
+    #      provenance; criterion spends its budget per bench.
     #      Criterion writes the JSON as it goes, so a killed process
     #      leaves a truncated one. `probe-` alone keeps it out of
     #      read-all.sh's plateau glob and NOT out of properties.py's
@@ -7919,9 +7945,8 @@ Unsandboxed throughout:
     #      wanting the box quiet AGAIN -- a probe the sequence did not
     #      carry, post-run 3's rerun, a filtered A/B this run's results
     #      suggest -- is ASKED FOR and waited on, one ask to a sitting.
-    #      why: each commit rewraps README under the commit hook.
-    #      A fix landed mid-write-up costs every stretch after it an
-    #      unwrap.
+    #      why: a fix landed mid-write-up costs every stretch after it an
+    #      unwrap, each commit rewrapping README.
     #      The log read here is a second copy of what 14a already had, and
     #      opening a persisted copy reads it twice.
     #      Nothing below wants a quiet box (20's own line says why), so
@@ -7936,7 +7961,8 @@ Unsandboxed throughout:
     #      being exactly a thing that changes what the machine does next
     ./run-counts-all.sh $R                # 20, IN THE SAME TURN, in the
     #      harness's background mode again, as at 14. ITS EXIT IS ITS
-    #      ANNOUNCEMENT: make no tool call before it. Quote how long it
+    #      ANNOUNCEMENT: launch it as that turn's first tool call.
+    #      Quote how long it
     #      takes from the previous run's `./read-run.py --counts-cost
     #      $PREV`, never a guess
     #      why: a typed `&` would detach and wake nobody
@@ -7955,8 +7981,9 @@ Unsandboxed throughout:
     #      THEN, WOKEN AGAIN: read the counts stages in $R-evening.txt,
     #      whose last line is EVENING COMPLETE and whose tally is the
     #      complaints of both commands; report each rather than folding
-    #      them into a later summary, and start the post-run list, its
-    #      step 0 first.
+    #      them into a later summary, and go on with the post-run list in
+    #      its execution order, whose 1, 2 and 0's twin builds may
+    #      already have run beside the counts.
     #      why: an instruction count wants no quiet machine.
     #      It owes criterion nothing and is insensitive to load; counted
     #      beside a timed process, both readings are spoilt
@@ -8733,7 +8760,7 @@ not otherwise.
     ./read-all.sh $R --brief-facts                    # 1. GATE EVERY
     #      PROCESS -- and EVERY gate on this list is run BARE, its
     #      status read from its own exit: no pipe, no `&&` chain, no
-    #      redirect (this list's FOOT, under `A GATE IS NEVER FILTERED`).
+    #      redirect (post-b's `A GATE IS NEVER FILTERED`, after 10c).
     #      PROCESS AND DERIVE THE HEAD'S FACTS IN ONE CALL -- no bare
     #      `./read-all.sh $R` beside it: the window and its timestamps,
     #      the plateau band, BOTH floors per population, `list` against
@@ -8743,14 +8770,14 @@ not otherwise.
     #      from.
     #      EVERY PROCESS IS BOTH HALVES of every population, a line apiece
     #      with the A/A WORST CELL beside it. READ that column: it is the NET
-    #      ratio, the same quantity as the published floor, and neither
+    #      ratio, the quantity the published floor is taken on, and neither
     #      the pair's geomean nor the gate. A failed gate invalidates that
-    #      population's whole time column and only that one. Write this
-    #      run's floor into the run file's Results now. Read
+    #      population's whole time column and only that one. Note this
+    #      run's floor for the run file's Results, which step 5 makes. Read
     #      $R-wallclock.log FIRST.
     #      On a run carrying the preamble it also gates THE PLATEAU, off
     #      the logs rather than the JSONs: every recorded process's own
-    #      @@saturate reading inside 5% of the run's
+    #      @@saturate reading inside 5% of the run's own readings.
     #      why: --para 'Gate every population on the correction'
     #      The bare-gate rule is named at the first step that runs one, the
     #      foot being four hundred lines away: a gate read through a pipe
@@ -8905,24 +8932,28 @@ not otherwise.
     #      figure is attributed to the pair's variable, AND AFTER
     #      $R-evening.txt reads EVENING COMPLETE, its counts columns
     #      reading `--` until the counts have landed:
-    #      half-movers.txt, at a 3% bar; `--half-movers $R --movers PCT`
+    #      half-movers.txt, at a 3% bar; `./read-run.py --half-movers $R
+    #      --movers PCT`
     #      sets another.
     #      An arm it flags with its counts level is that half's binary or
     #      its FILE INSTANCE and not the pair's. For each flagged arm, the
-    #      COPY TEST first: `cp $R-<half> probe-copy-$R-<half>` and the
+    #      COPY TEST first, on a box asked quiet (19a): `cp $R-<half>
+    #      probe-copy-$R-<half>` and the
     #      cell timed on both, interleaved, which probe-r33-instance.sh's
     #      part 1 is with the names changed; then, BEFORE anything evicts
     #      the file -- a reboot, a copy over it, the fadvise -- the frames
     #      off the slow instance while it runs:
     python3 probe-pageflags.py <pid> <addr of the hot line> --heap   # as root
-    #      which prints the code frame beside the heap's
+    #      which prints the code frame beside the heap's; its header says
+    #      what PID and VADDR are
     #      why: --para 'The physical frame of a code page is a placement term too'
     #      Nothing else in this list sees the term, the A/A pairs sharing
     #      the binary and the counts the code. The frames printed side by
     #      side mean the bits they share are read and not guessed
     #  4b. EVERY CELL ACROSS THE HALVES, time beside counts over every
     #      population, ranked by what the counts do not explain:
-    #      cell-movers.txt, step 4's, 20 rows; `--cell-movers $R 80` takes
+    #      cell-movers.txt, step 4's, 20 rows; `./read-run.py --cell-movers
+    #      $R 80` takes
     #      more. Read the rows in three kinds. COUNT-LED: the codegen's,
     #      and on `lib-stage2-lean-u1` the known offender, the latch of
     #      GHC https://gitlab.haskell.org/ghc/ghc/-/work_items/27799 on a
@@ -9047,7 +9078,8 @@ not otherwise.
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json \
       --predictions --in-place       # 5c. THE REGISTRATION'S SPANS, taken
     #      here, after the counts. WHILE THEY ARE TAKEN, read `--checklist
-    #      post-b`, then take steps 9 and 10, which want no counts, and
+    #      post-b --full` once, re-opening its default form from then on,
+    #      then take steps 9 and 10, which want no counts, and
     #      6a's three readers. Every `predict:` span read on each
     #      population and half its scope names, HELD or KILLED with the
     #      figure read, and written under its item in the run file as
@@ -9059,11 +9091,6 @@ not otherwise.
     #      with the population each figure came from. The verdicts and
     #      the tally sentence are the whole of the adjudication left to
     #      judgement
-    #   READ THIS HALF ONCE WITH `--full`, THEN COME BACK TO ITS DEFAULT
-    #   FORM: `./read-run.py --checklist post-b` is these steps and
-    #   their commands without the reasons, and is what to re-open
-    #   between 6a and 7a rather than the full form. It is the longest
-    #   of the three lists and it is met six hours in.
     #      why: it reads the counts, which land last.
     #      It READS THE COUNTS, which the run list launches at step
     #      20 -- after the box is handed back, so on any run whose
@@ -9074,17 +9101,20 @@ not otherwise.
     #      step 6 -- Run 37 did.
     #   6. walk the replace list under Provenance (READ NOW: item 8, the
     #      list itself and its delta bullets), re-run the two sweeps it
-    #      names, and map every hit to the bullet covering it -- running
-    #      them is not reading them. REPLACE, do not annotate: a figure that
-    #      moved inside the floor is requoted without comment. The three
+    #      names -- grep both documents for figure-shaped numerals outside
+    #      the tables, and for the name of the run being superseded -- and
+    #      map every hit to the bullet covering it -- running them is not
+    #      reading them. REPLACE, do not annotate: a figure that moved
+    #      inside the floor is requoted without comment. The four
     #      bullets below GOVERN the walk rather than following it, which
     #      is why they are bullets and not sub-steps; 6a and 6c ARE it
     #      * THE WRITE-UP'S OWN COMMITS REWRAP THE WORKING COPY: after
     #        each of 6b, 6d and 7a the next exact-match batch misses until
     #        it is unwrapped again, which the hook's own `restored ...
     #        (wrapped)` line says.
-    #      * WRAPPING IS NOT A PRECONDITION: --replace, --delete and
-    #        --para match the flattened form, so nothing is unwrapped
+    #      * WRAPPING IS NOT A PRECONDITION: read-run.py's --replace,
+    #        --delete and --para match the flattened form, so nothing is
+    #        unwrapped
     #        before editing or after a commit's re-wrap; an EXACT-MATCH
     #        edit and step 5's literal rename are what still want the
     #        unwrapped form. SET THE TURN-END HOLD HERE, clearing it at 11
@@ -9093,7 +9123,8 @@ not otherwise.
     #        question answered in the documents among them.
     #        Never wrap by hand; read ~/.claude/rules/markdown-wrapping.md
     #        before the first edit
-    #      * REPLACE BY ANCHOR, `--replace ANCHOR --with FILE`, for every
+    #      * REPLACE BY ANCHOR, `./read-run.py --replace ANCHOR --with
+    #        FILE`, for every
     #        paragraph edit here and at 6a, 6b, 6c, 7, 9 and 10 --- AND ITS
     #        UNIT IS THE BLANK-LINE BLOCK, not the sentence and not the
     #        prose. Read the `out, last` line every time --- AND for a
@@ -9187,7 +9218,7 @@ not otherwise.
     #      machine, which half ran first, and THE COMMIT transcribed from
     #      `$R-pair.txt` now. A class line's shape count is the whole
     #      class-view set, so the population size comes from the reader.
-    #      The tables went in at 5b and are not touched here; what is
+    #      The INSTALLED tables went in at 5b and are not touched here; what is
     #      written is the prose around them, one edit per paragraph.
     #      Budget the head and the class paragraphs as the work.
     #      AND STATE THE DIRECTION ONCE, THEN CHECK EVERY CLAIM
@@ -9199,7 +9230,7 @@ not otherwise.
     #      EDITING THE PREVIOUS RUN'S. A PARAGRAPH DEFERRED until a
     #      measurement lands carries `[[TODO]]` in its place, which
     #      --check-doc refuses until it is written
-    #      why: --para 'commit the binary was built from'
+    #      why: --para 'commit the binary was built from'; 6b requotes it.
     #      FIRST, and not for tidiness: 6b's figures are requoted FROM
     #      this half.
     #      A script joining the wrapped form can split an arm name at a
@@ -9275,9 +9306,9 @@ not otherwise.
     #      writes the two items and the substitution block's RUN, BASIS,
     #      OTHER, PREV, PREVBASIS and PREVSAME, counts every `<yours>`
     #      slot it left, and does NOT write PRETIP or RUNTIP, which are
-    #      commits and yours: it carries them with every figure an
-    #      artifact can settle in place and `<yours>` for the pair's
-    #      variable and the largest finding.
+    #      commits and yours. The two items arrive with every figure an
+    #      artifact can settle already in place, `<yours>` left for the
+    #      pair's variable and the run's largest finding.
     #      EDITED EVERY RUN BEFORE EITHER PASS IS LAUNCHED. Its head says
     #      which three things change; WALK THE FILE, NOT ITS HEAD. It is
     #      not retyped and not summarised here.
@@ -9337,15 +9368,17 @@ not otherwise.
     #  6d. COMMIT 6b'S AND 6c'S WORK AS A SINGLE COMMIT, subject naming
     #      the step -- AND STEPS 9 AND 10 GO IN IT TOO, taken before this
     #      commit and not after 7. SEND the second pass WITH NOTHING BUT
-    #      THE STEP AND THE TWO DIFF COMMANDS, and no covering message
-    #      telling it the file has moved. Name the fixes, not the prose.
-    #      Send it to the same agent once its first has returned, send
-    #      the BLIND READER beside it on the same diff (7a's paragraph
-    #      has its brief), run 6e meanwhile, and FREEZE WRITES to both
-    #      documents until 7. THAT COMMIT'S DIFF IS WHAT THE AGENT WORKS
-    #      ON, one commit and not two. What bounds it is the ARTIFACT: the
-    #      diff of both files since the run's base commit, never README
-    #      whole.
+    #      THE STEP AND THE TWO DIFF COMMANDS -- checker-brief.txt's `THE
+    #      DIFF`, `git -C .. diff PRETIP..HEAD -- micro-regime3/runs` and
+    #      `git -C .. diff PRETIP..RUNTIP -- micro-regime3/README.md` --
+    #      and no covering message telling it the file has moved. Name
+    #      the fixes, not the prose. Send it to the same agent once its
+    #      first has returned, send the BLIND READER beside it on the same
+    #      diff (7a's paragraph has its brief), run 6e meanwhile, and
+    #      FREEZE WRITES to both documents until 7. THAT ONE COMMIT, both
+    #      files in it and not two commits, IS WHAT THE AGENT ADJUDICATES;
+    #      what it READS is those two commands, both files since the run's
+    #      base commit, never README whole.
     #      `--inherited` WAS RUN AT 6a's HEAD, not here
     #      why: --para 'Verify the write-up before deleting'
     #      Neither 9 nor 10 depends on anything pass 2 produces, and 10c's
@@ -9367,12 +9400,13 @@ not otherwise.
     #      before re-deriving a figure a previous run published,
     #      reproduce THAT run's value with your method first.
     #      AND A FIGURE THIS RUN WRITES NAMES THE ARTIFACT IT CAME FROM
-    #      A new column needs a route sharing no code with the reader --
-    #      difference wall, or user AND system, at two iteration counts.
-    #      Two instruments disagreeing is the finding: locate it, and
-    #      until then neither is evidence. Assert every scripted edit's
-    #      extent, and run `--lost --run-doc runs/$R.md`. Then --lint;
-    #      --check-doc --worklists,
+    #      A timing column no earlier run published needs a route sharing
+    #      no code with the reader -- difference wall, or user AND system,
+    #      at two iteration counts. Two instruments disagreeing is the
+    #      finding: locate it, and until then neither is evidence. Assert
+    #      every scripted edit's extent, and run `./read-run.py --lost
+    #      --run-doc runs/$R.md`. Then `./read-run.py --lint`; `./read-run.py
+    #      --check-doc --worklists`,
     #      adjudicating the items it marks ADDED BY THIS DIFF and no
     #      others; a superlative walk of the sentences this write-up
     #      wrote; and a walk of the diff against the writing rules. The
@@ -9397,7 +9431,8 @@ not otherwise.
     #      in this list. Then CONVERGE TO ONE WRITER and fix, which is
     #      all that is left here: merge the THREE reports into a SINGLE
     #      cycle and apply it -- 6d's over both files, the blind reader's
-    #      and 6e's worklist. 6b's is NOT among them; 7a's probe comes
+    #      and 6e's worklist. 6b's is NOT among them, save where it landed
+    #      after 6d's commit and 6b sent it here; 7a's probe comes
     #      after and is its own small cycle. A correction is a claim --
     #      derive it, then RE-RUN THE GATES
     #      why: --para 'Verify the write-up before deleting'
@@ -9410,8 +9445,8 @@ not otherwise.
     #      and no gate has seen.
     #  7a. COMMIT 7'S WORK, subject naming the step. Then the
     #      COMPREHENSION PROBE, the blind reader having gone out at 6d.
-    #      THE BLIND READER, SENT AT 6d BESIDE PASS 2, on the 6d commit's
-    #      diff of both files: a fresh agent given the write-up's whole
+    #      THE BLIND READER, SENT AT 6d BESIDE PASS 2, on the same two diff
+    #      commands: a fresh agent given the write-up's whole
     #      diff, no reasoning about it and SIX questions, all of which
     #      turn on the page and none on the artifacts -- a bolded lead
     #      against its own body; a quantifier against the cases the text
@@ -9484,7 +9519,9 @@ not otherwise.
     #      file. Report a split as a split, arm by arm
     #      why: --para 'Walk the open list against what this session'
     # 10a. main-<half>-deflation.txt, on both halves: the roster cell
-    #      over its own alone leg, per shape. RAW over RAW
+    #      over its own alone leg, per shape. RAW over RAW. TAKEN AT STEP 4,
+    #      whose post-run-readings.sh writes it, and numbered here so every
+    #      pointer to 10a still lands
     #      why: a leg has no `sum-only` to correct with.
     #      A leg carries no `sum-only` to correct with -- the one
     #      place a session would reach for the wrong numerator. It is
@@ -9503,7 +9540,7 @@ not otherwise.
     #  A GATE IS NEVER FILTERED AND A READING'S OUTPUT MAY BE, which is
     #      the line between the readings above and the checks below. A
     #      GATE -- `--lint`, `--check-doc`, `check-all`, `defect-run.py
-    #      --changed .`, `selftest-mutants.py .`, a build or a test suite
+    #      --changed=<REV> .`, `selftest-mutants.py .`, a build or a test suite
     #      -- is run bare and its status read from its own exit.
     #      `2>/dev/null` is legitimate on a reading whose warnings this
     #      session has already read once, and on no gate and no first
@@ -9513,7 +9550,7 @@ not otherwise.
     #      from `--lint`, `--check-doc` and `properties.py` -- and the
     #      rest say it in their own last line: `N steps, M failed` from
     #      `check-all`, `N cases run in the ok direction, M failed` from
-    #      `defect-run.py --changed .`, `N mutants, M caught, K survived`
+    #      `defect-run.py --changed=<REV> .`, `N mutants, M caught, K survived`
     #      from `selftest-mutants.py .`, and `every process gated clean`
     #      from `read-all.sh`. The exit status is a second copy of it.
     #      AND A HUMAN TABLE IS NOT PARSED BY FIELD INDEX. Use `--cells`,
@@ -9521,11 +9558,12 @@ not otherwise.
     #      match the LABEL on the line rather than its offset, and assert
     #      the header you expect before reading a row under it.
     #      AND A PUBLISHED COLUMN IS NEVER INVERTED TO GET THE OTHER
-    #      ORIENTATION. RE-RUN THE READER:
-    #      `./read-run.py PREV-<unflagged>-main.json --compare
-    #      PREV-<flagged>-main.json` prints the orientation you want, off
-    #      the JSONs.
-    #      A FIGURE THIS FILE QUOTES EVERY RUN OWES A MODE besides.
+    #      ORIENTATION. RE-RUN THE READER with the halves swapped, the one
+    #      you want first: `./read-run.py $PREV-<other>-main.json --compare
+    #      $PREV-<basis>-main.json`, the tags being $PREV's own, prints
+    #      the orientation you want, off the JSONs.
+    #      AND A FIGURE THIS FILE QUOTES IN EVERY RUN IS PRINTED BY A READER
+    #      MODE, never got by hand arithmetic over other modes' output.
     #      Two modes use the exit status besides: `--predictions` exits 1
     #      where a span went unread and `--pair` 2 where it refused a sunk
     #      pair.
@@ -9541,7 +9579,9 @@ not otherwise.
     #        An edit to the checker's brief alone owes nothing
     #      Main.hs, even a comment: `./read-run.py --lint`
     #      a script here, or read-run.py: `defect-run.py
-    #        --changed=<REV> .` at the END of the stretch, in the
+    #        --changed=<REV> .` at the END of the stretch, <REV> the commit
+    #        before it -- bare `--changed` is HEAD and sees only uncommitted
+    #        edits -- in the
     #        background and ALONE, in the sense pre-run step 8b gives that
     #        word -- no file created anywhere in the tree while it runs,
     #        which is not merely no edit and no commit -- with `-k NAME`
@@ -9550,9 +9590,10 @@ not otherwise.
     #      a table install: `--check-doc`, the install's check too
     #      a note or a registration: `./preflight.sh $R --note`
     #      and any shell script here besides: `shellcheck -S warning FILE`;
-    #        any Python file: `pyflakes FILE`. Both are on PATH, and a
-    #        tool is absent only when `command -v NAME` says so
-    #      why: nothing after RUNTIP has been reviewed.
+    #        any Python file: `python3 -m pyflakes FILE`, a module with no
+    #        command on PATH; a tool is absent only when the invocation
+    #        itself fails
+    #      why: RUNTIP..HEAD is unread, and a filtered gate misreports.
     #      Pass 2 reads README bounded at RUNTIP, so everything
     #      committed after it is unreviewed BY CONSTRUCTION -- 7a's own
     #      fixes, step 9's record, step 10's open list and its
@@ -9602,7 +9643,8 @@ not otherwise.
     #      `.slow` the instance gate parked beside them, which a suspended
     #      run has none of, the tmpfs emptying itself at the next reboot --
     #      once, after step 7 is done AND presented, saying what keeping
-    #      them buys. Offering is the step; deleting is not
+    #      them buys, and CLEAR THE TURN-END HOLD before sending the offer.
+    #      Offering is the step; deleting is not
     #      why: --para 'Only then, offer the artifacts'
 
 Steps 1 to 4a are readings and cost only tool calls, 5a another; 5, 5b and 6's
