@@ -7861,13 +7861,23 @@ def brief_update(run, readings_dir=None, brief=None, where='.'):
         return 2
     out, wrote, n = [], set(), 0
     was = open(brief, encoding='utf-8').read().count('<yours')
+    # AN ITEM IS ITS HEADER AND ITS INDENTED BODY, and both go: replacing
+    # the header line alone left the old body under the new item, so from
+    # Run 36 to Run 39 the brief carried every run's items one under
+    # another, found by Run 39's first checker pass. Case:
+    # `brief-update-replaces-each-item-whole`.
+    skipping = False
     for line in open(brief, encoding='utf-8').read().split('\n'):
+        if skipping and line.startswith('    '):
+            continue
+        skipping = False
         m = re.match(r' ([56])\. THIS RUN ONLY', line)
         if m:
             block = '\n'.join(items[m.group(1)]).rstrip('\n')
             out.append(block)
             wrote.add(m.group(1))
             n += 1
+            skipping = True
             continue
         out.append(line)
     if wrote != {'5', '6'}:
