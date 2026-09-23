@@ -2969,8 +2969,14 @@ def predictions_in_place(args):
     # file's own final newline, left on its last paragraph, opened the
     # next one written after it with `\n`, and a rerun then missed its lead
     # and wrote the paragraph again.
-    paras = [q.strip('\n') for q in open(doc).read().strip('\n')
-             .split('\n\n')]
+    # AND EACH PARAGRAPH'S LEADING NEWLINES KEPT BESIDE IT, for the write:
+    # a heading after two blank lines splits off as `\n## ...`, and the
+    # strip took that newline, so every such heading came back after one
+    # blank -- five of Run 39's, found by --check-doc on one and by hand on
+    # the rest. Case: `predictions-in-place-keeps-the-headings-two-blanks`.
+    raw = open(doc).read().strip('\n').split('\n\n')
+    leads = [len(q) - len(q.lstrip('\n')) for q in raw]
+    paras = [q.strip('\n') for q in raw]
     sec = next(i for i, q in enumerate(paras) if q.startswith(REG_HEAD))
     end = next((i for i in range(sec + 1, len(paras))
                 if paras[i].startswith('## ')), len(paras))
@@ -3015,9 +3021,11 @@ def predictions_in_place(args):
                     '**Read by --predictions, item ('):
                 at_i += 1
             paras.insert(at_i, para)
+            leads.insert(at_i, 0)
             end += 1
         written += 1
-    open(doc, 'w').write('\n\n'.join(paras) + '\n')
+    open(doc, 'w').write('\n\n'.join('\n' * n + q for n, q in
+                                       zip(leads, paras)) + '\n')
     print('wrote %d item paragraph(s) of span readings into %s, over %d'
           ' population(s) on both halves; the verdicts and the tally are'
           ' yours' % (written, os.path.basename(doc), len(pops)))
