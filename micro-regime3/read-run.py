@@ -183,6 +183,11 @@ Modes:
                     DIR, run by run and half by half, each beside that
                     half's floor: one cell's readings as a table rather
                     than a list requoted in prose run after run
+  --record [NAME]   a series README keeps as data and not as prose,
+                    from series/NAME.tsv, aligned: `floor`, `regime`,
+                    `selfloops`; alone, lists them. A write-up appends
+                    its run's row, and the prose says what the series
+                    shows
   --steps           every cell read at sample level for a mid-bench change
                     of level, which the fitted slope averages away and no
                     other column here can show
@@ -10220,6 +10225,51 @@ def checklist(readme, which, steps_only=False):
     return 0
 
 
+# The series README kept as prose, one run's reading appended per run:
+# data in series/*.tsv, each opening with `#` lines that say what its
+# columns are, and the prose saying what the series shows. Case:
+# `record-prints-a-series-aligned`.
+SERIES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          'series')
+
+
+def record(name):
+    """Print series/NAME.tsv aligned, or list the series with none."""
+    try:
+        names = sorted(f[:-4] for f in os.listdir(SERIES_DIR)
+                       if f.endswith('.tsv'))
+    except OSError as e:
+        sys.stderr.write('--record: %s\n' % e)
+        return 2
+    if not name:
+        print('series/, one table per series; --record NAME prints one')
+        for n in names:
+            print('  ' + n)
+        return 0
+    if name not in names:
+        sys.stderr.write('--record: no series/%s.tsv; one of %s\n'
+                         % (name, ', '.join(names)))
+        return 2
+    notes, rows = [], []
+    for line in open(os.path.join(SERIES_DIR, name + '.tsv')):
+        line = line.rstrip('\n')
+        if line.startswith('#'):
+            notes.append(line)
+        elif line:
+            rows.append(line.split('\t'))
+    ragged = [r[0] for r in rows[1:] if len(r) != len(rows[0])]
+    if not rows or ragged:
+        sys.stderr.write('--record %s: rows %s do not have the header\'s'
+                         ' %d columns\n' % (name, ', '.join(ragged),
+                                             len(rows[0]) if rows else 0))
+        return 1
+    widths = [max(len(r[k]) for r in rows) for k in range(len(rows[0]))]
+    print('\n'.join(notes))
+    for r in rows:
+        print('  '.join(c.rjust(w) for c, w in zip(r, widths)).rstrip())
+    return 0
+
+
 def move_registration(readme, run_doc):
     """Move the run's registration from README's open list into the run
     file's last section, leaving the ANSWERED stub in its place.
@@ -14694,6 +14744,8 @@ def main():
                         ' the step lines and the commands, without the'
                         ' prose under them. `--steps` was taken, by the'
                         ' mode that finds a change of level mid-bench')
+    p.add_argument('--record', nargs='?', const='', metavar='NAME',
+                   help='print series/NAME.tsv aligned; alone, list them')
     p.add_argument('--modes', action='store_true',
                    help="every mode `main` dispatches on, read off"
                         " this file's source: the `if` tests in the"
@@ -15100,6 +15152,8 @@ def main():
     if args.checklist:
         sys.exit(checklist(args.readme, args.checklist,
                           args.imperative))
+    if args.record is not None:
+        sys.exit(record(args.record))
     if args.carried:
         sys.exit(carried_figures(args.run or '', want_run_doc(args),
                                  args.readme, args.others, args.main,

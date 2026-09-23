@@ -1706,59 +1706,28 @@ rather than a slot in the next run, observed again:
   Run 35's own --- a break of the clause, and inside that half's 0.57% floor,
   so still a tie by the entry's own test.
 - `OPEN` **Which of the two `-O2` passes carries the regime's points,
-  on a compiler this series still builds with --- and, since Run 37, how many
-  points there are.** Run 36 put `-fspec-constr` and `-fliberate-case` TOGETHER
-  on one half and neither on the other and read `list` at **1.3360**
-  and `bq-expand` at **1.2980** on the main set; **Run 37 repeated that pair
-  and read 1.2960 and 1.3101**, so the two readings of one pair straddle Run
-  31's whole-level 1.2974 --- Run 36's corrected 1.3129 a point and a half above
-  it, Run 37's 1.2950 a quarter-point below --- and agree only
-  that the composition of the two single-pass runs, 1.3325, overshoots. The only
-  readings of either pass ALONE are Runs 29's and 30's, taken on ghc-9.12.4,
-  on an older roster, and with the `-fspec-constr` half as that run's basis
-  so that its published figures are the reciprocals of this orientation.
-  So the two together are NOT accounted for to better than a point and three
-  quarters, and the SPLIT is not accounted for at all: nothing says whether
-  SpecConstr carries it, as its allocation signature suggests, or whether
-  LiberateCase carries part of it on this HEAD. **What settles it is one pair
-  and one variable**: either flag alone against the unflagged half, built
-  by the newest published basis's own recipe, which reads against that basis
-  with the box as the only term --- the basis this entry's last sentence names.
-  Registered here rather than in a run's registration because it is a pair
-  to ask for and not a prediction to hold. **A third reading of the pair,
-  2026-09-20, says which of the two was the outlier**: the same two Run 37
-  binaries, the main set once more from disk on a quiet evening
-  (`probe-third-run37-gheadnospec-main.json` and its control twin, made
-  by `probe-chain-0920.sh`), read `list` at **1.2986** and `bq-expand`
-  at **1.3091** --- a quarter-point and a tenth from Run 37's own and 1.4 points
-  under Run 36's corrected 1.3129 --- so three readings of one pair stand
-  at 1.3129, 1.2960 and 1.2986, Run 36's apart, and the two passes together sit
-  0.12 of a point above the level's 1.2974; Run 36's reading that the level's
-  other passes hand `list` back does not survive it. Each half against its own
-  Run 37 main set reads every timed arm within 0.7 points, the evening's process
-  the faster on all sixteen of the basis's. The split is untouched by
-  it and stays the pair to ask for. **AND RUN 38 IS THE FOURTH READING
-  AND THE THIRD BUILD, 2026-09-22** --- readings and builds differ here because
-  the 2026-09-20 probe re-read Run 37's own two binaries rather than building
-  a pair: the same two recipes built again read `list` at **1.2889**
-  over the nineteen shapes and **1.2907** over the eighteen without Run 36's
-  cell, with `bq-expand` at **1.3032**. So the four readings on the nineteen
-  stand at 1.3360, 1.2960, 1.2986 and 1.2889, and on the eighteen the three
-  that have it stand at 1.3129, 1.2950 and 1.2907 --- Run 36's apart by 2.2
-  points and the two later draws agreeing to 0.43. **That settles
-  the how-many-points half of this entry**: the two passes together are worth
-  about 1.291 on `list`, 0.67 of a point UNDER Run 31's whole-level 1.2974
-  rather than above it, so Run 36's reading that the level's other passes hand
-  `list` back is refuted rather than doubted, and it is refuted across a REBUILD
-  and not only across a second draw of one build. **Run 39 is the fifth reading
-  and the fourth build, 2026-09-23, with the settled cost on both halves**:
-  `list` at **1.2966** over the nineteen shapes and **1.2959**
-  over the eighteen, `bq-expand` at **1.2985**, within 0.8 of a point of Run
-  38's on `list` over the nineteen, 0.5 over the eighteen and 0.5
-  on `bq-expand`. **The SPLIT is untouched and is still the pair to ask for**,
-  now against `run39-gheadnospec` --- `Main.hs` at `c870e1e` and the shim
-  at `fe6d133` under the settled cost, with the compiler, the project file
-  and the launch unmoved --- which reads with the box as the only term.
+  on a compiler this series still builds with.** Both together, `-fspec-constr`
+  and `-fliberate-case` on one half and neither on the other, have been read
+  from Run 36 on, and `./read-run.py --record regime` prints the readings; a run
+  that builds that pair again appends its row. **They settle how many points
+  the two passes are worth**: every reading after Run 36's puts `list` between
+  1.2889 and 1.2986 over the main set, around Run 31's whole-level 1.2974
+  and not above it, so Run 36's 1.3360 was the outlier and its reading
+  that the level's other passes hand `list` back is refuted across a rebuild
+  and not only across a second draw of one build. The composition of the two
+  single-pass runs, 1.3325, overshoots. The only readings of either pass ALONE
+  are Runs 29's and 30's, taken on ghc-9.12.4, on an older roster, and
+  with the `-fspec-constr` half as that run's basis so that its published
+  figures are the reciprocals of this orientation. So the SPLIT is not accounted
+  for at all: nothing says whether SpecConstr carries it, as its allocation
+  signature suggests, or whether LiberateCase carries part of it on this HEAD.
+  **What settles it is one pair and one variable**: either flag alone against
+  the unflagged half, built by the newest published basis's own recipe --- now
+  `run39-gheadnospec`, `Main.hs` at `c870e1e` and the shim at `fe6d133`
+  under the settled cost, with the compiler, the project file and the launch
+  unmoved --- which reads with the box as the only term. Registered here rather
+  than in a run's registration because it is a pair to ask for and
+  not a prediction to hold.
 - `OPEN` **A single wild cell moved this run's headline by 2.31 points and every
   mechanical gate passed it.** On Run 36's basis half `list`
   on `stretch-coprime-r7` read a net slope with a criterion CI of 10.07%
@@ -1983,85 +1952,29 @@ rather than a slot in the next run, observed again:
   `liblist-stage2-sum` was parked `Only` on 2026-09-23, so no later run reads
   it here.
 
-- `OPEN` **The flagged half carries FEWER self-loops than the unflagged one
-  and a LARGER `.text`, and the two facts point opposite ways --- the loops
-  measured gone, not grown, 2026-09-13.** Run 29's `--survey` reads 222
-  self-loops of at most 64 B on `run29-spec` against 284 on `run29-nospec`,
-  a gap of sixty-two, where the two compilers of Run 28 parted by eleven ---
-  and `spec`'s `.text` is 20783301 bytes against `nospec`'s 20766917, larger
-  by 16384, which is 16 KiB exactly. More code and fewer short self-loops
-  is not a contradiction --- `--survey` counts self-loops of at most 64 B,
-  so both a loop REMOVED and a loop GROWN PAST the cutoff leave it,
-  and a specialisation pass plausibly does the second --- but nothing here has
-  measured which, and a run that wanted to read placement off the survey count
-  would be reading two different events as one. **Measured 2026-09-13 at raised
-  cutoffs, on both pairs, and they were REMOVED**: counting every self-loop
-  of any length in `_Main_`-compiled code --- the survey's cutoff lifted to 96,
-  128, 192 and 256 B and then past any loop --- `run29-nospec` holds 327 against
-  `run29-spec`'s 268 and `run30-nospec` 327 against `run30-libcase`'s 318,
-  so neither gap closes at any cutoff; each widens a little once loops longer
-  than a line are counted, to fifty-nine and nine. The survey count
-  is a loop-count reading and not a code-size one, and each flag's larger
-  `.text` carries fewer self-loops of every length. The 16 KiB exactly
-  is recorded as an observation and not as a mechanism; nothing here explains
-  why the difference should be a round page multiple. **Run 30 reproduces
-  the SHAPE of this on the other -O2 pass and narrows it sharply.** `--survey`
-  reads 284 self-loops on `run30-nospec` against 280 on `run30-libcase`, a gap
-  of FOUR where Run 29's was sixty-two, with the flagged half again carrying
-  the fewer and again the larger `.text`, by 20480 bytes --- 20 KiB exactly,
-  a second round multiple and still no mechanism. **But the within-pair
-  placement reading is the opposite of Run 29's**: `--library` puts 925 library
-  self-loops at **100.0%** the same offset in line and **100.0%** the same
-  straddle state across Run 30's halves, where Run 29 read 39.4% of 914.
-  So a flag can grow `.text` by 20 KiB, drop four short self-loops and displace
-  NOT ONE tracked library loop; the raised-cutoff survey, asked on both pairs,
-  says the dropped loops are gone and not grown. **Run 31 is the third pair
-  and the widest: 221 self-loops on the `-O2` half against 299 on the plain -O1
-  basis, a gap of SEVENTY-EIGHT, with the `-O2` half's `.text` the LARGER
-  by 12288 bytes.** Same direction as both single-pass pairs and far wider
-  than either: nineteen and a half times Run 30's gap of four and a quarter more
-  than Run 29's sixty-two, so a whole level does to the survey count what
-  neither of its passes alone did. `--library` reads it from the other side
-  on the same pair: 916 library self-loops in common, only 4.4% at the same
-  offset in line against Run 30's 100.0% of 925, so the level displaces loops
-  where `-fliberate-case` displaced none. The measurement that would close
-  this entry is still the one it names --- which of the two events the count
-  is reading --- and Run 31 adds a third pair to run it on rather
-  than an answer. **RUN 32 IS THE FIRST PAIR TO REVERSE THE DIRECTION,
-  and it varies a COMPILER rather than a flag**: `--survey` reads 292 self-loops
-  on `run32-nospec` against **311** on `run32-ghead`, so the half
-  with the LARGER `.text` --- 20920127 against 20766917, larger by 153210 bytes
-  and no round multiple of anything --- carries the MORE self-loops, where all
-  three flag pairs had the larger `.text` carrying the fewer. `--library` reads
-  136 loops in common at 11.0% the same offset in line, which is the compiler
-  band and not the flag ones. So the fewer-loops-larger-text pairing
-  is a property of ADDING A PASS and not of emitting more code, which
-  is a narrowing the entry did not have and still not the measurement it asks
-  for. **The round page multiple narrows the same way**: the three flag pairs'
-  `.text` gaps are 16384, 20480 and 12288, exact multiples every one,
-  and no compiler pair's ever has been --- Runs 24 to 28 read 140922, 140922,
-  145018, 140922 and 145018 and Run 32 reads 153210. So whatever makes a gap
-  a round multiple is a pass being added and not a code generator changing.
-  **Run 36 reads the second widest gap of the series and the smallest `.text`
-  difference of it.** `--survey` reads 387 self-loops of at most 64 B
-  in `_Main_`-compiled code on the plain half against **310** on the flagged
-  one, a gap of seventy-seven, one under Run 31's seventy-eight and where Run
-  29's was sixty-two, while the `.text` gap is **4096 bytes**, one page,
-  the flagged half the larger --- 20383551 against 20379455. So the two facts
-  point opposite ways again, and the round-page multiple holds for a fourth flag
-  pair at the smallest multiple the series has: one page where the three before
-  it read four, five and three. **RUN 38 PARTS THE ENTRY'S TWO HALVES.**
-  Its `.text` gap is **65536 bytes**, sixteen pages, a SIXTH exact multiple
-  and the largest of the series --- but the flagged half carries MORE self-loops
-  this time, **335 against 325**, where five pairs running had the larger half
-  holding fewer. So the round-page multiple survives a sixth flag pair
-  and the loop-count half does not, and the two facts no longer point opposite
-  ways on this pair because only one of them points at all. Run 38's source
-  moved fourteen commits under an unmoved compiler, shim and project file,
-  so what changed the sign is the code and not the generator. **Run 39 repeats
-  that parting**: a `.text` gap of **77824 bytes**, nineteen pages, a SEVENTH
-  exact multiple and now the largest of the series, and the flagged half again
-  carrying MORE self-loops, **344 against 338**.
+- `OPEN` **Adding a pass grows `.text` by an exact multiple of a page and has
+  mostly left FEWER self-loops, the loops measured gone and not grown
+  (2026-09-13); a compiler change does neither.**
+  `./read-run.py --record selfloops` prints each pair surveyed, and a run
+  that surveys its pair appends its row. **The page multiple holds on every flag
+  pair and on no compiler pair**, and nothing here explains why the difference
+  should be a round page multiple. **The loop count parts from it**: the flag
+  pairs of Runs 29, 30, 31 and 36 carry FEWER self-loops on the flagged half,
+  the larger, where Runs 38 and 39 carry MORE, and Run 38's source moved
+  fourteen commits under an unmoved compiler, shim and project file, so what
+  changed the sign is the code and not the generator; Run 32, the one compiler
+  pair surveyed, also carries more on its larger half. **Where there were fewer,
+  they were removed and not grown past the survey's 64 B cutoff**: counting
+  every self-loop of any length in `_Main_`-compiled code, the cutoff lifted
+  to 96, 128, 192 and 256 B and then past any loop, `run29-nospec` holds 327
+  against `run29-spec`'s 268 and `run30-nospec` 327 against `run30-libcase`'s
+  318, so neither gap closes at any cutoff. `--library` separates one pass
+  from a level: `-fliberate-case` displaced no tracked library loop
+  and the whole `-O2` level nearly all of them, the table's same-offset column
+  reading 100.0% and 4.4%. What would close the entry is that raised-cutoff
+  count on the pairs not yet asked, Run 31's and those from Run 36 on; until
+  then a run that read placement off the survey count would be reading two
+  events as one.
 
 - `OPEN` **A saving in instructions reaches the clock at anything from NONE
   of it to ALL of it WITHIN ONE BINARY, where the rate on record is three
@@ -10460,8 +10373,9 @@ not otherwise.
     #      fill.
     #      AND CHECK ITS WORK: its report is evidence, not verdict
     #      why: --para 'The four ways its inputs have been got wrong'
-    #  6c. THE README SECTIONS, every other bullet: the floor table and
-    #      its prose, the opening, the mutable ceiling, the Lemire
+    #  6c. THE README SECTIONS, every other bullet: the floor section,
+    #      the run's row in each series/*.tsv it reads (`./read-run.py
+    #      --record` lists them), the opening, the mutable ceiling, the Lemire
     #      shipping paragraph, the stride-class chapter, the delta chain
     #      -- which gains a bullet for the run just read -- What is open,
     #      read-run.py's docstring, micro.cabal's -M8G note, and Main.hs
@@ -12466,107 +12380,54 @@ and 22 on Run 13 to 10, 41 and 37, the roster having gained arms between
 those twins and their bases; the three adjacent spans are unchanged.
 
 **On Run 39 the floor is 0.57% on the basis half and 0.43% on the control,
-carried by `bq-expand-aa-distant` on each, and it is the TWELFTH run read
-over these EIGHT pairs.** The eight are `list`, `bq-expand`, `mut-odo-vecdims`
-and `mut-odo-vecdims-add-in-leaf-u2`, each with an adjacent and a distant twin,
-unmoved since the shipped fill's own copies landed 2026-09-09 --- against
-the earlier readings in the table under this paragraph, whose pairs column says
-which statistic each row is. **A max over six pairs, one over eight, one
-over sixteen and one over eighteen are four different statistics**,
-so the sixteen-pair and six-pair figures are not a series this run's whole-set
-figure continues; what it does continue is the eight-pair one, whose twelve
-basis readings are the table's eight-pair rows --- the NINTH of them, Run 36's,
-two and a half times the widest before it, and it had a named cause rather
-than a trend: the basis half's `list` on `stretch-coprime-r7` was the one wild
-cell of Run 36, at an R2 of 0.9395 and a CI of 10.07% where its own two A/A
-copies agreed to 0.22 of a point, so the pair carrying that floor was carrying
-that cell. **Runs 37 to 39 all read that same cell clean and all three floors
-fall back into the series**: 0.59%, 0.57% and 0.57%, inside the 0.47% to 0.66%
-of the eight readings before Run 36's, this run's cell reading an R2 of 0.999969
-and a CI of 0.1362% against Run 36's 0.9395 and 10.07%. Over the four pairs
-that carry back to Run 10 this run reads **0.57%** and **0.43%**, both halves
-naming `bq-expand-aa-distant`. **So the two thresholds COINCIDE on BOTH halves
-this run**, `bq-expand-aa-distant` carrying the whole-set figure
-and the restricted one alike on each half --- as on Run 38, where Run 36 and Run
-35 parted on both, Run 34 on the basis alone, Run 33 closed them on both halves,
-and Run 28 read 0.50% against 0.39% and Run 29 0.51% against 0.26%. The worst
-A/A cells of this run's two main sets are **2.09%** on `stretch-wide-2xM`
-on the basis and **6.20%** on `vgg-14-c512-k3` on the control, where Run 36's
-basis carried a 28.36% outlier on `stretch-coprime-r7`. THREE benches
-of this run were intruded on, all the control half's and none of them an A/A
-pair's, which is what `--wild` over its logs says. No registration of this run
-names the floor pairs; `--floor-pairs` reads the eight on every population
-on both halves, 176 readings, and SIX of the eight carry a floor somewhere ---
-`list-aa-adjacent` in SEVEN of the twenty-two populations, where Run 38 read
-eight --- which is the same instability the whole-set figure above reads. **What
-this run cannot restate is Run 19's finding**, there being no repetition:
-the shim and `Main.hs` both moved under a compiler and a project file that did
-not, so no floor here is read twice on one binary. The three readings that did
-that stand as they were --- Run 19's factor of 1.7, Run 23's twentieth and Run
-30's 1.44 --- and they still say that a floor moves by up to seven tenths
-on a binary that has not changed at all, and that no run's floor is inheritable
-by the run after it. **Where the movement lives is the one thing twenty-two runs
-now agree on.** The carry-back figure has read 0.54%, 0.49%, 0.44%, 0.46%,
-0.37%, 0.39%, 0.34%, 0.40%, 0.31%, 0.83%, 0.39%, 0.26%, 0.57%, 0.61%, 0.66%,
-0.47%, 0.49%, 0.49%, 0.75%, 0.59%, 0.57% and now **0.57%** across
-those twenty-two on the basis while the whole-set figure ran 1.36%, 2.32%,
-1.51%, 2.92%, 2.12%, 2.03% and 1.26% before it stopped, so the pairs outside
-the four were what moved. **Run 27's 0.83% still does not survive as a trend**,
-and neither does the rise Runs 28 to 32 traced: Run 33's 0.47%, Run 34's 0.49%
-and Run 35's 0.49% are all INSIDE the 0.31%-to-0.54% band the series held
-for nine runs, and Run 36's 0.75% was above that band as four earlier readings
-of the series were --- 0.57%, 0.61%, 0.66% and Run 27's 0.83% --- and
-under the widest of them. **Run 37's 0.59%, Run 38's 0.57% and this run's 0.57%
-sit where Run 36's 0.75% did, above the 0.31%-to-0.54% band and under the widest
-reading of the series**, the basis's three readings parting by two hundredths
-of a point while the control's moved 0.48%, 0.28% and 0.43%; and on both halves
-of all three runs the whole-set and restricted readings coincide,
-so the four-statistics warning at the head of this paragraph costs those runs
-nothing. The threshold this run supports is ONE figure a half, the restricted
-four-pair reading and the whole set over the eight having closed on both ---
-and since 2026-09-13 a margin between two rows clears the whole-set one,
-the carry-back figure being the series and not the bar ([the open list][open]).
-Read the floor as the run's *and the half's*, re-measured every time, never
-as a constant of the harness and never inherited. **And of these series, only
-the readings from Run 36 on can still be re-derived**: Runs 24 to 30's artifacts
-were deleted 2026-09-18 and Runs 31 to 35's 2026-09-23, at the owner's word,
-so `--series` starts at Run 36 and every figure before it is a RECORD here
-and in that run's own file rather than something a later session can check.
-That is the run-file split working as designed --- an older run is read
-by opening its file --- and it is also why this paragraph's series is not
-to be cut: it is now the only copy. **And both of the checks from OUTSIDE
-the declared pairs are still gone with their arms.** `lib-stage2-disp`
-was parked on 2026-09-07 and the two undeclared pairs that stood in its place
-on Run 28 both lost a member to the parking of 2026-09-11, so this run, like
-Runs 29 to 38, has no check on the declared eight from outside them at all.
-A run that wants that check again has to land an arm for it.
-
-| run | A/A pairs | basis | control |
-|---:|---:|---:|---:|
-| 39 | 8 | 0.57% | 0.43% |
-| 38 | 8 | 0.57% | 0.28% |
-| 37 | 8 | 0.59% | 0.48% |
-| 36 | 8 | 1.63% | 0.53% |
-| 35 | 8 | 0.64% | 0.40% |
-| 34 | 8 | 0.51% | 0.49% |
-| 33 | 8 | 0.47% | 0.62% |
-| 32 | 8 | 0.66% | 0.68% |
-| 31 | 8 | 0.61% | 1.58% |
-| 30 | 8 | 0.57% | 0.84% |
-| 29 | 8 | 0.51% | 0.82% |
-| 28 | 8 | 0.50% | 0.65% |
-| 27 | 6 | 0.83% | 0.63% |
-| 26 | 6 | 0.31% | 0.46% |
-| 25 | 6 | 0.40% | 0.61% |
-| 24 | 16 | 1.26% | 2.11% |
-| 23 | 16 | 2.03% | 2.80% |
-| 22 | 16 | 2.12% | 1.08% |
-| 21 | 16 | 2.92% | 2.16% |
-| 20 | 18 | 1.51% | 1.18% |
-| 19 | 18 | 2.32% | 1.71% |
-| 18 | 18 | 1.36% | 1.42% |
-| 17 | 18 | 3.70% | 3.89% |
-| 16 | 18 | 2.32% | 1.22% |
+carried by `bq-expand-aa-distant` on each, over these EIGHT pairs.** The eight
+are `list`, `bq-expand`, `mut-odo-vecdims` and `mut-odo-vecdims-add-in-leaf-u2`,
+each with an adjacent and a distant twin, unmoved since the shipped fill's own
+copies landed 2026-09-09. Over the four pairs that carry back to Run 10 this run
+reads **0.57%** and **0.43%**, both halves naming `bq-expand-aa-distant`,
+so the whole-set and restricted thresholds coincide on both halves.
+`./read-run.py --record floor` prints both series, a row per run from Run 16,
+and a write-up appends its run's row at post-run step 6c. **A max over six
+pairs, one over eight, one over sixteen and one over eighteen are four different
+statistics**, so the whole-set column is a series only across rows of one
+`pairs` count. **The carry-back column is the series, and it says where
+the movement lives**: it has read between 0.26% and 0.83% on the basis since Run
+18, while over Runs 18 to 24 the whole-set figure, a max over sixteen
+or eighteen pairs, ran 1.26% to 2.92%, so the pairs outside the four were what
+moved. Run 36's basis 1.63% had a named cause rather than a trend: `list`
+on `stretch-coprime-r7` was that run's one wild cell, at an R2 of 0.9395
+and a CI of 10.07%, and later runs read the cell clean. The worst A/A cells
+of this run's two main sets are **2.09%** on `stretch-wide-2xM` on the basis
+and **6.20%** on `vgg-14-c512-k3` on the control, where Run 36's basis carried
+a 28.36% outlier on `stretch-coprime-r7`. THREE benches of this run
+were intruded on, all the control half's and none of them an A/A pair's, which
+is what `--wild` over its logs says. No registration of this run names the floor
+pairs; `--floor-pairs` reads the eight on every population on both halves, 176
+readings, and SIX of the eight carry a floor somewhere --- `list-aa-adjacent`
+in SEVEN of the twenty-two populations, where Run 38 read eight --- which
+is the same instability the whole-set figure above reads. **What this run cannot
+restate is Run 19's finding**, there being no repetition: the shim and `Main.hs`
+both moved under a compiler and a project file that did not, so no floor here
+is read twice on one binary. The three readings that did that stand as they
+were --- Run 19's factor of 1.7, Run 23's twentieth and Run 30's 1.44 ---
+and they still say that a floor moves by up to seven tenths on a binary that has
+not changed at all, and that no run's floor is inheritable by the run after it.
+The threshold this run supports is ONE figure a half, the restricted four-pair
+reading and the whole set over the eight having closed on both --- and since
+2026-09-13 a margin between two rows clears the whole-set one, the carry-back
+figure being the series and not the bar ([the open list][open]). Read the floor
+as the run's *and the half's*, re-measured every time, never as a constant
+of the harness and never inherited. **And only the rows from Run 36 on can still
+be re-derived**: Runs 24 to 30's artifacts were deleted 2026-09-18 and Runs 31
+to 35's 2026-09-23, at the owner's word, so `--series` starts at Run 36
+and every earlier row of `series/floor.tsv` is a RECORD, there and in that run's
+own file, rather than something a later session can check. **And both
+of the checks from OUTSIDE the declared pairs are still gone with their arms.**
+`lib-stage2-disp` was parked on 2026-09-07 and the two undeclared pairs
+that stood in its place on Run 28 both lost a member to the parking
+of 2026-09-11, so this run, like Runs 29 to 38, has no check on the declared
+eight from outside them at all. A run that wants that check again has to land
+an arm for it.
 
 **The 0.7% differencing bar, measured against the pairs it is applied to ---
 and it is near the MEDIAN of that population rather than a bound on it.**

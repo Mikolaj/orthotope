@@ -1,0 +1,12 @@
+# The two -O2 passes together, -fspec-constr -fliberate-case against
+# plain -O1 on one compiler, each reading the flagged half's main-set
+# geomean over the basis's: `list-19` over the nineteen shapes, `list-18`
+# without Run 36's wild `stretch-coprime-r7` cell. A row per reading, which
+# is per build except where a probe re-read an earlier build's binaries.
+# A `-` is a figure the reading did not take.
+reading	run	date	what was read	list-19	list-18	bq-expand
+1	36	-	Run 36's build	1.3360	1.3129	1.2980
+2	37	-	Run 37's build	1.2960	1.2950	1.3101
+3	37	2026-09-20	Run 37's binaries again, probe-chain-0920.sh	1.2986	-	1.3091
+4	38	2026-09-22	Run 38's build	1.2889	1.2907	1.3032
+5	39	2026-09-23	Run 39's build	1.2966	1.2959	1.2985

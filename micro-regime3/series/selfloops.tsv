@@ -1,0 +1,20 @@
+# Self-loops and .text across a pair's halves, a row per pair surveyed.
+# `plain` and `varied` are `loop-offsets.py --survey`'s self-loops of at
+# most 64 B in _Main_-compiled code, on the half without and with what the
+# pair varies; `text-gap` is the varied half's .text less the plain one's,
+# in bytes; `lib-common` and `lib-same-offset` are `--library`'s loops in
+# common and the share at the same offset in line. Runs not listed were
+# not surveyed or not recorded; a `-` is a figure the run did not record.
+run	varies	plain	varied	text-gap	lib-common	lib-same-offset
+24	compiler	-	-	140922	-	-
+25	compiler	-	-	140922	-	-
+26	compiler	-	-	145018	-	-
+27	compiler	-	-	140922	-	-
+28	compiler	-	-	145018	-	-
+29	-fspec-constr	284	222	16384	914	39.4%
+30	-fliberate-case	284	280	20480	925	100.0%
+31	-O2	299	221	12288	916	4.4%
+32	GHC HEAD	292	311	153210	136	11.0%
+36	both passes	387	310	4096	-	-
+38	both passes	325	335	65536	-	-
+39	both passes	338	344	77824	-	-

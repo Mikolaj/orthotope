@@ -7457,6 +7457,18 @@ RECORDS = [
                            "10. the PREVIOUS run's pair note"],
               hasnt=['grep -i gate $R-pair.txt'])),
 
+    case('record-prints-a-series-aligned', 'read-run.py', None,
+         'CONTROL: --record NAME prints series/NAME.tsv, its notes and'
+         ' its rows; an unknown name is refused with the names it has',
+         argv=['--record', 'floor'],
+         ok=V(exit=0, has=['# The A/A floor', 'carry-basis'])),
+
+    case('record-refuses-an-unknown-series', 'read-run.py', None,
+         'CONTROL: --record with a name series/ lacks exits 2, naming'
+         ' the series it has',
+         argv=['--record', 'no-such-series'],
+         ok=V(exit=2, has=['one of floor'])),
+
     case('checklist-post-a-stops-at-the-seam', 'read-run.py', None,
          'CONTROL: --checklist post-a is the post list down to step 6 and'
          ' no further',
