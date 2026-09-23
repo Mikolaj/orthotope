@@ -4563,7 +4563,7 @@ lazyRuns axes start v = build (runSlices axes start v)
 -- https://gitlab.haskell.org/ghc/ghc/-/work_items/27799, so no order
 -- suits both compilers.
 runSlices :: Axes -> Int -> VS.Vector Double
-           -> (VS.Vector Double -> b -> b) -> b -> b
+          -> (VS.Vector Double -> b -> b) -> b -> b
 runSlices (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
   case outerAxes of
     [] -> cons (VS.slice start n v) nil
@@ -4581,12 +4581,19 @@ runSlices (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
           -- levels above the counter once through its inner one and
           -- failed 'check' on slice-cnn-L2-24x24-c32 (2026-09-09).
           carry [] !_ _ = nil
-          carry ((j, d, s) : rest) !o reset
+          carry (OdoLevel j d s : rest) !o reset
             | j + 1 < d =
-                go 0 (o + s) (foldl' (flip (:)) ((j + 1, d, s) : rest) reset)
-            | otherwise = carry rest (o + s - d * s) ((0, d, s) : reset)
-      in  go 0 start [ (0, d, s) | (s, d) <- above ]
+                go 0 (o + s)
+                   (foldl' (flip (:)) (OdoLevel (j + 1) d s : rest) reset)
+            | otherwise = carry rest (o + s - d * s) (OdoLevel 0 d s : reset)
+      in  go 0 start [ OdoLevel 0 d s | (s, d) <- above ]
 {-# INLINE runSlices #-}
+
+-- An outer level of 'runSlices''s odometer: index, extent, stride. Strict,
+-- so a level exit allocates one constructor where a tuple took a tuple
+-- and a boxed 'Int': a fifth less allocation on the multi-level window
+-- views (2026-09-23).
+data OdoLevel = OdoLevel !Int !Int !Int
 
 -- A lazy stage's dispatch as a value: one slice, the runs 'lazyRuns'
 -- will walk, or one fill. Five readers share it -- the list, for the
