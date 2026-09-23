@@ -4208,6 +4208,12 @@ between the registration and the build, and the span died on it. A preparation
 that lists the commits between the registration and the build, arm by arm, would
 have named the pair's second variable before the hours; `--carried` reads
 the registration against the previous run's figures and not against the source.
+**AND 7a's TWO READERS EARNED THEIR PLACE AGAIN**: past both checker passes,
+the blind reader and the comprehension probe between them found a stale
+registration clause inherited into the `bcast` block, a live arm called parked,
+the intrusion's two figures given in the opposite order to its two arms,
+and the pair's reading count stated two ways across the documents --- all
+properties of the text, which no figure check reads.
 
 **What Run 38 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's first.**
