@@ -8039,6 +8039,7 @@ owe prints alone, and the disk says what is already done, so neither is a thing
 to reconstruct by reading:
 
     ./read-run.py --checklist pre|run|post   # a PREPARATION owes `pre` ALONE
+    ./read-run.py --checklist readings       # the items steps name by number
     ./run-status.sh $R                       # what is done, off the artifacts
 
 **Stop reading here and run them.** What follows is the three lists and,
@@ -8662,6 +8663,13 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      IT CAME FROM, never from the sentence beside it, and then read
     #      both back end to end. It costs minutes, and it is not a
     #      substitute for post-run step 6b's independent reader
+    #      AND READ WHAT THE SOURCE DID AFTER THE REGISTRATION:
+    #      `./registration-drift.py $R` lists each commit to Main.hs
+    #      between the registration's and the build's, with the
+    #      definitions it touched, exiting 1 where there is any. Read each
+    #      against the arms the spans name: Run 39's registration predated
+    #      `c0a8aaa`, which rebuilt the fill behind one arm of a
+    #      registered pair, and the span died on the second variable
     #      AND `--lint` PRINTS EVERY SPAN AS `--predictions` WILL COMPARE
     #      IT, under the registration it reads -- the mode, the two
     #      operands and their orientation, the key, the half: read each
@@ -8908,15 +8916,17 @@ Unsandboxed throughout:
     #      why: --para 'registered predictions'
     ./run-status.sh $R                    # AND THE DONE-CONDITION, run HERE
     #      and whenever the run seems finished, and NEVER between the launch
-    #      below and the riders' last line: Run 35 ran it on the line after
-    #      the launch, where it landed inside the gate's first process and
-    #      cost two of that process's 95 benches two thirds and four fifths of a core (the
-    #      open list's reading-windows entry). Every step of the three
+    #      below and the riders' last line, where it lands inside a timed
+    #      process (the open list's reading-windows entry). Every step of the three
     #      lists an artifact or the repository can answer for, `STATUS: all
     #      done` being the one state in which a session is finished with a
     #      run, whatever it has to report. A NOT DONE line is the next step
     ./run-evening.sh $R                   # 14 TO 19 IN ONE COMMAND, in
-    #      the harness's background mode and NOT a typed `&`. The harness
+    #      the harness's background mode and NOT a typed `&`, AND WITH NO
+    #      REDIRECT: the harness keeps the output, and a file named for the
+    #      run is one the sequence's relaunch guard refuses over, which the
+    #      driver refuses before its gate since Run 39 lost its order to
+    #      one. The harness
     #      kills a task it tracks on a kernel memory-pressure event unless
     #      CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 is in its
     #      environment -- the user settings carry it since 2026-09-18, and
@@ -8953,15 +8963,16 @@ Unsandboxed throughout:
     #      `probe-killed-$R-<half>-<pop>.json.truncated` -- criterion
     #      writes that file as it goes, so a killed process leaves a
     #      truncated one and properties.py reads every `.json` here
-    #      that does not begin `zz`. run-evening.sh then refuses over the dead
-    #      attempt's $R-evening.txt and says to move it aside, which
-    #      is the whole of the recovery. Run 37 relaunched this way
-    #      twelve minutes in and published the second launch.
+    #      that does not begin `zz`. Then EITHER move the dead attempt's
+    #      $R-evening.txt aside and launch again, OR resume it at the
+    #      stage that died, `./run-evening.sh $R --from STAGE` (gate,
+    #      alarm, instance, sequence or riders), which appends to that
+    #      file under a `resumed` line.
     #      ARM NOTHING BESIDE IT: its exit is the session's wake-up,
     #      and eight hours of ticks cost more than the one cold read
-    #      they forestall. ASKED MID-EVENING, answer from a `tail` of
-    #      $R-evening.txt and $R-wallclock.log and nothing heavier: a
-    #      status call costs 0.81 of a core on a box being timed.
+    #      they forestall. ASKED MID-EVENING, answer with
+    #      `./evening-status.sh $R`, one line off two tails, and nothing
+    #      heavier: a status call costs 0.81 of a core on a box being timed.
     #      why: --para 'run-major.sh is that sequence'
     #      why: --para 'Nothing is armed beside the evening'
     #  14. THE GATE, its first stage: run-gate.sh on both halves twice in a
@@ -8970,12 +8981,10 @@ Unsandboxed throughout:
     #      EACH HALF over its own two legs. The verdict is the two passes
     #      agreeing, and a gate answers sound or not sound -- never quote a
     #      magnitude from one. THE SECOND PAIR OF READINGS IS WHAT A SPREAD
-    #      BETWEEN THE PASSES IS, before it is the pair's: Run 36's `list`
-    #      parted 1.60 points across the passes and read SOUND, its control
-    #      half's own legs at 1.0128 against the basis's 1.0004 predicting
-    #      the second pass at 1.0124 times the first against an observed
-    #      1.0123. They are the driver's since 2026-09-19; that run took
-    #      them by hand, in the one window where nothing else may run. It is owed on every pair, both halves being
+    #      BETWEEN THE PASSES IS, before it is the pair's: the control's
+    #      legs over the basis's predict the second pass as a multiple of
+    #      the first, and a spread they predict is each half's own drift.
+    #      It is owed on every pair, both halves being
     #      two builds by the BOTH HALVES ARE BUILT ANEW ruling, and again
     #      after either half is rebuilt: run-evening.sh inherits a recorded
     #      gate only for the binaries its block names by md5
@@ -9034,7 +9043,10 @@ Unsandboxed throughout:
     #      to bottom -- each stage's rc and any COMPLAINT -- then
     #      $R-wallclock.log's `!!` lines, write 14a's verdict, and report
     #      each stage's exit rather than folding them into a later
-    #      summary.
+    #      summary. HOLD ANY TOOLING FIX a stage's complaint calls for
+    #      until the write-up's 7a: each commit rewraps README under the
+    #      commit hook, and a fix landed mid-write-up costs every stretch
+    #      after it an unwrap.
     #      READ THE CONTAINING ARTIFACT ONLY, NEVER
     #      BOTH: $R-evening-out.txt holds $R-wallclock.log byte for byte,
     #      and step 14a reads the first -- so the log read here is a
@@ -9061,8 +9073,8 @@ Unsandboxed throughout:
     #      harness's background mode again, as at 14: a typed `&` would
     #      detach and wake nobody
     #      AND ITS EXIT IS ITS ANNOUNCEMENT, so nothing before it is
-    #      worth a tool call: Run 37 polled `ls $R-counts-*.txt` eight
-    #      times and learned nothing the exit did not say (2026-09-20)
+    #      worth a tool call. How long it takes is the previous run's
+    #      `./read-run.py --counts-cost $PREV`, quoted and not guessed
     #  20. THE COUNTS, THE SECOND COMMAND: run-counts-all.sh, which is
     #      run-counts.sh over EVERY population, the main set and each
     #      class, control then basis apiece, a
@@ -9923,6 +9935,10 @@ not otherwise.
     #      FIRST: it wants the box quiet again, which 19a gave back --
     #      UNLESS the note's `RERUN:` line answered already: `allowed`
     #      reruns at once, `no` puts the sensitivity reading in its place.
+    #      SIZE EACH EXPOSED CELL ON BOTH CLOCKS whichever way it goes:
+    #      `./read-run.py $R-<other>-<pop>.json --compare
+    #      $R-<basis>-<pop>.json --cell SHAPE/ARM` prints the corrected
+    #      net the tables use and the mutator clock `--wild` reads
     #      A process costs what ITS OWN population costs, not what a main
     #      set does -- 42 minutes a process on `runs` at 490 benches. Two
     #      rules: the rerun window is quiet FOR THE DRIVER TOO, reading
@@ -10112,16 +10128,15 @@ not otherwise.
     #      Every install below writes that file and no other document.
     #      TWO headings take the number: the file's title, renamed by the
     #      copy, and `Recommended tasks after Run N` in the open list.
-    #      Then repoint README's links from the run before to this file --
-    #      SITE BY SITE AND NOT AS ONE SUBSTITUTION: some links into the
-    #      `runs/` directory are the older run's OWN and must not move, the delta
-    #      chain's bullet for that run and its `ANSWERED` entry among
-    #      them, and both read correctly after a wrong repoint because
-    #      `runs/` keeps every run, so read the diff. REPOINT ON
-    #      THE UNWRAPPED FORM -- a literal rename over the wrapped
-    #      document misses link text a line break falls inside -- and
-    #      --check-doc fails any that still name it; no source file names
-    #      a run file. Repointing is not re-verifying: walk the links
+    #      Then repoint README's links from the run before to this file
+    #      with `./read-run.py --repoint $PREV`, which moves every link
+    #      into that file but the older run's OWN -- a link whose text
+    #      names it, the delta chain's bullet and its `ANSWERED` entry
+    #      among them -- and prints each it kept, which is the one list
+    #      to read: both read correctly after a wrong repoint because
+    #      `runs/` keeps every run. --check-doc fails any link that still
+    #      names the file; no source file names a run file. Repointing is
+    #      not re-verifying: walk the links
     #      --check-doc lists, and the section links it does not, against
     #      what the file now says
     #      NAME THE PATHS ON EVERY `git add`, here and at 6b, 6d and 7a:
@@ -10270,7 +10285,9 @@ not otherwise.
     #      row of the table above it and answers no search for the arm.
     #      The `___` slots in all five are yours and run-status.sh
     #      refuses a run file still carrying one. Each says what it
-    #      wants: a class block carries TWO.
+    #      wants: a class block carries ONE, what the class says of its
+    #      own, the counts-against-clock clause being written by --block
+    #      where both count sweeps are given.
     ./read-run.py --inherited             # 6a's THREE READERS, in the
     ./read-run.py --stale                 # order the body gives them,
     ./read-run.py --prose-facts $R        # and BEFORE the first paragraph
@@ -10464,8 +10481,9 @@ not otherwise.
     #      them in README, which pass 1 had never seen and which the
     #      brief alone would have pointed it at. Name the fixes, not
     #      the prose.
-    #      Send it to the same agent once its first has returned, run 6e
-    #      meanwhile, and FREEZE WRITES to both documents until 7, a
+    #      Send it to the same agent once its first has returned, send
+    #      the BLIND READER beside it on the same diff (7a's paragraph
+    #      has its brief), run 6e meanwhile, and FREEZE WRITES to both documents until 7, a
     #      finding quoting a phrase you may otherwise have changed. THAT
     #      COMMIT'S DIFF IS WHAT THE AGENT WORKS ON, one commit and not
     #      two: the pass reads BOTH files, the one pass that can and the
@@ -10509,12 +10527,12 @@ not otherwise.
     #      alone, nothing gating their comments, so a stale figure there
     #      survives every green run until someone opens the file.
     #      why: --para 'Verify the write-up before deleting'
-    #   7. WAIT FOR 6d AND 6e BOTH -- the one barrier in this list, and
-    #      a session that starts on whichever report came back first
-    #      fixes half a document twice. Then CONVERGE TO ONE WRITER and
-    #      fix, which is all that is left here: merge BOTH reports into
-    #      a SINGLE cycle and apply it --
-    #      6d's over both files and 6e's worklist. 6b's is NOT among
+    #   7. WAIT FOR 6d, THE BLIND READER AND 6e ALL -- the one barrier
+    #      in this list, and a session that starts on whichever report
+    #      came back first fixes half a document twice. Then CONVERGE TO
+    #      ONE WRITER and fix, which is all that is left here: merge the
+    #      THREE reports into a SINGLE cycle and apply it -- 6d's over
+    #      both files, the blind reader's and 6e's worklist. 6b's is NOT among
     #      them, that pass having been fixed at 6b, which is why 6b owns
     #      its fixing; 7a's probe comes after and is its own small cycle.
     #      Two sources of fixes for one defect is how the
@@ -10526,9 +10544,13 @@ not otherwise.
     #      why: --para 'Verify the write-up before deleting'
     #  7a. COMMIT 7'S WORK, subject naming the step, so the probe reads
     #      a settled document and its findings name text that still
-    #      exists. Then TWO READERS, and the first is the cheaper and
-    #      the higher-yielding of the two.
-    #      THE BLIND READER, added after Run 35, whose measurement it is:
+    #      exists. Then the COMPREHENSION PROBE, the blind reader having
+    #      gone out at 6d.
+    #      THE BLIND READER, added after Run 35, whose measurement it is,
+    #      and SENT AT 6d BESIDE PASS 2 since Run 39's, on the 6d commit's
+    #      diff of both files, the first moment all of the run's prose
+    #      exists: at 7a its findings cost a second fix cycle, which at 6d
+    #      they join:
     #      a fresh agent given the write-up's whole diff, no reasoning
     #      about it and SIX questions, all of which turn on the page and
     #      none on the artifacts -- a bolded lead against its own body; a
