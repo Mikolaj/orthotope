@@ -136,6 +136,25 @@ if [ -e "$STATUS" ]; then
   echo "stage refuses on its own. Move it aside if that attempt is dead."
   exit 1
 fi
+# AND WHAT THE SEQUENCE'S OWN GUARD WOULD REFUSE OVER, refused here, before
+# the gate spends its half hour: run-major.sh refuses any $R-*.json or
+# $R-*.log but the gate's and the riders', and it runs third, so a stray
+# file under that name let Run 39's gate run, the sequence refuse at once
+# and the riders take the quiet box in its place. The stray was the
+# session's own redirect of this driver's output. The two filters are one
+# rule and are kept alike by hand. Case:
+# `evening-refuses-a-stray-run-artifact-before-the-gate`.
+# shellcheck disable=SC2010  # the names here are the drivers' own
+STRAY=$(ls -1 "$R"-*.json "$R"-*.log 2>/dev/null \
+          | grep -v -e "^$R-gate-" -e "^$R-al-")
+if [ -n "$STRAY" ]; then
+  echo "!! $R already has files run-major.sh's relaunch guard refuses over,"
+  echo "   so the sequence would refuse after the gate had run:"
+  printf '%s\n' "$STRAY" | sed 's/^/     /'
+  echo "   Move them aside, and send this driver's own output, if anywhere,"
+  echo "   to a name not beginning $R-. Nothing ran."
+  exit 1
+fi
 
 COMPLAINTS=()
 stamp () { echo "=== $(date -Is) $*" | tee -a "$STATUS"; }
