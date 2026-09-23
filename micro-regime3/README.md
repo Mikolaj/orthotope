@@ -9533,7 +9533,8 @@ not otherwise.
     #      change of what a check reads:
     #      a paragraph of runs/$R.md or README.md: nothing between
     #        edits, and `./read-run.py --check-doc --quiet` once the
-    #        stretch ends. AND check-all AFTER THE STRETCH, which prose
+    #        stretch ends; `defect-run.py --changed` selects no case for
+    #        prose. AND check-all AFTER THE STRETCH, which prose
     #        does owe here, AT THE END OF 6a, BEFORE 6b's COMMIT, and not
     #        after 10c. Prefer the digits the previous run used wherever
     #        a sentence is rewritten around a figure.
