@@ -40,7 +40,7 @@ with no regression and needs no extension to orthotope classes --- **that
 is the FILL**, and the route the library actually ships, `lib-stage1`, is slower
 than `list` on the two shortest runs of the `runs` class, which [the run file's
 property 1](runs/run39.md#the-properties-the-next-run-should-test) records
-and three runs have now reproduced.
+and four runs have now read.
 
 The words for a view's pieces are the library's, defined at the `T` haddock
 of `Data/Array/Internal.hs` on `pr-mikolaj-toVectorListT`: a *walk* is one
@@ -84,22 +84,22 @@ by more than its floor is [an open question][open] --- Run 39 reads that shape
 at 1.0026 on its plain half and 0.9835 on its flagged one, the fill BEHIND
 on the plain half by a quarter of a point, where Run 38 read 0.9997 and 0.9756,
 Run 37 0.9945 and 0.9810 and Run 36 0.9970 and 0.9826 --- so the plain half's
-cell has broken the line for the second time since Run 35 and the flagged half's
-keeps its margin. **The mutable fills hold the top of the table** ---
-`lib-stage3-lean`, `lib-stage2-lean` and `lib-stage3-lean-onelevel` tied
-at 0.024, separated only by the unrounded 0.02421, 0.02427 and 0.02438,
-and the shipped leaf at 0.026, against `mut-odo-vecdims`'s 0.045 --- and every
-one of them needs a new `Vector`-class method, which this README argued against
-for as long as the ceiling stood --- to keep orthotope's `Vector` API pure
-and minimal, a bar an in-tree precedent softened to a weight --- and which
-the decision of 2026-08-22 **took**, `vFillStrided` landing 2026-08-24
-([below](#the-mutable-ceiling-taken)). Plain `mut-odo` no longer argues
-for it at all: it and `bq-expand`, which survives in `Data/Array/Internal.hs`
-only as that method's class default, the three vector-backed instances
-overriding it with the mutable fill, are a tie at 0.8906 paired, 14 shapes of 26
-and sign p 0.85 on an interval covering 1 --- and at 0.8918 on Run 24's HEAD
-half, a thousandth away, so the tie is not one compiler's --- where Run 7
-(Harness), at -O1, had it 1.51x ahead.
+cell has broken the line for the first time since Run 35's own break
+and the flagged half's keeps its margin. **The mutable fills hold the top
+of the table** --- `lib-stage3-lean`, `lib-stage2-lean`
+and `lib-stage3-lean-onelevel` tied at 0.024, separated only by the unrounded
+0.02421, 0.02427 and 0.02438, and the shipped leaf at 0.026, against
+`mut-odo-vecdims`'s 0.045 --- and every one of them needs a new `Vector`-class
+method, which this README argued against for as long as the ceiling stood ---
+to keep orthotope's `Vector` API pure and minimal, a bar an in-tree precedent
+softened to a weight --- and which the decision of 2026-08-22 **took**,
+`vFillStrided` landing 2026-08-24 ([below](#the-mutable-ceiling-taken)). Plain
+`mut-odo` no longer argues for it at all: it and `bq-expand`, which survives
+in `Data/Array/Internal.hs` only as that method's class default, the three
+vector-backed instances overriding it with the mutable fill, are a tie at 0.8906
+paired, 14 shapes of 26 and sign p 0.85 on an interval covering 1 ---
+and at 0.8918 on Run 24's HEAD half, a thousandth away, so the tie is not one
+compiler's --- where Run 7 (Harness), at -O1, had it 1.51x ahead.
 
 **Several strategies measured since are faster than the last candidate,
 `bq-expand`, and need no class method --- a distinction the decision
@@ -1721,44 +1721,42 @@ rather than a slot in the next run, observed again:
   quarters, and the SPLIT is not accounted for at all: nothing says whether
   SpecConstr carries it, as its allocation signature suggests, or whether
   LiberateCase carries part of it on this HEAD. **What settles it is one pair
-  and one variable**: either flag alone against the unflagged half, built by Run
-  38's own recipe --- GHC HEAD `10.1.20260918` through `cabal.project.ghead`,
-  `Main.hs` at `bb6f0fc`, the shim at `f31bd1c` under the four switches,
-  launched FROM DISK, `hugebin/` being suspended --- which reads against
-  `run38-gheadnospec` with the box as the only term, that basis being the THIRD
-  published one on this compiler. Registered here rather than in a run's
-  registration because it is a pair to ask for and not a prediction to hold.
-  **A third reading of the pair, 2026-09-20, says which of the two
-  was the outlier**: the same two Run 37 binaries, the main set once more
-  from disk on a quiet evening (`probe-third-run37-gheadnospec-main.json`
-  and its control twin, made by `probe-chain-0920.sh`), read `list`
-  at **1.2986** and `bq-expand` at **1.3091** --- a quarter-point and a tenth
-  from Run 37's own and 1.4 points under Run 36's corrected 1.3129 --- so three
-  readings of one pair stand at 1.3129, 1.2960 and 1.2986, Run 36's apart,
-  and the two passes together sit 0.12 of a point above the level's 1.2974; Run
-  36's reading that the level's other passes hand `list` back does not survive
-  it. Each half against its own Run 37 main set reads every timed arm within 0.7
-  points, the evening's process the faster on all sixteen of the basis's.
-  The split is untouched by it and stays the pair to ask for. **AND RUN 38
-  IS THE FOURTH READING AND THE THIRD BUILD, 2026-09-22** --- readings
-  and builds differ here because the 2026-09-20 probe re-read Run 37's own two
-  binaries rather than building a pair: the same two recipes built again read
-  `list` at **1.2889** over the nineteen shapes and **1.2907** over the eighteen
-  without Run 36's cell, with `bq-expand` at **1.3032**. So the four readings
-  on the nineteen stand at 1.3360, 1.2960, 1.2986 and 1.2889, and
-  on the eighteen the three that have it stand at 1.3129, 1.2950 and 1.2907 ---
-  Run 36's apart by 2.2 points and the two later draws agreeing to 0.43.
-  **That settles the how-many-points half of this entry**: the two passes
-  together are worth about 1.291 on `list`, 0.67 of a point UNDER Run 31's
-  whole-level 1.2974 rather than above it, so Run 36's reading that the level's
-  other passes hand `list` back is refuted rather than doubted, and
-  it is refuted across a REBUILD and not only across a second draw of one build.
-  **Run 39 is the fifth reading and the fourth build, 2026-09-23,
-  with the settled cost on both halves**: `list` at **1.2966** over the nineteen
-  shapes and **1.2959** over the eighteen, `bq-expand` at **1.2985**, within 0.8
-  of a point of Run 38's on `list` over the nineteen, 0.5 over the eighteen
-  and 0.5 on `bq-expand`. **The SPLIT is untouched and is still the pair to ask
-  for**, now against `run39-gheadnospec` --- `Main.hs` at `c870e1e` and the shim
+  and one variable**: either flag alone against the unflagged half, built
+  by the newest published basis's own recipe, which reads against that basis
+  with the box as the only term --- the basis this entry's last sentence names.
+  Registered here rather than in a run's registration because it is a pair
+  to ask for and not a prediction to hold. **A third reading of the pair,
+  2026-09-20, says which of the two was the outlier**: the same two Run 37
+  binaries, the main set once more from disk on a quiet evening
+  (`probe-third-run37-gheadnospec-main.json` and its control twin, made
+  by `probe-chain-0920.sh`), read `list` at **1.2986** and `bq-expand`
+  at **1.3091** --- a quarter-point and a tenth from Run 37's own and 1.4 points
+  under Run 36's corrected 1.3129 --- so three readings of one pair stand
+  at 1.3129, 1.2960 and 1.2986, Run 36's apart, and the two passes together sit
+  0.12 of a point above the level's 1.2974; Run 36's reading that the level's
+  other passes hand `list` back does not survive it. Each half against its own
+  Run 37 main set reads every timed arm within 0.7 points, the evening's process
+  the faster on all sixteen of the basis's. The split is untouched by
+  it and stays the pair to ask for. **AND RUN 38 IS THE FOURTH READING
+  AND THE THIRD BUILD, 2026-09-22** --- readings and builds differ here because
+  the 2026-09-20 probe re-read Run 37's own two binaries rather than building
+  a pair: the same two recipes built again read `list` at **1.2889**
+  over the nineteen shapes and **1.2907** over the eighteen without Run 36's
+  cell, with `bq-expand` at **1.3032**. So the four readings on the nineteen
+  stand at 1.3360, 1.2960, 1.2986 and 1.2889, and on the eighteen the three
+  that have it stand at 1.3129, 1.2950 and 1.2907 --- Run 36's apart by 2.2
+  points and the two later draws agreeing to 0.43. **That settles
+  the how-many-points half of this entry**: the two passes together are worth
+  about 1.291 on `list`, 0.67 of a point UNDER Run 31's whole-level 1.2974
+  rather than above it, so Run 36's reading that the level's other passes hand
+  `list` back is refuted rather than doubted, and it is refuted across a REBUILD
+  and not only across a second draw of one build. **Run 39 is the fifth reading
+  and the fourth build, 2026-09-23, with the settled cost on both halves**:
+  `list` at **1.2966** over the nineteen shapes and **1.2959**
+  over the eighteen, `bq-expand` at **1.2985**, within 0.8 of a point of Run
+  38's on `list` over the nineteen, 0.5 over the eighteen and 0.5
+  on `bq-expand`. **The SPLIT is untouched and is still the pair to ask for**,
+  now against `run39-gheadnospec` --- `Main.hs` at `c870e1e` and the shim
   at `fe6d133` under the settled cost, with the compiler, the project file
   and the launch unmoved --- which reads with the box as the only term.
 - `OPEN` **A single wild cell moved this run's headline by 2.31 points and every
@@ -2062,8 +2060,8 @@ rather than a slot in the next run, observed again:
   moved fourteen commits under an unmoved compiler, shim and project file,
   so what changed the sign is the code and not the generator. **Run 39 repeats
   that parting**: a `.text` gap of **77824 bytes**, nineteen pages, a SEVENTH
-  exact multiple, and the flagged half again carrying MORE self-loops, **344
-  against 338**.
+  exact multiple and now the largest of the series, and the flagged half again
+  carrying MORE self-loops, **344 against 338**.
 
 - `OPEN` **A saving in instructions reaches the clock at anything from NONE
   of it to ALL of it WITHIN ONE BINARY, where the rate on record is three
@@ -4199,7 +4197,7 @@ and the riders ran on the quiet box in its place; the session parked the log
 and drove the sequence by hand. `run-evening.sh` now reads the same filter
 before anything runs, `a35f698`, with its case recorded in `1499af9`.
 The harness already keeps a backgrounded command's output, so the redirect
-bought nothing. **TWO INTRUSIONS WENT UN-RERUN BY THE OWNER'S WORD**,
+bought nothing. **TWO INTRUDED PROCESSES WENT UN-RERUN BY THE OWNER'S WORD**,
 and the write-up reports their size in their place --- three control-half cells,
 3.0%, 5.8% and 1.3% on the mutator clock against the same cells on the basis,
 the first two 7.5% and 16.3% on the corrected net, none named by a span ---
@@ -12643,26 +12641,26 @@ on Run 39's basis --- which is the A/A floor above restricted to the pairs
 that carry, was a different quantity from the whole-set floor until the prune
 of 2026-09-04 left six pairs in all, and is now the series across runs rather
 than the bar. **The two rules are ONE again on both halves, as they were on Runs
-32 and 33, and each reads as two numerals because there are two halves**: 0.57%
-and 0.43% are the widest an arm differs from its own duplicate by on each half
-over the eight pairs this roster carries, and the four pairs that carry back
-to Run 10 read the same two figures, `bq-expand-aa-distant` carrying both
-on both halves --- so the restriction costs nothing this run, where on Run 36
-it cost eighty-eight hundredths of a point on the basis and eleven
-on the control. The two parted on BOTH halves on Runs 35 and 36, Run 34 parted
-on the basis alone, Runs 32 and 33 had them equal on both halves, Runs 30 and 31
-parted on the CONTROL alone --- 0.84% against 0.56% and 1.58% against 0.43%,
-equal on the basis at 0.57% and 0.61% --- and Runs 28 and 29 parted on the basis
-alone, and the rule since 2026-09-13 names the WHOLE-SET figure as what two rows
-of one table must clear, the restricted one having been the rule until Run 30
-re-opened it, the wider figure being the conservative reading --- and 2.1%
-is the across-run drift band an arm must clear to have moved between runs
-on this box, Run 23's one-binary reading, where Run 11's was 3.3%. **All three
-are the word *floor*, over different populations, and two things that are
-not it wear it easily.** A class's `floor` column is the same statistic again
-over that population's A/A pairs, so it is a fourth member of the family
-and not a fourth sense. **And a margin read ACROSS a pair's two halves
-on a class is judged against the WIDER of the two halves' floors,
+32 and 33 and Runs 37 and 38, and each reads as two numerals because there
+are two halves**: 0.57% and 0.43% are the widest an arm differs from its own
+duplicate by on each half over the eight pairs this roster carries, and the four
+pairs that carry back to Run 10 read the same two figures,
+`bq-expand-aa-distant` carrying both on both halves --- so the restriction costs
+nothing this run, where on Run 36 it cost eighty-eight hundredths of a point
+on the basis and eleven on the control. The two parted on BOTH halves on Runs 35
+and 36, Run 34 parted on the basis alone, Runs 32 and 33 had them equal on both
+halves, Runs 30 and 31 parted on the CONTROL alone --- 0.84% against 0.56%
+and 1.58% against 0.43%, equal on the basis at 0.57% and 0.61% --- and Runs 28
+and 29 parted on the basis alone, and the rule since 2026-09-13 names
+the WHOLE-SET figure as what two rows of one table must clear, the restricted
+one having been the rule until Run 30 re-opened it, the wider figure being
+the conservative reading --- and 2.1% is the across-run drift band an arm must
+clear to have moved between runs on this box, Run 23's one-binary reading, where
+Run 11's was 3.3%. **All three are the word *floor*, over different populations,
+and two things that are not it wear it easily.** A class's `floor` column
+is the same statistic again over that population's A/A pairs, so it is a fourth
+member of the family and not a fourth sense. **And a margin read ACROSS a pair's
+two halves on a class is judged against the WIDER of the two halves' floors,
 and a registration's kill condition on a class says so**: the narrower floor
 is the one that makes a kill and the wider the one that makes a tie honest,
 and a pair whose halves' floors differ threefold --- Run 23's `reshape1`, 3.09%
