@@ -11843,9 +11843,10 @@ RECORDS = [
          # checkout, and git's answer is what this reads.
          argv=['run39'],
          ok=V(has=['10c   done']),
-         no_audit='the shadow reads the real repository\'s history, and'
-                  ' Run 39\'s 10c commit carries a README edit, so no'
-                  ' revision holds the empty 10c commit the defect needs'),
+         # No audit: the case reads the real repository's history, and
+         # Run 39's 10c commit carries a README edit, so no revision holds
+         # the empty 10c commit the defect needs.
+         no_audit='other:history-holds-no-empty-commit'),
 
     case('status-names-the-subject-it-looked-for', 'run-status.sh', None,
          'a NOT DONE on a step said no subject names it, without saying'
