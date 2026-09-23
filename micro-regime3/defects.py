@@ -2451,7 +2451,7 @@ def stale_pair(tmp, n=97, kept=True, word=False):
     return {'doc': doc, 'figure': figure}
 
 
-def brief_pair(tmp, run='run97', whole=True, stale_block=False):
+def brief_pair(tmp, run='run97', whole=True, stale_block=False, bodied=False):
     """A facts file and a checker brief, the brief missing an item or not.
 
     `--brief-update` writes the brief's two THIS RUN ONLY items from the
@@ -2474,8 +2474,15 @@ def brief_pair(tmp, run='run97', whole=True, stale_block=False):
           ' 6. THIS RUN ONLY -- THE WINDOW AND THE INSTRUMENTS. One window.\n'
           % run)
     body = ' 5. THIS RUN ONLY -- THE BOX AND THE PAIR. Last run\'s.\n'
+    # `bodied` gives each old item an indented body, the shape every real
+    # brief has: the header line alone being replaced left those bodies
+    # under the new items, run after run.
+    if bodied:
+        body += '    last run\'s body of item five\n'
     if whole:
         body += ' 6. THIS RUN ONLY -- THE WINDOW AND THE INSTRUMENTS. Last run\'s.\n'
+        if bodied:
+            body += '    last run\'s body of item six\n\nTHE NEXT SECTION stays.\n'
     # A SUBSTITUTION BLOCK NAMING ANOTHER RUN, for the case that the mode
     # rewrites it: it wrote the two items alone while its docstring said it
     # wrote this too. The halves come from pair-halves.sh, so the fixture
@@ -9050,6 +9057,19 @@ RECORDS = [
          plant=brief_pair,
          argv=['--brief-update', '{run}', '--brief-dir', '{dir}'],
          ok=V(exit=0, has=['items 5 and 6 written'])),
+
+    case('brief-update-replaces-each-item-whole', 'read-run.py', '14dc173',
+         'the paste replaced each item\'s header line alone, so the old'
+         ' item\'s indented body stood under the new one, one layer a run',
+         # Found by Run 39's first checker pass, 2026-09-23: items 5 and 6
+         # carried Runs 36 to 39's blocks one under another, the brief
+         # having been pasted into four times.
+         plant=lambda t: brief_pair(t, bodied=True),
+         argv=['--brief-update', '{run}', '--brief-dir', '{dir}'],
+         probe=lambda subs: open(subs['brief']).read(),
+         ok=V(has=['One window', 'THE NEXT SECTION stays'],
+              hasnt=["last run's body"]),
+         bug=V(has=["last run's body"])),
 
     case('replace-refusal-does-not-name-delete', 'read-run.py', None,
          'the table refusal names --delete, the mode that removes the'
