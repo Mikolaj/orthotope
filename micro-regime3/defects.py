@@ -2227,6 +2227,24 @@ def scoped_spans_in_place(tmp, stale=False):
     return r
 
 
+def scoped_spans_two_blanks(tmp):
+    """`scoped_spans_in_place` with every heading after two blank lines,
+    as a run file keeps them, for the heading-spacing case."""
+    r = scoped_spans_in_place(tmp)
+    text = open(r['rundoc']).read()
+    write(r['rundoc'], re.sub(r'(?<=[^\n])\n\n(## )', r'\n\n\n\1', text))
+    return r
+
+
+def heading_spacing_word(path):
+    """HEADING LOST ITS BLANK where any `## ` heading has one blank line
+    above it and not two, else HEADINGS KEEP TWO BLANKS."""
+    lines = open(path).read().split('\n')
+    lost = [l for i, l in enumerate(lines) if l.startswith('## ') and i > 1
+            and not (lines[i - 1] == '' and lines[i - 2] == '')]
+    return 'HEADING LOST ITS BLANK' if lost else 'HEADINGS KEEP TWO BLANKS'
+
+
 def doc_of_a_list(tmp, items=4):
     """A document whose one list has no blank line between its items.
 
@@ -13018,6 +13036,20 @@ RECORDS = [
          ok=V(has=['out of scope, this file being main on the control half',
                    '6 span(s): 3 HELD, 1 KILLED, 0 not read, 2 out of'
                    ' scope'])),
+
+    case('predictions-in-place-keeps-the-headings-two-blanks', 'read-run.py',
+         'd941cc6',
+         'the in-place writer stripped every paragraph\'s leading newline,'
+         ' so each heading kept after two blank lines came back after one',
+         # Run 39's write-up met it as five headings of its run file at
+         # one blank, found by --check-doc on one of them and by hand on
+         # the rest; replayed tool by tool on a copy, 2026-09-23.
+         plant=scoped_spans_two_blanks,
+         argv=['{a}', '--compare', '{b}', '--predictions', '--in-place',
+               '--run-doc', '{rundoc}'],
+         probe=lambda subs: heading_spacing_word(subs['rundoc']),
+         ok=V(has=['HEADINGS KEEP TWO BLANKS']),
+         bug=V(has=['HEADING LOST ITS BLANK'])),
 
     case('predictions-write-the-span-readings-in-place', 'read-run.py', None,
          'CONTROL: --predictions --in-place reads every population on both'
