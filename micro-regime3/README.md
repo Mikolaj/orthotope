@@ -4198,22 +4198,20 @@ and drove the sequence by hand. `run-evening.sh` now reads the same filter
 before anything runs, `a35f698`, with its case recorded in `1499af9`.
 The harness already keeps a backgrounded command's output, so the redirect
 bought nothing. **TWO INTRUDED PROCESSES WENT UN-RERUN BY THE OWNER'S WORD**,
-and the write-up reports their size in their place --- three control-half cells,
-3.0%, 5.8% and 1.3% on the mutator clock against the same cells on the basis,
-the first two 7.5% and 16.3% on the corrected net, none named by a span ---
-which is the sensitivity reading Runs 33 and 38 took, made per cell rather
-than per floor. **A COMMITTED REGISTRATION CAN BE OVERTAKEN BY A COMMIT BEFORE
-THE BUILD, AND NOTHING SAYS SO**: `c0a8aaa` moved one arm of a registered pair
-between the registration and the build, and the span died on it. A preparation
-that lists the commits between the registration and the build, arm by arm, would
-have named the pair's second variable before the hours; `--carried` reads
-the registration against the previous run's figures and not against the source.
-**AND 7a's TWO READERS EARNED THEIR PLACE AGAIN**: past both checker passes,
-the blind reader and the comprehension probe between them found a stale
-registration clause inherited into the `bcast` block, a live arm called parked,
-the intrusion's two figures given in the opposite order to its two arms,
-and the pair's reading count stated two ways across the documents --- all
-properties of the text, which no figure check reads.
+and [Run 39's Provenance](runs/run39.md#provenance) sizes their three cells
+on both clocks in their place, the sensitivity reading Runs 33 and 38 took, made
+per cell rather than per floor. **A COMMITTED REGISTRATION CAN BE OVERTAKEN
+BY A COMMIT BEFORE THE BUILD, AND NOTHING SAYS SO**: `c0a8aaa` moved one arm
+of a registered pair between the registration and the build, and the span died
+on it. A preparation that lists the commits between the registration
+and the build, arm by arm, would have named the pair's second variable before
+the hours; `--carried` reads the registration against the previous run's figures
+and not against the source. **AND 7a's TWO READERS EARNED THEIR PLACE AGAIN**:
+past both checker passes, the blind reader and the comprehension probe between
+them found a stale registration clause inherited into the `bcast` block, a live
+arm called parked, the intrusion's two figures given in the opposite order
+to its two arms, and the pair's reading count stated two ways across
+the documents --- all properties of the text, which no figure check reads.
 
 **What Run 38 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's first.**
@@ -10330,6 +10328,14 @@ not otherwise.
     #      every in-scope span with its verdict. Run 35 spent about a
     #      third of this half's tokens finding those by grep and made
     #      three transcription errors doing it.
+    #      ONE SITE PER FIGURE: a figure is written where it is derived
+    #      -- an intrusion's sizes in Provenance, a class's in its block --
+    #      and the head, Results and README point there rather than
+    #      requote it. Run 39 quoted its intrusion in five places, every
+    #      correction had to find all five, and two readers still found
+    #      them disagreeing; `--check-doc`'s agreement checks are for the
+    #      figures that genuinely live in both documents, not a licence
+    #      to copy.
     #      **THE HEAD IS WRITTEN LAST**, after 5c: it is the only
     #      section that generalises over the others, so written first
     #      it generalises over figures not yet adjudicated. The class
@@ -12111,6 +12117,11 @@ being under the run file's properties with the tier it splits:
   as the `time` column already asks. It is the one column the correction does
   not touch.
 
+**It is the main set's table**, and every column of a run file's Results table
+is a statistic of that population: each stride class has a table of its own,
+on the same rows and in the same columns but its own basis, under the run file's
+*The stride classes, run by run*. No figure crosses between them.
+
 **What the next run compares against.** Four rulings stand under that section's
 comparisons, and two notes on its tables follow them.
 
@@ -12171,6 +12182,16 @@ the whole row, assert it occurs exactly once, and read `--check-doc`'s width
 verdict afterwards: a prefix anchor once matched an earlier table and put two
 cells into another table's header.
 
+**Each stride class has its own table in a run's file.** Run 8 re-ran every
+class with the populations pinned, and every run since has again, so each
+class's paragraph carries what the last change moved and its table is what
+the next run reads against. **A class figure compared across the Run 11/Run 12
+boundary is not compared on one build**: Run 11's class tables are its *aligned*
+half's and Run 12's its *max-skip* basis half's, and the main set prices
+that difference at nothing below 0.99 and up to 1.06, so a point or two
+of movement across that boundary is the shim rather than the class. From Run 13
+on, every run's class tables are its own basis half's.
+
 And because a geomean cannot say *where* it moved, the **fingerprint**
 in that section is kept so a future disagreement can be localised rather
 than only noticed; its membership rule, the column heads and the rulings
@@ -12202,6 +12223,21 @@ table. Every figure in it is transcribed from a class's own table --- none
 is computed there, and none is an average across classes, there being no such
 population to average over. Its header, fixed here so a run fills rows and never
 reshapes columns:
+
+**The cross-class summary's columns.** `mut-odo-vecdims` and `worst`
+are that arm's two columns in that class's table; *best outside family*
+is the leading arm outside the vecdims family, what the dropped
+stride-conditioned redirect would have taken, and *ceiling* the leading arm
+OF the family, each with its name --- and both are read over the POPULATION,
+so the arm named may lead on no single shape and the per-shape fingerprint
+under *What the next run compares against* may name another, which is [the
+per-shape section][pershape]'s own point and not a disagreement; where an arm
+outside the family leads, the two name different arms and the gap between them
+is what the lead is worth, and Run 21's table, which repeated one arm in both
+columns on `bcastmid` and `reshape1`, was wrong to. *floor* is the largest
+deviation from 1 among that process's A/A controls. A cell that breaks property
+1, or that leads `mut-odo-vecdims` --- what broke the ordering that was property
+2 until 2026-09-06 --- is bolded.
 
     | class | shapes | mut-odo-vecdims | worst | best outside family | ceiling | floor |
 
@@ -12432,86 +12468,104 @@ those twins and their bases; the three adjacent spans are unchanged.
 carried by `bq-expand-aa-distant` on each, and it is the TWELFTH run read
 over these EIGHT pairs.** The eight are `list`, `bq-expand`, `mut-odo-vecdims`
 and `mut-odo-vecdims-add-in-leaf-u2`, each with an adjacent and a distant twin,
-unmoved since the shipped fill's own copies landed 2026-09-09 --- against Run
-38's 0.57% and 0.28%, Run 37's 0.59% and 0.48%, Run 36's 1.63% and 0.53%, Run
-35's 0.64% and 0.40%, Run 34's 0.51% and 0.49%, Run 33's 0.47% and 0.62%, Run
-32's 0.66% and 0.68%, Run 31's 0.61% and 1.58%, Run 30's 0.57% and 0.84%, Run
-29's 0.51% and 0.82% and Run 28's 0.50% and 0.65% over the same eight, and Run
-27's 0.83% and 0.63% and Run 26's 0.31% and 0.46% over six, and Run 25's 0.40%
-and 0.61%, and against Run 24's 1.26% and 2.11%, Run 23's 2.03% and 2.80%, Run
-22's 2.12% and 1.08% and Run 21's 2.92% and 2.16%, all over sixteen, and Run
-20's 1.51% and 1.18%, Run 19's 2.32% and 1.71%, Run 18's 1.36% and 1.42%, Run
-17's 3.70% and 3.89% and Run 16's 2.32% and 1.22%, every one of those five
-over eighteen. **A max over six pairs, one over eight, one over sixteen and one
-over eighteen are four different statistics**, so the sixteen-pair and six-pair
-figures are not a series this run's whole-set figure continues; what it does
-continue is the eight-pair one, whose twelve basis readings are now 0.50%,
-0.51%, 0.57%, 0.61%, 0.66%, 0.47%, 0.51%, 0.64%, 1.63%, 0.59%, 0.57% and 0.57%
---- the NINTH of them two and a half times the widest before it, and it had
-a named cause rather than a trend: the basis half's `list`
-on `stretch-coprime-r7` was the one wild cell of Run 36, at an R2 of 0.9395
-and a CI of 10.07% where its own two A/A copies agreed to 0.22 of a point,
-so the pair carrying that floor was carrying that cell. **Runs 37 to 39 all read
-that same cell clean and all three floors fall back into the series**: 0.59%,
-0.57% and 0.57%, inside the 0.47% to 0.66% of the eight readings before Run
-36's, this run's cell reading an R2 of 0.999969 and a CI of 0.1362% against Run
-36's 0.9395 and 10.07%. Over the four pairs that carry back to Run 10 this run
-reads **0.57%** and **0.43%**, both halves naming `bq-expand-aa-distant`.
-**So the two thresholds COINCIDE on BOTH halves this run**,
-`bq-expand-aa-distant` carrying the whole-set figure and the restricted one
-alike on each half --- as on Run 38, where Run 36 and Run 35 parted on both, Run
-34 on the basis alone, Run 33 closed them on both halves, and Run 28 read 0.50%
-against 0.39% and Run 29 0.51% against 0.26%. The worst A/A cells of this run's
-two main sets are **2.09%** on `stretch-wide-2xM` on the basis and **6.20%**
-on `vgg-14-c512-k3` on the control, where Run 36's basis carried a 28.36%
-outlier on `stretch-coprime-r7`. THREE benches of this run were intruded on, all
-the control half's and none of them an A/A pair's, which is what `--wild`
-over its logs says. No registration of this run names the floor pairs;
-`--floor-pairs` reads the eight on every population on both halves, 176
-readings, and SIX of the eight carry a floor somewhere --- `list-aa-adjacent`
-in SEVEN of the twenty-two populations, where Run 38 read eight --- which
-is the same instability the whole-set figure above reads. **What this run cannot
-restate is Run 19's finding**, there being no repetition: the shim and `Main.hs`
-both moved under a compiler and a project file that did not, so no floor here
-is read twice on one binary. The three readings that did that stand as they
-were --- Run 19's factor of 1.7, Run 23's twentieth and Run 30's 1.44 ---
-and they still say that a floor moves by up to seven tenths on a binary that has
-not changed at all, and that no run's floor is inheritable by the run after it.
-**Where the movement lives is the one thing twenty-two runs now agree on.**
-The carry-back figure has read 0.54%, 0.49%, 0.44%, 0.46%, 0.37%, 0.39%, 0.34%,
-0.40%, 0.31%, 0.83%, 0.39%, 0.26%, 0.57%, 0.61%, 0.66%, 0.47%, 0.49%, 0.49%,
-0.75%, 0.59%, 0.57% and now **0.57%** across those twenty-two on the basis while
-the whole-set figure ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12%, 2.03% and 1.26%
-before it stopped, so the pairs outside the four were what moved. **Run 27's
-0.83% still does not survive as a trend**, and neither does the rise Runs 28
-to 32 traced: Run 33's 0.47%, Run 34's 0.49% and Run 35's 0.49% are all INSIDE
-the 0.31%-to-0.54% band the series held for nine runs, and Run 36's 0.75%
-was above that band as four earlier readings of the series were --- 0.57%,
-0.61%, 0.66% and Run 27's 0.83% --- and under the widest of them. **Run 37's
-0.59%, Run 38's 0.57% and this run's 0.57% sit where Run 36's 0.75% did, above
-the 0.31%-to-0.54% band and under the widest reading of the series**,
-the basis's three readings parting by two hundredths of a point while
-the control's moved 0.48%, 0.28% and 0.43%; and on both halves of all three runs
-the whole-set and restricted readings coincide, so the four-statistics warning
-at the head of this paragraph costs those runs nothing. The threshold this run
-supports is ONE figure a half, the restricted four-pair reading and the whole
-set over the eight having closed on both --- and since 2026-09-13 a margin
-between two rows clears the whole-set one, the carry-back figure being
-the series and not the bar ([the open list][open]). Read the floor as the run's
-*and the half's*, re-measured every time, never as a constant of the harness
-and never inherited. **And of these series, only the readings from Run 36 on can
-still be re-derived**: Runs 24 to 30's artifacts were deleted 2026-09-18
-and Runs 31 to 35's 2026-09-23, at the owner's word, so `--series` starts at Run
-36 and every figure before it is a RECORD here and in that run's own file rather
-than something a later session can check. That is the run-file split working
-as designed --- an older run is read by opening its file --- and it is also why
-this paragraph's series is not to be cut: it is now the only copy. **And both
-of the checks from OUTSIDE the declared pairs are still gone with their arms.**
-`lib-stage2-disp` was parked on 2026-09-07 and the two undeclared pairs
-that stood in its place on Run 28 both lost a member to the parking
-of 2026-09-11, so this run, like Runs 29 to 38, has no check on the declared
-eight from outside them at all. A run that wants that check again has to land
-an arm for it.
+unmoved since the shipped fill's own copies landed 2026-09-09 --- against
+the earlier readings in the table under this paragraph, whose pairs column says
+which statistic each row is. **A max over six pairs, one over eight, one
+over sixteen and one over eighteen are four different statistics**,
+so the sixteen-pair and six-pair figures are not a series this run's whole-set
+figure continues; what it does continue is the eight-pair one, whose twelve
+basis readings are the table's eight-pair rows --- the NINTH of them, Run 36's,
+two and a half times the widest before it, and it had a named cause rather
+than a trend: the basis half's `list` on `stretch-coprime-r7` was the one wild
+cell of Run 36, at an R2 of 0.9395 and a CI of 10.07% where its own two A/A
+copies agreed to 0.22 of a point, so the pair carrying that floor was carrying
+that cell. **Runs 37 to 39 all read that same cell clean and all three floors
+fall back into the series**: 0.59%, 0.57% and 0.57%, inside the 0.47% to 0.66%
+of the eight readings before Run 36's, this run's cell reading an R2 of 0.999969
+and a CI of 0.1362% against Run 36's 0.9395 and 10.07%. Over the four pairs
+that carry back to Run 10 this run reads **0.57%** and **0.43%**, both halves
+naming `bq-expand-aa-distant`. **So the two thresholds COINCIDE on BOTH halves
+this run**, `bq-expand-aa-distant` carrying the whole-set figure
+and the restricted one alike on each half --- as on Run 38, where Run 36 and Run
+35 parted on both, Run 34 on the basis alone, Run 33 closed them on both halves,
+and Run 28 read 0.50% against 0.39% and Run 29 0.51% against 0.26%. The worst
+A/A cells of this run's two main sets are **2.09%** on `stretch-wide-2xM`
+on the basis and **6.20%** on `vgg-14-c512-k3` on the control, where Run 36's
+basis carried a 28.36% outlier on `stretch-coprime-r7`. THREE benches
+of this run were intruded on, all the control half's and none of them an A/A
+pair's, which is what `--wild` over its logs says. No registration of this run
+names the floor pairs; `--floor-pairs` reads the eight on every population
+on both halves, 176 readings, and SIX of the eight carry a floor somewhere ---
+`list-aa-adjacent` in SEVEN of the twenty-two populations, where Run 38 read
+eight --- which is the same instability the whole-set figure above reads. **What
+this run cannot restate is Run 19's finding**, there being no repetition:
+the shim and `Main.hs` both moved under a compiler and a project file that did
+not, so no floor here is read twice on one binary. The three readings that did
+that stand as they were --- Run 19's factor of 1.7, Run 23's twentieth and Run
+30's 1.44 --- and they still say that a floor moves by up to seven tenths
+on a binary that has not changed at all, and that no run's floor is inheritable
+by the run after it. **Where the movement lives is the one thing twenty-two runs
+now agree on.** The carry-back figure has read 0.54%, 0.49%, 0.44%, 0.46%,
+0.37%, 0.39%, 0.34%, 0.40%, 0.31%, 0.83%, 0.39%, 0.26%, 0.57%, 0.61%, 0.66%,
+0.47%, 0.49%, 0.49%, 0.75%, 0.59%, 0.57% and now **0.57%** across
+those twenty-two on the basis while the whole-set figure ran 1.36%, 2.32%,
+1.51%, 2.92%, 2.12%, 2.03% and 1.26% before it stopped, so the pairs outside
+the four were what moved. **Run 27's 0.83% still does not survive as a trend**,
+and neither does the rise Runs 28 to 32 traced: Run 33's 0.47%, Run 34's 0.49%
+and Run 35's 0.49% are all INSIDE the 0.31%-to-0.54% band the series held
+for nine runs, and Run 36's 0.75% was above that band as four earlier readings
+of the series were --- 0.57%, 0.61%, 0.66% and Run 27's 0.83% --- and
+under the widest of them. **Run 37's 0.59%, Run 38's 0.57% and this run's 0.57%
+sit where Run 36's 0.75% did, above the 0.31%-to-0.54% band and under the widest
+reading of the series**, the basis's three readings parting by two hundredths
+of a point while the control's moved 0.48%, 0.28% and 0.43%; and on both halves
+of all three runs the whole-set and restricted readings coincide,
+so the four-statistics warning at the head of this paragraph costs those runs
+nothing. The threshold this run supports is ONE figure a half, the restricted
+four-pair reading and the whole set over the eight having closed on both ---
+and since 2026-09-13 a margin between two rows clears the whole-set one,
+the carry-back figure being the series and not the bar ([the open list][open]).
+Read the floor as the run's *and the half's*, re-measured every time, never
+as a constant of the harness and never inherited. **And of these series, only
+the readings from Run 36 on can still be re-derived**: Runs 24 to 30's artifacts
+were deleted 2026-09-18 and Runs 31 to 35's 2026-09-23, at the owner's word,
+so `--series` starts at Run 36 and every figure before it is a RECORD here
+and in that run's own file rather than something a later session can check.
+That is the run-file split working as designed --- an older run is read
+by opening its file --- and it is also why this paragraph's series is not
+to be cut: it is now the only copy. **And both of the checks from OUTSIDE
+the declared pairs are still gone with their arms.** `lib-stage2-disp`
+was parked on 2026-09-07 and the two undeclared pairs that stood in its place
+on Run 28 both lost a member to the parking of 2026-09-11, so this run, like
+Runs 29 to 38, has no check on the declared eight from outside them at all.
+A run that wants that check again has to land an arm for it.
+
+| run | A/A pairs | basis | control |
+|---:|---:|---:|---:|
+| 39 | 8 | 0.57% | 0.43% |
+| 38 | 8 | 0.57% | 0.28% |
+| 37 | 8 | 0.59% | 0.48% |
+| 36 | 8 | 1.63% | 0.53% |
+| 35 | 8 | 0.64% | 0.40% |
+| 34 | 8 | 0.51% | 0.49% |
+| 33 | 8 | 0.47% | 0.62% |
+| 32 | 8 | 0.66% | 0.68% |
+| 31 | 8 | 0.61% | 1.58% |
+| 30 | 8 | 0.57% | 0.84% |
+| 29 | 8 | 0.51% | 0.82% |
+| 28 | 8 | 0.50% | 0.65% |
+| 27 | 6 | 0.83% | 0.63% |
+| 26 | 6 | 0.31% | 0.46% |
+| 25 | 6 | 0.40% | 0.61% |
+| 24 | 16 | 1.26% | 2.11% |
+| 23 | 16 | 2.03% | 2.80% |
+| 22 | 16 | 2.12% | 1.08% |
+| 21 | 16 | 2.92% | 2.16% |
+| 20 | 18 | 1.51% | 1.18% |
+| 19 | 18 | 2.32% | 1.71% |
+| 18 | 18 | 1.36% | 1.42% |
+| 17 | 18 | 3.70% | 3.89% |
+| 16 | 18 | 2.32% | 1.22% |
 
 **The 0.7% differencing bar, measured against the pairs it is applied to ---
 and it is near the MEDIAN of that population rather than a bound on it.**
