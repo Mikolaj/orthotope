@@ -12727,6 +12727,41 @@ RECORDS = [
               hasnt=['THE BASIS IS run30-spec']),
          bug=V(exit=0, has=['THE BASIS IS run30-spec'])),
 
+    case('draft-carries-a-pairs-block-as-a-model', 'read-run.py', None,
+         "CONTROL: a [PAIR'S] block crosses under a <yours> line, its"
+         ' continuation with it, and the handover still does not',
+         # Since 2026-09-23 the draft carries each decided block as a
+         # model to rewrite, which retired the separate `--note` read a
+         # preparation took only to see how the blocks had been written.
+         # The `<yours>` line is the guard: run-status.sh's 2c counts it
+         # until it is deleted, which the next case holds.
+         plant=lambda t: {'note': write(
+             os.path.join(t, 'run29-pair.txt'),
+             "hdr\n\nENTRY POINT FOR THE SESSION THAT RUNS THIS [PAIR'S]."
+             " Spent on run29-spec.\n\nTHE ROSTER [PAIR'S]: 5 benches on"
+             " run29-spec.\n\n  and a continuation line.\n\nA [SAME]:"
+             " spec leads.\nHALVES: basis=spec other=nospec\n")},
+         argv=['--note', '{note}', '--draft', 'run30',
+               '--halves', 'nospec,libcase'],
+         ok=V(exit=0,
+              has=["THE ROSTER [PAIR'S]: <yours> -- the previous pair's",
+                   "THE ROSTER [PAIR'S]: 5 benches on run30-nospec",
+                   'and a continuation line',
+                   "ENTRY POINT FOR THE SESSION THAT RUNS THIS [PAIR'S]:"
+                   ' <yours>'],
+              hasnt=['Spent on'])),
+
+    case('status-counts-a-carried-model-as-a-slot', 'run-status.sh', None,
+         "CONTROL: a [PAIR'S] model still under its <yours> line reads NOT"
+         ' DONE at 2c, named by its title',
+         shadow=dict(extra=[('run97-pair.txt', NOTE_STUB
+                             + "\nTHE ROSTER [PAIR'S]: <yours> -- the"
+                               " previous pair's block follows as a model:"
+                               ' rewrite it for this pair and delete this'
+                               " line\nTHE ROSTER [PAIR'S]: 5 benches.\n")]),
+         argv=['run97'],
+         ok=V(exit=1, has=['1 slot(s) still <yours>', 'THE ROSTER'])),
+
     case('net-correction-netted-a-reducing-consumer', 'read-run.py',
          '5ccc5d9',
          'a `-sum` arm was netted against a forcing pass it never ran',

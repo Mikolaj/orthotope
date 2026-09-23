@@ -9638,13 +9638,15 @@ def pair_note(path, draft=None, halves=None):
     which is what the template means by "carried over from the previous
     note with the names changed and re-read rather than re-decided": those
     blocks are most of a note and retyping them is where a copying error
-    gets in. What it will NOT write is a `[PAIR'S]` block, and it lists
-    them by name instead -- those are the decisions, and the template's
-    ruling that a note is a person's is a ruling about them. A block
-    marked `[SAME in shape]` is listed as yours too, which is the safe
-    direction: its shape carries over and its CONTENT is this pair's, so
-    a draft emitting it would hand back the last pair's observations
-    under this pair's heading.
+    gets in. A `[PAIR'S]` block comes back as a MODEL under a `<yours>`
+    line, the previous pair's text for this preparation to rewrite: those
+    are the decisions, and the marker is what keeps a copied decision
+    from passing for one, run-status.sh's 2c counting it as a slot until
+    the line is deleted. The handover and the fill-in block's content
+    never cross. A block marked `[SAME in shape]` is listed as yours too,
+    which is the safe direction: its shape carries over and its CONTENT
+    is this pair's, so a draft emitting it would hand back the last
+    pair's observations under this pair's heading.
     """
     try:
         text = open(path).read()
@@ -9729,25 +9731,38 @@ def pair_note(path, draft=None, halves=None):
     # and the previous note -- and the assembling is where a block gets
     # dropped or a heading gets typed without its content. Now every slot
     # is present and the writing is filling them in: a `[SAME]` block is
-    # carried over, a `[PAIR'S]` block prints its TITLE and `<yours>` with
-    # the template's guidance beneath it as `#` scaffolding, and the
+    # carried over, a `[PAIR'S]` block prints its TITLE and a `<yours>`
+    # line with the previous pair's block beneath it as a model, and the
     # fill-in block prints its labels with `<yours>` for
     # `preflight.sh --fill-in` to replace or a hand to write.
-    # A `[PAIR'S]` block's CONTENT is never carried: the template's ruling
-    # is that copying one forward is how a note comes to describe the run
-    # before it, so the title is all that crosses.
-    guide = _template_blocks(os.path.dirname(os.path.abspath(path)))
+    # A `[PAIR'S]` BLOCK'S CONTENT CROSSES AS A MODEL, since 2026-09-23,
+    # where until then only its title did. The ruling it replaces was that
+    # copying one forward is how a note comes to describe the run before
+    # it; what it cost was a second read of the previous note, 35 KB on
+    # Run 39's preparation, taken only to see how each block had been
+    # written. The `<yours>` line under the title is what keeps the
+    # ruling's point: run-status.sh counts it as an owed slot until the
+    # preparation deletes it, so a block carried and never rewritten
+    # leaves 2c NOT DONE rather than passing as this pair's.
+    # The handover and the gate still cross as a slot and nothing else.
     pairs, out, gate_done, handover_done = [], [], False, False
+    guide = _template_blocks(os.path.dirname(os.path.abspath(path)))
     for para, kind, announced in blocks:
         lead = para.lstrip('\n').split('\n', 1)[0]
         title = _note_title(lead)
-        if kind in ('handover', 'pairs', 'gate'):
+        if kind == 'pairs':
+            if announced:
+                out.append("%s [PAIR'S]: <yours> -- the previous pair's"
+                           ' block follows as a model: rewrite it for this'
+                           ' pair and delete this line\n%s' % (title, para))
+                pairs.append(title)
+            else:
+                out.append(para)
+            continue
+        if kind in ('handover', 'gate'):
             # ONE SLOT PER BLOCK, not one per paragraph, and never its
-            # CONTENT: the template's ruling is that copying a decision
-            # forward is how a note comes to describe the run before it.
-            # The continuations are where that bites hardest -- the two
-            # recipes sit under HOW EACH HALF IS BUILT, and the previous
-            # pair's gate verdict under GATE:.
+            # CONTENT: a handover is spent with its run, and the previous
+            # pair's gate verdict sits under GATE:.
             if not announced:
                 continue
             if kind == 'gate':
@@ -9951,11 +9966,13 @@ def pair_note(path, draft=None, halves=None):
                 % (marks, body))
     print('# DRAFT for %s-pair.txt, the WHOLE note: %s\'s [SAME] blocks'
           ' carried over,' % (draft, os.path.basename(path)))
-    print('# every other slot present and empty. Redirect it, fill the'
-          ' <yours> lines,')
-    print('# delete the `#` scaffolding, and that is the note -- one file'
-          ' edited rather')
-    print('# than three assembled.')
+    print('# each [PAIR\'S] block under a <yours> line with the previous'
+          ' pair\'s text as a')
+    print('# model, the handover and the fill-in empty. Redirect it, rewrite'
+          ' each model and')
+    print('# delete its <yours> line, fill the rest, delete the `#`'
+          ' scaffolding, and that')
+    print('# is the note -- one file edited rather than three assembled.')
     print('# READ EVERY CARRIED LINE: it is a copy with names changed, and'
           ' the template')
     print('# asks for those blocks to be re-read rather than re-decided. A'
