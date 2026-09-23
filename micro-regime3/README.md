@@ -7750,8 +7750,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      nothing mechanical here does it.
     #      --check-doc reads a verdict word as an item already
     #      adjudicated.
-    #      Every live entry is a paragraph and there are two dozen of
-    #      them, so a session reading them itself carries tens of
+    #      Every live entry is a paragraph, so a session reading them
+    #      itself carries tens of
     #      thousands of tokens of prose for a handful of claims.
     #      Two copies of a registration is one copy that goes stale.
     ./read-run.py --para '<a lead you just wrote>'   # 12b. READ BACK
@@ -9387,8 +9387,8 @@ not otherwise.
     #        bullet is a README section
     #      why: --para 'What skipping this costs is measured'
     #      The hold stops the `Stop` hook and not the `PreToolUse` one,
-    #      and this half of the list makes three commits, so an unwrapped
-    #      stretch ends at each of them. Every wait on a job or an agent
+    #      and this half of the list commits more than once, so an
+    #      unwrapped stretch ends at each commit. Every wait on a job or an agent
     #      below ends a turn and the Stop hook rewraps at each. A hand
     #      wrap is the one thing --check-doc's wrap pass FAILS, and the
     #      wrapping rules file does not reliably load.
