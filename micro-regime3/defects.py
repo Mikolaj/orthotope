@@ -11167,6 +11167,24 @@ RECORDS = [
                    'no COMPARE line'],
               hasnt=['not before EVENING COMPLETE'])),
 
+    case('compare-cell-reads-one-cell-on-both-halves', 'read-run.py', None,
+         'CONTROL: --compare --cell prints the cell\'s raw and net slope on'
+         ' both halves with their ratio, and says where no log carries the'
+         ' mutator clock',
+         shadow=dict(extra=readings_run('zzprc', complete=False)),
+         argv=['{at}/zzprc-a1g-main.json', '--compare',
+               '{at}/zzprc-lookrts-main.json', '--cell',
+               '%s/list' % main_shapes()[0]],
+         ok=V(exit=0, has=['raw slope, s', 'net, s', 'this/other',
+                           'mutator clock is not read'])),
+
+    case('compare-cell-refuses-a-cell-it-cannot-find', 'read-run.py', None,
+         'CONTROL: a cell absent from either file is refused, exit 2',
+         shadow=dict(extra=readings_run('zzprd', complete=False)),
+         argv=['{at}/zzprd-a1g-main.json', '--compare',
+               '{at}/zzprd-lookrts-main.json', '--cell', 'no-shape/list'],
+         ok=V(exit=2, has=['is not a cell of both files'])),
+
     case('block-writes-the-counts-clause-it-can-compute',
          'read-run.py', None,
          'CONTROL: with both count sweeps given, a class block\'s paragraph'

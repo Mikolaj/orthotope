@@ -5382,6 +5382,60 @@ def block_verdicts(cells, shapes, strategies, meta, args):
         print('  `needs` unwritten: %s' % ', '.join(unknown))
 
 
+def compare_cell(cells, shapes, meta, path, other, main_hs, cell):
+    """One cell on both halves, on every clock this directory keeps.
+
+    Sizing an intrusion wants the cell on the corrected net the tables
+    publish AND on the mutator clock `--wild` reads, the one being what a
+    published figure took and the other what the intruder cost the
+    process; Run 39's session read the second off two `--wild` tables by
+    grep, quoted it alone, and the checker found the net figure three
+    times larger. `this/other` is this file over the `--compare` one.
+    """
+    sh, _, st = cell.partition('/')
+    b_cells, b_shapes, _ = load_other(other, main_hs, shapes, meta)
+    if (sh not in cells or st not in cells[sh] or sh not in b_cells
+            or st not in b_cells[sh]):
+        sys.stderr.write('--cell: %s is not a cell of both files, so nothing'
+                         ' is read\n' % cell)
+        return 2
+    a, b = cells[sh][st], b_cells[sh][st]
+    print('cell %s, %s / %s' % (cell, os.path.basename(path),
+                                  os.path.basename(other)))
+    print('  %-18s %14s %14s %10s' % ('', 'this', 'other', 'this/other'))
+    for label, key in (('raw slope, s', 'slope'), ('net, s', 'net')):
+        print('  %-18s %14.6g %14.6g %10.4f'
+              % (label, a[key], b[key], a[key] / b[key] if b[key] else 0.0))
+
+    def mutator(json_path):
+        log = json_path[:-len('.json')] + '.log'
+        if not os.path.exists(log):
+            return None
+        samples, _ = read_wild(log)
+        ds = [d for nm, d in samples if nm == cell]
+        if not ds:
+            return None
+        its = sum(d['iters'] for d in ds) or 1
+        withf = [d for d in ds if 'foreign' in d]
+        own = sum(d['own'] for d in withf)
+        return (sum(d['mut'] for d in ds) / its,
+                sum(d['foreign'] for d in withf) / own if own else None)
+    ma, mb = mutator(path), mutator(other)
+    if ma and mb:
+        print('  %-18s %14.0f %14.0f %10.4f'
+              % ('mutator per iter', ma[0], mb[0],
+                 ma[0] / mb[0] if mb[0] else 0.0))
+        print('  %-18s %14s %14s'
+              % ('foreign, cores', '--' if ma[1] is None else fmt_ratio(ma[1]),
+                 '--' if mb[1] is None else fmt_ratio(mb[1])))
+    else:
+        print('  no @@wild samples for this cell in %s, so the mutator'
+              ' clock is not read'
+              % ' and '.join(os.path.basename(q[:-5] + '.log')
+                             for q, m in ((path, ma), (other, mb)) if not m))
+    return 0
+
+
 def load_other(other, main_hs, shapes, meta):
     """The other run, corrected, or an exit if it is a different population.
 
@@ -14327,6 +14381,10 @@ def main():
     p.add_argument('--shapes', action='store_true')
     p.add_argument('--aa', action='store_true')
     p.add_argument('--cells', action='store_true')
+    p.add_argument('--cell', metavar='SHAPE/ARM',
+                   help='with --compare, one cell on both halves: raw and'
+                   ' corrected slope, and the mutator clock and foreign CPU'
+                   ' off each half\'s log where it carries @@wild samples')
     p.add_argument('--steps', action='store_true')
     p.add_argument('--machine', action='store_true')
     p.add_argument('--deflation', action='store_true',
@@ -14732,7 +14790,8 @@ def main():
     # arity it does not name. Its own pair of refusals is at the dispatch,
     # written to say which arity was given and what that one wants, which
     # is more than this loop can say.
-    for flag, needs in (('alloc', 'compare'), ('chapter', 'compare'),
+    for flag, needs in (('alloc', 'compare'), ('cell', 'compare'),
+                        ('chapter', 'compare'),
                         ('movers', 'compare'),
                         ('predictions', 'compare'), ('quiet', 'check_doc')):
         # `is not None` and NOT truthiness: --movers takes a NUMBER, and
@@ -15198,6 +15257,9 @@ def main():
                               args.main, args.counts[0], args.counts[1],
                               not args.verbose,
                               per_shape=args.per_shape))
+    elif args.compare and args.cell:
+        sys.exit(compare_cell(cells, shapes, meta, args.run, args.compare,
+                              args.main, args.cell))
     elif args.compare and args.alloc:
         compare_alloc(cells, shapes, strategies, meta, args.compare,
                       args.main, args.per_shape)
