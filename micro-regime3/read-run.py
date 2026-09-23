@@ -13967,11 +13967,13 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
                     # its script as `./NAME`, and Run 39's named one
                     # committed at 100644, which that refuses. Case:
                     # `registration-script-not-executable`.
-                    staged = subprocess.run(
-                        ['git', 'ls-files', '-s', '--', name],
+                    got = subprocess.run(
+                        ['git', 'ls-files', '-s', '--error-unmatch', '--',
+                         name],
                         cwd=os.path.dirname(os.path.abspath(main_hs)),
-                        capture_output=True, text=True).stdout.split()
-                    if not staged:
+                        capture_output=True, text=True)
+                    staged = got.stdout.split()
+                    if got.returncode != 0 or not staged:
                         trouble.append("Run %s's item (%s) names script %s,"
                                        ' which is not committed, so the'
                                        ' clause it reads is read by nothing'

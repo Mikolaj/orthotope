@@ -142,7 +142,8 @@ def counts(binary, arg):
 
 
 def head_address(binary):
-    got = subprocess.run(['nm', binary], capture_output=True, text=True)
+    got = subprocess.run(['nm', binary], capture_output=True, text=True,
+                         check=True)
     for line in got.stdout.split('\n'):
         p = line.split()
         if len(p) == 3 and p[2] == 'head':
