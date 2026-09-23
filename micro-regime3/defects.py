@@ -11324,6 +11324,30 @@ RECORDS = [
          bug=V(exit=1, has=['no zzem-pair.txt'],
                hasnt=['CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP'])),
 
+    case('evening-status-is-one-line', 'evening-status.sh', None,
+         'CONTROL: the mid-evening status is one line naming the evening\'s'
+         ' last stamp and the sequence\'s last process, off two tails',
+         # README's run list asks a session questioned mid-evening to answer
+         # from a tail and nothing heavier; Run 39's session answered with
+         # a grep over the wallclock log and a read of the previous run's
+         # beside it, one of them inside an intruded bench's window.
+         shadow=dict(extra=[
+             ('zzst-evening.txt', '=== 2026-01-01T02:00:00+00:00 evening'
+              ' begins for zzst\n=== 2026-01-01T02:30:00+00:00 sequence:'
+              ' start\n'),
+             ('zzst-wallclock.log', '=== 2026-01-01T02:30:00+00:00 start'
+              ' zzst-a1g-main from ./zzst-a1g\n=== 2026-01-01T03:00:00+00:00'
+              ' done  zzst-a1g-main rc=0 benchmarking=5\n'
+              '=== 2026-01-01T03:00:00+00:00 start zzst-lookrts-main from'
+              ' ./zzst-lookrts\n')]),
+         argv=['zzst'],
+         ok=V(exit=0, has=['sequence: start', '1 done',
+                           'zzst-lookrts-main'])),
+
+    case('evening-status-refuses-usage', 'evening-status.sh', None,
+         'CONTROL: no run named is usage, exit 2',
+         argv=[], ok=V(exit=2, has=['usage:'])),
+
     case('evening-resumes-from-a-named-stage', 'run-evening.sh', None,
          'CONTROL: --from sequence over a dead attempt\'s status file runs'
          ' the sequence and the riders and not the gate, appending to that'
