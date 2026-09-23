@@ -27,10 +27,9 @@ and the blocks below are marked [SAME] or [PAIR'S]:
             before it.
 
 AND THE MARKERS SAY WHO WRITES, NOT WHO ACTS. The EXECUTING session reads
-this note at run-list step 13 and the step says to read it whole, which is
-eight hundred lines of a preparation's record for the handful of blocks it
-acts on: the HALVES, LAUNCH and RIDERS lines every script reads, the gate
-arms, and the fill-in rows the write-up transcribes. Mark those [EXEC] as
+this note at run-list step 13 and the step says to read all of it, a
+preparation's whole record, for the handful of blocks it acts on: the
+HALVES, LAUNCH and RIDERS lines every script reads, the gate arms, and the fill-in rows the write-up transcribes. Mark those [EXEC] as
 well as [SAME] or [PAIR'S] -- the two are orthogonal, one saying who wrote
 the block and the other who runs on it -- so that step 13 can say read the
 [EXEC] blocks and skim the rest. Added 2026-09-15, after Run 32's executing
@@ -298,6 +297,9 @@ Verified when built, YYYY-MM-DD:
   .text             bytes, and whether the halves agree
   md5 <basis>       ...
   md5 <other>       ...
+  launch            where each half launches from, by half-bin.sh, and
+                    whether hugebin/ is mounted; `./` is the expected
+                    reading while the mount is suspended
   repetition        available or not, and why. Not owed where the source
                     moved: no md5 can reproduce an earlier binary then, so
                     an unequal one names nothing
