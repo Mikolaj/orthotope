@@ -12751,6 +12751,41 @@ RECORDS = [
                    ' <yours>'],
               hasnt=['Spent on'])),
 
+    case('draft-takes-same-blocks-from-the-template', 'read-run.py', None,
+         'CONTROL: a [SAME] block the template has comes from the template,'
+         ' carrying the LAUNCH and RIDERS values, the HALVES line and a'
+         ' named list of what ran on under it',
+         # Since 2026-09-23. The note's own copy of each block had grown at
+         # every carry; the template's is current by construction. The
+         # fixture puts the HALVES line inside a replaced block, which is
+         # the line every driver reads, and a run-on paragraph under it,
+         # which is the one thing the replacement drops.
+         plant=lambda t: (write(os.path.join(t, 'pair-note-template.txt'),
+             'LAUNCH [SAME]: the lean launch text.\n'
+             '    <env> ./run-gate.sh $R\nLAUNCH: <NAME=value ...>\n\n'
+             'THE ALONE-LEG RIDERS [SAME]: the lean riders.\n'
+             '    <env> SAT=1 ./run-alonelegs.sh $R <basis>\n'
+             'RIDERS: clean sat\n'),
+             {'note': write(os.path.join(t, 'run29-pair.txt'),
+             'hdr\n\nLAUNCH [SAME]: the long old launch text of run29.\n'
+             'HALVES: basis=spec other=nospec\n'
+             'LAUNCH: WILDLOG=1 SATURATE=1\n\n'
+             'A RUN-ON paragraph under the launch block.\n\n'
+             'THE ALONE-LEG RIDERS [SAME]: old riders.\nRIDERS: clean\n\n'
+             'Half names [SAME]: carried as before, run29-spec.\n')})[1],
+         argv=['--note', '{note}', '--draft', 'run30',
+               '--halves', 'nospec,libcase'],
+         ok=V(exit=0,
+              has=['the lean launch text',
+                   'WILDLOG=1 SATURATE=1 ./run-gate.sh run30',
+                   'LAUNCH: WILDLOG=1 SATURATE=1', 'RIDERS: clean\n',
+                   'WILDLOG=1 SAT=1 ./run-alonelegs.sh run30 nospec',
+                   'HALVES: basis=nospec other=libcase',
+                   'DROPPED WITH THEIR BLOCK', 'A RUN-ON paragraph',
+                   'carried as before, run30-nospec'],
+              hasnt=['the long old launch text',
+                     'SATURATE=1 SAT=1', 'RIDERS: clean sat'])),
+
     case('status-counts-a-carried-model-as-a-slot', 'run-status.sh', None,
          "CONTROL: a [PAIR'S] model still under its <yours> line reads NOT"
          ' DONE at 2c, named by its title',

@@ -515,10 +515,11 @@ step_10d () {  # 10d. AND THAT THE RECIPES BUILD THE HALVES THE LINE NAMES:
 }
 step_10e () {  # 10e. AND THE NOTE'S PROSE, which 10c and 10d do not read:
   # both of those are predicates over structure -- the paths the note
-  # names, the halves its recipes build -- so a note whose carried [SAME]
-  # blocks still describe the PREVIOUS pair passes them untouched.
-  # `--draft` substitutes the run and the half names and nothing else, so
-  # the run numbers, the item numbers and the roll of tags inside those
+  # names, the halves its recipes build -- so a note whose carried blocks
+  # still describe the PREVIOUS pair passes them untouched. `--draft`
+  # carries the [PAIR'S] models, and any [SAME] block the template lacks,
+  # with the run and the half names substituted and nothing else, so the
+  # run numbers, the item numbers and the roll of tags inside those
   # blocks stay the last pair's until a hand re-reads them. Run 33's
   # preparation re-read those blocks and rewrote a statement in every one
   # of them; these are the three kinds a machine can have. Non-vacuity is defects.py's

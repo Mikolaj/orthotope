@@ -1,5 +1,5 @@
-TEMPLATE for $R-pair.txt. Copy it, fill it, delete this line and the two
-below it -- but KEEP EVERY [SAME] AND [PAIR'S] MARKER in the note you
+TEMPLATE for $R-pair.txt, which `--draft` fills as the next paragraph says.
+KEEP EVERY [SAME] AND [PAIR'S] MARKER in the note you
 write. A marked note shows at a glance which of its blocks would be a
 COPYING ERROR to carry forward, which is the one thing a session cannot
 tell by reading. Every pair here is hand-built and its note is filled
@@ -8,26 +8,23 @@ site, ruled 2026-09-19), so the note is written BEFORE either binary exists
 -- which is also why this is a template and not a generator: what goes in
 it is a person's, and only the slots are known in advance.
 
-DO NOT COPY THE [SAME] BLOCKS BY HAND. `./read-run.py --note $PREV-pair.txt
---draft $R --halves <basis>,<other>` prints them with the names already
-carried over and every substitution listed, which is most of a note; what
-is left is the [PAIR'S] blocks, and those are the ones worth your
-attention. Run 25's preparation hand-copied instead, and carried the
-previous run's gate arms and its --library figures forward in the copying.
-The blocks below are marked [SAME] or [PAIR'S]:
-  [SAME]    carried over from the previous note with the names changed
-            and re-read rather than re-decided -- the naming rule, the
-            launch lines, the riders, the counts recipe, the read-back
-            block, the machine paragraph, the gate line, and the shape
-            of the fill-in block. If one of these differs from the last
-            note, that is a finding and the note says why.
-  [PAIR'S]  written for this pair and never copied -- the entry point,
-            what the pair measures and prices, why the basis is this
-            recipe, the two recipes, the registrations and the roster.
-            Copying one of these forward is how a note comes to describe
-            the run before it.
-A note that is mostly [SAME] is the normal state and not a lazy one. What
-it must not be is mostly [SAME] in the [PAIR'S] blocks.
+DO NOT WRITE THE NOTE FROM THIS FILE BY HAND. `./read-run.py --note
+$PREV-pair.txt --draft $R --halves <basis>,<other>` prints the whole note,
+and the blocks below are marked [SAME] or [PAIR'S]:
+  [SAME]    the same for every pair, so the draft takes each from THIS
+            FILE, with the run, the halves and the previous note's LAUNCH
+            and RIDERS values put in -- the naming rule, the read-back
+            commands, the launch and rider lines, the counts, the machine
+            check, the gate declarations. What a pair adds to one of them
+            is a [PAIR'S] block's to say.
+  [PAIR'S]  written for this pair: the entry point, what the pair measures
+            and prices, why the basis is this recipe, the two recipes, the
+            registration and the roster. The draft carries the previous
+            note's, the entry point excepted as a handover, under a
+            `<yours>` line as a model; rewrite each and
+            delete its line, run-status.sh's 2c counting the ones left.
+            A model left standing is how a note comes to describe the run
+            before it.
 
 AND THE MARKERS SAY WHO WRITES, NOT WHO ACTS. The EXECUTING session reads
 this note at run-list step 13 and the step says to read it whole, which is
@@ -107,11 +104,9 @@ COMPARE: <previous run, as run<N>>
 
 NAMING THE HALVES [SAME]: neither name may begin with the other's followed by a
 hyphen, and a tag is one token of `[A-Za-z0-9_]`: install-tables.sh's
-`$R-<basis>-*.json` glob and pair-halves.sh both require it. WHY, and the
-roll of every tag this chapter has used, are in README's *Which two halves
-a pair has*, since 2026-09-18. READ THEM THERE AND DO NOT COPY THE ROLL
-BACK HERE: it lived in the notes until that day and drifted twice over,
-`g914` missing from one and this template's copy four tags short of it.
+`$R-<basis>-*.json` glob and pair-halves.sh both require it. Why, and the
+roll of every tag this chapter has used, are README's *Which two halves a
+pair has*; the roll is not copied here.
 
 WHY THE BASIS IS THIS RECIPE [PAIR'S], decided YYYY-MM-DD: a decision and not a
 measurement, so the reason belongs here where the next session meets it.
@@ -187,62 +182,35 @@ HOW EACH HALF IS BUILT [PAIR'S], there being no builder here. Both from one sour
 THE SECOND BUILD IS A CHOICE OR A NECESSITY [PAIR'S]: say which, and if a one-binary
 form would do, record it here as the alternative so the decision stays one.
 
-WHAT TO READ BACK BEFORE THE EVENING [SAME]:
-  ./loop-offsets.py $R-<other> $R-<basis>
-  ./loop-offsets.py --library $R-<basis> $R-<other>
-  md5sum $R-<basis> $R-<other>
-  size -A $R-<basis> | grep '^\.text'
-  RECORD THIS PAIR'S --library FIGURE AND NOT THE SERIES. What a given
-  reading means is banded once in README, at *the halves differed by more
-  than Main's alignment*; a note that copies the previous notes' figures
-  forward is maintaining, by hand, a cross-run series whose every copy
-  dies with its pair.
+WHAT TO READ BACK BEFORE THE EVENING [SAME]: the fill-in block below, which
+`./preflight.sh $R --fill-in` derives; by hand, the same readings are
+    ./loop-offsets.py $R-<other> $R-<basis>
+    ./loop-offsets.py --library $R-<basis> $R-<other>
+    ./loop-offsets.py --survey $R-<basis>    # and $R-<other>
+    md5sum $R-<basis> $R-<other>
+    cmp <(./$R-<basis> check 2>&1) <(./$R-<other> check 2>&1)
+  Record this pair's --library figure and not the series; what a reading
+  means is banded in README at *the halves differed by more than Main's
+  alignment*.
 
-THE NEXT THREE BLOCKS ARE THE RUN LIST'S, AND THEY ARE HERE SO THAT A
-PREPARATION NEED NOT READ IT. Steps 14, 17, 19 and 20 are the executing
-session's to run, but their launch environment, their rider legs and
-their counts loop are written into this note by the session that never
-runs them -- which is why item 1 of the reading list used to make a
-preparation read the whole run list for three blocks. Fill them from the
-previous note, which is where the pair's own environment is; the chapter
-is the authority on what they mean and is read when one surprises you.
-
-LAUNCH [SAME]: every environment switch this pair wants, on the launch
-line of BOTH the gate and the run. A pair whose instrument is switched on
-by a variable is OFF unless the launch line sets it, and nothing
-downstream notices -- the counts come out right, the gate passes, and the
-registration the pair was built to answer comes back empty.
+LAUNCH [SAME]: every environment switch this pair wants, on the launch line
+of both the gate and the run; a switch the line does not set is off, and
+nothing downstream notices. The machine line is what run-evening.sh puts in
+front of every stage, `LAUNCH: none` for a pair that wants nothing, and both
+drivers record `launch env: ...`, which the executor reads back. The two
+launch lines, and under them the machine line:
     <env> ./run-gate.sh $R
     <env> ./run-major.sh $R
-  The second runs in the background, and WHICH background matters: a
-  session uses the harness's own background mode, which registers a task
-  and wakes it on exit, where a typed `&` detaches and runs just as well
-  and registers nothing, so nothing wakes you for a sequence that runs
-  for hours (measured 2026-09-04). A note that writes the `&` hands its
-  executor the one form that cannot wake it.
-  The machine form of <env>, which run-evening.sh puts in front of every
-  stage; `LAUNCH: none` for a pair that wants nothing:
 LAUNCH: <NAME=value ...>
-  Both drivers record what they were launched with, `launch env: ...`, in
-  the gate's output and in the wallclock log, set or unset. Say here that
-  the executor reads that line back rather than trusting the command it
-  meant to type.
 
-THE ALONE-LEG RIDERS [SAME], owed with the pair since Run 16 and out of
-the EVENING rather than the probe budget. TWO LINES IS THE FLOOR AND A
-PAIR CARRYING THE SATURATING PREAMBLE OWES EACH HALF TWICE, clean and
-`SAT=1`, which is the decomposition's pair of columns -- so write this
-pair's own four (or two) lines out, control first:
-    <env>          ./run-alonelegs.sh $R <other>
-    <env> SAT=1    ./run-alonelegs.sh $R <other>
-    <env>          ./run-alonelegs.sh $R <basis>
-    <env> SAT=1    ./run-alonelegs.sh $R <basis>
-  `SAT=` is the rider's spelling and reaches the process as SATURATE=;
-  run-evening.sh strips SATURATE from the CLEAN legs' environment, so the
-  LAUNCH switches may stand in front of every line. Every leg refuses a
-  machine above 5% non-idle, MAXBUSY overriding.
-  The machine form, which run-evening.sh reads: `clean`, `clean sat`, or
-  `none` for a pair that owes no riders:
+THE ALONE-LEG RIDERS [SAME]: each half clean and, where the pair carries the
+saturating preamble, with `SAT=1` too, control first; run-evening.sh strips
+SATURATE from the clean legs. The legs, and under them the machine line,
+`clean`, `clean sat` or `none`:
+    <env>       ./run-alonelegs.sh $R <other>
+    <env> SAT=1 ./run-alonelegs.sh $R <other>
+    <env>       ./run-alonelegs.sh $R <basis>
+    <env> SAT=1 ./run-alonelegs.sh $R <basis>
 RIDERS: clean sat
 
 A RERUN, SAID BEFORE THE HOURS [PAIR'S]: whether post-run step 3 may take
@@ -254,62 +222,40 @@ hours later. `allowed` reruns at once, `ask` is the chapter's default, and
 `no` records the sensitivity reading in the rerun's place:
 RERUN: ask
 
-THE COUNTS [SAME], owed with the pair, wanting no quiet machine, and over
-EVERY population rather than the main set alone -- the empty first
-element is the main set and the nine that follow are the classes:
-    for c in '' rev revsome bcast bcastmid reshape1 slice window \
-             scaled runs
-    do ./run-counts.sh $R <other> $c; ./run-counts.sh $R <basis> $c; done
-  `./run-counts-all.sh $R` is that loop as the run list runs it, taking
-  the classes off the basis binary; the lines above are the hand form, for
-  a re-take of one population.
-  Give the previous run's own totals beside it, so a slow sweep is
-  recognisable, and say what a `!!` line means. READ THOSE TOTALS OFF THAT
-  RUN'S OWN `$PREV-counts-*.txt` and never carry them forward from the
-  previous note: carried, they lag a run, which is how Run 28's note came
-  to quote Run 27's. The `# end` line carries `elapsed=<n>s` for a leg
-  taken after 2026-09-12; FOR AN EARLIER RUN IT CARRIES ONLY THE TWO
-  STAMPS and the difference is yours, which is what every preparation up
-  to Run 29 did, leg by leg. Where the pair's central
-  claim turns on counts rather than on time -- a layout pair, where an arm
-  must not move its instructions except where a pad was executed -- say so
-  here and name which registrations are read off that split.
+THE COUNTS [SAME], owed with the pair over every population on both halves,
+wanting no quiet machine: `./run-counts-all.sh $R`, which takes the classes
+off the basis binary, and `./run-counts.sh $R <half> <class>` to re-take
+one. The previous run's totals are the fill-in block's `prev counts` row,
+derived and never carried. Where the registration reads a claim off counts
+rather than time, it says so.
+
+THE MACHINE [SAME]: run-gate.sh's machine check reads the gate's basis-half
+`a` JSON against the newest run file's fingerprint, and the line it prints
+is this run's answer; the previous run's is the fill-in block's `prev
+machine` row. The box's eras, and which absolutes may cross them, are
+README's Provenance. A net outside the bars, 5% a shape and 3% the geomean,
+is read first against what moved since the previous run, which the
+[PAIR'S] blocks above name.
 
 GATE: NOT RUN. run-gate.sh takes five benches over the shape set from each
 half, twice each, in a palindrome, and both passes are read. Until a line
 below states an outcome, this pair has no gate.
 
-AND A GATE THE PAIR'S OWN VARIABLE WILL FIRE IS DECLARED HERE [SAME], by
-hand and after the run, as the gate's verdict above is. read-all.sh
-refuses a run whose processes do not assert ONE saturation state, and a
-pair whose variable moves what the preamble's spray leaves resident fires
-that on every process, every time -- so post-run step 1 can never pass and
-`STATUS: all done`, which the chapter calls the one state in which a
-session is finished with a run, is unreachable for the whole of it. Run 31
-is the case, its `-O2` half leaving 74448896 bytes in use against the
-plain half's 95420416.
+AND A GATE THE PAIR'S OWN VARIABLE WILL FIRE IS DECLARED HERE [SAME], by hand
+and after the run, as the gate's verdict above is: read-all.sh refuses a run
+whose processes do not assert one saturation state, and a pair whose
+variable moves what the preamble's spray leaves resident fires that on every
+process. Only where the run has shown it, and with its reason, one of:
     EXPECT: state           the processes will not assert one state
     EXPECT: band            the victim's spread will pass the band
     EXPECT: state band      both
-LEAVE THE LINE OUT UNLESS THE RUN HAS SHOWN IT. A declaration is not a
-prediction and not a suppression: the block is still printed in full, the
-states still listed per process and the per-half plateau still printed
-beside them, and what changes is only that a declared firing reads as a
-finding rather than as a refusal. Written before the run it would be a
-guess that silences the one gate nothing else replaces; written after it
-with its reason, it is the same act as writing the gate's verdict, and it
-costs a sentence somebody had to mean.
+A declared firing is still printed in full; it reads as a finding rather
+than as a refusal.
 
-ANY OTHER GATE THIS NOTE SETS [SAME] MUST NAME WHAT DISCHARGES IT AND WHERE THE
-DISCHARGE IS WRITTEN. A note may hold the run back on something the gate
-line does not cover -- the commonest is the previous run's artifacts,
-which the cross-run readings need and which a `DO NOT DELETE ... BEFORE
-...` line protects. Written that way it has no off switch: the session
-that makes those readings has nowhere to say so, and the next one re-reads
-a prohibition already spent. So give every such line the shape the GATE
-line has -- a condition, and a slot beneath it for the outcome and its
-date. Run 21 had to add that slot by hand on 2026-08-29 after discharging
-Run 20's deletion gate.
+ANY OTHER GATE THIS NOTE SETS [SAME] names what discharges it and where the
+discharge is written -- a condition, and a slot beneath it for the outcome
+and its date, the shape the GATE line has -- so the session that discharges
+it has somewhere to say so.
 
 THE FILL-IN BLOCK BELOW [SAME in shape, PAIR'S in content] IS OBSERVATIONS AND NOT INTERPRETATIONS. Record
 what was measured -- the commits, the md5s, the byte counts, what agreed
@@ -342,7 +288,10 @@ Verified when built, YYYY-MM-DD:
   compilers         what `ghc --version` said for each half, and what each
                     BINARY carries -- a project file naming a compiler is
                     not a reading of one
-  baked RTS         the `-with-rtsopts` line, by `+RTS --info` and never by
+  plan              what the build plan resolves through the note's project
+                    file: criterion, vector with its two check flags, base,
+                    ghc-prim, hashable and aeson
+  baked RTS        the `-with-rtsopts` line, by `+RTS --info` and never by
                     `strings`, on both halves
   instruments       the @@ stamps this pair's switches need, counted in
                     each binary
@@ -375,6 +324,8 @@ Verified when built, YYYY-MM-DD:
                     identical; `./roster-delta.py PREV NOW` is what says
                     how the roster moved, and its per-class counts are what
                     the roster block above owes
+  prev counts       the previous run's counts totals, by --counts-totals
+  prev machine      the previous run's gate machine line, off its note
   smoke sweep       ./smoke-sweep.sh $R, clean or not
   L1 ROSTER PASS:   taken or not owed, and on which roster -- a pass
                     recorded for a roster that has since moved is worse

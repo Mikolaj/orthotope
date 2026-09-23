@@ -269,21 +269,23 @@ Modes:
                     tables are in -- no run needed. Each step prints
                     through its `why:` line and no further; `--full`
                     prints the reasons under it too
-  --note PREV       a previous pair note as the next PREPARATION owes it:
-                    the blocks it DECIDES, which is reading-list item 10
-                    made executable. Three kinds are withheld and the size
-                    said -- the handover and the gate, spent with that run,
+  --note PREV       the blocks of a previous pair note that a preparation
+                    DECIDES. Three kinds are withheld and the size said
+                    -- the handover and the gate, spent with that run,
                     and the `[SAME]` blocks, which --draft carries over, so
                     reading one here is reading a block you will not type
-  --note PREV --draft R --halves B,O   and instead the WHOLE note: the
-                    `[SAME]` blocks carried over with the names changed,
-                    every other slot present and empty, every substitution
-                    listed. A `[PAIR'S]` block gives up its TITLE and never
-                    its content, with the template's guidance beneath it as
-                    `#` scaffolding, and the fill-in block comes as labels
-                    and `<yours>` -- so a note is one file filled in rather
-                    than three assembled, and `preflight.sh R --fill-in`
-                    derives most of those rows -- no run needed
+  --note PREV --draft R --halves B,O   and instead the WHOLE note, which
+                    is reading-list item 10 as a preparation owes it: each
+                    `[SAME]` block from the template, with this pair's
+                    names and the previous LAUNCH and RIDERS values put in,
+                    or from the note with the names carried over where the
+                    template has none; each `[PAIR'S]` block the previous
+                    note's, as a model under a `<yours>` line to rewrite;
+                    the handover and the gate as slots, and the fill-in
+                    block as labels and `<yours>` -- so a note is one file
+                    filled in rather than three assembled, and
+                    `preflight.sh R --fill-in` derives most of those rows
+                    -- no run needed
   --section NAME    print one section's prose by its heading's words,
                     without its tables and naming the size withheld;
                     --with-tables adds them and --with-tables N takes the
@@ -9313,6 +9315,52 @@ def _template_gate(near):
     return 'GATE: NOT RUN.'
 
 
+def _template_same(near):
+    """{title: paragraph} of the template's `[SAME]` blocks, or {}.
+
+    Since 2026-09-23 these, and not the previous note's, are what a draft
+    carries: a note's `[SAME]` blocks had grown by a run's worth of figures
+    and continuity clauses at every copy, which each preparation re-read
+    and rewrote by hand. The template's are short and name the run by `$R`
+    and the halves by `<basis>` and `<other>`, so they are current by
+    construction.
+    """
+    out = {}
+    try:
+        text = open(os.path.join(near or '.', 'pair-note-template.txt')).read()
+    except OSError:
+        return out
+    for para in text.split('\n\n'):
+        lead = para.lstrip('\n').split('\n', 1)[0]
+        if '[SAME]' in lead:
+            out[_note_title(lead)] = para.strip('\n')
+    return out
+
+
+def _same_filled(para, run, new, env, machine):
+    """A template `[SAME]` block with this pair's names and values in it.
+
+    `machine` maps a machine line's key -- LAUNCH, RIDERS -- to the whole
+    line the previous note carried, which replaces the template's
+    placeholder line of that key: those are values the pair holds, not
+    prose, and run-evening.sh reads them.
+    """
+    para = (para.replace('$R', run).replace('<basis>', new[0])
+                .replace('<other>', new[1]))
+    # A RIDER LINE TAKES THE LAUNCH VALUES LESS SATURATE: run-evening.sh
+    # unsets it for a clean leg, but these lines are also the hand form,
+    # and run-alonelegs.sh passes an inherited SATURATE through.
+    clean = ' '.join(t for t in env.split() if not t.startswith('SATURATE'))
+
+    def put(m):
+        e = clean if 'run-alonelegs' in m.group(2) else env
+        return m.group(1) + ('%s ' % e if e else '') + m.group(2)
+    para = re.sub(r'^( *)<env> *(.*)$', put, para, flags=re.M)
+    for key, line in machine.items():
+        para = re.sub(r'^%s:.*$' % key, lambda _m: line, para, flags=re.M)
+    return para
+
+
 def _scaffold(para):
     """The template's guidance for a block, as `#` lines to delete.
 
@@ -9633,12 +9681,12 @@ def pair_note(path, draft=None, halves=None):
     Two readings, and they answer different questions. Plain, this prints
     what item 10 asks for and withholds the handover, saying how much it
     withheld -- the size line is the point, since a skip nobody can see is
-    a skip nobody believes was taken. With `--draft`, it prints the
-    `[SAME]` blocks alone with the run and the half names carried over,
-    which is what the template means by "carried over from the previous
-    note with the names changed and re-read rather than re-decided": those
-    blocks are most of a note and retyping them is where a copying error
-    gets in. A `[PAIR'S]` block comes back as a MODEL under a `<yours>`
+    a skip nobody believes was taken. With `--draft`, it prints the whole
+    note: each `[SAME]` block from the template where the template has
+    one, with this pair's names and the previous note's LAUNCH and RIDERS
+    values put in, and from the previous note with the names carried over
+    where it has not -- retyping them is where a copying error gets in.
+    A `[PAIR'S]` block comes back as a MODEL under a `<yours>`
     line, the previous pair's text for this preparation to rewrite: those
     are the decisions, and the marker is what keeps a copied decision
     from passing for one, run-status.sh's 2c counting it as a slot until
@@ -9747,9 +9795,50 @@ def pair_note(path, draft=None, halves=None):
     # The handover and the gate still cross as a slot and nothing else.
     pairs, out, gate_done, handover_done = [], [], False, False
     guide = _template_blocks(os.path.dirname(os.path.abspath(path)))
+    # A `[SAME]` BLOCK COMES FROM THE TEMPLATE WHERE THE TEMPLATE HAS ONE
+    # OF THAT TITLE, since 2026-09-23 -- see `_template_same`. What the
+    # previous note held that a script reads is carried into it: the
+    # LAUNCH and RIDERS lines, and the LAUNCH values in front of each
+    # command. The template's text goes in AFTER the renames below, as a
+    # placeholder until then, so that a tag this pair reuses from the
+    # last one cannot rename the template's own. A paragraph that ran on
+    # under a replaced block is dropped and NAMED in the header, being
+    # the one thing this could otherwise lose unseen. A `[SAME]` block the
+    # template lacks is carried from the note as before.
+    tsame = _template_same(os.path.dirname(os.path.abspath(path)))
+    machine = {k: m.group(0) for k in ('LAUNCH', 'RIDERS')
+               for m in [re.search(r'^%s:.*$' % k, text, re.M)] if m}
+    env = ''
+    if 'LAUNCH' in machine:
+        env = machine['LAUNCH'].split(':', 1)[1].strip()
+        env = '' if env in ('none', '') else env
+    fills, from_template, dropped, replacing = {}, [], [], False
     for para, kind, announced in blocks:
         lead = para.lstrip('\n').split('\n', 1)[0]
         title = _note_title(lead)
+        if kind == 'same':
+            if announced:
+                replacing = title in tsame
+                if replacing:
+                    key = '\x00SAME%d\x00' % len(fills)
+                    fills[key] = tsame[title]
+                    out.append(key)
+                    from_template.append(title)
+                else:
+                    out.append(para)
+            elif replacing:
+                dropped.append((title, lead.strip()[:60]))
+            else:
+                out.append(para)
+            # THE HALVES AND COMPARE LINES SURVIVE A REPLACED BLOCK: every
+            # driver reads the first through pair-halves.sh, and a note
+            # whose block carried it would otherwise draft without one.
+            if replacing:
+                keep = [l for l in para.split('\n')
+                        if re.match(r'(HALVES|COMPARE):', l)]
+                if keep:
+                    out.append('\n'.join(keep))
+            continue
         if kind == 'pairs':
             if announced:
                 out.append("%s [PAIR'S]: <yours> -- the previous pair's"
@@ -9964,8 +10053,20 @@ def pair_note(path, draft=None, halves=None):
                 ' about the regime may be false for this pair. Read them\n#'
                 ' against this pair before deleting this notice.\n%s\n\n%s'
                 % (marks, body))
-    print('# DRAFT for %s-pair.txt, the WHOLE note: %s\'s [SAME] blocks'
-          ' carried over,' % (draft, os.path.basename(path)))
+    for key, para in fills.items():
+        body = body.replace(key, _same_filled(para, draft, new, env, machine))
+    if from_template:
+        notice = ['# FROM THE TEMPLATE and not from %s: %s. The previous'
+                  ' note\'s LAUNCH and RIDERS values are carried into them.'
+                  % (os.path.basename(path), '; '.join(from_template))]
+        if dropped:
+            notice.append('# DROPPED WITH THEIR BLOCK, the paragraphs that'
+                          ' ran on under one the template replaced -- move'
+                          ' any that is this pair\'s into a [PAIR\'S] block:')
+            notice += ['#   %-28s | %s' % (t[:28], l) for t, l in dropped]
+        body = '\n'.join(notice) + '\n\n' + body
+    print('# DRAFT for %s-pair.txt, the WHOLE note: [SAME] blocks from the'
+          ' template or %s,' % (draft, os.path.basename(path)))
     print('# each [PAIR\'S] block under a <yours> line with the previous'
           ' pair\'s text as a')
     print('# model, the handover and the fill-in empty. Redirect it, rewrite'
@@ -9973,11 +10074,10 @@ def pair_note(path, draft=None, halves=None):
     print('# delete its <yours> line, fill the rest, delete the `#`'
           ' scaffolding, and that')
     print('# is the note -- one file edited rather than three assembled.')
-    print('# READ EVERY CARRIED LINE: it is a copy with names changed, and'
-          ' the template')
-    print('# asks for those blocks to be re-read rather than re-decided. A'
-          ' block that')
-    print('# differs from the last note is a FINDING and the note says why.')
+    print('# READ EVERY LINE CARRIED FROM THE NOTE: it is a copy with names'
+          ' changed, to be')
+    print('# re-read rather than re-decided; where one no longer holds, the'
+          ' note says why.')
     print('#')
     print('# Substituted: %s' % ('; '.join(log) or 'nothing'))
     print('#')
@@ -14879,9 +14979,10 @@ def main():
                         ' tag missing from the roll -- the three carried-block'
                         ' errors a machine can have. preflight runs it as 10e')
     p.add_argument('--draft', metavar='RUN',
-                   help="with --note: print the [SAME] blocks alone, carried"
-                        ' to RUN, which is what the next note is written'
-                        ' from; wants --halves')
+                   help="with --note: print the whole next note for RUN,"
+                        ' each [SAME] block from the template and each'
+                        " [PAIR'S] block as a model under a <yours> line;"
+                        ' wants --halves')
     p.add_argument('--halves', metavar='BASIS,OTHER',
                    help="with --note --draft: the new pair's two names")
     p.add_argument('--checklist', metavar='pre|run|post[-a|-b]|readings',
