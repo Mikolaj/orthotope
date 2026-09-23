@@ -138,7 +138,8 @@ set -u
 cd "$(dirname "$0")" || exit 1
 
 if [ $# -lt 1 ]; then
-  echo "usage: ./preflight.sh RUN [--note|--no-corpus|--corpus] [--figures] [--fill-in]"
+  echo "usage: ./preflight.sh RUN [--note|--no-corpus|--corpus] \
+[--figures] [--fill-in]"
   echo "  --note        steps 10c, 10d, 10e and 8 alone -- the ones that read"
   echo "                the preparation WROTE, in seconds and with no binary"
   echo "  --no-corpus   everything but 8c and 8d, the two that read every run"
@@ -178,7 +179,8 @@ for a in "$@"; do
     --fill-in) FILLIN=1 ;;
     --figures) FIGURES=1 ;;
     *) echo "unknown argument '$a' --" \
-            "./preflight.sh RUN [--note|--no-corpus|--corpus] [--figures] [--fill-in]"
+            "./preflight.sh RUN [--note|--no-corpus|--corpus]" \
+            "[--figures] [--fill-in]"
        exit 2 ;;
   esac
 done
@@ -291,7 +293,8 @@ want.append(('--list', ['%d benches' % n]))
 # `gate arms` checking a figure the label does not name (2026-09-10).
 gate = sh('./run-gate.sh %s --show 2>/dev/null' % R)
 gf = [m.group(1) for m in
-      (re.search(r'arms\s+(\d+)', gate), re.search(r'expect (\d+) benches', gate))
+      (re.search(r'arms\s+(\d+)', gate),
+       re.search(r'expect (\d+) benches', gate))
       if m]
 # A GATE THAT REFUSED IS A ROW UNCHECKED, not a row skipped: --show exits
 # before printing on a missing binary or a SEL off the roster, and the
@@ -405,8 +408,8 @@ step_8 () {
 # full pass is re-checked without paying again for 8c and 8d, which read
 # this directory's Python source and its run JSONs and cannot have moved.
 # Run 23's preparation paid two whole passes to re-test 10c, 2026-09-01.
-  step_10c () {  # 10c. AND WHAT THE NOTE POINTS AT, which nothing else reads. The run
-  # file must OUTLIVE its artifacts and --check-doc now refuses one that
+  step_10c () {  # 10c. AND WHAT THE NOTE POINTS AT, which nothing else reads.
+  # The run file must OUTLIVE its artifacts and --check-doc now refuses one that
   # names them; the pair note is the opposite -- it is MEANT to go with the
   # pair -- so the rule it needs is the weaker one, that anything it cites
   # outlives IT. That matters because the note is the entry point a later
@@ -456,7 +459,9 @@ step_8 () {
   # one path, and a boundary that stopped at the slash read
   # `smoke-legs-1/smoke-l1-$R-bcast.json` as a bare file in this one.
   if [ -f "$R-pair.txt" ]; then
-    MISSING=$(grep -oE '(^|[^A-Za-z0-9._/-])(probe-[A-Za-z0-9._{},-]*[A-Za-z0-9_}]/?|[A-Za-z0-9._/-]*'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))' \
+    REFS_RE='(^|[^A-Za-z0-9._/-])(probe-[A-Za-z0-9._{},-]*[A-Za-z0-9_}]/?|'
+    REFS_RE=$REFS_RE'[A-Za-z0-9._/-]*'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))'
+    MISSING=$(grep -oE "$REFS_RE" \
                 "$R-pair.txt" | sed -E 's/^[^A-Za-z0-9]//' | sort -u \
               | while read -r q; do
                   # Brace groups expand without eval, one group a pass
@@ -508,9 +513,11 @@ step_10d () {  # 10d. AND THAT THE RECIPES BUILD THE HALVES THE LINE NAMES:
   MISS=$(for h in $BASIS $OTHER; do
            grep -q "$R-$h" "$R-pair.txt" || echo "$R-$h"; done)
   if [ -z "$MISS" ]; then
-    say 10d PASS "HALVES line basis=$BASIS other=$OTHER, and the note names both binaries"
+    say 10d PASS "HALVES line basis=$BASIS other=$OTHER, and the note names \
+both binaries"
   else
-    say 10d FAIL "$R-pair.txt never names: $(echo $MISS) -- its HALVES line and its recipes disagree"
+    say 10d FAIL "$R-pair.txt never names: $(echo $MISS) -- its HALVES line \
+and its recipes disagree"
   fi
 }
 step_10e () {  # 10e. AND THE NOTE'S PROSE, which 10c and 10d do not read:
@@ -522,14 +529,15 @@ step_10e () {  # 10e. AND THE NOTE'S PROSE, which 10c and 10d do not read:
   # run numbers, the item numbers and the roll of tags inside those
   # blocks stay the last pair's until a hand re-reads them. Run 33's
   # preparation re-read those blocks and rewrote a statement in every one
-  # of them; these are the three kinds a machine can have. Non-vacuity is defects.py's
-  # `note-check-reads-the-carried-blocks`, which plants all three in a
-  # copy of a real note and counts what comes back.
+  # of them; these are the three kinds a machine can have. Non-vacuity is
+  # defects.py's `note-check-reads-the-carried-blocks`, which plants all
+  # three in a copy of a real note and counts what comes back.
   [ -f "$R-pair.txt" ] || return 0
   if ./read-run.py --note-check "$R-pair.txt" > "$TMP/notecheck" 2>&1; then
     say 10e PASS "$(head -1 "$TMP/notecheck")"
   else
-    say 10e FAIL "$(head -1 "$TMP/notecheck") -- first: $(sed -n '2p' "$TMP/notecheck" | sed 's/^ *//')"
+    say 10e FAIL "$(head -1 "$TMP/notecheck") -- first: \
+$(sed -n '2p' "$TMP/notecheck" | sed 's/^ *//')"
   fi
 }
 step_10f () {  # 10f. AND WHERE THE HALVES WILL ACTUALLY LAUNCH FROM,
@@ -577,8 +585,8 @@ a placement run, whose note owes the word it was raised on"
   else
     say 10f FAIL "$MOUNTED would launch from hugebin/ and not from disk: \
 the mount is up and this run declares no placement question. Unmount it \
-(root's: sudo umount hugebin), or set PLACEMENT=1 to take the term deliberately \
-and say so in the note"
+(root's: sudo umount hugebin), or set PLACEMENT=1 to take the term \
+deliberately and say so in the note"
   fi
 }
 if [ "$NOTE_ONLY" = 1 ]; then
@@ -761,26 +769,33 @@ else
   esac
 fi
 SCAN=$("./$R-$BASIS" diag 2>/dev/null \
-       | awk '/^vgg-14-c512 /{f=1} f && /baseOffsetsScan /{print $(NF-3); exit}')
+       | awk '/^vgg-14-c512 /{f=1}
+              f && /baseOffsetsScan /{print $(NF-3); exit}')
 MUT=$("./$R-$BASIS" diag 2>/dev/null \
-      | awk '/^vgg-14-c512 /{f=1} f && /baseOffsetsMut /{print $(NF-3); exit}')
+      | awk '/^vgg-14-c512 /{f=1}
+             f && /baseOffsetsMut /{print $(NF-3); exit}')
 if [ -z "$SCAN" ] || [ -z "$MUT" ]; then
   say 9 FAIL "could not read the diag row; regime UNCONFIRMED"
 elif [ "$WANT" = unknown ]; then
-  say 9 FAIL "no recipe block for $R-$BASIS in $R-pair.txt, or none naming --ghc-options; regime UNCONFIRMED"
+  say 9 FAIL "no recipe block for $R-$BASIS in $R-pair.txt, or none naming \
+--ghc-options; regime UNCONFIRMED"
 else
   RATIO=$(python3 -c "print('%.3f' % ($SCAN/$MUT))")
   IS_SPEC=0
   python3 -c "import sys; sys.exit(0 if 0.98 < $SCAN/$MUT < 1.02 else 1)" \
     && IS_SPEC=1
   if [ "$WANT" = spec ] && [ "$IS_SPEC" = 1 ]; then
-    say 9 PASS "SpecConstr, which the basis recipe asks for: scan/mut $RATIO on vgg-14-c512 ($SCAN vs $MUT)"
+    say 9 PASS "SpecConstr, which the basis recipe asks for: scan/mut $RATIO \
+on vgg-14-c512 ($SCAN vs $MUT)"
   elif [ "$WANT" = spec ]; then
-    say 9 FAIL "the basis recipe sets -fspec-constr or -O2 and the binary does not read as SpecConstr: scan/mut $RATIO -- SpecConstr is ~1"
+    say 9 FAIL "the basis recipe sets -fspec-constr or -O2 and the binary \
+does not read as SpecConstr: scan/mut $RATIO -- SpecConstr is ~1"
   elif [ "$IS_SPEC" = 1 ]; then
-    say 9 FAIL "the basis recipe sets neither -fspec-constr nor -O2 and the binary reads as SpecConstr: scan/mut $RATIO -- plain -O1 is ~10"
+    say 9 FAIL "the basis recipe sets neither -fspec-constr nor -O2 and the \
+binary reads as SpecConstr: scan/mut $RATIO -- plain -O1 is ~10"
   else
-    say 9 PASS "plain -O1, which the basis recipe asks for: scan/mut $RATIO on vgg-14-c512 ($SCAN vs $MUT)"
+    say 9 PASS "plain -O1, which the basis recipe asks for: scan/mut $RATIO \
+on vgg-14-c512 ($SCAN vs $MUT)"
   fi
 fi
 
@@ -880,14 +895,17 @@ PREV_COMMIT=""
                                  -- "runs/run$PRN.md" 2>/dev/null | head -1)
 if [ -n "$PREV_COMMIT" ]; then
   defect-run.py --changed="$PREV_COMMIT" . > "$TMP/cs" 2>&1 \
-    && say 8d PASS "every defect of what changed since run$PRN's file refused again" \
-    || say 8d FAIL "defect-run: $(grep -m1 BLOCKED "$TMP/cs" || tail -1 "$TMP/cs")"
+    && say 8d PASS "every defect of what changed since run$PRN's file \
+refused again" \
+    || say 8d FAIL "defect-run: \
+$(grep -m1 BLOCKED "$TMP/cs" || tail -1 "$TMP/cs")"
 else
   # NEVER SILENTLY LESS: with no previous run file to date from, the whole
   # corpus runs, which is what this step did unconditionally before. The
   # fallback is the old behaviour kept as the floor, not discarded.
   defect-run.py . > "$TMP/cs" 2>&1 \
-    && say 8d PASS "every planted defect refused again (no previous run file to date from)" \
+    && say 8d PASS "every planted defect refused again (no previous run file \
+to date from)" \
     || say 8d FAIL "defect-run: $(tail -1 "$TMP/cs")"
 fi
 fi
@@ -970,7 +988,8 @@ fill_in () {
        --porcelain -- :/micro-regime3/Main.hs | grep -q . && echo DIRTY \
        || echo clean) against it"
   printf '  %-16s  %s\n' 'shim at' \
-    "$(git log -1 --format=%h -- :/micro-regime3/align-as.py), tree $(git status \
+    "$(git log -1 --format=%h -- :/micro-regime3/align-as.py), \
+tree $(git status \
        --porcelain -- :/micro-regime3/align-as.py | grep -q . && echo DIRTY \
        || echo clean) against it"
   printf '  %-16s  %s\n' 'compilers' \
@@ -1016,7 +1035,8 @@ PY
   }
   printf '  %-16s  %s\n' 'plan' "$(plan)"
   printf '  %-16s  %s\n' 'baked RTS' \
-    "$("./$R-$BASIS" +RTS --info 2>/dev/null | sed -n 's/.*"Flag -with-rtsopts", "\(.*\)").*/\1/p'), \
+    "$("./$R-$BASIS" +RTS --info 2>/dev/null \
+       | sed -n 's/.*"Flag -with-rtsopts", "\(.*\)").*/\1/p'), \
 and $OTHER $("./$R-$OTHER" +RTS --info 2>/dev/null \
              | sed -n 's/.*"Flag -with-rtsopts", "\(.*\)").*/\1/p')"
   printf '  %-16s  %s\n' 'instruments' \
@@ -1034,7 +1054,8 @@ and $OTHER $("./$R-$OTHER" +RTS --info 2>/dev/null \
   # what wants a sentence in the note, where from Run 34 to Run 36 it was
   # the other way about. The row reports and does not judge either way.
   printf '  %-16s  %s\n' 'launch' \
-    "$BASIS from $(./half-bin.sh "$R" "$BASIS" 2>/dev/null || echo '(refused)'), \
+    "$BASIS from $(./half-bin.sh "$R" "$BASIS" 2>/dev/null \
+                   || echo '(refused)'), \
 $OTHER from $(./half-bin.sh "$R" "$OTHER" 2>/dev/null || echo '(refused)'); \
 hugebin/ $(mountpoint -q hugebin && echo mounted || echo NOT MOUNTED)"
   printf '  %-16s  %s\n' 'repetition' '<yours> -- available only where the'
@@ -1047,7 +1068,8 @@ hugebin/ $(mountpoint -q hugebin && echo mounted || echo NOT MOUNTED)"
     # 39's block printed displacements under no statement of what moved
     # (2026-09-23).
     ./loop-offsets.py --delta "$PB" "./$R-$BASIS" 2>/dev/null \
-      | grep -E '^ +(offsets MOVED|every mod-64|NO address|[0-9]+ displacement|of the)' \
+      | grep -E -e '^ +(offsets MOVED|every mod-64|NO address)' \
+                -e '^ +([0-9]+ displacement|of the)' \
       | sed 's/^ */                   /'
   elif [ -n "$PN" ]; then
     printf '  %-16s  %s\n' '' "no basis half of run$PN is here -- neither \
@@ -1099,8 +1121,10 @@ delta is step 6c's to take by hand"
            2>/dev/null | grep . \
          || echo "<yours> -- run$PN-pair.txt carries no gate machine line")"
   fi
-  printf '  %-16s  %s\n' 'smoke sweep' '<yours> -- step 11, and it is the pair'\''s'
-  printf '  %-16s  %s\n' 'L1 ROSTER PASS:' '<yours> -- step 12: taken or not owed,'
+  printf '  %-16s  %s\n' 'smoke sweep' \
+    '<yours> -- step 11, and it is the pair'\''s'
+  printf '  %-16s  %s\n' 'L1 ROSTER PASS:' \
+    '<yours> -- step 12: taken or not owed,'
   printf '  %-16s  %s\n' '' 'on which roster, and WHAT IT FOUND'
   printf '  %-16s  %s\n' 'document checks' "7 $(vd 7); 8 $(vd 8)"
   printf '  %-16s  %s\n' 'script checks' "8b $(vd 8b)"
