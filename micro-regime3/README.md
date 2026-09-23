@@ -8106,36 +8106,31 @@ were --- is read at every build that brings a new function,
 by `loop-offsets.py --delta` against the previous build of the same recipe,
 because the reading costs nothing at that moment and cannot be taken afterwards.
 Its record, form by form, is [the floor section][floor]'s --- killed
-under the max-skip form at Runs 20 and 21, holding for the tracked heads'
-offsets under the dead-spot form since Run 24 --- and the numbers are each run's
-own file's; this chapter carried the readings too until 2026-09-04, and the two
-copies had come to disagree on the verdict, so it carries the pointer now. What
-the reading does not reach is the rest of the placement term: Run 23 read
-`build` against `mut-odo` five points apart with both heads at offset 0,
-so a cross-run column still owes the counted work before a movement on a fill
-is called code. And the eight are the sample; the population reading
-is `--library` between the two builds. *Build both, always*: reusing
-the previous run's basis binary was refused on 2026-08-16 because the other half
-is built today, so the pair's two halves went through whatever the shim
-was on two different days --- the very effect the back-to-back rule exists
-to keep out, reached by a route that rule does not name, since nothing
-is rebuilt BETWEEN the halves and the drift is between the RUNS. No step
+under the max-skip form, holding for the tracked heads' offsets
+under the dead-spot form --- and the numbers are each run's own file's,
+this chapter carrying only the pointer. What the reading does not reach
+is the rest of the placement term: `build` has read five points from `mut-odo`
+with both heads at offset 0, so a cross-run column still owes the counted work
+before a movement on a fill is called code. And the eight are the sample;
+the population reading is `--library` between the two builds. *Build both,
+always*: reusing the previous run's basis binary was refused on 2026-08-16
+because the other half is built today, so the pair's two halves went through
+whatever the shim was on two different days --- the very effect the back-to-back
+rule exists to keep out, reached by a route that rule does not name, since
+nothing is rebuilt BETWEEN the halves and the drift is between the RUNS. No step
 downstream can see it, and the argument reaches every way of not building two
 halves today: a probe's binary carries the same gap, a copy makes one recipe
 stand for two, and one binary run twice under two sets of flags is a pair whose
 halves cannot differ in anything the compiler decided. The BOTH HALVES ARE BUILT
-ANEW ruling refuses all four, and Run 11's basis, which was Run 10's binary,
-is the precedent it retires. *The md5 on a repetition*: what the note's recorded
-inputs do not cover is the dependency store. `cabal.project.freeze` pins 97
-versions and an index-state and NOT the ABI hashes, so a store rebuilt
+ANEW ruling refuses all four. *The md5 on a repetition*: what the note's
+recorded inputs do not cover is the dependency store. `cabal.project.freeze`
+pins 97 versions and an index-state and NOT the ABI hashes, so a store rebuilt
 at unchanged versions relinks every call target and changes half of `.text`
 while every check in the list still passes, the tracked loops not having moved.
 The ABI hashes are read
 with `strings B | grep -oE '[A-Za-z][A-Za-z0-9-]*zm[0-9zi.]+zm[0-9a-f]{32,}'`,
 whose leading character class is the whole of the care it takes: the narrower
-`[a-z-]` silently drops `QuickCheck`, `Glob` and `text-iso8601`. Run 15 took all
-three reads after its write-up had already blamed the shim: the shim
-was emission-neutral and all 48 dependencies had been relinked (2026-08-17).
+`[a-z-]` silently drops `QuickCheck`, `Glob` and `text-iso8601`.
 
 Of step 10's two readings, the library one is what a two-shim pair cannot take
 on trust. No `-pgma` shim reaches a library, so a library loop that moved
@@ -8189,13 +8184,13 @@ document back, and a check is run on whichever form is in front of you.
 Both halves. On the unaligned/aligned pairs this README used to build, only one
 half had its own code rewritten --- the other's shim appended dead bytes, where
 `align-as.py` moves labels about --- but on a pair of two shims, which every
-pair since Run 11 has been, both can be mispadded and both need it, so checking
-both is the rule and the one-sided case is the exception that no longer arises.
+pair now is, both can be mispadded and both need it, so checking both
+is the rule and the one-sided case is the exception that no longer arises.
 The halves are held to each other besides --- a sound pair makes the two logs
 byte-identical, agreement on every shape being a property of the strategies
 and not of where their loops landed. A difference stops the run, and the rebuild
 goes through the recipe in that pair's note. Steps 4 and 5 cost about a minute
-and a half on the Run 21 pair.
+and a half.
 
 **Then confirm the regime is the one intended**, which nothing later can: step
 9's `diag`, and read one row of it --- the allocated bytes of `baseOffsetsScan`
@@ -8229,13 +8224,12 @@ to require of a max-skip one, which leaves a resident loop where it fell; what
 The exit-span count the survey prints beside the straddlers (2026-09-16) is read
 the same way and is sharper: under `LOOP_EXITSPAN=1` it is 0 on both halves
 by the shim's own claim, so a nonzero there is a recipe or shim defect,
-or the reader's --- Run 35's one astride and Run 36's two were table bytes
-the survey took for loops, settled against the shim's own verified line
-and refused since e4f0624 and b1a488d --- and never a placement, while a half
-built without the switch records it, 65 and 72 on Run 32's. The sequence below
-runs each half in turn, and `run-major.sh` does it for you; what neither can do
-is interleave two processes of this size within a population, so the order they
-ran in is written down and is one of the two things left uncontrolled.
+or the reader's --- table bytes the survey took for loops are refused since
+e4f0624 and b1a488d --- and never a placement, while a half built without
+the switch records it, in the tens. The sequence below runs each half in turn,
+and `run-major.sh` does it for you; what neither can do is interleave two
+processes of this size within a population, so the order they ran in is written
+down and is one of the two things left uncontrolled.
 
 **The other was that the halves differed by more than Main's alignment,
 and that one is fixed.** Aligning grows `.text` by 12 KB, so everything linked
@@ -8261,19 +8255,18 @@ than a verdict. **What a given reading means is banded here rather than carried
 forward note by note**, a per-run series being a thing every pair note copies
 by hand and every pair note takes with it when it goes: the figure reads
 near-total where the two halves are one source padded to one size and PHASE,
-which is what the two-step above arranges and what Runs 14 to 16 read at 100%;
-between a tenth and a quarter across the pairs that vary a shim or a compiler,
-Runs 17 and 19 to 22 all falling there; and lower still again where the halves
-differ in where every pad is PLACED, which is Run 23's pairing and reads
-the lowest of the three bands, as that pairing predicts. Read a pair's own
-figure against the band its recipes put it in, and record in its note
-that figure and no other. A note may record the same property the other way
-round, off `nm` symbol by symbol, which is the stronger reading and
-not this tool's output --- so compare like with like, or read the note's own
-figure as the note's. So the pair now differs in Main's loop alignment
-and in nothing else an offset can see, and `micro-unaligned` keeps every offset
-the unpadded build had: the same fills at [3, 53, 59, 45] and [16, 0, 36, 36],
-the same 115 short loops with 50 straddling.
+which is what the two-step above arranges and what such pairs have read at 100%;
+between a tenth and a quarter across the pairs that vary a shim or a compiler;
+and lower still again where the halves differ in where every pad is PLACED,
+as that pairing predicts. Read a pair's own figure against the band its recipes
+put it in, and record in its note that figure and no other. A note may record
+the same property the other way round, off `nm` symbol by symbol, which
+is the stronger reading and not this tool's output --- so compare like
+with like, or read the note's own figure as the note's. So the pair now differs
+in Main's loop alignment and in nothing else an offset can see,
+and `micro-unaligned` keeps every offset the unpadded build had: the same fills
+at [3, 53, 59, 45] and [16, 0, 36, 36], the same 115 short loops with 50
+straddling.
 
 **Which two halves a pair has is a property of the pair, not of this README ---
 but how they are named is not.** A half is `$R-<tag>`, the tag naming what
@@ -8290,12 +8283,11 @@ is installed from, and it runs second; both halves run every class. **The two
 roles are BASIS and CONTROL**, which is what this README calls them where
 it names a role at all; the scripts' variable is `OTHER` and the prose often
 says *the other half*, and all three are one thing. The halves are named
-for what they vary --- Run 10's `unaligned`/`aligned`, Run 11's
-`maxskip`/`aligned`, Run 12's `maxskip`/`maxskippa` --- and which of them
-is the basis is a decision the pair note records, not something a half's name
-tells you. Run 12 is where the two would collide if this README still called
-the basis *the aligned half*: its control is `maxskippa`, the half that carries
-`-fproc-alignment=64` and so is the more aligned build of the two. Where
+for what they vary --- `unaligned`/`aligned`, `maxskip`/`aligned`,
+`maxskip`/`maxskippa` --- and which of them is the basis is a decision the pair
+note records, not something a half's name tells you. Calling the basis
+*the aligned half* would collide on the last of those, whose control `maxskippa`
+carries `-fproc-alignment=64` and so is the more aligned build of the two. Where
 a sentence below says *aligned* it is about alignment, not about a role; where
 it is plainly about one past pair --- as the paragraph on the 12 KB of `.text`
 is, every figure in it being Run 10's --- it keeps that pair's half names.
@@ -8306,20 +8298,17 @@ is, every figure in it being Run 10's --- it keeps that pair's half names.
 and `ls` sorts it after the basis's own --- leaving the CONTROL half's table
 in every class block under a driver that says every table comes from the basis,
 with nothing downstream able to see it; refused there since 2026-08-17 rather
-than left to the naming. `pair-halves.sh` refuses a tag outside `[A-Za-z0-9_]`
-since 2026-09-15, where it used to cut at the first hyphen and hand every driver
-a truncated tag --- Run 33's pair was declared `run33-ghead-exit` and renamed
-for exactly that. The roll of tags this chapter has used is `aligned`,
-`maxskip`, `maxskippa`, `lookrts`, `a1g`, `a32m`, `g912`, `g914`, `ghead`,
-`spot`, `spec`, `nospec`, `libcase`, `o2`, `exit`, `gheadexit`, `gheadnospec`
-and `gheadtwopass`, `maxskip` before `maxskippa`, and `ghead` before
-`gheadexit`, `gheadnospec` and `gheadtwopass`, being bare prefixes and safe,
-the hyphen alone colliding. **The roll lives here and not in a pair note**,
-which is where it used to live and where it drifted twice over: `g914`
-was missing from one until 2026-09-12, `--draft` rewrote two of its members
-every draft until a backtick bounded that rename the same day, and the copy
-in `pair-note-template.txt` had fallen four tags short of the notes' by Run 35.
-A note names its own two halves and points here for the rest.
+than left to the naming. `pair-halves.sh` refuses a tag outside `[A-Za-z0-9_]`,
+where it used to cut at the first hyphen and hand every driver a truncated tag.
+The roll of tags this chapter has used is `aligned`, `maxskip`, `maxskippa`,
+`lookrts`, `a1g`, `a32m`, `g912`, `g914`, `ghead`, `spot`, `spec`, `nospec`,
+`libcase`, `o2`, `exit`, `gheadexit`, `gheadnospec` and `gheadtwopass`,
+`maxskip` before `maxskippa`, and `ghead` before `gheadexit`, `gheadnospec`
+and `gheadtwopass`, being bare prefixes and safe, the hyphen alone colliding.
+**The roll lives here and not in a pair note**, where its copies drifted,
+members going missing, `--draft` rewriting two of them, and the copy
+in `pair-note-template.txt` falling four tags short of the notes'. A note names
+its own two halves and points here for the rest.
 
 **Name the artifacts by half, and drive every `--in-place` from the basis
 half.** The sequence below builds every filename off `$R`, which a paired Run
@@ -8330,28 +8319,23 @@ everything a run leaves**, the binaries and the pair note with the JSONs:
 `$R-<rest>`, the run first and nothing before it, which is what stops two runs
 writing one filename. Binaries from Run 11 and earlier were named for the half
 alone (`micro-aligned`, `micro-unaligned`), which is what this README's history
-calls them. Run 10 is the one run that published from both halves, its Results
-table coming from the unaligned half while its fingerprint and its class blocks
-came from the aligned one --- a split it needed because its aligned half
-was the first here and had no predecessor to succeed. That ended with Run 11:
-**the basis half is the table and the other half is the control**, whatever
-the control is built to price.
+calls them. So **the basis half is the table and the other half
+is the control**, whatever the control is built to price.
 
 **What the other half is for**, since a run that publishes no table from it will
 otherwise be asked why it spends an hour building and timing it. That depends
-on which half it is, and the pair is chosen for it. A *compiler* control ---
-the commonest kind since Run 19 --- is the reading a form about to be published
-is owed on a second codegen: it says whether the basis half's orderings are one
-compiler's accident, and its counted work is what separates the instructions
-a compiler emits from the slot it put them in. An *unaligned* control
-is the layout one, the per-arm term being measured afresh each run rather
-than inherited, and it is the yardstick for GHC itself: the native backend
-aligns no loop today ([the floor section][floor]), and when that is fixed
-the same pairing is what prices how well GHC does it against the assembler shim
-here --- a comparison no single build can make. Run 11's *max-skip* counterpart
-prices the shim's own padding instead, its two halves differing in which loop
-heads get a directive and in nothing else, so its arms separate what alignment
-buys from what the NOPs cost.
+on which half it is, and the pair is chosen for it. A *compiler* control
+is the reading a form about to be published is owed on a second codegen: it says
+whether the basis half's orderings are one compiler's accident, and its counted
+work is what separates the instructions a compiler emits from the slot it put
+them in. An *unaligned* control is the layout one, the per-arm term being
+measured afresh each run rather than inherited, and it is the yardstick for GHC
+itself: the native backend aligns no loop today ([the floor section][floor]),
+and when that is fixed the same pairing is what prices how well GHC does
+it against the assembler shim here --- a comparison no single build can make.
+A *max-skip* counterpart prices the shim's own padding instead, its two halves
+differing in which loop heads get a directive and in nothing else, so its arms
+separate what alignment buys from what the NOPs cost.
 
 **The pairing doubles the classes too.** Both halves run the main set, since
 that is where the per-arm comparison lives, and both now run every class
@@ -8431,11 +8415,9 @@ the previous run's binary is deleted and its listing recorded nowhere,
 so the comparison is against the roster delta under [Provenance](#provenance)
 --- look before taking that route, since a pair whose artifacts have
 not been offered for deletion yet is still on disk and answers directly, which
-is kept for exactly this. A run whose basis half *is* the previous run's binary,
-as Run 11's is, answers it outright instead, and the pair note records the count
-on both sides. Spelled out because two readings of this paragraph have split
-on it: with membership unmoved the pass is not owed however much else changed,
-and Run 10 is such a run.
+is kept for exactly this. A run whose basis half *is* the previous run's binary
+answers it outright instead, and the pair note records the count on both sides.
+With membership unmoved the pass is not owed however much else changed.
 
 **What 12b catches and what it does not**, from the walk that made it a step,
 2026-08-30: NINE defects in one preparation's own prose, every one past every
@@ -8480,24 +8462,21 @@ the two halves next to each other early and the `b` pair late, so a verdict
 is the two readings agreeing rather than one taken at a moment. What it buys
 is finding out that the basis binary is wrong before an hour of main set
 is spent on it. **What it does not buy is a first reading of the arms
-the pairing is predicted on**, which this README claimed until a run measured
-it. Its selection carried `build` and `mut-odo` until the prune of 2026-09-04
-parked both, two of the three widest-spread arms in the roster ---
-the placement-sensitive pair [the floor section][floor] is written about ---
-so the term between its two passes ran past the drift band a movement is asked
-to clear; it carries `bq-expand` and `mut-odo-vecdims` since, the form
-the decision of 2026-08-22 superseded and the family root, both timed from Run
-25 on, and a magnitude read off a gate is still not evidence, five benches being
-unable to price precision by Run 10's finding in the open list. Whether
-a five-bench process is *also* noisier than a full one is not separable
-from this with one process per binary. And the two passes disagreeing is
-not a second opinion about the binaries: their ratio is algebraically the ratio
-of the two same-binary readings, so a palindrome that fails to converge
-is reporting its own noise. Read the gate for soundness, and take every
-magnitude off the run; the verdict goes **above** the script's block, where
-reading up from the end meets it first. **The gate also answers one question
-that is not a reading at all: has the machine changed?** `run-gate.sh` runs
-`./read-run.py $R-gate-<basis>-a.json --machine` after its four processes
+the pairing is predicted on.** Its selection once carried `build` and `mut-odo`,
+two of the three widest-spread arms in the roster --- the placement-sensitive
+pair [the floor section][floor] is written about --- and the term between
+its two passes ran past the drift band a movement is asked to clear; it carries
+`bq-expand` and `mut-odo-vecdims` now, and a magnitude read off a gate is still
+not evidence, five benches being unable to price precision by Run 10's finding
+in the open list. Whether a five-bench process is *also* noisier than a full one
+is not separable from this with one process per binary. And the two passes
+disagreeing is not a second opinion about the binaries: their ratio
+is algebraically the ratio of the two same-binary readings, so a palindrome
+that fails to converge is reporting its own noise. Read the gate for soundness,
+and take every magnitude off the run; the verdict goes **above** the script's
+block, where reading up from the end meets it first. **The gate also answers one
+question that is not a reading at all: has the machine changed?** `run-gate.sh`
+runs `./read-run.py $R-gate-<basis>-a.json --machine` after its four processes
 and puts the answer in the note. It holds `list`'s net per call, shape by shape,
 to the fingerprint the last run's file keeps, so its absolutes are in `runs/`
 long after its JSONs are offered for deletion and nothing has to be kept for it;
@@ -8517,11 +8496,9 @@ the write-up owing a paragraph naming it and the box question going to a person
 once the machine is free: **ask whether the box changed** --- a kernel,
 a microcode update, a BIOS setting, a thermal state, a different machine ---
 none of which a run can see from inside itself, and none worth a night of idle
-machine to ask. **Run 18 is why that is written down**: its gate stopped on what
-the reading above calls a level shift, and the evening was spent waiting
-for the answer *run anyway and re-baseline*, which was never in doubt. What
-still fails the gate is a comparison the mode cannot make at all --- no shape
-of this run in the fingerprint, every `list` net non-positive.
+machine to ask. What still fails the gate is a comparison the mode cannot make
+at all --- no shape of this run in the fingerprint, every `list` net
+non-positive.
 
 **The run** is one sequence --- the main set from each half, then each
 stride-class population on each half, control then basis, adjacent,
@@ -8571,17 +8548,15 @@ of complaints out to whatever collected it.
 
 **Nothing is armed beside the evening, ruled 2026-09-23, and `run-heartbeat.sh`
 stays for a probe watching itself.** The evening is a backgrounded job whose
-exit wakes the session, and Run 38 showed that this is enough: two
-`API Error: 529` invocations left it with no monitor and no pending wake-up
-from 03:11 to 10:05, and the sequence ran on untouched. What a monitor bought
+exit wakes the session, and that is enough: an evening has run seven hours
+with no monitor and no pending wake-up, untouched. What a monitor bought
 was a prompt cache kept warm, and over eight hours it costs more than it saves:
-a monitor lives at most THIRTY minutes whatever its `timeout_ms` asks --- Run
-38's stage monitor lived 02:41:42 to 03:11:47 --- and each tick and each re-arm
-is a wake-up costing about a tenth of the one cold read at the evening's exit,
-so the wall-clock log's per-process stamps and two re-arms an hour come
-to several times that read. For a probe of an hour or two the arithmetic turns,
-and `HEARTBEAT_ONCE=1 ./run-heartbeat.sh` is the line a timed waiter prints
-at its wake-up.
+a monitor lives at most THIRTY minutes whatever its `timeout_ms` asks, and each
+tick and each re-arm is a wake-up costing about a tenth of the one cold read
+at the evening's exit, so the wall-clock log's per-process stamps and two
+re-arms an hour come to several times that read. For a probe of an hour or two
+the arithmetic turns, and `HEARTBEAT_ONCE=1 ./run-heartbeat.sh` is the line
+a timed waiter prints at its wake-up.
 
 **The harness reaps a backgrounded job on memory STALL and not on free memory,
 which is why the evening launches
@@ -8591,10 +8566,9 @@ binary on 2026-09-18: its reaper listens for the kernel's stall counter
 a tracked task once the session has been idle for thirty minutes, reading
 no free-memory figure. A stall here comes from pages evicted under earlier
 pressure and touched again, so it can fire with most of the memory free,
-as it did mid-sequence on Run 35 with 43 GB of 64 free. `run-evening.sh` refuses
-to start under the harness without the switch. A launch detached under `setsid`
-survives the reaper and loses the harness's wake-up at exit, so it is
-not the workaround.
+as it has mid-sequence with 43 GB of 64 free. `run-evening.sh` refuses to start
+under the harness without the switch. A launch detached under `setsid` survives
+the reaper and loses the harness's wake-up at exit, so it is not the workaround.
 
 Everything else is already a default. The allocation fit
 `--regress allocated:iters` is on (it is well-conditioned at 5s), so `alloc`
@@ -8677,13 +8651,12 @@ note the absence and read the outcome against its queue entry instead. What
 is not open is registering afterwards: the point of the list is that it predates
 the hours, so the choice here is to register before the evening or to do
 without. **A count of what held is read off the items rather than tallied
-from memory**, which is how Run 18 came to summarise five registrations
-in its lead before it had adjudicated the fifth. **And a verdict is written
-in a fixed vocabulary, because a checker reads it**: `--check-doc` holds
-a registration's marker to its items --- numbered `1.` at the start of a line,
-Run 17's form, or `(N)` inline before an italic label, Run 18's, a number's
-spans grouped so that stating a question and later adjudicating it under one
-number reads as one item --- so an `OPEN` entry whose every item is adjudicated
+from memory**, or a lead summarises registrations not yet adjudicated.
+**And a verdict is written in a fixed vocabulary, because a checker reads it**:
+`--check-doc` holds a registration's marker to its items --- numbered `1.`
+at the start of a line, or `(N)` inline before an italic label, a number's spans
+grouped so that stating a question and later adjudicating it under one number
+reads as one item --- so an `OPEN` entry whose every item is adjudicated
 is reported as a stale marker and an `ANSWERED` one with an item that is
 not is reported as an incomplete adjudication. What it recognises is a **bolded
 span whose first sixty characters carry one of** ANSWERED, REFUTED, HELD, BROKE,
@@ -8693,15 +8666,12 @@ the label-then-verdict `*The flag's cost.* **KILLED, ...**`
 and the paragraph-opening `**The condition was met and the debt is PAID**`.
 **A verdict written outside that vocabulary is invisible to the check**,
 so a new word is added to `VERDICT_WORDS` in `read-run.py` in the same edit
-that first uses it, or the item reads as unadjudicated for ever. Run 12's entry
-sat `OPEN` for six runs on an item that said PAID, and the check's own first
-draft missed it by keying on capitalisation instead of the word. **And say what
-a partial outcome is**: a prediction registered over several arms can come
-apart, and neither "held" nor "refuted" is then true --- Run 10's first
-was stated over three arms and one confirmed it while two met its own kill
-condition. Report that as a split, name which arms went which way, and carry
-the consequence for each separately; the temptation is to round it to whichever
-answer the majority of arms gives, which loses the finding.
+that first uses it, or the item reads as unadjudicated for ever; the check keys
+on the word, not on its capitalisation. **And say what a partial outcome is**:
+a prediction registered over several arms can come apart, and neither "held"
+nor "refuted" is then true. Report that as a split, name which arms went which
+way, and carry the consequence for each separately; the temptation is to round
+it to whichever answer the majority of arms gives, which loses the finding.
 
 **After it lands**, in this order:
 
@@ -9654,31 +9624,21 @@ because by then the run read finished; putting it first is what retires that.
    build, bare offsets are what the note records otherwise, and the map
    is a property of the binary, so once the binaries go no offset this README
    quotes can ever be tied to an arm again. **What the step has produced, which
-   is why it is first.** On Run 17 the naming collapsed two of this README's
-   open questions into one object, showing the `[0, 0]` group
-   IS the build/mut-odo residue; on Run 18 it gave the sharpest finding
-   of the evening, the two add-in arms swapping cache-line offsets between
-   the compilers, which no later session could have recovered once the binaries
-   went. The REFUSALS are what make a negative honest: Run 22's twin named one
-   of four straddling loops and refused three for want of a byte-identical copy,
-   the one it named sitting in the branch's own fill, and Run 26's sixth
-   was no loop at all but an info table the sweep misread. **A refusal wants
-   the OTHER half's twin tried before it is recorded**, which turned Run 28's
-   six into two: four are the `-u2` leaf fills the basis twin names by the same
-   byte identity, the two left are `fillStage2`'s runs, which no `-g3` build
-   holds byte-identical on either compiler and which `--loose` then named off
-   their signature, and the basis half's own third refusal was one more misread
-   table. The ORDER has been taken both ways without cost --- Run 23 took 1, 2
-   and then 0 in one sitting, Run 26 let the twin's build wait on the counts ---
-   so what the list fixes is the deadline and not the sequence. And a note's
-   fill-in block is where TRANSCRIBED figures live, Run 25's saying outright
-   that two of its own were carried rather than derived and happening
-   to be true, which is why the executing session re-runs the `--match` off
+   is why it is first.** Findings no later session could have recovered once
+   the binaries went, the two add-in arms swapping cache-line offsets between
+   the compilers among them. The REFUSALS are what make a negative honest:
+   a loop named off no byte-identical copy is refused rather than guessed,
+   and a straddler the sweep reports may be an info table it misread rather
+   than a loop. **A refusal wants the OTHER half's twin tried before
+   it is recorded**, the basis twin naming the `-u2` leaf fills by the same byte
+   identity, and what no `-g3` build holds byte-identical on either compiler,
+   `fillStage2`'s runs, being named by `--loose` off their signature. The ORDER
+   has been taken both ways without cost, so what the list fixes is the deadline
+   and not the sequence. And a note's fill-in block is where TRANSCRIBED figures
+   live, which is why the executing session re-runs the `--match` off
    the binaries it timed, and reads the block it ends with since 2026-09-16,
    the exit spans astride named the same way --- empty on a `LOOP_EXITSPAN=1`
-   half, and on any other the loops that switch would move. Run 12's
-   were derived this way on the last day they existed and refuted two accounts
-   of its own split; Run 10's and Run 11's are gone unnamed. **Where
+   half, and on any other the loops that switch would move. **Where
    a preparation spent this half early, on an idle box before the pair ran,
    the executing session re-derives it off the binaries it timed** --- two
    minutes, and the difference between a block that was read and one
@@ -9688,9 +9648,9 @@ because by then the run read finished; putting it first is what retires that.
 1. **Gate every population on the correction, before reading any figure ---
    and read the A/A *worst cell*, not only the pair's geomean.** A control
    that passes its gate can still be the run's most informative measurement:
-   `bq-expand`'s distant twin passed on Run 8 and again on Run 9 while carrying
-   a 41% cell, published both times as a noise floor, and chasing that one cell
-   is what produced the roster fix and the nursery account [in the floor
+   `bq-expand`'s distant twin passed on two runs while carrying a 41% cell,
+   published both times as a noise floor, and chasing that one cell is what
+   produced the roster fix and the nursery account [in the floor
    section][floor]. A pair inside the floor whose worst cell is an order
    of magnitude outside it is not noise; it is a finding the aggregate
    is hiding. The gates themselves: `--selftest` checks that the forcing term
@@ -9718,20 +9678,16 @@ because by then the run read finished; putting it first is what retires that.
 4. **Match bases before reading any ratio.** The first act of a comparison
    is making its two sides one basis --- the same population, the same
    restriction, the basis a figure was stated on --- and only then reading
-   figures. Run 7's first check ran on its 24 shapes against figures stated
-   on 22, and every pair had to be re-run. **AND WHERE THIS RUN'S SHAPE SET
-   MOVED, PIN IT BACK BEFORE QUOTING ANY CROSS-RUN FIGURE**: `--exclude-shape`
-   the shapes this run added, once per shape, so the figure is
-   over the population its predecessor had. This is not the `alloc` column's
-   rule, though that column is where it is written down; it is every cross-run
-   figure's. Run 24 is the run that met it: it added two main-set shapes,
-   and its ceiling and eight of its `alloc` rows read as having moved out
-   of bands they had held for runs, until each was re-read
-   over its predecessor's own shapes and returned that predecessor's figure.
-   Both would have been published as movements and neither is one; [Run 24's
-   file](runs/run24.md) carries the figures. **One JSON at a time, never
-   merged.** The reader takes one file, and its geomean is that file's
-   population --- the main set's or one class's. Every mode names
+   figures. **AND WHERE THIS RUN'S SHAPE SET MOVED, PIN IT BACK BEFORE QUOTING
+   ANY CROSS-RUN FIGURE**: `--exclude-shape` the shapes this run added, once per
+   shape, so the figure is over the population its predecessor had. This
+   is not the `alloc` column's rule, though that column is where it is written
+   down; it is every cross-run figure's. A run that added two main-set shapes
+   read its ceiling and eight `alloc` rows as moved out of their bands until
+   each was re-read over its predecessor's own shapes and returned
+   that predecessor's figure ([Run 24's file](runs/run24.md)). **One JSON
+   at a time, never merged.** The reader takes one file, and its geomean
+   is that file's population --- the main set's or one class's. Every mode names
    that population in its first line, `--selftest` fails a file spanning two
    and `--markdown` declines to emit a table for one, so a merged run is caught
    rather than published. The class tables stand beside the main geomean, per
@@ -9760,37 +9716,32 @@ was faster.
    name, commits that copy untouched, and rewrites it, HERE and not earlier
    for the reason the pre-run list's head gives: every mode defaults
    to the newest file in `runs/`, and everything before this step wants the run
-   behind. Run 9's eleven dead anchors and Run 18's three half-renamed links
-   are failures the two renames no longer admit. **What it has instead is one
-   link check, and `runs/` accumulating is what makes it necessary**:
-   the previous run's file stays on disk, so a link left pointing
-   at it resolves, renders and quietly promises figures this run replaced.
-   **Expect it to fail five ways the moment the file exists and before you have
-   touched README** --- dead anchors, links naming the run before, the run
-   file's sections uncovered by the replace list, the Results section naming
-   the previous basis, and the head unchanged from the run before --- and every
-   one of those is this step. Driven end to end 2026-08-25 on a copy: all five,
-   and the eleven tables installing into the new file regardless. A source file
-   naming a run file would go stale at the next run and `--check-doc` could
-   not see it, `runs/` keeping every run so the path resolves --- which is why
-   none does. A standing-prose link into the run file promises content
-   the replacement may have moved out, and the ones that decayed this way kept
-   resolving through two renames, which is why repointing is not re-verifying.
+   behind. **What it has instead is one link check, and `runs/` accumulating
+   is what makes it necessary**: the previous run's file stays on disk,
+   so a link left pointing at it resolves, renders and quietly promises figures
+   this run replaced. **Expect it to fail five ways the moment the file exists
+   and before you have touched README** --- dead anchors, links naming the run
+   before, the run file's sections uncovered by the replace list, the Results
+   section naming the previous basis, and the head unchanged from the run before
+   --- and every one of those is this step. Driven end to end 2026-08-25
+   on a copy: all five, and the eleven tables installing into the new file
+   regardless. A source file naming a run file would go stale at the next run
+   and `--check-doc` could not see it, `runs/` keeping every run so the path
+   resolves --- which is why none does. A standing-prose link into the run file
+   promises content the replacement may have moved out, and such links keep
+   resolving through renames, which is why repointing is not re-verifying.
    A link whose TEXT quotes a ratio, pointing at a section that no longer
-   carries it, is what that walk is for: this refactor found one that had
-   survived two runs with its anchor resolving throughout. **Committing the copy
-   before editing it is what makes the rest of this step cheap, and Run 20
-   is why it is written down.** An untracked file has no committed form,
-   so `wrap-restore` cannot classify it and leaves it alone --- the one case
-   the wrapping rules still leave to be done by hand, and it need not arise.
-   The copy also gives git a restore point for the whole write-up: Run 20 lost
-   its run file to a range splice and recovered only because a subagent had left
-   a byte-exact copy in a temp directory. And it makes the write-up's own diff
-   the artifact step 6b briefs the checker to read --- uncommitted, the file
-   enters history as wholly new and its diff says nothing about what the run
-   changed, so Run 20's checker had to snapshot it and diff against its own
-   copy. The cost is one commit whose content is a verbatim copy, which reads
-   as diary until the next diff makes it legible.
+   carries it, is what that walk is for. **Committing the copy before editing
+   it is what makes the rest of this step cheap.** An untracked file has
+   no committed form, so `wrap-restore` cannot classify it and leaves it alone
+   --- the one case the wrapping rules still leave to be done by hand,
+   and it need not arise. The copy also gives git a restore point for the whole
+   write-up, which a range splice has already made necessary once. And it makes
+   the write-up's own diff the artifact step 6b briefs the checker to read ---
+   uncommitted, the file enters history as wholly new and its diff says nothing
+   about what the run changed, so the checker has to snapshot it and diff
+   against its own copy. The cost is one commit whose content is a verbatim
+   copy, which reads as diary until the next diff makes it legible.
 5b. **Install the tables with `--in-place` rather than pasting them.**
 `--markdown`, `--fingerprint` and `--block` each take it, and each refuses
 rather than guessing: the match is by whole line, the count is asserted,
@@ -9800,15 +9751,15 @@ rename a lead and the install that fills the paragraph beneath it refuses,
 naming it. Hand-pasting is what this replaces, and the reason is on the record
 --- the cross-class summary's header is written out twice, once indented
 as the spec that fixes the columns, and a session locating the table
-by searching for that text put Run 8's rows under the spec and left Run 7's
+by searching for that text put the new rows under the spec and left the old
 table standing, with every check green because the check looked it up the same
 way. The table carries `needs` and the emphasis forward from the one already
-there, and its stderr is the whole of what is left by hand; Run 9 had ten new
-rows and filled them from a note written here before the run, which
-is the practice to repeat whenever a roster change is known in advance ---
-the cell then gets transcribed rather than invented at the end of a long day.
-A class table comes out six columns wide, `needs` being a property of a strategy
-rather than of a population and so stated in the main table alone.
+there, and its stderr is the whole of what is left by hand; new rows are filled
+from a note written here before the run whenever a roster change is known
+in advance --- the cell then gets transcribed rather than invented at the end
+of a long day. A class table comes out six columns wide, `needs` being
+a property of a strategy rather than of a population and so stated in the main
+table alone.
 
 **The cross-class summary is INSTALLED since 2026-09-22, from the class blocks
 and not from the JSONs.** Every cell of it appears in one of the class tables
@@ -9841,9 +9792,8 @@ by hand produced cannot recur.
 6a, whose reasons these are since the recording moved there. **The commit
 the binary was built from** is transcribed for a paired Run
 from `<prefix>-pair.txt`, which carries the commit, the regime, the GHC and both
-md5s because this step asks for them --- the GHC only since 2026-08-16,
-the template having had no slot for it and Run 14's note therefore having none,
-where `strings $R-<basis> | grep -oE 'ghc-[0-9.]+'` reads it back out
+md5s because this step asks for them --- the GHC since 2026-08-16, and where
+a note has none, `strings $R-<basis> | grep -oE 'ghc-[0-9.]+'` reads it back out
 of a binary still on disk --- and the note outlives the session that built
 the pair (the JSONs do not survive, so the source is the only thing that makes
 a run reproducible even in principle --- this README's figures are one desktop's
@@ -9903,24 +9853,23 @@ size comes from the reader's first line;
    paragraph lists against step 5's copy and names what left without
    a replacement arriving. **The figure sweep reads the same on either form,
    so nothing is wrapped to read it**: `--check-doc` keys a paragraph
-   by its collapsed text when it asks whether this diff added it, and since
-   2026-09-02 reads the committed copies from the commit that added the run
-   file. Run 16's sweep was disabled by an unwrap because the check
-   then compared lines, and it was told 54 figures were new when most
-   were untouched; that is the defect the keying repaired, and not a reason
-   to wrap. A scripted rewrite fails in two shapes and neither is a wrong
-   figure. Anchored on a *prefix*, it replaces the whole paragraph and drops
-   whatever followed the part its author had read; `--check-doc` catches
-   that one, every prose paragraph being required to end a sentence. Anchored
-   on two *markers*, it deletes every paragraph between them, however many
-   that turns out to be --- and nothing catches it: the survivors still end
-   sentences, the anchors still resolve, the figures still match, and every
-   check here is a predicate over what is **present**, so none can see what
-   is gone. Measured on 2026-08-14, when a paragraph recording that the regime
-   had been confirmed in the binary was removed from this file and `--lint`,
-   `--check-doc` and the truncation check all exited 0. So assert the extent
-   in the script, echo what it is about to overwrite, and run `--lost`
-   afterwards, the one check here that sees a lost paragraph.
+   by its collapsed text when it asks whether this diff added it, and reads
+   the committed copies from the commit that added the run file; comparing
+   lines, it once took an unwrap for 54 new figures, which is the defect
+   the keying repaired and not a reason to wrap. A scripted rewrite fails in two
+   shapes and neither is a wrong figure. Anchored on a *prefix*, it replaces
+   the whole paragraph and drops whatever followed the part its author had read;
+   `--check-doc` catches that one, every prose paragraph being required to end
+   a sentence. Anchored on two *markers*, it deletes every paragraph between
+   them, however many that turns out to be --- and nothing catches it:
+   the survivors still end sentences, the anchors still resolve, the figures
+   still match, and every check here is a predicate over what is **present**,
+   so none can see what is gone. Measured on 2026-08-14, when a paragraph
+   recording that the regime had been confirmed in the binary was removed
+   from this file and `--lint`, `--check-doc` and the truncation check all
+   exited 0. So assert the extent in the script, echo what it is about
+   to overwrite, and run `--lost` afterwards, the one check here that sees
+   a lost paragraph.
 
    **A correction is a claim, and is written under exactly the conditions
    that produce bad ones.** Whatever the verification turns up gets fixed
@@ -9934,20 +9883,19 @@ size comes from the reader's first line;
 
    **DO NOT RE-DERIVE AN INSTALLED FIGURE AT ALL; spend the whole of that budget
    on the prose and on the sentences elsewhere your tables have just
-   falsified.** Run 16's checker recomputed 487 table rows against the reader
-   and found not one wrong, against 34 prose errors in the same diff; Run 18's
-   recomputed 491 and found not one wrong either, against 52 prose findings
-   over two checker passes and a comprehension probe --- so re-deriving
-   an installed figure buys nothing that `--in-place` did not already guarantee,
-   while every hour spent there is an hour not spent on the two places errors
-   actually live. **Expect every error to be in the prose and none
-   in the numbers, and expect the green checkers to be why.** Run 11 shipped
-   six, and not one was a wrong figure out of the reader: four superlatives
-   asserted without sorting the population they quantify over, one sentence
-   contradicting its own paragraph three lines later, and one percentage
-   computed from a published table instead of from the cells. `--lint`,
-   `--check-doc`, `--selftest` and `--aa` were green throughout and right
-   to be --- they check the measurements, and the measurements were sound.
+   falsified.** Two checkers recomputed some five hundred table rows each
+   against the reader and found not one wrong, against 34 and 52 prose findings
+   in the same diffs --- so re-deriving an installed figure buys nothing
+   that `--in-place` did not already guarantee, while every hour spent there
+   is an hour not spent on the two places errors actually live. **Expect every
+   error to be in the prose and none in the numbers, and expect the green
+   checkers to be why.** The shipped errors have been superlatives asserted
+   without sorting the population they quantify over, a sentence contradicting
+   its own paragraph three lines later, and a percentage computed
+   from a published table instead of from the cells --- not one a wrong figure
+   out of the reader. `--lint`, `--check-doc`, `--selftest` and `--aa`
+   were green throughout and right to be --- they check the measurements,
+   and the measurements were sound.
 
    A write-up is a document edit, so the three-pass discipline applies ---
    but its passes live here, in this repo's own instruments,
@@ -9970,61 +9918,50 @@ size comes from the reader's first line;
    the document. Nor is inheriting one --- a worklist you did not derive
    verifies somebody else's findings while telling you nothing about what else
    is wrong, which is the completeness question the reading exists to answer.
-   Run 11 is the case above: every checker green and the worklist adjudicated
-   while six errors stood. **The checker and the comprehension probe are not two
-   goes at one job, and the split is what makes the second worth its cost.**
-   A checker is scoped to the diff: it reads what changed, recomputes it,
-   and is the only instrument that returns completeness over a table. It cannot
-   see a sentence in a section nobody touched that this run's tables have just
-   falsified --- and on a run that changes its basis those are everywhere.
-   The probe reads the README as a stranger meets it, and on Run 16
-   that is exactly what it returned: three different thresholds quoted for one
-   quantity, two of them in one paragraph; `six pairs` and `eighteen pairs` both
-   given as the A/A population; a `keep the default area` ruling standing
-   unmarked in the run that abandoned it; and two comparison rules that read
-   as one and contradict. Not one of those is in any diff. **So run both,
-   and read the probe's findings as being about the README rather than about
-   the run.**
+   **The checker and the comprehension probe are not two goes at one job,
+   and the split is what makes the second worth its cost.** A checker is scoped
+   to the diff: it reads what changed, recomputes it, and is the only instrument
+   that returns completeness over a table. It cannot see a sentence in a section
+   nobody touched that this run's tables have just falsified --- and on a run
+   that changes its basis those are everywhere. The probe reads the README
+   as a stranger meets it, and that is what it returns: three thresholds quoted
+   for one quantity, two sizes given for one population, a ruling standing
+   unmarked in the run that abandoned it, two comparison rules that read as one
+   and contradict --- not one of them in any diff. **So run both, and read
+   the probe's findings as being about the README rather than about the run.**
 
    **An independent checker on the diff is the highest-yield instrument here,
-   and the cost of launching it late is measured** (Run 15, which launched once
-   the whole write-up was drafted): its first pass returned seventeen findings,
-   several of them prose built on a table figure an earlier pass would have
-   caught first, and its second returned seven more of which four existed *only*
+   and the cost of launching it late is measured**: launched once a whole
+   write-up was drafted, its first pass returned seventeen findings, several
+   of them prose built on a table figure an earlier pass would have caught
+   first, and its second returned seven more of which four existed *only*
    because the first round of fixes had been written. Late launching does
    not merely delay the findings, it multiplies them --- which is why
    the checklist gives each pass a commit to work from and a position rather
-   than a condition, and why the fixing belongs to the pass that caused it. Run
-   13's first pass verified 341 table lines and found the cross-class summary
-   untouched; its second found six prose errors, including a previous run's
-   figure presented as this one's. It is dear per finding --- Run 11's cost some
-   thirty times what the same session's own targeted re-checks did --- and
-   it is worth it anyway, because its findings are the ones a session has
-   already proved it cannot see in its own prose, and because it returns
-   a completeness the author cannot: 306 of 306 table rows verified rather
-   than the ones somebody thought to check. (The rule that a check must
-   be proven able to fail governs the instruments themselves and is stated
-   with them, [in the reader's section](#the-reader-read-runpy).)
+   than a condition, and why the fixing belongs to the pass that caused it.
+   It is dear per finding --- some thirty times what a session's own targeted
+   re-checks cost --- and it is worth it anyway, because its findings
+   are the ones a session has already proved it cannot see in its own prose,
+   and because it returns a completeness the author cannot: every table row
+   verified rather than the ones somebody thought to check. (The rule
+   that a check must be proven able to fail governs the instruments themselves
+   and is stated with them, [in the reader's section](#the-reader-read-runpy).)
 
    **The four ways its inputs have been got wrong, each measured.** Its BRIEF:
-   Run 16 wrote `checker-brief.txt` out twice, once because a rate limit killed
-   the agent mid-pass, and Run 22 never opened it at all, typed its own,
-   and left three of seven *could not check* items checkable for want of paths
-   the file names --- while a stale brief looks exactly like a used one,
-   carrying the previous run's box reading, window, class counts and threshold
-   list, which is how Run 20's probe went looking for the wrong classes.
-   Its OBJECT: Run 22 pointed the pass at the working tree and idled seventeen
-   minutes rather than writing. Its DIFF: Run 22 made twelve chapter commits
-   between its write-up and its second pass, 576 lines of README against
-   the write-up's 224, so *that commit's diff* meant this chapter as much
-   as the run. And its AUTHORITY: Run 19's report said twelve arms moved past 3%
-   where sorting gives eleven, and Run 22's put the runs-class crossover
-   a length out by skipping a shape. What it returns when the inputs are right
-   is Run 19's 22 defects, every mechanical gate here having passed them
-   and a truth-focused read having missed them. Being asked about is a fifth:
-   the pass is pre-authorized by the user-scope `CLAUDE.md`, and Run 20 read
-   Claude Code's own conditional, missed that the standing request discharges
-   it, and asked.
+   `checker-brief.txt` has been written out twice over a killed agent,
+   and passed over for a typed brief that left *could not check* items checkable
+   for want of paths the file names --- while a stale brief looks exactly like
+   a used one, carrying the previous run's box reading, window, class counts
+   and threshold list, which sends a probe after the wrong classes. Its OBJECT:
+   pointed at the working tree, the pass idled seventeen minutes rather
+   than writing. Its DIFF: twelve chapter commits between a write-up
+   and its second pass made *that commit's diff* mean this chapter as much
+   as the run. And its AUTHORITY: reports have miscounted the arms past 3%
+   and put a crossover a length out by skipping a shape. What it returns when
+   the inputs are right is Run 19's 22 defects, every mechanical gate here
+   having passed them and a truth-focused read having missed them. Being asked
+   about is a fifth: the pass is pre-authorized by the user-scope `CLAUDE.md`,
+   whose standing request discharges Claude Code's own conditional.
 
    The checks themselves:
    1. **MEASURE, THEN WRITE THE CLAUSE --- and derive every count and ratio
@@ -10032,38 +9969,28 @@ size comes from the reader's first line;
       table.** The order is the operative half and is stated first because
       the rest of this rule is a property of the finished sentence, checked
       at verification, while the failure is in composition: Run 20 wrote three
-      figures it had not computed --- a `list` ratio, a `build`/`mut-odo` pair
-      and a cross-half split --- each plausible, each wrong, and each caught
+      figures it had not computed, each plausible, each wrong, and each caught
       only because the number was checked afterwards. A sentence written before
       its measurement is a guess with a citation. The second half is the one
       that looks safe: a table prints three significant figures because
       that is what a reader needs, so arithmetic on its cells is arithmetic
-      on the rounding. Run 11 computed its eleven anchor movements
-      from the printed anchors and put the largest at +4.1% where the cells say
-      +4.3%, which is a tenth of the figure and was invisible until
-      an independent reader rebuilt it. A percentage, a ratio and a count all
-      come from `--cells` or from `--pair`, whatever is printed three lines
-      above --- and for a class paragraph, from the verdicts `--block` now emits
-      under its per-shape line, which state the three properties' outcomes
-      and name the arms that actually lead. That block exists because this rule
-      kept losing to the table being right there while the paragraph
-      was written: three of Run 9's class sentences were wrong that way
-      and no mechanical check saw any of them. "32 of 33", "30th of its 33
-      shapes", "the only two past 7%" are all claims a glance at a sorted table
-      gets wrong; two of Run 6's were wrong until recomputed. Two shapes
-      of claim need naming because counting is not what they look like. **Every
-      *only*, *largest*, *fastest* or *never* is a claim about the whole table**
-      --- or about this file's own HISTORY, *the first repetition*, *the widest
-      floor on record*, which is derived by walking the run files and never
-      remembered: Run 23 wrote *first* of its third such repetition, Runs 11
-      and 19 having taken the two before, and a probe caught it ---
-      and is derived by sorting it, not by looking at the arms the sentence
-      is about: Run 8's write-up carried four such --- "the only arm the flag
-      demotes", "the largest gain of any arm" among them --- each false,
-      and each caught late or by a reader. And **a ratio between two published
+      on the rounding, and a +4.3% comes out +4.1%. A percentage, a ratio
+      and a count all come from `--cells` or from `--pair`, whatever is printed
+      three lines above --- and for a class paragraph, from the verdicts
+      `--block` now emits under its per-shape line, which state the three
+      properties' outcomes and name the arms that actually lead. That block
+      exists because this rule kept losing to the table being right there while
+      the paragraph was written. "32 of 33", "30th of its 33 shapes", "the only
+      two past 7%" are all claims a glance at a sorted table gets wrong. Two
+      shapes of claim need naming because counting is not what they look like.
+      **Every *only*, *largest*, *fastest* or *never* is a claim about the whole
+      table** --- or about this file's own HISTORY, *the first repetition*,
+      *the widest floor on record*, which is derived by walking the run files
+      and never remembered --- and is derived by sorting it, not by looking
+      at the arms the sentence is about. And **a ratio between two published
       cells comes from `--pair`, never from dividing the printed figures**,
-      which are rounded to three digits: the same write-up quoted 0.9898
-      for a pair the reader puts at 0.9946. **And `--cells` is a print too**,
+      which are rounded to three digits: 0.9898 was once quoted for a pair
+      the reader puts at 0.9946. **And `--cells` is a print too**,
       its `alloc_mult` carrying four decimals, so a question finer than what
       it prints wants the mode that answers it rather than a script
       over the dump: allocation agreement is `--compare --alloc`, which exists
@@ -10071,17 +9998,15 @@ size comes from the reader's first line;
       the underlying fit does not. **Before reading any figure whose predecessor
       is on record, reproduce the predecessor first.** Stated narrowly
       this is about re-deriving a published figure, and it generalises to every
-      probe: Run 15's ladder probe reproduced Run 14's 14.1 and 22.3 ms before
-      it read anything at a new nursery, which is the only reason the new figure
-      was trustworthy the moment it appeared. This
-      is the prove-a-search-non-vacuous rule applied to a derivation rather
-      than a grep --- run the computation against a case whose answer is known
-      before trusting it on one whose answer is not --- and it is cheap: one
-      extra invocation. Run 13's write-up skipped it, read the wrong column, got
-      a count that disagreed with what Run 12 had published, located
-      that disagreement in the *data* rather than in its own *method*,
-      and explained the residue with a mechanism the previous pair refutes.
-      The one invocation would have stopped all three;
+      probe: a probe that reproduces its predecessor's figures before it reads
+      anything at a new setting has a new figure trustworthy the moment
+      it appears. This is the prove-a-search-non-vacuous rule applied
+      to a derivation rather than a grep --- run the computation against a case
+      whose answer is known before trusting it on one whose answer is not ---
+      and it is cheap: one extra invocation, which would have stopped a write-up
+      that read the wrong column, located the disagreement in the *data* rather
+      than in its own *method*, and explained the residue with a mechanism
+      the previous pair refutes;
    2. **reproduce any newly-derived column by a route that shares no code
       with the reader.** A four-bench filtered run carrying both `sum-only`
       halves takes seconds, and criterion's own printed `time` lines then give
@@ -10139,23 +10064,20 @@ size comes from the reader's first line;
    `--pair` prints it, or the sentence says in words which arm is faster.** Both
    directions appear in this file, a margin and its reciprocal, and a WIN COUNT
    belongs to only one of them --- so a reciprocal quoted beside its own arm's
-   win count inverts the finding while every check here stays green. Run 18's
-   opening did exactly that to the run's headline reading, on both halves
-   at once, and a comprehension probe caught it where two checker passes had
-   not. **A figure in prose names its run, its basis and its population,
-   or it belongs in a table with the prose pointing at it** --- a bare numeral
-   carries no provenance, and that is how one sentence came to put a Failed Run
-   6 figure beside a Run 6 one, and another to compare a *published* ratio
-   with a *paired* one. The population is the newest way to make that mistake
-   and the easiest, a class figure and a main-set one being the same kind
-   of number over different shapes. **An anchor longer than about thirty
-   characters goes reference-style**, defined at the foot of the file: inline
-   it overflows the width and the rewrapping that follows is pure churn.
-   And **a link's text names its subject, never its position** --- five links
-   reading *the head of the run chapter* kept resolving through two renames
-   while the content they promised left it, a decay no anchor check sees, which
-   is why `--check-doc` lists standing-prose links into the run's file and step
-   5 re-verifies them;
+   win count inverts the finding while every check here stays green. **A figure
+   in prose names its run, its basis and its population, or it belongs
+   in a table with the prose pointing at it** --- a bare numeral carries
+   no provenance, and without it a failed run's figure lands beside a good one,
+   or a *published* ratio is compared with a *paired* one. The population
+   is the newest way to make that mistake and the easiest, a class figure
+   and a main-set one being the same kind of number over different shapes.
+   **An anchor longer than about thirty characters goes reference-style**,
+   defined at the foot of the file: inline it overflows the width
+   and the rewrapping that follows is pure churn. And **a link's text names
+   its subject, never its position** --- a link reading *the head of the run
+   chapter* keeps resolving through renames while the content it promised
+   leaves, a decay no anchor check sees, which is why `--check-doc` lists
+   standing-prose links into the run's file and step 5 re-verifies them;
 8. Re-run `--lint` after editing `Main.hs`, even when only comments changed:
    the reader parses that file for the roster and the shape dims, so a comment
    edit can break a check that passed before it. `--lint` reads the source
@@ -10171,32 +10093,29 @@ size comes from the reader's first line;
     checks. **Grep [the settled index][settled] before adding an entry ---
     and before ASSERTING anything this README may already have ruled on**,
     not only before deriving: a question is easy to open against something
-    already answered in a section you are not writing in, which is how Run 10's
-    write-up proposed a Core dump that had been taken three times and whose
-    answer --- `vBuildVS` surviving as no top-level binding, so there is no call
-    path to dump --- was recorded at the ceiling, a thousand lines from where
-    the entry was being written. A run answers some of its own questions
-    and a write-up raises others, and both go stale in place: Run 8 answered
-    the element-type entry with the probe that entry specified and left
-    it standing open, and answered the packed-arm entry the same day. What
-    a probe narrowed is left as narrowed.
+    already answered in a section you are not writing in, as a Core dump
+    proposed once had been taken three times and answered a thousand lines away.
+    A run answers some of its own questions and a write-up raises others,
+    and both go stale in place: an entry answered by the very probe it specified
+    stays open until this walk closes it. What a probe narrowed is left
+    as narrowed.
 11. **Only then, offer the artifacts for deletion --- once --- and abide
     by the answer.** The JSONs, the logs and the wall-clock file, and
     for a paired Run the two binaries and their `$R-pair.txt` with them,
     that note being about a pair and worth little once the pair is gone.
     The offer comes after the verification is presented and not after
-    the writing --- Run 6's artifact went as soon as its write-up was drafted,
-    which cost the ability to re-check anything needing the raw samples when
-    that write-up was later questioned. **AND IT IS NOT ONE RUN'S OFFER: a pair
+    the writing --- an artifact deleted once its write-up is drafted takes
+    with it the ability to re-check anything needing the raw samples when
+    that write-up is later questioned. **AND IT IS NOT ONE RUN'S OFFER: a pair
     a LIVE registration derives its priors from outlives the run that used it.**
-    Run 36's registration takes its `-O2` figures off Run 31's own binaries,
-    JSONs and counts files rather than quoting them, which Run 36's preparation
-    could only do because that pair is still on disk --- so the offer says which
-    earlier pair this run leaned on, and the session making it checks the open
-    list for a registration resting on one before naming it. **And it waits
-    on a quiet tree**: Run 36's offer was held because another session
-    was timing probes against its two binaries hours after the write-up closed,
-    which the directory's own mtimes showed and nothing else would have.
+    A registration takes its figures off an earlier pair's own binaries, JSONs
+    and counts files rather than quoting them, which it can do only while
+    that pair is still on disk --- so the offer says which earlier pair this run
+    leaned on, and the session making it checks the open list for a registration
+    resting on one before naming it. **And it waits on a quiet tree**: another
+    session may be timing probes against the two binaries hours after
+    the write-up closed, which the directory's own mtimes show and nothing else
+    does.
 
     **They are not required to go, and this README no longer says they are.**
     The rule used to be that the normal state of this directory is no run
@@ -10228,32 +10147,27 @@ than in a list, and the lists lean on it**, so it is named at the top rather
 than met by surprise: BOTH HALVES ARE BUILT ANEW, EVERY RUN, whose four refused
 shortcuts are spelled out below and whose instruction is pre-run step 2's *BUILD
 BOTH, ALWAYS*. Point at it by NAME; it has moved once already. It sits below
-the lists rather than above them because three preparations in a row read
-it on the way in --- Run 24 with `sed`, Run 26 for some 250 lines, Run 27
-for some 285 --- and the block at the head of the chapter, which tells you
-to run two commands before reading further, did not stop any of them. Reading
-order did. Take a paragraph from here when a step surprises you: every `why:`
-line in the lists names one by its bolded lead, which `--para` resolves wherever
+the lists rather than above them because preparations read it on the way in,
+which the block at the head of the chapter did not stop and reading order did.
+Take a paragraph from here when a step surprises you: every `why:` line
+in the lists names one by its bolded lead, which `--para` resolves wherever
 the paragraph sits.
 
 **The three lists carry every operative fact in this chapter, and the prose
-carries the reasons and does not restate them.** That is a contract
-and was audited into being: a pass over the prose in 2026-08-14 found
-seventy-nine facts that changed what an executor DOES and were in no list.
-A fact that changes what you do belongs in a list --- if you find one
-that is not, that is the defect, not your reading. And a rule's evidence goes
-at the end of its paragraph, as a date and an outcome --- never inside
-an instruction, and never as a chronology. **AND THE OVERLAP BETWEEN THEM
-WAS MEASURED ON 2026-09-18 AND IS NOT WORTH CUTTING, so this is a don't-do
-ruling and not an invitation.** A session that had just executed the chapter
-proposed deduplicating list and prose, on the impression that steps restate
-their own `why:` paragraphs; the sweep it was made to run first --- every `why:`
-pointer, its step's body against the paragraph it names, longest shared run
-of words --- found ONE of thirty-seven sharing eight words or more, step 9's
-regime figures, which the list owes as operative and the paragraph needs
-to argue that no eye misreads the separation. So the mechanism already does
-its job, the impression was of length and not of repetition, and what a future
-session should re-run before proposing this again is that sweep.
+carries the reasons and does not restate them.** That is a contract. A fact
+that changes what you do belongs in a list --- if you find one that is not,
+that is the defect, not your reading. And a rule's evidence goes at the end
+of its paragraph, as a date and an outcome --- never inside an instruction,
+and never as a chronology. **AND THE OVERLAP BETWEEN THEM WAS MEASURED
+ON 2026-09-18 AND IS NOT WORTH CUTTING, so this is a don't-do ruling and
+not an invitation.** Steps look as though they restate their own `why:`
+paragraphs, and the sweep --- every `why:` pointer, its step's body against
+the paragraph it names, longest shared run of words --- found ONE
+of thirty-seven sharing eight words or more, step 9's regime figures, which
+the list owes as operative and the paragraph needs to argue that no eye misreads
+the separation. So the mechanism already does its job, the impression being
+of length and not of repetition, and what a future session should re-run before
+proposing this again is that sweep.
 
 **A RUN IS ALWAYS TWO SESSIONS, and which one you are decides everything
 in the three lists above.** One PREPARES the run, through step 12 of the pre-run
@@ -10266,38 +10180,32 @@ and never off a session's sense of it: a summary of what remains is not a step
 toward it.
 
 **What a run must read, so that nothing else is read to find out --- and
-it is read BY THE PART, never whole.** This paragraph used to say the last run's
-own file was *the one thing worth reading entire* and then, in its next four
-clauses, name what to skip inside it. Whole is the sentence a session acts on,
-because it governs how the file gets opened, so the clauses read as emphasis:
-Run 20 ingested 38 KB of the previous run's tables, **24% of that file**, every
-byte of it named as skippable one sentence later. The enumeration
-is the instruction and the tables are what a run does not read --- the reader
-emits them, `--in-place` installs them, and the checker recomputes them
-from the JSONs. **`./read-run.py --section NAME` is what makes that takeable**,
-printing one section's prose without its tables and naming the size it withheld,
-since a line range cannot skip what sits between the paragraphs it spans
-and a line number does not survive a rewrap. **This README is never read
-whole**: it runs to well over a hundred thousand words and this chapter alone
-to thirty-odd thousand, which is what `--section` and `--checklist` exist for.
-**So, as ten items, each owing an artifact, and each read AT THE STEP THAT NAMES
-IT and not before**: item 1 is read now, and every other item stands
-in the lists above as a `READ NOW` line at the step whose work needs it, because
-a reading taken at the head is forgotten by the time its step arrives. A reading
-that owes nothing cannot be told from a reading not done, which is the whole
-of why this is a list and not a sentence. **Items 2, 4, 5 and 6 are read
-at the three post-run steps that rewrite those very sections** --- 5 for item 2,
-6a for item 4, 4 for items 5 and 6 --- and by nobody else. They were one
-carrier's batch from 2026-09-05 until 2026-09-16, returned
-as `run<N>-readings.txt` so that a delegated reading could not be forgotten;
-what ended it is that the reading was never avoidable to begin with. Post-run
-step 5 copies the previous run's file and the write-up edits that copy paragraph
-by paragraph, so the session reads that run's head, its two-column section,
-its properties and its class blocks AS THE TEXT IT IS REPLACING ---
-and the carrier read the same four a second time, in another process,
-to summarise what the session was about to have open in front of it. Run 26
-never opened the file at all and read its summary off the task notification; Run
-33 did the same, which is two runs of three, and settled it. What the items keep
+it is read BY THE PART, never whole.** *Whole* is the word a session acts on,
+because it governs how the file gets opened: told to read the last run's file
+entire, a run ingested 24% of it as tables named skippable one sentence later.
+The enumeration is the instruction and the tables are what a run does not read
+--- the reader emits them, `--in-place` installs them, and the checker
+recomputes them from the JSONs. **`./read-run.py --section NAME` is what makes
+that takeable**, printing one section's prose without its tables and naming
+the size it withheld, since a line range cannot skip what sits between
+the paragraphs it spans and a line number does not survive a rewrap.
+**This README is never read whole**: it runs to well over a hundred thousand
+words and this chapter alone to thirty-odd thousand, which is what `--section`
+and `--checklist` exist for. **So, as ten items, each owing an artifact,
+and each read AT THE STEP THAT NAMES IT and not before**: item 1 is read now,
+and every other item stands in the lists above as a `READ NOW` line at the step
+whose work needs it, because a reading taken at the head is forgotten
+by the time its step arrives. A reading that owes nothing cannot be told
+from a reading not done, which is the whole of why this is a list and
+not a sentence. **Items 2, 4, 5 and 6 are read at the three post-run steps
+that rewrite those very sections** --- 5 for item 2, 6a for item 4, 4 for items
+5 and 6 --- and by nobody else, never by a carrier, the reading not being
+avoidable to begin with. Post-run step 5 copies the previous run's file
+and the write-up edits that copy paragraph by paragraph, so the session reads
+that run's head, its two-column section, its properties and its class blocks
+AS THE TEXT IT IS REPLACING --- and a carrier reads the same four a second time,
+in another process, to summarise what the session is about to have open in front
+of it, while runs handed the summary never opened the file. What the items keep
 is their QUESTION --- does the two-column table carry the last run's columns,
 which properties are live and how many --- which is the half a carrier
 was really enforcing and which costs nothing asked at the step that rewrites
@@ -10426,11 +10334,9 @@ list's own head names the six its half owes, which is where a preparation meets
 the split; the run and post lists have no such head, so an executing session
 meets it here. What each is for: **The PREPARATION owes 1, 3, 7, 8's delta
 bullets, 9 and 10** --- of item 1, THE PRE-RUN LIST ALONE, and of items 9 and 10
-the halves their own entries name. It used to owe the run list too,
-for the launch, rider and counts blocks the note carries; those
-are in `pair-note-template.txt` since 2026-09-01, where the note is written
-from anyway, so neither the run list nor the post-run one is owed
-and a preparation reads about a thousand lines fewer. Those six decide the pair,
+the halves their own entries name. The launch, rider and counts blocks the note
+carries are in `pair-note-template.txt`, where the note is written from anyway,
+so neither the run list nor the post-run one is owed. Those six decide the pair,
 the roster, the note and what this run is for, and nothing else does.
 **The EXECUTION owes 1 --- the run and post-run lists --- with 2, 4, 5, 6
 and 8's replace list**, every one of which answers a question the write-up asks:
@@ -10440,16 +10346,13 @@ form is not used until a block is written. **ONE OF THOSE CROSSES BACK,
 and it is 5.** A roster change that parks or drops an arm can leave a live
 property naming an untimed one, which `--lint` refuses at step 7 ---
 so the preparation that made the change is the one that must retire or re-aim
-it, and it owes the properties section to do that. Run 21's preparation
-is the case: parking `offtab` and `gen-quotrem` retired claims 2 and 6
-and re-aimed 8, all of it before that run started. A preparation that parks
+it, and it owes the properties section to do that. A preparation that parks
 nothing does not owe 5, and step 7 is what tells it which it is. **Reading
 the other session's half is the largest avoidable spend in this chapter after
-the prose itself.** It was the shape of a preparation on 2026-08-30, which read
-the whole post-run list and an example class block and used neither, and it
-is a spend the split makes invisible: nothing in a handover shows what
-the session before it read for nothing. Items 2 to 6 are [the last run's own
-file](runs/run39.md#results), 3 and 4 being [what the next run compares
+the prose itself.** It is a spend the split makes invisible: nothing
+in a handover shows what the session before it read for nothing. Items 2 to 6
+are [the last run's own file](runs/run39.md#results), 3 and 4 being [what
+the next run compares
 against](runs/run39.md#what-the-next-run-compares-against), 5 [the
 properties](runs/run39.md#the-properties-the-next-run-should-test) and 6 [the
 class blocks](runs/run39.md#the-stride-classes-run-by-run) --- and `--section`
@@ -10511,24 +10414,23 @@ not the requester and not the preparer.
 than before.** It is separate from the pre-registered questions, which
 are appended after the classes and were designed before the evening. What
 this ordering is for: the write-up is where a run's errors are made, it is done
-last, and a probe spent first is spent out of its attention --- Run 14 probed
-heavily and well, and shipped twenty-one prose errors past four green checkers
-because the writing came at the end of it. Take whatever measurement the run's
-own *results* make worthwhile, with no ceiling on it: a discriminating reading
-of a cell that came out strange, a derivation over the artifacts while they
-still exist. What bounds it is the artifacts and not a clock --- spend it while
-they live, most of it being unspendable afterwards. **What DOES bound it
-is the box**: this budget is spent past step 19a, where the machine was handed
-back, so a probe in it that TIMES anything is asked for first (19a); one
-that only reads the artifacts is not. **And do not read the budget
+last, and a probe spent first is spent out of its attention --- a run
+that probed heavily and well shipped twenty-one prose errors past four green
+checkers because the writing came at the end of it. Take whatever measurement
+the run's own *results* make worthwhile, with no ceiling on it: a discriminating
+reading of a cell that came out strange, a derivation over the artifacts while
+they still exist. What bounds it is the artifacts and not a clock --- spend
+it while they live, most of it being unspendable afterwards. **What DOES bound
+it is the box**: this budget is spent past step 19a, where the machine
+was handed back, so a probe in it that TIMES anything is asked for first (19a);
+one that only reads the artifacts is not. **And do not read the budget
 as a concession --- it is where this README's mechanisms have come from, where
-the run is where its figures come from.** Run 15's six and a half hours produced
-figures, held every registered ordering and confirmed a repetition,
-and no mechanism at all; some two hours of probes afterwards settled five
-standing questions, refuted three of that run's own published claims and found
-a caveat touching every ratio here. So a question with a discriminating
-measurement deserves a filtered run now rather than a slot in the next full one,
-which is a rule this chapter states twice and had buried both times.
+the run is where its figures come from.** Six and a half hours of evening once
+produced figures and no mechanism at all, where some two hours of probes
+afterwards settled five standing questions, refuted three of the evening's own
+published claims and found a caveat touching every ratio here. So a question
+with a discriminating measurement deserves a filtered run now rather than a slot
+in the next full one.
 
 **Stop for two things.** No further progress --- a build that will not build,
 a gate that fails, evidence that is not on this machine --- and a decision
@@ -10543,9 +10445,8 @@ the test and not the category: *belongs to whoever asked* cannot be applied
 from inside, since anything can be argued into it, where *changes what
 the machine does next* is answerable in a sentence and would have answered every
 stop this chapter has recorded. A preparation that leaves such a decision says
-so outright --- Run 19's put a retirement decision at the head of the pair note
-in this paragraph's own vocabulary, with *before the gate is paid* beside it,
-and its first operator read it as a stop and lost the night (2026-08-24), where
+so outright, and says what it changes: a retirement decision headed *before
+the gate is paid* was once read as a stop and lost the night (2026-08-24), where
 the test says plainly that a manifest edit due at the write-up changes nothing
 the evening does.
 
