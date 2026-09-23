@@ -2245,6 +2245,28 @@ def heading_spacing_word(path):
     return 'HEADING LOST ITS BLANK' if lost else 'HEADINGS KEEP TWO BLANKS'
 
 
+def drift_repo(tmp, moved=True):
+    """A throwaway checkout for registration-drift.py: a README carrying
+    Run 97's registration, a Main.hs, and, where `moved`, one commit to
+    `fooFill` after the registration; the note names the tip as built."""
+    d = os.path.join(tmp, 'repo')
+    os.makedirs(d)
+    g = lambda *a: subprocess.run(['git', '-C', d, '-c', 'user.email=t@t',
+                                   '-c', 'user.name=t'] + list(a),
+                                  check=True, capture_output=True, text=True)
+    g('init', '-q')
+    write(os.path.join(d, 'README.md'), 'What Run 97 is built to answer.\n')
+    write(os.path.join(d, 'Main.hs'), 'fooFill :: Int\nfooFill = 1\n')
+    g('add', '.')
+    g('commit', '-q', '-m', 'register')
+    if moved:
+        write(os.path.join(d, 'Main.hs'), 'fooFill :: Int\nfooFill = 2\n')
+        g('commit', '-q', '-am', 'rebuild the fill')
+    tip = g('rev-parse', '--short', 'HEAD').stdout.strip()
+    write(os.path.join(d, 'run97-pair.txt'), '  Main.hs at        %s\n' % tip)
+    return {'dir': d}
+
+
 def doc_of_a_list(tmp, items=4):
     """A document whose one list has no blank line between its items.
 
@@ -13036,6 +13058,23 @@ RECORDS = [
          ok=V(has=['out of scope, this file being main on the control half',
                    '6 span(s): 3 HELD, 1 KILLED, 0 not read, 2 out of'
                    ' scope'])),
+
+    case('registration-drift-names-the-commits-after-it',
+         'registration-drift.py', None,
+         'CONTROL: a commit to Main.hs after the registration and before the'
+         ' build is listed with the definition it touched, exit 1',
+         plant=lambda t: drift_repo(t, moved=True),
+         argv=['run97', '--dir', '{dir}'],
+         ok=V(exit=1, has=['rebuild the fill', 'in: fooFill',
+                           '1 commit(s) the registration did not see'])),
+
+    case('registration-drift-is-quiet-over-an-unmoved-source',
+         'registration-drift.py', None,
+         'CONTROL: a build from the registration\'s own source lists nothing,'
+         ' exit 0',
+         plant=lambda t: drift_repo(t, moved=False),
+         argv=['run97', '--dir', '{dir}'],
+         ok=V(exit=0, has=['no commit to Main.hs between them'])),
 
     case('predictions-in-place-keeps-the-headings-two-blanks', 'read-run.py',
          'd941cc6',
