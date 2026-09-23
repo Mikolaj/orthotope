@@ -9985,6 +9985,10 @@ CHECKLISTS = {
     'pre': "# READ THIS LIST AND THE LAST RUN'S FILE, AND START.",
     'run': 'grep -i gate $R-pair.txt',
     'post': '#   0. NAME THE FILL GROUPS',
+    # The list of what a session READS, which every step names by item
+    # number and which sat among the reasons at the chapter's foot. Case:
+    # `checklist-prints-the-readings-list`.
+    'readings': "1. this chapter's three checklists",
 }
 
 # THE POST LIST'S EXECUTION ORDER, which is not the order it prints in.
@@ -10153,7 +10157,8 @@ def checklist(readme, which, steps_only=False):
     while lines[j] == '':
         j -= 1
     block = lines[i:j + 1]
-    label = {'pre': 'pre-run', 'run': 'run', 'post': 'post-run'}[which]
+    label = {'pre': 'pre-run', 'run': 'run', 'post': 'post-run',
+             'readings': 'readings'}[which]
     steps = ''
     if half:
         cut = [k for k, l in enumerate(block) if l.startswith(SPLITS[which])]
@@ -14783,10 +14788,11 @@ def main():
                         ' from; wants --halves')
     p.add_argument('--halves', metavar='BASIS,OTHER',
                    help="with --note --draft: the new pair's two names")
-    p.add_argument('--checklist', metavar='pre|run|post[-a|-b]',
+    p.add_argument('--checklist', metavar='pre|run|post[-a|-b]|readings',
                    help="print one of the run chapter's three checklists"
-                        ' alone, which is what a session executes; the'
-                        ' prose around them is the reasons')
+                        ' alone, which is what a session executes, or the'
+                        ' readings list the steps name by item; the prose'
+                        ' around them is the reasons')
     p.add_argument('--doc', nargs='?', const='', metavar='PART',
                    help="print one part of this script's own docstring --"
                         ' `modes` is the Modes list with the two gates in'

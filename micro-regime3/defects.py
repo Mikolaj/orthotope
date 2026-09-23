@@ -7446,6 +7446,17 @@ RECORDS = [
          ok=V(exit=0, has=['reading %d of them over 6 shapes'
                            % timed_arm_count()])),
 
+    case('checklist-prints-the-readings-list', 'read-run.py', None,
+         'CONTROL: --checklist readings prints the chapter\'s list of what a'
+         ' session reads, items 1 to 10, and nothing else',
+         # The readings list sat inside the reasons at the chapter's foot,
+         # reachable by --para alone, while each checklist step names its
+         # items by number (2026-09-23).
+         argv=['--checklist', 'readings'],
+         ok=V(exit=0, has=["1. this chapter's three checklists",
+                           "10. the PREVIOUS run's pair note"],
+              hasnt=['grep -i gate $R-pair.txt'])),
+
     case('checklist-post-a-stops-at-the-seam', 'read-run.py', None,
          'CONTROL: --checklist post-a is the post list down to step 6 and'
          ' no further',
