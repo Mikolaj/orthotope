@@ -13830,6 +13830,30 @@ RECORDS = [
               hasnt=["Run 99's item (2) quotes a prior"]),
          bug=V(hasnt=['quotes a prior and names neither'])),
 
+    # ---- --lint, and a registration's script that `./` cannot run ------
+    # Run 39's registration adjudicates its item (2) by `script:
+    # probe-r39-rules.py`, "run as `./probe-r39-rules.py run39 run38`",
+    # and the file was committed at mode 100644, as was probe-r38-sweep.py
+    # beside it: the command the registration gives answered `Permission
+    # denied`. --lint asked only that the script be COMMITTED. Found
+    # 2026-09-23 by Run 39's 12b re-derivation, a carrier agent running
+    # the stated command against Run 38. The fixture names defects.py,
+    # a module committed at 100644 by design, so the case needs no file
+    # of its own at the wrong mode.
+    case('registration-script-not-executable', 'read-run.py', '56736bc',
+         'a registration named a committed script its `./` could not run',
+         plant=lambda t: {'readme': edited_readme(t, (
+             a_registration_lead(),
+             '- `OPEN` **What Run 99 is built to answer, registered before'
+             ' it runs.** (1) *A clause no span states.* `script:'
+             ' defects.py`, run as `./defects.py run99 run98`.'
+             '\n\n' + a_registration_lead()))},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(exit=1,
+              has=["Run 99's item (1) names script defects.py, which is"
+                   ' committed without its executable bit']),
+         bug=V(exit=0, hasnt=['executable bit'])),
+
     # ---- preflight.sh, 8d's baseline and 10f ---------------------------
     # NO CASE for either, for the reason the preflight records above give
     # and checks.py's UNCOVERED repeats: these are STEPS, so a case would
