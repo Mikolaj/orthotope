@@ -60,7 +60,8 @@ cd "$(dirname "$0")" || exit 1
 # `--from STAGE` resumes a dead attempt at gate, alarm, instance, sequence
 # or riders: it wants that attempt's status file, appends to it under a
 # `resumed` line, and runs the named stage and every one after it -- the
-# sequence only where it left no JSON, its stray check refusing one. Run 39's
+# sequence only where no process of it started, the stray check refusing
+# any $R-*.json or $R-*.log. Run 39's
 # sequence refused after its gate had spent its half hour, and the session
 # relaunched the sequence by hand, stamping the status file itself. Cases:
 # `evening-resumes-from-a-named-stage`, `evening-refuses-to-resume-nothing`.

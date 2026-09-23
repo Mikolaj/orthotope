@@ -8074,8 +8074,9 @@ Unsandboxed throughout:
     #      resume it at the stage that died, `./run-evening.sh $R --from
     #      STAGE` (gate, alarm, instance, sequence or riders), which
     #      appends to that file under a `resumed` line -- a sequence only
-    #      where it left no JSON, its stray check refusing one; a sequence
-    #      that did is finished by step 17's class loop.
+    #      where no process of it started, its stray check refusing any
+    #      $R-*.json or $R-*.log; one that started is finished by step
+    #      17's class loop.
     #      ARM NOTHING BESIDE IT: its exit is the session's wake-up. ASKED
     #      MID-EVENING, answer with `./evening-status.sh $R`, one line off
     #      two tails, and nothing heavier.
@@ -8145,7 +8146,7 @@ Unsandboxed throughout:
     #      NO EDIT TO THE TREE, until the evening ends. Never raise -L on
     #      a recorded run. Look at a process far slower than its
     #      neighbours against the previous run's -wallclock.log, SCALED BY
-    #      THE BENCH COUNT. No resume past a JSON: if it dies mid-sequence, hand-run
+    #      THE BENCH COUNT. No resume once a process has started: if it dies mid-sequence, hand-run
     #      the class loop over both halves, skipping a population on
     #      whether its JSON PARSES and never on whether it exists;
     #      `python3 -c 'import json,sys; json.load(open(sys.argv[1]))'
@@ -8208,7 +8209,7 @@ Unsandboxed throughout:
     #      being exactly a thing that changes what the machine does next
     ./run-counts-all.sh $R                # 20, IN THE SAME TURN, in the
     #      harness's background mode again, as at 14. ITS EXIT IS ITS
-    #      ANNOUNCEMENT: launch it as that turn's first tool call.
+    #      ANNOUNCEMENT: poll nothing of it before then.
     #      Quote how long it
     #      takes from the previous run's `./read-run.py --counts-cost
     #      $PREV`, never a guess
@@ -8810,16 +8811,16 @@ than a variable it inherits, and the evening's third stage. It refuses without
 one, the prefix being the run's identity, and refuses to start where that name
 already has artifacts, since relaunching would overwrite hours in place ---
 **which makes an interrupted sequence a hand job; expect that, since the machine
-gets wanted back.** It has no resume past its first JSON,
-`run-evening.sh --from sequence` refusing once one exists, so a sequence whose
-main sets landed and whose classes did not is finished by running the class loop
-yourself, with the skip-and-count discipline step 17 spells out; one process per
-population is what makes a run in two windows harmless, each carrying its own
-controls and gates, but it is a fact about the run and the run file states it.
-What the driver adds over the pasted sequence it replaced is the counting,
-and its header says how: every process's bench count against the binary's own
-listing, loud in the log and not fatal, the exit status carrying the count
-of complaints out to whatever collected it.
+gets wanted back.** It has no resume once a process has started,
+`run-evening.sh --from sequence` refusing any log or JSON of the run,
+so a sequence whose main sets landed and whose classes did not is finished
+by running the class loop yourself, with the skip-and-count discipline step 17
+spells out; one process per population is what makes a run in two windows
+harmless, each carrying its own controls and gates, but it is a fact about
+the run and the run file states it. What the driver adds over the pasted
+sequence it replaced is the counting, and its header says how: every process's
+bench count against the binary's own listing, loud in the log and not fatal,
+the exit status carrying the count of complaints out to whatever collected it.
 
 **Nothing is armed beside the evening, ruled 2026-09-23, and `run-heartbeat.sh`
 stays for a probe watching itself.** The evening is a backgrounded job whose
