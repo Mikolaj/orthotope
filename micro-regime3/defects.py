@@ -11324,6 +11324,35 @@ RECORDS = [
          bug=V(exit=1, has=['no zzem-pair.txt'],
                hasnt=['CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP'])),
 
+    case('evening-resumes-from-a-named-stage', 'run-evening.sh', None,
+         'CONTROL: --from sequence over a dead attempt\'s status file runs'
+         ' the sequence and the riders and not the gate, appending to that'
+         ' file under a resumed line',
+         # Run 39's sequence refused after its gate had run, and the
+         # session relaunched it by hand, stamping the status file itself.
+         shadow=dict(extra=lambda: evening_fixture('zzer') + [
+             ('zzer-evening.txt', '=== 2026-01-01T00:00:00+00:00 evening'
+              ' begins for zzer\n=== 2026-01-01T00:30:00+00:00 gate: done,'
+              ' rc=0\n')]),
+         env={'MAXBUSY': '100', 'FAKE_SATURATE': '1',
+              'ONLY': main_shapes()[0]},
+         argv=['zzer', '--from', 'sequence'],
+         probe=lambda subs: open(os.path.join(subs['at'],
+                                              'zzer-evening.txt')).read(),
+         ok=V(exit=0, has=['evening begins for zzer', 'evening resumed for'
+                           ' zzer from sequence', 'sequence: done, rc=0',
+                           'riders a1g clean: done, rc=0'],
+              hasnt=['gate: inherited', 'instance gate: start'])),
+
+    case('evening-refuses-to-resume-nothing', 'run-evening.sh', None,
+         'CONTROL: --from with no status file is refused, there being no'
+         ' attempt to resume',
+         shadow=dict(extra=lambda: evening_fixture('zzen')),
+         env={'MAXBUSY': '100'},
+         argv=['zzen', '--from', 'sequence'],
+         ok=V(exit=2, has=['nothing to resume'],
+              hasnt=['evening begins', 'evening resumed'])),
+
     case('evening-refuses-a-stray-run-artifact-before-the-gate',
          'run-evening.sh', 'a35f698',
          'a file named for the run that run-major.sh\'s relaunch guard'

@@ -57,13 +57,31 @@
 set -u
 cd "$(dirname "$0")" || exit 1
 
-if [ $# -ne 1 ]; then
-  echo "usage: ./run-evening.sh RUN      # e.g. run24, in the background;"
+# `--from STAGE` resumes a dead attempt at gate, alarm, instance, sequence
+# or riders: it wants that attempt's status file, appends to it under a
+# `resumed` line, and runs the named stage and every one after it. Run 39's
+# sequence refused after its gate had spent its half hour, and the session
+# relaunched the sequence by hand, stamping the status file itself. Cases:
+# `evening-resumes-from-a-named-stage`, `evening-refuses-to-resume-nothing`.
+FROM=gate
+if [ $# -eq 3 ] && [ "$2" = --from ]; then
+  FROM=$3
+elif [ $# -ne 1 ]; then
+  FROM=usage
+fi
+case $FROM in
+  gate|alarm|instance|sequence|riders) ;;
+  *)
+  echo "usage: ./run-evening.sh RUN [--from gate|alarm|instance|sequence|riders]"
+  echo "                                 # e.g. run24, in the background;"
   echo "                                 # README's run list step 14 says"
   echo "                                 # what that means for a session"
-  exit 2
-fi
+  exit 2 ;;
+esac
 R=$1
+ORDER="gate alarm instance sequence riders"
+rank () { local i=0 s; for s in $ORDER; do i=$((i + 1)); [ "$s" = "$1" ] && echo $i; done; }
+at () { [ "$(rank "$1")" -ge "$(rank "$FROM")" ]; }
 NOTE="$R-pair.txt"
 STATUS="$R-evening.txt"
 OUT="$R-evening-out.txt"
@@ -129,11 +147,17 @@ fi
 for h in $OTHER $BASIS; do
   [ -x "./$R-$h" ] || { echo "missing ./$R-$h -- $NOTE has the recipe"; exit 1; }
 done
-if [ -e "$STATUS" ]; then
+if [ "$FROM" != gate ] && ! [ -e "$STATUS" ]; then
+  echo "--from $FROM: no $STATUS, so there is nothing to resume; run the"
+  echo "evening without --from. Nothing ran."
+  exit 2
+fi
+if [ "$FROM" = gate ] && [ -e "$STATUS" ]; then
   echo "$R already has $STATUS, a previous attempt's record:"
   sed 's/^/  /' "$STATUS"
   echo "relaunching would run the stages over its artifacts, which each"
-  echo "stage refuses on its own. Move it aside if that attempt is dead."
+  echo "stage refuses on its own. Move it aside if that attempt is dead, or"
+  echo "resume it with --from STAGE."
   exit 1
 fi
 # AND WHAT THE SEQUENCE'S OWN GUARD WOULD REFUSE OVER, refused here, before
@@ -147,7 +171,7 @@ fi
 # shellcheck disable=SC2010  # the names here are the drivers' own
 STRAY=$(ls -1 "$R"-*.json "$R"-*.log 2>/dev/null \
           | grep -v -e "^$R-gate-" -e "^$R-al-")
-if [ -n "$STRAY" ]; then
+if at sequence && [ -n "$STRAY" ]; then
   echo "!! $R already has files run-major.sh's relaunch guard refuses over,"
   echo "   so the sequence would refuse after the gate had run:"
   printf '%s\n' "$STRAY" | sed 's/^/     /'
@@ -176,8 +200,13 @@ stage () {   # stage LABEL cmd...   -> the command's status, recorded.
   return "$rc"
 }
 
-stamp "evening begins for $R: basis $BASIS, control $OTHER, launch env\
+if [ "$FROM" = gate ]; then
+  stamp "evening begins for $R: basis $BASIS, control $OTHER, launch env\
  '${LAUNCH# }', riders '${RIDERS# }'"
+else
+  stamp "evening resumed for $R from $FROM: basis $BASIS, control $OTHER,\
+ launch env '${LAUNCH# }', riders '${RIDERS# }'"
+fi
 
 # 14. THE GATE, unless the note records it mechanically clean already FOR
 # THESE BINARIES; a note recording a FAILED gate gets it run again, the
@@ -197,7 +226,8 @@ BLOCK=$(awk '/^GATE: run/ { out = $0; blk = 1; next }
              END { print out }' "$NOTE")
 HALVES_MD5="$BASIS=$(md5sum "./$R-$BASIS" | cut -d' ' -f1) $OTHER=$(md5sum "./$R-$OTHER" | cut -d' ' -f1)"
 INHERIT=0
-if printf '%s\n' "$BLOCK" | head -1 | grep -q 'Mechanically clean'; then
+at gate || INHERIT=2
+if [ "$INHERIT" = 0 ] && printf '%s\n' "$BLOCK" | head -1 | grep -q 'Mechanically clean'; then
   if printf '%s\n' "$BLOCK" | grep -qF "halves md5: $HALVES_MD5"; then
     INHERIT=1
   elif printf '%s\n' "$BLOCK" | grep -q 'halves md5:'; then
@@ -209,7 +239,9 @@ if printf '%s\n' "$BLOCK" | head -1 | grep -q 'Mechanically clean'; then
  be tied to these binaries; the gate runs again"
   fi
 fi
-if [ "$INHERIT" = 1 ]; then
+if [ "$INHERIT" = 2 ]; then
+  :
+elif [ "$INHERIT" = 1 ]; then
   stamp "gate: inherited, $NOTE's newest GATE block is mechanically clean\
  and names these two binaries"
 else
@@ -248,6 +280,9 @@ fi
 # 16. THE ALARM, the reading run-alonelegs.sh takes (machine-busy.sh says
 # why /proc/stat and not a loadavg), refused above MAXBUSY percent
 # non-idle, default 5.
+# Before the sequence and not before the riders alone, which take the same
+# reading themselves.
+if at sequence; then
 BUSY=$(./machine-busy.sh) || BUSY=
 # An unreadable figure refuses: awk compares an empty string to the bar
 # and lets it through, which is the one direction this alarm must not fail.
@@ -259,6 +294,7 @@ if awk -v x="$BUSY" -v m="${MAXBUSY:-5}" 'BEGIN{exit !(x>m)}'; then
   exit 1
 fi
 stamp "alarm: ${BUSY}% busy, under the ${MAXBUSY:-5}% bar"
+fi
 
 # 16a. THE INSTANCE GATE, since 2026-09-18: each half's launch instance
 # against a fresh copy on one cell, the copy swapped in when the launch
@@ -267,11 +303,11 @@ stamp "alarm: ${BUSY}% busy, under the ${MAXBUSY:-5}% bar"
 # sequence because the sequence is what it protects. Its processes are not
 # the run's, so WILDLOG is stripped as the clean riders strip SATURATE. A
 # half it cannot test is a complaint and not a stop.
-stage "instance gate" env -u WILDLOG ./instance-gate.sh "$R" || true
+at instance && { stage "instance gate" env -u WILDLOG ./instance-gate.sh "$R" || true; }
 
 # 17. THE SEQUENCE. Its complaints are not fatal (run-major.sh says why)
 # and neither are they here; the exit status carries them out.
-stage sequence ./run-major.sh "$R" || true
+at sequence && { stage sequence ./run-major.sh "$R" || true; }
 
 # 19. THE RIDERS, control first, clean before saturated, as the note's own
 # block spells them; `SAT=` is the rider's spelling of SATURATE=. A CLEAN
