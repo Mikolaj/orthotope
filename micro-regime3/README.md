@@ -782,10 +782,14 @@ rather than a slot in the next run, observed again:
   that reads its tables off the hot path. So each pair now carries TWO
   variables, the numbering and the table form, and the two points are read
   as the table's only by elimination: the numbering alone read 0.61 of a point
-  on Run 38, four hundredths outside that half's 0.57% floor. **What settles
-  it is one arm**: the table form under the outermost-first numbering, beside
-  `lib-stage2-lean`, so that each variable has a pair of its own. Registered
-  2026-09-23.
+  on Run 38, four hundredths outside that half's 0.57% floor. Most of the two
+  points are two shapes: `cnn-L1-6x6-c1` and `cnn-slice-c32` read 0.861
+  and 0.869 with the counted work 5 to 6 points down, where Run 38 read 0.994
+  and 0.999, and the other seventeen 0.993 with it level ([Run 39's
+  file](runs/run39.md#results), read after the write-up), which is a saving paid
+  per call. **What settles it is one arm**: the table form
+  under the outermost-first numbering, beside `lib-stage2-lean`, so that each
+  variable has a pair of its own. Registered 2026-09-23.
 - `OPEN` **Seven reducing consumers newly change what they ALLOCATE
   under `-fspec-constr -fliberate-case`, where one run earlier the same pair
   changed none of them.** On Run 38 the unordered consumers
