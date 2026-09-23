@@ -1,6 +1,10 @@
 #!/bin/bash
-# The counter reading [the ceiling]'s seventh reading named and did not
-# take: "whether those account for the measured 1.16 to 1.67 of time over
+# Per-iteration perf counts, any events, for chosen arms and shapes of one
+# binary: run-counts.sh's differenced method with BIN, OUT, CLASS, ONLY,
+# ARMS, EVENTS and N as its knobs.
+#
+# Written for the counter reading [the ceiling]'s seventh reading named and
+# did not take: "whether those account for the measured 1.16 to 1.67 of time over
 # instructions wants a counter reading of stalls and mispredicts, not
 # another dump."  That second term is what task 1 has left once the
 # unboxing fix retires the first, so this is the instrument for its
