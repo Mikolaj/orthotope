@@ -6671,12 +6671,29 @@ def class_says(cells, shapes, strategies, meta, args):
                    ' same arms, %d of them counted.'
                    % (geomean(gs), len(gs)) if gs
                    else 'The counted work reads no count for these arms.')
-    # NAMED, as the slot above it is. A block carries TWO `___` and only
-    # one used to say what it wanted, so a session that filled the first
-    # met a check reporting ten still open and had to find out why
-    # (Run 37). The label costs a parenthetical and is dropped with the
-    # slot when it is filled.
-    out.append("___ (how this class's counted work compares with its clock).")
+    else:
+        gs = []
+    # THE COUNTS AGAINST THE CLOCK IS ARITHMETIC ON TWO FIGURES THIS
+    # PARAGRAPH ALREADY PRINTS, so it is written here where both sweeps are
+    # given: Run 39's session divided them by hand for ten classes. Without
+    # the sweeps the slot stays, NAMED, as the one above it is: a block
+    # used to carry two `___` of which one said what it wanted, and a
+    # session that filled the first met a check reporting ten still open
+    # (Run 37). Case: `block-writes-the-counts-clause-it-can-compute`.
+    if gs and vote:
+        k, q = geomean(gs), geomean([g for g, _ in vote])
+        if abs(k - 1) < 0.001:
+            out.append('Its counted work parts by under a tenth of a point,'
+                       ' so no rate is read against its clock, which parts'
+                       ' by %.2f.' % ((q - 1) * 100))
+        else:
+            out.append('Its counted work parts by %.2f points where its'
+                       ' clock parts by %.2f, so about %.2f of the'
+                       ' instruction saving reaches the clock.'
+                       % ((k - 1) * 100, (q - 1) * 100, (q - 1) / (k - 1)))
+    else:
+        out.append("___ (how this class's counted work compares with its"
+                   " clock).")
     print()
     # NOT break_on_hyphens: this paragraph is joined again by the
     # `--brief` arm and by install-tables.sh, and a wrap taken inside

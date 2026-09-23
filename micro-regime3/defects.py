@@ -4414,6 +4414,20 @@ def whole_run(halves_of, samples=2, prefix=SRC, short_class=None,
     return _WHOLE[key]
 
 
+def class_counts(prefix, cls):
+    """One class's count sweeps on both halves, as `extra` entries, the
+    halves' counts parting by a tenth so a counts-against-clock clause has
+    a rate to compute (the counts clause's case, 2026-09-23)."""
+    tmp = tempfile.mkdtemp(prefix='zz-synth-')
+    try:
+        return [('%s-counts-%s-%s.txt' % (prefix, half, cls),
+                 open(synth_counts(tmp, half, ratio=r, cheap_sum_only=True,
+                                   shapes=class_shapes(cls))).read())
+                for half, r in (('lookrts', 1.1), ('a1g', 1.0))]
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 def readings_run(prefix, complete, compare=None):
     """A paired run's main set and one class on both halves, with its
     note, as `extra` for a shadow -- and, where `complete`, its counts
@@ -11152,6 +11166,22 @@ RECORDS = [
          ok=V(has=['rc=0 main-counts-cmp.txt', 'rc=0 cell-movers.txt',
                    'no COMPARE line'],
               hasnt=['not before EVENING COMPLETE'])),
+
+    case('block-writes-the-counts-clause-it-can-compute',
+         'read-run.py', None,
+         'CONTROL: with both count sweeps given, a class block\'s paragraph'
+         ' carries the counts-against-clock clause itself and no `___` for it',
+         # Run 39's session wrote the ten clauses by hand, two geomeans the
+         # same paragraph prints divided (2026-09-23).
+         shadow=dict(extra=lambda: readings_run('zzpra', complete=True)()
+                     + class_counts('zzpra', class_names()[0])),
+         argv=['{at}/zzpra-a1g-%s.json' % class_names()[0], '--block',
+               '--compare', '{at}/zzpra-lookrts-%s.json' % class_names()[0],
+               '--brief', '--counts',
+               '{at}/zzpra-counts-a1g-%s.txt' % class_names()[0],
+               '{at}/zzpra-counts-lookrts-%s.txt' % class_names()[0]],
+         ok=V(has=['Its counted work parts by'],
+              hasnt=["___ (how this class's counted work"])),
 
     case('readings-keep-a-file-they-did-not-write', 'post-run-readings.sh',
          None,
