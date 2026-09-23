@@ -23,7 +23,7 @@
 # as wild-LOG.txt. LAST, once the rest have landed, read-all.sh
 # --for-brief as for-brief.txt, which fills the brief's slots off them.
 #
-# ONCE $R-evening.txt ENDS `EVENING COMPLETE:`, and not before, the
+# ONCE $R-evening.txt ENDS `EVENING COMPLETE`, either form, and not before, the
 # readings that want the counts: --compare --counts per population,
 # basis first, as POP-counts-cmp.txt, step 4b's --cell-movers as
 # cell-movers.txt, whose rank is the time ratio over the count ratio,
@@ -63,7 +63,10 @@ for f in "$R-$BASIS"-*.json; do
 done
 [ -n "$POPS" ] || { echo "no $R-$BASIS-*.json here, so there is nothing to read" >&2; exit 2; }
 COMPLETE=0
-tail -1 "$R-evening.txt" 2>/dev/null | grep -q 'EVENING COMPLETE:' && COMPLETE=1
+# The complained form, `EVENING COMPLETE WITH N COMPLAINT(S)`, is complete
+# too: run-counts-all.sh writes it last either way. Case:
+# `readings-take-the-counts-after-a-complained-evening`.
+tail -1 "$R-evening.txt" 2>/dev/null | grep -qE 'EVENING COMPLETE(:| WITH)' && COMPLETE=1
 
 # One line a reading, `OUT ARGV...`: the names here are the drivers'
 # own and carry no space, which is what lets xargs split them.

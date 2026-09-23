@@ -255,7 +255,10 @@ if [ -n "${BASIS:-}" ]; then
   fi
 fi
 if [ -f "$R-evening.txt" ]; then
-  tail -1 "$R-evening.txt" | grep -q 'EVENING COMPLETE:' && say 14-20 "done" "$R-evening.txt ends COMPLETE" \
+  # Either of run-counts-all.sh's two closing forms; the complained one is
+  # the steps' to read, not undone. Case:
+  # `status-reads-a-complained-evening-as-complete`.
+  tail -1 "$R-evening.txt" | grep -qE 'EVENING COMPLETE(:| WITH)' && say 14-20 "done" "$R-evening.txt ends COMPLETE" \
     || say 14-20 "NOT DONE" "$R-evening.txt's last line: $(tail -1 "$R-evening.txt" | cut -c1-80)"
 fi
 
