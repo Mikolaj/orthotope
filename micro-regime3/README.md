@@ -9920,7 +9920,9 @@ not otherwise.
     #   3. if 2 names an intrusion, RERUN the populations it touched,
     #      BOTH halves of each -- a pair read across two windows is not a
     #      pair, so a clean half is rerun with its exposed twin. ASK
-    #      FIRST: it wants the box quiet again, which 19a gave back.
+    #      FIRST: it wants the box quiet again, which 19a gave back --
+    #      UNLESS the note's `RERUN:` line answered already: `allowed`
+    #      reruns at once, `no` puts the sensitivity reading in its place.
     #      A process costs what ITS OWN population costs, not what a main
     #      set does -- 42 minutes a process on `runs` at 490 benches. Two
     #      rules: the rerun window is quiet FOR THE DRIVER TOO, reading

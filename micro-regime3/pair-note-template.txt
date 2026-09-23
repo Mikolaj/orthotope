@@ -245,6 +245,15 @@ pair's own four (or two) lines out, control first:
   `none` for a pair that owes no riders:
 RIDERS: clean sat
 
+A RERUN, SAID BEFORE THE HOURS [PAIR'S]: whether post-run step 3 may take
+the quiet box again for the populations `--wild` names intruded, without
+asking. The owner says it at the preparation, when they are there; the
+executing session reads it when the evening lands, when they may not be.
+Run 39's evening met an intrusion with nobody to ask, and the answer came
+hours later. `allowed` reruns at once, `ask` is the chapter's default, and
+`no` records the sensitivity reading in the rerun's place:
+RERUN: ask
+
 THE COUNTS [SAME], owed with the pair, wanting no quiet machine, and over
 EVERY population rather than the main set alone -- the empty first
 element is the main set and the nine that follow are the classes:
