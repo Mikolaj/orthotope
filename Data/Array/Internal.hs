@@ -346,136 +346,136 @@ genericFillStrided :: forall w a. (VG.Vector w a)
                    => Axes -> Int -> Int -> w a -> w a
 genericFillStrided (Axes tInner sInner outerAxes) !ao !l !v =
   assert (l > 0) $ VG.create fill
-  where
-    fill :: forall s. ST s (VG.Mutable w s a)
-    fill = do
-      out <- VGM.unsafeNew l
-      let -- The stepping run, an innermost run at nonzero stride: the
-          -- source cursor advances by the stride, the fill unrolled
-          -- by two.  Both bodies are INLINE so that inlining at their
-          -- two sites each is the source's property and not a size
-          -- threshold's.
-          {-# INLINE writeRunStep #-}
-          writeRunStep :: Int -> Int -> ST s ()
-          writeRunStep !outPos !baseOff =
-            let !oEnd = outPos + sInner
-                inner :: Int -> Int -> ST s ()
-                inner !o !src
-                  | o + 1 >= oEnd =
-                      if o >= oEnd then return ()
-                      else VGM.unsafeWrite out o (VG.unsafeIndex v src)
-                  -- FOR THE NCG, AND A REGRESSION UNDER -fllvm.  The
-                  -- cursor steps twice by tInner instead of once by a
-                  -- doubled stride: one live value fewer, which is what
-                  -- lets the NCG's allocator keep the output base in
-                  -- a register instead of reloading it twice a pair.
-                  -- Worth 5 to 25% of the fill's instructions there,
-                  -- most at long innermost runs; -fllvm needs neither,
-                  -- keeps two induction variables and loses 1 to 8%.
-                  | otherwise = do
-                      VGM.unsafeWrite out o (VG.unsafeIndex v src)
-                      let !src' = src + tInner
-                      VGM.unsafeWrite out (o + 1) (VG.unsafeIndex v src')
-                      inner (o + 2) (src' + tInner)
-            in  inner outPos baseOff
-          -- The broadcast run, the innermost run at stride 0: its one
-          -- element read once, then the stores, unrolled by two as
-          -- the stepping run is.  Without the unroll, a store and a
-          -- compare per element read 1.20 of the stepping run serving
-          -- the broadcast, a read and a store per element unrolled by
-          -- two, at an innermost run of two elements; unrolled, the
-          -- hoisted read wins.
-          {-# INLINE writeRunSet #-}
-          writeRunSet :: Int -> Int -> ST s ()
-          writeRunSet !outPos !baseOff =
-            let !x = VG.unsafeIndex v baseOff
-                !oEnd = outPos + sInner
-                inner :: Int -> ST s ()
-                inner !o
-                  | o + 1 >= oEnd =
-                      if o >= oEnd then return ()
-                      else VGM.unsafeWrite out o x
-                  | otherwise = do
-                      VGM.unsafeWrite out o x
-                      VGM.unsafeWrite out (o + 1) x
-                      inner (o + 2)
-            in  inner outPos
-          -- A zero-stride outer level: everything below it repeats
-          -- verbatim, so the block below is filled once and copied to
-          -- the level's remaining n - 1 positions.  Zero levels compose,
-          -- the topmost firing and the ones below it falling inside the
-          -- one block it fills.  The block at src, already written, to n
-          -- copies in all: each pass copies everything written so far
-          -- onto what follows, so the length doubles and the last pass
-          -- is clipped.  One copy per block read 2.3 of the stepping run
-          -- refilling the level on 200000 copies of 24 bytes; by
-          -- doubling, the copy wins.
-          copies :: Int -> Int -> Int -> ST s Int
-          copies !n !blk !src
-            | n <= 1 = return (src + blk)
-            | otherwise = grow blk
-            where
-              !end = src + n * blk
-              grow :: Int -> ST s Int
-              grow !have
-                | src + have >= end = return end
+ where
+  fill :: forall s. ST s (VG.Mutable w s a)
+  fill = do
+    out <- VGM.unsafeNew l
+    let -- The stepping run, an innermost run at nonzero stride: the
+        -- source cursor advances by the stride, the fill unrolled
+        -- by two.  Both bodies are INLINE so that inlining at their
+        -- two sites each is the source's property and not a size
+        -- threshold's.
+        {-# INLINE writeRunStep #-}
+        writeRunStep :: Int -> Int -> ST s ()
+        writeRunStep !outPos !baseOff =
+          let !oEnd = outPos + sInner
+              inner :: Int -> Int -> ST s ()
+              inner !o !src
+                | o + 1 >= oEnd =
+                    if o >= oEnd then return ()
+                    else VGM.unsafeWrite out o (VG.unsafeIndex v src)
+                -- FOR THE NCG, AND A REGRESSION UNDER -fllvm.  The
+                -- cursor steps twice by tInner instead of once by a
+                -- doubled stride: one live value fewer, which is what
+                -- lets the NCG's allocator keep the output base in
+                -- a register instead of reloading it twice a pair.
+                -- Worth 5 to 25% of the fill's instructions there,
+                -- most at long innermost runs; -fllvm needs neither,
+                -- keeps two induction variables and loses 1 to 8%.
                 | otherwise = do
-                    let !len = min have (end - src - have)
-                    VGM.unsafeCopy (VGM.unsafeSlice (src + have) len out)
-                                   (VGM.unsafeSlice src len out)
-                    grow (have + len)
-          -- The fused level: n innermost runs, the run body a static
-          -- argument, so that each of the two uses below inlines it
-          -- with the body known, and the choice between the bodies is
-          -- made once per entry here, a row of innermost runs, never
-          -- per innermost run.
-          {-# INLINE runsWith #-}
-          runsWith :: (Int -> Int -> ST s ())
-                   -> Int -> Int -> Int -> Int -> ST s Int
-          runsWith writeRun !n !st !outPos !baseOff
-            | st == 0 = writeRun outPos baseOff >> copies n sInner outPos
-            | otherwise =
-                let run :: Int -> Int -> Int -> ST s Int
-                    run !k !op !boff
-                      | k <= 0    = return op
-                      | otherwise = writeRun op boff
-                                    >> run (k - 1) (op + sInner) (boff + st)
-                in  run n outPos baseOff
-          go :: Int -> Int -> Int -> ST s Int
-          go !lev !outPos !baseOff
-            | lev >= rOuter =
-                (if tInner == 0 then writeRunSet else writeRunStep)
-                  outPos baseOff
-                >> return (outPos + sInner)
-            | otherwise =
-                level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
-            where
-              level :: Int -> Int -> ST s Int
-              level !n !st
-                | lev == rOuter - 1 =
-                    if tInner == 0
-                    then runsWith writeRunSet n st outPos baseOff
-                    else runsWith writeRunStep n st outPos baseOff
-                | st == 0 = do
-                    op' <- go (lev + 1) outPos baseOff
-                    copies n (op' - outPos) outPos
-                | otherwise =
-                    let dim :: Int -> Int -> Int -> ST s Int
-                        dim !k !op !boff
-                          | k <= 0    = return op
-                          | otherwise = go (lev + 1) op boff
-                                        >>= \op' -> dim (k - 1) op' (boff + st)
-                    in  dim n outPos baseOff
-      _ <- go 0 0 ao
-      return out
-    -- No doubled stride here any more; see the fill's own note.
-    !rOuter = length levels
-    -- The odometer's levels are numbered outermost first.
-    levels :: [(Int, Int)]
-    levels = outerFirst outerAxes
-    oshV, oatsV :: VU.Vector Int
-    !oshV  = VU.fromList (map snd levels)
-    !oatsV = VU.fromList (map fst levels)
+                    VGM.unsafeWrite out o (VG.unsafeIndex v src)
+                    let !src' = src + tInner
+                    VGM.unsafeWrite out (o + 1) (VG.unsafeIndex v src')
+                    inner (o + 2) (src' + tInner)
+          in  inner outPos baseOff
+        -- The broadcast run, the innermost run at stride 0: its one
+        -- element read once, then the stores, unrolled by two as
+        -- the stepping run is.  Without the unroll, a store and a
+        -- compare per element read 1.20 of the stepping run serving
+        -- the broadcast, a read and a store per element unrolled by
+        -- two, at an innermost run of two elements; unrolled, the
+        -- hoisted read wins.
+        {-# INLINE writeRunSet #-}
+        writeRunSet :: Int -> Int -> ST s ()
+        writeRunSet !outPos !baseOff =
+          let !x = VG.unsafeIndex v baseOff
+              !oEnd = outPos + sInner
+              inner :: Int -> ST s ()
+              inner !o
+                | o + 1 >= oEnd =
+                    if o >= oEnd then return ()
+                    else VGM.unsafeWrite out o x
+                | otherwise = do
+                    VGM.unsafeWrite out o x
+                    VGM.unsafeWrite out (o + 1) x
+                    inner (o + 2)
+          in  inner outPos
+        -- A zero-stride outer level: everything below it repeats
+        -- verbatim, so the block below is filled once and copied to
+        -- the level's remaining n - 1 positions.  Zero levels compose,
+        -- the topmost firing and the ones below it falling inside the
+        -- one block it fills.  The block at src, already written, to n
+        -- copies in all: each pass copies everything written so far
+        -- onto what follows, so the length doubles and the last pass
+        -- is clipped.  One copy per block read 2.3 of the stepping run
+        -- refilling the level on 200000 copies of 24 bytes; by
+        -- doubling, the copy wins.
+        copies :: Int -> Int -> Int -> ST s Int
+        copies !n !blk !src
+          | n <= 1 = return (src + blk)
+          | otherwise = grow blk
+          where
+            !end = src + n * blk
+            grow :: Int -> ST s Int
+            grow !have
+              | src + have >= end = return end
+              | otherwise = do
+                  let !len = min have (end - src - have)
+                  VGM.unsafeCopy (VGM.unsafeSlice (src + have) len out)
+                                 (VGM.unsafeSlice src len out)
+                  grow (have + len)
+        -- The fused level: n innermost runs, the run body a static
+        -- argument, so that each of the two uses below inlines it
+        -- with the body known, and the choice between the bodies is
+        -- made once per entry here, a row of innermost runs, never
+        -- per innermost run.
+        {-# INLINE runsWith #-}
+        runsWith :: (Int -> Int -> ST s ())
+                 -> Int -> Int -> Int -> Int -> ST s Int
+        runsWith writeRun !n !st !outPos !baseOff
+          | st == 0 = writeRun outPos baseOff >> copies n sInner outPos
+          | otherwise =
+              let run :: Int -> Int -> Int -> ST s Int
+                  run !k !op !boff
+                    | k <= 0    = return op
+                    | otherwise = writeRun op boff
+                                  >> run (k - 1) (op + sInner) (boff + st)
+              in  run n outPos baseOff
+        go :: Int -> Int -> Int -> ST s Int
+        go !lev !outPos !baseOff
+          | lev >= rOuter =
+              (if tInner == 0 then writeRunSet else writeRunStep)
+                outPos baseOff
+              >> return (outPos + sInner)
+          | otherwise =
+              level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
+          where
+            level :: Int -> Int -> ST s Int
+            level !n !st
+              | lev == rOuter - 1 =
+                  if tInner == 0
+                  then runsWith writeRunSet n st outPos baseOff
+                  else runsWith writeRunStep n st outPos baseOff
+              | st == 0 = do
+                  op' <- go (lev + 1) outPos baseOff
+                  copies n (op' - outPos) outPos
+              | otherwise =
+                  let dim :: Int -> Int -> Int -> ST s Int
+                      dim !k !op !boff
+                        | k <= 0    = return op
+                        | otherwise = go (lev + 1) op boff
+                                      >>= \op' -> dim (k - 1) op' (boff + st)
+                  in  dim n outPos baseOff
+    _ <- go 0 0 ao
+    return out
+  -- No doubled stride here any more; see the fill's own note.
+  !rOuter = length levels
+  -- The odometer's levels are numbered outermost first.
+  levels :: [(Int, Int)]
+  levels = outerFirst outerAxes
+  oshV, oatsV :: VU.Vector Int
+  !oshV  = VU.fromList (map snd levels)
+  !oatsV = VU.fromList (map fst levels)
 
 -- | The route a non-empty view takes once canonicalized: what its
 -- consumer does with it, which is what 'toVectorListT', 'toVectorT'
