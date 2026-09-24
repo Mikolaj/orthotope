@@ -3468,107 +3468,120 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
 {-# NOINLINE fillStage2 #-}
 fillStage2 :: Axes -> Int -> Int -> VS.Vector Double -> VS.Vector Double
 fillStage2 (Axes tInner sInner outerAxes) !ao !l !v =
-  assert (l > 0) $ VS.create $ do
-  out <- VSM.unsafeNew l
-  let {-# INLINE writeRunStep #-}
-      writeRunStep !outPos !baseOff =
-        let !oEnd = outPos + sInner
-            inner !o !src
-              | o + 1 >= oEnd =
-                  if o >= oEnd then return ()
-                  else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+  assert (l > 0) $ VS.create fill
+ where
+  fill :: forall s. ST s (VSM.MVector s Double)
+  fill = do
+    out <- VSM.unsafeNew l
+    let {-# INLINE writeRunStep #-}
+        writeRunStep :: Int -> Int -> ST s ()
+        writeRunStep !outPos !baseOff =
+          let !oEnd = outPos + sInner
+              inner :: Int -> Int -> ST s ()
+              inner !o !src
+                | o + 1 >= oEnd =
+                    if o >= oEnd then return ()
+                    else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                | otherwise = do
+                    VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                    let !src' = src + tInner
+                    VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
+                    inner (o + 2) (src' + tInner)
+          in  inner outPos baseOff
+        -- Unrolled by two as the stepping run is, since 2026-09-09: one
+        -- write and a compare per element read 1.20 of master's leaf
+        -- fill at an innermost run of 2, bcast-tall-Mx2, on Run 27.
+        -- 'fillStage2U1' keeps the one-per-iteration body, so the u1 pair
+        -- prices this unroll on the broadcast views as it prices the
+        -- stepping one elsewhere. Non-vacuity, 2026-09-09: dropping the
+        -- second write fails @check@ at @bcast-inner8@.
+        {-# INLINE writeRunSet #-}
+        writeRunSet :: Int -> Int -> ST s ()
+        writeRunSet !outPos !baseOff =
+          let !x = VS.unsafeIndex v baseOff
+              !oEnd = outPos + sInner
+              inner :: Int -> ST s ()
+              inner !o
+                | o + 1 >= oEnd =
+                    if o >= oEnd then return ()
+                    else VSM.unsafeWrite out o x
+                | otherwise = do
+                    VSM.unsafeWrite out o x
+                    VSM.unsafeWrite out (o + 1) x
+                    inner (o + 2)
+          in  inner outPos
+        -- The block at src, already written, to n copies in all: each pass
+        -- copies everything written so far onto what follows, so the
+        -- length doubles and the last pass is clipped. One copy per block
+        -- read 2.3 of master's leaf fill on bcastmid-b200k, 200000 copies
+        -- of 24 bytes (Run 27). The parked u4 and short fills keep one
+        -- copy per block.
+        -- Non-vacuity, 2026-09-09: stopping the doubling one block short
+        -- fails @check@ at @edge-bcastmid-b2@ -- and had passed it on every
+        -- timed view, none having a zero-stride outer level of extent 2 or
+        -- one more than a power of two, which is what the edge class is for.
+        copies :: Int -> Int -> Int -> ST s Int
+        copies !n !blk !src
+          | n <= 1 = return (src + blk)
+          | otherwise = grow blk
+          where
+            !end = src + n * blk
+            grow :: Int -> ST s Int
+            grow !have
+              | src + have >= end = return end
               | otherwise = do
-                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
-                  let !src' = src + tInner
-                  VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
-                  inner (o + 2) (src' + tInner)
-        in  inner outPos baseOff
-      -- Unrolled by two as the stepping run is, since 2026-09-09: one
-      -- write and a compare per element read 1.20 of master's leaf
-      -- fill at an innermost run of 2, bcast-tall-Mx2, on Run 27.
-      -- 'fillStage2U1' keeps the one-per-iteration body, so the u1 pair
-      -- prices this unroll on the broadcast views as it prices the
-      -- stepping one elsewhere. Non-vacuity, 2026-09-09: dropping the
-      -- second write fails @check@ at @bcast-inner8@.
-      {-# INLINE writeRunSet #-}
-      writeRunSet !outPos !baseOff =
-        let !x = VS.unsafeIndex v baseOff
-            !oEnd = outPos + sInner
-            inner !o
-              | o + 1 >= oEnd =
-                  if o >= oEnd then return ()
-                  else VSM.unsafeWrite out o x
-              | otherwise = do
-                  VSM.unsafeWrite out o x
-                  VSM.unsafeWrite out (o + 1) x
-                  inner (o + 2)
-        in  inner outPos
-      -- The block at src, already written, to n copies in all: each pass
-      -- copies everything written so far onto what follows, so the
-      -- length doubles and the last pass is clipped. One copy per block
-      -- read 2.3 of master's leaf fill on bcastmid-b200k, 200000 copies
-      -- of 24 bytes (Run 27). The parked u4 and short fills keep one
-      -- copy per block.
-      -- Non-vacuity, 2026-09-09: stopping the doubling one block short
-      -- fails @check@ at @edge-bcastmid-b2@ -- and had passed it on every
-      -- timed view, none having a zero-stride outer level of extent 2 or
-      -- one more than a power of two, which is what the edge class is for.
-      copies !n !blk !src
-        | n <= 1 = return (src + blk)
-        | otherwise = grow blk
-        where
-          !end = src + n * blk
-          grow !have
-            | src + have >= end = return end
-            | otherwise = do
-                let !len = min have (end - src - have)
-                VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
-                               (VSM.unsafeSlice src len out)
-                grow (have + len)
-      {-# INLINE runsWith #-}
-      runsWith writeRun !n !st !outPos !baseOff
-        | st == 0 = writeRun outPos baseOff
-                    >> copies n sInner outPos
-        | otherwise =
-            let run !k !op !boff
-                  | k <= 0    = return op
-                  | otherwise = writeRun op boff
-                                >> run (k - 1) (op + sInner) (boff + st)
-            in  run n outPos baseOff
-      go !lev !outPos !baseOff
-        | lev < 0 =
-            (if tInner == 0 then writeRunSet else writeRunStep)
-              outPos baseOff
-            >> return (outPos + sInner)
-        | otherwise =
-            case VU.unsafeIndex levelsV lev of (!st, !n) -> level n st
-        where
-          level !n !st
-            | lev == 0 =
-                if tInner == 0
-                then runsWith writeRunSet n st outPos baseOff
-                else runsWith writeRunStep n st outPos baseOff
-            | st == 0 = do
-                op' <- go (lev - 1) outPos baseOff
-                copies n (op' - outPos) outPos
-            | otherwise =
-                let dim !k !op !boff
-                      | k <= 0    = return op
-                      | otherwise = go (lev - 1) op boff
-                                    >>= \op' -> dim (k - 1) op' (boff + st)
-                in  dim n outPos baseOff
-  _ <- go (rOuter - 1) 0 ao
-  return out
-  where -- No doubled stride here any more; see the fill's own note.
-        !rOuter = VU.length levelsV
-        -- The odometer's levels are numbered innermost first, the fused
-        -- level 0 and the run below it, so nothing is reversed. One table
-        -- of (stride, extent) pairs, which unboxed is the two arrays the
-        -- two tables were, built in one pass over the list and counted by
-        -- its length, where 'fillStage2Axes' walks the list once for its
-        -- length and twice for its tables; since 2026-09-23, for Run 39.
-        levelsV :: VU.Vector (Int, Int)
-        !levelsV = VU.fromList (innerFirst outerAxes)
+                  let !len = min have (end - src - have)
+                  VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
+                                 (VSM.unsafeSlice src len out)
+                  grow (have + len)
+        {-# INLINE runsWith #-}
+        runsWith :: (Int -> Int -> ST s ())
+                 -> Int -> Int -> Int -> Int -> ST s Int
+        runsWith writeRun !n !st !outPos !baseOff
+          | st == 0 = writeRun outPos baseOff >> copies n sInner outPos
+          | otherwise =
+              let run :: Int -> Int -> Int -> ST s Int
+                  run !k !op !boff
+                    | k <= 0    = return op
+                    | otherwise = writeRun op boff
+                                  >> run (k - 1) (op + sInner) (boff + st)
+              in  run n outPos baseOff
+        go :: Int -> Int -> Int -> ST s Int
+        go !lev !outPos !baseOff
+          | lev < 0 =
+              (if tInner == 0 then writeRunSet else writeRunStep) outPos baseOff
+              >> return (outPos + sInner)
+          | otherwise =
+              case VU.unsafeIndex levelsV lev of (!st, !n) -> level n st
+          where
+            level :: Int -> Int -> ST s Int
+            level !n !st
+              | lev == 0 =
+                  if tInner == 0
+                  then runsWith writeRunSet n st outPos baseOff
+                  else runsWith writeRunStep n st outPos baseOff
+              | st == 0 = do
+                  op' <- go (lev - 1) outPos baseOff
+                  copies n (op' - outPos) outPos
+              | otherwise =
+                  let dim :: Int -> Int -> Int -> ST s Int
+                      dim !k !op !boff
+                        | k <= 0    = return op
+                        | otherwise = go (lev - 1) op boff
+                                      >>= \op' -> dim (k - 1) op' (boff + st)
+                  in  dim n outPos baseOff
+    _ <- go (rOuter - 1) 0 ao
+    return out
+  -- No doubled stride here any more; see the fill's own note.
+  !rOuter = VU.length levelsV
+  -- The odometer's levels are numbered innermost first, the fused
+  -- level 0 and the run below it, so nothing is reversed. One table
+  -- of (stride, extent) pairs, which unboxed is the two arrays the
+  -- two tables were, built in one pass over the list and counted by
+  -- its length, where 'fillStage2Axes' walks the list once for its
+  -- length and twice for its tables; since 2026-09-23, for Run 39.
+  levelsV :: VU.Vector (Int, Int)
+  !levelsV = VU.fromList (innerFirst outerAxes)
 
 -- 'fillStage2' with the odometer's levels numbered outermost first,
 -- the outer axes reversed for it in the prologue, one change: the
