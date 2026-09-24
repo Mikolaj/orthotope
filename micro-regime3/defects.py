@@ -13321,14 +13321,15 @@ RECORDS = [
     # comments only` and reached no arm. Found 2026-09-25 by a blind read
     # of the session that wrote it.
     case('drift-since-reads-a-pragma-as-a-comment',
-         'registration-drift.py', None,
+         'registration-drift.py', 'e9c02a6',
          'a commit changing only an INLINE pragma was reported as comments'
          ' only, reaching no arm',
          plant=lambda t: drift_since_repo(t, pragma=True),
          argv=['run97', '--since', 'run96', '--dir', '{dir}'],
          ok=V(exit=1, has=['inline the fill', 'code: fooFill',
                            'arms: lib-a'],
-              hasnt=['comments only'])),
+              hasnt=['comments only']),
+         bug=V(exit=1, has=['comments only'])),
 
     case('drift-since-reads-a-comment-only-commit-as-one',
          'registration-drift.py', None,
