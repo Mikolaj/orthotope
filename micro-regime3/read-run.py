@@ -14020,10 +14020,15 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
                 # provenance is stated per item, where a collective claim
                 # at the head is checked against none; tying a figure to
                 # its mode stays pre-run 12b's reading.
+                # A MODE NAMED WITH ITS ARGUMENTS COUNTS, `--pair A B` as
+                # much as `--pair`: the form a reader can rerun was being
+                # read as no mode at all (2026-09-24, Run 40's item (2)).
+                # Case: `registration-prior-mode-with-arguments-refused`.
                 quoted = [sp for sp in spans if re.search(
                     r'\s(?!1\.0\b)\d+\.\d+\s+within', sp)]
                 if quoted and not re.search(
-                        r'`--[a-z][a-z-]*`|[\w-]+\.(?:json|txt)', body):
+                        r'`--[a-z][a-z-]*(?:`| [^`]*`)'
+                        r'|[\w-]+\.(?:json|txt)', body):
                     trouble.append(
                         "Run %s's item (%s) quotes a prior and names neither"
                         ' the mode nor the file that derives it, so a figure'

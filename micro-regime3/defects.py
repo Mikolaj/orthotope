@@ -2309,6 +2309,21 @@ def drift_since_repo(tmp, code=True):
     return {'dir': d}
 
 
+def prior_with_mode_args(tmp):
+    """A README whose one registration item names its prior's mode WITH
+    the mode's arguments, `--pair A B`, and no file: the form --lint read
+    as no mode until 2026-09-24. Shared by the case and by the mutant's
+    judge, whose shell string cannot carry the backticks."""
+    lead = a_registration_lead()
+    return edited_readme(tmp, (
+        lead,
+        '- `OPEN` **What Run 99 is built to answer, registered before it'
+        ' runs.** (1) *A prior named with its mode and arguments.* Run 98'
+        ' read it at 1.12, `--pair lib-stage2-lean-u1 lib-stage3-lean` on'
+        ' its main set. `predict: pair lib-stage2-lean-u1 lib-stage3-lean'
+        ' 1.05 within 4% on main both`.\n\n' + lead))
+
+
 def doc_of_a_list(tmp, items=4):
     """A document whose one list has no blank line between its items.
 
@@ -14413,6 +14428,21 @@ RECORDS = [
                    ' the mode nor the file that derives it'],
               hasnt=["Run 99's item (2) quotes a prior"]),
          bug=V(hasnt=['quotes a prior and names neither'])),
+
+    # ---- --lint, and a prior whose mode is named with its arguments ----
+    # THE CHECK ABOVE REFUSED A PRIOR THAT NAMED ITS MODE. Run 40's item
+    # (2) said its prior came off "`--pair lib-stage2-lean-u1
+    # lib-stage3-lean` on the two main JSONs", and the check wanted a bare
+    # `` `--mode` `` or a file name, so a mode given with its arguments --
+    # the more useful form, the one a reader can rerun -- read as no mode
+    # at all. The session added file names to get past it. Found
+    # 2026-09-24 by Run 40's preparation.
+    case('registration-prior-mode-with-arguments-refused', 'read-run.py',
+         None,
+         'a prior naming its mode with the arguments was read as naming none',
+         plant=lambda t: {'readme': prior_with_mode_args(t)},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(hasnt=['quotes a prior and names neither'])),
 
     # ---- --lint, and a registration's script that `./` cannot run ------
     # Run 39's registration adjudicates its item (2) by `script:

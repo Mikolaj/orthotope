@@ -1179,4 +1179,17 @@ MUTANTS = [
      ' o = subprocess.run([\'python3\', \'{file}\', \'run97\','
      ' \'--since\', \'run96\', \'--dir\', d], capture_output=True,'
      ' text=True).stdout; sys.exit(0 if \'arms: lib-a\' in o else 1)"'),
+    # --lint's prior-source check, narrowed back: a mode named with its
+    # arguments, `--pair A B`, reads as no mode again, which is what Run
+    # 40's preparation met. The judge plants the case's item in a copy of
+    # the README and wants --lint silent about it.
+    ('lint reads a mode with arguments as no mode', 'read-run.py',
+     "                        r'`--[a-z][a-z-]*(?:`| [^`]*`)'",
+     "                        r'`--[a-z][a-z-]*`'",
+     'cd "{dir}" && python3 -c "import sys, tempfile, subprocess;'
+     ' sys.path.insert(0, \'.\'); import defects;'
+     ' r = defects.prior_with_mode_args(tempfile.mkdtemp());'
+     ' o = subprocess.run([\'python3\', \'{file}\', \'--lint\','
+     ' \'--readme\', r], capture_output=True, text=True).stdout;'
+     ' sys.exit(1 if \'quotes a prior and names neither\' in o else 0)"'),
 ]
