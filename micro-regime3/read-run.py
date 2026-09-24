@@ -9780,7 +9780,9 @@ def pair_note(path, draft=None, halves=None, repeat=False):
     values put in, and from the previous note with the names carried over
     where it has not -- retyping them is where a copying error gets in.
     A `[PAIR'S]` block comes back as a MODEL under a `<yours>`
-    line, the previous pair's text for this preparation to rewrite: those
+    line -- whole under `--repeat`, and a `[SAME, ...]` block the note
+    rewrote comes the same way after the template's -- the previous
+    pair's text for this preparation to rewrite: those
     are the decisions, and the marker is what keeps a copied decision
     from passing for one, run-status.sh's 2c counting it as a slot until
     the line is deleted. The handover and the gate's verdict never cross,
@@ -10406,8 +10408,9 @@ def doc_part(which=None):
     for name, fn in DOC_FUNCTION_PARTS:
         parts.append((name, inspect.cleandoc(globals()[fn].__doc__ or '')))
     if not which:
-        print("read-run.py's docstring in parts; --doc NAME prints one,"
-              ' and the two gates are in `modes`')
+        print("read-run.py's docstring in parts, `spans` being"
+              " predictions_table's; --doc NAME prints one, and the two"
+              ' gates are in `modes`')
         for name, text in parts:
             print('  %-12s %2d paragraph(s), %5d chars'
                   % (name, text.count('\n\n') + 1, len(text)))
@@ -15164,7 +15167,8 @@ def main():
     p.add_argument('--draft', metavar='RUN',
                    help="with --note: print the whole next note for RUN,"
                         ' each [SAME] block from the template and each'
-                        " [PAIR'S] block as a model under a <yours> line;"
+                        " [PAIR'S] block as a model under a <yours> line"
+                        ' (whole under --repeat);'
                         ' wants --halves')
     p.add_argument('--halves', metavar='BASIS,OTHER',
                    help="with --note --draft: the new pair's two names")

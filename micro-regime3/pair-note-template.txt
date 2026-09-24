@@ -45,9 +45,9 @@ the .text bytes, the fills, the counts a leg came out at -- and point at
 README.md or the run's own file for everything else.
 
 AND NO RUN RANGES IN A [PAIR'S] BLOCK: `as Runs 36 to 39` goes false the
-moment the next run carries the block, and every preparation from Run 36
-to Run 40 bumped a dozen of them by hand. Say `as the previous runs of this
-pair`, or name the one run a claim is about.
+moment the next run carries the block, and Run 40's preparation bumped them
+by hand, block after block. Say `as the previous runs of this pair`, or name
+the one run a claim is about.
 
 The pair $R-<basis> and $R-<other>, Run NN's, written by hand YYYY-MM-DD
 BEFORE either binary exists, which is the order the procedure asks for.
