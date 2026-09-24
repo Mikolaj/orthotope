@@ -2279,11 +2279,12 @@ def drift_repo(tmp, moved=True):
     return {'dir': d}
 
 
-def drift_since_repo(tmp, code=True):
+def drift_since_repo(tmp, code=True, pragma=False):
     """A throwaway checkout for `registration-drift.py --since`: a roster
     of two arms, `lib-a` reaching `fooFill` through `fbA` and `lib-b`
     reaching nothing, built once as Run 96, then one commit that changes
-    `fooFill`'s code where `code` and only a comment above it otherwise;
+    `fooFill`'s code where `code`, only a comment above it otherwise, and
+    only an INLINE pragma for it at column 0 where `pragma`;
     Run 97's note names the tip, and no binary is here."""
     d = os.path.join(tmp, 'repo')
     os.makedirs(d)
@@ -2300,9 +2301,12 @@ def drift_since_repo(tmp, code=True):
     g('commit', '-q', '-m', 'build 96')
     base = g('rev-parse', '--short', 'HEAD').stdout.strip()
     write(os.path.join(d, 'Main.hs'), head + (
+        '{-# INLINE fooFill #-}\nfooFill :: Int -> Int\nfooFill x = x\n'
+        if pragma else
         'fooFill :: Int -> Int\nfooFill x = x + 1\n' if code else
         '-- a note on the fill\nfooFill :: Int -> Int\nfooFill x = x\n'))
-    g('commit', '-q', '-am', 'rebuild the fill' if code else 'note the fill')
+    g('commit', '-q', '-am', 'inline the fill' if pragma else
+      'rebuild the fill' if code else 'note the fill')
     tip = g('rev-parse', '--short', 'HEAD').stdout.strip()
     write(os.path.join(d, 'run96-pair.txt'), '  Main.hs at        %s\n' % base)
     write(os.path.join(d, 'run97-pair.txt'), '  Main.hs at        %s\n' % tip)
@@ -13308,6 +13312,23 @@ RECORDS = [
          argv=['run97', '--since', 'run96', '--dir', '{dir}'],
          ok=V(exit=1, has=['rebuild the fill', 'code: fooFill',
                            'arms: lib-a', 'by none: lib-b'])),
+
+    # ---- registration-drift.py --since, and a pragma read as a comment --
+    # `defs_of` ended a definition at every unindented line and kept only
+    # those naming one, so a column-0 `{-# INLINE f #-}` -- 164 of them in
+    # Main.hs -- and every `data`, `newtype` and `instance` line belonged to
+    # nothing, and a commit changing only those printed `code: none --
+    # comments only` and reached no arm. Found 2026-09-25 by a blind read
+    # of the session that wrote it.
+    case('drift-since-reads-a-pragma-as-a-comment',
+         'registration-drift.py', None,
+         'a commit changing only an INLINE pragma was reported as comments'
+         ' only, reaching no arm',
+         plant=lambda t: drift_since_repo(t, pragma=True),
+         argv=['run97', '--since', 'run96', '--dir', '{dir}'],
+         ok=V(exit=1, has=['inline the fill', 'code: fooFill',
+                           'arms: lib-a'],
+              hasnt=['comments only'])),
 
     case('drift-since-reads-a-comment-only-commit-as-one',
          'registration-drift.py', None,

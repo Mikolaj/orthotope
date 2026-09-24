@@ -24,9 +24,11 @@ run's note's build or HEAD where no note is written yet, each with the
 definitions whose CODE changed -- both sides parsed, whole-line comments
 dropped, so a comment-only commit says so -- and the arms that reach them,
 by a textual call graph of the build's `Main.hs` walked back from each
-changed definition to the roster's functions. Textual means an
-over-approximation: a name a definition mentions counts as a call; and a
-value-level one, a changed type or instance being no definition here. Where
+changed definition to the roster's functions. Textual means a name a
+definition mentions counts as a call, which over-approximates. And the walk
+is value-level: a changed `data`, `newtype`, `type`, `class` or `instance`
+declaration is named under `code:`, and reaches an arm only through a
+definition whose own code changed with it. Where
 the basis binary is here its `--list` says which arms are timed, and only
 those are named; without one every roster arm reached is. This is the
 arm-by-arm reading the pre-run list's reading 7 is scoped by. Cases:
@@ -62,8 +64,13 @@ def defs_of(text):
 
     A definition runs from an unindented line naming it -- its signature or
     an equation -- to the next unindented line; whole-line `--` comments and
-    `{- -}` blocks are dropped, pragmas and trailing comments kept, so a
-    commit that moves only comments changes no definition here.
+    `{- -}` blocks are dropped and trailing comments kept, so a commit that
+    moves only comments changes no definition here. A column-0 pragma
+    belongs to the definition it names, `{-# INLINE f #-}` to `f`, and one
+    naming none to `{-# pragmas`; a type-level declaration is keyed by its
+    keyword and first name, `data OdoLevel`. Until 2026-09-25 both went to
+    no definition, so a commit changing only them printed `comments only`.
+    Case: `drift-since-reads-a-pragma-as-a-comment`.
     """
     out, name, block = {}, None, False
     for line in text.split('\n'):
@@ -78,7 +85,16 @@ def defs_of(text):
             continue
         if line[0] not in ' \t':
             m = DEF_RE.match(line)
-            name = m.group(1) if m and m.group(1) not in KEYWORDS else None
+            p = re.match(r"\{-#\s*\w+\s+([a-z_][A-Za-z0-9_']*)", line)
+            k = re.match(r'(data|newtype|type|class|instance)\s+(\S+)', line)
+            if line.startswith('{-#'):
+                name = p.group(1) if p else '{-# pragmas'
+            elif k:
+                name = '%s %s' % k.groups()
+            elif m and m.group(1) not in KEYWORDS:
+                name = m.group(1)
+            else:
+                name = None
         if name:
             out[name] = out.get(name, '') + line.rstrip() + '\n'
     return out
