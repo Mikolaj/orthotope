@@ -4450,10 +4450,7 @@ routeList3 sh (T (Strides ats) ao _)
       InnerFirst [] -> RSlice ao l
   where !l = product sh
 
-lsListStage3 :: ShapeL -> T -> [VS.Vector Double]
-lsListStage3 sh a@(T _ _ v) = build (routeSlicesInward v (routeList3 sh a))
-
--- Stage four of the list entry point: 'lsListStage3' under the lean
+-- Stage four of the list entry point: 'routeList3' under the lean
 -- dispatch, the regime read off the merged form alone and no
 -- 'getStridesT' built, as 'fbLibStage2Lean' reads it. One change over
 -- stage three, and one over stage two, whose lean dispatch it shares,
@@ -4464,16 +4461,6 @@ routeList4 sh (T (Strides ats) ao _)
   | otherwise = routeOf ao l (canonicalize sh ats)
   where !l = product sh
 {-# INLINE routeList4 #-}
-
-lsListStage4 :: ShapeL -> T -> [VS.Vector Double]
-lsListStage4 sh a@(T _ _ v) = build (routeSlices v (routeList4 sh a))
-
--- Stage four's route under the fill numbered innermost first: the
--- readers over 'fillStage2' where stage four's are over
--- 'fillStage2Axes', the fill the one change, so that the pair prices
--- the numbering; reasons at 'fillStage2Axes'. Added 2026-09-21.
-lsListStage5 :: ShapeL -> T -> [VS.Vector Double]
-lsListStage5 sh a@(T _ _ v) = build (routeSlicesInward v (routeList4 sh a))
 
 -- Stage three, RULED OUT for the library since 2026-09-07 and kept as
 -- the CEILING of an address-order fill (README.md#dead-ideas), not a
@@ -4862,9 +4849,6 @@ routeUnord4 sh (T (Strides ats) ao _)
         sorted = sortBy compare
                    [ (abs t, n) | (t, n) <- innerFirst (canonicalize sh ats) ]
 
-lsUnordStage4 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage4 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord4 sh a))
-
 -- Stage five, stage four under the lean dispatch: the sorted pairs
 -- canonicalized AGAIN, so the lean rank test decides one block and no
 -- 'getStridesT' is built anywhere -- 'routeUnord3''s dispatch, the
@@ -4875,9 +4859,6 @@ lsUnordStage4 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord4 sh a))
 -- the two together. Added 2026-09-07 for Run 27.
 routeUnord5 :: ShapeL -> T -> Route
 routeUnord5 = dispatchLean canonSortedPairs
-
-lsUnordStage5 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage5 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord5 sh a))
 
 -- Stage six, stage five with the first canonicalization dropped: the
 -- RAW axes sorted by absolute stride and canonicalized once, so the
@@ -4893,9 +4874,6 @@ lsUnordStage5 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord5 sh a))
 -- registration is README's open list.
 routeUnord6 :: ShapeL -> T -> Route
 routeUnord6 = dispatchLean (sortedAbsPairs (flip compare))
-
-lsUnordStage6 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage6 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord6 sh a))
 
 -- The fold as a strict loop over the levels and no list at all, over
 -- stage six's dispatch, its leaf fused as 'lazyRuns''s is so that the
@@ -4971,9 +4949,6 @@ routeUnord7 = dispatchLean (sortedAbsPairs byStrideExtent)
 byStrideExtent :: (Int, Int) -> (Int, Int) -> Ordering
 byStrideExtent (s1, n1) (s2, n2) = compare s2 s1 <> compare n1 n2
 
-lsUnordStage7 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage7 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord7 sh a))
-
 -- Stage eight, stage six with the run chosen as the longest contiguous
 -- one rather than as the innermost sorted axis: from each unit-stride
 -- axis, any remaining axis whose absolute stride equals the run's
@@ -5043,9 +5018,6 @@ bestOf = foldr1 (\x y -> if fst x >= fst y then x else y)
 dropAt :: Int -> [a] -> [a]
 dropAt i xs = take i xs ++ drop (i + 1) xs
 
-lsUnordStage8 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage8 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord8 sh a))
-
 -- Stage nine, stage six with every zero-stride axis outermost on the
 -- list route: a broadcast then lists one real slice as many times as
 -- the axis is long, where stage six sorts stride 0 innermost and falls
@@ -5079,9 +5051,6 @@ zerosOutermost ps
       filter ((== 0) . fst) ps ++ filter ((/= 0) . fst) ps
   | otherwise = ps
 
-lsUnordStage9 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage9 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord9 sh a))
-
 -- Stage ten, stage seven's tie-break under stage nine's move: on equal
 -- absolute strides the larger extent lands innermost, so the run is
 -- the longest unit-stride axis, and every zero-stride axis then goes
@@ -5100,9 +5069,6 @@ routeUnord10 = dispatchLean zerosFirstTied
 -- Stage seven's order with its zero-stride axes moved outermost.
 zerosFirstTied :: ShapeL -> [Int] -> [(Int, Int)]
 zerosFirstTied sh ats = zerosOutermost (sortedAbsPairs byStrideExtent sh ats)
-
-lsUnordStage10 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage10 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord10 sh a))
 
 -- Stage eleven, stage ten with the move guarded: the zero-stride axes
 -- go outermost only where the view has one, and a view without takes
@@ -5154,9 +5120,6 @@ zeroAxis sh ats = any (== 0) ats && go ats sh
         go (_ : ss) (_ : ns) = go ss ns
         go _ _ = False
 {-# INLINE zeroAxis #-}
-
-lsUnordStage11 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage11 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord11 sh a))
 
 -- Stage twelve, stage eleven with the run chosen among the unit-stride
 -- axes by its extent, the run's length wherever no axis merges into it,
@@ -5239,9 +5202,6 @@ runRank !a !b = case compare ta tb of
       | n <= runFar = 1
       | otherwise = 3
 {-# INLINE runRank #-}
-
-lsUnordStage12 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage12 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord12 sh a))
 
 -- Stage thirteen, this file's candidate for the library's
 -- 'toUnorderedVectorListT' on the pr-mikolaj-toVectorListT branch: the
@@ -5389,16 +5349,6 @@ zeroStrideOutermost (InnerFirst ((0, z) : axes@((1, _) : _))) =
   InnerFirst (axes ++ [(0, z)])
 zeroStrideOutermost axes = axes
 
-lsUnordStage13 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage13 sh a@(T _ _ v) = build (routeSlices v (routeUnord13 sh a))
-
--- Stage thirteen's route under the fill numbered innermost first:
--- the readers over 'fillStage2' where stage thirteen's are over
--- 'fillStage2Axes', the fill the one change, so that the pair prices
--- the numbering; reasons at 'fillStage2Axes'. Added 2026-09-21.
-lsUnordStage14 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage14 sh a@(T _ _ v) = build (routeSlicesInward v (routeUnord13 sh a))
-
 -- The two ports' lists: master's and the branch's 'toVectorListT', and
 -- the unordered one-block tests in front of them.
 --
@@ -5508,6 +5458,10 @@ fbLibListStage4Sum :: ShapeL -> T -> VS.Vector Double
 fbLibListStage4Sum sh a@(T _ _ v) =
   VS.singleton (sumRoute v (routeList4 sh a))
 
+-- Stage five, stage four's route under the fill numbered innermost
+-- first: the readers over 'fillStage2' where stage four's are over
+-- 'fillStage2Axes', the fill the one change, so that the pair prices
+-- the numbering; reasons at 'fillStage2Axes'. Added 2026-09-21.
 {-# NOINLINE fbLibListStage5Sum #-}
 fbLibListStage5Sum :: ShapeL -> T -> VS.Vector Double
 fbLibListStage5Sum sh a@(T _ _ v) =
@@ -5586,6 +5540,11 @@ fbLibUnordStage13Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage13Sum sh a@(T _ _ v) =
   VS.singleton (sumRoute v (routeUnord13 sh a))
 
+-- Stage fourteen, stage thirteen's route under the fill numbered
+-- innermost first: the readers over 'fillStage2' where stage
+-- thirteen's are over 'fillStage2Axes', the fill the one change, so
+-- that the pair prices the numbering; reasons at 'fillStage2Axes'.
+-- Added 2026-09-21.
 {-# NOINLINE fbLibUnordStage14Sum #-}
 fbLibUnordStage14Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage14Sum sh a@(T _ _ v) =
@@ -5665,9 +5624,9 @@ listProducers =
   , ("liblist-stage2", lsListStage2, Just False, Just False)
     -- the ordered candidates: lazy on the block; on the transposed
     -- the fill, as master's, so not asked
-  , ("liblist-stage3", lsListStage3, Just True, Nothing)
-  , ("liblist-stage4", lsListStage4, Just True, Nothing)
-  , ("liblist-stage5", lsListStage5, Just True, Nothing)
+  , ("liblist-stage3", listOfInward routeList3, Just True, Nothing)
+  , ("liblist-stage4", listOf routeList4, Just True, Nothing)
+  , ("liblist-stage5", listOfInward routeList4, Just True, Nothing)
     -- master's unordered list: its one-block test fails on both
     -- views, the gap between rows seeing to that, so it is the
     -- ordered list and reads as liblist-stage1 does
@@ -5678,17 +5637,24 @@ listProducers =
     -- and its dispatch half is stage five's
     -- the unordered candidates: lazy on both, the transposed block
     -- being runs of 20 in address order to them, the exception's move
-  , ("libunord-stage4", lsUnordStage4, Just True, Just True)
-  , ("libunord-stage5", lsUnordStage5, Just True, Just True)
-  , ("libunord-stage6", lsUnordStage6, Just True, Just True)
-  , ("libunord-stage7", lsUnordStage7, Just True, Just True)
-  , ("libunord-stage8", lsUnordStage8, Just True, Just True)
-  , ("libunord-stage9", lsUnordStage9, Just True, Just True)
-  , ("libunord-stage10", lsUnordStage10, Just True, Just True)
-  , ("libunord-stage11", lsUnordStage11, Just True, Just True)
-  , ("libunord-stage12", lsUnordStage12, Just True, Just True)
-  , ("libunord-stage13", lsUnordStage13, Just True, Just True)
-  , ("libunord-stage14", lsUnordStage14, Just True, Just True) ]
+  , ("libunord-stage4", listOfInward routeUnord4, Just True, Just True)
+  , ("libunord-stage5", listOfInward routeUnord5, Just True, Just True)
+  , ("libunord-stage6", listOfInward routeUnord6, Just True, Just True)
+  , ("libunord-stage7", listOfInward routeUnord7, Just True, Just True)
+  , ("libunord-stage8", listOfInward routeUnord8, Just True, Just True)
+  , ("libunord-stage9", listOfInward routeUnord9, Just True, Just True)
+  , ("libunord-stage10", listOfInward routeUnord10, Just True, Just True)
+  , ("libunord-stage11", listOfInward routeUnord11, Just True, Just True)
+  , ("libunord-stage12", listOfInward routeUnord12, Just True, Just True)
+  , ("libunord-stage13", listOf routeUnord13, Just True, Just True)
+  , ("libunord-stage14", listOfInward routeUnord13, Just True, Just True) ]
+
+-- The list of a stage from three up: its route read by 'routeSlices',
+-- or by 'routeSlicesInward', over the fill numbered innermost first.
+listOf, listOfInward :: (ShapeL -> T -> Route)
+                     -> ShapeL -> T -> [VS.Vector Double]
+listOf route sh a@(T _ _ v) = build (routeSlices v (route sh a))
+listOfInward route sh a@(T _ _ v) = build (routeSlicesInward v (route sh a))
 
 -- The laziness gate, in 'check' and never timed: the ruling that the
 -- list stays lazy (README.md#dead-ideas) as a predicate. On a view of
