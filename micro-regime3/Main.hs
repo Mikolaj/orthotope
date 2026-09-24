@@ -4515,85 +4515,99 @@ lazyRuns axes start v = build (runSlices axes start v)
 {-# INLINE lazyRuns #-}
 
 -- The walker with the 'build''s 'cons' and 'nil' as arguments, the
--- library's 'runSlicesT', so that 'routeSlices' can take the runs
--- branch inside the 'build' the list arms wrap around it and a
--- consumer of the route's list meets one 'build' whichever branch the
--- route takes.
+-- library's 'runSlicesT', so that 'routeSlices' can take its runs
+-- branch inside the 'build' the list arms wrap around it.
 --
--- One flat loop over the runs, and not a 'foldr' per level with the
--- rest of the list passed down as a continuation (2026-09-09): a fold
--- fused with the level form met, at every level's exit, a lambda-bound
--- continuation it could not see, so it passed the accumulator to it
--- lazily and boxed -- a thunk and a 'D#' a run under base's 'foldl'',
--- 80 bytes, read off the Core dump under 'closure-probe/'. Here the
--- innermost outer level is a counter and a cursor, the outer levels an
--- odometer of (index, extent, stride) touched only on a carry, and
--- every continuation the fused fold meets is 'go', 'carry' or 'nil',
--- all known to the compiler, so base's own left folds -- 'sum' among
--- them -- see a strict known call and allocate nothing a run.
+-- 'go' walks the innermost outer level with a counter and a cursor, and
+-- 'block' holds the levels above it, an 'Odometer' stepped only when the
+-- counter runs out. Every continuation a fused fold meets is 'go',
+-- 'block' or 'nil', all known calls, so base's left folds, 'sum' among
+-- them, allocate nothing a run. A 'foldr' per level with the rest of
+-- the list as its continuation, the form before 2026-09-09, met at every
+-- level's exit a continuation it could not see and passed it the
+-- accumulator lazily and boxed, a thunk and a 'D#' a run
+-- (closure-probe/).
 --
--- The bang on the vector is measured, not style (2026-09-13): a view
--- of no runs never touches it, so without the bang the walker is lazy
--- in it, the worker takes it boxed and every run re-enters it for its
--- length and address -- on 'runs-2' 25 of the 64 instructions a run,
--- all but one of what -fliberate-case bought this loop on Run 30, that
--- pass copying the loop under a case on the vector. Banged, the worker
--- takes the three fields unboxed and the flag has nothing left to do:
--- the Core is byte-identical with it and without (stage10-probe/). The
--- bang on the offset 'carry' ignores is the same kind of thing: without
--- it 'carry' is lazy in its offset, 'go' boxes it for the one call a
--- level makes, and the heap check for that box sits at the head of 'go'
--- and is paid every run.
+-- The odometer is a value since 2026-09-24, each level holding its own
+-- offset, where a carry loop had collected the levels it reset,
+-- reversed them back on and undone the counter's stride arithmetic.
+-- Against that carry (e2f68a7), on Run 39's recipe: 26 to 35% less
+-- allocation on the window views, up to 3.3% fewer instructions, and on
+-- GHC HEAD two taken branches a run fewer on the 'runs' views, 'go' no
+-- longer carrying the odometer; 9.12.4's run loop is unchanged. Not
+-- kept, that day: the odometer an argument of 'go', which keeps the
+-- carry's run loop on HEAD; the axes as a second list beside the
+-- levels, one more value live across the run loop and 4.5% more
+-- instructions than the carry on window-32x32-c64-k3; and the initial
+-- state by 'foldl'' over the reversed axes, up to 0.5% fewer
+-- instructions, not attributed, for a reverse a walk.
+--
+-- The order of the guards of 'go' is free: swapped, the run loop keeps
+-- its instructions, taken branches and fetches on both compilers. On
+-- the carry walker it was a near-tie in GHC's block layout,
+-- https://gitlab.haskell.org/ghc/ghc/-/work_items/27799: the swap gave
+-- HEAD the fall-through into the run, 24% on runs-2, and took it from
+-- 9.12.4, 11 to 14% there.
+--
+-- The bang on the vector is measured (2026-09-13): a view of no runs
+-- never touches it, so without the bang the worker takes it boxed and
+-- every run re-enters it for its length and address, 25 of the 64
+-- instructions a run on 'runs-2', all but one of what -fliberate-case
+-- bought this loop on Run 30 by copying it under a case on the vector;
+-- banged, the flag has nothing left to do (stage10-probe/).
 --
 -- Entered on a route of canonical rank two or more, which is what
--- 'RRuns' means, so there is at least one outer level and one run.  The
--- arm for no outer level, which no route reaches, 'routeOf' and the two
--- written-out dispatches reading rank 1 as a slice first, is the one
--- run as one slice: correct rather than an error, so the walker is
--- total on its own terms, as the library's 'runSlicesT' is.
---
--- Not kept, tried 2026-09-23: the guards of 'go' swapped,
--- @| i >= dk = carry ...@ before @| otherwise = cons ...@, the same
--- test; @i == dk@, the form timed on HEAD, compiles alike. GHC HEAD
--- (10.1.20260918) then lays the head out to fall through into the run,
--- one taken branch a run fewer and stage fourteen's sum 24% faster on
--- runs-2; 9.12.4, which lays out the guards as written that way already,
--- loses the fall-through and reads 11 to 14% slower there. Which order
--- gets it is a near-tie in GHC's block layout,
--- https://gitlab.haskell.org/ghc/ghc/-/work_items/27799, so no order
--- suits both compilers.
+-- 'RRuns' means. The arm for no outer level, which no route reaches, is
+-- the one run as one slice, so the walker is total on its own terms, as
+-- the library's 'runSlicesT' is.
 runSlices :: Axes -> Int -> VS.Vector Double
           -> (VS.Vector Double -> b -> b) -> b -> b
 runSlices (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
   case outerAxes of
     [] -> cons (VS.slice start n v) nil
     (!sk, !dk) : above ->
-      let go !i !o outer
-            -- TODO: 'VS.slice' bounds-checks every run, three tests that
-            -- cannot fail on a view the odometer walks, @n >= 0@ among
-            -- them not even varying with the run; removing them wants a
-            -- vSliceUnsafe in the library's 'Vector' class, which this
-            -- port follows, rather than 'VS.unsafeSlice' here.
-            | i < dk = cons (VS.slice o n v) (go (i + 1) (o + sk) outer)
-            | otherwise = carry outer (o - dk * sk) []
-          -- The levels exhausted on the way out, reset, go back on the
-          -- front in their order; dropping them walked a view with two
-          -- levels above the counter once through its inner one and
-          -- failed 'check' on slice-cnn-L2-24x24-c32 (2026-09-09).
-          carry [] !_ _ = nil
-          carry (OdoLevel j d s : rest) !o reset
-            | j + 1 < d =
-                go 0 (o + s)
-                   (foldl' (flip (:)) (OdoLevel (j + 1) d s : rest) reset)
-            | otherwise = carry rest (o + s - d * s) (OdoLevel 0 d s : reset)
-      in  go 0 start [ OdoLevel 0 d s | (s, d) <- above ]
+      let block !o outer =
+            let go !i !p
+                  -- TODO: 'VS.slice' bounds-checks every run, three tests
+                  -- that cannot fail on a view the odometer walks,
+                  -- @n >= 0@ among them not even varying with the run;
+                  -- removing them wants a vSliceUnsafe in the library's
+                  -- 'Vector' class, which this port follows, rather than
+                  -- 'VS.unsafeSlice' here.
+                  | i < dk = cons (VS.slice p n v) (go (i + 1) (p + sk))
+                  | otherwise = case stepOdometer outer of
+                      OdoDone -> nil
+                      next@(OdoLevel oNext _ _ _) -> block oNext next
+            in  go 0 o
+      in  block start
+                (foldr (\(s, d) outer -> OdoLevel start d (OdoAxis s d) outer)
+                       OdoDone above)
 {-# INLINE runSlices #-}
 
--- An outer level of 'runSlices''s odometer: index, extent, stride. Strict,
--- so a level exit allocates one constructor where a tuple took a tuple
--- and a boxed 'Int': a fifth less allocation on the multi-level window
--- views (2026-09-23).
-data OdoLevel = OdoLevel !Int !Int !Int
+-- The outer levels of 'runSlices''s odometer, innermost first, each at
+-- an offset, with indices left, of an axis. A strict list, hand-rolled
+-- so that a level and its cell are one object: a list cell cannot
+-- unpack a strict record, so a list of level records took two objects
+-- and a pointer hop a level, and two fifths more allocation on the
+-- window views (2026-09-24). The tail's bang makes the initial 'foldr'
+-- build the odometer whole; without it that leaves a thunk a level,
+-- 64 to 121 bytes an iteration on the windows and under a tenth of a
+-- percent in instructions.
+data Odometer = OdoLevel !Int !Int !OdoAxis !Odometer | OdoDone
+
+-- Stride and extent, shared by every state of its level, so that a step
+-- allocates the level and nothing else: copied into the level, they
+-- cost a word a step and a fifth more allocation on the window views.
+data OdoAxis = OdoAxis !Int !Int
+
+-- The odometer one step on, 'OdoDone' once it has gone round.
+stepOdometer :: Odometer -> Odometer
+stepOdometer OdoDone = OdoDone
+stepOdometer (OdoLevel o c axis@(OdoAxis s d) outer)
+  | c > 1 = OdoLevel (o + s) (c - 1) axis outer
+  | otherwise = case stepOdometer outer of
+      OdoDone -> OdoDone
+      next@(OdoLevel oNext _ _ _) -> OdoLevel oNext d axis next
 
 -- A lazy stage's dispatch as a value: one slice, the runs 'lazyRuns'
 -- will walk, or one fill. Five readers share it -- the list, for the
