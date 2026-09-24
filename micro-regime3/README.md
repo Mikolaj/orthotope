@@ -757,6 +757,100 @@ rather than a slot in the next run, observed again:
   a one-copy gate is blind one launch in ten. Run 38, built again from the same
   recipes, reads the arm at **1.0205** with counts level. The readings are [in
   Run 37's file](runs/run37.md) and [Run 38's](runs/run38.md).
+- `OPEN` **What Run 40 is built to answer, registered before it runs.** The pair
+  is Run 39's, both recipes unchanged to the character and rebuilt on `Main.hs`
+  at `bb6b12e` where Run 39 built from `c870e1e`, on the owner's word
+  of 2026-09-24 that this run uses the previous run's recipes and benchmarks
+  the changed source: both halves GHC HEAD `10.1.20260918` through
+  `cabal.project.ghead` at plain `-O1`, `align-as.py` at `fe6d133` under
+  `LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1 LOOP_DEADSPOT=1 LOOP_EXITSPAN=1 LOOP_SETTLED=1`,
+  `-fobject-determinism` on both, the control's line carrying
+  `-fspec-constr -fliberate-case` besides, every process launched from disk,
+  the half names `run40-gheadnospec` and `run40-gheadtwopass`. THIS ENTRY
+  IS THE ONE DECLARATION SITE by the ruling of 2026-09-19, the command lines
+  being Run 39's with the builddir names moved. So the pair's own `cross` figure
+  is the two passes read a fifth time, in `--compare`'s orientation
+  of the unflagged basis over the control, and the source is read as each half
+  against Run 39's same half, `--half-movers run40 run39`. The ten commits move
+  no arm in or out --- `./roster-delta.py run39-gheadnospec run40-gheadnospec`
+  reads the 31 arms in the same order --- and touch no code behind `list`,
+  `bq-expand`, any `mut-odo-vecdims` arm or `fillStage2Axes`, which
+  is `lib-stage2-lean`'s fill; what they rewrite behind a timed arm
+  is `fillStage2`, behind `lib-stage3-lean` and the fill branches
+  of `lib-stage1` and of the reducing consumers, laid out as the library's
+  `genericFillStrided` and then a nest folded over its outer levels (`c89fbe4`,
+  `1514c1b`, `bb6b12e`), `fillStage2U1`, behind `lib-stage2-lean-u1`, now
+  that nest's unrolled twin and dispatched as `lib-stage3-lean` is (`bb6b12e`),
+  `fillStage2OneLevel`, behind `lib-stage3-lean-onelevel` (`3c02e36`),
+  and `runSlices`'s odometer behind the reducing consumers (`e2f68a7`,
+  `943fecd`); the rest is the list stages' wrappers, the check and diag plumbing
+  and the class views' input builders, none of them in a timed arm's own code,
+  with the views `roster-delta.py` reads unmoved. **The priors are instruction
+  counts off this run's own basis binary**, `run40-gheadnospec`, taken
+  with `probe-stalls.sh` at `N=50` over all nineteen main-set shapes
+  for the three arms items (1) and (2) read, twice, into `probe-r40-prior1.txt`
+  and `probe-r40-prior2.txt`, whose instruction counts agree to four decimals;
+  `N=50` is the N of Run 39's own counts, `run39-counts-gheadnospec.txt`,
+  so the two files are read against each other cell for cell. Against those,
+  this binary retires `lib-stage2-lean`'s instructions within 0.04% on every one
+  of the nineteen shapes, which is what makes that arm the denominator. The same
+  files carry cycles, and at `N=50` those are not a prior: on the nine shapes
+  outside the stretch set the two sweeps' ratios part by up to 104 points,
+  `cnn-slice-c32`'s u1 over lean3 at 0.153 and 1.196, so they are quoted below
+  only on the ten stretch shapes. No probe was taken on the control's recipe,
+  so the priors are the basis's, carried to the control on Run 39's two halves
+  agreeing to half a point on each pair below. **The limit this run cannot
+  remove**: a rebuild moves every loop, and the chapter has put eight clauses
+  that a reordering cannot reach a population to the test in time and seen all
+  eight fail, so no item predicts an untouched arm's TIME across runs;
+  the untouched arms stand in the items as within-half denominators instead. (1)
+  *The nest's instruction saving reaches the clock, and `lib-stage3-lean` moves
+  further ahead of `lib-stage2-lean`.* In `probe-r40-prior1.txt`, lean3
+  over lean2 in instructions runs from 0.855 on `cnn-slice-c32` to 1.000
+  on the stretch shapes, a geomean of 0.975 over the nineteen, where
+  `run39-counts-gheadnospec.txt` reads 0.940 to 1.000, a geomean of 0.993;
+  lean3's own instructions fall to 0.910 to 1.000 of Run 39's, a geomean
+  of 0.982. Run 39 read the pair in time at 0.9790 on the basis and 0.9783
+  on the control,
+  `./read-run.py run39-gheadnospec-main.json --pair lib-stage3-lean lib-stage2-lean`
+  and its control twin, so the band runs from none of the saving reaching
+  the clock, that figure, to all of it, some 0.961. On the ten stretch shapes,
+  where lean3 and lean2 retire equal instructions, the two sweeps read lean3
+  over lean2 in cycles at 0.899 to 1.096, parting by up to 11 points on one
+  cell, `stretch-wide-2xM` at 1.009 and 0.899, which is placement and counter
+  noise the nineteen-shape geomean averages down.
+  `predict: pair lib-stage3-lean lib-stage2-lean 0.97 within 2% on main both`.
+  A reading at or above 0.99 says the saving did not reach the clock
+  or a placement term took it back; one below 0.95 says the nest bought more
+  than its instructions, which the run's counts sweep then has to show. (2)
+  *Rewritten as the nest's unrolled twin, `lib-stage2-lean-u1` gives back most
+  of its gap to `lib-stage3-lean`.* In `probe-r40-prior1.txt`, u1 over lean3
+  in instructions runs from 0.956 on `stretch-tab7MB` and `stretch-wide-2xM`
+  to 1.035 on `stretch-bigstride`, a geomean of 1.021 over the nineteen, where
+  `run39-counts-gheadnospec.txt` reads 1.000 to 1.189, a geomean of 1.084. Run
+  39 read the pair in time at 1.1203 on the basis and 1.1249 on the control,
+  `--pair lib-stage2-lean-u1 lib-stage3-lean` on the two main JSONs, a time
+  excess 1.41 times the instruction excess in logarithms on the basis, which
+  carried to this binary's 1.021 gives about 1.03. The two sweeps' cycles
+  on the stretch shapes do not all follow the counts: u1 over lean3 reads 1.092
+  and 1.071 on `stretch-bigstride` and 1.117 and 1.088 on `stretch-primes`, each
+  at about 1.03 in instructions, so the target sits above the carried figure.
+  `predict: pair lib-stage2-lean-u1 lib-stage3-lean 1.05 within 4% on main both`.
+  A reading at or above 1.09 says the twin keeps most of Run 39's gap, which
+  was then not the instructions the rewrite removed; one below 1.01 says
+  the unrolling is now free on the main set. (3) *The regime's worth on the two
+  families no commit touched is Run 39's.* `list` and `bq-expand` run no code
+  any of the ten commits changed, and their cross figures are the pair's
+  variable on a fifth build: `--compare` of each run's basis main JSON
+  over its control's reads `list` at 1.3360, 1.2960, 1.2889 and 1.2966 on Runs
+  36 to 39, the three later draws inside 0.77 points, and `bq-expand` at 1.2980,
+  1.3101, 1.3032 and 1.2985, all four inside 1.21.
+  `predict: cross list 1.294 within 1% on main basis`, the three later draws'
+  mean, and `predict: cross bq-expand 1.302 within 1% on main basis`, the four
+  draws' mean. The reboot between Run 39 and this run is shared by the halves
+  and so outside a cross figure; a reading outside either band on unchanged code
+  says the regime's worth moved with the build and not with the source, which
+  is the instance's term and makes items (1) and (2) harder to read.
 - `ANSWERED` **What Run 39 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 39's own
