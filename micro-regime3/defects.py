@@ -14432,7 +14432,7 @@ RECORDS = [
     # with `Run 39's, written by hand` and `2026-09-23` -- the one place a
     # draft states something false about the pair it drafts. Fixed by hand
     # in that note, 2026-09-24.
-    case('draft-keeps-a-wrapped-header-date', 'read-run.py', None,
+    case('draft-keeps-a-wrapped-header-date', 'read-run.py', 'fdc3a18',
          'a header line broken before its date carried the previous run'
          ' and its build date into the draft',
          plant=lambda t: {'note': write(
@@ -14442,7 +14442,8 @@ RECORDS = [
              'HALVES: basis=a other=b\n')},
          argv=['--note', '{note}', '--draft', 'run98', '--halves', 'a,b'],
          ok=V(exit=0, has=["Run NN's, written by hand YYYY-MM-DD"],
-              hasnt=['2026-01-01'])),
+              hasnt=['2026-01-01']),
+         bug=V(exit=0, has=['2026-01-01'])),
 
     # ---- --draft, and what it dropped or never offered --------------------
     # A `[SAME, ...]` block is one a note rewrote for its own pair, and the
@@ -14454,22 +14455,24 @@ RECORDS = [
     # at all, the draft carrying that kind only from the note: Run 40's
     # note went without the RERUN line. Both found 2026-09-24 by Run 40's
     # preparation.
-    case('draft-drops-a-rewritten-same-block', 'read-run.py', None,
+    case('draft-drops-a-rewritten-same-block', 'read-run.py', 'fdc3a18',
          "a note's rewrite of a [SAME] block left the draft unseen",
          plant=lambda t: {'note': a_previous_note(t)},
          argv=['--note', '{note}', '--draft', 'run98', '--halves', 'a,b'],
          ok=V(exit=0, has=["THE MACHINE [PAIR'S]: <yours> -- what"
                            ' run97-pair.txt added',
-                           'the fingerprint read against is'])),
+                           'the fingerprint read against is']),
+         bug=V(exit=0, hasnt=['the fingerprint read against is'])),
 
-    case('draft-never-offers-a-template-block', 'read-run.py', None,
+    case('draft-never-offers-a-template-block', 'read-run.py', 'fdc3a18',
          'a [PAIR\'S] block the template gained reached no draft',
          plant=lambda t: {'note': a_previous_note(t)},
          argv=['--note', '{note}', '--draft', 'run98', '--halves', 'a,b'],
          ok=V(exit=0, has=["A RERUN, SAID BEFORE THE HOURS [PAIR'S]:"
                            " <yours> -- the template's block, which"
                            ' run97-pair.txt does not carry',
-                           'RERUN: ask'])),
+                           'RERUN: ask']),
+         bug=V(exit=0, hasnt=['RERUN: ask'])),
 
     case('draft-repeat-carries-the-pairs-blocks-whole', 'read-run.py', None,
          'CONTROL: --repeat carries a [PAIR\'S] block with no <yours> line'
@@ -14489,6 +14492,24 @@ RECORDS = [
          argv=['--note', '{note}', '--draft', 'run98', '--halves', 'c,d',
                '--repeat'],
          ok=V(exit=1, has=['--repeat carries run97\'s'])),
+
+    case('preflight-9b-echoed-a-prose-fragment', 'preflight.sh', 'fdc3a18',
+         "step 9b printed a sentence of the note's prose as the reading",
+         # 9b was the note's to name in prose, and the step found it by
+         # grepping `step 9b` and echoed the next lines: on Run 40's note
+         # that was WHAT THIS PAIR MEASURES saying the two steps were one
+         # reading, printed under `9b yours` as though it were one. NO
+         # CASE, for the reason the preflight records above give: 9b is a
+         # STEP. WATCHED 2026-09-24 both ways: before, `9b yours step 9b
+         # are ONE reading on this pair, as on Runs 36's to 39's...`
+         # (Run 40's first preflight); after, on the real binaries, `9b
+         # PASS run40-gheadtwopass is SpecConstr, which its recipe asks
+         # for: scan/mut 1.000`, and every other branch by the block run
+         # out of the file in a scratch directory: `regime basis` PASS at
+         # 9.992, a recipe disagreeing with its binary FAIL naming both,
+         # `run` matching and not, `none` echoed, a malformed line and a
+         # missing one each FAIL.
+         argv=None, ok=None),
 
     # ---- --lint, and a prior with nothing beside it that derives it ----
     # THE ERROR NO PASS HERE COULD SEE was a figure quoted against the
