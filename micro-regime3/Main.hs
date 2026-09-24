@@ -3546,6 +3546,11 @@ fillStage2 (Axes tInner sInner outerAxes) !ao !l !v =
                     | otherwise = writeRun op boff
                                   >> run (k - 1) (op + sInner) (boff + st)
               in  run n outPos baseOff
+        -- The runs loop stays inside 'go', a function the fill calls, so
+        -- that the result's length and buffer wait in the caller's frame:
+        -- the loop has no register to spare, and inlined into the fill's
+        -- body, as special-casing a level count there would inline it, it
+        -- spills (README.md#dead-ideas).
         go :: Int -> Int -> Int -> ST s Int
         go !lev !outPos !baseOff
           | lev < 0 =
