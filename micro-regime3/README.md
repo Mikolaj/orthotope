@@ -785,9 +785,9 @@ rather than a slot in the next run, observed again:
   and `runSlices`'s odometer behind the reducing consumers (`e2f68a7`,
   `943fecd`); the rest is the list stages' wrappers, the check and diag plumbing
   and the class views' input builders, none of them in a timed arm's own code,
-  with the views `roster-delta.py` reads unmoved. **The priors are instruction
-  counts off this run's own basis binary**, `run40-gheadnospec`, taken
-  with `probe-stalls.sh` at `N=50` over all nineteen main-set shapes
+  with the views `roster-delta.py` reads unmoved. **Items (1) and (2)'s priors
+  are instruction counts off this run's own basis binary**, `run40-gheadnospec`,
+  taken with `probe-stalls.sh` at `N=50` over all nineteen main-set shapes
   for the three arms items (1) and (2) read, twice, into `probe-r40-prior1.txt`
   and `probe-r40-prior2.txt`, whose instruction counts agree to four decimals;
   `N=50` is the N of Run 39's own counts, `run39-counts-gheadnospec.txt`,
@@ -839,12 +839,12 @@ rather than a slot in the next run, observed again:
   A reading at or above 1.09 says the twin keeps most of Run 39's gap, which
   was then not the instructions the rewrite removed; one below 1.01 says
   the unrolling is now free on the main set. (3) *The regime's worth on the two
-  families no commit touched is Run 39's.* `list` and `bq-expand` run no code
-  any of the ten commits changed, and their cross figures are the pair's
-  variable on a fifth build: `--compare` of each run's basis main JSON
-  over its control's reads `list` at 1.3360, 1.2960, 1.2889 and 1.2966 on Runs
-  36 to 39, the three later draws inside 0.77 points, and `bq-expand` at 1.2980,
-  1.3101, 1.3032 and 1.2985, all four inside 1.21.
+  families no commit touched holds at the level of the earlier draws.* `list`
+  and `bq-expand` run no code any of the ten commits changed, and their cross
+  figures are the pair's variable on a fifth build: `--compare` of each run's
+  basis main JSON over its control's reads `list` at 1.3360, 1.2960, 1.2889
+  and 1.2966 on Runs 36 to 39, the three later draws inside 0.77 points,
+  and `bq-expand` at 1.2980, 1.3101, 1.3032 and 1.2985, all four inside 1.21.
   `predict: cross list 1.294 within 1% on main basis`, the three later draws'
   mean, and `predict: cross bq-expand 1.302 within 1% on main basis`, the four
   draws' mean. The reboot between Run 39 and this run is shared by the halves
