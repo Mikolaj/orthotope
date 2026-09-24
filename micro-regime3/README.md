@@ -7560,9 +7560,9 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      still name the run before last. Its own 10c, the note's paths,
     #      runs third, a fresh note being the likeliest thing to fail, and
     #      its 10d holds the note's recipes to its HALVES line.
-    ./$R-<basis> check > <your tmp>/a.log 2>&1   # 4. every shape agrees
-    ./$R-<other> check > <your tmp>/b.log 2>&1   # 5. and the other half
-    cmp <your tmp>/a.log <your tmp>/b.log        #  byte-identical, or STOP
+    ./$R-<basis> check > /tmp/claude-1000/a.log 2>&1   # 4. every shape agrees
+    ./$R-<other> check > /tmp/claude-1000/b.log 2>&1   # 5. and the other half
+    cmp /tmp/claude-1000/a.log /tmp/claude-1000/b.log #  byte-identical, or STOP
     #  WHAT IS NOT A STOP, and it is the one reading this cmp needs: a
     #      difference confined to an INSTRUMENT'S OWN MEASURED OUTPUT,
     #      with every verdict word agreeing and both halves exiting 0, is
@@ -7570,9 +7570,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      it was, fix the instrument, rebuild both halves and re-run
     #      this -- do not carry it. ANY OTHER difference is the stop
     #      this line says it is
-    #      NOT /tmp/a.log, which no seat here permits sandboxed: send both
-    #      to the temp directory this session actually has. Scratch names,
-    #      spelled in full, and never a $R-*.log here.
+    #      Scratch goes under /tmp/claude-1000, the one directory both
+    #      seats write, and never to a $R-*.log here.
     #      AND `check` IS SPENT HERE: nothing later wants it again
     #      why: halves that compute differently leave nothing to compare.
     #      A blocked redirect runs nothing at all; a $R-*.log here makes
