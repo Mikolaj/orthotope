@@ -27,11 +27,10 @@
 # session notes on not piping a verification command).
 #
 # WHAT IT DOES NOT DO, and each is deliberate:
-#   9b, the pair's own variable -- what the halves differ in is checked by
-#       the command the PAIR NOTE names, or by the note saying which
-#       variable leaves no trace. There is no general form of it, and a
-#       script that guessed one would report a pair sound on a reading
-#       that was never about that pair.
+#   9b's CHOICE of reading -- the note's VARIABLE-CHECK line names it,
+#       and this runs what the line says. There is no general form of it,
+#       and a script that guessed one would report a pair sound on a
+#       reading that was never about that pair.
 #   10a/10b's FIGURES -- the build's, and their answer is the binary's
 #       rather than the reading session's, so they go in the note at step 2
 #       and not here. What this script does read of those two steps, since
@@ -754,26 +753,36 @@ step_8
 # half built at plain -O1.
 # So the `--ghc-options` lines alone, which are what cabal is handed, and a
 # block naming none of them is UNCONFIRMED rather than plain -O1 by default.
-RECIPE=$(awk -v b="$R-$BASIS" -v o="$R-$OTHER" '
-  $1 == o { f = 0 }
-  $1 == b { f = 1 }
-  f && /^[^ ]/ && $1 != b { f = 0 }
-  f { print }' "$R-pair.txt" 2>/dev/null)
-OPTS=$(printf '%s\n' "$RECIPE" | grep -- '--ghc-options')
-if [ -z "$RECIPE" ] || [ -z "$OPTS" ]; then
-  WANT=unknown
-else
-  case "$OPTS" in
-    *-fspec-constr*|*-O2*) WANT=spec ;;
-    *)                     WANT=o1 ;;
-  esac
-fi
-SCAN=$("./$R-$BASIS" diag 2>/dev/null \
-       | awk '/^vgg-14-c512 /{f=1}
-              f && /baseOffsetsScan /{print $(NF-3); exit}')
-MUT=$("./$R-$BASIS" diag 2>/dev/null \
-      | awk '/^vgg-14-c512 /{f=1}
-             f && /baseOffsetsMut /{print $(NF-3); exit}')
+# BOTH READINGS ARE FUNCTIONS since 2026-09-24, 9b holding a note-named
+# half to its own recipe block exactly as this holds the basis: the flag a
+# half's recipe asks for, and the two rows of that half's `diag`, read off
+# one run of it where two runs used to read one row apiece.
+regime_want () {  # regime_want HALF THEOTHER -> spec, o1 or unknown
+  local rec opts
+  rec=$(awk -v b="$R-$1" -v o="$R-$2" '
+    $1 == o { f = 0 }
+    $1 == b { f = 1 }
+    f && /^[^ ]/ && $1 != b { f = 0 }
+    f { print }' "$R-pair.txt" 2>/dev/null)
+  opts=$(printf '%s\n' "$rec" | grep -- '--ghc-options')
+  if [ -z "$rec" ] || [ -z "$opts" ]; then
+    echo unknown
+  else
+    case "$opts" in
+      *-fspec-constr*|*-O2*) echo spec ;;
+      *)                     echo o1 ;;
+    esac
+  fi
+}
+diag_rows () {  # diag_rows HALF -> "SCAN MUT" off vgg-14-c512, or nothing
+  "./$R-$1" diag 2>/dev/null \
+    | awk '/^vgg-14-c512 /{f=1}
+           f && /baseOffsetsScan / && s == "" {s = $(NF-3)}
+           f && /baseOffsetsMut / && m == "" {m = $(NF-3)}
+           END {if (s != "" && m != "") print s, m}'
+}
+WANT=$(regime_want "$BASIS" "$OTHER")
+read -r SCAN MUT <<< "$(diag_rows "$BASIS")"
 if [ -z "$SCAN" ] || [ -z "$MUT" ]; then
   say 9 FAIL "could not read the diag row; regime UNCONFIRMED"
 elif [ "$WANT" = unknown ]; then
@@ -799,31 +808,65 @@ on vgg-14-c512 ($SCAN vs $MUT)"
   fi
 fi
 
-# 9b IS NOT THIS SCRIPT'S TO RUN and the list says so outright -- `diag`
-# answers for the REGIME and for nothing else, so what the two halves
-# differ in is read by the note's own command. What nothing did was put
-# that command in front of the session. A pair whose variable leaves no
-# trace in `diag` -- Run 30's `-fliberate-case`, which moves neither
-# baseOffsets row -- left its preparation to invent what stands in, with no
-# prompt at any step of the pass. ECHOED AND NEVER JUDGED: it takes no
-# verdict, so it is printed rather than `say`ed, `say` counting anything
-# but PASS as a failure and writing the row --fill-in quotes.
-# `step 9b` FIRST AND A WORD BOUNDARY SECOND, because a bare `9b` is a
-# substring of a commit hash: run30-pair.txt names `89bdb3c` above its 9b
-# sentence, and the first draft of this echoed that line instead. The
-# boundary is what makes the fallback safe, `9b` inside `89bdb3c` being
-# surrounded by word characters on both sides.
-NB=$(grep -n 'step 9b' "$R-pair.txt" 2>/dev/null | head -1 | cut -d: -f1)
-[ -n "$NB" ] || NB=$(grep -nw '9b' "$R-pair.txt" 2>/dev/null \
-                       | head -1 | cut -d: -f1)
-if [ -n "$NB" ]; then
-  printf '  %-4s %-4s %s\n' 9b yours \
-    "$(sed -n "${NB},$((NB + 2))p" "$R-pair.txt" | sed 's/^[[:space:]]*//' \
-       | tr '\n' ' ' | cut -c1-150)"
-else
-  printf '  %-4s %-4s %s\n' 9b yours \
-    "$R-pair.txt says nothing about 9b; the pair's own variable is unread"
-fi
+# 9b, THE PAIR'S OWN VARIABLE, BY THE NOTE'S VARIABLE-CHECK LINE, since
+# 2026-09-24. `diag` answers for the regime and for nothing else, so what
+# the halves differ in is the note's to name -- and until then it named it
+# in prose, which this step found by grepping `step 9b` and echoed: on Run
+# 40's note the first such line was a sentence ABOUT that step, printed as
+# though it were the reading. The line has three forms, which --note-check
+# holds it to:
+#   regime basis|other   that half's `diag` held to its own recipe block,
+#                        exactly as step 9 holds the basis
+#   run CMD => ERE       CMD run here, PASS where its output matches ERE
+#   none REASON          a variable that leaves no trace, echoed as yours
+# Record: `preflight-9b-echoed-a-prose-fragment`.
+regime_name () { case $1 in spec) echo SpecConstr ;; o1) echo 'plain -O1' ;;
+                 *) echo "$1" ;; esac; }
+VC=$(grep -m1 '^VARIABLE-CHECK:' "$R-pair.txt" 2>/dev/null \
+     | cut -d: -f2- | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+case "$VC" in
+  '')
+    say 9b FAIL "$R-pair.txt carries no VARIABLE-CHECK line; the pair's \
+own variable is unread" ;;
+  'regime basis'|'regime other')
+    if [ "$VC" = 'regime basis' ]; then H=$BASIS; O=$OTHER
+    else H=$OTHER; O=$BASIS; fi
+    HW=$(regime_want "$H" "$O")
+    read -r HS HM <<< "$(diag_rows "$H")"
+    if [ -z "$HS" ] || [ -z "$HM" ]; then
+      say 9b FAIL "could not read $R-$H's diag row; its regime UNCONFIRMED"
+    elif [ "$HW" = unknown ]; then
+      say 9b FAIL "no recipe block for $R-$H in $R-pair.txt naming \
+--ghc-options; its regime UNCONFIRMED"
+    else
+      HR=$(python3 -c "print('%.3f' % ($HS/$HM))")
+      HIS=o1
+      python3 -c "import sys; sys.exit(0 if 0.98 < $HS/$HM < 1.02 else 1)" \
+        && HIS=spec
+      if [ "$HIS" = "$HW" ]; then
+        say 9b PASS "$R-$H is $(regime_name "$HW"), which its recipe asks \
+for: scan/mut $HR on vgg-14-c512 ($HS vs $HM)"
+      else
+        say 9b FAIL "$R-$H's recipe asks for $(regime_name "$HW") and the \
+binary reads as $(regime_name "$HIS"): scan/mut $HR"
+      fi
+    fi ;;
+  run\ *' => '*)
+    CMD=${VC#run }; ERE=${CMD##* => }; CMD=${CMD% => *}
+    OUT=$(timeout 600 bash -c "$CMD" 2>&1)
+    if printf '%s\n' "$OUT" | grep -Eq -- "$ERE"; then
+      say 9b PASS "\`$CMD\` matched /$ERE/"
+    else
+      say 9b FAIL "\`$CMD\` did not match /$ERE/: $(printf '%s\n' "$OUT" \
+| tail -1 | cut -c1-100)"
+    fi ;;
+  none\ *)
+    printf '  %-4s %-4s %s\n' 9b yours "no trace to read, the note says: \
+${VC#none }" ;;
+  *)
+    say 9b FAIL "VARIABLE-CHECK reads \`$VC\`, which is none of regime \
+basis|other, run CMD => ERE and none REASON" ;;
+esac
 
 # Held to what it read and not to its exit alone: the plain form exits 0
 # whatever it finds, so `0 self-loops` in a half PASSed here against the
@@ -1086,6 +1129,7 @@ previous build of this recipe to read --delta against"
     "$BASIS ${SRV_B:-$(srv "./$R-$BASIS")}"
   printf '  %-16s  %s\n' '' "$OTHER ${SRV_O:-$(srv "./$R-$OTHER")}"
   printf '  %-16s  %s\n' 'regime' "$(vd 9)"
+  printf '  %-16s  %s\n' '' "and 9b, the note's VARIABLE-CHECK: $(vd 9b)"
   printf '  %-16s  %s\n' 'check' "$(vd '4,5')"
   printf '  %-16s  %s\n' '--list' "$(vd 6)"
   if [ -n "$PB" ]; then
@@ -1141,8 +1185,7 @@ delta is step 6c's to take by hand"
 
 echo
 if [ "$BAD" -eq 0 ]; then
-  echo "all clear. NOT done here: 9b, the pair's own variable, which only"
-  echo "$R-pair.txt can name; and 11 and 12, the smoke sweep and the roster"
+  echo "all clear. NOT done here: 11 and 12, the smoke sweep and the roster"
   # `inherits` was asserted of 11 and 12 unconditionally, which is right for
   # a session RE-ENTERING a spent preparation and wrong for the first pass,
   # where neither has run and both are owed. The note is what says which,

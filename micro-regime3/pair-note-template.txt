@@ -44,6 +44,11 @@ figure here only where this file is the ONLY place it lives -- the md5s,
 the .text bytes, the fills, the counts a leg came out at -- and point at
 README.md or the run's own file for everything else.
 
+AND NO RUN RANGES IN A [PAIR'S] BLOCK: `as Runs 36 to 39` goes false the
+moment the next run carries the block, and every preparation from Run 36
+to Run 40 bumped a dozen of them by hand. Say `as the previous runs of this
+pair`, or name the one run a claim is about.
+
 The pair $R-<basis> and $R-<other>, Run NN's, written by hand YYYY-MM-DD
 BEFORE either binary exists, which is the order the procedure asks for.
 
@@ -87,7 +92,9 @@ changes what the machine does next; if it changes only the write-up, the
 note says so here.
 
 WHAT THIS PAIR MEASURES [PAIR'S]: one variable, named here, and nothing else. Say
-what the halves differ in and what they do not.
+what the halves differ in and what they do not. The recipe's facts -- its
+switches, the compiler, the project file, the shim commit -- are HOW EACH
+HALF IS BUILT's, and no other block restates them.
 
 THE BASIS IS $R-<basis> [PAIR'S] -- it publishes the big table, the bench counts are
 read from it, every --in-place table comes from it, and it runs second. The
@@ -154,8 +161,8 @@ an earlier run needs both notes to name one.
 
 THE SHIM [PAIR'S]: the commit align-as.py stood at, `git log -1 --format=%h --
 :/micro-regime3/align-as.py`. It is on the recipe's -pgma and is as much
-an input to the binary as the source; pre-run step 3 reads this back. A
-a repetition read against an earlier run wants both notes to name the
+an input to the binary as the source; preflight's fill-in reads this back.
+A repetition read against an earlier run wants both notes to name the
 same one, a shim that moved between them being a difference in the
 binaries that no figure attributes to the shim.
 
@@ -173,10 +180,20 @@ HOW EACH HALF IS BUILT [PAIR'S], there being no builder here. Both from one sour
   command, in the file the README calls the only copy of both recipes.
 
   Say which traps this recipe hits -- -fforce-recomp and a fresh
-  --builddir for a -pgma or environment change -- and give the command
-  that reads the variable back out of each binary, so 9b has something
-  to run. The RTS line is micro.cabal's since 2026-08-21 and no recipe
+  --builddir for a -pgma or environment change -- and write no commands
+  that verify a half: `preflight.sh --fill-in` derives every row they
+  would read, and the pair's own variable is the VARIABLE-CHECK line's,
+  below. The RTS line is micro.cabal's since 2026-08-21 and no recipe
   passes one.
+
+THE PAIR'S OWN VARIABLE, READ BACK [PAIR'S]: what preflight's 9b runs to
+confirm the halves differ in what this pair says they do, in one of three
+forms. `regime basis` or `regime other` holds that half's `diag` to its
+own recipe block, as step 9 holds the basis. `run CMD => ERE` runs CMD
+here and wants its output to match ERE. `none REASON` names a variable
+that leaves no trace in either binary, and preflight echoes the reason as
+yours to read. --note-check refuses a note without the line:
+VARIABLE-CHECK: regime other
 
 THE SECOND BUILD IS A CHOICE OR A NECESSITY [PAIR'S]: say which, and if a one-binary
 form would do, record it here as the alternative so the decision stays one.
@@ -276,9 +293,9 @@ taken on another day says so on the line.
 
 Verified when built, YYYY-MM-DD:
   Main.hs at        the commit, and whether the tree carried any other
-                    change to it. Step 3 diffs against this line and the
-                    write-up transcribes it; a note without it leaves both
-                    with no source
+                    change to it. Preflight's fill-in derives it and the
+                    write-up transcribes it; a note without it leaves the
+                    write-up with no source
   shim at           align-as.py's commit, and whether it MOVED since the
                     last pair. It is on the recipe's -pgma, so a shim that
                     moved is a difference in the binaries no figure

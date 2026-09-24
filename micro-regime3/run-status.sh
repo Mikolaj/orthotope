@@ -109,6 +109,10 @@ if [ -f "$NOTE" ]; then
     grep -q "^$l:" "$NOTE" && say 2b "done" "$l line present" \
       || say 2b "NOT DONE" "no $l: line in $NOTE (run-evening.sh reads it)"
   done
+  grep -q "^VARIABLE-CHECK:" "$NOTE" && say 2b "done" \
+    "VARIABLE-CHECK line present" \
+    || say 2b "NOT DONE" "no VARIABLE-CHECK: line in $NOTE (preflight's 9b \
+runs it)"
   # 2c. THE FILL-IN BLOCK'S OWED ROWS, which nothing read until 2026-09-07:
   # every other step here judges an ARTIFACT, and that block is the one
   # product of this half no artifact records, so a row left unwritten was
@@ -117,10 +121,11 @@ if [ -f "$NOTE" ]; then
   # the same marker, so the count of them is the count of rows the half
   # still owes -- a line of output rather than a reading.
   # NUMBERED 2c AND NOT 3: every line this script prints names a step of
-  # the chapter's own lists, and the chapter's step 3 is the md5s and the
-  # two commits read BACK. The block is written at step 2, beside 2a and
-  # 2b which are the note's other lines, so a `3 done` here would have
-  # said a step was done that nobody had run.
+  # the chapter's own lists, and the pre-run list's 3 is a retired number
+  # -- the md5s and the two commits read BACK, which preflight's fill-in
+  # derives since 2026-09-24 -- kept unused so no pointer lands on
+  # something else. The block is written at step 2, beside 2a and 2b which
+  # are the note's other lines.
   # COUNTED AS SLOTS AND NOT AS FILL-IN ROWS, which is what the marker
   # actually marks: --draft writes `<yours>` for every block it will not
   # decide as well as for every fill-in row, so a message naming only the

@@ -286,6 +286,13 @@ Modes:
                     filled in rather than three assembled, and
                     `preflight.sh R --fill-in` derives most of those rows
                     -- no run needed
+  --note PREV --draft R --halves B,O --repeat   the same for a pair whose
+                    recipes are PREV's to the character: the `[PAIR'S]`
+                    blocks carried with no `<yours>` line, a slot at the
+                    head for each input that moved since PREV's build --
+                    the source, the shim, the boot -- and every carried
+                    line naming another run flagged; refused where the
+                    halves are not PREV's
   --section NAME    print one section's prose by its heading's words,
                     without its tables and naming the size withheld;
                     --with-tables adds them and --with-tables N takes the
@@ -9665,6 +9672,24 @@ def note_check(path, readme, run_doc=None):
                           ' step 9 and reaches the executing session only'
                           ' here' % (name, name)))
 
+    # 6. AND THE PAIR'S OWN VARIABLE AS A LINE PREFLIGHT RUNS, since
+    # 2026-09-24. Pre-run step 9b was the note's to name in prose, and
+    # preflight echoed whatever line first said `step 9b` -- on Run 40's
+    # note a sentence about the regime, not a command. The line has three
+    # forms, and preflight's 9b runs the first two and echoes the third.
+    vc = re.search(r'^VARIABLE-CHECK:[ \t]*(.*)$', text, re.M)
+    if not vc:
+        found.append((0, 'no VARIABLE-CHECK line, so preflight\'s 9b has'
+                         ' nothing to run -- write one under HALVES:'
+                         ' `regime basis|other`, `run CMD => ERE` or'
+                         ' `none REASON`'))
+    elif not re.match(r'(regime (basis|other)|run \S.* => \S.*|none \S.*)'
+                      r'\s*$', vc.group(1)):
+        found.append((text[:vc.start()].count('\n') + 1,
+                      'VARIABLE-CHECK reads `%s`, which is none of'
+                      ' `regime basis|other`, `run CMD => ERE` and'
+                      ' `none REASON`' % vc.group(1)))
+
     if not found:
         print('note-check %s: clean -- %d line(s), previous run %d,'
               ' registration of %d item(s)' % (base, len(lines), prev, top))
@@ -9676,7 +9701,74 @@ def note_check(path, readme, run_doc=None):
     return 1
 
 
-def pair_note(path, draft=None, halves=None):
+MACHINE_KEYS = ('HALVES', 'COMPARE', 'LAUNCH', 'RIDERS', 'RERUN',
+                'VARIABLE-CHECK', 'EXPECT')
+
+
+def _no_machine_lines(para):
+    """A paragraph less its machine lines, for a model carried beside the
+    block that owns them, so that no key is written into a note twice."""
+    return '\n'.join(l for l in para.split('\n')
+                     if not re.match(r'(%s):' % '|'.join(MACHINE_KEYS), l))
+
+
+def _template_machine_blocks(near):
+    """(title, paragraph) of each template [PAIR'S] block carrying a machine
+    line, in the template's order."""
+    try:
+        text = open(os.path.join(near or '.', 'pair-note-template.txt')).read()
+    except OSError:
+        return []
+    out = []
+    for para in text.split('\n\n'):
+        para = para.strip('\n')
+        lead = para.split('\n', 1)[0]
+        if "[PAIR'S]" in lead and re.search(
+                r'^(%s):' % '|'.join(MACHINE_KEYS), para, re.M):
+            out.append((_note_title(lead), para))
+    return out
+
+
+def _inputs_moved(near, text):
+    """(input, what moved) for each input of a build that moved since the
+    one the previous note records: its `Main.hs at` and `shim at` rows
+    against git, and its build date against the boot. An input this
+    cannot read is named as unread rather than as unmoved."""
+    out = []
+    for label, path, row in (('THE SOURCE', 'Main.hs', 'Main.hs'),
+                             ('THE SHIM', 'align-as.py', 'shim')):
+        m = re.search(r'^\s*%s at\s+([0-9a-f]{7,40})\b' % re.escape(row),
+                      text, re.M)
+        r = subprocess.run(['git', '-C', near or '.', 'log', '-1',
+                            '--format=%h', '--', path],
+                           capture_output=True, text=True)
+        now = r.stdout.strip() if r.returncode == 0 else ''
+        if not m or not now:
+            out.append((label, '%s unread: the previous note has no row for'
+                        ' it or git has no commit' % path))
+        elif not (now.startswith(m.group(1)) or m.group(1).startswith(now)):
+            out.append((label, '%s at %s where the previous build had %s'
+                        % (path, now, m.group(1))))
+    d = re.search(r'^Verified when built, (\d{4}-\d\d-\d\d)', text, re.M)
+    try:
+        up = float(open('/proc/uptime').read().split()[0])
+        boot = datetime.datetime.now() - datetime.timedelta(seconds=up)
+    except (OSError, ValueError):
+        boot = None
+    if not d or boot is None:
+        out.append(('THE BOOT', 'unread: no build date in the previous note'
+                    ' or no /proc/uptime'))
+    elif boot.strftime('%Y-%m-%d') > d.group(1):
+        out.append(('THE BOOT', 'the box booted %s, after the previous build'
+                    ' of %s' % (boot.strftime('%Y-%m-%d %H:%M'), d.group(1))))
+    elif boot.strftime('%Y-%m-%d') == d.group(1):
+        out.append(('THE BOOT', 'the box booted %s, the previous build\'s own'
+                    ' day: read it against that evening\'s end'
+                    % boot.strftime('%Y-%m-%d %H:%M')))
+    return out
+
+
+def pair_note(path, draft=None, halves=None, repeat=False):
     """A previous pair note, read as the next preparation owes it.
 
     Two readings, and they answer different questions. Plain, this prints
@@ -9775,6 +9867,14 @@ def pair_note(path, draft=None, halves=None):
                          % (halves,))
         return 1
     new = tuple(names)
+    # --repeat IS FOR ONE PAIR BUILT AGAIN, so its halves are the previous
+    # note's: carrying every [PAIR'S] block whole is right only then.
+    if repeat and new != old:
+        sys.stderr.write('--repeat carries %s\'s [PAIR\'S] blocks whole,'
+                         ' which is right only for its own halves, %s,%s;'
+                         ' these are %s,%s -- draft without --repeat\n'
+                         % (prev, old[0], old[1], new[0], new[1]))
+        return 1
     # THE WHOLE NOTE IN THE PREVIOUS NOTE'S OWN ORDER, since 2026-09-07,
     # where this emitted the `[SAME]` blocks alone. A preparation then
     # assembled its note out of three files -- this output, the template
@@ -9815,19 +9915,44 @@ def pair_note(path, draft=None, halves=None):
         env = machine['LAUNCH'].split(':', 1)[1].strip()
         env = '' if env in ('none', '') else env
     fills, from_template, dropped, replacing = {}, [], [], False
+    own = False
     for para, kind, announced in blocks:
         lead = para.lstrip('\n').split('\n', 1)[0]
         title = _note_title(lead)
         if kind == 'same':
+            # A `[SAME, ...]` BLOCK IS ONE THE PREVIOUS NOTE REWROTE FOR ITS
+            # PAIR -- `THE MACHINE [SAME, THE FINGERPRINT AND ITS TERMS
+            # REWRITTEN]` -- and the template's replacing it dropped the
+            # rewrite unseen when it was one paragraph: Run 39's machine
+            # block named the fingerprint read against and the terms the
+            # check carried, and Run 40's draft had the template's four
+            # lines in its place and nothing in the DROPPED list. The
+            # template's block still goes in, and the rewrite follows it
+            # as a model, its machine lines stripped so that no key is
+            # written twice (2026-09-24).
             if announced:
-                replacing = title in tsame
+                own = '[SAME,' in lead
+                # Under --repeat the rewrite is carried as the block
+                # itself, as a [PAIR'S] block is, the template's being
+                # what it rewrote.
+                replacing = title in tsame and not (own and repeat)
                 if replacing:
                     key = '\x00SAME%d\x00' % len(fills)
                     fills[key] = tsame[title]
                     out.append(key)
                     from_template.append(title)
+                    if own:
+                        out.append(
+                            "%s [PAIR'S]: <yours> -- what \x00PREVNOTE\x00"
+                            ' added to this [SAME] block for its own pair,'
+                            ' as a model: keep what holds of this pair,'
+                            ' rewrite it, and delete this line\n%s'
+                            % (title, _no_machine_lines(para)))
+                        pairs.append(title)
                 else:
                     out.append(para)
+            elif replacing and own:
+                out.append(_no_machine_lines(para))
             elif replacing:
                 dropped.append((title, lead.strip()[:60]))
             else:
@@ -9842,7 +9967,7 @@ def pair_note(path, draft=None, halves=None):
                     out.append('\n'.join(keep))
             continue
         if kind == 'pairs':
-            if announced:
+            if announced and not repeat:
                 out.append("%s [PAIR'S]: <yours> -- the previous pair's"
                            ' block follows as a model: rewrite it for this'
                            ' pair and delete this line\n%s' % (title, para))
@@ -9910,12 +10035,40 @@ def pair_note(path, draft=None, halves=None):
             out.append(para)          # [SAME] and the unmarked header lines
     if not gate_done:
         out.append(_template_gate(os.path.dirname(os.path.abspath(path))))
+    # A TEMPLATE [PAIR'S] BLOCK CARRYING A LINE THE PREVIOUS NOTE LACKS
+    # goes in as a slot, before the gate: the draft carried [PAIR'S]
+    # blocks only from the note, so a block the template gained after that
+    # note was written -- `RERUN:`, and `VARIABLE-CHECK:` -- reached no
+    # draft, and Run 40's note went without the first. Keyed on the
+    # machine lines and not on titles, which the notes do not keep to the
+    # template's (2026-09-24).
+    here = os.path.dirname(os.path.abspath(path))
+    gate_at = next((i for i, o in enumerate(out)
+                    if o.startswith('GATE: NOT RUN')), len(out))
+    for t, tpara in _template_machine_blocks(here):
+        keys = [k for k in re.findall(r'^([A-Z][A-Z-]+):', tpara, re.M)
+                if k not in ('HALVES', 'COMPARE')]
+        if any(not re.search(r'^%s:' % re.escape(k), text, re.M)
+               for k in keys):
+            filled = (tpara.replace('$R', draft).replace('<basis>', new[0])
+                      .replace('<other>', new[1]))
+            out.insert(gate_at, "%s [PAIR'S]: <yours> -- the template's"
+                       ' block, which \x00PREVNOTE\x00 does not carry: its'
+                       ' line is a default until this pair says otherwise;'
+                       ' decide it and delete this line\n%s' % (t, filled))
+            gate_at += 1
+            pairs.append(t)
+    moved = _inputs_moved(here, text) if repeat else []
+    pairs += ['MOVED: %s' % t for t, _ in moved]
     body = '\n\n'.join(out)
     # The header line carries the previous run's NUMBER and its build DATE,
     # which no rename touches and which would otherwise be the one place a
     # draft states something false about this pair. Back to the template's
-    # own placeholders, so they read as slots.
-    body = re.sub(r"Run \d+'s, written by hand \d{4}-\d\d-\d\d",
+    # own placeholders, so they read as slots. ANY WHITESPACE between the
+    # words, a note breaking that line where it likes: Run 39's broke it
+    # after `hand` and Run 40's draft kept both (2026-09-24). Case:
+    # `draft-keeps-a-wrapped-header-date`.
+    body = re.sub(r"Run \d+'s,\s+written\s+by\s+hand\s+\d{4}-\d\d-\d\d",
                   "Run NN's, written by hand YYYY-MM-DD", body)
     log = []
     # ONE PASS PER FAMILY, longest pattern first, because renaming in turn
@@ -9970,6 +10123,16 @@ def pair_note(path, draft=None, halves=None):
     else:
         body = re.sub(r'^(HALVES:.*)$', r'\1\nCOMPARE: %s' % prev, body,
                       count=1, flags=re.M)
+    # WHAT NAMES THE PREVIOUS NOTE GOES IN AFTER THE RENAMES, which would
+    # otherwise turn `run39-pair.txt` and `run39's build` into this run's:
+    # the --repeat slots at the head, one per input that moved since that
+    # build, and the previous note's name in the slots above.
+    body = body.replace('\x00PREVNOTE\x00', os.path.basename(path))
+    if moved:
+        body = '\n\n'.join(
+            "MOVED SINCE %s's BUILD, %s [PAIR'S]: <yours> -- %s; rewrite"
+            ' every carried block that describes it and delete this line'
+            % (prev, t, why) for t, why in moved) + '\n\n' + body
     # A CARRIED BLOCK THAT NAMES ANOTHER RUN IS FLAGGED WHERE IT SITS.
     # The renames above map the PREVIOUS run onto this one and touch no
     # other number, so a `[SAME]` block quoting `run26-g912` as the
@@ -10003,7 +10166,9 @@ def pair_note(path, draft=None, halves=None):
     flagged = []
     for para in body.split('\n\n'):
         lead = para.lstrip('\n').split('\n', 1)[0]
-        if '[SAME' not in lead:
+        if '[SAME' not in lead and not (repeat and "[PAIR'S" in lead):
+            continue
+        if '<yours>' in lead:       # a slot, which names runs to be read
             continue
         nums = set(re.findall(r'run(\d+)',
                               re.sub(r'^COMPARE:.*$', '', para, flags=re.M)))
@@ -15003,6 +15168,10 @@ def main():
                         ' wants --halves')
     p.add_argument('--halves', metavar='BASIS,OTHER',
                    help="with --note --draft: the new pair's two names")
+    p.add_argument('--repeat', action='store_true',
+                   help="with --note --draft: the previous pair's own"
+                        " recipes again -- [PAIR'S] blocks carried whole, a"
+                        ' slot for each input that moved')
     p.add_argument('--checklist', metavar='pre|run|post[-a|-b]|readings',
                    help="print one of the run chapter's three checklists"
                         ' alone, which is what a session executes, or the'
@@ -15315,7 +15484,8 @@ def main():
     if args.note_check:
         sys.exit(note_check(args.note_check, args.readme, args.run_doc))
     if args.note:
-        sys.exit(pair_note(args.note, args.draft, args.halves))
+        sys.exit(pair_note(args.note, args.draft, args.halves,
+                           args.repeat))
     if args.checklist:
         sys.exit(checklist(args.readme, args.checklist, not args.full))
     if args.record is not None:

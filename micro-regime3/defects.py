@@ -2324,6 +2324,25 @@ def prior_with_mode_args(tmp):
         ' 1.05 within 4% on main both`.\n\n' + lead))
 
 
+def a_previous_note(tmp):
+    """Run 97's note beside a copy of the live template, for --draft: a
+    [PAIR'S] block, a `[SAME, ...]` block rewritten for its pair in ONE
+    paragraph, and no RERUN line, which the template gained later."""
+    shutil.copy(os.path.join(HERE, 'pair-note-template.txt'), tmp)
+    return write(os.path.join(tmp, 'run97-pair.txt'),
+                 "The pair run97-a and run97-b, Run 97's, written by hand"
+                 ' 2026-01-01.\n\n'
+                 "WHAT THIS PAIR MEASURES [PAIR'S]: the regime, the fourth"
+                 ' time.\n\n'
+                 'HALVES: basis=a other=b\n\n'
+                 'THE MACHINE [SAME, ITS TERMS REWRITTEN]: the fingerprint'
+                 ' read against is\nRun 96\'s own, and the check carries a'
+                 ' source term.\n\n'
+                 'Verified when built, 2026-01-01:\n'
+                 '  Main.hs at        deadbee, tree clean\n'
+                 '  shim at           deadbee, tree clean\n')
+
+
 def doc_of_a_list(tmp, items=4):
     """A document whose one list has no blank line between its items.
 
@@ -2676,14 +2695,15 @@ def note_with_gate_below_the_fill(tmp, name='run97-pair.txt'):
                  'AND THE MACHINE CHECK DID NOT FIRE for run97 either.\n')
 
 
-def note_for_the_check(tmp, broken=True):
+def note_for_the_check(tmp, broken=True, vc='regime other'):
     """This run's note, with or without the three stale statements.
 
     Run 99's, so the synthetic registration `readme_with_a_registration`
     appends is the one read, and a `runs/run98.md` beside it so the
     previous run resolves to 98. Broken, the note carries one of each
     kind: a continuity claim reaching only Run 96, an item (5) where that
-    registration carries one, and a half that is on no roll.
+    registration carries one, and a half that is on no roll; and it lacks
+    the VARIABLE-CHECK line the unbroken one carries.
 
     THE HALVES ARE REAL TAGS since 2026-09-18, when the roll moved out of
     the notes into README's *Which two halves a pair has*: the check reads
@@ -2705,12 +2725,13 @@ def note_for_the_check(tmp, broken=True):
                  ' hand 2026-01-01\n\n'
                  % other
                  + entry +
-                 'HALVES: basis=exit other=%s\n\n'
+                 'HALVES: basis=exit other=%s\n%s\n'
                  'NAMING THE HALVES [SAME]: the roll is the chapter\'s.\n\n'
                  'THE COUNTS [SAME]: run-status.sh holds this run to 22'
                  ' counts files,\nas it held Runs 20 to %d.\n\n'
                  'WHAT THE PAIR PRICES [PAIRS]: what item (%d) asks.\n'
-                 % (other, 96 if broken else 98, 5 if broken else 1))
+                 % (other, '' if broken else 'VARIABLE-CHECK: %s\n' % vc,
+                    96 if broken else 98, 5 if broken else 1))
 
 
 def doc_of_a_big_paragraph(tmp, n=1800):
@@ -8077,7 +8098,8 @@ RECORDS = [
                           'readme': readme_with_a_registration(t)},
          argv=['--note-check', '{note}', '--readme', '{readme}'],
          ok=V(exit=1, has=['continuity claim reaching only Run 96',
-                           'item (5)', 'not on the roll', 'no [EXEC] block']),
+                           'item (5)', 'not on the roll', 'no [EXEC] block',
+                           'no VARIABLE-CHECK line']),
          bug=V(exit=2, hasnt=['continuity claim'])),
 
     case('note-check-passes-a-note-with-none-of-them', 'read-run.py', None,
@@ -8087,6 +8109,17 @@ RECORDS = [
          argv=['--note-check', '{note}', '--readme', '{readme}'],
          ok=V(exit=0, has=['clean'],
               hasnt=['continuity claim', 'not on the roll'])),
+
+    case('note-check-refuses-a-variable-check-in-no-form', 'read-run.py',
+         None,
+         'CONTROL: a VARIABLE-CHECK line in none of its three forms is'
+         ' refused with the line it sits on, not run as a command',
+         plant=lambda t: {'note': note_for_the_check(
+                              t, broken=False, vc='./run99-ghead diag'),
+                          'readme': readme_with_a_registration(t)},
+         argv=['--note-check', '{note}', '--readme', '{readme}'],
+         ok=V(exit=1, has=['VARIABLE-CHECK reads `./run99-ghead diag`'],
+              hasnt=['no VARIABLE-CHECK line'])),
 
     case('section-with-tables-refuses-a-number-past-the-end', 'read-run.py',
          None,
@@ -14390,6 +14423,72 @@ RECORDS = [
          bug=V(exit=0,
                has=['  md5 gheadtwopass <yours>'],
                hasnt=['  md5 gheadtwopass  <yours>'])),
+
+    # ---- --draft, and a header line wrapped between hand and date ------
+    # The draft puts the template's `Run NN's, written by hand YYYY-MM-DD`
+    # back over the previous note's header, so the run number and the
+    # build date read as slots. The pattern wanted single spaces, and Run
+    # 39's note breaks that line after `hand`, so Run 40's draft opened
+    # with `Run 39's, written by hand` and `2026-09-23` -- the one place a
+    # draft states something false about the pair it drafts. Fixed by hand
+    # in that note, 2026-09-24.
+    case('draft-keeps-a-wrapped-header-date', 'read-run.py', None,
+         'a header line broken before its date carried the previous run'
+         ' and its build date into the draft',
+         plant=lambda t: {'note': write(
+             os.path.join(t, 'run97-pair.txt'),
+             'The pair run97-a and run97-b, Run 97\'s, written by hand\n'
+             '2026-01-01 BEFORE either binary exists.\n\n'
+             'HALVES: basis=a other=b\n')},
+         argv=['--note', '{note}', '--draft', 'run98', '--halves', 'a,b'],
+         ok=V(exit=0, has=["Run NN's, written by hand YYYY-MM-DD"],
+              hasnt=['2026-01-01'])),
+
+    # ---- --draft, and what it dropped or never offered --------------------
+    # A `[SAME, ...]` block is one a note rewrote for its own pair, and the
+    # template's block of that title replaced it; written as ONE paragraph
+    # it went with nothing in the DROPPED list, which is how Run 39's
+    # machine block -- the fingerprint read against, the terms the check
+    # carried -- never reached Run 40's draft. And a [PAIR'S] block the
+    # template gained after the previous note was written reached no draft
+    # at all, the draft carrying that kind only from the note: Run 40's
+    # note went without the RERUN line. Both found 2026-09-24 by Run 40's
+    # preparation.
+    case('draft-drops-a-rewritten-same-block', 'read-run.py', None,
+         "a note's rewrite of a [SAME] block left the draft unseen",
+         plant=lambda t: {'note': a_previous_note(t)},
+         argv=['--note', '{note}', '--draft', 'run98', '--halves', 'a,b'],
+         ok=V(exit=0, has=["THE MACHINE [PAIR'S]: <yours> -- what"
+                           ' run97-pair.txt added',
+                           'the fingerprint read against is'])),
+
+    case('draft-never-offers-a-template-block', 'read-run.py', None,
+         'a [PAIR\'S] block the template gained reached no draft',
+         plant=lambda t: {'note': a_previous_note(t)},
+         argv=['--note', '{note}', '--draft', 'run98', '--halves', 'a,b'],
+         ok=V(exit=0, has=["A RERUN, SAID BEFORE THE HOURS [PAIR'S]:"
+                           " <yours> -- the template's block, which"
+                           ' run97-pair.txt does not carry',
+                           'RERUN: ask'])),
+
+    case('draft-repeat-carries-the-pairs-blocks-whole', 'read-run.py', None,
+         'CONTROL: --repeat carries a [PAIR\'S] block with no <yours> line'
+         ' and makes each unreadable input a slot at the head',
+         plant=lambda t: {'note': a_previous_note(t)},
+         argv=['--note', '{note}', '--draft', 'run98', '--halves', 'a,b',
+               '--repeat'],
+         ok=V(exit=0, has=["WHAT THIS PAIR MEASURES [PAIR'S]: the regime",
+                           "MOVED SINCE run97's BUILD, THE SOURCE [PAIR'S]:"
+                           ' <yours>'],
+              hasnt=["WHAT THIS PAIR MEASURES [PAIR'S]: <yours>"])),
+
+    case('draft-repeat-refuses-other-halves', 'read-run.py', None,
+         'CONTROL: --repeat refuses halves that are not the previous'
+         ' note\'s, carrying its blocks whole being right only for them',
+         plant=lambda t: {'note': a_previous_note(t)},
+         argv=['--note', '{note}', '--draft', 'run98', '--halves', 'c,d',
+               '--repeat'],
+         ok=V(exit=1, has=['--repeat carries run97\'s'])),
 
     # ---- --lint, and a prior with nothing beside it that derives it ----
     # THE ERROR NO PASS HERE COULD SEE was a figure quoted against the
