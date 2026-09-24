@@ -3667,117 +3667,131 @@ fillStage2Axes (Axes tInner sInner outerAxes) !ao !l !v =
 -- 'fillStage2' with the outer axes matched before its table is built:
 -- no outer level writes the run alone, one walks the fused level's runs
 -- through 'runsWith', and only two or more build the table. The loop
--- bodies are 'fillStage2''s; comments stripped, the code copied.
--- Measured 2026-09-22 and 23 as a change to both fills, and moved out
--- to this fill on 2026-09-23: on the small class 'lib-stage3-lean' over
--- it read 0.533 of 'lib-stage2-lean-u1' where over 'fillStage2' it read
--- 0.805 on small-bcast32, and 0.718 against 0.795 on small-row96; on
--- the three rank-two stretch shapes under Run 39's recipe it lost 7 to
--- 21 percent, the inlined one-level branch's loop reloading and storing
--- a stack slot every two elements where the same loop inside the
--- odometer does not. Out of line with NOINLINE the branch cost 19 to 30
--- times the instructions.
---
--- TODO: find a workaround for the spill, just like removing the doubled
--- stride was in the past (README.md#the-mutable-ceiling-taken), or wait
--- for a fixed GHC. Until then the prologue saving goes into neither
--- 'fillStage2' nor the library's 'genericFillStrided'.
+-- bodies are 'fillStage2''s, the code copied. The saving is the table's
+-- prologue, a few hundred instructions a call: 0.895 and 0.942 of
+-- 'lib-stage3-lean' on small-bcast32 and small-row96, nothing at large
+-- @l@. The one-level case goes through 'odometer' rather than straight
+-- to 'runsWith': inlined into the fill's body, its runs loop keeps the
+-- result's length and buffer live across it and the allocator reloads
+-- and stores a stack slot every two elements, 4 to 13 percent slower
+-- than 'lib-stage3-lean' on Run 39's large single-level shapes; out of
+-- line with NOINLINE it costs 19 to 30 times the instructions.
+-- NOT TAKEN 2026-09-24 for 'fillStage2' and the library
+-- (README.md#dead-ideas): fragile, for a constant.
 {-# NOINLINE fillStage2OneLevel #-}
 fillStage2OneLevel :: Axes -> Int -> Int -> VS.Vector Double
                    -> VS.Vector Double
 fillStage2OneLevel (Axes tInner sInner outerAxes) !ao !l !v =
-  assert (l > 0) $ VS.create $ do
-  out <- VSM.unsafeNew l
-  let {-# INLINE writeRunStep #-}
-      writeRunStep !outPos !baseOff =
-        let !oEnd = outPos + sInner
-            inner !o !src
-              | o + 1 >= oEnd =
-                  if o >= oEnd then return ()
-                  else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+  assert (l > 0) $ VS.create fill
+ where
+  fill :: forall s. ST s (VSM.MVector s Double)
+  fill = do
+    out <- VSM.unsafeNew l
+    let {-# INLINE writeRunStep #-}
+        writeRunStep :: Int -> Int -> ST s ()
+        writeRunStep !outPos !baseOff =
+          let !oEnd = outPos + sInner
+              inner :: Int -> Int -> ST s ()
+              inner !o !src
+                | o + 1 >= oEnd =
+                    if o >= oEnd then return ()
+                    else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                | otherwise = do
+                    VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                    let !src' = src + tInner
+                    VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
+                    inner (o + 2) (src' + tInner)
+          in  inner outPos baseOff
+        {-# INLINE writeRunSet #-}
+        writeRunSet :: Int -> Int -> ST s ()
+        writeRunSet !outPos !baseOff =
+          let !x = VS.unsafeIndex v baseOff
+              !oEnd = outPos + sInner
+              inner :: Int -> ST s ()
+              inner !o
+                | o + 1 >= oEnd =
+                    if o >= oEnd then return ()
+                    else VSM.unsafeWrite out o x
+                | otherwise = do
+                    VSM.unsafeWrite out o x
+                    VSM.unsafeWrite out (o + 1) x
+                    inner (o + 2)
+          in  inner outPos
+        copies :: Int -> Int -> Int -> ST s Int
+        copies !n !blk !src
+          | n <= 1 = return (src + blk)
+          | otherwise = grow blk
+          where
+            !end = src + n * blk
+            grow :: Int -> ST s Int
+            grow !have
+              | src + have >= end = return end
               | otherwise = do
-                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
-                  let !src' = src + tInner
-                  VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
-                  inner (o + 2) (src' + tInner)
-        in  inner outPos baseOff
-      {-# INLINE writeRunSet #-}
-      writeRunSet !outPos !baseOff =
-        let !x = VS.unsafeIndex v baseOff
-            !oEnd = outPos + sInner
-            inner !o
-              | o + 1 >= oEnd =
-                  if o >= oEnd then return ()
-                  else VSM.unsafeWrite out o x
-              | otherwise = do
-                  VSM.unsafeWrite out o x
-                  VSM.unsafeWrite out (o + 1) x
-                  inner (o + 2)
-        in  inner outPos
-      copies !n !blk !src
-        | n <= 1 = return (src + blk)
-        | otherwise = grow blk
-        where
-          !end = src + n * blk
-          grow !have
-            | src + have >= end = return end
-            | otherwise = do
-                let !len = min have (end - src - have)
-                VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
-                               (VSM.unsafeSlice src len out)
-                grow (have + len)
-      {-# INLINE runsWith #-}
-      runsWith writeRun !n !st !outPos !baseOff
-        | st == 0 = writeRun outPos baseOff
-                    >> copies n sInner outPos
-        | otherwise =
-            let run !k !op !boff
-                  | k <= 0    = return op
-                  | otherwise = writeRun op boff
-                                >> run (k - 1) (op + sInner) (boff + st)
-            in  run n outPos baseOff
-  -- No outer level is the run alone and one is the fused level's runs,
-  -- neither needing the table, which is built only where a level sits
-  -- above the fused one. Since 2026-09-22.
-  _ <- case innerFirst outerAxes of
-    [] ->
-      (if tInner == 0 then writeRunSet else writeRunStep) 0 ao
-      >> return sInner
-    [(st, n)] ->
-      if tInner == 0
-      then runsWith writeRunSet n st 0 ao
-      else runsWith writeRunStep n st 0 ao
-    levels ->
-      let -- No doubled stride here any more; see the fill's own note.
-          !rOuter = VU.length levelsV
-          -- The odometer's levels are numbered innermost first, the fused
-          -- level 0 and the run below it, so nothing is reversed.
-          levelsV :: VU.Vector (Int, Int)
-          !levelsV = VU.fromList levels
-          go !lev !outPos !baseOff
-            | lev < 0 =
-                (if tInner == 0 then writeRunSet else writeRunStep)
-                  outPos baseOff
-                >> return (outPos + sInner)
-            | otherwise =
-                case VU.unsafeIndex levelsV lev of (!st, !n) -> level n st
-            where
-              level !n !st
-                | lev == 0 =
-                    if tInner == 0
-                    then runsWith writeRunSet n st outPos baseOff
-                    else runsWith writeRunStep n st outPos baseOff
-                | st == 0 = do
-                    op' <- go (lev - 1) outPos baseOff
-                    copies n (op' - outPos) outPos
-                | otherwise =
-                    let dim !k !op !boff
-                          | k <= 0    = return op
-                          | otherwise = go (lev - 1) op boff
-                                        >>= \op' -> dim (k - 1) op' (boff + st)
-                    in  dim n outPos baseOff
-      in  go (rOuter - 1) 0 ao
-  return out
+                  let !len = min have (end - src - have)
+                  VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
+                                 (VSM.unsafeSlice src len out)
+                  grow (have + len)
+        {-# INLINE runsWith #-}
+        runsWith :: (Int -> Int -> ST s ())
+                 -> Int -> Int -> Int -> Int -> ST s Int
+        runsWith writeRun !n !st !outPos !baseOff
+          | st == 0 = writeRun outPos baseOff
+                      >> copies n sInner outPos
+          | otherwise =
+              let run :: Int -> Int -> Int -> ST s Int
+                  run !k !op !boff
+                    | k <= 0    = return op
+                    | otherwise = writeRun op boff
+                                  >> run (k - 1) (op + sInner) (boff + st)
+              in  run n outPos baseOff
+        -- The odometer, its levels read through @at@ from @top@ down:
+        -- recursive, so a function the fill calls, which is what spares
+        -- the one-level case the spill; see the header.
+        {-# INLINE odometer #-}
+        odometer :: (Int -> (Int, Int)) -> Int -> ST s Int
+        odometer at !top =
+          let go :: Int -> Int -> Int -> ST s Int
+              go !lev !outPos !baseOff
+                | lev < 0 =
+                    (if tInner == 0 then writeRunSet else writeRunStep)
+                      outPos baseOff
+                    >> return (outPos + sInner)
+                | otherwise = case at lev of (!st, !n) -> level n st
+                where
+                  level :: Int -> Int -> ST s Int
+                  level !n !st
+                    | lev == 0 =
+                        if tInner == 0
+                        then runsWith writeRunSet n st outPos baseOff
+                        else runsWith writeRunStep n st outPos baseOff
+                    | st == 0 = do
+                        op' <- go (lev - 1) outPos baseOff
+                        copies n (op' - outPos) outPos
+                    | otherwise =
+                        let dim :: Int -> Int -> Int -> ST s Int
+                            dim !k !op !boff
+                              | k <= 0    = return op
+                              | otherwise =
+                                  go (lev - 1) op boff
+                                  >>= \op' -> dim (k - 1) op' (boff + st)
+                        in  dim n outPos baseOff
+          in  go top 0 ao
+    -- No outer level is the run alone and one is the fused level's runs,
+    -- neither needing the table, which is built only where a level sits
+    -- above the fused one. Since 2026-09-22.
+    _ <- case innerFirst outerAxes of
+      [] ->
+        (if tInner == 0 then writeRunSet else writeRunStep) 0 ao
+        >> return sInner
+      [(st, n)] -> odometer (const (st, n)) 0
+      levels ->
+        let -- No doubled stride here any more; see the fill's own note.
+            -- The odometer's levels are numbered innermost first, the
+            -- fused level 0 and the run below it, so nothing is reversed.
+            levelsV :: VU.Vector (Int, Int)
+            !levelsV = VU.fromList levels
+        in  odometer (VU.unsafeIndex levelsV) (VU.length levelsV - 1)
+    return out
 
 -- 'fillStage2' with its two dimension vectors Storable instead of
 -- unboxed, and nothing else changed -- comments stripped, the code
@@ -4298,7 +4312,7 @@ fbLibStage3Lean sh a@(T _ _ v) = routeVectorInward v (routeList4 sh a)
 
 -- 'fbLibStage3Lean' over 'fillStage2OneLevel', 'routeVectorInward'
 -- written out with that fill in place of 'fillStage2': one change, so
--- that arm is its control; the reasons and the TODO are at
+-- that arm is its control; the reasons and the ruling are at
 -- 'fillStage2OneLevel'. Added 2026-09-23.
 {-# NOINLINE fbLibStage3LeanOneLevel #-}
 fbLibStage3LeanOneLevel :: ShapeL -> T -> VS.Vector Double
@@ -7057,9 +7071,8 @@ roster =
     -- 2026-09-21 beside its control; reasons at 'fbLibStage3Lean'.
   , ("lib-stage3-lean",            Fill fbLibStage3Lean)
     -- The arm above over the fill that skips its tables at one outer
-    -- level, added 2026-09-23 beside its control; reasons, and the TODO
-    -- on the spill that keeps it out of the shipped fill, at
-    -- 'fillStage2OneLevel'.
+    -- level, added 2026-09-23 beside its control; reasons, and the ruling
+    -- that keeps it out of the shipped fill, at 'fillStage2OneLevel'.
   , ("lib-stage3-lean-onelevel",   Fill fbLibStage3LeanOneLevel)
     -- The flavour twin of 2026-09-19: the arm above with 'fillStage2''s
     -- two dimension vectors Storable, beside its original as the twin of

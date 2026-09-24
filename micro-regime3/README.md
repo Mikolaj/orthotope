@@ -6499,6 +6499,19 @@ first, those that did not die on paper at all:
   under 9.12.4, slower on no measured shape, and it will not be done.**
   NOT TAKEN 2026-09-23 on code complexity: `runSlices` is already too complex
   for a second copy of its run step.
+- **Skipping the fill's level table where the view has at most one outer level,
+  `fillStage2OneLevel` under `lib-stage3-lean-onelevel`** --- **it works,
+  it makes the roster's two single-level views of tens of elements 6 to 11%
+  faster, and it will not be done.** NOT TAKEN 2026-09-24 as fragile
+  for a constant: the saving is a few hundred instructions a call ---
+  `small-bcast32` at 0.895 of `lib-stage3-lean`, `small-row96` at 0.942, level
+  at large `l` --- and, as the special case is naturally written, its runs loop
+  is inlined into the fill with the result's length and buffer live across it,
+  and GHC's allocator reloads and stores a stack slot every two elements, 4
+  to 13% slower than `lib-stage3-lean` on Run 39's large single-level shapes.
+  Routing the case through the recursive odometer removes the spill at a 72-byte
+  closure a call, which is a trick against the allocator, and the special case
+  is complication that `fillStage2` and `genericFillStrided` do without.
 - **Speeding up `toVectorListT` or `toUnorderedVectorListT` by returning a less
   lazy list** --- the whole array filled as a singleton list, or a table built
   before the first slice --- **it may well be faster, and it will not be done.**
@@ -6859,15 +6872,15 @@ landing with their fills `liblist-stage5` and `libunord-stage14` rostered `Only`
 beside them, and `liblist-stage4-list-sum` parked, reasons at their entries ---
 took the roster to 646 benches, and `lib-stage3-lean-onelevel`, the lean arm
 over a fill that builds its table only above one outer level, landing 2026-09-23
-with the spill that keeps it out of the shipped fill named at its entry, took
-the roster to 665 benches, and the parking of 2026-09-23 ---
-`mut-odo-vecdims-add-in-leaf-u1`, `liblist-stage2-sum`, `liblist-stage3-sum`
-and `libunord-stage12-sum` --- takes the roster to 589 benches, so
-with the controls the run is 31 arms. **Run 26 timed four parked arms
-for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02;
-`canon-vecdims` and `lib-stage2`, parked by this prune; and `lib-stage2-short`,
-parked by the ruling on the short bodies of the same day ([the stride
-classes](#the-stride-classes-and-what-they-cover)). Each was parked
+with a spill worked around on 2026-09-24 and kept out of the shipped fill
+by a ruling under [dead ideas](#dead-ideas), took the roster to 665 benches,
+and the parking of 2026-09-23 --- `mut-odo-vecdims-add-in-leaf-u1`,
+`liblist-stage2-sum`, `liblist-stage3-sum` and `libunord-stage12-sum` --- takes
+the roster to 589 benches, so with the controls the run is 31 arms. **Run 26
+timed four parked arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`,
+parked 2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
+and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
+([the stride classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration
 unreadable --- Run 24 lost a clause, Run 25 five, and the two-window item
 was withdrawn beside them, seven in all ([the open list][open]) --- so Run 26
