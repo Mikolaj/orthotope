@@ -12947,6 +12947,17 @@ RECORDS = [
                            '--section'],
               hasnt=['Definitions, once:', 'Validation:'])),
 
+    case('doc-prints-the-span-grammar', 'read-run.py', None,
+         'CONTROL: --doc spans prints the `predict:` grammar, which lives in'
+         ' a function\'s docstring and in no part of the module\'s',
+         # A preparation writing Run 40's registration reached the grammar
+         # only by reading source, `grep -n` and `sed` over this script.
+         argv=['--doc', 'spans'],
+         ok=V(exit=0, has=['`predict: cross ARM X',
+                           '`predict: countdiff A B under N',
+                           'A CROSS-HALF KIND SCOPED `both` IS READ TWICE'],
+              hasnt=['Modes:'])),
+
     case('doc-refuses-a-part-that-is-not-one', 'read-run.py', None,
          'CONTROL: --doc with a name that is no part refuses at 2 rather'
          ' than printing the lot',

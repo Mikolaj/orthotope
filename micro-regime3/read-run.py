@@ -354,6 +354,7 @@ import difflib
 import functools
 import glob
 import importlib.util
+import inspect
 import io
 import json
 import math
@@ -10208,6 +10209,13 @@ DOC_PARTS = [
     ('partial', 'A run artifact is made when a question needs it'),
     ('validation', 'Validation:'),
 ]
+# PARTS THAT LIVE IN A FUNCTION'S DOCSTRING, served whole: the `predict:`
+# span grammar is `predictions_table`'s and nowhere in the module's, and a
+# preparation writing a registration reached it only by reading source
+# (2026-09-24). Named by the function so that it stays one copy.
+DOC_FUNCTION_PARTS = [
+    ('spans', 'predictions_table'),
+]
 
 
 def doc_part(which=None):
@@ -10230,6 +10238,8 @@ def doc_part(which=None):
     for i, (name, at) in enumerate(starts):
         end = starts[i + 1][1] if i + 1 < len(starts) else len(lines)
         parts.append((name, '\n'.join(lines[at:end]).strip('\n')))
+    for name, fn in DOC_FUNCTION_PARTS:
+        parts.append((name, inspect.cleandoc(globals()[fn].__doc__ or '')))
     if not which:
         print("read-run.py's docstring in parts; --doc NAME prints one,"
               ' and the two gates are in `modes`')
