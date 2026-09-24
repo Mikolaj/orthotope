@@ -3457,9 +3457,9 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
   where l = product sh
 
 -- The outer levels of a view as 'fillStage2' walks them: the fused
--- level's runs, a level of @n@ steps of stride @st@ over blocks of @blk@
--- elements, or @n@ copies of a block of @blk@ at stride 0.
-data Nest = Fused | Dim !Int !Int !Int !Nest | Rep !Int !Int !Nest
+-- level's runs, or a level of @n@ blocks of @blk@ elements at stride
+-- @st@, stride 0 copying the first.
+data Nest = Fused | Level !Int !Int !Int !Nest
 
 -- The fill the library's 'genericFillStrided' is ported from, at
 -- Storable Double; the library's copy is in its Data/Array/Internal.hs.
@@ -3531,65 +3531,64 @@ fillStage2 (Axes tInner sInner outerAxes) !ao !l !v =
         -- fails @check@ at @edge-bcastmid-b2@ -- and had passed it on every
         -- timed view, none having a zero-stride outer level of extent 2 or
         -- one more than a power of two, which is what the edge class is for.
-        copies :: Int -> Int -> Int -> ST s Int
+        copies :: Int -> Int -> Int -> ST s ()
         copies !n !blk !src
-          | n <= 1 = return (src + blk)
+          | n <= 1 = return ()
           | otherwise = grow blk
           where
             !end = src + n * blk
-            grow :: Int -> ST s Int
+            grow :: Int -> ST s ()
             grow !have
-              | src + have >= end = return end
+              | src + have >= end = return ()
               | otherwise = do
                   let !len = min have (end - src - have)
                   VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
                                  (VSM.unsafeSlice src len out)
                   grow (have + len)
-        {-# INLINE runsWith #-}
-        runsWith :: (Int -> Int -> ST s ())
-                 -> Int -> Int -> Int -> Int -> ST s Int
-        runsWith writeRun !n !st !outPos !baseOff
-          | st == 0 = writeRun outPos baseOff >> copies n sInner outPos
+        -- @n@ blocks of @blk@ elements, each written by @body@ at a base
+        -- offset @st@ on from the last, or at stride 0 the first copied:
+        -- the fused level's runs and every level above them.
+        {-# INLINE level #-}
+        level :: (Int -> Int -> ST s ())
+              -> Int -> Int -> Int -> Int -> Int -> ST s ()
+        level body !n !st !blk !outPos !baseOff
+          | st == 0 = body outPos baseOff >> copies n blk outPos
           | otherwise =
-              let run :: Int -> Int -> Int -> ST s Int
-                  run !k !op !boff
-                    | k <= 0    = return op
-                    | otherwise = writeRun op boff
-                                  >> run (k - 1) (op + sInner) (boff + st)
-              in  run n outPos baseOff
+              let go :: Int -> Int -> Int -> ST s ()
+                  go !k !op !boff
+                    | k <= 0    = return ()
+                    | otherwise = body op boff
+                                  >> go (k - 1) (op + blk) (boff + st)
+              in  go n outPos baseOff
         -- The nest built over the outer axes, innermost first: the fused
         -- level's runs at the head and each level above a loop of @n@
         -- blocks of @blk@ elements around the nest below it, as data so
         -- that each level is a known call of 'run', where closures lose.
         wrap :: (Nest, Int) -> (Int, Int) -> (Nest, Int)
         wrap (inner, !blk) (!st, !n) =
-          let !nest | st == 0   = Rep n blk inner
-                    | otherwise = Dim n st blk inner
+          let !nest = Level n st blk inner
               !blkNext = n * blk
           in  (nest, blkNext)
-    case innerFirst outerAxes of
-      [] -> (if tInner == 0 then writeRunSet else writeRunStep) 0 ao
-      (!st0, !n0) : outer ->
-          -- Out of line so that its runs loop is allocated registers
-          -- alone: inlined into 'run', it spills one every two elements.
-          let {-# NOINLINE fused #-}
-              fused :: Int -> Int -> ST s ()
-              fused !outPos !baseOff =
-                (if tInner == 0
-                 then runsWith writeRunSet n0 st0 outPos baseOff
-                 else runsWith writeRunStep n0 st0 outPos baseOff) >> return ()
-              run :: Nest -> Int -> Int -> ST s ()
-              run Fused !outPos !baseOff = fused outPos baseOff
-              run (Rep n blk inner) !outPos !baseOff =
-                run inner outPos baseOff >> copies n blk outPos >> return ()
-              run (Dim n st blk inner) !outPos !baseOff =
-                let dim :: Int -> Int -> Int -> ST s ()
-                    dim !k !op !boff
-                      | k <= 0    = return ()
-                      | otherwise = run inner op boff
-                                    >> dim (k - 1) (op + blk) (boff + st)
-                in  dim n outPos baseOff
-          in  run (fst (foldl' wrap (Fused, n0 * sInner) outer)) 0 ao
+        {-# INLINE walk #-}
+        walk :: (Int -> Int -> ST s ()) -> ST s ()
+        walk writeRun = case innerFirst outerAxes of
+          [] -> writeRun 0 ao
+          (!st0, !n0) : outer ->
+            let run :: Nest -> Int -> Int -> ST s ()
+                -- The runs loop has no register to spare, and two things
+                -- nothing enforces keep it from spilling one every two
+                -- elements: it advances by 'sInner' itself, where a field
+                -- equal to it is one value more, and it sits in 'run',
+                -- a function the fill calls, where inlined into the
+                -- fill's body the result's buffer and length stay live
+                -- across it. Each broke in a variant of 2026-09-24,
+                -- 6.5 to 22% more instructions on the stretch views.
+                run Fused !outPos !baseOff =
+                  level writeRun n0 st0 sInner outPos baseOff
+                run (Level n st blk inner) !outPos !baseOff =
+                  level (run inner) n st blk outPos baseOff
+            in  run (fst (foldl' wrap (Fused, n0 * sInner) outer)) 0 ao
+    if tInner == 0 then walk writeRunSet else walk writeRunStep
     return out
 
 -- 'fillStage2' with the odometer's levels numbered outermost first,
@@ -3918,14 +3917,17 @@ fillStage2VSdims (Axes tInner sInner outerAxes) !ao !l !v =
 -- 'fbMutOdoVecdimsAddInLeafU1''s loop in place of '-u2''s, the cursor
 -- bound and one element per iteration, and, since 2026-09-09, the
 -- broadcast run 'writeRunSet' as it was before 'fillStage2' unrolled
--- its own; everything else the driver's, the doubling block copy
--- included. So the pair 'lib-stage2-lean-u1' against 'lib-stage2-lean'
--- prices the unrolling under the dispatch that shipped: the stepping
--- run's wherever the innermost stride is not 0, the broadcast run's
--- where it is, where the leaf family prices the first under the arms'
--- own odometer, '-u2' over '-u1' at 0.9644 in time and 0.9208 in counts
--- on Run 26's main set. Added 2026-09-07 for Run 27.
--- Not where the fill is rank 1: the latch of GHC
+-- its own; everything else 'fillStage2''s, comments stripped, the code
+-- copied, so that the two fills differ in their run bodies alone. The
+-- pair 'lib-stage2-lean-u1' against 'lib-stage3-lean' prices the
+-- unrolling under the lean dispatch, the stepping run's wherever
+-- the innermost stride is not 0, the broadcast run's where it is, where
+-- the leaf family prices the first under the arms' own odometer, '-u2'
+-- over '-u1' at 0.9644 in time and 0.9208 in counts on Run 26's main
+-- set. Added 2026-09-07 for Run 27; its walk 'fillStage2''s since
+-- 2026-09-24, where until then it kept the odometer of 'fillStage2Axes'
+-- and 'lib-stage2-lean' was its pair.
+-- Not where the fill is rank 1, read on that odometer: the latch of GHC
 -- https://gitlab.haskell.org/ghc/ghc/-/work_items/27799 costs this
 -- loop one instruction an element there, on one half or the other
 -- (README.md#what-is-open). Price the unrolling on the main set, or off
@@ -3934,87 +3936,78 @@ fillStage2VSdims (Axes tInner sInner outerAxes) !ao !l !v =
 -- recursive call fails @check@ at @cnn-L1-6x6-c1@, naming
 -- lib-stage2-lean-u1 alone.
 {-# NOINLINE fillStage2U1 #-}
-fillStage2U1 :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
-           -> VS.Vector Double
-fillStage2U1 sh ats !ao !l !v = assert (l > 0) $ VS.create $ do
-  out <- VSM.unsafeNew l
-  let {-# INLINE writeRunStep #-}
-      writeRunStep !outPos !baseOff =
-        let !oEnd = outPos + sInner
-            inner !o !src
-              | o >= oEnd = return ()
+fillStage2U1 :: Axes -> Int -> Int -> VS.Vector Double -> VS.Vector Double
+fillStage2U1 (Axes tInner sInner outerAxes) !ao !l !v =
+  assert (l > 0) $ VS.create fill
+ where
+  fill :: forall s. ST s (VSM.MVector s Double)
+  fill = do
+    out <- VSM.unsafeNew l
+    let {-# INLINE writeRunStep #-}
+        writeRunStep :: Int -> Int -> ST s ()
+        writeRunStep !outPos !baseOff =
+          let !oEnd = outPos + sInner
+              inner :: Int -> Int -> ST s ()
+              inner !o !src
+                | o >= oEnd = return ()
+                | otherwise = do
+                    VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                    inner (o + 1) (src + tInner)
+          in  inner outPos baseOff
+        {-# INLINE writeRunSet #-}
+        writeRunSet :: Int -> Int -> ST s ()
+        writeRunSet !outPos !baseOff =
+          let !x = VS.unsafeIndex v baseOff
+              !oEnd = outPos + sInner
+              inner :: Int -> ST s ()
+              inner !o
+                | o >= oEnd = return ()
+                | otherwise = VSM.unsafeWrite out o x >> inner (o + 1)
+          in  inner outPos
+        copies :: Int -> Int -> Int -> ST s ()
+        copies !n !blk !src
+          | n <= 1 = return ()
+          | otherwise = grow blk
+          where
+            !end = src + n * blk
+            grow :: Int -> ST s ()
+            grow !have
+              | src + have >= end = return ()
               | otherwise = do
-                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
-                  inner (o + 1) (src + tInner)
-        in  inner outPos baseOff
-      {-# INLINE writeRunSet #-}
-      writeRunSet !outPos !baseOff =
-        let !x = VS.unsafeIndex v baseOff
-            !oEnd = outPos + sInner
-            inner !o
-              | o >= oEnd = return ()
-              | otherwise = VSM.unsafeWrite out o x >> inner (o + 1)
-        in  inner outPos
-      -- The block at src, already written, to n copies in all: each pass
-      -- copies everything written so far onto what follows, so the
-      -- length doubles and the last pass is clipped. One copy per block
-      -- read 2.3 of master's leaf fill on bcastmid-b200k, 200000 copies
-      -- of 24 bytes (Run 27). The parked u4 and short fills keep one
-      -- copy per block.
-      -- The same code as 'fillStage2''s, whose non-vacuity break stands
-      -- for this one.
-      copies !n !blk !src
-        | n <= 1 = return (src + blk)
-        | otherwise = grow blk
-        where
-          !end = src + n * blk
-          grow !have
-            | src + have >= end = return end
-            | otherwise = do
-                let !len = min have (end - src - have)
-                VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
-                               (VSM.unsafeSlice src len out)
-                grow (have + len)
-      {-# INLINE runsWith #-}
-      runsWith writeRun !n !st !outPos !baseOff
-        | st == 0 = writeRun outPos baseOff
-                    >> copies n sInner outPos
-        | otherwise =
-            let run !k !op !boff
-                  | k <= 0    = return op
-                  | otherwise = writeRun op boff
-                                >> run (k - 1) (op + sInner) (boff + st)
-            in  run n outPos baseOff
-      go !lev !outPos !baseOff
-        | lev >= rOuter =
-            (if tInner == 0 then writeRunSet else writeRunStep)
-              outPos baseOff
-            >> return (outPos + sInner)
-        | otherwise =
-            level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
-        where
-          level !n !st
-            | lev == rOuter - 1 =
-                if tInner == 0
-                then runsWith writeRunSet n st outPos baseOff
-                else runsWith writeRunStep n st outPos baseOff
-            | st == 0 = do
-                op' <- go (lev + 1) outPos baseOff
-                copies n (op' - outPos) outPos
-            | otherwise =
-                let dim !k !op !boff
-                      | k <= 0    = return op
-                      | otherwise = go (lev + 1) op boff
-                                    >>= \op' -> dim (k - 1) op' (boff + st)
-                in  dim n outPos baseOff
-  _ <- go 0 0 ao
-  return out
-  where !sInner = last sh
-        !tInner = last ats
-        !rOuter = length sh - 1
-        oshV, oatsV :: VU.Vector Int
-        !oshV  = VU.fromList (init sh)
-        !oatsV = VU.fromList (init ats)
+                  let !len = min have (end - src - have)
+                  VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
+                                 (VSM.unsafeSlice src len out)
+                  grow (have + len)
+        {-# INLINE level #-}
+        level :: (Int -> Int -> ST s ())
+              -> Int -> Int -> Int -> Int -> Int -> ST s ()
+        level body !n !st !blk !outPos !baseOff
+          | st == 0 = body outPos baseOff >> copies n blk outPos
+          | otherwise =
+              let go :: Int -> Int -> Int -> ST s ()
+                  go !k !op !boff
+                    | k <= 0    = return ()
+                    | otherwise = body op boff
+                                  >> go (k - 1) (op + blk) (boff + st)
+              in  go n outPos baseOff
+        wrap :: (Nest, Int) -> (Int, Int) -> (Nest, Int)
+        wrap (inner, !blk) (!st, !n) =
+          let !nest = Level n st blk inner
+              !blkNext = n * blk
+          in  (nest, blkNext)
+        {-# INLINE walk #-}
+        walk :: (Int -> Int -> ST s ()) -> ST s ()
+        walk writeRun = case innerFirst outerAxes of
+          [] -> writeRun 0 ao
+          (!st0, !n0) : outer ->
+            let run :: Nest -> Int -> Int -> ST s ()
+                run Fused !outPos !baseOff =
+                  level writeRun n0 st0 sInner outPos baseOff
+                run (Level n st blk inner) !outPos !baseOff =
+                  level (run inner) n st blk outPos baseOff
+            in  run (fst (foldl' wrap (Fused, n0 * sInner) outer)) 0 ao
+    if tInner == 0 then walk writeRunSet else walk writeRunStep
+    return out
 
 -- 'fillStage2' with the stepping run unrolled by FOUR instead of two,
 -- the odd remainder taken by the by-two loop and then the by-one tail
@@ -4363,24 +4356,17 @@ fbLibStage2LeanVSdims sh (T (Strides ats) ao v)
         fillStage2VSdims (Axes t n (InnerFirst rest)) ao l v
   where l = product sh
 
--- 'fbLibStage2Lean' with 'fillStage2U1' for its fill, so that arm is
--- its control; reasons at 'fillStage2U1'.  Two changes since
--- 2026-09-22, not one: the run body, and the dispatch, which keeps
--- 'canonView' for the fill's lists where the control's took
--- 'canonicalize', so the pair carries that prologue too.
--- Added 2026-09-07 for Run 27.
+-- 'fbLibStage3Lean' over 'fillStage2U1', 'routeVectorInward' written out
+-- with that fill in place of 'fillStage2': one change, the run bodies,
+-- so that arm is its control; reasons at 'fillStage2U1'. Added
+-- 2026-09-07 for Run 27; its dispatch 'canonView''s, and its control
+-- 'fbLibStage2Lean', until 2026-09-24.
 {-# NOINLINE fbLibStage2LeanU1 #-}
 fbLibStage2LeanU1 :: ShapeL -> T -> VS.Vector Double
-fbLibStage2LeanU1 sh (T (Strides ats) ao v)
-  | l == 0 = VS.empty
-  | otherwise = case canonView sh ats of
-      ([], _) -> whole
-      ([_], [1]) -> whole
-      (csh, cats) -> fillStage2U1 csh cats ao l v
-  where
-    l = product sh
-    whole | ao == 0 && VS.length v == l = v
-          | otherwise = VS.slice ao l v
+fbLibStage2LeanU1 sh a@(T _ _ v) = case routeList4 sh a of
+  RSlice ao l -> wholeOrSlice ao l v
+  RRuns axes ao l -> fillStage2U1 axes ao l v
+  RFill axes ao l -> fillStage2U1 axes ao l v
 
 -- Stage three of the list entry point, 'toVectorListT' kept lazy up
 -- to the exception: the ordered list built as master builds it -- the

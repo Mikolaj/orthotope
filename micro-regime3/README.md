@@ -6541,8 +6541,12 @@ first, those that did not die on paper at all:
   no apply pattern beside a state token, so each call goes through `stg_ap_n`
   and two stack frames; and, in the data form, a recursive runs function
   in place of `fused`'s `NOINLINE`, whose self-call is a call and not a jump,
-  1.24 of the table on runs of 2. Inlining `fused` into `run` spills `sInner`
-  every two elements, 6 to 11% over on the stretch shapes.
+  1.24 of the table on runs of 2. Inlined into `run`, the stepping loop spills
+  a register every two elements where it advances by a value other than `sInner`
+  itself, a field equal to it included, or is inlined further into the fill's
+  body, where the result's buffer and length stay live across it, 6 to 22%
+  over on the stretch shapes; with neither it has sat in `run` since 2026-09-24,
+  where the older `Rep` and `Dim` pair spilled it too, for a reason not found.
   `handoff-fill-prologue.md` holds the readings.
 - **Speeding up `toVectorListT` or `toUnorderedVectorListT` by returning a less
   lazy list** --- the whole array filled as a singleton list, or a table built
@@ -13141,7 +13145,12 @@ of the line-boundary paragraph above, reads one LOWER here, 4.5M against 5.4M,
 and at residues 16 and 32 comes back to 5.4M with the cycles unmoved, so
 on this loop the fetch count and the cost come apart. Swapping the two fills'
 definitions in the source moves neither loop by a byte, so source order
-is no lever on placement here. The readings are in `handoff-fill-prologue.md`.
+is no lever on placement here. Two levers remove it, both read 2026-09-24
+in pairs of variants and neither explained: passing the fused level's extent
+and stride to the out-of-line runs function as arguments, where `fused` took
+them from its closure, and inlining that loop into `run`, `fillStage2`'s form
+since then, which reads 0.996 to 1.004 of `lib-stage2-lean` in cycles.
+The readings are in `handoff-fill-prologue.md`.
 
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above
