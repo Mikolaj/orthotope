@@ -41,8 +41,7 @@ import           Criterion.Types              (Benchmarkable (..),
                                                Config (regressions))
 import           Data.Bits                    (countLeadingZeros, shiftR, (.&.))
 import           Data.Int                     (Int32, Int64)
-import           Data.List                    (foldl', isPrefixOf,
-                                               isSuffixOf, sort, sortBy)
+import           Data.List                    (isSuffixOf, sortBy)
 import qualified Data.Vector.Storable         as VS
 import qualified Data.Vector.Storable.Mutable as VSM
 import qualified Data.Vector.Unboxed          as VU
@@ -294,11 +293,10 @@ baseOffsetsMut o0 osh (Strides oats) = VU.create $ do
 -- NB on 'fbBQexpand32LemireMulback''s table. Here the odometer arithmetic
 -- stays in Int and ONLY the store narrows, so every value written is a final
 -- base offset and the single new failure mode is a write at or above 2^31,
--- which 'int32Fits' bounds exactly. That is what makes
--- 'baseOffsetsExpand32''s soundness TODO mean something: there the arithmetic
--- runs in Int32 as well, so the intermediates must fit too and 'int32Fits'
--- stops being the whole precondition. Delete this and that distinction has
--- nothing to point at.
+-- which 'int32Fits' bounds exactly. 'baseOffsetsExpand32' runs the arithmetic
+-- in Int32 as well, so there the intermediates must fit too, which its comment
+-- argues they do: 'int32Fits' is the whole precondition of both. Delete this
+-- and that distinction has nothing to point at.
 --
 -- 'int32Fits' is a bound on the SOURCE and independent of the 'lemireFits'
 -- bound on the result: neither implies the other, and a shipped dispatch
@@ -1133,11 +1131,11 @@ fbBQexpand32LemireMulback sh (T (Strides ats) ao v)
                  $ if s <= 1 then 0
                    else (maxBound `quot` fromIntegral s) + 1 :: Word
         baseOffsets :: VU.Vector Int32
-        -- NB 'int32Fits' is NOT the whole precondition here, unlike for
-        -- 'baseOffsetsMut32': this builder does its arithmetic in Int32, so
-        -- the partial base-offsets must fit too, and a source-length bound
-        -- implies that only while every stride is non-negative. See the TODO
-        -- on 'baseOffsetsExpand32'.
+        -- NB this builder does its arithmetic in Int32, unlike
+        -- 'baseOffsetsMut32', so the partial base-offsets must fit too;
+        -- each is the offset of a real element of the view, so 'int32Fits'
+        -- is still the whole precondition (the argument is at
+        -- 'baseOffsetsExpand32').
         !baseOffsets = assert (int32Fits v)
                        $ baseOffsetsExpand32 ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
@@ -3410,6 +3408,14 @@ dispRun = 2048
 -- ('copyAddrToAddrNonOverlapping#'), with the map a second loop over
 -- the result. That is the route this arm times, and what a fill's
 -- consumer pays too, a materialized vector fusing with nothing.
+-- A concat of known total length does not pay here, refuted 2026-09-07:
+-- vector 0.13.2.0's 'concat' sizes its bundle by a fold over the whole
+-- list before the first element streams, so the list is held and walked
+-- twice, and one pass into a buffer allocated once with 'unsafeNew', as
+-- ox-arrays' 'ravelOuterN' does it, read 0.9961 of this arm's
+-- instructions at 'runs-4096', 0.9991 at 'runs-16384' and 0.9998 at
+-- 'runs-65536' -- one cons and one slice header saved a run against a
+-- memcpy of 2048 elements or more.
 -- Outside the laziness ruling of 2026-09-07 (README.md#dead-ideas), as
 -- every 'toVectorT' arm is, that function being strict whichever way it
 -- is built: a candidate for the library's 'toVectorT', the run-length
@@ -3811,14 +3817,14 @@ fillStage2OneLevel (Axes tInner sInner outerAxes) !ao !l !v =
         in  odometer (VU.unsafeIndex levelsV) (VU.length levelsV - 1)
     return out
 
--- 'fillStage2' with its two dimension vectors Storable instead of
--- unboxed, and nothing else changed -- comments stripped, the code
--- copied. Those two tables are the one use of 'VU' the three library
--- arms 'lib-stage2-lean', 'liblist-stage4-sum' and
--- 'libunord-stage13-sum' reach, so their three '-vsdims' twins price
--- the scratch flavour for the shipped fill, where the probe of
--- 2026-08-08 priced it for 'bq-expand''s table
--- (README.md#the-scratch-vector-flavour). Added 2026-09-19 for that
+-- 'fillStage2' as it read before it took one table of pairs: its levels
+-- numbered innermost first in two tables, here Storable instead of
+-- unboxed -- comments stripped, the code copied. Its three '-vsdims'
+-- arms price the scratch flavour for the shipped fill, where the probe
+-- of 2026-08-08 priced it for 'bq-expand''s table
+-- (README.md#the-scratch-vector-flavour), against 'lib-stage2-lean',
+-- 'liblist-stage4-sum' and 'libunord-stage13-sum', whose fill is
+-- 'fillStage2Axes' (the TODOs at the arms). Added 2026-09-19 for that
 -- probe, which read the two flavours level on all three arms, every
 -- pair inside Run 36's floor, so the shipped fill keeps its unboxed
 -- tables; not kept in step with 'fillStage2'.
@@ -4377,49 +4383,6 @@ fbLibStage2LeanU1 sh (T (Strides ats) ao v)
     whole | ao == 0 && VS.length v == l = v
           | otherwise = VS.slice ao l v
 
--- One pass over a list of slices whose total length is known, into a
--- result allocated once: a memcpy per slice, the list consumed as it is
--- produced and none of it retained. A one-element list of the full
--- length is handed back as it is, as 'toVectorT' hands back @[v]@.
--- 'VS.concat' cannot do this: vector 0.13.2.0's 'concat' is 'unstream'
--- over 'Bundle.fromVectors', whose size is a 'foldl'' of the lengths
--- over the whole list before the first element streams, so the list is
--- held whole and walked twice (read in the cabal store, 2026-09-07).
--- Removed and restored on 2026-09-07, for the comparison with
--- ox-arrays' 'ravelOuterN' (src/Data/Array/XArray.hs), which is this
--- loop: a result allocated once with 'unsafeNew', an 'unsafeCopy' per
--- slice, the list streamed by a fold and not held -- plus what a
--- library owes and a benchmark does not, the count and the shapes
--- checked as it goes, the total taken from the first element's shape,
--- that element forced before the allocation so its memory can go, and
--- the destination sliced with 'VSM.slice', a bounds check per run that
--- turns a list longer than the buffer into an error where the
--- 'unsafeSlice' here trusts @l@ and would write past it -- the source
--- slices are checked on both sides, the arms' 'VS.slice' and the
--- library's 'vSlice' being the same 'V.slice'. The
--- comparison found the earlier text of this function allocating with
--- 'VSM.new', which zeroes a Storable buffer ('storableZero') before the
--- copies overwrite every byte, a pass 'ravelOuterN' does not pay;
--- 'unsafeNew' since. Tried in 'fbLibStage2Disp''s slice route the same
--- day: 0.9961 of that arm's instructions at 'runs-4096', 0.9991 at
--- 'runs-16384' and 0.9998 at 'runs-65536', the second walk it saves
--- being one cons and one slice header per run against a memcpy of
--- 2048 elements or more -- so that arm keeps 'VS.concat', which is what
--- the library's 'vConcat' is, and this function has no caller: a
--- refuted shape kept beside its figures.
-concatKnown :: Int -> [VS.Vector Double] -> VS.Vector Double
-concatKnown !l parts = case parts of
-  [p] | VS.length p == l -> p
-  _ -> VS.create $ do
-    out <- VSM.unsafeNew l
-    let go !_ [] = return ()
-        go !o (p : ps) = do
-          let !k = VS.length p
-          VS.unsafeCopy (VSM.unsafeSlice o k out) p
-          go (o + k) ps
-    go 0 parts
-    return out
-
 -- Stage three of the list entry point, 'toVectorListT' kept lazy up
 -- to the exception: the ordered list built as master builds it -- the
 -- vector or a slice at the natural strides, a lazy list of slices where
@@ -4727,8 +4690,8 @@ sumRouteInward v route = case route of
   RFill axes ao l -> VS.sum (fillStage2 axes ao l v)
 {-# INLINE sumRouteInward #-}
 
--- 'sumRoute' with its fill case through 'fillStage2VSdims'; the probe of
--- 2026-09-19, reasons at that fill.
+-- 'sumRouteInward' with its fill case through 'fillStage2VSdims'; the
+-- probe of 2026-09-19, reasons at that fill.
 sumRouteVSdims :: VS.Vector Double -> Route -> Double
 sumRouteVSdims v route = case route of
   RSlice ao l -> VS.sum (VS.slice ao l v)
@@ -5823,10 +5786,7 @@ regimeOf sh (T (Strides ats) _ v)
 -- class condition in 'check' pins. Negative strides and a non-zero offset
 -- are the class's whole point: no 'mkStrided' input has either.
 mkRev :: ShapeL -> (ShapeL, T)
-mkRev normalSh =
-  let (sh, T (Strides ats) _ v) = mkStrided normalSh
-      ao = sum [(n - 1) * t | (n, t) <- zip sh ats]
-  in  (sh, T (Strides (map negate ats)) ao v)
+mkRev normalSh = mkRevSome [0 .. length normalSh - 1] normalSh
 
 -- Regime-3 view as @rev@ of a SUBSET of the dims produces it:
 -- 'mkStrided''s view with the dims named by the entry reversed, so the
@@ -5837,11 +5797,16 @@ mkRev normalSh =
 mkRevSome :: [Int] -> ShapeL -> (ShapeL, T)
 mkRevSome rs normalSh =
   let (sh, T (Strides ats) _ v) = mkStrided normalSh
-      ao = sum [(n - 1) * t | (r, (n, t)) <- zip [0 ..] (zip sh ats)
-                            , r `elem` rs]
-      ats' = [if r `elem` rs then negate t else t
-             | (r, t) <- zip [0 ..] ats]
+      (ats', ao) = reverseDims rs sh ats
   in  (sh, T (Strides ats') ao v)
+
+-- The dims named by @rs@ of a view at offset 0 with non-negative strides
+-- @ts@ reversed: those strides negated, and the offset where the reversed
+-- index map starts.
+reverseDims :: [Int] -> ShapeL -> [Int] -> ([Int], Int)
+reverseDims rs sh ts =
+  ( [if r `elem` rs then negate t else t | (r, t) <- zip [0 ..] ts]
+  , sum [(n - 1) * t | (r, (n, t)) <- zip [0 ..] (zip sh ts), r `elem` rs] )
 
 -- Regime-3 view as a broadcast produces it: the given shape read as the
 -- VIEW shape, its innermost dimension stride-0 over a dense source of the
@@ -5987,10 +5952,7 @@ mkFlip rs sh = mkFlipIn rs sh sh
 mkFlipIn :: [Int] -> ShapeL -> ShapeL -> (ShapeL, T)
 mkFlipIn rs sh esh =
   let v = VS.enumFromN (0 :: Double) (product esh)
-      ts = drop 1 (getStridesT esh)
-      ats = [if r `elem` rs then negate t else t | (r, t) <- zip [0 ..] ts]
-      ao = sum [(n - 1) * t | (r, (n, t)) <- zip [0 ..] (zip sh ts)
-                            , r `elem` rs]
+      (ats, ao) = reverseDims rs sh (drop 1 (getStridesT esh))
   in  (sh, T (Strides ats) ao v)
 
 -- Regime-2 view as @slice@ of a wider array produces it: a sub-block of
@@ -6478,7 +6440,7 @@ runsShapes =
     -- off the name, so the name is what puts this one in `flip` while the
     -- generator, the `check` clause and the shape-count parser stay the
     -- ones `runsShapes` already has. It sits here rather than in
-    -- `flipShapes` because `oneFlip` asserts an innermost stride of -1 of
+    -- `flipShapes` because `flipConds` asserts an innermost stride of -1 of
     -- every member there, which is the class's definition and not a
     -- condition to relax for a control.
   , ("flip-fwd-rows96", [18750, 96])   -- 1800000, runs-96 under a flip name
@@ -6559,25 +6521,199 @@ composeViews =
   ]
 
 classViews :: [(String, (ShapeL, T))]
-classViews =
-  [(n, mkRev s) | (n, s) <- revShapes]
-  ++ [(n, mkRevSome rs s) | (n, rs, s) <- revSomeShapes]
-  ++ [(n, mkBroadcast s) | (n, s) <- broadcastShapes]
-  ++ [(n, mkBroadcastMid b s) | (n, b, s) <- broadcastMidShapes]
-  ++ [(n, mkBroadcastMid b s) | (n, b, s) <- edgeMidShapes]
-  ++ [(n, mkReshape1 s) | (n, s) <- reshape1Shapes]
-  ++ [(n, mkReshape1Strided s) | (n, s) <- reshape1StridedShapes]
-  ++ [(n, mkSliced s) | (n, s) <- slicedShapes]
-  ++ [(n, mkWindow s) | (n, s) <- windowShapes]
-  ++ [(n, mkWindow (s ++ [st, d])) | (n, s, (st, d)) <- windowStridedShapes]
-  ++ [(n, mkWindowChannels s) | (n, s) <- windowChannelShapes]
-  ++ [(n, mkScaled s sts) | (n, s, sts) <- scaledViews]
-  ++ [(n, mkRuns s) | (n, s) <- runsShapes]
-  ++ [(n, mkFlip rs s) | (n, rs, s) <- flipShapes]
-  ++ [(n, mkFlipIn rs s e) | (n, _, rs, s, e) <- flipInViews]
-  ++ [(n, mkBlock s e o) | (n, s, e, o) <- blockViews]
-  ++ [(n, mkSmall s sts) | (n, _, s, sts) <- smallViews]
-  ++ [(n, mkCompose s sts o) | (n, s, sts, o) <- composeViews]
+classViews = [(n, view) | (n, view, _, _) <- classChecks]
+
+-- Every stride-class view, in the order the lists are defined, with the
+-- regime its class owes -- 3 for every class but @runs@ and @block@,
+-- whose views are regime 2 by definition, and one per view in
+-- 'flipInViews' and 'smallViews' -- and its CLASS CONDITIONS, which
+-- 'check' asserts through 'oneViewReg'.
+--
+-- The class conditions, one function per stride class. Each names the
+-- structural properties its generator owes the class, computed from the
+-- view in hand and asserted beside the shared regime, agreement and
+-- builder checks. Every conjunct is proven non-vacuous by a deliberate
+-- breakage that keeps the view VALID -- regime 3, agree and builds all
+-- still green, so the named condition is the only thing standing --
+-- except where a record below says the conjunct's space is guarded
+-- elsewhere. Each record names its breakage and what fired.
+classChecks :: [(String, (ShapeL, T), Int, [(String, Bool)])]
+classChecks =
+  [(n, v, 3, revConds v) | (n, s) <- revShapes, let v = mkRev s]
+  ++ [ (n, v, 3, revSomeConds v)
+     | (n, rs, s) <- revSomeShapes, let v = mkRevSome rs s ]
+  ++ [(n, v, 3, broadcastConds v) | (n, s) <- broadcastShapes
+                                  , let v = mkBroadcast s]
+  ++ [ (n, v, 3, broadcastMidConds b v)
+     | (n, b, s) <- broadcastMidShapes ++ edgeMidShapes
+     , let v = mkBroadcastMid b s ]
+  ++ [(n, v, 3, reshape1Conds v) | (n, s) <- reshape1Shapes
+                                 , let v = mkReshape1 s]
+  ++ [ (n, v, 3, reshape1StridedConds v)
+     | (n, s) <- reshape1StridedShapes, let v = mkReshape1Strided s ]
+  ++ [(n, v, 3, slicedConds s v) | (n, s) <- slicedShapes
+                                 , let v = mkSliced s]
+  ++ [(n, v, 3, windowConds (s !! 1) v) | (n, s) <- windowShapes
+                                        , let v = mkWindow s]
+  ++ [ (n, v, 3, windowConds (s !! 1) v)
+     | (n, s, (st, d)) <- windowStridedShapes
+     , let v = mkWindow (s ++ [st, d]) ]
+  ++ [(n, v, 3, windowConds (s !! 1) v) | (n, s) <- windowChannelShapes
+                                        , let v = mkWindowChannels s]
+  ++ [(n, v, 3, scaledConds v) | (n, s, sts) <- scaledViews
+                               , let v = mkScaled s sts]
+  ++ [(n, v, 2, runsConds v) | (n, s) <- runsShapes, let v = mkRuns s]
+  ++ [(n, v, 3, flipConds v) | (n, rs, s) <- flipShapes, let v = mkFlip rs s]
+  ++ [ (n, v, reg, flipInConds e v)
+     | (n, reg, rs, s, e) <- flipInViews, let v = mkFlipIn rs s e ]
+  ++ [(n, v, 2, blockConds e o v) | (n, s, e, o) <- blockViews
+                                  , let v = mkBlock s e o]
+  ++ [(n, v, reg, smallConds v) | (n, reg, s, sts) <- smallViews
+                                , let v = mkSmall s sts]
+  ++ [(n, v, 3, composeConds v) | (n, s, sts, o) <- composeViews
+                                , let v = mkCompose s sts o]
+  where
+    -- Non-vacuity: leaving the outermost dim un-reversed (a valid partial
+    -- rev) fails all-negative and offset-top together at the first rev
+    -- shape; growing the backing by 7 with the offset at its top fails
+    -- offset-top alone.
+    revConds (sh, T (Strides ats) ao _) =
+      [ ("all-negative", all (< 0) ats)
+      , ("offset-top",   ao == product sh - 1) ]
+    -- Non-vacuity: reversing every dim regardless of the entry's subset (a
+    -- valid full rev) fails mixed-signs alone -- offset-rev-sum passes,
+    -- deriving from the view; growing the backing by 7 with the offset
+    -- shifted by 6 fails offset-rev-sum alone.
+    revSomeConds (sh, T (Strides ats) ao _) =
+      [ ("mixed-signs",    any (< 0) ats && any (> 0) ats)
+      , ("offset-rev-sum", ao == sum [(n - 1) * negate t
+                                     | (n, t) <- zip sh ats, t < 0]) ]
+    -- Non-vacuity: doubling the backing fails one-elem-per-run alone.
+    -- stride0-inner has no valid same-backing falsification: an innermost
+    -- stride of 1 over the tight backing reads past the source and died on
+    -- the reference's bounds check when tried, and a backing that admits it
+    -- makes the view regime 2 -- so that conjunct's space is guarded by the
+    -- bounds and regime checks, and it stands here as the class's
+    -- definition rather than as a live tripwire.
+    broadcastConds (sh, T (Strides ats) _ v) =
+      [ ("stride0-inner",    last ats == 0)
+      , ("one-elem-per-run", VS.length v == product (init sh)) ]
+    -- Non-vacuity: appending the broadcast axis innermost instead of
+    -- inserting it (a valid 'mkBroadcast'-shaped view) fails stride0-outer
+    -- alone, stretch-factor staying true; doubling the backing fails
+    -- stretch-factor alone.
+    broadcastMidConds b (sh, T (Strides ats) _ v) =
+      [ ("stride0-outer",  0 `elem` init ats && last ats /= 0)
+      , ("stretch-factor", VS.length v * b == product sh) ]
+    -- Non-vacuity: building the dense strides innermost-two-swapped (a
+    -- valid transposed view) fails contiguous alone -- at reshape1-r3, the
+    -- rank-1 entry passing because the swap is the identity there, which is
+    -- why the class keeps an entry with differing trailing dims.
+    reshape1Conds (sh, T (Strides ats) _ v) =
+      [ ("stride0-inner", last ats == 0)
+      , ("contiguous",    VS.length v == product sh
+                          && init ats == drop 1 (getStridesT (init sh))) ]
+    -- The sibling's negation, and that is the point of it: same stride-0
+    -- innermost dim, and strided once canonicalized, so neither a slice
+    -- nor a run memcpy can serve it and the canon arms measure filling
+    -- here rather than dispatch. The condition asks 'canonView' itself
+    -- for that property -- the property the shape exists for -- rather
+    -- than a proxy over the raw strides.
+    --
+    -- Non-vacuity: swapping 'mkStrided' for 'mkReshape1''s dense source
+    -- fails canon-strided alone -- which is exactly the degeneracy this
+    -- shape was added against, so the check fires on the thing it exists
+    -- to exclude. Proven over the 'canonView' form, 2026-08-25.
+    reshape1StridedConds (sh, T (Strides ats) _ _) =
+      [ ("stride0-inner", last ats == 0)
+      , ("canon-strided",
+         case canonView sh ats of
+           (csh, cats) -> cats /= drop 1 (getStridesT csh)
+                          && last cats `notElem` [0, 1]) ]
+    -- Non-vacuity: slicing at the origin fails offset-positive alone;
+    -- zeroing the margins as well fails both conditions, the view then
+    -- being 'mkStrided''s own.
+    slicedConds normalSh (_, T _ ao v) =
+      [ ("offset-positive",   ao > 0)
+      , ("backing-enclosing", VS.length v == product (map (+ 2) normalSh)) ]
+    -- Non-vacuity: an innermost stride of 2 in place of the row multiple
+    -- (still in-bounds) fails row-multiples alone; shrinking the view to a
+    -- single patch fails aliasing alone. The condition was dup-stride,
+    -- outer equal to innermost, until the strided and dilated windows of
+    -- 2026-09-03, whose two are @s * w@ and @d * w@. A channel view, whose
+    -- builder reads [h, w, c, kh, kw], owes the same two: its channel
+    -- stride is a multiple of the width too, but the condition reads the
+    -- first and last strides.
+    windowConds w (sh, T (Strides ats) _ v) =
+      [ ("aliasing",      VS.length v < product sh)
+      , ("row-multiples", case ats of
+                            t : _ -> t `mod` w == 0 && last ats `mod` w == 0
+                            []    -> False) ]
+    -- Non-vacuity: a 1 in an entry's stride list fails no-unit-stride
+    -- alone -- the mistyped entry being exactly what it guards -- and five
+    -- elements of backing slack fail tight-backing alone.
+    scaledConds (sh, T (Strides ats) _ v) =
+      [ ("no-unit-stride", all (>= 2) ats)
+      , ("tight-backing",  VS.length v
+                           == 1 + sum (zipWith (\s t -> (s - 1) * t) sh ats)) ]
+    -- Non-vacuity, 2026-08-28: padding the outer stride by 0 instead of 1
+    -- (a valid dense view) fails the regime, 1 where the class owes 2;
+    -- listing a rank-1 shape is refused by 'mkRuns' itself.
+    runsConds (sh, T (Strides ats) _ _) =
+      let (_, cats) = canonView sh ats
+      in  [ ("innermost-unit", last ats == 1)
+          , ("canon-rank2",    length cats == 2 && last cats == 1) ]
+    -- Non-vacuity of the conditions below, proven at the interpreter on
+    -- 2026-09-03 over small views of each generator's own kind. flip:
+    -- leaving the last dim un-reversed (a valid partial rev) fails
+    -- innermost-minus-one and canon-minus-one together and the regime
+    -- with them, 2 where the class owes 3 -- so those two stand as the
+    -- class's definition, their space guarded by the regime check, as
+    -- bcast's stride0-inner does -- while shifting the offset by 7 over a
+    -- backing grown by 7 fails offset-rev-sum alone. block: an enclosure
+    -- equal to the view fails canon-rank and the regime together, 1 where
+    -- the class owes 2, and a backing grown by 7 fails backing-enclosing
+    -- alone; innermost-unit and offset-listed derive from the generator
+    -- and stand as its definition. small: a backing grown by 1 fails
+    -- tight-backing alone, and a view of 1152 elements fails few-hundred
+    -- alone. compose: a lone innermost zero stride at offset 0 fails
+    -- second-mechanism alone. flipIn, 2026-09-05: no dim reversed fails
+    -- reversed alone; an enclosure of the view's own row length fails
+    -- row-gap alone; the offset shifted by 7 fails offset-rev-sum alone;
+    -- a backing grown by 7 fails backing-enclosing alone.
+    flipConds (sh, T (Strides ats) ao _) =
+      let (_, cats) = canonView sh ats
+      in  [ ("innermost-minus-one", last ats == -1)
+          , ("canon-minus-one",     last cats == -1)
+          , ("offset-rev-sum", ao == sum [(n - 1) * negate t
+                                         | (n, t) <- zip sh ats, t < 0]) ]
+    flipInConds esh (sh, T (Strides ats) ao v) =
+      [ ("reversed",          any (< 0) ats)
+      , ("row-gap",           last esh > last sh)
+      , ("offset-rev-sum",    ao == sum [(n - 1) * negate t
+                                        | (n, t) <- zip sh ats, t < 0])
+      , ("backing-enclosing", VS.length v == product esh) ]
+    blockConds esh ao (sh, T (Strides ats) ao' v) =
+      let (csh, _) = canonView sh ats
+      in  [ ("innermost-unit",    last ats == 1)
+          , ("canon-rank",        length csh == length sh)
+          , ("offset-listed",     ao' == ao)
+          , ("backing-enclosing", VS.length v == product esh) ]
+    smallConds (sh, T (Strides ats) _ v) =
+      [ ("few-hundred",   product sh < 1000)
+      , ("tight-backing", VS.length v
+                          == 1 + sum (zipWith (\s t -> (s - 1) * t) sh ats)) ]
+    composeConds (sh, T (Strides ats) ao v) =
+      let zeros = [i | (i, t) <- zip [0 :: Int ..] ats, t == 0]
+          apart = or [b - c > 1 | (c, b) <- zip zeros (drop 1 zeros)]
+          second = any (< 0) ats || ao > 0 || length zeros == length ats
+                   || apart
+      in  [ ("zero-stride",      not (null zeros))
+          , ("second-mechanism", second)
+          , ("tight-backing",    VS.length v
+                                 == 1 + ao + sum [(s - 1) * t
+                                                 | (s, t) <- zip sh ats
+                                                 , t > 0]) ]
 
 -- Classes retired from TIMING and kept in 'check', by prefix -- ruled
 -- 2026-09-04 on the canonical forms the branch's fill sees ('canonView',
@@ -7699,49 +7835,65 @@ classBenches = [benchView n view | (n, view) <- timedClassViews]
 -- 'baseOffsetsScan' came to return a one-element table at @m == 0@
 -- while every strategy built on it still produced the right vector.
 -- 'baseOffsetsList' is the reference because it is the one nothing
--- else is derived from. Every builder 'diag' measures is here: a
+-- else is derived from. This and 'diag' read one list, 'offsetBuilders',
+-- so every builder 'diag' measures is here, the Int32 twins beside them: a
 -- builder reached only through a consumer has its entries checked
 -- where that consumer reads them and its length checked nowhere,
--- which is the gap this check exists to close, so add to both lists
--- together. Non-vacuity, per conjunct and not merely for the whole:
+-- which is the gap this check exists to close. Non-vacuity, per
+-- conjunct and not merely for the whole:
 -- lengthening 'baseOffsetsScanRem', 'baseOffsetsOdo' or
 -- 'baseOffsetsScanPacked' by one entry fails at the first shape
 -- with @agree=True, builds=False@ -- the very split this check is
 -- here for.
 buildersMatch :: Int -> ShapeL -> Strides -> Bool
 buildersMatch ao osh oats =
-     rBuild == baseOffsetsGen        ao osh oats
-  && rBuild == baseOffsetsGenLemire  ao osh oats
-  && rBuild == baseOffsetsExpand     ao osh oats
-  && rBuild == baseOffsetsExpandZF   ao osh oats
-  && rBuild == baseOffsetsExpandB    ao osh oats
-  && rBuild == baseOffsetsScan       ao osh oats
-  && rBuild == baseOffsetsScanRem    ao osh oats
-  && rBuild == baseOffsetsOdo        ao osh oats
-  && rBuild == baseOffsetsScanPacked ao osh oats
-  && rBuild == baseOffsetsMut        ao osh oats
-  && rBuild == baseOffsetsMutRuns    ao osh oats
+     all (\(_, builder) -> builder ao osh oats == rBuild) offsetBuilders
   && rBuild == w32 (baseOffsetsExpand32 ao osh oats)
   && rBuild == w32 (baseOffsetsMut32    ao osh oats)
   where rBuild = baseOffsetsList ao osh oats
         w32    = VU.map fromIntegral  -- Int32 table read back as the rest
 
--- The shared core of the stride-class checks: what the legacy 'one' asserts
--- of a 'mkStrided' view -- regime 3, every strategy agreeing with the
--- reference, every builder agreeing with 'baseOffsetsList' -- asserted of a
--- view from any generator, plus the CLASS CONDITIONS the caller computes
--- from the view in hand: the named structural properties that make the
--- class what it claims to be, so that a generator drifting out of its class
--- fails by name rather than passing as a different, weaker input. A failed
--- condition is named in the error like a disagreeing arm is.
-oneView :: String -> ShapeL -> T -> [(String, Bool)] -> IO ()
-oneView = oneViewReg 3
+-- The base-offset builders at Int, with their rows' labels in 'diag',
+-- which measures them in this order.
+offsetBuilders :: [(String, Int -> ShapeL -> Strides -> VU.Vector Int)]
+offsetBuilders =
+  [ ( "baseOffsetsList   fromListN . runBaseOffsets (lazy list) "
+    , baseOffsetsList )
+  , ( "baseOffsetsGen    VU.generate + per-run quotRem          "
+    , baseOffsetsGen )
+  , ( "baseOffsetsGenLemire  Gen with 'fastQR'                  "
+    , baseOffsetsGenLemire )
+  , ( "baseOffsetsExpand VU.concatMap iterated expansion        "
+    , baseOffsetsExpand )
+  , ( "baseOffsetsExpandZF  Expand, zip and fold fused          "
+    , baseOffsetsExpandZF )
+  , ( "baseOffsetsExpandB   Expand seeded from the first dim    "
+    , baseOffsetsExpandB )
+  , ( "baseOffsetsScan   scanl' over a generated delta stream   "
+    , baseOffsetsScan )
+  , ( "baseOffsetsScanRem  Scan with quotRem divisibility       "
+    , baseOffsetsScanRem )
+  , ( "baseOffsetsOdo    unfoldrExactN 3-Int odometer state     "
+    , baseOffsetsOdo )
+  , ( "baseOffsetsScanPacked  Scan with one-Int packed state    "
+    , baseOffsetsScanPacked )
+  , ( "baseOffsetsMut    VU.create mutable odometer             "
+    , baseOffsetsMut )
+  , ( "baseOffsetsMutRuns  Mut with leaf run-writes             "
+    , baseOffsetsMutRuns ) ]
 
--- 'oneView' with the regime the class owes made explicit: 3 for every
--- class but @runs@, whose views are regime 2 by definition, and the
--- lists that carry a regime per view, 'smallViews' and 'flipInViews'.
-oneViewReg :: Int -> String -> ShapeL -> T -> [(String, Bool)] -> IO ()
-oneViewReg expReg name sh a@(T (Strides ats) ao v) conds = do
+-- The shared core of the view checks: the regime the view owes, every
+-- strategy agreeing with the reference, every builder agreeing with
+-- 'baseOffsetsList', and the CONDITIONS the caller computes from the view
+-- in hand -- for a stride class the named structural properties that make
+-- the class what it claims to be, so that a generator drifting out of its
+-- class fails by name rather than passing as a different, weaker input. A
+-- failed condition is named in the error like a disagreeing arm is. What
+-- the line says after the name is the caller's @describe@, given the
+-- regime, the two agreements and the failed conditions.
+checkView :: (Int -> Bool -> Bool -> [String] -> String)
+          -> Int -> String -> ShapeL -> T -> [(String, Bool)] -> IO ()
+checkView describe expReg name sh a@(T (Strides ats) ao _) conds = do
   let rList  = reference sh a
       builds = buildersMatch ao (init sh) (Strides (init ats))
       bad    = [n | (n, f) <- checkedArms,
@@ -7749,22 +7901,30 @@ oneViewReg expReg name sh a@(T (Strides ats) ao v) conds = do
       agree  = null bad
       reg    = regimeOf sh a
       failedConds = [c | (c, ok) <- conds, not ok]
-  putStrLn $ name ++ ": view " ++ show sh ++ ", strides " ++ show ats
-             ++ ", offset " ++ show ao
-             ++ ", l=" ++ show (product sh)
-             ++ ", backing=" ++ show (VS.length v)
-             ++ ", regime=" ++ show reg
-             ++ ", agree=" ++ show agree ++ ", builds=" ++ show builds
-             ++ (if null failedConds then ""
-                 else " FAILED " ++ unwords failedConds)
+  putStrLn $ name ++ ": " ++ describe reg agree builds failedConds
   unless (agree && builds && reg == expReg && null failedConds) $
     error ("CHECK FAILED: " ++ name
            ++ (if reg == expReg then "" else ", regime " ++ show reg
-               ++ " where the class owes " ++ show expReg)
+               ++ " where the view owes " ++ show expReg)
            ++ (if null failedConds then ""
-               else ", class conditions failed: "
-                    ++ unwords failedConds)
+               else ", conditions failed: " ++ unwords failedConds)
            ++ (if null bad then "" else ", disagreeing: " ++ unwords bad))
+
+-- 'checkView' with a line giving the view whole, as 'check' prints the
+-- class views and the hand-built one.
+oneViewReg :: Int -> String -> ShapeL -> T -> [(String, Bool)] -> IO ()
+oneViewReg expReg name sh a@(T (Strides ats) ao v) =
+  checkView describe expReg name sh a
+  where
+    describe reg agree builds failedConds =
+      "view " ++ show sh ++ ", strides " ++ show ats
+      ++ ", offset " ++ show ao
+      ++ ", l=" ++ show (product sh)
+      ++ ", backing=" ++ show (VS.length v)
+      ++ ", regime=" ++ show reg
+      ++ ", agree=" ++ show agree ++ ", builds=" ++ show builds
+      ++ (if null failedConds then ""
+          else " FAILED " ++ unwords failedConds)
 
 -- Correctness / non-vacuity, in its own mode (@cabal run micro -- check@) so
 -- it runs as a separate process from the timed benchmark: every shape must
@@ -7773,21 +7933,16 @@ oneViewReg expReg name sh a@(T (Strides ats) ao v) conds = do
 -- 'roster' the benchmark is built from, so a strategy cannot be timed
 -- without being checked; a disagreeing arm is named rather than merely
 -- counted, which a chain of @&&@ could not do. After the main set and the
--- degenerates, the stride-class lists run through 'oneView' with their
--- class conditions, in the order the lists are defined.
+-- degenerates, the stride-class views run with their class conditions,
+-- in 'classChecks'' order.
 check :: IO ()
 check = do
   mapM_ (\(n, s) -> putStrLn $ "FLAGGED too big, excluded: " ++ n ++ " "
                                ++ show s ++ ", l=" ++ show (product s))
         tooBig
   mapM_ one (allShapes ++ degenerateShapes)
-  mapM_ oneRev revShapes
-  mapM_ oneRevSome revSomeShapes
-  mapM_ oneBroadcast broadcastShapes
-  mapM_ oneBroadcastMid broadcastMidShapes
-  mapM_ oneBroadcastMid edgeMidShapes
-  mapM_ oneReshape1 reshape1Shapes
-  mapM_ oneReshape1Strided reshape1StridedShapes
+  mapM_ (\(n, (sh, a), reg, conds) -> oneViewReg reg n sh a conds)
+        classChecks
   -- One hand-built view, checked and never benched: the regime-1 return
   -- with a NONZERO offset, which no generator reaches -- 'mkReshape1'
   -- and 'stretch-inner1' both canonicalize to natural strides at offset
@@ -7803,22 +7958,11 @@ check = do
   -- identical hazard. Never to be benched: timing it would measure
   -- dispatch, the degeneracy 'reshape1-strided-r3' exists to keep out
   -- of the class's timings.
-  oneView "reshape1-slice-off7" [50, 1]
-          (T (Strides [1, 0]) 7 (VS.enumFromN 0 100))
-          [ ("canon-natural-at-offset",
-             case canonView [50, 1] [1, 0] of
-               (csh, cats) -> cats == drop 1 (getStridesT csh)) ]
-  mapM_ oneSliced slicedShapes
-  mapM_ oneWindow windowShapes
-  mapM_ (\(n, s, (st, d)) -> oneWindow (n, s ++ [st, d])) windowStridedShapes
-  mapM_ oneWindowChannels windowChannelShapes
-  mapM_ oneScaled scaledViews
-  mapM_ oneRuns runsShapes
-  mapM_ oneFlip flipShapes
-  mapM_ oneFlipIn flipInViews
-  mapM_ oneBlock blockViews
-  mapM_ oneSmall smallViews
-  mapM_ oneCompose composeViews
+  oneViewReg 3 "reshape1-slice-off7" [50, 1]
+             (T (Strides [1, 0]) 7 (VS.enumFromN 0 100))
+             [ ("canon-natural-at-offset",
+                case canonView [50, 1] [1, 0] of
+                  (csh, cats) -> cats == drop 1 (getStridesT csh)) ]
   -- Last, the two list gates, which ask predicates no view above can:
   -- the laziness gate of 2026-09-07, whether each list producer is as
   -- lazy as master's list, 'lazinessGate' saying which are required to
@@ -7827,16 +7971,8 @@ check = do
   lazinessGate
   emptyListGate
   where
-    one (name, normalSh) = do
-      let (sh, a@(T (Strides ats) ao _)) = mkStrided normalSh
-          rList   = reference sh a
-          -- The builders' direct comparison lives in 'buildersMatch', whose
-          -- comment carries the reason and the per-conjunct non-vacuity.
-          builds  = buildersMatch ao (init sh) (Strides (init ats))
-          bad     = [n | (n, f) <- checkedArms,
-                         not (agreesWithRef rList n (f sh a))]
-          agree   = null bad
-          reg     = regimeOf sh a
+    one (name, normalSh) =
+      let (sh, a) = mkStrided normalSh
           -- What @read-run.py@ can only assume, asserted where the view is
           -- actually in hand. That reader has no strided shape in its JSON,
           -- so it takes the innermost extent to be the second-to-last dim as
@@ -7863,214 +7999,17 @@ check = do
           sInnerOK     = sInnerView == sInnerListed
                       && (sInnerView == 0 || mView == product sh `div`
                                              sInnerView)
-      putStrLn $ name ++ ": normalSh " ++ show normalSh ++ " -> strided "
-                 ++ show sh ++ ", l=" ++ show (product sh)
-                 ++ ", regime=" ++ show reg ++ ", agree=" ++ show agree
-                 ++ ", builds=" ++ show builds
-                 ++ ", sInner=" ++ show sInnerView
-                 ++ (if sInnerOK then "" else " MISMATCHED")
-      unless (agree && builds && reg == 3 && sInnerOK) $
-        error ("CHECK FAILED: " ++ name
-               ++ (if sInnerOK then "" else ", sInner from the view is "
-                   ++ show sInnerView ++ " where the listing's"
-                   ++ " second-to-last dim is " ++ show sInnerListed)
-               ++ (if null bad then ""
-                   else ", disagreeing: " ++ unwords bad))
-    -- The class conditions, one runner per stride class. Each names the
-    -- structural properties its generator owes the class, computed from the
-    -- view in hand and asserted by 'oneView' beside the shared regime,
-    -- agreement and builder checks. Every conjunct is proven non-vacuous by
-    -- a deliberate breakage that keeps the view VALID -- regime 3, agree and
-    -- builds all still green, so the named condition is the only thing
-    -- standing -- except where a record below says the conjunct's space is
-    -- guarded elsewhere. Each record names its breakage and what fired.
-    --
-    -- Non-vacuity: leaving the outermost dim un-reversed (a valid partial
-    -- rev) fails all-negative and offset-top together at the first rev
-    -- shape; growing the backing by 7 with the offset at its top fails
-    -- offset-top alone.
-    oneRev (name, normalSh) =
-      let (sh, a@(T (Strides ats) ao _)) = mkRev normalSh
-      in  oneView name sh a
-            [ ("all-negative", all (< 0) ats)
-            , ("offset-top",   ao == product sh - 1) ]
-    -- Non-vacuity: reversing every dim regardless of the entry's subset (a
-    -- valid full rev) fails mixed-signs alone -- offset-rev-sum passes,
-    -- deriving from the view; growing the backing by 7 with the offset
-    -- shifted by 6 fails offset-rev-sum alone.
-    oneRevSome (name, rs, normalSh) =
-      let (sh, a@(T (Strides ats) ao _)) = mkRevSome rs normalSh
-      in  oneView name sh a
-            [ ("mixed-signs",    any (< 0) ats && any (> 0) ats)
-            , ("offset-rev-sum", ao == sum [(n - 1) * negate t
-                                           | (n, t) <- zip sh ats, t < 0]) ]
-    -- Non-vacuity: doubling the backing fails one-elem-per-run alone.
-    -- stride0-inner has no valid same-backing falsification: an innermost
-    -- stride of 1 over the tight backing reads past the source and died on
-    -- the reference's bounds check when tried, and a backing that admits it
-    -- makes the view regime 2 -- so that conjunct's space is guarded by the
-    -- bounds and regime checks, and it stands here as the class's
-    -- definition rather than as a live tripwire.
-    oneBroadcast (name, sh) =
-      let (sh', a@(T (Strides ats) _ v)) = mkBroadcast sh
-      in  oneView name sh' a
-            [ ("stride0-inner",    last ats == 0)
-            , ("one-elem-per-run", VS.length v == product (init sh')) ]
-    -- Non-vacuity: appending the broadcast axis innermost instead of
-    -- inserting it (a valid 'mkBroadcast'-shaped view) fails stride0-outer
-    -- alone, stretch-factor staying true; doubling the backing fails
-    -- stretch-factor alone.
-    oneBroadcastMid (name, b, normalSh) =
-      let (sh, a@(T (Strides ats) _ v)) = mkBroadcastMid b normalSh
-      in  oneView name sh a
-            [ ("stride0-outer",  0 `elem` init ats && last ats /= 0)
-            , ("stretch-factor", VS.length v * b == product sh) ]
-    -- Non-vacuity: building the dense strides innermost-two-swapped (a
-    -- valid transposed view) fails contiguous alone -- at reshape1-r3, the
-    -- rank-1 entry passing because the swap is the identity there, which is
-    -- why the class keeps an entry with differing trailing dims.
-    oneReshape1 (name, normalSh) =
-      let (sh, a@(T (Strides ats) _ v)) = mkReshape1 normalSh
-      in  oneView name sh a
-            [ ("stride0-inner", last ats == 0)
-            , ("contiguous",    VS.length v == product sh
-                                && init ats
-                                   == drop 1 (getStridesT (init sh))) ]
-    -- The sibling's negation, and that is the point of it: same stride-0
-    -- innermost dim, and strided once canonicalized, so neither a slice
-    -- nor a run memcpy can serve it and the canon arms measure filling
-    -- here rather than dispatch. The condition asks 'canonView' itself
-    -- for that property -- the property the shape exists for -- rather
-    -- than a proxy over the raw strides.
-    --
-    -- Non-vacuity: swapping 'mkStrided' for 'mkReshape1''s dense source
-    -- fails canon-strided alone -- which is exactly the degeneracy this
-    -- shape was added against, so the check fires on the thing it exists
-    -- to exclude. Proven over the 'canonView' form, 2026-08-25.
-    oneReshape1Strided (name, normalSh) =
-      let (sh, a@(T (Strides ats) _ _)) = mkReshape1Strided normalSh
-      in  oneView name sh a
-            [ ("stride0-inner", last ats == 0)
-            , ("canon-strided",
-               case canonView sh ats of
-                 (csh, cats) -> cats /= drop 1 (getStridesT csh)
-                                && last cats `notElem` [0, 1]) ]
-    -- Non-vacuity: slicing at the origin fails offset-positive alone;
-    -- zeroing the margins as well fails both conditions, the view then
-    -- being 'mkStrided''s own.
-    oneSliced (name, normalSh) =
-      let (sh, a@(T _ ao v)) = mkSliced normalSh
-      in  oneView name sh a
-            [ ("offset-positive",   ao > 0)
-            , ("backing-enclosing", VS.length v
-                                    == product (map (+ 2) normalSh)) ]
-    -- Non-vacuity: an innermost stride of 2 in place of the row multiple
-    -- (still in-bounds) fails row-multiples alone; shrinking the view to a
-    -- single patch fails aliasing alone. The condition was dup-stride,
-    -- outer equal to innermost, until the strided and dilated windows of
-    -- 2026-09-03, whose two are @s * w@ and @d * w@.
-    oneWindow (name, hwkk) =
-      let (sh, a@(T (Strides ats) _ v)) = mkWindow hwkk
-          w = hwkk !! 1
-          rowMultiples = case ats of
-            t : _ -> t `mod` w == 0 && last ats `mod` w == 0
-            []    -> False
-      in  oneView name sh a
-            [ ("aliasing",      VS.length v < product sh)
-            , ("row-multiples", rowMultiples) ]
-    -- The same two conditions of a channel view, whose builder reads
-    -- [h, w, c, kh, kw]; the channel stride is a multiple of the width
-    -- too, but the condition reads the first and last strides as above.
-    oneWindowChannels (name, hwckk) =
-      let (sh, a@(T (Strides ats) _ v)) = mkWindowChannels hwckk
-          w = hwckk !! 1
-          rowMultiples = case ats of
-            t : _ -> t `mod` w == 0 && last ats `mod` w == 0
-            []    -> False
-      in  oneView name sh a
-            [ ("aliasing",      VS.length v < product sh)
-            , ("row-multiples", rowMultiples) ]
-    -- Non-vacuity: a 1 in an entry's stride list fails no-unit-stride
-    -- alone -- the mistyped entry being exactly what it guards -- and five
-    -- elements of backing slack fail tight-backing alone.
-    -- Non-vacuity, 2026-08-28: padding the outer stride by 0 instead of 1
-    -- (a valid dense view) fails the regime, 1 where the class owes 2;
-    -- listing a rank-1 shape is refused by 'mkRuns' itself.
-    oneRuns (name, sh) =
-      let (sh', a@(T (Strides ats) _ _)) = mkRuns sh
-          (_, cats) = canonView sh' ats
-      in  oneViewReg 2 name sh' a
-            [ ("innermost-unit", last ats == 1)
-            , ("canon-rank2",    length cats == 2 && last cats == 1) ]
-    oneScaled (name, sh, strides) =
-      let (sh', a@(T (Strides ats) _ v)) = mkScaled sh strides
-      in  oneView name sh' a
-            [ ("no-unit-stride", all (>= 2) ats)
-            , ("tight-backing",  VS.length v
-                                 == 1 + sum (zipWith (\s t -> (s - 1) * t)
-                                             sh' ats)) ]
-    -- Non-vacuity of the four below, proven at the interpreter on
-    -- 2026-09-03 over small views of each generator's own kind. flip:
-    -- leaving the last dim un-reversed (a valid partial rev) fails
-    -- innermost-minus-one and canon-minus-one together and the regime
-    -- with them, 2 where the class owes 3 -- so those two stand as the
-    -- class's definition, their space guarded by the regime check, as
-    -- bcast's stride0-inner does -- while shifting the offset by 7 over a
-    -- backing grown by 7 fails offset-rev-sum alone. block: an enclosure
-    -- equal to the view fails canon-rank and the regime together, 1 where
-    -- the class owes 2, and a backing grown by 7 fails backing-enclosing
-    -- alone; innermost-unit and offset-listed derive from the generator
-    -- and stand as its definition. small: a backing grown by 1 fails
-    -- tight-backing alone, and a view of 1152 elements fails few-hundred
-    -- alone. compose: a lone innermost zero stride at offset 0 fails
-    -- second-mechanism alone. flipIn, 2026-09-05: no dim reversed fails
-    -- reversed alone; an enclosure of the view's own row length fails
-    -- row-gap alone; the offset shifted by 7 fails offset-rev-sum alone;
-    -- a backing grown by 7 fails backing-enclosing alone.
-    oneFlip (name, rs, sh) =
-      let (sh', a@(T (Strides ats) ao _)) = mkFlip rs sh
-          (_, cats) = canonView sh' ats
-      in  oneView name sh' a
-            [ ("innermost-minus-one", last ats == -1)
-            , ("canon-minus-one",     last cats == -1)
-            , ("offset-rev-sum", ao == sum [(n - 1) * negate t
-                                           | (n, t) <- zip sh' ats, t < 0]) ]
-    oneFlipIn (name, reg, rs, sh, esh) =
-      let (sh', a@(T (Strides ats) ao v)) = mkFlipIn rs sh esh
-      in  oneViewReg reg name sh' a
-            [ ("reversed",          any (< 0) ats)
-            , ("row-gap",           last esh > last sh')
-            , ("offset-rev-sum",    ao == sum [(n - 1) * negate t
-                                              | (n, t) <- zip sh' ats, t < 0])
-            , ("backing-enclosing", VS.length v == product esh) ]
-    oneBlock (name, sh, esh, ao) =
-      let (sh', a@(T (Strides ats) ao' v)) = mkBlock sh esh ao
-          (csh, _) = canonView sh' ats
-      in  oneViewReg 2 name sh' a
-            [ ("innermost-unit",    last ats == 1)
-            , ("canon-rank",        length csh == length sh')
-            , ("offset-listed",     ao' == ao)
-            , ("backing-enclosing", VS.length v == product esh) ]
-    oneSmall (name, reg, sh, strides) =
-      let (sh', a@(T (Strides ats) _ v)) = mkSmall sh strides
-      in  oneViewReg reg name sh' a
-            [ ("few-hundred",   product sh' < 1000)
-            , ("tight-backing", VS.length v
-                                == 1 + sum (zipWith (\s t -> (s - 1) * t)
-                                            sh' ats)) ]
-    oneCompose (name, sh, strides, ao) =
-      let (sh', a@(T (Strides ats) ao' v)) = mkCompose sh strides ao
-          zeros = [i | (i, t) <- zip [0 :: Int ..] ats, t == 0]
-          apart = or [b - c > 1 | (c, b) <- zip zeros (drop 1 zeros)]
-          second = any (< 0) ats || ao' > 0 || length zeros == length ats
-                   || apart
-      in  oneView name sh' a
-            [ ("zero-stride",      not (null zeros))
-            , ("second-mechanism", second)
-            , ("tight-backing",    VS.length v
-                                   == 1 + ao' + sum [(s - 1) * t
-                                                    | (s, t) <- zip sh' ats
-                                                    , t > 0]) ]
+          describe reg agree builds _ =
+            "normalSh " ++ show normalSh ++ " -> strided "
+            ++ show sh ++ ", l=" ++ show (product sh)
+            ++ ", regime=" ++ show reg ++ ", agree=" ++ show agree
+            ++ ", builds=" ++ show builds
+            ++ ", sInner=" ++ show sInnerView
+            ++ (if sInnerOK then "" else " MISMATCHED")
+      in  checkView describe 3 name sh a
+            [ ("sInner from the view is " ++ show sInnerView
+               ++ " where the listing's second-to-last dim is "
+               ++ show sInnerListed, sInnerOK) ]
 
 -- Allocation diagnostic (run with @cabal run micro -- diag@): why is
 -- 'fbBQmut' faster than 'fbBaseOffsetsQuot' when they share the same
@@ -8084,7 +8023,7 @@ check = do
 diag :: IO ()
 diag = do
   putStrLn "=== heap allocated per run base-offsets build (bytes), lower is leaner ==="
-  putStrLn "(each builds the SAME m-element table; only method and element width differ)"
+  putStrLn "(each builds the SAME m-element table; only the method differs)"
   mapM_ one [ ("cnn-L1-24x24 [24,24,1,3,3]",  [24, 24, 1, 3, 3])
             , ("vgg-14-c512  [14,14,512,3,3]", [14, 14, 512, 3, 3]) ]
   where
@@ -8095,44 +8034,9 @@ diag = do
           m    = product osh
       putStrLn $ "\n" ++ name ++ "  (m = " ++ show m ++ " base-offsets, "
                  ++ show (VU.length (baseOffsetsMut 0 osh oats)) ++ " built)"
-      measure "  baseOffsetsList   fromListN . runBaseOffsets (lazy list) " (\k -> baseOffsetsList   k osh oats)
-      measure "  baseOffsetsGen    VU.generate + per-run quotRem          " (\k -> baseOffsetsGen    k osh oats)
-      measure "  baseOffsetsGenLemire  Gen with 'fastQR'                  " (\k -> baseOffsetsGenLemire k osh oats)
-      measure "  baseOffsetsExpand VU.concatMap iterated expansion        " (\k -> baseOffsetsExpand k osh oats)
-      measure "  baseOffsetsExpandZF  Expand, zip and fold fused          " (\k -> baseOffsetsExpandZF k osh oats)
-      measure "  baseOffsetsExpandB   Expand seeded from the first dim    " (\k -> baseOffsetsExpandB  k osh oats)
-      measure "  baseOffsetsScan   scanl' over a generated delta stream   " (\k -> baseOffsetsScan   k osh oats)
-      measure "  baseOffsetsScanRem  Scan with quotRem divisibility       " (\k -> baseOffsetsScanRem k osh oats)
-      measure "  baseOffsetsOdo    unfoldrExactN 3-Int odometer state     " (\k -> baseOffsetsOdo    k osh oats)
-      measure "  baseOffsetsScanPacked  Scan with one-Int packed state    " (\k -> baseOffsetsScanPacked k osh oats)
-      measure "  baseOffsetsMut    VU.create mutable odometer             " (\k -> baseOffsetsMut    k osh oats)
-      measure "  baseOffsetsMutRuns  Mut with leaf run-writes             " (\k -> baseOffsetsMutRuns k osh oats)
-      measure32 "  baseOffsetsExpand32  Expand at Int32                   " (\k -> baseOffsetsExpand32 k osh oats)
-      measure32 "  baseOffsetsMut32  Mut at Int32                         " (\k -> baseOffsetsMut32  k osh oats)
-    -- Int32 twin of 'measure': the checksum folds to Int so it neither
-    -- overflows nor allocates a converted copy.
-    measure32 label build = do
-      let n = 500 :: Int
-      performGC
-      s0 <- getRTSStats
-      let loop !acc !k
-            | k >= n    = acc
-            | otherwise =
-                loop (acc + VU.foldl' (\a x -> a + fromIntegral x) 0 (build k))
-                     (k + 1)
-      tot <- evaluate (loop (0 :: Int) 0)
-      -- Both readings are GC'd, not just the first: 'allocated_bytes' only
-      -- advances at a GC, so without this the tail since the last one goes
-      -- uncounted -- and a build small enough that no GC fires at all over
-      -- the whole loop reads as 0 bytes rather than as its true size.
-      performGC
-      s1 <- getRTSStats
-      let bytes =
-            (fromIntegral (allocated_bytes s1 - allocated_bytes s0) :: Int)
-            `div` n
-      putStrLn $ label ++ ": "
-                 ++ show bytes ++ " bytes  (checksum "
-                 ++ show tot ++ ")"
+      mapM_ (\(label, builder) -> measure ("  " ++ label)
+                                           (\k -> builder k osh oats))
+            offsetBuilders
     measure label build = do
       let n = 500 :: Int
       performGC
