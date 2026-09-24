@@ -14438,11 +14438,12 @@ RECORDS = [
     # at all. The session added file names to get past it. Found
     # 2026-09-24 by Run 40's preparation.
     case('registration-prior-mode-with-arguments-refused', 'read-run.py',
-         None,
+         '9f7b276',
          'a prior naming its mode with the arguments was read as naming none',
          plant=lambda t: {'readme': prior_with_mode_args(t)},
          argv=['--lint', '--readme', '{readme}'],
-         ok=V(hasnt=['quotes a prior and names neither'])),
+         ok=V(hasnt=['quotes a prior and names neither']),
+         bug=V(has=["Run 99's item (1) quotes a prior and names neither"])),
 
     # ---- --lint, and a registration's script that `./` cannot run ------
     # Run 39's registration adjudicates its item (2) by `script:
