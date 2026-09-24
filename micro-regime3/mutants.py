@@ -1164,4 +1164,19 @@ MUTANTS = [
      ' \'%sleaf-u1\'))\\n" "$p" >> "{dir}/mutants.py";'
      ' cd "{dir}" && python3 "{file}" --lint 2>&1'
      ' | grep -q "mutant judge(s) name arms"'),
+    # registration-drift.py --since, blinded: the walk back from a changed
+    # definition to the arms that reach it stops at the definition itself,
+    # so an arm reaching the change through a caller is reported untouched
+    # -- `lib-a` reaches `fooFill` only through `fbA`. The judge builds the
+    # case's own throwaway checkout and wants the arm named.
+    ('drift --since stops walking at the changed definition',
+     'registration-drift.py',
+     '        seen, todo = set(touched), list(touched)',
+     '        seen, todo = set(touched), []',
+     'cd "{dir}" && python3 -c "import sys, tempfile, subprocess;'
+     ' sys.path.insert(0, \'.\'); import defects;'
+     ' d = defects.drift_since_repo(tempfile.mkdtemp())[\'dir\'];'
+     ' o = subprocess.run([\'python3\', \'{file}\', \'run97\','
+     ' \'--since\', \'run96\', \'--dir\', d], capture_output=True,'
+     ' text=True).stdout; sys.exit(0 if \'arms: lib-a\' in o else 1)"'),
 ]

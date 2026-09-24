@@ -2279,6 +2279,36 @@ def drift_repo(tmp, moved=True):
     return {'dir': d}
 
 
+def drift_since_repo(tmp, code=True):
+    """A throwaway checkout for `registration-drift.py --since`: a roster
+    of two arms, `lib-a` reaching `fooFill` through `fbA` and `lib-b`
+    reaching nothing, built once as Run 96, then one commit that changes
+    `fooFill`'s code where `code` and only a comment above it otherwise;
+    Run 97's note names the tip, and no binary is here."""
+    d = os.path.join(tmp, 'repo')
+    os.makedirs(d)
+    g = lambda *a: subprocess.run(['git', '-C', d, '-c', 'user.email=t@t',
+                                   '-c', 'user.name=t'] + list(a),
+                                  check=True, capture_output=True, text=True)
+    g('init', '-q')
+    head = ('roster :: [(String, Arm)]\nroster =\n'
+            '  [ ("lib-a",  Fill fbA)\n  , ("lib-b",  Fill fbB)\n  ]\n'
+            'fbA :: Int\nfbA = fooFill 1\nfbB :: Int\nfbB = 2\n')
+    write(os.path.join(d, 'Main.hs'),
+          head + 'fooFill :: Int -> Int\nfooFill x = x\n')
+    g('add', '.')
+    g('commit', '-q', '-m', 'build 96')
+    base = g('rev-parse', '--short', 'HEAD').stdout.strip()
+    write(os.path.join(d, 'Main.hs'), head + (
+        'fooFill :: Int -> Int\nfooFill x = x + 1\n' if code else
+        '-- a note on the fill\nfooFill :: Int -> Int\nfooFill x = x\n'))
+    g('commit', '-q', '-am', 'rebuild the fill' if code else 'note the fill')
+    tip = g('rev-parse', '--short', 'HEAD').stdout.strip()
+    write(os.path.join(d, 'run96-pair.txt'), '  Main.hs at        %s\n' % base)
+    write(os.path.join(d, 'run97-pair.txt'), '  Main.hs at        %s\n' % tip)
+    return {'dir': d}
+
+
 def doc_of_a_list(tmp, items=4):
     """A document whose one list has no blank line between its items.
 
@@ -13210,6 +13240,25 @@ RECORDS = [
          plant=lambda t: drift_repo(t, moved=False),
          argv=['run97', '--dir', '{dir}'],
          ok=V(exit=0, has=['no commit to Main.hs between them'])),
+
+    case('drift-since-names-the-arms-a-commit-reaches',
+         'registration-drift.py', None,
+         'CONTROL: --since names the definition a commit changed and the'
+         ' roster arm reaching it through a caller, and the arm it does not',
+         plant=lambda t: drift_since_repo(t, code=True),
+         argv=['run97', '--since', 'run96', '--dir', '{dir}'],
+         ok=V(exit=1, has=['rebuild the fill', 'code: fooFill',
+                           'arms: lib-a', 'by none: lib-b'])),
+
+    case('drift-since-reads-a-comment-only-commit-as-one',
+         'registration-drift.py', None,
+         'CONTROL: a commit moving only a comment changes no definition and'
+         ' reaches no arm',
+         plant=lambda t: drift_since_repo(t, code=False),
+         argv=['run97', '--since', 'run96', '--dir', '{dir}'],
+         ok=V(exit=1, has=['note the fill', 'code: none -- comments only',
+                           'by none: lib-a, lib-b'],
+              hasnt=['arms: lib-a'])),
 
     case('predictions-in-place-keeps-the-headings-two-blanks', 'read-run.py',
          'd941cc6',
