@@ -3456,11 +3456,16 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
         fillStage2 (Axes t n (InnerFirst rest)) ao l v
   where l = product sh
 
+-- The outer levels of a view as 'fillStage2' walks them: the fused
+-- level's runs, a level of @n@ steps of stride @st@ over blocks of @blk@
+-- elements, or @n@ copies of a block of @blk@ at stride 0.
+data Nest = Fused | Dim !Int !Int !Int !Nest | Rep !Int !Int !Nest
+
 -- The fill the library's 'genericFillStrided' is ported from, at
 -- Storable Double; the library's copy is in its Data/Array/Internal.hs.
--- This one numbers the odometer's levels innermost first and keeps them
--- in one table of pairs, and 'fillStage2Axes' below keeps them numbered
--- outermost first in two tables, as ported and in step with the library.
+-- This one walks the outer levels as a 'Nest' folded over them innermost
+-- first, and 'fillStage2Axes' below numbers them outermost first in two
+-- tables, as ported and in step with the library.
 -- 'check' holds this one to the reference on every view. The two
 -- zero-stride bodies say at
 -- their definitions what each buys, and the fills that keep older forms
@@ -3490,9 +3495,9 @@ fillStage2 (Axes tInner sInner outerAxes) !ao !l !v =
                     else VSM.unsafeWrite out o (VS.unsafeIndex v src)
                 | otherwise = do
                     VSM.unsafeWrite out o (VS.unsafeIndex v src)
-                    let !src' = src + tInner
-                    VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
-                    inner (o + 2) (src' + tInner)
+                    let !srcNext = src + tInner
+                    VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v srcNext)
+                    inner (o + 2) (srcNext + tInner)
           in  inner outPos baseOff
         -- Unrolled by two as the stepping run is, since 2026-09-09: one
         -- write and a compare per element read 1.20 of master's leaf
@@ -3552,47 +3557,40 @@ fillStage2 (Axes tInner sInner outerAxes) !ao !l !v =
                     | otherwise = writeRun op boff
                                   >> run (k - 1) (op + sInner) (boff + st)
               in  run n outPos baseOff
-        -- The runs loop stays inside 'go', a function the fill calls, so
-        -- that the result's length and buffer wait in the caller's frame:
-        -- the loop has no register to spare, and inlined into the fill's
-        -- body, as special-casing a level count there would inline it, it
-        -- spills (README.md#dead-ideas).
-        go :: Int -> Int -> Int -> ST s Int
-        go !lev !outPos !baseOff
-          | lev < 0 =
-              (if tInner == 0 then writeRunSet else writeRunStep) outPos baseOff
-              >> return (outPos + sInner)
-          | otherwise =
-              case VU.unsafeIndex levelsV lev of (!st, !n) -> level n st
-          where
-            level :: Int -> Int -> ST s Int
-            level !n !st
-              | lev == 0 =
-                  if tInner == 0
-                  then runsWith writeRunSet n st outPos baseOff
-                  else runsWith writeRunStep n st outPos baseOff
-              | st == 0 = do
-                  op' <- go (lev - 1) outPos baseOff
-                  copies n (op' - outPos) outPos
-              | otherwise =
-                  let dim :: Int -> Int -> Int -> ST s Int
-                      dim !k !op !boff
-                        | k <= 0    = return op
-                        | otherwise = go (lev - 1) op boff
-                                      >>= \op' -> dim (k - 1) op' (boff + st)
-                  in  dim n outPos baseOff
-    _ <- go (rOuter - 1) 0 ao
+        -- The nest built over the outer axes, innermost first: the fused
+        -- level's runs at the head and each level above a loop of @n@
+        -- blocks of @blk@ elements around the nest below it, as data so
+        -- that each level is a known call of 'run', where closures lose.
+        wrap :: (Nest, Int) -> (Int, Int) -> (Nest, Int)
+        wrap (inner, !blk) (!st, !n) =
+          let !nest | st == 0   = Rep n blk inner
+                    | otherwise = Dim n st blk inner
+              !blkNext = n * blk
+          in  (nest, blkNext)
+    case innerFirst outerAxes of
+      [] -> (if tInner == 0 then writeRunSet else writeRunStep) 0 ao
+      (!st0, !n0) : outer ->
+          -- Out of line so that its runs loop is allocated registers
+          -- alone: inlined into 'run', it spills one every two elements.
+          let {-# NOINLINE fused #-}
+              fused :: Int -> Int -> ST s ()
+              fused !outPos !baseOff =
+                (if tInner == 0
+                 then runsWith writeRunSet n0 st0 outPos baseOff
+                 else runsWith writeRunStep n0 st0 outPos baseOff) >> return ()
+              run :: Nest -> Int -> Int -> ST s ()
+              run Fused !outPos !baseOff = fused outPos baseOff
+              run (Rep n blk inner) !outPos !baseOff =
+                run inner outPos baseOff >> copies n blk outPos >> return ()
+              run (Dim n st blk inner) !outPos !baseOff =
+                let dim :: Int -> Int -> Int -> ST s ()
+                    dim !k !op !boff
+                      | k <= 0    = return ()
+                      | otherwise = run inner op boff
+                                    >> dim (k - 1) (op + blk) (boff + st)
+                in  dim n outPos baseOff
+          in  run (fst (foldl' wrap (Fused, n0 * sInner) outer)) 0 ao
     return out
-  -- No doubled stride here any more; see the fill's own note.
-  !rOuter = VU.length levelsV
-  -- The odometer's levels are numbered innermost first, the fused
-  -- level 0 and the run below it, so nothing is reversed. One table
-  -- of (stride, extent) pairs, which unboxed is the two arrays the
-  -- two tables were, built in one pass over the list and counted by
-  -- its length, where 'fillStage2Axes' walks the list once for its
-  -- length and twice for its tables; since 2026-09-23, for Run 39.
-  levelsV :: VU.Vector (Int, Int)
-  !levelsV = VU.fromList (innerFirst outerAxes)
 
 -- 'fillStage2' with the odometer's levels numbered outermost first,
 -- the outer axes reversed for it in the prologue, one change: the
@@ -4326,10 +4324,11 @@ fbLibStage2Short sh (T (Strides ats) ao v)
 fbLibStage2Lean :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Lean sh a@(T _ _ v) = routeVector v (routeList4 sh a)
 
--- 'fbLibStage2Lean' over 'fillStage2', the odometer numbered innermost
--- first, where that arm keeps 'fillStage2Axes': one change, so that
--- arm is its control and the pair prices the numbering under the lean
--- dispatch; reasons at 'fillStage2Axes'. Added 2026-09-21.
+-- 'fbLibStage2Lean' over 'fillStage2', the nest folded over the outer
+-- axes innermost first, where that arm keeps 'fillStage2Axes', the
+-- odometer numbered outermost first: one change, so that arm is its
+-- control and the pair prices the walk under the lean dispatch; reasons
+-- at 'fillStage2Axes'. Added 2026-09-21.
 {-# NOINLINE fbLibStage3Lean #-}
 fbLibStage3Lean :: ShapeL -> T -> VS.Vector Double
 fbLibStage3Lean sh a@(T _ _ v) = routeVectorInward v (routeList4 sh a)

@@ -768,10 +768,11 @@ rather than a slot in the next run, observed again:
   on `c0a8aaa`'s rewrite of the inward fill, which the registration predates;
   and (2) `probe-r39-rules.py` names no arm slower past 3% on both halves in any
   population, so no back-edge rule is named for retirement.
-- `OPEN` **The inward fill's single table of pairs is worth about two points
-  to the fill and one to the list consumer, and no span has priced it alone.**
-  `c0a8aaa`, landing 2026-09-23 after Run 39's registration and before
-  its build, rebuilt `fillStage2` --- the inward fill behind `lib-stage3-lean`,
+- `ANSWERED` **The inward fill's single table of pairs was worth about two
+  points to the fill and one to the list consumer, no span priced it alone,
+  and since 2026-09-24 the fill has no table to price.** `c0a8aaa`, landing
+  2026-09-23 after Run 39's registration and before its build, rebuilt
+  `fillStage2` --- the inward fill behind `lib-stage3-lean`,
   `liblist-stage5-sum` and `libunord-stage14-sum` --- to build one unboxed table
   of (stride, extent) pairs in one pass, while `fillStage2Axes`, behind their
   counterparts, keeps the library's two tables. Run 39 then reads
@@ -789,7 +790,19 @@ rather than a slot in the next run, observed again:
   file](runs/run39.md#results), read after the write-up), which is a saving paid
   per call. **What settles it is one arm**: the table form
   under the outermost-first numbering, beside `lib-stage2-lean`, so that each
-  variable has a pair of its own. Registered 2026-09-23.
+  variable has a pair of its own. Registered 2026-09-23. **Superseded
+  2026-09-24**: `fillStage2` now walks its outer levels as a nest folded
+  over the axes innermost first, with no table and no count, so that arm would
+  price a form no fill carries. Against a build of `cdb007d` under Run 39's
+  recipe the nest's arms retire up to 12% fewer instructions a call on the small
+  views they reach and on `cnn-L1-6x6-c1`, at most half a percent more on any
+  shape counted, and read 0.76 to 0.84 of `lib-stage2-lean` in cycles within
+  each half on `small-patch-k5`, `small-patch-r5`, `small-row96`
+  and `cnn-L1-6x6-c1`, where the basis read 0.90 to 1.02; `stretch-wide-2xM`
+  is the one cell slower, [in the placement
+  section](#what-moves-a-figure-when-no-strategy-changed), and the forms
+  the nest beat are [dead ideas](#dead-ideas). `fillStage2Axes` and the library
+  keep their tables.
 - `OPEN` **Seven reducing consumers newly change what they ALLOCATE
   under `-fspec-constr -fliberate-case`, where one run earlier the same pair
   changed none of them.** On Run 38 the unordered consumers
@@ -6511,7 +6524,26 @@ first, those that did not die on paper at all:
   to 13% slower than `lib-stage3-lean` on Run 39's large single-level shapes.
   Routing the case through the recursive odometer removes the spill at a 72-byte
   closure a call, which is a trick against the allocator, and the special case
-  is complication that `fillStage2` and `genericFillStrided` do without.
+  is complication that `genericFillStrided` does without and `fillStage2`, which
+  since 2026-09-24 builds no table at any level count, has no use for.
+- **Building `fillStage2`'s level nest out of closures, a loop per level around
+  the one below** --- **refuted 2026-09-23 at 1.3 to 2.5 times the instructions
+  of the fill it replaced, and repaired it still loses, so the nest is data
+  walked by one known function.** As first written, `runsWith` met a partial
+  application and stayed out of line, calling each run through an unknown
+  function with boxed arguments; each level returned a boxed position; each
+  closure sat in a lazy field, entered through an indirection; and the fused
+  level's stride and extent came from a lazy pattern. With all four repaired
+  it reads 6 to 17% over the table on the conv shapes: an unknown call every
+  iteration of the level above the fused one, whose callee saves its free
+  variables to a frame for the boxed arguments an unknown caller passes. Two
+  ways round that lose as well: closures taking `Int#`, for which the RTS has
+  no apply pattern beside a state token, so each call goes through `stg_ap_n`
+  and two stack frames; and, in the data form, a recursive runs function
+  in place of `fused`'s `NOINLINE`, whose self-call is a call and not a jump,
+  1.24 of the table on runs of 2. Inlining `fused` into `run` spills `sInner`
+  every two elements, 6 to 11% over on the stretch shapes.
+  `handoff-fill-prologue.md` holds the readings.
 - **Speeding up `toVectorListT` or `toUnorderedVectorListT` by returning a less
   lazy list** --- the whole array filled as a singleton list, or a table built
   before the first slice --- **it may well be faster, and it will not be done.**
@@ -13088,6 +13120,28 @@ hitting L1 at the same rate. What in a code page's physical placement lengthens
 the wait, with every memory-side count level, is the question the mechanism now
 comes to, and the bit-range rule the same evening proposed for it is refuted
 in the frame-draw entry.
+
+**A copy of a loop can carry a cost that follows it wherever it was moved, found
+2026-09-24 on `stretch-wide-2xM` and not explained.** `fillStage2`'s nest runs
+that view's stepping loop from a copy of its own, the odometer's instructions
+under other registers, one of them a store's index in `%r14` that costs a REX
+byte, so the loop is a byte longer and its run tail starts on the next line.
+That copy reads 1.07 to 1.08 of `lib-stage2-lean-u1` in cycles where
+the odometer's reads 1.00 to 1.01, at equal instructions, and the cost follows
+the copy: exchanging the two fills' call sites, which moved both loops, carries
+it to `lib-stage2-lean`; `LOOP_PIN` at residues 8, 16 and 32 leaves it at 1.08
+to 1.09, 24 costing 1.35 to 1.37 as a band of its own; and a fresh copy
+of the file, five nursery sizes and gdb's reading that both fills write one
+output buffer at one address leave it where it was. Its counts part in the front
+end alone, `ic_fetch_stall.ic_stall_any` 5.7M to 5.9M an iteration against 4.0M
+to 4.6M with op-cache misses level at about five thousand and level too
+the integer-scheduler token stall that carried the slow instance above.
+The op-cache fetch count, one HIGHER a run at the costly offset
+of the line-boundary paragraph above, reads one LOWER here, 4.5M against 5.4M,
+and at residues 16 and 32 comes back to 5.4M with the cycles unmoved, so
+on this loop the fetch count and the cost come apart. Swapping the two fills'
+definitions in the source moves neither loop by a byte, so source order
+is no lever on placement here. The readings are in `handoff-fill-prologue.md`.
 
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above
