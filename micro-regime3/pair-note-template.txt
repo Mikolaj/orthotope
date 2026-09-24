@@ -92,9 +92,10 @@ changes what the machine does next; if it changes only the write-up, the
 note says so here.
 
 WHAT THIS PAIR MEASURES [PAIR'S]: one variable, named here, and nothing else. Say
-what the halves differ in and what they do not. The recipe's facts -- its
-switches, the compiler, the project file, the shim commit -- are HOW EACH
-HALF IS BUILT's, and no other block restates them.
+what the halves differ in and what they do not. The recipe itself -- its
+switches, flags and project file -- is spelled out in HOW EACH HALF IS BUILT
+alone; the input blocks below each say whether their input MOVED, and none
+restates the recipe.
 
 THE BASIS IS $R-<basis> [PAIR'S] -- it publishes the big table, the bench counts are
 read from it, every --in-place table comes from it, and it runs second. The

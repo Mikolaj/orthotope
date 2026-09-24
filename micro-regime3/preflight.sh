@@ -753,7 +753,7 @@ step_8
 # half built at plain -O1.
 # So the `--ghc-options` lines alone, which are what cabal is handed, and a
 # block naming none of them is UNCONFIRMED rather than plain -O1 by default.
-# BOTH READINGS ARE FUNCTIONS since 2026-09-24, 9b holding a note-named
+# BOTH READINGS ARE FUNCTIONS since 2026-09-25, 9b holding a note-named
 # half to its own recipe block exactly as this holds the basis: the flag a
 # half's recipe asks for, and the two rows of that half's `diag`, read off
 # one run of it where two runs used to read one row apiece.
@@ -809,7 +809,7 @@ on vgg-14-c512 ($SCAN vs $MUT)"
 fi
 
 # 9b, THE PAIR'S OWN VARIABLE, BY THE NOTE'S VARIABLE-CHECK LINE, since
-# 2026-09-24. `diag` answers for the regime and for nothing else, so what
+# 2026-09-25. `diag` answers for the regime and for nothing else, so what
 # the halves differ in is the note's to name -- and until then it named it
 # in prose, which this step found by grepping `step 9b` and echoed: on Run
 # 40's note the first such line was a sentence ABOUT that step, printed as
@@ -861,6 +861,7 @@ binary reads as $(regime_name "$HIS"): scan/mut $HR"
 | tail -1 | cut -c1-100)"
     fi ;;
   none\ *)
+    VCNONE=1
     printf '  %-4s %-4s %s\n' 9b yours "no trace to read, the note says: \
 ${VC#none }" ;;
   *)
@@ -1185,6 +1186,10 @@ delta is step 6c's to take by hand"
 
 echo
 if [ "$BAD" -eq 0 ]; then
+  # A `none` 9b is a reading nobody has taken, so it is named here as it
+  # was before the VARIABLE-CHECK line existed (2026-09-25).
+  [ "${VCNONE:-0}" = 1 ] && echo "NOT done here: 9b, which the note's \
+VARIABLE-CHECK leaves to a reading."
   echo "all clear. NOT done here: 11 and 12, the smoke sweep and the roster"
   # `inherits` was asserted of 11 and 12 unconditionally, which is right for
   # a session RE-ENTERING a spent preparation and wrong for the first pass,

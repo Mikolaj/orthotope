@@ -14498,14 +14498,16 @@ RECORDS = [
 
     case('draft-repeat-carries-the-pairs-blocks-whole', 'read-run.py', None,
          'CONTROL: --repeat carries a [PAIR\'S] block with no <yours> line'
-         ' and makes each unreadable input a slot at the head',
+         ' and makes an input it cannot read a NOT READ slot at the head,'
+         ' never a MOVED one',
          plant=lambda t: {'note': a_previous_note(t)},
          argv=['--note', '{note}', '--draft', 'run98', '--halves', 'a,b',
                '--repeat'],
          ok=V(exit=0, has=["WHAT THIS PAIR MEASURES [PAIR'S]: the regime",
-                           "MOVED SINCE run97's BUILD, THE SOURCE [PAIR'S]:"
-                           ' <yours>'],
-              hasnt=["WHAT THIS PAIR MEASURES [PAIR'S]: <yours>"])),
+                           "NOT READ SINCE run97's BUILD, THE SOURCE"
+                           " [PAIR'S]: <yours>"],
+              hasnt=["WHAT THIS PAIR MEASURES [PAIR'S]: <yours>",
+                     "MOVED SINCE run97's BUILD, THE SOURCE"])),
 
     case('draft-repeat-refuses-other-halves', 'read-run.py', None,
          'CONTROL: --repeat refuses halves that are not the previous'

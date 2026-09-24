@@ -122,9 +122,9 @@ runs it)"
   # still owes -- a line of output rather than a reading.
   # NUMBERED 2c AND NOT 3: every line this script prints names a step of
   # the chapter's own lists, and the pre-run list's 3 is a retired number
-  # -- the md5s and the two commits read BACK, which preflight's fill-in
-  # derives since 2026-09-24 -- kept unused so no pointer lands on
-  # something else. The block is written at step 2, beside 2a and 2b which
+  # -- the md5s and the two commits read BACK, rows preflight's fill-in
+  # derives, the step being retired 2026-09-25 -- kept unused so no pointer
+  # lands on something else. The block is written at step 2, beside 2a and 2b which
   # are the note's other lines.
   # COUNTED AS SLOTS AND NOT AS FILL-IN ROWS, which is what the marker
   # actually marks: --draft writes `<yours>` for every block it will not

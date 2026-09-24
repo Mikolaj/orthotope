@@ -3772,9 +3772,9 @@ and without it. **TWO CAPABILITIES FOUND.** `--alloc --per-shape` run
 over a PREVIOUS run's two JSONs is how a claim that something is new gets
 measured rather than asserted, and it costs one command per population.
 And `$TMPDIR` is `/tmp` in an UNSANDBOXED call here and `/tmp/claude-1000`
-in a sandboxed one, where horde-ad's portable notes say the variable is unset
-unsandboxed --- so a scratch path written with it lands in two different places
-depending on the call, which is worth a correction in that file.
+in a sandboxed one --- so a scratch path written with it lands in two different
+places depending on the call; horde-ad's portable notes, which said the variable
+was unset unsandboxed, were corrected at `13b5410a9`.
 
 **What Run 37 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is ONE session's worth where it should be two.**
@@ -7398,8 +7398,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      those steps just read and prints the block to paste, marking
     #      `<yours>` the rows this call cannot give -- the sweeps, the
     #      roster pass, repetition, and 8c and 8d, which `--corpus
-    #      --fill-in` prints when it has run them. Steps 9b and 10 read the
-    #      block back.
+    #      --fill-in` prints when it has run them. Step 10 reads the block
+    #      back.
     #      And the fills are read before anything else changes, at 2d
     #      below; 2a and 2b sit between and change neither binary.
     #      Build both, always -- the both-halves-are-built-anew ruling,
@@ -7474,7 +7474,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      blocks and skims the rest, those being the ones it acts on
     #      rather than the ones the preparation wrote
     #  2b. the note's machine lines, written with it and read by
-    #      every script that takes a run: `HALVES: basis=<b> other=<o>`,
+    #      the scripts that take a run: `HALVES: basis=<b> other=<o>`,
     #      which pair-halves.sh reads for all of them and holds the
     #      environment to; `COMPARE: run<N>`, the earlier run
     #      run-gate.sh's machine check, `--movement`, `--bridge` and
@@ -7515,7 +7515,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      says so on the line -- so taking it here is not a duplicate.
     #      What the claim covers, and how Runs 20 and 21 killed its strong
     #      form, are in the prose.
-    #   3. retired 2026-09-24: the two md5s and the Main.hs and shim
+    #   3. retired 2026-09-25: the two md5s and the Main.hs and shim
     #      commits are rows preflight's `--fill-in` derives at 4-10, so
     #      they owe no call of their own. The number stays unused, so that
     #      no pointer to it lands on another step
@@ -8406,12 +8406,13 @@ write only through their redirect and that is enough. A session starts
 in `~/r/horde-ad`, so its sandbox permits writes there and to its own temp
 directory and nowhere else; THIS directory is outside it, and `run-major.sh`
 moves here before doing anything. **And never write `$TMPDIR` here; spell
-the scratch path in full.** That variable is set only under the sandbox,
-so the idiom that works in a read-only check writes to `/` the moment the flag
-that makes a command able to write at all is added --- silently, the write
-succeeding. The rule is about the PLACE and not the variable, because
-the conditional it would otherwise be turns on a property of the call, which
-changes call to call here, where `$TMPDIR/x` is a habit that does not.
+the scratch path in full.** That variable is `/tmp/claude-1000`
+under the sandbox and `/tmp` outside it, so the idiom that works in a read-only
+check writes somewhere else the moment the flag that makes a command able
+to write at all is added --- silently, the write succeeding and the file missing
+from the next sandboxed read. The rule is about the PLACE and not the variable,
+because the conditional it would otherwise be turns on a property of the call,
+which changes call to call here, where `$TMPDIR/x` is a habit that does not.
 `/tmp/a.log` is in neither permitted directory and `/tmp/claude` is not the temp
 directory in every seat; a walk's first redirect there died
 `No such file or directory`. **The two refusals do not look alike, which
@@ -10769,29 +10770,29 @@ the section.
 
 **SO THIS IS TWO LISTS, and there is no case in which a session owes all ten.**
 The numbers never move, so a reference to an item still lands. The pre-run
-list's own head names the six its half owes, which is where a preparation meets
+list's own head names the five its half owes, which is where a preparation meets
 the split; the run and post lists have no such head, so an executing session
-meets it here. What each is for: **The PREPARATION owes 1, 3, 7, 8's delta
-bullets, 9 and 10** --- of item 1, THE PRE-RUN LIST ALONE, and of items 9 and 10
-the halves their own entries name. The launch, rider and counts blocks the note
-carries are in `pair-note-template.txt`, where the note is written from anyway,
-so neither the run list nor the post-run one is owed. Those six decide the pair,
-the roster, the note and what this run is for, and nothing else does.
-**The EXECUTION owes 1 --- the run and post-run lists --- with 2, 4, 5, 6
-and 8's replace list**, every one of which answers a question the write-up asks:
-the replace list is walked at post-run step 6 and gains nothing from being read
-hours early, which run list step 13a already says of it, and the class blocks'
-form is not used until a block is written. **ONE OF THOSE CROSSES BACK,
-and it is 5.** A roster change that parks or drops an arm can leave a live
-property naming an untimed one, which `--lint` refuses at step 7 ---
-so the preparation that made the change is the one that must retire or re-aim
-it, and it owes the properties section to do that. A preparation that parks
-nothing does not owe 5, and step 7 is what tells it which it is. **Reading
-the other session's half is the largest avoidable spend in this chapter after
-the prose itself.** It is a spend the split makes invisible: nothing
-in a handover shows what the session before it read for nothing. Items 2 to 6
-are [the last run's own file](runs/run39.md#results), 3 and 4 being [what
-the next run compares
+meets it here. What each is for: **The PREPARATION owes 1, 3, 7 as pre-run step
+12a scopes it, 9 and 10** --- of item 1, THE PRE-RUN LIST ALONE, and of items 9
+and 10 the halves their own entries name. The launch, rider and counts blocks
+the note carries are in `pair-note-template.txt`, where the note is written
+from anyway, so neither the run list nor the post-run one is owed. Those five
+decide the pair, the roster, the note and what this run is for, and nothing else
+does. **The EXECUTION owes 1 --- the run and post-run lists --- with 2, 4, 5, 6
+and 8, the replace list and its delta bullets**, every one of which answers
+a question the write-up asks: the replace list is walked at post-run step 6
+and gains nothing from being read hours early, which run list step 13a already
+says of it, and the class blocks' form is not used until a block is written.
+**ONE OF THOSE CROSSES BACK, and it is 5.** A roster change that parks or drops
+an arm can leave a live property naming an untimed one, which `--lint` refuses
+at step 7 --- so the preparation that made the change is the one that must
+retire or re-aim it, and it owes the properties section to do that.
+A preparation that parks nothing does not owe 5, and step 7 is what tells
+it which it is. **Reading the other session's half is the largest avoidable
+spend in this chapter after the prose itself.** It is a spend the split makes
+invisible: nothing in a handover shows what the session before it read
+for nothing. Items 2 to 6 are [the last run's own file](runs/run39.md#results),
+3 and 4 being [what the next run compares
 against](runs/run39.md#what-the-next-run-compares-against), 5 [the
 properties](runs/run39.md#the-properties-the-next-run-should-test) and 6 [the
 class blocks](runs/run39.md#the-stride-classes-run-by-run) --- and `--section`

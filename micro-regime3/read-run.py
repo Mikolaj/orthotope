@@ -289,9 +289,10 @@ Modes:
   --note PREV --draft R --halves B,O --repeat   the same for a pair whose
                     recipes are PREV's to the character: the `[PAIR'S]`
                     blocks carried with no `<yours>` line, a slot at the
-                    head for each input that moved since PREV's build --
-                    the source, the shim, the boot -- and every carried
-                    line naming another run flagged; refused where the
+                    head for each input that moved since PREV's build or
+                    that it could not read -- the source, the shim, the
+                    boot -- and each carried block naming another run
+                    flagged with the lines that do; refused where the
                     halves are not PREV's
   --section NAME    print one section's prose by its heading's words,
                     without its tables and naming the size withheld;
@@ -9673,16 +9674,17 @@ def note_check(path, readme, run_doc=None):
                           ' here' % (name, name)))
 
     # 6. AND THE PAIR'S OWN VARIABLE AS A LINE PREFLIGHT RUNS, since
-    # 2026-09-24. Pre-run step 9b was the note's to name in prose, and
+    # 2026-09-25. Pre-run step 9b was the note's to name in prose, and
     # preflight echoed whatever line first said `step 9b` -- on Run 40's
     # note a sentence about the regime, not a command. The line has three
     # forms, and preflight's 9b runs the first two and echoes the third.
     vc = re.search(r'^VARIABLE-CHECK:[ \t]*(.*)$', text, re.M)
     if not vc:
         found.append((0, 'no VARIABLE-CHECK line, so preflight\'s 9b has'
-                         ' nothing to run -- write one under HALVES:'
-                         ' `regime basis|other`, `run CMD => ERE` or'
-                         ' `none REASON`'))
+                         ' nothing to run -- write one in its own block, as'
+                         ' the template\'s THE PAIR\'S OWN VARIABLE, READ'
+                         ' BACK has it: `regime basis|other`, `run CMD =>'
+                         ' ERE` or `none REASON`'))
     elif not re.match(r'(regime (basis|other)|run \S.* => \S.*|none \S.*)'
                       r'\s*$', vc.group(1)):
         found.append((text[:vc.start()].count('\n') + 1,
@@ -9730,10 +9732,11 @@ def _template_machine_blocks(near):
 
 
 def _inputs_moved(near, text):
-    """(input, what moved) for each input of a build that moved since the
+    """(input, kind, what) for each input of a build that moved since the
     one the previous note records: its `Main.hs at` and `shim at` rows
-    against git, and its build date against the boot. An input this
-    cannot read is named as unread rather than as unmoved."""
+    against git, and its build date against the boot. The kind is MOVED,
+    NOT READ where this cannot read the input -- never passed off as
+    unmoved -- or TO READ where the reading is ambiguous."""
     out = []
     for label, path, row in (('THE SOURCE', 'Main.hs', 'Main.hs'),
                              ('THE SHIM', 'align-as.py', 'shim')):
@@ -9744,11 +9747,11 @@ def _inputs_moved(near, text):
                            capture_output=True, text=True)
         now = r.stdout.strip() if r.returncode == 0 else ''
         if not m or not now:
-            out.append((label, '%s unread: the previous note has no row for'
-                        ' it or git has no commit' % path))
+            out.append((label, 'NOT READ', '%s: the previous note has no'
+                        ' row for it or git has no commit' % path))
         elif not (now.startswith(m.group(1)) or m.group(1).startswith(now)):
-            out.append((label, '%s at %s where the previous build had %s'
-                        % (path, now, m.group(1))))
+            out.append((label, 'MOVED', '%s at %s where the previous build'
+                        ' had %s' % (path, now, m.group(1))))
     d = re.search(r'^Verified when built, (\d{4}-\d\d-\d\d)', text, re.M)
     try:
         up = float(open('/proc/uptime').read().split()[0])
@@ -9756,14 +9759,15 @@ def _inputs_moved(near, text):
     except (OSError, ValueError):
         boot = None
     if not d or boot is None:
-        out.append(('THE BOOT', 'unread: no build date in the previous note'
-                    ' or no /proc/uptime'))
+        out.append(('THE BOOT', 'NOT READ', 'no build date in the previous'
+                    ' note or no /proc/uptime'))
     elif boot.strftime('%Y-%m-%d') > d.group(1):
-        out.append(('THE BOOT', 'the box booted %s, after the previous build'
-                    ' of %s' % (boot.strftime('%Y-%m-%d %H:%M'), d.group(1))))
+        out.append(('THE BOOT', 'MOVED', 'the box booted %s, after the'
+                    ' previous build of %s'
+                    % (boot.strftime('%Y-%m-%d %H:%M'), d.group(1))))
     elif boot.strftime('%Y-%m-%d') == d.group(1):
-        out.append(('THE BOOT', 'the box booted %s, the previous build\'s own'
-                    ' day: read it against that evening\'s end'
+        out.append(('THE BOOT', 'TO READ', 'the box booted %s, the previous'
+                    ' build\'s own day: read it against that evening\'s end'
                     % boot.strftime('%Y-%m-%d %H:%M')))
     return out
 
@@ -9780,9 +9784,10 @@ def pair_note(path, draft=None, halves=None, repeat=False):
     values put in, and from the previous note with the names carried over
     where it has not -- retyping them is where a copying error gets in.
     A `[PAIR'S]` block comes back as a MODEL under a `<yours>`
-    line -- whole under `--repeat`, and a `[SAME, ...]` block the note
-    rewrote comes the same way after the template's -- the previous
-    pair's text for this preparation to rewrite: those
+    line -- under `--repeat` as the block itself, with no such line, and a
+    `[SAME, ...]` block the note rewrote comes as a model after the
+    template's, or under `--repeat` in the template's place -- the
+    previous pair's text for this preparation to rewrite: those
     are the decisions, and the marker is what keeps a copied decision
     from passing for one, run-status.sh's 2c counting it as a slot until
     the line is deleted. The handover and the gate's verdict never cross,
@@ -10061,7 +10066,7 @@ def pair_note(path, draft=None, halves=None, repeat=False):
             gate_at += 1
             pairs.append(t)
     moved = _inputs_moved(here, text) if repeat else []
-    pairs += ['MOVED: %s' % t for t, _ in moved]
+    pairs += ['%s: %s' % (k, t) for t, k, _ in moved]
     body = '\n\n'.join(out)
     # The header line carries the previous run's NUMBER and its build DATE,
     # which no rename touches and which would otherwise be the one place a
@@ -10132,9 +10137,12 @@ def pair_note(path, draft=None, halves=None, repeat=False):
     body = body.replace('\x00PREVNOTE\x00', os.path.basename(path))
     if moved:
         body = '\n\n'.join(
-            "MOVED SINCE %s's BUILD, %s [PAIR'S]: <yours> -- %s; rewrite"
-            ' every carried block that describes it and delete this line'
-            % (prev, t, why) for t, why in moved) + '\n\n' + body
+            "%s SINCE %s's BUILD, %s [PAIR'S]: <yours> -- %s; %s, and"
+            ' delete this line'
+            % (k, prev, t, why, 'rewrite every carried block that describes'
+               ' it' if k == 'MOVED' else 'read it, and rewrite the carried'
+               ' blocks describing it if it moved')
+            for t, k, why in moved) + '\n\n' + body
     # A CARRIED BLOCK THAT NAMES ANOTHER RUN IS FLAGGED WHERE IT SITS.
     # The renames above map the PREVIOUS run onto this one and touch no
     # other number, so a `[SAME]` block quoting `run26-g912` as the
@@ -15168,7 +15176,7 @@ def main():
                    help="with --note: print the whole next note for RUN,"
                         ' each [SAME] block from the template and each'
                         " [PAIR'S] block as a model under a <yours> line"
-                        ' (whole under --repeat);'
+                        ' (under --repeat, whole and with no such line);'
                         ' wants --halves')
     p.add_argument('--halves', metavar='BASIS,OTHER',
                    help="with --note --draft: the new pair's two names")
