@@ -7263,16 +7263,16 @@ to reconstruct by reading:
 at the chapter's end under *The reasons behind the three lists*, why each step
 is what it is; a step that surprises you names its paragraph on a `why:` line.
 
-    # READ THIS LIST AND THE LAST RUN'S FILE, AND START. The prose around
-    # these three lists is reasons and restates no fact you need; a step
-    # that surprises you NAMES its paragraph on a `why:` line, which
-    # --check-doc holds to a paragraph that is still there.
-    # YOU ARE THE PREPARATION, and this list plus its `READ NOW` lines
+    # READ THIS LIST AND START. The prose around these three lists is
+    # reasons and restates no fact you need; a step that surprises you
+    # names its paragraph on a `why:` line, which --check-doc holds to a
+    # paragraph that is still there.
+    # You are the preparation, and this list plus its `READ NOW` lines
     # is the whole of what you owe. Of the chapter's readings you owe 1
-    # (this list alone), 3, 7, 8's delta bullets, 9 by the part a step
+    # (this list alone), 3, 7 as 12a scopes it, 9 by the part a step
     # needs and 10 as step 2's draft prints it, and each is named at the
     # step whose work needs it. Reading 5 is owed only where
-    # this preparation PARKS or DROPS an arm: step 7's --lint tells you,
+    # this preparation parks or drops an arm: step 7's --lint tells you,
     # refusing a property that names an untimed arm, and 12a says when to
     # read it. Nothing else in the chapter is owed,
     # and reading the executing session's half is the largest avoidable
@@ -7287,27 +7287,27 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      why: every mode defaults to the newest run file.
     #      Every mode defaults to the newest file, and everything
     #      before post-run step 5 -- the gate's machine check, the tables
-    #      read back -- wants the run BEHIND you and would read this run's
+    #      read back -- wants the run behind you and would read this run's
     #      empty file instead. The disk is where the run number is written.
-    R=runNN; PREV=runMM; REGIME=-fspec-constr   # an EMPTY regime is a
+    R=runNN; PREV=runMM; REGIME=-fspec-constr   # an empty regime is a
     #      plain -O1 build and nothing downstream notices; that hazard is
     #      step 2's alone, REGIME reaching the build and nothing else.
-    #      PREV is the run BEHIND you, which the steps below read from --
+    #      PREV is the run behind you, which the steps below read from --
     #      its note, its basis binary, its fills
-    ./run-status.sh $R                    # 0. WHAT IS ALREADY DONE, off the
+    ./run-status.sh $R                    # 0. what is already done, off the
     #      artifacts and the repository rather than off this list, and it
     #      is not always nothing: a preparation can arrive to find 12a and
     #      12c taken, the registration having landed with the roster
     #      commits days before the pair.
     #      RUN IT AGAIN after the last edit to the note, which 12c repeats
     #      why: it reads the note as the drivers will.
-    #      IT IS THE ONLY CHECK THAT READS THE NOTE AS THE DRIVERS
-    #      WILL -- the four machine lines through pair-halves.sh, the GATE
+    #      It is the only check that reads the note as the drivers
+    #      will -- the machine lines through pair-halves.sh, the GATE
     #      block, the `<yours>` slots. On a copy whose `HALVES:` and
     #      `COMPARE:` lines were folded into the prose (measured
     #      2026-09-19) the readings part three ways: --note-check,
     #      --check-doc and --lint all PASS it, being predicates over
-    #      prose; preflight REFUSES, exit 2 with no step line at all,
+    #      prose; preflight refuses, exit 2 with no step line at all,
     #      which reads like a tooling fault rather than a note defect; and
     #      this names the cause, `2b NOT DONE ... has no 'HALVES:
     #      basis=<b> other=<o>' line`
@@ -7316,7 +7316,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      `nothing named $R-* here` for a run about to be prepared, and
     #      a count of what it found otherwise, which is a run already
     #      under way or a leftover to clear and never a pair to adopt
-    #  IF ANYTHING FOR THIS RUN IS ALREADY HERE, step 1 has caught a
+    #  If anything for this run is already here, step 1 has caught a
     #      preparation that is not yours to redo, and what landed says
     #      which entry point it is: the run's own JSONs mean post-run
     #      step 0; a complete note whose GATE line reads NOT RUN
@@ -7327,7 +7327,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      Rebuilding now would orphan the binaries the run's JSONs are
     #      provenanced to
     #   2. BUILD BOTH HALVES -- unconditional, from the note's own
-    #      recipe. READ NOW, BEFORE ANY OF THIS STEP: item 3, the
+    #      recipe. READ NOW, before any of this step: item 3, the
     #      registration the compares-against prose points at; item 10,
     #      the previous run's note, is read as the draft below prints it.
     #      Item 9, read-run.py's docstring, is read by part when a step
@@ -7335,83 +7335,85 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      what a figure means.
     #      Go back to these the moment a figure surprises you, a gate
     #      refuses a leg, or the roster brings an arm whose relation to
-    #      the forcing pass is new. READING 3 IS ONE CALL AND IT WANTS ITS
-    #      TABLE: `./read-run.py --section 'What the next run compares
+    #      the forcing pass is new. Reading 3 is one call and it wants its
+    #      table: `./read-run.py --section 'What the next run compares
     #      against' --with-tables 1`, the first table being the two-column
-    #      one the reading list asks for. It is a STEP and a session's to
+    #      one the reading list asks for. It is a step and a session's to
     #      run, and the note is the part written by hand.
-    #      THE HALVES LAUNCH FROM DISK, `./$R-<half>`, hugebin/ BEING
-    #      SUSPENDED -- ruled 2026-09-19. A ROW READING `./` IS THE
-    #      EXPECTED READING. PREFLIGHT'S 10f, a step of preflight.sh run at
-    #      4-10 below, REFUSES A MOUNT NOBODY ASKED FOR, since 2026-09-22:
-    #      it FAILs where the path half-bin.sh
-    #      returns for a half is under `hugebin/` and PLACEMENT is unset.
-    #      THE MOUNT IS AN EMERGENCY MEASURE: a run whose question IS the
+    #      The halves launch from disk, `./$R-<half>`, hugebin/ being
+    #      suspended -- ruled 2026-09-19 -- so a row reading `./` is the
+    #      expected reading. Preflight's 10f, a step of preflight.sh run at
+    #      4-10 below, refuses a mount nobody asked for: it FAILs where the
+    #      path half-bin.sh returns for a half is under `hugebin/` and
+    #      PLACEMENT is unset.
+    #      The mount is an emergency measure: a run whose question is the
     #      placement term raises it by hand (`mkdir -p hugebin && sudo
     #      mount hugebin`, root's, the fstab line in half-bin.sh's
     #      header), runs preflight with PLACEMENT=1, says in its note that
     #      it did and on whose word, and takes run-list step 16a with it,
-    #      the mount WRITABLE or 16a leaves the instance UNTESTED. Every
-    #      other run
-    #      leaves it unmounted.
-    #      Write the note FIRST, from pair-note-template.txt. WHAT `FIRST`
-    #      MEANS IS THE RECIPE BLOCK, which is the part the build reads:
+    #      the mount writable or 16a leaves the instance untested. Every
+    #      other run leaves it unmounted.
+    #      Write the note first, from pair-note-template.txt. What `first`
+    #      means is the recipe block, which is the part the build reads:
     #      write that, build the halves on it, and write the rest of the
-    #      prose UNDER the build and the preflight, which are minutes each.
-    #      AND THE NOTE IS NEVER REFLOWED, by any tool. Break a long line
+    #      prose under the build and the preflight, which are minutes each.
+    #      And the note is never reflowed, by any tool. Break a long line
     #      by hand where one bothers you, or leave it long.
-    #      ONE COMMAND DOES THE READING AND THE COPYING, redirected to
+    #      One command does the reading and the copying, redirected to
     #      $R-pair.txt in an unsandboxed call:
     #          ./read-run.py --note $PREV-pair.txt --draft $R \
-    #                        --halves <basis>,<other>
-    #      It is the WHOLE note: each `[SAME]` block from the template with
+    #                        --halves <basis>,<other> [--repeat]
+    #      `--repeat` is for the previous pair's own recipes built again:
+    #      its [PAIR'S] blocks come whole rather than as models, and a
+    #      slot at the head names each input that moved since that build.
+    #      It is the whole note: each `[SAME]` block from the template with
     #      this pair's names and the previous LAUNCH and RIDERS values put
     #      in, each `[PAIR'S]` block the previous note's under a `<yours>`
     #      line as a model to rewrite, the handover and the fill-in rows
     #      empty. Its header names the blocks it took from the template,
     #      any paragraph dropped with one, and every carried block that
-    #      needs re-reading with the reason each is suspect. SO THE NOTE IS
-    #      THAT FILE FILLED IN, not three files assembled, and the
+    #      needs re-reading with the reason each is suspect. So the note is
+    #      that file filled in, not three files assembled, and the
     #      previous note needs no reading of its own.
-    #      WHAT THE PAIR VARIES is settled in the registration, `What Run
+    #      What the pair varies is settled in the registration, `What Run
     #      N is built to answer` in the open list, which *What the next
     #      run compares against* points at and which carries the recipes;
     #      the draft's models are what the previous run built.
-    #      WHERE THE REQUEST DIFFERS from that section, the request wins,
+    #      Where the request differs from that section, the request wins,
     #      and the section and the open list's task recording the
     #      decision are amended first, in a commit of their own.
     #      Every build wants -fforce-recomp and a fresh --builddir; the
-    #      recipe SPELLS THE REGIME OUT rather than interpolating $REGIME.
+    #      recipe spells the regime out rather than interpolating $REGIME.
     #      $REGIME is for the ad-hoc call, and where one is written
     #      --ghc-options="$REGIME" stays quoted. Build the halves back to
-    #      back with nothing touched between, WHICH IS ONE CALL: build,
-    #      copy, build, copy. Keep both executables, delete each
-    #      --builddir once its binary is copied out, and read the pair's
-    #      variable straight out of each with the note's own `strings`
-    #      line before trusting either.
+    #      back with nothing touched between, which is one call: build,
+    #      copy, build, copy. Keep both executables and delete each
+    #      --builddir once its binary is copied out; the pair's variable is
+    #      read back out of each by the note's VARIABLE-CHECK line (2b),
+    #      which preflight runs as 9b.
     #      Then the note's fill-in block: the Main.hs and align-as.py
-    #      commits, the two compilers, the md5s, .text, the fills. DO NOT
-    #      TRANSCRIBE IT -- `--fill-in`, which the preflight line at steps
+    #      commits, the two compilers, the md5s, .text, the fills. Do not
+    #      transcribe it -- `--fill-in`, which the preflight line at steps
     #      4 to 10 carries, derives every one of those rows from what
     #      those steps just read and prints the block to paste, marking
     #      `<yours>` the rows this call cannot give -- the sweeps, the
     #      roster pass, repetition, and 8c and 8d, which `--corpus
     #      --fill-in` prints when it has run them. Steps 9b and 10 read the
-    #      block back, and 3 does on a re-entry.
-    #      AND THE FILLS ARE READ BEFORE ANYTHING ELSE CHANGES, at 2d
-    #      below; 2a and 2b sit between and change neither binary
-    #      BUILD BOTH, ALWAYS -- the BOTH HALVES ARE BUILT ANEW ruling,
-    #      whatever the source and the md5 say. ON A REPETITION THE MD5 IS
-    #      ONE-SIDED, and an md5 that does not reproduce is NOT A STOP:
+    #      block back.
+    #      And the fills are read before anything else changes, at 2d
+    #      below; 2a and 2b sit between and change neither binary.
+    #      Build both, always -- the both-halves-are-built-anew ruling,
+    #      whatever the source and the md5 say. On a repetition the md5 is
+    #      one-sided, and an md5 that does not reproduce is not a stop:
     #      the note records the observation, the write-up carries what
     #      moved. What the recorded inputs do not cover is the dependency
     #      store relinked at unchanged versions, which the two binaries'
     #      ABI hashes show --
     #      the `strings` line is in the paragraph this why names
     #      why: --para 'three rules are what they are'
-    #      ITEM 9 IS HERE AND NOT AT STEP 7 because its definitions --
-    #      corr, net, time, worst, and WHICH ROWS HAVE NO CORRECTED TIME
-    #      AND READ `--`, which is stated there and in no list -- are what
+    #      Item 9 is here and not at step 7 because its definitions --
+    #      corr, net, time, worst, and which rows have no corrected time
+    #      and read `--`, which is stated there and in no list -- are what
     #      this note's prose and every `predict:` span at 12a are written
     #      against. Without `--with-tables` the section mode prints the
     #      prose and says only afterwards that a table was withheld, which
@@ -7419,23 +7421,24 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      The mount failed to come up at the reboot of 2026-09-19. WHY it
     #      cannot come up, and the fstab line that would, are
     #      half-bin.sh's header and are not repeated here.
-    #      WHAT IT COSTS, stated here so no run re-derives it: a code
+    #      What it costs, stated here so no run re-derives it: a code
     #      page sits at the page cache's 4 KiB draw and not at its
     #      layout's offset in a 2 MiB frame, which the placement section
     #      prices at 15 percent on one arm of Run 33's basis. That term
-    #      is back in BOTH halves, so it bears on cross-run absolutes and
+    #      is back in both halves, so it bears on cross-run absolutes and
     #      not on a pair's own two columns. From Run 34 to Run 36 a `./`
-    #      row was the finding. 10f exists so that a mount raised between
-    #      runs cannot take the placement term back in silence, as one did
-    #      on 2026-09-21, caught by hand.
+    #      row was the finding. 10f exists, since 2026-09-22, so that a
+    #      mount raised between runs cannot take the placement term back in
+    #      silence, as one did on 2026-09-21, caught by hand.
     #      There is no builder, every pair being two shims typed out, so
     #      the note comes first: its recipes come from the registration,
     #      the one place that declares them, and the template is what
     #      says what a note owes. A preparation that writes the whole note
     #      before building holds the machine idle while it writes.
     #      `wrap80` is for Markdown and `par` for comment blocks, and this
-    #      file is plain text carrying FOUR machine-read lines --
-    #      `HALVES:`, `COMPARE:`, `LAUNCH:` and `RIDERS:`. `par` over its
+    #      file is plain text carrying machine-read lines -- `HALVES:`,
+    #      `COMPARE:`, `LAUNCH:`, `RIDERS:`, `RERUN:`, `VARIABLE-CHECK:`.
+    #      `par` over its
     #      long paragraphs once folded `HALVES:` and `COMPARE:` into the
     #      prose: the note still READ correctly, and pair-halves.sh could
     #      not find the halves at all.
@@ -7460,17 +7463,17 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     cat $R-pair.txt                       # 2a. the note, quoted by steps
     #      here and in the run list alike -- the halves' roles, the
     #      md5s, the commit, the gate line, and any environment its LAUNCH
-    #      line puts in FRONT of a command. It is WRITTEN at step 2,
+    #      line puts in front of a command. It is written at step 2,
     #      from pair-note-template.txt and before either binary exists;
     #      here it is read, and the steps below quote it
     #      BASIS/OTHER come from its HALVES: line, never from a half's
     #      name, and every script reads them there (2b).
     #      The basis runs second, and both halves run the classes
     #      why: --para 'Which two halves a pair has'
-    #      At run-list step 13 the EXECUTING session reads the [EXEC]
+    #      At run-list step 13 the executing session reads the [EXEC]
     #      blocks and skims the rest, those being the ones it acts on
     #      rather than the ones the preparation wrote
-    #  2b. THE NOTE'S FOUR MACHINE LINES, written with it and read by
+    #  2b. the note's machine lines, written with it and read by
     #      every script that takes a run: `HALVES: basis=<b> other=<o>`,
     #      which pair-halves.sh reads for all of them and holds the
     #      environment to; `COMPARE: run<N>`, the earlier run
@@ -7478,55 +7481,49 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      `--half-movers` read against unless told otherwise, which
     #      `--draft` sets to $PREV and a ruling may change; `LAUNCH:
     #      <NAME=value ...>` or `LAUNCH: none`; and `RIDERS: clean [sat]`
-    #      or `RIDERS: none`, the two run-evening.sh reads. An older
-    #      note's `scripts set` row is not copied forward
+    #      or `RIDERS: none`, the two run-evening.sh reads; `RERUN:`,
+    #      which post-run step 3 reads; and `VARIABLE-CHECK:`, which
+    #      preflight runs as 9b -- `regime basis|other`, `run CMD => ERE`
+    #      or `none REASON`, --note-check refusing a note without it. An
+    #      older note's `scripts set` row is not copied forward
     #      A HALF'S TAG IS ONE TOKEN, `[A-Za-z0-9_]`. Where a declared tag
     #      falls outside that set, the declaration and the registration
     #      are renamed first, in a commit of their own
     #      why: --para 'Which two halves a pair has'
-    #      So nothing is set in any script. pair-halves.sh REFUSES any
+    #      So nothing is set in any script. pair-halves.sh refuses any
     #      other tag, as `--draft` does at step 2
-    ./loop-offsets.py --delta $PREV-<PREV's basis> $R-<basis>   # 2d. THE
-    #      FILLS AGAINST THE PREVIOUS BUILD OF THIS RECIPE, taken the
+    ./loop-offsets.py --delta $PREV-<PREV's basis> $R-<basis>   # 2d. the
+    #      fills against the previous build of this recipe, taken the
     #      moment both binaries exist and before anything else changes.
     #      There is no 2c: that is run-status.sh's label for a finished
     #      note.
-    #      TAKE IT EVERY TIME: it is OWED wherever a timed arm brings a new
+    #      TAKE IT EVERY TIME: it is owed wherever a timed arm brings a new
     #      function, which only 6c shows, later, and it costs nothing where
     #      it is not. Read the previous run's basis off its own note's
     #      HALVES line, which is where preflight's fill-in block reads it.
     #      why: a rebuild retires the comparison.
-    #      A REBUILD RETIRES IT, and the fills read here are the
+    #      A rebuild retires it, and the fills read here are the
     #      pinning claim's only reading.
-    #      THE TWO TAGS ARE NOT ALWAYS ONE: a tag names what a half IS, so
+    #      The two tags are not always one: a tag names what a half is, so
     #      a run that changes the variable renames the basis while the
     #      recipe stands.
     #      It is against the previous build of this recipe and not against
     #      a note's transcription of it -- offsets preserved or not,
-    #      addresses surviving to the byte, and the displacement SET, which
+    #      addresses surviving to the byte, and the displacement set, which
     #      is what the README's readings turn on. preflight's own step 10
     #      reads the fills AGAIN and does not make this comparison -- it
     #      says so on the line -- so taking it here is not a duplicate.
     #      What the claim covers, and how Runs 20 and 21 killed its strong
     #      form, are in the prose.
-    md5sum $R-<basis> $R-<other>          # 3. three rows of the note's
-    git log -1 --format=%h -- :/micro-regime3/Main.hs   #    fill-in
-    git log -1 --format=%h -- :/micro-regime3/align-as.py  #    block: the
-    #      two md5s, the Main.hs commit and the SHIM's. In order this runs
-    #      BEFORE the preflight whose `--fill-in` prints that block; where a
-    #      re-entry has run it already, ITS BLOCK CARRIES ALL THREE, and
-    #      this step is that block read back rather than three calls
-    #      why: the shim is an input to the binary.
-    #      The shim is on the recipe's -pgma and is as much an input
-    #      to the binary as the source is. The run file's
-    #      Provenance records the shim's beside the compiler's
-    #      THREE COMMANDS, ONE STEP, after the build because nothing can
-    #      be summed or checked against a transcription until both halves
-    #      exist
-    #  the :/ pathspec resolves from the repo root, so these answer the same
-    #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
-    #  and exits 0, which reads exactly like an unmoved source
-    #  AND `git show HEAD:FILE` RESOLVES FROM THE ROOT TOO, which is the
+    #   3. retired 2026-09-24: the two md5s and the Main.hs and shim
+    #      commits are rows preflight's `--fill-in` derives at 4-10, so
+    #      they owe no call of their own. The number stays unused, so that
+    #      no pointer to it lands on another step
+    #  a `git log -- :/micro-regime3/FILE` pathspec resolves from the repo
+    #  root, so it answers the same from anywhere; a bare `-- Main.hs` run
+    #  from the root prints nothing and exits 0, which reads exactly like
+    #  an unmoved source
+    #  and `git show HEAD:FILE` resolves from the root too, which is the
     #  same rule read the other way and is the one that answers WRONG
     #  rather than empty: from here `git show HEAD:README.md` hands back
     #  orthotope's top-level README, a different document of a few hundred
@@ -7541,17 +7538,17 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      half written when this runs. Read them, do not chase them;
     #      `./preflight.sh $R --note` re-runs those three and 8 in seconds
     #      once the note is finished, and that is the reading that counts
-    #      4-10 IN ONE CALL: PASS or FAIL per step with what it read, the
-    #      exit status the verdict. IT DOES RUN 10a AND 10b since
-    #      2026-09-19, straight after 4,5 and on their astride count
-    #      alone, the figures staying the note's -- so what it does NOT
-    #      run is 6c, 9b, 11 and 12, whose own lines follow, nor 8c and 8d
-    #      under --no-corpus; its fill-in block QUOTES 2d's and 6c's
+    #      4-10 in one call: PASS or FAIL per step with what it read, the
+    #      exit status the verdict. It runs 10a and 10b too, straight
+    #      after 4,5 and on their astride count alone, the figures staying
+    #      the note's, and 9b by the note's VARIABLE-CHECK line -- so what
+    #      it does not run is 6c, 11 and 12, whose own lines follow, nor 8c
+    #      and 8d under --no-corpus; its fill-in block quotes 2d's and 6c's
     #      readings without judging them. The other steps below are what
     #      it runs and what to reach for when one FAILs
     #      why: 8c and 8d must not overlap 11 and 12.
     #      8c and 8d read every run JSON on disk and so must not run
-    #      while 11 or 12 is WRITING one.
+    #      while 11 or 12 is writing one.
     #      Deferring them is what lets the roster pass -- the longest step
     #      of this half -- start minutes sooner. One call, so none is
     #      skipped by being forgotten.
@@ -7563,20 +7560,20 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     ./$R-<basis> check > /tmp/claude-1000/a.log 2>&1   # 4. every shape agrees
     ./$R-<other> check > /tmp/claude-1000/b.log 2>&1   # 5. and the other half
     cmp /tmp/claude-1000/a.log /tmp/claude-1000/b.log #  byte-identical, or STOP
-    #  WHAT IS NOT A STOP, and it is the one reading this cmp needs: a
-    #      difference confined to an INSTRUMENT'S OWN MEASURED OUTPUT,
+    #  What is not a stop, and it is the one reading this cmp needs: a
+    #      difference confined to an instrument's own measured output,
     #      with every verdict word agreeing and both halves exiting 0, is
     #      a finding about the instrument and not about the pair. Say what
     #      it was, fix the instrument, rebuild both halves and re-run
-    #      this -- do not carry it. ANY OTHER difference is the stop
+    #      this -- do not carry it. Any other difference is the stop
     #      this line says it is
     #      Scratch goes under /tmp/claude-1000, the one directory both
     #      seats write, and never to a $R-*.log here.
-    #      AND `check` IS SPENT HERE: nothing later wants it again
+    #      And `check` is spent here: nothing later wants it again
     #      why: halves that compute differently leave nothing to compare.
     #      A blocked redirect runs nothing at all; a $R-*.log here makes
-    #      run-major.sh refuse hours later, and $TMPDIR is unset
-    #      unsandboxed.
+    #      run-major.sh refuse hours later, and $TMPDIR is /tmp
+    #      unsandboxed and /tmp/claude-1000 sandboxed.
     #      `check` runs over every shape and class view, the retired ones
     #      included. What holds the retired NAMES to the lists is Main.hs's
     #      `retiredKnown` and `retiredShapesKnown`, asserted in `main`
@@ -7593,16 +7590,16 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      and three more of these steps -- preflight 4,5 cmps the two
     #      `check` outputs, and run-major.sh and smoke-sweep.sh hold every
     #      half to the BASIS's bench count
-    #  6b. AND THE GATE'S OWN SELECTION, which preflight reads by asking
+    #  6b. and the gate's own selection, which preflight reads by asking
     #      the script that will run it: `./run-gate.sh $R --show` prints
     #      SEL's globs and the count it derives, spends nothing, and
     #      refuses where a glob names an arm the roster has parked. That
-    #      is the note's `gate arms` line DERIVED, never read off the
-    #      previous NOTE
-    ./roster-delta.py $PREV-<PREV's basis> $R-<basis>   # 6c. WHAT THE
-    #      ROSTER CHANGE WAS -- and the first tag is the PREVIOUS run's,
+    #      is the note's `gate arms` line derived, never read off the
+    #      previous note
+    ./roster-delta.py $PREV-<PREV's basis> $R-<basis>   # 6c. what the
+    #      roster change was -- and the first tag is the previous run's,
     #      as at 2d. Off the two binaries: benches, arms in and out,
-    #      whether the survivors kept their ORDER, main-set shapes in and
+    #      whether the survivors kept their order, main-set shapes in and
     #      out, and the class views per class. ITS ARMS IN AND ITS PER-CLASS
     #      TALLY ARE WHAT STEP 12 NAMES ITS CLASSES FROM -- every class where
     #      an arm came in, else each class whose count moved -- so read it
@@ -7611,7 +7608,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      It is what the note's roster block and Provenance's delta
     #      bullet both state in prose.
     ./read-run.py --lint                  # 7. roster and shape annotations,
-    #      the properties, AND THE OPEN REGISTRATION: every arm it
+    #      the properties, and the open registration: every arm it
     #      names must be timed and every `task N` it defers to must
     #      resolve. What that does NOT ask is whether the task still
     #      carries a prediction, a pointer resolving while the sentence
@@ -7619,12 +7616,12 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      why 12b is not optional
     #      why: --para 'Steps 7 and 8 are the whole'
     ./read-run.py --check-doc --quiet     # 8. anchors, paths, widths, sweeps
-    #      7+8 are the WHOLE document check here; no other repo's checkers,
+    #      7+8 are the whole document check here; no other repo's checkers,
     #      now or at post-run step 7. THEY ARE OWED TWICE: here, and again
     #      after 12a, which is where the registration they check is
-    #      written. The SECOND is the verdict. Exit code is the verdict:
+    #      written. The second is the verdict. Exit code is the verdict:
     #      `note:` lines are write-up material (6e's --worklists prints
-    #      them), and a wrap FAIL is a HAND-wrapped paragraph, never a
+    #      them), and a wrap FAIL is a hand-wrapped paragraph, never a
     #      long one
     #      A `FAIL: BLOCKED:` here is a root the wrapper did not mount,
     #      usually ../../horde-ad, and it means the path check did not
@@ -7647,8 +7644,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      tree while it runs, a log or a scratch redirect included -- which
     #      is where that condition belongs and not only in the post-run list
     #      why: its case steps diff the working tree.
-    #      Its two case steps DIFF THE WORKING TREE, so a file
-    #      CREATED anywhere in it while they run -- a log, a scratch
+    #      Its two case steps diff the working tree, so a file
+    #      created anywhere in it while they run -- a log, a scratch
     #      redirect, an edit committed or not -- makes them report PARTIAL
     #      and settle nothing
     ./properties.py                       # 8c. its properties, over every
@@ -7659,18 +7656,18 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      why: `check-all` reads only the newest run.
     #      `check-all` runs the same file under CORPUS_RUN=newest,
     #      which keeps the highest-numbered run and the JSONs carrying no
-    #      run number and drops every older run. So the two sweeps do NOT
+    #      run number and drops every older run. So the two sweeps do not
     #      read the same thing, and a property that fails only on an older
-    #      run is caught HERE and by nothing else -- which is also why
+    #      run is caught here and by nothing else -- which is also why
     #      what an old run's artifacts still buy the checks is this step
     #      and not `check-all`.
     #  8d. and if any script here has changed since the last run: every
     #      defect those scripts have had, planted again and refused again.
-    #      NOT A CALL OF YOUR OWN: `--corpus` below runs it, as
+    #      Not a call of your own: `--corpus` below runs it, as
     #      `defect-run.py --changed=<commit> .` from the commit that FIRST
     #      added runs/$PREV.md, which dates the last run finishing.
     #      By hand, THE `=` IS NOT OPTIONAL. 8c and 8d want an
-    #      unsandboxed seat; AND THEY RUN ALONE
+    #      unsandboxed seat, and they run alone
     #  8c AND 8d COME AFTER 11 AND 12: `./preflight.sh $R --corpus
     #      --fill-in` runs these two alone and prints their fill-in row.
     #      Take it once 11 has printed `sweep clean` and 12, where owed,
@@ -7682,7 +7679,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      like a pass. 8c and 8d write `zz-` fixtures here and
     #      remove them; a commit or an edit while they run reads as a case
     #      that changed the tree.
-    #      The conflict runs BOTH ways: these two read every run JSON on
+    #      The conflict runs both ways: these two read every run JSON on
     #      disk, and 11 and 12 write them, so either order of overlap
     #      fails. A leg caught half written fails
     #      prop_selftest_over_the_corpus with a traceback, on a file no
@@ -7696,10 +7693,9 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      why: --para 'Then confirm the regime'
     #      diag prints the whole baseOffsets* family per shape, and the
     #      rows above these two are another question's
-    #  9b. and the pair's own variable, by whatever the note says reads it:
-    #      what the halves differ in is checked by the note's own command
-    #      -- or by the note saying which variable leaves no trace to
-    #      read, and what stands in for it
+    #  9b. and the pair's own variable, by the note's VARIABLE-CHECK
+    #      line, which preflight runs at 4-10 and --note-check holds to one
+    #      of its three forms (2b)
     #      why: diag answers for the regime and for nothing else
     ./loop-offsets.py $R-<other> $R-<basis>    # 10. fills, kept with the run:
     ./loop-offsets.py --library $R-<basis> $R-<other>   #     the eye's reading
@@ -7707,7 +7703,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      `--library` prints a figure -- read it against the band for
     #      this pair's recipes: near-total for one source padded to one
     #      size and phase, a tenth to a quarter where a shim or a compiler
-    #      varies, lower still where the pads are PLACED differently. Never
+    #      varies, lower still where the pads are placed differently. Never
     #      against a fixed line, and not against a note's nm-based figure,
     #      which is another number
     #      why: --para 'differed by more than Main'
@@ -7728,27 +7724,27 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     ./smoke-l1.sh $R [CLASS ...]          #     in the background with 12 where
     #      6c says it is owed, and 12a and 12b taken under
     #      them.
-    #      A REPAIR TO read-run.py OR preflight.sh LANDS BEFORE STEP 11 OR
-    #      WAITS FOR IT. What the pass does not hold -- pair-halves.sh,
-    #      read ONCE at its start, and README -- is editable under it.
-    #      A REPAIR TO THE READER ITSELF NEED NOT WAIT IDLE: `cp
-    #      read-run.py log-work-read-run.py`, edit the copy, TEST it
+    #      A repair to read-run.py or preflight.sh lands before step 11 or
+    #      waits for it. What the pass does not hold -- pair-halves.sh,
+    #      read once at its start, and README -- is editable under it.
+    #      A repair to the reader itself need not wait idle: `cp
+    #      read-run.py log-work-read-run.py`, edit the copy, test it
     #      against real JSONs, and apply it when the pass prints its
     #      verdict. Delete the copy once it is applied: 8b and check-all
     #      lint every *.py here
-    #      AND NOT BEFORE PREFLIGHT'S 4,5, NOR BEFORE 10a AND 10b.
-    #      THE WAIT IS ON THE LOG LINES AND NOT ON THE CALL: launch these
+    #      And not before preflight's 4,5, nor before 10a and 10b.
+    #      The wait is on the log lines and not on the call: launch these
     #      two the moment preflight's log shows `4,5  PASS` with `10a` and
     #      `10b` PASS under it, three adjacent lines and minutes before
     #      that call returns.
-    #      READ THOSE LINES BY APPENDING `command grep -cE '(4,5|10a|10b)
-    #      +PASS'` OF THE LOG TO THE CALLS YOU ARE MAKING ANYWAY, and
+    #      Read those lines by appending `command grep -cE '(4,5|10a|10b)
+    #      +PASS'` of the log to the calls you are making anyway, and
     #      expect 3 -- never a `tail` window. The log writes every verdict
-    #      INDENTED BY TWO SPACES, so a pattern anchored at the start of a
+    #      indented by two spaces, so a pattern anchored at the start of a
     #      line never fires
     #      IN THE BACKGROUND, THROUGH THE HARNESS'S OWN MODE, NEVER A
     #      TYPED `&`, AND WITH NO WAITER SET.
-    #      A BACKGROUNDED CALL'S STATUS IS ITS LAST COMMAND'S: never end
+    #      A backgrounded call's status is its last command's: never end
     #      one with `; echo "exit $?"`. End the call with the command
     #      itself, or read the status in the task output rather than in
     #      the redirected log alone
@@ -7756,7 +7752,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      They are the only machine time in this half, neither wants a
     #      quiet box, and the registration is the long hand step, so the
     #      half is the length of its longest step and not the sum.
-    #      THESE TWO LOCK THE READER FOR AN HOUR, which decides the ORDER
+    #      These two lock the reader for an hour, which decides the order
     #      of everything else this half does: smoke-l1.sh invokes
     #      read-run.py once per leg, so an edit to the reader between legs
     #      is read by the rest of the pass, and preflight.sh cannot be
@@ -7772,51 +7768,50 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      binaries a stop may retire. Those two `check` runs are
     #      nearly all of a preflight and sit in front of this pass, so
     #      overlapping them buys minutes -- and 4,5 is the step whose
-    #      FAILURE retires the binaries, so a pass started early spends
-    #      its hour on binaries that no longer exist. What IS taken is
+    #      failure retires the binaries, so a pass started early spends
+    #      its hour on binaries that no longer exist. What is taken is
     #      the parallelism inside 4,5: the two halves check concurrently,
     #      which costs nothing and risks nothing, the assertion being
     #      that their logs agree. The two surveys were hoisted to sit
     #      beside 4,5 for exactly this, the astride stop above being
     #      unreadable until they had run.
-    #      A `tail` window MISSES the lines where several land between two
+    #      A `tail` window misses the lines where several land between two
     #      polls; the note's own writing is a dozen calls and each carries
     #      the poll for nothing.
     #      The background mechanism is horde-ad's portable notes, under
     #      the session facts, and is not restated here; the command lines
     #      above carry no `&` for it. With `; echo "exit $?"` last, what
-    #      the harness announces is the ECHO's 0 for a step that exited 2,
+    #      the harness announces is the echo's 0 for a step that exited 2,
     #      an aborted preflight reading as a clean one
-    #  12. THE ROSTER PASS, owed ONLY
+    #  12. the roster pass, owed only
     #      if `--list` changed membership AND the pair note records none
     #      -- it belongs to the pair as the gate does, so grep the note
     #      first, and read the membership off 6c above rather than off
     #      the roster delta under Provenance. The main set plus a leg per
     #      class named,
     #      AND NAME EVERY CLASS where the roster gained an arm, the script's
-    #      bare default being `scaled` alone. Name a SUBSET -- `scaled` plus
+    #      bare default being `scaled` alone. Name a subset -- `scaled` plus
     #      each class whose count 6c's tally moved -- only where the roster
     #      gained no arm. A pass naming every class runs about an hour,
-    #      which is what to plan for -- AND WHERE THE OWNER IS AT HAND, SAY
-    #      THAT COST AND TAKE A WORD BEFORE LAUNCHING IT.
+    #      which is what to plan for -- and where the owner is at hand, say
+    #      that cost and take a word before launching it.
     #      Artifacts are
-    #      `smoke-l1-$R-*`, never `$R-*` (smoke-l1.sh's header, THE
-    #      NAMESPACE), and a
-    #      previous attempt's are refused. A PASS YOU STOPPED IS A PREVIOUS
-    #      ATTEMPT, so clear its artifacts before relaunching, and CLEAR THEM
-    #      BY `smoke-l1-$R*` AND NOT `smoke-l1-$R-*`.
-    #      AND A STOPPED LEG LEAVES A HALF-WRITTEN JSON: clear it before
+    #      `smoke-l1-$R-*`, never `$R-*` (smoke-l1.sh's header, the
+    #      namespace), and a previous attempt's are refused. A pass you
+    #      stopped is a previous attempt, so clear its artifacts before
+    #      relaunching, by `smoke-l1-$R*` and not `smoke-l1-$R-*`.
+    #      And a stopped leg leaves a half-written JSON: clear it before
     #      any check runs, not before the next pass. Record the outcome on
     #      an `L1 ROSTER PASS:` line
     #  11 and 12 here, and run-list step 14, all belong to the
-    #      PAIR: on passing, write each into $R-pair.txt
-    #  12 IS THE LONG ONE: what is read when each ends is its last `===`
+    #      pair: on passing, write each into $R-pair.txt
+    #  12 is the long one: what is read when each ends is its last `===`
     #      line, the contention in the elapsed times it records being a sanity
     #      reading and not a measurement.
-    #      THE TURN-END HOLD IS SET AT THE FIRST WAIT AND NOT HERE, which
+    #      The turn-end hold is set at the first wait and not here, which
     #      is step 2's build (~/.claude/rules/turn-end-hold.md). Clear it
     #      at 12c. And wait on nothing: launched as step 11 says you are
-    #      woken. A `tail` BETWEEN LEGS SHOWS NOTHING
+    #      woken. A `tail` between legs shows nothing
     #      why: --para 'After a roster change'
     #      A timed arm lands on every class, so the classes whose VIEWS
     #      moved are not the ones at risk. The pass is the longest thing
@@ -7844,38 +7839,35 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      leg ENDS, so its output file is unchanged for the whole of a
     #      leg while the leg's JSON grows under it, which reads like
     #      progress and is not
-    ./preflight.sh $R --corpus --fill-in  # 8c AND 8d, DEFERRED TO HERE:
+    ./preflight.sh $R --corpus --fill-in  # 8c and 8d, deferred to here:
     #      run them once 11 has printed `sweep clean` and 12, where owed,
     #      `pass clean`, and nothing is writing a JSON. Their two verdicts
     #      are the only ones this half owes that were not read above
-    #  12a. WRITE THE REGISTRATION, which is this half's largest product
+    #  12a. write the registration, which is this half's largest product
     #      -- as ONE paragraph, which post-run step 5 moves whole into the
     #      run file with `--move-registration`: what this run is built to
     #      answer, as an `OPEN` entry of the open list led `What Run N is
     #      built to answer, registered before it runs`, numbered
-    #      questions with a prediction and A KILL CONDITION each, AND A
-    #      `predict:` SPAN WHERE THE QUANTITY IS ONE THE READER COMPUTES
-    #      -- `` `predict: cross ARM X` ``, `counts ARM X`, `pair A B
-    #      X`, `cell SHAPE/ARM over SHAPE/ARM X` or `countdiff A B under
-    #      N [on views S,...]`, each taking `within P%` and `excluding
-    #      S,...`, written in --compare's orientation, the basis over the
-    #      control (`predict: cross list 1.0 within 0.5% on main both`
-    #      predicts `list` level between the halves to half a point on
-    #      the main set) -- AND EVERY SPAN CARRIES ITS SCOPE, `on POP,...`
+    #      questions with a prediction and a kill condition each, and a
+    #      `predict:` span where the quantity is one the reader computes,
+    #      its grammar being `./read-run.py --doc spans`, written in
+    #      --compare's orientation, the basis over the control
+    #      (`predict: cross list 1.0 within 0.5% on main both` predicts
+    #      `list` level between the halves to half a point on the main
+    #      set) -- and every span carries its scope, `on POP,...`
     #      and one of `basis`, `control` or `both`, which `--predictions`
     #      reads it on and nowhere else; a clause no kind states is read
     #      by a script committed with the registration and named in it as
     #      `` `script: NAME` ``, and `--lint` refuses an item carrying no
     #      span, no script and no deferral to a task, or a span without
-    #      its scope. A BAND SET FROM A PROBE QUOTES THAT PROBE'S OWN
-    #      SPREAD beside it
-    #      -- AND THE PROBE JSONS ALREADY ON DISK ARE READ FOR EVERY PAIR
-    #      REGISTERED.
-    #      EACH ITEM NAMES THE MODE OR THE FILE ITS PRIOR CAME OFF, in the
+    #      its scope. A band set from a probe quotes that probe's own
+    #      spread beside it -- and the probe JSONs already on disk are read
+    #      for every pair registered.
+    #      Each item names the mode or the file its prior came off, in the
     #      item and not once at the head for all of them: `--lint` refuses
     #      an item quoting a figure and naming neither, a null span at 1.0
     #      quoting nothing and being exempt.
-    #      AND A FIGURE OFF A PROBE BUILD NAMES A FILE THAT HOLDS IT, in the
+    #      And a figure off a probe build names a file that holds it, in the
     #      prose as in a span: the build's log, the shim's report, the perf
     #      output, kept on disk beside the probe. A commit message or a
     #      docstring is prose and not an artifact, and a figure only prose
@@ -7884,16 +7876,22 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      population at once, is one section and not repeated here --
     #      its title, whole, for a grep or a --section:
     #      Which population answers a question, and how to ask all of them
-    #      NO VERDICT WORD in the
-    #      entry -- HELD, KILLED, SPLIT and their kin. READ NOW: items 7
-    #      and 8 -- the open list by its markers, Provenance's delta
-    #      bullets -- and item 5 where this preparation parks or drops an
-    #      arm.
-    #      THOSE TWO READINGS ARE A CARRIER AGENT'S, as 12b's
-    #      re-derivation is. Brief ONE carrier for both: which live
-    #      entries this pair can advance, what each claims, and every
-    #      figure with the file it came off.
-    #      It goes in the open list and NOT in the note, which names it.
+    #      No verdict word in the entry -- HELD, KILLED, SPLIT and their
+    #      kin.
+    #      READ NOW: item 7, scoped to the open entries naming an arm the
+    #      line below reaches -- its arm-by-arm list of what each commit
+    #      since $PREV's build touched is the reading of the source -- and
+    #      item 5 where this preparation parks or drops an arm. That
+    #      reading is a carrier agent's, as 12b's re-derivation is: brief
+    #      one carrier with the list, for what each such entry claims,
+    #      every figure with the file it came off, the previous
+    #      registration's pre-run form out of git, and the probe files
+    #      newer than $PREV's run file.
+    #      It goes in the open list and not in the note, which names it:
+    #      immediately above the previous run's `ANSWERED` registration
+    #      entry. And the previous run file's `What the next run compares
+    #      against` gains a sentence pointing at it as `[registered
+    #      <date>][open]`, which --lint refuses the registration without.
     #      The form is the previous run's, in that run's own file. EVERY
     #      FIGURE IT QUOTES IS DERIVED FROM THE ARTIFACT, which 12b reads
     #      back
@@ -7903,7 +7901,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      A collective claim of provenance is checked against no item, as
     #      Run 38's registration showed, calling a figure an A/A floor
     #      that another mode had produced.
-    #      WHAT `--lint` ENFORCES IS A FLOOR AND NOT THE TIE: it asks that
+    #      What `--lint` enforces is a floor and not the tie: it asks that
     #      the item name SOME mode or file, not that the figure came off
     #      the one named, so an item misattributing its figure would
     #      satisfy it. Tying a figure to its mode is 12b's reading, and
@@ -7914,71 +7912,72 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      itself carries tens of
     #      thousands of tokens of prose for a handful of claims.
     #      Two copies of a registration is one copy that goes stale.
+    ./registration-drift.py $R --since $PREV   # 12a's scope for item 7
     ./read-run.py --para '<a lead you just wrote>'   # 12b. READ BACK
     #      WHAT THIS HALF WROTE: re-derive every figure the note and the
     #      registration quote FROM THE FILE IT CAME FROM, never from the
     #      sentence beside it, and then read both back end to end. It is
     #      not a substitute for post-run step 6b's independent reader
-    #      AND READ WHAT THE SOURCE DID AFTER THE REGISTRATION:
+    #      and read what the source did after the registration:
     #      `./registration-drift.py $R` lists each commit to Main.hs
     #      between the registration's and the build's, with the
     #      definitions it touched, exiting 1 where there is any. Read each
     #      against the arms the spans name
-    #      AND `--lint` PRINTS EVERY SPAN AS `--predictions` WILL COMPARE
-    #      IT, under the registration it reads -- the mode, the two
+    #      and `--lint` prints every span as `--predictions` will compare
+    #      it, under the registration it reads -- the mode, the two
     #      operands and their orientation, the key, the half: read each
     #      line against the sentence beside its span.
-    #      THREE OF THOSE ERRORS ARE A MACHINE'S NOW, and preflight runs
+    #      Three of those errors are a machine's, and preflight runs
     #      them as 10e: `./read-run.py --note-check $R-pair.txt`. It does
-    #      NOT read a figure, so the re-derivation below is owed whole
-    #      AND A `cross` PRIOR ON A `-sum` ARM IS READ BY `--compare`, in
+    #      not read a figure, so the re-derivation below is owed whole
+    #      and a `cross` prior on a `-sum` arm is read by `--compare`, in
     #      a block of its own under the table, on raw `slope` and never
     #      in the table's own column
-    #      AND THE STRONGER READING OF A QUOTED PRIOR IS `--predictions`
-    #      OVER THE JSONS OF THE RUN THAT QUOTED IT
-    #      LOCATE BY PHRASE, NOT BY COORDINATE: this is what `--para`
-    #      is, never a `grep -n` for a line number
-    #      AND THE RE-DERIVATION IS A CARRIER AGENT'S -- AND THE ARTIFACTS
-    #      IT WILL READ ARE CONFIRMED ON DISK BEFORE IT IS BRIEFED
-    #      AND WHEN IT IS DONE, `./run-status.sh $R` READS `2c done: no
+    #      and the stronger reading of a quoted prior is `--predictions`
+    #      over the JSONs of the run that quoted it.
+    #      Locate by phrase, not by coordinate: this is what `--para`
+    #      is, never a `grep -n` for a line number.
+    #      And the re-derivation is a carrier agent's -- and the artifacts
+    #      it will read are confirmed on disk before it is briefed.
+    #      And when it is done, `./run-status.sh $R` reads `2c done: no
     #      <yours> slot left`, which is the one check that says the note
     #      is finished rather than merely written
     ./read-run.py $R --carried --others <RUN>-*-main.json <RUN>-*-runs.json
-    #      AND THIS IS THE MECHANICAL HALF OF THE REGISTRATION'S figures,
+    #      And this is the mechanical half of the registration's figures,
     #      as --figures is of the note's. It
     #      derives each `pair A B` span on the runs given and names the
-    #      item where NOTHING it quotes matches ANYTHING its own span
+    #      item where nothing it quotes matches anything its own span
     #      produces.
-    #      $R IS NAMED AND NOT READ.
-    #      ONE JSON PER POPULATION THE ITEMS ARE READ ON, both halves. It
-    #      is a WARNING and never a verdict, so what it hands back is a
+    #      $R is named and not read.
+    #      One JSON per population the items are read on, both halves. It
+    #      is a warning and never a verdict, so what it hands back is a
     #      shortlist to read, and the reading is still 12b's
-    #      AND <RUN> IS THE RUN THE ITEM NAMES, WHICH IS NOT ALWAYS $PREV
-    #  AND `./read-run.py $R --carry-over` IS THAT COMPARISON, item by
-    #      item against the previous registration's PRE-RUN form, which
-    #      is in GIT and not in the run file. It names the words that
+    #      And <RUN> is the run the item names, which is not always $PREV
+    #  and `./read-run.py $R --carry-over` is that comparison, item by
+    #      item against the previous registration's pre-run form, which
+    #      is in git and not in the run file. It names the words that
     #      moved and judges none: which changes were meant is the
     #      reading's
-    #  `./preflight.sh $R --figures` IS THE MECHANICAL HALF OF THE NOTE and
+    #  `./preflight.sh $R --figures` is the mechanical half of the note and
     #      runs in
     #      seconds, taking no step: it re-derives the fill-in rows from the
-    #      ARTIFACTS -- the two binaries and git -- and reports every
+    #      artifacts -- the two binaries and git -- and reports every
     #      figure missing from the note's row of that label.
-    #      It reads each in its ROLE and not merely as present, and in
+    #      It reads each in its role and not merely as present, and in
     #      its own half's place.
-    #      WHAT IT DOES NOT REACH is HALF THE BLOCK and all the prose: the
+    #      What it does not reach is half the block and all the prose: the
     #      rows a session writes from its own reading -- repetition, fills,
     #      straddle, regime, check, the sweep, the roster pass, the two
     #      check rows and `scripts set` -- and every figure outside the
     #      block, the roster counts and the previous run's totals among
     #      them. Those are yours, in one pass and not one call per figure
-    #      AND NAME THAT FILE WHERE YOU WRITE THE FIGURE, or the next
+    #      And name that file where you write the figure, or the next
     #      reader copies you rather than re-deriving it. `./preflight.sh $R
     #      --note` re-checks 10c, 10d, 10e and 8 after these edits, in
     #      seconds
-    #      AND WALK THE ARMS OF EVERY TASK THE REGISTRATION DEFERS TO,
-    #      not only its own. **SO DO NOT DEFER: WRITE THE CLAUSE OUT, WITH
-    #      ITS ARMS NAMED.** A parked arm's live twin stands in for it
+    #      And walk the arms of every task the registration defers to,
+    #      not only its own -- so do not defer: write the clause out, with
+    #      its arms named. A parked arm's live twin stands in for it
     #      where it is the same code for that clause's purpose. Where a
     #      pointer is kept anyway, follow it and read what it lands on
     #      why: nothing above reads what this half wrote.
@@ -8019,41 +8018,41 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      will quote, so only the verdicts need come back; a registration
     #      quoting a probe's counts otherwise sends the agent at a sweep
     #      nobody kept, which comes back unanswerable rather than wrong.
-    #      A PROBE'S FIGURE WEARING A RUN'S NAME is the shape --carried was
+    #      A probe's figure wearing a run's name is the shape --carried was
     #      built for and reads exactly like a right one. At this step the
     #      run has not gone, so there is no $R JSON to hand it and none is
     #      wanted; the name is how it finds the OPEN entry in README.
     #      Handed only the main set it reports every item read on `runs`
     #      or `block` as matching nothing, which is the mode being asked
     #      the wrong question and not a finding; an item may quote a
-    #      level, a count, a third arm. A registration CARRIED OVER quotes
+    #      level, a count, a third arm. A registration carried over quotes
     #      the figures of the run before it, so $PREV's JSONs derive none
     #      of them and every such item comes back flagged, which is the
     #      wrong question again and costs a call the size of the roster.
     #      Post-run step 5 moved the registration into the run file and
     #      the write-up appended a verdict to every item, so a diff
     #      against that copy reports all of them changed. A carry-over is
-    #      MEANT to change where the halves are renamed and where an
+    #      meant to change where the halves are renamed and where an
     #      amendment was decided.
     #      --figures catches a citation that has slid onto another row,
     #      and a swap between halves.
     #      `--lint` holds the registration's backticked arms to the timed
     #      roster and the arms of the task it defers to as well, but a
-    #      clause naming another REGISTRATION rather than an arm inherits
+    #      clause naming another registration rather than an arm inherits
     #      that registration's arms and reaches no check at all. A
     #      restated clause is one `--lint` can hold to the roster; a
     #      deferral is one nothing can. That is the whole of the fix and
     #      it costs a paragraph
     #  12c. TAG THE NOTE'S ENTRY POINT `[EXEC]` FIRST: one block, saying
-    #      what is SPENT, what is STILL OWED and what the executing
+    #      what is spent, what is still owed and what the executing
     #      session acts on. `--note-check` refuses a note without one.
     #      THEN COMMIT, AND REVIEW BEFORE YOU DO, not after: walk what this
     #      half wrote for errors -- 12b is the figures, this is the shape
-    #      of the changes -- and commit once at the end. RUN
-    #      `./run-status.sh $R` AS THE LAST THING BEFORE THE COMMIT, and
+    #      of the changes -- and commit once at the end. Run
+    #      `./run-status.sh $R` as the last thing before the commit, and
     #      clear the turn-end hold once the commit has landed.
     #      What the commit itself is: the registration on its own, tooling
-    #      changes partitioned from it, and NOTHING PUSHED without a
+    #      changes partitioned from it, and nothing pushed without a
     #      go-ahead. Leave nothing uncommitted. The note is gitignored and
     #      goes with the pair, so it is never in a commit.
     #  That is the preparation. What wants a quiet machine is the run
@@ -10715,9 +10714,13 @@ the section.
     7. the open list, by its status markers rather than end to end,
          grepped over `wrap80 --unwrap README.md` -- a marker sits at
          the head of an item, which the wrapped form breaks
-         -- the OPEN entries, named
+         -- the OPEN entries, named; a preparation reads only those
+            naming an arm `./registration-drift.py $R --since $PREV`
+            reaches, which is pre-run step 12a's scope
     8. Provenance's replace list and its delta bullets
          -- what this run has to replace
+         -- THE WRITE-UP'S, read at post-run step 6, and not a
+            preparation's
     9. `read-run.py`'s docstring, this chapter's other governing
          document -- BY HALF, like the list it sits in. A PREPARATION
          uses the Modes list, `--para`, `--section` and the two gates, `--lint` and `--check-doc`;

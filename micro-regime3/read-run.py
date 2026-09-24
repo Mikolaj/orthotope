@@ -10274,7 +10274,7 @@ def pair_note(path, draft=None, halves=None, repeat=False):
 # section without its tables. Run 23 read the lists inside 2600 lines of
 # chapter for want of it (2026-09-02).
 CHECKLISTS = {
-    'pre': "# READ THIS LIST AND THE LAST RUN'S FILE, AND START.",
+    'pre': "# READ THIS LIST AND START.",
     'run': 'grep -i gate $R-pair.txt',
     'post': '#   0. NAME THE FILL GROUPS',
     # The list of what a session READS, which every step names by item
