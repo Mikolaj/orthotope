@@ -8137,8 +8137,8 @@ RECORDS = [
               hasnt=['| a | b |'])),
 
     case('section-prints-tables-when-asked', 'read-run.py', None,
-         'CONTROL: the geomean table is hand-edited, so one caller wants'
-         ' them',
+         'CONTROL: the two-column table is the one a reading wants, so'
+         ' one caller asks for tables',
          plant=lambda t: {'doc': doc_with_a_table(t)},
          argv=['--section', 'Middle', '--with-tables', '--readme', '{doc}'],
          ok=V(exit=0, has=['| a | b |'])),
@@ -12845,7 +12845,8 @@ RECORDS = [
                                              classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['zzit'],
-         ok=V(exit=0, has=['13 table(s) installed'])),
+         # Fourteen since 2026-09-25: --hand-tables' line joins the count.
+         ok=V(exit=0, has=['14 table(s) installed'])),
 
     # ---- read-run.py --note, the previous pair note for the next pair ---
     case('note-read-withholds-the-handover', 'read-run.py', None,

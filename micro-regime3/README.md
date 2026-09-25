@@ -2207,14 +2207,12 @@ rather than a slot in the next run, observed again:
   recomputes both tables' rows from the two main JSONs and, without
   `--in-place`, names every row that disagrees; Run 39's own file reads clean
   under it and Run 40's reads nine rows off against Run 39's JSONs. What stays
-  open is the paragraph-start check below. The run file carries two tables
-  `--in-place` does not write --- the two-column geomeans and the Provenance
+  open is the paragraph-start check below. The run file carried two tables
+  `--in-place` did not write --- the two-column geomeans and the Provenance
   anchors --- and on Run 20 the first was forgotten entirely, on Run 22
   the second carried the previous run's figures in seven of nine cells through
   every gate and a full checker pass. It also corrupted a published figure,
-  `--machine` resolving its fingerprint off the stale row. What would settle
-  it is a check that recomputes both hand-edited tables from the JSONs, which
-  is what `--in-place` already guarantees for the other eleven. **On Run 23 both
+  `--machine` resolving its fingerprint off the stale row. **On Run 23 both
   were recomputed from the JSONs by hand, and a third defect of the same family
   was found beside them: the paragraph that reads the anchors table had lost
   its opening words at Run 22's write-up --- it began `anchors read`
@@ -8160,7 +8158,8 @@ Unsandboxed throughout:
     #      `allowed`, a filtered A/B this run's results
     #      suggest -- is ASKED FOR and waited on, one ask to a sitting,
     #      unless the note's QUIET-AFTER: line says `allowed`, which
-    #      covers the copy test and a probe the sequence did not carry.
+    #      covers every timed reading this run's results call for, the
+    #      copy test above all, post-run 3's rerun being RERUN:'s.
     #      why: a fix landed mid-write-up costs every stretch after it an
     #      unwrap, each commit rewrapping README.
     #      The log read here is a second copy of what 14a already had, and
@@ -9268,7 +9267,8 @@ not otherwise.
     #      becomes the ANSWERED stub with `___` for the verdict clause;
     #      the verdicts are then written beside each prediction where it
     #      already stands. It deletes the preparation's pointer to this
-    #      registration, which the copy brought across, and names it.
+    #      registration, which the copy brought across, and names it; two
+    #      or more such paragraphs it leaves, each for you to read.
     #      It refuses unless exactly one OPEN entry names
     #      this run, so it is run once, after the copy is committed
     ./read-run.py $R-<basis>-main.json --movement    # 5a. THE MOVEMENT
@@ -9734,7 +9734,7 @@ not otherwise.
     #      LEARNED block before writing yours and carry both halves.
     #      THE BLOCK GOES TO MARGINALIA, appended there as `What Run N
     #      made cheaper`, and README keeps none: what it asks of the
-    #      procedure is made in the chapter or a tool in the same commit,
+    #      procedure is made in the chapter or a tool in the same write-up,
     #      which is where the next run meets it (--check-doc refuses a
     #      block left in README)
     #      why: it feeds 10 and so comes before it.

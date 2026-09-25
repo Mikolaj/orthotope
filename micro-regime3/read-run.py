@@ -6587,8 +6587,11 @@ def gate_draft(run, args):
         return 1
     for h in (basis, other):
         size, st = drift[h]
-        print('%s moved between its own two legs by at most %.2f points,'
-              ' on %s' % (h, size * 100, st))
+        if st is None:
+            print('%s did not move between its own two legs on any arm' % h)
+        else:
+            print('%s moved between its own two legs by at most %.2f points,'
+                  ' on %s' % (h, size * 100, st))
     print('pass -b over pass -a equals the control\'s own legs over the'
           ' basis\'s on every arm, by construction; what the passes part by'
           ' is the two halves\' drift above. `sides` says whether both'
@@ -6601,7 +6604,7 @@ HAND_LEADS = ('**The three main-set anchors**',
 
 
 def hand_tables(cells, shapes, strategies, meta, args):
-    """The run file's two hand-edited tables, recomputed from the JSONs:
+    """The run file's two once-typed tables, recomputed from the JSONs:
     the Provenance anchors under `**The three main-set anchors**` and the
     two-column geomeans under `**The next run compares against Run N**`.
 
@@ -6681,11 +6684,14 @@ def hand_tables(cells, shapes, strategies, meta, args):
     if args.in_place:
         if off:
             open(path, 'w').write('\n\n'.join(new_paras))
-        print('--hand-tables: %d row(s) rewritten in %s'
-              % (len(off), os.path.basename(path)))
+        # On stderr and in install()'s own form, which install-tables.sh
+        # counts and keeps out of what it owes: its stdout is discarded.
+        sys.stderr.write('installed at %s: the anchors and the two-column'
+                         ' rows, %d rewritten\n'
+                         % (os.path.basename(path), len(off)))
         return 0
     if not off:
-        print('ok:   both hand-edited tables agree with the JSONs')
+        print('ok:   both once-typed tables agree with the JSONs')
     return 1 if off else 0
 
 
@@ -9261,7 +9267,7 @@ def section(docs, name, with_tables=None):
     installs them, and a checker recomputes them from the JSONs. They are
     withheld with their size, so what was skipped is visible rather than
     silent, and --with-tables prints them for the one case that wants them
-    -- the run's own two-column geomeans, which are hand-edited. A NUMBER
+    -- the run's own two-column geomeans, the one table read. A NUMBER
     takes one of them: reading-list item 4 is "the ONE table read", and
     all-or-nothing made that unobeyable, Run 25 taking its 36 lines of
     prose with 82 lines of fingerprint attached. A number past the end
@@ -10717,9 +10723,11 @@ def checklist(readme, which, steps_only=False):
                 # section, the properties and README's floor walk while
                 # step 20 ran, some forty minutes, where the order alone
                 # reads as 5 waiting on 4b.
-                print('    #   while step 20 counts: 0, 1 to 4, 5 to 5b and'
-                      ' any paragraph\n    #   reading no counts; 4a, 4b'
-                      ' and 5c wait for EVENING COMPLETE.')
+                print('    #   while step 20 counts: 1, 2 and 4, and where'
+                      ' step 3 owes no rerun,\n    #   0 and 5 to 5b and any'
+                      ' paragraph reading no counts; a rerun wants\n    #'
+                      '   the quiet box, and 4a, 4b and 5c wait for EVENING'
+                      ' COMPLETE.')
                 if moved:
                     print('    #   %s %s out of printed turn, saying why in'
                           ' its own text.'
@@ -10867,7 +10875,9 @@ def move_registration(readme, run_doc):
     ptr = [q for q in doc.split('\n\n')
            if q.startswith("**Run %d's pair" % n) and '[registered' in q]
     if len(ptr) == 1:
-        doc = doc.replace(ptr[0] + '\n\n', '', 1)
+        paras = doc.split('\n\n')
+        paras.remove(ptr[0])
+        doc = '\n\n'.join(paras)
     head_at = doc.index(REG_HEAD)
     old_tail = doc[head_at + len(REG_HEAD):]
     preface = ('Registered in README\'s open list on the date the entry'
@@ -15156,7 +15166,7 @@ def main():
                         ' the other run\'s, the column\'s own statistic')
     p.add_argument('--hand-tables', dest='hand_tables', action='store_true',
                    help='with --compare OTHER on the basis main JSON: the'
-                        ' run file\'s two hand-edited tables, the Provenance'
+                        ' run file\'s two once-typed tables, the Provenance'
                         ' anchors and the two-column geomeans, recomputed;'
                         ' --in-place writes them')
     p.add_argument('--bridge', action='store_true',

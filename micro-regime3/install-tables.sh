@@ -230,6 +230,9 @@ install "$MAIN" --fingerprint --classes $CLASSES
 # headers and leads left to the prose (read-run.py --hand-tables).
 if [ -n "${OTHER:-}" ] && [ -f "$R-$OTHER-main.json" ]; then
   install "$MAIN" --compare "$R-$OTHER-main.json" --hand-tables
+else
+  echo "  note: no other half's main JSON ($R-${OTHER:-}-main.json), so the"
+  echo "  anchors and the two-column rows are NOT installed -- yours by hand"
 fi
 for c in $CLASSES; do install "$c" --block; done
 
@@ -555,7 +558,9 @@ if [ -n "$HAND" ]; then
 fi
 if [ "$BAD" -eq 0 ]; then
   echo "$DONE table(s) installed, counted off install's own lines rather"
-  echo "than off the call count -- --fingerprint writes two. The cross-class"
+  echo "than off the call count -- --fingerprint writes two, and so does"
+  echo "--hand-tables, the anchors and the two-column rows, on one line. The"
+  echo "cross-class"
   echo "summary is installed too since 2026-09-22, outside that count and"
   echo "reported on its own line above: its ten rows come off each"
   echo "class's own block and its emphasis off that block's \`summary bolds\`"

@@ -201,10 +201,11 @@ fi
 # The verdict is a person's to write and this cannot judge it, but it
 # can see that one was written: `GATE VERDICT` opens the hand-written block
 # Runs 39 and 40 put above the GATE block, which `yours` read past.
-if [ -f "$NOTE" ] && grep -q '^GATE VERDICT' "$NOTE"; then
+if [ -f "$NOTE" ] && grep -q '^GATE VERDICT' "$NOTE" \
+     && ! grep -q '^GATE: NOT RUN' "$NOTE"; then
   say 14a "done" "$NOTE carries a GATE VERDICT line above its GATE block"
 else
-  say 14a yours "the gate's verdict above the note's GATE block is written by hand, opening \`GATE VERDICT\`; read $NOTE"
+  say 14a yours "the gate's verdict above the note's GATE block is written by hand, opening \`GATE VERDICT\`, and \`GATE: NOT RUN\` cleared in the same edit; read $NOTE"
 fi
 if [ -f "$R-wallclock.log" ] && grep -q 'major run complete' "$R-wallclock.log"; then
   # The driver's own stamp, as read-all.sh counts it: the note it quotes
