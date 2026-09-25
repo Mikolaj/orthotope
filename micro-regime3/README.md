@@ -2271,23 +2271,26 @@ rather than a slot in the next run, observed again:
   leaves no JSON at all, so nothing had to be discarded. The account is in [Run
   22's Provenance](runs/run22.md).
 
-- `OPEN` **Routing the one-level fill through the odometer reached plain -O1's
-  emission and not the two passes'.** `3c02e36` took `fillStage2OneLevel`'s runs
-  loop out of the fill and through the recursive odometer, to remove
-  the stack-slot spill [the dead-ideas entry on skipping the level
-  table](#dead-ideas) describes, and Run 40 is its first timing. Against Run
-  39's same half, the basis runs `lib-stage3-lean-onelevel` at 0.8235 on `runs`,
-  0.8585 on `block`, 0.8695 on `flip` and 0.9279 on `scaled`, on 7.2%, 5.1%,
-  5.8% and 2.4% fewer instructions, while the control half's counts
-  on those four classes are Run 39's to the fourth decimal and its clock moves
-  under 1.1 points (`--half-movers run40 run39`). So the pair's cross figure
-  on that arm turned over there, to 0.83 to 0.94, and nothing in either run says
-  why the flagged compile did not change with the source. What would settle
-  it is the arm's inner loop read off both control builds and both basis builds
-  --- `-g3` twins of Runs 39's and 40's recipes, which name `fillStage2OneLevel`
-  by byte identity on every build but Run 40's basis, where `--loose` offers
-  it only inside a family of three bodies --- to see whether the two passes had
-  already removed the spill on Run 39's source. Registered 2026-09-25.
+- `PARKED` **Routing the one-level fill through the odometer reached plain -O1's
+  emission and not the two passes'.** **PARKED 2026-09-25 by the owner,
+  with the arm retired to `Only`: the fill is not worth keeping even
+  at that speedup, so the `-g3` reading that would settle it prices nothing.**
+  `3c02e36` took `fillStage2OneLevel`'s runs loop out of the fill and through
+  the recursive odometer, to remove the stack-slot spill [the dead-ideas entry
+  on skipping the level table](#dead-ideas) describes, and Run 40 is its first
+  timing. Against Run 39's same half, the basis runs `lib-stage3-lean-onelevel`
+  at 0.8235 on `runs`, 0.8585 on `block`, 0.8695 on `flip` and 0.9279
+  on `scaled`, on 7.2%, 5.1%, 5.8% and 2.4% fewer instructions, while
+  the control half's counts on those four classes are Run 39's to the fourth
+  decimal and its clock moves under 1.1 points (`--half-movers run40 run39`).
+  So the pair's cross figure on that arm turned over there, to 0.83 to 0.94,
+  and nothing in either run says why the flagged compile did not change
+  with the source. What would settle it is the arm's inner loop read off both
+  control builds and both basis builds --- `-g3` twins of Runs 39's and 40's
+  recipes, which name `fillStage2OneLevel` by byte identity on every build
+  but Run 40's basis, where `--loose` offers it only inside a family of three
+  bodies --- to see whether the two passes had already removed the spill on Run
+  39's source. Registered 2026-09-25.
 - `OPEN` **The unordered entry point buys a level BELOW the result vector, which
   no arm here had.** libunord-stage1 and libunord-stage2, checked and not timed
   since 2026-09-09 with every arm that concatenates a list, their consumers
@@ -4552,8 +4555,8 @@ entry points the user takes, and the `runs` class is where the routes part; what
 each landing and parking among them did to the bench count, at its date,
 is in the roster arithmetic under [What the benchmark
 does](#what-the-benchmark-does), the one copy of it, and the reason for each
-is at its roster entry; the last of them, the parking of 2026-09-23, takes
-the roster to 589 benches --- the figure's second site, which `--check-doc`
+is at its roster entry; the last of them, the retirement of 2026-09-25, takes
+the roster to 570 benches --- the figure's second site, which `--check-doc`
 holds to `Main.hs` beside the chain's.
 
 **What the eight are worth as instruments, read against each other for the first
@@ -6463,7 +6466,9 @@ first, those that did not die on paper at all:
   Routing the case through the recursive odometer removes the spill at a 72-byte
   closure a call, which is a trick against the allocator, and the special case
   is complication that `genericFillStrided` does without and `fillStage2`, which
-  since 2026-09-24 builds no table at any level count, has no use for.
+  since 2026-09-24 builds no table at any level count, has no use for. Its arm
+  went to `Only` on 2026-09-25, Run 40's 7 to 18% on plain -O1 not changing
+  the verdict ([the one-level entry][open]).
 - **Building `fillStage2`'s level nest out of closures, a loop per level around
   the one below** --- **refuted 2026-09-23 at 1.3 to 2.5 times the instructions
   of the fill it replaced, and repaired it still loses, so the nest is data
@@ -6849,10 +6854,12 @@ over a fill that builds its table only above one outer level, landing 2026-09-23
 with a spill worked around on 2026-09-24 and kept out of the shipped fill
 by a ruling under [dead ideas](#dead-ideas), took the roster to 665 benches,
 and the parking of 2026-09-23 --- `mut-odo-vecdims-add-in-leaf-u1`,
-`liblist-stage2-sum`, `liblist-stage3-sum` and `libunord-stage12-sum` --- takes
-the roster to 589 benches, so with the controls the run is 31 arms. **Run 26
-timed four parked arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`,
-parked 2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
+`liblist-stage2-sum`, `liblist-stage3-sum` and `libunord-stage12-sum` --- took
+the roster to 589 benches, and the retirement of 2026-09-25 ---
+`lib-stage3-lean-onelevel`, reasons at its entry --- takes the roster to 570
+benches, so with the controls the run is 30 arms. **Run 26 timed four parked
+arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked
+2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
 and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
 ([the stride classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration

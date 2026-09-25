@@ -3714,7 +3714,9 @@ fillStage2Axes (Axes tInner sInner outerAxes) !ao !l !v =
 -- than 'lib-stage3-lean' on Run 39's large single-level shapes; out of
 -- line with NOINLINE it costs 19 to 30 times the instructions.
 -- NOT TAKEN 2026-09-24 for 'fillStage2' and the library
--- (README.md#dead-ideas): fragile, for a constant.
+-- (README.md#dead-ideas): fragile, for a constant. Retired 2026-09-25,
+-- so not kept in step with 'fillStage2': whatever improved that driver
+-- since is not here.
 {-# NOINLINE fillStage2OneLevel #-}
 fillStage2OneLevel :: Axes -> Int -> Int -> VS.Vector Double
                    -> VS.Vector Double
@@ -7201,7 +7203,10 @@ roster =
     -- The arm above over the fill that skips its tables at one outer
     -- level, added 2026-09-23 beside its control; reasons, and the ruling
     -- that keeps it out of the shipped fill, at 'fillStage2OneLevel'.
-  , ("lib-stage3-lean-onelevel",   Fill fbLibStage3LeanOneLevel)
+    -- RETIRED 2026-09-25 by the owner, checked and not timed: not worth
+    -- it even with the speedup Run 40 read on plain -O1, 7 to 18% on
+    -- four classes (README.md#what-is-open, the one-level entry).
+  , ("lib-stage3-lean-onelevel",   Only fbLibStage3LeanOneLevel)
     -- The flavour twin of 2026-09-19: the arm above with 'fillStage2''s
     -- two dimension vectors Storable, beside its original as the twin of
     -- 2026-08-08 stood beside 'bq-expand'. Parked 'Only' the same day,
