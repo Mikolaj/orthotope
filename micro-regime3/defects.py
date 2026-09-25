@@ -7389,7 +7389,7 @@ RECORDS = [
          argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
          ok=V(hasnt=['names run'])),
 
-    case('results-reads-a-shape-name-as-a-run', 'read-run.py', None,
+    case('results-reads-a-shape-name-as-a-run', 'read-run.py', 'd4a6a00',
          "the stale-name check read `block-run64-gap1` in Results as Run"
          " 64's half",
          # A word boundary falls after a hyphen, so `\\brun(\\d+)-` matched
@@ -7398,7 +7398,8 @@ RECORDS = [
          # stand clear of a word character or a hyphen on its left.
          plant=lambda t: {'rundoc': rundoc_results_names_a_run_shape(t)},
          argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
-         ok=V(hasnt=['names run'])),
+         ok=V(hasnt=['names run']),
+         bug=V(has=['names run 64'])),
 
     case('todo-marker-fails-the-document', 'read-run.py', None,
          'a paragraph deferred as `[[TODO]]` is refused until written',
