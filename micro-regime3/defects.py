@@ -15300,6 +15300,23 @@ RECORDS = [
                            'THIS RUN ONLY facts'],
               hasnt=['no `is the basis` clause'])),
 
+    case('instance-gate-keeps-an-earlier-slow-draw', 'instance-gate.sh', None,
+         'a second swap parked its slow draw over the first, freeing the'
+         ' frames the header says a .slow holds',
+         # `run-evening.sh RUN --from instance` re-runs the gate after a
+         # swap, and `mv B B.slow` overwrote the first parked draw, whose
+         # frames the next fresh copy then likely drew.
+         shadow=dict(extra=[('zzig-pair.txt', NOTE_STUB),
+                            ('zzig-a1g.slow', 'the first slow draw\n')]
+                     + halves('zzig-lookrts', 'zzig-a1g')),
+         env={'INSTANCE_DIR': '.', 'INSTANCE_FAKE': '1100,1000'},
+         argv=['zzig'],
+         probe=lambda subs: ' '.join(sorted(
+             f for f in os.listdir(subs['at']) if f.startswith('zzig-')))
+         + '\n' + open(os.path.join(subs['at'], 'zzig-a1g.slow')).read(),
+         ok=V(exit=0, has=['zzig-a1g.slow2', 'the first slow draw',
+                           'parked as ./zzig-a1g.slow2'])),
+
     case('interleave-refuses-a-cell-off-the-roster', 'probe-interleave.sh',
          None,
          'a cell the binaries lack selected no bench and printed process'
