@@ -3186,6 +3186,28 @@ def stub_pair_note_machine_check(tmp):
                           STUB_NOTE_MACHINE_CHECK)}
 
 
+STUB_NOTE_NAMED_FILLS = """\
+hdr
+
+A [SAME]: g912 leads, spot follows; run23-g912 and run23-spot.
+HALVES: basis=g912 other=spot
+
+Verified when built, 2026-09-01:
+  md5 g912         deadbeef, a BUILD line and owed
+
+NAMED FILLS, post-run step 0, 2026-09-02, off the binaries that were timed,
+by `./loop-offsets.py run23-HALF --match` with both twins:
+  g912   326 self-loops of at most 64 B in _Main_ code, 24 straddling.
+"""
+
+
+def stub_pair_note_named_fills(tmp):
+    """A note whose post-run named fills sit where Run 40's did, under the
+    fills -- the machine check's place, and dropped for its reason."""
+    return {'note': write(os.path.join(tmp, 'run23-pair.txt'),
+                          STUB_NOTE_NAMED_FILLS)}
+
+
 
 def counts_leg(tmp, run, half, pop=None, elapsed=80, ended=True):
     """One `run-counts.sh` leg as a file: its header, one row, its stamp.

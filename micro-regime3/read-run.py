@@ -9611,14 +9611,17 @@ def _note_kind(lead):
     nothing, so `--draft` carried it verbatim -- Run 27's reading of its
     own box move arrived in Run 28's draft under a lead beginning AND IT
     FIRED, in a note whose gate the same call had reset to NOT RUN
-    (2026-09-09).
+    (2026-09-09). Post-run step 0's NAMED FILLS go with it, for the same
+    reason from the same place: Run 40's arrived in Run 41's draft renamed
+    to run41, naming two twins no build had made (2026-09-26).
     """
     if any(lead.startswith(h) for h in NOTE_HANDOVER):
         return 'handover'
     if (any(lead.startswith(h) for h in NOTE_HANDOVER_PREFIX)
             or lead.startswith('GATE:')
             or lead.startswith("THE GATE'S VERDICT")
-            or lead.startswith('THE MACHINE CHECK')):
+            or lead.startswith('THE MACHINE CHECK')
+            or lead.startswith('NAMED FILLS')):
         return 'gate'
     if lead.startswith('Verified when built'):
         return 'fill'
