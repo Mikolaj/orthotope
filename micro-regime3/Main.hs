@@ -6146,7 +6146,9 @@ allShapes = convShapes ++ stretchShapes
 -- turns on wants two. A class view is retired here too since 2026-09-25,
 -- when 'runs-3' went: its readings are fragile, the consumers' shared run
 -- loop drawing one of three op-cache modes per process on runs of 3
--- (README.md#what-is-open).
+-- (README.md#what-is-open). read-run.py's class counts do not drop a
+-- retired view yet: the first run file tabling its class without it owes
+-- that, README's open list saying so under what the roster owes.
 retiredShapes :: [String]
 retiredShapes =
   [ "stretch-inner1"

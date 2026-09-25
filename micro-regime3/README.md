@@ -754,6 +754,19 @@ rather than a slot in the next run, observed again:
   a one-copy gate is blind one launch in ten. Run 38, built again from the same
   recipes, reads the arm at **1.0205** with counts level. The readings are [in
   Run 37's file](runs/run37.md) and [Run 38's](runs/run38.md).
+- `OPEN` **What Run 41 is built to answer: the plan, recorded 2026-09-25,
+  its registration owed before it runs.** On the owner's word of 2026-09-25
+  the pair is Run 40's rebuilt on the changed source, as Run 40's was Run 39's:
+  both recipes unchanged to the character, as [Run 40's
+  registration](runs/run40.md#what-this-run-was-built-to-answer-and-what-it-answered)
+  spells them, on the `Main.hs` of the day it is built, so that the cross figure
+  reads the regime again and each half against Run 40's same half reads the code
+  changed since `bb6b12e` and nothing else, `git log bb6b12e.. -- Main.hs`
+  naming it. Some of that change is to the roster, and what the roster owes
+  this run's write-up is in the entry on what the roster owes the next run.
+  The items, their priors off Run 41's own basis binary as Run 40's were,
+  and the command lines are this entry's to carry once it is built, this entry
+  becoming then the one declaration site.
 - `ANSWERED` **What Run 40 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 40's own
@@ -3363,7 +3376,15 @@ rather than a slot in the next run, observed again:
   own two-column table in the one direction it safely can: a run named aligned
   must also be named unaligned, so dropping the unaligned half fails the check.
   Dropping an *aligned* one cannot be checked, an unpaired run being what every
-  column before Run 10 is, and stays the reading's job.
+  column before Run 10 is, and stays the reading's job. **Owed by Run 41's
+  write-up, recorded 2026-09-25: the class counts must drop a retired view.**
+  `runs-3` is retired from timing through `retiredShapes`, the first class view
+  there, and stays in the lists; `read-run.py` excludes a class's shapes
+  from today's counts by class alone, so `runs` still reads 17 and Run 40's
+  file, which timed it, passes `--check-doc`. The first run file to table `runs`
+  without it reads 16 and fails there until the class-size count also drops
+  retired class views --- a change owed with that write-up and not before,
+  the reader holding only the newest run file to today's roster.
 
   **Run 11 had no unaligned half, and the check was left alone rather
   than widened --- the reading is that this was right.** Its two columns
