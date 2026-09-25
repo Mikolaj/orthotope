@@ -7664,16 +7664,16 @@ RECORDS = [
                            "10. the PREVIOUS run's pair note"],
               hasnt=['grep -i gate $R-pair.txt'])),
 
-    case('check-doc-refuses-a-fourth-cheaper-block', 'read-run.py', None,
-         'the recommended-tasks heading keeps three runs\' blocks, and'
-         ' seven stood under it with the retirement rule unexecuted',
+    case('check-doc-refuses-a-cheaper-block', 'read-run.py', None,
+         'the recommended-tasks heading keeps no run\'s block since'
+         ' 2026-09-25, and seven once stood under it',
          plant=lambda t: {'readme': write(
              os.path.join(t, 'P.md'), open(README).read()
              + '\n**What Run 1 made cheaper for nobody.**\n')},
          argv=['--check-doc', '--readme', '{readme}'],
-         ok=V(exit=1, has=['made cheaper` blocks (Runs', 'where the'
-                                                          ' heading keeps'
-                                                          ' three'])),
+         ok=V(exit=1, has=['made cheaper` block(s) (Runs', 'where the'
+                                                            ' heading keeps'
+                                                            ' none'])),
 
     case('checklist-default-stops-at-why', 'read-run.py', None,
          'CONTROL: a step prints through its `why:` line by default, the'

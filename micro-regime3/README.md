@@ -3620,164 +3620,15 @@ rather than a slot in the next run, observed again:
 
 ### Recommended tasks after Run 40
 
-**What Run 40 made cheaper for the next run, which is not a figure and no other
-step gathers --- and it is TWO sessions' worth, the preparation's first.**
-**THE PREPARATION'S HALF, from the note's own block**: A STEP THE LIST DID
-NOT NAME, caught by `--lint` --- the previous run's file must point
-its compares-against section at the new registration
-as `[registered <date>][open]`, which pre-run step 12a names since `e28684a`.
-A PRIOR ACROSS TWO POPULATIONS, caught by 12b's carrier: item (2)'s draft set
-a nineteen-shape time excess against a ten-shape instruction excess,
-and the redraw off nineteen-shape counts left the carried figure where it was.
-A PROBE A REGISTRATION CITES CAN VANISH UNDER IT: the first priors were counts
-off a twin build deleted after the registration was committed, which
-`--check-doc` read as five paths that do not resolve, and the priors
-were re-taken on the run's own basis binary --- the stronger form, and the one
-both items then held on. **THE WRITE-UP SESSION'S HALF.** **THE NOTE'S
-`straddle` ROW HAD NO COUNT IN IT**: `preflight.sh --fill-in` read the survey's
-`still straddling : 24, 10 longest listed` by its last field and printed
-`listed straddling`, so the one figure the row exists for was never in the note;
-a run that straddles ten loops or fewer never shows it. Fixed at 7a
-in `c653c15`, recorded in `1a09457`, with a second defect of the same shape:
-`read-all.sh --brief-facts` joined the note's `.text` row to the md5, launch
-and repetition rows when the row ended with no full stop, and the brief carried
-the run-on until it was trimmed by hand. **THE RESULTS CHECK READ A SHAPE
-AS A RUN**: `--check-doc` failed the run file for naming `block-run64-gap1`,
-reading `run64-` as a half of Run 64, when the copy test taken after
-the write-up named two `block` shapes in Results; fixed in `d4a6a00`
-with its case. **THE POINTER THE PREPARATION ADDS TO THE PREVIOUS RUN'S FILE
-IS COPIED INTO THE NEW ONE AT STEP 5**, where it names the new run as the next
-run's pair; the write-up deletes it, and no step says so. **STEP 0's TWIN SCRIPT
-HAD TO BE RE-DERIVED**, Run 39's leaving none on disk, `probe-*` being ignored
-by git: `probe-r40-g3-twins.sh` was Run 38's with `LOOP_SETTLED=1` on both
-recipes, and since 2026-09-25 `g3-twins.sh` reads the recipes off the note
-instead, its twins md5-identical to the hand script's on Run 40. **THE READINGS
-TAKEN BEFORE THE COUNTS LAND ARE MOST OF THE WRITE-UP**:
-with `post-run-readings.sh` run once at the counts' launch, Provenance,
-the next-run section, the properties and the README floor walk were written
-while the counted work ran, and only the class blocks, Results' findings
-and the head waited on it. **AND THE READERS AFTER THE CHECKER FOUND WHAT
-ITS TWO PASSES DID NOT**: the blind reader, beside pass 2, matched three of pass
-2's five findings and added eleven of its own that pass 1 had passed ---
-the drift band quoted as Run 11's where README holds Run 23's, a seventh
-consumer on Run 38 dropped, an unpredicted mover called unnamed
-by a registration that names it, five claims their own figures did not bear out
-and three unclear sentences; and the comprehension probe, on the fixed
-documents, found the one A/A cell past the floor section's ten-percent gate left
-ungated and the regime entry still naming Run 39's basis as the newest. Every
-one is a property of the text, which is why readers who open no artifact catch
-them.
-
-**What Run 39 made cheaper for the next run, which is not a figure and no other
-step gathers --- and it is TWO sessions' worth, the preparation's first.**
-**THE PREPARATION'S HALF, from the note's own block**: A CHECK THAT WOULD HAVE
-CAUGHT AN ERROR, now in --- the registration named its item (2) script
-as a command, and the script was committed without its executable bit,
-so the command answered `Permission denied`; `--lint` reads a registration
-script's committed mode since `56736bc`, recorded with its case in `eb0b464`.
-FIGURES WITH NO ARTIFACT: the registration's head counts and cycle figures came
-off builds of 2026-09-22 of which no log, report or perf output survives,
-so they are prose and not evidence. A SOURCE THAT MOVED UNDER AN ITEM: `c0a8aaa`
-landed after the registration was committed and says in its own message that Run
-39 times it untested --- and the note then attributed it to the wrong fill,
-`lib-stage2-lean`'s, where the commit rewrites `fillStage2`, the inward one
-behind `lib-stage3-lean`. That misreading was harmless only because nothing
-acted on it before the write-up read the commit. **THE WRITE-UP SESSION'S HALF,
-whose first item cost the evening its order.** **A FILE NAMED FOR THE RUN,
-BESIDE THE DRIVER, WAS ENOUGH TO REFUSE THE SEQUENCE AFTER THE GATE.**
-The executing session redirected `run-evening.sh`'s own output
-to `run39-evening-launch.log`, which is a `$R-*.log`; `run-major.sh`'s relaunch
-guard refuses over any such file but the gate's and the riders', and it runs
-third, so the gate spent its half hour, the sequence refused at once
-and the riders ran on the quiet box in its place; the session parked the log
-and drove the sequence by hand. `run-evening.sh` now reads the same filter
-before anything runs, `a35f698`, with its case recorded in `1499af9`.
-The harness already keeps a backgrounded command's output, so the redirect
-bought nothing. **TWO INTRUDED PROCESSES WENT UN-RERUN BY THE OWNER'S WORD**,
-and [Run 39's Provenance](runs/run39.md) sizes their three cells on both clocks
-in their place, the sensitivity reading Runs 33 and 38 took, made per cell
-rather than per floor. **A COMMITTED REGISTRATION CAN BE OVERTAKEN BY A COMMIT
-BEFORE THE BUILD, AND NOTHING SAYS SO**: `c0a8aaa` moved one arm of a registered
-pair between the registration and the build, and the span died on it.
-A preparation that lists the commits between the registration and the build, arm
-by arm, would have named the pair's second variable before the hours;
-`--carried` reads the registration against the previous run's figures
-and not against the source. **AND 7a's TWO READERS EARNED THEIR PLACE AGAIN**:
-past both checker passes, the blind reader and the comprehension probe between
-them found a stale registration clause inherited into the `bcast` block, a live
-arm called parked, the intrusion's two figures given in the opposite order
-to its two arms, and the pair's reading count stated two ways across
-the documents --- all properties of the text, which no figure check reads.
-
-**What Run 38 made cheaper for the next run, which is not a figure and no other
-step gathers --- and it is TWO sessions' worth, the preparation's first.**
-**THE PREPARATION'S HALF, from the note's own block**: no check caught an error
-and ONE WAS MISSING --- nothing in the pre-run list or in any script refused
-a MOUNTED `hugebin/` on a run that was not a placement run, so the launch term
-would have come back into both halves in silence and only a `launch` row
-a session reads as an expected `./` would have shown it; the owner unmounted
-it on being asked, and preflight's 10f now FAILs that state, which
-is the finding made mechanical. A COMPUTATION IMPROVISED: the boot time,
-`date -d "-$(cut -d. -f1 /proc/uptime) seconds"`, there being no mode for it.
-A STEP SKIPPED: none. A CAPABILITY FOUND: `mount` read from a SANDBOXED call
-reports a tmpfs `ro` and from an unsandboxed one `rw`, so a writability verdict
-taken sandboxed is the sandbox's and not the mount's. **THE EXECUTION'S HALF.
-A CHECK THAT WOULD HAVE CAUGHT AN ERROR, AND DID, SEVEN TIMES**: `--check-doc`
-caught the stale `#recommended-tasks-after-run-37` anchors, the `___`
-the registration move leaves, the floor pair stale at four sites
-and the carry-back figure at two, three headings left with one blank line before
-them, an ANSWERED entry this run's own addition pushed past 500 words, and two
-links to the previous run's file in a form the convention does not use --- none
-of which any reading of the prose had raised. **A CHECK THAT DID NOT EXIST**:
-nothing here refused a `--block` paragraph carrying a SPLIT arm name,
-and the reader emitted one --- `lib- stage2-lean-u1` and `mut- odo-vecdims`
-reached the installed `small` block, the wrap having fallen on a hyphen
-and the `--brief` arm having joined it back with a space. Fixed at the one
-`textwrap.fill` with `break_on_hyphens=False`, and guarded
-by `prop_block_keeps_a_name_whole` with a mutant, because no synthetic fixture
-this suite can build puts the wrap on a hyphen: ten classes, four rosters
-and five slow factors were swept and none did, so a planted case would have
-passed before the fix and proved nothing. **FOUR COMPUTATIONS IMPROVISED,
-AND A FIFTH THAT HAD A MODE THIS SESSION DID NOT LOOK FOR.** `--winsor`'s own
-closing lines census the column-against-paired SIGN partings over all 120 pairs
-and name the one that parts with both its figures --- added 2026-09-17
-at `c640d45`, five days before this run --- and this session scripted
-that census from the same mode's two columns and the cells instead, having read
-the table above those lines and not the lines themselves. A mode is found
-by reading the output already in hand and not only its docstring. The four
-with no mode: the per-class rate at which an instruction saving reaches
-the clock, differenced per class from the two geomeans the class paragraph
-already prints; the per-population allocation deviation of every arm, which
-found the seven unordered consumers; THE SAME STATISTIC ON RUN 37'S OWN JSONS,
-which is what turned *this is new* from an assertion into a measurement
-and is the one of the four worth a mode; and the `sum-only` early-against-late
-agreement across all twenty-two populations --- where the script's orientation
-was the RECIPROCAL of the reader's, which prints late over early, so two figures
-reached the page inverted with their populations swapped, caught by the checker
-against this file's own class blocks. **A STEP NOT TAKEN, and named rather
-than skipped quietly**: post-run step 3's rerun. Two benches reached 0.25
-foreign, both the control half's, and Run 33's precedent --- a larger exposure
-whose rerun the owner stopped --- was followed with a sensitivity reading
-instead: the floor the exposed cell reaches reads 0.28% with its shape
-and without it. **TWO CAPABILITIES FOUND.** `--alloc --per-shape` run
-over a PREVIOUS run's two JSONs is how a claim that something is new gets
-measured rather than asserted, and it costs one command per population.
-And `$TMPDIR` is `/tmp` in an UNSANDBOXED call here and `/tmp/claude-1000`
-in a sandboxed one --- so a scratch path written with it lands in two different
-places depending on the call; horde-ad's portable notes, which said the variable
-was unset unsandboxed, were corrected at `13b5410a9`.
-
-**The blocks for Runs 37 down to 25 are in `MARGINALIA`, 32 to 25
-as of 2026-09-18, 36 to 33 as of 2026-09-23 and 37 as of 2026-09-25, and
-this is where they went.** They ran to some seven hundred lines under a heading
-every preparation pages through, and they are the same shape as the run
-registrations moved there on 2026-08-23: a record of what one run made cheaper,
-read by nobody once two further runs have reported. The rule
-is the registrations' --- a block leaves when the two runs after it have landed
---- so this heading carries the last three and no more. What did NOT go
-is anything that is a ruling rather than a record: the four paragraphs below
-this one, and Run 26's account of where its own spent items went, all stand
-here.
+**Every run's `What Run N made cheaper` block is in `MARGINALIA`, appended there
+at post-run step 9 since 2026-09-25, and this heading keeps none.** Runs 40 down
+to 25 are there, 32 to 25 as of 2026-09-18, 36 to 33 as of 2026-09-23, 37 and 38
+to 40 as of 2026-09-25. A block is a record of what one run made cheaper, read
+by nobody once a further run has reported, and what it asks of the procedure
+is made in the chapter or a tool in the same write-up, which is where the next
+run meets it. What did NOT go is anything that is a ruling rather than a record:
+the four paragraphs below this one, and Run 26's account of where its own spent
+items went, all stand here.
 
 **Run 26's six spent items are gone from this heading and here is where each
 went**, retired 2026-09-08 with Run 27's write-up, each one `ANSWERED`, and none
@@ -9382,10 +9233,8 @@ not otherwise.
     #      one sentence on what this run's own head has to answer).
     #      Every install below writes that file and no other document.
     #      TWO headings take the number: the file's title, renamed by the
-    #      copy, and `Recommended tasks after Run N` in the open list;
-    #      append the oldest `What Run N made cheaper` block under that
-    #      heading, with its write-up half, to MARGINALIA and delete it,
-    #      leaving two for this run's to join.
+    #      copy, and `Recommended tasks after Run N` in the open list,
+    #      which keeps no run's block (step 9).
     #      Then repoint README's links from the run before to this file
     #      with `./read-run.py --repoint $PREV`, which moves every link
     #      into that file but the older run's OWN -- a link whose text
@@ -9882,7 +9731,12 @@ not otherwise.
     #      steps skipped, any capability found, and the readings the
     #      carrier took with what they cost. HALF OF IT IS THE
     #      PREPARING SESSION'S: read the note's WHAT THE PREPARATION
-    #      LEARNED block before writing yours and carry both halves
+    #      LEARNED block before writing yours and carry both halves.
+    #      THE BLOCK GOES TO MARGINALIA, appended there as `What Run N
+    #      made cheaper`, and README keeps none: what it asks of the
+    #      procedure is made in the chapter or a tool in the same commit,
+    #      which is where the next run meets it (--check-doc refuses a
+    #      block left in README)
     #      why: it feeds 10 and so comes before it.
     #      The number is kept so that every pointer to it still lands.
     #      No other step gathers this, and it is not a figure. The

@@ -11640,16 +11640,16 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                    % (len(piped), '; '.join(x[:60] for x in piped[:3])))
     else:
         note.append('no chapter recipe pipes or chains a gate')
-    # THE RECOMMENDED-TASKS HEADING KEEPS THREE RUNS' BLOCKS. Post-run
-    # step 5 retires the oldest to MARGINALIA; that rule stood unexecuted
-    # while seven blocks piled up, 2026-09-23. Case:
-    # `check-doc-refuses-a-fourth-cheaper-block`.
+    # THE RECOMMENDED-TASKS HEADING KEEPS NO RUN'S BLOCK, since 2026-09-25:
+    # post-run step 9 appends each to MARGINALIA. It kept three until then,
+    # step 5 retiring the oldest, and that rule once stood unexecuted while
+    # seven piled up (2026-09-23). Case: `check-doc-refuses-a-cheaper-block`.
     cheaper = re.findall(r'^\*\*What Run (\d+) made cheaper',
                          open(readme, encoding='utf-8').read(), re.M)
-    if len(cheaper) > 3:
-        bad.append('%d `What Run N made cheaper` blocks (Runs %s) where the'
-                   ' heading keeps three: post-run step 5 moves the oldest'
-                   ' to MARGINALIA' % (len(cheaper), ', '.join(cheaper)))
+    if cheaper:
+        bad.append('%d `What Run N made cheaper` block(s) (Runs %s) where the'
+                   ' heading keeps none: post-run step 9 appends each to'
+                   ' MARGINALIA' % (len(cheaper), ', '.join(cheaper)))
     else:
         note.append('the recommended-tasks heading keeps %d run block(s)'
                     % len(cheaper))
