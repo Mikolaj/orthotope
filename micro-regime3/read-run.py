@@ -13225,7 +13225,11 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
               r'`list` moves by about a \w+ everywhere, ([\d.]+)% at its'
               r' narrowest',
               r'`list` moves between the halves by ([\d.]+)% at its'
-              r' narrowest'),
+              r' narrowest',
+              # The run file's one site since 2026-09-25, Results' paragraph
+              # after the table, the others pointing at it.
+              r'move `list` by \*{0,2}([\d.]+) points\*{0,2} on the main'
+              r' set'),
              # NOT the delta chain's `Its `list` moved N points between the
              # halves`: that chain keeps one bullet per run and each carries
              # its OWN figure, so the pattern matched Run 29's 12.12 beside

@@ -81,27 +81,22 @@ it is, while changing the compiler moves it by a hundredth or two, down on Run
 actually compiles in. **One main-set shape sits on the line**:
 on `stretch-pow2stride` the fill and `bq-expand` tie, class property 1 breaking
 on whichever half reads the fill behind, and whether any run reads it behind
-by more than its floor is [an open question][open] --- Run 40 reads that shape
-at 0.9954 on its plain half and 0.9818 on its flagged one, the fill ahead
-on both, where Run 39 read 1.0026 and 0.9835, breaking the line on its plain
-half, Run 38 0.9997 and 0.9756, Run 37 0.9945 and 0.9810 and Run 36 0.9970
-and 0.9826 --- so the plain half's cell sits within six tenths of a point
-of the line on every one of the five draws, either side of it, and the flagged
-half's keeps its margin. **The mutable fills hold the top of the table** ---
-`lib-stage3-lean`, `lib-stage2-lean`, `lib-stage1`
-and `lib-stage3-lean-onelevel` tied at 0.024, separated only by the unrounded
-0.02373, 0.02385, 0.02436 and 0.02447, and the shipped leaf at 0.026, against
-`mut-odo-vecdims`'s 0.045 --- and every one of them needs a new `Vector`-class
-method, which this README argued against for as long as the ceiling stood ---
-to keep orthotope's `Vector` API pure and minimal, a bar an in-tree precedent
-softened to a weight --- and which the decision of 2026-08-22 **took**,
-`vFillStrided` landing 2026-08-24 ([below](#the-mutable-ceiling-taken)). Plain
-`mut-odo` no longer argues for it at all: it and `bq-expand`, which survives
-in `Data/Array/Internal.hs` only as that method's class default, the three
-vector-backed instances overriding it with the mutable fill, are a tie at 0.8906
-paired, 14 shapes of 26 and sign p 0.85 on an interval covering 1 ---
-and at 0.8918 on Run 24's HEAD half, a thousandth away, so the tie is not one
-compiler's --- where Run 7 (Harness), at -O1, had it 1.51x ahead.
+by more than its floor is [an open question][open], which carries every draw.
+**The mutable fills hold the top of the table** --- `lib-stage3-lean`,
+`lib-stage2-lean`, `lib-stage1` and `lib-stage3-lean-onelevel` tied at 0.024
+and separated only unrounded ([the run file](runs/run40.md#results)),
+and the shipped leaf at 0.026, against `mut-odo-vecdims`'s 0.045 --- and every
+one of them needs a new `Vector`-class method, which this README argued against
+for as long as the ceiling stood --- to keep orthotope's `Vector` API pure
+and minimal, a bar an in-tree precedent softened to a weight --- and which
+the decision of 2026-08-22 **took**, `vFillStrided` landing 2026-08-24
+([below](#the-mutable-ceiling-taken)). Plain `mut-odo` no longer argues
+for it at all: it and `bq-expand`, which survives in `Data/Array/Internal.hs`
+only as that method's class default, the three vector-backed instances
+overriding it with the mutable fill, are a tie at 0.8906 paired, 14 shapes of 26
+and sign p 0.85 on an interval covering 1 --- and at 0.8918 on Run 24's HEAD
+half, a thousandth away, so the tie is not one compiler's --- where Run 7
+(Harness), at -O1, had it 1.51x ahead.
 
 **Several strategies measured since are faster than the last candidate,
 `bq-expand`, and need no class method --- a distinction the decision
