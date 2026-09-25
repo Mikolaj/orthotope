@@ -85,9 +85,9 @@ by more than its floor is [an open question][open] --- Run 40 reads that shape
 at 0.9954 on its plain half and 0.9818 on its flagged one, the fill ahead
 on both, where Run 39 read 1.0026 and 0.9835, breaking the line on its plain
 half, Run 38 0.9997 and 0.9756, Run 37 0.9945 and 0.9810 and Run 36 0.9970
-and 0.9826 --- so the plain half's cell sits within half a point of the line
-on every one of the five draws, either side of it, and the flagged half's keeps
-its margin. **The mutable fills hold the top of the table** ---
+and 0.9826 --- so the plain half's cell sits within six tenths of a point
+of the line on every one of the five draws, either side of it, and the flagged
+half's keeps its margin. **The mutable fills hold the top of the table** ---
 `lib-stage3-lean`, `lib-stage2-lean`, `lib-stage1`
 and `lib-stage3-lean-onelevel` tied at 0.024, separated only by the unrounded
 0.02373, 0.02385, 0.02436 and 0.02447, and the shipped leaf at 0.026, against
@@ -1469,7 +1469,7 @@ rather than a slot in the next run, observed again:
   so still a tie by the entry's own test. **Run 40 reads it at 0.9954
   on the basis and 0.9818 on the control**, both ahead again, the basis 0.46
   of a point under the line, so the plain half's five readings on this pair sit
-  within half a point of it on either side.
+  within six tenths of a point of it on either side.
 - `OPEN` **Which of the two `-O2` passes carries the regime's points,
   on a compiler this series still builds with.** Both together, `-fspec-constr`
   and `-fliberate-case` on one half and neither on the other, have been read
@@ -1727,12 +1727,12 @@ rather than a slot in the next run, observed again:
   should be a round page multiple. **The loop count parts from it**: the flag
   pairs of Runs 29, 30, 31, 36 and 40 carry FEWER self-loops on the flagged
   half, the larger, where Runs 38 and 39 carry MORE, and Run 38's source moved
-  fourteen commits and Run 40's ten under an unmoved compiler and project file,
-  the sign changing each time, so what changes the sign is the code and
-  not the generator; Run 32, the one compiler pair surveyed, also carries more
-  on its larger half. **Where there were fewer, they were removed and not grown
-  past the survey's 64 B cutoff**: counting every self-loop of any length
-  in `_Main_`-compiled code, the cutoff lifted to 96, 128, 192 and 256 B
+  fourteen commits and Run 40's ten under an unmoved compiler, shim and project
+  file, the sign changing both times, so what changes the sign is the code
+  and not the generator; Run 32, the one compiler pair surveyed, also carries
+  more on its larger half. **Where there were fewer, they were removed
+  and not grown past the survey's 64 B cutoff**: counting every self-loop of any
+  length in `_Main_`-compiled code, the cutoff lifted to 96, 128, 192 and 256 B
   and then past any loop, `run29-nospec` holds 327 against `run29-spec`'s 268
   and `run30-nospec` 327 against `run30-libcase`'s 318, so neither gap closes
   at any cutoff. `--library` separates one pass from a level: `-fliberate-case`
@@ -2244,8 +2244,9 @@ rather than a slot in the next run, observed again:
   why the flagged compile did not change with the source. What would settle
   it is the arm's inner loop read off both control builds and both basis builds
   --- `-g3` twins of Runs 39's and 40's recipes, which name `fillStage2OneLevel`
-  by byte identity --- to see whether the two passes had already removed
-  the spill on Run 39's source. Registered 2026-09-25.
+  by byte identity on every build but Run 40's basis, where `--loose` offers
+  it only inside a family of three bodies --- to see whether the two passes had
+  already removed the spill on Run 39's source. Registered 2026-09-25.
 - `OPEN` **The unordered entry point buys a level BELOW the result vector, which
   no arm here had.** libunord-stage1 and libunord-stage2, checked and not timed
   since 2026-09-09 with every arm that concatenates a list, their consumers
