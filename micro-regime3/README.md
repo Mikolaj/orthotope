@@ -1489,7 +1489,7 @@ rather than a slot in the next run, observed again:
   signature suggests, or whether LiberateCase carries part of it on this HEAD.
   **What settles it is one pair and one variable**: either flag alone against
   the unflagged half, built by the newest published basis's own recipe --- now
-  `run39-gheadnospec`, `Main.hs` at `c870e1e` and the shim at `fe6d133`
+  `run40-gheadnospec`, `Main.hs` at `bb6b12e` and the shim at `fe6d133`
   under the settled cost, with the compiler, the project file and the launch
   unmoved --- which reads with the box as the only term. Registered here rather
   than in a run's registration because it is a pair to ask for and
@@ -3637,16 +3637,20 @@ both items then held on. **THE WRITE-UP SESSION'S HALF.** **THE NOTE'S
 `still straddling : 24, 10 longest listed` by its last field and printed
 `listed straddling`, so the one figure the row exists for was never in the note;
 a run that straddles ten loops or fewer never shows it. Fixed at 7a
-with its case. **THE POINTER THE PREPARATION ADDS TO THE PREVIOUS RUN'S FILE
-IS COPIED INTO THE NEW ONE AT STEP 5**, where it names the new run as the next
-run's pair; the write-up deletes it, and no step says so. **STEP 0's TWIN SCRIPT
-HAD TO BE RE-DERIVED**, Run 39's leaving none on disk, `probe-*` being ignored
-by git: `probe-r40-g3-twins.sh` is Run 38's with `LOOP_SETTLED=1` on both
-recipes, and it is the one to copy while it stands. **THE READINGS TAKEN BEFORE
-THE COUNTS LAND ARE MOST OF THE WRITE-UP**: with `post-run-readings.sh` run once
-at the counts' launch, Provenance, the next-run section, the properties
-and the README floor walk were written while the counted work ran, and only
-the class blocks, Results' findings and the head waited on it.
+in `c653c15`, recorded in `1a09457`, with a second defect of the same shape:
+`read-all.sh --brief-facts` joined the note's `.text` row to the md5, launch
+and repetition rows when the row ended with no full stop, and the brief carried
+the run-on until it was trimmed by hand. **THE POINTER THE PREPARATION ADDS
+TO THE PREVIOUS RUN'S FILE IS COPIED INTO THE NEW ONE AT STEP 5**, where
+it names the new run as the next run's pair; the write-up deletes it,
+and no step says so. **STEP 0's TWIN SCRIPT HAD TO BE RE-DERIVED**, Run 39's
+leaving none on disk, `probe-*` being ignored by git: `probe-r40-g3-twins.sh`
+is Run 38's with `LOOP_SETTLED=1` on both recipes, and it is the one to copy
+while it stands. **THE READINGS TAKEN BEFORE THE COUNTS LAND ARE MOST
+OF THE WRITE-UP**: with `post-run-readings.sh` run once at the counts' launch,
+Provenance, the next-run section, the properties and the README floor walk
+were written while the counted work ran, and only the class blocks, Results'
+findings and the head waited on it.
 
 **What Run 39 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's first.**
