@@ -6515,6 +6515,27 @@ RECORDS = [
          argv=[],
          ok=V(exit=2, has=['usage: ./run-heartbeat.sh RUN'])),
 
+    # ---- --gate-draft, run list step 14a's four readings as one table ----
+    case('gate-draft-names-the-half-that-drifted', 'read-run.py', None,
+         'CONTROL: the draft puts the four readings side by side and names'
+         " each half's widest move between its own two legs",
+         # Runs 39 and 40 wrote the table by hand from four --compare
+         # outputs and quoted a `prediction` of the second pass that is an
+         # identity. One cell of the basis's -b leg is slowed, so the basis
+         # must be the half named as moving, on that arm.
+         plant=lambda t: {
+             'note': write(os.path.join(t, 'zz-pair.txt'),
+                           'HALVES: basis=nb other=ob\n'),
+             'ba': synth_json(t, 'main', name='zz-gate-nb-a.json'),
+             'bb': synth_json(t, 'main', name='zz-gate-nb-b.json',
+                              skew=[(main_shapes()[0], 'list', 3)]),
+             'oa': synth_json(t, 'main', name='zz-gate-ob-a.json'),
+             'ob': synth_json(t, 'main', name='zz-gate-ob-b.json')},
+         argv=['--gate-draft', '{tmp}/zz'],
+         ok=V(exit=0, has=['gate draft for zz', 'nb moved between its own'
+                           ' two legs by at most', 'on list',
+                           'by construction'])),
+
     # ---- --over-list, the sweep behind the properties' only-claim ----
     # THE CLAIM IS A NEGATIVE OVER A THOUSAND CELLS and the mode's whole
     # job is to make its silence readable: Run 31 hand-rolled it from

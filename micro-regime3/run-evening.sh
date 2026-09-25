@@ -262,8 +262,9 @@ else
     # between the two passes above is the PAIR disagreeing or one half
     # moving between its own two legs. Run 36's `list` parted 1.60 points
     # across the passes and read SOUND anyway: its control half's own `a`
-    # over its `b` was 1.0128 where the basis's was 1.0004, which predicts
-    # the second pass at 1.0124 times the first against an observed 1.0123
+    # over its `b` was 1.0128 where the basis's was 1.0004, so the control
+    # had moved between its legs and the pair had not -- the passes' ratio
+    # being those two divided, by construction (--gate-draft says why)
     # -- two readings that took a session two hand-rolled calls the chapter
     # does not name, at a moment when nothing else may run (2026-09-19).
     # They cost what the two above cost and run in the same window, after
@@ -272,9 +273,15 @@ else
     echo "##### between the two passes above is, before it is the pair's"
     ./read-run.py "$R-gate-$BASIS-a.json" --compare "$R-gate-$BASIS-b.json"
     ./read-run.py "$R-gate-$OTHER-a.json" --compare "$R-gate-$OTHER-b.json"
+    # THE FOUR AS ONE TABLE, the draft 14a is written from: per arm both
+    # passes and both halves' own legs, and each half's widest own drift.
+    # The verdict stays the session's; this only saves it transcribing.
+    echo; echo "##### the draft: the four readings per arm (read-run.py"
+    echo "##### --gate-draft); the verdict above the note's GATE block is yours"
+    ./read-run.py --gate-draft "$R"
   } >> "$OUT" 2>&1
-  stamp "gate: the two --compare readings are in $OUT; the verdict is yours\
- to write into $NOTE (step 14a) at 19a, WHEN THE EVENING HAS LANDED, and\
+  stamp "gate: the four --compare readings and their draft table are in $OUT;\
+ the verdict is yours to write into $NOTE (step 14a) at 19a, WHEN THE EVENING HAS LANDED, and\
  not now: the sequence starts two seconds after this line and README's run\
  list step 17 wants nothing else on the machine until it ends"
 fi

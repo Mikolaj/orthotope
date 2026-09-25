@@ -8219,19 +8219,23 @@ Unsandboxed throughout:
     #      the two cross-half passes, the -a pair and the -b pair, and then
     #      EACH HALF over its own two legs. The verdict is the two passes
     #      agreeing, and a gate answers sound or not sound -- never quote a
-    #      magnitude from one. Read a spread between the passes that the
-    #      control's legs over the basis's predict as each half's own
-    #      drift, not the pair's.
+    #      magnitude from one. A spread between the passes IS the two
+    #      halves' own drift, the passes' ratio being the control's legs
+    #      over the basis's by construction: read which half moved.
+    #      `./read-run.py --gate-draft $R` puts the four side by side,
+    #      and the driver appends it to $R-evening-out.txt.
     #      why: the second pair of readings says what a spread is.
     #      THE SECOND PAIR OF READINGS IS WHAT A SPREAD BETWEEN THE
     #      PASSES IS, before it is the pair's: the control's legs over the
-    #      basis's predict the second pass as a multiple of the first.
+    #      basis's ARE the second pass over the first, term by term, so
+    #      they attribute a spread and cannot fail to match it.
     #      It is owed on every pair, both halves being
     #      two builds by the BOTH HALVES ARE BUILT ANEW ruling, and again
     #      after either half is rebuilt: run-evening.sh inherits a recorded
     #      gate only for the binaries its block names by md5
     #  14a. WRITE THE VERDICT by hand ABOVE the note's GATE block, from
-    #      those readings, clearing `GATE: NOT RUN` in the same edit --
+    #      the draft table, opening the block `GATE VERDICT`, which
+    #      run-status.sh reads, and clearing `GATE: NOT RUN` in the same edit --
     #      once the evening has landed, the driver going on without it. A
     #      gate that FAILED mechanically stopped the driver instead, and
     #      that is the apparatus: read run-gate.sh's block in the note

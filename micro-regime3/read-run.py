@@ -6511,6 +6511,91 @@ def counts_totals(run, args):
     return 0
 
 
+def gate_draft(run, args):
+    """The gate's four readings as one table, the draft of run list step
+    14a's verdict: per arm, the two cross-half passes and each half's own
+    two legs, paired geomeans of the corrected net over the shared shapes.
+
+    THE SECOND PAIR IS AN ATTRIBUTION AND NOT A TEST. Over one shape set
+    the four geomeans compose exactly: pass -b over pass -a IS the
+    control's -a over -b divided by the basis's, term by term, so a
+    verdict that `predicts` the second pass from the halves' own legs and
+    finds it agreeing has read an identity. Runs 39 and 40 wrote theirs
+    that way, the parting they quoted being the rounding of four-decimal
+    figures. What the second pair does say is WHICH half moved between its
+    two legs, and by how much; the identity is asserted here so a shape set
+    that differs between the four files is refused rather than misread.
+    The verdict, sound or not, stays the session's to write (README, run
+    list step 14a); this prints what it is written from.
+    """
+    halves = note_halves(run)
+    if not halves:
+        sys.stderr.write('%s-pair.txt: no note or no HALVES line, so the'
+                         ' gate cannot be read\n' % run)
+        return 2
+    basis, other = halves
+    paths = {(h, leg): '%s-gate-%s-%s.json' % (run, h, leg)
+             for h in (basis, other) for leg in 'ab'}
+    gone = [p for p in paths.values() if not os.path.exists(p)]
+    if gone:
+        sys.stderr.write('%s: missing, so the gate was not read\n'
+                         % ', '.join(sorted(gone)))
+        return 2
+    data = {}
+    for key, path in paths.items():
+        cells, shapes, strategies, meta = load(path, args.main)
+        apply_correction(cells, shapes, strategies)
+        data[key] = (cells, shapes, strategies)
+    shapes = set.intersection(*(set(d[1]) for d in data.values()))
+    arms = [st for st in data[(basis, 'a')][2]
+            if all(st in d[2] for d in data.values()) and not no_net(st)]
+
+    def gm(x, y, st):
+        rs = [data[x][0][sh][st]['net'] / data[y][0][sh][st]['net']
+              for sh in sorted(shapes)
+              if data[x][0][sh][st]['net'] > 0
+              and data[y][0][sh][st]['net'] > 0]
+        return geomean(rs), len(rs)
+
+    print('gate draft for %s, basis %s, control %s, over %d shared shape(s):'
+          ' paired geomeans of the corrected net, ABOVE 1 meaning the'
+          ' denominator is the faster' % (os.path.basename(run), basis,
+                                          other, len(shapes)))
+    print('%-22s %9s %9s %11s %11s %7s'
+          % ('arm', 'pass -a', 'pass -b', 'basis a/b', 'control a/b',
+             'sides'))
+    bad, drift = [], {basis: (0, None), other: (0, None)}
+    for st in arms:
+        pa, na = gm((basis, 'a'), (other, 'a'), st)
+        pb, nb = gm((basis, 'b'), (other, 'b'), st)
+        ba, _ = gm((basis, 'a'), (basis, 'b'), st)
+        oa, _ = gm((other, 'a'), (other, 'b'), st)
+        if na != len(shapes) or nb != len(shapes) \
+                or abs(pb / pa - oa / ba) > 1e-9:
+            bad.append(st)
+        same = 'same' if (pa - 1) * (pb - 1) > 0 else 'PART'
+        print('%-22s %9.4f %9.4f %11.4f %11.4f %7s'
+              % (st, pa, pb, ba, oa, same))
+        for h, v in ((basis, ba), (other, oa)):
+            if abs(v - 1) > drift[h][0]:
+                drift[h] = (abs(v - 1), st)
+    if bad:
+        sys.stderr.write('the identity pass -b / pass -a = control a/b /'
+                         ' basis a/b fails on %s: a shape is missing or'
+                         ' sunk in one of the four files, so this table is'
+                         ' no draft\n' % ', '.join(bad))
+        return 1
+    for h in (basis, other):
+        size, st = drift[h]
+        print('%s moved between its own two legs by at most %.2f points,'
+              ' on %s' % (h, size * 100, st))
+    print('pass -b over pass -a equals the control\'s own legs over the'
+          ' basis\'s on every arm, by construction; what the passes part by'
+          ' is the two halves\' drift above. `sides` says whether both'
+          ' passes put the arm on one side of 1. The verdict is yours.')
+    return 0
+
+
 def over_list_sweep(run, args):
     """Every cell where a timed non-control arm is SLOWER than its shape's
     `list`, over every population of a run and both halves.
@@ -15003,6 +15088,10 @@ def main():
     p.add_argument('--counts-cost', dest='counts_cost', metavar='RUN',
                    help='each counts stage\'s duration off RUN-evening.txt,'
                    ' per population and per half, with each half\'s total')
+    p.add_argument('--gate-draft', dest='gate_draft', metavar='RUN',
+                   help='the gate\'s four readings as one table, per arm the'
+                        ' two cross-half passes and each half\'s own two'
+                        ' legs: the draft of run list step 14a\'s verdict')
     p.add_argument('--over-list', dest='over_list', metavar='RUN',
                    help='every timed non-control cell of RUN slower'
                         " than its shape's `list`, over every"
@@ -15608,6 +15697,8 @@ def main():
         sys.exit(repoint(args.repoint, args.readme, args.run_doc))
     if args.over_list:
         sys.exit(over_list_sweep(args.over_list, args))
+    if args.gate_draft:
+        sys.exit(gate_draft(args.gate_draft, args))
     if args.extremes:
         missing = [c for c in args.classes if not os.path.exists(c)]
         if missing:
