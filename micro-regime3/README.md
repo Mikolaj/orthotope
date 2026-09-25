@@ -4100,6 +4100,37 @@ codegen rather than that it cannot be built.
   crossing somewhere that costs, which the sweeps say exists and no arm here has
   shown. Not built: the flag pair it would face is the block rules
   with and without it, on the stage arms' `runs` and `window` cells.
+- `OPEN` **`MergeAccAx`, the `Ax` merge's accumulator, is a non-empty list
+  with a strict head used as a possibly empty one: its fold starts
+  from `MergeAccAx 0 1 (InnerFirstAx [])`, a head of extent 1 standing
+  for *no axis yet*, which every step and the result test again.** The honest
+  types lost to it on 2026-09-25, each read against the committed merge on Run
+  40's basis recipe over the three twins on the small, stretch and window views.
+  A second constructor for the empty case cost the list twins 16 to 34
+  instructions and 63 to 161 bytes a call, the two-constructor accumulator being
+  built at every step. The list itself as the accumulator, `InnerFirstAx`
+  in place of `MergeAccAx`, cost 25 to 94 instructions and 47 to 216 bytes
+  a call on all but one arm and view, the head a heap cell at every step
+  and handed to `routeOfAx` as one. Starting the fold from the first axis cost
+  the list twins 145 to 500 instructions and 224 to 560 bytes, the `case`
+  on its input stopping the zip from fusing into the fold, though it saved
+  `libunord-stage14-sum` 26 to 50. What would settle it is a form with no fake
+  head that keeps the head in registers and the zip fused. One candidate
+  is `canonicalizeAx` taking the first kept axis itself, in a loop over the two
+  input lists, and folding the rest from it; the reading is the same counts
+  on the same views. The measured costs of boxing the head are in `WalkAx`'s
+  and `MergeAccAx`'s comments in `Main.hs`. The list form, as it was measured,
+  in place of the two functions:
+
+      mergeInnerAx :: InnerFirstAx -> Axis -> InnerFirstAx
+      mergeInnerAx acc new@(Axis st n) = case innerFirstAx acc of
+        [] -> InnerFirstAx [new]
+        Axis st' n' : rest
+          | st' == n * st -> InnerFirstAx (Axis st (n' * n) : rest)
+          | otherwise -> InnerFirstAx (new : innerFirstAx acc)
+
+      mergeAxesAx :: [Axis] -> InnerFirstAx
+      mergeAxesAx = foldl' mergeInnerAx (InnerFirstAx [])
 
 
 ## The goal of these benchmarks
