@@ -5648,17 +5648,30 @@ stepOdometerAx (OdoLevelAx o c axis@(Axis s d) outer)
       OdoDoneAx -> OdoDoneAx
       next@(OdoLevelAx oNext _ _ _) -> OdoLevelAx oNext d axis next
 
--- 'fillStage2' over 'WalkAx', the path's fill: the fill the library's
--- 'genericFillStrided' is ported from, at Storable Double; the
--- library's copy is in its Data/Array/Internal.hs. This one walks the
--- outer levels as a 'Nest' folded over them innermost first, each an
--- 'Axis'. 'check' holds it to the reference on every view. The two
--- zero-stride bodies say at their definitions what each buys. The
--- fills take @l > 0@, asserted at each entry: a zero-stride innermost
--- run reads its one element, and a zero-stride level writes its
--- innermost run or block, before reading the extent, so a zero extent
--- there would read past the source or write into an empty result.
--- Both of the path's dispatches guard @l == 0@ before calling it.
+-- 'Nest' over 'Axis', the outer levels of a view as 'fillStage2Ax'
+-- walks them: the fused level's runs, or a level of @n@ blocks of @blk@
+-- elements at stride @st@, stride 0 copying the first, @st@ and @n@ the
+-- outer axes list's own 'Axis'. A hand-rolled strict list, the loop
+-- nest as data, holding the 'Axis' for readability and a word less a
+-- level: up to 16 bytes a call on the list twins, and nothing else
+-- measurably (2026-09-25). The fragility 'WalkAx' records does not bite
+-- here: the box is the list's own, built before the loop, and 'run' and
+-- 'level' only take it apart; a reader that had to build one would
+-- bring the allocation back into the loop.
+data NestAx = FusedAx | LevelAx !Axis !Int !NestAx
+
+-- 'fillStage2' over 'WalkAx', the path's fill: a copy of the fill the
+-- library's 'genericFillStrided' is ported from, at Storable Double,
+-- the library's own being in its Data/Array/Internal.hs. This one walks
+-- the outer levels as a 'NestAx' built over them innermost first, each
+-- level holding its 'Axis'. 'check' holds it to the reference on every
+-- view. The two zero-stride bodies say at their definitions what each
+-- buys. The fills take @l > 0@, asserted at each entry: a zero-stride
+-- innermost run reads its one element, and a zero-stride level writes
+-- its innermost run or block, before reading the extent, so a zero
+-- extent there would read past the source or write into an empty
+-- result. Both of the path's dispatches guard @l == 0@ before calling
+-- it.
 {-# NOINLINE fillStage2Ax #-}
 fillStage2Ax :: WalkAx -> Int -> Int -> VS.Vector Double -> VS.Vector Double
 fillStage2Ax (WalkAx tInner sInner outerAxes) !ao !l !v =
@@ -5733,8 +5746,8 @@ fillStage2Ax (WalkAx tInner sInner outerAxes) !ao !l !v =
         -- the fused level's runs and every level above them.
         {-# INLINE level #-}
         level :: (Int -> Int -> ST s ())
-              -> Int -> Int -> Int -> Int -> Int -> ST s ()
-        level body !n !st !blk !outPos !baseOff
+              -> Axis -> Int -> Int -> Int -> ST s ()
+        level body (Axis st n) !blk !outPos !baseOff
           | st == 0 = body outPos baseOff >> copies n blk outPos
           | otherwise =
               let go :: Int -> Int -> Int -> ST s ()
@@ -5747,17 +5760,17 @@ fillStage2Ax (WalkAx tInner sInner outerAxes) !ao !l !v =
         -- level's runs at the head and each level above a loop of @n@
         -- blocks of @blk@ elements around the nest below it, as data so
         -- that each level is a known call of 'run', where closures lose.
-        wrap :: (Nest, Int) -> Axis -> (Nest, Int)
-        wrap (inner, !blk) (Axis st n) =
-          let !nest = Level n st blk inner
+        wrap :: (NestAx, Int) -> Axis -> (NestAx, Int)
+        wrap (inner, !blk) axis@(Axis _ n) =
+          let !nest = LevelAx axis blk inner
               !blkNext = n * blk
           in  (nest, blkNext)
         {-# INLINE walk #-}
         walk :: (Int -> Int -> ST s ()) -> ST s ()
         walk writeRun = case innerFirstAx outerAxes of
           [] -> writeRun 0 ao
-          Axis st0 n0 : outer ->
-            let run :: Nest -> Int -> Int -> ST s ()
+          axis0@(Axis _ n0) : outer ->
+            let run :: NestAx -> Int -> Int -> ST s ()
                 -- The runs loop has no register to spare, and two things
                 -- nothing enforces keep it from spilling one every two
                 -- elements: it advances by 'sInner' itself, where a field
@@ -5766,11 +5779,11 @@ fillStage2Ax (WalkAx tInner sInner outerAxes) !ao !l !v =
                 -- fill's body the result's buffer and length stay live
                 -- across it. Each broke in a variant of 2026-09-24,
                 -- 6.5 to 22% more instructions on the stretch views.
-                run Fused !outPos !baseOff =
-                  level writeRun n0 st0 sInner outPos baseOff
-                run (Level n st blk inner) !outPos !baseOff =
-                  level (run inner) n st blk outPos baseOff
-            in  run (fst (foldl' wrap (Fused, n0 * sInner) outer)) 0 ao
+                run FusedAx !outPos !baseOff =
+                  level writeRun axis0 sInner outPos baseOff
+                run (LevelAx axis blk inner) !outPos !baseOff =
+                  level (run inner) axis blk outPos baseOff
+            in  run (fst (foldl' wrap (FusedAx, n0 * sInner) outer)) 0 ao
     if tInner == 0 then walk writeRunSet else walk writeRunStep
     return out
 
