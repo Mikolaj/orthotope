@@ -1601,6 +1601,77 @@ def rotated_listing(tmp):
     return {'dis': path}
 
 
+# A thirteenth site, `run41-gheadnospec` from 0x497d90 to 0x497e1e, read
+# 2026-09-26: an info table ending at 0x497dd7 and the continuation after
+# it, `movq $0x497df8,0x0(%rbp)`, `mov %rbx,%r14` and a `jmp` rel32 back,
+# read one byte out of step, so that the mov's last byte and the jmp's
+# opcode, `de e9`, decode as `fsubrp` and the displacement's low bytes,
+# `70 fc`, as `jo -4` back to it. Four bytes at offset 34, so only the
+# exit-span count met it, and the five tells before this one pass it: the
+# flow is straight, the body holds no `(bad)`, no zero run, no stray REX
+# and no pad. The tell is the x87 instruction, which GHC's x86-64 code
+# generator does not emit.
+PHANTOM9_LISTING = """\
+
+run41-gheadnospec:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000497d90 <microzm0zi1zminplacezmmicro_Main_zdfEqAxiszuzdczeze_info+0x81960>:
+  497d90:\tf0 4c 89 45 f8       \tlock mov %r8,-0x8(%rbp)
+  497d95:\t48 83 c5 e0          \tadd    $0xffffffffffffffe0,%rbp
+  497d99:\t41 ff 65 f8          \tjmp    *-0x8(%r13)
+  497d9d:\t0f 1f 00             \tnopl   (%rax)
+  497da0:\t87 05 00 00 00 00    \txchg   %eax,0x0(%rip)        # 497da6 <microzm0zi1zminplacezmmicro_Main_zdfEqAxiszuzdczeze_info+0x81976>
+  497da6:\t00 00                \tadd    %al,(%rax)
+  497da8:\t1e                   \t(bad)
+  497da9:\t00 00                \tadd    %al,(%rax)
+  497dab:\t00 58 63             \tadd    %bl,0x63(%rax)
+  497dae:\t32 01                \txor    (%rcx),%al
+  497db0:\t48 c7 45 00 d8 7d 49 \tmovq   $0x497dd8,0x0(%rbp)
+  497db7:\t00 
+  497db8:\t48 89 de             \tmov    %rbx,%rsi
+  497dbb:\t4c 8d 35 e8 0f 31 01 \tlea    0x1310fe8(%rip),%r14        # 17a8daa <microzm0zi1zminplacezmmicro_Main_zdfOrdAxis_closure+0x12a>
+  497dc2:\te9 e1 7f 13 01       \tjmp    15cfda8 <ghczminternal_GHCziInternalziDataziOldList_actualSort_info>
+  497dc7:\t90                   \tnop
+  497dc8:\t87 05 00 00 00 00    \txchg   %eax,0x0(%rip)        # 497dce <microzm0zi1zminplacezmmicro_Main_zdfEqAxiszuzdczeze_info+0x8199e>
+  497dce:\t00 00                \tadd    %al,(%rax)
+  497dd0:\t1e                   \t(bad)
+  497dd1:\t00 00                \tadd    %al,(%rax)
+  497dd3:\t00 10                \tadd    %dl,(%rax)
+  497dd5:\t63 32                \tmovsxd (%rdx),%esi
+  497dd7:\t01 48 c7             \tadd    %ecx,-0x39(%rax)
+  497dda:\t45 00 f8             \tadd    %r15b,%r8b
+  497ddd:\t7d 49                \tjge    497e28 <microzm0zi1zminplacezmmicro_Main_zdfEqAxiszuzdczeze_info+0x819f8>
+  497ddf:\t00 49 89             \tadd    %cl,-0x77(%rcx)
+  497de2:\tde e9                \tfsubrp %st,%st(1)
+  497de4:\t70 fc                \tjo     497de2 <microzm0zi1zminplacezmmicro_Main_zdfEqAxiszuzdczeze_info+0x819b2>
+  497de6:\tff                   \t(bad)
+  497de7:\tff 87 05 00 00 00    \tincl   0x5(%rdi)
+  497ded:\t00 00                \tadd    %al,(%rax)
+  497def:\t00 1e                \tadd    %bl,(%rsi)
+  497df1:\t00 00                \tadd    %al,(%rax)
+  497df3:\t00 f0                \tadd    %dh,%al
+  497df5:\t62 32 01 48 c7       \t(bad)
+  497dfa:\t45 f8                \trex.RB clc
+  497dfc:\t30 7e 49             \txor    %bh,0x49(%rsi)
+  497dff:\t00 4c 89 f7          \tadd    %cl,-0x9(%rcx,%rcx,4)
+  497e03:\t48 8d 35 a7 6b 47 01 \tlea    0x1476ba7(%rip),%rsi        # 190e9b1 <stg_INTLIKE_closure+0x111>
+  497e0a:\t4c 8d 35 a1 75 46 01 \tlea    0x14675a1(%rip),%r14        # 18ff3b2 <ghczminternal_GHCziInternalziNum_zdfNumIntzuzdczt_closure+0x2>
+  497e11:\t48 89 5d 00          \tmov    %rbx,0x0(%rbp)
+  497e15:\t48 83 c5 f8          \tadd    $0xfffffffffffffff8,%rbp
+  497e19:\te9 52 c3 1d 01       \tjmp    1674170 <ghczminternal_GHCziInternalziList_scanr_info>
+"""
+
+
+def phantom9_listing(tmp):
+    """The thirteenth saved site, planted for `--survey`: {'dis': path}."""
+    path = os.path.join(tmp, 'run41-gheadnospec-0x497d90.dis')
+    write(path, PHANTOM9_LISTING)
+    return {'dis': path}
+
+
 # The run-fill loop this README prices, 28 bytes and eight instructions, as
 # `run25-g912` carries it at 0x434558; a second body differs in one
 # register so the two group apart. Listings built from them are what the

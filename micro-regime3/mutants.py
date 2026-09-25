@@ -755,17 +755,19 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'0 self-loops of at most\' in r.stdout else 1)"'),
-    # THREE TABLE TELLS dropped: the continuation the sweep decoded out of
+    # FOUR TABLE TELLS dropped: the continuation the sweep decoded out of
     # step counts as a straddling loop again, over the second listing. It
-    # takes all three because they COINCIDE on that site -- its body
-    # carries a `(bad)`, a run of six zero bytes and a `rex.RB clc` -- so
-    # dropping the `(bad)` tell alone leaves the zero-run tell to refuse it
-    # and this mutant survived, caught by this suite the day the second
-    # tell landed (2026-09-11), and dropping those two leaves the stray-REX
-    # tell to, caught the day that one landed (2026-09-18). No site on
-    # record separates them; what proves the zero-run tell bites on its
-    # own is the mutant below, whose listing carries no `(bad)`, and the
-    # stray-REX tell the sixth listing's, whose body carries neither.
+    # takes all four because they COINCIDE on that site -- its body
+    # carries a `(bad)`, a run of six zero bytes, a `rex.RB clc` and an
+    # x87 `fimuls` -- so dropping the `(bad)` tell alone leaves the
+    # zero-run tell to refuse it and this mutant survived, caught by this
+    # suite the day the second tell landed (2026-09-11), dropping those two
+    # leaves the stray-REX tell to, caught the day that one landed
+    # (2026-09-18), and dropping those three the x87 tell (2026-09-26). No
+    # site on record separates them; what proves the zero-run tell bites on
+    # its own is the mutant below, whose listing carries no `(bad)`, the
+    # stray-REX tell the sixth listing's, whose body carries neither, and
+    # the x87 tell the thirteenth's, whose body carries none of the three.
     ('survey counts a swallowed jump as a loop again', 'loop-offsets.py',
      "        if any(i[3] == '(bad)' for i in insns[k:n + 1]):\n            continue\n"
      "        # Nor does it carry a run of zero bytes, or an instruction of two:\n"
@@ -774,7 +776,13 @@ MUTANTS = [
      "        # Nor a stray REX prefix, `rex.*` in the mnemonic column: the sweep\n"
      "        # entered an instruction mid-way, a fifth shape, the sixth site in\n"
      "        # defects.py (2026-09-18), which carries the totals it moves.\n"
-     "        if any(i[3].startswith('rex.') for i in insns[k:n + 1]):\n            continue\n",
+     "        if any(i[3].startswith('rex.') for i in insns[k:n + 1]):\n            continue\n"
+     "        # Nor an x87 instruction, a mnemonic beginning `f`: GHC's x86-64\n"
+     "        # code generator does floating point in SSE2, so the sweep decoded\n"
+     "        # one out of step -- Run 41's phantom astride, a `jmp` rel32's own\n"
+     "        # bytes `de e9 70 fc` read as `fsubrp` and `jo -4` back to it, the\n"
+     "        # thirteenth site in defects.py (2026-09-26).\n"
+     "        if any(i[3].startswith('f') for i in insns[k:n + 1]):\n            continue\n",
      '',
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
@@ -816,6 +824,18 @@ MUTANTS = [
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
      'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
      'f = m.phantom5_listing(tempfile.mkdtemp())[\'dis\']\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'0 self-loops of at most\' in r.stdout else 1)"'),
+    # The x87 tell, removed: the thirteenth site's jump reads as a
+    # four-byte loop astride again.
+    ('survey counts an x87 decode of a jump as a loop again', 'loop-offsets.py',
+     "        if any(i[3].startswith('f') for i in insns[k:n + 1]):\n            continue\n",
+     '',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.phantom9_listing(tempfile.mkdtemp())[\'dis\']\n'
      'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'0 self-loops of at most\' in r.stdout else 1)"'),

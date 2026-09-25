@@ -479,6 +479,13 @@ def scan(path, length):
         # defects.py (2026-09-18), which carries the totals it moves.
         if any(i[3].startswith('rex.') for i in insns[k:n + 1]):
             continue
+        # Nor an x87 instruction, a mnemonic beginning `f`: GHC's x86-64
+        # code generator does floating point in SSE2, so the sweep decoded
+        # one out of step -- Run 41's phantom astride, a `jmp` rel32's own
+        # bytes `de e9 70 fc` read as `fsubrp` and `jo -4` back to it, the
+        # thirteenth site in defects.py (2026-09-26).
+        if any(i[3].startswith('f') for i in insns[k:n + 1]):
+            continue
         # Nor does it begin with a pad: a `nopl` pad after an unconditional
         # jump, closed by the info-table word after it read as a short
         # backward jcc, is a fourth table shape -- six bytes that cannot straddle,
