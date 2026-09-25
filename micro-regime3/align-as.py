@@ -954,6 +954,12 @@ def extra(p, ln):
     return (p + ln - 1) // BOUND - (ln - 1) // BOUND
 
 
+def costs_more(got, plan):
+    """Whether the tier costs a group's heads landed at exceed those its
+    plan bought, the settling rounds' test of a group the pad moved."""
+    return got > tuple(x + 1e-9 for x in plan)
+
+
 def dead_spots(src):
     """-> (lines a pad may follow, {align line: its bytes}), `.text` only.
 
@@ -1241,9 +1247,9 @@ def plan_dead(src, args, path):
             if not sym2:
                 break
             off = [g for g, ((c0, _, _), _) in chosen_by.items()
-                   if tiered(hl_by[g], [sym2[f'{DS}H_{hd[0]}'] % BOUND
-                                        for hd in hl_by[g]], mode)
-                   > tuple(x + 1e-9 for x in c0)]
+                   if costs_more(tiered(hl_by[g],
+                                        [sym2[f'{DS}H_{hd[0]}'] % BOUND
+                                         for hd in hl_by[g]], mode), c0)]
             if not off:
                 break
             moved = 0
