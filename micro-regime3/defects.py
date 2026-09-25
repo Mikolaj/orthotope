@@ -3614,6 +3614,31 @@ def corpus_with_an_unreadable_run(tmp):
 # the ones every `halves()` call below uses.
 NOTE_STUB = 'a stand-in pair note.\nHALVES: basis=lookrts other=a1g\n'
 
+G3_RECIPES = """
+HOW EACH HALF IS BUILT, in the note's own form:
+
+  zzg3-lookrts   cd here, then
+                        LOOP_A=1 LOOP_B=1 \\
+                        cabal build micro \\
+                          --project-file=cabal.project.x \\
+                          --builddir=db-a \\
+                          --ghc-options="-fobject-determinism" \\
+                          --ghc-options="-pgma $PWD/align-as.py -fforce-recomp"
+                      then
+                        cp it
+
+  zzg3-a1g       the same source, then
+                        LOOP_A=1 LOOP_B=1 \\
+                        cabal build micro \\
+                          --project-file=cabal.project.x \\
+                          --builddir=db-b \\
+                          --ghc-options="-fspec-constr \\
+                                         -fobject-determinism" \\
+                          --ghc-options="-pgma $PWD/align-as.py -fforce-recomp"
+                      then
+                        cp it
+"""
+
 FAKE_HALF = """\
 #!/bin/sh
 # A stand-in for `$PREFIX-$half`, answering the two questions a driver asks
@@ -11626,6 +11651,32 @@ RECORDS = [
              else 'stale absent',
          ok=V(has=['stale absent'], hasnt=['STALE PRESENT']),
          bug=V(has=['STALE PRESENT'])),
+
+    # ---- g3-twins.sh, post-run step 0's twins off the note's recipes ----
+    case('g3-twins-reads-the-note-recipes', 'g3-twins.sh', None,
+         "CONTROL: each half's environment, project file and flags come off"
+         " the note's own recipe block, -g3 added",
+         # Run 40 re-derived its twin script from Run 38's by hand, probe-*
+         # being ignored by git. Built on Run 40's own recipes the script's
+         # twins came out md5-identical to the hand script's, 2026-09-25;
+         # this holds the parse, --dry-run building nothing.
+         shadow=dict(extra=[('zzg3-pair.txt', NOTE_STUB + G3_RECIPES)]),
+         argv=['zzg3', '--dry-run'],
+         ok=V(exit=0, has=["### lookrts: env 'LOOP_A=1 LOOP_B=1', project"
+                           " file 'cabal.project.x', ghc-options"
+                           " '-fobject-determinism -g3'",
+                           "### a1g: env 'LOOP_A=1 LOOP_B=1', project file"
+                           " 'cabal.project.x', ghc-options '-fspec-constr"
+                           " -fobject-determinism -g3'"])),
+
+    case('g3-twins-refuses-a-recipe-it-cannot-read', 'g3-twins.sh', None,
+         'CONTROL: a word before `cabal` that is no assignment refuses,'
+         ' rather than being passed to env as a command',
+         shadow=dict(extra=[('zzg3-pair.txt', NOTE_STUB + G3_RECIPES.replace(
+             'LOOP_A=1 LOOP_B=1', 'LOOP_A=1 nice LOOP_B=1', 1))]),
+         argv=['zzg3', '--dry-run'],
+         ok=V(exit=1, has=['something other than environment assignments',
+                           'did not build'])),
 
     # ---- run-evening.sh, the run list's quiet machine steps as one command
     case('evening-chains-the-stages', 'run-evening.sh', None,
