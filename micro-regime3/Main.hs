@@ -3483,11 +3483,11 @@ data Nest = Fused | Level !Int !Int !Int !Nest
 
 -- The fill the library's 'genericFillStrided' is ported from, at
 -- Storable Double; the library's copy is in its Data/Array/Internal.hs.
--- This one walks the outer levels as a 'Nest' folded over them innermost
--- first, and 'fillStage2Axes' below numbers them outermost first in two
--- tables, as ported and in step with the library.
--- 'check' holds this one to the reference on every view. The two
--- zero-stride bodies say at
+-- This one walks the outer levels as a 'Nest' folded over them
+-- innermost first, and so does 'fillStage2Axes' below since it became
+-- this fill's copy on 2026-09-25; until then it numbered them outermost
+-- first in two tables, as the library's port did. 'check' holds this
+-- one to the reference on every view. The two zero-stride bodies say at
 -- their definitions what each buys, and the fills that keep older forms
 -- say so at theirs. The fills take @l > 0@, asserted at each entry: a
 -- zero-stride innermost run reads its one element, and a zero-stride
@@ -4482,34 +4482,35 @@ routeUnord3 sh a = case routeUnord5 sh a of
   RRuns axes o l -> RFill axes o l
   r -> r
 
--- The lazy odometer list, shared by every lazy candidate here: one slice
--- per run, in address or logical order over the outer levels, produced
--- on demand in continuation-passing form, so a consumer that folds it
--- holds no more of it than it has reached -- master's 'toVectorListT'
--- laziness in regime 2, without its per-level list comprehension and
--- 'concat'. The run's extent is the innermost level's; each outer level
--- steps the base offset by its stride, negative and zero strides
--- included. Added 2026-09-07 with the ruling that the list stays lazy
--- (README.md#dead-ideas). In 'build' form since 2026-09-09, so that a
--- foldr-shaped consumer applied where the list is produced fuses with
--- it: the cons cell and the slice header went with the list, which the
--- fusion probe of that day read as 104 bytes and 14 ns a run against 145
--- and 19, and 88 bytes once the loop was compiled once for every stage;
--- the thunk, the boxed accumulator and the partial application a run
--- the level form still left went with the flat walker of the same day,
--- 'runSlices' (README.md#what-is-open). The leaf is fused, the fills' trick:
--- the innermost outer level conses its slices itself rather than
--- calling 'go' once more per run, a quarter of the time and 8 bytes a
--- run off on short runs, 9.3 ns and 80 bytes on the k3 window. The
--- fills' other trick, the levels as unboxed tables indexed by level,
--- read a further sixth, 7.8 ns, and was REFUSED 2026-09-09 on code size
--- against how little the entry point is used and how little any of
--- this moves most shapes. The fold has to sit on the list
--- expression itself: applied to a case-bound variable, or partially
--- applied and floated to the top level, it never meets the 'build'. A
--- consumer that cannot fuse, 'VS.concat' under the Fill arms until
--- 2026-09-21, paid the form nothing once compiled once; inlined beside
--- it the probe read 16 bytes a run more.
+-- The lazy odometer list, shared by every lazy candidate here: one
+-- slice per run, in address or logical order over the outer levels,
+-- produced on demand in continuation-passing form, so a consumer that
+-- folds it holds no more of it than it has reached -- master's
+-- 'toVectorListT' laziness in regime 2, without its per-level list
+-- comprehension and 'concat'. The run's extent is the innermost
+-- level's; each outer level steps the base offset by its stride,
+-- negative and zero strides included. Added 2026-09-07 with the ruling
+-- that the list stays lazy (README.md#dead-ideas). In 'build' form
+-- since 2026-09-09, so that a foldr-shaped consumer applied where the
+-- list is produced fuses with it: the cons cell and the slice header
+-- went with the list, which the fusion probe of that day read as 104
+-- bytes and 14 ns a run against 145 and 19, and 88 bytes once the loop
+-- was compiled once for every stage; the thunk, the boxed accumulator
+-- and the partial application a run the level form still left went with
+-- the flat walker of the same day, 'runSlices'
+-- (README.md#what-is-open). The leaf is fused, the fills' trick: the
+-- innermost outer level conses its slices itself rather than calling
+-- 'go' once more per run, a quarter of the time and 8 bytes a run off
+-- on short runs, 9.3 ns and 80 bytes on the k3 window. The fills' other
+-- trick of that day, the levels as unboxed tables indexed by level,
+-- which they have since dropped, read a further sixth, 7.8 ns, and was
+-- REFUSED 2026-09-09 on code size against how little the entry point is
+-- used and how little any of this moves most shapes. The fold has to
+-- sit on the list expression itself: applied to a case-bound variable,
+-- or partially applied and floated to the top level, it never meets the
+-- 'build'. A consumer that cannot fuse, 'VS.concat' under the Fill arms
+-- until 2026-09-21, paid the form nothing once compiled once; inlined
+-- beside it the probe read 16 bytes a run more.
 lazyRuns :: Walk -> Int -> VS.Vector Double -> [VS.Vector Double]
 lazyRuns axes start v = build (runSlices axes start v)
 {-# INLINE lazyRuns #-}
@@ -5565,11 +5566,12 @@ sumLazyRunsAx axes !o v =
 -- 14 ns a run against 145 and 19. The leaf is fused, the fills' trick:
 -- the innermost outer level conses its slices itself rather than
 -- calling 'go' once more per run, a quarter of the time and 8 bytes a
--- run off on short runs. The fills' other trick, the levels as unboxed
--- tables indexed by level, was REFUSED 2026-09-09 on code size (at
--- 'lazyRuns'). The fold has to sit on the list expression itself:
--- applied to a case-bound variable, or partially applied and floated to
--- the top level, it never meets the 'build'.
+-- run off on short runs. The fills' other trick of that day, the levels
+-- as unboxed tables indexed by level, which they have since dropped,
+-- was REFUSED 2026-09-09 on code size (at 'lazyRuns'). The fold has to
+-- sit on the list expression itself: applied to a case-bound variable,
+-- or partially applied and floated to the top level, it never meets the
+-- 'build'.
 lazyRunsAx :: WalkAx -> Int -> VS.Vector Double -> [VS.Vector Double]
 lazyRunsAx axes start v = build (runSlicesAx axes start v)
 {-# INLINE lazyRunsAx #-}
