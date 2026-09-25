@@ -27,9 +27,15 @@
 # stopped evening. The first is the one ordering error possible here and
 # it spoils both readings, the counts and the timings they run beside; the
 # second has no run to count. Nothing else does -- a population whose
-# sweep refuses is a complaint and the next population runs -- and
-# run-counts.sh refuses over its own previous artifact, which is what
-# makes a re-take after a blocked perf safe.
+# sweep refuses is a complaint and the next population runs.
+#
+# A RE-TAKE, after a blocked perf, sweeps what the earlier call did not
+# write: a population whose counts file is here is kept, a complaint still
+# if the sweep that wrote it complained, and the tally is the evening's
+# own and this call's, an earlier call's complaints being what the re-take
+# answers. Both since 2026-09-25 (by review): the tally counted every
+# complaint in the file, so a re-take could never close clean, and every
+# kept population was asked again, which run-counts.sh refuses.
 #
 # No launch environment, deliberately rather than by omission: an
 # instruction count is what the preamble's dose is counted into and
@@ -97,13 +103,28 @@ stamp "counted work begins for $R: basis $BASIS, control $OTHER"
 CLASSES=$(./"$R-$BASIS" classes --list 2>/dev/null | cut -d- -f1 | awk '!seen[$0]++')
 for c in '' $CLASSES; do
   for h in $OTHER $BASIS; do
-    sweep "counts $h ${c:-main}" ./run-counts.sh "$R" "$h" $c || true
+    label="counts $h ${c:-main}"
+    F="$R-counts-$h${c:+-$c}.txt"          # run-counts.sh's own name
+    if [ -e "$F" ]; then
+      case $(grep -F "$label: done, rc=" "$STATUS" | tail -1) in
+        *': done, rc=0') stamp "$label: $F kept from an earlier call" ;;
+        '') stamp "$label: $F kept, and no sweep in $STATUS wrote it --\
+ COMPLAINT, read where it came from before any figure" ;;
+        *) stamp "$label: $F kept from an earlier call, which complained --\
+ COMPLAINT, read $OUT under '##### $label'" ;;
+      esac
+      continue
+    fi
+    sweep "$label" ./run-counts.sh "$R" "$h" $c || true
   done
 done
 
 # Off the status file rather than counted in this process, which is what
-# carries the first call's complaints into the last line (header).
-N=$(grep -c -- '-- COMPLAINT,' "$STATUS")
+# carries the first call's complaints into the last line (header): those
+# before any counted work, and this call's, from its own `begins` line on.
+N=$(awk '/ counted work begins for / { seen = 1; cur = 0; next }
+         /-- COMPLAINT,/ { if (seen) cur++; else pre++ }
+         END { print pre + cur }' "$STATUS")
 if [ "$N" -eq 0 ]; then
   stamp "EVENING COMPLETE: every stage of both calls exited 0. Read\
  $R-wallclock.log's '!!' lines anyway, then the post-run list in the\

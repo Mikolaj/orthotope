@@ -3740,6 +3740,31 @@ _EVENING_HEAD = _EVENING_BEGINS + ('=== 2026-09-03T12:58:25+02:00 sequence:'
 _EVENING_FREE = ('=== 2026-09-03T13:15:02+02:00 RIDERS DONE AND THE MACHINE'
                  ' IS FREE: every stage exited 0\n')
 EVENING_DONE = _EVENING_HEAD + _EVENING_FREE
+def counts_attempt(run, clean=()):
+    """An earlier call of run-counts-all.sh as its status lines read: every
+    population of the stand-ins swept, the labels in `clean` at rc=0 and
+    the rest refused, and its closing tally."""
+    at = '=== 2026-09-03T13:20:00+02:00 '
+    lines = [at + 'counted work begins for %s: basis lookrts, control a1g'
+             % run]
+    n = 0
+    for pop in ('main', 'rev', 'other'):
+        for h in ('a1g', 'lookrts'):
+            lab = 'counts %s %s' % (h, pop)
+            lines.append(at + lab + ': start')
+            if lab in clean:
+                lines.append(at + lab + ': done, rc=0')
+            else:
+                lines.append(at + "%s: done, rc=2 -- COMPLAINT, read"
+                             " %s-evening-out.txt under '##### %s'"
+                             % (lab, run, lab))
+                n += 1
+    lines.append(at + 'EVENING COMPLETE WITH %d COMPLAINT(S) OVER BOTH CALLS'
+                 ' -- read each in %s-evening-out.txt before any figure'
+                 % (n, run))
+    return '\n'.join(lines) + '\n'
+
+
 EVENING_DONE_SORE = _EVENING_HEAD.replace(
     'sequence: done, rc=0',
     "sequence: done, rc=1 -- COMPLAINT, read zz-evening-out.txt under"
@@ -15104,6 +15129,65 @@ RECORDS = [
              subs['at'], 'probe-zzps3.txt')).read(),
          ok=V(exit=0, has=['shape-a list 100 1000 49'],
               hasnt=['NONLINEAR'])),
+
+    case('counts-all-retake-tallies-its-own-call', 'run-counts-all.sh', None,
+         'a re-take after a blocked perf could never close clean, the tally'
+         ' counting the first attempt\'s complaints',
+         # The header calls a re-take safe, and the tally read every
+         # `-- COMPLAINT,` in the status file, the refused attempt's six
+         # among them, so the clean re-take ended WITH 6 at exit 1.
+         shadow=dict(extra=[('zzcf-lookrts', FAKE_HALF),
+                            ('zzcf-a1g', FAKE_HALF),
+                            ('zzcf-pair.txt', NOTE_STUB),
+                            ('zzcf-evening.txt',
+                             EVENING_DONE + counts_attempt('zzcf'))]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
+              'ARMS': 'list', 'N': '1'},
+         argv=['zzcf'],
+         ok=V(exit=0, has=['counts lookrts other: done, rc=0',
+                           'EVENING COMPLETE: every stage of both calls'],
+              hasnt=['COMPLAINT(S)'])),
+
+    case('counts-all-retake-keeps-what-an-earlier-call-wrote',
+         'run-counts-all.sh', None,
+         'a re-take refused every population whose counts an earlier call'
+         ' had written, each a new complaint',
+         # run-counts.sh refuses over its own artifact, rightly, and the
+         # re-take asked it anyway for the populations that had counted.
+         shadow=dict(extra=[('zzcg-lookrts', FAKE_HALF),
+                            ('zzcg-a1g', FAKE_HALF),
+                            ('zzcg-pair.txt', NOTE_STUB),
+                            ('zzcg-counts-a1g.txt', 'counted earlier\n'),
+                            ('zzcg-evening.txt',
+                             EVENING_DONE + counts_attempt(
+                                 'zzcg', clean=('counts a1g main',)))]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
+              'ARMS': 'list', 'N': '1'},
+         argv=['zzcg'],
+         ok=V(exit=0, has=['counts a1g main: zzcg-counts-a1g.txt kept from'
+                           ' an earlier call',
+                           'EVENING COMPLETE: every stage of both calls'],
+              hasnt=['COMPLAINT(S)'])),
+
+    case('counts-all-retake-keeps-an-earlier-complaint', 'run-counts-all.sh',
+         None,
+         'CONTROL: a file kept from a sweep that complained is still a'
+         ' complaint, the re-take not reading it again',
+         shadow=dict(extra=[('zzch-lookrts', FAKE_HALF),
+                            ('zzch-a1g', FAKE_HALF),
+                            ('zzch-pair.txt', NOTE_STUB),
+                            ('zzch-counts-a1g.txt', 'counted earlier\n'),
+                            ('zzch-evening.txt',
+                             EVENING_DONE + counts_attempt('zzch'))]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
+              'ARMS': 'list', 'N': '1'},
+         argv=['zzch'],
+         ok=V(exit=1, has=['counts a1g main: zzch-counts-a1g.txt kept from'
+                           ' an earlier call, which complained -- COMPLAINT',
+                           'EVENING COMPLETE WITH 1 COMPLAINT(S)'])),
 
 ]
 
