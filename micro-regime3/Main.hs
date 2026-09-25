@@ -3607,99 +3607,95 @@ fillStage2 (Axes tInner sInner outerAxes) !ao !l !v =
     if tInner == 0 then walk writeRunSet else walk writeRunStep
     return out
 
--- 'fillStage2' with the odometer's levels numbered outermost first,
--- the outer axes reversed for it in the prologue, one change: the
--- form the library carried when it was ported here; comments
--- stripped, the code copied, as 'fillStage2VSdims' is. The fill of
--- 'liblist-stage4-sum', 'libunord-stage13-sum' and 'lib-stage2-lean',
--- kept on it so that an earlier run read against a later one prices
--- the port's prologue on them, and each against its inward twin,
--- 'liblist-stage5-sum', 'libunord-stage14-sum' and 'lib-stage3-lean', prices
--- the numbering.
+-- 'fillStage2' as it read on 2026-09-25, comments stripped, the code
+-- copied: the fill of 'liblist-stage4-sum', 'libunord-stage13-sum' and
+-- 'lib-stage2-lean', kept as the comparison while 'fillStage2' changes
+-- under their inward twins, 'liblist-stage5-sum', 'libunord-stage14-sum'
+-- and 'lib-stage3-lean'. Until that day it was 'fillStage2' with the
+-- odometer's levels numbered outermost first, the form the library
+-- carried when it was ported here.
 {-# NOINLINE fillStage2Axes #-}
 fillStage2Axes :: Axes -> Int -> Int -> VS.Vector Double -> VS.Vector Double
 fillStage2Axes (Axes tInner sInner outerAxes) !ao !l !v =
-  assert (l > 0) $ VS.create $ do
-  out <- VSM.unsafeNew l
-  let {-# INLINE writeRunStep #-}
-      writeRunStep !outPos !baseOff =
-        let !oEnd = outPos + sInner
-            inner !o !src
-              | o + 1 >= oEnd =
-                  if o >= oEnd then return ()
-                  else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+  assert (l > 0) $ VS.create fill
+ where
+  fill :: forall s. ST s (VSM.MVector s Double)
+  fill = do
+    out <- VSM.unsafeNew l
+    let {-# INLINE writeRunStep #-}
+        writeRunStep :: Int -> Int -> ST s ()
+        writeRunStep !outPos !baseOff =
+          let !oEnd = outPos + sInner
+              inner :: Int -> Int -> ST s ()
+              inner !o !src
+                | o + 1 >= oEnd =
+                    if o >= oEnd then return ()
+                    else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                | otherwise = do
+                    VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                    let !srcNext = src + tInner
+                    VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v srcNext)
+                    inner (o + 2) (srcNext + tInner)
+          in  inner outPos baseOff
+        {-# INLINE writeRunSet #-}
+        writeRunSet :: Int -> Int -> ST s ()
+        writeRunSet !outPos !baseOff =
+          let !x = VS.unsafeIndex v baseOff
+              !oEnd = outPos + sInner
+              inner :: Int -> ST s ()
+              inner !o
+                | o + 1 >= oEnd =
+                    if o >= oEnd then return ()
+                    else VSM.unsafeWrite out o x
+                | otherwise = do
+                    VSM.unsafeWrite out o x
+                    VSM.unsafeWrite out (o + 1) x
+                    inner (o + 2)
+          in  inner outPos
+        copies :: Int -> Int -> Int -> ST s ()
+        copies !n !blk !src
+          | n <= 1 = return ()
+          | otherwise = grow blk
+          where
+            !end = src + n * blk
+            grow :: Int -> ST s ()
+            grow !have
+              | src + have >= end = return ()
               | otherwise = do
-                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
-                  let !src' = src + tInner
-                  VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
-                  inner (o + 2) (src' + tInner)
-        in  inner outPos baseOff
-      {-# INLINE writeRunSet #-}
-      writeRunSet !outPos !baseOff =
-        let !x = VS.unsafeIndex v baseOff
-            !oEnd = outPos + sInner
-            inner !o
-              | o + 1 >= oEnd =
-                  if o >= oEnd then return ()
-                  else VSM.unsafeWrite out o x
-              | otherwise = do
-                  VSM.unsafeWrite out o x
-                  VSM.unsafeWrite out (o + 1) x
-                  inner (o + 2)
-        in  inner outPos
-      copies !n !blk !src
-        | n <= 1 = return (src + blk)
-        | otherwise = grow blk
-        where
-          !end = src + n * blk
-          grow !have
-            | src + have >= end = return end
-            | otherwise = do
-                let !len = min have (end - src - have)
-                VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
-                               (VSM.unsafeSlice src len out)
-                grow (have + len)
-      {-# INLINE runsWith #-}
-      runsWith writeRun !n !st !outPos !baseOff
-        | st == 0 = writeRun outPos baseOff
-                    >> copies n sInner outPos
-        | otherwise =
-            let run !k !op !boff
-                  | k <= 0    = return op
-                  | otherwise = writeRun op boff
-                                >> run (k - 1) (op + sInner) (boff + st)
-            in  run n outPos baseOff
-      go !lev !outPos !baseOff
-        | lev >= rOuter =
-            (if tInner == 0 then writeRunSet else writeRunStep)
-              outPos baseOff
-            >> return (outPos + sInner)
-        | otherwise =
-            level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
-        where
-          level !n !st
-            | lev == rOuter - 1 =
-                if tInner == 0
-                then runsWith writeRunSet n st outPos baseOff
-                else runsWith writeRunStep n st outPos baseOff
-            | st == 0 = do
-                op' <- go (lev + 1) outPos baseOff
-                copies n (op' - outPos) outPos
-            | otherwise =
-                let dim !k !op !boff
-                      | k <= 0    = return op
-                      | otherwise = go (lev + 1) op boff
-                                    >>= \op' -> dim (k - 1) op' (boff + st)
-                in  dim n outPos baseOff
-  _ <- go 0 0 ao
-  return out
-  where -- No doubled stride here any more; see the fill's own note.
-        !rOuter = length levels
-        levels :: [(Int, Int)]
-        levels = outerFirst outerAxes
-        oshV, oatsV :: VU.Vector Int
-        !oshV  = VU.fromList (map snd levels)
-        !oatsV = VU.fromList (map fst levels)
+                  let !len = min have (end - src - have)
+                  VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
+                                 (VSM.unsafeSlice src len out)
+                  grow (have + len)
+        {-# INLINE level #-}
+        level :: (Int -> Int -> ST s ())
+              -> Int -> Int -> Int -> Int -> Int -> ST s ()
+        level body !n !st !blk !outPos !baseOff
+          | st == 0 = body outPos baseOff >> copies n blk outPos
+          | otherwise =
+              let go :: Int -> Int -> Int -> ST s ()
+                  go !k !op !boff
+                    | k <= 0    = return ()
+                    | otherwise = body op boff
+                                  >> go (k - 1) (op + blk) (boff + st)
+              in  go n outPos baseOff
+        wrap :: (Nest, Int) -> (Int, Int) -> (Nest, Int)
+        wrap (inner, !blk) (!st, !n) =
+          let !nest = Level n st blk inner
+              !blkNext = n * blk
+          in  (nest, blkNext)
+        {-# INLINE walk #-}
+        walk :: (Int -> Int -> ST s ()) -> ST s ()
+        walk writeRun = case innerFirst outerAxes of
+          [] -> writeRun 0 ao
+          (!st0, !n0) : outer ->
+            let run :: Nest -> Int -> Int -> ST s ()
+                run Fused !outPos !baseOff =
+                  level writeRun n0 st0 sInner outPos baseOff
+                run (Level n st blk inner) !outPos !baseOff =
+                  level (run inner) n st blk outPos baseOff
+            in  run (fst (foldl' wrap (Fused, n0 * sInner) outer)) 0 ao
+    if tInner == 0 then walk writeRunSet else walk writeRunStep
+    return out
 
 -- 'fillStage2' with the outer axes matched before its table is built:
 -- no outer level writes the run alone, one walks the fused level's runs
@@ -4335,11 +4331,10 @@ fbLibStage2Short sh (T (Strides ats) ao v)
 fbLibStage2Lean :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Lean sh a@(T _ _ v) = routeVector v (routeList4 sh a)
 
--- 'fbLibStage2Lean' over 'fillStage2', the nest folded over the outer
--- axes innermost first, where that arm keeps 'fillStage2Axes', the
--- odometer numbered outermost first: one change, so that arm is its
--- control and the pair prices the walk under the lean dispatch; reasons
--- at 'fillStage2Axes'. Added 2026-09-21.
+-- 'fbLibStage2Lean' over 'fillStage2', where that arm keeps
+-- 'fillStage2Axes', its copy of 2026-09-25: one change, so that arm is
+-- its control and the pair prices what 'fillStage2' changed since under
+-- the lean dispatch; reasons at 'fillStage2Axes'. Added 2026-09-21.
 {-# NOINLINE fbLibStage3Lean #-}
 fbLibStage3Lean :: ShapeL -> T -> VS.Vector Double
 fbLibStage3Lean sh a@(T _ _ v) = routeVectorInward v (routeList4 sh a)
@@ -4667,8 +4662,8 @@ sumRoute v route = case route of
 
 -- The three readers over 'fillStage2', the odometer numbered innermost
 -- first: copies, the fill the one change, so that the pairs of the
--- inward stages against the stages kept on 'fillStage2Axes' price the
--- numbering.
+-- inward stages against the stages kept on 'fillStage2Axes' price what
+-- 'fillStage2' changed since that copy.
 routeSlicesInward :: VS.Vector Double -> Route
                   -> (VS.Vector Double -> b -> b) -> b -> b
 routeSlicesInward v route cons nil = case route of
@@ -5427,7 +5422,8 @@ fbLibListStage4Sum sh a@(T _ _ v) =
 -- Stage five, stage four's route under the fill numbered innermost
 -- first: the readers over 'fillStage2' where stage four's are over
 -- 'fillStage2Axes', the fill the one change, so that the pair prices
--- the numbering; reasons at 'fillStage2Axes'. Added 2026-09-21.
+-- what 'fillStage2' changed since that copy; reasons at
+-- 'fillStage2Axes'. Added 2026-09-21.
 {-# NOINLINE fbLibListStage5Sum #-}
 fbLibListStage5Sum :: ShapeL -> T -> VS.Vector Double
 fbLibListStage5Sum sh a@(T _ _ v) =
@@ -5509,7 +5505,8 @@ fbLibUnordStage13Sum sh a@(T _ _ v) =
 -- Stage fourteen, stage thirteen's route under the fill numbered
 -- innermost first: the readers over 'fillStage2' where stage
 -- thirteen's are over 'fillStage2Axes', the fill the one change, so
--- that the pair prices the numbering; reasons at 'fillStage2Axes'.
+-- that the pair prices what 'fillStage2' changed since that copy;
+-- reasons at 'fillStage2Axes'.
 -- Added 2026-09-21.
 {-# NOINLINE fbLibUnordStage14Sum #-}
 fbLibUnordStage14Sum :: ShapeL -> T -> VS.Vector Double
