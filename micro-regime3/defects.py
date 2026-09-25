@@ -15189,6 +15189,49 @@ RECORDS = [
                            ' an earlier call, which complained -- COMPLAINT',
                            'EVENING COMPLETE WITH 1 COMPLAINT(S)'])),
 
+    case('g3-twins-refuses-a-note-naming-no-source', 'g3-twins.sh', None,
+         'the twins were built from whatever Main.hs and shim the tree held,'
+         ' against a note that names none',
+         # The twins are of the pair's source only if the tree is at the
+         # note's `Main.hs at` and `shim at` commits, and nothing asked.
+         # A stand-in cabal says whether a build was started.
+         shadow=dict(extra=[('zzg3-pair.txt', NOTE_STUB + G3_RECIPES)]),
+         plant=lambda t: {'stub': stub_dir(
+             t, '#!/bin/sh\necho stub cabal ran\nexit 1\n', name='cabal')},
+         env={'PATH': '{stub}:/usr/bin:/bin'},
+         argv=['zzg3'],
+         ok=V(exit=2, has=["has no 'Main.hs at <commit>' row",
+                           'nothing built'],
+              hasnt=['stub cabal ran'])),
+
+    case('g3-twins-refuses-a-source-git-cannot-name', 'g3-twins.sh', None,
+         'CONTROL: with the rows there and no git to hold the tree to them,'
+         ' nothing is built',
+         # The shadow is outside any repository, so git answers nothing
+         # here, as a dubious-ownership refusal would.
+         shadow=dict(extra=[('zzg3-pair.txt', NOTE_STUB + G3_RECIPES
+                             + '  Main.hs at        0123abc, tree clean\n'
+                               '  shim at           4567def, tree clean\n')]),
+         plant=lambda t: {'stub': stub_dir(
+             t, '#!/bin/sh\necho stub cabal ran\nexit 1\n', name='cabal')},
+         env={'PATH': '{stub}:/usr/bin:/bin'},
+         argv=['zzg3'],
+         ok=V(exit=2, has=['git names no commit for Main.hs',
+                           'git names no commit for align-as.py'],
+              hasnt=['stub cabal ran'])),
+
+    case('g3-twins-builds-over-the-source-when-told', 'g3-twins.sh', None,
+         'CONTROL: G3_TREE=1 builds from the tree over a mismatch, saying'
+         ' the mismatch first',
+         shadow=dict(extra=[('zzg3-pair.txt', NOTE_STUB + G3_RECIPES)]),
+         plant=lambda t: {'stub': stub_dir(
+             t, '#!/bin/sh\necho stub cabal ran\nexit 1\n', name='cabal')},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'G3_TREE': '1'},
+         argv=['zzg3'],
+         ok=V(exit=1, has=["has no 'Main.hs at <commit>' row",
+                           'building from the tree as it stands',
+                           'stub cabal ran'])),
+
 ]
 
 
