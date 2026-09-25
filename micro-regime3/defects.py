@@ -6593,6 +6593,141 @@ TIER1 = {
         bug='the (2N - N) figure printed as a measured cell and nothing'
             ' else, 12.3 and 5.1 cycles a run where the modes ran 6.8'
             ' to 10.2'),
+    # The review of 2026-09-25 over every script whole. `harm` is unknown
+    # throughout: nothing was looked into beyond the defect itself.
+    'settled-rounds-see-only-the-short-loops': dict(
+        family='vacuous-check', discovery='review', harm='unknown',
+        trigger='LOOP_SETTLED=1, a group whose tier-0 cost lands on its plan'
+                ' while an outer head or a long loop lands off it',
+        ok='the group is off the plan and is planned again',
+        bug='the group read as on the plan and was never planned again'),
+    'major-run-names-a-population-it-lacks': dict(
+        family='silent-option', discovery='review', harm='unknown',
+        trigger='a population argument naming neither main nor a class,'
+                ' `rnus` for `runs`',
+        ok='refused at exit 2, naming the populations there are',
+        bug='nothing ran, and the run logged itself complete at exit 0'),
+    'stalls-reader-reads-past-a-nonlinear-mark': dict(
+        family='scan-for-parse', discovery='review', harm='unknown',
+        trigger='a stall sweep carrying a # NONLINEAR line for one of the'
+                ' three cells of a shape',
+        ok='the shape is dropped and named, exit 1',
+        bug='the shape joined the table and the geomean, exit 0'),
+    'stalls-keeps-a-cell-whose-check-process-failed': dict(
+        family='other:check-voids-what-it-checks', discovery='review',
+        harm='unknown',
+        trigger='perf counting the -n N and -n 2N processes and not the'
+                ' -n 3N one',
+        ok='the cell is printed, followed by a # UNCHECKED line',
+        bug='the cell was a `perf could not count` line, exit 1'),
+    'stalls-linearity-reads-the-untruncated-slopes': dict(
+        family='other:truncated-before-compared', discovery='review',
+        harm='unknown',
+        trigger='a small cell whose two slopes, linear to within the'
+                ' tolerance, truncate to integers two percent apart',
+        ok='no # NONLINEAR line',
+        bug='# NONLINEAR, 49 then 50 cycles'),
+    'counts-all-retake-tallies-its-own-call': dict(
+        family='unverified-state', discovery='review', harm='unknown',
+        trigger='a re-take after an attempt whose every sweep complained',
+        ok='a clean re-take closes EVENING COMPLETE at exit 0',
+        bug='it closed WITH 6 COMPLAINT(S) at exit 1, the first'
+            " attempt's"),
+    'counts-all-retake-keeps-what-an-earlier-call-wrote': dict(
+        family='unverified-state', discovery='review', harm='unknown',
+        trigger='a re-take where an earlier call wrote one population\'s'
+                ' counts file',
+        ok='that population is kept and said so',
+        bug='it was asked again, which run-counts.sh refuses, a new'
+            ' complaint'),
+    'g3-twins-refuses-a-note-naming-no-source': dict(
+        family='unverified-state', discovery='review', harm='unknown',
+        trigger='Main.hs or align-as.py moved between the run and post-run'
+                ' step 0, or a note naming neither',
+        ok='nothing built, the mismatch named, exit 2',
+        bug='the twins were built from the tree as it stood'),
+    'properties-page-is-each-process-own': dict(
+        family='environment-decides', discovery='review', harm='unknown',
+        trigger='two properties.py processes at once, as the suite runs'
+                ' them, or anything else at the fixed temp name',
+        ok='each process reads back its own table',
+        bug='one could read another\'s table, or a directory there'
+            ' crashed it'),
+    'r39-rules-exits-2-on-a-run-not-here': dict(
+        family='error-as-value', discovery='review', harm='unknown',
+        trigger='a run whose main JSON is absent',
+        ok='exit 2, did not run', bug='exit 1, candidates found'),
+    'fetch-model-exits-2-on-a-table-it-cannot-read': dict(
+        family='error-as-value', discovery='review', harm='unknown',
+        trigger='rescore of a table with no layout or no rows',
+        ok='exit 2, did not run', bug='exit 1, a build failed'),
+    'entries-sweep-exits-2-without-its-tools': dict(
+        family='error-as-value', discovery='review', harm='unknown',
+        trigger='gcc, perf or objdump missing, or perf not counting',
+        ok='exit 2, did not run', bug='exit 1, a build failed'),
+    'r38-sweep-exits-2-without-its-tools': dict(
+        family='error-as-value', discovery='review', harm='unknown',
+        trigger='gcc, perf, objdump or nm missing, or perf not counting',
+        ok='exit 2, did not run', bug='exit 1, a build failed'),
+    'interleave-refuses-a-cell-off-the-roster': dict(
+        family='quiet-failure', discovery='review', harm='unknown',
+        trigger='a cell whose shape or arm a binary lacks, a typo',
+        ok='refused at exit 2, naming the cell and the binary',
+        bug='empty processes differenced to ratios, printed as measured'),
+    'brief-facts-reads-a-basis-with-an-underscore': dict(
+        family='two-spellings', discovery='review', harm='unknown',
+        trigger='a basis tag carrying `_`, which pair-halves.sh allows',
+        ok='the basis is read, and its md5 row printed',
+        bug='no basis read, the rows needing one dropped, and the md5'
+            ' row empty'),
+    'instance-gate-keeps-an-earlier-slow-draw': dict(
+        family='unverified-state', discovery='review', harm='unknown',
+        trigger='a gate re-run after a swap that parked a .slow',
+        ok='the second slow draw is parked as .slow2 beside the first',
+        bug='it was moved over the first, freeing its frames'),
+    'view-floor-legs-refuses-a-factor-it-ignores': dict(
+        family='silent-option', discovery='review', harm='unknown',
+        trigger='--legs given with --factor',
+        ok='refused at exit 2, --bar naming the legs\' threshold',
+        bug='--factor was ignored and the exit set at a literal 2.0'
+            ' percent'),
+    'fill-in-survey-row-reads-the-listed-word-and-a-silent-survey': dict(
+        family='scan-for-parse', discovery='review', harm='unknown',
+        proved='ran',
+        trigger='more than ten exit spans astride, a survey objdump'
+                ' refused, or 10, 20 or 30 astride',
+        ok='the count read whole, a silent survey named as such, and'
+           ' only 0 a PASS',
+        bug='`listed exit spans astride`, a refused survey read as the'
+            ' straddle stop, and 10 astride a PASS',
+        notes='Watched 2026-09-25 on srv and srv_say lifted out of the'
+              ' script over stand-in surveys: before, 57 astride read'
+              ' `listed`, a refused survey `,  at offset 0, ...` under'
+              " 10a's stop, and 10 astride PASSed; after, 57, 20 and 10"
+              ' FAIL with their counts, the refused survey reads'
+              " `--survey read nothing`, and Run 40's halves PASS at 0."),
+    'fill-in-roster-rows-drop-their-headings': dict(
+        family='scan-for-parse', discovery='review', harm='unknown',
+        proved='ran',
+        trigger='a roster delta that moved class views and no arm',
+        ok='the out line under `views`, below `classes:`',
+        bug='the out line under no heading, reading as arms leaving',
+        notes='Watched 2026-09-25 on the filter as the script runs it,'
+              ' over a stand-in delta that moved two class views, and'
+              ' on Run 39 against Run 40, every section unmoved.'),
+    'note-paths-strip-a-name-s-own-first-character': dict(
+        family='scan-for-parse', discovery='review', harm='unknown',
+        proved='ran',
+        trigger='a note line opening with a path that starts `./`, `/` or'
+                ' `_`',
+        ok='the path checked whole',
+        bug='`./run40-x.json` checked as `/run40-x.json` and reported'
+            ' gone',
+        notes='Watched 2026-09-25 on the harvest over planted note lines:'
+              ' before, `./run40-g912-main.json` at a line\'s head came'
+              ' out `/run40-g912-main.json` and `_run40-x.txt`'
+              ' `run40-x.txt`; after, both whole. Run 40\'s note passes'
+              ' 10c under either.'),
 }
 
 
@@ -15082,7 +15217,7 @@ RECORDS = [
          argv=None, ok=None),
 
     # ---- the review of 2026-09-25, over the scripts whole ----
-    case('settled-rounds-see-only-the-short-loops', 'align-as.py', None,
+    case('settled-rounds-see-only-the-short-loops', 'align-as.py', '1a359bd',
          'a group whose outer or long heads landed off the plan read as on'
          ' it whenever its short loops cost what the plan bought',
          # The test added 1e-9 to every tier and compared the tuples, so an
@@ -15094,9 +15229,10 @@ RECORDS = [
          argv=['--unit', '(costs_more((0, 5, 3), (0, 2, 1)),'
                          ' costs_more((0, 5, 3), (1, 0, 0)),'
                          ' costs_more((0, 2, 1 + 5e-10), (0, 2, 1)))'],
-         ok=V(has=['(True, False, False)'])),
+         ok=V(has=['(True, False, False)']),
+         bug=V(has=['(False, False, False)'])),
 
-    case('major-run-names-a-population-it-lacks', 'run-major.sh', None,
+    case('major-run-names-a-population-it-lacks', 'run-major.sh', '2054bef',
          'a mistyped population ran nothing and logged a complete run',
          # `wanted` matched the name against nothing, so the relaunch
          # guard, the main run and every class run were all skipped, and
@@ -15108,10 +15244,12 @@ RECORDS = [
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzpn', 'rnus'],
          ok=V(exit=2, has=["'rnus' is no population"],
-              hasnt=['major run begins', 'major run complete'])),
+              hasnt=['major run begins', 'major run complete']),
+         bug=V(exit=0, has=['major run complete'],
+               hasnt=['start zzpn-'])),
 
     case('stalls-reader-reads-past-a-nonlinear-mark', 'probe-stalls-read.py',
-         None,
+         '7a8e621',
          'a cell probe-stalls.sh marked no one process\'s joined the table'
          ' and the geomean',
          # The reader skipped every `#` line, the marks with the header's
@@ -15120,10 +15258,10 @@ RECORDS = [
                                        STALLS_MARKED)},
          argv=['A', 'B', '{txt}'],
          ok=V(exit=1, has=['(geomean over 1,', 'no one process read: s1']),
-         ),
+         bug=V(exit=0, has=['(geomean over 2,'])),
 
     case('stalls-keeps-a-cell-whose-check-process-failed', 'probe-stalls.sh',
-         None,
+         '7a8e621',
          'a perf hiccup on the -n 3N process alone discarded a cell whose'
          ' two published processes counted',
          # The third process is a check on the figure and not part of it,
@@ -15138,10 +15276,12 @@ RECORDS = [
              subs['at'], 'probe-zzps2.txt')).read(),
          ok=V(exit=0, has=['shape-a list 1 100000 200000',
                            '# UNCHECKED shape-a list'],
-              hasnt=['perf could not count', 'NONLINEAR'])),
+              hasnt=['perf could not count', 'NONLINEAR']),
+         bug=V(exit=1, has=['!! shape-a list: perf could not count'],
+               hasnt=['shape-a list 1 100000 200000'])),
 
     case('stalls-linearity-reads-the-untruncated-slopes', 'probe-stalls.sh',
-         None,
+         '7a8e621',
          'the linearity test compared slopes truncated to integers, so a'
          ' small cell tripped it on the truncation alone',
          # 4999 and 5000 cycles over N=100 truncate to 49 and 50, which
@@ -15155,9 +15295,12 @@ RECORDS = [
          probe=lambda subs: open(os.path.join(
              subs['at'], 'probe-zzps3.txt')).read(),
          ok=V(exit=0, has=['shape-a list 100 1000 49'],
-              hasnt=['NONLINEAR'])),
+              hasnt=['NONLINEAR']),
+         bug=V(exit=0, has=['# NONLINEAR shape-a list: cycles:u 49 then'
+                            ' 50'])),
 
-    case('counts-all-retake-tallies-its-own-call', 'run-counts-all.sh', None,
+    case('counts-all-retake-tallies-its-own-call', 'run-counts-all.sh',
+         '7a5e3e9',
          'a re-take after a blocked perf could never close clean, the tally'
          ' counting the first attempt\'s complaints',
          # The header calls a re-take safe, and the tally read every
@@ -15174,10 +15317,12 @@ RECORDS = [
          argv=['zzcf'],
          ok=V(exit=0, has=['counts lookrts other: done, rc=0',
                            'EVENING COMPLETE: every stage of both calls'],
-              hasnt=['COMPLAINT(S)'])),
+              hasnt=['COMPLAINT(S)']),
+         bug=V(exit=1, has=['counts lookrts other: done, rc=0',
+                            'EVENING COMPLETE WITH 6 COMPLAINT(S)'])),
 
     case('counts-all-retake-keeps-what-an-earlier-call-wrote',
-         'run-counts-all.sh', None,
+         'run-counts-all.sh', '7a5e3e9',
          'a re-take refused every population whose counts an earlier call'
          ' had written, each a new complaint',
          # run-counts.sh refuses over its own artifact, rightly, and the
@@ -15196,7 +15341,8 @@ RECORDS = [
          ok=V(exit=0, has=['counts a1g main: zzcg-counts-a1g.txt kept from'
                            ' an earlier call',
                            'EVENING COMPLETE: every stage of both calls'],
-              hasnt=['COMPLAINT(S)'])),
+              hasnt=['COMPLAINT(S)']),
+         bug=V(exit=1, has=['counts a1g main: done, rc=2 -- COMPLAINT'])),
 
     case('counts-all-retake-keeps-an-earlier-complaint', 'run-counts-all.sh',
          None,
@@ -15216,7 +15362,7 @@ RECORDS = [
                            ' an earlier call, which complained -- COMPLAINT',
                            'EVENING COMPLETE WITH 1 COMPLAINT(S)'])),
 
-    case('g3-twins-refuses-a-note-naming-no-source', 'g3-twins.sh', None,
+    case('g3-twins-refuses-a-note-naming-no-source', 'g3-twins.sh', '78f5ca2',
          'the twins were built from whatever Main.hs and shim the tree held,'
          ' against a note that names none',
          # The twins are of the pair's source only if the tree is at the
@@ -15229,7 +15375,8 @@ RECORDS = [
          argv=['zzg3'],
          ok=V(exit=2, has=["has no 'Main.hs at <commit>' row",
                            'nothing built'],
-              hasnt=['stub cabal ran'])),
+              hasnt=['stub cabal ran']),
+         bug=V(exit=1, has=['stub cabal ran', 'twin did not build'])),
 
     case('g3-twins-refuses-a-source-git-cannot-name', 'g3-twins.sh', None,
          'CONTROL: with the rows there and no git to hold the tree to them,'
@@ -15259,7 +15406,7 @@ RECORDS = [
                            'building from the tree as it stands',
                            'stub cabal ran'])),
 
-    case('properties-page-is-each-process-own', 'properties.py', None,
+    case('properties-page-is-each-process-own', 'properties.py', '8feaab9',
          'the round-trip wrote every table to one fixed temp path, which'
          ' concurrent runs share',
          # The suite runs properties.py up to seven at a time, so one
@@ -15273,35 +15420,66 @@ RECORDS = [
          env={'CORPUS': '{corpus}', 'TMPDIR': '{tmpd}'},
          argv=[],
          ok=V(exit=0, has=['every property holds'],
-              hasnt=['IsADirectoryError'])),
+              hasnt=['IsADirectoryError']),
+         bug=V(exit=1, has=['IsADirectoryError', 'zz-prop-README.md'])),
 
     # Four probes whose `sys.exit(str)` exited 1, their docstrings' code for
     # a finding or a failed build, where the run had not happened: exit 2
     # is this directory's did-not-run, as probe-second-term.py states it.
     # A PATH holding a python3 and no gcc stands for a box without the
     # tools.
-    case('r39-rules-exits-2-on-a-run-not-here', 'probe-r39-rules.py', None,
+    case('r39-rules-exits-2-on-a-run-not-here', 'probe-r39-rules.py',
+         '82c6a1c',
          'a run whose JSON was absent exited 1, the code for candidates',
          argv=['zznorun', 'run38'],
-         ok=V(exit=2, has=['is not here; nothing ran'])),
+         ok=V(exit=2, has=['is not here; nothing ran']),
+         bug=V(exit=1, has=['is not here; nothing ran'])),
 
     case('fetch-model-exits-2-on-a-table-it-cannot-read',
-         'probe-fetch-model.py', None,
+         'probe-fetch-model.py', '82c6a1c',
          'a table with no layout exited 1, the code for a failed build',
          plant=lambda t: {'txt': write(os.path.join(t, 'empty.txt'), '')},
          argv=['rescore', '{txt}'],
-         ok=V(exit=2, has=['carries no layout or no rows'])),
+         ok=V(exit=2, has=['carries no layout or no rows']),
+         bug=V(exit=1, has=['carries no layout or no rows'])),
 
     case('entries-sweep-exits-2-without-its-tools', 'probe-entries-sweep.py',
-         None,
+         '82c6a1c',
          'a box without gcc exited 1, the code for a failed build',
          plant=lambda t: {'stub': stub_dir(
              t, '#!/bin/sh\nexec /usr/bin/python3 "$@"\n', name='python3')},
          env={'PATH': '{stub}'},
          argv=['fill'],
-         ok=V(exit=2, has=['gcc is not on PATH; nothing ran'])),
+         ok=V(exit=2, has=['gcc is not on PATH; nothing ran']),
+         bug=V(exit=1, has=['gcc is not on PATH; nothing ran'])),
 
-    case('brief-facts-reads-a-basis-with-an-underscore', 'read-all.sh', None,
+    case('r38-sweep-exits-2-without-its-tools', 'probe-r38-sweep.py',
+         '82c6a1c',
+         'a box without gcc exited 1, which its siblings give a failed build',
+         plant=lambda t: {'stub': stub_dir(
+             t, '#!/bin/sh\nexec /usr/bin/python3 "$@"\n', name='python3')},
+         env={'PATH': '{stub}'},
+         argv=[],
+         ok=V(exit=2, has=['gcc is not on PATH; nothing ran']),
+         bug=V(exit=1, has=['gcc is not on PATH; nothing ran'])),
+
+    case('interleave-refuses-a-cell-off-the-roster', 'probe-interleave.sh',
+         'b741161',
+         'a cell the binaries lack selected no bench and printed process'
+         ' noise as measured ratios',
+         # The sibling probe-stalls.sh refuses exactly this; here a typo
+         # ran empty processes and the 2N-N difference came out a ratio
+         # with a median and a range.
+         shadow=dict(extra=[('zzil-a', FAKE_HALF), ('zzil-b', FAKE_HALF)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_MODES)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'PAIRS': '1'},
+         argv=['zzil-a', 'zzil-b', 'main/shape-a/lits'],
+         ok=V(exit=2, has=['main/shape-a/lits is not in ./zzil-a --list'],
+              hasnt=['1.0000']),
+         bug=V(exit=0, has=['main/shape-a/lits  1.0000'])),
+
+    case('brief-facts-reads-a-basis-with-an-underscore', 'read-all.sh',
+         'c8ffd5d',
          'a basis named with `_` read as no basis at all, and its md5 row'
          ' dropped',
          # pair-halves.sh allows [A-Za-z0-9_] in a half's name; the three
@@ -15311,9 +15489,12 @@ RECORDS = [
          argv=['{tag}', '--brief-facts'],
          ok=V(exit=0, has=['look_rts=0123456789abcdef0123456789abcdef',
                            'THIS RUN ONLY facts'],
-              hasnt=['no `is the basis` clause'])),
+              hasnt=['no `is the basis` clause']),
+         bug=V(has=['no `is the basis` clause'],
+               hasnt=['look_rts=0123456789abcdef0123456789abcdef'])),
 
-    case('instance-gate-keeps-an-earlier-slow-draw', 'instance-gate.sh', None,
+    case('instance-gate-keeps-an-earlier-slow-draw', 'instance-gate.sh',
+         'df1a269',
          'a second swap parked its slow draw over the first, freeing the'
          ' frames the header says a .slow holds',
          # `run-evening.sh RUN --from instance` re-runs the gate after a
@@ -15328,17 +15509,20 @@ RECORDS = [
              f for f in os.listdir(subs['at']) if f.startswith('zzig-')))
          + '\n' + open(os.path.join(subs['at'], 'zzig-a1g.slow')).read(),
          ok=V(exit=0, has=['zzig-a1g.slow2', 'the first slow draw',
-                           'parked as ./zzig-a1g.slow2'])),
+                           'parked as ./zzig-a1g.slow2']),
+         bug=V(exit=0, has=['parked as ./zzig-a1g.slow,'],
+               hasnt=['the first slow draw', 'slow2'])),
 
     case('view-floor-legs-refuses-a-factor-it-ignores', 'view-floor.py',
-         None,
+         'ea3aa93',
          '--legs ignored --factor and failed at a hard-coded 2.0 percent,'
          ' the docstring naming the factor',
          # Legs of one view have no class floor to take a factor of, so
          # the exit was a literal nobody could set.
          plant=lambda t: {'legs': reroll_legs(t, 1.021)},
          argv=['zzvl', '--legs', '{legs}', '--factor', '5'],
-         ok=V(exit=2, has=['--legs reads its bar from --bar'])),
+         ok=V(exit=2, has=['--legs reads its bar from --bar']),
+         bug=V(exit=1, has=['the A/A floor over 1 legs', '2.10%'])),
 
     case('view-floor-legs-takes-its-bar', 'view-floor.py', None,
          'CONTROL: --bar sets the spread --legs fails at, 2.0 by default',
@@ -15346,27 +15530,28 @@ RECORDS = [
          argv=['zzvl', '--legs', '{legs}', '--bar', '5'],
          ok=V(exit=0, has=['2.10%'])),
 
-    case('interleave-refuses-a-cell-off-the-roster', 'probe-interleave.sh',
-         None,
-         'a cell the binaries lack selected no bench and printed process'
-         ' noise as measured ratios',
-         # The sibling probe-stalls.sh refuses exactly this; here a typo
-         # ran empty processes and the 2N-N difference came out a ratio
-         # with a median and a range.
-         shadow=dict(extra=[('zzil-a', FAKE_HALF), ('zzil-b', FAKE_HALF)]),
-         plant=lambda t: {'stub': stub_dir(t, PERF_MODES)},
-         env={'PATH': '{stub}:/usr/bin:/bin', 'PAIRS': '1'},
-         argv=['zzil-a', 'zzil-b', 'main/shape-a/lits'],
-         ok=V(exit=2, has=['main/shape-a/lits is not in ./zzil-a --list'],
-              hasnt=['1.0000'])),
+    # Three fixes to preflight.sh, whose steps and reporters have no case
+    # (checks.py's UNCOVERED); how each bug direction was watched is its
+    # record's `notes`.
+    case('fill-in-survey-row-reads-the-listed-word-and-a-silent-survey',
+         'preflight.sh', 'e164ea1',
+         'the astride count read the word `listed` past ten spans, a refused'
+         ' survey read as the straddle stop, and 10, 20 or 30 astride PASSed',
+         # The sibling of `fill-in-straddle-row-reads-the-listed-word` on
+         # the astride row, and the same function's two neighbours.
+         argv=None, ok=None),
 
-    case('r38-sweep-exits-2-without-its-tools', 'probe-r38-sweep.py', None,
-         'a box without gcc exited 1, which its siblings give a failed build',
-         plant=lambda t: {'stub': stub_dir(
-             t, '#!/bin/sh\nexec /usr/bin/python3 "$@"\n', name='python3')},
-         env={'PATH': '{stub}'},
-         argv=[],
-         ok=V(exit=2, has=['gcc is not on PATH; nothing ran'])),
+    case('fill-in-roster-rows-drop-their-headings', 'preflight.sh',
+         '427f450',
+         "--fill-in's roster rows kept `out` and `in` lines and dropped the"
+         ' arms, shapes and views headings over them',
+         argv=None, ok=None),
+
+    case('note-paths-strip-a-name-s-own-first-character', 'preflight.sh',
+         'a68dbd0',
+         '10c stripped a line-initial `.`, `/` or `_` from the name itself,'
+         ' so `./run40-x.json` was checked as `/run40-x.json`',
+         argv=None, ok=None),
 
 ]
 
