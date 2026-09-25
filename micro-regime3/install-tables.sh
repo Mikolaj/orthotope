@@ -225,6 +225,12 @@ $(printf '%s\n' "$owed" | sed 's/^/      /')"
 echo "=== installing into $DOC, all from $BASIS"
 install "$MAIN" --markdown
 install "$MAIN" --fingerprint --classes $CLASSES
+# The two tables the write-up used to type, the Provenance anchors and the
+# two-column geomeans: their rows off both halves' main JSONs, their
+# headers and leads left to the prose (read-run.py --hand-tables).
+if [ -n "${OTHER:-}" ] && [ -f "$R-$OTHER-main.json" ]; then
+  install "$MAIN" --compare "$R-$OTHER-main.json" --hand-tables
+fi
 for c in $CLASSES; do install "$c" --block; done
 
 # The block's THREE COMPUTED paragraphs, which --block emits and --in-place

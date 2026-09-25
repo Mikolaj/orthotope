@@ -6596,6 +6596,99 @@ def gate_draft(run, args):
     return 0
 
 
+HAND_LEADS = ('**The three main-set anchors**',
+              '**The next run compares against Run ')
+
+
+def hand_tables(cells, shapes, strategies, meta, args):
+    """The run file's two hand-edited tables, recomputed from the JSONs:
+    the Provenance anchors under `**The three main-set anchors**` and the
+    two-column geomeans under `**The next run compares against Run N**`.
+
+    They were typed every run and checked by nothing (README's open list,
+    `A hand-edited table goes stale unchecked`): Run 20 forgot one, Run 22
+    carried the previous run's figures in seven of nine anchor cells past
+    every gate, and `--machine` then resolved its fingerprint off the
+    stale row. Only the ROWS are this mode's, each keyed on its first
+    cell and recomputed -- the anchors' raw, net and control net by
+    `fmt_abs`, the two columns' published `time` of the basis, in bold, and
+    of the control -- while the headers and the prose around them stay
+    the write-up's. Run on the BASIS main JSON with `--compare` naming the
+    control's. Without `--in-place` it names every row that disagrees and
+    exits 1; with it, it writes them.
+    """
+    other = args.compare
+    b_cells, b_shapes, b_strats = load_other(other, args.main, shapes, meta)
+    path = want_run_doc(args)
+    doc = open(path).read()
+    paras = doc.split('\n\n')
+    rows_b = {r.st: r.time for r in strategy_rows(cells, shapes,
+                                                    strategies)[0]}
+    rows_o = {r.st: r.time for r in strategy_rows(b_cells, b_shapes,
+                                                    b_strats)[0]}
+    off, new_paras, seen = [], [], set()
+    for para in paras:
+        lead = next((l for l in HAND_LEADS if para.startswith(l)), None)
+        if lead is None:
+            new_paras.append(para)
+            continue
+        seen.add(lead)
+        out = []
+        for line in para.split('\n'):
+            m = re.match(r'\| `([^`]+)` \|', line)
+            if not m or line.startswith('|---'):
+                out.append(line)
+                continue
+            key = m.group(1)
+            cellsof = [c.strip() for c in line.strip().strip('|').split('|')]
+            if lead == HAND_LEADS[0]:
+                if key not in cells or key not in b_cells:
+                    sys.stderr.write('anchor row `%s`: no such shape in both'
+                                     ' JSONs\n' % key)
+                    return 2
+                want = [cellsof[0], cellsof[1],
+                        fmt_abs(cells[key]['list']['slope']),
+                        fmt_abs(cells[key]['list']['net']),
+                        fmt_abs(b_cells[key]['list']['net'])]
+            else:
+                if key not in rows_b or key not in rows_o:
+                    sys.stderr.write('two-column row `%s`: no such arm in'
+                                     ' both JSONs\n' % key)
+                    return 2
+                want = [cellsof[0], '**%.3f**' % rows_b[key],
+                        '%.3f' % rows_o[key]]
+            got = '| ' + ' | '.join(want) + ' |'
+            # Compared as NUMBERS and units, so a trailing zero typed by
+            # hand, `2.90 ms` beside the reader's `2.9 ms`, is no finding.
+            def norm(c):
+                c = c.replace('*', '').replace('`', '').strip()
+                m = re.match(r'^([\d.]+)(?:\s*(s|ms|us|ns))?$', c)
+                return (float(m.group(1)), m.group(2)) if m else c
+            if [norm(c) for c in cellsof] != [norm(c) for c in want]:
+                off.append('%s: `%s` reads `%s`, the JSONs give `%s`'
+                           % ('anchors' if lead == HAND_LEADS[0]
+                              else 'two-column', key, line.strip(), got))
+            out.append(got)
+        new_paras.append('\n'.join(out))
+    missing = [l for l in HAND_LEADS if l not in seen]
+    if missing:
+        sys.stderr.write('%s: no paragraph opening %s, so its table was not'
+                         ' read\n' % (os.path.basename(path),
+                                      ' or '.join(missing)))
+        return 2
+    for o in off:
+        print(o)
+    if args.in_place:
+        if off:
+            open(path, 'w').write('\n\n'.join(new_paras))
+        print('--hand-tables: %d row(s) rewritten in %s'
+              % (len(off), os.path.basename(path)))
+        return 0
+    if not off:
+        print('ok:   both hand-edited tables agree with the JSONs')
+    return 1 if off else 0
+
+
 def over_list_sweep(run, args):
     """Every cell where a timed non-control arm is SLOWER than its shape's
     `list`, over every population of a run and both halves.
@@ -15052,6 +15145,11 @@ def main():
     p.add_argument('--ci', action='store_true',
                    help='with --compare: each arm\'s CI%% median against'
                         ' the other run\'s, the column\'s own statistic')
+    p.add_argument('--hand-tables', dest='hand_tables', action='store_true',
+                   help='with --compare OTHER on the basis main JSON: the'
+                        ' run file\'s two hand-edited tables, the Provenance'
+                        ' anchors and the two-column geomeans, recomputed;'
+                        ' --in-place writes them')
     p.add_argument('--bridge', action='store_true',
                    help='with --compare: each arm as a ratio to `list` in'
                         ' its own run, which a box change cannot move')
@@ -15413,9 +15511,11 @@ def main():
     # wrote nothing and exited 0, which is the silence this loop
     # exists to refuse.
     if args.in_place and not (args.markdown or args.fingerprint
-                              or args.block or args.predictions):
+                              or args.block or args.predictions
+                              or args.hand_tables):
         p.error('--in-place is a modifier of --markdown, --fingerprint,'
-                ' --block or --predictions and does nothing alone')
+                ' --block, --predictions or --hand-tables and does nothing'
+                ' alone')
     def asked(v):
         """Was this flag given? False and 0 are given; None is not."""
         return v is not None and v is not False
@@ -15861,6 +15961,8 @@ def main():
     elif args.pair:
         pair_table(cells, shapes, strategies, args.pair,
                    per_shape=args.per_shape)
+    elif args.compare and args.hand_tables:
+        sys.exit(hand_tables(cells, shapes, strategies, meta, args))
     elif args.compare and args.block:
         # --block owns the pair here: --compare is its second file and not
         # a mode of its own, so it has to be tested before the plain

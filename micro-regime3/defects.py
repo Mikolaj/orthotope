@@ -6540,6 +6540,23 @@ RECORDS = [
          argv=[],
          ok=V(exit=2, has=['usage: ./run-heartbeat.sh RUN'])),
 
+    # ---- --hand-tables, the two tables the write-up used to type ----
+    case('hand-tables-reads-a-stale-row', 'read-run.py', None,
+         "CONTROL: the anchors and the two-column rows are read against the"
+         ' JSONs, and a row the JSONs do not give is named',
+         # README's open list carried `A hand-edited table goes stale
+         # unchecked` from Run 20 to Run 40: Run 22's anchors held the
+         # previous run's figures in seven of nine cells past every gate.
+         # The live run file's rows against two synthetic halves disagree
+         # on both tables, so both have to be named.
+         plant=lambda t: {'doc': write_rundoc(t, rundoc_text()),
+                          'a': synth_json(t, 'main', name='a.json'),
+                          'b': synth_json(t, 'main', name='b.json')},
+         argv=['{a}', '--compare', '{b}', '--hand-tables',
+               '--run-doc', '{doc}'],
+         ok=V(exit=1, has=['anchors: `cnn-slice-c32`',
+                           'two-column: `mut-odo-vecdims`'])),
+
     # ---- --gate-draft, run list step 14a's four readings as one table ----
     case('gate-draft-names-the-half-that-drifted', 'read-run.py', None,
          'CONTROL: the draft puts the four readings side by side and names'

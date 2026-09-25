@@ -2206,20 +2206,26 @@ rather than a slot in the next run, observed again:
   to ask whether 12 points is merely past the bar or catastrophically past
   it has nothing in either document to ask it of.
 - `OPEN` **A hand-edited table goes stale unchecked, and this is the second run
-  running.** The run file carries two tables `--in-place` does not write ---
-  the two-column geomeans and the Provenance anchors --- and on Run 20 the first
-  was forgotten entirely, on Run 22 the second carried the previous run's
-  figures in seven of nine cells through every gate and a full checker pass.
-  It also corrupted a published figure, `--machine` resolving its fingerprint
-  off the stale row. What would settle it is a check that recomputes both
-  hand-edited tables from the JSONs, which is what `--in-place` already
-  guarantees for the other eleven. **On Run 23 both were recomputed
-  from the JSONs by hand, and a third defect of the same family was found beside
-  them: the paragraph that reads the anchors table had lost its opening words
-  at Run 22's write-up --- it began `anchors read` mid-sentence --- and passed
-  every gate, a paragraph that ends a sentence being all `--check-doc` asks
-  of one. A check that a prose paragraph begins with a capital, a bold lead
-  or a backtick would have caught it.**
+  running --- HALF ANSWERED 2026-09-25: the rows are installed now,
+  and the paragraph above a table is still read by nothing.**
+  `read-run.py --hand-tables`, run by `install-tables.sh` at post-run step 5b,
+  recomputes both tables' rows from the two main JSONs and, without
+  `--in-place`, names every row that disagrees; Run 39's own file reads clean
+  under it and Run 40's reads nine rows off against Run 39's JSONs. What stays
+  open is the paragraph-start check below. The run file carries two tables
+  `--in-place` does not write --- the two-column geomeans and the Provenance
+  anchors --- and on Run 20 the first was forgotten entirely, on Run 22
+  the second carried the previous run's figures in seven of nine cells through
+  every gate and a full checker pass. It also corrupted a published figure,
+  `--machine` resolving its fingerprint off the stale row. What would settle
+  it is a check that recomputes both hand-edited tables from the JSONs, which
+  is what `--in-place` already guarantees for the other eleven. **On Run 23 both
+  were recomputed from the JSONs by hand, and a third defect of the same family
+  was found beside them: the paragraph that reads the anchors table had lost
+  its opening words at Run 22's write-up --- it began `anchors read`
+  mid-sentence --- and passed every gate, a paragraph that ends a sentence being
+  all `--check-doc` asks of one. A check that a prose paragraph begins
+  with a capital, a bold lead or a backtick would have caught it.**
 
 - `ANSWERED` **A run's sequence can be split across two windows and still be one
   run.** Run 22's was stopped by hand at the `scaled`/`runs` boundary when
@@ -9537,8 +9543,8 @@ not otherwise.
     #      two-column table this half hand-edits carry the last run's
     #      columns?), which is that first bullet and is the bulk of the
     #      run: its head, Results and the findings under it, what the
-    #      next run compares against with its hand-edited two-column
-    #      table, the properties, the class leads and paragraphs, its
+    #      next run compares against with its two-column table, the
+    #      properties, the class leads and paragraphs, its
     #      Provenance and its registrations. Do this half FIRST.
     #      THE TEN CLASS BLOCKS ARE PLACED AND NOT RE-TYPED, and the
     #      labour divides in two. install-tables.sh at 5b writes the
@@ -9585,10 +9591,12 @@ not otherwise.
     #      was built to show, the registration tally, anomalies and what
     #      the next run takes -- which `--check-doc` holds it to: the
     #      gate, window, intrusion, repetition, `.text`, regime,
-    #      straddlers and decomposition are Provenance's. TWO TABLES HERE
-    #      ARE HAND-EDITED and neither is installed: the two-column
-    #      geomeans and the PROVENANCE ANCHORS. Recompute both from the
-    #      JSONs. AND PROVENANCE OWES A FIXED LIST besides its anchors:
+    #      straddlers and decomposition are Provenance's. THE TWO TABLES
+    #      ONCE TYPED, the two-column geomeans and the PROVENANCE
+    #      ANCHORS, are installed at 5b since 2026-09-25, their rows by
+    #      `--hand-tables`, and their leads and headers are yours; the
+    #      same mode without --in-place checks them after an edit.
+    #      AND PROVENANCE OWES A FIXED LIST besides its anchors:
     #      the run's name and regime, each process's stderr line, the
     #      machine, which half ran first, and THE COMMIT transcribed from
     #      `$R-pair.txt` now. A class line's shape count is the whole
