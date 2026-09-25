@@ -2808,7 +2808,7 @@ def parse_counts(path):
     return counts, refused, malformed
 
 
-HEAD_PARAGRAPHS = 5      # the run file's head past its preamble
+HEAD_PARAGRAPHS = 3      # the run file's head past its preamble
 
 PREDICT_RE = re.compile(r'`predict: ([^`]+)`')
 
@@ -12876,24 +12876,26 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         m = re.search(r'^## ', text, re.M)
         return (text[:m.start()], text[m.start():]) if m else (text, '')
 
-    # THE HEAD IS AT MOST FIVE PARAGRAPHS past the preamble, since
-    # 2026-09-17: the pair and its headline, what the registration was built
-    # to show, the registration tally, anomalies and what the next run
-    # takes. An upper bound and not a form check: which paragraph is which
+    # THE HEAD IS AT MOST THREE PARAGRAPHS past the preamble, since
+    # 2026-09-25 (five from 2026-09-17): the pair and its headline, what the
+    # registration was built to show with its tally, and anomalies. What the
+    # next run takes is the compares-against section's, and a run's counts
+    # and allocation are Provenance's and the properties', where Run 40's
+    # head had restated both. An upper bound and not a form check: which
     # stays the reading's. Run 34's ran to twenty-one, most of them restating
     # Provenance or a class block -- the gate, the window, intrusion,
     # repetition, `.text`, the regime, the straddlers and the
     # decomposition -- each restatement one more site two copies of a
-    # figure could part across. Case: `head-is-five-paragraphs`.
+    # figure could part across. Case: `head-is-three-paragraphs`.
     if run_text:
         n_head = len(figure_blocks(head_and_rest(run_text)[0],
                                    figures_only=False)) - 1
         if n_head > HEAD_PARAGRAPHS:
             bad.append("%s's head carries %d paragraphs past its preamble,"
                        ' and the form is at most %d: the pair and its'
-                       ' headline, what the registration was built to show,'
-                       ' the registration tally, anomalies and what the next'
-                       ' run takes -- the gate, window, intrusion,'
+                       ' headline, what the registration was built to show'
+                       ' with its tally, and anomalies -- the gate, window,'
+                       ' intrusion,'
                        ' repetition, `.text`, regime, straddlers and'
                        " decomposition are Provenance's"
                        % (os.path.basename(run_doc), n_head,

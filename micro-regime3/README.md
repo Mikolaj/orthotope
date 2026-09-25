@@ -9587,12 +9587,14 @@ not otherwise.
     #      -- an intrusion's sizes in Provenance, a class's in its block --
     #      and the head, Results and README point there rather than
     #      requote it.
-    #      **THE HEAD IS WRITTEN LAST**, after 5c, in at most FIVE
+    #      **THE HEAD IS WRITTEN LAST**, after 5c, in at most THREE
     #      PARAGRAPHS -- the pair and its headline, what the registration
-    #      was built to show, the registration tally, anomalies and what
-    #      the next run takes -- which `--check-doc` holds it to: the
-    #      gate, window, intrusion, repetition, `.text`, regime,
-    #      straddlers and decomposition are Provenance's. THE TWO TABLES
+    #      was built to show with its tally, and anomalies -- which
+    #      `--check-doc` holds it to: what the next run takes is the
+    #      compares-against section's, the counts and allocation are
+    #      Provenance's and the properties', and so are the gate, window,
+    #      intrusion, repetition, `.text`, regime, straddlers and
+    #      decomposition. THE TWO TABLES
     #      ONCE TYPED, the two-column geomeans and the PROVENANCE
     #      ANCHORS, are installed at 5b since 2026-09-25, their rows by
     #      `--hand-tables`, and their leads and headers are yours; the
@@ -14402,19 +14404,19 @@ of the structure and would rot the first time a lead was reworded, which
 is the failure this list was rewritten to escape.
 
 - [the run's own file](runs/run40.md) ENTIRE, which is what makes it a file:
-  its head of at most five paragraphs, the pair and its headline, what
-  the registration was built to show, the registration tally, anomalies and what
-  the next run takes; the Results table and the findings under it, with which
-  half published what; its own two-column geomeans and the two-column per-shape
-  fingerprint, which are the only record kept once the JSON is deleted;
-  the properties, where a run reports which held rather than re-deriving them;
-  each class's own table, controls, provenance, anchor and paragraph;
-  and its own Provenance, carrying what the pair was, its regime, scale
-  and source commit, how the sequence ran and was gated, the three main-set
-  anchors with the class ones, the straddlers and the layout span a roster order
-  change alone is worth, the decomposition, and the correction's span.
-  The bullets that used to name those sections one by one are this one,
-  and the coverage check below reads it as covering every heading in that file;
+  its head of at most three paragraphs, the pair and its headline, what
+  the registration was built to show with its tally, and anomalies; the Results
+  table and the findings under it, with which half published what; its own
+  two-column geomeans and the two-column per-shape fingerprint, which
+  are the only record kept once the JSON is deleted; the properties, where a run
+  reports which held rather than re-deriving them; each class's own table,
+  controls, provenance, anchor and paragraph; and its own Provenance, carrying
+  what the pair was, its regime, scale and source commit, how the sequence ran
+  and was gated, the three main-set anchors with the class ones, the straddlers
+  and the layout span a roster order change alone is worth, the decomposition,
+  and the correction's span. The bullets that used to name those sections one
+  by one are this one, and the coverage check below reads it as covering every
+  heading in that file;
 - [the recommended tasks after Run 40](#recommended-tasks-after-run-40), which
   is run-scoped by its own title: a task taken or superseded leaves it --- which
   RENUMBERS the rest, so `grep -n 'task [0-9]'` over this file and the run's
