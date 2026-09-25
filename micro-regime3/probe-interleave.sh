@@ -27,6 +27,20 @@ case $B in */*) ;; *) B=./$B ;; esac
 PAIRS=${PAIRS:-5}; N=${N:-100}
 for X in "$A" "$B"; do [ -x "$X" ] || { echo "!! $X is not an executable here"; exit 2; }; done
 command -v perf > /dev/null 2>&1 || { echo "!! no perf on PATH; nothing ran"; exit 2; }
+# EVERY CELL IS HELD TO BOTH ROSTERS, as probe-stalls.sh holds its names: a
+# shape or arm a binary lacks selects no bench, and the difference of two
+# empty processes printed as a ratio with a median and a range
+# (2026-09-25, by review).
+MISS=
+for CELL in "$@"; do
+  if [ "${CELL%%/*}" = main ]; then SEL=; else SEL=classes; fi
+  for X in "$A" "$B"; do
+    # shellcheck disable=SC2086
+    "$X" $SEL --list 2>/dev/null | grep -qxF "${CELL#*/}" || MISS="$MISS
+   $CELL is not in $X${SEL:+ $SEL} --list"
+  done
+done
+[ -z "$MISS" ] || { echo "!! nothing ran:$MISS"; exit 2; }
 cyc() {  # cyc BINARY SEL SHAPE ARM ITERS -> user cycles of one process
   local f; f=$(mktemp)
   # shellcheck disable=SC2086

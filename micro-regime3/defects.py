@@ -15274,6 +15274,20 @@ RECORDS = [
          argv=['fill'],
          ok=V(exit=2, has=['gcc is not on PATH; nothing ran'])),
 
+    case('interleave-refuses-a-cell-off-the-roster', 'probe-interleave.sh',
+         None,
+         'a cell the binaries lack selected no bench and printed process'
+         ' noise as measured ratios',
+         # The sibling probe-stalls.sh refuses exactly this; here a typo
+         # ran empty processes and the 2N-N difference came out a ratio
+         # with a median and a range.
+         shadow=dict(extra=[('zzil-a', FAKE_HALF), ('zzil-b', FAKE_HALF)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_MODES)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'PAIRS': '1'},
+         argv=['zzil-a', 'zzil-b', 'main/shape-a/lits'],
+         ok=V(exit=2, has=['main/shape-a/lits is not in ./zzil-a --list'],
+              hasnt=['1.0000'])),
+
     case('r38-sweep-exits-2-without-its-tools', 'probe-r38-sweep.py', None,
          'a box without gcc exited 1, which its siblings give a failed build',
          plant=lambda t: {'stub': stub_dir(
