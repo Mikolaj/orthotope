@@ -754,19 +754,122 @@ rather than a slot in the next run, observed again:
   a one-copy gate is blind one launch in ten. Run 38, built again from the same
   recipes, reads the arm at **1.0205** with counts level. The readings are [in
   Run 37's file](runs/run37.md) and [Run 38's](runs/run38.md).
-- `OPEN` **What Run 41 is built to answer: the plan, recorded 2026-09-25,
-  its registration owed before it runs.** On the owner's word of 2026-09-25
-  the pair is Run 40's rebuilt on the changed source, as Run 40's was Run 39's:
-  both recipes unchanged to the character, as [Run 40's
-  registration](runs/run40.md#what-this-run-was-built-to-answer-and-what-it-answered)
-  spells them, on the `Main.hs` of the day it is built, so that the cross figure
-  reads the regime again and each half against Run 40's same half reads the code
-  changed since `bb6b12e` and nothing else, `git log bb6b12e.. -- Main.hs`
-  naming it. Some of that change is to the roster, and what the roster owes
-  this run's write-up is in the entry on what the roster owes the next run.
-  The items, their priors off Run 41's own basis binary as Run 40's were,
-  and the command lines are this entry's to carry once it is built, this entry
-  becoming then the one declaration site.
+- `OPEN` **What Run 41 is built to answer, registered before it runs.** The pair
+  is Run 40's, both recipes unchanged to the character and rebuilt on `Main.hs`
+  at `688e952` where Run 40 built from `bb6b12e`, on the owner's word
+  of 2026-09-25 that this run uses the previous run's recipes and benchmarks
+  the changed source: both halves GHC HEAD `10.1.20260918` through
+  `cabal.project.ghead` at plain `-O1`, `align-as.py` at `1a359bd` where Run
+  40's took `fe6d133`, under
+  `LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1 LOOP_DEADSPOT=1 LOOP_EXITSPAN=1 LOOP_SETTLED=1`,
+  `-fobject-determinism` on both, the control's line carrying
+  `-fspec-constr -fliberate-case` besides, every process launched from disk,
+  the half names `run41-gheadnospec` and `run41-gheadtwopass`. THIS ENTRY
+  IS THE ONE DECLARATION SITE by the ruling of 2026-09-19, the command lines
+  being Run 40's with the builddir names moved. So the pair's own `cross` figure
+  is the two passes read a sixth time, in `--compare`'s orientation
+  of the unflagged basis over the control, and the source and the shim are read
+  as each half against Run 40's same half, `--half-movers run41 run40`. The shim
+  moved under both halves alike: `1a359bd` has the settled cost's off-plan test
+  decide on the first tier differing past its tolerance where the whole padded
+  tuple decided, so a group the pad had moved is planned again, which reaches
+  placement and not what any arm executes. The fifteen commits move one arm out,
+  the one-level fill's, and one class view, `runs-3`, and none in ---
+  `./roster-delta.py run40-gheadnospec run41-gheadnospec` reads the other 30
+  arms in the same order --- and `./registration-drift.py run41 --since run40`
+  reaches no code behind `list`, `bq-expand` or any `mut-odo-vecdims` arm. What
+  retiring `runs-3` owes this run's write-up, the class counts dropping
+  a retired view, is in the open entry on what the roster owes the next run.
+  What they change behind the four lean arms, read off the diffs:
+  `lib-stage2-lean`'s fill, `fillStage2Axes`, is now a copy of `fillStage2`'s
+  nest in place of the outermost-first odometer (`fd34ce1`), and its merge
+  a strict record (`815ffa2`); `lib-stage3-lean` runs that same nest algorithm
+  as `fillStage3`, its nest built in a loop, behind a dispatch and merge
+  of its own over `Axis` that drop extent-1 axes before merging (`c7e5ba2`
+  to `688e952`); `lib-stage2-lean-u1` changes in that strict merge alone,
+  `fillStage2U1` being unmoved but for a rename; and `lib-stage1` executes
+  the code it did. **The items' priors are instruction counts off this run's own
+  basis binary**, `run41-gheadnospec`, taken with `probe-stalls.sh` at `N=25`,
+  half the N of Run 40's counts on the owner's word of 2026-09-26, over all
+  nineteen main-set shapes for the four arms the items read, twice,
+  into `probe-r41-prior1.txt` and `probe-r41-prior2.txt`, whose instruction
+  ratios agree to three decimals and whose every nonlinear cell is a cycles
+  cell. They are read RAW, the sweeps carrying no `sum-only` arm for `--counts`
+  to correct with, as Run 40's priors were quoted. Against
+  `run40-counts-gheadnospec.txt`, `mut-odo-vecdims-add-in-leaf-u2`'s
+  instructions a call read within 0.1% of Run 40's on sixteen shapes and 0.57
+  to 1.27 points above on three, `cnn-L2-24x24-c32`, `stretch-primes`
+  and `stretch-coprime-r7`, where `lib-stage3-lean` and `lib-stage2-lean-u1`
+  carry the same excess to within 0.03 of a point, a term the three arms share
+  and no commit explains; that is what makes `-u2` the denominator. The cycles
+  the files carry are no prior: at `N=25` three cells on `cnn-slice-c32` read
+  negative, so no cycle figure is quoted below. No probe was taken
+  on the control's recipe, so the priors are the basis's, carried to the control
+  on Run 40's two halves agreeing to within a point on each pair below.
+  **The limit this run cannot remove**: a rebuild moves every loop,
+  and the chapter has put eight clauses that a reordering cannot reach
+  a population to the test in time and seen all eight fail, so no item predicts
+  an untouched arm's TIME across runs; the untouched arms stand in the items
+  as within-half denominators instead. (1) *With one fill algorithm under both,
+  `lib-stage3-lean`'s lead over `lib-stage2-lean` closes.*
+  In `probe-r41-prior1.txt`, lean3 over lean2 in instructions runs from 0.991
+  on `cnn-slice-c32` to 1.000, a geomean of 0.9990 over the nineteen, where
+  `run40-counts-gheadnospec.txt` reads 0.9751; lean2's own instructions a call
+  fall to 0.845 to 1.006 of Run 40's, a geomean of 0.9748, while lean3's read
+  a geomean of 0.9988, the commits taking 2.5 and 2.0 points off `cnn-L1-6x6-c1`
+  and `cnn-slice-c32`. Run 40 read the pair in time at 0.9656 on the basis
+  and 0.9564 on the control,
+  `./read-run.py run40-gheadnospec-main.json --pair lib-stage3-lean lib-stage2-lean`
+  and its control twin, its two fills then differing in algorithm; what is left
+  between them is the `Axis` dispatch and merge and the loop-built nest, a tenth
+  of a point of instructions.
+  `predict: pair lib-stage3-lean lib-stage2-lean 1.00 within 2% on main both`.
+  A reading below 0.98 says the `Axis` path buys time its instructions do
+  not show, or that the copy is not the fill it copied; one above 1.02 says
+  the path costs time its instructions do not show. (2) *The unroll alone costs
+  `lib-stage2-lean-u1` against `lib-stage2-lean` what it cost against the nest
+  on Run 40.* The two arms now share the route and the strict merge and differ
+  in the fill, the nest against its unrolled twin, which is the difference Run
+  40's u1 over lean3 read. In `probe-r41-prior1.txt`, u1 over lean2
+  in instructions runs from 0.956 on `stretch-wide-2xM` to 1.035
+  on `stretch-bigstride`, a geomean of 1.0206, where
+  `run40-counts-gheadnospec.txt` reads u1 over lean3 at 1.0206 raw,
+  `--counts --pair lib-stage2-lean-u1 lib-stage3-lean` on Run 40's main JSON.
+  Run 40 read that pair in time at 1.0575 on the basis and 1.0617
+  on the control, `--pair lib-stage2-lean-u1 lib-stage3-lean` on the two main
+  JSONs.
+  `predict: pair lib-stage2-lean-u1 lib-stage2-lean 1.06 within 3% on main both`.
+  A reading above 1.09 says the copy runs faster than the nest it copied,
+  or the strict merge favours the nest's side; one below 1.03 says the unroll's
+  cost moved with the rebuild, which the counts sweep then has to show is
+  not in the instructions. (3) *With the nest frozen into its fill,
+  `lib-stage2-lean` takes over the lead `lib-stage3-lean` held on the untouched
+  `-u2`.* In `probe-r41-prior1.txt`, lean2 over `mut-odo-vecdims-add-in-leaf-u2`
+  in instructions runs from 0.704 on `cnn-L1-6x6-c1` to 0.978
+  on `stretch-wide-2xM`, a geomean of 0.9251, where
+  `run40-counts-gheadnospec.txt` reads 0.9501 for lean2 and 0.9264 for lean3,
+  `--counts --pair` raw on Run 40's main JSON. Run 40 read lean2 over `-u2`
+  in time at 0.9307 on the basis and 0.9322 on the control and lean3 over `-u2`
+  at 0.8987 and 0.8916, `--pair` on the two main JSONs, lean3's time ratio 1.40
+  times its instruction ratio in logarithms on the basis, which carried
+  to 0.9251 gives about 0.897.
+  `predict: pair lib-stage2-lean mut-odo-vecdims-add-in-leaf-u2 0.90 within 3% on main both`.
+  A reading above 0.93 says the copy did not bring the nest's time with it, Run
+  40's lean2 figure; one below 0.87 says the strict merge bought more
+  than its instructions. (4) *The regime's worth on the two families no commit
+  touched holds at the level of the earlier draws, the shim's change being
+  shared.* `list` and `bq-expand` run no code any of the fifteen commits
+  changed, and `1a359bd` is under both halves, so their cross figures
+  are the pair's variable on a sixth build: `--record regime` reads `list`
+  over the nineteen shapes at 1.2960, 1.2889, 1.2966 and 1.2983 on Runs 37
+  to 40's builds, inside 0.94 points, with Run 36's 1.3360 above them,
+  and `bq-expand` at 1.2980, 1.3101, 1.3032, 1.2985 and 1.3058 on Runs 36
+  to 40's, inside 1.21. `predict: cross list 1.295 within 1% on main basis`,
+  the four later draws' mean,
+  and `predict: cross bq-expand 1.303 within 1% on main basis`, the five draws'
+  mean. A reading outside either band on unchanged code says the regime's worth
+  moved with the build or the shim and not with the source, which makes items
+  (1) to (3) harder to read.
 - `ANSWERED` **What Run 40 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 40's own
