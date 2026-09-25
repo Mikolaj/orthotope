@@ -2746,11 +2746,11 @@ outerFirst :: InnerFirst -> [(Int, Int)]
 outerFirst = reverse . innerFirst
 {-# INLINE outerFirst #-}
 
--- The canonical axes of a non-empty view, as the library's 'Axes': the
+-- The canonical axes of a non-empty view, as the library's 'Walk': the
 -- innermost stride and extent, then the axes outside it, innermost
 -- first.  What the fills and the runs walker take, so that neither has
 -- to find the innermost axis in a list.
-data Axes = Axes !Int !Int InnerFirst
+data Walk = Walk !Int !Int InnerFirst
 
 -- The library's 'canonicalizeT': the canonical axes innermost first,
 -- in one left fold, each axis merged into the one outside it or
@@ -2767,8 +2767,8 @@ canonViewOfPairs ps = InnerFirst (mergeAxes ps)
 
 -- The library's 'canonicalizeT' to the line, 'canonViewOfPairs' over
 -- the pairs it zips, and since 2026-09-22 the pass of every dispatch that
--- builds an 'Axes' from the canonical view, in place of 'canonView'
--- followed by 'axesOfDims', which reversed what this writes in order.
+-- builds a 'Walk' from the canonical view, in place of 'canonView'
+-- followed by 'walkOfDims', which reversed what this writes in order.
 canonicalize :: ShapeL -> [Int] -> InnerFirst
 canonicalize sh ats = InnerFirst (mergeAxes (zip ats sh))
 {-# INLINE canonicalize #-}
@@ -2811,14 +2811,14 @@ mergeAxes ps = case foldl' mergeInner (MergeAcc 0 1 []) ps of
 {-# INLINE mergeAxes #-}
 
 -- The dims an older arm holds as a shape and strides, canonical or as
--- given, as the 'Axes' the fills and the routes take: rank 0 is one
+-- given, as the 'Walk' the fills and the routes take: rank 0 is one
 -- element at the offset, an axis of extent 1 at stride 0, which the
 -- fill writes once.
-axesOfDims :: ShapeL -> [Int] -> Axes
-axesOfDims sh ats = case reverse (zip ats sh) of
-  [] -> Axes 0 1 (InnerFirst [])
-  (t, n) : rest -> Axes t n (InnerFirst rest)
-{-# INLINE axesOfDims #-}
+walkOfDims :: ShapeL -> [Int] -> Walk
+walkOfDims sh ats = case reverse (zip ats sh) of
+  [] -> Walk 0 1 (InnerFirst [])
+  (t, n) : rest -> Walk t n (InnerFirst rest)
+{-# INLINE walkOfDims #-}
 
 -- 'fbMutOdoVecdims' behind 'canonView', the canonical natural-stride
 -- case returned as an O(1) slice of the source -- the regime-1 hit the
@@ -3316,7 +3316,7 @@ fbLibStage1 sh (T (Strides ats) ao v)
   | null sh = VS.slice ao 1 v
   | oks !! (length sh - 1) = VS.concat (loop oks sh ats ao)
   | l == 0 = VS.empty
-  | otherwise = fillStage2 (axesOfDims sh ats) ao l v
+  | otherwise = fillStage2 (walkOfDims sh ats) ao l v
   where l : ts' = getStridesT sh
         oks = scanr (&&) True (zipWith (==) ats ts')
         loop (b : bs) (n : ns) (t : ts) !o
@@ -3350,7 +3350,7 @@ fbLibStage2 sh (T (Strides ats) ao v)
   | otherwise = case canonicalize sh ats of
       InnerFirst axes@((t, n) : rest)
         | not (naturalStrides axes) ->
-            fillStage2 (Axes t n (InnerFirst rest)) ao l v
+            fillStage2 (Walk t n (InnerFirst rest)) ao l v
       _ -> wholeOrSlice ao l v
   where l = product sh
 
@@ -3373,7 +3373,7 @@ fbLibStage2Concat sh (T (Strides ats) ao v)
               | o <- VU.toList (baseOffsetsList ao (map snd outer)
                                                 (Strides (map fst outer))) ]
       InnerFirst ((t, n) : rest) ->
-        fillStage2 (Axes t n (InnerFirst rest)) ao l v
+        fillStage2 (Walk t n (InnerFirst rest)) ao l v
   where l = product sh
 
 -- The run length at or above which 'fbLibStage2Disp' sends a contiguous
@@ -3469,7 +3469,7 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
               | o <- VU.toList (baseOffsetsList ao (map snd outer)
                                                 (Strides (map fst outer))) ]
       InnerFirst ((t, n) : rest) ->
-        fillStage2 (Axes t n (InnerFirst rest)) ao l v
+        fillStage2 (Walk t n (InnerFirst rest)) ao l v
   where l = product sh
 
 -- The outer levels of a view as 'fillStage2' walks them: the fused
@@ -3493,8 +3493,8 @@ data Nest = Fused | Level !Int !Int !Int !Nest
 -- stage-1 ports since 2026-09-21; the degenerate and @edge-bcastmid-b0@
 -- views are where @check@ fails when one does not.
 {-# NOINLINE fillStage2 #-}
-fillStage2 :: Axes -> Int -> Int -> VS.Vector Double -> VS.Vector Double
-fillStage2 (Axes tInner sInner outerAxes) !ao !l !v =
+fillStage2 :: Walk -> Int -> Int -> VS.Vector Double -> VS.Vector Double
+fillStage2 (Walk tInner sInner outerAxes) !ao !l !v =
   assert (l > 0) $ VS.create fill
  where
   fill :: forall s. ST s (VSM.MVector s Double)
@@ -3615,8 +3615,8 @@ fillStage2 (Axes tInner sInner outerAxes) !ao !l !v =
 -- odometer's levels numbered outermost first, the form the library
 -- carried when it was ported here.
 {-# NOINLINE fillStage2Axes #-}
-fillStage2Axes :: Axes -> Int -> Int -> VS.Vector Double -> VS.Vector Double
-fillStage2Axes (Axes tInner sInner outerAxes) !ao !l !v =
+fillStage2Axes :: Walk -> Int -> Int -> VS.Vector Double -> VS.Vector Double
+fillStage2Axes (Walk tInner sInner outerAxes) !ao !l !v =
   assert (l > 0) $ VS.create fill
  where
   fill :: forall s. ST s (VSM.MVector s Double)
@@ -3714,9 +3714,9 @@ fillStage2Axes (Axes tInner sInner outerAxes) !ao !l !v =
 -- so not kept in step with 'fillStage2': whatever improved that driver
 -- since is not here.
 {-# NOINLINE fillStage2OneLevel #-}
-fillStage2OneLevel :: Axes -> Int -> Int -> VS.Vector Double
+fillStage2OneLevel :: Walk -> Int -> Int -> VS.Vector Double
                    -> VS.Vector Double
-fillStage2OneLevel (Axes tInner sInner outerAxes) !ao !l !v =
+fillStage2OneLevel (Walk tInner sInner outerAxes) !ao !l !v =
   assert (l > 0) $ VS.create fill
  where
   fill :: forall s. ST s (VSM.MVector s Double)
@@ -3842,9 +3842,9 @@ fillStage2OneLevel (Axes tInner sInner outerAxes) !ao !l !v =
 -- TODO: update wrt 2026-09-23, when 'fillStage2' took one table of
 -- pairs for its two: a flavour pair against it now prices that too.
 {-# NOINLINE fillStage2VSdims #-}
-fillStage2VSdims :: Axes -> Int -> Int -> VS.Vector Double
+fillStage2VSdims :: Walk -> Int -> Int -> VS.Vector Double
            -> VS.Vector Double
-fillStage2VSdims (Axes tInner sInner outerAxes) !ao !l !v =
+fillStage2VSdims (Walk tInner sInner outerAxes) !ao !l !v =
   assert (l > 0) $ VS.create $ do
   out <- VSM.unsafeNew l
   let {-# INLINE writeRunStep #-}
@@ -3950,8 +3950,8 @@ fillStage2VSdims (Axes tInner sInner outerAxes) !ao !l !v =
 -- recursive call fails @check@ at @cnn-L1-6x6-c1@, naming
 -- lib-stage2-lean-u1 alone.
 {-# NOINLINE fillStage2U1 #-}
-fillStage2U1 :: Axes -> Int -> Int -> VS.Vector Double -> VS.Vector Double
-fillStage2U1 (Axes tInner sInner outerAxes) !ao !l !v =
+fillStage2U1 :: Walk -> Int -> Int -> VS.Vector Double -> VS.Vector Double
+fillStage2U1 (Walk tInner sInner outerAxes) !ao !l !v =
   assert (l > 0) $ VS.create fill
  where
   fill :: forall s. ST s (VSM.MVector s Double)
@@ -4153,9 +4153,9 @@ fillStage2U4 sh ats !ao !l !v = assert (l > 0) $ VS.create $ do
 -- is in README beside the arm's entry. Retired, so not kept in step
 -- with 'fillStage2': whatever improved that driver since is not here.
 {-# NOINLINE fillStage2Short #-}
-fillStage2Short :: Axes -> Int -> Int -> VS.Vector Double
+fillStage2Short :: Walk -> Int -> Int -> VS.Vector Double
                 -> VS.Vector Double
-fillStage2Short (Axes tInner sInner outerAxes) !ao !l !v =
+fillStage2Short (Walk tInner sInner outerAxes) !ao !l !v =
   assert (l > 0) $ VS.create $ do
   out <- VSM.unsafeNew l
   let {-# INLINE writeRunStep #-}
@@ -4294,7 +4294,7 @@ fbLibStage2Short sh (T (Strides ats) ao v)
       InnerFirst [] -> wholeOrSlice ao l v
       InnerFirst [(1, _)] -> wholeOrSlice ao l v
       InnerFirst ((t, n) : rest) ->
-        fillStage2Short (Axes t n (InnerFirst rest)) ao l v
+        fillStage2Short (Walk t n (InnerFirst rest)) ao l v
   where l = product sh
 
 -- 'fbLibStage2' with the dispatch read off the merged form alone --
@@ -4366,7 +4366,7 @@ fbLibStage2LeanVSdims sh (T (Strides ats) ao v)
       InnerFirst [] -> wholeOrSlice ao l v
       InnerFirst [(1, _)] -> wholeOrSlice ao l v
       InnerFirst ((t, n) : rest) ->
-        fillStage2VSdims (Axes t n (InnerFirst rest)) ao l v
+        fillStage2VSdims (Walk t n (InnerFirst rest)) ao l v
   where l = product sh
 
 -- 'fbLibStage3Lean' over 'fillStage2U1', 'routeVectorInward' written out
@@ -4406,8 +4406,8 @@ routeList3 sh (T (Strides ats) ao _)
   | otherwise = case canonicalize sh ats of
       InnerFirst axes
         | naturalStrides axes -> RSlice ao l
-      InnerFirst ((1, n) : rest) -> RRuns (Axes 1 n (InnerFirst rest)) ao l
-      InnerFirst ((t, n) : rest) -> RFill (Axes t n (InnerFirst rest)) ao l
+      InnerFirst ((1, n) : rest) -> RRuns (Walk 1 n (InnerFirst rest)) ao l
+      InnerFirst ((t, n) : rest) -> RFill (Walk t n (InnerFirst rest)) ao l
       InnerFirst [] -> RSlice ao l
   where !l = product sh
 
@@ -4490,7 +4490,7 @@ routeUnord3 sh a = case routeUnord5 sh a of
 -- consumer that cannot fuse, 'VS.concat' under the Fill arms until
 -- 2026-09-21, paid the form nothing once compiled once; inlined beside
 -- it the probe read 16 bytes a run more.
-lazyRuns :: Axes -> Int -> VS.Vector Double -> [VS.Vector Double]
+lazyRuns :: Walk -> Int -> VS.Vector Double -> [VS.Vector Double]
 lazyRuns axes start v = build (runSlices axes start v)
 {-# INLINE lazyRuns #-}
 
@@ -4540,9 +4540,9 @@ lazyRuns axes start v = build (runSlices axes start v)
 -- 'RRuns' means. The arm for no outer level, which no route reaches, is
 -- the one run as one slice, so the walker is total on its own terms, as
 -- the library's 'runSlicesT' is.
-runSlices :: Axes -> Int -> VS.Vector Double
+runSlices :: Walk -> Int -> VS.Vector Double
           -> (VS.Vector Double -> b -> b) -> b -> b
-runSlices (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
+runSlices (Walk _ n (InnerFirst outerAxes)) !start !v cons nil =
   case outerAxes of
     [] -> cons (VS.slice start n v) nil
     (!sk, !dk) : above ->
@@ -4607,9 +4607,9 @@ stepOdometer (OdoLevel o c axis@(OdoAxis s d) outer)
 -- The library's 'Route' as ported here, the two kept in step by hand
 -- as the fill is.
 data Route = RSlice !Int !Int     -- start and length of one slice
-           | RRuns Axes !Int !Int  -- canonical axes, run start,
+           | RRuns Walk !Int !Int  -- canonical axes, run start,
                                    -- length (the fill's)
-           | RFill Axes !Int !Int  -- axes, start, length
+           | RFill Walk !Int !Int  -- axes, start, length
 
 -- The slice an 'RSlice' route stands for, the vector itself where the
 -- slice is all of it: two comparisons in place of a slice header's
@@ -4714,7 +4714,7 @@ startOf sh ats ao = ao + sum [ (n - 1) * st | (n, st) <- zip sh ats, st < 0 ]
 -- to a hundredth of a nanosecond, so it is not kept: the walker is the
 -- fix, and it reaches base's own folds, 'sum' among them.
 {-# NOINLINE sumLazyRuns #-}
-sumLazyRuns :: Axes -> Int -> VS.Vector Double -> Double
+sumLazyRuns :: Walk -> Int -> VS.Vector Double -> Double
 sumLazyRuns axes !o v =
   foldl' (\ !acc p -> acc + sumNoSpec p) 0 (lazyRuns axes o v)
 
@@ -4746,8 +4746,8 @@ routeOf :: Int -> Int -> InnerFirst -> Route
 routeOf start l (InnerFirst axes) = case axes of
   [] -> RSlice start l
   [(1, _)] -> RSlice start l
-  (1, n) : rest -> RRuns (Axes 1 n (InnerFirst rest)) start l
-  (t, n) : rest -> RFill (Axes t n (InnerFirst rest)) start l
+  (1, n) : rest -> RRuns (Walk 1 n (InnerFirst rest)) start l
+  (t, n) : rest -> RFill (Walk t n (InnerFirst rest)) start l
 {-# INLINE routeOf #-}
 
 -- The lean dispatch over an axis order: the (stride, extent) pairs the
@@ -4799,8 +4799,8 @@ routeUnord4 sh (T (Strides ats) ao _)
   | l == 0 = RSlice 0 0
   | otherwise = case sorted of
       axes | naturalStrides axes -> RSlice start l
-      (1, n) : rest -> RRuns (Axes 1 n (InnerFirst rest)) start l
-      (t, n) : rest -> RFill (Axes t n (InnerFirst rest)) start l
+      (1, n) : rest -> RRuns (Walk 1 n (InnerFirst rest)) start l
+      (t, n) : rest -> RFill (Walk t n (InnerFirst rest)) start l
       [] -> RSlice start l
   where !l = product sh
         !start = startOf sh ats ao
@@ -4850,9 +4850,9 @@ routeUnord6 = dispatchLean (sortedAbsPairs (flip compare))
 -- 'allT', which a strict loop cannot stop early; the pair with
 -- 'fbLibUnordStage6Sum' prices what that costs a reduction. Added
 -- 2026-09-09 for Run 28.
-foldRunsLoop :: (Double -> VS.Vector Double -> Double) -> Double -> Axes
+foldRunsLoop :: (Double -> VS.Vector Double -> Double) -> Double -> Walk
              -> Int -> VS.Vector Double -> Double
-foldRunsLoop f z0 (Axes _ n outerAxes) !start v =
+foldRunsLoop f z0 (Walk _ n outerAxes) !start v =
   go (outerFirst outerAxes) start z0
   where
     go [] !o !acc = f acc (VS.slice o n v)
@@ -5185,7 +5185,7 @@ routeUnord13 sh (T (Strides ats) ao _)
   | otherwise = routeOf start l (zeroStrideOutermost merged)
   where
     !l = product sh
-    AxesStart axes start = absAxesAndStart ao ats sh
+    PairsStart axes start = absPairsAndStart ao ats sh
     merged = InnerFirst (mergeAxes (sortBy byStrideRank axes))
 {-# INLINE routeUnord13 #-}
 
@@ -5205,7 +5205,7 @@ routeUnord13 sh (T (Strides ats) ao _)
 -- Why one walk first.  Three things are read off the shape and the
 -- strides as given: which axes have extent 1, the absolute value of
 -- each stride, and the start offset (below).  Each is a pass over the
--- two lists, and 'absAxesAndStart' takes all three in one, returning
+-- two lists, and 'absPairsAndStart' takes all three in one, returning
 -- the (absolute stride, extent) pairs of the axes that matter with the
 -- start offset beside them.
 --
@@ -5289,19 +5289,19 @@ routeUnord13 sh (T (Strides ats) ao _)
 -- order 'byStrideRank' leaves to the sort's stability is between two
 -- axes of one absolute stride and one extent, which 'mergeInner'
 -- treats alike whichever comes first.
-data AxesStart = AxesStart [(Int, Int)] !Int
+data PairsStart = PairsStart [(Int, Int)] !Int
 
-absAxesAndStart :: Int -> [Int] -> ShapeL -> AxesStart
-absAxesAndStart ao = go (AxesStart [] ao)
+absPairsAndStart :: Int -> [Int] -> ShapeL -> PairsStart
+absPairsAndStart ao = go (PairsStart [] ao)
   where
-    go :: AxesStart -> [Int] -> ShapeL -> AxesStart
-    go acc@(AxesStart axes start) (s : ss) (n : ns)
+    go :: PairsStart -> [Int] -> ShapeL -> PairsStart
+    go acc@(PairsStart axes start) (s : ss) (n : ns)
       | n == 1 = go acc ss ns
-      | s < 0 = go (AxesStart ((negate s, n) : axes) (start + (n - 1) * s))
+      | s < 0 = go (PairsStart ((negate s, n) : axes) (start + (n - 1) * s))
                    ss ns
-      | otherwise = go (AxesStart ((s, n) : axes) start) ss ns
+      | otherwise = go (PairsStart ((s, n) : axes) start) ss ns
     go acc _ _ = acc
-{-# INLINE absAxesAndStart #-}
+{-# INLINE absPairsAndStart #-}
 
 -- The merged axes, innermost first, with their zero-stride axis, if
 -- they begin with one followed by a unit-stride axis, moved to the end.
@@ -5336,7 +5336,7 @@ lsListStage1 sh (T (Strides ats) ao v)
   | null sh = [VS.slice ao 1 v]
   | oks !! (length sh - 1) = loop oks sh ats ao
   | l == 0 = [VS.empty]
-  | otherwise = [fillStage2 (axesOfDims sh ats) ao l v]
+  | otherwise = [fillStage2 (walkOfDims sh ats) ao l v]
   where l : ts' = getStridesT sh
         oks = scanr (&&) True (zipWith (==) ats ts')
         loop (b : bs) (n : ns) (t : ts) !o
@@ -5379,7 +5379,7 @@ lsListStage2 sh (T (Strides ats) ao v)
             | o <- VU.toList (baseOffsetsExpand ao (map snd outer)
                                 (Strides (map fst outer))) ]
       InnerFirst ((t, n) : rest) ->
-        [fillStage2 (Axes t n (InnerFirst rest)) ao l v]
+        [fillStage2 (Walk t n (InnerFirst rest)) ao l v]
   where l = product sh
 
 -- The reducing consumer, which is what the unordered entry point exists
