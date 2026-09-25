@@ -8304,7 +8304,9 @@ Unsandboxed throughout:
     #      wanting the box quiet AGAIN -- a probe the sequence did not
     #      carry, post-run 3's rerun unless the note's RERUN: line says
     #      `allowed`, a filtered A/B this run's results
-    #      suggest -- is ASKED FOR and waited on, one ask to a sitting.
+    #      suggest -- is ASKED FOR and waited on, one ask to a sitting,
+    #      unless the note's QUIET-AFTER: line says `allowed`, which
+    #      covers the copy test and a probe the sequence did not carry.
     #      why: a fix landed mid-write-up costs every stretch after it an
     #      unwrap, each commit rewrapping README.
     #      The log read here is a second copy of what 14a already had, and
@@ -9299,7 +9301,8 @@ not otherwise.
     #      sets another.
     #      An arm it flags with its counts level is that half's binary or
     #      its FILE INSTANCE and not the pair's. For each flagged arm, the
-    #      COPY TEST first, on a box asked quiet (19a): `cp $R-<half>
+    #      COPY TEST first, on a box asked quiet (19a) or taken at once
+    #      where the note says QUIET-AFTER: allowed: `cp $R-<half>
     #      probe-copy-$R-<half>` and the
     #      cell timed on both, interleaved, which probe-r33-instance.sh's
     #      part 1 is with the names changed; then, BEFORE anything evicts
@@ -9442,7 +9445,7 @@ not otherwise.
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json \
       --predictions --in-place       # 5c. THE REGISTRATION'S SPANS, taken
     #      here, after the counts. WHILE THEY ARE TAKEN, read `--checklist
-    #      post-b --full` once, re-opening its default form from then on,
+    #      post-b` once, `--full` only for a step whose reason you need,
     #      then take steps 9 and 10, which want no counts, and
     #      6a's three readers. Every `predict:` span read on each
     #      population and half its scope names, HELD or KILLED with the
@@ -9495,7 +9498,10 @@ not otherwise.
     #        sentence-level edit too, which is a --replace of the
     #        paragraph the sentence sits in.
     #        WHERE A SCRIPT IS USED ANYWAY, ONE SUBSTITUTION PER FILE
-    #        WRITE, matching the wrapping in force.
+    #        WRITE, matching the wrapping in force, AND THE SCRIPT IN A
+    #        QUOTED HEREDOC, `python3 - <<'EOF'`, never `python3 -c "..."`:
+    #        a backtick in the prose is a command substitution there, and
+    #        Run 40 lost a span of text to one without an error.
     #        Quote only what you are EDITING. READ THE `out` LINES AND NOT
     #        ONLY THE `in` ONES
     #      * TWO HALVES IN TWO FILES, 6a and 6c below: the replace list's

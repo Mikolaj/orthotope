@@ -239,6 +239,14 @@ hours later. `allowed` reruns at once, `ask` is the chapter's default, and
 `no` records the sensitivity reading in the rerun's place:
 RERUN: ask
 
+THE BOX AGAIN, SAID BEFORE THE HOURS [PAIR'S]: whether the session may take
+the quiet box back after run list step 19a for a timed reading the run's
+own results call for -- post-run step 4a's copy test above all, and a
+probe the sequence did not carry -- without asking. The same reason as
+the line above: Run 40's copy test waited for someone to ask. `allowed`
+takes it at once, as the reading's own step says; `ask` is the default:
+QUIET-AFTER: ask
+
 THE COUNTS [SAME], owed with the pair over every population on both halves,
 wanting no quiet machine: `./run-counts-all.sh $R`, which takes the classes
 off the basis binary, and `./run-counts.sh $R <half> <class>` to re-take

@@ -10616,6 +10616,14 @@ def checklist(readme, which, steps_only=False):
             else:
                 print('    # EXECUTION ORDER, which is NOT the order below:')
                 print('    #   %s' % ' '.join(order))
+                # WHAT NEED NOT WAIT FOR THE COUNTS, which is most of it:
+                # Run 40 took 5 to 5b and wrote Provenance, the next-run
+                # section, the properties and README's floor walk while
+                # step 20 ran, some forty minutes, where the order alone
+                # reads as 5 waiting on 4b.
+                print('    #   while step 20 counts: 0, 1 to 4, 5 to 5b and'
+                      ' any paragraph\n    #   reading no counts; 4a, 4b'
+                      ' and 5c wait for EVENING COMPLETE.')
                 if moved:
                     print('    #   %s %s out of printed turn, saying why in'
                           ' its own text.'
