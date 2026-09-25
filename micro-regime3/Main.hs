@@ -5362,6 +5362,13 @@ newtype InnerFirstAx = InnerFirstAx { innerFirstAx :: [Axis] }
 -- the innermost stride and extent, then the axes outside it, innermost
 -- first. What 'fillStage2Ax' and 'runSlicesAx' take, so that neither has
 -- to find the innermost axis in a list.
+-- In effect a non-empty 'InnerFirstAx' with a strict head, and the head
+-- is two 'Int' fields, unboxed by the type at -O1, where an '!Axis' is
+-- unboxed only while no reader keeps its box: as one it measured the
+-- same, every reader taking it apart (2026-09-25), and as the head of the
+-- list itself, 'InnerFirstAx' in place of this type, it cost a built
+-- 'Axis' and cons a call, 35 to 48 bytes, and more instructions on all
+-- but one arm and view.
 data WalkAx = WalkAx !Int !Int InnerFirstAx
 
 -- 'canonicalize' over 'Axis': the library's 'canonicalizeT' to the
@@ -5375,10 +5382,14 @@ canonicalizeAx sh ats = mergeAxesAx (zipWith Axis ats sh)
 -- and extent, extent 1 standing for none yet, and the axes outside it,
 -- innermost first, which is the order the fold builds them in. A record
 -- of strict fields, so that the fold carries the two numbers unboxed at
--- -O1 and a merge allocates nothing. An '!Axis' in their place cost 24
--- to 71 bytes a call more on the small views read, and instructions on
--- all but one arm and view (2026-09-25); UNPACKed, it cost exactly what
--- they do.
+-- -O1 and a merge allocates nothing. An '!Axis' in their place cost
+-- up to 96 bytes a call more (2026-09-25), less only on two views of the
+-- unordered route, whose sorted list holds cells to reuse; UNPACKed, it
+-- cost exactly what they do. In effect a non-empty 'InnerFirstAx' with
+-- a strict head, as 'WalkAx' is, and the Core says why the box costs: a
+-- push stores the head whole, so the fold keeps it boxed, and on the
+-- list route the merge's input, fused away, leaves no cell to reuse, so
+-- every new head is built.
 data MergeAccAx = MergeAccAx !Int !Int !InnerFirstAx
 
 -- 'mergeInner' over 'MergeAccAx': the library's merge step, one axis
