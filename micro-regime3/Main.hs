@@ -6141,7 +6141,10 @@ allShapes = convShapes ++ stretchShapes
 -- (README.md#the-shape-set), as 'cnn-L1-6x6-c1' was on 2026-09-05: a rung
 -- the ladder did not need, but at 324 elements the second small main-set
 -- shape beside 'cnn-slice-c32', and the per-call reading the lean dispatch
--- turns on wants two.
+-- turns on wants two. A class view is retired here too since 2026-09-25,
+-- when 'runs-3' went: its readings are fragile, the consumers' shared run
+-- loop drawing one of three op-cache modes per process on runs of 3
+-- (README.md#what-is-open).
 retiredShapes :: [String]
 retiredShapes =
   [ "stretch-inner1"
@@ -6151,12 +6154,14 @@ retiredShapes =
   , "conv1d-24"
   , "stretch-rank12"
   , "cnn-L1-12x12-c1"
+  , "runs-3"
   ]
 
--- Every retired name is a listed shape, asserted in 'main' beside
--- 'partitioned': a misspelt one would retire nothing and say nothing.
+-- Every retired name is a listed shape or class view, asserted in 'main'
+-- beside 'partitioned': a misspelt one would retire nothing and say nothing.
 retiredShapesKnown :: Bool
-retiredShapesKnown = all (`elem` map fst allShapes) retiredShapes
+retiredShapesKnown =
+  all (`elem` (map fst allShapes ++ map fst classViews)) retiredShapes
 
 -- Degenerate regime-3 shapes, checked but deliberately NOT benchmarked, and
 -- so kept out of 'shapes'. Both have @l == 0@: timing one would divide
@@ -6750,10 +6755,12 @@ classOf = takeWhile (/= '-')
 retiredKnown :: Bool
 retiredKnown = all (`elem` map (classOf . fst) classViews) retiredClasses
 
--- 'classViews' less the retired classes: what the @classes@ mode times.
+-- 'classViews' less the retired classes and the retired views: what the
+-- @classes@ mode times.
 timedClassViews :: [(String, (ShapeL, T))]
 timedClassViews =
-  [cv | cv@(n, _) <- classViews, classOf n `notElem` retiredClasses]
+  [ cv | cv@(n, _) <- classViews, classOf n `notElem` retiredClasses
+       , n `notElem` retiredShapes ]
 
 -- The cap that partitions the shape set: benchmarked iff @l <= sizeCap@,
 -- flagged and excluded otherwise. 'stretchShapes' is written to it exactly.
