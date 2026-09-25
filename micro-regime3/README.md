@@ -2230,6 +2230,22 @@ rather than a slot in the next run, observed again:
   leaves no JSON at all, so nothing had to be discarded. The account is in [Run
   22's Provenance](runs/run22.md).
 
+- `OPEN` **Routing the one-level fill through the odometer reached plain -O1's
+  emission and not the two passes'.** `3c02e36` took `fillStage2OneLevel`'s runs
+  loop out of the fill and through the recursive odometer, to remove
+  the stack-slot spill [the dead-ideas entry on skipping the level
+  table](#dead-ideas) describes, and Run 40 is its first timing. Against Run
+  39's same half, the basis runs `lib-stage3-lean-onelevel` at 0.8235 on `runs`,
+  0.8585 on `block`, 0.8695 on `flip` and 0.9279 on `scaled`, on 7.2%, 5.1%,
+  5.8% and 2.4% fewer instructions, while the control half's counts
+  on those four classes are Run 39's to the fourth decimal and its clock moves
+  under 1.1 points (`--half-movers run40 run39`). So the pair's cross figure
+  on that arm turned over there, to 0.83 to 0.94, and nothing in either run says
+  why the flagged compile did not change with the source. What would settle
+  it is the arm's inner loop read off both control builds and both basis builds
+  --- `-g3` twins of Runs 39's and 40's recipes, which name `fillStage2OneLevel`
+  by byte identity --- to see whether the two passes had already removed
+  the spill on Run 39's source. Registered 2026-09-25.
 - `OPEN` **The unordered entry point buys a level BELOW the result vector, which
   no arm here had.** libunord-stage1 and libunord-stage2, checked and not timed
   since 2026-09-09 with every arm that concatenates a list, their consumers
