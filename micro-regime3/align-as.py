@@ -956,8 +956,21 @@ def extra(p, ln):
 
 def costs_more(got, plan):
     """Whether the tier costs a group's heads landed at exceed those its
-    plan bought, the settling rounds' test of a group the pad moved."""
-    return got > tuple(x + 1e-9 for x in plan)
+    plan bought, the settling rounds' test of a group the pad moved.
+
+    In the order `choose` ranks them, the first tier that differs by more
+    than the tolerance deciding. The tolerance added to every tier and the
+    tuples compared (2026-09-25, by review) let an equal tier 0 fall below
+    its padded self and decide alone, so an outer head or a long loop the
+    pad moved was never planned again. Case:
+    `settled-rounds-see-only-the-short-loops`.
+    """
+    for g, p in zip(got, plan):
+        if g > p + 1e-9:
+            return True
+        if g < p - 1e-9:
+            return False
+    return False
 
 
 def dead_spots(src):

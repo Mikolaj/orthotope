@@ -14978,6 +14978,21 @@ RECORDS = [
          # lines and ends in a full stop.
          argv=None, ok=None),
 
+    # ---- the review of 2026-09-25, over the scripts whole ----
+    case('settled-rounds-see-only-the-short-loops', 'align-as.py', None,
+         'a group whose outer or long heads landed off the plan read as on'
+         ' it whenever its short loops cost what the plan bought',
+         # The test added 1e-9 to every tier and compared the tuples, so an
+         # equal tier 0 fell below its padded self and decided the whole
+         # comparison: (0, 5, 3) against a plan of (0, 2, 1) was not more.
+         # Asked of the function, the three answers being a group moved on
+         # tier 1, one better on tier 0 and worse after it, and one within
+         # the tolerance.
+         argv=['--unit', '(costs_more((0, 5, 3), (0, 2, 1)),'
+                         ' costs_more((0, 5, 3), (1, 0, 0)),'
+                         ' costs_more((0, 2, 1 + 5e-10), (0, 2, 1)))'],
+         ok=V(has=['(True, False, False)'])),
+
 ]
 
 
