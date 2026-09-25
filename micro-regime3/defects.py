@@ -12451,7 +12451,7 @@ RECORDS = [
 
     # ---- install-tables.sh ---------------------------------------------
     case('install-owes-a-summary-row-it-then-replaced', 'install-tables.sh',
-         None,
+         '38556eb',
          "the hand-work list carried `summary row ... disagrees` for rows"
          ' the same call then installed',
          # --block checks each class's summary row as it installs the
@@ -12466,7 +12466,8 @@ RECORDS = [
          env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['zzit'],
          ok=V(has=['cross-class summary row(s) installed'],
-              hasnt=["disagrees with this class's cells"])),
+              hasnt=["disagrees with this class's cells"]),
+         bug=V(has=["disagrees with this class's cells"])),
 
     case('lead-patterns-disagree', 'install-tables.sh', None,
          'a lead one pattern missed was overwritten by the block above it',
