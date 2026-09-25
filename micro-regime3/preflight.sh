@@ -444,9 +444,11 @@ step_8 () {
   # own, so a note saying `smoke-l1-run28-bcast.json` -- which the roster
   # pass writes and which was present -- reported `run28-bcast.json` gone.
   # The leading character is consumed by the match and stripped after it,
-  # `grep -oE` having no lookbehind; at the head of a line nothing is
-  # consumed and the first character is alphanumeric, so the strip is a
-  # no-op there. AND THE NAME IS TAKEN WHOLE, prefix and all: a boundary
+  # `grep -oE` having no lookbehind, and the strip takes only a character
+  # outside the name's own class: at the head of a line nothing is
+  # consumed, and stripping any non-alphanumeric turned a note's
+  # `./run40-x.json` into `/run40-x.json` (2026-09-25, by review). AND
+  # THE NAME IS TAKEN WHOLE, prefix and all: a boundary
   # alone made the step blind to every `smoke-l1-$R-*.json` the roster
   # pass writes and the note names, since `smoke-l1-` fails the class and
   # the tail no longer matched on its own -- a loud false report traded
@@ -461,7 +463,7 @@ step_8 () {
     REFS_RE='(^|[^A-Za-z0-9._/-])(probe-[A-Za-z0-9._{},-]*[A-Za-z0-9_}]/?|'
     REFS_RE=$REFS_RE'[A-Za-z0-9._/-]*'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))'
     MISSING=$(grep -oE "$REFS_RE" \
-                "$R-pair.txt" | sed -E 's/^[^A-Za-z0-9]//' | sort -u \
+                "$R-pair.txt" | sed -E 's/^[^A-Za-z0-9._/-]//' | sort -u \
               | while read -r q; do
                   # Brace groups expand without eval, one group a pass
                   # until none is left, split by hand because `read -a`
