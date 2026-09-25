@@ -3640,27 +3640,30 @@ a run that straddles ten loops or fewer never shows it. Fixed at 7a
 in `c653c15`, recorded in `1a09457`, with a second defect of the same shape:
 `read-all.sh --brief-facts` joined the note's `.text` row to the md5, launch
 and repetition rows when the row ended with no full stop, and the brief carried
-the run-on until it was trimmed by hand. **THE POINTER THE PREPARATION ADDS
-TO THE PREVIOUS RUN'S FILE IS COPIED INTO THE NEW ONE AT STEP 5**, where
-it names the new run as the next run's pair; the write-up deletes it,
-and no step says so. **STEP 0's TWIN SCRIPT HAD TO BE RE-DERIVED**, Run 39's
-leaving none on disk, `probe-*` being ignored by git: `probe-r40-g3-twins.sh`
-is Run 38's with `LOOP_SETTLED=1` on both recipes, and it is the one to copy
-while it stands. **THE READINGS TAKEN BEFORE THE COUNTS LAND ARE MOST
-OF THE WRITE-UP**: with `post-run-readings.sh` run once at the counts' launch,
-Provenance, the next-run section, the properties and the README floor walk
-were written while the counted work ran, and only the class blocks, Results'
-findings and the head waited on it. **AND THE READERS AFTER THE CHECKER FOUND
-WHAT ITS TWO PASSES DID NOT**: the blind reader, beside pass 2, matched three
-of pass 2's five findings and added eleven of its own that pass 1 had passed ---
-the drift band quoted as Run 11's where README holds Run 23's, a seventh
-consumer on Run 38 dropped, an unpredicted mover called unnamed
-by a registration that names it, five claims their own figures did not bear out
-and three unclear sentences; and the comprehension probe, on the fixed
-documents, found the one A/A cell past the floor section's ten-percent gate left
-ungated and the regime entry still naming Run 39's basis as the newest. Every
-one is a property of the text, which is why readers who open no artifact catch
-them.
+the run-on until it was trimmed by hand. **THE RESULTS CHECK READ A SHAPE
+AS A RUN**: `--check-doc` failed the run file for naming `block-run64-gap1`,
+reading `run64-` as a half of Run 64, when the copy test taken after
+the write-up named two `block` shapes in Results; fixed in `d4a6a00`
+with its case. **THE POINTER THE PREPARATION ADDS TO THE PREVIOUS RUN'S FILE
+IS COPIED INTO THE NEW ONE AT STEP 5**, where it names the new run as the next
+run's pair; the write-up deletes it, and no step says so. **STEP 0's TWIN SCRIPT
+HAD TO BE RE-DERIVED**, Run 39's leaving none on disk, `probe-*` being ignored
+by git: `probe-r40-g3-twins.sh` is Run 38's with `LOOP_SETTLED=1` on both
+recipes, and it is the one to copy while it stands. **THE READINGS TAKEN BEFORE
+THE COUNTS LAND ARE MOST OF THE WRITE-UP**: with `post-run-readings.sh` run once
+at the counts' launch, Provenance, the next-run section, the properties
+and the README floor walk were written while the counted work ran, and only
+the class blocks, Results' findings and the head waited on it. **AND THE READERS
+AFTER THE CHECKER FOUND WHAT ITS TWO PASSES DID NOT**: the blind reader, beside
+pass 2, matched three of pass 2's five findings and added eleven of its own
+that pass 1 had passed --- the drift band quoted as Run 11's where README holds
+Run 23's, a seventh consumer on Run 38 dropped, an unpredicted mover called
+unnamed by a registration that names it, five claims their own figures did
+not bear out and three unclear sentences; and the comprehension probe,
+on the fixed documents, found the one A/A cell past the floor section's
+ten-percent gate left ungated and the regime entry still naming Run 39's basis
+as the newest. Every one is a property of the text, which is why readers who
+open no artifact catch them.
 
 **What Run 39 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's first.**
