@@ -794,11 +794,12 @@ rather than a slot in the next run, observed again:
   and since 2026-09-24 the fill has no table to price.** `c0a8aaa`, landing
   2026-09-23 after Run 39's registration and before its build, rebuilt
   `fillStage2` --- the inward fill behind `lib-stage3-lean`,
-  `liblist-stage5-sum` and `libunord-stage14-sum` --- to build one unboxed table
-  of (stride, extent) pairs in one pass, while `fillStage2Axes`, behind their
-  counterparts, keeps the library's two tables. Run 39 then reads
-  `lib-stage3-lean` over `lib-stage2-lean` at **0.9790** on the basis and 0.9783
-  on the control, where Run 38 read 1.0061 with only the numbering between them,
+  `liblist-stage5-sum` and `libunord-stage14-sum` until 2026-09-25, when they
+  moved to `fillStage3` --- to build one unboxed table of (stride, extent) pairs
+  in one pass, while `fillStage2Axes`, behind their counterparts, keeps
+  the library's two tables. Run 39 then reads `lib-stage3-lean`
+  over `lib-stage2-lean` at **0.9790** on the basis and 0.9783 on the control,
+  where Run 38 read 1.0061 with only the numbering between them,
   `liblist-stage5-sum` over `-stage4-sum` at **0.9889** where Run 38 read
   1.0027, and the unordered pair at 0.9998 against 0.9996 --- the one route
   that reads its tables off the hot path. So each pair now carries TWO
@@ -821,8 +822,9 @@ rather than a slot in the next run, observed again:
   on `small-patch-k5`, `small-patch-r5`, `small-row96` and `cnn-L1-6x6-c1`,
   where the basis read 0.90 to 1.02; `stretch-wide-2xM` is the one cell slower,
   [in the placement section](#what-moves-a-figure-when-no-strategy-changed),
-  and the forms the nest beat are [dead ideas](#dead-ideas). `fillStage2Axes`
-  and the library keep their tables.
+  and the forms the nest beat are [dead ideas](#dead-ideas). The library keeps
+  its tables, and `fillStage2Axes` kept them until 2026-09-25, when it became
+  a copy of `fillStage2`.
 - `OPEN` **Seven reducing consumers newly change what they ALLOCATE
   under `-fspec-constr -fliberate-case`, where one run earlier the same pair
   changed none of them.** On Run 38 the unordered consumers
