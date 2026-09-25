@@ -22,6 +22,18 @@
 # instructions:u is kept in the list precisely so the two can be checked
 # against each other.
 #
+# A THIRD PROCESS, `-n 3N`, checks that the difference is one process's
+# slope, since a cell can differ from process to process in more than its
+# fixed cost: Run 40's `runs-3` consumers drew one of three op-cache modes
+# per process, and a difference across two modes printed figures outside
+# every mode (2026-09-25).  A cell whose `(3N - 2N)` and `(2N - N)`
+# slopes part by more than LINEAR_TOL, default 0.02, on cycles:u or
+# instructions:u is followed by a `# NONLINEAR` line giving both.  The
+# published figure stays `(2N - N) / N`.  A minor GC inside one window
+# does the same to a cell of a few thousand instructions, moving it by
+# tens at N=100000, so a small cell wants an N that puts every window's
+# GCs in step or a reading that tolerates tens.
+#
 # UNLIKE run-counts.sh THIS WANTS A QUIET MACHINE.  Instructions are
 # layout- and load-independent, which is what lets that sweep run on a
 # working desktop; cycles and stalls are neither -- a cycle spent waiting
@@ -50,6 +62,7 @@ case $OUT in probe-*|smoke-*) ;;
 esac
 C=${CLASS-}
 N=${N:-50}
+TOL=${LINEAR_TOL:-0.02}
 # Five events and not six: this box gives every one of these at 100% of
 # the run with no multiplexing, and a sixth (L1-dcache-load-misses) comes
 # back `<not counted>` at 0.00% because the general counters are spent.
@@ -101,6 +114,7 @@ rm -f "$_p"
 
 EVLIST=${EVENTS//,/ }
 NEV=0; for e in $EVLIST; do NEV=$((NEV + 1)); done
+read -r -a evarr <<< "$EVLIST"
 SEL=${C:+classes}
 LIST=$("$B" $SEL --list 2>/dev/null)
 [ -n "$LIST" ] || { echo "!! --list gave nothing; wrong binary?"; exit 2; }
@@ -147,24 +161,37 @@ SCOPE="ARMS=$ARMS"
   echo "# $B $(md5sum "$B" | cut -d' ' -f1) N=$N $(date -Is) $SCOPE"
   echo "# shape arm N $(echo "$EVENTS" | tr ',' ' ')"
   echo "# every cell is (-n 2N) minus (-n N), over N, as run-counts.sh takes it"
+  echo "# and checked against (-n 3N) minus (-n 2N): LINEAR_TOL=$TOL"
   echo "# ARMS-RESTRICTED BY CONSTRUCTION: this sweep is never a roster column"
 } > "$F"
 BAD=0
+NL=0
 for S in $SHAPES; do
   for A in $ARMS; do
+    c3=$(count "$S" "$A" $((3 * N)))
     c2=$(count "$S" "$A" $((2 * N))); c1=$(count "$S" "$A" "$N")
-    case "$c2$c1" in
+    case "$c3$c2$c1" in
       *NaN*) echo "!! $S $A: perf could not count" >> "$F"; BAD=1; continue ;;
     esac
+    IFS=, read -r -a c3arr <<< "$c3"
     IFS=, read -r -a c2arr <<< "$c2"
     IFS=, read -r -a c1arr <<< "$c1"
     line="$S $A $N"
+    off=
     for i in $(seq 1 $NEV); do
       a=${c2arr[$((i - 1))]}; b=${c1arr[$((i - 1))]}
       line="$line $(( (a - b) / N ))"
+      case ${evarr[$((i - 1))]} in cycles:u|instructions:u) ;; *) continue ;; esac
+      d1=$(( (a - b) / N )); d2=$(( (c3arr[i - 1] - a) / N ))
+      if awk -v p="$d1" -v q="$d2" -v t="$TOL" \
+           'BEGIN { exit !(p != 0 && (q / p - 1 > t || 1 - q / p > t)) }'; then
+        off="$off ${evarr[$((i - 1))]} $d1 then $d2"
+      fi
     done
     echo "$line" >> "$F"
+    [ -z "$off" ] || { echo "# NONLINEAR $S $A:$off" >> "$F"; NL=$((NL + 1)); }
   done
 done
-echo "# end $(date -Is)" >> "$F"
+echo "# end $(date -Is), $NL nonlinear cell(s)" >> "$F"
+[ "$NL" = 0 ] || echo "$NL cell(s) nonlinear past $TOL: their figures are no one process's, see the # NONLINEAR lines in $F"
 exit $BAD

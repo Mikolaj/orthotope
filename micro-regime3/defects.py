@@ -3893,6 +3893,35 @@ def stub_dir(tmp, body, name='perf'):
     return d
 
 
+# A perf whose cycles bend at the third process, as a mode drawn per
+# process bends them: every event in `-e` answered, instructions
+# proportional to `-n`, cycles proportional to it up to `-n 2` and 150000
+# over at `-n 3`, so a cell read at N=1 differences to 200000 on
+# `(2N - N)` and 350000 on `(3N - 2N)`.
+PERF_MODES = """\
+#!/bin/sh
+out=""; n=2; want_o=0; want_n=0; want_e=0; ev=instructions:u
+for a in "$@"; do
+  if [ "$want_o" = 1 ]; then out=$a; want_o=0; continue; fi
+  if [ "$want_n" = 1 ]; then n=$a; want_n=0; continue; fi
+  if [ "$want_e" = 1 ]; then ev=$a; want_e=0; continue; fi
+  case $a in -o) want_o=1 ;; -n) want_n=1 ;; -e) want_e=1 ;; esac
+done
+lines=""
+for e in $(echo "$ev" | tr ',' ' '); do
+  case $e in
+    cycles:u) v=$((200000 * n)); [ "$n" = 3 ] && v=$((v + 150000)) ;;
+    *) v=$((100000 * n)) ;;
+  esac
+  lines="$lines$v,,$e,257660,100.00,,
+"
+done
+if [ -n "$out" ]; then printf '%s' "$lines" > "$out"
+else printf '%s' "$lines" >&2; fi
+exit 0
+"""
+
+
 # A log with samples on BOTH sides of the load fields, and a trailing
 # `pre` with no `post`: the two branches of `--wild` that no run on disk
 # exercises, one being an instrument change mid-log and the other what a
@@ -11082,6 +11111,31 @@ RECORDS = [
          probe=lambda subs: open(os.path.join(
              subs['at'], 'zzct4-counts-g912.txt')).read(),
          ok=V(exit=0, has=['shape-a list 1'], hasnt=['perf could not'])),
+
+    case('stalls-marks-a-cell-no-one-process-read', 'probe-stalls.sh', None,
+         'a difference of two processes in different modes read as a'
+         ' measured cell',
+         # Run 40's `runs-3` consumers drew one of three op-cache modes per
+         # process, and `(2N - N) / N` over two processes in different
+         # modes printed figures outside every mode, with nothing to say
+         # so (2026-09-25). The third process at `-n 3N` is the check: a
+         # cell whose two slopes part is followed by a `# NONLINEAR` line.
+         # The stand-in perf bends cycles and not instructions, so the
+         # line names the one event and not the other. The bug direction,
+         # the script before the check, printed the cell and no such
+         # line; it goes in with the commit that fixes it.
+         shadow=dict(extra=[('zzps1-fake', FAKE_HALF)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_MODES)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'BIN': './zzps1-fake',
+              'OUT': 'probe-zzps1', 'ONLY': 'shape-a', 'ARMS': 'list',
+              'N': '1', 'EVENTS': 'instructions:u,cycles:u'},
+         argv=[],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'probe-zzps1.txt')).read(),
+         ok=V(exit=0, has=['shape-a list 1 100000 200000',
+                           '# NONLINEAR shape-a list: cycles:u 200000 then'
+                           ' 350000'],
+              hasnt=['instructions:u 100000 then'])),
 
     case('counts-sweeps-only-the-class-it-was-given', 'run-counts.sh', None,
          'a class sweep took the main set, or took every class at once',

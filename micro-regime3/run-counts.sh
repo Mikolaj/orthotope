@@ -23,6 +23,10 @@
 # restrict it, for a smoke run and never for a recorded column. Output:
 # RUN-counts-HALF.txt, one line a cell: shape, arm, N, instructions an
 # iteration; a cell perf could not count is a `!!` line and the exit status.
+# A cell of a few thousand instructions is only as exact as the GCs are in
+# step: one minor GC falling inside one window and not the other moved
+# such a cell by tens of instructions at N=100000 (2026-09-25), so a
+# difference of that size there is not yet code.
 set -u
 cd "$(dirname "$0")" || exit 1
 [ $# -ge 2 ] || { echo "usage: ./run-counts.sh RUN HALF [CLASS]  # e.g. run19 g912 rev"
