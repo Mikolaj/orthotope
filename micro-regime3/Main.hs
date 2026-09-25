@@ -2762,7 +2762,7 @@ data Axes = Axes !Int !Int InnerFirst
 -- axis at the head, where 'canonView' above writes the dims outermost
 -- first for the arms whose fills and tables take them as lists.
 canonViewOfPairs :: [(Int, Int)] -> InnerFirst
-canonViewOfPairs ps = InnerFirst (foldl' mergeInner [] ps)
+canonViewOfPairs ps = InnerFirst (mergeAxes ps)
 {-# INLINE canonViewOfPairs #-}
 
 -- The library's 'canonicalizeT' to the line, 'canonViewOfPairs' over
@@ -2770,7 +2770,7 @@ canonViewOfPairs ps = InnerFirst (foldl' mergeInner [] ps)
 -- builds an 'Axes' from the canonical view, in place of 'canonView'
 -- followed by 'axesOfDims', which reversed what this writes in order.
 canonicalize :: ShapeL -> [Int] -> InnerFirst
-canonicalize sh ats = InnerFirst (foldl' mergeInner [] (zip ats sh))
+canonicalize sh ats = InnerFirst (mergeAxes (zip ats sh))
 {-# INLINE canonicalize #-}
 
 -- Whether canonical axes, innermost first, carry the natural strides of
@@ -2781,18 +2781,34 @@ naturalStrides axes =
   and (zipWith (==) (map fst axes) (scanl (*) 1 (map snd axes)))
 {-# INLINE naturalStrides #-}
 
--- The library's merge step, one axis added inside the axes so far,
--- whose head is the axis just outside it: dropped where its extent is
--- 1, merged into the head where that one's stride is this one's stride
--- times its extent, and put in front of it otherwise.  Banged on the
--- new axis's stride and not its extent, which the first equation's
--- literal forces; the pair passes unopened on the third.
-mergeInner :: [(Int, Int)] -> (Int, Int) -> [(Int, Int)]
+-- The axes merged so far: the one just outside the next, as its stride
+-- and extent, extent 1 standing for none yet, and the axes outside it.
+-- A record of strict fields, so that the fold carries the two numbers
+-- unboxed at -O1 and a merge allocates nothing.
+data MergeAcc = MergeAcc !Int !Int ![(Int, Int)]
+
+-- The library's merge step, one axis added inside the axes so far:
+-- dropped where its extent is 1, merged into the axis just outside it
+-- where that one's stride is this one's stride times its extent, and
+-- put inside it otherwise.  Banged on the new axis's stride, which every
+-- path of the second equation forces anyway, and not its extent, which
+-- the first equation's literal forces; the first equation's stride stays
+-- lazy, a bang there adding an evaluation per dropped axis (2026-09-25).
+mergeInner :: MergeAcc -> (Int, Int) -> MergeAcc
 mergeInner acc (_, 1) = acc
-mergeInner ((st', n') : rest) (!st, n)
-  | st' == n * st = (st, n' * n) : rest
-mergeInner acc p = p : acc
+mergeInner (MergeAcc st' n' rest) (!st, n)
+  | n' == 1 = MergeAcc st n rest
+  | st' == n * st = MergeAcc st (n' * n) rest
+  | otherwise = MergeAcc st n ((st', n') : rest)
 {-# INLINE mergeInner #-}
+
+-- The canonical axes innermost first, from (stride, extent) pairs
+-- outermost first: 'mergeInner' folded over them.
+mergeAxes :: [(Int, Int)] -> [(Int, Int)]
+mergeAxes ps = case foldl' mergeInner (MergeAcc 0 1 []) ps of
+  MergeAcc st n rest | n == 1 -> rest
+                     | otherwise -> (st, n) : rest
+{-# INLINE mergeAxes #-}
 
 -- The dims an older arm holds as a shape and strides, canonical or as
 -- given, as the 'Axes' the fills and the routes take: rank 0 is one
@@ -5173,7 +5189,7 @@ routeUnord13 sh (T (Strides ats) ao _)
   where
     !l = product sh
     AxesStart axes start = absAxesAndStart ao ats sh
-    merged = InnerFirst (foldl' mergeInner [] (sortBy byStrideRank axes))
+    merged = InnerFirst (mergeAxes (sortBy byStrideRank axes))
 {-# INLINE routeUnord13 #-}
 
 -- The dispatch of 'routeUnord13', piece by piece.
