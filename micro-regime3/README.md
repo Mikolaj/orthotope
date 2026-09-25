@@ -9560,8 +9560,9 @@ not otherwise.
     #      COPY THEM, DO NOT JOIN THEM.
     #      The `___` slots in all five are yours and run-status.sh
     #      refuses a run file still carrying one. Each says what it
-    #      wants: a class block carries ONE, what the class says of its
-    #      own.
+    #      wants: a class block carries one until its counts are placed.
+    #      A sentence of the class's own is optional since 2026-09-25,
+    #      written only where the class has a finding.
     ./read-run.py --inherited             # 6a's THREE READERS, in the
     ./read-run.py --stale                 # order the body gives them,
     ./read-run.py --prose-facts $R        # and BEFORE the first paragraph

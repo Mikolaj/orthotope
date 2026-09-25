@@ -6993,7 +6993,10 @@ def class_says(cells, shapes, strategies, meta, args):
         out.append('and nothing outside the family is ahead of `%s`, `%s`'
                    ' the best at %.3f.' % (PLAIN, led.outside[0][1],
                                           led.outside[0][0]))
-    out.append('___ (what is this class\'s own).')
+    # NO SLOT FOR WHAT THE CLASS SAYS OF ITS OWN, since 2026-09-25: filled
+    # every run, it mostly restated which arm leads where the cross-class
+    # summary paragraph already says it. A class with a finding gets a
+    # sentence here by hand; one without gets none.
     rows, lst, partial = cross_half_rows(cells, shapes, strategies,
                                          args.compare, args.main, meta)
     vote = [r for r in rows if r[1] not in partial] or rows
