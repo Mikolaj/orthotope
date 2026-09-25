@@ -5,7 +5,8 @@
 # join a table, `-g3` being a different program (README, post-run step 0).
 #
 #     ./g3-twins.sh run40            # builds probe-g3-<half>-run40, both
-#     ./g3-twins.sh run40 --dry-run  # prints the two parsed recipes only
+#     ./g3-twins.sh run40 --dry-run  # the source check and the two parsed
+#                                    # recipes, building nothing
 #
 # THE RECIPES ARE READ OFF THE NOTE, `$R-pair.txt`'s HOW EACH HALF IS BUILT
 # block, and not copied from the last run's probe: probe-* is ignored by
