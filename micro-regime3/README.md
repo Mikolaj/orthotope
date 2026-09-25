@@ -9407,7 +9407,9 @@ not otherwise.
     #      section, whole and under a one-line preface, and the entry
     #      becomes the ANSWERED stub with `___` for the verdict clause;
     #      the verdicts are then written beside each prediction where it
-    #      already stands. It refuses unless exactly one OPEN entry names
+    #      already stands. It deletes the preparation's pointer to this
+    #      registration, which the copy brought across, and names it.
+    #      It refuses unless exactly one OPEN entry names
     #      this run, so it is run once, after the copy is committed
     ./read-run.py $R-<basis>-main.json --movement    # 5a. THE MOVEMENT
     #      READING, whose window 5b closes: a "moved from X to Y"

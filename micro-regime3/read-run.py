@@ -10668,6 +10668,17 @@ def move_registration(readme, run_doc):
                          ' in %s\n' % (doc.count(REG_HEAD),
                                         os.path.basename(run_doc)))
         return 1
+    # THE PREPARATION'S POINTER, which pre-run step 12a adds to the
+    # previous run's compares-against section as `**Run N's pair ...
+    # [registered <date>][open]**` and step 5's copy carries into this
+    # file, where it names this run as the next run's pair. Nothing said
+    # to delete it, and Run 40's write-up found it by reading; it goes
+    # here, with the registration it points at, and is named on the way
+    # out. More than one such paragraph is left for a person.
+    ptr = [q for q in doc.split('\n\n')
+           if q.startswith("**Run %d's pair" % n) and '[registered' in q]
+    if len(ptr) == 1:
+        doc = doc.replace(ptr[0] + '\n\n', '', 1)
     head_at = doc.index(REG_HEAD)
     old_tail = doc[head_at + len(REG_HEAD):]
     preface = ('Registered in README\'s open list on the date the entry'
@@ -10694,6 +10705,13 @@ def move_registration(readme, run_doc):
           % (len(body), os.path.basename(readme), os.path.basename(run_doc)))
     print('  the run file\'s last section replaced, %d chars out, the'
           ' registration in under a one-line preface' % len(old_tail))
+    if len(ptr) == 1:
+        print('  and the preparation\'s pointer to this registration, deleted'
+              ' from the compares-against section: %s' % ptr[0][:70])
+    elif ptr:
+        print('  !! %d paragraphs read as the preparation\'s pointer to this'
+              ' registration; none deleted, each is yours to read'
+              % len(ptr))
     print('  README\'s entry is the ANSWERED stub with `___` for the verdict'
           ' clause; --check-doc holds the stub to the same word limit as'
           ' every other')

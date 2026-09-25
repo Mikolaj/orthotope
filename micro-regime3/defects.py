@@ -2399,6 +2399,21 @@ def registration_to_move(tmp, n=97):
     return {'readme': readme, 'doc': doc}
 
 
+def registration_to_move_with_pointer(tmp, n=97):
+    """`registration_to_move`, the run file also carrying the pointer
+    pre-run step 12a adds to the previous run's file and step 5's copy
+    brings across: `**Run N's pair ... [registered <date>][open]**`."""
+    got = registration_to_move(tmp, n)
+    text = open(got['doc']).read()
+    old = 'A head paragraph.\n\n'
+    assert text.count(old) == 1
+    write(got['doc'], text.replace(old, old + (
+        "**Run %d's pair is this run's, both recipes to the character,"
+        ' [registered 2026-09-24][open]**, on the owner\'s word.\n\n'
+        % n), 1))
+    return got
+
+
 def lone_rundoc(tmp):
     """A run file with no earlier run beside it, which is a fixture's shape.
 
@@ -11980,6 +11995,21 @@ RECORDS = [
          probe=lambda subs: open(subs['doc']).read(),
          ok=V(exit=0, has=['Registered before the run.\n\n(1) *a*']),
          ),
+
+    case('move-registration-leaves-the-pointer-to-itself', 'read-run.py',
+         None,
+         "the preparation's pointer to the registration, copied into the"
+         ' new run file at step 5, stayed there naming this run as the'
+         " next run's pair",
+         # Run 40's write-up found it by reading and deleted it by hand;
+         # no step said to. The move takes it with the registration.
+         plant=lambda t: registration_to_move_with_pointer(t),
+         argv=['--move-registration', '--readme', '{readme}',
+               '--run-doc', '{doc}'],
+         probe=lambda subs: open(subs['doc']).read(),
+         ok=V(exit=0, has=['A head paragraph.', 'Registered before the run.',
+                           'pointer to this registration, deleted'],
+              hasnt=["on the owner's word"])),
 
     case('move-registration-repoints-the-anchors-it-carries',
          'read-run.py', 'ca928dc',
