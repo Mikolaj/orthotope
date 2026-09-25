@@ -250,7 +250,11 @@ def prop_table_reads_back(m):
             if name and name not in strategies:
                 bad.append('%s: emitted a row for %r, which is not an arm of'
                            ' the run' % (f, name))
-        got = m.readme_rows(_as_page(text), set(strategies), set(strategies))
+        page = _as_page(text)
+        try:
+            got = m.readme_rows(page, set(strategies), set(strategies))
+        finally:
+            os.remove(page)
         for st in strategies:
             if st not in got:
                 bad.append('%s: `%s` was written and not read back'
@@ -259,8 +263,12 @@ def prop_table_reads_back(m):
 
 
 def _as_page(text):
-    """The emitted table as a README `readme_rows` can be pointed at."""
-    p = os.path.join(tempfile.gettempdir(), 'zz-prop-README.md')
+    """The emitted table as a README `readme_rows` can be pointed at, in a
+    file of this process's own: the one fixed name it had was shared by
+    the suite's concurrent runs (2026-09-25, by review). Case:
+    `properties-page-is-each-process-own`."""
+    fd, p = tempfile.mkstemp(prefix='zz-prop-README-', suffix='.md')
+    os.close(fd)
     return write(p, text)
 
 

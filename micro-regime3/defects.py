@@ -15232,6 +15232,22 @@ RECORDS = [
                            'building from the tree as it stands',
                            'stub cabal ran'])),
 
+    case('properties-page-is-each-process-own', 'properties.py', None,
+         'the round-trip wrote every table to one fixed temp path, which'
+         ' concurrent runs share',
+         # The suite runs properties.py up to seven at a time, so one
+         # process could read back another's table or a file just
+         # truncated. The race is not replayed; something else already at
+         # the fixed name stands for the other process, a directory being
+         # the occupant that fails every time rather than some.
+         plant=lambda t: dict(corpus_of_one(t), tmpd=os.path.dirname(
+             os.makedirs(os.path.join(t, 'tmpd', 'zz-prop-README.md'))
+             or os.path.join(t, 'tmpd', 'x'))),
+         env={'CORPUS': '{corpus}', 'TMPDIR': '{tmpd}'},
+         argv=[],
+         ok=V(exit=0, has=['every property holds'],
+              hasnt=['IsADirectoryError'])),
+
 ]
 
 
