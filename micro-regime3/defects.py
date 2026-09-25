@@ -10496,6 +10496,17 @@ RECORDS = [
               hasnt=['0x43f256']),
          bug=V(exit=0, has=['1 self-loops of at most 64 B'])),
 
+    case('survey-counts-an-x87-decode-of-a-jump-as-a-loop',
+         'loop-offsets.py', 'b173873',
+         "a continuation's mov and jmp read one byte out of step after an"
+         ' info table, fsubrp and jo -4, read as a four-byte self-loop and'
+         ' counted astride on a LOOP_EXITSPAN=1 build, which owes none',
+         plant=phantom9_listing,
+         argv=['--survey', '{dis}'],
+         ok=V(exit=0, has=['0 self-loops of at most 64 B'],
+              hasnt=['0x497de2']),
+         bug=V(exit=0, has=['1 self-loops of at most 64 B'])),
+
     case('survey-drops-a-body-with-an-eight-byte-instruction',
          'loop-offsets.py', '2cbaeb6',
          "an instruction objdump prints over two lines read from the first"
@@ -13343,6 +13354,19 @@ RECORDS = [
                '--halves', 'g912,ghead'],
          ok=V(exit=0, has=['GATE: NOT RUN'], hasnt=['-3.66%']),
          bug=V(exit=0, has=['-3.66%'])),
+
+    case('draft-carries-the-named-fills', 'read-run.py', '94a3cfd',
+         "a spent post-run named-fills block rode into the next pair's"
+         ' note, renamed to the new run and naming twins no build made',
+         # Under the fill-in block, as the machine check's case is and for
+         # its reason: there an unnamed lead inherits `fill` and passes.
+         # Found 2026-09-26 by Run 41's preparation, as preflight's 10c
+         # reading two twin paths gone.
+         plant=stub_pair_note_named_fills,
+         argv=['--note', '{note}', '--draft', 'run24',
+               '--halves', 'g912,ghead'],
+         ok=V(exit=0, has=['GATE: NOT RUN'], hasnt=['326 self-loops']),
+         bug=V(exit=0, has=['326 self-loops'])),
 
     case('draft-emits-a-handover-slot-per-block', 'read-run.py', '89bdb3c',
          'the handover slot came out once per announced block, not once',
