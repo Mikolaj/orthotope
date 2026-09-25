@@ -545,9 +545,13 @@ brief_facts () {
     # reads `NOT agree`: --for-brief pastes this row into the brief as
     # prose, so the cut published the fact inverted. Joined to its
     # continuations and cut at the first full stop instead.
+    # AND ONLY THE ROW'S OWN CONTINUATIONS, indented past a row key: Run
+    # 40's note ends the row with no full stop, and the six-line window
+    # then ran on through the md5, launch and repetition rows.
     printf '  %-14s %s\n' 'text' \
-      "$(sed -n '/^ *\.text /,$p' "$NOTE" | head -6 | sed 's/^ *\.text *//' \
-           | tr '\n' ' ' | sed 's/  */ /g; s/\. .*/./')"
+      "$(awk '/^ *\.text /{f=1; sub(/^ *\.text */, ""); print; next}
+               f && /^     /{print; next} f{exit}' "$NOTE" \
+           | tr '\n' ' ' | sed 's/  */ /g; s/\. .*/./; s/ $//')"
   else
     printf '  %-14s %s\n' 'note' "no $NOTE, so item 5's binary rows are NOT\
  derived -- read them by hand"

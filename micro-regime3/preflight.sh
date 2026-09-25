@@ -629,7 +629,9 @@ if [ "$REST" = 1 ]; then
 # says of 10a and 10b; what is a verdict here is the astride count alone.
 srv () { ./loop-offsets.py --survey "$1" 2>/dev/null \
            | awk '/self-loops/ && !a { sub(/^[^:]*: */, ""); a = $0 }
-                  /at offset 0/{b=$NF} /still straddling/{c=$NF}
+                  /at offset 0/{b=$NF}
+                  /still straddling/{c = $0; sub(/^[^:]*: */, "", c)
+                                     sub(/,.*/, "", c)}
                   /exit spans astride :/{d=$NF}
                   END{print a", "b" at offset 0, "c" straddling, "\
                             d" exit spans astride"}'; }
