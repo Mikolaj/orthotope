@@ -847,7 +847,32 @@ rather than a slot in the next run, observed again:
   to 0.8448**, `libunord-stage1-sum` at 0.9992 and 252 of 551 cells inside 1e-4,
   on a source whose ten commits rewrote `runSlices`'s odometer behind all six:
   `-stage6-sum` moved 0.16 of a point and the other five a hundredth at most,
-  so the sensitivity does not live in the odometer's form.
+  so the sensitivity does not live in the odometer's form. **Read 2026-09-25,
+  most of it lives in one fold's boxing**, the next entry's: with that fold's
+  accumulator made a strict record, the six read 0.969 to 1.000 per cell
+  over `small` where Run 40's binaries read 0.777 to 1.267.
+- `ANSWERED` **The two passes' third on `small-flat64`'s lean fills is one
+  fold's boxing: the canonical-axes merge over a list accumulator, which only
+  SpecConstr unboxes.** On Run 40 the four lean fills read about 37 ns net
+  on the basis against 28 on the control, on a view that canonicalizes to one
+  slice, so that the fill there is its dispatch and a slice header. Callgrind
+  over the two `-g3` twins puts the difference at 98 instructions a call
+  and criterion's allocation fit at 72 bytes, the forcing pass cancelling
+  exactly, and the Core says where: `canonicalize`'s `foldl' mergeInner`
+  over a list allocates at plain -O1 a cell and a pair for each axis kept,
+  and those and a lazy thunk for each merge, where SpecConstr's specialisation
+  carries the head axis unboxed and allocates 56 bytes once --- the 72 bytes
+  to the byte. The gap dates from Run 39, the cross figure going 0.945 on Run 38
+  to 1.339, the step where `78c5521` put `canonicalize` into `routeList4`,
+  neither side built. A strict record accumulator in `mergeInner`, tried
+  2026-09-25, takes the basis's lean fills on `small-flat64` to 0.71 to 0.77
+  of Run 40's net time and 64 bytes a call, and the six unordered consumers'
+  allocation, control over basis per cell, to within 3.1 points of 1 --- which
+  is most of the entry above; it costs the control 5 to 56 instructions a call
+  on the `small` lean fills and reads 1.00 to 1.11 of their net time, more
+  than those instructions explain, and a `foldr` form tried the same day,
+  its head carried boxed, allocates less than the record on views that push,
+  re-boxing nothing.
 - `ANSWERED` **What Run 38 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 38's own file](runs/run38.md), where a run's
@@ -1341,6 +1366,23 @@ rather than a slot in the next run, observed again:
   no branch miss on either, and **5.00 taken branches and 5.00 op-cache fetches
   against 6.00 and 7.00** --- the paragraph's counts exactly, so it is neither
   a placement the shim can move nor prediction.
+- `ANSWERED` **Seven consumers on that loop part by a third on Run 40's `runs-3`
+  INSIDE one process, where Runs 36 to 39 read none of it, and the term
+  is placement: `943fecd`'s run loop, its head at residue 7, draws one of three
+  op-cache modes on runs of three.** The seven arms that reach `sumLazyRuns` ---
+  `liblist-stage4-sum` and `-5-sum`, `libunord-stage6-sum`, `-7-sum`, `-9-sum`,
+  `-13-sum` and `-14-sum` --- retire the same 22.2M instructions an iteration
+  there on both halves, the five `libunord` ones four taken branches and five
+  op-cache fetches a run, and read 6.8, 7.8 or 10.2 cycles a run as a process
+  or a stretch of its samples draws a mode, at 0.06, 0.25 or 0.6 op-cache misses
+  a run with every data-side count level. So their order on that cell,
+  and the cross-half figures step 4b quotes there, are draws and not the arms
+  or the passes. Built on Run 40's basis recipe, `e2f68a7` reads one mode
+  and `943fecd` all three; address randomisation and the core are ruled out,
+  `setarch -R` and `taskset` leaving the spread as it was. `runs-3` is retired
+  from timing since 2026-09-25 for it, `check` still covering it. The hazard's
+  map by residue, run length and re-entry is [the placement section][floor]'s
+  paragraph on `943fecd`'s loop.
 - `OPEN` **On `flip-last-rows` the shipped leaf's own cell parts from BOTH
   its A/A copies by 22% in one process, and the copies agree with each other.**
   Run 34's `run34-exit-flip` reads `mut-odo-vecdims-add-in-leaf-u2-aa` 22.29%
@@ -4291,23 +4333,24 @@ ahead of the implementation:
   Int32 comment sites.
 
 **A class population is three shapes, or four, or fourteen** --- three to seven
-when this paragraph was written and three to seventeen today, `runs` having
-grown on Runs 22, 24 and 34, and the figure is stated here as a SCALE
-and re-read off a run's own cross-class table rather than maintained --- against
-a main set several times the size, which is deliberate --- the classes are there
-to vary the *mechanism*, and varying size and rank within one is the main set's
-job --- but it decides how their results read. A class geomean rests on three
-cells, so it is a summary of a handful of numbers rather than a statistic
-over a spread; the per-shape figures are nearly the whole population
-and are worth quoting where the main set's would be flattened away; winsorizing
-has almost nothing to cap and `--pair`'s bootstrap interval almost nothing
-to resample. What a class run can decide is whether an *ordering* inverts
-under its mechanism and whether any strategy's `worst` crosses 1 there. What
-it cannot do is be compared with a main-set number, in either direction.
-**`runs` is the one exception, a sweep rather than a triple**, because
-its question is a crossover and not a mechanism: its views walk the run from 2
-to 65536 at a fixed size, with one rank-3 entry whose inner dims merge
-under canonicalization so the library's merge and not the listing sets its run.
+when this paragraph was written and three to sixteen today, `runs` having grown
+on Runs 22, 24 and 34 and lost `runs-3` on 2026-09-25, and the figure is stated
+here as a SCALE and re-read off a run's own cross-class table rather
+than maintained --- against a main set several times the size, which
+is deliberate --- the classes are there to vary the *mechanism*, and varying
+size and rank within one is the main set's job --- but it decides how their
+results read. A class geomean rests on three cells, so it is a summary
+of a handful of numbers rather than a statistic over a spread; the per-shape
+figures are nearly the whole population and are worth quoting where the main
+set's would be flattened away; winsorizing has almost nothing to cap
+and `--pair`'s bootstrap interval almost nothing to resample. What a class run
+can decide is whether an *ordering* inverts under its mechanism and whether any
+strategy's `worst` crosses 1 there. What it cannot do is be compared
+with a main-set number, in either direction. **`runs` is the one exception,
+a sweep rather than a triple**, because its question is a crossover and
+not a mechanism: its views walk the run from 2 to 65536 at a fixed size,
+with one rank-3 entry whose inner dims merge under canonicalization
+so the library's merge and not the listing sets its run.
 
 **The `runs` class and the library-shaped arms exist for regressions
 this benchmark could not see, added 2026-08-28 after horde-ad caught one.**
@@ -12930,6 +12973,44 @@ to act on HEAD, and the free band hides nothing there either: 0, 3 and 30 read
 level inside one tree, and the differences first read between them
 were the trees parting. The same holds for stages 7, 10 and 11, which run
 this loop.
+
+**`943fecd`'s run loop and where it can sit, read 2026-09-25: on runs of three
+it is stable only in bands with a sixteen-byte period, and every build of
+it so far sits outside them.** `943fecd` made `runSlices`'s odometer a value,
+which cut two taken branches a run from `sumLazyRuns`'s cycle on HEAD and packed
+it into two lines: the inner three-element loop and fourteen instructions
+of the rest of the run in the first, entered at three points, and six
+in the second, 37 instructions and four taken branches a run. Its own build
+and both Run 40 halves put the head at residue 7. Its 76 bytes, reassembled byte
+for byte and run from a C driver with no GHC runtime --- a reproducer not kept
+in the tree --- read at every residue of the binary's own line, six processes
+each: stable at 6.1 cycles a run with no op-cache miss at residues 0, 11 to 16,
+27 to 32 and 43 to 46; one of several modes per process, 6.7 to 10.9 cycles
+and 0.06 to 0.7 misses a run, at 1 to 10, 17 to 26 and 33 to 42, residue 7 among
+them; stable at 9.1 at 47 to 50 and at 8.1 from 51 up. The page line moves
+nothing, residue 13 reading 6.1 on lines 0, 5, 30 and 62 and residue 7 slow
+or mixed on each. At residue 7 only run length 3 trips it, lengths 1 to 16, 32
+and 64 reading stable there; at residue 13 length 8 does instead, stable at 16
+cycles against 11.2. And it wants the loop uninterrupted: re-entered every 30
+to 222 runs, as a window view's odometer steps re-enter it, it holds the stable
+mode, misses begin near 1,000 runs and reach half the uninterrupted loop's rate
+by 10,000 --- which is why the four `window` views that walk runs of three never
+trip it and `runs-3`, 600,000 runs with no level end, did. Placed in a stable
+band the loop reads 6.1 cycles a run against Run 39's three-line loop's about
+7.3, so the commit's gain is real and its placement gave it back on the one
+cell. Why the settled cost rates residue 7 free for this loop, and what
+in the op cache the sixteen-byte period is, are unread.
+
+**Two exact readings did the attribution, both cheap and neither a probe
+script's yet.** A hardware breakpoint counts one instruction's executions
+and nothing else, `perf stat -e mem:ADDR:x:u` against a plain binary's address:
+the inner loop's back edge over its fall-through is a cell's run length plus
+one, which is how the twenty cells that walk runs of three were found among
+the 269 that run the loop. And instruction counts, being placement-free, find
+every arm that reaches changed code when read across two binaries of one recipe:
+an arm whose count moves runs the change, one level to the instruction runs none
+of it, where a walk of the source's callers by pattern missed five
+of the thirteen and named three that do not.
 
 **The physical frame of a code page is a placement term too, priced 2026-09-16
 at 15 percent on a 27-byte loop, and it is the one term here that neither
