@@ -12346,7 +12346,11 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         # catches, so a token with `byte for byte` in the eighty characters
         # after it is exempt; Run 23 reworded to lose the artifact name.
         sec = '\n'.join(lines[start:end])
-        seen = {m.group(1) for m in re.finditer(r'\brun(\d+)-[a-z0-9]+', sec)
+        # `(?<![\w-])` and not `\b`: a boundary falls after a hyphen, and
+        # the `block` class's shapes, `block-run64-gap1` among them, read
+        # as a half of Run 64.
+        seen = {m.group(1)
+                for m in re.finditer(r'(?<![\w-])run(\d+)-[a-z0-9]+', sec)
                 if 'byte for byte' not in sec[m.end():m.end() + 80]}
         stale = sorted(seen - {cur}, key=int)
         if stale:

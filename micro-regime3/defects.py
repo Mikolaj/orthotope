@@ -2020,6 +2020,17 @@ def rundoc_results_names_identical_predecessor(tmp):
     return write_rundoc(tmp, text.replace(old, new, 1))
 
 
+def rundoc_results_names_a_run_shape(tmp):
+    """The run file with a sentence in Results naming a `block` shape,
+    `block-run64-gap1`, whose `run64-` the stale-name check read as a half
+    of Run 64."""
+    text = rundoc_text()
+    old = '## Results'
+    assert text.count(old) == 1
+    new = ('## Results\n\nThe widest cell is `block-run64-gap1`, at 0.968.\n')
+    return write_rundoc(tmp, text.replace(old, new, 1))
+
+
 def rundoc_with_todo_marker(tmp):
     """The run file with one deferred paragraph left as `[[TODO]]`."""
     text = rundoc_text()
@@ -2820,7 +2831,7 @@ def rundoc_stale_basis_in_results(tmp):
     # when `byte for byte` follows within eighty characters. Run 30's
     # Results names run29-nospec that way, which built this plant a second
     # run and failed it at `names 2 run(s)`.
-    runs = {m.group(1) for m in re.finditer(r'\brun(\d+)-[a-z0-9]+', seg)
+    runs = {m.group(1) for m in re.finditer(r'(?<![\w-])run(\d+)-[a-z0-9]+', seg)
             if 'byte for byte' not in seg[m.end():m.end() + 80]}
     if len(runs) != 1:
         raise AssertionError('Results names %d run(s), not one: %s'
@@ -7375,6 +7386,17 @@ RECORDS = [
          # `results-names-an-older-basis-half` stays the control that a
          # bare stale name still fails.
          plant=lambda t: {'rundoc': rundoc_results_names_identical_predecessor(t)},
+         argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
+         ok=V(hasnt=['names run'])),
+
+    case('results-reads-a-shape-name-as-a-run', 'read-run.py', None,
+         "the stale-name check read `block-run64-gap1` in Results as Run"
+         " 64's half",
+         # A word boundary falls after a hyphen, so `\\brun(\\d+)-` matched
+         # inside the `block` class's shape names. Met 2026-09-25 when Run
+         # 40's copy test named two of them in Results; the token now has to
+         # stand clear of a word character or a hyphen on its left.
+         plant=lambda t: {'rundoc': rundoc_results_names_a_run_shape(t)},
          argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
          ok=V(hasnt=['names run'])),
 
