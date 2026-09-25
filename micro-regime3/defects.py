@@ -14993,6 +14993,20 @@ RECORDS = [
                          ' costs_more((0, 2, 1 + 5e-10), (0, 2, 1)))'],
          ok=V(has=['(True, False, False)'])),
 
+    case('major-run-names-a-population-it-lacks', 'run-major.sh', None,
+         'a mistyped population ran nothing and logged a complete run',
+         # `wanted` matched the name against nothing, so the relaunch
+         # guard, the main run and every class run were all skipped, and
+         # the run logged `major run complete` at exit 0 -- post-run step
+         # 3's rerun of `runs` asked for as `rnus` reading as done.
+         shadow=dict(extra=lambda text: halves('zzpn-lookrts', 'zzpn-a1g',
+                                               classes=classes_in(text))
+                     + [('zzpn-pair.txt', NOTE_STUB)]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzpn', 'rnus'],
+         ok=V(exit=2, has=["'rnus' is no population"],
+              hasnt=['major run begins', 'major run complete'])),
+
 ]
 
 

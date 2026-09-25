@@ -179,6 +179,18 @@ for c in $CLASSES; do
     exit 1 ;;
   esac
 done
+# A POPULATION ASKED FOR IS ONE THIS SCRIPT RUNS, `main` or a name above:
+# `wanted` matched a mistyped name against nothing, so the relaunch guard,
+# the main run and every class run were skipped and the run logged itself
+# complete at exit 0 (2026-09-25, by review). Case:
+# `major-run-names-a-population-it-lacks`.
+for w in $WANTED; do
+  case " main $CLASSES " in
+    *" $w "*) ;;
+    *) echo "'$w' is no population: the names are main and $CLASSES"
+       exit 2 ;;
+  esac
+done
 
 NOTE="$PREFIX-pair.txt"
 # Refused without it, before the hours, as a missing binary is: the note
