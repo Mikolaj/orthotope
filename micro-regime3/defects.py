@@ -6480,6 +6480,16 @@ TIER1 = {
         bug='the second stood bare, so a session that filled the first'
             ' met a check reporting ten still open and had to find out'
             ' why'),
+    'stalls-marks-a-cell-no-one-process-read': dict(
+        family='unverified-state', discovery='in-use', harm='fired',
+        harm_count=1, proved='ran',
+        trigger='a cell whose processes draw different modes, as Run 40'
+                "'s runs-3 consumers did under cycles:u",
+        ok='the cell is followed by a # NONLINEAR line naming the event'
+           ' and both slopes',
+        bug='the (2N - N) figure printed as a measured cell and nothing'
+            ' else, 12.3 and 5.1 cycles a run where the modes ran 6.8'
+            ' to 10.2'),
 }
 
 
@@ -11112,7 +11122,8 @@ RECORDS = [
              subs['at'], 'zzct4-counts-g912.txt')).read(),
          ok=V(exit=0, has=['shape-a list 1'], hasnt=['perf could not'])),
 
-    case('stalls-marks-a-cell-no-one-process-read', 'probe-stalls.sh', None,
+    case('stalls-marks-a-cell-no-one-process-read', 'probe-stalls.sh',
+         'd8ab388',
          'a difference of two processes in different modes read as a'
          ' measured cell',
          # Run 40's `runs-3` consumers drew one of three op-cache modes per
@@ -11121,9 +11132,8 @@ RECORDS = [
          # so (2026-09-25). The third process at `-n 3N` is the check: a
          # cell whose two slopes part is followed by a `# NONLINEAR` line.
          # The stand-in perf bends cycles and not instructions, so the
-         # line names the one event and not the other. The bug direction,
-         # the script before the check, printed the cell and no such
-         # line; it goes in with the commit that fixes it.
+         # line names the one event and not the other. The script before
+         # the check printed the cell and no such line.
          shadow=dict(extra=[('zzps1-fake', FAKE_HALF)]),
          plant=lambda t: {'stub': stub_dir(t, PERF_MODES)},
          env={'PATH': '{stub}:/usr/bin:/bin', 'BIN': './zzps1-fake',
@@ -11135,7 +11145,9 @@ RECORDS = [
          ok=V(exit=0, has=['shape-a list 1 100000 200000',
                            '# NONLINEAR shape-a list: cycles:u 200000 then'
                            ' 350000'],
-              hasnt=['instructions:u 100000 then'])),
+              hasnt=['instructions:u 100000 then']),
+         bug=V(exit=0, has=['shape-a list 1 100000 200000'],
+               hasnt=['NONLINEAR'])),
 
     case('counts-sweeps-only-the-class-it-was-given', 'run-counts.sh', None,
          'a class sweep took the main set, or took every class at once',
