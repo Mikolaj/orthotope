@@ -3615,6 +3615,19 @@ def floor_legs(tmp):
     return d
 
 
+def reroll_legs(tmp, ratio):
+    """One leg of one view, as probe-flip-reroll writes them: an arm and
+    its A/A copy `ratio` apart, over a sum-only floor of nothing."""
+    d = os.path.join(tmp, 'legs')
+    os.mkdir(d)
+    reps = [{'reportName': 'v/%s' % arm, 'reportAnalysis': {
+        'anRegress': [{'regCoeffs': {'iters': {'estPoint': x}}}]}}
+        for arm, x in (('x', 1.0), ('x-aa', ratio),
+                       ('sum-only-early', 0.0), ('sum-only-late', 0.0))]
+    write(os.path.join(d, 'leg1.json'), json.dumps([['criterion'], [], reps]))
+    return d
+
+
 def corpus_with_an_unreadable_run(tmp):
     """One built run beside a JSON cut off mid-file, as a killed process
     leaves one."""
@@ -15316,6 +15329,22 @@ RECORDS = [
          + '\n' + open(os.path.join(subs['at'], 'zzig-a1g.slow')).read(),
          ok=V(exit=0, has=['zzig-a1g.slow2', 'the first slow draw',
                            'parked as ./zzig-a1g.slow2'])),
+
+    case('view-floor-legs-refuses-a-factor-it-ignores', 'view-floor.py',
+         None,
+         '--legs ignored --factor and failed at a hard-coded 2.0 percent,'
+         ' the docstring naming the factor',
+         # Legs of one view have no class floor to take a factor of, so
+         # the exit was a literal nobody could set.
+         plant=lambda t: {'legs': reroll_legs(t, 1.021)},
+         argv=['zzvl', '--legs', '{legs}', '--factor', '5'],
+         ok=V(exit=2, has=['--legs reads its bar from --bar'])),
+
+    case('view-floor-legs-takes-its-bar', 'view-floor.py', None,
+         'CONTROL: --bar sets the spread --legs fails at, 2.0 by default',
+         plant=lambda t: {'legs': reroll_legs(t, 1.021)},
+         argv=['zzvl', '--legs', '{legs}', '--bar', '5'],
+         ok=V(exit=0, has=['2.10%'])),
 
     case('interleave-refuses-a-cell-off-the-roster', 'probe-interleave.sh',
          None,

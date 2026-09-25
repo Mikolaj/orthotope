@@ -22,12 +22,15 @@ up with no edit here -- which is the point, the twin of item 13 being the
 thing this most wants to read.
 
     ./view-floor.py RUN [-d DIR] [-c CLASS]... [--factor F] [--csv FILE]
+    ./view-floor.py RUN --legs DIR [--bar PCT]
 
 RUN is the prefix the artifacts carry, `run27`. Reads
 `RUN-<half>-<class>.json` for whichever halves and classes are on disk.
 Exit 0 when no view exceeds its class floor by more than --factor (default 2),
 1 when one does, and 2 when the run did not happen -- no JSONs, or a class
-whose views carry no A/A group at all.
+whose views carry no A/A group at all. With --legs there is no class floor,
+so the exit is 1 when a group's widest spread passes --bar percent (default
+2.0), and --factor is refused rather than ignored.
 """
 import argparse, collections, glob, json, os, statistics, sys
 
@@ -100,7 +103,7 @@ def legs_mode(a):
               % (base, len(v), min(v), statistics.median(v), max(v)))
     print('\n   A clause about this view is read against the MAX, not the'
           ' median: a run takes one leg and cannot know which draw it got.')
-    return 1 if max(max(v) for v in per_group.values()) > 2.0 else 0
+    return 1 if max(max(v) for v in per_group.values()) > a.bar else 0
 
 
 def main():
@@ -108,15 +111,33 @@ def main():
     ap.add_argument('run')
     ap.add_argument('-d', default='.')
     ap.add_argument('-c', action='append', default=None, dest='classes')
-    ap.add_argument('--factor', type=float, default=2.0)
+    ap.add_argument('--factor', type=float, default=None,
+                    help='a view past this times its class floor fails'
+                         ' (default 2)')
     ap.add_argument('--legs', help='a directory of repeated legs of ONE view '
                     '(probe-flip-reroll\'s output): report the floor as the '
                     'distribution it is rather than as one draw')
+    ap.add_argument('--bar', type=float, default=None,
+                    help='with --legs, a group whose widest spread passes'
+                         ' this percent fails (default 2.0)')
     ap.add_argument('--csv')
     a = ap.parse_args()
 
+    # EACH MODE'S THRESHOLD IS ITS OWN, and one given to the other mode is
+    # refused: --legs has no class floor to take a factor of, and it
+    # failed at a literal 2.0 while taking --factor in silence
+    # (2026-09-25, by review).
     if a.legs:
+        if a.factor is not None:
+            print('--legs reads its bar from --bar, in percent; legs of one'
+                  ' view have no class floor for --factor to multiply')
+            return 2
+        a.bar = 2.0 if a.bar is None else a.bar
         return legs_mode(a)
+    if a.bar is not None:
+        print('--bar is the bar of --legs; the class floors take --factor')
+        return 2
+    a.factor = 2.0 if a.factor is None else a.factor
     files = sorted(glob.glob(os.path.join(a.d, '%s-*-*.json' % a.run)))
     legs = []
     for f in files:
