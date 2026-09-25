@@ -1151,10 +1151,12 @@ previous build of this recipe to read --delta against"
   if [ -n "$PB" ]; then
     # The membership lines by what they SAY, not by line number: a slice of
     # the first three printed the arms that left and not the ones that
-    # landed, which is the half a roster block is written from.
+    # landed, which is the half a roster block is written from. With
+    # their headings and indent, since 2026-09-25 (by review): bare, an
+    # `out` of two class views read as two arms leaving.
     ./roster-delta.py "$PB" "./$R-$BASIS" 2>/dev/null \
-      | grep -E '^ +(main set:|out |in |[0-9]+ survivor)' \
-      | sed 's/^ */                   /'
+      | grep -E '^ +(main set:|classes:|arms( |$)|shapes$|views$|unmoved$|out |in |[0-9]+ survivor)' \
+      | sed 's/^/                 /'
   else
     # A named absence, as the comment at PB promises and as the --delta
     # branch above has always given: silence here read as a roster nobody
