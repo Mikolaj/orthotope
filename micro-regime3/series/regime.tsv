@@ -10,3 +10,4 @@ reading	run	date	what was read	list-19	list-18	bq-expand
 3	37	2026-09-20	Run 37's binaries again, probe-chain-0920.sh	1.2986	-	1.3091
 4	38	2026-09-22	Run 38's build	1.2889	1.2907	1.3032
 5	39	2026-09-23	Run 39's build	1.2966	1.2959	1.2985
+6	40	2026-09-25	Run 40's build	1.2983	1.2987	1.3058
