@@ -11997,7 +11997,7 @@ RECORDS = [
          ),
 
     case('move-registration-leaves-the-pointer-to-itself', 'read-run.py',
-         None,
+         '6206be5',
          "the preparation's pointer to the registration, copied into the"
          ' new run file at step 5, stayed there naming this run as the'
          " next run's pair",
@@ -12009,7 +12009,8 @@ RECORDS = [
          probe=lambda subs: open(subs['doc']).read(),
          ok=V(exit=0, has=['A head paragraph.', 'Registered before the run.',
                            'pointer to this registration, deleted'],
-              hasnt=["on the owner's word"])),
+              hasnt=["on the owner's word"]),
+         bug=V(has=["on the owner's word"])),
 
     case('move-registration-repoints-the-anchors-it-carries',
          'read-run.py', 'ca928dc',
