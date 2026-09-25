@@ -2762,7 +2762,7 @@ data Walk = Walk !Int !Int InnerFirst
 -- axis at the head, where 'canonView' above writes the dims outermost
 -- first for the arms whose fills and tables take them as lists.
 canonViewOfPairs :: [(Int, Int)] -> InnerFirst
-canonViewOfPairs ps = InnerFirst (mergeAxes ps)
+canonViewOfPairs = mergeAxes
 {-# INLINE canonViewOfPairs #-}
 
 -- The library's 'canonicalizeT' to the line, 'canonViewOfPairs' over
@@ -2770,22 +2770,24 @@ canonViewOfPairs ps = InnerFirst (mergeAxes ps)
 -- builds a 'Walk' from the canonical view, in place of 'canonView'
 -- followed by 'walkOfDims', which reversed what this writes in order.
 canonicalize :: ShapeL -> [Int] -> InnerFirst
-canonicalize sh ats = InnerFirst (mergeAxes (zip ats sh))
+canonicalize sh ats = mergeAxes (zip ats sh)
 {-# INLINE canonicalize #-}
 
 -- Whether canonical axes, innermost first, carry the natural strides of
 -- their extents: the comparison the arms that keep it written out ask,
 -- where they read it off the outermost-first lists with 'getStridesT'.
-naturalStrides :: [(Int, Int)] -> Bool
+naturalStrides :: InnerFirst -> Bool
 naturalStrides axes =
-  and (zipWith (==) (map fst axes) (scanl (*) 1 (map snd axes)))
+  and (zipWith (==) (map fst ps) (scanl (*) 1 (map snd ps)))
+  where ps = innerFirst axes
 {-# INLINE naturalStrides #-}
 
 -- The axes merged so far: the one just outside the next, as its stride
--- and extent, extent 1 standing for none yet, and the axes outside it.
--- A record of strict fields, so that the fold carries the two numbers
--- unboxed at -O1 and a merge allocates nothing.
-data MergeAcc = MergeAcc !Int !Int ![(Int, Int)]
+-- and extent, extent 1 standing for none yet, and the axes outside it,
+-- innermost first, which is the order the fold builds them in. A record
+-- of strict fields, so that the fold carries the two numbers unboxed at
+-- -O1 and a merge allocates nothing.
+data MergeAcc = MergeAcc !Int !Int !InnerFirst
 
 -- The library's merge step, one axis added inside the axes so far:
 -- dropped where its extent is 1, merged into the axis just outside it
@@ -2799,15 +2801,16 @@ mergeInner acc (_, 1) = acc
 mergeInner (MergeAcc st' n' rest) (!st, n)
   | n' == 1 = MergeAcc st n rest
   | st' == n * st = MergeAcc st (n' * n) rest
-  | otherwise = MergeAcc st n ((st', n') : rest)
+  | otherwise = MergeAcc st n (InnerFirst ((st', n') : innerFirst rest))
 {-# INLINE mergeInner #-}
 
 -- The canonical axes innermost first, from (stride, extent) pairs
 -- outermost first: 'mergeInner' folded over them.
-mergeAxes :: [(Int, Int)] -> [(Int, Int)]
-mergeAxes ps = case foldl' mergeInner (MergeAcc 0 1 []) ps of
-  MergeAcc st n rest | n == 1 -> rest
-                     | otherwise -> (st, n) : rest
+mergeAxes :: [(Int, Int)] -> InnerFirst
+mergeAxes ps = case foldl' mergeInner (MergeAcc 0 1 (InnerFirst [])) ps of
+  MergeAcc st n rest
+    | n == 1 -> rest
+    | otherwise -> InnerFirst ((st, n) : innerFirst rest)
 {-# INLINE mergeAxes #-}
 
 -- The dims an older arm holds as a shape and strides, canonical or as
@@ -3347,12 +3350,13 @@ fbLibStage1 sh (T (Strides ats) ao v)
 fbLibStage2 :: ShapeL -> T -> VS.Vector Double
 fbLibStage2 sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
-  | otherwise = case canonicalize sh ats of
-      InnerFirst axes@((t, n) : rest)
-        | not (naturalStrides axes) ->
+  | otherwise = case innerFirst canon of
+      (t, n) : rest
+        | not (naturalStrides canon) ->
             fillStage2 (Walk t n (InnerFirst rest)) ao l v
       _ -> wholeOrSlice ao l v
   where l = product sh
+        canon = canonicalize sh ats
 
 -- 'fbLibStage2' with canonical contiguous runs sent back to one slice
 -- per run and a concatenation, stage one's route for them over stage
@@ -3363,16 +3367,16 @@ fbLibStage2 sh (T (Strides ats) ao v)
 fbLibStage2Concat :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Concat sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
-  | otherwise = case canonicalize sh ats of
-      InnerFirst [] -> wholeOrSlice ao l v
-      InnerFirst [(1, _)] -> wholeOrSlice ao l v
-      InnerFirst ((1, n) : rest) ->
+  | otherwise = case innerFirst (canonicalize sh ats) of
+      [] -> wholeOrSlice ao l v
+      [(1, _)] -> wholeOrSlice ao l v
+      (1, n) : rest ->
         let outer = outerFirst (InnerFirst rest)
         in  VS.concat
               [ VS.slice o n v
               | o <- VU.toList (baseOffsetsList ao (map snd outer)
                                                 (Strides (map fst outer))) ]
-      InnerFirst ((t, n) : rest) ->
+      (t, n) : rest ->
         fillStage2 (Walk t n (InnerFirst rest)) ao l v
   where l = product sh
 
@@ -3459,16 +3463,16 @@ dispRun = 2048
 fbLibStage2Disp :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Disp sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
-  | otherwise = case canonicalize sh ats of
-      InnerFirst [] -> wholeOrSlice ao l v
-      InnerFirst [(1, _)] -> wholeOrSlice ao l v
-      InnerFirst ((1, n) : rest) | n >= dispRun ->
+  | otherwise = case innerFirst (canonicalize sh ats) of
+      [] -> wholeOrSlice ao l v
+      [(1, _)] -> wholeOrSlice ao l v
+      (1, n) : rest | n >= dispRun ->
         let outer = outerFirst (InnerFirst rest)
         in  VS.concat
               [ VS.slice o n v
               | o <- VU.toList (baseOffsetsList ao (map snd outer)
                                                 (Strides (map fst outer))) ]
-      InnerFirst ((t, n) : rest) ->
+      (t, n) : rest ->
         fillStage2 (Walk t n (InnerFirst rest)) ao l v
   where l = product sh
 
@@ -4290,10 +4294,10 @@ fbLibStage2U4 sh (T (Strides ats) ao v)
 fbLibStage2Short :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Short sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
-  | otherwise = case canonicalize sh ats of
-      InnerFirst [] -> wholeOrSlice ao l v
-      InnerFirst [(1, _)] -> wholeOrSlice ao l v
-      InnerFirst ((t, n) : rest) ->
+  | otherwise = case innerFirst (canonicalize sh ats) of
+      [] -> wholeOrSlice ao l v
+      [(1, _)] -> wholeOrSlice ao l v
+      (t, n) : rest ->
         fillStage2Short (Walk t n (InnerFirst rest)) ao l v
   where l = product sh
 
@@ -4362,10 +4366,10 @@ fbLibStage3LeanOneLevel sh a@(T _ _ v) = case routeList4 sh a of
 fbLibStage2LeanVSdims :: ShapeL -> T -> VS.Vector Double
 fbLibStage2LeanVSdims sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
-  | otherwise = case canonicalize sh ats of
-      InnerFirst [] -> wholeOrSlice ao l v
-      InnerFirst [(1, _)] -> wholeOrSlice ao l v
-      InnerFirst ((t, n) : rest) ->
+  | otherwise = case innerFirst (canonicalize sh ats) of
+      [] -> wholeOrSlice ao l v
+      [(1, _)] -> wholeOrSlice ao l v
+      (t, n) : rest ->
         fillStage2VSdims (Walk t n (InnerFirst rest)) ao l v
   where l = product sh
 
@@ -4403,13 +4407,13 @@ fbLibStage2LeanU1 sh a@(T _ _ v) = case routeList4 sh a of
 routeList3 :: ShapeL -> T -> Route
 routeList3 sh (T (Strides ats) ao _)
   | l == 0 = RSlice 0 0
-  | otherwise = case canonicalize sh ats of
-      InnerFirst axes
-        | naturalStrides axes -> RSlice ao l
-      InnerFirst ((1, n) : rest) -> RRuns (Walk 1 n (InnerFirst rest)) ao l
-      InnerFirst ((t, n) : rest) -> RFill (Walk t n (InnerFirst rest)) ao l
-      InnerFirst [] -> RSlice ao l
+  | naturalStrides axes = RSlice ao l
+  | otherwise = case innerFirst axes of
+      (1, n) : rest -> RRuns (Walk 1 n (InnerFirst rest)) ao l
+      (t, n) : rest -> RFill (Walk t n (InnerFirst rest)) ao l
+      [] -> RSlice ao l
   where !l = product sh
+        axes = canonicalize sh ats
 
 -- Stage four of the list entry point: 'routeList3' under the lean
 -- dispatch, the regime read off the merged form alone and no
@@ -4542,8 +4546,8 @@ lazyRuns axes start v = build (runSlices axes start v)
 -- the library's 'runSlicesT' is.
 runSlices :: Walk -> Int -> VS.Vector Double
           -> (VS.Vector Double -> b -> b) -> b -> b
-runSlices (Walk _ n (InnerFirst outerAxes)) !start !v cons nil =
-  case outerAxes of
+runSlices (Walk _ n outerAxes) !start !v cons nil =
+  case innerFirst outerAxes of
     [] -> cons (VS.slice start n v) nil
     (!sk, !dk) : above ->
       let block !o outer =
@@ -4743,7 +4747,7 @@ sumNoSpec p = go 0 0
 -- Shared by the dispatches that hand back a 'Route', so that it is
 -- written once.
 routeOf :: Int -> Int -> InnerFirst -> Route
-routeOf start l (InnerFirst axes) = case axes of
+routeOf start l axes = case innerFirst axes of
   [] -> RSlice start l
   [(1, _)] -> RSlice start l
   (1, n) : rest -> RRuns (Walk 1 n (InnerFirst rest)) start l
@@ -4797,8 +4801,8 @@ canonSortedPairs sh ats =
 routeUnord4 :: ShapeL -> T -> Route
 routeUnord4 sh (T (Strides ats) ao _)
   | l == 0 = RSlice 0 0
-  | otherwise = case sorted of
-      axes | naturalStrides axes -> RSlice start l
+  | naturalStrides sorted = RSlice start l
+  | otherwise = case innerFirst sorted of
       (1, n) : rest -> RRuns (Walk 1 n (InnerFirst rest)) start l
       (t, n) : rest -> RFill (Walk t n (InnerFirst rest)) start l
       [] -> RSlice start l
@@ -4807,7 +4811,7 @@ routeUnord4 sh (T (Strides ats) ao _)
         -- Absolute stride ascending, innermost first, the extent
         -- breaking a tie the smaller first: the reverse of
         -- 'canonSortedPairs''s order over the same merged axes.
-        sorted = sortBy compare
+        sorted = InnerFirst $ sortBy compare
                    [ (abs t, n) | (t, n) <- innerFirst (canonicalize sh ats) ]
 
 -- Stage five, stage four under the lean dispatch: the sorted pairs
@@ -5186,7 +5190,7 @@ routeUnord13 sh (T (Strides ats) ao _)
   where
     !l = product sh
     PairsStart axes start = absPairsAndStart ao ats sh
-    merged = InnerFirst (mergeAxes (sortBy byStrideRank axes))
+    merged = mergeAxes (sortBy byStrideRank axes)
 {-# INLINE routeUnord13 #-}
 
 -- The dispatch of 'routeUnord13', piece by piece.
@@ -5306,9 +5310,9 @@ absPairsAndStart ao = go (PairsStart [] ao)
 -- The merged axes, innermost first, with their zero-stride axis, if
 -- they begin with one followed by a unit-stride axis, moved to the end.
 zeroStrideOutermost :: InnerFirst -> InnerFirst
-zeroStrideOutermost (InnerFirst ((0, z) : axes@((1, _) : _))) =
-  InnerFirst (axes ++ [(0, z)])
-zeroStrideOutermost axes = axes
+zeroStrideOutermost axes = case innerFirst axes of
+  (0, z) : rest@((1, _) : _) -> InnerFirst (rest ++ [(0, z)])
+  _ -> axes
 
 -- The two ports' lists: master's and the branch's 'toVectorListT', and
 -- the unordered one-block tests in front of them.
@@ -5370,15 +5374,15 @@ lsUnordStage2 sh a@(T (Strides ats) ao v)
 lsListStage2 :: ShapeL -> T -> [VS.Vector Double]
 lsListStage2 sh (T (Strides ats) ao v)
   | l == 0 = []
-  | otherwise = case canonicalize sh ats of
-      InnerFirst [] -> [wholeOrSlice ao l v]
-      InnerFirst [(1, _)] -> [wholeOrSlice ao l v]
-      InnerFirst ((1, n) : rest) ->
+  | otherwise = case innerFirst (canonicalize sh ats) of
+      [] -> [wholeOrSlice ao l v]
+      [(1, _)] -> [wholeOrSlice ao l v]
+      (1, n) : rest ->
         let outer = outerFirst (InnerFirst rest)
         in  [ VS.slice o n v
             | o <- VU.toList (baseOffsetsExpand ao (map snd outer)
                                 (Strides (map fst outer))) ]
-      InnerFirst ((t, n) : rest) ->
+      (t, n) : rest ->
         [fillStage2 (Walk t n (InnerFirst rest)) ao l v]
   where l = product sh
 
