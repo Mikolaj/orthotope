@@ -627,14 +627,25 @@ if [ "$REST" = 1 ]; then
 # after 8b with the sweep waiting on it, and the reading was a phantom
 # either way. The figures stay the NOTE's, which is what the header above
 # says of 10a and 10b; what is a verdict here is the astride count alone.
-srv () { ./loop-offsets.py --survey "$1" 2>/dev/null \
-           | awk '/self-loops/ && !a { sub(/^[^:]*: */, ""); a = $0 }
-                  /at offset 0/{b=$NF}
-                  /still straddling/{c = $0; sub(/^[^:]*: */, "", c)
-                                     sub(/,.*/, "", c)}
-                  /exit spans astride :/{d=$NF}
-                  END{print a", "b" at offset 0, "c" straddling, "\
-                            d" exit spans astride"}'; }
+# THE SURVEY'S STATUS IS READ AND EVERY COUNT CUT AT ITS COMMA, since
+# 2026-09-25 (by review): piped into awk the status was lost and END
+# printed a line of empty fields for a refused survey, which read as 10a's
+# stop; and past ten spans the astride row ends `57, 10 longest listed`,
+# whose last field is the word. The line is printed only when the astride
+# count was read, so a survey that said nothing is the empty verdict.
+srv () {
+  local out
+  out=$(./loop-offsets.py --survey "$1" 2>/dev/null) || return 0
+  printf '%s\n' "$out" \
+    | awk 'function n(s) { sub(/^[^:]*: */, "", s); sub(/,.*/, "", s)
+                           return s }
+           /self-loops/ && !a { a = $0; sub(/^[^:]*: */, "", a) }
+           /at offset 0/ { b = n($0) }
+           /still straddling/ { c = n($0) }
+           /exit spans astride :/ { d = n($0) }
+           END { if (d != "") print a", "b" at offset 0, "c" straddling, "\
+                                    d" exit spans astride" }'
+}
 
 "./$R-$BASIS" check > "$TMP/a.log" 2>&1 & pa=$!
 "./$R-$OTHER" check > "$TMP/b.log" 2>&1 & pb=$!
@@ -661,8 +672,10 @@ fi
 # line is carried on the verdict so that --fill-in quotes this reading rather
 # than taking a second one.
 srv_say () {  # srv_say STEP TAG SURVEY-LINE
+  # The comma is the count's own left edge: without it 10, 20 and 30 spans
+  # astride passed as 0 (2026-09-25).
   case "$3" in
-    *'0 exit spans astride') say "$1" PASS "$2 $3" ;;
+    *', 0 exit spans astride') say "$1" PASS "$2 $3" ;;
     '') say "$1" FAIL "$2: --survey read nothing -- objdump or the binary" ;;
     *) say "$1" FAIL "$2 $3 -- step 10a's stop: dump the head's bytes, then \
 read the shim's own verified line under ALIGN_AS_VERBOSE, before step 11" ;;
