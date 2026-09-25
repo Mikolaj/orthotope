@@ -5365,10 +5365,10 @@ newtype InnerFirstAx = InnerFirstAx { innerFirstAx :: [Axis] }
 data WalkAx = WalkAx !Int !Int InnerFirstAx
 
 -- 'canonicalize' over 'Axis': the library's 'canonicalizeT' to the
--- line, 'mergeAxesAx' over the pairs it zips, the pass of the path's
+-- line, 'mergeAxesAx' over the axes it zips, the pass of the path's
 -- list dispatch, 'routeList4Ax'.
 canonicalizeAx :: ShapeL -> [Int] -> InnerFirstAx
-canonicalizeAx sh ats = mergeAxesAx (zip ats sh)
+canonicalizeAx sh ats = mergeAxesAx (zipWith Axis ats sh)
 {-# INLINE canonicalizeAx #-}
 
 -- The axes merged so far: the one just outside the next, as its stride
@@ -5384,22 +5384,19 @@ data MergeAccAx = MergeAccAx !Int !Int !InnerFirstAx
 -- 'mergeInner' over 'MergeAccAx': the library's merge step, one axis
 -- added inside the axes so far: dropped where its extent is 1, merged
 -- into the axis just outside it where that one's stride is this one's
--- stride times its extent, and put inside it otherwise.  Banged on the
--- new axis's stride, which every path of the second equation forces
--- anyway, and not its extent, which the first equation's literal
--- forces; the first equation's stride stays lazy, a bang there adding
--- an evaluation per dropped axis (2026-09-25).
-mergeInnerAx :: MergeAccAx -> (Int, Int) -> MergeAccAx
-mergeInnerAx acc (_, 1) = acc
-mergeInnerAx (MergeAccAx st' n' rest) (!st, n)
+-- stride times its extent, and put inside it otherwise.  The new axis's
+-- fields are strict, so it needs none of the bangs the pair form weighs.
+mergeInnerAx :: MergeAccAx -> Axis -> MergeAccAx
+mergeInnerAx acc (Axis _ 1) = acc
+mergeInnerAx (MergeAccAx st' n' rest) (Axis st n)
   | n' == 1 = MergeAccAx st n rest
   | st' == n * st = MergeAccAx st (n' * n) rest
   | otherwise = MergeAccAx st n (InnerFirstAx (Axis st' n' : innerFirstAx rest))
 {-# INLINE mergeInnerAx #-}
 
--- The canonical axes innermost first, from (stride, extent) pairs
--- outermost first: 'mergeInnerAx' folded over them.
-mergeAxesAx :: [(Int, Int)] -> InnerFirstAx
+-- The canonical axes innermost first, from axes outermost first:
+-- 'mergeInnerAx' folded over them.
+mergeAxesAx :: [Axis] -> InnerFirstAx
 mergeAxesAx ps =
   case foldl' mergeInnerAx (MergeAccAx 0 1 (InnerFirstAx [])) ps of
     MergeAccAx st n rest
@@ -5424,17 +5421,51 @@ routeList4Ax sh (T (Strides ats) ao _)
 -- branch, the view's elements as an unordered list of slices, found from
 -- the shape and the strides in as few passes over them as the answer
 -- allows. How it fits here, and the account of the dispatch, are at
--- 'routeUnord13'. The absolute pairs and their sort are that one's, the
--- merge turning them into 'Axis'.
+-- 'routeUnord13'. The absolute axes and their sort are 'Axis' copies of
+-- that one's, 'absPairsAndStartAx' and 'byStrideRankAx'.
 routeUnord13Ax :: ShapeL -> T -> RouteAx
 routeUnord13Ax sh (T (Strides ats) ao _)
   | l == 0 = RSliceAx 0 0
   | otherwise = routeOfAx start l (zeroStrideOutermostAx merged)
   where
     !l = product sh
-    PairsStart axes start = absPairsAndStart ao ats sh
-    merged = mergeAxesAx (sortBy byStrideRank axes)
+    PairsStartAx axes start = absPairsAndStartAx ao ats sh
+    merged = mergeAxesAx (sortBy byStrideRankAx axes)
 {-# INLINE routeUnord13Ax #-}
+
+-- 'PairsStart' with each axis an 'Axis': the (absolute stride, extent)
+-- of the axes of extent above 1, in reverse of the order given, and the
+-- offset of the view's lowest address.  The offset is a strict field,
+-- so the loop carries a number and not a chain of additions, and the
+-- accumulator is the result itself.  The reversal is nothing to the
+-- sort behind it: the only order 'byStrideRankAx' leaves to the sort's
+-- stability is between two axes of one absolute stride and one extent,
+-- which 'mergeInnerAx' treats alike whichever comes first.
+data PairsStartAx = PairsStartAx [Axis] !Int
+
+absPairsAndStartAx :: Int -> [Int] -> ShapeL -> PairsStartAx
+absPairsAndStartAx ao = go (PairsStartAx [] ao)
+  where
+    go :: PairsStartAx -> [Int] -> ShapeL -> PairsStartAx
+    go acc@(PairsStartAx axes start) (s : ss) (n : ns)
+      | n == 1 = go acc ss ns
+      | s < 0 = go (PairsStartAx (Axis (negate s) n : axes)
+                                 (start + (n - 1) * s))
+                   ss ns
+      | otherwise = go (PairsStartAx (Axis s n : axes) start) ss ns
+    go acc _ _ = acc
+{-# INLINE absPairsAndStartAx #-}
+
+-- 'byStrideRank' over 'Axis': absolute stride descending; on a tie at
+-- stride 1 the length 'runRank' prefers last, so that it is the run,
+-- and on any other tie the extent ascending. In case form rather than
+-- over '<>', as 'byStrideRank' is on its counts; the pair's bangs have
+-- no counterpart, both fields of an 'Axis' being strict.
+byStrideRankAx :: Axis -> Axis -> Ordering
+byStrideRankAx (Axis s1 n1) (Axis s2 n2) = case compare s2 s1 of
+  EQ | s1 == 1 -> runRank n2 n1
+     | otherwise -> compare n1 n2
+  o -> o
 
 -- The merged axes, innermost first, with their zero-stride axis, if
 -- they begin with one followed by a unit-stride axis, moved to the end.
