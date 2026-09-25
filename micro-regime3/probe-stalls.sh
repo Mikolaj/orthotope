@@ -28,7 +28,8 @@
 # per process, and a difference across two modes printed figures outside
 # every mode (2026-09-25).  A cell whose `(3N - 2N)` and `(2N - N)`
 # slopes part by more than LINEAR_TOL, default 0.02, on cycles:u or
-# instructions:u is followed by a `# NONLINEAR` line giving both.  The
+# instructions:u is followed by a `# NONLINEAR` line giving both, and one
+# whose third process perf could not count by a `# UNCHECKED` line.  The
 # published figure stays `(2N - N) / N`.  A minor GC inside one window
 # does the same to a cell of a few thousand instructions, moving it by
 # tens at N=100000, so a small cell wants an N that puts every window's
@@ -48,8 +49,9 @@
 #
 # Output: $OUT[-CLASS].txt, one line a cell -- shape, arm, N, then one
 # field per event in the order EVENTS names them, and the header names
-# them so nothing downstream has to infer the order.  A cell perf could
-# not count is a `!!` line and the exit status, as in run-counts.sh.
+# them so nothing downstream has to infer the order.  A cell whose `-n N`
+# or `-n 2N` process perf could not count is a `!!` line and the exit
+# status, as in run-counts.sh.
 #
 # Non-vacuity, 2026-08-30: probe-stalls-selftest.log.
 set -u
@@ -166,13 +168,16 @@ SCOPE="ARMS=$ARMS"
 } > "$F"
 BAD=0
 NL=0
+UC=0
 for S in $SHAPES; do
   for A in $ARMS; do
     c3=$(count "$S" "$A" $((3 * N)))
     c2=$(count "$S" "$A" $((2 * N))); c1=$(count "$S" "$A" "$N")
-    case "$c3$c2$c1" in
+    case "$c2$c1" in
       *NaN*) echo "!! $S $A: perf could not count" >> "$F"; BAD=1; continue ;;
     esac
+    # The third process checks the figure and is no part of it, so its
+    # failure leaves the cell standing, marked as unchecked (2026-09-25).
     IFS=, read -r -a c3arr <<< "$c3"
     IFS=, read -r -a c2arr <<< "$c2"
     IFS=, read -r -a c1arr <<< "$c1"
@@ -181,17 +186,26 @@ for S in $SHAPES; do
     for i in $(seq 1 $NEV); do
       a=${c2arr[$((i - 1))]}; b=${c1arr[$((i - 1))]}
       line="$line $(( (a - b) / N ))"
+      case "$c3" in *NaN*) continue ;; esac
       case ${evarr[$((i - 1))]} in cycles:u|instructions:u) ;; *) continue ;; esac
-      d1=$(( (a - b) / N )); d2=$(( (c3arr[i - 1] - a) / N ))
-      if awk -v p="$d1" -v q="$d2" -v t="$TOL" \
+      # On the raw differences, N cancelling in the ratio: slopes truncated
+      # to integers first parted by the truncation alone on a small cell,
+      # 49 against 50 being two percent (2026-09-25).
+      if awk -v p=$((a - b)) -v q=$((c3arr[i - 1] - a)) -v t="$TOL" \
            'BEGIN { exit !(p != 0 && (q / p - 1 > t || 1 - q / p > t)) }'; then
-        off="$off ${evarr[$((i - 1))]} $d1 then $d2"
+        off="$off ${evarr[$((i - 1))]} $(( (a - b) / N )) then\
+ $(( (c3arr[i - 1] - a) / N ))"
       fi
     done
     echo "$line" >> "$F"
+    case "$c3" in
+      *NaN*) echo "# UNCHECKED $S $A: the -n $((3 * N)) process could not count" >> "$F"
+             UC=$((UC + 1)) ;;
+    esac
     [ -z "$off" ] || { echo "# NONLINEAR $S $A:$off" >> "$F"; NL=$((NL + 1)); }
   done
 done
-echo "# end $(date -Is), $NL nonlinear cell(s)" >> "$F"
+echo "# end $(date -Is), $NL nonlinear cell(s), $UC unchecked" >> "$F"
 [ "$NL" = 0 ] || echo "$NL cell(s) nonlinear past $TOL: their figures are no one process's, see the # NONLINEAR lines in $F"
+[ "$UC" = 0 ] || echo "$UC cell(s) not checked against a third process, perf counting no -n $((3 * N)) run: the # UNCHECKED lines in $F"
 exit $BAD

@@ -18,6 +18,10 @@ on that shape.  `cpi` is the second term as the counters read it;
 figure above 1 means A meets that hazard more often per instruction it
 executes, which is the only form in which they explain a CPI gap.
 
+A shape one of whose three cells probe-stalls.sh marked `# NONLINEAR` is
+dropped and named, that cell's difference being no one process's; a cell
+marked `# UNCHECKED` is read and named.
+
 Exit 2 on usage or an input this cannot read, 1 if a shape was dropped,
 0 clean.
 """
@@ -37,9 +41,11 @@ def die(msg):
 
 
 def read(paths):
-    """shape -> arm -> {event: value}, and the header's own event order"""
+    """shape -> arm -> {event: value}, the header's own event order, and
+    the (shape, arm) cells probe-stalls.sh marked, by mark"""
     out = collections.defaultdict(dict)
     order = None
+    marked = {'NONLINEAR': set(), 'UNCHECKED': set()}
     for p in paths:
         for ln in open(p):
             if ln.startswith('# shape arm N '):
@@ -50,19 +56,25 @@ def read(paths):
                     die('event columns differ between files: %s vs %s'
                         % (order, seen))
                 continue
+            # The marks before the comments they look like: skipped with
+            # them, a cell marked no one process's was read as measured
+            # (2026-09-25, by review).
+            f = ln.split()
+            if len(f) >= 4 and f[0] == '#' and f[1] in marked:
+                marked[f[1]].add((f[2], f[3].rstrip(':')))
+                continue
             if ln.startswith('#') or ln.startswith('!!'):
                 continue
-            f = ln.split()
             if order and len(f) == 3 + len(order):
                 out[f[0]][f[1]] = dict(zip(order, map(float, f[3:])))
-    return out, order
+    return out, order, marked
 
 
 def main():
     if len(sys.argv) < 4:
         die(__doc__)
     a, b = sys.argv[1], sys.argv[2]
-    t, order = read(sys.argv[3:])
+    t, order, marked = read(sys.argv[3:])
     if order is None:
         die('no header line naming the events in any file given')
     # BY NAME, not by column: a sweep taken under another `EVENTS` puts
@@ -73,12 +85,17 @@ def main():
         die('the header names %s, which lacks %s -- a sweep taken under'
             ' another EVENTS, which this does not read'
             % (' '.join(order), ', '.join(missing)))
-    rows, dropped = [], []
+    rows, dropped, nonlinear, unchecked = [], [], [], []
     for sh in sorted(t):
         d = t[sh]
         if not all(k in d for k in (a, b, 'sum-only-early')):
             dropped.append(sh)
             continue
+        if any((sh, k) in marked['NONLINEAR'] for k in (a, b, 'sum-only-early')):
+            nonlinear.append(sh)
+            continue
+        unchecked += ['%s/%s' % (sh, k) for k in (a, b, 'sum-only-early')
+                      if (sh, k) in marked['UNCHECKED']]
         c = d['sum-only-early']
         net = {arm: {e: d[arm][e] - c[e] for e in order} for arm in (a, b)}
         if min(net[a]['instructions:u'], net[b]['instructions:u'],
@@ -96,6 +113,9 @@ def main():
                      cm[0] / cm[1] if cm[1] else float('nan')))
     if not rows:
         print('no shape carries both arms with work left')
+        if nonlinear:
+            print('dropped, a cell no one process read: '
+                  + ', '.join(nonlinear))
         return 1
     print('%-22s %8s %8s %8s %8s %8s' %
           ('shape', 'counted', 'cpi', 'front', 'bmiss', 'cmiss'))
@@ -121,7 +141,12 @@ def main():
                         wgm(5), len(rows)))
     if dropped:
         print('dropped, absent or with the work removed: ' + ', '.join(dropped))
-    return 1 if dropped else 0
+    if nonlinear:
+        print('dropped, a cell no one process read: ' + ', '.join(nonlinear))
+    if unchecked:
+        print('read, and not checked against a third process: '
+              + ', '.join(unchecked))
+    return 1 if dropped or nonlinear else 0
 
 
 sys.exit(main())

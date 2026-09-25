@@ -3922,6 +3922,57 @@ exit 0
 """
 
 
+# The same stand-in with the third process refused: `-n 3` reads
+# `<not counted>`, as a perf hiccup on that one process would.
+PERF_THIRD_REFUSED = PERF_MODES.replace(
+    '  lines="$lines$v,,$e,257660,100.00,,',
+    '  [ "$n" = 3 ] && v="<not counted>"\n'
+    '  lines="$lines$v,,$e,257660,100.00,,')
+assert PERF_THIRD_REFUSED.count('not counted') == 1, 'the refusal went astray'
+
+# Linear to within 0.02 percent on cycles, and on the integer slopes 49 then
+# 50, which part by 2 percent: at N=100 the three processes read 1000000,
+# 1004999 and 1009999 cycles, raw slopes of 4999 and 5000.
+PERF_TRUNCATED = """\
+#!/bin/sh
+out=""; n=200; want_o=0; want_n=0; want_e=0; ev=instructions:u
+for a in "$@"; do
+  if [ "$want_o" = 1 ]; then out=$a; want_o=0; continue; fi
+  if [ "$want_n" = 1 ]; then n=$a; want_n=0; continue; fi
+  if [ "$want_e" = 1 ]; then ev=$a; want_e=0; continue; fi
+  case $a in -o) want_o=1 ;; -n) want_n=1 ;; -e) want_e=1 ;; esac
+done
+lines=""
+for e in $(echo "$ev" | tr ',' ' '); do
+  case $e in
+    cycles:u) case $n in 100) v=1000000 ;; 200) v=1004999 ;; *) v=1009999 ;;
+              esac ;;
+    *) v=$((1000 * n)) ;;
+  esac
+  lines="$lines$v,,$e,257660,100.00,,
+"
+done
+if [ -n "$out" ]; then printf '%s' "$lines" > "$out"
+else printf '%s' "$lines" >&2; fi
+exit 0
+"""
+
+# A stall sweep of two shapes whose first carries a `# NONLINEAR` mark on
+# one of the two arms, as probe-stalls.sh writes one.
+STALLS_MARKED = """\
+# ./zz 0 N=1 2026-09-25T00:00:00+02:00 ARMS=A B
+# shape arm N instructions:u cycles:u stalled-cycles-frontend:u \
+branch-misses:u cache-misses:u
+s1 A 1 2000 3000 300 20 10
+# NONLINEAR s1 A: cycles:u 3000 then 4500
+s1 B 1 2000 2500 250 20 10
+s1 sum-only-early 1 1000 1000 100 10 5
+s2 A 1 2000 3000 300 20 10
+s2 B 1 2000 2500 250 20 10
+s2 sum-only-early 1 1000 1000 100 10 5
+"""
+
+
 # A log with samples on BOTH sides of the load fields, and a trailing
 # `pre` with no `post`: the two branches of `--wild` that no run on disk
 # exercises, one being an instrument change mid-log and the other what a
@@ -15006,6 +15057,53 @@ RECORDS = [
          argv=['zzpn', 'rnus'],
          ok=V(exit=2, has=["'rnus' is no population"],
               hasnt=['major run begins', 'major run complete'])),
+
+    case('stalls-reader-reads-past-a-nonlinear-mark', 'probe-stalls-read.py',
+         None,
+         'a cell probe-stalls.sh marked no one process\'s joined the table'
+         ' and the geomean',
+         # The reader skipped every `#` line, the marks with the header's
+         # comments, so the shape the mark named was read as measured.
+         plant=lambda t: {'txt': write(os.path.join(t, 'probe-zz.txt'),
+                                       STALLS_MARKED)},
+         argv=['A', 'B', '{txt}'],
+         ok=V(exit=1, has=['(geomean over 1,', 'no one process read: s1']),
+         ),
+
+    case('stalls-keeps-a-cell-whose-check-process-failed', 'probe-stalls.sh',
+         None,
+         'a perf hiccup on the -n 3N process alone discarded a cell whose'
+         ' two published processes counted',
+         # The third process is a check on the figure and not part of it,
+         # and it had joined the NaN test with the two that are.
+         shadow=dict(extra=[('zzps2-fake', FAKE_HALF)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_THIRD_REFUSED)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'BIN': './zzps2-fake',
+              'OUT': 'probe-zzps2', 'ONLY': 'shape-a', 'ARMS': 'list',
+              'N': '1', 'EVENTS': 'instructions:u,cycles:u'},
+         argv=[],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'probe-zzps2.txt')).read(),
+         ok=V(exit=0, has=['shape-a list 1 100000 200000',
+                           '# UNCHECKED shape-a list'],
+              hasnt=['perf could not count', 'NONLINEAR'])),
+
+    case('stalls-linearity-reads-the-untruncated-slopes', 'probe-stalls.sh',
+         None,
+         'the linearity test compared slopes truncated to integers, so a'
+         ' small cell tripped it on the truncation alone',
+         # 4999 and 5000 cycles over N=100 truncate to 49 and 50, which
+         # part by 2.04 percent against a LINEAR_TOL of 0.02.
+         shadow=dict(extra=[('zzps3-fake', FAKE_HALF)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_TRUNCATED)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'BIN': './zzps3-fake',
+              'OUT': 'probe-zzps3', 'ONLY': 'shape-a', 'ARMS': 'list',
+              'N': '100', 'EVENTS': 'instructions:u,cycles:u'},
+         argv=[],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'probe-zzps3.txt')).read(),
+         ok=V(exit=0, has=['shape-a list 100 1000 49'],
+              hasnt=['NONLINEAR'])),
 
 ]
 
