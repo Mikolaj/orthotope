@@ -108,7 +108,7 @@ UNCOVERED = {
                         '2026-09-02; the records naming it are memory',
 }
 # The probes: inputs to README rather than drivers, each run by hand for
-# the question it is named for, and none with a case.
+# the question it is named for.
 for _name in ('probe-pageflags.py', 'probe-r33-instance.sh',
               'probe-hugebin.sh', 'probe-ibs.sh',
               'probe-attr-build.sh', 'probe-attrnoshim-build.sh',
