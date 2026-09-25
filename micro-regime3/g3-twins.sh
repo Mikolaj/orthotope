@@ -46,9 +46,11 @@ for row in 'Main.hs at:Main.hs' 'shim at:align-as.py'; do
   elif [ -z "$have" ]; then
     SRC_BAD="$SRC_BAD
     git names no commit for $path here, so nothing holds it to $want"
-  elif [ "$(git rev-parse -q --verify "$want^{commit}" 2>/dev/null)" != "$have" ]; then
+  elif [ "$(git rev-parse -q --verify "$want^{commit}" 2>/dev/null)" \
+         != "$have" ]; then
     SRC_BAD="$SRC_BAD
-    $path is at $(git log -1 --format=%h -- "$path"), and the note's row names $want"
+    $path is at $(git log -1 --format=%h -- "$path"), and the note's row\
+ names $want"
   elif ! git diff --quiet HEAD -- "$path"; then
     SRC_BAD="$SRC_BAD
     $path differs from its commit in the working tree"

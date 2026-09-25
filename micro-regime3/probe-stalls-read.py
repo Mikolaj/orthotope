@@ -91,7 +91,8 @@ def main():
         if not all(k in d for k in (a, b, 'sum-only-early')):
             dropped.append(sh)
             continue
-        if any((sh, k) in marked['NONLINEAR'] for k in (a, b, 'sum-only-early')):
+        if any((sh, k) in marked['NONLINEAR']
+               for k in (a, b, 'sum-only-early')):
             nonlinear.append(sh)
             continue
         unchecked += ['%s/%s' % (sh, k) for k in (a, b, 'sum-only-early')

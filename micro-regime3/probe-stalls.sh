@@ -199,7 +199,8 @@ for S in $SHAPES; do
     done
     echo "$line" >> "$F"
     case "$c3" in
-      *NaN*) echo "# UNCHECKED $S $A: the -n $((3 * N)) process could not count" >> "$F"
+      *NaN*) echo "# UNCHECKED $S $A: the -n $((3 * N)) process could not\
+ count" >> "$F"
              UC=$((UC + 1)) ;;
     esac
     [ -z "$off" ] || { echo "# NONLINEAR $S $A:$off" >> "$F"; NL=$((NL + 1)); }

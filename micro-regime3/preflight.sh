@@ -1157,7 +1157,8 @@ previous build of this recipe to read --delta against"
     # their headings and indent, since 2026-09-25 (by review): bare, an
     # `out` of two class views read as two arms leaving.
     ./roster-delta.py "$PB" "./$R-$BASIS" 2>/dev/null \
-      | grep -E '^ +(main set:|classes:|arms( |$)|shapes$|views$|unmoved$|out |in |[0-9]+ survivor)' \
+      | grep -E -e '^ +(main set:|classes:|arms( |$)|shapes$|views$)' \
+                -e '^ +(unmoved$|out |in |[0-9]+ survivor)' \
       | sed 's/^/                 /'
   else
     # A named absence, as the comment at PB promises and as the --delta
