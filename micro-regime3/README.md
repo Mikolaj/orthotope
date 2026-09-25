@@ -11364,16 +11364,27 @@ the check cannot demand an unaligned half of every pair without failing the last
 two runs, which have none, nor an aligned column of every run without failing
 Runs 6 through 9, which had none either.
 
-**Two tables in a run's file are NOT installed and are edited by hand:
-the two-column one under *What the next run compares against*
-and the cross-class summary opening the class section.** Every other table a run
-publishes comes from `install-tables.sh` and is replaced whole. The two-column
-one is replaced whole too, being that run's own halves and no earlier run's,
-and the summary is transcribed row by row from the class tables. A hand-edited
-table is edited with the whole line named, never with a prefix anchor. Name
-the whole row, assert it occurs exactly once, and read `--check-doc`'s width
-verdict afterwards: a prefix anchor once matched an earlier table and put two
-cells into another table's header.
+**Every table a run's file publishes is installed, and two of them only by their
+rows.** `install-tables.sh` writes the Results table, the fingerprints,
+the class tables and the cross-class summary whole, the summary since 2026-09-22
+off each class's own block; the two-column table under *What the next run
+compares against* and the Provenance anchors are installed since 2026-09-25
+by `read-run.py --hand-tables`, which rewrites their rows off the two main JSONs
+and leaves their headers and leads to the prose, and which checks them without
+`--in-place`. A table row edited by hand anyway is edited with the whole line
+named, never with a prefix anchor: a prefix anchor once matched an earlier table
+and put two cells into another table's header.
+
+**The two-column table is two orderings and not two speeds.** Each entry
+is that arm's net over `list`'s net in ITS OWN half, winsorized per row within
+that half, so dividing an arm's two entries reproduces neither its `--compare`
+figure nor anything else; which half runs an arm faster, and by how much,
+is `--compare`'s paired ratio, where the reference is not divided out. The two
+columns may be SUBTRACTED only where `list` moved under the 0.7% bar between
+the halves, the two sharing a denominator then; a pair whose variable moves
+`list` past it --- every regime pair here --- is read side by side,
+and a control column printing higher is the denominator shrinking under
+it and not an arm slowing.
 
 **Each stride class has its own table in a run's file.** Run 8 re-ran every
 class with the populations pinned, and every run since has again, so each
