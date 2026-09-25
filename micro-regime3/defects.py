@@ -14683,6 +14683,16 @@ RECORDS = [
                            'RERUN: ask']),
          bug=V(exit=0, hasnt=['RERUN: ask'])),
 
+    case('draft-drops-the-quiet-after-block', 'read-run.py', None,
+         "the template's QUIET-AFTER block, added 2026-09-25, reached no"
+         ' draft, its key missing from MACHINE_KEYS',
+         # Found by the transcript pass over the change that added it: the
+         # commit said a template block with a new machine line is carried
+         # into the next draft, and a draft of Run 41 showed it was not.
+         plant=lambda t: {'note': a_previous_note(t)},
+         argv=['--note', '{note}', '--draft', 'run98', '--halves', 'a,b'],
+         ok=V(exit=0, has=['QUIET-AFTER: ask'])),
+
     case('draft-repeat-carries-the-pairs-blocks-whole', 'read-run.py', None,
          'CONTROL: --repeat carries a [PAIR\'S] block with no <yours> line'
          ' and makes an input it cannot read a NOT READ slot at the head,'

@@ -9885,7 +9885,7 @@ def note_check(path, readme, run_doc=None):
 
 
 MACHINE_KEYS = ('HALVES', 'COMPARE', 'LAUNCH', 'RIDERS', 'RERUN',
-                'VARIABLE-CHECK', 'EXPECT')
+                'QUIET-AFTER', 'VARIABLE-CHECK', 'EXPECT')
 
 
 def _no_machine_lines(para):
