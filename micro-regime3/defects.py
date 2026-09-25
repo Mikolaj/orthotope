@@ -12450,6 +12450,24 @@ RECORDS = [
                hasnt=['zzmj-lookrts-main: expected'])),
 
     # ---- install-tables.sh ---------------------------------------------
+    case('install-owes-a-summary-row-it-then-replaced', 'install-tables.sh',
+         None,
+         "the hand-work list carried `summary row ... disagrees` for rows"
+         ' the same call then installed',
+         # --block checks each class's summary row as it installs the
+         # block, and the rows are installed after the blocks, so every
+         # class reported its old row under `not optional` (Run 40's
+         # install listed all ten). The lines are set aside and each class
+         # is checked again once the rows are in.
+         plant=lambda t: {'doc': write_rundoc(t, rundoc_text())},
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                             prefix='zzit',
+                                             classes=recorded_classes())),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['zzit'],
+         ok=V(has=['cross-class summary row(s) installed'],
+              hasnt=["disagrees with this class's cells"])),
+
     case('lead-patterns-disagree', 'install-tables.sh', None,
          'a lead one pattern missed was overwritten by the block above it',
          plant=lambda t: {'doc': edited_rundoc(

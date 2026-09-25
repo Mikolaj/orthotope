@@ -210,8 +210,13 @@ install () {   # $1 = json, $2.. = mode
   # outstanding -- which is how a reader learns to skim the one list that
   # is not skimmable. Warnings about the data stay: they are this run's.
   local owed
+  # A `summary row ... disagrees` line describes the row as it stood
+  # BEFORE this call, the rows being installed after every block, so it is
+  # set aside here and asked again below once they are in: Run 40's list
+  # carried ten such lines for rows this same call had just replaced.
   owed=$(printf '%s\n' "$err" | grep -v '^installed at ' | grep -v '^ok: ' \
-           | grep -v "^the block's prose is yours")
+           | grep -v "^the block's prose is yours" \
+           | grep -v '^summary row `[a-z0-9]*` disagrees')
   [ -z "$owed" ] || HAND="$HAND
     $f $*:
 $(printf '%s\n' "$owed" | sed 's/^/      /')"
@@ -525,6 +530,17 @@ if [ $? != 0 ]; then
 else
   printf '%s\n' "$EXTR" | sed 's/^/  /'
 fi
+
+# The summary rows asked again, now that they are installed: --block
+# without --in-place writes nothing and checks the row in DOC as it now
+# stands, so what survives here is a row the install did not fix.
+for c in $CLASSES; do
+  still=$(./read-run.py "$c" --block --run-doc "$DOC" 2>&1 >/dev/null \
+            | grep '^summary row `[a-z0-9]*` disagrees')
+  [ -z "$still" ] || HAND="$HAND
+    $c, after the summary install:
+      $still"
+done
 
 echo
 if [ -n "$HAND" ]; then
