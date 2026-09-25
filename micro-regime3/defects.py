@@ -6347,6 +6347,29 @@ TIER1 = {
                       bug='[ "" -lt 5 ] refused at exit 2 behind a bash error and a message naming an empty percentage',
                       proved='ran', notes='The old line replayed in bash with an empty reading, 2026-09-18.'),
 
+    # ---- the seams Run 40's write-up met, 2026-09-25 ----
+    'fill-in-straddle-row-reads-the-listed-word': dict(
+        family='scan-for-parse', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='a binary with more than ten straddling self-loops, whose'
+                ' survey line gains `, 10 longest listed`',
+        ok='the row carries the count, `24 straddling`',
+        bug='the row read `listed straddling`, so the note carried no'
+            ' straddle count at all',
+        proved='ran',
+        notes='Watched 2026-09-25 on Run 40\'s note, whose fill-in had'
+              ' carried it from the preparation unnoticed.'),
+    'brief-facts-text-row-runs-on-past-its-row': dict(
+        family='scan-for-parse', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger="a note whose `.text` row ends with no full stop",
+        ok='the row and its own continuation lines, cut at a full stop',
+        bug="the md5, launch and repetition rows joined into the brief's"
+            ' item 5 as one sentence',
+        proved='ran',
+        notes='Watched 2026-09-25 on run40-pair.txt, and trimmed by hand'
+              ' in that run\'s brief.'),
+
     # ---- the seams Run 37's write-up met, 2026-09-20 ----
     'checklist-prints-no-execution-order': dict(
         family='two-spellings', discovery='in-use', harm='fired',
@@ -14687,6 +14710,31 @@ RECORDS = [
               has=['whose first line in neither form is',
                    'A planted line no fixed point produces']),
          bug=V(hasnt=['whose first line in neither form'])),
+
+    # ---- the seams Run 40's write-up met, 2026-09-25 ----
+    case('fill-in-straddle-row-reads-the-listed-word', 'preflight.sh',
+         'c653c15',
+         "--fill-in's straddle row printed `listed straddling` where the"
+         ' count belongs, once more than ten loops straddle',
+         # The survey prints `still straddling : 24, 10 longest listed`
+         # past ten and `: 7` at or under, and the row took the line's
+         # last field. NO CASE, for the reason the preflight records above
+         # give: the fill-in is a STEP. WATCHED 2026-09-25 both ways on
+         # Run 40's two binaries: before, `231 at offset 0, listed
+         # straddling`; after, `24 straddling` on each half.
+         argv=None, ok=None),
+
+    case('brief-facts-text-row-runs-on-past-its-row', 'read-all.sh',
+         'c653c15',
+         "--brief-facts' .text row ran on through the note's next rows when"
+         ' the row ended with no full stop',
+         # It joined six lines and cut at the first `. `, so Run 40's
+         # row, ending `the load address` bare, carried the md5, launch
+         # and repetition rows into the brief's item 5. WATCHED 2026-09-25
+         # both ways on run40-pair.txt, and the new join read identically
+         # to the old on run39-pair.txt, whose row wraps across three
+         # lines and ends in a full stop.
+         argv=None, ok=None),
 
 ]
 
