@@ -31,8 +31,9 @@ a lone branch.
 Measured 2026-09-15 on the Ryzen 7 5800X: the fill runs 4 cycles a run
 at 0..8 and 22..31 and 5 or 6 elsewhere, 9 reading as 10; the entry
 count reproduces 51 to 54 of the 64, missing 18, 22, 32..35 and 60..63
-on every run and 19..21 on some. Needs gcc and a perf that counts user
-cycles; exit 2 when either is missing, 1 when a build fails, 0 otherwise.
+on every run and 19..21 on some. Needs gcc, objdump and a perf that
+counts user cycles; exit 2 when one is missing or stops answering, 1 when
+a build fails, 0 otherwise.
 Writes only under a temporary directory. A MISS on a lone offset can be
 the machine's: re-read it with `--only K --pairs 4` before believing it.
 """
@@ -45,6 +46,14 @@ import shutil
 import subprocess
 import sys
 import tempfile
+
+
+def die(msg):
+    """Exit 2 -- did not run -- rather than `sys.exit(str)`'s 1, which is
+    the code a finding gets (2026-09-25, by review)."""
+    sys.stderr.write(msg.rstrip('\n') + '\n')
+    sys.exit(2)
+
 
 PROBE_NAME = 'probe-entries-sweep'
 
@@ -184,8 +193,8 @@ def layout(binary):
     got = subprocess.run(['objdump', '-d', binary], capture_output=True,
                          text=True)
     if got.returncode:
-        sys.exit('%s: objdump -d %s exited %d' % (PROBE_NAME, binary,
-                                                  got.returncode))
+        die('%s: objdump -d %s exited %d' % (PROBE_NAME, binary,
+                                             got.returncode))
     out = got.stdout
     sec = out[out.index('<head>:'):]
     sec = sec[:sec.index('\tret')]
@@ -235,12 +244,12 @@ def main():
     args = ap.parse_args()
     for tool in ('gcc', 'perf', 'objdump'):
         if shutil.which(tool) is None:
-            sys.exit('probe-entries-sweep: %s is not on PATH; nothing ran'
-                     % tool)
+            die('probe-entries-sweep: %s is not on PATH; nothing ran'
+                % tool)
     probe = counts('/bin/true', '')
     if probe is None:
-        sys.exit('probe-entries-sweep: perf does not count %s here'
-                 ' (kernel.perf_event_paranoid?); nothing ran' % EVENTS)
+        die('probe-entries-sweep: perf does not count %s here'
+            ' (kernel.perf_event_paranoid?); nothing ran' % EVENTS)
     ks = args.only or list(range(64))
     if args.kernel == 'fill' and ks[0] != 0:
         ks = [0] + ks              # the model's base is residue 0, measured
@@ -263,8 +272,8 @@ def main():
             for _ in range(args.pairs):
                 hi, lo = counts(b, iters[0]), counts(b, iters[1])
                 if hi is None or lo is None:
-                    sys.exit('probe-entries-sweep: perf stopped counting at'
-                             ' K=%d; the rows above stand' % k)
+                    die('probe-entries-sweep: perf stopped counting at'
+                        ' K=%d; the rows above stand' % k)
                 if args.kernel == 'fill':
                     d = 100
                 else:

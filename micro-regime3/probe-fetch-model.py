@@ -54,7 +54,8 @@ re-applies the rules as they stand in this file to the measurements
 without the machine, which is how a rule is changed and judged.
 
 Needs gcc, objdump and a perf that counts user cycles; exit 2 when one is
-missing, 1 when a build fails. Writes only under a temporary directory.
+missing or stops answering, or a table to rescore is unreadable, 1 when a
+build fails. Writes only under a temporary directory.
 Written 2026-09-15; the rules are the guide's sentences and the scoring
 is the probe's own, so a rule that scores is evidence and one that does
 not is a rule the sweep refutes on this core.
@@ -67,6 +68,14 @@ import shutil
 import subprocess
 import sys
 import tempfile
+
+
+def die(msg):
+    """Exit 2 -- did not run -- rather than `sys.exit(str)`'s 1, which is
+    the code a finding gets (2026-09-25, by review)."""
+    sys.stderr.write(msg.rstrip('\n') + '\n')
+    sys.exit(2)
+
 
 PROBE_NAME = 'probe-fetch-model'
 
@@ -214,8 +223,8 @@ def layout(binary):
     got = subprocess.run(['objdump', '-d', binary], capture_output=True,
                          text=True)
     if got.returncode:
-        sys.exit('%s: objdump -d %s exited %d' % (PROBE_NAME, binary,
-                                                  got.returncode))
+        die('%s: objdump -d %s exited %d' % (PROBE_NAME, binary,
+                                             got.returncode))
     out = got.stdout
     sec = out[out.index('<head>:'):]
     sec = sec[:sec.index('\tret')]
@@ -374,7 +383,7 @@ def rescore(path):
                 meas.append((int(f[0]), float(f[1]), float(f[2]),
                              float(f[3]), float(f[4])))
     if not rows or not meas:
-        sys.exit('probe-fetch-model: %s carries no layout or no rows' % path)
+        die('probe-fetch-model: %s carries no layout or no rows' % path)
     if kernel == 'fill':
         segs = path_fill(rows, int(args[0]) if args else 2)
     else:
@@ -405,10 +414,10 @@ def main():
         return rescore(args.args[0])
     for tool in ('gcc', 'perf', 'objdump'):
         if shutil.which(tool) is None:
-            sys.exit('probe-fetch-model: %s is not on PATH; nothing ran' % tool)
+            die('probe-fetch-model: %s is not on PATH; nothing ran' % tool)
     if counts('/bin/true', '') is None:
-        sys.exit('probe-fetch-model: perf does not count %s here; nothing ran'
-                 % EVENTS)
+        die('probe-fetch-model: perf does not count %s here; nothing ran'
+            % EVENTS)
     if args.kernel == 'straight':
         n, w, end = int(args.args[0]), int(args.args[1]), args.args[2]
         asm, cmain, per, iters = straight(n, w, end), STRAIGHT_MAIN, 20000000, (2, 1)
@@ -435,7 +444,7 @@ def main():
             for _ in range(args.pairs):
                 hi, lo = counts(b, iters[0]), counts(b, iters[1])
                 if hi is None or lo is None:
-                    sys.exit('probe-fetch-model: perf stopped counting at K=%d' % k)
+                    die('probe-fetch-model: perf stopped counting at K=%d' % k)
                 if args.kernel == 'fill':
                     reads.append(tuple((h - l) / 100 / per for h, l in zip(hi, lo)))
                 else:

@@ -15248,6 +15248,40 @@ RECORDS = [
          ok=V(exit=0, has=['every property holds'],
               hasnt=['IsADirectoryError'])),
 
+    # Four probes whose `sys.exit(str)` exited 1, their docstrings' code for
+    # a finding or a failed build, where the run had not happened: exit 2
+    # is this directory's did-not-run, as probe-second-term.py states it.
+    # A PATH holding a python3 and no gcc stands for a box without the
+    # tools.
+    case('r39-rules-exits-2-on-a-run-not-here', 'probe-r39-rules.py', None,
+         'a run whose JSON was absent exited 1, the code for candidates',
+         argv=['zznorun', 'run38'],
+         ok=V(exit=2, has=['is not here; nothing ran'])),
+
+    case('fetch-model-exits-2-on-a-table-it-cannot-read',
+         'probe-fetch-model.py', None,
+         'a table with no layout exited 1, the code for a failed build',
+         plant=lambda t: {'txt': write(os.path.join(t, 'empty.txt'), '')},
+         argv=['rescore', '{txt}'],
+         ok=V(exit=2, has=['carries no layout or no rows'])),
+
+    case('entries-sweep-exits-2-without-its-tools', 'probe-entries-sweep.py',
+         None,
+         'a box without gcc exited 1, the code for a failed build',
+         plant=lambda t: {'stub': stub_dir(
+             t, '#!/bin/sh\nexec /usr/bin/python3 "$@"\n', name='python3')},
+         env={'PATH': '{stub}'},
+         argv=['fill'],
+         ok=V(exit=2, has=['gcc is not on PATH; nothing ran'])),
+
+    case('r38-sweep-exits-2-without-its-tools', 'probe-r38-sweep.py', None,
+         'a box without gcc exited 1, which its siblings give a failed build',
+         plant=lambda t: {'stub': stub_dir(
+             t, '#!/bin/sh\nexec /usr/bin/python3 "$@"\n', name='python3')},
+         env={'PATH': '{stub}'},
+         argv=[],
+         ok=V(exit=2, has=['gcc is not on PATH; nothing ran'])),
+
 ]
 
 

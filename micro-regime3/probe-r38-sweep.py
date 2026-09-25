@@ -21,7 +21,9 @@ same residue 4, line 62 of its page in the basis and line 5 in the
 control. Three counters a run, differenced over two iteration counts
 so the process's startup cancels: cycles, op-cache fetches (raw 0x28F)
 and cycles with the op queue empty (raw 0xA9). A probe, run by hand;
-writes only under a temporary directory. 2026-09-22.
+writes only under a temporary directory. 2026-09-22. Exit 2 when gcc,
+perf, objdump or nm is missing or perf stops answering, 1 when a build
+fails, 0 otherwise.
 """
 import argparse
 import os
@@ -29,6 +31,14 @@ import shutil
 import subprocess
 import sys
 import tempfile
+
+
+def die(msg):
+    """Exit 2 -- did not run -- rather than `sys.exit(str)`'s 1, which is
+    the code a finding gets (2026-09-25, by review)."""
+    sys.stderr.write(msg.rstrip('\n') + '\n')
+    sys.exit(2)
+
 
 RUNS = 900000
 FILL = r'''
@@ -162,10 +172,10 @@ def main():
     args = ap.parse_args()
     for tool in ('gcc', 'perf', 'objdump', 'nm'):
         if shutil.which(tool) is None:
-            sys.exit('probe-r38-sweep: %s is not on PATH; nothing ran' % tool)
+            die('probe-r38-sweep: %s is not on PATH; nothing ran' % tool)
     if counts('/bin/true', '') is None:
-        sys.exit('probe-r38-sweep: perf does not count %s here; nothing ran'
-                 % EVENTS)
+        die('probe-r38-sweep: perf does not count %s here; nothing ran'
+            % EVENTS)
     ks = args.only or list(range(64))
     tmp = tempfile.mkdtemp(prefix='r38-sweep-')
     print(' K line   head      cycles/run  fetches/run  queue-empty/run')
@@ -179,8 +189,8 @@ def main():
                 for _ in range(args.pairs):
                     hi, lo = counts(b, 200), counts(b, 100)
                     if hi is None or lo is None:
-                        sys.exit('probe-r38-sweep: perf stopped counting at'
-                                 ' K=%d; the rows above stand' % k)
+                        die('probe-r38-sweep: perf stopped counting at'
+                            ' K=%d; the rows above stand' % k)
                     readings.append(tuple((h - l) / 100 / RUNS
                                           for h, l in zip(hi, lo)))
                 cyc = min(r[0] for r in readings)

@@ -28,6 +28,14 @@ import re
 import subprocess
 import sys
 
+
+def die(msg):
+    """Exit 2 -- did not run -- rather than `sys.exit(str)`'s 1, which is
+    the code a finding gets (2026-09-25, by review)."""
+    sys.stderr.write(msg.rstrip('\n') + '\n')
+    sys.exit(2)
+
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 HALVES = ('gheadnospec', 'gheadtwopass')
 POPS = ('main', 'bcast', 'bcastmid', 'block', 'compose', 'flip', 'rev',
@@ -40,8 +48,8 @@ def reader(*args):
     got = subprocess.run(['python3', os.path.join(HERE, 'read-run.py')] + list(args),
                          capture_output=True, text=True, cwd=HERE)
     if got.returncode not in (0, 1):
-        sys.exit('probe-r39-rules: read-run.py %s exited %d: %s'
-                 % (' '.join(args), got.returncode, got.stderr.strip()[-200:]))
+        die('probe-r39-rules: read-run.py %s exited %d: %s'
+            % (' '.join(args), got.returncode, got.stderr.strip()[-200:]))
     return got.stdout
 
 
@@ -51,11 +59,11 @@ def json_of(run, half, pop):
 
 def main():
     if len(sys.argv) != 3:
-        sys.exit(__doc__.split('\n')[3].strip())
+        die(__doc__.split('\n')[4].strip())
     run, prev = sys.argv[1], sys.argv[2]
     main_json = json_of(run, HALVES[0], 'main')
     if not os.path.exists(main_json):
-        sys.exit(f'probe-r39-rules: {os.path.basename(main_json)} is not here; nothing ran')
+        die(f'probe-r39-rules: {os.path.basename(main_json)} is not here; nothing ran')
     floors = {}
     for line in reader(main_json, '--half-movers', run, prev).split('\n'):
         m = FLOOR.match(line)
@@ -82,7 +90,7 @@ def main():
                                        for h in HALVES):
                     killed.append((pop, arm, r[HALVES[0]], r[HALVES[1]]))
     if not read:
-        sys.exit('probe-r39-rules: no population had both halves of both runs; nothing ran')
+        die('probe-r39-rules: no population had both halves of both runs; nothing ran')
     for pop, arm, x, y in killed:
         print(f'  {pop:9s} {arm:40s} {x:.4f} {y:.4f}  slower past the bar on both')
     print(f'{len(killed)} candidate(s) slower past the bar on both halves against'
