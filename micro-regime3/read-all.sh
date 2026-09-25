@@ -513,7 +513,9 @@ fi
 # It is not the whole block: what the run MEANS, which registrations it
 # carries and what to disbelieve are the write-up's, and the brief says so.
 brief_facts () {
-  BASIS=$(sed -n 's/.*; \([A-Za-z0-9]*\) is the basis.*/\1/p' "$LOG" \
+  # A half's tag is pair-halves.sh's [A-Za-z0-9_], here and on the md5 row
+  # below; without the `_`, `look_rts` read as no basis (2026-09-25).
+  BASIS=$(sed -n 's/.*; \([A-Za-z0-9_]*\) is the basis.*/\1/p' "$LOG" \
             | head -1)
   echo
   echo "--- the brief's THIS RUN ONLY facts, derived; read items 5 AND 6 of"
@@ -528,7 +530,7 @@ brief_facts () {
   NOTE="$R-pair.txt"
   if [ -f "$NOTE" ]; then
     printf '  %-14s %s\n' 'md5s' \
-      "$(sed -n 's/^ *md5 \([a-z0-9]*\) *\([0-9a-f]\{32\}\)/\1=\2/p' \
+      "$(sed -n 's/^ *md5 \([A-Za-z0-9_]*\) *\([0-9a-f]\{32\}\)/\1=\2/p' \
            "$NOTE" | tr '\n' ' ')"
     # ANCHORED AT THE FACT BLOCK'S OWN INDENT. `^ *repetition ` matched
     # the note's PROSE first -- the sentence saying what a one-sided md5
@@ -721,7 +723,7 @@ for_brief () {
   # printing an empty row rather than failing -- which is this tree's
   # silent-shortfall family in one character.
   row () { printf '%s\n' "$facts" | sed -n 's|^  '"$1"' *||p' | head -1; }
-  BASIS=$(sed -n 's/.*; \([A-Za-z0-9]*\) is the basis.*/\1/p' "$LOG" \
+  BASIS=$(sed -n 's/.*; \([A-Za-z0-9_]*\) is the basis.*/\1/p' "$LOG" \
             | head -1)
   # THE REST OFF post-run-readings.sh's FILES, since 2026-09-17: the
   # cross-run span, the intrusion verdict, the class shape counts, the

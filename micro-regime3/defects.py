@@ -2444,6 +2444,20 @@ def brief_facts_without_halves(tmp):
     return out
 
 
+def brief_facts_underscored_basis(tmp):
+    """The same run with its basis named `look_rts`, in the log's clause
+    and on a note's md5 row, a half's tag being [A-Za-z0-9_]."""
+    out = synthetic_run(tmp, plateau=[['19.0'], ['19.1']])
+    log = here_file('%s-wallclock.log' % out['tag'])
+    text = open(log).read()
+    assert text.count('lookrts is the basis') == 1, 'the clause moved'
+    write(log, text.replace('lookrts is the basis', 'look_rts is the basis'))
+    write(here_file('%s-pair.txt' % out['tag']),
+          'A pair note, its md5 rows alone.\n\n'
+          '  md5 look_rts      0123456789abcdef0123456789abcdef\n')
+    return out
+
+
 def plateau_two_halves(tmp):
     """A paired run's plateau logs: two halves, two processes each.
 
@@ -15273,6 +15287,18 @@ RECORDS = [
          env={'PATH': '{stub}'},
          argv=['fill'],
          ok=V(exit=2, has=['gcc is not on PATH; nothing ran'])),
+
+    case('brief-facts-reads-a-basis-with-an-underscore', 'read-all.sh', None,
+         'a basis named with `_` read as no basis at all, and its md5 row'
+         ' dropped',
+         # pair-halves.sh allows [A-Za-z0-9_] in a half's name; the three
+         # patterns here took [A-Za-z0-9] or [a-z0-9], so `look_rts`
+         # matched nothing and the block said the log names no basis.
+         plant=brief_facts_underscored_basis,
+         argv=['{tag}', '--brief-facts'],
+         ok=V(exit=0, has=['look_rts=0123456789abcdef0123456789abcdef',
+                           'THIS RUN ONLY facts'],
+              hasnt=['no `is the basis` clause'])),
 
     case('interleave-refuses-a-cell-off-the-roster', 'probe-interleave.sh',
          None,
