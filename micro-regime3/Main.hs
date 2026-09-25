@@ -5337,12 +5337,13 @@ zeroStrideOutermost axes = case innerFirst axes of
 -- read their views through copies of the dispatch, the route, the runs
 -- walker and the fill in which a canonical axis is an 'Axis', where
 -- every other arm reads a (stride, extent) pair, so that their pairs
--- with 'lib-stage2-lean', 'liblist-stage4-sum' and 'libunord-stage13-sum'
--- price that representation together with what 'fillStage2' changed
--- since 'fillStage2Axes'. Each copy is its original's code with the pair
--- an 'Axis' and its name suffixed @Ax@, and carries its original's
--- comment adjusted to that; the figures in those comments were read on
--- the originals.
+-- with 'lib-stage2-lean', 'liblist-stage4-sum' and
+-- 'libunord-stage13-sum' price that representation and what the copies
+-- have changed since. Each copy began as its original's code with the
+-- pair an 'Axis' and its name suffixed @Ax@, carrying its original's
+-- comment adjusted to that, and says so where it has moved on since; a
+-- figure dated 2026-09-25 was read on the copy, every other on the
+-- original.
 
 -- An axis as its stride and extent. Each level of 'runSlicesAx''s
 -- odometer holds the canonical list's own axis, shared by every state
@@ -5371,11 +5372,15 @@ newtype InnerFirstAx = InnerFirstAx { innerFirstAx :: [Axis] }
 -- but one arm and view.
 data WalkAx = WalkAx !Int !Int InnerFirstAx
 
--- 'canonicalize' over 'Axis': the library's 'canonicalizeT' to the
--- line, 'mergeAxesAx' over the axes it zips, the pass of the path's
--- list dispatch, 'routeList4Ax'.
+-- 'canonicalize' over 'Axis': the library's 'canonicalizeT',
+-- 'mergeAxesAx' over the axes it zips, the pass of the path's list
+-- dispatch, 'routeList4Ax'. Axes of extent 1 are dropped before the
+-- 'Axis' is built: with the zip fused into the merge, the strict stride
+-- would otherwise be read for every dropped axis, where the pair form
+-- left it unread, 7 to 22 instructions a call on the list twins' small
+-- views (2026-09-25).
 canonicalizeAx :: ShapeL -> [Int] -> InnerFirstAx
-canonicalizeAx sh ats = mergeAxesAx (zipWith Axis ats sh)
+canonicalizeAx sh ats = mergeAxesAx [Axis st n | (st, n) <- zip ats sh, n /= 1]
 {-# INLINE canonicalizeAx #-}
 
 -- The axes merged so far: the one just outside the next, as its stride
@@ -5393,20 +5398,23 @@ canonicalizeAx sh ats = mergeAxesAx (zipWith Axis ats sh)
 data MergeAccAx = MergeAccAx !Int !Int !InnerFirstAx
 
 -- 'mergeInner' over 'MergeAccAx': the library's merge step, one axis
--- added inside the axes so far: dropped where its extent is 1, merged
--- into the axis just outside it where that one's stride is this one's
--- stride times its extent, and put inside it otherwise.  The new axis's
--- fields are strict, so it needs none of the bangs the pair form weighs.
+-- added inside the axes so far: merged into the axis just outside it
+-- where that one's stride is this one's stride times its extent, and
+-- put inside it otherwise.  Both callers of 'mergeAxesAx' drop the axes
+-- of extent 1 first, so it has no equation for one, 5 to 12
+-- instructions a call fewer on the unordered route (2026-09-25).  The
+-- new axis's fields are strict, so it needs none of the bangs the pair
+-- form weighs.
+-- Too expensive: 'assert (n /= 1)' around this equation's guards.
 mergeInnerAx :: MergeAccAx -> Axis -> MergeAccAx
-mergeInnerAx acc (Axis _ 1) = acc
 mergeInnerAx (MergeAccAx st' n' rest) (Axis st n)
   | n' == 1 = MergeAccAx st n rest
   | st' == n * st = MergeAccAx st (n' * n) rest
   | otherwise = MergeAccAx st n (InnerFirstAx (Axis st' n' : innerFirstAx rest))
 {-# INLINE mergeInnerAx #-}
 
--- The canonical axes innermost first, from axes outermost first:
--- 'mergeInnerAx' folded over them.
+-- The canonical axes innermost first, from the axes of extent above 1,
+-- outermost first: 'mergeInnerAx' folded over them.
 mergeAxesAx :: [Axis] -> InnerFirstAx
 mergeAxesAx ps =
   case foldl' mergeInnerAx (MergeAccAx 0 1 (InnerFirstAx [])) ps of
