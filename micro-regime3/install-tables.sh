@@ -22,7 +22,8 @@
 # `--block` and its emphasis off that block's `summary bolds` line, which
 # decides on the unrounded values where the table prints three decimals;
 # what the rank owes the author is the sort under the sentence, not the
-# sentence, and the prose around the table is still the author's.
+# sentence, and the prose around the table is still the author's but for
+# the class section's lead tallies, installed off --cross-classes.
 #
 # The class list comes from the JSONs on disk rather than from a literal
 # here: run-major.sh's own class literal went out of step with the binary
@@ -526,6 +527,69 @@ if says_kept:
           f' since the run file was first committed')
 ENDPY
 
+# THE CLASS SECTION'S LEAD TALLIES, off --cross-classes's `lead:` line:
+# the comparison count and split, the geomean range and both extremes,
+# which the write-up transcribed by hand until 2026-09-26. The clause is
+# replaced where the lead carries it, and a tail after it is the author's.
+echo "=== installing the class section's lead tallies"
+OTHERS=""
+for c in $CLASSES; do
+  o="$R-${OTHER:-}-${c#"$R-$BASIS-"}"
+  [ -n "${OTHER:-}" ] && [ -f "$o" ] || { OTHERS=""; break; }
+  OTHERS="$OTHERS $o"
+done
+if [ -z "$OTHERS" ]; then
+  echo "  note: not every class has its other half's JSON, so the lead's"
+  echo "  cross-half tallies are NOT installed -- yours by hand"
+else
+  # shellcheck disable=SC2086  # the names are the drivers' own, one word each
+  CROSS=$(./read-run.py --cross-classes --classes $CLASSES --others $OTHERS 2>&1)
+  if [ $? != 0 ]; then
+    echo "  !! --cross-classes REFUSED:"
+    printf '%s\n' "$CROSS" | sed 's/^/       /'
+    BAD=$((BAD + 1))
+  else
+    python3 - "$DOC" "$CROSS" <<'ENDPY' || BAD=$((BAD+1))
+import re, sys
+DOC, cross = sys.argv[1], sys.argv[2]
+lead = [l.split('lead: ', 1)[1] for l in cross.split('\n')
+        if l.startswith('  lead: ')]
+if len(lead) != 1:
+    print('  !! --cross-classes printed %d lead line(s), need one' % len(lead))
+    sys.exit(1)
+lead = lead[0]
+paras = open(DOC).read().split('\n\n')
+sec = next(i for i, p in enumerate(paras)
+           if '\n## The stride classes, run by run' in '\n' + p)
+sec_end = next((i for i in range(sec + 1, len(paras))
+                if '\n## ' in '\n' + paras[i]), len(paras))
+pat = re.compile(r'Over the \S+ classes the reader counts \*\*.*? and'
+                 r' `[^`]+` at \*\*[\d.]+\*\* on `[a-z0-9]+`')
+hits = [(j, m) for j in range(sec, sec_end)
+        for m in [pat.search(' '.join(paras[j].split()))]
+        if m and '. ' not in m.group(0)]
+if not hits:
+    print('  note: no lead clause in the class section to replace; place'
+          ' it by hand:\n    ' + lead)
+    sys.exit(0)
+if len(hits) > 1:
+    print('  !! %d paragraphs of the class section carry the lead clause,'
+          ' need one; nothing written' % len(hits))
+    sys.exit(1)
+j, m = hits[0]
+flat = ' '.join(paras[j].split())
+new = flat[:m.start()] + lead + flat[m.end():]
+if new == flat:
+    print('  the lead tallies already read as --cross-classes prints them')
+else:
+    paras[j] = new
+    open(DOC, 'w').write('\n\n'.join(paras))
+    print('  the lead tallies installed, the clause the class section'
+          ' opens by quoting')
+ENDPY
+  fi
+fi
+
 # The one rank, and the one thing here that writes nothing. Assigned and
 # then tested rather than piped: a pipeline exits with its LAST command's
 # status, so `| sed` would report sed's success whatever the reader did,
@@ -569,7 +633,7 @@ if [ "$BAD" -eq 0 ]; then
   echo "and Run 28 broke such a tie with --pair, a different statistic, and"
   echo "got \`rev\` backwards. The rank above it is for the PROSE's"
   echo "superlatives, which are still yours, as is every word around the"
-  echo "table."
+  echo "table but the lead's tallies installed above."
 else
   echo "$BAD install(s) REFUSED -- a refusal is the design, never a silent"
   echo "write to the wrong place. Fix what it names -- a header it could not"

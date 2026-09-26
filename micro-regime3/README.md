@@ -11349,15 +11349,18 @@ every one of them --- the comparison count, the faster/slower split, the range
 of the geomeans with the class at each end, the arm holding each extreme and how
 many populations share it, the degenerate arms it kept out, and the classes
 whose `list` is past the 0.7% bar --- from the same per-class rows the blocks'
-cross-half lines print, so the intro and the blocks cannot part. The comparison
-count, the faster/slower split, the range of the geomeans and the extreme arms
-are each an aggregate over the blocks' `--block --compare` lines, one per class,
-so they are read off those lines and never off a population assembled
-for the purpose: Run 20 assembled its own twice and was wrong both times ---
-once on the split, once on a low end that excluded a class the sentence said
-it covered. Where a figure genuinely cannot come off those lines, because
-a class's own maximum is a degenerate cell, the paragraph says so rather
-than quoting it as though it could.
+cross-half lines print, so the intro and the blocks cannot part;
+and `install-tables.sh` installs the clause quoting the count, the split,
+the range and the extremes, as `--cross-classes` prints it on its `lead:` line,
+leaving whatever the author writes after it. The comparison count,
+the faster/slower split, the range of the geomeans and the extreme arms are each
+an aggregate over the blocks' `--block --compare` lines, one per class, so they
+are read off those lines and never off a population assembled for the purpose:
+Run 20 assembled its own twice and was wrong both times --- once on the split,
+once on a low end that excluded a class the sentence said it covered. Where
+a figure genuinely cannot come off those lines, because a class's own maximum
+is a degenerate cell, the paragraph says so rather than quoting it as though
+it could.
 
 Then one block per class, in `classViews`' order --- which `Main.hs` fixes
 and the run file follows, so a class landing or retiring moves the blocks

@@ -9454,6 +9454,26 @@ def cross_class_summary(basis, others, main):
     top = max(lows.items(), key=lambda kv: len(kv[1]))
     print('  the low extreme is `%s` in %d of %d population(s)'
           % (top[0], len(top[1]), len(per)))
+    # THE CLASS SECTION'S LEAD CLAUSE, in the run file's own words, which
+    # install-tables.sh splices over the previous run's: the figures above
+    # were transcribed into it by hand until 2026-09-26. A tail the author
+    # adds after it, past a semicolon, is theirs and is left alone.
+    def tag(name):
+        m = re.match(r'the (\S+) class$', name)
+        return '`%s`' % m.group(1) if m else name
+    words = ('no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
+             'eight', 'nine', 'ten', 'eleven', 'twelve')
+    say = lambda n: words[n] if n < len(words) else str(n)
+    deg = tot - voted
+    print('  lead: Over the %s classes the reader counts **%d'
+          ' arm-comparisons, %d putting the basis faster and %d slower**,'
+          ' with %s degenerate arm%s excluded, at geomeans from **%.4f** on'
+          ' %s to **%.4f** on %s and extremes of `%s` at **%.4f** on %s and'
+          ' `%s` at **%.4f** on %s'
+          % (say(len(per)), tot, below, voted - below, say(deg),
+             '' if deg == 1 else 's' if deg else '', lo_c[1], tag(lo_c[0]),
+             hi_c[1], tag(hi_c[0]), lo[2][1], lo[2][0], tag(lo[0]),
+             hi[3][1], hi[3][0], tag(hi[0])))
     for name, arms in degenerate:
         print('  DEGENERATE on %s, kept out of the extremes, the vote and'
               ' the geomeans: %s'

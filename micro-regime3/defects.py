@@ -3585,6 +3585,21 @@ def rundoc_with_unwritten_class_says(tmp):
     return write_rundoc(tmp, '\n\n'.join(paras))
 
 
+def rundoc_with_stale_lead_tallies(tmp):
+    """The run file with its class section's lead clause carrying a count
+    no run printed, 9999, and an author's tail after the clause: the
+    install owes the clause and leaves the tail."""
+    text = subprocess.run(['wrap80', '--unwrap'], input=rundoc_text(),
+                          capture_output=True, text=True, check=True).stdout
+    pat = re.compile(r'(Over the \S+ classes the reader counts \*\*)\d+'
+                     r'( arm-comparisons.*? and `[^`]+` at \*\*[\d.]+\*\*'
+                     r' on `[a-z0-9]+`)')
+    text, n = pat.subn(r'\g<1>9999\g<2>; TAIL-KEPT-BY-AUTHOR', text)
+    if n != 1:
+        raise AssertionError('the lead clause occurs %d times, need 1' % n)
+    return write_rundoc(tmp, text)
+
+
 def an_across_paragraph():
     """One class block's `Across the halves:` paragraph, wrapped form.
 
@@ -13441,6 +13456,20 @@ RECORDS = [
          argv=['zzwk'],
          ok=V(exit=0, has=['`What the class says:` paragraph(s) kept'],
               hasnt=['skeleton(s) installed'])),
+
+    case('install-writes-the-lead-tallies', 'install-tables.sh', None,
+         "the class section's lead tallies were transcribed by hand off"
+         ' --cross-classes, and nothing installed them',
+         plant=lambda t: {'doc': rundoc_with_stale_lead_tallies(t)},
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                             prefix='zzlt',
+                                             classes=recorded_classes())),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['zzlt'],
+         probe=lambda subs: open(subs['doc']).read(),
+         ok=V(exit=0, has=['the lead tallies installed',
+                           'TAIL-KEPT-BY-AUTHOR'],
+              hasnt=['9999 arm-comparisons'])),
 
     case('install-is-idempotent', 'install-tables.sh', None,
          'CONTROL: a full pass over an untouched run file rewrites no table',
