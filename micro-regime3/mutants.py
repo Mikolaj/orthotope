@@ -360,9 +360,6 @@ MUTANTS = [
     # ABSENT, which is the direction a blinded check breaks in. It plants
     # the fixture itself rather than going through defect-run.py, which
     # refuses a copy that is in no git repository, as its siblings below do.
-    # The start check, blinded: the fixture of
-    # `paragraph-that-begins-mid-sentence-fails` passes, a paragraph that
-    # lost its opening words reading as whole.
     # --provenance-draft --in-place, blinded: every paragraph carrying its
     # phrase is taken, so an author's paragraph goes with the carried ones.
     # The judge plants the case's run file and wants the kept one standing.
@@ -376,6 +373,9 @@ MUTANTS = [
      'subprocess.run([sys.executable, \'{file}\', \'--provenance-draft\','
      ' \'zzpd\', \'--in-place\', \'--run-doc\', doc], capture_output=True)\n'
      'sys.exit(0 if \'KEPT-EVENING\' in open(doc).read() else 1)"'),
+    # The start check, blinded: the fixture of
+    # `paragraph-that-begins-mid-sentence-fails` passes, a paragraph that
+    # lost its opening words reading as whole.
     ('check-doc stops reading how a paragraph begins', 'read-run.py',
      "        if head is None or _not_prose(head) or not re.match(r'[a-z]', head):",
      "        if True:",

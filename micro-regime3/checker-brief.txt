@@ -66,7 +66,7 @@ SIX THINGS YOU CANNOT DERIVE, so they are given -- and items 5 and 6 are THIS RU
     read +0.22%, worst `cnn-slice-c32` +1.30%, 0 shape(s) past 5% -- did not fire. Against PREVBASIS, run40-gheadnospec-main.json, the 16 shared timed arms span 0.9563 on `lib-stage2-lean` to 1.0428 on `bq-expand`, `list` at 0.9965, this run over PREVBASIS so below 1 means this run is faster; --bridge reads a geomean over the 15 arm(s) 1.0053; 4 outside the 3.3% drift band.
     The binaries are
     gheadnospec=d1963ecd131378676e042e08cde87b34 gheadtwopass=aba522851bd99368ba3ddb31eda7cad1 with .text 20174655 bytes on gheadnospec, 20240191 on gheadtwopass -- the FIRST column of size -A, the second being the load address
-    Repetition: none owed: the source and the shim both moved since Run 40's build, so no md5 is expected to reproduce fills PASS: same offset in line: 4.3% against run40-gheadnospec, the previous build of this recipe: every mod-64 offset preserved: [0, 0, 0, 0, 0, 0] NO address survives to the byte 
+    Repetition: none owed: the source and the shim both moved since Run 40's build, so no md5 is expected to reproduce.
     THE TWO HALVES DIFFER IN `-fspec-constr -fliberate-case` ON THE CONTROL'S COMMAND LINE AND IN
     NOTHING ELSE. THE PUBLISHED BASIS IS run41-gheadnospec. The two columns
     may be differenced where `list` sits inside the 0.7% bar:
@@ -88,7 +88,7 @@ SIX THINGS YOU CANNOT DERIVE, so they are given -- and items 5 and 6 are THIS RU
     Floors over eight A/A pairs: bcast basis 0.90%; bcast other 0.91%; bcastmid basis 0.32%; bcastmid other 0.57%; block basis 0.47%; block other 0.45%; compose basis 0.46%; compose other 0.30%; flip basis 0.76%; flip other 1.04%; main basis 0.33%; main other 0.63%; rev basis 0.42%; rev other 0.80%; runs basis 3.24%; runs other 3.67%; scaled basis 1.01%; scaled other 0.35%; small basis 0.35%; small other 0.71%; window basis 0.55%; window other 0.50%; 
     A/A worst cells past 5%: gheadnospec-bcast 5.10%; gheadnospec-runs 5.05%; gheadtwopass-main 6.82%; gheadtwopass-runs 8.60%; gheadtwopass-window 5.18%; 
     Sunk cells: sunk gheadnospec none;sunk gheadtwopass none
-    AN INTRUSION: --wild over the 119 log(s) this run wrote finds a bench at or above 0.25 foreign in 1: run41-gheadtwopass-main: 2 of 570 bench(es) at or above 0.25 foreign, peak 1.95..
+    AN INTRUSION: --wild over the 119 log(s) this run wrote finds a bench at or above 0.25 foreign in 1: run41-gheadtwopass-main: 2 of 570 bench(es) at or above 0.25 foreign, peak 1.95.
     Class shape counts: runs 16, window 8, bcast and flip 6, block and small 5, bcastmid and compose 4, rev and scaled 3.
     The counted work: counts geomean over the timed arms 1.1674 on main, 1.1460 on small to 1.1776 on window over 10 class(es); 0 cell(s) refused over 22 sweep file(s).
     Registrations, span by span over 22 predictions file(s): 110 reading(s), 7 HELD, 1 KILLED, 0 not read, 102 out of scope; every item carries a span or a script.

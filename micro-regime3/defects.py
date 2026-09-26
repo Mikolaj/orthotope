@@ -5370,6 +5370,29 @@ def for_brief_note(tmp):
     return r
 
 
+def for_brief_bare_repetition(tmp):
+    """A run whose note's `repetition` row wraps and ends with no full
+    stop, the `fills` row under it, as Run 41's did."""
+    r = synthetic_run(tmp, expect='nothing')
+    with open(here_file('%s-pair.txt' % r['tag']), 'a') as f:
+        f.write('\n'
+                '  repetition       none owed: the inputs moved under\n'
+                '                   both halves\n'
+                '  fills            PASS: same offset in line: 4.3%\n')
+    return r
+
+
+def for_brief_intrusion(tmp):
+    """`for_brief_readings` with one --wild reading naming an intrusion,
+    its IN ONE LINE sentence ending in a full stop as the reader's does."""
+    r = for_brief_readings(tmp)
+    write(os.path.join(tmp, 'shadow', 'log-read-%s' % r['tag'],
+                       'wild-%s-lookrts-rev.txt' % r['tag']),
+          'IN ONE LINE: 2 of 570 bench(es) at or above 0.25 foreign,'
+          ' peak 1.95.\n')
+    return r
+
+
 def for_brief_readings(tmp):
     """A run in the shadow with the files post-run-readings.sh writes for
     --for-brief to fill its slots from: a cross-run comparison and its
@@ -10211,7 +10234,7 @@ RECORDS = [
                           'run': synth_json(t, 'slice')},
          argv=['{run}', '--block', '--run-doc', '{rundoc}'],
          ok=V(has=['ceiling (vecdims)    mut-odo-vecdims'],
-              hasnt=['fastest timed arm   mut-odo-vecdims'])),
+              hasnt=['fastest timed arm    mut-odo-vecdims'])),
 
     case('extremes-counts-one-class-twice', 'read-run.py', '3596ba2',
          'the same class named twice would rank one population as two',
@@ -10860,6 +10883,26 @@ RECORDS = [
                    "<yours: what this run's largest finding is>"],
               hasnt=['<yours: the intrusion verdict from --wild over every'
                      ' log, the'])),
+
+    case('for-brief-repetition-row-runs-on-past-its-row', 'read-all.sh',
+         None,
+         "--for-brief's repetition row ran on through the note's next rows"
+         ' when the row ended with no full stop',
+         # The `.text` row was given its own continuations alone on
+         # 2026-09-25 and this row, taken the same way, was not: Run 41's
+         # brief read `... so no md5 is expected to reproduce fills PASS:`.
+         plant=lambda t: for_brief_bare_repetition(t),
+         argv=['{tag}', '--for-brief'],
+         ok=V(has=['none owed: the inputs moved under both halves'],
+              hasnt=['PASS: same offset'])),
+
+    case('for-brief-intrusion-ends-in-one-stop', 'read-all.sh', None,
+         "--for-brief's intrusion verdict ended in two full stops, the"
+         " reader's sentence carrying one and the brief's line another",
+         shadow=dict(),
+         plant=for_brief_intrusion,
+         argv=['{tag}', '--for-brief'],
+         ok=V(has=['AN INTRUSION', 'peak 1.95.'], hasnt=['peak 1.95..'])),
 
     case('for-brief-names-the-readings-it-wants', 'read-all.sh', None,
          'CONTROL: with no readings directory each slot says which command'

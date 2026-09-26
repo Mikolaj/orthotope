@@ -196,6 +196,10 @@ Modes:
   --opening RUN     post-run step 6a's three opening readers in one call,
                     --inherited, --stale and --prose-facts, each under
                     its header, exiting with the worst of the three
+  --provenance-draft RUN  the run file's mechanical Provenance paragraphs,
+                    one line each, `___` where a reading is yours; with
+                    --in-place, installed over the previous run's, which
+                    install-tables.sh does at post-run step 5b
   --steps           every cell read at sample level for a mid-bench change
                     of level, which the fitted slope averages away and no
                     other column here can show
@@ -5354,7 +5358,7 @@ def block_verdicts(cells, shapes, strategies, meta, args):
                or needs[r.st].strip() in ('?', '')]
     print()
     print('Verdicts, derived from the cells above; the paragraph is yours:')
-    print('  fastest timed arm   %-30s %.3f' % (timed[0][1], timed[0][0]))
+    print('  fastest timed arm    %-30s %.3f' % (timed[0][1], timed[0][0]))
     if outside:
         print('  best outside vecdims %-30s %.3f' % (outside[0][1],
                                                      outside[0][0]))
@@ -5383,7 +5387,7 @@ def block_verdicts(cells, shapes, strategies, meta, args):
         a, an = outside[0][0], outside[0][1]
         b, bn = led.vecdims[0].time, led.vecdims[0].st
         col = 'best outside vecdims' if a < b else 'ceiling'
-        print('  summary bolds       %-30s (%s)'
+        print('  summary bolds        %-30s (%s)'
               % (col, an if a < b else bn))
         if round(a, 3) == round(b, 3):
             print('    both print %.3f, so the table shows a tie the column'
@@ -16034,7 +16038,7 @@ def main():
                         ' one line each, off the step-4 readings and the'
                         " evening's logs, `___` where a reading is yours;"
                         ' with --in-place, installed over the previous'
-                        " run's -- post-run step 6a")
+                        " run's, which install-tables.sh does at 5b")
     p.add_argument('--opening', metavar='RUN',
                    help='post-run step 6a\'s three opening readers in one'
                         ' call, before the first paragraph: --inherited,'

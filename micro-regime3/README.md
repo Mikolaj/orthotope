@@ -1950,9 +1950,9 @@ rather than a slot in the next run, observed again:
   that one cannot reach a population, and Run 31 is the first run here to refute
   one. **Run 41's (4) is a clause of this entry's own kind on a cross figure**:
   it argued that no commit reached `bq-expand` and that the shim's change sat
-  under both halves, and the basis half's family moved 4.3% on level
-  instructions and killed the span, the halves having been argued to share every
-  term that moved.
+  under both halves, and the basis half's family moved on level instructions
+  and killed the span, the halves having been argued to share every term
+  that moved.
 - `ANSWERED` **The A/A floor and the carry-back figure came apart on Run 28
   for the first time since the prune, further apart on Run 29, and CLOSED on Run
   30, again on Run 31 and on BOTH halves of Run 32 --- so which of them a margin
@@ -9032,7 +9032,7 @@ not otherwise.
     #      WHERE THE PREPARATION SPENT THIS HALF EARLY, RE-RUN THE
     #      `--match` OFF THE BINARIES YOU TIMED, which is two minutes
     #      why: --para 'Name the fill groups'
-    #      FIRST because it is the only step whose window CLOSES: it
+    #      EARLY because it is the only step whose window CLOSES: it
     #      spends the binaries, and every step below it can be taken
     #      afterwards from the JSONs and the two documents. It does not
     #      wait on the gates either, reading the binaries rather than the
@@ -9902,42 +9902,6 @@ what they find is applied. Naming the fill groups, 3a, was the step most often
 skipped when it stood last, because by then the run read finished; putting
 it before the readings is what retires that.
 
-0. **Name the fill groups, and spend the other load-independent measurements,
-   before the artifacts go --- first, because this is the only step whose window
-   closes.** Allocation is deterministic per call, Core is a compile,
-   and a binary's size is a `size` invocation --- none of them wants a quiet
-   machine or a run slot, and each is minutes. Run 8 stopped at the write-up
-   and left a Core diff, a two-regime `diag` and a code-size figure undone; all
-   three were done later, two of them changed rulings, and one answered an open
-   question outright. So before the offer at step 9, take every question
-   the open list already carries whose measurement is a compile, an allocation
-   or an arithmetic re-derivation, and take it now --- the questions this run
-   raises are step 5e's and get their turn there. **The named fills are the one
-   owed by every paired Run**: `loop-offsets.py` names a copy only in a `-g3`
-   build, bare offsets are what the note records otherwise, and the map
-   is a property of the binary, so once the binaries go no offset this README
-   quotes can ever be tied to an arm again. **What the step has produced, which
-   is why it is first.** Findings no later session could have recovered once
-   the binaries went, the two add-in arms swapping cache-line offsets between
-   the compilers among them. The REFUSALS are what make a negative honest:
-   a loop named off no byte-identical copy is refused rather than guessed,
-   and a straddler the sweep reports may be an info table it misread rather
-   than a loop. **A refusal wants the OTHER half's twin tried before
-   it is recorded**, the basis twin naming the `-u2` leaf fills by the same byte
-   identity, and what no `-g3` build holds byte-identical on either compiler,
-   `fillStage2`'s runs, being named by `--loose` off their signature. The ORDER
-   has been taken both ways without cost, so what the list fixes is the deadline
-   and not the sequence. And a note's fill-in block is where TRANSCRIBED figures
-   live, which is why the executing session re-runs the `--match` off
-   the binaries it timed, and reads the block it ends with since 2026-09-16,
-   the exit spans astride named the same way --- empty on a `LOOP_EXITSPAN=1`
-   half, and on any other the loops that switch would move. **Where
-   a preparation spent this half early, on an idle box before the pair ran,
-   the executing session re-derives it off the binaries it timed** --- two
-   minutes, and the difference between a block that was read and one
-   that was carried, which is the distinction pre-run step 12b exists to make
-   and which a note's fill-in block cannot make for itself. What is left
-   over is the timing work, which is what a quiet machine is for.
 1. **Gate every population on the correction, before reading any figure ---
    and read the A/A *worst cell*, not only the pair's geomean.** A control
    that passes its gate can still be the run's most informative measurement:
@@ -9968,6 +9932,41 @@ it before the readings is what retires that.
    ratio and `f` beside the net one for a related reason: the net figure
    is the floor between two published rows, where the raw one is how much an arm
    disagrees with itself.
+3a. **Name the fill groups, and spend the other load-independent measurements,
+before the artifacts go --- early, because this is the only step whose window
+closes.** Allocation is deterministic per call, Core is a compile,
+and a binary's size is a `size` invocation --- none of them wants a quiet
+machine or a run slot, and each is minutes. Run 8 stopped at the write-up
+and left a Core diff, a two-regime `diag` and a code-size figure undone; all
+three were done later, two of them changed rulings, and one answered an open
+question outright. So before the offer at step 9, take every question the open
+list already carries whose measurement is a compile, an allocation
+or an arithmetic re-derivation, and take it now --- the questions this run
+raises are step 5e's and get their turn there. **The named fills are the one
+owed by every paired Run**: `loop-offsets.py` names a copy only in a `-g3`
+build, bare offsets are what the note records otherwise, and the map
+is a property of the binary, so once the binaries go no offset this README
+quotes can ever be tied to an arm again. **What the step has produced, which
+is why it is first.** Findings no later session could have recovered once
+the binaries went, the two add-in arms swapping cache-line offsets between
+the compilers among them. The REFUSALS are what make a negative honest: a loop
+named off no byte-identical copy is refused rather than guessed, and a straddler
+the sweep reports may be an info table it misread rather than a loop.
+**A refusal wants the OTHER half's twin tried before it is recorded**, the basis
+twin naming the `-u2` leaf fills by the same byte identity, and what no `-g3`
+build holds byte-identical on either compiler, `fillStage2`'s runs, being named
+by `--loose` off their signature. The ORDER has been taken both ways without
+cost, so what the list fixes is the deadline and not the sequence. And a note's
+fill-in block is where TRANSCRIBED figures live, which is why the executing
+session re-runs the `--match` off the binaries it timed, and reads the block
+it ends with since 2026-09-16, the exit spans astride named the same way ---
+empty on a `LOOP_EXITSPAN=1` half, and on any other the loops that switch would
+move. **Where a preparation spent this half early, on an idle box before
+the pair ran, the executing session re-derives it off the binaries it timed**
+--- two minutes, and the difference between a block that was read and one
+that was carried, which is the distinction pre-run step 12b exists to make
+and which a note's fill-in block cannot make for itself. What is left
+over is the timing work, which is what a quiet machine is for.
 4. **Match bases before reading any ratio.** The first act of a comparison
    is making its two sides one basis --- the same population, the same
    restriction, the basis a figure was stated on --- and only then reading
@@ -10049,6 +10048,16 @@ in advance --- the cell then gets transcribed rather than invented at the end
 of a long day. A class table comes out six columns wide, `needs` being
 a property of a strategy rather than of a population and so stated in the main
 table alone.
+
+5e. **Walk the open list against what this session actually did**, which nothing
+checks. **Grep [the settled index][settled] before adding an entry ---
+and before ASSERTING anything this README may already have ruled on**, not only
+before deriving: a question is easy to open against something already answered
+in a section you are not writing in, as a Core dump proposed once had been taken
+three times and answered a thousand lines away. A run answers some of its own
+questions and a write-up raises others, and both go stale in place: an entry
+answered by the very probe it specified stays open until this walk closes it.
+What a probe narrowed is left as narrowed.
 
 **The cross-class summary is INSTALLED since 2026-09-22, from the class blocks
 and not from the JSONs.** Every cell of it appears in one of the class tables
@@ -10378,53 +10387,27 @@ size comes from the reader's first line;
    after the run leaves the timed binaries correct and the source they
    were built from moved by a comment; say so in the write-up rather
    than rebuilding to hide it;
-10. **Walk the open list against what this session actually did**, which nothing
-    checks. **Grep [the settled index][settled] before adding an entry ---
-    and before ASSERTING anything this README may already have ruled on**,
-    not only before deriving: a question is easy to open against something
-    already answered in a section you are not writing in, as a Core dump
-    proposed once had been taken three times and answered a thousand lines away.
-    A run answers some of its own questions and a write-up raises others,
-    and both go stale in place: an entry answered by the very probe it specified
-    stays open until this walk closes it. What a probe narrowed is left
-    as narrowed.
-11. **Only then, offer the artifacts for deletion --- once --- and abide
-    by the answer.** The JSONs, the logs and the wall-clock file, and
-    for a paired Run the two binaries and their `$R-pair.txt` with them,
-    that note being about a pair and worth little once the pair is gone.
-    The offer comes after the verification is presented and not after
-    the writing --- an artifact deleted once its write-up is drafted takes
-    with it the ability to re-check anything needing the raw samples when
-    that write-up is later questioned. **AND IT IS NOT ONE RUN'S OFFER: a pair
-    a LIVE registration derives its priors from outlives the run that used it.**
-    A registration takes its figures off an earlier pair's own binaries, JSONs
-    and counts files rather than quoting them, which it can do only while
-    that pair is still on disk --- so the offer says which earlier pair this run
-    leaned on, and the session making it checks the open list for a registration
-    resting on one before naming it. **And it waits on a quiet tree**: another
-    session may be timing probes against the two binaries hours after
-    the write-up closed, which the directory's own mtimes show and nothing else
-    does.
+9. **Only then, offer the artifacts for deletion --- once --- and abide
+   by the answer.** The JSONs, the logs and the wall-clock file, and
+   for a paired Run the two binaries and their `$R-pair.txt` with them,
+   that note being about a pair and worth little once the pair is gone.
+   The offer comes after the verification is presented and not after the writing
+   --- an artifact deleted once its write-up is drafted takes with
+   it the ability to re-check anything needing the raw samples when
+   that write-up is later questioned. **AND IT IS NOT ONE RUN'S OFFER: a pair
+   a LIVE registration derives its priors from outlives the run that used it.**
+   A registration takes its figures off an earlier pair's own binaries, JSONs
+   and counts files rather than quoting them, which it can do only while
+   that pair is still on disk --- so the offer says which earlier pair this run
+   leaned on, and the session making it checks the open list for a registration
+   resting on one before naming it. **And it waits on a quiet tree**: another
+   session may be timing probes against the two binaries hours after
+   the write-up closed, which the directory's own mtimes show and nothing else
+   does.
 
-    **They are not required to go, and this README no longer says they are.**
-    The rule used to be that the normal state of this directory is no run
-    artifact at all; what justified it was that the numbers live in this file
-    and the fingerprint exists precisely so a per-shape record outlives its run.
-    Both remain true, and neither makes deletion *owed*: what they actually
-    argue is that nothing is *lost* by deleting, which is a licence and
-    not an obligation. What is lost by deleting early is concrete and has
-    been paid twice --- every `--pair` a later question wants, every per-shape
-    spread that separates a bias from noise, every count re-derived
-    from `--cells`, and every sample-level reading needs the JSON and nothing
-    else does. Run 8's were kept and drawn on a dozen times in the days after,
-    for questions its write-up had not thought to ask; Run 11's were kept
-    and became the disturbed control and the wild cell's sample-level account,
-    neither of which its write-up foresaw.
+    **They are not required to go, and this README no longer says they are.** The rule used to be that the normal state of this directory is no run artifact at all; what justified it was that the numbers live in this file and the fingerprint exists precisely so a per-shape record outlives its run. Both remain true, and neither makes deletion *owed*: what they actually argue is that nothing is *lost* by deleting, which is a licence and not an obligation. What is lost by deleting early is concrete and has been paid twice --- every `--pair` a later question wants, every per-shape spread that separates a bias from noise, every count re-derived from `--cells`, and every sample-level reading needs the JSON and nothing else does. Run 8's were kept and drawn on a dozen times in the days after, for questions its write-up had not thought to ask; Run 11's were kept and became the disturbed control and the wild cell's sample-level account, neither of which its write-up foresaw.
 
-    So: ask once, say what they buy, and take no for an answer without raising
-    it again. A previous run's artifacts still being here is not a defect
-    to be tidied and is not a blocker for the next run, whose relaunch guard
-    is scoped to its own name.
+    So: ask once, say what they buy, and take no for an answer without raising it again. A previous run's artifacts still being here is not a defect to be tidied and is not a blocker for the next run, whose relaunch guard is scoped to its own name.
 
 
 #### The reasons behind the three lists
