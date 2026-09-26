@@ -1,8 +1,8 @@
 The brief for a run's independent checker, and for the comprehension probe after it. Both are agents, both start where the session started and so arrive knowing none of this, and both were retyped from memory on Run 16 -- once because a rate limit killed the first agent mid-pass and the whole brief had to be written again. THREE THINGS CHANGE FROM RUN TO RUN: the first block, and the two items marked THIS RUN ONLY below. **THE TWO ITEMS ARE PASTED AND NOT RETYPED, since 2026-09-15**: `./post-run-readings.sh $R` writes them to `log-read-$R/for-brief.txt` with every figure an artifact can settle already in place, off the readings beside it, and `<yours>` left for the pair's variable and the run's largest finding alone, which is what `--fill-in` is for the pair note. Run 32's copy carried `thirteen of the sixteen inside 1%` where the reader says fourteen, the write-up copied that figure into the run file, and the checker found it there: a figure that is transcribed is a figure that can be transcribed wrong. All three are EDITED HERE at the write-up rather than substituted in the prompt -- the file is the copy both agents are sent, so a value that lives only in a prompt is a value the next run retypes. It carries the run whose write-up is happening. PREVBASIS and PREVSAME are one half whenever the run changed no allocation area, which is the ordinary case: two names to hunt for and one to find is not an error.
 
-Substitute per run: RUN=run40 BASIS=gheadnospec OTHER=gheadtwopass PREV=run39
-                    PREVBASIS=run39-gheadnospec  PREVSAME=run39-gheadnospec
-                    PRETIP=a60c448   (the COMMITTED COPY of the previous
+Substitute per run: RUN=run41 BASIS=gheadnospec OTHER=gheadtwopass PREV=run40
+                    PREVBASIS=run40-gheadnospec  PREVSAME=run40-gheadnospec
+                    PRETIP=b5f6f78   (the COMMITTED COPY of the previous
                                       run's file, which is the base the
                                       write-up is diffed against -- NOT the
                                       commit before it, which would show the
@@ -63,36 +63,36 @@ SIX THINGS YOU CANNOT DERIVE, so they are given -- and items 5 and 6 are THIS RU
  4. read-run.py is the only reader; start with --help. --cells gives TSV (slope_s raw, slope_net_s corrected); --pair (with --per-shape), --compare (with --chapter, --alloc, --movers, --ci, --counts), --aa, --block, --fingerprint, --machine, --cross-classes and --section are the modes for the JSONs and the documents. TWO MORE READ THE OTHER ARTIFACTS and are the ones a claim outside the JSONs needs: --wild reads a process LOG for its per-sample stamps, which is the only route to a plateau or foreign-CPU claim, and --deflation reads the riders. The counted-work .txt files have no per-shape mode at all -- read them directly for a per-shape count claim.
  4a. A `cross` FIGURE ABOVE 1 MEANS THE CONTROL HALF IS THE FASTER, `--compare` taking the basis first and the control as its argument. The reader prints that key in every table header and in no verdict, so prose is where it goes wrong: Run 33 wrote three head paragraphs with the control as the slower half, past its own end-to-end read, and one `--cells` pair on one arm on one shape settled it. Check every direction claim in the diff against a raw cell rather than against the legend.
  5. THIS RUN ONLY -- THE BOX AND THE PAIR. The gate machine check
-    read +1.05%, worst `cnn-L2-24x24-c32` +2.44%, 0 shape(s) past 5% -- did not fire. Against PREVBASIS, run39-gheadnospec-main.json, the 17 shared timed arms span 0.9300 on `lib-stage2-lean-u1` to 1.0065 on `list-aa-adjacent`, `list` at 1.0055, this run over PREVBASIS so below 1 means this run is faster; --bridge reads a geomean over the 16 arm(s) 0.9904; 1 outside the 3.3% drift band.
+    read +0.22%, worst `cnn-slice-c32` +1.30%, 0 shape(s) past 5% -- did not fire. Against PREVBASIS, run40-gheadnospec-main.json, the 16 shared timed arms span 0.9563 on `lib-stage2-lean` to 1.0428 on `bq-expand`, `list` at 0.9965, this run over PREVBASIS so below 1 means this run is faster; --bridge reads a geomean over the 15 arm(s) 1.0053; 4 outside the 3.3% drift band.
     The binaries are
-    gheadnospec=1d57f1411d4e31d331c3fe64d7272a28 gheadtwopass=bed712c6eab6b6166d4e7d30451a33f2 with .text 20174655 bytes on gheadnospec, 20248383 on gheadtwopass -- the FIRST column of size -A, the second being the load address.
-    Repetition: NOT AVAILABLE: the source moved since Run 39, c870e1e -> bb6b12e, so neither md5 has anything to reproduce.
-    THE TWO HALVES DIFFER IN TWO GHC FLAGS, `-fspec-constr -fliberate-case` on the control (gheadtwopass) half, both halves plain -O1 on GHC HEAD 10.1.20260918 under the exit span and the settled cost (LOOP_SETTLED=1), on Main.hs at bb6b12e, AND IN
-    NOTHING ELSE. THE PUBLISHED BASIS IS run40-gheadnospec. The two columns
+    gheadnospec=d1963ecd131378676e042e08cde87b34 gheadtwopass=aba522851bd99368ba3ddb31eda7cad1 with .text 20174655 bytes on gheadnospec, 20240191 on gheadtwopass -- the FIRST column of size -A, the second being the load address
+    Repetition: none owed: the source and the shim both moved since Run 40's build, so no md5 is expected to reproduce fills PASS: same offset in line: 4.3% against run40-gheadnospec, the previous build of this recipe: every mod-64 offset preserved: [0, 0, 0, 0, 0, 0] NO address survives to the byte 
+    THE TWO HALVES DIFFER IN `-fspec-constr -fliberate-case` ON THE CONTROL'S COMMAND LINE AND IN
+    NOTHING ELSE. THE PUBLISHED BASIS IS run41-gheadnospec. The two columns
     may be differenced where `list` sits inside the 0.7% bar:
-      bcast        1.3313 PAST the bar -- an ordering, not a subtraction
-      bcastmid     1.2482 PAST the bar -- an ordering, not a subtraction
-      block        1.2962 PAST the bar -- an ordering, not a subtraction
-      compose      1.3126 PAST the bar -- an ordering, not a subtraction
-      flip         1.3023 PAST the bar -- an ordering, not a subtraction
-      main         1.2983 PAST the bar -- an ordering, not a subtraction
-      rev          1.2720 PAST the bar -- an ordering, not a subtraction
-      runs         1.3118 PAST the bar -- an ordering, not a subtraction
-      scaled       1.3268 PAST the bar -- an ordering, not a subtraction
-      small        1.2870 PAST the bar -- an ordering, not a subtraction
-      window       1.3047 PAST the bar -- an ordering, not a subtraction
+      bcast        1.3912 PAST the bar -- an ordering, not a subtraction
+      bcastmid     1.2752 PAST the bar -- an ordering, not a subtraction
+      block        1.3650 PAST the bar -- an ordering, not a subtraction
+      compose      1.3692 PAST the bar -- an ordering, not a subtraction
+      flip         1.3345 PAST the bar -- an ordering, not a subtraction
+      main         1.2926 PAST the bar -- an ordering, not a subtraction
+      rev          1.2961 PAST the bar -- an ordering, not a subtraction
+      runs         1.3490 PAST the bar -- an ordering, not a subtraction
+      scaled       1.3197 PAST the bar -- an ordering, not a subtraction
+      small        1.2971 PAST the bar -- an ordering, not a subtraction
+      window       1.3070 PAST the bar -- an ordering, not a subtraction
 
  6. THIS RUN ONLY -- THE WINDOW AND THE INSTRUMENTS. Window
-    2026-09-25T01:29:30+02:00 to 2026-09-25T08:40:06+02:00, largest hole between one process finishing and the next starting 0m -- hours mean a second window
-    Processes: 22 gated above, from run40-wallclock.log. Plateau: 22 process(es), victim 16.7295-21.3896 ms/iter, spread 27.86%.
-    Floors over eight A/A pairs: bcast basis 0.81%; bcast other 2.33%; bcastmid basis 1.19%; bcastmid other 0.75%; block basis 0.76%; block other 1.52%; compose basis 0.62%; compose other 1.58%; flip basis 0.87%; flip other 1.19%; main basis 0.64%; main other 0.64%; rev basis 0.30%; rev other 0.40%; runs basis 3.26%; runs other 4.06%; scaled basis 0.36%; scaled other 0.81%; small basis 0.30%; small other 0.86%; window basis 0.56%; window other 0.74%; 
-    A/A worst cells past 5%: gheadnospec-runs 5.12%; gheadnospec-window 9.61%; gheadtwopass-bcast 7.62%; gheadtwopass-main 5.78%; gheadtwopass-runs 12.54%; gheadtwopass-window 6.22%; 
+    2026-09-26T02:10:08+02:00 to 2026-09-26T09:01:49+02:00, largest hole between one process finishing and the next starting 0m -- hours mean a second window
+    Processes: 22 gated above, from run41-wallclock.log. Plateau: 22 process(es), victim 16.6848-21.349 ms/iter, spread 27.95%.
+    Floors over eight A/A pairs: bcast basis 0.90%; bcast other 0.91%; bcastmid basis 0.32%; bcastmid other 0.57%; block basis 0.47%; block other 0.45%; compose basis 0.46%; compose other 0.30%; flip basis 0.76%; flip other 1.04%; main basis 0.33%; main other 0.63%; rev basis 0.42%; rev other 0.80%; runs basis 3.24%; runs other 3.67%; scaled basis 1.01%; scaled other 0.35%; small basis 0.35%; small other 0.71%; window basis 0.55%; window other 0.50%; 
+    A/A worst cells past 5%: gheadnospec-bcast 5.10%; gheadnospec-runs 5.05%; gheadtwopass-main 6.82%; gheadtwopass-runs 8.60%; gheadtwopass-window 5.18%; 
     Sunk cells: sunk gheadnospec none;sunk gheadtwopass none
-    THE INTRUSION VERDICT IS CLEAN: --wild over the 119 log(s) this run wrote finds no bench at 0.25 foreign in the 114 that carry samples; the other 5 carry none: run40-al-gheadnospec-driver, run40-al-gheadnospec-sat-driver, run40-al-gheadtwopass-driver, run40-al-gheadtwopass-sat-driver, run40-wallclock.
-    Class shape counts: runs 17, window 8, bcast and flip 6, block and small 5, bcastmid and compose 4, rev and scaled 3.
-    The counted work: counts geomean over the timed arms 1.1603 on main, 1.1405 on block to 1.1695 on window over 10 class(es); 0 cell(s) refused over 22 sweep file(s).
-    Registrations, span by span over 22 predictions file(s): 88 reading(s), 6 HELD, 0 KILLED, 0 not read, 82 out of scope; every item carries a span or a script.
-    The largest finding: all four registered spans held on both halves -- lib-stage3-lean over lib-stage2-lean at 0.9656 and 0.9564, lib-stage2-lean-u1 over lib-stage3-lean at 1.0575 and 1.0617, list and bq-expand cross at 1.2983 and 1.3058 -- with the priors' instruction ratios reproduced to the third decimal; and, unregistered, 3c02e36's rewrite sped lib-stage3-lean-onelevel on the BASIS half alone, 7 to 18% against Run 39 on runs, flip, block and scaled on 2 to 7% fewer instructions, the control's counts unchanged, so its cross figure there reads 0.83 to 0.94.
+    AN INTRUSION: --wild over the 119 log(s) this run wrote finds a bench at or above 0.25 foreign in 1: run41-gheadtwopass-main: 2 of 570 bench(es) at or above 0.25 foreign, peak 1.95..
+    Class shape counts: runs 16, window 8, bcast and flip 6, block and small 5, bcastmid and compose 4, rev and scaled 3.
+    The counted work: counts geomean over the timed arms 1.1674 on main, 1.1460 on small to 1.1776 on window over 10 class(es); 0 cell(s) refused over 22 sweep file(s).
+    Registrations, span by span over 22 predictions file(s): 110 reading(s), 7 HELD, 1 KILLED, 0 not read, 102 out of scope; every item carries a span or a script.
+    THE LARGEST FINDING: the basis half's `bq-expand` family runs 3.9 to 4.3% slower than PREVBASIS on the main set and up to 10.2% on `window`, on instructions level to the fourth decimal and on code no commit changed, while the control's family reads within a quarter of a point of PREV's control -- which killed registration item (4)'s `bq-expand` span at 1.3620 against 1.303 within 1%. Items (1) to (3) held on both halves, their raw instruction priors reproducing to the fourth decimal.
 
 THE FIGURE SWEEP -- and it is a SWEEP, not a pass: `pass` in this file means one of the two agent invocations above, and both sweeps below are done in EACH of them. Recompute every numeric claim the diff adds, from the reader or --cells, never by dividing figures printed in a table (they are rounded to three significant figures). SAMPLE THE INSTALLED TABLES, AND RUN `--hand-tables` ON THE TWO ONCE TYPED, which are installed since 2026-09-25: `./read-run.py RUN-BASIS-main.json --compare RUN-OTHER-main.json --hand-tables` exits 0 where every row agrees and names each row that does not. A FIGURE'S POPULATION IS PART OF THE FIGURE: recompute it on the file it came from, the main set's on the main JSON and a class's on that class's, since every mode reads the file it is handed against that file's own floor -- README's `Which population answers a question, and how to ask all of them` is the rule and the loop. The once-typed pair is the run's own two-column geomeans and the PROVENANCE ANCHORS: those were typed until 2026-09-25, and both table errors on record are theirs -- Run 20 omitted the two-column table entirely and Run 22 left the anchors carrying the previous run's figures in seven of nine cells, through every gate and a whole checker pass. The installed tables -- Results, the fingerprint, the class tables, the cross-class summary -- are matched by whole line with the count asserted. **AND THE REASON THE SAMPLE IS NOT A THINNER CHECK IS THAT A GATE ALREADY DOES IT WHOLE**: `--check-doc` RECOMPUTES every installed table from the JSONs, every run, and the session runs it before either pass is launched --- so recomputing those rows is not weaker coverage taken for speed, it is a second copy of a gate's work, and the twenty exist only to catch an install that never ran. So take a sample of the installed rows -- TWENTY, spread across the main table, two class tables and one fingerprint, which is the number and not an encouragement: SIX passes have now recomputed 487, 491, 352, 401, 418 and 454 rows and found ZERO wrong between them, the last of them reporting the overrun as this line asks and spending a third of its budget to do it, and Run 26's pass spent 401 of them to find none while nine stale PROSE paragraphs sat in the same diff. **RECOMPUTING MORE THAN TWENTY IS ITSELF A FINDING AND IS REPORTED AS ONE**, naming how many you took and why this line did not hold you: it has not held yet, Run 31's pass 1 recomputing 418 rows with this sentence in front of it, and a brief that is read and not obeyed is a defect of the brief. The pull is real and worth naming rather than resisting -- a table row is mechanical and certain and a paragraph is neither, so an agent measuring its own thoroughness counts rows. Count paragraphs instead. Spend what the sample saves on the prose, which is where every real finding of those five runs was. Say how many rows you verified, by which route, and how many disagreed. Pass 2's scope is narrower and is stated in its own block.
 
