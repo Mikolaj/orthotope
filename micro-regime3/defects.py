@@ -13058,6 +13058,28 @@ RECORDS = [
          bug=V(has=['tree at , Main.hs at',
                     '0 path(s) untracked or modified'])),
 
+    case('tree-line-lists-tracked-changes-only', 'run-major.sh', None,
+         'the provenance tree line listed every untracked path, burying the'
+         ' process lines post-run step 1 reads',
+         # Run 41's wall-clock log carried 527 untracked scratch paths
+         # between its launch line and its first process. The count is
+         # what the line is for; of the paths, only tracked changes can
+         # say the source differs from its commit. The shadow is made a
+         # git repository, so git answers and every file in it is
+         # untracked, the planted scratch file among them.
+         shadow=dict(extra=lambda text: halves('zztl-lookrts', 'zztl-a1g', classes=classes_in(text))
+                     + [('zztl-pair.txt', NOTE_STUB),
+                        ('zztl-scratch.txt', 'untracked\n')]),
+         plant=lambda t: (subprocess.run(
+             ['git', 'init', '-q', os.path.join(t, 'shadow')], check=True),
+             {})[1],
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zztl'],
+         probe=lambda subs: open(os.path.join(subs['at'],
+                                              'zztl-wallclock.log')).read(),
+         ok=V(has=['path(s) untracked or modified'],
+              hasnt=['zztl-scratch.txt'])),
+
     case('bench-count-complaint-names-its-process', 'run-major.sh', '845c8d0',
          'nine identical complaints in one log, none naming its process',
          # UNDERPRINT is FAKE_RUN with its printing loop shortened, so it

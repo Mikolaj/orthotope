@@ -338,8 +338,15 @@ log "launch env: WILDLOG=${WILDLOG-unset} SATURATE=${SATURATE-unset} --\
  unset where it wants a value is an uninstrumented run that will otherwise\
  look perfect"
 if [ "$GIT_SAID" = 0 ]; then
-  log "tree: $(printf '%s' "$DIRTY" | grep -c .) path(s) untracked or modified"
-  [ -z "$DIRTY" ] || printf '%s\n' "$DIRTY" | tee -a "$R-wallclock.log"
+  # THE COUNT, AND THE TRACKED CHANGES ALONE, since 2026-09-26: the
+  # untracked scratch here ran to 527 paths on Run 41 and buried the
+  # process lines post-run step 1 reads, where only a tracked change can
+  # say the source differs from the commit named above. Case:
+  # `tree-line-lists-tracked-changes-only`.
+  TRACKED=$(printf '%s\n' "$DIRTY" | grep -v '^??' | grep .)
+  log "tree: $(printf '%s' "$DIRTY" | grep -c .) path(s) untracked or modified,\
+ $(printf '%s' "$TRACKED" | grep -c .) of them tracked"
+  [ -z "$TRACKED" ] || printf '%s\n' "$TRACKED" | tee -a "$R-wallclock.log"
 fi
 uptime | tee -a "$R-wallclock.log"
 
