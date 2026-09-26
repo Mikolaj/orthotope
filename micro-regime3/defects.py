@@ -8986,6 +8986,22 @@ RECORDS = [
                    's1 lib-a, NONLINEAR in instructions']),
          bug=V(has=["'lib-a': 1030.0"])),
 
+    case('counts-over-calls-a-dropped-cell-refused', 'read-run.py',
+         'c1581da',
+         '--counts-over counted a cell dropped as nonlinear among lines'
+         ' "refused" and named none, and --counts called it perf refused',
+         plant=lambda t: {'new': write(os.path.join(t, 'nl.txt'),
+                                       '# shape arm N instructions:u\n'
+                                       's1 lib-a 50 1030\n'
+                                       '# NONLINEAR s1 lib-a: instructions:u'
+                                       ' 1030 then 1100\n'
+                                       's2 lib-a 50 3000\n'),
+                          'old': probe_stalls_sweeps(t)['old']},
+         argv=['--counts-over', '{new}', '{old}'],
+         ok=V(exit=0, has=['1 cell(s) perf refused or marked nonlinear, not'
+                           ' read: s1 lib-a, NONLINEAR in instructions']),
+         bug=V(exit=0, has=['1 line(s) refused, not read'])),
+
     case('counts-over-reads-one-sweep-against-another', 'read-run.py',
          '95190de',
          'no mode read one sweep over another per arm, so Run 42\'s priors'
