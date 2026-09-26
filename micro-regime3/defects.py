@@ -6959,7 +6959,7 @@ RECORDS = [
          ok=V(exit=1, has=['anchors: `cnn-slice-c32`',
                            'two-column: `mut-odo-vecdims`'])),
 
-    case('hand-tables-drops-a-departed-row', 'read-run.py', None,
+    case('hand-tables-drops-a-departed-row', 'read-run.py', '0b38fd0',
          'a two-column row for an arm the run no longer times refused the'
          ' whole install',
          # Run 41's install stopped at 5b on `lib-stage3-lean-onelevel`,
@@ -6974,7 +6974,8 @@ RECORDS = [
                           'b': synth_json(t, 'main', name='b.json')},
          argv=['{a}', '--compare', '{b}', '--hand-tables', '--in-place',
                '--run-doc', '{doc}'],
-         ok=V(exit=0, has=['`retired-arm`', 'dropped'])),
+         ok=V(exit=0, has=['`retired-arm`', 'dropped']),
+         bug=V(exit=2, has=['no such arm in both JSONs'])),
 
     # ---- --gate-draft, run list step 14a's four readings as one table ----
     case('gate-draft-names-the-half-that-drifted', 'read-run.py', None,
