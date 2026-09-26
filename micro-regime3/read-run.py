@@ -2794,21 +2794,34 @@ def parse_counts(path):
     artifact says outright that such a line is a refusal and not a count.
     Refusals are returned so the caller can name them, an unread line being
     the thing this file refuses to do silently.
+
+    AND `probe-stalls.sh`'s sweeps, a column per event: the header line
+    `# shape arm N EVENT ...` names them, and the one read is
+    `instructions:u`, so a preparation's priors read here rather than in a
+    scratch script, as Run 42's were (2026-09-26). Case:
+    `counts-reads-no-probe-stalls-file`.
     """
     counts, refused, malformed = {}, [], []
+    col, width = 3, 4
     with open(path) as f:
         for line in f:
             line = line.strip()
+            hdr = re.match(r'#\s*shape\s+arm\s+N\s+(.+)$', line)
+            if hdr:
+                evs = hdr.group(1).split()
+                if 'instructions:u' in evs:
+                    col, width = 3 + evs.index('instructions:u'), 3 + len(evs)
+                continue
             if not line or line.startswith('#'):
                 continue
             if line.startswith('!!'):
                 refused.append(' '.join(line.split()[1:3]))
                 continue
             parts = line.split()
-            if len(parts) != 4:
+            if len(parts) != width:
                 malformed.append(line)
                 continue
-            sh, arm, _n, ins = parts
+            sh, arm, ins = parts[0], parts[1], parts[col]
             try:
                 v = float(ins)
             except ValueError:
@@ -6458,6 +6471,43 @@ def movement(path, args):
           ' is --compare against that run\'s own JSON, and the two have'
           ' parted by fourteen points on one row of one pair.'
           % (moved, flat))
+    return 0
+
+
+def counts_over(new, old):
+    """Each arm's instructions in one sweep over another, shape by shape.
+
+    What a preparation reads its priors against: this build's probe over
+    the last run's counts, arm by arm -- which arms the source moved and
+    where. Run 42's did it in a scratch script (2026-09-26). Either file
+    may be a run-counts.sh sweep or a probe-stalls.sh one; only the arms
+    and shapes both carry are read. Case:
+    `counts-over-reads-one-sweep-against-another`.
+    """
+    a, ra, ma = parse_counts(new)
+    b, rb, mb = parse_counts(old)
+    print('instructions an iteration, %s over %s, per arm over the shapes'
+          ' both carry' % (os.path.basename(new), os.path.basename(old)))
+    for what, got in (('refused', ra + rb), ('malformed', ma + mb)):
+        if got:
+            print('  %d line(s) %s, not read' % (len(got), what))
+    arms = sorted({arm for sh in a for arm in a[sh]}
+                  & {arm for sh in b for arm in b[sh]})
+    if not arms:
+        print('  no arm is in both sweeps')
+        return 1
+    print('  %-40s %9s %22s %22s %18s'
+          % ('arm', 'geomean', 'lowest', 'highest', 'widest a call'))
+    for arm in arms:
+        rs = [(a[sh][arm] / b[sh][arm], a[sh][arm] - b[sh][arm], sh)
+              for sh in sorted(set(a) & set(b))
+              if arm in a[sh] and arm in b[sh]]
+        lo, hi = min(rs), max(rs)
+        wide = max(rs, key=lambda r: abs(r[1]))
+        print('  %-40s %9.4f %22s %22s %18s'
+              % (arm, geomean([r[0] for r in rs]),
+                 '%.4f on %s' % (lo[0], lo[2]), '%.4f on %s' % (hi[0], hi[2]),
+                 '%+.0f on %s' % (wide[1], wide[2])))
     return 0
 
 
@@ -10342,7 +10392,11 @@ def _note_kind(lead):
     FIRED, in a note whose gate the same call had reset to NOT RUN
     (2026-09-09). Post-run step 3a's NAMED FILLS go with it, for the same
     reason from the same place: Run 40's arrived in Run 41's draft renamed
-    to run41, naming two twins no build had made (2026-09-26).
+    to run41, naming two twins no build had made (2026-09-26). And `THE
+    GATE:`, the paragraph saying the gate took its benches: it carries no
+    marker, so it took the kind of the `[PAIR'S]` block above it and
+    crossed whole under --repeat, a few lines over `GATE: NOT RUN` in Run
+    42's draft (2026-09-26). Case: `repeat-carries-a-spent-gate-block`.
     """
     if any(lead.startswith(h) for h in NOTE_HANDOVER):
         return 'handover'
@@ -10350,6 +10404,7 @@ def _note_kind(lead):
             or lead.startswith('GATE:')
             or lead.startswith("THE GATE'S VERDICT")
             or lead.startswith('THE MACHINE CHECK')
+            or lead.startswith('THE GATE:')
             or lead.startswith('NAMED FILLS')):
         return 'gate'
     if lead.startswith('Verified when built'):
@@ -10893,6 +10948,19 @@ def pair_note(path, draft=None, halves=None, repeat=False):
                     out.append('\n'.join(keep))
             continue
         if kind == 'pairs':
+            # THE STEP-12 OUTCOME IS A DECISION INSIDE A MODEL: THE ROSTER
+            # says whether the -L1 pass was owed and taken, which is the
+            # pair's own and was carried whole under --repeat -- Run 41's
+            # `IT WAS NOT TAKEN, on the owner's word` reached Run 42's
+            # draft as though it were Run 42's (2026-09-26). Cut from the
+            # phrase to the paragraph's end and left a slot. Case:
+            # `repeat-carries-the-step-12-outcome`.
+            m12 = re.search(r"STEP 12'S\s+CONDITION", para)
+            if m12 and title.startswith('THE ROSTER'):
+                para = (para[:m12.start()] + "STEP 12'S CONDITION <yours>"
+                        ' -- whether 6c fires it for this pair, and whether'
+                        ' the pass was taken')
+                pairs.append("THE ROSTER's step 12")
             if announced and not repeat:
                 out.append("%s [PAIR'S]: <yours> -- the previous pair's"
                            ' block follows as a model: rewrite it for this'
@@ -11005,6 +11073,12 @@ def pair_note(path, draft=None, halves=None, repeat=False):
     ren = {'%s-%s' % (prev, o): '%s-%s' % (draft, n)
            for o, n in zip(old, new)}
     ren[prev] = draft
+    # A BUILDDIR IS NAMED FOR ITS RUN, `db-r41a`, and no `runNN` rename
+    # reaches it, so --repeat carried Run 41's two into Run 42's recipes
+    # (2026-09-26). Case: `repeat-keeps-the-previous-builddir`.
+    pn, dn = re.search(r'\d+$', prev), re.search(r'\d+$', draft)
+    if pn and dn:
+        ren['db-r%s' % pn.group(0)] = 'db-r%s' % dn.group(0)
     seen = {}
     ren_rx = re.compile('|'.join(re.escape(k) for k in
                                  sorted(ren, key=len, reverse=True)))
@@ -11832,16 +11906,39 @@ def _para_item(para, n):
     return para[start.start():nxt.start() if nxt else len(para)].rstrip()
 
 
+def _trailing_block(lines, last):
+    """The indented block directly after source line `last`, or ''.
+
+    A paragraph that ends by introducing a block -- README's *The shape of
+    a registration* and its skeleton -- is not whole without it, and
+    wrap80 hands the block back a line at a time, each its own paragraph
+    with no lead, so no match ever reached it. Four spaces, as Markdown
+    reads a code block; a nested list item is not one. Added 2026-09-26.
+    Case: `para-drops-the-block-its-paragraph-hands-on-to`.
+    """
+    i = last
+    while i < len(lines) and not lines[i].strip():
+        i += 1
+    out = []
+    while i < len(lines) and (not lines[i].strip()
+                              or (lines[i].startswith('    ')
+                                  and not re.match(r'\s*(?:[-*]|\d+\.)\s',
+                                                   lines[i]))):
+        out.append(lines[i])
+        i += 1
+    return '\n'.join(out).rstrip()
+
+
 def _para_leads(paras, rx):
     """The paragraphs whose bolded lead matches, with and without markup."""
     hits = []
-    for path, first, para in paras:
+    for path, first, para, *_rest in paras:
         lead = LEAD_RE.search(para)
         if not lead:
             continue
         flat = ' '.join(lead.group(1).split())
         if rx.search(flat) or rx.search(re.sub(r'[`*]', '', flat)):
-            hits.append((path, first, para, flat))
+            hits.append((path, first, para, *_rest, flat))
     return hits
 
 
@@ -11931,15 +12028,16 @@ def paragraphs(docs, pattern, every=False):
             sys.stderr.write('--para: %r is neither a usable regex (%s) nor'
                              ' matchable literally\n' % (pattern, e))
             return 2
-    paras = []
+    paras, src = [], {}
     for path in docs:
         try:
             lines = open(path).read().split('\n')
         except OSError as e:
             sys.stderr.write('--para: %s\n' % e)
             return 2
-        paras += [(path, first, para)
-                  for first, para, _ in unwrapped_paragraphs(lines)]
+        src[path] = lines
+        paras += [(path, first, para, spans[-1][0])
+                  for first, para, spans in unwrapped_paragraphs(lines)]
     # AND IF THE REGEX MATCHES NOTHING, RETRY IT AS A LITERAL. A bracketed
     # lead compiles -- so the try above never fires -- and then matches
     # nothing, which is the quieter half of this defect: the caller is told
@@ -11973,18 +12071,21 @@ def paragraphs(docs, pattern, every=False):
         print('%d paragraph(s) whose lead matches %r; --all prints them,'
               ' or narrow the pattern to one:'
               % (len(lead_hits), pattern))
-        for path, first, _para, lead in lead_hits:
+        for path, first, _para, _last, lead in lead_hits:
             print('  %s:%d  %s'
                   % (os.path.basename(path), first, lead[:88]))
         return 0
-    for path, first, para, _lead in lead_hits:
+    for path, first, para, last, _lead in lead_hits:
         print('%s:%d' % (os.path.basename(path), first))
         print(_para_item(para, item) if item else para)
+        block = '' if item else _trailing_block(src[path], last)
+        if block:
+            print('\n' + block)
         print()
     if lead_hits:
         return 0
 
-    body = [(path, first, para) for path, first, para in paras
+    body = [(path, first, para) for path, first, para, _last in paras
             if rx.search(para)]
     # THE LITERAL RETRY REACHES THE BODY TOO. A registration item's
     # paragraph opens with `(9) *The floor ...*` and no bolded lead at all,
@@ -11992,7 +12093,7 @@ def paragraphs(docs, pattern, every=False):
     # nothing, which is the silent failure this fallback exists to end.
     if not body and re.escape(pattern) != pattern:
         lit = re.compile(re.escape(pattern), re.I)
-        body = [(path, first, para) for path, first, para in paras
+        body = [(path, first, para) for path, first, para, _last in paras
                 if lit.search(para)]
     if not body:
         print('no paragraph whose bolded lead or body matches %r' % pattern)
@@ -13898,7 +13999,18 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                        ' this check\'s pattern moves with it'
                        % '; '.join(lost))
         if off:
-            bad.append('run-current count(s) out of date: %s'
+            # AND WHAT THE FIX IS, which the count alone does not say: a
+            # roster change owes these sentences an edit in the commit that
+            # made it, and README's roster chain is where a landing or a
+            # parking is dated. Run 42's preparation met this after two
+            # owner commits and read this function to find the sites
+            # (2026-09-26). Case: `stale-arm-count-names-no-fix`.
+            bad.append('run-current count(s) out of date: %s -- sentences'
+                       ' about the roster as it stands, owed an edit by the'
+                       ' commit that moved it; a landing or a parking is'
+                       ' dated in README\'s roster chain, `and the landing'
+                       ' of DATE --- ARMS --- takes the roster to N benches,'
+                       ' so with the controls the run is N arms`'
                        % '; '.join(off))
         if not lost and not off:
             print('ok:   the prose counts of controls, A/A arms, benches and'
@@ -14285,8 +14397,15 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                        for c in sorted(shape_rows)
                        if c in want and int(shape_rows[c]) != want[c]]
                 if shp:
+                    # The exemption by name, since the check reads it and
+                    # the message did not say so (2026-09-26). Case:
+                    # `stale-class-count-names-no-exemption`.
                     bad.append('the class table\'s shape counts disagree with'
-                               ' Main.hs: %s' % '; '.join(shp))
+                               ' Main.hs: %s -- a view added after the newest'
+                               ' run is declared in that run file\'s roster'
+                               ' paragraph, `` `VIEW` was added DATE, after'
+                               ' the run ``, and the count then holds to the'
+                               ' run\'s own' % '; '.join(shp))
                 elif shape_rows and not shp and len(cls_leads) == len(want):
                     print('ok:   %d class block(s) and their table\'s shape'
                           ' counts match the %d class(es) Main.hs defines'
@@ -14392,9 +14511,15 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                        ' if the sentences were reworded, this check\'s'
                        ' patterns move with them')
         elif set(seen) != {want}:
+            # Its sites by their phrasing, which is what a grep of the
+            # unwrapped README finds (2026-09-26). Case:
+            # `stale-roster-size-names-no-fix`.
             bad.append('the roster size reads %s across its %d sites, where'
                        ' Main.hs holds %d timed arms over %d main-set shapes'
-                       ' and so %d benches'
+                       ' and so %d benches -- the sites are README\'s'
+                       ' `takes the roster to N benches` and `roster is Run'
+                       ' N\'s M benches`, and a roster change extends'
+                       ' README\'s roster chain with its date'
                        % ('/'.join(str(s) for s in sorted(set(seen))),
                           len(seen), len(timed), len(main_shapes), want))
         else:
@@ -15939,6 +16064,13 @@ def main():
                    help='with --fingerprint: the class JSONs whose shapes'
                         ' fill the second table; with --extremes, the'
                         ' populations to rank')
+    p.add_argument('--counts-over', dest='counts_over', nargs=2,
+                   metavar=('NEW.txt', 'OLD.txt'),
+                   help='each arm\'s instructions in one sweep over'
+                        ' another, per arm: geomean, extremes by shape and'
+                        ' the widest difference a call -- a preparation\'s'
+                        ' priors against the last run\'s counts; either may'
+                        ' be a probe-stalls.sh sweep')
     p.add_argument('--counts-totals', dest='counts_totals',
                    metavar='RUN',
                    help='what each counted leg of RUN cost, per'
@@ -16573,6 +16705,8 @@ def main():
                       quiet=not args.worklists))
     if args.counts_totals:
         sys.exit(counts_totals(args.counts_totals, args))
+    if args.counts_over:
+        sys.exit(counts_over(*args.counts_over))
     if args.series:
         if len(args.series) not in (3, 4):
             p.error('--series takes A B SHAPE and an optional DIR')
