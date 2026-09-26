@@ -2811,6 +2811,12 @@ def parse_counts(path):
                 evs = hdr.group(1).split()
                 if 'instructions:u' in evs:
                     col, width = 3 + evs.index('instructions:u'), 3 + len(evs)
+                elif evs != ['instructions/iter']:
+                    # No instruction column at all, and the first event is
+                    # not one: every line is malformed rather than read as
+                    # instructions (2026-09-26). Case:
+                    # `counts-reads-cycles-as-instructions`.
+                    width = -1
                 continue
             if not line or line.startswith('#'):
                 continue
@@ -6498,16 +6504,27 @@ def counts_over(new, old):
         return 1
     print('  %-40s %9s %22s %22s %18s'
           % ('arm', 'geomean', 'lowest', 'highest', 'widest a call'))
+    read = 0
     for arm in arms:
         rs = [(a[sh][arm] / b[sh][arm], a[sh][arm] - b[sh][arm], sh)
               for sh in sorted(set(a) & set(b))
               if arm in a[sh] and arm in b[sh]]
+        # An arm both carry on no common shape -- a class probe against a
+        # main-set sweep -- is skipped, not a traceback (2026-09-26). Case:
+        # `counts-over-traces-on-sweeps-sharing-no-shape`.
+        if not rs:
+            continue
+        read += 1
         lo, hi = min(rs), max(rs)
         wide = max(rs, key=lambda r: abs(r[1]))
         print('  %-40s %9.4f %22s %22s %18s'
               % (arm, geomean([r[0] for r in rs]),
                  '%.4f on %s' % (lo[0], lo[2]), '%.4f on %s' % (hi[0], hi[2]),
                  '%+.0f on %s' % (wide[1], wide[2])))
+    if not read:
+        print('  no shape in common: the two sweeps share arms and read them'
+              ' over different populations')
+        return 1
     return 0
 
 
@@ -11906,6 +11923,9 @@ def _para_item(para, n):
     return para[start.start():nxt.start() if nxt else len(para)].rstrip()
 
 
+PARA_BLOCK_CAP = 40     # the registration skeleton is 13 lines, a list 250+
+
+
 def _trailing_block(lines, last):
     """The indented block directly after source line `last`, or ''.
 
@@ -12078,8 +12098,20 @@ def paragraphs(docs, pattern, every=False):
     for path, first, para, last, _lead in lead_hits:
         print('%s:%d' % (os.path.basename(path), first))
         print(_para_item(para, item) if item else para)
-        block = '' if item else _trailing_block(src[path], last)
-        if block:
+        # ONLY A BLOCK THE PARAGRAPH INTRODUCES, ending in `:` and not
+        # itself inside a block, and a long one NAMED rather than printed:
+        # every indented block under a lead came back at first, and the
+        # run chapter's checklists sit under leads, 64 KB for the post-run
+        # list's (2026-09-26). Cases: `para-prints-a-whole-checklist-after-
+        # its-lead`, `para-names-a-long-introduced-block`.
+        block = ('' if item or para.startswith(' ')
+                 or not para.rstrip().endswith(':')
+                 else _trailing_block(src[path], last))
+        n = block.count('\n') + 1 if block else 0
+        if n > PARA_BLOCK_CAP:
+            print('\n[--para: followed by an indented block of %d lines, not'
+                  ' printed; --checklist prints the chapter\'s lists]' % n)
+        elif block:
             print('\n' + block)
         print()
     if lead_hits:
