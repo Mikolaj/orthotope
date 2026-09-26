@@ -9450,6 +9450,12 @@ not otherwise.
     #      ANCHORS, are installed at 5b since 2026-09-25, their rows by
     #      `--hand-tables`, and their leads and headers are yours; the
     #      same mode without --in-place checks them after an edit.
+    #      THE MECHANICAL PROVENANCE PARAGRAPHS ARE PLACED AND READ, NOT
+    #      WRITTEN: 5b installs `--provenance-draft $R` over the previous
+    #      run's -- the evening, gate, plateau, identity, both anchors
+    #      paragraphs, correction, counts, in-situ term, decomposition --
+    #      each with a `___` where a lead or a reading is yours; the
+    #      delta, straddler and regime paragraphs stay yours whole.
     #      AND PROVENANCE OWES A FIXED LIST besides its anchors:
     #      the run's name and regime, each process's stderr line, the
     #      machine, which half ran first, and THE COMMIT transcribed from

@@ -590,6 +590,22 @@ ENDPY
   fi
 fi
 
+# THE PROVENANCE PARAGRAPHS' DRAFTS, off --provenance-draft: the evening,
+# the gate, the plateau, the identity, both anchors paragraphs, the
+# correction, the counts, the in-situ term and the decomposition, each
+# over the previous run's copy and a `___` where the reading is the
+# author's. A paragraph written since the step-5 copy is kept.
+echo "=== installing the Provenance paragraphs' drafts"
+PROV=$(BASIS="$BASIS" OTHER="${OTHER:-}" \
+         ./read-run.py --provenance-draft "$R" --in-place --run-doc "$DOC" 2>&1)
+if [ $? != 0 ]; then
+  echo "  !! --provenance-draft REFUSED:"
+  printf '%s\n' "$PROV" | sed 's/^/       /'
+  BAD=$((BAD + 1))
+else
+  printf '%s\n' "$PROV" | sed 's/^/  /'
+fi
+
 # The one rank, and the one thing here that writes nothing. Assigned and
 # then tested rather than piped: a pipeline exits with its LAST command's
 # status, so `| sed` would report sed's success whatever the reader did,

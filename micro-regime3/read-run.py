@@ -6743,6 +6743,495 @@ def copy_test(log):
     return 0
 
 
+# The Provenance paragraphs --provenance-draft writes, each found in a run
+# file by the phrase it carries: a paragraph of the step-5 copy carrying it
+# is the previous run's and is replaced, one written since is kept.
+PROV_KEYS = (
+    ('evening', '`run-evening.sh` took the gate from'),
+    ('gate', 'The two palindrome passes'),
+    ('plateau', '`read-all.sh` gates each process'),
+    ('identity', 'The two binaries are `'),
+    ('anchors', '**The three main-set anchors**'),
+    ('class-anchors', '**Each stride class carries an anchor of its own'),
+    ('correction', 'The two `sum-only` arms'),
+    ('counts', '`run-counts-all.sh` wrote'),
+    ('insitu', '**The correction is invertible'),
+    ('decomposition', "The riders time each shape's `list` alone"),
+)
+LEAD_YOURS = '**___ (the lead is yours).**'
+
+
+def say_number(n):
+    """A count as the run file writes it: a word up to twelve."""
+    words = ('no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
+             'eight', 'nine', 'ten', 'eleven', 'twelve')
+    return words[n] if 0 <= n < len(words) else str(n)
+
+
+def provenance_draft(run, args):
+    """The run file's mechanical Provenance paragraphs, one line each, off
+    the readings post-run step 4 wrote and the evening's own logs.
+
+    Each carries its figures and a `___` where a reading needs a person: a
+    lead that states a finding, an intrusion's attribution, a comparison
+    with the previous run. The layout paragraphs -- the delta, the
+    straddlers, the regime -- compare against the previous run and stay
+    hand-written. Run 41's Provenance was thirteen paragraphs rewritten by
+    hand, almost every figure copied off these files.
+
+    A paragraph whose source is absent is printed with `___` in its place
+    and says which file it wanted. With --in-place each replaces the
+    paragraph carrying its phrase (PROV_KEYS) where that paragraph is the
+    step-5 copy's -- or, in a file git has no commit of, where it carries
+    `___` -- and keeps any other, so a rerun never takes back a paragraph
+    the author has begun. Case: `provenance-draft-keeps-a-written-one`.
+    """
+    where = os.path.dirname(run) or '.'
+    name = os.path.basename(run)
+    # Through pair-halves.sh, as every driver reads them, so a run with no
+    # note takes BASIS and OTHER from the environment as they do.
+    try:
+        out = subprocess.run([os.path.join(where, 'pair-halves.sh'), name],
+                             capture_output=True, text=True, check=True,
+                             cwd=where).stdout
+    except (subprocess.CalledProcessError, OSError):
+        out = ''
+    kv = dict(p_.strip().split('=', 1) for p_ in out.strip().split(';')
+              if '=' in p_)
+    basis, other = kv.get('BASIS'), kv.get('OTHER')
+    if not (basis and other):
+        sys.stderr.write('%s: pair-halves.sh named no two halves, so nothing'
+                         ' was drafted\n' % run)
+        return 2
+    rdir = os.path.join(where, 'log-read-%s' % name)
+
+    def text(path):
+        try:
+            with open(path, errors='replace') as fh:
+                return fh.read()
+        except OSError:
+            return None
+
+    def quiet(fn, *a):
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), \
+                contextlib.redirect_stderr(io.StringIO()):
+            try:
+                rc = fn(*a)
+            except (OSError, ValueError, KeyError, ZeroDivisionError,
+                    SystemExit):
+                rc = 2
+        return rc or 0, out.getvalue()
+
+    brief = text(os.path.join(rdir, 'for-brief.txt')) or ''
+
+    def brief_line(label):
+        m = re.search(r'^\s*%s\s+(.*)$' % re.escape(label), brief, re.M)
+        return m.group(1).strip() if m else None
+
+    def hhmmss(stamp):
+        m = re.search(r'T(\d\d:\d\d:\d\d)', stamp)
+        return m.group(1) if m else stamp
+
+    paras = []
+
+    # The evening, off run-evening.sh's own stage lines.
+    ev = text(os.path.join(where, '%s-evening.txt' % name))
+    if ev is None:
+        paras.append(('evening', '%s `run-evening.sh` took the gate from ___'
+                      ' (no %s-evening.txt).' % (LEAD_YOURS, name)))
+    else:
+        st = {}
+        rcs = []
+        for m in re.finditer(r'^=== (\S+) (.+?): (start|done, rc=(\d+))$',
+                             ev, re.M):
+            stamp, stage, what, rc = m.groups()
+            st.setdefault((stage.split()[0], what[:4]), []).append(stamp)
+            if rc is not None:
+                rcs.append((stage, int(rc)))
+        alarm = re.search(r'^=== (\S+) alarm: ([\d.]+% busy)', ev, re.M)
+        counted = re.search(r'^=== (\S+) counted work begins', ev, re.M)
+
+        def span(stage):
+            a, b = st.get((stage, 'star')), st.get((stage, 'done'))
+            return (hhmmss(a[0]), hhmmss(b[-1])) if a and b else ('___',
+                                                                   '___')
+        g, sq, rd = span('gate'), span('sequence'), span('riders')
+        bad = ['%s rc=%d' % s for s in rcs if s[1]]
+        hole = re.search(r'largest hole between one process finishing and'
+                         r' the next starting (\S+)', brief)
+        procs = brief_line('processes')
+        nproc = procs.split()[0] if procs else '___'
+        s = ('%s `run-evening.sh` took the gate from %s to %s, the alarm at'
+             ' %s reading %s, the sequence from %s to %s and the riders from'
+             ' %s to %s, %s; the wall-clock log\'s %s sequence processes'
+             ' leave at most %s between one finishing and the next'
+             ' starting.'
+             % (LEAD_YOURS, g[0], g[1],
+                hhmmss(alarm.group(1)) if alarm else '___',
+                alarm.group(2) if alarm else '___', sq[0], sq[1], rd[0],
+                rd[1], 'every stage exiting 0' if not bad
+                else 'stages exiting nonzero: ' + ', '.join(bad), nproc,
+                hole.group(1) if hole else '___'))
+        if counted:
+            s += (' The counted work ran from %s.'
+                  % hhmmss(counted.group(1))[:5])
+        seq = sorted(glob.glob(os.path.join(rdir, 'wild-%s-%s-*.txt'
+                                            % (name, basis)))
+                     + glob.glob(os.path.join(rdir, 'wild-%s-%s-*.txt'
+                                              % (name, other))))
+        hits = []
+        for path in seq:
+            m = re.search(r'IN ONE LINE: (\d+) of (\d+) bench\(es\) at or'
+                          r' above 0.25 foreign, peak (\d+(?:\.\d+)?)',
+                          text(path) or '')
+            if m:
+                hits.append((os.path.basename(path)[len('wild-'):-4],)
+                            + m.groups())
+        if not seq:
+            s += ' `--wild` ___ (no wild-*.txt in %s).' % rdir
+        elif not hits:
+            s += (' `--wild` finds no bench at or above 0.25 of a core'
+                  ' foreign in any of the %d sequence logs.' % len(seq))
+        else:
+            s += (' `--wild` finds benches at or above 0.25 of a core'
+                  ' foreign in %d of the %d sequence logs, ___: %s.'
+                  % (len(hits), len(seq), '; '.join(
+                      '`%s`, %s of its %s benches, peak %s' % h
+                      for h in hits)))
+        paras.append(('evening', s))
+
+    # The gate, off --gate-draft, and the machine check off for-brief.
+    rc, out = quiet(gate_draft, run, args)
+    rows = re.findall(r'^(\S+)\s+([\d.]+)\s+([\d.]+)\s+[\d.]+\s+[\d.]+\s+'
+                      r'(?:same|PART)$', out, re.M)
+    if rc or not rows:
+        s = '%s The two palindrome passes ___ (--gate-draft did not read).' \
+            % LEAD_YOURS
+    else:
+        s = ('%s The two palindrome passes read %s --- %s points apart.'
+             % (LEAD_YOURS, ', '.join(
+                 '`%s` %s and %s' % r for r in rows),
+                ', '.join('%.2f' % (abs(float(a) - float(b)) * 100)
+                          for _, a, b in rows)))
+        drift = re.findall(r'^(\S+) moved between its own two legs by at'
+                           r' most ([\d.]+) points, on (\S+)$', out, re.M)
+        if drift:
+            s += (' Between its own two legs %s.'
+                  % ' and '.join('`%s` moved by at most %s points, on `%s`'
+                                 % d for d in drift))
+    mc = brief_line('machine check')
+    s += (' The machine check reads %s.' % mc if mc
+          else ' The machine check ___ (no for-brief.txt line).')
+    paras.append(('gate', s + ' ___'))
+
+    # The plateau and the A/A worst cells, off for-brief.
+    pl = re.search(r'victim ([\d.]+)-([\d.]+) ms/iter, spread ([\d.]+)%',
+                   brief)
+    within = re.findall(r'^\s*within (\S+) (\d+) process\(es\), ([\d.]+) to'
+                        r' ([\d.]+), spread ([\d.]+)%', brief, re.M)
+    gated = re.findall(r'^(\S+)\s+(ok|\S+)\s+worst cell ([\d.]+)% on (\S+)$',
+                       brief, re.M)
+    floors = brief_line('floors') or ''
+    fl = dict(re.findall(r'main (basis|other) ([\d.]+%)', floors))
+    if not (pl and gated):
+        s = '%s `read-all.sh` gates each process ___ (no for-brief.txt).' \
+            % LEAD_YOURS
+    else:
+        past = [g for g in gated if float(g[2]) > 5]
+        s = ('%s `read-all.sh` gates each process on its own correction and'
+             ' passes %d of %d. The plateau victim runs %s to %s ms/iter'
+             ' across the run, a %s%% spread against a 5%% band%s. %s; the'
+             ' main set\'s floor is %s on the basis and %s on the control.'
+             ' ___'
+             % (LEAD_YOURS, sum(1 for g in gated if g[1] == 'ok'),
+                len(gated), pl.group(1), pl.group(2), pl.group(3),
+                ''.join('; `%s`\'s %s processes sit within %s%% at %s to %s'
+                        % (h, n, sp, lo, hi) for h, n, lo, hi, sp in within),
+                ('The A/A worst cells past 5%% are %s'
+                 % ', '.join('`%s` at **%s%%** on `%s`' % (p, w, sh)
+                             for p, _, w, sh in sorted(
+                                 past, key=lambda g: -float(g[2]))))
+                if past else 'No A/A worst cell is past 5%',
+                fl.get('basis', '___'), fl.get('other', '___')))
+    paras.append(('plateau', s))
+
+    # The pair's identity, off for-brief and the wall-clock log's head.
+    md5 = dict(re.findall(r'(\w+)=([0-9a-f]{32})', brief_line('md5s') or ''))
+    tx = re.search(r'(\d+) bytes on (\w+), (\d+) on (\w+)',
+                   brief_line('text') or '')
+    wc = text(os.path.join(where, '%s-wallclock.log' % name)) or ''
+    tree = re.search(r'tree at (\w+)', wc)
+    s = ('The two binaries are `%s-%s`, md5 `%s`, and `%s-%s`, md5 `%s`,'
+         ' built against a tree at `%s`.'
+         % (name, basis, md5.get(basis, '___'), name, other,
+            md5.get(other, '___'), tree.group(1) if tree else '___'))
+    if tx:
+        size = {tx.group(2): int(tx.group(1)), tx.group(4): int(tx.group(3))}
+        d = size.get(other, 0) - size.get(basis, 0)
+        s += (' Their `.text` sections are **%d** and **%d** bytes, the first'
+              ' column of `size -A`, the control\'s %s%s.'
+              % (size.get(basis, 0), size.get(other, 0),
+                 'the same size to the byte' if not d
+                 else '%d bytes %s' % (abs(d), 'larger' if d > 0
+                                       else 'smaller'),
+                 '' if not d or d % 4096 else
+                 ', %d pages exactly' % (abs(d) // 4096)))
+    else:
+        s += ' Their `.text` sections are ___ (no for-brief.txt line).'
+    paras.append(('identity', '%s %s ___' % (LEAD_YOURS, s)))
+
+    # The main-set anchors, on the shapes the run file's anchors table
+    # names, off the two main JSONs.
+    doc = text(want_run_doc(args))
+    table = re.search(r'^\*\*The three main-set anchors\*\*.*?\n(\|.*?)'
+                      r'(?:\n\n|\Z)', doc or '', re.M | re.S)
+    keys = re.findall(r'^\| `([^`]+)` \|', table.group(1), re.M) \
+        if table else []
+    try:
+        with contextlib.redirect_stderr(io.StringIO()):
+            cells, shapes, strategies, meta = load(os.path.join(
+                where, '%s-%s-main.json' % (name, basis)), args.main)
+            apply_correction(cells, shapes, strategies)
+            o_cells, _, _ = load_other(os.path.join(
+                where, '%s-%s-main.json' % (name, other)), args.main, shapes,
+                meta)
+    except (OSError, ValueError, KeyError, SystemExit):
+        cells = None
+    if not (cells and keys and all(k in cells and k in o_cells
+                                   for k in keys)):
+        s = ('**The three main-set anchors** read ___ (no main JSONs, or no'
+             ' anchors table to name the shapes).')
+    else:
+        pts = [(1 - o_cells[k]['list']['net'] / cells[k]['list']['net'])
+               * 100 for k in keys]
+        s = ('**The three main-set anchors** read %s, net of the forcing pass'
+             ' on the basis half, with the control half\'s beside them ---'
+             ' the absolutes every ratio in this file divides away, kept so'
+             ' a later run can tell a moved box from a moved arm. The control'
+             ' column sits %.1f to %.1f points %s the basis on the %s. ___:'
+             % (', '.join('**%s** on `%s`' % (fmt_abs(cells[k]['list']['net']),
+                                               k) for k in keys),
+                min(abs(p) for p in pts), max(abs(p) for p in pts),
+                'below' if all(p > 0 for p in pts) else
+                'above' if all(p < 0 for p in pts) else 'either side of',
+                say_number(len(keys))))
+    paras.append(('anchors', s))
+
+    # Each class's anchor, off its --block reading, in the run file's order.
+    order = re.findall(r'^\*\*`([a-z0-9]+)` ---', doc or '', re.M)
+    got = []
+    for c in order:
+        blk = ' '.join((text(os.path.join(rdir, '%s-%s-block.txt'
+                                          % (c, basis))) or '').split())
+        m = re.search(r'Anchor: `([^`]+)`, `list` at (\S+ \S+) per call raw,'
+                      r' (\S+ \S+) net', blk)
+        got.append('`%s` %s raw and %s net' % m.groups() if m
+                   else '`%s` ___ (no %s-%s-block.txt anchor)'
+                   % (c, c, basis))
+    s = ('**Each stride class carries an anchor of its own, beside its table,'
+         ' and all %s are `list` on one of that class\'s own shapes, raw and'
+         ' net, off the basis half.** %s. Each is one process\'s reading of'
+         ' one shape and crosses to no other population.'
+         % (say_number(len(order)), '; '.join(got) if got else '___'))
+    paras.append(('class-anchors', s))
+
+    # The correction's footing, off every --aa reading and the reader's own
+    # warnings over every JSON.
+    so = []
+    for path in sorted(glob.glob(os.path.join(rdir, '*-aa.txt'))):
+        m = re.search(r'^sum-only-late\s+sum-only-early\s+\d+\s+\S+\s+'
+                      r'([\d.]+)\s+([\d.]+)%', text(path) or '', re.M)
+        if m:
+            so.append((float(m.group(1)), float(m.group(2))))
+    warned, ncells = [], collections.Counter()
+    for path in sorted(glob.glob(os.path.join(
+            where, '%s-%s-*.json' % (name, basis)))
+            + glob.glob(os.path.join(where, '%s-%s-*.json' % (name, other)))):
+        try:
+            cs, sh, sts, _meta = load(path, args.main)
+            terms = apply_correction(cs, sh, sts)
+        except (OSError, ValueError, KeyError, SystemExit):
+            continue
+        ncells[basis if '-%s-' % basis in path else other] += \
+            len(sh) * len(sts)
+        _rc, w = quiet(health, cs, sh, sts, terms)
+        if re.search(r'R2 < 0.99|under 10 samples', w):
+            warned.append(os.path.basename(path))
+    if so:
+        s = ('%s The two `sum-only` arms read, as `--aa` prints them late'
+             ' over early, %.4f to %.4f across the %d processes, at a mean'
+             ' absolute difference of at most %.2f%%.'
+             % (LEAD_YOURS, min(p for p, _ in so), max(p for p, _ in so),
+                len(so), max(d for _, d in so)))
+    else:
+        s = '%s The two `sum-only` arms ___ (no *-aa.txt in %s).' % (
+            LEAD_YOURS, rdir)
+    if ncells:
+        s += (' Of the run\'s %d cells, %s, the reader\'s R2 and sample'
+              ' warnings print for %s.'
+              % (sum(ncells.values()), ' and '.join(
+                  '%d on `%s`' % (ncells[h], h) for h in (basis, other)),
+                 'none of the JSONs' if not warned
+                 else ', '.join('`%s`' % w for w in warned)))
+    else:
+        s += ' Of the run\'s cells ___ (no JSON of either half).'
+    s += ' ___'
+    paras.append(('correction', s))
+
+    # The counted work, off --counts-totals and each population's
+    # --compare --counts reading.
+    rc, out = quiet(counts_totals, os.path.join(where, name), args)
+    tot = re.search(r'^half total\s+(\d+)s\s+(\d+)s', out, re.M)
+    head = re.search(r'^population\s+(\S+)\s+(\S+)', out, re.M)
+    legs = re.search(r'(\d+) counted leg\(s\) over (\d+) population', out)
+    gms = []
+    for path in sorted(glob.glob(os.path.join(rdir, '*-counts-cmp.txt'))):
+        m = re.search(r'counts geomean over the (\d+) arm\(s\) above, which'
+                      r' are the arms with a\s+corrected time: ([\d.]+)',
+                      text(path) or '')
+        if m:
+            gms.append((float(m.group(2)),
+                        os.path.basename(path)[:-len('-counts-cmp.txt')],
+                        m.group(1)))
+    if rc or not (tot and head and legs):
+        s = ('%s `run-counts-all.sh` wrote ___ (--counts-totals did not'
+             ' read).' % LEAD_YOURS)
+    else:
+        cost = dict(zip(head.groups(), tot.groups()))
+        s = ('%s `run-counts-all.sh` wrote %s sweep files over %s populations,'
+             ' at a cost of %ss on the basis and %ss on the control.'
+             % (LEAD_YOURS, legs.group(1), legs.group(2),
+                cost.get(basis, '___'), cost.get(other, '___')))
+    cls = [g for g in gms if g[1] != 'main']
+    mainm = [g for g in gms if g[1] == 'main']
+    if cls:
+        lo, hi = min(cls), max(cls)
+        s += (' The counts geomean over the %s arms that carry a corrected'
+              ' time runs **%.4f** on `%s` to **%.4f** on `%s`%s.'
+              % (lo[2], lo[0], lo[1], hi[0], hi[1],
+                 ', the main set at **%.4f**' % mainm[0][0] if mainm else ''))
+    paras.append(('counts', s + ' ___'))
+
+    # The correction invertible: the main set's `sum-only` halves and the
+    # in-situ terms, off the two main --aa readings.
+    so_main, insitu = {}, {}
+    for h in (basis, other):
+        t = text(os.path.join(rdir, 'main-%s-aa.txt' % h)) or ''
+        m = re.search(r'^sum-only-late\s+sum-only-early\s+\d+\s+\S+\s+'
+                      r'([\d.]+)', t, re.M)
+        if m:
+            so_main[h] = m.group(1)
+        insitu[h] = re.findall(r'^(\S+) - \S+-nosum\s+sum-only\s+([\d.]+)',
+                               t, re.M)
+    pairs = [a for a, _ in insitu.get(basis, [])]
+    s = ('**The correction is invertible, so pre-correction figures stay'
+         ' comparable.** The `sum-only` term subtracted from every cell is'
+         ' published per shape, and the two `sum-only` halves read **%s**'
+         ' and **%s** on the two halves of the main set.'
+         % (so_main.get(basis, '___'), so_main.get(other, '___')))
+    if pairs and all(insitu.get(h) for h in (basis, other)):
+        s += (' The in-situ term, an arm minus its `-nosum` twin against the'
+              ' `sum-only` the correction actually subtracts, reads %s on the'
+              ' basis and %s on the control for the %s pairs.'
+              % tuple([' and '.join('**%s**' % r for _, r in insitu[h])
+                       for h in (basis, other)]
+                      + [' and '.join('`%s`' % a for a in pairs)]))
+    else:
+        s += ' The in-situ term ___ (no in-situ rows in main-*-aa.txt).'
+    paras.append(('insitu', s + ' ___'))
+
+    # The decomposition, off each half's --deflation reading.
+    dfl = {}
+    for h in (basis, other):
+        t = text(os.path.join(rdir, 'main-%s-deflation.txt' % h)) or ''
+        whole = re.search(r'^geomean ([\d.]+) \(\S+\) over (\d+) shape\(s\);'
+                          r' (\d+) above 1', t, re.M)
+        state = re.search(r'^state\s+sat/clean\s+geomean ([\d.]+)', t, re.M)
+        rest = re.search(r'^rest\s+roster/sat geomean ([\d.]+) \(\S+\),'
+                         r' (\d+) above 1', t, re.M)
+        span_ = re.search(r'the rest runs ([\d.]+) on (\S+) to ([\d.]+) on'
+                          r' (\S+)', t)
+        if whole and state and rest and span_:
+            dfl[h] = (whole.groups(), state.group(1), rest.groups(),
+                      span_.groups())
+    if len(dfl) < 2:
+        s = ("%s The riders time each shape's `list` alone ___ (no"
+             ' main-*-deflation.txt).' % LEAD_YOURS)
+    else:
+        (wb, sb, rb, pb), (wo, so_, ro, po) = dfl[basis], dfl[other]
+        s = ("%s The riders time each shape's `list` alone, one bench to a"
+             ' process, clean and then saturated, after the sequence on the'
+             ' same quiet box, and the state the preamble puts on a process'
+             ' comes back at a geomean of **%s** on the basis and **%s** on'
+             ' the control, **%.1f** points apart. What the roster adds on'
+             ' top of that state is **%s** on the basis, %s of %s shapes'
+             ' above 1, and **%s** on the control, %s of %s; the basis\'s'
+             ' rest runs %s on `%s` to %s on `%s`, the control\'s %s on `%s`'
+             ' to %s on `%s`. The whole in-process deflation is **%s** on the'
+             ' basis, %s of %s shapes above 1, and **%s** on the control, %s'
+             ' of %s. ___'
+             % ((LEAD_YOURS, sb, so_, abs(float(so_) - float(sb)) * 100,
+                 rb[0], rb[1], wb[1], ro[0], ro[1], wo[1]) + pb + po
+                + (wb[0], wb[2], wb[1], wo[0], wo[2], wo[1])))
+    paras.append(('decomposition', s))
+
+    if not args.in_place:
+        for _, s in paras:
+            print(s)
+            print()
+        return 0
+    return install_provenance(paras, args)
+
+
+def install_provenance(paras, args):
+    """--provenance-draft --in-place: each drafted paragraph over the one
+    carrying its phrase in the run file's Provenance section, where that
+    one is the step-5 copy's, or carries `___` in a file with no commit;
+    any other is kept."""
+    path = want_run_doc(args)
+    blocks = open(path).read().split('\n\n')
+    with contextlib.redirect_stderr(io.StringIO()):
+        got = step5_copy(path, '--provenance-draft')
+    tracked = not isinstance(got, int)
+    carried = {' '.join(b.partition('\n|')[0].split())
+               for b in got[3].split('\n\n')} if tracked else set()
+    start = next((i for i, b in enumerate(blocks)
+                  if '\n## Provenance' in '\n' + b), None)
+    if start is None:
+        sys.stderr.write('%s: no `## Provenance` section, so nothing was'
+                         ' installed\n' % os.path.basename(path))
+        return 2
+    end = next((i for i in range(start + 1, len(blocks))
+                if '\n## ' in '\n' + blocks[i]), len(blocks))
+    keyed = dict(PROV_KEYS)
+    placed = kept = 0
+    for key, draft in paras:
+        phrase = keyed[key]
+        hits = [i for i in range(start + 1, end)
+                if phrase in ' '.join(blocks[i].split())]
+        if len(hits) != 1:
+            print('%s: %d paragraph(s) of Provenance carry `%s`, need one;'
+                  ' place it by hand:\n    %s'
+                  % (key, len(hits), phrase, draft))
+            continue
+        i = hits[0]
+        prose, sep, table = blocks[i].partition('\n|')
+        flat = ' '.join(prose.split())
+        if flat in carried or (not tracked and '___' in flat):
+            blocks[i] = draft + (sep + table if sep else '')
+            placed += 1
+        else:
+            print('%s: kept, %s' % (key, 'written since the run file was'
+                                    ' first committed' if tracked
+                                    else 'carrying no `___`'))
+            kept += 1
+    open(path, 'w').write('\n\n'.join(blocks))
+    sys.stderr.write('installed at %s: %d Provenance paragraph(s), %d kept\n'
+                     % (os.path.basename(path), placed, kept))
+    return 0
+
+
 def gate_spans(run, passes, args):
     """The registration's `cross` spans on the main set, against the
     gate's two passes, printed under the draft since 2026-09-26.
@@ -9461,9 +9950,7 @@ def cross_class_summary(basis, others, main):
     def tag(name):
         m = re.match(r'the (\S+) class$', name)
         return '`%s`' % m.group(1) if m else name
-    words = ('no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
-             'eight', 'nine', 'ten', 'eleven', 'twelve')
-    say = lambda n: words[n] if n < len(words) else str(n)
+    say = say_number
     deg = tot - voted
     print('  lead: Over the %s classes the reader counts **%d'
           ' arm-comparisons, %d putting the basis faster and %d slower**,'
@@ -15576,6 +16063,12 @@ def main():
                    help='install --markdown/--fingerprint/--block tables'
                         " into the run's own file instead of printing"
                         ' them')
+    p.add_argument('--provenance-draft', metavar='RUN',
+                   help="the run file's mechanical Provenance paragraphs,"
+                        ' one line each, off the step-4 readings and the'
+                        " evening's logs, `___` where a reading is yours;"
+                        ' with --in-place, installed over the previous'
+                        " run's -- post-run step 6a")
     p.add_argument('--opening', metavar='RUN',
                    help='post-run step 6a\'s three opening readers in one'
                         ' call, before the first paragraph: --inherited,'
@@ -15841,10 +16334,11 @@ def main():
     # exists to refuse.
     if args.in_place and not (args.markdown or args.fingerprint
                               or args.block or args.predictions
-                              or args.hand_tables):
+                              or args.hand_tables
+                              or args.provenance_draft):
         p.error('--in-place is a modifier of --markdown, --fingerprint,'
-                ' --block, --predictions or --hand-tables and does nothing'
-                ' alone')
+                ' --block, --predictions, --hand-tables or'
+                ' --provenance-draft and does nothing alone')
     def asked(v):
         """Was this flag given? False and 0 are given; None is not."""
         return v is not None and v is not False
@@ -16066,6 +16560,8 @@ def main():
         sys.exit(paragraphs(docs, args.para, args.all_paras))
     if args.modes:
         sys.exit(modes_table())
+    if args.provenance_draft:
+        sys.exit(provenance_draft(args.provenance_draft, args))
     if args.opening:
         # 6a's THREE READERS IN ONE CALL, since 2026-09-26: Run 41's
         # write-up ran --prose-facts after most of its prose, the step

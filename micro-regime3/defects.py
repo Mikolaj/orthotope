@@ -3600,6 +3600,23 @@ def rundoc_with_stale_lead_tallies(tmp):
     return write_rundoc(tmp, text)
 
 
+def rundoc_with_provenance_marks(tmp):
+    """The run file with two Provenance paragraphs marked: the plateau one
+    carrying a `___`, which a file with no commit owes the draft, and the
+    evening one carrying none, which it keeps."""
+    text = subprocess.run(['wrap80', '--unwrap'], input=rundoc_text(),
+                          capture_output=True, text=True, check=True).stdout
+    for old, new in (('`read-all.sh` gates each process',
+                      '___ PLANTED-PLATEAU `read-all.sh` gates each process'),
+                     ('`run-evening.sh` took the gate from',
+                      'KEPT-EVENING `run-evening.sh` took the gate from')):
+        if text.count(old) != 1:
+            raise AssertionError('%r occurs %d times, need 1'
+                                 % (old, text.count(old)))
+        text = text.replace(old, new)
+    return write_rundoc(tmp, text)
+
+
 def an_across_paragraph():
     """One class block's `Across the halves:` paragraph, wrapped form.
 
@@ -13473,6 +13490,21 @@ RECORDS = [
               hasnt=['9999 arm-comparisons']),
          bug=V(exit=0, has=['9999 arm-comparisons'],
                hasnt=['the lead tallies installed'])),
+
+    case('provenance-draft-keeps-a-written-one', 'read-run.py', None,
+         "the Provenance section's mechanical paragraphs were rewritten by"
+         ' hand every run, off readings that already print their figures',
+         # Run 41 rewrote thirteen by hand. The draft replaces a paragraph
+         # still owing its `___` in a file with no commit, and keeps one
+         # carrying none -- the author's.
+         plant=lambda t: {'doc': rundoc_with_provenance_marks(t)},
+         env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['--provenance-draft', 'zzpd', '--in-place', '--run-doc',
+               '{doc}'],
+         probe=lambda subs: open(subs['doc']).read(),
+         ok=V(exit=0, has=['KEPT-EVENING', 'evening: kept',
+                           "`read-all.sh` gates each process ___"],
+              hasnt=['PLANTED-PLATEAU'])),
 
     case('install-is-idempotent', 'install-tables.sh', None,
          'CONTROL: a full pass over an untouched run file rewrites no table',

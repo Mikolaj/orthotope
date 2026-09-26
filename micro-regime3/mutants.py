@@ -363,6 +363,19 @@ MUTANTS = [
     # The start check, blinded: the fixture of
     # `paragraph-that-begins-mid-sentence-fails` passes, a paragraph that
     # lost its opening words reading as whole.
+    # --provenance-draft --in-place, blinded: every paragraph carrying its
+    # phrase is taken, so an author's paragraph goes with the carried ones.
+    # The judge plants the case's run file and wants the kept one standing.
+    ('provenance draft replaces a written paragraph', 'read-run.py',
+     "        if flat in carried or (not tracked and '___' in flat):",
+     "        if True:",
+     'PATH="{bin}:$PATH" BASIS=lookrts OTHER=ovhalf python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'doc = m.rundoc_with_provenance_marks(tempfile.mkdtemp())\n'
+     'subprocess.run([sys.executable, \'{file}\', \'--provenance-draft\','
+     ' \'zzpd\', \'--in-place\', \'--run-doc\', doc], capture_output=True)\n'
+     'sys.exit(0 if \'KEPT-EVENING\' in open(doc).read() else 1)"'),
     ('check-doc stops reading how a paragraph begins', 'read-run.py',
      "        if head is None or _not_prose(head) or not re.match(r'[a-z]', head):",
      "        if True:",
