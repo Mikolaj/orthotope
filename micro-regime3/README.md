@@ -1225,11 +1225,11 @@ rather than a slot in the next run, observed again:
   family 3.9 to 4.3% slower than Run 40's basis on the main set and 3.0 to 10.2%
   on `rev`, `bcastmid` and `window`, on instructions a call level to the fourth
   decimal, while the control half's family reads within a quarter of a point
-  of Run 40's control and past 3% on no population; the widest cell in each
-  population is a shape of `sInner` 3. No commit touched `bq-expand`'s code,
-  and `1a359bd`, the shim's change, sits under both halves --- which is what Run
-  41's registration (4) argued from, and its `bq-expand` span died on it ([Run
-  41's
+  of Run 40's control on the main set and past 3% on no population; the widest
+  cell in each population is a shape of `sInner` 3. No commit touched
+  `bq-expand`'s code, and `1a359bd`, the shim's change, sits under both halves
+  --- which is what Run 41's registration (4) argued from, and its `bq-expand`
+  span died on it ([Run 41's
   file](runs/run41.md#what-this-run-was-built-to-answer-and-what-it-answered)).
   **The copy test says it is the BUILD** (2026-09-26, `probe-r41-instance.sh`):
   a fresh copy reads 0.996 to 1.013 of the timed file on the four widest cells,
