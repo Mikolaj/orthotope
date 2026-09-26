@@ -851,8 +851,8 @@ rather than a slot in the next run, observed again:
   In `probe-r42-prior1-compose.txt`, stage fifteen over fourteen in instructions
   reads 1.5794 on `compose-bcast-nest` and 0.4570 on `compose-bcast-wide`,
   or 0.4288 over stage fourteen's `-n 3N` increment, that cell being `NONLINEAR`
-  in instructions in both sweeps at 147469 then 157177 a call, and 27
-  instructions fewer of about 257600 on `compose-rev-bcast`;
+  in instructions in both sweeps, at 147469 then 157177 a call in this one,
+  and 27 instructions fewer of about 257600 on `compose-rev-bcast`;
   `probe-r42-alloc-compose.txt` puts its allocation a call at 37208 bytes
   against 7089 on the first, 3805 against 66041 on the second, and 561 on both
   on the third. Over the main set, `probe-r42-prior1.txt` reads the pair
