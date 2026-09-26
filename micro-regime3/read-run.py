@@ -516,13 +516,14 @@ def dims_by_shape(main_hs):
             elif line.strip() == ']':
                 break
     # `retired`: listed for `check` and not timed, a main shape by name
-    # and a class shape by its class (2026-09-04). Every consumer of the
-    # binary's roster reads it; a run file that timed one is exempted by
-    # the provenance bullet's declaration, in check_doc.
+    # and a class shape by its class (2026-09-04) or by name, a single
+    # class view going the way `runs-3` did on 2026-09-25. Every consumer
+    # of the binary's roster reads it; a run file that timed one is
+    # exempted by the provenance bullet's declaration, in check_doc.
     rsh, rcl = retired_shapes(main_hs), retired_classes(main_hs)
     for sh, d in out.items():
-        d['retired'] = (sh in rsh if d['cls'] == 'main'
-                        else d['cls'] in rcl)
+        d['retired'] = (sh in rsh or
+                        (d['cls'] != 'main' and d['cls'] in rcl))
     return out, ann
 
 
@@ -5672,7 +5673,10 @@ def summary_row(cells, shapes, strategies, args, main_hs):
         return
     if run_doc_mismatch(args, 'summary row `%s`' % class_prefix(shapes)):
         return
-    whole = {s for s, d in dims.items() if d['cls'] in classes}
+    # A view retired from timing is out of the population unless this run
+    # timed it, as `runs-3` is from Run 41 on.
+    whole = {s for s, d in dims.items() if d['cls'] in classes
+             and (not d['retired'] or s in shapes)}
     label = class_prefix(shapes)
     if set(shapes) != whole:
         sys.stderr.write('summary row `%s` not checked: this run carries %d'
@@ -5762,7 +5766,10 @@ def lead_shapes(shapes, args, main_hs):
     label = class_prefix(shapes)
     if len(classes) != 1:
         return
-    whole = {s for s, d in dims.items() if d['cls'] in classes}
+    # A view retired from timing is out of the population unless this run
+    # timed it, as `runs-3` is from Run 41 on.
+    whole = {s for s, d in dims.items() if d['cls'] in classes
+             and (not d['retired'] or s in shapes)}
     if run_doc_mismatch(args, 'lead `%s`' % label):
         return
     if set(shapes) != whole:
@@ -13113,6 +13120,11 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                              r' \d{4}-\d{2}-\d{2}, after the run', uw):
             retired_after |= set(re.findall(r'`([\w.-]+)`', m.group(1)))
         retired = retired_classes(main_hs) - retired_after
+        # A single class view retired by name, `runs-3` on 2026-09-25,
+        # leaves its class's size the same way, and is back in it for the
+        # run file that timed it by the same declaration. Case:
+        # `class-view-retired-by-name-leaves-its-class`.
+        retired_views = retired_shapes(main_hs) - retired_after
         aa = [n for n, r, _ in roster if r == 'Twin']
         controls = [n for n, r, _ in roster if r in ('Twin', 'Term', 'Force')]
         timed = [n for n, r, _ in roster if r != 'Only']
@@ -13505,11 +13517,13 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                 want = collections.Counter(
                     class_prefix([sh]) for sh, d in cdims.items()
                     if d['lst'] not in MAIN_LISTS and sh not in added_after
-                    and class_prefix([sh]) not in retired)
+                    and class_prefix([sh]) not in retired
+                    and sh not in retired_views)
                 full = collections.Counter(
                     class_prefix([sh]) for sh, d in cdims.items()
                     if d['lst'] not in MAIN_LISTS
-                    and class_prefix([sh]) not in retired)
+                    and class_prefix([sh]) not in retired
+                    and sh not in retired_views)
             except Exception as exc:                       # noqa: BLE001
                 want = None
                 bad.append('could not derive the classes from %s (%s), so'
@@ -13630,7 +13644,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         class_sizes = {}
         for s, d in dims.items():
             if (d['cls'] != 'main' and s not in added_after
-                    and d['cls'] not in retired):
+                    and d['cls'] not in retired and s not in retired_views):
                 class_sizes.setdefault(d['cls'], set()).add(s)
         want = len(timed) * len(main_shapes)
         seen = [int(m) for p in (r'takes the roster to (\d+) benches',

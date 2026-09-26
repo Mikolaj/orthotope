@@ -11720,6 +11720,21 @@ RECORDS = [
                '--main', '{main}'],
          ok=V(hasnt=['match no population'])),
 
+    case('class-view-retired-by-name-leaves-its-class', 'read-run.py', None,
+         "a class view retired by name in `retiredShapes` still counted in"
+         " its class's size, so the first run file tabling the class"
+         " without it failed `--check-doc`",
+         # `runs-3` left timing on 2026-09-25 through `retiredShapes`, the
+         # first class view there, while `dims_by_shape` read that list for
+         # main-set shapes alone and retired a class shape only by its
+         # class. Run 41's file, the first to table `runs` at sixteen,
+         # then failed the class-count and population checks against a
+         # Main.hs `runs` of seventeen. The expression reads the live
+         # Main.hs, so it holds while `runs-3` stays retired there.
+         argv=['--unit', "dims_by_shape(os.path.join(os.path.dirname("
+               "__file__), 'Main.hs'))[0]['runs-3']['retired']"],
+         ok=V(has=['True'])),
+
     case('main-shapes-added-after-the-run-are-exempt', 'read-run.py', None,
          "a main-set shape added between runs failed every `over N shapes`"
          " the run file quotes",
