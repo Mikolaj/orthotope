@@ -6094,7 +6094,8 @@ def half_movers(run, prev, args):
     and `--floor-pairs` read them. Counts are read beside the time where
     both runs carry a sweep for the half, `RUN-counts-HALF[-POP].txt`. A
     flagged arm wants the copy test before any attribution -- the half
-    copied to a probe name and the cell timed on both, one minute -- and
+    copied to a probe name and the cell timed on both, one minute, the
+    row naming its widest cell on the half that moved -- and
     `probe-pageflags.py` on the slow instance while it runs. A reading and
     not a gate: exit 0 whatever it finds, 2 where nothing could be read.
     """
@@ -6142,28 +6143,32 @@ def half_movers(run, prev, args):
             ca = sweep_of(run, h_run[k], pop)
             cb = sweep_of(prev, h_prev[k], pop)
             both_sh = [x for x in shapes if x in b_shapes]
-            g, c = {}, {}
+            g, c, w = {}, {}, {}
             for st in strategies:
                 if no_net(st) or st not in b_strategies:
                     continue
-                rs = [cells[sh][st]['net'] / b_cells[sh][st]['net']
+                rs = [(sh, cells[sh][st]['net'] / b_cells[sh][st]['net'])
                       for sh in both_sh
                       if cells[sh][st]['net'] > 0
                       and b_cells[sh][st]['net'] > 0]
                 if rs:
-                    g[st] = geomean(rs)
+                    g[st] = geomean([r for _, r in rs])
+                    # THE WIDEST CELL, the one a copy test times, since
+                    # 2026-09-26: Run 41 found its eight by hand. Case:
+                    # `half-movers-name-the-widest-cell`.
+                    w[st] = max(rs, key=lambda x: abs(math.log(x[1])))
                 if ca and cb:
                     cs = [ca[sh][st] / cb[sh][st] for sh in both_sh
                           if st in ca.get(sh, {}) and st in cb.get(sh, {})]
                     if cs:
                         c[st] = geomean(cs)
-            sides.append((floor, g, c))
+            sides.append((floor, g, c, w))
         if sides is None:
             print('\n%s -- NOT READ: a half of one run has no JSON for it'
                   % pop)
             continue
         read += 1
-        (f0, g0, c0), (f1, g1, c1) = sides
+        (f0, g0, c0, w0), (f1, g1, c1, w1) = sides
         print('\n%s -- floors %s on %s, %s on %s' % (
             pop,
             'none' if f0 is None else '%.2f%%' % (f0 * 100), h_run[0],
@@ -6188,19 +6193,21 @@ def half_movers(run, prev, args):
                 both += 1
             if local:
                 rows.append((st, g0[st], g1[st], c0.get(st), c1.get(st),
-                             h_run[0] if moved[0] else h_run[1]))
+                             h_run[0] if moved[0] else h_run[1],
+                             (w0 if moved[0] else w1)[st]))
         if not rows:
             print('  no half-local mover past %g%% over %d arm(s)'
                   % (pct, len(g0)))
             continue
-        print('  %-34s %8s %8s %8s %8s  %s'
-              % ('arm', h_run[0], h_run[1], 'counts', 'counts', 'moved on'))
+        print('  %-34s %8s %8s %8s %8s  %-12s %s'
+              % ('arm', h_run[0], h_run[1], 'counts', 'counts', 'moved on',
+                 'widest cell'))
         rows.sort(key=lambda r: -max(abs(r[1] - 1), abs(r[2] - 1)))
-        for st, a, b, ka, kb, side in rows:
-            print('  %-34s %8.4f %8.4f %8s %8s  %s'
+        for st, a, b, ka, kb, side, (wsh, wr) in rows:
+            print('  %-34s %8.4f %8.4f %8s %8s  %-12s %s %.4f'
                   % (st, a, b,
                      '--' if ka is None else '%.4f' % ka,
-                     '--' if kb is None else '%.4f' % kb, side))
+                     '--' if kb is None else '%.4f' % kb, side, wsh, wr))
             flagged.append((pop, st, side))
     if not read:
         sys.stderr.write('%s against %s: no population has a JSON on both'

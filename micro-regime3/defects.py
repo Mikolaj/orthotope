@@ -708,6 +708,17 @@ def pair_with_a_compare_run(tmp):
             'run': os.path.join(tmp, 'run98')}
 
 
+def plant_half_mover(tmp):
+    """`pair_with_a_compare_run` with one arm slowed on ONE half: Run 98's
+    basis runs `lib-stage1` three times slower on the first main-set
+    shape, which moves its geomean past the 3% bar on that half alone.
+    `lib-stage1` carries no A/A copy, so the half's floor stays tight."""
+    got = pair_with_a_compare_run(tmp)
+    synth_json(tmp, 'main', name='run98-lookrts-main.json',
+               skew=[(main_shapes()[0], 'lib-stage1', 3)])
+    return got
+
+
 def rundoc_with_ragged_row(tmp):
     """A copy whose yardstick table has one row two cells short.
 
@@ -13826,6 +13837,16 @@ RECORDS = [
          plant=pair_with_a_compare_run,
          argv=['--half-movers', '{run}'],
          ok=V(exit=0, has=['run97'], hasnt=['no COMPARE line'])),
+
+    case('half-movers-name-the-widest-cell', 'read-run.py', None,
+         'a flagged half-local mover gave no cell to time, so each copy test'
+         ' began by hand-parsing --compare --per-shape',
+         # Run 41's copy test needed the widest cell of each of eight
+         # movers and a one-off script found them. The mover here is
+         # slowed on one shape alone, so that shape is the widest cell.
+         plant=plant_half_mover,
+         argv=['--half-movers', '{run}'],
+         ok=V(exit=0, has=['lib-stage1', main_shapes()[0]])),
 
     case('half-movers-refuse-without-prev-or-compare', 'read-run.py', None,
          'CONTROL: --half-movers RUN alone, with no COMPARE line, is refused'
