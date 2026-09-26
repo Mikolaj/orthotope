@@ -13930,7 +13930,8 @@ RECORDS = [
          ok=V(exit=0, has=['BUILD', 'PROCESS']),
          bug=V(exit=2)),
 
-    case('worklist-names-a-figure-no-reader-printed', 'read-run.py', None,
+    case('worklist-names-a-figure-no-reader-printed', 'read-run.py',
+         '3328953',
          'a prose figure no reader mode is named for went unlisted, and the'
          ' chapter asks that such a figure be taken from one',
          # Run 41's write-up did "points" arithmetic by hand in prose, and
@@ -13939,7 +13940,8 @@ RECORDS = [
          plant=lambda t: {'rundoc': plant_unsourced_figure(t)},
          argv=['--check-doc', '--worklists', '--run-doc', '{rundoc}'],
          ok=V(has=['UNSOURCED-FIGURE: the probe arm'],
-              hasnt=['MODE-NAMED-FIGURE'])),
+              hasnt=['MODE-NAMED-FIGURE']),
+         bug=V(hasnt=['UNSOURCED-FIGURE'])),
 
     case('opening-runs-the-three-readers', 'read-run.py', 'cf0dfaa',
          "6a's three opening readers were three calls, and a session ran"
