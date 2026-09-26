@@ -10885,7 +10885,7 @@ RECORDS = [
                      ' log, the'])),
 
     case('for-brief-repetition-row-runs-on-past-its-row', 'read-all.sh',
-         None,
+         '654214e',
          "--for-brief's repetition row ran on through the note's next rows"
          ' when the row ended with no full stop',
          # The `.text` row was given its own continuations alone on
@@ -10894,15 +10894,17 @@ RECORDS = [
          plant=lambda t: for_brief_bare_repetition(t),
          argv=['{tag}', '--for-brief'],
          ok=V(has=['none owed: the inputs moved under both halves'],
-              hasnt=['PASS: same offset'])),
+              hasnt=['PASS: same offset']),
+         bug=V(has=['PASS: same offset'])),
 
-    case('for-brief-intrusion-ends-in-one-stop', 'read-all.sh', None,
+    case('for-brief-intrusion-ends-in-one-stop', 'read-all.sh', '654214e',
          "--for-brief's intrusion verdict ended in two full stops, the"
          " reader's sentence carrying one and the brief's line another",
          shadow=dict(),
          plant=for_brief_intrusion,
          argv=['{tag}', '--for-brief'],
-         ok=V(has=['AN INTRUSION', 'peak 1.95.'], hasnt=['peak 1.95..'])),
+         ok=V(has=['AN INTRUSION', 'peak 1.95.'], hasnt=['peak 1.95..']),
+         bug=V(has=['peak 1.95..'])),
 
     case('for-brief-names-the-readings-it-wants', 'read-all.sh', None,
          'CONTROL: with no readings directory each slot says which command'
