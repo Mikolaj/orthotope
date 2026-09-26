@@ -73,22 +73,22 @@ on that same pair, Run 38 read **2.85x** and **2.20x** on it a third time, Run
 39 read **2.84x** and **2.20x** on it a fourth, under the settled cost, Run 40
 read **2.84x** and **2.20x** on it a fifth, on a source ten commits on, and Run
 41 reads **2.97x** and **2.19x** on it a sixth, its basis half's `bq-expand`
-4.3% slower than Run 40's on code no commit touched and on level instructions
-([the run file](runs/run41.md#what-the-next-run-compares-against)). **TWO
-of `-O2`'s passes cost this headline what the whole level cost it**, 2.20x,
-2.19x, 2.20x, 2.20x, 2.20x and 2.19x against Run 31's 2.19x, a hundredth apart
-over seven readings and across two compilers --- so raising the level costs
-the headline better than six tenths of a multiple and those two passes are where
-the cost lives, `-O2` speeding `bq-expand` by 29% and leaving the fill where
-it is, while changing the compiler moves it by a hundredth or two, down on Run
-32 and up on Runs 33 to 35; the gap this ratio reports is the one the library
-actually compiles in. **One main-set shape sits on the line**:
-on `stretch-pow2stride` the fill and `bq-expand` tie, class property 1 breaking
-on whichever half reads the fill behind, and whether any run reads it behind
-by more than its floor is [an open question][open], which carries every draw.
-**The mutable fills hold the top of the table** --- `lib-stage3-lean` at 0.023,
-`lib-stage2-lean` at 0.024 and `lib-stage1` and `lib-stage2-lean-u1` at 0.025
-([the run file](runs/run41.md#results)), and the shipped leaf at 0.026, against
+slower than Run 40's on code no commit touched and on level instructions ([the
+run file](runs/run41.md#what-the-next-run-compares-against)). **TWO of `-O2`'s
+passes cost this headline what the whole level cost it**, 2.20x, 2.19x, 2.20x,
+2.20x, 2.20x and 2.19x against Run 31's 2.19x, a hundredth apart over seven
+readings and across two compilers --- so raising the level costs the headline
+better than six tenths of a multiple and those two passes are where the cost
+lives, `-O2` speeding `bq-expand` by 29% and leaving the fill where it is, while
+changing the compiler moves it by a hundredth or two, down on Run 32 and up
+on Runs 33 to 35; the gap this ratio reports is the one the library actually
+compiles in. **One main-set shape sits on the line**: on `stretch-pow2stride`
+the fill and `bq-expand` tie, class property 1 breaking on whichever half reads
+the fill behind, and whether any run reads it behind by more than its floor
+is [an open question][open], which carries every draw. **The mutable fills hold
+the top of the table** --- `lib-stage3-lean` at 0.023, `lib-stage2-lean`
+at 0.024 and `lib-stage1` and `lib-stage2-lean-u1` at 0.025 ([the run
+file](runs/run41.md#results)), and the shipped leaf at 0.026, against
 `mut-odo-vecdims`'s 0.045 --- and every one of them needs a new `Vector`-class
 method, which this README argued against for as long as the ceiling stood ---
 to keep orthotope's `Vector` API pure and minimal, a bar an in-tree precedent
@@ -1227,28 +1227,27 @@ rather than a slot in the next run, observed again:
   with its instructions level, and killed a cross-figure registration
   that argued no commit reached it.** **PARKED 2026-09-26 by the owner.** Run
   41's basis, `run40-gheadnospec`'s recipe fifteen commits and a shim change
-  later, runs the whole `bq-expand` family 3.9 to 4.3% slower than Run 40's
-  basis on the main set and 3.0 to 10.2% on `rev`, `bcastmid` and `window`,
-  on instructions a call level to the fourth decimal, while the control half's
-  family reads within a quarter of a point of Run 40's control on the main set
-  and past 3% on no population; the widest cell in each population is a shape
-  of `sInner` 3. No commit touched `bq-expand`'s code, and `1a359bd`, the shim's
-  change, sits under both halves --- which is what Run 41's registration (4)
-  argued from, and its `bq-expand` span died on it ([Run 41's
+  later, runs the whole `bq-expand` family slower than Run 40's basis
+  on the main set, `rev`, `bcastmid` and `window`, on level instructions, while
+  the control half's family moves past 3% on no population ([Run 41's item
+  (4)](runs/run41.md#what-this-run-was-built-to-answer-and-what-it-answered));
+  the widest cell in each population is a shape of `sInner` 3. No commit touched
+  `bq-expand`'s code, and `1a359bd`, the shim's change, sits under both halves
+  --- which is what Run 41's registration (4) argued from, and its `bq-expand`
+  span died on it ([Run 41's
   file](runs/run41.md#what-this-run-was-built-to-answer-and-what-it-answered)).
-  **The copy test says it is the BUILD** (2026-09-26, `probe-r41-instance.sh`):
-  a fresh copy reads 0.996 to 1.013 of the timed file on the four widest cells,
-  and Run 40's basis runs them at 0.883 to 0.906 of it in fresh processes.
-  **And it is not an offset in line**: `perf record`
-  on `cnn-L2-24x24-c32/bq-expand` puts 13% more cycles in the process and 15%
-  more in the binary's own code on this build, over the same `-n 1600`, libc's
-  `memmove` level between the two, and finds the three hottest blocks
-  at the same offset in their cache line on both builds, moved by whole lines
-  --- two by 0x9c0 and one by -0x3c0, so their distances from one another
-  changed. **What would settle it**: a basis rebuilt with the shim at `fe6d133`
-  on this source separates the shim's replanning from the source's,
-  and a counter reading of that cell on the two builds --- front-end and branch
-  events, `probe-stalls.sh` --- says what the 13% is spent on.
+  **The copy test says it is the BUILD** ([Run 41's
+  Results](runs/run41.md#results)). **And it is not an offset in line**:
+  `perf record` on `cnn-L2-24x24-c32/bq-expand` puts 13% more cycles
+  in the process and 15% more in the binary's own code on this build,
+  over the same `-n 1600`, libc's `memmove` level between the two, and finds
+  the three hottest blocks at the same offset in their cache line on both
+  builds, moved by whole lines --- two by 0x9c0 and one by -0x3c0, so their
+  distances from one another changed. **What would settle it**: a basis rebuilt
+  with the shim at `fe6d133` on this source separates the shim's replanning
+  from the source's, and a counter reading of that cell on the two builds ---
+  front-end and branch events, `probe-stalls.sh` --- says what the 13% is spent
+  on.
 - `PARKED` **Four arms moved past 3% against Run 32 on ONE half each, with their
   counts level; the copy test, taken after the run, gives one of them
   to the evening's mounted file instance and cannot reach the other three.**
@@ -1754,22 +1753,19 @@ rather than a slot in the next run, observed again:
   and a run that surveys its pair appends its row. **The page multiple holds
   on every flag pair and on no compiler pair**, and nothing here explains why
   the difference should be a round page multiple. **The loop count parts
-  from it**: the flag pairs of Runs 29, 30, 31, 36 and 40 carry FEWER self-loops
-  on the flagged half, the larger, where Runs 38, 39 and 41 carry MORE, and Run
-  38's source moved fourteen commits and Run 40's ten under an unmoved compiler,
-  shim and project file, the sign changing both times, and Run 41's fifteen
-  with the shim moved besides changed it a third time, the compiler moving
-  in none of the three, so what changes the sign is not the compiler; Run 32,
-  the one compiler pair surveyed, also carries more on its larger half. **Where
-  there were fewer, they were removed and not grown past the survey's 64 B
-  cutoff**: counting every self-loop of any length in `_Main_`-compiled code,
-  the cutoff lifted to 96, 128, 192 and 256 B and then past any loop,
-  `run29-nospec` holds 327 against `run29-spec`'s 268 and `run30-nospec` 327
-  against `run30-libcase`'s 318, so neither gap closes at any cutoff.
-  `--library` separates one pass from a level: `-fliberate-case` displaced
-  no tracked library loop and the whole `-O2` level nearly all of them,
-  the table's same-offset column reading 100.0% and 4.4%. What would close
-  the entry is that raised-cutoff count on the pairs not yet asked, Run 31's
+  from it**: on a flag pair the flagged half, the larger, carries fewer
+  self-loops on some runs and more on others, the sign changing between runs
+  whose compiler did not move, so what changes it is not the compiler; Run 32,
+  the one compiler pair surveyed, carries more on its larger half. **Where there
+  were fewer, they were removed and not grown past the survey's 64 B cutoff**:
+  counting every self-loop of any length in `_Main_`-compiled code, the cutoff
+  lifted to 96, 128, 192 and 256 B and then past any loop, `run29-nospec` holds
+  327 against `run29-spec`'s 268 and `run30-nospec` 327 against
+  `run30-libcase`'s 318, so neither gap closes at any cutoff. `--library`
+  separates one pass from a level: `-fliberate-case` displaced no tracked
+  library loop and the whole `-O2` level nearly all of them, the table's
+  same-offset column reading 100.0% and 4.4%. What would close the entry
+  is that raised-cutoff count on the pairs not yet asked, Run 31's
   and those from Run 36 on; until then a run that read placement off the survey
   count would be reading two events as one.
 
@@ -14007,15 +14003,16 @@ tables and its fingerprint say so.
   besides, so it is read against Run 40's basis `run40-gheadnospec`, whose
   recipe its own BASIS repeats to the character, and two rewritten fills read
   1.9 and 4.4 points faster there while the `bq-expand` family, which no commit
-  reached, reads 3.9 to 4.3 points slower on level instructions, and the other
-  eleven arms that carry a corrected time read within 1.1 points. Its sequence
-  ran in ONE window, 02:10:07 to 09:01:49, 20 class processes and two main-set
-  ones, in the order the run list gives, and TWO benches were intruded on, both
-  in the control half's main set, for which a sensitivity reading stands
-  in place of a rerun. `list` having moved 29.26 points on this run's main set,
-  none of its eleven populations may have its two columns differenced.
-  **And its floor is a maximum over EIGHT A/A pairs**, both halves' figures
-  in [Run 41's own file](runs/run41.md).
+  reached, reads slower on level instructions ([Run 41's item
+  (4)](runs/run41.md#what-this-run-was-built-to-answer-and-what-it-answered)),
+  and the other eleven arms that carry a corrected time read within 1.1 points.
+  Its sequence ran in ONE window, 02:10:07 to 09:01:49, 20 class processes
+  and two main-set ones, in the order the run list gives, and TWO benches
+  were intruded on, both in the control half's main set, for which a sensitivity
+  reading stands in place of a rerun. `list` having moved 29.26 points
+  on this run's main set, none of its eleven populations may have its two
+  columns differenced. **And its floor is a maximum over EIGHT A/A pairs**, both
+  halves' figures in [Run 41's own file](runs/run41.md).
 - Run 40 measured 31 timed arms over 19 main-set shapes and 61 class views
   in TEN classes, 589 benches and 1891, EIGHT A/A pairs, the `runs` class
   at SEVENTEEN, `window` at EIGHT, `bcast` and `flip` at SIX, `block`
