@@ -7437,6 +7437,17 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      it is not. Read the previous run's basis off its own note's
     #      HALVES line, which is where preflight's fill-in block reads it.
     #      why: a rebuild retires the comparison.
+    #  2e. the priors 12a writes against, taken NOW, while the box is quiet
+    #      and before preflight and the sweeps load it: `probe-stalls.sh`
+    #      on $R-<basis> over the arms the items will read, at the counts
+    #      N the previous run's sweeps name, TWICE, with
+    #      `EVENTS=instructions:u,cycles:u`, and `ALLOC=1` where an item
+    #      is priced in bytes. A cycle figure is a prior only where the
+    #      two sweeps agree on it; `./read-run.py --counts-over NEW OLD`
+    #      reads a sweep against the previous run's counts arm by arm.
+    #      Run 42 took them under the roster pass, and its two sweeps'
+    #      cycles parted by up to four times on one cell
+    #      why: a load the box carries is counted in its cycles.
     #      A rebuild retires it, and the fills read here are the
     #      pinning claim's only reading.
     #      The two tags are not always one: a tag names what a half is, so
@@ -7606,11 +7617,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #  8e. and in that case every mutant, `selftest-mutants.py .`,
     #      which --corpus runs after 8d: an edit can move a mutant's
     #      anchor, and 94a3cfd lost one unseen until a write-up
-    #  8c TO 8e COME AFTER 11 AND 12: `./preflight.sh $R --corpus
-    #      --fill-in` runs these three alone and prints their fill-in row.
-    #      Take it once 11 has printed `sweep clean` and 12, where owed,
-    #      `pass clean`, and BEFORE 12c, which is the commit. The order is
-    #      12a and 12b under the sweeps, then --corpus alone, then 12c
+    #  8c TO 8e COME AFTER 11 AND 12, at the `--corpus` line under 12,
+    #      which says when
     #      why: --para 'What the three script-check steps'
     #      `--changed REV` reads REV as the ROOT, answers BLOCKED and
     #      exits 2, which is a run that did not happen and reads nothing
@@ -7727,12 +7735,15 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      first, and read the membership off 6c above rather than off
     #      the roster delta under Provenance. The main set plus a leg per
     #      class named,
-    #      AND NAME EVERY CLASS where the roster gained an arm, the script's
-    #      bare default being `scaled` alone. Name a subset -- `scaled` plus
-    #      each class whose count 6c's tally moved -- only where the roster
-    #      gained no arm. A pass naming every class runs about an hour,
-    #      which is what to plan for -- and where the owner is at hand, say
-    #      that cost and take a word before launching it.
+    #      AND NAME EVERY CLASS where the roster gained an arm, with
+    #      `ARMS=` naming the arms 6c counts in and a control beside them:
+    #      each class leg then takes those, `list` and the two `sum-only`
+    #      arms, and the main leg the whole roster, which is then most
+    #      of the pass's cost, about a third of the hour the whole roster over
+    #      every class takes (ruled 2026-09-26).
+    #      Where the roster gained no arm, name `scaled` plus each class
+    #      whose count 6c's tally moved, over the whole roster, the
+    #      script's bare default being `scaled` alone.
     #      Artifacts are
     #      `smoke-l1-$R-*`, never `$R-*` (smoke-l1.sh's header, the
     #      namespace), and a previous attempt's are refused. A pass you
@@ -7777,10 +7788,12 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      leg ENDS, so its output file is unchanged for the whole of a
     #      leg while the leg's JSON grows under it, which reads like
     #      progress and is not
-    ./preflight.sh $R --corpus --fill-in  # 8c and 8d, deferred to here:
-    #      run them once 11 has printed `sweep clean` and 12, where owed,
-    #      `pass clean`, and nothing is writing a JSON. Their two verdicts
-    #      are the only ones this half owes that were not read above
+    ./preflight.sh $R --corpus --fill-in  # 8c to 8e, deferred to here,
+    #      alone, printing their fill-in row: once 11 has printed `sweep
+    #      clean` and 12, where owed, `pass clean`, nothing is writing a
+    #      JSON, and BEFORE 12c, the commit -- 12a and 12b under the
+    #      sweeps, then this, then 12c. Their verdicts are the only ones
+    #      this half owes that were not read above
     #  12a. write the registration, which is this half's largest product
     #      -- as ONE paragraph, which post-run step 5 moves whole into the
     #      run file with `--move-registration`: what this run is built to
@@ -7991,7 +8004,10 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      clear the turn-end hold once the commit has landed.
     #      What the commit itself is: the registration on its own, tooling
     #      changes partitioned from it, and nothing pushed without a
-    #      go-ahead. Leave nothing uncommitted. The note is gitignored and
+    #      go-ahead. Roster debt that 7 or 8 finds at preflight -- a
+    #      roster change whose commit left the counts stale -- is repaired
+    #      in a commit of its own, before the registration's. Leave
+    #      nothing uncommitted. The note is gitignored and
     #      goes with the pair, so it is never in a commit.
     #  That is the preparation. What wants a quiet machine is the run
     #      list below, which starts on an explicit
