@@ -2752,21 +2752,12 @@ outerFirst = reverse . innerFirst
 -- to find the innermost axis in a list.
 data Walk = Walk !Int !Int InnerFirst
 
--- The library's 'canonicalizeT': the canonical axes innermost first,
--- in one left fold, each axis merged into the one outside it or
--- dropped where its extent is 1.  Over the (stride, extent) pairs an
--- order function has in hand, so that 'dispatchLean' need not unzip
--- them for it; it does not carry the 'Pairs' suffix of
--- 'sortedAbsPairs' and 'canonSortedPairs', which names a function that
--- RETURNS pairs.  This and 'canonicalize' below write the innermost
--- axis at the head, where 'canonView' above writes the dims outermost
--- first for the arms whose fills and tables take them as lists.
-canonViewOfPairs :: [(Int, Int)] -> InnerFirst
-canonViewOfPairs = mergeAxes
-{-# INLINE canonViewOfPairs #-}
-
--- The library's 'canonicalizeT' to the line, 'canonViewOfPairs' over
--- the pairs it zips, and since 2026-09-22 the pass of every dispatch that
+-- The library's 'canonicalizeT' to the line: the canonical axes
+-- innermost first, 'mergeAxes' over the pairs it zips, each axis merged
+-- into the one outside it or dropped where its extent is 1, with the
+-- innermost axis at the head, where 'canonView' above writes the dims
+-- outermost first for the arms whose fills and tables take them as
+-- lists. Since 2026-09-22 the pass of every dispatch that
 -- builds a 'Walk' from the canonical view, in place of 'canonView'
 -- followed by 'walkOfDims', which reversed what this writes in order;
 -- but 'routeList4''s, a loop of its own since 2026-09-26.
@@ -4276,9 +4267,9 @@ routeList4 sh (T (Strides ats) off _)
 -- 'fbLibUnordStage3Sum' is the fill's consumer: what a reduction pays
 -- over the ceiling, the pair with stage five's consumer pricing the
 -- list against the fill it replaces.
-routeUnord3 :: ShapeL -> T -> Route
+routeUnord3 :: ShapeL -> T -> RouteAx
 routeUnord3 sh a = case routeUnord5 sh a of
-  RRuns axes o l -> RFill axes o l
+  RRunsAx axes o l -> RFillAx axes o l
   r -> r
 
 -- The lazy odometer list, shared by every lazy candidate here: one
@@ -4410,15 +4401,16 @@ stepOdometer (OdoLevel o c axis@(OdoAxis s d) outer)
       next@(OdoLevel oNext _ _ _) -> OdoLevel oNext d axis next
 
 -- A lazy stage's dispatch as a value: one slice, the runs 'lazyRuns'
--- will walk, or one fill. Five readers share it -- the list, for the
+-- will walk, or one fill. Its readers -- the list, for the
 -- laziness gate and as the library-shaped function; the Fill arm, which
 -- hands a slice or a fill back as the library's 'toVectorT' does, the
 -- runs filled too since 2026-09-21, where until then it concatenated
 -- them as master's did; and the sum consumer, whose fused run loop is
--- compiled ONCE as 'sumLazyRuns' and reached by every stage off the
--- 'Axis' path through its route, with its 'fillStage2VSdims' twin; and
--- the loop arm's fold, 'loopSumRoute', the fifth. That last is why the
--- dispatch is data rather than the list itself: the fusion probe's
+-- compiled ONCE as 'sumLazyRuns' and reached by every stage still on
+-- pairs through its route, with its 'fillStage2VSdims' twin; and, until
+-- 2026-09-26, when it moved to 'RouteAx' with its stage, the loop arm's
+-- fold, 'loopSumRoute'. The one compiled loop is why the dispatch is
+-- data rather than the list itself: the fusion probe's
 -- overhaul first inlined each stage's list function into its consumer,
 -- and two of six copies of the identical loop came out 8 bytes and
 -- several ns a run dearer than the others -- the per-copy code
@@ -4484,7 +4476,10 @@ sumRoute v route = case route of
 -- The two readers over 'fillStage3' through 'walkAx', 'fillStage2'
 -- until 2026-09-26: copies of 'routeSlices' and 'sumRoute', the fill the
 -- one change. The third, the vector reader, moved to the 'Axis' path with
--- 'lib-stage3-lean' on 2026-09-25 and has its name there.
+-- 'lib-stage3-lean' on 2026-09-25 and has its name there. Since
+-- 2026-09-26 they read only the two stages written out over pairs,
+-- 'routeList3' and 'routeUnord4', the others' readers being
+-- 'routeSlicesInwardAx' and 'sumRouteInwardAx'.
 routeSlicesInward :: VS.Vector Double -> Route
                   -> (VS.Vector Double -> b -> b) -> b -> b
 routeSlicesInward v route cons nil = case route of
@@ -4517,8 +4512,8 @@ startOf :: ShapeL -> [Int] -> Int -> Int
 startOf sh ats ao = ao + sum [ (n - 1) * st | (n, st) <- zip sh ats, st < 0 ]
 
 -- The fold on the list expression itself, where it fuses with the
--- 'build'; compiled once and never inlined, so every stage off the
--- 'Axis' path runs it. Base's 'foldl'', which hands the new accumulator
+-- 'build'; compiled once and never inlined, so every stage still on
+-- pairs runs it. Base's 'foldl'', which hands the new accumulator
 -- to the continuation lazily: with 'runSlices' one flat loop, every
 -- continuation is a known strict call and the accumulator crosses it
 -- unboxed, none a run and 3.7 ns on 'runs-9' where the level-form
@@ -4552,19 +4547,6 @@ sumNoSpec p = go 0 0
                    | otherwise = acc
 {-# INLINE sumNoSpec #-}
 
--- The route of a canonicalized view, given its start offset and its
--- element count: one slice where no axis is left or the one left has
--- stride 1, runs where the innermost stride is 1, the fill otherwise.
--- Shared by the stages 'dispatchLean' builds, so that it is written
--- once.
-routeOf :: Int -> Int -> InnerFirst -> Route
-routeOf start l axes = case innerFirst axes of
-  [] -> RSlice start l
-  [(1, _)] -> RSlice start l
-  (1, n) : rest -> RRuns (Walk 1 n (InnerFirst rest)) start l
-  (t, n) : rest -> RFill (Walk t n (InnerFirst rest)) start l
-{-# INLINE routeOf #-}
-
 -- 'routeOfAx' over pairs: the route of a canonicalized view of at least
 -- one axis, given its start offset, its element count, the innermost
 -- axis's stride and extent and the axes outside it. Shared by
@@ -4577,24 +4559,50 @@ routeOfWalk start l 1 n rest = RRuns (Walk 1 n rest) start l
 routeOfWalk start l t n rest = RFill (Walk t n rest) start l
 {-# INLINE routeOfWalk #-}
 
--- The lean dispatch over an axis order: the (stride, extent) pairs the
--- order hands back are canonicalized, and 'routeOf' reads them. Stages
--- three and five to twelve are this over their own order, so a pair of
--- them differs in the order function alone; stage four keeps the
--- natural-strides test and is written out.
-dispatchLean :: (ShapeL -> [Int] -> [(Int, Int)]) -> ShapeL -> T -> Route
+-- The lean dispatch over an axis order: the axes the order hands back
+-- are canonicalized by a loop of 'routeUnord14''s form, which also drops
+-- the axes of extent 1 the orders keep, and 'routeOfAx' reads them.
+-- Stages three and five to twelve are this over their own order, so a
+-- pair of them differs in the order function alone; stage four keeps the
+-- natural-strides test and is written out. On the 'Axis' path since
+-- 2026-09-26, so that each differs from 'routeUnord14' only in its order
+-- and in the passes 'routeUnord13' saves, where until then it read
+-- pairs through 'routeOf' and the fold 'canonViewOfPairs', both
+-- deleted that day.
+dispatchLean :: (ShapeL -> [Int] -> [Axis]) -> ShapeL -> T -> RouteAx
 dispatchLean order sh (T (Strides ats) ao _)
-  | l == 0 = RSlice 0 0
-  | otherwise = routeOf start l (canonViewOfPairs (order sh ats))
-  where !l = product sh
-        !start = startOf sh ats ao
+  | l == 0 = RSliceAx 0 0
+  | otherwise = start (order sh ats)
+  where
+    !l = product sh
+    !off = startOf sh ats ao
+    start :: [Axis] -> RouteAx
+    start (Axis _ 1 : axs) = start axs
+    start (Axis st n : axs) = canonicalizeAx st n [] axs
+    start [] = RSliceAx off l
+    canonicalizeAx :: Int -> Int -> [Axis] -> [Axis] -> RouteAx
+    canonicalizeAx !st' !n' rest (Axis _ 1 : axs) =
+      canonicalizeAx st' n' rest axs
+    canonicalizeAx !st' !n' rest (Axis st n : axs)
+      | st' == n * st = canonicalizeAx st (n' * n) rest axs
+      | otherwise = canonicalizeAx st n (Axis st' n' : rest) axs
+    canonicalizeAx !st' !n' rest [] =
+      routeOfAx off l st' n' (InnerFirstAx rest)
 {-# INLINE dispatchLean #-}
 
--- The orders, as the pairs every consumer of one now wants. Absolute
+-- The orders, as the axes every consumer of one now wants. Absolute
 -- stride descending, the extent breaking a tie the larger first, is the
 -- sort every stage before seven used. An unzip immediately undone by a
 -- zip stood 'libunord-stage10-sum' 19% over '-stage7-sum' on 'small'
--- where it now stands 3% over (2026-09-14, tweak-probe/).
+-- where it now stands 3% over (2026-09-14, tweak-probe/), read over
+-- pairs, as the orders were until 2026-09-26.
+sortedAbsAxes :: (Axis -> Axis -> Ordering) -> ShapeL -> [Int] -> [Axis]
+sortedAbsAxes cmp sh ats =
+  sortBy cmp (zipWith (\st n -> Axis (abs st) n) ats sh)
+{-# INLINE sortedAbsAxes #-}
+
+-- 'sortedAbsAxes' over pairs, which the stage-two port 'lsUnordStage2'
+-- unzips.
 sortedAbsPairs :: ((Int, Int) -> (Int, Int) -> Ordering) -> ShapeL
                -> [Int] -> [(Int, Int)]
 sortedAbsPairs cmp sh ats = sortBy cmp $ zip (map abs ats) sh
@@ -4602,10 +4610,10 @@ sortedAbsPairs cmp sh ats = sortBy cmp $ zip (map abs ats) sh
 
 -- Canonicalized first, then sorted, outermost first, for 'dispatchLean';
 -- stage four sorts the same merged axes innermost first at 'routeUnord4'.
-canonSortedPairs :: ShapeL -> [Int] -> [(Int, Int)]
-canonSortedPairs sh ats =
+canonSortedAxes :: ShapeL -> [Int] -> [Axis]
+canonSortedAxes sh ats =
   let (csh, cats) = canonView sh ats
-  in  sortedAbsPairs (flip compare) csh cats
+  in  sortedAbsAxes (flip compare) csh cats
 
 -- Stage four, the unordered list kept lazy up to the exception and read
 -- in address order: 'lsUnordStage2''s one-block test on the sorted
@@ -4633,11 +4641,11 @@ routeUnord4 sh (T (Strides ats) ao _)
         !start = startOf sh ats ao
         -- Absolute stride ascending, innermost first, the extent
         -- breaking a tie the smaller first: the reverse of
-        -- 'canonSortedPairs''s order over the same merged axes.
+        -- 'canonSortedAxes''s order over the same merged axes.
         sorted = InnerFirst $ sortBy compare
                    [ (abs t, n) | (t, n) <- innerFirst (canonicalize sh ats) ]
 
--- Stage five, stage four under the lean dispatch: the sorted pairs
+-- Stage five, stage four under the lean dispatch: the sorted axes
 -- canonicalized AGAIN, so the lean rank test decides one block and no
 -- 'getStridesT' is built anywhere -- 'routeUnord3''s dispatch, the
 -- half of that stage the ruling leaves, over 'lazyRuns' in place of its
@@ -4645,8 +4653,8 @@ routeUnord4 sh (T (Strides ats) ao _)
 -- also merges every adjacent pair the sort brought together, so a run
 -- here can be longer than stage four's; the pair with stage four prices
 -- the two together. Added 2026-09-07 for Run 27.
-routeUnord5 :: ShapeL -> T -> Route
-routeUnord5 = dispatchLean canonSortedPairs
+routeUnord5 :: ShapeL -> T -> RouteAx
+routeUnord5 = dispatchLean canonSortedAxes
 
 -- Stage six, stage five with the first canonicalization dropped: the
 -- RAW axes sorted by absolute stride and canonicalized once, so the
@@ -4660,8 +4668,8 @@ routeUnord5 = dispatchLean canonSortedPairs
 -- sort under stage five and three axes sorted here). One change over
 -- 'routeUnord5' per population. Added 2026-09-09 for Run 28; the
 -- registration is README's open list.
-routeUnord6 :: ShapeL -> T -> Route
-routeUnord6 = dispatchLean (sortedAbsPairs (flip compare))
+routeUnord6 :: ShapeL -> T -> RouteAx
+routeUnord6 = dispatchLean (sortedAbsAxes (flip compare))
 
 -- The fold as a strict loop over the levels and no list at all, over
 -- stage six's dispatch, its leaf fused as 'lazyRuns''s is so that the
@@ -4677,26 +4685,26 @@ routeUnord6 = dispatchLean (sortedAbsPairs (flip compare))
 -- 'allT', which a strict loop cannot stop early; the pair with
 -- 'fbLibUnordStage6Sum' prices what that costs a reduction. Added
 -- 2026-09-09 for Run 28.
-foldRunsLoop :: (Double -> VS.Vector Double -> Double) -> Double -> Walk
+foldRunsLoop :: (Double -> VS.Vector Double -> Double) -> Double -> WalkAx
              -> Int -> VS.Vector Double -> Double
-foldRunsLoop f z0 (Walk _ n outerAxes) !start v =
-  go (outerFirst outerAxes) start z0
+foldRunsLoop f z0 (WalkAx _ n outerAxes) !start v =
+  go (reverse (innerFirstAx outerAxes)) start z0
   where
     go [] !o !acc = f acc (VS.slice o n v)
-    go [(s, d)] !o !acc = leaf 0 acc
+    go [Axis s d] !o !acc = leaf 0 acc
       where leaf !i !a
               | i == d = a
               | otherwise = leaf (i + 1) (f a (VS.slice (o + i * s) n v))
-    go ((s, d) : ds) !o !acc = loop 0 acc
+    go (Axis s d : ds) !o !acc = loop 0 acc
       where loop !i !a | i == d = a
                        | otherwise = loop (i + 1) (go ds (o + i * s) a)
 {-# INLINE foldRunsLoop #-}
 
-loopSumRoute :: VS.Vector Double -> Route -> Double
+loopSumRoute :: VS.Vector Double -> RouteAx -> Double
 loopSumRoute v route = case route of
-  RSlice ao l -> VS.sum (VS.slice ao l v)
-  RRuns axes ao _ -> foldRunsLoop (\ !acc p -> acc + VS.sum p) 0 axes ao v
-  RFill axes ao l -> VS.sum (fillStage3 (walkAx axes) ao l v)
+  RSliceAx ao l -> VS.sum (VS.slice ao l v)
+  RRunsAx axes ao _ -> foldRunsLoop (\ !acc p -> acc + VS.sum p) 0 axes ao v
+  RFillAx axes ao l -> VS.sum (fillStage3 axes ao l v)
 
 {-# NOINLINE fbLibUnordStage6LoopSum #-}
 fbLibUnordStage6LoopSum :: ShapeL -> T -> VS.Vector Double
@@ -4715,7 +4723,7 @@ fbLibUnordStage6LoopSum sh a@(T _ _ v) =
 fbLibUnordStage6ListSum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage6ListSum sh a@(T _ _ v) =
   VS.singleton
-    (sum (map VS.sum (build (routeSlicesInward v (routeUnord6 sh a)))))
+    (sum (map VS.sum (build (routeSlicesInwardAx v (routeUnord6 sh a)))))
 
 
 -- Stage seven, stage six with the sort's tie broken the other way: on
@@ -4729,13 +4737,13 @@ fbLibUnordStage6ListSum sh a@(T _ _ v) =
 -- 'small-patch-r5', runs of 16 for 8.
 -- One change over 'routeUnord6' per population. Added 2026-09-09 for
 -- Run 28.
-routeUnord7 :: ShapeL -> T -> Route
-routeUnord7 = dispatchLean (sortedAbsPairs byStrideExtent)
+routeUnord7 :: ShapeL -> T -> RouteAx
+routeUnord7 = dispatchLean (sortedAbsAxes byStrideExtent)
 
 -- Absolute stride descending, extent ascending on a tie: stage seven's
--- order over (stride, extent) pairs.
-byStrideExtent :: (Int, Int) -> (Int, Int) -> Ordering
-byStrideExtent (s1, n1) (s2, n2) = compare s2 s1 <> compare n1 n2
+-- order over axes.
+byStrideExtent :: Axis -> Axis -> Ordering
+byStrideExtent (Axis s1 n1) (Axis s2 n2) = compare s2 s1 <> compare n1 n2
 
 -- Stage eight, stage six with the run chosen as the longest contiguous
 -- one rather than as the innermost sorted axis: from each unit-stride
@@ -4762,29 +4770,29 @@ byStrideExtent (s1, n1) (s2, n2) = compare s2 s1 <> compare n1 n2
 -- 1.26 on 'small-patch-r5'; where
 -- a chain can beat the tie-break, and why no realistic view has that
 -- shape, is README.md#dead-ideas.
-routeUnord8 :: ShapeL -> T -> Route
+routeUnord8 :: ShapeL -> T -> RouteAx
 routeUnord8 = dispatchLean chainOrder
 
 -- The longest run first and the rest in stage six's order; stage six's
 -- order whole where a stride is 0 or none is 1.
-chainOrder :: ShapeL -> [Int] -> [(Int, Int)]
+chainOrder :: ShapeL -> [Int] -> [Axis]
 chainOrder sh ats
-  | 0 `elem` ats || null starts = sortedAbsPairs (flip compare) sh ats
+  | 0 `elem` ats || null starts = sortedAbsAxes (flip compare) sh ats
   | otherwise = longestRun starts
   where starts = runStarts sh ats
 
 -- Every unit-stride axis as a run to start from, with the other axes
--- as (stride, extent) pairs; unit dims dropped as 'canonView' drops them.
-runStarts :: ShapeL -> [Int] -> [(Int, [(Int, Int)])]
+-- as axes; unit dims dropped as 'canonView' drops them.
+runStarts :: ShapeL -> [Int] -> [(Int, [Axis])]
 runStarts sh ats =
-  [ (n, dropAt i axes) | (i, (1, n)) <- zip [0 :: Int ..] axes ]
-  where axes = [ (abs st, n) | (n, st) <- zip sh ats, n /= 1 ]
+  [ (n, dropAt i axes) | (i, Axis 1 n) <- zip [0 :: Int ..] axes ]
+  where axes = [ Axis (abs st) n | (n, st) <- zip sh ats, n /= 1 ]
 
 -- The longest chain over every start and every order of absorption as
 -- the run, the axes it leaves sorted outside it in stage six's order:
--- (stride, extent) pairs, as stage six's sort hands them.
-longestRun :: [(Int, [(Int, Int)])] -> [(Int, Int)]
-longestRun starts = outer ++ [(1, runLen)]
+-- axes, as stage six's sort hands them.
+longestRun :: [(Int, [Axis])] -> [Axis]
+longestRun starts = outer ++ [Axis 1 runLen]
   where (runLen, rest) = bestOf [ chain n0 rest0 | (n0, rest0) <- starts ]
         outer = sortBy (flip compare) rest
 
@@ -4794,11 +4802,12 @@ longestRun starts = outer ++ [(1, runLen)]
 -- order is tried: absorbing the larger of two equal-stride axes first
 -- is not always best, the smaller one's product being what a third
 -- axis's stride may equal.
-chain :: Int -> [(Int, Int)] -> (Int, [(Int, Int)])
+chain :: Int -> [Axis] -> (Int, [Axis])
 chain len rest =
-  case [ i | (i, (s, _)) <- zip [0 :: Int ..] rest, s == len ] of
+  case [ i | (i, Axis s _) <- zip [0 :: Int ..] rest, s == len ] of
     [] -> (len, rest)
-    is -> bestOf [ chain (len * snd (rest !! i)) (dropAt i rest) | i <- is ]
+    is -> bestOf [ chain (len * axisExtent (rest !! i)) (dropAt i rest)
+                 | i <- is ]
 
 bestOf :: [(Int, a)] -> (Int, a)
 bestOf = foldr1 (\x y -> if fst x >= fst y then x else y)
@@ -4818,25 +4827,25 @@ dropAt i xs = take i xs ++ drop (i + 1) xs
 -- 'small-bcast32', at slices from eight elements to a million. One
 -- change over 'routeUnord6' per population. Added 2026-09-09 for Run
 -- 28.
-routeUnord9 :: ShapeL -> T -> Route
+routeUnord9 :: ShapeL -> T -> RouteAx
 routeUnord9 = dispatchLean zerosFirst
 
 -- Stage six's order with its zero-stride axes moved outermost.
-zerosFirst :: ShapeL -> [Int] -> [(Int, Int)]
-zerosFirst sh ats = zerosOutermost (sortedAbsPairs (flip compare) sh ats)
+zerosFirst :: ShapeL -> [Int] -> [Axis]
+zerosFirst sh ats = zerosOutermost (sortedAbsAxes (flip compare) sh ats)
 
 -- The zero-stride axes moved in front of the rest, whose order stays,
 -- where a unit-stride axis will then be innermost and the list route
 -- repeats one slice; unchanged otherwise, so the fill is stage six's,
 -- its zero strides innermost under the hoisted store. Two filters and
--- not a 'span', though the pairs come sorted and the zeros are their
+-- not a 'span', though the axes come sorted and the zeros are their
 -- suffix: the span cost stage ten 43 to 156 instructions a call more
 -- on three of four views counted 2026-09-16, its lazy prefix and pair
--- dearer than a second pass over a view's few pairs.
-zerosOutermost :: [(Int, Int)] -> [(Int, Int)]
+-- dearer than a second pass over a view's few axes.
+zerosOutermost :: [Axis] -> [Axis]
 zerosOutermost ps
-  | any (\(s, n) -> s == 1 && n /= 1) ps =
-      filter ((== 0) . fst) ps ++ filter ((/= 0) . fst) ps
+  | any (\(Axis s n) -> s == 1 && n /= 1) ps =
+      filter ((== 0) . axisStride) ps ++ filter ((/= 0) . axisStride) ps
   | otherwise = ps
 
 -- Stage ten, stage seven's tie-break under stage nine's move: on equal
@@ -4851,12 +4860,12 @@ zerosOutermost ps
 -- at 0.72 on 'window', the move at 0.45 to 0.75 on the zero-stride
 -- views -- compose with nothing paid for each other. Two changes over
 -- 'routeUnord6'. Added 2026-09-11 for Run 29.
-routeUnord10 :: ShapeL -> T -> Route
+routeUnord10 :: ShapeL -> T -> RouteAx
 routeUnord10 = dispatchLean zerosFirstTied
 
 -- Stage seven's order with its zero-stride axes moved outermost.
-zerosFirstTied :: ShapeL -> [Int] -> [(Int, Int)]
-zerosFirstTied sh ats = zerosOutermost (sortedAbsPairs byStrideExtent sh ats)
+zerosFirstTied :: ShapeL -> [Int] -> [Axis]
+zerosFirstTied sh ats = zerosOutermost (sortedAbsAxes byStrideExtent sh ats)
 
 -- Stage eleven, stage ten with the move guarded: the zero-stride axes
 -- go outermost only where the view has one, and a view without takes
@@ -4873,7 +4882,7 @@ zerosFirstTied sh ats = zerosOutermost (sortedAbsPairs byStrideExtent sh ats)
 -- the move for a route canonicalization makes one block of on every
 -- stage, 600-odd instructions and 21 percent a call on both of Run
 -- 33's halves, the one double-digit cell the guard had left.
-routeUnord11 :: ShapeL -> T -> Route
+routeUnord11 :: ShapeL -> T -> RouteAx
 routeUnord11 = dispatchLean zerosFirstTiedGuarded
 
 -- Stage ten's order where a zero stride of extent above 1 is present,
@@ -4886,10 +4895,10 @@ routeUnord11 = dispatchLean zerosFirstTiedGuarded
 -- moved this arm's count by 35 to 63 instructions a call, INLINE
 -- pragma and all, on three views counted 2026-09-16, and a control's
 -- code is not moved in the run that reads it.
-zerosFirstTiedGuarded :: ShapeL -> [Int] -> [(Int, Int)]
+zerosFirstTiedGuarded :: ShapeL -> [Int] -> [Axis]
 zerosFirstTiedGuarded sh ats
   | zeroAxis sh ats = zerosFirstTied sh ats
-  | otherwise = sortedAbsPairs byStrideExtent sh ats
+  | otherwise = sortedAbsAxes byStrideExtent sh ats
 
 -- A zero stride on an axis the move can act on: one of extent above 1,
 -- an axis of extent 1 being dropped by canonicalization whatever its
@@ -4900,7 +4909,7 @@ zerosFirstTiedGuarded sh ats
 -- cost 40 to 50 instructions a call on views with no zero stride, the
 -- loop alone 48 there while saving 49 to 98 on views with one, and the
 -- loop behind the 'any' reads 4 to 6 under the 'zipWith' behind it. The
--- raw strides, not the sorted pairs, since the sort is what a miss here
+-- raw strides, not the sorted axes, since the sort is what a miss here
 -- skips, so the zeros may sit anywhere and every one is read.
 zeroAxis :: ShapeL -> [Int] -> Bool
 zeroAxis sh ats = any (== 0) ats && go ats sh
@@ -4933,15 +4942,15 @@ zeroAxis sh ats = any (== 0) ats && go ats sh
 -- too, its run of 16 set by a tie at stride 4 that this comparator
 -- leaves as stage seven has it. One change over 'routeUnord11' per
 -- population. Added 2026-09-16 for Run 34.
-routeUnord12 :: ShapeL -> T -> Route
+routeUnord12 :: ShapeL -> T -> RouteAx
 routeUnord12 = dispatchLean zerosFirstRankedGuarded
 
 -- Stage eleven's guard over stage twelve's order, written out for the
 -- reason at 'zerosFirstTiedGuarded'.
-zerosFirstRankedGuarded :: ShapeL -> [Int] -> [(Int, Int)]
+zerosFirstRankedGuarded :: ShapeL -> [Int] -> [Axis]
 zerosFirstRankedGuarded sh ats
-  | zeroAxis sh ats = zerosOutermost (sortedAbsPairs byStrideRank sh ats)
-  | otherwise = sortedAbsPairs byStrideRank sh ats
+  | zeroAxis sh ats = zerosOutermost (sortedAbsAxes byStrideRankAx sh ats)
+  | otherwise = sortedAbsAxes byStrideRankAx sh ats
 
 -- Absolute stride descending; on a tie at stride 1 the length 'runRank'
 -- prefers last, so that it is the run, and on any other tie the extent
@@ -5144,11 +5153,12 @@ absPairs axes !off (st : sts) (n : ns)
 absPairs axes !off _ _ = (axes, off)
 
 -- The 'Axis' path, since 2026-09-25 the three inward twins' own, and
--- since 2026-09-26 'lib-stage2-lean-u1''s through 'fillStage3U1':
+-- since 2026-09-26 'lib-stage2-lean-u1''s through 'fillStage3U1' and the
+-- unordered stages 'dispatchLean' builds, three and five to twelve:
 -- 'lib-stage3-lean', 'liblist-stage5-sum' and 'libunord-stage14-sum'
 -- read their views through copies of the dispatch, the route, the runs
 -- walker and the fill in which a canonical axis is an 'Axis', where
--- every other arm reads a (stride, extent) pair, so that their pairs
+-- the arms left on pairs read a (stride, extent) pair, so that their pairs
 -- with 'lib-stage2-lean', 'liblist-stage4-sum' and
 -- 'libunord-stage13-sum' price that representation and what rests on
 -- it, the copies' other changes having been ported to those three arms'
@@ -5168,8 +5178,9 @@ data Axis = Axis { axisStride :: !Int, axisExtent :: !Int }
 
 -- 'InnerFirst' with each axis an 'Axis': axes innermost first, the
 -- orientation the dispatches' merge loops write and every reader of the path
--- reads, a newtype so that the orientation is in the type. Nothing on
--- the path flips it, so it has no 'outerFirst'.
+-- reads, a newtype so that the orientation is in the type. Only
+-- 'foldRunsLoop' flips it, reversing the list itself, so it has no
+-- 'outerFirst'.
 newtype InnerFirstAx = InnerFirstAx { innerFirstAx :: [Axis] }
 
 -- 'Walk' over 'InnerFirstAx': the canonical axes of a non-empty view,
@@ -5192,6 +5203,15 @@ walkAx :: Walk -> WalkAx
 walkAx (Walk t n axes) =
   WalkAx t n (InnerFirstAx [Axis st d | (st, d) <- innerFirst axes])
 {-# INLINE walkAx #-}
+
+-- 'walkOfDims' as a 'WalkAx', built directly: how 'lsListStage1' hands
+-- its fill to 'fillStage3' since 2026-09-26, so that its two list arms
+-- differ from their models in the port alone.
+walkOfDimsAx :: ShapeL -> [Int] -> WalkAx
+walkOfDimsAx sh ats = case reverse (zipWith Axis ats sh) of
+  [] -> WalkAx 0 1 (InnerFirstAx [])
+  Axis t n : rest -> WalkAx t n (InnerFirstAx rest)
+{-# INLINE walkOfDimsAx #-}
 
 
 -- Stage five of the list entry point, 'routeList4' over the 'Axis'
@@ -5322,6 +5342,20 @@ routeVectorInward v route = case route of
   RRunsAx axes ao l -> fillStage3 axes ao l v
   RFillAx axes ao l -> fillStage3 axes ao l v
 {-# INLINE routeVectorInward #-}
+
+-- 'routeSlicesInward' over 'RouteAx': the slices of a route handed to a
+-- 'build''s cons and nil, for the list consumers of the stages
+-- 'dispatchLean' builds and for the laziness gate's rows of the path's
+-- stages, since 2026-09-26.
+routeSlicesInwardAx :: VS.Vector Double -> RouteAx
+                    -> (VS.Vector Double -> b -> b) -> b -> b
+routeSlicesInwardAx v route cons nil = case route of
+  RSliceAx ao l
+    | l == 0 -> nil
+    | otherwise -> cons (wholeOrSlice ao l v) nil
+  RRunsAx axes ao _ -> runSlicesAx axes ao v cons nil
+  RFillAx axes ao l -> cons (fillStage3 axes ao l v) nil
+{-# INLINE routeSlicesInwardAx #-}
 
 -- 'sumRouteInward' over 'RouteAx': the reader of 'liblist-stage5-sum'
 -- and 'libunord-stage14-sum'.
@@ -5724,7 +5758,7 @@ lsListStage1 sh (T (Strides ats) ao v)
   | null sh = [VS.slice ao 1 v]
   | oks !! (length sh - 1) = loop oks sh ats ao
   | l == 0 = [VS.empty]
-  | otherwise = [fillStage3 (walkAx (walkOfDims sh ats)) ao l v]
+  | otherwise = [fillStage3 (walkOfDimsAx sh ats) ao l v]
   where l : ts' = getStridesT sh
         oks = scanr (&&) True (zipWith (==) ats ts')
         loop (b : bs) (n : ns) (t : ts) !o
@@ -5842,7 +5876,7 @@ fbLibUnordStage2Sum sh a = VS.singleton (sumRuns (lsUnordStage2 sh a))
 {-# NOINLINE fbLibUnordStage3Sum #-}
 fbLibUnordStage3Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage3Sum sh a@(T _ _ v) =
-  VS.singleton (sumRouteInward v (routeUnord3 sh a))
+  VS.singleton (sumRouteInwardAx v (routeUnord3 sh a))
 
 {-# NOINLINE fbLibUnordStage4Sum #-}
 fbLibUnordStage4Sum :: ShapeL -> T -> VS.Vector Double
@@ -5852,42 +5886,42 @@ fbLibUnordStage4Sum sh a@(T _ _ v) =
 {-# NOINLINE fbLibUnordStage5Sum #-}
 fbLibUnordStage5Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage5Sum sh a@(T _ _ v) =
-  VS.singleton (sumRouteInward v (routeUnord5 sh a))
+  VS.singleton (sumRouteInwardAx v (routeUnord5 sh a))
 
 {-# NOINLINE fbLibUnordStage6Sum #-}
 fbLibUnordStage6Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage6Sum sh a@(T _ _ v) =
-  VS.singleton (sumRouteInward v (routeUnord6 sh a))
+  VS.singleton (sumRouteInwardAx v (routeUnord6 sh a))
 
 {-# NOINLINE fbLibUnordStage7Sum #-}
 fbLibUnordStage7Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage7Sum sh a@(T _ _ v) =
-  VS.singleton (sumRouteInward v (routeUnord7 sh a))
+  VS.singleton (sumRouteInwardAx v (routeUnord7 sh a))
 
 {-# NOINLINE fbLibUnordStage8Sum #-}
 fbLibUnordStage8Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage8Sum sh a@(T _ _ v) =
-  VS.singleton (sumRouteInward v (routeUnord8 sh a))
+  VS.singleton (sumRouteInwardAx v (routeUnord8 sh a))
 
 {-# NOINLINE fbLibUnordStage9Sum #-}
 fbLibUnordStage9Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage9Sum sh a@(T _ _ v) =
-  VS.singleton (sumRouteInward v (routeUnord9 sh a))
+  VS.singleton (sumRouteInwardAx v (routeUnord9 sh a))
 
 {-# NOINLINE fbLibUnordStage10Sum #-}
 fbLibUnordStage10Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage10Sum sh a@(T _ _ v) =
-  VS.singleton (sumRouteInward v (routeUnord10 sh a))
+  VS.singleton (sumRouteInwardAx v (routeUnord10 sh a))
 
 {-# NOINLINE fbLibUnordStage11Sum #-}
 fbLibUnordStage11Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage11Sum sh a@(T _ _ v) =
-  VS.singleton (sumRouteInward v (routeUnord11 sh a))
+  VS.singleton (sumRouteInwardAx v (routeUnord11 sh a))
 
 {-# NOINLINE fbLibUnordStage12Sum #-}
 fbLibUnordStage12Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage12Sum sh a@(T _ _ v) =
-  VS.singleton (sumRouteInward v (routeUnord12 sh a))
+  VS.singleton (sumRouteInwardAx v (routeUnord12 sh a))
 
 {-# NOINLINE fbLibUnordStage13Sum #-}
 fbLibUnordStage13Sum :: ShapeL -> T -> VS.Vector Double
@@ -5943,7 +5977,7 @@ fbLibUnordStage13SumVSdims sh a@(T _ _ v) =
 fbLibUnordStage10ListSum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage10ListSum sh a@(T _ _ v) =
   VS.singleton
-    (sum (map VS.sum (build (routeSlicesInward v (routeUnord10 sh a)))))
+    (sum (map VS.sum (build (routeSlicesInwardAx v (routeUnord10 sh a)))))
 
 -- The same fold over stage FOUR's list, the lean dispatch on the
 -- canonical view with no reordering, so that a fold keeping vector's
@@ -5984,7 +6018,7 @@ listProducers =
     -- the fill, as master's, so not asked
   , ("liblist-stage3", listOfInward routeList3, Just True, Nothing)
   , ("liblist-stage4", listOf routeList4, Just True, Nothing)
-  , ("liblist-stage5", listOfInward routeList4, Just True, Nothing)
+  , ("liblist-stage5", listOfInwardAx routeList5, Just True, Nothing)
     -- master's unordered list: its one-block test fails on both
     -- views, the gap between rows seeing to that, so it is the
     -- ordered list and reads as liblist-stage1 does
@@ -5996,23 +6030,28 @@ listProducers =
     -- the unordered candidates: lazy on both, the transposed block
     -- being runs of 20 in address order to them, the exception's move
   , ("libunord-stage4", listOfInward routeUnord4, Just True, Just True)
-  , ("libunord-stage5", listOfInward routeUnord5, Just True, Just True)
-  , ("libunord-stage6", listOfInward routeUnord6, Just True, Just True)
-  , ("libunord-stage7", listOfInward routeUnord7, Just True, Just True)
-  , ("libunord-stage8", listOfInward routeUnord8, Just True, Just True)
-  , ("libunord-stage9", listOfInward routeUnord9, Just True, Just True)
-  , ("libunord-stage10", listOfInward routeUnord10, Just True, Just True)
-  , ("libunord-stage11", listOfInward routeUnord11, Just True, Just True)
-  , ("libunord-stage12", listOfInward routeUnord12, Just True, Just True)
+  , ("libunord-stage5", listOfInwardAx routeUnord5, Just True, Just True)
+  , ("libunord-stage6", listOfInwardAx routeUnord6, Just True, Just True)
+  , ("libunord-stage7", listOfInwardAx routeUnord7, Just True, Just True)
+  , ("libunord-stage8", listOfInwardAx routeUnord8, Just True, Just True)
+  , ("libunord-stage9", listOfInwardAx routeUnord9, Just True, Just True)
+  , ("libunord-stage10", listOfInwardAx routeUnord10, Just True, Just True)
+  , ("libunord-stage11", listOfInwardAx routeUnord11, Just True, Just True)
+  , ("libunord-stage12", listOfInwardAx routeUnord12, Just True, Just True)
   , ("libunord-stage13", listOf routeUnord13, Just True, Just True)
-  , ("libunord-stage14", listOfInward routeUnord13, Just True, Just True) ]
+  , ("libunord-stage14", listOfInwardAx routeUnord14, Just True, Just True) ]
 
 -- The list of a stage from three up: its route read by 'routeSlices',
--- or by 'routeSlicesInward', over the fill numbered innermost first.
+-- or by 'routeSlicesInward', over the fill numbered innermost first, or,
+-- on the 'Axis' path, by 'routeSlicesInwardAx'.
 listOf, listOfInward :: (ShapeL -> T -> Route)
                      -> ShapeL -> T -> [VS.Vector Double]
 listOf route sh a@(T _ _ v) = build (routeSlices v (route sh a))
 listOfInward route sh a@(T _ _ v) = build (routeSlicesInward v (route sh a))
+
+listOfInwardAx :: (ShapeL -> T -> RouteAx) -> ShapeL -> T -> [VS.Vector Double]
+listOfInwardAx route sh a@(T _ _ v) =
+  build (routeSlicesInwardAx v (route sh a))
 
 -- The laziness gate, in 'check' and never timed: the ruling that the
 -- list stays lazy (README.md#dead-ideas) as a predicate. On a view of
