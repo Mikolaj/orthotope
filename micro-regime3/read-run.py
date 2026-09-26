@@ -3888,9 +3888,9 @@ def counts_pair(counts_a, pairs, shapes, cells=None, per_shape=False):
     print('\ncounted work within one half, from %s'
           % os.path.basename(counts_a))
     if refused:
-        print('  %d cell(s) perf refused, dropped: %s'
-              % (len(refused), ', '.join(sorted(refused)[:6])
-                 + (', ...' if len(refused) > 6 else '')))
+        print('  %d cell(s) perf refused or marked nonlinear, dropped: %s'
+              % (len(refused), '; '.join(sorted(refused)[:6])
+                 + ('; ...' if len(refused) > 6 else '')))
     if malformed:
         print('  %d malformed line(s)' % len(malformed))
     print()
@@ -4028,9 +4028,10 @@ def counts_table(cells, shapes, strategies, meta, other, main_hs,
           % (os.path.basename(counts_a), os.path.basename(counts_b)))
     for tag, refused in (('this half', a_refused), ('other half', b_refused)):
         if refused:
-            print('  %d cell(s) perf refused on the %s, dropped: %s'
-                  % (len(refused), tag, ', '.join(sorted(refused)[:6])
-                     + (', ...' if len(refused) > 6 else '')))
+            print('  %d cell(s) perf refused or marked nonlinear on the %s,'
+                  ' dropped: %s'
+                  % (len(refused), tag, '; '.join(sorted(refused)[:6])
+                     + ('; ...' if len(refused) > 6 else '')))
     for tag, bad in (('this half', a_bad), ('other half', b_bad)):
         if bad:
             print('  %d unreadable line(s) in the %s counts, dropped'
@@ -6508,9 +6509,12 @@ def counts_over(new, old):
     b, rb, mb = parse_counts(old)
     print('instructions an iteration, %s over %s, per arm over the shapes'
           ' both carry' % (os.path.basename(new), os.path.basename(old)))
-    for what, got in (('refused', ra + rb), ('malformed', ma + mb)):
+    for what, got in (('cell(s) perf refused or marked nonlinear', ra + rb),
+                      ('line(s) malformed', ma + mb)):
         if got:
-            print('  %d line(s) %s, not read' % (len(got), what))
+            print('  %d %s, not read: %s'
+                  % (len(got), what, '; '.join(sorted(got)[:6])
+                     + ('; ...' if len(got) > 6 else '')))
     arms = sorted({arm for sh in a for arm in a[sh]}
                   & {arm for sh in b for arm in b[sh]})
     if not arms:
