@@ -368,6 +368,25 @@ def unwrapped_rundoc_edit(tmp, old, new):
     return write_rundoc(tmp, text.replace(old, new, 1))
 
 
+def plant_begins_mid_sentence(tmp):
+    """The run file with a paragraph's opening words gone, as Run 22's
+    write-up left its anchors paragraph: the Provenance lead every run
+    file carries, lower-cased mid-sentence."""
+    return unwrapped_rundoc_edit(
+        tmp, '**Each stride class carries an anchor of its own',
+        'carries an anchor of its own')
+
+
+def plant_cut_before_heading(tmp):
+    """The run file with the paragraph before its class section cut
+    mid-sentence, where a heading follows and the stop check excused it
+    until 2026-09-26."""
+    return unwrapped_rundoc_edit(
+        tmp, "and the equal weighting of shapes are [README's *Reading a"
+             " run file*](../README.md#reading-a-run-file).",
+        'and the equal weighting of shapes are')
+
+
 def runs_summary_row(tmp, shapes=None, short_by=None):
     """The cross-class summary's `runs` row, re-cut to SHAPES shapes.
 
@@ -10019,6 +10038,29 @@ RECORDS = [
          argv=['--cross-classes', '--classes', '{a}', '{b}',
                '--others', '{c}'],
          ok=V(exit=2, has=['they pair up or nothing does'])),
+
+    case('paragraph-that-begins-mid-sentence-fails', 'read-run.py', None,
+         'a paragraph that lost its opening words passed every gate',
+         # Run 22's write-up left the anchors paragraph beginning `anchors
+         # read`, and --check-doc, which read how a paragraph ENDS and never
+         # how one begins, passed it; Run 23 found it by reading. Planted
+         # the same way on the Provenance lead every run file carries.
+         plant=lambda t: {'rundoc': plant_begins_mid_sentence(t)},
+         argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['begin mid-sentence'])),
+
+    case('paragraph-cut-before-a-heading-fails', 'read-run.py', None,
+         'a paragraph cut mid-sentence passed when a heading followed it',
+         # The stop check excused a paragraph whose next block was not
+         # prose, meaning a sentence running into an indented code sample
+         # or a table -- and counted a heading and a link reference as not
+         # prose too, so the closing paragraph of every section went
+         # unchecked. Found 2026-09-26 by planting a cut on Run 41's last
+         # Provenance paragraph. Planted on the apparatus paragraph every
+         # run file carries before its class section.
+         plant=lambda t: {'rundoc': plant_cut_before_heading(t)},
+         argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['stop mid-sentence'])),
 
     case('vecdims-arms-name-the-summary-column', 'read-run.py',
          '26816e6',

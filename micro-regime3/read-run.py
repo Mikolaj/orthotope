@@ -12101,10 +12101,10 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     #
     # WHAT IT DOES NOT CATCH, said here so nobody reads it as more: a deletion
     # from the MIDDLE of a paragraph, which leaves the paragraph still ending
-    # in a sentence. The first attempt at the test above cut there, and this
-    # check was right not to fire; only a dropped tail has a signature here.
-    # A non-vacuity test has to reproduce the failure's shape, not merely
-    # damage the file.
+    # in a sentence and, since the start check below, still beginning one. The
+    # first attempt at the test above cut there, and this check was right not
+    # to fire; only a dropped tail has a signature here. A non-vacuity test
+    # has to reproduce the failure's shape, not merely damage the file.
     def _tail(b):
         ls = [l for l in b.split('\n') if l.strip()]
         return ls[-1] if ls else None
@@ -12129,12 +12129,46 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         ends_sentence = re.search(r'[.:;!?)\]*`"\u2019\u201d]$', t)
         if ends_sentence or re.search(r'[\d%]$', t):
             continue
+        # The last item of a list of links, the Contents map's, ends on
+        # its label and not on a stop.
+        if re.match(r'^[-*] \[[^\]]+\]\([^)]+\)', t):
+            continue
+        # A sentence may run into an indented block or a table and go on
+        # after it, and only into those: a heading or a link reference
+        # below a paragraph excused a cut there until 2026-09-26. Case:
+        # `paragraph-cut-before-a-heading-fails`.
         nxt = _head(blocks[i + 1]) if i + 1 < len(blocks) else None
-        if nxt is not None and _not_prose(nxt):
+        if nxt is not None and (nxt[:1] in ' \t'
+                                or nxt.strip().startswith('|')):
             continue
         at = whole_md.count('\n', 0,
                             sum(len(x) + 2 for x in blocks[:i])) + 1
         cut.append((at, t))
+    # AND HOW ONE BEGINS, since 2026-09-26: Run 22's write-up left a
+    # paragraph beginning `anchors read`, its opening words gone, and this
+    # check, which read only endings, passed it. A prose paragraph begins
+    # on anything but a lower-case letter, unless it resumes a sentence
+    # an indented block interrupted. Case:
+    # `paragraph-that-begins-mid-sentence-fails`.
+    begun = []
+    for i, b in enumerate(blocks):
+        head = _head(b)
+        if head is None or _not_prose(head) or not re.match(r'[a-z]', head):
+            continue
+        prev = _tail(blocks[i - 1]) if i else None
+        if prev is not None and prev[:1] in ' \t':
+            continue
+        at = whole_md.count('\n', 0,
+                            sum(len(x) + 2 for x in blocks[:i])) + 1
+        begun.append((at, head))
+    if begun:
+        bad.append('%d prose paragraph(s) begin mid-sentence -- first at %s,'
+                   ' beginning "%s". A paragraph that lost its opening words'
+                   ' reads on as though nothing were missing'
+                   % (len(begun), where(begun[0][0]), begun[0][1][:48]))
+    else:
+        note.append('every prose paragraph of both documents begins a'
+                    ' sentence')
     if cut:
         bad.append('%d prose paragraph(s) stop mid-sentence -- first at %s,'
                    ' ending "%s". A scripted rewrite that anchors on a'

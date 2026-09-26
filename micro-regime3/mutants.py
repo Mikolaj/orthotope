@@ -360,6 +360,35 @@ MUTANTS = [
     # ABSENT, which is the direction a blinded check breaks in. It plants
     # the fixture itself rather than going through defect-run.py, which
     # refuses a copy that is in no git repository, as its siblings below do.
+    # The start check, blinded: the fixture of
+    # `paragraph-that-begins-mid-sentence-fails` passes, a paragraph that
+    # lost its opening words reading as whole.
+    ('check-doc stops reading how a paragraph begins', 'read-run.py',
+     "        if head is None or _not_prose(head) or not re.match(r'[a-z]', head):",
+     "        if True:",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'out = m.plant_begins_mid_sentence(tempfile.mkdtemp())\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--check-doc\', \'--quiet\','
+     ' \'--run-doc\', out],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'begin mid-sentence\' in r.stdout + r.stderr else 1)"'),
+    # The stop check's exemption widened back to any block that is not
+    # prose: the fixture of `paragraph-cut-before-a-heading-fails` passes,
+    # a heading below the cut excusing it.
+    ('check-doc excuses a cut before a heading', 'read-run.py',
+     "        if nxt is not None and (nxt[:1] in ' \\t'\n"
+     "                                or nxt.strip().startswith('|')):",
+     "        if nxt is not None and _not_prose(nxt):",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'out = m.plant_cut_before_heading(tempfile.mkdtemp())\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--check-doc\', \'--quiet\','
+     ' \'--run-doc\', out],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'stop mid-sentence\' in r.stdout + r.stderr else 1)"'),
     ('check-doc stops reading the ANSWERED stub for its placeholder',
      'read-run.py',
      "             if '___' in l]",
