@@ -2801,7 +2801,7 @@ def parse_counts(path):
     scratch script, as Run 42's were (2026-09-26). Case:
     `counts-reads-no-probe-stalls-file`.
     """
-    counts, refused, malformed = {}, [], []
+    counts, refused, malformed, nonlinear = {}, [], [], []
     col, width = 3, 4
     with open(path) as f:
         for line in f:
@@ -2817,6 +2817,15 @@ def parse_counts(path):
                     # instructions (2026-09-26). Case:
                     # `counts-reads-cycles-as-instructions`.
                     width = -1
+                continue
+            # A cell probe-stalls.sh marked NONLINEAR in instructions is no
+            # one process's count, and is dropped and named as
+            # probe-stalls-read.py drops it (2026-09-27). Case:
+            # `counts-reads-a-nonlinear-cell-as-measured`.
+            nl = re.match(r'#\s*NONLINEAR\s+(\S+)\s+(\S+?):'
+                          r'.*\binstructions:u\b', line)
+            if nl:
+                nonlinear.append(nl.groups())
                 continue
             if not line or line.startswith('#'):
                 continue
@@ -2837,6 +2846,11 @@ def parse_counts(path):
                 counts.setdefault(sh, {})[arm] = v
             else:
                 refused.append('%s %s' % (sh, arm))
+    for sh, arm in nonlinear:
+        if counts.get(sh, {}).pop(arm, None) is not None:
+            refused.append('%s %s, NONLINEAR in instructions' % (sh, arm))
+            if not counts[sh]:
+                del counts[sh]
     return counts, refused, malformed
 
 
@@ -14042,7 +14056,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                        ' commit that moved it; a landing or a parking is'
                        ' dated in README\'s roster chain, `and the landing'
                        ' of DATE --- ARMS --- takes the roster to N benches,'
-                       ' so with the controls the run is N arms`'
+                       ' so with the controls the run is M arms`'
                        % '; '.join(off))
         if not lost and not off:
             print('ok:   the prose counts of controls, A/A arms, benches and'
