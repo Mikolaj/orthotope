@@ -15289,7 +15289,7 @@ RECORDS = [
          # README no longer carries.
          no_audit='other:readme-list-renumbered-since'),
 
-    case('checklist-names-a-step-out-of-order', 'read-run.py', None,
+    case('checklist-names-a-step-out-of-order', 'read-run.py', 'b96a848',
          'a post-list step printed below a larger one, which a list whose'
          ' numbers are its execution order cannot carry in silence',
          plant=lambda t: {'readme': edited_readme(t, (
@@ -15297,7 +15297,10 @@ RECORDS = [
          argv=['--checklist', 'post', '--imperative', '--readme',
                '{readme}'],
          ok=V(has=['1e print below a larger step'],
-              hasnt=['THIS LIST IS ITS EXECUTION ORDER'])),
+              hasnt=['THIS LIST IS ITS EXECUTION ORDER']),
+         # No audit: the pre-fix reader finds the list by its old first
+         # line and cannot read today's README at all.
+         no_audit='other:readme-list-renumbered-since'),
 
     case('brief-update-reopens-filled-slots', 'read-run.py', 'e4894dc',
          'a second paste brought the facts file\'s empty `<yours>` back'
