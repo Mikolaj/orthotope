@@ -13895,7 +13895,8 @@ RECORDS = [
          ok=V(exit=0, has=['lib-stage1', main_shapes()[0]]),
          bug=V(exit=0, hasnt=[main_shapes()[0]])),
 
-    case('copy-cells-come-off-the-half-movers', 'read-run.py', None,
+    case('copy-cells-come-off-the-half-movers', 'read-run.py',
+         '632d85e',
          "a copy test's cells were chosen and sized by hand every run, in a"
          ' probe script git ignores',
          # Run 41 hand-edited Run 40's probe-r40-instance.sh, its cells off
@@ -13903,16 +13904,19 @@ RECORDS = [
          plant=plant_half_mover,
          argv=['--copy-cells', '{run}'],
          ok=V(exit=0, has=['run98-lookrts run97-nospec main %s/lib-stage1'
-                           % main_shapes()[0]])),
+                           % main_shapes()[0]]),
+         bug=V(exit=2)),
 
-    case('copy-test-names-build-and-process', 'read-run.py', None,
+    case('copy-test-names-build-and-process', 'read-run.py',
+         '632d85e',
          "a copy test's log was summarised by a throwaway script each run",
          # Run 41's summary was hand-rolled medians. One planted cell is the
          # build, the copy reading with the timed file and the previous
          # run's binary apart; the other is the process, all three agreeing.
          plant=lambda t: {'log': plant_copy_test_log(t)},
          argv=['--copy-test', '{log}'],
-         ok=V(exit=0, has=['BUILD', 'PROCESS'])),
+         ok=V(exit=0, has=['BUILD', 'PROCESS']),
+         bug=V(exit=2)),
 
     case('half-movers-refuse-without-prev-or-compare', 'read-run.py', None,
          'CONTROL: --half-movers RUN alone, with no COMPARE line, is refused'
