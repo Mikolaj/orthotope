@@ -5277,7 +5277,16 @@ routeUnord14 sh (T (Strides ats) ao _)
       | st' == n * st = canonicalizeAx st (n' * n) rest ps
       | otherwise = canonicalizeAx st n (Axis st' n' : rest) ps
     -- A zero-stride innermost axis followed by a unit-stride one goes
-    -- outermost, so that the unit stride is the run.
+    -- outermost, so that the unit stride is the run. Outermost rather
+    -- than just outside the run is a choice neither placement wins: a cons
+    -- there saves the append, 26 to 36 instructions a call where the move
+    -- passes no axis, and makes the broadcast's extent the one the
+    -- odometer turns over on, which read 1.58 times the instructions and
+    -- 30 KB a call more on 'compose-bcast-nest', whose broadcast is 2,
+    -- and 0.46 times and 62 KB a call less on 'compose-bcast-wide', whose
+    -- broadcast is 52 (2026-09-26). Placing it just outside the run only
+    -- where its extent exceeds that of the axis it would displace would
+    -- take the better of both; untried.
     canonicalizeAx !st' !n' rest []
       | st' == 0, Axis 1 n1 : rest' <- rest =
           routeOfAx off l 1 n1 (InnerFirstAx (rest' ++ [Axis 0 n']))
@@ -6420,6 +6429,15 @@ mkSmall = mkScaled
 -- block copy compose in one fill; and a scalar broadcast to a whole
 -- array, every stride 0. Listed with explicit strides and offset, over
 -- the tightest backing the view spans from that offset. Added 2026-09-03.
+-- 'compose-bcast-nest', added 2026-09-26, is where the placement of
+-- 'routeUnord14''s zero-axis move matters most: a broadcast of 2 beside
+-- runs of 3 under three strided axes nothing merges, one reversed, so the
+-- move has axes to pass and the broadcast's small extent could turn the
+-- odometer over. 'compose-bcast-wide', added the same day, is its mirror
+-- and the placement's own worst case: a broadcast of 52 beside runs of 3
+-- under five strided axes of extent 2 nothing merges, one reversed, so
+-- the odometer turns over on an extent of 2 where the broadcast's would
+-- have held it for 52 runs.
 mkCompose :: ShapeL -> Strides -> Int -> (ShapeL, T)
 mkCompose sh strides@(Strides ats) ao =
   let top = ao + sum [(s - 1) * t | (s, t) <- zip sh ats, t > 0]
@@ -6959,6 +6977,8 @@ composeViews =
   , ("compose-slice-bcast", [64, 100, 8],   Strides [100, 1, 0],   7)     -- 51200, bcast-inner8 at offset 7: the hoisted read off a base
   , ("compose-zero-mid",    [200, 90, 100], Strides [0, 1, 0],     0)     -- 1800000, zero, one, zero
   , ("compose-scalar",      [1200, 1500],   Strides [0, 0],        0)     -- 1800000, every stride 0
+  , ("compose-bcast-nest",  [8, 8, 13, 3, 2], Strides [1000, -101, 5, 1, 0], 707)  -- 4992, a broadcast of 2 beside runs of 3 under a reversed nest nothing merges
+  , ("compose-bcast-wide",  [2, 2, 2, 2, 2, 3, 52], Strides [97, -47, 23, 11, 5, 1, 0], 47)  -- 4992, a broadcast of 52 beside runs of 3 under a reversed nest of twos
   ]
 
 classViews :: [(String, (ShapeL, T))]
