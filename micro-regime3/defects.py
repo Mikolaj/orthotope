@@ -10039,7 +10039,8 @@ RECORDS = [
                '--others', '{c}'],
          ok=V(exit=2, has=['they pair up or nothing does'])),
 
-    case('paragraph-that-begins-mid-sentence-fails', 'read-run.py', None,
+    case('paragraph-that-begins-mid-sentence-fails', 'read-run.py',
+         '4a1793a',
          'a paragraph that lost its opening words passed every gate',
          # Run 22's write-up left the anchors paragraph beginning `anchors
          # read`, and --check-doc, which read how a paragraph ENDS and never
@@ -10047,9 +10048,11 @@ RECORDS = [
          # the same way on the Provenance lead every run file carries.
          plant=lambda t: {'rundoc': plant_begins_mid_sentence(t)},
          argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
-         ok=V(exit=1, has=['begin mid-sentence'])),
+         ok=V(exit=1, has=['begin mid-sentence']),
+         bug=V(exit=0, hasnt=['begin mid-sentence'])),
 
-    case('paragraph-cut-before-a-heading-fails', 'read-run.py', None,
+    case('paragraph-cut-before-a-heading-fails', 'read-run.py',
+         '4a1793a',
          'a paragraph cut mid-sentence passed when a heading followed it',
          # The stop check excused a paragraph whose next block was not
          # prose, meaning a sentence running into an indented code sample
@@ -10060,7 +10063,8 @@ RECORDS = [
          # run file carries before its class section.
          plant=lambda t: {'rundoc': plant_cut_before_heading(t)},
          argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
-         ok=V(exit=1, has=['stop mid-sentence'])),
+         ok=V(exit=1, has=['stop mid-sentence']),
+         bug=V(exit=0, hasnt=['stop mid-sentence'])),
 
     case('vecdims-arms-name-the-summary-column', 'read-run.py',
          '26816e6',
