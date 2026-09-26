@@ -13058,7 +13058,8 @@ RECORDS = [
          bug=V(has=['tree at , Main.hs at',
                     '0 path(s) untracked or modified'])),
 
-    case('tree-line-lists-tracked-changes-only', 'run-major.sh', None,
+    case('tree-line-lists-tracked-changes-only', 'run-major.sh',
+         '8a833d3',
          'the provenance tree line listed every untracked path, burying the'
          ' process lines post-run step 1 reads',
          # Run 41's wall-clock log carried 527 untracked scratch paths
@@ -13078,7 +13079,8 @@ RECORDS = [
          probe=lambda subs: open(os.path.join(subs['at'],
                                               'zztl-wallclock.log')).read(),
          ok=V(has=['path(s) untracked or modified'],
-              hasnt=['zztl-scratch.txt'])),
+              hasnt=['zztl-scratch.txt']),
+         bug=V(has=['zztl-scratch.txt'])),
 
     case('bench-count-complaint-names-its-process', 'run-major.sh', '845c8d0',
          'nine identical complaints in one log, none naming its process',
