@@ -7522,12 +7522,12 @@ def status_entries(lines, tag):
     open list would come back as a single hit, which is the granularity
     this needs least.
 
-    BULLETS AND NUMBERED ITEMS BOTH, since `Recommended tasks after Run
-    N` numbers its three: read for bullets alone this saw the parent list
-    and neither sublist's neighbour, so the one subsection whose items
-    are a checklist was the one no check reached. A numbered item's
-    continuations are indented three rather than two, which the test
-    below already admits.
+    BULLETS AND NUMBERED ITEMS BOTH, since the open list's rulings heading
+    once numbered its three: read for bullets alone this saw the parent
+    list and neither sublist's neighbour, so the one subsection whose
+    items are a checklist was the one no check reached. A numbered item's
+    continuations are indented three rather than two, which the test below
+    already admits.
     """
     out, i, n = [], 0, len(lines)
     while i < n:
@@ -7617,9 +7617,10 @@ def run_docs(here=None):
     the run file's sections are `Results`, `What the next run compares
     against`, `The properties the next run should test` and `The stride
     classes, run by run`, none of which carries a numeral, so a write-up
-    makes a file and renames one heading -- `Recommended tasks after Run
-    N`, which is the open list's and stays in README.md. Four renames were
-    what step 5 used to be, and Run 9 left eleven dead anchors doing them.
+    makes a file and renames no README heading, the last one to carry a
+    run number having been renamed to `Standing rulings from past runs` on
+    2026-09-26. Four renames were what step 5 used to be, and Run 9 left
+    eleven dead anchors doing them.
 
     The directory accumulates, which is what gives the checks two files to
     compare: a paragraph a run left standing is one identical in the file
@@ -11660,7 +11661,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                    % (len(piped), '; '.join(x[:60] for x in piped[:3])))
     else:
         note.append('no chapter recipe pipes or chains a gate')
-    # THE RECOMMENDED-TASKS HEADING KEEPS NO RUN'S BLOCK, since 2026-09-25:
+    # THE STANDING-RULINGS HEADING KEEPS NO RUN'S BLOCK, since 2026-09-25:
     # post-run step 9 appends each to MARGINALIA. It kept three until then,
     # step 5 retiring the oldest, and that rule once stood unexecuted while
     # seven piled up (2026-09-23). Case: `check-doc-refuses-a-cheaper-block`.
@@ -11671,7 +11672,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                    ' heading keeps none: post-run step 9 appends each to'
                    ' MARGINALIA' % (len(cheaper), ', '.join(cheaper)))
     else:
-        note.append('the recommended-tasks heading keeps %d run block(s)'
+        note.append('the standing-rulings heading keeps %d run block(s)'
                     % len(cheaper))
     if run_doc is None:
         bad.append('BLOCKED: no run file in %s/, so the Results table, the'
@@ -13813,8 +13814,9 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
             # bullet, which is what makes the rule decidable -- measured
             # 2026-08-22, 46 entries and 39 statused.
             #
-            # NUMBERED ITEMS COUNT TOO. `Recommended tasks after Run N`
-            # numbers its three where both lists bullet theirs, so a
+            # NUMBERED ITEMS COUNT TOO. The rulings heading, then
+            # `Recommended tasks after Run N`, numbered its three where
+            # both lists bullet theirs, so a
             # bullet-only rule reached the section and skipped the one
             # subsection inside it whose items read as a checklist -- and
             # skipped it silently, the count simply coming out three
@@ -14276,7 +14278,7 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
     tasks, in_tasks = {}, False
     for t in paras:
         if t.startswith('#'):
-            in_tasks = t.startswith('### Recommended tasks after Run')
+            in_tasks = t.startswith('### Standing rulings from past runs')
         elif in_tasks:
             m = re.match(r'(\d+)\.\s+`', t)
             if m:

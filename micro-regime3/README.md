@@ -440,7 +440,7 @@ the chronology of how the instructions got here.
   proposal](#the-two-stage-plan-and-the-rework-proposal)
 - [What is settled, and where](#what-is-settled-and-where)
 - [What is open](#what-is-open)
-  - [Recommended tasks after Run 41](#recommended-tasks-after-run-41)
+  - [Standing rulings from past runs](#standing-rulings-from-past-runs)
   - [Non-urgent TODO list](#non-urgent-todo-list)
 - [The goal of these benchmarks](#the-goal-of-these-benchmarks)
   - [How the strictly positive picture
@@ -623,10 +623,10 @@ why; `ANSWERED` records an outcome and is kept so the question
 is not re-proposed; `STANDING` is a ruling or a convention with nothing to run.
 `grep -E '^(- |[0-9]+\. ).OPEN.' README.md` is the list of live questions,
 and the one that answers a session's first question about this section ---
-the alternation being there because *Recommended tasks after Run N* numbers
-its items where both lists bullet theirs, so a bullet-only pattern reads
-that subsection as empty rather than as clean. The status is a pointer and never
-the authority: the entry's own text is.
+the alternation being there because a numbered item is an entry too, the open
+list's rulings having once numbered theirs, so a bullet-only pattern would read
+such a subsection as empty rather than as clean. The status is a pointer
+and never the authority: the entry's own text is.
 
 **An `ANSWERED` entry owes three things and not a fourth: the question as
 it was asked, the outcome, and the section that holds the account.** This
@@ -2847,8 +2847,8 @@ rather than a slot in the next run, observed again:
   and placement can no longer be either's account. What would separate
   a dispersion belonging to the *worker* from one belonging to the *slot*
   is a run with the two arms' roster positions exchanged --- which asks
-  for an aligned build, a form this README has moved past ([the tasks' closing
-  ruling](#recommended-tasks-after-run-41)).
+  for an aligned build, a form this README has moved past ([the standing
+  rulings' closing one](#standing-rulings-from-past-runs)).
 - `OPEN` **A second instrument says different arms are unstable, and the two
   disagree --- which is the finding rather than something to average.**
   The entry above prices instability by the `CI%` column, which is sampling
@@ -3702,17 +3702,21 @@ rather than a slot in the next run, observed again:
   that run's tables.
 
 
-### Recommended tasks after Run 41
+### Standing rulings from past runs
 
-**Every run's `What Run N made cheaper` block is in `MARGINALIA`, appended there
-at post-run step 9 since 2026-09-25, and this heading keeps none.** Runs 41 down
-to 25 are there, 32 to 25 as of 2026-09-18, 36 to 33 as of 2026-09-23, 37 and 38
-to 40 as of 2026-09-25, and 41 as of 2026-09-26. A block is a record of what one
-run made cheaper, read by nobody once a further run has reported, and what
-it asks of the procedure is made in the chapter or a tool in the same write-up,
-which is where the next run meets it. What did NOT go is anything that
-is a ruling rather than a record: the four paragraphs below this one, and Run
-26's account of where its own spent items went, all stand here.
+**What this heading holds is rulings taken in past runs' write-ups, and no task:
+what the next run should do is the open list's `OPEN` entries above.**
+It was `Recommended tasks after Run N` until 2026-09-26, renamed when
+a comprehension probe found it holding no task. **Every run's
+`What Run N made cheaper` block is in `MARGINALIA`, appended there at post-run
+step 9 since 2026-09-25, and this heading keeps none.** Runs 41 down to 25
+are there, 32 to 25 as of 2026-09-18, 36 to 33 as of 2026-09-23, 37 and 38 to 40
+as of 2026-09-25, and 41 as of 2026-09-26. A block is a record of what one run
+made cheaper, read by nobody once a further run has reported, and what it asks
+of the procedure is made in the chapter or a tool in the same write-up, which
+is where the next run meets it. What did NOT go is anything that is a ruling
+rather than a record: the four paragraphs below this one, and Run 26's account
+of where its own spent items went, all stand here.
 
 **Run 26's six spent items are gone from this heading and here is where each
 went**, retired 2026-09-08 with Run 27's write-up, each one `ANSWERED`, and none
@@ -9357,9 +9361,8 @@ not otherwise.
     #      IS the last run's head and Results prose until you replace it:
     #      one sentence on what this run's own head has to answer).
     #      Every install below writes that file and no other document.
-    #      TWO headings take the number: the file's title, renamed by the
-    #      copy, and `Recommended tasks after Run N` in the open list,
-    #      which keeps no run's block (step 9).
+    #      ONE heading takes the number: the file's title, renamed by the
+    #      copy.
     #      Then repoint README's links from the run before to this file
     #      with `./read-run.py --repoint $PREV`, which moves every link
     #      into that file but the older run's OWN -- a link whose text
@@ -14472,23 +14475,10 @@ is the failure this list was rewritten to escape.
   and the correction's span. The bullets that used to name those sections one
   by one are this one, and the coverage check below reads it as covering every
   heading in that file;
-- [the recommended tasks after Run 41](#recommended-tasks-after-run-41), which
-  is run-scoped by its own title: a task taken or superseded leaves it --- which
-  RENUMBERS the rest, so `grep -n 'task [0-9]'` over this file and the run's
-  is owed with the departure, nothing else catching a pointer left behind ---
-  what survives is renamed to the run that inherits it, and a run's own
-  surprises are added to it before the run file is replaced. **Leaving
-  is not deleting, and where it goes is the half this used to omit**: a spent
-  task's outcome and a pointer to whatever holds its account --- an entry
-  of the open list, a topical section, an investigation directory --- go
-  to that home, and the item itself goes. Item 1 of Run 17's subsection shows
-  the migration done and the removal not: its evening is consolidated
-  into the position-term entry and its raw material
-  into `small-pinned-churn-investigation`, and a hundred words of it stand here
-  anyway. **Nothing spent stays under a heading naming a run that is over**,
-  which Run 17's items did until Run 18's write-up removed them and named where
-  each had gone --- a departure rule with no destination named is one nobody
-  applies;
+- [the standing rulings from past runs](#standing-rulings-from-past-runs), whose
+  rulings a run does NOT replace: it holds no task and no run's block,
+  and a ruling there changes when an argument does, which a run is not. What
+  the walk owes it is currency, a run's own surprises going to the open list;
 - [the noise-floor table][floor] and its prose, from `--aa`, and the run's row
   in `series/floor.tsv` --- including the raw-slope six it compares against,
   the position verdict the crossed controls now disagree about between runs,
@@ -14610,7 +14600,7 @@ of the list above is one of the steps.
 [jcc]: https://www.intel.com/content/www/us/en/developer/articles/technical/software-security-guidance/best-practices/mitigation-strategies-jcc-microcode.html
 [lemire]: #lemire-multiplicative-inverses-at-the-two-division-sites
 [open]: #what-is-open
-[open-tasks]: #recommended-tasks-after-run-41
+[open-tasks]: #standing-rulings-from-past-runs
 [opening]: #regime-3-micro-benchmark-the-regime-3-fix
 [pershape]: #per-shape-where-the-geomean-hides-the-ordering
 [pos-effect]: https://github.com/Mikolaj/horde-ad/blob/master/docs/position-effect.md

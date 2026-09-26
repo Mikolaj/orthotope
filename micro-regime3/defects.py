@@ -1827,7 +1827,7 @@ def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
         # glued to the paragraph above and finds nothing. The reader's own
         # `unwrapped_paragraphs` does isolate it, which is why the check
         # sees the tasks that this fixture could not.
-        anchor = '\n### Recommended tasks after Run'
+        anchor = '\n### Standing rulings from past runs'
         assert text.count(anchor) == 1, ('tasks heading: %d site(s)'
                                          % text.count(anchor))
         eol = text.index('\n', text.index(anchor) + 1)
