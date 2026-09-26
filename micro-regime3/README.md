@@ -2215,19 +2215,22 @@ rather than a slot in the next run, observed again:
   is in [the non-urgent TODO list][todo].
 
 - `PARKED` **The 0.7% bar that decides whether a pair's two columns may
-  be subtracted is used everywhere and defined nowhere.** **PARKED 2026-09-26
-  by the owner.** It is quoted some thirty times across this file and a run's,
-  in the form *past the 0.7% that lets two columns be differenced*,
-  and it decides the readability of a pair's whole second column --- the most
-  load-bearing number either document carries. No sentence says where it comes
-  from, what it is a bound on, or why the main set and the classes share one
+  be subtracted is used everywhere, and where 0.7 came from is written
+  nowhere.** **PARKED 2026-09-26 by the owner.** It is quoted some thirty times
+  across this file and a run's, in the form *past the 0.7% that lets two columns
+  be differenced*, and it decides the readability of a pair's whole second
+  column --- the most load-bearing number either document carries. What it
+  is a bound on is written since 2026-09-26, in the glossary at the head
+  of [Reading a run file](#reading-a-run-file): how far `list`, the denominator,
+  may move between two files before their columns stop sharing one. No sentence
+  says where 0.7 comes from or why the main set and the classes share one
   figure, so a reader can only obey it. The floor by contrast has a section
   of its own saying it is re-measured every run and never inherited. Found
   by Run 27's comprehension probe, which could answer every other question
   it was set and not this one. **What would settle it** is one paragraph beside
-  the floor's, saying what the bar bounds and on what evidence, and it wants
-  whoever set it rather than a measurement. **HALF OF THAT IS NOW WRITTEN,
-  by Run 29, and it is the evidence half**: the paragraph beside the floor's
+  the floor's, saying what the bar bounds, on what evidence and where it came
+  from, and the last wants whoever set it rather than a measurement.
+  **THE EVIDENCE IS WRITTEN, by Run 29**: the paragraph beside the floor's
   measures the bar against the pairs it is applied to --- 54 population readings
   from the five compiler pairs whose JSONs survive, median 0.64% and only 30
   of the 54 inside the bar --- so the number sits near the MEDIAN of the thing
@@ -3945,14 +3948,15 @@ codegen rather than that it cannot be built.
   as a ruling because the single-file mechanism is attractive and was proposed
   twice.
 
-- `ANSWERED` **The repoint stays hand-work --- REFUSED 2026-08-26,
-  and the entry's own argument is what refuses it.** **A mode that performed
-  the rename would leave `--check-doc` nothing to catch**: the step is one
-  heading, *Recommended tasks after Run N*, and one path rename of README's
-  links onto the new run file, which `--check-doc` fails wherever the rename
-  missed one, `runs/` keeping every run so a stale link still resolves ---
-  a residue where a miss is loud and immediate, against a checker branch
-  with no live control.
+- `ANSWERED` **The repoint was REFUSED as a mode on 2026-08-26 and TAKEN as one
+  on 2026-09-23.** The refusal argued that a mode performing step 5's renames
+  would leave `--check-doc` nothing to catch, the step then being one heading
+  and one path rename of README's links onto the new run file, and a missed
+  rename failing `--check-doc` loudly. `483ec59` made the path rename
+  `./read-run.py --repoint`, which moves every link but the older run's own
+  and prints each it kept, the list to read; and since 2026-09-26 the step
+  renames no README heading at all, *Standing rulings from past runs* carrying
+  no run number.
 - `OPEN` **More checks of the floor-consistency shape: one figure, several
   sites, must agree.** **AND THE FIRST THING SUCH A CHECK NEEDS IS THE SITES**:
   on 2026-09-06 the floor-pair check was seeing TWO of the ten sites the run
