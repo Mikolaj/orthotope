@@ -850,7 +850,9 @@ rather than a slot in the next run, observed again:
   on `compose-bcast-nest`, and is level where the move passes no axis.*
   In `probe-r42-prior1-compose.txt`, stage fifteen over fourteen in instructions
   reads 1.5794 on `compose-bcast-nest` and 0.4570 on `compose-bcast-wide`,
-  and 27 instructions fewer of about 257600 on `compose-rev-bcast`;
+  or 0.4288 over stage fourteen's `-n 3N` increment, that cell being `NONLINEAR`
+  in instructions in both sweeps at 147469 then 157177 a call, and 27
+  instructions fewer of about 257600 on `compose-rev-bcast`;
   `probe-r42-alloc-compose.txt` puts its allocation a call at 37208 bytes
   against 7089 on the first, 3805 against 66041 on the second, and 561 on both
   on the third. Over the main set, `probe-r42-prior1.txt` reads the pair
@@ -7437,17 +7439,6 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      it is not. Read the previous run's basis off its own note's
     #      HALVES line, which is where preflight's fill-in block reads it.
     #      why: a rebuild retires the comparison.
-    #  2e. the priors 12a writes against, taken NOW, while the box is quiet
-    #      and before preflight and the sweeps load it: `probe-stalls.sh`
-    #      on $R-<basis> over the arms the items will read, at the counts
-    #      N the previous run's sweeps name, TWICE, with
-    #      `EVENTS=instructions:u,cycles:u`, and `ALLOC=1` where an item
-    #      is priced in bytes. A cycle figure is a prior only where the
-    #      two sweeps agree on it; `./read-run.py --counts-over NEW OLD`
-    #      reads a sweep against the previous run's counts arm by arm.
-    #      Run 42 took them under the roster pass, and its two sweeps'
-    #      cycles parted by up to four times on one cell
-    #      why: a load the box carries is counted in its cycles.
     #      A rebuild retires it, and the fills read here are the
     #      pinning claim's only reading.
     #      The two tags are not always one: a tag names what a half is, so
@@ -7461,6 +7452,17 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      says so on the line -- so taking it here is not a duplicate.
     #      What the claim covers, and how Runs 20 and 21 killed its strong
     #      form, are in the prose.
+    #  2e. the priors 12a writes against, taken NOW, while the box is quiet
+    #      and before preflight and the sweeps load it: `probe-stalls.sh`
+    #      on $R-<basis> over the arms the items will read, at the counts
+    #      N the previous run's sweeps name, TWICE, with
+    #      `EVENTS=instructions:u,cycles:u`, and `ALLOC=1` where an item
+    #      is priced in bytes. A cycle figure is a prior only where the
+    #      two sweeps agree on it; `./read-run.py --counts-over NEW OLD`
+    #      reads a sweep against the previous run's counts arm by arm.
+    #      Run 42 took them under the roster pass, and its two sweeps'
+    #      cycles parted by up to four times on one cell
+    #      why: a load the box carries is counted in its cycles.
     #   3. retired 2026-09-25: the two md5s and the Main.hs and shim
     #      commits are rows preflight's `--fill-in` derives at 4-10, so
     #      they owe no call of their own. The number stays unused, so that
@@ -7739,8 +7741,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      `ARMS=` naming the arms 6c counts in and a control beside them:
     #      each class leg then takes those, `list` and the two `sum-only`
     #      arms, and the main leg the whole roster, which is then most
-    #      of the pass's cost, about a third of the hour the whole roster over
-    #      every class takes (ruled 2026-09-26).
+    #      of the pass's cost, about a quarter of the hour the whole roster
+    #      over every class takes (ruled 2026-09-26).
     #      Where the roster gained no arm, name `scaled` plus each class
     #      whose count 6c's tally moved, over the whole roster, the
     #      script's bare default being `scaled` alone.

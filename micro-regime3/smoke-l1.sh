@@ -34,7 +34,7 @@
 # keeps the whole roster, which is where `--selftest`'s shapes and every
 # registered `--pair` line are read (ruled 2026-09-26). The main leg is
 # then most of the cost: on Run 42's basis it took 768s, and the class
-# legs `compose` and `runs` over one arm in, its control, `list` and the
+# legs `compose` and `runs` over the new arm, its control, `list` and the
 # pair 41s and 102s, where their whole-roster legs had taken 255s and
 # 581s. Every required mode exited 0 on all three legs.
 #
