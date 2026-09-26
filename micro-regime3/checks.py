@@ -64,11 +64,13 @@ STEPS = [
     # Seven at once since 2026-09-18: run one at a time, these three were
     # nine tenths of a suite of some seventeen minutes, and the whole now
     # runs in some five. Seven and not the box's sixteen, so that a run
-    # and the session beside it keep their cores. The cases defects.py's
-    # CONFIG names `serial` build here and run alone after the rest.
-    ('cases, ok direction',    ['python3', '{bin}/defect-run.py', '-j', '7', '{root}']),
-    ('cases, bug direction',   ['python3', '{bin}/defect-run.py', '--audit', '-j', '7', '{root}']),
-    ('selftest mutants',       ['python3', '{bin}/selftest-mutants.py', '-j', '7', '{root}']),
+    # and the session beside it keep their cores; and READ_JOBS=1, since
+    # post-run-readings.sh otherwise runs six readers under each of the
+    # seven. The cases defects.py's CONFIG names `serial` build here and
+    # run alone after the rest.
+    ('cases, ok direction',    ['env', 'READ_JOBS=1', 'python3', '{bin}/defect-run.py', '-j', '7', '{root}']),
+    ('cases, bug direction',   ['env', 'READ_JOBS=1', 'python3', '{bin}/defect-run.py', '--audit', '-j', '7', '{root}']),
+    ('selftest mutants',       ['env', 'READ_JOBS=1', 'python3', '{bin}/selftest-mutants.py', '-j', '7', '{root}']),
 ]
 
 # Programs with no check, each with its reason: said on every run and never

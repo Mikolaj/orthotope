@@ -15699,6 +15699,15 @@ RECORDS = [
          ' so `./run40-x.json` was checked as `/run40-x.json`',
          argv=None, ok=None),
 
+    # ---- check-all's own steps ----
+    case('parallel-steps-leave-the-readings-fan-out-uncapped', 'checks.py',
+         None,
+         'a -j step ran post-run-readings.sh cases with its six readers'
+         ' apiece, filling the box the seven was chosen to leave free',
+         argv=['--unit', "[s[0] for s in STEPS if '-j' in s[1]"
+                         " and 'READ_JOBS=1' not in s[1]]"],
+         ok=V(has=['[]'])),
+
 ]
 
 
