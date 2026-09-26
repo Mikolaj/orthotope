@@ -13918,6 +13918,16 @@ RECORDS = [
          ok=V(exit=0, has=['BUILD', 'PROCESS']),
          bug=V(exit=2)),
 
+    case('opening-runs-the-three-readers', 'read-run.py', None,
+         "6a's three opening readers were three calls, and a session ran"
+         ' --prose-facts after the prose it exists to precede',
+         # Run 41's write-up ran --prose-facts once most of its paragraphs
+         # were written. One call runs all three, each under its own
+         # header, whatever the one before it answered.
+         plant=lambda t: {'run': os.path.join(t, 'run99')},
+         argv=['--opening', '{run}'],
+         ok=V(has=['== --inherited', '== --stale', '== --prose-facts'])),
+
     case('half-movers-refuse-without-prev-or-compare', 'read-run.py', None,
          'CONTROL: --half-movers RUN alone, with no COMPARE line, is refused'
          ' naming both ways out',

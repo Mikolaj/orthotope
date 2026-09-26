@@ -193,6 +193,9 @@ Modes:
                     --half-movers flags with its counts level
   --copy-test LOG   copy-test.sh's log read per cell: INSTANCE, PROCESS
                     or BUILD, off the copy and the previous run's half
+  --opening RUN     post-run step 6a's three opening readers in one call,
+                    --inherited, --stale and --prose-facts, each under
+                    its header, exiting with the worst of the three
   --steps           every cell read at sample level for a mid-bench change
                     of level, which the fitted slope averages away and no
                     other column here can show
@@ -15534,6 +15537,11 @@ def main():
                    help='install --markdown/--fingerprint/--block tables'
                         " into the run's own file instead of printing"
                         ' them')
+    p.add_argument('--opening', metavar='RUN',
+                   help='post-run step 6a\'s three opening readers in one'
+                        ' call, before the first paragraph: --inherited,'
+                        ' --stale and --prose-facts RUN, each under a'
+                        ' header, exiting with the worst of the three')
     p.add_argument('--prose-facts', metavar='RUN',
                    help='the figures a write-up quotes, gathered'
                         ' from log-read-RUN/ and computed nowhere:'
@@ -16020,6 +16028,24 @@ def main():
         sys.exit(paragraphs(docs, args.para, args.all_paras))
     if args.modes:
         sys.exit(modes_table())
+    if args.opening:
+        # 6a's THREE READERS IN ONE CALL, since 2026-09-26: Run 41's
+        # write-up ran --prose-facts after most of its prose, the step
+        # asking for it before the first paragraph. Each runs whatever the
+        # one before it answered. Case: `opening-runs-the-three-readers`.
+        doc = want_run_doc(args)
+        rcs = []
+        for head, call in (
+                ('--inherited', lambda: inherited(
+                    doc, previous_run_doc(doc), args.all_paras)),
+                ('--stale', lambda: stale_figures(
+                    doc, verbose=args.all_paras)),
+                ('--prose-facts', lambda: prose_facts(args.opening))):
+            print('== %s' % head)
+            sys.stdout.flush()
+            rcs.append(call() or 0)
+            print()
+        sys.exit(max(rcs))
     if args.inherited:
         doc = want_run_doc(args)
         sys.exit(inherited(doc, previous_run_doc(doc), args.all_paras))

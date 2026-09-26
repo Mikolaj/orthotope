@@ -9412,9 +9412,9 @@ not otherwise.
     #      wants: a class block carries one until its counts are placed.
     #      A sentence of the class's own is optional since 2026-09-25,
     #      written only where the class has a finding.
-    ./read-run.py --inherited             # 6a's THREE READERS, in the
-    ./read-run.py --stale                 # order the body gives them,
-    ./read-run.py --prose-facts $R        # and BEFORE the first paragraph
+    ./read-run.py --opening $R            # 6a's THREE READERS IN ONE
+    #      CALL, --inherited, --stale and --prose-facts in the order the
+    #      body gives them, and BEFORE the first paragraph
     #      FIRST, BEFORE A WORD OF IT: `./read-run.py --inherited`,
     #      which names the paragraphs this file carried WHOLE from
     #      the last run's and which claim something about the run in
