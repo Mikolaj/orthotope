@@ -132,27 +132,45 @@ if [ "$LIST" = 1 ]; then
   rm -f "$JOBS"
   exit 0
 fi
-# REWRITTEN WHOLE: a file an earlier call left, a reading against a COMPARE
-# run the note has since dropped among them, is read by --for-brief as
-# this call's.
-# BUT ONLY WHAT A CALL OF THIS SCRIPT WROTE: a file here that neither this
-# call's jobs nor the previous call's `.written` names is somebody else's,
-# and it is moved to $D-kept/ and named rather than deleted with the rest.
-# Run 39's session kept readings of its own here and the second call took
-# them. Case: `readings-keep-a-file-they-did-not-write`.
+# WHAT A CALL OF THIS SCRIPT WROTE IS REWRITTEN: a file an earlier call
+# left, a reading against a COMPARE run the note has since dropped among
+# them, would be read by --for-brief as this call's, so it is deleted.
+# ANYTHING ELSE STAYS WHERE IT IS: a file that neither this call's jobs nor
+# the previous call's `.written` names is somebody else's, and it is named
+# and left in place. Run 39's session kept readings here and the second call
+# deleted them; the repair moved them to $D-kept/, and Run 41's note, which
+# pointed into $D/, went stale at the counts' landing (2026-09-26). Case:
+# `readings-keep-a-file-they-did-not-write`.
 if [ -d "$D" ]; then
-  KEPT=
+  KEPT=''; MOVED=''
   for f in "$D"/* "$D"/.[!.]*; do
     [ -e "$f" ] || continue
     b=${f##*/}
     case $b in for-brief.txt|.written) continue ;; esac
-    cut -d' ' -f1 "$JOBS" | grep -qxF -- "$b" && continue
-    [ -f "$D/.written" ] && grep -qxF -- "$b" "$D/.written" && continue
-    mkdir -p "$D-kept" && mv "$f" "$D-kept/" && KEPT="$KEPT $b"
+    if cut -d' ' -f1 "$JOBS" | grep -qxF -- "$b" \
+       || { [ -f "$D/.written" ] && grep -qxF -- "$b" "$D/.written"; }; then
+      rm -rf "$f"
+      continue
+    fi
+    # SHAPED LIKE A READING OF THIS SCRIPT'S and recorded by no call, as one
+    # an earlier call wrote before `.written` existed or against a COMPARE
+    # run the note has since dropped: moved aside, --for-brief reading any
+    # such name as this call's. Case: `readings-rewrite-their-directory-whole`.
+    case $b in
+      *-compare.txt|*-pred.txt|*-aa.txt|*-cells.tsv|*-block.txt| \
+      *-blockcmp.txt|*-chapter.txt|*-alloc.txt|*-deflation.txt| \
+      *-winsor.txt|*-bridge.txt|*-counts-cmp.txt|floor-pairs.txt| \
+      wild-*.txt|cell-movers.txt|half-movers.txt)
+        mkdir -p "$D-kept" && mv "$f" "$D-kept/" && MOVED="$MOVED $b" ;;
+      *) KEPT="$KEPT $b" ;;
+    esac
   done
-  [ -z "$KEPT" ] || echo "kept aside in $D-kept/, being no reading this script writes:$KEPT"
+  rm -f "$D/for-brief.txt" "$D/.written"
+  [ -z "$MOVED" ] || echo "moved aside to $D-kept/, being shaped like a reading no call recorded:$MOVED"
+  [ -z "$KEPT" ] || echo "left in place in $D/, being no reading this script writes:$KEPT"
+else
+  mkdir "$D" || exit 2
 fi
-rm -rf "$D" && mkdir "$D" || exit 2
 # A -cells.tsv is stdout alone, for a script to read: the reader's header
 # and warnings go to stderr, and the same population's other files carry
 # them.
@@ -183,7 +201,10 @@ while read -r rc out; do
     LOST=$((LOST + 1))
   fi
 done < "$JOBS.rc"
-CRASHED=$(cd "$D" && grep -l 'Traceback (most recent call last)' -- * 2>/dev/null | sort | tr '\n' ' ')
+# Only this call's files: one a session left here is not a reading.
+CRASHED=$(cd "$D" && { cut -d' ' -f1 "$JOBS"; echo for-brief.txt; } \
+  | xargs -r grep -l 'Traceback (most recent call last)' -- 2>/dev/null \
+  | sort | tr '\n' ' ')
 { cut -d' ' -f1 "$JOBS"; echo for-brief.txt; } > "$D/.written"
 rm -f "$JOBS" "$JOBS.rc"
 echo "$N reading(s) into $D/: $LOST did not happen, exiting 2 or worse, and $BARE --wild reading(s) exited 2 on a log carrying no samples"

@@ -12069,22 +12069,23 @@ RECORDS = [
 
     case('readings-keep-a-file-they-did-not-write', 'post-run-readings.sh',
          None,
-         'CONTROL: a file in log-read-RUN/ that no call of the script wrote'
-         ' is moved to log-read-RUN-kept/ and named, not deleted with the'
-         ' rewrite',
+         'a file in log-read-RUN/ that no call of the script wrote was'
+         ' moved to log-read-RUN-kept/, and a note pointing at it went stale',
          # Run 39's session kept its own readings in that directory, and
-         # the script's second call deleted them with the rest (2026-09-23).
+         # the script's second call deleted them with the rest (2026-09-23);
+         # the repair moved them aside instead, and Run 41's note, pointing
+         # into log-read-run41/, went stale at the counts' landing. Since
+         # 2026-09-26 the call deletes only what a call of it wrote.
          shadow=dict(extra=readings_run('zzpr9', complete=False)),
          plant=lambda tmp: (os.makedirs(os.path.join(
              tmp, 'shadow', 'log-read-zzpr9'), exist_ok=True), write(
                  os.path.join(tmp, 'shadow', 'log-read-zzpr9', 'mine.txt'),
                  'a session\'s own reading\n'), None)[-1],
          argv=['zzpr9'],
-         probe=lambda subs: ' '.join(sorted(os.listdir(os.path.join(
-             str(subs['at']), 'log-read-zzpr9-kept')))) if os.path.isdir(
-                 os.path.join(str(subs['at']), 'log-read-zzpr9-kept'))
-             else 'no kept directory',
-         ok=V(has=['mine.txt'], hasnt=['no kept directory'])),
+         probe=lambda subs: 'PROBE: mine.txt %s' % (
+             'stayed' if 'mine.txt' in os.listdir(os.path.join(
+                 str(subs['at']), 'log-read-zzpr9')) else 'went'),
+         ok=V(has=['PROBE: mine.txt stayed'])),
 
     case('readings-take-the-counts-after-a-complained-evening',
          'post-run-readings.sh', 'f241d66',
