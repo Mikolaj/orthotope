@@ -6661,10 +6661,18 @@ def hand_tables(cells, shapes, strategies, meta, args):
                         fmt_abs(cells[key]['list']['net']),
                         fmt_abs(b_cells[key]['list']['net'])]
             else:
+                # A DEPARTED ROW IS DROPPED WITH A WARNING, as --markdown
+                # drops one, since 2026-09-26: an arm retired between the
+                # runs is not a table this mode cannot read. Case:
+                # `hand-tables-drops-a-departed-row`.
                 if key not in rows_b or key not in rows_o:
-                    sys.stderr.write('two-column row `%s`: no such arm in'
-                                     ' both JSONs\n' % key)
-                    return 2
+                    sys.stderr.write('warning: two-column row `%s` is not'
+                                     ' timed in both halves and is dropped;'
+                                     ' check the prose still holds\n' % key)
+                    off.append('two-column: `%s` reads `%s`, and the two'
+                               ' halves do not both time it'
+                               % (key, line.strip()))
+                    continue
                 want = [cellsof[0], '**%.3f**' % rows_b[key],
                         '%.3f' % rows_o[key]]
             got = '| ' + ' | '.join(want) + ' |'

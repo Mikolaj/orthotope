@@ -6959,6 +6959,23 @@ RECORDS = [
          ok=V(exit=1, has=['anchors: `cnn-slice-c32`',
                            'two-column: `mut-odo-vecdims`'])),
 
+    case('hand-tables-drops-a-departed-row', 'read-run.py', None,
+         'a two-column row for an arm the run no longer times refused the'
+         ' whole install',
+         # Run 41's install stopped at 5b on `lib-stage3-lean-onelevel`,
+         # retired from timing between the runs, until the row was deleted
+         # by hand -- where --markdown drops such a row with a warning.
+         # The planted row names an arm neither JSON times.
+         plant=lambda t: {'doc': unwrapped_rundoc_edit(
+                              t, '| `mut-odo-vecdims` | **',
+                              '| `retired-arm` | **0.045** | 0.058 |\n'
+                              '| `mut-odo-vecdims` | **'),
+                          'a': synth_json(t, 'main', name='a.json'),
+                          'b': synth_json(t, 'main', name='b.json')},
+         argv=['{a}', '--compare', '{b}', '--hand-tables', '--in-place',
+               '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['`retired-arm`', 'dropped'])),
+
     # ---- --gate-draft, run list step 14a's four readings as one table ----
     case('gate-draft-names-the-half-that-drifted', 'read-run.py', None,
          'CONTROL: the draft puts the four readings side by side and names'
