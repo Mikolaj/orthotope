@@ -916,9 +916,12 @@ rather than a slot in the next run, observed again:
   population, so no back-edge rule is named for retirement.
 - `ANSWERED` **The inward fill's single table of pairs was worth about two
   points to the fill and one to the list consumer, no span priced it alone,
-  and since 2026-09-24 the fill has no table to price.** `c0a8aaa`, landing
-  2026-09-23 after Run 39's registration and before its build, rebuilt
-  `fillStage2` --- the inward fill behind `lib-stage3-lean`,
+  and since 2026-09-24 the fill has no table to price.** **HISTORICAL since
+  2026-09-26**: `c7549d2` deleted `fillStage2` and `08b4f19` rebuilt
+  `fillStage2Axes`'s nest in `fillStage3`'s loop, so neither fill below
+  is in `Main.hs` as described; the readings stand for the builds that took
+  them. `c0a8aaa`, landing 2026-09-23 after Run 39's registration and before
+  its build, rebuilt `fillStage2` --- the inward fill behind `lib-stage3-lean`,
   `liblist-stage5-sum` and `libunord-stage14-sum` until 2026-09-25, when they
   moved to `fillStage3` --- to build one unboxed table of (stride, extent) pairs
   in one pass, while `fillStage2Axes`, behind their counterparts, keeps
@@ -953,23 +956,26 @@ rather than a slot in the next run, observed again:
 - `ANSWERED` **Seven reducing consumers newly change what they ALLOCATE
   under `-fspec-constr -fliberate-case`, where one run earlier the same pair
   changed none of them --- and the change was one fold's boxing, most of which
-  `815ffa2` took away.** On Run 38 the unordered consumers
-  `libunord-stage6-sum`, `-stage6-loop-sum`, `-stage7-sum`, `-stage9-sum`,
-  `-stage12-sum`, `-stage13-sum` and the new `-stage14-sum` read geomean
-  deviations of 3.80% to 13.08% over the eleven populations, where Run 37's own
-  JSONs read the six that exist there at 0.9957 to 1.0013 cell by cell,
-  so the only term that could reach it was the source. It was never a tier:
-  those arms allocate hundreds of bytes a call at the 0.01x tier,
-  and no property verdict turned on it. Runs 39 and 40 read the six still timed
-  at about 0.80 to 0.84 per cell on the main set, Run 40's on a rewritten
-  `runSlices` odometer, so the sensitivity did not live in the odometer.
-  **It lived in `canonicalize`'s merge fold**, the next entry's, and **Run 41,
-  the first run with that fold's accumulator a strict record, reads the change
-  gone to within about two points**: four of the six at 0.9795 to 0.9852 per
-  cell over the main set, `-stage13-sum` and `-stage14-sum` at 1.0001
-  and 0.9999, and 0.969 to 1.000 over `small`, which is what the reading
-  of 2026-09-25 predicted off the two binaries; [Run 41's
-  properties](runs/run41.md#the-properties-the-next-run-should-test) carry
+  `815ffa2` took away.** **HISTORICAL since 2026-09-26**: `08b4f19`
+  and `ea7d222` moved these consumers' merges off `canonicalize`'s fold
+  into loops, and `7ca5d40` took stage fourteen's accumulator away, so the fold
+  this entry names is no longer what they run; the readings stand for Runs 38
+  to 41. On Run 38 the unordered consumers `libunord-stage6-sum`,
+  `-stage6-loop-sum`, `-stage7-sum`, `-stage9-sum`, `-stage12-sum`,
+  `-stage13-sum` and the new `-stage14-sum` read geomean deviations of 3.80%
+  to 13.08% over the eleven populations, where Run 37's own JSONs read the six
+  that exist there at 0.9957 to 1.0013 cell by cell, so the only term that could
+  reach it was the source. It was never a tier: those arms allocate hundreds
+  of bytes a call at the 0.01x tier, and no property verdict turned on it. Runs
+  39 and 40 read the six still timed at about 0.80 to 0.84 per cell on the main
+  set, Run 40's on a rewritten `runSlices` odometer, so the sensitivity did
+  not live in the odometer. **It lived in `canonicalize`'s merge fold**,
+  the next entry's, and **Run 41, the first run with that fold's accumulator
+  a strict record, reads the change gone to within about two points**: four
+  of the six at 0.9795 to 0.9852 per cell over the main set, `-stage13-sum`
+  and `-stage14-sum` at 1.0001 and 0.9999, and 0.969 to 1.000 over `small`,
+  which is what the reading of 2026-09-25 predicted off the two binaries; [Run
+  41's properties](runs/run41.md#the-properties-the-next-run-should-test) carry
   the figures. The mechanical figure it moved rose with it, `--alloc` putting
   283 of the main set's 532 cells above 100 bytes a call inside 1e-4 between
   the halves where Run 40 put 252 of 551. `libunord-stage12-sum` was parked
@@ -1280,15 +1286,17 @@ rather than a slot in the next run, observed again:
 - `ANSWERED` **A loop's latch keeps its fall-through only where the block
   it exits to has no second predecessor --- GHC
   [#27799](https://gitlab.haskell.org/ghc/ghc/-/work_items/27799), filed
-  2026-09-11.** `fillStage2U1`'s innermost strided copy ends in `cmp`, `jge`
-  and `jmp` on one half and in `cmp` and `jl` on the other, one instruction
-  an element, and it is not a half difference: both compilers emit both shapes
-  and `-fobject-determinism` selects which. **What settled it** is the pair
-  of dumps: the exit is a join whose arms disagree about registers, the linear
-  allocator splices a fixup block onto the arm it reaches second in `sccBlocks`'
-  input order, the proc's blocks in ascending unique, and block layout
-  then weights the latch's edge by 0.96875 for leaving a conditional branch
-  (`relevantWeight`, GHC
+  2026-09-11.** **HISTORICAL since 2026-09-26** for this suite: `08b4f19`
+  deleted `fillStage2U1`, and `lib-stage2-lean-u1` runs `fillStage3U1` since,
+  whose latch shape nobody has read; the GHC mechanism stands. `fillStage2U1`'s
+  innermost strided copy ends in `cmp`, `jge` and `jmp` on one half and in `cmp`
+  and `jl` on the other, one instruction an element, and it is not a half
+  difference: both compilers emit both shapes and `-fobject-determinism` selects
+  which. **What settled it** is the pair of dumps: the exit is a join whose arms
+  disagree about registers, the linear allocator splices a fixup block
+  onto the arm it reaches second in `sccBlocks`' input order, the proc's blocks
+  in ascending unique, and block layout then weights the latch's edge by 0.96875
+  for leaving a conditional branch (`relevantWeight`, GHC
   [#18053](https://gitlab.haskell.org/ghc/ghc/-/work_items/18053)), so the latch
   loses a contest it led; the record is horde-ad's
   `docs/ghc-issue-latch-loses-fallthrough.md`, and GHC
@@ -2083,8 +2091,11 @@ rather than a slot in the next run, observed again:
   figure, over the pairs that carry back to Run 10, is the series and never
   the bar. The runs' figures are in [the floor section][floor].
 - `ANSWERED` **The arm that leads Run 28's table is the branch's own driver
-  and not a member of the family the fix shipped.** **TAKEN 2026-09-11**:
-  the library's `genericFillStrided` is `fillStage2`'s port, the doubling copy
+  and not a member of the family the fix shipped.** **HISTORICAL since
+  2026-09-26**: `c7549d2` deleted `fillStage2`, and `lib-stage1` fills through
+  `fillStage3` since, so it no longer carries the shipped route; what follows
+  describes the code as it stood. **TAKEN 2026-09-11**: the library's
+  `genericFillStrided` is `fillStage2`'s port, the doubling copy
   and the broadcast unroll included, so the table's leader is the shipped fill
   under the lean dispatch, and `lib-stage1` carries the shipped route whole.
   The margins are [in Run 28's file](runs/run28.md).
@@ -3394,18 +3405,22 @@ rather than a slot in the next run, observed again:
 - `ANSWERED` **Why `libunord-stage10-sum` trails `libunord-stage9-sum` by 19
   to 39 percent on the `window` views while retiring 40 to 60 percent fewer
   instructions, and why HEAD moves stage 9 and not stage 10 --- asked
-  and answered 2026-09-15.** Stage 10's tie-break makes each run the longest
-  unit-stride axis, a chain of dependent adds at the FADD latency, so the arm
-  is latency-bound, placement-blind and the same on both compilers, while stage
-  9's short runs overlap and run at instruction throughput, placement-sensitive,
-  HEAD's difference on it being the compiler's code order; the account
-  is in [the placement section][floor]: no placement defeats the rules, and none
-  mends HEAD. **On the tiny views the same arm trails stage 7 for a third
-  reason**: stage 10 retires 650 to 1060 more instructions a call than stage 7,
-  the per-call cost of the zero-stride move, run on every call whether or
-  not a zero stride is there. Stage eleven, `libunord-stage11-sum`, guards
-  the move, and Run 33 read it level with stage seven where no axis has a zero
-  stride and with stage ten where one does, [in Run 33's file](runs/run33.md).
+  and answered 2026-09-15.** **HISTORICAL since 2026-09-26** in its figures:
+  `ea7d222` moved stage ten and its neighbours onto the `Axis` path,
+  the zero-stride move still run on every call but over `Axis`,
+  so the instruction figures below are the pair form's. Stage 10's tie-break
+  makes each run the longest unit-stride axis, a chain of dependent adds
+  at the FADD latency, so the arm is latency-bound, placement-blind and the same
+  on both compilers, while stage 9's short runs overlap and run at instruction
+  throughput, placement-sensitive, HEAD's difference on it being the compiler's
+  code order; the account is in [the placement section][floor]: no placement
+  defeats the rules, and none mends HEAD. **On the tiny views the same arm
+  trails stage 7 for a third reason**: stage 10 retires 650 to 1060 more
+  instructions a call than stage 7, the per-call cost of the zero-stride move,
+  run on every call whether or not a zero stride is there. Stage eleven,
+  `libunord-stage11-sum`, guards the move, and Run 33 read it level with stage
+  seven where no axis has a zero stride and with stage ten where one does, [in
+  Run 33's file](runs/run33.md).
 
 - `ANSWERED` **What does the roster owe the next run? --- nothing now: every
   debt it recorded is paid, the last by Run 41's write-up.** The exact
