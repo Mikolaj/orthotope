@@ -387,6 +387,18 @@ def plant_cut_before_heading(tmp):
         'and the equal weighting of shapes are')
 
 
+def plant_unsourced_figure(tmp):
+    """The run file with two paragraphs added before its anchors one, each
+    quoting a four-decimal figure: the first naming no reader mode, the
+    second naming `--pair`, the control."""
+    lead = '**Each stride class carries an anchor of its own'
+    return unwrapped_rundoc_edit(
+        tmp, lead,
+        'UNSOURCED-FIGURE: the probe arm runs 1.2345 over its base.\n\n'
+        'MODE-NAMED-FIGURE: `--pair` puts the probe arm at 1.2345.\n\n'
+        + lead)
+
+
 def runs_summary_row(tmp, shapes=None, short_by=None):
     """The cross-class summary's `runs` row, re-cut to SHAPES shapes.
 
@@ -13917,6 +13929,17 @@ RECORDS = [
          argv=['--copy-test', '{log}'],
          ok=V(exit=0, has=['BUILD', 'PROCESS']),
          bug=V(exit=2)),
+
+    case('worklist-names-a-figure-no-reader-printed', 'read-run.py', None,
+         'a prose figure no reader mode is named for went unlisted, and the'
+         ' chapter asks that such a figure be taken from one',
+         # Run 41's write-up did "points" arithmetic by hand in prose, and
+         # one of those figures needed a second edit. A note and not a
+         # gate: which figures a reader printed is a reading.
+         plant=lambda t: {'rundoc': plant_unsourced_figure(t)},
+         argv=['--check-doc', '--worklists', '--run-doc', '{rundoc}'],
+         ok=V(has=['UNSOURCED-FIGURE: the probe arm'],
+              hasnt=['MODE-NAMED-FIGURE'])),
 
     case('opening-runs-the-three-readers', 'read-run.py', 'cf0dfaa',
          "6a's three opening readers were three calls, and a session ran"

@@ -7535,6 +7535,11 @@ def settling_mode(line):
 # Like the sweep above, listed for judging: check it against its source.
 MS_RE = re.compile(r'\b\d+(?:\.\d+)?\s*ms\b')
 
+# A four-decimal figure, the shape a reader mode prints a ratio in, and the
+# name of a mode beside it: the figure sweep of `--check-doc --worklists`.
+FIGURE4_RE = re.compile(r'(?<![\w.])\d+\.\d{4}(?!\d)')
+READER_MODE_RE = re.compile(r'(?<![\w-])--[a-z][a-z-]+')
+
 
 # A tool of this directory, or a mode of one, named inside a comment of an
 # indented block. Cabal's and GHC's flags are deliberately absent: a build
@@ -12555,6 +12560,20 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         sweep(buried, "action(s) named only in a checklist's comment; an"
                       ' operator runs the lines and reads the comments, so'
                       ' promote it to a line of its own or say why not')
+    # A FIGURE NO READER IS NAMED FOR, in a paragraph this write-up added.
+    # The chapter asks that a prose figure be taken from a reader mode, and
+    # a paragraph quoting one while naming none was derived either without
+    # saying how or by hand. Listed and never failed: which, is a reading.
+    unsourced = [(where(first), para)
+                 for first, para, _ in unwrapped_paragraphs(lines)
+                 if not lines[first - 1].startswith('    ')
+                 and FIGURE4_RE.search(para)
+                 and not READER_MODE_RE.search(para)
+                 and (added is EVERYTHING or is_fresh(para, added))]
+    if unsourced:
+        sweep(unsourced, 'paragraph(s) quoting a four-decimal figure and'
+              ' naming no reader mode; name the mode that printed each, or'
+              ' derive it with one')
     # An ANSWERED entry that grew into the account it should have pointed
     # at. The open list is a QUESTION REGISTER -- its own preamble says an
     # entry is kept so the question is not re-proposed -- while `What is
@@ -15624,10 +15643,9 @@ def main():
     # exit code. The default was the wrong way round and Run 16 ran the loud
     # form out of habit more than once.
     p.add_argument('--worklists', action='store_true',
-                   help='with --check-doc: print the superseded-figure,'
-                        ' superlative and absolute-time worklists for'
-                        ' adjudication -- post-run 6e wants this, no other'
-                        ' does')
+                   help='with --check-doc: print the sweeps\' worklists'
+                        ' for adjudication -- post-run 6e wants this, no'
+                        ' other does')
     p.add_argument('--para', metavar='PATTERN',
                    help="print the paragraph, in either document, whose"
                         " bolded lead matches, with the line it starts at;"

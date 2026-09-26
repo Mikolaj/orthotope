@@ -8415,18 +8415,20 @@ is the corpus `defects.py`, the properties, and `checks.py`'s list of the lot.
 **What the `note:` lines ARE, the list having said only that they do not stop
 you.** They are the write-up's adjudication material and nothing a preparation
 owes: every superseded figure, every superlative, every absolute time the two
-documents quote, and every link from standing prose into the run's file
-as a whole. They are withheld by count and **`--worklists` is what prints
-them**, at post-run step 6e and at no other call --- not the absence
-of `--quiet`, which is the default now and withholds just the same. `--lint`
-reads the same way, noting the rostered arms it knows are deliberately untimed.
-**One of those `ok:` lines is the wrap check, and it reads differently
-mid-edit.** It asks its question per paragraph rather than of the whole file,
-so a paragraph an edit left on one line is reported as mid-edit and not failed,
-and a `FAIL:` there means a paragraph wrapped by *hand* --- neither
-the formatter's form nor one line. The gate therefore stays green on a document
-being worked on and asks for no wrapping at all: the commit hook wraps a tracked
-document back, and a check is run on whichever form is in front of you.
+documents quote, every four-decimal figure a new paragraph quotes without naming
+the reader mode that printed it, and every link from standing prose
+into the run's file as a whole. They are withheld by count and **`--worklists`
+is what prints them**, at post-run step 6e and at no other call ---
+not the absence of `--quiet`, which is the default now and withholds just
+the same. `--lint` reads the same way, noting the rostered arms it knows
+are deliberately untimed. **One of those `ok:` lines is the wrap check,
+and it reads differently mid-edit.** It asks its question per paragraph rather
+than of the whole file, so a paragraph an edit left on one line is reported
+as mid-edit and not failed, and a `FAIL:` there means a paragraph wrapped
+by *hand* --- neither the formatter's form nor one line. The gate therefore
+stays green on a document being worked on and asks for no wrapping at all:
+the commit hook wraps a tracked document back, and a check is run on whichever
+form is in front of you.
 
 Both halves. On the unaligned/aligned pairs this README used to build, only one
 half had its own code rewritten --- the other's shim appended dead bytes, where
@@ -10201,22 +10203,22 @@ size comes from the reader's first line;
 
    **What the instruments cannot supply is the reading, and the reading
    is the pass.** What the tools print is its output and not its method:
-   `--check-doc`'s three sweeps hand you a worklist of superseded figures,
-   superlatives and absolute times, and adjudicating that list is not reading
-   the document. Nor is inheriting one --- a worklist you did not derive
-   verifies somebody else's findings while telling you nothing about what else
-   is wrong, which is the completeness question the reading exists to answer.
-   **The checker and the comprehension probe are not two goes at one job,
-   and the split is what makes the second worth its cost.** A checker is scoped
-   to the diff: it reads what changed, recomputes it, and is the only instrument
-   that returns completeness over a table. It cannot see a sentence in a section
-   nobody touched that this run's tables have just falsified --- and on a run
-   that changes its basis those are everywhere. The probe reads the README
-   as a stranger meets it, and that is what it returns: three thresholds quoted
-   for one quantity, two sizes given for one population, a ruling standing
-   unmarked in the run that abandoned it, two comparison rules that read as one
-   and contradict --- not one of them in any diff. **So run both, and read
-   the probe's findings as being about the README rather than about the run.**
+   `--check-doc`'s sweeps hand you worklists, and adjudicating them
+   is not reading the document. Nor is inheriting one --- a worklist you did
+   not derive verifies somebody else's findings while telling you nothing about
+   what else is wrong, which is the completeness question the reading exists
+   to answer. **The checker and the comprehension probe are not two goes at one
+   job, and the split is what makes the second worth its cost.** A checker
+   is scoped to the diff: it reads what changed, recomputes it, and is the only
+   instrument that returns completeness over a table. It cannot see a sentence
+   in a section nobody touched that this run's tables have just falsified ---
+   and on a run that changes its basis those are everywhere. The probe reads
+   the README as a stranger meets it, and that is what it returns: three
+   thresholds quoted for one quantity, two sizes given for one population,
+   a ruling standing unmarked in the run that abandoned it, two comparison rules
+   that read as one and contradict --- not one of them in any diff. **So run
+   both, and read the probe's findings as being about the README rather
+   than about the run.**
 
    **An independent checker on the diff is the highest-yield instrument here,
    and the cost of launching it late is measured**: launched once a whole
