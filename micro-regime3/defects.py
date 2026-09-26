@@ -719,6 +719,22 @@ def plant_half_mover(tmp):
     return got
 
 
+def plant_gate_with_registration(tmp):
+    """Run 96's gate on four synthetic legs and a README carrying its OPEN
+    registration, whose one span predicts `list`'s cross figure at 2.0
+    within 1% -- where two synthetic halves read about 1."""
+    write(os.path.join(tmp, 'run96-pair.txt'),
+          'a stand-in pair note.\nHALVES: basis=nb other=ob\n')
+    for h in ('nb', 'ob'):
+        for leg in 'ab':
+            synth_json(tmp, 'main', name='run96-gate-%s-%s.json' % (h, leg))
+    readme = write(os.path.join(tmp, 'R.md'),
+                   '# R\n\n- `OPEN` **What Run 96 is built to answer,'
+                   ' registered before it runs.** (1) *The regime holds.*'
+                   ' `predict: cross list 2.0 within 1% on main basis`.\n')
+    return {'run': os.path.join(tmp, 'run96'), 'readme': readme}
+
+
 def rundoc_with_ragged_row(tmp):
     """A copy whose yardstick table has one row two cells short.
 
@@ -6989,6 +7005,16 @@ RECORDS = [
          bug=V(exit=2, has=['no such arm in both JSONs'])),
 
     # ---- --gate-draft, run list step 14a's four readings as one table ----
+    case('gate-draft-reads-the-registration-spans', 'read-run.py', None,
+         "a registration's cross span already outside its band at the gate"
+         ' went unread for six hours, until post-run step 5c',
+         # Run 41's gate read `bq-expand` at 1.36 in both passes against a
+         # registered 1.303 within 1%, and nothing said so before 5c.
+         plant=plant_gate_with_registration,
+         argv=['--gate-draft', '{run}', '--readme', '{readme}'],
+         ok=V(exit=0, has=['item (1)', 'OUTSIDE'])),
+
+
     case('gate-draft-names-the-half-that-drifted', 'read-run.py', None,
          'CONTROL: the draft puts the four readings side by side and names'
          " each half's widest move between its own two legs",

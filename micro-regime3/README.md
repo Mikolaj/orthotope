@@ -8071,7 +8071,9 @@ Unsandboxed throughout:
     #      halves' own drift, the passes' ratio being the control's legs
     #      over the basis's by construction: read which half moved.
     #      `./read-run.py --gate-draft $R` puts the four side by side,
-    #      and the driver appends it to $R-evening-out.txt.
+    #      and the driver appends it to $R-evening-out.txt, with the
+    #      registration's `cross` spans held to the two passes under it:
+    #      a span outside its band there is a question, not a forecast.
     #      why: the second pair of readings says what a spread is.
     #      THE SECOND PAIR OF READINGS IS WHAT A SPREAD BETWEEN THE
     #      PASSES IS, before it is the pair's: the control's legs over the

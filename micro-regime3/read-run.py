@@ -6578,10 +6578,12 @@ def gate_draft(run, args):
     print('%-22s %9s %9s %11s %11s %7s'
           % ('arm', 'pass -a', 'pass -b', 'basis a/b', 'control a/b',
              'sides'))
-    bad, drift = [], {basis: (0, None), other: (0, None)}
+    bad, passes = [], {}
+    drift = {basis: (0, None), other: (0, None)}
     for st in arms:
         pa, na = gm((basis, 'a'), (other, 'a'), st)
         pb, nb = gm((basis, 'b'), (other, 'b'), st)
+        passes[st] = (pa, pb)
         ba, _ = gm((basis, 'a'), (basis, 'b'), st)
         oa, _ = gm((other, 'a'), (other, 'b'), st)
         if na != len(shapes) or nb != len(shapes) \
@@ -6610,7 +6612,68 @@ def gate_draft(run, args):
           ' basis\'s on every arm, by construction; what the passes part by'
           ' is the two halves\' drift above. `sides` says whether both'
           ' passes put the arm on one side of 1. The verdict is yours.')
+    gate_spans(run, passes, args)
     return 0
+
+
+def gate_spans(run, passes, args):
+    """The registration's `cross` spans on the main set, against the
+    gate's two passes, printed under the draft since 2026-09-26.
+
+    Run 41's gate read `bq-expand` at 1.36 in both passes against a
+    registered 1.303 within 1%, and nothing said so until post-run step
+    5c, six hours on. Five benches are a rehearsal and no verdict, so
+    this decides nothing and changes no exit code; what it buys is the
+    question asked at the gate, while the box is still the run's. Read
+    back over Run 41's gate it flags both of item (4)'s spans, and
+    only `bq-expand`'s died on the run, `list` reading 1.3122 at the
+    gate and 1.2926 over the main set: a span outside its band here is
+    a question, not a forecast. Band as --predictions reads it, the
+    reading's distance from the target in points against `within`. Case:
+    `gate-draft-reads-the-registration-spans`.
+    """
+    if not re.match(r'run\d+$', os.path.basename(run)):
+        return
+    doc = os.path.join(os.path.dirname(run) or '.', 'runs',
+                       os.path.basename(run) + '.md')
+    src, items, _flat = registration_items(run, doc, args.readme)
+    if src is None:
+        print('no registration read, so no span is held to the passes')
+        return
+    rows = []
+    for num, body in items:
+        for spec in PREDICT_RE.findall(body):
+            kind, args_, within, _ex, on_pops, _v, _h = parse_span(spec)
+            if kind != 'cross' or len(args_) != 2 \
+                    or (on_pops and 'main' not in on_pops):
+                continue
+            arm = args_[0]
+            try:
+                target = float(args_[1])
+            except ValueError:
+                continue
+            if arm not in passes:
+                rows.append('  item (%s)  %s: `%s` is not a gate arm'
+                            % (num, spec, arm))
+                continue
+            pa, pb = passes[arm]
+            if not isinstance(within, float):
+                verdict = 'no band to hold it to'
+            else:
+                out = [abs(v - target) * 100 > within for v in (pa, pb)]
+                verdict = ('OUTSIDE its band on both passes' if all(out)
+                           else 'outside its band on one pass' if any(out)
+                           else 'inside its band on both passes')
+            rows.append('  item (%s)  %s: pass -a %.4f, pass -b %.4f -- %s'
+                        % (num, spec, pa, pb, verdict))
+    if not rows:
+        print('the registration carries no cross span on the main set')
+        return
+    print('the registration\'s cross spans against the two passes, a'
+          ' five-bench rehearsal and no verdict (post-run step 5c reads'
+          ' them on the run):')
+    for r in rows:
+        print(r)
 
 
 HAND_LEADS = ('**The three main-set anchors**',
