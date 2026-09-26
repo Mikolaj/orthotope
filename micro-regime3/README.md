@@ -3290,101 +3290,19 @@ rather than a slot in the next run, observed again:
   the move, and Run 33 read it level with stage seven where no axis has a zero
   stride and with stage ten where one does, [in Run 33's file](runs/run33.md).
 
-- `OPEN` **What does the roster owe the next run?** The exact repetition
-  is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
-  roster, order, regime and binary, and what it bought is [in the floor
-  section][floor] --- a drift band a quarter of the one this README had
-  been quoting, and every published figure reproducing on it. What the roster
-  owed is the third `-nosum` arm the queue holds, deferred out of Run 11
-  so that its membership stayed pinned and out of Run 12 so that it did
-  not arrive in the same run as a change of shim. **It is now written**,
-  as `mut-flat-gm-nosum`: a `Force` pair on the flat fill, the third shape
-  of fill after the odometer and the expansion, which is what lets gate 3 tell
-  a biased read from two biased arms. It sits beside its base, as both other
-  `Force` pairs do, so its difference is taken between neighbours. **Both debts
-  are now paid, on 2026-08-13.** The membership-invariance check Run 12's basis
-  choice made due --- max-skip pads only the heads that need it, so an arm's
-  arrival is not guaranteed to leave every loop where it was --- comes back
-  clean: rebuilding the basis recipe with the arm leaves **every tracked loop
-  at the same address**, fills `[11, 0, 4, 0]` and `[24, 8, 0, 0]` either side,
-  32 self-loops in 25 distinct byte-sequences both times, and the roster grows
-  by exactly the 24 cells the arm adds, 816 to 840. **Read that as the weak form
-  it is**, though: a `Force` arm reuses a function the roster already
-  references, so it emits no new code and emission order has nothing to reorder
-  --- an addition that brought a *new function* would be the stronger test,
-  and is what a later membership change should be read against. **Both fell due
-  again for Run 14 and are PAID: the roster gained twelve A/A twins
-  on 2026-08-14** --- `offtab` and `bq-odo-gm-mulback` first, then `build`,
-  `mut-odo`, `list` and `gen-unsafe`, each in both positions, 840 benches
-  to 1128 --- so that run owes the `-L1` pass and the invariance read, still
-  the weak form, a twin reusing a rostered function and emitting no code. **Both
-  were taken before the evening and both came back clean**, the `-L1` pass twice
-  --- the first on a roster that five class shapes and a moved twin
-  then replaced, which is the trap that line exists to catch ---
-  and the invariance read holding every tracked loop at its address across both.
-  What the twelve twins then did to the run is not a debt but a finding: they
-  took the A/A population from six pairs to eighteen and the floor
-  from a fraction of a percent to 2.19%, because the new ones sit
-  on the widest-spread arms. A floor is a property of the arms it is measured
-  over, and this is the run that made that visible. **The invariance read
-  was taken on the 936-bench tree, 2026-08-14, and came back clean**: rebuilt
-  from it, both recipes held every tracked loop where Run 13's binaries have
-  it --- fills `[11, 0, 4, 0]` and `[24, 8, 0, 0]`, at the same addresses,
-  on the `lookrts` recipe Run 14 makes its basis and on the max-skip one beside
-  it, whose `.text` also came out at 20377797, the size that pair note records.
-  **Taken again on the final roster, 2026-08-14, and clean there too**: the same
-  build holds those loops at those addresses with `.text` to the byte, five
-  class shapes and a moved twin later, which is what a shape being data
-  and a twin reusing a rostered function predict. **The `-L1` pass was taken
-  twice for the same reason** --- the first covered a roster that five class
-  shapes and a moved twin then replaced, which is the trap that line exists
-  to catch, a pass recorded for a roster that no longer exists. The second
-  covers the main set and the `scaled` class, chosen because it is one
-  of the five that crossed from two shapes to three, so `--block`'s three-shape
-  branch is exercised for the first time; every reader mode exits 0 on both
-  files, which is what that pass is for. It also settled the one slot claim
-  this roster change made on an argument rather than a measurement:
-  `list-aa-adjacent`, the single entry inserted above the distant twins,
-  allocates 134261336 bytes a call against `list`'s 134261403, agreeing
-  to 1.1e-4 over all the 24 shapes of the time, where `sum-only-early` ---
-  the bench the slot rule is about --- allocates 204 bytes a call,
-  its allocation being a one-off setup vector. So the twin fills as its base
-  does and grows no pool the way that bench does. Its readings are with the pair
-  note, and its timings go nowhere, `-L1` being a rougher budget than any
-  recorded run's. The arm's own reading is [with gate 3](#what-is-open), taken
-  filtered; Run 13 took it at full budget, and its Results row's `needs` cell
-  reads *the same, on a third write pattern* --- the control convention,
-  not the shippability phrase this entry first proposed. **A return to -O1 stood
-  behind it as the second debt and is retired, its premise being false**
-  (2026-08-14): -O1 was not the regime the figures were read in, `-fspec-constr`
-  being the basis every run from Run 8 to Run 29 used, so Run 7's readings
-  are history rather than a debt. Since 2026-09-13 the regime is -O1 again, Run
-  30 having published there and the ruling followed; that pays no debt, an -O1
-  evening having been run rather than returned to, and it makes Runs 8 to 29's
-  readings the history. The build specification that entry had accumulated goes
-  with it, a retired run having no use for one. An -O1 reading of a single
-  ordering stays available as a filtered probe, as the 2026-08-08 twin probes
-  were; what is retired is the evening. `--check-doc` enforces the run file's
-  own two-column table in the one direction it safely can: a run named aligned
-  must also be named unaligned, so dropping the unaligned half fails the check.
-  Dropping an *aligned* one cannot be checked, an unpaired run being what every
-  column before Run 10 is, and stays the reading's job. **Paid by Run 41's
-  write-up: the class counts drop a retired view.** `runs-3` is retired
-  from timing through `retiredShapes`, the first class view there, and stays
-  in the lists; `110b014` makes `read-run.py` drop a class view retired by name
-  from its class's size unless the run file declares it retired after the run,
-  so `runs` reads 16 and Run 41's file passes `--check-doc`, the case
-  `class-view-retired-by-name-leaves-its-class` guarding it.
-
-  **Run 11 had no unaligned half, and the check was left alone rather
-  than widened --- the reading is that this was right.** Its two columns
-  are `Run 11 (SpecConstr, aligned)` and `Run 11 (SpecConstr, max-skip)`,
-  and `--check-doc` passes on them, the rule asking that a paired Run publish
-  a column per half and not one. Widening it was the alternative and is refused:
-  the check would then have to know which half names count as a counterpart,
-  which is a list that grows with every pair and is wrong the first time one
-  is invented. Keep a basis column named `aligned`; name the other half
-  for its shim.
+- `ANSWERED` **What does the roster owe the next run? --- nothing now: every
+  debt it recorded is paid, the last by Run 41's write-up.** The exact
+  repetition was taken on Run 11, and what it bought is [in the floor
+  section][floor]. The third `-nosum` arm, `mut-flat-gm-nosum`, was written
+  and read on Run 13 and has since left the roster. The membership-invariance
+  read and the `-L1` pass came due at Runs 12 and 14 and were taken clean, each
+  in the weak form, a reused function emitting no new code; the standing form
+  is pre-run step 2d's `--delta` at every build and step 12's `-L1` pass after
+  a roster change. A return to -O1 was retired on 2026-08-14 and then run as Run
+  30, the regime's ruling being [Running it](#running-it)'s. And a class view
+  retired by name, `runs-3`, left its class's count in `110b014`, Run 41's file
+  reading `runs` at 16. The aligned-column check and its refusal to widen
+  are [Reading a run file](#reading-a-run-file)'s.
 - `ANSWERED` **At a large nursery an earlier bench in the same process
   permanently slows a later one --- the condition is named SMALL-PINNED CHURN
   and its cost the churn tax.** Run 14's probes found it (2026-08-15/16),
@@ -11326,7 +11244,11 @@ a run named aligned must also be named unaligned. Pruning an aligned column,
 merging two, and naming a second half accurately are the reading's to catch ---
 the check cannot demand an unaligned half of every pair without failing the last
 two runs, which have none, nor an aligned column of every run without failing
-Runs 6 through 9, which had none either.
+Runs 6 through 9, which had none either. **Widening it to other half names
+was refused on 2026-08-14**: it would have to know which names count
+as a counterpart, a list that grows with every pair and is wrong the first time
+one is invented, so a basis column keeps the name `aligned` where it is aligned
+and the other half is named for its shim.
 
 **Every table a run's file publishes is installed, and two of them only by their
 rows.** `install-tables.sh` writes the Results table, the fingerprints,
