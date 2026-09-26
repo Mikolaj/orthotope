@@ -1,6 +1,6 @@
 #!/bin/bash
 # A no-shim build of whatever Main.hs currently says, for pricing a change
-# to fillStage2 in instructions: no shim means no padding in the counts, so
+# to a fill in instructions: no shim means no padding in the counts, so
 # what moves is code. Paired with probe-noshim-g912, which is the same
 # recipe over the source before the change.
 set -eu

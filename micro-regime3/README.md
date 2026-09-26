@@ -11,14 +11,15 @@ there since the unboxing fix of 2026-08-29, [the
 ceiling](#the-mutable-ceiling-taken)'s tenth reading): `vFillStrided`, the class
 method, its shared driver a bang-for-bang port
 of `mut-odo-vecdims-add-in-leaf-u2` until 2026-09-11 and of `fillStage2`,
-the benchmark's own driver, since; **the regime 3 fix is decided: on 2026-08-22
-the `mut-odo-vecdims` family was decided as the implementation to go upstream,
-on 2026-08-24 the stride-conditioned redirect that had kept the decision open
-was dropped, and the same day the member was fixed as the family's
-`add-in-leaf-u2` form on the two paired probes recorded in the ceiling** ---
-[the ceiling](#the-mutable-ceiling-taken) carries the decision and what it rests
-on, and [the two-stage plan](#the-two-stage-plan-and-the-rework-proposal) below
-carries the drop and the rework proposal the redirect's evidence now feeds.
+the benchmark's own driver until 2026-09-26, since; **the regime 3 fix
+is decided: on 2026-08-22 the `mut-odo-vecdims` family was decided
+as the implementation to go upstream, on 2026-08-24 the stride-conditioned
+redirect that had kept the decision open was dropped, and the same day
+the member was fixed as the family's `add-in-leaf-u2` form on the two paired
+probes recorded in the ceiling** --- [the ceiling](#the-mutable-ceiling-taken)
+carries the decision and what it rests on, and [the two-stage
+plan](#the-two-stage-plan-and-the-rework-proposal) below carries the drop
+and the rework proposal the redirect's evidence now feeds.
 
 The previous attempt, benchmarked as `gen-quotrem` resulted in a **mixed
 picture**: it had replaced the original `list` fallback
@@ -4234,29 +4235,29 @@ the class-method tier, or in full a `Vector`-class method.
 **Three classes are retired from timing and kept in `check`, ruled 2026-09-04:
 `reshape1`, `revsome` and `slice`.** What a timed class has to be distinct
 in is the form the branch's fill sees, `canonView` having dropped the unit
-dimensions and merged what merges before `fillStage2` dispatches ---
-so the coverage comment above `mkRev` reads per canonical mechanism since
-that day, where it read per producing operation --- and by that test the three
-time mechanisms other populations already hold. Three of `reshape1`'s four views
-canonicalize to the regime-1 slice `stretch-inner1` and `small-flat64` time
-and its fourth to a main-set view, which is why it is the class the correction
-degenerates on, nine arms sunk on Run 24. `revsome` reproduced `rev` on every
-run it ran: its inner-reversed view is `rev`'s mechanism and its two
-outer-reversed ones are main-set views walked in another order, the fill's
-addressing being sign-agnostic, and the sign-sensitive bounds it was built
-for belong to the packed Int32 scan and are settled. `slice`'s views
-are main-set views plus a base offset the fill reads once,
-and `block-run64-off7` and `compose-slice-bcast` time the offset. Two overlaps
-stay, named where they sit in `Main.hs`: `window-64x64-k1x9` canonicalizes
-to `runs-9`'s runs of 9 and is kept for the overlap of its backing,
-and `compose-slice-bcast` is `bcast-inner8` at offset 7. Nothing is deleted:
-`check` holds every arm to the reference on the retired views still,
-`retiredClasses` in `Main.hs` is what the `classes` mode and `read-run.py`'s
-class counts read, and `run-major.sh`'s `CLASSES` omits them, held to the binary
-by its own cross-check. A retired class comes back by deleting its name
-from that list. A run file that timed a class since retired is held to the count
-that keeps it, which the provenance bullet declares as *were retired DATE, after
-the run*, exactly as it declares views added after a run.
+dimensions and merged what merges before it dispatches --- so the coverage
+comment above `mkRev` reads per canonical mechanism since that day, where
+it read per producing operation --- and by that test the three time mechanisms
+other populations already hold. Three of `reshape1`'s four views canonicalize
+to the regime-1 slice `stretch-inner1` and `small-flat64` time and its fourth
+to a main-set view, which is why it is the class the correction degenerates on,
+nine arms sunk on Run 24. `revsome` reproduced `rev` on every run it ran:
+its inner-reversed view is `rev`'s mechanism and its two outer-reversed ones
+are main-set views walked in another order, the fill's addressing being
+sign-agnostic, and the sign-sensitive bounds it was built for belong
+to the packed Int32 scan and are settled. `slice`'s views are main-set views
+plus a base offset the fill reads once, and `block-run64-off7`
+and `compose-slice-bcast` time the offset. Two overlaps stay, named where they
+sit in `Main.hs`: `window-64x64-k1x9` canonicalizes to `runs-9`'s runs of 9
+and is kept for the overlap of its backing, and `compose-slice-bcast`
+is `bcast-inner8` at offset 7. Nothing is deleted: `check` holds every arm
+to the reference on the retired views still, `retiredClasses` in `Main.hs`
+is what the `classes` mode and `read-run.py`'s class counts read,
+and `run-major.sh`'s `CLASSES` omits them, held to the binary by its own
+cross-check. A retired class comes back by deleting its name from that list.
+A run file that timed a class since retired is held to the count that keeps it,
+which the provenance bullet declares as *were retired DATE, after the run*,
+exactly as it declares views added after a run.
 
 Two rulings govern how they are measured and published, both taken 2026-08-07,
 ahead of the implementation:
@@ -4309,7 +4310,7 @@ per run --- was decided on a nine-element probe and then read 45% slower
 and 15.7% more allocation on horde-ad's `inp-96x96/H-exec`, whose views are rows
 of 96. So the roster carries five arms that are ports of library code
 and not strategies: `lib-stage1`, the shipped `toVectorT` whole, its regime-3
-fill `fillStage2` since 2026-09-11 as the library's is; `lib-stage2`,
+fill `fillStage2` from 2026-09-11 as the library's is; `lib-stage2`,
 the branch's, its driver ported bang-for-bang with both zero-stride conditions
 --- its fill of the runs outside the laziness ruling of 2026-09-07, `toVectorT`
 being strict either way, and questioned by the runs class alone ([dead
@@ -4320,16 +4321,18 @@ under each stage, `liblist-stage1` and `liblist-stage2`, the library's
 so that pair prices the list's construction alone --- stage one's slice
 recursion against stage two's base-offset table and its `VU.toList` --- in time
 and, exactly, in allocation, which is what a consumer iterating the list pays.
-**SUPERSEDED 2026-09-09, on the concatenation's shape and not the pairing**:
-the ports concatenated a one-element list too, and vector's `concat` copies it,
-so every port Fill arm read 2.00x allocation and paid a result-sized copy
-on every view the library fills once, where `toVectorT` pays neither; since
-that day a port hands a one-element list's element back as `toVectorT` does
-and concatenates only runs, so on such a view a port and its fill are the same
-vector, the pair prices the list where there is one, and the allocation column
-reads what the library allocates --- Run 28's item (9), and the reason the lazy
-stages' dispatch is a value read by four shared readers. **Beside those five
-sits `lib-stage2-disp`, which is a candidate and not a port of anything**, added
+Since `fillStage2` was deleted on 2026-09-26, the ports fill through
+`fillStage3`, its `Axis` form, which the library does not carry. **SUPERSEDED
+2026-09-09, on the concatenation's shape and not the pairing**: the ports
+concatenated a one-element list too, and vector's `concat` copies it, so every
+port Fill arm read 2.00x allocation and paid a result-sized copy on every view
+the library fills once, where `toVectorT` pays neither; since that day a port
+hands a one-element list's element back as `toVectorT` does and concatenates
+only runs, so on such a view a port and its fill are the same vector, the pair
+prices the list where there is one, and the allocation column reads what
+the library allocates --- Run 28's item (9), and the reason the lazy stages'
+dispatch is a value read by four shared readers. **Beside those five sits
+`lib-stage2-disp`, which is a candidate and not a port of anything**, added
 2026-08-30: the slice route taken only where the canonical run reaches
 `dispRun`, so it is `lib-stage2-lean` below the crossover
 and `lib-stage2-concat` above it --- its lower side was `lib-stage2` until

@@ -3299,8 +3299,10 @@ mkStrided normalSh =
 -- speedup-strided-tovector (landed at 6ae326e):
 -- regime 1 the vector itself or a slice, regime 2 one slice per maximal
 -- normal suffix and a concatenation, regime 3 the fill
--- 'genericFillStrided', which is 'fillStage2' since 2026-09-11 here as
--- in the library, and was the leaf 'fbMutOdoVecdimsAddInLeafU2' before;
+-- 'genericFillStrided', ported here as 'fillStage2' from 2026-09-11 as
+-- in the library, the leaf 'fbMutOdoVecdimsAddInLeafU2' before, and
+-- 'fillStage3', its 'Axis' form, which the library does not carry,
+-- since 'fillStage2' was deleted on 2026-09-26;
 -- 'liblist-stage1-sum' below fills through the same. The arm is the shipped
 -- route whole, read against that file's 'toVectorListT' branch for
 -- branch on 2026-09-19 at 570a485: the slice list is a difference list
@@ -3320,7 +3322,7 @@ fbLibStage1 sh (T (Strides ats) ao v)
   | null sh = VS.slice ao 1 v
   | oks !! (length sh - 1) = VS.concat (loop oks sh ats ao)
   | l == 0 = VS.empty
-  | otherwise = fillStage2 (walkOfDims sh ats) ao l v
+  | otherwise = fillStage3 (walkAx (walkOfDims sh ats)) ao l v
   where l : ts' = getStridesT sh
         oks = scanr (&&) True (zipWith (==) ats ts')
         loop (b : bs) (n : ns) (t : ts) !o
@@ -3332,8 +3334,10 @@ fbLibStage1 sh (T (Strides ats) ao v)
 -- 2026-09-05, when its 'regimeT' took the lean form below: the view
 -- canonicalized ('canonicalize'), natural canonical strides the vector or a
 -- slice, and everything else -- contiguous runs included -- filled by
--- 'fillStage2' -- the dispatch is that branch's of before the ruling,
--- the fill is ahead of that branch's own copy, reasons at 'fillStage2'.
+-- 'fillStage3', the 'Axis' form of 'fillStage2', which it replaced on
+-- 2026-09-26 -- the dispatch is that branch's of before the ruling, the
+-- fill, until then, ahead of that branch's own copy; reasons at
+-- 'fillStage3'.
 -- One change over 'fbLibStage1' per
 -- population: on the main set none (both fill, the same loop), on the
 -- runs class the route, on the broadcast classes the conditions.
@@ -3354,7 +3358,7 @@ fbLibStage2 sh (T (Strides ats) ao v)
   | otherwise = case innerFirst canon of
       (t, n) : rest
         | not (naturalStrides canon) ->
-            fillStage2 (Walk t n (InnerFirst rest)) ao l v
+            fillStage3 (walkAx (Walk t n (InnerFirst rest))) ao l v
       _ -> wholeOrSlice ao l v
   where l = product sh
         canon = canonicalize sh ats
@@ -3378,7 +3382,7 @@ fbLibStage2Concat sh (T (Strides ats) ao v)
               | o <- VU.toList (baseOffsetsList ao (map snd outer)
                                                 (Strides (map fst outer))) ]
       (t, n) : rest ->
-        fillStage2 (Walk t n (InnerFirst rest)) ao l v
+        fillStage3 (walkAx (Walk t n (InnerFirst rest))) ao l v
   where l = product sh
 
 -- The run length at or above which 'fbLibStage2Disp' sends a contiguous
@@ -3474,154 +3478,20 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
               | o <- VU.toList (baseOffsetsList ao (map snd outer)
                                                 (Strides (map fst outer))) ]
       (t, n) : rest ->
-        fillStage2 (Walk t n (InnerFirst rest)) ao l v
+        fillStage3 (walkAx (Walk t n (InnerFirst rest))) ao l v
   where l = product sh
 
--- The outer levels of a view as 'fillStage2' walks them: the fused
+-- The outer levels of a view as 'fillStage2Axes' walks them: the fused
 -- level's runs, or a level of @n@ blocks of @blk@ elements at stride
 -- @st@, stride 0 copying the first.
 data Nest = Fused | Level !Int !Int !Int !Nest
-
--- The fill the library's 'genericFillStrided' is ported from, at
--- Storable Double; the library's copy is in its Data/Array/Internal.hs.
--- This one walks the outer levels as a 'Nest' folded over them
--- innermost first. 'fillStage2Axes' below walks the same 'Nest', built
--- in a loop since 2026-09-26; until it became this fill's copy on
--- 2026-09-25 it numbered them outermost first in two tables, as the
--- library's port did. 'check' holds this
--- one to the reference on every view. The two zero-stride bodies say at
--- their definitions what each buys, and the fills that keep older forms
--- say so at theirs. The fills take @l > 0@, asserted at each entry: a
--- zero-stride innermost run reads its one element, and a zero-stride
--- level writes its innermost run or block, before reading the extent,
--- so a zero extent there would read past the source or write into an
--- empty result. Every dispatch guards @l == 0@ before calling one, the
--- stage-1 ports since 2026-09-21; the degenerate and @edge-bcastmid-b0@
--- views are where @check@ fails when one does not.
-{-# NOINLINE fillStage2 #-}
-fillStage2 :: Walk -> Int -> Int -> VS.Vector Double -> VS.Vector Double
-fillStage2 (Walk tInner sInner outerAxes) !ao !l !v =
-  assert (l > 0) $ VS.create fill
- where
-  fill :: forall s. ST s (VSM.MVector s Double)
-  fill = do
-    out <- VSM.unsafeNew l
-    let {-# INLINE writeRunStep #-}
-        writeRunStep :: Int -> Int -> ST s ()
-        writeRunStep !outPos !baseOff =
-          let !oEnd = outPos + sInner
-              inner :: Int -> Int -> ST s ()
-              inner !o !src
-                | o + 1 >= oEnd =
-                    if o >= oEnd then return ()
-                    else VSM.unsafeWrite out o (VS.unsafeIndex v src)
-                | otherwise = do
-                    VSM.unsafeWrite out o (VS.unsafeIndex v src)
-                    let !srcNext = src + tInner
-                    VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v srcNext)
-                    inner (o + 2) (srcNext + tInner)
-          in  inner outPos baseOff
-        -- Unrolled by two as the stepping run is, since 2026-09-09: one
-        -- write and a compare per element read 1.20 of master's leaf
-        -- fill at an innermost run of 2, bcast-tall-Mx2, on Run 27.
-        -- 'fillStage3U1', 'fillStage2U1' until 2026-09-26, keeps the
-        -- one-per-iteration body, so the u1 pair priced this unroll on
-        -- the broadcast views as it priced the stepping one elsewhere,
-        -- until 'lib-stage3-lean' moved to 'fillStage3', this fill's
-        -- 'Axis' copy, on 2026-09-25.
-        -- Non-vacuity, 2026-09-09: dropping the second write fails
-        -- @check@ at @bcast-inner8@.
-        {-# INLINE writeRunSet #-}
-        writeRunSet :: Int -> Int -> ST s ()
-        writeRunSet !outPos !baseOff =
-          let !x = VS.unsafeIndex v baseOff
-              !oEnd = outPos + sInner
-              inner :: Int -> ST s ()
-              inner !o
-                | o + 1 >= oEnd =
-                    if o >= oEnd then return ()
-                    else VSM.unsafeWrite out o x
-                | otherwise = do
-                    VSM.unsafeWrite out o x
-                    VSM.unsafeWrite out (o + 1) x
-                    inner (o + 2)
-          in  inner outPos
-        -- The block at src, already written, to n copies in all: each pass
-        -- copies everything written so far onto what follows, so the
-        -- length doubles and the last pass is clipped. One copy per block
-        -- read 2.3 of master's leaf fill on bcastmid-b200k, 200000 copies
-        -- of 24 bytes (Run 27). The parked u4 and short fills keep one
-        -- copy per block.
-        -- Non-vacuity, 2026-09-09: stopping the doubling one block short
-        -- fails @check@ at @edge-bcastmid-b2@ -- and had passed it on every
-        -- timed view, none having a zero-stride outer level of extent 2 or
-        -- one more than a power of two, which is what the edge class is for.
-        copies :: Int -> Int -> Int -> ST s ()
-        copies !n !blk !src
-          | n <= 1 = return ()
-          | otherwise = grow blk
-          where
-            !end = src + n * blk
-            grow :: Int -> ST s ()
-            grow !have
-              | src + have >= end = return ()
-              | otherwise = do
-                  let !len = min have (end - src - have)
-                  VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
-                                 (VSM.unsafeSlice src len out)
-                  grow (have + len)
-        -- @n@ blocks of @blk@ elements, each written by @body@ at a base
-        -- offset @st@ on from the last, or at stride 0 the first copied:
-        -- the fused level's runs and every level above them.
-        {-# INLINE level #-}
-        level :: (Int -> Int -> ST s ())
-              -> Int -> Int -> Int -> Int -> Int -> ST s ()
-        level body !n !st !blk !outPos !baseOff
-          | st == 0 = body outPos baseOff >> copies n blk outPos
-          | otherwise =
-              let go :: Int -> Int -> Int -> ST s ()
-                  go !k !op !boff
-                    | k <= 0    = return ()
-                    | otherwise = body op boff
-                                  >> go (k - 1) (op + blk) (boff + st)
-              in  go n outPos baseOff
-        -- The nest built over the outer axes, innermost first: the fused
-        -- level's runs at the head and each level above a loop of @n@
-        -- blocks of @blk@ elements around the nest below it, as data so
-        -- that each level is a known call of 'run', where closures lose.
-        wrap :: (Nest, Int) -> (Int, Int) -> (Nest, Int)
-        wrap (inner, !blk) (!st, !n) =
-          let !nest = Level n st blk inner
-              !blkNext = n * blk
-          in  (nest, blkNext)
-        {-# INLINE walk #-}
-        walk :: (Int -> Int -> ST s ()) -> ST s ()
-        walk writeRun = case innerFirst outerAxes of
-          [] -> writeRun 0 ao
-          (!st0, !n0) : outer ->
-            let run :: Nest -> Int -> Int -> ST s ()
-                -- The runs loop has no register to spare, and two things
-                -- nothing enforces keep it from spilling one every two
-                -- elements: it advances by 'sInner' itself, where a field
-                -- equal to it is one value more, and it sits in 'run',
-                -- a function the fill calls, where inlined into the
-                -- fill's body the result's buffer and length stay live
-                -- across it. Each broke in a variant of 2026-09-24,
-                -- 6.5 to 22% more instructions on the stretch views.
-                run Fused !outPos !baseOff =
-                  level writeRun n0 st0 sInner outPos baseOff
-                run (Level n st blk inner) !outPos !baseOff =
-                  level (run inner) n st blk outPos baseOff
-            in  run (fst (foldl' wrap (Fused, n0 * sInner) outer)) 0 ao
-    if tInner == 0 then walk writeRunSet else walk writeRunStep
-    return out
 
 -- 'fillStage2' as it read on 2026-09-25, comments stripped, the code
 -- copied: the fill of 'liblist-stage4-sum', 'libunord-stage13-sum' and
 -- 'lib-stage2-lean', kept as the comparison for their inward twins,
 -- 'liblist-stage5-sum', 'libunord-stage14-sum' and 'lib-stage3-lean',
 -- which since that day read 'fillStage3', the 'Axis' path's copy, so
--- that a change to 'fillStage2' reaches neither side of those pairs.
+-- that a change to 'fillStage2' reached neither side of those pairs.
 -- Since 2026-09-26 it builds its nest in 'fillStage3''s loop, over
 -- pairs, where it had folded 'fillStage2''s 'wrap', so that the pairs
 -- price 'Axis' and what rests on it alone; the reasons are at
@@ -3848,13 +3718,14 @@ fillStage2OneLevel (Walk tInner sInner outerAxes) !ao !l !v =
 -- arms price the scratch flavour for the shipped fill, where the probe
 -- of 2026-08-08 priced it for 'bq-expand''s table
 -- (README.md#the-scratch-vector-flavour), against 'lib-stage2-lean',
--- 'liblist-stage4-sum' and 'libunord-stage13-sum', whose fill is
--- 'fillStage2Axes' (the TODOs at the arms). Added 2026-09-19 for that
--- probe, which read the two flavours level on all three arms, every
--- pair inside Run 36's floor, so the shipped fill keeps its unboxed
--- tables; not kept in step with 'fillStage2'.
--- TODO: update wrt 2026-09-23, when 'fillStage2' took one table of
--- pairs for its two: a flavour pair against it now prices that too.
+-- 'liblist-stage4-sum' and 'libunord-stage13-sum' on that day, and
+-- against their inward twins since 2026-09-21 (the TODOs at the arms).
+-- Added 2026-09-19 for that probe, which read the two flavours level on
+-- all three arms, every pair inside Run 36's floor, so the shipped fill
+-- keeps its unboxed tables; not kept in step with 'fillStage2'.
+-- TODO: update wrt 2026-09-25, when the twins moved to 'fillStage3',
+-- which builds no table: a flavour pair against them now prices the
+-- tables against its nest, and the 'Axis' path, besides the flavour.
 {-# NOINLINE fillStage2VSdims #-}
 fillStage2VSdims :: Walk -> Int -> Int -> VS.Vector Double
            -> VS.Vector Double
@@ -4216,17 +4087,19 @@ fbLibStage2Short sh (T (Strides ats) ao v)
         fillStage2Short (Walk t n (InnerFirst rest)) ao l v
   where l = product sh
 
--- 'fbLibStage2' with the dispatch read off the merged form alone --
--- the same 'fillStage2', so the pair prices the dispatch and nothing
--- else. What licenses it: a canonical view of rank 2 or more can never
--- carry the natural strides, because 'canonicalize' merges exactly the
+-- 'fbLibStage2' with the dispatch read off the merged form alone,
+-- written over the same fill so that the pair priced the dispatch and
+-- nothing else; today this arm reads 'fillStage2Axes' and that one
+-- 'fillStage3', so the pair carries the fill too. What licenses it: a
+-- canonical view of rank 2 or more can never carry the natural strides,
+-- because 'canonicalize' merges exactly the
 -- adjacent pairs the natural strides consist of -- 'getStridesT' sets
 -- each outer stride to the inner dim times the inner stride, which is
 -- the merge condition -- so the `cats /= ts` the control asks is
 -- decided by the merged rank and the innermost stride, and the strides
--- list the control's dispatch builds and compares is not built. One
--- change over 'fbLibStage2', so that arm is the control, and 'check'
--- holds the equivalence on every view. It is also the simpler form,
+-- list the control's dispatch builds and compares is not built.
+-- 'fbLibStage2' is the control, and 'check' holds the equivalence on
+-- every view. It is also the simpler form,
 -- which the complexity ruling at 'fillStage2U4' prefers where the
 -- performance is close.
 -- TAKEN 2026-09-05 for every dispatch that admits it, here and in the
@@ -4264,10 +4137,9 @@ fbLibStage3Lean sh a@(T _ _ v) = routeVectorInward v (routeList5 sh a)
 -- 'fillStage2OneLevel', the pair reader 'routeVectorInward', deleted
 -- 2026-09-26, written out with that fill in place of 'fillStage2': one
 -- change, so that arm is its control; the reasons and the ruling are at
--- 'fillStage2OneLevel'. Added 2026-09-23.
--- TODO: update wrt 2026-09-25, when 'lib-stage3-lean' moved to the
--- 'Axis' path: the pair carries the path as a change of its own
--- until this arm moves too.
+-- 'fillStage2OneLevel'. Added 2026-09-23. Since 2026-09-25, when
+-- 'lib-stage3-lean' moved to the 'Axis' path and this arm was retired,
+-- the pair carries the path as a change of its own.
 {-# NOINLINE fbLibStage3LeanOneLevel #-}
 fbLibStage3LeanOneLevel :: ShapeL -> T -> VS.Vector Double
 fbLibStage3LeanOneLevel sh a@(T _ _ v) = case routeList4 sh a of
@@ -4280,13 +4152,10 @@ fbLibStage3LeanOneLevel sh a@(T _ _ v) = case routeList4 sh a of
 -- that fill.
 -- TODO: update wrt the inward pairing of 2026-09-21, which made
 -- 'lib-stage3-lean' the control: rename to 'lib-stage3-lean-vsdims'.
--- TODO: update wrt c652c57, which wrote 'lib-stage3-lean' as the pair
--- reader 'routeVectorInward', deleted 2026-09-26, over 'routeList4':
--- write this the same way, 'fillStage2VSdims' in the fill cases, so the
--- pair is one change again.
 -- TODO: update wrt 2026-09-25, when 'lib-stage3-lean' moved to the
--- 'Axis' path: the pair carries the path as a change of its own
--- until this arm moves too.
+-- 'Axis' path, 'routeVectorInward' over 'routeList5': the pair carries
+-- the path and this arm's own dispatch, over 'canonicalize', as changes
+-- of their own until this arm is written over 'routeList5' too.
 {-# NOINLINE fbLibStage2LeanVSdims #-}
 fbLibStage2LeanVSdims :: ShapeL -> T -> VS.Vector Double
 fbLibStage2LeanVSdims sh (T (Strides ats) ao v)
@@ -4383,7 +4252,7 @@ routeList4 sh (T (Strides ats) off _)
 -- pairs canonicalized AGAIN, so that every adjacent pair the sort
 -- brought together merges and the lean rank test decides one block
 -- (rank 0, or rank 1 at stride 1: one slice); everything else is ONE
--- 'fillStage2' over the sorted positive strides, every axis walked
+-- 'fillStage3' over the sorted positive strides, every axis walked
 -- forward and the smallest stride innermost. What it prices: Run 25's
 -- flip class read a reversed run at about twice its forward cost on
 -- identical instructions, which this fill never pays, and a transposed
@@ -4612,9 +4481,9 @@ sumRoute v route = case route of
   RFill axes ao l -> VS.sum (fillStage2Axes axes ao l v)
 {-# INLINE sumRoute #-}
 
--- The two readers over 'fillStage2', the odometer numbered innermost
--- first: copies of 'routeSlices' and 'sumRoute', the fill the one
--- change. The third, the vector reader, moved to the 'Axis' path with
+-- The two readers over 'fillStage3' through 'walkAx', 'fillStage2'
+-- until 2026-09-26: copies of 'routeSlices' and 'sumRoute', the fill the
+-- one change. The third, the vector reader, moved to the 'Axis' path with
 -- 'lib-stage3-lean' on 2026-09-25 and has its name there.
 routeSlicesInward :: VS.Vector Double -> Route
                   -> (VS.Vector Double -> b -> b) -> b -> b
@@ -4623,14 +4492,14 @@ routeSlicesInward v route cons nil = case route of
     | l == 0 -> nil
     | otherwise -> cons (wholeOrSlice ao l v) nil
   RRuns axes ao _ -> runSlices axes ao v cons nil
-  RFill axes ao l -> cons (fillStage2 axes ao l v) nil
+  RFill axes ao l -> cons (fillStage3 (walkAx axes) ao l v) nil
 {-# INLINE routeSlicesInward #-}
 
 sumRouteInward :: VS.Vector Double -> Route -> Double
 sumRouteInward v route = case route of
   RSlice ao l -> VS.sum (VS.slice ao l v)
   RRuns axes ao _ -> sumLazyRuns axes ao v
-  RFill axes ao l -> VS.sum (fillStage2 axes ao l v)
+  RFill axes ao l -> VS.sum (fillStage3 (walkAx axes) ao l v)
 {-# INLINE sumRouteInward #-}
 
 -- 'sumRouteInward' with its fill case through 'fillStage2VSdims'; the
@@ -4743,7 +4612,7 @@ canonSortedPairs sh ats =
 -- canonical view, the natural-strides comparison kept and written over
 -- the sorted axes innermost first since 2026-09-22, then runs by
 -- 'lazyRuns' where the sorted innermost stride is 1,
--- and one 'fillStage2' only where no run is longer than one element --
+-- and one 'fillStage3' only where no run is longer than one element --
 -- master's own strict pattern there. What it moves between patterns is
 -- the sort, the exception's own case: a reversed axis is walked forward
 -- and a transposed block's stride-1 axis becomes the run -- a transposed
@@ -4827,7 +4696,7 @@ loopSumRoute :: VS.Vector Double -> Route -> Double
 loopSumRoute v route = case route of
   RSlice ao l -> VS.sum (VS.slice ao l v)
   RRuns axes ao _ -> foldRunsLoop (\ !acc p -> acc + VS.sum p) 0 axes ao v
-  RFill axes ao l -> VS.sum (fillStage2 axes ao l v)
+  RFill axes ao l -> VS.sum (fillStage3 (walkAx axes) ao l v)
 
 {-# NOINLINE fbLibUnordStage6LoopSum #-}
 fbLibUnordStage6LoopSum :: ShapeL -> T -> VS.Vector Double
@@ -5316,6 +5185,14 @@ newtype InnerFirstAx = InnerFirstAx { innerFirstAx :: [Axis] }
 -- but one arm and view.
 data WalkAx = WalkAx !Int !Int InnerFirstAx
 
+-- A 'Walk' as a 'WalkAx', each outer axis made an 'Axis': how the pair
+-- dispatches hand their fills to 'fillStage3' since 'fillStage2' was
+-- deleted (2026-09-26), a list built a call.
+walkAx :: Walk -> WalkAx
+walkAx (Walk t n axes) =
+  WalkAx t n (InnerFirstAx [Axis st d | (st, d) <- innerFirst axes])
+{-# INLINE walkAx #-}
+
 
 -- Stage five of the list entry point, 'routeList4' over the 'Axis'
 -- path, the dispatch of 'lib-stage3-lean', 'lib-stage2-lean-u1' and
@@ -5592,7 +5469,10 @@ data NestAx = FusedAx | LevelAx !Axis !Int !NestAx
 
 -- 'fillStage2' over 'WalkAx', the path's fill: a copy of the fill the
 -- library's 'genericFillStrided' is ported from, at Storable Double,
--- the library's own being in its Data/Array/Internal.hs. This one walks
+-- the library's own being in its Data/Array/Internal.hs. Since
+-- 2026-09-26, when 'fillStage2' was deleted, also the fill of every arm
+-- that called it, through 'walkAx'; the comments of older fills still
+-- name 'fillStage2' as the form they were copied from. This one walks
 -- the outer levels as a 'NestAx' built over them innermost first, each
 -- level holding its 'Axis'. 'check' holds it to the reference on every
 -- view. The two zero-stride bodies say at their definitions what each
@@ -5600,8 +5480,9 @@ data NestAx = FusedAx | LevelAx !Axis !Int !NestAx
 -- innermost run reads its one element, and a zero-stride level writes
 -- its innermost run or block, before reading the extent, so a zero
 -- extent there would read past the source or write into an empty
--- result. Both of the path's dispatches guard @l == 0@ before calling
--- it.
+-- result. Every dispatch guards @l == 0@ before calling one, the
+-- stage-1 ports since 2026-09-21; the degenerate and @edge-bcastmid-b0@
+-- views are where @check@ fails when one does not.
 {-# NOINLINE fillStage3 #-}
 fillStage3 :: WalkAx -> Int -> Int -> VS.Vector Double -> VS.Vector Double
 fillStage3 (WalkAx tInner sInner outerAxes) !ao !l !v =
@@ -5843,7 +5724,7 @@ lsListStage1 sh (T (Strides ats) ao v)
   | null sh = [VS.slice ao 1 v]
   | oks !! (length sh - 1) = loop oks sh ats ao
   | l == 0 = [VS.empty]
-  | otherwise = [fillStage2 (walkOfDims sh ats) ao l v]
+  | otherwise = [fillStage3 (walkAx (walkOfDims sh ats)) ao l v]
   where l : ts' = getStridesT sh
         oks = scanr (&&) True (zipWith (==) ats ts')
         loop (b : bs) (n : ns) (t : ts) !o
@@ -5886,7 +5767,7 @@ lsListStage2 sh (T (Strides ats) ao v)
             | o <- VU.toList (baseOffsetsExpand ao (map snd outer)
                                 (Strides (map fst outer))) ]
       (t, n) : rest ->
-        [fillStage2 (Walk t n (InnerFirst rest)) ao l v]
+        [fillStage3 (walkAx (Walk t n (InnerFirst rest))) ao l v]
   where l = product sh
 
 -- The reducing consumer, which is what the unordered entry point exists
@@ -6284,7 +6165,7 @@ regimeOf sh (T (Strides ats) _ v)
 --
 -- Under the branch's fill the mechanism a view exercises is its CANONICAL
 -- form: 'canonView' drops the unit dimensions and merges what merges before
--- 'fillStage2' dispatches, so two classes whose views canonicalize alike
+-- it dispatches, so two classes whose views canonicalize alike
 -- time one mechanism twice, and a hand-built view is covered by the
 -- canonical form it reaches and not by the operation that built it.
 -- 'retiredClasses' below is that test applied to the classes here,
