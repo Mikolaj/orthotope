@@ -8282,6 +8282,10 @@ Unsandboxed throughout:
     #      unless the note's QUIET-AFTER: line says `allowed`, which
     #      covers every timed reading this run's results call for, the
     #      copy test above all, post-run 3's rerun being RERUN:'s.
+    #      AN `ask` WITH NOBODY AT THE MACHINE WAITS FOR THE OWNER'S
+    #      RETURN: the session goes on with what wants no quiet box and
+    #      asks when they are back, an absent owner being no `allowed`
+    #      and no `no` (ruled 2026-09-26).
     #      why: a fix landed mid-write-up costs every stretch after it an
     #      unwrap, each commit rewrapping README.
     #      The log read here is a second copy of what 14a already had, and

@@ -236,7 +236,8 @@ asking. The owner says it at the preparation, when they are there; the
 executing session reads it when the evening lands, when they may not be.
 Run 39's evening met an intrusion with nobody to ask, and the answer came
 hours later. `allowed` reruns at once, `ask` is the chapter's default, and
-`no` records the sensitivity reading in the rerun's place:
+`no` records the sensitivity reading in the rerun's place; an `ask` with
+nobody there waits for the owner's return:
 RERUN: ask
 
 THE BOX AGAIN, SAID BEFORE THE HOURS [PAIR'S]: whether the session may take
