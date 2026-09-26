@@ -13491,7 +13491,8 @@ RECORDS = [
          bug=V(exit=0, has=['9999 arm-comparisons'],
                hasnt=['the lead tallies installed'])),
 
-    case('provenance-draft-keeps-a-written-one', 'read-run.py', None,
+    case('provenance-draft-keeps-a-written-one', 'read-run.py',
+         '32af4d4',
          "the Provenance section's mechanical paragraphs were rewritten by"
          ' hand every run, off readings that already print their figures',
          # Run 41 rewrote thirteen by hand. The draft replaces a paragraph
@@ -13504,7 +13505,8 @@ RECORDS = [
          probe=lambda subs: open(subs['doc']).read(),
          ok=V(exit=0, has=['KEPT-EVENING', 'evening: kept',
                            "`read-all.sh` gates each process ___"],
-              hasnt=['PLANTED-PLATEAU'])),
+              hasnt=['PLANTED-PLATEAU']),
+         bug=V(exit=2, has=['PLANTED-PLATEAU'])),
 
     case('install-is-idempotent', 'install-tables.sh', None,
          'CONTROL: a full pass over an untouched run file rewrites no table',
