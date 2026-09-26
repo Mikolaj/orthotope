@@ -10008,7 +10008,8 @@ RECORDS = [
                '--others', '{c}'],
          ok=V(exit=2, has=['they pair up or nothing does'])),
 
-    case('vecdims-arms-name-the-summary-column', 'read-run.py', None,
+    case('vecdims-arms-name-the-summary-column', 'read-run.py',
+         '26816e6',
          "`family` named both an arm with its A/A copies and the"
          " `mut-odo-vecdims` group whose best outside arm the cross-class"
          " summary reads",
@@ -10017,7 +10018,8 @@ RECORDS = [
          # its copies: the group is `the vecdims arms`, and the column,
          # the ceiling line and the class verdicts say so.
          argv=['--unit', 'SUMMARY_COLS[3]'],
-         ok=V(has=['best outside vecdims'])),
+         ok=V(has=['best outside vecdims']),
+         bug=V(has=['best outside family'])),
 
     case('ceiling-is-the-family-leader', 'read-run.py', None,
          'the ceiling read as the fastest arm once outside arms led',
