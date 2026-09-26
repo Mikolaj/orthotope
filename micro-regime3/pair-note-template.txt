@@ -52,7 +52,8 @@ the one run a claim is about.
 The pair $R-<basis> and $R-<other>, Run NN's, written by hand YYYY-MM-DD
 BEFORE either binary exists, which is the order the procedure asks for.
 
-Nothing appends to this file but run-gate.sh.
+Nothing appends to this file but run-gate.sh and post-run step 0's NAMED
+FILLS block.
 
 ENTRY POINT FOR THE SESSION THAT RUNS THIS [PAIR'S]. It is a HANDOVER and
 not a courtesy: a run is always two sessions, this file is the whole of

@@ -8081,8 +8081,8 @@ Unsandboxed throughout:
     #      two builds by the BOTH HALVES ARE BUILT ANEW ruling, and again
     #      after either half is rebuilt: run-evening.sh inherits a recorded
     #      gate only for the binaries its block names by md5
-    #  14a. WRITE THE VERDICT by hand ABOVE the note's GATE block, from
-    #      the draft table, opening the block `GATE VERDICT`, which
+    #  14a. AT 19a, WRITE THE VERDICT by hand ABOVE the note's GATE block,
+    #      from the draft table, opening the block `GATE VERDICT`, which
     #      run-status.sh reads, and clearing `GATE: NOT RUN` in the same edit --
     #      once the evening has landed, the driver going on without it. A
     #      gate that FAILED mechanically stopped the driver instead, and
@@ -8141,7 +8141,9 @@ Unsandboxed throughout:
     #      $R-wallclock.log's `!!` lines, write 14a's verdict, and report
     #      each stage's exit rather than folding them into a later
     #      summary. HOLD ANY TOOLING FIX a stage's complaint calls for
-    #      until the write-up's 7a. READ THE CONTAINING ARTIFACT ONLY,
+    #      until the write-up's 7a, save one a 6a gate cannot pass
+    #      without, made at 6a in a commit of its own, as the open list's
+    #      owed changes are. READ THE CONTAINING ARTIFACT ONLY,
     #      NEVER BOTH: $R-evening-out.txt holds $R-wallclock.log byte for
     #      byte, and step 14a reads the first. A file the harness
     #      persisted out of a command's own output is read, never the
@@ -9603,7 +9605,10 @@ not otherwise.
     #      and no covering message telling it the file has moved. Name
     #      the fixes, not the prose. Send it to the same agent once its
     #      first has returned, send the BLIND READER beside it on the same
-    #      diff (7a's paragraph has its brief), run 6e meanwhile, and
+    #      diff (7a's paragraph has its brief) -- a separate agent, its
+    #      being blind to the figures being what found Run 41's sixteen
+    #      page defects past pass 2, which leaves page questions to it --
+    #      run 6e meanwhile, and
     #      FREEZE WRITES to both documents until 7. THAT ONE COMMIT, both
     #      files in it and not two commits, IS WHAT THE AGENT ADJUDICATES;
     #      what it READS is those two commands, both files since the run's
@@ -9735,7 +9740,10 @@ not otherwise.
     #      made cheaper`, and README keeps none: what it asks of the
     #      procedure is made in the chapter or a tool in the same write-up,
     #      which is where the next run meets it (--check-doc refuses a
-    #      block left in README)
+    #      block left in README). ITS FORM, MARGINALIA BEING WRITE-ONLY:
+    #      a bold `What Run N made cheaper` lead, then THE PREPARATION'S
+    #      HALF and THE WRITE-UP SESSION'S HALF, each a run of bold-led
+    #      items -- written from this, never copied out of the file
     #      why: it feeds 10 and so comes before it.
     #      The number is kept so that every pointer to it still lands.
     #      No other step gathers this, and it is not a figure. The
@@ -9770,7 +9778,10 @@ not otherwise.
     #      run 10b again. Re-resolve RUNTIP, read
     #        git -C .. diff RUNTIP..HEAD -- micro-regime3/README.md \
     #          micro-regime3/runs/$R.md
-    #      yourself, and say in the commit what it covered
+    #      yourself, and say in the commit what it covered. Read over the
+    #      working tree BEFORE 7a's commit, the tail rides in that commit,
+    #      its subject naming both, `Run $R steps 7a and 10c: ...`; a
+    #      commit of its own is owed only where 7a's has already landed
     #  A GATE IS NEVER FILTERED AND A READING'S OUTPUT MAY BE, which is
     #      the line between the readings above and the checks below. A
     #      GATE -- `--lint`, `--check-doc`, `check-all`, `defect-run.py
@@ -10492,13 +10503,9 @@ the section.
          it being actionable until 5b's tables are in; the pre list at
          step 11, where the machine time starts and where nothing can be
          started until preflight's 4,5 has passed on binaries that exist.
-         Take `pre-a` at step 0 and `post-a` at run list step 13a, before the evening is launched,
-         the other half of each when its steps arrive: Run 29 read all
-         615 lines of `post` at run-list step 15, six hours before its
-         first actionable line, and Run 30 read all 642 of it at the same
-         step having just read the sentence saying so --- which is why
-         this item now names the halves rather than warning about the
-         whole.
+         Take `pre-a` at step 0 and `post-a` at run list step 13a, before
+         the evening is launched, the other half of each when its steps
+         arrive.
     2. the last run's head and Results prose
          -- one sentence: what this run's own head has to answer
     3. What the next run compares against, its prose and not its figures
@@ -10513,15 +10520,8 @@ the section.
          -- the form, in your own words
          ITEMS 2, 4, 5 AND 6 ARE READ AT THE STEPS THAT REWRITE THOSE
          SECTIONS -- post-run 5 for item 2, 6a for item 4, and 4 for
-         items 5 and 6 -- and not before and not by anyone else. They
-         WERE one agent's batch, returned as `run<N>-readings.txt`, from
-         2026-09-05 until 2026-09-16; the ruling that ended it is in the
-         open list, and its ground is that post-run step 5 copies the
-         previous run's file and the write-up edits that copy in place,
-         so the session has those four sections open in front of it
-         whatever a carrier reads. Two of the three runs that used one
-         never opened the file it returned. What the items keep is their
-         QUESTION, which is the half that was worth having
+         items 5 and 6 -- and not before and not by anyone else, the
+         session having those sections open then; no carrier reads them
          ITS FOUR READS, none of which opens a file whole (P=$PREV):
              item 2  --section Results --run-doc runs/$P.md
              item 4  --section 'What the next run compares against' --run-doc runs/$P.md --with-tables 1
