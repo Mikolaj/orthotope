@@ -2244,25 +2244,27 @@ rather than a slot in the next run, observed again:
   on a figure nobody can say the provenance of --- and a reader who wanted
   to ask whether 12 points is merely past the bar or catastrophically past
   it has nothing in either document to ask it of.
-- `OPEN` **A hand-edited table goes stale unchecked, and this is the second run
-  running --- HALF ANSWERED 2026-09-25: the rows are installed now,
-  and the paragraph above a table is still read by nothing.**
-  `read-run.py --hand-tables`, run by `install-tables.sh` at post-run step 5b,
-  recomputes both tables' rows from the two main JSONs and, without
-  `--in-place`, names every row that disagrees; Run 39's own file reads clean
-  under it and Run 40's reads nine rows off against Run 39's JSONs. What stays
-  open is the paragraph-start check below. The run file carried two tables
-  `--in-place` did not write --- the two-column geomeans and the Provenance
-  anchors --- and on Run 20 the first was forgotten entirely, on Run 22
-  the second carried the previous run's figures in seven of nine cells through
-  every gate and a full checker pass. It also corrupted a published figure,
-  `--machine` resolving its fingerprint off the stale row. **On Run 23 both
-  were recomputed from the JSONs by hand, and a third defect of the same family
-  was found beside them: the paragraph that reads the anchors table had lost
-  its opening words at Run 22's write-up --- it began `anchors read`
-  mid-sentence --- and passed every gate, a paragraph that ends a sentence being
-  all `--check-doc` asks of one. A check that a prose paragraph begins
-  with a capital, a bold lead or a backtick would have caught it.**
+- `ANSWERED` **A hand-edited table goes stale unchecked, and this is the second
+  run running --- ANSWERED 2026-09-26: the rows are installed since 2026-09-25,
+  and a paragraph that begins mid-sentence fails `--check-doc` since
+  `4a1793a`.** `read-run.py --hand-tables`, run by `install-tables.sh`
+  at post-run step 5b, recomputes both tables' rows from the two main JSONs and,
+  without `--in-place`, names every row that disagrees; Run 39's own file reads
+  clean under it and Run 40's reads nine rows off against Run 39's JSONs.
+  The paragraph-start check below landed in `4a1793a` with its case
+  and a mutant, and the same commit stopped the stop check excusing a paragraph
+  cut before a heading, which had left every section's closing paragraph unread.
+  The run file carried two tables `--in-place` did not write --- the two-column
+  geomeans and the Provenance anchors --- and on Run 20 the first was forgotten
+  entirely, on Run 22 the second carried the previous run's figures in seven
+  of nine cells through every gate and a full checker pass. It also corrupted
+  a published figure, `--machine` resolving its fingerprint off the stale row.
+  **On Run 23 both were recomputed from the JSONs by hand, and a third defect
+  of the same family was found beside them: the paragraph that reads the anchors
+  table had lost its opening words at Run 22's write-up --- it began
+  `anchors read` mid-sentence --- and passed every gate, a paragraph that ends
+  a sentence being all `--check-doc` asks of one. A check that a prose paragraph
+  begins on anything but a lower-case letter is what now catches it.**
 
 - `ANSWERED` **A run's sequence can be split across two windows and still be one
   run.** Run 22's was stopped by hand at the `scaled`/`runs` boundary when
