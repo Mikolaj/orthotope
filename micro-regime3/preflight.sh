@@ -743,7 +743,11 @@ step_8
   command -v shellcheck >/dev/null \
     || { echo "shellcheck is not on PATH: the shell here went unlinted"
          exit 1; }
-  shellcheck -S warning -f gcc ./*.sh || exit 1
+  # TRACKED SCRIPTS ALONE, top level, since 2026-09-26: the glob took the
+  # owner's untracked probe with it and failed the preparation on a scratch
+  # file, on Run 42. checks.py's step reads the same set.
+  git ls-files -z -- ':(glob)*.sh' | xargs -0 shellcheck -S warning -f gcc \
+    || exit 1
 ) > "$TMP/fam" 2>&1 \
   && say 8b PASS "the families and the two linters over this directory" \
   || say 8b FAIL "lint: $(tail -2 "$TMP/fam" | head -1)"

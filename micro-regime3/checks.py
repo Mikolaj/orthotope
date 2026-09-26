@@ -23,8 +23,10 @@ STEPS = [
     ('source lint',            ['python3', '{bin}/defect-lint.py', '{root}']),
     ('pyflakes',               ['bash', '-c',
                                 'cd "{root}" && if command -v pyflakes >/dev/null; then pyflakes *.py; elif python3 -m pyflakes --version >/dev/null 2>&1; then python3 -m pyflakes *.py; else echo "pyflakes is not on PATH (command -v pyflakes finds nothing) and python3 -m pyflakes does not import, so the Python here went unlinted"; exit 1; fi']),
+    # The TRACKED scripts at this level, since 2026-09-26, as preflight's
+    # 8b reads them: an untracked probe is the owner's scratch.
     ('shellcheck',             ['bash', '-c',
-                                'cd "{root}" && { command -v shellcheck >/dev/null || { echo "shellcheck is not on PATH (command -v shellcheck finds nothing), so the shell scripts here went unlinted"; exit 1; }; } && shellcheck -S warning -f gcc *.sh']),
+                                'cd "{root}" && { command -v shellcheck >/dev/null || { echo "shellcheck is not on PATH (command -v shellcheck finds nothing), so the shell scripts here went unlinted"; exit 1; }; } && git ls-files -z -- \':(glob)*.sh\' | xargs -0 shellcheck -S warning -f gcc']),
     # EVERY TRACKED FILE OPENING WITH #! IS COMMITTED 100755, the
     # subdirectories included, since 2026-09-23: Run 39's registration told its
     # reader to run `./probe-r39-rules.py`, committed 100644, and the command
