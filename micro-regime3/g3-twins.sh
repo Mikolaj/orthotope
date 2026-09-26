@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Post-run step 0's two -g3 twins, built from the pair note's own recipes
+# Post-run step 3a's two -g3 twins, built from the pair note's own recipes
 # with -g3 added and nothing else moved. They NAME the fill groups and the
 # straddlers for `loop-offsets.py --match`; they are not timed and never
-# join a table, `-g3` being a different program (README, post-run step 0).
+# join a table, `-g3` being a different program (README, post-run step 3a).
 #
 #     ./g3-twins.sh run40            # builds probe-g3-<half>-run40, both
 #     ./g3-twins.sh run40 --dry-run  # the source check and the two parsed

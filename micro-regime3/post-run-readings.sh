@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Post-run step 4's readings, and 4a's, 4b's and 10a's, taken in parallel
+# Post-run step 4's readings, and 4a's, 4b's and 4c's, taken in parallel
 # into one directory, a file a reading --
 #
 #     ./post-run-readings.sh run35            # writes log-read-run35/

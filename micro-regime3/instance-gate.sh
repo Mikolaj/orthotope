@@ -14,7 +14,7 @@
 # parked as `.slow` (`.slow2` and on beside an earlier one), which HOLDS its
 # frames: page shuffling is off on this box, so a freed block is the
 # likeliest thing the next copy gets, and the slow one is kept until the
-# deletion offer, post-run step 11, never freed before the swap. A copy
+# deletion offer, post-run step 9, never freed before the swap. A copy
 # slower than the launch instance is discarded and the
 # launch instance stands. Two slow draws are indistinguishable here and
 # pass; the bar is coarse by the instrument, repeats of one instance under
@@ -148,7 +148,7 @@ for h in $OTHER $BASIS; do
       echo "instance gate $h: REDRAWN -- the launch instance read slower" \
            "than a fresh copy by more than $BAR%; the copy now launches as" \
            "$B and the slow draw is parked as $S, holding its frames" \
-           "until the deletion offer, post-run step 11"
+           "until the deletion offer, post-run step 9"
     else
       echo "instance gate $h: the swap failed; read $DIR by hand"
       RC=1

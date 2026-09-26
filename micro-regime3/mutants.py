@@ -1146,7 +1146,7 @@ MUTANTS = [
     # first match, the writer then dies of SIGPIPE, and pipefail reads the
     # 141 as a red baseline -- which the post list's default form did the
     # day it outgrew one write (2026-09-23).
-    # A MADE-CHEAPER BLOCK LEFT IN README, the rule post-run step 9
+    # A MADE-CHEAPER BLOCK LEFT IN README, the rule post-run step 5d
     # carries since 2026-09-25 and --check-doc holds, blinded.
     ('check-doc stops counting the made-cheaper blocks', 'read-run.py',
      '    if cheaper:',
@@ -1155,27 +1155,23 @@ MUTANTS = [
      ' printf \'\\n**What Run 1 made cheaper for nobody.**\\n\' >> "$d/m4.md";'
      ' python3 "{file}" --check-doc --readme "$d/m4.md" 2>&1'
      ' | grep "where the heading keeps none" >/dev/null'),
-    # THE EXECUTION ORDER GOING STALE UNDER THE LIST. POST_EXEC is a
-    # second statement of the post list's shape, so the one way it can
-    # lie is a step moving and the constant not; _exec_order compares
-    # the two SETS and prints nothing when they part, naming the step.
-    # Mutated by dropping 10a, which is exactly what a renumbering
-    # would do. Judged on the banner's presence and not its content:
-    # the order itself is prose-derived and a judge reading it would
-    # be asserting this constant against itself.
-    ('the execution order goes stale under a renumbered list',
-     'read-run.py',
-     "'4b', '10a', '5', '5a',",
-     "'4b', '5', '5a',",
-     'set -o pipefail; python3 "{file}" --checklist post --imperative'
-     ' --readme "{dir}/README.md" 2>/dev/null | grep "EXECUTION ORDER" >/dev/null'),
+    # THE POST LIST PRINTED OUT OF ITS OWN ORDER, which its numbers being
+    # its execution order since 2026-09-26 forbids. Blinded by never
+    # finding a step late; judged on a copy of README with one step's
+    # label moved below its neighbours.
+    ('the post list stops being held to its order', 'read-run.py',
+     "            if _step_key(b) <= _step_key(a)]",
+     "            if False]",
+     'd="{dir}"; sed "s/#  5e\\. TAKEN/#  1e. TAKEN/" "$d/README.md" > "$d/m5.md";'
+     ' python3 "{file}" --checklist post --imperative --readme "$d/m5.md"'
+     ' 2>&1 | grep "print below a larger step" >/dev/null'),
     # THE NOTE PROMISING A BLOCK IT DOES NOT CARRY. Run 37's note put
     # its post-run step 9 half `at the foot of this note under
     # LEARNED` and carried none; that half is one session's and went
     # with it. Mutated by making the presence test vacuous, which is
     # how such a check usually dies. Judged on a stand-in note built
     # in the copy, so it does not go LOST with the run's own note at
-    # post-run 11's deletion offer.
+    # post-run 9's deletion offer.
     ('note-check stops asking whether a promised block is there',
      'read-run.py',
      "        if not re.search(r'^%s\\b' % re.escape(name), text, re.M):",

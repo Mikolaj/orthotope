@@ -28,7 +28,7 @@
 # run was built to answer` heading edited out, step 5 reads NOT DONE
 # naming the heading, and 7 with it, --check-doc finding the anchor
 # dead. Re-aim the first whenever run35's artifacts are offered for
-# deletion: a finished run whose note and twins are gone reads steps 0,
+# deletion: a finished run whose note and twins are gone reads steps 3a,
 # 2 and 14 NOT DONE, and any step born after it, so it is no control --
 # run23 read four such on 2026-09-18, which this comment had named as
 # reading all done.
@@ -58,7 +58,7 @@ say () {  # say STEP VERDICT WHAT-IT-RESTS-ON
   if [ "$2" = "NOT DONE" ]; then
     MISSING=$((MISSING + 1)); : "${FIRST:=$1}"
     # AND WHICH LIST IT BELONGS TO, which the step label cannot say: the
-    # pre-run list numbers 0 to 12c and the post-run list 0 to 11, so a
+    # pre-run list numbers 0 to 12c and the post-run list 1 to 9, so a
     # bare `7` is in both. The phase is what the caller already knows.
     : "${FIRSTPHASE:=$PHASE}"
   fi
@@ -276,19 +276,6 @@ fi
 
 PHASE=post
 echo "post-run"
-# 0 IS THE ONE STEP WHOSE WINDOW CLOSES, and until 2026-09-13 it was the one
-# step this file could not prompt: it spends the binaries, so a run that
-# reaches step 11 without it cannot go back. The twins are what it leaves,
-# one per half, named for the run -- `probe-g3-<half>-run<N>` since Run 27
-# and `-r<N>` by the three twin scripts before it, which the first form
-# of this glob missed, reading those finished runs NOT DONE for ever.
-TWINS=$(ls probe-g3-*-"$R" probe-g3-*-"${R/run/r}" 2>/dev/null | wc -l)
-if [ "$TWINS" -ge 2 ]; then
-  say 0 "done" "$TWINS -g3 twin(s) here; the fill groups are named off them"
-elif [ -f "$DOC" ] || ls "$R"-*.json >/dev/null 2>&1; then
-  say 0 "NOT DONE" "no probe-g3-*-$R twins: step 0 names the fill groups off\
- them and SPENDS the binaries, so it cannot be taken after step 11"
-fi
 if ls "$R"-*.json >/dev/null 2>&1; then
   ./read-all.sh "$R" > "$TMP/ra" 2>&1 && say 1 "done" "read-all.sh gates every process clean" \
     || say 1 "NOT DONE" "read-all.sh: $(tail -1 "$TMP/ra" | cut -c1-90)"
@@ -296,6 +283,19 @@ elif [ -f "$DOC" ]; then
   say 1 "done" "no JSONs here to gate; the write-up's floor table stands for it"
 else
   say 1 "NOT DONE" "no JSONs here to gate and no $DOC"
+fi
+# 3a IS THE ONE STEP WHOSE WINDOW CLOSES, and until 2026-09-13 it was the one
+# step this file could not prompt: it spends the binaries, so a run that
+# reaches step 9 without it cannot go back. The twins are what it leaves,
+# one per half, named for the run -- `probe-g3-<half>-run<N>` since Run 27
+# and `-r<N>` by the three twin scripts before it, which the first form
+# of this glob missed, reading those finished runs NOT DONE for ever.
+TWINS=$(ls probe-g3-*-"$R" probe-g3-*-"${R/run/r}" 2>/dev/null | wc -l)
+if [ "$TWINS" -ge 2 ]; then
+  say 3a "done" "$TWINS -g3 twin(s) here; the fill groups are named off them"
+elif [ -f "$DOC" ] || ls "$R"-*.json >/dev/null 2>&1; then
+  say 3a "NOT DONE" "no probe-g3-*-$R twins: step 3a names the fill groups off\
+ them and SPENDS the binaries, so it cannot be taken after step 9"
 fi
 
 if [ -f "$DOC" ]; then
@@ -308,31 +308,32 @@ if [ -f "$DOC" ]; then
     || say 5 "NOT DONE" "no '$REG_HEAD' in $DOC (--move-registration)"
   grep -q '___' "$DOC" && say 5 "NOT DONE" "$DOC still carries a '___' verdict slot" \
     || say 5 "done" "no '___' slot left in $DOC"
+  grep "$REG_LEAD" "$TMP/readme" | grep -q 'ANSWERED' \
+    && say 5e "done" "README's entry for Run $N reads ANSWERED" \
+    || say 5e "NOT DONE" "README's open-list entry for Run $N does not read ANSWERED"
   grep -q '\[\[TODO\]\]' "$DOC" && say 6a "NOT DONE" "$DOC carries [[TODO]]" \
     || say 6a "done" "no [[TODO]] in $DOC"
   SUBJ=$(git log --format=%s -- "$DOC" README.md | grep -i "run $N\b\|$R\b")
-  # 10c by SUBJECT ALONE, whatever the commit touched: the tail's commit
+  # 8b by SUBJECT ALONE, whatever the commit touched: the tail's commit
   # may carry no document edit at all, and a path-filtered log hid Run 39's
   # until a sentence was invented to give it one. The other steps' commits
   # do carry the documents and keep the filter. Case:
   # `status-finds-a-10c-commit-without-a-document`.
-  SUBJ10C=$(git log --format=%s | grep -i "run $N\b\|$R\b")
+  SUBJ8B=$(git log --format=%s | grep -i "run $N\b\|$R\b" | grep -vi 'pre-run')
   # 6d's commit carries 6b's and 6c's work, so a subject naming both of
   # those names it too, which is how Run 23 wrote it.
-  # The tail after the checker joined them 2026-09-08 as 7b and is 10c
-  # since 2026-09-11, having been renumbered to the position its own text
-  # always described; it is a step like the others and reads NOT DONE
-  # until a subject names it.
-  # 10c ACCEPTS ITS OLD NAME, and that is not laziness: the tail was 7b
-  # until 2026-09-11, so a run written between those two dates carries a
-  # commit saying `step 7b` -- Runs 27 and 28 do -- and would read NOT
-  # DONE for ever after --
-  # which is this file's own documented hazard, met by its own change.
-  # A renumber may not un-do a finished run.
-  for s in 6b 6d 7a 10c; do
-    S=$SUBJ; [ "$s" = 10c ] && S=$SUBJ10C
+  # The tail is 8b since 2026-09-26, 10c before and 7b before that, and
+  # ACCEPTS ITS OLD NAMES: a finished run's commit says `step 7b` (Runs 27
+  # and 28) or `10c` (Runs 29 to 41) and would read NOT DONE for ever
+  # after. A renumber may not un-do a finished run. A pre-run subject is
+  # skipped, the pre-run list having an 8b of its own.
+  # One function for the four, since 8b is read after the gates it
+  # follows and the other three before them.
+  subject_step () {
+    s=$1
+    S=$SUBJ; [ "$s" = 8b ] && S=$SUBJ8B
     if printf '%s\n' "$S" | grep -qi "\b$s\b" \
-       || { [ "$s" = 10c ] && printf '%s\n' "$S" | grep -qi '\b7b\b'; } \
+       || { [ "$s" = 8b ] && printf '%s\n' "$S" | grep -qiE '\b(7b|10c)\b'; } \
        || { [ "$s" = 6d ] && printf '%s\n' "$SUBJ" | grep -qi '\b6b\b.*\b6c\b'; }; then
       say "$s" "done" "a commit subject names step $s"
     else
@@ -344,18 +345,17 @@ if [ -f "$DOC" ]; then
       say "$s" "NOT DONE" \
           "no commit subject carries both the run and step $s -- write \`Run $N step $s: ...\`"
     fi
-  done
-  grep "$REG_LEAD" "$TMP/readme" | grep -q 'ANSWERED' \
-    && say 10 "done" "README's entry for Run $N reads ANSWERED" \
-    || say 10 "NOT DONE" "README's open-list entry for Run $N does not read ANSWERED"
+  }
+  for s in 6b 6d 7a; do subject_step "$s"; done
 else
   say 5 "NOT DONE" "no $DOC"
 fi
-./read-run.py --lint > "$TMP/lint" 2>&1 && say 8 "done" "--lint passes" \
-  || say 8 "NOT DONE" "--lint: $(grep -m1 'FAIL\|BLOCKED' "$TMP/lint" | cut -c1-90)"
 ./read-run.py --check-doc --quiet > "$TMP/cd" 2>&1 && say 7 "done" "--check-doc --quiet passes" \
   || say 7 "NOT DONE" "--check-doc: $(grep -m1 'FAIL\|BLOCKED' "$TMP/cd" | cut -c1-90)"
-say 11 yours "offer the artifacts for deletion, once, after 7 is presented"
+./read-run.py --lint > "$TMP/lint" 2>&1 && say 8 "done" "--lint passes" \
+  || say 8 "NOT DONE" "--lint: $(grep -m1 'FAIL\|BLOCKED' "$TMP/lint" | cut -c1-90)"
+[ -f "$DOC" ] && subject_step 8b
+say 9 yours "offer the artifacts for deletion, once, after 7 is presented"
 
 echo
 if [ "$MISSING" -eq 0 ]; then

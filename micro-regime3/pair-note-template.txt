@@ -52,7 +52,7 @@ the one run a claim is about.
 The pair $R-<basis> and $R-<other>, Run NN's, written by hand YYYY-MM-DD
 BEFORE either binary exists, which is the order the procedure asks for.
 
-Nothing appends to this file but run-gate.sh and post-run step 0's NAMED
+Nothing appends to this file but run-gate.sh and post-run step 3a's NAMED
 FILLS block.
 
 ENTRY POINT FOR THE SESSION THAT RUNS THIS [PAIR'S]. It is a HANDOVER and
@@ -64,13 +64,13 @@ gate has run; what is
 INHERITED and must not be repaid, naming each -- the gate, the smoke
 sweep, the roster pass, the counts, anything else that cost machine time
 -- and what is still OWED; and, last, WHAT THE PREPARATION LEARNED, which
-is post-run step 9's four things met a day early -- a check that would
+is post-run step 5d's four things met a day early -- a check that would
 have caught an error, a computation improvised, a step skipped, a
-capability found. Step 9 is the executing session's and that session was
+capability found. Step 5d is the executing session's and that session was
 not here, so this block is the only route those findings have OUT OF THE
 PREPARATION. It is not the only place they end up, and this note going
-with the pair loses none of them: step 9 says outright to read this block
-before writing its own and to carry BOTH halves, and it feeds step 10,
+with the pair loses none of them: step 5d says outright to read this block
+before writing its own and to carry BOTH halves, and it feeds step 5e,
 the open list, which is committed. So the note being gitignored is not a
 leak to fix -- do not propose committing it, mirroring this block into
 the run file, or sending it to MARGINALIA. Ruled 2026-09-08, on the
@@ -158,7 +158,7 @@ restated that its compiler, shim, project file and launch were the previous
 run's in block after block.
 What `ghc --version` said at build time. The recipe below
 carries --ghc-options and not the compiler, so nothing else here records
-it, post-run step 9 asks this note for it, and a repetition read against
+it, and a repetition read against
 an earlier run needs both notes to name one.
 
 THE SHIM [PAIR'S]: the commit align-as.py stood at, `git log -1 --format=%h --

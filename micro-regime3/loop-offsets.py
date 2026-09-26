@@ -691,7 +691,7 @@ def match(timed, twins, loose=False, rev=None, want='_Main_'):
     """Name the timed binary's straddling loops off -g3 twins, by BYTE
     IDENTITY and never by address or proximity.
 
-    Post-run step 0 owes this and did it by hand for two runs: `objdump`
+    Post-run step 3a owes this and did it by hand for two runs: `objdump`
     over both binaries at addresses guessed from the survey, compared by
     eye (Run 23, 2026-09-02). The rule the step states is that a loop is
     named from the twin only where the twin holds a byte-identical copy,
@@ -807,7 +807,7 @@ def delta(old, new, length, min_copies, want='_Main_'):
     read over: a group that keeps its count while one arm's copy leaves
     and another's lands reads as displacements, and can read as an address
     surviving, with nothing here to say the pairing slipped. The `-g3`
-    twins of post-run step 0 are what name a copy; this mode only counts.
+    twins of post-run step 3a are what name a copy; this mode only counts.
 
     The population is `want`'s, Main-compiled code as `--match` and
     `--survey` take it, and the linked libraries' groups are left to
@@ -1007,7 +1007,7 @@ def main():
     p.add_argument('--match', metavar='TWIN', nargs='+',
                    help='name the binary\'s straddling loops off these -g3 '
                         'twins by byte identity, refusing where none holds '
-                        'an identical copy -- post-run step 0. Give the '
+                        'an identical copy -- post-run step 3a. Give the '
                         'other half\'s twin too: it names what a half\'s own '
                         'cannot')
     p.add_argument('--loose', action='store_true',

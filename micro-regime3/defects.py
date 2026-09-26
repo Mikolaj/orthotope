@@ -6760,8 +6760,7 @@ TIER1 = {
         family='two-spellings', discovery='in-use', harm='fired',
         proved='ran',
         trigger='the post list executed in the order it prints in',
-        ok='prints the execution order beside the list and names the'
-           ' steps that run out of printed turn',
+        ok='prints the list in its execution order and says so',
         bug='printed the steps in numeric order with nothing saying which'
             ' run out of it, so Run 37 took 9 and 10 after 6d and had to'
             ' record the deviation in its own post-mortem'),
@@ -8234,7 +8233,7 @@ RECORDS = [
          # on half of them, and then re-read most of them at their steps.
          plant=lambda t: {'readme': edited_readme(t)},
          argv=['--checklist', 'post-a', '--readme', '{readme}'],
-         ok=V(exit=0, has=['steps 0 to 5', '0. NAME THE FILL GROUPS',
+         ok=V(exit=0, has=['steps 1 to 5e', '3a. NAME THE FILL GROUPS',
                            'install-tables.sh'],
               hasnt=['walk the replace list', 'offer the artifacts'])),
 
@@ -8243,9 +8242,9 @@ RECORDS = [
          ' with post-a it is the whole list',
          plant=lambda t: {'readme': edited_readme(t)},
          argv=['--checklist', 'post-b', '--readme', '{readme}'],
-         ok=V(exit=0, has=['steps 6 to 11', 'walk the replace list',
+         ok=V(exit=0, has=['steps 6 to 9', 'walk the replace list',
                            'offer the artifacts'],
-              hasnt=['0. NAME THE FILL GROUPS'])),
+              hasnt=['3a. NAME THE FILL GROUPS'])),
 
     case('checklist-post-half-refuses-a-missing-seam', 'read-run.py', None,
          'a half of the post list cut at a line number rather than at its'
@@ -8266,9 +8265,9 @@ RECORDS = [
          ' which is what says the halves are cut out of it',
          plant=lambda t: {'readme': edited_readme(t)},
          argv=['--checklist', 'post', '--readme', '{readme}'],
-         ok=V(exit=0, has=['0. NAME THE FILL GROUPS', 'walk the replace list',
+         ok=V(exit=0, has=['3a. NAME THE FILL GROUPS', 'walk the replace list',
                            'offer the artifacts'],
-              hasnt=['steps 0 to 5', 'steps 6 to 11'])),
+              hasnt=['steps 1 to 5e', 'steps 6 to 9'])),
 
     case('bridge-divides-out-the-baseline', 'read-run.py', None,
          'a cross-run comparison a moved box made unreadable',
@@ -12287,7 +12286,7 @@ RECORDS = [
          ok=V(has=['stale absent'], hasnt=['STALE PRESENT']),
          bug=V(has=['STALE PRESENT'])),
 
-    # ---- g3-twins.sh, post-run step 0's twins off the note's recipes ----
+    # ---- g3-twins.sh, post-run step 3a's twins off the note's recipes ---
     case('g3-twins-reads-the-note-recipes', 'g3-twins.sh', None,
          "CONTROL: each half's environment, project file and flags come off"
          " the note's own recipe block, -g3 added",
@@ -12746,7 +12745,7 @@ RECORDS = [
          # is the imperative half, which is derivable: the step leads and
          # the commands, without the continuations under them.
          argv=['--checklist', 'post', '--imperative'],
-         ok=V(exit=0, has=['./run-status.sh $R', '10b.'])),
+         ok=V(exit=0, has=['./run-status.sh $R', '8a.'])),
 
     case('check-doc-refuses-a-piped-gate-in-the-chapter',
          'read-run.py', None,
@@ -12772,7 +12771,7 @@ RECORDS = [
          # the commit a path (2026-09-23). No shadow: a shadow is no git
          # checkout, and git's answer is what this reads.
          argv=['run39'],
-         ok=V(has=['10c   done']),
+         ok=V(has=['8b    done']),
          # No audit: the case reads the real repository's history, and
          # Run 39's 10c commit carries a README edit, so no revision holds
          # the empty 10c commit the defect needs.
@@ -15279,15 +15278,26 @@ RECORDS = [
          'the post list printed its steps in numeric order and nothing'
          ' said which of them run out of that order, so a session'
          ' executing it in the order given took 9 and 10 after 6d',
-         # The numbers are stable because pointers resolve to them, so
-         # the fix is a second, derived statement of the order rather
-         # than a renumbering. Read off the live README: the constant
-         # is checked against the list's own numbers, so this case also
-         # fails if a step is added without POST_EXEC.
+         # Fixed first by a declared second statement of the order
+         # beside stable numbers; since 2026-09-26 the list prints in its
+         # execution order, its out-of-turn steps relabelled into it, and
+         # says so. Read off the live README.
          argv=['--checklist', 'post', '--imperative'],
-         ok=V(exit=0, has=['EXECUTION ORDER',
-                           'run out of printed turn']),
-         bug=V(exit=0, hasnt=['EXECUTION ORDER'])),
+         ok=V(exit=0, has=['THIS LIST IS ITS EXECUTION ORDER']),
+         # No audit since the renumber: the pre-fix reader finds the list
+         # by its old first line, `0. NAME THE FILL GROUPS`, which today's
+         # README no longer carries.
+         no_audit='other:readme-list-renumbered-since'),
+
+    case('checklist-names-a-step-out-of-order', 'read-run.py', None,
+         'a post-list step printed below a larger one, which a list whose'
+         ' numbers are its execution order cannot carry in silence',
+         plant=lambda t: {'readme': edited_readme(t, (
+             '    #  5e. TAKEN BEFORE 6d', '    #  1e. TAKEN BEFORE 6d'))},
+         argv=['--checklist', 'post', '--imperative', '--readme',
+               '{readme}'],
+         ok=V(has=['1e print below a larger step'],
+              hasnt=['THIS LIST IS ITS EXECUTION ORDER'])),
 
     case('brief-update-reopens-filled-slots', 'read-run.py', 'e4894dc',
          'a second paste brought the facts file\'s empty `<yours>` back'
@@ -15303,7 +15313,7 @@ RECORDS = [
          'a class block carried two `___` and only the first said what'
          ' it wanted, so the second read as already done',
          # TIER 1 ONLY: the invocation wants a class JSON and its twin,
-         # which post-run 11 offers for deletion, so a case built on one
+         # which post-run 9 offers for deletion, so a case built on one
          # goes LOST with the run rather than proving anything later.
          None, None),
 

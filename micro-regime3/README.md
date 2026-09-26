@@ -1423,7 +1423,7 @@ rather than a slot in the next run, observed again:
   cell was on the same shape, 7.15% on its control half. Two copies agreeing
   and the original parting is the shape a placement or instance term
   on the original's code would leave, and the leaf's function is among
-  the straddlers post-run step 0 names on that half --- a lead and
+  the straddlers post-run step 3a names on that half --- a lead and
   not a reading. **What would settle it** is the cell timed on the original
   and one copy in one filtered process, interleaved, and the same
   on a byte-identical copy of the binary. Registered 2026-09-17. **Run 35 did
@@ -3569,7 +3569,7 @@ what the next run should do is the open list's `OPEN` entries above.**
 It was `Recommended tasks after Run N` until 2026-09-26, renamed when
 a comprehension probe found it holding no task. **Every run's
 `What Run N made cheaper` block is in `MARGINALIA`, appended there at post-run
-step 9 since 2026-09-25, and this heading keeps none.** Runs 41 down to 25
+step 5d since 2026-09-25, and this heading keeps none.** Runs 41 down to 25
 are there, 32 to 25 as of 2026-09-18, 36 to 33 as of 2026-09-23, 37 and 38 to 40
 as of 2026-09-25, and 41 as of 2026-09-26. A block is a record of what one run
 made cheaper, read by nobody once a further run has reported, and what it asks
@@ -6271,10 +6271,10 @@ the ceiling they price --- `-u2-ptr` over `-u2` read 0.9385 and 0.9268 on Run
 Runs 31 to 34 time neither, so the ceiling is recorded at those five readings
 and a run that wants a sixth has to un-park an arm. What Runs 32 to 34 do say
 about the form is from the naming side rather than the timing one: post-run step
-0 still finds `fbMutOdoVecdimsAddInLeafU2Ptr` among the straddling loops of BOTH
-halves --- by byte identity off the half's own -g3 twin on ghc-9.12.4 and off
-the OTHER half's twin on GHC HEAD, which is what giving `--match` both twins
-is for --- parking having taken the arm off the roster and not out
+3a still finds `fbMutOdoVecdimsAddInLeafU2Ptr` among the straddling loops
+of BOTH halves --- by byte identity off the half's own -g3 twin on ghc-9.12.4
+and off the OTHER half's twin on GHC HEAD, which is what giving `--match` both
+twins is for --- parking having taken the arm off the roster and not out
 of the binary. Runs 33 and 34 read it there under the exit span as well, which
 moves the straddler count on neither half: eight on each, as Run 32 read.
 
@@ -8046,7 +8046,7 @@ Unsandboxed throughout:
     #      the mount as the emergency step 2 describes, 16a is each half's
     #      launch instance against a fresh copy on one cell, the copy
     #      swapped in when the launch is the slow draw and the slow one
-    #      parked as hugebin/$R-<half>.slow, which post-run step 11's
+    #      parked as hugebin/$R-<half>.slow, which post-run step 9's
     #      deletion offer covers with the rest
     #      (why: --para 'the gate written to catch the slow draw').
     #      A blocked write leaves a launch that never happened looking
@@ -8197,7 +8197,7 @@ Unsandboxed throughout:
     #      whose last line is EVENING COMPLETE and whose tally is the
     #      complaints of both commands; report each rather than folding
     #      them into a later summary, and go on with the post-run list in
-    #      its execution order, whose 1, 2 and 0's twin builds may
+    #      its order, whose 1, 2 and 3a's twin builds may
     #      already have run beside the counts.
     #      why: an instruction count wants no quiet machine.
     #      It owes criterion nothing and is insensitive to load; counted
@@ -8336,10 +8336,10 @@ ruling refuses whatever their age.
 
 **And before any of that, the previous run has to be finished.** Nothing
 in this list asks, and starting on top of a half-written write-up is a wrong
-start no later step catches: the artifacts of a run whose step 11 was never
-reached look exactly like those of one whose deletion offer was declined.
-The evidence is on the disk and in the open list --- `runs/` already carries
-a file for your run, and the open list carries its registration.
+start no later step catches: the artifacts of a run whose post-run step 9
+was never reached look exactly like those of one whose deletion offer
+was declined. The evidence is on the disk and in the open list --- `runs/`
+already carries a file for your run, and the open list carries its registration.
 
 **Why the build's three rules are what they are, moved out of the list
 on 2026-08-29 because the list is read by every session and these accounts
@@ -8931,56 +8931,10 @@ nothing was missed, which is what they have cost. Execute this list, and open
 a step's prose by its `why: --para` pointer when the step's rule is unclear,
 not otherwise.
 
-    #   0. NAME THE FILL GROUPS off a -g3 twin, and spend the other
-    #      load-independent measurements while the artifacts live --
-    #      allocation, Core, a `size` invocation, minutes each. FIRST.
-    #      FIRST MEANS BEFORE 11 AND NOT BEFORE 1: where step 2 may name
-    #      an intrusion and 3 a rerun, take 1 and 2 before this. AND THE
-    #      TWIN'S BUILD RUNS BESIDE step 20's counts where no rerun is
-    #      owed.
-    #      Owed by every paired Run: rebuild each recipe with -g3,
-    #      `./g3-twins.sh $R` reading both off the note, export
-    #      the NAMED fills into the note, match groups by byte identity
-    #      of the loop body and never by proximity, and read the count
-    #      check -- a group whose twin carries fewer copies than the
-    #      timed binary is not named from the twin at all.
-    #      `./loop-offsets.py $R-<half> --match probe-g3-<half>-$R` does
-    #      the straddlers' half of that by the same rule, naming each by
-    #      its bytes and saying NOT NAMED where no twin holds a copy.
-    #      GIVE IT BOTH TWINS, the half's own first, and add --loose.
-    #      --loose then offers a register-masked signature for what the
-    #      bytes refuse, and it prints a FAMILY rather than a name:
-    #      read it only where the family has one member or the rest are
-    #      already anchored.
-    #      NOT NAMED can also mean no loop, and `reaches` in
-    #      loop-offsets.py has the tell of all three shapes. THAT REFUSAL
-    #      is not a shortfall to work around.
-    #      WHERE THE PREPARATION SPENT THIS HALF EARLY, RE-RUN THE
-    #      `--match` OFF THE BINARIES YOU TIMED, which is two minutes
-    #      why: --para 'Name the fill groups'
-    #      FIRST because it is the only step whose window CLOSES: it
-    #      spends the binaries, and every step below it can be taken
-    #      afterwards from the JSONs and the two documents. It does not
-    #      wait on the gates either, reading the binaries rather than the
-    #      measurements, which is what lets it go here. Its compiles are
-    #      the one thing on this list that loads the box a rerun would
-    #      want quiet; beside the counts they cost nothing, an instruction
-    #      count being insensitive to load.
-    #      The naming is what the step is FOR and reads like housekeeping:
-    #      it turns `[0, 24, 0, 4]` into four arms, which is the only form
-    #      in which an offset this README quotes can be tied to one.
-    #      Both twins: the compilers emit many of these bodies alike, so
-    #      the other half's twin names what -g3 destroyed in this one, at
-    #      no build. THE REFUSAL IS WHAT MAKES A NEGATIVE HONEST.
-    #      The re-run turns the note's block from a transcription into
-    #      evidence: the twins are kept beside the binaries for it, the
-    #      preparation's own reading was taken on an idle box a day
-    #      before, and a note's fill-in block is where transcribed
-    #      figures live
     ./read-all.sh $R --brief-facts                    # 1. GATE EVERY
     #      PROCESS -- and EVERY gate on this list is run BARE, its
     #      status read from its own exit: no pipe, no `&&` chain, no
-    #      redirect (post-b's `A GATE IS NEVER FILTERED`, after 10c).
+    #      redirect (post-b's `A GATE IS NEVER FILTERED`, after 8b).
     #      PROCESS AND DERIVE THE HEAD'S FACTS IN ONE CALL -- no bare
     #      `./read-all.sh $R` beside it: the window and its timestamps,
     #      the plateau band, BOTH floors per population, `list` against
@@ -9053,6 +9007,50 @@ not otherwise.
     #      $R-*.log for the plateau and lists by name any log it finds no
     #      reading in, so a superseded copy left in that namespace fails
     #      the gate
+    #  3a. NAME THE FILL GROUPS off a -g3 twin, and spend the other
+    #      load-independent measurements while the artifacts live --
+    #      allocation, Core, a `size` invocation, minutes each, and all
+    #      of it before 9 spends the binaries. THE TWIN'S BUILD RUNS
+    #      BESIDE step 20's counts where no rerun is owed.
+    #      Owed by every paired Run: rebuild each recipe with -g3,
+    #      `./g3-twins.sh $R` reading both off the note, export
+    #      the NAMED fills into the note, match groups by byte identity
+    #      of the loop body and never by proximity, and read the count
+    #      check -- a group whose twin carries fewer copies than the
+    #      timed binary is not named from the twin at all.
+    #      `./loop-offsets.py $R-<half> --match probe-g3-<half>-$R` does
+    #      the straddlers' half of that by the same rule, naming each by
+    #      its bytes and saying NOT NAMED where no twin holds a copy.
+    #      GIVE IT BOTH TWINS, the half's own first, and add --loose.
+    #      --loose then offers a register-masked signature for what the
+    #      bytes refuse, and it prints a FAMILY rather than a name:
+    #      read it only where the family has one member or the rest are
+    #      already anchored.
+    #      NOT NAMED can also mean no loop, and `reaches` in
+    #      loop-offsets.py has the tell of all three shapes. THAT REFUSAL
+    #      is not a shortfall to work around.
+    #      WHERE THE PREPARATION SPENT THIS HALF EARLY, RE-RUN THE
+    #      `--match` OFF THE BINARIES YOU TIMED, which is two minutes
+    #      why: --para 'Name the fill groups'
+    #      FIRST because it is the only step whose window CLOSES: it
+    #      spends the binaries, and every step below it can be taken
+    #      afterwards from the JSONs and the two documents. It does not
+    #      wait on the gates either, reading the binaries rather than the
+    #      measurements, which is what lets it go here. Its compiles are
+    #      the one thing on this list that loads the box a rerun would
+    #      want quiet; beside the counts they cost nothing, an instruction
+    #      count being insensitive to load.
+    #      The naming is what the step is FOR and reads like housekeeping:
+    #      it turns `[0, 24, 0, 4]` into four arms, which is the only form
+    #      in which an offset this README quotes can be tied to one.
+    #      Both twins: the compilers emit many of these bodies alike, so
+    #      the other half's twin names what -g3 destroyed in this one, at
+    #      no build. THE REFUSAL IS WHAT MAKES A NEGATIVE HONEST.
+    #      The re-run turns the note's block from a transcription into
+    #      evidence: the twins are kept beside the binaries for it, the
+    #      preparation's own reading was taken on an idle box a day
+    #      before, and a note's fill-in block is where transcribed
+    #      figures live
     #   4. match bases before reading any ratio -- same population, same
     #      restriction, the basis the claim was stated on;
     #      one JSON at a time, never merged; a sentence comparing
@@ -9067,7 +9065,7 @@ not otherwise.
     #      test' --run-doc runs/$PREV.md` and `--section 'The stride
     #      classes, run by run' --run-doc runs/$PREV.md` are the reads
     #      why: --para 'Match bases before reading any ratio'
-    ./post-run-readings.sh $R        #    EVERY READING OF 4, 4a, 4b AND 10a,
+    ./post-run-readings.sh $R        #    EVERY READING OF 4, 4a, 4b AND 4c,
     #      in parallel, a file each in log-read-$R/, the script's header
     #      naming which file holds which; the count-dependent ones only
     #      once $R-evening.txt reads EVENING COMPLETE, so it is run again
@@ -9103,8 +9101,8 @@ not otherwise.
     #      half, with each population's floor and the pair that carries
     #      it
     #      main-<half>-deflation.txt, on both halves: THE DECOMPOSITION
-    #      IS PROVENANCE'S and is taken here with the rest; 10a keeps the
-    #      number
+    #      IS PROVENANCE'S and is taken here with the rest, 4c reading
+    #      it
     #      AND THE BAR THE CROSS-HALF FIGURES ARE READ AGAINST comes off
     #      the plain `--compare` file, which prints how far an arm and
     #      its own A/A duplicate part IN THAT COMPARISON and names the
@@ -9229,6 +9227,13 @@ not otherwise.
     #          on neither Run 33's nor Run 32's: a term of that build on
     #          both compilers, some 250 cycles a call, the lean fill and
     #          `u1` moving in opposite directions on each half
+    #  4c. main-<half>-deflation.txt, on both halves: the roster cell
+    #      over its own alone leg, per shape. RAW over RAW. TAKEN WITH
+    #      STEP 4's READINGS, post-run-readings.sh writing it
+    #      why: a leg has no `sum-only` to correct with.
+    #      A leg carries no `sum-only` to correct with -- the one
+    #      place a session would reach for the wrong numerator. It is
+    #      what the riders were run for
     #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
     #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT
     #      (reading item 2 HERE, off the copy you have just made, which
@@ -9302,7 +9307,7 @@ not otherwise.
       --predictions --in-place       # 5c. THE REGISTRATION'S SPANS, taken
     #      here, after the counts. WHILE THEY ARE TAKEN, read `--checklist
     #      post-b` once, `--full` only for a step whose reason you need,
-    #      then take steps 9 and 10, which want no counts, and
+    #      then take steps 5d and 5e, which want no counts, and
     #      6a's three readers. Every `predict:` span read on each
     #      population and half its scope names, HELD or KILLED with the
     #      figure read, and written under its item in the run file as
@@ -9322,6 +9327,36 @@ not otherwise.
     #      that fits it is named rather than left to be found, a session
     #      that fills it unbriefed writing a third of 6a before it meets
     #      step 6 -- Run 37 did.
+    #  5d. TAKEN BEFORE 6d AND COMMITTED WITH IT. Collect what
+    #      this run made CHEAPER for the next: the checks that
+    #      would have caught each error, the computations improvised, the
+    #      steps skipped, any capability found, and the readings the
+    #      carrier took with what they cost. HALF OF IT IS THE
+    #      PREPARING SESSION'S: read the note's WHAT THE PREPARATION
+    #      LEARNED block before writing yours and carry both halves.
+    #      THE BLOCK GOES TO MARGINALIA, appended there as `What Run N
+    #      made cheaper`, and README keeps none: what it asks of the
+    #      procedure is made in the chapter or a tool in the same write-up,
+    #      which is where the next run meets it (--check-doc refuses a
+    #      block left in README). ITS FORM, MARGINALIA BEING WRITE-ONLY:
+    #      a bold `What Run N made cheaper` lead, then THE PREPARATION'S
+    #      HALF and THE WRITE-UP SESSION'S HALF, each a run of bold-led
+    #      items -- written from this, never copied out of the file
+    #      why: it feeds 5e and so comes before it.
+    #      No other step gathers this, and it is not a figure. The
+    #      preparing session met the same list a day earlier and is gone,
+    #      so its half reaches you only through the note
+    #  5e. TAKEN BEFORE 6d AND COMMITTED WITH IT, as 5d is. Walk the open
+    #      list: grep the settled index before adding an
+    #      entry, move answered ones with their measurement, and add each
+    #      surprise with what would settle it. PREDICTION VERDICTS DO NOT
+    #      GO HERE: a run's registrations and their
+    #      verdicts live in `What this run was built to answer, and what
+    #      it answered` in the run's OWN file, written at step 5 with the
+    #      rest of it, and the open list keeps one `ANSWERED` entry per
+    #      run -- the lead, a verdict in a clause, and a link to that
+    #      file. Report a split as a split, arm by arm
+    #      why: --para 'Walk the open list against what this session'
     #   6. walk the replace list under Provenance (READ NOW: item 8, the
     #      list itself and its delta bullets), re-run the two sweeps it
     #      names -- grep both documents for figure-shaped numerals outside
@@ -9340,15 +9375,15 @@ not otherwise.
     #        unwrapped
     #        before editing or after a commit's re-wrap; an EXACT-MATCH
     #        edit and step 5's literal rename are what still want the
-    #        unwrapped form. SET THE TURN-END HOLD HERE, clearing it at 11
+    #        unwrapped form. SET THE TURN-END HOLD HERE, clearing it at 9
     #        (~/.claude/rules/turn-end-hold.md) --- AND SET IT AGAIN for
-    #        any editing that continues past 11, a probe write-up or a
+    #        any editing that continues past 9, a probe write-up or a
     #        question answered in the documents among them.
     #        Never wrap by hand; read ~/.claude/rules/markdown-wrapping.md
     #        before the first edit
     #      * REPLACE BY ANCHOR, `./read-run.py --replace ANCHOR --with
     #        FILE`, for every
-    #        paragraph edit here and at 6a, 6b, 6c, 7, 9 and 10 --- AND ITS
+    #        paragraph edit at 5d, 5e, here and at 6a, 6b, 6c and 7 --- AND ITS
     #        UNIT IS THE BLANK-LINE BLOCK, not the sentence and not the
     #        prose. Read the `out, last` line every time --- AND for a
     #        sentence-level edit too, which is a --replace of the
@@ -9605,7 +9640,7 @@ not otherwise.
     #      passing quietly, which is the one place this half announces
     #      itself
     #  6d. COMMIT 6b'S AND 6c'S WORK AS A SINGLE COMMIT, subject naming
-    #      the step -- AND STEPS 9 AND 10 GO IN IT TOO, taken before this
+    #      the step -- AND STEPS 5d AND 5e GO IN IT TOO, taken before this
     #      commit and not after 7. SEND the second pass WITH NOTHING BUT
     #      THE STEP AND THE TWO DIFF COMMANDS -- checker-brief.txt's `THE
     #      DIFF`, `git -C .. diff PRETIP..HEAD -- micro-regime3/runs` and
@@ -9623,9 +9658,9 @@ not otherwise.
     #      base commit, never README whole.
     #      `--inherited` WAS RUN AT 6a's HEAD, not here
     #      why: --para 'Verify the write-up before deleting'
-    #      Neither 9 nor 10 depends on anything pass 2 produces, and 10c's
+    #      Neither 5d nor 5e depends on anything pass 2 produces, and 8b's
     #      own line says everything committed after RUNTIP is unreviewed
-    #      BY CONSTRUCTION -- step 9's record and step 10's open list
+    #      BY CONSTRUCTION -- step 5d's record and step 5e's open list
     #      being the bulk of it. The brief already scopes pass 2 to this
     #      commit's diff and to nothing pass 1 verified, and a covering
     #      message that says `the file has moved under you, re-read it`
@@ -9737,58 +9772,19 @@ not otherwise.
     #      never rebuild the pair to satisfy it: say in the write-up that
     #      the comment-only move happened
     #      why: --para 'Do not rebuild the pair'
-    #   9. TAKEN BEFORE 6d AND COMMITTED WITH IT, not here. Collect what
-    #      this run made CHEAPER for the next: the checks that
-    #      would have caught each error, the computations improvised, the
-    #      steps skipped, any capability found, and the readings the
-    #      carrier took with what they cost. HALF OF IT IS THE
-    #      PREPARING SESSION'S: read the note's WHAT THE PREPARATION
-    #      LEARNED block before writing yours and carry both halves.
-    #      THE BLOCK GOES TO MARGINALIA, appended there as `What Run N
-    #      made cheaper`, and README keeps none: what it asks of the
-    #      procedure is made in the chapter or a tool in the same write-up,
-    #      which is where the next run meets it (--check-doc refuses a
-    #      block left in README). ITS FORM, MARGINALIA BEING WRITE-ONLY:
-    #      a bold `What Run N made cheaper` lead, then THE PREPARATION'S
-    #      HALF and THE WRITE-UP SESSION'S HALF, each a run of bold-led
-    #      items -- written from this, never copied out of the file
-    #      why: it feeds 10 and so comes before it.
-    #      The number is kept so that every pointer to it still lands.
-    #      No other step gathers this, and it is not a figure. The
-    #      preparing session met the same list a day earlier and is gone,
-    #      so its half reaches you only through the note
-    #  10. TAKEN BEFORE 6d AND COMMITTED WITH IT, as 9 is. Walk the open
-    #      list: grep the settled index before adding an
-    #      entry, move answered ones with their measurement, and add each
-    #      surprise with what would settle it. PREDICTION VERDICTS DO NOT
-    #      GO HERE: a run's registrations and their
-    #      verdicts live in `What this run was built to answer, and what
-    #      it answered` in the run's OWN file, written at step 5 with the
-    #      rest of it, and the open list keeps one `ANSWERED` entry per
-    #      run -- the lead, a verdict in a clause, and a link to that
-    #      file. Report a split as a split, arm by arm
-    #      why: --para 'Walk the open list against what this session'
-    # 10a. main-<half>-deflation.txt, on both halves: the roster cell
-    #      over its own alone leg, per shape. RAW over RAW. TAKEN AT STEP 4,
-    #      whose post-run-readings.sh writes it, and numbered here so every
-    #      pointer to 10a still lands
-    #      why: a leg has no `sum-only` to correct with.
-    #      A leg carries no `sum-only` to correct with -- the one
-    #      place a session would reach for the wrong numerator. It is
-    #      what the riders were run for
-    ./run-status.sh $R                    # 10b. THE DONE-CONDITION: every
+    ./run-status.sh $R                    # 8a. THE DONE-CONDITION: every
     #      step of the three lists an artifact or the repository answers for.
     #      `STATUS: all done`, with its `yours` lines done by hand, is
     #      the one state in which this run is finished; a NOT DONE line
     #      is the next step, and a summary of what remains is not one
-    # 10c. THE TAIL, which no pass has read, and the LAST READING this
-    #      list does, step 11 being the deletion offer. Run 10b, do 10c,
-    #      run 10b again. Re-resolve RUNTIP, read
+    #  8b. THE TAIL, which no pass has read, and the LAST READING this
+    #      list does, step 9 being the deletion offer. Run 8a, do 8b,
+    #      run 8a again. Re-resolve RUNTIP, read
     #        git -C .. diff RUNTIP..HEAD -- micro-regime3/README.md \
     #          micro-regime3/runs/$R.md
     #      yourself, and say in the commit what it covered. Read over the
     #      working tree BEFORE 7a's commit, the tail rides in that commit,
-    #      its subject naming both, `Run $R steps 7a and 10c: ...`; a
+    #      its subject naming both, `Run $R steps 7a and 8b: ...`; a
     #      commit of its own is owed only where 7a's has already landed
     #  A GATE IS NEVER FILTERED AND A READING'S OUTPUT MAY BE, which is
     #      the line between the readings above and the checks below. A
@@ -9827,7 +9823,7 @@ not otherwise.
     #        stretch ends; `defect-run.py --changed` selects no case for
     #        prose. AND check-all AFTER THE STRETCH, which prose
     #        does owe here, AT THE END OF 6a, BEFORE 6b's COMMIT, and not
-    #        after 10c. Prefer the digits the previous run used wherever
+    #        after 8b. Prefer the digits the previous run used wherever
     #        a sentence is rewritten around a figure.
     #        An edit to the checker's brief alone owes nothing
     #      Main.hs, even a comment: `./read-run.py --lint`
@@ -9849,10 +9845,10 @@ not otherwise.
     #      why: RUNTIP..HEAD is unread, and a filtered gate misreports.
     #      Pass 2 reads README bounded at RUNTIP, so everything
     #      committed after it is unreviewed BY CONSTRUCTION -- 7a's own
-    #      fixes, step 9's record, step 10's open list and its
+    #      fixes, step 5d's record, step 5e's open list and its
     #      retirements, and any disclosure a person makes after the run.
-    #      10c runs after the done-condition, its text covering the
-    #      output of 8, 9 and 10, and 10b is what reports it undone, so
+    #      8b runs after the done-condition, its text covering the
+    #      output of 5d, 5e and 8, and 8a is what reports it undone, so
     #      the two are a short loop rather than a sequence.
     #      The gate rule: the three ways a gate's status gets lost are the
     #      user-scope CLAUDE.md's, with the measurements: a pipe and an
@@ -9890,7 +9886,7 @@ not otherwise.
     #      checker's brief is the one document it never reads.
     #      `--check-doc` recomputes the tables from the JSONs. One failed
     #      spelling of one route is not a tool's absence
-    #  11. offer the artifacts for deletion -- the JSONs, the logs, the
+    #   9. offer the artifacts for deletion -- the JSONs, the logs, the
     #      wall-clock file, and for a pair both binaries, $R-pair.txt, and
     #      on a run that raised the mount their copies on hugebin/ with any
     #      `.slow` the instance gate parked beside them, which a suspended
@@ -9900,10 +9896,11 @@ not otherwise.
     #      Offering is the step; deleting is not
     #      why: --para 'Only then, offer the artifacts'
 
-Steps 1 to 4a are readings and cost only tool calls, 5a another; 5, 5b and 6's
-two halves write; 6b, 6d and 6e are what find things, and 7 is where what they
-find is applied. Step 0 was the step most often skipped when it stood last,
-because by then the run read finished; putting it first is what retires that.
+Steps 1 to 4c but 3a are readings and cost only tool calls, 5a another; 5, 5b
+and 6's two halves write; 6b, 6d and 6e are what find things, and 7 is where
+what they find is applied. Naming the fill groups, 3a, was the step most often
+skipped when it stood last, because by then the run read finished; putting
+it before the readings is what retires that.
 
 0. **Name the fill groups, and spend the other load-independent measurements,
    before the artifacts go --- first, because this is the only step whose window
@@ -9912,10 +9909,10 @@ because by then the run read finished; putting it first is what retires that.
    machine or a run slot, and each is minutes. Run 8 stopped at the write-up
    and left a Core diff, a two-regime `diag` and a code-size figure undone; all
    three were done later, two of them changed rulings, and one answered an open
-   question outright. So before the offer at step 11, take every question
+   question outright. So before the offer at step 9, take every question
    the open list already carries whose measurement is a compile, an allocation
    or an arithmetic re-derivation, and take it now --- the questions this run
-   raises are step 10's and get their turn there. **The named fills are the one
+   raises are step 5e's and get their turn there. **The named fills are the one
    owed by every paired Run**: `loop-offsets.py` names a copy only in a `-g3`
    build, bare offsets are what the note records otherwise, and the map
    is a property of the binary, so once the binaries go no offset this README
@@ -11821,7 +11818,7 @@ question][open] asks about, which is an effect size that survived a control
 rather than a spread the run measured. The exceptions are `build` and `mut-odo`,
 one worker at two slots, whose cells reached 1.092 on Run 23's basis and 0.828
 on that run's dead-spot half --- and Run 21 is the run that took the reading
-those two have always wanted: post-run step 0 named the tracked two-copy group
+those two have always wanted: post-run step 3a named the tracked two-copy group
 off a `-g3` twin and it IS `fbBuild` and `fbMutOdo`, both at offset 0 in their
 cache line on BOTH halves, on Run 23's two as on Run 21's and Run 22's.
 So the residue the pairing cannot reach is not a cache-line offset; what Run 23
@@ -11890,7 +11887,7 @@ The twins run at slots 9 and 15 and the base at 14, so they bracket
 it in execution order and still agree with each other rather than with it.
 **So the reshape1 A/A spread is not allocation volume, not heap occupancy
 and not collector work**, which is every quantity the runtime can report; what
-is left is where the code sits, and step 0's named fills bear on it ---
+is left is where the code sits, and step 3a's named fills bear on it ---
 `mut-odo` and `build` share one loop body at two call sites. The caveat
 is the instrument's own: this is the wildlog binary, whose patch moves `.text`,
 so it characterises the class's hazard and not that one cell. What would settle

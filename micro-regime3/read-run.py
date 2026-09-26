@@ -10336,7 +10336,7 @@ def _note_kind(lead):
     nothing, so `--draft` carried it verbatim -- Run 27's reading of its
     own box move arrived in Run 28's draft under a lead beginning AND IT
     FIRED, in a note whose gate the same call had reset to NOT RUN
-    (2026-09-09). Post-run step 0's NAMED FILLS go with it, for the same
+    (2026-09-09). Post-run step 3a's NAMED FILLS go with it, for the same
     reason from the same place: Run 40's arrived in Run 41's draft renamed
     to run41, naming two twins no build had made (2026-09-26).
     """
@@ -10585,7 +10585,7 @@ def note_check(path, readme, run_doc=None):
                           ' this note and no line of it begins `%s` --'
                           ' write the block or drop the promise, since what'
                           " it holds is the preparation's half of post-run"
-                          ' step 9 and reaches the executing session only'
+                          ' step 5d and reaches the executing session only'
                           ' here' % (name, name)))
 
     # 6. AND THE PAIR'S OWN VARIABLE AS A LINE PREFLIGHT RUNS, since
@@ -11201,62 +11201,35 @@ def pair_note(path, draft=None, halves=None, repeat=False):
 CHECKLISTS = {
     'pre': "# READ THIS LIST AND START.",
     'run': 'grep -i gate $R-pair.txt',
-    'post': '#   0. NAME THE FILL GROUPS',
+    'post': '#  3a. NAME THE FILL GROUPS',
     # The list of what a session READS, which every step names by item
     # number and which sat among the reasons at the chapter's foot. Case:
     # `checklist-prints-the-readings-list`.
     'readings': "1. this chapter's three checklists",
 }
 
-# THE POST LIST'S EXECUTION ORDER, which is not the order it prints in.
-# The numbers are stable on purpose -- pointers in both documents and in
-# several tools resolve to them -- so a step that runs out of turn keeps
-# its number and each says why in its own text: 0 after 1, 2 and 3 by
-# its `FIRST MEANS BEFORE 11 AND NOT BEFORE 1`, 9 and 10 before 6d by
-# their own first words, 10a with the readings of 4, which is where
-# post-run-readings.sh takes it and where step 4 says it is taken.
-# Saying it once here is what a session gets BEFORE step 0 rather
-# than at step 9. Declared and not derived: the reasons are
-# prose and no pattern reads them. Added 2026-09-20, after Run 37 took
-# 9 and 10 in printed order and recorded the deviation in its own
-# post-mortem.
-POST_EXEC = ['1', '2', '3', '0', '4', '4a', '4b', '10a', '5', '5a',
-             '5b', '5c', '9', '10', '6', '6a', '6b', '6c', '6d', '6e',
-             '7', '7a', '8', '10b', '10c', '11']
+# THE POST LIST PRINTS IN ITS EXECUTION ORDER, its numbers increasing down
+# the block, since 2026-09-26: the steps that ran out of printed turn were
+# relabelled into it -- 0 to 3a, 10a to 4c, 9 and 10 to 5d and 5e, 10b and
+# 10c to 8a and 8b, 11 to 9 -- and moved, the owner choosing that over
+# stable numbers beside a declared second statement of the order, which a
+# session had to hold against the list. Derived, so a step added out of
+# turn is named rather than printed in silence.
+def _step_key(label):
+    m = re.match(r'(\d+)([a-z]?)$', label)
+    return int(m.group(1)), m.group(2)
 
 
-def _exec_order(block, whole=False):
-    """The post list's execution order against its printed one.
-
-    Returns (order, moved, mismatch). `moved` is the smallest set of
-    steps that has to move, read off the longest common subsequence of
-    the two orders rather than by comparing positions, which would name
-    most of the list. A step in the block and not in POST_EXEC, or the
-    reverse, comes back in `mismatch` and the banner is not printed:
-    this is a second statement of the list's shape, so it fails loudly
-    when the list moves under it instead of printing a stale order.
-    """
+def _out_of_order(block):
+    """The post list's labels printed below a larger one."""
     printed = []
     for line in block:
         m = re.search(r'#\s{0,4}(\d+[a-z]?)\.\s', line)
         if m and m.group(1) not in printed:
             printed.append(m.group(1))
-    want = [n for n in POST_EXEC if n in printed]
-    # BOTH DIRECTIONS, and only the second needs `whole`: a half prints
-    # part of the list, so POST_EXEC holding steps it lacks is ordinary
-    # there and a fault on the whole list. Until 2026-09-20 the test was
-    # `printed` against a subset of itself, which could only ever catch
-    # a step ADDED to the README and never one deleted from it, while
-    # the sentence above claimed both.
-    gone = set(POST_EXEC) - set(printed) if whole else set()
-    if set(printed) - set(POST_EXEC) or gone:
-        return None, None, sorted((set(printed) - set(POST_EXEC)) | gone)
-    sm = difflib.SequenceMatcher(None, printed, want)
-    kept = set()
-    for tag, i1, i2, _j1, _j2 in sm.get_opcodes():
-        if tag == 'equal':
-            kept.update(printed[i1:i2])
-    return want, [n for n in want if n not in kept], []
+    return [b for a, b in zip(printed, printed[1:])
+            if _step_key(b) <= _step_key(a)]
+
 
 # The post list alone is longer than the other two together, and it has a
 # seam: nothing from step 6 on is actionable until 5b's tables are in, so a
@@ -11436,31 +11409,24 @@ def checklist(readme, which, steps_only=False):
                 quiet = True
         block = kept
         if which == 'post':
-            order, moved, mismatch = _exec_order(block, whole=half is None)
-            if mismatch:
+            late = _out_of_order(block)
+            if late:
                 sys.stderr.write(
-                    '--checklist %s: POST_EXEC and the list'
-                    ' disagree on %s, so no execution order is printed --'
-                    ' a step moved and this constant did not\n'
-                    % (which, ', '.join(mismatch)))
+                    '--checklist %s: %s print below a larger step, so the'
+                    ' list is out of its own order\n'
+                    % (which, ', '.join(late)))
             else:
-                print('    # EXECUTION ORDER, which is NOT the order below:')
-                print('    #   %s' % ' '.join(order))
+                print('    # THIS LIST IS ITS EXECUTION ORDER.')
                 # WHAT NEED NOT WAIT FOR THE COUNTS, which is most of it:
                 # Run 40 took 5 to 5b and wrote Provenance, the next-run
                 # section, the properties and README's floor walk while
                 # step 20 ran, some forty minutes, where the order alone
                 # reads as 5 waiting on 4b.
                 print('    #   while step 20 counts: 1, 2 and 4, and where'
-                      ' step 3 owes no rerun,\n    #   0 and 5 to 5b and any'
-                      ' paragraph reading no counts; a rerun wants\n    #'
-                      '   the quiet box, and 4a, 4b and 5c wait for EVENING'
-                      ' COMPLETE.')
-                if moved:
-                    print('    #   %s %s out of printed turn, saying why in'
-                          ' its own text.'
-                          % (', '.join(moved),
-                             'runs' if len(moved) == 1 else 'run'))
+                      ' step 3 owes no rerun,\n    #   3a, 5 to 5b, 5d, 5e'
+                      ' and any paragraph reading no counts; a rerun\n    #'
+                      '   wants the quiet box, and 4a, 4b and 5c wait for'
+                      ' EVENING COMPLETE.')
                 print()
     print('\n'.join(block))
     return 0
@@ -12379,14 +12345,14 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     else:
         note.append('no chapter recipe pipes or chains a gate')
     # THE STANDING-RULINGS HEADING KEEPS NO RUN'S BLOCK, since 2026-09-25:
-    # post-run step 9 appends each to MARGINALIA. It kept three until then,
+    # post-run step 5d appends each to MARGINALIA. It kept three until then,
     # step 5 retiring the oldest, and that rule once stood unexecuted while
     # seven piled up (2026-09-23). Case: `check-doc-refuses-a-cheaper-block`.
     cheaper = re.findall(r'^\*\*What Run (\d+) made cheaper',
                          open(readme, encoding='utf-8').read(), re.M)
     if cheaper:
         bad.append('%d `What Run N made cheaper` block(s) (Runs %s) where the'
-                   ' heading keeps none: post-run step 9 appends each to'
+                   ' heading keeps none: post-run step 5d appends each to'
                    ' MARGINALIA' % (len(cheaper), ', '.join(cheaper)))
     else:
         note.append('the standing-rulings heading keeps %d run block(s)'
@@ -13357,7 +13323,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                   ' file this is' % cur)
 
     # THE RUN FILE MUST OUTLIVE THE ARTIFACTS, which is what makes it a
-    # file: post-run step 11 offers the JSONs, the logs, the wall-clock
+    # file: post-run step 9 offers the JSONs, the logs, the wall-clock
     # file, both binaries and the pair note for deletion, so a sentence in
     # the run's own document that NAMES one of those is a promise that dies
     # with the offer. Run 20 wrote two -- "the superseded artifacts are
@@ -13376,7 +13342,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
             r'|run%s-[A-Za-z0-9._-]+\.(?:json|log|txt))`' % (cur, cur),
             run_text)})
         if doomed:
-            bad.append('%d artifact path(s) named in %s, which step 11 offers'
+            bad.append('%d artifact path(s) named in %s, which step 9 offers'
                        ' for deletion -- the run file outlives them, so state'
                        ' the fact rather than the file: %s'
                        % (len(doomed), os.path.basename(run_doc),
