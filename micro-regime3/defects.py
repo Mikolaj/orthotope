@@ -11720,7 +11720,8 @@ RECORDS = [
                '--main', '{main}'],
          ok=V(hasnt=['match no population'])),
 
-    case('class-view-retired-by-name-leaves-its-class', 'read-run.py', None,
+    case('class-view-retired-by-name-leaves-its-class', 'read-run.py',
+         '110b014',
          "a class view retired by name in `retiredShapes` still counted in"
          " its class's size, so the first run file tabling the class"
          " without it failed `--check-doc`",
@@ -11733,7 +11734,7 @@ RECORDS = [
          # Main.hs, so it holds while `runs-3` stays retired there.
          argv=['--unit', "dims_by_shape(os.path.join(os.path.dirname("
                "__file__), 'Main.hs'))[0]['runs-3']['retired']"],
-         ok=V(has=['True'])),
+         ok=V(has=['True']), bug=V(has=['False'])),
 
     case('main-shapes-added-after-the-run-are-exempt', 'read-run.py', None,
          "a main-set shape added between runs failed every `over N shapes`"
