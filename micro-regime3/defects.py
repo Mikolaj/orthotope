@@ -6821,6 +6821,18 @@ TIER1 = {
               ' out `/run40-g912-main.json` and `_run40-x.txt`'
               ' `run40-x.txt`; after, both whole. Run 40\'s note passes'
               ' 10c under either.'),
+    'parallel-steps-leave-the-readings-fan-out-uncapped': dict(
+        family='other:nested-fan-out', discovery='in-use', harm='fired',
+        proved='ran',
+        trigger='check-all running the cases that call'
+                ' post-run-readings.sh under -j 7',
+        ok='READ_JOBS=1 on every -j step, a reader per case',
+        bug='six readers per case, up to 42 against 16 CPUs',
+        notes='The owner saw every CPU busy during the case steps on'
+              ' 2026-09-26; the attribution is by mechanism, no'
+              ' per-second record covering the spike. After the fix a'
+              ' whole check-all, sampled each second, peaked at six'
+              ' readers at once.'),
 }
 
 
@@ -15701,12 +15713,13 @@ RECORDS = [
 
     # ---- check-all's own steps ----
     case('parallel-steps-leave-the-readings-fan-out-uncapped', 'checks.py',
-         None,
+         '8acfeaf',
          'a -j step ran post-run-readings.sh cases with its six readers'
          ' apiece, filling the box the seven was chosen to leave free',
          argv=['--unit', "[s[0] for s in STEPS if '-j' in s[1]"
                          " and 'READ_JOBS=1' not in s[1]]"],
-         ok=V(has=['[]'])),
+         ok=V(has=['[]']),
+         bug=V(has=["'cases, ok direction'", "'selftest mutants'"])),
 
 ]
 
