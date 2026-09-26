@@ -49,7 +49,11 @@
 #
 # Output: $OUT[-CLASS].txt, one line a cell -- shape, arm, N, then one
 # field per event in the order EVENTS names them, and the header names
-# them so nothing downstream has to infer the order.  A cell whose `-n N`
+# them so nothing downstream has to infer the order.  ALLOC=1 appends a
+# `bytes` field, allocated a call off `+RTS -t` at `-n 2N` less `-n N`,
+# over N, in two processes more a cell: a registration's prior in bytes,
+# which Run 42's preparation took with a function copied out of an
+# untracked probe (2026-09-26).  A cell whose `-n N`
 # or `-n 2N` process perf could not count is a `!!` line and the exit
 # status, as in run-counts.sh.
 #
@@ -65,6 +69,7 @@ esac
 C=${CLASS-}
 N=${N:-50}
 TOL=${LINEAR_TOL:-0.02}
+AL=${ALLOC:-}
 # Five events and not six: this box gives every one of these at 100% of
 # the run with no multiplexing, and a sixth (L1-dcache-load-misses) comes
 # back `<not counted>` at 0.00% because the general counters are spent.
@@ -156,12 +161,22 @@ count() {  # count SHAPE ARM ITERS -> one field per event, comma-separated
   rm -f "$f"; printf '%s' "$out"
 }
 
+alloc() {  # alloc SHAPE ARM ITERS -> bytes allocated by the process, or NaN
+  local f; f=$(mktemp)
+  "$B" $SEL -m glob "$1/$2" -n "$3" +RTS -t"$f" --machine-readable -RTS \
+    > /dev/null 2>&1
+  python3 -c 'import ast, sys
+print(dict(ast.literal_eval(open(sys.argv[1]).read().split("\n", 1)[1]))
+      ["bytes allocated"])' "$f" 2> /dev/null || printf NaN
+  rm -f "$f"
+}
+
 SCOPE="ARMS=$ARMS"
 [ -z "$C" ] || SCOPE="$SCOPE class=$C"
 [ -z "${ONLY-}" ] || SCOPE="$SCOPE ONLY=$ONLY"
 {
   echo "# $B $(md5sum "$B" | cut -d' ' -f1) N=$N $(date -Is) $SCOPE"
-  echo "# shape arm N $(echo "$EVENTS" | tr ',' ' ')"
+  echo "# shape arm N $(echo "$EVENTS" | tr ',' ' ')${AL:+ bytes}"
   echo "# every cell is (-n 2N) minus (-n N), over N, as run-counts.sh takes it"
   echo "# and checked against (-n 3N) minus (-n 2N): LINEAR_TOL=$TOL"
   echo "# ARMS-RESTRICTED BY CONSTRUCTION: this sweep is never a roster column"
@@ -197,6 +212,13 @@ for S in $SHAPES; do
  $(( (c3arr[i - 1] - a) / N ))"
       fi
     done
+    if [ -n "$AL" ]; then
+      b2=$(alloc "$S" "$A" $((2 * N))); b1=$(alloc "$S" "$A" "$N")
+      case "$b2$b1" in
+        *NaN*|'') line="$line NaN" ;;
+        *) line="$line $(( (b2 - b1) / N ))" ;;
+      esac
+    fi
     echo "$line" >> "$F"
     case "$c3" in
       *NaN*) echo "# UNCHECKED $S $A: the -n $((3 * N)) process could not\
