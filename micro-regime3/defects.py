@@ -12068,7 +12068,7 @@ RECORDS = [
               hasnt=["___ (how this class's counted work"])),
 
     case('readings-keep-a-file-they-did-not-write', 'post-run-readings.sh',
-         None,
+         'c1c1144',
          'a file in log-read-RUN/ that no call of the script wrote was'
          ' moved to log-read-RUN-kept/, and a note pointing at it went stale',
          # Run 39's session kept its own readings in that directory, and
@@ -12085,7 +12085,8 @@ RECORDS = [
          probe=lambda subs: 'PROBE: mine.txt %s' % (
              'stayed' if 'mine.txt' in os.listdir(os.path.join(
                  str(subs['at']), 'log-read-zzpr9')) else 'went'),
-         ok=V(has=['PROBE: mine.txt stayed'])),
+         ok=V(has=['PROBE: mine.txt stayed']),
+         bug=V(has=['PROBE: mine.txt went'])),
 
     case('readings-take-the-counts-after-a-complained-evening',
          'post-run-readings.sh', 'f241d66',
