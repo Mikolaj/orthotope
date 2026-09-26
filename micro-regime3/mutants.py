@@ -509,8 +509,8 @@ MUTANTS = [
     # carried figure to be absent.
     ('the machine check is no longer named as the gate\'s', 'read-run.py',
      "            or lead.startswith(\"THE GATE'S VERDICT\")\n"
-     "            or lead.startswith('THE MACHINE CHECK')):",
-     "            or lead.startswith(\"THE GATE'S VERDICT\")):",
+     "            or lead.startswith('THE MACHINE CHECK')\n",
+     "            or lead.startswith(\"THE GATE'S VERDICT\")\n",
      'python3 -c "import importlib.util, sys, tempfile, subprocess\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
      'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
