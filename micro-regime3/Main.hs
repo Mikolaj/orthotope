@@ -5293,6 +5293,35 @@ routeUnord14 sh (T (Strides ats) ao _)
       | otherwise = routeOfAx off l st' n' (InnerFirstAx rest)
 {-# INLINE routeUnord14 #-}
 
+-- Stage fifteen, 'routeUnord14' with the zero-stride axis consed just
+-- outside the run where that one appends it outermost: one change, so
+-- 'libunord-stage14-sum' is its control. Neither placement wins: the
+-- readings of 2026-09-26, 'compose-bcast-nest' and 'compose-bcast-wide',
+-- are at 'routeUnord14''s move. Added 2026-09-26.
+routeUnord15 :: ShapeL -> T -> RouteAx
+routeUnord15 sh (T (Strides ats) ao _)
+  | l == 0 = RSliceAx 0 0
+  | otherwise = start (sortBy byStrideRankAx axes)
+  where
+    (axes, !off) = absAxes [] ao ats sh
+    !l = product sh
+    start :: [Axis] -> RouteAx
+    start (Axis st n : ps) = canonicalizeAx st n [] ps
+    start [] = RSliceAx off l
+    -- Shape and stride canonicalization of the sorted axes from the first,
+    -- free to reorder at its exit: the result need keep only the multiset.
+    canonicalizeAx :: Int -> Int -> [Axis] -> [Axis] -> RouteAx
+    canonicalizeAx !st' !n' rest (Axis st n : ps)
+      | st' == n * st = canonicalizeAx st (n' * n) rest ps
+      | otherwise = canonicalizeAx st n (Axis st' n' : rest) ps
+    -- A zero-stride innermost axis followed by a unit-stride one goes just
+    -- outside the run, where 'routeUnord14' appends it outermost.
+    canonicalizeAx !st' !n' rest []
+      | st' == 0, Axis 1 n1 : rest' <- rest =
+          routeOfAx off l 1 n1 (InnerFirstAx (Axis 0 n' : rest'))
+      | otherwise = routeOfAx off l st' n' (InnerFirstAx rest)
+{-# INLINE routeUnord15 #-}
+
 -- The axes of extent above 1, their strides made absolute, onto the
 -- list given in reverse of the order given, and the offset given moved
 -- to the view's lowest address. The reversal is nothing to the sort
@@ -5948,6 +5977,12 @@ fbLibUnordStage14Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage14Sum sh a@(T _ _ v) =
   VS.singleton (sumRouteInwardAx v (routeUnord14 sh a))
 
+-- Stage fifteen's sum, over 'routeUnord15', where the reasons are.
+{-# NOINLINE fbLibUnordStage15Sum #-}
+fbLibUnordStage15Sum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage15Sum sh a@(T _ _ v) =
+  VS.singleton (sumRouteInwardAx v (routeUnord15 sh a))
+
 -- 'fbLibUnordStage14Sum' through 'sumRouteVSdims' -- one change, the
 -- fill case's dimension vectors; the probe of 2026-09-19, reasons at
 -- 'fillStage2VSdims'.
@@ -6048,7 +6083,8 @@ listProducers =
   , ("libunord-stage11", listOfInwardAx routeUnord11, Just True, Just True)
   , ("libunord-stage12", listOfInwardAx routeUnord12, Just True, Just True)
   , ("libunord-stage13", listOf routeUnord13, Just True, Just True)
-  , ("libunord-stage14", listOfInwardAx routeUnord14, Just True, Just True) ]
+  , ("libunord-stage14", listOfInwardAx routeUnord14, Just True, Just True)
+  , ("libunord-stage15", listOfInwardAx routeUnord15, Just True, Just True) ]
 
 -- The list of a stage from three up: its route read by 'routeSlices',
 -- or by 'routeSlicesInward', over the fill numbered innermost first, or,
@@ -7803,6 +7839,9 @@ roster =
     -- 'libunord-stage13-sum', which reads pairs and keeps
     -- 'fillStage2Axes'; reasons at that fill and at the path's head.
   , ("libunord-stage14-sum",       Fill fbLibUnordStage14Sum)
+    -- Stage fourteen with the zero-stride axis just outside the run,
+    -- added 2026-09-26 beside its control; reasons at 'routeUnord15'.
+  , ("libunord-stage15-sum",       Fill fbLibUnordStage15Sum)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
