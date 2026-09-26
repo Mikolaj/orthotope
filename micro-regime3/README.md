@@ -9160,10 +9160,12 @@ not otherwise.
     #      An arm it flags with its counts level is that half's binary or
     #      its FILE INSTANCE and not the pair's. For each flagged arm, the
     #      COPY TEST first, on a box asked quiet (19a) or taken at once
-    #      where the note says QUIET-AFTER: allowed: `cp $R-<half>
-    #      probe-copy-$R-<half>` and the
-    #      cell timed on both, interleaved, which probe-r33-instance.sh's
-    #      part 1 is with the names changed; then, BEFORE anything evicts
+    #      where the note says QUIET-AFTER: allowed: `./copy-test.sh $R`,
+    #      which takes one cell per population and half off
+    #      `--copy-cells` and times it on the timed file, a fresh copy and
+    #      the previous run's half, read with `./read-run.py --copy-test
+    #      $R-copy-test.log` -- INSTANCE, PROCESS or BUILD per cell;
+    #      then, where it says INSTANCE and BEFORE anything evicts
     #      the file -- a reboot, a copy over it, the fadvise -- the frames
     #      off the slow instance while it runs:
     python3 probe-pageflags.py <pid> <addr of the hot line> --heap   # as root

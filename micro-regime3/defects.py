@@ -735,6 +735,24 @@ def plant_gate_with_registration(tmp):
     return {'run': os.path.join(tmp, 'run96'), 'readme': readme}
 
 
+def plant_copy_test_log(tmp):
+    """A copy test's log in `copy-test.sh`'s form: two cells over three
+    passes, each timed on the run's file, a fresh copy and the previous
+    run's same half. On the first the copy reads with the timed file and
+    the previous run's binary 11% faster -- the build; on the second all
+    three agree -- the evening's process."""
+    lines = ['# copy test of run98 against run97',
+             'pass half cell binary cycles/iter']
+    for k, j in enumerate((0, 1, -1)):
+        for b, v in (('run98-lookrts', 1000), ('probe-copy-run98-lookrts', 1001),
+                     ('run97-nospec', 890)):
+            lines.append('%d run98-lookrts a/x %s %d' % (k + 1, b, v + j))
+        for b, v in (('run98-a1g', 500), ('probe-copy-run98-a1g', 501),
+                     ('run97-ghead', 499)):
+            lines.append('%d run98-a1g b/y %s %d' % (k + 1, b, v + j))
+    return write(os.path.join(tmp, 'ct.log'), '\n'.join(lines) + '\n')
+
+
 def rundoc_with_ragged_row(tmp):
     """A copy whose yardstick table has one row two cells short.
 
@@ -13876,6 +13894,25 @@ RECORDS = [
          argv=['--half-movers', '{run}'],
          ok=V(exit=0, has=['lib-stage1', main_shapes()[0]]),
          bug=V(exit=0, hasnt=[main_shapes()[0]])),
+
+    case('copy-cells-come-off-the-half-movers', 'read-run.py', None,
+         "a copy test's cells were chosen and sized by hand every run, in a"
+         ' probe script git ignores',
+         # Run 41 hand-edited Run 40's probe-r40-instance.sh, its cells off
+         # a one-off script and its N off each cell's slope by eye.
+         plant=plant_half_mover,
+         argv=['--copy-cells', '{run}'],
+         ok=V(exit=0, has=['run98-lookrts run97-nospec main %s/lib-stage1'
+                           % main_shapes()[0]])),
+
+    case('copy-test-names-build-and-process', 'read-run.py', None,
+         "a copy test's log was summarised by a throwaway script each run",
+         # Run 41's summary was hand-rolled medians. One planted cell is the
+         # build, the copy reading with the timed file and the previous
+         # run's binary apart; the other is the process, all three agreeing.
+         plant=lambda t: {'log': plant_copy_test_log(t)},
+         argv=['--copy-test', '{log}'],
+         ok=V(exit=0, has=['BUILD', 'PROCESS'])),
 
     case('half-movers-refuse-without-prev-or-compare', 'read-run.py', None,
          'CONTROL: --half-movers RUN alone, with no COMPARE line, is refused'

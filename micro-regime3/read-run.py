@@ -188,6 +188,11 @@ Modes:
                     `selfloops`; alone, lists them. A write-up appends
                     its run's row, and the prose says what the series
                     shows
+  --copy-cells RUN [PREV]  post-run step 4a's copy-test cells, a line
+                    each for copy-test.sh: one per population and half
+                    --half-movers flags with its counts level
+  --copy-test LOG   copy-test.sh's log read per cell: INSTANCE, PROCESS
+                    or BUILD, off the copy and the previous run's half
   --steps           every cell read at sample level for a mid-bench change
                     of level, which the fitted slope averages away and no
                     other column here can show
@@ -6062,7 +6067,7 @@ def json_run_half(path):
             m.group(3))
 
 
-def half_movers(run, prev, args):
+def half_movers(run, prev, args, collect=None):
     """Each half of RUN against the same half of PREV, over every population
     both runs have, naming the arms that moved past the population's floor
     on ONE half while the other half stayed inside its own: the half-local
@@ -6208,12 +6213,15 @@ def half_movers(run, prev, args):
                   % (st, a, b,
                      '--' if ka is None else '%.4f' % ka,
                      '--' if kb is None else '%.4f' % kb, side, wsh, wr))
-            flagged.append((pop, st, side))
+            flagged.append((pop, st, side, wsh, wr,
+                            ka if side == h_run[0] else kb))
     if not read:
         sys.stderr.write('%s against %s: no population has a JSON on both'
                          ' halves of both runs, so nothing was compared\n'
                          % (os.path.basename(run), os.path.basename(prev)))
         return 2
+    if collect is not None:
+        collect.extend(flagged)
     print('\n%d half-local mover(s) over %d population(s) read; %d arm(s)'
           ' moved on both halves and are the runs parting, not a half.'
           % (len(flagged), read, both))
@@ -6613,6 +6621,122 @@ def gate_draft(run, args):
           ' is the two halves\' drift above. `sides` says whether both'
           ' passes put the arm on one side of 1. The verdict is yours.')
     gate_spans(run, passes, args)
+    return 0
+
+
+# A copy test's cell runs for about this long a process at -n N; -n 2N is
+# twice that. Run 40's and 41's probes sized their N by eye to the same.
+COPY_TEST_SECONDS = 1.4
+# Counts moved past this, 0.5%, make a mover count-led.
+COPY_TEST_COUNTS = 0.005
+
+
+def copy_cells(run, prev, args):
+    """Post-run step 4a's copy-test cells, one line each for copy-test.sh:
+    `TIMED PREV POP SHAPE/ARM N`, the timed half's binary, the previous
+    run's same half, the population, the cell and an -n sized to about
+    1.4 seconds a process off the cell's own slope.
+
+    One cell per population and half that --half-movers flags, the widest
+    cell of its widest mover there, since the arms that move together on
+    a half in one population are one term: Run 41's eight cells covered its
+    seventeen movers that way. Until 2026-09-26 each run found its cells
+    with a one-off script and copied the previous run's probe by hand, git
+    ignoring probe-* so that no run inherited one. Case:
+    `copy-cells-come-off-the-half-movers`. Exit 0 with no line where no
+    mover is flagged, the verdict of --half-movers saying so on stderr.
+    """
+    got = []
+    with contextlib.redirect_stdout(io.StringIO()):
+        rc = half_movers(run, prev, args, collect=got)
+    if rc != 0:
+        return rc
+    h_run, h_prev = note_halves(run), note_halves(prev)
+    # A COUNT-LED MOVER IS THE CODEGEN'S and wants no copy test, which
+    # separates a file and a process from a build with level counts:
+    # Run 41's `small` movers moved their counts 1.5 and 2.6%.
+    best, led = {}, []
+    for pop, st, side, wsh, wr, kc in got:
+        if kc is not None and abs(kc - 1) > COPY_TEST_COUNTS:
+            led.append('%s/%s' % (pop, st))
+            continue
+        k = (pop, side)
+        if k not in best or abs(math.log(wr)) > abs(math.log(best[k][2])):
+            best[k] = (st, wsh, wr)
+    if led:
+        sys.stderr.write('skipped as count-led, the codegen\'s: %s\n'
+                         % ', '.join(led))
+    if not best:
+        sys.stderr.write('%s against %s: no half-local mover with its counts'
+                         ' level, so no cell to test\n'
+                         % (os.path.basename(run), os.path.basename(prev)))
+        return 0
+    for (pop, side), (st, wsh, _wr) in sorted(best.items()):
+        k = h_run.index(side)
+        cells, _s, _st, _m = load('%s-%s-%s.json' % (run, side, pop),
+                                  args.main)
+        n = max(1, int(round(COPY_TEST_SECONDS / cells[wsh][st]['slope'])))
+        print('%s-%s %s-%s %s %s/%s %d'
+              % (os.path.basename(run), side, os.path.basename(prev),
+                 h_prev[k], pop, wsh, st, n))
+    return 0
+
+
+def copy_test(log):
+    """A copy test's log, read: per cell, the timed file's median cycles,
+    the fresh copy and the previous run's same half over it, each with the
+    spread of its passes, and which of three things moved the cell.
+
+    INSTANCE where the copy parts from the timed file by more than the
+    widest spread: the file the evening ran from. PROCESS where the
+    previous run's binary reads with this one: the evening's process, the
+    move gone in fresh processes. BUILD where the copy reads with the timed
+    file and the previous run's binary parts from both. Run 41's reading of
+    its eight cells was a throwaway script; this is it. Case:
+    `copy-test-names-build-and-process`. A reading and never a gate: exit
+    0, or 2 where the log holds no cell.
+    """
+    runs = collections.defaultdict(lambda: collections.defaultdict(list))
+    try:
+        text = open(log).read()
+    except OSError as e:
+        sys.stderr.write('--copy-test: %s\n' % e)
+        return 2
+    for line in text.split('\n'):
+        f = line.split()
+        if len(f) != 5 or not f[0].isdigit():
+            continue
+        _p, half, cell, binary, v = f
+        role = ('timed' if binary == half
+                else 'copy' if binary == 'probe-copy-' + half else 'prev')
+        runs[(cell, half)][role].append(float(v))
+    if not runs:
+        sys.stderr.write('%s: no cell line in copy-test.sh\'s form, so'
+                         ' nothing was read\n' % log)
+        return 2
+    print('copy test %s: per cell, the copy and the previous run over the'
+          ' timed file, medians over the passes, the spread of each in'
+          ' brackets' % os.path.basename(log))
+    for (cell, half), got in sorted(runs.items()):
+        if not all(got.get(r) for r in ('timed', 'copy', 'prev')):
+            print('  %s on %s: a binary has no reading, not read'
+                  % (cell, half))
+            continue
+        med = {r: stats.median(v) for r, v in got.items()}
+        spr = {r: max(v) / min(v) for r, v in got.items()}
+        noise = max(spr.values()) - 1
+        rc, rp = med['copy'] / med['timed'], med['prev'] / med['timed']
+        if abs(rc - 1) > noise:
+            what = 'INSTANCE: the fresh copy parts from the timed file'
+        elif abs(rp - 1) <= noise:
+            what = ('PROCESS: the previous run\'s binary reads with this'
+                    ' one in fresh processes')
+        else:
+            what = ('BUILD: the copy reads with the timed file, the previous'
+                    ' run\'s binary apart from both')
+        print('  %-44s %s: timed %.0f, copy %.3f (%.3f), previous %.3f'
+              ' (%.3f) -- %s' % (cell, half, med['timed'], rc, spr['copy'],
+                                 rp, spr['prev'], what))
     return 0
 
 
@@ -15344,6 +15468,15 @@ def main():
     p.add_argument('--counts-cost', dest='counts_cost', metavar='RUN',
                    help='each counts stage\'s duration off RUN-evening.txt,'
                    ' per population and per half, with each half\'s total')
+    p.add_argument('--copy-cells', dest='copy_cells', nargs='+',
+                   metavar='RUN',
+                   help='RUN [PREV]: post-run step 4a\'s copy-test cells,'
+                        ' a line each for copy-test.sh, off --half-movers\''
+                        ' widest cells and sized off their slopes')
+    p.add_argument('--copy-test', dest='copy_test', metavar='LOG',
+                   help='a copy test\'s log read per cell: the copy and the'
+                        ' previous run over the timed file, and whether the'
+                        ' instance, the process or the build moved it')
     p.add_argument('--gate-draft', dest='gate_draft', metavar='RUN',
                    help='the gate\'s four readings as one table, per arm the'
                         ' two cross-half passes and each half\'s own two'
@@ -15957,6 +16090,18 @@ def main():
         sys.exit(over_list_sweep(args.over_list, args))
     if args.gate_draft:
         sys.exit(gate_draft(args.gate_draft, args))
+    if args.copy_test:
+        sys.exit(copy_test(args.copy_test))
+    if args.copy_cells:
+        if len(args.copy_cells) > 2:
+            p.error('--copy-cells takes RUN and at most one PREV')
+        run = args.copy_cells[0]
+        prev = args.copy_cells[1] if args.copy_cells[1:] else note_compare(run)
+        if prev is None:
+            sys.stderr.write('--copy-cells %s: no PREV given and no COMPARE'
+                             ' line in %s-pair.txt\n' % (run, run))
+            sys.exit(2)
+        sys.exit(copy_cells(run, prev, args))
     if args.extremes:
         missing = [c for c in args.classes if not os.path.exists(c)]
         if missing:

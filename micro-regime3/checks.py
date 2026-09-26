@@ -99,6 +99,10 @@ UNCOVERED = {
                     'mutants copy holds tracked files alone',
     'machine-busy.sh': 'read by run-gate.sh, whose cases reach it; no case '
                        'of its own yet',
+    'copy-test.sh': 'post-run step 4a\'s copy test, which spends the quiet '
+                    'box on real binaries under perf; its cells are '
+                    '--copy-cells\'s and its log --copy-test\'s, each with '
+                    'a case',
     'half-bin.sh': 'the launch path of a half, read by every driver that '
                    'spends the machine, whose cases exercise its no-mount '
                    'branch on stub halves; the mount branch is a box\'s '
