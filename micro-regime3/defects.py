@@ -13457,7 +13457,8 @@ RECORDS = [
          ok=V(exit=0, has=['`What the class says:` paragraph(s) kept'],
               hasnt=['skeleton(s) installed'])),
 
-    case('install-writes-the-lead-tallies', 'install-tables.sh', None,
+    case('install-writes-the-lead-tallies', 'install-tables.sh',
+         '57f88ec',
          "the class section's lead tallies were transcribed by hand off"
          ' --cross-classes, and nothing installed them',
          plant=lambda t: {'doc': rundoc_with_stale_lead_tallies(t)},
@@ -13469,7 +13470,9 @@ RECORDS = [
          probe=lambda subs: open(subs['doc']).read(),
          ok=V(exit=0, has=['the lead tallies installed',
                            'TAIL-KEPT-BY-AUTHOR'],
-              hasnt=['9999 arm-comparisons'])),
+              hasnt=['9999 arm-comparisons']),
+         bug=V(exit=0, has=['9999 arm-comparisons'],
+               hasnt=['the lead tallies installed'])),
 
     case('install-is-idempotent', 'install-tables.sh', None,
          'CONTROL: a full pass over an untouched run file rewrites no table',
