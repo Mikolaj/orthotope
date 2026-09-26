@@ -2887,6 +2887,52 @@ def note_with_gate_below_the_fill(tmp, name='run97-pair.txt'):
                  'AND THE MACHINE CHECK DID NOT FIRE for run97 either.\n')
 
 
+def note_for_a_repeat(tmp, name='run97-pair.txt'):
+    """A previous note as --repeat carries it: a builddir named for its
+    run, a step-12 outcome inside THE ROSTER, and a past-tense gate block
+    with no marker under a [PAIR'S] one -- Run 41's three, which reached
+    Run 42's draft (2026-09-26)."""
+    return write(os.path.join(tmp, name),
+                 'The pair run97-a and run97-b, Run 97s, written by hand'
+                 ' 2026-01-01.\n\n'
+                 'HALVES: basis=a other=b\n\n'
+                 "HOW EACH HALF IS BUILT [PAIR'S]:\n"
+                 '  run97-a   cabal build micro --builddir=db-r97a\n'
+                 '            rm -rf db-r97a\n\n'
+                 "THE ROSTER [PAIR'S]: 5 benches over one shape.\n"
+                 "STEP 12'S CONDITION FIRES: membership moved. IT WAS NOT"
+                 " TAKEN, on the owner's word of 2026-01-01.\n\n"
+                 "THE STATE GATE IS DECLARED EXPECTED [PAIR'S]: as ever.\n\n"
+                 'THE GATE: run-gate.sh took five benches from each half,'
+                 ' and both passes were read.\n\n'
+                 'GATE: NOT RUN.\n\n'
+                 'Verified when built, 2026-01-01:\n'
+                 '  md5 a           deadbeef\n')
+
+
+def probe_stalls_sweeps(tmp):
+    """Two sweeps of one arm pair: a probe-stalls file, five columns under
+    a header naming its events and carrying a NONLINEAR note, and a
+    run-counts file of four -- the two a preparation compares its priors
+    across (2026-09-26)."""
+    new = write(os.path.join(tmp, 'probe-new.txt'),
+                '# ./x deadbeef N=50\n'
+                '# shape arm N instructions:u cycles:u\n'
+                's1 lib-a 50 1030 900\n'
+                '# NONLINEAR s1 lib-a: cycles:u 900 then 700\n'
+                's1 lib-b 50 2000 1800\n'
+                's2 lib-a 50 3000 2500\n'
+                's2 lib-b 50 4000 3500\n')
+    old = write(os.path.join(tmp, 'counts-old.txt'),
+                '# ./y cafe N=50 full\n'
+                '# shape arm N instructions/iter\n'
+                's1 lib-a 50 1000\n'
+                's1 lib-b 50 2000\n'
+                's2 lib-a 50 3000\n'
+                's2 lib-b 50 4000\n')
+    return {'new': new, 'old': old}
+
+
 def note_for_the_check(tmp, broken=True, vc='regime other'):
     """This run's note, with or without the three stale statements.
 
@@ -2977,6 +3023,29 @@ def readme_of_leads(tmp):
         '**Beta alone.** Body four, which is unique to it.',
     ]) + '\n')
 
+
+
+def readme_of_a_lead_and_a_long_list(tmp):
+    """A lead ending in a sentence, then a checklist of a hundred lines, and
+    one ending in `:` over a list of the same length."""
+    lst = '\n'.join('    # step %d, a line of the list' % k for k in range(100))
+    return write(os.path.join(tmp, 'R.md'), '\n\n'.join([
+        '# T',
+        '**Epsilon before a list.** Body seven, a sentence.',
+        lst,
+        '**Zeta introduces a list.** Body eight, ending in its block:',
+        lst.replace('step', 'item'),
+    ]) + '\n')
+
+
+def readme_of_a_lead_and_its_block(tmp):
+    """A lead whose paragraph ends in `:` and hands on to an indented block."""
+    return write(os.path.join(tmp, 'R.md'), '\n\n'.join([
+        '# T',
+        '**Gamma with a skeleton.** Body five, ending in its block:',
+        '      SKELETON line one\n        SKELETON line two',
+        '**Delta after it.** Body six, which is unique to it.',
+    ]) + '\n')
 
 
 def readme_citing_dotfile(tmp):
@@ -3512,6 +3581,52 @@ def synth_counts(tmp, name, ratio=1.0, refuse=(), extra_arms=(), n=50,
     return path
 
 
+def readme_count_one_short(tmp, pattern):
+    """The README with the count `pattern`'s group 1 captures one short,
+    whatever it is: a roster change moves the count, and a fixture pinned
+    to today's figure stops building at the next one."""
+    text = open(README).read()
+    ms = list(re.finditer(pattern, text))
+    assert len(ms) == 1, 'pattern matches %d times: %r' % (len(ms), pattern)
+    m = ms[0]
+    return write(os.path.join(tmp, 'R.md'), text[:m.start(1)]
+                 + str(int(m.group(1)) - 1) + text[m.end(1):])
+
+
+def rundoc_compose_one_short(tmp):
+    """The run file with its class table's `compose` row one view short of
+    what it says, whatever the count: anchored on the row and not on a
+    sentence one run file carries, so the fixture outlives that file."""
+    text = rundoc_text()
+    m = re.search(r'(?m)^\| `compose` \| (\d+) \|', text)
+    assert m, 'no `compose` row in the class table'
+    n = int(m.group(1))
+    return write_rundoc(tmp, text[:m.start(1)] + str(n - 1)
+                        + text[m.end(1):])
+
+
+def without_live_registrations(path, keep):
+    """The planted README with every OPEN registration but `keep`'s gone.
+
+    A case replaying an older `--lint` reads every OPEN registration in
+    its copy, so the live one rides along into a lint that predates the
+    modes it cites: Run 42's item (5) names `--record regime`, which the
+    lint of 2026-09-23 does not know, and `registration-script-not-
+    executable`'s audit failed on it rather than on its own planted item
+    (2026-09-26).
+    """
+    # By bullet and not by paragraph: the open list's entries follow one
+    # another with no blank line between them.
+    out, drop = [], False
+    for line in open(path).read().split('\n'):
+        if line.startswith('- ') or not line.strip():
+            drop = (line.startswith('- `OPEN` **What Run ')
+                    and keep not in line)
+        if not drop:
+            out.append(line)
+    return write(path, '\n'.join(out))
+
+
 def a_registration_lead():
     """The lead line of some ANSWERED run registration in the README.
 
@@ -3895,6 +4010,21 @@ if [ "$1" = +RTS ] && [ "$2" = --info ]; then
 fi
 exit 0
 """
+
+# The same stand-in answering `+RTS -tFILE --machine-readable`, as GHC's
+# RTS does: a line naming the command, then the stats, of which a probe
+# reads `bytes allocated` -- 1000 a call over a fixed 5000 (2026-09-26).
+FAKE_HALF_ALLOC = FAKE_HALF.replace('exit 0\n', """\
+n=0; t=
+while [ $# -gt 0 ]; do
+  case $1 in -n) n=$2; shift ;; -t*) t=${1#-t} ;; esac
+  shift
+done
+[ -z "$t" ] || printf 'x\\n [("bytes allocated", "%d")]\\n' \\
+                   $((n * 1000 + 5000)) > "$t"
+exit 0
+""")
+assert 'bytes allocated' in FAKE_HALF_ALLOC, 'the allocating stand-in lost it'
 
 # The same stand-in built without the baked line, which is what a half
 # from before 2026-08-21, or from a recipe that dropped it, answers.
@@ -7292,6 +7422,37 @@ RECORDS = [
          ok=V(has=['rerun with --worklists']),
          bug=V(has=['without --quiet'], hasnt=['rerun with --worklists'])),
 
+    case('stale-arm-count-names-no-fix', 'read-run.py', '95190de',
+         'a stale timed-arm count named the sentence and not what a roster'
+         " change owes it, so Run 42's preparation read the checker's source",
+         plant=lambda t: {'readme': readme_count_one_short(
+             t, r'the\s+run\s+is\s+(\d+)\s+arms\.')},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=1, has=['the timed-arm count says',
+                           'takes the roster to N benches']),
+         bug=V(exit=1, has=['the timed-arm count says'],
+               hasnt=['takes the roster to N benches'])),
+
+    case('stale-roster-size-names-no-fix', 'read-run.py', '95190de',
+         'a stale roster size named the count and not its sites or what a'
+         ' roster change owes them',
+         plant=lambda t: {'readme': readme_count_one_short(
+             t, r'to\s+(\d+)\s+benches,\s+so\s+with\s+the\s+controls')},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=1, has=['the roster size reads',
+                           'roster is Run N\'s M benches']),
+         bug=V(exit=1, has=['the roster size reads'],
+               hasnt=['roster is Run N\'s M benches'])),
+
+    case('stale-class-count-names-no-exemption', 'read-run.py', '95190de',
+         'a class count off Main.hs by views added after the run named the'
+         ' count and not the declaration that exempts them',
+         plant=lambda t: {'doc': rundoc_compose_one_short(t)},
+         argv=['--check-doc', '--quiet', '--run-doc', '{doc}'],
+         ok=V(exit=1, has=["`compose` says", 'was added DATE, after the run']),
+         bug=V(exit=1, has=["`compose` says"],
+               hasnt=['was added DATE, after the run'])),
+
     case('deflation-with-no-legs-answers-anyway', 'read-run.py', 'eeb5d24',
          'a deflation printed over no alone legs at all',
          # --deflation divides each shape's roster cell by that shape's
@@ -8730,6 +8891,82 @@ RECORDS = [
               hasnt=['PALINDROME', 'MACHINE CHECK DID NOT FIRE']),
          bug=V(exit=0, has=['PALINDROME', 'MACHINE CHECK DID NOT FIRE'])),
 
+    case('repeat-keeps-the-previous-builddir', 'read-run.py', '95190de',
+         "--repeat carried the previous run's builddir names into the"
+         ' recipe, the renames mapping runNN and never db-rNN',
+         plant=lambda t: {'note': note_for_a_repeat(t)},
+         argv=['--note', '{note}', '--draft', 'run98', '--halves', 'a,b',
+               '--repeat'],
+         ok=V(exit=0, has=['--builddir=db-r98a', 'rm -rf db-r98a'],
+              hasnt=['db-r97a']),
+         bug=V(exit=0, has=['--builddir=db-r97a'])),
+
+    case('repeat-carries-a-spent-gate-block', 'read-run.py', '95190de',
+         "--repeat carried the previous note's past-tense THE GATE: block,"
+         " which has no marker and so took its [PAIR'S] neighbour's kind",
+         # Run 42's note said the gate had run a few lines above
+         # `GATE: NOT RUN`; its re-derivation carrier caught it.
+         plant=lambda t: {'note': note_for_a_repeat(t)},
+         argv=['--note', '{note}', '--draft', 'run98', '--halves', 'a,b',
+               '--repeat'],
+         ok=V(exit=0, has=['GATE: NOT RUN', 'DECLARED EXPECTED'],
+              hasnt=['took five benches']),
+         bug=V(exit=0, has=['took five benches'])),
+
+    case('repeat-carries-the-step-12-outcome', 'read-run.py', '95190de',
+         "--repeat carried THE ROSTER's step-12 outcome, the previous"
+         " pair's decision, as though it were this pair's",
+         plant=lambda t: {'note': note_for_a_repeat(t)},
+         argv=['--note', '{note}', '--draft', 'run98', '--halves', 'a,b',
+               '--repeat'],
+         ok=V(exit=0, has=["5 benches over one shape",
+                           "STEP 12'S CONDITION <yours>"],
+              hasnt=['IT WAS NOT TAKEN']),
+         bug=V(exit=0, has=['IT WAS NOT TAKEN'])),
+
+    case('counts-reads-no-probe-stalls-file', 'read-run.py', '95190de',
+         "a probe-stalls.sh sweep, a column per event, read as nothing but"
+         " malformed lines, so a preparation's priors were a scratch script",
+         # The instruction column is found by its header, `instructions:u`
+         # beside `instructions/iter`, so a sweep of any events reads.
+         plant=probe_stalls_sweeps,
+         argv=['--unit', "parse_counts('{new}')"],
+         ok=V(has=["'lib-a': 1030.0", "'lib-b': 4000.0", '[], []']),
+         bug=V(has=["({}, [], ['s1 lib-a 50 1030 900'"])),
+
+    case('counts-over-traces-on-sweeps-sharing-no-shape', 'read-run.py',
+         'f391291',
+         '--counts-over raised a traceback where the two sweeps shared an'
+         ' arm and no shape, a class probe against a main-set sweep',
+         plant=lambda t: {'new': probe_stalls_sweeps(t)['new'],
+                          'old': write(os.path.join(t, 'other.txt'),
+                                       '# shape arm N instructions/iter\n'
+                                       'r1 lib-a 50 1000\n')},
+         argv=['--counts-over', '{new}', '{old}'],
+         ok=V(exit=1, has=['no shape in common'],
+              hasnt=['Traceback']),
+         bug=V(exit=1, has=['Traceback'])),
+
+    case('counts-reads-cycles-as-instructions', 'read-run.py', 'f391291',
+         'a probe-stalls sweep with no instructions column read its first'
+         ' event as instructions, silently',
+         plant=lambda t: {'f': write(os.path.join(t, 'cyc.txt'),
+                                     '# shape arm N cycles:u\n'
+                                     's1 lib-a 50 777\n')},
+         argv=['--unit', "parse_counts('{f}')"],
+         ok=V(has=["({}, [], ['s1 lib-a 50 777'])"]),
+         bug=V(has=["'lib-a': 777.0"])),
+
+    case('counts-over-reads-one-sweep-against-another', 'read-run.py',
+         '95190de',
+         'no mode read one sweep over another per arm, so Run 42\'s priors'
+         ' against the last run\'s counts were a scratch script',
+         plant=probe_stalls_sweeps,
+         argv=['--counts-over', '{new}', '{old}'],
+         ok=V(exit=0, has=['lib-a', '1.0149', '1.0300 on s1',
+                           '+30 on s1', 'lib-b', '1.0000']),
+         bug=V(exit=2, has=['--counts-over'])),
+
     case('draft-compares-with-the-run-it-drafts-from', 'read-run.py', None,
          'CONTROL: a carried COMPARE line is reset to the drafted-from run,'
          ' a ruling that picked another being the last pair\'s',
@@ -8880,6 +9117,40 @@ RECORDS = [
          argv=['--para', 'Beta alone', '--readme', '{readme}'],
          ok=V(exit=0, has=['Body four'],
               hasnt=['paragraph(s) whose lead matches'])),
+
+    case('para-drops-the-block-its-paragraph-hands-on-to', 'read-run.py',
+         '95190de',
+         "--para printed a paragraph without the indented block it ends by"
+         " introducing, so README's registration skeleton took a sed",
+         # wrap80 hands an indented block back a line at a time, each its
+         # own paragraph with no lead, so the match stopped at the colon.
+         # Run 42's preparation met it on *The shape of a registration*
+         # and read the skeleton by line number, which the chapter forbids.
+         plant=lambda t: {'readme': readme_of_a_lead_and_its_block(t)},
+         argv=['--para', 'Gamma with', '--readme', '{readme}'],
+         ok=V(exit=0, has=['Body five', 'SKELETON line one',
+                           'SKELETON line two'],
+              hasnt=['Body six']),
+         bug=V(exit=0, has=['Body five'], hasnt=['SKELETON line one'])),
+
+    case('para-prints-a-whole-checklist-after-its-lead', 'read-run.py',
+         'f391291',
+         '--para appended every indented block under a matched paragraph,'
+         ' so the lead over a run chapter checklist came back with 64 KB',
+         # Found by the transcript pass that closed Run 42's tooling
+         # evening, measuring the block under every lead in README.
+         plant=lambda t: {'readme': readme_of_a_lead_and_a_long_list(t)},
+         argv=['--para', 'Epsilon before', '--readme', '{readme}'],
+         ok=V(exit=0, has=['Body seven'], hasnt=['step 1, a line']),
+         bug=V(exit=0, has=['Body seven', 'step 1, a line'])),
+
+    case('para-names-a-long-introduced-block', 'read-run.py', None,
+         'CONTROL: a long block a paragraph introduces is named by its size'
+         ' and not printed',
+         plant=lambda t: {'readme': readme_of_a_lead_and_a_long_list(t)},
+         argv=['--para', 'Zeta introduces', '--readme', '{readme}'],
+         ok=V(exit=0, has=['Body eight', 'an indented block of 100 lines'],
+              hasnt=['item 1, a line'])),
 
     case('para-all-restores-the-set', 'read-run.py', None,
          'CONTROL: --all is the escape for the reading that wants them all',
@@ -15215,6 +15486,19 @@ RECORDS = [
          # `proved` says here without a case to replay it.
          argv=None, ok=None),
 
+    case('preflight-lints-an-untracked-script', 'preflight.sh', '81d363e',
+         "8b's shellcheck took every *.sh here, so an untracked probe of the"
+         " owner's failed Run 42's preparation",
+         # NO CASE, for the reason the record above gives: preflight's
+         # steps are this corpus, and checks.py's shellcheck step, fixed in
+         # the same commit, is a step of check-all and not a program a
+         # fixture drives. WATCHED both ways on 2026-09-26: a planted
+         # untracked script with a warning failed the old glob at rc=1 and
+         # passed the tracked form at 0, and a warning appended to the
+         # tracked smoke-l1.sh failed the tracked form at 123, the copy
+         # restoring it.
+         argv=None, ok=None),
+
     case('fill-in-keys-the-previous-build-on-this-run-s-tag', 'preflight.sh',
          '907c218',
          'a renamed basis tag lost both of the fill-in block\'s cross-run'
@@ -15603,12 +15887,12 @@ RECORDS = [
     # of its own at the wrong mode.
     case('registration-script-not-executable', 'read-run.py', '56736bc',
          'a registration named a committed script its `./` could not run',
-         plant=lambda t: {'readme': edited_readme(t, (
-             a_registration_lead(),
-             '- `OPEN` **What Run 99 is built to answer, registered before'
-             ' it runs.** (1) *A clause no span states.* `script:'
-             ' defects.py`, run as `./defects.py run99 run98`.'
-             '\n\n' + a_registration_lead()))},
+         plant=lambda t: {'readme': without_live_registrations(edited_readme(
+             t, (a_registration_lead(),
+                 '- `OPEN` **What Run 99 is built to answer, registered'
+                 ' before it runs.** (1) *A clause no span states.* `script:'
+                 ' defects.py`, run as `./defects.py run99 run98`.'
+                 '\n\n' + a_registration_lead())), 'Run 99 is built')},
          argv=['--lint', '--readme', '{readme}'],
          ok=V(exit=1,
               has=["Run 99's item (1) names script defects.py, which is"
@@ -15758,6 +16042,25 @@ RECORDS = [
          argv=['A', 'B', '{txt}'],
          ok=V(exit=1, has=['(geomean over 1,', 'no one process read: s1']),
          bug=V(exit=0, has=['(geomean over 2,'])),
+
+    case('stalls-takes-no-allocation', 'probe-stalls.sh', 'ec08b34',
+         'a prior in bytes had no tracked instrument, so Run 42 copied a'
+         " function out of the owner's untracked probe to take one",
+         # ALLOC=1 appends `bytes`, (2N - N) / N of `+RTS -t`'s bytes
+         # allocated, and names it in the header, which is how
+         # read-run.py's parse_counts finds the instruction column by name.
+         shadow=dict(extra=[('zzps4-fake', FAKE_HALF_ALLOC)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_MODES)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'BIN': './zzps4-fake',
+              'OUT': 'probe-zzps4', 'ONLY': 'shape-a', 'ARMS': 'list',
+              'N': '1', 'EVENTS': 'instructions:u,cycles:u', 'ALLOC': '1'},
+         argv=[],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'probe-zzps4.txt')).read(),
+         ok=V(exit=0, has=['# shape arm N instructions:u cycles:u bytes',
+                           'shape-a list 1 100000 200000 1000']),
+         bug=V(exit=0, has=['shape-a list 1 100000 200000'],
+               hasnt=['200000 1000'])),
 
     case('stalls-keeps-a-cell-whose-check-process-failed', 'probe-stalls.sh',
          '7a8e621',
