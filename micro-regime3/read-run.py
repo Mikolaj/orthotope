@@ -6780,8 +6780,8 @@ def provenance_draft(run, args):
     lead that states a finding, an intrusion's attribution, a comparison
     with the previous run. The layout paragraphs -- the delta, the
     straddlers, the regime -- compare against the previous run and stay
-    hand-written. Run 41's Provenance was thirteen paragraphs rewritten by
-    hand, almost every figure copied off these files.
+    hand-written. Run 41 rewrote its Provenance by hand, almost every
+    figure copied off these files.
 
     A paragraph whose source is absent is printed with `___` in its place
     and says which file it wanted. With --in-place each replaces the
@@ -7242,7 +7242,7 @@ def gate_spans(run, passes, args):
 
     Run 41's gate read `bq-expand` at 1.36 in both passes against a
     registered 1.303 within 1%, and nothing said so until post-run step
-    5c, six hours on. Five benches are a rehearsal and no verdict, so
+    5c, hours on. Five benches are a rehearsal and no verdict, so
     this decides nothing and changes no exit code; what it buys is the
     question asked at the gate, while the box is still the run's. Read
     back over Run 41's gate it flags both of item (4)'s spans, and

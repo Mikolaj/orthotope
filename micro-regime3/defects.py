@@ -7092,7 +7092,7 @@ RECORDS = [
     case('gate-draft-reads-the-registration-spans', 'read-run.py',
          '715e7c0',
          "a registration's cross span already outside its band at the gate"
-         ' went unread for six hours, until post-run step 5c',
+         ' went unread for hours, until post-run step 5c',
          # Run 41's gate read `bq-expand` at 1.36 in both passes against a
          # registered 1.303 within 1%, and nothing said so before 5c.
          plant=plant_gate_with_registration,
@@ -13539,7 +13539,7 @@ RECORDS = [
          '32af4d4',
          "the Provenance section's mechanical paragraphs were rewritten by"
          ' hand every run, off readings that already print their figures',
-         # Run 41 rewrote thirteen by hand. The draft replaces a paragraph
+         # Run 41 rewrote them by hand. The draft replaces a paragraph
          # still owing its `___` in a file with no commit, and keeps one
          # carrying none -- the author's.
          plant=lambda t: {'doc': rundoc_with_provenance_marks(t)},
