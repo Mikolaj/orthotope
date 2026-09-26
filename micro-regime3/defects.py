@@ -13838,7 +13838,7 @@ RECORDS = [
          argv=['--half-movers', '{run}'],
          ok=V(exit=0, has=['run97'], hasnt=['no COMPARE line'])),
 
-    case('half-movers-name-the-widest-cell', 'read-run.py', None,
+    case('half-movers-name-the-widest-cell', 'read-run.py', 'c1feef3',
          'a flagged half-local mover gave no cell to time, so each copy test'
          ' began by hand-parsing --compare --per-shape',
          # Run 41's copy test needed the widest cell of each of eight
@@ -13846,7 +13846,8 @@ RECORDS = [
          # slowed on one shape alone, so that shape is the widest cell.
          plant=plant_half_mover,
          argv=['--half-movers', '{run}'],
-         ok=V(exit=0, has=['lib-stage1', main_shapes()[0]])),
+         ok=V(exit=0, has=['lib-stage1', main_shapes()[0]]),
+         bug=V(exit=0, hasnt=[main_shapes()[0]])),
 
     case('half-movers-refuse-without-prev-or-compare', 'read-run.py', None,
          'CONTROL: --half-movers RUN alone, with no COMPARE line, is refused'
