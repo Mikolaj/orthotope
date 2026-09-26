@@ -361,7 +361,7 @@ Verified when built, YYYY-MM-DD:
                     than none -- with WHAT IT FOUND, which the script now
                     prints deduped rather than leaving in a temp directory
   document checks   --lint and --check-doc, with the date each passed
-  script checks     8b, and 8c and 8d, which are taken separately and after
+  script checks     8b, and 8c to 8e, which are taken separately and after
                     the sweeps
   scripts set       pre-run step 2b: normally NOTHING TO SET, the halves
                     being read from the HALVES line above. An older note's

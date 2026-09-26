@@ -7462,8 +7462,11 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      added runs/$PREV.md, which dates the last run finishing.
     #      By hand, THE `=` IS NOT OPTIONAL. 8c and 8d want an
     #      unsandboxed seat, and they run alone
-    #  8c AND 8d COME AFTER 11 AND 12: `./preflight.sh $R --corpus
-    #      --fill-in` runs these two alone and prints their fill-in row.
+    #  8e. and in that case every mutant, `selftest-mutants.py .`,
+    #      which --corpus runs after 8d: an edit can move a mutant's
+    #      anchor, and 94a3cfd lost one unseen until a write-up
+    #  8c TO 8e COME AFTER 11 AND 12: `./preflight.sh $R --corpus
+    #      --fill-in` runs these three alone and prints their fill-in row.
     #      Take it once 11 has printed `sweep clean` and 12, where owed,
     #      `pass clean`, and BEFORE 12c, which is the commit. The order is
     #      12a and 12b under the sweeps, then --corpus alone, then 12c

@@ -141,17 +141,17 @@ if [ $# -lt 1 ]; then
 [--figures] [--fill-in]"
   echo "  --note        steps 10c, 10d, 10e and 8 alone -- the ones that read"
   echo "                the preparation WROTE, in seconds and with no binary"
-  echo "  --no-corpus   everything but 8c and 8d, the two that read every run"
-  echo "                JSON on disk: run this, launch 11 and 12, and take"
-  echo "                the two afterwards with --corpus"
-  echo "  --corpus      8c and 8d alone"
+  echo "  --no-corpus   everything but 8c, 8d and 8e, which read every run"
+  echo "                JSON on disk or every mutant: run this, launch 11 and"
+  echo "                12, and take the three afterwards with --corpus"
+  echo "  --corpus      8c, 8d and 8e alone"
   echo "  --figures     re-derive the note's fill-in figures FROM THE"
   echo "                ARTIFACTS and report every row that disagrees --"
   echo "                pre-run step 12b, in seconds and running no step"
   echo "  --fill-in     and print the note's fill-in block DERIVED from what"
   echo "                this pass read, to paste at pre-run step 2. A row it"
   echo "                cannot derive prints <yours>; beside --corpus it"
-  echo "                prints the one row THAT call fills, 8c and 8d"
+  echo "                prints the one row THAT call fills, 8c to 8e"
   exit 2
 fi
 R=$1
@@ -969,6 +969,20 @@ else
 to date from)" \
     || say 8d FAIL "defect-run: $(tail -1 "$TMP/cs")"
 fi
+# 8e, THE MUTANTS, since 2026-09-26: an edit to a checked script can move a
+# mutant's anchor, and selftest-mutants.py then reports the mutant LOST --
+# 94a3cfd did that in a preparation and check-all found it at the run's
+# write-up. So where any script changed since the previous run's file, or
+# with no file to date from, every mutant is replayed here; minutes, alone.
+if [ -z "$PREV_COMMIT" ] || [ -n "$(git diff --name-only "$PREV_COMMIT" \
+       -- '*.py' '*.sh' 2>/dev/null)" ]; then
+  selftest-mutants.py -j 6 . > "$TMP/mu" 2>&1 \
+    && say 8e PASS "$(tail -1 "$TMP/mu")" \
+    || say 8e FAIL "selftest-mutants: $(grep -m1 -E 'LOST|SURVIVED|MISSED' \
+"$TMP/mu" || tail -1 "$TMP/mu")"
+else
+  say 8e PASS "no script changed since run$PRN's file, so no anchor moved"
+fi
 fi
 
 # --fill-in: THE NOTE'S FILL-IN BLOCK, DERIVED. Every row below is either a
@@ -996,7 +1010,7 @@ fill_in () {
     echo
     echo "--- the fill-in row --corpus fills, for $R-pair.txt ---"
     printf '  %-16s  %s\n' 'script checks' \
-      "8b, and now 8c $(vd 8c); 8d $(vd 8d)"
+      "8b, and now 8c $(vd 8c); 8d $(vd 8d); 8e $(vd 8e)"
     echo "--- replaces the 8c/8d line the earlier pass left <yours> ---"
     return 0
   fi
@@ -1194,9 +1208,9 @@ delta is step 6c's to take by hand"
   printf '  %-16s  %s\n' 'document checks' "7 $(vd 7); 8 $(vd 8)"
   printf '  %-16s  %s\n' 'script checks' "8b $(vd 8b)"
   if [ "$CORPUS" = 1 ]; then
-    printf '  %-16s  %s\n' '' "8c $(vd 8c); 8d $(vd 8d)"
+    printf '  %-16s  %s\n' '' "8c $(vd 8c); 8d $(vd 8d); 8e $(vd 8e)"
   else
-    printf '  %-16s  %s\n' '' '8c and 8d <yours> -- --corpus takes them'
+    printf '  %-16s  %s\n' '' '8c, 8d and 8e <yours> -- --corpus takes them'
   fi
   printf '  %-16s  %s\n' 'scripts set' \
     'NOTHING TO SET: the halves come from the HALVES line'
@@ -1219,9 +1233,9 @@ VARIABLE-CHECK leaves to a reading."
   # `a spent preparation inherits` over two steps that had not happened.
   echo "pass, which are the note's: OWED where its fill-in block does not"
   echo "record them, INHERITED where it does. Then the run list, from 13."
-  [ "$CORPUS" = 1 ] || echo "  8c and 8d did NOT run: --corpus takes them" \
+  [ "$CORPUS" = 1 ] || echo "  8c, 8d and 8e did NOT run: --corpus takes them" \
                             "once 11 and 12 have landed."
-  [ "$REST" = 1 ] || echo "  ONLY 8c and 8d ran; this is no preflight."
+  [ "$REST" = 1 ] || echo "  ONLY 8c, 8d and 8e ran; this is no preflight."
 else
   echo "$BAD step(s) FAILED -- read them before anything that costs an evening."
 fi
