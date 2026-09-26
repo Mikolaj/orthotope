@@ -5351,7 +5351,7 @@ data Axis = Axis { axisStride :: !Int, axisExtent :: !Int }
   deriving (Eq, Ord)
 
 -- 'InnerFirst' with each axis an 'Axis': axes innermost first, the
--- orientation 'canonicalizeAx' writes and every reader of the path
+-- orientation the dispatches' merge loops write and every reader of the path
 -- reads, a newtype so that the orientation is in the type. Nothing on
 -- the path flips it, so it has no 'outerFirst'.
 newtype InnerFirstAx = InnerFirstAx { innerFirstAx :: [Axis] }
@@ -5369,67 +5369,42 @@ newtype InnerFirstAx = InnerFirstAx { innerFirstAx :: [Axis] }
 -- but one arm and view.
 data WalkAx = WalkAx !Int !Int InnerFirstAx
 
--- 'canonicalize' over 'Axis': the library's 'canonicalizeT',
--- 'mergeAxesAx' over the axes it zips, the pass of the path's list
--- dispatch, 'routeList5'. Axes of extent 1 are dropped before the
--- 'Axis' is built: with the zip fused into the merge, the strict stride
--- would otherwise be read for every dropped axis, where the pair form
--- left it unread, 7 to 22 instructions a call on the list twins' small
--- views (2026-09-25).
-canonicalizeAx :: ShapeL -> [Int] -> InnerFirstAx
-canonicalizeAx sh ats = mergeAxesAx [Axis st n | (st, n) <- zip ats sh, n /= 1]
-{-# INLINE canonicalizeAx #-}
-
--- The axes merged so far: the one just outside the next, as its stride
--- and extent, extent 1 standing for none yet, and the axes outside it,
--- innermost first, which is the order the fold builds them in. A record
--- of strict fields, so that the fold carries the two numbers unboxed at
--- -O1 and a merge allocates nothing. An '!Axis' in their place cost
--- up to 96 bytes a call more (2026-09-25), less only on two views of the
--- unordered route, whose sorted list holds cells to reuse; UNPACKed, it
--- cost exactly what they do. In effect a non-empty 'InnerFirstAx' with
--- a strict head, as 'WalkAx' is, and the Core says why the box costs: a
--- push stores the head whole, so the fold keeps it boxed, and on the
--- list route the merge's input, fused away, leaves no cell to reuse, so
--- every new head is built.
-data MergeAccAx = MergeAccAx !Int !Int !InnerFirstAx
-
--- 'mergeInner' over 'MergeAccAx': the library's merge step, one axis
--- added inside the axes so far: merged into the axis just outside it
--- where that one's stride is this one's stride times its extent, and
--- put inside it otherwise.  Both callers of 'mergeAxesAx' drop the axes
--- of extent 1 first, so it has no equation for one, 5 to 12
--- instructions a call fewer on the unordered route (2026-09-25).  The
--- new axis's fields are strict, so it needs none of the bangs the pair
--- form weighs.
--- Too expensive: 'assert (n /= 1)' around this equation's guards.
-mergeInnerAx :: MergeAccAx -> Axis -> MergeAccAx
-mergeInnerAx (MergeAccAx st' n' rest) (Axis st n)
-  | n' == 1 = MergeAccAx st n rest
-  | st' == n * st = MergeAccAx st (n' * n) rest
-  | otherwise = MergeAccAx st n (InnerFirstAx (Axis st' n' : innerFirstAx rest))
-{-# INLINE mergeInnerAx #-}
-
--- The canonical axes innermost first, from the axes of extent above 1,
--- outermost first: 'mergeInnerAx' folded over them.
-mergeAxesAx :: [Axis] -> InnerFirstAx
-mergeAxesAx ps =
-  case foldl' mergeInnerAx (MergeAccAx 0 1 (InnerFirstAx [])) ps of
-    MergeAccAx st n rest
-      | n == 1 -> rest
-      | otherwise -> InnerFirstAx (Axis st n : innerFirstAx rest)
-{-# INLINE mergeAxesAx #-}
 
 -- Stage five of the list entry point, 'routeList4' over the 'Axis'
 -- path, the dispatch of 'lib-stage3-lean' and 'liblist-stage5-sum';
 -- stage four is 'routeList3' under the lean dispatch, the regime read
 -- off the merged form alone and no 'getStridesT' built, as
--- 'fbLibStage2Lean' reads it.
+-- 'fbLibStage2Lean' reads it. The merge is the library's
+-- 'canonicalizeT' as a loop over the shape and the strides:
+-- 'start' skips the axes of extent 1 up to the first kept one, and
+-- 'canonicalizeAx' merges each kept axis into the one just outside it,
+-- carried as its stride and extent, where that one's stride is this
+-- one's stride times its extent, and puts it inside it otherwise. The
+-- loops read the view's offset and length, so GHC keeps them in the
+-- reader, where the head reaches 'routeOfAx' unboxed. Floated
+-- to top level as a function of its own, the same loop returning
+-- the merged list cost a built head and cons a call, 48 bytes, and
+-- returning a 'Maybe' of the merged axes, 63 to 240 (2026-09-26).
 routeList5 :: ShapeL -> T -> RouteAx
-routeList5 sh (T (Strides ats) ao _)
+routeList5 sh (T (Strides ats) off _)
   | l == 0 = RSliceAx 0 0
-  | otherwise = routeOfAx ao l (canonicalizeAx sh ats)
-  where !l = product sh
+  | otherwise = start ats sh
+  where
+    !l = product sh
+    start :: [Int] -> ShapeL -> RouteAx
+    start (_ : sts) (1 : ns) = start sts ns
+    start (st : sts) (n : ns) = canonicalizeAx st n [] sts ns
+    start _ _ = RSliceAx off l
+    -- Shape and stride canonicalization from the first kept axis on, in
+    -- the view's order, which the ordered result must keep.
+    canonicalizeAx :: Int -> Int -> [Axis] -> [Int] -> ShapeL -> RouteAx
+    canonicalizeAx !st' !n' rest (_ : sts) (1 : ns) =
+      canonicalizeAx st' n' rest sts ns
+    canonicalizeAx !st' !n' rest (st : sts) (n : ns)
+      | st' == n * st = canonicalizeAx st (n' * n) rest sts ns
+      | otherwise = canonicalizeAx st n (Axis st' n' : rest) sts ns
+    canonicalizeAx !st' !n' rest _ _ =
+      routeOfAx off l st' n' (InnerFirstAx rest)
 {-# INLINE routeList5 #-}
 
 -- Stage fourteen, 'routeUnord13' over the 'Axis' path, the dispatch of
@@ -5439,40 +5414,46 @@ routeList5 sh (T (Strides ats) ao _)
 -- list of slices, found from the shape and the strides in as few passes
 -- over them as the answer allows. How it fits here, and the account of
 -- the dispatch, are at 'routeUnord13'. The absolute axes and their sort
--- are 'Axis' copies of that one's, 'absAxesAndStartAx' and
--- 'byStrideRankAx'.
+-- are 'Axis' copies of that one's, 'absAxes' and 'byStrideRankAx'.
 routeUnord14 :: ShapeL -> T -> RouteAx
 routeUnord14 sh (T (Strides ats) ao _)
   | l == 0 = RSliceAx 0 0
-  | otherwise = routeOfAx start l (zeroStrideOutermostAx merged)
+  | otherwise = start (sortBy byStrideRankAx axes)
   where
+    (axes, !off) = absAxes [] ao ats sh
     !l = product sh
-    AxesStartAx axes start = absAxesAndStartAx ao ats sh
-    merged = mergeAxesAx (sortBy byStrideRankAx axes)
+    start :: [Axis] -> RouteAx
+    start (Axis st n : ps) = canonicalizeAx st n [] ps
+    start [] = RSliceAx off l
+    -- Shape and stride canonicalization of the sorted axes from the first,
+    -- free to reorder at its exit: the result need keep only the multiset.
+    canonicalizeAx :: Int -> Int -> [Axis] -> [Axis] -> RouteAx
+    canonicalizeAx !st' !n' rest (Axis st n : ps)
+      | st' == n * st = canonicalizeAx st (n' * n) rest ps
+      | otherwise = canonicalizeAx st n (Axis st' n' : rest) ps
+    -- A zero-stride innermost axis followed by a unit-stride one goes
+    -- outermost, so that the unit stride is the run.
+    canonicalizeAx !st' !n' rest []
+      | st' == 0, Axis 1 n1 : rest' <- rest =
+          routeOfAx off l 1 n1 (InnerFirstAx (rest' ++ [Axis 0 n']))
+      | otherwise = routeOfAx off l st' n' (InnerFirstAx rest)
 {-# INLINE routeUnord14 #-}
 
--- 'PairsStart' with each axis an 'Axis': the (absolute stride, extent)
--- of the axes of extent above 1, in reverse of the order given, and the
--- offset of the view's lowest address.  The offset is a strict field,
--- so the loop carries a number and not a chain of additions, and the
--- accumulator is the result itself.  The reversal is nothing to the
--- sort behind it: the only order 'byStrideRankAx' leaves to the sort's
+-- The axes of extent above 1, their strides made absolute, onto the
+-- list given in reverse of the order given, and the offset given moved
+-- to the view's lowest address. The reversal is nothing to the sort
+-- behind it: the only order 'byStrideRankAx' leaves to the sort's
 -- stability is between two axes of one absolute stride and one extent,
--- which 'mergeInnerAx' treats alike whichever comes first.
-data AxesStartAx = AxesStartAx [Axis] !Int
-
-absAxesAndStartAx :: Int -> [Int] -> ShapeL -> AxesStartAx
-absAxesAndStartAx ao = go (AxesStartAx [] ao)
-  where
-    go :: AxesStartAx -> [Int] -> ShapeL -> AxesStartAx
-    go acc@(AxesStartAx axes start) (s : ss) (n : ns)
-      | n == 1 = go acc ss ns
-      | s < 0 = go (AxesStartAx (Axis (negate s) n : axes)
-                                 (start + (n - 1) * s))
-                   ss ns
-      | otherwise = go (AxesStartAx (Axis s n : axes) start) ss ns
-    go acc _ _ = acc
-{-# INLINE absAxesAndStartAx #-}
+-- which 'routeUnord14''s 'canonicalizeAx' treats alike whichever comes
+-- first. A function returning the pair, which GHC returns in registers:
+-- as a loop inside the reader going on into the sort it cost 10 to 58
+-- instructions a call (2026-09-26).
+absAxes :: [Axis] -> Int -> [Int] -> ShapeL -> ([Axis], Int)
+absAxes axes !off (_ : sts) (1 : ns) = absAxes axes off sts ns
+absAxes axes !off (st : sts) (n : ns)
+  | st < 0 = absAxes (Axis (negate st) n : axes) (off + (n - 1) * st) sts ns
+  | otherwise = absAxes (Axis st n : axes) off sts ns
+absAxes axes !off _ _ = (axes, off)
 
 -- 'byStrideRank' over 'Axis': absolute stride descending; on a tie at
 -- stride 1 the length 'runRank' prefers last, so that it is the run,
@@ -5485,23 +5466,15 @@ byStrideRankAx (Axis s1 n1) (Axis s2 n2) = case compare s2 s1 of
      | otherwise -> compare n1 n2
   o -> o
 
--- The merged axes, innermost first, with their zero-stride axis, if
--- they begin with one followed by a unit-stride axis, moved to the end.
-zeroStrideOutermostAx :: InnerFirstAx -> InnerFirstAx
-zeroStrideOutermostAx axes = case innerFirstAx axes of
-  z@(Axis 0 _) : rest@(Axis 1 _ : _) -> InnerFirstAx (rest ++ [z])
-  _ -> axes
-
--- The route of a canonicalized view, given its start offset and its
--- element count: one slice where no axis is left or the one left has
--- stride 1, runs where the innermost stride is 1, the fill otherwise.
+-- The route of a canonicalized view of at least one axis, given its
+-- start offset, its element count, the innermost axis's stride and
+-- extent and the axes outside it: one slice where that axis is the only
+-- one and has stride 1, runs where its stride is 1, the fill otherwise.
 -- Shared by the path's two dispatches, so that it is written once.
-routeOfAx :: Int -> Int -> InnerFirstAx -> RouteAx
-routeOfAx start l axes = case innerFirstAx axes of
-  [] -> RSliceAx start l
-  [Axis 1 _] -> RSliceAx start l
-  Axis 1 n : rest -> RRunsAx (WalkAx 1 n (InnerFirstAx rest)) start l
-  Axis t n : rest -> RFillAx (WalkAx t n (InnerFirstAx rest)) start l
+routeOfAx :: Int -> Int -> Int -> Int -> InnerFirstAx -> RouteAx
+routeOfAx start l 1 _ (InnerFirstAx []) = RSliceAx start l
+routeOfAx start l 1 n rest = RRunsAx (WalkAx 1 n rest) start l
+routeOfAx start l t n rest = RFillAx (WalkAx t n rest) start l
 {-# INLINE routeOfAx #-}
 
 -- 'Route' over 'WalkAx', the path's dispatch as a value: one slice, the
@@ -5772,10 +5745,11 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao !l !v =
         -- A loop of its own with the block size banged, where a 'foldl''
         -- over a pair carried it boxed, an 'I#' a level: 16 bytes a level
         -- and up to 58 instructions a call less (2026-09-25).
-        nest :: NestAx -> Int -> [Axis] -> NestAx
-        nest inner !blk axes = case axes of
+        nest :: NestAx -> Int -> InnerFirstAx -> NestAx
+        nest inner !blk axes = case innerFirstAx axes of
           [] -> inner
-          axis@(Axis _ n) : rest -> nest (LevelAx axis blk inner) (n * blk) rest
+          axis@(Axis _ n) : rest ->
+            nest (LevelAx axis blk inner) (n * blk) (InnerFirstAx rest)
         {-# INLINE walk #-}
         walk :: (Int -> Int -> ST s ()) -> ST s ()
         walk writeRun = case innerFirstAx outerAxes of
@@ -5794,7 +5768,7 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao !l !v =
                   level writeRun axis0 sInner outPos baseOff
                 run (LevelAx axis blk inner) !outPos !baseOff =
                   level (run inner) axis blk outPos baseOff
-            in  run (nest FusedAx (n0 * sInner) outer) 0 ao
+            in  run (nest FusedAx (n0 * sInner) (InnerFirstAx outer)) 0 ao
     if tInner == 0 then walk writeRunSet else walk writeRunStep
     return out
 

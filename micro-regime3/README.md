@@ -3987,37 +3987,43 @@ codegen rather than that it cannot be built.
   the sweeps say exists and no arm here has shown. Not built: the flag pair
   it would face is the block rules with and without it, on the stage arms'
   `runs` and `window` cells.
-- `OPEN` **`MergeAccAx`, the `Ax` merge's accumulator, is a non-empty list
-  with a strict head used as a possibly empty one: its fold starts
-  from `MergeAccAx 0 1 (InnerFirstAx [])`, a head of extent 1 standing
-  for *no axis yet*, which every step and the result test again.** The honest
-  types lost to it on 2026-09-25, each read against the committed merge on Run
-  40's basis recipe over the three twins on the small, stretch and window views.
-  A second constructor for the empty case cost the list twins 16 to 34
-  instructions and 63 to 161 bytes a call, the two-constructor accumulator being
-  built at every step. The list itself as the accumulator, `InnerFirstAx`
-  in place of `MergeAccAx`, cost 25 to 94 instructions and 47 to 216 bytes
-  a call on all but one arm and view, the head a heap cell at every step
-  and handed to `routeOfAx` as one. Starting the fold from the first axis cost
-  the list twins 145 to 500 instructions and 224 to 560 bytes, the `case`
-  on its input stopping the zip from fusing into the fold, though it saved
-  `libunord-stage14-sum` 26 to 50. What would settle it is a form with no fake
-  head that keeps the head in registers and the zip fused. One candidate
-  is `canonicalizeAx` taking the first kept axis itself, in a loop over the two
-  input lists, and folding the rest from it; the reading is the same counts
-  on the same views. The measured costs of boxing the head are in `WalkAx`'s
-  and `MergeAccAx`'s comments in `Main.hs`. The list form, as it was measured,
-  in place of the two functions:
-
-      mergeInnerAx :: InnerFirstAx -> Axis -> InnerFirstAx
-      mergeInnerAx acc new@(Axis st n) = case innerFirstAx acc of
-        [] -> InnerFirstAx [new]
-        Axis st' n' : rest
-          | st' == n * st -> InnerFirstAx (Axis st (n' * n) : rest)
-          | otherwise -> InnerFirstAx (new : innerFirstAx acc)
-
-      mergeAxesAx :: [Axis] -> InnerFirstAx
-      mergeAxesAx = foldl' mergeInnerAx (InnerFirstAx [])
+- `ANSWERED` **`MergeAccAx`, the `Ax` merge's accumulator, was a non-empty list
+  with a strict head used as a possibly empty one, a head of extent 1 standing
+  for *no axis yet* --- answered 2026-09-26 by deleting it.** Each of the two
+  dispatches merges in loops of its own, local to the reader: `routeList5`'s
+  `start` skips the axes of extent 1 up to the first kept one
+  and `routeUnord14`'s takes the first sorted axis, and each hands it
+  to a `canonicalizeAx` carrying the head as two `Int`s, which gives `routeOfAx`
+  the head and the `InnerFirstAx` outside it, so no state stands for *no axis
+  yet*. On Run 41's basis recipe against the fake-head merge, over the small,
+  window, `stretch-coprime-r7` and `stretch-primes` views, `lib-stage3-lean`
+  and `liblist-stage5-sum` retire 40 to 99 instructions a call fewer
+  and `libunord-stage14-sum` 24 to 78, allocation unchanged but for 56 bytes
+  less on `small-bcast32`'s unordered cell; a timing probe of 28 pairs a cell
+  put no cell slower than its A/A floor and most small cells 1 to 2 percent
+  faster. The loops pay only while they read the view's offset and length, which
+  keeps GHC from floating them out: floated, a loop returning the merged list
+  built the head and a cons a call, 48 bytes, one returning a `Maybe` 63 to 240
+  bytes, and one returning an unboxed `Maybe` kept the head in registers
+  but needed `MagicHash` and fell short of the local loops. `absAxes`,
+  the unordered route's pass over the raw axes, is the opposite case, a function
+  of its own whose pair GHC returns in registers, where continuing into the sort
+  inside the reader cost 10 to 58 instructions a call; it carries no `INLINE`,
+  which on a recursive function stops its worker/wrapper split: the pair came
+  back boxed, 30 to 46 bytes and 61 to 148 instructions a call. What else lost,
+  each against the form it varied: the merge step shared by the routes
+  as a `foldr` handing the head to a continuation, 0 to 8 instructions
+  on the small views; the list route's extent-1 skip factored into one helper,
+  30 to 35 bytes; the head carried as an `Axis`, 53 to 299 instructions and 22
+  to 120 bytes on the list twins; the list route fed `zipWith Axis`
+  over the strides and the shape, which GHC materialises, 233 to 826
+  instructions and 222 to 784 bytes; and the extent-1 skip moved from `absAxes`
+  into `routeUnord14`, 168 to 784 instructions and 63 to 391 bytes. The honest
+  types that lost to the fake head on 2026-09-25, on Run 40's basis recipe, cost
+  a second constructor 16 to 34 instructions and 63 to 161 bytes a call
+  on the list twins, the list as the accumulator 25 to 94 and 47 to 216 on all
+  but one arm and view, and a fold started from a `case` on the zipped list 145
+  to 500 and 224 to 560 on the list twins.
 
 
 ## The goal of these benchmarks
@@ -9932,41 +9938,42 @@ it before the readings is what retires that.
    ratio and `f` beside the net one for a related reason: the net figure
    is the floor between two published rows, where the raw one is how much an arm
    disagrees with itself.
-3a. **Name the fill groups, and spend the other load-independent measurements,
-before the artifacts go --- early, because this is the only step whose window
-closes.** Allocation is deterministic per call, Core is a compile,
-and a binary's size is a `size` invocation --- none of them wants a quiet
-machine or a run slot, and each is minutes. Run 8 stopped at the write-up
-and left a Core diff, a two-regime `diag` and a code-size figure undone; all
-three were done later, two of them changed rulings, and one answered an open
-question outright. So before the offer at step 9, take every question the open
-list already carries whose measurement is a compile, an allocation
-or an arithmetic re-derivation, and take it now --- the questions this run
-raises are step 5e's and get their turn there. **The named fills are the one
-owed by every paired Run**: `loop-offsets.py` names a copy only in a `-g3`
-build, bare offsets are what the note records otherwise, and the map
-is a property of the binary, so once the binaries go no offset this README
-quotes can ever be tied to an arm again. **What the step has produced, which
-is why it is first.** Findings no later session could have recovered once
-the binaries went, the two add-in arms swapping cache-line offsets between
-the compilers among them. The REFUSALS are what make a negative honest: a loop
-named off no byte-identical copy is refused rather than guessed, and a straddler
-the sweep reports may be an info table it misread rather than a loop.
-**A refusal wants the OTHER half's twin tried before it is recorded**, the basis
-twin naming the `-u2` leaf fills by the same byte identity, and what no `-g3`
-build holds byte-identical on either compiler, `fillStage2`'s runs, being named
-by `--loose` off their signature. The ORDER has been taken both ways without
-cost, so what the list fixes is the deadline and not the sequence. And a note's
-fill-in block is where TRANSCRIBED figures live, which is why the executing
-session re-runs the `--match` off the binaries it timed, and reads the block
-it ends with since 2026-09-16, the exit spans astride named the same way ---
-empty on a `LOOP_EXITSPAN=1` half, and on any other the loops that switch would
-move. **Where a preparation spent this half early, on an idle box before
-the pair ran, the executing session re-derives it off the binaries it timed**
---- two minutes, and the difference between a block that was read and one
-that was carried, which is the distinction pre-run step 12b exists to make
-and which a note's fill-in block cannot make for itself. What is left
-over is the timing work, which is what a quiet machine is for.
+- 3a. **Name the fill groups, and spend the other load-independent measurements,
+  before the artifacts go --- early, because this is the only step whose window
+  closes.** Allocation is deterministic per call, Core is a compile,
+  and a binary's size is a `size` invocation --- none of them wants a quiet
+  machine or a run slot, and each is minutes. Run 8 stopped at the write-up
+  and left a Core diff, a two-regime `diag` and a code-size figure undone; all
+  three were done later, two of them changed rulings, and one answered an open
+  question outright. So before the offer at step 9, take every question the open
+  list already carries whose measurement is a compile, an allocation
+  or an arithmetic re-derivation, and take it now --- the questions this run
+  raises are step 5e's and get their turn there. **The named fills are the one
+  owed by every paired Run**: `loop-offsets.py` names a copy only in a `-g3`
+  build, bare offsets are what the note records otherwise, and the map
+  is a property of the binary, so once the binaries go no offset this README
+  quotes can ever be tied to an arm again. **What the step has produced, which
+  is why it is first.** Findings no later session could have recovered once
+  the binaries went, the two add-in arms swapping cache-line offsets between
+  the compilers among them. The REFUSALS are what make a negative honest: a loop
+  named off no byte-identical copy is refused rather than guessed,
+  and a straddler the sweep reports may be an info table it misread rather
+  than a loop. **A refusal wants the OTHER half's twin tried before
+  it is recorded**, the basis twin naming the `-u2` leaf fills by the same byte
+  identity, and what no `-g3` build holds byte-identical on either compiler,
+  `fillStage2`'s runs, being named by `--loose` off their signature. The ORDER
+  has been taken both ways without cost, so what the list fixes is the deadline
+  and not the sequence. And a note's fill-in block is where TRANSCRIBED figures
+  live, which is why the executing session re-runs the `--match` off
+  the binaries it timed, and reads the block it ends with since 2026-09-16,
+  the exit spans astride named the same way --- empty on a `LOOP_EXITSPAN=1`
+  half, and on any other the loops that switch would move. **Where a preparation
+  spent this half early, on an idle box before the pair ran, the executing
+  session re-derives it off the binaries it timed** --- two minutes,
+  and the difference between a block that was read and one that was carried,
+  which is the distinction pre-run step 12b exists to make and which a note's
+  fill-in block cannot make for itself. What is left over is the timing work,
+  which is what a quiet machine is for.
 4. **Match bases before reading any ratio.** The first act of a comparison
    is making its two sides one basis --- the same population, the same
    restriction, the basis a figure was stated on --- and only then reading
@@ -10030,34 +10037,34 @@ which for Run 10 was where alignment was faster.
    about what the run changed, so the checker has to snapshot it and diff
    against its own copy. The cost is one commit whose content is a verbatim
    copy, which reads as diary until the next diff makes it legible.
-5b. **Install the tables with `--in-place` rather than pasting them.**
-`--markdown`, `--fingerprint` and `--block` each take it, and each refuses
-rather than guessing: the match is by whole line, the count is asserted,
-and a class table is narrowed by its block's bolded lead. **An install is placed
-by a bolded lead, which is prose the write-up is editing while it works**:
-rename a lead and the install that fills the paragraph beneath it refuses,
-naming it. Hand-pasting is what this replaces, and the reason is on the record
---- the cross-class summary's header is written out twice, once indented
-as the spec that fixes the columns, and a session locating the table
-by searching for that text put the new rows under the spec and left the old
-table standing, with every check green because the check looked it up the same
-way. The table carries `needs` and the emphasis forward from the one already
-there, and its stderr is the whole of what is left by hand; new rows are filled
-from a note written here before the run whenever a roster change is known
-in advance --- the cell then gets transcribed rather than invented at the end
-of a long day. A class table comes out six columns wide, `needs` being
-a property of a strategy rather than of a population and so stated in the main
-table alone.
+- 5b. **Install the tables with `--in-place` rather than pasting them.**
+  `--markdown`, `--fingerprint` and `--block` each take it, and each refuses
+  rather than guessing: the match is by whole line, the count is asserted,
+  and a class table is narrowed by its block's bolded lead. **An install
+  is placed by a bolded lead, which is prose the write-up is editing while
+  it works**: rename a lead and the install that fills the paragraph beneath
+  it refuses, naming it. Hand-pasting is what this replaces, and the reason
+  is on the record --- the cross-class summary's header is written out twice,
+  once indented as the spec that fixes the columns, and a session locating
+  the table by searching for that text put the new rows under the spec and left
+  the old table standing, with every check green because the check looked it up
+  the same way. The table carries `needs` and the emphasis forward from the one
+  already there, and its stderr is the whole of what is left by hand; new rows
+  are filled from a note written here before the run whenever a roster change
+  is known in advance --- the cell then gets transcribed rather than invented
+  at the end of a long day. A class table comes out six columns wide, `needs`
+  being a property of a strategy rather than of a population and so stated
+  in the main table alone.
 
-5e. **Walk the open list against what this session actually did**, which nothing
-checks. **Grep [the settled index][settled] before adding an entry ---
-and before ASSERTING anything this README may already have ruled on**, not only
-before deriving: a question is easy to open against something already answered
-in a section you are not writing in, as a Core dump proposed once had been taken
-three times and answered a thousand lines away. A run answers some of its own
-questions and a write-up raises others, and both go stale in place: an entry
-answered by the very probe it specified stays open until this walk closes it.
-What a probe narrowed is left as narrowed.
+- 5e. **Walk the open list against what this session actually did**, which
+  nothing checks. **Grep [the settled index][settled] before adding an entry ---
+  and before ASSERTING anything this README may already have ruled on**,
+  not only before deriving: a question is easy to open against something already
+  answered in a section you are not writing in, as a Core dump proposed once had
+  been taken three times and answered a thousand lines away. A run answers some
+  of its own questions and a write-up raises others, and both go stale in place:
+  an entry answered by the very probe it specified stays open until this walk
+  closes it. What a probe narrowed is left as narrowed.
 
 **The cross-class summary is INSTALLED since 2026-09-22, from the class blocks
 and not from the JSONs.** Every cell of it appears in one of the class tables
