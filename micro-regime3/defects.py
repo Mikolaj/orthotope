@@ -7433,6 +7433,16 @@ RECORDS = [
          bug=V(exit=1, has=['the timed-arm count says'],
                hasnt=['takes the roster to N benches'])),
 
+    case('stale-arm-count-fix-names-two-counts-n', 'read-run.py', 'a71388b',
+         "the roster-chain template the arm-count message quotes named the"
+         " bench count and the arm count both N",
+         plant=lambda t: {'readme': readme_count_one_short(
+             t, r'the\s+run\s+is\s+(\d+)\s+arms\.')},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=1, has=['N benches, so with the controls the run is M'
+                           ' arms']),
+         bug=V(exit=1, has=['the run is N arms'])),
+
     case('stale-roster-size-names-no-fix', 'read-run.py', '95190de',
          'a stale roster size named the count and not its sites or what a'
          ' roster change owes them',
@@ -8956,6 +8966,25 @@ RECORDS = [
          argv=['--unit', "parse_counts('{f}')"],
          ok=V(has=["({}, [], ['s1 lib-a 50 777'])"]),
          bug=V(has=["'lib-a': 777.0"])),
+
+    case('counts-reads-a-nonlinear-cell-as-measured', 'read-run.py',
+         'a71388b',
+         'a probe-stalls cell marked NONLINEAR in instructions was read as'
+         " one process's count, where probe-stalls-read.py drops it",
+         # Run 42's item (4) quoted such a cell, stage fourteen's on
+         # `compose-bcast-wide`, in both sweeps; a mark on cycles alone
+         # leaves the count read, which `counts-reads-no-probe-stalls-file`
+         # holds.
+         plant=lambda t: {'f': write(os.path.join(t, 'nl.txt'),
+                                     '# shape arm N instructions:u cycles:u\n'
+                                     's1 lib-a 50 1030 900\n'
+                                     '# NONLINEAR s1 lib-a: instructions:u'
+                                     ' 1030 then 1100\n'
+                                     's1 lib-b 50 2000 1800\n')},
+         argv=['--unit', "parse_counts('{f}')"],
+         ok=V(has=["({'s1': {'lib-b': 2000.0}}",
+                   's1 lib-a, NONLINEAR in instructions']),
+         bug=V(has=["'lib-a': 1030.0"])),
 
     case('counts-over-reads-one-sweep-against-another', 'read-run.py',
          '95190de',
