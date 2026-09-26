@@ -38,9 +38,10 @@ the result with a single `vGenerate` doing **one** `quotRem` per element.
 It beats the original `list` fallback on every benchmarked shape
 with no regression and needs no extension to orthotope classes --- **that
 is the FILL**, and the route the library actually ships, `lib-stage1`, is slower
-than `list` on the two shortest runs of the `runs` class, which [the run file's
-property 1](runs/run41.md#the-properties-the-next-run-should-test) records
-and four runs have now read.
+than `list` on the shortest run of the `runs` class this roster times, `runs-2`,
+which [the run file's property
+1](runs/run41.md#the-properties-the-next-run-should-test) records and six runs
+have now read.
 
 The words for a view's pieces are the library's, defined at the `T` haddock
 of `Data/Array/Internal.hs` on `pr-mikolaj-toVectorListT`: a *walk* is one
@@ -763,13 +764,14 @@ rather than a slot in the next run, observed again:
   where a run's registrations have lived since 2026-08-29; in a clause each: (1)
   with one fill algorithm under both, `lib-stage3-lean`'s lead
   over `lib-stage2-lean` closed, at 0.9904 on the basis and 0.9948
-  on the control against a prior of 1.00 within 2%; (2) the unroll costs
-  `lib-stage2-lean-u1` against the frozen copy what it cost against the nest,
-  1.0601 and 1.0638 against 1.06 within 3%; (3) the copy took over the lead
-  on the shipped leaf, 0.8911 and 0.8938 against 0.90 within 3%; and (4) split,
-  `list`'s cross figure holding at 1.2926 against 1.295 within 1%
-  and `bq-expand`'s KILLED at 1.3620 against 1.303, the basis half's family
-  having slowed on level instructions --- four spans HELD and one KILLED.
+  on the control against a prior of 1.00 within 2%; (2) `lib-stage2-lean-u1`,
+  the fill without the unrolled stepping run, costs against the frozen copy what
+  it cost against the nest, 1.0601 and 1.0638 against 1.06 within 3%; (3)
+  the copy took over the lead on the shipped leaf, 0.8911 and 0.8938 against
+  0.90 within 3%; and (4) split, `list`'s cross figure holding at 1.2926 against
+  1.295 within 1% and `bq-expand`'s KILLED at 1.3620 against 1.303, the basis
+  half's family having slowed on level instructions --- four spans HELD and one
+  KILLED.
 - `ANSWERED` **What Run 40 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 40's own file](runs/run40.md), where a run's
@@ -829,27 +831,28 @@ rather than a slot in the next run, observed again:
   a copy of `fillStage2`.
 - `ANSWERED` **Seven reducing consumers newly change what they ALLOCATE
   under `-fspec-constr -fliberate-case`, where one run earlier the same pair
-  changed none of them --- and the change was one fold's boxing, which `815ffa2`
-  removed.** On Run 38 the unordered consumers `libunord-stage6-sum`,
-  `-stage6-loop-sum`, `-stage7-sum`, `-stage9-sum`, `-stage12-sum`,
-  `-stage13-sum` and the new `-stage14-sum` read geomean deviations of 3.80%
-  to 13.08% over the eleven populations, where Run 37's own JSONs read the six
-  that exist there at 0.9957 to 1.0013 cell by cell, so the only term that could
-  reach it was the source. It was never a tier: those arms allocate hundreds
-  of bytes a call at the 0.01x tier, and no property verdict turned on it. Runs
-  39 and 40 read the six still timed at about 0.80 to 0.84 per cell on the main
-  set, Run 40's on a rewritten `runSlices` odometer, so the sensitivity did
-  not live in the odometer. **It lived in `canonicalize`'s merge fold**,
-  the next entry's, and **Run 41, the first run with that fold's accumulator
-  a strict record, reads the change gone to within about two points**: four
-  of the six at 0.9795 to 0.9852 per cell over the main set, `-stage13-sum`
-  and `-stage14-sum` at 1.0001 and 0.9999, and 0.969 to 1.000 over `small`,
-  which is what the reading of 2026-09-25 predicted off the two binaries; [Run
-  41's properties](runs/run41.md#the-properties-the-next-run-should-test) carry
-  the figures. The mechanical figure it moved came back with it, `--alloc`
-  putting 283 of the main set's 532 cells above 100 bytes a call inside 1e-4
-  between the halves where Run 40 put 252 of 551. `libunord-stage12-sum`
-  was parked `Only` on 2026-09-23.
+  changed none of them --- and the change was one fold's boxing, most of which
+  `815ffa2` took away.** On Run 38 the unordered consumers
+  `libunord-stage6-sum`, `-stage6-loop-sum`, `-stage7-sum`, `-stage9-sum`,
+  `-stage12-sum`, `-stage13-sum` and the new `-stage14-sum` read geomean
+  deviations of 3.80% to 13.08% over the eleven populations, where Run 37's own
+  JSONs read the six that exist there at 0.9957 to 1.0013 cell by cell,
+  so the only term that could reach it was the source. It was never a tier:
+  those arms allocate hundreds of bytes a call at the 0.01x tier,
+  and no property verdict turned on it. Runs 39 and 40 read the six still timed
+  at about 0.80 to 0.84 per cell on the main set, Run 40's on a rewritten
+  `runSlices` odometer, so the sensitivity did not live in the odometer.
+  **It lived in `canonicalize`'s merge fold**, the next entry's, and **Run 41,
+  the first run with that fold's accumulator a strict record, reads the change
+  gone to within about two points**: four of the six at 0.9795 to 0.9852 per
+  cell over the main set, `-stage13-sum` and `-stage14-sum` at 1.0001
+  and 0.9999, and 0.969 to 1.000 over `small`, which is what the reading
+  of 2026-09-25 predicted off the two binaries; [Run 41's
+  properties](runs/run41.md#the-properties-the-next-run-should-test) carry
+  the figures. The mechanical figure it moved rose with it, `--alloc` putting
+  283 of the main set's 532 cells above 100 bytes a call inside 1e-4 between
+  the halves where Run 40 put 252 of 551. `libunord-stage12-sum` was parked
+  `Only` on 2026-09-23.
 - `ANSWERED` **The two passes' third on `small-flat64`'s lean fills is one
   fold's boxing: the canonical-axes merge over a list accumulator, which only
   SpecConstr unboxes.** On Run 40 the four lean fills read about 37 ns net
@@ -1218,7 +1221,7 @@ rather than a slot in the next run, observed again:
   step 4a's `--half-movers` is the reading that separates the term. Run 34,
   launched from `hugebin/`, reads the arm at 1.0027 across the halves on `runs`
   with its counts level.
-- `OPEN` **A rebuild of one recipe moved `bq-expand` 4 to 10% on ONE half
+- `OPEN` **A rebuild of one recipe moved `bq-expand` 3 to 10% on ONE half
   with its instructions level, and killed a cross-figure registration
   that argued no commit reached it.** Run 41's basis, `run40-gheadnospec`'s
   recipe fifteen commits and a shim change later, runs the whole `bq-expand`
@@ -1235,12 +1238,13 @@ rather than a slot in the next run, observed again:
   a fresh copy reads 0.996 to 1.013 of the timed file on the four widest cells,
   and Run 40's basis runs them at 0.883 to 0.906 of it in fresh processes.
   **And it is not an offset in line**: `perf record`
-  on `cnn-L2-24x24-c32/bq-expand` puts 13% more cycles in the binary's own code
-  on this build, libc's `memmove` level between the two, and finds the three
-  hottest blocks at the same offset in their cache line on both builds, moved
-  by whole lines --- two by 0x9c0 and one by -0x3c0, so their distances from one
-  another changed. **What would settle it**: a basis rebuilt with the shim
-  at `fe6d133` on this source separates the shim's replanning from the source's,
+  on `cnn-L2-24x24-c32/bq-expand` puts 13% more cycles in the process and 15%
+  more in the binary's own code on this build, over the same `-n 1600`, libc's
+  `memmove` level between the two, and finds the three hottest blocks
+  at the same offset in their cache line on both builds, moved by whole lines
+  --- two by 0x9c0 and one by -0x3c0, so their distances from one another
+  changed. **What would settle it**: a basis rebuilt with the shim at `fe6d133`
+  on this source separates the shim's replanning from the source's,
   and a counter reading of that cell on the two builds --- front-end and branch
   events, `probe-stalls.sh` --- says what the 13% is spent on.
 - `OPEN` **Four arms moved past 3% against Run 32 on ONE half each, with their
@@ -1791,20 +1795,20 @@ rather than a slot in the next run, observed again:
   half, the larger, where Runs 38, 39 and 41 carry MORE, and Run 38's source
   moved fourteen commits and Run 40's ten under an unmoved compiler, shim
   and project file, the sign changing both times, and Run 41's fifteen
-  with the shim moved besides, changing it a third time, so what changes
-  the sign is the code and not the generator; Run 32, the one compiler pair
-  surveyed, also carries more on its larger half. **Where there were fewer, they
-  were removed and not grown past the survey's 64 B cutoff**: counting every
-  self-loop of any length in `_Main_`-compiled code, the cutoff lifted to 96,
-  128, 192 and 256 B and then past any loop, `run29-nospec` holds 327 against
-  `run29-spec`'s 268 and `run30-nospec` 327 against `run30-libcase`'s 318,
-  so neither gap closes at any cutoff. `--library` separates one pass
-  from a level: `-fliberate-case` displaced no tracked library loop
-  and the whole `-O2` level nearly all of them, the table's same-offset column
-  reading 100.0% and 4.4%. What would close the entry is that raised-cutoff
-  count on the pairs not yet asked, Run 31's and those from Run 36 on; until
-  then a run that read placement off the survey count would be reading two
-  events as one.
+  with the shim moved besides changed it a third time, the compiler moving
+  in none of the three, so what changes the sign is not the compiler; Run 32,
+  the one compiler pair surveyed, also carries more on its larger half. **Where
+  there were fewer, they were removed and not grown past the survey's 64 B
+  cutoff**: counting every self-loop of any length in `_Main_`-compiled code,
+  the cutoff lifted to 96, 128, 192 and 256 B and then past any loop,
+  `run29-nospec` holds 327 against `run29-spec`'s 268 and `run30-nospec` 327
+  against `run30-libcase`'s 318, so neither gap closes at any cutoff.
+  `--library` separates one pass from a level: `-fliberate-case` displaced
+  no tracked library loop and the whole `-O2` level nearly all of them,
+  the table's same-offset column reading 100.0% and 4.4%. What would close
+  the entry is that raised-cutoff count on the pairs not yet asked, Run 31's
+  and those from Run 36 on; until then a run that read placement off the survey
+  count would be reading two events as one.
 
 - `OPEN` **A saving in instructions reaches the clock at anything from NONE
   of it to ALL of it WITHIN ONE BINARY, where the rate on record is three
@@ -3394,15 +3398,13 @@ rather than a slot in the next run, observed again:
   own two-column table in the one direction it safely can: a run named aligned
   must also be named unaligned, so dropping the unaligned half fails the check.
   Dropping an *aligned* one cannot be checked, an unpaired run being what every
-  column before Run 10 is, and stays the reading's job. **Owed by Run 41's
-  write-up, recorded 2026-09-25: the class counts must drop a retired view.**
-  `runs-3` is retired from timing through `retiredShapes`, the first class view
-  there, and stays in the lists; `read-run.py` excludes a class's shapes
-  from today's counts by class alone, so `runs` still reads 17 and Run 40's
-  file, which timed it, passes `--check-doc`. The first run file to table `runs`
-  without it reads 16 and fails there until the class-size count also drops
-  retired class views --- a change owed with that write-up and not before,
-  the reader holding only the newest run file to today's roster.
+  column before Run 10 is, and stays the reading's job. **Paid by Run 41's
+  write-up: the class counts drop a retired view.** `runs-3` is retired
+  from timing through `retiredShapes`, the first class view there, and stays
+  in the lists; `110b014` makes `read-run.py` drop a class view retired by name
+  from its class's size unless the run file declares it retired after the run,
+  so `runs` reads 16 and Run 41's file passes `--check-doc`, the case
+  `class-view-retired-by-name-leaves-its-class` guarding it.
 
   **Run 11 had no unaligned half, and the check was left alone rather
   than widened --- the reading is that this was right.** Its two columns
