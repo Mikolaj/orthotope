@@ -4,6 +4,9 @@
 #     ./smoke-l1.sh run22                  # main set + the scaled class,
 #                                          # the basis from the note's HALVES line
 #     ./smoke-l1.sh run22 scaled runs      # and a leg per class named
+#     ARMS="new-arm its-control" ./smoke-l1.sh run42 bcast ... window
+#                                          # class legs over those arms,
+#                                          # `list` and the sum-only pair
 #
 # Step 12 is owed when `--list` changed membership and the pair note
 # records no pass. It is not a measurement: what it asks is whether the
@@ -25,6 +28,15 @@
 # `scaled` and the three its views moved in, and those three held five
 # of the sixteen rows its new arms emptied -- `block`, unmoved, held ten
 # (2026-09-10). The run chapter's step 12 carries the same rule.
+# AND NAME THOSE ARMS, `ARMS=`, with a control beside them: every class
+# leg then takes those arms, `list` and the two `sum-only` arms, the
+# forcing pass being what the correction subtracts, while the main leg
+# keeps the whole roster, which is where `--selftest`'s shapes and every
+# registered `--pair` line are read (ruled 2026-09-26). The main leg is
+# then most of the cost: on Run 42's basis it took 768s, and the class
+# legs `compose` and `runs` over one arm in, its control, `list` and the
+# pair 41s and 102s, where their whole-roster legs had taken 255s and
+# 581s. Every required mode exited 0 on all three legs.
 #
 # WHAT IT DOES NOT DO. It does not touch the control half: step 12 is
 # the BASIS's, the bench counts being read from it. It does not gate a
@@ -74,6 +86,7 @@ if [ $# -lt 1 ]; then
 fi
 R=$1; shift
 CLASSES=${*:-scaled}
+ARMS=${ARMS-}
 [ -f "$R-pair.txt" ] || { echo "!! no $R-pair.txt -- the note is written at pre-run step 2"; exit 2; }
 HALVES_SET=$(./pair-halves.sh "$R") || exit 2   # the note's HALVES
 eval "$HALVES_SET"                                # line, and nothing else
@@ -102,9 +115,23 @@ trap 'if [ "$KEEPLOG" = 1 ]; then
 EXPECT_MAIN=$("$BIN" --list 2>/dev/null | wc -l)
 [ "$EXPECT_MAIN" -gt 0 ] || { echo "!! $BIN --list is empty"; exit 2; }
 
+# THE ARMS A CLASS LEG TAKES, where ARMS names some: those, `list` and the
+# forcing pair, each held to the roster -- a name the binary lacks selects
+# no bench and would pass as a leg that ran.
+SEL=
+if [ -n "$ARMS" ]; then
+  have=$("$BIN" classes --list 2>/dev/null | cut -d/ -f2 | sort -u)
+  for a in $ARMS list sum-only-early sum-only-late; do
+    printf '%s\n' "$have" | grep -qxF "$a" \
+      || { echo "!! ARMS names '$a', which $BIN classes --list lacks"; exit 2; }
+    case " $SEL " in *" $a "*) ;; *) SEL="$SEL $a" ;; esac
+  done
+fi
+
 declare -a LEGS=(main) EXPECT=("$EXPECT_MAIN")
 for c in $CLASSES; do
-  n=$("$BIN" classes --list 2>/dev/null | grep -c "^$c-")
+  n=$("$BIN" classes --list 2>/dev/null | grep "^$c-" \
+      | awk -F/ -v s="$SEL " 's == " " || index(s, " " $2 " ")' | wc -l)
   [ "$n" -gt 0 ] || { echo "!! class '$c' matches no bench of $BIN"; exit 2; }
   LEGS+=("$c"); EXPECT+=("$n")
 done
@@ -120,7 +147,7 @@ LOG="smoke-l1-$R.log"
 : > "$LOG"
 say () { echo "$*" | tee -a "$LOG"; }
 
-say "=== $R: the L1 roster pass on the $BASIS half, ${#LEGS[@]} leg(s)"
+say "=== $R: the L1 roster pass on the $BASIS half, ${#LEGS[@]} leg(s)${SEL:+, the class legs over$SEL}"
 BAD=0
 for i in "${!LEGS[@]}"; do
   leg=${LEGS[$i]}; want=${EXPECT[$i]}
@@ -128,6 +155,11 @@ for i in "${!LEGS[@]}"; do
   t0=$SECONDS
   if [ "$leg" = main ]; then
     "$BIN" -L1 --json "$out.json" > "$out.log" 2>&1; rc=$?
+  elif [ -n "$SEL" ]; then
+    pats=()
+    for a in $SEL; do pats+=("$leg-*/$a"); done
+    "$BIN" classes -m glob "${pats[@]}" -L1 --json "$out.json" \
+      > "$out.log" 2>&1; rc=$?
   else
     "$BIN" classes "$leg-" -L1 --json "$out.json" > "$out.log" 2>&1; rc=$?
   fi
