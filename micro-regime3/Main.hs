@@ -2768,7 +2768,8 @@ canonViewOfPairs = mergeAxes
 -- The library's 'canonicalizeT' to the line, 'canonViewOfPairs' over
 -- the pairs it zips, and since 2026-09-22 the pass of every dispatch that
 -- builds a 'Walk' from the canonical view, in place of 'canonView'
--- followed by 'walkOfDims', which reversed what this writes in order.
+-- followed by 'walkOfDims', which reversed what this writes in order;
+-- but 'routeList4''s, a loop of its own since 2026-09-26.
 canonicalize :: ShapeL -> [Int] -> InnerFirst
 canonicalize sh ats = mergeAxes (zip ats sh)
 {-# INLINE canonicalize #-}
@@ -3484,9 +3485,10 @@ data Nest = Fused | Level !Int !Int !Int !Nest
 -- The fill the library's 'genericFillStrided' is ported from, at
 -- Storable Double; the library's copy is in its Data/Array/Internal.hs.
 -- This one walks the outer levels as a 'Nest' folded over them
--- innermost first, and so does 'fillStage2Axes' below since it became
--- this fill's copy on 2026-09-25; until then it numbered them outermost
--- first in two tables, as the library's port did. 'check' holds this
+-- innermost first. 'fillStage2Axes' below walks the same 'Nest', built
+-- in a loop since 2026-09-26; until it became this fill's copy on
+-- 2026-09-25 it numbered them outermost first in two tables, as the
+-- library's port did. 'check' holds this
 -- one to the reference on every view. The two zero-stride bodies say at
 -- their definitions what each buys, and the fills that keep older forms
 -- say so at theirs. The fills take @l > 0@, asserted at each entry: a
@@ -3522,10 +3524,11 @@ fillStage2 (Walk tInner sInner outerAxes) !ao !l !v =
         -- Unrolled by two as the stepping run is, since 2026-09-09: one
         -- write and a compare per element read 1.20 of master's leaf
         -- fill at an innermost run of 2, bcast-tall-Mx2, on Run 27.
-        -- 'fillStage2U1' keeps the one-per-iteration body, so the u1
-        -- pair priced this unroll on the broadcast views as it priced
-        -- the stepping one elsewhere, until 'lib-stage3-lean' moved to
-        -- 'fillStage3', this fill's 'Axis' copy, on 2026-09-25.
+        -- 'fillStage3U1', 'fillStage2U1' until 2026-09-26, keeps the
+        -- one-per-iteration body, so the u1 pair priced this unroll on
+        -- the broadcast views as it priced the stepping one elsewhere,
+        -- until 'lib-stage3-lean' moved to 'fillStage3', this fill's
+        -- 'Axis' copy, on 2026-09-25.
         -- Non-vacuity, 2026-09-09: dropping the second write fails
         -- @check@ at @bcast-inner8@.
         {-# INLINE writeRunSet #-}
@@ -3619,9 +3622,12 @@ fillStage2 (Walk tInner sInner outerAxes) !ao !l !v =
 -- 'liblist-stage5-sum', 'libunord-stage14-sum' and 'lib-stage3-lean',
 -- which since that day read 'fillStage3', the 'Axis' path's copy, so
 -- that a change to 'fillStage2' reaches neither side of those pairs.
--- Until that day it was 'fillStage2' with the odometer's levels
--- numbered outermost first, the form the library carried when it was
--- ported here.
+-- Since 2026-09-26 it builds its nest in 'fillStage3''s loop, over
+-- pairs, where it had folded 'fillStage2''s 'wrap', so that the pairs
+-- price 'Axis' and what rests on it alone; the reasons are at
+-- 'fillStage3'. Until 2026-09-25 it was 'fillStage2' with the
+-- odometer's levels numbered outermost first, the form the library
+-- carried when it was ported here.
 {-# NOINLINE fillStage2Axes #-}
 fillStage2Axes :: Walk -> Int -> Int -> VS.Vector Double -> VS.Vector Double
 fillStage2Axes (Walk tInner sInner outerAxes) !ao !l !v =
@@ -3686,11 +3692,11 @@ fillStage2Axes (Walk tInner sInner outerAxes) !ao !l !v =
                     | otherwise = body op boff
                                   >> go (k - 1) (op + blk) (boff + st)
               in  go n outPos baseOff
-        wrap :: (Nest, Int) -> (Int, Int) -> (Nest, Int)
-        wrap (inner, !blk) (!st, !n) =
-          let !nest = Level n st blk inner
-              !blkNext = n * blk
-          in  (nest, blkNext)
+        nest :: Nest -> Int -> InnerFirst -> Nest
+        nest inner !blk axes = case innerFirst axes of
+          [] -> inner
+          (!st, !n) : rest ->
+            nest (Level n st blk inner) (n * blk) (InnerFirst rest)
         {-# INLINE walk #-}
         walk :: (Int -> Int -> ST s ()) -> ST s ()
         walk writeRun = case innerFirst outerAxes of
@@ -3701,7 +3707,7 @@ fillStage2Axes (Walk tInner sInner outerAxes) !ao !l !v =
                   level writeRun n0 st0 sInner outPos baseOff
                 run (Level n st blk inner) !outPos !baseOff =
                   level (run inner) n st blk outPos baseOff
-            in  run (fst (foldl' wrap (Fused, n0 * sInner) outer)) 0 ao
+            in  run (nest Fused (n0 * sInner) (InnerFirst outer)) 0 ao
     if tInner == 0 then walk writeRunSet else walk writeRunStep
     return out
 
@@ -3934,103 +3940,6 @@ fillStage2VSdims (Walk tInner sInner outerAxes) !ao !l !v =
         !oshV  = VS.fromList (map snd levels)
         !oatsV = VS.fromList (map fst levels)
 
-
--- 'fillStage2' with neither run unrolled: the stepping run
--- 'fbMutOdoVecdimsAddInLeafU1''s loop in place of '-u2''s, the cursor
--- bound and one element per iteration, and, since 2026-09-09, the
--- broadcast run 'writeRunSet' as it was before 'fillStage2' unrolled
--- its own; everything else 'fillStage2''s, comments stripped, the code
--- copied, so that the two fills differ in their run bodies alone. The
--- pair 'lib-stage2-lean-u1' against 'lib-stage3-lean' prices the
--- unrolling under the lean dispatch, the stepping run's wherever
--- the innermost stride is not 0, the broadcast run's where it is, where
--- the leaf family prices the first under the arms' own odometer, '-u2'
--- over '-u1' at 0.9644 in time and 0.9208 in counts on Run 26's main
--- set. Added 2026-09-07 for Run 27; its walk 'fillStage2''s since
--- 2026-09-24, where until then it kept the odometer of 'fillStage2Axes'
--- and 'lib-stage2-lean' was its pair. Since 2026-09-25 the pair carries
--- the 'Axis' path as well, 'lib-stage3-lean' having moved to it.
--- Not where the fill is rank 1, read on that odometer: the latch of GHC
--- https://gitlab.haskell.org/ghc/ghc/-/work_items/27799 costs this
--- loop one instruction an element there, on one half or the other
--- (README.md#what-is-open). Price the unrolling on the main set, or off
--- a rank-2 view.
--- Non-vacuity, 2026-09-07: dropping the @+ tInner@ from the run's
--- recursive call fails @check@ at @cnn-L1-6x6-c1@, naming
--- lib-stage2-lean-u1 alone.
-{-# NOINLINE fillStage2U1 #-}
-fillStage2U1 :: Walk -> Int -> Int -> VS.Vector Double -> VS.Vector Double
-fillStage2U1 (Walk tInner sInner outerAxes) !ao !l !v =
-  assert (l > 0) $ VS.create fill
- where
-  fill :: forall s. ST s (VSM.MVector s Double)
-  fill = do
-    out <- VSM.unsafeNew l
-    let {-# INLINE writeRunStep #-}
-        writeRunStep :: Int -> Int -> ST s ()
-        writeRunStep !outPos !baseOff =
-          let !oEnd = outPos + sInner
-              inner :: Int -> Int -> ST s ()
-              inner !o !src
-                | o >= oEnd = return ()
-                | otherwise = do
-                    VSM.unsafeWrite out o (VS.unsafeIndex v src)
-                    inner (o + 1) (src + tInner)
-          in  inner outPos baseOff
-        {-# INLINE writeRunSet #-}
-        writeRunSet :: Int -> Int -> ST s ()
-        writeRunSet !outPos !baseOff =
-          let !x = VS.unsafeIndex v baseOff
-              !oEnd = outPos + sInner
-              inner :: Int -> ST s ()
-              inner !o
-                | o >= oEnd = return ()
-                | otherwise = VSM.unsafeWrite out o x >> inner (o + 1)
-          in  inner outPos
-        copies :: Int -> Int -> Int -> ST s ()
-        copies !n !blk !src
-          | n <= 1 = return ()
-          | otherwise = grow blk
-          where
-            !end = src + n * blk
-            grow :: Int -> ST s ()
-            grow !have
-              | src + have >= end = return ()
-              | otherwise = do
-                  let !len = min have (end - src - have)
-                  VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
-                                 (VSM.unsafeSlice src len out)
-                  grow (have + len)
-        {-# INLINE level #-}
-        level :: (Int -> Int -> ST s ())
-              -> Int -> Int -> Int -> Int -> Int -> ST s ()
-        level body !n !st !blk !outPos !baseOff
-          | st == 0 = body outPos baseOff >> copies n blk outPos
-          | otherwise =
-              let go :: Int -> Int -> Int -> ST s ()
-                  go !k !op !boff
-                    | k <= 0    = return ()
-                    | otherwise = body op boff
-                                  >> go (k - 1) (op + blk) (boff + st)
-              in  go n outPos baseOff
-        wrap :: (Nest, Int) -> (Int, Int) -> (Nest, Int)
-        wrap (inner, !blk) (!st, !n) =
-          let !nest = Level n st blk inner
-              !blkNext = n * blk
-          in  (nest, blkNext)
-        {-# INLINE walk #-}
-        walk :: (Int -> Int -> ST s ()) -> ST s ()
-        walk writeRun = case innerFirst outerAxes of
-          [] -> writeRun 0 ao
-          (!st0, !n0) : outer ->
-            let run :: Nest -> Int -> Int -> ST s ()
-                run Fused !outPos !baseOff =
-                  level writeRun n0 st0 sInner outPos baseOff
-                run (Level n st blk inner) !outPos !baseOff =
-                  level (run inner) n st blk outPos baseOff
-            in  run (fst (foldl' wrap (Fused, n0 * sInner) outer)) 0 ao
-    if tInner == 0 then walk writeRunSet else walk writeRunStep
-    return out
 
 -- 'fillStage2' with the stepping run unrolled by FOUR instead of two,
 -- the odd remainder taken by the by-two loop and then the by-one tail
@@ -4275,8 +4184,9 @@ fillStage2Short (Walk tInner sInner outerAxes) !ao !l !v =
 -- the control (since 2026-09-05; its readings were taken against
 -- 'lib-stage2') and every population where the fill runs reads the
 -- unrolling.  Two changes since 2026-09-22, not one: the fill takes
--- lists, so the dispatch keeps 'canonView' where the control's took
--- 'canonicalize', and the pair carries that prologue with the fill.
+-- lists, so the dispatch keeps 'canonView' where the control's merges
+-- in a loop ('canonicalize' until 2026-09-26), and the pair carries
+-- that prologue with the fill.
 {-# NOINLINE fbLibStage2U4 #-}
 fbLibStage2U4 :: ShapeL -> T -> VS.Vector Double
 fbLibStage2U4 sh (T (Strides ats) ao v)
@@ -4388,21 +4298,18 @@ fbLibStage2LeanVSdims sh (T (Strides ats) ao v)
         fillStage2VSdims (Walk t n (InnerFirst rest)) ao l v
   where l = product sh
 
--- 'fbLibStage3Lean' as it read until 2026-09-25 over 'fillStage2U1',
--- the pair reader 'routeVectorInward', deleted 2026-09-26, written out
--- with that fill in place of 'fillStage2': one change, the run bodies,
--- so that arm is its control; reasons at 'fillStage2U1'. Added
--- 2026-09-07 for Run 27; its dispatch 'canonView''s, and its control
--- 'fbLibStage2Lean', until 2026-09-24.
--- TODO: update wrt 2026-09-25, when 'lib-stage3-lean' moved to the
--- 'Axis' path: the pair carries the path as a change of its own
--- until this arm moves too.
+-- 'fbLibStage3Lean' over 'fillStage3U1', its reader
+-- 'routeVectorInward' written out with that fill in place of
+-- 'fillStage3': one change, the run bodies, so that arm is its control;
+-- reasons at 'fillStage3U1'. Added 2026-09-07 for Run 27; its dispatch
+-- 'canonView''s, and its control 'fbLibStage2Lean', until 2026-09-24;
+-- on the 'Axis' path since 2026-09-26.
 {-# NOINLINE fbLibStage2LeanU1 #-}
 fbLibStage2LeanU1 :: ShapeL -> T -> VS.Vector Double
-fbLibStage2LeanU1 sh a@(T _ _ v) = case routeList4 sh a of
-  RSlice ao l -> wholeOrSlice ao l v
-  RRuns axes ao l -> fillStage2U1 axes ao l v
-  RFill axes ao l -> fillStage2U1 axes ao l v
+fbLibStage2LeanU1 sh a@(T _ _ v) = case routeList5 sh a of
+  RSliceAx ao l -> wholeOrSlice ao l v
+  RRunsAx axes ao l -> fillStage3U1 axes ao l v
+  RFillAx axes ao l -> fillStage3U1 axes ao l v
 
 -- Stage three of the list entry point, 'toVectorListT' kept lazy up
 -- to the exception: the ordered list built as master builds it -- the
@@ -4438,12 +4345,32 @@ routeList3 sh (T (Strides ats) ao _)
 -- dispatch, the regime read off the merged form alone and no
 -- 'getStridesT' built, as 'fbLibStage2Lean' reads it. One change over
 -- stage three, and one over stage two, whose lean dispatch it shares,
--- the list's construction. Added 2026-09-07 for Run 27.
+-- the list's construction. Added 2026-09-07 for Run 27. Since 2026-09-26
+-- the merge is 'routeList5''s loops over pairs, where it had been
+-- 'canonicalize', so that its arms' pairs with their 'Axis' twins price
+-- that representation and what rests on it alone; the reasons are at
+-- 'routeList5'.
 routeList4 :: ShapeL -> T -> Route
-routeList4 sh (T (Strides ats) ao _)
+routeList4 sh (T (Strides ats) off _)
   | l == 0 = RSlice 0 0
-  | otherwise = routeOf ao l (canonicalize sh ats)
-  where !l = product sh
+  | otherwise = start ats sh
+  where
+    !l = product sh
+    start :: [Int] -> ShapeL -> Route
+    start (_ : sts) (1 : ns) = start sts ns
+    start (st : sts) (n : ns) = canonicalizeLoop st n [] sts ns
+    start _ _ = RSlice off l
+    -- Shape and stride canonicalization from the first kept axis on, in
+    -- the view's order, which the ordered result must keep.
+    canonicalizeLoop :: Int -> Int -> [(Int, Int)] -> [Int] -> ShapeL
+                     -> Route
+    canonicalizeLoop !st' !n' rest (_ : sts) (1 : ns) =
+      canonicalizeLoop st' n' rest sts ns
+    canonicalizeLoop !st' !n' rest (st : sts) (n : ns)
+      | st' == n * st = canonicalizeLoop st (n' * n) rest sts ns
+      | otherwise = canonicalizeLoop st n ((st', n') : rest) sts ns
+    canonicalizeLoop !st' !n' rest _ _ =
+      routeOfWalk off l st' n' (InnerFirst rest)
 {-# INLINE routeList4 #-}
 
 -- Stage three, RULED OUT for the library since 2026-09-07 and kept as
@@ -4759,8 +4686,8 @@ sumNoSpec p = go 0 0
 -- The route of a canonicalized view, given its start offset and its
 -- element count: one slice where no axis is left or the one left has
 -- stride 1, runs where the innermost stride is 1, the fill otherwise.
--- Shared by the dispatches that hand back a 'Route', so that it is
--- written once.
+-- Shared by the stages 'dispatchLean' builds, so that it is written
+-- once.
 routeOf :: Int -> Int -> InnerFirst -> Route
 routeOf start l axes = case innerFirst axes of
   [] -> RSlice start l
@@ -4768,6 +4695,18 @@ routeOf start l axes = case innerFirst axes of
   (1, n) : rest -> RRuns (Walk 1 n (InnerFirst rest)) start l
   (t, n) : rest -> RFill (Walk t n (InnerFirst rest)) start l
 {-# INLINE routeOf #-}
+
+-- 'routeOfAx' over pairs: the route of a canonicalized view of at least
+-- one axis, given its start offset, its element count, the innermost
+-- axis's stride and extent and the axes outside it. Shared by
+-- 'routeList4' and 'routeUnord13', whose merge loops hand it the head
+-- as two 'Int's, as the 'Axis' path's dispatches hand 'routeOfAx'
+-- theirs.
+routeOfWalk :: Int -> Int -> Int -> Int -> InnerFirst -> Route
+routeOfWalk start l 1 _ (InnerFirst []) = RSlice start l
+routeOfWalk start l 1 n rest = RRuns (Walk 1 n rest) start l
+routeOfWalk start l t n rest = RFill (Walk t n rest) start l
+{-# INLINE routeOfWalk #-}
 
 -- The lean dispatch over an axis order: the (stride, extent) pairs the
 -- order hands back are canonicalized, and 'routeOf' reads them. Stages
@@ -5193,19 +5132,37 @@ runRank !a !b = case compare ta tb of
 -- plain build of 2026-09-17, the sum consumer retires 4369 instructions
 -- a call against stage twelve's 6233 on 'cnn-L1-6x6-c1', 2979 against
 -- 3869 on 'small-flat64' and 4218 against 4513 on 'small-row96'; added
--- 2026-09-17 for Run 35.  In the library, the three cases of 'routeOf'
--- are the slice, the run list and the fill that 'toVectorListT'
--- produces there.  From here down nothing names a stage or this
--- harness: the account after the function explains the dispatch on its
--- own terms.
+-- 2026-09-17 for Run 35.  Since 2026-09-26 the merge is
+-- 'routeUnord14''s loops over pairs, and 'absPairs' that one's
+-- 'absAxes', so that the pair of the two prices 'Axis' and what rests
+-- on it alone.  In the library, the three cases of 'routeOfWalk' are
+-- the slice, the run list and the fill that 'toVectorListT' produces
+-- there.  From here down nothing names a stage or this harness: the
+-- account after the function explains the dispatch on its own terms.
 routeUnord13 :: ShapeL -> T -> Route
 routeUnord13 sh (T (Strides ats) ao _)
   | l == 0 = RSlice 0 0
-  | otherwise = routeOf start l (zeroStrideOutermost merged)
+  | otherwise = start (sortBy byStrideRank axes)
   where
+    (axes, !off) = absPairs [] ao ats sh
     !l = product sh
-    PairsStart axes start = absPairsAndStart ao ats sh
-    merged = mergeAxes (sortBy byStrideRank axes)
+    start :: [(Int, Int)] -> Route
+    -- Unbanged: the loop's bangs force the pair, and banged here too the
+    -- Core unboxes both twice (2026-09-26).
+    start ((st, n) : ps) = canonicalizeLoop st n [] ps
+    start [] = RSlice off l
+    -- Shape and stride canonicalization of the sorted axes from the first,
+    -- free to reorder at its exit: the result need keep only the multiset.
+    canonicalizeLoop :: Int -> Int -> [(Int, Int)] -> [(Int, Int)] -> Route
+    canonicalizeLoop !st' !n' rest ((!st, !n) : ps)
+      | st' == n * st = canonicalizeLoop st (n' * n) rest ps
+      | otherwise = canonicalizeLoop st n ((st', n') : rest) ps
+    -- A zero-stride innermost axis followed by a unit-stride one goes
+    -- outermost, so that the unit stride is the run.
+    canonicalizeLoop !st' !n' rest []
+      | st' == 0, (1, n1) : rest' <- rest =
+          routeOfWalk off l 1 n1 (InnerFirst (rest' ++ [(0, n')]))
+      | otherwise = routeOfWalk off l st' n' (InnerFirst rest)
 {-# INLINE routeUnord13 #-}
 
 -- The dispatch of 'routeUnord13', piece by piece.
@@ -5224,8 +5181,8 @@ routeUnord13 sh (T (Strides ats) ao _)
 -- Why one walk first.  Three things are read off the shape and the
 -- strides as given: which axes have extent 1, the absolute value of
 -- each stride, and the start offset (below).  Each is a pass over the
--- two lists, and 'absPairsAndStart' takes all three in one, returning
--- the (absolute stride, extent) pairs of the axes that matter with the
+-- two lists, and 'absPairs' takes all three in one, returning the
+-- (absolute stride, extent) pairs of the axes that matter with the
 -- start offset beside them.
 --
 -- Why drop the axes of extent 1 before the sort.  An axis of extent 1
@@ -5277,13 +5234,13 @@ routeUnord13 sh (T (Strides ats) ao _)
 -- Why merge after the sort.  Two adjacent axes are one axis when the
 -- outer stride is the inner stride times the inner extent: walking the
 -- inner axis to its end and stepping the outer axis once lands where
--- one axis of the combined extent would.  'mergeInner' merges every such
--- pair.  Done after the sort, the merge finds every pair the sorted
+-- one axis of the combined extent would.  The merge loop merges every
+-- such pair.  Done after the sort, the merge finds every pair the sorted
 -- order stands next to each other, which in a view without a stride
 -- tie is every pair any order of the axes would have put together; a
 -- view that is one block of the vector has no tie, so it merges to a
 -- single axis of stride 1 and reads as one slice, whatever order its
--- axes came in, and 'routeOf' decides that off the merged form with
+-- axes came in, and 'routeOfWalk' decides that off the merged form with
 -- no stride list built.
 --
 -- Why the zero-stride axis moves outermost, and why after the merge.
@@ -5298,45 +5255,35 @@ routeUnord13 sh (T (Strides ats) ao _)
 -- nothing but another zero stride, so there is at most one such axis,
 -- and it sorts after every other stride, so it is innermost, the head;
 -- and a unit-stride axis worth moving it over is the one after it.
--- 'zeroStrideOutermost' does the look and the move.
+-- The merge loop does the look and the move at its exit.
 
--- The (absolute stride, extent) pairs of the axes of extent above 1,
--- in reverse of the order given, and the offset of the view's lowest
--- address.  The offset is a strict field, so the loop carries a number
--- and not a chain of additions, and the accumulator is the result
--- itself.  The reversal is nothing to the sort behind it: the only
--- order 'byStrideRank' leaves to the sort's stability is between two
--- axes of one absolute stride and one extent, which 'mergeInner'
--- treats alike whichever comes first.
-data PairsStart = PairsStart [(Int, Int)] !Int
+-- 'absAxes' over pairs: the (absolute stride, extent) pairs of the axes
+-- of extent above 1, onto the list given in reverse of the order given,
+-- and the offset given moved to the view's lowest address. The reversal
+-- is nothing to the sort behind it: the only order 'byStrideRank' leaves
+-- to the sort's stability is between two axes of one absolute stride
+-- and one extent, which 'routeUnord13''s merge loop treats alike
+-- whichever comes first. A function returning the pair, with no
+-- 'INLINE', as 'absAxes' is; why, at it and in README's entry on
+-- 'MergeAccAx'. The negation is no thunk: the Core computes it in
+-- place, banged or not (2026-09-26).
+absPairs :: [(Int, Int)] -> Int -> [Int] -> ShapeL -> ([(Int, Int)], Int)
+absPairs axes !off (_ : sts) (1 : ns) = absPairs axes off sts ns
+absPairs axes !off (st : sts) (n : ns)
+  | st < 0 = absPairs ((negate st, n) : axes) (off + (n - 1) * st) sts ns
+  | otherwise = absPairs ((st, n) : axes) off sts ns
+absPairs axes !off _ _ = (axes, off)
 
-absPairsAndStart :: Int -> [Int] -> ShapeL -> PairsStart
-absPairsAndStart ao = go (PairsStart [] ao)
-  where
-    go :: PairsStart -> [Int] -> ShapeL -> PairsStart
-    go acc@(PairsStart axes start) (s : ss) (n : ns)
-      | n == 1 = go acc ss ns
-      | s < 0 = go (PairsStart ((negate s, n) : axes) (start + (n - 1) * s))
-                   ss ns
-      | otherwise = go (PairsStart ((s, n) : axes) start) ss ns
-    go acc _ _ = acc
-{-# INLINE absPairsAndStart #-}
-
--- The merged axes, innermost first, with their zero-stride axis, if
--- they begin with one followed by a unit-stride axis, moved to the end.
-zeroStrideOutermost :: InnerFirst -> InnerFirst
-zeroStrideOutermost axes = case innerFirst axes of
-  (0, z) : rest@((1, _) : _) -> InnerFirst (rest ++ [(0, z)])
-  _ -> axes
-
--- The 'Axis' path, since 2026-09-25 the three inward twins' own:
+-- The 'Axis' path, since 2026-09-25 the three inward twins' own, and
+-- since 2026-09-26 'lib-stage2-lean-u1''s through 'fillStage3U1':
 -- 'lib-stage3-lean', 'liblist-stage5-sum' and 'libunord-stage14-sum'
 -- read their views through copies of the dispatch, the route, the runs
 -- walker and the fill in which a canonical axis is an 'Axis', where
 -- every other arm reads a (stride, extent) pair, so that their pairs
 -- with 'lib-stage2-lean', 'liblist-stage4-sum' and
--- 'libunord-stage13-sum' price that representation and what the copies
--- have changed since. Each copy began as its original's code with the
+-- 'libunord-stage13-sum' price that representation and what rests on
+-- it, the copies' other changes having been ported to those three arms'
+-- code on 2026-09-26. Each copy began as its original's code with the
 -- pair an 'Axis' and its name suffixed @Ax@, carrying its original's
 -- comment adjusted to that, and says so where it has moved on since; a
 -- figure dated 2026-09-25 was read on the copy, every other on the
@@ -5371,7 +5318,8 @@ data WalkAx = WalkAx !Int !Int InnerFirstAx
 
 
 -- Stage five of the list entry point, 'routeList4' over the 'Axis'
--- path, the dispatch of 'lib-stage3-lean' and 'liblist-stage5-sum';
+-- path, the dispatch of 'lib-stage3-lean', 'lib-stage2-lean-u1' and
+-- 'liblist-stage5-sum';
 -- stage four is 'routeList3' under the lean dispatch, the regime read
 -- off the merged form alone and no 'getStridesT' built, as
 -- 'fbLibStage2Lean' reads it. The merge is the library's
@@ -5680,7 +5628,7 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao !l !v =
         -- Unrolled by two as the stepping run is, since 2026-09-09: one
         -- write and a compare per element read 1.20 of master's leaf
         -- fill at an innermost run of 2, bcast-tall-Mx2, on Run 27.
-        -- 'fillStage2U1' keeps the one-per-iteration body, so the u1 pair
+        -- 'fillStage3U1' keeps the one-per-iteration body, so the u1 pair
         -- prices this unroll on the broadcast views as it prices the
         -- stepping one elsewhere. Non-vacuity, 2026-09-09: dropping the
         -- second write fails @check@ at @bcast-inner8@.
@@ -5764,6 +5712,103 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao !l !v =
                 -- fill's body the result's buffer and length stay live
                 -- across it. Each broke in a variant of 2026-09-24,
                 -- 6.5 to 22% more instructions on the stretch views.
+                run FusedAx !outPos !baseOff =
+                  level writeRun axis0 sInner outPos baseOff
+                run (LevelAx axis blk inner) !outPos !baseOff =
+                  level (run inner) axis blk outPos baseOff
+            in  run (nest FusedAx (n0 * sInner) (InnerFirstAx outer)) 0 ao
+    if tInner == 0 then walk writeRunSet else walk writeRunStep
+    return out
+
+-- 'fillStage3' with neither run unrolled: the stepping run
+-- 'fbMutOdoVecdimsAddInLeafU1''s loop in place of '-u2''s, the cursor
+-- bound and one element per iteration, and, since 2026-09-09, the
+-- broadcast run 'writeRunSet' as it was before 'fillStage2' unrolled
+-- its own; everything else 'fillStage3''s, comments stripped, the code
+-- copied, so that the two fills differ in their run bodies alone. The
+-- pair 'lib-stage2-lean-u1' against 'lib-stage3-lean' prices the
+-- unrolling under the lean dispatch, the stepping run's wherever
+-- the innermost stride is not 0, the broadcast run's where it is, where
+-- the leaf family prices the first under the arms' own odometer, '-u2'
+-- over '-u1' at 0.9644 in time and 0.9208 in counts on Run 26's main
+-- set. Added 2026-09-07 for Run 27 as 'fillStage2U1', over pairs; its
+-- walk 'fillStage2''s from 2026-09-24, where until then it kept the
+-- odometer of 'fillStage2Axes' and 'lib-stage2-lean' was its pair; on
+-- the 'Axis' path since 2026-09-26, a day after 'lib-stage3-lean'.
+-- Not where the fill is rank 1, read on that odometer: the latch of GHC
+-- https://gitlab.haskell.org/ghc/ghc/-/work_items/27799 costs this
+-- loop one instruction an element there, on one half or the other
+-- (README.md#what-is-open). Price the unrolling on the main set, or off
+-- a rank-2 view.
+-- Non-vacuity, 2026-09-07 and on this fill 2026-09-26: dropping the
+-- @+ tInner@ from the run's recursive call fails @check@ at
+-- @cnn-L1-6x6-c1@, naming lib-stage2-lean-u1 alone.
+{-# NOINLINE fillStage3U1 #-}
+fillStage3U1 :: WalkAx -> Int -> Int -> VS.Vector Double -> VS.Vector Double
+fillStage3U1 (WalkAx tInner sInner outerAxes) !ao !l !v =
+  assert (l > 0) $ VS.create fill
+ where
+  fill :: forall s. ST s (VSM.MVector s Double)
+  fill = do
+    out <- VSM.unsafeNew l
+    let {-# INLINE writeRunStep #-}
+        writeRunStep :: Int -> Int -> ST s ()
+        writeRunStep !outPos !baseOff =
+          let !oEnd = outPos + sInner
+              inner :: Int -> Int -> ST s ()
+              inner !o !src
+                | o >= oEnd = return ()
+                | otherwise = do
+                    VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                    inner (o + 1) (src + tInner)
+          in  inner outPos baseOff
+        {-# INLINE writeRunSet #-}
+        writeRunSet :: Int -> Int -> ST s ()
+        writeRunSet !outPos !baseOff =
+          let !x = VS.unsafeIndex v baseOff
+              !oEnd = outPos + sInner
+              inner :: Int -> ST s ()
+              inner !o
+                | o >= oEnd = return ()
+                | otherwise = VSM.unsafeWrite out o x >> inner (o + 1)
+          in  inner outPos
+        copies :: Int -> Int -> Int -> ST s ()
+        copies !n !blk !src
+          | n <= 1 = return ()
+          | otherwise = grow blk
+          where
+            !end = src + n * blk
+            grow :: Int -> ST s ()
+            grow !have
+              | src + have >= end = return ()
+              | otherwise = do
+                  let !len = min have (end - src - have)
+                  VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
+                                 (VSM.unsafeSlice src len out)
+                  grow (have + len)
+        {-# INLINE level #-}
+        level :: (Int -> Int -> ST s ())
+              -> Axis -> Int -> Int -> Int -> ST s ()
+        level body (Axis st n) !blk !outPos !baseOff
+          | st == 0 = body outPos baseOff >> copies n blk outPos
+          | otherwise =
+              let go :: Int -> Int -> Int -> ST s ()
+                  go !k !op !boff
+                    | k <= 0    = return ()
+                    | otherwise = body op boff
+                                  >> go (k - 1) (op + blk) (boff + st)
+              in  go n outPos baseOff
+        nest :: NestAx -> Int -> InnerFirstAx -> NestAx
+        nest inner !blk axes = case innerFirstAx axes of
+          [] -> inner
+          axis@(Axis _ n) : rest ->
+            nest (LevelAx axis blk inner) (n * blk) (InnerFirstAx rest)
+        {-# INLINE walk #-}
+        walk :: (Int -> Int -> ST s ()) -> ST s ()
+        walk writeRun = case innerFirstAx outerAxes of
+          [] -> writeRun 0 ao
+          axis0@(Axis _ n0) : outer ->
+            let run :: NestAx -> Int -> Int -> ST s ()
                 run FusedAx !outPos !baseOff =
                   level writeRun axis0 sInner outPos baseOff
                 run (LevelAx axis blk inner) !outPos !baseOff =
@@ -7684,7 +7729,7 @@ roster =
     -- since 2026-09-25.
   , ("lib-stage2-lean-vsdims",     Only fbLibStage2LeanVSdims)
     -- The fill not unrolled under the lean dispatch, added 2026-09-07
-    -- beside its control for Run 27; reasons at 'fillStage2U1'.
+    -- beside its control for Run 27; reasons at 'fillStage3U1'.
   , ("lib-stage2-lean-u1",         Fill fbLibStage2LeanU1)
     -- The ordered list's consumers, added 2026-09-09 for Run 28:
     -- 'sumT'-shaped over each stage's ordered list, master's and the
