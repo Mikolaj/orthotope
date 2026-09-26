@@ -450,6 +450,8 @@ the chronology of how the instructions got here.
   - [Dropping the minibatch dimension](#dropping-the-minibatch-dimension)
   - [The stride classes and what they
     cover](#the-stride-classes-and-what-they-cover)
+  - [Which population answers a question, and how to ask all
+    of them](#which-population-answers-a-question-and-how-to-ask-all-of-them)
   - [The scratch vector flavour](#the-scratch-vector-flavour)
   - [One element type, and what the probe
     found](#one-element-type-and-what-the-probe-found)
@@ -1584,73 +1586,31 @@ rather than a slot in the next run, observed again:
   cycles an iteration, on the Run 36 and Run 37 basis instances, among eleven
   others of the same instance at 1.6M to 1.8M, transients the medians set aside
   (`log-instances-0920.txt`).
-- `OPEN` **The write-up's vocabulary and its Contents map have gaps a fresh
-  reader falls into, found by Run 36's comprehension probe and none of them
-  this run's doing.** A probe that had not read the artifacts read both
-  documents and could not do six things. **`strategy` carries two counts
-  and the smaller is defined nowhere**: the Results table heads its first column
-  `strategy` over thirty-five rows, while the head and every class block say
-  `N of 8 strategies`, which is the timed arms minus their A/A copies;
-  **`A/A bar` is never defined either**, appearing ten times in a run file
-  and once here inside a procedure comment, its only gloss an unnamed one
-  in the head. **The plateau vocabulary --- `the plateau`, `the victim`,
-  `the preamble`, the alone-leg riders --- has no reader-facing definition
-  anywhere**, only procedure comments and open-list entries, so a reader cannot
-  say what the 29.22% spread is a spread of. **Three sign conventions for one
-  shape of ratio sit in one run file**, each glossed separately and none flagged
-  as different: the pair's cross figures (above 1 = the flagged half faster),
-  the cross-run ones (below 1 = this run faster) and property 1's
-  fill-against-`bq-expand` figures (below 1 = the fill ahead, direction
-  unstated). **`points` is the file's central unit and neither document says
-  it means `(ratio - 1) x 100`**, which is why one class block can read `29.16%`
-  and `29.16 of a point` two paragraphs apart. **Contents omits
-  `Which population answers a question, and how to ask all of them`**, the one
-  section that opens by calling itself the statement everything else points
-  to --- the only heading in this file the map leaves out.
-  And **`Recommended tasks after Run N` holds no recommended task**, only four
-  runs' post-mortems and spent-item records, so a reader asking what the next
-  run should do is sent to the wrong heading. **What settles each is a sentence,
-  not a measurement**, which is why they are here rather than in a run's
-  registration: a gloss for the two counts and the bar where the table first
-  uses them, one for the plateau where Provenance first names it, one statement
-  of the sign rule in each run file's head covering all three uses, one sentence
-  on `points` in *Reading a run file*, the missing anchor in Contents,
-  and either a recommended task under that heading or a pointer from it
-  to the open list, where Run 36's candidate pair actually lives. The probe read
-  about a tenth of this file; nothing says the same gaps do not run further.
-  **Run 37's probe hit ALL SIX again and none was fixed between the runs**,
-  which makes this the second run publishing documents a fresh reader cannot
-  navigate and moves the entry from a finding to a backlog: `points` is still
-  unglossed where the `rev` block reads "27.24 of a point" three sentences after
-  "moved 27.24%", and the sign rule is still unstated for property 1's own
-  figures, which Run 37's head fixed for the cross-half and cross-run cases
-  alone. **It found TWO more of the same kind.** The `needs` cell of the shipped
-  leaf's row calls it what `genericFillStrided` is a port of, a relation [the
-  branch's own paragraph](#regime-3-micro-benchmark-the-regime-3-fix) retired
-  on 2026-09-11 in favour of `fillStage2`, so a published table asserts what
-  this file denies nine days earlier --- and it is a `Main.hs` comment,
-  so no document gate reads it and `--lint` is what would. And the run chapter
-  carries TWO numberings of step 4: a prose `4a. Analyse with ./read-run.py`
-  and, inside the post-run list's comment block, a different 4a and 4b, which
-  is where a run file's reference to "post-run step 4b" actually lands; a reader
-  following the link meets the wrong one first. **RUN 38'S PROBE HIT ALL EIGHT
-  AGAIN, independently and before reading this entry, which makes this the THIRD
-  run to publish the same list unfixed.** **AND IT ADDED SIX, none of them
-  a figure**: the run file's Provenance enumerated every input
-  but the ALLOCATION AREA; a class floor stood with no half beside it, which
-  this file's own class-block rule forbids; the two per-shape fingerprint tables
-  carry no label of their own and sit under a paragraph announcing different
-  tables; `family` means an arm with its A/A copies in a run file's head
-  and a group of distinct strategies in its class tables, with nothing flagging
-  the shift; a reader meets EIGHT thresholds in two units --- a 0.45-point bar,
-  a 0.57% floor, a 0.7% differencing bar, a 3.3% drift band, four registration
-  bands, 5% and 3% machine bars, a 5% plateau band and a per-class A/A bar ---
-  with one sentence in either document distinguishing any two of them; and four
-  distinct pointers in one run file resolve to this section, eighty bullets
-  long. **Run 38 fixed the first three in its own file and the head's own case
-  of the same thing** --- its *no regression* sentence now says which arm
-  it is about --- **and left the last three, which are this section's shape
-  and the vocabulary's, not a run's to repair.**
+- `ANSWERED` **The write-up's vocabulary and its Contents map had gaps a fresh
+  reader fell into, found by Run 36's comprehension probe and re-found by every
+  probe after it --- closed 2026-09-26.** Run 36's probe could not do six
+  things, and Runs 37 and 38 added eight more, none of them a figure: `points`
+  unglossed; `A/A bar` and the count behind `N of 8 strategies` undefined;
+  the plateau words --- the preamble, the victim, the riders --- defined nowhere
+  a reader looks; three sign conventions for one shape of ratio, stated
+  separately; Contents missing *Which population answers a question*;
+  `Recommended tasks after Run N` holding no task; the shipped leaf's `needs`
+  cell naming a port retired 2026-09-11; two numberings of post-run step 4;
+  `family` in two senses; many thresholds in two units with nothing telling them
+  apart; and three a run file could fix in itself, which Run 38 did ---
+  the allocation area in Provenance, the class floor's half, the fingerprint
+  tables' labels. Run 41's write-up fixed the `needs` cell, and the rest went
+  on 2026-09-26: the words and every bar with its unit are one glossary
+  at the head of [Reading a run file](#reading-a-run-file), which each run
+  file's opening paragraph links; Contents names the missing section;
+  the heading is [Standing rulings from past
+  runs](#standing-rulings-from-past-runs) and carries no run number; `family`
+  keeps the sense of an arm with its A/A copies and the group is **the vecdims
+  arms**, the column `best outside vecdims`, in the reader and the documents,
+  dated accounts keeping the old word; and the prose step 4a is unnumbered.
+  **What stays is the open list's own size**: a run file's pointers
+  into this section still land on a list past a hundred entries, and a probe
+  that reads a tenth of this file can still meet a gap no probe has reached.
 - `OPEN` **`-O2` changes what the preamble's spray leaves RESIDENT, and no pair
   before it did.** Run 31's twenty-two processes carry one `keep` value,
   `8.19844333056e12`, and TWO `inuse` values --- 95420416 on every plain -O1
@@ -10101,20 +10061,16 @@ because by then the run read finished; putting it first is what retires that.
    [the ruling](#the-stride-classes-and-what-they-cover), and there
    is no combined figure to compute, so a sentence comparing populations
    compares their tables.
-4a. Analyse with `./read-run.py`, which is where every table in this file comes
-from --- and this 4a is THIS list's, not the post-run list's, whose own 4a
-and 4b are the half-local movers and the cell movers; a run file citing
-`post-run step 4b` means those, and `./read-run.py --checklist post-a`
-is the half they sit in --- read [the reader's own
-section](#the-reader-read-runpy) first, and do not write another reader.
-**The properties are part of this and are the thing these steps are likeliest
-to leave out**: they are the same job three times a population, off the verdicts
-`--block` emits, and the set is restated for the next run on this run's basis
-while the readings are still in front of you. **A paired Run's own mode
-is `--compare`**, and its direction is the list's convention: the run given
-first is the one the ratios are *of*, so `basis --compare control` puts a figure
-below 1 where the basis is faster, which for Run 10 was where alignment
-was faster.
+Analyse with `./read-run.py`, which is where every table in this file comes
+from --- read [the reader's own section](#the-reader-read-runpy) first, and do
+not write another reader. **The properties are part of this and are the thing
+these steps are likeliest to leave out**: they are the same job three times
+a population, off the verdicts `--block` emits, and the set is restated
+for the next run on this run's basis while the readings are still in front
+of you. **A paired Run's own mode is `--compare`**, and its direction
+is the list's convention: the run given first is the one the ratios are *of*,
+so `basis --compare control` puts a figure below 1 where the basis is faster,
+which for Run 10 was where alignment was faster.
 5. **Make the run's own file, COMMIT THE COPY, and repoint README at it,
    and not before this step.** `runs/run<N>.md` is one run's write-up entire ---
    *Results*, *What the next run compares against*, *The properties the next run
@@ -11198,6 +11154,44 @@ What a run's own file stands on and does not restate: how its tables are read,
 the rulings its comparisons rest on, and the form its class section keeps.
 It is here once because none of it changes with a run, and the run file links
 it where it applies.
+
+**The words a run file uses and the bars it reads against, once.** A **point**
+is a hundredth of a ratio: a cross figure of 1.2926 is `list` 29.26 points apart
+between the halves, and a gap between two ratios is their difference times
+a hundred, so `moved 29.61%` and `29.61 of a point` in one block are one
+quantity on one scale. **Every ratio is written A over B, below 1 meaning
+A is the faster**: a cross figure is the basis over the control, so above 1
+is the control, the flagged half, the faster; a cross-run figure is this run
+over the earlier one; a `--pair` figure is its first-named arm over its second,
+as property 1's `mut-odo-vecdims` over `bq-expand`. **A strategy** is any arm
+that is not a control --- not an A/A copy, a `sum-only` half or a `-nosum` twin
+--- and `N of 8 strategies` counts those carrying a corrected time, `list`
+included; the Results table's rows are every timed arm, controls and reducing
+consumers too. **A family** is an arm with its A/A copies,
+as in `the bq-expand family`; **the vecdims arms** are `mut-odo-vecdims`
+and the arms refined from it, whose best rival the `best outside vecdims` column
+names --- dated accounts written before 2026-09-26 call them the family.
+**The preamble** is the saturating spray a process under `SATURATE=1` makes
+before its first bench, **the victim** the one bench it then times,
+`vgg-14-c512-k3/list`, reported on the process's `@@saturate` line,
+and **the plateau** the state that leaves, which `read-all.sh` gates by every
+process's victim reading inside 5% of the run's; **the riders** are the alone
+legs after the sequence, each shape's `list` alone in a process of its own,
+clean and saturated, off which `--deflation` splits what the preamble
+and the roster each cost a process.
+
+| bar | unit | what it bounds | where it is read |
+|---|---|---|---|
+| the A/A floor | % | whether two rows of ONE process's table differ; the widest an A/A pair parts over the eight pairs, per population and half | `--aa`, `--floor-pairs`, [the floor section][floor] |
+| the carry-back figure | % | nothing: the same over the four pairs that carry back to Run 10, kept as a series across runs | `--record floor` |
+| the A/A bar | points | whether an arm moved between TWO files further than its own A/A copy did in that same comparison; a class block's `A/A bar` is this, per class | `--compare`, under its table |
+| the 0.7% bar | % | whether two files' columns may be subtracted: `list`, the denominator, sitting still between them | `read-all.sh --brief-facts`, each class block's `Across the halves` line |
+| the drift band | % | whether an arm moved between two RUNS: 3.3%, Run 11's, what `--bridge` prints against; 2.1%, Run 23's reading on one binary; 3%, what `--half-movers` flags at | `--bridge`, `--half-movers` |
+| the wider floor | % | a margin across a pair's two halves on a class, held to the wider of their two floors | [the floor section][floor] |
+| a registration's band | % | whether a prediction held, one per `predict:` span | `--predictions` |
+| the machine bars | % | whether the box moved: 5% a shape, 3% the geomean, `list` against the kept fingerprint | `--machine`, `run-gate.sh` |
+| the plateau band | % | whether every process started from one state | `read-all.sh` |
+| the worst-cell gate | % | whether an A/A cell, at about 10%, leaves the per-shape record | [the procedure][procedure] |
 
 **The Results table.** How to read its columns, the `needs` column's own gloss
 being under the run file's properties with the tier it splits:
