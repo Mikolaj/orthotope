@@ -5118,9 +5118,9 @@ def cell_dump(cells, shapes, strategies):
 # and why it went); `install` matches a table by its whole header line, so
 # the run file's tables carry these lines and a change here changes both.
 FINGERPRINT_HEADER = ('| shape | `sInner` | `l` | `list`, net'
-                      ' | mut-odo-vecdims | best outside family | ceiling |')
+                      ' | mut-odo-vecdims | best outside vecdims | ceiling |')
 FINGERPRINT_CLASS_HEADER = ('| shape | class | `sInner` | `l` | `list`, net'
-                            ' | mut-odo-vecdims | best outside family'
+                            ' | mut-odo-vecdims | best outside vecdims'
                             ' | ceiling |')
 
 
@@ -5160,8 +5160,8 @@ def fingerprint_row(sh, sh_cells, d, label=None):
     """One row of the kept per-shape record: dims, `list`'s net per call
     as an absolute, and three cells read as the cross-class summary's
     columns of those names are, per shape rather than per population --
-    `mut-odo-vecdims`'s ratio, the best arm outside the vecdims family
-    with its ratio, and the ceiling, the family's leading arm with its.
+    `mut-odo-vecdims`'s ratio, the best arm outside the vecdims arms
+    with its ratio, and the ceiling, the vecdims arms' leader with its.
     A sunk cell -- a net the forcing term did not leave positive -- is
     `--` and never a candidate, as `time_of` and `worst_of` read it: a
     negative or wild figure here outlives the run that could disprove
@@ -5184,14 +5184,14 @@ def fingerprint_row(sh, sh_cells, d, label=None):
     timed = sorted((r, st) for st in sh_cells
                    if st != 'list' and not is_control(st) and not no_net(st)
                    for r in [ratio(st)] if r is not None)
-    outside = next((p for p in timed if not p[1].startswith(FAMILY)), None)
-    family = next((p for p in timed if p[1].startswith(FAMILY)), None)
+    outside = next((p for p in timed if not p[1].startswith(VECDIMS)), None)
+    vecdims = next((p for p in timed if p[1].startswith(VECDIMS)), None)
     plain = ratio(PLAIN)
     row = ['`%s`' % sh] + (['`%s`' % label] if label else [])
     row += [str(d['s_inner']), str(d['l'])] if d else ['?', '?']
     row.append(fmt_abs(base))
     row.append('--' if plain is None else '%.3f' % plain)
-    for p in (outside, family):
+    for p in (outside, vecdims):
         row.append('--' if p is None else '`%s` %.3f' % (p[1], p[0]))
     return '| ' + ' | '.join(row) + ' |'
 
@@ -5222,19 +5222,19 @@ def fingerprint_table(cells, shapes, strategies, meta, classes=()):
                 print(fingerprint_row(sh, c_cells[sh], c_dims.get(sh), label))
 
 
-# The regime 3 fix became the `mut-odo-vecdims` FAMILY by the decision of
+# The regime 3 fix became the `mut-odo-vecdims` ARMS by the decision of
 # 2026-08-22 (README, the ceiling), narrowed 2026-08-24 to its
 # `add-in-leaf-u2` member, which is what ships; `bq-expand` the last
 # candidate. The pure/impure distinction retired with the decision, and the
-# summary's pure slot now carries the best arm OUTSIDE the vecdims family
+# summary's pure slot now carries the best arm OUTSIDE the vecdims arms
 # -- what the stride-conditioned redirect, dropped 2026-08-24, would have
-# taken per class. `PLAIN` is the family's UNREFINED member, which every
+# taken per class. `PLAIN` is the vecdims arms' UNREFINED one, which every
 # ratio here is quoted against and which this file used to call `FIX` --
 # a name that read as though the plain arm were the shipped code, where it
 # is one of the several the shipped member leads.
-SUMMARY_COLS = ('shapes', 'mut-odo-vecdims', 'worst', 'best outside family',
+SUMMARY_COLS = ('shapes', 'mut-odo-vecdims', 'worst', 'best outside vecdims',
                 'ceiling', 'floor')
-FAMILY = 'mut-odo-vecdims'
+VECDIMS = 'mut-odo-vecdims'
 PLAIN = 'mut-odo-vecdims'
 LAST_CANDIDATE = 'bq-expand'
 
@@ -5348,7 +5348,7 @@ def block_verdicts(cells, shapes, strategies, meta, args):
     print('Verdicts, derived from the cells above; the paragraph is yours:')
     print('  fastest timed arm   %-30s %.3f' % (timed[0][1], timed[0][0]))
     if outside:
-        print('  best outside family %-30s %.3f' % (outside[0][1],
+        print('  best outside vecdims %-30s %.3f' % (outside[0][1],
                                                      outside[0][0]))
         lead = next((r for r in timed if r[1] == PLAIN), None)
         if lead is not None and outside[0][0] < lead[0]:
@@ -5356,11 +5356,11 @@ def block_verdicts(cells, shapes, strategies, meta, args):
                                      floor):
                 print(line)
     # The summary's *ceiling* cell, which had no derived line here and was
-    # picked by eye off a table printing two family arms at one figure:
+    # picked by eye off a table printing two vecdims arms at one figure:
     # four of Run 22's cells named the one that trailed. 2026-09-01.
-    if led.family:
-        print('  ceiling (family)    %-30s %.3f' % (led.family[0].st,
-                                                     led.family[0].time))
+    if led.vecdims:
+        print('  ceiling (vecdims)    %-30s %.3f' % (led.vecdims[0].st,
+                                                     led.vecdims[0].time))
     # AND WHICH OF THOSE TWO THE SUMMARY BOLDS, which was hand work and is
     # the same lesson as the ceiling line above, one column across. The
     # cross-class summary emphasises the faster of its two named arms, and
@@ -5371,10 +5371,10 @@ def block_verdicts(cells, shapes, strategies, meta, args):
     # parted from the column the other way. The column decides at full
     # precision, which is what this line reads, and it says when the print
     # cannot show why. Case: `block-names-the-summary-s-bold-column`.
-    if outside and led.family:
+    if outside and led.vecdims:
         a, an = outside[0][0], outside[0][1]
-        b, bn = led.family[0].time, led.family[0].st
-        col = 'best outside family' if a < b else 'ceiling'
+        b, bn = led.vecdims[0].time, led.vecdims[0].st
+        col = 'best outside vecdims' if a < b else 'ceiling'
         print('  summary bolds       %-30s (%s)'
               % (col, an if a < b else bn))
         if round(a, 3) == round(b, 3):
@@ -5603,7 +5603,7 @@ def load_other(other, main_hs, shapes, meta):
 
 
 LEADERS = collections.namedtuple('LEADERS',
-                                 'rows needs timed outside family plain')
+                                 'rows needs timed outside vecdims plain')
 
 
 def table_leaders(cells, shapes, strategies, args):
@@ -5615,12 +5615,12 @@ def table_leaders(cells, shapes, strategies, args):
     copies would make the check disagree with the paragraph it is there
     to police, silently. Each caller keeps its own early return: the
     verdicts want a timed arm, the summary row wants the best arm outside
-    the vecdims family, the family's own leader and `mut-odo-vecdims`
+    the vecdims arms, their own leader and `mut-odo-vecdims`
     besides.
 
-    `family` is the *ceiling* column, which the run file defines as the
-    leading arm OF the family and not the fastest arm on the table: the
-    two coincided until outside arms overtook the family, and reading the
+    `vecdims` is the *ceiling* column, which the run file defines as the
+    leading arm OF the vecdims arms and not the fastest arm on the table:
+    the two coincided until outside arms overtook them, and reading the
     column off `timed[0]` then disagreed with all nine of Run 22's written
     rows at once, and crowned `libunord-stage2` the fastest ceiling in
     `--extremes`. 2026-09-01, by review.
@@ -5632,8 +5632,8 @@ def table_leaders(cells, shapes, strategies, args):
              in readme_rows(want_run_doc(args), strategies).items()}
     timed = [r for r in rows if not is_control(r.st) and r.time == r.time]
     return LEADERS(rows, needs, timed,
-                   [r for r in timed if not r.st.startswith(FAMILY)],
-                   [r for r in timed if r.st.startswith(FAMILY)],
+                   [r for r in timed if not r.st.startswith(VECDIMS)],
+                   [r for r in timed if r.st.startswith(VECDIMS)],
                    next((r for r in timed if r.st == PLAIN), None))
 
 
@@ -5686,15 +5686,15 @@ def summary_row(cells, shapes, strategies, args, main_hs):
     led = table_leaders(cells, shapes, strategies, args)
     if led is None:
         return
-    outside, family, plain = led.outside, led.family, led.plain
-    if not (led.timed and outside and family and plain):
+    outside, vecdims, plain = led.outside, led.vecdims, led.plain
+    if not (led.timed and outside and vecdims and plain):
         return
     aa = aa_pairs(cells, shapes, strategies)
     if not aa:
         return
     want = ['%d' % len(shapes), '%.3f' % plain.time, '%.3f' % plain.worst,
             '%s %.3f' % (outside[0].st, outside[0].time),
-            '%s %.3f' % (family[0].st, family[0].time),
+            '%s %.3f' % (vecdims[0].st, vecdims[0].time),
             '%.2f%%' % (abs(aa_floor(aa).g - 1) * 100)]
     try:
         doc = open(want_run_doc(args)).read()
@@ -5835,8 +5835,8 @@ def class_reading(path, main_hs, args):
 
     The same six figures `summary_row` checks a written row against, plus
     the two the row does not carry and a superlative about the eight
-    keeps being made on: the gap from the family's plain arm to the best
-    outside its family, by the published column AND paired. Run 15 called
+    keeps being made on: the gap from the vecdims arms' plain one to the
+    best outside them, by the published column AND paired. Run 15 called
     one class's gap the widest of the eight on the column where another's
     is wider on the pair, which is a disagreement no single number can
     show.
@@ -5848,12 +5848,12 @@ def class_reading(path, main_hs, args):
         sys.exit('--extremes ranks the stride classes, and %s is %s'
                  % (os.path.basename(path), label))
     led = table_leaders(cells, shapes, strategies, args)
-    if led is None or not (led.timed and led.outside and led.family
+    if led is None or not (led.timed and led.outside and led.vecdims
                            and led.plain):
         sys.exit('%s: no `list` baseline, no timed arm outside `%s`, none'
                  ' in it, or no `%s` at all, so this class has no row'
-                 % (os.path.basename(path), FAMILY, PLAIN))
-    out, ceil, plain = led.outside[0], led.family[0], led.plain
+                 % (os.path.basename(path), VECDIMS, PLAIN))
+    out, ceil, plain = led.outside[0], led.vecdims[0], led.plain
     m = break_margin(cells, shapes, out.st, plain.st)
     aa = aa_floor(aa_pairs(cells, shapes, strategies))
     return CLASS_READING(class_prefix(shapes), len(shapes), plain.time,
@@ -6821,8 +6821,8 @@ def extremes_table(paths, main_hs, args):
                     ', '.join(sorted(dup))))
     print('%d class population(s), and every superlative about them has its'
           ' source here.' % len(rows))
-    print('`gap` is `%s` over the family\'s plain arm -- what the dropped'
-          ' stride-conditioned redirect' % 'best outside the family')
+    print('`gap` is `%s` over the vecdims arms\' plain one -- what the dropped'
+          ' stride-conditioned redirect' % 'best outside the vecdims arms')
     print('would have bought in that class -- by the published column and'
           ' then paired.')
     print('`bold` is which of those two cells the cross-class summary'
@@ -6833,7 +6833,7 @@ def extremes_table(paths, main_hs, args):
           ' COLUMN, not the')
     print('paired ratio: the summary prints both cells to three decimals'
           ' and a reader')
-    print('compares what is printed, so the faster of `best outside family`'
+    print('compares what is printed, so the faster of `best outside vecdims`'
           ' and `ceiling`')
     print('is emphasised and nothing else decides it. FOUR of Run 28\'s ten'
           ' classes tied')
@@ -6849,7 +6849,7 @@ def extremes_table(paths, main_hs, args):
           ' eye or `--pair`.')
     print()
     print('%-10s %6s %8s %7s %-26s %7s %8s %8s %7s %7s'
-          % ('class', 'shapes', 'plain', 'worst', 'best outside family',
+          % ('class', 'shapes', 'plain', 'worst', 'best outside vecdims',
              'gap col', 'gap pair', 'ceiling', 'floor', 'bold'))
     for r in sorted(rows, key=lambda r: r.label):
         print('%-10s %6d %8.3f %7.3f %-26s %7.2f %8.2f %8.3f %6.2f%% %7s'
@@ -6893,7 +6893,7 @@ def extremes_table(paths, main_hs, args):
             ('worst for the plain arm', lambda r: r.plain, max, '%.3f'),
             ('highest `worst` cell', lambda r: r.worst, max, '%.3f'),
             ('lowest `worst` cell', lambda r: r.worst, min, '%.3f'),
-            ('best outside the family', lambda r: r.out, min, '%.3f'),
+            ('best outside the vecdims arms', lambda r: r.out, min, '%.3f'),
             ('fastest ceiling', lambda r: r.ceil, min, '%.3f'),
             ('narrowest gap, column', lambda r: gap_size(r.gap), min,
              '%.2f', lambda r: r.gap),
@@ -6955,7 +6955,7 @@ def extremes_table(paths, main_hs, args):
 def class_says(cells, shapes, strategies, meta, args):
     """Item 6 of the class-block form with its figures in place and `___`
     where the finding goes: properties 1 and 2, `worst` and the allocation
-    tiers, the best arm outside the family priced against the plain arm
+    tiers, the best arm outside the vecdims arms priced against the plain arm
     and the floor, whether the two columns may be differenced and the
     class geomean across the halves, the A/A bar of that comparison and
     the strategies past it, and the counts geomean where both sweeps are
@@ -6992,19 +6992,19 @@ def class_says(cells, shapes, strategies, meta, args):
         t, an = led.outside[0][0], led.outside[0][1]
         m = break_margin(cells, shapes, an, PLAIN)
         if m is None or floor is None:
-            out.append('and `%s` leads outside the family at %.3f, not'
+            out.append('and `%s` leads outside the vecdims arms at %.3f, not'
                        ' priced.' % (an, t))
         else:
-            out.append('and `%s` leads outside the family at %.3f, priced'
-                       ' against `%s` at %.4f over %d of %d shapes at sign'
-                       ' p %.2g, a margin of %.2f%% against this class\'s'
+            out.append('and `%s` leads outside the vecdims arms at %.3f,'
+                       ' priced against `%s` at %.4f over %d of %d shapes at'
+                       ' sign p %.2g, a margin of %.2f%% against this class\'s'
                        ' %.2f%% floor (`%s`).'
                        % (an, t, PLAIN, m.g, m.k, m.n, m.p,
                           abs(m.g - 1) * 100, abs(floor.g - 1) * 100,
                           floor.a))
     elif led.outside:
-        out.append('and nothing outside the family is ahead of `%s`, `%s`'
-                   ' the best at %.3f.' % (PLAIN, led.outside[0][1],
+        out.append('and nothing outside the vecdims arms is ahead of `%s`,'
+                   ' `%s` the best at %.3f.' % (PLAIN, led.outside[0][1],
                                           led.outside[0][0]))
     # NO SLOT FOR WHAT THE CLASS SAYS OF ITS OWN, since 2026-09-25: filled
     # every run, it mostly restated which arm leads where the cross-class

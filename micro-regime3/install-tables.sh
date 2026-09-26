@@ -334,12 +334,12 @@ def summary_row(blk, c):
     shapes, _ = one(r'over (\d+) shapes of the (\w+) class', 'shape count')
     plain, worst = one(r'^\s*mut-odo-vecdims\s+\(the plain arm\)\s+'
                        r'([\d.]+)\s+worst\s+([\d.]+)', 'plain arm')
-    oarm, oval = one(r'^\s*best outside family\s+(\S+)\s+([\d.]+)',
-                     'best outside family')
-    carm, cval = one(r'^\s*ceiling \(family\)\s+(\S+)\s+([\d.]+)',
+    oarm, oval = one(r'^\s*best outside vecdims\s+(\S+)\s+([\d.]+)',
+                     'best outside vecdims')
+    carm, cval = one(r'^\s*ceiling \(vecdims\)\s+(\S+)\s+([\d.]+)',
                      'ceiling')
     floor, _fp = one(r"floor of ([\d.]+)% \(`([^`]+)`\)", 'floor')
-    bold, = one(r'^\s*summary bolds\s+(best outside family|ceiling)',
+    bold, = one(r'^\s*summary bolds\s+(best outside vecdims|ceiling)',
                 'summary bolds')
     out = f'`{oarm}` {oval}'
     ceil = f'`{carm}` {cval}'
@@ -484,7 +484,7 @@ for n, (c, start) in enumerate(reversed(order)):
 # is the document's own and not this script's: the table is inherited from
 # run to run and reordering it would be a change nobody asked for, so the
 # existing rows are read for their class names and refilled in place.
-head = '| class | shapes | mut-odo-vecdims | worst | best outside family'
+head = '| class | shapes | mut-odo-vecdims | worst | best outside vecdims'
 sumj = next((j for j, t in enumerate(paras) if t.startswith(head)), None)
 if sumj is None:
     print('  note: no cross-class summary table here to install; the ten'

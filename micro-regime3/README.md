@@ -4097,13 +4097,13 @@ codegen rather than that it cannot be built.
 - `ANSWERED` **Print the eight-way extremes, because a class superlative has
   no derived source --- taken 2026-08-22 as `--extremes`.** The mode ranks
   the populations it is given, `install-tables.sh` calling it once after
-  the installs and installing nothing, and prints the gap from the family's
-  plain arm to the best arm outside the family both ways, saying where
-  the published column and the pair disagree; Run 15 had got three class
-  superlatives wrong in one draft, every one caught by a reader rather
-  than a check. **What it does not rank is the main set**, which it refuses,
-  that population having no row in the table these claims are made about ---
-  so a superlative meant over all nine has no source here either.
+  the installs and installing nothing, and prints the gap from the vecdims arms'
+  plain one to the best arm outside them both ways, saying where the published
+  column and the pair disagree; Run 15 had got three class superlatives wrong
+  in one draft, every one caught by a reader rather than a check. **What it does
+  not rank is the main set**, which it refuses, that population having no row
+  in the table these claims are made about --- so a superlative meant over all
+  nine has no source here either.
 - `OPEN` **Price a rotated pair as one cycle where the outer cycle is short.**
   Registered 2026-09-15 off the `sumLazyRuns` reading in [the open list][open]:
   the tiers hand a group's residue to the inner head, and for a per-run loop
@@ -5049,7 +5049,7 @@ against*, the main set's and the classes' with a class column: per shape
 its `sInner` and `l`, `list`'s net per call as an absolute --- the column
 `--machine` reads, guarding the baseline at every shape and converting any ratio
 beside it back to time --- then `mut-odo-vecdims`'s ratio, the best arm outside
-the vecdims family with its ratio, and the ceiling, the family's leading arm
+the vecdims arms with its ratio, and the ceiling, the vecdims arms' leading arm
 with its ratio, the three read as the cross-class summary's columns
 of those names are, per shape rather than per population. A sunk cell reads
 `--`. Allocation has no column on purpose, being deterministic per call,
@@ -5244,19 +5244,19 @@ Its family heads all but two of the classes Run 20 timed, and the two it does
 not are the rework's: `reshape1`, where `canon-memcpy-r2` reads 0.000 against
 `mut-odo-vecdims`'s 0.095 on cells that price dispatch rather than filling,
 and `bcastmid`, where `mid-copy` reads 0.017 against 0.031 and leads on all four
-shapes. On the main set, per shape, the best arm outside the family beats
+shapes. On the main set, per shape, the best arm outside the vecdims arms beats
 `mut-odo-vecdims` on **18 of the 24 shapes**, ten of them by a thousandth
 or less, and across the class shapes on **20 of 26** --- counts that moved
 from Run 19's 3 and 5 because the canonicalizing arms are rostered now
-and this file counts them outside the family. The summary table's *best outside
-family* column was theirs throughout on Run 20 and is no longer: on Run 21
-the library-shaped `lib-stage1` holds it in `rev`, `revsome`, `bcast`, `slice`
-and `window`, with `canon-vecdims` in `scaled` and the new `runs`, `mid-copy`
-in `bcastmid` and `lib-stage2-concat` in `reshape1`. Of what the decision owed,
-the class method and its instances, the suite pass and the non-vacuity break
-landed 2026-08-24 ([the fix section](#the-fix-in-dataarrayinternalhs) has them);
-and horde-ad's end-to-end re-measurement was taken on 2026-08-27,
-as its `CLAUDE.md` records.
+and this file counts them outside the vecdims arms. The summary table's *best
+outside vecdims* column was theirs throughout on Run 20 and is no longer: on Run
+21 the library-shaped `lib-stage1` holds it in `rev`, `revsome`, `bcast`,
+`slice` and `window`, with `canon-vecdims` in `scaled` and the new `runs`,
+`mid-copy` in `bcastmid` and `lib-stage2-concat` in `reshape1`. Of what
+the decision owed, the class method and its instances, the suite pass
+and the non-vacuity break landed 2026-08-24 ([the fix
+section](#the-fix-in-dataarrayinternalhs) has them); and horde-ad's end-to-end
+re-measurement was taken on 2026-08-27, as its `CLAUDE.md` records.
 
 **The `bq-*` strategies still fill the result one element at a time.**
 The tightest possible shape drops to a **mutable result buffer**: allocate
@@ -11412,21 +11412,21 @@ population to average over. Its header, fixed here so a run fills rows and never
 reshapes columns:
 
 **The cross-class summary's columns.** `mut-odo-vecdims` and `worst`
-are that arm's two columns in that class's table; *best outside family*
-is the leading arm outside the vecdims family, what the dropped
-stride-conditioned redirect would have taken, and *ceiling* the leading arm
-OF the family, each with its name --- and both are read over the POPULATION,
-so the arm named may lead on no single shape and the per-shape fingerprint
-under *What the next run compares against* may name another, which is [the
-per-shape section][pershape]'s own point and not a disagreement; where an arm
-outside the family leads, the two name different arms and the gap between them
+are that arm's two columns in that class's table; *best outside vecdims*
+is the leading arm outside the vecdims arms, what the dropped stride-conditioned
+redirect would have taken, and *ceiling* the leading arm OF the vecdims arms,
+each with its name --- and both are read over the POPULATION, so the arm named
+may lead on no single shape and the per-shape fingerprint under *What the next
+run compares against* may name another, which is [the per-shape
+section][pershape]'s own point and not a disagreement; where an arm outside
+the vecdims arms leads, the two name different arms and the gap between them
 is what the lead is worth, and Run 21's table, which repeated one arm in both
 columns on `bcastmid` and `reshape1`, was wrong to. *floor* is the largest
 deviation from 1 among that process's A/A controls. A cell that breaks property
 1, or that leads `mut-odo-vecdims` --- what broke the ordering that was property
 2 until 2026-09-06 --- is bolded.
 
-    | class | shapes | mut-odo-vecdims | worst | best outside family | ceiling | floor |
+    | class | shapes | mut-odo-vecdims | worst | best outside vecdims | ceiling | floor |
 
 **The aggregate figures in the paragraph above the blocks are the reader's,
 emitted rather than assembled.**

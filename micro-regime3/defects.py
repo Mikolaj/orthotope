@@ -10008,6 +10008,17 @@ RECORDS = [
                '--others', '{c}'],
          ok=V(exit=2, has=['they pair up or nothing does'])),
 
+    case('vecdims-arms-name-the-summary-column', 'read-run.py', None,
+         "`family` named both an arm with its A/A copies and the"
+         " `mut-odo-vecdims` group whose best outside arm the cross-class"
+         " summary reads",
+         # Run 38's comprehension probe found the two senses in one run
+         # file, and the ruling of 2026-09-26 kept `family` for an arm with
+         # its copies: the group is `the vecdims arms`, and the column,
+         # the ceiling line and the class verdicts say so.
+         argv=['--unit', 'SUMMARY_COLS[3]'],
+         ok=V(has=['best outside vecdims'])),
+
     case('ceiling-is-the-family-leader', 'read-run.py', None,
          'the ceiling read as the fastest arm once outside arms led',
          # The run file defines *ceiling* as the leading arm OF the family;
@@ -10021,7 +10032,7 @@ RECORDS = [
          plant=lambda t: {'rundoc': edited_rundoc(t),
                           'run': synth_json(t, 'slice')},
          argv=['{run}', '--block', '--run-doc', '{rundoc}'],
-         ok=V(has=['ceiling (family)    mut-odo-vecdims'],
+         ok=V(has=['ceiling (vecdims)    mut-odo-vecdims'],
               hasnt=['fastest timed arm   mut-odo-vecdims'])),
 
     case('extremes-counts-one-class-twice', 'read-run.py', '3596ba2',
@@ -13539,7 +13550,7 @@ RECORDS = [
          # that says nothing at all, and this mode printing an empty table
          # would satisfy it. The column head is what the assertion is
          # about, so it is what anchors it.
-         ok=V(exit=0, has=['best outside family'],
+         ok=V(exit=0, has=['best outside vecdims'],
               hasnt=['`%s`' % a for a in consumer_arms()])),
 
     case('draft-carries-a-block-naming-another-run-unmarked', 'read-run.py',
