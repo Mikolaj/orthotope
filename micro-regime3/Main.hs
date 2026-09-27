@@ -3297,8 +3297,8 @@ mkStrided normalSh =
 -- 'liblist-stage1-sum' below fills through the same. The arm is the shipped
 -- route whole, read against that file's 'toVectorListT' branch for
 -- branch on 2026-09-19 at 570a485: the slice list is a difference list
--- there, concatenated by 'toVectorT' unless it is one slice, and a plain
--- list concatenated here, and nothing else differs.
+-- there and a plain list here, concatenated by 'toVectorT' and here
+-- alike unless it is one slice, and nothing else differs.
 -- Non-vacuity, 2026-08-28: dropping the regime-2 branch (so those views
 -- take the fill) leaves @check@ green, the fill being correct there --
 -- which is why the runs class prices it rather than a check; slicing
@@ -3311,7 +3311,9 @@ fbLibStage1 :: ShapeL -> T -> VS.Vector Double
 fbLibStage1 sh (T (Strides ats) ao v)
   | ats == ts' && VS.length v == l = v
   | null sh = VS.slice ao 1 v
-  | oks !! (length sh - 1) = VS.concat (loop oks sh ats ao)
+  | oks !! (length sh - 1) = case loop oks sh ats ao of
+      [s] -> s
+      ss -> VS.concat ss
   | l == 0 = VS.empty
   | otherwise = fillStage3 (walkAx (walkOfDims sh ats)) ao l v
   where l : ts' = getStridesT sh
