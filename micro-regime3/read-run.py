@@ -8981,6 +8981,117 @@ def _brief_tips(run, where='.'):
     return pre, tip
 
 
+def _note_recipe(lines, tag):
+    """One half's recipe off a pair note's HOW EACH HALF IS BUILT block, as
+    (environment, project file, GHC options), or None -- the parse
+    g3-twins.sh makes, the shim's `-pgma` options left out."""
+    at = [i for i, l in enumerate(lines)
+          if re.match(r'\s+%s\s' % re.escape(tag), l)]
+    if len(at) != 1:
+        return None
+    body = []
+    for l in lines[at[0] + 1:]:
+        if l.strip() == 'then':
+            break
+        body.append(l.strip().rstrip('\\').strip())
+    cmd = ' '.join(body)
+    if 'cabal build micro' not in cmd:
+        return None
+    env = cmd[:cmd.index('cabal build micro')].split()
+    pf = re.findall(r'--project-file=(\S+)', cmd)
+    opts = [o for o in re.findall(r'--ghc-options="([^"]*)"', cmd)
+            if '-pgma' not in o]
+    return (env, pf, ' '.join(opts).split())
+
+
+def _brief_variable(run, where):
+    """The pair's variable, off the difference of its two recipes: what
+    the control's command line carries that the basis's does not, and the
+    reverse, or None where the note cannot be read or the difference is not
+    one of GHC options alone (a compiler pair, an environment pair), which
+    stays the write-up's to state."""
+    try:
+        lines = open(os.path.join(where, '%s-pair.txt' % run)).read() \
+            .split('\n')
+    except OSError:
+        return None
+    hv = re.search(r'^HALVES:\s*basis=(\w+)\s+other=(\w+)', '\n'.join(lines),
+                   re.M)
+    if not hv:
+        return None
+    b = _note_recipe(lines, '%s-%s' % (run, hv.group(1)))
+    o = _note_recipe(lines, '%s-%s' % (run, hv.group(2)))
+    if not b or not o or b[0] != o[0] or b[1] != o[1]:
+        return None
+    add = [f for f in o[2] if f not in b[2]]
+    drop = [f for f in b[2] if f not in o[2]]
+    parts = []
+    if add:
+        parts.append("`%s` ON THE CONTROL'S COMMAND LINE" % ' '.join(add))
+    if drop:
+        parts.append("`%s` ON THE BASIS'S COMMAND LINE" % ' '.join(drop))
+    return ' AND '.join(parts) or None
+
+
+def _brief_finding(run, where):
+    """The run file's head lead, which is the headline the write-up chose,
+    or None before the file names this run at its head."""
+    try:
+        text = open(os.path.join(where, 'runs', '%s.md' % run)).read()
+    except OSError:
+        return None
+    n = re.sub(r'\D', '', run)
+    m = re.search(r'^\*\*Run %s \((.*?)\*\*' % n, text, re.M)
+    if not m:
+        return None
+    lead = m.group(0).strip('*')
+    return lead.split('): ', 1)[1] if '): ' in lead else lead
+
+
+def _class_views_since(run, where):
+    """The class views this run timed that the COMPARE run did not, and the
+    reverse, off the two runs' basis-half class JSONs, as one line for the
+    brief's item 6 -- or None where either run's note or JSONs are gone.
+    Run 42's brief carried a typed `NO class view landed since PREV` in the
+    run two landed."""
+    base = os.path.join(where, run)
+    prev = None
+    try:
+        m = re.search(r'^COMPARE:\s*(run\d+)', open(base + '-pair.txt').read(),
+                      re.M)
+        prev = m and m.group(1)
+    except OSError:
+        return None
+    hv, pv = note_halves(base), prev and note_halves(os.path.join(where, prev))
+    if not hv or not pv:
+        return None
+
+    def views(r, half):
+        out = {}
+        pre = os.path.join(where, '%s-%s-' % (r, half))
+        for f in glob.glob(pre + '*.json'):
+            cls = f[len(pre):-5]
+            if cls == 'main':
+                continue
+            try:
+                reps = json.load(open(f))[2]
+            except (OSError, ValueError, IndexError, TypeError):
+                continue
+            out[cls] = {x['reportName'].split('/')[0] for x in reps}
+        return out
+    now, then = views(run, hv[0]), views(prev, pv[0])
+    if not now or not then:
+        return None
+
+    def say(d):
+        return '; '.join('%s (%s)' % (', '.join(sorted(v)), c)
+                         for c, v in sorted(d.items()) if v) or 'none'
+    got = {c: now[c] - then.get(c, set()) for c in now}
+    lost = {c: then[c] - now.get(c, set()) for c in then}
+    return 'Class views since %s: in, %s; out, %s' % (prev, say(got),
+                                                        say(lost))
+
+
 def brief_update(run, readings_dir=None, brief=None, where='.'):
     """Paste the run's own facts into the checker brief, rather than retype.
 
@@ -9095,6 +9206,27 @@ def brief_update(run, readings_dir=None, brief=None, where='.'):
     # testing something else, and found the loss by reading its own diff.
     # Refusing is wrong: the numbers above it do want re-pasting when a
     # reading is retaken. Saying so is enough, and git holds what went.
+    # THE TWO SLOTS, FILLED WHERE THE ARTIFACTS SAY IT: the pair's
+    # variable off the note's two recipes, the finding off the run file's
+    # head lead once it names this run. Run 42's were typed at 6b.
+    var, fnd = _brief_variable(run, where), _brief_finding(run, where)
+    for i, line in enumerate(out):
+        if var:
+            line = line.replace("<yours: the pair's variable>", var)
+        if fnd:
+            line = line.replace("<yours: what this run's largest finding is>",
+                                "THE LARGEST FINDING, the run file's head"
+                                " lead: %s" % fnd)
+        out[i] = line
+    cv = _class_views_since(run, where)
+    if cv:
+        at = next((i for i, l in enumerate(out)
+                   if l.startswith(' 6. THIS RUN ONLY')), None)
+        if at is not None:
+            end = at + 1
+            while end < len(out) and out[end].startswith('    '):
+                end += 1
+            out.insert(end, '    %s.' % cv)
     now = sum(line.count('<yours') for line in out)
     open(brief, 'w', encoding='utf-8').write('\n'.join(out))
     print('--brief-update: %s items 5 and 6 written from %s' % (brief, facts))

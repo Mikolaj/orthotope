@@ -2810,6 +2810,57 @@ def brief_pair(tmp, run='run97', whole=True, stale_block=False, bodied=False):
     return {'brief': brief, 'run': run, 'dir': tmp}
 
 
+def brief_slots(tmp, run='run97'):
+    """A facts file carrying both `<yours>` slots, a note whose two recipes
+    differ in two GHC flags on the control's line, and a run file whose head
+    leads with its finding: what `--brief-update` fills the slots from."""
+    d = os.path.join(tmp, 'log-read-%s' % run)
+    os.makedirs(d, exist_ok=True)
+    write(os.path.join(d, 'for-brief.txt'),
+          '--- paste over checker-brief.txt items 5 and 6; <yours> is prose ---\n'
+          ' 5. THIS RUN ONLY -- THE BOX AND THE PAIR. The machine.\n'
+          "    THE TWO HALVES DIFFER IN <yours: the pair's variable> AND IN\n"
+          '    NOTHING ELSE.\n'
+          ' 6. THIS RUN ONLY -- THE WINDOW AND THE INSTRUMENTS. One window.\n'
+          "    <yours: what this run's largest finding is>\n")
+    # Two runs' `compose` JSONs, the later with one view more: the class
+    # views landed since PREV, which item 6 carries.
+    def views(path, vs):
+        write(path, json.dumps(['criterion', '1.6.5.0',
+                                [{'reportName': '%s/list' % v} for v in vs]]))
+    views(os.path.join(tmp, '%s-nospec-compose.json' % run),
+          ['compose-a', 'compose-b', 'compose-new'])
+    views(os.path.join(tmp, 'run96-nospec-compose.json'),
+          ['compose-a', 'compose-b'])
+    write(os.path.join(tmp, 'run96-pair.txt'),
+          'HALVES: basis=nospec other=twopass\n')
+    write(os.path.join(tmp, '%s-pair.txt' % run),
+          'HALVES: basis=nospec other=twopass\nCOMPARE: run96\n\n'
+          'HOW EACH HALF IS BUILT:\n'
+          '  %s-nospec   cd here, then\n'
+          '                LOOP_SETTLED=1 \\\n'
+          '                cabal build micro \\\n'
+          '                  --ghc-options="-fobject-determinism" \\\n'
+          '                  --ghc-options="-pgma $PWD/align-as.py"\n'
+          '              then\n'
+          '  %s-twopass  the same source, then\n'
+          '                LOOP_SETTLED=1 \\\n'
+          '                cabal build micro \\\n'
+          '                  --ghc-options="-fspec-constr -fliberate-case \\\n'
+          '                                 -fobject-determinism" \\\n'
+          '                  --ghc-options="-pgma $PWD/align-as.py"\n'
+          '              then\n' % (run, run))
+    os.makedirs(os.path.join(tmp, 'runs'), exist_ok=True)
+    write(os.path.join(tmp, 'runs', '%s.md' % run),
+          '# Run 97 (a pair)\n\nOne run\'s write-up.\n\n'
+          '**Run 97 (a pair): the planted headline finding.** Its body.\n')
+    brief = write(os.path.join(tmp, 'checker-brief.txt'),
+                  'The brief.\n\n'
+                  ' 5. THIS RUN ONLY -- THE BOX AND THE PAIR. Old.\n'
+                  ' 6. THIS RUN ONLY -- THE WINDOW AND THE INSTRUMENTS. Old.\n')
+    return {'brief': brief, 'run': run, 'dir': tmp}
+
+
 def rundoc_heading_spacing(tmp, blanks=1):
     """A run file whose second heading is preceded by `blanks` blank lines.
 
@@ -10308,6 +10359,23 @@ RECORDS = [
          plant=brief_pair,
          argv=['--brief-update', '{run}', '--brief-dir', '{dir}'],
          ok=V(exit=0, has=['items 5 and 6 written'])),
+
+    case('brief-update-fills-the-two-slots', 'read-run.py', None,
+         'CONTROL: the pair\'s variable comes off the note\'s two recipes and'
+         ' the largest finding off the run file\'s head lead, so neither'
+         ' `<yours>` slot is typed',
+         # Run 42's brief had both slots typed by hand at 6b, and its item 1
+         # a typed class fact that was false for that run.
+         plant=lambda t: brief_slots(t),
+         argv=['--brief-update', '{run}', '--brief-dir', '{dir}'],
+         probe=lambda subs: open(subs['brief']).read(),
+         ok=V(has=["`-fspec-constr -fliberate-case` ON THE CONTROL'S"
+                   ' COMMAND LINE',
+                   'the planted headline finding',
+                   'Class views since run96: in, compose-new (compose);'
+                   ' out, none'],
+              hasnt=["<yours: the pair's variable>",
+                     "<yours: what this run's largest finding is>"])),
 
     case('brief-update-replaces-each-item-whole', 'read-run.py', '14dc173',
          'the paste replaced each item\'s header line alone, so the old'

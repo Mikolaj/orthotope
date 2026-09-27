@@ -9638,8 +9638,11 @@ not otherwise.
     #      OTHER, PREV, PREVBASIS and PREVSAME, counts every `<yours>`
     #      slot it left, and does NOT write PRETIP or RUNTIP, which are
     #      commits and yours. The two items arrive with every figure an
-    #      artifact can settle already in place, `<yours>` left for the
-    #      pair's variable and the run's largest finding.
+    #      artifact can settle already in place, the class views landed
+    #      since PREV among them, and the two `<yours>` slots filled where
+    #      the note's recipes and the run file's head lead say them: a
+    #      slot it leaves is a pair its recipe diff cannot state, or a
+    #      head not yet written.
     #      EDITED EVERY RUN BEFORE EITHER PASS IS LAUNCHED. Its head says
     #      which three things change; WALK THE FILE, NOT ITS HEAD. It is
     #      not retyped and not summarised here.
