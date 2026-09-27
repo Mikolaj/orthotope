@@ -773,9 +773,23 @@ rather than a slot in the next run, observed again:
   `lib-stage1`'s `walkAx` conversion leaves it level with the shipped leaf,
   1.0009 and 1.0058 against 0.993 within 2%; (4) stage fifteen's placement costs
   on `compose-bcast-nest` and pays on `compose-bcast-wide`, 2.02 and 0.37
-  on both halves, and is level where it passes no axis; and (5) the regime's
-  worth reads `list` at 1.2905 against 1.295 within 1% and `bq-expand` at 1.3097
-  against 1.33 within 3.5% --- all nine spans HELD.
+  on the basis and 2.01 and 0.38 on the control, and is level where it passes
+  no axis; and (5) the regime's worth reads `list` at 1.2905 against 1.295
+  within 1% and `bq-expand` at 1.3097 against 1.33 within 3.5% --- all nine
+  spans HELD.
+- `OPEN` **Four of Run 42's half-local movers have their counts level
+  and no copy test yet: the control's `lib-stage2-lean`, `mut-odo-vecdims`
+  and `mut-odo-vecdims-aa` on `flip`, 3.2 to 4.9% faster than Run 41's control,
+  and the basis's `lib-stage1` on `rev`, 3.4% slower on counts up 0.24%.**
+  `--half-movers run42 run41` flags them, the three `flip` cells widest
+  on `flip-last-rows` ([Run 42's Results](runs/run42.md#results)). The copy test
+  that separates a half's binary, its file instance and its process wants
+  the box quiet, and the pair note's `QUIET-AFTER:` line read `ask` with nobody
+  at the machine, so by the ruling of 2026-09-26 it waits for the owner. **What
+  would settle it**: `./copy-test.sh run42` over those cells, read
+  with `./read-run.py --copy-test run42-copy-test.log`, while
+  `run42-gheadnospec` and `run42-gheadtwopass` are still on disk --- INSTANCE,
+  PROCESS or BUILD per cell.
 - `ANSWERED` **What Run 41 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 41's own file](runs/run41.md), where a run's
@@ -4262,16 +4276,18 @@ and since 2026-09-05 a rank-5 im2col patch beside the rank-3 one, where
 a per-call cost is a share of the call and its O(rank) part shows --- the one
 class defined by a size and not by an operation) and `compose` (a zero stride
 combined with a second mechanism --- reversed, sliced to an offset, a second
-zero stride it cannot merge with, or every stride zero --- as the library
-composes its operations and no one operation's class builds: the other
-exception). Each is a short list in `Main.hs`, reusing a main-set shape where
-one fits so that a class figure has a positive-stride counterpart to stand next
-to; each generator's comment there says what it models, and the comment heading
-them all, above `mkRev`, carries the coverage argument --- a hypothesis about
-what a valid hand-built view can recombine, not a theorem --- which
-is not repeated here. *Class* unqualified means one of these; the other sense
-in this README always keeps its noun, *method* --- a `class method`,
-the class-method tier, or in full a `Vector`-class method.
+zero stride it cannot merge with, every stride zero, or beside runs
+under a reversed nest, where the placement of the zero-stride axis decides which
+extent the odometer turns over on --- as the library composes its operations
+and no one operation's class builds: the other exception). Each is a short list
+in `Main.hs`, reusing a main-set shape where one fits so that a class figure has
+a positive-stride counterpart to stand next to; each generator's comment there
+says what it models, and the comment heading them all, above `mkRev`, carries
+the coverage argument --- a hypothesis about what a valid hand-built view can
+recombine, not a theorem --- which is not repeated here. *Class* unqualified
+means one of these; the other sense in this README always keeps its noun,
+*method* --- a `class method`, the class-method tier, or in full
+a `Vector`-class method.
 
 **Three classes are retired from timing and kept in `check`, ruled 2026-09-04:
 `reshape1`, `revsome` and `slice`.** What a timed class has to be distinct
