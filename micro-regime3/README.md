@@ -9428,12 +9428,14 @@ not otherwise.
     #      file. Report a split as a split, arm by arm
     #      why: --para 'Walk the open list against what this session'
     #   6. walk the replace list under Provenance (READ NOW: item 8, the
-    #      list itself and its delta bullets), re-run the two sweeps it
-    #      names -- grep both documents for figure-shaped numerals outside
-    #      the tables, and for the name of the run being superseded -- and
-    #      map every hit to the bullet covering it -- running them is not
-    #      reading them. REPLACE, do not annotate: a figure that moved
-    #      inside the floor is requoted without comment. The four
+    #      list itself and its delta bullets), take the two sweeps it
+    #      names over README with `./read-run.py --sweep $PREV` -- the
+    #      paragraphs quoting a figure only the previous run's file
+    #      carries, and those naming that run -- and map every hit to the
+    #      bullet covering it -- running them is not reading them. The
+    #      run file's half is --inherited's and --stale's. REPLACE, do not
+    #      annotate: a figure that moved inside the floor is requoted
+    #      without comment. The
     #      bullets below GOVERN the walk rather than following it, which
     #      is why they are bullets and not sub-steps; 6a and 6c ARE it
     #      * SET THE TURN-END HOLD HERE and clear it at 9, setting it

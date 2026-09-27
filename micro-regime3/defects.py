@@ -10212,6 +10212,29 @@ RECORDS = [
               ),
          bug=V(exit=0, hasnt=['the 3-line table under it'])),
 
+    case('sweep-lists-the-previous-runs-sites', 'read-run.py', None,
+         'CONTROL: --sweep PREV lists the README paragraphs that quote a'
+         ' figure only the previous run\'s file carries, apart from those'
+         ' that name that run, and reads no table and no code block',
+         # Run 42's write-up re-read Run 41's README diff to find the sites a
+         # run owes, then scripted a sweep over Run 41's figures by hand.
+         plant=lambda t: {
+             'readme': write(os.path.join(t, 'README.md'),
+                             '# R\n\nThe headline is 2.97x today.\n\n'
+                             'Run 96 read 0.9904 then.\n\n'
+                             'Unchanged at 25.20x.\n\n'
+                             '| a | 2.97x |\n\n'
+                             '    # 0.9904 in the chapter\n'),
+             'prev': write(os.path.join(t, 'run96.md'),
+                           '# Run 96\n\nIt read 2.97x and 0.9904 and 25.20x.\n'),
+             'doc': write(os.path.join(t, 'run97.md'),
+                          '# Run 97\n\nIt reads 2.86x and 25.20x.\n')},
+         argv=['--sweep', 'run96', '--readme', '{readme}',
+               '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['UNNAMED', 'The headline is 2.97x', 'NAMED',
+                           'Run 96 read 0.9904'],
+              hasnt=['Unchanged at 25.20x', '| a |', 'in the chapter'])),
+
     case('replace-refuses-a-table-inside-a-paragraph', 'read-run.py', None,
          'CONTROL: a table with prose after it in the same block is not a'
          ' lead\'s installed table, and replacing the block is refused',

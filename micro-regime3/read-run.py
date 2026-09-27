@@ -5459,6 +5459,71 @@ def block_verdicts(cells, shapes, strategies, meta, args):
         print('  `needs` unwritten: %s' % ', '.join(unknown))
 
 
+FIGURE = re.compile(r'(?<![\w.])\d+\.\d+(?:x|%)?(?![\w.])')
+
+
+def sweep(prev, readme, run_doc):
+    """Post-run step 6c's two sweeps in one call: every README paragraph
+    that quotes a figure only the previous run's file carries, and every one
+    that names the previous run.
+
+    A figure the new run's file also carries is not stale and is left out,
+    so what `UNNAMED` lists is a figure of the previous run standing in
+    README without that run's name in its paragraph -- a live claim to
+    requote, or a history clause to name. `NAMED` lists the paragraphs
+    naming the run, which are history or a site that says `Run N` where it
+    means the newest run; only reading tells them apart. Tables and code
+    blocks are left out, the one installed and the other the chapter's.
+    Run 42's write-up found these by re-reading Run 41's README diff and
+    then scripting a figure sweep by hand.
+    """
+    m = re.match(r'run(\d+)$', prev)
+    if not m:
+        sys.stderr.write('--sweep: wants PREV as runN\n')
+        return 2
+    pdoc = os.path.join(os.path.dirname(run_doc) or '.', prev + '.md')
+    try:
+        old, new = open(pdoc).read(), open(run_doc).read()
+        text = open(readme).read()
+    except OSError as e:
+        sys.stderr.write('--sweep: %s\n' % e)
+        return 2
+    # DISTINCTIVE FIGURES ONLY: four significant digits, or three on a
+    # multiple, since a 1.5% or a 4.0 recurs across unrelated history and
+    # buried the real sites under it on its first reading (Run 41's).
+    def telling(f):
+        sig = re.sub(r'\D', '', f).lstrip('0')
+        return len(sig) >= 4 or (f.endswith('x') and len(sig) >= 3)
+    only = {f for f in set(FIGURE.findall(old)) - set(FIGURE.findall(new))
+            if telling(f)}
+    name = re.compile(r'\bRun[\s-]*%s\b' % m.group(1))
+    unnamed, named = [], []
+    for para in text.split('\n\n'):
+        prose = ' '.join(l.strip() for l in para.split('\n')
+                         if not l.startswith('    ')
+                         and not l.lstrip().startswith('|'))
+        if not prose:
+            continue
+        figs = sorted(f for f in set(FIGURE.findall(prose)) if f in only)
+        if name.search(prose):
+            named.append((figs, prose))
+        elif figs:
+            unnamed.append((figs, prose))
+    print('--sweep %s: %d figure(s) only runs/%s.md carries; README'
+          ' paragraphs outside tables and code blocks:'
+          % (prev, len(only), prev))
+    for label, rows in (('UNNAMED', unnamed), ('NAMED', named)):
+        print('%s, %d paragraph(s)%s' % (
+            label, len(rows),
+            ' quoting such a figure and naming no Run %s' % m.group(1)
+            if label == 'UNNAMED' else ' naming Run %s' % m.group(1)))
+        for figs, prose in rows:
+            print('  %s%s' % (prose[:110], ' ...' if len(prose) > 110 else ''))
+            if figs:
+                print('      figures: %s' % ', '.join(figs))
+    return 0
+
+
 def repoint(prev, readme, run_doc):
     """Post-run step 5's repoint, which the chapter says to do site by site.
 
@@ -16302,6 +16367,9 @@ def main():
                    help='post-run step 5: move README\'s links into'
                    ' runs/PREV.md to the run file --run-doc names (the newest'
                    ' by default), keeping the ones whose own text names PREV')
+    p.add_argument('--sweep', metavar='PREV',
+                   help='post-run step 6c: the README paragraphs quoting a'
+                   ' figure only runs/PREV.md carries, and those naming PREV')
     p.add_argument('--counts-cost', dest='counts_cost', metavar='RUN',
                    help='each counts stage\'s duration off RUN-evening.txt,'
                    ' per population and per half, with each half\'s total')
@@ -16970,6 +17038,8 @@ def main():
         sys.exit(movement(args.run, args))
     if args.counts_cost:
         sys.exit(counts_cost(args.counts_cost))
+    if args.sweep:
+        sys.exit(sweep(args.sweep, args.readme, args.run_doc))
     if args.repoint:
         sys.exit(repoint(args.repoint, args.readme, args.run_doc))
     if args.over_list:
