@@ -351,7 +351,7 @@ def summary_row(blk, c):
     return f'| `{c}` | {shapes} | {plain} | {worst} | {out} | {ceil} | {floor}% |'
 
 
-summary, left_standing = {}, []
+summary, left_standing, waiting = {}, [], []
 for n, (c, start) in enumerate(reversed(order)):
     k = [x for x, _ in order].index(c)
     # The LAST block ends at the next heading, not at the end of the file.
@@ -392,6 +392,12 @@ for n, (c, start) in enumerate(reversed(order)):
               f' installed -- correct for a run that recorded one half,'
               f' and a wrong OTHER otherwise')
     sweeps = [f'{R}-counts-{BASIS}-{c}.txt', f'{R}-counts-{OTHER}-{c}.txt']
+    # THE COUNTS SENTENCE WAITS FOR THE COUNTS, which land hours after 5b:
+    # the line installed without them carries a `___` for it, and a rerun
+    # once they are in places it over that `___`, keeping any line written
+    # since. Run 42 copied the ten by a loop of its own, nothing saying so.
+    if have_other and not all(map(os.path.exists, sweeps)):
+        waiting.append(c)
     got = subprocess.run(['./read-run.py', f'{R}-{BASIS}-{c}.json', '--block',
                           '--brief']
                          + (['--compare', other_json] if have_other else [])
@@ -519,6 +525,11 @@ for line in added:
 print(f'  {done} computed paragraph(s) installed across {len(order)} class block(s)')
 if left_standing:
     sys.exit(1)
+if waiting:
+    print(f'  no counts sweeps yet for {", ".join(sorted(waiting))}, so each'
+          f' `What the class says:` line carries a `___` for its counts:'
+          f' rerun ./install-tables.sh {R} once {R}-evening.txt reads'
+          f' EVENING COMPLETE, which places them and keeps what is written')
 if says_new:
     print(f'  {says_new} `What the class says:` skeleton(s) installed, each'
           f' `___` the finding the block owes')

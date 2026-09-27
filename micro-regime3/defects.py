@@ -13794,6 +13794,22 @@ RECORDS = [
               hasnt=["disagrees with this class's cells"]),
          bug=V(has=["disagrees with this class's cells"])),
 
+    case('install-says-the-counts-sentence-waits', 'install-tables.sh',
+         None,
+         'a class line installed at 5b carries a `___` counts slot the'
+         ' counts fill hours later, and nothing said a rerun places it',
+         # Run 42's session copied the ten counts sentences into the run
+         # file by a loop of its own, the install that places them having
+         # run before the counts landed and never again.
+         plant=lambda t: {'doc': write_rundoc(t, rundoc_text())},
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                             prefix='zzit',
+                                             classes=recorded_classes())),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['zzit'],
+         ok=V(has=['no counts sweeps yet',
+                   'rerun ./install-tables.sh zzit once'])),
+
     case('lead-patterns-disagree', 'install-tables.sh', None,
          'a lead one pattern missed was overwritten by the block above it',
          plant=lambda t: {'doc': edited_rundoc(

@@ -9375,7 +9375,10 @@ not otherwise.
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --predictions --counts $R-counts-<basis>.txt $R-counts-<other>.txt
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json \
       --predictions --in-place       # 5c. THE REGISTRATION'S SPANS, taken
-    #      here, after the counts. WHILE THEY ARE TAKEN, read `--checklist
+    #      here, after the counts, AND `./install-tables.sh $R` AGAIN,
+    #      which places each class block's counts sentence over the `___`
+    #      5b's install left and keeps every paragraph written since.
+    #      WHILE THEY ARE TAKEN, read `--checklist
     #      post-b` once, `--full` only for a step whose reason you need,
     #      then take steps 5d and 5e, which want no counts, and
     #      6a's three readers. Every `predict:` span read on each
