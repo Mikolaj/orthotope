@@ -41,7 +41,7 @@ with no regression and needs no extension to orthotope classes --- **that
 is the FILL**, and the route the library actually ships, `lib-stage1`, is slower
 than `list` on the shortest run of the `runs` class this roster times, `runs-2`,
 which [the run file's property
-1](runs/run42.md#the-properties-the-next-run-should-test) records and six runs
+1](runs/run42.md#the-properties-the-next-run-should-test) records and seven runs
 have now read.
 
 The words for a view's pieces are the library's, defined at the `T` haddock
@@ -770,13 +770,14 @@ rather than a slot in the next run, observed again:
   on one path `lib-stage2-lean-u1` keeps its distance from `lib-stage3-lean`,
   1.0690 on the basis and 1.0654 on the control against 1.07 within 3%; (2)
   the two lean fills stay level, 1.0005 and 0.9961 against 0.99 within 2%; (3)
-  `lib-stage1`'s `walkAx` conversion leaves it level with the shipped leaf,
-  1.0009 and 1.0058 against 0.993 within 2%; (4) stage fifteen's placement costs
-  on `compose-bcast-nest` and pays on `compose-bcast-wide`, 2.02 and 0.37
-  on the basis and 2.01 and 0.38 on the control, and is level where it passes
-  no axis; and (5) the regime's worth reads `list` at 1.2905 against 1.295
-  within 1% and `bq-expand` at 1.3097 against 1.33 within 3.5% --- all nine
-  spans HELD.
+  `lib-stage1` over the shipped leaf stays inside the band around where Run 41
+  read it, 1.0009 and 1.0058 against 0.993 within 2%, the conversion moving
+  it a point where its instructions moved a third of one; (4) stage fifteen's
+  placement costs on `compose-bcast-nest` and pays on `compose-bcast-wide`, 2.02
+  and 0.37 on the basis and 2.01 and 0.38 on the control, and is level where
+  it passes no axis; and (5) the regime's worth reads `list` at 1.2905 against
+  1.295 within 1% and `bq-expand` at 1.3097 against 1.33 within 3.5% --- all
+  nine spans HELD.
 - `OPEN` **Four of Run 42's half-local movers have their counts level
   and no copy test yet: the control's `lib-stage2-lean`, `mut-odo-vecdims`
   and `mut-odo-vecdims-aa` on `flip`, 3.2 to 4.9% faster than Run 41's control,
@@ -892,9 +893,8 @@ rather than a slot in the next run, observed again:
   on the loops, reads the four at 0.9989 to 1.0001 and `-stage13-sum` newly
   at 0.9687** per cell on the main set, which `08b4f19`'s port alone reaches
   ([Run 42's
-  properties](runs/run42.md#the-properties-the-next-run-should-test)); the two
-  halves' Core for `routeUnord13` is what would say which part of the port
-  the passes box.
+  properties](runs/run42.md#the-properties-the-next-run-should-test)),
+  at hundreds of bytes a call under the 0.01x tier.
 - `ANSWERED` **The two passes' third on `small-flat64`'s lean fills is one
   fold's boxing: the canonical-axes merge over a list accumulator, which only
   SpecConstr unboxes.** On Run 40 the four lean fills read about 37 ns net
@@ -1287,12 +1287,12 @@ rather than a slot in the next run, observed again:
   on this source separates the shim's replanning from the source's,
   and a counter reading of that cell on the two builds --- front-end and branch
   events, `probe-stalls.sh` --- says what the 13% is spent on. **Run 42's
-  rebuild takes the move back**: on `eb76398`, six commits that reach
-  no `bq-expand` code, the basis reads the family at 0.9585 to 0.9594 of Run
-  41's basis on the main set and 3.4 to 9.5% faster on the same four
+  rebuild takes the move back**: on `eb76398`, six commits past Run 41's source
+  that reach no `bq-expand` code, the basis reads the family at 0.9585 to 0.9594
+  of Run 41's basis on the main set and 3.4 to 9.5% faster on the same four
   populations, on counts level to the fourth decimal, and `bq-expand` at 1.0004
-  of Run 40's basis, while the control's family reads within 0.4 of a point
-  of Run 41's ([Run 42's
+  of Run 40's basis, while the control's family reads within 0.9 of a point
+  of Run 41's on all four ([Run 42's
   file](runs/run42.md#what-the-next-run-compares-against)) --- so the term
   belonged to one build, and a rebuild is what removed it.
 - `PARKED` **Four arms moved past 3% against Run 32 on ONE half each, with their
@@ -11846,52 +11846,51 @@ then it was held to the carry-back figure of the half it is read on --- 0.21%
 on Run 42's basis --- which is the A/A floor above restricted to the pairs
 that carry, was a different quantity from the whole-set floor until the prune
 of 2026-09-04 left six pairs in all, and is now the series across runs rather
-than the bar. **The two rules part on the BASIS half alone this run, as they did
-on Run 41, where they parted on the control alone on Run 40 and were one on both
-halves on Runs 32 and 33 and Runs 37 to 39**: 0.26% and 0.49% are the widest
-an arm differs from its own duplicate by on each half over the eight pairs
-this roster carries, and the four pairs that carry back to Run 10 read 0.21%
-on the basis, `bq-expand-aa-distant`, the whole-set figure there being
-`list-aa-adjacent`'s, and the same 0.49% on the control, `bq-expand-aa-distant`
-carrying both --- so the restriction costs five hundredths of a point
-on the basis and nothing on the control, where on Run 36 it cost eighty-eight
-hundredths on the basis and eleven on the control. The two parted on BOTH halves
-on Runs 35 and 36, Run 34 parted on the basis alone, Runs 32 and 33 had them
-equal on both halves, Runs 30 and 31 parted on the CONTROL alone --- 0.84%
-against 0.56% and 1.58% against 0.43%, equal on the basis at 0.57% and 0.61% ---
-and Runs 28 and 29 parted on the basis alone, and the rule since 2026-09-13
-names the WHOLE-SET figure as what two rows of one table must clear,
-the restricted one having been the rule until Run 30 re-opened it, the wider
-figure being the conservative reading --- and 2.1% is the across-run drift band
-an arm must clear to have moved between runs on this box, Run 23's one-binary
-reading, where Run 11's was 3.3%. **All three are the word *floor*,
-over different populations, and two things that are not it wear it easily.**
-A class's `floor` column is the same statistic again over that population's A/A
-pairs, so it is a fourth member of the family and not a fourth sense.
-**And a margin read ACROSS a pair's two halves on a class is judged against
-the WIDER of the two halves' floors, and a registration's kill condition
-on a class says so**: the narrower floor is the one that makes a kill
-and the wider the one that makes a tie honest, and a pair whose halves' floors
-differ threefold --- Run 23's `reshape1`, 3.09% on the basis and 10.75%
-on the dead-spot half --- is exactly where a reader should not get to choose.
-Ruled 2026-09-02, after that run's registration 3 was read two ways;
-under it that registration's first half is a split and not a kill. **The worst
-single A/A cell is not a floor at all** --- 16.66% on Run 24's basis main set
-and 19.72% on one of its class processes, against 2.04% and 5.48% on Run 25's
-two main sets --- and the procedure says so where it is read; it is one cell
-where these are geomeans over a population, and quoting it as one overstates
-the instrument by an order of magnitude. Nor is the residue [the alignment
-question][open] asks about, which is an effect size that survived a control
-rather than a spread the run measured. The exceptions are `build` and `mut-odo`,
-one worker at two slots, whose cells reached 1.092 on Run 23's basis and 0.828
-on that run's dead-spot half --- and Run 21 is the run that took the reading
-those two have always wanted: post-run step 3a named the tracked two-copy group
-off a `-g3` twin and it IS `fbBuild` and `fbMutOdo`, both at offset 0 in their
-cache line on BOTH halves, on Run 23's two as on Run 21's and Run 22's.
-So the residue the pairing cannot reach is not a cache-line offset; what Run 23
-adds is that placing every OTHER pad off the execution path opens the pair
-from a tie to 0.9449 on the dead-spot half, and what it is remains [the open
-list][open]'s.
+than the bar. **The two rules part on the BASIS half alone this run and on Run
+41, where they parted on the control alone on Run 40 and were one on both halves
+on Runs 32 and 33 and Runs 37 to 39**: 0.26% and 0.49% are the widest an arm
+differs from its own duplicate by on each half over the eight pairs this roster
+carries, and the four pairs that carry back to Run 10 read 0.21% on the basis,
+`bq-expand-aa-distant`, the whole-set figure there being `list-aa-adjacent`'s,
+and the same 0.49% on the control, `bq-expand-aa-distant` carrying both ---
+so the restriction costs five hundredths of a point on the basis and nothing
+on the control, where on Run 36 it cost eighty-eight hundredths on the basis
+and eleven on the control. The two parted on BOTH halves on Runs 35 and 36, Run
+34 parted on the basis alone, Runs 32 and 33 had them equal on both halves, Runs
+30 and 31 parted on the CONTROL alone --- 0.84% against 0.56% and 1.58% against
+0.43%, equal on the basis at 0.57% and 0.61% --- and Runs 28 and 29 parted
+on the basis alone, and the rule since 2026-09-13 names the WHOLE-SET figure
+as what two rows of one table must clear, the restricted one having
+been the rule until Run 30 re-opened it, the wider figure being the conservative
+reading --- and 2.1% is the across-run drift band an arm must clear to have
+moved between runs on this box, Run 23's one-binary reading, where Run 11's
+was 3.3%. **All three are the word *floor*, over different populations, and two
+things that are not it wear it easily.** A class's `floor` column is the same
+statistic again over that population's A/A pairs, so it is a fourth member
+of the family and not a fourth sense. **And a margin read ACROSS a pair's two
+halves on a class is judged against the WIDER of the two halves' floors,
+and a registration's kill condition on a class says so**: the narrower floor
+is the one that makes a kill and the wider the one that makes a tie honest,
+and a pair whose halves' floors differ threefold --- Run 23's `reshape1`, 3.09%
+on the basis and 10.75% on the dead-spot half --- is exactly where a reader
+should not get to choose. Ruled 2026-09-02, after that run's registration 3
+was read two ways; under it that registration's first half is a split and
+not a kill. **The worst single A/A cell is not a floor at all** --- 16.66%
+on Run 24's basis main set and 19.72% on one of its class processes, against
+2.04% and 5.48% on Run 25's two main sets --- and the procedure says so where
+it is read; it is one cell where these are geomeans over a population,
+and quoting it as one overstates the instrument by an order of magnitude.
+Nor is the residue [the alignment question][open] asks about, which is an effect
+size that survived a control rather than a spread the run measured.
+The exceptions are `build` and `mut-odo`, one worker at two slots, whose cells
+reached 1.092 on Run 23's basis and 0.828 on that run's dead-spot half ---
+and Run 21 is the run that took the reading those two have always wanted:
+post-run step 3a named the tracked two-copy group off a `-g3` twin and
+it IS `fbBuild` and `fbMutOdo`, both at offset 0 in their cache line on BOTH
+halves, on Run 23's two as on Run 21's and Run 22's. So the residue the pairing
+cannot reach is not a cache-line offset; what Run 23 adds is that placing every
+OTHER pad off the execution path opens the pair from a tie to 0.9449
+on the dead-spot half, and what it is remains [the open list][open]'s.
 
 **And a busy machine has now been measured rather than only avoided, which
 is what says the wild cell is not one.** Run 11's sequence was launched twice;
