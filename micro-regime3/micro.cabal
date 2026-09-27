@@ -20,8 +20,14 @@ executable micro
     -- its recipe; since 2026-08-21 it is baked here instead, -A32m fixed for
     -- every process here and every horde-ad suite (README, Running it), and no
     -- recipe passes -with-rtsopts any more.
+    -- The warnings are orthotope's own, from its cabal file, so that code
+    -- ported between Main.hs and the library warns alike in both.
     ghc-options:      -O1 -fno-ignore-asserts -rtsopts
                       "-with-rtsopts=-A32m -I0 -T -M8G"
+                      -Wall -Wno-unrecognised-warning-flags -Wno-x-partial
+                      -Widentities -Wmissing-export-lists -Wpartial-fields
+                      -Wunused-packages -Wredundant-bang-patterns
+                      -Wredundant-strictness-flags
     build-depends:
         base,
         vector,

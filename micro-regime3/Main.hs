@@ -430,7 +430,7 @@ baseOffsetsExpandZF :: Int -> ShapeL -> Strides -> VU.Vector Int
 baseOffsetsExpandZF o0 osh (Strides oats) = go (VU.singleton o0) osh oats
   where go !acc (nd : nds) (sd : sds) =
           go (VU.concatMap (\a -> VU.enumFromStepN a sd nd) acc) nds sds
-        go !acc _          _          = acc
+        go acc _          _          = acc
 
 -- Micro-optimised 'baseOffsetsExpand': seed the fold from the first dim's
 -- 'enumFromStepN' (one fewer concatMap layer everywhere, and pure
@@ -575,7 +575,7 @@ baseOffsetsScan o0 osh (Strides oats)
             carry !c ((n, st) : ds) !acc = case c `quotRem` n of
               (!c', !r') -> if r' /= 0 then st - acc
                             else carry c' ds (acc + st * (n - 1))
-            carry !_ _ !acc = negate acc  -- unreachable: q + 1 < m
+            carry _ _ !acc = negate acc  -- unreachable: q + 1 < m
 
 -- 'baseOffsetsScan' with the hot-path divisibility test done by 'quotRem'
 -- instead of the multiply-high -- one change, so that builder is its
@@ -605,7 +605,7 @@ baseOffsetsScanRem o0 osh (Strides oats)
             carry !c ((n, st) : ds) !acc = case c `quotRem` n of
               (!c', !r') -> if r' /= 0 then st - acc
                             else carry c' ds (acc + st * (n - 1))
-            carry !_ _ !acc = negate acc  -- unreachable: q + 1 < m
+            carry _ _ !acc = negate acc  -- unreachable: q + 1 < m
 
 -- Strict state for 'baseOffsetsOdo': the offset to emit next, the countdown
 -- within the innermost non-unit outer dimension, and the count of completed
@@ -648,7 +648,7 @@ baseOffsetsOdo o0 osh (Strides oats)
             carry !c ((n, st) : ds) !acc = case c `quotRem` n of
               (!c', !r') -> if r' /= 0 then st - acc
                             else carry c' ds (acc + st * (n - 1))
-            carry !_ _ !acc = negate acc  -- reachable once; see above
+            carry _ _ !acc = negate acc  -- reachable once; see above
 
 -- 'baseOffsetsScan' with the stream state packed into ONE Int: the run
 -- index in the bits above 32, the running offset in the low 32, so
@@ -746,7 +746,7 @@ baseOffsetsScanPacked o0 osh (Strides oats)
             carry !c ((n, st) : ds) !acc = case c `quotRem` n of
               (!c', !r') -> if r' /= 0 then st - acc
                             else carry c' ds (acc + st * (n - 1))
-            carry !_ _ !acc = negate acc  -- reachable once, for the final
+            carry _ _ !acc = negate acc  -- reachable once, for the final
               -- step's discarded successor, as in 'baseOffsetsOdo'
 
 -- The strategies compared, in the four families README.md's strategy list
@@ -809,7 +809,7 @@ fbUnfoldAdd sh (T (Strides ats) ao v) =
         rts = reverse ats
         step (!o, is) = (v VS.! o, adv o is rsh rts)
         adv !o []       _        _        = (o, [])
-        adv !o (i : js) (n : ns) (s : ss)
+        adv o (i : js) (n : ns) (s : ss)
           | i + 1 < n = (o + s, (i + 1) : js)
           | otherwise = let (!o', js') = adv (o - i * s) js ns ss
                         in  (o', 0 : js')
@@ -927,7 +927,7 @@ fbBQunfold sh (T (Strides ats) ao v) = VS.generate l get
         !baseOffsets = VU.unfoldrExactN m step (ao, replicate (length sh - 1) 0)
           where step (!o, is) = (o, adv o is rosh roats)
                 adv !o []       _        _        = (o, [])
-                adv !o (i : js) (n : ns) (st : sts)
+                adv o (i : js) (n : ns) (st : sts)
                   | i + 1 < n = (o + st, (i + 1) : js)
                   | otherwise = let (!o', js') = adv (o - i * st) js ns sts
                                 in  (o', 0 : js')
@@ -4231,7 +4231,7 @@ routeList4 sh (T (Strides ats) off _)
     canonicalizeLoop !st' !n' rest (st : sts) (n : ns)
       | st' == n * st = canonicalizeLoop st (n' * n) rest sts ns
       | otherwise = canonicalizeLoop st n ((st', n') : rest) sts ns
-    canonicalizeLoop !st' !n' rest _ _ =
+    canonicalizeLoop st' n' rest _ _ =
       routeOfWalk off l st' n' (InnerFirst rest)
 {-# INLINE routeList4 #-}
 
@@ -4585,10 +4585,10 @@ dispatchLean order sh (T (Strides ats) ao _)
     canonicalizeAx :: Int -> Int -> [Axis] -> [Axis] -> RouteAx
     canonicalizeAx !st' !n' rest (Axis _ 1 : axs) =
       canonicalizeAx st' n' rest axs
-    canonicalizeAx !st' !n' rest (Axis st n : axs)
+    canonicalizeAx st' n' rest (Axis st n : axs)
       | st' == n * st = canonicalizeAx st (n' * n) rest axs
       | otherwise = canonicalizeAx st n (Axis st' n' : rest) axs
-    canonicalizeAx !st' !n' rest [] =
+    canonicalizeAx st' n' rest [] =
       routeOfAx off l st' n' (InnerFirstAx rest)
 {-# INLINE dispatchLean #-}
 
@@ -5039,7 +5039,7 @@ routeUnord13 sh (T (Strides ats) ao _)
       | otherwise = canonicalizeLoop st n ((st', n') : rest) ps
     -- A zero-stride innermost axis followed by a unit-stride one goes
     -- outermost, so that the unit stride is the run.
-    canonicalizeLoop !st' !n' rest []
+    canonicalizeLoop st' n' rest []
       | st' == 0, (1, n1) : rest' <- rest =
           routeOfWalk off l 1 n1 (InnerFirst (rest' ++ [(0, n')]))
       | otherwise = routeOfWalk off l st' n' (InnerFirst rest)
@@ -5152,7 +5152,7 @@ absPairs axes !off (_ : sts) (1 : ns) = absPairs axes off sts ns
 absPairs axes !off (st : sts) (n : ns)
   | st < 0 = absPairs ((negate st, n) : axes) (off + (n - 1) * st) sts ns
   | otherwise = absPairs ((st, n) : axes) off sts ns
-absPairs axes !off _ _ = (axes, off)
+absPairs axes off _ _ = (axes, off)
 
 -- The 'Axis' path, since 2026-09-25 the three inward twins' own, and
 -- since 2026-09-26 'lib-stage2-lean-u1''s through 'fillStage3U1' and the
@@ -5247,10 +5247,10 @@ routeList5 sh (T (Strides ats) off _)
     canonicalizeAx :: Int -> Int -> [Axis] -> [Int] -> ShapeL -> RouteAx
     canonicalizeAx !st' !n' rest (_ : sts) (1 : ns) =
       canonicalizeAx st' n' rest sts ns
-    canonicalizeAx !st' !n' rest (st : sts) (n : ns)
+    canonicalizeAx st' n' rest (st : sts) (n : ns)
       | st' == n * st = canonicalizeAx st (n' * n) rest sts ns
       | otherwise = canonicalizeAx st n (Axis st' n' : rest) sts ns
-    canonicalizeAx !st' !n' rest _ _ =
+    canonicalizeAx st' n' rest _ _ =
       routeOfAx off l st' n' (InnerFirstAx rest)
 {-# INLINE routeList5 #-}
 
@@ -5289,7 +5289,7 @@ routeUnord14 sh (T (Strides ats) ao _)
     -- broadcast was 52 (2026-09-26, both at 4992 elements). Placing it just
     -- outside the run only where its extent exceeds that of the axis it would
     -- displace would take the better of both; untried.
-    canonicalizeAx !st' !n' rest []
+    canonicalizeAx st' n' rest []
       | st' == 0, Axis 1 n1 : rest' <- rest =
           routeOfAx off l 1 n1 (InnerFirstAx (rest' ++ [Axis 0 n']))
       | otherwise = routeOfAx off l st' n' (InnerFirstAx rest)
@@ -5318,7 +5318,7 @@ routeUnord15 sh (T (Strides ats) ao _)
       | otherwise = canonicalizeAx st n (Axis st' n' : rest) ps
     -- A zero-stride innermost axis followed by a unit-stride one goes just
     -- outside the run, where 'routeUnord14' appends it outermost.
-    canonicalizeAx !st' !n' rest []
+    canonicalizeAx st' n' rest []
       | st' == 0, Axis 1 n1 : rest' <- rest =
           routeOfAx off l 1 n1 (InnerFirstAx (Axis 0 n' : rest'))
       | otherwise = routeOfAx off l st' n' (InnerFirstAx rest)
@@ -5338,7 +5338,7 @@ absAxes axes !off (_ : sts) (1 : ns) = absAxes axes off sts ns
 absAxes axes !off (st : sts) (n : ns)
   | st < 0 = absAxes (Axis (negate st) n : axes) (off + (n - 1) * st) sts ns
   | otherwise = absAxes (Axis st n : axes) off sts ns
-absAxes axes !off _ _ = (axes, off)
+absAxes axes off _ _ = (axes, off)
 
 -- 'byStrideRank' over 'Axis': absolute stride descending; on a tie at
 -- stride 1 the length 'runRank' prefers last, so that it is the run,
