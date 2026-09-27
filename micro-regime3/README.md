@@ -9497,23 +9497,15 @@ not otherwise.
     #      next run compares against with its two-column table, the
     #      properties, the class leads and paragraphs, its
     #      Provenance and its registrations. Do this half FIRST.
-    #      THE TEN CLASS BLOCKS ARE PLACED AND NOT RE-TYPED, and the
-    #      labour divides in two. install-tables.sh at 5b writes the
-    #      table and THREE of the five paragraphs -- Controls, Provenance
-    #      and the per-shape line -- one line each. The other two exist
-    #      only WITH the second JSON and are yours to place from
-    #      `./read-run.py $R-<basis>-<class>.json --block --compare
-    #      $R-<other>-<class>.json --brief --counts
-    #      $R-counts-<basis>-<class>.txt $R-counts-<other>-<class>.txt`,
-    #      which since 2026-09-19
-    #      prints every bolded paragraph ONE LINE EACH, the form this
-    #      file keeps; that arm honours no --in-place and never did.
-    #      COPY THEM, DO NOT JOIN THEM.
-    #      The `___` slots in all five are yours and run-status.sh
-    #      refuses a run file still carrying one. Each says what it
-    #      wants: a class block carries one until its counts are placed.
-    #      A sentence of the class's own is optional since 2026-09-25,
-    #      written only where the class has a finding.
+    #      THE TEN CLASS BLOCKS ARE PLACED AND NOT RE-TYPED:
+    #      install-tables.sh at 5b writes the table and the five
+    #      paragraphs one line each, the two cross-half ones where the
+    #      second JSON is on disk, and its rerun at 5c places each
+    #      `What the class says:` counts sentence over its `___`.
+    #      The `___` left after that are yours and run-status.sh
+    #      refuses a run file still carrying one, each saying what it
+    #      wants. A sentence of the class's own is optional since
+    #      2026-09-25, written only where the class has a finding.
     ./read-run.py --opening $R            # 6a's THREE READERS IN ONE
     #      CALL, --inherited, --stale and --prose-facts in the order the
     #      body gives them, and BEFORE the first paragraph
