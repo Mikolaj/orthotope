@@ -9372,12 +9372,19 @@ not otherwise.
     #      installed too since 2026-09-22, off each class's own block,
     #      in the row order the document already has
     #      why: --para 'Install the tables with'
+    ./read-run.py --prose-draft $R --in-place   # 5b too: the rest of
+    #      the run file's mechanical prose -- the census, the bar, the
+    #      roster, the step, the standings, the properties, the class
+    #      lead, the bold and ties, the offsets and the straddlers --
+    #      drafted over the step-5 copy with `___` where a reading is
+    #      yours, every paragraph written since being kept
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --predictions --counts $R-counts-<basis>.txt $R-counts-<other>.txt
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json \
       --predictions --in-place       # 5c. THE REGISTRATION'S SPANS, taken
     #      here, after the counts, AND `./install-tables.sh $R` AGAIN,
     #      which places each class block's counts sentence over the `___`
-    #      5b's install left and keeps every paragraph written since.
+    #      5b's install left and keeps every paragraph written since, as
+    #      a second `--prose-draft $R --in-place` does for its own.
     #      WHILE THEY ARE TAKEN, read `--checklist
     #      post-b` once, `--full` only for a step whose reason you need,
     #      then take steps 5d and 5e, which want no counts, and

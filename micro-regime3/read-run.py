@@ -7391,6 +7391,747 @@ def install_provenance(paras, args):
     return 0
 
 
+PROSE_KEYS = (
+    ('step', 'whose column stands below'),
+    ('standings', "**The control half's own standings on the arms"),
+    ('divide', '**DO NOT DIVIDE TWO ROWS OF THIS TABLE FOR A MARGIN.**'),
+    ('bar', 'The 0.7% bar asks whether `list`'),
+    ('roster', '`concat-runs` has no row'),
+    ('prop1', "1. **`mut-odo-vecdims`'s `worst` stays under 1"),
+    ('overlist', 'no arm the library would ship is slower than `list`'),
+    ('prop2', '2. **`mut-odo-vecdims` allocates at most 1% over `list`'),
+    ('prop3', '3. **The allocation tiers survive'),
+    ('classlead', 'records every class twice**'),
+    ('bold', "The cross-class summary's columns and its bold are"),
+    ('ties', 'The best arm outside the vecdims arms is ahead of'),
+    ('offsets', '`./loop-offsets.py --delta'),
+    ('straddle', '`loop-offsets.py --survey` reads'),
+)
+
+
+def prose_draft(run, args):
+    """The run file's mechanical prose outside Provenance's drafts, one
+    paragraph per PROSE_KEYS entry, each off the reader's own modes over
+    this run's JSONs, the previous run's and the binaries.
+
+    What a person decides -- a lead stating a finding, an attribution, a
+    comparison's meaning -- is a `___`; the figures and the sentences that
+    only carry them are drafted. Run 42 typed these paragraphs over Run
+    41's with new figures, and its checker's figure findings were in that
+    typing. With --in-place each replaces the paragraph carrying its
+    phrase where that paragraph is the step-5 copy's, or carries `___`,
+    and keeps any other, as --provenance-draft does. A draft whose source
+    is missing says so where its figure would stand. Cases:
+    `prose-draft-drafts-every-paragraph`, `prose-draft-keeps-a-written-one`.
+    """
+    # BESIDE THE SCRIPT where the working directory holds none of the
+    # run's files, as the drivers find theirs: a case runs from elsewhere.
+    where = os.path.dirname(run) or '.'
+    name = os.path.basename(run)
+    if not os.path.dirname(run) and not glob.glob(name + '-*.json'):
+        where = os.path.dirname(os.path.abspath(__file__))
+    try:
+        out = subprocess.run([os.path.join(where, 'pair-halves.sh'), name],
+                             capture_output=True, text=True, check=True,
+                             cwd=where).stdout
+    except (subprocess.CalledProcessError, OSError):
+        out = ''
+    kv = dict(p_.strip().split('=', 1) for p_ in out.strip().split(';')
+              if '=' in p_)
+    basis, other = kv.get('BASIS'), kv.get('OTHER')
+    if not (basis and other):
+        sys.stderr.write('%s: pair-halves.sh named no two halves, so nothing'
+                         ' was drafted\n' % run)
+        return 2
+    prev = None
+    try:
+        m = re.search(r'^COMPARE:\s*(run\d+)',
+                      open(os.path.join(where, name + '-pair.txt')).read(),
+                      re.M)
+        prev = m and m.group(1)
+    except OSError:
+        pass
+    pv = prev and note_halves(os.path.join(where, prev))
+    pbasis = pv[0] if pv else None
+    me = [sys.executable, os.path.abspath(__file__)]
+
+    def rd(*a, prog=None):
+        try:
+            p = subprocess.run((prog or me) + list(a), capture_output=True,
+                               text=True, cwd=where, timeout=900)
+        except (OSError, subprocess.TimeoutExpired):
+            return ''
+        return p.stdout
+
+    def js(half, pop, r=None):
+        return '%s-%s-%s.json' % (r or name, half, pop)
+
+    def have(f):
+        return os.path.exists(os.path.join(where, f))
+
+    pops = ['main'] + sorted(
+        f[len('%s-%s-' % (name, basis)):-5]
+        for f in os.listdir(where)
+        if f.startswith('%s-%s-' % (name, basis)) and f.endswith('.json')
+        and not f.endswith('-main.json')
+        and have(js(other, f[len('%s-%s-' % (name, basis)):-5])))
+    classes = pops[1:]
+    N = re.sub(r'\D', '', name) or name
+    P = prev and re.sub(r'\D', '', prev)
+
+    def pts(x):
+        return abs(float(x) - 1) * 100
+
+    def side(h):
+        return 'basis' if h == basis else 'control' if h == other else h
+
+    def first_table(text):
+        rows, on = [], False
+        for line in text.split('\n'):
+            if re.match(r'arm\s+ratio', line):
+                if on:
+                    break
+                on = True
+                continue
+            if on:
+                if not line.strip():
+                    break
+                f = line.split()
+                if len(f) >= 5:
+                    rows.append((f[0], float(f[1]), f[-1]))
+        return rows
+
+    paras = []
+
+    def add(key, fn):
+        try:
+            paras.append((key, fn()))
+        except (ValueError, KeyError, IndexError, AttributeError,
+                TypeError, ZeroDivisionError, OSError) as e:
+            paras.append((key, '%s (the %s draft failed: %s)'
+                          % (LEAD_YOURS, key, e)))
+
+    def g_divide():
+        w = {h: rd(js(h, 'main'), '--winsor') for h in (basis, other)}
+        cen = {h: re.search(r'(\d+) pair\(s\) of timed rows other than'
+                            r' `list`[^:]*: (\d+) part in sign', w[h])
+               for h in w}
+        capped = [(r[0], float(r[3]), int(r[4]), int(r[5])) for r in
+                  re.findall(r'^(\S+)\s+([\d.]+)\s+([\d.]+)\s+(-?[\d.]+)%'
+                             r'\s+(\d+)/(\d+)', w[basis], re.M)
+                  if int(r[4]) > 0]
+        wide = re.search(r'the widest disagreement: `(.+?)` over `(.+?)`,'
+                         r' column ([\d.]+) against paired ([\d.]+), the'
+                         r' column ([-+]?[\d.]+)% off it', w[basis])
+        mv = re.search(r'(\d+) row\(s\) moved and (\d+) read the same',
+                       rd(js(basis, 'main'), '--movement'))
+        s = ('**DO NOT DIVIDE TWO ROWS OF THIS TABLE FOR A MARGIN.** The'
+             ' `time` column is a geomean over shapes of net over `list`\'s'
+             ' net, WINSORIZED per row, so a ratio of two of its entries'
+             ' equals the per-shape paired ratio only where neither row had'
+             ' a cell capped --- and on this run %s of the %s pairs among'
+             ' the timed arms other than `list` part in SIGN between the two'
+             ' statistics on the basis and %s on the control, `--winsor`'
+             ' printing each.' % (
+                 say_number(int(cen[basis].group(2))).upper(),
+                 cen[basis].group(1),
+                 say_number(int(cen[other].group(2))).upper()))
+        if capped:
+            gaps = [abs(c[1]) for c in capped if abs(c[1]) >= 0.1] or [0.0]
+            s += (' **The cap moves %s rows on the basis**, %s, their'
+                  ' published figures sitting %.1f to %.1f points under'
+                  ' their plain per-shape geomeans, so rows 0.001 apart in'
+                  ' print are ordered by the cap and not by the arms.'
+                  % (say_number(len(capped)),
+                     ', '.join('`%s` with %d of %d cells capped' % (c[0], c[2],
+                                                                    c[3])
+                               for c in capped), min(gaps), max(gaps)))
+        if wide:
+            s += (' **The widest disagreement of any kind on the basis** is'
+                  ' `%s` over `%s`, which divides to **%s** on the column'
+                  ' where the paired figure is **%s**, the column %s%% off'
+                  ' it. Those column ratios are `--pair`\'s own'
+                  ' `published-column ratio` and `--winsor`\'s census, not'
+                  ' the printed table divided.' % wide.groups())
+        if mv and prev:
+            s += (' **And a SINGLE row\'s movement between runs is not the'
+                  ' arm\'s either**: `--movement` reads %s of the %d rows'
+                  ' moved against Run %s\'s table, where what says how far'
+                  ' an ARM moved is `--compare` against the JSON of the half'
+                  ' Run %s built.' % (say_number(int(mv.group(1))),
+                                      int(mv.group(1)) + int(mv.group(2)),
+                                      P, P))
+        return s
+
+    def cross_list():
+        got = []
+        for pop in pops:
+            m = re.search(r'^list\s+([\d.]+)',
+                          rd(js(basis, pop), '--compare', js(other, pop)),
+                          re.M)
+            got.append((pop, float(m.group(1))))
+        return got
+
+    def g_bar():
+        got = cross_list()
+        inside = [p for p, x in got if pts(x) < 0.7]
+        main = dict(got)['main']
+        cls = [(p, x) for p, x in got if p != 'main']
+        lo = min(cls, key=lambda t: pts(t[1]))
+        hi = max(cls, key=lambda t: pts(t[1]))
+        if inside:
+            head = ('**This run\'s two columns may be differenced on %s, and'
+                    ' on no other population.**'
+                    % ', '.join('`%s`' % p for p in inside))
+        else:
+            head = ('**This run\'s two columns may be differenced on NONE of'
+                    ' the %s populations, and the reason is the pair'
+                    ' itself.**' % say_number(len(got)))
+        s = (head + ' The 0.7%% bar asks whether `list` --- the denominator'
+             ' every other row is divided by --- sits still between the'
+             ' halves, and here `list` moves by **%.2f points** on the main'
+             ' set and by %.2f on `%s` to %.2f on `%s` over the %s classes'
+             % (pts(main), pts(lo[1]), lo[0], pts(hi[1]), hi[0],
+                say_number(len(cls))))
+        if not inside:
+            s += (', every one of the figures past the bar by a factor of'
+                  ' %s or more. So on every population in this file an'
+                  ' arm-by-arm figure across the halves is an ORDERING and'
+                  ' not a subtraction, and each says so in its own'
+                  ' cross-half line. What stays readable is `--compare`\'s'
+                  ' paired ratio per arm, which the head quotes against the'
+                  ' cross-half A/A bar `--compare` prints: it says which half'
+                  ' runs that arm faster and by how much, and never licenses'
+                  ' subtracting one half\'s published column from the'
+                  ' other\'s.' % say_number(int(min(pts(x) for _, x in got)
+                                               / 0.7)))
+        else:
+            s += '. ___'
+        return s
+
+    def g_roster():
+        lint = re.search(r'note: (\d+) of the (\d+) roster arms', rd('--lint'))
+        s = ('`concat-runs` has no row, and neither do the other %d arms the'
+             ' roster holds and checks without timing --- **%s of its %s**'
+             ' in all: the reason is at each entry and the count is'
+             ' [`--lint`\'s](../README.md#the-reader-read-runpy).'
+             % (int(lint.group(1)) - 1, lint.group(1), lint.group(2)))
+        if prev and pbasis and have('%s-%s' % (prev, pbasis)) \
+                and have('%s-%s' % (name, basis)):
+            d = rd('%s-%s' % (prev, pbasis), '%s-%s' % (name, basis),
+                   prog=[os.path.join(where, 'roster-delta.py')])
+            m = re.search(r'main set: (\d+) -> (\d+) benches, (\d+) -> (\d+)'
+                          r' arms over (\d+) -> (\d+) shapes', d)
+            v = re.search(r'classes: (\d+) -> (\d+) benches, .*? over (\d+)'
+                          r' -> (\d+) views', d)
+            ins = re.findall(r'in\s+\(\d+\): (.*)', d)
+            outs = re.findall(r'out\s+\(\d+\): (.*)', d)
+            s += (' `roster-delta.py`, read off the two binaries, reads %s'
+                  ' arms to %s over %s shapes to %s and the class views %s'
+                  ' to %s%s%s; ___ (the commits that moved them).'
+                  % (m.group(3), m.group(4), m.group(5), m.group(6),
+                     v.group(3), v.group(4),
+                     ''.join(', in: %s' % i for i in ins),
+                     ''.join(', out: %s' % o for o in outs)))
+        if prev and pbasis and have(js(pbasis, 'main', prev)):
+            k = len(first_table(rd(js(basis, 'main'), '--compare',
+                                   js(pbasis, 'main', prev))))
+            s += (' A movement against Run %s\'s own basis column is therefore'
+                  ' a movement on the **%d shared arms that carry a corrected'
+                  ' time**, with ___ (the terms between the two runs) ---'
+                  ' and a movement across THIS run\'s two halves is the'
+                  ' pair\'s own variable, with no term of any other kind.'
+                  % (P, k))
+        return s
+
+    def g_step():
+        if not (prev and pbasis and have(js(pbasis, 'main', prev))):
+            return LEAD_YOURS + ' ___ (no COMPARE run on disk to step from)'
+        vs = rd(js(basis, 'main'), '--compare', js(pbasis, 'main', prev))
+        rows = first_table(vs)
+        near = [r for r in rows if pts(r[1]) <= 1.1]
+        far = [r for r in rows if pts(r[1]) > 1.1]
+        br = rd(js(basis, 'main'), '--compare', js(pbasis, 'main', prev),
+                '--bridge')
+        band = re.search(r'(\d+) outside the ([\d.]+)% drift band', br)
+        bout = re.findall(r'^  (\S+)\s+[\d.]+ \(', br, re.M)
+        ps = rd(js(basis, 'main'), '--compare', js(pbasis, 'main', prev),
+                '--per-shape')
+        shapes = dict(re.findall(r'^\s+(\d+) (\S+)$', ps, re.M))
+
+        def widest(arm):
+            m = re.search(r'^%s\s+((?:[\d.]+\s+)+[\d.]+)$' % re.escape(arm),
+                          ps, re.M)
+            if not m:
+                return None
+            v = [float(x) for x in m.group(1).split()]
+            i = max(range(len(v)), key=lambda j: abs(math.log(v[j])))
+            return shapes.get(str(i + 1)), v[i]
+        s = (LEAD_YOURS + ' ___ (the pair and its recipes, from the'
+             ' registration). What this run leaves as the reference is'
+             ' `%s-%s`, the unflagged half whose column stands below. **Its'
+             ' step from `%s-%s`**: %s of the %s timed arms both runs carry'
+             ' read within 1.1 points of 1 by `--compare`, paired per shape,'
+             ' and %s do not' % (name, basis, prev, pbasis,
+                                 say_number(len(near)), say_number(len(rows)),
+                                 say_number(len(far))))
+        if far:
+            parts = []
+            for a, x, rng in far:
+                wd = widest(a)
+                parts.append('`%s` at **%.4f**, %s%s' % (
+                    a, x, rng, ', widest on `%s` at %.3f' % wd if wd else ''))
+            s += ' --- ' + '; '.join(parts)
+        s += ', below 1 meaning this run is the faster'
+        if band:
+            s += ('; `--bridge` puts %s outside the %s%% drift band it prints'
+                  % (', '.join('`%s`' % a for a in bout) or 'no arm',
+                     band.group(2)))
+        reg = rd('--record', 'regime')
+        rows = [l.split() for l in reg.split('\n')
+                if re.match(r'\s+\d+\s+\d+\s', l)]
+        mine = [r for r in rows if r[1] == N]
+        rest = [r for r in rows if r[1] != N]
+        if mine and rest:
+            l19 = [float(r[-3]) for r in rest if r[-3] != '-']
+            bq = [float(r[-1]) for r in rest if r[-1] != '-']
+            s += ('. `--record regime` reads this build\'s `list` at %s and'
+                  ' `bq-expand` at %s, against %.4f to %.4f and %.4f to %.4f'
+                  ' over the rows before it. ___'
+                  % (mine[-1][-3], mine[-1][-1], min(l19), max(l19),
+                     min(bq), max(bq)))
+        else:
+            s += '. ___'
+        return s
+
+    def g_standings():
+        path = want_run_doc(args)
+        with contextlib.redirect_stderr(io.StringIO()):
+            got = step5_copy(path, '--prose-draft')
+        if isinstance(got, int):
+            return LEAD_YOURS + ' ___ (no step-5 copy to take the pairs from)'
+        old = next((b for b in got[3].split('\n\n')
+                    if "control half's own standings" in b), '')
+        roster = re.findall(r'^\| \**([\w-]+)', rd(js(basis, 'main'),
+                                                  '--markdown'), re.M)
+        arms = set(roster) | set(re.findall(r'`([\w-]+)`', old))
+
+        def full(a):
+            if not a.startswith('-'):
+                return a
+            c = [x for x in arms if x.endswith(a) and not x.startswith('-')]
+            return min(c, key=len) if c else a
+        pairs, last = [], None
+        for m in re.finditer(r'(?:`([\w-]+)` )?against `([\w-]+)`,? \*\*',
+                             old):
+            a = full(m.group(1)) if m.group(1) else last
+            pairs.append((a, full(m.group(2))))
+            last = a
+        if not pairs:
+            return LEAD_YOURS + ' ___ (the copy names no pair to re-read)'
+        got = []
+        for a, b in pairs:
+            v = {}
+            for h in (basis, other):
+                m = re.search(r'^%s / %s\s+([\d.]+)' % (re.escape(a),
+                                                       re.escape(b)),
+                              rd(js(h, 'main'), '--pair', a, b), re.M)
+                v[h] = float(m.group(1)) if m else None
+            got.append((a, b, v[basis], v[other]))
+        held = [g for g in got if g[2] and g[3]
+                and (g[2] - 1) * (g[3] - 1) > 0]
+        s = ('**The control half\'s own standings on the arms this run\'s'
+             ' roster carries, which no FULL table here holds, every'
+             ' published table but the two-column one being the basis'
+             ' half\'s.** Read off the'
+             ' control half\'s main-set process with `--pair`, paired'
+             ' geomeans over the main-set shapes, with the basis half\'s'
+             ' reading in brackets: ' + '; '.join(
+                 '`%s` against `%s` **%.4f** (%.4f)' % (a, b, o, bb)
+                 for a, b, bb, o in got if bb and o)
+             + '. **%s of the %s hold their direction across the halves** by'
+             ' the paired figure. ___' % (say_number(len(held)).capitalize(),
+                                          say_number(len(got))))
+        return s
+
+    blocks = {}
+
+    def block(h, c):
+        if (h, c) not in blocks:
+            blocks[h, c] = rd(js(h, c), '--block', '--brief')
+        return blocks[h, c]
+
+    main_default = {}
+
+    def mains(h):
+        if h not in main_default:
+            main_default[h] = rd(js(h, 'main'))
+        return main_default[h]
+
+    PROP = (r'property (\d), (`worst` under 1|ahead of `bq-expand` on every'
+            r' shape|allocation at most 1% over `(?:list|bq-expand)` on every'
+            r' shape): ([A-Z]+)(?: -- closest `(.+?)` at ([\d.]+))?')
+
+    def props():
+        out = []
+        for h in (basis, other):
+            for pop in pops:
+                text = mains(h) if pop == 'main' else block(h, pop)
+                for m in re.finditer(PROP, text):
+                    out.append((h, pop) + m.groups())
+        return out
+
+    def g_prop1():
+        ps = [p for p in props() if p[2] == '1']
+        bad = [p for p in ps if p[4] != 'HOLDS']
+        main = {p[0]: p for p in ps if p[1] == 'main' and p[5]}
+        cls = [float(p[6]) for p in ps if p[1] != 'main' and p[0] == basis
+               and p[6]]
+        s = ('1. **`mut-odo-vecdims`\'s `worst` stays under 1, and'
+             ' `mut-odo-vecdims` is ahead of `bq-expand` on every shape.** ')
+        s += ('**Both clauses held in every one of the %s populations on'
+              ' both halves**' % say_number(len(pops)) if not bad else
+              '**___ (a clause broke: %s)**' % '; '.join(
+                  '%s %s %s' % (p[1], p[0], p[3]) for p in bad))
+        if basis in main and other in main:
+            s += (': the main set\'s basis puts `mut-odo-vecdims` over'
+                  ' `bq-expand` on `%s` at **%s**, where the control reads'
+                  ' **%s** on `%s`'
+                  % (main[basis][5], main[basis][6], main[other][6],
+                     main[other][5]))
+        if cls:
+            s += ('. Every other shape of every population reads the clause'
+                  ' with room, the classes\' closest cells at %.2f to %.2f on'
+                  ' the basis' % (min(cls), max(cls)))
+        return s + '. ___'
+
+    def g_overlist():
+        ol = rd('--over-list', name)
+        rows = re.findall(r'^(\S+?)-(\S+)\s+(\S+)\s+(\S+)\s+([\d.]+)$', ol,
+                          re.M)
+        tot = re.search(r'(\d+) timed non-control cell\(s\)', ol)
+        s = ('Beside property 1, the WIDER statement this class set is read'
+             ' for --- that no arm the library would ship is slower than'
+             ' `list` on any shape: **%s timed non-control cell(s) of %s are'
+             ' slower than their own shape\'s `list`**, ___ (whether any is'
+             ' an arm the library would ship)' % (
+                 say_number(len(rows)), tot.group(1) if tot else '___'))
+        if rows:
+            s += '; ' + '; '.join('`%s` on `%s` on the %s at **%s**'
+                                  % (r[3], r[2], side(r[0]), r[4])
+                                  for r in rows)
+            seen = sorted({(r[1], r[2], r[3]) for r in rows})
+            for pop, shape, arm in seen:
+                nets = []
+                for a in (arm, 'list'):
+                    m = re.search(r'net, s\s+\S+\s+\S+\s+([\d.]+)',
+                                  rd(js(basis, pop), '--compare',
+                                     js(other, pop), '--cell',
+                                     '%s/%s' % (shape, a)))
+                    nets.append(m.group(1) if m else '___')
+                s += ('. On `%s` the fill\'s own net moves %s between the'
+                      ' halves while `list` moves %s' % (shape, nets[0],
+                                                         nets[1]))
+        return s + '.'
+
+    def g_prop2():
+        ps = [p for p in props() if p[2] == '2' and p[6]]
+        if not ps:
+            return ('2. **`mut-odo-vecdims` allocates at most 1% over `list`'
+                    ' and over `bq-expand` on every shape** --- ___ (no'
+                    ' property 2 line read)')
+        ls = [p for p in ps if '`list`' in p[3]]
+        bq = [p for p in ps if 'bq-expand' in p[3]]
+        bad = [p for p in ps if p[4] != 'HOLDS']
+        if not ls or not bq:
+            return ('2. **`mut-odo-vecdims` allocates at most 1% over `list`'
+                    ' and over `bq-expand` on every shape** --- ___ (a'
+                    ' clause read on no population)')
+        top = max(ls, key=lambda p: float(p[6]))
+        nsm = max((p for p in ls if p[1] != 'small'),
+                  key=lambda p: float(p[6]), default=top)
+        bqs = sorted(bq, key=lambda p: -float(p[6]))[:4]
+        s = ('2. **`mut-odo-vecdims` allocates at most 1% over `list` and'
+             ' over `bq-expand` on every shape** --- property 1\'s two'
+             ' inequalities in allocation with a 1% margin, on the `alloc`'
+             ' multiple each cell carries: by `--block` per class and by the'
+             ' default mode on the main set, each clause printed with its'
+             ' closest shape. ')
+        s += ('**Both clauses hold in every one of the %s populations on both'
+              ' halves.**' % say_number(len(pops)) if not bad else
+              '**___ (a clause broke)**')
+        s += (' The `list` clause is closest at `%s` on the %s,'
+              ' **%s**, and every closest shape outside `small` sits at or'
+              ' under %s. The `bq-expand` clause is closest at %s. ___'
+              % (top[5], side(top[0]), top[6], nsm[6], ', then '.join(
+                  '`%s` at %s on the %s' % (p[5], p[6], side(p[0]))
+                  for p in bqs)))
+        return s
+
+    def g_prop3():
+        tiers = {}
+        for h in (basis, other):
+            for pop in classes:
+                m = re.search(r'property 3, allocation: mut-odo-vecdims'
+                              r' ([\d.]+)x, bq-expand ([\d.]+)x, list'
+                              r' ([\d.]+)x', block(h, pop))
+                if m:
+                    tiers[h, pop] = tuple(float(x) for x in m.groups())
+        if not tiers:
+            return ('3. **The allocation tiers survive and their ORDER is'
+                    ' ___** (no property 3 line read)')
+        bqr = [t[1] for t in tiers.values()]
+        lr = [t[2] for t in tiers.values()]
+        moved = [k for k in tiers if k[0] == basis
+                 and tiers.get((other, k[1])) != tiers[k]]
+        broken = sorted('%s on the %s' % (k[1], k[0]) for k, t in tiers.items()
+                        if not t[0] <= t[1] <= t[2])
+        med = {}
+        for h in (basis, other):
+            md = rd(js(h, 'main'), '--markdown')
+            for arm in ('bq-expand', 'list (baseline)'):
+                m = re.search(r'^\| \**%s\**\s*\|.*?\|.*?\|.*?\|.*?\|\s*'
+                              r'\**([\d.]+x)' % re.escape(arm), md, re.M)
+                med[h, arm] = m.group(1) if m else '___'
+        s = ('3. **The allocation tiers survive and their ORDER is %s in'
+             ' the %s classes, on both halves --- and'
+             ' their LEVEL clause %s.** `bq-expand` sits between %.2fx and'
+             ' %.2fx the result vector and `list` at %.2fx to %.2fx, on both'
+             ' halves and in every class. On the main set `bq-expand` reads'
+             ' **%s** on the basis and **%s** on the control and `list`'
+             ' **%s** and **%s** --- medians over the main-set shapes, so'
+             ' they are not to be divided. ___'
+             % ('unbroken' if not broken else
+                'BROKEN (%s)' % ', '.join(broken),
+                say_number(len(classes)),
+                'BREAKS in %s of the %s classes' % (
+                    say_number(len(moved)), say_number(len(classes)))
+                if moved else 'HOLDS',
+                min(bqr), max(bqr), min(lr), max(lr),
+                med[basis, 'bq-expand'], med[other, 'bq-expand'],
+                med[basis, 'list (baseline)'], med[other, 'list (baseline)']))
+        return s
+
+    def g_classlead():
+        cc = rd('--cross-classes', name)
+        lead = re.search(r'lead: (.*)$', cc, re.M)
+        lst = re.findall(r'the (\S+) class (\d+\.\d+)', cc)
+        if not lst:
+            return ('**Run %s records every class twice** ___ (no'
+                    ' cross-class reading)' % N)
+        lo = min(lst, key=lambda t: pts(t[1]))
+        hi = max(lst, key=lambda t: pts(t[1]))
+        doc = open(want_run_doc(args)).read()
+        named = sorted(set(re.findall(r'predict: [^`]*? on (\w+) (?:basis|'
+                                      r'control|both)', doc)) - {'main'})
+        s = ('**Run %s records every class twice**, one process per class'
+             ' per half, so each block below has a control-half twin and the'
+             ' cross-half line under it is derived from both. `list` moved'
+             ' between the halves by %.2f points on `%s` at narrowest and'
+             ' %.2f on `%s` at widest, so %s of the %s classes sits inside'
+             ' the 0.7%% that lets two columns be differenced. %s. Every'
+             ' `Across the halves` line below reads the basis over the'
+             ' control, ABOVE 1 meaning the control is the faster, as every'
+             ' cross figure in this file does. What each class still'
+             ' decides, and decides on both halves separately, is the three'
+             ' properties, its own floor, and whichever registrations name'
+             ' it. ' % (N, pts(lo[1]), lo[0], pts(hi[1]), hi[0],
+                        'NONE' if pts(lo[1]) >= 0.7 else '___',
+                        say_number(len(lst)),
+                        lead.group(1) if lead else '___'))
+        s += ('**%s**' % ('A registration names %s' % ', '.join(
+            '`%s`' % c for c in named) if named else
+            'No registration of this run names a class'))
+        return s + ' ___'
+
+    def summary_rows(text):
+        rows = {}
+        for m in re.finditer(r'^\| `(\w+)` \| \d+ \| ([\d.]+) \| [\d.]+ \|'
+                             r' (.+?) \| (.+?) \| [\d.]+% \|$', text, re.M):
+            def cell(c):
+                a = re.search(r'`([\w-]+)`\**\s+([\d.]+)', c)
+                return a.group(1), a.group(2), c.startswith('**')
+            rows[m.group(1)] = (float(m.group(2)), cell(m.group(3)),
+                                cell(m.group(4)))
+        return rows
+
+    def g_bold():
+        rows = summary_rows(open(want_run_doc(args)).read())
+        out = [(c, r[1][0]) for c, r in rows.items() if r[1][2]]
+        ceil = [(c, r[2][0]) for c, r in rows.items() if r[2][2]]
+        cs = sorted({r[2][0] for r in rows.values()})
+        by = {}
+        for c, a in sorted(out):
+            by.setdefault(a, []).append(c)
+        s = ('The cross-class summary\'s columns and its bold are [README\'s'
+             ' *Reading a run file*](../README.md#reading-a-run-file). **The'
+             ' bold is the arm outside the vecdims arms on %s of the %s rows'
+             ' this run**' % (say_number(len(out)).upper(),
+                              say_number(len(rows)).upper()))
+        if by:
+            s += ' --- ' + ', '.join(
+                '`%s` on %s' % (a, ', '.join('`%s`' % c for c in cs_))
+                for a, cs_ in sorted(by.items(), key=lambda t: -len(t[1])))
+        if ceil:
+            s += ('; the ceiling on %s' % ', '.join('`%s`' % c
+                                                     for c, _ in ceil))
+        s += ('. **The vecdims arms\' ceiling is %s**. ___'
+              % (('`%s` on every row' % cs[0]) if len(cs) == 1 else
+                 ', '.join('`%s`' % a for a in cs)))
+        return s
+
+    def g_ties():
+        rows = summary_rows(open(want_run_doc(args)).read())
+        ahead = [c for c, r in rows.items() if float(r[1][1]) < r[0]]
+        tie = sorted(c for c, r in rows.items() if r[1][1] == r[2][1])
+        near = sorted(c for c, r in rows.items()
+                      if round(abs(float(r[1][1]) - float(r[2][1])), 3)
+                      == 0.001)
+        s = ('The best arm outside the vecdims arms is ahead of'
+             ' `mut-odo-vecdims` in %s of the %s classes.'
+             % (say_number(len(ahead)), say_number(len(rows))))
+        if prev:
+            try:
+                old = summary_rows(open(os.path.join(
+                    os.path.dirname(want_run_doc(args)),
+                    prev + '.md')).read())
+            except OSError:
+                old = {}
+            ch = [(c, r[1][0]) for c, r in rows.items()
+                  if c in old and old[c][1][0] != r[1][0]]
+            s += (' %s change the arm they name against Run %s%s.'
+                  % (say_number(len(ch)).capitalize() + ' row(s)', P,
+                     ''.join(', `%s` to `%s`' % t for t in sorted(ch))))
+        s += (' **%s rows tie at three decimals this run**%s%s; the `bold`'
+              ' column decides each on the unrounded values.'
+              % (say_number(len(tie)).upper(),
+                 ', ' + ', '.join('`%s`' % c for c in tie) if tie else '',
+                 ', and %s sit a thousandth apart' % ', '.join(
+                     '`%s`' % c for c in near) if near else ''))
+        return s
+
+    def binary(r, h):
+        return '%s-%s' % (r, h) if r and h and have('%s-%s' % (r, h)) \
+            else None
+
+    LO = [os.path.join(where, 'loop-offsets.py')]
+
+    def g_offsets():
+        b, o = binary(name, basis), binary(name, other)
+        pb = binary(prev, pbasis)
+        if not (b and o):
+            return LEAD_YOURS + ' ___ (the binaries are gone)'
+        s = LEAD_YOURS
+        if pb:
+            d = rd('--delta', pb, b, prog=LO)
+            grp = re.findall(r'^   (\d+) -> (\d+) copies, 28 B, (\d+) insns\n'
+                             r'\s+(every mod-64 offset preserved: \[.*?\]|'
+                             r'copy COUNT moved: offsets \[.*?\] -> \[.*?\])',
+                             d, re.M)
+            s += (' `./loop-offsets.py --delta %s %s` reads %s.'
+                  % (pb, b, '; '.join('%s -> %s copies: %s'
+                                      % (g[0], g[1], g[3])
+                                      for g in grp) or '___'))
+        pr = rd(o, b, prog=LO)
+        s += (' **Within the pair**: %s.' % '; '.join(
+            '%s %s' % (h, ', '.join(re.findall(r'\d+ copies, 28 B, \d+ insns,'
+                                               r' offsets \[[\d, ]*\]', sec)))
+            for h, sec in re.findall(r'== (\S+): [^\n]*\n((?:   .*\n)*)', pr)))
+        lib = rd('--library', b, o, prog=LO)
+        m = re.search(r'(\d+) library self-loops in both\n\s+same offset in'
+                      r' line: ([\d.]+%)', lib)
+        if m:
+            s += (' `--library` puts **%s** of the %s library self-loops the'
+                  ' two halves share at the same offset in line.'
+                  % (m.group(2), m.group(1)))
+        return s + ' ___'
+
+    def g_straddle():
+        sv = {}
+        for h in (basis, other):
+            f = binary(name, h)
+            if not f:
+                return LEAD_YOURS + ' ___ (the binaries are gone)'
+            t = rd('--survey', f, prog=LO)
+            sv[h] = (re.search(r'(\d+) self-loops', t).group(1),
+                     re.search(r'at offset 0\s+: (\d+)', t).group(1),
+                     re.search(r'still straddling\s+: (\d+)', t).group(1),
+                     re.search(r'exit spans astride : (\d+)', t).group(1))
+        s = ('%s `loop-offsets.py --survey` reads %s self-loops of at most'
+             ' 64 B in `_Main_`-compiled code on the basis and %s on the'
+             ' control, %s and %s of them at offset 0, %s and %s straddling,'
+             ' and %s and %s exit spans astride.'
+             % (LEAD_YOURS, sv[basis][0], sv[other][0], sv[basis][1],
+                sv[other][1], sv[basis][2], sv[other][2], sv[basis][3],
+                sv[other][3]))
+        tw = {h: 'probe-g3-%s-%s' % (h, name) for h in (basis, other)}
+        if all(have(t) for t in tw.values()):
+            for h, o in ((basis, other), (other, basis)):
+                t = rd('%s-%s' % (name, h), '--match', tw[h], tw[o],
+                       '--loose', prog=LO)
+                m = re.search(r'straddlers: (.*)$', t, re.M)
+                s += (' On the %s, `--match` with both `-g3` twins and'
+                      ' `--loose`: %s.' % ('basis' if h == basis
+                                           else 'control',
+                                           m.group(1) if m else '___'))
+        else:
+            s += ' ___ (no `-g3` twins: post-run step 3a names them)'
+        return s + ' ___'
+
+    for key, fn in (('step', g_step), ('standings', g_standings),
+                    ('divide', g_divide), ('bar', g_bar),
+                    ('roster', g_roster), ('prop1', g_prop1),
+                    ('overlist', g_overlist), ('prop2', g_prop2),
+                    ('prop3', g_prop3), ('classlead', g_classlead),
+                    ('bold', g_bold), ('ties', g_ties),
+                    ('offsets', g_offsets), ('straddle', g_straddle)):
+        add(key, fn)
+    if not args.in_place:
+        for key, s in paras:
+            print('[%s] %s' % (key, s))
+            print()
+        return 0
+    return install_prose(paras, args)
+
+
+def install_prose(paras, args):
+    """--prose-draft --in-place: each draft over the one paragraph of the
+    run file carrying its phrase, where that one is the step-5 copy's or
+    carries `___`; any other is kept, and a phrase found in no paragraph or
+    in several is printed for placing by hand."""
+    path = want_run_doc(args)
+    blocks = open(path).read().split('\n\n')
+    with contextlib.redirect_stderr(io.StringIO()):
+        got = step5_copy(path, '--prose-draft')
+    tracked = not isinstance(got, int)
+    carried = {' '.join(b.partition('\n|')[0].split())
+               for b in got[3].split('\n\n')} if tracked else set()
+    keyed = dict(PROSE_KEYS)
+    placed = kept = 0
+    for key, draft in paras:
+        phrase = keyed[key]
+        hits = [i for i, b in enumerate(blocks)
+                if phrase in ' '.join(b.split())]
+        if len(hits) != 1:
+            print('%s: %d paragraph(s) carry `%s`, need one; place it by'
+                  ' hand:\n    %s' % (key, len(hits), phrase, draft))
+            continue
+        i = hits[0]
+        prose, sep, table = blocks[i].partition('\n|')
+        flat = ' '.join(prose.split())
+        if flat in carried or '___' in flat:
+            blocks[i] = draft + (sep + table if sep else '')
+            placed += 1
+        else:
+            print('%s: kept, written since the run file was first committed'
+                  % key)
+            kept += 1
+    open(path, 'w').write('\n\n'.join(blocks))
+    sys.stderr.write('installed at %s: %d drafted paragraph(s), %d kept\n'
+                     % (os.path.basename(path), placed, kept))
+    return 0
+
+
 def gate_spans(run, passes, args):
     """The registration's `cross` spans on the main set, against the
     gate's two passes, printed under the draft since 2026-09-26.
@@ -16439,6 +17180,13 @@ def main():
                    help='install --markdown/--fingerprint/--block tables'
                         " into the run's own file instead of printing"
                         ' them')
+    p.add_argument('--prose-draft', dest='prose_draft', metavar='RUN',
+                   help="the run file's mechanical prose outside"
+                        " Provenance's drafts -- the census, the bar, the"
+                        ' roster, the step, the standings, the properties,'
+                        ' the class lead, the bold and ties, the offsets'
+                        ' and straddlers -- `___` where a reading is yours;'
+                        ' with --in-place, installed over the step-5 copy')
     p.add_argument('--provenance-draft', metavar='RUN',
                    help="the run file's mechanical Provenance paragraphs,"
                         ' one line each, off the step-4 readings and the'
@@ -16711,10 +17459,12 @@ def main():
     if args.in_place and not (args.markdown or args.fingerprint
                               or args.block or args.predictions
                               or args.hand_tables
-                              or args.provenance_draft):
+                              or args.provenance_draft
+                              or args.prose_draft):
         p.error('--in-place is a modifier of --markdown, --fingerprint,'
-                ' --block, --predictions, --hand-tables or'
-                ' --provenance-draft and does nothing alone')
+                ' --block, --predictions, --hand-tables,'
+                ' --provenance-draft or --prose-draft and does nothing'
+                ' alone')
     def asked(v):
         """Was this flag given? False and 0 are given; None is not."""
         return v is not None and v is not False
@@ -16952,6 +17702,8 @@ def main():
         sys.exit(paragraphs(docs, args.para, args.all_paras))
     if args.modes:
         sys.exit(modes_table())
+    if args.prose_draft:
+        sys.exit(prose_draft(args.prose_draft, args))
     if args.provenance_draft:
         sys.exit(provenance_draft(args.provenance_draft, args))
     if args.opening:

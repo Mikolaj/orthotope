@@ -13819,6 +13819,37 @@ RECORDS = [
                    'rerun ./install-tables.sh zzit once']),
          bug=V(hasnt=['no counts sweeps yet'])),
 
+    case('prose-draft-drafts-every-paragraph', 'read-run.py', None,
+         'CONTROL: --prose-draft drafts each of its paragraphs off a whole'
+         ' paired run, saying where a source is missing rather than failing',
+         # Run 42 typed these paragraphs over Run 41's, and its checker's
+         # figure findings were in that typing.
+         plant=lambda t: {'doc': write_rundoc(t, rundoc_text())},
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                             prefix='zzit',
+                                             classes=recorded_classes())),
+         env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['--prose-draft', 'zzit', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['[divide] **DO NOT DIVIDE TWO ROWS',
+                           '[bar] **This run', '[prop1] 1.', '[prop2] 2.',
+                           '[prop3] 3.', '[classlead] **Run', '[ties]',
+                           '[offsets]', 'the binaries are gone'],
+              hasnt=['Traceback'])),
+
+    case('prose-draft-keeps-a-written-one', 'read-run.py', None,
+         'CONTROL: --prose-draft --in-place keeps a paragraph that carries'
+         ' no `___` in a file with no step-5 copy, as --provenance-draft'
+         ' does, so a rerun never takes back a written paragraph',
+         plant=lambda t: {'doc': write_rundoc(t, rundoc_text())},
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                             prefix='zzit',
+                                             classes=recorded_classes())),
+         env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['--prose-draft', 'zzit', '--run-doc', '{doc}', '--in-place'],
+         probe=lambda subs: open(subs['doc']).read(),
+         ok=V(exit=0, has=['divide: kept', 'bar: kept',
+                           'DO NOT DIVIDE TWO ROWS OF THIS TABLE'])),
+
     case('lead-patterns-disagree', 'install-tables.sh', None,
          'a lead one pattern missed was overwritten by the block above it',
          plant=lambda t: {'doc': edited_rundoc(
