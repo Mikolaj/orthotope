@@ -38,9 +38,10 @@ the base-offset of each innermost run once --- the outer-base grid is separable
 the result with a single `vGenerate` doing **one** `quotRem` per element.
 It beats the original `list` fallback on every benchmarked shape
 with no regression and needs no extension to orthotope classes --- **that
-is the FILL**, and the route the library actually ships, `lib-stage1`, is slower
-than `list` on the shortest run of the `runs` class this roster times, `runs-2`,
-which [the run file's property
+is the FILL**, and `lib-stage1`, the stage-one route as it shipped --- its fill
+`fillStage3` behind a `walkAx` conversion since `c7549d2`, and so no longer
+the library's own --- is slower than `list` on the shortest run of the `runs`
+class this roster times, `runs-2`, which [the run file's property
 1](runs/run42.md#the-properties-the-next-run-should-test) records and seven runs
 have now read.
 
@@ -787,8 +788,10 @@ rather than a slot in the next run, observed again:
   that separates a half's binary, its file instance and its process wants
   the box quiet, and the pair note's `QUIET-AFTER:` line read `ask` with nobody
   at the machine, so by the ruling of 2026-09-26 it waits for the owner. **What
-  would settle it**: `./copy-test.sh run42` over those cells, read
-  with `./read-run.py --copy-test run42-copy-test.log`, while
+  would settle it**: `./copy-test.sh run42`, whose `--copy-cells` takes
+  `flip-last-rows/lib-stage2-lean` for the three `flip` movers and on `rev`
+  a `bq-expand` cell, so `rev-cnn-L1-24x24-c1/lib-stage1` is timed the same way
+  by hand, read with `./read-run.py --copy-test run42-copy-test.log`, while
   `run42-gheadnospec` and `run42-gheadtwopass` are still on disk --- INSTANCE,
   PROCESS or BUILD per cell.
 - `ANSWERED` **What Run 41 was built to answer, registered before it ran ---
@@ -1593,25 +1596,25 @@ rather than a slot in the next run, observed again:
   half and neither on the other, have been read from Run 36 on,
   and `./read-run.py --record regime` prints the readings; a run that builds
   that pair again appends its row. **They settle how many points the two passes
-  are worth**: every reading after Run 36's puts `list` between 1.2889
-  and 1.2986 over the main set, straddling Run 31's whole-level 1.2974,
-  from 0.85 of a point under it to 0.12 above, where Run 36's 1.3360 stood 3.9
-  above it, so Run 36's was the outlier and its reading that the level's other
-  passes hand `list` back is refuted across a rebuild and not only across
-  a second draw of one build. The composition of the two single-pass runs,
-  1.3325, overshoots. The only readings of either pass ALONE are Runs 29's
-  and 30's, taken on ghc-9.12.4, on an older roster, and
-  with the `-fspec-constr` half as that run's basis so that its published
-  figures are the reciprocals of this orientation. So the SPLIT is not accounted
-  for at all: nothing says whether SpecConstr carries it, as its allocation
-  signature suggests, or whether LiberateCase carries part of it on this HEAD.
-  **What settles it is one pair and one variable**: either flag alone against
-  the unflagged half, built by the newest published basis's own recipe --- now
-  `run42-gheadnospec`, `Main.hs` at `eb76398` and the shim at `1a359bd`
-  under the settled cost, with the compiler, the project file and the launch
-  unmoved --- which reads with the box as the only term. Registered here rather
-  than in a run's registration because it is a pair to ask for and
-  not a prediction to hold.
+  are worth**: every reading after Run 36's, the re-read of Run 37's binaries
+  included, puts `list` between 1.2889 and 1.2986 over the main set, straddling
+  Run 31's whole-level 1.2974, from 0.85 of a point under it to 0.12 above,
+  where Run 36's 1.3360 stood 3.9 above it, so Run 36's was the outlier
+  and its reading that the level's other passes hand `list` back is refuted
+  across a rebuild and not only across a second draw of one build.
+  The composition of the two single-pass runs, 1.3325, overshoots. The only
+  readings of either pass ALONE are Runs 29's and 30's, taken on ghc-9.12.4,
+  on an older roster, and with the `-fspec-constr` half as that run's basis
+  so that its published figures are the reciprocals of this orientation.
+  So the SPLIT is not accounted for at all: nothing says whether SpecConstr
+  carries it, as its allocation signature suggests, or whether LiberateCase
+  carries part of it on this HEAD. **What settles it is one pair and one
+  variable**: either flag alone against the unflagged half, built by the newest
+  published basis's own recipe --- now `run42-gheadnospec`, `Main.hs`
+  at `eb76398` and the shim at `1a359bd` under the settled cost,
+  with the compiler, the project file and the launch unmoved --- which reads
+  with the box as the only term. Registered here rather than in a run's
+  registration because it is a pair to ask for and not a prediction to hold.
 - `PARKED` **A single wild cell moved this run's headline by 2.31 points
   and every mechanical gate passed it.** **PARKED 2026-09-26 by the owner.**
   On Run 36's basis half `list` on `stretch-coprime-r7` read a net slope
