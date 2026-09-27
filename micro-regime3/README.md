@@ -765,21 +765,17 @@ rather than a slot in the next run, observed again:
   it passes no axis; and (5) the regime's worth reads `list` at 1.2905 against
   1.295 within 1% and `bq-expand` at 1.3097 against 1.33 within 3.5% --- all
   nine spans HELD.
-- `OPEN` **Four of Run 42's half-local movers have their counts level
-  and no copy test yet: the control's `lib-stage2-lean`, `mut-odo-vecdims`
-  and `mut-odo-vecdims-aa` on `flip`, 3.2 to 4.9% faster than Run 41's control,
-  and the basis's `lib-stage1` on `rev`, 3.4% slower on counts up 0.24%.**
-  `--half-movers run42 run41` flags them, the three `flip` cells widest
-  on `flip-last-rows` ([Run 42's Results](runs/run42.md#results)). The copy test
-  that separates a half's binary, its file instance and its process wants
-  the box quiet, and the pair note's `QUIET-AFTER:` line read `ask` with nobody
-  at the machine, so by the ruling of 2026-09-26 it waits for the owner. **What
-  would settle it**: `./copy-test.sh run42`, whose `--copy-cells` takes
-  `flip-last-rows/lib-stage2-lean` for the three `flip` movers and on `rev`
-  a `bq-expand` cell, so `rev-cnn-L1-24x24-c1/lib-stage1` is timed the same way
-  by hand, read with `./read-run.py --copy-test run42-copy-test.log`, while
-  `run42-gheadnospec` and `run42-gheadtwopass` are still on disk --- INSTANCE,
-  PROCESS or BUILD per cell.
+- `ANSWERED` **What moved Run 42's four half-local movers with their counts
+  level? The control's file instance moved its `lib-stage2-lean`,
+  `mut-odo-vecdims` and `mut-odo-vecdims-aa` on `flip`, and the build moved
+  the basis's `lib-stage1` on `rev` --- taken 2026-09-27.** By the copy test,
+  on the owner's quiet box after the write-up:
+  on `flip-last-rows/lib-stage2-lean` a fresh copy of `run42-gheadtwopass`
+  and Run 41's control both read about 1.16 of the timed file,
+  and on `rev-cnn-L1-24x24-c1/lib-stage1` the copy reads with the timed file
+  and Run 41's basis 0.962 of it ([Run 42's Results](runs/run42.md#results)).
+  The page-frame reading an INSTANCE verdict calls for next wants root
+  and was not taken.
 - `ANSWERED` **What Run 41 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 41's own file](runs/run41.md), where a run's
