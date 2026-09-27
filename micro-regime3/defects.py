@@ -5848,6 +5848,14 @@ TIER1 = {
            ' what they would overwrite',
         bug='no way to name one, and a guard refusing over every artifact of'
             ' the run, so the step could not be carried out at all'),
+    'repoint-keeps-a-link-whose-run-name-a-wrap-splits': dict(
+        family='two-spellings', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='a wrapped README whose link text breaks between `Run` and'
+                ' the previous run\'s number',
+        ok='keeps the link on the previous run\'s file, anchor dropped',
+        bug='moved it into the new run\'s file, where its text names the'
+            ' wrong run'),
     'move-registration-repoints-the-anchors-it-carries': dict(
         family='domain-unchecked', discovery='in-use', harm='fired',
         harm_count=1,
@@ -12478,6 +12486,27 @@ RECORDS = [
                            "file](runs/run96.md)", 'anchor dropped',
                            '[results]: runs/run97.md#results'],
               hasnt=['- [Run 96]'])),
+
+    case('repoint-keeps-a-link-whose-run-name-a-wrap-splits', 'read-run.py',
+         None,
+         'a link whose own text names the previous run was moved to the new'
+         ' run\'s file when the wrapped README broke the line between `Run`'
+         ' and the number',
+         # Run 42's step 5 moved `[Run 41's properties]` into run42.md: the
+         # name test wanted a space or a hyphen after `run`, and the wrap
+         # put a newline there. Found by grepping the unwrapped README.
+         plant=lambda t: {
+             'readme': write(os.path.join(t, 'README.md'),
+                             '# R\n\nSee [Run\n96\'s properties]'
+                             '(runs/run96.md#p) and [the run file]'
+                             '(runs/run96.md#q).\n'),
+             'doc': write(os.path.join(t, 'run97.md'), '# Run 97\n')},
+         argv=['--repoint', 'run96', '--readme', '{readme}',
+               '--run-doc', '{doc}'],
+         probe=lambda subs: open(subs['readme']).read(),
+         ok=V(exit=0, has=["96's properties](runs/run96.md)",
+                           '[the run file](runs/run97.md#q)'],
+              hasnt=['run97.md#p'])),
 
     case('counts-cost-sums-the-stages-per-half', 'read-run.py', None,
          'CONTROL: --counts-cost pairs each counts stage\'s start and done'

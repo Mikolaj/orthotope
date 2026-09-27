@@ -5476,7 +5476,9 @@ def repoint(prev, readme, run_doc):
         return 2
     pn, new = m.group(1), 'run%d' % now
     text = open(readme, encoding='utf-8').read()
-    names_prev = re.compile(r'(?i)\brun[ -]?%s\b' % pn)
+    # Any whitespace, a newline included: README is wrapped, and Run 42's
+    # step 5 moved `[Run 41's properties]` because a wrap fell after `Run`.
+    names_prev = re.compile(r'(?i)\brun(?:\s+|-)?%s\b' % pn)
     kept, moved = [], [0]
     text = re.sub(r'^(\s*- )\[Run %s\]\(runs/%s\.md\)' % (pn, prev),
                   lambda mm: (moved.__setitem__(0, moved[0] + 1)
