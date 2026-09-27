@@ -87,26 +87,26 @@ class Vector v where
   vFromListN n = vFromList . take n
 
   -- | Materialize a strided view in row-major order.  The arguments are
-  -- the shape, the strides, the offset, the total element count
-  -- (@product sh@, passed in because every caller already has it) and
-  -- the source vector; the shape must be non-empty.  This method is
-  -- what makes a fast 'toVectorListT' and 'toVectorT' possible: what
-  -- the conversions to vectors do not hand out as slices of the source
-  -- they fill through it, over the view's canonical dimensions
-  -- ('canonicalizeT'), and the fast fills write a mutable result buffer
-  -- across runs, which no existing method can express ('vGenerate' is
-  -- stateless).
+  -- the view's canonical axes (as t'Axes', a non-empty view by type), the
+  -- offset, the total element count (@product sh@, passed in because
+  -- every caller already has it) and the source vector.  The count is
+  -- positive: that is the method's contract, which the assertion in
+  -- 'genericFillStrided' expresses, so a call with a count of 0 may
+  -- crash.  This method is what makes a fast 'toVectorListT' and
+  -- 'toVectorT' possible: what the conversions to vectors do not hand
+  -- out as slices of the source they fill through it, over the
+  -- view's canonical axes ('routeT'), and the fast fills
+  -- write a mutable result buffer across runs, which no existing
+  -- method can express ('vGenerate' is stateless).
   --
   -- The default is a terse but fast pure form, where the base-offsets
   -- table is built by expansion ('runBaseOffsetsT'), one division
   -- per element.  The vector-backed instances override it with
   -- the faster mutable fill 'genericFillStrided'.  If the default's
   -- speed mattered, which it does not, -fspec-constr would improve it.
-  vFillStrided :: (VecElem v a) => ShapeL -> [Int] -> Int -> Int -> v a -> v a
-  vFillStrided sh ats !ao !l !v =
-    let !sInner = last sh
-        !tInner = last ats
-        !baseOffsets = runBaseOffsetsT ao (init sh) (init ats)
+  vFillStrided :: (VecElem v a) => Axes -> Int -> Int -> v a -> v a
+  vFillStrided (Axes tInner sInner outerAxes) !ao !l !v =
+    let !baseOffsets = runBaseOffsetsT ao (outerFirst outerAxes)
         gen i = case i `quotRem` sInner of
           (!q, !r) -> vIndex v (VU.unsafeIndex baseOffsets q + r * tInner)
     in  vGenerate l gen
@@ -297,70 +297,21 @@ unScalarT (T _ o v) = vIndex v o
 constantT :: (Vector v, VecElem v a) => ShapeL -> a -> T v a
 constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 
--- Canonicalize a view for dispatch.  The invariant, holding before and
--- after: for an array of shape @sh@ and strides @ats@ over a vector at
--- some offset, the pair returned describes, over the same vector and
--- offset, an array with the same row-major element sequence --- the
--- array's elements listed with the last index varying fastest, the
--- order 'toVectorT' materializes.  Two rewrites keep it: drop the
--- dimensions of extent 1, which contribute @0 * stride@ to every index
--- whatever their stride; then merge each adjacent pair of dimensions
--- where @st_outer == n_inner * st_inner@, the index sum's own
--- distributivity, so it holds for negative strides too.  After it the
--- shape has no extent 1 and the strides no adjacent pair satisfying
--- that equation.
---
--- So a dense array (its elements filling a contiguous piece of the
--- vector in row-major order) has the natural strides at whatever rank
--- it was given, and a broadcast axis (a dimension of stride 0, all its
--- indices reading one element) adjacent to another has become one with
--- it; what the walks of the innermost dimension are, and are not, is
--- said at 'runSlicesT'.  O(rank) list work.
-{-# INLINE canonicalizeT #-}
-canonicalizeT :: ShapeL -> [Int] -> (ShapeL, [Int])
-canonicalizeT sh ats = canonicalAxesT (zip ats sh)
-
--- The same over (stride, extent) pairs, which is where the work is
--- done: the axes of extent 1 dropped and each remaining axis merged
--- into the one inside it where its stride is that one's stride times
--- its extent, folded from the innermost axis out; returned as the
--- shape and the strides.  'unorderedRouteT' does the same over the
--- pairs it has sorted, dropping the axes of extent 1 in its own walk.
-canonicalAxesT :: [(Int, Int)] -> (ShapeL, [Int])
-canonicalAxesT ps =
-  unzipAxesT (foldr mergeInto [] [ p | p@(_, n) <- ps, n /= 1 ])
-
--- The (stride, extent) pairs as the shape and the strides.
-unzipAxesT :: [(Int, Int)] -> (ShapeL, [Int])
-unzipAxesT axes = (map snd axes, map fst axes)
-{-# INLINE unzipAxesT #-}
-
--- The merge step, one axis against the already merged axes inside it:
--- merged into the first of them wherever this one's stride is that
--- one's stride times its extent, so that the two are walked as one,
--- and put in front of them otherwise.
-mergeInto :: (Int, Int) -> [(Int, Int)] -> [(Int, Int)]
-mergeInto (!st, !n) ((st', n') : rest)
-  | st == n' * st' = (st', n * n') : rest
-mergeInto p rest = p : rest
-{-# INLINE mergeInto #-}
-
 -- Base offset (into the values vector) of each innermost run of an array,
 -- in row-major order over the outer dimensions (all dimensions but the
--- innermost).  The outer offset grid is separable (@o0 + sum idx_d *
--- stride_d@), so it is built by iterated expansion: from the singleton
--- @[o0]@, each outer dimension expands every partial base-offset @a@ into
--- @enumFromStepN a stride_d n_d@ (constant stride, no division), all
--- inside vector's stream framework rather than a hand-written loop.  The
--- result is the unboxed Int scratch 'vFillStrided''s default indexes; it
--- has @product osh@ elements.
+-- innermost), given as axes outermost first.  The outer offset grid is
+-- separable (@o0 + sum idx_d * stride_d@), so it is built by iterated
+-- expansion: from the singleton @[o0]@, each outer dimension expands
+-- every partial base-offset @a@ into @enumFromStepN a stride_d n_d@
+-- (constant stride, no division), all inside vector's stream framework
+-- rather than a hand-written loop.  The result is the unboxed Int scratch
+-- 'vFillStrided''s default indexes; it has as many elements as the outer
+-- dimensions have indices.
 {-# INLINE runBaseOffsetsT #-}
-runBaseOffsetsT :: Int    -- ^ the array offset to start from
-                -> [Int]  -- ^ outer dimensions, i.e. @init sh@
-                -> [Int]  -- ^ outer strides, i.e. @init (strides a)@
-                -> VU.Vector Int
-runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
-  where expand !acc (!nd, !sd) =
+runBaseOffsetsT :: Int -> [Axis] -> VU.Vector Int
+runBaseOffsetsT o0 outer = foldl' expand (VU.singleton o0) outer
+  where expand :: VU.Vector Int -> Axis -> VU.Vector Int
+        expand !acc (Axis sd nd) =
           VU.concatMap (\a -> VU.enumFromStepN a sd nd) acc
 
 -- The measured-fastest fill for 'vFillStrided': an allocate-once
@@ -368,14 +319,16 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 -- the input offset stepped additively, the innermost outer level fused
 -- into a dedicated loop over the innermost runs, and the innermost-run
 -- fill unrolled by two with its bound on the output cursor, so it is
--- sound for zero and negative strides.
+-- sound for zero and negative strides.  The recursion walks the outer
+-- levels as a 'Nest' built over them innermost first, each level
+-- holding its 'Axis'.
 --
 -- Two zero-stride conditions sit inside it, each decided per level
 -- of the odometer and never per element: an innermost run at stride
 -- 0 reads its one element once and stores it, and an outer level
 -- of stride 0 fills the block below it once and copies it onto the
 -- level's remaining positions by doubling.  Given canonical dimensions
--- ('canonicalizeT') the conditions fire wherever they can; given any
+-- ('routeT') the conditions fire wherever they can; given any
 -- other dimensions the fill is still correct.
 --
 -- The count must be positive, asserted at entry: a zero-stride
@@ -410,8 +363,9 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 -- GHC HEAD 10.1.
 {-# INLINABLE genericFillStrided #-}
 genericFillStrided :: forall w a. (VG.Vector w a)
-                   => ShapeL -> [Int] -> Int -> Int -> w a -> w a
-genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
+                   => Axes -> Int -> Int -> w a -> w a
+genericFillStrided (Axes tInner sInner outerAxes) !ao !l !v =
+  assert (l > 0) $ VG.create fill
  where
   fill :: forall s. ST s (VG.Mutable w s a)
   fill = do
@@ -419,13 +373,13 @@ genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
     let -- The stepping run, an innermost run at nonzero stride: the
         -- source cursor advances by the stride, the fill unrolled
         -- by two.  Both bodies are INLINE so that inlining at their
-        -- two sites each is the source's property and not a size
+        -- sites in 'walk' is the source's property and not a size
         -- threshold's.  Each element is read by 'VG.unsafeIndexM' and
         -- then stored: 'VG.unsafeIndex' as the store's argument would
         -- leave in a boxed result a thunk holding the source vector.
         {-# INLINE writeRunStep #-}
-        writeRunStep :: Int -> Int -> ST s ()
-        writeRunStep !outPos !baseOff =
+        writeRunStep :: Int -> Int -> Int -> ST s ()
+        writeRunStep !t !outPos !baseOff =
           let !oEnd = outPos + sInner
               inner :: Int -> Int -> ST s ()
               inner !o !src
@@ -433,7 +387,7 @@ genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
                     if o >= oEnd then return ()
                     else VG.unsafeIndexM v src >>= VGM.unsafeWrite out o
                 -- FOR THE NCG, AND A REGRESSION UNDER -fllvm.  The
-                -- cursor steps twice by tInner instead of once by a
+                -- cursor steps twice by t instead of once by a
                 -- doubled stride: one live value fewer, which is what
                 -- lets the NCG's allocator keep the output base in
                 -- a register instead of reloading it twice a pair.
@@ -442,9 +396,9 @@ genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
                 -- keeps two induction variables and loses 1 to 8%.
                 | otherwise = do
                     VG.unsafeIndexM v src >>= VGM.unsafeWrite out o
-                    let !src' = src + tInner
-                    VG.unsafeIndexM v src' >>= VGM.unsafeWrite out (o + 1)
-                    inner (o + 2) (src' + tInner)
+                    let !srcNext = src + t
+                    VG.unsafeIndexM v srcNext >>= VGM.unsafeWrite out (o + 1)
+                    inner (o + 2) (srcNext + t)
           in  inner outPos baseOff
         -- The broadcast run, the innermost run at stride 0: its one
         -- element read once, then the stores, unrolled by two as
@@ -484,71 +438,115 @@ genericFillStrided sh ats !ao !l !v = assert (l > 0) $ VG.create fill
         -- is clipped.  One copy per block read 2.3 of the stepping run
         -- refilling the level on 200000 copies of 24 bytes; by
         -- doubling, the copy wins.
-        copies :: Int -> Int -> Int -> ST s Int
+        copies :: Int -> Int -> Int -> ST s ()
         copies !n !blk !src
-          | n <= 1 = return (src + blk)
+          | n <= 1 = return ()
           | otherwise = grow blk
           where
             !end = src + n * blk
-            grow :: Int -> ST s Int
+            grow :: Int -> ST s ()
             grow !have
-              | src + have >= end = return end
+              | src + have >= end = return ()
               | otherwise = do
                   let !len = min have (end - src - have)
                   VGM.unsafeCopy (VGM.unsafeSlice (src + have) len out)
                                  (VGM.unsafeSlice src len out)
                   grow (have + len)
-        -- The fused level: n innermost runs, the run body a static
-        -- argument, so that each of the two uses below inlines it
-        -- with the body known, and the choice between the bodies is
-        -- made once per entry here, a row of innermost runs, never
-        -- per innermost run.
-        {-# INLINE runsWith #-}
-        runsWith :: (Int -> Int -> ST s ())
-                 -> Int -> Int -> Int -> Int -> ST s Int
-        runsWith writeRun !n !st !outPos !baseOff
-          | st == 0 = writeRun outPos baseOff >> copies n sInner outPos
+        -- @n@ blocks of @blk@ elements, each written by @body@ at a
+        -- base offset @st@ on from the last, or at stride 0 the first
+        -- copied: the fused level's innermost runs and every level
+        -- above them.
+        {-# INLINE level #-}
+        level :: (Int -> Int -> ST s ())
+              -> Axis -> Int -> Int -> Int -> ST s ()
+        level body (Axis st n) !blk !outPos !baseOff
+          | st == 0 = body outPos baseOff >> copies n blk outPos
           | otherwise =
-              let run :: Int -> Int -> Int -> ST s Int
-                  run !k !op !boff
-                    | k <= 0    = return op
-                    | otherwise = writeRun op boff
-                                  >> run (k - 1) (op + sInner) (boff + st)
-              in  run n outPos baseOff
-        go :: Int -> Int -> Int -> ST s Int
-        go !lev !outPos !baseOff
-          | lev >= rOuter =
-              (if tInner == 0 then writeRunSet else writeRunStep)
-                outPos baseOff
-              >> return (outPos + sInner)
-          | otherwise =
-              level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
-          where
-            level :: Int -> Int -> ST s Int
-            level !n !st
-              | lev == rOuter - 1 =
-                  if tInner == 0
-                  then runsWith writeRunSet n st outPos baseOff
-                  else runsWith writeRunStep n st outPos baseOff
-              | st == 0 = do
-                  op' <- go (lev + 1) outPos baseOff
-                  copies n (op' - outPos) outPos
-              | otherwise =
-                  let dim :: Int -> Int -> Int -> ST s Int
-                      dim !k !op !boff
-                        | k <= 0    = return op
-                        | otherwise = go (lev + 1) op boff
-                                      >>= \op' -> dim (k - 1) op' (boff + st)
-                  in  dim n outPos baseOff
-    _ <- go 0 0 ao
+              let !opEnd = outPos + n * blk
+                  go :: Int -> Int -> ST s ()
+                  go !op !boff
+                    | op >= opEnd = return ()
+                    | otherwise = body op boff
+                                  >> go (op + blk) (boff + st)
+              in  go outPos baseOff
+              -- The original loop, below, counted the blocks
+              -- down.  It was abandoned as a workaround for
+              -- https://gitlab.haskell.org/ghc/ghc/-/work_items/27894:
+              -- where a client specialises the fill rather than
+              -- inlining it, the specialised copy meets full laziness
+              -- before any simplification, and a loop that mentions
+              -- nothing run binds is floated out of run and becomes a
+              -- heap closure, 56 to 80 bytes a call.  Bounded by an
+              -- end computed from outPos, which run binds, the loop
+              -- above stays in run and becomes a join point.  With the
+              -- fill INLINABLE, which the bound is for, the code is a
+              -- bit slower than the original with the fill INLINE, up
+              -- to about 40 instructions a call on small arrays, but
+              -- builds no closure for the loop.
+              --
+              -- let go :: Int -> Int -> Int -> ST s ()
+              --     go !k !op !boff
+              --       | k <= 0    = return ()
+              --       | otherwise = body op boff
+              --                     >> go (k - 1) (op + blk) (boff + st)
+              -- in  go n outPos baseOff
+        -- The nest built over the outer axes, innermost first: the
+        -- fused level's innermost runs at its core and each level above
+        -- a loop of @n@ blocks of @blk@ elements around the nest below
+        -- it, as data so that each level is a known call of 'run',
+        -- where closures lose.  A loop of its own with the block size
+        -- banged, where a 'foldl'' over a pair carried it boxed, an
+        -- 'I#' a level: 16 bytes a level and up to 58 instructions a
+        -- call less.
+        buildNest :: Nest -> Int -> InnerFirst -> Nest
+        buildNest inner !blk axes = case innerFirst axes of
+          [] -> inner
+          axis@(Axis _ n) : rest ->
+            buildNest (Level axis blk inner) (n * blk) (InnerFirst rest)
+        -- The run body a static argument, so that each use below
+        -- inlines it with the body known, and the choice between the
+        -- bodies is made once per fill, never per innermost run.
+        {-# INLINE walk #-}
+        walk :: (Int -> Int -> ST s ()) -> ST s ()
+        walk writeRun = case innerFirst outerAxes of
+          [] -> writeRun 0 ao
+          axis0@(Axis _ n0) : outer ->
+            let run :: Nest -> Int -> Int -> ST s ()
+                -- The innermost runs' loop has no register to spare,
+                -- and two things nothing enforces keep it from spilling
+                -- one every two elements: it advances by 'sInner'
+                -- itself, where a field equal to it is one value more,
+                -- and it sits in 'run', a function the fill calls,
+                -- where inlined into the fill's body the result's
+                -- buffer and length stay live across it.  Each broke in
+                -- a variant, 6.5 to 22% more instructions on views that
+                -- take 'RFill'.
+                run Fused !outPos !baseOff =
+                  level writeRun axis0 sInner outPos baseOff
+                run (Level axis blk inner) !outPos !baseOff =
+                  level (run inner) axis blk outPos baseOff
+            in  run (buildNest Fused (n0 * sInner) (InnerFirst outer)) 0 ao
+    -- Contiguous runs, at stride 1, walked by a copy of their own,
+    -- the stride a literal there and not a value 'run' holds: where a
+    -- client specialises the fill rather than inlining it, a word a
+    -- call less and, at boxed and Unboxed elements, an instruction or
+    -- more an element, 6 to 10% on large views.
+    if tInner == 0 then walk writeRunSet
+    else if tInner == 1 then walk (writeRunStep 1)
+    else walk (writeRunStep tInner)
     return out
-  !sInner = last sh
-  !tInner = last ats
-  -- No doubled stride here any more; see the fill's own note.
-  !rOuter = length sh - 1
-  oshV, oatsV :: VU.Vector Int
-  !oshV  = VU.fromList (init sh)
-  !oatsV = VU.fromList (init ats)
+
+-- The outer levels of a view as 'genericFillStrided' walks them: the
+-- fused level's innermost runs, or a level of @n@ blocks of @blk@
+-- elements at stride @st@, stride 0 copying the first, @st@ and @n@
+-- the outer axes list's own 'Axis'.  A hand-rolled strict list, the
+-- loop nest as data, holding the 'Axis' for readability and a word less
+-- a level: up to 16 bytes a call, and nothing else measurably.  The
+-- fragility 'Axes' records does not bite here: the box is the list's
+-- own, built before the loop, and 'run' and 'level' only take it apart;
+-- a consumer that had to build one would bring the allocation back into
+-- the loop.
+data Nest = Fused | Level !Axis !Int !Nest
 
 -- | The route a non-empty view takes once canonicalized: what its
 -- consumer does with it, which is what 'toVectorListT', 'toVectorT'
@@ -586,28 +584,118 @@ data Route
       -- ^ the canonical strides are the natural ones: one contiguous
       -- slice of the vector, at the start and of the count.  Rank 0
       -- lands here: no dimensions, no strides, one element
-  | RRuns ShapeL [Int] !Int !Int
+  | RRuns Axes !Int !Int
       -- ^ canonical innermost stride 1 under other dimensions:
-      -- contiguous runs, one per canonical outer index, from the start;
-      -- the count is not needed to walk them, and is what they are
-      -- filled by where one vector is asked
-  | RFill ShapeL [Int] !Int !Int
+      -- contiguous runs of the innermost extent, one per canonical
+      -- outer index, from the start; the count is not needed to walk
+      -- them, and is what they are filled by where one vector is asked
+  | RFill Axes !Int !Int
       -- ^ any other canonical view, its uniform run length one, so
-      -- the view is filled as one vector of the count
+      -- the view is filled as one vector of the count, from the start
 
+-- | An axis as its stride and extent.  Each level of 'runSlicesT''s
+-- odometer holds the canonical list's own axis, shared by every state
+-- of the level, so that a step allocates the level and nothing else:
+-- copied into the level, the two cost a word a step and a fifth more
+-- allocation on windows over an array.
+data Axis = Axis { axisStride :: !Int, axisExtent :: !Int }
+  deriving (Eq, Ord)
+
+-- | Axes innermost first: the orientation 'routeT' and
+-- 'unorderedRouteT' write and every consumer of a canonical view reads.
+-- A newtype so that the one place the orientation flips, the default
+-- 'vFillStrided' expanding its offsets outermost first, is 'outerFirst'
+-- and nowhere else.
+newtype InnerFirst = InnerFirst { innerFirst :: [Axis] }
+
+-- The same axes outermost first, the one flip of the orientation.
+{-# INLINE outerFirst #-}
+outerFirst :: InnerFirst -> [Axis]
+outerFirst = reverse . innerFirst
+
+-- | The canonical axes of a non-empty view: the innermost stride
+-- and extent, then the axes outside it, innermost first.  What
+-- 'canonicalizeT' takes and returns and 'routeOfT', 'vFillStrided' and
+-- the runs walker take, so that none of them has to find the innermost
+-- axis in a list.
+--
+-- In effect a non-empty t'InnerFirst' with a strict head, and the head
+-- is two 'Int' fields, unboxed by the type, where an '!Axis' is unboxed
+-- only while no consumer keeps its box: as one it measured the same,
+-- every consumer taking it apart, and as the head of the list itself,
+-- t'InnerFirst' in place of this type, it cost a built t'Axis' and cons a
+-- call, 35 to 48 bytes, and more instructions in all but one case.
+data Axes = Axes !Int !Int InnerFirst
+
+-- @routeT sh l a@, the route of the view of @a@ at shape @sh@ as it is,
+-- requires one stride in @a@ per dimension of @sh@, @l == product sh@
+-- and @l > 0@; on other arguments it fails or returns a wrong route.
+--
+-- It canonicalizes the view on the way.  The invariant, holding
+-- before and after: for an array of shape @sh@ and strides @ats@ over
+-- a vector at some offset, the canonical axes describe, over the same
+-- vector and offset, an array with the same row-major element sequence
+-- --- the array's elements listed with the last index varying fastest,
+-- the order 'toVectorT' materializes.  Two rewrites keep it: drop the
+-- dimensions of extent 1, which contribute @0 * stride@ to every index
+-- whatever their stride; then merge each adjacent pair of dimensions
+-- where @st_outer == n_inner * st_inner@, the index sum's own
+-- distributivity, so it holds for negative strides too.  After it no
+-- extent is 1 and no adjacent pair satisfies that equation.
+--
+-- So a dense array (its elements filling a contiguous piece of the
+-- vector in row-major order) has the natural strides at whatever rank
+-- it was given, and a broadcast axis (a dimension of stride 0, all its
+-- indices reading one element) adjacent to another has become one with
+-- it; what the walks of the innermost dimension are, and are not, is
+-- said at 'runSlicesT'.  One pass of O(rank) list work.
+--
+-- 'routeT' answers a view of one element, rank 0 or every extent 1, as
+-- one slice from that count, so no view reaches its last equation and
+-- 'canonicalizeT' always meets an axis of extent other than 1.  From
+-- the outermost axis on, it merges each kept axis into the one just
+-- outside it, carried as its stride and extent, where that one's stride
+-- is this one's stride times its extent, drops that one where the merge
+-- fails and it is of extent 1, and otherwise puts the kept axis inside
+-- it.  The axes are kept innermost first, as 'InnerFirst', so that the
+-- innermost axis and the axes outside it are a pattern match wherever a
+-- consumer takes them apart.  The loop is out of line, so that its code
+-- is not copied wherever 'routeT' is inlined, and takes and returns
+-- 'Axes', which worker/wrapper passes and returns unboxed; returning
+-- the merged list instead cost a built innermost axis and cons a call,
+-- 48 bytes, and a 'Maybe' of the merged axes, 63 to 240 bytes.
 {-# INLINE routeT #-}
 routeT :: ShapeL -> Int -> T v a -> Route
-routeT sh l (T ats ao _) = routeOfT ao l (canonicalizeT sh ats)
+routeT _ 1 (T _ ao _) = RSlice ao 1
+routeT (n : ns) l (T (st : sts) ao _) =
+  routeOfT ao l (canonicalizeT sts ns (Axes st n (InnerFirst [])))
+routeT _ _ _ =
+  error "routeT: violated contract: l /= product sh, or too few strides"
 
--- The route of a view given as a canonical shape and strides, at a
--- start offset and of an element count: 'routeT' reads it for the view
--- as it is and 'unorderedRouteT' for the view with its axes reordered.
+-- The merge loop of 'routeT', in the view's order, which the ordered
+-- result must keep, its 'Axes' last: first, GHC took each axis of
+-- extent other than 1 apart twice.
+canonicalizeT :: [Int] -> ShapeL -> Axes -> Axes
+canonicalizeT (_ : sts) (1 : ns) !axes = canonicalizeT sts ns axes
+canonicalizeT (st : sts) (n : ns) (Axes stHead nHead irest@(InnerFirst rest))
+  | stHead == n * st = canonicalizeT sts ns (Axes st (nHead * n) irest)
+  | nHead == 1 = canonicalizeT sts ns (Axes st n irest)
+  | otherwise =
+      canonicalizeT sts ns (Axes st n (InnerFirst (Axis stHead nHead : rest)))
+canonicalizeT _ _ !axes = axes
+
+-- The route of a view given as its canonical axes, at a start offset
+-- and of an element count, the innermost axis as its stride and
+-- extent and the axes outside it innermost first: 'routeT' reads it
+-- for the view as it is and 'unorderedRouteT' for the view with its
+-- axes reordered, each where its merge loop ends, and each answers a
+-- view with no canonical axis, one element, as one slice itself.
 --
--- Decided on the canonical dimensions alone ('canonicalizeT'), so a
--- unit dimension's arbitrary stride and a reshape's appended dimensions
--- do not decide it, and the underlying vector never does: whether a
--- slice is the whole vector is 'wholeOrSliceT''s to see, where the
--- vector is handed out.
+-- Decided on the canonical axes alone ('routeT'), so a unit
+-- dimension's arbitrary stride and a reshape's appended dimensions do
+-- not decide it, and the underlying vector never does: whether a slice
+-- is the whole vector is 'wholeOrSliceT''s to see, where the vector is
+-- handed out.
 --
 -- The uniform run length of a canonical view is the innermost extent
 -- where the innermost stride is 1, and one element otherwise, and the
@@ -617,37 +705,48 @@ routeT sh l (T ats ao _) = routeOfT ao l (canonicalizeT sh ats)
 -- Whether the canonical strides are the natural ones is decided by
 -- the canonical rank alone, so no stride list is built and compared:
 -- natural strides at rank 2 or more are the merge equation of
--- 'canonicalizeT' holding at every adjacent pair, and after it no pair
+-- 'routeT' holding at every adjacent pair, and after it no pair
 -- satisfies that equation, so a canonical view is natural only at rank
 -- 0, or at rank 1 with stride 1.
 {-# INLINE routeOfT #-}
-routeOfT :: Int -> Int -> (ShapeL, [Int]) -> Route
-routeOfT start l canonical = case canonical of
-  ([], _) -> RSlice start l
-  ([_], [1]) -> RSlice start l
-  (csh, cats)
-    | last cats == 1 -> RRuns csh cats start l
-    | otherwise -> RFill csh cats start l
+routeOfT :: Int -> Int -> Axes -> Route
+routeOfT start l (Axes 1 _ (InnerFirst [])) = RSlice start l
+routeOfT start l axes@(Axes 1 _ _) = RRuns axes start l
+routeOfT start l axes = RFill axes start l
 
 -- The slices of a view of contiguous runs, one per canonical outer
 -- index in row-major order, produced on demand.  The arguments are the
--- canonical shape and strides, the offset of the first run and the
--- vector, then the cons and nil of the 'build' the list entry points
--- are written under, so that a consumer folding the list fuses with the
--- walk, holds no more of the list than it has reached and, stopping
--- early, does no more of the walk.
+-- canonical axes, the innermost at stride 1 and its extent the run
+-- length, the offset of the first run and the vector, then the cons
+-- and nil of the 'build' the list entry points are written under, so
+-- that a consumer folding the list fuses with the walk, holds no more
+-- of the list than it has reached and, stopping early, does no more of
+-- the walk.
 --
--- The innermost outer level is a counter and a cursor; the levels
--- above it are an odometer of (index, extent, stride) triples touched
--- only on a carry, the levels exhausted on the way out reset and put
--- back on the front in their order.  One flat loop, and not a fold per
--- level with the rest of the list passed down as a continuation: fused
--- with a consumer's fold, the level form met at every level's exit a
+-- 'go' walks the innermost outer level with a counter and a cursor, and
+-- 'block' holds the levels above it, an 'Odometer' stepped only when
+-- the counter runs out.  One flat loop, and not a fold per level with
+-- the rest of the list passed down as a continuation: fused with a
+-- consumer's fold, the level form met at every level's exit a
 -- continuation it could not see and passed the accumulator to it lazily
 -- and boxed, a thunk and a box per run; here every continuation is
--- 'go', 'carry' or nil, all known to the compiler, so base's own left
+-- 'go', 'block' or nil, all known to the compiler, so base's own left
 -- folds, 'sum' among them, see a strict known call and allocate nothing
 -- per run.
+--
+-- The odometer is a value, each level holding its own offset and its
+-- axis, the canonical list's own 'Axis'.  A carry loop before it
+-- collected the levels it reset, reversed them back on and undid the
+-- counter's stride arithmetic; against it the value form allocates
+-- 26 to 35% less on windows over an array, retires up to 3.3% fewer
+-- instructions, and on one compiler executes two fewer taken branches
+-- a run on views of short runs, 'go' no longer carrying the odometer.
+-- Not kept: the odometer an argument of 'go', which keeps the carry's
+-- run loop on that compiler; the axes as a second list beside the
+-- levels, one more value live across the run loop and 4.5% more
+-- instructions than the carry on a 3x3 window over 64 channels; and the
+-- initial state by 'foldl'' over the reversed axes, up to 0.5% fewer
+-- instructions, not attributed, for a reverse a walk.
 --
 -- Each run that this function gives has the view's uniform run length:
 -- the run length of the coarsest partition of the view into equal runs.
@@ -675,36 +774,60 @@ routeOfT start l canonical = case canonical of
 -- measured.
 --
 -- Entered on a view of canonical rank two or more, which is what
--- 'RRuns' means, so there is at least one outer level and one run.
+-- 'RRuns' means, so there is at least one outer level and one run.  The
+-- arm for no outer level, which no route reaches, is the one run as
+-- one slice: correct rather than an error, so the walker is total on
+-- its own terms and the type asks nothing of the route that builds it.
 --
 -- The bang on the vector is measured, not style: every use of it sits
 -- under the consumer's cons, so without the bang the walk is lazy in
 -- it, takes it boxed and re-enters it on every run for its length and
--- address, most of the instructions a run of two elements costs.  The
--- bang on the offset 'carry' ignores is the same: without it 'carry'
--- is lazy in its offset, 'go' boxes it for the one call a level makes,
--- and the heap check for that box sits at the head of 'go' and is paid
--- every run.
+-- address, most of the instructions a run of two elements costs.
 {-# INLINE runSlicesT #-}
 runSlicesT :: forall v a b. (Vector v, VecElem v a)
-           => ShapeL -> [Int] -> Int -> v a -> (v a -> b -> b) -> b -> b
-runSlicesT csh cats !start !v cons nil =
-  let !n = last csh
-      dims = init csh
-      strs = init cats
-      !dk = last dims
-      !sk = last strs
-      go :: Int -> Int -> [(Int, Int, Int)] -> b
-      go !i !o outer
-        | i < dk = cons (vSlice o n v) (go (i + 1) (o + sk) outer)
-        | otherwise = carry outer (o - dk * sk) []
-      carry :: [(Int, Int, Int)] -> Int -> [(Int, Int, Int)] -> b
-      carry [] !_ _ = nil
-      carry ((j, d, s) : rest) !o reset
-        | j + 1 < d =
-            go 0 (o + s) (foldl' (flip (:)) ((j + 1, d, s) : rest) reset)
-        | otherwise = carry rest (o + s - d * s) ((0, d, s) : reset)
-  in  go 0 start (reverse (zip3 (repeat 0) (init dims) (init strs)))
+           => Axes -> Int -> v a -> (v a -> b -> b) -> b -> b
+runSlicesT (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
+  case outerAxes of
+    [] -> cons (vSlice start n v) nil
+      -- Currently impossible: 'routeOfT' sends a view of one run to
+      -- 'RSlice', where it is the vector or one slice of it.
+    Axis sk dk : above ->
+      let block :: Int -> Odometer -> b
+          block !o outer =
+            let go :: Int -> Int -> b
+                go !i !p
+                  -- TODO: 'vSlice' bounds-checks every run, tests that
+                  -- cannot fail on a view the odometer walks, @n >= 0@
+                  -- among them not even varying with the run; removing
+                  -- them wants an unchecked slice in the 'Vector' class.
+                  | i < dk = cons (vSlice p n v) (go (i + 1) (p + sk))
+                  | otherwise = case stepOdometer outer of
+                      OdoDone -> nil
+                      next@(OdoLevel oNext _ _ _) -> block oNext next
+            in  go 0 o
+      in  block start
+                (foldr (\axis@(Axis _ d) outer -> OdoLevel start d axis outer)
+                       OdoDone above)
+
+-- The outer levels of 'runSlicesT''s odometer, innermost first, each at
+-- an offset, with indices left, of an 'Axis'.  A strict list,
+-- hand-rolled so that a level and its cell are one object: a list cell
+-- cannot unpack a strict record, so a list of level records took two
+-- objects and a pointer hop a level, and two fifths more allocation on
+-- windows over an array.  The tail's bang makes the initial 'foldr'
+-- build the odometer whole; without it that leaves a thunk a level, 64
+-- to 121 bytes an iteration on windows and under a tenth of a percent
+-- in instructions.
+data Odometer = OdoLevel !Int !Int !Axis !Odometer | OdoDone
+
+-- The odometer one step on, 'OdoDone' once it has gone round.
+stepOdometer :: Odometer -> Odometer
+stepOdometer OdoDone = OdoDone
+stepOdometer (OdoLevel o c axis@(Axis s d) outer)
+  | c > 1 = OdoLevel (o + s) (c - 1) axis outer
+  | otherwise = case stepOdometer outer of
+      OdoDone -> OdoDone
+      next@(OdoLevel oNext _ _ _) -> OdoLevel oNext d axis next
 
 -- Convert an array to a list of vectors, which together contain
 -- all the elements in the natural order.
@@ -720,7 +843,7 @@ runSlicesT csh cats !start !v cons nil =
 -- the view takes.
 {-# INLINE toVectorListT #-}
 toVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
-toVectorListT sh a@(T _ ao v) = build $ \cons nil ->
+toVectorListT sh a@(T _ _ v) = build $ \cons nil ->
   if l == 0 then nil else routeSlicesT v (routeT sh l a) cons nil
   where !l = product sh
 
@@ -741,11 +864,11 @@ routeSlicesT :: (Vector v, VecElem v a)
              => v a -> Route -> (v a -> b -> b) -> b -> b
 routeSlicesT v route cons nil = case route of
   RSlice ao l -> cons (wholeOrSliceT ao l v) nil
-  RRuns csh cats ao _ -> runSlicesT csh cats ao v cons nil
-  RFill csh cats ao l ->
+  RRuns axes ao _ -> runSlicesT axes ao v cons nil
+  RFill axes ao l ->
     -- No slice can be taken.  Fill the result through 'vFillStrided',
     -- whose vector-backed instances write a mutable buffer directly.
-    cons (vFillStrided csh cats ao l v) nil
+    cons (vFillStrided axes ao l v) nil
 
 -- Convert an array to one vector holding all the elements in the
 -- natural order.  Dispatches as 'toVectorListT' does, except that a
@@ -785,39 +908,39 @@ normalizeT sh t@(T ats ao v)
 routeVectorT :: (Vector v, VecElem v a) => v a -> Route -> v a
 routeVectorT v route = case route of
   RSlice ao l -> wholeOrSliceT ao l v
-  RRuns csh cats ao l -> vFillStrided csh cats ao l v
-  RFill csh cats ao l -> vFillStrided csh cats ao l v
+  RRuns axes ao l -> vFillStrided axes ao l v
+  RFill axes ao l -> vFillStrided axes ao l v
 
--- The (absolute stride, extent) pairs of the axes of extent above 1,
--- in the order given, and the offset of the view's lowest address, in
--- one walk over the strides and the shape; the view is non-empty,
--- which the caller has checked, so no extent is 0.  The account after
--- 'unorderedRouteT' says why one walk and why each of the three.
-absAxesAndStartT :: Int -> [Int] -> ShapeL -> ([(Int, Int)], Int)
-absAxesAndStartT ao = go
-  where
-    go :: [Int] -> ShapeL -> ([(Int, Int)], Int)
-    go (s : ss) (n : ns)
-      | n == 1 = go ss ns
-      | s < 0 = case go ss ns of
-          (axes, !start) -> ((negate s, n) : axes, start + (n - 1) * s)
-      | otherwise = case go ss ns of
-          (axes, !start) -> ((s, n) : axes, start)
-    go _ _ = ([], ao)
-{-# INLINE absAxesAndStartT #-}
+-- The axes of extent above 1, their strides made absolute, onto the
+-- list given in reverse of the order given, and the offset given moved
+-- to the view's lowest address, in one walk over the strides and the
+-- shape; the view is non-empty, which the caller has checked, so no
+-- extent is 0.  The reversal is nothing to the sort behind it: the
+-- only order 'byStrideRank' leaves to the sort's stability is between
+-- two axes of one absolute stride and one extent, which the merge
+-- loop of 'unorderedRouteT' treats alike whichever comes first.  A
+-- function returning the pair, which GHC returns in registers: as a
+-- loop inside 'unorderedRouteT', going on into the sort, it cost 10 to
+-- 58 instructions a call.  The account after 'unorderedRouteT' says why
+-- one walk and why each of the three.
+absAxesAndStartT :: [Axis] -> Int -> [Int] -> ShapeL -> ([Axis], Int)
+absAxesAndStartT axes !off (_ : sts) (1 : ns) =
+  absAxesAndStartT axes off sts ns
+absAxesAndStartT axes !off (st : sts) (n : ns)
+  | st < 0 =
+      absAxesAndStartT (Axis (negate st) n : axes) (off + (n - 1) * st) sts ns
+  | otherwise = absAxesAndStartT (Axis st n : axes) off sts ns
+absAxesAndStartT axes off _ _ = (axes, off)
 
 -- Absolute stride descending; on a tie at stride 1 the length 'runRank'
 -- prefers last, so that it is the run, and on any other tie the extent
 -- ascending.
 --
--- In case form rather than over '<>', and the strides banged and
--- the extents not, as measured: the '<>' form retired 42 to 128
--- instructions a call more than this, and a bang on the extents 69 to
--- 162 more, the tie branch being the one most comparisons never reach.
--- 'sortBy' calls the comparator unknown, so a banged field is an unbox
--- at every entry.
-byStrideRank :: (Int, Int) -> (Int, Int) -> Ordering
-byStrideRank (!s1, n1) (!s2, n2) = case compare s2 s1 of
+-- In case form rather than over '<>', as measured: the '<>' form
+-- retired 42 to 128 instructions a call more than this, the tie branch
+-- being the one most comparisons never reach.
+byStrideRank :: Axis -> Axis -> Ordering
+byStrideRank (Axis s1 n1) (Axis s2 n2) = case compare s2 s1 of
   EQ | s1 == 1 -> runRank n2 n1
      | otherwise -> compare n1 n2
   o -> o
@@ -854,50 +977,48 @@ runRank !a !b = case compare ta tb of
       | otherwise = 3
 {-# INLINE runRank #-}
 
--- The merged axes with their zero-stride axis, if they end in a
--- unit-stride axis followed by one, moved to the front.
-zeroStrideOutermost :: [(Int, Int)] -> [(Int, Int)]
-zeroStrideOutermost axes
-  | unitThenZero axes = last axes : init axes
-  | otherwise = axes
-
--- Whether the axes end in one of stride 1 followed by one of stride 0.
-unitThenZero :: [(Int, Int)] -> Bool
-unitThenZero [(1, _), (0, _)] = True
-unitThenZero (_ : axes@(_ : _ : _)) = unitThenZero axes
-unitThenZero _ = False
-
 -- The route of a non-empty view with its axes reordered for a consumer
 -- that owes no order, from the offset the reordered view starts at:
 -- what the two unordered entry points dispatch on.  The account below
 -- says why each piece.
 {-# INLINE unorderedRouteT #-}
 unorderedRouteT :: ShapeL -> Int -> T v a -> Route
-unorderedRouteT sh l (T ats ao _) =
-  let (axes, !start) = absAxesAndStartT ao ats sh
-      merged = foldr mergeInto [] (sortBy byStrideRank axes)
-      canonical = unzipAxesT (zeroStrideOutermost merged)
-  in  routeOfT start l canonical
+unorderedRouteT sh l (T ats ao _) = start (sortBy byStrideRank axes)
+  where
+    (axes, !off) = absAxesAndStartT [] ao ats sh
+    start :: [Axis] -> Route
+    start (Axis st n : ps) = canonicalize st n [] ps
+    start [] = RSlice off l
+    -- Free to reorder at its exit: the result need keep only the
+    -- multiset.
+    canonicalize :: Int -> Int -> [Axis] -> [Axis] -> Route
+    canonicalize !stHead !nHead rest (Axis st n : ps)
+      | stHead == n * st = canonicalize st (nHead * n) rest ps
+      | otherwise = canonicalize st n (Axis stHead nHead : rest) ps
+    canonicalize stHead nHead rest []
+      | stHead == 0, Axis 1 n1 : outer <- rest =
+          routeOfT off l (Axes 1 n1 (InnerFirst (Axis 0 nHead : outer)))
+      | otherwise = routeOfT off l (Axes stHead nHead (InnerFirst rest))
 
 -- The dispatch of 'unorderedRouteT', piece by piece.
 --
 -- Overview.  A consumer that folds with a commutative and associative
--- operation needs the view's elements as a multiset, not in order.  So
--- the axes may be reordered freely, a reversed axis may be walked
+-- operation needs the view's elements as a multiset, not in order.
+-- So the axes may be reordered freely, a reversed axis may be walked
 -- forwards, and the question is only which slices of the vector, taken
 -- together, hold each element as often as the view holds it.  The
 -- answer: sort the axes by stride, merge the axes that are walked as
--- one, move a broadcast axis outermost, and read the route off what
--- is left, one slice, runs, or a fill.  The passes over the axes are
--- ordered so that each sees as few axes as it can, and the account
+-- one, move a broadcast axis outside the run, and read the route off
+-- what is left, one slice, runs, or a fill.  The passes over the axes
+-- are ordered so that each sees as few axes as it can, and the account
 -- below takes them in the order they run.
 --
 -- Why one walk first.  Three things are read off the shape and the
 -- strides as given: which axes have extent 1, the absolute value of
 -- each stride, and the start offset (below).  Each is a pass over the
 -- two lists, and 'absAxesAndStartT' takes all three in one, returning
--- the (absolute stride, extent) pairs of the axes that matter with the
--- start offset beside them.
+-- the axes that matter, their strides made absolute, with the start
+-- offset beside them.
 --
 -- Why drop the axes of extent 1 before the sort.  An axis of extent 1
 -- selects one index and is walked no distance, so its stride says
@@ -948,8 +1069,8 @@ unorderedRouteT sh l (T ats ao _) =
 -- Why merge after the sort.  Two adjacent axes are one axis when the
 -- outer stride is the inner stride times the inner extent: walking the
 -- inner axis to its end and stepping the outer axis once lands where
--- one axis of the combined extent would.  'mergeInto' merges every such
--- pair.  Done after the sort, the merge finds every pair the sorted
+-- one axis of the combined extent would.  The merge loop merges every
+-- such pair.  Done after the sort, the merge finds every pair the sorted
 -- order stands next to each other, which in a view without a stride
 -- tie is every pair any order of the axes would have put together; a
 -- view that is one block of the vector has no tie, so it merges to a
@@ -957,19 +1078,29 @@ unorderedRouteT sh l (T ats ao _) =
 -- axes came in, and 'routeOfT' decides that off the merged form with
 -- no stride list built.
 --
--- Why the zero-stride axis moves outermost, and why after the merge.
--- A broadcast axis, stride 0, reads the same cells at every index.
--- Sorted by stride it lands innermost, and there it makes the route a
--- fill, each element copied as many times as the broadcast repeats it.
--- Moved outermost over a unit-stride axis it makes the route runs:
+-- Why the zero-stride axis moves just outside the run, and why after
+-- the merge.  A broadcast axis, stride 0, reads the same cells at every
+-- index.  Sorted by stride it lands innermost, and there it makes the
+-- route a fill, each element copied as many times as the broadcast
+-- repeats it.  Moved over a unit-stride axis it makes the route runs:
 -- the runs walk repeats one slice as many times, the same multiset
--- with nothing copied, and the fill writes the block once and copies it
--- by doubling.  Decided after the merge, the move is one look
--- at the last two axes: a zero stride merges with nothing but another
--- zero stride, so there is at most one such axis, and it sorts after
--- every other stride, so it is last; and a unit-stride axis worth
--- moving it over is the one before it.  'zeroStrideOutermost' does the
--- look and the move.
+-- with nothing copied, and the fill writes the run once and copies it
+-- by doubling.  Decided after the merge, the move is one look at the
+-- first two merged axes, innermost first: a zero stride merges with
+-- nothing but another zero stride, so there is at most one such axis,
+-- and it sorts after every other stride, so it is innermost, the head;
+-- and a unit-stride axis worth moving it over is the one after it.
+-- The merge loop does the look and the move at its exit.
+--
+-- Just outside the run rather than outermost is a choice neither
+-- placement wins.  A cons there saves the append, 26 to 36
+-- instructions a call where the move passes no axis, and makes the
+-- broadcast's extent the one the odometer turns over on, which read
+-- 1.58 times the instructions and 30 KB a call more at a broadcast of
+-- 2, and 0.46 times and 62 KB a call less at a broadcast of 52, both on
+-- views of 4992 elements.  Placing it just outside the run only where
+-- its extent exceeds that of the axis it would displace would take the
+-- better of both; untried.
 
 -- Convert to a list of vectors containing altogether the right elements,
 -- but not necessarily in the right order.
