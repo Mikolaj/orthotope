@@ -8248,6 +8248,14 @@ Unsandboxed throughout:
     #      RETURN: the session goes on with what wants no quiet box and
     #      asks when they are back, an absent owner being no `allowed`
     #      and no `no` (ruled 2026-09-26).
+    #      THAT WAIT COSTS THE RUN NOTHING and is not a shortfall to
+    #      work around (the owner, 2026-09-27): the write-up finishes
+    #      without the reading, the open list records it as owed, and
+    #      the owner asks for the quiet box at a later sitting, the
+    #      run file amended when it lands. What the wait owes is that
+    #      nothing evict the timed binaries meanwhile -- no reboot, no
+    #      rebuild, no copy over them -- or a copy test reads an
+    #      INSTANCE term as gone.
     #      why: a fix landed mid-write-up costs every stretch after it an
     #      unwrap, each commit rewrapping README.
     #      The log read here is a second copy of what 14a already had, and
