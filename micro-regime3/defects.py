@@ -3975,6 +3975,18 @@ def zero_ci(benches, arm=None):
     return hit
 
 
+def compose_built_at(tmp, rev=None):
+    """A compose run named for run 42, beside a note saying its build had
+    Main.hs at `rev` -- `eb76398`, from before `aa18c24` grew
+    compose-bcast-nest from 4992 elements to 1800000 -- or no note."""
+    js = synth_json(tmp, 'compose', name='run42-compose.json')
+    if rev:
+        write(os.path.join(tmp, 'run42-pair.txt'),
+              'Verified when built, 2026-09-26:\n'
+              '  Main.hs at        %s, tree clean against it\n' % rev)
+    return {'run': js}
+
+
 def empty_corpus(tmp):
     """A directory with no run in it, for the properties to be aimed at."""
     d = os.path.join(tmp, 'corpus')
@@ -16773,6 +16785,28 @@ RECORDS = [
          '10c stripped a line-initial `.`, `/` or `_` from the name itself,'
          ' so `./run40-x.json` was checked as `/run40-x.json`',
          argv=None, ok=None),
+
+    case('load-reads-sizes-the-run-was-built-at', 'read-run.py', 'self',
+         "a run was read against today's Main.hs sizes, so Run 42's compose"
+         ' JSONs read compose-bcast-nest at the 1800000 elements aa18c24'
+         ' grew it to after they were measured at 4992',
+         # The selftest's correction check then read the forcing term as
+         # 361 times as costly per element there as elsewhere, and failed
+         # every Run 42 compose JSON and the smoke pass's.
+         plant=lambda t: compose_built_at(t, 'eb76398'),
+         argv=['--unit', "load('{run}', os.path.join(os.path.dirname("
+                         "__file__), 'Main.hs'))[3]['dims']"
+                         "['compose-bcast-nest']['l']"],
+         ok=V(has=['4992'], hasnt=['1800000']),
+         bug=V(has=['1800000'])),
+
+    case('load-reads-todays-sizes-without-a-note', 'read-run.py', None,
+         "CONTROL: a run with no pair note beside it reads today's Main.hs",
+         plant=lambda t: compose_built_at(t),
+         argv=['--unit', "load('{run}', os.path.join(os.path.dirname("
+                         "__file__), 'Main.hs'))[3]['dims']"
+                         "['compose-bcast-nest']['l']"],
+         ok=V(has=['1800000'])),
 
     # ---- check-all's own steps ----
     case('parallel-steps-leave-the-readings-fan-out-uncapped', 'checks.py',

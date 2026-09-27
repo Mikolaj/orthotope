@@ -629,6 +629,71 @@ def population_of(shapes, dims):
                '' if 'main' in groups else class_prefix(one))
 
 
+@functools.lru_cache(maxsize=None)
+def _dims_at(here, rev):
+    """`dims_by_shape` of Main.hs as commit REV had it, or None where git
+    cannot show it."""
+    r = subprocess.run(['git', '-C', here, 'show', '%s:./Main.hs' % rev],
+                       capture_output=True, text=True)
+    if r.returncode or not r.stdout:
+        return None
+    with tempfile.TemporaryDirectory() as d:
+        p = os.path.join(d, 'Main.hs')
+        with open(p, 'w') as f:
+            f.write(r.stdout)
+        return dims_by_shape(p)
+
+
+def built_sizes(path, main_hs, dims, ann):
+    """Put back the sizes the run at PATH was measured at; return the rev
+    and the shapes whose sizes that moved, or None.
+
+    A shape keeps its name when its extents grow -- `aa18c24` took
+    compose-bcast-nest and compose-bcast-wide from 4992 elements to
+    1800000 -- so today's Main.hs hands an older run's cells an `l` they
+    were never timed at, and every per-element figure over them is off by
+    the ratio. The run's pair note, `run<N>-pair.txt` beside the JSON,
+    records the build's `Main.hs at <commit>`; each shape both define with
+    different dims takes that commit's dims, `l`, `m` and annotation, and
+    keeps today's list, class and retirement, which say what a population
+    is now rather than what was measured. Only for the default Main.hs: an
+    explicit `--main` is what it names. The commit is looked up from the
+    run's directory and then from this script's, either of which may be
+    no repository: the mutants' copy of the tracked files reads the runs
+    on disk, and a case's run sits in a temp directory. A run with no
+    note, no such row or a commit neither can show reads today's, as
+    before.
+    """
+    here = os.path.dirname(os.path.abspath(__file__))
+    try:
+        if not os.path.samefile(main_hs, os.path.join(here, 'Main.hs')):
+            return None
+    except OSError:
+        return None
+    ns = [int(x) for x in re.findall(r'run(\d+)', os.path.basename(path))]
+    if not ns:
+        return None
+    where = os.path.dirname(os.path.abspath(path))
+    try:
+        text = open(os.path.join(where, 'run%d-pair.txt' % max(ns))).read()
+    except OSError:
+        return None
+    m = re.search(r'^\s*Main\.hs at\s+([0-9a-f]{7,40})\b', text, re.M)
+    then = m and (_dims_at(where, m.group(1)) or _dims_at(here, m.group(1)))
+    if not then:
+        return None
+    old, old_ann = then
+    moved = [sh for sh, d in dims.items()
+             if sh in old and old[sh]['dims'] != d['dims']]
+    for sh in moved:
+        dims[sh] = dict(dims[sh], **{k: old[sh][k] for k in
+                                     ('dims', 'l', 's_inner', 'm')})
+        ann.pop(sh, None)
+        if sh in old_ann:
+            ann[sh] = old_ann[sh]
+    return m.group(1), moved
+
+
 def load(path, main_hs):
     """(cells, shapes, strategies, meta); orders follow the run, not
     the file."""
@@ -638,6 +703,7 @@ def load(path, main_hs):
         sys.exit(2)
     raw = json.load(open(path))
     dims, ann = dims_by_shape(main_hs)
+    built = built_sizes(path, main_hs, dims, ann)
     ell = {s: d['l'] for s, d in dims.items()}
     cells = collections.defaultdict(dict)
     shapes, strategies = [], []
@@ -692,7 +758,7 @@ def load(path, main_hs):
                 roster=roster,
                 rostered=len([n for n, r, _ in roster if r != 'Only']),
                 benches=len(strategies), shapes=len(shapes), dims=dims,
-                ann=ann,
+                ann=ann, built=built,
                 ragged=len(raw[2]) != len(shapes) * len(strategies),
                 known_l=sum(1 for s in shapes if s in ell))
     return cells, shapes, strategies, meta
@@ -1878,6 +1944,10 @@ def shape_table(cells, shapes, strategies, meta):
               % (sh, l or '?', m or '?', mx, med, mean, smp, who))
     print('\nl and m come from Main.hs (m = run count = base-offsets table')
     print('size; sInner = l / m); ? means Main.hs no longer defines it.')
+    moved = [sh for sh in (meta['built'] or ('', []))[1] if sh in shapes]
+    if moved:
+        print('%s: as Main.hs at %s had them, where the run was built.'
+              % (', '.join(moved), meta['built'][0]))
     print('The worst-cell column names the strategy whose CI% is widest')
     print('here; nothing is dropped, so it is also what the winsorizing')
     print('geomean is most likely to have capped.')
