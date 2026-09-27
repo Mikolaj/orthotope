@@ -5848,6 +5848,13 @@ TIER1 = {
            ' what they would overwrite',
         bug='no way to name one, and a guard refusing over every artifact of'
             ' the run, so the step could not be carried out at all'),
+    'status-asks-for-the-named-fills-in-the-note': dict(
+        family='vacuous-check', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='a run whose -g3 twins exist and whose pair note carries'
+                ' no NAMED FILLS block',
+        ok='reads 3a NOT DONE, naming the missing block',
+        bug='read 3a done on the twins alone'),
     'repoint-keeps-a-link-whose-run-name-a-wrap-splits': dict(
         family='two-spellings', discovery='in-use', harm='fired',
         harm_count=1,
@@ -15110,7 +15117,8 @@ RECORDS = [
          ok=V(has=['2 -g3 twin(s) here']),
          bug=V(hasnt=['2 -g3 twin(s) here'])),
 
-    case('status-asks-for-the-named-fills-in-the-note', 'run-status.sh', None,
+    case('status-asks-for-the-named-fills-in-the-note', 'run-status.sh',
+         '61051dd',
          'step 3a read done on the twins alone, while the NAMED FILLS block'
          ' the step owes the pair note was never written',
          # Run 42's write-up named the fills in the run file and wrote the
@@ -15120,13 +15128,14 @@ RECORDS = [
                             ('probe-g3-b-run97', '#!/bin/sh\n'),
                             ('run97-pair.txt', 'HALVES: basis=a other=b\n')]),
          argv=['run97'],
-         ok=V(has=['no NAMED FILLS block in run97-pair.txt'])),
+         ok=V(has=['no NAMED FILLS block in run97-pair.txt']),
+         bug=V(hasnt=['NAMED FILLS'])),
 
     case('status-prints-the-readings-the-write-up-owes', 'run-status.sh',
          None,
-         'the readings the post-run list owes off the previous run\'s file'
-         ' were named only inside the list, so a session read that file'
-         ' whole instead',
+         'CONTROL: until 6b\'s commit the status prints the four --section'
+         ' reads and the docstring\'s two parts the write-up owes, off the'
+         ' note\'s COMPARE run',
          # Run 42's write-up read run41.md entire, about 35k tokens, where
          # four --section calls and the docstring's two parts were owed.
          shadow=dict(extra=[('run97-pair.txt',
