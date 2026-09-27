@@ -6,8 +6,8 @@
 # process's start. The copy separates the file instance from the build,
 # and the previous run's binary the build from the evening's process.
 #
-#     ./copy-test.sh run41 [PREV]    # writes run41-copy-test.log
-#     ./read-run.py --copy-test run41-copy-test.log
+#     ./copy-test.sh run41 [PREV]    # writes probe-copy-test-run41.log
+#     ./read-run.py --copy-test probe-copy-test-run41.log
 #
 # The cells are `./read-run.py --copy-cells`'s, one per population and half
 # that --half-movers flags with its counts level, sized to about 1.4 seconds
@@ -37,7 +37,9 @@ if [ -z "$BUSY" ] || awk -v b="$BUSY" -v m="${MAXBUSY:-5}" \
   exit 2
 fi
 command -v perf > /dev/null || { echo "perf is not on PATH" >&2; exit 2; }
-LOG="$R-copy-test.log"
+# A probe's name and not the run's: read-all.sh reads every $R-*.log as
+# one of the run's processes, and Run 42's copy test failed its gate so.
+LOG="probe-copy-test-$R.log"
 [ -e "$LOG" ] && { echo "$LOG exists; move it aside first" >&2; exit 2; }
 while read -r timed _prev _pop _cell _n; do
   [ -e "probe-copy-$timed" ] || cp "$timed" "probe-copy-$timed" || exit 2

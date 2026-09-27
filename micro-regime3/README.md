@@ -9230,7 +9230,7 @@ not otherwise.
     #      which takes one cell per population and half off
     #      `--copy-cells` and times it on the timed file, a fresh copy and
     #      the previous run's half, read with `./read-run.py --copy-test
-    #      $R-copy-test.log` -- INSTANCE, PROCESS or BUILD per cell;
+    #      probe-copy-test-$R.log` -- INSTANCE, PROCESS or BUILD per cell;
     #      then, where it says INSTANCE and BEFORE anything evicts
     #      the file -- a reboot, a copy over it, the fadvise -- the frames
     #      off the slow instance while it runs:

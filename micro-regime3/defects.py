@@ -784,6 +784,24 @@ def plant_copy_test_log(tmp):
     return write(os.path.join(tmp, 'ct.log'), '\n'.join(lines) + '\n')
 
 
+def plant_copy_test_in_shadow(tmp):
+    """`plant_half_mover`'s run, written into the case's shadow, where
+    copy-test.sh reads it, with a log already standing at each name the
+    script could write: its refusal of an existing log names the path it
+    would have written, before anything is timed."""
+    d = os.path.join(tmp, 'shadow')
+    write(os.path.join(d, 'run98-pair.txt'), NOTE_STUB + 'COMPARE: run97\n')
+    write(os.path.join(d, 'run97-pair.txt'),
+          'a stand-in pair note.\nHALVES: basis=nospec other=ghead\n')
+    for name in ('run98-a1g', 'run97-nospec', 'run97-ghead'):
+        synth_json(d, 'main', name='%s-main.json' % name)
+    synth_json(d, 'main', name='run98-lookrts-main.json',
+               skew=[(main_shapes()[0], 'lib-stage1', 3)])
+    for name in ('run98-copy-test.log', 'probe-copy-test-run98.log'):
+        write(os.path.join(d, name), 'a copy test already taken\n')
+    return {}
+
+
 def rundoc_with_ragged_row(tmp):
     """A copy whose yardstick table has one row two cells short.
 
@@ -14669,6 +14687,19 @@ RECORDS = [
          argv=['--copy-test', '{log}'],
          ok=V(exit=0, has=['BUILD', 'PROCESS']),
          bug=V(exit=2)),
+
+    case('copy-test-log-keeps-off-the-run-prefix', 'copy-test.sh', 'self',
+         "copy-test.sh wrote its log as `$R-copy-test.log`, in the run's"
+         ' own prefix, where read-all.sh took it for a process log and'
+         ' failed the run\'s gate as a process asserting no state',
+         # Run 42's copy test, taken the afternoon after its write-up,
+         # turned post-run step 1 from done to NOT DONE.
+         plant=plant_copy_test_in_shadow,
+         shadow=dict(),
+         env={'MAXBUSY': '100'},
+         argv=['run98', 'run97'],
+         ok=V(exit=2, has=['probe-copy-test-run98.log exists']),
+         bug=V(exit=2, has=['run98-copy-test.log exists'])),
 
     case('worklist-names-a-figure-no-reader-printed', 'read-run.py',
          '3328953',
