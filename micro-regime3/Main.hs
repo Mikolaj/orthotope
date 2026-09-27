@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# LANGUAGE BangPatterns  #-}
 {-# LANGUAGE MagicHash     #-}
 {-# LANGUAGE RankNTypes    #-}
@@ -8553,12 +8554,12 @@ diag = do
       mapM_ (\(label, builder) -> measure ("  " ++ label)
                                            (\k -> builder k osh oats))
             offsetBuilders
-    measure label build = do
+    measure label builder = do
       let n = 500 :: Int
       performGC
       s0 <- getRTSStats
       let loop !acc !k | k >= n    = acc
-                      | otherwise = loop (acc + VU.sum (build k)) (k + 1)
+                      | otherwise = loop (acc + VU.sum (builder k)) (k + 1)
       tot <- evaluate (loop (0 :: Int) 0)
       -- Both readings are GC'd, not just the first: 'allocated_bytes' only
       -- advances at a GC, so without this the tail since the last one goes
