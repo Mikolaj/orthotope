@@ -12488,7 +12488,7 @@ RECORDS = [
               hasnt=['- [Run 96]'])),
 
     case('repoint-keeps-a-link-whose-run-name-a-wrap-splits', 'read-run.py',
-         None,
+         '097d730',
          'a link whose own text names the previous run was moved to the new'
          ' run\'s file when the wrapped README broke the line between `Run`'
          ' and the number',
@@ -12506,7 +12506,8 @@ RECORDS = [
          probe=lambda subs: open(subs['readme']).read(),
          ok=V(exit=0, has=["96's properties](runs/run96.md)",
                            '[the run file](runs/run97.md#q)'],
-              hasnt=['run97.md#p'])),
+              hasnt=['run97.md#p']),
+         bug=V(exit=0, has=['run97.md#p'])),
 
     case('counts-cost-sums-the-stages-per-half', 'read-run.py', None,
          'CONTROL: --counts-cost pairs each counts stage\'s start and done'
