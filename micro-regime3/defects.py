@@ -5848,6 +5848,14 @@ TIER1 = {
            ' what they would overwrite',
         bug='no way to name one, and a guard refusing over every artifact of'
             ' the run, so the step could not be carried out at all'),
+    'winsor-cuts-its-sign-census': dict(
+        family='quiet-failure', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='a population where more than six pairs of timed rows part'
+                ' in sign between the published column and the paired figure',
+        ok='prints every parting on a line of its own',
+        bug='printed six and `...`, so which pairs part was argued from the'
+            ' order of the six'),
     'status-asks-for-the-named-fills-in-the-note': dict(
         family='vacuous-check', discovery='in-use', harm='fired',
         harm_count=1,
@@ -10044,7 +10052,7 @@ RECORDS = [
               has=['winsorizing, per timed row', 'plain', 'published',
                    'capped', 'lib-stage1'])),
 
-    case('winsor-cuts-its-sign-census', 'read-run.py', None,
+    case('winsor-cuts-its-sign-census', 'read-run.py', 'c052047',
          'the sign-parting census printed six pairs and `...` for the rest,'
          ' so a claim about which pairs part rested on the list\'s order',
          # Run 42's basis parted on seven and its control on eleven; the
@@ -10063,7 +10071,8 @@ RECORDS = [
                  for i in range(2)])},
          argv=['{run}', '--winsor'],
          ok=V(exit=0, has=['9 part in sign', '  parts: '],
-              hasnt=['; ...'])),
+              hasnt=['; ...']),
+         bug=V(exit=0, has=['; ...'])),
 
     case('block-compare-writes-what-the-class-says', 'read-run.py', None,
          'CONTROL: --block --compare with both sweeps prints the class'
