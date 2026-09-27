@@ -10,16 +10,16 @@ a regression on every regime-3 population when Run 21 measured it and at parity
 there since the unboxing fix of 2026-08-29, [the
 ceiling](#the-mutable-ceiling-taken)'s tenth reading): `vFillStrided`, the class
 method, its shared driver a bang-for-bang port
-of `mut-odo-vecdims-add-in-leaf-u2` until 2026-09-11 and of `fillStage2`,
-the benchmark's own driver until 2026-09-26, since; **the regime 3 fix
-is decided: on 2026-08-22 the `mut-odo-vecdims` family was decided
-as the implementation to go upstream, on 2026-08-24 the stride-conditioned
-redirect that had kept the decision open was dropped, and the same day
-the member was fixed as the family's `add-in-leaf-u2` form on the two paired
-probes recorded in the ceiling** --- [the ceiling](#the-mutable-ceiling-taken)
-carries the decision and what it rests on, and [the two-stage
-plan](#the-two-stage-plan-and-the-rework-proposal) below carries the drop
-and the rework proposal the redirect's evidence now feeds.
+of `mut-odo-vecdims-add-in-leaf-u2` until 2026-09-11 and, since then,
+of `fillStage2`, which was the benchmark's own driver until its deletion
+on 2026-09-26; **the regime 3 fix is decided: on 2026-08-22
+the `mut-odo-vecdims` family was decided as the implementation to go upstream,
+on 2026-08-24 the stride-conditioned redirect that had kept the decision open
+was dropped, and the same day the member was fixed as the family's
+`add-in-leaf-u2` form on the two paired probes recorded in the ceiling** ---
+[the ceiling](#the-mutable-ceiling-taken) carries the decision and what it rests
+on, and [the two-stage plan](#the-two-stage-plan-and-the-rework-proposal) below
+carries the drop and the rework proposal the redirect's evidence now feeds.
 
 The previous attempt, benchmarked as `gen-quotrem` resulted in a **mixed
 picture**: it had replaced the original `list` fallback
@@ -42,8 +42,7 @@ is the FILL**, and `lib-stage1`, the stage-one route as it shipped --- its fill
 `fillStage3` behind a `walkAx` conversion since `c7549d2`, and so no longer
 the library's own --- is slower than `list` on the shortest run of the `runs`
 class this roster times, `runs-2`, which [the run file's property
-1](runs/run42.md#the-properties-the-next-run-should-test) records and seven runs
-have now read.
+1](runs/run42.md#the-properties-the-next-run-should-test) records.
 
 The words for a view's pieces are the library's, defined at the `T` haddock
 of `Data/Array/Internal.hs` on `pr-mikolaj-toVectorListT`: a *walk* is one
@@ -61,30 +60,17 @@ with its dimension lists replaced by unboxed vectors --- is on Run 42 (plain
 -O1, -A32m, exit span, settled cost, GHC HEAD `10.1.20260918`, launched
 from disk) **2.86x** over `bq-expand` paired, ahead on all nineteen shapes.
 **That headline moves with the published REGIME and with where a build places
-`bq-expand`, and not with the COMPILER**: Run 29 read 2.22x on a `-fspec-constr`
-basis and 2.83x on its own unflagged half, Run 30 read 2.87x on that same
-unflagged recipe --- the same binary as Run 29's unflagged half, md5 and `.text`
-alike, so that step was two evenings of drift on one build --- Run 31 read 2.84x
-on the recipe and 2.19x on its `-O2` half, Run 32 read **2.85x** on the recipe
-and **2.84x** on its GHC HEAD half, Run 33 read **2.84x** and **2.86x**
-under the exit span, Run 34 read **2.83x** on its basis and **2.84x**
-on its HEAD half, Run 35 read **2.83x** and **2.86x**, Run 36 read **2.83x**
-on its plain -O1 half and **2.20x** on the half carrying
-`-fspec-constr -fliberate-case`, Run 37 read **2.85x** and **2.19x**
-on that same pair, Run 38 read **2.85x** and **2.20x** on it a third time, Run
-39 read **2.84x** and **2.20x** on it a fourth, under the settled cost, Run 40
-read **2.84x** and **2.20x** on it a fifth, on a source ten commits on, Run 41
-read **2.97x** and **2.19x** on it a sixth, its basis half's `bq-expand` slower
-than Run 40's on code no commit touched and on level instructions, and Run 42
-reads **2.86x** and **2.19x** on it a seventh, that family back where Run 40's
-build had it ([the run file](runs/run42.md#what-the-next-run-compares-against)).
-**TWO of `-O2`'s passes cost this headline what the whole level cost it**,
-2.20x, 2.19x, 2.20x, 2.20x, 2.20x, 2.19x and 2.19x against Run 31's 2.19x,
-a hundredth apart over eight readings and across two compilers --- so raising
-the level costs the headline better than six tenths of a multiple and those two
-passes are where the cost lives, `-O2` speeding `bq-expand` by 29% and leaving
-the fill where it is, while changing the compiler moves it by a hundredth
-or two, down on Run 32 and up on Runs 33 to 35; the gap this ratio reports
+`bq-expand`, and not with the COMPILER**: on plain -O1 it has read 2.83x
+to 2.87x on every build from Run 29 on but Run 41's, whose basis placed
+`bq-expand` 4% slower and read 2.97x ([the run
+file](runs/run42.md#what-the-next-run-compares-against)), and 2.84x to 2.86x
+on the GHC HEAD halves Runs 32 to 35 carried. **TWO of `-O2`'s passes cost
+this headline what the whole level cost it**:
+with `-fspec-constr -fliberate-case` on plain -O1 it reads 2.19x to 2.20x
+on every build from Run 36 on, against the whole level's 2.19x on Run 31, across
+two compilers --- so raising the level costs the headline better than six tenths
+of a multiple and those two passes are where the cost lives, `-O2` speeding
+`bq-expand` by 29% and leaving the fill where it is; the gap this ratio reports
 is the one the library actually compiles in. **One main-set shape sits
 on the line**: on `stretch-pow2stride` the fill and `bq-expand` tie, class
 property 1 breaking on whichever half reads the fill behind, and whether any run
@@ -1577,19 +1563,11 @@ rather than a slot in the next run, observed again:
   every run's reading on disk beside its half's floor. The entry stays OPEN
   on one question: whether any run reads `mut-odo-vecdims` BEHIND `bq-expand`
   on that cell by more than its own half's floor. Until one does, a break there
-  is a tie and not a failure of the clause. **Run 38 reads it at 0.9997
-  on the basis and 0.9756 on the control**, both ahead and the basis three
-  ten-thousandths under the line against that half's 0.57% floor --- the closest
-  of the three readings this pair has given the cell, and still a tie
-  by the entry's own test. **Run 39 reads it at 1.0026 on the basis and 0.9835
-  on the control**, the basis BEHIND by 0.26 of a point, the first break since
-  Run 35's own --- a break of the clause, and inside that half's 0.57% floor,
-  so still a tie by the entry's own test. **Run 40 reads it at 0.9954
-  on the basis and 0.9818 on the control**, both ahead again, the basis 0.46
-  of a point under the line, **Run 41 at 0.9991 and 0.9819**, the basis 0.09
-  under it, and **Run 42 at 0.9957 and 0.9856**, the basis 0.43 under it,
-  so the plain half's seven readings on this pair sit within six tenths
-  of a point of it on either side.
+  is a tie and not a failure of the clause. **On this pair the plain half's
+  readings sit within six tenths of a point of the line on either side,
+  and the flagged half's ahead of it every time**; the one reading behind, Run
+  39's basis at 1.0026, sat inside that half's 0.57% floor, so still a tie
+  by the entry's own test.
 - `PARKED` **Which of the two `-O2` passes carries the regime's points,
   on a compiler this series still builds with.** **PARKED 2026-09-26
   by the owner.** Both together, `-fspec-constr` and `-fliberate-case` on one
@@ -3627,15 +3605,12 @@ what the next run should do is the open list's `OPEN` entries above.**
 It was `Recommended tasks after Run N` until 2026-09-26, renamed when
 a comprehension probe found it holding no task. **Every run's
 `What Run N made cheaper` block is in `MARGINALIA`, appended there at post-run
-step 5d since 2026-09-25, and this heading keeps none.** Runs 42 down to 25
-are there, 32 to 25 as of 2026-09-18, 36 to 33 as of 2026-09-23, 37 and 38 to 40
-as of 2026-09-25, 41 as of 2026-09-26 and 42 as of 2026-09-27. A block
-is a record of what one run made cheaper, read by nobody once a further run has
-reported, and what it asks of the procedure is made in the chapter or a tool
-in the same write-up, which is where the next run meets it. What did NOT go
-is anything that is a ruling rather than a record: the four paragraphs below
-this one, and Run 26's account of where its own spent items went, all stand
-here.
+step 5d since 2026-09-25, and this heading keeps none.** A block is a record
+of what one run made cheaper, read by nobody once a further run has reported,
+and what it asks of the procedure is made in the chapter or a tool in the same
+write-up, which is where the next run meets it. What did NOT go is anything
+that is a ruling rather than a record: the four paragraphs below this one,
+and Run 26's account of where its own spent items went, all stand here.
 
 **Run 26's six spent items are gone from this heading and here is where each
 went**, retired 2026-09-08 with Run 27's write-up, each one `ANSWERED`, and none
@@ -9028,9 +9003,8 @@ a step's prose by its `why: --para` pointer when the step's rule is unclear,
 not otherwise.
 
     ./read-all.sh $R --brief-facts                    # 1. GATE EVERY
-    #      PROCESS -- and EVERY gate on this list is run BARE, its
-    #      status read from its own exit: no pipe, no `&&` chain, no
-    #      redirect (post-b's `A GATE IS NEVER FILTERED`, after 8b).
+    #      PROCESS -- and EVERY gate on this list is run BARE, as
+    #      post-b's `A GATE IS NEVER FILTERED`, after 8b, says.
     #      PROCESS AND DERIVE THE HEAD'S FACTS IN ONE CALL -- no bare
     #      `./read-all.sh $R` beside it: the window and its timestamps,
     #      the plateau band, BOTH floors per population, `list` against
@@ -9462,21 +9436,13 @@ not otherwise.
     #      inside the floor is requoted without comment. The four
     #      bullets below GOVERN the walk rather than following it, which
     #      is why they are bullets and not sub-steps; 6a and 6c ARE it
-    #      * THE WRITE-UP'S OWN COMMITS REWRAP THE WORKING COPY: after
-    #        each of 6b, 6d and 7a the next exact-match batch misses until
-    #        it is unwrapped again, which the hook's own `restored ...
-    #        (wrapped)` line says.
-    #      * WRAPPING IS NOT A PRECONDITION: read-run.py's --replace,
-    #        --delete and --para match the flattened form, so nothing is
-    #        unwrapped
-    #        before editing or after a commit's re-wrap; an EXACT-MATCH
-    #        edit and step 5's literal rename are what still want the
-    #        unwrapped form. SET THE TURN-END HOLD HERE, clearing it at 9
-    #        (~/.claude/rules/turn-end-hold.md) --- AND SET IT AGAIN for
-    #        any editing that continues past 9, a probe write-up or a
-    #        question answered in the documents among them.
-    #        Never wrap by hand; read ~/.claude/rules/markdown-wrapping.md
-    #        before the first edit
+    #      * SET THE TURN-END HOLD HERE and clear it at 9, setting it
+    #        again for any editing past 9 (~/.claude/rules/
+    #        turn-end-hold.md). read-run.py's --replace, --delete and
+    #        --para match the flattened form and want no unwrap; an
+    #        EXACT-MATCH edit wants `wrap80 --unwrap -i README.md` first
+    #        and again after each of 6b, 6d and 7a, whose commits rewrap.
+    #        Never wrap by hand (~/.claude/rules/markdown-wrapping.md)
     #      * REPLACE BY ANCHOR, `./read-run.py --replace ANCHOR --with
     #        FILE`, for every
     #        paragraph edit at 5d, 5e, here and at 6a, 6b, 6c and 7 --- AND ITS
@@ -9495,12 +9461,6 @@ not otherwise.
     #        FIRST bullet is the run's own file ENTIRE and every other
     #        bullet is a README section
     #      why: --para 'What skipping this costs is measured'
-    #      The hold stops the `Stop` hook and not the `PreToolUse` one,
-    #      and this half of the list commits more than once, so an
-    #      unwrapped stretch ends at each commit. Every wait on a job or an agent
-    #      below ends a turn and the Stop hook rewraps at each. A hand
-    #      wrap is the one thing --check-doc's wrap pass FAILS, and the
-    #      wrapping rules file does not reliably load.
     #      A class block's lead has its installed TABLE on the next line
     #      with no blank between, so an anchor naming the lead takes the
     #      table. --replace refuses that, as it refuses an abutting
@@ -9768,38 +9728,26 @@ not otherwise.
     #      is not a formality: the first round of fixes makes findings of
     #      its own, and a session that stops at one pass ships them.
     #  6e. VERIFY, THE READ-ONLY HALF, run in parallel with 6d and
-    #      producing a worklist rather than an edit. Every count and ratio
-    #      comes from --cells or --pair, never from a printed table;
-    #      before re-deriving a figure a previous run published,
-    #      reproduce THAT run's value with your method first.
-    #      AND A FIGURE THIS RUN WRITES NAMES THE ARTIFACT IT CAME FROM
-    #      A timing column no earlier run published needs a route sharing
-    #      no code with the reader -- difference wall, or user AND system,
-    #      at two iteration counts. Two instruments disagreeing is the
-    #      finding: locate it, and until then neither is evidence. Assert
-    #      every scripted edit's extent, and run `./read-run.py --lost
-    #      --run-doc runs/$R.md`. Then `./read-run.py --lint`; `./read-run.py
-    #      --check-doc --worklists`,
-    #      adjudicating the items it marks ADDED BY THIS DIFF and no
-    #      others; a superlative walk of the sentences this write-up
-    #      wrote; and a walk of the diff against the writing rules. The
-    #      end-to-end read is 7a's probe's and not this step's.
-    #      WHAT IS VERIFIED IS EVERY FILE THIS RUN WROTE: `runs/$R.md` and
-    #      `README.md` always, and -- where 6c reached them --
-    #      `read-run.py`'s docstring, `micro.cabal`'s `-M8G` note and
-    #      `Main.hs` wherever a comment cites a figure
+    #      producing a worklist rather than an edit: `./read-run.py
+    #      --lost --run-doc runs/$R.md`, `./read-run.py --lint` and
+    #      `./read-run.py --check-doc --worklists`, adjudicating the
+    #      items it marks ADDED BY THIS DIFF and no others. The figure
+    #      and superlative walks are the checker's, at 6b and 6d, and
+    #      the end-to-end read is 7a's probe's. A timing column no
+    #      earlier run published still wants a route sharing no code
+    #      with the reader -- wall, or user AND system, differenced at
+    #      two iteration counts. WHAT IS VERIFIED IS EVERY FILE THIS RUN
+    #      WROTE: `runs/$R.md` and `README.md` always, and -- where 6c
+    #      reached them -- `read-run.py`'s docstring, `micro.cabal`'s
+    #      `-M8G` note and `Main.hs` wherever a comment cites a figure
     #      why: --para 'Verify the write-up before deleting'
-    #      A read-only worklist is what lets it share the window. A
-    #      printed table is rounded to three figures. A published figure
-    #      and a re-derivable one read identically, so the next session
-    #      either re-derives from a file you named or copies you, and
-    #      copying is cheaper. `--lost` reads both documents' paragraph
-    #      lists against step 5's copy and is the one check that sees a
-    #      lost paragraph. Both halves of 6 are edits. --lint and
-    #      --check-doc read the two DOCUMENTS and hold cross-document
-    #      figures to agreement; the three source files are the reading's
-    #      alone, nothing gating their comments, so a stale figure there
-    #      survives every green run until someone opens the file.
+    #      A read-only worklist is what lets it share the window.
+    #      `--lost` reads both documents' paragraph lists against step
+    #      5's copy and is the one check that sees a lost paragraph.
+    #      --lint and --check-doc read the two DOCUMENTS; the three
+    #      source files are the reading's alone, nothing gating their
+    #      comments, so a stale figure there survives every green run
+    #      until someone opens the file.
     #   7. WAIT FOR 6d, THE BLIND READER AND 6e ALL -- the one barrier
     #      in this list. Then CONVERGE TO ONE WRITER and fix, which is
     #      all that is left here: merge the THREE reports into a SINGLE
@@ -11166,14 +11114,16 @@ consumers too. **A family** is an arm with its A/A copies,
 as in `the bq-expand family`; **the vecdims arms** are `mut-odo-vecdims`
 and the arms refined from it, whose best rival the `best outside vecdims` column
 names --- dated accounts written before 2026-09-26 call them the family.
-**The preamble** is the saturating spray a process under `SATURATE=1` makes
-before its first bench, **the victim** the one bench it then times,
-`vgg-14-c512-k3/list`, reported on the process's `@@saturate` line,
-and **the plateau** the state that leaves, which `read-all.sh` gates by every
-process's victim reading inside 5% of the run's; **the riders** are the alone
-legs after the sequence, each shape's `list` alone in a process of its own,
-clean and saturated, off which `--deflation` splits what the preamble
-and the roster each cost a process.
+**The shipped leaf** is `mut-odo-vecdims-add-in-leaf-u2`, the vecdims arm fixed
+on 2026-08-24 as the form of the fix to ship, and it keeps the name whatever
+the library's driver has since been ported from. **The preamble**
+is the saturating spray a process under `SATURATE=1` makes before its first
+bench, **the victim** the one bench it then times, `vgg-14-c512-k3/list`,
+reported on the process's `@@saturate` line, and **the plateau** the state
+that leaves, which `read-all.sh` gates by every process's victim reading inside
+5% of the run's; **the riders** are the alone legs after the sequence, each
+shape's `list` alone in a process of its own, clean and saturated, off which
+`--deflation` splits what the preamble and the roster each cost a process.
 
 | bar | unit | what it bounds | where it is read |
 |---|---|---|---|
@@ -11415,9 +11365,11 @@ section][pershape]'s own point and not a disagreement; where an arm outside
 the vecdims arms leads, the two name different arms and the gap between them
 is what the lead is worth, and Run 21's table, which repeated one arm in both
 columns on `bcastmid` and `reshape1`, was wrong to. *floor* is the largest
-deviation from 1 among that process's A/A controls. A cell that breaks property
-1, or that leads `mut-odo-vecdims` --- what broke the ordering that was property
-2 until 2026-09-06 --- is bolded.
+deviation from 1 among that process's A/A controls. The row's fastest timed arm
+is bolded, ruled 2026-09-27: it is always one of the two named cells,
+`best outside vecdims` or `ceiling`, and the install decides between them
+on the unrounded values, which `--block`'s `summary bolds` line and the `bold`
+column of `--extremes` print where the two tie at three decimals.
 
     | class | shapes | mut-odo-vecdims | worst | best outside vecdims | ceiling | floor |
 
