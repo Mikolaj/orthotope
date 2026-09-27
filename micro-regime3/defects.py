@@ -5729,8 +5729,9 @@ def case(name, prog, fix, gist, argv, ok, bug=None, plant=None, env=None,
     the validator's vocabulary.
     """
     assert bug is None or fix, (
-        '%s: a bug verdict wants the commit that fixed it, or --audit has'
-        ' nothing to replay -- drop the bug to make it a control' % name)
+        '%s: a bug verdict wants the commit that fixed it, or `self` where'
+        ' the case lands with its fix, or --audit has nothing to replay --'
+        ' drop the bug to make it a control' % name)
 
     def plant_py(ctx):
         subs = {}
@@ -5899,6 +5900,13 @@ TIER1 = {
            ' what they would overwrite',
         bug='no way to name one, and a guard refusing over every artifact of'
             ' the run, so the step could not be carried out at all'),
+    'install-says-the-counts-sentence-waits': dict(
+        family='quiet-failure', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='a class line installed before its counts sweeps exist',
+        ok='names the classes waiting and says to rerun once the evening'
+           ' reads EVENING COMPLETE',
+        bug='said nothing, and the `___` was filled by hand'),
     'winsor-cuts-its-sign-census': dict(
         family='quiet-failure', discovery='in-use', harm='fired',
         harm_count=1,
@@ -13795,7 +13803,7 @@ RECORDS = [
          bug=V(has=["disagrees with this class's cells"])),
 
     case('install-says-the-counts-sentence-waits', 'install-tables.sh',
-         None,
+         'self',
          'a class line installed at 5b carries a `___` counts slot the'
          ' counts fill hours later, and nothing said a rerun places it',
          # Run 42's session copied the ten counts sentences into the run
@@ -13808,7 +13816,8 @@ RECORDS = [
          env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['zzit'],
          ok=V(has=['no counts sweeps yet',
-                   'rerun ./install-tables.sh zzit once'])),
+                   'rerun ./install-tables.sh zzit once']),
+         bug=V(hasnt=['no counts sweeps yet'])),
 
     case('lead-patterns-disagree', 'install-tables.sh', None,
          'a lead one pattern missed was overwritten by the block above it',
