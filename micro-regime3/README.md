@@ -8229,7 +8229,7 @@ Unsandboxed throughout:
     #      the owner asks for the quiet box at a later sitting, the
     #      run file amended when it lands. What the wait owes is that
     #      nothing evict the timed binaries meanwhile -- no reboot, no
-    #      rebuild, no copy over them -- or a copy test reads an
+    #      copy over them -- or a copy test reads an
     #      INSTANCE term as gone.
     #      why: a fix landed mid-write-up costs every stretch after it an
     #      unwrap, each commit rewrapping README.
@@ -11390,8 +11390,7 @@ column of `--extremes` print where the two tie at three decimals.
     | class | shapes | mut-odo-vecdims | worst | best outside vecdims | ceiling | floor |
 
 **The aggregate figures in the paragraph above the blocks are the reader's,
-emitted rather than assembled.**
-`./read-run.py --cross-classes --classes BASIS... --others CONTROL...` prints
+emitted rather than assembled.** `./read-run.py RUN --cross-classes` prints
 every one of them --- the comparison count, the faster/slower split, the range
 of the geomeans with the class at each end, the arm holding each extreme and how
 many populations share it, the degenerate arms it kept out, and the classes
@@ -14393,18 +14392,18 @@ completeness is mechanical instead. Every section below is reached by a link,
 and the coverage check is: no section carrying a figure outside a table may
 be absent from them. The run's own file is reached whole rather than section
 by section, that being what a run replaces and why it is a file. Run that check,
-and repeat the two sweeps it cannot replace --- grep both documents
-for figure-shaped numerals outside the tables, and grep them for the name
-of the run being superseded, which is the one the previous run's file still
-carries --- before trusting the list. The second sweep is written without
-its numeral on purpose: spelled out, it is a run number nothing in step 5
-reaches, so it would go on naming a run two runs back. It earns its place every
-time: this run's pass found a superseded basis half named in the Results
+and repeat the two sweeps it cannot replace --- `./read-run.py --sweep PREV`,
+README's paragraphs quoting a figure only the superseded run's file carries
+and those naming that run, the run file's own half being `--inherited`'s
+and `--stale`'s --- before trusting the list. The second sweep is written
+without its numeral on purpose: spelled out, it is a run number nothing in step
+5 reaches, so it would go on naming a run two runs back. It earns its place
+every time: this run's pass found a superseded basis half named in the Results
 section's own lead, `run13-maxskip` where Run 14's write-up should have put
 its own, which every anchor and figure check passed over. **And there is a THIRD
 sweep, which is a reading and not a grep, owed every run beside those two**:
 walk the replace-listed sections and ask of each figure-bearing paragraph *which
-run measured this*. The run-name grep is structurally blind to a paragraph
+run measured this*. The run-name sweep is structurally blind to a paragraph
 naming only runs OLDER than the superseded one, which is the normal state
 of a document full of dated mechanism accounts, and *reads as current*
 is the discriminating property --- so no cheap predicate has it, and the checker

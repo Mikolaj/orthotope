@@ -17312,8 +17312,8 @@ def main():
     p.add_argument('--cross-classes', action='store_true',
                    help="the class section's intro figures, aggregated from"
                         ' the same per-class cross-half readings the blocks'
-                        ' print; wants --classes for the basis half and'
-                        ' --others for the control')
+                        ' print; wants a run, or --classes for the basis'
+                        ' half and --others for the control')
     p.add_argument('--others', nargs='+', default=[], metavar='JSON',
                    help='the control half of each --classes file, in order')
     p.add_argument('--carried', action='store_true',
