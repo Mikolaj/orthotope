@@ -15110,6 +15110,33 @@ RECORDS = [
          ok=V(has=['2 -g3 twin(s) here']),
          bug=V(hasnt=['2 -g3 twin(s) here'])),
 
+    case('status-asks-for-the-named-fills-in-the-note', 'run-status.sh', None,
+         'step 3a read done on the twins alone, while the NAMED FILLS block'
+         ' the step owes the pair note was never written',
+         # Run 42's write-up named the fills in the run file and wrote the
+         # note's block only at the end; the twins being there said done
+         # throughout.
+         shadow=dict(extra=[('probe-g3-a-run97', '#!/bin/sh\n'),
+                            ('probe-g3-b-run97', '#!/bin/sh\n'),
+                            ('run97-pair.txt', 'HALVES: basis=a other=b\n')]),
+         argv=['run97'],
+         ok=V(has=['no NAMED FILLS block in run97-pair.txt'])),
+
+    case('status-prints-the-readings-the-write-up-owes', 'run-status.sh',
+         None,
+         'the readings the post-run list owes off the previous run\'s file'
+         ' were named only inside the list, so a session read that file'
+         ' whole instead',
+         # Run 42's write-up read run41.md entire, about 35k tokens, where
+         # four --section calls and the docstring's two parts were owed.
+         shadow=dict(extra=[('run97-pair.txt',
+                             'HALVES: basis=a other=b\nCOMPARE: run96\n')]),
+         argv=['run97'],
+         ok=V(has=["--section 'The properties the next run should test'"
+                   ' --run-doc runs/run96.md',
+                   '--section Results --run-doc runs/run97.md',
+                   '--doc definitions'])),
+
     # ---- view-floor.py, the per-view floor -----------------------------
     case('view-floor-skips-the-legs-that-are-not-classes', 'view-floor.py',
          '18021d0',

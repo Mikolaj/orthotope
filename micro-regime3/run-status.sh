@@ -297,6 +297,27 @@ elif [ -f "$DOC" ] || ls "$R"-*.json >/dev/null 2>&1; then
   say 3a "NOT DONE" "no probe-g3-*-$R twins: step 3a names the fill groups off\
  them and SPENDS the binaries, so it cannot be taken after step 9"
 fi
+# AND THE NOTE'S BLOCK, which the twins being there does not say: Run 42
+# named the fills in the run file and wrote the note's NAMED FILLS block
+# only at the end, step 3a reading done throughout.
+if [ "$TWINS" -ge 2 ] && [ -f "$NOTE" ]; then
+  grep -q '^NAMED FILLS' "$NOTE" \
+    && say 3a "done" "$NOTE carries a NAMED FILLS block" \
+    || say 3a "NOT DONE" "no NAMED FILLS block in $NOTE: export the names \
+\`loop-offsets.py --match\` gave into it"
+fi
+# THE READINGS THE WRITE-UP OWES, printed at the steps that owe them until
+# 6b's commit: the list names them, and Run 42's session read the previous
+# run's file whole instead of the four sections and the docstring's two
+# parts. PREV is the note's COMPARE line.
+PREV=$( [ -f "$NOTE" ] && sed -n 's/^COMPARE: *\(run[0-9]*\).*/\1/p' "$NOTE" | head -1)
+if [ -n "$PREV" ] && ! git log --format=%s 2>/dev/null \
+     | grep -i "run $N\b\|$R\b" | grep -qi '\b6b\b'; then
+  say 4 "read" "items 5 and 6: ./read-run.py --section 'The properties the next run should test' --run-doc runs/$PREV.md, and --section 'The stride classes, run by run' on the same file"
+  say 4 "read" "item 9, the execution half: ./read-run.py --doc definitions, then --doc modes"
+  say 5 "read" "item 2, off the copy step 5 makes: ./read-run.py --section Results --run-doc runs/$R.md"
+  say 6a "read" "item 4, off the copy: ./read-run.py --section 'What the next run compares against' --run-doc runs/$R.md --with-tables 1"
+fi
 
 if [ -f "$DOC" ]; then
   say 5 "done" "$DOC exists"
