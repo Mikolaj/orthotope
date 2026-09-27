@@ -7540,16 +7540,21 @@ def prose_draft(run, args):
                  say_number(int(cen[basis].group(2))).upper(),
                  cen[basis].group(1),
                  say_number(int(cen[other].group(2))).upper()))
-        if capped:
-            gaps = [abs(c[1]) for c in capped if abs(c[1]) >= 0.1] or [0.0]
-            s += (' **The cap moves %s rows on the basis**, %s, their'
-                  ' published figures sitting %.1f to %.1f points under'
+        # A ROW THE CAP MOVED, which a capped cell alone does not make:
+        # Run 42's `list-aa-distant` had one capped at a gap of -0.0%.
+        moved = [c for c in capped if abs(c[1]) >= 0.1]
+        if moved:
+            gaps = [abs(c[1]) for c in moved]
+            way = ('under' if all(c[1] < 0 for c in moved)
+                   else 'over' if all(c[1] > 0 for c in moved) else 'off')
+            s += (' **The cap moves %s row%s on the basis**, %s, their'
+                  ' published figures sitting %.1f to %.1f points %s'
                   ' their plain per-shape geomeans, so rows 0.001 apart in'
                   ' print are ordered by the cap and not by the arms.'
-                  % (say_number(len(capped)),
+                  % (say_number(len(moved)), '' if len(moved) == 1 else 's',
                      ', '.join('`%s` with %d of %d cells capped' % (c[0], c[2],
                                                                     c[3])
-                               for c in capped), min(gaps), max(gaps)))
+                               for c in moved), min(gaps), max(gaps), way))
         if wide:
             s += (' **The widest disagreement of any kind on the basis** is'
                   ' `%s` over `%s`, which divides to **%s** on the column'
@@ -8006,9 +8011,10 @@ def prose_draft(run, args):
             s += (' %s change the arm they name against Run %s%s.'
                   % (say_number(len(ch)).capitalize() + ' row(s)', P,
                      ''.join(', `%s` to `%s`' % t for t in sorted(ch))))
-        s += (' **%s rows tie at three decimals this run**%s%s; the `bold`'
+        s += (' **%s %s at three decimals this run**%s%s; the `bold`'
               ' column decides each on the unrounded values.'
               % (say_number(len(tie)).upper(),
+                 'row ties' if len(tie) == 1 else 'rows tie',
                  ', ' + ', '.join('`%s`' % c for c in tie) if tie else '',
                  ', and %s sit a thousandth apart' % ', '.join(
                      '`%s`' % c for c in near) if near else ''))

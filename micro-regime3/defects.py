@@ -357,6 +357,25 @@ def edited_rundoc(tmp, *edits, **kw):
     return write_rundoc(tmp, text, kw.get('name'))
 
 
+def plant_one_tie(tmp):
+    """The run file with its cross-class summary tied at three decimals on
+    its first row alone, every other row's ceiling moved clear of the arm
+    beside it, whatever the live file ties."""
+    rx = re.compile(r'^(\| `\w+` \| \d+ \| [\d.]+ \| [\d.]+ \| \**`[\w-]+`\**'
+                    r'\s+)([\d.]+)( \| \**`[\w-]+`\**\s+)([\d.]+)'
+                    r'( \| [\d.]+% \|)$', re.M)
+    seen = []
+
+    def one(m):
+        seen.append(m)
+        ceil = m.group(2) if len(seen) == 1 else '%.3f' % (
+            float(m.group(2)) + 0.005)
+        return m.group(1) + m.group(2) + m.group(3) + ceil + m.group(5)
+    text = rx.sub(one, rundoc_text())
+    assert len(seen) >= 2, 'the run file carries no cross-class summary'
+    return write_rundoc(tmp, text)
+
+
 def unwrapped_rundoc_edit(tmp, old, new):
     """`unwrapped_readme_edit`, against the run's own file."""
     text = subprocess.run(['wrap80', '--unwrap'], input=rundoc_text(),
@@ -13849,6 +13868,42 @@ RECORDS = [
          probe=lambda subs: open(subs['doc']).read(),
          ok=V(exit=0, has=['divide: kept', 'bar: kept',
                            'DO NOT DIVIDE TWO ROWS OF THIS TABLE'])),
+
+    case('prose-draft-counts-a-row-the-cap-left-still', 'read-run.py',
+         'self',
+         "--prose-draft's DO NOT DIVIDE paragraph counted as moved by the"
+         ' cap a row with a cell capped and no gap, and said every counted'
+         ' row sat under its plain geomean by the range of the others',
+         # Run 42's basis capped one cell of `list-aa-distant` at a gap of
+         # -0.0%, and the draft read eight rows where the write-up said
+         # seven. The fixture caps two arms hard and that one mildly.
+         plant=lambda t: {'doc': write_rundoc(t, rundoc_text())},
+         shadow=dict(extra=lambda: [
+             e for e in whole_run(['lookrts', 'ovhalf'], prefix='zzit',
+                                  classes=recorded_classes())
+             if e[0] != 'zzit-lookrts-main.json'] + [(
+                 'zzit-lookrts-main.json',
+                 synth_text(main_shapes(), samples=2, skew=[
+                     (main_shapes()[0], 'list-aa-distant', 1.005)] + [
+                     (main_shapes()[i], a, 30) for i in range(2)
+                     for a in ('lib-stage1', 'lib-stage2-lean')]))]),
+         env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['--prose-draft', 'zzit', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['**The cap moves two rows on the basis**'],
+              hasnt=['`list-aa-distant` with 1 of']),
+         bug=V(exit=0, has=['`list-aa-distant` with 1 of'])),
+
+    case('prose-draft-says-one-tie-in-the-singular', 'read-run.py', 'self',
+         "--prose-draft's ties paragraph said `ONE rows tie` of a summary"
+         ' tied on one row',
+         plant=lambda t: {'doc': plant_one_tie(t)},
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                             prefix='zzit',
+                                             classes=recorded_classes())),
+         env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['--prose-draft', 'zzit', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['**ONE row ties at three decimals this run**']),
+         bug=V(exit=0, has=['**ONE rows tie at three decimals this run**'])),
 
     case('lead-patterns-disagree', 'install-tables.sh', None,
          'a lead one pattern missed was overwritten by the block above it',
