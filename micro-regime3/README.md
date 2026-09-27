@@ -9462,9 +9462,10 @@ not otherwise.
     #        bullet is a README section
     #      why: --para 'What skipping this costs is measured'
     #      A class block's lead has its installed TABLE on the next line
-    #      with no blank between, so an anchor naming the lead takes the
-    #      table. --replace refuses that, as it refuses an abutting
-    #      heading and an abutting list, but a loss it misses exits 0
+    #      with no blank between; --replace replaces the prose above a
+    #      table that ends the block and keeps the table, and refuses a
+    #      table with prose after it, an abutting heading and an
+    #      abutting list, but a loss it misses exits 0
     #      with `--check-doc` passing straight after, a gate being a
     #      predicate over what is present. A script that edits inside a
     #      paragraph and misses the wrapping replaces one line of a

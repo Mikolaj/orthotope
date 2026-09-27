@@ -10044,6 +10044,27 @@ RECORDS = [
               has=['winsorizing, per timed row', 'plain', 'published',
                    'capped', 'lib-stage1'])),
 
+    case('winsor-cuts-its-sign-census', 'read-run.py', None,
+         'the sign-parting census printed six pairs and `...` for the rest,'
+         ' so a claim about which pairs part rested on the list\'s order',
+         # Run 42's basis parted on seven and its control on eleven; the
+         # write-up's `four of the seven with lib-stage1` was argued from
+         # the name order of the six printed. The fixture skews nine arms
+         # on two shapes apiece, which parts nine pairs.
+         plant=lambda t: {
+             'run': synth_json(t, 'main', name='a.json', skew=[
+                 (main_shapes()[(2 * j + i) % len(main_shapes())], a, 30)
+                 for j, a in enumerate([
+                     'lib-stage1', 'lib-stage2-lean', 'lib-stage3-lean',
+                     'lib-stage2-lean-u1', 'mut-odo-vecdims-add-in-leaf-u2',
+                     'mut-odo-vecdims-add-in-leaf-u2-aa',
+                     'mut-odo-vecdims-add-in-leaf-u2-aa-distant',
+                     'mut-odo-vecdims', 'mut-odo-vecdims-aa'])
+                 for i in range(2)])},
+         argv=['{run}', '--winsor'],
+         ok=V(exit=0, has=['9 part in sign', '  parts: '],
+              hasnt=['; ...'])),
+
     case('block-compare-writes-what-the-class-says', 'read-run.py', None,
          'CONTROL: --block --compare with both sweeps prints the class'
          ' paragraph\'s figures with `___` where the finding goes',
@@ -10117,10 +10138,33 @@ RECORDS = [
                           '| list | 1.000 |\n\nafter\n'),
              'readme': write(os.path.join(t, 'other.md'), '# other\n'),
              'new': write(os.path.join(t, 'new.txt'), 'replacement\n')},
+         # SINCE 2026-09-27 THE TABLE IS KEPT rather than the replacement
+         # refused: a table that ends the block is the lead's installed
+         # table, so the prose above it is replaced and the rows stay,
+         # three paragraphs a run having gone through Edit or a script for
+         # want of it (Run 42). A table with prose after it is still
+         # refused, `replace-refuses-a-table-inside-a-paragraph`.
          argv=['--replace', 'the planted lead', '--with', '{new}',
                '--run-doc', '{doc}', '--readme', '{readme}'],
-         ok=V(exit=1, has=['table'], hasnt=['chars ->']),
-         bug=V(exit=0, has=['chars ->'])),
+         probe=lambda subs: open(subs['doc']).read(),
+         ok=V(exit=0, has=['replacement\n| strategy | time |',
+                           '| list | 1.000 |', 'the 3-line table under it'],
+              ),
+         bug=V(exit=0, hasnt=['the 3-line table under it'])),
+
+    case('replace-refuses-a-table-inside-a-paragraph', 'read-run.py', None,
+         'CONTROL: a table with prose after it in the same block is not a'
+         ' lead\'s installed table, and replacing the block is refused',
+         plant=lambda t: {
+             'doc': write(os.path.join(t, 'doc.md'),
+                          '# T\n\nthe planted lead\n'
+                          '| strategy | time |\n|---|---:|\n'
+                          '| list | 1.000 |\nmore prose\n\nafter\n'),
+             'readme': write(os.path.join(t, 'other.md'), '# other\n'),
+             'new': write(os.path.join(t, 'new.txt'), 'replacement\n')},
+         argv=['--replace', 'the planted lead', '--with', '{new}',
+               '--run-doc', '{doc}', '--readme', '{readme}'],
+         ok=V(exit=1, has=['table'], hasnt=['chars ->'])),
 
     case('para-traceback-on-a-bracketed-lead', 'read-run.py', None,
          'a lead pasted verbatim is retried as a literal instead of'
@@ -10278,12 +10322,14 @@ RECORDS = [
          # two-column table and to the Provenance anchors, and read both
          # duplicates back out of --inherited hours later. A message that
          # names the next step is the cheapest guard there is, and this one
-         # named the step that produces the defect.
+         # named the step that produces the defect. Its plant is a table
+         # with prose after it since 2026-09-27, a table ending the block
+         # being kept rather than refused.
          plant=lambda t: {
              'doc': write(os.path.join(t, 'doc.md'),
                           '# T\n\nkeep me\n\nthe planted lead\n'
                           '| strategy | time |\n|---|---:|\n'
-                          '| list | 1.000 |\n\nafter\n'),
+                          '| list | 1.000 |\nmore prose\n\nafter\n'),
              'readme': write(os.path.join(t, 'other.md'), '# other\n'),
              'new': write(os.path.join(t, 'new.txt'), 'replacement\n')},
          argv=['--replace', 'the planted lead', '--with', '{new}',
@@ -10494,6 +10540,26 @@ RECORDS = [
          argv=['--cross-classes', '--classes', '{a}', '--others', '{b}'],
          ok=V(exit=0, has=['class population(s)', 'arm-comparison(s)',
                            'geomeans'])),
+
+    case('cross-classes-takes-a-run', 'read-run.py', None,
+         'CONTROL: --cross-classes RUN reads the class JSONs off the note\'s'
+         ' HALVES line, basis for --classes and the other half for --others,'
+         ' leaving out the main set',
+         # Run 42's write-up typed twenty file names to get the class
+         # section's lead tallies.
+         plant=lambda t: {
+             'run': os.path.join(t, 'zzcc'),
+             'note': write(os.path.join(t, 'zzcc-pair.txt'),
+                           'HALVES: basis=a1 other=b1\n'),
+             'a': synth_run(os.path.join(t, 'zzcc-a1-rev.json'),
+                            run_order_shapes('rev')),
+             'b': synth_run(os.path.join(t, 'zzcc-b1-rev.json'),
+                            run_order_shapes('rev')),
+             'm': synth_run(os.path.join(t, 'zzcc-a1-main.json'),
+                            run_order_shapes('rev'))},
+         argv=['--cross-classes', '{run}'],
+         ok=V(exit=0, has=['over 1 class population(s)',
+                           'arm-comparison(s)'])),
 
     case('cross-classes-refuses-unpaired-lists', 'read-run.py', None,
          'a basis list and a control list that do not pair up',

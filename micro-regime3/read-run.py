@@ -1276,9 +1276,12 @@ def winsor_table(cells, shapes, strategies):
           ' published column\'s ratio and the paired geomean%s'
           % (n_pairs, ', %d more with a sunk cell left out' % sunk_pairs
              if sunk_pairs else '', len(parted),
-             ' -- %s' % '; '.join('`%s` over `%s` column %.4f, paired %.4f'
-                                  % p_ for p_ in parted[:6])
-             + ('; ...' if len(parted) > 6 else '') if parted else ''))
+             ':' if parted else ''))
+    # EVERY PARTING, a line apiece, where the census printed six and `...`:
+    # Run 42's write-up argued which pairs part from the name order of the
+    # six it could see.
+    for p_ in parted:
+        print('  parts: `%s` over `%s`, column %.4f, paired %.4f' % p_)
     if widest:
         print('  the widest disagreement: `%s` over `%s`, column %.4f against'
               ' paired %.4f, the column %+.1f%% off it'
@@ -9807,6 +9810,22 @@ def splice(docs, anchor, source):
     # is `--block --in-place`'s to write and never a replacement's.
     # Case: `replace-takes-an-abutting-table`.
     rows = [l for l in old.split('\n')[1:] if l.lstrip().startswith('|')]
+    # SINCE 2026-09-27 A TABLE THAT ENDS THE BLOCK IS KEPT and the prose
+    # above it replaced: that shape is a lead with its installed table,
+    # and refusing it sent three paragraphs a run through Edit or a
+    # script (Run 42). What stays refused is a table with prose after it
+    # in the same block, or a replacement carrying rows of its own.
+    lines = old.split('\n')
+    tail = next((i for i in range(len(lines))
+                 if all(l.lstrip().startswith('|') for l in lines[i:])),
+                len(lines))
+    keep = ''
+    if (rows and 0 < tail < len(lines)
+            and flat(anchor) in flat('\n'.join(lines[:tail]))
+            and not any(l.lstrip().startswith('|')
+                        for l in open(source).read().split('\n'))):
+        keep = '\n' + '\n'.join(lines[tail:])
+        rows = []
     if rows:
         sys.stderr.write('--replace: this paragraph carries a %d-line table'
                          ' that no blank line separates from it, so replacing'
@@ -9878,7 +9897,10 @@ def splice(docs, anchor, source):
     print('  out, last : %s' % ol[-1][-78:])
     print('  in,  first: %s' % nl[0][:78])
     print('  in,  last : %s' % nl[-1][-78:])
-    paras[hit[0]] = new
+    if keep:
+        print('  kept      : the %d-line table under it'
+              % (keep.count('\n')))
+    paras[hit[0]] = new + keep
     with open(readme, 'w') as f:
         f.write('\n\n'.join(paras))
     return 0
@@ -16527,9 +16549,25 @@ def main():
                              or args.cross_classes or args.predictions):
         p.error('--classes is a modifier of --fingerprint, --extremes,'
                 ' --cross-classes and --predictions and does nothing alone')
+    # A RUN IN PLACE OF THE TWO LISTS: the class JSONs of each half, named
+    # off the note's HALVES line, the main set left out. Run 42's write-up
+    # typed twenty file names for the lead tallies.
+    if (args.cross_classes and not args.classes and not args.others
+            and args.run and os.path.exists(args.run + '-pair.txt')):
+        hv = note_halves(args.run)
+        if hv is None:
+            p.error('--cross-classes %s wants %s-pair.txt with a HALVES line'
+                    % (args.run, args.run))
+        pre = [(h, '%s-%s-' % (args.run, h)) for h in hv]
+        cls = sorted(f[len(pre[0][1]):-5]
+                     for f in glob.glob(pre[0][1] + '*.json')
+                     if not f.endswith('-main.json'))
+        cls = [c for c in cls if os.path.exists(pre[1][1] + c + '.json')]
+        args.classes = [pre[0][1] + c + '.json' for c in cls]
+        args.others = [pre[1][1] + c + '.json' for c in cls]
     if args.cross_classes and not (args.classes and args.others):
-        p.error('--cross-classes wants --classes for the basis half and'
-                ' --others for the control, in the same order')
+        p.error('--cross-classes wants a run, or --classes for the basis half'
+                ' and --others for the control, in the same order')
     if args.others and not (args.cross_classes or args.carried):
         p.error('--others is a modifier of --cross-classes and --carried'
                 ' and does nothing alone')

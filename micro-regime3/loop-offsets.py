@@ -742,6 +742,8 @@ def match(timed, twins, loose=False, rev=None, want='_Main_'):
             by_sig[f['sig']].append(f)
         tw.append((t, by_bytes, by_sig,
                    arms(t, sorted(f['start'] for f in theirs), rev)))
+    tally = collections.Counter()
+
     def name(f, where):
         hits, from_twin, named = [], None, {}
         for t, by_bytes, _by_sig, nm in tw:
@@ -753,15 +755,18 @@ def match(timed, twins, loose=False, rev=None, want='_Main_'):
             print(f'      {where}  {named.get(h["start"]) or h["sym"]}  '
                   f'(in {from_twin} at 0x{h["start"]:x}, mod {h["mod"]}, '
                   f'{"straddles" if h["straddles"] else "fits"} there)')
+            tally['named'] += 1
             return
         if hits:
             print(f'      {where}  {len(hits)} byte-identical copies in '
                   f'{from_twin}: '
                   + '; '.join(f'{named.get(h["start"]) or h["sym"]} at '
                               f'0x{h["start"]:x}' for h in hits))
+            tally['named'] += 1
             return
         print(f'      {where}  NOT NAMED: no twin holds a byte-identical copy')
         if not loose:
+            tally['not named'] += 1
             return
         for t, _bb, by_sig, nm in tw:
             fam = sorted(by_sig.get(f['sig'], []), key=lambda h: h['start'])
@@ -771,10 +776,17 @@ def match(timed, twins, loose=False, rev=None, want='_Main_'):
             print(f'         SIGNATURE in {t}, a weaker key: '
                   + '; '.join(f'{nm.get(h["start"]) or h["sym"]} at '
                               f'0x{h["start"]:x}' for h in fam) + only)
-            break
+            tally['loose'] += 1
+            return
+        tally['not named'] += 1
 
     for f in strad:
         name(f, f'0x{f["start"]:x}  mod {LINE} = {f["mod"]:2d}, {f["len"]} B')
+    # THE TALLY, which a write-up quotes and had to count by grep over the
+    # lines above (Run 42): named by bytes, a --loose family only, neither.
+    print(f'   straddlers: {tally["named"]} named by byte identity, '
+          f'{tally["loose"]} with a --loose family only, '
+          f'{tally["not named"]} with neither')
     # The exit spans astride, named the same way (2026-09-16): a block a
     # LOOP_EXITSPAN=1 half leaves empty, and otherwise the loops the switch
     # would move.
