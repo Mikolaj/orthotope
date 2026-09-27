@@ -200,6 +200,10 @@ Modes:
                     one line each, `___` where a reading is yours; with
                     --in-place, installed over the previous run's, which
                     install-tables.sh does at post-run step 5b
+  --prose-draft RUN the rest of the run file's mechanical prose, off the
+                    reader's own modes, `___` where a reading is yours;
+                    with --in-place, over the step-5 copy's paragraphs,
+                    which post-run step 5b runs beside the install
   --steps           every cell read at sample level for a mid-bench change
                     of level, which the fitted slope averages away and no
                     other column here can show
