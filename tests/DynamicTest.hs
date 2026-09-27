@@ -469,6 +469,16 @@ test = testGroup "Dynamic" $
         assertEqual "15" (V.fromList [4,3,2,1,8,7,6,5,12,11,10,9,16,15,14,13,20,19,18,17,24,23,22,21])
                     (toVector $ rev [2] a5)                             -- non-normal dim 2
 
+      -- A window over a vector ties its two axes at stride 1, and 'runRank'
+      -- picks the run of the unordered route: on the shelf and on the climb
+      -- the shorter of the two.
+      runRank_1 = assertEqual "1" [Just 40, Just 100]
+                    [ runOf (window [40] (fromList [80] [1 .. 80 :: Int]))
+                    , runOf (window [100] (fromList [200] [1 .. 200 :: Int])) ]
+        where runOf (DI.A (DG.A sh t)) = case I.unorderedRouteT sh (product sh) t of
+                I.RRuns (I.Axes _ n _) _ _ -> Just n
+                _ -> Nothing
+
       -- One call of each wrapper that the other tests of DynamicTest,
       -- DynamicSTest or DynamicUTest leave uncalled.
       wrappers_1 = do
@@ -616,6 +626,7 @@ test = testGroup "Dynamic" $
         , testCase "toVector_13" toVector_13
         , testCase "toVector_14" toVector_14
         , testCase "toVector_15" toVector_15
+        , testCase "runRank_1" runRank_1
         , testCase "wrappers_1" wrappers_1
         , testPropertyN "prop_readRangeT" prop_readRangeT
         , testPropertyN "prop_eq" prop_eq
