@@ -3556,11 +3556,11 @@ fillStage2Axes (Walk tInner sInner outerAxes) !ao !l !v =
                     | otherwise = body op boff
                                   >> go (k - 1) (op + blk) (boff + st)
               in  go n outPos baseOff
-        nest :: Nest -> Int -> InnerFirst -> Nest
-        nest inner !blk axes = case innerFirst axes of
+        buildNest :: Nest -> Int -> InnerFirst -> Nest
+        buildNest inner !blk axes = case innerFirst axes of
           [] -> inner
           (!st, !n) : rest ->
-            nest (Level n st blk inner) (n * blk) (InnerFirst rest)
+            buildNest (Level n st blk inner) (n * blk) (InnerFirst rest)
         {-# INLINE walk #-}
         walk :: (Int -> Int -> ST s ()) -> ST s ()
         walk writeRun = case innerFirst outerAxes of
@@ -3571,7 +3571,7 @@ fillStage2Axes (Walk tInner sInner outerAxes) !ao !l !v =
                   level writeRun n0 st0 sInner outPos baseOff
                 run (Level n st blk inner) !outPos !baseOff =
                   level (run inner) n st blk outPos baseOff
-            in  run (nest Fused (n0 * sInner) (InnerFirst outer)) 0 ao
+            in  run (buildNest Fused (n0 * sInner) (InnerFirst outer)) 0 ao
     if tInner == 0 then walk writeRunSet else walk writeRunStep
     return out
 
@@ -4214,7 +4214,7 @@ routeList3 sh (T (Strides ats) ao _)
 -- that representation and what rests on it alone; the reasons are at
 -- 'routeList5'.
 routeList4 :: ShapeL -> T -> Route
-routeList4 sh (T (Strides ats) off _)
+routeList4 sh (T (Strides ats) ao _)
   | l == 0 = RSlice 0 0
   | otherwise = start ats sh
   where
@@ -4222,18 +4222,18 @@ routeList4 sh (T (Strides ats) off _)
     start :: [Int] -> ShapeL -> Route
     start (_ : sts) (1 : ns) = start sts ns
     start (st : sts) (n : ns) = canonicalizeLoop st n [] sts ns
-    start _ _ = RSlice off l
+    start _ _ = RSlice ao l
     -- Shape and stride canonicalization from the first kept axis on, in
     -- the view's order, which the ordered result must keep.
     canonicalizeLoop :: Int -> Int -> [(Int, Int)] -> [Int] -> ShapeL
                      -> Route
-    canonicalizeLoop !st' !n' rest (_ : sts) (1 : ns) =
-      canonicalizeLoop st' n' rest sts ns
-    canonicalizeLoop !st' !n' rest (st : sts) (n : ns)
-      | st' == n * st = canonicalizeLoop st (n' * n) rest sts ns
-      | otherwise = canonicalizeLoop st n ((st', n') : rest) sts ns
-    canonicalizeLoop st' n' rest _ _ =
-      routeOfWalk off l st' n' (InnerFirst rest)
+    canonicalizeLoop !stHead !nHead rest (_ : sts) (1 : ns) =
+      canonicalizeLoop stHead nHead rest sts ns
+    canonicalizeLoop !stHead !nHead rest (st : sts) (n : ns)
+      | stHead == n * st = canonicalizeLoop st (nHead * n) rest sts ns
+      | otherwise = canonicalizeLoop st n ((stHead, nHead) : rest) sts ns
+    canonicalizeLoop stHead nHead rest _ _ =
+      routeOfWalk ao l stHead nHead (InnerFirst rest)
 {-# INLINE routeList4 #-}
 
 -- Stage three, RULED OUT for the library since 2026-09-07 and kept as
@@ -4995,8 +4995,9 @@ runRank !a !b = case compare ta tb of
   where
     !ta = tier a
     !tb = tier b
+    tier :: Int -> Int
     tier n
-      | n <= 2 = 4 :: Int
+      | n <= 2 = 4
       | n < runLo = 2
       | n <= runHi = 0
       | n <= runFar = 1
@@ -5035,15 +5036,15 @@ routeUnord13 sh (T (Strides ats) ao _)
     -- Shape and stride canonicalization of the sorted axes from the first,
     -- free to reorder at its exit: the result need keep only the multiset.
     canonicalizeLoop :: Int -> Int -> [(Int, Int)] -> [(Int, Int)] -> Route
-    canonicalizeLoop !st' !n' rest ((!st, !n) : ps)
-      | st' == n * st = canonicalizeLoop st (n' * n) rest ps
-      | otherwise = canonicalizeLoop st n ((st', n') : rest) ps
+    canonicalizeLoop !stHead !nHead rest ((!st, !n) : ps)
+      | stHead == n * st = canonicalizeLoop st (nHead * n) rest ps
+      | otherwise = canonicalizeLoop st n ((stHead, nHead) : rest) ps
     -- A zero-stride innermost axis followed by a unit-stride one goes
     -- outermost, so that the unit stride is the run.
-    canonicalizeLoop st' n' rest []
-      | st' == 0, (1, n1) : rest' <- rest =
-          routeOfWalk off l 1 n1 (InnerFirst (rest' ++ [(0, n')]))
-      | otherwise = routeOfWalk off l st' n' (InnerFirst rest)
+    canonicalizeLoop stHead nHead rest []
+      | stHead == 0, (1, n1) : outer <- rest =
+          routeOfWalk off l 1 n1 (InnerFirst (outer ++ [(0, nHead)]))
+      | otherwise = routeOfWalk off l stHead nHead (InnerFirst rest)
 {-# INLINE routeUnord13 #-}
 
 -- The dispatch of 'routeUnord13', piece by piece.
@@ -5234,7 +5235,7 @@ walkOfDimsAx sh ats = case reverse (zipWith Axis ats sh) of
 -- the merged list cost a built head and cons a call, 48 bytes, and
 -- returning a 'Maybe' of the merged axes, 63 to 240 (2026-09-26).
 routeList5 :: ShapeL -> T -> RouteAx
-routeList5 sh (T (Strides ats) off _)
+routeList5 sh (T (Strides ats) ao _)
   | l == 0 = RSliceAx 0 0
   | otherwise = start ats sh
   where
@@ -5242,17 +5243,24 @@ routeList5 sh (T (Strides ats) off _)
     start :: [Int] -> ShapeL -> RouteAx
     start (_ : sts) (1 : ns) = start sts ns
     start (st : sts) (n : ns) = canonicalizeAx st n [] sts ns
-    start _ _ = RSliceAx off l
+    start _ _ = RSliceAx ao l
     -- Shape and stride canonicalization from the first kept axis on, in
-    -- the view's order, which the ordered result must keep.
+    -- the view's order, which the ordered result must keep. The bangs of
+    -- the second and third equations are there only to match 'routeT''s
+    -- canonicalize in ~/r/orthotope.toVectorListT: the first equation's
+    -- bangs force both arguments on every path, -Wredundant-bang-patterns
+    -- reports the four, and with all four or none the Core is the same,
+    -- while the second equation's alone makes it larger, the match split
+    -- as in GHC https://gitlab.haskell.org/ghc/ghc/-/work_items/27862
+    -- (2026-09-28).
     canonicalizeAx :: Int -> Int -> [Axis] -> [Int] -> ShapeL -> RouteAx
-    canonicalizeAx !st' !n' rest (_ : sts) (1 : ns) =
-      canonicalizeAx st' n' rest sts ns
-    canonicalizeAx st' n' rest (st : sts) (n : ns)
-      | st' == n * st = canonicalizeAx st (n' * n) rest sts ns
-      | otherwise = canonicalizeAx st n (Axis st' n' : rest) sts ns
-    canonicalizeAx st' n' rest _ _ =
-      routeOfAx off l st' n' (InnerFirstAx rest)
+    canonicalizeAx !stHead !nHead rest (_ : sts) (1 : ns) =
+      canonicalizeAx stHead nHead rest sts ns
+    canonicalizeAx !stHead !nHead rest (st : sts) (n : ns)
+      | stHead == n * st = canonicalizeAx st (nHead * n) rest sts ns
+      | otherwise = canonicalizeAx st n (Axis stHead nHead : rest) sts ns
+    canonicalizeAx !stHead !nHead rest _ _ =
+      routeOfAx ao l stHead nHead (InnerFirstAx rest)
 {-# INLINE routeList5 #-}
 
 -- Stage fourteen, 'routeUnord13' over the 'Axis' path, the dispatch of
@@ -5276,9 +5284,9 @@ routeUnord14 sh (T (Strides ats) ao _)
     -- Shape and stride canonicalization of the sorted axes from the first,
     -- free to reorder at its exit: the result need keep only the multiset.
     canonicalizeAx :: Int -> Int -> [Axis] -> [Axis] -> RouteAx
-    canonicalizeAx !st' !n' rest (Axis st n : ps)
-      | st' == n * st = canonicalizeAx st (n' * n) rest ps
-      | otherwise = canonicalizeAx st n (Axis st' n' : rest) ps
+    canonicalizeAx !stHead !nHead rest (Axis st n : ps)
+      | stHead == n * st = canonicalizeAx st (nHead * n) rest ps
+      | otherwise = canonicalizeAx st n (Axis stHead nHead : rest) ps
     -- A zero-stride innermost axis followed by a unit-stride one goes
     -- outermost, so that the unit stride is the run. Outermost rather
     -- than just outside the run is a choice neither placement wins: a cons
@@ -5290,10 +5298,10 @@ routeUnord14 sh (T (Strides ats) ao _)
     -- broadcast was 52 (2026-09-26, both at 4992 elements). Placing it just
     -- outside the run only where its extent exceeds that of the axis it would
     -- displace would take the better of both; untried.
-    canonicalizeAx st' n' rest []
-      | st' == 0, Axis 1 n1 : rest' <- rest =
-          routeOfAx off l 1 n1 (InnerFirstAx (rest' ++ [Axis 0 n']))
-      | otherwise = routeOfAx off l st' n' (InnerFirstAx rest)
+    canonicalizeAx stHead nHead rest []
+      | stHead == 0, Axis 1 n1 : outer <- rest =
+          routeOfAx off l 1 n1 (InnerFirstAx (outer ++ [Axis 0 nHead]))
+      | otherwise = routeOfAx off l stHead nHead (InnerFirstAx rest)
 {-# INLINE routeUnord14 #-}
 
 -- Stage fifteen, 'routeUnord14' with the zero-stride axis consed just
@@ -5314,15 +5322,15 @@ routeUnord15 sh (T (Strides ats) ao _)
     -- Shape and stride canonicalization of the sorted axes from the first,
     -- free to reorder at its exit: the result need keep only the multiset.
     canonicalizeAx :: Int -> Int -> [Axis] -> [Axis] -> RouteAx
-    canonicalizeAx !st' !n' rest (Axis st n : ps)
-      | st' == n * st = canonicalizeAx st (n' * n) rest ps
-      | otherwise = canonicalizeAx st n (Axis st' n' : rest) ps
+    canonicalizeAx !stHead !nHead rest (Axis st n : ps)
+      | stHead == n * st = canonicalizeAx st (nHead * n) rest ps
+      | otherwise = canonicalizeAx st n (Axis stHead nHead : rest) ps
     -- A zero-stride innermost axis followed by a unit-stride one goes just
     -- outside the run, where 'routeUnord14' appends it outermost.
-    canonicalizeAx st' n' rest []
-      | st' == 0, Axis 1 n1 : rest' <- rest =
-          routeOfAx off l 1 n1 (InnerFirstAx (Axis 0 n' : rest'))
-      | otherwise = routeOfAx off l st' n' (InnerFirstAx rest)
+    canonicalizeAx stHead nHead rest []
+      | stHead == 0, Axis 1 n1 : outer <- rest =
+          routeOfAx off l 1 n1 (InnerFirstAx (Axis 0 nHead : outer))
+      | otherwise = routeOfAx off l stHead nHead (InnerFirstAx rest)
 {-# INLINE routeUnord15 #-}
 
 -- The axes of extent above 1, their strides made absolute, onto the
@@ -5356,9 +5364,12 @@ byStrideRankAx (Axis s1 n1) (Axis s2 n2) = case compare s2 s1 of
 -- start offset, its element count, the innermost axis's stride and
 -- extent and the axes outside it: one slice where that axis is the only
 -- one and has stride 1, runs where its stride is 1, the fill otherwise.
--- Shared by the path's two dispatches, so that it is written once.
+-- Shared by the path's two dispatches, so that it is written once. The
+-- first equation's bang on the count is there only to match 'routeOfT'
+-- in ~/r/orthotope.toVectorListT; here the Core is the same without it
+-- (2026-09-28).
 routeOfAx :: Int -> Int -> Int -> Int -> InnerFirstAx -> RouteAx
-routeOfAx start l 1 _ (InnerFirstAx []) = RSliceAx start l
+routeOfAx start !l 1 _ (InnerFirstAx []) = RSliceAx start l
 routeOfAx start l 1 n rest = RRunsAx (WalkAx 1 n rest) start l
 routeOfAx start l t n rest = RFillAx (WalkAx t n rest) start l
 {-# INLINE routeOfAx #-}
@@ -5493,14 +5504,20 @@ lazyRunsAx axes start v = build (runSlicesAx axes start v)
 -- 'RRunsAx' means. The arm for no outer level, which no route reaches,
 -- is the one run as one slice, so the walker is total on its own terms,
 -- as the library's 'runSlicesT' is.
-runSlicesAx :: WalkAx -> Int -> VS.Vector Double
+--
+-- 'block' takes its offset unbanged only to match 'runSlicesT'
+-- in ~/r/orthotope.toVectorListT, which dropped the bang: 'go' forces
+-- it at once, and the Core is the same either way (2026-09-28).
+runSlicesAx :: forall b. WalkAx -> Int -> VS.Vector Double
             -> (VS.Vector Double -> b -> b) -> b -> b
 runSlicesAx (WalkAx _ n outerAxes) !start !v cons nil =
   case innerFirstAx outerAxes of
     [] -> cons (VS.slice start n v) nil
     Axis sk dk : above ->
-      let block !o outer =
-            let go !i !p
+      let block :: Int -> OdometerAx -> b
+          block o outer =
+            let go :: Int -> Int -> b
+                go !i !p
                   -- TODO: 'VS.slice' bounds-checks every run, three tests
                   -- that cannot fail on a view the odometer walks,
                   -- @n >= 0@ among them not even varying with the run;
@@ -5564,10 +5581,13 @@ data NestAx = FusedAx | LevelAx !Axis !Int !NestAx
 -- extent there would read past the source or write into an empty
 -- result. Every dispatch guards @l == 0@ before calling one, the
 -- stage-1 ports since 2026-09-21; the degenerate and @edge-bcastmid-b0@
--- views are where @check@ fails when one does not.
+-- views are where @check@ fails when one does not. This one's @l@ takes
+-- no bang only to match 'genericFillStrided' in
+-- ~/r/orthotope.toVectorListT, which dropped it: the assertion forces it
+-- at entry anyway, and the Core is the same either way (2026-09-28).
 {-# NOINLINE fillStage3 #-}
 fillStage3 :: WalkAx -> Int -> Int -> VS.Vector Double -> VS.Vector Double
-fillStage3 (WalkAx tInner sInner outerAxes) !ao !l !v =
+fillStage3 (WalkAx tInner sInner outerAxes) !ao l !v =
   assert (l > 0) $ VS.create fill
  where
   fill :: forall s. ST s (VSM.MVector s Double)
@@ -5656,11 +5676,11 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao !l !v =
         -- A loop of its own with the block size banged, where a 'foldl''
         -- over a pair carried it boxed, an 'I#' a level: 16 bytes a level
         -- and up to 58 instructions a call less (2026-09-25).
-        nest :: NestAx -> Int -> InnerFirstAx -> NestAx
-        nest inner !blk axes = case innerFirstAx axes of
+        buildNest :: NestAx -> Int -> InnerFirstAx -> NestAx
+        buildNest inner !blk axes = case innerFirstAx axes of
           [] -> inner
           axis@(Axis _ n) : rest ->
-            nest (LevelAx axis blk inner) (n * blk) (InnerFirstAx rest)
+            buildNest (LevelAx axis blk inner) (n * blk) (InnerFirstAx rest)
         {-# INLINE walk #-}
         walk :: (Int -> Int -> ST s ()) -> ST s ()
         walk writeRun = case innerFirstAx outerAxes of
@@ -5679,7 +5699,7 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao !l !v =
                   level writeRun axis0 sInner outPos baseOff
                 run (LevelAx axis blk inner) !outPos !baseOff =
                   level (run inner) axis blk outPos baseOff
-            in  run (nest FusedAx (n0 * sInner) (InnerFirstAx outer)) 0 ao
+            in  run (buildNest FusedAx (n0 * sInner) (InnerFirstAx outer)) 0 ao
     if tInner == 0 then walk writeRunSet else walk writeRunStep
     return out
 
@@ -5688,12 +5708,13 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao !l !v =
 -- bound and one element per iteration, and, since 2026-09-09, the
 -- broadcast run 'writeRunSet' as it was before 'fillStage2' unrolled
 -- its own; everything else 'fillStage3''s, comments stripped, the code
--- copied, so that the two fills differ in their run bodies alone. The
--- pair 'lib-stage2-lean-u1' against 'lib-stage3-lean' prices the
--- unrolling under the lean dispatch, the stepping run's wherever
--- the innermost stride is not 0, the broadcast run's where it is, where
--- the leaf family prices the first under the arms' own odometer, '-u2'
--- over '-u1' at 0.9644 in time and 0.9208 in counts on Run 26's main
+-- copied, so that the two fills differ in their run bodies alone, but
+-- for the bang on @l@ that 'fillStage3' leaves off to match the library
+-- and that changes no Core. The pair 'lib-stage2-lean-u1' against
+-- 'lib-stage3-lean' prices the unrolling under the lean dispatch, the stepping
+-- run's wherever the innermost stride is not 0, the broadcast run's where it
+-- is, where the leaf family prices the first under the arms' own odometer,
+-- '-u2' over '-u1' at 0.9644 in time and 0.9208 in counts on Run 26's main
 -- set. Added 2026-09-07 for Run 27 as 'fillStage2U1', over pairs; its
 -- walk 'fillStage2''s from 2026-09-24, where until then it kept the
 -- odometer of 'fillStage2Axes' and 'lib-stage2-lean' was its pair; on
@@ -5761,11 +5782,11 @@ fillStage3U1 (WalkAx tInner sInner outerAxes) !ao !l !v =
                     | otherwise = body op boff
                                   >> go (k - 1) (op + blk) (boff + st)
               in  go n outPos baseOff
-        nest :: NestAx -> Int -> InnerFirstAx -> NestAx
-        nest inner !blk axes = case innerFirstAx axes of
+        buildNest :: NestAx -> Int -> InnerFirstAx -> NestAx
+        buildNest inner !blk axes = case innerFirstAx axes of
           [] -> inner
           axis@(Axis _ n) : rest ->
-            nest (LevelAx axis blk inner) (n * blk) (InnerFirstAx rest)
+            buildNest (LevelAx axis blk inner) (n * blk) (InnerFirstAx rest)
         {-# INLINE walk #-}
         walk :: (Int -> Int -> ST s ()) -> ST s ()
         walk writeRun = case innerFirstAx outerAxes of
@@ -5776,7 +5797,7 @@ fillStage3U1 (WalkAx tInner sInner outerAxes) !ao !l !v =
                   level writeRun axis0 sInner outPos baseOff
                 run (LevelAx axis blk inner) !outPos !baseOff =
                   level (run inner) axis blk outPos baseOff
-            in  run (nest FusedAx (n0 * sInner) (InnerFirstAx outer)) 0 ao
+            in  run (buildNest FusedAx (n0 * sInner) (InnerFirstAx outer)) 0 ao
     if tInner == 0 then walk writeRunSet else walk writeRunStep
     return out
 

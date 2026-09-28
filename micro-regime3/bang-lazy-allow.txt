@@ -9,10 +9,11 @@
 Main.hs:adv 1  # the two odometer steps, read 2026-09-27: the first equation bangs the offset as its leading pattern, so every later equation meets it forced; the middle equation's bang, which -Wredundant-bang-patterns reported, went with the -O1 Core on GHC HEAD unchanged, at one of the two but for binder names, and the last keeps its own, dropping which changes the Core
 Main.hs:canonicalizeLoop 1  # the pair merge loops, read 2026-09-27: the first equation bangs the carried stride as its leading pattern, so every later equation meets it forced; the later bangs, which -Wredundant-bang-patterns reported, went where the -O1 Core on GHC HEAD stayed unchanged without them
 Main.hs:canonicalizeLoop 2  # as its argument 1, for the carried extent
-Main.hs:canonicalizeAx 1  # the Axis merge loops, read 2026-09-27: as canonicalizeLoop 1
+Main.hs:canonicalizeAx 1  # the Axis merge loops but routeList5's, which bangs every equation as the library's does, read 2026-09-27: as canonicalizeLoop 1
 Main.hs:canonicalizeAx 2  # as its argument 1, for the carried extent
 Main.hs:absAxes 2  # read 2026-09-27: the first equation bangs the offset before its list patterns, so the last equation meets it forced; its own bang went because without it the -O1 Core on GHC HEAD loses a failure join and returns directly
 Main.hs:absPairs 2  # as absAxes 2, over pairs
 Main.hs:go 1  # the base-offset and fill odometers, read 2026-09-28 after the bang sweep of Main.hs, whose bangs inside the middle equation's cons patterns made these candidates: a path reaching the wildcard fallback has forced both lists already, by the first equation's [] or the middle one's cons; in baseOffsetsGenLemire's go, whose first equation is a wildcard, the banged accumulator is unused on both fallback paths, which return 0
 Main.hs:go 2  # as go 1, for the strides list
 Main.hs:go 4  # baseOffsetsGenLemire's go, read 2026-09-28: the strides list, banged inside the middle equation's cons pattern, is unused on both fallback paths, which return 0
+Main.hs:routeOfAx 2  # read 2026-09-28: the first equation's bang on the count is there only to match routeOfT in ~/r/orthotope.toVectorListT, which has this shape; the other two equations store the count in a strict field of RRunsAx or RFillAx, which forces it, and the -O1 Core on GHC HEAD is the same without the bang
