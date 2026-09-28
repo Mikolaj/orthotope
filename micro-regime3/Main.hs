@@ -257,10 +257,10 @@ gmMagic d
 {-# INLINE runBaseOffsets #-}
 runBaseOffsets :: Int -> ShapeL -> Strides -> [Int]
 runBaseOffsets o0 osh (Strides oats) = build $ \cons nil ->
-  let go []       []         !o rest = cons o rest
-      go (n : ns) (st : sts) !o rest =
+  let go []       []          !o rest = cons o rest
+      go (n : ns) (!st : sts) !o rest =
         foldr (\i r -> go ns sts (o + i * st) r) rest [0 .. n - 1]
-      go _        _          !o rest = cons o rest
+      go _        _           !o rest = cons o rest
   in  go osh oats o0 nil
 
 -- The run base-offsets table (length @product osh@) as 'fbBaseOffsetsQuot'
@@ -269,7 +269,7 @@ runBaseOffsets o0 osh (Strides oats) = build $ \cons nil ->
 -- diagnostic (see 'diag') measures the exact benchmarked build.
 {-# INLINE baseOffsetsList #-}
 baseOffsetsList :: Int -> ShapeL -> Strides -> VU.Vector Int
-baseOffsetsList o0 osh (Strides oats) =
+baseOffsetsList o0 osh (Strides !oats) =
   VU.fromListN (product osh) (runBaseOffsets o0 osh (Strides oats))
 
 -- The same table as 'fbBQmut' builds it: a mutable odometer fill of the
@@ -277,9 +277,9 @@ baseOffsetsList o0 osh (Strides oats) =
 {-# INLINE baseOffsetsMut #-}
 baseOffsetsMut :: Int -> ShapeL -> Strides -> VU.Vector Int
 baseOffsetsMut o0 osh (Strides oats) = VU.create $ do
-  b <- VUM.unsafeNew (product osh)
+  !b <- VUM.unsafeNew (product osh)
   let go [] [] !q !baseOff = VUM.unsafeWrite b q baseOff >> return (q + 1)
-      go (n : ns) (st : sts) !q !baseOff =
+      go (!n : ns) (!st : sts) !q !baseOff =
         let dim !i !qq
              | i >= n    = return qq
              | otherwise = go ns sts qq (baseOff + i * st) >>= dim (i + 1)
@@ -306,10 +306,10 @@ baseOffsetsMut o0 osh (Strides oats) = VU.create $ do
 {-# INLINE baseOffsetsMut32 #-}
 baseOffsetsMut32 :: Int -> ShapeL -> Strides -> VU.Vector Int32
 baseOffsetsMut32 o0 osh (Strides oats) = VU.create $ do
-  b <- VUM.unsafeNew (product osh)
+  !b <- VUM.unsafeNew (product osh)
   let go [] [] !q !baseOff = VUM.unsafeWrite b q (fromIntegral baseOff)
                              >> return (q + 1)
-      go (n : ns) (st : sts) !q !baseOff =
+      go (!n : ns) (!st : sts) !q !baseOff =
         let dim !i !qq
              | i >= n    = return qq
              | otherwise = go ns sts qq (baseOff + i * st) >>= dim (i + 1)
@@ -334,7 +334,7 @@ baseOffsetsMut32 o0 osh (Strides oats) = VU.create $ do
 -- nothing, and the agreement check failed at the first shape.
 {-# INLINE baseOffsetsMutRuns #-}
 baseOffsetsMutRuns :: Int -> ShapeL -> Strides -> VU.Vector Int
-baseOffsetsMutRuns o0 osh (Strides oats) = VU.create $ do
+baseOffsetsMutRuns !o0 osh (Strides oats) = VU.create $ do
   b <- VUM.unsafeNew (product osh)
   if null osh
     then VUM.unsafeWrite b 0 o0
@@ -348,7 +348,7 @@ baseOffsetsMutRuns o0 osh (Strides oats) = VU.create $ do
                                  >> inner (j + 1) (off + stLast)
             in  inner 0 off0
           go [] [] !q !off = writeRun q off >> return (q + nLast)
-          go (n : ns) (st : sts) !q !off =
+          go (!n : ns) (st : sts) !q !off =
             let dim !i !qq
                   | i >= n    = return qq
                   | otherwise = go ns sts qq (off + i * st) >>= dim (i + 1)
@@ -366,11 +366,11 @@ baseOffsetsMutRuns o0 osh (Strides oats) = VU.create $ do
 -- per run instead of the odometer's shared adds.
 {-# INLINE baseOffsetsGen #-}
 baseOffsetsGen :: Int -> ShapeL -> Strides -> VU.Vector Int
-baseOffsetsGen o0 osh (Strides oats) = VU.generate (product osh) baseOffset
-  where nts = drop 1 (scanr (*) 1 osh)  -- outer natural (row-major) strides
+baseOffsetsGen !o0 osh (Strides !oats) = VU.generate (product osh) baseOffset
+  where !nts = drop 1 (scanr (*) 1 osh)  -- outer natural (row-major) strides
         baseOffset q = o0 + go q nts oats
         go _  []         []         = 0
-        go qq (nt : nts') (st : sts') = case qq `quotRem` nt of
+        go qq (nt : nts') (!st : sts') = case qq `quotRem` nt of
                                           (!a, !b) -> a * st + go b nts' sts'
         go _  _          _          = 0
 
@@ -381,18 +381,18 @@ baseOffsetsGen o0 osh (Strides oats) = VU.generate (product osh) baseOffset
 -- 'fbBQexpandLemireOut' below.
 {-# INLINE baseOffsetsGenLemire #-}
 baseOffsetsGenLemire :: Int -> ShapeL -> Strides -> VU.Vector Int
-baseOffsetsGenLemire o0 osh (Strides oats) =
+baseOffsetsGenLemire !o0 osh (Strides !oats) =
     -- In the builder for the same reason as in 'baseOffsetsScan': run
     -- indices and outer natural strides are both bounded by the run count.
     assert (lemireFits (product osh))
   $ VU.generate (product osh) baseOffset
-  where nts = drop 1 (scanr (*) 1 osh)
-        ms  = map magicOf nts
+  where !nts = drop 1 (scanr (*) 1 osh)
+        !ms  = map magicOf nts
         baseOffset q = o0 + go q ms nts oats
-        go _  []        _           _          = 0
-        go qq (m : ms') (nt : nts') (st : sts') = case fastQR m nt qq of
+        go _   []        _           _            = 0
+        go !qq (m : ms') (nt : nts') (!st : sts') = case fastQR m nt qq of
                                           (!a, !b) -> a * st + go b ms' nts' sts'
-        go _  _         _           _          = 0
+        go _   _         _           _            = 0
 
 -- The same table by iterated expansion with 'VU.concatMap' (pure vector,
 -- no 'VU.generate', no explicit mutation, no division): the base-offsets grid
@@ -438,7 +438,7 @@ baseOffsetsExpandZF o0 osh (Strides oats) = go (VU.singleton o0) osh oats
 -- enumFromStepN with no concatMap at all when there is a single outer dim).
 {-# INLINE baseOffsetsExpandB #-}
 baseOffsetsExpandB :: Int -> ShapeL -> Strides -> VU.Vector Int
-baseOffsetsExpandB o0 osh (Strides oats) =
+baseOffsetsExpandB !o0 osh (Strides oats) =
   case zip osh oats of
     []                -> VU.singleton o0
     ((n0, s0) : rest) -> foldl' expand (VU.enumFromStepN o0 s0 n0) rest
@@ -588,7 +588,7 @@ baseOffsetsScan o0 osh (Strides oats)
 -- needs comes out of the same 'quotRem', so nothing is computed twice.
 {-# INLINE baseOffsetsScanRem #-}
 baseOffsetsScanRem :: Int -> ShapeL -> Strides -> VU.Vector Int
-baseOffsetsScanRem o0 osh (Strides oats)
+baseOffsetsScanRem !o0 osh (Strides oats)
   | m == 0 = VU.empty
   | otherwise = scanned [(n, st) | (n, st) <- zip osh oats, n /= 1]
   where
@@ -629,7 +629,7 @@ data SOdo = SOdo !Int !Int !Int
 -- not crash and does not.
 {-# INLINE baseOffsetsOdo #-}
 baseOffsetsOdo :: Int -> ShapeL -> Strides -> VU.Vector Int
-baseOffsetsOdo o0 osh (Strides oats)
+baseOffsetsOdo !o0 osh (Strides oats)
   | m == 0 = VU.empty
   | otherwise = built [(n, st) | (n, st) <- zip osh oats, n /= 1]
   where
@@ -695,7 +695,7 @@ baseOffsetsOdo o0 osh (Strides oats)
 -- [0, source length) however the strides are signed.
 {-# INLINE baseOffsetsScanPacked #-}
 baseOffsetsScanPacked :: Int -> ShapeL -> Strides -> VU.Vector Int
-baseOffsetsScanPacked o0 osh (Strides oats)
+baseOffsetsScanPacked o0 osh (Strides !oats)
   | m == 0 = VU.empty
       -- Strict bounds of their own: an offset of exactly 2^32 would mask to
       -- 0 in the low field, a negative one would borrow into the index
@@ -806,8 +806,8 @@ fbUnfoldAdd :: ShapeL -> T -> VS.Vector Double
 fbUnfoldAdd sh (T (Strides ats) ao v) =
   VS.unfoldrExactN l step (ao, replicate (length sh) 0)
   where l = product sh
-        rsh = reverse sh
-        rts = reverse ats
+        !rsh = reverse sh
+        !rts = reverse ats
         step (!o, is) = (v VS.! o, adv o is rsh rts)
         adv !o []       _        _        = (o, [])
         adv o (i : js) (n : ns) (s : ss)
@@ -921,9 +921,9 @@ fbBQunfold sh (T (Strides ats) ao v) = VS.generate l get
   where l = product sh
         !s = last sh
         !t = last ats
-        m = l `div` max 1 s
-        rosh = drop 1 (reverse sh)
-        roats = drop 1 (reverse ats)
+        !m = l `div` max 1 s
+        !rosh = drop 1 (reverse sh)
+        !roats = drop 1 (reverse ats)
         baseOffsets :: VU.Vector Int
         !baseOffsets = VU.unfoldrExactN m step (ao, replicate (length sh - 1) 0)
           where step (!o, is) = (o, adv o is rosh roats)
@@ -1099,7 +1099,7 @@ fbBQexpandGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQexpandGmMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
-  where l = product sh
+  where !l = product sh
         !s = last sh
         !t = last ats
         !gm = gmMagic s
@@ -1232,7 +1232,7 @@ fbBQmutRunsGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQmutRunsGmMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
-  where l = product sh
+  where !l = product sh
         !s = last sh
         !t = last ats
         !gm = gmMagic s
@@ -1317,7 +1317,7 @@ fbBQscanGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQscanGmMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
-  where l = product sh
+  where !l = product sh
         !s = last sh
         !t = last ats
         !gm = gmMagic s
@@ -1350,7 +1350,7 @@ fbBQscanRemGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQscanRemGmMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
-  where l = product sh
+  where !l = product sh
         !s = last sh
         !t = last ats
         !gm = gmMagic s
@@ -1398,7 +1398,7 @@ fbBQodoGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQodoGmMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
-  where l = product sh
+  where !l = product sh
         !s = last sh
         !t = last ats
         !gm = gmMagic s
@@ -1453,7 +1453,7 @@ strideOffsets o0 sh0 (Strides ats0) = go o0 sh0 ats0
   where go o []       []         = VS.singleton o
         go o [n]      [st]       = VS.enumFromStepN o st n
         go o (n : ns) (st : sts) =
-          VS.concatMap (\b -> go b ns sts) (VS.enumFromStepN o st n)
+          VS.concatMap (\ !b -> go b ns sts) (VS.enumFromStepN o st n)
         go o _        _          = VS.singleton o
 
 -- Build the whole offset vector with the all-'Vector'
@@ -1483,7 +1483,7 @@ fbCMGather :: ShapeL -> T -> VS.Vector Double
 fbCMGather sh (T (Strides ats) ao v) =
   VS.map (VS.unsafeIndex v)
          (VS.concatMap (\b -> VS.enumFromStepN b t s) baseOffsets)
-  where s = last sh
+  where !s = last sh
         !t = last ats
         -- Storable, where the index scratch here is otherwise unboxed: its
         -- consumer takes one vector family, so for this arm the table's
@@ -1510,7 +1510,7 @@ fbAllExpand sh (T strides ao v) =
 fbOffTab :: ShapeL -> T -> VS.Vector Double
 fbOffTab sh (T (Strides ats) ao v) =
   VS.generate l (\i -> VS.unsafeIndex v (VU.unsafeIndex offs i))
-  where l = product sh
+  where !l = product sh
         !s = last sh
         !t = last ats
         offs :: VU.Vector Int
@@ -1524,7 +1524,7 @@ fbOffTab sh (T (Strides ats) ao v) =
                 in  inner 0 baseOff
               go [] [] !outPos !baseOff =
                 writeRun outPos baseOff >> return (outPos + s)
-              go (n : ns) (st : sts) !outPos !baseOff =
+              go (!n : ns) (!st : sts) !outPos !baseOff =
                 let dim !i !op | i >= n    = return op
                                | otherwise = go ns sts op (baseOff + i * st)
                                              >>= dim (i + 1)
@@ -1571,7 +1571,7 @@ fbOffTab32 sh (T (Strides ats) ao v) =
                 in  inner 0 baseOff
               go [] [] !outPos !baseOff =
                 writeRun outPos baseOff >> return (outPos + s)
-              go (n : ns) (st : sts) !outPos !baseOff =
+              go (!n : ns) (!st : sts) !outPos !baseOff =
                 let dim !i !op | i >= n    = return op
                                | otherwise = go ns sts op (baseOff + i * st)
                                              >>= dim (i + 1)
@@ -1655,18 +1655,18 @@ fbMutOdo sh (T (Strides ats) ao v) = VS.create $ do
                   VSM.unsafeWrite out (outPos + j) (VS.unsafeIndex v src)
                   inner (j + 1) (src + tInner)
         in  inner 0 baseOff
-      go []       []         !outPos !baseOff =
+      go []        []          !outPos !baseOff =
         writeRun outPos baseOff >> return (outPos + sInner)
-      go (n : ns) (st : sts) !outPos !baseOff =
+      go (!n : ns) (!st : sts) !outPos !baseOff =
         let dim !i !op | i >= n    = return op
                        | otherwise = go ns sts op (baseOff + i * st)
                                      >>= dim (i + 1)
         in  dim 0 outPos
-      go _        _          !outPos !baseOff =
+      go _         _           !outPos !baseOff =
         writeRun outPos baseOff >> return (outPos + sInner)
   _ <- go (init sh) (init ats) 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
 
@@ -1702,7 +1702,7 @@ fbMutOdoVecdims sh (T (Strides ats) ao v) = VS.create $ do
             in  dim 0 outPos
   _ <- go 0 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -1764,7 +1764,7 @@ fbMutOdoVecdimsAddIn sh (T (Strides ats) ao v) = VS.create $ do
             in  dim 0 outPos baseOff
   _ <- go 0 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -1802,7 +1802,7 @@ fbMutOdoVecdimsAddOut sh (T (Strides ats) ao v) = VS.create $ do
             in  dim 0 outPos
   go 0 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -1839,7 +1839,7 @@ fbMutOdoVecdimsAddBoth sh (T (Strides ats) ao v) = VS.create $ do
             in  dim 0 outPos baseOff
   go 0 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -1883,7 +1883,7 @@ fbMutOdoVecdimsAddBothDown sh (T (Strides ats) ao v) = VS.create $ do
             in  dim n outPos baseOff
   go 0 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -1944,7 +1944,7 @@ fbMutOdoVecdimsDown sh (T (Strides ats) ao v) = VS.create $ do
             in  dim 0 outPos
   _ <- go 0 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -1984,7 +1984,7 @@ fbMutOdoVecdimsAddInDown sh (T (Strides ats) ao v) = VS.create $ do
             in  dim n outPos baseOff
   _ <- go 0 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -2034,7 +2034,7 @@ fbMutOdoVecdimsAddInLeaf sh (T (Strides ats) ao v) = VS.create $ do
             in  dim 0 outPos baseOff
   _ <- go 0 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -2089,7 +2089,7 @@ fbMutOdoVecdimsAddInLeafDown sh (T (Strides ats) ao v) = VS.create $ do
             in  dim n outPos baseOff
   _ <- go 0 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -2186,7 +2186,7 @@ fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
             in  dim n outPos baseOff
   _ <- go 0 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         -- No doubled stride here any more; see the fill's own note.
@@ -2259,7 +2259,7 @@ fbMutOdoVecdimsAddInLeafU2Last sh (T (Strides ats) ao v) = VS.create $ do
             in  dim n outPos baseOff
   _ <- go 0 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -2324,7 +2324,7 @@ fbMutOdoVecdimsAddInLeafU1 sh (T (Strides ats) ao v) = VS.create $ do
             in  dim n outPos baseOff
   _ <- go 0 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -2398,7 +2398,7 @@ fbMutOdoVecdimsAddInLeafU1Base sh (T (Strides ats) ao v) =
               in  dim n outPos baseOff
     _ <- go 0 0 ao
     VS.unsafeFreeze out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -2459,7 +2459,7 @@ fbMutOdoVecdimsAddInLeafU1PtrLeaf sh (T (Strides ats) ao v) =
       _ <- go 0 0 ao
       return ()
     VS.unsafeFreeze out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -2539,7 +2539,7 @@ fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
       _ <- go 0 obase (base `plusPtr` (ao * 8))
       return ()
     VS.unsafeFreeze out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -2622,7 +2622,7 @@ fbMutOdoVecdimsAddInLeafU2Ptr sh (T (Strides ats) ao v) =
       _ <- go 0 obase (base `plusPtr` (ao * 8))
       return ()
     VS.unsafeFreeze out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -2690,7 +2690,7 @@ fbMutOdoVecdimsAddInLeafU2Down sh (T (Strides ats) ao v) = VS.create $ do
             in  dim n outPos baseOff
   _ <- go 0 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         -- No doubled stride here any more; see the fill's own note.
@@ -2730,7 +2730,7 @@ canonView sh ats =
 -- equation, and read as fine: the guard forces both fields where they
 -- are compared, and the pair passes to the result unopened otherwise.
 mergeInto :: (Int, Int) -> [(Int, Int)] -> [(Int, Int)]
-mergeInto (!st, !n) ((st', n') : rest)
+mergeInto (st, !n) ((st', n') : rest)
   | st == n' * st' = (st', n * n') : rest
 mergeInto p rest = p : rest
 {-# INLINE mergeInto #-}
@@ -2780,7 +2780,7 @@ naturalStrides axes =
 -- innermost first, which is the order the fold builds them in. A record
 -- of strict fields, so that the fold carries the two numbers unboxed at
 -- -O1 and a merge allocates nothing.
-data MergeAcc = MergeAcc !Int !Int !InnerFirst
+data MergeAcc = MergeAcc !Int !Int InnerFirst
 
 -- The library's merge step, one axis added inside the axes so far:
 -- dropped where its extent is 1, merged into the axis just outside it
@@ -2863,7 +2863,7 @@ fbCanonVecdims sh (T (Strides ats) ao v)
                       in  dim 0 outPos
             _ <- go 0 0 ao
             return out
-  where l = product sh
+  where !l = product sh
 
 -- 'fbCanonVecdims' with the canonical unit-stride runs copied by
 -- 'VS.unsafeCopy' -- memcpy for Storable -- instead of the per-element
@@ -2915,7 +2915,7 @@ fbCanonMemcpyR2 sh (T (Strides ats) ao v)
                       in  dim 0 outPos
             _ <- go 0 0 ao
             return out
-  where l = product sh
+  where !l = product sh
 
 -- 'fbMutOdoVecdims' with the run's read hoisted when the innermost
 -- stride is 0 -- one read into a register, then stores, breaking the
@@ -2957,7 +2957,7 @@ fbBcastSet sh (T (Strides ats) ao v) = VS.create $ do
             in  dim 0 outPos
   _ <- go 0 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -3012,7 +3012,7 @@ fbMidCopy sh (T (Strides ats) ao v) = VS.create $ do
                     in  dim 0 outPos
   _ <- go 0 0 ao
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
@@ -3095,7 +3095,7 @@ fbCanonFull sh (T (Strides ats) ao v)
                               in  dim 0 outPos
             _ <- go 0 0 ao
             return out
-  where l = product sh
+  where !l = product sh
 
 -- 'fbMutOdo' but iterating the precomputed run base-offsets list, to
 -- price what that list (a factor @sInner@ smaller than @l@) costs the
@@ -3121,7 +3121,7 @@ fbMutBaseOffsets sh (T (Strides ats) ao v) = VS.create $ do
                                 >> return (outPos + sInner))
          0 (runBaseOffsets ao (init sh) (Strides (init ats)))
   return out
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
 
@@ -3153,17 +3153,17 @@ fbBuild sh (T (Strides ats) ao v) = vBuildVS l $ \write ->
               | otherwise   = write (outPos + j) (VS.unsafeIndex v src)
                               >> inner (j + 1) (src + tInner)
         in  inner 0 baseOff
-      go []       []         !outPos !baseOff =
+      go []        []          !outPos !baseOff =
         writeRun outPos baseOff >> return (outPos + sInner)
-      go (n : ns) (st : sts) !outPos !baseOff =
+      go (!n : ns) (!st : sts) !outPos !baseOff =
         let dim !i !op | i >= n    = return op
                        | otherwise = go ns sts op (baseOff + i * st)
                                      >>= dim (i + 1)
         in  dim 0 outPos
-      go _        _          !outPos !baseOff =
+      go _         _           !outPos !baseOff =
         writeRun outPos baseOff >> return (outPos + sInner)
   in  void (go (init sh) (init ats) 0 ao)
-  where l = product sh
+  where !l = product sh
         !sInner = last sh
         !tInner = last ats
 
@@ -3199,7 +3199,7 @@ fbMutFlat sh (T (Strides ats) ao v) = VS.create $ do
             go (i + 1)
   if s == 1 then goCopy 0 else go 0
   return out
-  where l = product sh
+  where !l = product sh
         !s = last sh
         !t = last ats
         !magic = assert (lemireFits l)
@@ -3233,7 +3233,7 @@ fbMutFlatGm sh (T (Strides ats) ao v) = VS.create $ do
             go (i + 1)
   if s == 1 then goCopy 0 else go 0
   return out
-  where l = product sh
+  where !l = product sh
         !s = last sh
         !t = last ats
         !gm = gmMagic s
@@ -3252,13 +3252,13 @@ fbMutFlatGm sh (T (Strides ats) ao v) = VS.create $ do
 {-# NOINLINE fbConcatRuns #-}
 fbConcatRuns :: ShapeL -> T -> VS.Vector Double
 fbConcatRuns sh (T (Strides ats) ao v) = VS.concat (go (init sh) (init ats) ao [])
-  where s = last sh
+  where !s = last sh
         !t = last ats
         run !baseOff = VS.generate s (\j -> VS.unsafeIndex v (baseOff + j * t))
-        go []       []         !o rest = run o : rest
-        go (n : ns) (st : sts) !o rest =
+        go []       []          !o rest = run o : rest
+        go (n : ns) (!st : sts) !o rest =
           foldr (\i r -> go ns sts (o + i * st) r) rest [0 .. n - 1]
-        go _        _          !o rest = run o : rest
+        go _        _           !o rest = run o : rest
 
 -- The innermost-two transpose shared by the generators that model the
 -- transpose a conv gather merges in ('mkStrided', 'mkSliced').
@@ -3319,7 +3319,7 @@ fbLibStage1 sh (T (Strides ats) ao v)
   | otherwise = fillStage3 (walkAx (walkOfDims sh ats)) ao l v
   where l : ts' = getStridesT sh
         oks = scanr (&&) True (zipWith (==) ats ts')
-        loop (b : bs) (n : ns) (t : ts) !o
+        loop (b : bs) (n : ns) (!t : ts) !o
           | b = [VS.slice o (n * t) v]
           | otherwise = concat [loop bs ns ts (i * t + o) | i <- [0 .. n - 1]]
         loop _ _ _ _ = error "fbLibStage1: impossible"
@@ -3350,7 +3350,7 @@ fbLibStage2 :: ShapeL -> T -> VS.Vector Double
 fbLibStage2 sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
   | otherwise = case innerFirst canon of
-      (t, n) : rest
+      (!t, !n) : rest
         | not (naturalStrides canon) ->
             fillStage3 (walkAx (Walk t n (InnerFirst rest))) ao l v
       _ -> wholeOrSlice ao l v
@@ -3369,7 +3369,7 @@ fbLibStage2Concat sh (T (Strides ats) ao v)
   | otherwise = case innerFirst (canonicalize sh ats) of
       [] -> wholeOrSlice ao l v
       [(1, _)] -> wholeOrSlice ao l v
-      (1, n) : rest ->
+      (1, !n) : rest ->
         let outer = outerFirst (InnerFirst rest)
         in  VS.concat
               [ VS.slice o n v
@@ -4198,8 +4198,8 @@ routeList3 sh (T (Strides ats) ao _)
   | l == 0 = RSlice 0 0
   | naturalStrides axes = RSlice ao l
   | otherwise = case innerFirst axes of
-      (1, n) : rest -> RRuns (Walk 1 n (InnerFirst rest)) ao l
-      (t, n) : rest -> RFill (Walk t n (InnerFirst rest)) ao l
+      (1, !n) : rest -> RRuns (Walk 1 n (InnerFirst rest)) ao l
+      (t, !n) : rest -> RFill (Walk t n (InnerFirst rest)) ao l
       [] -> RSlice ao l
   where !l = product sh
         axes = canonicalize sh ats
@@ -4608,7 +4608,7 @@ sortedAbsAxes cmp sh ats =
 -- unzips.
 sortedAbsPairs :: ((Int, Int) -> (Int, Int) -> Ordering) -> ShapeL
                -> [Int] -> [(Int, Int)]
-sortedAbsPairs cmp sh ats = sortBy cmp $ zip (map abs ats) sh
+sortedAbsPairs cmp !sh ats = sortBy cmp $ zip (map abs ats) sh
 {-# INLINE sortedAbsPairs #-}
 
 -- Canonicalized first, then sorted, outermost first, for 'dispatchLean';
@@ -4637,8 +4637,8 @@ routeUnord4 sh (T (Strides ats) ao _)
   | l == 0 = RSlice 0 0
   | naturalStrides sorted = RSlice start l
   | otherwise = case innerFirst sorted of
-      (1, n) : rest -> RRuns (Walk 1 n (InnerFirst rest)) start l
-      (t, n) : rest -> RFill (Walk t n (InnerFirst rest)) start l
+      (1, !n) : rest -> RRuns (Walk 1 n (InnerFirst rest)) start l
+      (t, !n) : rest -> RFill (Walk t n (InnerFirst rest)) start l
       [] -> RSlice start l
   where !l = product sh
         !start = startOf sh ats ao
@@ -4789,14 +4789,14 @@ chainOrder sh ats
 runStarts :: ShapeL -> [Int] -> [(Int, [Axis])]
 runStarts sh ats =
   [ (n, dropAt i axes) | (i, Axis 1 n) <- zip [0 :: Int ..] axes ]
-  where axes = [ Axis (abs st) n | (n, st) <- zip sh ats, n /= 1 ]
+  where axes = [ Axis (abs st) n | (n, !st) <- zip sh ats, n /= 1 ]
 
 -- The longest chain over every start and every order of absorption as
 -- the run, the axes it leaves sorted outside it in stage six's order:
 -- axes, as stage six's sort hands them.
 longestRun :: [(Int, [Axis])] -> [Axis]
 longestRun starts = outer ++ [Axis 1 runLen]
-  where (runLen, rest) = bestOf [ chain n0 rest0 | (n0, rest0) <- starts ]
+  where (!runLen, rest) = bestOf [ chain n0 rest0 | (n0, rest0) <- starts ]
         outer = sortBy (flip compare) rest
 
 -- The longest contiguous run reachable from one of length @len@ by
@@ -4806,7 +4806,7 @@ longestRun starts = outer ++ [Axis 1 runLen]
 -- is not always best, the smaller one's product being what a third
 -- axis's stride may equal.
 chain :: Int -> [Axis] -> (Int, [Axis])
-chain len rest =
+chain !len rest =
   case [ i | (i, Axis s _) <- zip [0 :: Int ..] rest, s == len ] of
     [] -> (len, rest)
     is -> bestOf [ chain (len * axisExtent (rest !! i)) (dropAt i rest)
@@ -5370,10 +5370,17 @@ routeOfAx start l t n rest = RFillAx (WalkAx t n rest) start l
 -- summing it. Data rather than the list itself for 'Route''s reason, one
 -- run loop compiled once -- here the path's own, a second copy beside
 -- 'sumLazyRuns''s, which the two sum twins' pairs price with the rest.
+-- The bang on 'RRunsAx''s axes is the library's: pr-mikolaj-toVectorListT
+-- made 'RRuns''s 'Axes' strict at 1816fe6, which there drops the thunk
+-- its out-of-line 'routeOfT' built around the 'Axes' of every 'RRuns'.
+-- Here it changes nothing -- 'routeOfAx' inlines into readers that take
+-- the route apart at once, so no 'RRunsAx' is ever built and the Core is
+-- the same with the bang and without it (2026-09-28) -- and it stands so
+-- that the two types read alike.
 data RouteAx = RSliceAx !Int !Int         -- start and length of one slice
-             | RRunsAx WalkAx !Int !Int  -- canonical axes, run start,
-                                         -- length (the fill's)
-             | RFillAx WalkAx !Int !Int  -- axes, start, length
+             | RRunsAx !WalkAx !Int !Int  -- canonical axes, run start,
+                                          -- length (the fill's)
+             | RFillAx WalkAx !Int !Int   -- axes, start, length
 
 -- 'routeVector' over 'RouteAx' with 'fillStage3' for its fill,
 -- 'lib-stage3-lean''s reader.
@@ -5802,7 +5809,7 @@ lsListStage1 sh (T (Strides ats) ao v)
   | otherwise = [fillStage3 (walkOfDimsAx sh ats) ao l v]
   where l : ts' = getStridesT sh
         oks = scanr (&&) True (zipWith (==) ats ts')
-        loop (b : bs) (n : ns) (t : ts) !o
+        loop (b : bs) (n : ns) (!t : ts) !o
           | b = [VS.slice o (n * t) v]
           | otherwise = concat [loop bs ns ts (i * t + o) | i <- [0 .. n - 1]]
         loop _ _ _ _ = error "lsListStage1: impossible"
@@ -5819,7 +5826,7 @@ lsUnordStage2 sh a@(T (Strides ats) ao v)
       in  [VS.slice start l v]
   | otherwise = lsListStage2 sh a
   where !l = product sh
-        (csh, cats) = canonView sh ats
+        (!csh, cats) = canonView sh ats
         oneBlock =
           let (acats, csh') = unzip (sortedAbsPairs (flip compare) csh cats)
               _ : ts = getStridesT csh'
@@ -5836,7 +5843,7 @@ lsListStage2 sh (T (Strides ats) ao v)
   | otherwise = case innerFirst (canonicalize sh ats) of
       [] -> [wholeOrSlice ao l v]
       [(1, _)] -> [wholeOrSlice ao l v]
-      (1, n) : rest ->
+      (1, !n) : rest ->
         let outer = outerFirst (InnerFirst rest)
         in  [ VS.slice o n v
             | o <- VU.toList (baseOffsetsExpand ao (map snd outer)
@@ -6129,7 +6136,7 @@ lazinessGate = do
         Nothing -> return ()
         Just want -> do
           bytes <- allocOfHead (ls sh a)
-          let ok = if want then bytes < bound else bytes >= bound
+          let !ok = if want then bytes < bound else bytes >= bound
           -- THE EXACT COUNT ONLY WHERE IT FAILS. A pair's two halves have
           -- their 'check' output compared byte for byte (the run chapter's
           -- pre-run steps 4 and 5), and an allocation figure is the one
@@ -6174,7 +6181,7 @@ emptyListGate = do
     let (sh, a) = mkStrided normalSh
     _ <- evaluate (force (sh, a))
     fmap concat $ mapM (\(n, ls) -> do
-      let ok = null (ls sh a)
+      let !ok = null (ls sh a)
       putStrLn $ "empty " ++ view ++ " " ++ n ++ ": "
                  ++ (if ok then "the empty list" else "a non-empty list FAILED")
       return [n ++ " on " ++ view | not ok])
@@ -6286,7 +6293,7 @@ mkRevSome rs normalSh =
 -- @ts@ reversed: those strides negated, and the offset where the reversed
 -- index map starts.
 reverseDims :: [Int] -> ShapeL -> [Int] -> ([Int], Int)
-reverseDims rs sh ts =
+reverseDims rs sh !ts =
   ( [if r `elem` rs then negate t else t | (r, t) <- zip [0 ..] ts]
   , sum [(n - 1) * t | (r, (n, t)) <- zip [0 ..] (zip sh ts), r `elem` rs] )
 
@@ -6350,12 +6357,12 @@ mkReshape1Strided normalSh =
 -- result-bound ('lemireFits') quantities (see the comment above those
 -- predicates).
 mkSliced :: ShapeL -> (ShapeL, T)
-mkSliced normalSh =
-  let esh = map (+ 2) normalSh
+mkSliced !normalSh =
+  let !esh = map (+ 2) normalSh
       v = VS.enumFromN (0 :: Double) (product esh)
       enclosingStrides = drop 1 (getStridesT esh)
       ao = sum enclosingStrides  -- slice offset 1 in every dimension
-      sh' = swapLast2 normalSh
+      !sh' = swapLast2 normalSh
       strides' = swapLast2 enclosingStrides
   in  (sh', T (Strides strides') ao v)
 
@@ -6373,7 +6380,7 @@ mkSliced normalSh =
 -- view has them. Four entries are @s = d = 1@.
 mkWindow :: ShapeL -> (ShapeL, T)
 mkWindow [h, w, kh, kw] = mkWindow [h, w, kh, kw, 1, 1]
-mkWindow [h, w, kh, kw, s, d] =
+mkWindow [h, w, kh, kw, !s, !d] =
   let v = VS.enumFromN (0 :: Double) (h * w)
       spanOf k = (k - 1) * d + 1
       sh = [(h - spanOf kh) `div` s + 1, (w - spanOf kw) `div` s + 1, kw, kh]
@@ -6388,7 +6395,7 @@ mkWindow sh = error ("mkWindow: [h, w, kh, kw] or [h, w, kh, kw, s, d]"
 -- condition holds of its first and last strides as it does of
 -- 'mkWindow''s. Unstrided and undilated; added 2026-09-09.
 mkWindowChannels :: ShapeL -> (ShapeL, T)
-mkWindowChannels [h, w, c, kh, kw] =
+mkWindowChannels [!h, !w, c, kh, kw] =
   let v = VS.enumFromN (0 :: Double) (c * h * w)
       sh = [h - kh + 1, w - kw + 1, c, kw, kh]
       strides = Strides [w, 1, h * w, 1, w]
@@ -6447,7 +6454,7 @@ mkFlipIn rs sh esh =
 -- cost is flat; and an offset off an 8-element boundary, which a memcpy
 -- per run meets and a stepping loop does not. Added 2026-09-03.
 mkBlock :: ShapeL -> ShapeL -> Int -> (ShapeL, T)
-mkBlock sh esh ao =
+mkBlock sh esh !ao =
   let v = VS.enumFromN (0 :: Double) (product esh)
   in  (sh, T (Strides (drop 1 (getStridesT esh))) ao v)
 
@@ -6480,7 +6487,7 @@ mkSmall = mkScaled
 -- extent by about one factor and every stride keeping its gap's ratio.
 mkCompose :: ShapeL -> Strides -> Int -> (ShapeL, T)
 mkCompose sh strides@(Strides ats) ao =
-  let top = ao + sum [(s - 1) * t | (s, t) <- zip sh ats, t > 0]
+  let !top = ao + sum [(s - 1) * t | (s, t) <- zip sh ats, t > 0]
       v = VS.enumFromN (0 :: Double) (top + 1)
   in  (sh, T strides ao v)
 
@@ -7040,16 +7047,16 @@ classViews = [(n, view) | (n, view, _, _) <- classChecks]
 -- elsewhere. Each record names its breakage and what fired.
 classChecks :: [(String, (ShapeL, T), Int, [(String, Bool)])]
 classChecks =
-  [(n, v, 3, revConds v) | (n, s) <- revShapes, let v = mkRev s]
+  [(n, v, 3, revConds v) | (n, s) <- revShapes, let !v = mkRev s]
   ++ [ (n, v, 3, revSomeConds v)
-     | (n, rs, s) <- revSomeShapes, let v = mkRevSome rs s ]
+     | (n, rs, s) <- revSomeShapes, let !v = mkRevSome rs s ]
   ++ [(n, v, 3, broadcastConds v) | (n, s) <- broadcastShapes
-                                  , let v = mkBroadcast s]
+                                  , let !v = mkBroadcast s]
   ++ [ (n, v, 3, broadcastMidConds b v)
      | (n, b, s) <- broadcastMidShapes ++ edgeMidShapes
-     , let v = mkBroadcastMid b s ]
+     , let !v = mkBroadcastMid b s ]
   ++ [(n, v, 3, reshape1Conds v) | (n, s) <- reshape1Shapes
-                                 , let v = mkReshape1 s]
+                                 , let !v = mkReshape1 s]
   ++ [ (n, v, 3, reshape1StridedConds v)
      | (n, s) <- reshape1StridedShapes, let v = mkReshape1Strided s ]
   ++ [(n, v, 3, slicedConds s v) | (n, s) <- slicedShapes
@@ -7058,21 +7065,21 @@ classChecks =
                                         , let v = mkWindow s]
   ++ [ (n, v, 3, windowConds (s !! 1) v)
      | (n, s, (st, d)) <- windowStridedShapes
-     , let v = mkWindow (s ++ [st, d]) ]
+     , let !v = mkWindow (s ++ [st, d]) ]
   ++ [(n, v, 3, windowConds (s !! 1) v) | (n, s) <- windowChannelShapes
                                         , let v = mkWindowChannels s]
   ++ [(n, v, 3, scaledConds v) | (n, s, sts) <- scaledViews
-                               , let v = mkScaled s sts]
-  ++ [(n, v, 2, runsConds v) | (n, s) <- runsShapes, let v = mkRuns s]
-  ++ [(n, v, 3, flipConds v) | (n, rs, s) <- flipShapes, let v = mkFlip rs s]
+                               , let !v = mkScaled s sts]
+  ++ [(n, v, 2, runsConds v) | (n, s) <- runsShapes, let !v = mkRuns s]
+  ++ [(n, v, 3, flipConds v) | (n, rs, s) <- flipShapes, let !v = mkFlip rs s]
   ++ [ (n, v, reg, flipInConds e v)
-     | (n, reg, rs, s, e) <- flipInViews, let v = mkFlipIn rs s e ]
+     | (n, reg, rs, s, e) <- flipInViews, let !v = mkFlipIn rs s e ]
   ++ [(n, v, 2, blockConds e o v) | (n, s, e, o) <- blockViews
-                                  , let v = mkBlock s e o]
+                                  , let !v = mkBlock s e o]
   ++ [(n, v, reg, smallConds v) | (n, reg, s, sts) <- smallViews
-                                , let v = mkSmall s sts]
+                                , let !v = mkSmall s sts]
   ++ [(n, v, 3, composeConds v) | (n, s, sts, o) <- composeViews
-                                , let v = mkCompose s sts o]
+                                , let !v = mkCompose s sts o]
   where
     -- Non-vacuity: leaving the outermost dim un-reversed (a valid partial
     -- rev) fails all-negative and offset-top together at the first rev
@@ -7205,10 +7212,10 @@ classChecks =
       , ("tight-backing", VS.length v
                           == 1 + sum (zipWith (\s t -> (s - 1) * t) sh ats)) ]
     composeConds (sh, T (Strides ats) ao v) =
-      let zeros = [i | (i, t) <- zip [0 :: Int ..] ats, t == 0]
+      let !zeros = [i | (i, t) <- zip [0 :: Int ..] ats, t == 0]
           apart = or [b - c > 1 | (c, b) <- zip zeros (drop 1 zeros)]
-          second = any (< 0) ats || ao > 0 || length zeros == length ats
-                   || apart
+          !second = any (< 0) ats || ao > 0 || length zeros == length ats
+                    || apart
       in  [ ("zero-stride",      not (null zeros))
           , ("second-mechanism", second)
           , ("tight-backing",    VS.length v
@@ -8077,7 +8084,7 @@ saturate = do
         (vsh, a) = view victimShape
     _ <- evaluate (force ((svsh, sa), (vsh, a)))
     t0 <- getMonotonicTime
-    (sprayed, keep) <- if bySpray then spray (dose * 4000) 0 0
+    (!sprayed, !keep) <- if bySpray then spray (dose * 4000) 0 0
                        else viaList svsh sa (dose * 1000000) 0 0
     t1 <- getMonotonicTime
     performGC
@@ -8164,7 +8171,7 @@ main = assert (partitioned && retiredKnown && retiredShapesKnown) $ do
 -- so the two cannot differ. The group count is the caller's, naming the
 -- benchmark list of the mode that ran.
 provenance :: Int -> IO ()
-provenance nGroups = do
+provenance !nGroups = do
   s <- getRTSStats
   let secs = fromIntegral (elapsed_ns s) / 1e9 :: Double
       (h, r) = (round secs :: Int) `divMod` 3600
@@ -8363,7 +8370,7 @@ classBenches = [benchView n view | (n, view) <- timedClassViews]
 -- with @agree=True, builds=False@ -- the very split this check is
 -- here for.
 buildersMatch :: Int -> ShapeL -> Strides -> Bool
-buildersMatch ao osh oats =
+buildersMatch ao osh !oats =
      all (\(_, builder) -> builder ao osh oats == rBuild) offsetBuilders
   && rBuild == w32 (baseOffsetsExpand32 ao osh oats)
   && rBuild == w32 (baseOffsetsMut32    ao osh oats)
@@ -8410,14 +8417,14 @@ offsetBuilders =
 -- regime, the two agreements and the failed conditions.
 checkView :: (Int -> Bool -> Bool -> [String] -> String)
           -> Int -> String -> ShapeL -> T -> [(String, Bool)] -> IO ()
-checkView describe expReg name sh a@(T (Strides ats) ao _) conds = do
+checkView describe !expReg name sh a@(T (Strides ats) ao _) conds = do
   let rList  = reference sh a
       builds = buildersMatch ao (init sh) (Strides (init ats))
       bad    = [n | (n, f) <- checkedArms,
                     not (agreesWithRef rList n (f sh a))]
       agree  = null bad
       reg    = regimeOf sh a
-      failedConds = [c | (c, ok) <- conds, not ok]
+      !failedConds = [c | (c, ok) <- conds, not ok]
   putStrLn $ name ++ ": " ++ describe reg agree builds failedConds
   unless (agree && builds && reg == expReg && null failedConds) $
     error ("CHECK FAILED: " ++ name
@@ -8512,7 +8519,7 @@ check = do
           sInnerListed = case reverse normalSh of
                            _ : d : _ -> d
                            _         -> 1
-          mView        = product (init sh)
+          !mView       = product (init sh)
           sInnerOK     = sInnerView == sInnerListed
                       && (sInnerView == 0 || mView == product sh `div`
                                              sInnerView)
@@ -8546,9 +8553,9 @@ diag = do
   where
     one (name, normalSh) = do
       let (sh, T (Strides ats) _ _) = mkStrided normalSh
-          osh  = init sh
-          oats = Strides (init ats)
-          m    = product osh
+          !osh  = init sh
+          !oats = Strides (init ats)
+          !m    = product osh
       putStrLn $ "\n" ++ name ++ "  (m = " ++ show m ++ " base-offsets, "
                  ++ show (VU.length (baseOffsetsMut 0 osh oats)) ++ " built)"
       mapM_ (\(label, builder) -> measure ("  " ++ label)
