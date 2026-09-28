@@ -335,6 +335,7 @@ rev rs = A . G.rev rs . unA
 
 -- | Reduce all elements of an array into a rank 0 array.
 -- To reduce parts use 'rerank' and 'transpose' together with 'reduce'.
+-- Forcing the result forces the initial value.
 -- O(n) time.
 {-# INLINABLE reduce #-}
 reduce :: (a -> a -> a) -> a -> Array n a -> Array 0 a

@@ -489,6 +489,7 @@ rev rs (A sh t) | all (\ r -> r >= 0 && r < n) rs = A sh (reverseT rs sh t)
 
 -- | Reduce all elements of an array into a rank 0 array.
 -- To reduce parts use 'rerank' and 'transpose' together with 'reduce'.
+-- Forcing the result forces the initial value.
 -- O(n) time.
 {-# INLINE reduce #-}
 reduce :: (Vector v, VecElem v a) =>
