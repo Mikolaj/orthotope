@@ -95,9 +95,9 @@ class Vector v where
   -- the faster mutable fill 'genericFillStrided'.  If the default's
   -- speed mattered, which it does not, -fspec-constr would improve it.
   vFillStrided :: (VecElem v a) => Axes -> Int -> Int -> v a -> v a
-  vFillStrided (Axes tInner sInner outerAxes) !ao !l !v =
+  vFillStrided (Axes tInner sInner outerAxes) !ao l !v =
     let !baseOffsets = runBaseOffsetsT ao (outerFirst outerAxes)
-        gen i = case i `quotRem` sInner of
+        gen !i = case i `quotRem` sInner of
           (!q, !r) -> vIndex v (VU.unsafeIndex baseOffsets q + r * tInner)
     in  vGenerate l gen
 
@@ -297,8 +297,9 @@ runBaseOffsetsT o0 outer = foldl' expand (VU.singleton o0) outer
 -- not; each vector-backed instance reuses it verbatim.  Ported
 -- bang-for-bang from the fastest fill of the micro-benchmark preserved
 -- at https://github.com/Mikolaj/orthotope/blob/speedup-strided-tovector/micro-regime3/
--- (the bang patterns are part of what was measured); one choice made
--- for the NCG, marked at the line it is on, costs -fllvm a little.
+-- (the bang patterns are part of what was measured), but for the
+-- count's, whose removal shrinks the -O1 Core; one choice made for the
+-- NCG, marked at the line it is on, costs -fllvm a little.
 --
 -- The implementation is similar to what once was in orthotope file
 -- FastReshape.hs (a Storable-only odometer flatten behind an unsafeCast to
@@ -307,7 +308,7 @@ runBaseOffsetsT o0 outer = foldl' expand (VU.singleton o0) outer
 {-# INLINE genericFillStrided #-}
 genericFillStrided :: forall w a. (VG.Vector w a)
                    => Axes -> Int -> Int -> w a -> w a
-genericFillStrided (Axes tInner sInner outerAxes) !ao !l !v =
+genericFillStrided (Axes tInner sInner outerAxes) !ao l !v =
   assert (l > 0) $ VG.create fill
  where
   fill :: forall s. ST s (VG.Mutable w s a)
@@ -488,7 +489,7 @@ data Route
       -- ^ the canonical strides are the natural ones: one contiguous
       -- slice of the vector, at the start and of the count.  Rank 0
       -- lands here: no dimensions, no strides, one element
-  | RRuns Axes !Int !Int
+  | RRuns !Axes !Int !Int
       -- ^ canonical innermost stride 1 under other dimensions:
       -- contiguous runs of the innermost extent, one per canonical
       -- outer index, from the start; the count is not needed to walk
@@ -566,7 +567,7 @@ data Axes = Axes !Int !Int InnerFirst
 -- the merged axes, 63 to 240 bytes.
 {-# INLINE routeT #-}
 routeT :: ShapeL -> Int -> T v a -> Route
-routeT sh l (T ats ao _) = start ats sh
+routeT sh !l (T ats ao _) = start ats sh
   where
     start :: [Int] -> ShapeL -> Route
     start (_ : sts) (1 : ns) = start sts ns
@@ -608,7 +609,7 @@ routeT sh l (T ats ao _) = start ats sh
 -- 0, or at rank 1 with stride 1.
 {-# INLINE routeOfT #-}
 routeOfT :: Int -> Int -> Int -> Int -> InnerFirst -> Route
-routeOfT start l 1 _ (InnerFirst []) = RSlice start l
+routeOfT start !l 1 _ (InnerFirst []) = RSlice start l
 routeOfT start l 1 n rest = RRuns (Axes 1 n rest) start l
 routeOfT start l t n rest = RFill (Axes t n rest) start l
 
@@ -691,7 +692,7 @@ runSlicesT (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
       -- 'RSlice', where it is the vector or one slice of it.
     Axis sk dk : above ->
       let block :: Int -> Odometer -> b
-          block !o outer =
+          block o outer =
             let go :: Int -> Int -> b
                 go !i !p
                   -- TODO: 'vSlice' bounds-checks every run, tests that
@@ -865,7 +866,7 @@ runRank !a !b = case compare ta tb of
 -- says why each piece.
 {-# INLINE unorderedRouteT #-}
 unorderedRouteT :: ShapeL -> Int -> T v a -> Route
-unorderedRouteT sh l (T ats ao _) = start (sortBy byStrideRank axes)
+unorderedRouteT sh !l (T ats ao _) = start (sortBy byStrideRank axes)
   where
     (axes, !off) = absAxesAndStartT [] ao ats sh
     start :: [Axis] -> Route
@@ -1117,7 +1118,7 @@ transposeT is (T ss o v) = T (permute is ss) o v
 subArraysT :: ShapeL -> T v a -> [T v a]
 subArraysT sh ten = sub sh ten []
   where sub [] t = (t :)
-        sub (n:ns) t = foldr (.) id [sub ns (indexT t i) | i <- [0..n-1]]
+        sub (n:ns) !t = foldr (.) id [sub ns (indexT t i) | !i <- [0..n-1]]
 
 -- Reverse the given dimensions.
 {-# INLINE reverseT #-}
@@ -1125,8 +1126,8 @@ reverseT :: [Int] -> ShapeL -> T v a -> T v a
 reverseT rs sh (T ats ao v) = T rts ro v
   where (ro, rts) = rev 0 sh ats
         rev !_ [] [] = (ao, [])
-        rev r (m:ms) (t:ts) | r `elem` rs = (o + (m-1)*t, -t : ts')
-                            | otherwise   = (o,            t : ts')
+        rev !r (m:ms) (t:ts) | r `elem` rs = (o + (m-1)*t, -t : ts')
+                             | otherwise   = (o,            t : ts')
           where (o, ts') = rev (r+1) ms ts
         rev _ _ _ = error "reverseT: impossible"
 
@@ -1134,7 +1135,7 @@ reverseT rs sh (T ats ao v) = T rts ro v
 {-# INLINE reduceT #-}
 reduceT :: (Vector v, VecElem v a) =>
            ShapeL -> (a -> a -> a) -> a -> T v a -> T v a
-reduceT sh f z = scalarT . foldl' (vFold f) z . toVectorListT sh
+reduceT sh f !z = scalarT . foldl' (vFold f) z . toVectorListT sh
 
 -- Right fold via toListT.
 {-# INLINE foldrT #-}
@@ -1254,7 +1255,7 @@ padT :: forall v a . (Vector v, VecElem v a) => a -> [(Int, Int)] -> ShapeL -> T
 padT v aps ash at = (ss, fromVectorT ss $ vConcat $ pad' aps ash st at)
   where pad' :: [(Int, Int)] -> ShapeL -> [Int] -> T v a -> [v a]
         pad' [] sh _ t = toVectorListT sh t
-        pad' ((l,h):ps) (s:sh) (n:ns) t =
+        pad' ((l,h):ps) (s:sh) (!n:ns) t =
           [vReplicate (n*l) v] ++ concatMap (pad' ps sh ns . indexT t) [0..s-1] ++ [vReplicate (n*h) v]
         pad' _ _ _ _ = error $ "pad: rank mismatch " ++ show (length aps, length ash)
         _ : st = getStridesT ss
@@ -1318,7 +1319,7 @@ generateT sh f = T ss 0 $ vGenerate s g
   where s : ss = getStridesT sh
         g i = f (toIx ss i)
         toIx [] _ = []
-        toIx (n:ns) i = q : toIx ns r where (q, r) = quotRem i n
+        toIx (n:ns) !i = q : toIx ns r where (q, r) = quotRem i n
 
 {-# INLINE iterateNT #-}
 iterateNT :: (Vector v, VecElem v a) => Int -> (a -> a) -> a -> T v a
