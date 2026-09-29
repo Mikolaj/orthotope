@@ -767,19 +767,19 @@ rather than a slot in the next run, observed again:
   it passes no axis; and (4) the regime's worth reads `list` at 1.2950 against
   1.294 within 1% and `bq-expand` at 1.3212 against 1.305 within 2%, on the main
   set's quiet rerun --- all eleven spans HELD.
-- `OPEN` **One of Run 43's half-local movers has its counts level and no copy
-  test yet: the control's `lib-stage1` on `small`, 3.3% slower than Run 42's
-  control on counts of 0.9989, the second run running that arm has read slower
-  there on that half.** `--half-movers run43 run42` flags it and four more,
-  the control's `lib-stage2-lean` and `mut-odo-vecdims` trio on `flip`, which
-  read level with Run 41's control and so are Run 42's own file instance gone
-  ([Run 43's Results](runs/run43.md#results)); this one reads 7.8% over Run 41's
-  control, widest on `small-bcast32`. The copy test that separates a half's
-  binary, its file instance and its process wants the box quiet, and the owner
-  granted the quiet box for the main-set rerun alone, the pair note's
-  `QUIET-AFTER:` line reading `ask`, so by the ruling of 2026-09-26 it waits
-  for the owner. **What would settle it**: `./copy-test.sh run43`
-  over that cell, read
+- `OPEN` **One of Run 43's five half-local movers is left unexplained,
+  its counts level and no copy test taken: the control's `lib-stage1`
+  on `small`, 3.3% slower than Run 42's control on counts of 0.9989, the second
+  run running that arm has read slower there on that half.**
+  `--half-movers run43 run42` flags it and four more, the control's
+  `lib-stage2-lean` and `mut-odo-vecdims` trio on `flip`, which read level
+  with Run 41's control and so are Run 42's own file instance gone ([Run 43's
+  Results](runs/run43.md#results)); this one reads 7.8% over Run 41's control,
+  widest on `small-bcast32`. The copy test that separates a half's binary,
+  its file instance and its process wants the box quiet, and the owner granted
+  the quiet box for the main-set rerun alone, the pair note's `QUIET-AFTER:`
+  line reading `ask`, so by the ruling of 2026-09-26 it waits for the owner.
+  **What would settle it**: `./copy-test.sh run43` over that cell, read
   with `./read-run.py --copy-test probe-copy-test-run43.log`, while
   `run43-gheadtwopass` is still on disk --- INSTANCE, PROCESS or BUILD.
 - `ANSWERED` **What Run 42 was built to answer, registered before it ran ---
@@ -1310,14 +1310,14 @@ rather than a slot in the next run, observed again:
   of Run 40's basis, while the control's family reads within 0.9 of a point
   of Run 41's on all four ([Run 42's file](runs/run42.md)) --- so the term
   belonged to one build, and a rebuild is what removed it. **Run 43 adds
-  a PROCESS term of the same size to it, on one build**: its first basis
-  main-set process read the family at 0.9964 to 0.9984 of Run 42's basis,
-  and the quiet rerun of the same binary the same day at 1.0147 to 1.0173
-  of that first process, every other arm on either half within 0.72 of a point
-  of its own first process, the control's family within 0.65 --- so
-  on this family a process moves the clock by 1.5 to 1.7 points where a build
-  moved it by 4 to 10, and a copy test that reads BUILD against the previous
-  run's half is reading across both terms at once ([Run 43's
+  a PROCESS term to it, some two fifths of the build term's size, on one
+  build**: its first basis main-set process read the family at 0.9964 to 0.9984
+  of Run 42's basis, and the quiet rerun of the same binary the same day
+  at 1.0147 to 1.0173 of that first process, every other arm on either half
+  within 0.72 of a point of its own first process, the control's family within
+  0.65 --- so on this family a process moves the clock by 1.5 to 1.7 points
+  where a build moved it by 3.4 to 9.5, and a copy test that reads BUILD against
+  the previous run's half is reading across both terms at once ([Run 43's
   file](runs/run43.md)).
 - `PARKED` **Four arms moved past 3% against Run 32 on ONE half each, with their
   counts level; the copy test, taken after the run, gives one of them
@@ -1602,8 +1602,8 @@ rather than a slot in the next run, observed again:
   readings sit within a point of the line on either side, and the flagged half's
   ahead of it every time**; the one reading behind, Run 39's basis at 1.0026,
   sat inside that half's 0.57% floor, so still a tie by the entry's own test,
-  and Run 43's basis reads the fill further AHEAD than any earlier plain-half
-  draw, 0.9901 against a 0.79% floor.
+  and Run 43's basis reads the fill further AHEAD than any plain-half draw
+  on disk, Runs 36 to 42's, 0.9901 against a 0.79% floor.
 - `PARKED` **Which of the two `-O2` passes carries the regime's points,
   on a compiler this series still builds with.** **PARKED 2026-09-26
   by the owner.** Both together, `-fspec-constr` and `-fliberate-case` on one
@@ -2627,8 +2627,9 @@ rather than a slot in the next run, observed again:
   and the collector takes under 0.02% of mutator time, while mutator time
   an iteration reads 4,708,902 ns, 4,682,268 ns and **7,884,026 ns**. Every
   quantity the runtime reports is flat across a cell that is 68% slower, which
-  is what makes this a transient rather than work. **Run 43 carries one
-  of the same shape, smaller**: on the control's `bcastmid` process
+  is what makes this a transient rather than work. **Run 43 carries a cell
+  of the same signature, under the 35% the sightings above start at and
+  so not counted among them**: on the control's `bcastmid` process
   `bq-expand-aa-distant` reads 26.00% over `bq-expand` on `bcastmid-c32-cnn`,
   setting that class's control floor at 5.73%, and its per-sample table puts
   the parting in the mutator time, 655486 against 541460 an iteration,
@@ -11689,24 +11690,26 @@ half's binary twice in one day, and the basis floor goes from 0.40% on the first
 process, the intruded one, to 0.79% on the rerun, the control's from 0.77%
 to 0.60%. The three readings that did that stand as they were --- Run 19's
 factor of 1.7, Run 23's twentieth and Run 30's 1.44 --- and they still say
-that a floor moves by up to seven tenths on a binary that has not changed
-at all, and that no run's floor is inheritable by the run after it.
-The threshold this run supports is the whole-set figure a half, the restricted
-four-pair reading having closed on it on neither half --- and since 2026-09-13
-a margin between two rows clears the whole-set one, the carry-back figure being
-the series and not the bar ([the open list][open]). Read the floor as the run's
-*and the half's*, re-measured every time, never as a constant of the harness
-and never inherited. **And only the rows from Run 36 on can still
-be re-derived**: Runs 24 to 30's artifacts were deleted 2026-09-18 and Runs 31
-to 35's 2026-09-23, at the owner's word, so `--series` starts at Run 36
-and every earlier row of `series/floor.tsv` is a RECORD, there and in that run's
-own file, rather than something a later session can check. **And both
-of the checks from OUTSIDE the declared pairs are still gone with their arms.**
-`lib-stage2-disp` was parked on 2026-09-07 and the two undeclared pairs
-that stood in its place on Run 28 both lost a member to the parking
-of 2026-09-11, so this run, like Runs 29 to 42, has no check on the declared
-eight from outside them at all. A run that wants that check again has to land
-an arm for it.
+that a floor moves on a binary that has not changed at all, and that no run's
+floor is inheritable by the run after it; this run's basis moved further
+than any of them between its two main-set processes of one binary, by a factor
+of 1.98, where the intrusion sat in the pair carrying the lower of the two
+and so could only have raised it. The threshold this run supports
+is the whole-set figure a half, the restricted four-pair reading having closed
+on it on neither half --- and since 2026-09-13 a margin between two rows clears
+the whole-set one, the carry-back figure being the series and not the bar ([the
+open list][open]). Read the floor as the run's *and the half's*, re-measured
+every time, never as a constant of the harness and never inherited. **And only
+the rows from Run 36 on can still be re-derived**: Runs 24 to 30's artifacts
+were deleted 2026-09-18 and Runs 31 to 35's 2026-09-23, at the owner's word,
+so `--series` starts at Run 36 and every earlier row of `series/floor.tsv`
+is a RECORD, there and in that run's own file, rather than something a later
+session can check. **And both of the checks from OUTSIDE the declared pairs
+are still gone with their arms.** `lib-stage2-disp` was parked on 2026-09-07
+and the two undeclared pairs that stood in its place on Run 28 both lost
+a member to the parking of 2026-09-11, so this run, like Runs 29 to 42, has
+no check on the declared eight from outside them at all. A run that wants
+that check again has to land an arm for it.
 
 **The 0.7% differencing bar, measured against the pairs it is applied to ---
 and it is near the MEDIAN of that population rather than a bound on it.**
@@ -14086,7 +14089,7 @@ tables and its fingerprint say so.
   and the control's command line carrying `-fspec-constr -fliberate-case`
   besides, so it is read against Run 42's basis `run42-gheadnospec`, whose
   recipe its own BASIS repeats to the character, and every timed arm's
-  instructions read level there and every arm's clock within a point
+  instructions read level there and every arm's main-set clock within a point
   but the `bq-expand` family's, 1.1 to 1.6 points slower in the main set's
   second process where its first read it level ([Run 43's file](runs/run43.md)).
   Its sequence ran in ONE window, 02:19:04 to 09:35:18, 20 class processes
