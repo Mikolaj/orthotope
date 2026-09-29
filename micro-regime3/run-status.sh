@@ -235,7 +235,11 @@ if [ -n "${BASIS:-}" ] && [ -f "$NOTE" ]; then
     for h in $OTHER $BASIS; do
       for s in '' sat; do
         case $s in sat) case " $RIDERS " in *" sat "*) ;; *) continue ;; esac ;; esac
-        L="$R-al-$h${s:+-sat}-driver.log"
+        # The merged set's log since 2026-09-29, the driver's lines at its
+        # head; the per-leg form's driver log for the runs before it.
+        # Case: `status-reads-the-merged-rider-log`.
+        L="$R-al-$h${s:+-sat}.log"
+        [ -f "$L" ] || L="$R-al-$h${s:+-sat}-driver.log"
         if [ -f "$L" ] && grep -q "^DONE-ALONELEGS-$R-$h\$" "$L"; then
           say 19 "done" "$L ends DONE without complaints"
         elif [ -f "$L" ] && grep -q '^DONE-ALONELEGS' "$L"; then

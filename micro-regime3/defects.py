@@ -357,6 +357,24 @@ def edited_rundoc(tmp, *edits, **kw):
     return write_rundoc(tmp, text, kw.get('name'))
 
 
+def rundoc_with_drafted_list_move(tmp):
+    """The run file with its one main-set cross-half `list` site put in
+    the phrasing `--prose-draft` writes, "`list` moves by N points on
+    the main set", and N a point off the figure README's delta chain
+    quotes, found by the check's own shape rather than by the run's
+    figure."""
+    text = rundoc_text()
+    rx = re.compile(r'\S+ \S+ \S+ move `list` by \*{0,2}([\d.]+) points'
+                    r'\*{0,2} on the main set')
+    ms = list(rx.finditer(text))
+    assert len(ms) == 1, ('the run file quotes the main-set `list` move'
+                          ' %d times, need 1' % len(ms))
+    m = ms[0]
+    text = (text[:m.start()] + '`list` moves by **%.2f points** on the main'
+            ' set' % (float(m.group(1)) + 1.0) + text[m.end():])
+    return write_rundoc(tmp, text)
+
+
 def plant_one_tie(tmp):
     """The run file with its cross-class summary tied at three decimals on
     its first row alone, every other row's ceiling moved clear of the arm
@@ -2796,6 +2814,30 @@ def stale_pair(tmp, n=97, kept=True, word=False):
     return {'doc': doc, 'figure': figure}
 
 
+def brief_naming_its_slots(tmp):
+    """`brief_pair`'s whole brief with a line of prose ABOUT the slots
+    above it, as the real brief's head carries -- `<yours>` in backticks,
+    naming the form and filling nothing."""
+    subs = brief_pair(tmp)
+    text = open(subs['brief']).read()
+    write(subs['brief'], 'The brief says what its `<yours>` slots are.\n'
+          + text)
+    return subs
+
+
+def brief_with_a_standing_slot(tmp):
+    """`brief_pair`'s facts file with an unfilled slot in item 5, which
+    nothing in the fixture can fill -- no note, no run file."""
+    subs = brief_pair(tmp)
+    f = os.path.join(tmp, 'log-read-%s' % subs['run'], 'for-brief.txt')
+    text = open(f).read()
+    old = 'The basis is %s-exit.' % subs['run']
+    assert text.count(old) == 1, 'the facts file lost its item 5'
+    write(f, text.replace(old, old + " <yours: what this run's largest"
+                                    " finding is>"))
+    return subs
+
+
 def brief_pair(tmp, run='run97', whole=True, stale_block=False, bodied=False):
     """A facts file and a checker brief, the brief missing an item or not.
 
@@ -3903,6 +3945,101 @@ def deflation_legs(tag='runzzd', half='h', n=3, clean=True, sat=True,
     return run
 
 
+def merged_deflation_legs(tag='runzzm', half='h', n=3):
+    """The same run with its two rider sets in the MERGED form the
+    driver writes since 2026-09-29, one JSON a set: `$R-al-<half>.json`
+    and `$R-al-<half>-sat.json`, each criterion's own form over the
+    set's first repetitions, one `list` a shape. In HERE, as the legs
+    of `deflation_legs` are, so the case is a serial one."""
+    shapes = main_shapes()[:n]
+    run = here_file('%s-%s-main.json' % (tag, half))
+    synth_run(run, shapes)
+    synth_run(here_file('%s-al-%s.json' % (tag, half)), shapes)
+    synth_run(here_file('%s-al-%s-sat.json' % (tag, half)), shapes)
+    return run
+
+
+def per_leg_rider_set(tmp, tag, half):
+    """A rider set in the per-leg form every run up to Run 43 left: a
+    JSON and a log a leg, three shapes and one anchor's second
+    repetition, and the driver's log ending DONE -- in a directory of
+    its own under `tmp`, named by the returned path."""
+    d = os.path.join(tmp, 'legs')
+    os.makedirs(d)
+    stem = '%s-al-%s' % (tag, half)
+    shapes = main_shapes()[:3]
+    for sh, rep in [(s, 1) for s in shapes] + [(shapes[0], 2)]:
+        leg = os.path.join(d, '%s-%s-r%d' % (stem, sh, rep))
+        synth_run(leg + '.json', [sh])
+        j = json.load(open(leg + '.json'))
+        j[2] = [r for r in j[2] if r['reportName'] == sh + '/list']
+        assert len(j[2]) == 1, 'the synthetic leg carries no `list`'
+        write(leg + '.json', json.dumps(j))
+        write(leg + '.log', 'benchmarking %s/list\ntime 1.000 ms\n' % sh)
+    write(os.path.join(d, stem + '-driver.log'),
+          'start: x\nshapes: 3\nDONE-ALONELEGS-%s-%s\n' % (tag, half))
+    return d
+
+
+def warned_pair_run(tag, n=3):
+    """Both halves' main sets of a run named `tag`, in HERE, the basis
+    carrying ONE cell whose time fit reads R2 0.95 -- what the reader's
+    health check warns on -- and the control none. Returns the run's
+    name, which is what --provenance-draft takes."""
+    shapes = main_shapes()[:n]
+    for half in ('lookrts', 'ovhalf'):
+        synth_run(here_file('%s-%s-main.json' % (tag, half)), shapes)
+    path = here_file('%s-lookrts-main.json' % tag)
+    d = json.load(open(path))
+    fit = [g for g in d[2][0]['reportAnalysis']['anRegress']
+           if g['regResponder'] == 'time']
+    assert fit, 'the synthetic cell carries no time fit to degrade'
+    fit[0]['regRSquare']['estPoint'] = 0.95
+    write(path, json.dumps(d))
+    return tag
+
+
+def rider_driver_text(at, stem):
+    """Where a rider driver's own lines are, read: the merged log since
+    2026-09-29, the set's working directory where a merge refused, and
+    the per-leg form's driver log before either -- or '' where the
+    driver left none, which is what a refusal before the redirect owes."""
+    for p in (os.path.join(at, stem + '.log'),
+              os.path.join(at, stem + '.d', stem + '-driver.log'),
+              os.path.join(at, stem + '-driver.log')):
+        if os.path.exists(p):
+            return open(p).read()
+    return ''
+
+
+def rider_driver_left(at, stem):
+    """Whether a refused rider driver left anything the relaunch guard
+    would read as a previous attempt: its log in either form, or the
+    set's working directory."""
+    return any(os.path.exists(os.path.join(at, n))
+               for n in (stem + '-driver.log', stem + '.log', stem + '.d'))
+
+
+def rider_set_summary(at, stem):
+    """What a merged rider set left in `at`, as text a case can judge:
+    every file there named for the set, how many first and later
+    repetitions the merged JSON carries, and whether its log holds the
+    driver's DONE line."""
+    names = sorted(n for n in os.listdir(at) if n.startswith(stem))
+    out = ['files: %s' % ' '.join(names)]
+    js = os.path.join(at, stem + '.json')
+    if os.path.exists(js):
+        d = json.load(open(js))
+        out.append('first repetitions: %d' % len(d[2]))
+        later = d[3].get('later repetitions', []) if len(d) > 3 else []
+        out.append('later repetitions: %d' % len(later))
+    lg = os.path.join(at, stem + '.log')
+    done = os.path.exists(lg) and any(
+        l.startswith('DONE-ALONELEGS-') for l in open(lg))
+    out.append('log DONE: %s' % ('yes' if done else 'no'))
+    return '\n'.join(out) + '\n'
+
+
 def doctored(tmp, pop, mutate, name='x.json'):
     """A BUILT run with one mutation applied, and the mutation asserted.
 
@@ -4125,6 +4262,33 @@ done
 exit 0
 """)
 assert 'bytes allocated' in FAKE_HALF_ALLOC, 'the allocating stand-in lost it'
+
+# The same stand-in answering `check` with each class view's geometry, as
+# the binary prints it: the one place a view's SIZE is said, the listings
+# carrying names alone.
+FAKE_HALF_CHECKING = FAKE_HALF.replace('exit 0\n', """\
+if [ "$1" = check ]; then
+  echo "rev-shape-a: view [2,2], strides [2,1], offset 0, l=4, backing=4, regime=3, agree=True, builds=True"
+  echo "rev-shape-b: view [2,3], strides [3,1], offset 0, l=6, backing=6, regime=3, agree=True, builds=True"
+fi
+exit 0
+""")
+assert 'rev-shape-b: view' in FAKE_HALF_CHECKING, 'the checking stand-in lost it'
+
+# The same stand-in running a rider leg: `-m glob PAT --json OUT` prints
+# the one `benchmarking` line and a `time` line the driver reads, the
+# @@saturate stamp where SATURATE is set, and writes a one-report
+# criterion JSON for PAT -- enough for the merge to have real legs.
+FAKE_HALF_LEGS = FAKE_HALF.replace('exit 0\n', """\
+if [ "$1" = -m ]; then
+  echo "benchmarking $3"
+  echo "time                 1.000 ms   (0.990 ms .. 1.010 ms)"
+  [ -z "${SATURATE-}" ] || echo "@@saturate dose=${SATURATE}x"
+  printf '["criterion","1.6.5.0",[{"reportName":"%s","reportAnalysis":{"anRegress":[{"regResponder":"time","regCoeffs":{"iters":{"estPoint":0.001,"estError":{"confIntLDX":1e-05,"confIntUDX":1e-05}}},"regRSquare":{"estPoint":0.999}}]},"reportMeasured":[[0.001,0,0,1]]}]]\\n' "$3" > "$5"
+fi
+exit 0
+""")
+assert 'reportName' in FAKE_HALF_LEGS, 'the leg-running stand-in lost its leg'
 
 # The same stand-in built without the baked line, which is what a half
 # from before 2026-08-21, or from a recipe that dropped it, answers.
@@ -5609,6 +5773,28 @@ def for_brief_bare_repetition(tmp):
                 '  repetition       none owed: the inputs moved under\n'
                 '                   both halves\n'
                 '  fills            PASS: same offset in line: 4.3%\n')
+    return r
+
+
+def for_brief_parked_intrusion(tmp):
+    """`for_brief_readings` with a process a rerun superseded parked
+    beside the run as `probe-intruded-<run>-<half>-main.log`, carrying
+    the foreign CPU that ordered the rerun."""
+    r = for_brief_readings(tmp)
+    write(os.path.join(tmp, 'shadow', 'probe-intruded-%s-lookrts-main.log'
+                       % r['tag']), WILD_LOUD_LOG)
+    return r
+
+
+def for_brief_stale_wild(tmp):
+    """`for_brief_readings` with more --wild readings than the run has
+    logs: two for logs since merged or moved, as Run 43's per-leg rider
+    readings outlived the merge that folded their logs."""
+    r = for_brief_readings(tmp)
+    d = os.path.join(tmp, 'shadow', 'log-read-%s' % r['tag'])
+    for n in ('gone1', 'gone2'):
+        write(os.path.join(d, 'wild-%s-al-lookrts-%s.txt' % (r['tag'], n)),
+              'NO bench reaches 0.25 foreign: nothing else was running\n')
     return r
 
 
@@ -7921,6 +8107,18 @@ RECORDS = [
          plant=lambda t: {'run': deflation_legs(at=t)},
          argv=['{run}', '--deflation'],
          ok=V(exit=0, has=['sat/clean'],
+              hasnt=['the riders were not taken']),
+         bug=V(exit=2, has=['the riders were not taken'])),
+
+    case('deflation-reads-the-merged-rider-sets', 'read-run.py', 'self',
+         'the riders merged to one JSON a set read as never taken',
+         # Since 2026-09-29 the driver folds a set's legs into
+         # `$R-al-<half>.json` and `$R-al-<half>-sat.json`; a mode that
+         # globs the per-leg names finds none and says the riders were
+         # not taken, over every leg on disk.
+         plant=lambda t: {'run': merged_deflation_legs()},
+         argv=['{run}', '--deflation'],
+         ok=V(exit=0, has=['sat/clean', 'roster/sat'],
               hasnt=['the riders were not taken']),
          bug=V(exit=2, has=['the riders were not taken'])),
 
@@ -10440,6 +10638,24 @@ RECORDS = [
          argv=['--brief-update', '{run}', '--brief-dir', '{dir}'],
          ok=V(exit=0, has=['items 5 and 6 written'])),
 
+    case('brief-update-counts-slots-not-mentions', 'read-run.py', 'self',
+         'a brief whose head names the `<yours>` slots in prose was told'
+         ' one slot stood, with every slot filled',
+         # Run 43's brief had both slots filled and the mode reported one
+         # left: it counted every `<yours`, the head's own backticked
+         # mention among them.
+         plant=brief_naming_its_slots,
+         argv=['--brief-update', '{run}', '--brief-dir', '{dir}'],
+         ok=V(exit=0, has=['items 5 and 6 written'], hasnt=['slot(s) left']),
+         bug=V(has=['1 `<yours>` slot(s) left'])),
+
+    case('brief-update-counts-a-standing-slot', 'read-run.py', None,
+         'CONTROL: an unfilled slot in a pasted item is still counted, so'
+         ' the backtick exception does not silence the count',
+         plant=brief_with_a_standing_slot,
+         argv=['--brief-update', '{run}', '--brief-dir', '{dir}'],
+         ok=V(exit=0, has=['1 `<yours>` slot(s) left'])),
+
     case('brief-update-fills-the-two-slots', 'read-run.py', None,
          'CONTROL: the pair\'s variable comes off the note\'s two recipes and'
          ' the largest finding off the run file\'s head lead, so neither'
@@ -11460,6 +11676,32 @@ RECORDS = [
          ok=V(has=['AN INTRUSION', 'peak 1.95.'], hasnt=['peak 1.95..']),
          bug=V(has=['peak 1.95..'])),
 
+    case('for-brief-reads-the-parked-processes', 'read-all.sh', 'self',
+         'the brief called the intrusion verdict CLEAN over a run whose'
+         ' intruded process had been rerun and parked',
+         # Post-run step 3 parks what a rerun supersedes as probe-*, and
+         # the verdict read only the logs named for the run: Run 43's
+         # brief said CLEAN and was corrected by hand before the checker
+         # read it.
+         shadow=dict(),
+         plant=for_brief_parked_intrusion,
+         argv=['{tag}', '--for-brief'],
+         ok=V(has=['PARKED BESIDE THEM',
+                   'probe-intruded-runzz-lookrts-main.log', '0.25 foreign']),
+         bug=V(has=['THE INTRUSION VERDICT IS CLEAN'],
+               hasnt=['PARKED BESIDE THEM'])),
+
+    case('for-brief-says-its-wild-readings-are-stale', 'read-all.sh', 'self',
+         'with more --wild readings than logs the verdict read `only N of'
+         ' the M log(s)`, N above M',
+         # Run 43's read `only 119 of the 31`, its readings directory
+         # holding the per-leg rider readings after the merge.
+         shadow=dict(),
+         plant=for_brief_stale_wild,
+         argv=['{tag}', '--for-brief'],
+         ok=V(has=['readings outnumber the']),
+         bug=V(has=['of the '], hasnt=['readings outnumber the'])),
+
     case('for-brief-names-the-readings-it-wants', 'read-all.sh', None,
          'CONTROL: with no readings directory each slot says which command'
          ' writes what it is filled from',
@@ -12033,6 +12275,52 @@ RECORDS = [
                    'would be uninstrumented']),
          bug=V(has=['gate begins'], hasnt=['launch env:'])),
 
+    case('riders-leave-one-json-and-one-log-a-set', 'run-alonelegs.sh', 'self',
+         'a rider set left two files a leg and a driver log, 45 names a set'
+         ' and 180 a run, where one JSON and one log carry the same',
+         # The owner's request of 2026-09-29, over Run 43's riders: one
+         # bench a process is the measurement and stays, and what goes is
+         # a file pair per process. The legs now run in `$R-al-$H$SUF.d/`
+         # and merge-alonelegs.py folds them into `$R-al-$H$SUF.json`,
+         # criterion's own form over the first repetitions with the
+         # anchors' second ones as a fourth element, and `.log`, the
+         # driver's lines and then every leg's, and removes the rest.
+         # FAKE_HALF_LEGS writes a one-report JSON a leg, so the merge
+         # has three first repetitions and the three anchors' seconds.
+         shadow=dict(extra=[('zzam-g912', FAKE_HALF_LEGS),
+                            ('zzam-pair.txt', NOTE_STUB)]),
+         argv=['zzam', 'g912'],
+         env={'MAXBUSY': '100'},
+         probe=lambda subs: rider_set_summary(subs['at'], 'zzam-al-g912'),
+         ok=V(exit=0, has=['files: zzam-al-g912.json zzam-al-g912.log\n',
+                           'first repetitions: 3', 'later repetitions: 3',
+                           'log DONE: yes']),
+         bug=V(has=['zzam-al-g912-shape-a-r1.json'])),
+
+    case('clean-legs-are-not-the-merged-saturated-ones', 'run-alonelegs.sh',
+         'self',
+         'the clean sweep was refused over a merged saturated set beside it',
+         # The merged names end `-sat.json` and `-sat.log`, which the old
+         # filter, `^$R-al-$H-sat-`, did not exclude: the clean guard's
+         # `$R-al-$H-*` takes them and the filter wants the hyphen after.
+         shadow=dict(extra=[('zzam2-g912', FAKE_HALF_LEGS),
+                            ('zzam2-al-g912-sat.json', '[]\n'),
+                            ('zzam2-pair.txt', NOTE_STUB)]),
+         argv=['zzam2', 'g912'],
+         env={'MAXBUSY': '100'},
+         ok=V(exit=0, hasnt=['already has alone-leg artifacts']),
+         bug=V(has=['already has alone-leg artifacts'])),
+
+    case('merge-alonelegs-converts-a-per-leg-set', 'merge-alonelegs.py', None,
+         'CONTROL: an existing per-leg set, as Runs up to 43 left them,'
+         ' folds into one JSON and one log and leaves nothing else',
+         plant=lambda t: {'legs': per_leg_rider_set(t, 'zzcv', 'h')},
+         argv=['--dir', '{legs}', '--out', '{legs}', 'zzcv', 'h'],
+         probe=lambda subs: rider_set_summary(subs['legs'], 'zzcv-al-h'),
+         ok=V(exit=0, has=['files: zzcv-al-h.json zzcv-al-h.log\n',
+                           'first repetitions: 3', 'later repetitions: 1',
+                           'log DONE: yes'])),
+
     case('clean-legs-are-not-the-saturated-ones', 'run-alonelegs.sh', None,
          'the clean sweep was refused over the saturated legs beside it',
          # `-sat` is a suffix on the HALF's name, so the clean sweep's
@@ -12059,8 +12347,7 @@ RECORDS = [
          # echoed past the baked-line check, so this is also the control
          # that a baked half gets through it: `start:` alone would pass an
          # unbaked stand-in too. Found 2026-08-23 by review.
-         probe=lambda subs: open(os.path.join(
-             subs['at'], 'zzal-al-g912-driver.log')).read(),
+         probe=lambda subs: rider_driver_text(subs['at'], 'zzal-al-g912'),
          ok=V(has=['start:', 'shapes: 3'],
               hasnt=['already has alone-leg artifacts',
                      'baked RTS line unread'])),
@@ -12118,10 +12405,7 @@ RECORDS = [
          shadow=dict(extra=[('zzub-g912', FAKE_HALF_UNBAKED),
                             ('zzub-pair.txt', NOTE_STUB)]),
          argv=['zzub', 'g912'],
-         probe=lambda subs: (open(os.path.join(
-             subs['at'], 'zzub-al-g912-driver.log')).read()
-             if os.path.exists(os.path.join(
-                 subs['at'], 'zzub-al-g912-driver.log')) else ''),
+         probe=lambda subs: rider_driver_text(subs['at'], 'zzub-al-g912'),
          ok=V(exit=1, has=['baked RTS line unread'],
               hasnt=['DONE-ALONELEGS', 'start:']),
          bug=V(has=['baked RTS line unread', 'DONE-ALONELEGS'])),
@@ -12136,8 +12420,8 @@ RECORDS = [
          shadow=dict(extra=[('zzll-g912', FAKE_HALF_LISTLESS),
                             ('zzll-pair.txt', NOTE_STUB)]),
          argv=['zzll', 'g912'],
-         probe=lambda subs: 'driver log left: %s' % os.path.exists(
-             os.path.join(subs['at'], 'zzll-al-g912-driver.log')),
+         probe=lambda subs: 'driver log left: %s' % rider_driver_left(
+             subs['at'], 'zzll-al-g912'),
          ok=V(exit=1, has=['--list gave nothing', 'driver log left: False']),
          bug=V(exit=1, has=['driver log left: True'],
                hasnt=['--list gave nothing'])),
@@ -12969,8 +13253,7 @@ RECORDS = [
          env={'ONLY': main_shapes()[0], 'MAXBUSY': '100',
               'SATURATE': '1', 'FAKE_SATURATE': '1'},
          argv=['zzsc', 'lookrts'],
-         probe=lambda subs: open(os.path.join(
-             subs['at'], 'zzsc-al-lookrts-driver.log')).read(),
+         probe=lambda subs: rider_driver_text(subs['at'], 'zzsc-al-lookrts'),
          ok=V(exit=1, has=['@@saturate line on a CLEAN leg',
                            'DONE-ALONELEGS-zzsc-lookrts WITH COMPLAINTS'])),
 
@@ -14195,6 +14478,19 @@ RECORDS = [
          bug=V(exit=0, has=['9999 arm-comparisons'],
                hasnt=['the lead tallies installed'])),
 
+    case('provenance-draft-names-a-warned-json', 'read-run.py', 'self',
+         'the correction paragraph said the reader warned on none of the'
+         ' JSONs whatever they carried',
+         # It read the reader's warnings off captured STDOUT, and health()
+         # writes them to STDERR, which the capture discarded: Run 43's
+         # first basis main set carried an R2 of 0.9873 and the draft said
+         # none, the install's own warning line beside it saying one.
+         plant=lambda t: {'run': warned_pair_run('zzw2')},
+         env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['--provenance-draft', '{run}'],
+         ok=V(exit=0, has=['warnings print for `zzw2-lookrts-main.json`']),
+         bug=V(has=['warnings print for none of the JSONs'])),
+
     case('provenance-draft-keeps-a-written-one', 'read-run.py',
          '32af4d4',
          "the Provenance section's mechanical paragraphs were rewritten by"
@@ -14793,6 +15089,19 @@ RECORDS = [
                            'carried by', 'carries it in 1 of 1',
                            '1 population(s)'])),
 
+    case('list-move-check-reads-the-drafted-phrasing', 'read-run.py', 'self',
+         "the cross-half `list` move check could not see the run file's"
+         ' site in the phrasing --prose-draft writes, and abstained',
+         # The drafter's `bar` paragraph says "`list` moves by N points on
+         # the main set", and the check looked for "move `list` by": Run
+         # 43's write-up met the abstention with its site in place and
+         # reworded the sentence by hand.
+         plant=lambda t: {'rundoc': rundoc_with_drafted_list_move(t)},
+         argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['`list` move is quoted differently']),
+         bug=V(exit=1, has=["could not locate at least two sites quoting"
+                            " the run's cross-half `list` move"])),
+
     case('check-doc-abstention-names-its-patterns', 'read-run.py', None,
          'the abstention named the patterns it wanted and not the site it'
          ' had already matched, so an author who reworded one of two sites'
@@ -15282,6 +15591,24 @@ RECORDS = [
                            'in the same order', 'unmoved',
                            'views per class (2 -> 2 classes)'])),
 
+    case('roster-delta-sees-a-view-grow-under-its-name', 'roster-delta.py',
+         'self',
+         'two views grown from 4992 elements to 1800000 under unchanged'
+         ' names read `unmoved`, the listings carrying names alone',
+         # Run 43's preparation: `compose-bcast-nest` and
+         # `compose-bcast-wide` grew in `aa18c24`, and only the commit log
+         # and the compose counts showed it. `check` prints each view's
+         # geometry, which is what a size column needs.
+         plant=lambda t: {
+             'old': stub_half(t, 'zzrg-old', FAKE_HALF_CHECKING),
+             'new': stub_half(t, 'zzrg-new', FAKE_HALF_CHECKING.replace(
+                 'rev-shape-b: view [2,3], strides [3,1], offset 0, l=6',
+                 'rev-shape-b: view [20,3], strides [3,1], offset 0, l=60'))},
+         argv=['{old}', '{new}'],
+         ok=V(exit=0, has=['geometry moved under an unchanged name (1)',
+                           'rev-shape-b: l=6 -> l=60']),
+         bug=V(hasnt=['geometry moved'])),
+
     case('roster-delta-refuses-a-listless-half', 'roster-delta.py', None,
          'CONTROL: a binary that answers nothing exits 2 rather than'
          ' reporting an empty roster, which reads like a true statement',
@@ -15450,6 +15777,20 @@ RECORDS = [
          argv=['run97'],
          ok=V(has=['no NAMED FILLS block in run97-pair.txt']),
          bug=V(hasnt=['NAMED FILLS'])),
+
+    case('status-reads-the-merged-rider-log', 'run-status.sh', 'self',
+         'step 19 read NOT DONE over a merged rider set, looking for the'
+         ' driver log the merge folds in',
+         # The driver's lines, the DONE line among them, are the head of
+         # `$R-al-$h[-sat].log` since the merge of 2026-09-29.
+         shadow=dict(extra=[
+             ('run97-pair.txt', 'HALVES: basis=a other=b\nRIDERS: clean\n'),
+             ('run97-al-a.log', 'start: x\nDONE-ALONELEGS-run97-a\n'),
+             ('run97-al-b.log', 'start: x\nDONE-ALONELEGS-run97-b\n')]),
+         argv=['run97'],
+         ok=V(has=['run97-al-a.log ends DONE without complaints',
+                   'run97-al-b.log ends DONE without complaints']),
+         bug=V(has=['no run97-al-a-driver.log with a DONE line'])),
 
     case('status-prints-the-readings-the-write-up-owes', 'run-status.sh',
          None,
@@ -16931,6 +17272,8 @@ CONFIG = {
                'deflation-legs-beside-the-run-not-the-cwd',
                'deflation-names-which-leg-set-is-missing',
                'deflation-skips-a-leg-with-no-positive-slope',
+               'deflation-reads-the-merged-rider-sets',
+               'provenance-draft-names-a-warned-json',
                'added-lines-over-head', 'added-lines-untracked',
                'superlative-worklist-names-its-settling-mode',
                'step-9-asserts-specconstr-of-every-basis'],

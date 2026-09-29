@@ -30,6 +30,16 @@
 # duration a session PLANS the quiet window around: the figure was six
 # times the truth and had the riders budgeted an hour.
 #
+# ONE JSON AND ONE LOG A SET, since 2026-09-29 at the owner's asking:
+# each leg is still one bench in its own process, which is the
+# measurement, but the legs run in `$R-al-$H$SUF.d/` and
+# merge-alonelegs.py folds them into `$R-al-$H$SUF.json` and `.log` when
+# the set ends -- criterion's own form over the first repetitions, the
+# anchors' second ones beside them, and the driver's lines heading every
+# leg's log -- and removes the rest, 45 names a set becoming two. A set
+# whose merge fails keeps its working directory and exits 1. Case:
+# `riders-leave-one-json-and-one-log-a-set`.
+#
 # Refuses to start over a previous attempt's artifacts, as run-major.sh does:
 # the JSONs would be overwritten in place and nothing said. ONLY=<shape>
 # restricts the sweep to one shape and skips the second reps; it is for a
@@ -48,7 +58,9 @@ H="$2"
 B=$(./half-bin.sh "$R" "$H") || exit 2   # the tmpfs copy where mounted, and says which; refuses a missing half itself
 SUF=${SAT:+-sat}               # artifacts of saturated legs carry it
 echo "launching $B"
-EXISTING=$(ls -1 "$R-al-$H$SUF"-*.json "$R-al-$H$SUF"-*.log 2>/dev/null)
+D="$R-al-$H$SUF.d"             # the set's working directory, merged away
+EXISTING=$(ls -1d "$R-al-$H$SUF".json "$R-al-$H$SUF".log "$D" \
+             "$R-al-$H$SUF"-*.json "$R-al-$H$SUF"-*.log 2>/dev/null)
 # THE CLEAN SWEEP'S GLOB WOULD OTHERWISE TAKE THE SATURATED LEGS. `-sat`
 # is a suffix on the half's name, so with SUF empty `$R-al-$H-*` matches
 # `$R-al-$H-sat-*` too, and a clean sweep run after a saturated one was
@@ -63,7 +75,7 @@ EXISTING=$(ls -1 "$R-al-$H$SUF"-*.json "$R-al-$H$SUF"-*.log 2>/dev/null)
 # EMPTY LINE, which `grep -v` passes through and `[ -n ]` then reads as an
 # artifact -- the same empty-search trap read-all.sh records.
 if [ -z "$SUF" ] && [ -n "$EXISTING" ]; then
-  EXISTING=$(printf '%s\n' "$EXISTING" | grep -v "^$R-al-$H-sat-")
+  EXISTING=$(printf '%s\n' "$EXISTING" | grep -v "^$R-al-$H-sat[-.]")
 fi
 if [ -n "$EXISTING" ]; then
   echo "$R-$H already has alone-leg artifacts here:"
@@ -123,7 +135,11 @@ if [ -z "${ONLY-}" ]; then
     exit 1
   fi
 fi
-exec > "$R-al-$H$SUF-driver.log" 2>&1
+# THE MERGED NAMES END `-sat.json`, `-sat.log` and `-sat.d`, which the
+# clean filter above excludes only with `[-.]` after `-sat`. Case:
+# `clean-legs-are-not-the-merged-saturated-ones`.
+mkdir "$D" || exit 1
+exec > "$D/$R-al-$H$SUF-driver.log" 2>&1
 echo "machine: ${BUSY-skipped}% busy at launch, against a ${MAXBUSY:-5}% bar"
 echo "start: $(date -Is), loadavg: $(cat /proc/loadavg)"
 echo "WILDLOG=${WILDLOG-unset} SAT=${SAT-unset}"
@@ -138,7 +154,7 @@ fi
 echo "shapes: $(echo $SHAPES | wc -w)"
 BAD=0
 leg() {  # leg SHAPE REP -- one process, one bench, and the count checked
-  local out=$R-al-$H$SUF-$1-$2 rc nb
+  local out=$D/$R-al-$H$SUF-$1-$2 rc nb
   env ${SAT:+SATURATE=$SAT} "$B" -m glob "$1/list" --json "$out.json" \
     > "$out.log" 2>&1
   rc=$?
@@ -158,4 +174,8 @@ for S in $ANCHORS; do leg "$S" r2; done
 echo "end: $(date -Is), loadavg: $(cat /proc/loadavg)"
 if [ "$BAD" = 0 ]; then echo "DONE-ALONELEGS-$R-$H"
 else echo "DONE-ALONELEGS-$R-$H WITH COMPLAINTS"; fi
+# The merge reads this log whole, the DONE line above included, and
+# removes it with the legs; a failed merge keeps $D and says why there.
+./merge-alonelegs.py --dir "$D" ${SUF:+--sat} "$R" "$H" \
+  || { echo "!! the merge failed: the legs are kept in $D"; exit 1; }
 exit $BAD

@@ -4820,7 +4820,28 @@ def deflation_table(run_path, cells, shapes, main_hs):
     # `deflation-legs-beside-the-run-not-the-cwd`.
     at = os.path.dirname(os.path.abspath(run_path))
     legs, sat = {}, {}
-    for path in sorted(glob.glob(os.path.join(at, '%s*-r1.json' % pat))):
+    # THE MERGED FORM FIRST, since 2026-09-29: run-alonelegs.sh folds a
+    # set into `$R-al-<half>.json` and `$R-al-<half>-sat.json`, criterion's
+    # own form over the set's first repetitions, one `list` a shape. The
+    # per-leg glob below stays for the runs up to 43 that left that form.
+    # Case: `deflation-reads-the-merged-rider-sets`.
+    merged = [(os.path.join(at, '%s-al-%s%s.json' % (prefix, half, s)), into)
+              for s, into in (('', legs), ('-sat', sat))]
+    for path, into in merged:
+        if not os.path.exists(path):
+            continue
+        l_cells, l_shapes, _, _ = load(path, main_hs)
+        for sh in l_shapes:
+            c = l_cells[sh].get('list')
+            if c is None or c['slope'] <= 0:
+                sys.stderr.write('%s: %s carries no `list` with a positive'
+                                 ' slope, so no ratio to it has a log;'
+                                 ' skipped\n' % (os.path.basename(path), sh))
+                continue
+            into[sh] = c['slope']
+    for path in ([] if any(os.path.exists(p) for p, _ in merged)
+                 else sorted(glob.glob(os.path.join(at, '%s*-r1.json'
+                                                    % pat)))):
         shape = os.path.basename(path)[len(pat):-len('-r1.json')]
         # THE GLOB TAKES BOTH RIDER SETS. `-sat` is a suffix on the half's
         # name, so `$R-al-<half>-*` matches the saturated legs too; they
@@ -4858,9 +4879,10 @@ def deflation_table(run_path, cells, shapes, main_hs):
                              ' decomposition cannot be read from these'
                              ' alone\n' % len(sat))
         else:
-            sys.stderr.write('no %s*-r1.json beside this run: the riders were'
-                             ' not taken, or the run and half are not this'
-                             ' file\'s\n' % pat)
+            sys.stderr.write('no %s.json and no %s*-r1.json beside this run:'
+                             ' the riders were not taken, or the run and'
+                             ' half are not this file\'s\n'
+                             % (pat[:-1], pat))
         return 2
     rows, missing = [], []
     for sh in shapes:
@@ -7288,7 +7310,14 @@ def provenance_draft(run, args):
             continue
         ncells[basis if '-%s-' % basis in path else other] += \
             len(sh) * len(sts)
-        _rc, w = quiet(health, cs, sh, sts, terms)
+        # health() WRITES ITS WARNINGS TO STDERR, and `quiet` keeps stdout
+        # and discards stderr, so read through it this said `none of the
+        # JSONs` over every run. Case: `provenance-draft-names-a-warned-json`.
+        err = io.StringIO()
+        with contextlib.redirect_stdout(io.StringIO()), \
+                contextlib.redirect_stderr(err):
+            health(cs, sh, sts, terms)
+        w = err.getvalue()
         if re.search(r'R2 < 0.99|under 10 samples', w):
             warned.append(os.path.basename(path))
     if so:
@@ -10143,7 +10172,11 @@ def brief_update(run, readings_dir=None, brief=None, where='.'):
               ' commit whose subject names this run and a step, which'
               ' at 6e is 6d\'s. Neither is written.'
               % (pre or '?', run, tip or '?'))
-    left = sum(1 for line in out for _ in re.finditer(r'<yours', line))
+    # A SLOT, not a mention: the brief's head names the form in prose as
+    # `<yours>`, in backticks, and counted this reported a slot standing
+    # over a brief with both filled (Run 43). Case:
+    # `brief-update-counts-slots-not-mentions`.
+    left = sum(1 for line in out for _ in re.finditer(r'(?<!`)<yours', line))
     if left:
         print('%d `<yours>` slot(s) left, which are prose and not facts:'
               ' the pair\'s variable and the run\'s largest finding. A brief'
@@ -15194,6 +15227,11 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
               # The run file's one site since 2026-09-25, Results' paragraph
               # after the table, the others pointing at it.
               r'move `list` by \*{0,2}([\d.]+) points\*{0,2} on the main'
+              r' set',
+              # --prose-draft's own `bar` phrasing, which Run 43 met as an
+              # abstention with the site in place. Case:
+              # `list-move-check-reads-the-drafted-phrasing`.
+              r'`list` moves by \*{0,2}([\d.]+) points\*{0,2} on the main'
               r' set'),
              # NOT the delta chain's `Its `list` moved N points between the
              # halves`: that chain keeps one bullet per run and each carries

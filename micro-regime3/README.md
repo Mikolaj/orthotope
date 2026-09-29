@@ -7507,7 +7507,9 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      roster change was -- and the first tag is the previous run's,
     #      as at 2d. Off the two binaries: benches, arms in and out,
     #      whether the survivors kept their order, main-set shapes in and
-    #      out, and the class views per class. ITS ARMS IN AND ITS PER-CLASS
+    #      out, the class views per class, and every shape or view whose
+    #      geometry moved under an unchanged name, off `check`, a minute a
+    #      binary. ITS ARMS IN AND ITS PER-CLASS
     #      TALLY ARE WHAT STEP 12 NAMES ITS CLASSES FROM -- every class where
     #      an arm came in, else each class whose count moved -- so read it
     #      here and carry the answer down

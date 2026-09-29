@@ -20,9 +20,14 @@ WHAT IT ANSWERS, and each is a sentence a roster block owes:
     they ran in*, order being able to move layout where membership
     does not;
   which main-set shapes landed and left;
-  the class views per class, on each side, and which views moved.
+  the class views per class, on each side, and which views moved;
+  and which shapes and views kept their NAME and changed their geometry,
+    off each binary's `check` -- a minute a binary -- the listings
+    carrying names alone: Run 43's two grown `compose` views read
+    `unmoved` until 2026-09-29, when this learned it. Case:
+    `roster-delta-sees-a-view-grow-under-its-name`.
 
-It reads `--list` and `classes --list` and nothing else, so it says what
+It reads `--list`, `classes --list` and `check` and nothing else, so it says what
 the binaries carry and never what a document claims about them. Exit 0
 clean, 1 where the two listings disagree about the ARMS -- one roster
 builds both, so that is a finding and not a delta -- and 2 where a binary
@@ -39,8 +44,11 @@ happened read as a report with something in it.
 
 import collections
 import os
+import re
 import subprocess
 import sys
+
+GEOMETRY = re.compile(r'^([\w.-]+): ((?:view|normalSh) .*?l=\d+)', re.M)
 
 
 def refuse(msg):
@@ -79,6 +87,18 @@ def listing(path, mode):
         refuse('%s listed nothing -- wrong binary, or a mode it lacks'
                % ' '.join(cmd))
     return lines
+
+
+def geometry(path):
+    """{name: geometry} off a half's `check`, the text from the view or
+    normal shape to its `l=`; {} where `check` says nothing, which is
+    reported and not refused, a stand-in answering only its listings."""
+    cmd = [path if os.sep in path else os.path.join('.', path), 'check']
+    try:
+        got = subprocess.run(cmd, capture_output=True, text=True)
+    except OSError:
+        return {}
+    return {m.group(1): m.group(2) for m in GEOMETRY.finditer(got.stdout)}
 
 
 def ordered(seq):
@@ -175,6 +195,22 @@ def main():
                 mark = '' if oc.get(c) == nc.get(c) else '   <-- moved'
                 print('     %-10s %3s -> %-3s%s'
                       % (c, oc.get(c, '-'), nc.get(c, '-'), mark))
+    og, ng = geometry(old), geometry(new)
+    if not og or not ng:
+        print('  geometry   not read: %s printed no view or shape line'
+              % ' and '.join(p for p, g in ((old, og), (new, ng)) if not g))
+    else:
+        moved = [n for n in og if n in ng and og[n] != ng[n]]
+        if moved:
+            print('  geometry moved under an unchanged name (%d):'
+                  % len(moved))
+            for n in moved:
+                lo = re.search(r'l=\d+', og[n]).group(0)
+                ln = re.search(r'l=\d+', ng[n]).group(0)
+                print('     %s: %s -> %s   (%s -> %s)'
+                      % (n, lo, ln, og[n], ng[n]))
+        else:
+            print('  geometry   every shape and view both carry unmoved')
     raise SystemExit(bad)
 
 

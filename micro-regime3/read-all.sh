@@ -764,11 +764,30 @@ for_brief () {
       /^NO bench reaches/ { clean++ }
       /no paired `@@wild` samples|^NO LOAD FIELDS/ {
         none = none (none == "" ? "" : ", ") name; nn++ }
-      END { of = (n == logs) ? "the " n : "only " n " of the " logs
+      # MORE READINGS THAN LOGS is a readings directory older than the
+      # logs -- the per-leg rider readings of Run 43 outlived the merge --
+      # and `only N of the M` then read N above M. Case:
+      # `for-brief-says-its-wild-readings-are-stale`.
+      END { of = (n <= logs) ? ((n == logs) ? "the " n : "only " n " of the " logs) : "the " n
+            if (n > logs)
+              printf "THE --wild READINGS ARE STALE: its %d readings outnumber the %d logs named for the run now, so rerun post-run-readings.sh. ", n, logs
             if (nl)
               printf "AN INTRUSION: --wild over %s log(s) this run wrote finds a bench at or above 0.25 foreign in %d: %s", of, nl, loud
             else
               printf "THE INTRUSION VERDICT IS CLEAN: --wild over %s log(s) this run wrote finds no bench at 0.25 foreign in the %d that carry samples; the other %d carry none: %s", of, clean, nn, none }' "$@"
+    # AND WHAT A RERUN PARKED, which post-run step 3 names probe-* so no
+    # run-named glob takes it: read alone, the verdict above called Run
+    # 43's CLEAN over a run whose intruded process had been rerun. Case:
+    # `for-brief-reads-the-parked-processes`.
+    set -- probe-*-"$R"-*.log
+    [ -f "$1" ] || return 0
+    printf -- ' --- BUT %d LOG(S) PARKED BESIDE THEM AS probe-*, the processes a rerun superseded, read:' "$#"
+    for f in "$@"; do
+      v=$(./read-run.py "$f" --wild 2>/dev/null \
+            | grep -m1 -E 'IN ONE LINE:|^NO bench reaches' \
+            | sed -e 's/.*IN ONE LINE: //' -e 's/\.$//')
+      printf ' %s: %s;' "$f" "${v:-no --wild verdict}"
+    done
   }
   class_counts () {
     set -- "$RD"/*-"$BASIS"-aa.txt

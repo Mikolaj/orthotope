@@ -1250,4 +1250,34 @@ MUTANTS = [
      ' o = subprocess.run([\'python3\', \'{file}\', \'--lint\','
      ' \'--readme\', r], capture_output=True, text=True).stdout;'
      ' sys.exit(1 if \'quotes a prior and names neither\' in o else 0)"'),
+    # merge-alonelegs.py, its repetitions merged into one list: an anchor's
+    # second repetition joins the first ones, the shape then carries two,
+    # and the set is refused whole. The judge converts the case's per-leg
+    # set and wants its one later repetition kept apart.
+    ('the rider merge takes every repetition for a first one',
+     'merge-alonelegs.py',
+     '        if rep == 1:',
+     '        if rep >= 1:',
+     'cd "{dir}" && python3 -c "import sys, tempfile, subprocess;'
+     ' sys.path.insert(0, \'.\'); import defects;'
+     ' d = defects.per_leg_rider_set(tempfile.mkdtemp(), \'zzcv\', \'h\');'
+     ' subprocess.run([\'python3\', \'{file}\', \'--dir\', d, \'--out\','
+     ' d, \'zzcv\', \'h\'], capture_output=True);'
+     ' s = defects.rider_set_summary(d, \'zzcv-al-h\');'
+     ' sys.exit(0 if \'later repetitions: 1\' in s else 1)"'),
+    # roster-delta.py's geometry, blinded: a view that grows under its name
+    # reads unmoved again, which is what Run 43's preparation met. The
+    # judge runs the case's two checking stand-ins and wants it named.
+    ('roster-delta sees no geometry move under a name', 'roster-delta.py',
+     '        moved = [n for n in og if n in ng and og[n] != ng[n]]',
+     '        moved = []',
+     'cd "{dir}" && python3 -c "import sys, tempfile, subprocess;'
+     ' sys.path.insert(0, \'.\'); import defects; t = tempfile.mkdtemp();'
+     ' o = defects.stub_half(t, \'zzrg-old\', defects.FAKE_HALF_CHECKING);'
+     ' n = defects.stub_half(t, \'zzrg-new\','
+     ' defects.FAKE_HALF_CHECKING.replace(\'view [2,3], strides [3,1],'
+     ' offset 0, l=6\', \'view [20,3], strides [3,1], offset 0, l=60\'));'
+     ' r = subprocess.run([\'python3\', \'{file}\', o, n],'
+     ' capture_output=True, text=True).stdout;'
+     ' sys.exit(0 if \'rev-shape-b: l=6 -> l=60\' in r else 1)"'),
 ]
