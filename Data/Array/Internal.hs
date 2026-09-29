@@ -231,31 +231,112 @@ sumExtents ss = foldr (\ s k !n -> if n > maxBound - s then -1 else k (n + s)) i
 sumOverflows :: [Int] -> Bool
 sumOverflows ss = sumExtents ss < 0
 
--- When shapes match, we can be efficient and use loop-fused comparisons instead
--- of materializing a vector.
--- Note this assumes the shape is the same for both Vectors.
--- TODO: two views of one layout that skip elements are compared by building
--- both, and two that read one part of the vector compare that part in
--- vector order rather than the views', so x == y can fail on an undefined
--- element where compare x y returns.  Fix using routeT and the other
--- machinery of the future toVectorT overhaul.
-{-# INLINABLE equalT #-}
-equalT :: (Vector v, VecElem v a, Eq a, Eq (v a))
-                  => ShapeL -> T v a -> T v a -> Bool
-equalT s _ _ | 0 `elem` s = True
-equalT s x y | strides x == strides y
-             , offset x == offset y = case readRangeT s x of
-                 Just (lo, n) -> vSlice lo n (values x) == vSlice lo n (values y)
-                 Nothing -> let (_, rs, x') = dropBroadcastT s x
-                                (_, _, y') = dropBroadcastT s y
-                            in  toVectorT rs x' == toVectorT rs y'
-             | otherwise = toVectorT s x == toVectorT s y
+-- Compare two arrays of the same shape, the first argument, element by
+-- element, stopping at the first element that differs.  Two views of the same
+-- strides read their vectors alike, from offsets that may differ: where they
+-- read every element of one part of their vectors ('readRangeT') they compare
+-- the two parts, and where they do not they compare their views without the
+-- broadcast dimensions, which repeat what the rest holds, part by part along
+-- the route ('routePartsT'), a part being a run or, where the uniform run
+-- length is one element, an element.  Otherwise two views that are one slice each
+-- compare as the slices, a view and a slice as the view's parts against the
+-- slice from its start on, and any other pair through 'toListT'.  The index
+-- loops allocate nothing, a walk against a slice 16 bytes a part, and no case
+-- reads an element outside the views or materializes one.
+--
+-- The parts that two views of the same strides read whole are compared
+-- in the order of the vectors, not of the views, so where they hold an
+-- undefined element, x == y can fail on it where compare x y, which
+-- follows the views, returns.
+--
+-- The loops are written out rather than taken from the vectors'
+-- own '==', which on two Storable vectors of 60000 Doubles, on GHC
+-- 9.12.4, took ten times the index loop's time at -O2 and allocated 56
+-- bytes an element, 72 at -O1.  That '==' is vector-stream's 'eqBy'
+-- (vector-stream-0.1.0.1 under vector-0.13.2.0), and Storable's
+-- 'basicUnsafeIndexM' leaves the element read unevaluated, so the inner
+-- step of 'eqBy' receives every element of the first vector as a thunk
+-- and then boxes it (https://github.com/haskell/vector/issues/570); a
+-- copy of 'eqBy' with that argument banged took twice the index loop's
+-- time at -O2 and allocated nothing.  The 16 bytes an element it kept
+-- at -O1 are the first vector's index, passed boxed between the two
+-- steps, which 'eqBy''s SPEC arguments leave to SpecConstr to unbox, a
+-- pass -O1 does not run; and 'eqBy', an unfolding, is compiled where
+-- it is used, at this package's -O1, whatever vector itself is built
+-- with.  So -fspec-constr would take only a quarter off the vectors'
+-- '==', the thunk remaining.  'compare' is vector-stream's 'cmpBy', of
+-- the same shape and, from GHC 9.12 on, the same cost, hence the loop
+-- in 'compareT'.
+{-# INLINE equalT #-}
+equalT :: (Vector v, VecElem v a, Eq a) => ShapeL -> T v a -> T v a -> Bool
+equalT s x@(T _ _ vx) y@(T _ _ vy)
+  | l == 0 = True
+  | strides x == strides y = case readRangeT s x of
+      Just (lo, n) -> go lo (lo + d) n
+      Nothing -> let (_, rs, x') = dropBroadcastT s x
+                 in  routePartsT (routeT rs (product rs) x')
+                                 (\p n rest -> go p (p + d) n && rest) True
+  | otherwise = case (routeT s l x, routeT s l y) of
+      (RSlice ox _, RSlice oy _) -> go ox oy l
+      (rx, RSlice oy _) ->
+        routePartsT rx (\p n rest !q -> go p q n && rest (q + n))
+                    (const True) oy
+      (RSlice ox _, ry) ->
+        routePartsT ry (\p n rest !q -> go q p n && rest (q + n))
+                    (const True) ox
+      _ -> and (zipWith (==) (toListT s x) (toListT s y))
+  where
+    !l = product s
+    !d = offset y - offset x
+    go :: Int -> Int -> Int -> Bool
+    go !ox !oy !k = loop 0
+      where loop !i = i >= k || (vIndex vx (ox + i) == vIndex vy (oy + i)
+                                 && loop (i + 1))
 
--- Note this assumes the shape is the same for both Vectors.
-{-# INLINABLE compareT #-}
-compareT :: (Vector v, VecElem v a, Ord a, Ord (v a))
+-- Compare two arrays of the same shape lexicographically in row-major order:
+-- two views of the same strides part by part along the route of their views
+-- without the broadcast dimensions, as 'equalT' does where they read no part
+-- whole, two views that are one slice each by index, a view and a slice as
+-- 'equalT' compares them, and any other pair through 'toListT'.  Without the
+-- broadcast dimensions the order is kept: the first element that differs in
+-- the views is the first one that differs in what remains.
+{-# INLINE compareT #-}
+compareT :: (Vector v, VecElem v a, Ord a)
             => ShapeL -> T v a -> T v a -> Ordering
-compareT s x y = compare (toVectorT s x) (toVectorT s y)
+compareT s x@(T _ _ vx) y@(T _ _ vy)
+  | l == 0 = EQ
+  | strides x == strides y =
+      let (_, rs, x') = dropBroadcastT s x
+      in  routePartsT (routeT rs (product rs) x')
+                      (\p n rest -> case go p (p + d) n of
+                                      EQ -> rest
+                                      o -> o)
+                      EQ
+  | otherwise = case (routeT s l x, routeT s l y) of
+      (RSlice ox _, RSlice oy _) -> go ox oy l
+      (rx, RSlice oy _) ->
+        routePartsT rx (\p n rest !q -> case go p q n of
+                                          EQ -> rest (q + n)
+                                          o -> o)
+                    (const EQ) oy
+      (RSlice ox _, ry) ->
+        routePartsT ry (\p n rest !q -> case go q p n of
+                                          EQ -> rest (q + n)
+                                          o -> o)
+                    (const EQ) ox
+      _ -> foldr (\o r -> if o == EQ then r else o) EQ
+                 (zipWith compare (toListT s x) (toListT s y))
+  where
+    !l = product s
+    !d = offset y - offset x
+    go :: Int -> Int -> Int -> Ordering
+    go !ox !oy !k = loop 0
+      where loop !i
+              | i >= k = EQ
+              | otherwise =
+                  case compare (vIndex vx (ox + i)) (vIndex vy (oy + i)) of
+                    EQ -> loop (i + 1)
+                    o -> o
 
 -- Given the dimensions, return the stride in the underlying vector
 -- for each dimension.  The first element of the list is the total length.
@@ -558,10 +639,10 @@ data Nest = Fused !Axis | Level !Axis !Int !Nest
 
 -- | The route a non-empty view takes once canonicalized: what its
 -- consumer does with it, which is what 'toVectorListT', 'toVectorT',
--- 'toListT' and, on the view with its axes reordered, the two unordered
--- entry points dispatch on.  A view of no elements (@product sh == 0@)
--- has no route: each of these entry points answers it before computing
--- one.
+-- 'toListT', 'equalT', 'compareT' and, on the view with its axes
+-- reordered, the two unordered entry points dispatch on.  A view of no
+-- elements (@product sh == 0@) has no route: each of these entry points
+-- answers it before computing one.
 --
 -- Three constructors, one per thing that can be done with a view: slice
 -- it, walk its runs as slices, or only expensively fill a vector from
@@ -569,8 +650,8 @@ data Nest = Fused !Axis | Level !Axis !Int !Nest
 -- and the element count (@product sh@), which every caller has in hand,
 -- so that a consumer takes the route and the vector and nothing beside
 -- them; each constructor carries what its way takes and no more, and
--- 'RRuns' is the list consumer's alone, 'routeVectorT' filling it as it
--- fills 'RFill'.
+-- 'RRuns' serves the lists and the comparisons, 'routeVectorT' filling
+-- it as it fills 'RFill'.
 --
 -- The choice of constructors is partly arbitrary, motivated by
 -- performance, partly systematic, following the runs a view contains,
@@ -598,8 +679,10 @@ data Route
       -- outer index, from the start; the count is not needed to walk
       -- them, and is what they are filled by where one vector is asked
   | RFill Axes !Int !Int
-      -- ^ any other canonical view, its uniform run length one, so
-      -- the view is filled as one vector of the count, from the start
+      -- ^ any other canonical view, its uniform run length one: the
+      -- conversions to vectors fill it as one vector of the count, from
+      -- the start, and 'toListT' and the comparisons walk it an element
+      -- at a time
 
 -- The axes are a strict field in 'RRuns' and a lazy one in 'RFill' by
 -- measurement: each bang of this module was flipped alone and the -O1
@@ -897,6 +980,20 @@ routeSlicesT v route cons nil = case route of
     -- No slice can be taken.  Fill the result through 'vFillStrided',
     -- whose vector-backed instances write a mutable buffer directly.
     cons (vFillStrided axes ao l v) nil
+
+-- The parts of the vector a route reads, in the route's order, as the
+-- offset and the length of each, by the step and nil of a right fold:
+-- the one slice, a run at a time, or an element at a time where the
+-- uniform run length is one element.
+{-# INLINE routePartsT #-}
+routePartsT :: Route -> (Int -> Int -> b -> b) -> b -> b
+routePartsT route step nil = case route of
+  RSlice ao l -> step ao l nil
+  RRuns (Axes _ n (InnerFirst outerAxes)) ao _ -> case outerAxes of
+    [] -> step ao n nil
+    axis : above -> offsetsT axis above ao (\p rest -> step p n rest) nil
+  RFill (Axes t n (InnerFirst outerAxes)) ao _ ->
+    offsetsT (Axis t n) outerAxes ao (\p rest -> step p 1 rest) nil
 
 -- Convert an array to one vector holding all the elements in the
 -- natural order.  Dispatches as 'toVectorListT' does, except that a
@@ -1244,6 +1341,12 @@ mapT sh f t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip bs 
   where (bs, rsh, r) = dropBroadcastT sh t
 
 -- Zip two arrays with a function.
+-- TODO: two views of the same strides that each read every element of one
+-- part could zip those parts and keep the strides, as 'convertT' maps a view.
+-- Measured on 60000 Doubles, that pays only where they broadcast, from 550
+-- us to 1.9, gains nothing on transpositions and costs 14% on dense arrays;
+-- a guard confining it to parts smaller than the view would complicate this
+-- function and slow down every call.
 {-# INLINE zipWithT #-}
 zipWithT :: (Vector v, VecElem v a, VecElem v b, VecElem v c) =>
             ShapeL -> (a -> b -> c) -> T v a -> T v b -> T v c
