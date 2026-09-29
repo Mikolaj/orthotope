@@ -37,6 +37,20 @@ test = testGroup "DynamicS" $
       eq_2 = assertEqual "2" False (a1 == a2)
       ord_1 = assertEqual "1" EQ (a1 `compare` a1)
       ord_2 = assertEqual "2" LT (a1 `compare` a2)
+      -- Comparisons over views of one shape: equal contents in
+      -- different layouts, a difference in the last element alone
+      -- seen through a transposition, a view against one over a vector
+      -- that differs outside it, and orderings decided at the last
+      -- element and at the first.
+      eq_3 = assertEqual "3" True (a2 == fromList [3,2] [1,4,2,5,3,6])
+             >> assertEqual "3" True
+                  (slice [(0,2),(0,2)] a1 == fromList [2,2] [1,2,4,5])
+      eq_4 = assertEqual "4" False (a2 == fromList [3,2] [1,4,2,5,3,7])
+             >> assertEqual "4" True
+                  (slice [(0,1),(0,3)] a1
+                   == slice [(0,1),(0,3)] (fromList [2,3] [1,2,3,9,9,9]))
+      ord_3 = assertEqual "3" LT (a2 `compare` fromList [3,2] [1,4,2,5,3,7])
+              >> assertEqual "3" GT (rev [1] a1 `compare` a1)
       shapeL_1 = assertEqual "1" [2,3] (shapeL a1)
       shapeL_2 = assertEqual "2" [3,2] (shapeL a2)
       rank_1 = assertEqual "1" 2 (rank a1)
@@ -313,6 +327,9 @@ test = testGroup "DynamicS" $
         , testCase "eq_2" eq_2
         , testCase "ord_1" ord_1
         , testCase "ord_2" ord_2
+        , testCase "eq_3" eq_3
+        , testCase "eq_4" eq_4
+        , testCase "ord_3" ord_3
         , testCase "shapeL_1" shapeL_1
         , testCase "shapeL_2" shapeL_2
         , testCase "rank_1" rank_1

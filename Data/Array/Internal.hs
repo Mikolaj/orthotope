@@ -179,23 +179,68 @@ type ShapeL = [Int]
 badShape :: ShapeL -> Bool
 badShape = any (< 0)
 
--- When shapes match, we can be efficient and use loop-fused comparisons instead
--- of materializing a vector.
--- Note this assumes the shape is the same for both Vectors.
--- TODO(augustss): if the array is a small fraction of the vector this can be inefficient.
-{-# INLINABLE equalT #-}
+-- Compare two arrays of the same shape, the first argument, element by
+-- element, stopping at the first element that differs.  Two views of
+-- one layout over vectors no longer than the view are equal if the
+-- vectors are; otherwise two views that are one slice each compare as
+-- the slices, and any other pair through 'toListT'.  Both loops read
+-- by index and allocate nothing, and no case reads a vector beyond the
+-- view's own size or materializes one.
+--
+-- The loops are written out rather than taken from the vectors'
+-- own '==', which on two Storable vectors of 60000 Doubles, on GHC
+-- 9.12.4, took ten times the index loop's time at -O2 and allocated 56
+-- bytes an element, 72 at -O1.  That '==' is vector-stream's 'eqBy'
+-- (vector-stream-0.1.0.1 under vector-0.13.2.0), and Storable's
+-- 'basicUnsafeIndexM' leaves the element read unevaluated, so the inner
+-- step of 'eqBy' receives every element of the first vector as a thunk
+-- and then boxes it (https://github.com/haskell/vector/issues/570); a
+-- copy of 'eqBy' with that argument banged took twice the index loop's
+-- time at -O2 and allocated nothing.  The 16 bytes an element it kept
+-- at -O1 are the first vector's index, passed boxed between the two
+-- steps, which 'eqBy''s SPEC arguments leave to SpecConstr to unbox, a
+-- pass -O1 does not run; and 'eqBy', an unfolding, is compiled where
+-- it is used, at this package's -O1, whatever vector itself is built
+-- with.  So -fspec-constr would take only a quarter off the vectors'
+-- '==', the thunk remaining.  'compare' is vector-stream's 'cmpBy', of
+-- the same shape and, from GHC 9.12 on, the same cost, hence the loop
+-- in 'compareT'.
+{-# INLINE equalT #-}
 equalT :: (Vector v, VecElem v a, Eq a, Eq (v a))
                   => ShapeL -> T v a -> T v a -> Bool
-equalT s x y | strides x == strides y
-               && offset x == offset y
-               && values x == values y = True
-             | otherwise = toVectorT s x == toVectorT s y
+equalT s x@(T _ _ vx) y@(T _ _ vy)
+  | l == 0 = True
+  | strides x == strides y && offset x == offset y && l >= n
+    && n == vLength vy && go 0 0 n = True
+  | RSlice ox _ <- routeT s l x, RSlice oy _ <- routeT s l y = go ox oy l
+  | otherwise = and (zipWith (==) (toListT s x) (toListT s y))
+  where
+    !l = product s
+    !n = vLength vx
+    go :: Int -> Int -> Int -> Bool
+    go !ox !oy !k = loop 0
+      where loop !i = i >= k || (vIndex vx (ox + i) == vIndex vy (oy + i)
+                                 && loop (i + 1))
 
--- Note this assumes the shape is the same for both Vectors.
-{-# INLINABLE compareT #-}
+-- Compare two arrays of the same shape lexicographically in row-major
+-- order: two views that are one slice each by index, as 'equalT' does,
+-- and any other pair through 'toListT'.
+{-# INLINE compareT #-}
 compareT :: (Vector v, VecElem v a, Ord a, Ord (v a))
             => ShapeL -> T v a -> T v a -> Ordering
-compareT s x y = compare (toVectorT s x) (toVectorT s y)
+compareT s x@(T _ _ vx) y@(T _ _ vy)
+  | l == 0 = EQ
+  | RSlice ox _ <- routeT s l x, RSlice oy _ <- routeT s l y = loop ox oy 0
+  | otherwise = foldr (\o r -> if o == EQ then r else o) EQ
+                      (zipWith compare (toListT s x) (toListT s y))
+  where
+    !l = product s
+    loop :: Int -> Int -> Int -> Ordering
+    loop !ox !oy !i
+      | i >= l = EQ
+      | otherwise = case compare (vIndex vx (ox + i)) (vIndex vy (oy + i)) of
+          EQ -> loop ox oy (i + 1)
+          o -> o
 
 -- Given the dimensions, return the stride in the underlying vector
 -- for each dimension.  The first element of the list is the total length.
