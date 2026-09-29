@@ -782,6 +782,22 @@ rather than a slot in the next run, observed again:
   **What would settle it**: `./copy-test.sh run43` over that cell, read
   with `./read-run.py --copy-test probe-copy-test-run43.log`, while
   `run43-gheadtwopass` is still on disk --- INSTANCE, PROCESS or BUILD.
+- `OPEN` **A cross-half figure is read two ways and held to two bars, and Run
+  43's comprehension probe could not tell which applies.** The run file's
+  Results says `--compare`'s paired ratio per arm "says which half runs that arm
+  faster and by how much", and every class block's `Across the halves` line says
+  it is "NOT read for the pair's variable" before its own paragraph counts
+  strategies past an A/A bar in points; and the head judges an arm's cross
+  figure against the cross-half A/A bar `--compare` prints, 0.28 points on Run
+  43's main set, where [Reading a run file](#reading-a-run-file) holds a margin
+  on that line to the WIDER of the two halves' floors, 0.79% on the same set ---
+  a bar three of the five arms the head says clear it do not ([Run 43's
+  file](runs/run43.md)). Neither is this run's to rule: both rules
+  are the chapter's and older than the run. **What would settle it** is a ruling
+  naming which bar a cross-half arm figure faces and what the class line's
+  `NOT read` withholds --- the geomean over arms, or every per-arm figure
+  under it --- written where the two rules stand, and the head and class
+  paragraphs read against it.
 - `ANSWERED` **What Run 42 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 42's own file](runs/run42.md), where a run's
@@ -1310,15 +1326,15 @@ rather than a slot in the next run, observed again:
   of Run 40's basis, while the control's family reads within 0.9 of a point
   of Run 41's on all four ([Run 42's file](runs/run42.md)) --- so the term
   belonged to one build, and a rebuild is what removed it. **Run 43 adds
-  a PROCESS term to it, some two fifths of the build term's size, on one
-  build**: its first basis main-set process read the family at 0.9964 to 0.9984
-  of Run 42's basis, and the quiet rerun of the same binary the same day
-  at 1.0147 to 1.0173 of that first process, every other arm on either half
-  within 0.72 of a point of its own first process, the control's family within
-  0.65 --- so on this family a process moves the clock by 1.5 to 1.7 points
-  where a build moved it by 3.4 to 9.5, and a copy test that reads BUILD against
-  the previous run's half is reading across both terms at once ([Run 43's
-  file](runs/run43.md)).
+  a PROCESS term to it, some two fifths of the build term's size on the main
+  set, on one build**: its first basis main-set process read the family
+  at 0.9964 to 0.9984 of Run 42's basis, and the quiet rerun of the same binary
+  the same day at 1.0147 to 1.0173 of that first process, every other arm
+  on either half within 0.72 of a point of its own first process, the control's
+  family within 0.65 --- so on this family a process moves the clock by 1.5
+  to 1.7 points where a build moved it by 3.4 to 9.5, and a copy test that reads
+  BUILD against the previous run's half is reading across both terms at once
+  ([Run 43's file](runs/run43.md)).
 - `PARKED` **Four arms moved past 3% against Run 32 on ONE half each, with their
   counts level; the copy test, taken after the run, gives one of them
   to the evening's mounted file instance and cannot reach the other three.**
@@ -1624,8 +1640,8 @@ rather than a slot in the next run, observed again:
   carries it, as its allocation signature suggests, or whether LiberateCase
   carries part of it on this HEAD. **What settles it is one pair and one
   variable**: either flag alone against the unflagged half, built by the newest
-  published basis's own recipe --- now `run42-gheadnospec`, `Main.hs`
-  at `eb76398` and the shim at `1a359bd` under the settled cost,
+  published basis's own recipe --- now `run43-gheadnospec`, `Main.hs`
+  at `e29cdf2` and the shim at `1a359bd` under the settled cost,
   with the compiler, the project file and the launch unmoved --- which reads
   with the box as the only term. Registered here rather than in a run's
   registration because it is a pair to ask for and not a prediction to hold.
