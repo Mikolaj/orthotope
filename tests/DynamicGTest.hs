@@ -111,12 +111,19 @@ prop_compare v@(View sh _) =
   in  forAll (choose (0, length l)) $ \ i ->
       forAll (choose (0, n)) $ \ j ->
       forAll (choose (-1, 1)) $ \ d ->
+      forAll (choose (1, 3)) $ \ m ->
       let l' = [ if k == i then e + fromIntegral d else e | (k, e) <- zip [0 ..] l ]
           y = fromList (shapeL x) l'
           z = mkViewG v [ fromIntegral (if k == j then k + d else k) | k <- [0 .. n - 1] ]
+          -- z with its strides, at an offset m further into a longer vector
+          w = case z of
+            DG.A zsh (I.T zss o zv) | I.vLength zv > 0 ->
+              DG.A zsh (I.T zss (o + m) (I.vAppend (I.vReplicate m 0) zv))
+            _ -> z
       in  (x == y) === (l == l') .&&. compare x y === compare l l'
           .&&. compare y x === compare l' l
           .&&. (x == z) === (l == toList z) .&&. compare x z === compare l (toList z)
+          .&&. (x == w) === (l == toList w) .&&. compare x w === compare l (toList w)
 
 -- The reductions agree with the list's: reduce, sumA, productA, maximumA,
 -- minimumA, anyA and allA.
