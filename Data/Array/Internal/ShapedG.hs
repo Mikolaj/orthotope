@@ -81,12 +81,12 @@ instance (Shape sh, Vector v, Read a, VecElem v a) => Read (Array sh v a) where
     , (s, r3) <- readsPrec 11 r2', (xs, r4) <- readsPrec 11 r3
     , s == shapeP (Proxy :: Proxy sh), product s == length xs]
 
-instance (Vector v, Eq a, VecElem v a, Eq (v a), Shape sh)
+instance (Vector v, Eq a, VecElem v a, Shape sh)
          => Eq (Array sh v a) where
   a@(A v) == (A v') = equalT (shapeL a) v v'
   {-# INLINE (==) #-}
 
-instance (Vector v, Ord a, Ord (v a), VecElem v a, Shape sh)
+instance (Vector v, Ord a, VecElem v a, Shape sh)
          => Ord (Array sh v a) where
   a@(A v) `compare` (A v') = compareT (shapeL a) v v'
   {-# INLINE compare #-}
