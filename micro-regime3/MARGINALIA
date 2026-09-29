@@ -1317,3 +1317,5 @@ THE WRITE-UP SESSION'S HALF
 **A gate's refusal hidden by a filter.** `--replace` refused a list item with a message saying "discard", which a grep for `out` or `refus` did not show; read the exit status of every replace.
 
 **A step skipped.** Post-run 4a's copy test for the one unexplained half-local mover waits for the owner, `QUIET-AFTER:` reading `ask`.
+
+**A correction to What Run 43 made cheaper**: the correction-footing sentence that read the reader's warnings off stdout is `--provenance-draft`'s, not `--prose-draft`'s, as the block above names it; the fix and its case, `provenance-draft-names-a-warned-json`, are in `7cb27fd`.
