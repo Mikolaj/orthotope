@@ -56,13 +56,15 @@ ways.
 
 **A direct mutable result buffer is faster still**: `mut-odo` walks the outer
 odometer and writes each innermost run, and `mut-odo-vecdims` --- the same fill
-with its dimension lists replaced by unboxed vectors --- is on Run 42 (plain
+with its dimension lists replaced by unboxed vectors --- is on Run 43 (plain
 -O1, -A32m, exit span, settled cost, GHC HEAD `10.1.20260918`, launched
-from disk) **2.86x** over `bq-expand` paired, ahead on all nineteen shapes.
+from disk) **2.89x** over `bq-expand` paired, ahead on all nineteen shapes.
 **That headline moves with the published REGIME and with where a build places
 `bq-expand`, and not with the COMPILER**: on plain -O1 it has read 2.83x
-to 2.87x on every build from Run 29 on but Run 41's, whose basis placed
-`bq-expand` 4% slower and read 2.97x ([the run
+to 2.87x on every build from Run 29 to Run 42 but Run 41's, whose basis placed
+`bq-expand` 4% slower and read 2.97x, and Run 43's 2.89x is its main set's
+second process, which ran `bq-expand` 1.5% slower than the first process
+of the same binary, reading 2.85x ([the run
 file](runs/run43.md#what-the-next-run-compares-against)), and 2.84x to 2.86x
 on the GHC HEAD halves Runs 32 to 35 carried. **TWO of `-O2`'s passes cost
 this headline what the whole level cost it**:
@@ -76,9 +78,9 @@ on the line**: on `stretch-pow2stride` the fill and `bq-expand` tie, class
 property 1 breaking on whichever half reads the fill behind, and whether any run
 reads it behind by more than its floor is [an open question][open], which
 carries every draw. **The mutable fills hold the top of the table** ---
-`lib-stage3-lean` at 0.023, `lib-stage2-lean` at 0.024 and `lib-stage1`
+`lib-stage3-lean` and `lib-stage2-lean` at 0.024 and `lib-stage1`
 and `lib-stage2-lean-u1` at 0.025 ([the run file](runs/run43.md#results)),
-and the shipped leaf at 0.026, against `mut-odo-vecdims`'s 0.045 --- and every
+and the shipped leaf at 0.027, against `mut-odo-vecdims`'s 0.045 --- and every
 one of them needs a new `Vector`-class method, which this README argued against
 for as long as the ceiling stood --- to keep orthotope's `Vector` API pure
 and minimal, a bar an in-tree precedent softened to a weight --- and which
@@ -765,6 +767,21 @@ rather than a slot in the next run, observed again:
   it passes no axis; and (4) the regime's worth reads `list` at 1.2950 against
   1.294 within 1% and `bq-expand` at 1.3212 against 1.305 within 2%, on the main
   set's quiet rerun --- all eleven spans HELD.
+- `OPEN` **One of Run 43's half-local movers has its counts level and no copy
+  test yet: the control's `lib-stage1` on `small`, 3.3% slower than Run 42's
+  control on counts of 0.9989, the second run running that arm has read slower
+  there on that half.** `--half-movers run43 run42` flags it and four more,
+  the control's `lib-stage2-lean` and `mut-odo-vecdims` trio on `flip`, which
+  read level with Run 41's control and so are Run 42's own file instance gone
+  ([Run 43's Results](runs/run43.md#results)); this one reads 7.8% over Run 41's
+  control, widest on `small-bcast32`. The copy test that separates a half's
+  binary, its file instance and its process wants the box quiet, and the owner
+  granted the quiet box for the main-set rerun alone, the pair note's
+  `QUIET-AFTER:` line reading `ask`, so by the ruling of 2026-09-26 it waits
+  for the owner. **What would settle it**: `./copy-test.sh run43`
+  over that cell, read
+  with `./read-run.py --copy-test probe-copy-test-run43.log`, while
+  `run43-gheadtwopass` is still on disk --- INSTANCE, PROCESS or BUILD.
 - `ANSWERED` **What Run 42 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 42's own file](runs/run42.md), where a run's
@@ -1292,7 +1309,16 @@ rather than a slot in the next run, observed again:
   populations, on counts level to the fourth decimal, and `bq-expand` at 1.0004
   of Run 40's basis, while the control's family reads within 0.9 of a point
   of Run 41's on all four ([Run 42's file](runs/run42.md)) --- so the term
-  belonged to one build, and a rebuild is what removed it.
+  belonged to one build, and a rebuild is what removed it. **Run 43 adds
+  a PROCESS term of the same size to it, on one build**: its first basis
+  main-set process read the family at 0.9964 to 0.9984 of Run 42's basis,
+  and the quiet rerun of the same binary the same day at 1.0147 to 1.0173
+  of that first process, every other arm on either half within 0.72 of a point
+  of its own first process, the control's family within 0.65 --- so
+  on this family a process moves the clock by 1.5 to 1.7 points where a build
+  moved it by 4 to 10, and a copy test that reads BUILD against the previous
+  run's half is reading across both terms at once ([Run 43's
+  file](runs/run43.md)).
 - `PARKED` **Four arms moved past 3% against Run 32 on ONE half each, with their
   counts level; the copy test, taken after the run, gives one of them
   to the evening's mounted file instance and cannot reach the other three.**
@@ -1573,10 +1599,11 @@ rather than a slot in the next run, observed again:
   on one question: whether any run reads `mut-odo-vecdims` BEHIND `bq-expand`
   on that cell by more than its own half's floor. Until one does, a break there
   is a tie and not a failure of the clause. **On this pair the plain half's
-  readings sit within six tenths of a point of the line on either side,
-  and the flagged half's ahead of it every time**; the one reading behind, Run
-  39's basis at 1.0026, sat inside that half's 0.57% floor, so still a tie
-  by the entry's own test.
+  readings sit within a point of the line on either side, and the flagged half's
+  ahead of it every time**; the one reading behind, Run 39's basis at 1.0026,
+  sat inside that half's 0.57% floor, so still a tie by the entry's own test,
+  and Run 43's basis reads the fill further AHEAD than any earlier plain-half
+  draw, 0.9901 against a 0.79% floor.
 - `PARKED` **Which of the two `-O2` passes carries the regime's points,
   on a compiler this series still builds with.** **PARKED 2026-09-26
   by the owner.** Both together, `-fspec-constr` and `-fliberate-case` on one
@@ -2600,7 +2627,13 @@ rather than a slot in the next run, observed again:
   and the collector takes under 0.02% of mutator time, while mutator time
   an iteration reads 4,708,902 ns, 4,682,268 ns and **7,884,026 ns**. Every
   quantity the runtime reports is flat across a cell that is 68% slower, which
-  is what makes this a transient rather than work.
+  is what makes this a transient rather than work. **Run 43 carries one
+  of the same shape, smaller**: on the control's `bcastmid` process
+  `bq-expand-aa-distant` reads 26.00% over `bq-expand` on `bcastmid-c32-cnn`,
+  setting that class's control floor at 5.73%, and its per-sample table puts
+  the parting in the mutator time, 655486 against 541460 an iteration,
+  with allocation equal to within 1e-4 and no foreign CPU on the process ([Run
+  43's Provenance](runs/run43.md#provenance)).
 
   **Three things make this a threat to a published claim rather
   than a curiosity.** It is *the expansion family* that is susceptible,

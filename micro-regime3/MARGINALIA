@@ -1289,3 +1289,31 @@ block moved to its turn; run-status.sh accepts 10c and 7b for 8b so that
 finished runs stay done.
 
 **What Run 42 made cheaper for the next run, which is not a figure and no other step gathers --- and it is TWO sessions' worth, the preparation's first.** **THE PREPARATION'S HALF, from the note's own block**: A CHECK THAT WOULD HAVE CAUGHT AN ERROR EARLIER --- `eb76398` added a timed arm and `e1ab85c` two `compose` views without moving README's roster sentences or declaring the views in `run41.md`; `--lint` and `--check-doc` caught it at preflight, and nothing at commit time asks. A COMPUTATION IMPROVISED --- the priors' per-shape and geomean instruction ratios were taken by a scratch script over the probe files, where `--counts --pair` on Run 41's JSON prints the same raw figures for Run 41's side; the allocation file reused `probe-z14w-measure.sh`'s `+RTS -t` difference. A READING LOST --- the prior sweeps ran under the roster pass, so their cycles part by a factor of four on one cell and no cycle figure is a prior. **THE WRITE-UP SESSION'S HALF.** **`--repoint` MISSED A LINK WHOSE TEXT A LINE BREAK SPLIT**: README's `[Run 41's properties]` was wrapped as `[Run` and `41's properties]`, the name test wants a space or a hyphen between `Run` and the number, and the link moved into Run 42's file; it was found by grepping the unwrapped README for a link into the new file whose text names the old run, and fixed by hand. **`--replace` REFUSES A PARAGRAPH WITH A TABLE NO BLANK LINE SEPARATES FROM IT**, rightly, and three of this file's paragraphs are of that shape --- the `compose` lead, the main-set anchors and the compares-against paragraph above the two-column table --- so each went through Edit or a counted script instead. **`--winsor`'s sign-parting census truncates its list with `...` and `--verbose` does not reach it**, so a claim about which pairs part had to rest on the list's name order. **THE NAMED-STRADDLER COUNTS OF 3a WERE TAKEN BY GREP** over `loop-offsets.py --match`'s lines, which print no tally of named, `--loose` and unnamed bodies. **THE COPY TEST WAS OWED AND NOT TAKEN**: four half-local movers with level counts, three on the control's `flip` and `lib-stage1` on the basis's `rev`, and `QUIET-AFTER: ask` with nobody at the machine, which waits for the owner's return by the ruling of 2026-09-26; a note written for an evening nobody attends could say `allowed` and let the session spend the quiet box on it at once.
+
+**What Run 43 made cheaper**
+
+THE PREPARATION'S HALF
+
+**A check that would have caught an error.** `roster-delta.py` compares class views by name, so `compose-bcast-nest` and `compose-bcast-wide`, grown from 4992 elements to 1800000 under unchanged names, read `unmoved`; only the commit log and the compose counts showed it. A per-view size column in its class tally would.
+
+**A computation improvised.** None: every prior was `probe-stalls.sh`'s, its `ALLOC=1` knob replacing the copied function Run 42's preparation used.
+
+**A step skipped or stalled.** The first build began on a tree carrying the owner's uncommitted comment edits to `Main.hs`; at the owner's asking it was stopped, the edits committed as `e29cdf2`, and both halves built afresh from the clean tip.
+
+**A capability found.** `registration-drift.py` without a basis binary names every roster arm a commit reaches, and with one only the timed arms; and `--compare O --predictions` over the previous run's own JSONs reads that run's registration and not the open one.
+
+THE WRITE-UP SESSION'S HALF
+
+**A check that would have caught an error, and did not exist.** `--prose-draft`'s correction-footing sentence reads the reader's R2 and sample warnings off captured stdout while `health` writes them to stderr, so it printed "none of the JSONs" over a basis main set carrying an R2 of 0.9873; the install's own warning line contradicted it, which is how it was seen.
+
+**A phrasing the agreement check could not see.** The drafter's `bar` paragraph says "`list` moves by N points on the main set", and the cross-half `list`-move check looks for "move `list` by"; `--check-doc` found one site and failed loudly, and the sentence was reworded by hand.
+
+**A figure computed by hand that a tool already printed.** The gate verdict's spread between the passes was first written as a ratio, 0.58, where the chapter's point is a hundredth of a ratio and the provenance draft already printed 0.75.
+
+**A rerun granted mid-write-up costs every main-set paragraph written before it.** The note read `RERUN: ask`, the owner was away, so the sensitivity reading was taken and the write-up begun on the intruded process; the owner then granted the quiet box, and some twenty-five paragraphs were re-derived. With a rerun possibly coming, write the class blocks and every non-main paragraph first.
+
+**A reading the rerun gave for free.** `--compare` of each rerun JSON against its parked first process is a process-to-process reading of one binary, which put a 1.5 to 1.7 point process term on the basis's `bq-expand` family and nothing past 0.72 of a point on any other arm.
+
+**A gate's refusal hidden by a filter.** `--replace` refused a list item with a message saying "discard", which a grep for `out` or `refus` did not show; read the exit status of every replace.
+
+**A step skipped.** Post-run 4a's copy test for the one unexplained half-local mover waits for the owner, `QUIET-AFTER:` reading `ask`.
