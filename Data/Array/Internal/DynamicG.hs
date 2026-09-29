@@ -68,11 +68,11 @@ instance (Vector v, Read a, VecElem v a) => Read (Array v a) where
     [(fromList s xs, r4) | ("fromList", r2) <- lex r1, (s, r3) <- readsPrec 11 r2,
                     (xs, r4) <- readsPrec 11 r3, not (badShape s), product s == length xs]
 
-instance (Vector v, Eq a, VecElem v a, Eq (v a)) => Eq (Array v a) where
+instance (Vector v, Eq a, VecElem v a) => Eq (Array v a) where
   (A s v) == (A s' v') = s == s' && equalT s v v'
   {-# INLINE (==) #-}
 
-instance (Vector v, Ord a, Ord (v a), VecElem v a) => Ord (Array v a) where
+instance (Vector v, Ord a, VecElem v a) => Ord (Array v a) where
   (A s v) `compare` (A s' v') = compare s s' <> compareT s v v'
   {-# INLINE compare #-}
 

@@ -80,11 +80,11 @@ instance (KnownNat n, Vector v, Read a, VecElem v a) => Read (Array n v a) where
     , (xs, r4) <- readsPrec 11 r3, length s == valueOf @n, not (badShape s)
     , product s == length xs]
 
-instance (Vector v, Eq a, VecElem v a, Eq (v a)) => Eq (Array n v a) where
+instance (Vector v, Eq a, VecElem v a) => Eq (Array n v a) where
   (A s v) == (A s' v') = s == s' && equalT s v v'
   {-# INLINE (==) #-}
 
-instance (Vector v, Ord a, Ord (v a), VecElem v a) => Ord (Array n v a) where
+instance (Vector v, Ord a, VecElem v a) => Ord (Array n v a) where
   (A s v) `compare` (A s' v') = compare s s' <> compareT s v v'
   {-# INLINE compare #-}
 
