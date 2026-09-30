@@ -34,7 +34,7 @@ import Test.QuickCheck
   , property, shrinkList, vectorOf, (.&&.), (===), (==>) )
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
-import Views (View (..), genShape, mkView, testPropertyN)
+import Views (View (..), applyOp, genShape, mkView, opShape, opSource, testPropertyN)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -517,6 +517,7 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_reduce" prop_reduce
         , testPropertyN "prop_pad" prop_pad
         , testPropertyN "prop_lazy" prop_lazy
+        , testPropertyN "prop_viewOps" prop_viewOps
         ]
   in  tests
 
@@ -709,3 +710,18 @@ prop_lazy v@(View sh _) =
             , ("reduce", unScalar (reduce (\ _ _ -> 0) 0 x) == 0)
             , ("anyA", anyA (const True) x == (n > 0))
             , ("allA", allA (const False) x == (n == 0)) ] ]
+
+-- Each operation of a view has the shape opShape gives, and reads at every
+-- index of its result the element of the array it applies to at the index
+-- opSource gives.
+prop_viewOps :: View -> Property
+prop_viewOps (View sh ops) =
+  let steps = scanl (flip applyOp) (fromList sh [0 .. product sh - 1]) ops :: [Array Int]
+      at x is = unScalar (foldl index x is)
+      step (x, op, y) =
+        let xsh = shapeL x
+            iss = mapM (\ s -> [0 .. s - 1]) (shapeL y)
+        in  counterexample (show op)
+              (shapeL y === opShape xsh op
+               .&&. map (at y) iss === map (at x . opSource xsh op) iss)
+  in  conjoin (map step (zip3 steps ops (drop 1 steps)))

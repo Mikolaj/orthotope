@@ -13,7 +13,8 @@
 -- limitations under the License.
 
 -- Random views, for the properties of the dynamic test modules.
-module Views(testPropertyN, genShape, Op(..), applyOp, View(..), mkView) where
+module Views(testPropertyN, genShape, Op(..), applyOp, opShape, opSource, View(..), mkView)
+  where
 
 import Data.Array.Dynamic
 import Data.List (sort)
@@ -45,6 +46,30 @@ applyOp (Stride ts) = stride ts
 applyOp (Window ws) = window ws
 applyOp (Index i) = (`index` i)
 applyOp (Broadcast ds sh) = broadcast ds sh
+
+-- The shape of the result of an operation on an array of the given shape.
+opShape :: [Int] -> Op -> [Int]
+opShape sh (Transpose is) = map (sh !!) is
+opShape sh (Rev _) = sh
+opShape sh (Slice sl) = map snd sl ++ drop (length sl) sh
+opShape sh (Stride ts) = zipWith (\ s t -> (s + t - 1) `div` t) sh ts ++ drop (length ts) sh
+opShape sh (Window ws) =
+  zipWith (\ s w -> s - w + 1) sh ws ++ ws ++ drop (length ws) sh
+opShape sh (Index _) = drop 1 sh
+opShape _ (Broadcast _ sh') = sh'
+
+-- The index in an array of the given shape that an index of the result of
+-- the operation reads.
+opSource :: [Int] -> Op -> [Int] -> [Int]
+opSource _ (Transpose is) js = [ js !! i | d <- [0 .. length is - 1], (i, d') <- zip [0 ..] is, d' == d ]
+opSource sh (Rev rs) js = [ if d `elem` rs then s - 1 - j else j | (d, s, j) <- zip3 [0 ..] sh js ]
+opSource _ (Slice sl) js = zipWith (+) (map fst sl) js ++ drop (length sl) js
+opSource _ (Stride ts) js = zipWith (*) ts js ++ drop (length ts) js
+opSource _ (Window ws) js =
+  let k = length ws
+  in  zipWith (+) (take k js) (take k (drop k js)) ++ drop (2 * k) js
+opSource _ (Index i) js = i : js
+opSource _ (Broadcast ds _) js = map (js !!) ds
 
 -- An operation valid on an array of the given shape.
 genOp :: [Int] -> Gen Op

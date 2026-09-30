@@ -25,9 +25,9 @@ import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Test.QuickCheck
-  ( Property, choose, elements, forAll, property, vectorOf, (.&&.), (===)
-  , (==>) )
-import Views (Op (..), View (..), testPropertyN)
+  ( Property, choose, conjoin, counterexample, elements, forAll, property
+  , vectorOf, (.&&.), (===), (==>) )
+import Views (Op (..), View (..), opShape, opSource, testPropertyN)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -344,6 +344,7 @@ test = testGroup "DynamicU" $
         , testPropertyN "prop_compare" prop_compare
         , testPropertyN "prop_reduce" prop_reduce
         , testPropertyN "prop_pad" prop_pad
+        , testPropertyN "prop_viewOps" prop_viewOps
         ]
   in  tests
 
@@ -425,3 +426,18 @@ prop_pad v@(View sh _) =
       in  product psh <= 10000 ==>
           shapeL (pad ps (-1) x) === psh
           .&&. toList (pad ps (-1) x) === [ at is | is <- mapM (\ s -> [0 .. s - 1]) psh ]
+
+-- Each operation of a view has the shape opShape gives, and reads at every
+-- index of its result the element of the array it applies to at the index
+-- opSource gives.
+prop_viewOps :: View -> Property
+prop_viewOps (View sh ops) =
+  let steps = scanl (flip applyOp) (fromList sh [0 .. product sh - 1]) ops :: [Array Int]
+      at x is = unScalar (foldl index x is)
+      step (x, op, y) =
+        let xsh = shapeL x
+            iss = mapM (\ s -> [0 .. s - 1]) (shapeL y)
+        in  counterexample (show op)
+              (shapeL y === opShape xsh op
+               .&&. map (at y) iss === map (at x . opSource xsh op) iss)
+  in  conjoin (map step (zip3 steps ops (drop 1 steps)))
