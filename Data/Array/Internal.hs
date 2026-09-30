@@ -75,6 +75,8 @@ class Vector v where
   vAll      :: (VecElem v a) => (a -> Bool) -> v a -> Bool
   vAny      :: (VecElem v a) => (a -> Bool) -> v a -> Bool
 
+  vFromListN n = vFromList . take n
+
 class None a
 instance None a
 

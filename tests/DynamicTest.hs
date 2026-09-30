@@ -13,11 +13,13 @@
 -- limitations under the License.
 
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 module DynamicTest(test) where
 
 import Control.DeepSeq
 import Control.Exception
 import Data.Array.Dynamic
+import qualified Data.Array.DynamicG as G
 import qualified Data.Array.Internal as I
 import qualified Data.Vector as V
 import Test.Framework (Test, testGroup)
@@ -26,6 +28,35 @@ import Test.HUnit (assertEqual, assertFailure, Assertion)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
+
+-- A Vector instance with the methods the class had before vFromListN.
+newtype OldVector a = OldVector [a]
+
+instance I.Vector OldVector where
+  type VecElem OldVector = I.None
+  vIndex (OldVector xs) = I.vIndex xs
+  vLength (OldVector xs) = I.vLength xs
+  vToList (OldVector xs) = xs
+  vFromList = OldVector
+  vSingleton = OldVector . I.vSingleton
+  vReplicate n = OldVector . I.vReplicate n
+  vMap f (OldVector xs) = OldVector (I.vMap f xs)
+  vZipWith f (OldVector xs) (OldVector ys) = OldVector (I.vZipWith f xs ys)
+  vZipWith3 f (OldVector xs) (OldVector ys) (OldVector zs) = OldVector (I.vZipWith3 f xs ys zs)
+  vZipWith4 f (OldVector xs) (OldVector ys) (OldVector zs) (OldVector us) = OldVector (I.vZipWith4 f xs ys zs us)
+  vZipWith5 f (OldVector xs) (OldVector ys) (OldVector zs) (OldVector us) (OldVector ws) = OldVector (I.vZipWith5 f xs ys zs us ws)
+  vAppend (OldVector xs) (OldVector ys) = OldVector (I.vAppend xs ys)
+  vConcat xss = OldVector (I.vConcat [ xs | OldVector xs <- xss ])
+  vFold f z (OldVector xs) = I.vFold f z xs
+  vSlice o n (OldVector xs) = OldVector (I.vSlice o n xs)
+  vSum (OldVector xs) = I.vSum xs
+  vProduct (OldVector xs) = I.vProduct xs
+  vMaximum (OldVector xs) = I.vMaximum xs
+  vMinimum (OldVector xs) = I.vMinimum xs
+  vUpdate (OldVector xs) us = OldVector (I.vUpdate xs us)
+  vGenerate n = OldVector . I.vGenerate n
+  vAll p (OldVector xs) = I.vAll p xs
+  vAny p (OldVector xs) = I.vAny p xs
 
 test :: Test
 test = testGroup "Dynamic" $
@@ -56,6 +87,8 @@ test = testGroup "Dynamic" $
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
       vFromListN_1 = assertEqual "1" (V.toList $ V.fromListN 2 [1,2,3::Int])
                                      (I.vFromListN 2 [1,2,3])
+      vFromListN_2 = assertEqual "2" [1,2]
+                                     (G.toList (G.fromList [2] [1,2] :: G.Array OldVector Int))
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [6] [1..6]) (reshape [6] a1)
       reshape_2 = assertEqual "1" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2)
@@ -299,6 +332,7 @@ test = testGroup "Dynamic" $
         , testCase "fromList_2" fromList_2
         , testCase "fromVector_1" fromVector_1
         , testCase "vFromListN_1" vFromListN_1
+        , testCase "vFromListN_2" vFromListN_2
         , testCase "normalize_1" normalize_1
         , testCase "reshape_1" reshape_1
         , testCase "reshape_2" reshape_2
