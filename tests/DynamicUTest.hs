@@ -34,8 +34,8 @@ import Test.QuickCheck
   ( Property, choose, conjoin, counterexample, elements, forAll, listOf, property
   , vectorOf, (.&&.), (===), (==>) )
 import Views
-  ( Elem, Op (..), View (..), failsIn, failsWith, genBadOp, genElems, genShape, opNames, opShape
-  , opSource, silentBadOp, testPropertyN, upTo )
+  ( Elem, Op (..), View (..), applyOpG, failsIn, failsWith, genBadOp, genElems, genShape, opNames
+  , opShape, opSource, silentBadOp, testPropertyN, upTo )
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -356,6 +356,7 @@ applyOp (Stride ts) = stride ts
 applyOp (Window ws) = window ws
 applyOp (Index i) = (`index` i)
 applyOp (Broadcast ds sh) = broadcast ds sh
+applyOp op@Raw{} = DU.A . applyOpG op . DU.unA
 
 mkView :: Unbox a => View -> [a] -> Array a
 mkView (View sh ops) xs = foldl (flip applyOp) (fromList sh xs) ops

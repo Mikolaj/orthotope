@@ -149,6 +149,8 @@ applyOpR (Stride ts) = retype . R.stride ts
 applyOpR (Window ws) = R.window ws
 applyOpR (Index i) = \ a -> R.index (retype a :: R.Array (1 + n') v a) i
 applyOpR (Broadcast ds sh) = R.broadcast ds sh
+applyOpR (Raw sh ss o k m) = \ a ->
+  let v = R.toVector a in R.A sh (I.T ss o (I.vSlice k (I.vLength v - k - m) v))
 
 -- Each operation of a random view, done by Ranked at the ranks of its
 -- argument and of its result, gives what Dynamic's does.
@@ -168,6 +170,7 @@ opRank :: Int -> Op -> Maybe Int
 opRank n (Window ws) = Just (n + length ws)
 opRank n (Index _) = if n > 0 then Just (n - 1) else Nothing
 opRank _ (Broadcast _ sh) = Just (length sh)
+opRank _ (Raw sh _ _ _ _) = Just (length sh)
 opRank n _ = Just n
 
 -- An operation invalid on a random view, done by Ranked at the rank of the
