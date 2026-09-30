@@ -339,14 +339,18 @@ stride ats (A ash (T ss o v)) = A (str ats ash) (T (zipWith (*) (ats ++ repeat 1
 -- the resulting shape will be @[2, 4, 3, 2]@.
 {-# INLINE rotate #-}
 rotate :: (HasCallStack, Vector v, VecElem v a) => Int -> Int -> Array v a -> Array v a
-rotate d k a | d < rank a, k >= 0 = rerank d f a
+rotate d k a@(A sh _)
+  | d >= rank a || k < 0 = error $ "Incorrect arguments to rotate: " ++ show (d, k, rank a)
+  | 0 `elem` sh' = A sh' $ fromVectorT sh' (vConcat [])  -- no elements
+  | otherwise = rerank d f a
  where
+  (osh, ish) = splitAt d sh
+  sh' = osh ++ k : ish
   f arr = let h:t = shapeL arr
               m = product t
               n = h * m
               c = k + (k + h - 2) `quot` h  -- copies to fit k windows n + m apart
-          in if k == 0 || n == 0 then stretchOuter k (reshape (1:h:t) arr) else
-             rev [0]
+          in rev [0]
              . reshape (k:h:t)
              . slice [(0, k)]
              . stride [n + m]
@@ -354,7 +358,6 @@ rotate d k a | d < rank a, k >= 0 = rerank d f a
              . reshape [c * n]
              . stretchOuter c
              . reshape (1:h:t) $ arr
-rotate d k a = error $ "Incorrect arguments to rotate: " ++ show (d, k, rank a)
 
 -- | Extract a slice of an array.
 -- The first argument is a list of (offset, length) pairs.

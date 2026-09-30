@@ -21,11 +21,16 @@ import Control.Exception
 import Data.Array.Dynamic
 import qualified Data.Array.DynamicG as G
 import qualified Data.Array.Internal as I
+import qualified Data.Array.Internal.Dynamic as D
+import qualified Data.Array.Internal.DynamicG as DG
 import qualified Data.Vector as V
 import Data.Word (Word8)
-import Test.Framework (Test, testGroup)
+import Test.Framework (Test, TestOptions' (..), plusTestOptions, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
+import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
+import Test.QuickCheck
+  ( Arbitrary (..), Gen, Property, Testable, choose, shrinkList, vectorOf, (===) )
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -282,6 +287,9 @@ test = testGroup "Dynamic" $
                                  (rotate 1 5 $ fromList [2, 3, 2] [1 .. 12::Int])
       rotate_5 = assertEqual "5" (fromList [3,1] [5,5,5]) (rotate 0 3 $ fromList [1] [5::Int])
       rotate_6 = assertThrowsIn "6" "Incorrect arguments to rotate" (rotate 0 (-2) $ fromList [3] [1,2,3::Int])
+      rotate_7 = assertEqual "7" (fromList [0,2,3] []) (rotate 1 2 $ fromList [0,3] ([] :: [Int]))
+      rotate_8 = assertEqual "8" 0  -- the empty rotation keeps no vector alive
+                                 (case rotate 1 2 (slice [(0,0)] a1) of D.A (DG.A _ t) -> V.length (I.values t))
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrows "2" (slice [(0,0)] a4)
@@ -408,6 +416,8 @@ test = testGroup "Dynamic" $
         , testCase "rotate_4" rotate_4
         , testCase "rotate_5" rotate_5
         , testCase "rotate_6" rotate_6
+        , testCase "rotate_7" rotate_7
+        , testCase "rotate_8" rotate_8
         , testCase "slice_1" slice_1
         , testCase "slice_2" slice_2
         , testCase "slice_3" slice_3
@@ -431,5 +441,46 @@ test = testGroup "Dynamic" $
         , testCase "toVector_13" toVector_13
         , testCase "toVector_14" toVector_14
         , testCase "toVector_15" toVector_15
+        , testPropertyN "prop_rotate" prop_rotate
         ]
   in  tests
+
+-- A property checked on a thousand cases rather than the default hundred.
+testPropertyN :: Testable p => String -> p -> Test
+testPropertyN name =
+  plusTestOptions mempty { topt_maximum_generated_tests = Just 1000 } . testProperty name
+
+-- A call of rotate on an array of shape osh ++ h : t, rotating it k times
+-- along dimension length osh.
+data RotateCase = RotateCase [Int] Int [Int] Int
+  deriving Show
+
+instance Arbitrary RotateCase where
+  arbitrary = RotateCase <$> genShape 2 <*> choose (0, 4) <*> genShape 2 <*> choose (0, 12)
+  shrink (RotateCase osh h t k) =
+    [ RotateCase osh' h t k | osh' <- shrinkList shrinkExtent osh ] ++
+    [ RotateCase osh h' t k | h' <- shrinkExtent h ] ++
+    [ RotateCase osh h t' k | t' <- shrinkList shrinkExtent t ] ++
+    [ RotateCase osh h t k' | k' <- shrinkExtent k ]
+
+genShape :: Int -> Gen [Int]
+genShape r = do
+  r' <- choose (0, r)
+  vectorOf r' (choose (0, 4))
+
+shrinkExtent :: Int -> [Int]
+shrinkExtent = filter (>= 0) . shrink
+
+-- rotate against a list model: the i'th of the k rotations of a subarray
+-- is the subarray rotated left by k-1-i rows.
+prop_rotate :: RotateCase -> Property
+prop_rotate (RotateCase osh h t k) =
+  let m = product t
+      xs = [1 .. product (osh ++ h : t)] :: [Int]
+      rows ys = [ take m (drop (i * m) ys) | i <- [0 .. h - 1] ]
+      rotL j rs = let j' = j `mod` max 1 h in drop j' rs ++ take j' rs
+      rot ys = concat [ concat (rotL (k - 1 - i) (rows ys)) | i <- [0 .. k - 1] ]
+      subs = [ take (h * m) (drop (j * h * m) xs) | j <- [0 .. product osh - 1] ]
+  in  rotate (length osh) k (fromList (osh ++ h : t) xs)
+      === fromList (osh ++ k : h : t) (concatMap rot subs)
+

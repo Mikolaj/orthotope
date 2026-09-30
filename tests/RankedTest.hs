@@ -251,6 +251,8 @@ test = testGroup "Ranked" $
                                     (rotate @0 @1 (-2) (fromList [3] [1,2,3] :: Array 1 Int))
                  >> assertThrowsIn "6" "Incorrect arguments to rotate"
                                     (rotate @1 @0 0 (fromList [3] [1,2,3] :: Array 1 Int))
+      rotate_7 = assertEqual "7" (fromList [0,2,3] [])
+                                 (rotate @1 @1 2 (fromList [0,3] [] :: Array 2 Int))
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrows "2" (slice [(0,0)] a4)
@@ -356,6 +358,7 @@ test = testGroup "Ranked" $
         , testCase "rotate_4" rotate_4
         , testCase "rotate_5" rotate_5
         , testCase "rotate_6" rotate_6
+        , testCase "rotate_7" rotate_7
         , testCase "slice_1" slice_1
         , testCase "slice_2" slice_2
         , testCase "slice_3" slice_3

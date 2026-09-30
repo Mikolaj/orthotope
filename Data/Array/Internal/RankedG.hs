@@ -361,8 +361,11 @@ rotate :: forall d p v a.
           Int -> Array (p + d) v a -> Array (p + d + 1) v a
 rotate k a@(A sh _)
   | valueOf @d >= length sh || k < 0 = error $ "Incorrect arguments to rotate: " ++ show (valueOf @d :: Int, k, length sh)
+  | 0 `elem` sh' = A sh' $ fromVectorT sh' (vConcat [])  -- no elements
   | otherwise = rerank @d @p @(p + 1) f a
  where
+  (osh, ish) = splitAt (valueOf @d) sh
+  sh' = osh ++ k : ish
   f :: Array p v a -> Array (p + 1) v a
   f arr = let h:t = shapeL arr
               m = product t
@@ -373,8 +376,7 @@ rotate k a@(A sh _)
               flattened = reshape @(p + 1) @1 [c * n] repeated
               batched = window @1 @2 [n] flattened
               strided = slice [(0, k)] (stride [n + m] batched)
-          in if k == 0 || n == 0 then stretchOuter k arr' else
-             rev [0] (reshape (k:h:t) strided)
+          in rev [0] (reshape (k:h:t) strided)
 
 -- | Extract a slice of an array.
 -- The first argument is a list of (offset, length) pairs.
