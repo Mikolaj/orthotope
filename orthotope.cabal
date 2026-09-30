@@ -92,7 +92,7 @@ test-suite tests
                      , Views
 
   ghc-options:
-    -Wall -rtsopts
+    -Wall -rtsopts -fno-ignore-asserts
 
   build-depends:
     base,
