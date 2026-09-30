@@ -579,8 +579,8 @@ iterateNT :: (Vector v, VecElem v a) => Int -> (a -> a) -> a -> T v a
 iterateNT n f x = fromListT [n] $ take n $ iterate f x
 
 {-# INLINE iotaT #-}
-iotaT :: (Vector v, VecElem v a, Enum a, Num a) => Int -> T v a
-iotaT n = fromListT [n] [0 .. fromIntegral n - 1]    -- TODO: should use V.enumFromTo instead
+iotaT :: (Vector v, VecElem v a, Num a) => Int -> T v a
+iotaT n = fromVectorT [n] $ vFromListN n [ x | i <- [0 .. n - 1], let !x = fromIntegral i ]  -- evaluated, as a boxed vGenerate would not
 
 -------
 

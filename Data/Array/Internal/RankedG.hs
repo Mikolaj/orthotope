@@ -535,6 +535,6 @@ iterateN n f = A [n] . iterateNT n f
 -- | Generate a vector from 0 to n-1.
 {-# INLINE iota #-}
 iota :: forall v a .
-        (Vector v, VecElem v a, Enum a, Num a) =>
+        (Vector v, VecElem v a, Num a) =>
         Int -> Array 1 v a
 iota n = A [n] $ iotaT n

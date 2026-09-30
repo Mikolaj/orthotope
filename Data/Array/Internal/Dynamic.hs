@@ -411,5 +411,5 @@ iterateN n f = A . G.iterateN n f
 
 -- | Generate a vector from 0 to n-1.
 {-# INLINE iota #-}
-iota :: (Enum a, Num a) => Int -> Array a
+iota :: (Num a) => Int -> Array a
 iota = A . G.iota
