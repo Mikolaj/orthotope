@@ -518,6 +518,8 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_pad" prop_pad
         , testPropertyN "prop_lazy" prop_lazy
         , testPropertyN "prop_viewOps" prop_viewOps
+        , testPropertyN "prop_copy" prop_copy
+        , testPropertyN "prop_show" prop_show
         ]
   in  tests
 
@@ -725,3 +727,33 @@ prop_viewOps (View sh ops) =
               (shapeL y === opShape xsh op
                .&&. map (at y) iss === map (at x . opSource xsh op) iss)
   in  conjoin (map step (zip3 steps ops (drop 1 steps)))
+
+-- The offset, the strides and the length of the vector of an array.
+layoutOf :: Array a -> (Int, [Int], Int)
+layoutOf (D.A (DG.A _ t)) = (I.offset t, I.strides t, V.length (I.values t))
+
+-- normalize gives the view as a normal array, its elements in a vector
+-- of just their number, at offset 0 and with natural strides; reshape to
+-- one dimension, append of the view and a normal array of its shape, and
+-- zipWithA of the two either way round agree with the lists.
+prop_copy :: View -> Property
+prop_copy v@(View sh _) =
+  let x = mkView v [0 .. product sh - 1] :: Array Int
+      xsh = shapeL x
+      l = toList x
+      n = length l
+  in  forAll (vectorOf n (choose (-9, 9))) $ \ ys ->
+      let y = fromList xsh ys
+          z = normalize x
+      in  toList z === l .&&. layoutOf z === (0, drop 1 (scanr (*) 1 xsh), n)
+          .&&. toList (reshape [n] x) === l
+          .&&. toList (zipWithA (-) x y) === zipWith (-) l ys
+          .&&. toList (zipWithA (-) y x) === zipWith (-) ys l
+          .&&. (if null xsh then property True else toList (append x y) === l ++ ys)
+
+-- An array reads back from its show.
+prop_show :: View -> Property
+prop_show v@(View sh _) =
+  forAll (vectorOf (product sh) (choose (-9, 9))) $ \ xs ->
+  let x = mkView v xs :: Array Int
+  in  read (show x) === x
