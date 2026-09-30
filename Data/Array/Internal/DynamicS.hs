@@ -309,7 +309,8 @@ window ws = A . G.window ws . unA
 -- | Stride the outermost dimensions.
 -- E.g., if the array shape is @[10,12,8]@ and the strides are
 -- @[2,2]@ then the resulting shape will be @[5,6,8]@.
--- Fails if the stride list is longer than the rank.
+-- Fails if the stride list is longer than the rank or a stride is not
+-- positive.
 -- O(1) time.
 stride :: (HasCallStack) => [Int] -> Array a -> Array a
 stride ws = A . G.stride ws . unA
