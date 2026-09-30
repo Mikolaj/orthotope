@@ -50,6 +50,10 @@ test = testGroup "DynamicU" $
       index_3 = assertEqual "3" (fromList [] [4]) (a2 `index` 0 `index` 1)
       index_4 = assertThrows "<0" (index a1 (-1))
       index_5 = assertThrows ">" (index a1 2)
+      -- index need not know that the elements are Unboxed.
+      constraints_1 = assertEqual "1" (index a1 1) (indexN a1 1)
+        where indexN :: Array a -> Int -> Array a
+              indexN = index
       toList_1 = assertEqual "1" [1,2,3,4,5,6] (toList a1)
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
@@ -245,6 +249,7 @@ test = testGroup "DynamicU" $
         , testCase "index_3" index_3
         , testCase "index_4" index_4
         , testCase "index_5" index_5
+        , testCase "constraints_1" constraints_1
         , testCase "toList_1" toList_1
         , testCase "toList_2" toList_2
         , testCase "toVector_1" toVector_1

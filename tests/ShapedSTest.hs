@@ -50,6 +50,15 @@ test = testGroup "ShapedS" $
       index_3 = assertEqual "3" (fromList [4]) (a2 `index` 0 `index` 1)
       index_4 = assertThrows "<0" (index a1 (-1))
       index_5 = assertThrows ">" (index a1 2)
+      -- stretchOuter need not know the extent it stretches to, nor index that
+      -- the elements are Storable.
+      constraints_1 = assertEqual "1" (stretchOuter b :: Array [2,3] Int, index a1 1)
+                                      (stretchOuterN b, indexN a1 1)
+        where b = fromList [1,2,3] :: Array [1,3] Int
+              stretchOuterN :: Array '[1, 3] Int -> Array '[s, 3] Int
+              stretchOuterN = stretchOuter
+              indexN :: Array '[2, 3] a -> Int -> Array '[3] a
+              indexN = index
       toList_1 = assertEqual "1" [1,2,3,4,5,6] (toList a1)
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
@@ -228,6 +237,7 @@ test = testGroup "ShapedS" $
         , testCase "index_3" index_3
         , testCase "index_4" index_4
         , testCase "index_5" index_5
+        , testCase "constraints_1" constraints_1
         , testCase "toList_1" toList_1
         , testCase "toList_2" toList_2
         , testCase "toVector_1" toVector_1

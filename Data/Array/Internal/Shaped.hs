@@ -147,7 +147,7 @@ stretch :: forall sh' sh a . (Shape sh, Shape sh', ValidStretch sh sh') => Array
 stretch = A . G.stretch . unA
 
 -- | Change the size of the outermost dimension by replication.
-stretchOuter :: (KnownNat s, Shape sh) => Array (1 : sh) a -> Array (s : sh) a
+stretchOuter :: Array (1 : sh) a -> Array (s : sh) a
 stretchOuter = A . G.stretchOuter . unA
 
 -- | Convert a value to a scalar (rank 0) array.

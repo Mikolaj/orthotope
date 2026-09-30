@@ -138,7 +138,7 @@ normalize = A . G.normalize . unA
 
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.
-reshape :: forall n' n a . (HasCallStack, KnownNat n, KnownNat n') => ShapeL -> Array n a -> Array n' a
+reshape :: forall n' n a . (HasCallStack, KnownNat n') => ShapeL -> Array n a -> Array n' a
 reshape s = A . G.reshape s . unA
 
 -- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
@@ -197,7 +197,7 @@ zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)
 -- | Pad each dimension on the low and high side with the given value.
 -- Fails if the padding list is longer than the rank.
 -- O(n) time.
-pad :: (HasCallStack, KnownNat n) => [(Int, Int)] -> a -> Array n a -> Array n a
+pad :: (HasCallStack) => [(Int, Int)] -> a -> Array n a -> Array n a
 pad ps v = A . G.pad ps v . unA
 
 -- | Do an arbitrary array transposition.

@@ -256,6 +256,14 @@ test = testGroup "Ranked" $
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank @1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank @1 (reduce (*) 1) a2)
+      foldrA_1 = assertEqual "1" [1,4,2,5,3,6] (foldrA (:) [] a2)
+      -- pad and reshape need not know the rank of the array they take.
+      constraints_1 = assertEqual "1" (pad [(1,1)] 0 a1, reshape [6] a1 :: Array 1 Int)
+                                      (padN a1, reshapeN a1)
+        where padN :: Array n Int -> Array n Int
+              padN = pad [(1,1)] 0
+              reshapeN :: Array n Int -> Array 1 Int
+              reshapeN = reshape [6]
 
       tests =
         [ testCase "show_1" show_1
@@ -334,5 +342,7 @@ test = testGroup "Ranked" $
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
+        , testCase "foldrA_1" foldrA_1
+        , testCase "constraints_1" constraints_1
         ]
   in  tests

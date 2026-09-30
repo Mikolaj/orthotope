@@ -104,7 +104,7 @@ rank = G.rank . unA
 
 -- | Index into an array.  Fails if the index is out of bounds.
 -- O(1) time.
-index :: (HasCallStack, Unbox a) => Array (1+n) a -> Int -> Array n a
+index :: (HasCallStack) => Array (1+n) a -> Int -> Array n a
 index a = A . G.index (unA a)
 
 -- | Convert to a list with the elements in the linearization order.
@@ -138,7 +138,7 @@ normalize = A . G.normalize . unA
 
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.
-reshape :: (HasCallStack, Unbox a, KnownNat n, KnownNat n') => ShapeL -> Array n a -> Array n' a
+reshape :: (HasCallStack, Unbox a, KnownNat n') => ShapeL -> Array n a -> Array n' a
 reshape s = A . G.reshape s . unA
 
 -- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
@@ -191,7 +191,7 @@ zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)
 -- | Pad each dimension on the low and high side with the given value.
 -- Fails if the padding list is longer than the rank.
 -- O(n) time.
-pad :: (HasCallStack, Unbox a, KnownNat n) => [(Int, Int)] -> a -> Array n a -> Array n a
+pad :: (HasCallStack, Unbox a) => [(Int, Int)] -> a -> Array n a -> Array n a
 pad ps v = A . G.pad ps v . unA
 
 -- | Do an arbitrary array transposition.

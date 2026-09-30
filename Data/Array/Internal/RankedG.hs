@@ -169,7 +169,7 @@ normalize a = fromVector (shapeL a) $ toVector a
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.
 {-# INLINE reshape #-}
-reshape :: forall n n' v a . (HasCallStack,Vector v, VecElem v a, KnownNat n, KnownNat n') =>
+reshape :: forall n n' v a . (HasCallStack,Vector v, VecElem v a, KnownNat n') =>
            ShapeL -> Array n v a -> Array n' v a
 reshape sh (A sh' t@(T ost oo v))
   | n /= n' = error $ "reshape: size mismatch " ++ show (sh, sh')

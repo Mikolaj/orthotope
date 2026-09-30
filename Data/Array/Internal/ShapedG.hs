@@ -69,7 +69,7 @@ type role Array nominal representational nominal
 newtype Array (sh :: [Nat]) v a = A (T v a)
   deriving (Generic, Data)
 
-instance (Vector v, Show a, VecElem v a, Shape sh, Show (v a)) => Show (Array sh v a) where
+instance (Vector v, Show a, VecElem v a, Shape sh) => Show (Array sh v a) where
   {-# INLINABLE showsPrec #-}
   showsPrec p a@(A _) = showParen (p > 10) $
     showString "fromList @" . showsPrec 11 (shapeL a) . showString" " . showsPrec 11 (toList a)
@@ -197,8 +197,7 @@ stretch' str (A vs) = A $ stretchT str vs
 
 -- | Change the size of the outermost dimension by replication.
 {-# INLINE stretchOuter #-}
-stretchOuter :: forall s sh v a . (Shape sh) =>
-                Array (1 : sh) v a -> Array (s : sh) v a
+stretchOuter :: forall s sh v a . Array (1 : sh) v a -> Array (s : sh) v a
 stretchOuter (A vs) = A $ stretchT (True : map (const False) (strides vs)) vs
 
 -- | Convert a value to a scalar (rank 0) array.

@@ -15,11 +15,14 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators #-}
 module ShapedTest(test) where
 
 import Control.DeepSeq
 import Control.Exception
 import Data.Array.Shaped
+import qualified Data.Array.Internal as I
+import qualified Data.Array.Internal.ShapedG as SG
 import qualified Data.Vector as V
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
@@ -50,6 +53,15 @@ test = testGroup "Shaped" $
       index_3 = assertEqual "3" (fromList [4]) (a2 `index` 0 `index` 1)
       index_4 = assertThrows "<0" (index a1 (-1))
       index_5 = assertThrows ">" (index a1 2)
+      -- stretchOuter need not know the extent it stretches to nor the shape
+      -- below it, and ShapedG's show need not know how to show a vector.
+      constraints_1 = assertEqual "1" (stretchOuter b :: Array [2,3] Int, show a1)
+                                      (stretchOuterN b, showG (SG.fromList [1..6] :: SG.Array [2,3] [] Int))
+        where b = fromList [1,2,3] :: Array [1,3] Int
+              stretchOuterN :: Array (1 : sh) Int -> Array (s : sh) Int
+              stretchOuterN = stretchOuter
+              showG :: (Show a, I.Vector v, I.VecElem v a, Shape sh) => SG.Array sh v a -> String
+              showG = show
       toList_1 = assertEqual "1" [1,2,3,4,5,6] (toList a1)
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
@@ -247,6 +259,7 @@ test = testGroup "Shaped" $
         , testCase "index_3" index_3
         , testCase "index_4" index_4
         , testCase "index_5" index_5
+        , testCase "constraints_1" constraints_1
         , testCase "toList_1" toList_1
         , testCase "toList_2" toList_2
         , testCase "toVector_1" toVector_1
