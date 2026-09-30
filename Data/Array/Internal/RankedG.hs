@@ -361,7 +361,7 @@ stride ats (A ash (T ss o v)) = A (str ats ash) (T (zipWith (*) (ats ++ repeat 1
 -- Fails if d is not a dimension of the array or k is negative.
 {-# INLINABLE rotate #-}
 rotate :: forall d p v a.
-          (KnownNat p, KnownNat d,
+          (HasCallStack, KnownNat p, KnownNat d,
           Vector v, VecElem v a,
           -- Nonsense
           (d + (p + 1)) ~ ((p + d) + 1),
@@ -372,7 +372,9 @@ rotate :: forall d p v a.
           KnownNat (1 + (p + 1))
           ) =>
           Int -> Array (p + d) v a -> Array (p + d + 1) v a
-rotate k a = rerank @d @p @(p + 1) f a
+rotate k a@(A sh _)
+  | valueOf @d >= length sh || k < 0 = error $ "rotate: dimension out of range or negative count " ++ show (valueOf @d :: Int, k, length sh)
+  | otherwise = rerank @d @p @(p + 1) f a
  where
   f :: Array p v a -> Array (p + 1) v a
   f arr = let h:t = shapeL arr

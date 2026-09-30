@@ -285,7 +285,7 @@ stride ws = A . G.stride ws . unA
 -- Fails if d is not a dimension of the array or k is negative.
 {-# INLINABLE rotate #-}
 rotate :: forall d p a.
-          (KnownNat p, KnownNat d, Unbox a,
+          (HasCallStack, KnownNat p, KnownNat d, Unbox a,
           -- Nonsense
           (d + (p + 1)) ~ ((p + d) + 1),
           (d + p) ~ (p + d),
