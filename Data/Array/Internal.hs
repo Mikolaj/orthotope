@@ -342,11 +342,24 @@ indexT _ _ = error "impossible"
 stretchT :: [Bool] -> T v a -> T v a
 stretchT bs (T ss o v) = T (zipWith (\ b s -> if b then 0 else s) bs ss) o v
 
--- Map over the array elements.
+-- Map over the array elements.  A view that skips elements is mapped
+-- without its broadcast dimensions, which then repeat the result.
+-- Future TODO: a view that skips elements and reads others more than
+-- once, as a window over a stride does, is built whole, so f runs once
+-- per element of the view, not once per element it reads.  The plan: in
+-- the view without its broadcast dimensions, merge every two axes of one
+-- stride, of extents n and k, into one of extent n + k - 1, which leaves
+-- the footprint, the elements the view reads; where the footprint reads
+-- each of them once, build it with toVectorT, map f over that, and give the
+-- result the view's axes at offset 0, each with the stride its footprint
+-- axis has in the new vector; otherwise build the view whole, as now.
 {-# INLINE mapT #-}
 mapT :: (Vector v, VecElem v a, VecElem v b) => ShapeL -> (a -> b) -> T v a -> T v b
-mapT sh f (T ss o v) | product sh >= vLength v = T ss o (vMap f v)
-mapT sh f t = fromVectorT sh $ vMap f $ toVectorT sh t
+mapT sh _ _ | 0 `elem` sh = fromVectorT sh (vConcat [])
+mapT sh f t@(T ss o v) | Just (lo, n) <- readRangeT sh t = T ss (o - lo) (vMap f (vSlice lo n v))
+mapT sh f t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip bs sh ] $
+              vMap f $ toVectorT rsh r
+  where (bs, rsh, r) = dropBroadcastT sh t
 
 -- Zip two arrays with a function.
 {-# INLINE zipWithT #-}
