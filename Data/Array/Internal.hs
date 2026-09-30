@@ -36,6 +36,7 @@ import Data.Kind (Type)
 import Data.List(foldl')
 #endif
 import Data.List(zipWith4, zipWith5, sortBy, sortOn, foldl1')
+import Data.Ord(comparing)
 import Data.Proxy
 import GHC.Exts(Constraint, build)
 import GHC.Generics(Generic)
@@ -153,13 +154,21 @@ badShape = any (< 0)
 -- When shapes match, we can be efficient and use loop-fused comparisons instead
 -- of materializing a vector.
 -- Note this assumes the shape is the same for both Vectors.
--- TODO(augustss): if the array is a small fraction of the vector this can be inefficient.
+-- TODO: two views of one layout that skip elements are compared by building
+-- both, and two that read one part of the vector compare that part in
+-- vector order rather than the views', so x == y can fail on an undefined
+-- element where compare x y returns.  Fix using routeT and the other
+-- machinery of the future toVectorT overhaul.
 {-# INLINABLE equalT #-}
 equalT :: (Vector v, VecElem v a, Eq a, Eq (v a))
                   => ShapeL -> T v a -> T v a -> Bool
+equalT s _ _ | 0 `elem` s = True
 equalT s x y | strides x == strides y
-               && offset x == offset y
-               && values x == values y = True
+             , offset x == offset y = case readRangeT s x of
+                 Just (lo, n) -> vSlice lo n (values x) == vSlice lo n (values y)
+                 Nothing -> let (_, rs, x') = dropBroadcastT s x
+                                (_, _, y') = dropBroadcastT s y
+                            in  toVectorT rs x' == toVectorT rs y'
              | otherwise = toVectorT s x == toVectorT s y
 
 -- Note this assumes the shape is the same for both Vectors.
@@ -202,6 +211,32 @@ isCanonicalT (n:ss') (T ss o v) =
     ss == ss' &&      -- All strides are normal
     vLength v == n    -- The vector is the right size
 isCanonicalT _ _ = error "impossible"
+
+-- The start and length of the part of the vector the array reads, if it reads
+-- every element of one part, broadcasts and overlapping windows included, and
+-- Nothing if it reads no element or skips one.  Leaving out the dimensions of
+-- stride 0 or size 1 and taking the others by increasing stride, the array
+-- reads one part if each stride is at most one more than the reach of those
+-- before it.
+{-# INLINE readRangeT #-}
+readRangeT :: ShapeL -> T v a -> Maybe (Int, Int)
+readRangeT sh (T ats ao _)
+  | product sh == 0 = Nothing
+  | otherwise = go 0 (sortBy (comparing fst) [ (abs t, s) | (t, s) <- tss ])
+  where tss = [ (t, s) | (t, s) <- zip ats sh, t /= 0, s /= 1 ]
+        lo = ao + sum [ (s - 1) * t | (t, s) <- tss, t < 0 ]  -- lowest index read
+        go hi [] = Just (lo, hi + 1)
+        go hi ((t, s) : sts) | t <= hi + 1 = go (hi + (s - 1) * t) sts
+                             | otherwise = Nothing
+
+-- The array without its broadcast dimensions, of stride 0 and positive
+-- extent, which repeat one subarray: which dimensions those are, and the
+-- shape and the view of the rest.
+{-# INLINE dropBroadcastT #-}
+dropBroadcastT :: ShapeL -> T v a -> ([Bool], ShapeL, T v a)
+dropBroadcastT sh (T ats ao v) =
+  (bs, [ s | (b, s) <- zip bs sh, not b ], T [ t | (b, t) <- zip bs ats, not b ] ao v)
+  where bs = zipWith (\ s t -> t == 0 && s > 0) sh ats
 
 -- Convert a value to a scalar array.
 {-# INLINE scalarT #-}

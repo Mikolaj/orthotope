@@ -23,6 +23,7 @@ import qualified Data.Array.DynamicG as G
 import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.Internal.DynamicG as DG
+import Data.List (nub, sort)
 import qualified Data.Vector as V
 import Data.Word (Word8)
 import Test.Framework (Test, TestOptions' (..), plusTestOptions, testGroup)
@@ -30,7 +31,8 @@ import Test.Framework.Providers.HUnit (testCase)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Test.QuickCheck
-  ( Arbitrary (..), Gen, Property, Testable, choose, shrinkList, vectorOf, (===) )
+  ( Arbitrary (..), Gen, Property, Testable, choose, oneof, shrinkList
+  , shuffle, sublistOf, vectorOf, (.&&.), (===) )
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -77,6 +79,12 @@ test = testGroup "Dynamic" $
       show_2 = assertEqual "2" "fromList [3,2] [1,4,2,5,3,6]" (show a2)
       eq_1 = assertEqual "1" True (a1 == a1)
       eq_2 = assertEqual "2" False (a1 == a2)
+      -- Views over vectors with elements outside them, which == must not compare.
+      eq_3 = assertEqual "3" True (x == x)
+        where x = stretch [4] (slice [(0,1)] (fromList [2] [1, undefined] :: Array Int))
+      eq_4 = assertEqual "4" True (x == x)
+        where x = stretch [3,2] $ reshape [1,2] $ index a 0
+              a = fromList [2,2] [1,2,undefined,undefined] :: Array Int
       ord_1 = assertEqual "1" EQ (a1 `compare` a1)
       ord_2 = assertEqual "2" LT (a1 `compare` a2)
       shapeL_1 = assertEqual "1" [2,3] (shapeL a1)
@@ -348,6 +356,8 @@ test = testGroup "Dynamic" $
         , testCase "show_2" show_2
         , testCase "eq_1" eq_1
         , testCase "eq_2" eq_2
+        , testCase "eq_3" eq_3
+        , testCase "eq_4" eq_4
         , testCase "ord_1" ord_1
         , testCase "ord_2" ord_2
         , testCase "shapeL_1" shapeL_1
@@ -444,6 +454,8 @@ test = testGroup "Dynamic" $
         , testCase "toVector_14" toVector_14
         , testCase "toVector_15" toVector_15
         , testPropertyN "prop_rotate" prop_rotate
+        , testPropertyN "prop_readRangeT" prop_readRangeT
+        , testPropertyN "prop_eq" prop_eq
         ]
   in  tests
 
@@ -485,4 +497,105 @@ prop_rotate (RotateCase osh h t k) =
       subs = [ take (h * m) (drop (j * h * m) xs) | j <- [0 .. product osh - 1] ]
   in  rotate (length osh) k (fromList (osh ++ h : t) xs)
       === fromList (osh ++ k : h : t) (concatMap rot subs)
+
+-- The operations that make views, for building random views.
+data Op = Transpose [Int] | Rev [Int] | Slice [(Int, Int)] | Stride [Int]
+        | Window [Int] | Index Int | Broadcast [Int] [Int]
+  deriving Show
+
+applyOp :: Op -> Array a -> Array a
+applyOp (Transpose is) = transpose is
+applyOp (Rev rs) = rev rs
+applyOp (Slice sl) = slice sl
+applyOp (Stride ts) = stride ts
+applyOp (Window ws) = window ws
+applyOp (Index i) = (`index` i)
+applyOp (Broadcast ds sh) = broadcast ds sh
+
+-- An operation valid on an array of the given shape.
+genOp :: [Int] -> Gen Op
+genOp sh = oneof $
+  [ Transpose <$> shuffle [0 .. r - 1]
+  , Rev <$> sublistOf [0 .. r - 1]
+  , Slice <$> mapM (\ s -> do k <- choose (0, s); n <- choose (0, s - k); return (k, n)) sh
+  , Stride <$> mapM (const (choose (1, 3))) sh
+  , do e <- choose (0, 2)
+       ds <- sort . take r <$> shuffle [0 .. r + e - 1]
+       extra <- vectorOf e (choose (0, 3))
+       let fill i ss xs | i `elem` ds, s : ss' <- ss = s : fill (i + 1) ss' xs
+                        | x : xs' <- xs = x : fill (i + 1) ss xs'
+                        | otherwise = []
+       return (Broadcast ds (fill (0 :: Int) sh extra))
+  ] ++
+  [ Window . (: []) <$> choose (1, s) | s : _ <- [sh], s > 0 ] ++
+  [ Index <$> choose (0, s - 1) | s : _ <- [sh], s > 0 ]
+  where r = length sh
+
+-- n operations, each valid on the shape the ones before it leave.
+genOps :: Int -> [Int] -> Gen [Op]
+genOps 0 _ = return []
+genOps n sh = do
+  op <- genOp sh
+  (op :) <$> genOps (n - 1) (shapeL (applyOp op (constant sh ())))
+
+-- A view: the shape of an array made by fromList and the operations to
+-- apply to it.  A prefix of the operations is a view too.
+data View = View [Int] [Op]
+  deriving Show
+
+instance Arbitrary View where
+  arbitrary = do
+    sh <- genShape 3
+    n <- choose (0, 4)
+    View sh <$> genOps n sh
+  shrink (View sh ops) = [ View sh (take i ops) | i <- [0 .. length ops - 1] ]
+
+mkView :: View -> [a] -> Array a
+mkView (View sh ops) xs = foldl (flip applyOp) (fromList sh xs) ops
+
+-- The view over the vector of its indices, with the elements outside
+-- the view failing when forced.
+mkViewOnly :: View -> Array Int
+mkViewOnly v@(View sh _) =
+  let n = product sh
+      is = toList (mkView v [0 .. n - 1])
+  in  mkView v [ if i `elem` is then i else error "outside the view" | i <- [0 .. n - 1] ]
+
+-- A view built directly: a shape, strides and an offset whose indices fit
+-- in a vector of the given length, often exactly as long as the view.
+data RawView = RawView [Int] [Int] Int Int
+  deriving Show
+
+instance Arbitrary RawView where
+  arbitrary = do
+    sh <- genShape 3
+    ts <- vectorOf (length sh) (choose (-4, 4))
+    let lo = sum [ (s - 1) * t | (s, t) <- zip sh ts, s > 0, t < 0 ]
+        hi = sum [ (s - 1) * t | (s, t) <- zip sh ts, s > 0, t > 0 ]
+    exact <- arbitrary
+    slack <- choose (0, 2)
+    let n = if exact then max (hi - lo + 1) (product sh) else hi - lo + 1 + slack
+    pre <- choose (0, n - (hi - lo + 1))
+    return (RawView sh ts (pre - lo) n)
+
+-- readRangeT finds the part of the vector a view reads where it reads every
+-- element of one part, and nothing where it reads none or skips one.
+prop_readRangeT :: RawView -> View -> Property
+prop_readRangeT (RawView rsh ts o n) v@(View sh _) =
+  let rt = I.T ts o (V.fromList [0 .. n - 1])
+      x = mkView v [0 .. product sh - 1] :: Array Int
+      range is = case sort (nub is) of
+        js@(j : _) | js == [j .. j + length js - 1] -> Just (j, length js)
+        _ -> Nothing
+  in  I.readRangeT rsh rt === range (I.toListT rsh rt)
+      .&&. (case x of D.A (DG.A sh' t) -> I.readRangeT sh' t) === range (toList x)
+
+-- == agrees with comparing the lists, on the view against itself, the view
+-- mapped and the view normalized, and compares no element outside the views.
+prop_eq :: View -> Property
+prop_eq v =
+  let x = mkViewOnly v
+      y = mapA (`div` 2) x
+  in  (x == x) === True .&&. (x == y) === (toList x == toList y)
+      .&&. (x == normalize x) === True
 
