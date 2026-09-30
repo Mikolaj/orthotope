@@ -514,6 +514,7 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_allSameA" prop_allSameA
         , testPropertyN "prop_toList" prop_toList
         , testPropertyN "prop_toListLazy" prop_toListLazy
+        , testPropertyN "prop_compare" prop_compare
         ]
   in  tests
 
@@ -626,3 +627,22 @@ prop_toListLazy v@(View sh _) =
           x = mkView v [ if i `elem` pre then i else error "outside the prefix"
                        | i <- [0 .. n - 1] ]
       in  take k (toList x) === pre .&&. length (toList x) === length is
+
+-- == and compare agree with comparing the lists, between a view and an
+-- array of its elements with at most one of them changed, and between two
+-- views of one layout over vectors that differ in at most one element,
+-- inside the views or outside them.
+prop_compare :: View -> Property
+prop_compare v@(View sh _) =
+  let n = product sh
+      x = mkView v [0 .. n - 1] :: Array Int
+      l = toList x
+  in  forAll (choose (0, length l)) $ \ i ->
+      forAll (choose (0, n)) $ \ j ->
+      forAll (choose (-1, 1)) $ \ d ->
+      let l' = [ if k == i then e + d else e | (k, e) <- zip [0 ..] l ]
+          y = fromList (shapeL x) l'
+          z = mkView v [ if k == j then k + d else k | k <- [0 .. n - 1] ]
+      in  (x == y) === (l == l') .&&. compare x y === compare l l'
+          .&&. compare y x === compare l' l
+          .&&. (x == z) === (l == toList z) .&&. compare x z === compare l (toList z)
