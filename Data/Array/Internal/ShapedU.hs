@@ -211,7 +211,8 @@ pad v = A . G.pad @ps v . unA
 
 -- | Do an arbitrary array transposition.
 -- Fails if the transposition argument is not a permutation of the numbers
--- [0..r-1], where r is the rank of the array.
+-- [0..l-1] for an l no greater than the rank of the array, whose l outermost
+-- dimensions it permutes.
 -- O(1) time.
 transpose :: forall is sh a .
              (Permutation is, Rank is <= Rank sh, Shape sh, Shape is, KnownNat (Rank sh)) =>
@@ -246,7 +247,12 @@ unravel = S.A . G.mapA A . G.unravel . unA
 -- E.g., if the shape of the array is @[10,12,8]@ and
 -- the window size is @[3,3]@ then the resulting array will have shape
 -- @[8,10,3,3,8]@.
+--
+-- E.g., @window \@'[2] (fromList \@'[4] [1,2,3,4]) == fromList \@'[3,2] [1,2, 2,3, 3,4]@
 -- O(1) time.
+--
+-- If the window type parameter @ws = '[w1,...,wk]@ and @wa = window \@ws a@ then
+-- @wa `index` i1 ... `index` ik == slice \@'[ '(i1,w1),...,'(ik,wk)] a@.
 {-# INLINABLE window #-}
 window :: forall ws sh' sh a .
           (Window ws sh sh', KnownNat (Rank ws)) =>
@@ -263,10 +269,10 @@ stride :: forall ts sh' sh a .
 stride = A . G.stride @ts . unA
 
 -- | Extract a slice of an array.
--- The first argument is a list of (offset, length) pairs.
+-- The first type argument is a list of (offset, length) pairs.
 -- The length of the slicing argument must not exceed the rank of the array.
 -- The extracted slice must fall within the array dimensions.
--- E.g. @slice [1,2] (fromList [4] [1,2,3,4]) == [2,3]@.
+-- E.g. @slice \@'[ '(1,2)] (fromList \@'[4] [1,2,3,4]) == fromList \@'[2] [2,3]@.
 -- O(1) time.
 slice :: forall sl sh' sh a .
          (Slice sl sh sh') =>
@@ -328,6 +334,7 @@ allSameA = G.allSameA . unA
 instance (Shape sh, Arbitrary a, Unbox a) => Arbitrary (Array sh a) where arbitrary = A <$> arbitrary
 -- | Sum of all elements.
 
+-- | Sum of all elements.
 {-# INLINE sumA #-}
 sumA :: (Unbox a, Num a, Shape sh) => Array sh a -> a
 sumA = G.sumA . unA

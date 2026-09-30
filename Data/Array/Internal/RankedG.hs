@@ -115,7 +115,7 @@ shapeL (A s _) = s
 rank :: forall n v a . (KnownNat n) => Array n v a -> Int
 rank (A _ _) = valueOf @n
 
--- | Index into an array.  Fails if the array has rank 0 or if the index is out of bounds.
+-- | Index into an array.  Fails if the index is out of bounds.
 -- O(1) time.
 {-# INLINE index #-}
 index :: (Vector v, HasCallStack) => Array (1+n) v a -> Int -> Array n v a
@@ -271,7 +271,8 @@ pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " +
 
 -- | Do an arbitrary array transposition.
 -- Fails if the transposition argument is not a permutation of the numbers
--- [0..r-1], where r is the rank of the array.
+-- [0..l-1] for an l no greater than the rank of the array, whose l outermost
+-- dimensions it permutes.
 -- O(1) time.
 {-# INLINE transpose #-}
 transpose :: forall n v a . (HasCallStack, KnownNat n) =>
@@ -407,7 +408,7 @@ rotate k a@(A sh _)
 -- The first argument is a list of (offset, length) pairs.
 -- The length of the slicing argument must not exceed the rank of the array.
 -- The extracted slice must fall within the array dimensions.
--- E.g. @slice [1,2] (fromList [4] [1,2,3,4]) == [2,3]@.
+-- E.g. @slice [(1,2)] (fromList [4] [1,2,3,4]) == fromList [2] [2,3]@.
 -- O(1) time.
 {-# INLINE slice #-}
 slice :: (HasCallStack) => [(Int, Int)] -> Array n v a -> Array n v a

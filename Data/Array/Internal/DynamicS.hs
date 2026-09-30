@@ -277,7 +277,8 @@ pad ps v = A . G.pad ps v . unA
 
 -- | Do an arbitrary array transposition.
 -- Fails if the transposition argument is not a permutation of the numbers
--- [0..r-1], where r is the rank of the array.
+-- [0..l-1] for an l no greater than the rank of the array, whose l outermost
+-- dimensions it permutes.
 -- O(1) time.
 transpose :: (HasCallStack) => [Int] -> Array a -> Array a
 transpose is = A . G.transpose is . unA
@@ -316,9 +317,14 @@ unravel = D.A . G.mapA A . G.unravel . unA
 -- E.g., if the shape of the array is @[10,12,8]@ and
 -- the window size is @[3,3]@ then the resulting array will have shape
 -- @[8,10,3,3,8]@.
+--
+-- E.g., @window [2] (fromList [4] [1,2,3,4]) == fromList [3,2] [1,2, 2,3, 3,4]@
 -- Fails if the window list is longer than the rank or a window is negative or
 -- larger than its dimension.
 -- O(1) time.
+--
+-- If the window parameter @ws = [w1,...,wk]@ and @wa = window ws a@ then
+-- @wa `index` i1 ... `index` ik == slice [(i1,w1),...,(ik,wk)] a@.
 {-# INLINABLE window #-}
 window :: (HasCallStack) => [Int] -> Array a -> Array a
 window ws = A . G.window ws . unA
@@ -344,7 +350,7 @@ rotate d k = A . G.rotate d k . unA
 -- The first argument is a list of (offset, length) pairs.
 -- The length of the slicing argument must not exceed the rank of the array.
 -- The extracted slice must fall within the array dimensions.
--- E.g. @slice [1,2] (fromList [4] [1,2,3,4]) == [2,3]@.
+-- E.g. @slice [(1,2)] (fromList [4] [1,2,3,4]) == fromList [2] [2,3]@.
 -- O(1) time.
 slice :: (HasCallStack) => [(Int, Int)] -> Array a -> Array a
 slice ss = A . G.slice ss . unA
