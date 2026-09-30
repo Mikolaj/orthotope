@@ -370,7 +370,8 @@ rotate k a = rerank @d @p @(p + 1) f a
               flattened = reshape @(p + 1) @1 [(k + 1) * n] repeated
               batched = window @1 @2 [n] flattened
               strided = stride [n + m] batched
-          in rev [0] (reshape (k:h:t) strided)
+          in if k == 0 || n == 0 then stretchOuter k arr' else
+             rev [0] (reshape (k:h:t) strided)
 
 -- | Extract a slice of an array.
 -- The first argument is a list of (offset, length) pairs.

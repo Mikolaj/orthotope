@@ -344,7 +344,8 @@ rotate d k a | d < rank a, k >= 0 = rerank d f a
   f arr = let h:t = shapeL arr
               m = product t
               n = h * m
-          in rev [0]
+          in if k == 0 || n == 0 then stretchOuter k (reshape (1:h:t) arr) else
+             rev [0]
              . reshape (k:h:t)
              . stride [n + m]
              . window [n]

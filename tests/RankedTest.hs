@@ -225,6 +225,10 @@ test = testGroup "Ranked" $
                                       9, 10, 11, 12, 7, 8,
                                       7, 8, 9, 10, 11, 12] :: Array 4 Int)
                            (rotate @1 4 (fromList [2, 3, 2] [1 .. 12] :: Array 3 Int))
+      rotate_2 = assertEqual "2" (fromList [0,3] [])
+                                 (rotate @0 @1 0 (fromList [3] [1,2,3] :: Array 1 Int))
+      rotate_3 = assertEqual "3" (fromList [1,2,0] [])
+                                 (rotate @0 @2 1 (fromList [2,0] [] :: Array 2 Int))
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrows "2" (slice [(0,0)] a4)
@@ -325,6 +329,8 @@ test = testGroup "Ranked" $
         , testCase "stride_4" stride_4
         , testCase "stride_5" stride_5
         , testCase "rotate_1" rotate_1
+        , testCase "rotate_2" rotate_2
+        , testCase "rotate_3" rotate_3
         , testCase "slice_1" slice_1
         , testCase "slice_2" slice_2
         , testCase "slice_3" slice_3
