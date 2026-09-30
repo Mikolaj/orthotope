@@ -464,15 +464,18 @@ traverseT
   => ShapeL -> (a -> f b) -> T v a -> f (T v b)
 traverseT sh f a = fmap (fromListT sh) (traverse f (toListT sh a))
 
--- Fast check if all elements are equal.
+-- Fast check if all elements are equal, comparing the first with the others,
+-- as allSame does.
 {-# INLINABLE allSameT #-}
 allSameT :: (Vector v, VecElem v a, Eq a) => ShapeL -> T v a -> Bool
 allSameT sh t@(T _ _ v)
-  | vLength v <= 1 || product sh == 0 = True
+  | product sh <= 1 = True
+  | vLength v == 1 = let !x = vIndex v 0 in x == x
   | otherwise =
-    let !l = toVectorListT sh t
-        !x = vIndex (l !! 0) 0
-    in  all (vAll (x ==)) l
+    case toVectorListT sh t of
+      v0 : vs -> let !x = vIndex v0 0
+                 in  all (vAll (x ==)) (vSlice 1 (vLength v0 - 1) v0 : vs)
+      [] -> True
 
 newtype Rect = Rect { unRect :: [String] }  -- A rectangle of text
 

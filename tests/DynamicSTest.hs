@@ -237,6 +237,12 @@ test = testGroup "DynamicS" $
       reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank 1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (reduce (*) 1) a2)
       allSameA_1 = assertEqual "1" True (allSameA (slice [(1,0)] a1))
+      -- As allSame . toList, comparing the first element with the others only.
+      allSameA_2 = assertEqual "2" [True, False, False, False, True]
+                                   (map allSameA [ fromList [1] [nan], fromList [2] [nan, nan]
+                                                 , constant [3] nan, normalize (constant [3] nan)
+                                                 , slice [(0,1)] (fromList [2] [nan, 1]) ])
+        where nan = 0 / 0 :: Double
 
       tests =
         [ testCase "show_1" show_1
@@ -316,5 +322,6 @@ test = testGroup "DynamicS" $
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
         , testCase "allSameA_1" allSameA_1
+        , testCase "allSameA_2" allSameA_2
         ]
   in  tests
