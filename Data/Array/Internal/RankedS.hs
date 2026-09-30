@@ -298,7 +298,7 @@ slice ss = A . G.slice ss . unA
 -- | Apply a function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
 -- The /n/ must not exceed the rank of the array.
--- O(1) time.
+-- O(n) time.
 {-# INLINABLE rerank #-}
 rerank :: forall n i o a b .
           (Unbox a, Unbox b, KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
