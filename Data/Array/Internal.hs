@@ -468,7 +468,7 @@ traverseT sh f a = fmap (fromListT sh) (traverse f (toListT sh a))
 {-# INLINABLE allSameT #-}
 allSameT :: (Vector v, VecElem v a, Eq a) => ShapeL -> T v a -> Bool
 allSameT sh t@(T _ _ v)
-  | vLength v <= 1 = True
+  | vLength v <= 1 || product sh == 0 = True
   | otherwise =
     let !l = toVectorListT sh t
         !x = vIndex (l !! 0) 0
