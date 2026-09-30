@@ -12,12 +12,14 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
--- Random views, for the properties of the dynamic test modules.
+-- Random views and other helpers for the properties of the test modules.
 module Views(testPropertyN, failsWith, genShape, Op(..), applyOp, opShape, opSource, View(..)
-            , mkView) where
+            , mkView, applyOpG, mkViewG) where
 
 import Control.Exception (ErrorCall (..), evaluate, try)
 import Data.Array.Dynamic
+import qualified Data.Array.Internal as I
+import qualified Data.Array.Internal.DynamicG as DG
 import Data.List (sort)
 import Test.Framework (Test, TestOptions' (..), plusTestOptions)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
@@ -122,3 +124,16 @@ instance Arbitrary View where
 
 mkView :: View -> [a] -> Array a
 mkView (View sh ops) xs = foldl (flip applyOp) (fromList sh xs) ops
+
+-- applyOp and mkView through DynamicG, at any instance of Vector.
+applyOpG :: (I.Vector v, I.VecElem v a) => Op -> DG.Array v a -> DG.Array v a
+applyOpG (Transpose is) = DG.transpose is
+applyOpG (Rev rs) = DG.rev rs
+applyOpG (Slice sl) = DG.slice sl
+applyOpG (Stride ts) = DG.stride ts
+applyOpG (Window ws) = DG.window ws
+applyOpG (Index i) = (`DG.index` i)
+applyOpG (Broadcast ds sh) = DG.broadcast ds sh
+
+mkViewG :: (I.Vector v, I.VecElem v a) => View -> [a] -> DG.Array v a
+mkViewG (View sh ops) xs = foldl (flip applyOpG) (DG.fromList sh xs) ops
