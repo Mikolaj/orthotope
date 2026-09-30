@@ -18,6 +18,7 @@ module DynamicTest(test) where
 import Control.DeepSeq
 import Control.Exception
 import Data.Array.Dynamic
+import qualified Data.Array.Internal as I
 import qualified Data.Vector as V
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
@@ -53,6 +54,8 @@ test = testGroup "Dynamic" $
       fromList_1 = assertThrows "sh" (fromList [] [1,2::Int])
       fromList_2 = assertThrows "sh" (fromList [4,5] [1,2::Int])
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
+      vFromListN_1 = assertEqual "1" (V.toList $ V.fromListN 2 [1,2,3::Int])
+                                     (I.vFromListN 2 [1,2,3])
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [6] [1..6]) (reshape [6] a1)
       reshape_2 = assertEqual "1" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2)
@@ -295,6 +298,7 @@ test = testGroup "Dynamic" $
         , testCase "fromList_1" fromList_1
         , testCase "fromList_2" fromList_2
         , testCase "fromVector_1" fromVector_1
+        , testCase "vFromListN_1" vFromListN_1
         , testCase "normalize_1" normalize_1
         , testCase "reshape_1" reshape_1
         , testCase "reshape_2" reshape_2
