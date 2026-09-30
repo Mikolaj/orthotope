@@ -23,6 +23,8 @@ import Data.Word (Word8)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
+import Test.QuickCheck (Property, (.&&.), (===))
+import Views (Op (..), View (..), testPropertyN)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -334,5 +336,26 @@ test = testGroup "DynamicU" $
         , testCase "reduce_3" reduce_3
         , testCase "allSameA_1" allSameA_1
         , testCase "allSameA_2" allSameA_2
+        , testPropertyN "prop_toList" prop_toList
         ]
   in  tests
+
+-- applyOp and mkView of Views, over Unboxed arrays.
+applyOp :: Unbox a => Op -> Array a -> Array a
+applyOp (Transpose is) = transpose is
+applyOp (Rev rs) = rev rs
+applyOp (Slice sl) = slice sl
+applyOp (Stride ts) = stride ts
+applyOp (Window ws) = window ws
+applyOp (Index i) = (`index` i)
+applyOp (Broadcast ds sh) = broadcast ds sh
+
+mkView :: Unbox a => View -> [a] -> Array a
+mkView (View sh ops) xs = foldl (flip applyOp) (fromList sh xs) ops
+
+-- toList and toVector agree with indexing the view element by element.
+prop_toList :: View -> Property
+prop_toList v@(View sh _) =
+  let x = mkView v [0 .. product sh - 1] :: Array Int
+      l = [ unScalar (foldl index x is) | is <- mapM (\ s -> [0 .. s - 1]) (shapeL x) ]
+  in  toList x === l .&&. V.toList (toVector x) === l

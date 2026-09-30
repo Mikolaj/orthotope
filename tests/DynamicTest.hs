@@ -511,6 +511,8 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_eq" prop_eq
         , testPropertyN "prop_mapA" prop_mapA
         , testPropertyN "prop_allSameA" prop_allSameA
+        , testPropertyN "prop_toList" prop_toList
+        , testPropertyN "prop_toListLazy" prop_toListLazy
         ]
   in  tests
 
@@ -605,3 +607,21 @@ prop_allSameA v@(View sh _) =
   forAll (vectorOf (product sh) (elements pool)) $ \ xs ->
   let x = mkView v xs
   in  allSameA x === I.allSame (toList x)
+
+-- toList and toVector agree with indexing the view element by element.
+prop_toList :: View -> Property
+prop_toList v@(View sh _) =
+  let x = mkView v [0 .. product sh - 1] :: Array Int
+      l = [ unScalar (foldl index x is) | is <- mapM (\ s -> [0 .. s - 1]) (shapeL x) ]
+  in  toList x === l .&&. V.toList (toVector x) === l
+
+-- A prefix of toList and its length force no element outside the prefix.
+prop_toListLazy :: View -> Property
+prop_toListLazy v@(View sh _) =
+  let n = product sh
+      is = toList (mkView v [0 .. n - 1])
+  in  forAll (choose (0, length is)) $ \ k ->
+      let pre = take k is
+          x = mkView v [ if i `elem` pre then i else error "outside the prefix"
+                       | i <- [0 .. n - 1] ]
+      in  take k (toList x) === pre .&&. length (toList x) === length is
