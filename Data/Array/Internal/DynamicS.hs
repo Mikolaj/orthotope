@@ -436,7 +436,7 @@ iterateN n f = A . G.iterateN n f
 
 -- | Generate a vector from 0 to n-1.
 {-# INLINE iota #-}
-iota :: (Unbox a, Enum a, Num a) => Int -> Array a
+iota :: (Unbox a, Num a) => Int -> Array a
 iota = A . G.iota
 
 -- | Convert between types by just reinterpreting the bits as another type.

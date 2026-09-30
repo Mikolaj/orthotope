@@ -22,6 +22,7 @@ import Data.Array.Dynamic
 import qualified Data.Array.DynamicG as G
 import qualified Data.Array.Internal as I
 import qualified Data.Vector as V
+import Data.Word (Word8)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
@@ -109,6 +110,7 @@ test = testGroup "Dynamic" $
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
       unScalar_2 = assertThrows "2" (unScalar a3)
       constant_1 = assertEqual "1" (fromList [2,3] [1,1,1,1,1,1]) (constant [2,3] (1::Int))
+      iota_1 = assertEqual "1" (map fromIntegral [0..299::Int]) (toList (iota 300 :: Array Word8))
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "1" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
@@ -350,6 +352,7 @@ test = testGroup "Dynamic" $
         , testCase "unScalar_1" unScalar_1
         , testCase "unScalar_2" unScalar_2
         , testCase "constant_1" constant_1
+        , testCase "iota_1" iota_1
         , testCase "mapA_1" mapA_1
         , testCase "mapA_2" mapA_2
         , testCase "zipWithA_1" zipWithA_1

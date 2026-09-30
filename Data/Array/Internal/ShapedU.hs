@@ -353,5 +353,5 @@ iterateN f = A . G.iterateN f
 
 -- | Generate a vector from 0 to n-1.
 {-# INLINE iota #-}
-iota :: (KnownNat n, Unbox a, Enum a, Num a) => Array '[n] a
+iota :: (KnownNat n, Unbox a, Num a) => Array '[n] a
 iota = A G.iota
