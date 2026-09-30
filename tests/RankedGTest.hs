@@ -18,11 +18,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
--- Ranked arrays against Dynamic ones, at the boxed, Storable, Unboxed
--- and list instances of Vector: the random views of the dynamic test
--- modules as Ranked arrays of their ranks, every operation of those views
--- done by Ranked, and the operations whose ranks their types fix on the
--- random views of rank 3.
+-- Ranked arrays against Dynamic ones, at the boxed, Storable, Unboxed and
+-- list instances of Vector: the random views of the dynamic test modules
+-- as Ranked arrays of their ranks, every operation of those views done by
+-- Ranked, and the operations whose ranks their types fix on the random
+-- views of rank 3, rotate also on those of ranks 1 and 2.
 module RankedGTest(test) where
 
 import Control.DeepSeq (NFData, force)
@@ -57,6 +57,7 @@ backend n = testGroup n
   [ testPropertyN "prop_views" (prop_views @v)
   , testPropertyN "prop_viewOps" (prop_viewOps @v)
   , testPropertyN "prop_rank3" (prop_rank3 @v)
+  , testPropertyN "prop_rotate" (prop_rotate @v)
   ]
 
 -- Run the continuation at the rank given, as a type.
@@ -148,6 +149,10 @@ prop_viewOps (View sh ops) =
         counterexample (show op) (obs (applyOpR @n @n' op (toR x)) === obsD y)
   in  conjoin (map step (zip3 steps ops (drop 1 steps)))
 
+-- The rank of a view.
+rankOf :: View -> Int
+rankOf v@(View sh _) = length (DD.shapeL (mkView v (replicate (product sh) ())))
+
 -- rotate, rerank, rerank2, unravel and ravel, whose types fix the ranks
 -- they take, give what Dynamic's do on the random views of rank 3, or
 -- fail as they do: rotate for any dimension and a number of rotations
@@ -177,4 +182,18 @@ prop_rank3 =
       .&&. counterexample "ravel"
              (sameAs (obs (R.ravel (R.unravel r :: R.Array 1 V.Vector (R.Array 2 v Int))))
                      (obsD (D.ravel (D.unravel x :: D.Array V.Vector (D.Array v Int)))))
-  where rankOf w@(View s _) = length (DD.shapeL (mkView w (replicate (product s) ())))
+
+-- rotate gives what Dynamic's does, or fails as it does, on the random
+-- views of ranks 1 and 2, for any dimension and a number of rotations from
+-- -2 up.
+prop_rotate :: forall v . (I.Vector v, I.VecElem v Int) => Property
+prop_rotate =
+  forAll (arbitrary `suchThat` ((`elem` [1, 2]) . rankOf)) $ \ v@(View sh _) ->
+  forAll (vectorOf (product sh) (choose (-9, 9))) $ \ xs ->
+  forAll (choose (-2, 9)) $ \ k ->
+  let x = mkViewG v xs :: D.Array v Int
+      rot :: Int -> R.Array m v Int -> Property
+      rot d a = counterexample ("rotate " ++ show d) (sameAs (obs a) (obsD (D.rotate d k x)))
+  in  if D.rank x == 1 then rot 0 (R.rotate @0 @1 k (toR x :: R.Array 1 v Int))
+      else rot 0 (R.rotate @0 @2 k (toR x :: R.Array 2 v Int))
+           .&&. rot 1 (R.rotate @1 @1 k (toR x :: R.Array 2 v Int))
