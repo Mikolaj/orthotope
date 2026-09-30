@@ -61,7 +61,8 @@ genOp sh = oneof $
                         | otherwise = []
        return (Broadcast ds (fill (0 :: Int) sh extra))
   ] ++
-  [ Window . (: []) <$> choose (1, s) | s : _ <- [sh], s > 0 ] ++
+  [ do k <- choose (1, min 2 (length ps)); Window <$> mapM (\ s -> choose (0, s)) (take k ps)
+  | let ps = takeWhile (> 0) sh, not (null ps) ] ++
   [ Index <$> choose (0, s - 1) | s : _ <- [sh], s > 0 ]
   where r = length sh
 
