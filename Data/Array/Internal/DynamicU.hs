@@ -34,7 +34,7 @@ module Data.Array.Internal.DynamicU(
   mapA, zipWithA, zipWith3A, zipWith4A, zipWith5A,
   append, concatOuter,
   ravel, unravel,
-  window, stride,
+  window, stride, rotate,
   slice, rerank, rerank2, rev,
   reduce, foldrA, traverseA,
   allSameA,
@@ -297,6 +297,12 @@ window ws = A . G.window ws . unA
 -- O(1) time.
 stride :: (HasCallStack) => [Int] -> Array a -> Array a
 stride ws = A . G.stride ws . unA
+
+-- | Rotate the array k times along the d'th dimension.
+-- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
+-- the resulting shape will be @[2, 4, 3, 2]@.
+rotate :: (HasCallStack, Unbox a) => Int -> Int -> Array a -> Array a
+rotate d k = A . G.rotate d k . unA
 
 -- | Extract a slice of an array.
 -- The first argument is a list of (offset, length) pairs.
