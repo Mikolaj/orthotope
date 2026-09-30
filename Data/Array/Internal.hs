@@ -85,7 +85,7 @@ instance Vector [] where
   vLength = length
   vToList = id
   vFromList = id
-  vFromListN _ = id
+  vFromListN = take
   vSingleton = pure
   vReplicate = replicate
   vMap = map
