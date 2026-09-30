@@ -89,6 +89,7 @@ test-suite tests
                      , ShapedTest
                      , ShapedUTest
                      , ShapedSTest
+                     , ShapedGTest
                      , Views
 
   ghc-options:

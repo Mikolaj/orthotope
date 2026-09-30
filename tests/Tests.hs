@@ -22,6 +22,7 @@ import qualified DynamicUTest
 import qualified RankedSTest
 import qualified RankedTest
 import qualified RankedUTest
+import qualified ShapedGTest
 import qualified ShapedSTest
 import qualified ShapedTest
 import qualified ShapedUTest
@@ -38,5 +39,6 @@ main = defaultMain
   , ShapedTest.test
   , ShapedSTest.test
   , ShapedUTest.test
+  , ShapedGTest.test
   , BenchViewsTest.test
   ]
