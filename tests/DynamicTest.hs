@@ -37,8 +37,8 @@ import Test.QuickCheck
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
 import Views
-  ( Elem, View (..), applyOp, failsIn, failsWith, genBadOp, genElems, genShape, mkView, opNames
-  , opShape, opSource, silentBadOp, testPropertyN, upTo )
+  ( Elem, View (..), applyOp, failsIn, failsWith, genBadOp, genElems, genRawView, genShape, mkView
+  , opNames, opShape, opSource, silentBadOp, testPropertyN, upTo )
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -557,34 +557,18 @@ mkViewOnly v@(View sh _) =
       is = toList (mkView v [0 .. n - 1])
   in  mkView v [ if i `elem` is then i else error "outside the view" | i <- [0 .. n - 1] ]
 
--- A view built directly: a shape, strides and an offset whose indices fit
--- in a vector of the given length, often exactly as long as the view.
-data RawView = RawView [Int] [Int] Int Int
-  deriving Show
-
-instance Arbitrary RawView where
-  arbitrary = do
-    sh <- genShape 3
-    ts <- vectorOf (length sh) (choose (-4, 4))
-    let lo = sum [ (s - 1) * t | (s, t) <- zip sh ts, s > 0, t < 0 ]
-        hi = sum [ (s - 1) * t | (s, t) <- zip sh ts, s > 0, t > 0 ]
-    exact <- arbitrary
-    slack <- choose (0, 2)
-    let n = if exact then max (hi - lo + 1) (product sh) else hi - lo + 1 + slack
-    pre <- choose (0, n - (hi - lo + 1))
-    return (RawView sh ts (pre - lo) n)
-
 -- readRangeT finds the part of the vector a view reads where it reads every
--- element of one part, and nothing where it reads none or skips one.
-prop_readRangeT :: RawView -> View -> Property
-prop_readRangeT (RawView rsh ts o n) v@(View sh _) =
-  let rt = I.T ts o (V.fromList [0 .. n - 1])
-      x = mkView v [0 .. product sh - 1] :: Array Int
-      range is = case sort (nub is) of
-        js@(j : _) | js == [j .. j + length js - 1] -> Just (j, length js)
-        _ -> Nothing
-  in  I.readRangeT rsh rt === range (I.toListT rsh rt)
-      .&&. (case x of D.A (DG.A sh' t) -> I.readRangeT sh' t) === range (toList x)
+-- element of one part, and nothing where it reads none or skips one, on a
+-- random view and on one that starts with Raw.
+prop_readRangeT :: View -> Property
+prop_readRangeT v = forAll genRawView $ \ w -> readRange v .&&. readRange w
+  where readRange u@(View sh _) =
+          let x = mkView u (replicate (product sh) ())
+              range is = case sort (nub is) of
+                js@(j : _) | js == [j .. j + length js - 1] -> Just (j, length js)
+                _ -> Nothing
+              positions (I.T ss o w) = I.T ss o (V.fromList [0 .. V.length w - 1])
+          in  case x of D.A (DG.A sh' t) -> I.readRangeT sh' t === range (I.toListT sh' (positions t))
 
 -- == agrees with comparing the lists, on the view against itself, the view
 -- mapped and the view normalized, and compares no element outside the views.

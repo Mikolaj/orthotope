@@ -30,8 +30,8 @@ import Test.QuickCheck
   ( Property, choose, conjoin, counterexample, elements, forAll, property, shuffle
   , sublistOf, vectorOf, (.&&.), (===), (==>) )
 import Views
-  ( Elem, Op (..), View (..), failsIn, failsWith, genBadOp, genElems, genShape, opNames, opShape
-  , opSource, silentBadOp, testPropertyN, upTo )
+  ( Elem, Op (..), View (..), applyOpG, failsIn, failsWith, genBadOp, genElems, genShape, opNames
+  , opShape, opSource, silentBadOp, testPropertyN, upTo )
 
 test :: Test
 test = testGroup "DynamicG" $
@@ -47,6 +47,7 @@ applyOp (Stride ts) = stride ts
 applyOp (Window ws) = window ws
 applyOp (Index i) = (`index` i)
 applyOp (Broadcast ds sh) = broadcast ds sh
+applyOp op@Raw{} = applyOpG op
 
 mkView :: View -> [a] -> Array [] a
 mkView (View sh ops) xs = foldl (flip applyOp) (fromList sh xs) ops

@@ -15,12 +15,13 @@
 -- Random views and other helpers for the properties of the test modules.
 module Views(testPropertyN, failsWith, failsIn, Elem, genElems, upTo, genShape, Op(..), applyOp
             , opShape, opSource, genBadOp, opNames, silentBadOp, View(..), mkView, applyOpG
-            , mkViewG) where
+            , mkViewG, genRawView) where
 
 import Control.DeepSeq (NFData)
 import Control.Exception (ErrorCall (..), evaluate, try)
 import Data.Array.Dynamic
 import qualified Data.Array.Internal as I
+import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.Internal.DynamicG as DG
 import Data.List (sort)
 import Data.Word (Word8)
@@ -73,9 +74,12 @@ genShape r = do
   r' <- choose (0, r)
   vectorOf r' (choose (0, 4))
 
--- The operations that make views, for building random views.
+-- The operations that make views, for building random views, and Raw sh ss
+-- o k m, which reads the vector of a fresh array of rank 1, less k elements
+-- at its start and m at its end, as an array of shape sh with strides ss
+-- from offset o.
 data Op = Transpose [Int] | Rev [Int] | Slice [(Int, Int)] | Stride [Int]
-        | Window [Int] | Index Int | Broadcast [Int] [Int]
+        | Window [Int] | Index Int | Broadcast [Int] [Int] | Raw [Int] [Int] Int Int Int
   deriving Show
 
 applyOp :: Op -> Array a -> Array a
@@ -86,6 +90,7 @@ applyOp (Stride ts) = stride ts
 applyOp (Window ws) = window ws
 applyOp (Index i) = (`index` i)
 applyOp (Broadcast ds sh) = broadcast ds sh
+applyOp op@Raw{} = D.A . applyOpG op . D.unA
 
 -- The shape of the result of an operation on an array of the given shape.
 opShape :: [Int] -> Op -> [Int]
@@ -97,6 +102,7 @@ opShape sh (Window ws) =
   zipWith (\ s w -> s - w + 1) sh ws ++ ws ++ drop (length ws) sh
 opShape sh (Index _) = drop 1 sh
 opShape _ (Broadcast _ sh') = sh'
+opShape _ (Raw sh' _ _ _ _) = sh'
 
 -- The index in an array of the given shape that an index of the result of
 -- the operation reads.
@@ -111,6 +117,7 @@ opSource _ (Window ws) js =
   in  zipWith (+) (take k js) (take k (drop k js)) ++ drop (2 * k) js
 opSource _ (Index i) js = i : js
 opSource _ (Broadcast ds _) js = map (js !!) ds
+opSource _ (Raw _ ss o k _) js = [k + o + sum (zipWith (*) ss js)]
 
 -- A slice of an extent: an offset and a length.
 okSlice :: Int -> Gen (Int, Int)
@@ -145,6 +152,20 @@ genBroadcast sh = do
                    | otherwise = []
   return (ds, fill (0 :: Int) sh extra)
   where r = length sh
+
+-- A shape, strides and an offset, and the length of a vector their indices
+-- fit in, often exactly as long as the array.
+genLayout :: Gen ([Int], [Int], Int, Int)
+genLayout = do
+  sh <- genShape 3
+  ts <- vectorOf (length sh) (choose (-4, 4))
+  let lo = sum [ (s - 1) * t | (s, t) <- zip sh ts, s > 0, t < 0 ]
+      hi = sum [ (s - 1) * t | (s, t) <- zip sh ts, s > 0, t > 0 ]
+  exact <- arbitrary
+  slack <- choose (0, 2)
+  let n = if exact then max (hi - lo + 1) (product sh) else hi - lo + 1 + slack
+  pre <- choose (0, n - (hi - lo + 1))
+  return (sh, ts, pre - lo, n)
 
 -- An operation invalid on an array of the given shape: its list too long
 -- for the rank, or one bad argument.
@@ -204,6 +225,7 @@ opNames (Stride _) = ["stride"]
 opNames (Window _) = ["window"]
 opNames (Index _) = ["index"]
 opNames (Broadcast _ _) = ["broadcast", "reshape", "stretch"]
+opNames Raw{} = []  -- genBadOp draws no Raw
 
 -- The invalid operations on an array of the given shape that give an
 -- array: a broadcast to extents other than the array's but of the same
@@ -228,9 +250,11 @@ data View = View [Int] [Op]
   deriving Show
 
 -- At least three random views in four have a dimension and no empty one.
+-- One in three starts with Raw.
 instance Arbitrary View where
   arbitrary = frequency [(1, anyView), (3, anyView `suchThat` nontrivial)]
-    where anyView = do
+    where anyView = frequency [(2, fresh), (1, genRawView)]
+          fresh = do
             sh <- genShape 3
             n <- choose (0, 4)
             View sh <$> genOps n sh
@@ -238,6 +262,15 @@ instance Arbitrary View where
             let vsh = shapeL (mkView v (replicate (product sh) ()))
             in  not (null vsh) && product vsh > 0
   shrink (View sh ops) = [ View sh (take i ops) | i <- [0 .. length ops - 1] ]
+
+-- A view that starts with Raw.
+genRawView :: Gen View
+genRawView = do
+  (sh, ss, o, l) <- genLayout
+  k <- choose (0, 3)
+  m <- choose (0, 3)
+  n <- choose (0, 3)
+  View [k + l + m] . (Raw sh ss o k m :) <$> genOps n sh
 
 mkView :: View -> [a] -> Array a
 mkView (View sh ops) xs = foldl (flip applyOp) (fromList sh xs) ops
@@ -251,6 +284,8 @@ applyOpG (Stride ts) = DG.stride ts
 applyOpG (Window ws) = DG.window ws
 applyOpG (Index i) = (`DG.index` i)
 applyOpG (Broadcast ds sh) = DG.broadcast ds sh
+applyOpG (Raw sh ss o k m) = \ x ->
+  let v = DG.toVector x in DG.A sh (I.T ss o (I.vSlice k (I.vLength v - k - m) v))
 
 mkViewG :: (I.Vector v, I.VecElem v a) => View -> [a] -> DG.Array v a
 mkViewG (View sh ops) xs = foldl (flip applyOpG) (DG.fromList sh xs) ops
