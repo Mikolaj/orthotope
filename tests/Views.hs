@@ -13,20 +13,30 @@
 -- limitations under the License.
 
 -- Random views, for the properties of the dynamic test modules.
-module Views(testPropertyN, genShape, Op(..), applyOp, opShape, opSource, View(..), mkView)
-  where
+module Views(testPropertyN, failsWith, genShape, Op(..), applyOp, opShape, opSource, View(..)
+            , mkView) where
 
+import Control.Exception (ErrorCall (..), evaluate, try)
 import Data.Array.Dynamic
 import Data.List (sort)
 import Test.Framework (Test, TestOptions' (..), plusTestOptions)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.QuickCheck
-  ( Arbitrary (..), Gen, Testable, choose, oneof, shuffle, sublistOf, vectorOf )
+  ( Arbitrary (..), Gen, Property, Testable, choose, counterexample, ioProperty, oneof
+  , shuffle, sublistOf, vectorOf, (===) )
 
 -- A property checked on a thousand cases rather than the default hundred.
 testPropertyN :: Testable p => String -> p -> Test
 testPropertyN name =
   plusTestOptions mempty { topt_maximum_generated_tests = Just 1000 } . testProperty name
+
+-- Evaluating the value to WHNF fails with the message.
+failsWith :: String -> a -> Property
+failsWith msg a = ioProperty $ do
+  r <- try (evaluate a)
+  return $ case r of
+    Left (ErrorCall e) -> e === msg
+    Right _ -> counterexample ("no error, where " ++ msg ++ " was due") False
 
 genShape :: Int -> Gen [Int]
 genShape r = do
