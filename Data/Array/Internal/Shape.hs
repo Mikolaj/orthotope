@@ -197,7 +197,7 @@ sizeT :: forall sh . (Shape sh) => Int
 sizeT = sizeP (Proxy :: Proxy sh)
 
 -- | Turn a dynamic shape back into a type level shape.
--- @withShape sh shapeP == sh@
+-- @withShapeP sh shapeP == sh@
 withShapeP :: [Int] -> (forall sh . (Shape sh) => Proxy sh -> r) -> r
 withShapeP [] f = f (Proxy :: Proxy ('[] :: [Nat]))
 withShapeP (n:ns) f =

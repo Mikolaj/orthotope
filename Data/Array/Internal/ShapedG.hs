@@ -301,11 +301,11 @@ unravel = rerank @1 scalar
 -- the window size is @[3,3]@ then the resulting array will have shape
 -- @[8,10,3,3,8]@.
 --
--- E.g., @window [2] (fromList [4] [1,2,3,4]) == fromList [3,2] [1,2, 2,3, 3,4]@
+-- E.g., @window \@'[2] (fromList \@'[4] [1,2,3,4]) == fromList \@'[3,2] [1,2, 2,3, 3,4]@
 -- O(1) time.
 --
--- If the window parameter @ws = [w1,...,wk]@ and @wa = window ws a@ then
--- @wa `index` i1 ... `index` ik == slice [(i1,w1),...,(ik,wk)] a@.
+-- If the window type parameter @ws = '[w1,...,wk]@ and @wa = window \@ws a@ then
+-- @wa `index` i1 ... `index` ik == slice \@'[ '(i1,w1),...,'(ik,wk)] a@.
 {-# INLINE window #-}
 window :: forall ws sh' sh v a .
           (Window ws sh sh', Vector v, KnownNat (Rank ws)) =>
@@ -328,7 +328,7 @@ stride (A (T ss o v)) = A (T (zipWith (*) (ats ++ repeat 1) ss) o v)
 -- The first type argument is a list of (offset, length) pairs.
 -- The length of the slicing argument must not exceed the rank of the array.
 -- The extracted slice must fall within the array dimensions.
--- E.g. @slice @'[ '(1,2)] (fromList @'[4] [1,2,3,4]) == fromList @'[2] [2,3]@.
+-- E.g. @slice \@'[ '(1,2)] (fromList \@'[4] [1,2,3,4]) == fromList \@'[2] [2,3]@.
 -- O(1) time.
 {-# INLINE slice #-}
 slice :: forall sl sh' sh v a .
