@@ -18,11 +18,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
--- Ranked arrays against Dynamic ones, at the boxed, Storable, Unboxed and
--- list instances of Vector: the random views of the dynamic test modules as
--- Ranked arrays of their ranks, every operation of those views and invalid
--- ones done by Ranked, and the operations whose ranks their types fix on
--- the random views of rank 3, rotate also on those of ranks 1 and 2.
+-- Ranked arrays against Dynamic ones, at the boxed, Storable, Unboxed
+-- and list instances of Vector, with Int and Word8 elements: the random
+-- views of the dynamic test modules as Ranked arrays of their ranks,
+-- every operation of those views and invalid ones done by Ranked, and the
+-- operations whose ranks their types fix on the random views of rank 3,
+-- rotate also on those of ranks 1 and 2.
 module RankedGTest(test) where
 
 import Control.DeepSeq (NFData, force)
@@ -37,28 +38,37 @@ import Data.Proxy (Proxy (..))
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
+import Data.Word (Word8)
+import Foreign.Storable (Storable)
 import GHC.TypeLits (KnownNat, SomeNat (..), someNatVal, type (+))
 import Test.Framework (Test, testGroup)
 import Test.QuickCheck
   ( Arbitrary (..), Property, choose, conjoin, counterexample, forAll, ioProperty
-  , property, suchThat, vectorOf, (.&&.), (===) )
-import Views (Op (..), View (..), applyOpG, failsWith, genBadOp, mkView, mkViewG, testPropertyN)
+  , property, suchThat, (.&&.), (===) )
+import Views
+  ( Elem, Op (..), View (..), applyOpG, failsWith, genBadOp, genElems, mkView, mkViewG
+  , testPropertyN, upTo )
 
 test :: Test
-test = testGroup "RankedG"
-  [ backend @V.Vector "boxed"
-  , backend @VS.Vector "Storable"
-  , backend @VU.Vector "Unboxed"
-  , backend @[] "list"
+test = testGroup "RankedG" $ backends @Int ++ [testGroup "Word8" (backends @Word8)]
+
+-- The properties at each instance of Vector, with elements of an Elem type.
+backends :: forall a . (Elem a, Storable a, VU.Unbox a) => [Test]
+backends =
+  [ backend @V.Vector @a "boxed"
+  , backend @VS.Vector @a "Storable"
+  , backend @VU.Vector @a "Unboxed"
+  , backend @[] @a "list"
   ]
 
-backend :: forall v . (I.Vector v, I.VecElem v Int, Ord (v Int), Show (v Int)) => String -> Test
+backend :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
+           String -> Test
 backend n = testGroup n
-  [ testPropertyN "prop_views" (prop_views @v)
-  , testPropertyN "prop_viewOps" (prop_viewOps @v)
-  , testPropertyN "prop_badOps" (prop_badOps @v)
-  , testPropertyN "prop_rank3" (prop_rank3 @v)
-  , testPropertyN "prop_rotate" (prop_rotate @v)
+  [ testPropertyN "prop_views" (prop_views @v @a)
+  , testPropertyN "prop_viewOps" (prop_viewOps @v @a)
+  , testPropertyN "prop_badOps" (prop_badOps @v @a)
+  , testPropertyN "prop_rank3" (prop_rank3 @v @a)
+  , testPropertyN "prop_rotate" (prop_rotate @v @a)
   ]
 
 -- Run the continuation at the rank given, as a type.
@@ -76,10 +86,10 @@ retype :: R.Array n v a -> R.Array m v a
 retype (R.A sh t) = R.A sh t
 
 -- The shape and the elements of an array.
-obs :: (I.Vector v, I.VecElem v Int) => R.Array n v Int -> ([Int], [Int])
+obs :: (I.Vector v, I.VecElem v a) => R.Array n v a -> ([Int], [a])
 obs a = (R.shapeL a, R.toList a)
 
-obsD :: (I.Vector v, I.VecElem v Int) => D.Array v Int -> ([Int], [Int])
+obsD :: (I.Vector v, I.VecElem v a) => D.Array v a -> ([Int], [a])
 obsD x = (D.shapeL x, D.toList x)
 
 -- The two are equal, or fail with messages that agree up to their first
@@ -99,19 +109,19 @@ sameAs a b = ioProperty $ do
 -- its order against an array of its elements with at most one of them
 -- changed, the results of normalize, mapA, zipWithA, reduce, pad, append
 -- and reshape to one dimension; and it reads back from its show.
-prop_views :: forall v . (I.Vector v, I.VecElem v Int, Ord (v Int), Show (v Int)) =>
+prop_views :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
               View -> Property
 prop_views v@(View sh _) =
-  forAll (vectorOf (product sh) (choose (-9, 9))) $ \ xs ->
-  let x = mkViewG v xs :: D.Array v Int
+  forAll (genElems (-9, 9) (product sh)) $ \ xs ->
+  let x = mkViewG v xs :: D.Array v a
       xsh = D.shapeL x
       l = D.toList x
       ps = [ (1, 2) | not (null xsh) ]
   in  withRank (length xsh) $ \ (_ :: Proxy n) ->
-      let r = toR x :: R.Array n v Int
+      let r = toR x :: R.Array n v a
       in  forAll (choose (0, length l)) $ \ i ->
           let l' = [ if k == i then e + 1 else e | (k, e) <- zip [0 ..] l ]
-              r' = R.fromList xsh l' :: R.Array n v Int
+              r' = R.fromList xsh l' :: R.Array n v a
           in  R.toList r === l .&&. R.toVector r === D.toVector x
               .&&. R.toList (R.normalize r) === l
               .&&. R.sumA r === sum l .&&. R.productA r === product l
@@ -141,9 +151,9 @@ applyOpR (Broadcast ds sh) = R.broadcast ds sh
 
 -- Each operation of a random view, done by Ranked at the ranks of its
 -- argument and of its result, gives what Dynamic's does.
-prop_viewOps :: forall v . (I.Vector v, I.VecElem v Int) => View -> Property
+prop_viewOps :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
 prop_viewOps (View sh ops) =
-  let steps = scanl (flip applyOpG) (D.fromList sh [0 .. product sh - 1]) ops :: [D.Array v Int]
+  let steps = scanl (flip applyOpG) (D.fromList sh (upTo (product sh))) ops :: [D.Array v a]
       step (x, op, y) =
         withRank (D.rank x) $ \ (_ :: Proxy n) ->
         withRank (D.rank y) $ \ (_ :: Proxy n') ->
@@ -163,9 +173,9 @@ opRank n _ = Just n
 -- view and the rank opRank gives, fails as Dynamic's does, or gives what it
 -- does where Dynamic's gives an array; but slice of a list longer than the
 -- rank fails with "impossible", not with Dynamic's message.
-prop_badOps :: forall v . (I.Vector v, I.VecElem v Int) => View -> Property
+prop_badOps :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
 prop_badOps v@(View sh _) =
-  let x = mkViewG v [0 .. product sh - 1] :: D.Array v Int
+  let x = mkViewG v (upTo (product sh)) :: D.Array v a
   in  forAll (genBadOp (D.shapeL x)) $ \ op ->
       case opRank (D.rank x) op of
         Nothing -> property True
@@ -185,14 +195,14 @@ rankOf v@(View sh _) = length (DD.shapeL (mkView v (replicate (product sh) ())))
 -- they take, give what Dynamic's do on the random views of rank 3, or
 -- fail as they do: rotate for any dimension and a number of rotations
 -- from -2 up.
-prop_rank3 :: forall v . (I.Vector v, I.VecElem v Int) => Property
+prop_rank3 :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => Property
 prop_rank3 =
   forAll (arbitrary `suchThat` ((== 3) . rankOf)) $ \ v@(View sh _) ->
-  forAll (vectorOf (product sh) (choose (-9, 9))) $ \ xs ->
+  forAll (genElems (-9, 9) (product sh)) $ \ xs ->
   forAll (choose (-2, 9)) $ \ k ->
-  let x = mkViewG v xs :: D.Array v Int
-      r = toR x :: R.Array 3 v Int
-      rot :: Int -> R.Array 4 v Int -> Property
+  let x = mkViewG v xs :: D.Array v a
+      r = toR x :: R.Array 3 v a
+      rot :: Int -> R.Array 4 v a -> Property
       rot d a = counterexample ("rotate " ++ show d) (sameAs (obs a) (obsD (D.rotate d k x)))
       nested ps = (concatMap fst ps, concatMap snd ps)
   in  rot 0 (R.rotate @0 @3 k r) .&&. rot 1 (R.rotate @1 @2 k r) .&&. rot 2 (R.rotate @2 @1 k r)
@@ -205,23 +215,23 @@ prop_rank3 =
              (sameAs (obs (R.rerank2 @2 (R.zipWithA (+)) r r))
                      (obsD (D.rerank2 2 (D.zipWithA (+)) x x)))
       .&&. counterexample "unravel"
-             (sameAs (nested (map obs (R.toList (R.unravel r :: R.Array 1 V.Vector (R.Array 2 v Int)))))
-                     (nested (map obsD (D.toList (D.unravel x :: D.Array V.Vector (D.Array v Int))))))
+             (sameAs (nested (map obs (R.toList (R.unravel r :: R.Array 1 V.Vector (R.Array 2 v a)))))
+                     (nested (map obsD (D.toList (D.unravel x :: D.Array V.Vector (D.Array v a))))))
       .&&. counterexample "ravel"
-             (sameAs (obs (R.ravel (R.unravel r :: R.Array 1 V.Vector (R.Array 2 v Int))))
-                     (obsD (D.ravel (D.unravel x :: D.Array V.Vector (D.Array v Int)))))
+             (sameAs (obs (R.ravel (R.unravel r :: R.Array 1 V.Vector (R.Array 2 v a))))
+                     (obsD (D.ravel (D.unravel x :: D.Array V.Vector (D.Array v a)))))
 
 -- rotate gives what Dynamic's does, or fails as it does, on the random
 -- views of ranks 1 and 2, for any dimension and a number of rotations from
 -- -2 up.
-prop_rotate :: forall v . (I.Vector v, I.VecElem v Int) => Property
+prop_rotate :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => Property
 prop_rotate =
   forAll (arbitrary `suchThat` ((`elem` [1, 2]) . rankOf)) $ \ v@(View sh _) ->
-  forAll (vectorOf (product sh) (choose (-9, 9))) $ \ xs ->
+  forAll (genElems (-9, 9) (product sh)) $ \ xs ->
   forAll (choose (-2, 9)) $ \ k ->
-  let x = mkViewG v xs :: D.Array v Int
-      rot :: Int -> R.Array m v Int -> Property
+  let x = mkViewG v xs :: D.Array v a
+      rot :: Int -> R.Array m v a -> Property
       rot d a = counterexample ("rotate " ++ show d) (sameAs (obs a) (obsD (D.rotate d k x)))
-  in  if D.rank x == 1 then rot 0 (R.rotate @0 @1 k (toR x :: R.Array 1 v Int))
-      else rot 0 (R.rotate @0 @2 k (toR x :: R.Array 2 v Int))
-           .&&. rot 1 (R.rotate @1 @1 k (toR x :: R.Array 2 v Int))
+  in  if D.rank x == 1 then rot 0 (R.rotate @0 @1 k (toR x :: R.Array 1 v a))
+      else rot 0 (R.rotate @0 @2 k (toR x :: R.Array 2 v a))
+           .&&. rot 1 (R.rotate @1 @1 k (toR x :: R.Array 2 v a))

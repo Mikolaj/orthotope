@@ -18,9 +18,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 -- Shaped arrays against Dynamic ones, at the boxed, Storable, Unboxed and
--- list instances of Vector: the random views of the dynamic test modules
--- as Shaped arrays of their shapes, and Shaped operations, with their
--- arguments fixed in the types, on arrays of one shape in several layouts.
+-- list instances of Vector, with Int and Word8 elements: the random views
+-- of the dynamic test modules as Shaped arrays of their shapes, and Shaped
+-- operations, with their arguments fixed in the types, on arrays of one
+-- shape in several layouts.
 module ShapedGTest(test) where
 
 import qualified Data.Array.Internal as I
@@ -33,41 +34,48 @@ import Data.Proxy (Proxy (..))
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
+import Data.Word (Word8)
+import Foreign.Storable (Storable)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.QuickCheck
-  (Property, choose, conjoin, counterexample, forAll, vectorOf, (.&&.), (===))
-import Views (View (..), mkViewG, testPropertyN)
+  (Property, choose, conjoin, counterexample, forAll, (.&&.), (===))
+import Views (Elem, View (..), genElems, mkViewG, testPropertyN)
 
 test :: Test
-test = testGroup "ShapedG"
-  [ backend @V.Vector "boxed"
-  , backend @VS.Vector "Storable"
-  , backend @VU.Vector "Unboxed"
-  , backend @[] "list"
+test = testGroup "ShapedG" $ backends @Int ++ [testGroup "Word8" (backends @Word8)]
+
+-- The properties at each instance of Vector, with elements of an Elem type.
+backends :: forall a . (Elem a, Storable a, VU.Unbox a) => [Test]
+backends =
+  [ backend @V.Vector @a "boxed"
+  , backend @VS.Vector @a "Storable"
+  , backend @VU.Vector @a "Unboxed"
+  , backend @[] @a "list"
   ]
 
-backend :: forall v . (I.Vector v, I.VecElem v Int, Ord (v Int), Show (v Int)) => String -> Test
+backend :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
+           String -> Test
 backend n = testGroup n $
-  testPropertyN "prop_views" (prop_views @v)
-  : [ testProperty on (prop_op f g) | (on, f, g) <- ops @v ]
+  testPropertyN "prop_views" (prop_views @v @a)
+  : [ testProperty on (prop_op f g) | (on, f, g) <- ops @v @a ]
 
 -- A random view, as a Shaped array of its shape, gives what it does as a
 -- Dynamic array or a list: its elements, their reductions but maximumA and
 -- minimumA, which want a shape known not to be empty, its order against an
 -- array of its elements with at most one of them changed, and the results
 -- of normalize, mapA, zipWithA and reduce; and it reads back from its show.
-prop_views :: forall v . (I.Vector v, I.VecElem v Int, Ord (v Int), Show (v Int)) =>
+prop_views :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
               View -> Property
 prop_views v@(View sh _) =
-  forAll (vectorOf (product sh) (choose (-9, 9))) $ \ xs ->
-  case mkViewG v xs :: D.Array v Int of
+  forAll (genElems (-9, 9) (product sh)) $ \ xs ->
+  case mkViewG v xs :: D.Array v a of
     x@(D.A xsh t) -> withShapeP xsh $ \ (_ :: Proxy sh) ->
-      let s = S.A t :: S.Array sh v Int
+      let s = S.A t :: S.Array sh v a
           l = D.toList x
       in  forAll (choose (0, length l)) $ \ i ->
           let l' = [ if k == i then e + 1 else e | (k, e) <- zip [0 ..] l ]
-              s' = S.fromList l' :: S.Array sh v Int
+              s' = S.fromList l' :: S.Array sh v a
           in  S.toList s === l .&&. S.toVector s === D.toVector x
               .&&. S.toList (S.normalize s) === l
               .&&. S.sumA s === sum l .&&. S.productA s === product l
@@ -80,10 +88,10 @@ prop_views v@(View sh _) =
               .&&. read (show s) === s
 
 -- The Shaped operation gives what the Dynamic one does on each source.
-prop_op :: forall v . (I.Vector v, I.VecElem v Int) =>
-           (S.Array '[2,3,4] v Int -> ([Int], [Int])) -> (D.Array v Int -> ([Int], [Int]))
+prop_op :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
+           (S.Array '[2,3,4] v a -> ([Int], [a])) -> (D.Array v a -> ([Int], [a]))
         -> Property
-prop_op f g = forAll (vectorOf 60 (choose (-9, 9))) $ \ xs ->
+prop_op f g = forAll (genElems (-9, 9) 60) $ \ xs ->
   conjoin [ counterexample n (f s === g (toD s)) | (n, s) <- sources xs ]
 
 -- The Dynamic array a Shaped one is.
@@ -91,16 +99,16 @@ toD :: forall sh v a . S.Shape sh => S.Array sh v a -> D.Array v a
 toD a@(S.A t) = D.A (S.shapeL a) t
 
 -- The shape and the elements of an array.
-obs :: (I.Vector v, I.VecElem v Int, S.Shape sh) => S.Array sh v Int -> ([Int], [Int])
+obs :: (I.Vector v, I.VecElem v a, S.Shape sh) => S.Array sh v a -> ([Int], [a])
 obs a = (S.shapeL a, S.toList a)
 
-obsD :: (I.Vector v, I.VecElem v Int) => D.Array v Int -> ([Int], [Int])
+obsD :: (I.Vector v, I.VecElem v a) => D.Array v a -> ([Int], [a])
 obsD x = (D.shapeL x, D.toList x)
 
 -- Arrays of shape [2,3,4] over the elements, fresh and as views of other
 -- arrays: transposed, reversed, sliced, strided and broadcast.
-sources :: forall v . (I.Vector v, I.VecElem v Int) =>
-           [Int] -> [(String, S.Array '[2,3,4] v Int)]
+sources :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
+           [a] -> [(String, S.Array '[2,3,4] v a)]
 sources xs =
   [ ("fresh", S.fromList (take 24 xs))
   , ("transposed", S.transpose @'[1,0,2] (S.fromList @'[3,2,4] (take 24 xs)))
@@ -113,8 +121,8 @@ sources xs =
 -- The Shaped operations on an array of shape [2,3,4] and their Dynamic
 -- counterparts, alone and composed, and the Shaped arrays built from
 -- nothing, which ignore the source.
-ops :: forall v . (I.Vector v, I.VecElem v Int) =>
-       [(String, S.Array '[2,3,4] v Int -> ([Int], [Int]), D.Array v Int -> ([Int], [Int]))]
+ops :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
+       [(String, S.Array '[2,3,4] v a -> ([Int], [a]), D.Array v a -> ([Int], [a]))]
 ops =
   [ ("transpose [2,0,1]", obs . S.transpose @'[2,0,1], obsD . D.transpose [2,0,1])
   , ("transpose [1,0]", obs . S.transpose @'[1,0], obsD . D.transpose [1,0])
@@ -138,8 +146,8 @@ ops =
   , ("pad [(1,2),(0,1)]", obs . S.pad @'[ '(1,2), '(0,1) ] 0, obsD . D.pad [(1,2),(0,1)] 0)
   , ("append", \ a -> obs (S.append a a), \ x -> obsD (D.append x x))
   , ( "unravel"
-    , \ a -> nested (map obs (S.toList (S.unravel a :: S.Array '[2] V.Vector (S.Array '[3,4] v Int))))
-    , \ x -> nested (map obsD (D.toList (D.unravel x :: D.Array V.Vector (D.Array v Int)))) )
+    , \ a -> nested (map obs (S.toList (S.unravel a :: S.Array '[2] V.Vector (S.Array '[3,4] v a))))
+    , \ x -> nested (map obsD (D.toList (D.unravel x :: D.Array V.Vector (D.Array v a)))) )
   , ( "rerank 1 (transpose [1,0])", obs . S.rerank @1 (S.transpose @'[1,0])
     , obsD . D.rerank 1 (D.transpose [1,0]) )
   , ( "rerank2 2 (zipWithA (+))", \ a -> obs (S.rerank2 @2 (S.zipWithA (+)) a a)
@@ -155,11 +163,11 @@ ops =
       . S.reshape @'[2,1,3,4]
     , obsD . D.slice [(0,2),(1,2)] . D.transpose [1,2,0] . (`D.index` 1)
       . D.reshape [2,1,3,4] )
-  , ( "constant [2,3] 7", const (obs (S.constant @'[2,3] 7 :: S.Array '[2,3] v Int))
-    , const (obsD (D.constant [2,3] 7 :: D.Array v Int)) )
-  , ( "generate [2,3] sum", const (obs (S.generate @'[2,3] sum :: S.Array '[2,3] v Int))
-    , const (obsD (D.generate [2,3] sum :: D.Array v Int)) )
-  , ( "iota 5", const (obs (S.iota @5 :: S.Array '[5] v Int))
-    , const (obsD (D.iota 5 :: D.Array v Int)) )
+  , ( "constant [2,3] 7", const (obs (S.constant @'[2,3] 7 :: S.Array '[2,3] v a))
+    , const (obsD (D.constant [2,3] 7 :: D.Array v a)) )
+  , ( "generate [2,3] sum", const (obs (S.generate @'[2,3] (fromIntegral . sum) :: S.Array '[2,3] v a))
+    , const (obsD (D.generate [2,3] (fromIntegral . sum) :: D.Array v a)) )
+  , ( "iota 5", const (obs (S.iota @5 :: S.Array '[5] v a))
+    , const (obsD (D.iota 5 :: D.Array v a)) )
   ]
   where nested ps = (concatMap fst ps, concatMap snd ps)
