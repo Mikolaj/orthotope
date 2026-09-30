@@ -344,6 +344,12 @@ test = testGroup "Dynamic" $
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank 1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (reduce (*) 1) a2)
+      -- Empty views of a longer vector, so that reading the element at the
+      -- offset fails: at the vector's end under the bounds checks, and over
+      -- an undefined element, which only a boxed array can hold, in any build.
+      allSameA_1 = assertEqual "1" [True, True]
+                     (map allSameA [ slice [(2,0)] a1
+                                   , slice [(1,0)] (fromList [2,3] [1, 2, 3, undefined, 5, 6]) ])
 
       -- Test fast toVector
       toVector_10 =
@@ -460,6 +466,7 @@ test = testGroup "Dynamic" $
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
+        , testCase "allSameA_1" allSameA_1
         , testCase "toVector_10" toVector_10
         , testCase "toVector_11" toVector_11
         , testCase "toVector_12" toVector_12

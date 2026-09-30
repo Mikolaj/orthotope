@@ -240,6 +240,9 @@ test = testGroup "DynamicS" $
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank 1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (reduce (*) 1) a2)
+      -- An empty view at the end of a longer vector, so that reading the
+      -- element at the offset fails under the bounds checks.
+      allSameA_1 = assertEqual "1" True (allSameA (slice [(2,0)] a1))
 
       tests =
         [ testCase "show_1" show_1
@@ -319,5 +322,6 @@ test = testGroup "DynamicS" $
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
+        , testCase "allSameA_1" allSameA_1
         ]
   in  tests
