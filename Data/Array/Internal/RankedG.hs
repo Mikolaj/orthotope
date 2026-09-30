@@ -147,7 +147,7 @@ fromList ss vs | n /= l = error $ "fromList: size mismatch " ++ show (n, l)
         l = length vs
 
 -- | Convert from a vector with the elements given in the linearization order.
--- Fails if the given shape does not have the same number of elements as the list.
+-- Fails if the given shape does not have the same number of elements as the vector.
 -- O(1) time.
 {-# INLINE fromVector #-}
 fromVector :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
