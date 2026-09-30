@@ -87,6 +87,7 @@ test-suite tests
                      , ShapedTest
                      , ShapedUTest
                      , ShapedSTest
+                     , Views
 
   ghc-options:
     -Wall -rtsopts
