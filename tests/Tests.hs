@@ -15,6 +15,7 @@
 import Test.Framework (defaultMain)
 
 import qualified BenchViewsTest
+import qualified DynamicGTest
 import qualified DynamicSTest
 import qualified DynamicTest
 import qualified DynamicUTest
@@ -30,6 +31,7 @@ main = defaultMain
   [ DynamicTest.test
   , DynamicSTest.test
   , DynamicUTest.test
+  , DynamicGTest.test
   , RankedTest.test
   , RankedSTest.test
   , RankedUTest.test
