@@ -13,8 +13,8 @@
 -- limitations under the License.
 
 -- Random views and other helpers for the properties of the test modules.
-module Views(testPropertyN, failsWith, genShape, Op(..), applyOp, opShape, opSource, View(..)
-            , mkView, applyOpG, mkViewG) where
+module Views(testPropertyN, failsWith, failsIn, genShape, Op(..), applyOp, opShape, opSource
+            , genBadOp, opNames, silentBadOp, View(..), mkView, applyOpG, mkViewG) where
 
 import Control.Exception (ErrorCall (..), evaluate, try)
 import Data.Array.Dynamic
@@ -24,8 +24,8 @@ import Data.List (sort)
 import Test.Framework (Test, TestOptions' (..), plusTestOptions)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.QuickCheck
-  ( Arbitrary (..), Gen, Property, Testable, choose, counterexample, frequency, ioProperty
-  , oneof, shuffle, sublistOf, suchThat, vectorOf, (===) )
+  ( Arbitrary (..), Gen, Property, Testable, choose, counterexample, elements, frequency
+  , ioProperty, oneof, shuffle, sublistOf, suchThat, vectorOf, (===) )
 
 -- A property checked on a thousand cases rather than the default hundred.
 testPropertyN :: Testable p => String -> p -> Test
@@ -39,6 +39,15 @@ failsWith msg a = ioProperty $ do
   return $ case r of
     Left (ErrorCall e) -> e === msg
     Right _ -> counterexample ("no error, where " ++ msg ++ " was due") False
+
+-- Evaluating the value to WHNF fails with a message whose part before its
+-- first colon is one of the names.
+failsIn :: [String] -> a -> Property
+failsIn names a = ioProperty $ do
+  r <- try (evaluate a)
+  return $ case r of
+    Left (ErrorCall e) -> counterexample e (takeWhile (/= ':') e `elem` names)
+    Right _ -> counterexample ("no error, where one of " ++ show names ++ " was due") False
 
 genShape :: Int -> Gen [Int]
 genShape r = do
@@ -84,25 +93,108 @@ opSource _ (Window ws) js =
 opSource _ (Index i) js = i : js
 opSource _ (Broadcast ds _) js = map (js !!) ds
 
+-- A slice of an extent: an offset and a length.
+okSlice :: Int -> Gen (Int, Int)
+okSlice s = do k <- choose (0, s); n <- choose (0, s - k); return (k, n)
+
+-- Strides of 1 to 3, one for each dimension of the shape.
+okStrides :: [Int] -> Gen [Int]
+okStrides = mapM (const (choose (1, 3)))
+
 -- An operation valid on an array of the given shape.
 genOp :: [Int] -> Gen Op
 genOp sh = oneof $
   [ do k <- choose (min r 2, r); Transpose <$> shuffle [0 .. k - 1]
   , Rev <$> sublistOf [0 .. r - 1]
-  , Slice <$> mapM (\ s -> do k <- choose (0, s); n <- choose (0, s - k); return (k, n)) sh
-  , Stride <$> mapM (const (choose (1, 3))) sh
-  , do e <- choose (0, 2)
-       ds <- sort . take r <$> shuffle [0 .. r + e - 1]
-       extra <- vectorOf e (choose (0, 3))
-       let fill i ss xs | i `elem` ds, s : ss' <- ss = s : fill (i + 1) ss' xs
-                        | x : xs' <- xs = x : fill (i + 1) ss xs'
-                        | otherwise = []
-       return (Broadcast ds (fill (0 :: Int) sh extra))
+  , Slice <$> mapM okSlice sh
+  , Stride <$> okStrides sh
+  , uncurry Broadcast <$> genBroadcast sh
   ] ++
   [ do k <- choose (1, min 2 (length ps)); Window <$> mapM (\ s -> choose (0, s)) (take k ps)
   | let ps = takeWhile (> 0) sh, not (null ps) ] ++
   [ Index <$> choose (0, s - 1) | s : _ <- [sh], s > 0 ]
   where r = length sh
+
+-- The arguments of a broadcast valid on an array of the given shape.
+genBroadcast :: [Int] -> Gen ([Int], [Int])
+genBroadcast sh = do
+  e <- choose (0, 2)
+  ds <- sort . take r <$> shuffle [0 .. r + e - 1]
+  extra <- vectorOf e (choose (0, 3))
+  let fill i ss xs | i `elem` ds, s : ss' <- ss = s : fill (i + 1) ss' xs
+                   | x : xs' <- xs = x : fill (i + 1) ss xs'
+                   | otherwise = []
+  return (ds, fill (0 :: Int) sh extra)
+  where r = length sh
+
+-- An operation invalid on an array of the given shape: its list too long
+-- for the rank, or one bad argument.
+genBadOp :: [Int] -> Gen Op
+genBadOp sh = oneof $
+  [ Transpose <$> shuffle [0 .. r]
+  , do ds <- sublistOf [0 .. r - 1]; d <- elements [-1, r]; Rev <$> shuffle (d : ds)
+  , Slice . (++ [(0, 0)]) <$> mapM okSlice sh
+  , Stride . (++ [1]) <$> okStrides sh
+  , Window . (++ [0]) <$> okWindows
+  , do (ds, sh') <- genBroadcast sh
+       let r' = length sh'
+       oneof $
+         [ return (Broadcast (ds ++ [0]) sh') ] ++
+         [ return (Broadcast (drop 1 ds) sh') | r > 0 ] ++
+         [ do j <- choose (0, r - 1); d <- elements [-1, r']; return (Broadcast (setAt j d ds) sh')
+         | r > 0 ] ++
+         [ Broadcast <$> elements [setAt 1 (ds !! 0) ds, setAt 0 (ds !! 1) (setAt 1 (ds !! 0) ds)]
+                     <*> pure sh'
+         | r > 1 ] ++
+         [ do j <- choose (0, r' - 1); return (Broadcast ds (setAt j (-1) sh')) | r' > 0 ] ++
+         [ do j <- choose (0, r - 1)
+              s' <- elements (filter (/= sh !! j) [0 .. 5])
+              return (Broadcast ds (setAt (ds !! j) s' sh'))
+         | r > 0 ]
+  , if r == 0 then Index <$> choose (-1, 1) else Index <$> elements [-1, sh !! 0, sh !! 0 + 1]
+  ] ++
+  [ do k <- choose (1, r)
+       is <- shuffle [0 .. k - 1]
+       i <- choose (0, k - 1)
+       e <- elements (-1 : k : [ j | j <- is, j /= is !! i ])
+       return (Transpose (setAt i e is))
+  | r > 0 ] ++
+  [ do i <- choose (0, r - 1)
+       let s = sh !! i
+       oneof [ do sl <- mapM okSlice sh
+                  b <- elements [(-1, 0), (0, -1), (s + 1, 0), (0, s + 1)]
+                  return (Slice (setAt i b sl))
+             , do ts <- okStrides sh
+                  t <- elements [0, -1]
+                  return (Stride (setAt i t ts))
+             , do ws <- okWindows
+                  w <- elements [-1, s + 1]
+                  return (Window (setAt i w ws)) ]
+  | r > 0 ]
+  where r = length sh
+        okWindows = mapM (\ s -> choose (0, s)) sh
+        setAt i e xs = take i xs ++ e : drop (i + 1) xs
+
+-- The functions whose errors may report an invalid operation: its own,
+-- and for broadcast also reshape and stretch, which check its extents.
+opNames :: Op -> [String]
+opNames (Transpose _) = ["transpose"]
+opNames (Rev _) = ["reverse"]
+opNames (Slice _) = ["slice"]
+opNames (Stride _) = ["stride"]
+opNames (Window _) = ["window"]
+opNames (Index _) = ["index"]
+opNames (Broadcast _ _) = ["broadcast", "reshape", "stretch"]
+
+-- The invalid operations on an array of the given shape that give an
+-- array: a broadcast to extents other than the array's but of the same
+-- product, which reshape does not tell apart.
+silentBadOp :: [Int] -> Op -> Bool
+silentBadOp sh (Broadcast ds sh') =
+  length ds == length sh && all (\ d -> d >= 0 && d < length sh') ds
+  && and (zipWith (<) ds (drop 1 ds)) && all (>= 0) sh'
+  && product [ sh' !! d | d <- ds ] == product sh
+silentBadOp _ _ = False
 
 -- n operations, each valid on the shape the ones before it leave.
 genOps :: Int -> [Int] -> Gen [Op]
