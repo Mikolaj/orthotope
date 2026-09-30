@@ -445,7 +445,7 @@ broadcast :: forall ds sh' sh v a .
               Vector v, VecElem v a) =>
              Array sh v a -> Array sh' v a
 broadcast a = stretch' bc $
-              reshape' sh rsh a
+              reshape' rsh sh a
   where sh' = shapeP (Proxy :: Proxy sh')
         sh = shapeP (Proxy :: Proxy sh)
         rsh = [ if b then 1 else s | (s, b) <- zip sh' bc ]
