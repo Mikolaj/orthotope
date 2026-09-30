@@ -124,7 +124,7 @@ toVector :: (Unbox a, Shape sh) => Array sh a -> V.Vector a
 toVector = G.toVector . unA
 
 -- | Convert from a vector with the elements given in the linearization order.
--- Fails if the given shape does not have the same number of elements as the list.
+-- Fails if the given shape does not have the same number of elements as the vector.
 -- O(1) time.
 fromVector :: forall sh a . (Unbox a, Shape sh) => V.Vector a -> Array sh a
 fromVector = A . G.fromVector

@@ -150,7 +150,7 @@ fromList vs | n /= l = error $ "fromList: size mismatch " ++ show (n, l)
         ss = shapeP (Proxy :: Proxy sh)
 
 -- | Convert from a vector with the elements given in the linearization order.
--- Fails if the given shape does not have the same number of elements as the list.
+-- Fails if the given shape does not have the same number of elements as the vector.
 -- O(1) time.
 {-# INLINE fromVector #-}
 fromVector :: forall sh v a . (HasCallStack, Vector v, VecElem v a, Shape sh) =>

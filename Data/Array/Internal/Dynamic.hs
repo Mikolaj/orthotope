@@ -165,7 +165,7 @@ toVector :: (HasCallStack) => Array a -> V.Vector a
 toVector = G.toVector . unA
 
 -- | Convert from a vector with the elements given in the linearization order.
--- Fails if the given shape does not have the same number of elements as the list.
+-- Fails if the given shape does not have the same number of elements as the vector.
 -- O(1) time.
 fromVector :: (HasCallStack) => ShapeL -> V.Vector a -> Array a
 fromVector ss = A . G.fromVector ss
