@@ -61,7 +61,7 @@ applyOp (Broadcast ds sh) = broadcast ds sh
 
 -- The shape of the result of an operation on an array of the given shape.
 opShape :: [Int] -> Op -> [Int]
-opShape sh (Transpose is) = map (sh !!) is
+opShape sh (Transpose is) = map (sh !!) is ++ drop (length is) sh
 opShape sh (Rev _) = sh
 opShape sh (Slice sl) = map snd sl ++ drop (length sl) sh
 opShape sh (Stride ts) = zipWith (\ s t -> (s + t - 1) `div` t) sh ts ++ drop (length ts) sh
@@ -73,7 +73,8 @@ opShape _ (Broadcast _ sh') = sh'
 -- The index in an array of the given shape that an index of the result of
 -- the operation reads.
 opSource :: [Int] -> Op -> [Int] -> [Int]
-opSource _ (Transpose is) js = [ js !! i | d <- [0 .. length is - 1], (i, d') <- zip [0 ..] is, d' == d ]
+opSource _ (Transpose is) js =
+  [ js !! i | d <- [0 .. length is - 1], (i, d') <- zip [0 ..] is, d' == d ] ++ drop (length is) js
 opSource sh (Rev rs) js = [ if d `elem` rs then s - 1 - j else j | (d, s, j) <- zip3 [0 ..] sh js ]
 opSource _ (Slice sl) js = zipWith (+) (map fst sl) js ++ drop (length sl) js
 opSource _ (Stride ts) js = zipWith (*) ts js ++ drop (length ts) js
@@ -86,7 +87,7 @@ opSource _ (Broadcast ds _) js = map (js !!) ds
 -- An operation valid on an array of the given shape.
 genOp :: [Int] -> Gen Op
 genOp sh = oneof $
-  [ Transpose <$> shuffle [0 .. r - 1]
+  [ do k <- choose (min r 2, r); Transpose <$> shuffle [0 .. k - 1]
   , Rev <$> sublistOf [0 .. r - 1]
   , Slice <$> mapM (\ s -> do k <- choose (0, s); n <- choose (0, s - k); return (k, n)) sh
   , Stride <$> mapM (const (choose (1, 3))) sh
