@@ -21,6 +21,8 @@ import Control.DeepSeq
 import Control.Exception
 import Data.Array.ShapedS
 import qualified Data.Vector.Storable as V
+import Foreign.ForeignPtr.Unsafe (unsafeForeignPtrToPtr)
+import Foreign.Ptr (minusPtr)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
@@ -58,6 +60,13 @@ test = testGroup "ShapedS" $
       fromList_2 = assertThrows "sh" (fromList [1,2] :: Array [4,5] Int)
       fromVector_1 = assertEqual "1" a1 (fromVector $ V.fromList [1..6])
       normalize_1 = assertEqual "1" a1 (normalize a1)
+      -- toVector of a row is a slice of the whole vector, which normalize copies
+      -- the row out of.
+      normalize_2 = assertEqual "2" (True, False)
+                      (inBig (toVector (index big 1)), inBig (toVector (normalize (index big 1))))
+        where big = fromList [1..4000] :: Array '[4,1000] Double
+              ptrOf = unsafeForeignPtrToPtr . fst . V.unsafeToForeignPtr0
+              inBig w = let d = ptrOf w `minusPtr` ptrOf (toVector big) in d >= 0 && d < 32000
       reshape_1 = assertEqual "1" (fromList [1..6] :: Array '[6] Int) (reshape a1)
       reshape_2 = assertEqual "1" (fromList [1,4,2,5,3,6]) (reshape a2 :: Array [1,2,3,1] Int)
       a3 :: Array '[1] Int
@@ -241,6 +250,7 @@ test = testGroup "ShapedS" $
         , testCase "fromList_2" fromList_2
         , testCase "fromVector_1" fromVector_1
         , testCase "normalize_1" normalize_1
+        , testCase "normalize_2" normalize_2
         , testCase "reshape_1" reshape_1
         , testCase "reshape_2" reshape_2
         , testCase "stretch_1" stretch_1

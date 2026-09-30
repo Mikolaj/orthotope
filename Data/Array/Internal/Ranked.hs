@@ -119,6 +119,8 @@ fromList ss = A . G.fromList ss
 
 -- | Convert to a vector with the elements in the linearization order.
 -- O(n) or O(1) time (the latter if the vector is already in the linearization order).
+-- The O(1) result can be a slice of a larger vector, which it keeps alive;
+-- 'normalize' the array first to get a vector of just its elements.
 toVector :: Array n a -> V.Vector a
 toVector = G.toVector . unA
 
@@ -130,10 +132,13 @@ fromVector :: forall n a . (KnownNat n) => ShapeL -> V.Vector a -> Array n a
 fromVector ss = A . G.fromVector ss
 
 -- | Make sure the underlying vector is in the linearization order.
+-- The vector then holds just the elements of the array, so no larger vector
+-- the array is a view of is kept alive; a vector given to 'fromVector', which
+-- may itself be a slice, is kept as it is.
 -- This is semantically an identity function, but can have big performance
 -- implications.
 -- O(n) or O(1) time.
-normalize :: (KnownNat n) => Array n a -> Array n a
+normalize :: Array n a -> Array n a
 normalize = A . G.normalize . unA
 
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.

@@ -293,6 +293,22 @@ toVectorT sh a = case toVectorListT sh a of
   [v] -> v
   l -> vConcat l
 
+-- Put the array into a vector of just its elements, in the linearization
+-- order.  An array that is one block of its vector, whatever the strides
+-- of its dimensions of extent 1, keeps the vector where the block is all
+-- of it, and otherwise has the block copied, by vConcat of the one slice:
+-- the concat of the vector package always builds a new vector, but an
+-- instance whose vConcat returned its only argument would keep the longer
+-- vector alive.
+{-# INLINE normalizeT #-}
+normalizeT :: (Vector v, VecElem v a) => ShapeL -> T v a -> T v a
+normalizeT sh t@(T ats ao v)
+  | map fst dense == ts' =
+    fromVectorT sh $ if vLength v == l then v else vConcat [vSlice ao l v]  -- vConcat copies
+  | otherwise = fromVectorT sh $ toVectorT sh t
+  where dense = [ (st, s) | (st, s) <- zip ats sh, s /= 1 ]
+        l : ts' = getStridesT (map snd dense)
+
 -- Convert to a list of vectors containing altogether the right elements,
 -- but not necessarily in the right order.
 -- This is used for reduction with commutative&associative operations.
