@@ -24,8 +24,8 @@ import Data.List (sort)
 import Test.Framework (Test, TestOptions' (..), plusTestOptions)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.QuickCheck
-  ( Arbitrary (..), Gen, Property, Testable, choose, counterexample, ioProperty, oneof
-  , shuffle, sublistOf, vectorOf, (===) )
+  ( Arbitrary (..), Gen, Property, Testable, choose, counterexample, frequency, ioProperty
+  , oneof, shuffle, sublistOf, suchThat, vectorOf, (===) )
 
 -- A property checked on a thousand cases rather than the default hundred.
 testPropertyN :: Testable p => String -> p -> Test
@@ -116,11 +116,16 @@ genOps n sh = do
 data View = View [Int] [Op]
   deriving Show
 
+-- At least three random views in four have a dimension and no empty one.
 instance Arbitrary View where
-  arbitrary = do
-    sh <- genShape 3
-    n <- choose (0, 4)
-    View sh <$> genOps n sh
+  arbitrary = frequency [(1, anyView), (3, anyView `suchThat` nontrivial)]
+    where anyView = do
+            sh <- genShape 3
+            n <- choose (0, 4)
+            View sh <$> genOps n sh
+          nontrivial v@(View sh _) =
+            let vsh = shapeL (mkView v (replicate (product sh) ()))
+            in  not (null vsh) && product vsh > 0
   shrink (View sh ops) = [ View sh (take i ops) | i <- [0 .. length ops - 1] ]
 
 mkView :: View -> [a] -> Array a
