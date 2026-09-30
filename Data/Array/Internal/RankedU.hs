@@ -59,6 +59,7 @@ import GHC.Stack(HasCallStack)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import Data.Array.Internal.DynamicU()  -- Vector instance
+import qualified Data.Array.Internal.Ranked as R
 import qualified Data.Array.Internal.RankedG as G
 import Data.Array.Internal(ShapeL, Vector(..))
 
@@ -211,15 +212,15 @@ concatOuter = A . G.concatOuter . coerce
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
 -- O(n) time.
-ravel :: (Unbox a, Unbox (Array n a), Unbox (G.Array n V.Vector a), KnownNat (1+n)) =>
-         Array 1 (Array n a) -> Array (1+n) a
-ravel = A . G.ravel . G.mapA unA . unA
+ravel :: (Unbox a, KnownNat (1+n)) =>
+         R.Array 1 (Array n a) -> Array (1+n) a
+ravel = A . G.ravel . G.mapA unA . R.unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
-unravel :: (Unbox a, Unbox (Array n a), Unbox (G.Array n V.Vector a)) =>
-           Array (1+n) a -> Array 1 (Array n a)
-unravel = A . G.mapA A . G.unravel . unA
+unravel :: (Unbox a) =>
+           Array (1+n) a -> R.Array 1 (Array n a)
+unravel = R.A . G.mapA A . G.unravel . unA
 
 -- | Make a window of the outermost dimensions.
 -- The rank increases with the length of the window list.
