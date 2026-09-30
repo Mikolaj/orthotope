@@ -362,8 +362,13 @@ stride ats (A ash (T ss o v)) = A (str ats ash) (T (zipWith (*) (ats ++ repeat 1
 -- Fails if d is not a dimension of the array or k is negative.
 {-# INLINE rotate #-}
 rotate :: (HasCallStack, Vector v, VecElem v a) => Int -> Int -> Array v a -> Array v a
-rotate d k a | d < rank a, k >= 0 = rerank d f a
+rotate d k a@(A sh _)
+  | d >= rank a || k < 0 = error $ "rotate: dimension out of range or negative count " ++ show (d, k, rank a)
+  | 0 `elem` sh' = A sh' $ fromVectorT sh' (vConcat [])  -- no elements
+  | otherwise = rerank d f a
  where
+  (osh, ish) = splitAt d sh
+  sh' = osh ++ k : ish
   f arr = let h:t = shapeL arr
               m = product t
               n = h * m
@@ -376,7 +381,6 @@ rotate d k a | d < rank a, k >= 0 = rerank d f a
              . reshape [c * n]
              . stretchOuter c
              . reshape (1:h:t) $ arr
-rotate d k a = error $ "rotate: dimension out of range or negative count " ++ show (d, k, rank a)
 
 -- | Extract a slice of an array.
 -- The first argument is a list of (offset, length) pairs.

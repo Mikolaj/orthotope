@@ -374,8 +374,11 @@ rotate :: forall d p v a.
           Int -> Array (p + d) v a -> Array (p + d + 1) v a
 rotate k a@(A sh _)
   | valueOf @d >= length sh || k < 0 = error $ "rotate: dimension out of range or negative count " ++ show (valueOf @d :: Int, k, length sh)
+  | 0 `elem` sh' = A sh' $ fromVectorT sh' (vConcat [])  -- no elements
   | otherwise = rerank @d @p @(p + 1) f a
  where
+  (osh, ish) = splitAt (valueOf @d) sh
+  sh' = osh ++ k : ish
   f :: Array p v a -> Array (p + 1) v a
   f arr = let h:t = shapeL arr
               m = product t

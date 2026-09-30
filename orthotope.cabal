@@ -96,6 +96,8 @@ test-suite tests
     deepseq,
     orthotope,
     vector,
+    QuickCheck,
     HUnit                      >= 1.6.2 && < 1.7,
     test-framework             >= 0.8.2 && < 0.9,
-    test-framework-hunit       >= 0.3.0 && < 0.4
+    test-framework-hunit       >= 0.3.0 && < 0.4,
+    test-framework-quickcheck2 >= 0.3.0 && < 0.4
