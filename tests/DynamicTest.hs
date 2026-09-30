@@ -30,8 +30,8 @@ import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Test.QuickCheck
-  ( Arbitrary (..), Property, choose, elements, forAll, property, shrinkList
-  , vectorOf, (.&&.), (===), (==>) )
+  ( Arbitrary (..), Property, choose, conjoin, counterexample, elements, forAll
+  , property, shrinkList, vectorOf, (.&&.), (===), (==>) )
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
 import Views (View (..), genShape, mkView, testPropertyN)
@@ -517,6 +517,7 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_compare" prop_compare
         , testPropertyN "prop_reduce" prop_reduce
         , testPropertyN "prop_pad" prop_pad
+        , testPropertyN "prop_lazy" prop_lazy
         ]
   in  tests
 
@@ -680,3 +681,32 @@ prop_pad v@(View sh _) =
       in  product psh <= 10000 ==>
           shapeL (pad ps (-1) x) === psh
           .&&. toList (pad ps (-1) x) === [ at is | is <- mapM (\ s -> [0 .. s - 1]) psh ]
+
+-- The operations that build a vector from a view, and the reductions by
+-- functions that ignore the elements, force no element of the view, which
+-- is built first on its own.
+prop_lazy :: View -> Property
+prop_lazy v@(View sh _) =
+  let x = mkView v [ error ("element " ++ show i) | i <- [0 .. product sh - 1] ] :: Array Int
+      xsh = shapeL x
+      n = product xsh
+      t = case x of D.A (DG.A _ t') -> t'
+      vlen y = case y of D.A (DG.A _ t') -> V.length (I.values t')
+  in  conjoin
+        [ counterexample name ok
+        | (name, ok) <-
+            [ ("view", x `seq` True)
+            , ("toVector", V.length (toVector x) == n)
+            , ("toVectorListT", sum (map V.length (I.toVectorListT xsh t)) == n)
+            , ("toUnorderedVectorListT",
+               sum (map V.length (I.toUnorderedVectorListT xsh t)) == n)
+            , ("normalize", vlen (normalize x) == n)
+            , ("reshape", rank (reshape [n] x) == 1)
+            , ("pad", rank (pad [ (1, 1) | not (null xsh) ] 0 x) == length xsh)
+            , ("append", null xsh || rank (append x x) == length xsh)
+            , ("mapA", toList (mapA (const 0) x) == replicate n (0 :: Int))
+            , ("zipWithA",
+               toList (zipWithA const (constant xsh 1) x) == replicate n (1 :: Int))
+            , ("reduce", unScalar (reduce (\ _ _ -> 0) 0 x) == 0)
+            , ("anyA", anyA (const True) x == (n > 0))
+            , ("allA", allA (const False) x == (n == 0)) ] ]
