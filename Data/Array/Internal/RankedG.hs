@@ -365,11 +365,12 @@ rotate k a = rerank @d @p @(p + 1) f a
   f arr = let h:t = shapeL arr
               m = product t
               n = h * m
+              c = k + (k + h - 2) `quot` h  -- copies to fit k windows n + m apart
               arr' = reshape @p @(p + 1) (1:h:t) arr
-              repeated = stretchOuter (k + 1) arr'
-              flattened = reshape @(p + 1) @1 [(k + 1) * n] repeated
+              repeated = stretchOuter c arr'
+              flattened = reshape @(p + 1) @1 [c * n] repeated
               batched = window @1 @2 [n] flattened
-              strided = stride [n + m] batched
+              strided = slice [(0, k)] (stride [n + m] batched)
           in if k == 0 || n == 0 then stretchOuter k arr' else
              rev [0] (reshape (k:h:t) strided)
 

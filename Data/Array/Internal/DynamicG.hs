@@ -344,13 +344,15 @@ rotate d k a | d < rank a, k >= 0 = rerank d f a
   f arr = let h:t = shapeL arr
               m = product t
               n = h * m
+              c = k + (k + h - 2) `quot` h  -- copies to fit k windows n + m apart
           in if k == 0 || n == 0 then stretchOuter k (reshape (1:h:t) arr) else
              rev [0]
              . reshape (k:h:t)
+             . slice [(0, k)]
              . stride [n + m]
              . window [n]
-             . reshape [(k + 1) * n]
-             . stretchOuter (k + 1)
+             . reshape [c * n]
+             . stretchOuter c
              . reshape (1:h:t) $ arr
 rotate d k a = error $ "Incorrect arguments to rotate: " ++ show (d, k, rank a)
 

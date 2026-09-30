@@ -268,6 +268,19 @@ test = testGroup "Dynamic" $
                                  (rotate 1 4 $ fromList [2, 3, 2] [1 .. 12::Int])
       rotate_2 = assertEqual "2" (fromList [0,3] []) (rotate 0 0 $ fromList [3] [1,2,3::Int])
       rotate_3 = assertEqual "3" (fromList [1,2,0] []) (rotate 0 1 $ fromList [2,0] ([] :: [Int]))
+      rotate_4 = assertEqual "4" (fromList [2, 5, 3, 2]
+                                           [3, 4, 5, 6, 1, 2,
+                                            1, 2, 3, 4, 5, 6,
+                                            5, 6, 1, 2, 3, 4,
+                                            3, 4, 5, 6, 1, 2,
+                                            1, 2, 3, 4, 5, 6,
+                                            9, 10, 11, 12, 7, 8,
+                                            7, 8, 9, 10, 11, 12,
+                                            11, 12, 7, 8, 9, 10,
+                                            9, 10, 11, 12, 7, 8,
+                                            7, 8, 9, 10, 11, 12])
+                                 (rotate 1 5 $ fromList [2, 3, 2] [1 .. 12::Int])
+      rotate_5 = assertEqual "5" (fromList [3,1] [5,5,5]) (rotate 0 3 $ fromList [1] [5::Int])
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrows "2" (slice [(0,0)] a4)
@@ -391,6 +404,8 @@ test = testGroup "Dynamic" $
         , testCase "rotate_1" rotate_1
         , testCase "rotate_2" rotate_2
         , testCase "rotate_3" rotate_3
+        , testCase "rotate_4" rotate_4
+        , testCase "rotate_5" rotate_5
         , testCase "slice_1" slice_1
         , testCase "slice_2" slice_2
         , testCase "slice_3" slice_3
