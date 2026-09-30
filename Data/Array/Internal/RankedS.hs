@@ -330,7 +330,7 @@ reduce f z = A . G.reduce f z . unA
 
 -- | Constrained version of 'foldr' for Arrays.
 {-# INLINABLE foldrA #-}
-foldrA :: (Unbox a, Unbox b) => (a -> b -> b) -> b -> Array n a -> b
+foldrA :: (Unbox a) => (a -> b -> b) -> b -> Array n a -> b
 foldrA f z = G.foldrA f z . unA
 
 -- | Constrained version of 'traverse' for Arrays.

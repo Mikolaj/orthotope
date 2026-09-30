@@ -256,6 +256,7 @@ test = testGroup "Ranked" $
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank @1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank @1 (reduce (*) 1) a2)
+      foldrA_1 = assertEqual "1" [1,4,2,5,3,6] (foldrA (:) [] a2)
 
       tests =
         [ testCase "show_1" show_1
@@ -334,5 +335,6 @@ test = testGroup "Ranked" $
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
+        , testCase "foldrA_1" foldrA_1
         ]
   in  tests
