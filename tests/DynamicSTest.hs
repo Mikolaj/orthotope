@@ -34,7 +34,9 @@ import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Test.QuickCheck
   ( Property, choose, conjoin, counterexample, elements, forAll, listOf, property
   , vectorOf, (.&&.), (===), (==>) )
-import Views (Op (..), View (..), failsWith, genShape, opShape, opSource, testPropertyN)
+import Views
+  ( Op (..), View (..), failsIn, failsWith, genBadOp, genShape, opNames, opShape, opSource
+  , silentBadOp, testPropertyN )
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -362,6 +364,7 @@ test = testGroup "DynamicS" $
         , testPropertyN "prop_reduce" prop_reduce
         , testPropertyN "prop_pad" prop_pad
         , testPropertyN "prop_viewOps" prop_viewOps
+        , testPropertyN "prop_badOps" prop_badOps
         , testPropertyN "prop_copy" prop_copy
         , testPropertyN "prop_zipWith" prop_zipWith
         , testPropertyN "prop_update" prop_update
@@ -465,6 +468,19 @@ prop_viewOps (View sh ops) =
               (shapeL y === opShape xsh op
                .&&. map (at y) iss === map (at x . opSource xsh op) iss)
   in  conjoin (map step (zip3 steps ops (drop 1 steps)))
+
+-- An operation invalid on a view fails once the shape and the elements of
+-- its result are forced, with an error of a function opNames names; but
+-- broadcast to other extents of the same product gives an array of those,
+-- which it should not.
+prop_badOps :: View -> Property
+prop_badOps v@(View sh _) =
+  let x = mkView v [0 .. product sh - 1] :: Array Int
+      xsh = shapeL x
+  in  forAll (genBadOp xsh) $ \ op ->
+      let y = applyOp op x
+      in  if silentBadOp xsh op then shapeL y === opShape xsh op
+          else failsIn (opNames op) (sum (shapeL y) + sum (toList y))
 
 -- The offset, the strides and the length of the vector of an array.
 layoutOf :: Unbox a => Array a -> (Int, [Int], Int)

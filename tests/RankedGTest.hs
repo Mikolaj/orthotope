@@ -19,11 +19,11 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
 -- Ranked arrays against Dynamic ones, at the boxed, Storable, Unboxed and
--- list instances of Vector: the random views of the dynamic test modules
--- as Ranked arrays of their ranks, every operation of those views done by
--- Ranked, and the operations whose ranks their types fix on the random
--- views of rank 3, rotate also on those of ranks 1 and 2, and the arrays
--- built from nothing.
+-- list instances of Vector: the random views of the dynamic test modules as
+-- Ranked arrays of their ranks, every operation of those views and invalid
+-- ones done by Ranked, and the operations whose ranks their types fix on
+-- the random views of rank 3, rotate also on those of ranks 1 and 2, and
+-- the arrays built from nothing.
 module RankedGTest(test) where
 
 import Control.DeepSeq (NFData, force)
@@ -43,7 +43,7 @@ import Test.Framework (Test, testGroup)
 import Test.QuickCheck
   ( Arbitrary (..), Property, choose, conjoin, counterexample, forAll, ioProperty
   , property, suchThat, vectorOf, (.&&.), (===) )
-import Views (Op (..), View (..), applyOpG, mkView, mkViewG, testPropertyN)
+import Views (Op (..), View (..), applyOpG, genBadOp, mkView, mkViewG, testPropertyN)
 
 test :: Test
 test = testGroup "RankedG"
@@ -57,6 +57,7 @@ backend :: forall v . (I.Vector v, I.VecElem v Int, Ord (v Int), Show (v Int)) =
 backend n = testGroup n
   [ testPropertyN "prop_views" (prop_views @v)
   , testPropertyN "prop_viewOps" (prop_viewOps @v)
+  , testPropertyN "prop_badOps" (prop_badOps @v)
   , testPropertyN "prop_rank3" (prop_rank3 @v)
   , testPropertyN "prop_rotate" (prop_rotate @v)
   ]
@@ -149,6 +150,29 @@ prop_viewOps (View sh ops) =
         withRank (D.rank y) $ \ (_ :: Proxy n') ->
         counterexample (show op) (obs (applyOpR @n @n' op (toR x)) === obsD y)
   in  conjoin (map step (zip3 steps ops (drop 1 steps)))
+
+-- The rank of the result of an operation on an array of rank n, as the
+-- type of the Ranked operation fixes it, but for index of a scalar, which
+-- no type allows.
+opRank :: Int -> Op -> Maybe Int
+opRank n (Window ws) = Just (n + length ws)
+opRank n (Index _) = if n > 0 then Just (n - 1) else Nothing
+opRank _ (Broadcast _ sh) = Just (length sh)
+opRank n _ = Just n
+
+-- An operation invalid on a random view, done by Ranked at the rank of the
+-- view and the rank opRank gives, fails as Dynamic's does, or gives what it
+-- does where Dynamic's gives an array.
+prop_badOps :: forall v . (I.Vector v, I.VecElem v Int) => View -> Property
+prop_badOps v@(View sh _) =
+  let x = mkViewG v [0 .. product sh - 1] :: D.Array v Int
+  in  forAll (genBadOp (D.shapeL x)) $ \ op ->
+      case opRank (D.rank x) op of
+        Nothing -> property True
+        Just r ->
+          withRank (D.rank x) $ \ (_ :: Proxy n) ->
+          withRank r $ \ (_ :: Proxy n') ->
+          sameAs (obs (applyOpR @n @n' op (toR x))) (obsD (applyOpG op x))
 
 -- The rank of a view.
 rankOf :: View -> Int
