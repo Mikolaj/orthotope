@@ -359,7 +359,9 @@ rotate :: forall d p v a.
           KnownNat (1 + (p + 1))
           ) =>
           Int -> Array (p + d) v a -> Array (p + d + 1) v a
-rotate k a = rerank @d @p @(p + 1) f a
+rotate k a@(A sh _)
+  | valueOf @d >= length sh || k < 0 = error $ "Incorrect arguments to rotate: " ++ show (valueOf @d :: Int, k, length sh)
+  | otherwise = rerank @d @p @(p + 1) f a
  where
   f :: Array p v a -> Array (p + 1) v a
   f arr = let h:t = shapeL arr

@@ -28,6 +28,10 @@ import Test.HUnit (assertEqual, assertFailure, Assertion)
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
 
+assertThrowsIn :: (NFData a) => String -> String -> a -> Assertion
+assertThrowsIn s f a = catch (deepseq a $ assertFailure s)
+                             (\ (ErrorCall e) -> assertEqual s f (takeWhile (/= ':') e))
+
 test :: Test
 test = testGroup "Ranked" $
   let a1, a2 :: Array 2 Int
@@ -243,6 +247,10 @@ test = testGroup "Ranked" $
                            (rotate @1 5 (fromList [2, 3, 2] [1 .. 12] :: Array 3 Int))
       rotate_5 = assertEqual "5" (fromList [3,1] [5,5,5])
                                  (rotate @0 @1 3 (fromList [1] [5] :: Array 1 Int))
+      rotate_6 = assertThrowsIn "6" "Incorrect arguments to rotate"
+                                    (rotate @0 @1 (-2) (fromList [3] [1,2,3] :: Array 1 Int))
+                 >> assertThrowsIn "6" "Incorrect arguments to rotate"
+                                    (rotate @1 @0 0 (fromList [3] [1,2,3] :: Array 1 Int))
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrows "2" (slice [(0,0)] a4)
@@ -347,6 +355,7 @@ test = testGroup "Ranked" $
         , testCase "rotate_3" rotate_3
         , testCase "rotate_4" rotate_4
         , testCase "rotate_5" rotate_5
+        , testCase "rotate_6" rotate_6
         , testCase "slice_1" slice_1
         , testCase "slice_2" slice_2
         , testCase "slice_3" slice_3
