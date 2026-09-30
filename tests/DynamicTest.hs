@@ -31,7 +31,7 @@ import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Test.QuickCheck
   ( Arbitrary (..), Property, choose, elements, forAll, property, shrinkList
-  , vectorOf, (.&&.), (===) )
+  , vectorOf, (.&&.), (===), (==>) )
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
 import Views (View (..), genShape, mkView, testPropertyN)
@@ -516,6 +516,7 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_toListLazy" prop_toListLazy
         , testPropertyN "prop_compare" prop_compare
         , testPropertyN "prop_reduce" prop_reduce
+        , testPropertyN "prop_pad" prop_pad
         ]
   in  tests
 
@@ -661,3 +662,21 @@ prop_reduce v@(View sh _) =
       .&&. anyA (> t) x === any (> t) l .&&. allA (> t) x === all (> t) l
       .&&. (if null l then property True
             else maximumA x === maximum l .&&. minimumA x === minimum l)
+
+-- pad agrees with indexing the view where an index falls inside it, and
+-- gives the padding value elsewhere, for a pad list of any length up to
+-- the rank that leaves at most 10000 elements.
+prop_pad :: View -> Property
+prop_pad v@(View sh _) =
+  let x = mkView v [0 .. product sh - 1] :: Array Int
+      xsh = shapeL x
+  in  forAll (choose (0, length xsh)) $ \ k ->
+      forAll (vectorOf k ((,) <$> choose (0, 2) <*> choose (0, 2))) $ \ ps ->
+      let psh = zipWith (\ (lo, hi) s -> lo + s + hi) ps xsh ++ drop k xsh
+          at is = let (os, js) = splitAt k is
+                      os' = zipWith (\ i (lo, _) -> i - lo) os ps
+                  in  if and (zipWith (\ i s -> i >= 0 && i < s) os' xsh)
+                      then unScalar (foldl index x (os' ++ js)) else -1
+      in  product psh <= 10000 ==>
+          shapeL (pad ps (-1) x) === psh
+          .&&. toList (pad ps (-1) x) === [ at is | is <- mapM (\ s -> [0 .. s - 1]) psh ]
