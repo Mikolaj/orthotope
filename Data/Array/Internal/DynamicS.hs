@@ -197,7 +197,7 @@ stretch :: (HasCallStack) => ShapeL -> Array a -> Array a
 stretch s = A . G.stretch s . unA
 
 -- | Change the size of the outermost dimension by replication.
--- Fails if the outermost dimension is not 1.
+-- Fails if the outermost dimension is not 1 or the size is negative.
 stretchOuter :: (HasCallStack) => Int -> Array a -> Array a
 stretchOuter s = A . G.stretchOuter s . unA
 
@@ -213,7 +213,6 @@ unScalar :: (HasCallStack, Unbox a) => Array a -> a
 unScalar = G.unScalar . unA
 
 -- | Make an array with all elements having the same value.
--- Fails if an extent is negative.
 -- O(1) time
 {-# INLINE constant #-}
 constant :: (HasCallStack, Unbox a) => ShapeL -> a -> Array a
@@ -258,7 +257,7 @@ zipWith5A :: (HasCallStack, Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Unbox f
 zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e)
 
 -- | Pad each dimension on the low and high side with the given value.
--- Fails if the padding list is longer than the rank.
+-- Fails if the padding list is longer than the rank or a padding is negative.
 -- O(n) time.
 pad :: (HasCallStack, Unbox a) => [(Int, Int)] -> a -> Array a -> Array a
 pad ps v = A . G.pad ps v . unA
@@ -426,18 +425,20 @@ update a = A . G.update (unA a)
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}
-generate :: (Unbox a) => ShapeL -> ([Int] -> a) -> Array a
+generate :: (HasCallStack, Unbox a) => ShapeL -> ([Int] -> a) -> Array a
 generate sh = A . G.generate sh
 
 -- | Iterate a function n times.
+-- Fails if n is negative.
 {-# INLINE iterateN #-}
-iterateN :: (Unbox a) =>
+iterateN :: (HasCallStack, Unbox a) =>
             Int -> (a -> a) -> a -> Array a
 iterateN n f = A . G.iterateN n f
 
 -- | Generate a vector from 0 to n-1.
+-- Fails if n is negative.
 {-# INLINE iota #-}
-iota :: (Unbox a, Num a) => Int -> Array a
+iota :: (HasCallStack, Unbox a, Num a) => Int -> Array a
 iota = A . G.iota
 
 -- | Convert between types by just reinterpreting the bits as another type.

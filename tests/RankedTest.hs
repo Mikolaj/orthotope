@@ -24,6 +24,7 @@ import qualified Data.Vector as V
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
+import Text.Read (readMaybe)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -74,6 +75,23 @@ test = testGroup "Ranked" $
       scalar_1 = assertEqual "1" a4 (scalar 5)
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
       constant_1 = assertEqual "1" (fromList [2,3] [1,1,1,1,1,1]) (constant [2,3] 1 :: Array 2 Int)
+      -- No array has a negative extent.  window, iterateN and iota make arrays
+      -- of other ranks, so they are separate tests.
+      badShape_1 = mapM_ (uncurry assertThrows)
+        [ ("fromList", fromList [-2,-3] [1..6])
+        , ("fromVector", fromVector [-2,-3] (V.fromList [1..6]))
+        , ("reshape", reshape [-2,-3] a1)
+        , ("stretch", stretch [-1,3] (reshape [1,3] (index a1 0)))
+        , ("stretchOuter", stretchOuter (-1) (reshape [1,3] (index a1 0)))
+        , ("broadcast", broadcast [1] [-1,3] (index a1 0))
+        , ("slice", slice [(1,-1)] a1)
+        , ("pad", pad [(-1,0)] 0 a1)
+        , ("generate", generate [-1,3] (const 0)) ]
+      badShape_2 = assertThrows "window" (window [-1] a1 :: Array 3 Int)
+      badShape_3 = assertThrows "iterateN" (iterateN (-1) id 0 :: Array 1 Int)
+      badShape_4 = assertThrows "iota" (iota (-1) :: Array 1 Int)
+      badShape_5 = assertEqual "read" Nothing
+                     (readMaybe "fromList [-2,-3] [1,2,3,4,5,6]" :: Maybe (Array 2 Int))
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "1" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
@@ -255,6 +273,7 @@ test = testGroup "Ranked" $
       slice_3 = assertThrows "3" (slice [(-1,1)] a5)
       slice_4 = assertThrows "4" (slice [(10,0)] a5)
       slice_5 = assertThrows "5" (slice [(0,3)] a5)
+      slice_6 = assertThrowsIn "6" "slice" (slice [(1, maxBound)] (fromList [3] [1,2,3] :: Array 1 Int))
 
       box = scalar . Just
       rerank_1 = assertEqual "1" (box a5)
@@ -325,6 +344,11 @@ test = testGroup "Ranked" $
         , testCase "scalar_1" scalar_1
         , testCase "unScalar_1" unScalar_1
         , testCase "constant_1" constant_1
+        , testCase "badShape_1" badShape_1
+        , testCase "badShape_2" badShape_2
+        , testCase "badShape_3" badShape_3
+        , testCase "badShape_4" badShape_4
+        , testCase "badShape_5" badShape_5
         , testCase "mapA_1" mapA_1
         , testCase "mapA_2" mapA_2
         , testCase "zipWithA_1" zipWithA_1
@@ -365,6 +389,7 @@ test = testGroup "Ranked" $
         , testCase "slice_3" slice_3
         , testCase "slice_4" slice_4
         , testCase "slice_5" slice_5
+        , testCase "slice_6" slice_6
         , testCase "rerank_1" rerank_1
         , testCase "rerank_2" rerank_2
         , testCase "rerank_3" rerank_3

@@ -189,7 +189,7 @@ stretch :: (HasCallStack) => ShapeL -> Array a -> Array a
 stretch s = A . G.stretch s . unA
 
 -- | Change the size of the outermost dimension by replication.
--- Fails if the outermost dimension is not 1.
+-- Fails if the outermost dimension is not 1 or the size is negative.
 stretchOuter :: (HasCallStack) => Int -> Array a -> Array a
 stretchOuter s = A . G.stretchOuter s . unA
 
@@ -205,7 +205,6 @@ unScalar :: (HasCallStack) => Array a -> a
 unScalar = G.unScalar . unA
 
 -- | Make an array with all elements having the same value.
--- Fails if an extent is negative.
 -- O(1) time
 constant :: (HasCallStack) => ShapeL -> a -> Array a
 constant sh = A . G.constant sh
@@ -249,7 +248,7 @@ zipWith5A :: (HasCallStack) => (a -> b -> c -> d -> e -> f) -> Array a -> Array 
 zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e)
 
 -- | Pad each dimension on the low and high side with the given value.
--- Fails if the padding list is longer than the rank.
+-- Fails if the padding list is longer than the rank or a padding is negative.
 -- O(n) time.
 pad :: (HasCallStack) => [(Int, Int)] -> a -> Array a -> Array a
 pad ps v = A . G.pad ps v . unA
@@ -422,15 +421,17 @@ update a = A . G.update (unA a)
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}
-generate :: ShapeL -> ([Int] -> a) -> Array a
+generate :: (HasCallStack) => ShapeL -> ([Int] -> a) -> Array a
 generate sh = A . G.generate sh
 
 -- | Iterate a function n times.
+-- Fails if n is negative.
 {-# INLINE iterateN #-}
-iterateN :: Int -> (a -> a) -> a -> Array a
+iterateN :: (HasCallStack) => Int -> (a -> a) -> a -> Array a
 iterateN n f = A . G.iterateN n f
 
 -- | Generate a vector from 0 to n-1.
+-- Fails if n is negative.
 {-# INLINE iota #-}
-iota :: (Num a) => Int -> Array a
+iota :: (HasCallStack, Num a) => Int -> Array a
 iota = A . G.iota

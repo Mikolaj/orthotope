@@ -77,7 +77,8 @@ instance (KnownNat n, Vector v, Read a, VecElem v a) => Read (Array n v a) where
   readsPrec p = readParen (p > 10) $ \ r1 ->
     [(fromList s xs, r4)
     | ("fromList", r2) <- lex r1, (s, r3) <- readsPrec 11 r2
-    , (xs, r4) <- readsPrec 11 r3, length s == valueOf @n, product s == length xs]
+    , (xs, r4) <- readsPrec 11 r3, length s == valueOf @n, not (badShape s)
+    , product s == length xs]
 
 instance (Vector v, Eq a, VecElem v a, Eq (v a)) => Eq (Array n v a) where
   (A s v) == (A s' v') = s == s' && equalT s v v'
@@ -140,7 +141,8 @@ toVector (A sh t) = toVectorT sh t
 {-# INLINE fromList #-}
 fromList :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
             ShapeL -> [a] -> Array n v a
-fromList ss vs | n /= l = error $ "fromList: size mismatch " ++ show (n, l)
+fromList ss vs | badShape ss = error $ "fromList: bad shape " ++ show ss
+               | n /= l = error $ "fromList: size mismatch " ++ show (n, l)
                | length ss /= valueOf @n = error $ "fromList: rank mismatch " ++ show (length ss, valueOf @n :: Int)
                | otherwise = A ss $ T st 0 $ vFromListN l vs
   where n : st = getStridesT ss
@@ -152,7 +154,8 @@ fromList ss vs | n /= l = error $ "fromList: size mismatch " ++ show (n, l)
 {-# INLINE fromVector #-}
 fromVector :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
               ShapeL -> v a -> Array n v a
-fromVector ss v | n /= l = error $ "fromVector: size mismatch " ++ show (n, l)
+fromVector ss v | badShape ss = error $ "fromVector: bad shape " ++ show ss
+                | n /= l = error $ "fromVector: size mismatch " ++ show (n, l)
                 | length ss /= valueOf @n = error $ "fromVector: rank mismatch " ++ show (length ss, valueOf @n :: Int)
                 | otherwise = A ss $ T st 0 v
   where n : st = getStridesT ss
@@ -172,6 +175,7 @@ normalize a = fromVector (shapeL a) $ toVector a
 reshape :: forall n n' v a . (HasCallStack,Vector v, VecElem v a, KnownNat n') =>
            ShapeL -> Array n v a -> Array n' v a
 reshape sh (A sh' t@(T ost oo v))
+  | badShape sh = error $ "reshape: bad shape " ++ show sh
   | n /= n' = error $ "reshape: size mismatch " ++ show (sh, sh')
   | length sh /= valueOf @n' = error $ "reshape: rank mismatch " ++ show (length sh, valueOf @n' :: Int)
   | vLength v == 1 = A sh $ T (map (const 0) sh) 0 v  -- Fast special case for singleton vector
@@ -189,14 +193,15 @@ stretch sh (A sh' vs) | Just bs <- str sh sh' = A sh $ stretchT bs vs
                       | otherwise = error $ "stretch: incompatible " ++ show (sh, sh')
   where str [] [] = Just []
         str (x:xs) (y:ys) | x == y = (False :) <$> str xs ys
-                          | y == 1 = (True  :) <$> str xs ys
+                          | y == 1, x >= 0 = (True  :) <$> str xs ys
         str _ _ = Nothing
 
 -- | Change the size of the outermost dimension by replication.
--- Fails if the outermost dimension is not 1.
+-- Fails if the outermost dimension is not 1 or the size is negative.
 {-# INLINE stretchOuter #-}
 stretchOuter :: (HasCallStack, 1 <= n) =>
                 Int -> Array n v a -> Array n v a
+stretchOuter s _ | s < 0 = error $ "stretchOuter: negative size " ++ show s
 stretchOuter s (A (1:sh) vs) =
   A (s:sh) $ stretchT (True : map (const False) (strides vs)) vs
 stretchOuter _ _ = error "stretchOuter: needs outermost dimension of size 1"
@@ -214,7 +219,6 @@ unScalar :: (Vector v, VecElem v a) => Array 0 v a -> a
 unScalar (A _ t) = unScalarT t
 
 -- | Make an array with all elements having the same value.
--- Fails if an extent is negative.
 -- O(1) time
 {-# INLINE constant #-}
 constant :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
@@ -249,12 +253,13 @@ zipWith3A f (A s t) (A s' t') (A s'' t'') | s == s' && s == s'' = A s (zipWith3T
                                           | otherwise = error $ "zipWith3A: shape mismatch " ++ show (s, s', s'')
 
 -- | Pad each dimension on the low and high side with the given value.
--- Fails if the padding list is longer than the rank.
+-- Fails if the padding list is longer than the rank or a padding is negative.
 -- O(n) time.
 {-# INLINE pad #-}
 pad :: forall n a v . (HasCallStack, Vector v, VecElem v a) =>
        [(Int, Int)] -> a -> Array n v a -> Array n v a
 pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " ++ show (length aps, length ash)
+                     | any (\ (l, h) -> l < 0 || h < 0) aps = error $ "pad: negative padding " ++ show aps
                      | otherwise = uncurry A $ padT v aps ash at
 
 -- | Do an arbitrary array transposition.
@@ -336,7 +341,7 @@ window :: forall n n' v a . (HasCallStack, Vector v, KnownNat n, KnownNat n') =>
 window aws _ | valueOf @n' /= length aws + valueOf @n = error $ "window: rank mismatch " ++ show (valueOf @n' :: Int, length aws, valueOf @n :: Int)
 window aws (A ash (T ss o v)) = A (win aws ash) (T (ss' ++ ss) o v)
   where ss' = zipWith const ss aws
-        win (w:ws) (s:sh) | w <= s = s - w + 1 : win ws sh
+        win (w:ws) (s:sh) | 0 <= w && w <= s = s - w + 1 : win ws sh
                           | otherwise = error $ "window: bad window size " ++ show (w, s)
         win [] sh = aws ++ sh
         win _ _ = error $ "window: rank mismatch " ++ show (aws, ash)
@@ -401,7 +406,7 @@ rotate k a@(A sh _)
 slice :: (HasCallStack) => [(Int, Int)] -> Array n v a -> Array n v a
 slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
   where (o, rsh) = slc asl ash ats
-        slc ((k,n):sl) (s:sh) (t:ts) | k < 0 || k > s || k+n > s = error "slice: out of bounds"
+        slc ((k,n):sl) (s:sh) (t:ts) | k < 0 || k > s || n < 0 || n > s - k = error "slice: out of bounds"
                                      | otherwise = (i + k*t, n:ns) where (i, ns) = slc sl sh ts
         slc (_:_) [] _ = error "slice: slice list too long"
         slc [] sh _ = (ao, sh)
@@ -548,19 +553,24 @@ broadcast ds sh a | length ds /= valueOf @r = error "broadcast: wrong number of 
 generate :: forall n v a .
             (HasCallStack, KnownNat n, Vector v, VecElem v a) =>
             ShapeL -> ([Int] -> a) -> Array n v a
-generate sh | length sh /= valueOf @n = error $ "generate: rank mismatch " ++ show (length sh, valueOf @n :: Int)
+generate sh | badShape sh = error $ "generate: bad shape " ++ show sh
+            | length sh /= valueOf @n = error $ "generate: rank mismatch " ++ show (length sh, valueOf @n :: Int)
             | otherwise = A sh . generateT sh
 
 -- | Iterate a function n times.
+-- Fails if n is negative.
 {-# INLINE iterateN #-}
 iterateN :: forall v a .
-            (Vector v, VecElem v a) =>
+            (HasCallStack, Vector v, VecElem v a) =>
             Int -> (a -> a) -> a -> Array 1 v a
-iterateN n f = A [n] . iterateNT n f
+iterateN n f | n < 0 = error $ "iterateN: negative size " ++ show n
+             | otherwise = A [n] . iterateNT n f
 
 -- | Generate a vector from 0 to n-1.
+-- Fails if n is negative.
 {-# INLINE iota #-}
 iota :: forall v a .
-        (Vector v, VecElem v a, Num a) =>
+        (HasCallStack, Vector v, VecElem v a, Num a) =>
         Int -> Array 1 v a
-iota n = A [n] $ iotaT n
+iota n | n < 0 = error $ "iota: negative size " ++ show n
+       | otherwise = A [n] $ iotaT n

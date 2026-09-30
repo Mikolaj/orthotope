@@ -149,7 +149,7 @@ stretch :: (HasCallStack) => ShapeL -> Array n a -> Array n a
 stretch s = A . G.stretch s . unA
 
 -- | Change the size of the outermost dimension by replication.
--- Fails if the outermost dimension is not 1.
+-- Fails if the outermost dimension is not 1 or the size is negative.
 stretchOuter :: (HasCallStack, 1 <= n) => Int -> Array n a -> Array n a
 stretchOuter s = A . G.stretchOuter s . unA
 
@@ -164,7 +164,6 @@ unScalar :: (Unbox a) => Array 0 a -> a
 unScalar = G.unScalar . unA
 
 -- | Make an array with all elements having the same value.
--- Fails if an extent is negative.
 -- O(1) time
 constant :: (HasCallStack, Unbox a, KnownNat n) => ShapeL -> a -> Array n a
 constant sh = A . G.constant sh
@@ -190,7 +189,7 @@ zipWith3A :: (HasCallStack, Unbox a, Unbox b, Unbox c, Unbox d) =>
 zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)
 
 -- | Pad each dimension on the low and high side with the given value.
--- Fails if the padding list is longer than the rank.
+-- Fails if the padding list is longer than the rank or a padding is negative.
 -- O(n) time.
 pad :: (HasCallStack, Unbox a) => [(Int, Int)] -> a -> Array n a -> Array n a
 pad ps v = A . G.pad ps v . unA
@@ -376,12 +375,14 @@ generate :: forall n a . (HasCallStack, KnownNat n, Unbox a) =>
 generate sh = A . G.generate sh
 
 -- | Iterate a function n times.
+-- Fails if n is negative.
 {-# INLINE iterateN #-}
-iterateN :: forall a . (Unbox a) =>
+iterateN :: forall a . (HasCallStack, Unbox a) =>
             Int -> (a -> a) -> a -> Array 1 a
 iterateN n f = A . G.iterateN n f
 
 -- | Generate a vector from 0 to n-1.
+-- Fails if n is negative.
 {-# INLINE iota #-}
-iota :: (Unbox a, Num a) => Int -> Array 1 a
+iota :: (HasCallStack, Unbox a, Num a) => Int -> Array 1 a
 iota = A . G.iota
