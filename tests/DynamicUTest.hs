@@ -18,12 +18,14 @@ module DynamicUTest(test) where
 import Control.DeepSeq
 import Control.Exception
 import Data.Array.DynamicU
+import qualified Data.Array.Internal as I
 import qualified Data.Vector.Unboxed as V
 import Data.Word (Word8)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
-import Test.QuickCheck (Property, choose, forAll, (.&&.), (===))
+import Test.QuickCheck
+  ( Property, choose, elements, forAll, property, vectorOf, (.&&.), (===) )
 import Views (Op (..), View (..), testPropertyN)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
@@ -336,8 +338,10 @@ test = testGroup "DynamicU" $
         , testCase "reduce_3" reduce_3
         , testCase "allSameA_1" allSameA_1
         , testCase "allSameA_2" allSameA_2
+        , testPropertyN "prop_allSameA" prop_allSameA
         , testPropertyN "prop_toList" prop_toList
         , testPropertyN "prop_compare" prop_compare
+        , testPropertyN "prop_reduce" prop_reduce
         ]
   in  tests
 
@@ -353,6 +357,14 @@ applyOp (Broadcast ds sh) = broadcast ds sh
 
 mkView :: Unbox a => View -> [a] -> Array a
 mkView (View sh ops) xs = foldl (flip applyOp) (fromList sh xs) ops
+
+-- allSameA agrees with allSame on the list, NaN included.
+prop_allSameA :: View -> Property
+prop_allSameA v@(View sh _) =
+  forAll (elements [[1], [0 / 0], [1, 2], [0 / 0, 1], [1, 1, 1, 2 :: Double]]) $ \ pool ->
+  forAll (vectorOf (product sh) (elements pool)) $ \ xs ->
+  let x = mkView v xs
+  in  allSameA x === I.allSame (toList x)
 
 -- toList and toVector agree with indexing the view element by element.
 prop_toList :: View -> Property
@@ -379,3 +391,17 @@ prop_compare v@(View sh _) =
       in  (x == y) === (l == l') .&&. compare x y === compare l l'
           .&&. compare y x === compare l' l
           .&&. (x == z) === (l == toList z) .&&. compare x z === compare l (toList z)
+
+-- The reductions agree with the list's: reduce, sumA, productA, maximumA,
+-- minimumA, anyA and allA.
+prop_reduce :: View -> Property
+prop_reduce v@(View sh _) =
+  forAll (vectorOf (product sh) (choose (1, 9))) $ \ xs ->
+  forAll (choose (0, 9)) $ \ t ->
+  let x = mkView v xs :: Array Int
+      l = toList x
+  in  reduce (+) 0 x === scalar (sum l)
+      .&&. sumA x === sum l .&&. productA x === product l
+      .&&. anyA (> t) x === any (> t) l .&&. allA (> t) x === all (> t) l
+      .&&. (if null l then property True
+            else maximumA x === maximum l .&&. minimumA x === minimum l)

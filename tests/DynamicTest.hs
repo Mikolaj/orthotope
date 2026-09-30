@@ -30,8 +30,8 @@ import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Test.QuickCheck
-  ( Arbitrary (..), Property, choose, elements, forAll, shrinkList, vectorOf
-  , (.&&.), (===) )
+  ( Arbitrary (..), Property, choose, elements, forAll, property, shrinkList
+  , vectorOf, (.&&.), (===) )
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
 import Views (View (..), genShape, mkView, testPropertyN)
@@ -514,6 +514,7 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_toList" prop_toList
         , testPropertyN "prop_toListLazy" prop_toListLazy
         , testPropertyN "prop_compare" prop_compare
+        , testPropertyN "prop_reduce" prop_reduce
         ]
   in  tests
 
@@ -645,3 +646,17 @@ prop_compare v@(View sh _) =
       in  (x == y) === (l == l') .&&. compare x y === compare l l'
           .&&. compare y x === compare l' l
           .&&. (x == z) === (l == toList z) .&&. compare x z === compare l (toList z)
+
+-- The reductions agree with the list's: reduce, sumA, productA, maximumA,
+-- minimumA, anyA and allA.
+prop_reduce :: View -> Property
+prop_reduce v@(View sh _) =
+  forAll (vectorOf (product sh) (choose (1, 9))) $ \ xs ->
+  forAll (choose (0, 9)) $ \ t ->
+  let x = mkView v xs :: Array Int
+      l = toList x
+  in  reduce (+) 0 x === scalar (sum l)
+      .&&. sumA x === sum l .&&. productA x === product l
+      .&&. anyA (> t) x === any (> t) l .&&. allA (> t) x === all (> t) l
+      .&&. (if null l then property True
+            else maximumA x === maximum l .&&. minimumA x === minimum l)
