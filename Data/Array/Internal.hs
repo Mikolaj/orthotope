@@ -508,6 +508,10 @@ rectHeight = length . unRect
 rectWidth :: Rect -> Int
 rectWidth = maximum . (0:) . map length . unRect
 
+-- Pretty-print an array as its elements laid out in rows by its shape,
+-- which is not shown otherwise: arrays of shapes [3] and [1,3] print alike,
+-- and every array with no elements has no rows, so prints as the same empty
+-- box, or as nothing below prettyNormal.
 ppT
   :: (Vector v, VecElem v a, Pretty a)
   => PrettyLevel -> Rational -> ShapeL -> T v a -> Doc
@@ -528,6 +532,7 @@ ppT_ show_ sh t = showsT sh t'
         t' = T (tail (getStridesT sh)) 0 ss'
 
 showsT :: [Int] -> T [] Rect -> Rect
+showsT s      _ | 0 `elem` s = Rect []  -- no elements, no rows
 showsT []     t = unScalarT t
 showsT s@[_]  t = foldl1' hcatRect $ toListT s t
 showsT (n:ns) t = foldl1' vcat' rs
@@ -549,7 +554,7 @@ box BoxMode{..} (Rect ls) =
            | otherwise = '-'
       ls' | _bmBars = map (\ l -> if null l then l else [bar] ++ l ++ [bar]) ls
           | otherwise = ls
-      h = replicate (length (head ls)) dash
+      h = replicate (rectWidth (Rect ls)) dash
       t | _bmUnicode = "\x250c" ++ h ++ "\x2510"
         | otherwise = "+" ++ h ++ "+"
       b | _bmUnicode = "\x2514" ++ h ++ "\x2518"

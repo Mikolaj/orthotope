@@ -95,6 +95,7 @@ test-suite tests
     base,
     deepseq,
     orthotope,
+    pretty,
     vector,
     QuickCheck,
     HUnit                      >= 1.6.2 && < 1.7,
