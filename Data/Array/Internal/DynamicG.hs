@@ -340,7 +340,7 @@ stride ats (A ash (T ss o v)) = A (str ats ash) (T (zipWith (*) (ats ++ repeat 1
 {-# INLINE rotate #-}
 rotate :: (HasCallStack, Vector v, VecElem v a) => Int -> Int -> Array v a -> Array v a
 rotate d k a@(A sh _)
-  | d >= rank a || k < 0 = error $ "Incorrect arguments to rotate: " ++ show (d, k, rank a)
+  | d < 0 || d >= rank a || k < 0 = error $ "Incorrect arguments to rotate: " ++ show (d, k, rank a)
   | 0 `elem` sh' = A sh' $ fromVectorT sh' (vConcat [])  -- no elements
   | otherwise = rerank d f a
  where
