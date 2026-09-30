@@ -20,6 +20,8 @@ import Control.Exception
 import Data.Array.DynamicS
 import qualified Data.Vector.Storable as V
 import Data.Word (Word8)
+import Foreign.ForeignPtr.Unsafe (unsafeForeignPtrToPtr)
+import Foreign.Ptr (minusPtr)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
@@ -64,6 +66,19 @@ test = testGroup "DynamicS" $
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
       fromVector_2 = assertThrowsIn "2" "fromVector" (fromVector [2,3] $ V.fromList [1..5::Int])
       normalize_1 = assertEqual "1" a1 (normalize a1)
+      -- toVector of a row is a slice of the whole vector, which normalize copies
+      -- the row out of, and a normal array normalize leaves alone, as it does
+      -- one whose dimension of extent 1 has stride 0.
+      normalize_2 = assertEqual "2" (True, False, True, False, True, True)
+                      ( inBig (toVector (index big 1)), inBig (toVector (normalize (index big 1)))
+                      , inBig (toVector (reshape [1,1000] (index big 1)))
+                      , inBig (toVector (normalize (reshape [1,1000] (index big 1))))
+                      , ptrOf (toVector (normalize big)) == ptrOf (toVector big)
+                      , ptrOf (toVector (normalize (reshape [4000,1] (reshape [4000] big))))
+                        == ptrOf (toVector big) )
+        where big = fromList [4,1000] [1..4000] :: Array Double
+              ptrOf = unsafeForeignPtrToPtr . fst . V.unsafeToForeignPtr0
+              inBig w = let d = ptrOf w `minusPtr` ptrOf (toVector big) in d >= 0 && d < 32000
       reshape_1 = assertEqual "1" (fromList [6] [1..6]) (reshape [6] a1)
       reshape_2 = assertEqual "1" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2)
       a3, a4 :: Array Int
@@ -276,6 +291,7 @@ test = testGroup "DynamicS" $
         , testCase "fromVector_1" fromVector_1
         , testCase "fromVector_2" fromVector_2
         , testCase "normalize_1" normalize_1
+        , testCase "normalize_2" normalize_2
         , testCase "reshape_1" reshape_1
         , testCase "reshape_2" reshape_2
         , testCase "stretch_1" stretch_1

@@ -126,6 +126,9 @@ fromList ss = A . G.fromList ss
 
 -- | Convert to a vector with the elements in the linearization order.
 -- O(n) or O(1) time (the latter if the vector is already in the linearization order).
+-- The O(1) result can be a slice of a larger vector, which it keeps alive;
+-- 'normalize' the array first to get a vector of just its elements, which
+-- can itself be a slice, as 'normalize' says.
 {-# INLINABLE toVector #-}
 toVector :: forall n a . (Unbox a) => Array n a -> V.Vector a
 toVector = G.toVector . unA
@@ -138,11 +141,15 @@ fromVector :: (HasCallStack, Unbox a, KnownNat n) => ShapeL -> V.Vector a -> Arr
 fromVector ss = A . G.fromVector ss
 
 -- | Make sure the underlying vector is in the linearization order.
+-- The vector then holds just the elements of the array, so no larger vector
+-- the array is a view of is kept alive; an array whose vector holds just its
+-- elements keeps that vector, even where it is a slice of a larger one, such
+-- as one given to 'fromVector' or taken by 'reshape' from a view.
 -- This is semantically an identity function, but can have big performance
 -- implications.
 -- O(n) or O(1) time.
 {-# INLINABLE normalize #-}
-normalize :: (Unbox a, KnownNat n) => Array n a -> Array n a
+normalize :: (Unbox a) => Array n a -> Array n a
 normalize = A . G.normalize . unA
 
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.

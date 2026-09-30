@@ -131,6 +131,9 @@ toList (A sh t) = toListT sh t
 
 -- | Convert to a vector with the elements in the linearization order.
 -- O(n) or O(1) time (the latter if the vector is already in the linearization order).
+-- The O(1) result can be a slice of a larger vector, which it keeps alive;
+-- 'normalize' the array first to get a vector of just its elements, which
+-- can itself be a slice, as 'normalize' says.
 {-# INLINE toVector #-}
 toVector :: (Vector v, VecElem v a) => Array n v a -> v a
 toVector (A sh t) = toVectorT sh t
@@ -162,12 +165,16 @@ fromVector ss v | badShape ss = error $ "fromVector: bad shape " ++ show ss
         l = vLength v
 
 -- | Make sure the underlying vector is in the linearization order.
+-- The vector then holds just the elements of the array, so no larger vector
+-- the array is a view of is kept alive; an array whose vector holds just its
+-- elements keeps that vector, even where it is a slice of a larger one, such
+-- as one given to 'fromVector' or taken by 'reshape' from a view.
 -- This is semantically an identity function, but can have big performance
 -- implications.
 -- O(n) or O(1) time.
 {-# INLINE normalize #-}
-normalize :: (Vector v, VecElem v a, KnownNat n) => Array n v a -> Array n v a
-normalize a = fromVector (shapeL a) $ toVector a
+normalize :: (Vector v, VecElem v a) => Array n v a -> Array n v a
+normalize (A sh t) = A sh $ normalizeT sh t
 
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.

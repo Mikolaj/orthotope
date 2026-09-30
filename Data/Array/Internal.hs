@@ -68,6 +68,9 @@ class Vector v where
   vZipWith4 :: (VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e) => (a -> b -> c -> d -> e) -> v a -> v b -> v c -> v d -> v e
   vZipWith5 :: (VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, VecElem v f) => (a -> b -> c -> d -> e -> f) -> v a -> v b -> v c -> v d -> v e -> v f
   vAppend   :: (VecElem v a) => v a -> v a -> v a
+  -- | The vectors' elements, in order, in a new vector, which shares no
+  -- buffer with them even when there is one: 'normalize' relies on it to
+  -- copy an array out of a larger vector.
   vConcat   :: (VecElem v a) => [v a] -> v a
   vFold     :: (VecElem v a) => (a -> a -> a) -> a -> v a -> a
   vSlice    :: (VecElem v a) => Int -> Int -> v a -> v a
@@ -300,6 +303,21 @@ toVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
 toVectorT sh a = case toVectorListT sh a of
   [v] -> v
   l -> vConcat l
+
+-- Put the array into a vector of just its elements, in the linearization
+-- order.  An array whose elements lie one after another in that order in
+-- its vector, whatever the strides of its dimensions of extent 1, keeps
+-- the vector where they are all of it, and otherwise has them copied,
+-- by vConcat of the one slice, which builds a new vector, as the class
+-- requires.
+{-# INLINE normalizeT #-}
+normalizeT :: (Vector v, VecElem v a) => ShapeL -> T v a -> T v a
+normalizeT sh t@(T ats ao v)
+  | map fst dense == ts' =
+    fromVectorT sh $ if vLength v == l then v else vConcat [vSlice ao l v]
+  | otherwise = fromVectorT sh $ toVectorT sh t
+  where dense = [ (st, s) | (st, s) <- zip ats sh, s /= 1 ]
+        l : ts' = getStridesT (map snd dense)
 
 -- Convert to a list of vectors containing altogether the right elements,
 -- but not necessarily in the right order.
