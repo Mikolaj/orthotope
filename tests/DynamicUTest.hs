@@ -23,7 +23,7 @@ import Data.Word (Word8)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
-import Test.QuickCheck (Property, (.&&.), (===))
+import Test.QuickCheck (Property, choose, forAll, (.&&.), (===))
 import Views (Op (..), View (..), testPropertyN)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
@@ -337,6 +337,7 @@ test = testGroup "DynamicU" $
         , testCase "allSameA_1" allSameA_1
         , testCase "allSameA_2" allSameA_2
         , testPropertyN "prop_toList" prop_toList
+        , testPropertyN "prop_compare" prop_compare
         ]
   in  tests
 
@@ -359,3 +360,22 @@ prop_toList v@(View sh _) =
   let x = mkView v [0 .. product sh - 1] :: Array Int
       l = [ unScalar (foldl index x is) | is <- mapM (\ s -> [0 .. s - 1]) (shapeL x) ]
   in  toList x === l .&&. V.toList (toVector x) === l
+
+-- == and compare agree with comparing the lists, between a view and an
+-- array of its elements with at most one of them changed, and between two
+-- views of one layout over vectors that differ in at most one element,
+-- inside the views or outside them.
+prop_compare :: View -> Property
+prop_compare v@(View sh _) =
+  let n = product sh
+      x = mkView v [0 .. n - 1] :: Array Int
+      l = toList x
+  in  forAll (choose (0, length l)) $ \ i ->
+      forAll (choose (0, n)) $ \ j ->
+      forAll (choose (-1, 1)) $ \ d ->
+      let l' = [ if k == i then e + d else e | (k, e) <- zip [0 ..] l ]
+          y = fromList (shapeL x) l'
+          z = mkView v [ if k == j then k + d else k | k <- [0 .. n - 1] ]
+      in  (x == y) === (l == l') .&&. compare x y === compare l l'
+          .&&. compare y x === compare l' l
+          .&&. (x == z) === (l == toList z) .&&. compare x z === compare l (toList z)
