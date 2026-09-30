@@ -12,7 +12,9 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 module DynamicTest(test) where
 
@@ -35,8 +37,8 @@ import Test.QuickCheck
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
 import Views
-  ( View (..), applyOp, failsIn, failsWith, genBadOp, genShape, mkView, opNames, opShape
-  , opSource, silentBadOp, testPropertyN )
+  ( Elem, View (..), applyOp, failsIn, failsWith, genBadOp, genElems, genShape, mkView, opNames
+  , opShape, opSource, silentBadOp, testPropertyN, upTo )
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -514,22 +516,10 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_eq" prop_eq
         , testPropertyN "prop_mapA" prop_mapA
         , testPropertyN "prop_allSameA" prop_allSameA
-        , testPropertyN "prop_toList" prop_toList
         , testPropertyN "prop_toListLazy" prop_toListLazy
-        , testPropertyN "prop_compare" prop_compare
-        , testPropertyN "prop_reduce" prop_reduce
-        , testPropertyN "prop_pad" prop_pad
         , testPropertyN "prop_lazy" prop_lazy
-        , testPropertyN "prop_viewOps" prop_viewOps
-        , testPropertyN "prop_badOps" prop_badOps
-        , testPropertyN "prop_copy" prop_copy
-        , testPropertyN "prop_zipWith" prop_zipWith
-        , testPropertyN "prop_update" prop_update
-        , testPropertyN "prop_fromVector" prop_fromVector
-        , testPropertyN "prop_show" prop_show
-        , testPropertyN "prop_rerank" prop_rerank
         ]
-  in  tests
+  in  tests ++ elemProps @Int ++ [testGroup "Word8" (elemProps @Word8)]
 
 -- A call of rotate on an array of shape osh ++ h : t, rotating it k times
 -- along dimension length osh.
@@ -623,13 +613,6 @@ prop_allSameA v@(View sh _) =
   let x = mkView v xs
   in  allSameA x === I.allSame (toList x)
 
--- toList and toVector agree with indexing the view element by element.
-prop_toList :: View -> Property
-prop_toList v@(View sh _) =
-  let x = mkView v [0 .. product sh - 1] :: Array Int
-      l = [ unScalar (foldl index x is) | is <- mapM (\ s -> [0 .. s - 1]) (shapeL x) ]
-  in  toList x === l .&&. V.toList (toVector x) === l
-
 -- A prefix of toList and its length force no element outside the prefix.
 prop_toListLazy :: View -> Property
 prop_toListLazy v@(View sh _) =
@@ -640,57 +623,6 @@ prop_toListLazy v@(View sh _) =
           x = mkView v [ if i `elem` pre then i else error "outside the prefix"
                        | i <- [0 .. n - 1] ]
       in  take k (toList x) === pre .&&. length (toList x) === length is
-
--- == and compare agree with comparing the lists, between a view and an
--- array of its elements with at most one of them changed, and between two
--- views of one layout over vectors that differ in at most one element,
--- inside the views or outside them.
-prop_compare :: View -> Property
-prop_compare v@(View sh _) =
-  let n = product sh
-      x = mkView v [0 .. n - 1] :: Array Int
-      l = toList x
-  in  forAll (choose (0, length l)) $ \ i ->
-      forAll (choose (0, n)) $ \ j ->
-      forAll (choose (-1, 1)) $ \ d ->
-      let l' = [ if k == i then e + d else e | (k, e) <- zip [0 ..] l ]
-          y = fromList (shapeL x) l'
-          z = mkView v [ if k == j then k + d else k | k <- [0 .. n - 1] ]
-      in  (x == y) === (l == l') .&&. compare x y === compare l l'
-          .&&. compare y x === compare l' l
-          .&&. (x == z) === (l == toList z) .&&. compare x z === compare l (toList z)
-
--- The reductions agree with the list's: reduce, sumA, productA, maximumA,
--- minimumA, anyA and allA.
-prop_reduce :: View -> Property
-prop_reduce v@(View sh _) =
-  forAll (vectorOf (product sh) (choose (1, 9))) $ \ xs ->
-  forAll (choose (0, 9)) $ \ t ->
-  let x = mkView v xs :: Array Int
-      l = toList x
-  in  reduce (+) 0 x === scalar (sum l)
-      .&&. sumA x === sum l .&&. productA x === product l
-      .&&. anyA (> t) x === any (> t) l .&&. allA (> t) x === all (> t) l
-      .&&. (if null l then property True
-            else maximumA x === maximum l .&&. minimumA x === minimum l)
-
--- pad agrees with indexing the view where an index falls inside it, and
--- gives the padding value elsewhere, for a pad list of any length up to
--- the rank that leaves at most 10000 elements.
-prop_pad :: View -> Property
-prop_pad v@(View sh _) =
-  let x = mkView v [0 .. product sh - 1] :: Array Int
-      xsh = shapeL x
-  in  forAll (choose (0, length xsh)) $ \ k ->
-      forAll (vectorOf k ((,) <$> choose (0, 2) <*> choose (0, 2))) $ \ ps ->
-      let psh = zipWith (\ (lo, hi) s -> lo + s + hi) ps xsh ++ drop k xsh
-          at is = let (os, js) = splitAt k is
-                      os' = zipWith (\ i (lo, _) -> i - lo) os ps
-                  in  if and (zipWith (\ i s -> i >= 0 && i < s) os' xsh)
-                      then unScalar (foldl index x (os' ++ js)) else -1
-      in  product psh <= 10000 ==>
-          shapeL (pad ps (-1) x) === psh
-          .&&. toList (pad ps (-1) x) === [ at is | is <- mapM (\ s -> [0 .. s - 1]) psh ]
 
 -- The operations that build a vector from a view, and the reductions by
 -- functions that ignore the elements, force no element of the view, which
@@ -721,12 +653,88 @@ prop_lazy v@(View sh _) =
             , ("anyA", anyA (const True) x == (n > 0))
             , ("allA", allA (const False) x == (n == 0)) ] ]
 
+-- The properties run at each Elem type, all but those of laziness, NaN,
+-- rotate and readRangeT.
+elemProps :: forall a . Elem a => [Test]
+elemProps =
+  [ testPropertyN "prop_toList" (prop_toList @a)
+  , testPropertyN "prop_compare" (prop_compare @a)
+  , testPropertyN "prop_reduce" (prop_reduce @a)
+  , testPropertyN "prop_pad" (prop_pad @a)
+  , testPropertyN "prop_viewOps" (prop_viewOps @a)
+  , testPropertyN "prop_badOps" (prop_badOps @a)
+  , testPropertyN "prop_copy" (prop_copy @a)
+  , testPropertyN "prop_zipWith" (prop_zipWith @a)
+  , testPropertyN "prop_update" (prop_update @a)
+  , testPropertyN "prop_fromVector" (prop_fromVector @a)
+  , testPropertyN "prop_show" (prop_show @a)
+  , testPropertyN "prop_rerank" (prop_rerank @a)
+  ]
+
+-- toList and toVector agree with indexing the view element by element.
+prop_toList :: forall a . Elem a => View -> Property
+prop_toList v@(View sh _) =
+  let x = mkView v (upTo (product sh)) :: Array a
+      l = [ unScalar (foldl index x is) | is <- mapM (\ s -> [0 .. s - 1]) (shapeL x) ]
+  in  toList x === l .&&. V.toList (toVector x) === l
+
+-- == and compare agree with comparing the lists, between a view and an
+-- array of its elements with at most one of them changed, and between two
+-- views of one layout over vectors that differ in at most one element,
+-- inside the views or outside them.
+prop_compare :: forall a . Elem a => View -> Property
+prop_compare v@(View sh _) =
+  let n = product sh
+      x = mkView v (upTo n) :: Array a
+      l = toList x
+  in  forAll (choose (0, length l)) $ \ i ->
+      forAll (choose (0, n)) $ \ j ->
+      forAll (choose (-1, 1)) $ \ d ->
+      let l' = [ if k == i then e + fromIntegral d else e | (k, e) <- zip [0 ..] l ]
+          y = fromList (shapeL x) l'
+          z = mkView v [ fromIntegral (if k == j then k + d else k) | k <- [0 .. n - 1] ]
+      in  (x == y) === (l == l') .&&. compare x y === compare l l'
+          .&&. compare y x === compare l' l
+          .&&. (x == z) === (l == toList z) .&&. compare x z === compare l (toList z)
+
+-- The reductions agree with the list's: reduce, sumA, productA, maximumA,
+-- minimumA, anyA and allA.
+prop_reduce :: forall a . Elem a => View -> Property
+prop_reduce v@(View sh _) =
+  forAll (genElems (1, 9) (product sh)) $ \ xs ->
+  forAll (fromIntegral <$> choose (0, 9 :: Int)) $ \ t ->
+  let x = mkView v xs :: Array a
+      l = toList x
+  in  reduce (+) 0 x === scalar (sum l)
+      .&&. sumA x === sum l .&&. productA x === product l
+      .&&. anyA (> t) x === any (> t) l .&&. allA (> t) x === all (> t) l
+      .&&. (if null l then property True
+            else maximumA x === maximum l .&&. minimumA x === minimum l)
+
+-- pad agrees with indexing the view where an index falls inside it, and
+-- gives the padding value elsewhere, for a pad list of any length up to
+-- the rank that leaves at most 10000 elements.
+prop_pad :: forall a . Elem a => View -> Property
+prop_pad v@(View sh _) =
+  let x = mkView v (upTo (product sh)) :: Array a
+      xsh = shapeL x
+  in  forAll (choose (0, length xsh)) $ \ k ->
+      forAll (vectorOf k ((,) <$> choose (0, 2) <*> choose (0, 2))) $ \ ps ->
+      let psh = zipWith (\ (lo, hi) s -> lo + s + hi) ps xsh ++ drop k xsh
+          at is = let (os, js) = splitAt k is
+                      os' = zipWith (\ i (lo, _) -> i - lo) os ps
+                  in  if and (zipWith (\ i s -> i >= 0 && i < s) os' xsh)
+                      then unScalar (foldl index x (os' ++ js)) else -1
+      in  product psh <= 10000 ==>
+          shapeL (pad ps (-1) x) === psh
+          .&&. toList (pad ps (-1) x) === [ at is | is <- mapM (\ s -> [0 .. s - 1]) psh ]
+
 -- Each operation of a view has the shape opShape gives, and reads at every
 -- index of its result the element of the array it applies to at the index
 -- opSource gives.
-prop_viewOps :: View -> Property
+prop_viewOps :: forall a . Elem a => View -> Property
 prop_viewOps (View sh ops) =
-  let steps = scanl (flip applyOp) (fromList sh [0 .. product sh - 1]) ops :: [Array Int]
+  let steps = scanl (flip applyOp) (fromList sh (upTo (product sh))) ops :: [Array a]
       at x is = unScalar (foldl index x is)
       step (x, op, y) =
         let xsh = shapeL x
@@ -740,14 +748,14 @@ prop_viewOps (View sh ops) =
 -- its result are forced, with an error of a function opNames names; but
 -- broadcast to other extents of the same product gives an array of those,
 -- which it should not.
-prop_badOps :: View -> Property
+prop_badOps :: forall a . Elem a => View -> Property
 prop_badOps v@(View sh _) =
-  let x = mkView v [0 .. product sh - 1] :: Array Int
+  let x = mkView v (upTo (product sh)) :: Array a
       xsh = shapeL x
   in  forAll (genBadOp xsh) $ \ op ->
       let y = applyOp op x
       in  if silentBadOp xsh op then shapeL y === opShape xsh op
-          else failsIn (opNames op) (sum (shapeL y) + sum (toList y))
+          else failsIn (opNames op) (sum (shapeL y) + fromIntegral (sum (toList y)))
 
 -- The offset, the strides and the length of the vector of an array.
 layoutOf :: Array a -> (Int, [Int], Int)
@@ -758,13 +766,13 @@ layoutOf (D.A (DG.A _ t)) = (I.offset t, I.strides t, V.length (I.values t))
 -- one dimension, append and concatOuter of the view and a normal array of
 -- its shape, zipWithA of the two either way round, and traverseA in the
 -- applicative of pairs agree with the lists.
-prop_copy :: View -> Property
+prop_copy :: forall a . Elem a => View -> Property
 prop_copy v@(View sh _) =
-  let x = mkView v [0 .. product sh - 1] :: Array Int
+  let x = mkView v (upTo (product sh)) :: Array a
       xsh = shapeL x
       l = toList x
       n = length l
-  in  forAll (vectorOf n (choose (-9, 9))) $ \ ys ->
+  in  forAll (genElems (-9, 9) n) $ \ ys ->
       let y = fromList xsh ys
           z = normalize x
       in  toList z === l .&&. layoutOf z === (0, drop 1 (scanr (*) 1 xsh), n)
@@ -778,12 +786,12 @@ prop_copy v@(View sh _) =
 
 -- zipWith3A, zipWith4A and zipWith5A over the view and normal arrays of
 -- its shape, the view first or last, agree with the lists.
-prop_zipWith :: View -> Property
+prop_zipWith :: forall a . Elem a => View -> Property
 prop_zipWith v@(View sh _) =
-  let x = mkView v [0 .. product sh - 1] :: Array Int
+  let x = mkView v (upTo (product sh)) :: Array a
       xsh = shapeL x
       l = toList x
-      ys = vectorOf (length l) (choose (-9, 9))
+      ys = genElems (-9, 9) (length l)
   in  forAll ((,,,) <$> ys <*> ys <*> ys <*> ys) $ \ (ys1, ys2, ys3, ys4) ->
       let (y1, y2, y3, y4) = (fromList xsh ys1, fromList xsh ys2, fromList xsh ys3, fromList xsh ys4)
           f3 a b c = a + 10 * b + 100 * c
@@ -799,14 +807,14 @@ prop_zipWith v@(View sh _) =
 -- update agrees with replacing elements of the list, the last update at
 -- an index being the one that stays, and fails on an index outside the
 -- view.
-prop_update :: View -> Property
+prop_update :: forall a . Elem a => View -> Property
 prop_update v@(View sh _) =
-  let x = mkView v [0 .. product sh - 1] :: Array Int
+  let x = mkView v (upTo (product sh)) :: Array a
       xsh = shapeL x
       l = toList x
       ixs = zip [0 :: Int ..] (mapM (\ s -> [0 .. s - 1]) xsh)
       bad = if null xsh then [0] else xsh
-  in  forAll (if null l then return [] else listOf ((,) <$> elements ixs <*> choose (-9, -1))) $ \ us ->
+  in  forAll (if null l then return [] else listOf ((,) <$> elements ixs <*> (fromIntegral <$> choose (-9, -1 :: Int)))) $ \ us ->
       let set ys ((k, _), e) = [ if k' == k then e else y | (k', y) <- zip [0 ..] ys ]
       in  update x [ (is, e) | ((_, is), e) <- us ] === fromList xsh (foldl set l us)
           .&&. failsWith ("update: index out of bounds: " ++ show [bad]) (update x [(bad, 0)])
@@ -814,25 +822,25 @@ prop_update v@(View sh _) =
 -- fromVector makes an array of the elements of a vector, here a slice of
 -- a longer one, and fails on a vector of another length; iterateN makes
 -- one of the first iterates of a function.
-prop_fromVector :: Property
+prop_fromVector :: forall a . Elem a => Property
 prop_fromVector =
   forAll (genShape 3) $ \ sh ->
-  forAll (vectorOf (product sh) (choose (-9, 9))) $ \ xs ->
+  forAll (genElems (-9, 9) (product sh)) $ \ xs ->
   forAll (choose (0, 3)) $ \ k ->
   forAll (choose (0, 3)) $ \ m ->
   forAll (choose (0, 9)) $ \ n ->
   let n' = length xs
       vec = V.slice k n' (V.fromList (replicate k 99 ++ xs ++ replicate m 99))
-  in  fromVector sh vec === fromList sh (xs :: [Int])
+  in  fromVector sh vec === fromList sh (xs :: [a])
       .&&. failsWith ("fromVector: size mismatch " ++ show (n', n' + 1))
                      (fromVector sh (V.fromList (0 : xs)))
-      .&&. iterateN n (* 3) (1 :: Int) === fromList [n] (take n (iterate (* 3) 1))
+      .&&. iterateN n (* 3) (1 :: a) === fromList [n] (take n (iterate (* 3) 1))
 
 -- An array reads back from its show.
-prop_show :: View -> Property
+prop_show :: forall a . Elem a => View -> Property
 prop_show v@(View sh _) =
-  forAll (vectorOf (product sh) (choose (-9, 9))) $ \ xs ->
-  let x = mkView v xs :: Array Int
+  forAll (genElems (-9, 9) (product sh)) $ \ xs ->
+  let x = mkView v xs :: Array a
   in  read (show x) === x
 
 -- rerank applies its function to each subarray below the first n
@@ -841,17 +849,17 @@ prop_show v@(View sh _) =
 -- dimensions is empty, each fails with "ravelOuter: empty list", which is
 -- to become the model's answer once they find the shape of the result
 -- without applying the function.
-prop_rerank :: View -> Property
+prop_rerank :: forall a . Elem a => View -> Property
 prop_rerank v@(View sh _) =
-  let x = mkView v [0 .. product sh - 1] :: Array Int
+  let x = mkView v (upTo (product sh)) :: Array a
       xsh = shapeL x
       empty = "ravelOuter: empty list"
       unravelled = case xsh of
         [] -> property True
-        0 : _ -> failsWith empty (unravel x :: Array (Array Int))
-        s : _ -> map toList (toList (unravel x :: Array (Array Int)))
+        0 : _ -> failsWith empty (unravel x :: Array (Array a))
+        s : _ -> map toList (toList (unravel x :: Array (Array a)))
                  === [ toList (index x i) | i <- [0 .. s - 1] ]
-                 .&&. ravel (unravel x :: Array (Array Int)) === x
+                 .&&. ravel (unravel x :: Array (Array a)) === x
   in  unravelled .&&. forAll (choose (0, length xsh)) (\ n ->
       let (osh, ish) = splitAt n xsh
           subs = [ toList (foldl index x is) | is <- mapM (\ s -> [0 .. s - 1]) osh ]

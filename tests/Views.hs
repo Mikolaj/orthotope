@@ -13,14 +13,17 @@
 -- limitations under the License.
 
 -- Random views and other helpers for the properties of the test modules.
-module Views(testPropertyN, failsWith, failsIn, genShape, Op(..), applyOp, opShape, opSource
-            , genBadOp, opNames, silentBadOp, View(..), mkView, applyOpG, mkViewG) where
+module Views(testPropertyN, failsWith, failsIn, Elem, genElems, upTo, genShape, Op(..), applyOp
+            , opShape, opSource, genBadOp, opNames, silentBadOp, View(..), mkView, applyOpG
+            , mkViewG) where
 
+import Control.DeepSeq (NFData)
 import Control.Exception (ErrorCall (..), evaluate, try)
 import Data.Array.Dynamic
 import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.DynamicG as DG
 import Data.List (sort)
+import Data.Word (Word8)
 import Test.Framework (Test, TestOptions' (..), plusTestOptions)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.QuickCheck
@@ -48,6 +51,22 @@ failsIn names a = ioProperty $ do
   return $ case r of
     Left (ErrorCall e) -> counterexample e (takeWhile (/= ':') e `elem` names)
     Right _ -> counterexample ("no error, where one of " ++ show names ++ " was due") False
+
+-- The element types of the properties that take one: Int, and Word8,
+-- whose arithmetic wraps at 256.
+class (Integral a, Show a, Read a, NFData a) => Elem a
+instance Elem Int
+instance Elem Word8
+
+-- n elements drawn from the range, which wraps in Word8.
+genElems :: Elem a => (Int, Int) -> Int -> Gen [a]
+genElems r n = vectorOf n (fromIntegral <$> choose r)
+
+-- The numbers from 0 to n - 1, as elements, which must tell them apart.
+upTo :: Elem a => Int -> [a]
+upTo n | map toInteger xs == map toInteger [0 .. n - 1] = xs
+       | otherwise = error ("upTo: " ++ show n ++ " elements are not distinct")
+  where xs = map fromIntegral [0 .. n - 1]
 
 genShape :: Int -> Gen [Int]
 genShape r = do
