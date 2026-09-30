@@ -34,7 +34,8 @@ import Test.QuickCheck
   , property, shrinkList, vectorOf, (.&&.), (===), (==>) )
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
-import Views (View (..), applyOp, genShape, mkView, opShape, opSource, testPropertyN)
+import Views
+  (View (..), applyOp, failsWith, genShape, mkView, opShape, opSource, testPropertyN)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -521,6 +522,7 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_viewOps" prop_viewOps
         , testPropertyN "prop_copy" prop_copy
         , testPropertyN "prop_show" prop_show
+        , testPropertyN "prop_rerank" prop_rerank
         ]
   in  tests
 
@@ -758,3 +760,31 @@ prop_show v@(View sh _) =
   forAll (vectorOf (product sh) (choose (-9, 9))) $ \ xs ->
   let x = mkView v xs :: Array Int
   in  read (show x) === x
+
+-- rerank applies its function to each subarray below the first n
+-- dimensions, rerank2 to each pair of them, unravel lists the subarrays
+-- below the first dimension and ravel puts them back.  Where one of those
+-- dimensions is empty, each fails with "ravelOuter: empty list", which is
+-- to become the model's answer once they find the shape of the result
+-- without applying the function.
+prop_rerank :: View -> Property
+prop_rerank v@(View sh _) =
+  let x = mkView v [0 .. product sh - 1] :: Array Int
+      xsh = shapeL x
+      empty = "ravelOuter: empty list"
+      unravelled = case xsh of
+        [] -> property True
+        0 : _ -> failsWith empty (unravel x :: Array (Array Int))
+        s : _ -> map toList (toList (unravel x :: Array (Array Int)))
+                 === [ toList (index x i) | i <- [0 .. s - 1] ]
+                 .&&. ravel (unravel x :: Array (Array Int)) === x
+  in  unravelled .&&. forAll (choose (0, length xsh)) (\ n ->
+      let (osh, ish) = splitAt n xsh
+          subs = [ toList (foldl index x is) | is <- mapM (\ s -> [0 .. s - 1]) osh ]
+          double a = reshape [product (shapeL a)] (mapA (* 2) a)
+      in  if product osh == 0
+          then failsWith empty (rerank n double x)
+               .&&. failsWith empty (rerank2 n (zipWithA (+)) x x)
+          else shapeL (rerank n double x) === osh ++ [product ish]
+               .&&. toList (rerank n double x) === concatMap (map (* 2)) subs
+               .&&. toList (rerank2 n (zipWithA (+)) x x) === map (* 2) (toList x))
