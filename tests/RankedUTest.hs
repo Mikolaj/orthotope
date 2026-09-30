@@ -19,6 +19,7 @@ module RankedUTest(test) where
 
 import Control.DeepSeq
 import Control.Exception
+import qualified Data.Array.Ranked as R
 import Data.Array.RankedU
 import qualified Data.Vector.Unboxed as V
 import Test.Framework (Test, testGroup)
@@ -171,6 +172,10 @@ test = testGroup "RankedU" $
       concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                       (concatOuter [a1, concatOuter [a1,a1]])
       concatOuter_2 = assertThrows "2" (concatOuter [a1, a2])
+      ravel_1 = assertEqual  "1" (fromList [3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
+                                 (ravel $ R.fromList [3] [a1,a1,a1])
+      unravel_1 = assertEqual "1" [a1,a1,a1]
+                                  (R.toList $ unravel $ ravel $ R.fromList [3] [a1,a1,a1])
       a6 :: Array 2 Int
       a6 = fromList [4,5] [1..20]
       window_1 = assertEqual "1" (fromList [2,3,3,3] [1,2,3,
@@ -289,6 +294,8 @@ test = testGroup "RankedU" $
         , testCase "append_1" append_1
         , testCase "concatOuter_1" concatOuter_1
         , testCase "concatOuter_2" concatOuter_2
+        , testCase "ravel_1" ravel_1
+        , testCase "unravel_1" unravel_1
         , testCase "window_1" window_1
         , testCase "window_2" window_2
         , testCase "window_3" window_3

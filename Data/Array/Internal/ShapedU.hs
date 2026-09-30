@@ -59,6 +59,7 @@ import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import Data.Array.Internal.DynamicU()  -- Vector instance
+import qualified Data.Array.Internal.Shaped as S
 import qualified Data.Array.Internal.ShapedG as G
 import Data.Array.Internal(ShapeL, Vector)
 import Data.Array.Internal.Shape
@@ -209,15 +210,15 @@ append x y = A $ G.append (unA x) (unA y)
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
 -- O(n) time.
-ravel :: (Unbox a, Unbox (Array sh a), Unbox (G.Array sh V.Vector a), Shape sh, KnownNat s) =>
-         Array '[s] (Array sh a) -> Array (s:sh) a
-ravel = A . G.ravel . G.mapA unA . unA
+ravel :: (Unbox a, Shape sh, KnownNat s) =>
+         S.Array '[s] (Array sh a) -> Array (s:sh) a
+ravel = A . G.ravel . G.mapA unA . S.unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
-unravel :: (Unbox a, Unbox (Array sh a), Unbox (G.Array sh V.Vector a), Shape sh, KnownNat s) =>
-           Array (s:sh) a -> Array '[s] (Array sh a)
-unravel = A . G.mapA A . G.unravel . unA
+unravel :: (Unbox a, Shape sh, KnownNat s) =>
+           Array (s:sh) a -> S.Array '[s] (Array sh a)
+unravel = S.A . G.mapA A . G.unravel . unA
 
 -- | Make a window of the outermost dimensions.
 -- The rank increases with the length of the window list.
