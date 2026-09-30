@@ -23,14 +23,14 @@ import qualified Data.Array.DynamicG as G
 import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.Internal.DynamicG as DG
-import Data.List (nub, sort)
+import Data.List (nub, sort, zipWith4, zipWith5)
 import qualified Data.Vector as V
 import Data.Word (Word8)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Test.QuickCheck
-  ( Arbitrary (..), Property, choose, conjoin, counterexample, elements, forAll
+  ( Arbitrary (..), Property, choose, conjoin, counterexample, elements, forAll, listOf
   , property, shrinkList, vectorOf, (.&&.), (===), (==>) )
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
@@ -521,6 +521,9 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_lazy" prop_lazy
         , testPropertyN "prop_viewOps" prop_viewOps
         , testPropertyN "prop_copy" prop_copy
+        , testPropertyN "prop_zipWith" prop_zipWith
+        , testPropertyN "prop_update" prop_update
+        , testPropertyN "prop_fromVector" prop_fromVector
         , testPropertyN "prop_show" prop_show
         , testPropertyN "prop_rerank" prop_rerank
         ]
@@ -737,8 +740,9 @@ layoutOf (D.A (DG.A _ t)) = (I.offset t, I.strides t, V.length (I.values t))
 
 -- normalize gives the view as a normal array, its elements in a vector
 -- of just their number, at offset 0 and with natural strides; reshape to
--- one dimension, append of the view and a normal array of its shape, and
--- zipWithA of the two either way round agree with the lists.
+-- one dimension, append and concatOuter of the view and a normal array of
+-- its shape, zipWithA of the two either way round, and traverseA in the
+-- applicative of pairs agree with the lists.
 prop_copy :: View -> Property
 prop_copy v@(View sh _) =
   let x = mkView v [0 .. product sh - 1] :: Array Int
@@ -752,7 +756,62 @@ prop_copy v@(View sh _) =
           .&&. toList (reshape [n] x) === l
           .&&. toList (zipWithA (-) x y) === zipWith (-) l ys
           .&&. toList (zipWithA (-) y x) === zipWith (-) ys l
-          .&&. (if null xsh then property True else toList (append x y) === l ++ ys)
+          .&&. (if null xsh then property True
+                else toList (append x y) === l ++ ys
+                     .&&. toList (concatOuter [x, y, y]) === l ++ ys ++ ys)
+          .&&. traverseA (\ e -> ([e], e - 1)) x === (l, fromList xsh (map (subtract 1) l))
+
+-- zipWith3A, zipWith4A and zipWith5A over the view and normal arrays of
+-- its shape, the view first or last, agree with the lists.
+prop_zipWith :: View -> Property
+prop_zipWith v@(View sh _) =
+  let x = mkView v [0 .. product sh - 1] :: Array Int
+      xsh = shapeL x
+      l = toList x
+      ys = vectorOf (length l) (choose (-9, 9))
+  in  forAll ((,,,) <$> ys <*> ys <*> ys <*> ys) $ \ (ys1, ys2, ys3, ys4) ->
+      let (y1, y2, y3, y4) = (fromList xsh ys1, fromList xsh ys2, fromList xsh ys3, fromList xsh ys4)
+          f3 a b c = a + 10 * b + 100 * c
+          f4 a b c d = f3 a b c + 1000 * d
+          f5 a b c d e = f4 a b c d + 10000 * e
+      in  toList (zipWith3A f3 x y1 y2) === zipWith3 f3 l ys1 ys2
+          .&&. toList (zipWith3A f3 y1 y2 x) === zipWith3 f3 ys1 ys2 l
+          .&&. toList (zipWith4A f4 x y1 y2 y3) === zipWith4 f4 l ys1 ys2 ys3
+          .&&. toList (zipWith4A f4 y1 y2 y3 x) === zipWith4 f4 ys1 ys2 ys3 l
+          .&&. toList (zipWith5A f5 x y1 y2 y3 y4) === zipWith5 f5 l ys1 ys2 ys3 ys4
+          .&&. toList (zipWith5A f5 y1 y2 y3 y4 x) === zipWith5 f5 ys1 ys2 ys3 ys4 l
+
+-- update agrees with replacing elements of the list, the last update at
+-- an index being the one that stays, and fails on an index outside the
+-- view.
+prop_update :: View -> Property
+prop_update v@(View sh _) =
+  let x = mkView v [0 .. product sh - 1] :: Array Int
+      xsh = shapeL x
+      l = toList x
+      ixs = zip [0 :: Int ..] (mapM (\ s -> [0 .. s - 1]) xsh)
+      bad = if null xsh then [0] else xsh
+  in  forAll (if null l then return [] else listOf ((,) <$> elements ixs <*> choose (-9, -1))) $ \ us ->
+      let set ys ((k, _), e) = [ if k' == k then e else y | (k', y) <- zip [0 ..] ys ]
+      in  update x [ (is, e) | ((_, is), e) <- us ] === fromList xsh (foldl set l us)
+          .&&. failsWith ("update: index out of bounds: " ++ show [bad]) (update x [(bad, 0)])
+
+-- fromVector makes an array of the elements of a vector, here a slice of
+-- a longer one, and fails on a vector of another length; iterateN makes
+-- one of the first iterates of a function.
+prop_fromVector :: Property
+prop_fromVector =
+  forAll (genShape 3) $ \ sh ->
+  forAll (vectorOf (product sh) (choose (-9, 9))) $ \ xs ->
+  forAll (choose (0, 3)) $ \ k ->
+  forAll (choose (0, 3)) $ \ m ->
+  forAll (choose (0, 9)) $ \ n ->
+  let n' = length xs
+      vec = V.slice k n' (V.fromList (replicate k 99 ++ xs ++ replicate m 99))
+  in  fromVector sh vec === fromList sh (xs :: [Int])
+      .&&. failsWith ("fromVector: size mismatch " ++ show (n', n' + 1))
+                     (fromVector sh (V.fromList (0 : xs)))
+      .&&. iterateN n (* 3) (1 :: Int) === fromList [n] (take n (iterate (* 3) 1))
 
 -- An array reads back from its show.
 prop_show :: View -> Property
