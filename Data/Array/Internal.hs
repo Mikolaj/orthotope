@@ -80,7 +80,8 @@ class Vector v where
 class None a
 instance None a
 
--- This instance is not used anywheer.  It serves more as a reference semantics.
+-- This instance serves as a reference semantics.  Pretty-printing also uses it,
+-- for the array of rendered elements.
 instance Vector [] where
   type VecElem [] = None
   vIndex = (!!)
