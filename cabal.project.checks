@@ -1,0 +1,25 @@
+-- The test suite with the extra bounds checks of vector and GHC:
+--
+--   cabal test --project-file=cabal.project.checks --builddir=dist-checks
+--
+-- Of the GHCs in tested-with, 9.4.8 and later run the tests with it.  With
+-- 9.2.8, -fcheck-prim-bounds stops update of an empty unboxed view of a
+-- longer vector, in vector's code, which the later ones pass, and 9.0.2
+-- and 8.10.7 lack the flag.
+--
+-- vector checks its unsafe operations and its internal invariants too,
+-- and -fcheck-prim-bounds has every package built here check its array
+-- primops, aborting the run.  An access out of bounds through either then
+-- fails where the ordinary build lets it pass; one through a raw pointer,
+-- such as a Storable vector's unsafeWith gives, still passes.  The
+-- library's asserts, which an optimised build drops, are kept as well.
+packages: .
+tests: True
+
+constraints: vector +unsafechecks +internalchecks
+
+package *
+  ghc-options: -fcheck-prim-bounds
+
+package orthotope
+  ghc-options: -fno-ignore-asserts

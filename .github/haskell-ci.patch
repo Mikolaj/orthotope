@@ -1,0 +1,12 @@
+--- a/.github/workflows/haskell-ci.yml
++++ b/.github/workflows/haskell-ci.yml
+@@ -223,6 +223,9 @@
+       - name: tests
+         run: |
+           $CABAL v2-test $ARG_COMPILER $ARG_TESTS $ARG_BENCH all --test-show-details=direct
++      - name: tests with bounds checks
++        run: |
++          if [ $((HCNUMVER >= 90400)) -ne 0 ] ; then cd $GITHUB_WORKSPACE/source && $CABAL v2-test $ARG_COMPILER $ARG_TESTS --project-file=cabal.project.checks --builddir=dist-checks all --test-show-details=direct ; fi
+       - name: cabal check
+         run: |
+           cd ${PKGDIR_orthotope} || false
