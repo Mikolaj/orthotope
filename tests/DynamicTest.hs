@@ -31,8 +31,8 @@ import Test.Framework.Providers.HUnit (testCase)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Test.QuickCheck
-  ( Arbitrary (..), Gen, Property, Testable, choose, oneof, shrinkList
-  , shuffle, sublistOf, vectorOf, (.&&.), (===) )
+  ( Arbitrary (..), Gen, Property, Testable, choose, elements, forAll, oneof
+  , shrinkList, shuffle, sublistOf, vectorOf, (.&&.), (===) )
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -350,6 +350,12 @@ test = testGroup "Dynamic" $
       allSameA_1 = assertEqual "1" [True, True]
                      (map allSameA [ slice [(2,0)] a1
                                    , slice [(1,0)] (fromList [2,3] [1, 2, 3, undefined, 5, 6]) ])
+      -- As allSame . toList, comparing the first element with the others only.
+      allSameA_2 = assertEqual "2" [True, False, False, False, True]
+                                   (map allSameA [ fromList [1] [nan], fromList [2] [nan, nan]
+                                                 , constant [3] nan, normalize (constant [3] nan)
+                                                 , slice [(0,1)] (fromList [2] [nan, 1]) ])
+        where nan = 0 / 0 :: Double
 
       -- Test fast toVector
       toVector_10 =
@@ -467,6 +473,7 @@ test = testGroup "Dynamic" $
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
         , testCase "allSameA_1" allSameA_1
+        , testCase "allSameA_2" allSameA_2
         , testCase "toVector_10" toVector_10
         , testCase "toVector_11" toVector_11
         , testCase "toVector_12" toVector_12
@@ -477,6 +484,7 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_readRangeT" prop_readRangeT
         , testPropertyN "prop_eq" prop_eq
         , testPropertyN "prop_mapA" prop_mapA
+        , testPropertyN "prop_allSameA" prop_allSameA
         ]
   in  tests
 
@@ -629,3 +637,10 @@ prop_mapA v =
   in  toList y === map (* 2) (toList x)
       .&&. (case y of D.A (DG.A _ t) -> V.sum (I.values t) >= 0)
 
+-- allSameA agrees with allSame on the list, NaN included.
+prop_allSameA :: View -> Property
+prop_allSameA v@(View sh _) =
+  forAll (elements [[1], [0 / 0], [1, 2], [0 / 0, 1], [1, 1, 1, 2 :: Double]]) $ \ pool ->
+  forAll (vectorOf (product sh) (elements pool)) $ \ xs ->
+  let x = mkView v xs
+  in  allSameA x === I.allSame (toList x)
