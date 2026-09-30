@@ -16,21 +16,28 @@
 -- https://github.com/Mikolaj/orthotope/tree/speedup-strided-tovector/micro-regime3/,
 -- with the shapes, strides and offsets it gave them, over random Storable
 -- elements, and what it checked of them: the values that toVector, toList,
--- the two lists of vectors and sumA give, and what the lists hold for an
--- empty view.
+-- the two lists of vectors and sumA give, what toVector and sumA allocate,
+-- how much building the head of a list of vectors allocates, and what the
+-- lists hold for an empty view; and what == allocates on a broadcast of a
+-- view that skips elements, and == and mapA on an empty view.
+-- Its bounds on toVector, sumA and the list heads run in an optimised
+-- build alone.
 module BenchViewsTest(test) where
 
-import Data.Array.DynamicS (sumA, toList, toVector)
+import Control.Exception (evaluate)
+import Data.Array.DynamicS (mapA, sumA, toList, toVector)
 import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.DynamicG as DG
 import qualified Data.Array.Internal.DynamicS as DS
 import Data.Bits (shiftR, xor)
+import Data.Int (Int64)
 import Data.List (mapAccumR)
 import qualified Data.Vector.Storable as VS
+import GHC.Conc (getAllocationCounter, setAllocationCounter)
 import Test.Framework (Test, TestOptions' (..), plusTestOptions, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
-import Test.HUnit (assertBool)
+import Test.HUnit (Assertion, assertBool)
 import Test.QuickCheck (Property, choose, counterexample, forAll, (.&&.), (===))
 
 -- A view's shape, strides and offset, and the length of the vector
@@ -41,6 +48,33 @@ test :: Test
 test = testGroup "BenchViews"
   [ testGroup "values"
       [ testOnce n (prop_values l) | (n, l) <- mainViews ++ otherViews ]
+  , optimisedGroup "toVector allocation"
+      [ testCase n (allocUnder (scaled toVectorFactor l) toVector l)
+      | (n, l) <- mainViews ++ otherViews ]
+  , optimisedGroup "sumA allocation"
+      $  [ testCase n (allocUnder 16384 sumA l) | (n, l) <- mainViews ]
+      ++ [ testCase n (allocUnder (scaled sumAFactor l) sumA l) | (n, l) <- otherViews ]
+    -- The head of a list of vectors of a view of runs is one run, built
+    -- in under 32768 bytes, the lists being lazy.
+  , optimisedGroup "list heads"
+      [ testCase "ordered, runs"
+          (allocUnder 32768 (headOf I.toVectorListT) runsBlock)
+      , testCase "unordered, runs"
+          (allocUnder 32768 (headOf I.toUnorderedVectorListT) runsBlock)
+      , testCase "ordered, transposed runs"
+          (allocUnder (scaled orderedHeadFactor transposedBlock)
+                      (headOf I.toVectorListT) transposedBlock)
+      , testCase "unordered, transposed runs"
+          (allocUnder (scaled unorderedHeadFactor transposedBlock)
+                      (headOf I.toUnorderedVectorListT) transposedBlock) ]
+    -- == compares a broadcast of a view that skips elements without its
+    -- broadcast dimensions, and == and mapA take an empty view at once, in
+    -- under 32768 bytes.
+  , testGroup "== allocation"
+      [ testCase "broadcast of a strided row" (allocUnder 32768 (\ x -> x == x) stridedBroadcast)
+      , testCase "empty view" (allocUnder 32768 (\ x -> x == x) emptyView) ]
+  , testGroup "mapA allocation"
+      [ testCase "empty view" (allocUnder 32768 (mapA (+ 1)) emptyView) ]
     -- The lists of vectors of an empty view hold no element: one empty
     -- vector each now, and none once they leave empty vectors out.
   , testGroup "empty lists"
@@ -50,6 +84,49 @@ test = testGroup "BenchViews"
       , (n, f) <- [ ("ordered", I.toVectorListT)
                   , ("unordered", I.toUnorderedVectorListT) ] ]
   ]
+
+-- The bounds on toVector, sumA and the list heads hold for an optimised
+-- build alone, an unoptimised one allocating more for each element, so
+-- their groups run empty there.
+optimisedGroup :: String -> [Test] -> Test
+optimisedGroup n ts = testGroup n (if optimised then ts else [])
+
+-- Whether this module was optimised: the rule fires only when optimising.
+optimised :: Bool
+optimised = False
+{-# NOINLINE optimised #-}
+{-# RULES "optimised" optimised = True #-}
+
+-- What toVector allocates, over the view's size, where it lists a view
+-- element by element, which is under 50 on these views; a fill writing the
+-- result alone would meet 1.1.
+toVectorFactor :: Double
+toVectorFactor = 64
+
+-- What sumA allocates, over the view's size, where the unordered list does
+-- not take the view as one block and goes through the ordered one; 1.1
+-- once the ordered list fills a view it cannot slice.  On the transposed
+-- dense arrays of mainViews, which it takes as one block, sumA allocates
+-- under 16384 bytes already.
+sumAFactor :: Double
+sumAFactor = 64
+
+-- What building the head of the ordered list of a transposed view of runs
+-- allocates, over the view's size: the whole view listed element by
+-- element now, 1.1 for a fill.
+orderedHeadFactor :: Double
+orderedHeadFactor = 64
+
+-- The same for the unordered list, which could instead walk the runs in
+-- the order of the vector and build its head in under 32768 bytes, as it
+-- does for the runs untransposed.
+unorderedHeadFactor :: Double
+unorderedHeadFactor = 64
+
+-- A factor times the size of a view of Doubles, plus 32768 bytes for the
+-- costs of a call, which a small view's size does not cover.
+scaled :: Double -> Layout -> Int64
+scaled factor (sh, _, _, _) = round (factor * 8 * fromIntegral (product sh)) + 32768
 
 -- The mkStrided views of the shapes of convolutions, of the extremes and
 -- of the empty views.
@@ -61,6 +138,20 @@ mainViews =
 -- one of stride 1 at a non-zero offset.
 otherViews :: [(String, Layout)]
 otherViews = classViews ++ [ ("reshape1-slice-off7", ([50, 1], [1, 0], 7, 100)) ]
+
+-- 200000 runs of 20 with a gap of 12 between them, and the same
+-- transposed.
+runsBlock, transposedBlock :: Layout
+runsBlock = mkBlock [200000, 20] [200000, 32] 0
+transposedBlock = mkCompose [20, 200000] [1, 32] 0
+
+-- A row of 2 elements 2 apart, broadcast to 100000 rows.
+stridedBroadcast :: Layout
+stridedBroadcast = ([100000, 2], [0, 2], 0, 3)
+
+-- An empty view whose outer dimension has 10^7 indices.
+emptyView :: Layout
+emptyView = ([10000000, 0, 1], [1, 10000000, 1], 0, 0)
 
 -- A property checked on one case, each case a view of up to about two
 -- million elements, with a random seed.
@@ -118,6 +209,34 @@ agree what u r = counterexample (what ++ ": " ++ firstDiff) (u == r)
           | otherwise = case [ i | i <- [0 .. VS.length u - 1], u VS.! i /= r VS.! i ] of
               i : _ -> "at " ++ show i ++ ", " ++ show (u VS.! i) ++ ", not " ++ show (r VS.! i)
               [] -> "equal"
+
+-- Evaluating f of the view, built and forced beforehand, to WHNF a second
+-- time allocates at most the bound, in bytes; the first time can also
+-- allocate a new chunk of the thread's stack.
+allocUnder :: Int64 -> (DS.Array Double -> b) -> Layout -> Assertion
+allocUnder bound f l@(sh, ts, _, _) = do
+  let (t, x) = mkArray 1 l
+  _ <- evaluate (sum sh + sum ts + VS.length (I.values t))
+  _ <- evaluate x
+  _ <- allocated f x
+  bytes <- allocated f x
+  assertBool (show bytes ++ " bytes allocated, over " ++ show bound) (bytes <= bound)
+
+-- The bytes the thread allocates evaluating f x to WHNF.
+{-# NOINLINE allocated #-}
+allocated :: (a -> b) -> a -> IO Int64
+allocated f x = do
+  setAllocationCounter maxBound
+  _ <- evaluate (f x)
+  c <- getAllocationCounter
+  return (maxBound - c)
+
+-- The head of a list of vectors of the array.
+headOf :: ([Int] -> I.T VS.Vector Double -> [VS.Vector Double])
+       -> DS.Array Double -> VS.Vector Double
+headOf f (DS.A (DG.A sh t)) = case f sh t of
+  v : _ -> v
+  [] -> error "headOf: an empty list"
 
 -- The natural strides of a dense array of the given shape.
 natural :: [Int] -> [Int]
