@@ -83,6 +83,11 @@ test = testGroup "Shaped" $
       scalar_1 = assertEqual "1" a4 (scalar 5)
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
       constant_1 = assertEqual "1" (fromList [1,1,1,1,1,1]) (constant 1 :: Array [2,3] Int)
+      broadcast_1 = assertEqual "1" [1,1,2,2,3,3] (toList (broadcast @'[0] @'[3,2] (index a1 0)))
+      broadcast_2 = assertEqual "2" [7,7,7,7,7,7]
+                                    (toList (broadcast @'[1] @'[2,3] (constant 7 :: Array '[3] Int)))
+      broadcast_3 = assertEqual "3" [1,2,3,1,2,3]
+                                    (toList (broadcast @'[1] @'[2,3] (fromList [1,2,3] :: Array '[3] Int)))
       mapA_1 = assertEqual "1" (fromList [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "1" (fromList [2,5,3,6,4,7]) (mapA succ a2)
       zipWithA_1 = assertEqual "1" (fromList [2,4..12]) (zipWithA (+) a1 a1)
@@ -275,6 +280,9 @@ test = testGroup "Shaped" $
         , testCase "scalar_1" scalar_1
         , testCase "unScalar_1" unScalar_1
         , testCase "constant_1" constant_1
+        , testCase "broadcast_1" broadcast_1
+        , testCase "broadcast_2" broadcast_2
+        , testCase "broadcast_3" broadcast_3
         , testCase "mapA_1" mapA_1
         , testCase "mapA_2" mapA_2
         , testCase "zipWithA_1" zipWithA_1
