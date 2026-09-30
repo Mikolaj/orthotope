@@ -14,19 +14,25 @@
 
 import Test.Framework (defaultMain)
 
+import qualified DynamicSTest
 import qualified DynamicTest
 import qualified DynamicUTest
+import qualified RankedSTest
 import qualified RankedTest
 import qualified RankedUTest
+import qualified ShapedSTest
 import qualified ShapedTest
 import qualified ShapedUTest
 
 main :: IO ()
 main = defaultMain
   [ DynamicTest.test
+  , DynamicSTest.test
   , DynamicUTest.test
   , RankedTest.test
+  , RankedSTest.test
   , RankedUTest.test
   , ShapedTest.test
+  , ShapedSTest.test
   , ShapedUTest.test
   ]
