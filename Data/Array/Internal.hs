@@ -15,6 +15,7 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -31,7 +32,10 @@ import Control.DeepSeq
 import Data.Data(Data)
 import qualified Data.DList as DL
 import Data.Kind (Type)
-import Data.List(foldl', zipWith4, zipWith5, sortBy, sortOn, foldl1')
+#if !MIN_VERSION_base(4,20,0)
+import Data.List(foldl')
+#endif
+import Data.List(zipWith4, zipWith5, sortBy, sortOn, foldl1')
 import Data.Proxy
 import GHC.Exts(Constraint, build)
 import GHC.Generics(Generic)
