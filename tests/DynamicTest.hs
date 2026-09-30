@@ -33,6 +33,7 @@ import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Test.QuickCheck
   ( Arbitrary (..), Gen, Property, Testable, choose, elements, forAll, oneof
   , shrinkList, shuffle, sublistOf, vectorOf, (.&&.), (===) )
+import Text.PrettyPrint.HughesPJClass (prettyShow)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -77,6 +78,10 @@ test = testGroup "Dynamic" $
       a2 = transpose [1,0] a1
       show_1 = assertEqual "1" "fromList [2,3] [1,2,3,4,5,6]" (show a1)
       show_2 = assertEqual "2" "fromList [3,2] [1,4,2,5,3,6]" (show a2)
+      -- Arrays with no elements print as an empty box.
+      pretty_1 = assertEqual "1" (replicate 4 "\x250c\x2510\n\x2514\x2518")
+                                 (map prettyShow [ fromList [0] [], fromList [0,3] []
+                                                 , fromList [2,0] [], fromList [2,0,2] [] :: Array Int ])
       eq_1 = assertEqual "1" True (a1 == a1)
       eq_2 = assertEqual "2" False (a1 == a2)
       -- Views over vectors with elements outside them, which == must not compare.
@@ -377,6 +382,7 @@ test = testGroup "Dynamic" $
       tests =
         [ testCase "show_1" show_1
         , testCase "show_2" show_2
+        , testCase "pretty_1" pretty_1
         , testCase "eq_1" eq_1
         , testCase "eq_2" eq_2
         , testCase "eq_3" eq_3
