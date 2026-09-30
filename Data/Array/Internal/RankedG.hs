@@ -338,7 +338,8 @@ window aws (A ash (T ss o v)) = A (win aws ash) (T (ss' ++ ss) o v)
 {-# INLINE stride #-}
 stride :: (Vector v) => [Int] -> Array n v a -> Array n v a
 stride ats (A ash (T ss o v)) = A (str ats ash) (T (zipWith (*) (ats ++ repeat 1) ss) o v)
-  where str (t:ts) (s:sh) = (s+t-1) `quot` t : str ts sh
+  where str (t:ts) (s:sh) | t <= 0 = error $ "stride: non-positive stride " ++ show ats
+                          | otherwise = negate (negate s `div` t) : str ts sh  -- s / t rounded up, without overflow
         str [] sh = sh
         str _ _ = error $ "stride: rank mismatch " ++ show (ats, ash)
 

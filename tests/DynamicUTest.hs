@@ -212,6 +212,8 @@ test = testGroup "DynamicU" $
                                                     21,23])
                                  (stride [1,2,2] a5)
       stride_2 = assertThrows "2" (stride [1,2,2] a1)
+      stride_3 = assertThrows "3" (stride [0] a1)
+      stride_4 = assertThrows "4" (stride [-1] a1)
       rotate_1 = assertEqual "1" (fromList [2, 4, 3, 2]
                                            [1, 2, 3, 4, 5, 6,
                                             5, 6, 1, 2, 3, 4,
@@ -301,6 +303,8 @@ test = testGroup "DynamicU" $
         , testCase "window_3" window_3
         , testCase "stride_1" stride_1
         , testCase "stride_2" stride_2
+        , testCase "stride_3" stride_3
+        , testCase "stride_4" stride_4
         , testCase "rotate_1" rotate_1
         , testCase "slice_1" slice_1
         , testCase "slice_2" slice_2

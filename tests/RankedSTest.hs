@@ -207,6 +207,8 @@ test = testGroup "RankedS" $
                                                     21,23])
                                  (stride [1,2,2] a5)
       stride_2 = assertThrows "2" (stride [1,2,2] a1)
+      stride_3 = assertThrows "3" (stride [0] a1)
+      stride_4 = assertThrows "4" (stride [-1] a1)
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrows "2" (slice [(0,0)] a4)
@@ -284,6 +286,8 @@ test = testGroup "RankedS" $
         , testCase "window_3" window_3
         , testCase "stride_1" stride_1
         , testCase "stride_2" stride_2
+        , testCase "stride_3" stride_3
+        , testCase "stride_4" stride_4
         , testCase "slice_1" slice_1
         , testCase "slice_2" slice_2
         , testCase "slice_3" slice_3
