@@ -126,6 +126,17 @@ test = testGroup "Dynamic" $
       iota_1 = assertEqual "1" (map fromIntegral [0..299::Int]) (toList (iota 300 :: Array Word8))
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "1" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
+      mapA_3 = assertEqual "3" True  -- 1 `div` 0 outside the view, the vector forced as if strict
+                               (case mapA (1 `div`) (stretch [4] (slice [(2,1)] (fromList [3] [0,0,1 :: Int]))) of
+                                  D.A (DG.A _ t) -> V.all (== 1) (I.values t))
+      -- mapA maps only the part of the vector a view reads, and a broadcast
+      -- of a view that skips elements without its broadcast dimensions.
+      mapA_4 = assertEqual "4" [100, 100, 2]
+                 [ vlen (mapA (+ 1) (stretch [1000,100] (reshape [1,100] (index m 3))))
+                 , vlen (mapA (+ 1) (window [50] (iota 100 :: Array Int)))
+                 , vlen (mapA (+ 1) (broadcast [1] [1000,2] (stride [2] (fromList [3] [1,2,3 :: Int])))) ]
+        where m = fromList [10,100] [1..1000] :: Array Int
+              vlen x = case x of D.A (DG.A _ t) -> V.length (I.values t)
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
       zipWithA_2 = assertThrows "2" (zipWithA (+) a1 a2)
       zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
@@ -391,6 +402,8 @@ test = testGroup "Dynamic" $
         , testCase "iota_1" iota_1
         , testCase "mapA_1" mapA_1
         , testCase "mapA_2" mapA_2
+        , testCase "mapA_3" mapA_3
+        , testCase "mapA_4" mapA_4
         , testCase "zipWithA_1" zipWithA_1
         , testCase "zipWithA_2" zipWithA_2
         , testCase "zipWith3A_1" zipWith3A_1
@@ -452,6 +465,7 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_rotate" prop_rotate
         , testPropertyN "prop_readRangeT" prop_readRangeT
         , testPropertyN "prop_eq" prop_eq
+        , testPropertyN "prop_mapA" prop_mapA
         ]
   in  tests
 
@@ -594,4 +608,13 @@ prop_eq v =
       y = mapA (`div` 2) x
   in  (x == x) === True .&&. (x == y) === (toList x == toList y)
       .&&. (x == normalize x) === True
+
+-- mapA agrees with map on the list, and does not apply its function to
+-- the elements outside the view, which a strict vector would force.
+prop_mapA :: View -> Property
+prop_mapA v =
+  let x = mkViewOnly v
+      y = mapA (* 2) x
+  in  toList y === map (* 2) (toList x)
+      .&&. (case y of D.A (DG.A _ t) -> V.sum (I.values t) >= 0)
 

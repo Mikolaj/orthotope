@@ -81,6 +81,8 @@ test = testGroup "DynamicS" $
       iota_1 = assertEqual "1" (map fromIntegral [0..299::Int]) (toList (iota 300 :: Array Word8))
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "1" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
+      mapA_3 = assertEqual "3" (fromList [4] [1,1,1,1])  -- 1 `div` 0 outside the view
+                               (mapA (1 `div`) (stretch [4] (slice [(2,1)] (fromList [3] [0,0,1 :: Int]))))
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
       zipWithA_2 = assertThrows "2" (zipWithA (+) a1 a2)
       zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
@@ -276,6 +278,7 @@ test = testGroup "DynamicS" $
         , testCase "iota_1" iota_1
         , testCase "mapA_1" mapA_1
         , testCase "mapA_2" mapA_2
+        , testCase "mapA_3" mapA_3
         , testCase "zipWithA_1" zipWithA_1
         , testCase "zipWithA_2" zipWithA_2
         , testCase "zipWith3A_1" zipWith3A_1
