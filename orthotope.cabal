@@ -78,7 +78,8 @@ test-suite tests
 
   default-language:    Haskell2010
 
-  other-modules:       DynamicTest
+  other-modules:       BenchViewsTest
+                     , DynamicTest
                      , DynamicUTest
                      , DynamicSTest
                      , RankedTest
