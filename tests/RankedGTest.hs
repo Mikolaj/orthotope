@@ -45,7 +45,7 @@ import Test.QuickCheck
   ( Arbitrary (..), Property, choose, conjoin, counterexample, forAll, ioProperty
   , property, suchThat, (.&&.), (===) )
 import Views
-  ( Elem, Op (..), View (..), applyOpG, failsWith, genBadOp, genElems, mkViewG, opShape
+  ( Elem, Op (..), View (..), applyOpG, genBadOp, genElems, mkViewG, opShape
   , testPropertyN, upTo )
 
 test :: Test
@@ -91,15 +91,14 @@ obs a = (RG.shapeL a, RG.toList a)
 obsD :: (I.Vector v, I.VecElem v a) => DG.Array v a -> ([Int], [a])
 obsD x = (DG.shapeL x, DG.toList x)
 
--- The two are equal, or fail with messages that agree up to their first
--- colon.
+-- The two are equal, or fail with the same message.
 sameAs :: (NFData b, Eq b, Show b) => b -> b -> Property
 sameAs a b = ioProperty $ do
   ra <- try (evaluate (force a))
   rb <- try (evaluate (force b))
   return $ case (ra, rb) of
     (Right a', Right b') -> a' === b'
-    (Left (ErrorCall e), Left (ErrorCall e')) -> takeWhile (/= ':') e === takeWhile (/= ':') e'
+    (Left (ErrorCall e), Left (ErrorCall e')) -> e === e'
     _ -> counterexample (see ra ++ " /= " ++ see rb) False
   where see = either (\ (ErrorCall e) -> "error " ++ e) show
 
@@ -172,9 +171,7 @@ opRank _ (Raw sh _ _ _ _) = Just (length sh)
 opRank n _ = Just n
 
 -- An operation invalid on a random view, done by Ranked at the rank of the
--- view and the rank opRank gives, fails as Dynamic's does; but slice of a
--- list longer than the rank fails with "impossible", not with Dynamic's
--- message.
+-- view and the rank opRank gives, fails as Dynamic's does.
 prop_badOps :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
 prop_badOps v@(View sh _) =
   let x = mkViewG v (upTo (product sh)) :: DG.Array v a
@@ -184,10 +181,7 @@ prop_badOps v@(View sh _) =
         Just r ->
           withRank (DG.rank x) $ \ (_ :: Proxy n) ->
           withRank r $ \ (_ :: Proxy n') ->
-          let y = applyOpR @n @n' op (toR x)
-          in  case op of
-                Slice sl | length sl > DG.rank x -> failsWith "impossible" y
-                _ -> sameAs (obs y) (obsD (applyOpG op x))
+          sameAs (obs (applyOpR @n @n' op (toR x))) (obsD (applyOpG op x))
 
 -- The rank of a view.
 rankOf :: View -> Int

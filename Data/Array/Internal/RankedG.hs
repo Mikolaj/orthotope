@@ -227,7 +227,7 @@ unScalar (A _ t) = unScalarT t
 {-# INLINE constant #-}
 constant :: forall n v a . (Vector v, VecElem v a, KnownNat n) =>
             ShapeL -> a -> Array n v a
-constant sh | badShape sh = error $ "constant: bad shape: " ++ show sh
+constant sh | badShape sh = error $ "constant: bad shape " ++ show sh
             | length sh /= valueOf @n = error "constant: rank mismatch"
             | otherwise = A sh . constantT sh
 
@@ -269,7 +269,7 @@ pad aps v (A ash at) | any (\ (l, h) -> l < 0 || h < 0) aps = error $ "pad: nega
 {-# INLINE transpose #-}
 transpose :: forall n v a . (KnownNat n) =>
             [Int] -> Array n v a -> Array n v a
-transpose is (A sh t) | l > n = error "transpose: rank exceeded"
+transpose is (A sh t) | l > n = error $ "transpose: rank exceeded " ++ show (is, sh)
                       | sort is /= [0 .. l-1] =
                           error $ "transpose: not a permutation: " ++ show is
                       | otherwise = A (permute is' sh) (transposeT is' t)
@@ -399,8 +399,9 @@ rotate k a@(A sh _)
 slice :: [(Int, Int)] -> Array n v a -> Array n v a
 slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
   where (o, rsh) = slc asl ash ats
-        slc ((k,n):sl) (s:sh) (t:ts) | k < 0 || k > s || n < 0 || n > s - k = error "slice: out of bounds"
+        slc ((k,n):sl) (s:sh) (t:ts) | k < 0 || k > s || n < 0 || n > s - k = error $ "slice: out of bounds: slice=" ++ show (k, n) ++ " size=" ++ show s
                                      | otherwise = (i + k*t, n:ns) where (i, ns) = slc sl sh ts
+        slc (_:_) [] _ = error "slice: slice list too long"
         slc [] sh _ = (ao, sh)
         slc _ _ _ = error "impossible"
 
@@ -526,7 +527,7 @@ broadcast :: forall r' r v a .
              (HasCallStack, Vector v, VecElem v a, KnownNat r, KnownNat r') =>
              [Int] -> ShapeL -> Array r v a -> Array r' v a
 broadcast ds sh a | length ds /= valueOf @r = error "broadcast: wrong number of broadcasts"
-                  | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dimension"
+                  | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dimension index"
                   | not (ascending ds) = error "broadcast: unordered dimensions"
                   | length sh /= r = error "broadcast: wrong rank"
                   | badShape sh = error $ "broadcast: bad shape " ++ show sh
