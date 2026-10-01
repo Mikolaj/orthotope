@@ -506,6 +506,9 @@ broadcast :: (HasCallStack, Vector v, VecElem v a) =>
 broadcast ds sh a | length ds /= rank a = error "broadcast: wrong number of broadcasts"
                   | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dimension index"
                   | not (ascending ds) = error "broadcast: unordered dimensions"
+                  | badShape sh = error $ "broadcast: bad shape " ++ show sh
+                  | permute ds sh /= shapeL a =
+                      error $ "broadcast: shape mismatch " ++ show (shapeL a, ds, sh)
                   | otherwise = stretch sh $ reshape rsh a
   where r = length sh
         rsh = [ if i `elem` ds then s else 1 | (i, s) <- zip [0..] sh ]

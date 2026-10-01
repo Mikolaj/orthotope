@@ -529,6 +529,9 @@ broadcast ds sh a | length ds /= valueOf @r = error "broadcast: wrong number of 
                   | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dimension"
                   | not (ascending ds) = error "broadcast: unordered dimensions"
                   | length sh /= r = error "broadcast: wrong rank"
+                  | badShape sh = error $ "broadcast: bad shape " ++ show sh
+                  | permute ds sh /= shapeL a =
+                      error $ "broadcast: shape mismatch " ++ show (shapeL a, ds, sh)
                   | otherwise = stretch sh $ reshape rsh a
   where r = valueOf @r'
         rsh = [ if i `elem` ds then s else 1 | (i, s) <- zip [0..] sh ]
