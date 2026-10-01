@@ -92,15 +92,14 @@ obs a = (RG.shapeL a, RG.toList a)
 obsD :: (I.Vector v, I.VecElem v a) => DG.Array v a -> ([Int], [a])
 obsD x = (DG.shapeL x, DG.toList x)
 
--- The two are equal, or fail with messages that agree up to their first
--- colon.
+-- The two are equal, or fail with the same message.
 sameAs :: (NFData b, Eq b, Show b) => b -> b -> Property
 sameAs a b = ioProperty $ do
   ra <- try (evaluate (force a))
   rb <- try (evaluate (force b))
   return $ case (ra, rb) of
     (Right a', Right b') -> a' === b'
-    (Left (ErrorCall e), Left (ErrorCall e')) -> takeWhile (/= ':') e === takeWhile (/= ':') e'
+    (Left (ErrorCall e), Left (ErrorCall e')) -> e === e'
     _ -> counterexample (see ra ++ " /= " ++ see rb) False
   where see = either (\ (ErrorCall e) -> "error " ++ e) show
 

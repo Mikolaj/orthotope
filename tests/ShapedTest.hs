@@ -53,6 +53,8 @@ test = testGroup "Shaped" $
       index_3 = assertEqual "3" (fromList [4]) (a2 `index` 0 `index` 1)
       index_4 = assertThrows "<0" (index a1 (-1))
       index_5 = assertThrows ">" (index a1 2)
+      index_6 = catch (deepseq (index a1 (-1)) $ assertFailure "6")
+                      (\ (ErrorCall e) -> assertEqual "6" "index: out of bounds (-1,2)" e)
       -- stretchOuter need not know the extent it stretches to nor the shape
       -- below it, and ShapedG's show need not know how to show a vector.
       constraints_1 = assertEqual "1" (stretchOuter b :: Array [2,3] Int, show a1)
@@ -275,6 +277,7 @@ test = testGroup "Shaped" $
         , testCase "index_3" index_3
         , testCase "index_4" index_4
         , testCase "index_5" index_5
+        , testCase "index_6" index_6
         , testCase "constraints_1" constraints_1
         , testCase "toList_1" toList_1
         , testCase "toList_2" toList_2

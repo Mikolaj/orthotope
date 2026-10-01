@@ -121,7 +121,7 @@ rank _ = valueOf @(Rank sh)
 {-# INLINE index #-}
 index :: forall s sh v a . (HasCallStack, Vector v, KnownNat s) =>
          Array (s:sh) v a -> Int -> Array sh v a
-index (A t) i | i < 0 || i >= s = error $ "index: out of bounds: " ++ show i ++ " >= " ++ show s
+index (A t) i | i < 0 || i >= s = error $ "index: out of bounds " ++ show (i, s)
               | otherwise = A $ indexT t i
   where s = valueOf @s
 
