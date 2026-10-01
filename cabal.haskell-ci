@@ -1,1 +1,2 @@
 github-patches: .github/haskell-ci.patch
+timeout-minutes: 180

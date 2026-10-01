@@ -1,5 +1,14 @@
 --- a/.github/workflows/haskell-ci.yml
 +++ b/.github/workflows/haskell-ci.yml
+@@ -144,7 +144,7 @@
+           EOF
+           cat >> $CABAL_CONFIG <<EOF
+           program-default-options
+-            ghc-options: $GHCJOBS +RTS -M3G -RTS
++            ghc-options: $GHCJOBS +RTS -M16G -RTS
+           EOF
+           cat $CABAL_CONFIG
+       - name: versions
 @@ -223,6 +223,9 @@
        - name: tests
          run: |

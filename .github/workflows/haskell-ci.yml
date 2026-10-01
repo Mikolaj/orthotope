@@ -23,7 +23,7 @@ jobs:
     name: Haskell-CI - Linux - ${{ matrix.compiler }}
     runs-on: ubuntu-24.04
     timeout-minutes:
-      60
+      180
     container:
       image: buildpack-deps:noble
     continue-on-error: ${{ matrix.allow-failure }}
@@ -144,7 +144,7 @@ jobs:
           EOF
           cat >> $CABAL_CONFIG <<EOF
           program-default-options
-            ghc-options: $GHCJOBS +RTS -M3G -RTS
+            ghc-options: $GHCJOBS +RTS -M16G -RTS
           EOF
           cat $CABAL_CONFIG
       - name: versions
