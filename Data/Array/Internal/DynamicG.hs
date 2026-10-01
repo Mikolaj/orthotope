@@ -205,7 +205,7 @@ unScalar _        = error "unScalar: not a scalar"
 -- O(1) time
 {-# INLINE constant #-}
 constant :: (HasCallStack, Vector v, VecElem v a) => ShapeL -> a -> Array v a
-constant sh | badShape sh = error "constant: bad shape"
+constant sh | badShape sh = error $ "constant: bad shape " ++ show sh
             | otherwise   = A sh . constantT sh
 
 -- | Map over the array elements.
