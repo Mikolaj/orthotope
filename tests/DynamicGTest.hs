@@ -27,8 +27,8 @@ import Data.List (zipWith4, zipWith5)
 import Test.Framework (Test, testGroup)
 import Data.Word (Word8)
 import Test.QuickCheck
-  ( Property, choose, conjoin, counterexample, elements, forAll, property, shuffle
-  , sublistOf, vectorOf, (.&&.), (===), (==>) )
+  ( Property, choose, conjoin, counterexample, elements, forAll, listOf, property
+  , vectorOf, (.&&.), (===), (==>) )
 import Views
   ( Elem, Op (..), View (..), applyOpG, failsIn, failsWith, genBadOp, genElems, genShape, opNames
   , opShape, opSource, silentBadOp, testPropertyN, upTo )
@@ -210,10 +210,9 @@ prop_zipWith v@(View sh _) =
           .&&. toList (zipWith5A f5 x y1 y2 y3 y4) === zipWith5 f5 l ys1 ys2 ys3 ys4
           .&&. toList (zipWith5A f5 y1 y2 y3 y4 x) === zipWith5 f5 ys1 ys2 ys3 ys4 l
 
--- update agrees with replacing elements of the list, and fails on an
--- index outside the view.  The updates are at distinct indices, the list
--- instance's vUpdate failing on a repeated one where the vector instances
--- keep the last update.
+-- update agrees with replacing elements of the list, the last update at
+-- an index being the one that stays, and fails on an index outside the
+-- view.
 prop_update :: forall a . Elem a => View -> Property
 prop_update v@(View sh _) =
   let x = mkView v (upTo (product sh)) :: Array [] a
@@ -221,7 +220,7 @@ prop_update v@(View sh _) =
       l = toList x
       ixs = zip [0 :: Int ..] (mapM (\ s -> [0 .. s - 1]) xsh)
       bad = if null xsh then [0] else xsh
-  in  forAll (sublistOf ixs >>= shuffle >>= mapM (\ i -> (,) i . fromIntegral <$> choose (-9, -1 :: Int))) $ \ us ->
+  in  forAll (if null l then return [] else listOf ((,) <$> elements ixs <*> (fromIntegral <$> choose (-9, -1 :: Int)))) $ \ us ->
       let set ys ((k, _), e) = [ if k' == k then e else y | (k', y) <- zip [0 ..] ys ]
       in  update x [ (is, e) | ((_, is), e) <- us ] === fromList xsh (foldl set l us)
           .&&. failsWith ("update: index out of bounds: " ++ show [bad]) (update x [(bad, 0)])

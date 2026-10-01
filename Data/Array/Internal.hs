@@ -120,7 +120,7 @@ instance Vector [] where
       loop (a:as) ias@((i,a'):ias') n =
         case compare i n of
           LT -> error "vUpdate: violated contract: bad index"
-          EQ -> a' : loop as ias' (n+1)
+          EQ -> loop (a':as) ias' n  -- the last update at n stays, as in (//)
           GT -> a  : loop as ias  (n+1)
   vGenerate n f = map f [0 .. n-1]
   vAll = all
