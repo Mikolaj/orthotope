@@ -192,7 +192,9 @@ rankOf (View sh ops) = length (foldl opShape sh ops)
 -- rotate, rerank, rerank2, unravel and ravel, whose types fix the ranks
 -- they take, give what Dynamic's do on the random views of rank 3, or
 -- fail as they do: rotate for any dimension and a number of rotations
--- from -2 up.
+-- from -2 up.  Over an empty outer dimension, rerank and rerank2 of a
+-- function that returns scalars give the empty array, where Dynamic's,
+-- which cannot know the shape of the function's results, fail.
 prop_rank3 :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => Property
 prop_rank3 =
   forAll (arbitrary `suchThat` ((== 3) . rankOf)) $ \ v@(View sh _) ->
@@ -203,15 +205,21 @@ prop_rank3 =
       rot :: Int -> RG.Array 4 v a -> Property
       rot d a = counterexample ("rotate " ++ show d) (sameAs (obs a) (obsD (DG.rotate d k x)))
       nested ps = (concatMap fst ps, concatMap snd ps)
+      -- Over the first n dimensions, of a function that returns scalars.
+      scalars n rd dd = let osh = take n (DG.shapeL x)
+                        in  if product osh == 0 then rd === (osh, []) else sameAs rd dd
   in  rot 0 (RG.rotate @0 @3 k r) .&&. rot 1 (RG.rotate @1 @2 k r) .&&. rot 2 (RG.rotate @2 @1 k r)
       .&&. counterexample "rerank 1"
              (sameAs (obs (RG.rerank @1 (RG.transpose [1,0]) r))
                      (obsD (DG.rerank 1 (DG.transpose [1,0]) x)))
       .&&. counterexample "rerank 2"
-             (sameAs (obs (RG.rerank @2 (RG.reduce (+) 0) r)) (obsD (DG.rerank 2 (DG.reduce (+) 0) x)))
+             (scalars 2 (obs (RG.rerank @2 (RG.reduce (+) 0) r)) (obsD (DG.rerank 2 (DG.reduce (+) 0) x)))
       .&&. counterexample "rerank2 2"
              (sameAs (obs (RG.rerank2 @2 (RG.zipWithA (+)) r r))
                      (obsD (DG.rerank2 2 (DG.zipWithA (+)) x x)))
+      .&&. counterexample "rerank2 3"
+             (scalars 3 (obs (RG.rerank2 @3 (RG.zipWithA (+)) r r))
+                        (obsD (DG.rerank2 3 (DG.zipWithA (+)) x x)))
       .&&. counterexample "unravel"
              (sameAs (nested (map obs (RG.toList (RG.unravel r :: RG.Array 1 V.Vector (RG.Array 2 v a)))))
                      (nested (map obsD (DG.toList (DG.unravel x :: DG.Array V.Vector (DG.Array v a))))))
