@@ -43,6 +43,7 @@ import           Criterion.Types              (Benchmarkable (..),
 import           Data.Bits                    (countLeadingZeros, shiftR, (.&.))
 import           Data.Int                     (Int32, Int64)
 import           Data.List                    (isSuffixOf, sortBy)
+import qualified Data.Vector.Generic          as VG
 import qualified Data.Vector.Storable         as VS
 import qualified Data.Vector.Storable.Mutable as VSM
 import qualified Data.Vector.Unboxed          as VU
@@ -3487,7 +3488,9 @@ data Nest = Fused | Level !Int !Int !Int !Nest
 -- which since that day read 'fillStage3', the 'Axis' path's copy, so
 -- that a change to 'fillStage2' reached neither side of those pairs.
 -- Since 2026-09-26 it builds its nest in 'fillStage3''s loop, over
--- pairs, where it had folded 'fillStage2''s 'wrap', so that the pairs
+-- pairs, where it had folded 'fillStage2''s 'wrap', and it reads its
+-- runs' elements as 'fillStage3' does, a broadcast run's since
+-- 2026-10-01 and a stepping run's since 2026-10-02, so that the pairs
 -- price 'Axis' and what rests on it alone; the reasons are at
 -- 'fillStage3'. Until 2026-09-25 it was 'fillStage2' with the
 -- odometer's levels numbered outermost first, the form the library
@@ -3508,18 +3511,18 @@ fillStage2Axes (Walk tInner sInner outerAxes) !ao !l !v =
               inner !o !src
                 | o + 1 >= oEnd =
                     if o >= oEnd then return ()
-                    else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                    else VS.unsafeIndexM v src >>= VSM.unsafeWrite out o
                 | otherwise = do
-                    VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                    VS.unsafeIndexM v src >>= VSM.unsafeWrite out o
                     let !srcNext = src + tInner
-                    VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v srcNext)
+                    VS.unsafeIndexM v srcNext >>= VSM.unsafeWrite out (o + 1)
                     inner (o + 2) (srcNext + tInner)
           in  inner outPos baseOff
         {-# INLINE writeRunSet #-}
         writeRunSet :: Int -> Int -> ST s ()
-        writeRunSet !outPos !baseOff =
-          let !x = VS.unsafeIndex v baseOff
-              !oEnd = outPos + sInner
+        writeRunSet !outPos !baseOff = do
+          x <- VS.unsafeIndexM v baseOff
+          let !oEnd = outPos + sInner
               inner :: Int -> ST s ()
               inner !o
                 | o + 1 >= oEnd =
@@ -3529,7 +3532,7 @@ fillStage2Axes (Walk tInner sInner outerAxes) !ao !l !v =
                     VSM.unsafeWrite out o x
                     VSM.unsafeWrite out (o + 1) x
                     inner (o + 2)
-          in  inner outPos
+          VG.elemseq v x (inner outPos)
         copies :: Int -> Int -> Int -> ST s ()
         copies !n !blk !src
           | n <= 1 = return ()
@@ -5599,13 +5602,18 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao l !v =
           let !oEnd = outPos + sInner
               inner :: Int -> Int -> ST s ()
               inner !o !src
+                -- As in the library, each element is read with
+                -- 'VS.unsafeIndexM' and then stored, where a store of
+                -- 'VS.unsafeIndex v src' would leave a thunk holding the
+                -- source in a boxed result; at Storable the Core is the
+                -- same.
                 | o + 1 >= oEnd =
                     if o >= oEnd then return ()
-                    else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                    else VS.unsafeIndexM v src >>= VSM.unsafeWrite out o
                 | otherwise = do
-                    VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                    VS.unsafeIndexM v src >>= VSM.unsafeWrite out o
                     let !srcNext = src + tInner
-                    VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v srcNext)
+                    VS.unsafeIndexM v srcNext >>= VSM.unsafeWrite out (o + 1)
                     inner (o + 2) (srcNext + tInner)
           in  inner outPos baseOff
         -- Unrolled by two as the stepping run is, since 2026-09-09: one
@@ -5617,9 +5625,9 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao l !v =
         -- second write fails @check@ at @bcast-inner8@.
         {-# INLINE writeRunSet #-}
         writeRunSet :: Int -> Int -> ST s ()
-        writeRunSet !outPos !baseOff =
-          let !x = VS.unsafeIndex v baseOff
-              !oEnd = outPos + sInner
+        writeRunSet !outPos !baseOff = do
+          x <- VS.unsafeIndexM v baseOff
+          let !oEnd = outPos + sInner
               inner :: Int -> ST s ()
               inner !o
                 | o + 1 >= oEnd =
@@ -5629,7 +5637,9 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao l !v =
                     VSM.unsafeWrite out o x
                     VSM.unsafeWrite out (o + 1) x
                     inner (o + 2)
-          in  inner outPos
+          -- As in the library, where 'VG.elemseq' leaves a boxed element
+          -- unforced; at Storable it is 'seq'.
+          VG.elemseq v x (inner outPos)
         -- The block at src, already written, to n copies in all: each pass
         -- copies everything written so far onto what follows, so the
         -- length doubles and the last pass is clipped. One copy per block
@@ -5705,21 +5715,23 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao l !v =
 
 -- 'fillStage3' with neither run unrolled: the stepping run
 -- 'fbMutOdoVecdimsAddInLeafU1''s loop in place of '-u2''s, the cursor
--- bound and one element per iteration, and, since 2026-09-09, the
--- broadcast run 'writeRunSet' as it was before 'fillStage2' unrolled
--- its own; everything else 'fillStage3''s, comments stripped, the code
--- copied, so that the two fills differ in their run bodies alone, but
--- for the bang on @l@ that 'fillStage3' leaves off to match the library
--- and that changes no Core. The pair 'lib-stage2-lean-u1' against
--- 'lib-stage3-lean' prices the unrolling under the lean dispatch, the stepping
--- run's wherever the innermost stride is not 0, the broadcast run's where it
--- is, where the leaf family prices the first under the arms' own odometer,
--- '-u2' over '-u1' at 0.9644 in time and 0.9208 in counts on Run 26's main
--- set. Added 2026-09-07 for Run 27 as 'fillStage2U1', over pairs; its
--- walk 'fillStage2''s from 2026-09-24, where until then it kept the
--- odometer of 'fillStage2Axes' and 'lib-stage2-lean' was its pair; on
--- the 'Axis' path since 2026-09-26, a day after 'lib-stage3-lean'.
--- Not where the fill is rank 1, read on that odometer: the latch of GHC
+-- bound and one element per iteration, each read as 'fillStage3' reads
+-- it since 2026-10-02, and, since 2026-09-09, the broadcast run
+-- 'writeRunSet''s loop as it was before 'fillStage2' unrolled its own;
+-- everything else 'fillStage3''s, comments stripped,
+-- the code copied, so that the two fills differ in their run bodies
+-- alone, but for the bang on @l@ that 'fillStage3' leaves off to match
+-- the library and that changes no Core. The pair 'lib-stage2-lean-u1'
+-- against 'lib-stage3-lean' prices the unrolling under the lean
+-- dispatch, the stepping run's wherever the innermost stride is
+-- not 0, the broadcast run's where it is, where the leaf family
+-- prices the first under the arms' own odometer, '-u2' over '-u1' at
+-- 0.9644 in time and 0.9208 in counts on Run 26's main set. Added
+-- 2026-09-07 for Run 27 as 'fillStage2U1', over pairs; its walk
+-- 'fillStage2''s from 2026-09-24, where until then it kept the odometer
+-- of 'fillStage2Axes' and 'lib-stage2-lean' was its pair; on the
+-- 'Axis' path since 2026-09-26, a day after 'lib-stage3-lean'.  Not
+-- where the fill is rank 1, read on that odometer: the latch of GHC
 -- https://gitlab.haskell.org/ghc/ghc/-/work_items/27799 costs this
 -- loop one instruction an element there, on one half or the other
 -- (README.md#what-is-open). Price the unrolling on the main set, or off
@@ -5743,19 +5755,19 @@ fillStage3U1 (WalkAx tInner sInner outerAxes) !ao !l !v =
               inner !o !src
                 | o >= oEnd = return ()
                 | otherwise = do
-                    VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                    VS.unsafeIndexM v src >>= VSM.unsafeWrite out o
                     inner (o + 1) (src + tInner)
           in  inner outPos baseOff
         {-# INLINE writeRunSet #-}
         writeRunSet :: Int -> Int -> ST s ()
-        writeRunSet !outPos !baseOff =
-          let !x = VS.unsafeIndex v baseOff
-              !oEnd = outPos + sInner
+        writeRunSet !outPos !baseOff = do
+          x <- VS.unsafeIndexM v baseOff
+          let !oEnd = outPos + sInner
               inner :: Int -> ST s ()
               inner !o
                 | o >= oEnd = return ()
                 | otherwise = VSM.unsafeWrite out o x >> inner (o + 1)
-          in  inner outPos
+          VG.elemseq v x (inner outPos)
         copies :: Int -> Int -> Int -> ST s ()
         copies !n !blk !src
           | n <= 1 = return ()
