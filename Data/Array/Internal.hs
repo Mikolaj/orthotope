@@ -375,9 +375,10 @@ zipWithT :: (Vector v, VecElem v a, VecElem v b, VecElem v c) =>
             ShapeL -> (a -> b -> c) -> T v a -> T v b -> T v c
 zipWithT sh f t@(T ss _ v) t'@(T _ _ v') =
   case (vLength v, vLength v') of
-    (1, 1) ->
+    (1, 1) | 0 `notElem` sh ->
       -- If both vectors have length 1, then it's a degenerate case and it's better
-      -- to operate on the single element directly.
+      -- to operate on the single element directly, unless the view is empty and
+      -- the element lies outside it.
       T ss 0 $ vSingleton $ f (vIndex v 0) (vIndex v' 0)
     (1, _) ->
       -- First vector has length 1, so use a map instead.
@@ -394,10 +395,11 @@ zipWithT sh f t@(T ss _ v) t'@(T _ _ v') =
 {-# INLINE zipWith3T #-}
 zipWith3T :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d) =>
              ShapeL -> (a -> b -> c -> d) -> T v a -> T v b -> T v c -> T v d
-zipWith3T _ f (T ss _ v) (T _ _ v') (T _ _ v'') |
+zipWith3T sh f (T ss _ v) (T _ _ v') (T _ _ v'') |
   -- If all vectors have length 1, then it's a degenerate case and it's better
-  -- to operate on the single element directly.
-  vLength v == 1, vLength v' == 1, vLength v'' == 1 =
+  -- to operate on the single element directly, unless the view is empty and
+  -- the element lies outside it.
+  0 `notElem` sh, vLength v == 1, vLength v' == 1, vLength v'' == 1 =
     T ss 0 $ vSingleton $ f (vIndex v 0) (vIndex v' 0) (vIndex v'' 0)
 zipWith3T sh f t t' t'' = fromVectorT sh $ vZipWith3 f v v' v''
   where v   = toVectorT sh t

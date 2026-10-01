@@ -139,7 +139,9 @@ test = testGroup "Dynamic" $
               vlen x = case x of D.A (DG.A _ t) -> V.length (I.values t)
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
       zipWithA_2 = assertThrows "2" (zipWithA (+) a1 a2)
+      zipWithA_3 = assertEqual "3" [] (toList (zipWithA quot (constant [0] 1) (constant [0] (0 :: Int))))  -- 1 `quot` 0 outside the view
       zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
+      zipWith3A_2 = assertEqual "2" [] (toList (zipWith3A (\ x y z -> x `quot` (y + z)) (constant [0] 1) (constant [0] 0) (constant [0] (0 :: Int))))
       pad_1 = assertEqual "1" (fromList [5,10] [9,9,9,9,9,9,9,9,9,9,
                                                 9,9,9,1,2,3,9,9,9,9,
                                                 9,9,9,4,5,6,9,9,9,9,
@@ -406,7 +408,9 @@ test = testGroup "Dynamic" $
         , testCase "mapA_4" mapA_4
         , testCase "zipWithA_1" zipWithA_1
         , testCase "zipWithA_2" zipWithA_2
+        , testCase "zipWithA_3" zipWithA_3
         , testCase "zipWith3A_1" zipWith3A_1
+        , testCase "zipWith3A_2" zipWith3A_2
         , testCase "pad_1" pad_1
         , testCase "pad_2" pad_2
         , testCase "transpose_1" transpose_1
