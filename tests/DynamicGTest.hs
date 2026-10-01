@@ -211,7 +211,8 @@ instance Owns (VU.Vector Word8) where
 -- of just their number, at offset 0 and with natural strides; reshape to
 -- one dimension, append and concatOuter of the view and a normal array of
 -- its shape, zipWithA of the two either way round, and traverseA in the
--- applicative of pairs agree with the lists.
+-- applicative of pairs agree with the lists; and append and concatOuter
+-- fail on scalars.
 prop_copy :: forall v a . (Owns (v a), I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
              View -> Property
 prop_copy v@(View sh _) =
@@ -228,7 +229,9 @@ prop_copy v@(View sh _) =
           .&&. toList (reshape [n] x) === l
           .&&. toList (zipWithA (-) x y) === zipWith (-) l ys
           .&&. toList (zipWithA (-) y x) === zipWith (-) ys l
-          .&&. (if null xsh then property True
+          .&&. (if null xsh
+                then failsWith "append: bad shape" (append x y)
+                     .&&. failsWith "concatOuter: rank 0 array" (concatOuter [x, y, y])
                 else toList (append x y) === l ++ ys
                      .&&. toList (concatOuter [x, y, y]) === l ++ ys ++ ys)
           .&&. traverseA (\ e -> ([e], e - 1)) x === (l, fromList xsh (map (subtract 1) l))

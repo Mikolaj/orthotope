@@ -283,7 +283,8 @@ append _ _ = error "append: bad shape"
 {-# INLINE concatOuter #-}
 concatOuter :: (HasCallStack, Vector v, VecElem v a) => [Array v a] -> Array v a
 concatOuter [] = error "concatOuter: empty list"
-concatOuter as | not $ allSame $ map tail shs =
+concatOuter as | any null shs = error "concatOuter: rank 0 array"
+               | not $ allSame $ map tail shs =
                  error $ "concatOuter: non-conforming inner dimensions: " ++ show shs
                | otherwise = fromVector sh' $ vConcat $ map toVector as
   where shs@(sh:_) = map shapeL as
