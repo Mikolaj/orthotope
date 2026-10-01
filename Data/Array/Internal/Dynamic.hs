@@ -307,8 +307,9 @@ ravel = A . G.ravel . G.mapA unA . unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
+-- Fails if the array has rank 0.
 {-# INLINABLE unravel #-}
-unravel :: Array a -> Array (Array a)
+unravel :: (HasCallStack) => Array a -> Array (Array a)
 unravel = A . G.mapA A . G.unravel . unA
 
 -- | Make a window of the outermost dimensions.

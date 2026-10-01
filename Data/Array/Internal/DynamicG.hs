@@ -331,9 +331,11 @@ ravel aa | rank aa /= 1 = error "ravel: outermost array does not have rank 1"
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
+-- Fails if the array has rank 0.
 {-# INLINE unravel #-}
-unravel :: (Vector v, Vector v', VecElem v a, VecElem v' (Array v a)) =>
+unravel :: (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' (Array v a)) =>
            Array v a -> Array v' (Array v a)
+unravel (A [] _) = error "unravel: rank 0 array"
 unravel (A (0 : _) _) = A [0] $ fromVectorT [0] (vConcat [])  -- no subarrays
 unravel a = rerank 1 scalar a
 
@@ -429,16 +431,17 @@ rerank n f (A sh t) | n < 0 || n > length sh = error "rerank: rank exceeded"
                     -- f is never applied, so the inner shape is unknown
                     | 0 `elem` osh = error "rerank: empty outer dimension"
                     | otherwise =
-  ravelOuter osh $
+  ravelOuter "rerank" osh $
   map (f . A ish) $
   subArraysT osh t
   where (osh, ish) = splitAt n sh
 
+-- The first argument names the caller in the errors.
 {-# INLINE ravelOuter #-}
-ravelOuter :: (HasCallStack, Vector v, VecElem v a) => ShapeL -> [Array v a] -> Array v a
-ravelOuter _ [] = error "ravelOuter: empty list"
-ravelOuter osh as | not $ allSame shs = error $ "ravelOuter: non-conforming inner dimensions: " ++ show shs
-                  | otherwise = fromVector sh' $ vConcat $ map toVector as
+ravelOuter :: (HasCallStack, Vector v, VecElem v a) => String -> ShapeL -> [Array v a] -> Array v a
+ravelOuter name _ [] = error $ name ++ ": empty list"
+ravelOuter name osh as | not $ allSame shs = error $ name ++ ": non-conforming inner dimensions: " ++ show shs
+                       | otherwise = fromVector sh' $ vConcat $ map toVector as
   where shs@(sh:_) = map shapeL as
         sh' = osh ++ sh
 
@@ -456,7 +459,7 @@ rerank2 n f (A sha ta) (A shb tb) | n < 0 || n > length sha || n > length shb = 
                                   -- f is never applied, so the inner shape is unknown
                                   | 0 `elem` osh = error "rerank2: empty outer dimension"
                                   | otherwise =
-  ravelOuter osh $
+  ravelOuter "rerank2" osh $
   zipWith (\ a b -> f (A isha a) (A ishb b))
           (subArraysT osh ta)
           (subArraysT osh tb)
@@ -469,7 +472,7 @@ rerank2 n f (A sha ta) (A shb tb) | n < 0 || n > length sha || n > length shb = 
 {-# INLINE rev #-}
 rev :: (HasCallStack) => [Int] -> Array v a -> Array v a
 rev rs (A sh t) | all (\ r -> r >= 0 && r < n) rs = A sh (reverseT rs sh t)
-                | otherwise = error "rev: bad reverse dimension"
+                | otherwise = error $ "rev: bad reverse dimension " ++ show (rs, n)
   where n = length sh
 
 -- | Reduce all elements of an array into a rank 0 array.

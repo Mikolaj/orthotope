@@ -441,16 +441,17 @@ rerank f (A sh t)
                   | 0 `elem` osh, valueOf @o == (0 :: Int) = A osh $ fromVectorT osh (vConcat [])
                   | 0 `elem` osh = error "rerank: empty outer dimension"
                   | otherwise =
-  ravelOuter osh $
+  ravelOuter "rerank" osh $
   map (f . A ish) $
   subArraysT osh t
   where (osh, ish) = splitAt (valueOf @n) sh
 
+-- The first argument names the caller in the errors.
 {-# INLINE ravelOuter #-}
-ravelOuter :: (HasCallStack, Vector v, VecElem v a, KnownNat m) => ShapeL -> [Array n v a] -> Array m v a
-ravelOuter _ [] = error "ravelOuter: empty list"
-ravelOuter osh as | not $ allSame shs = error $ "ravelOuter: non-conforming inner dimensions: " ++ show shs
-                  | otherwise = fromVector sh' $ vConcat $ map toVector as
+ravelOuter :: (HasCallStack, Vector v, VecElem v a, KnownNat m) => String -> ShapeL -> [Array n v a] -> Array m v a
+ravelOuter name _ [] = error $ name ++ ": empty list"
+ravelOuter name osh as | not $ allSame shs = error $ name ++ ": non-conforming inner dimensions: " ++ show shs
+                       | otherwise = fromVector sh' $ vConcat $ map toVector as
   where shs@(sh:_) = map shapeL as
         sh' = osh ++ sh
 
@@ -471,7 +472,7 @@ rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error "rerank2: sha
                                 | 0 `elem` osh, valueOf @o == (0 :: Int) = A osh $ fromVectorT osh (vConcat [])
                                 | 0 `elem` osh = error "rerank2: empty outer dimension"
                                 | otherwise =
-  ravelOuter osh $
+  ravelOuter "rerank2" osh $
   zipWith (\ a b -> f (A isha a) (A ishb b))
           (subArraysT osh ta)
           (subArraysT osh tb)
@@ -485,7 +486,7 @@ rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error "rerank2: sha
 {-# INLINE rev #-}
 rev :: (HasCallStack) => [Int] -> Array n v a -> Array n v a
 rev rs (A sh t) | all (\ r -> r >= 0 && r < n) rs = A sh (reverseT rs sh t)
-                | otherwise = error "rev: bad reverse dimension"
+                | otherwise = error $ "rev: bad reverse dimension " ++ show (rs, n)
   where n = length sh
 
 -- | Reduce all elements of an array into a rank 0 array.

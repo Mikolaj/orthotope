@@ -19,6 +19,8 @@ module RankedTest(test) where
 
 import Control.DeepSeq
 import Control.Exception
+import Data.Array.Convert (convertE)
+import qualified Data.Array.Dynamic as D
 import Data.Array.Ranked
 import qualified Data.Vector as V
 import Test.Framework (Test, testGroup)
@@ -272,15 +274,20 @@ test = testGroup "Ranked" $
                                  (rerank @2 box a5)
       rerank_4 = assertEqual "4" (mapA (Just . scalar) a5)
                                  (rerank @3 box a5)
+      rerank_5 = assertThrowsIn "5" "rerank" (rerank @1 (\ a -> constant [unScalar a] 0) (fromList [2] [1,2] :: Array 1 Int) :: Array 2 Int)
       a7 = mapA succ a5
       dot x y = reduce (+) 0 $ zipWithA (*) x y
       rerank2_1 = assertEqual "1" (fromList [2,3] [40,200,488,904,1448,2120])
                                   (rerank2 @2 dot a5 a7)
+      rerank2_2 = assertThrowsIn "2" "rerank2" (rerank2 @1 (\ a _ -> constant [unScalar a] 0) v v :: Array 2 Int)
+        where v = fromList [2] [1,2] :: Array 1 Int
       rev_1 = assertEqual "1" (fromList [2,3] [3,2,1,6,5,4])
                               (rev [1] a1)
       rev_2 = assertEqual "2" (fromList [2,3] [6,5,4,3,2,1])
                               (rev [0,1] a1)
       rev_3 = assertThrows "3" (rev [2] a1)
+      rev_4 = assertThrowsIn "4" "rev" (rev [2] a1)
+      convertE_1 = assertEqual "1" (Left "convert: rank mismatch") (convertE (D.fromList [2] [1,2 :: Int]) :: Either String (Array 2 Int))
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank @1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank @1 (reduce (*) 1) a2)
@@ -385,10 +392,14 @@ test = testGroup "Ranked" $
         , testCase "rerank_2" rerank_2
         , testCase "rerank_3" rerank_3
         , testCase "rerank_4" rerank_4
+        , testCase "rerank_5" rerank_5
         , testCase "rerank2_1" rerank2_1
+        , testCase "rerank2_2" rerank2_2
         , testCase "rev_1" rev_1
         , testCase "rev_2" rev_2
         , testCase "rev_3" rev_3
+        , testCase "rev_4" rev_4
+        , testCase "convertE_1" convertE_1
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3

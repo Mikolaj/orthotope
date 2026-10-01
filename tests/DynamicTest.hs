@@ -267,6 +267,7 @@ test = testGroup "Dynamic" $
       ravel_2 = assertThrows "2" (ravel $ fromList [2] [a1, concatOuter [a1,a1]])
       unravel_1 = assertEqual "1" [a1,a1,a1]
                                   (toList $ unravel $ ravel $ fromList [3] [a1,a1,a1])
+      unravel_2 = assertThrowsIn "2" "unravel" (unravel (scalar (1 :: Int)) :: Array (Array Int))
       a6 :: Array Int
       a6 = fromList [4,5] [1..20]
       window_1 = assertEqual "1" (fromList [2,3,3,3] [1,2,3,
@@ -357,15 +358,20 @@ test = testGroup "Dynamic" $
       rerank_4 = assertEqual "4" (mapA (Just . scalar) a5)
                                  (rerank 3 box a5)
       rerank_5 = assertThrows "4" (rerank 4 box a5)
+      rerank_6 = assertThrowsIn "6" "rerank" (rerank 1 (\ a -> constant [unScalar a] (0 :: Int)) (fromList [2] [1,2 :: Int]))
       a7 = mapA succ a5
       dot x y = reduce (+) 0 $ zipWithA (*) x y
       rerank2_1 = assertEqual "1" (fromList [2,3] [40,200,488,904,1448,2120])
                                   (rerank2 2 dot a5 a7)
+      rerank2_2 = assertThrowsIn "2" "rerank2" (rerank2 4 dot a5 a7)
+      rerank2_3 = assertThrowsIn "3" "rerank2" (rerank2 1 (\ a _ -> constant [unScalar a] (0 :: Int)) v v)
+        where v = fromList [2] [1,2 :: Int]
       rev_1 = assertEqual "1" (fromList [2,3] [3,2,1,6,5,4])
                               (rev [1] a1)
       rev_2 = assertEqual "2" (fromList [2,3] [6,5,4,3,2,1])
                               (rev [0,1] a1)
       rev_3 = assertThrows "3" (rev [2] a1)
+      rev_4 = assertThrowsIn "4" "rev" (rev [2] a1)
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank 1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (reduce (*) 1) a2)
@@ -493,6 +499,7 @@ test = testGroup "Dynamic" $
         , testCase "ravel_1" ravel_1
         , testCase "ravel_2" ravel_2
         , testCase "unravel_1" unravel_1
+        , testCase "unravel_2" unravel_2
         , testCase "window_1" window_1
         , testCase "window_2" window_2
         , testCase "window_3" window_3
@@ -519,10 +526,14 @@ test = testGroup "Dynamic" $
         , testCase "rerank_3" rerank_3
         , testCase "rerank_4" rerank_4
         , testCase "rerank_5" rerank_5
+        , testCase "rerank_6" rerank_6
         , testCase "rerank2_1" rerank2_1
+        , testCase "rerank2_2" rerank2_2
+        , testCase "rerank2_3" rerank2_3
         , testCase "rev_1" rev_1
         , testCase "rev_2" rev_2
         , testCase "rev_3" rev_3
+        , testCase "rev_4" rev_4
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
