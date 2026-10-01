@@ -260,8 +260,9 @@ constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 
 -- Convert an array to a list of vectors, which together contain
 -- all the elements in the natural order.
--- An invariant: if the input array is non-empty the returned list
--- will have no empty vectors.
+--
+-- An invariant: the returned list has no empty vectors, an empty
+-- array yielding the empty list.
 -- The minimum/maximum operations rely on this invariant.
 {-# INLINE toVectorListT #-}
 toVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
@@ -278,7 +279,10 @@ toVectorListT sh a@(T ats ao v) =
           -- Strides are not normal, collect slices.
           DL.concat [ loop bs ss ts (i*t + o) | i <- [0 .. s-1] ]
       loop _ _ _ _ = error "impossible"  -- due to how @loop@ is called
-  in  if ats == ts' && vLength v == l then
+  in  if l == 0 then
+        -- An empty array, no vector
+        []
+      else if ats == ts' && vLength v == l then
         -- All strides are normal, return entire vector
         [v]
       else if null sh then
@@ -292,9 +296,12 @@ toVectorListT sh a@(T ats ao v) =
 
 {-# INLINE toVectorT #-}
 toVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
-toVectorT sh a = case toVectorListT sh a of
-  [v] -> v
-  l -> vConcat l
+toVectorT sh a
+  | l == 0 = vConcat []
+  | otherwise = case toVectorListT sh a of
+      [v] -> v
+      vs -> vConcat vs
+  where !l = product sh
 
 -- Put the array into a vector of just its elements, in the linearization
 -- order.  An array that is one block of its vector, whatever the strides
@@ -329,16 +336,22 @@ toUnorderedVectorListT sh a@(T ats ao v) =
     (ats', sh') = unzip $ sortBy (flip compare) $ zip ats sh
     l : ts' = getStridesT sh'
   in
-      if ats' == ts' then
+      if l == 0 then
+        -- An empty array, no vector
+        []
+      else if ats' == ts' then
         [vSlice ao l v]
       else
         toVectorListT sh a
 
 {-# INLINE toUnorderedVectorT #-}
 toUnorderedVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
-toUnorderedVectorT sh a = case toUnorderedVectorListT sh a of
-  [v] -> v
-  l -> vConcat l
+toUnorderedVectorT sh a
+  | l == 0 = vConcat []
+  | otherwise = case toUnorderedVectorListT sh a of
+      [v] -> v
+      vs -> vConcat vs
+  where !l = product sh
 
 -- Convert from a vector.
 {-# INLINE fromVectorT #-}
