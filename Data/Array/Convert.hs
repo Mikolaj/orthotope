@@ -64,6 +64,10 @@ class Convert a b where
 
 -----
 
+-- TODO: converting between boxings converts the whole vector, elements
+-- outside the view included; fix using routeT and the other machinery of the
+-- future toVectorT overhaul.
+
 instance (a ~ b, DU.Unbox a) => Convert (D.Array a) (DU.Array b) where
   convert (D.A (DG.A sh (I.T s o v))) = DU.A (DG.A sh (I.T s o (V.convert v)))
 
