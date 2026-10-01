@@ -13,15 +13,15 @@
 -- limitations under the License.
 
 -- Random views and other helpers for the properties of the test modules.
-module Views(testPropertyN, failsWith, failsIn, Elem, genElems, upTo, genShape, Op(..), applyOp
-            , opShape, opSource, genBadOp, opNames, silentBadOp, View(..), mkView, applyOpG
+module Views(testPropertyN, failsWith, failsIn, Elem, genElems, upTo, genShape, Op(..), opShape
+            , opSource, genBadOp, opNames, silentBadOp, View(..), mkView, applyOpG
             , mkViewG, genRawView) where
 
 import Control.DeepSeq (NFData)
 import Control.Exception (ErrorCall (..), evaluate, try)
 import Data.Array.Dynamic
 import qualified Data.Array.Internal as I
-import qualified Data.Array.Internal.Dynamic as D
+import qualified Data.Array.Internal.Dynamic as DI
 import qualified Data.Array.Internal.DynamicG as DG
 import Data.List (sort)
 import Data.Word (Word8)
@@ -81,16 +81,6 @@ genShape r = do
 data Op = Transpose [Int] | Rev [Int] | Slice [(Int, Int)] | Stride [Int]
         | Window [Int] | Index Int | Broadcast [Int] [Int] | Raw [Int] [Int] Int Int Int
   deriving Show
-
-applyOp :: Op -> Array a -> Array a
-applyOp (Transpose is) = transpose is
-applyOp (Rev rs) = rev rs
-applyOp (Slice sl) = slice sl
-applyOp (Stride ts) = stride ts
-applyOp (Window ws) = window ws
-applyOp (Index i) = (`index` i)
-applyOp (Broadcast ds sh) = broadcast ds sh
-applyOp op@Raw{} = D.A . applyOpG op . D.unA
 
 -- The shape of the result of an operation on an array of the given shape.
 opShape :: [Int] -> Op -> [Int]
@@ -242,7 +232,7 @@ genOps :: Int -> [Int] -> Gen [Op]
 genOps 0 _ = return []
 genOps n sh = do
   op <- genOp sh
-  (op :) <$> genOps (n - 1) (shapeL (applyOp op (constant sh ())))
+  (op :) <$> genOps (n - 1) (opShape sh op)
 
 -- A view: the shape of an array made by fromList and the operations to
 -- apply to it.  A prefix of the operations is a view too.
@@ -258,8 +248,8 @@ instance Arbitrary View where
             sh <- genShape 3
             n <- choose (0, 4)
             View sh <$> genOps n sh
-          nontrivial v@(View sh _) =
-            let vsh = shapeL (mkView v (replicate (product sh) ()))
+          nontrivial (View sh ops) =
+            let vsh = foldl opShape sh ops
             in  not (null vsh) && product vsh > 0
   shrink (View sh ops) = [ View sh (take i ops) | i <- [0 .. length ops - 1] ]
 
@@ -272,10 +262,8 @@ genRawView = do
   n <- choose (0, 3)
   View [k + l + m] . (Raw sh ss o k m :) <$> genOps n sh
 
-mkView :: View -> [a] -> Array a
-mkView (View sh ops) xs = foldl (flip applyOp) (fromList sh xs) ops
-
--- applyOp and mkView through DynamicG, at any instance of Vector.
+-- The operation, and the view over the elements given, through DynamicG at
+-- any instance of Vector.
 applyOpG :: (I.Vector v, I.VecElem v a) => Op -> DG.Array v a -> DG.Array v a
 applyOpG (Transpose is) = DG.transpose is
 applyOpG (Rev rs) = DG.rev rs
@@ -289,3 +277,7 @@ applyOpG (Raw sh ss o k m) = \ x ->
 
 mkViewG :: (I.Vector v, I.VecElem v a) => View -> [a] -> DG.Array v a
 mkViewG (View sh ops) xs = foldl (flip applyOpG) (DG.fromList sh xs) ops
+
+-- The view over the elements given, as a boxed Dynamic array.
+mkView :: View -> [a] -> Array a
+mkView v = DI.A . mkViewG v
