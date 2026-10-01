@@ -324,8 +324,9 @@ unravel = rerank 1 scalar
 -- @wa `index` i1 ... `index` ik == slice [(i1,w1),...,(ik,wk)] a@.
 {-# INLINE window #-}
 window :: (HasCallStack, Vector v) => [Int] -> Array v a -> Array v a
-window aws (A ash (T ss o v)) = A (win aws ash) (T (ss' ++ ss) o v)
-  where ss' = zipWith const ss aws
+window aws (A ash (T ss o v)) = length rsh `seq` A rsh (T (ss' ++ ss) o v)  -- check now
+  where rsh = win aws ash
+        ss' = zipWith const ss aws
         win (w:ws) (s:sh) | 0 <= w && w <= s = s - w + 1 : win ws sh
                           | otherwise = error $ "window: bad window size " ++ show (w, s)
         win [] sh = aws ++ sh
@@ -338,8 +339,9 @@ window aws (A ash (T ss o v)) = A (win aws ash) (T (ss' ++ ss) o v)
 -- O(1) time.
 {-# INLINE stride #-}
 stride :: (HasCallStack, Vector v) => [Int] -> Array v a -> Array v a
-stride ats (A ash (T ss o v)) = A (str ats ash) (T (zipWith (*) (ats ++ repeat 1) ss) o v)
-  where str (t:ts) (s:sh) | t <= 0 = error $ "stride: non-positive stride " ++ show ats
+stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ repeat 1) ss) o v)  -- check now
+  where rsh = str ats ash
+        str (t:ts) (s:sh) | t <= 0 = error $ "stride: non-positive stride " ++ show ats
                           | otherwise = negate (negate s `div` t) : str ts sh  -- s / t rounded up, without overflow
         str [] sh         = sh
         str _ _           = error $ "stride: rank mismatch " ++ show (ats, ash)

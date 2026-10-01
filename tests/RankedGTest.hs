@@ -45,7 +45,7 @@ import Test.QuickCheck
   ( Arbitrary (..), Property, choose, conjoin, counterexample, forAll, ioProperty
   , property, suchThat, (.&&.), (===) )
 import Views
-  ( Elem, Op (..), View (..), applyOpG, genBadOp, genElems, mkViewG, opShape
+  ( Elem, Op (..), View (..), applyOpG, failsIn, genBadOp, genElems, mkViewG, opName, opShape
   , testPropertyN, upTo )
 
 test :: Test
@@ -171,7 +171,8 @@ opRank _ (Raw sh _ _ _ _) = Just (length sh)
 opRank n _ = Just n
 
 -- An operation invalid on a random view, done by Ranked at the rank of the
--- view and the rank opRank gives, fails as Dynamic's does.
+-- view and the rank opRank gives, fails as Dynamic's does, and as soon as
+-- its result is evaluated.
 prop_badOps :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
 prop_badOps v@(View sh _) =
   let x = mkViewG v (upTo (product sh)) :: DG.Array v a
@@ -181,7 +182,8 @@ prop_badOps v@(View sh _) =
         Just r ->
           withRank (DG.rank x) $ \ (_ :: Proxy n) ->
           withRank r $ \ (_ :: Proxy n') ->
-          sameAs (obs (applyOpR @n @n' op (toR x))) (obsD (applyOpG op x))
+          let y = applyOpR @n @n' op (toR x)
+          in  sameAs (obs y) (obsD (applyOpG op x)) .&&. failsIn (opName op) y
 
 -- The rank of a view.
 rankOf :: View -> Int

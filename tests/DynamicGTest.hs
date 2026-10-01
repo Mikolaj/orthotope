@@ -169,15 +169,14 @@ prop_viewOps (View sh ops) =
                .&&. map (at y) iss === map (at x . opSource xsh op) iss)
   in  conjoin (map step (zip3 steps ops (drop 1 steps)))
 
--- An operation invalid on a view fails once the shape and the elements of
--- its result are forced, with an error of the function opName names.
+-- An operation invalid on a view fails as soon as its result is evaluated,
+-- with an error of the function opName names.
 prop_badOps :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
 prop_badOps v@(View sh _) =
   let x = mkViewG v (upTo (product sh)) :: Array v a
       xsh = shapeL x
   in  forAll (genBadOp xsh) $ \ op ->
-      let y = applyOpG op x
-      in  failsIn (opName op) (sum (shapeL y) + fromIntegral (sum (toList y)))
+      failsIn (opName op) (applyOpG op x)
 
 -- The offset, the strides and the length of the vector of an array.
 layoutOf :: (I.Vector v, I.VecElem v a) => Array v a -> (Int, [Int], Int)
