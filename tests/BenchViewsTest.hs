@@ -74,10 +74,9 @@ test = testGroup "BenchViews"
       , testCase "empty view" (allocUnder 32768 (\ x -> x == x) emptyView) ]
   , testGroup "mapA allocation"
       [ testCase "empty view" (allocUnder 32768 (mapA (+ 1)) emptyView) ]
-    -- The lists of vectors of an empty view hold no element: one empty
-    -- vector each now, and none once they leave empty vectors out.
+    -- The lists of vectors of an empty view hold no vector.
   , testGroup "empty lists"
-      [ testCase (vn ++ ", " ++ n) (assertBool "a non-empty vector" (all VS.null (f sh t)))
+      [ testCase (vn ++ ", " ++ n) (assertBool "a vector" (null (f sh t)))
       | (vn, l@(sh, _, _, _)) <- [ (n, mkStrided s) | (n, s) <- degenerateShapes ]
       , let t = fst (mkArray 1 l)
       , (n, f) <- [ ("ordered", I.toVectorListT)
