@@ -94,6 +94,15 @@ test = testGroup "Ranked" $
       badShape_4 = assertThrows "iota" (iota (-1) :: Array 1 Int)
       badShape_5 = assertEqual "read" Nothing
                      (readMaybe "fromList [-2,-3] [1,2,3,4,5,6]" :: Maybe (Array 2 Int))
+      -- Nor more elements than an Int counts.
+      badShape_6 = mapM_ (uncurry assertThrows)
+        [ ("fromList", fromList [4294967296, 4294967296] [] :: Array 2 Int)
+        , ("generate", generate [4294967296, 4294967296] (const 0))
+        , ("stretch", stretch [4, 4611686018427387905] (reshape [4,1] r4))
+        , ("stretchOuter", stretchOuter 4611686018427387904 (reshape [1,4] r4))
+        , ("pad", pad [(4611686018427387904, 0)] 0 (fromList [4,4] [1..16]))
+        , ("window", window [2147483648] (stretch [4611686018427387904] (fromList [1] [1] :: Array 1 Int))) ]
+        where r4 = fromList [4] [1..4] :: Array 1 Int
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "1" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
@@ -331,6 +340,7 @@ test = testGroup "Ranked" $
         , testCase "badShape_3" badShape_3
         , testCase "badShape_4" badShape_4
         , testCase "badShape_5" badShape_5
+        , testCase "badShape_6" badShape_6
         , testCase "mapA_1" mapA_1
         , testCase "mapA_2" mapA_2
         , testCase "zipWithA_1" zipWithA_1

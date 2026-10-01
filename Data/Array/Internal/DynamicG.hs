@@ -173,19 +173,21 @@ reshape sh (A sh' t@(T ost oo v))
 -- O(1) time.
 {-# INLINE stretch #-}
 stretch :: (HasCallStack) => ShapeL -> Array v a -> Array v a
+stretch sh _ | badShape sh = error $ "stretch: bad shape " ++ show sh
 stretch sh (A sh' vs) | Just bs <- str sh sh' = A sh $ stretchT bs vs
                       | otherwise = error $ "stretch: incompatible " ++ show (sh, sh')
   where str [] [] = Just []
         str (x:xs) (y:ys) | x == y = (False :) <$> str xs ys
-                          | y == 1, x >= 0 = (True  :) <$> str xs ys
+                          | y == 1 = (True  :) <$> str xs ys
         str _ _ = Nothing
 
 -- | Change the size of the outermost dimension by replication.
 {-# INLINE stretchOuter #-}
 stretchOuter :: (HasCallStack) => Int -> Array v a -> Array v a
 stretchOuter s _ | s < 0 = error $ "stretchOuter: negative size " ++ show s
-stretchOuter s (A (1:sh) vs) =
-  A (s:sh) $ stretchT (True : map (const False) (strides vs)) vs
+stretchOuter s (A (1:sh) vs)
+  | badShape (s:sh) = error $ "stretchOuter: bad shape " ++ show (s:sh)
+  | otherwise = A (s:sh) $ stretchT (True : map (const False) (strides vs)) vs
 stretchOuter _ _ = error "stretchOuter: needs outermost dimension of size 1"
 
 -- | Convert a value to a scalar (rank 0) array.
@@ -248,11 +250,14 @@ zipWith5A f (A s t) (A s' t') (A s'' t'') (A s''' t''') (A s'''' t'''') | s == s
 
 -- | Pad each dimension on the low and high side with the given value.
 -- O(n) time.
+-- A padded extent past 'maxBound' can wrap to a wrong one.
 {-# INLINE pad #-}
 pad :: forall a v . (Vector v, VecElem v a) =>
        [(Int, Int)] -> a -> Array v a -> Array v a
 pad aps v (A ash at) | any (\ (l, h) -> l < 0 || h < 0) aps = error $ "pad: negative padding " ++ show aps
-                     | otherwise = uncurry A $ padT v aps ash at
+                     | badShape sh = error $ "pad: bad shape " ++ show sh
+                     | otherwise = A sh t
+  where (sh, t) = padT v aps ash at
 
 -- | Do an arbitrary array transposition.
 -- Fails if the transposition argument is not a permutation of the numbers
@@ -271,6 +276,7 @@ transpose is (A sh t) | l > n = error $ "transpose: rank exceeded " ++ show (is,
 -- | Append two arrays along the outermost dimension.
 -- All dimensions, except the outermost, must be the same.
 -- O(n) time.
+-- An outer extent summed past 'maxBound' can wrap to a wrong one.
 {-# INLINE append #-}
 append :: (HasCallStack, Vector v, VecElem v a) => Array v a -> Array v a -> Array v a
 append a@(A (sa:sh) _) b@(A (sb:sh') _) | sh == sh' =
@@ -280,6 +286,7 @@ append _ _ = error "append: bad shape"
 -- | Concatenate a number of arrays into a single array.
 -- Fails if any, but the outer, dimensions differ.
 -- O(n) time.
+-- An outer extent summed past 'maxBound' can wrap to a wrong one.
 {-# INLINE concatOuter #-}
 concatOuter :: (HasCallStack, Vector v, VecElem v a) => [Array v a] -> Array v a
 concatOuter [] = error "concatOuter: empty list"
@@ -328,7 +335,8 @@ unravel a = rerank 1 scalar a
 -- @wa `index` i1 ... `index` ik == slice [(i1,w1),...,(ik,wk)] a@.
 {-# INLINE window #-}
 window :: (HasCallStack, Vector v) => [Int] -> Array v a -> Array v a
-window aws (A ash (T ss o v)) = length rsh `seq` A rsh (T (ss' ++ ss) o v)  -- check now
+window aws (A ash (T ss o v)) | badShape rsh = error $ "window: bad shape " ++ show rsh
+                              | otherwise = A rsh (T (ss' ++ ss) o v)
   where rsh = win aws ash
         ss' = zipWith const ss aws
         win (w:ws) (s:sh) | 0 <= w && w <= s = s - w + 1 : win ws sh
