@@ -211,7 +211,7 @@ genBadOp sh = oneof $
 -- The function whose error reports an invalid operation.
 opName :: Op -> String
 opName (Transpose _) = "transpose"
-opName (Rev _) = "reverse"
+opName (Rev _) = "rev"
 opName (Slice _) = "slice"
 opName (Stride _) = "stride"
 opName (Window _) = "window"

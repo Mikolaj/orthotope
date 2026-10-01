@@ -123,7 +123,7 @@ instance (a ~ b) => Convert (R.Array n a) (D.Array b) where
   convert (R.A (RG.A sh t)) = D.A (DG.A sh t)
 
 instance (a ~ b, KnownNat n) => Convert (D.Array a) (R.Array n b) where
-  convertE (D.A (DG.A sh t)) | length sh /= I.valueOf @n = Left "rank mismatch"
+  convertE (D.A (DG.A sh t)) | length sh /= I.valueOf @n = Left "convert: rank mismatch"
                              | otherwise = Right $ R.A (RG.A sh t)
 
 instance (a ~ b, S.Shape sh) => Convert (S.Array sh a) (D.Array b) where
@@ -134,25 +134,25 @@ instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (S.Array sh a) (R.Array n
 
 instance (a ~ b, S.Shape sh) => Convert (D.Array a) (S.Array sh b) where
   convertE (D.A (DG.A sh t)) | sh == shapeP (Proxy :: Proxy sh) = Right $ S.A (SG.A t)
-  convertE _ = Left "shape mismatch"
+  convertE _ = Left "convert: shape mismatch"
 
 instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (R.Array n a) (S.Array sh b) where
   convertE (R.A (RG.A sh t)) | sh == shapeP (Proxy :: Proxy sh) = Right $ S.A (SG.A t)
-  convertE _ = Left "shape mismatch"
+  convertE _ = Left "convert: shape mismatch"
 
 ------
 
 instance (a ~ b, KnownNat n) => Convert (DS.Array a) (RS.Array n b) where
-  convertE (DS.A (DG.A sh t)) | length sh /= I.valueOf @n = Left "rank mismatch"
+  convertE (DS.A (DG.A sh t)) | length sh /= I.valueOf @n = Left "convert: rank mismatch"
                               | otherwise = Right $ RS.A (RG.A sh t)
 
 instance (a ~ b, SS.Rank sh ~ n, SS.Shape sh) => Convert (RS.Array n a) (SS.Array sh b) where
   convertE (RS.A (RG.A sh t)) | sh == shapeP (Proxy :: Proxy sh) = Right $ SS.A (SG.A t)
-  convertE _ = Left "shape mismatch"
+  convertE _ = Left "convert: shape mismatch"
 
 instance (a ~ b, SS.Shape sh) => Convert (DS.Array a) (SS.Array sh b) where
   convertE (DS.A (DG.A sh t)) | sh == sh' = Right $ SS.A (SG.A t)
-                              | otherwise = Left $ "shape mismatch: " ++ show (sh, sh')
+                              | otherwise = Left $ "convert: shape mismatch: " ++ show (sh, sh')
                               where sh' = shapeP (Proxy :: Proxy sh)
 
 instance (a ~ b, SS.Shape sh) => Convert (SS.Array sh a) (DS.Array b) where

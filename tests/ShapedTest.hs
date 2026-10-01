@@ -19,6 +19,9 @@ module ShapedTest(test) where
 
 import Control.DeepSeq
 import Control.Exception
+import Data.Array.Convert (convertE)
+import qualified Data.Array.Dynamic as D
+import Data.Array.Shape (withShape, withShapeP)
 import Data.Array.Shaped
 import qualified Data.Vector as V
 import Test.Framework (Test, testGroup)
@@ -27,6 +30,10 @@ import Test.HUnit (assertEqual, assertFailure, Assertion)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
+
+assertThrowsIn :: (NFData a) => String -> String -> a -> Assertion
+assertThrowsIn s f a = catch (deepseq a $ assertFailure s)
+                             (\ (ErrorCall e) -> assertEqual s f (takeWhile (/= ':') e))
 
 test :: Test
 test = testGroup "Shaped" $
@@ -232,6 +239,9 @@ test = testGroup "Shaped" $
                               (rev @'[1] a1)
       rev_2 = assertEqual "2" (fromList [6,5,4,3,2,1])
                               (rev @[0,1] a1)
+      withShapeP_1 = assertThrowsIn "1" "withShapeP" (withShapeP [-1] (\ _ -> ()))
+      withShape_1 = assertThrowsIn "1" "withShape" (withShape [-1] ())
+      convertE_1 = assertEqual "1" (Left "convert: shape mismatch") (convertE (D.fromList [2] [1,2 :: Int]) :: Either String (Array '[3] Int))
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList @'[2] [6,120]) (rerank @1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList @'[3] [4,10,18]) (rerank @1 (reduce (*) 1) a2)
@@ -306,6 +316,9 @@ test = testGroup "Shaped" $
         , testCase "rerank2_1" rerank2_1
         , testCase "rev_1" rev_1
         , testCase "rev_2" rev_2
+        , testCase "withShapeP_1" withShapeP_1
+        , testCase "withShape_1" withShape_1
+        , testCase "convertE_1" convertE_1
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
