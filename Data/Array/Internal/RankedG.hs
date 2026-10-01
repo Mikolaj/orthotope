@@ -301,7 +301,8 @@ concatOuter as | any null shs = error "concatOuter: rank 0 array"
         sh' = sum (map head shs) : tail sh
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
--- dimension of the result array.  All the arrays must have the same shape.
+-- dimension of the result array.  All the arrays must have the same shape,
+-- and there must be at least one.
 -- O(n) time.
 {-# INLINE ravel #-}
 ravel :: (Vector v, Vector v', VecElem v a, VecElem v' (Array n v a), KnownNat (1+n)) =>
@@ -315,7 +316,7 @@ ravel aa =
             sh' = length as : sh
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
--- I.e., @ravel . unravel == id@.
+-- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
 {-# INLINE unravel #-}
 unravel :: (Vector v, Vector v', VecElem v a, VecElem v' (Array n v a)) =>
            Array (1+n) v a -> Array 1 v' (Array n v a)
@@ -410,14 +411,20 @@ slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
 
 -- | Apply a function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
--- The /n/ must not exceed the rank of the array.
+-- The /n/ must not exceed the rank of the array, and none of those /n/
+-- dimensions may be empty unless the function returns scalars.
 -- O(n) time.
 {-# INLINE rerank #-}
 rerank :: forall n i o v v' a b .
           (Vector v, Vector v', VecElem v a, VecElem v' b
           , KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
           (Array i v a -> Array o v' b) -> Array (n+i) v a -> Array (n+o) v' b
-rerank f (A sh t) =
+rerank f (A sh t)
+                  -- f is never applied, so the inner shape is known only
+                  -- for scalars
+                  | 0 `elem` osh, valueOf @o == (0 :: Int) = A osh $ fromVectorT osh (vConcat [])
+                  | 0 `elem` osh = error "rerank: empty outer dimension"
+                  | otherwise =
   ravelOuter osh $
   map (f . A ish) $
   subArraysT osh t
@@ -433,7 +440,8 @@ ravelOuter osh as | not $ allSame shs = error $ "ravelOuter: non-conforming inne
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
--- The /n/ must not exceed the rank of the array.
+-- The /n/ must not exceed the rank of the array, and none of those /n/
+-- dimensions may be empty unless the function returns scalars.
 -- O(n) time.
 {-# INLINE rerank2 #-}
 rerank2 :: forall n i o a b c v .
@@ -441,6 +449,10 @@ rerank2 :: forall n i o a b c v .
             KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
            (Array i v a -> Array i v b -> Array o v c) -> Array (n+i) v a -> Array (n+i) v b -> Array (n+o) v c
 rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error "rerank2: shape mismatch"
+                                -- f is never applied, so the inner shape is known
+                                -- only for scalars
+                                | 0 `elem` osh, valueOf @o == (0 :: Int) = A osh $ fromVectorT osh (vConcat [])
+                                | 0 `elem` osh = error "rerank2: empty outer dimension"
                                 | otherwise =
   ravelOuter osh $
   zipWith (\ a b -> f (A isha a) (A ishb b))

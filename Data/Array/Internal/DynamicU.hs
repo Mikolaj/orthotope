@@ -284,14 +284,15 @@ concatOuter :: (HasCallStack, Unbox a) => [Array a] -> Array a
 concatOuter = A . G.concatOuter . coerce
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
--- dimension of the result array.  All the arrays must have the same shape.
+-- dimension of the result array.  All the arrays must have the same shape,
+-- and there must be at least one.
 -- O(n) time.
 {-# INLINABLE ravel #-}
 ravel :: (HasCallStack, Unbox a) => D.Array (Array a) -> Array a
 ravel = A . G.ravel . G.mapA unA . D.unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
--- I.e., @ravel . unravel == id@.
+-- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
 {-# INLINABLE unravel #-}
 unravel :: (HasCallStack, Unbox a) => Array a -> D.Array (Array a)
 unravel = D.A . G.mapA A . G.unravel . unA
@@ -330,7 +331,8 @@ slice ss = A . G.slice ss . unA
 
 -- | Apply a function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
--- The /n/ must not exceed the rank of the array.
+-- The /n/ must not exceed the rank of the array, and none of those /n/
+-- dimensions may be empty.
 -- O(n) time.
 {-# INLINABLE rerank #-}
 rerank :: (HasCallStack, Unbox a, Unbox b) => Int -> (Array a -> Array b) -> Array a -> Array b
@@ -338,7 +340,8 @@ rerank n f = A . G.rerank n (unA . f . A) . unA
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
--- The /n/ must not exceed the rank of the array.
+-- The /n/ must not exceed the rank of the array, and none of those /n/
+-- dimensions may be empty.
 -- O(n) time.
 {-# INLINABLE rerank2 #-}
 rerank2 :: (HasCallStack, Unbox a, Unbox b, Unbox c) =>

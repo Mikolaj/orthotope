@@ -301,18 +301,16 @@ prop_show v@(View sh _) =
 -- rerank applies its function to each subarray below the first n
 -- dimensions, rerank2 to each pair of them, unravel lists the subarrays
 -- below the first dimension and ravel puts them back.  Where one of those
--- dimensions is empty, each fails with "ravelOuter: empty list", which is
--- to become the model's answer once they find the shape of the result
--- without applying the function.
+-- dimensions is empty, unravel gives an empty array, and rerank and
+-- rerank2 fail, having no result of the function to take a shape from.
 prop_rerank :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
                View -> Property
 prop_rerank v@(View sh _) =
   let x = mkViewG v (upTo (product sh)) :: Array v a
       xsh = shapeL x
-      empty = "ravelOuter: empty list"
       unravelled = case xsh of
         [] -> property True
-        0 : _ -> failsWith empty (unravel x :: Array V.Vector (Array v a))
+        0 : _ -> shapeL (unravel x :: Array V.Vector (Array v a)) === [0]
         s : _ -> map toList (toList (unravel x :: Array V.Vector (Array v a)))
                  === [ toList (index x i) | i <- [0 .. s - 1] ]
                  .&&. ravel (unravel x :: Array V.Vector (Array v a)) === x
@@ -321,8 +319,8 @@ prop_rerank v@(View sh _) =
           subs = [ toList (foldl index x is) | is <- mapM (\ s -> [0 .. s - 1]) osh ]
           double a = reshape [product (shapeL a)] (mapA (* 2) a)
       in  if product osh == 0
-          then failsWith empty (rerank n double x)
-               .&&. failsWith empty (rerank2 n (zipWithA (+)) x x)
+          then failsWith "rerank: empty outer dimension" (rerank n double x)
+               .&&. failsWith "rerank2: empty outer dimension" (rerank2 n (zipWithA (+)) x x)
           else shapeL (rerank n double x) === osh ++ [product ish]
                .&&. toList (rerank n double x) === concatMap (map (* 2)) subs
                .&&. toList (rerank2 n (zipWithA (+)) x x) === map (* 2) (toList x))
