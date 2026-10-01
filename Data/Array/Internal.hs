@@ -172,8 +172,16 @@ instance NFData (v a) => NFData (T v a)
 -- | The shape of an array is a list of its dimensions.
 type ShapeL = [Int]
 
+-- A shape with a negative extent, or with more elements than an Int counts.
+-- After an extent of 0 only a negative one makes the shape bad,
+-- and after the size passes maxBound so does the lack of a 0 to follow.
 badShape :: ShapeL -> Bool
-badShape = any (< 0)
+badShape = go 1
+  where go !_ [] = False
+        go !n (s : ss) | s < 0 = True
+                       | s == 0 = any (< 0) ss
+                       | n > maxBound `quot` s = any (< 0) ss || 0 `notElem` ss
+                       | otherwise = go (n * s) ss
 
 -- When shapes match, we can be efficient and use loop-fused comparisons instead
 -- of materializing a vector.

@@ -172,6 +172,10 @@ instance (Slice ls ss rs, (o+n) <= s, KnownNat o) => Slice ('(o,n) ': ls) (s ': 
 -----------------
 -- Shape extraction
 
+-- The extents and the size of a shape, as Ints.  A shape with an extent or
+-- a size past 'maxBound', such as '[4294967296, 4294967296], fails where it
+-- is first read, as Dynamic and Ranked operations reject such shapes with
+-- badShape.
 class (Typeable s) => Shape (s :: [Nat]) where
   shapeP :: Proxy s -> [Int]
   sizeP  :: Proxy s -> Int
@@ -182,11 +186,23 @@ instance Shape '[] where
   {-# INLINE sizeP #-}
   sizeP  _ = 1
 
+-- Both methods bound outside the proxy's lambda, so that a dictionary computes
+-- its checked shape and size once, not at every call.  sizeP is NOINLINE:
+-- inlined, it ran GHC out of simplifier ticks compiling the test suite.
 instance forall n s . (Shape s, KnownNat n) => Shape (n ': s) where
   {-# INLINE shapeP #-}
-  shapeP _ = valueOf @n : shapeP (Proxy :: Proxy s)
-  {-# INLINE sizeP #-}
-  sizeP  _ = valueOf @n * sizeP  (Proxy :: Proxy s)
+  shapeP = const sh
+    where sh = sizeP (Proxy :: Proxy (n ': s)) `seq` valueOf @n : shapeP (Proxy :: Proxy s)
+  {-# NOINLINE sizeP #-}
+  sizeP = const sz
+    where sz | n > toInteger (maxBound :: Int) || m /= 0 && i > maxBound `quot` m =
+                 error $ "Shape: a shape ending in "
+                         ++ show (n : map toInteger (shapeP (Proxy :: Proxy s)))
+                         ++ " has an extent or a size past maxBound"
+             | otherwise = i * m
+          n = natVal (Proxy :: Proxy n)
+          i = fromInteger n :: Int
+          m = sizeP (Proxy :: Proxy s)
 
 {-# INLINE shapeT #-}
 shapeT :: forall sh . (Shape sh) => [Int]

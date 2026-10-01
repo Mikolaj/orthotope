@@ -23,6 +23,7 @@ import qualified Data.Array.DynamicG as G
 import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.Dynamic as DI
 import qualified Data.Array.Internal.DynamicG as DG
+import Data.Bits (finiteBitSize)
 import Data.List (nub, sort)
 import qualified Data.Vector as V
 import Data.Word (Word8)
@@ -70,6 +71,37 @@ instance I.Vector OldVector where
   vGenerate n = OldVector . I.vGenerate n
   vAll p (OldVector xs) = I.vAll p xs
   vAny p (OldVector xs) = I.vAny p xs
+
+-- A Vector instance whose vectors repeat one element, so that a constant
+-- array costs the same at any size.  It is right only on such vectors.
+data Repeated a = Repeated !Int a
+
+instance I.Vector Repeated where
+  type VecElem Repeated = I.None
+  vIndex (Repeated _ x) _ = x
+  vLength (Repeated n _) = n
+  vToList (Repeated n x) = replicate n x
+  vFromList xs = I.vFromListN (length xs) xs
+  vFromListN n xs = Repeated n (case xs of x : _ -> x; [] -> error "Repeated: no element")
+  vSingleton = Repeated 1
+  vReplicate = Repeated
+  vMap f (Repeated n x) = Repeated n (f x)
+  vZipWith f (Repeated n x) (Repeated _ y) = Repeated n (f x y)
+  vZipWith3 f (Repeated n x) (Repeated _ y) (Repeated _ z) = Repeated n (f x y z)
+  vZipWith4 f (Repeated n x) (Repeated _ y) (Repeated _ z) (Repeated _ u) = Repeated n (f x y z u)
+  vZipWith5 f (Repeated n x) (Repeated _ y) (Repeated _ z) (Repeated _ u) (Repeated _ w) = Repeated n (f x y z u w)
+  vAppend v w = I.vConcat [v, w]
+  vConcat vs = I.vFromListN (sum [ n | Repeated n _ <- vs ]) [ x | Repeated n x <- vs, n > 0 ]
+  vFold f z = foldl f z . I.vToList
+  vSlice _ n (Repeated _ x) = Repeated n x
+  vSum = sum . I.vToList
+  vProduct = product . I.vToList
+  vMaximum = maximum . I.vToList
+  vMinimum = minimum . I.vToList
+  vUpdate _ _ = error "Repeated: vUpdate"
+  vGenerate n g = I.vFromListN n (map g [0 .. n - 1])
+  vAll p = all p . I.vToList
+  vAny p = any p . I.vToList
 
 test :: Test
 test = testGroup "Dynamic" $
@@ -148,6 +180,21 @@ test = testGroup "Dynamic" $
         , ("iota", iota (-1)) ]
       badShape_2 = assertEqual "read" Nothing
                      (readMaybe "fromList [-2,-3] [1,2,3,4,5,6]" :: Maybe (Array Int))
+      -- Nor more elements than an Int counts.
+      badShape_3 = do
+        mapM_ (uncurry assertThrows)
+          [ ("fromList", fromList [4, h] [] :: Array Int)
+          , ("fromVector", fromVector [4, h] V.empty)
+          , ("reshape", reshape [4, h] (fromList [0] []))
+          , ("constant", constant [4, h] 1)
+          , ("generate", generate [4, h] (const 0))
+          , ("stretch", stretch [4, h + 1] (reshape [4,1] (fromList [4] [1..4])))
+          , ("stretchOuter", stretchOuter h (reshape [1,4] (fromList [4] [1..4])))
+          , ("broadcast", broadcast [1] [4, h] (constant [h] 0))
+          , ("pad", pad [(h, 0)] 0 (fromList [4,4] [1..16]))
+          , ("window", window [4] (stretch [h] (fromList [1] [1]))) ]
+        assertEqual "read" Nothing (readMaybe ("fromList " ++ show [4, h] ++ " []") :: Maybe (Array Int))
+        where h = maxBound `quot` 2 + 1
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "1" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
       mapA_3 = assertEqual "3" True  -- 1 `div` 0 outside the view, the vector forced as if strict
@@ -335,6 +382,14 @@ test = testGroup "Dynamic" $
       rotate_6 = assertEqual "6" 0  -- the empty rotation keeps no vector alive
                                  (case rotate 1 2 (slice [(0,0)] a1) of DI.A (DG.A _ t) -> V.length (I.values t))
       rotate_7 = assertThrowsIn "7" "rotate" (rotate (-1) 2 $ fromList [3] [1,2,3::Int])
+      -- Two rotations of a row of n elements, 2^31+1 at a 64-bit Int, where
+      -- a view of all the windows of the row's copies has more elements than
+      -- an Int holds.
+      rotate_8 = assertEqual "8" [2, n]
+                    (G.shapeL (G.rotate 0 2 (G.constant [n] 0 :: G.Array Repeated Int)))
+        where n = 2 ^ (finiteBitSize (0 :: Int) `quot` 2 - 1) + 1
+      -- A result shape past maxBound.
+      rotate_9 = assertThrowsIn "9" "rotate" (rotate 0 (maxBound `quot` 4 + 1) (fromList [4] [1,2,3,4::Int]))
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrows "2" (slice [(0,0)] a4)
@@ -473,6 +528,7 @@ test = testGroup "Dynamic" $
         , testCase "iota_1" iota_1
         , testCase "badShape_1" badShape_1
         , testCase "badShape_2" badShape_2
+        , testCase "badShape_3" badShape_3
         , testCase "mapA_1" mapA_1
         , testCase "mapA_2" mapA_2
         , testCase "mapA_3" mapA_3
@@ -515,6 +571,8 @@ test = testGroup "Dynamic" $
         , testCase "rotate_5" rotate_5
         , testCase "rotate_6" rotate_6
         , testCase "rotate_7" rotate_7
+        , testCase "rotate_8" rotate_8
+        , testCase "rotate_9" rotate_9
         , testCase "slice_1" slice_1
         , testCase "slice_2" slice_2
         , testCase "slice_3" slice_3

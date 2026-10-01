@@ -198,7 +198,8 @@ reshape' sh sh' (A t@(T ost oo v))
 {-# INLINE stretch #-}
 stretch :: forall sh' sh v a . (Shape sh, Shape sh', ValidStretch sh sh') =>
            Array sh v a -> Array sh' v a
-stretch = stretch' (stretching (Proxy :: Proxy sh) (Proxy :: Proxy sh'))
+stretch a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now
+            stretch' (stretching (Proxy :: Proxy sh) (Proxy :: Proxy sh')) a
 
 stretch' :: [Bool] -> Array sh v a -> Array sh' v a
 stretch' str (A vs) = A $ stretchT str vs
@@ -251,11 +252,14 @@ zipWith3A f a@(A t) (A t') (A t'') = A $ zipWith3T (shapeL a) f t t' t''
 -- | Pad each dimension on the low and high side with the given value.
 -- O(n) time.
 {-# INLINE pad #-}
-pad :: forall ps sh' sh a v . (Vector v, VecElem v a, Padded ps sh sh', Shape sh) =>
+pad :: forall ps sh' sh a v . (HasCallStack, Vector v, VecElem v a, Padded ps sh sh', Shape sh) =>
        a -> Array sh v a -> Array sh' v a
-pad v a@(A at) = A $ snd $ padT v aps ash at
+pad v a@(A at) | badShape sh = error $ "pad: bad shape " ++ show sh
+               | otherwise = A t
   where ash = shapeL a
         aps = padded (Proxy :: Proxy ps) (Proxy :: Proxy sh)
+        sh = zipWithLong2 (\ (l, h) s -> l + s + h) aps ash
+        (_, t) = padT v aps ash at
 
 -- | Do an arbitrary array transposition.
 -- Fails if the transposition argument is not a permutation of the numbers
@@ -454,7 +458,8 @@ broadcast :: forall ds sh' sh v a .
               Broadcast ds sh sh',
               Vector v, VecElem v a) =>
              Array sh v a -> Array sh' v a
-broadcast a = stretch' bc $
+broadcast a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now
+              stretch' bc $
               reshape' rsh sh a
   where sh' = shapeP (Proxy :: Proxy sh')
         sh = shapeP (Proxy :: Proxy sh)

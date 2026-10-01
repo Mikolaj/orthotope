@@ -197,11 +197,12 @@ reshape sh (A sh' t@(T ost oo v))
 -- O(1) time.
 {-# INLINE stretch #-}
 stretch :: (HasCallStack) => ShapeL -> Array n v a -> Array n v a
+stretch sh _ | badShape sh = error $ "stretch: bad shape " ++ show sh
 stretch sh (A sh' vs) | Just bs <- str sh sh' = A sh $ stretchT bs vs
                       | otherwise = error $ "stretch: incompatible " ++ show (sh, sh')
   where str [] [] = Just []
         str (x:xs) (y:ys) | x == y = (False :) <$> str xs ys
-                          | y == 1, x >= 0 = (True  :) <$> str xs ys
+                          | y == 1 = (True  :) <$> str xs ys
         str _ _ = Nothing
 
 -- | Change the size of the outermost dimension by replication.
@@ -210,8 +211,9 @@ stretch sh (A sh' vs) | Just bs <- str sh sh' = A sh $ stretchT bs vs
 stretchOuter :: (HasCallStack, 1 <= n) =>
                 Int -> Array n v a -> Array n v a
 stretchOuter s _ | s < 0 = error $ "stretchOuter: negative size " ++ show s
-stretchOuter s (A (1:sh) vs) =
-  A (s:sh) $ stretchT (True : map (const False) (strides vs)) vs
+stretchOuter s (A (1:sh) vs)
+  | badShape (s:sh) = error $ "stretchOuter: bad shape " ++ show (s:sh)
+  | otherwise = A (s:sh) $ stretchT (True : map (const False) (strides vs)) vs
 stretchOuter _ _ = error "stretchOuter: needs outermost dimension of size 1"
 
 -- | Convert a value to a scalar (rank 0) array.
@@ -263,12 +265,16 @@ zipWith3A f (A s t) (A s' t') (A s'' t'') | s == s' && s == s'' = A s (zipWith3T
 -- | Pad each dimension on the low and high side with the given value.
 -- Fails if the padding list is longer than the rank or a padding is negative.
 -- O(n) time.
+-- A padded extent past 'maxBound' can wrap to a wrong one.
 {-# INLINE pad #-}
 pad :: forall n a v . (HasCallStack, Vector v, VecElem v a) =>
        [(Int, Int)] -> a -> Array n v a -> Array n v a
 pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " ++ show (length aps, length ash)
                      | any (\ (l, h) -> l < 0 || h < 0) aps = error $ "pad: negative padding " ++ show aps
-                     | otherwise = uncurry A $ padT v aps ash at
+                     | badShape sh = error $ "pad: bad shape " ++ show sh
+                     | otherwise = A sh t
+  where sh = zipWithLong2 (\ (l, h) s -> l + s + h) aps ash
+        (_, t) = padT v aps ash at
 
 -- | Do an arbitrary array transposition.
 -- Fails if the transposition argument is not a permutation of the numbers
@@ -290,6 +296,7 @@ transpose is (A sh t) | l > n = error $ "transpose: rank exceeded " ++ show (is,
 -- All dimensions, except the outermost, must be the same.
 -- Fails if either array has rank 0.
 -- O(n) time.
+-- An outer extent summed past 'maxBound' can wrap to a wrong one.
 {-# INLINE append #-}
 append :: (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
           Array n v a -> Array n v a -> Array n v a
@@ -301,6 +308,7 @@ append _ _ = error "append: bad shape"
 -- Fails if the list is empty, an array has rank 0 or any but the outer
 -- dimensions differ.
 -- O(n) time.
+-- An outer extent summed past 'maxBound' can wrap to a wrong one.
 {-# INLINE concatOuter #-}
 concatOuter :: (HasCallStack, Vector v, VecElem v a, KnownNat n) => [Array n v a] -> Array n v a
 concatOuter [] = error "concatOuter: empty list"
@@ -350,7 +358,8 @@ unravel = rerank @1 scalar
 window :: forall n n' v a . (HasCallStack, Vector v, KnownNat n, KnownNat n') =>
           [Int] -> Array n v a -> Array n' v a
 window aws _ | valueOf @n' /= length aws + valueOf @n = error $ "window: rank mismatch " ++ show (valueOf @n' :: Int, length aws, valueOf @n :: Int)
-window aws (A ash (T ss o v)) = length rsh `seq` A rsh (T (ss' ++ ss) o v)  -- check now
+window aws (A ash (T ss o v)) | badShape rsh = error $ "window: bad shape " ++ show rsh
+                              | otherwise = A rsh (T (ss' ++ ss) o v)
   where rsh = win aws ash
         ss' = zipWith const ss aws
         win (w:ws) (s:sh) | 0 <= w && w <= s = s - w + 1 : win ws sh
@@ -365,6 +374,8 @@ window aws (A ash (T ss o v)) = length rsh `seq` A rsh (T (ss' ++ ss) o v)  -- c
 -- positive.
 -- O(1) time.
 {-# INLINE stride #-}
+-- The shape is forced here, not checked with 'badShape' as window's is:
+-- its extents, each s / t rounded up, never pass the array's.
 stride :: (HasCallStack, Vector v) => [Int] -> Array n v a -> Array n v a
 stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ repeat 1) ss) o v)  -- check now
   where rsh = str ats ash
@@ -392,6 +403,7 @@ rotate :: forall d p v a.
           Int -> Array (p + d) v a -> Array (p + d + 1) v a
 rotate k a@(A sh _)
   | valueOf @d >= length sh || k < 0 = error $ "rotate: dimension out of range or negative count " ++ show (valueOf @d :: Int, k, length sh)
+  | badShape sh' = error $ "rotate: bad shape " ++ show sh'
   | 0 `elem` sh' = A sh' $ fromVectorT sh' (vConcat [])  -- no elements
   | otherwise = rerank @d @p @(p + 1) f a
  where
@@ -404,9 +416,10 @@ rotate k a@(A sh _)
               c = k + (k + h - 2) `quot` h  -- copies to fit k windows n + m apart
               arr' = reshape @p @(p + 1) (1:h:t) arr
               repeated = stretchOuter c arr'
-              flattened = reshape @(p + 1) @1 [c * n] repeated
-              batched = window @1 @2 [n] flattened
-              strided = slice [(0, k)] (stride [n + m] batched)
+              A _ (T [s] o v) = reshape @(p + 1) @1 [c * n] repeated
+              -- The k windows as one view: window [n] would view all
+              -- c * n - n + 1 of them first, a view whose size can overflow Int.
+              strided = A [k, n] (T [(n + m) * s, s] o v) :: Array 2 v a
           in rev [0] (reshape (k:h:t) strided)
 
 -- | Extract a slice of an array.

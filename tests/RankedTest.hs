@@ -94,6 +94,22 @@ test = testGroup "Ranked" $
       badShape_4 = assertThrows "iota" (iota (-1) :: Array 1 Int)
       badShape_5 = assertEqual "read" Nothing
                      (readMaybe "fromList [-2,-3] [1,2,3,4,5,6]" :: Maybe (Array 2 Int))
+      -- Nor more elements than an Int counts.
+      badShape_6 = do
+        mapM_ (uncurry assertThrows)
+          [ ("fromList", fromList [4, h] [] :: Array 2 Int)
+          , ("fromVector", fromVector [4, h] V.empty)
+          , ("reshape", reshape [4, h] (fromList [0] [] :: Array 1 Int))
+          , ("constant", constant [4, h] 1)
+          , ("generate", generate [4, h] (const 0))
+          , ("stretch", stretch [4, h + 1] (reshape [4,1] r4))
+          , ("stretchOuter", stretchOuter h (reshape [1,4] r4))
+          , ("broadcast", broadcast [1] [4, h] (constant [h] 0 :: Array 1 Int))
+          , ("pad", pad [(h, 0)] 0 (fromList [4,4] [1..16]))
+          , ("window", window [4] (stretch [h] (fromList [1] [1] :: Array 1 Int))) ]
+        assertEqual "read" Nothing (readMaybe ("fromList " ++ show [4, h] ++ " []") :: Maybe (Array 2 Int))
+        where h = maxBound `quot` 2 + 1
+              r4 = fromList [4] [1..4] :: Array 1 Int
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "1" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
@@ -251,6 +267,8 @@ test = testGroup "Ranked" $
                                       7, 8, 9, 10, 11, 12] :: Array 4 Int)
                            (rotate @1 4 (fromList [2, 3, 2] [1 .. 12] :: Array 3 Int))
       rotate_2 = assertThrowsIn "2" "rotate" (rotate @1 @0 0 (fromList [3] [1,2,3] :: Array 1 Int))
+      -- A result shape past maxBound.
+      rotate_3 = assertThrowsIn "3" "rotate" (rotate @0 @1 (maxBound `quot` 4 + 1) (fromList [4] [1,2,3,4] :: Array 1 Int))
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrows "2" (slice [(0,0)] a4)
@@ -349,6 +367,7 @@ test = testGroup "Ranked" $
         , testCase "badShape_3" badShape_3
         , testCase "badShape_4" badShape_4
         , testCase "badShape_5" badShape_5
+        , testCase "badShape_6" badShape_6
         , testCase "mapA_1" mapA_1
         , testCase "mapA_2" mapA_2
         , testCase "zipWithA_1" zipWithA_1
@@ -382,6 +401,7 @@ test = testGroup "Ranked" $
         , testCase "stride_5" stride_5
         , testCase "rotate_1" rotate_1
         , testCase "rotate_2" rotate_2
+        , testCase "rotate_3" rotate_3
         , testCase "slice_1" slice_1
         , testCase "slice_2" slice_2
         , testCase "slice_3" slice_3

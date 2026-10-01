@@ -77,6 +77,12 @@ test = testGroup "Shaped" $
       toVector_2 = assertEqual "2" (V.fromList [1,4,2,5,3,6]) (toVector a2)
       fromList_1 = assertThrows "sh" (fromList [1,2] :: Array '[] Int)
       fromList_2 = assertThrows "sh" (fromList [1,2] :: Array [4,5] Int)
+      -- Shapes with an extent or a size past maxBound, the extent below
+      -- 2^64: fromList at '[2^64+3] made GHC 9.14.1 panic, not 10.1.20260918.
+      -- TODO: try '[2^64+3] on GHC 9.14.2 once it is out, and if it still
+      -- panics, report it to GHC.
+      fromList_3 = assertThrowsIn "3" "Shape" (fromList [] :: Array [4294967296, 4294967296] Int)
+      fromList_4 = assertThrowsIn "4" "Shape" (fromList [1,2,3] :: Array '[9223372036854775811] Int)
       fromVector_1 = assertEqual "1" a1 (fromVector $ V.fromList [1..6])
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [1..6] :: Array '[6] Int) (reshape a1)
@@ -88,10 +94,13 @@ test = testGroup "Shaped" $
       stretch_1 = assertEqual "1" (fromList @'[3] [5,5,5]) (stretch @'[3] a3)
       stretch_2 = assertEqual "2" (fromList @[2,2,3,2] [1,1,2,2,3,3,4,4,5,5,6,6,1,1,2,2,3,3,4,4,5,5,6,6])
                                   (stretch @[2,2,3,2] (reshape @[1,2,3,1] a1))
+      stretch_3 = assertThrowsIn "3" "Shape" (stretch @[4294967296, 4294967296] (fromList [7] :: Array [1,1] Int))
 
       scalar_1 = assertEqual "1" a4 (scalar 5)
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
       constant_1 = assertEqual "1" (fromList [1,1,1,1,1,1]) (constant 1 :: Array [2,3] Int)
+      constant_2 = assertThrowsIn "2" "Shape" (constant 0 :: Array [4294967296, 4294967296] Int)
+      generate_1 = assertThrowsIn "1" "Shape" (generate (const 0) :: Array [4294967296, 4294967296] Int)
       broadcast_1 = assertEqual "1" [1,1,2,2,3,3] (toList (broadcast @'[0] @'[3,2] (index a1 0)))
       broadcast_2 = assertEqual "2" [7,7,7,7,7,7]
                                     (toList (broadcast @'[1] @'[2,3] (constant 7 :: Array '[3] Int)))
@@ -107,6 +116,8 @@ test = testGroup "Shaped" $
                                          9,9,9,9,9,9,9,9,9,9,
                                          9,9,9,9,9,9,9,9,9,9])
                               (pad @['(1,2), '(3,4)] 9 a1)
+      -- A padded size past maxBound.
+      pad_2 = assertThrowsIn "2" "pad" (pad @['(0,0), '(0,4294967294)] 0 (constant 7 :: Array [4294967296, 2] Int) :: Array [4294967296, 4294967296] Int)
       a5 :: Array '[2,3,4] Int
       a5 = fromList [1..24]
       transpose_1 = assertEqual "1" (fromList [1,2,3,4,
@@ -295,15 +306,20 @@ test = testGroup "Shaped" $
         , testCase "toVector_2" toVector_2
         , testCase "fromList_1" fromList_1
         , testCase "fromList_2" fromList_2
+        , testCase "fromList_3" fromList_3
+        , testCase "fromList_4" fromList_4
         , testCase "fromVector_1" fromVector_1
         , testCase "normalize_1" normalize_1
         , testCase "reshape_1" reshape_1
         , testCase "reshape_2" reshape_2
         , testCase "stretch_1" stretch_1
         , testCase "stretch_2" stretch_2
+        , testCase "stretch_3" stretch_3
         , testCase "scalar_1" scalar_1
         , testCase "unScalar_1" unScalar_1
         , testCase "constant_1" constant_1
+        , testCase "constant_2" constant_2
+        , testCase "generate_1" generate_1
         , testCase "broadcast_1" broadcast_1
         , testCase "broadcast_2" broadcast_2
         , testCase "broadcast_3" broadcast_3
@@ -312,6 +328,7 @@ test = testGroup "Shaped" $
         , testCase "zipWithA_1" zipWithA_1
         , testCase "zipWith3A_1" zipWith3A_1
         , testCase "pad_1" pad_1
+        , testCase "pad_2" pad_2
         , testCase "transpose_1" transpose_1
         , testCase "transpose_2" transpose_2
         , testCase "transpose_3" transpose_3
