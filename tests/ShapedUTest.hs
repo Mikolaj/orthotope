@@ -231,6 +231,17 @@ test = testGroup "ShapedU" $
       reduce_2 = assertEqual "2" (fromList @'[2] [6,120]) (rerank @1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList @'[3] [4,10,18]) (rerank @1 (reduce (*) 1) a2)
 
+      -- One call of each reduction wrapper that the other tests of
+      -- ShapedTest, ShapedSTest or ShapedUTest leave uncalled.
+      wrappers_1 = do
+        assertEqual "sumA" 21 (sumA a1)
+        assertEqual "productA" 720 (productA a1)
+        assertEqual "maximumA" 6 (maximumA a1)
+        assertEqual "minimumA" 1 (minimumA a1)
+        assertEqual "anyA" True (anyA (> 5) a1)
+        assertEqual "allA" False (allA (> 1) a1)
+        assertEqual "allSameA" False (allSameA a1)
+
       tests =
         [ testCase "show_1" show_1
         , testCase "show_2" show_2
@@ -290,5 +301,6 @@ test = testGroup "ShapedU" $
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
+        , testCase "wrappers_1" wrappers_1
         ]
   in  tests

@@ -25,11 +25,11 @@
 module ShapedGTest(test) where
 
 import qualified Data.Array.Internal as I
-import qualified Data.Array.Internal.DynamicG as D
+import qualified Data.Array.Internal.DynamicG as DG
 import Data.Array.Internal.DynamicS ()
 import Data.Array.Internal.DynamicU ()
 import Data.Array.Internal.Shape (withShapeP)
-import qualified Data.Array.Internal.ShapedG as S
+import qualified Data.Array.Internal.ShapedG as SG
 import Data.Proxy (Proxy (..))
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
@@ -69,110 +69,110 @@ prop_views :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), El
               View -> Property
 prop_views v@(View sh _) =
   forAll (genElems (-9, 9) (product sh)) $ \ xs ->
-  case mkViewG v xs :: D.Array v a of
-    x@(D.A xsh t) -> withShapeP xsh $ \ (_ :: Proxy sh) ->
-      let s = S.A t :: S.Array sh v a
-          l = D.toList x
+  case mkViewG v xs :: DG.Array v a of
+    x@(DG.A xsh t) -> withShapeP xsh $ \ (_ :: Proxy sh) ->
+      let s = SG.A t :: SG.Array sh v a
+          l = DG.toList x
       in  forAll (choose (0, length l)) $ \ i ->
           let l' = [ if k == i then e + 1 else e | (k, e) <- zip [0 ..] l ]
-              s' = S.fromList l' :: S.Array sh v a
-          in  S.toList s === l .&&. S.toVector s === D.toVector x
-              .&&. S.toList (S.normalize s) === l
-              .&&. S.sumA s === sum l .&&. S.productA s === product l
-              .&&. S.anyA (> 0) s === any (> 0) l .&&. S.allA (> 0) s === all (> 0) l
-              .&&. S.allSameA s === D.allSameA x .&&. S.foldrA (:) [] s === l
+              s' = SG.fromList l' :: SG.Array sh v a
+          in  SG.toList s === l .&&. SG.toVector s === DG.toVector x
+              .&&. SG.toList (SG.normalize s) === l
+              .&&. SG.sumA s === sum l .&&. SG.productA s === product l
+              .&&. SG.anyA (> 0) s === any (> 0) l .&&. SG.allA (> 0) s === all (> 0) l
+              .&&. SG.allSameA s === DG.allSameA x .&&. SG.foldrA (:) [] s === l
               .&&. (s == s') === (l == l') .&&. compare s s' === compare l l'
-              .&&. S.toList (S.mapA (* 2) s) === map (* 2) l
-              .&&. S.toList (S.zipWithA (-) s s') === zipWith (-) l l'
-              .&&. S.unScalar (S.reduce (+) 0 s) === sum l
+              .&&. SG.toList (SG.mapA (* 2) s) === map (* 2) l
+              .&&. SG.toList (SG.zipWithA (-) s s') === zipWith (-) l l'
+              .&&. SG.unScalar (SG.reduce (+) 0 s) === sum l
               .&&. read (show s) === s
 
 -- The Shaped operation gives what the Dynamic one does on each source.
 prop_op :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
-           (S.Array '[2,3,4] v a -> ([Int], [a])) -> (D.Array v a -> ([Int], [a]))
+           (SG.Array '[2,3,4] v a -> ([Int], [a])) -> (DG.Array v a -> ([Int], [a]))
         -> Property
 prop_op f g = forAll (genElems (-9, 9) 60) $ \ xs ->
   conjoin [ counterexample n (f s === g (toD s)) | (n, s) <- sources xs ]
 
 -- The Dynamic array a Shaped one is.
-toD :: forall sh v a . S.Shape sh => S.Array sh v a -> D.Array v a
-toD a@(S.A t) = D.A (S.shapeL a) t
+toD :: forall sh v a . SG.Shape sh => SG.Array sh v a -> DG.Array v a
+toD a@(SG.A t) = DG.A (SG.shapeL a) t
 
 -- The shape and the elements of an array.
-obs :: (I.Vector v, I.VecElem v a, S.Shape sh) => S.Array sh v a -> ([Int], [a])
-obs a = (S.shapeL a, S.toList a)
+obs :: (I.Vector v, I.VecElem v a, SG.Shape sh) => SG.Array sh v a -> ([Int], [a])
+obs a = (SG.shapeL a, SG.toList a)
 
-obsD :: (I.Vector v, I.VecElem v a) => D.Array v a -> ([Int], [a])
-obsD x = (D.shapeL x, D.toList x)
+obsD :: (I.Vector v, I.VecElem v a) => DG.Array v a -> ([Int], [a])
+obsD x = (DG.shapeL x, DG.toList x)
 
 -- Arrays of shape [2,3,4] over the elements, fresh and as views of other
 -- arrays: transposed, reversed, sliced, strided and broadcast.
 sources :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
-           [a] -> [(String, S.Array '[2,3,4] v a)]
+           [a] -> [(String, SG.Array '[2,3,4] v a)]
 sources xs =
-  [ ("fresh", S.fromList (take 24 xs))
-  , ("transposed", S.transpose @'[1,0,2] (S.fromList @'[3,2,4] (take 24 xs)))
-  , ("reversed", S.rev @'[0,2] (S.fromList (take 24 xs)))
-  , ("sliced", S.slice @'[ '(1,2), '(1,3), '(0,4) ] (S.fromList @'[3,4,5] (take 60 xs)))
-  , ("strided", S.stride @'[1,2] (S.fromList @'[2,5,4] (take 40 xs)))
-  , ("broadcast", S.broadcast @'[0,2] @'[2,3,4] (S.fromList @'[2,4] (take 8 xs)))
+  [ ("fresh", SG.fromList (take 24 xs))
+  , ("transposed", SG.transpose @'[1,0,2] (SG.fromList @'[3,2,4] (take 24 xs)))
+  , ("reversed", SG.rev @'[0,2] (SG.fromList (take 24 xs)))
+  , ("sliced", SG.slice @'[ '(1,2), '(1,3), '(0,4) ] (SG.fromList @'[3,4,5] (take 60 xs)))
+  , ("strided", SG.stride @'[1,2] (SG.fromList @'[2,5,4] (take 40 xs)))
+  , ("broadcast", SG.broadcast @'[0,2] @'[2,3,4] (SG.fromList @'[2,4] (take 8 xs)))
   ]
 
 -- The Shaped operations on an array of shape [2,3,4] and their Dynamic
 -- counterparts, alone and composed, and the Shaped arrays built from
 -- nothing, which ignore the source.
 ops :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
-       [(String, S.Array '[2,3,4] v a -> ([Int], [a]), D.Array v a -> ([Int], [a]))]
+       [(String, SG.Array '[2,3,4] v a -> ([Int], [a]), DG.Array v a -> ([Int], [a]))]
 ops =
-  [ ("transpose [2,0,1]", obs . S.transpose @'[2,0,1], obsD . D.transpose [2,0,1])
-  , ("transpose [1,0]", obs . S.transpose @'[1,0], obsD . D.transpose [1,0])
-  , ("rev [1]", obs . S.rev @'[1], obsD . D.rev [1])
-  , ("rev [0,2]", obs . S.rev @'[0,2], obsD . D.rev [0,2])
-  , ("slice [(1,1),(0,2)]", obs . S.slice @'[ '(1,1), '(0,2) ], obsD . D.slice [(1,1),(0,2)])
-  , ("stride [2,2,3]", obs . S.stride @'[2,2,3], obsD . D.stride [2,2,3])
-  , ("window [2,2]", obs . S.window @'[2,2], obsD . D.window [2,2])
-  , ("index 1", obs . (`S.index` 1), obsD . (`D.index` 1))
-  , ( "broadcast [0,2,3] [2,5,3,4]", obs . S.broadcast @'[0,2,3] @'[2,5,3,4]
-    , obsD . D.broadcast [0,2,3] [2,5,3,4] )
-  , ("reshape [6,4]", obs . S.reshape @'[6,4], obsD . D.reshape [6,4])
-  , ("reshape [4,3,2]", obs . S.reshape @'[4,3,2], obsD . D.reshape [4,3,2])
-  , ("reshape [24]", obs . S.reshape @'[24], obsD . D.reshape [24])
+  [ ("transpose [2,0,1]", obs . SG.transpose @'[2,0,1], obsD . DG.transpose [2,0,1])
+  , ("transpose [1,0]", obs . SG.transpose @'[1,0], obsD . DG.transpose [1,0])
+  , ("rev [1]", obs . SG.rev @'[1], obsD . DG.rev [1])
+  , ("rev [0,2]", obs . SG.rev @'[0,2], obsD . DG.rev [0,2])
+  , ("slice [(1,1),(0,2)]", obs . SG.slice @'[ '(1,1), '(0,2) ], obsD . DG.slice [(1,1),(0,2)])
+  , ("stride [2,2,3]", obs . SG.stride @'[2,2,3], obsD . DG.stride [2,2,3])
+  , ("window [2,2]", obs . SG.window @'[2,2], obsD . DG.window [2,2])
+  , ("index 1", obs . (`SG.index` 1), obsD . (`DG.index` 1))
+  , ( "broadcast [0,2,3] [2,5,3,4]", obs . SG.broadcast @'[0,2,3] @'[2,5,3,4]
+    , obsD . DG.broadcast [0,2,3] [2,5,3,4] )
+  , ("reshape [6,4]", obs . SG.reshape @'[6,4], obsD . DG.reshape [6,4])
+  , ("reshape [4,3,2]", obs . SG.reshape @'[4,3,2], obsD . DG.reshape [4,3,2])
+  , ("reshape [24]", obs . SG.reshape @'[24], obsD . DG.reshape [24])
   , ( "stretch [2,5,3,4] of reshape [2,1,3,4]"
-    , obs . S.stretch @'[2,5,3,4] . S.reshape @'[2,1,3,4]
-    , obsD . D.stretch [2,5,3,4] . D.reshape [2,1,3,4] )
+    , obs . SG.stretch @'[2,5,3,4] . SG.reshape @'[2,1,3,4]
+    , obsD . DG.stretch [2,5,3,4] . DG.reshape [2,1,3,4] )
   , ( "stretchOuter 3 of reshape [1,2,3,4]"
-    , obs . S.stretchOuter @3 . S.reshape @'[1,2,3,4]
-    , obsD . D.stretchOuter 3 . D.reshape [1,2,3,4] )
-  , ("pad [(1,2),(0,1)]", obs . S.pad @'[ '(1,2), '(0,1) ] 0, obsD . D.pad [(1,2),(0,1)] 0)
-  , ("append", \ a -> obs (S.append a a), \ x -> obsD (D.append x x))
+    , obs . SG.stretchOuter @3 . SG.reshape @'[1,2,3,4]
+    , obsD . DG.stretchOuter 3 . DG.reshape [1,2,3,4] )
+  , ("pad [(1,2),(0,1)]", obs . SG.pad @'[ '(1,2), '(0,1) ] 0, obsD . DG.pad [(1,2),(0,1)] 0)
+  , ("append", \ a -> obs (SG.append a a), \ x -> obsD (DG.append x x))
   , ( "unravel"
-    , \ a -> nested (map obs (S.toList (S.unravel a :: S.Array '[2] V.Vector (S.Array '[3,4] v a))))
-    , \ x -> nested (map obsD (D.toList (D.unravel x :: D.Array V.Vector (D.Array v a)))) )
+    , \ a -> nested (map obs (SG.toList (SG.unravel a :: SG.Array '[2] V.Vector (SG.Array '[3,4] v a))))
+    , \ x -> nested (map obsD (DG.toList (DG.unravel x :: DG.Array V.Vector (DG.Array v a)))) )
   , ( "ravel of unravel"
-    , \ a -> obs (S.ravel (S.unravel a :: S.Array '[2] V.Vector (S.Array '[3,4] v a)))
-    , \ x -> obsD (D.ravel (D.unravel x :: D.Array V.Vector (D.Array v a))) )
-  , ( "rerank 1 (transpose [1,0])", obs . S.rerank @1 (S.transpose @'[1,0])
-    , obsD . D.rerank 1 (D.transpose [1,0]) )
-  , ( "rerank2 2 (zipWithA (+))", \ a -> obs (S.rerank2 @2 (S.zipWithA (+)) a a)
-    , \ x -> obsD (D.rerank2 2 (D.zipWithA (+)) x x) )
+    , \ a -> obs (SG.ravel (SG.unravel a :: SG.Array '[2] V.Vector (SG.Array '[3,4] v a)))
+    , \ x -> obsD (DG.ravel (DG.unravel x :: DG.Array V.Vector (DG.Array v a))) )
+  , ( "rerank 1 (transpose [1,0])", obs . SG.rerank @1 (SG.transpose @'[1,0])
+    , obsD . DG.rerank 1 (DG.transpose [1,0]) )
+  , ( "rerank2 2 (zipWithA (+))", \ a -> obs (SG.rerank2 @2 (SG.zipWithA (+)) a a)
+    , \ x -> obsD (DG.rerank2 2 (DG.zipWithA (+)) x x) )
   , ( "rev [1] of transpose [2,0,1] of broadcast [0,2,3] [2,5,3,4]"
-    , obs . S.rev @'[1] . S.transpose @'[2,0,1] . S.broadcast @'[0,2,3] @'[2,5,3,4]
-    , obsD . D.rev [1] . D.transpose [2,0,1] . D.broadcast [0,2,3] [2,5,3,4] )
+    , obs . SG.rev @'[1] . SG.transpose @'[2,0,1] . SG.broadcast @'[0,2,3] @'[2,5,3,4]
+    , obsD . DG.rev [1] . DG.transpose [2,0,1] . DG.broadcast [0,2,3] [2,5,3,4] )
   , ( "window [2] of stride [1,2,3] of rev [2]"
-    , obs . S.window @'[2] . S.stride @'[1,2,3] . S.rev @'[2]
-    , obsD . D.window [2] . D.stride [1,2,3] . D.rev [2] )
+    , obs . SG.window @'[2] . SG.stride @'[1,2,3] . SG.rev @'[2]
+    , obsD . DG.window [2] . DG.stride [1,2,3] . DG.rev [2] )
   , ( "slice [(0,2),(1,2)] of transpose [1,2,0] of index 1 of reshape [2,1,3,4]"
-    , obs . S.slice @'[ '(0,2), '(1,2) ] . S.transpose @'[1,2,0] . (`S.index` 1)
-      . S.reshape @'[2,1,3,4]
-    , obsD . D.slice [(0,2),(1,2)] . D.transpose [1,2,0] . (`D.index` 1)
-      . D.reshape [2,1,3,4] )
-  , ( "constant [2,3] 7", const (obs (S.constant @'[2,3] 7 :: S.Array '[2,3] v a))
-    , const (obsD (D.constant [2,3] 7 :: D.Array v a)) )
-  , ( "generate [2,3] sum", const (obs (S.generate @'[2,3] (fromIntegral . sum) :: S.Array '[2,3] v a))
-    , const (obsD (D.generate [2,3] (fromIntegral . sum) :: D.Array v a)) )
-  , ( "iota 5", const (obs (S.iota @5 :: S.Array '[5] v a))
-    , const (obsD (D.iota 5 :: D.Array v a)) )
-  , ( "iterateN 5 (+ 1) 0", const (obs (S.iterateN @5 (+ 1) 0 :: S.Array '[5] v a))
-    , const (obsD (D.iterateN 5 (+ 1) 0 :: D.Array v a)) )
+    , obs . SG.slice @'[ '(0,2), '(1,2) ] . SG.transpose @'[1,2,0] . (`SG.index` 1)
+      . SG.reshape @'[2,1,3,4]
+    , obsD . DG.slice [(0,2),(1,2)] . DG.transpose [1,2,0] . (`DG.index` 1)
+      . DG.reshape [2,1,3,4] )
+  , ( "constant [2,3] 7", const (obs (SG.constant @'[2,3] 7 :: SG.Array '[2,3] v a))
+    , const (obsD (DG.constant [2,3] 7 :: DG.Array v a)) )
+  , ( "generate [2,3] sum", const (obs (SG.generate @'[2,3] (fromIntegral . sum) :: SG.Array '[2,3] v a))
+    , const (obsD (DG.generate [2,3] (fromIntegral . sum) :: DG.Array v a)) )
+  , ( "iota 5", const (obs (SG.iota @5 :: SG.Array '[5] v a))
+    , const (obsD (DG.iota 5 :: DG.Array v a)) )
+  , ( "iterateN 5 (+ 1) 0", const (obs (SG.iterateN @5 (+ 1) 0 :: SG.Array '[5] v a))
+    , const (obsD (DG.iterateN 5 (+ 1) 0 :: DG.Array v a)) )
   ]
   where nested ps = (concatMap fst ps, concatMap snd ps)

@@ -248,6 +248,17 @@ test = testGroup "RankedS" $
               indexN :: Array 2 a -> Int -> Array 1 a
               indexN = index
 
+      -- One call of each reduction wrapper that the other tests of
+      -- RankedTest, RankedSTest or RankedUTest leave uncalled.
+      wrappers_1 = do
+        assertEqual "sumA" 21 (sumA a1)
+        assertEqual "productA" 720 (productA a1)
+        assertEqual "maximumA" 6 (maximumA a1)
+        assertEqual "minimumA" 1 (minimumA a1)
+        assertEqual "anyA" True (anyA (> 5) a1)
+        assertEqual "allA" False (allA (> 1) a1)
+        assertEqual "allSameA" False (allSameA a1)
+
       tests =
         [ testCase "show_1" show_1
         , testCase "show_2" show_2
@@ -322,5 +333,6 @@ test = testGroup "RankedS" $
         , testCase "reduce_3" reduce_3
         , testCase "foldrA_1" foldrA_1
         , testCase "constraints_1" constraints_1
+        , testCase "wrappers_1" wrappers_1
         ]
   in  tests
