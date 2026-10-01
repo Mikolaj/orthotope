@@ -14,7 +14,7 @@
 
 -- Random views and other helpers for the properties of the test modules.
 module Views(testPropertyN, failsWith, failsIn, Elem, genElems, upTo, genShape, Op(..), opShape
-            , opSource, genBadOp, opNames, silentBadOp, View(..), mkView, applyOpG
+            , opSource, genBadOp, opName, View(..), mkView, applyOpG
             , mkViewG, genRawView) where
 
 import Control.DeepSeq (NFData)
@@ -23,7 +23,7 @@ import Data.Array.Dynamic
 import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.Dynamic as DI
 import qualified Data.Array.Internal.DynamicG as DG
-import Data.List (sort)
+import Data.List (nub, sort)
 import Data.Word (Word8)
 import Test.Framework (Test, TestOptions' (..), plusTestOptions)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
@@ -45,13 +45,13 @@ failsWith msg a = ioProperty $ do
     Right _ -> counterexample ("no error, where " ++ msg ++ " was due") False
 
 -- Evaluating the value to WHNF fails with a message whose part before its
--- first colon is one of the names.
-failsIn :: [String] -> a -> Property
-failsIn names a = ioProperty $ do
+-- first colon is the name.
+failsIn :: String -> a -> Property
+failsIn name a = ioProperty $ do
   r <- try (evaluate a)
   return $ case r of
-    Left (ErrorCall e) -> counterexample e (takeWhile (/= ':') e `elem` names)
-    Right _ -> counterexample ("no error, where one of " ++ show names ++ " was due") False
+    Left (ErrorCall e) -> counterexample e (takeWhile (/= ':') e == name)
+    Right _ -> counterexample ("no error, where an error of " ++ name ++ " was due") False
 
 -- The element types of the properties that take one: Int, and Word8,
 -- whose arithmetic wraps at 256.
@@ -180,7 +180,10 @@ genBadOp sh = oneof $
          [ do j <- choose (0, r - 1)
               s' <- elements (filter (/= sh !! j) [0 .. 5])
               return (Broadcast ds (setAt (ds !! j) s' sh'))
-         | r > 0 ]
+         | r > 0 ] ++
+         [ do ps <- shuffle sh `suchThat` (/= sh)
+              return (Broadcast ds (foldr (uncurry setAt) sh' (zip ds ps)))
+         | length (nub sh) > 1 ]
   , if r == 0 then Index <$> choose (-1, 1) else Index <$> elements [-1, sh !! 0, sh !! 0 + 1]
   ] ++
   [ do k <- choose (1, r)
@@ -205,27 +208,16 @@ genBadOp sh = oneof $
         okWindows = mapM (\ s -> choose (0, s)) sh
         setAt i e xs = take i xs ++ e : drop (i + 1) xs
 
--- The functions whose errors may report an invalid operation: its own,
--- and for broadcast also reshape and stretch, which check its extents.
-opNames :: Op -> [String]
-opNames (Transpose _) = ["transpose"]
-opNames (Rev _) = ["rev"]
-opNames (Slice _) = ["slice"]
-opNames (Stride _) = ["stride"]
-opNames (Window _) = ["window"]
-opNames (Index _) = ["index"]
-opNames (Broadcast _ _) = ["broadcast", "reshape", "stretch"]
-opNames Raw{} = []  -- genBadOp draws no Raw
-
--- The invalid operations on an array of the given shape that give an
--- array: a broadcast to extents other than the array's but of the same
--- product, which reshape does not tell apart.
-silentBadOp :: [Int] -> Op -> Bool
-silentBadOp sh (Broadcast ds sh') =
-  length ds == length sh && all (\ d -> d >= 0 && d < length sh') ds
-  && and (zipWith (<) ds (drop 1 ds)) && all (>= 0) sh'
-  && product [ sh' !! d | d <- ds ] == product sh
-silentBadOp _ _ = False
+-- The function whose error reports an invalid operation.
+opName :: Op -> String
+opName (Transpose _) = "transpose"
+opName (Rev _) = "rev"
+opName (Slice _) = "slice"
+opName (Stride _) = "stride"
+opName (Window _) = "window"
+opName (Index _) = "index"
+opName (Broadcast _ _) = "broadcast"
+opName Raw{} = ""  -- genBadOp draws no Raw
 
 -- n operations, each valid on the shape the ones before it leave.
 genOps :: Int -> [Int] -> Gen [Op]

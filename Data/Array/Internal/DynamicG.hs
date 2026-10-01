@@ -47,6 +47,7 @@ import Control.DeepSeq
 import Control.Monad(replicateM)
 import Data.Data(Data)
 import Data.List(sort)
+import Data.Maybe(fromMaybe)
 import GHC.Generics(Generic)
 import GHC.Stack
 import Test.QuickCheck hiding (generate)
@@ -529,16 +530,22 @@ allA p (A sh t) = allT sh p t
 -- and just replicate the data along all other dimensions.
 -- The list of dimensions indicies must have the same rank as the argument array
 -- and it must be strictly ascending.
--- Fails if an index is not a dimension of the result.
+-- Fails if an index is not a dimension of the result or the argument's
+-- dimensions differ from the result's at those indices.
 {-# INLINE broadcast #-}
 broadcast :: (HasCallStack, Vector v, VecElem v a) =>
              [Int] -> ShapeL -> Array v a -> Array v a
 broadcast ds sh a | length ds /= rank a = error "broadcast: wrong number of broadcasts"
                   | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dimension index"
                   | not (ascending ds) = error "broadcast: unordered dimensions"
-                  | otherwise = stretch sh $ reshape rsh a
+                  | badShape sh = error $ "broadcast: bad shape " ++ show sh
+                  | permute ds sh /= shapeL a =
+                      error $ "broadcast: shape mismatch " ++ show (shapeL a, ds, sh)
+                  | otherwise = A sh $ T sts o v
   where r = length sh
-        rsh = [ if i `elem` ds then s else 1 | (i, s) <- zip [0..] sh ]
+        -- The array's strides at ds, and 0 at the dimensions broadcast.
+        A _ (T ats o v) = a
+        sts = [ fromMaybe 0 (lookup i (zip ds ats)) | i <- [0 .. r - 1] ]
         ascending (x:y:ys) = x < y && ascending (y:ys)
         ascending _ = True
 

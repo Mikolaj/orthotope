@@ -394,7 +394,8 @@ allA p = G.allA p . unA
 -- and just replicate the data along all other dimensions.
 -- The list of dimensions indicies must have the same rank as the argument array
 -- and it must be strictly ascending.
--- Fails if an index is not a dimension of the result.
+-- Fails if an index is not a dimension of the result or the argument's
+-- dimensions differ from the result's at those indices.
 {-# INLINABLE broadcast #-}
 broadcast :: forall r' r a .
              (HasCallStack, KnownNat r, KnownNat r') =>

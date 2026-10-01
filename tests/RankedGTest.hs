@@ -173,8 +173,7 @@ opRank _ (Raw sh _ _ _ _) = Just (length sh)
 opRank n _ = Just n
 
 -- An operation invalid on a random view, done by Ranked at the rank of the
--- view and the rank opRank gives, fails as Dynamic's does, or gives what it
--- does where Dynamic's gives an array.
+-- view and the rank opRank gives, fails as Dynamic's does.
 prop_badOps :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
 prop_badOps v@(View sh _) =
   let x = mkViewG v (upTo (product sh)) :: DG.Array v a
