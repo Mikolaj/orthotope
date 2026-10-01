@@ -289,7 +289,8 @@ append :: (HasCallStack) => Array a -> Array a -> Array a
 append x y = A $ G.append (unA x) (unA y)
 
 -- | Concatenate a number of arrays into a single array.
--- Fails if the list is empty or any but the outer dimensions differ.
+-- Fails if the list is empty, an array has rank 0 or any but the outer
+-- dimensions differ.
 -- O(n) time.
 {-# INLINABLE concatOuter #-}
 concatOuter :: (HasCallStack) => [Array a] -> Array a

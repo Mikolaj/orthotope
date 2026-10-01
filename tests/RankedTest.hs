@@ -193,6 +193,7 @@ test = testGroup "Ranked" $
       concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                       (concatOuter [a1, concatOuter [a1,a1]])
       concatOuter_2 = assertThrows "2" (concatOuter [a1, a2])
+      concatOuter_3 = assertThrowsIn "3" "concatOuter" (concatOuter [scalar 1, scalar 2 :: Array 0 Int])
       ravel_1 = assertEqual  "1" (fromList [3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                  (ravel $ fromList [3] [a1,a1,a1])
       ravel_2 = assertThrows "2" (ravel $ fromList [2] [a1, concatOuter [a1,a1]])
@@ -360,6 +361,7 @@ test = testGroup "Ranked" $
         , testCase "append_1" append_1
         , testCase "concatOuter_1" concatOuter_1
         , testCase "concatOuter_2" concatOuter_2
+        , testCase "concatOuter_3" concatOuter_3
         , testCase "ravel_1" ravel_1
         , testCase "ravel_2" ravel_2
         , testCase "unravel_1" unravel_1
