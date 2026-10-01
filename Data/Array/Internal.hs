@@ -151,6 +151,8 @@ data T v a = T
     }
     deriving (Show, Generic, Data)
 
+-- TODO: rnf forces the whole vector, elements outside the view included;
+-- fix using routeT and the other machinery of the future toVectorT overhaul.
 instance NFData (v a) => NFData (T v a)
 
 -- | The shape of an array is a list of its dimensions.
