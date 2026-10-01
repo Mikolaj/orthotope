@@ -172,6 +172,10 @@ instance (Slice ls ss rs, (o+n) <= s, KnownNat o) => Slice ('(o,n) ': ls) (s ': 
 -----------------
 -- Shape extraction
 
+-- The extents and the size of a shape, as Ints, which wrap where they
+-- exceed an Int: the size of '[4294967296, 4294967296] comes out as 0.
+-- Shaped operations do not check for that, where Dynamic and Ranked
+-- ones reject such shapes with badShape.
 class (Typeable s) => Shape (s :: [Nat]) where
   shapeP :: Proxy s -> [Int]
   sizeP  :: Proxy s -> Int

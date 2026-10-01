@@ -258,6 +258,7 @@ zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e
 
 -- | Pad each dimension on the low and high side with the given value.
 -- O(n) time.
+-- A padded extent past 'maxBound' can wrap to a wrong one.
 {-# INLINABLE pad #-}
 pad :: (HasCallStack, Unbox a) => [(Int, Int)] -> a -> Array a -> Array a
 pad ps v = A . G.pad ps v . unA
@@ -272,6 +273,7 @@ transpose is = A . G.transpose is . unA
 -- | Append two arrays along the outermost dimension.
 -- All dimensions, except the outermost, must be the same.
 -- O(n) time.
+-- An outer extent summed past 'maxBound' can wrap to a wrong one.
 {-# INLINABLE append #-}
 append :: (HasCallStack, Unbox a) => Array a -> Array a -> Array a
 append x y = A $ G.append (unA x) (unA y)
@@ -279,6 +281,7 @@ append x y = A $ G.append (unA x) (unA y)
 -- | Concatenate a number of arrays into a single array.
 -- Fails if any, but the outer, dimensions differ.
 -- O(n) time.
+-- An outer extent summed past 'maxBound' can wrap to a wrong one.
 {-# INLINABLE concatOuter #-}
 concatOuter :: (HasCallStack, Unbox a) => [Array a] -> Array a
 concatOuter = A . G.concatOuter . coerce

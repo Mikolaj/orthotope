@@ -204,6 +204,7 @@ zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)
 
 -- | Pad each dimension on the low and high side with the given value.
 -- O(n) time.
+-- A padded extent past 'maxBound' can wrap to a wrong one.
 {-# INLINABLE pad #-}
 pad :: (KnownNat n) => [(Int, Int)] -> a -> Array n a -> Array n a
 pad ps v = A . G.pad ps v . unA
@@ -218,6 +219,7 @@ transpose is = A . G.transpose is . unA
 -- | Append two arrays along the outermost dimension.
 -- All dimensions, except the outermost, must be the same.
 -- O(n) time.
+-- An outer extent summed past 'maxBound' can wrap to a wrong one.
 {-# INLINABLE append #-}
 append :: (KnownNat n) => Array n a -> Array n a -> Array n a
 append x y = A $ G.append (unA x) (unA y)
@@ -225,6 +227,7 @@ append x y = A $ G.append (unA x) (unA y)
 -- | Concatenate a number of arrays into a single array.
 -- Fails if any, but the outer, dimensions differ.
 -- O(n) time.
+-- An outer extent summed past 'maxBound' can wrap to a wrong one.
 {-# INLINABLE concatOuter #-}
 concatOuter :: (KnownNat n) => [Array n a] -> Array n a
 concatOuter = A . G.concatOuter . coerce
