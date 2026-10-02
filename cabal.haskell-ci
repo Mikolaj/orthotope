@@ -1,2 +1,12 @@
 github-patches: .github/haskell-ci.patch
 timeout-minutes: 180
+-- GHC 8.10.7 and 9.4.8 stay in tested-with but get no CI job: they
+-- were the first of all the GHCs to run the GitHub runner out of
+-- memory compiling the test suite (8.10.7 at DynamicGTest, 9.4.8 at
+-- RankedGTest in the build with bounds checks), GHC being killed even
+-- with a heap of 16 GB and three hours, where pr-mikolaj-bugfixes
+-- compiles under both.  That was under harsher conditions than now,
+-- the strided fill INLINE as well as the route, but the two stay out,
+-- so that, failing first, they raise no false alarms as the code
+-- grows.
+enabled: >=9.0 && <9.4 || >=9.6
