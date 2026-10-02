@@ -59,14 +59,16 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import Data.Array.Internal.Dynamic()  -- Vector instance
 import qualified Data.Array.Internal.ShapedG as G
-import Data.Array.Internal(ShapeL, Vector)
+import Data.Array.Internal(ShapeL, Vector, rnfViewT)
 import Data.Array.Internal.Shape
 
 type role Array nominal nominal
 newtype Array sh a = A { unA :: G.Array sh V.Vector a }
   deriving (Pretty, Generic, Data)
 
-instance NFData a => NFData (Array sh a)
+instance (NFData a, Shape sh) => NFData (Array sh a) where
+  rnf (A a@(G.A t)) = rnfViewT (G.shapeL a) t
+  {-# INLINE rnf #-}
 
 instance (Show a, Shape sh) => Show (Array sh a) where
   showsPrec p = showsPrec p . unA
