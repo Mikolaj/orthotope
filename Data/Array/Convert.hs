@@ -64,23 +64,19 @@ class Convert a b where
 
 -----
 
--- TODO: converting between boxings converts the whole vector, elements
--- outside the view included; fix using routeT and the other machinery of the
--- future toVectorT overhaul.
-
 instance (a ~ b, DU.Unbox a) => Convert (D.Array a) (DU.Array b) where
-  convert (D.A (DG.A sh (I.T s o v))) = DU.A (DG.A sh (I.T s o (V.convert v)))
+  convert (D.A (DG.A sh t)) = DU.A (DG.A sh (I.convertT sh V.convert t))
 
 instance (a ~ b, DU.Unbox a) => Convert (DU.Array a) (D.Array b) where
-  convert (DU.A (DG.A sh (I.T s o v))) = D.A (DG.A sh (I.T s o (V.convert v)))
+  convert (DU.A (DG.A sh t)) = D.A (DG.A sh (I.convertT sh V.convert t))
 
 -----
 
 instance (a ~ b, DS.Unbox a) => Convert (D.Array a) (DS.Array b) where
-  convert (D.A (DG.A sh (I.T s o v))) = DS.A (DG.A sh (I.T s o (V.convert v)))
+  convert (D.A (DG.A sh t)) = DS.A (DG.A sh (I.convertT sh V.convert t))
 
 instance (a ~ b, DS.Unbox a) => Convert (DS.Array a) (D.Array b) where
-  convert (DS.A (DG.A sh (I.T s o v))) = D.A (DG.A sh (I.T s o (V.convert v)))
+  convert (DS.A (DG.A sh t)) = D.A (DG.A sh (I.convertT sh V.convert t))
 
 -----
 
@@ -88,34 +84,34 @@ instance (a ~ b, DS.Unbox a) => Convert (DS.Array a) (D.Array b) where
 -- before the ranks are known to be equal, then constrain them to be equal.
 
 instance (a ~ b, n ~ m, RU.Unbox a) => Convert (R.Array n a) (RU.Array m b) where
-  convert (R.A (RG.A sh (I.T s o v))) = RU.A (RG.A sh (I.T s o (V.convert v)))
+  convert (R.A (RG.A sh t)) = RU.A (RG.A sh (I.convertT sh V.convert t))
 
 instance (a ~ b, n ~ m, RU.Unbox a) => Convert (RU.Array n a) (R.Array m b) where
-  convert (RU.A (RG.A sh (I.T s o v))) = R.A (RG.A sh (I.T s o (V.convert v)))
+  convert (RU.A (RG.A sh t)) = R.A (RG.A sh (I.convertT sh V.convert t))
 
 -----
 
 instance (a ~ b, n ~ m, RS.Unbox a) => Convert (R.Array n a) (RS.Array m b) where
-  convert (R.A (RG.A sh (I.T s o v))) = RS.A (RG.A sh (I.T s o (V.convert v)))
+  convert (R.A (RG.A sh t)) = RS.A (RG.A sh (I.convertT sh V.convert t))
 
 instance (a ~ b, n ~ m, RS.Unbox a) => Convert (RS.Array n a) (R.Array m b) where
-  convert (RS.A (RG.A sh (I.T s o v))) = R.A (RG.A sh (I.T s o (V.convert v)))
+  convert (RS.A (RG.A sh t)) = R.A (RG.A sh (I.convertT sh V.convert t))
 
 -----
 
-instance (a ~ b, n ~ m, SU.Unbox a) => Convert (S.Array n a) (SU.Array m b) where
-  convert (S.A (SG.A (I.T s o v))) = SU.A (SG.A (I.T s o (V.convert v)))
+instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n) => Convert (S.Array n a) (SU.Array m b) where
+  convert (S.A g@(SG.A t)) = SU.A (SG.A (I.convertT (SG.shapeL g) V.convert t))
 
-instance (a ~ b, n ~ m, SU.Unbox a) => Convert (SU.Array n a) (S.Array m b) where
-  convert (SU.A (SG.A (I.T s o v))) = S.A (SG.A (I.T s o (V.convert v)))
+instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n) => Convert (SU.Array n a) (S.Array m b) where
+  convert (SU.A g@(SG.A t)) = S.A (SG.A (I.convertT (SG.shapeL g) V.convert t))
 
 -----
 
-instance (a ~ b, n ~ m, SS.Unbox a) => Convert (S.Array n a) (SS.Array m b) where
-  convert (S.A (SG.A (I.T s o v))) = SS.A (SG.A (I.T s o (V.convert v)))
+instance (a ~ b, n ~ m, SS.Unbox a, S.Shape n) => Convert (S.Array n a) (SS.Array m b) where
+  convert (S.A g@(SG.A t)) = SS.A (SG.A (I.convertT (SG.shapeL g) V.convert t))
 
-instance (a ~ b, n ~ m, SS.Unbox a) => Convert (SS.Array n a) (S.Array m b) where
-  convert (SS.A (SG.A (I.T s o v))) = S.A (SG.A (I.T s o (V.convert v)))
+instance (a ~ b, n ~ m, SS.Unbox a, S.Shape n) => Convert (SS.Array n a) (S.Array m b) where
+  convert (SS.A g@(SG.A t)) = S.A (SG.A (I.convertT (SG.shapeL g) V.convert t))
 
 -----
 
