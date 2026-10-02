@@ -19,14 +19,19 @@ module DynamicTest(test) where
 
 import Control.DeepSeq
 import Control.Exception
+import Data.Array.Convert (convert)
 import Data.Array.Dynamic
 import qualified Data.Array.DynamicG as G
+import qualified Data.Array.DynamicS as DS
+import qualified Data.Array.DynamicU as DU
 import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.Dynamic as DI
 import qualified Data.Array.Internal.DynamicG as DG
 import Data.Bits (finiteBitSize)
 import Data.List (nub, sort)
 import qualified Data.Vector as V
+import qualified Data.Vector.Storable as VS
+import qualified Data.Vector.Unboxed as VU
 import Data.Word (Word8)
 import GHC.Exts (isTrue#, reallyUnsafePtrEquality#)
 import Test.Framework (Test, testGroup)
@@ -641,6 +646,7 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_lazy" prop_lazy
         , testPropertyN "prop_sameElems" prop_sameElems
         , testPropertyN "prop_rnf" prop_rnf
+        , testPropertyN "prop_convert" prop_convert
         ]
   in  tests
 
@@ -758,3 +764,19 @@ prop_rnf v@(View sh _) =
                  failsWith "inside the view"
                    (rnf (mkView v [ if j == i then error "inside the view" else j
                                   | j <- [0 .. n - 1] ])))
+
+-- Converting to the other boxings and back gives the view's elements,
+-- forcing no element outside the view, and the vector converted is no
+-- longer than the view.
+prop_convert :: View -> Property
+prop_convert v =
+  let x = mkViewOnly v
+      l = toList x
+      u = convert x :: DU.Array Int
+      s = convert x :: DS.Array Int
+  in  DU.toList u === l .&&. DS.toList s === l
+      .&&. toList (convert u :: Array Int) === l .&&. toList (convert s :: Array Int) === l
+      .&&. (case convert u :: G.Array VU.Vector Int of
+              DG.A _ t -> VU.length (I.values t) <= length l)
+      .&&. (case convert s :: G.Array VS.Vector Int of
+              DG.A _ t -> VS.length (I.values t) <= length l)

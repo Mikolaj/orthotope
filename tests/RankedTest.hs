@@ -19,9 +19,11 @@ module RankedTest(test) where
 
 import Control.DeepSeq
 import Control.Exception
-import Data.Array.Convert (convertE)
+import Data.Array.Convert (convert, convertE)
 import qualified Data.Array.Dynamic as D
 import Data.Array.Ranked
+import qualified Data.Array.RankedS as RS
+import qualified Data.Array.RankedU as RU
 import qualified Data.Vector as V
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
@@ -315,6 +317,10 @@ test = testGroup "Ranked" $
       convertE_1 = assertEqual "1" (Left "convert: rank mismatch") (convertE (D.fromList [2] [1,2 :: Int]) :: Either String (Array 2 Int))
       -- rnf forces no element outside the view.
       rnf_1 = assertEqual "1" () (rnf (index (fromList [2,2] [1,2,undefined,undefined]) 0 :: Array 1 Int))
+      -- The conversions between boxings convert no element outside the view.
+      convert_1 = assertEqual "1" ([1,2], [1,2])
+                    (RU.toList (convert x :: RU.Array 1 Int), RS.toList (convert x :: RS.Array 1 Int))
+        where x = index (fromList [2,2] [1,2,undefined,undefined]) 0 :: Array 1 Int
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank @1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank @1 (reduce (*) 1) a2)
@@ -434,6 +440,7 @@ test = testGroup "Ranked" $
         , testCase "rev_4" rev_4
         , testCase "convertE_1" convertE_1
         , testCase "rnf_1" rnf_1
+        , testCase "convert_1" convert_1
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
