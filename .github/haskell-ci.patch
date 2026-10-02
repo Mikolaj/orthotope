@@ -12,10 +12,10 @@
 @@ -223,6 +223,9 @@
        - name: tests
          run: |
-           $CABAL v2-test $ARG_COMPILER $ARG_TESTS $ARG_BENCH all --test-show-details=direct
+           if [ $((HCNUMVER >= 90000 && HCNUMVER < 90400 || HCNUMVER >= 90600)) -ne 0 ] ; then $CABAL v2-test $ARG_COMPILER $ARG_TESTS $ARG_BENCH all --test-show-details=direct ; fi
 +      - name: tests with bounds checks
 +        run: |
-+          if [ $((HCNUMVER >= 90400)) -ne 0 ] ; then cd $GITHUB_WORKSPACE/source && $CABAL v2-test $ARG_COMPILER $ARG_TESTS --project-file=cabal.project.checks --builddir=dist-checks all --test-show-details=direct ; fi
++          if [ "$ARG_TESTS" = --enable-tests ] && [ $((HCNUMVER >= 90400)) -ne 0 ] ; then cd $GITHUB_WORKSPACE/source && $CABAL v2-test $ARG_COMPILER $ARG_TESTS --project-file=cabal.project.checks --builddir=dist-checks all --test-show-details=direct ; fi
        - name: cabal check
          run: |
            cd ${PKGDIR_orthotope} || false
