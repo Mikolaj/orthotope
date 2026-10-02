@@ -78,16 +78,36 @@ instance Vector V.Vector where
   vSingleton = V.singleton
   {-# INLINE vReplicate #-}
   vReplicate = V.replicate
+  -- The map and the zips generate their result over the indices, working
+  -- around vector's own, whose stream-fused loops at -O1 allocate per element:
+  -- a zipWith on Doubles 112 bytes an element, and 64 with SpecConstr, against
+  -- 8, taking through zipWithA and zipWith3A 7 to 49 times as long.  No
+  -- fusion is given up: vector's fuse with a vector they read, but each array
+  -- operation stores its result, so the array operations never fused their
+  -- inputs; a map of a map allocates one vector per map, with vector's map
+  -- as with this one.
   {-# INLINE vMap #-}
-  vMap = V.map
+  vMap f v = V.generate (V.length v) (\ i -> f (V.unsafeIndex v i))
   {-# INLINE vZipWith #-}
-  vZipWith = V.zipWith
+  vZipWith f a b =
+    V.generate (V.length a `min` V.length b) $ \ i ->
+      f (V.unsafeIndex a i) (V.unsafeIndex b i)
   {-# INLINE vZipWith3 #-}
-  vZipWith3 = V.zipWith3
+  vZipWith3 f a b c =
+    V.generate (V.length a `min` V.length b `min` V.length c) $ \ i ->
+      f (V.unsafeIndex a i) (V.unsafeIndex b i) (V.unsafeIndex c i)
   {-# INLINE vZipWith4 #-}
-  vZipWith4 = V.zipWith4
+  vZipWith4 f a b c d =
+    V.generate (V.length a `min` V.length b `min` V.length c
+                `min` V.length d) $ \ i ->
+      f (V.unsafeIndex a i) (V.unsafeIndex b i) (V.unsafeIndex c i)
+        (V.unsafeIndex d i)
   {-# INLINE vZipWith5 #-}
-  vZipWith5 = V.zipWith5
+  vZipWith5 f a b c d e =
+    V.generate (V.length a `min` V.length b `min` V.length c
+                `min` V.length d `min` V.length e) $ \ i ->
+      f (V.unsafeIndex a i) (V.unsafeIndex b i) (V.unsafeIndex c i)
+        (V.unsafeIndex d i) (V.unsafeIndex e i)
   {-# INLINE vAppend #-}
   vAppend = (V.++)
   {-# INLINE vConcat #-}
