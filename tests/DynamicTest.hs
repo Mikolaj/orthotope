@@ -32,10 +32,10 @@ import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Test.QuickCheck
-  (Property, choose, conjoin, counterexample, forAll, (.&&.), (===))
+  (Property, choose, conjoin, counterexample, elements, forAll, property, (.&&.), (===))
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
-import Views (View (..), genRawView, mkView, testPropertyN)
+import Views (View (..), failsWith, genRawView, mkView, testPropertyN)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -557,6 +557,7 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_toListLazy" prop_toListLazy
         , testPropertyN "prop_lazy" prop_lazy
         , testPropertyN "prop_sameElems" prop_sameElems
+        , testPropertyN "prop_rnf" prop_rnf
         ]
   in  tests
 
@@ -662,3 +663,15 @@ prop_sameElems v@(View sh _) =
             [ ("toVector", same (toVector x))
             , ("toVectorListT", same (V.concat (I.toVectorListT (shapeL x) t)))
             , ("normalize", same (toVector (normalize x))) ] ]
+
+-- rnf forces every element of the view and no element outside it.
+prop_rnf :: View -> Property
+prop_rnf v@(View sh _) =
+  let n = product sh
+      is = toList (mkView v [0 .. n - 1])
+  in  rnf (mkViewOnly v) === ()
+      .&&. (if null is then property True
+            else forAll (elements is) $ \ i ->
+                 failsWith "inside the view"
+                   (rnf (mkView v [ if j == i then error "inside the view" else j
+                                  | j <- [0 .. n - 1] ])))

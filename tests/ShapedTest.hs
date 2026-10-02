@@ -242,6 +242,8 @@ test = testGroup "Shaped" $
       withShapeP_1 = assertThrowsIn "1" "withShapeP" (withShapeP [-1] (\ _ -> ()))
       withShape_1 = assertThrowsIn "1" "withShape" (withShape [-1] ())
       convertE_1 = assertEqual "1" (Left "convert: shape mismatch") (convertE (D.fromList [2] [1,2 :: Int]) :: Either String (Array '[3] Int))
+      -- rnf forces no element outside the view.
+      rnf_1 = assertEqual "1" () (rnf (index (fromList [1,2,undefined,undefined] :: Array '[2,2] Int) 0))
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList @'[2] [6,120]) (rerank @1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList @'[3] [4,10,18]) (rerank @1 (reduce (*) 1) a2)
@@ -308,6 +310,7 @@ test = testGroup "Shaped" $
         , testCase "withShapeP_1" withShapeP_1
         , testCase "withShape_1" withShape_1
         , testCase "convertE_1" convertE_1
+        , testCase "rnf_1" rnf_1
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
