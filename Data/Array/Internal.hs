@@ -175,9 +175,23 @@ data T v a = T
     }
     deriving (Show, Generic, Data)
 
--- TODO: rnf forces the whole vector, elements outside the view included;
--- fix using routeT and the other machinery of the future toVectorT overhaul.
+-- TODO: rnf forces the whole vector, elements outside the view included,
+-- and so do the generic arrays' instances, whose contexts lack the
+-- Vector v and VecElem v a that 'rnfViewT' needs, and the Shaped one's
+-- also the Shape sh its shape needs.  The boxed arrays' force only the
+-- view, by 'rnfViewT'.
 instance NFData (v a) => NFData (T v a)
+
+-- The elements of the view, of the shape given, reduced to normal form,
+-- and no element outside it: the part of the vector it reads where it
+-- reads every element of one part, and otherwise its elements without
+-- its broadcast dimensions, which repeat what the rest holds.
+{-# INLINE rnfViewT #-}
+rnfViewT :: (Vector v, VecElem v a, NFData a, NFData (v a)) => ShapeL -> T v a -> ()
+rnfViewT sh t@(T _ _ v) = case readRangeT sh t of
+  Just (lo, n) -> rnf (vSlice lo n v)
+  Nothing -> let (_, rsh, r) = dropBroadcastT sh t
+             in  foldr (\ x z -> rnf x `seq` z) () (toListT rsh r)
 
 -- | The shape of an array is a list of its dimensions.
 type ShapeL = [Int]

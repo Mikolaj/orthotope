@@ -53,7 +53,8 @@ import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.DynamicG as G
-import Data.Array.Internal(ShapeL, Vector(..), None, genericFillStrided)
+import Data.Array.Internal(ShapeL, Vector(..), None, genericFillStrided, rnfViewT)
+import qualified Data.Array.Internal.DynamicG as DG
 
 instance Vector V.Vector where
   type VecElem V.Vector = None
@@ -112,7 +113,9 @@ type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }
   deriving (Pretty, Generic, Data)
 
-instance NFData a => NFData (Array a)
+instance NFData a => NFData (Array a) where
+  rnf (A (DG.A sh t)) = rnf sh `seq` rnfViewT sh t
+  {-# INLINE rnf #-}
 
 instance (Show a) => Show (Array a) where
   showsPrec p = showsPrec p . unA

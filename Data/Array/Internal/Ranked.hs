@@ -59,14 +59,16 @@ import Test.QuickCheck hiding (generate)
 import GHC.Generics(Generic)
 import Data.Array.Internal.Dynamic()  -- Vector instance
 import qualified Data.Array.Internal.RankedG as G
-import Data.Array.Internal(ShapeL, Vector(..))
+import Data.Array.Internal(ShapeL, Vector(..), rnfViewT)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 type role Array nominal nominal
 newtype Array n a = A { unA :: G.Array n V.Vector a }
   deriving (Pretty, Generic, Data)
 
-instance NFData a => NFData (Array n a)
+instance NFData a => NFData (Array n a) where
+  rnf (A (G.A sh t)) = rnf sh `seq` rnfViewT sh t
+  {-# INLINE rnf #-}
 
 instance (Show a) => Show (Array n a) where
   showsPrec p = showsPrec p . unA
