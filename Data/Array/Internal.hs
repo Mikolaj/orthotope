@@ -1304,10 +1304,20 @@ stretchT bs (T ss o v) = T (zipWith (\ b s -> if b then 0 else s) bs ss) o v
 -- axis has in the new vector; otherwise build the view whole, as now.
 {-# INLINE mapT #-}
 mapT :: (Vector v, VecElem v a, VecElem v b) => ShapeL -> (a -> b) -> T v a -> T v b
-mapT sh _ _ | 0 `elem` sh = fromVectorT sh (vConcat [])
-mapT sh f t@(T ss o v) | Just (lo, n) <- readRangeT sh t = T ss (o - lo) (vMap f (vSlice lo n v))
-mapT sh f t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip bs sh ] $
-              vMap f $ toVectorT rsh r
+mapT sh f t = convertT sh (vMap f) t
+
+-- Convert the vector of an array by the function given, which takes only
+-- the part of the vector the view reads: 'mapT' is this at 'vMap', and
+-- the conversions between the boxings of the vector package take it too.
+-- The future TODO at 'mapT' holds of every use: a view that skips
+-- elements and reads others more than once is built whole here.
+{-# INLINE convertT #-}
+convertT :: (Vector v, VecElem v a, Vector w, VecElem w b)
+         => ShapeL -> (v a -> w b) -> T v a -> T w b
+convertT sh _ _ | 0 `elem` sh = fromVectorT sh (vConcat [])
+convertT sh g t@(T ss o v) | Just (lo, n) <- readRangeT sh t = T ss (o - lo) (g (vSlice lo n v))
+convertT sh g t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip bs sh ] $
+                  g $ toVectorT rsh r
   where (bs, rsh, r) = dropBroadcastT sh t
 
 -- Zip two arrays with a function.
