@@ -361,7 +361,7 @@ stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ r
 -- | Rotate the array k times along the d'th dimension.
 -- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
 -- the resulting shape will be @[2, 4, 3, 2]@.
-{-# INLINE rotate #-}
+{-# INLINABLE rotate #-}  -- a complex operation, too much code for INLINE
 rotate :: (HasCallStack, Vector v, VecElem v a) => Int -> Int -> Array v a -> Array v a
 rotate d k a@(A sh _)
   | d < 0 || d >= rank a || k < 0 = error $ "Incorrect arguments to rotate: " ++ show (d, k, rank a)
