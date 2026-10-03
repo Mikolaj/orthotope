@@ -111,7 +111,10 @@ instance Vector V.Vector where
   {-# INLINE vAppend #-}
   vAppend = (V.++)
   {-# INLINE vConcat #-}
-  vConcat = V.concat
+  -- The empty list by hand: without -fspec-constr, off at -O, GHC keeps
+  -- V.concat []'s copy loop wherever it is inlined.
+  vConcat [] = V.empty
+  vConcat vs = V.concat vs
   {-# INLINE vFold #-}
   vFold = V.foldl'
   {-# INLINE vSlice #-}
