@@ -3361,8 +3361,11 @@ fbLibStage2 sh (T (Strides ats) ao v)
 -- 'fbLibStage2' with canonical contiguous runs sent back to one slice
 -- per run and a concatenation, stage one's route for them over stage
 -- two's dispatch -- the repair candidate if the runs class reads the
--- fill behind the memcpy at long runs. One change over 'fbLibStage2Lean',
--- so that arm is its control, and the pair is the runs class's question.
+-- fill behind the memcpy at long runs. One change over 'fbLibStage2Lean'
+-- when written, so that arm is its control, and the pair is the runs
+-- class's question. Off the runs the two have read different code since
+-- 2026-09-26, when 'fillStage2' was deleted and this arm took
+-- 'fillStage3', and since 2026-10-03 that arm runs the branch's code.
 {-# NOINLINE fbLibStage2Concat #-}
 fbLibStage2Concat :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Concat sh (T (Strides ats) ao v)
@@ -3401,10 +3404,12 @@ dispRun = 2048
 -- measured a crossover for, and ONE change over that arm, so 'lib-stage2-
 -- concat' is this one's control and 'lib-stage2-lean' the other side of
 -- what it dispatches between. Below the threshold stage two's fill wins
--- and this arm is 'fbLibStage2Lean'; at or above it one memcpy per run
--- wins and this arm is 'fbLibStage2Concat'. Nothing that stays strided after
--- canonicalization is touched, so on every regime-3 population all three
--- are the same code and only the runs class separates them.
+-- and this arm fills as 'fbLibStage2Lean' did when written; at or above
+-- it one memcpy per run wins and this arm is 'fbLibStage2Concat'.
+-- Nothing that stays strided after canonicalization is touched, so on
+-- every regime-3 population this arm and 'fbLibStage2Concat' are the
+-- same code, as 'fbLibStage2Lean' was until 2026-09-26, and only the
+-- runs class separates them.
 --
 -- Non-vacuity is not something 'check' can give: every threshold is
 -- correct, so the route has to be read off ALLOCATION, where the two
@@ -3738,10 +3743,12 @@ fillStage2OneLevel (Walk tInner sInner outerAxes) !ao !l !v =
 -- against their inward twins since 2026-09-21 (the TODOs at the arms).
 -- Added 2026-09-19 for that probe, which read the two flavours level on
 -- all three arms, every pair inside Run 36's floor, so the shipped fill
--- keeps its unboxed tables; not kept in step with 'fillStage2'.
--- TODO: update wrt 2026-09-25, when the twins moved to 'fillStage3',
--- which builds no table: a flavour pair against them now prices the
--- tables against its nest, and the 'Axis' path, besides the flavour.
+-- keeps its unboxed tables; not kept in step with 'fillStage2'. Since
+-- the twins moved to 'fillStage3' on 2026-09-25, which builds no table,
+-- a flavour pair prices the tables against its nest besides the
+-- flavour; it priced the 'Axis' path too until 2026-10-03, when the
+-- arms took their controls' routes, and since then a conversion of the
+-- axes to pairs, 'walkOfAx', a call.
 {-# NOINLINE fillStage2VSdims #-}
 fillStage2VSdims :: Walk -> Int -> Int -> VS.Vector Double
            -> VS.Vector Double
@@ -4087,11 +4094,14 @@ fbLibStage2U4 sh (T (Strides ats) ao v)
     whole | ao == 0 && VS.length v == l = v
           | otherwise = VS.slice ao l v
 
--- 'fbLibStage2Lean' over 'fillStage2Short' -- the same dispatch, the
--- fill the one change, so 'lib-stage2-lean' is the control (since
--- 2026-09-05; its readings were taken against 'lib-stage2'); it can move
--- only where the canonical run is 2 to 5 elements long, and every other
--- view is the control's code.
+-- 'fbLibStage2Lean' as it read on 2026-09-05 over 'fillStage2Short' --
+-- the same dispatch, the fill the one change, so 'lib-stage2-lean' is the
+-- control (since 2026-09-05; its readings were taken against
+-- 'lib-stage2'); it could move only where the canonical run is 2 to 5
+-- elements long, every other view being the control's code then.
+-- Retired, so not kept in step: the control's merge has been a loop of
+-- its own since 2026-09-26, and its route and fill the branch's since
+-- 2026-10-03, so the pair carries those besides the short bodies.
 {-# NOINLINE fbLibStage2Short #-}
 fbLibStage2Short :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Short sh (T (Strides ats) ao v)
@@ -4178,25 +4188,18 @@ fbLibStage3LeanOneLevel sh a@(T _ _ v) = case routeList5 sh a of
   RRunsAx axes ao l -> fillStage2OneLevel (walkOfAx axes) ao l v
   RFillAx axes ao l -> fillStage2OneLevel (walkOfAx axes) ao l v
 
--- 'fbLibStage3Lean' with 'fillStage2VSdims' for its fill -- one change,
--- the dimension vectors' flavour; the probe of 2026-09-19, reasons at
--- that fill.
+-- 'fbLibStage3Lean' with 'fillStage2VSdims' for its fill, a 'walkOfAx'
+-- a call there; the probe of 2026-09-19, reasons, and what the pair
+-- prices, at that fill. Over that arm's route, 'routeList5', since
+-- 2026-10-03, where it had read 'canonicalize'.
 -- TODO: update wrt the inward pairing of 2026-09-21, which made
 -- 'lib-stage3-lean' the control: rename to 'lib-stage3-lean-vsdims'.
--- TODO: update wrt 2026-09-25, when 'lib-stage3-lean' moved to the
--- 'Axis' path, 'routeVectorInward' over 'routeList5': the pair carries
--- the path and this arm's own dispatch, over 'canonicalize', as changes
--- of their own until this arm is written over 'routeList5' too.
 {-# NOINLINE fbLibStage2LeanVSdims #-}
 fbLibStage2LeanVSdims :: ShapeL -> T -> VS.Vector Double
-fbLibStage2LeanVSdims sh (T (Strides ats) ao v)
-  | l == 0 = VS.empty
-  | otherwise = case innerFirst (canonicalize sh ats) of
-      [] -> wholeOrSlice ao l v
-      [(1, _)] -> wholeOrSlice ao l v
-      (t, n) : rest ->
-        fillStage2VSdims (Walk t n (InnerFirst rest)) ao l v
-  where l = product sh
+fbLibStage2LeanVSdims sh a@(T _ _ v) = case routeList5 sh a of
+  RSliceAx ao l -> wholeOrSlice ao l v
+  RRunsAx axes ao l -> fillStage2VSdims (walkOfAx axes) ao l v
+  RFillAx axes ao l -> fillStage2VSdims (walkOfAx axes) ao l v
 
 -- 'fbLibStage3Lean' over 'fillStage3U1', its reader
 -- 'routeVectorInward' written out with that fill in place of
@@ -6021,7 +6024,10 @@ lsListStage2 sh (T (Strides ats) ao v)
 -- Run 27. In fold form since 2026-09-09: master's and the port's lists
 -- under 'sumRuns', which does not fuse with them and reads the same as
 -- the recursion did; stages four to nine through 'sumRoute', one fused
--- loop for all (README.md#what-is-open).
+-- loop for all (README.md#what-is-open). Today each form the routes take
+-- has a reader of its own over a fused loop of its own: 'sumRouteInward'
+-- over pairs, 'sumRouteInwardAx' on the 'Axis' path and 'sumRoute' the
+-- branch's.
 sumRuns :: [VS.Vector Double] -> Double
 sumRuns = foldl' (\ !acc p -> acc + VS.sum p) 0
 {-# INLINE sumRuns #-}
@@ -6067,10 +6073,11 @@ fbLibListStage5Sum :: ShapeL -> T -> VS.Vector Double
 fbLibListStage5Sum sh a@(T _ _ v) =
   VS.singleton (sumRouteInwardAx v (routeList5 sh a))
 
--- 'fbLibListStage5Sum' through 'sumRouteVSdims' -- one change, the fill
--- case's dimension vectors, and a 'walkOfAx' a call there; the probe of
--- 2026-09-19, reasons at 'fillStage2VSdims'. Over 'routeList4' until
--- 2026-10-03, when that took the branch's code.
+-- 'fbLibListStage5Sum' through 'sumRouteVSdims', its fill case through
+-- 'fillStage2VSdims', a 'walkOfAx' a call there; the probe of
+-- 2026-09-19, reasons, and what the pair prices, at that fill. Over that
+-- arm's route, 'routeList5', since 2026-10-03, where it had read
+-- 'routeList4'.
 -- TODO: update wrt the inward pairing of 2026-09-21, which made
 -- 'liblist-stage5-sum' the control: rename to 'liblist-stage5-vsdims-sum'.
 {-# NOINLINE fbLibListStage4SumVSdims #-}
@@ -6176,10 +6183,11 @@ fbLibUnordStage15Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage15Sum sh a@(T _ _ v) =
   VS.singleton (sumRouteInwardAx v (routeUnord15 sh a))
 
--- 'fbLibUnordStage14Sum' through 'sumRouteVSdims' -- one change, the
--- fill case's dimension vectors, and a 'walkOfAx' a call there; the
--- probe of 2026-09-19, reasons at 'fillStage2VSdims'. Over
--- 'routeUnord13' until 2026-10-03, when that took the branch's code.
+-- 'fbLibUnordStage14Sum' through 'sumRouteVSdims', its fill case through
+-- 'fillStage2VSdims', a 'walkOfAx' a call there; the probe of
+-- 2026-09-19, reasons, and what the pair prices, at that fill. Over that
+-- arm's route, 'routeUnord14', since 2026-10-03, where it had read
+-- 'routeUnord13'.
 -- TODO: update wrt the inward pairing of 2026-09-21, which made
 -- 'libunord-stage14-sum' the control: rename to
 -- 'libunord-stage14-vsdims-sum'.
@@ -7899,13 +7907,14 @@ roster =
     -- it even with the speedup Run 40 read on plain -O1, 7 to 18% on
     -- four classes (README.md#what-is-open, the one-level entry).
   , ("lib-stage3-lean-onelevel",   Only fbLibStage3LeanOneLevel)
-    -- The flavour twin of 2026-09-19: the arm above with 'fillStage2''s
-    -- two dimension vectors Storable, beside its original as the twin
-    -- of 2026-08-08 stood beside 'bq-expand'. Parked 'Only' the same
-    -- day, the probe having read the pair level; reasons at
+    -- The flavour twin of 2026-09-19: 'lib-stage2-lean' with
+    -- 'fillStage2''s two dimension vectors Storable, beside its original
+    -- as the twin of 2026-08-08 stood beside 'bq-expand'. Parked 'Only'
+    -- the same day, the probe having read the pair level; reasons at
     -- 'fillStage2VSdims'. Its control is 'lib-stage3-lean' since
     -- 2026-09-21, both inward then, the control on the 'Axis' path
-    -- since 2026-09-25.
+    -- since 2026-09-25, and this arm over the control's route since
+    -- 2026-10-03.
   , ("lib-stage2-lean-vsdims",     Only fbLibStage2LeanVSdims)
     -- The fill not unrolled under the lean dispatch, added 2026-09-07
     -- beside its control for Run 27; reasons at 'fillStage3U1'.
@@ -7930,10 +7939,10 @@ roster =
     -- the path's copies, against the arm above, which reads the branch's
     -- code since 2026-10-03; reasons at the path's head.
   , ("liblist-stage5-sum",         Fill fbLibListStage5Sum)
-    -- The flavour twin of 2026-09-19: the arm above with 'fillStage2''s
-    -- two dimension vectors Storable, beside its original as the twin
-    -- of 2026-08-08 stood beside 'bq-expand'. Parked 'Only' the same
-    -- day, the probe having read the pair level; reasons at
+    -- The flavour twin of 2026-09-19: 'liblist-stage4-sum' with
+    -- 'fillStage2''s two dimension vectors Storable, beside its original
+    -- as the twin of 2026-08-08 stood beside 'bq-expand'. Parked 'Only'
+    -- the same day, the probe having read the pair level; reasons at
     -- 'fillStage2VSdims'. Its control is 'liblist-stage5-sum' since
     -- 2026-09-21, both inward then, the control on the 'Axis' path
     -- since 2026-09-25, and this arm over the control's route since
@@ -8036,10 +8045,10 @@ roster =
     -- zero-stride axis just outside the run, so no longer stage twelve's
     -- route on a view where that axis moves; reasons at 'routeUnord13'.
   , ("libunord-stage13-sum",       Fill fbLibUnordStage13Sum)
-    -- The flavour twin of 2026-09-19: the arm above with 'fillStage2''s
-    -- two dimension vectors Storable, beside its original as the twin
-    -- of 2026-08-08 stood beside 'bq-expand'. Parked 'Only' the same
-    -- day, the probe having read the pair level; reasons at
+    -- The flavour twin of 2026-09-19: 'libunord-stage13-sum' with
+    -- 'fillStage2''s two dimension vectors Storable, beside its original
+    -- as the twin of 2026-08-08 stood beside 'bq-expand'. Parked 'Only'
+    -- the same day, the probe having read the pair level; reasons at
     -- 'fillStage2VSdims'. Its control is 'libunord-stage14-sum' since
     -- 2026-09-21, both inward then, the control on the 'Axis' path
     -- since 2026-09-25, and this arm over the control's route since
