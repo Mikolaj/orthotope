@@ -63,6 +63,7 @@ import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import Data.Array.Internal
+import qualified Data.Array.Internal.DynamicG as DG
 
 -- | Arrays stored in a /v/ with values of type /a/.
 type role Array nominal representational nominal
@@ -402,26 +403,45 @@ rotate :: forall d p v a.
           KnownNat (1 + (p + 1))
           ) =>
           Int -> Array (p + d) v a -> Array (p + d + 1) v a
-rotate k a@(A sh _)
-  | valueOf @d >= length sh || k < 0 = error $ "rotate: dimension out of range or negative count " ++ show (valueOf @d :: Int, k, length sh)
-  | badShape sh' = error $ "rotate: bad shape " ++ show sh'
-  | 0 `elem` sh' = A sh' $ fromVectorT sh' (vConcat [])  -- no elements
-  | otherwise = rerank @d @p @(p + 1) f a
- where
-  (osh, ish) = splitAt (valueOf @d) sh
-  sh' = osh ++ k : ish
-  f :: Array p v a -> Array (p + 1) v a
-  f arr = let h:t = shapeL arr
-              m = product t
-              n = h * m
-              c = k + (k + h - 2) `quot` h  -- copies to fit k windows n + m apart
-              arr' = reshape @p @(p + 1) (1:h:t) arr
-              repeated = stretchOuter c arr'
-              A _ (T [s] o v) = reshape @(p + 1) @1 [c * n] repeated
-              -- The k windows as one view: window [n] would view all
-              -- c * n - n + 1 of them first, a view whose size can overflow Int.
-              strided = A [k, n] (T [(n + m) * s, s] o v) :: Array 2 v a
-          in rev [0] (reshape (k:h:t) strided)
+-- Through DynamicG's rotate, as a workaround: see the original
+-- definition below.
+rotate k (A sh t) = case DG.rotate (valueOf @d) k (DG.A sh t) of
+  DG.A sh' t' -> A sh' t'
+
+-- The original definition of 'rotate', with the signature above, an
+-- example of how to use the type safety of the ranked operations: the
+-- types check the ranks of every step but the view of the windows,
+-- built by hand.  The 'rotate' above goes through DynamicG's instead,
+-- as a workaround, because GHC specialises a function on every type
+-- argument that occurs in its constraints, and the constraints of this
+-- definition mention the ranks.  When it was INLINE, its code was
+-- copied into every use, leaving dozens of similar copies of its big
+-- code in the test binary.  When it was INLINABLE and called from code
+-- polymorphic in the vector type, GHC specialised it once per rank pair
+-- and left the vector operations as dictionary calls.  'DG.rotate'
+-- takes the dimension as an 'Int', so GHC specialises it on the vector
+-- and element types only, and one copy serves every rank.
+--
+-- rotate k a@(A sh _)
+--   | valueOf @d >= length sh || k < 0 = error $ "rotate: dimension out of range or negative count " ++ show (valueOf @d :: Int, k, length sh)
+--   | badShape sh' = error $ "rotate: bad shape " ++ show sh'
+--   | 0 `elem` sh' = A sh' $ fromVectorT sh' (vConcat [])  -- no elements
+--   | otherwise = rerank @d @p @(p + 1) f a
+--  where
+--   (osh, ish) = splitAt (valueOf @d) sh
+--   sh' = osh ++ k : ish
+--   f :: Array p v a -> Array (p + 1) v a
+--   f arr = let h:t = shapeL arr
+--               m = product t
+--               n = h * m
+--               c = k + (k + h - 2) `quot` h  -- copies to fit k windows n + m apart
+--               arr' = reshape @p @(p + 1) (1:h:t) arr
+--               repeated = stretchOuter c arr'
+--               A _ (T [s] o v) = reshape @(p + 1) @1 [c * n] repeated
+--               -- The k windows as one view: window [n] would view all
+--               -- c * n - n + 1 of them first, a view whose size can overflow Int.
+--               strided = A [k, n] (T [(n + m) * s, s] o v) :: Array 2 v a
+--           in rev [0] (reshape (k:h:t) strided)
 
 -- | Extract a slice of an array.
 -- The first argument is a list of (offset, length) pairs.
