@@ -289,9 +289,9 @@ under it** --- and these figures are exact, allocation being deterministic per
 call. The hoisted read and the block copy allocate the result and single-digit
 bytes more; canonicalization's own transients stay under two unpinned kilobytes
 per call, 1.01x on the smallest probed view and vanishing on the megabyte ones;
-and the regime-1 hits allocate about 470 bytes against `mut-odo-vecdims`'s 4.0
-MB on the `reshape1-500k` analog --- minting no pinned buffer at all where every
-materializing arm mints one, the small-pinned currency
+and the regime-1 hits allocate about 470 bytes against `mut-odo-vecdims`'s
+4.0 MB on the `reshape1-500k` analog --- minting no pinned buffer at all where
+every materializing arm mints one, the small-pinned currency
 of `small-pinned-churn-investigation/`, whose tax lands on later code and which
 no per-call fit prices. The flat table redirect this replaces pays 2.00x
 on the same shapes.
@@ -1596,13 +1596,13 @@ rather than a slot in the next run, observed again:
   FOR THE PREVIOUS RUN'S SECTIONS AND NOT CARRIERS IN GENERAL.** Post-run step 5
   copies the previous run's file and the write-up edits the copy paragraph
   by paragraph, so the session reads those sections as the text it is replacing
-  and a carrier read them a second time --- 111,877 tokens on Run 33 for an 11.6
-  KB file --- and its file went unopened on two of the three runs that used one.
-  The QUESTION each reading-list item carried now sits at the step that rewrites
-  its section. **What would reopen it**: a write-up that does NOT edit
-  the previous run's file in place, or a session dying between the launch
-  and the write-up --- and that case wants the four `--section` calls written
-  to a file by the session, not an agent.
+  and a carrier read them a second time --- 111,877 tokens on Run 33
+  for an 11.6 KB file --- and its file went unopened on two of the three runs
+  that used one. The QUESTION each reading-list item carried now sits
+  at the step that rewrites its section. **What would reopen it**: a write-up
+  that does NOT edit the previous run's file in place, or a session dying
+  between the launch and the write-up --- and that case wants the four
+  `--section` calls written to a file by the session, not an agent.
 - `PARKED` **Class property 1's `bq-expand` clause breaks on ONE main-set cell,
   `stretch-pow2stride`, where the two arms tie.** **PARKED 2026-09-26
   by the owner.** The clause is a sanity check, `mut-odo-vecdims` ahead
@@ -12158,8 +12158,8 @@ not the arm. Both readings are with the wild-cell entry.
   **`-A1G` is a cliff, and the cliff is the `-M2G` cap and not the nursery.**
   The arm reads worse than the *default* --- +20.3% by differencing ---
   and gen-1 collections go from 2 to 31 at identical work. Re-run at `-M8G`
-  and it rejoins the others exactly (gen-1 back to 2). The high-water mark, 2318
-  MiB, is the first in the sweep to cross `micro.cabal`'s 2048 MiB cap,
+  and it rejoins the others exactly (gen-1 back to 2). The high-water mark,
+  2318 MiB, is the first in the sweep to cross `micro.cabal`'s 2048 MiB cap,
   and crossing it is the whole of the effect. So a large nursery
   is not intrinsically bad here; a large nursery *under this cabal file's heap
   cap* is pathological, and would also destroy the guard the cap exists for.
@@ -12422,9 +12422,9 @@ at the same 21.8 MB with nothing before it. The poison does not add major
 collections but *removes* them, 97 in the poisoned process against 103 and 112
 in unpoisoned ones. And majors copy 72.9 KB apiece here, the retained bytes
 being large objects a copying collector does not move, so the extra copying
-over the whole process is 6.9 MB. At the measured 0.42 ms per MB that predicts 3
-ms where the observed cost is some 650 ms, off by two orders. Split directly, GC
-time is 0.043 s alone against 0.059 s after and the whole difference
+over the whole process is 6.9 MB. At the measured 0.42 ms per MB that predicts
+3 ms where the observed cost is some 650 ms, off by two orders. Split directly,
+GC time is 0.043 s alone against 0.059 s after and the whole difference
 is **mutator** time, which is where Run 14 left it with its LLC-miss and IPC
 readings. So the two nursery effects are independent as well as opposed: one
 is copying, the other is what a resident footprint does to the mutator.
@@ -13169,8 +13169,8 @@ on both, a minute. `probe-pageflags.py` reads the frames of a running instance,
 its `--heap` form beside the heap's, and is what to run on the next slow
 instance BEFORE anything evicts it, which a reboot, a copy over the file
 or the eviction itself all do. A tmpfs makes the frame a function of the layout
---- deterministic, and the shim's kind of term: the box's `/tmp` hands out 128
-KiB compound pages, and a copy run from it read its code lines in runs of 32
+--- deterministic, and the shim's kind of term: the box's `/tmp` hands out
+128 KiB compound pages, and a copy run from it read its code lines in runs of 32
 frames with the physical L2 set equal to the virtual one, `0x141` and `0x292`
 on the two hot lines, and read fast. Those pages are still mapped 4 KiB
 at a time, `FilePmdMapped` 0, so the TLB sees what it saw; what changes
@@ -13963,12 +13963,12 @@ each blind to what the others catch:
    and vanishes at the largest (smallest twelve shapes 0.955 and 0.960
    by geomean, largest twelve 1.027 and 1.002; r against log `l` 0.60 and 0.58),
    which is neither a per-call constant nor a per-element rate. Where
-   it concentrates is the shapes whose result is L1-resident: the three at 32
-   KiB of result or under read 0.898 and 0.925 by geomean against 0.98 to 0.99
-   for everything larger, and between the L2 and L3 buckets it barely moves
-   at all. Whether that is a step at the L1 boundary or a smooth trend three
-   shapes cannot settle --- with the cells above 1.03 kept a line in log `l`
-   fits better and with them dropped a three-level step does, decisively
+   it concentrates is the shapes whose result is L1-resident: the three
+   at 32 KiB of result or under read 0.898 and 0.925 by geomean against 0.98
+   to 0.99 for everything larger, and between the L2 and L3 buckets it barely
+   moves at all. Whether that is a step at the L1 boundary or a smooth trend
+   three shapes cannot settle --- with the cells above 1.03 kept a line in log
+   `l` fits better and with them dropped a three-level step does, decisively
    for `bq-expand` and marginally for `mut-odo-vecdims` --- so read
    it as concentrated in the L1-resident shapes rather than as a boundary
    effect. None of this replaced the third `-nosum` arm: a third write pattern
