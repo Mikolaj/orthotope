@@ -44,10 +44,13 @@ figure here only where this file is the ONLY place it lives -- the md5s,
 the .text bytes, the fills, the counts a leg came out at -- and point at
 README.md or the run's own file for everything else.
 
-AND NO RUN RANGES IN A [PAIR'S] BLOCK: `as Runs 36 to 39` goes false the
-moment the next run carries the block, and Run 40's preparation bumped them
-by hand, block after block. Say `as the previous runs of this pair`, or name
-the one run a claim is about.
+AND NO RUN RANGES IN A [PAIR'S] BLOCK, NOR THE PREVIOUS RUN BY NUMBER:
+`as Runs 36 to 39` goes false the moment the next run carries the block,
+and so does `Run 44's same half` -- Run 40's preparation bumped ranges by
+hand, block after block, and Run 45's rewrote every block naming Run 43
+for the run before. Say `as the previous runs of this pair` and `the
+previous run`, which --draft carries true, and name a run by number only
+where the claim is about that run whoever reads it.
 
 The pair $R-<basis> and $R-<other>, Run NN's, written by hand YYYY-MM-DD
 BEFORE either binary exists, which is the order the procedure asks for.
@@ -119,8 +122,8 @@ pair has*; the roll is not copied here.
 WHY THE BASIS IS THIS RECIPE [PAIR'S], decided YYYY-MM-DD: a decision and not a
 measurement, so the reason belongs here where the next session meets it.
 
-WHAT THE PAIR PRICES [PAIR'S], said plainly: what a reader of the run should think
-the figures are about.
+WHAT THE PAIR PRICES [PAIR'S]: one line pointing at the registration's items,
+which say it item by item, and a sentence of your own only where they do not.
 
 REGISTERED BEFORE IT RAN [PAIR'S], in ONE place since the ruling of
 2026-09-19: the PREDICTION, the pair, its half names and its recipes all
@@ -139,6 +142,8 @@ sends the next session to a place its pair and its prediction are not in.
     that goes stale, and this note is the one nobody re-reads;
   - what the pair varies, in the registration; against what, in the
     compares-against section;
+  - the priors, in the registration's items with the files they came
+    off; here only one line keeping those files with the pair;
   - anything the pair answers that no earlier pair could.
 
 THE ROSTER [PAIR'S]: N benches, M timed arms over K shapes. Say what landed since

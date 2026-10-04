@@ -4664,6 +4664,7 @@ under each stage, `liblist-stage1` and `liblist-stage2`, the library's
 so that pair prices the list's construction alone --- stage one's slice
 recursion against stage two's base-offset table and its `VU.toList` --- in time
 and, exactly, in allocation, which is what a consumer iterating the list pays.
+
 **`lib-stage0`, added 2026-10-04 by the owner, is master's `toVectorT` whole**:
 stage one's dispatch, with regime 3 a vector built from the element list behind
 `toListT`'s test for the natural layout, so it parts from `lib-stage1` in regime
@@ -4678,73 +4679,81 @@ element back as `toVectorT` does and concatenates only runs, so on such a view
 a port and its fill are the same vector, the pair prices the list where there
 is one, and the allocation column reads what the library allocates --- Run 28's
 item (9), and the reason the lazy stages' dispatch is a value read by four
-shared readers. **Beside those ports sits `lib-stage2-disp`, which
-is a candidate and not a port of anything**, added 2026-08-30: the slice route
-taken only where the canonical run reaches `dispRun`, so it is `lib-stage2-lean`
-below the crossover and `lib-stage2-concat` above it --- its lower side
-was `lib-stage2` until the lean ruling below --- and the runs class is what cuts
-it to one; the laziness ruling of 2026-09-07 does not reach it, `toVectorT`
-being strict either way --- and it was RULED OUT for the library the same
-evening on code complexity, a hard-coded L1-sized threshold tipping it,
-and parked ([dead ideas][dead]). Until 2026-10-04, on every other population
-no canonical run reached `dispRun`, so there it was `lib-stage2-lean`'s code
-and the two arms' pair read as an A/A, which [the floor section][floor] records
---- except on `small`, where their corrected instructions parted by 1.9%
-on the basis and 1.8% on HEAD and the pair was not an A/A at all ([the disp/lean
+shared readers.
+
+**Beside those ports sits `lib-stage2-disp`, which is a candidate and not a port
+of anything**, added 2026-08-30: the slice route taken only where the canonical
+run reaches `dispRun`, so it is `lib-stage2-lean` below the crossover
+and `lib-stage2-concat` above it --- its lower side was `lib-stage2` until
+the lean ruling below --- and the runs class is what cuts it to one;
+the laziness ruling of 2026-09-07 does not reach it, `toVectorT` being strict
+either way --- and it was RULED OUT for the library the same evening on code
+complexity, a hard-coded L1-sized threshold tipping it, and parked ([dead
+ideas][dead]). Until 2026-10-04, on every other population no canonical run
+reached `dispRun`, so there it was `lib-stage2-lean`'s code and the two arms'
+pair read as an A/A, which [the floor section][floor] records --- except
+on `small`, where their corrected instructions parted by 1.9% on the basis
+and 1.8% on HEAD and the pair was not an A/A at all ([the disp/lean
 entry][open]). **Timed again since 2026-10-04 by the owner, rebuilt
 as `lib-stage2-lean` with the dispatch alone**: at or above `dispRun`
 it concatenates the run slices the branch's own walker lists, where until
-then it took `lib-stage2-concat`'s route. **Beside it, for Run 22, sit three
-fill candidates**, each a fill change under the same dispatch: `lib-stage2-u4`,
-the stepping run unrolled by four; `lib-stage2-short`, a canonical run of 2 to 5
-elements written by a body of exactly that length, chosen once per row
-as the broadcast body is; and `lib-stage2-lean`, the same fill under a leaner
-dispatch: a canonical view of rank 2 or more can never carry the natural
-strides, the merge that made it canonical having consumed every natural pair,
-so the regimes are read off the merged form alone and the strides comparison
-the control's dispatch pays is not paid --- the fill under it the branch's
-route, outside the laziness ruling of 2026-09-07 as `lib-stage2`'s is ([dead
-ideas][dead]), and the dispatch what shipped. **`liblist-stage3`
-and `liblist-stage4`, added 2026-09-07 for Run 27, are the list entry point's
-candidates under the ruling**: `toVectorListT` kept lazy up to the exception ---
-canonicalized, so a unit or mergeable dimension moves a view to a lazier
-pattern, its slices produced on demand by the odometer list and no table built
---- then the one concatenation the two ports carry, stage three
-under the natural-strides dispatch and stage four under the lean one,
-so `liblist-stage4` against `liblist-stage2`, under one lean dispatch,
+then it took `lib-stage2-concat`'s route.
+
+**Beside it, for Run 22, sit three fill candidates**, each a fill change
+under the same dispatch: `lib-stage2-u4`, the stepping run unrolled by four;
+`lib-stage2-short`, a canonical run of 2 to 5 elements written by a body
+of exactly that length, chosen once per row as the broadcast body is;
+and `lib-stage2-lean`, the same fill under a leaner dispatch: a canonical view
+of rank 2 or more can never carry the natural strides, the merge that made
+it canonical having consumed every natural pair, so the regimes are read off
+the merged form alone and the strides comparison the control's dispatch pays
+is not paid --- the fill under it the branch's route, outside the laziness
+ruling of 2026-09-07 as `lib-stage2`'s is ([dead ideas][dead]), and the dispatch
+what shipped.
+
+**`liblist-stage3` and `liblist-stage4`, added 2026-09-07 for Run 27,
+are the list entry point's candidates under the ruling**: `toVectorListT` kept
+lazy up to the exception --- canonicalized, so a unit or mergeable dimension
+moves a view to a lazier pattern, its slices produced on demand by the odometer
+list and no table built --- then the one concatenation the two ports carry,
+stage three under the natural-strides dispatch and stage four under the lean
+one, so `liblist-stage4` against `liblist-stage2`, under one lean dispatch,
 is the lazy odometer list against the strict base-offset table wherever a run
-exists and the same fill wherever none does. **And beside those, the unordered
-entry point joins the family**: `libunord-stage1` and `libunord-stage2`, each
-stage's `toUnorderedVectorListT` one-block test in front of its liblist body
-and one concatenation -- the third route the branch changes, rostered so
-that a shim-switch reading (Run 23's LOOP_DEADSPOT among them) has its sanity
-readings, which no test of the branch alone can show until GHC itself grows such
-a capability. **`libunord-stage3`, added 2026-09-05 for Run 26, is the family's
-one candidate rather than a port**: the one-block test generalized
-into the dispatch, the canonical dims sorted by absolute stride from the lowest
-offset and canonicalized again, so the lean rank test reads one block
-and everything else is one fill in address order, every axis forward
-and the smallest stride innermost --- what Run 25's `flip` finding, a reversed
-run at twice its forward cost on identical instructions, says an unordered
-consumer pays today for nothing. **That finding's evidence, settled 2026-09-05
-and kept here because the class it is about is described here**:
-`flip-last-rows` and `runs-96` are the same `l` at the same `sInner`, one
-reversed and one not, and per call Run 25's basis read `mut-odo-vecdims`
-at 2.120 of its forward cell, `-add-in-leaf-u2` at 1.683 and the two stage-two
-routes at 1.903 and 1.907, with 2.073, 1.851, 1.845 and 1.846 on HEAD, against
-a `list` paying 1.091 and 1.076; of the twenty arms with a corrected time there
-only two read below 1, `lib-stage1` at 0.859 and 0.939 and `libunord-stage2`
-at 0.000, which is it falling to a slice. **The counts say it is the memory
-system and not the code**: `mut-odo-vecdims` executes 31,506,524 instructions
-an iteration on `flip-last-rows` against 31,506,435 on `runs-96`, 89 in 31.5
-million, with `-u2`, `lib-stage2-lean` and `bq-expand` inside 150 instructions
-and `list` inside 4272 in 412 million, on both halves --- so the same code does
-the same work and the doubling is what walking backwards costs, which no fill
-can address. **The same holds of the two COMPILERS on that view, read off
-the code and not only off the counts** (2026-09-09): both library arms reach
-the shipped fill's twelve-instruction unrolled run there, `fbLibStage1`'s
-dispatch falling through to it and `fillStage2` taking `runsWith writeRunStep`;
-9.12.4 and the HEAD stage1 emit `-u2`'s loop byte for byte and `fillStage2`'s
+exists and the same fill wherever none does.
+
+**And beside those, the unordered entry point joins the family**:
+`libunord-stage1` and `libunord-stage2`, each stage's `toUnorderedVectorListT`
+one-block test in front of its liblist body and one concatenation -- the third
+route the branch changes, rostered so that a shim-switch reading (Run 23's
+LOOP_DEADSPOT among them) has its sanity readings, which no test of the branch
+alone can show until GHC itself grows such a capability.
+
+**`libunord-stage3`, added 2026-09-05 for Run 26, is the family's one candidate
+rather than a port**: the one-block test generalized into the dispatch,
+the canonical dims sorted by absolute stride from the lowest offset
+and canonicalized again, so the lean rank test reads one block and everything
+else is one fill in address order, every axis forward and the smallest stride
+innermost --- what Run 25's `flip` finding, a reversed run at twice its forward
+cost on identical instructions, says an unordered consumer pays today
+for nothing. **That finding's evidence, settled 2026-09-05 and kept here because
+the class it is about is described here**: `flip-last-rows` and `runs-96`
+are the same `l` at the same `sInner`, one reversed and one not, and per call
+Run 25's basis read `mut-odo-vecdims` at 2.120 of its forward cell,
+`-add-in-leaf-u2` at 1.683 and the two stage-two routes at 1.903 and 1.907,
+with 2.073, 1.851, 1.845 and 1.846 on HEAD, against a `list` paying 1.091
+and 1.076; of the twenty arms with a corrected time there only two read below 1,
+`lib-stage1` at 0.859 and 0.939 and `libunord-stage2` at 0.000, which
+is it falling to a slice. **The counts say it is the memory system and
+not the code**: `mut-odo-vecdims` executes 31,506,524 instructions an iteration
+on `flip-last-rows` against 31,506,435 on `runs-96`, 89 in 31.5 million,
+with `-u2`, `lib-stage2-lean` and `bq-expand` inside 150 instructions and `list`
+inside 4272 in 412 million, on both halves --- so the same code does the same
+work and the doubling is what walking backwards costs, which no fill can
+address. **The same holds of the two COMPILERS on that view, read off the code
+and not only off the counts** (2026-09-09): both library arms reach the shipped
+fill's twelve-instruction unrolled run there, `fbLibStage1`'s dispatch falling
+through to it and `fillStage2` taking `runsWith writeRunStep`; 9.12.4
+and the HEAD stage1 emit `-u2`'s loop byte for byte and `fillStage2`'s
 in the same instructions under different registers, each 51 bytes and each
 inside one cache line on both halves; and every arm's instructions on the view
 read 1.0000 between them but `list`'s three, which read 1.0043 and are base's
@@ -4768,31 +4777,34 @@ so the arm stays timed as the ceiling of what an address-order fill would buy
 and what can land is its dispatch. Against `libunord-stage2` its margin also
 carries that arm's list and concatenation, which a reducing consumer does
 not pay, so the reading is the direction where stage two falls back to the list
-and the tie where both slice. **`libunord-stage4` and `libunord-stage5`, added
-2026-09-07 for Run 27, are the candidates the ruling leaves**: the same sorted
-address order over the unordered list kept lazy up to the exception --- one
-slice where the sorted view is one block, a lazy list of forward runs where
-its innermost stride is 1, one fill only where no run is longer than an element
---- stage four under the natural-strides test and stage five under the lean rank
-test with the sorted pairs canonicalized again, so no `getStridesT` is built;
-each hands a single slice or a single fill back as the ports do and concatenates
-only its runs, under the ports' own `VS.concat`, so the pair
-with `libunord-stage3` is the same code where both slice or both fill and a lazy
-list against the fill where runs exist, and the pair with `libunord-stage2`
-prices the list's construction alone where both list. **Beside them the four
-reducing consumers**, `libunord-stage1-sum`, `libunord-stage2-sum` (parked
-2026-09-13, no registration having named it), `libunord-stage4-sum` (parked
-2026-09-11, the sorted dispatch having priced it) and `libunord-stage5-sum`
-(parked 2026-09-13 with `libunord-stage3-sum`, their pair read on three runs):
-`sumT` as the library composes it over each stage's list, one slice at a time
-and no concatenation, returned as one element that `check` holds
-to the reference's sum --- the first reading of the entry point as it is used,
-the copy every Fill arm over a list carries being one the consumer never pays.
-**And `check` carries a laziness gate since the same day**: forcing the head
-of each list producer on 200000 runs of 20 must allocate under 32 KB
-for the lazy ones and must not for the two ports of the branch, whose strict
-base-offset table is the planted breakage that proves the gate bites,
-the unordered candidates asked again on the same array transposed,
+and the tie where both slice.
+
+**`libunord-stage4` and `libunord-stage5`, added 2026-09-07 for Run 27,
+are the candidates the ruling leaves**: the same sorted address order
+over the unordered list kept lazy up to the exception --- one slice where
+the sorted view is one block, a lazy list of forward runs where its innermost
+stride is 1, one fill only where no run is longer than an element --- stage four
+under the natural-strides test and stage five under the lean rank test
+with the sorted pairs canonicalized again, so no `getStridesT` is built; each
+hands a single slice or a single fill back as the ports do and concatenates only
+its runs, under the ports' own `VS.concat`, so the pair with `libunord-stage3`
+is the same code where both slice or both fill and a lazy list against the fill
+where runs exist, and the pair with `libunord-stage2` prices the list's
+construction alone where both list.
+
+**Beside them the four reducing consumers**, `libunord-stage1-sum`,
+`libunord-stage2-sum` (parked 2026-09-13, no registration having named it),
+`libunord-stage4-sum` (parked 2026-09-11, the sorted dispatch having priced it)
+and `libunord-stage5-sum` (parked 2026-09-13 with `libunord-stage3-sum`, their
+pair read on three runs): `sumT` as the library composes it over each stage's
+list, one slice at a time and no concatenation, returned as one element
+that `check` holds to the reference's sum --- the first reading of the entry
+point as it is used, the copy every Fill arm over a list carries being one
+the consumer never pays. **And `check` carries a laziness gate since the same
+day**: forcing the head of each list producer on 200000 runs of 20 must allocate
+under 32 KB for the lazy ones and must not for the two ports of the branch,
+whose strict base-offset table is the planted breakage that proves the gate
+bites, the unordered candidates asked again on the same array transposed,
 the exception's own move. In instructions, shim-free and net of the sum term ---
 a shim-free counts probe of 2026-08-30 and its `-runs` sibling, which said
 of themselves that they were a smoke run of `run-counts.sh` and NOT a recorded
@@ -4802,30 +4814,33 @@ shape, and above five nothing past the per-row choice's cost,
 `stretch-coprime-r7`'s 1.0208 the worst cell, while the quad loop reads 0.83
 to 0.85 at long runs and 1.08 to 1.15 at runs of 2 and 3 --- so each moves
 its own end of the run axis and Run 22 prices the two in time, which is what
-those two files cannot do. **A ruling stands over the quad loop, 2026-08-30,
-and it is Mikolaj's rather than a measurement's: a stepping run unrolled by four
-is too complex for orthotope, so `lib-stage2-u4` prices what that feature would
-buy and is not a candidate to ship.** The measure is an intuitive estimate
-of complexity taken PER ORTHOGONAL FEATURE, not a count of lines or loops
-and not a total over a function that composes several: the shipped by-two loop
-is fine but close to the bar, so a simpler loop is preferred over it where
-the performance is close, while a function that joins that loop with further
-orthogonal features --- the short bodies of `lib-stage2-short` among them ---
-is judged feature by feature, and the short bodies stand or fall on their own.
-**They fell, 2026-09-04, on the same ruling and by the same hand: a body per run
-length of 2 to 5 is too repetitive and so too complex for orthotope,
-so `lib-stage2-short` and `lib-stage2-short-lean` price what the bodies would
-buy, are not candidates to ship, and are parked `Only` as `lib-stage2-u4` is;
-their Run 24 readings stand in that run's file. Run 26 timed `lib-stage2-short`
-once more to read the two-window item the parking had withdrawn ([the open
-list][open]), which did not reopen this ruling.** **The lean dispatch is taken,
-2026-09-05, for every dispatch that admits it, in the branch's `regimeT`
-and in every natural-strides dispatch over `canonView` here but `lib-stage2`'s,
-which keeps the strides comparison as the lean arm's control**: mainly because
-the merged form decides the regime with no stride list built, which
-is the simpler code, and because Run 24 read `lib-stage2-lean` at or below
-`lib-stage2`, within the floor, on every readable population of both halves
-and ahead past both floors on the four smallest main-set shapes (Run 24's
+those two files cannot do.
+
+**A ruling stands over the quad loop, 2026-08-30, and it is Mikolaj's rather
+than a measurement's: a stepping run unrolled by four is too complex
+for orthotope, so `lib-stage2-u4` prices what that feature would buy and
+is not a candidate to ship.** The measure is an intuitive estimate of complexity
+taken PER ORTHOGONAL FEATURE, not a count of lines or loops and not a total
+over a function that composes several: the shipped by-two loop is fine but close
+to the bar, so a simpler loop is preferred over it where the performance
+is close, while a function that joins that loop with further orthogonal features
+--- the short bodies of `lib-stage2-short` among them --- is judged feature
+by feature, and the short bodies stand or fall on their own. **They fell,
+2026-09-04, on the same ruling and by the same hand: a body per run length of 2
+to 5 is too repetitive and so too complex for orthotope, so `lib-stage2-short`
+and `lib-stage2-short-lean` price what the bodies would buy, are not candidates
+to ship, and are parked `Only` as `lib-stage2-u4` is; their Run 24 readings
+stand in that run's file. Run 26 timed `lib-stage2-short` once more to read
+the two-window item the parking had withdrawn ([the open list][open]), which did
+not reopen this ruling.**
+
+**The lean dispatch is taken, 2026-09-05, for every dispatch that admits it,
+in the branch's `regimeT` and in every natural-strides dispatch over `canonView`
+here but `lib-stage2`'s, which keeps the strides comparison as the lean arm's
+control**: mainly because the merged form decides the regime with no stride list
+built, which is the simpler code, and because Run 24 read `lib-stage2-lean`
+at or below `lib-stage2`, within the floor, on every readable population of both
+halves and ahead past both floors on the four smallest main-set shapes (Run 24's
 registration 2, whose verdict [the open list][open] keeps); the two shapes
 it read behind past one half's floor, `stretch-primes` on the basis
 and `stretch-inner256` on HEAD, execute the same corrected instructions to five
@@ -7500,8 +7515,14 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      the forcing pass is new. Reading 3 is one call and it wants its
     #      table: `./read-run.py --section 'What the next run compares
     #      against' --with-tables 1`, the first table being the two-column
-    #      one the reading list asks for. It is a step and a session's to
-    #      run, and the note is the part written by hand.
+    #      one the reading list asks for. For a `--repeat` pair it is
+    #      less: the registration by `./read-run.py --para 'What Run <N>
+    #      is built to answer'` and the pair's earlier readings by
+    #      `./read-run.py --record NAME`, the series it is read in, which
+    #      `--record` alone lists. `--section` and `--para` search
+    #      README and the newest run file both, so neither wants a
+    #      `--run-doc`. It is a step and a session's to run, and the note
+    #      is the part written by hand.
     #      The halves launch from disk, `./$R-<half>`, hugebin/ being
     #      suspended -- ruled 2026-09-19 -- so a row reading `./` is the
     #      expected reading. Preflight's 10f, a step of preflight.sh run at
@@ -7679,15 +7700,29 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      form, are in the prose.
     #  2e. the priors 12a writes against, taken NOW, while the box is quiet
     #      and before preflight and the sweeps load it: `probe-stalls.sh`
-    #      on $R-<basis> over the arms the items will read, at the counts
-    #      N the previous run's sweeps name, TWICE, with
-    #      `EVENTS=instructions:u,cycles:u`, and `ALLOC=1` where an item
-    #      is priced in bytes. A cycle figure is a prior only where the
-    #      two sweeps agree on it; `./read-run.py --counts-over NEW OLD`
-    #      reads a sweep against the previous run's counts arm by arm.
-    #      Run 42 took them under the roster pass, and its two sweeps'
-    #      cycles parted by up to four times on one cell
+    #      on $R-<basis>, `EVENTS=instructions:u,cycles:u`, at the counts
+    #      N the previous run's sweeps name, TWICE, each over every timed
+    #      arm on the main set and over the classes holding an arm
+    #      `./registration-drift.py $R --since $PREV` names as reached,
+    #      and once with `ALLOC=1` over those arms -- the items are 12a's
+    #      and not written yet, so the sweep names none of them.
+    #      Quiet means reads and text edits beside it and nothing else: no
+    #      build and no checker.
+    #      And once 11 and 12 have printed their verdicts, before
+    #      `--corpus`, on the quiet box again: TWO MORE SWEEPS of the arms
+    #      whose cycles an item quotes. A cycle figure is a prior only
+    #      where all four agree; the rest are quoted as the reader's
+    #      spread. Read them with `./read-run.py $PREV-<basis>-main.json
+    #      --counts SWEEP --pair A B`, adding `--event cycles:u` for a
+    #      cycle prior and `--event bytes` on the ALLOC sweep, a countdiff
+    #      span's figure with `--counts SWEEP --countdiff A B`, and a sweep
+    #      against the previous run's counts with `--counts-over NEW OLD`
     #      why: a load the box carries is counted in its cycles.
+    #      Run 42 took them under the roster pass, and its two sweeps'
+    #      cycles parted by up to four times on one cell. Run 45's two,
+    #      and two more on the idle box, parted alike: by up to eleven
+    #      points on a main-set net-cycle geomean near 1 between two fill
+    #      arms. Quiet alone does not make two sweeps agree at N=50.
     #   3. retired 2026-09-25: the two md5s and the Main.hs and shim
     #      commits are rows preflight's `--fill-in` derives at 4-10, so
     #      they owe no call of their own. The number stays unused, so that
@@ -7830,16 +7865,16 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      own fix -- whatever changed since the last run, a data change
     #      owing the audit as much as a code change. Not a call of your
     #      own: checks-deep.py's two case steps, which `--corpus` below
-    #      runs. Until 2026-10-04 this ran only the cases of the scripts
-    #      changed since the last run, `check-all .` running every case
-    #      after an edit. 8c to 8e want an unsandboxed seat, and they
-    #      run alone
+    #      runs. 8c to 8e want an unsandboxed seat, and they run alone
     #  8e. every mutant, `selftest-mutants.py .`, checks-deep.py's last
     #      step: an edit can move a mutant's anchor, and 94a3cfd lost one
     #      unseen until a write-up
     #  8c TO 8e COME AFTER 11 AND 12, at the `--corpus` line under 12,
     #      which says when
     #      why: --para 'What the script-check steps'
+    #      Until 2026-10-04 8d ran only the cases of the scripts changed
+    #      since the last run, `check-all .` running every case after an
+    #      edit.
     #      8c and 8d write `zz-` fixtures here and remove them, and a file
     #      created anywhere in the tree while they run -- a log, a scratch
     #      redirect, an edit committed or not -- makes the cases report
@@ -8016,8 +8051,11 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      row: once 11 has printed `sweep
     #      clean` and 12, where owed, `pass clean`, nothing is writing a
     #      JSON, and BEFORE 12c, the commit -- 12a and 12b under the
-    #      sweeps, then this, then 12c. Their verdicts are the only ones
-    #      this half owes that were not read above
+    #      sweeps, then 2e's two more cycle sweeps, then this, then 12c.
+    #      And AFTER THE PREPARATION'S LAST SCRIPT EDIT: repairs met on
+    #      the way land before it, an edit after it owing it again. Their
+    #      verdicts are the only ones this half owes that were not read
+    #      above
     #  12a. write the registration, which is this half's largest product
     #      -- as ONE paragraph, which post-run step 5 moves whole into the
     #      run file with `--move-registration`: what this run is built to
@@ -8058,10 +8096,11 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      since $PREV's build touched is the reading of the source -- and
     #      item 5 where this preparation parks or drops an arm. That
     #      reading is a carrier agent's, as 12b's re-derivation is: brief
-    #      one carrier with the list, for what each such entry claims,
-    #      every figure with the file it came off, the previous
-    #      registration's pre-run form out of git, and the probe files
-    #      newer than $PREV's run file.
+    #      one carrier with the list, for the entries this run could
+    #      answer, one line each with the file each figure came off and
+    #      nothing on the rest; the previous registration's pre-run form
+    #      out of git, verbatim; and the probe files newer than $PREV's
+    #      run file, one line each.
     #      It goes in the open list and not in the note, which names it:
     #      immediately above the previous run's `ANSWERED` registration
     #      entry. And the previous run file's `What the next run compares
