@@ -778,16 +778,23 @@ for_brief () {
     # AND WHAT A RERUN PARKED, which post-run step 3 names probe-* so no
     # run-named glob takes it: read alone, the verdict above called Run
     # 43's CLEAN over a run whose intruded process had been rerun. Case:
-    # `for-brief-reads-the-parked-processes`.
+    # `for-brief-reads-the-parked-processes`. ONLY A PROCESS'S LOG IS ONE,
+    # a log carrying criterion's `benchmarking` lines or `@@wild` samples:
+    # a -g3 build log or a counter sweep's carries neither, and Run 44's
+    # brief called three such superseded processes. Case:
+    # `for-brief-takes-a-probe-log-for-a-parked-process`.
     set -- probe-*-"$R"-*.log
     [ -f "$1" ] || return 0
-    printf -- ' --- BUT %d LOG(S) PARKED BESIDE THEM AS probe-*, the processes a rerun superseded, read:' "$#"
+    parked='' k=0
     for f in "$@"; do
+      grep -qE '^(benchmarking|@@wild)' "$f" || continue
       v=$(./read-run.py "$f" --wild 2>/dev/null \
             | grep -m1 -E 'IN ONE LINE:|^NO bench reaches' \
             | sed -e 's/.*IN ONE LINE: //' -e 's/\.$//')
-      printf ' %s: %s;' "$f" "${v:-no --wild verdict}"
+      parked="$parked $f: ${v:-no --wild verdict};" k=$((k + 1))
     done
+    [ "$k" -gt 0 ] || return 0
+    printf -- ' --- BUT %d LOG(S) PARKED BESIDE THEM AS probe-*, the processes a rerun superseded, read:%s' "$k" "$parked"
   }
   class_counts () {
     set -- "$RD"/*-"$BASIS"-aa.txt

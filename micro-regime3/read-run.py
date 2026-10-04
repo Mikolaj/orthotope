@@ -8208,7 +8208,13 @@ def install_prose(paras, args):
     """--prose-draft --in-place: each draft over the one paragraph of the
     run file carrying its phrase, where that one is the step-5 copy's or
     carries `___`; any other is kept, and a phrase found in no paragraph or
-    in several is printed for placing by hand."""
+    in several is printed for placing by hand.
+
+    The registration section, the file's last since step 5 moves it in, is
+    searched for no phrase: a prior may quote the phrase a paragraph is
+    found by, and Run 44's quoting `./loop-offsets.py --delta` left the
+    offsets paragraph unplaced. Case:
+    `prose-draft-finds-its-paragraph-past-the-registration`."""
     path = want_run_doc(args)
     blocks = open(path).read().split('\n\n')
     with contextlib.redirect_stderr(io.StringIO()):
@@ -8217,10 +8223,13 @@ def install_prose(paras, args):
     carried = {' '.join(b.partition('\n|')[0].split())
                for b in got[3].split('\n\n')} if tracked else set()
     keyed = dict(PROSE_KEYS)
+    reg = next((i for i, b in enumerate(blocks)
+                if '\n## What this run was built to answer' in '\n' + b),
+               len(blocks))
     placed = kept = 0
     for key, draft in paras:
         phrase = keyed[key]
-        hits = [i for i, b in enumerate(blocks)
+        hits = [i for i, b in enumerate(blocks[:reg])
                 if phrase in ' '.join(b.split())]
         if len(hits) != 1:
             print('%s: %d paragraph(s) carry `%s`, need one; place it by'

@@ -342,11 +342,15 @@ if [ -f "$DOC" ]; then
   # 8b by SUBJECT ALONE, whatever the commit touched: the tail's commit
   # may carry no document edit at all, and a path-filtered log hid Run 39's
   # until a sentence was invented to give it one. The other steps' commits
-  # do carry the documents and keep the filter. Case:
+  # but 6d's do carry the documents and keep the filter. Case:
   # `status-finds-a-10c-commit-without-a-document`.
   SUBJ8B=$(git log --format=%s | grep -i "run $N\b\|$R\b" | grep -vi 'pre-run')
   # 6d's commit carries 6b's and 6c's work, so a subject naming both of
-  # those names it too, which is how Run 23 wrote it.
+  # those names it too, which is how Run 23 wrote it. And 6d is read off
+  # the unfiltered log as 8b is: where 6c's sections were written before 6b
+  # they ride in 6b's commit, as the chapter allows, and 6d's carries
+  # MARGINALIA alone, which Run 44's did. Case:
+  # `status-finds-a-6d-commit-without-a-document`.
   # The tail is 8b since 2026-09-26, 10c before and 7b before that, and
   # ACCEPTS ITS OLD NAMES: a finished run's commit says `step 7b` (Runs 27
   # and 28) or `10c` (Runs 29 to 41) and would read NOT DONE for ever
@@ -356,7 +360,7 @@ if [ -f "$DOC" ]; then
   # follows and the other three before them.
   subject_step () {
     s=$1
-    S=$SUBJ; [ "$s" = 8b ] && S=$SUBJ8B
+    S=$SUBJ; case $s in 8b|6d) S=$SUBJ8B ;; esac
     if printf '%s\n' "$S" | grep -qi "\b$s\b" \
        || { [ "$s" = 8b ] && printf '%s\n' "$S" | grep -qiE '\b(7b|10c)\b'; } \
        || { [ "$s" = 6d ] && printf '%s\n' "$SUBJ" | grep -qi '\b6b\b.*\b6c\b'; }; then

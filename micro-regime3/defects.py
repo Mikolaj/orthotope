@@ -285,7 +285,8 @@ def git(*args):
 # ---------------------------------------------------------------- fixtures
 
 def readme_lines(rev=None):
-    """This README, as of `rev` when a revision is being replayed.
+    """This README, as of `rev` when a revision is being replayed, and then
+    one line per paragraph.
 
     `--check-doc` resolves the `README.md#` anchors it finds in the
     READER'S OWN source, so a replayed revision carries the anchors of its
@@ -2093,6 +2094,17 @@ def readme_goal_above_open(tmp, rev=None):
     goal, rest = lines[hi:end], lines[:hi] + lines[end:]
     return write(os.path.join(tmp, 'R.md'),
                  '\n'.join(rest[:lo] + goal + rest[lo:]))
+
+
+def rundoc_registration_quotes_delta(tmp):
+    """The run file with its registration section, the file's last,
+    quoting the offsets paragraph's own command, as Run 44's prior did:
+    `--prose-draft --in-place` found that phrase in two paragraphs and
+    placed neither."""
+    return write_rundoc(tmp, rundoc_text().rstrip('\n')
+                        + '\n\nThe prior read the layout with'
+                        ' `./loop-offsets.py --delta runA-lookrts'
+                        ' runB-lookrts`.\n')
 
 
 def rundoc_summary_row_short(tmp, cls='rev'):
@@ -5873,6 +5885,18 @@ def for_brief_parked_intrusion(tmp):
     r = for_brief_readings(tmp)
     write(os.path.join(tmp, 'shadow', 'probe-intruded-%s-lookrts-main.log'
                        % r['tag']), WILD_LOUD_LOG)
+    return r
+
+
+def for_brief_non_process_logs(tmp):
+    """`for_brief_readings` with two probe-* logs carrying the run's name
+    that are no process: a -g3 twins' build log and a counter sweep's, as
+    Run 44's step 3a and its quiet-box readings left beside the run."""
+    r = for_brief_readings(tmp)
+    for n, line in (('probe-g3-%s-build.log',
+                     '### probe-g3-lookrts built, 34278696 B\n'),
+                    ('probe-lean-%s-1.log', 'rc=0\n')):
+        write(os.path.join(tmp, 'shadow', n % r['tag']), line)
     return r
 
 
@@ -11803,6 +11827,19 @@ RECORDS = [
          bug=V(has=['THE INTRUSION VERDICT IS CLEAN'],
                hasnt=['PARKED BESIDE THEM'])),
 
+    case('for-brief-takes-a-probe-log-for-a-parked-process', 'read-all.sh',
+         'self',
+         'the brief called a -g3 build log and a counter sweep\'s log'
+         ' processes a rerun had superseded',
+         # Run 44's brief, corrected by hand before its checker read it:
+         # the parked glob takes any probe-* log carrying the run's name.
+         shadow=dict(),
+         plant=for_brief_non_process_logs,
+         argv=['{tag}', '--for-brief'],
+         ok=V(has=['THE INTRUSION VERDICT IS CLEAN'],
+              hasnt=['PARKED BESIDE THEM']),
+         bug=V(has=['PARKED BESIDE THEM'])),
+
     case('for-brief-says-its-wild-readings-are-stale', 'read-all.sh', 'self',
          'with more --wild readings than logs the verdict read `only N of'
          ' the M log(s)`, N above M',
@@ -13793,6 +13830,17 @@ RECORDS = [
          # the empty 10c commit the defect needs.
          no_audit='other:history-holds-no-empty-commit'),
 
+    case('status-finds-a-6d-commit-without-a-document', 'run-status.sh',
+         'self',
+         '6d read NOT DONE when its commit touched neither document, 6c\'s'
+         ' sections having gone into 6b\'s commit as the chapter allows',
+         # Run 44's 6d commit carried MARGINALIA alone, every README section
+         # having been written before 6b. No shadow, as for 10c's case: the
+         # subjects are git's answer about the real history.
+         argv=['run44'],
+         ok=V(has=['6d    done']),
+         bug=V(has=['6d    NOT DONE'])),
+
     case('status-names-the-subject-it-looked-for', 'run-status.sh', None,
          'a NOT DONE on a step said no subject names it, without saying'
          ' that the run name is half of what it matched on',
@@ -14293,6 +14341,22 @@ RECORDS = [
          probe=lambda subs: open(subs['doc']).read(),
          ok=V(exit=0, has=['divide: kept', 'bar: kept',
                            'DO NOT DIVIDE TWO ROWS OF THIS TABLE'])),
+
+    case('prose-draft-finds-its-paragraph-past-the-registration',
+         'read-run.py', 'self',
+         '--prose-draft --in-place refused the offsets paragraph because the'
+         ' registration, moved into the run file, quotes its command',
+         # Run 44's write-up: `offsets: 2 paragraph(s) carry ... need one`,
+         # the second being its registration's prior.
+         plant=lambda t: {'doc': rundoc_registration_quotes_delta(t)},
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                             prefix='zzit',
+                                             classes=recorded_classes())),
+         env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['--prose-draft', 'zzit', '--run-doc', '{doc}', '--in-place'],
+         ok=V(exit=0, has=['offsets: kept'],
+              hasnt=['loop-offsets.py --delta`, need one']),
+         bug=V(has=['loop-offsets.py --delta`, need one'])),
 
     case('prose-draft-counts-a-row-the-cap-left-still', 'read-run.py',
          'self',
