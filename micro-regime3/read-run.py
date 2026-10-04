@@ -178,7 +178,15 @@ Modes:
                     reading and the older one. `--per-shape` adds each
                     shape's raw difference A - B beside how far the
                     sweep's two copies of the forcing pass part, the
-                    resolution such a difference is read against
+                    resolution such a difference is read against.
+                    `--event cycles:u` (or `bytes`) reads that column of a
+                    probe-stalls.sh sweep instead of the instructions,
+                    which is a cycle or a byte prior, and keeps and names
+                    a cell marked NONLINEAR in it, which instructions drop
+  --counts SWEEP.txt --countdiff A B   A less B per shape on that sweep, its
+                    largest and smallest: the figure a `countdiff A B
+                    under N` span holds N above on that population, in
+                    instructions, the column the span is read in
   --series A B SHAPE [DIR]  A over B on SHAPE on every run's main set in
                     DIR, run by run and half by half, each beside that
                     half's floor: one cell's readings as a table rather
@@ -313,7 +321,10 @@ Modes:
   --section NAME    print one section's prose by its heading's words,
                     without its tables and naming the size withheld;
                     --with-tables adds them and --with-tables N takes the
-                    Nth alone, which is item 4's ONE table -- no run needed
+                    Nth alone, which is item 4's ONE table -- no run needed.
+                    Like --para it searches README AND the newest run
+                    file by default, so no --run-doc is wanted to reach
+                    README; `FILE.md:NAME` narrows to one of the two
   --para PATTERN    print the paragraphs whose bolded lead matches, from
                     either document, with the file and line each starts
                     at -- no run needed
@@ -2862,7 +2873,7 @@ def compare_table(cells, shapes, strategies, meta, other, main_hs,
           '\nsection).')
 
 
-def parse_counts(path):
+def parse_counts(path, event='instructions:u', kept=None):
     """`run-counts.sh`'s artifact: {shape: {arm: instructions an iteration}}.
 
     One data line a cell -- `shape arm N instructions` -- under `#` headers
@@ -2877,9 +2888,13 @@ def parse_counts(path):
     `# shape arm N EVENT ...` names them, and the one read is
     `instructions:u`, so a preparation's priors read here rather than in a
     scratch script, as Run 42's were (2026-09-26). Case:
-    `counts-reads-no-probe-stalls-file`.
+    `counts-reads-no-probe-stalls-file`. `event` reads another column, the
+    cycles or the bytes a prior is priced in, the run-counts artifact
+    carrying instructions alone. Case: `counts-reads-the-cycles-column`.
+    A cell marked NONLINEAR in such an event is kept, and appended to
+    `kept` where the caller passes a list.
     """
-    counts, refused, malformed, nonlinear = {}, [], [], []
+    counts, refused, malformed, nonlinear, low = {}, [], [], [], []
     col, width = 3, 4
     with open(path) as f:
         for line in f:
@@ -2887,21 +2902,30 @@ def parse_counts(path):
             hdr = re.match(r'#\s*shape\s+arm\s+N\s+(.+)$', line)
             if hdr:
                 evs = hdr.group(1).split()
-                if 'instructions:u' in evs:
-                    col, width = 3 + evs.index('instructions:u'), 3 + len(evs)
-                elif evs != ['instructions/iter']:
-                    # No instruction column at all, and the first event is
-                    # not one: every line is malformed rather than read as
-                    # instructions (2026-09-26). Case:
-                    # `counts-reads-cycles-as-instructions`.
+                if event in evs:
+                    col, width = 3 + evs.index(event), 3 + len(evs)
+                elif evs != ['instructions/iter'] or event != 'instructions:u':
+                    # No column of the event read, and not run-counts.sh's
+                    # own `instructions/iter` read for instructions: every
+                    # line is malformed rather than read as the event
+                    # (2026-09-26). Cases:
+                    # `counts-reads-cycles-as-instructions`,
+                    # `counts-finds-no-such-event`.
                     width = -1
                 continue
-            # A cell probe-stalls.sh marked NONLINEAR in instructions is no
-            # one process's count, and is dropped and named as
-            # probe-stalls-read.py drops it (2026-09-27). Case:
-            # `counts-reads-a-nonlinear-cell-as-measured`.
+            # A cell probe-stalls.sh marked NONLINEAR in the event read is
+            # no one process's count. In instructions it is dropped and
+            # named as probe-stalls-read.py drops it (2026-09-27). Case:
+            # `counts-reads-a-nonlinear-cell-as-measured`. In any other
+            # event it is KEPT at the sweep's figure and named, by the
+            # owner's ruling of 2026-10-05: some half the cells of Run 45's
+            # sweeps were nonlinear in cycles at N=50, and dropping them
+            # left the pairs read on those sweeps one to eight of nineteen
+            # main-set shapes. Cases: `counts-reads-the-cycles-column`,
+            # `counts-pair-names-the-nonlinear-cycle-cells-it-keeps`.
             nl = re.match(r'#\s*NONLINEAR\s+(\S+)\s+(\S+?):'
-                          r'.*\binstructions:u\b', line)
+                          r'.*(?<![\w:])' + re.escape(event) + r'(?![\w:])',
+                          line)
             if nl:
                 nonlinear.append(nl.groups())
                 continue
@@ -2922,13 +2946,31 @@ def parse_counts(path):
                 continue
             if v > 0:
                 counts.setdefault(sh, {})[arm] = v
+            elif event != 'instructions:u':
+                low.append((sh, arm, v))
             else:
                 refused.append('%s %s' % (sh, arm))
+    # A NON-POSITIVE FIGURE IS A REFUSAL, but a cycle cell marked NONLINEAR
+    # can read below zero and is kept at it, as the ruling above keeps
+    # every such cell: Run 45's non-positive cycle cells were all so
+    # marked. Its NONLINEAR line follows it, so it is decided here. Case:
+    # `counts-keeps-a-negative-nonlinear-cycle-cell`.
+    for sh, arm, v in low:
+        if (sh, arm) in nonlinear:
+            counts.setdefault(sh, {})[arm] = v
+        else:
+            refused.append('%s %s' % (sh, arm))
     for sh, arm in nonlinear:
-        if counts.get(sh, {}).pop(arm, None) is not None:
-            refused.append('%s %s, NONLINEAR in instructions' % (sh, arm))
-            if not counts[sh]:
-                del counts[sh]
+        if arm not in counts.get(sh, {}):
+            continue
+        if event != 'instructions:u':
+            if kept is not None:
+                kept.append('%s %s' % (sh, arm))
+            continue
+        del counts[sh][arm]
+        refused.append('%s %s, NONLINEAR in instructions' % (sh, arm))
+        if not counts[sh]:
+            del counts[sh]
     return counts, refused, malformed
 
 
@@ -3935,8 +3977,44 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     return 1 if unread else 0
 
 
-def counts_pair(counts_a, pairs, shapes, cells=None, per_shape=False):
-    """Two arms' instruction counts on ONE half, corrected and raw.
+def countdiff_prior(path, a, b):
+    """A less B per shape on ONE sweep, its largest and its smallest.
+
+    The figure a `countdiff A B under N` span is held to on that sweep's
+    population: it holds where N is above the largest. In instructions
+    alone, the column `--predictions` reads the span in, so `--event` is
+    refused here. Read by hand with awk over each population's sweep by
+    Run 45's preparation (2026-10-04). Cases:
+    `countdiff-prints-the-span-s-figure`, `countdiff-refuses-an-event`.
+    """
+    counts, refused, malformed = parse_counts(path)
+    ds = sorted((c[a] - c[b], sh) for sh, c in counts.items()
+                if a in c and b in c)
+    if ds:
+        lo, hi = ds[0], ds[-1]
+        print('%s less %s, instructions a call, over %d shape(s) of %s:'
+              ' largest %+d on %s, smallest %+d on %s -- `countdiff %s %s'
+              ' under N` holds here for N above %+d'
+              % (a, b, len(ds), os.path.basename(path), hi[0], hi[1],
+                 lo[0], lo[1], a, b, hi[0]))
+    else:
+        print('no shape in %s counts both %s and %s'
+              % (os.path.basename(path), a, b))
+    if refused:
+        print('  %d cell(s) perf refused or marked nonlinear, dropped: %s'
+              % (len(refused), '; '.join(sorted(refused)[:6])
+                 + ('; ...' if len(refused) > 6 else '')))
+    # Named as `--counts --pair` names them. Case:
+    # `countdiff-names-its-malformed-lines`.
+    if malformed:
+        print('  %d malformed line(s)' % len(malformed))
+    return 0 if ds else 2
+
+
+def counts_pair(counts_a, pairs, shapes, cells=None, per_shape=False,
+                event='instructions:u'):
+    """Two arms' counts on ONE half, corrected and raw: instructions, or
+    the column `event` names.
 
     `--counts` reads a PAIR of sweep files beside `--compare` and answers
     *did this arm's instructions move between the halves*. Registration 7
@@ -3962,13 +4040,20 @@ def counts_pair(counts_a, pairs, shapes, cells=None, per_shape=False):
     cell with no work left in it does not make a ratio wrong, it destroys
     it.
     """
-    counts, refused, malformed = parse_counts(counts_a)
-    print('\ncounted work within one half, from %s'
-          % os.path.basename(counts_a))
+    kept = []
+    counts, refused, malformed = parse_counts(counts_a, event, kept)
+    print('\ncounted work within one half, from %s%s'
+          % (os.path.basename(counts_a),
+             '' if event == 'instructions:u' else ', its %s column' % event))
     if refused:
         print('  %d cell(s) perf refused or marked nonlinear, dropped: %s'
               % (len(refused), '; '.join(sorted(refused)[:6])
                  + ('; ...' if len(refused) > 6 else '')))
+    if kept:
+        print("  %d cell(s) marked NONLINEAR in %s, kept at the sweep's"
+              ' figure: %s'
+              % (len(kept), event.split(':')[0], '; '.join(sorted(kept)[:6])
+                 + ('; ...' if len(kept) > 6 else '')))
     if malformed:
         print('  %d malformed line(s)' % len(malformed))
     print()
@@ -11683,12 +11768,22 @@ def note_check(path, readme, run_doc=None):
     # firing it on every reference: at a `top` of zero the comparison is
     # true of every `(N)` in the note, which reports the PARSE and calls
     # it the note's fault. The summary line prints the count either way.
+    # ONLY AFTER `item` OR `items`, in either case and a list included --
+    # `items (1) to (3)`, `Item (2) and (4)`, `items (1)--(5)`: a bare
+    # `(11)` is as often a step number, and Run 45's entry point naming
+    # its smoke sweep (11) failed this. Cases:
+    # `note-check-reads-only-item-numbers`,
+    # `note-check-reads-items-capitalized-and-dashed`.
+    refs = re.compile(r'\bitems?\s+((?:\(\d{1,2}\)(?:\s*(?:,|and|or|to|--?)'
+                      r'\s*)?)+)', re.I)
     for i, ln in enumerate(lines, 1) if top else ():
-        for q in re.finditer(r'\((\d{1,2})\)', ln):
-            if int(q.group(1)) > top:
-                found.append((i, 'item %s, where the registration in %s'
-                                 ' carries %d'
-                              % (q.group(0), os.path.basename(src), top)))
+        for r in refs.finditer(ln):
+            for q in re.finditer(r'\((\d{1,2})\)', r.group(1)):
+                if int(q.group(1)) > top:
+                    found.append((i, 'item %s, where the registration in %s'
+                                     ' carries %d'
+                                  % (q.group(0), os.path.basename(src),
+                                     top)))
 
     # 3. A HALF TAG MISSING FROM THE ROLL OF THEM. The roll moved into
     # README's *Which two halves a pair has* on 2026-09-18 -- two copies
@@ -12169,8 +12264,12 @@ def pair_note(path, draft=None, halves=None, repeat=False):
                 handover_done = True
             slot = ('ENTRY POINT FOR THE SESSION THAT RUNS THIS'
                     if kind == 'handover' else title)
-            out.append('%s [PAIR\'S]: <yours>\n%s'
-                       % (slot, _scaffold(guide.get(slot))))
+            # The handover is the block the executing session ACTS on, so
+            # it is `[EXEC]`, which note-check requires. Case:
+            # `draft-tags-the-entry-point-exec`.
+            out.append('%s [%s]: <yours>\n%s'
+                       % (slot, 'EXEC' if kind == 'handover' else "PAIR'S",
+                          _scaffold(guide.get(slot))))
             pairs.append(slot)
         elif kind == 'fill':
             # THE GATE LINE GOES IN FRONT OF THE FILL-IN BLOCK IF NOTHING
@@ -17257,6 +17356,15 @@ def main():
                         ' the widest difference a call -- a preparation\'s'
                         ' priors against the last run\'s counts; either may'
                         ' be a probe-stalls.sh sweep')
+    p.add_argument('--event', metavar='EV',
+                   help='with --counts SWEEP and --pair: the'
+                        ' column of a probe-stalls.sh sweep read, `cycles:u`'
+                        ' or `bytes` for a prior priced in those;'
+                        ' instructions:u when unsaid')
+    p.add_argument('--countdiff', nargs=2, metavar=('A', 'B'),
+                   help='with ONE --counts sweep: A less B per shape, its'
+                        ' largest and smallest -- the figure a `countdiff A'
+                        ' B under N` span holds N above, on that population')
     p.add_argument('--counts-totals', dest='counts_totals',
                    metavar='RUN',
                    help='what each counted leg of RUN cost, per'
@@ -17782,10 +17890,11 @@ def main():
         p.error('%s are %d readings of --compare, not one: run the'
                 ' invocations README\'s checklist spells out, one at a'
                 ' time' % (' and '.join('--' + f for f in subs), len(subs)))
-    if args.counts and not (args.compare or args.pair):
+    if args.counts and not (args.compare or args.pair or args.countdiff):
         p.error('--counts is a modifier: ONE sweep file with `--pair A B`'
-                ' for the within-half reading, TWO with `--compare` for the'
-                ' cross-half one, and it does nothing alone')
+                ' or `--countdiff A B` for the within-half reading, TWO'
+                ' with `--compare` for the cross-half one, and it does'
+                ' nothing alone')
     if args.counts and args.compare and len(args.counts) != 2:
         p.error('--counts with --compare is the cross-half reading and takes'
                 ' TWO sweep files, this run\'s and the other half\'s, not %d'
@@ -17928,6 +18037,15 @@ def main():
         sys.exit(counts_totals(args.counts_totals, args))
     if args.counts_over:
         sys.exit(counts_over(*args.counts_over))
+    if args.event and (args.countdiff or not (args.counts and args.pair)):
+        p.error('--event names the column --counts reads with --pair, and'
+                ' does nothing elsewhere; --countdiff reads instructions,'
+                ' the column a countdiff span is read in')
+    if args.countdiff:
+        if not args.counts or len(args.counts) != 1:
+            p.error('--countdiff reads ONE --counts sweep, the population'
+                    ' the span is read on')
+        sys.exit(countdiff_prior(args.counts[0], *args.countdiff))
     if args.series:
         if len(args.series) not in (3, 4):
             p.error('--series takes A B SHAPE and an optional DIR')
@@ -18139,7 +18257,8 @@ def main():
                              ' `--compare OTHER.json`\n' % len(args.counts))
             sys.exit(2)
         sys.exit(counts_pair(args.counts[0], args.pair, shapes, cells,
-                             per_shape=args.per_shape))
+                             per_shape=args.per_shape,
+                             event=args.event or 'instructions:u'))
     elif args.pair:
         pair_table(cells, shapes, strategies, args.pair,
                    per_shape=args.per_shape)

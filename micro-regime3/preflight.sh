@@ -459,8 +459,13 @@ step_8 () {
   # neither class for the same reason `-` is: a path under a directory is
   # one path, and a boundary that stopped at the slash read
   # `smoke-legs-1/smoke-l1-$R-bcast.json` as a bare file in this one.
+  # AND A PROBE GLOB IS A PATTERN, since 2026-10-04: `probe-r45-*` was cut
+  # at the `*` and reported `probe-r45` gone, Run 45's note naming its probe
+  # files that way. A probe name carrying `*` passes where anything matches
+  # it. A run-file glob stays uncaptured: the template names
+  # `$R-<basis>-*.json`, artifacts the run has not written yet.
   if [ -f "$R-pair.txt" ]; then
-    REFS_RE='(^|[^A-Za-z0-9._/-])(probe-[A-Za-z0-9._{},-]*[A-Za-z0-9_}]/?|'
+    REFS_RE='(^|[^A-Za-z0-9._/-])(probe-[A-Za-z0-9._{},*-]*[A-Za-z0-9_}*]/?|'
     REFS_RE=$REFS_RE'[A-Za-z0-9._/-]*'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))'
     MISSING=$(grep -oE "$REFS_RE" \
                 "$R-pair.txt" | sed -E 's/^[^A-Za-z0-9._/-]//' | sort -u \
@@ -488,6 +493,7 @@ step_8 () {
                         left=${q%%,*}; rest=${q#*,}
                         [ -z "$left" ] || todo+=("$left")
                         [ -z "$rest" ] || todo+=("$rest") ;;
+                      *\**) compgen -G "$q" > /dev/null || echo "$q" ;;
                       *) [ -e "$q" ] || echo "$q" ;;
                     esac
                   done
@@ -1102,8 +1108,28 @@ and $OTHER $("./$R-$OTHER" +RTS --info 2>/dev/null \
                    || echo '(refused)'), \
 $OTHER from $(./half-bin.sh "$R" "$OTHER" 2>/dev/null || echo '(refused)'); \
 hugebin/ $(mountpoint -q hugebin && echo mounted || echo NOT MOUNTED)"
-  printf '  %-16s  %s\n' 'repetition' '<yours> -- available only where the'
-  printf '  %-16s  %s\n' '' 'source did not move; say which and why'
+  # REPETITION IS DERIVED WHERE THE SOURCE MOVED, since 2026-10-04: the
+  # previous note's own `Main.hs at` row against this build's, and where
+  # they differ neither md5 can repeat. Where they agree the row stays the
+  # preparer's, the md5s being theirs to read against that note's. Compared
+  # as whole hashes: git lengthens %h as the repository grows, so the two
+  # notes' abbreviations of one commit can differ. WATCHED 2026-10-05: the
+  # string test read f5bf411 against f5bf4118 as moved, this one as same,
+  # and c52d3e2 as moved either way.
+  MH=$(git log -1 --format=%h -- :/micro-regime3/Main.hs)
+  PMH=$(sed -n 's/^  Main\.hs at  *\([0-9a-f]\{7,\}\).*/\1/p' \
+          "run$PN-pair.txt" 2>/dev/null | head -1)
+  if [ -n "$PMH" ] && [ "$(git rev-parse -q --verify "$PMH^{commit}")" \
+       != "$(git rev-parse "$MH")" ]; then
+    printf '  %-16s  %s\n' 'repetition' "none: the source moved since \
+run$PN's build, $PMH to $MH, so neither md5 can repeat run$PN's"
+  elif [ -n "$PMH" ]; then
+    printf '  %-16s  %s\n' 'repetition' "<yours> -- Main.hs is at $MH as for \
+run$PN; say whether the md5s repeat run$PN-pair.txt's"
+  else
+    printf '  %-16s  %s\n' 'repetition' '<yours> -- available only where the'
+    printf '  %-16s  %s\n' '' 'source did not move; say which and why'
+  fi
   printf '  %-16s  %s\n' 'fills' "$(vd 10)"
   if [ -n "$PB" ]; then
     printf '  %-16s  %s\n' '' "against $PB, the previous build of this recipe:"

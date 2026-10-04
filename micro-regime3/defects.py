@@ -9415,6 +9415,85 @@ RECORDS = [
          ok=V(exit=0, has=["MOVED SINCE run97's BUILD, THE COMPILER"]),
          bug=V(exit=0, hasnt=['THE COMPILER'])),
 
+    # THE CYCLES AND THE BYTES OF A SWEEP had no reader: parse_counts took
+    # the instructions column alone, so Run 44's and Run 45's preparations
+    # each read their cycle priors by hand or by a scratch script
+    # (2026-10-04). `event` names the column; a cell marked NONLINEAR in
+    # it is KEPT, where one marked in instructions is dropped -- the
+    # owner's ruling of 2026-10-05, half the cells of Run 45's sweeps being
+    # nonlinear in cycles at N=50.
+    case('counts-reads-the-cycles-column', 'read-run.py', 'self',
+         "a sweep's cycles column could not be read by any mode",
+         plant=probe_stalls_sweeps,
+         argv=['--unit', "parse_counts('{new}', event='cycles:u')"],
+         ok=V(has=["'lib-a': 900.0", "'lib-b': 1800.0", "'lib-a': 2500.0"],
+              hasnt=['NONLINEAR in cycles']),
+         bug=V(has=['TypeError'])),
+
+    case('counts-pair-names-the-nonlinear-cycle-cells-it-keeps',
+         'read-run.py', None,
+         'CONTROL: a cycle pair reads a cell marked NONLINEAR in cycles and'
+         ' names it as kept, rather than dropping it',
+         plant=probe_stalls_sweeps,
+         argv=['--unit', "counts_pair('{new}', [('lib-a', 'lib-b')],"
+                         " ['s1', 's2'], event='cycles:u')"],
+         ok=V(has=['1 cell(s) marked NONLINEAR in cycles, kept',
+                   's1 lib-a', '0.5976'])),
+
+    # A NONLINEAR cycle cell can read below zero, and every non-positive
+    # cycle cell of Run 45's four sweeps was so marked: sum-only arms on
+    # the tiny shapes among them, so a drop took the forcing pass out of
+    # those shapes' correction and the idle box's pairs off the reading
+    # 2e's history quotes.
+    case('counts-keeps-a-negative-nonlinear-cycle-cell', 'read-run.py', None,
+         'CONTROL: a cell NONLINEAR in cycles at a negative figure is kept'
+         ' at it, not refused as a zero',
+         plant=lambda t: {'f': write(
+             os.path.join(t, 'probe-neg.txt'),
+             '# ./x deadbeef N=50\n'
+             '# shape arm N instructions:u cycles:u\n'
+             's1 sum-only-early 50 100 -400\n'
+             '# NONLINEAR s1 sum-only-early: cycles:u 300 then -1100\n'
+             's1 lib-a 50 1000 900\n')},
+         argv=['--unit', "parse_counts('{f}', event='cycles:u')"],
+         ok=V(has=["'sum-only-early': -400.0", "'lib-a': 900.0"],
+              hasnt=['s1 sum-only-early'])),
+
+    # A countdiff span's prior was an awk line over the sweep, Run 45's
+    # preparation reading the largest difference a population by hand
+    # (2026-10-04): the figure `countdiff A B under N` holds N above.
+    case('countdiff-prints-the-span-s-figure', 'read-run.py', 'self',
+         "no mode printed the largest A - B a countdiff span is held to",
+         plant=probe_stalls_sweeps,
+         argv=['--counts', '{new}', '--countdiff', 'lib-a', 'lib-b'],
+         ok=V(exit=0, has=['largest -970 on s1', 'smallest -1000 on s2']),
+         bug=V(exit=2, has=['--countdiff'])),
+
+    case('countdiff-names-its-malformed-lines', 'read-run.py', None,
+         'CONTROL: --countdiff counts the lines it could not read, as'
+         ' --counts --pair does, rather than dropping them unsaid',
+         plant=lambda t: {'new': write(
+             os.path.join(t, 'probe-new.txt'),
+             open(probe_stalls_sweeps(t)['new']).read() + 's3 lib-a 50\n')},
+         argv=['--counts', '{new}', '--countdiff', 'lib-a', 'lib-b'],
+         ok=V(exit=0, has=['largest -970 on s1', '1 malformed line(s)'])),
+
+    case('countdiff-refuses-an-event', 'read-run.py', None,
+         'CONTROL: --countdiff refuses --event, a countdiff span being read'
+         ' in instructions whatever its prior is priced in',
+         plant=probe_stalls_sweeps,
+         argv=['--counts', '{new}', '--countdiff', 'lib-a', 'lib-b',
+               '--event', 'cycles:u'],
+         ok=V(exit=2, has=['--event'], hasnt=['largest'])),
+
+    case('counts-finds-no-such-event', 'read-run.py', None,
+         'CONTROL: an event the sweep does not carry reads every line as'
+         ' malformed rather than another column',
+         plant=probe_stalls_sweeps,
+         argv=['--unit', "(lambda c: (c[0], len(c[2])))"
+                         "(parse_counts('{new}', event='bytes'))"],
+         ok=V(has=['({}, 4)'])),
+
     case('counts-reads-no-probe-stalls-file', 'read-run.py', '95190de',
          "a probe-stalls.sh sweep, a column per event, read as nothing but"
          " malformed lines, so a preparation's priors were a scratch script",
@@ -9543,6 +9622,33 @@ RECORDS = [
          argv=['--note-check', '{note}', '--readme', '{readme}'],
          ok=V(exit=0, has=['clean'],
               hasnt=['continuity claim', 'not on the roll'])),
+
+    # Every `(N)` in a note was an item number, so Run 45's entry point,
+    # naming `the smoke sweep (11), the L1 roster pass (12)`, failed 10e
+    # against a five-item registration, 2026-10-04. Read only after `item`.
+    case('note-check-reads-only-item-numbers', 'read-run.py', 'self',
+         'a step number in parentheses read as an item past the'
+         " registration's last",
+         plant=lambda t: (lambda n: {
+             'note': write(n, open(n).read() + 'THE SWEEPS: the smoke'
+                           ' sweep (11) and the roster pass (12) ran.\n'),
+             'readme': readme_with_a_registration(t)})(
+                 note_for_the_check(t, broken=False)),
+         argv=['--note-check', '{note}', '--readme', '{readme}'],
+         ok=V(exit=0, has=['clean'], hasnt=['item (11)']),
+         bug=V(exit=1, has=['item (11)'])),
+
+    case('note-check-reads-items-capitalized-and-dashed', 'read-run.py',
+         None,
+         'CONTROL: `Item (9)` opening a sentence and `items (1)--(8)` are'
+         " read as items, past the registration's last",
+         plant=lambda t: (lambda n: {
+             'note': write(n, open(n).read() + 'THE ITEMS: Item (9) holds,'
+                           ' and items (1)--(8) were read.\n'),
+             'readme': readme_with_a_registration(t)})(
+                 note_for_the_check(t, broken=False)),
+         argv=['--note-check', '{note}', '--readme', '{readme}'],
+         ok=V(exit=1, has=['item (9)', 'item (8)'])),
 
     case('note-check-refuses-a-variable-check-in-no-form', 'read-run.py',
          None,
@@ -13703,6 +13809,35 @@ RECORDS = [
               hasnt=['counted work begins for'])),
 
     # ---- run-status.sh, doneness off the artifacts ---------------------
+    # 12a READ DONE OFF THE LEAD ALONE: the owner commits a registration's
+    # lead with the pair and the items come at 12a, so a lead with no item
+    # read done -- Run 45's preparation met it at its first call,
+    # 2026-10-04, the items still unwritten.
+    case('status-wants-the-items-for-12a', 'run-status.sh', 'self',
+         '12a read done on a registration lead carrying no item',
+         shadow=dict(extra=lambda: [('README.md', open(README).read()
+                                     + '\n- `OPEN` **What Run 98 is built'
+                                     ' to answer, registered before it'
+                                     ' runs.** The pair is the last run\'s;'
+                                     ' its numbered items are not written'
+                                     ' yet.\n')]),
+         argv=['run98'],
+         ok=V(has=['no numbered item and no predict: span']),
+         bug=V(has=['a registration for Run 98 is in README'])),
+
+    case('status-reads-12a-done-with-items', 'run-status.sh', None,
+         'CONTROL: a registration lead with an item and its span reads 12a'
+         ' done',
+         shadow=dict(extra=lambda: [('README.md', open(README).read()
+                                     + '\n- `OPEN` **What Run 98 is built'
+                                     ' to answer, registered before it'
+                                     ' runs.** The pair is the last run\'s.'
+                                     ' (1) *The box.* `predict: cross list'
+                                     ' 1.0 within 1% on main basis`.\n')]),
+         argv=['run98'],
+         ok=V(has=['a registration for Run 98 is in README'],
+              hasnt=['no numbered item and no predict: span'])),
+
     case('status-reads-an-unstarted-run', 'run-status.sh', None,
          'CONTROL: with no artifact every checkable step reads NOT DONE and'
          ' the exit is 1',
@@ -14871,6 +15006,28 @@ RECORDS = [
                has=['ENTRY POINT FOR THE SESSION THAT RUNS THIS;'
                     ' ENTRY POINT FOR THE SESSION THAT RUNS THIS'])),
 
+    # The draft wrote the handover's slot `[PAIR'S]`, and note-check wants
+    # an `[EXEC]` block: Run 45's preparation learned the tag from 10e
+    # failing, 2026-10-04.
+    case('draft-tags-the-entry-point-exec', 'read-run.py', 'self',
+         "the draft's entry-point slot carried [PAIR'S], not the [EXEC]"
+         ' note-check requires',
+         plant=lambda t: {'note': write(
+             os.path.join(t, 'run29-pair.txt'),
+             "hdr\n\nENTRY POINT FOR THE SESSION THAT RUNS THIS [PAIR'S]."
+             " Spent.\n\nA [SAME]: spec leads, nospec follows."
+             "\nHALVES: basis=spec other=nospec\n")},
+         argv=['--note', '{note}', '--draft', 'run30',
+               '--halves', 'nospec,libcase'],
+         ok=V(exit=0,
+              has=['ENTRY POINT FOR THE SESSION THAT RUNS THIS [EXEC]:'
+                   ' <yours>'],
+              hasnt=["ENTRY POINT FOR THE SESSION THAT RUNS THIS [PAIR'S]:"
+                     ' <yours>']),
+         bug=V(exit=0,
+               has=["ENTRY POINT FOR THE SESSION THAT RUNS THIS [PAIR'S]:"
+                    ' <yours>'])),
+
     case('draft-s-yours-list-renames-only-the-run-number', 'read-run.py',
          '89bdb3c',
          'the YOURS list named a half the drafted pair does not have',
@@ -14913,7 +15070,7 @@ RECORDS = [
               has=["THE ROSTER [PAIR'S]: <yours> -- the previous pair's",
                    "THE ROSTER [PAIR'S]: 5 benches on run30-nospec",
                    'and a continuation line',
-                   "ENTRY POINT FOR THE SESSION THAT RUNS THIS [PAIR'S]:"
+                   'ENTRY POINT FOR THE SESSION THAT RUNS THIS [EXEC]:'
                    ' <yours>'],
               hasnt=['Spent on'])),
 

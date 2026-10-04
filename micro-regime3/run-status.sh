@@ -148,7 +148,7 @@ runs it)"
     say 2c "NOT DONE" "$OWED slot(s) still <yours> in $NOTE, fill-in rows \
 and undecided blocks alike: \
 $(printf '%s\n' "$SLOTS" \
-  | sed "s/<yours>.*//; s/\[PAIR'S\]:*//; s/^ *//; s/ *$//" \
+  | sed "s/<yours>.*//; s/\[PAIR'S\]:*//; s/\[EXEC\]:*//; s/^ *//; s/ *$//" \
   | grep -v '^$' | tr '\n' ';' | sed 's/;$//')"
   fi
 else
@@ -176,16 +176,24 @@ git show HEAD:micro-regime3/README.md > "$TMP/readme.head.wrapped" 2>/dev/null
 if ! wrap80 --unwrap "$TMP/readme.head.wrapped" > "$TMP/readme.head"; then
   echo "BLOCKED: wrap80 --unwrap failed on HEAD's README.md, so nothing below was judged"; exit 2
 fi
-if grep -q "$REG_LEAD" "$TMP/readme" || { [ -f "$DOC" ] && grep -q "^$REG_HEAD" "$DOC"; }; then
+# THE ITEMS, NOT THE LEAD: the owner commits a registration's lead with the
+# pair and 12a writes its items, so a lead alone is 12a owed. An item is a
+# `(1)` or a `predict:` span on the lead's own line, README read unwrapped.
+# Case: `status-wants-the-items-for-12a`.
+ITEMS='(1)\|predict:'
+if grep "$REG_LEAD" "$TMP/readme" | grep -q "$ITEMS" \
+   || { [ -f "$DOC" ] && grep -q "^$REG_HEAD" "$DOC"; }; then
   say 12a "done" "a registration for Run $N is in README's open list or in $DOC"
+elif grep -q "$REG_LEAD" "$TMP/readme"; then
+  say 12a "NOT DONE" "Run $N's registration lead is in README with no numbered item and no predict: span: its items are owed"
 else
   say 12a "NOT DONE" "no '$REG_LEAD' in README.md and no registration section in $DOC"
 fi
-if grep -q "$REG_LEAD" "$TMP/readme.head" \
+if grep "$REG_LEAD" "$TMP/readme.head" | grep -q "$ITEMS" \
    || { [ -f "$DOC" ] && git show "HEAD:micro-regime3/$DOC" 2>/dev/null | grep -q "^$REG_HEAD"; }; then
   say 12c "done" "the registration is committed"
 else
-  say 12c "NOT DONE" "the registration is not in HEAD"
+  say 12c "NOT DONE" "the registration's items are not in HEAD"
 fi
 
 PHASE=run

@@ -189,6 +189,49 @@ MUTANTS = [
      "            if False:",
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nr = subprocess.run([sys.executable, \'{file}\', \'--lint\', \'--readme\', d.readme_with_a_registration(t, lead_extra=\'declared by request\')], capture_output=True, text=True)\nsys.exit(0 if \'not the form --move-registration matches\' in r.stdout + r.stderr else 1)"'),
 
+    # AND parse_counts READS THE COLUMN IT IS ASKED FOR. Keyed on the
+    # instructions again, a cycle prior is an instruction ratio under
+    # another name.
+    ('parse_counts reads instructions whatever the event', 'read-run.py',
+     '                    col, width = 3 + evs.index(event), 3 + len(evs)',
+     "                    col, width = 3 + evs.index('instructions:u'),"
+     " 3 + len(evs)",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nsp = importlib.util.spec_from_file_location(\'r\', \'{file}\')\nr = importlib.util.module_from_spec(sp)\nsp.loader.exec_module(r)\nf = d.probe_stalls_sweeps(tempfile.mkdtemp())[\'new\']\nsys.exit(0 if r.parse_counts(f, event=\'cycles:u\')[0][\'s1\'].get(\'lib-b\') == 1800.0 else 1)"'),
+
+    # AND --countdiff NAMES THE LARGEST DIFFERENCE, the one a span is held
+    # to. With the ends swapped it names the smallest, and a span set from
+    # it fails on the shape it never named.
+    ('--countdiff reports the smallest difference as the largest',
+     'read-run.py',
+     '        lo, hi = ds[0], ds[-1]',
+     '        lo, hi = ds[-1], ds[0]',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nf = d.probe_stalls_sweeps(tempfile.mkdtemp())[\'new\']\nr = subprocess.run([sys.executable, \'{file}\', \'--counts\', f, \'--countdiff\', \'lib-a\', \'lib-b\'], capture_output=True, text=True)\nsys.exit(0 if \'largest -970 on s1\' in r.stdout else 1)"'),
+
+    # AND 10c READS A GLOB AS A PATTERN. Tested as a literal path again, a
+    # note naming `probe-zzpg-*` fails 10c with that very file present.
+    ('10c reads a glob in the note as a literal path', 'preflight.sh',
+     '                      *\\**) compgen -G "$q" > /dev/null || echo "$q" ;;',
+     '                      *\\**) [ -e "$q" ] || echo "$q" ;;',
+     'printf \'a stand-in pair note naming probe-zzpg-* only.\\n'
+     'HALVES: basis=lookrts other=a1g\\n\' > "{dir}/zzpg-pair.txt"; '
+     'touch "{dir}/probe-zzpg-a"; '
+     '{file} zzpg --note 2>&1 | grep -q "10c  PASS"'),
+
+    # AND --note-check READS ONLY ITEM NUMBERS. With `item` optional again
+    # every `(N)` is an item, and a step number in parentheses fails a
+    # clean note, as Run 45's entry point did on 2026-10-04.
+    ('--note-check reads any parenthesised number as an item', 'read-run.py',
+     "    refs = re.compile(r'\\bitems?\\s+((?:\\(\\d{1,2}\\)(?:\\s*(?:,|and|or|to|--?)'",
+     "    refs = re.compile(r'(?:\\bitems?\\s+)?((?:\\(\\d{1,2}\\)(?:\\s*(?:,|and|or|to|--?)'",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nn = d.note_for_the_check(t, broken=False)\nopen(n, \'a\').write(\'THE SWEEPS: the smoke sweep (11) ran.\\n\')\nr = subprocess.run([sys.executable, \'{file}\', \'--note-check\', n, \'--readme\', d.readme_with_a_registration(t)], capture_output=True, text=True)\nsys.exit(0 if \'item (11)\' not in r.stdout + r.stderr else 1)"'),
+
+    # AND IT READS `Item (9)`: case-sensitive again, a sentence opening on
+    # an item number goes unread.
+    ('--note-check reads only a lower-case item', 'read-run.py',
+     "                      r'\\s*)?)+)', re.I)",
+     "                      r'\\s*)?)+)')",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nn = d.note_for_the_check(t, broken=False)\nopen(n, \'a\').write(\'THE ITEMS: Item (9) holds, and items (1)--(8) were read.\\n\')\nr = subprocess.run([sys.executable, \'{file}\', \'--note-check\', n, \'--readme\', d.readme_with_a_registration(t)], capture_output=True, text=True)\nsys.exit(0 if \'item (9)\' in r.stdout + r.stderr and \'item (8)\' in r.stdout + r.stderr else 1)"'),
+
     # AND --lint READS A `counts` SPAN FOR ITS SWEEP. The kind spelled
     # `count`, as the pattern had it until 2026-10-04, matches no span the
     # grammar admits, and every `counts` prior went unread.
