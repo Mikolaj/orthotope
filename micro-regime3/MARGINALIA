@@ -1319,3 +1319,27 @@ THE WRITE-UP SESSION'S HALF
 **A step skipped.** Post-run 4a's copy test for the one unexplained half-local mover waits for the owner, `QUIET-AFTER:` reading `ask`.
 
 **A correction to What Run 43 made cheaper**: the correction-footing sentence that read the reader's warnings off stdout is `--provenance-draft`'s, not `--prose-draft`'s, as the block above names it; the fix and its case, `provenance-draft-names-a-warned-json`, are in `7cb27fd`.
+
+**What Run 44 made cheaper**
+
+THE PREPARATION'S HALF
+
+**A check that would have caught an error.** `--repeat`'s moved-input slots read the source, the shim and the boot and not the compiler, so the stage1 the owner rebuilt under its unchanged version drafted as unmoved; they now read the compiler binary's date against the build's (case `repeat-misses-a-rebuilt-compiler`). A `compilers` fill-in row carrying the binary's md5 would make that reading exact rather than dated.
+
+**A computation improvised.** The two prior sweeps' cycle agreement, a median per cell, and item (2)'s cycle ratios were a scratch script's: no mode of `read-run.py` reads the cycles column `probe-stalls.sh` writes.
+
+**A step skipped or stalled.** Preflight's 10b failed on one exit span astride on the control, which was the survey reading a continuation's bytes after an info table as a loop, the fourteenth such site, caught now by its high-byte register (case `survey-counts-a-high-byte-register-decode-as-a-loop`, and a mutant). Step 8 failed on README after `wrap80` was rewritten under the tree, README being rewrapped in a commit of its own, `139fcb7`; and another session's commit in `~/.claude` rewrapped the preparation's unwrapped README mid-stretch, the turn-end hold binding no session's pre-commit restore, so the Edits after it were refused until the file was read again.
+
+**A capability found.** Whether a store built before a compiler's rebuild still fits it is read by `ghc --show-iface` on a store interface and on the rebuilt library's own.
+
+THE WRITE-UP SESSION'S HALF
+
+**A prior the registration carried and did not read.** Both prior sweeps' cycles put `lib-stage3-lean` at 0.932 and 0.935 of `lib-stage2-lean` on `stretch-wide-2xM`, agreeing; item (1) quoted the instructions alone and died in the direction those cycles gave. On code a commit rewrote, the cycles column of the registration's own priors is the reading to quote.
+
+**The same computation improvised again, with a bug.** The quiet-box cycles reading, two binaries against each other over `probe-stalls.sh` sweeps, was a scratch script a third time running, and its first version expected nine fields where the file has eight, skipped every line and divided by zero. A `read-run.py` mode reading two sweep files' cycles and instructions side by side, a median over sweeps, would retire it.
+
+**A drafter refusal caused by the registration.** `--prose-draft --in-place` would not place the offsets paragraph because two paragraphs carry `./loop-offsets.py --delta`, the run file's own and the moved registration, which quotes the command. Its search should leave the registration section out.
+
+**A truncated refusal cost a five-minute rerun.** The drafter prints the paragraph it could not place to its output only, and piping that through `cut` lost it, so the whole draft ran again to recover one paragraph. Read the drafter's output whole.
+
+**The quiet box asked for in person, and spent in six minutes.** The owner returned mid-write-up and granted the box for after the counts; the three readings, the cycles sweeps and both copy tests, were written as one script before asking, so they ran from 11:02:51 to 11:09:06 and the box was handed back at once.
