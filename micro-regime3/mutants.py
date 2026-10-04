@@ -189,6 +189,14 @@ MUTANTS = [
      "            if False:",
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nr = subprocess.run([sys.executable, \'{file}\', \'--lint\', \'--readme\', d.readme_with_a_registration(t, lead_extra=\'declared by request\')], capture_output=True, text=True)\nsys.exit(0 if \'not the form --move-registration matches\' in r.stdout + r.stderr else 1)"'),
 
+    # AND --lint READS A `counts` SPAN FOR ITS SWEEP. The kind spelled
+    # `count`, as the pattern had it until 2026-10-04, matches no span the
+    # grammar admits, and every `counts` prior went unread.
+    ('--lint stops reading a counts span for its sweep', 'read-run.py',
+     "                    re.findall(r'predict:\\s+(?:counts\\s+([\\w-]+)'",
+     "                    re.findall(r'predict:\\s+(?:count\\s+([\\w-]+)'",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nr = subprocess.run([sys.executable, \'{file}\', \'--lint\', \'--readme\', d.readme_with_a_registration(t, counts_span=True)], capture_output=True, text=True)\nsys.exit(0 if \'Run 99 quotes a count prior for mut-odo-vecdims\' in r.stdout + r.stderr else 1)"'),
+
     # AND --floor-pairs NAMES THE PAIR THAT CARRIES THE FLOOR. The mode
     # prints and never judges -- the floor is the widest of the pairs it
     # lists -- so the carrier IS its answer, and a carrier read off the

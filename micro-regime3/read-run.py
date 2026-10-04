@@ -3999,7 +3999,11 @@ def counts_pair(counts_a, pairs, shapes, cells=None, per_shape=False):
             continue
         gnet = geomean(net)
         rate = '--'
-        if cells is not None:
+        # An arm the sweep holds and the run JSON does not has no time
+        # half: `--pair` alone says `not in this run`, and this raised
+        # KeyError. Case: `counts-pair-arm-absent-from-the-run`.
+        if cells is not None and all(x in cells.get(sh, {})
+                                     for sh in shapes for x in (a, b)):
             try:
                 _, tr = pair_stats(cells, shapes, a, b)
             except SystemExit:
@@ -16552,9 +16556,14 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
             # here named the arm, so pre-run 12b read their times back and
             # not their instructions -- the reading, not the figure, is
             # what goes missing.
+            # `counts ARM X` and `countdiff A B`, the kinds' own spellings
+            # and arities: `count` matched the first not at all, and a
+            # second operand optional for both would read a `counts`
+            # target's integer part as an arm. Case:
+            # `lint-notes-a-counts-span-prior`.
             arms = {a for pair in
-                    re.findall(r'predict:\s+count(?:diff)?\s+([\w-]+)'
-                               r'(?:\s+([\w-]+))?', t)
+                    re.findall(r'predict:\s+(?:counts\s+([\w-]+)'
+                               r'|countdiff\s+([\w-]+)\s+([\w-]+))', t)
                     for a in pair if a}
             if arms:
                 have = set()
@@ -17809,8 +17818,13 @@ def main():
     # retrieval, and a session that had to say which file a paragraph is in
     # before asking for it would be doing the search this mode exists to
     # replace -- so they take the pair and the answer says which file it
-    # came from. `--replace` refuses an anchor that occurs in both.
-    docs = [args.readme] + ([args.run_doc] if args.run_doc else [])
+    # came from. `--replace` refuses an anchor that occurs in both. A
+    # --run-doc naming README itself is one document and searched once, or
+    # every lead in it counts twice. Case:
+    # `section-run-doc-naming-readme-searched-twice`.
+    docs = [args.readme] + ([args.run_doc] if args.run_doc and (
+        os.path.realpath(args.run_doc) != os.path.realpath(args.readme))
+        else [])
     if args.replace:
         if not args.with_:
             sys.exit('--replace wants --with FILE, the replacement text')

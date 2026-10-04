@@ -1956,7 +1956,8 @@ def parked_arm():
 def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
                                lead_extra=None, unscoped=False, bare=False,
                                script='read-run.py', views_only=False,
-                               cross_both_target=None, no_items=False):
+                               cross_both_target=None, no_items=False,
+                               counts_span=False):
     """The README plus a synthetic OPEN registration, at the end.
 
     SYNTHETIC and not an edit of the live one, which is the whole point:
@@ -2019,6 +2020,9 @@ def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
     if views_only:
         entry += (" (6) *The views.* `predict: countdiff mut-odo-vecdims"
                   " bq-expand under 100 on views stretch-primes both`.")
+    if counts_span:
+        entry += (" (7) *The counted.* `predict: counts mut-odo-vecdims"
+                  " 1.0 within 1% on main basis`.")
     if task:
         entry += " (3) *The additions.* Task %s's, read there." % task
     if task_arm:
@@ -8711,6 +8715,23 @@ RECORDS = [
                '--pair', 'mut-odo-vecdims', 'bq-expand'],
          ok=V(exit=2, has=['no shape carries both'])),
 
+    case('counts-pair-arm-absent-from-the-run', 'read-run.py', 'self',
+         'a counted pair over an arm the run JSON lacks raised KeyError',
+         # Run 45's preparation read lib-stage0 against lib-stage1 off its
+         # own prior sweep beside Run 44's main JSON, which predates
+         # lib-stage0: the counted columns were there to print, and the
+         # time half's `pair_stats` raised KeyError out of the mode, where
+         # `--pair` alone says `not in this run`. Met 2026-10-04.
+         plant=lambda t: {'run': synth_json(t, 'main'),
+                          'counts': synth_counts(t, 'c.txt',
+                                                 cheap_sum_only=True,
+                                                 extra_arms=('new-arm',))},
+         argv=['{run}', '--counts', '{counts}',
+               '--pair', 'new-arm', 'bq-expand'],
+         ok=V(exit=0, has=['new-arm / bq-expand'],
+              hasnt=['KeyError', 'Traceback']),
+         bug=V(has=['KeyError'])),
+
     case('counts-pair-refuses-two-files', 'read-run.py', None,
          'the two arities of --counts read as each other',
          # ONE sweep file with `--pair` is the within-half reading and TWO
@@ -15356,8 +15377,13 @@ RECORDS = [
          plant=lambda t: {'readme': readme_with_a_registration(
              t, views_only=True)},
          argv=['--lint', '--readme', '{readme}'],
-         ok=V(has=['quotes a count prior for'])),
+         ok=V(has=['Run 99 quotes a count prior for'])),
 
+    # BOTH VERDICTS NAME RUN 99 since 2026-10-04: the fixture is the live
+    # README with Run 99 appended, and the live OPEN registration is read
+    # too, beside a scratch directory holding no sweep of its own. Run 45's
+    # countdiff span was noted there, which failed the control below and
+    # would have satisfied the case above with Run 99's note gone.
     case('lint-passes-a-count-prior-whose-sweep-is-here', 'read-run.py', None,
          'CONTROL: the same span with a counts file naming both arms is'
          ' not noted',
@@ -15368,7 +15394,21 @@ RECORDS = [
                               'shape mut-odo-vecdims 10 100\n'
                               'shape bq-expand 10 200\n')},
          argv=['--lint', '--readme', '{readme}'],
-         ok=V(hasnt=['quotes a count prior'])),
+         ok=V(hasnt=['Run 99 quotes a count prior'])),
+
+    case('lint-notes-a-counts-span-prior', 'read-run.py', 'self',
+         'a `counts` span was never read by the count-prior note, its'
+         ' pattern spelling the kind `count`',
+         # The kinds are `counts` and `countdiff`, and the pattern was
+         # `count(?:diff)?\s+`, so a `counts` span failed at its `s`: every
+         # registration's `counts` priors went unchecked for a sweep on
+         # disk since the note landed on 2026-09-18. Found preparing Run
+         # 45, whose countdiff span the note did read.
+         plant=lambda t: {'readme': readme_with_a_registration(
+             t, counts_span=True)},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(has=['Run 99 quotes a count prior for mut-odo-vecdims']),
+         bug=V(hasnt=['Run 99 quotes a count prior'])),
 
     case('registration-arm-is-not-timed', 'read-run.py', 'f40fad2',
          'nothing here read a registration, and Run 24 lost a clause of one',
@@ -15580,6 +15620,21 @@ RECORDS = [
                '{readme}'],
          ok=V(exit=1, has=['no heading and no bolded lead matches',
                            '`--para PATTERN` searches every paragraph'])),
+
+    # ---- --section, and a --run-doc naming README itself -----------------
+    # The documents searched are --readme and --run-doc, and --run-doc took
+    # README.md without a word, so README was searched twice and a lead it
+    # carries once counted as two: `--section 'The shape of a registration'
+    # --run-doc README.md` listed its one lead twice and refused. Met preparing
+    # Run 45, 2026-10-04.
+    case('section-run-doc-naming-readme-searched-twice', 'read-run.py',
+         'self',
+         'a --run-doc naming README searched it twice, one lead read as two',
+         plant=lambda t: {'readme': README},
+         argv=['--section', 'Which two halves a pair has',
+               '--readme', '{readme}', '--run-doc', '{readme}'],
+         ok=V(exit=0, has=['this is a BOLDED LEAD']),
+         bug=V(exit=1, has=['bolded lead(s) do; narrow it to one'])),
 
     case('registration-both-on-a-non-unity-cross', 'read-run.py', None,
          'CONTROL: `both` on a cross-half span whose target is away from 1'
