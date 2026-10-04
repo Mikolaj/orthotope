@@ -2,7 +2,7 @@
 # `pairs` is how many A/A pairs the whole-set figure is a max over, so rows
 # with different `pairs` are different statistics. `carry-*` is the max
 # over the four pairs that carry back to Run 10. A `-` is a figure no
-# write-up recorded; Runs 16 to 35's artifacts are deleted, so their rows
+# write-up recorded; Runs 16 to 39's artifacts are deleted, so their rows
 # are records and cannot be re-derived.
 run	pairs	basis	control	carry-basis	carry-control
 16	18	2.32%	1.22%	-	-

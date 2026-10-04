@@ -1432,66 +1432,65 @@ rather than a slot in the next run, observed again:
   from a pagemap. Its first real run, the same day on a box at a load near two,
   read Run 35's control instance at **1.135** of a fresh copy and swapped it,
   the basis's at 0.959 and left it, four readings a side with the spread
-  of a busy box (`log-instance-gate-run35.txt`; [Run 35's file](runs/run35.md)
-  says what that moved); a swap made on noise costs one copy and nothing else,
-  which is the asymmetry the bar is set by. **Three routes past the gate, none
-  taken.** (1) *The bit-range experiment*, half an hour on a quiet box with root
-  for the pagemap reads: eight copies of one binary on the mount, a few hundred
-  megabytes of unrelated allocation between copies so that the frames spread,
-  each timed on the scaled cell and its 2 MiB frame read by `probe-pageflags.py`
-  while it runs. Slowness tracking bits 21 to 29 means placement can
-  be controlled; only bits 30 and up separating the copies means DRAM channel
-  or L3 slice selection, out of user space's reach, and the gate is the ceiling.
-  Eight frames adjacent despite the spacers leave the high bits untested,
-  and the run must say so rather than answer. (2) *1 GiB pages*, only if (1)
-  names bits 21 to 29: not a mount, since nothing executes from hugetlbfs, ELF
-  segments sitting at 4 KiB file offsets, so it needs a loader that remaps
-  the text at startup, which libhugetlbfs's `hugectl --text` did and nothing
-  maintained does now. (3) *A fresh copy per process* instead of per half, which
-  turns a half-wide bias into per-process noise the A/A floors absorb,
-  at the price of wider floors --- the fallback where the gate's minutes per
-  launch are not to be had. Registered 2026-09-18. **Raised by hand
-  on 2026-09-20 for a day of probes, and the draw was counted on both media
-  over every binary still on disk, Runs 31 to 37, both halves of each**:
-  `probe-frames-0920.sh` read every disk instance and every mounted instance
-  under root, `probe-instances-0920.sh` timed each disk instance against
-  its mounted instance and a fresh mounted copy, and `probe-draws-0920.sh` timed
-  each binary's cached disk instance beside three fresh disk copies and three
-  fresh mounted copies held at once, four readings each on the scaled cell, all
-  in `log-frames-0920.txt`, `log-instances-0920.txt`, `log-chain-0920.txt`
-  and `log-draws-0920.txt` beside them. **The rate is about one draw in ten
-  on both media, and the binary's era does not enter**: parting from the other
-  draws of its medium by more than the 5% bar, the disk drew 5 slow of 56
-  and the mount 3 slow and 1 fast of 42, the sweep before it 2 slow mounted
-  copies of 14 and the copy test 1 slow disk copy of 2, every slow draw 6 to 10
-  percent over its siblings and consistent across its readings, on both
-  compilers, both regimes and builds from Run 31's to Run 37's alike; the Run 35
-  basis's cached disk instance read slow at both ends of the day, against
-  its mounted instance in the morning and against three fresh disk copies
-  in the evening. **All 28 instances kept their frames through the day**, every
-  one of the 56 hot pages at the same physical address in the morning read
-  and the evening one, the disk ones 4 KiB pages and the mounted ones each
-  in one 2 MiB folio at physical equal to virtual modulo 2 MiB --- so the mount
-  held the L2 sets fixed and the rate stayed the disk's, which is Run 34's
-  finding again over fourteen binaries: the term lives in bits 21 and up.
-  **The folio state of the 18th did not return after the reboot**:
-  `FileHugePages` read 59392 kB through fourteen batches of fresh disk copies,
-  every probed page stayed 4 KiB, and `pages_collapsed` went 0 to 39
-  over the morning and to 1925 by evening on pages the probes did not read.
-  **Route (1) was then taken the same evening in a cheaper form, and its one
-  candidate rule is REFUTED, recorded here so it is not re-proposed.**
-  The sweep's fourteen mounted copies had their frames read under root beside
-  their instances' (`probe-frames-copies-0920.sh`), fourteen same-bytes pairs
-  with both frames known, and the two slow copies were the only two of all 28
-  mounted instances and copies whose physical bits 25 to 28 read 0 or 1,
-  the other 26 spanning 2 to f --- so a prediction was registered before
-  the next step, in `probe-reuse-0920.sh`'s header: a fresh copy landing
-  in a frame with those bits at 0 or 1 reads slow whichever binary it is, any
-  other level. The copies were deleted and fourteen made again in reverse order;
-  the freed frames were not handed back, the new copies landing at 2 MiB frames
-  `0x32ea` to `0x339b` in units of 2 MiB, and exactly one of them
-  in the predicted region, `run32-nospec`'s at `0x3314`. Timed at four readings
-  a side against its mounted instance (`probe-retime-0920.sh`,
+  of a busy box ([Run 35's file](runs/run35.md) says what that moved); a swap
+  made on noise costs one copy and nothing else, which is the asymmetry the bar
+  is set by. **Three routes past the gate, none taken.** (1) *The bit-range
+  experiment*, half an hour on a quiet box with root for the pagemap reads:
+  eight copies of one binary on the mount, a few hundred megabytes of unrelated
+  allocation between copies so that the frames spread, each timed on the scaled
+  cell and its 2 MiB frame read by `probe-pageflags.py` while it runs. Slowness
+  tracking bits 21 to 29 means placement can be controlled; only bits 30 and up
+  separating the copies means DRAM channel or L3 slice selection, out of user
+  space's reach, and the gate is the ceiling. Eight frames adjacent despite
+  the spacers leave the high bits untested, and the run must say so rather
+  than answer. (2) *1 GiB pages*, only if (1) names bits 21 to 29: not a mount,
+  since nothing executes from hugetlbfs, ELF segments sitting at 4 KiB file
+  offsets, so it needs a loader that remaps the text at startup, which
+  libhugetlbfs's `hugectl --text` did and nothing maintained does now. (3)
+  *A fresh copy per process* instead of per half, which turns a half-wide bias
+  into per-process noise the A/A floors absorb, at the price of wider floors ---
+  the fallback where the gate's minutes per launch are not to be had. Registered
+  2026-09-18. **Raised by hand on 2026-09-20 for a day of probes, and the draw
+  was counted on both media over every binary still on disk, Runs 31 to 37, both
+  halves of each**: `probe-frames-0920.sh` read every disk instance and every
+  mounted instance under root, `probe-instances-0920.sh` timed each disk
+  instance against its mounted instance and a fresh mounted copy,
+  and `probe-draws-0920.sh` timed each binary's cached disk instance beside
+  three fresh disk copies and three fresh mounted copies held at once, four
+  readings each on the scaled cell, all in `log-frames-0920.txt`,
+  `log-instances-0920.txt`, `log-chain-0920.txt` and `log-draws-0920.txt` beside
+  them. **The rate is about one draw in ten on both media, and the binary's era
+  does not enter**: parting from the other draws of its medium by more
+  than the 5% bar, the disk drew 5 slow of 56 and the mount 3 slow and 1 fast
+  of 42, the sweep before it 2 slow mounted copies of 14 and the copy test 1
+  slow disk copy of 2, every slow draw 6 to 10 percent over its siblings
+  and consistent across its readings, on both compilers, both regimes and builds
+  from Run 31's to Run 37's alike; the Run 35 basis's cached disk instance read
+  slow at both ends of the day, against its mounted instance in the morning
+  and against three fresh disk copies in the evening. **All 28 instances kept
+  their frames through the day**, every one of the 56 hot pages at the same
+  physical address in the morning read and the evening one, the disk ones 4 KiB
+  pages and the mounted ones each in one 2 MiB folio at physical equal
+  to virtual modulo 2 MiB --- so the mount held the L2 sets fixed and the rate
+  stayed the disk's, which is Run 34's finding again over fourteen binaries:
+  the term lives in bits 21 and up. **The folio state of the 18th did not return
+  after the reboot**: `FileHugePages` read 59392 kB through fourteen batches
+  of fresh disk copies, every probed page stayed 4 KiB, and `pages_collapsed`
+  went 0 to 39 over the morning and to 1925 by evening on pages the probes did
+  not read. **Route (1) was then taken the same evening in a cheaper form,
+  and its one candidate rule is REFUTED, recorded here so it
+  is not re-proposed.** The sweep's fourteen mounted copies had their frames
+  read under root beside their instances' (`probe-frames-copies-0920.sh`),
+  fourteen same-bytes pairs with both frames known, and the two slow copies
+  were the only two of all 28 mounted instances and copies whose physical bits
+  25 to 28 read 0 or 1, the other 26 spanning 2 to f --- so a prediction
+  was registered before the next step, in `probe-reuse-0920.sh`'s header:
+  a fresh copy landing in a frame with those bits at 0 or 1 reads slow whichever
+  binary it is, any other level. The copies were deleted and fourteen made again
+  in reverse order; the freed frames were not handed back, the new copies
+  landing at 2 MiB frames `0x32ea` to `0x339b` in units of 2 MiB, and exactly
+  one of them in the predicted region, `run32-nospec`'s at `0x3314`. Timed
+  at four readings a side against its mounted instance (`probe-retime-0920.sh`,
   `log-retime-0920.txt`, the earlier two-reading pass in `log-reuse-0920.txt`
   being too thin to judge), that copy read **1.021**, level, while the one copy
   past the bar, the Run 36 basis's at **1.067**, sits at bits 9,
@@ -1653,7 +1652,7 @@ rather than a slot in the next run, observed again:
   `stretch-pow2stride`, where the two arms tie.** **PARKED 2026-09-26
   by the owner.** The clause is a sanity check, `mut-odo-vecdims` ahead
   of `bq-expand` on every shape. It holds on every shape of all ten classes
-  on both halves, and on this one cell the runs on disk have read
+  on both halves, and on this one cell the runs from Run 36 on have read
   `mut-odo-vecdims` on both sides of 1, every reading behind `bq-expand` inside
   the floor of the half it was read on.
   `./read-run.py --series mut-odo-vecdims bq-expand stretch-pow2stride` prints
@@ -11768,16 +11767,17 @@ of a point on the control --- and since 2026-09-13 a margin between two rows
 clears the whole-set one, the carry-back figure being the series and not the bar
 ([the open list][open]). Read the floor as the run's *and the half's*,
 re-measured every time, never as a constant of the harness and never inherited.
-**And only the rows from Run 36 on can still be re-derived**: Runs 24 to 30's
-artifacts were deleted 2026-09-18 and Runs 31 to 35's 2026-09-23, at the owner's
-word, so `--series` starts at Run 36 and every earlier row of `series/floor.tsv`
-is a RECORD, there and in that run's own file, rather than something a later
-session can check. **And both of the checks from OUTSIDE the declared pairs
-are still gone with their arms.** `lib-stage2-disp` was parked on 2026-09-07
-and the two undeclared pairs that stood in its place on Run 28 both lost
-a member to the parking of 2026-09-11, so this run, like Runs 29 to 43, has
-no check on the declared eight from outside them at all. A run that wants
-that check again has to land an arm for it.
+**And only the rows from Run 40 on can still be re-derived**: Runs 24 to 30's
+artifacts were deleted 2026-09-18, Runs 31 to 35's 2026-09-23 and Runs 36
+to 39's 2026-10-04, at the owner's word, so `--series` starts at Run 40
+and every earlier row of `series/floor.tsv` is a RECORD, there and in that run's
+own file, rather than something a later session can check. **And both
+of the checks from OUTSIDE the declared pairs are still gone with their arms.**
+`lib-stage2-disp` was parked on 2026-09-07 and the two undeclared pairs
+that stood in its place on Run 28 both lost a member to the parking
+of 2026-09-11, so this run, like Runs 29 to 43, has no check on the declared
+eight from outside them at all. A run that wants that check again has to land
+an arm for it.
 
 **The 0.7% differencing bar, measured against the pairs it is applied to ---
 and it is near the MEDIAN of that population rather than a bound on it.**
