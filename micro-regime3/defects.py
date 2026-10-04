@@ -296,9 +296,19 @@ def readme_lines(rev=None):
     took `checkdoc-without-a-roster` and `checkdoc-open-list-out-of-order`
     out of --audit, both wanting exit 0 and both getting 1. Replaying the
     code means replaying the README.
+
+    A replayed README is handed over one line per paragraph, `wrap80
+    --unwrap`'s fixed point, because its committed wrapping is the wrap80
+    of its day: the rewrite of 2026-10-03 keeps a number on the line with
+    its unit, which re-broke five of `a6c32e8^`'s paragraphs, and the old
+    reader's wrap pass, calling today's wrap80, failed those two cases
+    again. The unwrapped form is the same under every wrap80.
     """
-    return (open(README).read() if rev is None
-            else at_rev('README.md', rev)).split('\n')
+    if rev is None:
+        return open(README).read().split('\n')
+    return subprocess.run(['wrap80', '--unwrap'],
+                          input=at_rev('README.md', rev), capture_output=True,
+                          text=True, check=True).stdout.split('\n')
 
 
 def era_readme(tmp, rev, name='era-README.md'):
