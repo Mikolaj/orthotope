@@ -809,31 +809,45 @@ rather than a slot in the next run, observed again:
   it passes no axis; and (4) the regime's worth reads `list` at 1.2950 against
   1.294 within 1% and `bq-expand` at 1.3212 against 1.305 within 2%, on the main
   set's quiet rerun --- all eleven spans HELD.
-- `OPEN` **The branch's conversion code saves instructions in `lib-stage2-lean`
-  and costs time on both halves, and the loop it compiles to runs at a lower
-  rate.** Run 44's registration (1) read the instructions `b7d0ee1` saves
-  as time and was KILLED on both halves ([Run 44's
-  file](runs/run44.md#what-this-run-was-built-to-answer-and-what-it-answered)):
-  against Run 43's same half `lib-stage2-lean` reads 2.81 points slower
-  on the basis and 2.49 on the control, widest on `stretch-wide-2xM` at about
-  1.16 on both, where the prior read its instructions 2.2% down,
-  and the reducing consumer `liblist-stage4-sum` 1.28 and 1.03 points slower.
-  A cycles reading on the owner's quiet box after Run 44's counts,
-  `probe-stalls.sh` over the main set on the two runs' basis binaries, two
-  sweeps each (`probe-r44-lean-run44-1.txt`, `probe-r44-lean-run44-2.txt`,
-  `probe-r44-lean-run43-1.txt` and `probe-r44-lean-run43-2.txt`), puts
-  `lib-stage2-lean` at 0.9778 of Run 43's instructions on `stretch-wide-2xM`
-  and `stretch-tab7MB` and at 1.0589 and 1.0750 of its cycles on the first,
-  1.0474 and 1.0604 on the second, the two sweeps agreeing there, its front-end
-  stalls, branch misses and cache misses moving too but far too few to carry
-  the added cycles, while `lib-stage3-lean`, whose instructions no commit moved,
-  reads 0.9866 to 1.0017 of the cycles there --- so the rebuild did not slow
-  the fill it compiled to the same instructions, and the cost sits where
-  `b7d0ee1` changed the code. One build cannot part that code's own rate
-  from where its loop landed. **What would settle it**: `perf record`
-  on `stretch-wide-2xM/lib-stage2-lean` on both basis binaries, naming the hot
-  loop and its instructions a cycle on each, and a second build of the recipe
-  whose only move is placement.
+- `ANSWERED` **Why did the instructions `b7d0ee1` saves in `lib-stage2-lean`
+  cost time? The level loop's form and not its placement: bounded by an end,
+  it runs slower on this Zen 3 than counting its blocks down, where
+  the innermost runs are two elements long --- taken 2026-10-04.** Run 44's
+  registration (1) read those instructions as time and was KILLED on both halves
+  ([Run 44's
+  file](runs/run44.md#what-this-run-was-built-to-answer-and-what-it-answered)),
+  `lib-stage2-lean` 2.81 points slower than on Run 43's basis and widest
+  on `stretch-wide-2xM`. `perf record` on that cell names the loop on both basis
+  binaries: the same 46-byte body writing two elements, at offset 0 of its line
+  on both, the level loop's exit `dec; test; jle` on Run 43 and `mov; cmp; jge`
+  on Run 44, one instruction a run fewer, and the fill at 1.13 to 1.15 of Run
+  43's cycles with the forcing pass level. A build of `c100112` with the two
+  fills' level loops exchanged (`probe-r44-swap/`), read beside the two runs'
+  binaries, moves the cost with the form: in cycles a run of two elements,
+  the whole cell, the medians read 10.59 to 10.68 for the counted loop at four
+  placements and 11.39 to 11.40 for the bounded one at three, the control half's
+  among them. Op-cache windows and misses, the op queue, branches and their
+  mispredicts, fills, prefetches and TLB misses read the same on both forms,
+  while stalls on a full retire queue go from about 0.04 to about 0.22 a run;
+  IBS op samples taken from a plain terminal (`probe-r44-ibs.sh`,
+  `probe-r44-ibs/report-fixed.txt`) time each op from dispatch to completion
+  about the same on both forms, within a cycle, and find fewer ops in flight
+  on the bounded one, so the loss is in how fast ops are dispatched, which
+  no counter read here names. On patched copies of the Run 44 basis the exit's
+  `cmp` reading another register moves nothing, one op added to the level loop
+  recovers about two fifths of the cost, and two or three meet an op-cache
+  limit. **What it changed**: `pr-mikolaj-toVectorListT` now counts the loop
+  down, keeping it out of GHC
+  [#27894](https://gitlab.haskell.org/ghc/ghc/-/work_items/27894)'s float
+  with `Fused` holding the innermost outer level's `Axis`, a workaround
+  that issue's filed text lists, folded on 2026-10-04 into the branch's commit
+  that ported the Axis path; `b5cd52e` ported it to `fillStage2Axes`, so Run 45
+  times it. Built from the branch on GHC HEAD with `align-as.py` aligning both
+  loops, a client converting a transposed Storable view through `DynamicS` reads
+  the counted loop at 0.81 to 0.89 of the bounded one's cycles at `[2, 900000]`
+  and 0.92 to 1.04 at three smaller views, on the same bytes a call. Counting
+  the remaining elements down from the bound instead spilled the source vector's
+  base in the inner loop and ran slower than both forms (`probe-r44-c1/`).
 - `ANSWERED` **What moved the control's `lib-stage1` on `small`, Run 43's one
   unexplained half-local mover? That evening's PROCESS --- taken 2026-10-04.**
   By the copy test, on the owner's quiet box after Run 44's counts:
