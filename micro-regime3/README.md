@@ -751,6 +751,159 @@ rather than a slot in the next run, observed again:
   a one-copy gate is blind one launch in ten. Run 38, built again from the same
   recipes, reads the arm at **1.0205** with counts level. The readings are [in
   Run 37's file](runs/run37.md) and [Run 38's](runs/run38.md).
+- `OPEN` **What Run 44 is built to answer, registered before it runs.** The pair
+  is Run 43's, both recipes unchanged to the character and rebuilt on `Main.hs`
+  at `c100112` where Run 43 built from `e29cdf2`, on the owner's word
+  of 2026-10-03 that this run builds the previous run's recipes on the source
+  at the tip: both halves GHC HEAD `10.1.20260918` through `cabal.project.ghead`
+  at plain `-O1`, `align-as.py` at `1a359bd` as for Run 43, under
+  `LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1 LOOP_DEADSPOT=1 LOOP_EXITSPAN=1 LOOP_SETTLED=1`,
+  `-fobject-determinism` on both, the control's line carrying
+  `-fspec-constr -fliberate-case` besides, every process launched from disk,
+  the half names `run44-gheadnospec` and `run44-gheadtwopass`. THIS ENTRY
+  IS THE ONE DECLARATION SITE by the ruling of 2026-09-19, the command lines
+  being Run 43's with the builddir names moved. **The compiler moved
+  under the recipe**: on the owner's word of the same day it was patched without
+  changing its version, its name or the way it operates, and the stage1
+  at the recipe's path was written 2026-10-03 19:11 over a GHC checkout carrying
+  `GHC.Core.Opt.Simplify.Iteration`, `GHC.Core.Opt.Specialise`, `GHC.Core.Utils`
+  and `GHC.Core.Map.Expr` modified, its `--version` and the strings the binaries
+  carry unchanged; the dependency store was not rebuilt, every ABI hash
+  `run44-gheadnospec` carries being `run43-gheadnospec`'s. So the pair's own
+  `cross` figure is the two passes on a ninth build, now under the patched
+  compiler, and each half against Run 43's same half,
+  `--half-movers run44 run43`, carries the source and the compiler together;
+  the shim, `cabal.project.ghead` and `micro.cabal` did not move. The three
+  commits bring no arm in and take none out ---
+  `./roster-delta.py run43-gheadnospec run44-gheadnospec` reads every arm,
+  main-set shape and class view in the same order and every geometry unmoved ---
+  and `./registration-drift.py run44 --since run43` reaches every `lib-`,
+  `liblist-` and `libunord-` arm and no code behind the `list`,
+  `mut-odo-vecdims` and `bq-expand` families or the two `sum-only` halves. What
+  they change behind the arms the items read, off the commit messages:
+  `fillStage2Axes`, `fillStage3` and `fillStage3U1` read a broadcast run's
+  element as the branch's `genericFillStrided` does (`fdcd7a8`);
+  `lib-stage2-lean`, `liblist-stage4-sum` and `libunord-stage13-sum` run
+  the conversion code of `pr-mikolaj-toVectorListT` in place of the pair form,
+  `routeList4` its `routeT`, `routeUnord13` its `unorderedRouteT`
+  with the zero-stride axis now just outside the run, and `fillStage2Axes`
+  its `genericFillStrided` (`b7d0ee1`); and `c100112` reaches no timed arm.
+  **The items' priors are instruction counts, cycles and bytes off this run's
+  own basis binary**, `run44-gheadnospec`, taken with `probe-stalls.sh`
+  at `N=50`, Run 43's counts N, twice, on a quiet box before preflight:
+  into `probe-r44-prior1.txt` and `probe-r44-prior2.txt` over every timed arm
+  and the nineteen main-set shapes, and into their `-compose`, `-bcast`
+  and `-bcastmid` siblings over the nine `lib-`, `liblist-` and `libunord-` arms
+  the items read, the two sweeps' instructions agreeing arm by arm to 1.0000
+  on the main set by `--counts-over probe-r44-prior2.txt probe-r44-prior1.txt`
+  and their cycles by a median of 1.6% a cell on the main set and 1.2%
+  on `compose`, over the cells both sweeps count positive; and bytes a call
+  over the nine arms in `probe-r44-alloc.txt` and `probe-r44-alloc-compose.txt`.
+  A cycle figure is quoted only where the two sweeps agree on it. No probe
+  was taken on the control's recipe, so the priors are the basis's.
+  **The compiler moved no instruction the basis counts**:
+  `./read-run.py --counts-over probe-r44-prior1.txt run43-counts-gheadnospec.txt`
+  reads every timed arm at 1.0000 of Run 43's but the three `b7d0ee1` gave
+  the branch's code, `lib-stage2-lean` at 0.9927, `liblist-stage4-sum` at 0.9914
+  and `libunord-stage13-sum` at 0.9969. **The limit this run cannot remove**:
+  a rebuild moves every loop ---
+  `./loop-offsets.py --delta run43-gheadnospec run44-gheadnospec` finds none
+  of the loops it compares at its old address --- so a figure on unmoved
+  instructions is predicted only within the spread earlier builds drew. (1)
+  *The branch's conversion code makes `lib-stage2-lean` and `liblist-stage4-sum`
+  cheaper by the instructions it saves, and they gain on the Axis path's fastest
+  by about that.*
+  `--counts-over probe-r44-prior1.txt run43-counts-gheadnospec.txt` reads
+  `lib-stage2-lean` at 0.9927 of Run 43's instructions, 0.9778
+  on `stretch-wide-2xM`, and `liblist-stage4-sum` at 0.9914;
+  `--counts probe-r44-prior1.txt --pair` on `run43-gheadnospec-main.json` reads
+  `lib-stage3-lean` over `lib-stage2-lean` at 1.0131 corrected and 1.0067 raw,
+  where `--counts run43-counts-gheadnospec.txt --pair` reads 0.9990 and 0.9994,
+  and `liblist-stage4-sum` over `liblist-stage5-sum` at 0.9923 raw
+  over the seventeen shapes it reads there, where Run 43's counts read 1.0009
+  over all nineteen; `probe-r44-alloc.txt` puts `lib-stage2-lean`
+  and `lib-stage3-lean` at the same bytes a call on every main-set shape. Run 43
+  read the two pairs in time at 1.0066 and 0.9978 on the basis and 1.0044
+  and 0.9984 on the control, `--pair` on `run43-gheadnospec-main.json`
+  and `run43-gheadtwopass-main.json`, the `-sum` pair raw.
+  `predict: pair lib-stage3-lean lib-stage2-lean 1.017 within 1.5% on main both`
+  and
+  `predict: pair liblist-stage4-sum liblist-stage5-sum 0.990 within 1.2% on main both`.
+  A reading under 1.002 on the first or over 1.002 on the second says
+  the instructions the branch's code saves bought no time; one past the band's
+  far edge, that the time moved by more than the instructions. (2)
+  *`libunord-stage13-sum` now takes `libunord-stage15-sum`'s placement
+  of the zero-stride axis on the two compose views grown to `sizeCap`,
+  so it reads with stage fifteen there and not with stage fourteen.*
+  `--counts-over probe-r44-prior1-compose.txt run43-counts-gheadnospec-compose.txt`
+  reads `libunord-stage13-sum` at 0.8030 of Run 43's instructions
+  on `compose-bcast-wide` and 1.1129 on `compose-bcast-nest`, the ratios
+  `probe-r43-prior1-compose.txt` read for stage fifteen over fourteen there,
+  and level on the other four views; `probe-r44-prior1-compose.txt` puts stage
+  thirteen at 15781014 instructions a call against stage fifteen's 15781178
+  on the first view and 14666451 against 14666476 on the second, and the two
+  sweeps' cycles at 2816247 and 2803500 against 2814119 and 2803648 on the first
+  and 2865378 and 2877959 against 2852852 and 2847558 on the second, so stage
+  thirteen over fourteen reads 0.6884 and 0.6852 in cycles
+  on `compose-bcast-wide`. Run 43 read stage fifteen over fourteen there
+  at 0.6677 on the basis and 0.6608 on the control,
+  `--pair libunord-stage15-sum libunord-stage14-sum --per-shape`
+  on `run43-gheadnospec-compose.json` and `run43-gheadtwopass-compose.json`,
+  raw.
+  `predict: cell compose-bcast-wide/libunord-stage13-sum over compose-bcast-wide/libunord-stage15-sum 1.00 within 3% on compose both`,
+  `predict: cell compose-bcast-nest/libunord-stage13-sum over compose-bcast-nest/libunord-stage15-sum 1.00 within 3% on compose both`,
+  and
+  `predict: cell compose-bcast-wide/libunord-stage13-sum over compose-bcast-wide/libunord-stage14-sum 0.67 within 6% on compose both`.
+  A reading of either of the first two outside 3%, the instructions level,
+  is placement; a third over 0.73 says the route's saving did not carry
+  into time. (3) *The fills `fdcd7a8` rewrote and the arms no commit reaches
+  keep Run 43's distances: the patch moves none of their instructions
+  on the basis, and they hold on the control too.*
+  `--counts-over probe-r44-prior1.txt run43-counts-gheadnospec.txt` reads every
+  such arm at 1.0000 of Run 43's, `lib-stage3-lean`, `lib-stage2-lean-u1`
+  and `lib-stage1` among them; `--counts probe-r44-prior1.txt --pair`
+  on `run43-gheadnospec-main.json` reads `lib-stage2-lean-u1`
+  over `lib-stage3-lean` at 1.0206 raw, `lib-stage1`
+  over `mut-odo-vecdims-add-in-leaf-u2` at 0.9737, the leaf
+  over `mut-odo-vecdims` at 0.7198 and `bq-expand` over `mut-odo-vecdims`
+  at 1.8778, each within 0.0001 of what `run43-counts-gheadnospec.txt` reads
+  the same way. Run 43 read the four in time at 1.0662, 0.9928, 0.6416
+  and 2.8893 on the basis and 1.0628, 1.0021, 0.6380 and 2.1860 on the control,
+  `--pair` on the two main JSONs, its basis `bq-expand` figure the rerun's, 1.5%
+  over its first process's 2.8453 by `runs/run43.md`'s Results.
+  `predict: pair lib-stage2-lean-u1 lib-stage3-lean 1.065 within 2.5% on main both`,
+  `predict: pair lib-stage1 mut-odo-vecdims-add-in-leaf-u2 0.998 within 2% on main both`,
+  `predict: pair mut-odo-vecdims-add-in-leaf-u2 mut-odo-vecdims 0.640 within 2% on main both`,
+  `predict: pair bq-expand mut-odo-vecdims 2.87 within 12% on main basis`
+  and `predict: pair bq-expand mut-odo-vecdims 2.19 within 9% on main control`.
+  A reading outside its band with the basis's instructions level
+  is the rebuild's placement, or on the control the patch reaching what the two
+  passes do, which item (4)'s count spans tell apart;
+  `--half-movers run44 run43` names which arm of the pair moved. (4)
+  *The regime's worth holds under the patched compiler: the two passes leave
+  `list` and `bq-expand` the instructions Run 43's control counted, `list`
+  at its level and `bq-expand` inside the spread its builds and processes drew
+  but Run 41's.*
+  `--counts-over probe-r44-prior1.txt run43-counts-gheadnospec.txt` reads both
+  families at 1.0000 on the basis, and
+  `./read-run.py run43-gheadnospec-main.json --compare run43-gheadtwopass-main.json --counts run43-counts-gheadnospec.txt run43-counts-gheadtwopass.txt`
+  reads Run 43's counted work across the halves at 1.2929 on `list` and 1.5063
+  on `bq-expand`; no probe was taken on the control, so the two count spans
+  are this item's test of whether the patch reached the control's code.
+  `./read-run.py --record regime` reads `list` over the nineteen shapes
+  at 1.2889 to 1.2986 on every reading from Run 37's build to Run 43's, Run 43's
+  at 1.2950, and `bq-expand` at 1.2980 to 1.3212 on every one from Run 36's
+  but Run 41's 1.3620, Run 43's first basis process having read 1.3105 against
+  its rerun's 1.3212 by `runs/run43.md`'s Results.
+  `predict: counts list 1.2929 within 0.1% on main basis`,
+  `predict: counts bq-expand 1.5063 within 0.1% on main basis`,
+  `predict: cross list 1.294 within 1% on main basis`,
+  and `predict: cross bq-expand 1.31 within 2.5% on main basis`, the last band
+  half a point wider than Run 43's for the process term Run 43 measured. A count
+  span outside its band says the patch moved the control's code on that family;
+  a `list` cross outside its band with the counts held says the regime's worth
+  moved with this build; a `bq-expand` one above 1.335 says Run 41's draw
+  was not alone.
 - `ANSWERED` **What Run 43 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 43's own
