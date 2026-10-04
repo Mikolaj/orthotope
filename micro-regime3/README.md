@@ -7774,7 +7774,10 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      line, the contention in the elapsed times it records being a sanity
     #      reading and not a measurement.
     #      The turn-end hold is set at the first wait and not here, which
-    #      is step 2's build (~/.claude/rules/turn-end-hold.md). Clear it
+    #      is step 2's build (~/.claude/rules/turn-end-hold.md), on each
+    #      repository the run edits, named: `wrap-restore --hold
+    #      ~/r/orthotope`, a bare --hold holding the working directory's,
+    #      which for a session rooted in horde-ad is not this one. Clear it
     #      at 12c. And wait on nothing: launched as step 11 says you are
     #      woken. A `tail` between legs shows nothing
     #      why: --para 'After a roster change'
@@ -7794,7 +7797,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      is about three quarters of an hour on the BASIS half alone,
     #      where 11 is minutes.
     #      Every wait ends a turn and the Stop hook rewraps the documents
-    #      at each, so the hold pays from the first backgrounded thing
+    #      at each, and another session's turn end rewraps them too, wait
+    #      or not, so the hold pays from the first backgrounded thing
     #      rather than from the first edit under these sweeps. Set that
     #      early it costs nothing and covers the whole half; set here it
     #      covers the registration and leaves the build's own waits
@@ -9564,7 +9568,10 @@ not otherwise.
     #      is why they are bullets and not sub-steps; 6a and 6c ARE it
     #      * SET THE TURN-END HOLD HERE and clear it at 9, setting it
     #        again for any editing past 9 (~/.claude/rules/
-    #        turn-end-hold.md). read-run.py's --replace, --delete and
+    #        turn-end-hold.md), on ~/r/orthotope by name, `wrap-restore
+    #        --hold ~/r/orthotope`, and on any other repository the
+    #        write-up edits: a bare --hold holds the working directory's.
+    #        read-run.py's --replace, --delete and
     #        --para match the flattened form and want no unwrap; an
     #        EXACT-MATCH edit wants `wrap80 --unwrap -i README.md` first
     #        and again after each of 6b, 6d and 7a, whose commits rewrap.
@@ -10189,14 +10196,16 @@ which for Run 10 was where alignment was faster.
    carries it, is what that walk is for. **Committing the copy before editing
    it is what makes the rest of this step cheap.** An untracked file has
    no committed form, so `wrap-restore` cannot classify it and leaves it alone
-   --- the one case the wrapping rules still leave to be done by hand,
-   and it need not arise. The copy also gives git a restore point for the whole
-   write-up, which a range splice has already made necessary once. And it makes
-   the write-up's own diff the artifact step 6b briefs the checker to read ---
-   uncommitted, the file enters history as wholly new and its diff says nothing
-   about what the run changed, so the checker has to snapshot it and diff
-   against its own copy. The cost is one commit whose content is a verbatim
-   copy, which reads as diary until the next diff makes it legible.
+   --- one of the two cases the wrapping rules still leave to be done by hand,
+   the other being a file whose last commit sits at neither fixed point,
+   and this one need not arise. The copy also gives git a restore point
+   for the whole write-up, which a range splice has already made necessary once.
+   And it makes the write-up's own diff the artifact step 6b briefs the checker
+   to read --- uncommitted, the file enters history as wholly new and its diff
+   says nothing about what the run changed, so the checker has to snapshot
+   it and diff against its own copy. The cost is one commit whose content
+   is a verbatim copy, which reads as diary until the next diff makes
+   it legible.
 - 5b. **Install the tables with `--in-place` rather than pasting them.**
   `--markdown`, `--fingerprint` and `--block` each take it, and each refuses
   rather than guessing: the match is by whole line, the count is asserted,
