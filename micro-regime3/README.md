@@ -770,8 +770,154 @@ rather than a slot in the next run, observed again:
   following pr-mikolaj-toVectorListT's fill as its commit "Port the Axis path"
   has it since 2026-10-04, and `routeUnord13`, the route `libunord-stage13-sum`
   sums over, sorting by insertion into a merge loop out of line since the same
-  day, reasons at the roster entries, the fill and `sortAxes`. Its numbered
-  items are pre-run step 12a's and are not written yet.
+  day, reasons at the roster entries, the fill and `sortAxes`. **So the pair's
+  own `cross` figure is the two passes on a tenth build**, and each half against
+  Run 44's same half, `--half-movers run45 run44`, carries the source alone:
+  the stage1 at the recipe's path is the one Run 44 built with, md5
+  `39db416de5ed25e1b272d801bfa405d7`, every ABI hash `run45-gheadnospec` carries
+  is `run44-gheadnospec`'s, and the shim, `cabal.project.ghead`
+  and `micro.cabal` did not move.
+  `./roster-delta.py run44-gheadnospec run45-gheadnospec` reads `lib-stage0`
+  and `lib-stage2-disp` in and the two retired consumers out, the survivors
+  in their order and every shape, view and geometry unmoved,
+  and `./registration-drift.py run45 --since run44` reaches
+  `liblist-stage4-sum`, `-stage5-sum`, five `libunord-` consumers and every
+  `lib-` arm but `lib-stage1`, and no code behind the `list`, `mut-odo-vecdims`
+  and `bq-expand` families, `lib-stage1`, `liblist-stage1-sum`,
+  `libunord-stage1-sum` or the two `sum-only` halves. **The items' priors
+  are instruction counts, cycles and bytes off this run's own basis binary**,
+  `run45-gheadnospec`, taken with `probe-stalls.sh` at `N=50`, Run 44's counts
+  N, twice, on a quiet box before preflight, from 18:44 to 19:24 on 2026-10-04:
+  into `probe-r45-prior1.txt` and `probe-r45-prior2.txt` over every timed arm
+  and the nineteen main-set shapes, and into their `-compose`, `-bcast`
+  and `-bcastmid` siblings over eleven `lib-`, `liblist-` and `libunord-` arms,
+  those the items read among them, and the shipped leaf, the two sweeps'
+  instructions agreeing arm by arm at 1.0000
+  by `--counts-over probe-r45-prior2.txt probe-r45-prior1.txt`; bytes a call
+  over the same twelve arms in `probe-r45-alloc.txt`
+  and `probe-r45-alloc-compose.txt`; and instructions alone
+  for `lib-stage2-disp` and `lib-stage2-lean` on `small` and `runs`, taken
+  under step 12's roster pass, in `probe-r45-disp-small.txt`
+  and `probe-r45-disp-runs.txt`. A cycle figure is net of the mean of the two
+  `sum-only` arms, as `--counts --pair` corrects, and raw on a `-sum` arm, read
+  per shape by `probe-r45-cyc.py` beside the sweeps, which keeps a cell marked
+  nonlinear and drops a shape whose net is not positive, naming it. Two more
+  sweeps of the arms whose cycles the items quote were taken on the idle box
+  from 20:32, `probe-r45-quiet1.txt` and `probe-r45-quiet2.txt`, and they part
+  as widely as the first two, a main-set net-cycle geomean near 1 between two
+  fill arms by up to eleven points on either pair, so the spread is the reader's
+  net of the forcing pass at `N=50`, which a quiet box does not remove; a cycle
+  figure is a prior only where the four agree, and the items quote the others
+  to say they part. No probe was taken on the control's recipe, so the priors
+  are the basis's. **The source moved no instruction outside the arms
+  it reaches**:
+  `./read-run.py --counts-over probe-r45-prior1.txt run44-counts-gheadnospec.txt`
+  reads every arm both runs time at 0.9999 to 1.0001 of Run 44's but three,
+  `lib-stage2-lean` at 1.0081, `liblist-stage4-sum` at 1.0100
+  and `libunord-stage13-sum` at 0.9860. **The limit this run cannot remove**:
+  a rebuild moves every loop ---
+  `./loop-offsets.py --delta run44-gheadnospec run45-gheadnospec` finds
+  no address of the loops it compares surviving to the byte --- so a figure
+  on unmoved instructions is predicted only within the spread earlier builds
+  drew. (1) *The count-down level loop gives `lib-stage2-lean` back what Run
+  44's bounded loop cost it: level with `lib-stage3-lean` or ahead of it
+  on the cell where that cost was found, and on the main set back toward Run
+  43's reading.* On `stretch-wide-2xM`,
+  `SHAPE=stretch-wide-2xM probe-r45-cyc.py` puts `lib-stage3-lean` at 1.0007
+  and 0.9910 of `lib-stage2-lean` in net cycles on `probe-r45-prior1.txt`
+  and `probe-r45-prior2.txt` and at 1.1000 and 1.0552 on `probe-r45-quiet1.txt`
+  and `probe-r45-quiet2.txt`, the first of those two on a `lib-stage3-lean` cell
+  marked nonlinear, all four on instructions level at 1.0000; the same reader
+  puts Run 44's sweeps at 0.8508 and 0.8613 on 1.0417, `probe-r44-prior1.txt`
+  and `probe-r44-prior2.txt`, and Run 44 read the cell at 0.845 in time, the low
+  end of `--pair lib-stage3-lean lib-stage2-lean`'s range
+  on `run44-gheadnospec-main.json`, so its cycles priced it. Over the main set
+  the four sweeps' net cycles run from 0.9227 to 1.0149, as Run 44's two parted,
+  1.0234 and 0.9879, so the main-set band is drawn from the counts and the time
+  readings either side:
+  `--counts probe-r45-prior1.txt --pair lib-stage3-lean lib-stage2-lean`
+  on `run44-gheadnospec-main.json` reads 0.9974 corrected where
+  `--counts probe-r44-prior1.txt` reads 1.0131,
+  and `--pair lib-stage3-lean lib-stage2-lean` reads 0.9709
+  on `run44-gheadnospec-main.json` and 1.0066 on `run43-gheadnospec-main.json`,
+  the bounded loop's build and the last counted one's, the band holding
+  the second and not the first.
+  `predict: cell stretch-wide-2xM/lib-stage3-lean over stretch-wide-2xM/lib-stage2-lean 1.02 within 4% on main basis`,
+  holding the three readings on linear cells, and
+  `predict: pair lib-stage3-lean lib-stage2-lean 1.00 within 1.5% on main basis`.
+  A cell under 0.98 says the count-down did not take the loop's cost back
+  in this build, and one over 1.06 that it bought more than the cost; a pair
+  under 0.985 with the cell held, that the cost Run 44 read lay on other shapes
+  as well, and one over 1.015, that stage three lost ground the loop does
+  not explain. (2) *`lib-stage0`, master's `toVectorT`, runs regime 3 at about
+  twenty-eight times `lib-stage1`'s fill, every main-set shape being regime 3
+  and the two arms parting in regime 3 alone.*
+  `--counts probe-r45-prior1.txt --pair lib-stage0 lib-stage1`
+  on `run44-gheadnospec-main.json` reads 31.0070 corrected over the eighteen
+  shapes it keeps, `cnn-L1-6x6-c1` dropped for a nonlinear cell, and 15.2125
+  raw; `probe-r45-cyc.py` puts the four sweeps' net cycles at 27.0065, 29.2027,
+  26.4249 and 28.1165, the last over eighteen shapes, and `probe-r45-alloc.txt`
+  its bytes a call at 22.93 of stage one's.
+  `predict: pair lib-stage0 lib-stage1 27.8 within 250% on main basis`, the band
+  holding the four cycle readings with a point to spare each side, since time
+  follows cycles, and not the counted 31.0070, the list route retiring more
+  instructions a cycle than the fill. A reading outside it says the list route's
+  time does not follow its cycles as the fill's does; the control has no prior.
+  (3) *`lib-stage2-disp` is `lib-stage2-lean`'s code below a canonical run
+  of 32768, which no main-set shape and no `small` view reaches, so the two read
+  as an A/A there on both halves.*
+  `--counts probe-r45-prior1.txt --pair lib-stage2-disp lib-stage2-lean`
+  on `run44-gheadnospec-main.json` reads 1.0001 corrected and raw
+  over the nineteen shapes, and `probe-r45-disp-small.txt` puts the dispatch
+  at 1.0000 to 1.0041 of lean's corrected instructions on the five `small`
+  views; `probe-r45-disp-runs.txt` reads them level on every `runs` view
+  but `runs-65536`, where the slice route executes 0.1379 of the fill's, which
+  is why `runs` is not in the span. The four sweeps' net cycles run from 0.9834
+  to 1.0552 on that one code, which is the reader's spread and not a prior.
+  `predict: pair lib-stage2-disp lib-stage2-lean 1.0 on main,small both`.
+  A reading past the floor says the dispatch's own test costs time or a run
+  reaches the cut. (4) *`sortAxes` saves `libunord-stage13-sum` instructions
+  against `libunord-stage15-sum` on every view the sweeps read, and some
+  of that saving reaches the clock on the main set.* `probe-r45-prior1.txt`
+  and its `-compose`, `-bcast` and `-bcastmid` siblings put stage thirteen below
+  stage fifteen by 113 to 1280 instructions a call on the main set, 172 to 645
+  on `compose`, 124 to 287 on `bcast` and 272 to 941 on `bcastmid`, where
+  `probe-r44-prior1.txt` read 2 to 22 on the main set; `probe-r45-alloc.txt`
+  puts its bytes at 0.5326 of stage fifteen's over the main set, where
+  `probe-r44-alloc.txt` read 0.9748. In raw instructions stage thirteen reads
+  0.9855 of stage fifteen over the main set, `probe-r45-cyc.py`
+  on `probe-r45-prior1.txt`, where the same reader reads 0.9996
+  on `probe-r44-prior1.txt`,
+  and `--pair libunord-stage13-sum libunord-stage15-sum` reads 0.9980 raw
+  on `run44-gheadnospec-main.json`; the four sweeps' raw cycles run from 0.9738
+  to 1.0525, no prior, so the time band runs from none of the saving reaching
+  the clock to all of it.
+  `predict: countdiff libunord-stage13-sum libunord-stage15-sum under -100 on main,compose,bcast,bcastmid basis`,
+  read with `--counts` over each population's own sweep, which run-list step 20
+  takes, and
+  `predict: pair libunord-stage13-sum libunord-stage15-sum 0.991 within 0.8% on main basis`.
+  A difference at or over -100 on any shape or view says the sort did not save
+  there; a pair over 0.999, that the instructions saved bought no time, and one
+  under 0.983, that the time moved by more than the instructions. (5) *The arms
+  no commit reaches keep the regime's worth: `list` and `bq-expand` read inside
+  the spread this pair's builds drew, on the instructions Run 44's halves
+  counted.* `--counts-over probe-r45-prior1.txt run44-counts-gheadnospec.txt`
+  reads both families at 1.0000 on the basis, and
+  `./read-run.py run44-gheadnospec-main.json --compare run44-gheadtwopass-main.json --counts run44-counts-gheadnospec.txt run44-counts-gheadtwopass.txt`
+  reads Run 44's counted work across the halves at 1.2929 on `list` and 1.5063
+  on `bq-expand`; no probe was taken on the control, so the two count spans
+  are this item's test that the source reached nothing the passes compile
+  on those families. `./read-run.py --record regime` reads `list`
+  over the nineteen shapes at 1.2889 to 1.3040 on every reading from Run 37's
+  build to Run 44's, and `bq-expand` at 1.2980 to 1.3212 on every one from Run
+  36's but Run 41's 1.3620.
+  `predict: counts list 1.2929 within 0.1% on main basis`,
+  `predict: counts bq-expand 1.5063 within 0.1% on main basis`,
+  `predict: cross list 1.2965 within 1% on main basis`
+  and `predict: cross bq-expand 1.3096 within 1.3% on main basis`. A count span
+  outside its band says the source reached the control's code on that family;
+  a cross outside its band with the counts held, that this build's placement
+  or the box moved the regime's worth.
 - `ANSWERED` **What Run 44 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 44's own
