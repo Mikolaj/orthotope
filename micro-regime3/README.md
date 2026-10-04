@@ -763,12 +763,14 @@ rather than a slot in the next run, observed again:
   the half names `run45-gheadnospec` and `run45-gheadtwopass`. THIS ENTRY
   IS THE ONE DECLARATION SITE by the ruling of 2026-09-19, the command lines
   being Run 44's with the builddir names moved. What the source moves
-  under the recipe is the roster of 2026-10-04 and the branch's fill: two
-  unordered stages' consumers retired, `lib-stage0` landing beside `lib-stage1`,
-  `lib-stage2-disp` timed again and rebuilt over `lib-stage2-lean`
-  with `dispRun` re-cut to 32768, and `fillStage2Axes` following
-  pr-mikolaj-toVectorListT's fill as its commit "Port the Axis path" has
-  it since 2026-10-04, reasons at the roster entries and the fill. Its numbered
+  under the recipe is the roster of 2026-10-04, the branch's fill and stage
+  thirteen's route: two unordered stages' consumers retired, `lib-stage0`
+  landing beside `lib-stage1`, `lib-stage2-disp` timed again and rebuilt
+  over `lib-stage2-lean` with `dispRun` re-cut to 32768, `fillStage2Axes`
+  following pr-mikolaj-toVectorListT's fill as its commit "Port the Axis path"
+  has it since 2026-10-04, and `routeUnord13`, the route `libunord-stage13-sum`
+  sums over, sorting by insertion into a merge loop out of line since the same
+  day, reasons at the roster entries, the fill and `sortAxes`. Its numbered
   items are pre-run step 12a's and are not written yet.
 - `ANSWERED` **What Run 44 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their

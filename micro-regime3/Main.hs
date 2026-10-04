@@ -5154,27 +5154,36 @@ runRank !a !b = case compare ta tb of
 -- of 'routeOfLib' are the slice, the run list and the fill that
 -- 'toUnorderedVectorListT' produces there. From here down nothing names
 -- a stage or this harness: the account after the function explains the
--- dispatch on its own terms. The merge loop is 'canonicalizeAx' here,
--- where the library's is 'canonicalize', which here would shadow the
--- top-level one.
+-- dispatch on its own terms. The sort is 'sortAxes' and the merge loop
+-- 'canonicalizeAx', where the library's are 'sortBy' and 'canonicalize',
+-- a name the top-level pair form takes here: since 2026-10-04 an insertion
+-- that enters the merge loop at its end, both out of line as 'routeList4''s
+-- 'canonicalizeLib' is, where the library's loop is local to the route
+-- and reads the offset and the count at its exit.
 routeUnord13 :: ShapeL -> Int -> T -> RouteAx
-routeUnord13 sh !l (T (Strides ats) ao _) = start (sortBy byStrideRank axes)
+routeUnord13 sh !l (T (Strides ats) ao _) = case axes of
+  a : axs -> routeOfLib off l (sortAxes a [] axs)
+  [] -> RSliceAx off l
   where
     (axes, !off) = absAxesAndStartLib [] ao ats sh
-    start :: [Axis] -> RouteAx
-    start (Axis st n : ps) = canonicalizeAx st n [] ps
-    start [] = RSliceAx off l
-    -- Free to reorder at its exit: the result need keep only the
-    -- multiset.
-    canonicalizeAx :: Int -> Int -> [Axis] -> [Axis] -> RouteAx
-    canonicalizeAx !stHead !nHead rest (Axis st n : ps)
-      | stHead == n * st = canonicalizeAx st (nHead * n) rest ps
-      | otherwise = canonicalizeAx st n (Axis stHead nHead : rest) ps
-    canonicalizeAx stHead nHead rest []
-      | stHead == 0, Axis 1 n1 : outer <- rest =
-          routeOfLib off l (WalkAx 1 n1 (InnerFirstAx (Axis 0 nHead : outer)))
-      | otherwise = routeOfLib off l (WalkAx stHead nHead (InnerFirstAx rest))
 {-# INLINE routeUnord13 #-}
+
+-- The merge loop of 'routeUnord13', entered from the end of 'sortAxes',
+-- in the sorted order, its 'WalkAx' last as 'canonicalizeLib' has it, and
+-- free to reorder at its exit, the result need keep only the multiset: a
+-- zero-stride head moves there just outside the unit-stride axis next to
+-- it. Moved after the loop, into the route, the move read 6 to 10
+-- instructions a call fewer on views with a zero stride and 3 to 9 more on
+-- views without one, wherever the count resolves (2026-10-04).
+canonicalizeAx :: [Axis] -> WalkAx -> WalkAx
+canonicalizeAx (Axis st n : ps)
+               (WalkAx stHead nHead irest@(InnerFirstAx rest))
+  | stHead == n * st = canonicalizeAx ps (WalkAx st (nHead * n) irest)
+  | otherwise =
+      canonicalizeAx ps (WalkAx st n (InnerFirstAx (Axis stHead nHead : rest)))
+canonicalizeAx [] (WalkAx 0 nHead (InnerFirstAx (Axis 1 n1 : outer))) =
+  WalkAx 1 n1 (InnerFirstAx (Axis 0 nHead : outer))
+canonicalizeAx [] axes = axes
 
 -- The dispatch of 'routeUnord13', piece by piece.
 --
@@ -5203,9 +5212,10 @@ routeUnord13 sh !l (T (Strides ats) ao _) = start (sortBy byStrideRank axes)
 -- fewer axes to order, and on a view where such an axis shares a stride
 -- with another --- the channel axis of a one-channel convolution patch,
 -- extent 1 at the output axis's stride --- the sort meets no tie and
--- has no order to undo, where a sort that meets one pays several
--- hundred instructions to reorder five axes.  A zero stride on such an
--- axis goes with it, so no later test has to see past it.
+-- has no order to undo, where 'sortBy', the sort until 2026-10-04, paid
+-- several hundred instructions to reorder five axes on meeting one.  A
+-- zero stride on such an axis goes with it, so no later test has to see
+-- past it.
 --
 -- Why abs.  A negative stride walks an axis backwards over the same
 -- cells a positive one walks forwards.  Order is not asked for here, so
@@ -5275,12 +5285,13 @@ routeUnord13 sh !l (T (Strides ats) ao _) = start (sortBy byStrideRank axes)
 -- it on 2026-10-03, the same code as 'absAxes': the axes of extent above
 -- 1, their strides made absolute, onto the list given in reverse of the
 -- order given, and the offset given moved to the view's lowest address.
--- The reversal is nothing to the sort behind it: the only order
--- 'byStrideRank' leaves to the sort's stability is between two axes of
--- one absolute stride and one extent, which 'routeUnord13''s merge loop
--- treats alike whichever comes first. A function returning the pair,
--- with no 'INLINE', as 'absAxes' is; why, at it and in README's entry
--- on 'MergeAccAx'. Over pairs until 2026-10-03.
+-- The reversal is what makes 'sortAxes' cheap since 2026-10-04: a view
+-- whose axes come outermost first reaches it innermost first, and each
+-- axis goes in at the head. Which of two axes of one absolute stride and
+-- one extent comes first, the only order 'byStrideRank' leaves open,
+-- 'routeUnord13''s merge loop treats alike. A function returning the
+-- pair, with no 'INLINE', as 'absAxes' is; why, at it and in README's
+-- entry on 'MergeAccAx'. Over pairs until 2026-10-03.
 absAxesAndStartLib :: [Axis] -> Int -> [Int] -> ShapeL -> ([Axis], Int)
 absAxesAndStartLib axes !off (_ : sts) (1 : ns) =
   absAxesAndStartLib axes off sts ns
@@ -5290,6 +5301,32 @@ absAxesAndStartLib axes !off (st : sts) (n : ns)
                          sts ns
   | otherwise = absAxesAndStartLib (Axis st n : axes) off sts ns
 absAxesAndStartLib axes off _ _ = (axes, off)
+
+-- The sort of 'routeUnord13', into 'byStrideRank''s order: an insertion
+-- over the walk's list, the outermost axis so far held apart from the
+-- rest, each axis after every axis it ranks after, so one comparison an
+-- axis where the walk's list is already in reverse order; at the end it
+-- enters the merge loop with the held axis as the merge's first, so the
+-- sorted axes are never one list. In place of 'sortBy', which compiles to
+-- a merge sort calling the comparator through a closure, since 2026-10-04:
+-- on Run 44's basis recipe it reads 22 to 1250 instructions a call fewer
+-- than 'sortBy' on every view of the main set and the classes, and up to
+-- 856 bytes fewer, none more. Returning the sorted list for the route to
+-- take apart, it read 40 to 249 instructions and 22 to 97 bytes more on
+-- every view, and inserting during the walk, which meets the axes
+-- outermost first and so put each at the end, 111 to 697 instructions
+-- more than 'sortBy' on four views of rank 5 to 7.
+sortAxes :: Axis -> [Axis] -> [Axis] -> WalkAx
+sortAxes h !rest (x : xs)
+  | GT <- byStrideRank x h = sortAxes h (insertAxis x rest) xs
+  | otherwise = sortAxes x (h : rest) xs
+sortAxes (Axis st n) rest [] =
+  canonicalizeAx rest (WalkAx st n (InnerFirstAx []))
+
+insertAxis :: Axis -> [Axis] -> [Axis]
+insertAxis x (y : ys)
+  | GT <- byStrideRank x y = let !r = insertAxis x ys in y : r
+insertAxis x ys = x : ys
 
 -- The 'Axis' path, since 2026-09-25 the three inward twins' own, and
 -- since 2026-09-26 'lib-stage2-lean-u1''s through 'fillStage3U1' and
@@ -5312,11 +5349,14 @@ absAxesAndStartLib axes off _ _ = (axes, off)
 -- 'offsetsLib'; and in the fill, the level loop bounded by an end, where
 -- 'fillStage3' counts its blocks down, and the runs at stride 1 walked by a
 -- copy of their own. 'libunord-stage14-sum' against 'libunord-stage13-sum'
--- carries the zero-stride axis's place as well. Each copy began as its
--- original's code with the pair an 'Axis' and its name suffixed @Ax@,
--- carrying its original's comment adjusted to that, and says so where it
--- has moved on since; a figure dated 2026-09-25 was read on the copy, every
--- other on the original.
+-- carries the zero-stride axis's place as well. Since 2026-10-04
+-- 'libunord-stage13-sum''s route is the branch's but for its sort, an
+-- insertion where the branch calls 'sortBy', and its merge loop, out of
+-- line where the branch's is local, so its pairs carry those too. Each
+-- copy began as its original's code with the pair an 'Axis' and its name
+-- suffixed @Ax@, carrying its original's comment adjusted to that, and says
+-- so where it has moved on since; a figure dated 2026-09-25 was read on the
+-- copy, every other on the original.
 
 -- An axis as its stride and extent. Each level of 'runSlicesAx''s
 -- odometer holds the canonical list's own axis, shared by every state
@@ -6187,7 +6227,9 @@ fbLibUnordStage12Sum sh a@(T _ _ v) =
 -- better when compilation time is the main issue: the library's
 -- 'toUnorderedVectorListT' as ~/r/orthotope.toVectorListT has it on
 -- 2026-10-03, its uncommitted diff included, summed by 'sumRoute' over
--- the route 'routeUnord13' reads, the empty view answered first.
+-- the route 'routeUnord13' reads, the empty view answered first; that
+-- route is the branch's but for its sort and merge loop since 2026-10-04,
+-- reasons at 'sortAxes'.
 -- 'libunord-stage15-sum' against it prices what the branch's code does
 -- otherwise, which the head of the 'Axis' path lists, and
 -- 'libunord-stage14-sum', whose control it has been since 2026-09-21,
@@ -6203,7 +6245,8 @@ fbLibUnordStage13Sum sh a@(T _ _ v)
 -- Stage fourteen, stage thirteen as that read over pairs until
 -- 2026-10-03, on the 'Axis' path: its route and reader the path's
 -- copies, 'routeUnord14' and 'sumRouteInwardAx', where stage thirteen
--- has the branch's 'routeUnord13' and 'sumRoute', so that the pair
+-- has 'routeUnord13', the branch's route but for its sort and merge loop
+-- since 2026-10-04, and the branch's 'sumRoute', so that the pair
 -- prices what the branch's code does otherwise and the zero-stride
 -- axis's place; reasons at the head of the 'Axis' path. Added
 -- 2026-09-21, over 'fillStage2' until 2026-09-25.
@@ -6215,8 +6258,9 @@ fbLibUnordStage14Sum sh a@(T _ _ v) =
 -- The fastest variant benchmarked of the sum over the library's
 -- 'toUnorderedVectorListT'. Stage fifteen's sum, over 'routeUnord15',
 -- where the reasons are; against 'libunord-stage13-sum', which reads the
--- branch's code, it prices what that code does otherwise, which the head
--- of the 'Axis' path lists.
+-- branch's code but for its route's sort and merge loop since 2026-10-04,
+-- it prices what that code does otherwise, which the head of the 'Axis'
+-- path lists, and those.
 {-# NOINLINE fbLibUnordStage15Sum #-}
 fbLibUnordStage15Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage15Sum sh a@(T _ _ v) =
@@ -8094,6 +8138,8 @@ roster =
     -- better when compilation time is the main issue, and with it the
     -- zero-stride axis just outside the run, so no longer stage twelve's
     -- route on a view where that axis moves; reasons at 'routeUnord13'.
+    -- Its route's sort and merge loop leave the branch's since 2026-10-04,
+    -- reasons at 'sortAxes'.
   , ("libunord-stage13-sum",       Fill fbLibUnordStage13Sum)
     -- The flavour twin of 2026-09-19: 'libunord-stage13-sum' with
     -- 'fillStage2''s two dimension vectors Storable, beside its original
@@ -8108,7 +8154,8 @@ roster =
     -- stage thirteen's was, on the 'Axis' path since 2026-09-25: stage
     -- thirteen's route and fill as the path's copies, against
     -- 'libunord-stage13-sum', which reads the branch's code since
-    -- 2026-10-03; reasons at the path's head.
+    -- 2026-10-03, its route's sort and merge loop excepted since
+    -- 2026-10-04; reasons at the path's head.
   , ("libunord-stage14-sum",       Fill fbLibUnordStage14Sum)
     -- The fastest variant benchmarked. Stage fourteen with the
     -- zero-stride axis just outside the run, added 2026-09-26 beside its
