@@ -58,39 +58,39 @@ ways.
 odometer and writes each innermost run, and `mut-odo-vecdims` --- the same fill
 with its dimension lists replaced by unboxed vectors --- is on Run 44 (plain
 -O1, -A32m, exit span, settled cost, GHC HEAD `10.1.20260918` patched
-under that version, launched from disk) **2.86x** over `bq-expand` paired, ahead
-on all nineteen shapes. **That headline moves with the published REGIME
-and with where a build places `bq-expand`, and not with the COMPILER**: on plain
--O1 it has read 2.83x to 2.87x on every build from Run 29 to Run 44 but Run
-41's, whose basis placed `bq-expand` 4% slower and read 2.97x, and Run 43's,
-whose published 2.89x is its main set's second process, which ran `bq-expand`
-1.5% slower than the first process of the same binary, reading 2.85x ([Run 43's
-file](runs/run43.md)), and 2.84x to 2.86x on the GHC HEAD halves Runs 32 to 35
-carried. **TWO of `-O2`'s passes cost this headline what the whole level cost
-it**: with `-fspec-constr -fliberate-case` on plain -O1 it reads 2.19x to 2.20x
-on every build from Run 36 on, against the whole level's 2.19x on Run 31, across
-two compilers --- so raising the level costs the headline better than six tenths
-of a multiple and those two passes are where the cost lives, `-O2` speeding
-`bq-expand` by 29% and leaving the fill where it is; the gap this ratio reports
-is the one the library actually compiles in. **One main-set shape sits
-on the line**: on `stretch-pow2stride` the fill and `bq-expand` tie, class
-property 1 breaking on whichever half reads the fill behind, and whether any run
-reads it behind by more than its floor is [an open question][open], which
-carries every draw. **The mutable fills hold the top of the table** ---
-`lib-stage3-lean` at 0.023, `lib-stage2-lean` and `lib-stage1` at 0.024
-and `lib-stage2-lean-u1` at 0.025 ([the run file](runs/run44.md#results)),
-and the shipped leaf at 0.026, against `mut-odo-vecdims`'s 0.045 --- and every
-one of them needs a new `Vector`-class method, which this README argued against
-for as long as the ceiling stood --- to keep orthotope's `Vector` API pure
-and minimal, a bar an in-tree precedent softened to a weight --- and which
-the decision of 2026-08-22 **took**, `vFillStrided` landing 2026-08-24
-([below](#the-mutable-ceiling-taken)). Plain `mut-odo` no longer argues
-for it at all: it and `bq-expand`, which survives in `Data/Array/Internal.hs`
-only as that method's class default, the three vector-backed instances
-overriding it with the mutable fill, are a tie at 0.8906 paired, 14 shapes of 26
-and sign p 0.85 on an interval covering 1 --- and at 0.8918 on Run 24's HEAD
-half, a thousandth away, so the tie is not one compiler's --- where Run 7
-(Harness), at -O1, had it 1.51x ahead.
+under its unchanged version, launched from disk) **2.86x** over `bq-expand`
+paired, ahead on all nineteen shapes. **That headline moves with the published
+REGIME and with where a build places `bq-expand`, and not with the COMPILER**:
+on plain -O1 it has read 2.83x to 2.87x on every build from Run 29 to Run 44
+but Run 41's, whose basis placed `bq-expand` 4% slower and read 2.97x, and Run
+43's, whose published 2.89x is its main set's second process, which ran
+`bq-expand` 1.5% slower than the first process of the same binary, reading 2.85x
+([Run 43's file](runs/run43.md)), and 2.84x to 2.86x on the GHC HEAD halves Runs
+32 to 35 carried. **TWO of `-O2`'s passes cost this headline what the whole
+level cost it**: with `-fspec-constr -fliberate-case` on plain -O1 it reads
+2.19x to 2.20x on every build from Run 36 on, against the whole level's 2.19x
+on Run 31, across two compilers --- so raising the level costs the headline
+better than six tenths of a multiple and those two passes are where the cost
+lives, `-O2` speeding `bq-expand` by 29% and leaving the fill where it is;
+the gap this ratio reports is the one the library actually compiles in. **One
+main-set shape sits on the line**: on `stretch-pow2stride` the fill
+and `bq-expand` tie, class property 1 breaking on whichever half reads the fill
+behind, and whether any run reads it behind by more than its floor is [an open
+question][open], which carries every draw. **The mutable fills hold the top
+of the table** --- `lib-stage3-lean` at 0.023, `lib-stage2-lean`
+and `lib-stage1` at 0.024 and `lib-stage2-lean-u1` at 0.025 ([the run
+file](runs/run44.md#results)), and the shipped leaf at 0.026, against
+`mut-odo-vecdims`'s 0.045 --- and every one of them needs a new `Vector`-class
+method, which this README argued against for as long as the ceiling stood ---
+to keep orthotope's `Vector` API pure and minimal, a bar an in-tree precedent
+softened to a weight --- and which the decision of 2026-08-22 **took**,
+`vFillStrided` landing 2026-08-24 ([below](#the-mutable-ceiling-taken)). Plain
+`mut-odo` no longer argues for it at all: it and `bq-expand`, which survives
+in `Data/Array/Internal.hs` only as that method's class default, the three
+vector-backed instances overriding it with the mutable fill, are a tie at 0.8906
+paired, 14 shapes of 26 and sign p 0.85 on an interval covering 1 ---
+and at 0.8918 on Run 24's HEAD half, a thousandth away, so the tie is not one
+compiler's --- where Run 7 (Harness), at -O1, had it 1.51x ahead.
 
 **Several strategies measured since are faster than the last candidate,
 `bq-expand`, and need no class method --- a distinction the decision
@@ -765,14 +765,15 @@ rather than a slot in the next run, observed again:
   and at 0.65 and 0.67 of stage fourteen on `compose-bcast-wide` against 0.67
   within 6%; (3) the fills `fdcd7a8` rewrote and the arms no commit reached keep
   Run 43's distances, `lib-stage2-lean-u1` over `lib-stage3-lean` 1.0767
-  and 1.0611, `lib-stage1` over the leaf 1.0029 and 1.0074, the leaf
-  over `mut-odo-vecdims` 0.6366 and 0.6358, `bq-expand` over it 2.8567
-  on the basis and 2.1917 on the control; and (4) the patch left the control's
-  counted work level, `list` at 1.2929 and `bq-expand` at 1.5063 to the fourth
-  decimal, and the regime's worth reads `list` at 1.3040 against 1.294 within 1%
-  and `bq-expand` at 1.3070 against 1.31 within 2.5% --- twelve of the fourteen
-  spans HELD on every reading and item (1)'s two KILLED, 19 of the 22 readings
-  held.
+  and 1.0611, `lib-stage1` over the leaf 1.0029 and 1.0074 paired, its published
+  columns parting in sign, the leaf over `mut-odo-vecdims` 0.6366 and 0.6358,
+  `bq-expand` over it 2.8567 on the basis and 2.1917 on the control; and (4)
+  the patch left the control's counted work level, `list` at 1.2929
+  and `bq-expand` at 1.5063 to the fourth decimal, and the regime's worth reads
+  `list` at 1.3040 against 1.294 within 1% and `bq-expand` at 1.3070 against
+  1.31 within 2.5% --- twelve of the fourteen spans HELD on every reading
+  and item (1)'s two KILLED on three of their four readings, 19 of the 22
+  readings held.
 - `ANSWERED` **What Run 43 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 43's own file](runs/run43.md), where a run's
@@ -801,26 +802,28 @@ rather than a slot in the next run, observed again:
   `probe-stalls.sh` over the main set on the two runs' basis binaries, two
   sweeps each (`probe-r44-lean-run44-1.txt`, `probe-r44-lean-run44-2.txt`,
   `probe-r44-lean-run43-1.txt` and `probe-r44-lean-run43-2.txt`), puts
-  `lib-stage2-lean` at 0.9930 of Run 43's instructions and 1.0094 of its cycles
-  over the seventeen shapes large enough to resolve, and at 0.9778 and 1.0669
-  on `stretch-wide-2xM`, its front-end stalls, branch misses and cache misses
-  level, while `lib-stage3-lean`, whose code no commit reached, reads 1.0000
-  and 0.9914 --- so the rebuild did not slow the fill it left alone,
-  and the cost sits where `b7d0ee1` changed the code. One build cannot part
-  that code's own rate from where its loop landed. **What would settle it**:
-  `perf record` on `stretch-wide-2xM/lib-stage2-lean` on both basis binaries,
-  naming the hot loop and its instructions a cycle on each, and a second build
-  of the recipe whose only move is placement.
+  `lib-stage2-lean` at 0.9778 of Run 43's instructions on `stretch-wide-2xM`
+  and `stretch-tab7MB` and at 1.0589 and 1.0750 of its cycles on the first,
+  1.0474 and 1.0604 on the second, the two sweeps agreeing there, its front-end
+  stalls, branch misses and cache misses moving too but far too few to carry
+  the added cycles, while `lib-stage3-lean`, whose instructions no commit moved,
+  reads 0.9866 to 1.0017 of the cycles there --- so the rebuild did not slow
+  the fill it compiled to the same instructions, and the cost sits where
+  `b7d0ee1` changed the code. One build cannot part that code's own rate
+  from where its loop landed. **What would settle it**: `perf record`
+  on `stretch-wide-2xM/lib-stage2-lean` on both basis binaries, naming the hot
+  loop and its instructions a cycle on each, and a second build of the recipe
+  whose only move is placement.
 - `ANSWERED` **What moved the control's `lib-stage1` on `small`, Run 43's one
   unexplained half-local mover? That evening's PROCESS --- taken 2026-10-04.**
   By the copy test, on the owner's quiet box after Run 44's counts:
   on `small-bcast32/lib-stage1` a fresh copy of `run43-gheadtwopass` reads 0.992
   of the timed file and Run 42's control 1.018, which `--copy-test` reads
-  as PROCESS, the previous run's binary reading with this one in fresh
-  processes. The same test's other cell,
-  `flip-last-rows/mut-odo-vecdims-aa-distant`, reads INSTANCE, the copy at 1.098
-  and Run 42's control at 1.100 of `run43-gheadtwopass`'s own file
-  (`probe-copy-test-run43.log`, [Run 44's Results](runs/run44.md#results)).
+  as PROCESS, Run 42's binary reading with Run 43's in fresh processes. The same
+  test's other cell, `flip-last-rows/mut-odo-vecdims-aa-distant`, reads
+  INSTANCE, the copy at 1.098 and Run 42's control at 1.100
+  of `run43-gheadtwopass`'s own file (`probe-copy-test-run43.log`, [Run 44's
+  Results](runs/run44.md#results)).
 - `OPEN` **A cross-half figure is read two ways and held to two bars, and Run
   43's comprehension probe could not tell which applies.** The run file's
   Results says `--compare`'s paired ratio per arm "says which half runs that arm
@@ -1670,25 +1673,27 @@ rather than a slot in the next run, observed again:
   half and neither on the other, have been read from Run 36 on,
   and `./read-run.py --record regime` prints the readings; a run that builds
   that pair again appends its row. **They settle how many points the two passes
-  are worth**: every reading after Run 36's, the re-read of Run 37's binaries
-  included, puts `list` between 1.2889 and 1.2986 over the main set, straddling
-  Run 31's whole-level 1.2974, from 0.85 of a point under it to 0.12 above,
-  where Run 36's 1.3360 stood 3.9 above it, so Run 36's was the outlier
-  and its reading that the level's other passes hand `list` back is refuted
-  across a rebuild and not only across a second draw of one build.
-  The composition of the two single-pass runs, 1.3325, overshoots. The only
-  readings of either pass ALONE are Runs 29's and 30's, taken on ghc-9.12.4,
-  on an older roster, and with the `-fspec-constr` half as that run's basis
-  so that its published figures are the reciprocals of this orientation.
-  So the SPLIT is not accounted for at all: nothing says whether SpecConstr
-  carries it, as its allocation signature suggests, or whether LiberateCase
-  carries part of it on this HEAD. **What settles it is one pair and one
-  variable**: either flag alone against the unflagged half, built by the newest
-  published basis's own recipe --- now `run43-gheadnospec`, `Main.hs`
-  at `e29cdf2` and the shim at `1a359bd` under the settled cost,
-  with the compiler, the project file and the launch unmoved --- which reads
-  with the box as the only term. Registered here rather than in a run's
-  registration because it is a pair to ask for and not a prediction to hold.
+  are worth**: every reading from Run 37's build to Run 43's, the re-read of Run
+  37's binaries included, puts `list` between 1.2889 and 1.2986 over the main
+  set, straddling Run 31's whole-level 1.2974, from 0.85 of a point under
+  it to 0.12 above, and Run 44's, on the stage1 patched on 2026-10-03,
+  at 1.3040, 0.66 above it, where Run 36's 1.3360 stood 3.9 above it, so Run
+  36's was the outlier and its reading that the level's other passes hand `list`
+  back is refuted across a rebuild and not only across a second draw of one
+  build. The composition of the two single-pass runs, 1.3325, overshoots.
+  The only readings of either pass ALONE are Runs 29's and 30's, taken
+  on ghc-9.12.4, on an older roster, and with the `-fspec-constr` half
+  as that run's basis so that its published figures are the reciprocals
+  of this orientation. So the SPLIT is not accounted for at all: nothing says
+  whether SpecConstr carries it, as its allocation signature suggests,
+  or whether LiberateCase carries part of it on this HEAD. **What settles
+  it is one pair and one variable**: either flag alone against the unflagged
+  half, built by the newest published basis's own recipe --- now
+  `run44-gheadnospec`, `Main.hs` at `c100112` and the shim at `1a359bd`
+  under the settled cost, on the stage1 patched on 2026-10-03, with the project
+  file and the launch unmoved --- which reads with the box as the only term.
+  Registered here rather than in a run's registration because it is a pair
+  to ask for and not a prediction to hold.
 - `PARKED` **A single wild cell moved this run's headline by 2.31 points
   and every mechanical gate passed it.** **PARKED 2026-09-26 by the owner.**
   On Run 36's basis half `list` on `stretch-coprime-r7` read a net slope
@@ -14150,7 +14155,7 @@ tables and its fingerprint say so.
   stage1 at plain `-O1` under the exit span and the settled cost
   and the control's command line carrying `-fspec-constr -fliberate-case`
   besides, so it is read against Run 43's basis `run43-gheadnospec`, whose
-  recipe its own BASIS repeats to the character, and there the two timed arms
+  recipe its own BASIS repeats to the character, and there two of the three arms
   the branch's code reached moved the WRONG way, `lib-stage2-lean` 2.81 points
   slower and the reducing consumer `liblist-stage4-sum` 1.28, and every other
   arm with a corrected time within 1.08 points ([Run 44's file](runs/run44.md)).
