@@ -1802,6 +1802,65 @@ def phantom9_listing(tmp):
     write(path, PHANTOM9_LISTING)
     return {'dis': path}
 
+# A fourteenth site, `run44-gheadtwopass` from 0x4b99a0 to 0x4b99f8, read
+# 2026-10-04: an info table's tail, then a continuation's `movq
+# $0x4b99d0,0x0(%rbp)`, two movs and a backward `jmp` rel32, read one byte
+# out of step, so that the last mov's final byte and the jmp's opcode,
+# `28 e9`, decode as `sub %ch,%cl` and the displacement's low bytes,
+# `73 fc`, as `jae -4` back to it -- the thirteenth site's shape with
+# another mnemonic, so every tell before this one passes it. The tell is
+# the high-byte register, which GHC's x86-64 code generator never names.
+# Its fall-through, the displacement's high bytes `ff ff`, decodes as
+# `(bad)` too, but so does that of four earlier sites, and a tell there
+# would have left their mutants surviving.
+PHANTOM10_LISTING = """
+run44-gheadtwopass:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+00000000004b99a0 <microzm0zi1zminplacezmmicro_Main_main54_info+0xe48>:
+  4b99a0:\t1e                   \t(bad)
+  4b99a1:\t00 00                \tadd    %al,(%rax)
+  4b99a3:\t00 c8                \tadd    %cl,%al
+  4b99a5:\t8c 30                \tmov    %?,(%rax)
+  4b99a7:\t01 48 c7             \tadd    %ecx,-0x39(%rax)
+  4b99aa:\t45 00 d0             \tadd    %r10b,%r8b
+  4b99ad:\t99                   \tcltd
+  4b99ae:\t4b 00 4c 8b 75       \trex.WXB add %cl,0x75(%r11,%r9,4)
+  4b99b3:\t10 48 8b             \tadc    %cl,-0x75(%rax)
+  4b99b6:\t5d                   \tpop    %rbp
+  4b99b7:\t28 e9                \tsub    %ch,%cl
+  4b99b9:\t73 fc                \tjae    4b99b7 <microzm0zi1zminplacezmmicro_Main_main54_info+0xe5f>
+  4b99bb:\tff                   \t(bad)
+  4b99bc:\tff 0f                \tdecl   (%rdi)
+  4b99be:\t1f                   \t(bad)
+  4b99bf:\t00 87 1e 00 00 00    \tadd    %al,0x1e(%rdi)
+  4b99c5:\t00 00                \tadd    %al,(%rax)
+  4b99c7:\t00 1e                \tadd    %bl,(%rsi)
+  4b99c9:\t00 00                \tadd    %al,(%rax)
+  4b99cb:\t00 00                \tadd    %al,(%rax)
+  4b99cd:\t00 00                \tadd    %al,(%rax)
+  4b99cf:\t00 49 83             \tadd    %cl,-0x7d(%rcx)
+  4b99d2:\tc4                   \t(bad)
+  4b99d3:\t50                   \tpush   %rax
+  4b99d4:\t4d 3b a5 58 03 00 00 \tcmp    0x358(%r13),%r12
+  4b99db:\t77 5a                \tja     4b9a37 <microzm0zi1zminplacezmmicro_Main_main54_info+0xedf>
+  4b99dd:\t49 c7 44 24 b8 a0 95 \tmovq   $0x4b95a0,-0x48(%r12)
+  4b99e4:\t4b 00 
+  4b99e6:\t48 8b 45 08          \tmov    0x8(%rbp),%rax
+  4b99ea:\t49 89 44 24 c8       \tmov    %rax,-0x38(%r12)
+  4b99ef:\t48 8b 45 18          \tmov    0x18(%rbp),%rax
+  4b99f3:\t49 89 44 24 d0       \tmov    %rax,-0x30(%r12)
+"""
+
+
+def phantom10_listing(tmp):
+    """The fourteenth saved site, planted for `--survey`: {'dis': path}."""
+    path = os.path.join(tmp, 'run44-gheadtwopass-0x4b99a0.dis')
+    write(path, PHANTOM10_LISTING)
+    return {'dis': path}
+
 
 # The run-fill loop this README prices, 28 bytes and eight instructions, as
 # `run25-g912` carries it at 0x434558; a second body differs in one
@@ -11518,6 +11577,18 @@ RECORDS = [
          argv=['--survey', '{dis}'],
          ok=V(exit=0, has=['0 self-loops of at most 64 B'],
               hasnt=['0x497de2']),
+         bug=V(exit=0, has=['1 self-loops of at most 64 B'])),
+
+    case('survey-counts-a-high-byte-register-decode-as-a-loop',
+         'loop-offsets.py', 'self',
+         "a continuation's movs and jmp read one byte out of step after an"
+         ' info table, sub %ch,%cl and jae -4, read as a four-byte'
+         ' self-loop and counted astride on a LOOP_EXITSPAN=1 build, which'
+         ' owes none -- every body tell passing it',
+         plant=phantom10_listing,
+         argv=['--survey', '{dis}'],
+         ok=V(exit=0, has=['0 self-loops of at most 64 B'],
+              hasnt=['0x4b99b7']),
          bug=V(exit=0, has=['1 self-loops of at most 64 B'])),
 
     case('survey-drops-a-body-with-an-eight-byte-instruction',

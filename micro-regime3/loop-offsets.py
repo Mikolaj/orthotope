@@ -176,6 +176,7 @@ UNCOND = re.compile(r'^(?:jmp|ret|ud2|hlt)')   # nothing falls through it
 # spells `xchg %ax,%ax`. By spelling and not by encoding: `0f 1f` takes any
 # ModRM, and `nopl (%rsi)` is a pad an encoding list did not have.
 PAD = re.compile(r'^(?:(?:cs|data16) )*(?:nop|xchg\s+%ax,%ax)')
+HIGHBYTE = re.compile(r'%[abcd]h\b')           # GHC's codegen names none
 EXITEND = re.compile(r'^(?:j|ret|ud2|hlt)')    # where a fall-through exit ends
 
 
@@ -485,6 +486,14 @@ def scan(path, length):
         # bytes `de e9 70 fc` read as `fsubrp` and `jo -4` back to it, the
         # thirteenth site in defects.py (2026-09-26).
         if any(i[3].startswith('f') for i in insns[k:n + 1]):
+            continue
+        # Nor a high-byte register, `%ah`, `%bh`, `%ch` or `%dh`, which
+        # GHC's x86-64 code generator never names: Run 44's control read
+        # the thirteenth site's shape with another mnemonic, a mov's last
+        # byte and a jmp rel32's first three, `28 e9 73 fc`, as
+        # `sub %ch,%cl` and `jae -4`, passing every
+        # tell above -- the fourteenth site in defects.py (2026-10-04).
+        if any(HIGHBYTE.search(i[4]) for i in insns[k:n + 1]):
             continue
         # Nor does it begin with a pad: a `nopl` pad after an unconditional
         # jump, closed by the info-table word after it read as a short

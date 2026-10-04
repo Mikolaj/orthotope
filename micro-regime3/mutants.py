@@ -881,6 +881,18 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'0 self-loops of at most\' in r.stdout else 1)"'),
+    # The high-byte register tell, removed: the fourteenth site's jump
+    # reads as a four-byte loop astride again.
+    ('survey counts a high-byte register decode as a loop again', 'loop-offsets.py',
+     "        if any(HIGHBYTE.search(i[4]) for i in insns[k:n + 1]):\n            continue\n",
+     '',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.phantom10_listing(tempfile.mkdtemp())[\'dis\']\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'0 self-loops of at most\' in r.stdout else 1)"'),
     # The zero tell's instruction form dropped, its run of four kept: the
     # seventh site's two table bytes and their word read as a four-byte
     # loop again.
