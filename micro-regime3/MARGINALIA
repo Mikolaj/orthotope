@@ -1343,3 +1343,11 @@ THE WRITE-UP SESSION'S HALF
 **A truncated refusal cost a five-minute rerun.** The drafter prints the paragraph it could not place to its output only, and piping that through `cut` lost it, so the whole draft ran again to recover one paragraph. Read the drafter's output whole.
 
 **The quiet box asked for in person, and spent in six minutes.** The owner returned mid-write-up and granted the box for after the counts; the three readings, the cycles sweeps and both copy tests, were written as one script before asking, so they ran from 11:02:51 to 11:09:06 and the box was handed back at once.
+
+**Four tooling defects met, fixed with their cases.** At 6a the audit's replayed README carried the wrapping of its day, and `wrap80`'s rewrite of 2026-10-03 re-broke it under the old reader's wrap pass, failing `checkdoc-without-a-roster` and `checkdoc-open-list-out-of-order`; it is handed over unwrapped now. Met during the write-up and fixed at 7a: `--prose-draft`'s installer searched the registration section for its phrases (`prose-draft-finds-its-paragraph-past-the-registration`), `--for-brief` called a `-g3` build log and counter sweeps' logs parked processes (`for-brief-takes-a-probe-log-for-a-parked-process`), and `run-status.sh` read 6d's subject off a path-filtered log, so a 6d commit carrying MARGINALIA alone read NOT DONE (`status-finds-a-6d-commit-without-a-document`).
+
+**A 5c gap left standing.** Provenance's counts paragraph is drafted at 5b, before the counts exist, and 5c's re-install keeps it, `install_provenance` replacing only the step-5 copy's paragraphs in a committed run file; it was written by hand.
+
+**The turn-end hold changed under the write-up.** On 2026-10-04 the hold became a file per repository, set by `wrap-restore --hold`, and the session-named file this write-up had set held nothing from then on.
+
+**A bug pattern written against the fixed program's message.** The new `--prose-draft` case looked for one backtick where the old message prints two, and its audit failed until the old program's output was read whole outside the runner.

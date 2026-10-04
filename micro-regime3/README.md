@@ -11751,12 +11751,13 @@ population on both halves, 176 readings, and ALL EIGHT carry a floor somewhere
 --- `mut-odo-vecdims-add-in-leaf-u2-aa-distant` in six of the twenty-two
 populations, `list-aa-distant` in five and `list-aa-adjacent`
 and `bq-expand-aa-distant` in three each --- which is the same instability
-the whole-set figure above reads. **One cell passes the about 10% the gate above
-reads, on the control**, `bq-expand-aa-adjacent` on `runs-65536` at 12.71%,
-so it leaves the per-shape record. **This run adds no reading to Run 19's
-finding**: `Main.hs` and the compiler moved under a shim, a project file
-and a boot that did not, so no floor here is read twice on one build across
-runs, and with no rerun no binary was read twice in the run either. The readings
+the whole-set figure above reads. **One cell passes the about 10% past which
+[the open list][open] takes a worst cell out of the per-shape record,
+on the control**, `bq-expand-aa-adjacent` on `runs-65536` at 12.71%,
+so it leaves that record. **This run adds no reading to Run 19's finding**:
+`Main.hs` and the compiler moved under a shim, a project file and a boot
+that did not, so no floor here is read twice on one build across runs,
+and with no rerun no binary was read twice in the run either. The readings
 that did that stand as they were --- Run 19's factor of 1.7, Run 23's twentieth,
 Run 30's 1.44 and Run 43's 1.98, its basis between two main-set processes of one
 binary --- and they still say that a floor moves on a binary that has
