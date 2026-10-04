@@ -3284,10 +3284,40 @@ mkStrided normalSh =
 -- The library-shaped arms: the whole of what a user's 'toVectorT' costs,
 -- dispatch included, on every population -- so that a run reads a
 -- library change class by class, not only the regime-3 fill the rest
--- of the roster isolates. Three, one per library form, each a port of
--- the library code and not a strategy of its own; their pairs are what
--- an orthotope user would measure.
---
+-- of the roster isolates. Each port is of the library code and not a
+-- strategy of its own, and a candidate beside them says so at its
+-- definition; their pairs are what an orthotope user would measure.
+
+-- Stage zero, master's: Data/Array/Internal.hs on master at 44d29ed,
+-- its 'toVectorT' over its 'toVectorListT' -- regime 1 the vector itself
+-- or a slice, regime 2 one slice per maximal normal suffix and a
+-- concatenation, as stage one has them, and regime 3 a vector built from
+-- the element list, behind 'toListT''s test for the natural layout,
+-- which cannot hold there, the innermost stride not being 1. Read
+-- against that file branch for branch on 2026-10-04: the slice list is a
+-- difference list there and a plain list here, as at 'fbLibStage1', and
+-- nothing else differs. So stage one is this arm with an empty view
+-- answered and then the fill in place of the list, and 'list' is this
+-- arm's regime-3 branch without the dispatch or the test. Added
+-- 2026-10-04 by the owner, beside stage one.
+{-# NOINLINE fbLibStage0 #-}
+fbLibStage0 :: ShapeL -> T -> VS.Vector Double
+fbLibStage0 sh a@(T (Strides ats) ao v)
+  | ats == ts' && VS.length v == l = v
+  | null sh = VS.slice ao 1 v
+  | oks !! (length sh - 1) = case loop oks sh ats ao of
+      [s] -> s
+      ss -> VS.concat ss
+  | otherwise = VS.fromListN l elems
+  where l : ts' = getStridesT sh
+        oks = scanr (&&) True (zipWith (==) ats ts')
+        loop (b : bs) (n : ns) (!t : ts) !o
+          | b = [VS.slice o (n * t) v]
+          | otherwise = concat [loop bs ns ts (i * t + o) | i <- [0 .. n - 1]]
+        loop _ _ _ _ = error "fbLibStage0: impossible"
+        elems | ao == 0 && ats == ts' && VS.length v == l = VS.toList v
+              | otherwise = toListT sh a
+
 -- Stage one as it shipped, Data/Array/Internal.hs on the branch
 -- speedup-strided-tovector (landed at 6ae326e):
 -- regime 1 the vector itself or a slice, regime 2 one slice per maximal
@@ -3385,7 +3415,7 @@ fbLibStage2Concat sh (T (Strides ats) ao v)
 
 -- The run length at or above which 'fbLibStage2Disp' sends a contiguous
 -- canonical run back to one slice, and the only thing it varies over
--- 'fbLibStage2Concat'. Read off the runs class rather than chosen: the
+-- 'fbLibStage2Lean'. Read off the runs class rather than chosen: the
 -- class sweeps the run from 2 to 65536, so what it can settle is which
 -- pair of its lengths the crossover falls between, and any value inside
 -- that pair selects the same route on every view this suite holds. The
@@ -3396,28 +3426,45 @@ fbLibStage2Concat sh (T (Strides ats) ao v)
 -- which put the crossover between `runs-1024` and `runs-4096` on the
 -- dead-spot binary and read the 2048 arm nowhere behind the better route
 -- past the class's floor, where 8192 and 32768 were behind it at 4096.
+-- Re-cut to 32768 on 2026-10-04, over the branch's fill of 2026-10-04,
+-- by one process over the runs class on Run 44's basis recipe with this
+-- arm at a threshold of 1, so that it sliced every run
+-- (probe-p45disp1-runs.json): the slice route over the fill, net, read
+-- 1.1374 at `runs-1024`, 1.1095 at `runs-r3-48x30`'s runs of 1440, 1.0078
+-- at `runs-4096`, 1.0026 at `runs-16384` and 0.9838 at `runs-65536`, the
+-- sign turning between the last two. Every figure from `runs-4096` up is
+-- inside that process's A/A spread, the shipped leaf's twin parting by
+-- 1.24% a shape and 3.47% at worst, so past the floor the slice route
+-- leads on no view of the class, where the fill leads by 10.9% and more at
+-- runs of 1440 and below.
 dispRun :: Int
-dispRun = 2048
+dispRun = 32768
 
--- 'fbLibStage2Concat' with the slice route taken only where the canonical
--- run reaches 'dispRun' -- the dispatch on run length the runs class
--- measured a crossover for, and ONE change over that arm, so 'lib-stage2-
--- concat' is this one's control and 'lib-stage2-lean' the other side of
--- what it dispatches between. Below the threshold stage two's fill wins
--- and this arm fills as 'fbLibStage2Lean' did when written; at or above
--- it one memcpy per run wins and this arm is 'fbLibStage2Concat'.
--- Nothing that stays strided after canonicalization is touched, so on
--- every regime-3 population this arm and 'fbLibStage2Concat' are the
--- same code, as 'fbLibStage2Lean' was until 2026-09-26, and only the
--- runs class separates them.
+-- 'fbLibStage2Lean' with the slice route taken only where the canonical run
+-- reaches 'dispRun' -- the dispatch on run length the runs class measured
+-- a crossover for, and ONE change over that arm, so 'lib-stage2-lean' is
+-- this one's control. Below the threshold this arm is that arm's code; at or
+-- above it, one memcpy a run, it concatenates the run slices the branch's
+-- own walker lists, 'runSlicesLib', which is that branch's 'toVectorListT'
+-- concatenated. Which route wins where is at 'dispRun'. Only a view of
+-- contiguous runs is touched, so on every other population this arm and
+-- 'fbLibStage2Lean' are the same code and only the runs class separates
+-- them. Until 2026-10-04 it was this dispatch over 'fbLibStage2Concat', stage
+-- two's route before the lean ruling, with a base-offset table for its slices.
 --
--- Non-vacuity is not something 'check' can give: every threshold is
--- correct, so the route has to be read off ALLOCATION, where the two
--- branches differ by construction -- the slice route builds a base-offset
--- table per call and the fill builds none. At 'dispRun' between the two
--- bracketing lengths this arm reads stage two's flat multiple below the
--- bracket and stage one's above it, which is what
--- probe-runlen-vacuity.log records.
+-- Non-vacuity of the threshold is not something 'check' can give: every
+-- threshold is correct, so the route has to be read off ALLOCATION, where the
+-- two branches differ by construction -- the slice route builds a slice and a
+-- cons a run and the fill builds neither. Read 2026-10-04 off one -L1 process
+-- of the rebuilt arm at 2048 (probe-p45-vacuity3.json): at 'runs-1024' it
+-- allocates 14393608 bytes a call, 'lib-stage2-lean''s figure to the byte, and
+-- at 'runs-4096' 70296 more than that arm, some 160 a run; at 32768
+-- (probe-p45-vacuity4.json) it reads that arm's figure at 'runs-16384' and
+-- 4488 bytes over it at 'runs-65536', some 166 a run. Written with the
+-- fill's call as a fall-through to 'routeVector', it read 64 bytes a call over
+-- that arm at 'runs-1024' as well, which is why the three cases are spelled
+-- out. The route itself 'check' does reach: reversing the slice list fails it
+-- at 2048, first at 'runs-4096'.
 -- The 'VS.concat' is the library's own 'vConcat', and in the library
 -- it does not fuse, read off Core dumps on 2026-09-07. Written at one
 -- site, @VS.map f (VS.concat xs)@ does fuse -- the stream/unstream
@@ -3464,35 +3511,34 @@ dispRun = 2048
 -- tipped it. Parked 'Only' the same day, checked and not timed; its
 -- figures stand in runs/run26.md and the 'dispRun' entry; the three
 -- threshold arms of 2026-09-02 went with it (README.md#dead-ideas).
+-- Timed again from 2026-10-04 by the owner, rebuilt over
+-- 'fbLibStage2Lean' as above.
 {-# NOINLINE fbLibStage2Disp #-}
 fbLibStage2Disp :: ShapeL -> T -> VS.Vector Double
-fbLibStage2Disp sh (T (Strides ats) ao v)
-  | l == 0 = VS.empty
-  | otherwise = case innerFirst (canonicalize sh ats) of
-      [] -> wholeOrSlice ao l v
-      [(1, _)] -> wholeOrSlice ao l v
-      (1, n) : rest | n >= dispRun ->
-        let outer = outerFirst (InnerFirst rest)
-        in  VS.concat
-              [ VS.slice o n v
-              | o <- VU.toList (baseOffsetsList ao (map snd outer)
-                                                (Strides (map fst outer))) ]
-      (t, n) : rest ->
-        fillStage3 (walkAx (Walk t n (InnerFirst rest))) ao l v
-  where l = product sh
+fbLibStage2Disp sh a@(T _ _ v)
+  | l == 0 = VS.concat []
+  | otherwise = case routeList4 sh l a of
+      RSliceAx ao l' -> wholeOrSlice ao l' v
+      RRunsAx axes@(WalkAx _ n _) ao l'
+        | n >= dispRun -> VS.concat (runSlicesLib axes ao v (:) [])
+        | otherwise -> fillStage2Axes axes ao l' v
+      RFillAx axes ao l' -> fillStage2Axes axes ao l' v
+  where !l = product sh
 
 -- The fill of 'lib-stage2-lean', 'liblist-stage4-sum' and
 -- 'libunord-stage13-sum': the library's 'genericFillStrided' as
--- ~/r/orthotope.toVectorListT has it on 2026-10-03, its uncommitted
--- diff included, at Storable Double, comments stripped except where it
--- differs from 'fillStage3': the stepping run's stride an argument,
--- which runs at stride 1 take as a literal in a walk of their own, and
--- the bound of 'level''s loop; the reasons for the rest are at
--- 'fillStage3'. NOINLINE as every fill here, where the library's is
--- INLINABLE: what that pragma is for, a client specialising the fill
--- once per vector type, has no counterpart at one type in one module.
--- Until 2026-10-03 it was 'fillStage2' as that read on 2026-09-25, over
--- pairs, the comparison for the three arms' twins on the 'Axis' path.
+-- pr-mikolaj-toVectorListT's commit "Port the Axis path" has it since
+-- 2026-10-04, at Storable Double, comments stripped except where it differs
+-- from 'fillStage3': the stepping run's stride an argument, which runs at
+-- stride 1 take as a literal in a walk of their own, and the fused level
+-- holding its 'Axis', 'NestLib' where 'fillStage3' has 'NestAx'; the reasons
+-- for the rest are at 'fillStage3'. NOINLINE as every fill here, where the
+-- library's is INLINABLE: what that pragma is for, a client specialising
+-- the fill once per vector type, has no counterpart at one type in one
+-- module. From 2026-10-03 until 2026-10-04 its 'level' loop ran to an end
+-- computed from @outPos@, as the branch's did; until 2026-10-03 it was
+-- 'fillStage2' as that read on 2026-09-25, over pairs, the comparison for the
+-- three arms' twins on the 'Axis' path.
 {-# NOINLINE fillStage2Axes #-}
 fillStage2Axes :: WalkAx -> Int -> Int -> VS.Vector Double
                -> VS.Vector Double
@@ -3552,44 +3598,30 @@ fillStage2Axes (WalkAx tInner sInner outerAxes) !ao l !v =
         level body (Axis st n) !blk !outPos !baseOff
           | st == 0 = body outPos baseOff >> copies n blk outPos
           | otherwise =
-              let !opEnd = outPos + n * blk
-                  go :: Int -> Int -> ST s ()
-                  go !op !boff
-                    | op >= opEnd = return ()
+              let go :: Int -> Int -> Int -> ST s ()
+                  go !k !op !boff
+                    | k <= 0    = return ()
                     | otherwise = body op boff
-                                  >> go (op + blk) (boff + st)
-              in  go outPos baseOff
-              -- Bounded by an end computed from @outPos@, where
-              -- 'fillStage3' counts the blocks down, as the branch's
-              -- commits do before its uncommitted diff of 2026-10-03.
-              -- The library dropped the count as a workaround for GHC
-              -- https://gitlab.haskell.org/ghc/ghc/-/work_items/27894:
-              -- where a client specialises the fill rather than
-              -- inlining it, the specialised copy meets full laziness
-              -- before any simplification, and a loop that mentions
-              -- nothing 'run' binds is floated out of 'run' and becomes
-              -- a heap closure, 56 to 80 bytes a call, where a loop
-              -- bounded by what 'run' binds stays in it and becomes a
-              -- join point. There, with the fill INLINABLE, the bound
-              -- reads up to about 40 instructions a call slower on
-              -- small arrays than the count with the fill INLINE, and
-              -- builds no closure for the loop.
-        buildNest :: NestAx -> Int -> InnerFirstAx -> NestAx
+                                  >> go (k - 1) (op + blk) (boff + st)
+              in  go n outPos baseOff
+        buildNest :: NestLib -> Int -> InnerFirstAx -> NestLib
         buildNest inner !blk axes = case innerFirstAx axes of
           [] -> inner
           axis@(Axis _ n) : rest ->
-            buildNest (LevelAx axis blk inner) (n * blk) (InnerFirstAx rest)
+            buildNest (LevelLib axis blk inner) (n * blk) (InnerFirstAx rest)
         {-# INLINE walk #-}
         walk :: (Int -> Int -> ST s ()) -> ST s ()
         walk writeRun = case innerFirstAx outerAxes of
           [] -> writeRun 0 ao
           axis0@(Axis _ n0) : outer ->
-            let run :: NestAx -> Int -> Int -> ST s ()
-                run FusedAx !outPos !baseOff =
-                  level writeRun axis0 sInner outPos baseOff
-                run (LevelAx axis blk inner) !outPos !baseOff =
+            let run :: NestLib -> Int -> Int -> ST s ()
+                run (FusedLib axis) !outPos !baseOff =
+                  level writeRun axis sInner outPos baseOff
+                run (LevelLib axis blk inner) !outPos !baseOff =
                   level (run inner) axis blk outPos baseOff
-            in  run (buildNest FusedAx (n0 * sInner) (InnerFirstAx outer)) 0 ao
+            in  run (buildNest (FusedLib axis0) (n0 * sInner)
+                               (InnerFirstAx outer))
+                    0 ao
     -- Contiguous runs, at stride 1, walked by a copy of their own, the
     -- stride a literal there and not a value 'run' holds. The library
     -- reads it, where a client specialises the fill rather than
@@ -4270,7 +4302,7 @@ routeList3 sh (T (Strides ats) ao _)
 -- 'WalkAx', which worker/wrapper passes and returns unboxed.
 routeList4 :: ShapeL -> Int -> T -> RouteAx
 routeList4 _ 1 (T _ ao _) = RSliceAx ao 1
-routeList4 (n : ns) !l (T (Strides (st : sts)) ao _) =
+routeList4 (n : ns) l (T (Strides (st : sts)) ao _) =
   routeOfLib ao l (canonicalizeLib sts ns (WalkAx st n (InnerFirstAx [])))
 routeList4 _ _ _ =
   error "routeList4: violated contract: l /= product sh, or too few strides"
@@ -5681,8 +5713,9 @@ stepOdometerAx (OdoLevelAx o c axis@(Axis s d) outer)
       OdoDoneAx -> OdoDoneAx
       next@(OdoLevelAx oNext _ _ _) -> OdoLevelAx oNext d axis next
 
--- The outer levels of a view as 'fillStage3' and the branch's fill,
--- 'fillStage2Axes', walk them: the fused level's runs, or a level of @n@
+-- The outer levels of a view as 'fillStage3' walks them, and the
+-- branch's fill, 'fillStage2Axes', did until 2026-10-04, 'NestLib' being its
+-- form since: the fused level's runs, or a level of @n@
 -- blocks of @blk@ elements at stride @st@, stride 0 copying the first,
 -- @st@ and @n@ the outer axes list's own 'Axis'. A hand-rolled strict
 -- list, the loop nest as data, holding the 'Axis' for readability and a
@@ -5693,6 +5726,13 @@ stepOdometerAx (OdoLevelAx o c axis@(Axis s d) outer)
 -- 'level' only take it apart; a reader that had to build one would
 -- bring the allocation back into the loop.
 data NestAx = FusedAx | LevelAx !Axis !Int !NestAx
+
+-- The branch's 'Nest' since 2026-10-04, 'fillStage2Axes''s: 'NestAx' with
+-- the fused level holding the innermost outer level's 'Axis', so that
+-- the counted loop over it mentions what 'run' takes apart and stays in
+-- 'run' where a client specialises the library's fill (GHC
+-- https://gitlab.haskell.org/ghc/ghc/-/work_items/27894).
+data NestLib = FusedLib !Axis | LevelLib !Axis !Int !NestLib
 
 -- 'fillStage2' over 'WalkAx', the path's fill: a copy of the fill the
 -- library's 'genericFillStrided' is ported from, at Storable Double,
@@ -5845,8 +5885,7 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao l !v =
 -- 'writeRunSet''s loop as it was before 'fillStage2' unrolled its own;
 -- everything else 'fillStage3''s, comments stripped,
 -- the code copied, so that the two fills differ in their run bodies
--- alone, but for the bang on @l@ that 'fillStage3' leaves off to match
--- the library and that changes no Core. The pair 'lib-stage2-lean-u1'
+-- alone. The pair 'lib-stage2-lean-u1'
 -- against 'lib-stage3-lean' prices the unrolling under the lean
 -- dispatch, the stepping run's wherever the innermost stride is
 -- not 0, the broadcast run's where it is, where the leaf family
@@ -5866,7 +5905,7 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao l !v =
 -- @cnn-L1-6x6-c1@, naming lib-stage2-lean-u1 alone.
 {-# NOINLINE fillStage3U1 #-}
 fillStage3U1 :: WalkAx -> Int -> Int -> VS.Vector Double -> VS.Vector Double
-fillStage3U1 (WalkAx tInner sInner outerAxes) !ao !l !v =
+fillStage3U1 (WalkAx tInner sInner outerAxes) !ao l !v =
   assert (l > 0) $ VS.create fill
  where
   fill :: forall s. ST s (VSM.MVector s Double)
@@ -7853,6 +7892,10 @@ roster =
     -- dispatch over stage one's fill -- which copy each matches, and
     -- when it was read, at the definitions. Appended for the family
     -- block's own reason -- no existing control moves.
+    -- Master's, added 2026-10-04 by the owner at the head of the block,
+    -- beside stage one, from which it differs in regime 3 alone: what the
+    -- two stages replace.
+  , ("lib-stage0",                 Fill fbLibStage0)
   , ("lib-stage1",                 Fill fbLibStage1)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does):
     -- the two halves that bracketed 'dispRun', spent once the arm below
@@ -7873,7 +7916,11 @@ roster =
     -- RULED OUT for the library 2026-09-07 and parked 'Only' the same
     -- day: code complexity at the threshold, a hard-coded L1-sized
     -- constant tipping it, reasons at the definition.
-  , ("lib-stage2-disp",            Only fbLibStage2Disp)
+    -- Timed again from 2026-10-04 by the owner, as the lean arm with the
+    -- run-length dispatch: its control is 'lib-stage2-lean', below, and
+    -- the slot is the one it held. Re-cut to 32768 the same day, reasons
+    -- at 'dispRun'.
+  , ("lib-stage2-disp",            Fill fbLibStage2Disp)
     -- Three candidates for the branch, added 2026-08-30 for Run 22: the
     -- run unrolled by four, a run of 2 to 5 elements written by a body
     -- of exactly that length, and the same fill under a leaner dispatch,
@@ -7984,12 +8031,15 @@ roster =
     -- on 'runs', and nothing has read it since.
   , ("libunord-stage6-list-sum",   Only fbLibUnordStage6ListSum)
     -- and the three reorderings' consumers.
-  , ("libunord-stage7-sum",        Fill fbLibUnordStage7Sum)
+    -- RETIRED 2026-10-04 by the owner, checked and not timed, with stage
+    -- nine's below.
+  , ("libunord-stage7-sum",        Only fbLibUnordStage7Sum)
     -- Parked 'Only' 2026-09-11: refuted at Run 28's registration (6),
     -- its run never differing from stage seven's on a rostered view
     -- (README.md#dead-ideas); reasons at 'routeUnord8'.
   , ("libunord-stage8-sum",        Only fbLibUnordStage8Sum)
-  , ("libunord-stage9-sum",        Fill fbLibUnordStage9Sum)
+    -- RETIRED 2026-10-04 by the owner with stage seven's, above.
+  , ("libunord-stage9-sum",        Only fbLibUnordStage9Sum)
     -- Stage seven's tie-break under stage nine's move, added 2026-09-11
     -- for Run 29 at the tail of the consumers, beside the two it
     -- composes; reasons at 'routeUnord10'.

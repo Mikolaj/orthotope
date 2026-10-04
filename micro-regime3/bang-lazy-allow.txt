@@ -16,4 +16,3 @@ Main.hs:go 2  # as go 1, for the strides list
 Main.hs:go 4  # baseOffsetsGenLemire's go, read 2026-09-28: the strides list, banged inside the middle equation's cons pattern, is unused on both fallback paths, which return 0
 Main.hs:routeOfAx 2  # read 2026-09-28: the first equation's bang on the count is there only to match routeOfT in ~/r/orthotope.toVectorListT, which has this shape; the other two equations store the count in a strict field of RRunsAx or RFillAx, which forces it, and the -O1 Core on GHC HEAD is the same without the bang
 Main.hs:routeOfLib 2  # the branch's routeOfT, read 2026-10-03: the shape of routeOfAx 2, the bang the branch's own; the Core not read on this copy
-Main.hs:routeList4 2  # the branch's routeT, read 2026-10-03: the first equation's literal 1 forces the count on every path, so the second equation's bang, the branch's own, is redundant, which -Wredundant-bang-patterns reports, and the third, which only errors, meets the count forced
