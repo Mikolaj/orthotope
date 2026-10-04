@@ -1,9 +1,13 @@
-"""The checks of this directory, run by `check-all .` in this order.
+"""The static checks of this directory, run by `check-all .` in this order.
 
 `{bin}` is the shared bin directory (`~/.claude/bin`), `{root}` this
-directory. Ordered cheapest first, so a broken tree says so before the slow
-steps run; the case suite in both directions and the mutants are minutes
-each, and `defect-run.py --changed .` is what one edit owes. The two linters
+directory. Owed after an edit: the records validated, the
+source lint, the two linters, the executable bits and the bang shapes, with
+the coverage scan `check-all` adds -- every program here named by a step or
+a case. The expensive half, the properties over every run, the case suite in
+both directions and the mutants, is `checks-deep.py`'s since 2026-10-04,
+run once per run preparation and when the owner asks; `defect-run.py
+--changed .` is what one edit of a script owes between them. The two linters
 stand since 2026-09-02: pyflakes over the Python here and shellcheck over
 the shell drivers, which the AST families cannot reach. An absent linter is
 a finding and not a skip, and absent means every invocation the step can
@@ -49,30 +53,6 @@ STEPS = [
                                 'cd "{root}" && t=../../horde-ad/tools/bang-lazy-check.py && '
                                 '{ [ -f "$t" ] || { echo "BLOCKED: $t is not mounted, so Main.hs went unread for bang shapes"; exit 2; }; } && '
                                 'python3 "$t" --allow bang-lazy-allow.txt Main.hs']),
-    # CORPUS_RUN=newest, since 2026-09-09: the properties are quantified
-    # over every run on disk, and several written-up runs make that sweep
-    # minutes. What it buys is about a tenth of this suite's time and not
-    # a different order -- the case suites and the mutant replay are the
-    # bulk, measured after the change rather than assumed before it, and
-    # the first note here said the sweep was what made the suite rare.
-    # It narrows the
-    # corpus and not the proof -- each property still sweeps everything it
-    # is handed and still prints what it covered, so the narrowing is
-    # visible in the output rather than silent. Ask for the wider sweep by
-    # hand, `./properties.py`, when a run is deleted or added.
-    ('properties',             ['bash', '-c',
-                                'cd "{root}" && CORPUS_RUN=newest'
-                                ' python3 properties.py']),
-    # Seven at once since 2026-09-18: run one at a time, these three were
-    # nine tenths of a suite of some seventeen minutes, and the whole now
-    # runs in some five. Seven and not the box's sixteen, so that a run
-    # and the session beside it keep their cores; and READ_JOBS=1, since
-    # post-run-readings.sh otherwise runs six readers under each of the
-    # seven. The cases defects.py's CONFIG names `serial` build here and
-    # run alone after the rest.
-    ('cases, ok direction',    ['env', 'READ_JOBS=1', 'python3', '{bin}/defect-run.py', '-j', '7', '{root}']),
-    ('cases, bug direction',   ['env', 'READ_JOBS=1', 'python3', '{bin}/defect-run.py', '--audit', '-j', '7', '{root}']),
-    ('selftest mutants',       ['env', 'READ_JOBS=1', 'python3', '{bin}/selftest-mutants.py', '-j', '7', '{root}']),
 ]
 
 # Programs with no check, each with its reason: said on every run and never

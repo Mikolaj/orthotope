@@ -261,9 +261,10 @@ MUTANTS = [
      '    if False:',
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nn = d.note_for_the_check(t)\nrm = d.readme_with_a_registration(t)\nr = subprocess.run([sys.executable, \'{file}\', \'--note-check\', n, \'--readme\', rm], capture_output=True, text=True)\nsys.exit(0 if \'no [EXEC] block\' in r.stdout + r.stderr else 1)"'),
 
-    # `CORPUS_RUN=newest` narrows `check-all`'s corpus to one run, so a
-    # narrowing that keeps the wrong runs would put the suite back where it
-    # was while reading as narrowed. The judge asks the selection directly
+    # `CORPUS_RUN=newest` narrows a properties sweep to one run, which
+    # `check-all .` ran until 2026-10-04 and a quick sweep by hand still
+    # does, so a narrowing that keeps the wrong runs would read as narrowed
+    # and sweep the wrong thing. The judge asks the selection directly
     # rather than through a sweep -- exactly one run number survives -- so
     # it costs no minutes; LOST rather than green with no run on disk, as
     # every corpus judge here is.

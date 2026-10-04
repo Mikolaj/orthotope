@@ -187,9 +187,9 @@ done
 # which runs none of what it reports. Refused rather than absorbed, which
 # is the defect family this tree counts.
 # WITH --corpus IT IS ALLOWED, and prints the script-checks row alone: the
-# pre-run list runs `--no-corpus --fill-in`, whose block marks 8c and 8d
+# pre-run list runs `--no-corpus --fill-in`, whose block marks 8c to 8e
 # `<yours>` because they have not run yet, and refusing the flag on the
-# call that DOES run them left those two rows to be written by hand --
+# call that DOES run them left those rows to be written by hand --
 # which is the transcription this mode exists to remove (2026-09-08).
 # --figures RUNS NO STEP, so every other flag here selects steps it will
 # not take. REFUSED rather than absorbed, which is the family this tree
@@ -725,32 +725,18 @@ step_10f
 
 step_8
 
-# 8b is three lint steps and not one: the defect families over the Python
-# here and the two linters over the Python and the shell. An absent linter
-# FAILS the step by name rather than being skipped, which is checks.py's
-# rule, and absent means the invocation this step actually makes does not
-# run -- so pyflakes is tested as the module it is invoked as, while
-# `command -v` decides the shell linter, which is a command.
-(
-  command -v defect-lint.py >/dev/null \
-    || { echo "defect-lint.py is not on PATH: the families went unchecked"
-         exit 1; }
-  defect-lint.py . || exit 1
-  python3 -m pyflakes --version >/dev/null 2>&1 \
-    || { echo "pyflakes is not on PATH: the Python here went unlinted"
-         exit 1; }
-  python3 -m pyflakes ./*.py || exit 1
-  command -v shellcheck >/dev/null \
-    || { echo "shellcheck is not on PATH: the shell here went unlinted"
-         exit 1; }
-  # TRACKED SCRIPTS ALONE, top level, since 2026-09-26: the glob took the
-  # owner's untracked probe with it and failed the preparation on a scratch
-  # file, on Run 42. checks.py's step reads the same set.
-  git ls-files -z -- ':(glob)*.sh' | xargs -0 shellcheck -S warning -f gcc \
-    || exit 1
-) > "$TMP/fam" 2>&1 \
-  && say 8b PASS "the families and the two linters over this directory" \
-  || say 8b FAIL "lint: $(tail -2 "$TMP/fam" | head -1)"
+# 8b IS `check-all .` WHOLE since 2026-10-04, checks.py's static steps, ten
+# seconds once the cases and the mutants left them for checks-deep.py; until
+# then it was the three lint steps alone, run here by hand. An absent linter
+# fails its step by name there, and check-all off PATH fails this one.
+if command -v check-all >/dev/null; then
+  check-all . > "$TMP/fam" 2>&1 \
+    && say 8b PASS "check-all .: $(tail -1 "$TMP/fam")" \
+    || say 8b FAIL "check-all .: $(grep -m1 -E '^  (failed|could not run):' \
+"$TMP/fam" || tail -1 "$TMP/fam")"
+else
+  say 8b FAIL "check-all is not on PATH, so the static checks did not run"
+fi
 
 # The regime, in the binary, which nothing later can confirm. Read as
 # README reads it: baseOffsetsScan against baseOffsetsMut on vgg-14-c512,
@@ -914,79 +900,58 @@ fi
 fi
 
 # THE RUN BEHIND THIS ONE, as a number: the highest runs/run<N>.md below
-# this run's N. Two places want it -- 8d, for the commit to date a script
-# change from, and the fill-in block's two cross-run reads -- and it was
-# inline in the second until 8d needed it too, so it is one function rather
-# than the same three lines twice.
+# this run's N, which the fill-in block's cross-run reads want.
 prev_run_n () {
   ls runs/run*.md 2>/dev/null | sed 's|.*/run||; s|\.md$||' \
     | awk -v n="${R#run}" '$0 ~ /^[0-9]+$/ && $0+0 < n+0' | sort -n | tail -1
 }
 
-# 8c and 8d LAST, and not merely last in the printing: they are the two
-# that read every run JSON on disk, so putting them at the end is what
-# lets --no-corpus stop short of them, the sweeps run, and --corpus take
-# them afterwards. Whichever way, they never share the directory with a
-# sweep that is still writing.
+# 8c TO 8e ARE `check-all checks-deep.py` since 2026-10-04: the properties
+# over every run JSON (8c), every case in both directions (8d) and every
+# mutant (8e). `check-all .` ran the cases and the mutants after an edit
+# until then, and 8d ran only the cases of the scripts changed since the
+# previous run's file, 8e only where one had; the owner moved the expensive
+# half here whole, once per preparation, so 8d and 8e are now unconditional.
+# LAST, and not merely last in the printing: the properties read every run
+# JSON on disk, so --no-corpus stops short of them, the sweeps run, and
+# --corpus takes them afterwards, never beside a sweep still writing.
 if [ "$CORPUS" = 1 ]; then
-./properties.py > "$TMP/prop" 2>&1 \
-  && say 8c PASS "properties over every run JSON here" \
-  || say 8c FAIL "properties: $(grep -m1 FAIL "$TMP/prop")"
-
-# THE `=` IS LOAD-BEARING and was missing here until 2026-09-22: written
-# `--changed $REV .` the revision is read as a second ROOT, that root answers
-# BLOCKED, and the real root falls back to HEAD -- so this step dated from
-# HEAD, selected nothing whenever the preparation itself had changed no
-# script, and said so in a line that reads like a finding about the tree. The
-# BLOCKED line came FIRST and `tail -1` shows the last, so the verdict
-# carried the HEAD line alone.
-# 8d IS WHAT THE EDITS SINCE THE LAST RUN OWE, which is what the pre-run
-# list's 8d glosses as *if any script here has changed since the last run*,
-# naming this step as the one that runs it -- and not
-# what this ran until 2026-09-13. The bare form replays the WHOLE corpus,
-# minutes where the list's is seconds, and the two disagreed in plain sight:
-# the PASS line said `every planted defect` beside a list saying `if any
-# script here has changed`. Nothing was missed by it, a superset being
-# slower rather than weaker; what it cost was a step nobody would run twice.
-# THE COMMIT IS THE PREVIOUS RUN'S FILE BEING BORN. `runs/run<N>.md` is
-# written at post-run step 5, so the FIRST commit touching it dates the last
-# run finishing. NOT the newest such commit: a later session amending that
-# file is ordinary -- Run 30's preparation amended run29.md's
-# compares-against section the same day -- and dating from it would select
-# nothing and pass vacuously, which is worse than slow.
-PRN=$(prev_run_n)
-PREV_COMMIT=""
-[ -n "$PRN" ] && PREV_COMMIT=$(git log --reverse --format=%H \
-                                 -- "runs/run$PRN.md" 2>/dev/null | head -1)
-if [ -n "$PREV_COMMIT" ]; then
-  defect-run.py --changed="$PREV_COMMIT" . > "$TMP/cs" 2>&1 \
-    && say 8d PASS "every defect of what changed since run$PRN's file \
-refused again" \
-    || say 8d FAIL "defect-run: \
-$(grep -m1 BLOCKED "$TMP/cs" || tail -1 "$TMP/cs")"
-else
-  # NEVER SILENTLY LESS: with no previous run file to date from, the whole
-  # corpus runs, which is what this step did unconditionally before. The
-  # fallback is the old behaviour kept as the floor, not discarded.
-  defect-run.py . > "$TMP/cs" 2>&1 \
-    && say 8d PASS "every planted defect refused again (no previous run file \
-to date from)" \
-    || say 8d FAIL "defect-run: $(tail -1 "$TMP/cs")"
-fi
-# 8e, THE MUTANTS, since 2026-09-26: an edit to a checked script can move a
-# mutant's anchor, and selftest-mutants.py then reports the mutant LOST --
-# 94a3cfd did that in a preparation and check-all found it at the run's
-# write-up. So where any script changed since the previous run's file, or
-# with no file to date from, every mutant is replayed here; minutes, alone.
-if [ -z "$PREV_COMMIT" ] || [ -n "$(git diff --name-only "$PREV_COMMIT" \
-       -- '*.py' '*.sh' 2>/dev/null)" ]; then
-  selftest-mutants.py -j 6 . > "$TMP/mu" 2>&1 \
-    && say 8e PASS "$(tail -1 "$TMP/mu")" \
-    || say 8e FAIL "selftest-mutants: $(grep -m1 -E 'LOST|SURVIVED|MISSED' \
-"$TMP/mu" || tail -1 "$TMP/mu")"
-else
-  say 8e PASS "no script changed since run$PRN's file, so no anchor moved"
-fi
+  if command -v check-all > /dev/null; then
+    check-all checks-deep.py > "$TMP/deep" 2>&1
+  else
+    echo "check-all is not on PATH, so checks-deep.py did not run" \
+      > "$TMP/deep"
+  fi
+  # One step's line, `STATUS<tab>TAIL`, matched on check-all's label column.
+  deep () {
+    awk -v l="$1" '{ st = substr($0, 3, 4); sub(/ +$/, "", st)
+                     lb = substr($0, 8, 28); sub(/ +$/, "", lb)
+                     if (lb == l) { print st "\t" substr($0, 37); exit } }' \
+      "$TMP/deep"
+  }
+  # STEP LABEL...: PASS where every label's line reads `ok`, quoting each tail;
+  # a label with no line is a step that did not run, never a pass.
+  deep_say () {
+    s=$1; shift; got=""; ok=1
+    for l in "$@"; do
+      r=$(deep "$l")
+      [ "${r%%$'\t'*}" = ok ] || ok=0
+      if [ -n "$r" ]; then t=${r#*$'\t'}
+      else t="$l did not run: $(tail -1 "$TMP/deep")"; fi
+      got="$got${got:+; }$t"
+    done
+    if [ "$ok" = 1 ]; then say "$s" PASS "$got"; else say "$s" FAIL "$got"; fi
+  }
+  deep_say 8c 'properties, every run'
+  deep_say 8d 'cases, ok direction' 'cases, bug direction'
+  deep_say 8e 'selftest mutants'
+  # AND WHAT NO STEP LINE SHOWS: check-all exits 2 for a program its scan
+  # finds unnamed, all four steps green -- checks-deep.py lacked checks.py's
+  # UNCOVERED on 2026-10-04, and this step's first run read clean on it.
+  if grep -q '^  could not run:' "$TMP/deep"; then
+    say 8e FAIL "check-all checks-deep.py: $(grep -m1 '^  could not run:' \
+"$TMP/deep" | sed 's/^ *//')"
+  fi
 fi
 
 # --fill-in: THE NOTE'S FILL-IN BLOCK, DERIVED. Every row below is either a
@@ -1006,7 +971,7 @@ fill_in () {
     awk -F'\t' -v s="$1" '$1 == s { v = $2; d = $3 } END {
       if (v == "") print "<yours>"; else print v ": " d }' "$TMP/verdicts"
   }
-  # UNDER --corpus ONLY THE SCRIPT-CHECKS ROW EXISTS, 8c and 8d being all
+  # UNDER --corpus ONLY THE SCRIPT-CHECKS ROW EXISTS, 8c to 8e being all
   # that ran, so that row alone is printed rather than a block of thirty
   # `<yours>` around it. It is a REPLACEMENT for the row the earlier pass
   # left owed, which is why it names itself.
@@ -1015,7 +980,7 @@ fill_in () {
     echo "--- the fill-in row --corpus fills, for $R-pair.txt ---"
     printf '  %-16s  %s\n' 'script checks' \
       "8b, and now 8c $(vd 8c); 8d $(vd 8d); 8e $(vd 8e)"
-    echo "--- replaces the 8c/8d line the earlier pass left <yours> ---"
+    echo "--- replaces the 8c to 8e line the earlier pass left <yours> ---"
     return 0
   fi
   txt () { size -A "$1" | awk '$1 == ".text" { print $2 }'; }   # FIRST field
@@ -1032,7 +997,7 @@ fill_in () {
   # B" that says what a self-loop is here.
   # And the exit-span count beside them (2026-09-16): 0 on a half built
   # under LOOP_EXITSPAN=1, a figure to keep on one built without it.
-  # The run behind this one, for the two cross-run reads: the highest
+  # The run behind this one, for the cross-run reads: the highest
   # runs/run<N>.md below this N, and its basis binary if it is still here.
   # Both degrade to a named absence rather than to silence -- an artifact
   # offered for deletion is the normal reason, and a row that just vanished

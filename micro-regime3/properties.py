@@ -25,8 +25,9 @@ in `mutants.py` prove a property can fail in seconds rather than over every
 run on disk -- a bound on the proof, never on a run of the properties
 themselves. `CORPUS_RUN=newest` is the other narrowing and it is the
 opposite kind: it drops every run but the highest-numbered one on disk,
-which is what `checks.py` asks for so that `check-all` stays a thing run
-often. It narrows the CORPUS and not the proof, so every property still
+which `check-all .` asked for until 2026-10-04, when the properties moved
+to `checks-deep.py` over every run; it stays for a quick sweep by hand. It
+narrows the CORPUS and not the proof, so every property still
 sweeps everything it is given and still prints what it covered -- read that
 line, since under this setting it names one run and the coverage the older
 runs would have added is not taken. Exit 0 when every property holds over something, 1 when one

@@ -19,7 +19,10 @@ of each case stays beside it as a comment. The shared tools run it:
     defect-run.py --at REV .        # diagnose some other revision
     ./properties.py                 # the properties, over every run on disk
     defect-lint.py .                # the defect families, over the source
-    check-all .                     # all of it, in checks.py's order
+    check-all .                     # the static checks, checks.py's
+    check-all checks-deep.py        # the cases both ways, the mutants and
+                                    #   the properties over every run, once
+                                    #   a preparation and when asked
 
 The programs run HERE (`run_dir: here` in CONFIG below): both readers resolve
 Main.hs and README.md from `__file__` and both shell drivers cd to their own
@@ -6580,7 +6583,11 @@ TIER1 = {
               ' FIX: the changed set is 277 of 376 cases here, read-run.py'
               ' alone owning 222, so the saving appears only on a run that'
               ' leaves the reader alone -- kept anyway, the list being the'
-              ' governing document.'),
+              ' governing document. SUPERSEDED 2026-10-04 by the owner\'s'
+              ' ruling: the case suite left `check-all .` for'
+              ' checks-deep.py, which 8d runs whole once a preparation, so'
+              ' the whole corpus is the step\'s design now and not this'
+              ' defect.'),
     'step-9-asserts-specconstr-of-every-basis': dict(
         family='domain-unchecked', discovery='in-use', harm='fired',
         harm_count=1,
@@ -17386,6 +17393,9 @@ RECORDS = [
          ok=V(has=['1800000'])),
 
     # ---- check-all's own steps ----
+    # The -j steps left checks.py for checks-deep.py on 2026-10-04, so the
+    # ok direction below reads no step at all; the control after it asks
+    # the same of their new file and counts them, which this one cannot.
     case('parallel-steps-leave-the-readings-fan-out-uncapped', 'checks.py',
          '8acfeaf',
          'a -j step ran post-run-readings.sh cases with its six readers'
@@ -17394,6 +17404,14 @@ RECORDS = [
                          " and 'READ_JOBS=1' not in s[1]]"],
          ok=V(has=['[]']),
          bug=V(has=["'cases, ok direction'", "'selftest mutants'"])),
+
+    case('deep-steps-cap-the-readings-fan-out', 'checks-deep.py', None,
+         'CONTROL: every -j step of checks-deep.py sets READ_JOBS=1, and'
+         ' there are three of them',
+         argv=['--unit', "([s[0] for s in STEPS if '-j' in s[1]"
+                         " and 'READ_JOBS=1' not in s[1]],"
+                         " len([s for s in STEPS if '-j' in s[1]]))"],
+         ok=V(has=['([], 3)'])),
 
 ]
 

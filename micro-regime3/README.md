@@ -7661,53 +7661,43 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      A clean pass here says nothing about text that does not exist
     #      yet. A name that is simply wrong cannot be told from one
     #      nothing searched
-    defect-lint.py .
-    python3 -m pyflakes *.py
-    shellcheck -S warning -f gcc *.sh
-    #      8b. the defect families over the Python source here, and the
-    #      two linters: pyflakes over it and shellcheck over the shell
-    #      drivers, a linter off PATH failing the step by name -- the
-    #      three lint steps of checks.py, which `check-all .` runs with
-    #      everything else at the cost of the audit and the mutants
-    #      AND `check-all` IS RUN ALONE -- no file created anywhere in the
-    #      tree while it runs, a log or a scratch redirect included -- which
-    #      is where that condition belongs and not only in the post-run list
-    #      why: its case steps diff the working tree.
-    #      Its two case steps diff the working tree, so a file
-    #      created anywhere in it while they run -- a log, a scratch
-    #      redirect, an edit committed or not -- makes them report PARTIAL
-    #      and settle nothing
+    check-all .
+    #      8b. the static checks, checks.py's steps whole: the records
+    #      validated, the defect families over the Python source here,
+    #      pyflakes over it and shellcheck over the shell drivers, the
+    #      executable bits and the bang shapes, a linter off PATH failing
+    #      its step by name; ten seconds on 2026-10-04.
+    #      The rest of the tree's check, the properties over every run,
+    #      the cases both ways and the mutants, is `check-all
+    #      checks-deep.py`, which is 8c to 8e, run once a preparation
     ./properties.py                       # 8c. its properties, over every
     #      run JSON here -- and THIS BARE INVOCATION IS THE ONLY SWEEP THAT
     #      READS THEM ALL. The reader's stderr is withheld and counted by
     #      kind, a kind with a count of one being the thing to read, and
-    #      `--warnings` restores it
-    #      why: `check-all` reads only the newest run.
-    #      `check-all` runs the same file under CORPUS_RUN=newest,
-    #      which keeps the highest-numbered run and the JSONs carrying no
-    #      run number and drops every older run. So the two sweeps do not
-    #      read the same thing, and a property that fails only on an older
-    #      run is caught here and by nothing else -- which is also why
-    #      what an old run's artifacts still buy the checks is this step
-    #      and not `check-all`.
-    #  8d. and if any script here has changed since the last run: every
-    #      defect those scripts have had, planted again and refused again.
-    #      Not a call of your own: `--corpus` below runs it, as
-    #      `defect-run.py --changed=<commit> .` from the commit that FIRST
-    #      added runs/$PREV.md, which dates the last run finishing.
-    #      By hand, THE `=` IS NOT OPTIONAL. 8c and 8d want an
-    #      unsandboxed seat, and they run alone
-    #  8e. and in that case every mutant, `selftest-mutants.py .`,
-    #      which --corpus runs after 8d: an edit can move a mutant's
-    #      anchor, and 94a3cfd lost one unseen until a write-up
+    #      `--warnings` restores it. It is checks-deep.py's first step
+    #      why: a property that fails only on an older run is caught here.
+    #      Nothing else catches such a property, which is also why what an
+    #      old run's artifacts still buy the checks is this step.
+    #  8d. every defect these scripts have had, planted again and refused
+    #      again, in both directions -- `defect-run.py .` and its
+    #      `--audit`, which replays each case against the code before its
+    #      own fix -- whatever changed since the last run, a data change
+    #      owing the audit as much as a code change. Not a call of your
+    #      own: checks-deep.py's two case steps, which `--corpus` below
+    #      runs. Until 2026-10-04 this ran only the cases of the scripts
+    #      changed since the last run, `check-all .` running every case
+    #      after an edit. 8c to 8e want an unsandboxed seat, and they
+    #      run alone
+    #  8e. every mutant, `selftest-mutants.py .`, checks-deep.py's last
+    #      step: an edit can move a mutant's anchor, and 94a3cfd lost one
+    #      unseen until a write-up
     #  8c TO 8e COME AFTER 11 AND 12, at the `--corpus` line under 12,
     #      which says when
-    #      why: --para 'What the three script-check steps'
-    #      `--changed REV` reads REV as the ROOT, answers BLOCKED and
-    #      exits 2, which is a run that did not happen and reads nothing
-    #      like a pass. 8c and 8d write `zz-` fixtures here and
-    #      remove them; a commit or an edit while they run reads as a case
-    #      that changed the tree.
+    #      why: --para 'What the script-check steps'
+    #      8c and 8d write `zz-` fixtures here and remove them, and a file
+    #      created anywhere in the tree while they run -- a log, a scratch
+    #      redirect, an edit committed or not -- makes the cases report
+    #      PARTIAL and settle nothing.
     #      The conflict runs both ways: these two read every run JSON on
     #      disk, and 11 and 12 write them, so either order of overlap
     #      fails. A leg caught half written fails
@@ -7759,8 +7749,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      A repair to the reader itself need not wait idle: `cp
     #      read-run.py log-work-read-run.py`, edit the copy, test it
     #      against real JSONs, and apply it when the pass prints its
-    #      verdict. Delete the copy once it is applied: 8b and check-all
-    #      lint every *.py here
+    #      verdict. Delete the copy once it is applied: `check-all .`,
+    #      which is 8b, lints every *.py here
     #      And not before preflight's 4,5, nor before 10a and 10b.
     #      The wait is on the log lines and not on the call: launch these
     #      two the moment preflight's log shows `4,5  PASS` with `10a` and
@@ -7876,7 +7866,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      leg while the leg's JSON grows under it, which reads like
     #      progress and is not
     ./preflight.sh $R --corpus --fill-in  # 8c to 8e, deferred to here,
-    #      alone, printing their fill-in row: once 11 has printed `sweep
+    #      `check-all checks-deep.py` run alone, printing their fill-in
+    #      row: once 11 has printed `sweep
     #      clean` and 12, where owed, `pass clean`, nothing is writing a
     #      JSON, and BEFORE 12c, the commit -- 12a and 12b under the
     #      sweeps, then this, then 12c. Their verdicts are the only ones
@@ -8650,19 +8641,25 @@ which open no binary at all. The `2>/dev/null` on `--list` is not optional,
 the provenance line going to stderr and interleaving inside a bench name without
 it.
 
-**What the three script-check steps are each for**, and what each costs.
-`defect-lint.py .` reads the source of every Python program here --- the shell
-drivers are outside an AST family's reach, and shellcheck's --- and is the one
-of the three that can name a site nobody has met. `properties.py` withholds
-the reader's own stderr and counts it by kind because the reader warns once per
-run per table about rows a later roster dropped, which is correct and was 198 KB
-against six lines of verdict. `defect-run.py --changed .` runs only the cases
-whose own script moved, and says so and claims nothing where none did; bare
-it is every case and four and a half minutes. And `defect-run.py --audit .`
-replays each case against the code before its own fix, where it MUST fail ---
-the suite's own non-vacuity, and worth a look after adding one. The three tools
-are the shared ones on PATH from `~/.claude/bin`; what is this directory's
-is the corpus `defects.py`, the properties, and `checks.py`'s list of the lot.
+**What the script-check steps are each for.** `defect-lint.py .` reads
+the source of every Python program here --- the shell drivers are outside an AST
+family's reach, and shellcheck's --- and is the one of them that can name a site
+nobody has met. `properties.py` withholds the reader's own stderr and counts
+it by kind because the reader warns once per run per table about rows a later
+roster dropped, which is correct and was 198 KB against six lines of verdict.
+`defect-run.py .` runs every case, which is 8d's, and `--changed .` only
+the cases whose own script moved, which is what an edit owes between
+preparations, saying so and claiming nothing where none did.
+And `defect-run.py --audit .` replays each case against the code before its own
+fix, where it MUST fail --- the suite's own non-vacuity, and worth a look after
+adding one. `selftest-mutants.py .`, 8e, replays the deliberate breaks
+in `mutants.py`, each of which some check must catch. The tools
+but `properties.py` are the shared ones on PATH from `~/.claude/bin`; what
+is this directory's is the corpus `defects.py`, the properties, and two lists
+of the lot: `checks.py`'s static steps, which `check-all .` runs after an edit,
+and `checks-deep.py`'s properties over every run, cases both ways and mutants,
+which `check-all checks-deep.py` runs once a preparation as 8c to 8e, and daily
+or so when the owner asks.
 
 **What the `note:` lines ARE, the list having said only that they do not stop
 you.** They are the write-up's adjudication material and nothing a preparation
@@ -10061,9 +10058,12 @@ not otherwise.
     #      a paragraph of runs/$R.md or README.md: nothing between
     #        edits, and `./read-run.py --check-doc --quiet` once the
     #        stretch ends; `defect-run.py --changed` selects no case for
-    #        prose. AND check-all AFTER THE STRETCH, which prose
-    #        does owe here, AT THE END OF 6a, BEFORE 6b's COMMIT, and not
-    #        after 8b. Prefer the digits the previous run used wherever
+    #        prose. THE CASES PROSE DOES OWE are `check-all
+    #        checks-deep.py`'s, and they are not run here: the next
+    #        preparation runs them as its 8c to 8e, by the owner's ruling
+    #        of 2026-10-04, so a case this write-up's prose breaks is that
+    #        preparation's finding. Prefer the digits the previous run
+    #        used wherever
     #        a sentence is rewritten around a figure.
     #        An edit to the checker's brief alone owes nothing
     #      Main.hs, even a comment: `./read-run.py --lint`
@@ -10071,17 +10071,15 @@ not otherwise.
     #        --changed=<REV> .` at the END of the stretch, <REV> the commit
     #        before it -- bare `--changed` is HEAD and sees only uncommitted
     #        edits -- in the
-    #        background and ALONE, in the sense pre-run step 8b gives that
-    #        word -- no file created anywhere in the tree while it runs,
+    #        background and ALONE -- no file created anywhere in the tree
+    #        while it runs,
     #        which is not merely no edit and no commit -- with `-k NAME`
     #        for one case while iterating; read-run.py besides wants
     #        `--selftest` on one run JSON
     #      a table install: `--check-doc`, the install's check too
     #      a note or a registration: `./preflight.sh $R --note`
-    #      and any shell script here besides: `shellcheck -S warning FILE`;
-    #        any Python file: `python3 -m pyflakes FILE`, a module with no
-    #        command on PATH; a tool is absent only when the invocation
-    #        itself fails
+    #      and any script here besides: `check-all .`, the static checks
+    #        whole, a linter off PATH failing its step by name
     #      why: RUNTIP..HEAD is unread, and a filtered gate misreports.
     #      Pass 2 reads README bounded at RUNTIP, so everything
     #      committed after it is unreviewed BY CONSTRUCTION -- 7a's own
@@ -10116,7 +10114,7 @@ not otherwise.
     #      arithmetic over other modes' output is got wrong.
     #      Which check: an expensive check's answer stands until what it
     #      reads changes. --check-doc takes seconds, and a paragraph left
-    #      long is mid-edit and passes. Prose owes check-all and looks as
+    #      long is mid-edit and passes. Prose owes the cases and looks as
     #      though it does not: defects.py derives fixtures from BOTH
     #      documents, `RUNDOC` being the newest run file and read at many
     #      sites, so a paragraph either side can move a case. A case
@@ -11031,19 +11029,18 @@ makes a fix's proof outlive the commit. The corpus is a Python module
 on the shared record form, so its fixtures stay callables that derive
 from the live documents and the story of each case stays beside it; the runner,
 the validator and the lint are the shared tools, and `check-all .` runs what
-`checks.py` lists. **The case comes before the fix**: a claim that turns out
-wrong costs one case rather than one implementation, and a fix without one has
-come back twice here already. The thirty defects of 2026-08-17 that taught
-this are in the reader's docstring and the corpus's own.
+`checks.py` lists, `check-all checks-deep.py` what `checks-deep.py` does.
+**The case comes before the fix**: a claim that turns out wrong costs one case
+rather than one implementation, and a fix without one has come back twice here
+already. The thirty defects of 2026-08-17 that taught this are in the reader's
+docstring and the corpus's own.
 
     defect-run.py .                         # the scripts' own defect corpus,
-                                            # every case, four and a half
-                                            # minutes -- which is what
-                                            # the two below are for
+                                            # every case, minutes -- which is
+                                            # what the two below are for
     defect-run.py --changed[=REV] .         # only the cases whose own script
                                             # differs from REV, HEAD by
-                                            # default: what an edit owes, and
-                                            # what step 8d asks for
+                                            # default: what an edit owes
     defect-run.py -k SUBSTRING .            # the cases whose id or name
                                             # matches, for iterating on one
                                             # checker; it refuses a pattern
