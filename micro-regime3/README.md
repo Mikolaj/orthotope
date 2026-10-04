@@ -750,6 +750,26 @@ rather than a slot in the next run, observed again:
   a one-copy gate is blind one launch in ten. Run 38, built again from the same
   recipes, reads the arm at **1.0205** with counts level. The readings are [in
   Run 37's file](runs/run37.md) and [Run 38's](runs/run38.md).
+- `OPEN` **What Run 45 is built to answer, registered before it runs.** The pair
+  is Run 44's, both recipes unchanged to the character, on the owner's word
+  of 2026-10-04 that Run 45 has the same recipe, rebuilt on the source
+  at the tip at build time: both halves the in-tree stage1 reporting
+  `10.1.20260918` as patched on 2026-10-03, through `cabal.project.ghead`
+  at `5221ef0` with `micro.cabal` at `6b9e206`, at plain `-O1`, `align-as.py`
+  at `1a359bd` under
+  `LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1 LOOP_DEADSPOT=1 LOOP_EXITSPAN=1 LOOP_SETTLED=1`,
+  `-fobject-determinism` on both, the control's line carrying
+  `-fspec-constr -fliberate-case` besides, every process launched from disk,
+  the half names `run45-gheadnospec` and `run45-gheadtwopass`. THIS ENTRY
+  IS THE ONE DECLARATION SITE by the ruling of 2026-09-19, the command lines
+  being Run 44's with the builddir names moved. What the source moves
+  under the recipe is the roster of 2026-10-04 and the branch's fill: two
+  unordered stages' consumers retired, `lib-stage0` landing beside `lib-stage1`,
+  `lib-stage2-disp` timed again and rebuilt over `lib-stage2-lean`
+  with `dispRun` re-cut to 32768, and `fillStage2Axes` following
+  pr-mikolaj-toVectorListT's fill as its commit "Port the Axis path" has
+  it since 2026-10-04, reasons at the roster entries and the fill. Its numbered
+  items are pre-run step 12a's and are not written yet.
 - `ANSWERED` **What Run 44 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 44's own
@@ -1998,10 +2018,12 @@ rather than a slot in the next run, observed again:
 - `ANSWERED` **`lib-stage2-disp` and `lib-stage2-lean` are NOT the same code
   at a few hundred elements, which the lean ruling was written to make them.**
   **TAKEN 2026-09-07: the instructions differ, so the premise is false
-  on `small`.** A counts pair over that class reads `lib-stage2-disp`
-  at **1.0188** of `lib-stage2-lean`'s corrected instructions on the basis
-  and **1.0180** on HEAD, and in time **1.0142** and **1.0148** against floors
-  of 1.05% and 0.83%. The lean ruling of 2026-09-05 ([the settled
+  on `small`.** **HISTORICAL since 2026-10-04**, when the arm was rebuilt
+  as `lib-stage2-lean` with the run-length dispatch alone, so that off the views
+  of contiguous runs the two are one code. A counts pair over that class reads
+  `lib-stage2-disp` at **1.0188** of `lib-stage2-lean`'s corrected instructions
+  on the basis and **1.0180** on HEAD, and in time **1.0142** and **1.0148**
+  against floors of 1.05% and 0.83%. The lean ruling of 2026-09-05 ([the settled
   index][settled]) is untouched, the lean form being what ships; only
   its premise, that the two arms are indistinguishable off `runs`, is false
   on the one class small enough to show it.
@@ -2320,27 +2342,38 @@ rather than a slot in the next run, observed again:
   regression is gone --- 0.74 to 1.03 on the same six populations.
 
 - `ANSWERED` **`dispRun` was demonstrably mis-cut, and its right value
-  is a measurement rather than a guess --- taken 2026-09-02 and re-cut
-  to 2048.** Run 22 put the crossover between `runs-1024` and `runs-65536`
-  on both compilers, `lib-stage2-disp` 6.65% behind stage two at `runs-1024`
-  on the basis and 4.22% on the control, and Run 23 read 5.75% and 6.24% on both
-  halves of one compiler, so the failure is neither a compiler's nor a pad's.
-  **The in-cache probe**, one process over `runs` on the dead-spot binary
-  with an arm per candidate threshold, put the crossover between `runs-1024`
-  and `runs-4096` and the 2048 arm nowhere behind the better route.
-  **The past-cache probe**, `probe-cache-build.sh` and `probe-cache-run.sh`
-  timing two regime-2 views of 8 million elements at runs of 96 and 4096, KILLED
-  its registration by a small inversion: `list` at 14.7 ns an element,
-  memory-bound at every size; at 96 `lib-stage2` reads 0.5548 of `lib-stage1`,
-  and at 4096 0.9802, the fill two points ahead where in cache the slice route
-  leads by five, `lib-stage2-disp` reading 1.0227 of the fill --- past
-  the cells' fit widths, 0.14 to 0.54%, and inside the `runs` class's floors,
-  2.79% to 3.15% on Runs 25 to 27. So `dispRun` is a function of the working set
-  by the letter and not in a way that costs, and the cut stood; the dispatch
-  and its probe arms were retired for their own reasons on 2026-09-07 ([dead
-  ideas][dead]). **This entry is the only copy of both probes' accounts
-  and is never trimmed to a question.** What the probe did NOT measure
-  is in [the non-urgent TODO list][todo].
+  is a measurement rather than a guess --- taken 2026-09-02 and re-cut to 2048,
+  and re-cut to 32768 on 2026-10-04.** Run 22 put the crossover between
+  `runs-1024` and `runs-65536` on both compilers, `lib-stage2-disp` 6.65% behind
+  stage two at `runs-1024` on the basis and 4.22% on the control, and Run 23
+  read 5.75% and 6.24% on both halves of one compiler, so the failure is neither
+  a compiler's nor a pad's. **The in-cache probe**, one process over `runs`
+  on the dead-spot binary with an arm per candidate threshold, put the crossover
+  between `runs-1024` and `runs-4096` and the 2048 arm nowhere behind the better
+  route. **The past-cache probe**, `probe-cache-build.sh`
+  and `probe-cache-run.sh` timing two regime-2 views of 8 million elements
+  at runs of 96 and 4096, KILLED its registration by a small inversion: `list`
+  at 14.7 ns an element, memory-bound at every size; at 96 `lib-stage2` reads
+  0.5548 of `lib-stage1`, and at 4096 0.9802, the fill two points ahead where
+  in cache the slice route leads by five, `lib-stage2-disp` reading 1.0227
+  of the fill --- past the cells' fit widths, 0.14 to 0.54%, and inside
+  the `runs` class's floors, 2.79% to 3.15% on Runs 25 to 27. So `dispRun`
+  is a function of the working set by the letter and not in a way that costs,
+  and the cut stood; the dispatch and its probe arms were retired for their own
+  reasons on 2026-09-07 ([dead ideas][dead]). **The third probe, 2026-10-04,
+  re-cut it to 32768 over the branch's fill of 2026-10-04**: one process
+  over `runs` on Run 44's basis recipe, `lib-stage2-disp` rebuilt
+  over `lib-stage2-lean` and run at a threshold of 1 so that it sliced every run
+  (`probe-p45disp1-runs.json`), read the slice route over the fill, net,
+  at 1.1374 at `runs-1024`, 1.1095 on `runs-r3-48x30`'s runs of 1440, 1.0078
+  at `runs-4096`, 1.0026 at `runs-16384` and 0.9838 at `runs-65536`, the sign
+  turning between the last two. Every figure from `runs-4096` up is inside
+  that process's A/A spread, the shipped leaf's twin parting by 1.24% a shape
+  and 3.47% at worst, so past the floor the slice route now leads on no view
+  of the class, where the in-cache probe had it five points ahead, and
+  at the new cut it takes `runs-65536` alone. **This entry is the only copy
+  of the three probes' accounts and is never trimmed to a question.** What
+  the probe did NOT measure is in [the non-urgent TODO list][todo].
 
 - `PARKED` **The 0.7% bar that decides whether a pair's two columns may
   be subtracted is used everywhere, and where 0.7 came from is written
@@ -3867,9 +3900,10 @@ codegen rather than that it cannot be built.
   because the cut rests on them.** **PARKED 2026-09-26 by the owner.** Run 25's
   probe placed the crossover between the slice route and the fill at 2048
   and found the cut wrong by at most a few points either side of the cache,
-  which is why it stands. What it did not measure is a length between 96
-  and 4096 PAST the cache, where the in-cache crossover sits and which one more
-  view would place; and the allocation multiple of the two routes, which
+  which is why it stood until the re-cut of 2026-10-04, over a different fill
+  ([the `dispRun` entry][open]). What it did not measure is a length between 96
+  and 4096 PAST the cache, where the in-cache crossover then sat and which one
+  more view would place; and the allocation multiple of the two routes, which
   the reader cannot compute for a view `Main.hs` does not list, so they
   were read in bytes. Neither blocks the ruling and both would sharpen it.
   Carried here 2026-09-08 when the task that held them was retired with the rest
@@ -4468,47 +4502,54 @@ under each stage, `liblist-stage1` and `liblist-stage2`, the library's
 so that pair prices the list's construction alone --- stage one's slice
 recursion against stage two's base-offset table and its `VU.toList` --- in time
 and, exactly, in allocation, which is what a consumer iterating the list pays.
-Since `fillStage2` was deleted on 2026-09-26, the ports fill through
-`fillStage3`, its `Axis` form, which the library does not carry. **SUPERSEDED
-2026-09-09, on the concatenation's shape and not the pairing**: the ports
-concatenated a one-element list too, and vector's `concat` copies it, so every
-port Fill arm read 2.00x allocation and paid a result-sized copy on every view
-the library fills once, where `toVectorT` pays neither; since that day a port
-hands a one-element list's element back as `toVectorT` does and concatenates
-only runs, so on such a view a port and its fill are the same vector, the pair
-prices the list where there is one, and the allocation column reads what
-the library allocates --- Run 28's item (9), and the reason the lazy stages'
-dispatch is a value read by four shared readers. **Beside those five sits
-`lib-stage2-disp`, which is a candidate and not a port of anything**, added
-2026-08-30: the slice route taken only where the canonical run reaches
-`dispRun`, so it is `lib-stage2-lean` below the crossover
-and `lib-stage2-concat` above it --- its lower side was `lib-stage2` until
-the lean ruling below --- and the runs class is what cuts it to one;
-the laziness ruling of 2026-09-07 does not reach it, `toVectorT` being strict
-either way --- and it was RULED OUT for the library the same evening on code
-complexity, a hard-coded L1-sized threshold tipping it, and parked ([dead
-ideas][dead]). On every other population no canonical run reaches `dispRun`,
-so there it is `lib-stage2-lean`'s code and the two arms' pair reads as an A/A,
-which [the floor section][floor] records --- except on `small`, where their
-corrected instructions part by 1.9% on the basis and 1.8% on HEAD and the pair
-is not an A/A at all ([the disp/lean entry][open]). **Beside it, for Run 22, sit
-three fill candidates**, each a fill change under the same dispatch:
-`lib-stage2-u4`, the stepping run unrolled by four; `lib-stage2-short`,
-a canonical run of 2 to 5 elements written by a body of exactly that length,
-chosen once per row as the broadcast body is; and `lib-stage2-lean`, the same
-fill under a leaner dispatch: a canonical view of rank 2 or more can never carry
-the natural strides, the merge that made it canonical having consumed every
-natural pair, so the regimes are read off the merged form alone and the strides
-comparison the control's dispatch pays is not paid --- the fill under
-it the branch's route, outside the laziness ruling of 2026-09-07
-as `lib-stage2`'s is ([dead ideas][dead]), and the dispatch what shipped.
-**`liblist-stage3` and `liblist-stage4`, added 2026-09-07 for Run 27,
-are the list entry point's candidates under the ruling**: `toVectorListT` kept
-lazy up to the exception --- canonicalized, so a unit or mergeable dimension
-moves a view to a lazier pattern, its slices produced on demand by the odometer
-list and no table built --- then the one concatenation the two ports carry,
-stage three under the natural-strides dispatch and stage four under the lean
-one, so `liblist-stage4` against `liblist-stage2`, under one lean dispatch,
+**`lib-stage0`, added 2026-10-04 by the owner, is master's `toVectorT` whole**:
+stage one's dispatch, with regime 3 a vector built from the element list behind
+`toListT`'s test for the natural layout, so it parts from `lib-stage1` in regime
+3 alone and is what the two stages replace. Since `fillStage2` was deleted
+on 2026-09-26, the ports fill through `fillStage3`, its `Axis` form, which
+the library does not carry. **SUPERSEDED 2026-09-09, on the concatenation's
+shape and not the pairing**: the ports concatenated a one-element list too,
+and vector's `concat` copies it, so every port Fill arm read 2.00x allocation
+and paid a result-sized copy on every view the library fills once, where
+`toVectorT` pays neither; since that day a port hands a one-element list's
+element back as `toVectorT` does and concatenates only runs, so on such a view
+a port and its fill are the same vector, the pair prices the list where there
+is one, and the allocation column reads what the library allocates --- Run 28's
+item (9), and the reason the lazy stages' dispatch is a value read by four
+shared readers. **Beside those ports sits `lib-stage2-disp`, which
+is a candidate and not a port of anything**, added 2026-08-30: the slice route
+taken only where the canonical run reaches `dispRun`, so it is `lib-stage2-lean`
+below the crossover and `lib-stage2-concat` above it --- its lower side
+was `lib-stage2` until the lean ruling below --- and the runs class is what cuts
+it to one; the laziness ruling of 2026-09-07 does not reach it, `toVectorT`
+being strict either way --- and it was RULED OUT for the library the same
+evening on code complexity, a hard-coded L1-sized threshold tipping it,
+and parked ([dead ideas][dead]). Until 2026-10-04, on every other population
+no canonical run reached `dispRun`, so there it was `lib-stage2-lean`'s code
+and the two arms' pair read as an A/A, which [the floor section][floor] records
+--- except on `small`, where their corrected instructions parted by 1.9%
+on the basis and 1.8% on HEAD and the pair was not an A/A at all ([the disp/lean
+entry][open]). **Timed again since 2026-10-04 by the owner, rebuilt
+as `lib-stage2-lean` with the dispatch alone**: at or above `dispRun`
+it concatenates the run slices the branch's own walker lists, where until
+then it took `lib-stage2-concat`'s route. **Beside it, for Run 22, sit three
+fill candidates**, each a fill change under the same dispatch: `lib-stage2-u4`,
+the stepping run unrolled by four; `lib-stage2-short`, a canonical run of 2 to 5
+elements written by a body of exactly that length, chosen once per row
+as the broadcast body is; and `lib-stage2-lean`, the same fill under a leaner
+dispatch: a canonical view of rank 2 or more can never carry the natural
+strides, the merge that made it canonical having consumed every natural pair,
+so the regimes are read off the merged form alone and the strides comparison
+the control's dispatch pays is not paid --- the fill under it the branch's
+route, outside the laziness ruling of 2026-09-07 as `lib-stage2`'s is ([dead
+ideas][dead]), and the dispatch what shipped. **`liblist-stage3`
+and `liblist-stage4`, added 2026-09-07 for Run 27, are the list entry point's
+candidates under the ruling**: `toVectorListT` kept lazy up to the exception ---
+canonicalized, so a unit or mergeable dimension moves a view to a lazier
+pattern, its slices produced on demand by the odometer list and no table built
+--- then the one concatenation the two ports carry, stage three
+under the natural-strides dispatch and stage four under the lean one,
+so `liblist-stage4` against `liblist-stage2`, under one lean dispatch,
 is the lazy odometer list against the strict base-offset table wherever a run
 exists and the same fill wherever none does. **And beside those, the unordered
 entry point joins the family**: `libunord-stage1` and `libunord-stage2`, each
@@ -4650,9 +4691,9 @@ entry points the user takes, and the `runs` class is where the routes part; what
 each landing and parking among them did to the bench count, at its date,
 is in the roster arithmetic under [What the benchmark
 does](#what-the-benchmark-does), the one copy of it, and the reason for each
-is at its roster entry; the last of them, the landing of 2026-09-26, takes
-the roster to 589 benches --- the figure's second site, which `--check-doc`
-holds to `Main.hs` beside the chain's.
+is at its roster entry; the last of them, the re-timing of `lib-stage2-disp`
+on 2026-10-04, takes the roster to 589 benches --- the figure's second site,
+which `--check-doc` holds to `Main.hs` beside the chain's.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -6499,17 +6540,22 @@ first, those that did not die on paper at all:
 - **A run-length dispatch inside `toVectorT`, one memcpy per run above
   a threshold and the fill below it**, `lib-stage2-disp` with `dispRun` at 2048
   --- **it works, it is 8 to 12% faster on the `runs` class at runs of 4096
-  to 65536 on a 14 MB array, and it will not be done.** RULED OUT 2026-09-07
-  on code complexity, which sat right at the threshold, with the dependence
-  on a hard-coded constant tipping it: the threshold is a run of 16 KB sized
-  to the L1 and cut on this box, a library would carry it blind,
-  and the past-cache probe read the crossover moving with the working set. What
-  the gain is worth and where --- a tie past the L3 at 64 MB, the per-call
-  comparison priced on `small`, the real-world views that reach it --- is
-  at the arm's definition in `Main.hs`, and its figures stand in Run 26's `runs`
-  table and the `dispRun` entry. The arm is parked `Only`, checked
-  and not timed, the three threshold arms of 2026-09-02 are removed, and Run
-  27's item (11) is withdrawn with it.
+  to 65536 on a 14 MB array, and it will not be done.** **Over the branch's fill
+  of 2026-10-04 it is no longer faster**: the probe of 2026-10-04 read the slice
+  route level with the fill inside the floor from runs of 4096 up and 10.9%
+  and more behind it at runs of 1440 and below, and re-cut `dispRun` to 32768
+  ([the `dispRun` entry][open]). RULED OUT 2026-09-07 on code complexity, which
+  sat right at the threshold, with the dependence on a hard-coded constant
+  tipping it: the threshold is a run of 16 KB sized to the L1 and cut
+  on this box, a library would carry it blind, and the past-cache probe read
+  the crossover moving with the working set. What the gain is worth and where
+  --- a tie past the L3 at 64 MB, the per-call comparison priced on `small`,
+  the real-world views that reach it --- is at the arm's definition
+  in `Main.hs`, and its figures stand in Run 26's `runs` table and the `dispRun`
+  entry. The arm was parked `Only`, checked and not timed, until 2026-10-04,
+  when the owner had it timed again, rebuilt as `lib-stage2-lean`
+  with the dispatch alone; the three threshold arms of 2026-09-02 are removed,
+  and Run 27's item (11) was withdrawn with the parking.
 - **A `Ptr`-walking fill under `unsafeWith`**, bases folded into the cursors
   so there is nothing to spill --- **it would work, and it will not be done.**
   What it would buy is measured rather than argued: LLVM performs exactly
@@ -6954,9 +7000,14 @@ the roster to 589 benches, and the retirement of 2026-09-25 ---
 `lib-stage3-lean-onelevel`, reasons at its entry --- took the roster to 570
 benches, and the landing of 2026-09-26 --- `libunord-stage15-sum`,
 `libunord-stage14-sum`'s route with the zero-stride axis consed just outside
-the run, reasons at `routeUnord14`'s move in `Main.hs` --- takes the roster
-to 589 benches, so with the controls the run is 31 arms. **Run 26 timed four
-parked arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked
+the run, reasons at `routeUnord14`'s move in `Main.hs` --- took the roster
+to 589 benches, and the retirement of 2026-10-04 by the owner ---
+`libunord-stage7-sum` and `libunord-stage9-sum` --- took it to 551 benches,
+and `lib-stage0`, master's `toVectorT` landing the same day beside `lib-stage1`,
+to 570 benches, and `lib-stage2-disp`, timed again the same day and rebuilt
+over `lib-stage2-lean`, reasons at their entries, takes the roster to 589
+benches, so with the controls the run is 31 arms. **Run 26 timed four parked
+arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked
 2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
 and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
 ([the stride classes](#the-stride-classes-and-what-they-cover)). Each was parked
