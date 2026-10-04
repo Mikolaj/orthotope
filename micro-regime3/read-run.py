@@ -307,9 +307,9 @@ Modes:
                     blocks carried with no `<yours>` line, a slot at the
                     head for each input that moved since PREV's build or
                     that it could not read -- the source, the shim, the
-                    boot -- and each carried block naming another run
-                    flagged with the lines that do; refused where the
-                    halves are not PREV's
+                    boot, the compiler -- and each carried block naming
+                    another run flagged with the lines that do; refused
+                    where the halves are not PREV's
   --section NAME    print one section's prose by its heading's words,
                     without its tables and naming the size withheld;
                     --with-tables adds them and --with-tables N takes the
@@ -386,6 +386,7 @@ import os
 import subprocess
 import random
 import re
+import shutil
 import signal
 import statistics as stats
 import sys
@@ -11818,7 +11819,8 @@ def _template_machine_blocks(near):
 def _inputs_moved(near, text):
     """(input, kind, what) for each input of a build that moved since the
     one the previous note records: its `Main.hs at` and `shim at` rows
-    against git, and its build date against the boot. The kind is MOVED,
+    against git, and its build date against the boot and against the date
+    of the compiler its project files name. The kind is MOVED,
     NOT READ where this cannot read the input -- never passed off as
     unmoved -- or TO READ where the reading is ambiguous."""
     out = []
@@ -11853,6 +11855,42 @@ def _inputs_moved(near, text):
         out.append(('THE BOOT', 'TO READ', 'the box booted %s, the previous'
                     ' build\'s own day: read it against that evening\'s end'
                     % boot.strftime('%Y-%m-%d %H:%M')))
+    # THE COMPILER, which no version string pins: the stage1 was rebuilt,
+    # patched, under 10.1.20260918 on 2026-10-03, its --version and the
+    # strings a binary carries unchanged, and Run 44's
+    # draft named the source alone. Read by the date of the binary each
+    # project file the recipe names resolves to, as the boot is by its
+    # date. Case: `repeat-misses-a-rebuilt-compiler`.
+    ghcs = []
+    for p in (sorted(set(re.findall(r'--project-file=(\S+)', text)))
+              or ['cabal.project']):
+        try:
+            pt = open(os.path.join(near or '.', p)).read()
+        except OSError:
+            continue
+        w = re.search(r'^with-compiler:\s*(\S+)', pt, re.M)
+        g = (os.path.join(near or '.', w.group(1)) if w
+             else shutil.which('ghc'))
+        if g and os.path.realpath(g) not in ghcs:
+            ghcs.append(os.path.realpath(g))
+    if not ghcs or not d:
+        out.append(('THE COMPILER', 'NOT READ', 'no project file the recipe'
+                    ' names could be read, or no build date in the previous'
+                    ' note'))
+    for g in ghcs if d else []:
+        try:
+            mt = datetime.datetime.fromtimestamp(os.path.getmtime(g))
+        except OSError:
+            out.append(('THE COMPILER', 'NOT READ', '%s: no such file' % g))
+            continue
+        if mt.strftime('%Y-%m-%d') > d.group(1):
+            out.append(('THE COMPILER', 'MOVED', '%s written %s, after the'
+                        ' previous build of %s, whatever its --version says'
+                        % (g, mt.strftime('%Y-%m-%d %H:%M'), d.group(1))))
+        elif mt.strftime('%Y-%m-%d') == d.group(1):
+            out.append(('THE COMPILER', 'TO READ', '%s written %s, the'
+                        ' previous build\'s own day: read it against that'
+                        ' build\'s time' % (g, mt.strftime('%Y-%m-%d %H:%M'))))
     return out
 
 

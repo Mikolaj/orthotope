@@ -3040,6 +3040,27 @@ def note_for_a_repeat(tmp, name='run97-pair.txt'):
                  '  md5 a           deadbeef\n')
 
 
+def note_with_a_rebuilt_compiler(tmp):
+    """A previous note whose recipe names a project file, and that file's
+    compiler written after the note's build -- the stage1 the owner rebuilt
+    under an unchanged version on 2026-10-03, which Run 44's --repeat slots
+    read as only the source having moved."""
+    ghc = write(os.path.join(tmp, 'ghc'), '#!/bin/sh\necho 10.1.20260918\n')
+    write(os.path.join(tmp, 'cabal.project.x'),
+          'packages: .\nwith-compiler: %s\n' % ghc)
+    return write(os.path.join(tmp, 'run97-pair.txt'),
+                 'The pair run97-a and run97-b, Run 97s, written by hand'
+                 ' 2026-01-01.\n\n'
+                 'HALVES: basis=a other=b\n\n'
+                 "HOW EACH HALF IS BUILT [PAIR'S]:\n"
+                 '  run97-a   cabal build micro'
+                 ' --project-file=cabal.project.x\n'
+                 '              --builddir=db-r97a\n\n'
+                 'GATE: NOT RUN.\n\n'
+                 'Verified when built, 2026-01-01:\n'
+                 '  md5 a           deadbeef\n')
+
+
 def probe_stalls_sweeps(tmp):
     """Two sweeps of one arm pair: a probe-stalls file, five columns under
     a header naming its events and carrying a NONLINEAR note, and a
@@ -9262,6 +9283,16 @@ RECORDS = [
                            "STEP 12'S CONDITION <yours>"],
               hasnt=['IT WAS NOT TAKEN']),
          bug=V(exit=0, has=['IT WAS NOT TAKEN'])),
+
+    case('repeat-misses-a-rebuilt-compiler', 'read-run.py', 'self',
+         "--repeat's moved-input slots read the source, the shim and the"
+         ' boot and not the compiler, so a stage1 rebuilt under an'
+         ' unchanged version drafted as unmoved',
+         plant=lambda t: {'note': note_with_a_rebuilt_compiler(t)},
+         argv=['--note', '{note}', '--draft', 'run98', '--halves', 'a,b',
+               '--repeat'],
+         ok=V(exit=0, has=["MOVED SINCE run97's BUILD, THE COMPILER"]),
+         bug=V(exit=0, hasnt=['THE COMPILER'])),
 
     case('counts-reads-no-probe-stalls-file', 'read-run.py', '95190de',
          "a probe-stalls.sh sweep, a column per event, read as nothing but"
