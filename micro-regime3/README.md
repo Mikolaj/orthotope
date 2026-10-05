@@ -14393,7 +14393,9 @@ tables and its fingerprint say so.
   set, whose rerun the owner declined. `list` having moved 29.29 points
   on this run's main set, none of its eleven populations may have its two
   columns differenced. **And its floor is a maximum over EIGHT A/A pairs**, both
-  halves' figures in [Run 45's own file](runs/run45.md).
+  halves' figures in [Run 45's own file](runs/run45.md). `bcastmid-block150k`
+  was retired 2026-10-05, after the run, its lean-family fills drawing a slow
+  or a fast state per process (`retiredShapes`).
 - Run 44 measured 31 timed arms over 19 main-set shapes and 62 class views
   in TEN classes, 589 benches and 1922, EIGHT A/A pairs, the `runs` class
   at SIXTEEN, `window` at EIGHT, `bcast`, `compose` and `flip` at SIX, `block`
