@@ -104,20 +104,19 @@ for f in $CLASSES; do
 done
 
 # The class list comes from the disk, so a class whose JSON is absent is
-# simply never installed and the tables half of this driver says nothing --
-# "a run file with ten of eleven installed looks exactly like one with
-# eleven", which is what the header opens by warning about and what this
-# loop was doing. The file's own block leads are the roster to check
-# against: one bolded lead per class, and a lead with no JSON is a table
-# that will not be written. Found 2026-08-16 by withholding one class JSON
-# and watching ten tables install in silence.
-# READ FROM THE CLASS SECTION ALONE, since 2026-09-02: a block's lead
-# sits between `## The stride classes, run by run` and `## Provenance`,
-# and a paragraph elsewhere that opens with a bolded backticked name is
-# not one -- Run 23's head opened two with an ARM's name, `mut-odo` among
-# them, and the hyphen check below refused the whole install over a lead
-# that was never a block's. --check-doc refuses a stray CLASS name outside
-# the section; an arm's name it cannot know, so the scope is what settles it.
+# simply never installed and the tables half of this driver says nothing
+# -- "a run file with ten of eleven installed looks exactly like one with
+# eleven", which is what the header opens by warning about and what this loop
+# was doing. The file's own block leads are the roster to check against: one
+# bolded lead per class, and a lead with no JSON is a table that will not
+# be written. Found 2026-08-16 by withholding one class JSON and watching
+# ten tables install in silence. READ FROM THE CLASS SECTION ALONE, since
+# 2026-09-02: a block's lead sits between `## The stride classes, run by run`
+# and `## Provenance`, and a paragraph elsewhere that opens with a bolded
+# backticked name is not one -- the hyphen check below would refuse the whole
+# install over a lead that was never a block's. --check-doc refuses a stray
+# CLASS name outside the section; an arm's name it cannot know, so the scope
+# is what settles it.
 CLASS_SECTION=$(awk '/^## The stride classes, run by run$/ {p=1; print; next}
                      p && /^## / {exit}  p' "$DOC")
 [ -n "$CLASS_SECTION" ] || { echo "!! no '## The stride classes, run by run'"
@@ -148,10 +147,9 @@ if [ -n "$MISSING" ]; then
   echo "   $R-$BASIS-*.json, so their tables would go silently uninstalled:"
   printf '%s\n' "$MISSING" | sed 's/^/     /'
   # AND THE LINE EACH WAS FOUND ON, because the JSON is usually present and
-  # the block is not. Run 20 wrote `**`reshape1` sits apart at 0.9995**`
-  # into the chapter head and lost a long evening to the message above;
-  # printing the lead ends it in one call. The class section is the only
-  # part read for leads now, so what this names is a lead inside it.
+  # the block is not. Printing the line ends the search for the lead in one
+  # call. The class section is the only part read for leads now, so what this
+  # names is a lead inside it.
   echo "   the lead each was found on -- a block's lead sits in the class"
   echo "   section, and anything else here is a paragraph that merely"
   echo "   begins with a bolded class name:"
@@ -211,10 +209,9 @@ install () {   # $1 = json, $2.. = mode
   # outstanding -- which is how a reader learns to skim the one list that
   # is not skimmable. Warnings about the data stay: they are this run's.
   local owed
-  # A `summary row ... disagrees` line describes the row as it stood
-  # BEFORE this call, the rows being installed after every block, so it is
-  # set aside here and asked again below once they are in: Run 40's list
-  # carried ten such lines for rows this same call had just replaced.
+  # A `summary row ... disagrees` line describes the row as it stood BEFORE
+  # this call, the rows being installed after every block, so it is set aside
+  # here and asked again below once they are in.
   owed=$(printf '%s\n' "$err" | grep -v '^installed at ' | grep -v '^ok: ' \
            | grep -v "^the block's prose is yours" \
            | grep -v '^summary row `[a-z0-9]*` disagrees')
@@ -392,10 +389,9 @@ for n, (c, start) in enumerate(reversed(order)):
               f' installed -- correct for a run that recorded one half,'
               f' and a wrong OTHER otherwise')
     sweeps = [f'{R}-counts-{BASIS}-{c}.txt', f'{R}-counts-{OTHER}-{c}.txt']
-    # THE COUNTS SENTENCE WAITS FOR THE COUNTS, which land hours after 5b:
-    # the line installed without them carries a `___` for it, and a rerun
-    # once they are in places it over that `___`, keeping any line written
-    # since. Run 42 copied the ten by a loop of its own, nothing saying so.
+    # THE COUNTS SENTENCE WAITS FOR THE COUNTS, which land hours after 5b: the
+    # line installed without them carries a `___` for it, and a rerun once
+    # they are in places it over that `___`, keeping any line written since.
     if have_other and not all(map(os.path.exists, sweeps)):
         waiting.append(c)
     got = subprocess.run(['./read-run.py', f'{R}-{BASIS}-{c}.json', '--block',
@@ -414,10 +410,8 @@ for n, (c, start) in enumerate(reversed(order)):
                          or '(no stderr)'))
     blk = got.stdout
     # THE CROSS-CLASS SUMMARY'S OWN ROW, off the same block. Assembled by
-    # hand until 2026-09-22, which is a transcription of figures this
-    # output already carries -- and its bolding was the part sessions got
-    # wrong, Run 28 breaking a three-decimal tie with `--pair`, a
-    # different statistic, and bolding the wrong cell of `rev`.
+    # hand until 2026-09-22, which is a transcription of figures this output
+    # already carries -- and its bolding was the part sessions got wrong.
     summary[c] = summary_row(blk, c)
     log = open(f'{R}-{BASIS}-{c}.log').read()
     m = re.search(r'elapsed (\S+); peak (\d+) MiB in use, (\d+) MiB max', log)

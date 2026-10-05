@@ -19,11 +19,10 @@
 # The non-vacuity note below was taken on Run 17's pair and names its
 # halves, and re-reading it wants that pair's note.
 #
-# Eight tool calls became one. That is not the point: the point is that
-# step 8 is the one README says is skipped most often, and a script cannot
-# skip it. Each step below prints PASS or FAIL with what it read, and the
-# exit status is the whole verdict -- so this is a thing to run, not to
-# pipe, `tail` having eaten a nonzero status here before (README, the
+# Eight tool calls became one. That is not the point: the point is that step 8
+# is the one README says is skipped most often, and a script cannot skip it.
+# Each step below prints PASS or FAIL with what it read, and the exit status
+# is the whole verdict -- so this is a thing to run, not to pipe (README, the
 # session notes on not piping a verification command).
 #
 # WHAT IT DOES NOT DO, and each is deliberate:
@@ -126,13 +125,10 @@
 # 2535s at 1386s and 1149s by half, and its gate's +0.01% geomean with
 # `stretch-primes` worst at -1.28%.
 #
-# It has no case in defects.py, deliberately: this script's own steps are
-# that corpus and the reader's gates, so a case would run them twice to
-# assert what they already assert. What is unique to it -- the three
-# detections above -- is what the stub proof covers. The cost of that is on
-# the record: the corpus retirement of 2026-09-02 left the three calls below
-# naming ./check-scripts.py, which had gone, and nothing ran them until Run
-# 24's preparation read three FAILs saying `No such file or directory`.
+# It has no case in defects.py, deliberately: this script's own steps are that
+# corpus and the reader's gates, so a case would run them twice to assert what
+# they already assert. What is unique to it -- the three detections above --
+# is what the stub proof covers.
 set -u
 cd "$(dirname "$0")" || exit 1
 
@@ -156,15 +152,13 @@ if [ $# -lt 1 ]; then
 fi
 R=$1
 NOTE_ONLY=0
-# 8c reads every run JSON on disk and 8d plants fixtures beside them, so
-# neither may run while a sweep is WRITING one: a smoke JSON caught
-# half-written fails prop_selftest_over_the_corpus with a traceback, on a
-# file no run produced. The list keeps them before step 11 for that
-# reason, which costs the roster pass -- the pre-run half's longest step
-# -- the minutes they take. These two flags are the way out: everything
-# else first, the sweeps launched, and the corpus read when they land.
-# Split 2026-09-03, after Run 24's preparation ran 8d beside a roster
-# pass still writing its last leg and read the traceback as a defect.
+# 8c reads every run JSON on disk and 8d plants fixtures beside them,
+# so neither may run while a sweep is WRITING one: a smoke JSON caught
+# half-written fails prop_selftest_over_the_corpus with a traceback, on a file
+# no run produced. The list keeps them before step 11 for that reason, which
+# costs the roster pass -- the pre-run half's longest step -- the minutes they
+# take. These two flags are the way out: everything else first, the sweeps
+# launched, and the corpus read when they land.
 CORPUS=1
 REST=1
 FILLIN=0
@@ -183,18 +177,16 @@ for a in "$@"; do
        exit 2 ;;
   esac
 done
-# --fill-in reports what a pass READ, so it means nothing beside --note,
-# which runs none of what it reports. Refused rather than absorbed, which
-# is the defect family this tree counts.
-# WITH --corpus IT IS ALLOWED, and prints the script-checks row alone: the
-# pre-run list runs `--no-corpus --fill-in`, whose block marks 8c to 8e
-# `<yours>` because they have not run yet, and refusing the flag on the
-# call that DOES run them left those rows to be written by hand --
-# which is the transcription this mode exists to remove (2026-09-08).
-# --figures RUNS NO STEP, so every other flag here selects steps it will
-# not take. REFUSED rather than absorbed, which is the family this tree
-# counts and which its own first form was an instance of: it exited early
-# and left a `--fill-in` beside it doing nothing, silently (2026-09-10).
+# --fill-in reports what a pass READ, so it means nothing beside --note, which
+# runs none of what it reports. Refused rather than absorbed, which is the
+# defect family this tree counts. WITH --corpus IT IS ALLOWED, and prints the
+# script-checks row alone: the pre-run list runs `--no-corpus --fill-in`,
+# whose block marks 8c to 8e `<yours>` because they have not run yet, and
+# refusing the flag on the call that DOES run them left those rows to be
+# written by hand -- which is the transcription this mode exists to remove
+# (2026-09-08). --figures RUNS NO STEP, so every other flag here selects steps
+# it will not take. REFUSED rather than absorbed, which is the family this
+# tree counts.
 if [ "$FIGURES" = 1 ] \
    && { [ "$FILLIN" = 1 ] || [ "$NOTE_ONLY" = 1 ] \
         || [ "$CORPUS" = 0 ] || [ "$REST" = 0 ]; }; then
@@ -229,11 +221,8 @@ eval "$HALVES_SET"                                # refused loudly without
 # binaries, the baked RTS, the instrument counts, the two commits, the
 # bench count and the gate's selection.
 #
-# IN ITS ROLE AND NOT MERELY PRESENT, which is the whole point: 12b's own
-# text says a citation that has slid onto another row passes a presence
-# test, and Run 28's preparation wrote this check by hand as a one-off
-# script because nothing here did it. That script found two errors and its
-# author threw it away, which is the shape this mode retires (2026-09-10).
+# IN ITS ROLE AND NOT MERELY PRESENT, which is the whole point: 12b's own text
+# says a citation that has slid onto another row passes a presence test.
 figures () {
   python3 - "$R" "$BASIS" "$OTHER" <<'PY'
 import os, re, subprocess, sys
@@ -269,11 +258,10 @@ for half in (basis, other):
                                   " 'ghc-[0-9]+\\.[0-9]+\\.[0-9]+' | sort -u"
                                   % b).strip()], True))
     # THE INSTRUMENTS ROW IS A VERDICT AND NOT A FIGURE -- the note writes
-    # `one @@wild and one @@saturate`, which no digit matches, and there is
-    # no figure here to slide onto a neighbouring row. So the COUNT is
-    # asserted of the binary and the ROW is held to naming both marks,
-    # which is what it is for. Found by this mode's first run against a
-    # hand-written note (2026-09-10).
+    # `one @@wild and one @@saturate`, which no digit matches, and there is no
+    # figure here to slide onto a neighbouring row. So the COUNT is asserted
+    # of the binary and the ROW is held to naming both marks, which is what it
+    # is for.
     for t in ('@@wild', '@@saturate'):
         got = sh("strings %s | grep -c '%s'" % (b, t)).strip()
         if got != '1':
@@ -358,24 +346,20 @@ if [ "$NOTE_ONLY" = 0 ]; then
 fi
 
 # Scratch OUTSIDE the run's own namespace: a $R-*.json or $R-*.log here is
-# read by run-major.sh as a previous attempt and by read-all.sh as one of
-# the run's own processes, which is how a half-written probe once turned
-# eighteen clean gates into two failures (README, the Run 17 tasks).
+# read by run-major.sh as a previous attempt and by read-all.sh as one of the
+# run's own processes.
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/preflight.XXXXXX") || exit 1
-# A FAILED step's raw output is KEPT rather than deleted. Every step
-# redirects into $TMP and every verdict quotes a `tail -1` or a `grep -m1`
-# of it, so deleting it at exit destroyed the evidence and kept a summary
-# of the destroyed thing: 8d failed under this script and passed standing
-# alone, and what would have said why was gone (2026-09-03). It stays in
-# the TEMP directory, which the machine wipes -- a run's scratch does not
-# belong in the checkout, and this is scratch. BUT THE PATH IS NOT ONE TO
-# HAND ON: the outer wrapper puts a tmpfs over /tmp, so a directory a
-# session keeps there is invisible from Mikolaj's own shell and from any
-# other session. Whoever ran preflight can read it; anyone else needs the
-# part that matters copied out.
-# Written as if/else and not `A && B || C`: that shape runs C when A
-# fails, which is how a fallback comes to speak for a command that never
-# ran, and this file is read as an example.
+# A FAILED step's raw output is KEPT rather than deleted. Every step redirects
+# into $TMP and every verdict quotes a `tail -1` or a `grep -m1` of it,
+# so deleting it at exit destroyed the evidence and kept a summary of the
+# destroyed thing. It stays in the TEMP directory, which the machine wipes --
+# a run's scratch does not belong in the checkout, and this is scratch. BUT
+# THE PATH IS NOT ONE TO HAND ON: the outer wrapper puts a tmpfs over /tmp, so
+# a directory a session keeps there is invisible from Mikolaj's own shell and
+# from any other session. Whoever ran preflight can read it; anyone else needs
+# the part that matters copied out. Written as if/else and not `A && B || C`:
+# that shape runs C when A fails, which is how a fallback comes to speak for a
+# command that never ran, and this file is read as an example.
 trap 'if [ "${BAD:-0}" -gt 0 ] && [ -d "$TMP" ]; then
         echo "  the raw output of every step kept in $TMP -- wiped with /tmp,"
         echo "  and readable only where this ran; copy out what you hand on"
@@ -404,9 +388,8 @@ step_8 () {
 # than lines in the flow, because they are the two it re-runs. 8 reads the
 # documents and 10c the note, both in seconds, and neither wants a binary
 # -- so `--note` is them alone, and a note or a registration edited after a
-# full pass is re-checked without paying again for 8c and 8d, which read
-# this directory's Python source and its run JSONs and cannot have moved.
-# Run 23's preparation paid two whole passes to re-test 10c, 2026-09-01.
+# full pass is re-checked without paying again for 8c and 8d, which read this
+# directory's Python source and its run JSONs and cannot have moved.
   step_10c () {  # 10c. AND WHAT THE NOTE POINTS AT, which nothing else reads.
   # The run file must OUTLIVE its artifacts and --check-doc now refuses one that
   # names them; the pair note is the opposite -- it is MEANT to go with the
@@ -421,49 +404,45 @@ step_8 () {
   # artifact names. Anything outside the run's and probe's namespaces is not
   # a path this can check and is left alone.
   #
-  # A probe name may not END the captured token on `.` or `-`, which is what
-  # the last character class is for: `.` is in the body class, so a name at
-  # the end of a SENTENCE used to be captured with the full stop attached and
-  # reported gone. A `probe-ds-{off,on}-g912` brace form is captured WHOLE,
-  # the braces being in the body class, and expanded by hand below, however
-  # many groups and an empty alternative among them: a body
+  # A probe name may not END the captured token on `.` or `-`, which is
+  # what the last character class is for: `.` is in the body class, so a
+  # name at the end of a SENTENCE used to be captured with the full stop
+  # attached and reported gone. A `probe-ds-{off,on}-g912` brace form is
+  # captured WHOLE, the braces being in the body class, and expanded by hand
+  # below, however many groups and an empty alternative among them: a body
   # class that stopped at the brace captured `probe-ds-`, and a last class
   # admitting `-` let that truncation through, so a note naming the form
-  # FAILed with every path present -- Run 23's preparation met both forms
-  # in one call, 2026-09-01, and the brace half was still open by review
-  # the same day. Non-vacuity, that day, on stub notes made and removed in
-  # one call beside two stub directories: `reproduces probe-zzst-a.` and
-  # `probe-zzst-{a,b}` each PASS, `probe-nosuchthing-g912` FAILs naming
-  # that path, and the brace form FAILs naming `probe-zzst-b` once that
-  # directory is removed -- so the arm that fires on an absent path is
-  # reachable through the plain form and the expanded one alike. The same
-  # day on `probe-zzst-{a,b}-{c,d}` over four stub directories: PASS with
-  # all four present, FAIL naming `probe-zzst-b-d` with that one removed.
-  # AND A THIRD BOUNDARY, on the LEFT, 2026-09-10: with none, a name that
-  # merely CONTAINS the run's own leaves its tail behind as a path of its
-  # own, so a note saying `smoke-l1-run28-bcast.json` -- which the roster
-  # pass writes and which was present -- reported `run28-bcast.json` gone.
-  # The leading character is consumed by the match and stripped after it,
-  # `grep -oE` having no lookbehind, and the strip takes only a character
-  # outside the name's own class: at the head of a line nothing is
-  # consumed, and stripping any non-alphanumeric turned a note's
-  # `./run40-x.json` into `/run40-x.json` (2026-09-25, by review). AND
-  # THE NAME IS TAKEN WHOLE, prefix and all: a boundary
-  # alone made the step blind to every `smoke-l1-$R-*.json` the roster
-  # pass writes and the note names, since `smoke-l1-` fails the class and
-  # the tail no longer matched on its own -- a loud false report traded
-  # for a silent gap, which is the worse of the two. Non-vacuity
-  # 2026-09-10, on one line carrying both forms: a planted
-  # `run28-nosuchthing.json` and a planted `smoke-l1-run28-nosuch.json`
-  # are each named, and a present name of either form is not. `/` is in
-  # neither class for the same reason `-` is: a path under a directory is
-  # one path, and a boundary that stopped at the slash read
-  # `smoke-legs-1/smoke-l1-$R-bcast.json` as a bare file in this one.
-  # AND A PROBE GLOB IS A PATTERN, since 2026-10-04: `probe-r45-*` was cut
-  # at the `*` and reported `probe-r45` gone, Run 45's note naming its probe
-  # files that way. A probe name carrying `*` passes where anything matches
-  # it. A run-file glob stays uncaptured: the template names
-  # `$R-<basis>-*.json`, artifacts the run has not written yet.
+  # FAILed with every path present. Non-vacuity, 2026-09-01, on stub notes
+  # made and removed in one call beside two stub directories: `reproduces
+  # probe-zzst-a.` and `probe-zzst-{a,b}` each PASS, `probe-nosuchthing-g912`
+  # FAILs naming that path, and the brace form FAILs naming `probe-zzst-b`
+  # once that directory is removed -- so the arm that fires on an absent path
+  # is reachable through the plain form and the expanded one alike. The same
+  # day on `probe-zzst-{a,b}-{c,d}` over four stub directories: PASS with all
+  # four present, FAIL naming `probe-zzst-b-d` with that one removed. AND A
+  # THIRD BOUNDARY, on the LEFT, 2026-09-10: with none, a name that merely
+  # CONTAINS the run's own leaves its tail behind as a path of its own, so a
+  # note saying `smoke-l1-run28-bcast.json` -- which the roster pass writes
+  # and which was present -- reported `run28-bcast.json` gone. The leading
+  # character is consumed by the match and stripped after it, `grep -oE`
+  # having no lookbehind, and the strip takes only a character outside the
+  # name's own class: at the head of a line nothing is consumed, and stripping
+  # any non-alphanumeric turned a note's `./run40-x.json` into `/run40-x.json`
+  # (2026-09-25, by review). AND THE NAME IS TAKEN WHOLE, prefix and all:
+  # a boundary alone made the step blind to every `smoke-l1-$R-*.json` the
+  # roster pass writes and the note names, since `smoke-l1-` fails the class
+  # and the tail no longer matched on its own -- a loud false report traded
+  # for a silent gap, which is the worse of the two. Non-vacuity 2026-09-10,
+  # on one line carrying both forms: a planted `run28-nosuchthing.json` and
+  # a planted `smoke-l1-run28-nosuch.json` are each named, and a present
+  # name of either form is not. `/` is in neither class for the same reason
+  # `-` is: a path under a directory is one path, and a boundary that
+  # stopped at the slash read `smoke-legs-1/smoke-l1-$R-bcast.json` as a
+  # bare file in this one. AND A PROBE GLOB IS A PATTERN, since 2026-10-04:
+  # `probe-r45-*` was cut at the `*` and reported `probe-r45` gone, Run 45's
+  # note naming its probe files that way. A probe name carrying `*` passes
+  # where anything matches it. A run-file glob stays uncaptured: the template
+  # names `$R-<basis>-*.json`, artifacts the run has not written yet.
   if [ -f "$R-pair.txt" ]; then
     REFS_RE='(^|[^A-Za-z0-9._/-])(probe-[A-Za-z0-9._{},*-]*[A-Za-z0-9_}*]/?|'
     REFS_RE=$REFS_RE'[A-Za-z0-9._/-]*'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))'
@@ -528,17 +507,15 @@ and its recipes disagree"
   fi
 }
 step_10e () {  # 10e. AND THE NOTE'S PROSE, which 10c and 10d do not read:
-  # both of those are predicates over structure -- the paths the note
-  # names, the halves its recipes build -- so a note whose carried blocks
-  # still describe the PREVIOUS pair passes them untouched. `--draft`
-  # carries the [PAIR'S] models, and any [SAME] block the template lacks,
-  # with the run and the half names substituted and nothing else, so the
-  # run numbers, the item numbers and the roll of tags inside those
-  # blocks stay the last pair's until a hand re-reads them. Run 33's
-  # preparation re-read those blocks and rewrote a statement in every one
-  # of them; these are the three kinds a machine can have. Non-vacuity is
-  # defects.py's `note-check-reads-the-carried-blocks`, which plants all
-  # three in a copy of a real note and counts what comes back.
+  # both of those are predicates over structure -- the paths the note names,
+  # the halves its recipes build -- so a note whose carried blocks still
+  # describe the PREVIOUS pair passes them untouched. `--draft` carries the
+  # [PAIR'S] models, and any [SAME] block the template lacks, with the run
+  # and the half names substituted and nothing else, so the run numbers, the
+  # item numbers and the roll of tags inside those blocks stay the last pair's
+  # until a hand re-reads them. These are the three kinds a machine can have.
+  # Non-vacuity is defects.py's `note-check-reads-the-carried-blocks`, which
+  # plants all three in a copy of a real note and counts what comes back.
   [ -f "$R-pair.txt" ] || return 0
   if ./read-run.py --note-check "$R-pair.txt" > "$TMP/notecheck" 2>&1; then
     say 10e PASS "$(head -1 "$TMP/notecheck")"
@@ -553,20 +530,18 @@ step_10f () {  # 10f. AND WHERE THE HALVES WILL ACTUALLY LAUNCH FROM,
   # nothing else here did either -- so a mount raised between runs puts the
   # placement term, 15 percent on one arm of Run 33's basis by README's
   # placement section, back into every cross-run absolute a run publishes,
-  # and the only sign is a row a session reads as the expected `./`. Met on
-  # 2026-09-21: hugebin/ stood mounted, empty and writable, when Run 38's
-  # preparation began, and a hand caught it before either sweep ran.
-  # KEYED ON THE PATH half-bin.sh RETURNS and not on `mountpoint`, so what
-  # is judged is where a half will run from, whatever put it there. That is
-  # also why the refusal is here and not in half-bin.sh, which serves the
-  # corpus's stub halves and was deliberately left without one.
-  # PLACEMENT=1 is the acknowledgement, for a run whose question IS the
-  # placement term; its note then says it raised the mount and on whose
-  # word, which the pre-run list's step 2 already asks of such a run.
-  # WHAT THE PASS LINE MAY SAY is only what was read: that no returned path
-  # is under hugebin/. It may NOT say the mount is suspended -- half-bin.sh
-  # hands back the on-disk path for a mounted hugebin whenever the half is
-  # no ELF binary, which is every stub half the corpus builds.
+  # and the only sign is a row a session reads as the expected `./`. KEYED ON
+  # THE PATH half-bin.sh RETURNS and not on `mountpoint`, so what is judged
+  # is where a half will run from, whatever put it there. That is also why
+  # the refusal is here and not in half-bin.sh, which serves the corpus's
+  # stub halves and was deliberately left without one. PLACEMENT=1 is the
+  # acknowledgement, for a run whose question IS the placement term; its note
+  # then says it raised the mount and on whose word, which the pre-run list's
+  # step 2 already asks of such a run. WHAT THE PASS LINE MAY SAY is only
+  # what was read: that no returned path is under hugebin/. It may NOT say
+  # the mount is suspended -- half-bin.sh hands back the on-disk path for a
+  # mounted hugebin whenever the half is no ELF binary, which is every stub
+  # half the corpus builds.
   [ -x "./$R-$BASIS" ] || return 0
   MOUNTED=''
   REFUSED=''
@@ -618,29 +593,25 @@ echo "preflight for $R: basis $BASIS, control $OTHER"
 echo
 
 if [ "$REST" = 1 ]; then
-# THE TWO HALVES CHECK CONCURRENTLY, which is the whole of this step's
-# cost -- `check` runs over every shape and class view, the two runs take
-# minutes apiece and nearly all of a preflight between them, and they are
-# independent: each reads its own binary and writes its own log, and the
-# assertion below is that the two logs AGREE, which no scheduling can
-# move. `check` is a correctness pass and times nothing, so contention
-# reaches no figure. Halved 2026-09-10; before it they ran one after the
-# other for no reason but the order the list writes them in.
-# The survey line of one half, as steps 10a and 10b read it. Hoisted out of
-# the fill-in block on 2026-09-19 so that the ASTRIDE count is read beside
-# 4,5 rather than after 8b: a nonzero count is step 10a's stop, the sweep at
-# run-list step 11 must not start in front of the surveys, and step 11 says
-# to launch the moment `4,5  PASS` appears. Those two cannot both be obeyed
-# while this runs last -- Run 36's preparation read `1 exit spans astride`
-# after 8b with the sweep waiting on it, and the reading was a phantom
-# either way. The figures stay the NOTE's, which is what the header above
-# says of 10a and 10b; what is a verdict here is the astride count alone.
-# THE SURVEY'S STATUS IS READ AND EVERY COUNT CUT AT ITS COMMA, since
-# 2026-09-25 (by review): piped into awk the status was lost and END
-# printed a line of empty fields for a refused survey, which read as 10a's
-# stop; and past ten spans the astride row ends `57, 10 longest listed`,
-# whose last field is the word. The line is printed only when the astride
-# count was read, so a survey that said nothing is the empty verdict.
+# THE TWO HALVES CHECK CONCURRENTLY, which is the whole of this step's cost
+# -- `check` runs over every shape and class view, the two runs take minutes
+# apiece and nearly all of a preflight between them, and they are independent:
+# each reads its own binary and writes its own log, and the assertion below
+# is that the two logs AGREE, which no scheduling can move. `check` is a
+# correctness pass and times nothing, so contention reaches no figure. The
+# survey line of one half, as steps 10a and 10b read it. Hoisted out of the
+# fill-in block on 2026-09-19 so that the ASTRIDE count is read beside 4,5
+# rather than after 8b: a nonzero count is step 10a's stop, the sweep at
+# run-list step 11 must not start in front of the surveys, and step 11 says to
+# launch the moment `4,5 PASS` appears. Those two cannot both be obeyed while
+# this runs last. The figures stay the NOTE's, which is what the header above
+# says of 10a and 10b; what is a verdict here is the astride count alone. THE
+# SURVEY'S STATUS IS READ AND EVERY COUNT CUT AT ITS COMMA, since 2026-09-25
+# (by review): piped into awk the status was lost and END printed a line of
+# empty fields for a refused survey, which read as 10a's stop; and past ten
+# spans the astride row ends `57, 10 longest listed`, whose last field is the
+# word. The line is printed only when the astride count was read, so a survey
+# that said nothing is the empty verdict.
 srv () {
   local out
   out=$(./loop-offsets.py --survey "$1" 2>/dev/null) || return 0
@@ -708,11 +679,10 @@ fi
 # 6b. THE GATE'S OWN SELECTION, derived by the script that will run it rather
 # than read out of it by eye. `--show` pays for the check run-gate.sh makes
 # before its run -- every glob in SEL listed once per view of its class by
-# BOTH halves -- and prints the count the note's `gate arms` line owes. Both halves
-# of that earn the step: the refusal is a check, catching a gate arm the roster
-# has parked, and the printed count is what stops a note carrying the previous
-# run's globs. Run 25's preparation wrote exactly that, on 2026-09-04, the day
-# the prune parked two of the five and re-cut SEL in the same commit.
+# BOTH halves -- and prints the count the note's `gate arms` line owes. Both
+# halves of that earn the step: the refusal is a check, catching a gate arm
+# the roster has parked, and the printed count is what stops a note carrying
+# the previous run's globs.
 if ./run-gate.sh "$R" --show > "$TMP/gate" 2>&1; then
   say 6b PASS "$(grep -c '^  glob' "$TMP/gate") gate arm(s), \
 $(grep -m1 'expect ' "$TMP/gate" | sed 's/^ *expect *//')"
@@ -732,9 +702,9 @@ step_10f
 step_8
 
 # 8b IS `check-all .` WHOLE since 2026-10-04, checks.py's static steps, ten
-# seconds once the cases and the mutants left them for checks-deep.py; until
-# then it was the three lint steps alone, run here by hand. An absent linter
-# fails its step by name there, and check-all off PATH fails this one.
+# seconds once the cases and the mutants left them for checks-deep.py. An
+# absent linter fails its step by name there, and check-all off PATH fails
+# this one.
 if command -v check-all >/dev/null; then
   check-all . > "$TMP/fam" 2>&1 \
     && say 8b PASS "check-all .: $(tail -1 "$TMP/fam")" \
@@ -822,12 +792,9 @@ on vgg-14-c512 ($SCAN vs $MUT)"
 fi
 
 # 9b, THE PAIR'S OWN VARIABLE, BY THE NOTE'S VARIABLE-CHECK LINE, since
-# 2026-09-25. `diag` answers for the regime and for nothing else, so what
-# the halves differ in is the note's to name -- and until then it named it
-# in prose, which this step found by grepping `step 9b` and echoed: on Run
-# 40's note the first such line was a sentence ABOUT that step, printed as
-# though it were the reading. The line has three forms, which --note-check
-# holds it to:
+# 2026-09-25. `diag` answers for the regime and for nothing else, so what the
+# halves differ in is the note's to name. The line has three forms, which
+# --note-check holds it to:
 #   regime basis|other   that half's `diag` held to its own recipe block,
 #                        exactly as step 9 holds the basis
 #   run CMD => ERE       CMD run here, PASS where its output matches ERE
@@ -914,13 +881,11 @@ prev_run_n () {
 
 # 8c TO 8e ARE `check-all checks-deep.py` since 2026-10-04: the properties
 # over every run JSON (8c), every case in both directions (8d) and every
-# mutant (8e). `check-all .` ran the cases and the mutants after an edit
-# until then, and 8d ran only the cases of the scripts changed since the
-# previous run's file, 8e only where one had; the owner moved the expensive
-# half here whole, once per preparation, so 8d and 8e are now unconditional.
-# LAST, and not merely last in the printing: the properties read every run
-# JSON on disk, so --no-corpus stops short of them, the sweeps run, and
-# --corpus takes them afterwards, never beside a sweep still writing.
+# mutant (8e). The owner moved the expensive half here whole, once per
+# preparation, so 8d and 8e are unconditional. LAST, and not merely last in
+# the printing: the properties read every run JSON on disk, so --no-corpus
+# stops short of them, the sweeps run, and --corpus takes them afterwards,
+# never beside a sweep still writing.
 if [ "$CORPUS" = 1 ]; then
   if command -v check-all > /dev/null; then
     check-all checks-deep.py > "$TMP/deep" 2>&1
@@ -952,8 +917,7 @@ if [ "$CORPUS" = 1 ]; then
   deep_say 8d 'cases, ok direction' 'cases, bug direction'
   deep_say 8e 'selftest mutants'
   # AND WHAT NO STEP LINE SHOWS: check-all exits 2 for a program its scan
-  # finds unnamed, all four steps green -- checks-deep.py lacked checks.py's
-  # UNCOVERED on 2026-10-04, and this step's first run read clean on it.
+  # finds unnamed, all four steps green.
   if grep -q '^  could not run:' "$TMP/deep"; then
     say 8e FAIL "check-all checks-deep.py: $(grep -m1 '^  could not run:' \
 "$TMP/deep" | sed 's/^ *//')"
@@ -963,15 +927,12 @@ fi
 # --fill-in: THE NOTE'S FILL-IN BLOCK, DERIVED. Every row below is either a
 # step this pass has just run, quoted from its own verdict, or a cheap read
 # beside it -- so what a preparation pastes into its note is the data the
-# verdicts were given on. It exists because that block was transcribed by
-# hand until 2026-09-07, and a hand can read the wrong column: Run 27's
-# preparation recorded `size -A`'s SECOND field, the load address, as
-# `.text`, and then reasoned at length about why it had not moved across a
-# roster change. Nothing here can make that mistake twice.
-# A row this cannot derive prints `<yours>`; run-status.sh counts those, so
-# a row left unwritten is a line of output rather than a reading.
-# It is NOT the whole note: the recipes, what the pair measures and the
-# handover are a person's, and pair-note-template.txt says so.
+# verdicts were given on. It exists because that block was transcribed by hand
+# until 2026-09-07, and a hand can read the wrong column, as the `.text` row's
+# control above says. A row this cannot derive prints `<yours>`; run-status.sh
+# counts those, so a row left unwritten is a line of output rather than a
+# reading. It is NOT the whole note: the recipes, what the pair measures and
+# the handover are a person's, and pair-note-template.txt says so.
 fill_in () {
   vd () {  # the DETAIL of a step's verdict, and the verdict word before it
     awk -F'\t' -v s="$1" '$1 == s { v = $2; d = $3 } END {
@@ -991,8 +952,7 @@ fill_in () {
   fi
   txt () { size -A "$1" | awk '$1 == ".text" { print $2 }'; }   # FIRST field
   # THE COMPILER'S OWN VERSION, `ghc-10.1.20260918`, and not the
-  # ghc-internal-10.100.0 string, which both HEADs here carry alike and which
-  # every note from Run 36 to Run 39 overrode by hand (2026-09-23).
+  # ghc-internal-10.100.0 string, which both HEADs here carry alike.
   ver () { strings "$1" | grep -oE 'ghc-[0-9]+\.[0-9]+\.[0-9]+' | sort -u \
              | tr '\n' ' ' | sed 's/ *$//'; }
   ins () { printf '%s @@wild, %s @@saturate' \
@@ -1176,10 +1136,9 @@ previous build of this recipe to read --delta against"
     printf '  %-16s  %s\n' '' "no previous basis half here, so the membership \
 delta is step 6c's to take by hand"
   fi
-  # THE PREVIOUS RUN'S TWO FIGURES THE CARRIED BLOCKS QUOTE, derived here
-  # so that THE COUNTS and THE MACHINE carry rules and point at these rows:
-  # a draft carried both blocks' figures one run stale, and rewriting them
-  # by hand was most of Run 39's editing of carried text (2026-09-23).
+  # THE PREVIOUS RUN'S TWO FIGURES THE CARRIED BLOCKS QUOTE, derived here so
+  # that THE COUNTS and THE MACHINE carry rules and point at these rows: a
+  # draft carried both blocks' figures one run stale.
   if [ -n "$PN" ]; then
     printf '  %-16s  %s\n' 'prev counts' \
       "$(./read-run.py --counts-totals "run$PN" 2>/dev/null \
@@ -1227,10 +1186,9 @@ VARIABLE-CHECK leaves to a reading."
   echo "all clear. NOT done here: 11 and 12, the smoke sweep and the roster"
   # `inherits` was asserted of 11 and 12 unconditionally, which is right for
   # a session RE-ENTERING a spent preparation and wrong for the first pass,
-  # where neither has run and both are owed. The note is what says which,
-  # and this script does not read it for that -- so it names the note
-  # rather than guessing. Reworded 2026-09-04 after a first pass read
-  # `a spent preparation inherits` over two steps that had not happened.
+  # where neither has run and both are owed. The note is what says which, and
+  # this script does not read it for that -- so it names the note rather than
+  # guessing.
   echo "pass, which are the note's: OWED where its fill-in block does not"
   echo "record them, INHERITED where it does. Then the run list, from 13."
   [ "$CORPUS" = 1 ] || echo "  8c, 8d and 8e did NOT run: --corpus takes them" \

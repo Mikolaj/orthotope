@@ -52,11 +52,10 @@ fi
 R=$1
 shift
 # WHICH POPULATIONS, and the default is all of them. Post-run step 3 reruns
-# the populations an intrusion touched, both halves of each, and says to
-# drive that through this script rather than by hand -- which it could not
-# do while the only choices were eleven populations or none. Run 27 met
-# that: one intrusion on four benches of `runs` on one half, and no way to
-# ask for `runs`. The names are `main` and the class names below.
+# the populations an intrusion touched, both halves of each, and says to drive
+# that through this script rather than by hand -- which it could not do while
+# the only choices were eleven populations or none. The names are `main` and
+# the class names below.
 WANTED="$*"
 # Asked for, when a list was given at all. One place, so the relaunch guard
 # and the two run loops cannot disagree about what this invocation writes.
@@ -68,11 +67,9 @@ wanted () {
 }
 PREFIX="$R"                  # the binaries and their note carry the run, as
                              # every artifact here does, so that two runs
-                             # cannot write one filename however alike their
-                             # half names are -- see run-gate.sh, whose output
-                             # did not and quietly overwrote Run 10's. One
-                             # scheme throughout: `<run>-<rest>`, binaries,
-                             # note and JSONs alike
+                             # cannot write one filename however alike
+                             # their half names are. One scheme throughout:
+                             # `<run>-<rest>`, binaries, note and JSONs alike
 
 # WHICH TWO HALVES, since the pair is no longer always unaligned/aligned.
 # BASIS is the half the expected bench counts are read from and every
@@ -294,16 +291,15 @@ run () {   # $1 = half, $2 = artifact tag, $3 = benches expected, $4.. = args
 # necessarily the pair's own -- a write-up edits Main.hs's comments without
 # rebuilding, so both can be ahead of the binaries -- which is why README's
 # recording step transcribes the commit out of the pair note instead. A dirty
-# tree is what makes either a lie, so the count goes in too.
-# ASKED WHETHER GIT ANSWERED, because the reassuring reading is the one
-# it gives when it did not: `tree at , Main.hs at ` for the commits and
-# `0 path(s) untracked or modified` for the count, which is exactly what a
-# clean tree looks like -- and the count is the safeguard the paragraph
-# above leans on. Reachable without leaving this directory: a dubious-
-# ownership refusal, a stale index lock, a `.git` the sandbox mounted
-# read-only. It does not stop the run, six hours being worth more than a
-# provenance line, but the line cannot read as a commit nobody has.
-# Found 2026-08-17 by a toy run of this procedure.
+# tree is what makes either a lie, so the count goes in too. ASKED WHETHER
+# GIT ANSWERED, because the reassuring reading is the one it gives when it
+# did not: `tree at , Main.hs at ` for the commits and `0 path(s) untracked
+# or modified` for the count, which is exactly what a clean tree looks like
+# -- and the count is the safeguard the paragraph above leans on. Reachable
+# without leaving this directory: a dubious- ownership refusal, a stale index
+# lock, a `.git` the sandbox mounted read-only. It does not stop the run, six
+# hours being worth more than a provenance line, but the line cannot read as a
+# commit nobody has.
 HEAD_AT=$(git log -1 --format=%h 2>/dev/null)
 MAIN_AT=$(git log -1 --format=%h -- Main.hs 2>/dev/null)
 DIRTY=$(git status --porcelain 2>/dev/null); GIT_SAID=$?

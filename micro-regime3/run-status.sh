@@ -68,12 +68,8 @@ parses () { python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$1" 2>/d
 echo "run status for $R, off the artifacts and the repository:"
 # THE ENTRY POINT, PRINTED WHERE A SESSION ALREADY IS. This is the first
 # command a run's session runs, so it is the one place that can hand over
-# the list before README is opened -- and opening README is the failure
-# the chapter's own head block has now failed to stop four preparations
-# it records: Runs 24, 26, 27 and 28, each arriving with a section
-# anchor and reading the framing to find it. Not consecutive -- the
-# chapter records nothing of Run 25's arrival either way. A line here costs nothing and
-# reaches a session that never meant to read the chapter at all.
+# the list before README is opened. A line here costs nothing and reaches a
+# session that never meant to read the chapter at all.
 echo "  execute from \`./read-run.py --checklist pre\`, or run or post"
 echo "  for the other halves; do not read README's run chapter to find it"
 echo "  it prints each step through its why: line; --full adds the reasons"
@@ -303,9 +299,9 @@ elif [ -f "$DOC" ] || ls "$R"-*.json >/dev/null 2>&1; then
   say 3a "NOT DONE" "no probe-g3-*-$R twins: step 3a names the fill groups off\
  them and SPENDS the binaries, so it cannot be taken after step 9"
 fi
-# AND THE NOTE'S BLOCK, which the twins being there does not say: Run 42
-# named the fills in the run file and wrote the note's NAMED FILLS block
-# only at the end, step 3a reading done throughout.
+# AND THE NOTE'S BLOCK, which the twins being there does not say: a run can
+# name its fills in the run file and leave the note's NAMED FILLS block to the
+# end, step 3a reading done throughout.
 if [ "$TWINS" -ge 2 ] && [ -f "$NOTE" ]; then
   grep -q '^NAMED FILLS' "$NOTE" \
     && say 3a "done" "$NOTE carries a NAMED FILLS block" \
@@ -313,9 +309,7 @@ if [ "$TWINS" -ge 2 ] && [ -f "$NOTE" ]; then
 \`loop-offsets.py --match\` gave into it"
 fi
 # THE READINGS THE WRITE-UP OWES, printed at the steps that owe them until
-# 6b's commit: the list names them, and Run 42's session read the previous
-# run's file whole instead of the four sections and the docstring's two
-# parts. PREV is the note's COMPARE line.
+# 6b's commit: the list names them. PREV is the note's COMPARE line.
 PREV=$( [ -f "$NOTE" ] && sed -n 's/^COMPARE: *\(run[0-9]*\).*/\1/p' "$NOTE" | head -1)
 if [ -n "$PREV" ] && ! git log --format=%s 2>/dev/null \
      | grep -i "run $N\b\|$R\b" | grep -qi '\b6b\b'; then
@@ -369,10 +363,9 @@ if [ -f "$DOC" ]; then
       say "$s" "done" "a commit subject names step $s"
     else
       # NAMES THE FORM IT WANTED, because the filter is the RUN first and
-      # the step second: a subject reading `step 6d: ...` is invisible
-      # here however plainly it names the step, and Run 27 wrote two of
-      # those and read NOT DONE over work that was done. A line that says
-      # what to write turns the verdict into a fix.
+      # the step second: a subject reading `step 6d: ...` is invisible here
+      # however plainly it names the step. A line that says what to write
+      # turns the verdict into a fix.
       say "$s" "NOT DONE" \
           "no commit subject carries both the run and step $s -- write \`Run $N step $s: ...\`"
     fi
@@ -394,11 +387,9 @@ if [ "$MISSING" -eq 0 ]; then
   exit 0
 fi
 echo "STATUS: $MISSING step(s) not done, first: $FIRST"
-# THE ONE LIST THIS SESSION OWES, and not the three the head offers: the
-# head prints before any step has been read and so cannot know which, while
-# here the phase of the first NOT DONE step says it outright. Run 38's
-# executing session read the 49 KB pre-run list it did not owe, having been
-# handed all three names at the top.
+# THE ONE LIST THIS SESSION OWES, and not the three the head offers: the head
+# prints before any step has been read and so cannot know which, while here
+# the phase of the first NOT DONE step says it outright.
 case "$FIRSTPHASE" in
   pre)  echo "  you owe \`./read-run.py --checklist pre\` ALONE, and none of the other two" ;;
   run)  echo "  you owe \`./read-run.py --checklist run\`, with \`post-a\` read at step 13a;" 

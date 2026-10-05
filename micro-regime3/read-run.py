@@ -736,8 +736,7 @@ def load(path, main_hs):
         # A slope of exactly 0 divided here, in every mode, before the
         # malformed-cell check in `selftest` that exists to name that cell
         # could run -- the sunk-baseline defect one stage earlier, on the
-        # slope rather than on the net. A cell with no slope has no CI
-        # either. Found 2026-08-22 by review.
+        # slope rather than on the net. A cell with no slope has no CI either.
         if not slope:
             lo = hi = None
         alloc = fits.get('allocated')
@@ -876,12 +875,12 @@ def health(cells, shapes, strategies, terms, corr='sumonly'):
                 starved.append((c['n'], sh, st))
             if c['ci'] is None:
                 no_ci.append((sh, st))
-            # `alloc` is None for a shape Main.hs no longer defines, `l`
-            # being what turns bytes into the multiple -- and `or 0` then
-            # read that as "allocated nothing" and skipped the warning
-            # entirely, so an older JSON went quiet here while `--cells`
-            # still printed its `alloc_bytes`. Unknown is not small: warn
-            # and let the reader look. Found 2026-08-17 by review.
+            # `alloc` is None for a shape Main.hs no longer defines, `l` being
+            # what turns bytes into the multiple -- and `or 0` then read that
+            # as "allocated nothing" and skipped the warning entirely, so an
+            # older JSON went quiet here while `--cells` still printed its
+            # `alloc_bytes`. Unknown is not small: warn and let the reader
+            # look.
             if (c.get('alloc_r2') is not None and c['alloc_r2'] < 0.99
                     and (c['alloc'] is None or c['alloc'] >= 0.1)):
                 bad_alloc.append((c['alloc_r2'], sh, st))
@@ -976,10 +975,9 @@ def aa_pairs(cells, shapes, strategies):
         if not b or b not in strategies:
             continue
         # Not readable rather than divided: `--aa` used to die inside
-        # `geomean` with `math domain
-        # error`, and `--block`, `--compare --chapter` and `summary_row` all
-        # come through here. The guard `pair_stats` grew was never carried
-        # to its siblings. Found 2026-08-17 by review.
+        # `geomean` with `math domain error`, and `--block`, `--compare
+        # --chapter` and `summary_row` all come through here. The guard
+        # `pair_stats` grew was never carried to its siblings.
         #
         # And SAID, on the same day, because dropping it quietly traded a
         # crash for the worse thing: `controls_skeleton` publishes "N of M
@@ -1047,12 +1045,11 @@ def insitu_ratios(cells, shapes, strategies):
         base = base_of(arm)
         if base not in strategies:
             continue
-        # The shapes come back WITH the ratios, because a shape whose gap
-        # or term is not positive is dropped here and the caller labelled
-        # its worst cell by zipping the ratios against `shapes` -- so one
-        # dropped shape renamed every later ratio with its predecessor's
-        # shape, and `--aa` printed a worst cell on a shape that did not
-        # produce it. Found 2026-08-17 by review.
+        # The shapes come back WITH the ratios, because a shape whose gap or
+        # term is not positive is dropped here and the caller labelled its
+        # worst cell by zipping the ratios against `shapes` -- so one dropped
+        # shape renamed every later ratio with its predecessor's shape, and
+        # `--aa` printed a worst cell on a shape that did not produce it.
         r, at = [], []
         for s in shapes:
             gap = cells[s][base]['slope'] - cells[s][arm]['slope']
@@ -1359,9 +1356,7 @@ def winsor_table(cells, shapes, strategies):
           % (n_pairs, ', %d more with a sunk cell left out' % sunk_pairs
              if sunk_pairs else '', len(parted),
              ':' if parted else ''))
-    # EVERY PARTING, a line apiece, where the census printed six and `...`:
-    # Run 42's write-up argued which pairs part from the name order of the
-    # six it could see.
+    # EVERY PARTING, a line apiece, where the census printed six and `...`.
     for p_ in parted:
         print('  parts: `%s` over `%s`, column %.4f, paired %.4f' % p_)
     if widest:
@@ -1479,9 +1474,8 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
     print('\n* control, not a strategy (--aa explains; --no-controls omits)')
     if any(terms.values()) and have_list:
         # A cell with no positive slope has no share to read, and divided
-        # here in the default mode -- the zero-slope family's last site,
-        # the selftest's having been named the day before. Found
-        # 2026-08-23 by a sweep for the family.
+        # here in the default mode -- the zero-slope family's last site, the
+        # selftest's having been named the day before.
         share = {st: med_or_nan([terms[sh] / cells[sh][st]['slope']
                                  for sh in shapes if st in cells[sh]
                                  and cells[sh][st]['slope'] > 0])
@@ -2759,15 +2753,12 @@ def compare_table(cells, shapes, strategies, meta, other, main_hs,
     # Every figure there is a corrected net over a corrected net, while an
     # arm that hands back a scalar runs no forcing pass, so its net is that
     # term subtracted from itself and a ratio of two of them divides two
-    # near-zeros -- which is why the loop above skips them.
-    # `--predictions` has read a `cross` prior on such an arm since Run 29,
-    # on the raw key; nothing else did until 2026-09-15, so a prior quoted
-    # for a `-sum` arm could be re-derived only by hand. Run 32's
-    # preparation wrote that geomean of slope ratios by hand over two
-    # JSONs, and Run 33's could not quote two of the three figures its own
-    # note wanted, no span naming those two arms. Same key and same shapes
-    # as that branch, so a prior and its re-derivation agree by
-    # construction. Case: `compare-reads-no-reducing-consumer`.
+    # near-zeros -- which is why the loop above skips them. `--predictions`
+    # has read a `cross` prior on such an arm since Run 29, on the raw key;
+    # nothing else did until 2026-09-15, so a prior quoted for a `-sum` arm
+    # could be re-derived only by hand. Same key and same shapes as that
+    # branch, so a prior and its re-derivation agree by construction. Case:
+    # `compare-reads-no-reducing-consumer`.
     sunk = []
     for st in both_st:
         if not no_net(st):
@@ -2790,17 +2781,14 @@ def compare_table(cells, shapes, strategies, meta, other, main_hs,
         for g, wins, n, st, lo, hi in sorted(sunk):
             print('%-34s %8.4f %8.4f %5d/%-3d %5.3f..%.3f'
                   % (st, g, 1 / g, wins, n, lo, hi))
-    # THE A/A BAR FOR THIS COMPARISON, which is the floor's counterpart
-    # here and which no mode printed until 2026-09-15. `--aa` gives the
-    # floor WITHIN one half: how far an arm differs from its own duplicate
-    # there. A figure ACROSS two files is read against nothing unless the
-    # same duplicates are read across them too -- an A/A copy is the same
-    # code as its base, so the two owe one ratio, and how far they part is
-    # what an arm must clear before its movement is the pair's variable
-    # rather than the comparison's own noise. Run 32's head was written
-    # without it and called the compiler worth nothing this roster can
-    # measure, where three of eight strategies clear 0.81 points.
-    # Case: `compare-prints-no-aa-bar`.
+    # THE A/A BAR FOR THIS COMPARISON, which is the floor's counterpart here
+    # and which no mode printed until 2026-09-15. `--aa` gives the floor
+    # WITHIN one half: how far an arm differs from its own duplicate there.
+    # A figure ACROSS two files is read against nothing unless the same
+    # duplicates are read across them too -- an A/A copy is the same code as
+    # its base, so the two owe one ratio, and how far they part is what an arm
+    # must clear before its movement is the pair's variable rather than the
+    # comparison's own noise. Case: `compare-prints-no-aa-bar`.
     bar, carrier, arms, past = aa_bar(cells, b_cells, both_sh, both_st)
     if carrier is None:
         print('\nNO A/A pair is in both files, so this comparison has no bar'
@@ -5871,10 +5859,10 @@ def load_other(other, main_hs, shapes, meta):
     """
     b_cells, b_shapes, b_strategies, b_meta = load(other, main_hs)
     # The same hole gate the run in hand gets, and for the same reason one
-    # commit later: `--compare`, `--chapter` and `--compare --alloc` index
-    # the other run's cells directly, so an interrupted half raised a
-    # KeyError -- a traceback where this file's convention is a refusal
-    # naming what did not happen. Found 2026-08-17 by review.
+    # commit later: `--compare`, `--chapter` and `--compare --alloc` index the
+    # other run's cells directly, so an interrupted half raised a KeyError --
+    # a traceback where this file's convention is a refusal naming what did
+    # not happen.
     holes = [(sh, st) for sh in b_shapes for st in b_strategies
              if st not in b_cells[sh]]
     if holes:
@@ -8577,13 +8565,11 @@ def over_list_sweep(run, args):
     print('%d population(s) read, %d timed non-control cell(s) against their'
           " own shape's `list`, %d with no corrected time to read"
           % (pops, read, unreadable))
-    # A POPULATION WITH NO BASELINE COMPARED NOTHING, and counted as read
-    # it turned a sweep over nothing into a clean verdict: a filtered
-    # probe drops `list`, and this mode's whole job is that its silence
-    # be readable. Named here, and a sweep with no baseline anywhere is a
-    # 2, which is the exit this directory owes for a run that did not
-    # happen. Found 2026-09-14 by asking the mode a question other than
-    # the one it was written for.
+    # A POPULATION WITH NO BASELINE COMPARED NOTHING, and counted as read it
+    # turned a sweep over nothing into a clean verdict: a filtered probe drops
+    # `list`, and this mode's whole job is that its silence be readable. Named
+    # here, and a sweep with no baseline anywhere is a 2, which is the exit
+    # this directory owes for a run that did not happen.
     if baseless:
         print('%d population(s) have NO readable `list` to compare against,'
               ' so they are read over nothing: %s'
@@ -8863,13 +8849,12 @@ def class_says(cells, shapes, strategies, meta, args):
                    else 'The counted work reads no count for these arms.')
     else:
         gs = []
-    # THE COUNTS AGAINST THE CLOCK IS ARITHMETIC ON TWO FIGURES THIS
-    # PARAGRAPH ALREADY PRINTS, so it is written here where both sweeps are
-    # given: Run 39's session divided them by hand for ten classes. Without
-    # the sweeps the slot stays, NAMED, as the one above it is: a block
-    # used to carry two `___` of which one said what it wanted, and a
-    # session that filled the first met a check reporting ten still open
-    # (Run 37). Case: `block-writes-the-counts-clause-it-can-compute`.
+    # THE COUNTS AGAINST THE CLOCK IS ARITHMETIC ON TWO FIGURES THIS PARAGRAPH
+    # ALREADY PRINTS, so it is written here where both sweeps are given.
+    # Without the sweeps the slot stays, NAMED, as the one above it is: a
+    # block used to carry two `___` of which one said what it wanted, and a
+    # session that filled the first met a check reporting ten still open (Run
+    # 37). Case: `block-writes-the-counts-clause-it-can-compute`.
     if gs and vote:
         k, q = geomean(gs), geomean([g for g, _ in vote])
         if abs(k - 1) < 0.001:
@@ -12345,9 +12330,9 @@ def pair_note(path, draft=None, halves=None, repeat=False):
     log = []
     # ONE PASS PER FAMILY, longest pattern first, because renaming in turn
     # feeds each result to the next rename: with old (g912, spot) and new
-    # (spot, ghead), `g912` became `spot` and the second rename took that
-    # to `ghead`, collapsing BOTH halves onto one name in a note carried
-    # over silently. Found 2026-09-03 by trying a pair that reuses a name.
+    # (spot, ghead), `g912` became `spot` and the second rename took that to
+    # `ghead`, collapsing BOTH halves onto one name in a note carried over
+    # silently.
     ren = {'%s-%s' % (prev, o): '%s-%s' % (draft, n)
            for o, n in zip(old, new)}
     ren[prev] = draft
@@ -15171,11 +15156,8 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                        % (len(claims), os.path.basename(run_doc), cur, was_run,
                           '; '.join(l.strip()[:60] for l in claims)))
         if rest:
-            # NAME THE MODE THAT LISTS THEM. A count with no route to
-            # its own members is one a session reads past: Run 30 met
-            # this note, did not run --inherited, wrote its head, and
-            # had a checker return twelve stale carried paragraphs
-            # that the one command lists. Case:
+            # NAME THE MODE THAT LISTS THEM. A count with no route
+            # to its own members is one a session reads past. Case:
             # `carried-note-does-not-name-inherited`.
             print('note: %d paragraph(s) of %s are unchanged from Run %s and'
                   ' name only an EARLIER run -- `--inherited` lists them'
@@ -15348,9 +15330,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
             # AND WHAT THE FIX IS, which the count alone does not say: a
             # roster change owes these sentences an edit in the commit that
             # made it, and README's roster chain is where a landing or a
-            # parking is dated. Run 42's preparation met this after two
-            # owner commits and read this function to find the sites
-            # (2026-09-26). Case: `stale-arm-count-names-no-fix`.
+            # parking is dated. Case: `stale-arm-count-names-no-fix`.
             bad.append('run-current count(s) out of date: %s -- sentences'
                        ' about the roster as it stands, owed an edit by the'
                        ' commit that moved it; a landing or a parking is'
@@ -16061,13 +16041,12 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                        ' so the section\'s own grep is complete'
                       % len(entries))
         else:
-            # A range this sweep cannot delimit is a sweep that did not
-            # run, and its silence read exactly like a clean open list:
-            # rename either heading, or move the goal section above the
-            # open one -- which renames nothing and so trips no neighbour
-            # -- and it printed nothing. Same rule as the wrap and path
-            # checks: BLOCKED is not a pass. Found 2026-08-17 by review,
-            # the second half of it by proving the first.
+            # A range this sweep cannot delimit is a sweep that did not run,
+            # and its silence read exactly like a clean open list: rename
+            # either heading, or move the goal section above the open one
+            # -- which renames nothing and so trips no neighbour -- and it
+            # printed nothing. Same rule as the wrap and path checks: BLOCKED
+            # is not a pass.
             bad.append('BLOCKED: the open list (%s), the goal section (%s)'
                        ' or the run number (%s) could not be located'
                        ' in that order, so no prospective promise was'
@@ -16077,10 +16056,10 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                           m or 'no run file'))
     else:
         # `lint` fails loudly on the same nothing; this went quiet, and a
-        # renamed or re-indented roster -- or a wrong --main -- left the
-        # prose counts, the floor agreement, the roster and population
-        # sizes and the stale-promise sweep all unrun, with only `ok:`
-        # lines and exit 0 to show for it. Found 2026-08-17 by review.
+        # renamed or re-indented roster -- or a wrong --main -- left the prose
+        # counts, the floor agreement, the roster and population sizes and the
+        # stale-promise sweep all unrun, with only `ok:` lines and exit 0 to
+        # show for it.
         bad.append('BLOCKED: no roster parsed out of %s, so the prose'
                    ' counts, the floor agreement and the open-list sweep'
                    ' did not happen' % os.path.basename(main_hs))
@@ -17149,8 +17128,8 @@ def selftest(cells, shapes, strategies, meta):
             # this raised `math domain error` and the whole gate printed
             # NOTHING -- no verdict, no FAIL, a traceback where `read-all.sh`
             # reads a verdict. `time_of`, `worst_of` and `pair_stats` each
-            # answer for such a cell; this is the fourth site and was the
-            # one that could not report. Found 2026-08-17 by review.
+            # answer for such a cell; this is the fourth site and was the one
+            # that could not report.
             #
             # Asked of the CELLS and not of the quotients, which is the same
             # defect one step earlier: the test read `r <= 0` over ratios
@@ -17852,9 +17831,8 @@ def main():
                              or args.cross_classes or args.predictions):
         p.error('--classes is a modifier of --fingerprint, --extremes,'
                 ' --cross-classes and --predictions and does nothing alone')
-    # A RUN IN PLACE OF THE TWO LISTS: the class JSONs of each half, named
-    # off the note's HALVES line, the main set left out. Run 42's write-up
-    # typed twenty file names for the lead tallies.
+    # A RUN IN PLACE OF THE TWO LISTS: the class JSONs of each half, named off
+    # the note's HALVES line, the main set left out.
     if (args.cross_classes and not args.classes and not args.others
             and args.run and os.path.exists(args.run + '-pair.txt')):
         hv = note_halves(args.run)
@@ -18066,10 +18044,8 @@ def main():
     if args.provenance_draft:
         sys.exit(provenance_draft(args.provenance_draft, args))
     if args.opening:
-        # 6a's THREE READERS IN ONE CALL, since 2026-09-26: Run 41's
-        # write-up ran --prose-facts after most of its prose, the step
-        # asking for it before the first paragraph. Each runs whatever the
-        # one before it answered. Case: `opening-runs-the-three-readers`.
+        # 6a's THREE READERS IN ONE CALL, since 2026-09-26. Each runs whatever
+        # the one before it answered. Case: `opening-runs-the-three-readers`.
         doc = want_run_doc(args)
         rcs = []
         for head, call in (
@@ -18249,12 +18225,12 @@ def main():
     terms = apply_correction(cells, shapes, strategies, args.corr)
     if args.no_controls:
         # `--aa` and `--block` READ the controls -- the module docstring
-        # says they are always listed by --aa -- and this filter reached
-        # the list they build their pairs from, so `--aa --no-controls`
-        # reported a file carrying eighteen of them as having none, and
-        # `--block --no-controls` dropped the Controls paragraph and the
-        # summary-row check without a word. It is a modifier of the
-        # aggregates and those two are not aggregates. Found 2026-08-17.
+        # says they are always listed by --aa -- and this filter reached the
+        # list they build their pairs from, so `--aa --no-controls` reported
+        # a file carrying eighteen of them as having none, and `--block
+        # --no-controls` dropped the Controls paragraph and the summary-row
+        # check without a word. It is a modifier of the aggregates and those
+        # two are not aggregates.
         if args.aa or args.block:
             p.error('--no-controls drops the controls from the AGGREGATES,'
                     ' and --aa and --block are what reads them; the two'
@@ -18265,13 +18241,11 @@ def main():
     holes = [(sh, st) for sh in shapes for st in strategies
              if st not in cells[sh]]
     if holes:
-        # AHEAD OF EVERY MODE, --selftest included. The guard sat below the
-        # roster banner, which is below this dispatch, so the one mode
-        # `read-all.sh` calls first was the one mode it did not cover --
-        # and read-all.sh getting a traceback where a gate verdict belongs
-        # is the thing the guard was written for. Found 2026-08-16 by
-        # driving the driver, having been proven by hand on a mode that
-        # happened to sit on the right side of it.
+        # AHEAD OF EVERY MODE, --selftest included. The guard sat below
+        # the roster banner, which is below this dispatch, so the one mode
+        # `read-all.sh` calls first was the one mode it did not cover -- and
+        # read-all.sh getting a traceback where a gate verdict belongs is the
+        # thing the guard was written for.
         sys.stderr.write(
             '%s: %d cell(s) missing, so the analysis did not happen. The'
             ' first few: %s\n'

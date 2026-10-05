@@ -88,14 +88,12 @@ if [ -z "$R" ]; then
   exit 2
 fi
 
-# Every JSON the run left, the gate's excluded: those are four arms over
-# one class, a rehearsal and not one of the run's populations, so their A/A
-# gate is not this one.
-# `$R-al-*` joins the gate in the exclusion, and for the same reason: an
-# alone-leg rider is one bench on one shape with no A/A pair and no
-# sum-only, so gating it asserts nothing and buries the eighteen this
-# driver exists to count -- Run 16 left 54 of them beside its 18.
-# Case: `alone-leg-riders-are-not-populations`.
+# Every JSON the run left, the gate's excluded: those are four arms over one
+# class, a rehearsal and not one of the run's populations, so their A/A gate
+# is not this one. `$R-al-*` joins the gate in the exclusion, and for the same
+# reason: an alone-leg rider is one bench on one shape with no A/A pair and no
+# sum-only, so gating it asserts nothing and buries the eighteen this driver
+# exists to count. Case: `alone-leg-riders-are-not-populations`.
 # shellcheck disable=SC2010  # the names here are the drivers' own, alphanumeric
 FILES=$(ls -1 "$R"-*.json 2>/dev/null \
           | grep -v -e "^$R-gate-" -e "^$R-al-")
@@ -116,15 +114,14 @@ fi
 # tests below see it. No new artifact and nothing to keep in step -- the
 # run writes this log already and every run on disk carries one.
 #
-# What is NOT reconstructed, having been tried and refuted the same day:
-# the halves' cross product, for the processes a killed run never reached
-# at all. Those leave no line to read, and inferring them from halves x
-# tags refuses three of the five runs on disk -- Runs 11, 12 and 13 ran
-# the eight class processes on the BASIS HALF ALONE, which each of their
-# `halves:` lines says and Run 14's does not. The intent moved between
-# runs and only the current spelling is in `run-major.sh`, so what the log
-# records is read here and never what it implies. Found 2026-08-17 by
-# review, the refutation by proving the fix.
+# What is NOT reconstructed, having been tried and refuted the same day: the
+# halves' cross product, for the processes a killed run never reached at all.
+# Those leave no line to read, and inferring them from halves x tags refuses
+# three of the five runs on disk -- Runs 11, 12 and 13 ran the eight class
+# processes on the BASIS HALF ALONE, which each of their `halves:` lines says
+# and Run 14's does not. The intent moved between runs and only the current
+# spelling is in `run-major.sh`, so what the log records is read here and
+# never what it implies.
 LOG="$R-wallclock.log"
 if [ ! -f "$LOG" ]; then
   echo "no $LOG, so how this run ended is unknown and the glob above is"
@@ -167,21 +164,19 @@ if [ "$SHORT" = 1 ]; then
 fi
 
 # run-major.sh's own complaints, which this script used to step over. It
-# logs `!!` for a process whose selection came out the wrong size, and for a
-# class prefix matching no bench; the first leaves `rc=0` AND a JSON, so it
-# moves neither STARTED, FINE nor LANDED and every test above reads it
-# clean. `run-major.sh` carries that verdict out in its exit status alone,
-# which a run launched with `&` loses, so the log is the only place it
-# survives -- and this script already reads the log, one field over. Found
-# 2026-08-17 by review; a wrong-count process is caught by nothing else.
-# Anchored on run-major.sh's own stamp. Every complaint it makes goes
-# through `log ()`, so it reads `=== <date>   !! ...`; the pair note it
-# quotes beside them is indented and carries no stamp, and run-gate.sh
-# wrote `!!` INTO that note whenever its machine check fired, until the
-# check left the gate on 2026-10-05. Counting
-# bare `!!` therefore made every run whose gate tripped that check report
-# a complaint no process made, at exit 1, for ever after -- Run 16, whose
-# gate fired for a deliberate change of basis area. Case:
+# logs `!!` for a process whose selection came out the wrong size, and for
+# a class prefix matching no bench; the first leaves `rc=0` AND a JSON,
+# so it moves neither STARTED, FINE nor LANDED and every test above reads
+# it clean. `run-major.sh` carries that verdict out in its exit status
+# alone, which a run launched with `&` loses, so the log is the only place
+# it survives -- and this script already reads the log, one field over. A
+# wrong-count process is caught by nothing else. Anchored on run-major.sh's
+# own stamp. Every complaint it makes goes through `log ()`, so it reads
+# `=== <date> !! ...`; the pair note it quotes beside them is indented and
+# carries no stamp, and run-gate.sh wrote `!!` INTO that note whenever
+# its machine check fired, until the check left the gate on 2026-10-05.
+# Counting bare `!!` therefore made every run whose gate tripped that check
+# report a complaint no process made, at exit 1, for ever after. Case:
 # `quoted-note-block-is-not-a-run-complaint`.
 NOISY=$(grep -c '^=== .*!!' "$LOG")
 if [ "$NOISY" != 0 ]; then
@@ -261,21 +256,16 @@ HALFSPREAD=$([ -z "$PLOGS" ] || grep -H '^@@saturate ' $PLOGS 2>/dev/null \
              printf "  within %-8s %d process(es), %.4f to %.4f, spread %.2f%%\n",
                     h, c[h], lo[h], hi[h], 100 * (hi[h] - lo[h]) / lo[h]
              # AND WHICH PROCESS SITS AT EACH END, which the spread alone
-             # cannot say: a half whose eleven processes are flat but for
-             # ONE reads the same spread as a half that drifted, and the
-             # two want different readings. Run 38 hand-rolled a loop over
-             # twenty-two logs to learn that one process carried the whole
-             # of its control half\047s 9.41%.
+             # cannot say: a half whose eleven processes are flat but for ONE
+             # reads the same spread as a half that drifted, and the two want
+             # different readings.
              printf "    lowest %s, highest %s\n", lonm[h], hinm[h] } }')
-# WHAT THE PAIR NOTE DECLARES EXPECTED, on the gate-verdict pattern: a
-# pair whose VARIABLE moves what the preamble leaves resident fires the
-# state gate on every process, every time, and no reading afterwards can
-# make it pass -- so `STATUS: all done`, which the run chapter calls the
-# one state in which a session is finished with a run, became unreachable
-# for the whole of such a run. Run 31 is the case: its `-O2` half left
-# 74448896 bytes in use against the plain half's 95420416, one value per
-# half and none within one, disclosed in its head, its Provenance and an
-# open entry, and its post-run step 1 still read NOT DONE at the end.
+# WHAT THE PAIR NOTE DECLARES EXPECTED, on the gate-verdict pattern: a pair
+# whose VARIABLE moves what the preamble leaves resident fires the state gate
+# on every process, every time, and no reading afterwards can make it pass --
+# so `STATUS: all done`, which the run chapter calls the one state in which a
+# session is finished with a run, became unreachable for the whole of such a
+# run.
 #
 # A DECLARATION IS NOT A SUPPRESSION. It is written into the note BY HAND
 # with its reason, so what it costs is a sentence somebody had to mean; the block is
@@ -371,12 +361,9 @@ EOF
         echo "   process. The states, per process:"
       fi
       printf '%s\n' "$STATEV" | awk 'NF >= 3 { printf "   %s inuse=%s keep=%s\n", $1, $2, $3 }'
-      # THE PER-HALF SPREAD IS PRINTED HERE TOO, and this is the branch
-      # that wanted it most: a run whose states part by half is exactly
-      # the run whose plateau has to be read per half, and until
-      # 2026-09-14 this branch alone withheld it, so Run 31 hand-rolled
-      # from the twenty-two `@@saturate` lines what was already computed
-      # four hundred lines above.
+      # THE PER-HALF SPREAD IS PRINTED HERE TOO, and this is the branch that
+      # wanted it most: a run whose states part by half is exactly the run
+      # whose plateau has to be read per half.
       printf '%s\n' "$HALFSPREAD"
       echo
       expects state || WILD_PLATEAU=1
@@ -504,15 +491,11 @@ else
 fi
 # --brief-facts: THE BRIEF'S THIS RUN ONLY FACTS, DERIVED. Item 6 of
 # checker-brief.txt states this run's figures in prose for two agents who
-# arrive knowing none of them, and it is retyped every run. Run 27 retyped
-# it twice, once before its intrusion was found and once after, and left
-# four readings standing in the second's block: THREE of them the FIRST
-# window's -- `ONE window`, `runs 0.9885` and a 2.65% plateau -- and one
-# an intrusion range its own run file had already corrected. Every row below is a reading this
-# driver has just taken or one line of arithmetic over the same JSONs, so
-# a figure here cannot belong to a window that was thrown away.
-# It is not the whole block: what the run MEANS, which registrations it
-# carries and what to disbelieve are the write-up's, and the brief says so.
+# arrive knowing none of them, and it is retyped every run. Every row below is
+# a reading this driver has just taken or one line of arithmetic over the same
+# JSONs, so a figure here cannot belong to a window that was thrown away. It
+# is not the whole block: what the run MEANS, which registrations it carries
+# and what to disbelieve are the write-up's, and the brief says so.
 brief_facts () {
   # A half's tag is pair-halves.sh's [A-Za-z0-9_], here and on the md5 row
   # below; without the `_`, `look_rts` read as no basis (2026-09-25).
@@ -521,13 +504,10 @@ brief_facts () {
   echo
   echo "--- the brief's THIS RUN ONLY facts, derived; read items 5 AND 6 of"
   echo "    checker-brief.txt against these and change what disagrees ---"
-  # ITEM 5's ROWS TOO, since 2026-09-13. Both items are hand-edited every
-  # run and both restate the run file's Provenance and Results; the rows
-  # below are the ones an artifact can settle, so what is left to a hand
-  # is prose rather than re-derivation. Run 30 retyped the repetition fact
-  # and got it wrong in four places -- it called the fourth repetition this
-  # chapter has read the first -- which a row off the note's own md5s would
-  # not have done.
+  # ITEM 5's ROWS TOO, since 2026-09-13. Both items are hand-edited every run
+  # and both restate the run file's Provenance and Results; the rows below are
+  # the ones an artifact can settle, so what is left to a hand is prose rather
+  # than re-derivation.
   NOTE="$R-pair.txt"
   if [ -f "$NOTE" ]; then
     printf '  %-14s %s\n' 'md5s' \
@@ -667,15 +647,12 @@ second window"
                       print $2, "inside the bar"
                     exit }')"
   done
-  # AND THE SAME ELEVEN FIGURES AS THE DELTA CHAIN'S BULLET WANTS THEM,
-  # which is a main-set number and a class RANGE with both ends named.
-  # README's Provenance carries that bullet for every run and nothing
-  # derived it: Run 31 read the eleven rows above and wrote `23.72 to
-  # 38.35 points` by eye into two documents, and got the same figure
-  # wrong on a third site the same evening. The rows are the reading and
-  # this is the sentence they are quoted as; both are printed, because a
-  # range with no rows under it cannot be checked and rows with no range
-  # over them are what got summarised by hand.
+  # AND THE SAME ELEVEN FIGURES AS THE DELTA CHAIN'S BULLET WANTS THEM, which
+  # is a main-set number and a class RANGE with both ends named. README's
+  # Provenance carries that bullet for every run and nothing derived it. The
+  # rows are the reading and this is the sentence they are quoted as; both are
+  # printed, because a range with no rows under it cannot be checked and rows
+  # with no range over them are what got summarised by hand.
   printf '  %-14s %s\n' 'list, as the delta bullet quotes it' ''
   for pop in $(printf '%s' "$FACTS" | awk -F'\t' \
                  '{ split($1, t, "-"); print substr($1, length(t[1]) + 2) }' \
@@ -715,11 +692,9 @@ second window"
 # --for-brief: THE SAME FACTS, ALREADY IN THE BRIEF'S SENTENCES. The rows
 # above are what an artifact can settle; this writes them into items 5 and
 # 6 so the write-up pastes rather than re-derives. It is `--fill-in` for
-# the checker's brief, and it exists for the same reason: Run 32's brief
-# carried `thirteen of the sixteen inside 1%` where the reader says
-# fourteen, the write-up copied that figure into the run file, and the
-# checker found it there. A figure that is transcribed is a figure that
-# can be transcribed wrong. What it cannot derive it marks <yours>.
+# the checker's brief, and it exists for the same reason. A figure that is
+# transcribed is a figure that can be transcribed wrong. What it cannot derive
+# it marks <yours>.
 for_brief () {
   facts="$1"
   # THE DELIMITER IS NOT `/`: one of the labels is `A/A past 5%`, and a
@@ -729,13 +704,12 @@ for_brief () {
   row () { printf '%s\n' "$facts" | sed -n 's|^  '"$1"' *||p' | head -1; }
   BASIS=$(sed -n 's/.*; \([A-Za-z0-9_]*\) is the basis.*/\1/p' "$LOG" \
             | head -1)
-  # THE REST OFF post-run-readings.sh's FILES, since 2026-09-17: the
-  # cross-run span, the intrusion verdict, the class shape counts, the
-  # counted work's range and the registration tally were each typed by hand
-  # from a reading, Run 34's five among them, and that script now writes
-  # every one of those readings. A file absent leaves its slot <yours>,
-  # naming the command that writes it; what stays typed is the pair's
-  # variable and the largest finding.
+  # THE REST OFF post-run-readings.sh's FILES, since 2026-09-17: the cross-run
+  # span, the intrusion verdict, the class shape counts, the counted work's
+  # range and the registration tally were each typed by hand from a reading,
+  # and that script now writes every one of those readings. A file absent
+  # leaves its slot <yours>, naming the command that writes it; what stays
+  # typed is the pair's variable and the largest finding.
   RD="log-read-$R"
   want () { echo "<yours: $1 -- no $2 in $RD/, which ./post-run-readings.sh $R writes${3:-}>"; }
   count () { n=0; for f in "$@"; do [ -f "$f" ] && n=$((n + 1)); done; echo "$n"; }
