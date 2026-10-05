@@ -781,14 +781,14 @@ rather than a slot in the next run, observed again:
   over the nineteen shapes and 19.64 with kernel cycles added over eighteen,
   the second by a scratch computation, no reader taking `cycles:k`, so kernel
   time runs the other way, `lib-stage1` carrying the larger share of it; a sixth
-  under `SATURATE=1`, the state every timed process benchmarks in, broke
-  the differenced method, 69 of 76 cells NONLINEAR and `sum-only`'s own cycles,
-  summed over both arms, 1.19 times the clean sweep's and negative on three
-  shapes (`probe-r45-item2k.txt`, `probe-r45-item2sat.txt`). The candidate
-  is that state, which this run's riders put at 1.1183 on `list` on the basis
-  and 1.1655 on the control, against an arm that allocates as `list` does,
-  25.21x the result vector against `lib-stage1`'s 1.00x. **What would settle
-  it** is the two arms timed by criterion in fresh processes, clean
+  under `SATURATE=1`, the state every process the tables read benchmarks in,
+  broke the differenced method, 69 of 76 cells NONLINEAR and `sum-only`'s own
+  cycles, summed over both arms, 1.19 times the clean sweep's and negative
+  on three shapes (`probe-r45-item2k.txt`, `probe-r45-item2sat.txt`).
+  The candidate is that state, which this run's riders put at 1.1183 on `list`
+  on the basis and 1.1655 on the control, against an arm that allocates
+  as `list` does, 25.21x the result vector against `lib-stage1`'s 1.00x. **What
+  would settle it** is the two arms timed by criterion in fresh processes, clean
   and under `SATURATE=1`, over the main set: near 29 clean and near 35 saturated
   says the state is the term, and a registration on a `list`-shaped arm
   then draws its band from time rather than from cycles.
