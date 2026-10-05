@@ -10406,8 +10406,8 @@ which for Run 10 was where alignment was faster.
    paragraphs the write-up kept whole; masking every measured figure would have
    been 1629 and 88, stable counts of shapes, arms and classes retyped every
    run, which is how a gate gets switched off, and masking only the paragraphs
-   `--inherited` calls run-specific would have left the class paragraphs, where
-   most per-run decimals sit, as copied. Counts and number words stay
+   `--inherited` calls run-specific would have left 499 of the 857 decimals
+   as copied, the class paragraphs' among them. Counts and number words stay
    `--stale`'s, printed and never refused.
 - 5b. **Install the tables with `--in-place` rather than pasting them.**
   `--markdown`, `--fingerprint` and `--block` each take it, and each refuses
