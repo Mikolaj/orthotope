@@ -107,7 +107,13 @@ class Vector v where
   --
   -- The default lists the view's elements as 'toListT' does ('elemsT') and
   -- builds its result from that list.  The vector-backed instances override it
-  -- with the faster mutable fill 'genericFillStrided'.
+  -- with the faster mutable fill 'genericFillStrided', each passing the run
+  -- length from which it copies runs whole.  An instance that keeps the
+  -- default fills element by element every view that is not one slice,
+  -- runs of a contiguous view included, which 'toVectorT' and the
+  -- operations built on it then pay: override it, with
+  -- 'genericFillStrided' where the vector type is an instance of
+  -- 'Data.Vector.Generic.Vector', or risk their slowness on such views.
   vFillStrided :: (VecElem v a) => Axes -> Int -> Int -> v a -> v a
   vFillStrided axes !ao l !v = vFromListN l (elemsT axes ao v (:) [])
 
@@ -423,22 +429,41 @@ unScalarT (T _ o v) = vIndex v o
 constantT :: (Vector v, VecElem v a) => ShapeL -> a -> T v a
 constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 
--- The measured-fastest fill for 'vFillStrided': an allocate-once
--- mutable result, an odometer recursion over the outer dimensions with
--- the input offset stepped additively, the innermost outer level fused
--- into a dedicated loop over the innermost runs, and the innermost-run
--- fill unrolled by two with its bound on the output cursor, so it is
--- sound for zero and negative strides.  The recursion walks the outer
--- levels as a 'Nest' built over them innermost first, each level
--- holding its 'Axis'.
+-- The measured-fastest fill for 'vFillStrided': an allocate-once mutable
+-- result, an odometer recursion over the outer dimensions with the input offset
+-- stepped additively, the innermost outer level fused into a dedicated loop
+-- over the innermost runs, and the innermost-run fill unrolled by two with its
+-- bound on the output cursor, so it is sound for zero and negative strides, or,
+-- from a run length the instance picks, each run at stride 1 copied whole.  The
+-- recursion walks the outer levels as a 'Nest' built over them innermost first,
+-- each level holding its 'Axis'.
 --
--- Two zero-stride conditions sit inside it, each decided per level
--- of the odometer and never per element: an innermost run at stride
--- 0 reads its one element once and stores it, and an outer level
--- of stride 0 fills the block below it once and copies it onto the
--- level's remaining positions by doubling.  Given canonical dimensions
--- ('routeT') the conditions fire wherever they can; given any
--- other dimensions the fill is still correct.
+-- Two zero-stride conditions sit inside it, neither decided per element:
+-- an innermost run at stride 0, decided once a fill, reads its one element
+-- once and stores it, and an outer level of stride 0, decided per level of
+-- the odometer, fills the block below it once and copies it onto the level's
+-- remaining positions by doubling.  Given canonical dimensions ('routeT') the
+-- conditions fire wherever they can; given any other dimensions the fill is
+-- still correct.
+--
+-- A run at stride 1 of @copyRun@ elements or more is copied whole, by one
+-- 'VG.unsafeCopy' a run.  The copy rides on the stride-1 branch below, which
+-- already re-derives 'RRuns' from the axes; that hack is what lets each
+-- instance pick @copyRun@ and tune the copy per kind of vector.  A boxed
+-- element's store pays GHC's write barrier, a store to the array's header, a
+-- card marked and a test for the nonmoving collector, which the copy pays once
+-- a run.  Boxed vectors copy runs of 5 elements or more: on 200000 elements
+-- the copy is 1.2 times faster than the stepping loop on runs of 6 and 3.4
+-- times on runs of 1000 or more, and level with it on runs of 4.  Storable and
+-- Unboxed stores pay no barrier.  Storable vectors copy runs of 512 bytes or
+-- more and Unboxed ones, whose element size the class does not give, runs of 64
+-- elements: well past where a copy's cost a run is paid off, rather than where
+-- this machine's figures would put the cut.  On views of 20000 to 100000000
+-- Doubles a copy of every run took 0.6 to 1.6 of the stepping loop's time at
+-- both kinds: faster on runs of 64 to 4096 in views of 20000 and 200000 and on
+-- runs past glibc's non-temporal threshold of 24 MiB, slower on runs of 5 and
+-- up to 10% slower on runs of 4096 to 1048576 in views of 10000000 to 100000000
+-- Doubles.  Measured on Zen 3.
 --
 -- The count must be positive, asserted at entry: a zero-stride
 -- innermost run reads its one element, and a zero-stride level writes
@@ -453,9 +478,9 @@ constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 -- not; each vector-backed instance reuses it verbatim.  Ported
 -- bang-for-bang from the fastest fill of the micro-benchmark preserved
 -- at https://github.com/Mikolaj/orthotope/tree/speedup-strided-tovector/micro-regime3/
--- as of the commit "Read the runs' elements as genericFillStrided does"
--- (the bang patterns are part of what was measured), but for the
--- count's, whose removal shrinks the -O1 Core; one choice made for the
+-- as of the commit "Read the runs' elements as genericFillStrided does" (the
+-- bang patterns are part of what was measured), but for the count's bang, whose
+-- removal shrinks the -O1 Core, and for the copied run; one choice made for the
 -- NCG, marked at the line it is on, costs -fllvm a little.
 --
 -- The implementation is similar to what once was in orthotope file
@@ -473,8 +498,8 @@ constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 -- GHC HEAD 10.1.
 {-# INLINABLE genericFillStrided #-}
 genericFillStrided :: forall w a. (VG.Vector w a)
-                   => Axes -> Int -> Int -> w a -> w a
-genericFillStrided (Axes stInner nInner outerAxes) !ao l !v =
+                   => Int -> Axes -> Int -> Int -> w a -> w a
+genericFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
   assert (l > 0) $ VG.create fill
  where
   fill :: forall s. ST s (VG.Mutable w s a)
@@ -482,7 +507,7 @@ genericFillStrided (Axes stInner nInner outerAxes) !ao l !v =
     out <- VGM.unsafeNew l
     let -- The stepping run, an innermost run at nonzero stride: the
         -- source cursor advances by the stride, the fill unrolled
-        -- by two.  Both bodies are INLINE so that inlining at their
+        -- by two.  The run bodies are INLINE so that inlining at their
         -- sites in 'walk' is the source's property and not a size
         -- threshold's.  Each element is read by 'VG.unsafeIndexM' and
         -- then stored: 'VG.unsafeIndex' as the store's argument would
@@ -510,6 +535,12 @@ genericFillStrided (Axes stInner nInner outerAxes) !ao l !v =
                     VG.unsafeIndexM v srcNext >>= VGM.unsafeWrite out (o + 1)
                     inner (o + 2) (srcNext + st)
           in  inner outPos baseOff
+        -- The copied run, a run at stride 1 copied whole.
+        {-# INLINE writeRunCopy #-}
+        writeRunCopy :: Int -> Int -> ST s ()
+        writeRunCopy !outPos !baseOff =
+          VG.unsafeCopy (VGM.unsafeSlice outPos nInner out)
+                        (VG.unsafeSlice baseOff nInner v)
         -- The broadcast run, the innermost run at stride 0: its one
         -- element read once, then the stores, unrolled by two as
         -- the stepping run is.  Without the unroll, a store and a
@@ -628,13 +659,15 @@ genericFillStrided (Axes stInner nInner outerAxes) !ao l !v =
                   level (run inner) axis blk outPos baseOff
             in  run (buildNest (Fused axis0) (n0 * nInner) (InnerFirst outer))
                     0 ao
-    -- Contiguous runs, at stride 1, walked by a copy of their own,
-    -- the stride a literal there and not a value 'run' holds: where a
-    -- client specialises the fill rather than inlining it, a word a
-    -- call less and, at boxed and Unboxed elements, an instruction or
-    -- more an element, 6 to 10% on large views.
+    -- Contiguous runs, at stride 1, get a walk of their own: copied whole
+    -- from the instance's @copyRun@ on, and below it stepped with the stride
+    -- a literal there and not a value 'run' holds, which, where a client
+    -- specialises the fill rather than inlining it, measured a word a call less
+    -- and, at boxed and Unboxed elements, an instruction or more an element, 6
+    -- to 10% on large views, before the copy took the longer runs.
     if stInner == 0 then walk writeRunSet
-    else if stInner == 1 then walk (writeRunStep 1)
+    else if stInner == 1 then
+      if nInner >= copyRun then walk writeRunCopy else walk (writeRunStep 1)
     else walk (writeRunStep stInner)
     return out
 
@@ -658,30 +691,29 @@ data Nest = Fused !Axis | Level !Axis !Int !Nest
 -- elements (@product sh == 0@) has no route: each of these entry points
 -- answers it before computing one.
 --
--- Three constructors, one per thing that can be done with a view: slice
--- it, walk its runs as slices, or only expensively fill a vector from
--- it element by element.  Every route carries the offset it starts at
--- and the element count (@product sh@), which every caller has in hand,
--- so that a consumer takes the route and the vector and nothing beside
--- them; each constructor carries what its way takes and no more, and
--- 'RRuns' serves the lists and the comparisons, 'routeVectorT' filling
--- it as it fills 'RFill'.
+-- Three constructors: slice the view, walk its runs as slices, or fill a vector
+-- from it.  Every route carries the offset it starts at and the element count
+-- (@product sh@), which every caller has in hand, so that a consumer takes the
+-- route and the vector and nothing beside them; each constructor carries what
+-- its way takes and no more, and 'RRuns' serves the lists and the comparisons,
+-- 'routeVectorT' filling it as it fills 'RFill'.
 --
--- The choice of constructors is partly arbitrary, motivated by
--- performance, partly systematic, following the runs a view contains,
--- and limited throughout by what the vector API underneath can express.
--- The set changes only when the vector API under it changes (e.g., a
--- reverse copy would give a reversed contiguous view a route of its
--- own) or another way of copying a view into a vector through the API
--- as it stands is measured to pay (the per-run memcpy 'toVectorT'
--- names was tried and did not).  The set does not need to change when
--- a new pattern of shape and strides arrives (e.g., windows whose runs
--- overlap), typically one a newly added array operation produces.  The
--- performance for such new patterns may not be ideal, but the routes
--- are correct, because the uniform run length is uniquely determined
--- for every non-empty canonical view and 'routeOfT' reads the route off
--- it alone; the note at 'runSlicesT' says what the length is and is
--- not.
+-- The system is mixed: some patterns of shape and strides are told apart
+-- here, as routes, and others, or the same ones again, further down, where
+-- 'genericFillStrided' tells runs from strided views by the innermost stride,
+-- as 'routeOfT' does, and finds broadcasts, which no route names, in the
+-- innermost axis and at each outer level.  The split was made case by case,
+-- mostly for speed; no system expressing every pattern as a route was ever
+-- built and optimized to compare with it, so nothing shows this one cannot
+-- be bettered.  The constructors are limited throughout by what the vector
+-- API underneath can express, and their set changes when that API does (e.g.,
+-- a reverse copy would give a reversed contiguous view a route of its own).
+-- The set does not need to change when a new pattern of shape and strides
+-- arrives (e.g., windows whose runs overlap), typically one a newly added
+-- array operation produces.  The performance for such new patterns may not be
+-- ideal, but the routes are correct, because the uniform run length is uniquely
+-- determined for every non-empty canonical view and 'routeOfT' reads the route
+-- off it alone; the note at 'runSlicesT' says what the length is and is not.
 data Route
   = RSlice !Int !Int
       -- ^ the canonical strides are the natural ones: one contiguous
@@ -1024,8 +1056,10 @@ routePartsT route step nil = case route of
 -- https://github.com/Mikolaj/orthotope/tree/speedup-strided-tovector/micro-regime3/,
 -- on runs of nine elements, the slice list ties the fill on time
 -- and allocates several times the result in slice headers and list
--- cells.  The fill's stepping loop at stride 1 is the run copy: a
--- per-run memcpy measured slower than it on every run length tried.
+-- cells.  Where its instance asks, the fill copies each run whole into its one
+-- buffer ('genericFillStrided'): on 200000 boxed Doubles in runs of 5 to 16
+-- that took 0.36 to 0.46 of the slice list's time, and the same from runs of
+-- 1000.
 {-# INLINE toVectorT #-}
 toVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
 toVectorT sh a@(T _ _ v)

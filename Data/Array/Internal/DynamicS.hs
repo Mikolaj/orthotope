@@ -19,6 +19,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -58,7 +59,7 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.Internal.DynamicG as G
-import Data.Array.Internal(T(..), ShapeL, Vector(..), genericFillStrided)
+import Data.Array.Internal(Axes, T(..), ShapeL, Vector(..), genericFillStrided)
 
 type Unbox = V.Storable
 
@@ -136,7 +137,9 @@ instance Vector V.Vector where
   {-# INLINE vAny #-}
   vAny = V.any
   {-# INLINE vFillStrided #-}
-  vFillStrided = genericFillStrided
+  vFillStrided :: forall a. Unbox a
+               => Axes -> Int -> Int -> V.Vector a -> V.Vector a
+  vFillStrided = genericFillStrided (512 `quot` max 1 (sizeOf (undefined :: a)))
 
 type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }
