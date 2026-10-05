@@ -1367,4 +1367,15 @@ MUTANTS = [
      ' \'--quiet\', \'--run-doc\', d], capture_output=True, text=True);'
      ' sys.exit(0 if \'masked figure(s) left\' in r.stdout + r.stderr'
      ' else 1)"'),
+    # The commands checker, 2026-10-05: a match that holds of every figure
+    # lists nothing, which is how the misattributed floor would pass again.
+    ('check-commands matches every figure', 'check-commands.py',
+     '    bare = figure.rstrip(\'%\')',
+     '    return True\n    bare = figure.rstrip(\'%\')',
+     'cd "{dir}" && python3 -c "import sys, tempfile, subprocess;'
+     ' sys.path.insert(0, \'.\'); import defects;'
+     ' f = defects.commands_doc(tempfile.mkdtemp());'
+     ' r = subprocess.run([\'python3\', \'{file}\', \'--dir\', f[\'dir\'],'
+     ' f[\'doc\']], capture_output=True, text=True);'
+     ' sys.exit(0 if \'unmatched: 0.85%, 0.53%\' in r.stdout else 1)"'),
 ]

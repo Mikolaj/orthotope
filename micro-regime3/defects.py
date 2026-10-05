@@ -421,6 +421,29 @@ def rundoc_with_a_mask(tmp):
                         + text[m.end(1):])
 
 
+def commands_doc(tmp, clean=False):
+    """A directory for check-commands.py: a stand-in `read-run.py` printing
+    two figures, and a run file quoting it -- a sentence its output
+    carries, by rounding and as a percentage off a ratio, one it does not,
+    a bare mode the checker expands, and a driver it must not run."""
+    d = os.path.join(tmp, 'cmd')
+    os.makedirs(d)
+    os.chmod(write(os.path.join(d, 'read-run.py'),
+                   '#!/usr/bin/env python3\nimport sys\n'
+                   'print("list 1.29291")\nprint("ratio 0.9639")\n'
+                   'if "run95-x-main.json" in sys.argv:\n'
+                   '    print("json 2.5")\n'), 0o755)
+    body = ('**Head.** `./read-run.py --show run95` reads 1.2929 and 3.6%'
+            ' faster. `--show run95` reads 1.293 too. `--counts c.txt'
+            ' --pair a b` on `run95-x-main.json` reads 2.5.')
+    if not clean:
+        body += (' `./read-run.py --show run95` takes the floor from 0.85%'
+                 ' to 0.53%. `./run-evening.sh run95` is a driver at 1.5.')
+    doc = os.path.join(d, 'run95.md')
+    write(doc, '# Run 95\n\n' + body + '\n')
+    return {'dir': d, 'doc': doc}
+
+
 def plant_one_tie(tmp):
     """The run file with its cross-class summary tied at three decimals on
     its first row alone, every other row's ceiling moved clear of the arm
@@ -15653,6 +15676,29 @@ RECORDS = [
          plant=lambda t: {'rundoc': rundoc_with_a_mask(t)},
          argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=["masked figure(s) left from step 5's copy"])),
+
+    case('check-commands-lists-a-figure-its-command-does-not-print',
+         'check-commands.py', None,
+         'CONTROL: a figure no quoted command prints is listed with its'
+         ' sentence, a rounded or derived one is not, and a driver is named'
+         ' and not run',
+         plant=lambda t: commands_doc(t),
+         argv=['--dir', '{dir}', '{doc}'],
+         ok=V(exit=1, has=['takes the floor from 0.85% to 0.53%',
+                           'unmatched: 0.85%, 0.53%',
+                           'not run: `./run-evening.sh run95`'],
+              hasnt=['reads 1.2929 and 3.6%', 'reads 1.293 too',
+                     'unmatched: 1.2929'])),
+
+    case('check-commands-passes-a-file-its-commands-bear-out',
+         'check-commands.py', None,
+         'CONTROL: a run file whose every quoted figure its command prints'
+         ' exits 0',
+         plant=lambda t: commands_doc(t, clean=True),
+         argv=['--dir', '{dir}', '{doc}'],
+         # The third sentence's file is in a span of its own after `on`,
+         # as the run files write it, and its figure prints only with it.
+         ok=V(exit=0, has=['0 sentence(s) with a figure no command printed'])),
 
     case('registration-lead-is-the-movers-key', 'read-run.py', None,
          'a registration whose bold lead carried one clause more passed'

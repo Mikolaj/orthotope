@@ -10047,9 +10047,12 @@ not otherwise.
     #      its own, and a session that stops at one pass ships them.
     #  6e. VERIFY, THE READ-ONLY HALF, run in parallel with 6d and
     #      producing a worklist rather than an edit: `./read-run.py
-    #      --lost --run-doc runs/$R.md`, `./read-run.py --lint` and
+    #      --lost --run-doc runs/$R.md`, `./read-run.py --lint`,
     #      `./read-run.py --check-doc --worklists`, adjudicating the
-    #      items it marks ADDED BY THIS DIFF and no others. The figure
+    #      items it marks ADDED BY THIS DIFF and no others, and
+    #      `./check-commands.py runs/$R.md`, every quoted reader command
+    #      run and each figure of its sentence that no output printed
+    #      listed, a figure the prose credits elsewhere included. The figure
     #      and superlative walks are the checker's, at 6b and 6d, and
     #      the end-to-end read is 7a's probe's. A timing column no
     #      earlier run published still wants a route sharing no code
