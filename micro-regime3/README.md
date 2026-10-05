@@ -770,10 +770,11 @@ rather than a slot in the next run, observed again:
   following pr-mikolaj-toVectorListT's fill as its commit "Port the Axis path"
   has it since 2026-10-04, and `routeUnord13`, the route `libunord-stage13-sum`
   sums over, sorting by insertion into a merge loop out of line since the same
-  day, reasons at the roster entries, the fill and `sortAxes`. **So the pair's
-  own `cross` figure is the two passes on a tenth build**, and each half against
-  Run 44's same half, `--half-movers run45 run44`, carries the source alone:
-  the stage1 at the recipe's path is the one Run 44 built with, md5
+  day, as that branch has it since 2026-10-05, reasons at the roster entries,
+  the fill and `sortAxes`. **So the pair's own `cross` figure is the two passes
+  on a tenth build**, and each half against Run 44's same half,
+  `--half-movers run45 run44`, carries the source alone: the stage1
+  at the recipe's path is the one Run 44 built with, md5
   `39db416de5ed25e1b272d801bfa405d7`, every ABI hash `run45-gheadnospec` carries
   is `run44-gheadnospec`'s, and the shim, `cabal.project.ghead`
   and `micro.cabal` did not move.
