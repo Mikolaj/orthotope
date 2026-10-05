@@ -23,3 +23,4 @@ run	varies	plain	varied	text-gap	lib-common	lib-same-offset
 42	both passes	293	296	49152	805	4.3%
 43	both passes	296	303	45056	806	4.3%
 44	both passes	304	328	36864	804	4.4%
+45	both passes	305	311	32768	804	4.4%
