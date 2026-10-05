@@ -133,7 +133,7 @@ instance Vector V.Vector where
   {-# INLINE vAny #-}
   vAny = V.any
   {-# INLINE vFillStrided #-}
-  vFillStrided = genericFillStrided
+  vFillStrided = genericFillStrided 64
 
 type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }

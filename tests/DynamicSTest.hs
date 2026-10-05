@@ -266,6 +266,11 @@ test = testGroup "DynamicS" $
                                                  , slice [(0,1)] (fromList [2] [nan, 1]) ])
         where nan = 0 / 0 :: Double
 
+      -- A strided view of elements of size 0, the size the fill's run length
+      -- is computed from.
+      unit_1 = let u = fromList [2,3] (replicate 6 ()) :: Array ()
+               in  assertEqual "1" 6 (V.length (toVector (transpose [1,0] u)))
+
       -- One call of each wrapper that the other tests of DynamicTest,
       -- DynamicSTest or DynamicUTest leave uncalled.
       wrappers_1 = do
@@ -369,6 +374,7 @@ test = testGroup "DynamicS" $
         , testCase "reduce_3" reduce_3
         , testCase "allSameA_1" allSameA_1
         , testCase "allSameA_2" allSameA_2
+        , testCase "unit_1" unit_1
         , testCase "wrappers_1" wrappers_1
         ]
   in  tests ++ [ testPropertyN "prop_bitcast" (prop_bitcast @Int @Word)
