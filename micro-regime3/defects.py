@@ -391,6 +391,36 @@ def rundoc_with_drafted_list_move(tmp):
     return write_rundoc(tmp, text)
 
 
+def run_file_to_copy(tmp, dst_exists=False):
+    """A run file for copy-run-file.py: every figure it masks beside every
+    figure it must leave alone -- a heading, a table row, a code span, a
+    fenced block, a link target, a version inside a word and a count."""
+    src = os.path.join(tmp, 'runs', 'run95.md')
+    dst = os.path.join(tmp, 'runs', 'run96.md')
+    os.makedirs(os.path.dirname(src), exist_ok=True)
+    write(src, '# Run 95 (a pair read at 1.25 against Run 94)\n\n'
+               '**The head** reads 1.2929 and 0.85% against Run 94, -0.60%'
+               ' at worst, Runs 92 and 93 to 94 agreeing, 26.4--29.2 points,'
+               ' `--compare 1.30` untouched, ghc-9.12.4 and 10.1.20260918'
+               ' too, 19 shapes.\n\n'
+               '| arm | 1.2929 |\n|---|---:|\n\n'
+               'See [the file](run94.md#run-94-at-1.5).\n\n'
+               '```\n./read-run.py --x 1.75\n```\n')
+    if dst_exists:
+        write(dst, 'mine\n')
+    return {'src': src, 'dst': dst}
+
+
+def rundoc_with_a_mask(tmp):
+    """The run file with one prose decimal masked as step 5's copy masks
+    it, found by its shape rather than by the run's figure."""
+    text = rundoc_text()
+    m = re.search(r'(?m)^(?![|#`>]).*?[ (](\d\.\d{3,4})\b', text)
+    assert m, 'the run file carries no prose decimal to mask'
+    return write_rundoc(tmp, text[:m.start(1)] + '{{was %s}}' % m.group(1)
+                        + text[m.end(1):])
+
+
 def plant_one_tie(tmp):
     """The run file with its cross-class summary tied at three decimals on
     its first row alone, every other row's ceiling moved clear of the arm
@@ -15590,6 +15620,39 @@ RECORDS = [
          # whole run BLOCKS whatever this finds.
          ok=V(has=['No paragraph leads with this (pointer-probe.sh)']),
          bug=V(hasnt=['pointer-probe.sh'])),
+
+    case('copy-run-file-masks-the-measured-figures', 'copy-run-file.py',
+         None,
+         'CONTROL: the copy masks every decimal, percentage and run number'
+         ' in prose and leaves headings, tables, code, link targets and a'
+         ' number inside a word alone',
+         plant=lambda t: run_file_to_copy(t),
+         argv=['{src}', '{dst}'],
+         ok=V(exit=0, has=[
+             '# Run 96 (a pair read at 1.25 against Run 94)',
+             'reads {{was 1.2929}} and {{was 0.85%}} against Run {{was 94}},',
+             '-{{was 0.60%}} at worst',
+             'Runs {{was 92}} and {{was 93}} to {{was 94}} agreeing',
+             '{{was 26.4}}--{{was 29.2}} points',
+             '`--compare 1.30`', 'ghc-9.12.4', '10.1.20260918', '19 shapes',
+             '| arm | 1.2929 |', '(run94.md#run-94-at-1.5)',
+             './read-run.py --x 1.75', '9 figure(s) masked'],
+             hasnt=['{{was 1.25}}', '{{was 19}}']),
+         probe=lambda subs: open(subs['dst']).read()),
+
+    case('copy-run-file-refuses-an-existing-file', 'copy-run-file.py', None,
+         'CONTROL: a destination already there is refused and left as it was',
+         plant=lambda t: run_file_to_copy(t, dst_exists=True),
+         argv=['{src}', '{dst}'],
+         ok=V(exit=2, has=['already exists', 'mine']),
+         probe=lambda subs: open(subs['dst']).read()),
+
+    case('check-doc-refuses-a-mask-left-from-the-copy', 'read-run.py', None,
+         "CONTROL: a `{{was ...}}` mask step 5's copy left in the run file"
+         ' fails --check-doc, keeping a figure being retyping it',
+         plant=lambda t: {'rundoc': rundoc_with_a_mask(t)},
+         argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=["masked figure(s) left from step 5's copy"])),
 
     case('registration-lead-is-the-movers-key', 'read-run.py', None,
          'a registration whose bold lead carried one clause more passed'

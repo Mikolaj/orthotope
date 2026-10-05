@@ -1344,4 +1344,27 @@ MUTANTS = [
      ' r = subprocess.run([\'python3\', \'{file}\', o, n],'
      ' capture_output=True, text=True).stdout;'
      ' sys.exit(0 if \'rev-shape-b: l=6 -> l=60\' in r else 1)"'),
+    # Step 5's copy, 2026-10-05: a run number left unmasked is the stale
+    # reference run Run 35 shipped, and a mask --check-doc lets through is
+    # the copied figure the masks exist to stop. Each judge plants its
+    # case's fixture and runs the mutated copy.
+    ('the copy masks no run number', 'copy-run-file.py',
+     "        return head + ' ' + re.sub(r'\\d+', one, rest)",
+     "        return m.group(0)",
+     'cd "{dir}" && python3 -c "import sys, tempfile, subprocess;'
+     ' sys.path.insert(0, \'.\'); import defects;'
+     ' f = defects.run_file_to_copy(tempfile.mkdtemp());'
+     ' subprocess.run([\'python3\', \'{file}\', f[\'src\'], f[\'dst\']],'
+     ' capture_output=True);'
+     ' sys.exit(0 if \'Run {{was 94}}\' in open(f[\'dst\']).read() else 1)"'),
+    ('check-doc lets a mask from the copy through', 'read-run.py',
+     "        if masks:\n            bad.append(\"%d masked figure(s) left",
+     "        if False:\n            bad.append(\"%d masked figure(s) left",
+     'cd "{dir}" && python3 -c "import sys, tempfile, subprocess;'
+     ' sys.path.insert(0, \'.\'); import defects;'
+     ' d = defects.rundoc_with_a_mask(tempfile.mkdtemp());'
+     ' r = subprocess.run([\'python3\', \'{file}\', \'--check-doc\','
+     ' \'--quiet\', \'--run-doc\', d], capture_output=True, text=True);'
+     ' sys.exit(0 if \'masked figure(s) left\' in r.stdout + r.stderr'
+     ' else 1)"'),
 ]

@@ -9855,7 +9855,9 @@ def stale_figures(run_doc, ratio=0.55, verbose=False):
     It PRINTS and never refuses. A surviving numeral is ordinary -- the
     shape count, the pair count, a threshold the run did not move -- so the
     reading is which of them the run moved and the prose did not, and a
-    gate on it would be turned off by the second run.
+    gate on it would be turned off by the second run. Since 2026-10-05 the
+    copy masks every decimal, percentage and run number (copy-run-file.py),
+    and what this still finds is a count or a number word.
     """
     got = step5_copy(run_doc, '--stale')
     if isinstance(got, int):
@@ -13696,6 +13698,20 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     for path, _t in docs:
         anchors.update(per_doc[path])
     bad, note = [], []
+
+    # A MASK LEFT FROM STEP 5'S COPY: copy-run-file.py writes each decimal,
+    # percentage and run number of the copied prose as `{{was X}}`, and a
+    # figure the run did not move is kept by retyping it. Case:
+    # `check-doc-refuses-a-mask-left-from-the-copy`.
+    if run_text:
+        masks = list(re.finditer(r'\{\{was [^}]*\}\}', run_text))
+        if masks:
+            bad.append("%d masked figure(s) left from step 5's copy, the"
+                       ' first %s at %s:%d: retype each figure, an unmoved'
+                       ' one included'
+                       % (len(masks), masks[0].group(0),
+                          os.path.basename(run_doc),
+                          run_text.count('\n', 0, masks[0].start()) + 1))
 
     # EVERY `--para` POINTER IN THE CHECKLISTS RESOLVES, or the list's own
     # instruction -- come back to a paragraph when a step surprises you --

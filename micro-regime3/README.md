@@ -9608,8 +9608,10 @@ not otherwise.
     #      A leg carries no `sum-only` to correct with -- the one
     #      place a session would reach for the wrong numerator. It is
     #      what the riders were run for
-    #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
-    #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT
+    #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, with
+    #      `./copy-run-file.py runs/$PREV.md runs/$R.md`, which masks every
+    #      decimal, percentage and run number of the last run's prose as
+    #      `{{was ...}}`, AND COMMIT THAT COPY BEFORE EDITING IT
     #      (reading item 2 HERE, off the copy you have just made, which
     #      IS the last run's head and Results prose until you replace it:
     #      one sentence on what this run's own head has to answer).
@@ -9825,7 +9827,8 @@ not otherwise.
     #      AND READ EACH HIT AGAINST THE TABLE BESIDE IT, not only for
     #      whether it names a run.
     #      AND ITS SIBLING, `./read-run.py --stale`: the paragraph this
-    #      run DID edit around a figure it did not. Run it TWICE, here and
+    #      run DID edit around a count or a number word it did not, the
+    #      copy having masked every other figure. Run it TWICE, here and
     #      again after the prose. It prints the twenty most-edited
     #      paragraphs first, which is the ordering that matters.
     #      AND `./read-run.py --prose-facts $R` BEFORE THE FIRST
@@ -10362,37 +10365,47 @@ which for Run 10 was where alignment was faster.
    *Results*, *What the next run compares against*, *The properties the next run
    should test*, *The stride classes, run by run*, *Provenance*, none of them
    numbered because the name is --- so a run copies the last one's over its own
-   name, commits that copy untouched, and rewrites it, HERE and not earlier
-   for the reason the pre-run list's head gives: every mode defaults
-   to the newest file in `runs/`, and everything before this step wants the run
-   behind. **What it has instead is one link check, and `runs/` accumulating
-   is what makes it necessary**: the previous run's file stays on disk,
-   so a link left pointing at it resolves, renders and quietly promises figures
-   this run replaced. **Expect it to fail five ways the moment the file exists
-   and before you have touched README** --- dead anchors, links naming the run
-   before, the run file's sections uncovered by the replace list, the Results
-   section naming the previous basis, and the head unchanged from the run before
-   --- and every one of those is this step. Driven end to end 2026-08-25
-   on a copy: all five, and the eleven tables installing into the new file
-   regardless. A source file naming a run file would go stale at the next run
-   and `--check-doc` could not see it, `runs/` keeping every run so the path
-   resolves --- which is why none does. A standing-prose link into the run file
-   promises content the replacement may have moved out, and such links keep
-   resolving through renames, which is why repointing is not re-verifying.
-   A link whose TEXT quotes a ratio, pointing at a section that no longer
-   carries it, is what that walk is for. **Committing the copy before editing
-   it is what makes the rest of this step cheap.** An untracked file has
-   no committed form, so `wrap-restore` cannot classify it and leaves it alone
-   --- one of the two cases the wrapping rules still leave to be done by hand,
-   the other being a file whose last commit sits at neither fixed point,
-   and this one need not arise. The copy also gives git a restore point
+   name with `copy-run-file.py`, commits that copy, and rewrites it, HERE
+   and not earlier for the reason the pre-run list's head gives: every mode
+   defaults to the newest file in `runs/`, and everything before this step wants
+   the run behind. **What it has instead is one link check, and `runs/`
+   accumulating is what makes it necessary**: the previous run's file stays
+   on disk, so a link left pointing at it resolves, renders and quietly promises
+   figures this run replaced. **Expect it to fail five ways the moment the file
+   exists and before you have touched README** --- dead anchors, links naming
+   the run before, the run file's sections uncovered by the replace list,
+   the Results section naming the previous basis, and the head unchanged
+   from the run before --- and every one of those is this step. Driven end
+   to end 2026-08-25 on a copy: all five, and the eleven tables installing
+   into the new file regardless. A source file naming a run file would go stale
+   at the next run and `--check-doc` could not see it, `runs/` keeping every run
+   so the path resolves --- which is why none does. A standing-prose link
+   into the run file promises content the replacement may have moved out,
+   and such links keep resolving through renames, which is why repointing
+   is not re-verifying. A link whose TEXT quotes a ratio, pointing at a section
+   that no longer carries it, is what that walk is for. **Committing the copy
+   before editing it is what makes the rest of this step cheap.** An untracked
+   file has no committed form, so `wrap-restore` cannot classify it and leaves
+   it alone --- one of the two cases the wrapping rules still leave to be done
+   by hand, the other being a file whose last commit sits at neither fixed
+   point, and this one need not arise. The copy also gives git a restore point
    for the whole write-up, which a range splice has already made necessary once.
    And it makes the write-up's own diff the artifact step 6b briefs the checker
    to read --- uncommitted, the file enters history as wholly new and its diff
    says nothing about what the run changed, so the checker has to snapshot
    it and diff against its own copy. The cost is one commit whose content
-   is a verbatim copy, which reads as diary until the next diff makes
-   it legible.
+   is a copy, which reads as diary until the next diff makes it legible.
+   **The copy masks every decimal, percentage and run number in prose
+   and no other figure, and `--check-doc` refuses a mask left**, ruled
+   2026-10-05 by the owner: a figure the copy carries unedited is last run's
+   number under this run's name, and a mask makes keeping one a retyping. On Run
+   45's copy of Run 44's file that is 1123 masks, 14 of them in the 21
+   paragraphs the write-up kept whole; masking every measured figure would have
+   been 1629 and 88, stable counts of shapes, arms and classes retyped every
+   run, which is how a gate gets switched off, and masking only the paragraphs
+   `--inherited` calls run-specific would have left the class paragraphs, where
+   most per-run decimals sit, as copied. Counts and number words stay
+   `--stale`'s, printed and never refused.
 - 5b. **Install the tables with `--in-place` rather than pasting them.**
   `--markdown`, `--fingerprint` and `--block` each take it, and each refuses
   rather than guessing: the match is by whole line, the count is asserted,
