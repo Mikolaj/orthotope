@@ -7540,6 +7540,17 @@ TIER1 = {
               ' per-second record covering the spike. After the fix a'
               ' whole check-all, sampled each second, peaked at six'
               ' readers at once.'),
+    'uncovered-names-the-busy-readings-callers': dict(
+        family='false-comment', discovery='review', harm='fired',
+        proved='ran',
+        trigger='check-all listing machine-busy.sh among the files with'
+                ' no case of their own',
+        ok='the entry names the three scripts that call it, whose cases'
+           ' run it',
+        bug='it named run-gate.sh, which never called it',
+        notes='Found 2026-10-05 by a shape pass over the gate change,'
+              ' which looked for what else read the gate; `git log -S`'
+              ' finds no commit putting the name in run-gate.sh.'),
 }
 
 
@@ -17647,6 +17658,18 @@ RECORDS = [
                          " and 'READ_JOBS=1' not in s[1]],"
                          " len([s for s in STEPS if '-j' in s[1]]))"],
          ok=V(has=['([], 3)'])),
+
+    case('uncovered-names-the-busy-readings-callers', 'checks.py', 'self',
+         'UNCOVERED said machine-busy.sh was read by run-gate.sh, which'
+         ' no commit ever had call it',
+         # Its callers are the evening's alarm, run-alonelegs.sh and
+         # copy-test.sh, each with cases that run the real reading under
+         # MAXBUSY -- `alonelegs-refuses-a-busy-machine` through its busy
+         # branch.
+         argv=['--unit', "UNCOVERED['machine-busy.sh']"],
+         ok=V(has=['run-evening.sh', 'run-alonelegs.sh', 'copy-test.sh'],
+              hasnt=['run-gate.sh']),
+         bug=V(has=['run-gate.sh'])),
 
 ]
 

@@ -79,8 +79,9 @@ UNCOVERED = {
                     'note-figures-reads-a-row-only-as-present, and not '
                     "the header, since it reads the two binaries and the "
                     'mutants copy holds tracked files alone',
-    'machine-busy.sh': 'read by run-gate.sh, whose cases reach it; no case '
-                       'of its own yet',
+    'machine-busy.sh': 'read by run-evening.sh\'s alarm, run-alonelegs.sh and '
+                       'copy-test.sh, whose cases reach it; no case of its '
+                       'own yet',
     'copy-test.sh': 'post-run step 4a\'s copy test, which spends the quiet '
                     'box on real binaries under perf; its cells are '
                     '--copy-cells\'s and its log --copy-test\'s, each with '
