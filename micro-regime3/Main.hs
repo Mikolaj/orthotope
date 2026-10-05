@@ -53,7 +53,9 @@ import           Foreign.Storable             (peek, peekElemOff, poke)
 import           GHC.Clock                    (getMonotonicTime)
 import           GHC.Conc                     (getAllocationCounter,
                                                setAllocationCounter)
-import           GHC.Exts                     (Int (..), Word (..), build,
+import           GHC.Exts                     (Int (..),
+                                               SpecConstrAnnotation (..),
+                                               Word (..), build,
                                                int2Word#, quotRemInt#,
                                                timesWord2#, word2Int#)
 import           GHC.Stats                    (RTSStats (allocated_bytes, elapsed_ns, gc_elapsed_ns, gcs, major_gcs, max_live_bytes, max_mem_in_use_bytes, mutator_elapsed_ns),
@@ -5369,6 +5371,14 @@ insertAxis x ys = x : ys
 -- allocation on the window views.
 data Axis = Axis { axisStride :: !Int, axisExtent :: !Int }
   deriving (Eq, Ord)
+
+-- SpecConstr leaves 'Axis' alone: under @-fspec-constr@ it would
+-- unbox the axis 'sortAxes' and 'insertAxis' also cons whole, and
+-- rebuild a box at each step of the sort, 24 bytes an axis a call. GHC
+-- https://gitlab.haskell.org/ghc/ghc/-/work_items/27628 is that reboxing and
+-- https://gitlab.haskell.org/ghc/ghc/-/work_items/21562 the boxity analysis
+-- that would prevent it; the annotation is one GHC documents as deprecated.
+{-# ANN type Axis NoSpecConstr #-}
 
 -- 'InnerFirst' with each axis an 'Axis': axes innermost first, the
 -- orientation the dispatches' merge loops write and every reader of the path

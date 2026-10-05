@@ -792,18 +792,27 @@ rather than a slot in the next run, observed again:
   and under `SATURATE=1`, over the main set: near 29 clean and near 35 saturated
   says the state is the term, and a registration on a `list`-shaped arm
   then draws its band from time rather than from cycles.
-- `OPEN` **The two `-O2` passes make `libunord-stage13-sum` allocate 18% MORE
-  since `f5bf411` put its sort on a top-level merge loop, where on Run 44 they
-  moved its bytes by under a tenth of a percent.** On Run 45's main set, read
-  per cell, the flagged half allocates **1.1845** of the basis on that arm,
-  1.111 to 1.254 across the nineteen shapes, while every other arm outside
-  the `list` and `bq-expand` families and `lib-stage0`, which allocates
-  as `list` does, sits within 1e-3 ([Run 45's
-  file](runs/run45.md#the-properties-the-next-run-should-test)). Allocation
-  is deterministic per call, so this is code: the passes compile the merge loop
-  or its caller to allocate where plain -O1 does not. **What would settle
-  it** is the Core of `routeUnord13` and its merge loop on the two recipes, read
-  for the allocation site, which wants no quiet box.
+- `ANSWERED` **The two `-O2` passes made `libunord-stage13-sum` allocate 18%
+  more because SpecConstr reboxes the axis `sortAxes` and `insertAxis` cons
+  whole, and since 2026-10-05 `Main.hs` keeps SpecConstr off `Axis`.** Run 45's
+  flagged half allocated **1.1845** of the basis on that arm over the main set
+  ([Run 45's file](runs/run45.md#the-properties-the-next-run-should-test)).
+  The STG of the two recipes, read 2026-10-05, puts the allocation in the merge
+  loop's caller and not in the loop: SpecConstr specialises `sortAxes`
+  and `insertAxis` on their `Axis`, and each step of the sort then rebuilds
+  the box the source conses whole, the excess a multiple of 24 bytes a call
+  on every main-set shape but `stretch-inner256`, where stage fifteen's bytes
+  move too, one box for each axis sorted after the first. The merge loop's own
+  specialisation allocates what the basis's does, a step later. GHC
+  [#27628](https://gitlab.haskell.org/ghc/ghc/-/work_items/27628)
+  is that reboxing and GHC
+  [#21562](https://gitlab.haskell.org/ghc/ghc/-/work_items/21562) the boxity
+  analysis that would prevent it. `{-# ANN type Axis NoSpecConstr #-}` leaves
+  the plain -O1 Core unchanged binding for binding and brings the flagged half's
+  bytes to the basis's, within a byte summed over the main set; under the passes
+  it moves no other timed arm's Core, only a join point in `check`'s list
+  producers besides the sort. `pr-mikolaj-toVectorListT` carries the same
+  annotation since 2026-10-05.
 - `ANSWERED` **What Run 44 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 44's own file](runs/run44.md), where a run's
