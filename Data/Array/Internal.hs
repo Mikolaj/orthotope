@@ -41,7 +41,7 @@ import Data.Ord(comparing)
 import Data.Proxy
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
-import GHC.Exts(Constraint, build)
+import GHC.Exts(Constraint, SpecConstrAnnotation(..), build)
 import GHC.Generics(Generic)
 import GHC.TypeLits(KnownNat, natVal)
 import Text.PrettyPrint
@@ -665,6 +665,14 @@ data Route
 -- allocation on windows over an array.
 data Axis = Axis { axisStride :: !Int, axisExtent :: !Int }
   deriving (Eq, Ord)
+
+-- SpecConstr leaves 'Axis' alone: under -fspec-constr, which -O2
+-- turns on, it would unbox the axis 'sortAxesT' and 'insertAxis'
+-- also cons whole, and rebuild a box at each step of the sort.  GHC
+-- https://gitlab.haskell.org/ghc/ghc/-/work_items/27628 is that reboxing and
+-- https://gitlab.haskell.org/ghc/ghc/-/work_items/21562 the boxity analysis
+-- that would prevent it; the annotation is one GHC documents as deprecated.
+{-# ANN type Axis NoSpecConstr #-}
 
 -- | Axes innermost first: the orientation 'routeT' and
 -- 'unorderedRouteT' write and every consumer of a canonical view reads.
