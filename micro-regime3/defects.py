@@ -15575,6 +15575,22 @@ RECORDS = [
                            " run's carry-back figure", 'It found 1:',
                            'It looked for:'])),
 
+    case('check-doc-resolves-the-scripts-para-pointers', 'read-run.py',
+         'self',
+         "a `why: --para` pointer in a script's comment went unchecked,"
+         " where README's own are each held to one paragraph lead",
+         # Since 2026-10-05 a ruling is kept once, in README, and pointed at
+         # from the code that acts on it; a renamed lead would leave the
+         # script's pointer aiming at nothing with every gate green.
+         shadow=dict(extra=[('pointer-probe.sh',
+                             "#!/bin/sh\n# why: --para 'No paragraph leads"
+                             " with this'\n")]),
+         argv=['--check-doc', '--quiet'],
+         # No exit: the shadow cannot reach the sibling checkouts, so the
+         # whole run BLOCKS whatever this finds.
+         ok=V(has=['No paragraph leads with this (pointer-probe.sh)']),
+         bug=V(hasnt=['pointer-probe.sh'])),
+
     case('registration-lead-is-the-movers-key', 'read-run.py', None,
          'a registration whose bold lead carried one clause more passed'
          ' pre-run 7 and was refused by --move-registration after the run,'

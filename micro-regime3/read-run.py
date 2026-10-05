@@ -13587,6 +13587,23 @@ def wrap_verdict(path, cur, bad, note):
                               os.path.basename(path)))
 
 
+def para_pointer_sources(here):
+    """The files beside README whose text may point into it: the tracked
+    scripts and the note template, or, where no repository answers -- a
+    case's shadow -- the scripts the directory holds. The corpus and the
+    mutants quote pointers as fixtures and are left out."""
+    listed = _git(here, 'ls-files', '--', '*.sh', '*.py',
+                  'pair-note-template.txt')
+    if listed is None:
+        names = sorted(glob.glob(os.path.join(here, '*.sh'))
+                       + glob.glob(os.path.join(here, '*.py'))
+                       + [os.path.join(here, 'pair-note-template.txt')])
+    else:
+        names = [os.path.join(here, n) for n in listed.split('\n') if n]
+    return [n for n in names
+            if os.path.basename(n) not in ('defects.py', 'mutants.py')]
+
+
 def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     """The mechanical half of verifying the write-up, as one command.
 
@@ -13709,7 +13726,26 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     # writes when it is talking ABOUT the mode rather than pointing with
     # it: the first draft of this check read three such mentions as dead
     # pointers, one of them a placeholder in a command line.
-    pointers = set(re.findall(r"why: --para '([^']+)'", readme_doc))
+    # AND THE SCRIPTS' AND THE TEMPLATE'S, since 2026-10-05: a ruling is
+    # kept once, in README, and the code acting on it points there, so a
+    # renamed lead kills that pointer as silently. The corpus and the
+    # mutants quote pointers as fixtures and are not read. Case:
+    # `check-doc-resolves-the-scripts-para-pointers`.
+    pointed_from = {}
+    for q in re.findall(r"why: --para '([^']+)'", readme_doc):
+        pointed_from.setdefault(q, set()).add('README')
+    for name in para_pointer_sources(os.path.dirname(os.path.abspath(readme))):
+        try:
+            text = open(name, errors='replace').read()
+        except OSError:
+            continue
+        # A line or comment OPENING with the pointer, as the checklists
+        # write it: code and prose here that talk ABOUT the form -- this
+        # function among them -- carry it mid-line.
+        for q in re.findall(r"^\s*(?:#\s*)?why: --para '([^'\n]+)'", text,
+                            re.M):
+            pointed_from.setdefault(q, set()).add(os.path.basename(name))
+    pointers = set(pointed_from)
     if pointers:
         leads = []
         for _first, para, _spans in unwrapped_paragraphs(readme_doc
@@ -13728,10 +13764,13 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         if dead:
             bad.append('%d --para pointer(s) resolve to no paragraph lead,'
                        ' or to several: %s'
-                       % (len(dead), '; '.join(dead)))
+                       % (len(dead), '; '.join(
+                           '%s (%s)' % (q, ', '.join(sorted(pointed_from[q])))
+                           for q in dead)))
         else:
-            note.append('every --para pointer in the checklists names one'
-                        ' paragraph (%d)' % len(pointers))
+            note.append('every --para pointer in the checklists, the'
+                        ' scripts and the template names one paragraph (%d)'
+                        % len(pointers))
     # A GATE THE CHAPTER PIPES OR CHAINS. The chapter's recipes are what
     # a session copies, and a pipe reports its LAST command's status: Run
     # 27 read `check-all | tail`'s exit 0, ran the whole suite again, and
