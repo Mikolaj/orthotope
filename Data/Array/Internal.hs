@@ -1585,11 +1585,23 @@ zipWithLong2 _     _     bs  = bs
 padT :: forall v a . (Vector v, VecElem v a) => a -> [(Int, Int)] -> ShapeL -> T v a -> ([Int], T v a)
 padT v aps ash at = (ss, fromVectorT ss $ vConcat $ pad' aps ash st at)
   where pad' :: [(Int, Int)] -> ShapeL -> [Int] -> T v a -> [v a]
-        -- Past the pad list, the core is taken as toVectorListT's list:
-        -- vConcat copies every part once, so a core filled by toVectorT
-        -- would be copied twice, where a view of runs gives slices copied
-        -- once that cost only their headers.
+        -- The last padded dimension's block is taken whole as toVectorListT's
+        -- list and not recursed into: recursing made each core a subarray of
+        -- that dimension, a scalar where the innermost dimension is padded,
+        -- and so a slice and an indexT per element; on views of about 200000
+        -- Doubles with the innermost dimension padded, the block taken whole
+        -- took 0.01 to 0.32 of the time.  As a list and not one vector by
+        -- toVectorT: vConcat copies every part once, so a block lying in runs
+        -- of the source is copied once from the list's slices and would be
+        -- copied twice from a vector toVectorT filled; a strided block, which
+        -- no slice can take, is filled and copied either way.  The vector was
+        -- tried on 2026-10-06 and refuted: about twice the list's time on a
+        -- block of runs of 500, and faster only on boxed runs of 8, in about
+        -- half the list's time, which a choice per block by run length would
+        -- buy for a dispatch here.
         pad' [] sh _ t = toVectorListT sh t
+        pad' [(l,h)] (s:sh) (!n:_) t =
+          [vReplicate (n*l) v] ++ toVectorListT (s:sh) t ++ [vReplicate (n*h) v]
         pad' ((l,h):ps) (s:sh) (!n:ns) t =
           [vReplicate (n*l) v] ++ concatMap (pad' ps sh ns . indexT t) [0..s-1] ++ [vReplicate (n*h) v]
         pad' _ _ _ _ = error $ "pad: rank mismatch " ++ show (length aps, length ash)
@@ -1642,6 +1654,11 @@ anyT sh p = or . map (vAny p) . toUnorderedVectorListT sh
 allT :: (Vector v, VecElem v a) => ShapeL -> (a -> Bool) -> T v a -> Bool
 allT sh p = and . map (vAll p) . toUnorderedVectorListT sh
 
+-- vUpdate copies the vector toVectorT returns, a second copy wherever the view
+-- is not one slice and that vector was just filled.  Not skipped: that wants
+-- a class method updating a vector the caller owns, updateT reaching the fill
+-- only through vFillStrided and so unable to force it inline for vector's
+-- clone/new rule to drop the copy.
 {-# INLINE updateT #-}
 updateT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [([Int], a)] -> T v a
 updateT sh t us = T ss 0 $ vUpdate (toVectorT sh t) $ map ix us
