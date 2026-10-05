@@ -1572,8 +1572,10 @@ rather than a slot in the next run, observed again:
   on the owner's quiet box before its counts had landed, reads one INSTANCE,
   the basis's `bcastmid-block150k/lib-stage2-lean-u1`, a fresh copy at 0.911
   of the timed file across passes spread by 1.067, and Run 44's binary at 0.983
-  (`probe-copy-test-run45.log`); it went unframed, the frame reading wanting
-  root.
+  (`probe-copy-test-run45.log`) --- the timed file the slowest of the three
+  where the evening had read the cell faster than Run 44's, so the instance
+  it names is not the evening's term; it went unframed, the frame reading
+  wanting root.
 - `ANSWERED` **A `predict:` span can ask a different question from the sentence
   that registers it, and since 2026-09-18 `--lint` prints, under an OPEN
   registration, every span as `--predictions` will compare it --- the mode,
