@@ -2169,6 +2169,18 @@ def rundoc_registration_quotes_delta(tmp):
                         ' runB-lookrts`.\n')
 
 
+def rundoc_with_masked_keys(tmp):
+    """The run file with the two figures --prose-draft's key phrases carry
+    masked as step 5's copy masks them, the `bar` paragraph's 0.7% and
+    `prop2`'s 1%."""
+    text = rundoc_text()
+    for was in (r'(The )(0\.7%)(\s+bar\s+asks)',
+                r'(allocates\s+at\s+most\s+)(1%)(\s+over)'):
+        text, n = re.subn(was, r'\1{{was \2}}\3', text, count=1)
+        assert n == 1, 'the run file carries no %s' % was
+    return write_rundoc(tmp, text)
+
+
 def rundoc_summary_row_short(tmp, cls='rev'):
     lines = rundoc_lines()
     at = [i for i, l in enumerate(lines) if l.startswith('| `%s` |' % cls)]
@@ -7598,6 +7610,14 @@ TIER1 = {
               ' per-second record covering the spike. After the fix a'
               ' whole check-all, sampled each second, peaked at six'
               ' readers at once.'),
+    'prose-draft-finds-a-key-phrase-under-a-mask': dict(
+        family='two-spellings', discovery='review', harm='latent',
+        proved='ran',
+        trigger='a run file made by copy-run-file.py, whose masks hide the'
+                ' figure inside two of --prose-draft\'s key phrases',
+        ok='each phrase is looked for with the masks read as the figures'
+           ' they hold',
+        bug='the `bar` and `prop2` drafts went unplaced'),
     'uncovered-names-the-busy-readings-callers': dict(
         family='false-comment', discovery='review', harm='fired',
         proved='ran',
@@ -14664,6 +14684,21 @@ RECORDS = [
          ok=V(exit=0, has=['offsets: kept'],
               hasnt=['loop-offsets.py --delta`, need one']),
          bug=V(has=['loop-offsets.py --delta`, need one'])),
+
+    case('prose-draft-finds-a-key-phrase-under-a-mask', 'read-run.py',
+         'self',
+         "--prose-draft --in-place looked for a key phrase carrying a figure"
+         " in the masked copy, where the figure reads `{{was ...}}`, and"
+         " handed the `bar` and `prop2` drafts back for placing by hand",
+         plant=lambda t: {'doc': rundoc_with_masked_keys(t)},
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                             prefix='zzim',
+                                             classes=recorded_classes())),
+         env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['--prose-draft', 'zzim', '--run-doc', '{doc}', '--in-place'],
+         ok=V(exit=0, has=['bar: kept', 'prop2: kept'],
+              hasnt=['place it by hand']),
+         bug=V(has=['place it by hand'])),
 
     case('prose-draft-counts-a-row-the-cap-left-still', 'read-run.py',
          'self',

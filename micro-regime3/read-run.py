@@ -7517,6 +7517,14 @@ def provenance_draft(run, args):
     return install_provenance(paras, args)
 
 
+def unmasked(text):
+    """TEXT with step 5's `{{was X}}` masks read as the X they hold: a key
+    phrase written against the last run's prose finds its paragraph in the
+    masked copy, two of --prose-draft's carrying a figure. Case:
+    `prose-draft-finds-a-key-phrase-under-a-mask`."""
+    return re.sub(r'\{\{was ([^}]*)\}\}', r'\1', text)
+
+
 def install_provenance(paras, args):
     """--provenance-draft --in-place: each drafted paragraph over the one
     carrying its phrase in the run file's Provenance section, where that
@@ -7542,7 +7550,7 @@ def install_provenance(paras, args):
     for key, draft in paras:
         phrase = keyed[key]
         hits = [i for i in range(start + 1, end)
-                if phrase in ' '.join(blocks[i].split())]
+                if phrase in ' '.join(unmasked(blocks[i]).split())]
         if len(hits) != 1:
             print('%s: %d paragraph(s) of Provenance carry `%s`, need one;'
                   ' place it by hand:\n    %s'
@@ -8300,7 +8308,7 @@ def install_prose(paras, args):
     for key, draft in paras:
         phrase = keyed[key]
         hits = [i for i, b in enumerate(blocks[:reg])
-                if phrase in ' '.join(b.split())]
+                if phrase in ' '.join(unmasked(b).split())]
         if len(hits) != 1:
             print('%s: %d paragraph(s) carry `%s`, need one; place it by'
                   ' hand:\n    %s' % (key, len(hits), phrase, draft))
