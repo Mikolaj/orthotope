@@ -2399,14 +2399,14 @@ rather than a slot in the next run, observed again:
 
 - `ANSWERED` **`dispRun` was demonstrably mis-cut, and its right value
   is a measurement rather than a guess --- taken 2026-09-02 and re-cut to 2048,
-  and re-cut to 32768 on 2026-10-04.** Run 22 put the crossover between
-  `runs-1024` and `runs-65536` on both compilers, `lib-stage2-disp` 6.65% behind
-  stage two at `runs-1024` on the basis and 4.22% on the control, and Run 23
-  read 5.75% and 6.24% on both halves of one compiler, so the failure is neither
-  a compiler's nor a pad's. **The in-cache probe**, one process over `runs`
-  on the dead-spot binary with an arm per candidate threshold, put the crossover
-  between `runs-1024` and `runs-4096` and the 2048 arm nowhere behind the better
-  route. **The past-cache probe**, `probe-cache-build.sh`
+  to 32768 on 2026-10-04 and to 8192 on 2026-10-05.** Run 22 put the crossover
+  between `runs-1024` and `runs-65536` on both compilers, `lib-stage2-disp`
+  6.65% behind stage two at `runs-1024` on the basis and 4.22% on the control,
+  and Run 23 read 5.75% and 6.24% on both halves of one compiler, so the failure
+  is neither a compiler's nor a pad's. **The in-cache probe**, one process
+  over `runs` on the dead-spot binary with an arm per candidate threshold, put
+  the crossover between `runs-1024` and `runs-4096` and the 2048 arm nowhere
+  behind the better route. **The past-cache probe**, `probe-cache-build.sh`
   and `probe-cache-run.sh` timing two regime-2 views of 8 million elements
   at runs of 96 and 4096, KILLED its registration by a small inversion: `list`
   at 14.7 ns an element, memory-bound at every size; at 96 `lib-stage2` reads
@@ -2427,13 +2427,12 @@ rather than a slot in the next run, observed again:
   that process's A/A spread, the shipped leaf's twin parting by 1.24% a shape
   and 3.47% at worst, so past the floor the slice route now leads on no view
   of the class, where the in-cache probe had it five points ahead, and
-  at the new cut it takes `runs-65536` alone. **The fourth probe, 2026-10-05,
-  priced glibc's `rep movsb` inside the slice route**, which
-  `x86_rep_movsb_threshold` puts at 2112 bytes on glibc 2.39 here: the third
-  probe's binary at its threshold of 1, over the seven `runs` views
-  from `runs-256` up and the arms `lib-stage1`, `lib-stage2-disp`,
-  `lib-stage2-lean` and both `sum-only` halves, in four processes ordered ABBA,
-  both B processes launched
+  at that cut it took `runs-65536` alone. **The fourth probe, 2026-10-05, priced
+  glibc's `rep movsb` inside the slice route**, which `x86_rep_movsb_threshold`
+  puts at 2112 bytes on glibc 2.39 here: the third probe's binary
+  at its threshold of 1, over the seven `runs` views from `runs-256` up
+  and the arms `lib-stage1`, `lib-stage2-disp`, `lib-stage2-lean` and both
+  `sum-only` halves, in four processes ordered ABBA, both B processes launched
   under `GLIBC_TUNABLES=glibc.cpu.x86_rep_movsb_threshold=0x10000000` so
   that no run copied with it, and no bench at 0.25 of a foreign core
   (`probe-movsb-A1-runs.json` and its three siblings). **It is some of the slice
@@ -2446,10 +2445,21 @@ rather than a slot in the next run, observed again:
   and 10 to 13% at `runs-1024`. From `runs-4096` up the first pair reads every
   arm at 0.979 to 1.009, and the second reads A2's own process, A2 parting
   from A1 there by 5.7 to 6.4 points at worst on each arm, the fill included,
-  so the cut at 32768 does not rest on glibc's choice of copy. **This entry
-  is the only copy of the four probes' accounts and is never trimmed
-  to a question.** What the 2048 cut's probes did NOT measure is in [the
-  non-urgent TODO list][todo].
+  so neither cut rests on glibc's choice of copy. **The re-reading of 2026-10-05
+  re-cut it to 8192.** The fourth probe's processes, read slice route over fill
+  rather than A over B, put `lib-stage2-disp` at its threshold of 1 at 0.9983
+  to 1.0338 of `lib-stage2-lean`, net, at `runs-4096`, and at `runs-16384`
+  at 0.9693, 0.9719 and 0.9835 in A1, B1 and B2 and at 0.9291 in A2, whose lean
+  cell reads a CI of 1.84%; and `lib-stage1`, which slices every run, reads
+  1.0115 to 1.0302 of `lib-stage2-lean` at `runs-4096` and 0.9709 to 0.9876
+  at `runs-16384` on both halves of every run from Run 40 to Run 45. The third
+  probe's 1.0026 at `runs-16384` sat inside the spread of its own fill copies
+  on that cell, 0.9394 to 1.0068. So the slice route is level with the fill
+  or behind it at `runs-4096` and ahead of it from `runs-16384` up, 8192
+  represents that bracket, and at it the slice route takes `runs-16384`
+  and `runs-65536`. **This entry is the only copy of the four probes' accounts
+  and is never trimmed to a question.** What the 2048 cut's probes did
+  NOT measure is in [the non-urgent TODO list][todo].
 
 - `PARKED` **The 0.7% bar that decides whether a pair's two columns may
   be subtracted is used everywhere, and where 0.7 came from is written
@@ -6638,9 +6648,9 @@ first, those that did not die on paper at all:
   a threshold and the fill below it**, `lib-stage2-disp` with `dispRun` at 2048
   --- **it works, it is 8 to 12% faster on the `runs` class at runs of 4096
   to 65536 on a 14 MB array, and it will not be done.** **Over the branch's fill
-  of 2026-10-04 it is no longer faster**: the probe of 2026-10-04 read the slice
-  route level with the fill inside the floor from runs of 4096 up and 10.9%
-  and more behind it at runs of 1440 and below, and re-cut `dispRun` to 32768
+  of 2026-10-04 it is some 1.5 to 3.5% faster, net, at runs of 16384
+  and 65536**, level with the fill or up to 3.5% behind it at 4096 and 10.9%
+  and more behind it at runs of 1440 and below, and `dispRun` stands at 8192
   ([the `dispRun` entry][open]). RULED OUT 2026-09-07 on code complexity, which
   sat right at the threshold, with the dependence on a hard-coded constant
   tipping it: the threshold is a run of 16 KB sized to the L1 and cut

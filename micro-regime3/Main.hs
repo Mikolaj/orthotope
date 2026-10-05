@@ -3427,18 +3427,25 @@ fbLibStage2Concat sh (T (Strides ats) ao v)
 -- dead-spot binary and read the 2048 arm nowhere behind the better route
 -- past the class's floor, where 8192 and 32768 were behind it at 4096.
 -- Re-cut to 32768 on 2026-10-04, over the branch's fill of 2026-10-04,
--- by one process over the runs class on Run 44's basis recipe with this
--- arm at a threshold of 1, so that it sliced every run
+-- by one process over the runs class on Run 44's basis recipe
+-- with this arm at a threshold of 1, so that it sliced every run
 -- (probe-p45disp1-runs.json): the slice route over the fill, net, read
 -- 1.1374 at `runs-1024`, 1.1095 at `runs-r3-48x30`'s runs of 1440, 1.0078
 -- at `runs-4096`, 1.0026 at `runs-16384` and 0.9838 at `runs-65536`, the
 -- sign turning between the last two. Every figure from `runs-4096` up is
 -- inside that process's A/A spread, the shipped leaf's twin parting by
--- 1.24% a shape and 3.47% at worst, so past the floor the slice route
--- leads on no view of the class, where the fill leads by 10.9% and more at
--- runs of 1440 and below.
+-- 1.24% a shape and 3.47% at worst, while the fill leads by 10.9% and more
+-- at runs of 1440 and below. Re-cut to 8192 on 2026-10-05 on readings that
+-- put the slice route level with the fill or behind it at `runs-4096`
+-- and ahead of it at `runs-16384`: this arm at a threshold of 1 over
+-- 'lib-stage2-lean' at 0.9983 to 1.0338 at `runs-4096` in the four movsb
+-- probes of 2026-10-05 (probe-movsb-*-runs.json) and at 0.9693 to 0.9835
+-- at `runs-16384` in three of them, the fourth reading 0.9291 on a lean
+-- cell of CI 1.84%; and 'lib-stage1', which slices every run, at 1.0115
+-- to 1.0302 at `runs-4096` and 0.9709 to 0.9876 at `runs-16384` on both
+-- halves of every run from Run 40 to Run 45. 8192 represents that bracket.
 dispRun :: Int
-dispRun = 32768
+dispRun = 8192
 
 -- 'fbLibStage2Lean' with the slice route taken only where the canonical run
 -- reaches 'dispRun' -- the dispatch on run length the runs class measured
@@ -7954,8 +7961,8 @@ roster =
     -- constant tipping it, reasons at the definition.
     -- Timed again from 2026-10-04 by the owner, as the lean arm with the
     -- run-length dispatch: its control is 'lib-stage2-lean', below, and
-    -- the slot is the one it held. Re-cut to 32768 the same day, reasons
-    -- at 'dispRun'.
+    -- the slot is the one it held. Re-cut to 32768 the same day and to
+    -- 8192 on 2026-10-05, reasons at 'dispRun'.
   , ("lib-stage2-disp",            Fill fbLibStage2Disp)
     -- Three candidates for the branch, added 2026-08-30 for Run 22: the
     -- run unrolled by four, a run of 2 to 5 elements written by a body
