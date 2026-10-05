@@ -4669,11 +4669,9 @@ def machine_check(cells, shapes, readme, thresh=3.0, spread=7.0,
 
     The evening asks it, after the sequence and on the basis half's
     main-set JSON, which carries `*/list` and both `sum-only` halves on
-    every shape, so the comparison is net against net. The gate asked it
-    until 2026-10-05, before the hours, on the reasoning that a moved box
-    is cheapest learnt early; but the check has stopped no evening since
-    2026-08-23, every claim a run publishes being within the run, and the
-    gate left the main set for one class that cannot answer it.
+    every shape, so the comparison is net against net. Why there, why it
+    stops nothing and what a person asks when it moves:
+    why: --para 'If that line says the gate has not run'
 
     The threshold is the geomean over shapes, not a cell. Across the
     eleven kept processes of Runs 10 to 13 -- three regimes, two shims,
@@ -4691,22 +4689,11 @@ def machine_check(cells, shapes, readme, thresh=3.0, spread=7.0,
     the box and every cross-run ORDERING survives; outside it they did
     not, and orderings are in question along with the level.
 
-    NEITHER OUTCOME STOPS A RUN, and the mode returns 0 for both. It used
-    to return 1 on the geomean, which failed the gate and left a quiet
-    machine idle until a person woke to be asked -- the worst trade
-    available, since the evening cannot be recovered and the reading can.
-    Every claim this README publishes is a within-run comparison, so a box
-    that moved between runs cannot reach one; the cross-run absolute
-    column is what it reaches, and that re-baselines with each write-up.
-    Only a comparison the mode cannot make AT ALL still returns 1: no
-    shape of this run in the fingerprint, or every shape's `list` net
-    non-positive. Some shapes sunk is not that -- those are dropped by
-    name and the rest are compared, at 0.
-
-    What it cannot do is say WHAT changed; that is a person's, and the
-    first question is not the code but the box -- a kernel, a microcode
-    update, a BIOS setting, a different machine, a thermal state -- asked
-    when the machine is free rather than while it stands waiting.
+    NEITHER OUTCOME STOPS A RUN, and the mode returns 0 for both. Only a
+    comparison it cannot make AT ALL returns 1: no shape of this run in
+    the fingerprint, or every shape's `list` net non-positive. Some shapes
+    sunk is not that -- those are dropped by name and the rest are
+    compared, at 0.
     """
     # Post-run 5b installs --fingerprint into the run's OWN file, and the
     # kept fingerprint is read out of whichever run file this is given --
@@ -6895,14 +6882,12 @@ def gate_draft(run, args):
     the four geomeans compose exactly: pass -b over pass -a IS the
     control's -a over -b divided by the basis's, term by term, so a
     verdict that `predicts` the second pass from the halves' own legs and
-    finds it agreeing has read an identity. Runs 39 and 40 wrote theirs
-    that way, the parting they quoted being the rounding of four-decimal
-    figures. What the second pair does say is WHICH half moved between its
-    two legs, and by how much; the identity is asserted here so a shape set
-    that differs between the four files is refused rather than misread.
-    No verdict is written from it since 2026-10-05, when the owner retired
-    run list step 14a: it had read SOUND on every run from Run 24 to Run
-    45, and what the table says is the write-up's to quote.
+    finds it agreeing has read an identity. What the second pair does say
+    is WHICH half moved between its two legs, and by how much; the identity
+    is asserted here so a shape set that differs between the four files is
+    refused rather than misread. No verdict is written from it, and what the
+    table says is the write-up's to quote:
+    why: --para 'If that line says the gate has not run'
     """
     halves = note_halves(run)
     if not halves:

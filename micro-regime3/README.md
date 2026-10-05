@@ -9069,48 +9069,56 @@ out that a binary is wrong before the hours are spent on it, and **the one
 repetition of a process on either half inside the run**: the four readings say
 how far each half moved between its own two legs, which is how Run 41's
 `bq-expand` outlier was read as that build's and not that process's, both passes
-agreeing. **Why `rev` and four arms, ruled 2026-10-05 by the owner**: the gate
-ran five arms over the main set's nineteen shapes for thirty-three minutes,
-and `rev`'s three views carry that same outlier in about five --- 1.3542 across
-the halves on Run 41 against 1.3048 to 1.3142 on Runs 40 and 42 to 45, where
-the main set read 1.3620 --- while `scaled` reads `bq-expand` level on every run
-and would have missed it; `list` is the baseline and the two `sum-only` halves
-the forcing pass every net is corrected by, and `mut-odo-vecdims` went
-with the main set. **What it does not buy is a magnitude**: a gate
-is a rehearsal over three views, and the pair's figures come off the run;
-nor is the two passes disagreeing a second opinion about the binaries, their
-ratio being algebraically the ratio of the two same-binary readings,
-so a palindrome that fails to converge is reporting its own noise.
-**And no verdict is written on it since 2026-10-05**: the owner retired run list
-step 14a, the hand-written verdict above the GATE block, which had read SOUND
-on every run from Run 24 to Run 45; the four readings are the write-up's, quoted
-in its Provenance. **The machine check left the gate the same day, and asks one
-question that is not a reading at all: has the machine changed?**
-`run-evening.sh` runs `./read-run.py $R-<basis>-main.json --machine` after
-the sequence, as stage 17a, and puts the answer in `$R-evening-out.txt`
-and a line of it in `$R-evening.txt`. It holds `list`'s net per call, shape
-by shape, to the fingerprint the last run's file keeps, so its absolutes
-are in `runs/` long after its JSONs are offered for deletion and nothing has
-to be kept for it; the main set carries `*/list` and both `sum-only` halves
-on every shape, which is what makes the comparison net against net,
-and the gate's one class does not hold the fingerprint's shapes, which is why
-the check left it. It reads the geomean rather than a cell, at a threshold
-the mode's own docstring derives from every kept process this README has,
-and beside it the per-shape residual about that geomean, which says whether
-the shapes moved together: inside the band a single shape ordinarily wanders
-it is a LEVEL SHIFT, one number describing the box, and every cross-run ordering
-survives it; outside, the orderings are in question along with the level.
-**Neither stops the run, at any size, in either direction.** A box that moved
-between runs cannot reach a within-run comparison, and every claim here is one;
-what it reaches is the cross-run absolute column, which re-baselines by itself,
-each write-up replacing the fingerprint it reads. So a move is recorded
-and the evening proceeds, the write-up owing a paragraph naming it and the box
-question going to a person once the machine is free: **ask whether the box
-changed** --- a kernel, a microcode update, a BIOS setting, a thermal state,
-a different machine --- none of which a run can see from inside itself, and none
-worth a night of idle machine to ask. What the stage still records
-as a complaint is a comparison the mode cannot make at all --- no shape
-of this run in the fingerprint, every `list` net non-positive.
+agreeing. **It refuses on the apparatus and never on the world**: a missing
+binary, a selection that is not the arms it names, a nonzero exit, a half
+that asserted no heap state or an instrument switched on and absent from the log
+makes the night's data unusable whatever the machine does, while a box
+that measures differently is the machine check's, below, which stops nothing ---
+a line drawn 2026-08-23, after the machine check stopped Run 18 and cost
+the hours it was meant to save, when every other refusal here
+and in `preflight.sh` was walked and found to be apparatus. **Why `rev` and four
+arms, ruled 2026-10-05 by the owner**: the gate ran five arms over the main
+set's nineteen shapes for thirty-three minutes, and `rev`'s three views carry
+that same outlier in about five --- 1.3542 across the halves on Run 41 against
+1.3048 to 1.3142 on Runs 40 and 42 to 45, where the main set read 1.3620 ---
+while `scaled` reads `bq-expand` level on every run and would have missed it;
+`list` is the baseline and the two `sum-only` halves the forcing pass every net
+is corrected by, and `mut-odo-vecdims` went with the main set. **What it does
+not buy is a magnitude**: a gate is a rehearsal over three views, and the pair's
+figures come off the run; nor is the two passes disagreeing a second opinion
+about the binaries, their ratio being algebraically the ratio of the two
+same-binary readings, so a palindrome that fails to converge is reporting
+its own noise. **And no verdict is written on it since 2026-10-05**: the owner
+retired run list step 14a, the hand-written verdict above the GATE block, which
+had read SOUND on every run from Run 24 to Run 45; the four readings
+are the write-up's, quoted in its Provenance. **The machine check left the gate
+the same day, and asks one question that is not a reading at all: has
+the machine changed?** `run-evening.sh` runs
+`./read-run.py $R-<basis>-main.json --machine` after the sequence, as stage 17a,
+and puts the answer in `$R-evening-out.txt` and a line of
+it in `$R-evening.txt`. It holds `list`'s net per call, shape by shape,
+to the fingerprint the last run's file keeps, so its absolutes are in `runs/`
+long after its JSONs are offered for deletion and nothing has to be kept for it;
+the main set carries `*/list` and both `sum-only` halves on every shape, which
+is what makes the comparison net against net, and the gate's one class does
+not hold the fingerprint's shapes, which is why the check left it. It reads
+the geomean rather than a cell, at a threshold the mode's own docstring derives
+from every kept process this README has, and beside it the per-shape residual
+about that geomean, which says whether the shapes moved together: inside
+the band a single shape ordinarily wanders it is a LEVEL SHIFT, one number
+describing the box, and every cross-run ordering survives it; outside,
+the orderings are in question along with the level. **Neither stops the run,
+at any size, in either direction.** A box that moved between runs cannot reach
+a within-run comparison, and every claim here is one; what it reaches
+is the cross-run absolute column, which re-baselines by itself, each write-up
+replacing the fingerprint it reads. So a move is recorded and the evening
+proceeds, the write-up owing a paragraph naming it and the box question going
+to a person once the machine is free: **ask whether the box changed** ---
+a kernel, a microcode update, a BIOS setting, a thermal state, a different
+machine --- none of which a run can see from inside itself, and none worth
+a night of idle machine to ask. What the stage still records as a complaint
+is a comparison the mode cannot make at all --- no shape of this run
+in the fingerprint, every `list` net non-positive.
 
 **The run** is one sequence --- the main set from each half, then each
 stride-class population on each half, control then basis, adjacent,

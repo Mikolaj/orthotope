@@ -1,54 +1,23 @@
 #!/usr/bin/env bash
 # The gate a paired run wants before its evening: four arms over the `rev`
-# stride class, on both halves, twice each.
+# stride class, on both halves, twice each, in a palindrome -- other, basis,
+# basis, other -- so that drift over the gate cannot read as a difference
+# between the binaries. It refuses on the apparatus and never on the world,
+# each refusal exiting 1. Why `rev`, these arms and that line:
+# why: --para 'If that line says the gate has not run'
 #
 #     ./run-gate.sh run12          # the run names the binaries and every file
 #
 # The run goes in every name this directory holds -- binaries, pair note, gate
 # artifacts -- so that two runs' files cannot collide however alike their half
-# names are. They can be very alike: Run 10 and Run 11 both had a half called
-# `aligned`, and this script, which guards nothing and named its output
-# `gate-<half>-<pass>`, silently overwrote Run 10's two aligned gate files.
-# Nothing was noticed until Run 12 was being set up. A name that carries the
-# run cannot do that, which is why the argument is required rather than
-# defaulted.
+# names are, which is why the argument is required rather than defaulted.
 #
-# WHAT THIS GATE FAILS ON, stated once because a gate that stops the evening
-# has to earn it: THE APPARATUS, never the world. A missing binary, a
-# selection that is not the arms it names, a nonzero exit, a half that
-# asserted no heap state, an instrument switched on and absent from the log
-# -- each of those makes the night's data unusable whatever the machine
-# does, so each exits 1. A box that measures differently than it did last
-# run is the world, and the evening is still valid under it: the evening's
-# machine check, which left this script on 2026-10-05, reads and records it
-# and stops nothing. The distinction was drawn 2026-08-23 after the machine
-# check stopped Run 18 and cost the hours it was meant to save; the other
-# paths here were walked the same day and all of them are apparatus, as are
-# preflight.sh's.
-#
-# The order is a palindrome -- other, basis, basis, other -- so each binary
-# carries the same mean position and drift over the gate cannot read as a
-# difference between them. Same reason the pad probe reversed its second pass,
-# and the part of this a person retyping the command would most likely drop.
-#
-# ONE SMALL CLASS AND FOUR ARMS since 2026-10-05, by the owner, where it was
-# the main set's nineteen shapes and five arms: `rev`'s three views carry
-# the one attribution the gate earned -- Run 41's `bq-expand` build outlier,
-# 1.3542 across the halves on `rev` against 1.3048 to 1.3142 on Runs 40
-# and 42 to 45, as the main set read it at 1.3620 -- and the run is five
-# minutes where it was thirty-three. `scaled` would have missed it, reading
-# `bq-expand` level on every run. The machine check left with the main set,
-# for run-evening.sh to take on the main-set basis JSON after the sequence.
-#
-# `*/list` is in the selection for two reasons: it is the control that says
-# the baseline did not move, and without a baseline `--selftest` has no
-# ratios to check; the two `sum-only` halves are the forcing pass every net
-# the readings divide is corrected by. The expected bench count is read from
-# the binary, not written down, so a roster change does not turn a correct run
-# into an alarm, and every arm SEL names is checked against `classes --list`
-# before the first process, so a roster change that parks one -- `build` and
-# `mut-odo`, to `Only` on 2026-09-04 with SEL still naming them -- refuses here
-# rather than failing every process on its count after the run.
+# `*/list` serves `--selftest` too, which has no ratios to check without a
+# baseline. The expected bench count is read from the binary, not written
+# down, so a roster change does not turn a correct run into an alarm, and
+# every arm SEL names is checked against `classes --list` before the first
+# process, so a roster change that parks one refuses here rather than
+# failing every process on its count after the run.
 #
 # About five minutes. Read it with, for the run and the two half names,
 #   ./read-run.py <run>-gate-<basis>-a.json \
@@ -75,20 +44,13 @@ PREFIX="$1"                  # the binaries, the note and this gate's own
                              # from its relaunch guard so this does not read
                              # as a previous attempt
 # `--show` prints the selection and the count derived from it, spends no
-# machine and exits 0. The note's `gate arms` line is written by the PREPARING
-# session, hours before this script is ever run, and until 2026-09-04 the only
-# way to write it was to read SEL out of this file by eye. Run 25's preparation
-# did read it by eye and wrote the PREVIOUS run's five globs into its note --
-# `build` and `mut-odo`, parked by the prune of that same day. preflight.sh
-# calls this at its own step, so the note's line is derived from the script
-# that will run and the two cannot drift.
+# machine and exits 0: preflight.sh's step 6b derives the note's `gate arms`
+# line from it, so the line and the script that will run cannot drift.
 SHOW=0
 if [ $# -gt 2 ]; then
   # An argument absorbed without effect and without error is this tree's
-  # `silent-option` family by name, and the first draft of this block read
-  # $2 alone: `./run-gate.sh run25 --show anything` printed the selection
-  # and exited 0, so a typed-wrong third word looked like a clean read.
-  # Found 2026-09-04 by reading this back.
+  # `silent-option` family: a mistyped third word would read as a clean
+  # --show.
   echo "./run-gate.sh: too many arguments -- got $#, wanted RUN [--show]"
   exit 2
 fi
@@ -114,11 +76,9 @@ if [ "$OTHER" = "$BASIS" ]; then
 fi
 GATE_CLASS=rev                 # the class the gate runs over, header above
 SEL=('-m' 'glob' '*/list' '*/bq-expand'
-     '*/sum-only-early' '*/sum-only-late')   # the form the decision of
-                             # 2026-08-22 superseded beside the baseline and
-                             # the forcing pass; `mut-odo-vecdims` until the
-                             # gate left the main set on 2026-10-05, `build`
-                             # and `mut-odo` until the prune of 2026-09-04
+     '*/sum-only-early' '*/sum-only-late')   # bq-expand, the form the
+                             # decision of 2026-08-22 superseded, beside the
+                             # baseline and the forcing pass
 # What the processes are handed: the globs above, each taken over the class
 # by its prefix, `*/list` becoming `rev-*/list`. SEL keeps the suffixes so
 # that one list names the arms and the class is stated once.
@@ -137,11 +97,8 @@ for h in $OTHER $BASIS; do
   [ -x "./$PREFIX-$h" ] || { echo "missing ./$PREFIX-$h -- $NOTE has the recipe"; exit 1; }
 done
 
-# The note is checked HERE and not at the end, where the verdict is written.
-# It used to be checked only there, after the four processes, so a pair with
-# no note beside it cost the whole forty minutes before anything said the
-# verdict had nowhere to live -- and a gate whose verdict cannot be recorded
-# is a gate nobody will trust tomorrow. Refuse before spending the machine.
+# The note is checked before the processes and not after them, where the
+# block is written: refuse before spending the machine.
 if [ ! -f "$NOTE" ]; then
   echo "no $NOTE beside the pair, so this gate's verdict would have nowhere"
   echo "to live. Every pair here is hand-built, so that file is written by"
@@ -238,10 +195,9 @@ echo "=== $(date -Is) gate complete"
 # which is how a gate of THIS pair would come to be filed under another's.
 #
 # What goes in is the mechanical half only -- four exit codes and four bench
-# counts, which is what this script knows. Whether the pair is sound was the
-# reading's verdict and a person's to write until 2026-10-05, when the owner
-# retired it; the line still says which half it is, an unconditional "the
-# gate ran" being what a truncated JSON behind a green scroll-back looks like.
+# counts, which is what this script knows -- and the block says so, an
+# unconditional "the gate ran" being what a truncated JSON behind a green
+# scroll-back looks like.
 # Kept as a backstop, the note having been checked before the processes ran:
 # it can only fire if something removed the file while the gate ran.
 if [ ! -f "$NOTE" ]; then

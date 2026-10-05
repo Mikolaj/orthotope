@@ -16,15 +16,11 @@
 # buys: the machine is its owner's again the moment the riders land, and
 # the session is woken there to say so (README, run list step 19a).
 #
-# Until 2026-09-02 those were five launch lines an executing session typed
-# between waits, each wait a turn end, each line a place to mis-order, to
-# drop the environment, or to write a waiter that greps its own command
-# line. This runs the four that want quiet; the session starts it in the
-# background and reads `$R-evening.txt` when the harness wakes it, and
-# `run-status.sh` reads the same file. Nothing here decides anything a
-# person decides, and since 2026-10-05 the gate owes no verdict: its four
-# readings go to `$R-evening-out.txt` for the write-up to quote, as the
-# machine check's does after the sequence.
+# The session starts it in the background and reads `$R-evening.txt` when
+# the harness wakes it, and `run-status.sh` reads the same file. Nothing
+# here decides anything a person decides, and the gate owes no verdict: its
+# four readings go to `$R-evening-out.txt` for the write-up to quote, as the
+# machine check's does.
 #
 # WHAT IT READS FROM THE NOTE, three machine lines beside the prose that
 # explains them (pair-note-template.txt), and its COMPARE line for the
@@ -37,17 +33,16 @@
 # check below saying why, and a COMPARE naming a run with no file.
 #
 # WHAT STOPS IT AND WHAT DOES NOT. The gate refusing (exit 1) is the apparatus
-# and stops the evening, as README's gate step says; a gate the note already
-# records as mechanically clean is not re-run. A busy box at the alarm stops
-# it, the sequence being hours. After that nothing stops it: a half the
-# instance gate could not test, run-major.sh's complaints, a machine check
-# that could not compare and a refused rider are each recorded as a complaint
-# and the next stage runs, a sound sequence being worth more than a stop --
-# and the last line hands the machine back, with the complaint count where
-# there is one, which is also the exit status. It refuses to start over a
-# previous attempt's `$R-evening.txt`, as run-major.sh refuses over a previous
-# attempt's JSONs: the stages' own guards then say what an earlier attempt
-# left.
+# and stops the evening; a gate the note already records as mechanically
+# clean is not re-run. A busy box at the alarm stops it, the sequence being
+# hours. After that nothing stops it: a half the instance gate could not test,
+# run-major.sh's complaints, a machine check that could not compare and a
+# refused rider are each recorded as a complaint and the next stage runs, a
+# sound sequence being worth more than a stop -- and the last line hands the
+# machine back, with the complaint count where there is one, which is also the
+# exit status. It refuses to start over a previous attempt's `$R-evening.txt`,
+# as run-major.sh refuses over a previous attempt's JSONs: the stages' own
+# guards then say what an earlier attempt left.
 #
 # ARTIFACT NAMES: `$R-evening.txt` and `$R-evening-out.txt`, both `.txt`
 # so that neither is a `$R-*.log` for run-major.sh's relaunch guard or
@@ -63,9 +58,7 @@ cd "$(dirname "$0")" || exit 1
 # machine or riders: it wants that attempt's status file, appends to it under a
 # `resumed` line, and runs the named stage and every one after it -- the
 # sequence only where no process of it started, the stray check refusing
-# any $R-*.json or $R-*.log. Run 39's
-# sequence refused after its gate had run, and the session
-# relaunched the sequence by hand, stamping the status file itself. Cases:
+# any $R-*.json or $R-*.log. Cases:
 # `evening-resumes-from-a-named-stage`, `evening-refuses-to-resume-nothing`.
 FROM=gate
 if [ $# -eq 3 ] && [ "$2" = --from ]; then
@@ -112,8 +105,7 @@ eval "$HALVES"
 # The machine check after the sequence reads the fingerprint of the run the
 # note's COMPARE line names, where it names one, and the newest run file's
 # otherwise. A named run with no file would make that check the one thing
-# the hours could not answer, so it is refused here, before them -- as
-# run-gate.sh refused it until the check left the gate on 2026-10-05. Case:
+# the hours could not answer, so it is refused here, before them. Case:
 # `evening-refuses-a-compare-run-with-no-file`.
 MDOC=()
 if [ -n "${COMPARE:-}" ]; then
@@ -176,12 +168,12 @@ if [ "$FROM" = gate ] && [ -e "$STATUS" ]; then
   exit 1
 fi
 # AND WHAT THE SEQUENCE'S OWN GUARD WOULD REFUSE OVER, refused here, before
-# the gate spends its minutes: run-major.sh refuses any $R-*.json or
-# $R-*.log but the gate's and the riders', and it runs third, so a stray
-# file under that name let Run 39's gate run, the sequence refuse at once
-# and the riders take the quiet box in its place. The stray was the
-# session's own redirect of this driver's output. The two filters are one
-# rule and are kept alike by hand. Case:
+# the gate spends its minutes: run-major.sh refuses any $R-*.json or $R-*.log
+# but the gate's and the riders', and it runs third, so a stray file under
+# that name would let the gate run, the sequence refuse at once and the riders
+# take the quiet box in its place -- a session's own redirect of this driver's
+# output among them. The two filters are one rule and are kept alike by hand.
+# Case:
 # `evening-refuses-a-stray-run-artifact-before-the-gate`.
 # shellcheck disable=SC2010  # the names here are the drivers' own
 STRAY=$(ls -1 "$R"-*.json "$R"-*.log 2>/dev/null \
@@ -273,15 +265,10 @@ else
     ./read-run.py "$R-gate-$BASIS-b.json" --compare "$R-gate-$OTHER-b.json"
     # AND EACH HALF AGAINST ITSELF, which is what says whether a spread
     # between the two passes above is the PAIR disagreeing or one half
-    # moving between its own two legs. Run 36's `list` parted 1.60 points
-    # across the passes and read SOUND anyway: its control half's own `a`
-    # over its `b` was 1.0128 where the basis's was 1.0004, so the control
-    # had moved between its legs and the pair had not -- the passes' ratio
-    # being those two divided, by construction (--gate-draft says why)
-    # -- two readings that took a session two hand-rolled calls the chapter
-    # does not name, at a moment when nothing else may run (2026-09-19).
-    # They cost what the two above cost and run in the same window, after
-    # the gate's last process has exited.
+    # moving between its own two legs, the passes' ratio being those two
+    # divided. They cost what the two above cost and run in the same
+    # window, after the gate's last process has exited.
+    # why: --para 'If that line says the gate has not run'
     echo; echo "##### each half against ITSELF, -a over -b: what a spread"
     echo "##### between the two passes above is, before it is the pair's"
     ./read-run.py "$R-gate-$BASIS-a.json" --compare "$R-gate-$BASIS-b.json"
@@ -331,15 +318,14 @@ at instance && { stage "instance gate" env -u WILDLOG ./instance-gate.sh "$R" ||
 # and neither are they here; the exit status carries them out.
 at sequence && { stage sequence ./run-major.sh "$R" || true; }
 
-# 17a. THE MACHINE CHECK, its own stage since 2026-10-05 and the gate's
-# until then: `list`'s net against the fingerprint the COMPARE run's file,
-# or the newest run file, keeps, read on the basis half's main-set JSON,
-# which carries `*/list` and both `sum-only` halves on every shape. After
-# the sequence because that JSON is the first that can answer it, and it
-# stops nothing, as the check has stopped no evening since 2026-08-23: every
-# claim a run publishes is within the run. Its reading goes to $OUT, where
-# read-all.sh's brief takes it, and one line of it to the status file. Case:
+# 17a. THE MACHINE CHECK: `list`'s net against the fingerprint the COMPARE
+# run's file, or the newest run file, keeps, read on the basis half's
+# main-set JSON, which carries `*/list` and both `sum-only` halves on every
+# shape. After the sequence because that JSON is the first that can answer
+# it, and it stops nothing. Its reading goes to $OUT, where read-all.sh's
+# brief takes it, and one line of it to the status file. Case:
 # `evening-takes-the-machine-check-off-the-main-set`.
+# why: --para 'If that line says the gate has not run'
 if at machine; then
   stage machine ./read-run.py "$R-$BASIS-main.json" --machine "${MDOC[@]}" \
     || true
