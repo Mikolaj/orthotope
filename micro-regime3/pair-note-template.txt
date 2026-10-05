@@ -107,7 +107,7 @@ line below is the ONE place the two names are set: every script that takes
 a run reads it through pair-halves.sh, and an environment that names them
 differently is refused. Nothing is set in any script. The COMPARE line
 under it names the earlier run every cross-run reading of this pair goes
-against -- run-gate.sh's machine check, `--movement`, `--bridge` and
+against -- the evening's machine check, `--movement`, `--bridge` and
 `--half-movers` all default to it -- and `--draft` writes the run it drafts
 from; a ruling that picks another run changes this line and nothing else.
 HALVES: basis=<basis> other=<other>
@@ -261,20 +261,20 @@ one. The previous run's totals are the fill-in block's `prev counts` row,
 derived and never carried. Where the registration reads a claim off counts
 rather than time, it says so.
 
-THE MACHINE [SAME]: run-gate.sh's machine check reads the gate's basis-half
-`a` JSON against the newest run file's fingerprint, and the line it prints
-is this run's answer; the previous run's is the fill-in block's `prev
-machine` row. The box's eras, and which absolutes may cross them, are
-README's Provenance. A net outside the bars, 5% a shape and 3% the geomean,
-is read first against what moved since the previous run, which the
-[PAIR'S] blocks above name.
+THE MACHINE [SAME]: the evening's machine check, its stage 17a, reads
+the basis half's main-set JSON after the sequence against the fingerprint
+of the COMPARE run's file, and its line in $R-evening.txt is this run's
+answer; the previous run's is the fill-in block's `prev machine` row.
+The box's eras, and which absolutes may cross them, are README's Provenance.
+A net outside the bars, 5% a shape and 3% the geomean, is read first against
+what moved since the previous run, which the [PAIR'S] blocks above name.
 
-GATE: NOT RUN. run-gate.sh takes five benches over the shape set from each
+GATE: NOT RUN. run-gate.sh takes four arms over the `rev` class from each
 half, twice each, in a palindrome, and both passes are read. Until a line
 below states an outcome, this pair has no gate.
 
 AND A GATE THE PAIR'S OWN VARIABLE WILL FIRE IS DECLARED HERE [SAME], by hand
-and after the run, as the gate's verdict above is: read-all.sh refuses a run
+and after the run: read-all.sh refuses a run
 whose processes do not assert one saturation state, and a pair whose
 variable moves what the preamble's spray leaves resident fires that on every
 process. Only where the run has shown it, and with its reason, one of:
@@ -360,7 +360,8 @@ Verified when built, YYYY-MM-DD:
                     how the roster moved, and its per-class counts are what
                     the roster block above owes
   prev counts       the previous run's counts totals, by --counts-totals
-  prev machine      the previous run's gate machine line, off its note
+  prev machine      the previous run's machine line, off its out file,
+                    or off its note where the out file carries none
   smoke sweep       ./smoke-sweep.sh $R, clean or not
   L1 ROSTER PASS:   taken or not owed, and on which roster -- a pass
                     recorded for a roster that has since moved is worse

@@ -88,8 +88,9 @@ if [ -z "$R" ]; then
   exit 2
 fi
 
-# Every JSON the run left, the gate's excluded: those are five arms over
-# the shape set and not a population, so their A/A gate is not this one.
+# Every JSON the run left, the gate's excluded: those are four arms over
+# one class, a rehearsal and not one of the run's populations, so their A/A
+# gate is not this one.
 # `$R-al-*` joins the gate in the exclusion, and for the same reason: an
 # alone-leg rider is one bench on one shape with no A/A pair and no
 # sum-only, so gating it asserts nothing and buries the eighteen this
@@ -176,7 +177,8 @@ fi
 # Anchored on run-major.sh's own stamp. Every complaint it makes goes
 # through `log ()`, so it reads `=== <date>   !! ...`; the pair note it
 # quotes beside them is indented and carries no stamp, and run-gate.sh
-# writes `!!` INTO that note whenever the machine check fires. Counting
+# wrote `!!` INTO that note whenever its machine check fired, until the
+# check left the gate on 2026-10-05. Counting
 # bare `!!` therefore made every run whose gate tripped that check report
 # a complaint no process made, at exit 1, for ever after -- Run 16, whose
 # gate fired for a deliberate change of basis area. Case:
@@ -210,7 +212,7 @@ fi
 #
 # Over the RECORDED processes' logs and no others, which is the same
 # exclusion FILES makes above and for the same reasons: the gate's halves
-# are five arms and not a population, and an alone leg is one bench in its
+# are four arms over one class and a rehearsal, and an alone leg is one bench in its
 # own process. `run-major.sh` echoes each reading into the wallclock log
 # too, indented behind its process's name, so that copy does not start the
 # line and is not counted twice here.
@@ -276,8 +278,7 @@ HALFSPREAD=$([ -z "$PLOGS" ] || grep -H '^@@saturate ' $PLOGS 2>/dev/null \
 # open entry, and its post-run step 1 still read NOT DONE at the end.
 #
 # A DECLARATION IS NOT A SUPPRESSION. It is written into the note BY HAND
-# with its reason, exactly as the gate's own verdict is at run list step
-# 14a, so what it costs is a sentence somebody had to mean; the block is
+# with its reason, so what it costs is a sentence somebody had to mean; the block is
 # still printed in full, the states still listed per process, and the
 # line says the note declared it. What changes is only that a declared
 # firing is a READING and not a refusal.
@@ -836,7 +837,7 @@ for_brief () {
   }
   echo
   echo "--- paste over checker-brief.txt items 5 and 6; <yours> is prose ---"
-  echo " 5. THIS RUN ONLY -- THE BOX AND THE PAIR. The gate machine check"
+  echo " 5. THIS RUN ONLY -- THE BOX AND THE PAIR. The machine check"
   echo "    read $(row 'machine check'). $(prev_span)."
   echo "    The binaries are"
   echo "    $(row 'md5s')with .text $(row 'text')"

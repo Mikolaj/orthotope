@@ -376,10 +376,12 @@ def rundoc_with_drafted_list_move(tmp):
     the phrasing `--prose-draft` writes, "`list` moves by N points on
     the main set", and N a point off the figure README's delta chain
     quotes, found by the check's own shape rather than by the run's
-    figure."""
+    figure. The site is taken in either phrasing the check reads: Run 45's
+    write-up kept the drafted one, and a fixture that knew only the older
+    hand form stopped building."""
     text = rundoc_text()
-    rx = re.compile(r'\S+ \S+ \S+ move `list` by \*{0,2}([\d.]+) points'
-                    r'\*{0,2} on the main set')
+    rx = re.compile(r'(?:\S+ \S+ \S+ move `list` by|`list` moves by)'
+                    r' \*{0,2}([\d.]+) points\*{0,2} on the main set')
     ms = list(rx.finditer(text))
     assert len(ms) == 1, ('the run file quotes the main-set `list` move'
                           ' %d times, need 1' % len(ms))
@@ -4551,6 +4553,9 @@ CLS=""
 for a in "$@"; do
   case "$a" in classes) CLS=pending ;;
     -*) ;;
+    # The word after `-m` is criterion's match mode and not a class: the
+    # gate selects `classes -m glob 'rev-*/list' ...` since 2026-10-05.
+    glob|pattern|ipattern|prefix) ;;
     *) [ "$CLS" = pending ] && CLS=$(printf %s "$a" | cut -d- -f1) ;;
   esac
 done
@@ -7660,7 +7665,7 @@ RECORDS = [
          ok=V(exit=0, has=['`retired-arm`', 'dropped']),
          bug=V(exit=2, has=['no such arm in both JSONs'])),
 
-    # ---- --gate-draft, run list step 14a's four readings as one table ----
+    # ---- --gate-draft, the gate's four readings as one table ----------
     case('gate-draft-reads-the-registration-spans', 'read-run.py',
          '715e7c0',
          "a registration's cross span already outside its band at the gate"
@@ -7691,7 +7696,26 @@ RECORDS = [
          argv=['--gate-draft', '{tmp}/zz'],
          ok=V(exit=0, has=['gate draft for zz', 'nb moved between its own'
                            ' two legs by at most', 'on list',
-                           'by construction'])),
+                           'by construction'],
+              # No verdict is owed since 2026-10-05: the readings are the
+              # write-up's, and the table says nothing it must be turned into.
+              hasnt=['The verdict is yours', 'step 14a'])),
+
+    case('gate-draft-holds-only-its-own-population', 'read-run.py', None,
+         'CONTROL: a registration span on the main set is not held to'
+         ' gate passes taken over a class, and is named as left to 5c',
+         # The gate left the main set for the `rev` class on 2026-10-05,
+         # and a main-set span read against `rev` passes would compare two
+         # populations, which README's one-population rule refuses.
+         plant=lambda t: dict(
+             plant_gate_with_registration(t),
+             **{'legs': [synth_json(t, 'rev', name='run96-gate-%s-%s.json'
+                                    % (h, leg))
+                         for h in ('nb', 'ob') for leg in 'ab']}),
+         argv=['--gate-draft', '{run}', '--readme', '{readme}'],
+         ok=V(exit=0, has=['on the main set, which this gate does not'
+                           ' read'],
+              hasnt=['item (1)  `cross'])),
 
     # ---- --over-list, the sweep behind the properties' only-claim ----
     # THE CLAIM IS A NEGATIVE OVER A THOUSAND CELLS and the mode's whole
@@ -8667,7 +8691,7 @@ RECORDS = [
          # reading past the block.
          plant=lambda t: {'readme': edited_readme(t)},
          argv=['--checklist', 'run', '--readme', '{readme}'],
-         ok=V(exit=0, has=['13. has the gate run and passed', 'run-counts.sh'],
+         ok=V(exit=0, has=['13. has the gate run?', 'run-counts.sh'],
               hasnt=['## ', 'why the chapter'])),
 
     case('counts-pair-reads-two-arms-on-one-half', 'read-run.py', None,
@@ -13134,7 +13158,10 @@ RECORDS = [
                     ('zzgate-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzgate'],
-         ok=V(has=['expecting 18 benches a process']),
+         # Five arms over the stand-in's two `rev` views since the gate
+         # left the main set on 2026-10-05; the bug direction replays the
+         # main-set gate of its own era, three shapes and a literal 15.
+         ok=V(has=['expecting 10 benches a process']),
          bug=V(has=['expecting 15 benches a process'])),
 
     case('smoke-sweep-runs-clean', 'smoke-sweep.sh', None,
@@ -13526,6 +13553,7 @@ RECORDS = [
                                               'zzev-evening.txt')).read(),
          ok=V(exit=0, has=['gate: inherited', 'alarm:',
                            'instance gate: done, rc=0', 'sequence: done, rc=0',
+                           'machine: done, rc=0',
                            'riders a1g clean: done, rc=0',
                            'riders lookrts clean: done, rc=0',
                            'RIDERS DONE AND THE MACHINE IS FREE'],
@@ -13622,8 +13650,50 @@ RECORDS = [
                                               'zzer-evening.txt')).read(),
          ok=V(exit=0, has=['evening begins for zzer', 'evening resumed for'
                            ' zzer from sequence', 'sequence: done, rc=0',
+                           'machine: done, rc=0',
                            'riders a1g clean: done, rc=0'],
               hasnt=['gate: inherited', 'instance gate: start'])),
+
+    case('evening-takes-the-machine-check-off-the-main-set',
+         'run-evening.sh', None,
+         'CONTROL: the machine check is its own stage after the sequence,'
+         ' read on the basis half\'s main-set JSON, its reading in the'
+         ' out file and its line in the status file',
+         # Out of the gate on 2026-10-05, by the owner: the gate went to the
+         # `rev` class, and the check compares `list` with the main set's
+         # fingerprint, which a class JSON cannot answer. After the hours
+         # rather than before them, a moved box never having changed an
+         # evening (README, the gate's reasons).
+         shadow=dict(extra=lambda: evening_fixture('zzem') + [
+             ('zzem-evening.txt', '=== 2026-01-01T00:00:00+00:00 evening'
+              ' begins for zzem\n=== 2026-01-01T07:00:00+00:00 sequence:'
+              ' done, rc=0\n')] + whole_run(['lookrts'], prefix='zzem')),
+         env={'MAXBUSY': '100', 'ONLY': main_shapes()[0]},
+         argv=['zzem', '--from', 'machine'],
+         # An absent out file reads as empty, so a driver that refuses the
+         # stage fails this case rather than skipping it: a probe that
+         # raises is counted as no case at all.
+         probe=lambda subs: (lambda f: open(f).read() if os.path.exists(f)
+                             else '')(os.path.join(subs['at'],
+                                                   'zzem-evening-out.txt')),
+         ok=V(has=['##### machine', 'zzem-lookrts-main.json',
+                   "machine: `list` net against"],
+              hasnt=['##### sequence'])),
+
+    case('evening-refuses-a-compare-run-with-no-file', 'run-evening.sh',
+         None,
+         'CONTROL: a COMPARE run with no run file is refused before the'
+         ' gate, the machine check after the sequence having no'
+         ' fingerprint to read',
+         # The refusal lived in run-gate.sh while the check did, and moved
+         # with it on 2026-10-05: the same question, asked before the hours.
+         shadow=dict(extra=lambda: evening_fixture('zzec') + [
+             ('zzec-pair.txt', NOTE_STUB + 'LAUNCH: none\nRIDERS: none\n'
+              'COMPARE: run1\n' + CLEAN_GATE)]),
+         env={'MAXBUSY': '100'},
+         argv=['zzec'],
+         ok=V(exit=1, has=['runs/run1.md'],
+              hasnt=['gate: start', 'gate: inherited'])),
 
     case('evening-refuses-to-resume-nothing', 'run-evening.sh', None,
          'CONTROL: --from with no status file is refused, there being no'
@@ -15865,9 +15935,10 @@ RECORDS = [
                             ('zzshow-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzshow', '--show'],
-         # Three shapes and five globs in the stand-in, so 15.
-         ok=V(exit=0, has=['glob   */list', 'arms   5', 'shapes 3',
-                           'expect 15 benches a process'],
+         # Two `rev` views in the stand-in's class roster and four
+         # globs, so 8: the gate selects one small class since 2026-10-05.
+         ok=V(exit=0, has=['class  rev', 'glob   rev-*/list', 'arms   4',
+                           'shapes 2', 'expect 8 benches a process'],
               hasnt=['expecting'])),
 
     case('gate-show-absorbs-a-third-argument', 'run-gate.sh', None,
@@ -15882,29 +15953,25 @@ RECORDS = [
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzshow2', '--show', 'nonsense'],
          ok=V(exit=2, has=['too many arguments'],
-              hasnt=['expect 15 benches a process'])),
+              hasnt=['expect 8 benches a process'])),
 
-    case('gate-show-names-the-compare-run', 'run-gate.sh', None,
-         'CONTROL: --show names the run file the machine check reads, off'
-         ' the note\'s COMPARE line',
-         # run32.md is a record and stays, so the shadow's symlinked runs/
-         # carries it.
-         shadow=dict(extra=[('zzshow3-a1g', FAKE_HALF),
-                            ('zzshow3-lookrts', FAKE_HALF),
-                            ('zzshow3-pair.txt',
-                             NOTE_STUB + 'COMPARE: run32\n')]),
-         argv=['zzshow3', '--show'],
-         ok=V(exit=0, has=['compare runs/run32.md'])),
-
-    case('gate-refuses-a-compare-run-with-no-file', 'run-gate.sh', None,
-         'CONTROL: a COMPARE run with no run file is refused before the'
-         ' machine, whose check would read nothing after forty minutes',
-         shadow=dict(extra=[('zzshow4-a1g', FAKE_HALF),
-                            ('zzshow4-lookrts', FAKE_HALF),
-                            ('zzshow4-pair.txt',
-                             NOTE_STUB + 'COMPARE: run1\n')]),
-         argv=['zzshow4', '--show'],
-         ok=V(exit=1, has=['runs/run1.md'], hasnt=['expect 15 benches'])),
+    case('gate-selects-one-small-class-and-four-arms', 'run-gate.sh',
+         None,
+         'CONTROL: the gate runs `list`, `bq-expand` and both `sum-only`'
+         ' halves over the `rev` class alone, twelve benches a process',
+         # Moved off the main set's 95 benches a process on 2026-10-05, by
+         # the owner: `rev` carries the one attribution the gate earned,
+         # Run 41's `bq-expand` build outlier, at 1.3542 against 1.3048 to
+         # 1.3142 on Runs 40 and 42 to 45, and the run takes five minutes
+         # where it took thirty-three. The stand-ins replay a whole run, so
+         # the count is the real class's: three views and four arms.
+         shadow=dict(extra=lambda: halves('zzgr-lookrts', 'zzgr-a1g')
+                     + [('zzgr-pair.txt', NOTE_STUB)]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzgr'],
+         ok=V(exit=0, has=['expecting 12 benches a process',
+                           'zzgr-gate-lookrts-a rc=0 benchmarking=12'],
+              hasnt=['!!'])),
 
     case('delta-of-a-build-against-itself-moves-nothing', 'loop-offsets.py',
          None,
@@ -16108,8 +16175,19 @@ RECORDS = [
          # dropped reading, so the count is what the assertion is on.
          ok=V(has=['##### gate reading, -a pair then -b pair',
                    '##### each half against ITSELF, -a over -b',
-                   'per arm, over'])),
+                   'per arm, over'],
+              hasnt=['write the verdict', 'the verdict above the note'])),
 
+
+    case('status-owes-no-gate-verdict', 'run-status.sh', None,
+         'CONTROL: a note with a clean GATE block and no hand-written'
+         ' verdict owes nothing for the gate',
+         # Step 14a, the hand-written SOUND verdict above the GATE block,
+         # retired 2026-10-05 by the owner: it had read SOUND on every run
+         # on record, and the gate's readings are the write-up's.
+         shadow=dict(extra=[('run97-pair.txt', NOTE_STUB + CLEAN_GATE)]),
+         argv=['run97'],
+         ok=V(hasnt=['14a', 'GATE VERDICT'])),
 
     case('status-counts-the-slots-a-note-still-owes', 'run-status.sh', None,
          'CONTROL: a note carrying <yours> reads NOT DONE at 2c, naming'

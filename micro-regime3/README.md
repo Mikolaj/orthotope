@@ -4186,8 +4186,7 @@ codegen rather than that it cannot be built.
   in the script and twice in `defects.py`: the sentence it sat in claims
   a blocked perf costs *the same time a real sweep takes*, and a session reads
   the duration off the stamps the sweep writes into its artifact's header
-  and footer. The gate's own forty minutes elsewhere in this README
-  is a different duration and is right.
+  and footer.
 - `ANSWERED` **Does `offtab-scan-rem` belong in the fingerprint? It does,
   and membership stopped dropping arms at all --- taken 2026-08-24.**
   `offtab-scan-rem` is best outside the family on `reshape1-rank10`, 0.090
@@ -7384,7 +7383,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      docstring, and horde-ad's CLAUDE.md is not
     #      why: every mode defaults to the newest run file.
     #      Every mode defaults to the newest file, and everything
-    #      before post-run step 5 -- the gate's machine check, the tables
+    #      before post-run step 5 -- the evening's machine check, the tables
     #      read back -- wants the run behind you and would read this run's
     #      empty file instead. The disk is where the run number is written.
     R=runNN; PREV=runMM; REGIME=-fspec-constr   # an empty regime is a
@@ -7581,7 +7580,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      the scripts that take a run: `HALVES: basis=<b> other=<o>`,
     #      which pair-halves.sh reads for all of them and holds the
     #      environment to; `COMPARE: run<N>`, the earlier run
-    #      run-gate.sh's machine check, `--movement`, `--bridge` and
+    #      the evening's machine check, `--movement`, `--bridge` and
     #      `--half-movers` read against unless told otherwise, which
     #      `--draft` sets to $PREV and a ruling may change; `LAUNCH:
     #      <NAME=value ...>` or `LAUNCH: none`; and `RIDERS: clean [sat]`
@@ -8271,7 +8270,7 @@ not start on a session's judgement.** Steps 13 to 20 sit here rather
 than with the preparation above because the evening runs through them: 14, 17
 and 19 want the machine quiet and 20 merely spends it, 16 reads it, 13 decides
 whether the gate is owed, and 15 and 18 are what the session reads while
-the driver runs. The gate is forty minutes and the sequence is most
+the driver runs. The gate is five minutes and the sequence is most
 of an evening, and both want the desktop to itself. **The person's request
 for the run IS the go-ahead, this whole list with it --- though what it buys
 is the QUIET machine only as far as 19a, where the list hands it back ---
@@ -8299,16 +8298,16 @@ Unsandboxed throughout:
     #      <basis> and <other>, the control; the run file is runs/$R.md;
     #      the open list is README's `What is open`; `item N` is the
     #      readings list, `./read-run.py --checklist readings`.
-    grep -i gate $R-pair.txt              # 13. has the gate run and passed?
-    #      read UP: the newest GATE: line is the script's own "reading still
-    #      to do"; the hand-written verdict sits above it. The note is
-    #      always somebody else's; NOT RUN is its ordinary answer and
-    #      means the evening's first stage takes the gate, so
+    grep -i gate $R-pair.txt              # 13. has the gate run?
+    #      read UP: the newest GATE: line is the script's own block, clean
+    #      or FAILED, and no verdict is written by hand since 2026-10-05.
+    #      The note is always somebody else's; NOT RUN is its ordinary
+    #      answer and means the evening's first stage takes the gate, so
     #      read its [EXEC] blocks and not the note -- those are the ones
     #      this session ACTS on, where [SAME] and [PAIR'S] say who WROTE
     #      the block; the rest is the preparation's record and is skimmed.
-    #      DONE WHEN the verdict above GATE: says sound, or GATE: reads
-    #      NOT RUN.
+    #      DONE WHEN the newest GATE: block reads mechanically clean, or
+    #      GATE: reads NOT RUN.
     #      why: --para 'A paired Run has one gate more'
     #      THERE IS NO `or the whole note` BRANCH: a note without an
     #      [EXEC] block is a note `--note-check` refuses at pre-run 12c,
@@ -8354,8 +8353,9 @@ Unsandboxed throughout:
     #      here and not hours in.
     #      It runs the gate (14), the alarm (16), the instance gate (16a:
     #      SUSPENDED WITH hugebin/ since 2026-09-19 -- instance-gate.sh
-    #      says so PER HALF, naming each, and exits 0), the sequence (17)
-    #      and the riders (19), in that order, under the environment the
+    #      says so PER HALF, naming each, and exits 0), the sequence (17),
+    #      the machine check (17a) and the riders (19), in that order,
+    #      under the environment the
     #      note's LAUNCH: line names, each stage's verdict appended to
     #      $R-evening.txt as it lands and the machine handed back on its
     #      last line. It refuses a note without HALVES:, LAUNCH: and
@@ -8369,7 +8369,8 @@ Unsandboxed throughout:
     #      `probe-killed-$R-<half>-<pop>.json.truncated`. Then EITHER move
     #      the dead attempt's $R-evening.txt aside and launch again, OR
     #      resume it at the stage that died, `./run-evening.sh $R --from
-    #      STAGE` (gate, alarm, instance, sequence or riders), which
+    #      STAGE` (gate, alarm, instance, sequence, machine or riders),
+    #      which
     #      appends to that file under a `resumed` line -- a sequence only
     #      where no process of it started, its stray check refusing any
     #      $R-*.json or $R-*.log; one that started is finished by step
@@ -8404,17 +8405,20 @@ Unsandboxed throughout:
     #      forestall, and a status call costs 0.81 of a core on a box
     #      being timed.
     #  14. THE GATE, its first stage: run-gate.sh on both halves twice in a
-    #      palindrome, FOUR --compare readings put in $R-evening-out.txt:
-    #      the two cross-half passes, the -a pair and the -b pair, and then
-    #      EACH HALF over its own two legs. The verdict is the two passes
-    #      agreeing, and a gate answers sound or not sound -- never quote a
-    #      magnitude from one. A spread between the passes IS the two
-    #      halves' own drift, the passes' ratio being the control's legs
-    #      over the basis's by construction: read which half moved.
-    #      `./read-run.py --gate-draft $R` puts the four side by side,
-    #      and the driver appends it to $R-evening-out.txt, with the
-    #      registration's `cross` spans held to the two passes under it:
-    #      a span outside its band there is a question, not a forecast.
+    #      palindrome, `list`, `bq-expand` and both `sum-only` halves over
+    #      the `rev` class, about five minutes, and FOUR --compare readings
+    #      put in $R-evening-out.txt: the two cross-half passes, the -a
+    #      pair and the -b pair, and then EACH HALF over its own two legs.
+    #      No verdict is written on it since 2026-10-05 -- the readings
+    #      are the write-up's -- and never quote a magnitude from one. A
+    #      spread between the passes IS the two halves' own drift, the
+    #      passes' ratio being the control's legs over the basis's by
+    #      construction: read which half moved. `./read-run.py
+    #      --gate-draft $R` puts the four side by side, and the driver
+    #      appends it to $R-evening-out.txt, with the registration's
+    #      `cross` spans ON THE GATE'S CLASS held to the two passes under
+    #      it, the rest named as 5c's: a span outside its band there is a
+    #      question, not a forecast.
     #      why: the second pair of readings says what a spread is.
     #      THE SECOND PAIR OF READINGS IS WHAT A SPREAD BETWEEN THE
     #      PASSES IS, before it is the pair's: the control's legs over the
@@ -8424,15 +8428,6 @@ Unsandboxed throughout:
     #      two builds by the BOTH HALVES ARE BUILT ANEW ruling, and again
     #      after either half is rebuilt: run-evening.sh inherits a recorded
     #      gate only for the binaries its block names by md5
-    #  14a. AT 19a, WRITE THE VERDICT by hand ABOVE the note's GATE block,
-    #      from the draft table, opening the block `GATE VERDICT`, which
-    #      run-status.sh reads, and clearing `GATE: NOT RUN` in the same edit --
-    #      once the evening has landed, the driver going on without it. A
-    #      gate that FAILED mechanically stopped the driver instead, and
-    #      that is the apparatus: read run-gate.sh's block in the note
-    #      for the refusal. DONE WHEN the note carries the verdict and no
-    #      `GATE: NOT RUN`.
-    #      why: --para 'A paired Run has one gate more'
     #  16. THE ALARM, its second stage: two reads of /proc/stat two seconds
     #      apart, refused above 5% non-idle, MAXBUSY overriding -- the
     #      reading the riders take. The request for the run is the
@@ -8470,7 +8465,14 @@ Unsandboxed throughout:
     #      read-all.sh's plateau glob and NOT out of properties.py's
     #      corpus, which globs every `.json` here and fails its properties
     #      on a truncated one.
-    #  19. THE RIDERS, its fourth stage: run-alonelegs.sh on each half,
+    #  17a. THE MACHINE CHECK, its fourth stage since 2026-10-05: `list`'s net
+    #      on the basis half's main-set JSON against the fingerprint of the
+    #      note's COMPARE run, or of the newest run file, its reading in
+    #      $R-evening-out.txt and one line in $R-evening.txt. It stops
+    #      nothing, a moved box being read and named; a COMPARE line
+    #      naming a run with no file stops the evening before the gate.
+    #      why: --para 'A paired Run has one gate more'
+    #  19. THE RIDERS, its fifth stage: run-alonelegs.sh on each half,
     #      control first, clean (SATURATE stripped from the launch
     #      environment) and then `SAT=1` where the note's RIDERS: line
     #      says `sat` -- the main-set `list` alone legs, one bench
@@ -8481,14 +8483,14 @@ Unsandboxed throughout:
     #      per-shape measurement
     #  19a. THEN, WOKEN, AND THE MACHINE IS FREE: read $R-evening.txt top
     #      to bottom -- each stage's rc and any COMPLAINT -- then
-    #      $R-wallclock.log's `!!` lines, write 14a's verdict, and report
-    #      each stage's exit rather than folding them into a later
-    #      summary. HOLD ANY TOOLING FIX a stage's complaint calls for
+    #      $R-wallclock.log's `!!` lines, and report each stage's exit,
+    #      the machine check's line among them, rather than folding them
+    #      into a later summary. HOLD ANY TOOLING FIX a stage's complaint calls for
     #      until the write-up's 7a, save one a 6a gate cannot pass
     #      without, made at 6a in a commit of its own, as the open list's
     #      owed changes are. READ THE CONTAINING ARTIFACT ONLY,
     #      NEVER BOTH: $R-evening-out.txt holds $R-wallclock.log byte for
-    #      byte, and step 14a reads the first. A file the harness
+    #      byte, and the write-up reads the first. A file the harness
     #      persisted out of a command's own output is read, never the
     #      copy opened too.
     #      AND SAY THAT THE BOX NEED NOT BE QUIET ANY MORE, BESIDE the
@@ -8515,7 +8517,7 @@ Unsandboxed throughout:
     #      INSTANCE term as gone.
     #      why: a fix landed mid-write-up costs every stretch after it an
     #      unwrap, each commit rewrapping README.
-    #      The log read here is a second copy of what 14a already had, and
+    #      The log read here is a second copy of what the out file had, and
     #      opening a persisted copy reads it twice.
     #      Nothing below wants a quiet box (20's own line says why), so
     #      the desktop goes back to its owner here; a message with no tool
@@ -8677,7 +8679,7 @@ it is legitimately an afternoon days before the evening. What such a session
 never owes again is the three that cost machine time: the gate, the smoke sweep
 and the roster pass are properties of the pair and its roster, and the note
 is the only thing that outlives a session, so each is recorded there or is paid
-again --- forty minutes of quiet machine in the gate's case, the step most often
+again --- minutes of quiet machine in the gate's case, the step most often
 re-run when it should not be. What it does owe is `--lint` and `--check-doc`,
 the README having moved under it, and the cheap read-only steps with them --- 4
 to 10 are seconds each, so re-running them costs less than deciding not to.
@@ -9042,67 +9044,73 @@ past.
 **A paired Run has one gate more, and the first thing to do about it is read
 rather than run it. The gate belongs to the pair, not to the session**, which
 is what stops it being paid for twice: re-running it on a pair that has passed
-costs a quiet forty minutes and can only reproduce what the note says,
-and a rebuild that comes out md5-identical inherits it where one that does
-not --- a changed `Main.hs`, a changed regime --- needs its own. The grep
-is case-insensitive and not anchored on the `GATE:` token because a note written
-by hand says it in prose, and grepping for the token finds nothing in one, which
-reads as *no gate* and costs the hour it was meant to save. **The newest `GATE:`
-line is not the verdict**: `run-gate.sh` appends its mechanical block last
-and closes by asking for a reading, so the verdict, written by hand, sits above
-it, and *newest wins* cost the forty minutes the step exists to save, which
-is how it was found.
+costs quiet minutes and can only reproduce what the note says, and a rebuild
+that comes out md5-identical inherits it where one that does not --- a changed
+`Main.hs`, a changed regime --- needs its own. The grep is case-insensitive
+and not anchored on the `GATE:` token because a note written by hand says
+it in prose, and grepping for the token finds nothing in one, which reads
+as *no gate* and costs the quiet minutes it was meant to save. **The newest
+`GATE:` line is the answer**: `run-gate.sh` appends its mechanical block last,
+clean or FAILED, and no verdict has been written above it by hand since
+2026-10-05.
 
 **If that line says the gate has not run**, it is the last thing before
 the evening --- but it is not part of the preparation, and a session preparing
-the run does not reach it: it spends forty minutes of quiet machine, so it lives
+the run does not reach it: it spends minutes of quiet machine, so it lives
 in the run list behind the go-ahead with the sequence itself, as the driver's
 first stage. `run-gate.sh` checks that both binaries list every arm
-its selection names, then takes five benches over the shape set from each half,
+its selection names over the `rev` class, then takes `list`, `bq-expand`
+and the two `sum-only` halves over that class's three views from each half,
 twice each, in a palindrome --- control, basis, basis, control --- so that drift
-over the hour cannot read as a difference between the binaries, and **both
-passes are read, which is what the palindrome is for**: the `a` pair puts
-the two halves next to each other early and the `b` pair late, so a verdict
-is the two readings agreeing rather than one taken at a moment. What it buys
-is finding out that the basis binary is wrong before an hour of main set
-is spent on it. **What it does not buy is a first reading of the arms
-the pairing is predicted on.** Its selection once carried `build` and `mut-odo`,
-two of the three widest-spread arms in the roster --- the placement-sensitive
-pair [the floor section][floor] is written about --- and the term between
-its two passes ran past the drift band a movement is asked to clear; it carries
-`bq-expand` and `mut-odo-vecdims` now, and a magnitude read off a gate is still
-not evidence, five benches being unable to price precision by Run 10's finding
-in the open list. Whether a five-bench process is *also* noisier than a full one
-is not separable from this with one process per binary. And the two passes
-disagreeing is not a second opinion about the binaries: their ratio
-is algebraically the ratio of the two same-binary readings, so a palindrome
-that fails to converge is reporting its own noise. Read the gate for soundness,
-and take every magnitude off the run; the verdict goes **above** the script's
-block, where reading up from the end meets it first. **The gate also answers one
-question that is not a reading at all: has the machine changed?** `run-gate.sh`
-runs `./read-run.py $R-gate-<basis>-a.json --machine` after its four processes
-and puts the answer in the note. It holds `list`'s net per call, shape by shape,
-to the fingerprint the last run's file keeps, so its absolutes are in `runs/`
-long after its JSONs are offered for deletion and nothing has to be kept for it;
-the gate's own selection carries `*/list` and both `sum-only` halves on every
-shape, which is what makes the comparison net against net. It reads the geomean
-rather than a cell, at a threshold the mode's own docstring derives from every
-kept process this README has, and beside it the per-shape residual about
-that geomean, which says whether the shapes moved together: inside the band
-a single shape ordinarily wanders it is a LEVEL SHIFT, one number describing
-the box, and every cross-run ordering survives it; outside, the orderings
-are in question along with the level. **Neither stops the run, at any size,
-in either direction.** A box that moved between runs cannot reach a within-run
-comparison, and every claim here is one; what it reaches is the cross-run
-absolute column, which re-baselines by itself, each write-up replacing
-the fingerprint it reads. So a move is recorded and the evening proceeds,
-the write-up owing a paragraph naming it and the box question going to a person
-once the machine is free: **ask whether the box changed** --- a kernel,
-a microcode update, a BIOS setting, a thermal state, a different machine ---
-none of which a run can see from inside itself, and none worth a night of idle
-machine to ask. What still fails the gate is a comparison the mode cannot make
-at all --- no shape of this run in the fingerprint, every `list` net
-non-positive.
+over the run cannot read as a difference between the binaries, and **both passes
+are read, which is what the palindrome is for**: the `a` pair puts the two
+halves next to each other early and the `b` pair late. What it buys is finding
+out that a binary is wrong before the hours are spent on it, and **the one
+repetition of a process on either half inside the run**: the four readings say
+how far each half moved between its own two legs, which is how Run 41's
+`bq-expand` outlier was read as that build's and not that process's, both passes
+agreeing. **Why `rev` and four arms, ruled 2026-10-05 by the owner**: the gate
+ran five arms over the main set's nineteen shapes for thirty-three minutes,
+and `rev`'s three views carry that same outlier in about five --- 1.3542 across
+the halves on Run 41 against 1.3048 to 1.3142 on Runs 40 and 42 to 45, where
+the main set read 1.3620 --- while `scaled` reads `bq-expand` level on every run
+and would have missed it; `list` is the baseline and the two `sum-only` halves
+the forcing pass every net is corrected by, and `mut-odo-vecdims` went
+with the main set. **What it does not buy is a magnitude**: a gate
+is a rehearsal over three views, and the pair's figures come off the run;
+nor is the two passes disagreeing a second opinion about the binaries, their
+ratio being algebraically the ratio of the two same-binary readings,
+so a palindrome that fails to converge is reporting its own noise.
+**And no verdict is written on it since 2026-10-05**: the owner retired run list
+step 14a, the hand-written verdict above the GATE block, which had read SOUND
+on every run from Run 24 to Run 45; the four readings are the write-up's, quoted
+in its Provenance. **The machine check left the gate the same day, and asks one
+question that is not a reading at all: has the machine changed?**
+`run-evening.sh` runs `./read-run.py $R-<basis>-main.json --machine` after
+the sequence, as stage 17a, and puts the answer in `$R-evening-out.txt`
+and a line of it in `$R-evening.txt`. It holds `list`'s net per call, shape
+by shape, to the fingerprint the last run's file keeps, so its absolutes
+are in `runs/` long after its JSONs are offered for deletion and nothing has
+to be kept for it; the main set carries `*/list` and both `sum-only` halves
+on every shape, which is what makes the comparison net against net,
+and the gate's one class does not hold the fingerprint's shapes, which is why
+the check left it. It reads the geomean rather than a cell, at a threshold
+the mode's own docstring derives from every kept process this README has,
+and beside it the per-shape residual about that geomean, which says whether
+the shapes moved together: inside the band a single shape ordinarily wanders
+it is a LEVEL SHIFT, one number describing the box, and every cross-run ordering
+survives it; outside, the orderings are in question along with the level.
+**Neither stops the run, at any size, in either direction.** A box that moved
+between runs cannot reach a within-run comparison, and every claim here is one;
+what it reaches is the cross-run absolute column, which re-baselines by itself,
+each write-up replacing the fingerprint it reads. So a move is recorded
+and the evening proceeds, the write-up owing a paragraph naming it and the box
+question going to a person once the machine is free: **ask whether the box
+changed** --- a kernel, a microcode update, a BIOS setting, a thermal state,
+a different machine --- none of which a run can see from inside itself, and none
+worth a night of idle machine to ask. What the stage still records
+as a complaint is a comparison the mode cannot make at all --- no shape
+of this run in the fingerprint, every `list` net non-positive.
 
 **The run** is one sequence --- the main set from each half, then each
 stride-class population on each half, control then basis, adjacent,

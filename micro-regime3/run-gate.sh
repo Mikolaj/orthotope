@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# The gate a paired run wants before its evening: five benches over the shape
-# set, on both halves, twice each.
+# The gate a paired run wants before its evening: four arms over the `rev`
+# stride class, on both halves, twice each.
 #
 #     ./run-gate.sh run12          # the run names the binaries and every file
 #
@@ -14,37 +14,49 @@
 # defaulted.
 #
 # WHAT THIS GATE FAILS ON, stated once because a gate that stops the evening
-# has to earn it: THE APPARATUS, never the world. A missing binary, a selection
-# that is not the arms it names, a nonzero exit, a half that asserted no heap
-# state, an instrument switched on and absent from the log -- each of those
-# makes the night's data unusable whatever the machine does, so each exits 1.
-# A box that measures differently than it did last run is the world, and the
-# evening is still valid under it: that reads, records and returns 0. The
-# distinction was drawn 2026-08-23 after the machine check stopped Run 18 and
-# cost the hours it was meant to save; the other paths here were walked the
-# same day and all of them are apparatus, as are preflight.sh's.
+# has to earn it: THE APPARATUS, never the world. A missing binary, a
+# selection that is not the arms it names, a nonzero exit, a half that
+# asserted no heap state, an instrument switched on and absent from the log
+# -- each of those makes the night's data unusable whatever the machine
+# does, so each exits 1. A box that measures differently than it did last
+# run is the world, and the evening is still valid under it: the evening's
+# machine check, which left this script on 2026-10-05, reads and records it
+# and stops nothing. The distinction was drawn 2026-08-23 after the machine
+# check stopped Run 18 and cost the hours it was meant to save; the other
+# paths here were walked the same day and all of them are apparatus, as are
+# preflight.sh's.
 #
 # The order is a palindrome -- other, basis, basis, other -- so each binary
-# carries the same mean position and drift over the hour cannot read as a
+# carries the same mean position and drift over the gate cannot read as a
 # difference between them. Same reason the pad probe reversed its second pass,
 # and the part of this a person retyping the command would most likely drop.
 #
+# ONE SMALL CLASS AND FOUR ARMS since 2026-10-05, by the owner, where it was
+# the main set's nineteen shapes and five arms: `rev`'s three views carry
+# the one attribution the gate earned -- Run 41's `bq-expand` build outlier,
+# 1.3542 across the halves on `rev` against 1.3048 to 1.3142 on Runs 40
+# and 42 to 45, as the main set read it at 1.3620 -- and the run is five
+# minutes where it was thirty-three. `scaled` would have missed it, reading
+# `bq-expand` level on every run. The machine check left with the main set,
+# for run-evening.sh to take on the main-set basis JSON after the sequence.
+#
 # `*/list` is in the selection for two reasons: it is the control that says
 # the baseline did not move, and without a baseline `--selftest` has no
-# ratios to check. The expected bench count is read from the binary, not
-# written down, so a roster change does not turn a correct run into an alarm,
-# and every arm SEL names is checked against `--list` before the first
-# process, so a roster change that parks one -- `build` and `mut-odo`, to
-# `Only` on 2026-09-04 with SEL still naming them -- refuses here rather than
-# failing every process on its count after the forty minutes.
+# ratios to check; the two `sum-only` halves are the forcing pass every net
+# the readings divide is corrected by. The expected bench count is read from
+# the binary, not written down, so a roster change does not turn a correct run
+# into an alarm, and every arm SEL names is checked against `classes --list`
+# before the first process, so a roster change that parks one -- `build` and
+# `mut-odo`, to `Only` on 2026-09-04 with SEL still naming them -- refuses here
+# rather than failing every process on its count after the run.
 #
-# About forty minutes. Read it with, for the run and the two half names,
+# About five minutes. Read it with, for the run and the two half names,
 #   ./read-run.py <run>-gate-<basis>-a.json \
 #     --compare <run>-gate-<other>-a.json
 
 # Driven by the cases in defects.py without a binary or a run: the whole gate,
-# four processes and its verdict, against a stand-in that answers --list.
-# A fix here wants a case there first.
+# four processes and the block it files in the note, against a stand-in that
+# answers `classes --list`. A fix here wants a case there first.
 
 set -u
 cd "$(dirname "$0")" || exit 1
@@ -100,17 +112,24 @@ if [ "$OTHER" = "$BASIS" ]; then
   echo "!! OTHER and BASIS are both '$BASIS' -- a pair is two halves"
   exit 1
 fi
-SEL=('-m' 'glob' '*/list' '*/bq-expand' '*/mut-odo-vecdims'
+GATE_CLASS=rev                 # the class the gate runs over, header above
+SEL=('-m' 'glob' '*/list' '*/bq-expand'
      '*/sum-only-early' '*/sum-only-late')   # the form the decision of
-                             # 2026-08-22 superseded and the family root, both
-                             # timed from Run 25 on; `build` and `mut-odo`
-                             # until the prune of 2026-09-04 parked both
-ARMS=$(( ${#SEL[@]} - 2 ))   # the globs above, one bench per shape each,
+                             # 2026-08-22 superseded beside the baseline and
+                             # the forcing pass; `mut-odo-vecdims` until the
+                             # gate left the main set on 2026-10-05, `build`
+                             # and `mut-odo` until the prune of 2026-09-04
+# What the processes are handed: the globs above, each taken over the class
+# by its prefix, `*/list` becoming `rev-*/list`. SEL keeps the suffixes so
+# that one list names the arms and the class is stated once.
+CSEL=(classes "${SEL[0]}" "${SEL[1]}")
+for pat in "${SEL[@]:2}"; do CSEL+=("$GATE_CLASS-$pat"); done
+ARMS=$(( ${#SEL[@]} - 2 ))   # the globs above, one bench per view each,
                              # DERIVED because a literal drifts: run-major.sh
                              # refuses that drift for CLASSES and this had the
                              # same shape, where editing SEL alone makes all
                              # four processes report the wrong expected count
-                             # and the gate exit 1 after its forty minutes
+                             # and the gate exit 1 after its run
 
 NOTE="$PREFIX-pair.txt"
 
@@ -127,29 +146,20 @@ if [ ! -f "$NOTE" ]; then
   echo "no $NOTE beside the pair, so this gate's verdict would have nowhere"
   echo "to live. Every pair here is hand-built, so that file is written by"
   echo "hand too, with the recipe for each half -- the only copy there is"
-  echo "there is. Write it first: forty minutes of gate cannot be replayed"
+  echo "there is. Write it first: a gate's run cannot be replayed"
   echo "from a scroll-back."
   exit 1
 fi
-# The machine check reads the fingerprint of the run the note's COMPARE line
-# names, where it names one, and the newest run file's otherwise. A named
-# run with no file would make that check the one thing the forty minutes
-# could not answer, so it is refused here.
-MDOC=()
-if [ -n "$COMPARE" ]; then
-  [ -f "runs/$COMPARE.md" ] || { echo "!! $NOTE names COMPARE: $COMPARE, and runs/$COMPARE.md is not there -- the machine check would have no fingerprint to read"; exit 1; }
-  MDOC=(--run-doc "runs/$COMPARE.md")
-fi
-
-SHAPES=$(./"$PREFIX-$BASIS" --list 2>/dev/null | cut -d/ -f1 | sort -u | wc -l)
-[ "$SHAPES" -gt 0 ] || { echo "--list gave nothing; wrong binary?"; exit 1; }
-# Every arm SEL names, listed once per shape BY BOTH HALVES, before the
-# machine is spent. Case: `gate-refuses-an-arm-its-list-lacks`.
+SHAPES=$(./"$PREFIX-$BASIS" classes --list 2>/dev/null | cut -d/ -f1 \
+           | grep "^$GATE_CLASS-" | sort -u | wc -l)
+[ "$SHAPES" -gt 0 ] || { echo "classes --list gave no $GATE_CLASS- view; wrong binary, or a class retired?"; exit 1; }
+# Every arm SEL names, listed once per view of the class BY BOTH HALVES,
+# before the machine is spent. Case: `gate-refuses-an-arm-its-list-lacks`.
 for h in $OTHER $BASIS; do
-  LISTED=$(./"$PREFIX-$h" --list 2>/dev/null)
+  LISTED=$(./"$PREFIX-$h" classes --list 2>/dev/null)
   for pat in "${SEL[@]:2}"; do
-    n=$(printf '%s\n' "$LISTED" | grep -c "^[^/]*/${pat#*/}\$")
-    [ "$n" = "$SHAPES" ] || { echo "!! SEL names $pat, which $PREFIX-$h's --list carries $n time(s) over $SHAPES shapes: an Only arm, or one renamed -- the gate would fail every process on its count after its forty minutes"; exit 1; }
+    n=$(printf '%s\n' "$LISTED" | grep -c "^$GATE_CLASS-[^/]*/${pat#*/}\$")
+    [ "$n" = "$SHAPES" ] || { echo "!! SEL names $pat, which $PREFIX-$h's classes --list carries $n time(s) over $SHAPES $GATE_CLASS view(s): an Only arm, or one renamed -- the gate would fail every process on its count after its run"; exit 1; }
   done
 done
 EXPECT=$((ARMS * SHAPES))
@@ -158,12 +168,11 @@ EXPECT=$((ARMS * SHAPES))
 # for nothing else.
 if [ "$SHOW" = 1 ]; then
   echo "run-gate.sh selection for $PREFIX, basis $BASIS:"
-  for pat in "${SEL[@]:2}"; do echo "  glob   $pat"; done
+  echo "  class  $GATE_CLASS"
+  for pat in "${CSEL[@]:3}"; do echo "  glob   $pat"; done
   echo "  arms   $ARMS"
   echo "  shapes $SHAPES"
   echo "  expect $EXPECT benches a process"
-  if [ -n "$COMPARE" ]; then echo "  compare runs/$COMPARE.md"
-  else echo "  compare the newest run file, the note naming no COMPARE run"; fi
   exit 0
 fi
 # The two binaries by content, for the block below: run-evening.sh inherits
@@ -174,9 +183,8 @@ HALVES_MD5="$BASIS=$(md5sum "./$PREFIX-$BASIS" | cut -d' ' -f1) $OTHER=$(md5sum 
 BAD=0                        # mechanical complaints, not the reading's verdict
 PROC=0                       # of those, the ones a PROCESS raised. The line
                              # sending a reader to the logs is true only of
-                             # these, and used to print for a machine-check
-                             # failure too -- which sends them to four clean
-                             # logs to look for a verdict about the box
+                             # these: a missing binary ran no process and
+                             # left no log to read
 RESULTS=""
 
 run () {   # $1 = half, $2 = pass
@@ -186,7 +194,7 @@ run () {   # $1 = half, $2 = pass
   # here for the same reason: which instance ran is not in the artifacts.
   bin=$(./half-bin.sh "$PREFIX" "$half") || { echo "    !! ${out}: no binary for ${half}"; BAD=$((BAD + 1)); return; }   # BAD, not PROC: no process ran and no log exists to read
   echo "=== $(date -Is) start ${out} from ${bin}"
-  "$bin" "${SEL[@]}" --json "${out}.json" > "${out}.log" 2>&1
+  "$bin" "${CSEL[@]}" --json "${out}.json" > "${out}.log" 2>&1
   rc=$?
   nb=$(grep -c '^benchmarking ' "${out}.log")
   echo "=== $(date -Is) done  ${out} rc=${rc} benchmarking=${nb}"
@@ -195,7 +203,7 @@ run () {   # $1 = half, $2 = pass
   [ "$nb" = "$EXPECT" ] || { echo "    !! $out: expected $EXPECT, got $nb -- the selection is not the $ARMS arm(s) SEL names"; BAD=$((BAD + 1)); PROC=$((PROC + 1)); }
   [ "$rc" = 0 ] || { echo "    !! nonzero exit -- read ${out}.log before trusting anything from it"; BAD=$((BAD + 1)); PROC=$((PROC + 1)); }
   # THE LAUNCH SWITCHES, asserted here as run-major.sh asserts them and
-  # sooner: this gate is forty minutes and the run it stands before is
+  # sooner: this gate is five minutes and the run it stands before is
   # several hours, so a binary that cannot assert what the launch line
   # asked of it is worth catching on the rehearsal rather than on the
   # evening. Each is asked for only when its own switch is set, so an
@@ -223,51 +231,6 @@ run "$BASIS" b
 run "$OTHER" b
 echo "=== $(date -Is) gate complete"
 
-# THE ONE CHECK THAT ASKS ABOUT THE BOX AND NOT THE CODE, added 2026-08-14.
-# `list` is the denominator of every published ratio and the arm measured
-# insusceptible to placement, and the run file's fingerprint keeps its net per
-# call per shape -- so the previous run's absolutes are in runs/ after its JSONs
-# are gone, and this needs no artifact kept. The gate's own selection carries
-# `*/list` and both `sum-only` halves on every shape, so the comparison is net
-# against net, and it happens HERE because this is the cheapest hour to learn
-# it. IT DOES NOT GATE, since 2026-08-23: a box that moved between runs cannot
-# reach a within-run claim, which is every claim a run publishes, so
-# stopping for it buys nothing and costs the night. Run 18 stopped here at
-# +4.81% and the evening went on waiting for `run anyway, re-baseline`, an
-# answer never in doubt. The mode now returns 0 for a moved box, whichever way
-# and however far, and 1 only for a comparison it cannot make at all. What it
-# reads is the geomean against the 0.82% worst excursion eleven kept processes
-# show, with the per-shape residual beside it telling a level shift from a
-# move the shapes disagree on -- a single shape wandering 7% being ordinary.
-MACHINE=$(./read-run.py "$PREFIX-gate-$BASIS-a.json" --machine "${MDOC[@]}" 2>&1)
-MACHINE_RC=$?
-printf '%s\n' "$MACHINE"
-if [ "$MACHINE_RC" = 2 ]; then
-  # 2 is `did not happen`, not `the box moved`: the reading refuses when the
-  # fingerprint it would use is this run's own, which post-run 5b installs --
-  # so a gate re-run after the write-up lands here and must not read as a
-  # moved box. Still counted, since a 2 is never a pass.
-  BAD=$((BAD + 1))
-  RESULTS="$RESULTS
-      !! the machine check COULD NOT BE TAKEN -- the line above says why"
-elif [ "$MACHINE_RC" != 0 ]; then
-  BAD=$((BAD + 1))
-  RESULTS="$RESULTS
-      !! the machine check FAILED -- read it before the evening"
-fi
-# A moved box is not a failure and must still be impossible to miss. The whole
-# reading goes into the note below; this puts one line where the complaints are,
-# so a reader skimming the verdict meets it there. Advisory: not counted in BAD,
-# and deliberately not spelled `!!`, which this file reserves for what stops a
-# run -- the distinction being the whole point of the change above.
-case $MACHINE in
-  *'BOX MOVED'*)
-    RESULTS="$RESULTS
-      -- the box MOVED since the fingerprint. The run goes ahead; the write-up
-         owes a paragraph naming it, and the box question goes to a person
-         once the machine is free. The reading is below." ;;
-esac
-
 # The gate belongs to the pair, so its verdict is recorded beside the pair
 # rather than in a session's memory. README's procedure leans on this, and the
 # note is named after $PREFIX rather than found by an `ls -t` glob: with two
@@ -275,12 +238,12 @@ esac
 # which is how a gate of THIS pair would come to be filed under another's.
 #
 # What goes in is the mechanical half only -- four exit codes and four bench
-# counts, which is what this script knows. Whether the pair is sound is the
-# reading's verdict and a person's to write, so the line says which half it
-# is; an unconditional "the gate ran" is what a truncated JSON behind a green
-# scroll-back looks like.
+# counts, which is what this script knows. Whether the pair is sound was the
+# reading's verdict and a person's to write until 2026-10-05, when the owner
+# retired it; the line still says which half it is, an unconditional "the
+# gate ran" being what a truncated JSON behind a green scroll-back looks like.
 # Kept as a backstop, the note having been checked before the processes ran:
-# it can only fire if something removed the file during the forty minutes.
+# it can only fire if something removed the file while the gate ran.
 if [ ! -f "$NOTE" ]; then
   echo "!! $NOTE went missing while the gate ran, so its verdict has nowhere"
   echo "   to live. The run artifacts are on disk regardless --"
@@ -296,15 +259,9 @@ fi
       echo "  Expected $EXPECT benches a process. Read the logs before anything else."
   fi
   echo "    halves md5: $HALVES_MD5"
-  echo "  The machine check, which is not a reading but an answer:"
-  printf '%s\n' "$MACHINE" | sed 's/^/    /'
-  echo "  That is exit codes and counts; the reading is still to do, with"
-  echo "    ./read-run.py $PREFIX-gate-$BASIS-a.json \\"
-  echo "      --compare $PREFIX-gate-$OTHER-a.json"
-  echo "    ./read-run.py $PREFIX-gate-$BASIS-a.json --pair bq-expand mut-odo-vecdims"
-  echo "  Write its verdict above this block, where a reader looking up from"
-  echo "  the end meets it first; a note carrying a 'not yet run' line loses"
-  echo "  that line with the same edit."
+  echo "  That is exit codes and counts. The reading is the write-up's and"
+  echo "  owes no verdict here: ./read-run.py --gate-draft $PREFIX puts the"
+  echo "  four readings side by side, and run-evening.sh files it."
 } >> "$NOTE"
 echo "=== appended to $NOTE"
 [ "$BAD" -eq 0 ] || exit 1

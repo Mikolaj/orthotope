@@ -358,9 +358,10 @@ log "$NOTE says, about the gate:"
 # Every line saying `gate`, and -- for one that STARTS with the token,
 # the shape run-gate.sh writes -- the indented block under it. The token
 # alone dropped exactly the lines worth having: neither the machine
-# verdict nor `!! the machine check FAILED` carries the word, so a gate
-# that failed on the machine alone reached this log as a FAILED headline
-# over four clean processes with the reason nowhere. Only a line STARTING
+# verdict nor `!! the machine check FAILED` carried the word, while the
+# gate ran that check until 2026-10-05, so a gate that failed on the
+# machine alone reached this log as a FAILED headline over four clean
+# processes with the reason nowhere. Only a line STARTING
 # a block may end one, the four artifact lines inside it being named
 # `$R-gate-*` and so saying the word themselves.
 awk '/^GATE:/             { blk = 1; print; next }

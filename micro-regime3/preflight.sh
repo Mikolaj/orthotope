@@ -707,8 +707,8 @@ fi
 
 # 6b. THE GATE'S OWN SELECTION, derived by the script that will run it rather
 # than read out of it by eye. `--show` pays for the check run-gate.sh makes
-# before its forty minutes -- every glob in SEL listed once per shape by BOTH
-# halves -- and prints the count the note's `gate arms` line owes. Both halves
+# before its run -- every glob in SEL listed once per view of its class by
+# BOTH halves -- and prints the count the note's `gate arms` line owes. Both halves
 # of that earn the step: the refusal is a check, catching a gate arm the roster
 # has parked, and the printed count is what stops a note carrying the previous
 # run's globs. Run 25's preparation wrote exactly that, on 2026-09-04, the day
@@ -1189,11 +1189,16 @@ delta is step 6c's to take by hand"
              END { if (t == "") print "<yours> -- --counts-totals " p \
                      " read no counts files";
                    else print p ": " t "; half totals " h }')"
+    # Off the previous evening's out file, where run-evening.sh's machine
+    # stage files it since 2026-10-05 and where the gate's copy also landed
+    # before; the note, where the gate filed it, for a run older than its
+    # out file's keeping.
     printf '  %-16s  %s\n' 'prev machine' \
-      "$(awk '/^ *machine: `list` net against/ { m = 1; next }
-             m && NF { sub(/^ */, ""); print; exit }' "run$PN-pair.txt" \
-           2>/dev/null | grep . \
-         || echo "<yours> -- run$PN-pair.txt carries no gate machine line")"
+      "$(for f in "run$PN-evening-out.txt" "run$PN-pair.txt"; do
+           awk '/^ *machine: `list` net against/ { m = 1; next }
+                m && NF { sub(/^ */, ""); print; exit }' "$f" 2>/dev/null
+         done | head -1 | grep . \
+         || echo "<yours> -- run$PN-evening-out.txt and run$PN-pair.txt carry no machine line")"
   fi
   printf '  %-16s  %s\n' 'smoke sweep' \
     '<yours> -- step 11, and it is the pair'\''s'

@@ -206,15 +206,9 @@ elif [ -n "${BASIS:-}" ] && parses "$R-gate-$BASIS-a.json" && parses "$R-gate-$B
 else
   say 14 "NOT DONE" "no clean GATE block in $NOTE and no complete set of gate JSONs"
 fi
-# The verdict is a person's to write and this cannot judge it, but it
-# can see that one was written: `GATE VERDICT` opens the hand-written block
-# Runs 39 and 40 put above the GATE block, which `yours` read past.
-if [ -f "$NOTE" ] && grep -q '^GATE VERDICT' "$NOTE" \
-     && ! grep -q '^GATE: NOT RUN' "$NOTE"; then
-  say 14a "done" "$NOTE carries a GATE VERDICT line above its GATE block"
-else
-  say 14a yours "the gate's verdict above the note's GATE block is written by hand, opening \`GATE VERDICT\`, and \`GATE: NOT RUN\` cleared in the same edit; read $NOTE"
-fi
+# Step 14a, the hand-written verdict above the GATE block, was retired
+# 2026-10-05 by the owner, so the gate owes nothing past the mechanical
+# block above. Case: `status-owes-no-gate-verdict`.
 if [ -f "$R-wallclock.log" ] && grep -q 'major run complete' "$R-wallclock.log"; then
   # The driver's own stamp, as read-all.sh counts it: the note it quotes
   # is indented, and a FAILED GATE block carries `!!`. Case:

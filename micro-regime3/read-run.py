@@ -4667,11 +4667,13 @@ def machine_check(cells, shapes, readme, thresh=3.0, spread=7.0,
     run's absolutes survive in README long after its JSONs are offered for
     deletion, and no artifact has to be kept for this.
 
-    The gate is the moment to ask it. Its selection carries `*/list` and
-    both `sum-only` halves on every shape, so the comparison is net
-    against net, and it runs before the evening rather than after it: a
-    machine that has changed under the README invalidates a run that has
-    not started yet, which is the only time that news is cheap.
+    The evening asks it, after the sequence and on the basis half's
+    main-set JSON, which carries `*/list` and both `sum-only` halves on
+    every shape, so the comparison is net against net. The gate asked it
+    until 2026-10-05, before the hours, on the reasoning that a moved box
+    is cheapest learnt early; but the check has stopped no evening since
+    2026-08-23, every claim a run publishes being within the run, and the
+    gate left the main set for one class that cannot answer it.
 
     The threshold is the geomean over shapes, not a cell. Across the
     eleven kept processes of Runs 10 to 13 -- three regimes, two shims,
@@ -4715,8 +4717,8 @@ def machine_check(cells, shapes, readme, thresh=3.0, spread=7.0,
     # table's rounding. Refused by NAME rather than by path, since the
     # workaround was a --run-doc a session had to remember. Exit 2 and
     # not 1: the reading did not happen, which is what a 2 means
-    # everywhere in this directory, and run-gate.sh words its
-    # complaint off that -- a 1 there reads as a moved box.
+    # everywhere in this directory, and run-evening.sh's machine stage
+    # records it as a complaint -- a 1 there reads as a moved box.
     mine = re.match(r'run\d+', os.path.basename(run or ''))
     kept = re.match(r'run\d+', os.path.basename(readme or ''))
     if mine and kept and mine.group(0) == kept.group(0):
@@ -4741,10 +4743,11 @@ def machine_check(cells, shapes, readme, thresh=3.0, spread=7.0,
     # A non-positive net has no ratio and no log, and this is the fifth site
     # of the family the other four were guarded against on 2026-08-17. It is
     # the one where an unguarded traceback does lasting damage rather than
-    # printing: run-gate.sh captures this output with 2>&1 and appends it
-    # VERBATIM to the pair note, under a heading calling it an answer about
-    # the box -- so a ValueError out of geomean would be filed there as the
-    # gate's own finding, on the pair, permanently. `list` is the baseline
+    # printing: run-evening.sh captures this output with 2>&1 into the
+    # evening's out file, which read-all.sh's brief quotes as the answer
+    # about the box -- so a ValueError out of geomean would be quoted there
+    # as the box's own finding. Until 2026-10-05 run-gate.sh filed it
+    # VERBATIM in the pair note. `list` is the baseline
     # and the largest net in every run, so reaching this wants a disturbed
     # or inflated forcing term, which is a state `health` provokes and
     # reports rather than one no run can be in.
@@ -4771,7 +4774,7 @@ def machine_check(cells, shapes, readme, thresh=3.0, spread=7.0,
         return 0
     # PAST the geomean threshold. This used to print STOP and return 1,
     # which failed the gate and left the evening waiting on a person --
-    # and the person is asleep, which is why the gate runs at that hour.
+    # and the person is asleep, which is why the gate ran at that hour.
     # Changed 2026-08-23: the box question NEVER stops a run. Every claim
     # this README publishes is a within-run comparison, arm against arm
     # inside one process, so a box that moved BETWEEN runs cannot reach
@@ -4826,9 +4829,9 @@ def machine_check(cells, shapes, readme, thresh=3.0, spread=7.0,
     # this for that reason alone and not for the box -- which is Run 16,
     # where the basis moved to `-A32m` against a default-area fingerprint
     # and the check fired on every gate. The discriminating control costs
-    # no build and no pair: `-rtsopts` is live, so run the gate's own
-    # five-bench selection on a binary AT WHATEVER CONDITION THE
-    # FINGERPRINT WAS TAKEN UNDER and read `--machine` on that. Inside the
+    # no build and no pair: `-rtsopts` is live, so run `list` and both
+    # `sum-only` halves over the main set on a binary AT WHATEVER CONDITION
+    # THE FINGERPRINT WAS TAKEN UNDER and read `--machine` on that. Inside the
     # threshold there, the box is unchanged and what fired is the thing
     # this run changed. Case:
     # `machine-check-names-the-control-it-leaves`.
@@ -4840,10 +4843,10 @@ def machine_check(cells, shapes, readme, thresh=3.0, spread=7.0,
     # instrument off, then the previous run's own binary. The text now
     # names both, the second being what settles it, that binary being
     # what produced the fingerprint.
-    print('  What separates the two costs no build and no pair: run the'
-          ' gate\'s own')
-    print('  five-bench selection on a binary at WHATEVER CONDITION THE'
-          ' FINGERPRINT')
+    print('  What separates the two costs no build and no pair: run `list`'
+          ' and both')
+    print('  `sum-only` halves over the main set on a binary at WHATEVER'
+          ' CONDITION THE FINGERPRINT')
     print('  was taken under -- the allocation area, an instrument switched'
           ' on by an')
     print('  environment variable, a source patch, a compiler -- and read'
@@ -6174,8 +6177,8 @@ def run_populations(run):
     Globbed rather than listed because the class set is Main.hs's and moves
     with it: a mode that spelled the eleven names out would answer for ten
     the day one landed. The two exclusions are by artifact kind and not by
-    name, the gate being five arms at a gate's budget and an alone leg one
-    bench, neither of which is a population.
+    name, the gate being four arms over one class at a gate's budget and
+    an alone leg one bench, neither of which is a run's population.
 
     THE PREFIX IS GLOBBED WHERE IT POINTS, so a bare `run31` reads the
     working directory -- which every driver here cds to -- and a
@@ -6882,9 +6885,11 @@ def counts_totals(run, args):
 
 
 def gate_draft(run, args):
-    """The gate's four readings as one table, the draft of run list step
-    14a's verdict: per arm, the two cross-half passes and each half's own
-    two legs, paired geomeans of the corrected net over the shared shapes.
+    """The gate's four readings as one table, which the write-up's
+    Provenance quotes: per arm, the two cross-half passes and each half's
+    own two legs, paired geomeans of the corrected net over the shared
+    shapes -- the `rev` class's three views since 2026-10-05, the main
+    set's before.
 
     THE SECOND PAIR IS AN ATTRIBUTION AND NOT A TEST. Over one shape set
     the four geomeans compose exactly: pass -b over pass -a IS the
@@ -6895,8 +6900,9 @@ def gate_draft(run, args):
     figures. What the second pair does say is WHICH half moved between its
     two legs, and by how much; the identity is asserted here so a shape set
     that differs between the four files is refused rather than misread.
-    The verdict, sound or not, stays the session's to write (README, run
-    list step 14a); this prints what it is written from.
+    No verdict is written from it since 2026-10-05, when the owner retired
+    run list step 14a: it had read SOUND on every run from Run 24 to Run
+    45, and what the table says is the write-up's to quote.
     """
     halves = note_halves(run)
     if not halves:
@@ -6911,11 +6917,13 @@ def gate_draft(run, args):
         sys.stderr.write('%s: missing, so the gate was not read\n'
                          % ', '.join(sorted(gone)))
         return 2
-    data = {}
+    data, pop = {}, None
     for key, path in paths.items():
         cells, shapes, strategies, meta = load(path, args.main)
         apply_correction(cells, shapes, strategies)
         data[key] = (cells, shapes, strategies)
+        if key == (basis, 'a'):
+            pop = population_of(shapes, meta['dims'])
     shapes = set.intersection(*(set(d[1]) for d in data.values()))
     arms = [st for st in data[(basis, 'a')][2]
             if all(st in d[2] for d in data.values()) and not no_net(st)]
@@ -6967,8 +6975,8 @@ def gate_draft(run, args):
     print('pass -b over pass -a equals the control\'s own legs over the'
           ' basis\'s on every arm, by construction; what the passes part by'
           ' is the two halves\' drift above. `sides` says whether both'
-          ' passes put the arm on one side of 1. The verdict is yours.')
-    gate_spans(run, passes, args)
+          ' passes put the arm on one side of 1.')
+    gate_spans(run, passes, args, pop, len(shapes))
     return 0
 
 
@@ -8340,13 +8348,21 @@ def install_prose(paras, args):
     return 0
 
 
-def gate_spans(run, passes, args):
-    """The registration's `cross` spans on the main set, against the
-    gate's two passes, printed under the draft since 2026-09-26.
+def gate_spans(run, passes, args, pop=None, nshapes=None):
+    """The registration's `cross` spans on the population the gate reads,
+    against the gate's two passes, printed under the draft since
+    2026-09-26.
+
+    A SPAN IS HELD TO THE PASSES ONLY ON ITS OWN POPULATION, since the gate
+    left the main set for the `rev` class on 2026-10-05: a main-set span
+    read against `rev` passes would compare two populations. A span with
+    no `on` is the main set's, as --predictions
+    reads it; the rest are named as left to post-run step 5c. Case:
+    `gate-draft-holds-only-its-own-population`.
 
     Run 41's gate read `bq-expand` at 1.36 in both passes against a
     registered 1.303 within 1%, and nothing said so until post-run step
-    5c, hours on. Five benches are a rehearsal and no verdict, so
+    5c, hours on. A gate's few shapes are a rehearsal and no verdict, so
     this decides nothing and changes no exit code; what it buys is the
     question asked at the gate, while the box is still the run's. Read
     back over Run 41's gate it flags both of item (4)'s spans, and
@@ -8364,12 +8380,22 @@ def gate_spans(run, passes, args):
     if src is None:
         print('no registration read, so no span is held to the passes')
         return
-    rows = []
+    here = 'main' if pop is None or pop.kind == 'main' else pop.prefix
+    where = 'the main set' if here == 'main' else 'the `%s` class' % here
+    rows, elsewhere = [], []
     for num, body in items:
         for spec in PREDICT_RE.findall(body):
             kind, args_, within, _ex, on_pops, _v, _h = parse_span(spec)
-            if kind != 'cross' or len(args_) != 2 \
-                    or (on_pops and 'main' not in on_pops):
+            if kind != 'cross' or len(args_) != 2:
+                continue
+            scope = on_pops or ['main']
+            if here not in scope:
+                elsewhere.append('  item (%s)  %s: on %s, which this gate'
+                                 ' does not read; post-run step 5c reads it'
+                                 ' on the run'
+                                 % (num, spec, 'the main set'
+                                    if scope == ['main']
+                                    else ','.join(scope)))
                 continue
             arm = args_[0]
             try:
@@ -8390,12 +8416,15 @@ def gate_spans(run, passes, args):
                            else 'inside its band on both passes')
             rows.append('  item (%s)  %s: pass -a %.4f, pass -b %.4f -- %s'
                         % (num, spec, pa, pb, verdict))
+    for r in elsewhere:
+        print(r)
     if not rows:
-        print('the registration carries no cross span on the main set')
+        print('the registration carries no cross span on %s' % where)
         return
     print('the registration\'s cross spans against the two passes, a'
-          ' five-bench rehearsal and no verdict (post-run step 5c reads'
-          ' them on the run):')
+          ' rehearsal over the gate\'s %s shape(s) of %s and no verdict'
+          ' (post-run step 5c reads them on the run):'
+          % (nshapes if nshapes is not None else 'few', where))
     for r in rows:
         print(r)
 
@@ -11485,8 +11514,8 @@ def _template_blocks(near):
 def _template_gate(near):
     """The template's `GATE: NOT RUN` paragraph, or that line alone.
 
-    Live text and not scaffolding: the note's gate line is what
-    run-status.sh reads for step 14 and what run-gate.sh appends beneath,
+    Live text and not scaffolding: the note's gate line is what run list
+    step 13 greps for and what run-gate.sh appends beneath,
     so a draft that commented it out would hand over a note with no gate.
     """
     try:
@@ -11593,9 +11622,10 @@ def _note_kind(lead):
     next note (both 2026-09-07). The state is sticky; this says where it
     changes.
 
-    THE MACHINE CHECK IS THE GATE'S, and is named here for the same reason
-    the verdict is: it is `run-gate.sh --machine`'s answer, written above
-    the gate's own block and spent with that run. Unnamed it classified as
+    THE MACHINE CHECK WAS THE GATE'S until 2026-10-05, and is named here
+    for the same reason the verdict is: a note from before then carries
+    `run-gate.sh`'s machine answer, written above the gate's own block and
+    spent with that run. Unnamed it classified as
     nothing, so `--draft` carried it verbatim -- Run 27's reading of its
     own box move arrived in Run 28's draft under a lead beginning AND IT
     FIRED, in a note whose gate the same call had reset to NOT RUN
@@ -12234,7 +12264,8 @@ def pair_note(path, draft=None, halves=None, repeat=False):
             if kind == 'gate':
                 # The template's own GATE paragraph, VERBATIM and not as
                 # scaffolding: `GATE: NOT RUN` is a live line of the note,
-                # which run-status.sh and run-gate.sh both read, so
+                # which run list step 13 reads and run-gate.sh appends under,
+                # so
                 # commenting it out would leave the draft's note with no
                 # gate line at all. ONCE, however many gate blocks the
                 # previous note accumulated -- Run 26's had three, its own
@@ -12278,8 +12309,8 @@ def pair_note(path, draft=None, halves=None, repeat=False):
             # conditional on that note having had one, so a previous note
             # written before run-gate.sh ever appended -- or one whose gate
             # line somebody removed -- would have drafted a note with NO
-            # gate at all, which is the one line run-status.sh reads for
-            # step 14 and the one that says the pair has no gate yet.
+            # gate at all, which is the line run list step 13 reads and
+            # the one that says the pair has no gate yet.
             if not gate_done:
                 gate_done = True
                 out.append(_template_gate(
@@ -17408,7 +17439,7 @@ def main():
     p.add_argument('--gate-draft', dest='gate_draft', metavar='RUN',
                    help='the gate\'s four readings as one table, per arm the'
                         ' two cross-half passes and each half\'s own two'
-                        ' legs: the draft of run list step 14a\'s verdict')
+                        ' legs, which the write-up\'s Provenance quotes')
     p.add_argument('--over-list', dest='over_list', metavar='RUN',
                    help='every timed non-control cell of RUN slower'
                         " than its shape's `list`, over every"
