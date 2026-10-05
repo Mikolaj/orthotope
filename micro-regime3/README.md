@@ -772,21 +772,23 @@ rather than a slot in the next run, observed again:
   HELD on every reading, item (2)'s KILLED and item (3)'s KILLED on one
   of its four, 14 of the 16 readings held.
 - `OPEN` **`lib-stage0`, master's route, runs 35 times `lib-stage1` in the timed
-  processes, where every cycle sweep at `N=50` reads it 26 to 30 times,
-  and the counter that would say why does not read under the preamble.** Run
-  45's registration (2) drew its band from four cycle sweeps, 26.4 to 29.2,
+  processes, where the four prior cycle sweeps at `N=50` read it 26.4 to 29.2
+  times, and the counter that would say why does not read under the preamble.**
+  Run 45's registration (2) drew its band from four cycle sweeps, 26.4 to 29.2,
   and time read **35.0472** on the basis's main set, KILLED ([Run 45's
   file](runs/run45.md#what-this-run-was-built-to-answer-and-what-it-answered)).
   A fifth sweep taken clean after the run reads 28.79 on user cycles
   over the nineteen shapes and 19.64 with kernel cycles added over eighteen,
-  so kernel time runs the other way, `lib-stage1` carrying the larger share
-  of it; a sixth under `SATURATE=1`, the state every timed process benchmarks
-  in, broke the differenced method, 69 of 76 cells NONLINEAR and `sum-only`'s
-  own cycles 2.6 times the clean sweep's (`probe-r45-item2k.txt`,
-  `probe-r45-item2sat.txt`). The candidate is that state, which the preamble
-  installs to slow `list`'s cell by 12 to 13%, against an arm that allocates
-  as `list` does, 25.21x the result vector against `lib-stage1`'s 1.00x. **What
-  would settle it** is the two arms timed by criterion in fresh processes, clean
+  the second by a scratch computation, no reader taking `cycles:k`, so kernel
+  time runs the other way, `lib-stage1` carrying the larger share of it; a sixth
+  under `SATURATE=1`, the state every timed process benchmarks in, broke
+  the differenced method, 69 of 76 cells NONLINEAR and `sum-only`'s own cycles,
+  summed over both arms, 1.19 times the clean sweep's and negative on three
+  shapes (`probe-r45-item2k.txt`, `probe-r45-item2sat.txt`). The candidate
+  is that state, which this run's riders put at 1.1183 on `list` on the basis
+  and 1.1655 on the control, against an arm that allocates as `list` does,
+  25.21x the result vector against `lib-stage1`'s 1.00x. **What would settle
+  it** is the two arms timed by criterion in fresh processes, clean
   and under `SATURATE=1`, over the main set: near 29 clean and near 35 saturated
   says the state is the term, and a registration on a `list`-shaped arm
   then draws its band from time rather than from cycles.
@@ -795,7 +797,8 @@ rather than a slot in the next run, observed again:
   moved its bytes by under a tenth of a percent.** On Run 45's main set, read
   per cell, the flagged half allocates **1.1845** of the basis on that arm,
   1.111 to 1.254 across the nineteen shapes, while every other arm outside
-  the `list` and `bq-expand` families sits within 1e-3 ([Run 45's
+  the `list` and `bq-expand` families and `lib-stage0`, which allocates
+  as `list` does, sits within 1e-3 ([Run 45's
   file](runs/run45.md#the-properties-the-next-run-should-test)). Allocation
   is deterministic per call, so this is code: the passes compile the merge loop
   or its caller to allocate where plain -O1 does not. **What would settle
@@ -1443,8 +1446,9 @@ rather than a slot in the next run, observed again:
   processes of one binary, on a build that moved the source and the compiler
   too, and the control's family reads within 0.20 of a point of Run 43's control
   ([Run 44's file](runs/run44.md)). Run 45's basis reads the family at 0.9984
-  to 1.0030 of Run 44's, its own two members setting that comparison's
-  0.36-point A/A bar, on instructions level ([Run 45's file](runs/run45.md)).
+  to 1.0030 of Run 44's by `--compare` against Run 44's basis,
+  `bq-expand-aa-distant` against `bq-expand` setting that comparison's
+  0.36-point A/A bar, on instructions level.
 - `PARKED` **Four arms moved past 3% against Run 32 on ONE half each, with their
   counts level; the copy test, taken after the run, gives one of them
   to the evening's mounted file instance and cannot reach the other three.**
@@ -2786,11 +2790,14 @@ rather than a slot in the next run, observed again:
   over `bq-expand` on `runs-65536`, and its per-sample table puts the parting
   in the mutator time, 3871401 against 3585110 an iteration, with allocation
   equal to within 1e-4 and no foreign CPU on the process ([Run 44's
-  Provenance](runs/run44.md)). **Run 45 carries a smaller one on the basis**:
-  on `flip-last-rows` `bq-expand-aa-distant` reads 5.91% over `bq-expand`,
-  the mutator time 4571743 against 4397040 an iteration, allocation equal
-  to within 1e-4 and no foreign CPU ([Run 45's
-  Provenance](runs/run45.md#provenance)).
+  Provenance](runs/run44.md)). **Run 45 carries a smaller one in the family,
+  on the basis**: on `flip-last-rows` `bq-expand-aa-distant` reads 5.91%
+  over `bq-expand`, the mutator time 4571743 against 4397040 an iteration,
+  allocation equal to within 1e-4 and no foreign CPU ([Run 45's
+  Provenance](runs/run45.md#provenance)). Its largest A/A cell of that shape
+  falls OUTSIDE the family: 13.81% on the control's `vgg-14-c512-k3`, where
+  `mut-odo-vecdims` itself runs 1.043 and 1.045 of its two copies on the mutator
+  clock, allocation equal and no foreign CPU.
 
   **Three things make this a threat to a published claim rather
   than a curiosity.** It is *the expansion family* that is susceptible,
@@ -11891,21 +11898,22 @@ its pair, `bq-expand-aa-distant`, is one of the two benches foreign CPU met
 on `cnn-slice-c32`, and read without that shape the basis's floor is 0.53%,
 inside the series. The control's 0.72% is a wild cell's, `mut-odo-vecdims`
 itself running 1.043 and 1.045 of its two copies on the mutator clock
-on `vgg-14-c512-k3` with no foreign CPU. Run 36's basis 1.63% had a named cause
-too: `list` on `stretch-coprime-r7` was that run's one wild cell, at an R2
-of 0.9395 and a CI of 10.07%, and later runs read the cell clean. The worst A/A
-cells of this run's two main sets are those two cells, **6.61%**
+on `vgg-14-c512-k3` with no foreign CPU. Run 36's whole-set basis figure, 1.63%,
+had a named cause too: `list` on `stretch-coprime-r7` was that run's one wild
+cell, at an R2 of 0.9395 and a CI of 10.07%, and later runs read the cell clean.
+The worst A/A cells of this run's two main sets are those two cells, **6.61%**
 on `cnn-slice-c32` on the basis and **13.81%** on `vgg-14-c512-k3`
 on the control, where Run 36's basis carried a 28.36% outlier
-on `stretch-coprime-r7`. The owner declined the main set's rerun on its return,
-the sensitivity reading standing in its place, so the main set ran once.
+on `stretch-coprime-r7`. The owner, asked on returning, declined the main set's
+rerun, the sensitivity reading standing in its place, so the main set ran once.
 No registration of this run names the floor pairs; `--floor-pairs` reads
 the eight on every population on both halves, 176 readings, and SIX of the eight
 carry a floor somewhere --- `bq-expand-aa-distant` in seven of the twenty-two
-populations, `list-aa-adjacent` in six, `mut-odo-vecdims-aa-distant` in four
-and `mut-odo-vecdims-add-in-leaf-u2-aa-distant` in three --- which is the same
-instability the whole-set figure above reads. **One cell passes the about 10%
-past which [the open list][open] takes a worst cell out of the per-shape record,
+populations, `list-aa-adjacent` in six, `mut-odo-vecdims-aa-distant` in four,
+`mut-odo-vecdims-add-in-leaf-u2-aa-distant` in three and `mut-odo-vecdims-aa`
+and `list-aa-distant` in one each --- which is the same instability
+the whole-set figure above reads. **One cell passes the about 10% past which
+[the open list][open] takes a worst cell out of the per-shape record,
 on the control**, the 13.81% above, so it leaves that record. **This run adds
 no reading to Run 19's finding**: `Main.hs` moved under a compiler, a shim,
 a project file and a boot that did not, so no floor here is read twice on one
@@ -12095,7 +12103,7 @@ on Run 45's basis, an intrusion's --- which is the A/A floor above restricted
 to the pairs that carry, was a different quantity from the whole-set floor until
 the prune of 2026-09-04 left six pairs in all, and is now the series across runs
 rather than the bar. **The two rules are one on both halves this run, as on Runs
-32 and 33 and Runs 37 to 39, where they parted on the control alone on Runs 40
+32 and 33 and Runs 37 to 39, while they parted on the control alone on Runs 40
 and 44, on BOTH halves on Run 43 and on the basis alone on Runs 41 and 42**:
 0.85% and 0.72% are the widest an arm differs from its own duplicate by on each
 half over the eight pairs this roster carries, `bq-expand-aa-distant`
@@ -14316,7 +14324,7 @@ tables and its fingerprint say so.
   instructions the commits moved all moved FASTER, `lib-stage2-lean` 3.11 points
   on 0.81% more instructions, and every other arm with a corrected time within
   0.86 points ([Run 45's file](runs/run45.md)). Its sequence ran in ONE window,
-  02:42:06 to 09:58:34, 20 class processes and two main-set ones, in the order
+  02:42:06 to 09:58:35, 20 class processes and two main-set ones, in the order
   the run list gives, and foreign CPU met two A/A benches of the basis's main
   set, whose rerun the owner declined. `list` having moved 29.29 points
   on this run's main set, none of its eleven populations may have its two
