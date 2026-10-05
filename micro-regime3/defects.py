@@ -6113,6 +6113,11 @@ def case(name, prog, fix, gist, argv, ok, bug=None, plant=None, env=None,
         rec.update(TIER1.get(name, {}))
     if no_audit:
         rec['no_audit'] = no_audit
+    # A case that patches its own program's text by an anchor is owed on
+    # any edit of it, a docstring's included: defect-run's --changed reads
+    # a Python program's code alone otherwise.
+    if shadow and any(m[0] == prog for m in shadow.get('mutate', ())):
+        rec['reads_text'] = True
     if argv is None:
         return rec
     if plant is not None or shadow is not None:
