@@ -2427,9 +2427,29 @@ rather than a slot in the next run, observed again:
   that process's A/A spread, the shipped leaf's twin parting by 1.24% a shape
   and 3.47% at worst, so past the floor the slice route now leads on no view
   of the class, where the in-cache probe had it five points ahead, and
-  at the new cut it takes `runs-65536` alone. **This entry is the only copy
-  of the three probes' accounts and is never trimmed to a question.** What
-  the probe did NOT measure is in [the non-urgent TODO list][todo].
+  at the new cut it takes `runs-65536` alone. **The fourth probe, 2026-10-05,
+  priced glibc's `rep movsb` inside the slice route**, which
+  `x86_rep_movsb_threshold` puts at 2112 bytes on glibc 2.39 here: the third
+  probe's binary at its threshold of 1, over the seven `runs` views
+  from `runs-256` up and the arms `lib-stage1`, `lib-stage2-disp`,
+  `lib-stage2-lean` and both `sum-only` halves, in four processes ordered ABBA,
+  both B processes launched
+  under `GLIBC_TUNABLES=glibc.cpu.x86_rep_movsb_threshold=0x10000000` so
+  that no run copied with it, and no bench at 0.25 of a foreign core
+  (`probe-movsb-A1-runs.json` and its three siblings). **It is some of the slice
+  route's deficit and not most of it.** A over B, net, both slice routes read
+  1.073 to 1.075 at `runs-512`'s runs of 4 KB and 1.031 to 1.064
+  at `runs-1024`'s 8 KB in both pairs, where the fill, which calls no `memcpy`
+  on these views, reads 0.977 to 1.010 on those two, and on `runs-256`, whose
+  2 KB runs sit under the threshold, every arm reads 0.992 to 1.020; yet in both
+  B processes the slice route still trails the fill by 17 to 26% at `runs-512`
+  and 10 to 13% at `runs-1024`. From `runs-4096` up the first pair reads every
+  arm at 0.979 to 1.009, and the second reads A2's own process, A2 parting
+  from A1 there by 5.7 to 6.4 points at worst on each arm, the fill included,
+  so the cut at 32768 does not rest on glibc's choice of copy. **This entry
+  is the only copy of the four probes' accounts and is never trimmed
+  to a question.** What the 2048 cut's probes did NOT measure is in [the
+  non-urgent TODO list][todo].
 
 - `PARKED` **The 0.7% bar that decides whether a pair's two columns may
   be subtracted is used everywhere, and where 0.7 came from is written
