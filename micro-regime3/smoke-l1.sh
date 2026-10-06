@@ -23,10 +23,11 @@
 # had when it went from seven views to eleven: a reader mode that has
 # never seen a population is exactly what this pass is for.
 # AND NAME THEM ALL WHENEVER THE TIMED ROSTER GAINED ARMS, which the
-# population condition does not reach: an arm lands on every class, so
-# the classes whose VIEWS moved are not the ones at risk. Run 28 named
-# `scaled` and the three its views moved in, and those three held five
-# of the sixteen rows its new arms emptied -- `block`, unmoved, held ten
+# population condition does not reach: an arm lands on every class
+# but `big`, whose arms Main.hs's `classArms` names, so the classes
+# whose VIEWS moved are not the ones at risk. Run 28 named `scaled`
+# and the three its views moved in, and those three held five of the
+# sixteen rows its new arms emptied -- `block`, unmoved, held ten
 # (2026-09-10). The run chapter's step 12 carries the same rule.
 # AND NAME THOSE ARMS, `ARMS=`, with a control beside them: every class
 # leg then takes those arms, `list` and the two `sum-only` arms, the

@@ -14633,7 +14633,7 @@ RECORDS = [
          # probe-order-reversal.sh and probe-within-evening.sh carried the
          # same line and take the same form: an unreadable reading refuses
          # by name, and awk compares the percentage.
-         argv=None, ok=None),
+         argv=None, ok=None, no_audit='program-retired'),
 
     case('status-blocks-without-wrap80', 'run-status.sh', '87c77f0',
          'with wrap80 off PATH the README verdicts were read off an empty file',
@@ -14930,7 +14930,7 @@ RECORDS = [
          # have run and failed on 12 against 14. The list is read before
          # launch now, an arm it lacks refusing there, and WANT is what
          # the list carries. The probe's question is spent (README).
-         argv=None, ok=None),
+         argv=None, ok=None, no_audit='program-retired'),
 
     case('note-paths-read-a-name-that-merely-contains-the-run', 'preflight.sh',
          None,

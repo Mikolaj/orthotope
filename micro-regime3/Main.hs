@@ -37,9 +37,11 @@ import           Control.Exception            (assert, evaluate)
 import           Control.Monad                (foldM_, unless, void)
 import           Control.Monad.ST             (ST)
 import           Criterion.Main
+import           Criterion.Main.Options       (Mode (..))
+import qualified Criterion.Main.Options       as CriterionOptions
 import           Criterion.Measurement.Types.Internal (whnf')
 import           Criterion.Types              (Benchmarkable (..),
-                                               Config (regressions))
+                                               Config (regressions, timeLimit))
 import           Data.Bits                    (countLeadingZeros, shiftR, (.&.))
 import           Data.Int                     (Int32, Int64)
 import           Data.List                    (isSuffixOf, sortBy)
@@ -60,6 +62,7 @@ import           GHC.Exts                     (Int (..),
                                                timesWord2#, word2Int#)
 import           GHC.Stats                    (RTSStats (allocated_bytes, elapsed_ns, gc_elapsed_ns, gcs, major_gcs, max_live_bytes, max_mem_in_use_bytes, mutator_elapsed_ns),
                                                getRTSStats)
+import           Options.Applicative          (execParser)
 import           System.Environment           (getArgs, lookupEnv, withArgs)
 import           System.IO                    (IOMode (ReadMode), hGetLine,
                                                hPutStrLn, stderr, withFile)
@@ -6790,17 +6793,18 @@ mkFlipIn rs sh esh =
       (ats, ao) = reverseDims rs sh (drop 1 (getStridesT esh))
   in  (sh, T (Strides ats) ao v)
 
--- Regime-2 view as @slice@ of a wider array produces it: a sub-block of
--- an enclosing dense array, every extent short of the enclosure's so
--- 'canonView' merges nothing, listed as view shape, enclosing shape and
--- offset. The axes 'runsShapes' fixes, swept: the gap between one run's
--- end and the next's start, from one element to a page, which decides
--- what each run's first read costs; a rank-3 block, so the fill's
--- odometer runs a level deeper per run where the slice route's per-run
--- cost is flat; and an offset off an 8-element boundary, which a memcpy
--- per run meets and a stepping loop does not. Added 2026-09-03; a run
--- of 63 at the gap of one, every run starting on a 64-element boundary
--- where 'block-run64-gap1''s drift by one a row, added 2026-10-06.
+-- Regime-2 view as @slice@ of a wider array produces it: a sub-block
+-- of an enclosing dense array, every extent below the outermost short
+-- of the enclosure's so 'canonView' merges nothing, listed as view
+-- shape, enclosing shape and offset. The axes 'runsShapes' fixes,
+-- swept: the gap between one run's end and the next's start, from one
+-- element to a page, which decides what each run's first read costs;
+-- a rank-3 block, so the fill's odometer runs a level deeper per run
+-- where the slice route's per-run cost is flat; and an offset off an
+-- 8-element boundary, which a memcpy per run meets and a stepping loop
+-- does not. Added 2026-09-03; a run of 63 at the gap of one, every run
+-- starting on a 64-element boundary where 'block-run64-gap1''s drift by
+-- one a row, added 2026-10-06.
 mkBlock :: ShapeL -> ShapeL -> Int -> (ShapeL, T)
 mkBlock sh esh !ao =
   let v = VS.enumFromN (0 :: Double) (product esh)
@@ -6927,11 +6931,11 @@ stretchShapes =
   , ("stretch-tall-Mx2",    [900000, 2])              -- 1800000, 2 base offsets
   , ("stretch-coprime-r7",  [2, 3, 5, 7, 11, 13, 2])  -- 60060, rank 7, coprime
   , ("stretch-rank12",      [2,2,2,2,2,2,2,2,2,2,2,2])  -- 4096, deepest rank
-    -- Sized to the 1800000 cap, which is what keeps it out of 'tooBig'. It
-    -- keeps what it is for -- a base-offsets table as large as that cap
-    -- allows (@m == l \/ 2@, tied with 'stretch-wide-2xM'), over a rank-3
-    -- outer odometer, which is what separates it from that shape's rank-2
-    -- grid of the same size.
+    -- Sized to the 1800000 cap, which is what keeps it out of the @big@
+    -- class. It keeps what it is for -- a base-offsets table as large
+    -- as that cap allows (@m == l \/ 2@, tied with 'stretch-wide-2xM'),
+    -- over a rank-3 outer odometer, which is what separates it from that
+    -- shape's rank-2 grid of the same size.
   , ("stretch-tab7MB",      [900, 2, 1000])           -- 1800000, 900k-entry table
     -- The one shape here aimed at the CACHE rather than at the arithmetic.
     -- Every other stride in the set is odd, prime or huge; this one is 512
@@ -7350,8 +7354,9 @@ flipInViews =
   , ("flip-outer-gap64", 2, [0], [2048, 64], [2048, 128])  -- 131072, the rows in reverse order
   ]
 
--- View shape, enclosing shape and offset; every view extent stays short
--- of the enclosure's, which the canon-rank condition pins.
+-- View shape, enclosing shape and offset; every view extent below
+-- the outermost stays short of the enclosure's, which the canon-rank
+-- condition pins.
 blockViews :: [(String, ShapeL, ShapeL, Int)]
 blockViews =
   [ ("block-run64-gap1",  [2048, 64],   [2048, 65],   0)  -- 131072, one element between rows
@@ -7384,14 +7389,49 @@ composeViews =
   , ("compose-bcast-wide",  [4, 5, 5, 5, 5, 6, 120], Strides [7564, -1466, 287, 55, 10, 1, 0], 5864)  -- 1800000, a broadcast of 120 beside runs of 6 under a reversed nest of fours and fives
   ]
 
+-- The views past 'sizeCap', the @big@ class: realistic conv layers, as
+-- 'mkStrided' builds the main set's, and 'mkRuns' views past the L3 cache. A
+-- call past the cap buys few samples in criterion's default budget, so the
+-- class times 'classArms''s arms alone, at 'classBudget''s multiple of that
+-- budget.
+--
+-- @l@ sets membership, not the run cost: criterion spends a time budget per
+-- benchmark, so a shape's share of a run is set by how many strategies run
+-- on it, not by how slow one call is. What @l@ drives is the per-call time,
+-- and through that the sample count the budget buys -- which is the accuracy
+-- the floor is really protecting. Which dimensions scale the work, and why
+-- only the minibatch dim is free to drop:
+-- README.md#dropping-the-minibatch-dimension.
+bigShapes :: [(String, ShapeL)]
+bigShapes =
+  [ ("big-vgg-28-c256-k3",      [28, 28, 256, 3, 3])     -- 1806336  (~1.8M)
+  , ("big-vgg-112-c64-k3",      [112, 112, 64, 3, 3])    -- 7225344  (~7M)
+  , ("big-resnet-stem-112-c3-k7", [112, 112, 3, 7, 7])   -- 1843968  (~1.8M)
+  , ("big-resnet-56-c128-k3",   [56, 56, 128, 3, 3])     -- 3612672  (~3.6M)
+  , ("big-resnet-56-c256-k3",   [56, 56, 256, 3, 3])     -- 7225344  (~7.2M)
+  , ("big-imagenet-224-c64-k3", [224, 224, 64, 3, 3])    -- 28901376 (~29M)
+  ]
+
+-- 'mkRuns' views past the L3 cache, the last one's runs past glibc's
+-- non-temporal threshold too.
+bigRunsShapes :: [(String, ShapeL)]
+bigRunsShapes =
+  [ ("big-runs-64",      [262144, 64])    -- 16777216 (~17M)
+  , ("big-runs-1048576", [16, 1048576])   -- 16777216 (~17M)
+  , ("big-runs-4194304", [4, 4194304])    -- 16777216 (~17M)
+  ]
+
 classViews :: [(String, (ShapeL, T))]
 classViews = [(n, view) | (n, view, _, _) <- classChecks]
 
 -- Every stride-class view, in the order the lists are defined, with the
 -- regime its class owes -- 3 for every class but @runs@ and @block@,
--- whose views are regime 2 by definition, and one per view in
--- 'flipInViews' and 'smallViews' -- and its CLASS CONDITIONS, which
--- 'check' asserts through 'oneViewReg'.
+-- whose views are regime 2 by definition, one per view in 'flipInViews'
+-- and 'smallViews', and one per list in @big@, its 'mkRuns' views being
+-- @runs@'s regime and carrying @runs@'s conditions -- and its CLASS
+-- CONDITIONS, which 'check' asserts through 'oneViewReg'. @big@'s conv
+-- layers carry none, the class's own property, @l@ past the cap, being
+-- 'partitioned''s, which 'main' asserts before any mode runs.
 --
 -- The class conditions, one function per stride class. Each names the
 -- structural properties its generator owes the class, computed from the
@@ -7436,6 +7476,8 @@ classChecks =
                                 , let !v = mkSmall s sts]
   ++ [(n, v, 3, composeConds v) | (n, s, sts, o) <- composeViews
                                 , let !v = mkCompose s sts o]
+  ++ [(n, v, 3, []) | (n, s) <- bigShapes, let !v = mkStrided s]
+  ++ [(n, v, 2, runsConds v) | (n, s) <- bigRunsShapes, let !v = mkRuns s]
   where
     -- Non-vacuity: leaving the outermost dim un-reversed (a valid partial
     -- rev) fails all-negative and offset-top together at the first rev
@@ -7620,46 +7662,31 @@ timedClassViews =
   [ cv | cv@(n, _) <- classViews, classOf n `notElem` retiredClasses
        , n `notElem` retiredShapes ]
 
--- The cap that partitions the shape set: benchmarked iff @l <= sizeCap@,
--- flagged and excluded otherwise. 'stretchShapes' is written to it exactly.
+-- The cap that partitions the shape set: the main set and every class but
+-- @big@ at or under it, @big@ over it. 'stretchShapes' is written to it
+-- exactly.
 sizeCap :: Int
 sizeCap = 1800000
 
--- Conv layers excluded from 'shapes', printed at startup as a flag rather
--- than run. The rule is @l > sizeCap@, which 'partitioned' asserts, so the
--- two sets cannot overlap.
---
--- @l@ is the rule but not the run cost: criterion spends a time budget per
--- benchmark, so a shape's share of a run is set by how many strategies run
--- on it, not by how slow one call is. What @l@ drives is the per-call time,
--- and through that the sample count the budget buys -- which is the accuracy
--- the floor is really protecting. Which dimensions scale the work, and why
--- only the minibatch dim is free to drop:
--- README.md#dropping-the-minibatch-dimension.
-tooBig :: [(String, ShapeL)]
-tooBig =
-  [ ("vgg-28-c256-k3",      [28, 28, 256, 3, 3])      -- 1806336  (~1.8M)
-  , ("vgg-112-c64-k3",      [112, 112, 64, 3, 3])     -- 7225344  (~7M)
-  , ("resnet-stem-112-c3-k7", [112, 112, 3, 7, 7])    -- 1843968  (~1.8M)
-  , ("resnet-56-c128-k3",   [56, 56, 128, 3, 3])      -- 3612672  (~3.6M)
-  , ("resnet-56-c256-k3",   [56, 56, 256, 3, 3])      -- 7225344  (~7.2M)
-  , ("imagenet-224-c64-k3", [224, 224, 64, 3, 3])     -- 28901376 (~29M)
-  ]
-
--- The rule of the two lists above as a check rather than a comment, and the
--- only thing standing between a mistyped dimension and a shape that quietly
--- takes a whole run's budget. Asserted in 'main', so it holds in every mode
--- and not only in the one that happens to read the list it guards.
--- Non-vacuity: lower 'sizeCap', or move one 'tooBig' entry into
+-- The cap's rule as a check rather than a comment, and the only thing
+-- standing between a mistyped dimension and a shape that quietly takes a
+-- whole run's budget, for every class but @big@. Asserted in 'main', so it
+-- holds in every mode and not only in the one that happens to read the list
+-- it guards.
+-- Non-vacuity: lower 'sizeCap', or move one 'bigShapes' entry into
 -- 'convShapes', and every mode dies at startup -- run with the cap at
 -- 1000000, where @check@, @diag@ and a benchmark Run each exited 1 on
 -- AssertionFailed rather than one of them passing.
+-- Non-vacuity of the @big@ clause, 2026-10-06 at the interpreter: shrinking
+-- 'big-vgg-28-c256-k3' under the cap, to [28, 28, 25, 3, 3], turned
+-- 'partitioned' False and left 'classTablesKnown' True.
 partitioned :: Bool
 partitioned = all ((<= sizeCap) . product . snd) allShapes
-           && all ((> sizeCap) . product . snd) tooBig
            -- the class populations obey the same cap, on their VIEW
-           -- shapes, whose product is each entry's @l@
-           && all ((<= sizeCap) . product . fst . snd) classViews
+           -- shapes, whose product is each entry's @l@, and the @big@
+           -- class is the views past it
+           && and [ (classOf n == "big") == (product sh > sizeCap)
+                  | (n, (sh, _)) <- classViews ]
 
 -- One roster entry: what 'mkBench' declares and what 'check' holds to the
 -- reference. Both read the same list, so the two cannot come apart; they used
@@ -8518,7 +8545,8 @@ saturate = do
 {-# NOINLINE saturate #-}
 
 main :: IO ()
-main = assert (partitioned && retiredKnown && retiredShapesKnown) $ do
+main = assert (partitioned && retiredKnown && retiredShapesKnown
+               && classTablesKnown) $ do
   args <- getArgs
   unless (any (`elem` ["check", "diag", "--list", "-l"]) args) saturate
   if "diag" `elem` args
@@ -8533,7 +8561,10 @@ main = assert (partitioned && retiredKnown && retiredShapesKnown) $ do
         let cfg = defaultConfig { regressions = [(["iters"], "allocated")] }
         if "classes" `elem` args
           then withArgs (filter (/= "classes") args) $ do
-            defaultMainWith cfg classBenches
+            -- 'defaultMainWith' is these two steps, the 'Mode' between them
+            -- being where 'classBudget' applies.
+            mode <- execParser (CriterionOptions.describe cfg)
+            runMode (withClassBudget mode) classBenches
             provenance (length classBenches)
           else do
             defaultMainWith cfg (map mkBench shapes)
@@ -8553,8 +8584,9 @@ main = assert (partitioned && retiredKnown && retiredShapesKnown) $ do
 -- them reported their product, in a line whose whole purpose is to be
 -- quoted. Reading the roster is not the weaker
 -- check it looks like: 'benchView' emits exactly one bench per timed arm,
--- so the two cannot differ. The group count is the caller's, naming the
--- benchmark list of the mode that ran.
+-- so the two cannot differ but in a class 'classArms' narrows, whose
+-- groups the line still counts at the roster's arms. The group count is
+-- the caller's, naming the benchmark list of the mode that ran.
 provenance :: Int -> IO ()
 provenance !nGroups = do
   s <- getRTSStats
@@ -8573,14 +8605,14 @@ provenance !nGroups = do
     ++ mib (max_live_bytes s) ++ " MiB max residency"
 
 -- Benchmark one view ('benchView'; 'mkBench' builds the main set's view
--- with 'mkStrided'): every 'roster' arm, in that list's order, which is
--- where each arm's slot and the reason for it are recorded. Criterion's 'env'
--- builds the input once and forces it to normal form before the clock starts,
--- so input construction is excluded from timing and the source vector is
--- fully materialised. The agreement/regime check is deliberately NOT here --
--- it lives in the separate 'check' mode, so the timed program never even
--- computes it and thus cannot share (CSE) a strategy's result between the
--- check and the benchmark.
+-- with 'mkStrided'): every 'roster' arm its first argument times, in that
+-- list's order, which is where each arm's slot and the reason for it are
+-- recorded. Criterion's 'env' builds the input once and forces it to normal
+-- form before the clock starts, so input construction is excluded from timing
+-- and the source vector is fully materialised. The agreement/regime check is
+-- deliberately NOT here -- it lives in the separate 'check' mode, so the timed
+-- program never even computes it and thus cannot share (CSE) a strategy's
+-- result between the check and the benchmark.
 --
 -- Each fill reaches the timed loop as a closure out of 'roster' rather than
 -- as a literal composition, which is what deriving both consumers from one
@@ -8704,10 +8736,10 @@ whnfLogged nm f x =
   Benchmarkable (wildLog nm "pre") (\n () -> wildLog nm "post" n)
                 (\() n -> whnf' f x n) False
 
-benchView :: String -> (ShapeL, T) -> Benchmark
-benchView name view =
+benchView :: (String -> Bool) -> String -> (ShapeL, T) -> Benchmark
+benchView times name view =
   env (evaluate (force view)) $ \ ~(sh, a) ->
-    bgroup name (concatMap (arm sh a) roster)
+    bgroup name (concatMap (arm sh a) [na | na@(n, _) <- roster, times n])
   where
     arm sh a (n, Base f)  = [bench n $ lg n (VS.sum . f sh) a]
     arm sh a (n, Fill f)  = [bench n $ lg n (VS.sum . f sh) a]
@@ -8721,7 +8753,7 @@ benchView name view =
     lg n = whnfLogged (name ++ "/" ++ n)
 
 mkBench :: (String, ShapeL) -> Benchmark
-mkBench (name, normalSh) = benchView name (mkStrided normalSh)
+mkBench (name, normalSh) = benchView (const True) name (mkStrided normalSh)
 
 -- The stride-class populations as benchmarks, one 'bgroup' per
 -- 'timedClassViews' entry in that list's order -- reachable only through the
@@ -8735,7 +8767,63 @@ mkBench (name, normalSh) = benchView name (mkStrided normalSh)
 -- The full sequence, which a major run includes by default:
 -- README.md#making-a-major-benchmark-run.
 classBenches :: [Benchmark]
-classBenches = [benchView n view | (n, view) <- timedClassViews]
+classBenches =
+  [benchView (timedIn (classOf n)) n view | (n, view) <- timedClassViews]
+
+-- The arms a class times where that is not every timed arm of 'roster',
+-- in roster order whatever order is listed here; 'check' holds every
+-- checked arm to the class's views regardless. A class listed here keeps
+-- @list@, the reader's baseline, an A/A copy of it for a floor and the two
+-- @sum-only@ arms for the correction: without them @read-run.py --block@
+-- refuses the class's JSON and its times go uncorrected, as a smoke of
+-- @big@'s six fills alone showed on 2026-10-06.
+classArms :: [(String, [String])]
+classArms =
+  [ ("big", [ "lib-stage2-lean", "lib-stage3-lean"
+            , "liblist-stage4-sum", "liblist-stage5-sum"
+            , "libunord-stage13-sum", "libunord-stage15-sum"
+            , "list", "list-aa-adjacent", "sum-only-early", "sum-only-late" ]) ]
+
+-- Whether a class times an arm: every timed arm, but where 'classArms'
+-- names the class's own.
+timedIn :: String -> String -> Bool
+timedIn c = maybe (const True) (flip elem) (lookup c classArms)
+
+-- A class's criterion budget, as a multiple of the default time limit.
+classBudget :: [(String, Double)]
+classBudget = [("big", 3)]
+
+-- 'classBudget' applied: where a process's selection names one class
+-- alone, as every driver here launches one, and the command line left
+-- the time limit at its default, the limit is multiplied by that class's
+-- factor. Criterion takes one limit a process, so a selection spanning
+-- classes keeps the default.
+withClassBudget :: Mode -> Mode
+withClassBudget (Run cfg mt sel@(s : ss))
+  | Just k <- lookup c classBudget
+  , all ((== c) . classOf) ss
+  , timeLimit cfg == timeLimit defaultConfig
+  = Run cfg { timeLimit = k * timeLimit cfg } mt sel
+  where c = classOf s
+withClassBudget mode = mode
+
+-- Every class the two tables name is timed and every arm 'classArms' names
+-- is a timed roster arm, asserted in 'main': a misspelt name would leave
+-- its class an arm short, timing every arm or at the default budget, and
+-- say nothing.
+-- Non-vacuity, 2026-10-06 at the interpreter: misspelling
+-- 'lib-stage3-lean' in 'classArms' turned it False and left 'partitioned'
+-- True.
+classTablesKnown :: Bool
+classTablesKnown =
+     all ((`elem` classes) . fst) classArms
+  && all ((`elem` classes) . fst) classBudget
+  && all (all (`elem` timed) . snd) classArms
+  where
+    classes = map (classOf . fst) timedClassViews
+    timed   = [n | (n, arm) <- roster, notOnly arm]
+    notOnly (Only _) = False
+    notOnly _        = True
 
 -- The builders compared directly, not only through the strategies
 -- that consume them. End-to-end agreement hides a table that is
@@ -8846,9 +8934,6 @@ oneViewReg expReg name sh a@(T (Strides ats) ao v) =
 -- in 'classChecks'' order.
 check :: IO ()
 check = do
-  mapM_ (\(n, s) -> putStrLn $ "FLAGGED too big, excluded: " ++ n ++ " "
-                               ++ show s ++ ", l=" ++ show (product s))
-        tooBig
   mapM_ one (allShapes ++ degenerateShapes)
   mapM_ (\(n, (sh, a), reg, conds) -> oneViewReg reg n sh a conds)
         classChecks

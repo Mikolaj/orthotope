@@ -2423,19 +2423,19 @@ rather than a slot in the next run, observed again:
   is neither a compiler's nor a pad's. **The in-cache probe**, one process
   over `runs` on the dead-spot binary with an arm per candidate threshold, put
   the crossover between `runs-1024` and `runs-4096` and the 2048 arm nowhere
-  behind the better route. **The past-cache probe**, `probe-cache-build.sh`
-  and `probe-cache-run.sh` timing two regime-2 views of 8 million elements
-  at runs of 96 and 4096, KILLED its registration by a small inversion: `list`
-  at 14.7 ns an element, memory-bound at every size; at 96 `lib-stage2` reads
-  0.5548 of `lib-stage1`, and at 4096 0.9802, the fill two points ahead where
-  in cache the slice route leads by five, `lib-stage2-disp` reading 1.0227
-  of the fill --- past the cells' fit widths, 0.14 to 0.54%, and inside
-  the `runs` class's floors, 2.79% to 3.15% on Runs 25 to 27. So `dispRun`
-  is a function of the working set by the letter and not in a way that costs,
-  and the cut stood; the dispatch and its probe arms were retired for their own
-  reasons on 2026-09-07 ([dead ideas][dead]). **The third probe, 2026-10-04,
-  re-cut it to 32768 over the branch's fill of 2026-10-04**: one process
-  over `runs` on Run 44's basis recipe, `lib-stage2-disp` rebuilt
+  behind the better route. **The past-cache probe**, probe-cache-build.sh
+  and probe-cache-run.sh, removed 2026-10-06, timing two regime-2 views of 8
+  million elements at runs of 96 and 4096, KILLED its registration by a small
+  inversion: `list` at 14.7 ns an element, memory-bound at every size; at 96
+  `lib-stage2` reads 0.5548 of `lib-stage1`, and at 4096 0.9802, the fill two
+  points ahead where in cache the slice route leads by five, `lib-stage2-disp`
+  reading 1.0227 of the fill --- past the cells' fit widths, 0.14 to 0.54%,
+  and inside the `runs` class's floors, 2.79% to 3.15% on Runs 25 to 27.
+  So `dispRun` is a function of the working set by the letter and not in a way
+  that costs, and the cut stood; the dispatch and its probe arms were retired
+  for their own reasons on 2026-09-07 ([dead ideas][dead]). **The third probe,
+  2026-10-04, re-cut it to 32768 over the branch's fill of 2026-10-04**: one
+  process over `runs` on Run 44's basis recipe, `lib-stage2-disp` rebuilt
   over `lib-stage2-lean` and run at a threshold of 1 so that it sliced every run
   (`probe-p45disp1-runs.json`), read the slice route over the fill, net,
   at 1.1374 at `runs-1024`, 1.1095 on `runs-r3-48x30`'s runs of 1440, 1.0078
@@ -4493,17 +4493,20 @@ so a minibatch scales the number of calls, not each `l` (the `*-slice` shapes).
 Either way total regime-3 work is linear in the minibatch size (`nImgs` = 7
 in horde-ad's own CNN; tens to a few hundred in general training).
 
-`tooBig` (in `Main.hs`) lists realistic layers excluded because even one image's
-patch tensor exceeds `sizeCap`, the element count that partitions benchmarked
-shapes from flagged ones: past it a call is slow enough to starve the sample
-count, and the run is long and memory-hungry with it. Those shapes are excluded
-from runs, not unmeasurable: after Run 9 they were promoted into the shape set
-behind a temporary edit, to settle what the allocation area should be
-for a caller whose arrays are this size ([the floor section][floor]). `Cin`
-and the spatial dims scale `l` linearly too (in the full run, doubling `Cin`
-~doubles the cost, quadrupling the spatial area ~quadruples it), but reducing
-them reproduces a shape already here --- a per-position slice, or a smaller conv
---- so `nImgs` is the only dimension genuinely free to drop.
+The `big` class (`bigShapes` and `bigRunsShapes` in `Main.hs`) holds realistic
+layers whose patch tensor exceeds `sizeCap` even for one image, and `runs` views
+past the L3 cache. `sizeCap` is the element count that partitions the class
+from the main set and every other class: past it a call is slow enough to starve
+the sample count, so the class times only the arms `classArms` names,
+at the multiple of criterion's default time limit `classBudget` gives.
+The layers were excluded from runs until 2026-10-06: after Run 9 they
+were promoted into the shape set behind a temporary edit, to settle what
+the allocation area should be for a caller whose arrays are this size ([the
+floor section][floor]). `Cin` and the spatial dims scale `l` linearly too
+(in the full run, doubling `Cin` ~doubles the cost, quadrupling the spatial area
+~quadruples it), but reducing them reproduces a shape already here ---
+a per-position slice, or a smaller conv --- so `nImgs` is the only dimension
+genuinely free to drop.
 
 
 ### The stride classes and what they cover
@@ -4620,11 +4623,13 @@ has almost nothing to cap and `--pair`'s bootstrap interval almost nothing
 to resample. What a class run can decide is whether an *ordering* inverts
 under its mechanism and whether any strategy's `worst` crosses 1 there. What
 it cannot do is be compared with a main-set number, in either direction.
-**`runs` is the one exception, a sweep rather than a triple**, because
-its question is a crossover and not a mechanism: its views walk the run from 2
-to 65536 at a fixed size, with one rank-3 entry whose inner dims merge
+**`runs` is one exception, a sweep rather than a triple**, because its question
+is a crossover and not a mechanism: its views walk the run from 2 to 65536
+at a fixed size, with one rank-3 entry whose inner dims merge
 under canonicalization so the library's merge and not the listing sets its run,
 and one at 4096 small enough that its source and result fit in L2 together.
+**`big` is the other, its axis being size and not a mechanism**: its views
+are those past `sizeCap`.
 
 **The `runs` class and the library-shaped arms exist for regressions
 this benchmark could not see, added 2026-08-28 after horde-ad caught one.**
@@ -8018,9 +8023,10 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      at 12c. And wait on nothing: launched as step 11 says you are
     #      woken. A `tail` between legs shows nothing
     #      why: --para 'After a roster change'
-    #      A timed arm lands on every class, so the classes whose VIEWS
-    #      moved are not the ones at risk. The pass is the longest thing
-    #      this half spends and it fills one row.
+    #      A timed arm lands on every class but `big`, whose arms
+    #      `classArms` names, so the classes whose VIEWS moved are not
+    #      the ones at risk. The pass is the longest thing this half
+    #      spends and it fills one row.
     #      The driver's own log is `smoke-l1-$R.log`, with no hyphen, so
     #      the obvious glob leaves exactly the one file the refusal reads
     #      and the relaunch dies again on it. Both halves of that were met
@@ -10519,9 +10525,9 @@ which for Run 10 was where alignment was faster.
 
 **The cross-class summary is INSTALLED since 2026-09-22, from the class blocks
 and not from the JSONs.** Every cell of it appears in one of the class tables
-above it, so `install-tables.sh` reads the ten rows off each class's own
-`--block` --- the same output those tables came from, never a second derivation
-able to disagree with them --- and refills the table IN THE ORDER THE DOCUMENT
+above it, so `install-tables.sh` reads the rows off each class's own `--block`
+--- the same output those tables came from, never a second derivation able
+to disagree with them --- and refills the table IN THE ORDER THE DOCUMENT
 ALREADY HAS, a table inherited from run to run being no place for a reordering
 nobody asked for. A row whose class this run has no block for is LEFT STANDING
 and the driver says so and exits nonzero. What stays the author's is the prose
@@ -12542,14 +12548,15 @@ not the arm. Both readings are with the wild-cell entry.
   the cap.
 
   **But "at this size" is load-bearing, and the advice inverts above the shape
-  cap.** Real callers use arrays past `sizeCap`, so the `tooBig` shapes
-  were promoted into the shape set behind a temporary edit and measured
-  (2026-08-09, `-M20G`, busy machine, min of 5; the edit is reverted).
-  Allocation first, which is exact and load-independent, and which confirms
-  the one thing that does scale: **excess allocation is linear in `l` to three
-  digits** over a 32x range --- `bq-expand` 14.6 to 14.7 B/element, `list` 190.2
-  to 190.4 --- so at `imagenet-224-c64-k3` (`l` = 28.9M) a single call churns
-  **425 MB** past its result, and `list` churns **5.50 GB**.
+  cap.** Real callers use arrays past `sizeCap`, so the shapes past it,
+  the `big` class's conv layers today, were promoted into the shape set behind
+  a temporary edit and measured (2026-08-09, `-M20G`, busy machine, min of 5;
+  the edit is reverted). Allocation first, which is exact and load-independent,
+  and which confirms the one thing that does scale: **excess allocation
+  is linear in `l` to three digits** over a 32x range --- `bq-expand` 14.6
+  to 14.7 B/element, `list` 190.2 to 190.4 --- so at `imagenet-224-c64-k3` (`l`
+  = 28.9M) a single call churns **425 MB** past its result, and `list` churns
+  **5.50 GB**.
 
   | `-A`, at `imagenet-224-c64-k3` | `bq-expand` | its kernel time | `list` |
   |---|---:|---:|---:|
@@ -14465,8 +14472,11 @@ tables and its fingerprint say so.
   columns differenced. **And its floor is a maximum over EIGHT A/A pairs**, both
   halves' figures in [Run 45's own file](runs/run45.md). `bcastmid-block150k`
   was retired 2026-10-05, after the run, its lean-family fills drawing a slow
-  or a fast state per process (`retiredShapes`). `block-run63-gap1`
-  and `runs-4096-l2` were added 2026-10-06, after the run.
+  or a fast state per process (`retiredShapes`). `block-run63-gap1`,
+  `runs-4096-l2`, `big-vgg-28-c256-k3`, `big-vgg-112-c64-k3`,
+  `big-resnet-stem-112-c3-k7`, `big-resnet-56-c128-k3`, `big-resnet-56-c256-k3`,
+  `big-imagenet-224-c64-k3`, `big-runs-64`, `big-runs-1048576`
+  and `big-runs-4194304` were added 2026-10-06, after the run.
 - Run 44 measured 31 timed arms over 19 main-set shapes and 62 class views
   in TEN classes, 589 benches and 1922, EIGHT A/A pairs, the `runs` class
   at SIXTEEN, `window` at EIGHT, `bcast`, `compose` and `flip` at SIX, `block`

@@ -33,7 +33,8 @@ executable micro
         vector,
         criterion,
         criterion-measurement,
-        deepseq
+        deepseq,
+        optparse-applicative
 
 -- The element-type probe, whose own header says what it is and why it is not
 -- part of the roster. An executable rather than a benchmark stanza, as micro

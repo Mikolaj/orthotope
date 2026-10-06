@@ -501,6 +501,10 @@ def dims_by_shape(main_hs):
         # never meets a five-field row.
         ('flipInViews', r'\d+,\s*\[[^\]]*\],\s*' + sh_re + r',\s*\[[^\]]*\]',
          listed),
+        # 2026-10-06: the `big` class, the views past the cap, one list
+        # per generator, 'mkStrided' and 'mkRuns'.
+        ('bigShapes', sh_re, strided),
+        ('bigRunsShapes', sh_re, runs),
     ]
     out, ann = {}, {}
     try:
