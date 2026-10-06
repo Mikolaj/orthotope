@@ -3301,7 +3301,8 @@ mkStrided normalSh =
 -- nothing else differs. So stage one is this arm with an empty view
 -- answered and then the fill in place of the list, and 'list' is this
 -- arm's regime-3 branch without the dispatch or the test. Added
--- 2026-10-04 by the owner, beside stage one.
+-- 2026-10-04 by the owner, beside stage one. RETIRED 2026-10-06 by the
+-- owner, checked and not timed.
 {-# NOINLINE fbLibStage0 #-}
 fbLibStage0 :: ShapeL -> T -> VS.Vector Double
 fbLibStage0 sh a@(T (Strides ats) ao v)
@@ -3522,6 +3523,16 @@ dispRun = 8192
 -- threshold arms of 2026-09-02 went with it (README.md#dead-ideas).
 -- Timed again from 2026-10-04 by the owner, rebuilt over
 -- 'fbLibStage2Lean' as above.
+--
+-- OVERRIDDEN 2026-10-06 by the owner, and the arm RETIRED, checked and not
+-- timed: since pr-mikolaj-toVectorListT's commit "Copy whole runs inside the
+-- fill from a length each instance picks", the library's 'genericFillStrided'
+-- copies whole each run at stride 1 at least as long as a run length each
+-- instance picks, which is this dispatch done inside the fill, and well
+-- enough to be worth the longer source code; its cut, 'copyRun' here, is set
+-- past where a copy's cost a run is paid off and not to this box's L1. Since
+-- the same day this arm's fill, 'fillStage2Axes', copies the runs below
+-- 'dispRun' from 'copyRun' on too.
 {-# NOINLINE fbLibStage2Disp #-}
 fbLibStage2Disp :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Disp sh a@(T _ _ v)
@@ -7998,7 +8009,8 @@ roster =
     -- Master's, added 2026-10-04 by the owner at the head of the block,
     -- beside stage one, from which it differs in regime 3 alone: what the
     -- two stages replace.
-  , ("lib-stage0",                 Fill fbLibStage0)
+    -- RETIRED 2026-10-06 by the owner, checked and not timed.
+  , ("lib-stage0",                 Only fbLibStage0)
   , ("lib-stage1",                 Fill fbLibStage1)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does):
     -- the two halves that bracketed 'dispRun', spent once the arm below
@@ -8023,7 +8035,11 @@ roster =
     -- run-length dispatch: its control is 'lib-stage2-lean', below, and
     -- the slot is the one it held. Re-cut to 32768 the same day and to
     -- 8192 on 2026-10-05, reasons at 'dispRun'.
-  , ("lib-stage2-disp",            Fill fbLibStage2Disp)
+    -- RETIRED 2026-10-06 by the owner, checked and not timed, the ruling
+    -- of 2026-09-07 overridden: the library's fill copies each run at
+    -- stride 1 whole from 'copyRun' on, the dispatch done inside the fill;
+    -- reasons at the definition.
+  , ("lib-stage2-disp",            Only fbLibStage2Disp)
     -- Three candidates for the branch, added 2026-08-30 for Run 22: the
     -- run unrolled by four, a run of 2 to 5 elements written by a body
     -- of exactly that length, and the same fill under a leaner dispatch,

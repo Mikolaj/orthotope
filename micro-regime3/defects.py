@@ -10733,14 +10733,13 @@ RECORDS = [
          'the sign-parting census printed six pairs and `...` for the rest,'
          ' so a claim about which pairs part rested on the list\'s order',
          # Run 42's basis parted on seven and its control on eleven; the
-         # write-up's `four of the seven with lib-stage1` was argued from
-         # the name order of the six printed. The fixture skews nine arms
-         # on two shapes apiece, which parts more than six pairs: nine
-         # until `lib-stage0` landed on 2026-10-04 and eleven after, the
-         # fixture being Main.hs's roster, so the ok verdict asserts the
-         # form and no count, `compared_arm_count`'s reason. What holds
-         # the fixture above six is the audit: its bug verdict wants the
-         # `; ...` only a seventh parting prints.
+         # write-up's `four of the seven with lib-stage1` was argued from the
+         # name order of the six printed. The fixture skews nine arms on two
+         # shapes apiece, which parts more than six pairs, how many moving with
+         # Main.hs's roster, which is the fixture, so the ok verdict asserts
+         # the form and no count, `compared_arm_count`'s reason. What holds the
+         # fixture above six is the audit: its bug verdict wants the `; ...`
+         # only a seventh parting prints.
          plant=lambda t: {
              'run': synth_json(t, 'main', name='a.json', skew=[
                  (main_shapes()[(2 * j + i) % len(main_shapes())], a, 30)

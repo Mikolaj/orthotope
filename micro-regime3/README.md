@@ -522,6 +522,10 @@ by being a thing a later session might otherwise redo.
   by canonicalization alone; the ruling, the exception, what it forecloses
   and what it leaves outside, `toVectorT` being strict whichever way
   it is built: [dead ideas][dead].
+- **The run-length dispatch is taken inside the fill**, 2026-10-06, overriding
+  the ruling of 2026-09-07 that kept it out of `toVectorT`: each run at stride 1
+  at least as long as a length each `Vector` instance picks copied whole,
+  and `lib-stage2-disp`, the slice-list form, retired: [dead ideas][dead].
 - **Code placement moves figures**, and by more than the A/A controls can see:
   the identical-code pair, the rebuild bias, the per-loop reading
   and the cache-line table are all [in the floor section][floor]. **Straddling
@@ -791,7 +795,9 @@ rather than a slot in the next run, observed again:
   would settle it** is the two arms timed by criterion in fresh processes, clean
   and under `SATURATE=1`, over the main set: near 29 clean and near 35 saturated
   says the state is the term, and a registration on a `list`-shaped arm
-  then draws its band from time rather than from cycles.
+  then draws its band from time rather than from cycles. Since 2026-10-06
+  `lib-stage0` is retired by the owner, checked and not timed, so that reading
+  wants it timed again.
 - `ANSWERED` **The two `-O2` passes made `libunord-stage13-sum` allocate 18%
   more because SpecConstr reboxes the axis `sortAxes` and `insertAxis` cons
   whole, and since 2026-10-05 `Main.hs` keeps SpecConstr off `Axis`.** Run 45's
@@ -4641,18 +4647,18 @@ and, exactly, in allocation, which is what a consumer iterating the list pays.
 **`lib-stage0`, added 2026-10-04 by the owner, is master's `toVectorT` whole**:
 stage one's dispatch, with regime 3 a vector built from the element list behind
 `toListT`'s test for the natural layout, so it parts from `lib-stage1` in regime
-3 alone and is what the two stages replace. Since `fillStage2` was deleted
-on 2026-09-26, the ports fill through `fillStage3`, its `Axis` form, which
-the library does not carry. **SUPERSEDED 2026-09-09, on the concatenation's
-shape and not the pairing**: the ports concatenated a one-element list too,
-and vector's `concat` copies it, so every port Fill arm read 2.00x allocation
-and paid a result-sized copy on every view the library fills once, where
-`toVectorT` pays neither; since that day a port hands a one-element list's
-element back as `toVectorT` does and concatenates only runs, so on such a view
-a port and its fill are the same vector, the pair prices the list where there
-is one, and the allocation column reads what the library allocates --- Run 28's
-item (9), and the reason the lazy stages' dispatch is a value read by four
-shared readers.
+3 alone and is what the two stages replace. **RETIRED 2026-10-06 by the owner,
+checked and not timed.** Since `fillStage2` was deleted on 2026-09-26, the ports
+fill through `fillStage3`, its `Axis` form, which the library does not carry.
+**SUPERSEDED 2026-09-09, on the concatenation's shape and not the pairing**:
+the ports concatenated a one-element list too, and vector's `concat` copies it,
+so every port Fill arm read 2.00x allocation and paid a result-sized copy
+on every view the library fills once, where `toVectorT` pays neither; since
+that day a port hands a one-element list's element back as `toVectorT` does
+and concatenates only runs, so on such a view a port and its fill are the same
+vector, the pair prices the list where there is one, and the allocation column
+reads what the library allocates --- Run 28's item (9), and the reason the lazy
+stages' dispatch is a value read by four shared readers.
 
 **Beside those ports sits `lib-stage2-disp`, which is a candidate and not a port
 of anything**, added 2026-08-30: the slice route taken only where the canonical
@@ -4667,10 +4673,13 @@ reached `dispRun`, so there it was `lib-stage2-lean`'s code and the two arms'
 pair read as an A/A, which [the floor section][floor] records --- except
 on `small`, where their corrected instructions parted by 1.9% on the basis
 and 1.8% on HEAD and the pair was not an A/A at all ([the disp/lean
-entry][open]). **Timed again since 2026-10-04 by the owner, rebuilt
+entry][open]). **Timed again from 2026-10-04 by the owner, rebuilt
 as `lib-stage2-lean` with the dispatch alone**: at or above `dispRun`
 it concatenates the run slices the branch's own walker lists, where until
-then it took `lib-stage2-concat`'s route.
+then it took `lib-stage2-concat`'s route. **RETIRED 2026-10-06 by the owner,
+checked and not timed, the ruling of 2026-09-07 overridden**: the library's fill
+now copies each run at stride 1 whole from a length each instance picks, which
+is the dispatch done inside the fill ([dead ideas][dead]).
 
 **Beside it, for Run 22, sit three fill candidates**, each a fill change
 under the same dispatch: `lib-stage2-u4`, the stepping run unrolled by four;
@@ -4841,9 +4850,10 @@ entry points the user takes, and the `runs` class is where the routes part; what
 each landing and parking among them did to the bench count, at its date,
 is in the roster arithmetic under [What the benchmark
 does](#what-the-benchmark-does), the one copy of it, and the reason for each
-is at its roster entry; the last of them, the re-timing of `lib-stage2-disp`
-on 2026-10-04, takes the roster to 589 benches --- the figure's second site,
-which `--check-doc` holds to `Main.hs` beside the chain's.
+is at its roster entry; the last of them, the retirement of `lib-stage0`
+and `lib-stage2-disp` on 2026-10-06, takes the roster to 551 benches ---
+the figure's second site, which `--check-doc` holds to `Main.hs` beside
+the chain's.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -6690,22 +6700,32 @@ first, those that did not die on paper at all:
 - **A run-length dispatch inside `toVectorT`, one memcpy per run above
   a threshold and the fill below it**, `lib-stage2-disp` with `dispRun` at 2048
   --- **it works, it is 8 to 12% faster on the `runs` class at runs of 4096
-  to 65536 on a 14 MB array, and it will not be done.** **Over the branch's fill
-  of 2026-10-04 it is some 1.5 to 3.5% faster, net, at runs of 16384
-  and 65536**, level with the fill or up to 3.5% behind it at 4096 and 10.9%
-  and more behind it at runs of 1440 and below, and `dispRun` stands at 8192
-  ([the `dispRun` entry][open]). RULED OUT 2026-09-07 on code complexity, which
-  sat right at the threshold, with the dependence on a hard-coded constant
-  tipping it: the threshold is a run of 16 KB sized to the L1 and cut
-  on this box, a library would carry it blind, and the past-cache probe read
-  the crossover moving with the working set. What the gain is worth and where
-  --- a tie past the L3 at 64 MB, the per-call comparison priced on `small`,
-  the real-world views that reach it --- is at the arm's definition
+  to 65536 on a 14 MB array, and it was ruled out until the owner overrode
+  the ruling on 2026-10-06.** **Over the branch's fill of 2026-10-04 it is some
+  1.5 to 3.5% faster, net, at runs of 16384 and 65536**, level with the fill
+  or up to 3.5% behind it at 4096 and 10.9% and more behind it at runs of 1440
+  and below, and `dispRun` stands at 8192 ([the `dispRun` entry][open]). RULED
+  OUT 2026-09-07 on code complexity, which sat right at the threshold,
+  with the dependence on a hard-coded constant tipping it: the threshold
+  is a run of 16 KB sized to the L1 and cut on this box, a library would carry
+  it blind, and the past-cache probe read the crossover moving with the working
+  set. **OVERRIDDEN 2026-10-06 by the owner**: since
+  `pr-mikolaj-toVectorListT`'s commit "Copy whole runs inside the fill
+  from a length each instance picks", `genericFillStrided` copies each run
+  at stride 1 whole, one `VG.unsafeCopy` a run, from a run length each `Vector`
+  instance passes, and steps the shorter ones --- the dispatch on run length,
+  done inside the fill, and well enough to be worth the longer source code;
+  its Storable cut, 512 bytes, is set past where a copy's cost a run is paid off
+  and not to this box's L1. The fills here kept in step with the library carry
+  the copy since the same day (`copyRun` in `Main.hs`). What the gain is worth
+  and where --- a tie past the L3 at 64 MB, the per-call comparison priced
+  on `small`, the real-world views that reach it --- is at the arm's definition
   in `Main.hs`, and its figures stand in Run 26's `runs` table and the `dispRun`
   entry. The arm was parked `Only`, checked and not timed, until 2026-10-04,
   when the owner had it timed again, rebuilt as `lib-stage2-lean`
-  with the dispatch alone; the three threshold arms of 2026-09-02 are removed,
-  and Run 27's item (11) was withdrawn with the parking.
+  with the dispatch alone, and was retired again, checked and not timed,
+  with the override; the three threshold arms of 2026-09-02 are removed, and Run
+  27's item (11) was withdrawn with the parking.
 - **A `Ptr`-walking fill under `unsafeWith`**, bases folded into the cursors
   so there is nothing to spill --- **it would work, and it will not be done.**
   What it would buy is measured rather than argued: LLVM performs exactly
@@ -7155,8 +7175,10 @@ to 589 benches, and the retirement of 2026-10-04 by the owner ---
 `libunord-stage7-sum` and `libunord-stage9-sum` --- took it to 551 benches,
 and `lib-stage0`, master's `toVectorT` landing the same day beside `lib-stage1`,
 to 570 benches, and `lib-stage2-disp`, timed again the same day and rebuilt
-over `lib-stage2-lean`, reasons at their entries, takes the roster to 589
-benches, so with the controls the run is 31 arms. **Run 26 timed four parked
+over `lib-stage2-lean`, reasons at their entries, to 589 benches,
+and the retirement of 2026-10-06 by the owner --- `lib-stage0`
+and `lib-stage2-disp`, reasons at their entries --- takes the roster to 551
+benches, so with the controls the run is 29 arms. **Run 26 timed four parked
 arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked
 2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
 and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
