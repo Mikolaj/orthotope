@@ -316,7 +316,7 @@ concatOuter as | any null shs = error "concatOuter: rank 0 array"
                | not $ allSame $ map tail shs =
                  error $ "concatOuter: non-conforming inner dimensions: " ++ show shs
                | n < 0 = error $ "concatOuter: outer extents summing past maxBound: " ++ show (map head shs)
-               | otherwise = fromVector sh' $ vConcat $ map toVector as
+               | otherwise = fromVector sh' $ vConcatN (product sh') $ map toVector as
   where shs@(sh:_) = map shapeL as
         n = sumExtents (map head shs)
         sh' = n : tail sh
@@ -332,7 +332,7 @@ ravel aa =
   case toList aa of
     [] -> error "ravel: empty array"
     as | not $ allSame shs -> error $ "ravel: non-conforming inner dimensions: " ++ show shs
-       | otherwise -> fromVector sh' $ vConcat $ map toVector as
+       | otherwise -> fromVector sh' $ vConcatN (product sh') $ map toVector as
       where shs@(sh:_) = map shapeL as
             sh' = length as : sh
 
@@ -480,14 +480,19 @@ rerank f (A sh t)
   subArraysT osh t
   where (osh, ish) = splitAt (valueOf @n) sh
 
--- The first argument names the caller in the errors.
+-- The first argument names the caller in the errors.  The caller computes the
+-- arrays, one for each index of @osh@, and each one's shape is checked against
+-- the first's as it is copied, not all before the copy, which, the fields of an
+-- array being strict, would compute every array and hold them all.
 {-# INLINE ravelOuter #-}
 ravelOuter :: (HasCallStack, Vector v, VecElem v a, KnownNat m) => String -> ShapeL -> [Array n v a] -> Array m v a
 ravelOuter name _ [] = error $ name ++ ": empty list"
-ravelOuter name osh as | not $ allSame shs = error $ name ++ ": non-conforming inner dimensions: " ++ show shs
-                       | otherwise = fromVector sh' $ vConcat $ map toVector as
-  where shs@(sh:_) = map shapeL as
+ravelOuter name osh as@(a : _) =
+  fromVector sh' $ vConcatN (product sh') $ map part as
+  where sh = shapeL a
         sh' = osh ++ sh
+        part x | shapeL x == sh = toVector x
+               | otherwise = error $ name ++ ": non-conforming inner dimensions: " ++ show [sh, shapeL x]
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.

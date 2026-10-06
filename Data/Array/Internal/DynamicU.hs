@@ -61,7 +61,8 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.DynamicG as G
-import Data.Array.Internal(ShapeL, Vector(..), genericFillStrided)
+import Data.Array.Internal(ShapeL, Vector(..), genericConcatN,
+                           genericFillStrided)
 
 type Unbox = V.Unbox
 
@@ -140,6 +141,8 @@ instance Vector V.Vector where
   vAny = V.any
   {-# INLINE vFillStrided #-}
   vFillStrided = genericFillStrided 64
+  {-# INLINE vConcatN #-}
+  vConcatN = genericConcatN
 
 type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }

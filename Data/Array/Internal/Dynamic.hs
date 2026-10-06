@@ -123,6 +123,12 @@ instance Vector V.Vector where
   vAny = V.any
   {-# INLINE vFillStrided #-}
   vFillStrided = genericFillStrided 5
+  -- vConcatN keeps the default, the vector package's concat but for a
+  -- lone part: on GHC HEAD, copying each part as the list yields it, as
+  -- genericConcatN does, took 0.95 to 1.28 times as long on boxed parts of
+  -- 500 elements or more at a 32 MB allocation area and 1.22 to 2.21 at 4 MB,
+  -- running 1.02 to 1.41 and 1.35 to 2.88 times the instructions, though it
+  -- took 0.41 to 0.79 and 0.50 to 0.76 of the time on rows of 2 to 8 elements.
 
 type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }
