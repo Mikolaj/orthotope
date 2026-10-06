@@ -5,7 +5,7 @@
 # Part 1 times the original, the copy and Run 32's basis, twice each,
 # interleaved; part 2 reads the physical frame of the fill loop's line and
 # the sum loop's line in the original and the copy while each runs, which
-# needs sudo. A probe and never a check: exits 0 whatever it finds.
+# needs root. A probe and never a check: exits 0 whatever it finds.
 #
 #     bash probe-r33-instance.sh
 set -u
@@ -29,6 +29,6 @@ for b in run33-exit probe-copy-r33exit; do
   pid=$!
   sleep 10
   echo "-- $b"
-  sudo python3 ../../horde-ad/tools/probe-pageflags.py "$pid" 0x430980 0x4bad80
+  python3 ../../horde-ad/tools/probe-pageflags.py "$pid" 0x430980 0x4bad80
   wait "$pid"
 done

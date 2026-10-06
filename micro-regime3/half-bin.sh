@@ -37,7 +37,7 @@
 #
 #   tmpfs  /home/mikolaj/r/orthotope/micro-regime3/hugebin  tmpfs  noauto,size=1g,huge=always,mode=0755,uid=1000,gid=1000  0  0
 #
-# then `mkdir -p hugebin && sudo mount hugebin` when a run wants it.
+# then `mkdir -p hugebin && mount hugebin`, as root, when a run wants it.
 # WITHOUT `noauto` systemd generates a mount unit that runs AT BOOT, and on
 # this box /home is not unlocked by then: the unit exits 32 with `mount point
 # does not exist`, and the journal's next line is `Failed to create mount

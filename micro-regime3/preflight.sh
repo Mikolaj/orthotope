@@ -568,7 +568,7 @@ a placement run, whose note owes the word it was raised on"
   else
     say 10f FAIL "$MOUNTED would launch from hugebin/ and not from disk: \
 the mount is up and this run declares no placement question. Unmount it \
-(root's: sudo umount hugebin), or set PLACEMENT=1 to take the term \
+(root's: umount hugebin), or set PLACEMENT=1 to take the term \
 deliberately and say so in the note"
   fi
 }

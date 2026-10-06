@@ -7528,7 +7528,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      path half-bin.sh returns for a half is under `hugebin/` and
     #      PLACEMENT is unset.
     #      The mount is an emergency measure: a run whose question is the
-    #      placement term raises it by hand (`mkdir -p hugebin && sudo
+    #      placement term raises it by hand (`mkdir -p hugebin &&
     #      mount hugebin`, root's, the fstab line in half-bin.sh's
     #      header), runs preflight with PLACEMENT=1, says in its note that
     #      it did and on whose word, and takes run-list step 16a with it,

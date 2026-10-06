@@ -105,7 +105,7 @@ for h in $OTHER $BASIS; do
   rm -f "$G"
   if ! cp "$B" "$G" 2>/dev/null; then
     echo "instance gate $h: cannot draw a second copy beside $B -- $DIR" \
-         "read-only? (sudo mount -o remount,rw hugebin) -- so the launch" \
+         "read-only? (as root: mount -o remount,rw hugebin) -- so the launch" \
          "instance is UNTESTED"
     RC=1; continue
   fi

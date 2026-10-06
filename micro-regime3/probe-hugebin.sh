@@ -14,12 +14,12 @@
 # here because this probe is the one thing that still wants the mount:
 #
 #   tmpfs  /home/mikolaj/r/orthotope/micro-regime3/hugebin  tmpfs  noauto,size=1g,huge=always,mode=0755,uid=1000,gid=1000  0  0
-#   mkdir -p ~/r/orthotope/micro-regime3/hugebin && sudo mount hugebin
+#   mkdir -p ~/r/orthotope/micro-regime3/hugebin && mount hugebin    # as root
 #
 # Then, for a half named on the command line, this copies it into the
 # mount, times the cell on the on-disk file and on the mounted copy twice
-# interleaved, and reads the mounted copy's frames with probe-pageflags.py
-# under sudo, expecting a contiguous run of hundreds of pages and
+# interleaved, and reads the mounted copy's frames with probe-pageflags.py,
+# which wants root, expecting a contiguous run of hundreds of pages and
 # `phys==virt mod 2MiB: True`. A level pair says the change costs nothing
 # on this cell and buys determinism; a move is the iTLB term and goes in
 # the note as such. A probe and never a check: exits 0 whatever it finds.
@@ -48,6 +48,6 @@ echo "== frames of the mounted copy's hot lines, the u1 fill loop then the sum l
 "hugebin/$HALF" classes runs -m glob "$BENCH" -L 60 > /dev/null 2>&1 &
 pid=$!
 sleep 10
-sudo python3 ../../horde-ad/tools/probe-pageflags.py "$pid" 0x430980 0x4bad80
+python3 ../../horde-ad/tools/probe-pageflags.py "$pid" 0x430980 0x4bad80
 grep -E '^(FilePmdMapped|AnonHugePages)' "/proc/$pid/smaps_rollup"
 wait "$pid"

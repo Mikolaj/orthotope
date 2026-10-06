@@ -8,8 +8,8 @@
 # count, the mean latency and the data-source mix, side by side.
 #
 # The IBS PMU lives under /sys, which the session wrapper hides, so this
-# runs from a plain terminal; if `perf mem record` refuses, prefix it
-# with sudo. A probe and never a check: exits 0 whatever it finds.
+# runs from a plain terminal; if `perf mem record` refuses, run it as
+# root. A probe and never a check: exits 0 whatever it finds.
 #
 #     bash probe-ibs.sh ./run33-gheadexit /tmp/g \
 #       'compose-rev-bcast/mut-odo-vecdims-add-in-leaf-u1' 0x455000 0x455080
@@ -19,7 +19,7 @@
 # pageflags.py read fast, at the same virtual addresses.
 set -u
 cd "$(dirname "$0")" || exit 1
-# Where the recordings go, per user: root under sudo cannot open a file
+# Where the recordings go, per user: root cannot open a file
 # another user left in /tmp (fs.protected_regular), and the stale .err
 # then reads as this run's failure. A session sets its own.
 export IBS_DIR=${IBS_DIR:-/tmp/ibs-$(id -u)}
