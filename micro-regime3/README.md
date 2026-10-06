@@ -876,7 +876,7 @@ rather than a slot in the next run, observed again:
   and misses, the op queue, branches and their mispredicts, fills, prefetches
   and TLB misses read the same on both forms, while stalls on a full retire
   queue go from about 0.04 to about 0.22 a run; IBS op samples taken
-  from a plain terminal (`probe-r44-ibs.sh`, `probe-r44-ibs/report-fixed.txt`)
+  from a plain terminal (probe-r44-ibs.sh, `probe-r44-ibs/report-fixed.txt`)
   time each op from dispatch to completion about the same on both forms, within
   a cycle, and find fewer ops in flight on the bounded one, so the loss
   is in how fast ops are dispatched, which no counter read here names.
@@ -1537,7 +1537,7 @@ rather than a slot in the next run, observed again:
   the fallback where the gate's minutes per launch are not to be had. Registered
   2026-09-18. **Raised by hand on 2026-09-20 for a day of probes, and the draw
   was counted on both media over every binary still on disk, Runs 31 to 37, both
-  halves of each**: `probe-frames-0920.sh` read every disk instance and every
+  halves of each**: probe-frames-0920.sh read every disk instance and every
   mounted instance under root, `probe-instances-0920.sh` timed each disk
   instance against its mounted instance and a fresh mounted copy,
   and `probe-draws-0920.sh` timed each binary's cached disk instance beside
@@ -1565,7 +1565,7 @@ rather than a slot in the next run, observed again:
   not read. **Route (1) was then taken the same evening in a cheaper form,
   and its one candidate rule is REFUTED, recorded here so it
   is not re-proposed.** The sweep's fourteen mounted copies had their frames
-  read under root beside their instances' (`probe-frames-copies-0920.sh`),
+  read under root beside their instances' (probe-frames-copies-0920.sh),
   fourteen same-bytes pairs with both frames known, and the two slow copies
   were the only two of all 28 mounted instances and copies whose physical bits
   25 to 28 read 0 or 1, the other 26 spanning 2 to f --- so a prediction
