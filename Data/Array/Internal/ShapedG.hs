@@ -282,10 +282,11 @@ append a b = fromVector (vAppend (toVector a) (toVector b))
 -- dimension of the result array.  All the arrays must have the same shape.
 -- O(n) time.
 {-# INLINE ravel #-}
-ravel :: (Vector v, Vector v', VecElem v a, VecElem v' (Array sh v a)
+ravel :: forall s sh v v' a .
+         (Vector v, Vector v', VecElem v a, VecElem v' (Array sh v a)
          , Shape sh, KnownNat s) =>
          Array '[s] v' (Array sh v a) -> Array (s:sh) v a
-ravel = fromVector . vConcat . map toVector . toList
+ravel = fromVector . vConcatN (sizeT @(s:sh)) . map toVector . toList
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
@@ -349,7 +350,7 @@ rerank :: forall n i o sh v v' a b .
           (Array i v a -> Array o v' b) -> Array sh v a -> Array (Take n sh ++ o) v' b
 rerank f a@(A t) =
   fromVector $
-  vConcat $
+  vConcatN (sizeT @(Take n sh ++ o)) $
   map (toVector . f . A) $
   subArraysT osh t
   where osh = take (valueOf @n) (shapeL a)
@@ -367,7 +368,7 @@ rerank2 :: forall n i1 i2 o sh1 sh2 r v a b c .
            (Array i1 v a -> Array i2 v b -> Array o v c) -> Array sh1 v a -> Array sh2 v b -> Array (r ++ o) v c
 rerank2 f aa@(A ta) (A tb) =
   fromVector $
-  vConcat $
+  vConcatN (sizeT @(r ++ o)) $
   zipWith (\ a b -> toVector $ f (A a) (A b))
           (subArraysT osh ta)
           (subArraysT osh tb)
