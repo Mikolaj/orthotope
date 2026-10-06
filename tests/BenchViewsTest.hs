@@ -20,10 +20,33 @@
 -- how much building the head of a list of vectors allocates, and what the
 -- lists hold for an empty view; and what == allocates on a broadcast of a
 -- view that skips elements, and == and mapA on an empty view.
--- Its bounds on toVector, sumA and the list heads run in an optimised
--- build alone.
+-- And that a client specialises every operation of the nine array modules
+-- at Double, read off what the calls of the specialisation benchmark
+-- allocate: Storable and Unboxed allocate at most 32 bytes an element more
+-- than boxed, which has no element dictionary to lose, where a call passing
+-- its element dictionary at run time allocated 64 to 145 more on GHC HEAD; the
+-- control from Unspecialised is such a call.  Storable reduce may allocate
+-- 64 more until https://github.com/haskell/vector/issues/570 is fixed: where
+-- the function it folds with is an argument it cannot inline, vector's foldl'
+-- reads each element of a Storable vector into a thunk, 40 bytes an element
+-- more than of an Unboxed one, and nothing more once the read is forced.  Boxed
+-- allocates at most 16 bytes an element more than the smaller of Storable
+-- and Unboxed, where on GHC 9.12.4 a boxed operation that missed the copies
+-- -fpolymorphic-specialisation makes allocated 48 more for each element it
+-- wrote; mapA, the zips, generate, rerank2 with its zip and unravel are exempt,
+-- exceeding that bound boxed with their specialisation too.  The boxed bound
+-- holds from GHC 9.6.3 on, the first to know that flag, and has no control
+-- here: boxed pad called from Unspecialised, at Double or polymorphic in the
+-- element, allocated like the specialised call, where the boxed modules built
+-- without the flag failed the bound on 9.12.4.  DynamicS's bitcast, having no
+-- boxed counterpart, goes unchecked.
+-- The Dynamic modules' rotate, which DynamicU lacks, goes unchecked too.
+-- Its bounds on toVector, sumA, the list heads and specialisation run in an
+-- optimised build alone.
+{-# LANGUAGE CPP #-}
 module BenchViewsTest(test) where
 
+import Control.DeepSeq (rnf)
 import Control.Exception (evaluate)
 import Data.Array.DynamicS (mapA, sumA, toList, toVector)
 import qualified Data.Array.Internal as I
@@ -31,7 +54,7 @@ import qualified Data.Array.Internal.DynamicG as DG
 import qualified Data.Array.Internal.DynamicS as DS
 import Data.Bits (shiftR, xor)
 import Data.Int (Int64)
-import Data.List (mapAccumR)
+import Data.List (intercalate, isSuffixOf, mapAccumR)
 import qualified Data.Vector.Storable as VS
 import GHC.Conc (getAllocationCounter, setAllocationCounter)
 import Test.Framework (Test, TestOptions' (..), plusTestOptions, testGroup)
@@ -39,6 +62,13 @@ import Test.Framework.Providers.HUnit (testCase)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.HUnit (Assertion, assertBool)
 import Test.QuickCheck (Property, choose, counterexample, forAll, (.&&.), (===))
+
+import Call (Call (..))
+import qualified Call
+import qualified OpsDynamic as OD
+import qualified OpsRanked as OR
+import qualified OpsShaped as OS
+import Unspecialised (unspecialisedPad)
 
 -- A view's shape, strides and offset, and the length of the vector
 -- under it.
@@ -88,7 +118,85 @@ test = testGroup "BenchViews"
       , let t = fst (mkArray 1 l)
       , (n, f) <- [ ("ordered", I.toVectorListT)
                   , ("unordered", I.toUnorderedVectorListT) ] ]
+  , optimisedGroup "specialisation"
+      $  [ testCase row (specialised row b s u) | (row, b, s, u) <- callRows ]
+      ++ [ testCase "Dynamic/pad at Storable, not specialised"
+             (unspecialisedOver b unspecialisedPad)
+         | b <- callsNamed "pad" OD.opsB ]
   ]
+
+-- The calls of the specialisation benchmark, a row an operation with its
+-- boxed, Storable and Unboxed calls.
+callRows :: [(String, Call, Call, Call)]
+callRows =
+  [ (family ++ "/" ++ name, b, s, u)
+  | (family, bs, ss, us) <- [ ("Dynamic", OD.opsB, OD.opsS, OD.opsU)
+                            , ("Ranked", OR.opsB, OR.opsS, OR.opsU)
+                            , ("Shaped", OS.opsB, OS.opsS, OS.opsU) ]
+  , b@(Call name _ _) <- bs
+  , s <- callsNamed name ss, u <- callsNamed name us ]
+
+-- The calls of the operation of the name.
+callsNamed :: String -> [Call] -> [Call]
+callsNamed name cs = [ c | c@(Call m _ _) <- cs, m == name ]
+
+-- Storable and Unboxed allocate at most 32 bytes an element more than
+-- boxed, Storable reduce 64 until https://github.com/haskell/vector/issues/570
+-- is fixed; and boxed at most 16 more than the smaller of the two, but where
+-- 'boxedExempt' names the operation.
+specialised :: String -> Call -> Call -> Call -> Assertion
+specialised row b s u = do
+  aB <- callAlloc b
+  aS <- callAlloc s
+  aU <- callAlloc u
+  let storableBound = if "/reduce" `isSuffixOf` row then 64 else 32
+      bad = [ kind ++ " " ++ show o ++ " bytes an element over boxed"
+            | (kind, a, bound) <- [ ("Storable", aS, storableBound)
+                                  , ("Unboxed", aU, 32) ]
+            , let o = perElem (a - aB), o > bound ]
+         ++ [ "boxed " ++ show o
+              ++ " bytes an element over Storable and Unboxed"
+            | boxedSpecialised, not (any (`isSuffixOf` row) boxedExempt)
+            , let o = perElem (aB - min aS aU), o > 16 ]
+  assertBool (intercalate ", " bad) (null bad)
+
+-- The operations that compute their elements, rerank2 among them with the
+-- zip it applies, and unravel: boxed, they exceed the bound with their
+-- specialisation too.
+boxedExempt :: [String]
+boxedExempt = [ "/mapA", "/zipWithA", "/zipWith3A", "/zipWith4A"
+              , "/zipWith5A", "/generate", "/rerank2", "/unravel" ]
+
+-- Whether the boxed modules make the copies their specialisation is:
+-- GHCs before 9.6.3 lack the flag that makes them.
+boxedSpecialised :: Bool
+#if MIN_VERSION_GLASGOW_HASKELL(9,6,3,0)
+boxedSpecialised = True
+#else
+boxedSpecialised = False
+#endif
+
+-- The control allocates more than 32 bytes an element over the boxed call:
+-- the bound tells an unspecialised call apart.
+unspecialisedOver :: Call -> Call -> Assertion
+unspecialisedOver b c = do
+  ab <- callAlloc b
+  ac <- callAlloc c
+  let over = perElem (ac - ab)
+  assertBool (show over ++ " bytes an element over boxed, not over 32")
+             (over > 32)
+
+-- Bytes over the elements of the calls' view.
+perElem :: Int64 -> Double
+perElem a = fromIntegral a / fromIntegral Call.n
+
+-- What forcing the result of the call to normal form allocates the second
+-- time, the input forced beforehand.
+callAlloc :: Call -> IO Int64
+callAlloc (Call _ f x) = do
+  _ <- evaluate (rnf x)
+  _ <- allocated (rnf . f) x
+  allocated (rnf . f) x
 
 -- The bounds on toVector, sumA and the list heads hold for an optimised
 -- build alone, an unoptimised one allocating more for each element, so
