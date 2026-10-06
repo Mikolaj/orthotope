@@ -54,7 +54,7 @@ EVERY PROGRAM HERE OWES ONE WAY TO BE DRIVEN, checked in, so that vetting a
 claim costs a line rather than a harness. Four sessions of review here
 built four harnesses and threw all four away, which is why two of these
 scripts reached this week never once executed by anything but a real run.
-The seams, in the order worth having them: `read-run.py`, `align-as.py`,
+The seams, in the order worth having them: `read-run.py` and
 `loop-offsets.py` guard `main()` behind `__name__`, so they
 import clean and a record's `unit` evaluates against them (through `importlib`, the
 hyphen in the name being no module name at all -- a decision made years
@@ -4860,241 +4860,6 @@ def halves(*names, classes=None):
             for n in names] + whole_run([n.split('-', 1)[1] for n in names],
                                         classes=classes)
 
-ASM_HEAD_AFTER_RET = """\
-\t.text
-\t.globl\tgo
-go:
-\tmovq\t%rdi, %rax
-\tret
-.Lloop:
-\taddq\t$1, %rax
-\tcmpq\t$10, %rax
-\tjne\t.Lloop
-\tret
-"""
-
-
-# The dead-spot form's three shapes, each with a known answer worked by
-# hand from the instruction sizes -- a case is a control only when its
-# expected directive was derived without the code under test. A head
-# reached by fall-through with a `jmp` before it: the loop is 10 B (4, 4,
-# 2) at 4 B (1, 3) past the jump, so it straddles for the pad point at
-# 51..59 and the pad those need is 5..13. A head behind an info table: the
-# loop is 9 B (4, 3, 2) at 16 B past an `.align 8`, so it straddles when
-# the align lands at 40, the pad point at 33..40, needing 24..31. A rotated
-# pair, both loops 47 B (42 + 3 + 2; 3 + 2 + 40 + 2) and 42 B apart: the
-# inner is resident for the pad point at 0..17 and the outer, which
-# `overlapped` names, at 22..39, so the inner wins at residue 0 and the
-# directive fires for 18..63, a pad of 1..46.
-ASM_HEAD_AFTER_FALLTHROUGH = """\
-\t.text
-\t.globl\tgo
-go:
-\tmovq\t%rdi, %rax
-\tjmp\t.Lgo
-\tnop
-.Lgo:
-\ttestq\t%rax, %rax
-.Lloop:
-\taddq\t$1, %rax
-\tcmpq\t$10, %rax
-\tjne\t.Lloop
-\tret
-"""
-
-ASM_HEAD_BEHIND_TABLE = """\
-\t.text
-\t.align 8
-\t.quad\t1
-\t.long\t30
-\t.long\t0
-.Lr_info:
-.Lr:
-\tmovq\t8(%rbp), %r14
-\ttestb\t$7, %bl
-\tjne\t.Lr
-\tret
-"""
-
-ASM_ROTATED_PAIR = """\
-\t.text
-.Lstart:
-\tjmp\t*(%rbp)
-.Lin:
-\t.skip\t42, 0x90
-.Lout:
-\tcmpq\t%r8, %rsi
-\tjl\t.Lin
-\t.skip\t40, 0x90
-\tjmp\t.Lout
-"""
-
-# A head whose every spot a conditional jump crosses: two `jmp *(%rbp)`
-# spots between `.Lfar` and `.Lin`, each followed by a `jl .Lfar` that a
-# pad at the spot lengthens from rel8 to rel32, the far label being just
-# over a hundred bytes up. `.Lprev` keeps the text's start out of the
-# group's spots. What the settled plan does here is what Run 38's
-# control half needed at `.LQeN1`.
-ASM_CROSSED_SPOTS = """\
-\t.text
-.Lprev:
-\tmovq %rax, %rcx
-\tcmpq %rax, %rsi
-\tjl .Lprev
-.Lfar:
-""" + '\tmovq %rax, %rcx\n' * 34 + """\
-\tjmp *(%rbp)
-\tmovq %rax, %rcx
-\tjl .Lfar
-\tjmp *(%rbp)
-\tmovq %rax, %rdx
-\tjl .Lfar
-.Lin:
-""" + '\tmovq %rax, %rcx\n' * 19 + """\
-\tcmpq %rax, %rsi
-\tjl .Lin
-\tret
-"""
-
-
-def asm_fallthrough(tmp):
-    return asm(tmp, ASM_HEAD_AFTER_FALLTHROUGH)
-
-
-def asm_table(tmp):
-    return asm(tmp, ASM_HEAD_BEHIND_TABLE)
-
-
-def asm_pair(tmp):
-    return asm(tmp, ASM_ROTATED_PAIR)
-
-
-def asm_crossed(tmp):
-    return asm(tmp, ASM_CROSSED_SPOTS)
-
-
-# The two costs of 2026-09-15, each with its answer worked by hand. The
-# fill's shape, as Run 32's HEAD half laid it: a 9 B preamble (3, 3, 3)
-# ending in the dead spot, a body of 51 B (42 + 4 + 3 + 2) whose exit
-# `cmp; jge` (3 + 2) makes a 56 B span, and the outer loop 42 B on with a
-# 55 B cycle. The body fits a line for the pad point at 0..13 and the
-# exit span at 0..8, so the plain cost pads for 14..63, a budget of 50,
-# and leaves the head at 9 with the exit astride; the exit-span cost pads
-# for 9..63, a budget of 55, which fires at 9. A cut the entry count
-# keeps: a 20 B preamble (17 + 3), a body of 8 movs, a cmp and a jl (29 B,
-# 10 instructions, two entries) and an exit of 8 movs and a jmp (26 B, 9
-# instructions, two entries). The exit span is 55 B and crosses for
-# 10..63, a budget of 54, fired at 20; the entry count charges nothing
-# until the body itself is cut, at 36..61, a budget of 28, not fired at
-# 20, so the head stays where the sweep's smaller-piece rule would price
-# it -- a control of the arithmetic and not of the machine. Under the
-# block rules the same cut is free too, and the budget is worked from
-# the rules' costly residues: the exit's jmp alone in its block at 10 to
-# 13, the cmp+jl pair astride the boundary at 36 to 39 and a short last
-# block at 40 to 45, the head in the line's last eight bytes at 56 to
-# 63, none at 20. The jmp spot's budget would be 54, the text spot's,
-# 20 bytes earlier, 48, and the planner takes the smaller: a directive
-# after `.text` that fires as no bytes at residue 0, nothing after the
-# jmp, and the head left at 20 where the exit span moves it to 0.
-ASM_EXIT_ASTRIDE = """\
-\t.text
-.Lstart:
-\tmovq\t%rdi, %rax
-\tmovq\t%rsi, %rbx
-\tjmp\t*(%rbp)
-.Lin:
-\t.skip\t42, 0x90
-.Lout:
-\tleaq\t1(%rsi), %r11
-\tcmpq\t%rax, %r11
-\tjl\t.Lin
-\tcmpq\t%rax, %rsi
-\tjge\t.Ldone
-\t.skip\t17, 0x90
-.Ldone:
-\t.skip\t22, 0x90
-\tjmp\t.Lout
-"""
-
-ASM_ENTRIES_CUT = """\
-\t.text
-.Lstart:
-\t.skip\t17, 0x90
-\tjmp\t*(%rbp)
-.Lin:
-""" + '\tmovq\t%rax, %rcx\n' * 8 + """\
-\tcmpq\t%rax, %rsi
-\tjl\t.Lin
-""" + '\tmovq\t%rax, %rdx\n' * 8 + """\
-\tjmp\t.Ldone
-\t.skip\t9, 0x90
-.Ldone:
-\tret
-"""
-
-
-def asm_exit(tmp):
-    return asm(tmp, ASM_EXIT_ASTRIDE)
-
-
-# A loop whose back edge is an unconditional jmp, followed by a dead block
-# of 9 bytes (3 + 3 + 3 -- movq, movq, `jmp *(%rbp)`) up to that block's
-# own jump: the 8 B preamble (5 + 3) ends in the dead spot, the body is
-# 26 B (8 movq of 3 and a 2-byte jmp). Read past the jmp, the exit span
-# is 35 B and costly from residue 30, a budget of 34, which the shim as
-# committed before the fix emits; with no exit after an unconditional
-# back edge the body alone counts, costly from 39, a budget of 25.
-# Worked by hand, the old budget first guessed at 35 for a 4-byte jmp
-# and corrected by running the old shim, 2026-09-15.
-ASM_JMP_BACK_EDGE = """\
-\t.text
-.Lstart:
-\tmovq\t$1, %rax
-\tjmp\t*(%rbp)
-.Lin:
-""" + '\tmovq\t%rax, %rcx\n' * 8 + """\
-\tjmp\t.Lin
-.Ldead:
-\tmovq\t%rax, %rdx
-\tmovq\t%rax, %rsi
-\tjmp\t*(%rbp)
-"""
-
-
-def asm_jmp_back(tmp):
-    return asm(tmp, ASM_JMP_BACK_EDGE)
-
-
-def asm_entries(tmp):
-    return asm(tmp, ASM_ENTRIES_CUT)
-
-
-def emitted(subs):
-    """Where the shim's directives landed, as one line per place worth
-    asking about: after each unconditional jump, after `.text`, before
-    each `.L` label. The verdict then names a place and what is there."""
-    lines = open(subs['asm']).read().split('\n')
-    out = []
-    for k, l in enumerate(lines[:-1]):
-        s, nxt = l.strip(), lines[k + 1].strip()
-        if s.startswith('jmp') or s == '.text':
-            out.append('after %s: %s' % (s, nxt))
-        if nxt.startswith('.L') and nxt.endswith(':'):
-            out.append('before %s %s' % (nxt, s))
-    return '\n'.join(out)
-
-
-def asm(tmp, text=ASM_HEAD_AFTER_RET):
-    """A synthetic assembly, and a stand-in for the real assembler.
-
-    `align-as.py` ends by execing REAL_AS, so a case that only wants to see
-    what the shim emitted hands it one that does nothing.
-    """
-    a = write(os.path.join(tmp, 'a.s'), text)
-    g = write(os.path.join(tmp, 'as'), '#!/bin/sh\nexit 0\n')
-    os.chmod(g, 0o755)
-    return {'asm': a, 'as': g, 'obj': os.path.join(tmp, 'a.o')}
-
 
 _READER = None
 
@@ -6967,36 +6732,6 @@ TIER1 = {
                       trigger='--classes beside a mode that does not read it',
                       ok='refuses at exit 2, does nothing alone',
                       bug='the files were read by nobody at exit 0'),
-    # ---- align-as.py ----
-    'maxskip-zero-is-off': dict(family='domain-unchecked', discovery='review', harm='latent',
-                      trigger='LOOP_MAXSKIP=0',
-                      ok='off, like unset and empty',
-                      bug='bool(environ.get) was true for any value, the max-skip form built'),
-    'head-after-a-zero-operand-instruction': dict(family='scan-for-parse', discovery='review', harm='latent',
-                      trigger='a loop head following ret or another bare mnemonic',
-                      ok='aligned and counted',
-                      bug='INSTR required whitespace after the mnemonic, the head dropped silently'),
-    'pad-is-announced': dict(family=None, discovery='review', harm='latent',
-                      trigger='PAD_BYTES over a target of two modules',
-                      ok='one line per module says where the pad went',
-                      bug='the pad was per invocation and nothing said so'),
-    'empty-pad-bytes': dict(family='domain-unchecked', discovery='review', harm='latent',
-                      trigger='PAD_BYTES= empty',
-                      ok='read as unset, the compile proceeds',
-                      bug='int("") at import killed the compile with ValueError'),
-    'non-number-refused-in-one-line': dict(family=None, discovery='review', harm='latent',
-                      trigger='PAD_BYTES=abc',
-                      ok='one line naming the variable and value, exit 1',
-                      bug='a ValueError traceback out of the shim, outside any handler'),
-    'probe-that-did-not-assemble': dict(family='error-as-value', discovery='generalisation', harm='latent',
-                      trigger='LOOP_MAXSKIP with a probe copy that fails to assemble',
-                      ok='says the output is not the max-skip form',
-                      bug='no lengths returned, the max-skip half built as the unconditional one'),
-    'planned-straddles-are-heads-in-every-cost': dict(family='two-spellings', discovery='in-use', harm='fired',
-                      harm_count=1,
-                      trigger='ALIGN_AS_VERBOSE=1 with LOOP_BLOCKRULES=1 over a rotated pair',
-                      ok='(1 planned) beside the 1 verified, a head count under every cost',
-                      bug='(0 planned), the chosen cost truncated: cycles under the block rules, exit lines under the exit span'),
     # ---- loop-offsets.py ----
     'objdump-status': dict(family='error-as-value', discovery='review', harm='latent',
                       trigger='--survey of a binary objdump cannot open',
@@ -7465,12 +7200,6 @@ TIER1 = {
             ' to 10.2'),
     # The review of 2026-09-25 over every script whole. `harm` is unknown
     # throughout: nothing was looked into beyond the defect itself.
-    'settled-rounds-see-only-the-short-loops': dict(
-        family='vacuous-check', discovery='review', harm='unknown',
-        trigger='LOOP_SETTLED=1, a group whose tier-0 cost lands on its plan'
-                ' while an outer head or a long loop lands off it',
-        ok='the group is off the plan and is planned again',
-        bug='the group read as on the plan and was never planned again'),
     'major-run-names-a-population-it-lacks': dict(
         family='silent-option', discovery='review', harm='unknown',
         trigger='a population argument naming neither main nor a class,'
@@ -9241,7 +8970,10 @@ RECORDS = [
                                'readme': era_readme(t, rev)},
          argv=['--check-doc', '--main', '{main}', '--readme', '{readme}'],
          ok=V(exit=1, has=['BLOCKED: no roster parsed']),
-         bug=V(exit=0)),
+         # The silence and not the exit: the era's README names files the
+         # tree has since lost, align-as.py among them, which the pre-fix
+         # path check fails on (2026-10-06).
+         bug=V(hasnt=['BLOCKED: no roster parsed', 'Traceback'])),
 
     case('checkdoc-open-list-out-of-order', 'read-run.py', 'a6c32e8',
          'the goal section above the open list killed the sweep in silence',
@@ -9249,7 +8981,8 @@ RECORDS = [
                                'readme': readme_goal_above_open(t, rev)},
          argv=['--check-doc', '--main', '{main}', '--readme', '{readme}'],
          ok=V(exit=1, has=['BLOCKED: the open list']),
-         bug=V(exit=0)),
+         # The silence and not the exit, as in the case above.
+         bug=V(hasnt=['BLOCKED: the open list', 'Traceback'])),
 
     case('checkdoc-paired-run-aligned-with-no-counterpart',
          'read-run.py', 'a6c32e8',
@@ -11411,258 +11144,6 @@ RECORDS = [
          argv=['{run}', '--markdown', '--classes', '{a}'],
          ok=V(exit=2, has=['does nothing alone']),
          bug=V(exit=0, hasnt=['does nothing alone'])),
-
-    # ---- align-as.py ---------------------------------------------------
-    case('maxskip-zero-is-off', 'align-as.py', '437ce00',
-         'LOOP_MAXSKIP=0 built the max-skip form',
-         plant=asm,
-         env={'REAL_AS': '{as}', 'LOOP_MAXSKIP': '0',
-              'ALIGN_AS_VERBOSE': '1'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(has=['unconditionally'], hasnt=['max-skip budget']),
-         bug=V(has=['max-skip budget'])),
-
-    case('head-after-a-zero-operand-instruction', 'align-as.py', '437ce00',
-         'a loop head following `ret` was dropped in silence',
-         plant=asm,
-         env={'REAL_AS': '{as}', 'ALIGN_AS_VERBOSE': '1'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(has=['aligned 1 loop head']),
-         bug=V(has=['aligned 0 loop head'])),
-
-    case('pad-is-announced', 'align-as.py', '437ce00',
-         'the pad is per invocation, so a second line is the only tell',
-         plant=asm,
-         env={'REAL_AS': '{as}', 'PAD_BYTES': '8192'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(has=['8192 pad byte(s) appended']),
-         bug=V(exit=0, hasnt=['pad byte(s) appended'])),
-
-    case('empty-pad-bytes', 'align-as.py', '09782f7',
-         "PAD_BYTES= killed the compile with int('') at import",
-         plant=asm,
-         env={'REAL_AS': '{as}', 'PAD_BYTES': '', 'LOOP_ALIGN': ''},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         # The one verdict here with no positive assertion, and it is at
-         # its floor rather than overlooked: the stand-in assembler does
-         # nothing, so there is no artifact to probe and a clean run says
-         # nothing at all. What bounds it is --audit, which raises
-         # ValueError on the code before the fix.
-         ok=V(exit=0, hasnt=['ValueError']),
-         bug=V(has=['ValueError'])),
-
-    case('non-number-refused-in-one-line', 'align-as.py', '40f7a37',
-         'PAD_BYTES=abc killed the compile with a traceback out of the shim',
-         plant=asm,
-         env={'REAL_AS': '{as}', 'PAD_BYTES': 'abc'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         # It should kill the compile -- the recipe asked for something
-         # this shim cannot do -- and did, with a ValueError traceback at
-         # import, outside any handler: the import-time family's own
-         # shape, in the file the family was counted from, which the lint
-         # could not see through the helper. One line naming the variable
-         # and its value now, at exit 1, under a handler the lint sees.
-         ok=V(exit=1, has=["PAD_BYTES='abc' is not a number"],
-              hasnt=['Traceback']),
-         bug=V(has=['Traceback', 'ValueError'])),
-
-    case('probe-that-did-not-assemble', 'align-as.py', '437ce00',
-         'a failed probe made the max-skip half the unconditional one',
-         plant=asm,
-         env={'REAL_AS': '{as}', 'LOOP_MAXSKIP': '1'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(has=['objdump -t', 'not the max-skip form']),
-         bug=V(exit=0, hasnt=['not the max-skip form'])),
-
-    # The dead-spot form plans from a probe, so these four hand the shim
-    # the real assembler rather than the stand-in; a machine without
-    # /usr/bin/gcc fails them loudly, which is the right verdict. The
-    # expected directives are worked by hand above the fixtures.
-    case('deadspot-pads-after-the-jump', 'align-as.py', None,
-         'the pad went in front of the head, on the fall-through path',
-         plant=asm_fallthrough, probe=emitted,
-         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
-              'ALIGN_AS_VERBOSE': '1'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(exit=0, has=['after jmp\t.Lgo: .p2align\t6, 0x90, 13',
-                           'before .Lloop: testq\t%rax, %rax',
-                           '0 short loop(s) straddling (0 planned)'])),
-
-    case('deadspot-keeps-the-table-with-its-label', 'align-as.py', None,
-         'a head behind an info table was left where it fell',
-         plant=asm_table, probe=emitted,
-         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
-              'ALIGN_AS_VERBOSE': '1'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(exit=0, has=['after .text: .p2align\t6, 0x90, 31',
-                           'before .Lr_info: .long\t0',
-                           'before .Lr: .Lr_info:',
-                           '1 head(s) in 1 group(s)'])),
-
-    case('deadspot-outer-of-a-rotated-pair-yields', 'align-as.py', None,
-         'the outer loop took the line and the inner one straddled',
-         plant=asm_pair, probe=emitted,
-         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
-              'ALIGN_AS_VERBOSE': '1'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         # The line before `.Lin` is the directive itself: a `.skip rho`
-         # would stand there had the outer loop won the residue.
-         ok=V(exit=0, has=['after jmp\t*(%rbp): .p2align\t6, 0x90, 46',
-                           'before .Lin: .p2align\t6, 0x90, 46',
-                           '1 short loop(s) straddling (1 planned)'])),
-
-    case('deadspot-off-is-the-at-head-form', 'align-as.py', None,
-         'the switch off changed what the max-skip form emits',
-         plant=asm_fallthrough, probe=emitted,
-         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_MAXSKIP': '1'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(exit=0, has=['after jmp\t.Lgo: nop',
-                           'before .Lloop: .p2align\t6, 0x90, 9'],
-              hasnt=['dead-spot'])),
-
-    # The exit span and the entry count, worked by hand above the two
-    # fixtures. The first is the plain form's own reading of the fill's
-    # shape and is what Run 32's HEAD half paid for: a control kept so the
-    # flag's case proves a difference and not a coincidence.
-    case('deadspot-leaves-the-exit-astride', 'align-as.py', None,
-         'the body fits, the exit does not, and the plain cost is content',
-         plant=asm_exit, probe=emitted,
-         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
-              'ALIGN_AS_VERBOSE': '1'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(exit=0, has=['after jmp\t*(%rbp): .p2align\t6, 0x90, 50'],
-              hasnt=['exit span(s) astride'])),
-
-    case('exitspan-moves-the-exit-off-the-boundary', 'align-as.py', None,
-         'the exit span raises the budget and the head goes to 0',
-         plant=asm_exit, probe=emitted,
-         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
-              'LOOP_EXITSPAN': '1', 'ALIGN_AS_VERBOSE': '1'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(exit=0, has=['after jmp\t*(%rbp): .p2align\t6, 0x90, 55',
-                           '0 exit span(s) astride',
-                           '2 head(s) the exit cost places at a residue the'
-                           ' plain cost would not: .Lin, .Lout'])),
-
-    case('exitspan-pads-the-cut-the-entries-keep', 'align-as.py', None,
-         'a cut leaving whole entries on both sides, priced by lines',
-         plant=asm_entries, probe=emitted,
-         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
-              'LOOP_EXITSPAN': '1', 'ALIGN_AS_VERBOSE': '1'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(exit=0, has=['after jmp\t*(%rbp): .p2align\t6, 0x90, 54',
-                           '0 exit span(s) astride'])),
-
-    case('entries-keep-the-cut-the-exitspan-pads', 'align-as.py', None,
-         'the same cut priced by entries, and the head stays',
-         plant=asm_entries, probe=emitted,
-         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
-              'LOOP_ENTRIES': '1', 'ALIGN_AS_VERBOSE': '1'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(exit=0, has=['after jmp\t*(%rbp): .p2align\t6, 0x90, 28',
-                           '1 exit span(s) astride',
-                           '1 head(s) the entries cost places at a residue the'
-                           ' exit cost would not: .Lin'])),
-
-    case('blockrules-keep-what-the-exit-span-pads', 'align-as.py', None,
-         'the same cut priced by the block rules, and the head stays',
-         plant=asm_entries, probe=emitted,
-         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
-              'LOOP_BLOCKRULES': '1', 'ALIGN_AS_VERBOSE': '1'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(exit=0, has=['after .text: .p2align\t6, 0x90, 48',
-                           'before .Lin: jmp\t*(%rbp)',
-                           '1 head(s) the blocks cost places at a residue'
-                           ' the exit cost would not: .Lin'])),
-
-    case('exitspan-reads-no-exit-after-a-jmp-back-edge', 'align-as.py', None,
-         'a dead block after an unconditional back edge was the exit span',
-         plant=asm_jmp_back, probe=emitted,
-         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
-              'LOOP_EXITSPAN': '1', 'ALIGN_AS_VERBOSE': '1'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(exit=0, has=['after jmp\t*(%rbp): .p2align\t6, 0x90, 25'],
-              hasnt=['.p2align\t6, 0x90, 34'])),
-
-    case('cost-flags-want-the-dead-spot-form', 'align-as.py', None,
-         'a cost of the planner asked for without the planner',
-         plant=asm,
-         env={'REAL_AS': '{as}', 'LOOP_EXITSPAN': '1'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         # Refused in one line at import, as a non-number is, and not
-         # implied: a switch that switched another on would be a default,
-         # and a pair's note records no default.
-         ok=V(exit=1, has=['want LOOP_DEADSPOT=1 beside them'],
-              hasnt=['Traceback'])),
-
-    # ---- the settled plan, LOOP_SETTLED=1 (2026-09-22) -------------------
-    # Four controls guarding the switch forward, each against the block
-    # rules it builds on: the back edge's three rules, the spot no jump
-    # crosses, and the rounds that plan again what the pad moved.
-    case('settled-charges-the-back-edge', 'align-as.py', None,
-         "the back edge on a 16-byte boundary, in a line's first eight bytes"
-         ' or its last four, charged where the block rules charge nothing',
-         plant=asm_pair,
-         # The pair's inner back edge sits 45 bytes from its head: residues
-         # 2 and 3 put it across or on the boundary at 48, 15 to 18 in the
-         # line's last four bytes, 19 on the line's end, 20 to 26 in the
-         # next line's first eight, 34 and 35 and 50 and 51 on 80 and 96.
-         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
-              'LOOP_SETTLED': '1', 'ALIGN_AS_VERBOSE': '1',
-              'LOOP_TRACE': '.Lin'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(exit=0, has=['block-rule costly residues [18, 19, 20, 21, 56,'
-                           ' 57, 58, 59, 60, 61, 62, 63]',
-                           'settled costly residues [2, 3, 15, 16, 17, 18,'
-                           ' 19, 20, 21, 22, 23, 24, 25, 26, 34, 35, 50, 51,'
-                           ' 56, 57, 58, 59, 60, 61, 62, 63]',
-                           'settled in 1 round(s), 0 group(s) planned again'])),
-
-    case('blockrules-take-the-spot-the-budget-prefers', 'align-as.py', None,
-         'the far spot, crossed by two jumps, wins on budget alone',
-         plant=asm_crossed,
-         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
-              'LOOP_BLOCKRULES': '1', 'ALIGN_AS_VERBOSE': '1',
-              'LOOP_TRACE': '.Lin'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(exit=0, has=['spots at lines [40, 43], chosen spot line 40'])),
-
-    case('settled-takes-the-spot-fewer-jumps-cross', 'align-as.py', None,
-         'the same group under the settled plan: the nearer spot, one'
-         ' jump across it against two',
-         plant=asm_crossed,
-         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
-              'LOOP_SETTLED': '1', 'ALIGN_AS_VERBOSE': '1',
-              'LOOP_TRACE': '.Lin'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(exit=0, has=['spots at lines [40, 43], chosen spot line 43',
-                           'settled in 1 round(s), 0 group(s) planned again'])),
-
-    case('settled-plans-again-what-the-pad-moved', 'align-as.py', None,
-         'a pad that grows the jump across it is read off the assembler'
-         ' and the group planned again with the shift',
-         plant=asm_crossed,
-         # Pinned at 15 so that the grown jump lands the head on a costly
-         # residue, 19, which the free plan above happens to dodge.
-         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
-              'LOOP_SETTLED': '1', 'ALIGN_AS_VERBOSE': '1',
-              'LOOP_PIN': '.Lin:15'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(exit=0, has=['settled in 2 round(s), 1 group(s) planned again'],
-              hasnt=['still off the plan', 'Traceback'])),
-
-    case('planned-straddles-are-heads-in-every-cost', 'align-as.py', '6798792',
-         'the planned count was the chosen cost truncated, cycles under the'
-         ' block rules',
-         plant=asm_pair,
-         # The rotated pair's outer head yields and straddles under every
-         # cost; the verified count said so and the planned one agreed
-         # only under the plain cost, where the cost IS the count.
-         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
-              'LOOP_BLOCKRULES': '1', 'ALIGN_AS_VERBOSE': '1'},
-         argv=['-c', '-o', '{obj}', '{asm}'],
-         ok=V(exit=0, has=['1 short loop(s) straddling (1 planned)']),
-         bug=V(has=['1 short loop(s) straddling (0 planned)'])),
 
     # ---- probe-nospill-fills.py ---------------------------------------
     case('fills-entry-region-goes-to-the-previous-proc',
@@ -17425,21 +16906,6 @@ RECORDS = [
          argv=None, ok=None),
 
     # ---- the review of 2026-09-25, over the scripts whole ----
-    case('settled-rounds-see-only-the-short-loops', 'align-as.py', '1a359bd',
-         'a group whose outer or long heads landed off the plan read as on'
-         ' it whenever its short loops cost what the plan bought',
-         # The test added 1e-9 to every tier and compared the tuples, so an
-         # equal tier 0 fell below its padded self and decided the whole
-         # comparison: (0, 5, 3) against a plan of (0, 2, 1) was not more.
-         # Asked of the function, the three answers being a group moved on
-         # tier 1, one better on tier 0 and worse after it, and one within
-         # the tolerance.
-         argv=['--unit', '(costs_more((0, 5, 3), (0, 2, 1)),'
-                         ' costs_more((0, 5, 3), (1, 0, 0)),'
-                         ' costs_more((0, 2, 1 + 5e-10), (0, 2, 1)))'],
-         ok=V(has=['(True, False, False)']),
-         bug=V(has=['(False, False, False)'])),
-
     case('major-run-names-a-population-it-lacks', 'run-major.sh', '2054bef',
          'a mistyped population ran nothing and logged a complete run',
          # `wanted` matched the name against nothing, so the relaunch
@@ -17618,7 +17084,7 @@ RECORDS = [
          env={'PATH': '{stub}:/usr/bin:/bin'},
          argv=['zzg3'],
          ok=V(exit=2, has=['git names no commit for Main.hs',
-                           'git names no commit for align-as.py'],
+                           'git names no commit for tools/align-as.py'],
               hasnt=['stub cabal ran'])),
 
     case('g3-twins-builds-over-the-source-when-told', 'g3-twins.sh', None,

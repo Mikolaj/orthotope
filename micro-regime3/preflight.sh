@@ -271,9 +271,10 @@ for half in (basis, other):
     rts = re.search(r'"(-A\S[^"]*)"',
                     sh('./%s +RTS --info 2>/dev/null | grep with-rtsopts' % b))
     want.append(('baked RTS', [rts.group(1)] if rts else ['UNREADABLE']))
-for lbl, path in (('Main.hs at', 'Main.hs'), ('shim at', 'align-as.py')):
-    want.append((lbl, [sh('git log -1 --format=%%h -- :/micro-regime3/%s'
-                          % path).strip()]))
+for lbl, repo, path in (('Main.hs at', '.', ':/micro-regime3/Main.hs'),
+                        ('shim at', '../../horde-ad', ':/tools/align-as.py')):
+    want.append((lbl, [sh('git -C %s log -1 --format=%%h -- %s'
+                          % (repo, path)).strip()]))
 n = len(sh('./%s-%s --list 2>/dev/null' % (R, basis)).split())
 want.append(('--list', ['%d benches' % n]))
 # BOTH QUANTITIES THE ROW'S LABEL IMPLIES: the bench count alone left
@@ -998,9 +999,9 @@ fill_in () {
        --porcelain -- :/micro-regime3/Main.hs | grep -q . && echo DIRTY \
        || echo clean) against it"
   printf '  %-16s  %s\n' 'shim at' \
-    "$(git log -1 --format=%h -- :/micro-regime3/align-as.py), \
-tree $(git status \
-       --porcelain -- :/micro-regime3/align-as.py | grep -q . && echo DIRTY \
+    "$(git -C ../../horde-ad log -1 --format=%h -- :/tools/align-as.py), \
+tree $(git -C ../../horde-ad status \
+       --porcelain -- :/tools/align-as.py | grep -q . && echo DIRTY \
        || echo clean) against it"
   printf '  %-16s  %s\n' 'compilers' \
     "on PATH $(ghc --numeric-version 2>/dev/null); in the binaries, \

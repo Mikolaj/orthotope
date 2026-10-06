@@ -166,12 +166,12 @@ carries --ghc-options and not the compiler, so nothing else here records
 it, and a repetition read against
 an earlier run needs both notes to name one.
 
-THE SHIM [PAIR'S]: the commit align-as.py stood at, `git log -1 --format=%h --
-:/micro-regime3/align-as.py`. It is on the recipe's -pgma and is as much
-an input to the binary as the source; preflight's fill-in reads this back.
-A repetition read against an earlier run wants both notes to name the
-same one, a shim that moved between them being a difference in the
-binaries that no figure attributes to the shim.
+THE SHIM [PAIR'S]: the commit horde-ad's tools/align-as.py stood at,
+`git -C ../../horde-ad log -1 --format=%h -- :/tools/align-as.py`. It
+is on the recipe's -pgma and is as much an input to the binary as the source;
+preflight's fill-in reads this back. A repetition read against an earlier run
+wants both notes to name the same one, a shim that moved between them being
+a difference in the binaries that no figure attributes to the shim.
 
 HOW EACH HALF IS BUILT [PAIR'S], there being no builder here. Both from one source:
 

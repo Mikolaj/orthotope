@@ -31,7 +31,8 @@ build () {   # $1 = half, $2 = project file or `-`, then the recipe's env
   env "$@" \
   cabal build micro "${pfa[@]}" --builddir="$bd" \
     --ghc-options="-fobject-determinism -g3" \
-    --ghc-options="-pgma $PWD/align-as.py -fforce-recomp" || return 1
+    --ghc-options="-pgma $PWD/../../horde-ad/tools/align-as.py -fforce-recomp" \
+    || return 1
   cp "$(cabal list-bin micro "${pfa[@]}" --builddir="$bd")" \
      "probe-g3-$h-run32" || return 1
   rm -rf "$bd"

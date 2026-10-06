@@ -12,7 +12,7 @@ cd "$(dirname "$0")"
 LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1 \
 cabal build micro --builddir=db-attr \
   --ghc-options="-fspec-constr -fobject-determinism -g3" \
-  --ghc-options="-pgma $PWD/align-as.py -fforce-recomp"
+  --ghc-options="-pgma $PWD/../../horde-ad/tools/align-as.py -fforce-recomp"
 cp "$(cabal list-bin micro --builddir=db-attr)" probe-attr-g912
 rm -rf db-attr
 echo "ATTR TWIN BUILT"

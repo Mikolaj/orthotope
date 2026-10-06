@@ -10,7 +10,7 @@ cd "$(dirname "$0")"
 LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1 \
 cabal build micro --project-file=cabal.project.ghead --builddir=db-dispghead \
   --ghc-options="-fspec-constr -fobject-determinism" \
-  --ghc-options="-pgma $PWD/align-as.py -fforce-recomp"
+  --ghc-options="-pgma $PWD/../../horde-ad/tools/align-as.py -fforce-recomp"
 cp "$(cabal list-bin micro --project-file=cabal.project.ghead \
         --builddir=db-dispghead)" probe-disp-ghead
 rm -rf db-dispghead

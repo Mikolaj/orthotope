@@ -29,30 +29,32 @@ HALVES=$(./pair-halves.sh "$R") || exit 2
 eval "$HALVES"
 
 # THE TWINS ARE OF THE PAIR'S SOURCE OR NOT BUILT (2026-09-25, by review).
-# They build from this tree's Main.hs and align-as.py, so each must sit at
-# the commit the note's `Main.hs at` or `shim at` row names and be clean
-# against it; otherwise their loop bodies are not the timed binaries' and
-# `--match` names the wrong copies or none. --dry-run says a mismatch and
-# refuses nothing, since it builds nothing; G3_TREE=1 builds over one, for
-# a move known to leave the code alone, a write-up's comment edit being
-# the usual one, and prints the mismatch above the build.
+# They build from this tree's Main.hs and horde-ad's tools/align-as.py, so each
+# must sit at the commit the note's `Main.hs at` or `shim at` row names and be
+# clean against it; otherwise their loop bodies are not the timed binaries'
+# and `--match` names the wrong copies or none. --dry-run says a mismatch and
+# refuses nothing, since it builds nothing; G3_TREE=1 builds over one, for a
+# move known to leave the code alone, a write-up's comment edit being the usual
+# one, and prints the mismatch above the build.
 SRC_BAD=
-for row in 'Main.hs at:Main.hs' 'shim at:align-as.py'; do
-  lbl=${row%%:*}; path=${row#*:}
+for row in 'Main.hs at:.:Main.hs' 'shim at:../../horde-ad:tools/align-as.py'; do
+  lbl=${row%%:*}; rest=${row#*:}; repo=${rest%%:*}; path=${rest#*:}
   want=$(sed -n "s/^ *$lbl  *\([0-9a-f]\{7,40\}\).*/\1/p" "$NOTE" | head -1)
-  have=$(git log -1 --format=%H -- "$path" 2>/dev/null)
+  have=$(git -C "$repo" log -1 --format=%H -- "$path" 2>/dev/null)
   if [ -z "$want" ]; then
     SRC_BAD="$SRC_BAD
     $NOTE has no '$lbl <commit>' row"
   elif [ -z "$have" ]; then
     SRC_BAD="$SRC_BAD
     git names no commit for $path here, so nothing holds it to $want"
-  elif [ "$(git rev-parse -q --verify "$want^{commit}" 2>/dev/null)" \
+  elif [ "$(git -C "$repo" rev-parse -q --verify "$want^{commit}" \
+              2>/dev/null)" \
          != "$have" ]; then
     SRC_BAD="$SRC_BAD
-    $path is at $(git log -1 --format=%h -- "$path"), and the note's row\
+    $path is at $(git -C "$repo" log -1 --format=%h \
+                  -- "$path"), and the note's row\
  names $want"
-  elif ! git diff --quiet HEAD -- "$path"; then
+  elif ! git -C "$repo" diff --quiet HEAD -- "$path"; then
     SRC_BAD="$SRC_BAD
     $path differs from its commit in the working tree"
   fi
@@ -115,7 +117,8 @@ build () {  # build HALF
   # shellcheck disable=SC2086  # the environment is a word list on purpose
   env $env cabal build micro "${pfa[@]}" --builddir="$bd" \
     --ghc-options="$opts -g3" \
-    --ghc-options="-pgma $PWD/align-as.py -fforce-recomp" || return 1
+    --ghc-options="-pgma $PWD/../../horde-ad/tools/align-as.py -fforce-recomp" \
+    || return 1
   cp "$(cabal list-bin micro "${pfa[@]}" --builddir="$bd")" "$out" || return 1
   rm -rf "$bd"
   echo "### $(date -Is) $out built, $(stat -c%s "$out") B"

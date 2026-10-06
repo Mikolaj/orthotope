@@ -12,7 +12,7 @@ for t in off on; do
   LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1 \
   cabal build micro --builddir=db-no \
     --ghc-options="-fspec-constr -fobject-determinism" \
-    --ghc-options="-pgma $PWD/align-as.py -fforce-recomp"
+    --ghc-options="-pgma $PWD/../../horde-ad/tools/align-as.py -fforce-recomp"
   cp "$(cabal list-bin micro --builddir=db-no)" "probe-noov-$t-g912"
   rm -rf db-no
   echo "built probe-noov-$t-g912"

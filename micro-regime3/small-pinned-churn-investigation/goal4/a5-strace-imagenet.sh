@@ -23,7 +23,7 @@ exec > $D/a5-driver.log 2>&1
 echo "start: $(date), loadavg: $(cat /proc/loadavg)"
 
 mkdir -p $D/a5-pkg
-cp ../Main.hs ../Probe.hs ../micro.cabal ../align-as.py \
+cp ../Main.hs ../Probe.hs ../micro.cabal ../../../horde-ad/tools/align-as.py \
    ../cabal.project.freeze $D/a5-pkg/
 chmod +x $D/a5-pkg/align-as.py
 echo "packages: ." > $D/a5-pkg/cabal.project

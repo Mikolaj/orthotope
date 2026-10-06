@@ -11942,12 +11942,14 @@ def _inputs_moved(near, text):
     NOT READ where this cannot read the input -- never passed off as
     unmoved -- or TO READ where the reading is ambiguous."""
     out = []
-    for label, path, row in (('THE SOURCE', 'Main.hs', 'Main.hs'),
-                             ('THE SHIM', 'align-as.py', 'shim')):
+    for label, repo, path, row in (
+            ('THE SOURCE', '.', 'Main.hs', 'Main.hs'),
+            ('THE SHIM', os.path.join('..', '..', 'horde-ad'),
+             'tools/align-as.py', 'shim')):
         m = re.search(r'^\s*%s at\s+([0-9a-f]{7,40})\b' % re.escape(row),
                       text, re.M)
-        r = subprocess.run(['git', '-C', near or '.', 'log', '-1',
-                            '--format=%h', '--', path],
+        r = subprocess.run(['git', '-C', os.path.join(near or '.', repo),
+                            'log', '-1', '--format=%h', '--', path],
                            capture_output=True, text=True)
         now = r.stdout.strip() if r.returncode == 0 else ''
         if not m or not now:

@@ -542,13 +542,14 @@ by being a thing a later session might otherwise redo.
   them, and an assembler shim on `-pgma` aligns the loops outright, which
   is the instrument fix. What it costs and buys in time is [on the open
   list][open]; the rest is [in the floor section][floor], including why the shim
-  must pad only between instructions. Two tools beside this file:
-  `loop-offsets.py` reads a binary's copies, which makes the question a minute's
-  work rather than a run's, and `align-as.py` is the shim; a paired Run's two
-  binaries are built from the recipes its own note carries, one per half. Both
-  this and the recompilation trap beside it are written up and filed as GHC
-  issues from horde-ad's `docs/`, which is where a reader outside this README
-  should go; what stays here is what they cost this benchmark.
+  must pad only between instructions. Two tools: `loop-offsets.py`, beside
+  this file, reads a binary's copies, which makes the question a minute's work
+  rather than a run's, and `tools/align-as.py`, in horde-ad, is the shim;
+  a paired Run's two binaries are built from the recipes its own note carries,
+  one per half. Both this and the recompilation trap beside it are written up
+  and filed as GHC issues from horde-ad's `docs/`, which is where a reader
+  outside this README should go; what stays here is what they cost
+  this benchmark.
 - **Which arm owns a loop copy is a property of the binary**, absent
   from a plain build and carried by a `-g3` one, which `loop-offsets.py` now
   reads for itself --- and **a `-g3` build is a twin to read and not a binary
@@ -888,12 +889,13 @@ rather than a slot in the next run, observed again:
   with `Fused` holding the innermost outer level's `Axis`, a workaround
   that issue's filed text lists, folded on 2026-10-04 into the branch's commit
   that ported the Axis path; `b5cd52e` ported it to `fillStage2Axes`, so Run 45
-  times it. Built from the branch on GHC HEAD with `align-as.py` aligning both
-  loops, a client converting a transposed Storable view through `DynamicS` reads
-  the counted loop at 0.81 to 0.89 of the bounded one's cycles at `[2, 900000]`
-  and 0.92 to 1.04 at three smaller views, on the same bytes a call. Counting
-  the remaining elements down from the bound instead spilled the source vector's
-  base in the inner loop and ran slower than both forms (`probe-r44-c1/`).
+  times it. Built from the branch on GHC HEAD with `tools/align-as.py` aligning
+  both loops, a client converting a transposed Storable view through `DynamicS`
+  reads the counted loop at 0.81 to 0.89 of the bounded one's cycles
+  at `[2, 900000]` and 0.92 to 1.04 at three smaller views, on the same bytes
+  a call. Counting the remaining elements down from the bound instead spilled
+  the source vector's base in the inner loop and ran slower than both forms
+  (`probe-r44-c1/`).
 - `ANSWERED` **What moved the control's `lib-stage1` on `small`, Run 43's one
   unexplained half-local mover? That evening's PROCESS --- taken 2026-10-04.**
   By the copy test, on the owner's quiet box after Run 44's counts:
@@ -5858,9 +5860,9 @@ for diminishing returns and the Haskell it would take, so the axis ends at two.
 
 **A third probe, 2026-08-24 late, put the whole family on GHC HEAD with every
 hot loop aligned, on a quiet machine** --- two binaries from this branch through
-`cabal.project.ghead` and the `align-as.py` shim, one at `-fspec-constr` and one
-without, the seven family arms in one process per shape, three processes per
-cell over eight shapes (the five conv shapes `cifar-L2-16-c64-k3`,
+`cabal.project.ghead` and the `tools/align-as.py` shim, one at `-fspec-constr`
+and one without, the seven family arms in one process per shape, three processes
+per cell over eight shapes (the five conv shapes `cifar-L2-16-c64-k3`,
 `cnn-slice-c32`, `cnn-L2-24x24-c32`, `lenet-L1-28-c1-k5` and `vgg-14-c512-k3`,
 plus `stretch-wide-2xM`, `stretch-inner256` and `stretch-square-1341`), the two
 `Only` arms flipped timed in a throwaway clone, artifacts under `/tmp` only
@@ -8864,8 +8866,8 @@ form is in front of you.
 
 Both halves. On the unaligned/aligned pairs this README used to build, only one
 half had its own code rewritten --- the other's shim appended dead bytes, where
-`align-as.py` moves labels about --- but on a pair of two shims, which every
-pair now is, both can be mispadded and both need it, so checking both
+`tools/align-as.py` moves labels about --- but on a pair of two shims, which
+every pair now is, both can be mispadded and both need it, so checking both
 is the rule and the one-sided case is the exception that no longer arises.
 The halves are held to each other besides --- a sound pair makes the two logs
 byte-identical, agreement on every shape being a property of the strategies
@@ -8925,7 +8927,7 @@ size *and phase* closed it: 95% of the library loops at the same cache-line
 offset and 98% in the same straddle state, the rest of the delta being 384
 bytes, six whole lines. Matching the size alone does not do it --- that left
 the delta at 416, which is 32 mod 64 and so the worst shift available ---
-and the two-step that does is in `align-as.py`'s docstring, beside
+and the two-step that does is in `tools/align-as.py`'s docstring, beside
 the `PAD_BYTES` it feeds. **A pair of two shims has no such step and no such
 guarantee**, only whatever its two recipes give it, which is why
 `./loop-offsets.py --library` exists: it reports what share of the library
@@ -13669,15 +13671,15 @@ and its `check` log is byte-identical to `micro-unaligned`'s:
 the fresh builddir being what forces the rebuild a value-carrying flag does not.
 
 **The loops can be aligned outright, though, by standing in for the assembler**
-(2026-08-10). `-pgma` replaces the program GHC assembles with, so `align-as.py`
-beside this file rewrites the `.s` on the way past: every local label
-that a later instruction jumps backwards to --- which is what a loop head
-is in the NCG's output --- gets a `.p2align 6`. On this suite that aligns 395
-heads and puts **every copy of both fills at offset 0**, grows `.text` by 0.13%,
-and leaves `micro check` green, 45 shapes agreeing and none dissenting.
-So the straddle can be removed rather than merely frozen, and with
-it the penalty --- which turns the whole finding into a two-bench question ([the
-open list][open]).
+(2026-08-10). `-pgma` replaces the program GHC assembles with,
+so `tools/align-as.py`, in horde-ad, rewrites the `.s` on the way past: every
+local label that a later instruction jumps backwards to --- which is what a loop
+head is in the NCG's output --- gets a `.p2align 6`. On this suite that aligns
+395 heads and puts **every copy of both fills at offset 0**, grows `.text`
+by 0.13%, and leaves `micro check` green, 45 shapes agreeing and none
+dissenting. So the straddle can be removed rather than merely frozen,
+and with it the penalty --- which turns the whole finding into a two-bench
+question ([the open list][open]).
 
 **How far it gets is a thing to measure and not to infer**, the shim's own count
 of 395 being labels in the assembly it was handed rather than loops
@@ -13702,7 +13704,7 @@ no line on either half, which is what the alignment is for and what a count
 alone cannot say.
 
 **The shim was blind under `-g`, which is why this wanted a fix and not merely
-a build.** `align-as.py` aligns a head only where the line before it
+a build.** `tools/align-as.py` aligns a head only where the line before it
 is an instruction, that being how it refuses to put padding between an info
 table and the code the table belongs to; under `-g` every head follows
 the previous block's `_end` and `_proc_end` labels instead, so **not one head

@@ -15,7 +15,8 @@ cd "$(dirname "$0")"
 [ -e probe-cache-spot ] && { echo "probe-cache-spot exists already"; exit 1; }
 D=scratch-cache
 rm -rf "$D" && mkdir "$D"
-cp Main.hs Probe.hs micro.cabal cabal.project cabal.project.freeze align-as.py "$D"/
+cp Main.hs Probe.hs micro.cabal cabal.project cabal.project.freeze \
+   ../../horde-ad/tools/align-as.py "$D"/
 python3 - "$D/Main.hs" <<'EOF'
 import sys
 p = sys.argv[1]
