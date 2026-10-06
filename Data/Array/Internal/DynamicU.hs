@@ -81,14 +81,13 @@ instance Vector V.Vector where
   vSingleton = V.singleton
   {-# INLINE vReplicate #-}
   vReplicate = V.replicate
-  -- The map and the zips generate their result over the indices, working
-  -- around vector's own, whose stream-fused loops at -O1 allocate per element:
-  -- a zipWith on Doubles 112 bytes an element, and 64 with SpecConstr, against
-  -- 8, taking through zipWithA and zipWith3A 7 to 49 times as long.  No
-  -- fusion is given up: vector's fuse with a vector they read, but each array
-  -- operation stores its result, so the array operations never fused their
-  -- inputs; a map of a map allocates a vector an operation with vector's map
-  -- and with this one alike.
+  -- The map and the zips generate their result over the indices, working around
+  -- vector's own, whose stream-fused loops at -O1, lacking the SpecConstr of
+  -- -O2, allocate per element: a zipWith on Doubles 72 bytes an element against
+  -- 8, taking through zipWithA 13 to 15 times as long.  No fusion is given up:
+  -- vector's fuse with a vector they read, but each array operation stores its
+  -- result, so the array operations never fused their inputs; a map of a map
+  -- allocates a vector an operation with vector's map and with this one alike.
   {-# INLINE vMap #-}
   vMap f v = V.generate (V.length v) (\ i -> f (V.unsafeIndex v i))
   {-# INLINE vZipWith #-}
@@ -115,7 +114,8 @@ instance Vector V.Vector where
   vAppend = (V.++)
   {-# INLINE vConcat #-}
   -- The empty list by hand: without -fspec-constr, off at -O, GHC keeps
-  -- V.concat []'s copy loop wherever it is inlined.
+  -- V.concat []'s copy loop wherever it is inlined, and CSE keeps the
+  -- copies apart (https://gitlab.haskell.org/ghc/ghc/-/work_items/27892).
   vConcat [] = V.empty
   vConcat vs = V.concat vs
   {-# INLINE vFold #-}

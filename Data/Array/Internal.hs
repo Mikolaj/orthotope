@@ -447,7 +447,7 @@ constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 -- marked INLINABLE, and until GHC's exitification in this module stops
 -- leaving the exposed loop's exit holding the boxed cursors, which a
 -- client's specialisation then keeps boxed: a box an element, as seen with
--- GHC HEAD 10.1.
+-- GHC HEAD 10.1 (https://gitlab.haskell.org/ghc/ghc/-/work_items/27893).
 {-# INLINABLE genericFillStrided #-}
 genericFillStrided :: forall w a. (VG.Vector w a)
                    => Int -> Axes -> Int -> Int -> w a -> w a
@@ -473,14 +473,14 @@ genericFillStrided !copyRun (Axes tInner sInner outerAxes) !ao l !v =
                 | o + 1 >= oEnd =
                     if o >= oEnd then return ()
                     else VG.unsafeIndexM v src >>= VGM.unsafeWrite out o
-                -- FOR THE NCG, AND A REGRESSION UNDER -fllvm.  The
-                -- cursor steps twice by t instead of once by a
-                -- doubled stride: one live value fewer, which is what
-                -- lets the NCG's allocator keep the output base in
-                -- a register instead of reloading it twice a pair.
-                -- Worth 5 to 25% of the fill's instructions there,
-                -- most at long innermost runs; -fllvm needs neither,
-                -- keeps two induction variables and loses 1 to 8%.
+                -- FOR THE NCG, AND A REGRESSION UNDER -fllvm.  The cursor steps
+                -- twice by t instead of once by a doubled stride: one live
+                -- value fewer, which is what lets the NCG's allocator keep
+                -- the output base in a register instead of reloading it twice
+                -- a pair.  Worth 5 to 25% of the fill's instructions there,
+                -- most at long innermost runs; -fllvm needs neither, keeps two
+                -- induction variables and loses 1 to 8%.  A workaround for an
+                -- unidentified issue of the NCG's register allocation.
                 | otherwise = do
                     VG.unsafeIndexM v src >>= VGM.unsafeWrite out o
                     let !srcNext = src + t
@@ -574,14 +574,13 @@ genericFillStrided !copyRun (Axes tInner sInner outerAxes) !ao l !v =
               -- same with a loop one instruction shorter, which on Zen 3
               -- ran slower where the innermost runs are two elements
               -- long.
-        -- The nest built over the outer axes, innermost first: the
-        -- fused level's innermost runs at its core and each level above
-        -- a loop of @n@ blocks of @blk@ elements around the nest below
-        -- it, as data so that each level is a known call of 'run',
-        -- where closures lose.  A loop of its own with the block size
-        -- banged, where a 'foldl'' over a pair carried it boxed, an
-        -- 'I#' a level: 16 bytes a level and up to 58 instructions a
-        -- call less.
+        -- The nest built over the outer axes, innermost first: the fused
+        -- level's innermost runs at its core and each level above a loop of @n@
+        -- blocks of @blk@ elements around the nest below it, as data so that
+        -- each level is a known call of 'run', where closures lose.  A loop
+        -- of its own with the block size banged, where at -O1, which leaves
+        -- SpecConstr off, a 'foldl'' over a pair carried it boxed, an 'I#' a
+        -- level: 16 bytes a level and up to 58 instructions a call less.
         buildNest :: Nest -> Int -> InnerFirst -> Nest
         buildNest inner !blk axes = case innerFirst axes of
           [] -> inner
@@ -596,15 +595,15 @@ genericFillStrided !copyRun (Axes tInner sInner outerAxes) !ao l !v =
           [] -> writeRun 0 ao
           axis0@(Axis _ n0) : outer ->
             let run :: Nest -> Int -> Int -> ST s ()
-                -- The innermost runs' loop has no register to spare,
-                -- and two things nothing enforces keep it from spilling
-                -- one every two elements: it advances by 'sInner'
-                -- itself, where a field equal to it is one value more,
-                -- and it sits in 'run', a function the fill calls,
-                -- where inlined into the fill's body the result's
-                -- buffer and length stay live across it.  Each broke in
-                -- a variant, 6.5 to 22% more instructions on views that
-                -- take 'RFill'.
+                -- The innermost runs' loop has no register to spare, and two
+                -- things nothing enforces keep it from spilling one every two
+                -- elements: it advances by 'sInner' itself, where a field
+                -- equal to it is one value more, and it sits in 'run', a
+                -- function the fill calls, where inlined into the fill's
+                -- body the result's buffer and length stay live across it
+                -- (https://gitlab.haskell.org/ghc/ghc/-/work_items/27737).
+                -- Each broke in a variant, 6.5 to 22% more instructions on
+                -- views that take 'RFill'.
                 run (Fused axis) !outPos !baseOff =
                   level writeRun axis sInner outPos baseOff
                 run (Level axis blk inner) !outPos !baseOff =
@@ -1069,9 +1068,9 @@ absAxesAndStartT axes off _ _ = (axes, off)
 -- prefers last, so that it is the run, and on any other tie the extent
 -- ascending.
 --
--- In case form rather than over '<>', as measured: the '<>' form
--- retired 42 to 128 instructions a call more than this, the tie branch
--- being the one most comparisons never reach.
+-- In case form rather than over '<>', as measured: the '<>' form retired from
+-- 42 to 128 instructions a call more than this, the tie branch being the one
+-- most comparisons never reach.  A workaround for an unidentified GHC issue.
 byStrideRank :: Axis -> Axis -> Ordering
 byStrideRank (Axis s1 n1) (Axis s2 n2) = case compare s2 s1 of
   EQ | s1 == 1 -> runRank n2 n1
