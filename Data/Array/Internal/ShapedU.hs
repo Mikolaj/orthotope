@@ -155,6 +155,7 @@ normalize = A . G.normalize . unA
 
 -- | Change the shape of an array.  Type error if the arrays have different number of elements.
 -- O(n) or O(1) time.
+{-# INLINABLE reshape #-}
 reshape :: forall sh' sh a . (Unbox a, Shape sh, Shape sh', Size sh ~ Size sh') =>
            Array sh a -> Array sh' a
 reshape = A . G.reshape . unA
