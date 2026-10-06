@@ -660,10 +660,12 @@ genericFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
                     0 ao
     -- Contiguous runs, at stride 1, get a walk of their own: copied whole
     -- from the instance's @copyRun@ on, and below it stepped with the stride
-    -- a literal there and not a value 'run' holds, which, where a client
+    -- known to be 1 there and not a value 'run' holds, which, where a client
     -- specialises the fill rather than inlining it, measured a word a call less
-    -- and, at boxed and Unboxed elements, an instruction or more an element, 6
-    -- to 10% on large views, before the copy took the longer runs.
+    -- and, at boxed and Unboxed elements, an instruction or more an element,
+    -- on large views 6 to 10%, before the copy took the longer runs.  The test
+    -- @stInner == 1@ makes it known, not the literal: with 'stInner' in its
+    -- place, a client compiled the same code on GHC HEAD.
     if stInner == 0 then walk writeRunSet
     else if stInner == 1 then
       if nInner >= copyRun then walk writeRunCopy else walk (writeRunStep 1)
