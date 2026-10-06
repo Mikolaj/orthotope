@@ -100,7 +100,7 @@ test-suite tests
                      , OpsShaped
 
   ghc-options:
-    -Wall -rtsopts -fno-ignore-asserts
+    -Wall -rtsopts -fno-ignore-asserts "-with-rtsopts=-A32m"
 
   build-depends:
     base,
@@ -125,6 +125,6 @@ benchmark specialisation
                      , OpsRanked
                      , OpsShaped
   include-dirs:        bench
-  ghc-options:         -Wall -rtsopts
+  ghc-options:         -Wall -rtsopts "-with-rtsopts=-A32m"
   build-depends:       base, deepseq, orthotope
   default-language:    Haskell2010
