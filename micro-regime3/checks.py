@@ -7,7 +7,8 @@ the coverage scan `check-all` adds -- every program here named by a step or
 a case. The expensive half, the properties over every run, the case suite in
 both directions and the mutants, is `checks-deep.py`'s since 2026-10-04,
 run once per run preparation and when the owner asks; `defect-run.py
---changed .` is what one edit of a script owes between them. The two linters
+--changed .` and `--audit --changed .` are what an edit owes between them,
+a script's or a data file's. The two linters
 stand since 2026-09-02: pyflakes over the Python here and shellcheck over
 the shell drivers, which the AST families cannot reach. An absent linter is
 a finding and not a skip, and absent means every invocation the step can
