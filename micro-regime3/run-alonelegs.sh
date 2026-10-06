@@ -120,7 +120,7 @@ SHAPES=$("$B" --list 2>/dev/null | cut -d/ -f1 | awk '!seen[$0]++')
 # at launch, against a 5% bar` and ran, which is the measure-but-do-not-
 # refuse branch. The driver log's own loadavg line read 2.36 beside that
 # 11.7%, which is the history contamination the paragraph above claims.
-BUSY=$(./machine-busy.sh) || BUSY=
+BUSY=$(../../horde-ad/tools/machine-busy.sh) || BUSY=
 case $BUSY in ''|*[!0-9.]*) BUSY=100.0 ;; esac   # unreadable refuses
 # MEASURED ALWAYS AND REFUSED ONLY FOR A RIDER, so that an ONLY= smoke run
 # exercises the reading itself -- the half of this that can go wrong

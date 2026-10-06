@@ -292,7 +292,7 @@ fi
 # Before the sequence and not before the riders alone, which take the same
 # reading themselves.
 if at sequence; then
-BUSY=$(./machine-busy.sh) || BUSY=
+BUSY=$(../../horde-ad/tools/machine-busy.sh) || BUSY=
 # An unreadable figure refuses: awk compares an empty string to the bar
 # and lets it through, which is the one direction this alarm must not fail.
 case $BUSY in ''|*[!0-9.]*) BUSY=100.0 ;; esac

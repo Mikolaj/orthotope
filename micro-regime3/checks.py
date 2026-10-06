@@ -80,9 +80,6 @@ UNCOVERED = {
                     'note-figures-reads-a-row-only-as-present, and not '
                     "the header, since it reads the two binaries and the "
                     'mutants copy holds tracked files alone',
-    'machine-busy.sh': 'read by run-evening.sh\'s alarm, run-alonelegs.sh and '
-                       'copy-test.sh, whose cases reach it; no case of its '
-                       'own yet',
     'copy-test.sh': 'post-run step 4a\'s copy test, which spends the quiet '
                     'box on real binaries under perf; its cells are '
                     '--copy-cells\'s and its log --copy-test\'s, each with '
@@ -99,7 +96,7 @@ UNCOVERED = {
 }
 # The probes: inputs to README rather than drivers, each run by hand for
 # the question it is named for.
-for _name in ('probe-pageflags.py', 'probe-r33-instance.sh',
+for _name in ('probe-r33-instance.sh',
               'probe-hugebin.sh', 'probe-ibs.sh',
               'probe-attr-build.sh', 'probe-attrnoshim-build.sh',
               'probe-attr-read.py', 'probe-attr.sh', 'probe-cache-build.sh',
@@ -107,9 +104,8 @@ for _name in ('probe-pageflags.py', 'probe-r33-instance.sh',
               'probe-flip-reroll.sh', 'probe-flip-reroll-read.py',
               'probe-flip-reroll-fixture.py',
               'probe-cache-run.sh', 'probe-disp-build.sh',
-              'probe-disp-ghead-build.sh', 'probe-entries-sweep.py',
+              'probe-disp-ghead-build.sh',
               'probe-fetches.sh', 'probe-fetches-read.py',
-              'probe-fetch-model.py',
               'probe-interleave.sh', 'probe-evening-a.sh',
               'probe-evening-b.sh', 'probe-evening-chain.sh',
               'probe-evening-c.sh', 'probe-fillpair-build.sh',

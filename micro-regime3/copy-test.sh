@@ -29,7 +29,7 @@ if [ -z "$CELLS" ]; then
   echo "no cell to test: --copy-cells flagged no mover with its counts level"
   exit 0
 fi
-BUSY=$(./machine-busy.sh) || BUSY=
+BUSY=$(../../horde-ad/tools/machine-busy.sh) || BUSY=
 if [ -z "$BUSY" ] || awk -v b="$BUSY" -v m="${MAXBUSY:-5}" \
      'BEGIN { exit !(b > m) }'; then
   echo "the machine is busy: ${BUSY:-unreadable}% of its CPUs non-idle over" \

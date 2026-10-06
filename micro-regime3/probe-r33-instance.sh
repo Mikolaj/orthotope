@@ -29,6 +29,6 @@ for b in run33-exit probe-copy-r33exit; do
   pid=$!
   sleep 10
   echo "-- $b"
-  sudo python3 probe-pageflags.py "$pid" 0x430980 0x4bad80
+  sudo python3 ../../horde-ad/tools/probe-pageflags.py "$pid" 0x430980 0x4bad80
   wait "$pid"
 done

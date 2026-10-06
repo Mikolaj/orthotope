@@ -7586,7 +7586,9 @@ PROSE_KEYS = (
     ('classlead', 'records every class twice**'),
     ('bold', "The cross-class summary's columns and its bold are"),
     ('ties', 'The best arm outside the vecdims arms is ahead of'),
-    ('offsets', '`./loop-offsets.py --delta'),
+    # Either spelling: Run 45's file and its copies quote the program from
+    # this directory, where it was until 2026-10-06.
+    ('offsets', 'loop-offsets.py --delta'),
     ('straddle', '`loop-offsets.py --survey` reads'),
 )
 
@@ -8202,7 +8204,8 @@ def prose_draft(run, args):
         return '%s-%s' % (r, h) if r and h and have('%s-%s' % (r, h)) \
             else None
 
-    LO = [os.path.join(where, 'loop-offsets.py')]
+    LO = [os.path.join(where, '..', '..', 'horde-ad', 'tools',
+                       'loop-offsets.py')]
 
     def g_offsets():
         b, o = binary(name, basis), binary(name, other)
@@ -8216,7 +8219,8 @@ def prose_draft(run, args):
                              r'\s+(every mod-64 offset preserved: \[.*?\]|'
                              r'copy COUNT moved: offsets \[.*?\] -> \[.*?\])',
                              d, re.M)
-            s += (' `./loop-offsets.py --delta %s %s` reads %s.'
+            s += (' `../../horde-ad/tools/loop-offsets.py --delta %s %s`'
+                  ' reads %s.'
                   % (pb, b, '; '.join('%s -> %s copies: %s'
                                       % (g[0], g[1], g[3])
                                       for g in grp) or '___'))
@@ -9148,7 +9152,8 @@ READER_MODE_RE = re.compile(r'(?<![\w-])--[a-z][a-z-]+')
 # A tool of this directory, or a mode of one, named inside a comment of an
 # indented block. Cabal's and GHC's flags are deliberately absent: a build
 # recipe explains those and does not invoke them here.
-BURIED_RE = re.compile(r'\./(?:read-run\.py|loop-offsets\.py|run-gate\.sh'
+BURIED_RE = re.compile(r'(?:\./|/tools/)'
+                       r'(?:read-run\.py|loop-offsets\.py|run-gate\.sh'
                        r'|run-major\.sh|smoke-sweep\.sh|\$R-)'
                        r'|(?<![\w-])--(?:survey|in-place|para|compare'
                        r'|machine|steps|alloc)(?![\w-])')

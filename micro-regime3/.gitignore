@@ -47,7 +47,6 @@ probe-*
 # The tmpfs the halves launch from (half-bin.sh), a mount and never a
 # file to track, and its contents are copies of the on-disk records.
 hugebin/
-!probe-pageflags.py
 !probe-r33-instance.sh
 !probe-hugebin.sh
 !probe-ibs.sh

@@ -542,20 +542,20 @@ by being a thing a later session might otherwise redo.
   them, and an assembler shim on `-pgma` aligns the loops outright, which
   is the instrument fix. What it costs and buys in time is [on the open
   list][open]; the rest is [in the floor section][floor], including why the shim
-  must pad only between instructions. Two tools: `loop-offsets.py`, beside
-  this file, reads a binary's copies, which makes the question a minute's work
-  rather than a run's, and `tools/align-as.py`, in horde-ad, is the shim;
+  must pad only between instructions. Two tools in horde-ad:
+  `tools/loop-offsets.py` reads a binary's copies, which makes the question
+  a minute's work rather than a run's, and `tools/align-as.py` is the shim;
   a paired Run's two binaries are built from the recipes its own note carries,
   one per half. Both this and the recompilation trap beside it are written up
   and filed as GHC issues from horde-ad's `docs/`, which is where a reader
   outside this README should go; what stays here is what they cost
   this benchmark.
 - **Which arm owns a loop copy is a property of the binary**, absent
-  from a plain build and carried by a `-g3` one, which `loop-offsets.py` now
-  reads for itself --- and **a `-g3` build is a twin to read and not a binary
-  to time**, that having been gated and lost. The map of the vecdims group,
-  the reading of Run 11's split it corrected, and what `-g3` costs in emitted
-  code and in time are [on the open list][open].
+  from a plain build and carried by a `-g3` one, which `tools/loop-offsets.py`
+  now reads for itself --- and **a `-g3` build is a twin to read and
+  not a binary to time**, that having been gated and lost. The map
+  of the vecdims group, the reading of Run 11's split it corrected, and what
+  `-g3` costs in emitted code and in time are [on the open list][open].
 - **The allocation area moves figures too** --- the default nursery against
   an arm's allocation in excess of its result --- with the predictor
   and the populations it reaches [in the floor section][floor]; and since
@@ -1406,9 +1406,9 @@ rather than a slot in the next run, observed again:
   **11.8% and 74.3%** on Run 28, all of 136 loops in common; **4.4% and 58.7%**
   of 916 on Run 31, whose halves share a compiler; and **11.0% and 65.4%**
   of 136 on Run 32. THAT is the series; the figures runs recorded for themselves
-  were taken under more than one version of `loop-offsets.py`, the denominator
-  having moved from 141 to 136 at a time nothing here names, and Runs 29's
-  and 30's binaries are not on disk.
+  were taken under more than one version of `tools/loop-offsets.py`,
+  the denominator having moved from 141 to 136 at a time nothing here names,
+  and Runs 29's and 30's binaries are not on disk.
 - `ANSWERED` **A compiler is worth up to 29.5% on one arm of one class while
   the two compilers execute the same instructions to four decimals ---
   and it was not the compiler but the physical frame the page cache held one
@@ -1523,15 +1523,15 @@ rather than a slot in the next run, observed again:
   experiment*, half an hour on a quiet box with root for the pagemap reads:
   eight copies of one binary on the mount, a few hundred megabytes of unrelated
   allocation between copies so that the frames spread, each timed on the scaled
-  cell and its 2 MiB frame read by `probe-pageflags.py` while it runs. Slowness
-  tracking bits 21 to 29 means placement can be controlled; only bits 30 and up
-  separating the copies means DRAM channel or L3 slice selection, out of user
-  space's reach, and the gate is the ceiling. Eight frames adjacent despite
-  the spacers leave the high bits untested, and the run must say so rather
-  than answer. (2) *1 GiB pages*, only if (1) names bits 21 to 29: not a mount,
-  since nothing executes from hugetlbfs, ELF segments sitting at 4 KiB file
-  offsets, so it needs a loader that remaps the text at startup, which
-  libhugetlbfs's `hugectl --text` did and nothing maintained does now. (3)
+  cell and its 2 MiB frame read by `tools/probe-pageflags.py` while it runs.
+  Slowness tracking bits 21 to 29 means placement can be controlled; only bits
+  30 and up separating the copies means DRAM channel or L3 slice selection, out
+  of user space's reach, and the gate is the ceiling. Eight frames adjacent
+  despite the spacers leave the high bits untested, and the run must say
+  so rather than answer. (2) *1 GiB pages*, only if (1) names bits 21 to 29:
+  not a mount, since nothing executes from hugetlbfs, ELF segments sitting
+  at 4 KiB file offsets, so it needs a loader that remaps the text at startup,
+  which libhugetlbfs's `hugectl --text` did and nothing maintained does now. (3)
   *A fresh copy per process* instead of per half, which turns a half-wide bias
   into per-process noise the A/A floors absorb, at the price of wider floors ---
   the fallback where the gate's minutes per launch are not to be had. Registered
@@ -2750,7 +2750,7 @@ rather than a slot in the next run, observed again:
   it is not one quantity waiting to be attributed.
 - `ANSWERED` **Which arm owns a loop copy: answered, and the answer is
   that a binary can carry its own names**, a `-g3` build's per-block symbols
-  letting `loop-offsets.py` name a copy by its binding and source line.
+  letting `tools/loop-offsets.py` name a copy by its binding and source line.
   **The twin's names are a per-GROUP property and not a per-binary one**: count
   a body's copies in twin and timed binary before trusting them, which
   the vecdims group passes and the `build`/`mut-odo` group fails. The named
@@ -2770,7 +2770,7 @@ rather than a slot in the next run, observed again:
   register assignments and block order differing throughout. What this README
   times does not differ --- all three 28-byte groups have the same body in both
   builds --- and the two copies the `-g3` build lacks are the dead ones,
-  confirming by a second route `loop-offsets.py`'s
+  confirming by a second route `tools/loop-offsets.py`'s
   `[dead, mut-odo, dead, build]` reading, the naming's non-vacuity control;
   the groups are in [the floor section][floor].
 - `ANSWERED` **So building everything with `-g3` is refuted, and a `-g3` build
@@ -3692,8 +3692,8 @@ rather than a slot in the next run, observed again:
   **And the two arms are NOT the same code, which the machine code settles
   and a Core reading of 2026-08-09 had already predicted.** Their innermost
   loops are byte-identical --- the same eight instructions in 28 bytes, which
-  is why `loop-offsets.py` groups all four family arms as copies of one body ---
-  but the worker containing that loop is not: `$wgo7` is **328 bytes
+  is why `tools/loop-offsets.py` groups all four family arms as copies of one
+  body --- but the worker containing that loop is not: `$wgo7` is **328 bytes
   in `mut-odo-vecdims` against 296 in `-add-in`**, and the control carries
   an `imul` in its outer path that the sibling does not. Over each arm's whole
   code the two run 3472 bytes against 3424, 929 instructions against 927, two
@@ -5707,14 +5707,15 @@ to one, as the corner and the down form should. **What is byte-identical is only
 the innermost run-fill, and only across four of the five**: `-add-both-down`'s
 is 24 bytes and seven instructions where the other four share one 28-byte,
 eight-instruction body, which is the per-element change above and why
-`loop-offsets.py` groups those four as copies of one loop. The discriminating
-`imul` was checked in the **timed** binary as well, in a window around each loop
---- one for `mut-odo-vecdims` and none for `-add-in` --- so it is
-not a debug-build artifact. What none of this reproduces is a per-run
-*signature* in the timings: the `-add-in` advantage is flat in `sInner`, as Run
-9's readings were. `add-out` and `add-both` carry real extra code of the same
-kind --- a `scanr (*)` over the shape, built into a byte array once per call
-and read once per run --- which adds nothing to the per-element loop.
+`tools/loop-offsets.py` groups those four as copies of one loop.
+The discriminating `imul` was checked in the **timed** binary as well,
+in a window around each loop --- one for `mut-odo-vecdims` and none
+for `-add-in` --- so it is not a debug-build artifact. What none
+of this reproduces is a per-run *signature* in the timings: the `-add-in`
+advantage is flat in `sInner`, as Run 9's readings were. `add-out`
+and `add-both` carry real extra code of the same kind --- a `scanr (*)`
+over the shape, built into a byte array once per call and read once per run ---
+which adds nothing to the per-element loop.
 
 **Run 9 could not see those as per-run changes and Run 10 can, which
 is the second thing the pairing bought.** On Run 9 the three penalties were flat
@@ -6249,13 +6250,13 @@ predicted from it.** (`probe-nospill-g912`, the g912 recipe with `-fllvm`
 and 64-byte loop heads in place of the assembler shim, `check` byte-identical
 to the native binary's; the `runs` class read with `--corr=insitu`, `sum-only`
 running larger than the bench under that backend. The spill-free premise
-was read in the timed binary and not inherited: `probe-nospill-fills.py` maps
-GHC's block uniques out of a `-ddump-cmm` dump into the assembly's own labels,
-which is the only way to find a fill in an `-fllvm` build, that backend emitting
-no `.debug_line` even under `-g3`.) **Taking the spill out changed the ordering
-not at all** --- `-u2` behind at all seven lengths, 0 of 7 at sign p 0.016,
-and the native backend reading the same at 1.1117 --- where the sixth predicted
-it would REVERSE the `-down` lead on the long-run shapes. **Nor does
+was read in the timed binary and not inherited: `tools/probe-nospill-fills.py`
+maps GHC's block uniques out of a `-ddump-cmm` dump into the assembly's own
+labels, which is the only way to find a fill in an `-fllvm` build, that backend
+emitting no `.debug_line` even under `-g3`.) **Taking the spill out changed
+the ordering not at all** --- `-u2` behind at all seven lengths, 0 of 7 at sign
+p 0.016, and the native backend reading the same at 1.1117 --- where the sixth
+predicted it would REVERSE the `-down` lead on the long-run shapes. **Nor does
 the arithmetic behind that prediction survive a rebuild**, re-read 2026-09-05
 with the reader's entry-region fix: this binary keeps `-u2`'s two-element body,
 sixteen instructions against `-u2-down`'s fourteen, eight an element against
@@ -6337,33 +6338,33 @@ than argued.** The change pays by freeing a register in a loop
 that was spilling, so an arm whose loop does not spill cannot gain from it:
 that is not a hunch but the same mechanism that makes it COST 4.5%
 under `-fllvm`, where these loops spill nothing. So the screen is mechanical ---
-`probe-nospill-fills.py` over a dump build byte-identical to `probe-ship-g912`,
-which is the SHIM-FREE build the counted work was taken on and was never timed
---- the right regime for the question, stack traffic being a register allocation
-and not a padding, and the instruction counts below are that build's rather
-than a timed one's. Every timed arm's fill, each self-looping block reported
-with its stack traffic (`probe-screen.txt`). **Twenty of the twenty-two arms
-with a findable element loop carry NO stack access in it**, at six to eleven
-instructions a loop, `-u2` and `-u2-down` among them now. **Re-read 2026-09-05
-with the reader's entry-region fix, on today's build: the same verdict on every
-arm still in the tree --- and it is the rank-1 copy's.** The smallest loop
-with a load is that copy; the run-level copy, which `perf` finds hot on a long
-run, reloads the source base from the C stack once an iteration in `-u1`, `-u2`
-and the leaf alike (`mov 0x40(%rsp)`, the spill the un-unrolled leaf's task
-priced), and the screen shows it only as the one to two `%rsp` accesses
-of the larger cycle that copy shares with its run loop. **Two spill and neither
-has anything to drop.** `list` is `VS.fromListN` over `toListT` and has
-no derived constant at all --- its fourteen stack touches are the recursion's
-closure traffic, not a spilled induction variable --- and it is besides
-the denominator every ratio here divides by, so changing it rebases every
-published figure, which Run 10 did once and this file treats as breaking
-comparability with every run. `bq-expand`'s loop keeps the innermost extent,
-the innermost stride and a base-offset table, and none of the three is derivable
-from another. **The pattern itself was in three arms and all three are fixed**,
-which a grep for the doubled stride confirms rather than the screen ---
-`fillStage2` first, then `-u2` and `-u2-down`; the grep behind this sentence ran
-when the first was already done and so found two, which is what it said until
-it was re-read. **What the screen cannot see, said because a silent search
+`tools/probe-nospill-fills.py` over a dump build byte-identical
+to `probe-ship-g912`, which is the SHIM-FREE build the counted work was taken
+on and was never timed --- the right regime for the question, stack traffic
+being a register allocation and not a padding, and the instruction counts below
+are that build's rather than a timed one's. Every timed arm's fill, each
+self-looping block reported with its stack traffic (`probe-screen.txt`).
+**Twenty of the twenty-two arms with a findable element loop carry NO stack
+access in it**, at six to eleven instructions a loop, `-u2` and `-u2-down` among
+them now. **Re-read 2026-09-05 with the reader's entry-region fix, on today's
+build: the same verdict on every arm still in the tree --- and it is the rank-1
+copy's.** The smallest loop with a load is that copy; the run-level copy, which
+`perf` finds hot on a long run, reloads the source base from the C stack once
+an iteration in `-u1`, `-u2` and the leaf alike (`mov 0x40(%rsp)`, the spill
+the un-unrolled leaf's task priced), and the screen shows it only as the one
+to two `%rsp` accesses of the larger cycle that copy shares with its run loop.
+**Two spill and neither has anything to drop.** `list` is `VS.fromListN`
+over `toListT` and has no derived constant at all --- its fourteen stack touches
+are the recursion's closure traffic, not a spilled induction variable ---
+and it is besides the denominator every ratio here divides by, so changing
+it rebases every published figure, which Run 10 did once and this file treats
+as breaking comparability with every run. `bq-expand`'s loop keeps the innermost
+extent, the innermost stride and a base-offset table, and none of the three
+is derivable from another. **The pattern itself was in three arms and all three
+are fixed**, which a grep for the doubled stride confirms rather than the screen
+--- `fillStage2` first, then `-u2` and `-u2-down`; the grep behind this sentence
+ran when the first was already done and so found two, which is what it said
+until it was re-read. **What the screen cannot see, said because a silent search
 proves nothing**: it reads Main-compiled code only, so `gen-unsafe`, whose loop
 is inside `vector`'s `generate`, has no entry at all, and so would any arm
 that inlines its loop into a library function.
@@ -7672,7 +7673,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      why: --para 'Which two halves a pair has'
     #      So nothing is set in any script. pair-halves.sh refuses any
     #      other tag, as `--draft` does at step 2
-    ./loop-offsets.py --delta $PREV-<PREV's basis> $R-<basis>   # 2d. the
+    ../../horde-ad/tools/loop-offsets.py --delta $PREV-<PREV's basis> $R-<basis>   # 2d. the
     #      fills against the previous build of this recipe, taken the
     #      moment both binaries exist and before anything else changes.
     #      There is no 2c: that is run-status.sh's label for a finished
@@ -7894,8 +7895,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      line, which preflight runs at 4-10 and --note-check holds to one
     #      of its three forms (2b)
     #      why: diag answers for the regime and for nothing else
-    ./loop-offsets.py $R-<other> $R-<basis>    # 10. fills, kept with the run:
-    ./loop-offsets.py --library $R-<basis> $R-<other>   #     the eye's reading
+    ../../horde-ad/tools/loop-offsets.py $R-<other> $R-<basis>    # 10. fills, kept with the run:
+    ../../horde-ad/tools/loop-offsets.py --library $R-<basis> $R-<other>   #     the eye's reading
     #      is the same fills at the same addresses in both, and only
     #      `--library` prints a figure -- read it against the band for
     #      this pair's recipes: near-total for one source padded to one
@@ -7904,8 +7905,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      against a fixed line, and not against a note's nm-based figure,
     #      which is another number
     #      why: --para 'differed by more than Main'
-    ./loop-offsets.py --survey $R-<basis>       # 10a. one leg per half,
-    ./loop-offsets.py --survey $R-<other>       # 10b. both owed, both new,
+    ../../horde-ad/tools/loop-offsets.py --survey $R-<basis>       # 10a. one leg per half,
+    ../../horde-ad/tools/loop-offsets.py --survey $R-<other>       # 10b. both owed, both new,
     #      and the answer goes in the note.
     #      Each leg prints three counts, the third being exit
     #      spans astride, the span as align-as.py costs it under
@@ -8638,11 +8639,11 @@ Unsandboxed throughout:
 **One rule for the sandbox in this directory, since half of what a run does must
 write here.** Run everything unsandboxed except the read-only checks.
 Those are worth having cheap and are all of them safe: both `check`s, `diag`,
-`--lint`, `--check-doc`, `loop-offsets.py`, `--list`, a `grep` of the note,
-and pre-run steps 6 to 10 --- except 8c and 8d, which write `zz-` fixtures here
-and remove them. Everything that builds, benchmarks or leaves a file
-is the other kind: 2, 11, 12, 14, 17, 19 and 20, and steps 4 and 5 too, which
-write only through their redirect and that is enough. A session starts
+`--lint`, `--check-doc`, `tools/loop-offsets.py`, `--list`, a `grep`
+of the note, and pre-run steps 6 to 10 --- except 8c and 8d, which write `zz-`
+fixtures here and remove them. Everything that builds, benchmarks or leaves
+a file is the other kind: 2, 11, 12, 14, 17, 19 and 20, and steps 4 and 5 too,
+which write only through their redirect and that is enough. A session starts
 in `~/r/horde-ad`, so its sandbox permits writes there and to its own temp
 directory and nowhere else; THIS directory is outside it, and `run-major.sh`
 moves here before doing anything. **And never write `$TMPDIR` here; spell
@@ -8930,7 +8931,7 @@ the delta at 416, which is 32 mod 64 and so the worst shift available ---
 and the two-step that does is in `tools/align-as.py`'s docstring, beside
 the `PAD_BYTES` it feeds. **A pair of two shims has no such step and no such
 guarantee**, only whatever its two recipes give it, which is why
-`./loop-offsets.py --library` exists: it reports what share of the library
+`loop-offsets.py --library` exists: it reports what share of the library
 self-loops the two halves put at the same offset in their line, and near-total
 agreement is what a pair built from ONE SOURCE looks like; halves that differ
 in source move it wholesale, which is a registered variable rather
@@ -9469,7 +9470,7 @@ not otherwise.
     #      of the loop body and never by proximity, and read the count
     #      check -- a group whose twin carries fewer copies than the
     #      timed binary is not named from the twin at all.
-    #      `./loop-offsets.py $R-<half> --match probe-g3-<half>-$R` does
+    #      `../../horde-ad/tools/loop-offsets.py $R-<half> --match probe-g3-<half>-$R` does
     #      the straddlers' half of that by the same rule, naming each by
     #      its bytes and saying NOT NAMED where no twin holds a copy.
     #      GIVE IT BOTH TWINS, the half's own first, and add --loose.
@@ -9615,7 +9616,7 @@ not otherwise.
     #      then, where it says INSTANCE and BEFORE anything evicts
     #      the file -- a reboot, a copy over it, the fadvise -- the frames
     #      off the slow instance while it runs:
-    python3 probe-pageflags.py <pid> <addr of the hot line> --heap   # as root
+    python3 ../../horde-ad/tools/probe-pageflags.py <pid> <addr of the hot line> --heap   # as root
     #      which prints the code frame beside the heap's; its header says
     #      what PID and VADDR are
     #      why: --para 'The physical frame of a code page is a placement term too'
@@ -10386,31 +10387,31 @@ it before the readings is what retires that.
   list already carries whose measurement is a compile, an allocation
   or an arithmetic re-derivation, and take it now --- the questions this run
   raises are step 5e's and get their turn there. **The named fills are the one
-  owed by every paired Run**: `loop-offsets.py` names a copy only in a `-g3`
-  build, bare offsets are what the note records otherwise, and the map
-  is a property of the binary, so once the binaries go no offset this README
-  quotes can ever be tied to an arm again. **What the step has produced, which
-  is why it is first.** Findings no later session could have recovered once
-  the binaries went, the two add-in arms swapping cache-line offsets between
-  the compilers among them. The REFUSALS are what make a negative honest: a loop
-  named off no byte-identical copy is refused rather than guessed,
-  and a straddler the sweep reports may be an info table it misread rather
-  than a loop. **A refusal wants the OTHER half's twin tried before
-  it is recorded**, the basis twin naming the `-u2` leaf fills by the same byte
-  identity, and what no `-g3` build holds byte-identical on either compiler,
-  `fillStage2`'s runs, being named by `--loose` off their signature. The ORDER
-  has been taken both ways without cost, so what the list fixes is the deadline
-  and not the sequence. And a note's fill-in block is where TRANSCRIBED figures
-  live, which is why the executing session re-runs the `--match` off
-  the binaries it timed, and reads the block it ends with since 2026-09-16,
-  the exit spans astride named the same way --- empty on a `LOOP_EXITSPAN=1`
-  half, and on any other the loops that switch would move. **Where a preparation
-  spent this half early, on an idle box before the pair ran, the executing
-  session re-derives it off the binaries it timed** --- two minutes,
-  and the difference between a block that was read and one that was carried,
-  which is the distinction pre-run step 12b exists to make and which a note's
-  fill-in block cannot make for itself. What is left over is the timing work,
-  which is what a quiet machine is for.
+  owed by every paired Run**: `tools/loop-offsets.py` names a copy only
+  in a `-g3` build, bare offsets are what the note records otherwise,
+  and the map is a property of the binary, so once the binaries go no offset
+  this README quotes can ever be tied to an arm again. **What the step has
+  produced, which is why it is first.** Findings no later session could have
+  recovered once the binaries went, the two add-in arms swapping cache-line
+  offsets between the compilers among them. The REFUSALS are what make
+  a negative honest: a loop named off no byte-identical copy is refused rather
+  than guessed, and a straddler the sweep reports may be an info table
+  it misread rather than a loop. **A refusal wants the OTHER half's twin tried
+  before it is recorded**, the basis twin naming the `-u2` leaf fills
+  by the same byte identity, and what no `-g3` build holds byte-identical
+  on either compiler, `fillStage2`'s runs, being named by `--loose` off their
+  signature. The ORDER has been taken both ways without cost, so what the list
+  fixes is the deadline and not the sequence. And a note's fill-in block
+  is where TRANSCRIBED figures live, which is why the executing session re-runs
+  the `--match` off the binaries it timed, and reads the block it ends
+  with since 2026-09-16, the exit spans astride named the same way --- empty
+  on a `LOOP_EXITSPAN=1` half, and on any other the loops that switch would
+  move. **Where a preparation spent this half early, on an idle box before
+  the pair ran, the executing session re-derives it off the binaries it timed**
+  --- two minutes, and the difference between a block that was read and one
+  that was carried, which is the distinction pre-run step 12b exists to make
+  and which a note's fill-in block cannot make for itself. What is left
+  over is the timing work, which is what a quiet machine is for.
 4. **Match bases before reading any ratio.** The first act of a comparison
    is making its two sides one basis --- the same population, the same
    restriction, the basis a figure was stated on --- and only then reading
@@ -12910,7 +12911,7 @@ control** --- `mut-odo-vecdims` for the four arms under it, `mut-odo`
 for `build` --- which is why the two control rows have no ratio of their own
 and read `--` in all three: a control against itself is 1 by construction
 and says nothing. The offsets are the executed copy's, read
-with `loop-offsets.py`:
+with `tools/loop-offsets.py`:
 
 | arm | loop | mod 64, Run 9 | Run 9 ratio | mod 64, Run 10 | Run 10 ratio | aligned ratio |
 |---|---:|---:|---:|---:|---:|---:|
@@ -12931,7 +12932,7 @@ so that row is resident in every binary here.
 
 **On Run 9's binary every copy that fits inside one line read level or ahead
 and every copy that straddles read 13--18% behind, with no arm of either family
-dissenting. Run 10 splits that.** Its offsets come from `loop-offsets.py`
+dissenting. Run 10 splits that.** Its offsets come from `tools/loop-offsets.py`
 over the two binaries, so the mod-64 column is read and not inferred,
 and the aligned column is a build in which all ten copies the table covers sit
 at 0. `build`/`mut-odo` behaves as the hypothesis says throughout --- both
@@ -12981,54 +12982,54 @@ carry its own names.** Run 12's second prediction had to record that tying
 a named arm to a named offset was not licensed, every `Main` copy printing
 under one mangled symbol because these arms compile to one worker. A `-g3` build
 carries what is missing --- GHC emits a per-block symbol with DWARF line info
---- and `loop-offsets.py` now reads it without help: `addr2line` for the source
-line, the source file for the top-level binding that line falls in, so a copy
-prints as `fbMutOdoVecdims` with the source line beside it instead of as one
-worker's mangled name. A binary with no line info prints exactly what it printed
-before. Read that way on 2026-08-13, at `-fspec-constr` with `LOOP_MAXSKIP=1`,
-the four-copy vecdims group is, in address order, `mut-odo-vecdims`, `-add-in`,
-`-add-out` and `-add-both`, and the pair beside it is `mut-odo` then `build`.
-That is the order the loop table above assigns its per-arm offsets in,
-so that table's ordering is now a measurement; and a second route agrees,
-emission order tracking first reference from `roster`, which lists those four
-in exactly that order. What it bought is at Run 12's second prediction above:
-Run 11's split crosses the resident copies rather than following them.
-**The recommended next step is taken and its prediction is refuted**
-(2026-08-14, an unconditional build and a max-skip build from one source read
-with `loop-offsets.py`, against Run 11's two kept main sets). The unconditional
-form puts 100 of 100 Main self-loops at offset 0 where max-skip puts 58 of 113,
-and **neither leaves a straddler**, so what padding every head buys is padding
-that nothing needed. Per arm it buys `build` alone, at 0.9896, and costs
-the tail up to 5.9% --- `bq-mut` 1.0588, `mut-odo-vecdims-add-out` 1.0513,
-`bq-gen` 1.0504, `-add-both` 1.0333, `gen-unsafe` 1.0327, `gen-quotrem` 1.0275,
-`offtab` 1.0259, `mut-odo` 1.0221. The arms that do carry a head max-skip
-skipped land on both sides of 1, `build` against `mut-odo`, and the three
-largest losers carry no tracked 28-byte loop at all, the tracked set being
-`fbBuild`, `fbMutOdo`, `fbMutBaseOffsets` and the four vecdims fills. **What
-the two forms differ in beyond offsets is a census**: the unconditional pads sit
-inside enclosing loops and push thirteen of them past the 64-byte window, 113
-self-loops falling to 100 and the 28-byte set 36 to 32. That is a cost
-of padding every head which the offsets alone do not show, and it is the better
-candidate the refuted prediction leaves behind. **And the step's own phrasing
-named a difference that is not there**: the two forms emit *the same 395
-directives at the same heads*, on the same assembly lines, differing only
-in the max-skip budget written as each directive's third operand --- a median 33
-bytes of slack, four heads with none --- so there are no per-form head lists
-to compare, and the 27 extra heads on record are look-through's rather
-than the unconditional form's. What the unconditional form spends is 8192 bytes
-of `.text`, 20385989 against 20377797. **And the step's other half could
-not have been taken at all**, which is a dependency neither entry declared:
-attributing heads to arms wants `addr2line`, `addr2line` wants DWARF,
-and the naming entry above measures DWARF changing the code --- a plain build
-holding two copies of a loop per function where the twin holds one,
-so the offsets-to-arms map is one-to-many in exactly the binary being timed.
-A plan resting on an instrument should say what the instrument is known
-to change. **And the instrument the residue wants now exists**:
-`loop-offsets.py --len 0` widens the grouped, named report from the 28-byte
-run-fill to every loop a cache line can hold, which in Main's own code is 112
-loops over twenty lengths against the nine of one length the tracked set saw ---
-so the arms that lose most under the unconditional form, and carry no 28-byte
-loop at all, are visible to whatever asks next.
+--- and `tools/loop-offsets.py` now reads it without help: `addr2line`
+for the source line, the source file for the top-level binding that line falls
+in, so a copy prints as `fbMutOdoVecdims` with the source line beside it instead
+of as one worker's mangled name. A binary with no line info prints exactly what
+it printed before. Read that way on 2026-08-13, at `-fspec-constr`
+with `LOOP_MAXSKIP=1`, the four-copy vecdims group is, in address order,
+`mut-odo-vecdims`, `-add-in`, `-add-out` and `-add-both`, and the pair beside
+it is `mut-odo` then `build`. That is the order the loop table above assigns
+its per-arm offsets in, so that table's ordering is now a measurement;
+and a second route agrees, emission order tracking first reference
+from `roster`, which lists those four in exactly that order. What it bought
+is at Run 12's second prediction above: Run 11's split crosses the resident
+copies rather than following them. **The recommended next step is taken
+and its prediction is refuted** (2026-08-14, an unconditional build
+and a max-skip build from one source read with `tools/loop-offsets.py`, against
+Run 11's two kept main sets). The unconditional form puts 100 of 100 Main
+self-loops at offset 0 where max-skip puts 58 of 113, and **neither leaves
+a straddler**, so what padding every head buys is padding that nothing needed.
+Per arm it buys `build` alone, at 0.9896, and costs the tail up to 5.9% ---
+`bq-mut` 1.0588, `mut-odo-vecdims-add-out` 1.0513, `bq-gen` 1.0504, `-add-both`
+1.0333, `gen-unsafe` 1.0327, `gen-quotrem` 1.0275, `offtab` 1.0259, `mut-odo`
+1.0221. The arms that do carry a head max-skip skipped land on both sides of 1,
+`build` against `mut-odo`, and the three largest losers carry no tracked 28-byte
+loop at all, the tracked set being `fbBuild`, `fbMutOdo`, `fbMutBaseOffsets`
+and the four vecdims fills. **What the two forms differ in beyond offsets
+is a census**: the unconditional pads sit inside enclosing loops and push
+thirteen of them past the 64-byte window, 113 self-loops falling to 100
+and the 28-byte set 36 to 32. That is a cost of padding every head which
+the offsets alone do not show, and it is the better candidate the refuted
+prediction leaves behind. **And the step's own phrasing named a difference
+that is not there**: the two forms emit *the same 395 directives at the same
+heads*, on the same assembly lines, differing only in the max-skip budget
+written as each directive's third operand --- a median 33 bytes of slack, four
+heads with none --- so there are no per-form head lists to compare, and the 27
+extra heads on record are look-through's rather than the unconditional form's.
+What the unconditional form spends is 8192 bytes of `.text`, 20385989
+against 20377797. **And the step's other half could not have been taken
+at all**, which is a dependency neither entry declared: attributing heads
+to arms wants `addr2line`, `addr2line` wants DWARF, and the naming entry above
+measures DWARF changing the code --- a plain build holding two copies of a loop
+per function where the twin holds one, so the offsets-to-arms map is one-to-many
+in exactly the binary being timed. A plan resting on an instrument should say
+what the instrument is known to change. **And the instrument the residue wants
+now exists**: `loop-offsets.py --len 0` widens the grouped, named report
+from the 28-byte run-fill to every loop a cache line can hold, which in Main's
+own code is 112 loops over twenty lengths against the nine of one length
+the tracked set saw --- so the arms that lose most under the unconditional form,
+and carry no 28-byte loop at all, are visible to whatever asks next.
 
 **And the map does reach the timed binary, which is the question a twin
 raises.** The two builds are one source, each of the plain build's four vecdims
@@ -13127,8 +13128,8 @@ not the libraries', so `list`'s own hot loop is outside it. And attribution
 is per arm and exists for six of them, so for any other pair this is a statement
 about the population of loops rather than about that pair's own. Reading
 the offsets is minutes of `objdump` against a quiet-machine window, so it
-is the cheap first question about a gap this size. `loop-offsets.py` beside
-this file finds the copies structurally --- a backward branch whose target
+is the cheap first question about a gap this size. `tools/loop-offsets.py`
+in horde-ad finds the copies structurally --- a backward branch whose target
 is one loop length back, grouped by raw bytes, so "byte-identical copies"
 is read rather than assumed --- and it was proved non-vacuous by reproducing
 three of the probe binaries' documented offsets before it was pointed
@@ -13185,30 +13186,31 @@ and four-element run where the 9.12.4 half at offset 0 pays none,
 the instructions, taken branches and mispredictions of the two binaries being
 identical: op-cache fetches read one more a run, 5.4M against 4.5M an iteration
 on `stretch-wide-2xM`, with 900k runs an iteration. Swept over all 64 offsets
-in a standalone copy of that loop, `probe-entries-sweep.py`, the run costs 4
-cycles at offsets 0 to 8 and 22 to 31 and 5 or 6 everywhere else, and offset 9,
-where the branch is split, reads the same as offset 10, where it starts the next
-line. A straight loop of 14 instructions swept the same way costs nothing at any
-cut that leaves five or more ops on both sides of the boundary and up to a cycle
-where a side holds a lone branch. The vendor documents name the unit: an entry
-of up to 8 sequential instructions ending in the same 64-byte region, terminated
-at the region's end, on Zen 2; 8 macro ops on Zen 3, where the sentence about
-the region is gone from the guide and the fetch counter reads a block more per
-crossing, as a boundary that ends an entry would give; 9 macro ops from up
-to two adjacent lines on Zen 4. Intel before Golden Cove builds lines of 6 uops
-per 32-byte window, and Skylake through Comet Lake under the JCC microcode
-cannot cache a jump that crosses or ends on a 32-byte boundary at all, so there
-the split branch is the worse case and not the same one. An entry count, each
-piece of a straight segment charged one entry per 8 instructions, reproduces
-the sweep at 54 of the 64 offsets on the probe's own run and 51 on the first,
-the misses being 18, 22, 32 to 35 and 60 to 63 on both and 19 to 21 on the first
-alone; the middle band is where a fourth L1 BTB override a run appears, on 32
-to 42, unexplained, and counting fused ops instead of instructions fits worse,
-at 48 on the first run. Two things follow for the shim. Its criterion, lines
-spanned by the head-to-back-edge span and not straddling, is the right unit
-and the wrong span: a loop that turns over once a run exits every run,
-and the exit is what the boundary cut. And the criterion is this machine's;
-the table is what a run on another core would have to re-derive.
+in a standalone copy of that loop, `tools/probe-entries-sweep.py`, the run costs
+4 cycles at offsets 0 to 8 and 22 to 31 and 5 or 6 everywhere else, and offset
+9, where the branch is split, reads the same as offset 10, where it starts
+the next line. A straight loop of 14 instructions swept the same way costs
+nothing at any cut that leaves five or more ops on both sides of the boundary
+and up to a cycle where a side holds a lone branch. The vendor documents name
+the unit: an entry of up to 8 sequential instructions ending in the same 64-byte
+region, terminated at the region's end, on Zen 2; 8 macro ops on Zen 3, where
+the sentence about the region is gone from the guide and the fetch counter reads
+a block more per crossing, as a boundary that ends an entry would give; 9 macro
+ops from up to two adjacent lines on Zen 4. Intel before Golden Cove builds
+lines of 6 uops per 32-byte window, and Skylake through Comet Lake under the JCC
+microcode cannot cache a jump that crosses or ends on a 32-byte boundary at all,
+so there the split branch is the worse case and not the same one. An entry
+count, each piece of a straight segment charged one entry per 8 instructions,
+reproduces the sweep at 54 of the 64 offsets on the probe's own run and 51
+on the first, the misses being 18, 22, 32 to 35 and 60 to 63 on both and 19
+to 21 on the first alone; the middle band is where a fourth L1 BTB override
+a run appears, on 32 to 42, unexplained, and counting fused ops instead
+of instructions fits worse, at 48 on the first run. Two things follow
+for the shim. Its criterion, lines spanned by the head-to-back-edge span
+and not straddling, is the right unit and the wrong span: a loop that turns
+over once a run exits every run, and the exit is what the boundary cut.
+And the criterion is this machine's; the table is what a run on another core
+would have to re-derive.
 
 | core | entry limit | window that ends an entry | ops a cycle | source |
 |---|---|---|---|---|
@@ -13249,51 +13251,51 @@ So the lost cycle is in the front end and never shows as a starved dispatcher,
 and the predictor's block sequencing under the two rules above is the account
 to test, not the op cache's capacity.
 
-**Nine sweeps in a quiet half hour, 2026-09-15 evening, `probe-fetch-model.py`,
-each table saved with its assembled layout so the rules are re-scored offline.**
-The fill's per-run cycle at runs of 2, 4, 8 and 64, and a straight loop of 12
-ops in 3-byte and in 6-byte instructions, of 20 ops, of 12 with the branch
-unfused from its flag writer, and of 12 with an unconditional back edge. What
-they settle, offset by offset. A plain crossing inside a segment costs nothing:
-the fill's body cut 9 and 5 at offsets 22 to 31 reads the free 4 cycles,
-and the 20-op straight loop fits the block count at all 64 offsets. A taken
-conditional branch, or the fused pair it belongs to, cut by the line boundary
-costs a cycle: the fill's `jge` at 9 to 12 and its entry `jl` at 14 to 17,
-the straight loop's `jnz` at 25 to 28; a not-taken one cut the same way,
-the tail's `jle` at 43 to 46, costs nothing. A block whose predicted branches
-end in two lines costs a cycle, the guide's two-branch rule: offset 13, `jl`
-ending in the first line and `jge` in the second with neither cut. A head whose
-block holds fewer than two whole instructions costs a cycle, offsets 56 to 63,
-while a tail or re-entry segment entered the same way, 54 and 55, 20 and 21,
-does not, which the rules as fitted carry by charging the loop head alone.
-A block holding only an unconditional `jmp` costs its block and, on the fill,
-nothing more that shows, 33 to 42, while the straight loop with an unconditional
-back edge read half a cycle for it, which the rules carry as a half. The op
-cache's entry limit binds only where instructions carry 32-bit immediates:
-the 6-byte loop, twelve `and $imm32`, reads 3.26 cycles at every offset
-that fits its 84 bytes in two lines, three entries by the eight-immediates limit
-where the 3-byte loop needs two. An unfused taken conditional costs about
-a third of a cycle an iteration in one block and half a cycle when the cut
-leaves it with three or fewer instructions, against the fused pair's whole
-cycle. And the runs of 4, 8 and 64 are memory-bound, 6.5, 11.3 and 100 cycles
-a run flat across most offsets, the front-end penalties hidden except the two
-that survive anything: the cut taken pair at 14 to 17 and the head in the line's
-last bytes at 60 to 63, each still 15 to 17 percent on the 64-element run.
-So what a placement must avoid on this core, in every regime seen: a taken
-conditional or its fused pair astride a boundary, a head within eight bytes
-of a line's end, and a block whose two predicted branches end in different
-lines; what it may ignore: a crossing anywhere else. Written as rules
-in the probe and re-scored offline against the tables, they fit the fill at run
-length 2 and the four 3-byte straight loops at 319 of 320 residues, the one miss
-a row that jitters between 2.4 and 2.9 on a 2.5-cycle floor: one cycle a fetch
-block, a straddling first instruction leaving an empty block that is fetched
-like any other; a whole cycle for the cut taken pair and for the head
-in the line's last eight bytes; half cycles for a cut leaving a last block
-of three or fewer instructions, a block holding only a `jmp`, and a quarter
-for an unfused taken conditional; the penalties added to the larger of ops
-over six and blocks, whole where the fetch bounds the loop and halved where
-the dispatcher does. The tables are the files the probe writes beside itself,
-named for the kernel swept, untracked.
+**Nine sweeps in a quiet half hour, 2026-09-15 evening,
+`tools/probe-fetch-model.py`, each table saved with its assembled layout
+so the rules are re-scored offline.** The fill's per-run cycle at runs of 2, 4,
+8 and 64, and a straight loop of 12 ops in 3-byte and in 6-byte instructions,
+of 20 ops, of 12 with the branch unfused from its flag writer, and of 12
+with an unconditional back edge. What they settle, offset by offset. A plain
+crossing inside a segment costs nothing: the fill's body cut 9 and 5 at offsets
+22 to 31 reads the free 4 cycles, and the 20-op straight loop fits the block
+count at all 64 offsets. A taken conditional branch, or the fused pair
+it belongs to, cut by the line boundary costs a cycle: the fill's `jge` at 9
+to 12 and its entry `jl` at 14 to 17, the straight loop's `jnz` at 25 to 28;
+a not-taken one cut the same way, the tail's `jle` at 43 to 46, costs nothing.
+A block whose predicted branches end in two lines costs a cycle, the guide's
+two-branch rule: offset 13, `jl` ending in the first line and `jge`
+in the second with neither cut. A head whose block holds fewer than two whole
+instructions costs a cycle, offsets 56 to 63, while a tail or re-entry segment
+entered the same way, 54 and 55, 20 and 21, does not, which the rules as fitted
+carry by charging the loop head alone. A block holding only an unconditional
+`jmp` costs its block and, on the fill, nothing more that shows, 33 to 42, while
+the straight loop with an unconditional back edge read half a cycle for it,
+which the rules carry as a half. The op cache's entry limit binds only where
+instructions carry 32-bit immediates: the 6-byte loop, twelve `and $imm32`,
+reads 3.26 cycles at every offset that fits its 84 bytes in two lines, three
+entries by the eight-immediates limit where the 3-byte loop needs two.
+An unfused taken conditional costs about a third of a cycle an iteration in one
+block and half a cycle when the cut leaves it with three or fewer instructions,
+against the fused pair's whole cycle. And the runs of 4, 8 and 64
+are memory-bound, 6.5, 11.3 and 100 cycles a run flat across most offsets,
+the front-end penalties hidden except the two that survive anything: the cut
+taken pair at 14 to 17 and the head in the line's last bytes at 60 to 63, each
+still 15 to 17 percent on the 64-element run. So what a placement must avoid
+on this core, in every regime seen: a taken conditional or its fused pair
+astride a boundary, a head within eight bytes of a line's end, and a block whose
+two predicted branches end in different lines; what it may ignore: a crossing
+anywhere else. Written as rules in the probe and re-scored offline against
+the tables, they fit the fill at run length 2 and the four 3-byte straight loops
+at 319 of 320 residues, the one miss a row that jitters between 2.4 and 2.9
+on a 2.5-cycle floor: one cycle a fetch block, a straddling first instruction
+leaving an empty block that is fetched like any other; a whole cycle for the cut
+taken pair and for the head in the line's last eight bytes; half cycles
+for a cut leaving a last block of three or fewer instructions, a block holding
+only a `jmp`, and a quarter for an unfused taken conditional; the penalties
+added to the larger of ops over six and blocks, whole where the fetch bounds
+the loop and halved where the dispatcher does. The tables are the files
+the probe writes beside itself, named for the kernel swept, untracked.
 
 **The two costs priced against each other, 2026-09-15, without a run,
 and the third read the same evening** --- the pair registered in the open list,
@@ -13487,7 +13489,7 @@ and `pages_collapsed` 0, so the placement was per page and per file instance;
 re-read 2026-09-18, `pages_collapsed` stands at 13174 and `FileHugePages`
 at a quarter of a gigabyte, so ordinary files are now held as 2 MiB folios some
 of the time and a disk instance's draw is 4 KiB or 2 MiB as the page cache
-chose, which frame a given disk instance got being `probe-pageflags.py`'s
+chose, which frame a given disk instance got being `tools/probe-pageflags.py`'s
 to read and not yet read. What a frame collides in is not read, and the readings
 narrow it: HEAD's own instance, `mut-odo-vecdims-add-in-leaf-u1` 11 percent
 slower an iteration than a copy on the box's `/tmp` on `compose-rev-bcast`, has
@@ -13510,9 +13512,9 @@ and the mechanism stays open. Two readings reach the term and nothing else here
 does: `--half-movers RUN PREV`, each half against the previous run's same half
 over every population, since the A/A pairs share the binary and the counts share
 the code; and the copy test, the half copied to a probe name and the cell timed
-on both, a minute. `probe-pageflags.py` reads the frames of a running instance,
-its `--heap` form beside the heap's, and is what to run on the next slow
-instance BEFORE anything evicts it, which a reboot, a copy over the file
+on both, a minute. `tools/probe-pageflags.py` reads the frames of a running
+instance, its `--heap` form beside the heap's, and is what to run on the next
+slow instance BEFORE anything evicts it, which a reboot, a copy over the file
 or the eviction itself all do. A tmpfs makes the frame a function of the layout
 --- deterministic, and the shim's kind of term: the box's `/tmp` hands out
 128 KiB compound pages, and a copy run from it read its code lines in runs of 32
@@ -13534,7 +13536,7 @@ a run takes today, and the figures in this section are what raising the mount
 by hand buys a run whose question IS the placement term. On the one cell timed,
 HEAD's slow original read 245k to 250k cycles an iteration against its mounted
 copy's 230k to 231k, the copy reading as the fresh instances had.
-`probe-pageflags.py` on the mounted copy reads both hot lines in one 2 MiB
+`tools/probe-pageflags.py` on the mounted copy reads both hot lines in one 2 MiB
 compound page at `0x400000`, `THP` in the flags, physical equal to virtual
 modulo 2 MiB and the L2 sets `0x141` and `0x292` the virtual ones --- mapped
 by 4 KiB entries still, `FilePmdMapped` 0, so the TLB sees what it saw. **Run 34

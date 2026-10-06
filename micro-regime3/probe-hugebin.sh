@@ -48,6 +48,6 @@ echo "== frames of the mounted copy's hot lines, the u1 fill loop then the sum l
 "hugebin/$HALF" classes runs -m glob "$BENCH" -L 60 > /dev/null 2>&1 &
 pid=$!
 sleep 10
-sudo python3 probe-pageflags.py "$pid" 0x430980 0x4bad80
+sudo python3 ../../horde-ad/tools/probe-pageflags.py "$pid" 0x430980 0x4bad80
 grep -E '^(FilePmdMapped|AnonHugePages)' "/proc/$pid/smaps_rollup"
 wait "$pid"

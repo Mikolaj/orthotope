@@ -77,8 +77,14 @@ def command(span, run, where, after=''):
     words = span.split()
     if not words:
         return None
+    if words[0].startswith('../../horde-ad/tools/'):
+        # horde-ad's tools, where loop-offsets.py went on 2026-10-06.
+        return words if words[0][21:] in READERS else None
     if words[0].startswith('./'):
         prog = words[0][2:]
+        if prog == 'loop-offsets.py':
+            # The run files' spelling, from before it moved.
+            return ['../../horde-ad/tools/loop-offsets.py'] + words[1:]
         if prog in READERS:
             return words
         if re.match(r'[\w.-]+\.(sh|py)$', prog):

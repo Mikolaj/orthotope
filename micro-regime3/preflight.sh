@@ -615,7 +615,8 @@ if [ "$REST" = 1 ]; then
 # that said nothing is the empty verdict.
 srv () {
   local out
-  out=$(./loop-offsets.py --survey "$1" 2>/dev/null) || return 0
+  out=$(../../horde-ad/tools/loop-offsets.py --survey "$1" 2>/dev/null) \
+    || return 0
   printf '%s\n' "$out" \
     | awk 'function n(s) { sub(/^[^:]*: */, "", s); sub(/,.*/, "", s)
                            return s }
@@ -855,7 +856,8 @@ esac
 # header's "exit status is the whole verdict". Two `==` headers, one per
 # half, each with a count above zero, is what a half of this benchmark
 # reads -- the run-fill loop is in every build this README has timed.
-if ./loop-offsets.py "$R-$OTHER" "$R-$BASIS" > "$TMP/fills" 2>&1; then
+if ../../horde-ad/tools/loop-offsets.py "$R-$OTHER" "$R-$BASIS" \
+     > "$TMP/fills" 2>&1; then
   HEADS=$(grep -c '^== ' "$TMP/fills")
   EMPTY=$(awk '/^== / && $3 == 0 { print $2 }' "$TMP/fills" | tr -d :)
   if [ "$HEADS" != 2 ]; then
@@ -868,7 +870,7 @@ if ./loop-offsets.py "$R-$OTHER" "$R-$BASIS" > "$TMP/fills" 2>&1; then
 else
   say 10 FAIL "loop-offsets refused: $(tail -1 "$TMP/fills")"
 fi
-./loop-offsets.py --library "$R-$BASIS" "$R-$OTHER" > "$TMP/lib" 2>&1 \
+../../horde-ad/tools/loop-offsets.py --library "$R-$BASIS" "$R-$OTHER" > "$TMP/lib" 2>&1 \
   && say 10 PASS "$(grep -m1 'same offset' "$TMP/lib" | sed 's/^ *//')" \
   || say 10 FAIL "--library refused: $(tail -1 "$TMP/lib")"
 fi
@@ -1098,7 +1100,8 @@ run$PN; say whether the md5s repeat run$PN-pair.txt's"
     # kept the preserved case's line and dropped the moved one's, so Run
     # 39's block printed displacements under no statement of what moved
     # (2026-09-23).
-    ./loop-offsets.py --delta "$PB" "./$R-$BASIS" 2>/dev/null \
+    ../../horde-ad/tools/loop-offsets.py --delta "$PB" "./$R-$BASIS" \
+        2>/dev/null \
       | grep -E -e '^ +(offsets MOVED|every mod-64|NO address)' \
                 -e '^ +([0-9]+ displacement|of the)' \
       | sed 's/^ */                   /'
