@@ -49,7 +49,7 @@ import qualified Data.Vector.Storable.Mutable as VSM
 import qualified Data.Vector.Unboxed          as VU
 import qualified Data.Vector.Unboxed.Mutable  as VUM
 import           Foreign.Ptr                  (Ptr, plusPtr)
-import           Foreign.Storable             (peek, peekElemOff, poke)
+import           Foreign.Storable             (peek, peekElemOff, poke, sizeOf)
 import           GHC.Clock                    (getMonotonicTime)
 import           GHC.Conc                     (getAllocationCounter,
                                                setAllocationCounter)
@@ -3536,15 +3536,17 @@ fbLibStage2Disp sh a@(T _ _ v)
 
 -- The fill of 'lib-stage2-lean', 'liblist-stage4-sum' and
 -- 'libunord-stage13-sum': the library's 'genericFillStrided' as
--- pr-mikolaj-toVectorListT's commit "Port the Axis path" has it since
--- 2026-10-04, at Storable Double, comments stripped except where it differs
--- from 'fillStage3': the stepping run's stride an argument, which runs at
--- stride 1 take as a literal in a walk of their own, and the fused level
--- holding its 'Axis', 'NestLib' where 'fillStage3' has 'NestAx'; the reasons
--- for the rest are at 'fillStage3'. NOINLINE as every fill here, where the
--- library's is INLINABLE: what that pragma is for, a client specialising
--- the fill once per vector type, has no counterpart at one type in one
--- module. From 2026-10-03 until 2026-10-04 its 'level' loop ran to an end
+-- pr-mikolaj-toVectorListT's commit "Copy whole runs inside the fill from a
+-- length each instance picks" (2026-10-05) has it, at Storable Double,
+-- comments stripped except where it differs from 'fillStage3': the stepping
+-- run's stride an argument, which runs at stride 1 shorter than 'copyRun'
+-- take as a literal in a walk of their own, and the fused level holding its
+-- 'Axis', 'NestLib' where 'fillStage3' has 'NestAx'; the reasons for the rest
+-- are at 'fillStage3'. NOINLINE as every fill here, where the library's is
+-- INLINABLE: what that pragma is for, a client specialising the fill once
+-- per vector type, has no counterpart at one type in one module. Until
+-- 2026-10-06 it was the branch's commit "Port the Axis path", which copies
+-- no run. From 2026-10-03 until 2026-10-04 its 'level' loop ran to an end
 -- computed from @outPos@, as the branch's did; until 2026-10-03 it was
 -- 'fillStage2' as that read on 2026-09-25, over pairs, the comparison for the
 -- three arms' twins on the 'Axis' path.
@@ -3572,6 +3574,11 @@ fillStage2Axes (WalkAx tInner sInner outerAxes) !ao l !v =
                     VS.unsafeIndexM v srcNext >>= VSM.unsafeWrite out (o + 1)
                     inner (o + 2) (srcNext + t)
           in  inner outPos baseOff
+        {-# INLINE writeRunCopy #-}
+        writeRunCopy :: Int -> Int -> ST s ()
+        writeRunCopy !outPos !baseOff =
+          VS.unsafeCopy (VSM.unsafeSlice outPos sInner out)
+                        (VS.unsafeSlice baseOff sInner v)
         {-# INLINE writeRunSet #-}
         writeRunSet :: Int -> Int -> ST s ()
         writeRunSet !outPos !baseOff = do
@@ -3631,15 +3638,17 @@ fillStage2Axes (WalkAx tInner sInner outerAxes) !ao l !v =
             in  run (buildNest (FusedLib axis0) (n0 * sInner)
                                (InnerFirstAx outer))
                     0 ao
-    -- Contiguous runs, at stride 1, walked by a copy of their own, the
-    -- stride a literal there and not a value 'run' holds. The library
-    -- reads it, where a client specialises the fill rather than
-    -- inlining it, as a word a call less and, at boxed and Unboxed
-    -- elements, an instruction or more an element, 6 to 10% on large
-    -- views; for Storable, which is this fill's, it gives no figure an
-    -- element.
+    -- Contiguous runs, at stride 1, get a walk of their own: copied whole
+    -- from 'copyRun' on, and below it stepped with the stride a literal
+    -- there and not a value 'run' holds. The library reads the literal,
+    -- where a client specialises the fill rather than inlining it, as a
+    -- word a call less and, at boxed and Unboxed elements, an instruction
+    -- or more an element, 6 to 10% on large views, before the copy took
+    -- the longer runs; for Storable, which is this fill's, it gives no
+    -- figure an element.
     if tInner == 0 then walk writeRunSet
-    else if tInner == 1 then walk (writeRunStep 1)
+    else if tInner == 1 then
+      if sInner >= copyRun then walk writeRunCopy else walk (writeRunStep 1)
     else walk (writeRunStep tInner)
     return out
 
@@ -5788,6 +5797,25 @@ data NestAx = FusedAx | LevelAx !Axis !Int !NestAx
 -- https://gitlab.haskell.org/ghc/ghc/-/work_items/27894).
 data NestLib = FusedLib !Axis | LevelLib !Axis !Int !NestLib
 
+-- The run length from which the three fills kept in step with the library,
+-- 'fillStage3', 'fillStage3U1' and 'fillStage2Axes', copy a run at stride 1
+-- whole, one 'VS.unsafeCopy' a run, as the library's 'genericFillStrided'
+-- does since pr-mikolaj-toVectorListT's commit "Copy whole runs inside the
+-- fill from a length each instance picks" (2026-10-05). The value is that
+-- commit's Storable instance's, 512 bytes over the element's size, which
+-- at Double is 64 elements: past where a copy's cost a run is paid
+-- off and not where the branch's figures, in that commit's comment at
+-- 'genericFillStrided', would put the cut; no figure was taken here. Ported
+-- 2026-10-06; 'fillStage2OneLevel', 'fillStage2VSdims', 'fillStage2U4' and
+-- 'fillStage2Short', parked and not kept in step, copy no run.
+-- Non-vacuity, 2026-10-06, one fill at a time, @check@ stopping at the
+-- first view that fails: copying every run from the view's offset @ao@
+-- fails it at @runs-64@ in 'fillStage2Axes', naming lib-stage2-disp and
+-- lib-stage2-lean, and in 'fillStage3U1', naming lib-stage2-lean-u1, and at
+-- @window-224x224-k3-d2@ in 'fillStage3', naming libunord-stage3-sum.
+copyRun :: Int
+copyRun = 512 `quot` sizeOf (undefined :: Double)
+
 -- 'fillStage2' over 'WalkAx', the path's fill: a copy of the fill the
 -- library's 'genericFillStrided' is ported from, at Storable Double,
 -- the library's own being in its Data/Array/Internal.hs. Since
@@ -5795,16 +5823,17 @@ data NestLib = FusedLib !Axis | LevelLib !Axis !Int !NestLib
 -- that called it, through 'walkAx'; the comments of older fills still
 -- name 'fillStage2' as the form they were copied from. This one walks
 -- the outer levels as a 'NestAx' built over them innermost first, each
--- level holding its 'Axis'. 'check' holds it to the reference on every
--- view. The two zero-stride bodies say at their definitions what each
--- buys. The fills take @l > 0@, asserted at each entry: a zero-stride
--- innermost run reads its one element, and a zero-stride level writes
--- its innermost run or block, before reading the extent, so a zero
--- extent there would read past the source or write into an empty
--- result. Every dispatch guards @l == 0@ before calling one, the
--- stage-1 ports since 2026-09-21; the degenerate and @edge-bcastmid-b0@
--- views are where @check@ fails when one does not. This one's @l@ takes
--- no bang only to match 'genericFillStrided' in
+-- level holding its 'Axis', and since 2026-10-06 it copies a run at
+-- stride 1 whole from 'copyRun' on, as the library does. 'check' holds
+-- it to the reference on every view. The two zero-stride bodies say at
+-- their definitions what each buys. The fills take @l > 0@, asserted
+-- at each entry: a zero-stride innermost run reads its one element,
+-- and a zero-stride level writes its innermost run or block, before
+-- reading the extent, so a zero extent there would read past the source
+-- or write into an empty result. Every dispatch guards @l == 0@ before
+-- calling one, the stage-1 ports since 2026-09-21; the degenerate
+-- and @edge-bcastmid-b0@ views are where @check@ fails when one does
+-- not. This one's @l@ takes no bang only to match 'genericFillStrided' in
 -- ~/r/orthotope.toVectorListT, which dropped it: the assertion forces it
 -- at entry anyway, and the Core is the same either way (2026-09-28).
 {-# NOINLINE fillStage3 #-}
@@ -5835,6 +5864,13 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao l !v =
                     VS.unsafeIndexM v srcNext >>= VSM.unsafeWrite out (o + 1)
                     inner (o + 2) (srcNext + tInner)
           in  inner outPos baseOff
+        -- The copied run, a run at stride 1 of 'copyRun' elements or more
+        -- copied whole, as in the library.
+        {-# INLINE writeRunCopy #-}
+        writeRunCopy :: Int -> Int -> ST s ()
+        writeRunCopy !outPos !baseOff =
+          VS.unsafeCopy (VSM.unsafeSlice outPos sInner out)
+                        (VS.unsafeSlice baseOff sInner v)
         -- Unrolled by two as the stepping run is, since 2026-09-09: one
         -- write and a compare per element read 1.20 of master's leaf
         -- fill at an innermost run of 2, bcast-tall-Mx2, on Run 27.
@@ -5929,7 +5965,9 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao l !v =
                 run (LevelAx axis blk inner) !outPos !baseOff =
                   level (run inner) axis blk outPos baseOff
             in  run (buildNest FusedAx (n0 * sInner) (InnerFirstAx outer)) 0 ao
-    if tInner == 0 then walk writeRunSet else walk writeRunStep
+    if tInner == 0 then walk writeRunSet
+    else if tInner == 1 && sInner >= copyRun then walk writeRunCopy
+    else walk writeRunStep
     return out
 
 -- 'fillStage3' with neither run unrolled: the stepping run
@@ -5942,7 +5980,8 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao l !v =
 -- alone. The pair 'lib-stage2-lean-u1'
 -- against 'lib-stage3-lean' prices the unrolling under the lean
 -- dispatch, the stepping run's wherever the innermost stride is
--- not 0, the broadcast run's where it is, where the leaf family
+-- not 0 and the run is not copied whole, the broadcast run's where the
+-- stride is 0, where the leaf family
 -- prices the first under the arms' own odometer, '-u2' over '-u1' at
 -- 0.9644 in time and 0.9208 in counts on Run 26's main set. Added
 -- 2026-09-07 for Run 27 as 'fillStage2U1', over pairs; its walk
@@ -5976,6 +6015,11 @@ fillStage3U1 (WalkAx tInner sInner outerAxes) !ao l !v =
                     VS.unsafeIndexM v src >>= VSM.unsafeWrite out o
                     inner (o + 1) (src + tInner)
           in  inner outPos baseOff
+        {-# INLINE writeRunCopy #-}
+        writeRunCopy :: Int -> Int -> ST s ()
+        writeRunCopy !outPos !baseOff =
+          VS.unsafeCopy (VSM.unsafeSlice outPos sInner out)
+                        (VS.unsafeSlice baseOff sInner v)
         {-# INLINE writeRunSet #-}
         writeRunSet :: Int -> Int -> ST s ()
         writeRunSet !outPos !baseOff = do
@@ -6028,7 +6072,9 @@ fillStage3U1 (WalkAx tInner sInner outerAxes) !ao l !v =
                 run (LevelAx axis blk inner) !outPos !baseOff =
                   level (run inner) axis blk outPos baseOff
             in  run (buildNest FusedAx (n0 * sInner) (InnerFirstAx outer)) 0 ao
-    if tInner == 0 then walk writeRunSet else walk writeRunStep
+    if tInner == 0 then walk writeRunSet
+    else if tInner == 1 && sInner >= copyRun then walk writeRunCopy
+    else walk writeRunStep
     return out
 
 -- The two ports' lists: master's and the branch's 'toVectorListT', and
