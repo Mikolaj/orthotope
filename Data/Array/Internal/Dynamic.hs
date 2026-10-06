@@ -13,6 +13,7 @@
 -- limitations under the License.
 
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -22,6 +23,16 @@
 {-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
+-- The structural operations here constrain the element by nothing a client
+-- could specialise them on, so the copies this module makes of the INLINABLE
+-- functions it calls, for the vector type alone, are their specialisations, and
+-- only -fpolymorphic-specialisation makes them, off by default before GHC HEAD:
+-- without it, on 9.12.4, a boxed reshape, pad or append took 5 to 8 times as
+-- long on a transposed [400, 500] view of Doubles.  9.6.3 is the first GHC to
+-- know the flag, and DynamicS turns it off for the opposite reason.
+#if MIN_VERSION_GLASGOW_HASKELL(9,6,3,0)
+{-# OPTIONS_GHC -fpolymorphic-specialisation #-}
+#endif
 module Data.Array.Internal.Dynamic(
   Array(..), Vector, ShapeL,
   size, shapeL, rank,

@@ -14,6 +14,7 @@
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -28,6 +29,10 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
+-- See the comment on this flag in Dynamic.
+#if MIN_VERSION_GLASGOW_HASKELL(9,6,3,0)
+{-# OPTIONS_GHC -fpolymorphic-specialisation #-}
+#endif
 module Data.Array.Internal.Ranked(
   Array(..), Vector, ShapeL,
   size, shapeL, rank,
