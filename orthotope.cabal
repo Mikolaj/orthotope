@@ -73,8 +73,9 @@ library
 test-suite tests
   type: exitcode-stdio-1.0
   ghc-options:         -Wall -Wno-unrecognised-warning-flags -Wno-x-partial -Widentities -Wmissing-export-lists -Wpartial-fields -Wunused-packages -Wredundant-bang-patterns -Wredundant-strictness-flags
-  hs-source-dirs: tests
+  hs-source-dirs: tests bench
   main-is: Tests.hs
+  include-dirs: bench
 
   default-language:    Haskell2010
 
@@ -92,6 +93,11 @@ test-suite tests
                      , ShapedSTest
                      , ShapedGTest
                      , Views
+                     , Unspecialised
+                     , Call
+                     , OpsDynamic
+                     , OpsRanked
+                     , OpsShaped
 
   ghc-options:
     -Wall -rtsopts -fno-ignore-asserts
