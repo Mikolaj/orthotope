@@ -5353,6 +5353,19 @@ TIER1 = {
               ' finding none. One occurrence, that preparation, the steps'
               ' having been dark from 27580a5 until the repair the same'
               ' day. The three PASSed on the re-run.'),
+    'preflight-step-10-passes-an-empty-library-reading': dict(
+        family='quiet-failure', discovery='review', harm='latent',
+        trigger='loop-offsets.py --library exiting 0 with its same-offset'
+                ' line reworded, which an edit in horde-ad\'s tools/ can do'
+                ' unseen by this tree',
+        ok='step 10 FAILs, saying the line is missing',
+        bug='step 10 PASSed with an empty reading',
+        proved='ran',
+        notes='Found 2026-10-06 asking what a horde-ad edit to the moved'
+              ' loop-offsets.py could do here between deep runs. Watched'
+              ' both ways on the step\'s lines alone, under a stand-in that'
+              ' exits 0: the old printed `10 PASS` with nothing after it,'
+              ' the new `10 FAIL`.'),
     'fill-in-keys-the-previous-build-on-this-run-s-tag': dict(
         family='quiet-failure', discovery='in-use', harm='fired',
         harm_count=1,
@@ -14961,6 +14974,13 @@ RECORDS = [
          # passed the tracked form at 0, and a warning appended to the
          # tracked smoke-l1.sh failed the tracked form at 123, the copy
          # restoring it.
+         argv=None, ok=None),
+
+    case('preflight-step-10-passes-an-empty-library-reading', 'preflight.sh', 'self',
+         'step 10 printed PASS with an empty reading where loop-offsets'
+         ' --library answered without a same-offset line',
+         # NO CASE, for the reason the records above give: preflight's
+         # steps are this corpus. Watched rather than replayed.
          argv=None, ok=None),
 
     case('fill-in-keys-the-previous-build-on-this-run-s-tag', 'preflight.sh',

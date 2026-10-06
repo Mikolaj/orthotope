@@ -870,9 +870,15 @@ if ../../horde-ad/tools/loop-offsets.py "$R-$OTHER" "$R-$BASIS" \
 else
   say 10 FAIL "loop-offsets refused: $(tail -1 "$TMP/fills")"
 fi
-../../horde-ad/tools/loop-offsets.py --library "$R-$BASIS" "$R-$OTHER" > "$TMP/lib" 2>&1 \
-  && say 10 PASS "$(grep -m1 'same offset' "$TMP/lib" | sed 's/^ *//')" \
-  || say 10 FAIL "--library refused: $(tail -1 "$TMP/lib")"
+# A reworded reading is one not taken, never an empty PASS (2026-10-06).
+if ! ../../horde-ad/tools/loop-offsets.py --library "$R-$BASIS" "$R-$OTHER" \
+     > "$TMP/lib" 2>&1; then
+  say 10 FAIL "--library refused: $(tail -1 "$TMP/lib")"
+elif LIB=$(grep -m1 'same offset' "$TMP/lib"); then
+  say 10 PASS "$(echo "$LIB" | sed 's/^ *//')"
+else
+  say 10 FAIL "--library printed no 'same offset' line: $(tail -1 "$TMP/lib")"
+fi
 fi
 
 # THE RUN BEHIND THIS ONE, as a number: the highest runs/run<N>.md below
