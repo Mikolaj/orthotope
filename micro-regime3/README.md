@@ -4389,11 +4389,13 @@ does not fuse away, and that is `bq-expand`'s edge over `offsets-quot`.
 on their own, and are carried into `Data/Array/Internal.hs` with the logic.
 
 **While this was achieved, the harness had to be hardened** --- criterion `env`
-employed to move input construction outside the clock, `NOINLINE` so no result
-is hoisted out of the timed loop, and the agreement check in a separate `check`
-mode so it cannot share a computation with the benchmark via CSE. Under
-it the ranking is stable and every time scales with `l`, so nothing is being
-optimised away.
+employed to move input construction outside the clock, `NOINLINE` so
+that the arms and the `check` mode run one compiled body of each strategy,
+and the agreement check in a separate `check` mode so it cannot share
+a computation with the benchmark via CSE. Each call stays inside the timed loop
+because criterion's own loop, `whnf'`, is compiled without full laziness.
+Under it the ranking is stable and every time scales with `l`, so nothing
+is being optimised away.
 
 
 ### Where the shapes come from
