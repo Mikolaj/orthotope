@@ -97,7 +97,8 @@ instance Vector V.Vector where
   vAppend = (V.++)
   {-# INLINE vConcat #-}
   -- The empty list by hand: without -fspec-constr, off at -O, GHC keeps
-  -- V.concat []'s copy loop wherever it is inlined.
+  -- V.concat []'s copy loop wherever it is inlined, and CSE keeps the
+  -- copies apart (https://gitlab.haskell.org/ghc/ghc/-/work_items/27892).
   vConcat [] = V.empty
   vConcat vs = V.concat vs
   {-# INLINE vFold #-}
