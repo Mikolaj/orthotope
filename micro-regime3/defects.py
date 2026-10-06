@@ -679,7 +679,11 @@ def plant_main_shapes_exempt(tmp):
     fake = [n for n in ('stretch-primes', 'stretch-inner256')
             if n in timed and n not in real]
     assert len(fake) == 2, 'the two planted shapes must be timed and undeclared'
-    was = len(timed) - len(real) + len(declared_retired & retired)
+    # A retired CLASS view is declared the same way and is no main-set
+    # shape, so only the main set's names count, as the retirement of
+    # bcastmid-block150k on 2026-10-05 showed.
+    was = (len(timed) - len(real)
+           + len(declared_retired & retired & set(names)))
     # The moved count must be NO population's size, or the mutant that
     # drops the exemption finds it matching a class and survives: two
     # planted took 19 to 17 on the day `runs` grew to seventeen views
