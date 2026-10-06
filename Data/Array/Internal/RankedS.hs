@@ -13,6 +13,7 @@
 -- limitations under the License.
 
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -28,6 +29,11 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
+-- A workaround for https://gitlab.haskell.org/ghc/ghc/-/work_items/23050, to go
+-- once the GHCs supported carry its fix; DynamicS says more.
+#if MIN_VERSION_GLASGOW_HASKELL(9,6,3,0)
+{-# OPTIONS_GHC -fno-polymorphic-specialisation #-}
+#endif
 module Data.Array.Internal.RankedS(
   Array(..), Vector, ShapeL, Unbox,
   size, shapeL, rank,
