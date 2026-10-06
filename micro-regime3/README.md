@@ -4606,24 +4606,25 @@ ahead of the implementation:
   Int32 comment sites.
 
 **A class population is three shapes, or four, or fourteen** --- three to seven
-when this paragraph was written and three to sixteen today, `runs` having grown
-on Runs 22, 24 and 34 and lost `runs-3` on 2026-09-25, and the figure is stated
-here as a SCALE and re-read off a run's own cross-class table rather
-than maintained --- against a main set several times the size, which
-is deliberate --- the classes are there to vary the *mechanism*, and varying
-size and rank within one is the main set's job --- but it decides how their
-results read. A class geomean rests on three cells, so it is a summary
-of a handful of numbers rather than a statistic over a spread; the per-shape
-figures are nearly the whole population and are worth quoting where the main
-set's would be flattened away; winsorizing has almost nothing to cap
-and `--pair`'s bootstrap interval almost nothing to resample. What a class run
-can decide is whether an *ordering* inverts under its mechanism and whether any
-strategy's `worst` crosses 1 there. What it cannot do is be compared
-with a main-set number, in either direction. **`runs` is the one exception,
-a sweep rather than a triple**, because its question is a crossover and
-not a mechanism: its views walk the run from 2 to 65536 at a fixed size,
-with one rank-3 entry whose inner dims merge under canonicalization
-so the library's merge and not the listing sets its run.
+when this paragraph was written and three to seventeen today, `runs` having
+grown on Runs 22, 24 and 34, lost `runs-3` on 2026-09-25 and grown again
+on 2026-10-06, and the figure is stated here as a SCALE and re-read off a run's
+own cross-class table rather than maintained --- against a main set several
+times the size, which is deliberate --- the classes are there to vary
+the *mechanism*, and varying size and rank within one is the main set's job ---
+but it decides how their results read. A class geomean rests on three cells,
+so it is a summary of a handful of numbers rather than a statistic
+over a spread; the per-shape figures are nearly the whole population
+and are worth quoting where the main set's would be flattened away; winsorizing
+has almost nothing to cap and `--pair`'s bootstrap interval almost nothing
+to resample. What a class run can decide is whether an *ordering* inverts
+under its mechanism and whether any strategy's `worst` crosses 1 there. What
+it cannot do is be compared with a main-set number, in either direction.
+**`runs` is the one exception, a sweep rather than a triple**, because
+its question is a crossover and not a mechanism: its views walk the run from 2
+to 65536 at a fixed size, with one rank-3 entry whose inner dims merge
+under canonicalization so the library's merge and not the listing sets its run,
+and one at 4096 small enough that its source and result fit in L2 together.
 
 **The `runs` class and the library-shaped arms exist for regressions
 this benchmark could not see, added 2026-08-28 after horde-ad caught one.**
@@ -14464,7 +14465,8 @@ tables and its fingerprint say so.
   columns differenced. **And its floor is a maximum over EIGHT A/A pairs**, both
   halves' figures in [Run 45's own file](runs/run45.md). `bcastmid-block150k`
   was retired 2026-10-05, after the run, its lean-family fills drawing a slow
-  or a fast state per process (`retiredShapes`).
+  or a fast state per process (`retiredShapes`). `block-run63-gap1`
+  and `runs-4096-l2` were added 2026-10-06, after the run.
 - Run 44 measured 31 timed arms over 19 main-set shapes and 62 class views
   in TEN classes, 589 benches and 1922, EIGHT A/A pairs, the `runs` class
   at SIXTEEN, `window` at EIGHT, `bcast`, `compose` and `flip` at SIX, `block`

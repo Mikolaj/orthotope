@@ -6798,7 +6798,9 @@ mkFlipIn rs sh esh =
 -- what each run's first read costs; a rank-3 block, so the fill's
 -- odometer runs a level deeper per run where the slice route's per-run
 -- cost is flat; and an offset off an 8-element boundary, which a memcpy
--- per run meets and a stepping loop does not. Added 2026-09-03.
+-- per run meets and a stepping loop does not. Added 2026-09-03; a run
+-- of 63 at the gap of one, every run starting on a 64-element boundary
+-- where 'block-run64-gap1''s drift by one a row, added 2026-10-06.
 mkBlock :: ShapeL -> ShapeL -> Int -> (ShapeL, T)
 mkBlock sh esh !ao =
   let v = VS.enumFromN (0 :: Double) (product esh)
@@ -7262,7 +7264,8 @@ scaledViews =
 -- run against the fill's stepping loop -- so it walks the run from 2 to
 -- 65536 at a fixed size, with one rank-3 entry whose two inner dims are
 -- contiguous and merge under 'canonView', so the library's merge and not
--- the listing decides its run.
+-- the listing decides its run, and one entry at 4096 small enough that
+-- its source and result fit in L2 together.
 runsShapes :: [(String, ShapeL)]
 runsShapes =
   [ ("runs-2",        [900000, 2])      -- 1800000, runs of 2
@@ -7315,6 +7318,8 @@ runsShapes =
   , ("runs-16384",    [109, 16384])     -- 1785856
   , ("runs-65536",    [27, 65536])      -- 1769472, a few long runs
   , ("runs-r3-48x30", [1250, 48, 30])   -- 1800000, merges to runs of 1440
+    -- Added 2026-10-06.
+  , ("runs-4096-l2",  [6, 4096])        -- 24576, runs-4096 in L2
   ]
 
 mkRuns :: ShapeL -> (ShapeL, T)
@@ -7350,6 +7355,7 @@ flipInViews =
 blockViews :: [(String, ShapeL, ShapeL, Int)]
 blockViews =
   [ ("block-run64-gap1",  [2048, 64],   [2048, 65],   0)  -- 131072, one element between rows
+  , ("block-run63-gap1",  [2048, 63],   [2048, 64],   0)  -- 129024, runs of 63, one element between rows
   , ("block-run64-gap64", [2048, 64],   [2048, 128],  0)  -- 131072, a row between rows
   , ("block-run64-page",  [2048, 64],   [2048, 512],  0)  -- 131072, rows a page apart
   , ("block-run64-off7",  [2048, 64],   [2048, 128],  7)  -- 131072, at offset 7
