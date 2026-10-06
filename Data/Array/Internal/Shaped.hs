@@ -109,6 +109,7 @@ rank = G.rank . unA
 
 -- | Index into an array.  Fails if the index is out of bounds.
 -- O(1) time.
+{-# INLINE index #-}
 index :: (HasCallStack, KnownNat s) => Array (s:sh) a -> Int -> Array sh a
 index a = A . G.index (unA a)
 
@@ -169,11 +170,13 @@ stretchOuter = A . G.stretchOuter . unA
 
 -- | Convert a value to a scalar (rank 0) array.
 -- O(1) time.
+{-# INLINE scalar #-}
 scalar :: a -> Array '[] a
 scalar = A . G.scalar
 
 -- | Convert a scalar (rank 0) array to a value.
 -- O(1) time.
+{-# INLINE unScalar #-}
 unScalar :: Array '[] a -> a
 unScalar = G.unScalar . unA
 
@@ -290,7 +293,7 @@ slice = A . G.slice @sl . unA
 -- the results into an array with the same /n/ outermost dimensions.
 -- The /n/ must not exceed the rank of the array.
 -- O(n) time.
-{-# INLINABLE rerank #-}
+{-# INLINE rerank #-}
 rerank :: forall n i o sh a b .
           (Drop n sh ~ i, Shape sh, KnownNat n, Shape o, Shape (Take n sh ++ o)) =>
           (Array i a -> Array o b) -> Array sh a -> Array (Take n sh ++ o) b
@@ -300,11 +303,11 @@ rerank f = A . G.rerank @n (unA . f . A) . unA
 -- the results into an array with the same /n/ outermost dimensions.
 -- The /n/ must not exceed the rank of the array.
 -- O(n) time.
-{-# INLINABLE rerank2 #-}
+{-# INLINE rerank2 #-}
 rerank2 :: forall n i o sh a b c .
            (Drop n sh ~ i, Shape sh, KnownNat n, Shape o, Shape (Take n sh ++ o)) =>
            (Array i a -> Array i b -> Array o c) -> Array sh a -> Array sh b -> Array (Take n sh ++ o) c
-rerank2 f ta tb = A $ G.rerank2 @n (\ a b -> unA $ f (A a) (A b)) (unA ta) (unA tb)
+rerank2 f = \ ta tb -> A $ G.rerank2 @n (\ a b -> unA $ f (A a) (A b)) (unA ta) (unA tb)
 
 -- | Reverse the given dimensions, with the outermost being dimension 0.
 -- O(1) time.
@@ -315,7 +318,7 @@ rev = A . G.rev @rs . unA
 -- | Reduce all elements of an array into a rank 0 array.
 -- To reduce parts use 'rerank' and 'transpose' together with 'reduce'.
 -- O(n) time.
-{-# INLINABLE reduce #-}
+{-# INLINE reduce #-}
 reduce :: (Shape sh) => (a -> a -> a) -> a -> Array sh a -> Array '[] a
 reduce f z = A . G.reduce f z . unA
 
@@ -329,7 +332,7 @@ foldrA f z = G.foldrA f z . unA
 -- | Constrained version of 'traverse' for Arrays.
 --
 -- Note that this 'Array' actually has 'Traversable' anyway.
-{-# INLINABLE traverseA #-}
+{-# INLINE traverseA #-}
 traverseA
   :: (Applicative f, Shape sh) => (a -> f b) -> Array sh a -> f (Array sh b)
 traverseA f = fmap A . G.traverseA f . unA

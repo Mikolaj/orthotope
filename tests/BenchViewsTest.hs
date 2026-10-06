@@ -24,21 +24,17 @@
 -- allocate: Storable and Unboxed allocate at most 32 bytes an element more
 -- than boxed, which has no element dictionary to lose, where a call passing
 -- its element dictionary at run time allocated 64 to 145 more on GHC HEAD; the
--- control from Unspecialised is such a call.  Storable reduce may allocate
--- 64 more until https://github.com/haskell/vector/issues/570 is fixed: where
--- the function it folds with is an argument it cannot inline, vector's foldl'
--- reads each element of a Storable vector into a thunk, 40 bytes an element
--- more than of an Unboxed one, and nothing more once the read is forced.  Boxed
--- allocates at most 16 bytes an element more than the smaller of Storable
--- and Unboxed, where on GHC 9.12.4 a boxed operation that missed the copies
--- -fpolymorphic-specialisation makes allocated 48 more for each element it
--- wrote; mapA, the zips, generate, rerank2 with its zip and unravel are exempt,
--- exceeding that bound boxed with their specialisation too.  The boxed bound
--- holds from GHC 9.6.3 on, the first to know that flag, and has no control
--- here: boxed pad called from Unspecialised, at Double or polymorphic in the
--- element, allocated like the specialised call, where the boxed modules built
--- without the flag failed the bound on 9.12.4.  DynamicS's bitcast, having no
--- boxed counterpart, goes unchecked.
+-- control from Unspecialised is such a call.  Boxed allocates at most 16 bytes
+-- an element more than the smaller of Storable and Unboxed, where on GHC 9.12.4
+-- a boxed operation that missed the copies -fpolymorphic-specialisation makes
+-- allocated 48 more for each element it wrote; mapA, the zips, generate,
+-- rerank2 with its zip and unravel are exempt, exceeding that bound boxed
+-- with their specialisation too.  The boxed bound holds from GHC 9.6.3 on,
+-- the first to know that flag, and has no control here: boxed pad called from
+-- Unspecialised, at Double or polymorphic in the element, allocated like the
+-- specialised call, where the boxed modules built without the flag failed the
+-- bound on 9.12.4.  DynamicS's bitcast, having no boxed counterpart, goes
+-- unchecked.
 -- Its bounds on toVector, sumA, the list heads and specialisation run in an
 -- optimised build alone.
 {-# LANGUAGE CPP #-}
@@ -139,19 +135,16 @@ callsNamed :: String -> [Call] -> [Call]
 callsNamed name cs = [ c | c@(Call m _ _) <- cs, m == name ]
 
 -- Storable and Unboxed allocate at most 32 bytes an element more than
--- boxed, Storable reduce 64 until https://github.com/haskell/vector/issues/570
--- is fixed; and boxed at most 16 more than the smaller of the two, but where
+-- boxed, and boxed at most 16 more than the smaller of the two, but where
 -- 'boxedExempt' names the operation.
 specialised :: String -> Call -> Call -> Call -> Assertion
 specialised row b s u = do
   aB <- callAlloc b
   aS <- callAlloc s
   aU <- callAlloc u
-  let storableBound = if "/reduce" `isSuffixOf` row then 64 else 32
-      bad = [ kind ++ " " ++ show o ++ " bytes an element over boxed"
-            | (kind, a, bound) <- [ ("Storable", aS, storableBound)
-                                  , ("Unboxed", aU, 32) ]
-            , let o = perElem (a - aB), o > bound ]
+  let bad = [ kind ++ " " ++ show o ++ " bytes an element over boxed"
+            | (kind, a) <- [ ("Storable", aS), ("Unboxed", aU) ]
+            , let o = perElem (a - aB), o > 32 ]
          ++ [ "boxed " ++ show o
               ++ " bytes an element over Storable and Unboxed"
             | boxedSpecialised, not (any (`isSuffixOf` row) boxedExempt)
