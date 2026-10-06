@@ -223,6 +223,9 @@ jobs:
       - name: tests
         run: |
           if [ $((HCNUMVER >= 90000 && HCNUMVER < 90400 || HCNUMVER >= 90600)) -ne 0 ] ; then $CABAL v2-test $ARG_COMPILER $ARG_TESTS $ARG_BENCH all --test-show-details=direct ; fi
+      - name: benchmarks
+        run: |
+          if [ "$ARG_BENCH" = --enable-benchmarks ] ; then $CABAL v2-bench $ARG_COMPILER $ARG_TESTS $ARG_BENCH all ; fi
       - name: tests with bounds checks
         run: |
           if [ "$ARG_TESTS" = --enable-tests ] && [ $((HCNUMVER >= 90400)) -ne 0 ] ; then cd $GITHUB_WORKSPACE/source && $CABAL v2-test $ARG_COMPILER $ARG_TESTS --project-file=cabal.project.checks --builddir=dist-checks all --test-show-details=direct ; fi
