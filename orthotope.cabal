@@ -17,6 +17,7 @@ extra-source-files:
       CHANGELOG.md
       LICENSE
       README.md
+      bench/*.inc
 
 tested-with:         GHC ==8.10.7 || ==9.0.2 || ==9.2.8 || ==9.4.8 || ==9.6.7 || ==9.8.4 || ==9.10.3 || ==9.12.2 || ==9.14.1
 
@@ -107,3 +108,17 @@ test-suite tests
     test-framework             >= 0.8.2 && < 0.9,
     test-framework-hunit       >= 0.3.0 && < 0.4,
     test-framework-quickcheck2 >= 0.3.0 && < 0.4
+
+benchmark specialisation
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      bench
+  main-is:             Specialisation.hs
+  other-modules:       Call
+                     , Harness
+                     , OpsDynamic
+                     , OpsRanked
+                     , OpsShaped
+  include-dirs:        bench
+  ghc-options:         -Wall -rtsopts
+  build-depends:       base, deepseq, orthotope
+  default-language:    Haskell2010
