@@ -13,6 +13,7 @@
 -- limitations under the License.
 
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -25,6 +26,22 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
+-- On GHC HEAD, where -fpolymorphic-specialisation is on by default,
+-- the specialiser copies the INLINABLE functions this module calls
+-- for the vector type alone and rewrites the unfoldings this
+-- module exports to call the copies.  A copy has no unfolding
+-- (https://gitlab.haskell.org/ghc/ghc/-/work_items/23050), so a client cannot
+-- specialise it on the element type: on a transposed [400, 500] view of
+-- Doubles, pad and rotate took 19 and 8 times as long as with the flag off.
+-- The flag is off in all six Storable and Unboxed modules: off in the Dynamic
+-- ones alone, it left the Ranked and Shaped ones, which import DynamicS and
+-- DynamicU for their instances, making the copies instead.  It can go once
+-- the GHCs supported carry the fix of that issue: with the copies' unfoldings
+-- exposed, as -fexpose-overloaded-unfoldings does, clients specialised pad and
+-- rotate again.  9.6.3 is the first GHC to know the flag.
+#if MIN_VERSION_GLASGOW_HASKELL(9,6,3,0)
+{-# OPTIONS_GHC -fno-polymorphic-specialisation #-}
+#endif
 module Data.Array.Internal.DynamicS(
   Array(..), Vector, ShapeL, V.Storable, Unbox,
   size, shapeL, rank,
