@@ -10008,6 +10008,7 @@ def _brief_tips(run, where='.'):
     tip = ''
     for line in git('log', '--format=%h %s', '-40').split('\n'):
         if want.search(line):
+            # answered spaced-split: the log is `%h %s`; a hash has no space.
             tip = line.split(' ', 1)[0]
             break
     return pre, tip
@@ -10077,6 +10078,8 @@ def _brief_finding(run, where):
     if not m:
         return None
     lead = m.group(0).strip('*')
+    # answered spaced-split: a run file's head lead holds `): ` at most
+    # once, closing its parenthetical, and a lead without one is kept whole.
     return lead.split('): ', 1)[1] if '): ' in lead else lead
 
 

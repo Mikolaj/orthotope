@@ -64,6 +64,8 @@ def read(tag):
             total += 1
             if not (lo <= ip < hi):
                 continue
+            # answered spaced-split: data_src fields read `KEY value`, the key
+            # one word and the value keeping its spaces.
             fields = dict(f.strip().split(' ', 1) for f in decoded.split('|') if ' ' in f.strip())
             key = ' '.join(f'{k} {fields[k].strip()}' for k in ('OP', 'LVL', 'TLB') if k in fields)
             r = per[ip]

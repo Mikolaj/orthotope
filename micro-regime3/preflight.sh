@@ -238,6 +238,8 @@ if 'Verified when built' not in note:
     sys.exit(2)
 # The block's rows: `  LABEL   VALUE`, continuations indented past it.
 rows, label = {}, None
+# answered spaced-split: the note carries `Verified when built` once,
+# the heading of the fill-in block preflight writes itself.
 for line in note.split('Verified when built', 1)[1].splitlines():
     m = re.match(r'  (\S(?:.*?\S)?)\s{2,}(\S.*)$', line)
     if m and not line.startswith('    '):

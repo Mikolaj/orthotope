@@ -48,6 +48,8 @@ def mask_prose(text):
         def one(d):
             n[0] += 1
             return '{{was %s}}' % d.group(0)
+        # answered spaced-split: the match is RUNS_RE's, whose first space
+        # is the one after `Run` or `Runs`.
         head, _, rest = m.group(0).partition(' ')
         return head + ' ' + re.sub(r'\d+', one, rest)
 
@@ -64,9 +66,12 @@ def mask_prose(text):
 def mask(doc, old, new):
     """DOC with its prose masked and its title's run renamed, and the count
     of masks."""
+    # answered boolean-pair-state: the run files this reads carry no fence
+    # of any kind, so no marker sits inside a block of another kind.
     lines, fenced, total = [], False, 0
     for i, line in enumerate(doc.split('\n')):
         if line.startswith('```'):
+            # answered boolean-pair-state: as at the binding of `fenced` above.
             fenced = not fenced
         if fenced or line.startswith('```') or line.startswith('|') \
                 or re.match(r'\s*\[[^\]]+\]:\s', line):

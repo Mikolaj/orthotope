@@ -50,9 +50,12 @@ TIMEOUT = 900
 def prose(text):
     """The prose paragraphs, each on one line: headings, tables and fenced
     blocks left out."""
+    # answered boolean-pair-state: the run files this reads carry no fence
+    # of any kind, so no marker sits inside a block of another kind.
     out, cur, fenced = [], [], False
     for line in text.split('\n'):
         if line.startswith('```'):
+            # answered boolean-pair-state: as at the binding of `fenced` above.
             fenced = not fenced
             continue
         if fenced or line.startswith(('|', '#')):
@@ -111,6 +114,8 @@ def command(span, run, where, after=''):
 def pair_of(run, where):
     """(basis, other) off pair-halves.sh, or None."""
     try:
+        # answered dropped-status: pair-halves.sh prints nothing on stdout
+        # when it refuses, and a pair lacking either half is None below.
         out = subprocess.run(['./pair-halves.sh', run], cwd=where,
                              capture_output=True, text=True,
                              timeout=60).stdout

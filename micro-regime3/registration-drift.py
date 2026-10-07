@@ -135,6 +135,7 @@ def since(d, run, prev):
     if log is None or main is None:
         print('git cannot read %s..%s; nothing read' % (rows[prev], tip))
         return 2
+    # answered spaced-split: the log is `%h %s`; a hash has no space.
     commits = [l.split(' ', 1) for l in log.splitlines() if l]
     defs = defs_of(main)
     callers = {}
@@ -226,6 +227,7 @@ def main(argv):
     if log is None:
         print('git cannot read %s..%s; nothing read' % (reg, build))
         return 2
+    # answered spaced-split: the log is `%h %s`; a hash has no space.
     commits = [l.split(' ', 1) for l in log.splitlines() if l]
     print('%s: the registration first committed at %s, the build at %s'
           % (run, reg, build))

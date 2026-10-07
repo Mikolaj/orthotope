@@ -95,6 +95,8 @@ def geometry(path):
     reported and not refused, a stand-in answering only its listings."""
     cmd = [path if os.sep in path else os.path.join('.', path), 'check']
     try:
+        # answered dropped-status: a `check` that prints nothing is reported
+        # as geometry not read, as the docstring above says.
         got = subprocess.run(cmd, capture_output=True, text=True)
     except OSError:
         return {}

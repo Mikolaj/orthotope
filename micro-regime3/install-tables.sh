@@ -557,6 +557,8 @@ else
     python3 - "$DOC" "$CROSS" <<'ENDPY' || BAD=$((BAD+1))
 import re, sys
 DOC, cross = sys.argv[1], sys.argv[2]
+# answered spaced-split: only lines starting `  lead: ` are split, so
+# the first `lead: ` is that prefix.
 lead = [l.split('lead: ', 1)[1] for l in cross.split('\n')
         if l.startswith('  lead: ')]
 if len(lead) != 1:
