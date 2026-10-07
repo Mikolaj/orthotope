@@ -205,6 +205,8 @@ instance Vector V.Vector where
   -- Forced: no element of a Storable vector is undefined.
   {-# INLINE vWithElem #-}
   vWithElem v i k = let !x = v V.! i in k x
+  {-# INLINE vGenerate' #-}
+  vGenerate' = V.generate
   {-# INLINE vFillStrided #-}
   vFillStrided :: forall a. Unbox a
                => Axes -> Int -> Int -> V.Vector a -> V.Vector a

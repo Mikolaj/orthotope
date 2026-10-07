@@ -29,13 +29,13 @@
 -- bytes an element more than the smaller of Storable and Unboxed, where on GHC
 -- 9.12.4 a boxed operation that missed the copies -fpolymorphic-specialisation
 -- makes allocated 48 more for each element it wrote; mapA, traverseA, the zips,
--- generate, rerank2 with its zip and unravel are exempt, exceeding that bound
--- boxed with their specialisation too.  The boxed bound holds from GHC 9.6.3
--- on, the first to know that flag, and has no control here: boxed pad called
--- from Unspecialised, at Double or polymorphic in the element, allocated like
--- the specialised call, where the boxed modules built without the flag failed
--- the bound on 9.12.4.  DynamicS's bitcast, having no boxed counterpart, goes
--- unchecked.
+-- generate, iota, rerank2 with its zip and unravel are exempt, exceeding that
+-- bound boxed with their specialisation too.  The boxed bound holds from GHC
+-- 9.6.3 on, the first to know that flag, and has no control here: boxed pad
+-- called from Unspecialised, at Double or polymorphic in the element, allocated
+-- like the specialised call, where the boxed modules built without the flag
+-- failed the bound on 9.12.4.  DynamicS's bitcast, having no boxed counterpart,
+-- goes unchecked.
 -- The Dynamic modules' rotate, which DynamicU lacks, goes unchecked too.
 -- Its bounds on toVector, sumA, the list heads and specialisation run in an
 -- optimised build alone.
@@ -158,7 +158,8 @@ specialised row b s u = do
 -- specialisation too.
 boxedExempt :: [String]
 boxedExempt = [ "/mapA", "/traverseA", "/zipWithA", "/zipWith3A", "/zipWith4A"
-              , "/zipWith5A", "/generate", "/rerank2", "/unravel" ]
+              , "/zipWith5A", "/generate", "/iota", "/rerank2"
+              , "/unravel" ]
 
 -- Whether the boxed modules make the copies their specialisation is:
 -- GHCs before 9.6.3 lack the flag that makes them.

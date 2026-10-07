@@ -110,6 +110,19 @@ instance I.Vector Repeated where
   vAll p = all p . I.vToList
   vAny p = any p . I.vToList
 
+-- A number whose 1 fails when evaluated, which tells an element stored
+-- evaluated from one stored as a thunk.
+newtype OneFails = OneFails Int
+
+instance Num OneFails where
+  fromInteger 1 = error "1 evaluated"
+  fromInteger i = OneFails (fromInteger i)
+  OneFails x + OneFails y = OneFails (x + y)
+  OneFails x * OneFails y = OneFails (x * y)
+  abs (OneFails x) = OneFails (abs x)
+  signum (OneFails x) = OneFails (signum x)
+  negate (OneFails x) = OneFails (negate x)
+
 test :: Test
 test = testGroup "Dynamic" $
   let a1, a2 :: Array Int
@@ -176,6 +189,11 @@ test = testGroup "Dynamic" $
       unScalar_2 = assertThrows "2" (unScalar a3)
       constant_1 = assertEqual "1" (fromList [2,3] [1,1,1,1,1,1]) (constant [2,3] (1::Int))
       iota_1 = assertEqual "1" (map fromIntegral [0..299::Int]) (toList (iota 300 :: Array Word8))
+      -- iota stores its elements evaluated, so evaluating the array
+      -- evaluates its 1.
+      iota_2 = try (evaluate (iota 3 :: Array OneFails)) >>=
+               either (\ (ErrorCall e) -> assertEqual "2" "1 evaluated" e)
+                      (const (assertFailure "2"))
       -- No array has a negative extent.
       badShape_1 = mapM_ (uncurry assertThrows)
         [ ("fromList", fromList [-2,-3] [1..6])
@@ -568,6 +586,7 @@ test = testGroup "Dynamic" $
         , testCase "unScalar_2" unScalar_2
         , testCase "constant_1" constant_1
         , testCase "iota_1" iota_1
+        , testCase "iota_2" iota_2
         , testCase "badShape_1" badShape_1
         , testCase "badShape_2" badShape_2
         , testCase "badShape_3" badShape_3
