@@ -1543,11 +1543,21 @@ reverseT rs sh (T ats ao v) = T rts ro v
           where (o, ts') = rev (r+1) ms ts
         rev _ _ _ = error "reverseT: impossible"
 
--- Reduction of all array elements.
+-- Reduction of all array elements, in row-major order, which the function may
+-- need.  A view that no slice serves, which 'toVectorListT' would fill into
+-- one vector, is folded over its element walk ('elemsT') instead, as 'toListT'
+-- lists it.
 {-# INLINE reduceT #-}
 reduceT :: (Vector v, VecElem v a) =>
            ShapeL -> (a -> a -> a) -> a -> T v a -> T v a
-reduceT sh f !z = scalarT . foldl' (vFold f) z . toVectorListT sh
+reduceT sh f !z a@(T _ _ v)
+  | l == 0 = scalarT z
+  | otherwise = scalarT $ case routeT sh l a of
+      RFill axes ao _ ->
+        foldl' f z (build $ \cons nil -> elemsT axes ao v cons nil)
+      route ->
+        foldl' (vFold f) z (build $ \cons nil -> routeSlicesT v route cons nil)
+  where !l = product sh
 
 -- Right fold via toListT.
 {-# INLINE foldrT #-}
