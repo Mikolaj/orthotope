@@ -85,7 +85,7 @@ is the same thing Run 20 said it does not see, and this run widens it**: claim
 read below `mut-odo-vecdims`, four of them inside its own family, so the rung
 understates what a mutating method buys. Re-aiming it is a decision and
 not a reading, and it is [under the recommended
-tasks](../README.md#recommended-tasks-after-run-21).
+tasks][tasks].
 
 **What the compiler is worth, arm by arm, stopped being one-sided, and
 that is this run's plainest movement.** Over the 43 arms compared, 19 sit within
@@ -973,7 +973,7 @@ library route itself**, `lib-stage1` at 0.039, which is the first run in which
 an arm shaped like `Data/Array/Internal.hs` sorts above the arm that file's fix
 is named for. Whether the claim should be re-aimed at the family's leader
 is a question for the next run and is [under the recommended
-tasks](../README.md#recommended-tasks-after-run-21); it is not re-aimed here,
+tasks][tasks]; it is not re-aimed here,
 a claim being re-aimed on a decision and not on one reading.
 
 **Claim 7 held on the levels, and the cell count moved with the roster rather
@@ -2442,6 +2442,7 @@ is therefore not open on the one arm built to look for it, on two runs.
 [pershape]: ../README.md#per-shape-where-the-geomean-hides-the-ordering
 [procedure]: ../README.md#making-a-major-benchmark-run
 [prov]: ../README.md#provenance
+[tasks]: https://github.com/Mikolaj/orthotope/blob/ca4217b8c146fcccc9232bc32e7dc0e7c1f09b80/micro-regime3/README.md#recommended-tasks-after-run-21
 
 
 ## What this run was built to answer, and what it answered

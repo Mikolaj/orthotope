@@ -1119,7 +1119,7 @@ sixteen do the work. **And the shipped library route sits well inside
 the group**, `lib-stage1` at 0.033, as does every one of the six candidates.
 Whether the claim should be re-aimed at the family's leader is a question
 for the next run and is [under the recommended
-tasks](../README.md#recommended-tasks-after-run-22); it is not re-aimed here,
+tasks][tasks]; it is not re-aimed here,
 a claim being re-aimed on a decision and not on one reading.
 
 **Claim 7 held on every level it carried and gained one below them all.** Every
@@ -1178,7 +1178,7 @@ the manifest cannot see, and it has grown by a factor**: eighteen arms now read
 below `mut-odo-vecdims` where seven did a run ago, six of them the candidates
 this run added and one of them the shipped library route. That is left
 to the next run rather than re-aimed here, and it is the sharpest of [the
-recommended tasks](../README.md#recommended-tasks-after-run-22).
+recommended tasks][tasks].
 
 1. `mut-odo-vecdims` < `mut-flat-gm` < `bq-mut-runs-gm-mulback` < each
    of `bq-scan-rem-gm-mulback` and `bq-odo-gm-mulback`, the whole ordering read
@@ -2611,6 +2611,7 @@ and 1.0266, 1.0225, 1.0278 and 1.0722 on the control.
 [pershape]: ../README.md#per-shape-where-the-geomean-hides-the-ordering
 [procedure]: ../README.md#making-a-major-benchmark-run
 [prov]: ../README.md#provenance
+[tasks]: https://github.com/Mikolaj/orthotope/blob/b3546a0d420f94497f9f6eb09a01bcbcacd92fcb/micro-regime3/README.md#recommended-tasks-after-run-22
 
 
 ## What this run was built to answer, and what it answered

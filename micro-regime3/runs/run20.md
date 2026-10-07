@@ -588,7 +588,7 @@ the floor, so on 9.12 alone those two cannot be separated and only
 the cross-compiler reading tells them apart. **So the reading is that `-down`
 beats the shipped variant on both compilers by a margin both floors clear**,
 on one run, and what it would take to act on it is [under the recommended
-tasks](../README.md#recommended-tasks-after-run-20), beside the registration
+tasks][tasks], beside the registration
 it splits.
 
 **The two standing placement controls both moved toward 1 on the basis half,
@@ -1028,7 +1028,7 @@ and 0.038 against its 0.054 --- so the ladder's top rung understates what
 a mutating method buys by about a third, while remaining true as stated. Whether
 the claim should be re-aimed at the family's leader is a question for the next
 run and is [under the recommended
-tasks](../README.md#recommended-tasks-after-run-20); it is not re-aimed here,
+tasks][tasks]; it is not re-aimed here,
 a claim being re-aimed on a decision and not on one reading.
 
 **Readings:** `mut-odo-vecdims` / `mut-flat-gm` 0.6530, 20 of 24, sign p 0.0015;
@@ -2501,6 +2501,7 @@ misses --- is not open on the one arm built to look for it.
 [pershape]: ../README.md#per-shape-where-the-geomean-hides-the-ordering
 [procedure]: ../README.md#making-a-major-benchmark-run
 [prov]: ../README.md#provenance
+[tasks]: https://github.com/Mikolaj/orthotope/blob/5598fd7ee42d874b87253439838a22dfe8f0eb2b/micro-regime3/README.md#recommended-tasks-after-run-20
 
 
 ## What this run was built to answer, and what it answered
