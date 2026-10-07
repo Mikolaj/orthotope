@@ -184,6 +184,9 @@ test = testGroup "Dynamic" $
       zipWithA_5 = assertEqual "5" 7 (unScalar (index (zipWithA (\ x y -> if x == 0 then error "forced" else x + y) (fromList [2] [0, 1]) (fromList [2] [5, 6 :: Int])) 1))
       zipWith5A_1 = assertEqual "1" [9] (toList (zipWith5A (\ _ _ _ _ e -> e) u u u u (fromList [1] [9 :: Int])))
         where u = fromList [1] [undefined] :: Array Int
+      -- So do the zips of views that no slice serves, walked at once.
+      zipWithA_6 = assertEqual "6" [5, 6, 7, 8] (toList (zipWithA (\ _ y -> y) (transpose [1, 0] (fromList [2, 2] [undefined, undefined, undefined, undefined] :: Array Int)) (transpose [1, 0] (fromList [2, 2] [5, 7, 6, 8 :: Int]))))
+      zipWithA_7 = assertEqual "7" 7 (unScalar (index (index (zipWithA (\ x y -> if x == 0 then error "forced" else x + y) (transpose [1, 0] (fromList [2, 2] [0, 1, 0, 1])) (transpose [1, 0] (fromList [2, 2] [5, 6, 7, 8 :: Int]))) 1) 0))
       pad_1 = assertEqual "1" (fromList [5,10] [9,9,9,9,9,9,9,9,9,9,
                                                 9,9,9,1,2,3,9,9,9,9,
                                                 9,9,9,4,5,6,9,9,9,9,
@@ -499,6 +502,8 @@ test = testGroup "Dynamic" $
         , testCase "zipWithA_4" zipWithA_4
         , testCase "zipWithA_5" zipWithA_5
         , testCase "zipWith5A_1" zipWith5A_1
+        , testCase "zipWithA_6" zipWithA_6
+        , testCase "zipWithA_7" zipWithA_7
         , testCase "pad_1" pad_1
         , testCase "pad_2" pad_2
         , testCase "transpose_1" transpose_1

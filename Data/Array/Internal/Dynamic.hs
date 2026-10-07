@@ -69,7 +69,7 @@ import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.DynamicG as G
-import Data.Array.Internal(ShapeL, Vector(..), None, genericConcatPadN, genericFillStrided, rnfViewT)
+import Data.Array.Internal(ShapeL, Vector(..), None, genericConcatPadN, genericFillStrided, genericZipWithStrided, rnfViewT)
 import qualified Data.Array.Internal.DynamicG as DG
 
 instance Vector V.Vector where
@@ -169,6 +169,8 @@ instance Vector V.Vector where
   -- Each element forced as it is written.
   {-# INLINE vGenerate' #-}
   vGenerate' n g = zipLoop n (\ i -> return $! g i)
+  {-# INLINE vZipWithStrided #-}
+  vZipWithStrided = genericZipWithStrided
   {-# INLINE vFillStrided #-}
   vFillStrided = genericFillStrided 5
   -- vConcatPadN takes genericConcatPadN, which on GHC HEAD took 0.33 and 0.35

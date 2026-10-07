@@ -78,7 +78,7 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.Internal.DynamicG as G
-import Data.Array.Internal(Axes, T(..), ShapeL, Vector(..), genericConcatN, genericConcatPadN,
+import Data.Array.Internal(Axes, T(..), ShapeL, Vector(..), genericConcatN, genericConcatPadN, genericZipWithStrided,
                            genericFillStrided)
 
 type Unbox = V.Storable
@@ -207,6 +207,8 @@ instance Vector V.Vector where
   vWithElem v i k = let !x = v V.! i in k x
   {-# INLINE vGenerate' #-}
   vGenerate' = V.generate
+  {-# INLINE vZipWithStrided #-}
+  vZipWithStrided = genericZipWithStrided
   {-# INLINE vFillStrided #-}
   vFillStrided :: forall a. Unbox a
                => Axes -> Int -> Int -> V.Vector a -> V.Vector a
