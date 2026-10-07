@@ -4451,7 +4451,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      NN is one past the highest-numbered file in runs/, the run
     #      behind you. DO NOT MAKE `runs/$R.md` YET: post-run step 5
     #      makes it. Governing docs are this file and read-run.py's
-    #      docstring, and horde-ad's CLAUDE.md is not
+    #      docstring, and CLAUDE.md beside this file says how far
+    #      horde-ad's binds here
     #      why: every mode defaults to the newest run file.
     #      Every mode defaults to the newest file, and everything
     #      before post-run step 5 -- the evening's machine check, the tables
@@ -6143,10 +6144,9 @@ the gates and the reader all pass, the JSON records no compiler flag,
 and the only symptom is the regime's own effect failing to appear, which reads
 as a refutation of the design rather than as a missing flag; the `diag` reading
 at step 9 is the whole guard, which is why that step is not optional. A session
-starts in `~/r/horde-ad`, which leaves *that* repository's `CLAUDE.md` resident
-while this repo is not governed by it, though its generalizable preferences
-apply; this file and `read-run.py`'s docstring govern here, orthotope carrying
-no `CLAUDE.md` of its own.
+starts in `~/r/horde-ad`, which leaves *that* repository's `CLAUDE.md` resident;
+this directory's own `CLAUDE.md` says how far it binds here, and where the two
+differ this file and `read-run.py`'s docstring govern.
 
 **`run-major.sh` is that sequence as a driver**, `$R` its argument rather
 than a variable it inherits, and the evening's third stage. It refuses without
