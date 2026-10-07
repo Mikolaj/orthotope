@@ -13,15 +13,11 @@
 -- checks each really is one, and the @check@ main mode asserts all
 -- strategies agree.
 --
--- The words for a view's pieces are the library's, defined at the 'T'
--- haddock of Data/Array/Internal.hs on pr-mikolaj-toVectorListT: a
--- walk is one traversal of the innermost axis; an innermost run is
--- what one walk yields, consecutive in the result whatever its stride;
--- a contiguous run is a stretch consecutive in the source and in the
--- view's order, which an innermost run is at stride 1. Unqualified, run
--- means the innermost run in a fill's comments and the contiguous run
--- in a route's, and a benchmark run is written Run 27, or capitalised
--- where a sentence would otherwise read two ways.
+-- The words for a view's pieces -- walk, innermost run, contiguous run --
+-- are the library's, defined at the 'T' haddock of Data/Array/Internal.hs on
+-- pr-mikolaj-toVectorListT and restated in README.md beside 'bq-expand', with
+-- what run means unqualified: here the innermost run in a fill's comments and
+-- the contiguous run in a route's.
 --
 -- The strategies are defined below in the four families README.md groups them
 -- into, base before variant; 'roster' holds the different order they are RUN
@@ -412,14 +408,14 @@ baseOffsetsExpand o0 osh (Strides oats) = foldl' expand (VU.singleton o0) (zip o
   where expand !acc (!nd, !sd) =
           VU.concatMap (\a -> VU.enumFromStepN a sd nd) acc
 
--- 'baseOffsetsExpand''s table in a STORABLE vector, which is what every table
--- here used to be. It survives for the three arms that hand a table to a
--- payload-flavour 'Vector' combinator -- 'fbBackperm''s 'unsafeBackpermute'
--- and 'fbCMGather''s and 'fbAllExpand''s 'map' all take one vector family, so
--- for those the table's flavour IS the payload's and unboxing it would change
--- the strategy rather than its scratch. Every other table here is unboxed,
--- the flavour 'Data/Array/Internal.hs' ships; the probe that settled it, and
--- what it cost, are at README.md#the-scratch-vector-flavour.
+-- 'baseOffsetsExpand''s table in a STORABLE vector, for the three
+-- arms that hand a table to a payload-flavour 'Vector' combinator --
+-- 'fbBackperm''s 'unsafeBackpermute' and 'fbCMGather''s and 'fbAllExpand''s
+-- 'map' all take one vector family, so for those the table's flavour
+-- IS the payload's and unboxing it would change the strategy rather
+-- than its scratch. Every other table here is unboxed, the flavour
+-- 'Data/Array/Internal.hs' ships; the probe that settled it, and what it cost,
+-- are at README.md#the-scratch-vector-flavour.
 {-# INLINE baseOffsetsExpandVS #-}
 baseOffsetsExpandVS :: Int -> ShapeL -> Strides -> VS.Vector Int
 baseOffsetsExpandVS o0 osh (Strides oats) =
@@ -459,11 +455,8 @@ baseOffsetsExpandB !o0 osh (Strides oats) =
 -- @o0 + sum of the first k index*stride terms@, which is the offset of
 -- the element whose remaining indices are all 0 -- a real element of the
 -- view -- so for a valid view every intermediate lies within the source
--- and 'int32Fits' is the whole precondition. An earlier version argued
--- this from the terms being non-negative and flagged rev'd views as
--- needing their own bound; 'revShapes' now runs mixed-sign terms through
--- this builder, and the element-offset argument is the restatement that
--- flag asked for.
+-- and 'int32Fits' is the whole precondition. 'revShapes' runs mixed-sign
+-- terms through this builder.
 {-# INLINE baseOffsetsExpand32 #-}
 baseOffsetsExpand32 :: Int -> ShapeL -> Strides -> VU.Vector Int32
 baseOffsetsExpand32 o0 osh (Strides oats) =
@@ -499,23 +492,20 @@ baseOffsetsExpand32 o0 osh (Strides oats) =
 -- the diag), not like 'baseOffsetsMut', and its strategies inherit
 -- bq-expand-class allocation.
 --
--- Under SpecConstr the refutation inverts: it dissolves the state and the
--- diag measures this build allocation-free (table + ~500 bytes on
--- vgg-14-c512, matching 'baseOffsetsMut'; 'baseOffsetsGen' and
--- 'baseOffsetsGenLemire' collapse to table-only too). Measured at -O2
--- first and re-measured under the flag alone, which suffices. What did NOT
--- survive re-measuring is the reading that the expands keep their
--- intermediates because those are data and not state: under the flag they
--- drop by about a third, keeping some. The figures are in README, at the
--- Run 8 question. So the failure
--- belongs to the compilation regime, not the design; -O1 is what this
--- harness measures because it is what a default cabal build of orthotope
--- ships, and promoting the design means shipping a flag on
--- Data/Array/Internal.hs -- OPTIONS_GHC -fspec-constr rather than -O2,
--- since the diag says the narrower one buys the whole builder-level
--- effect, which makes it a smaller thing to ask of a maintainer. Either
--- way it is that maintainer's decision and wants its own measurement: time
--- under either flag is unmeasured here, for every strategy.
+-- Under SpecConstr the refutation inverts: it dissolves the state and the diag
+-- measures this build allocation-free (table + ~500 bytes on vgg-14-c512,
+-- matching 'baseOffsetsMut'; 'baseOffsetsGen' and 'baseOffsetsGenLemire'
+-- collapse to table-only too), measured under the flag alone, which
+-- suffices. Being data and not state is not why the expands keep their
+-- intermediates: under the flag those drop by about a third, keeping some, the
+-- figures being README's, at the Run 8 question. So the failure belongs to
+-- the compilation regime, not the design; -O1 is what this harness measures
+-- because it is what a default cabal build of orthotope ships, and promoting
+-- the design means shipping a flag on Data/Array/Internal.hs -- OPTIONS_GHC
+-- -fspec-constr rather than -O2, since the diag says the narrower one buys
+-- the whole builder-level effect, which makes it a smaller thing to ask of a
+-- maintainer. Either way it is that maintainer's decision and wants its own
+-- measurement: time under either flag is unmeasured here, for every strategy.
 --
 -- Two setup normalizations keep the per-entry work honest. Unit dims are
 -- elided: a radix-1 digit always wraps and adds @(n - 1) * st = 0@ to the
@@ -657,71 +647,62 @@ baseOffsetsOdo !o0 osh (Strides oats)
                             else carry c' ds (acc + st * (n - 1))
             carry _ _ !acc = negate acc  -- reachable once; see above
 
--- 'baseOffsetsScan' with the stream state packed into ONE Int: the run
--- index in the bits above 32, the running offset in the low 32, so
--- advancing both is a single add of @2^32 + delta@ (the offset stays in
--- its field because it is a real offset, bounded by the assert). This is
--- the constructive test of the bare-Int-state law, and it is only
--- meaningful WITHOUT SpecConstr: the law says a fused loop's state
--- unboxes at plain -O1 iff it is a bare Int -- measured in one direction
--- ('scanl''s Either-of-pair boxes 72 bytes per entry; index-only
--- 'VU.generate' does not) but never in the constructive one, and under
--- -fspec-constr every state shape unboxes, so this arm was predicted
--- indistinguishable from its control there. Run 8 refuted the corollary and
--- a Core diff in both regimes said why. The premise holds: under the flag
--- both loops specialise to four raw arguments and neither boxes. What does
--- not follow is indistinguishability, because the unboxing removes the
--- CONTROL's cost and not this arm's -- at -O1 the control's loop carries a
--- boxed Either of a boxed pair of a boxed Int and allocates a Right per
--- step, all of which the flag deletes, while this arm loses only one 'I#'
--- unwrap and goes on paying its shift and mask ('uncheckedIShiftRA#' 32,
--- 'andI#' 0xffffffff) per element against the control's two plain adds. So
--- the flag pays off the debt the packing exists to avoid and leaves the
--- packing's interest due: identical 1.33x allocation, 1.11x the time on 24
--- shapes of 24. THE PACKING IS A -O1-ONLY OPTIMIZATION -- wherever
--- SpecConstr runs this arm is dominated by the plainer 'fbBQscanMulback' it
--- was built to beat, and it should not be proposed for a build carrying the
--- flag. At -O1 the prediction still stands, at the allocation multiple
--- README's table carries: below the scan's and above what a fully unboxed
--- emit would give. The diag
--- verdict at -O1 is already in: 16 bytes per entry against the scan's 72 --
--- the state boxing is gone, confirming the law's constructive half for the
--- state, but one boxed Int per step survives in 'VU.unfoldrExactN''s emit
--- pair, which no state shape can reach. The flag reaches it: the same diag
--- under -fspec-constr puts this builder at 1.00x, so there the emit pair
--- unboxes too and the packing has nothing left to buy. Preconditions of the
--- packing, asserted: every offset within its field, non-negative and
--- below 2^32, m at most 2^31 (the index field), on top of the mulhi
--- test's own bound. The offset bounds take each dimension at its
--- extremizing end, so they are exact for the mixed-sign strides
--- 'revShapes' feeds this builder, which an earlier corner formula was
--- not -- the restatement at the assert says how it was wrong. The
--- ARITHMETIC needed no change: the running offset is always the offset
--- of a real element of a valid view, so the low field never leaves
--- [0, source length) however the strides are signed.
+-- 'baseOffsetsScan' with the stream state packed into ONE Int: the run index
+-- in the bits above 32, the running offset in the low 32, so advancing both
+-- is a single add of @2^32 + delta@ (the offset stays in its field because
+-- it is a real offset, bounded by the assert). This is the constructive test
+-- of the bare-Int-state law, and it is only meaningful WITHOUT SpecConstr:
+-- the law says a fused loop's state unboxes at plain -O1 iff it is a bare Int
+-- -- measured in one direction ('scanl''s Either-of-pair boxes 72 bytes per
+-- entry; index-only 'VU.generate' does not) but never in the constructive
+-- one. Under -fspec-constr every state shape unboxes, and yet this arm
+-- is not indistinguishable from its control there, for a reason a Core
+-- diff in both regimes gives. The premise holds: under the flag both loops
+-- specialise to four raw arguments and neither boxes. What does not follow
+-- is indistinguishability, because the unboxing removes the CONTROL's cost
+-- and not this arm's -- at -O1 the control's loop carries a boxed Either of
+-- a boxed pair of a boxed Int and allocates a Right per step, all of which
+-- the flag deletes, while this arm loses only one 'I#' unwrap and goes on
+-- paying its shift and mask ('uncheckedIShiftRA#' 32, 'andI#' 0xffffffff)
+-- per element against the control's two plain adds. So the flag pays off the
+-- debt the packing exists to avoid and leaves the packing's interest due:
+-- identical 1.33x allocation, 1.11x the time on 24 shapes of 24. THE PACKING
+-- IS A -O1-ONLY OPTIMIZATION -- wherever SpecConstr runs this arm is dominated
+-- by the plainer 'fbBQscanMulback' it was built to beat, and it should not
+-- be proposed for a build carrying the flag. At -O1 the diag reads 16 bytes
+-- per entry against the scan's 72 -- the state boxing is gone, confirming the
+-- law's constructive half for the state, but one boxed Int per step survives
+-- in 'VU.unfoldrExactN''s emit pair, which no state shape can reach. The flag
+-- reaches it: the same diag under -fspec-constr puts this builder at 1.00x,
+-- so there the emit pair unboxes too and the packing has nothing left to
+-- buy. Preconditions of the packing, asserted: every offset within its field,
+-- non-negative and below 2^32, m at most 2^31 (the index field), on top of
+-- the mulhi test's own bound. The offset bounds take each dimension at its
+-- extremizing end, so they are exact for the mixed-sign strides 'revShapes'
+-- feeds this builder, which a corner formula is not (the assert says why). The
+-- ARITHMETIC needed no change: the running offset is always the offset of
+-- a real element of a valid view, so the low field never leaves [0, source
+-- length) however the strides are signed.
 {-# INLINE baseOffsetsScanPacked #-}
 baseOffsetsScanPacked :: Int -> ShapeL -> Strides -> VU.Vector Int
 baseOffsetsScanPacked o0 osh (Strides !oats)
   | m == 0 = VU.empty
-      -- Strict bounds of their own: an offset of exactly 2^32 would mask to
-      -- 0 in the low field, a negative one would borrow into the index
-      -- field, and m <= 2^31 keeps every EMITTED index out of the sign bit
-      -- (the discarded final successor may set it; nothing reads it).
-      -- lemireFits m for the mulhi test is implied. The extreme offsets are
-      -- per-dimension separable, so each bound takes every dimension at
-      -- whichever end of its range extremizes it: 'maxOff' tops up the
-      -- positive-stride dims, 'minOff' the negative ones. The first draft
-      -- summed every dim's top into 'maxOff' -- the maximum only for
-      -- non-negative strides; on a rev'd view it lands mid-range -- and
-      -- carried no lower bound at all, which 'revShapes' is what exposed
-      -- and 'revsome-mid-cnn-L2' is what observes: there the retired
-      -- formula reads 158978 while the table's own maximum entry is
-      -- 165881 (this bound reads exactly that), so the claimed maximum
-      -- sat below a real offset. Only the CONSEQUENCE -- a 2^32 crossing
-      -- admitted -- stays unfireable at harness scale, like the size
-      -- preconditions near 'lemireFits'. Flipping the new conjunct to
-      -- @minOff > 0@ fails the first shape's assert, so it is compiled
-      -- in, by that comment's own proof route.
+      -- Strict bounds of their own: an offset of exactly 2^32 would mask to 0
+      -- in the low field, a negative one would borrow into the index field,
+      -- and m <= 2^31 keeps every EMITTED index out of the sign bit (the
+      -- discarded final successor may set it; nothing reads it). lemireFits m
+      -- for the mulhi test is implied. The extreme offsets are per-dimension
+      -- separable, so each bound takes every dimension at whichever end of
+      -- its range extremizes it: 'maxOff' tops up the positive-stride dims,
+      -- 'minOff' the negative ones. Summing every dim's top into 'maxOff'
+      -- is the maximum only for non-negative strides, and on a rev'd view
+      -- lands mid-range below a real offset: on 'revsome-mid-cnn-L2' that
+      -- sum reads 158978 where the table's own maximum entry, and this
+      -- bound, is 165881. Only the CONSEQUENCE -- a 2^32 crossing admitted
+      -- -- is unfireable at harness scale, like the size preconditions near
+      -- 'lemireFits'. Flipping the lower-bound conjunct to @minOff > 0@ fails
+      -- the first shape's assert, so it is compiled in, by that comment's own
+      -- proof route.
   | otherwise =
       assert (m <= 2147483648 && maxOff < 4294967296 && minOff >= 0)
       $ scanned [(n, st) | (n, st) <- zip osh oats, n /= 1]
@@ -1095,11 +1076,9 @@ fbBQexpandLemireMulback sh (T (Strides ats) ao v)
 -- magic ('gmMagic') instead of the Lemire multiply-high -- one change, so
 -- that strategy is its control, and the pair prices dropping the l < 2^32
 -- bound on the SHIPPED build where 'fbBQmutRunsGmMulback' prices it on a
--- mutable one. Added when the precondition ruling
--- (README.md#what-the-benchmark-does) stopped timing every Lemire arm: the
--- mul-back output was worth ~4% over plain 'quotRem' on this build at Run 8,
--- and without this arm that idea would have left the timed set with no
--- unconditional form to be measured in.
+-- mutable one. It is the unconditional form of the mul-back output, worth ~4%
+-- over plain 'quotRem' on this build at Run 8, which the precondition ruling
+-- (README.md#what-the-benchmark-does) stopped timing in every Lemire arm.
 {-# NOINLINE fbBQexpandGmMulback #-}
 fbBQexpandGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQexpandGmMulback sh (T (Strides ats) ao v)
@@ -1224,14 +1203,12 @@ fbBQmutRunsMulback sh (T (Strides ats) ao v)
 -- ('gmMagic') instead of the Lemire multiply-high -- one change, so that
 -- strategy is its control, and the pair prices dropping the l < 2^32
 -- restriction: same table, same mul-back remainder, one extra shift per
--- element, and no 'lemireFits' anywhere in the arm. Predicted within noise
--- of the control and is NOT: Run 8 (SpecConstr) has it ~9% behind at two
--- wins of 24, past the floor as on every run since the pair was written and
--- in both regimes. Dropping the size bound
--- costs real time on this build, so the bound is worth keeping where it
--- holds. That reading is now frozen: the precondition ruling stopped timing
--- the control, so Run 9 could not re-read the pair and no later run can
--- either while the ruling stands. What the ruling leaves measurable is this
+-- element, and no 'lemireFits' anywhere in the arm. It is NOT within noise of
+-- the control: Run 8 (SpecConstr) has it ~9% behind at two wins of 24, past
+-- the floor on every run that timed the pair and in both regimes, so dropping
+-- the size bound costs real time on this build and the bound is worth keeping
+-- where it holds. The reading is frozen at Run 8, the precondition ruling
+-- having stopped timing the control. What the ruling leaves measurable is this
 -- arm against the other unconditional builds, which is claim 1.
 {-# NOINLINE fbBQmutRunsGmMulback #-}
 fbBQmutRunsGmMulback :: ShapeL -> T -> VS.Vector Double
@@ -1250,22 +1227,16 @@ fbBQmutRunsGmMulback sh (T (Strides ats) ao v)
                 in  VS.unsafeIndex v
                       (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
 
--- 'fbBQexpandLemireMulback' with the table built by 'baseOffsetsScan'
--- instead of 'baseOffsetsExpand' -- one change, so that strategy is its
--- control. The pure sweet spot it was built to be, conditional on
--- SpecConstr, which is the standing assumption. Run 8 settled that
--- prediction and it came out a third right: under -fspec-constr the
--- allocation is the predicted 1.33x exactly and the arm's absolute per-call
--- time falls 31% -- but it lands
--- level with its own build control rather than ahead of it (1.0004 over 24
--- shapes), so the builder does not beat the expansion it replaces, and the
--- fastest pure time went to 'fbBQodoMulback' instead. Both halves of that
--- pair are untimed since the precondition ruling, so the reading is frozen
--- where Run 8 left it; the same builder comparison on unconditional arms is
--- claim 4's FIRST half, which every run since has read as a tie by the sign
--- test -- its second half, against 'fbBQexpand' rather than against the
--- build control, is an ordering from Run 16 on and README says so.
--- At plain -O1 the
+-- 'fbBQexpandLemireMulback' with the table built by 'baseOffsetsScan' instead
+-- of 'baseOffsetsExpand' -- one change, so that strategy is its control. Under
+-- -fspec-constr the allocation is 1.33x and the arm's absolute per-call time
+-- falls 31%, but it lands level with its own build control rather than ahead
+-- of it (1.0004 over 24 shapes), so the builder does not beat the expansion it
+-- replaces, and the fastest pure time is 'fbBQodoMulback''s -- frozen at Run
+-- 8, both halves of the pair untimed under the precondition ruling. The same
+-- builder comparison on unconditional arms is claim 4's FIRST half, read as a
+-- tie by the sign test; its second half, against 'fbBQexpand' rather than the
+-- build control, is an ordering, and README's. At plain -O1 the
 -- builder's stream state boxes per entry and this inherits
 -- bq-expand-class allocation
 -- (the record of that regime is the comment at 'baseOffsetsScan'), leaving
@@ -1317,7 +1288,7 @@ fbBQscanRemMulback sh (T (Strides ats) ao v)
 -- side. The build is 'baseOffsetsScan' unchanged, so this arm's own
 -- 'lemireFits' exposure is only the builder's internal one; the fully
 -- restriction-free pure composition (scan-rem build + GM output) is one
--- further swap, deliberately not taken until each half is priced alone.
+-- further swap, the arm below.
 {-# NOINLINE fbBQscanGmMulback #-}
 fbBQscanGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQscanGmMulback sh (T (Strides ats) ao v)
@@ -1395,10 +1366,10 @@ fbBQodoMulback sh (T (Strides ats) ao v)
 
 -- 'fbBQodoMulback' with the Granlund-Montgomery quotient -- one change, so
 -- that strategy is its control. This is the only unconditional arm built on
--- 'baseOffsetsOdo', and without it the odometer BUILD leaves the timed set
--- altogether under the precondition ruling, taking Run 8's fastest pure arm
--- (0.089) with it. Whether the build is worth its 4.67x-an-entry allocation
--- once the output costs a shift more is what Run 9 measures.
+-- 'baseOffsetsOdo', the build of Run 8's fastest pure arm (0.089), which the
+-- precondition ruling takes out of the timed set. Whether the build is worth
+-- its 4.67x-an-entry allocation once the output costs a shift more is the
+-- question it prices, and README's.
 {-# NOINLINE fbBQodoGmMulback #-}
 fbBQodoGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQodoGmMulback sh (T (Strides ats) ao v)
@@ -1417,15 +1388,9 @@ fbBQodoGmMulback sh (T (Strides ats) ao v)
                       (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
 
 -- 'fbBQscanMulback' with the table built by 'baseOffsetsScanPacked' -- one
--- change, so that strategy is its control. The pair was held to be
--- informative only at plain -O1, its -fspec-constr reading expected to be a
--- null and to serve as a control on the harness rather than as a result.
--- Run 8 refuted that: 1.11x apart there on 24 shapes of 24 at identical
--- allocation. A Core diff placed the fault in the inference and not in the
--- harness -- the premise holds, both loops specialising and neither boxing,
--- but unboxing deletes the CONTROL's Either-of-pair and leaves this arm's
--- shift and mask standing. The builder's comment carries the mechanism and
--- the -O1-only ruling that follows from it.
+-- change, so that strategy is its control. Its -fspec-constr reading is no
+-- null: 1.11x apart there on 24 shapes of 24 at identical allocation, for the
+-- reason, and with the -O1-only ruling, at the builder's comment.
 {-# NOINLINE fbBQscanPackedMulback #-}
 fbBQscanPackedMulback :: ShapeL -> T -> VS.Vector Double
 fbBQscanPackedMulback sh (T (Strides ats) ao v)
@@ -1540,23 +1505,21 @@ fbOffTab sh (T (Strides ats) ao v) =
           _ <- go (init sh) (init ats) 0 ao
           return o
 
--- 'fbOffTab' with the l-length offset table narrowed to Int32. The table
--- is that strategy's whole extra cost -- one sequential write plus one
--- sequential read of the full 8*l bytes on top of what 'fbMutOdo' does --
--- and this halves both, taking the table's share of the allocation with
--- them. 'fbOffTab' was the fastest strategy needing no class extension when
--- this was written, so this asks whether narrowing moves it toward
--- 'fbMutOdo', whose lead over it is exactly that extra pass. The answer is
--- the regime's, not the narrowing's: at -O1 (Run 7) the narrowing costs time
--- rather than buying it, and under -fspec-constr (Run 8) it buys 12% on 24
--- shapes of 24 -- but the pair inverts because the CONTROL regresses 22% in
--- absolute time there, the largest setback of that run and unexplained,
--- while this arm improves 6%. The narrowing's own Core is regime-invariant,
--- two 'intToInt32#' and a 'writeInt32Array#' in both, which is why it moves
--- with what it is measured against rather than with the flag.
--- Odometer arithmetic stays in Int; only the store narrows, so
--- 'int32Fits' is the whole of its precondition -- it uses no multiply-high,
--- and so needs nothing from 'lemireFits'.
+-- 'fbOffTab' with the l-length offset table narrowed to Int32. The table is
+-- that strategy's whole extra cost -- one sequential write plus one sequential
+-- read of the full 8*l bytes on top of what 'fbMutOdo' does -- and this
+-- halves both, taking the table's share of the allocation with them. So this
+-- asks whether narrowing moves 'fbOffTab' toward 'fbMutOdo', whose lead
+-- over it is exactly that extra pass. The answer is the regime's, not the
+-- narrowing's: at -O1 (Run 7) the narrowing costs time rather than buying
+-- it, and under -fspec-constr (Run 8) it buys 12% on 24 shapes of 24 -- but
+-- the pair inverts because the CONTROL regresses 22% in absolute time there,
+-- the largest setback of that run and unexplained, while this arm improves
+-- 6%. The narrowing's own Core is regime-invariant, two 'intToInt32#' and a
+-- 'writeInt32Array#' in both, which is why it moves with what it is measured
+-- against rather than with the flag. Odometer arithmetic stays in Int; only
+-- the store narrows, so 'int32Fits' is the whole of its precondition -- it
+-- uses no multiply-high, and so needs nothing from 'lemireFits'.
 {-# NOINLINE fbOffTab32 #-}
 fbOffTab32 :: ShapeL -> T -> VS.Vector Double
 fbOffTab32 sh (T (Strides ats) ao v) =
@@ -1599,16 +1562,14 @@ fbOffTab32 sh (T (Strides ats) ao v) =
 -- mulback strategies it needs no @s == 1@ branch: there is no output
 -- division to guard.
 --
--- The bet did not survive measurement, and has not on any run since: it
--- lands well behind 'fbOffTab', because the builder's per-entry state
--- boxing (see 'baseOffsetsScan') runs l times here and costs more than the
--- arithmetic-free gather saves, and its allocation lands several times
--- above the 2.0x the fused form promised. Two
--- tunings once listed as pending -- hoisting the second cascade level, an
--- Int32 table twin -- were premised on the fused form and are moot until
--- the state boxing itself is fixed, which at plain -O1 no pure-typed
--- builder escapes (the SpecConstr flag fixes it, as -O2 does: see
--- 'baseOffsetsScan').
+-- The bet does not survive measurement: it lands well behind 'fbOffTab' on
+-- every run that timed it, because the builder's per-entry state boxing (see
+-- 'baseOffsetsScan') runs l times here and costs more than the arithmetic-free
+-- gather saves, and its allocation lands several times above the 2.0x the
+-- fused form promised. Two tunings -- hoisting the second cascade level, an
+-- Int32 table twin -- are premised on the fused form and moot until the state
+-- boxing itself is fixed, which at plain -O1 no pure-typed builder escapes
+-- (the SpecConstr flag fixes it, as -O2 does: see 'baseOffsetsScan').
 --
 -- The builder's unit-dim elision is what makes 'stretch-inner1' optimal
 -- here rather than pathological: its [500000, 1] filters to one real
@@ -1678,11 +1639,10 @@ fbMutOdo sh (T (Strides ats) ao v) = VS.create $ do
 
 -- 'fbMutOdo' with the odometer's dimension lists replaced by unboxed
 -- vectors walked with a bare-Int level index -- one change, so 'mut-odo'
--- is its control. It was written as a diagnostic and answered decisively:
--- the direct fill's per-run cost WAS the cons-list traffic of the odometer
--- recursion, not the nested structure. It has been the fastest arm measured
--- ever since, which is what reopened the class-method tier the README had
--- closed (README.md#the-mutable-ceiling-taken).
+-- is its control. Written as a diagnostic, it answered decisively: the direct
+-- fill's per-run cost IS the cons-list traffic of the odometer recursion, not
+-- the nested structure, and this fill is what reopened the class-method tier
+-- (README.md#the-mutable-ceiling-taken).
 -- 'writeRun' is kept character-identical to 'fbMutOdo''s so the build
 -- of each run cannot differ.
 {-# NOINLINE fbMutOdoVecdims #-}
@@ -1898,35 +1858,31 @@ fbMutOdoVecdimsAddBothDown sh (T (Strides ats) ao v) = VS.create $ do
         !oatsV = VU.fromList (init ats)
         !oostV = VU.fromList (init (drop 1 (getStridesT sh)))
 
--- The four arms below extend the FastReshape decomposition, added
--- 2026-08-24 for Run 20. The family's verdict
--- (README.md#the-mutable-ceiling-taken) refuted FastReshape's offset
--- arithmetic but left two mechanisms unpriced solo: the count-down run
--- fill -- the family's one recorded per-element mechanism, seven
--- instructions against the shared eight, measured only on top of the
--- output-stride table whose per-call cost buries it -- and the per-run
--- control flow, a non-tail call, a level check and a threaded return per
--- run, which no arm above varies. A same-day paired probe (the README
--- section above) pruned the four to two timed arms: the down fill's solo
--- arms are refuted by codegen and rostered 'Only', reasons at their
--- comments, and the leaf arms are the Run 20 additions.
+-- The four arms below extend the FastReshape decomposition. The family's
+-- verdict (README.md#the-mutable-ceiling-taken) refuted FastReshape's offset
+-- arithmetic but left two mechanisms unpriced solo: the count-down run fill --
+-- the family's one recorded per-element mechanism, seven instructions against
+-- the shared eight, measured only on top of the output-stride table whose
+-- per-call cost buries it -- and the per-run control flow, a non-tail call,
+-- a level check and a threaded return per run, which no arm above varies. A
+-- paired probe (the same README section) pruned the four to the two leaf
+-- arms: the down fill's solo arms are refuted by codegen and rostered 'Only',
+-- reasons at their comments.
 
--- 'fbMutOdoVecdims' with the run fill alone in the count-down form,
--- 'writeRun' kept character-identical to 'fbMutOdoVecdimsAddBothDown''s
--- -- one change, so 'mut-odo-vecdims' is its control. Refuted as a timed
--- arm the day it was written, so it is rostered 'Only': under the leaf
--- continuation @>> return (outPos + sInner)@ the live @outPos@ pushes
--- the down fill's loop invariants out of registers, 40 bytes over 11
--- instructions against the canonical 24 over 7 -- the extra four being
--- per-element reloads of @tInner@ and both base pointers, one of them
--- dead -- in the timed binary and its -g3 twin alike, and the probe
--- agrees (README.md#the-mutable-ceiling-taken). The down fill wants a
--- unit-return context: the output-stride table buys
--- 'fbMutOdoVecdimsAddBothDown' one at a price, the fused leaf buys
--- 'fbMutOdoVecdimsAddInLeafDown' one for free; this arm has none. The
--- outer loop keeps counting up, deliberately: there the counter is the
--- multiplier in @baseOff + i * st@, so the falling form is free only on
--- the additive arms.
+-- 'fbMutOdoVecdims' with the run fill alone in the count-down form, 'writeRun'
+-- kept character-identical to 'fbMutOdoVecdimsAddBothDown''s -- one change, so
+-- 'mut-odo-vecdims' is its control. Refuted as a timed arm, so it is rostered
+-- 'Only': under the leaf continuation @>> return (outPos + sInner)@ the live
+-- @outPos@ pushes the down fill's loop invariants out of registers, 40 bytes
+-- over 11 instructions against the canonical 24 over 7 -- the extra four
+-- being per-element reloads of @tInner@ and both base pointers, one of them
+-- dead -- in the timed binary and its -g3 twin alike, and the probe agrees
+-- (README.md#the-mutable-ceiling-taken). The down fill wants a unit-return
+-- context: the output-stride table buys 'fbMutOdoVecdimsAddBothDown' one at
+-- a price, the fused leaf buys 'fbMutOdoVecdimsAddInLeafDown' one for free;
+-- this arm has none. The outer loop keeps counting up, deliberately: there the
+-- counter is the multiplier in @baseOff + i * st@, so the falling form is free
+-- only on the additive arms.
 {-# NOINLINE fbMutOdoVecdimsDown #-}
 fbMutOdoVecdimsDown :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsDown sh (T (Strides ats) ao v) = VS.create $ do
@@ -2048,22 +2004,21 @@ fbMutOdoVecdimsAddInLeaf sh (T (Strides ats) ao v) = VS.create $ do
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
 
--- Both new axes at once, so the Run 20 2x2 over 'fbMutOdoVecdimsAddIn'
--- closes: one change from 'fbMutOdoVecdimsAddInLeaf' (the form, at every
--- loop) and one from 'fbMutOdoVecdimsAddInDown' (the fused leaf).
--- Against 'add-in' it is the endpoint contrast, read directly, not
--- summed from marginals. 'writeRun' is character-identical to
--- 'fbMutOdoVecdimsAddBothDown''s.
--- In the leaf family's later vocabulary this is the '-u1-down' slot:
--- 'fbMutOdoVecdimsAddInLeafU1' with the fill's bound a falling count
--- instead of the @oEnd@ cursor, the outer loops being '-u1''s already
--- -- what 'fbMutOdoVecdimsAddInLeafU2Down' is to '-u2' -- so no arm of
--- that name is wanted and the pair is read here. The count costs a
--- third value stepped per element, the cursor form's bound being a
--- compare of the cursor it steps anyway: Run 26 reads '-u1' at 0.9154
--- of this arm's counted instructions, one an element, and 0.9556 in
--- time, 18 of 19 (runs/run26.md). At unroll 2 the same change is a
--- tie, for the reason at 'fbMutOdoVecdimsAddInLeafU2Down'.
+-- Both new axes at once, so the 2x2 over 'fbMutOdoVecdimsAddIn'
+-- closes: one change from 'fbMutOdoVecdimsAddInLeaf' (the form, at
+-- every loop) and one from 'fbMutOdoVecdimsAddInDown' (the fused
+-- leaf). Against 'add-in' it is the endpoint contrast, read directly,
+-- not summed from marginals. 'writeRun' is character-identical to
+-- 'fbMutOdoVecdimsAddBothDown''s. In the leaf family's vocabulary this is
+-- the '-u1-down' slot: 'fbMutOdoVecdimsAddInLeafU1' with the fill's bound a
+-- falling count instead of the @oEnd@ cursor, the outer loops being '-u1''s
+-- already -- what 'fbMutOdoVecdimsAddInLeafU2Down' is to '-u2' -- so no
+-- arm of that name is wanted and the pair is read here. The count costs a
+-- third value stepped per element, the cursor form's bound being a compare
+-- of the cursor it steps anyway: Run 26 reads '-u1' at 0.9154 of this
+-- arm's counted instructions, one an element, and 0.9556 in time, 18 of 19
+-- (runs/run26.md). At unroll 2 the same change is a tie, for the reason at
+-- 'fbMutOdoVecdimsAddInLeafU2Down'.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafDown #-}
 fbMutOdoVecdimsAddInLeafDown :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafDown sh (T (Strides ats) ao v) = VS.create $ do
@@ -2103,31 +2058,25 @@ fbMutOdoVecdimsAddInLeafDown sh (T (Strides ats) ao v) = VS.create $ do
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
 
--- 'fbMutOdoVecdimsAddInLeafDown' with the fill unrolled by two, an
--- epilogue taking the odd or empty run -- one change, the fill body, so
--- that arm is its control; against 'fbMutOdoVecdimsAddInLeaf' it is the
--- form axis's third value. The unrolled fill has no counter at all, the
--- bound living on the output cursor, which always steps by one -- so it
--- is sound for zero and negative strides, and it supersedes the up/down
--- question inside the run rather than crossing it. The dead-ideas
--- ruling (README.md#dead-ideas) kills unrolling by the runtime @sInner@
--- only; a fixed factor was untested until the probe of 2026-08-24
--- (README.md#the-mutable-ceiling-taken), which also read the
--- intermediate fused-bound form -- counter merged into the cursor,
--- six instructions -- as a wash; that form is 'fbMutOdoVecdimsAddInLeafU1'
--- below, rostered for Run 25 to re-read the wash under the shim.
--- The guard looks one element ahead, @o + 1 >= oEnd@, an add per pair
--- that 'fbMutOdoVecdimsAddInLeafU2Last' hoists into the bound.
--- 'genericFillStrided' in Data/Array/Internal.hs was this arm's
--- bang-for-bang port from 2026-08-24 to 2026-09-11, when the library
--- took 'fillStage2' instead. This arm keeps the broadcast run it took
--- from that driver the same day -- read once, written unrolled by two,
--- at innermost stride 0 -- and has no block copy. Its stepping run is
--- untouched, so no main-set figure owes anything to the change; but the
--- family's one-change controls below, '-u2-last', '-u2-ptr', '-u2-down'
--- and '-u1', keep the stepping body at stride 0, so on a view whose
--- innermost stride is 0 each differs from this arm by two changes, and
--- the main set has no such view.
+-- 'fbMutOdoVecdimsAddInLeafDown' with the fill unrolled by two, an epilogue
+-- taking the odd or empty run -- one change, the fill body, so that arm is
+-- its control; against 'fbMutOdoVecdimsAddInLeaf' it is the form axis's
+-- third value. The unrolled fill has no counter at all, the bound living on
+-- the output cursor, which always steps by one -- so it is sound for zero
+-- and negative strides, and it supersedes the up/down question inside the
+-- run rather than crossing it. The dead-ideas ruling (README.md#dead-ideas)
+-- kills unrolling by the runtime @sInner@ only; a fixed factor was read
+-- by the probe of 2026-08-24 (README.md#the-mutable-ceiling-taken). The
+-- intermediate fused-bound form, counter merged into the cursor, is
+-- 'fbMutOdoVecdimsAddInLeafU1' below.
+-- The guard looks one element ahead, @o + 1 >= oEnd@, an add per pair that
+-- 'fbMutOdoVecdimsAddInLeafU2Last' hoists into the bound. This arm took its
+-- broadcast run from 'fillStage2', the library's driver then -- read once,
+-- written unrolled by two, at innermost stride 0 -- and has no block copy. No
+-- main-set figure owes anything to the broadcast run; but the family's
+-- one-change controls below, '-u2-last', '-u2-ptr', '-u2-down' and '-u1', keep
+-- the stepping body at stride 0, so on a view whose innermost stride is 0 each
+-- differs from this arm by two changes, and the main set has no such view.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU2 #-}
 fbMutOdoVecdimsAddInLeafU2 :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
@@ -2144,15 +2093,11 @@ fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
                   VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
                   inner (o + 2) (src' + tInner)
         in  inner outPos baseOff
-      -- The broadcast run at innermost stride 0, its one element read
-      -- once and written unrolled by two: 'fillStage2''s 'writeRunSet'
-      -- body, without the INLINE pragma the driver gives it, this
-      -- leaf's stepping body having none either; taken 2026-09-11 for
-      -- Run 29 (runs/run28.md,
-      -- registration (14)). Before it the stepping body above
-      -- served a broadcast run, reading the same element every
-      -- write. Non-vacuity, 2026-09-11: dropping the second write fails
-      -- @check@ at @bcast-inner8@.
+      -- The broadcast run at innermost stride 0, its one element read once and
+      -- written unrolled by two: 'fillStage2''s 'writeRunSet' body, without
+      -- the INLINE pragma the driver gives it, this leaf's stepping body
+      -- having none either. Non-vacuity, 2026-09-11: dropping the second write
+      -- fails @check@ at @bcast-inner8@.
       writeRunSet !outPos !baseOff =
         let !x = VS.unsafeIndex v baseOff
             !oEnd = outPos + sInner
@@ -2195,34 +2140,31 @@ fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
   where !l = product sh
         !sInner = last sh
         !tInner = last ats
-        -- No doubled stride here any more; see the fill's own note.
+        -- No doubled stride here; see the fill's own note.
         !rOuter = length sh - 1
         oshV, oatsV :: VU.Vector Int
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
 
--- 'fbMutOdoVecdimsAddInLeafU2' with the look-ahead hoisted out of the
--- fill's guard: the bound held as the run's LAST output index, @oLast@,
--- the parent's @oEnd@ less one, compared against the cursor directly,
--- where the parent computes @o + 1@ per pair and compares that against
--- @oEnd@ -- one change, so that arm is its control. The epilogue reads
--- the same bound, past it the run being done and at it one element
--- left. The live set does not grow, @oLast@ standing where @oEnd@ stood,
--- which is what the fourteenth reading's ruling asks of a source change
--- in this loop (README.md#the-mutable-ceiling-taken); what changes at
--- the run level is that @op + sInner@ is no longer the fill's own bound
--- handed on as the next cursor, the shape '-u2-down' carries at a tie.
--- Expected from Run 26's counts: one instruction fewer per pair, where
--- '-u2' and '-u2-down' execute the same count -- the parent's look-ahead
--- add being the instruction that arm spends on its decrement -- so in
--- counts this arm should part from both, and the run says whether time
--- follows. Counted the same day on the g912 build, N=50, a smoke run and
--- not a column: 0.9688 of '-u2' on @runs-65536@ and on @stretch-tall-Mx2@,
--- half an instruction an element, with '-u2-down' level with '-u2'
+-- 'fbMutOdoVecdimsAddInLeafU2' with the look-ahead hoisted out of the fill's
+-- guard: the bound held as the run's LAST output index, @oLast@, the parent's
+-- @oEnd@ less one, compared against the cursor directly, where the parent
+-- computes @o + 1@ per pair and compares that against @oEnd@ -- one change, so
+-- that arm is its control. The epilogue reads the same bound, past it the run
+-- being done and at it one element left. The live set does not grow, @oLast@
+-- standing where @oEnd@ stood, which is what the fourteenth reading's ruling
+-- asks of a source change in this loop (README.md#the-mutable-ceiling-taken);
+-- what changes at the run level is that @op + sInner@ is no longer the fill's
+-- own bound handed on as the next cursor, the shape '-u2-down' carries at
+-- a tie. '-u2' and '-u2-down' execute the same count on Run 26's counts,
+-- the parent's look-ahead add being the instruction that arm spends on its
+-- decrement, so this arm should save one instruction a pair. Counted on
+-- the g912 build, N=50, a smoke run and not a column: 0.9688 of '-u2' on
+-- @runs-65536@ and on @stretch-tall-Mx2@, half an instruction an element, with
+-- '-u2-down' level with '-u2'
 -- on both; 0.9837 on @runs-7@; and LEVEL on the three-wide runs of
 -- @cnn-L1-24x24-c1@ and @cnn-L1-6x6-c1@, so the odd tail gives the pair's
--- saving back there, which the -g3 twin can read. Added 2026-09-07 for Run
--- 27.
+-- saving back there, which the -g3 twin can read.
 -- Non-vacuity, 2026-09-07: closing the epilogue's test to @o >= oLast@,
 -- which skips the odd element, fails @check@ at @cnn-L1-6x6-c1@, naming
 -- this arm alone.
@@ -2280,19 +2222,17 @@ fbMutOdoVecdimsAddInLeafU2Last sh (T (Strides ats) ao v) = VS.create $ do
 -- fill's bound a falling count, its control on the bound;
 -- 'fbMutOdoVecdimsAddInLeaf' is two changes off, carrying a counter
 -- beside the cursor, @j@ against @sInner@ with each write at
--- @outPos + j@, AND stepping its outer loops up where these count
--- down. What the cursor bound buys over the count at this unroll, one
--- instruction an element, is read at that control. This is the
--- intermediate fused-bound form the probe of 2026-08-24 read as a wash
--- against the counted leaf, 0.9967 at 5 of 9,
--- on a scratch build with no shim and so with its loop heads wherever
--- the native backend left them; rostered 2026-09-04 for Run 25 so the
--- two changes the shipped fill bundles are priced apart under
--- controlled placement (README.md#the-mutable-ceiling-taken). Read on
--- the dead-spot -g3 twin the same day: the rank-1 copy is the probe's
--- six instructions, the run-level copy seven, reloading the source base
--- from the stack once per element (README.md#what-is-open, the Run 25
--- entry).
+-- @outPos + j@, AND stepping its outer loops up where these count down. What
+-- the cursor bound buys over the count at this unroll, one instruction an
+-- element, is read at that control. This is the intermediate fused-bound
+-- form the probe of 2026-08-24 read as a wash against the counted leaf,
+-- 0.9967 at 5 of 9, on a scratch build with no shim and so with its loop
+-- heads wherever the native backend left them; rostered, it prices the
+-- two changes the shipped fill bundles apart under controlled placement
+-- (README.md#the-mutable-ceiling-taken). On the dead-spot -g3 twin its rank-1
+-- copy is the probe's six instructions and its run-level copy seven, reloading
+-- the source base from the stack once per element (README.md#what-is-open, the
+-- Run 25 entry).
 -- Non-vacuity, 2026-09-04: dropping the @+ tInner@ from the recursive
 -- call fails @check@ at @cnn-L1-6x6-c1@, naming this arm.
 -- Not kept in step with 'fbMutOdoVecdimsAddInLeafU2' past the one
@@ -2339,14 +2279,12 @@ fbMutOdoVecdimsAddInLeafU1 sh (T (Strides ats) ao v) = VS.create $ do
         !oatsV = VU.fromList (init ats)
 
 -- 'fbMutOdoVecdimsAddInLeafU1' with the source base HELD rather than
--- reloaded. The dead-spot -g3 twin read that arm's run-level copy at
--- seven instructions where its rank-1 copy reads six, the odd one a
--- reload of the source base from the stack per element
--- (README.md#what-is-open), so the three and a half to five points
--- '-u1' gives up to '-u2' are the loop overhead and that reload
--- together and no figure has said what the unrolling alone is worth.
--- This takes the base ONCE, outside every loop, and reads through it:
--- one change against '-u1' as '-u1' is one change against '-u2'.
+-- reloaded. That arm's run-level copy reloads the source base from the stack
+-- per element (its comment), so the three and a half to five points '-u1'
+-- gives up to '-u2' are the loop overhead and that reload together and no
+-- figure has said what the unrolling alone is worth. This takes the base
+-- ONCE, outside every loop, and reads through it: one change against '-u1' as
+-- '-u1' is one change against '-u2'.
 --
 -- It is the only arm here that reads through a 'Ptr'; every other
 -- indexes the vector, and indexing is precisely what spills. The
@@ -2357,19 +2295,14 @@ fbMutOdoVecdimsAddInLeafU1 sh (T (Strides ats) ao v) = VS.create $ do
 -- promise, so if this arm's instructions per element do not fall
 -- against '-u1', the reload did not go and its time prices nothing.
 --
--- IT DID NOT GO, MEASURED 2026-09-05, so this is rostered 'Only'.
--- Against '-u1' it executes 0.9985 of the corrected instructions over
--- nineteen shapes -- a tenth of a percent, where losing one of the run
--- copy's seven per element would be some fourteen. The same sweep
--- reproduces the two ratios already on record, '-u1' over '-u2' at
--- 1.0859 against Run 25's 1.0892 and over the counted leaf at 0.8497
--- against 0.8456, so the null is the arm's and not the instrument's.
--- Whether the base still spills was not read: no assembly of this arm
--- has been looked at, and its loop being instruction-identical to '-u1'
--- is all that is known. README's item 2 records where the question went
--- next, the spill-free -fllvm build, and why it stops there; the arm is
--- kept CHECKED so the refuted shape is on the record rather than re-
--- proposed.
+-- IT DID NOT GO, MEASURED 2026-09-05, so this is rostered 'Only': against
+-- '-u1' it executes 0.9985 of the corrected instructions, the null the
+-- arm's and not the instrument's (README.md#dead-ideas, with the sweep's
+-- controls). Whether the base still spills was not read: no assembly of this
+-- arm has been looked at, and its loop being instruction-identical to '-u1' is
+-- all that is known. README's item 2 records where the question went next, the
+-- spill-free -fllvm build, and why it stops there; the arm is kept CHECKED so
+-- the refuted shape is on the record rather than re- proposed.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU1Base #-}
 fbMutOdoVecdimsAddInLeafU1Base :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU1Base sh (T (Strides ats) ao v) =
@@ -2413,8 +2346,8 @@ fbMutOdoVecdimsAddInLeafU1Base sh (T (Strides ats) ao v) =
         !oatsV = VU.fromList (init ats)
 
 -- 'fbMutOdoVecdimsAddInLeafU1' with the innermost cursors as running
--- pointers, added 2026-09-05 as the first attempt at the reload the
--- twentieth reading names (README.md#the-mutable-ceiling-taken):
+-- pointers, an attempt at the reload the twentieth reading names
+-- (README.md#the-mutable-ceiling-taken):
 -- the element loop carries two moving pointers and no base, so the
 -- allocator has no invariant to spill, and the loop comes out at six
 -- instructions with no stack access. Rostered 'Only' because the run
@@ -2473,36 +2406,33 @@ fbMutOdoVecdimsAddInLeafU1PtrLeaf sh (T (Strides ats) ao v) =
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
 
--- 'fbMutOdoVecdimsAddInLeafU1' with the cursors as running pointers at
--- EVERY level, added 2026-09-05: each run is entered with its output
--- and source pointers in hand and advances them by 'sBytes' and the
--- level's stride in bytes, so the element loop carries two moving
--- pointers and no invariant base -- the value the linear allocator
--- spills in '-u1', '-u2' and the counted leaf alike, one reload an
--- iteration (README.md#the-mutable-ceiling-taken, the twentieth
--- reading). It is the Ptr-walking fill README's dead-ideas ruling of
--- 2026-08-29 refused for the library, and the ruling stands: this arm
--- is timed for the CEILING, the time '-u1' would reach under a register
--- allocator that spilled nothing, and not as a candidate to ship. Read
--- by profile on the shim-free g912 recipe: six instructions an element,
--- no stack access, and none in the run loop above it. Counted on the
--- same build: 0.8945 of '-u1''s corrected instructions over nineteen
--- shapes, 19 of 19 below 1, and 0.9712 of '-u2''s at 14 of 19 -- the
--- un-unrolled loop without its spill executes less than the unrolled
--- one with it. RUN 26 READ IT: on the 9.12 basis the counted ratio
--- reproduces at 0.8944 and the arm is 0.9693 of '-u1' in TIME, past
--- that half's 0.31% floor, so the spill is worth about a thirtieth of
--- the fill and under a third of the instruction saving reaches the
--- clock (README.md#the-mutable-ceiling-taken, the twenty-first
--- reading). ON GHC HEAD IT INVERTED: 1.0235 in counts, 1.3084 in time
--- and 1.41x the result vector allocated where the basis allocates
--- 1.00x, which is that compiler and not this code -- GHC
--- https://gitlab.haskell.org/ghc/ghc/-/work_items/27778, found 2026-09-06:
--- a bang-bound 'plusPtr' result let-generalises to 'forall b. Ptr b', and
--- from 9.14 the simplifier keeps the case on that type lambda, so a 'Ptr'
--- is allocated and taken apart on every run. The ':: Ptr Double' on every
--- such binding in the three pointer arms is the workaround, and the 9.12
--- code is unchanged by it.
+-- 'fbMutOdoVecdimsAddInLeafU1' with the cursors as running pointers at EVERY
+-- level: each run is entered with its output and source pointers in hand
+-- and advances them by 'sBytes' and the level's stride in bytes, so the
+-- element loop carries two moving pointers and no invariant base -- the
+-- value the linear allocator spills in '-u1', '-u2' and the counted leaf
+-- alike, one reload an iteration (README.md#the-mutable-ceiling-taken, the
+-- twentieth reading). It is the Ptr-walking fill README's dead-ideas ruling
+-- of 2026-08-29 refused for the library, and the ruling stands: this arm is
+-- timed for the CEILING, the time '-u1' would reach under a register allocator
+-- that spilled nothing, and not as a candidate to ship. Read by profile on
+-- the shim-free g912 recipe: six instructions an element, no stack access,
+-- and none in the run loop above it. Counted on the same build: 0.8945 of
+-- '-u1''s corrected instructions over nineteen shapes, 19 of 19 below 1, and
+-- 0.9712 of '-u2''s at 14 of 19 -- the un-unrolled loop without its spill
+-- executes less than the unrolled one with it. On Run 26's 9.12 basis the
+-- first ratio reproduces at 0.8944 and the arm is 0.9693 of '-u1' in TIME,
+-- past that half's 0.31% floor, so the spill is worth about a thirtieth of
+-- the fill and under a third of the instruction saving reaches the clock
+-- (README.md#the-mutable-ceiling-taken, the twenty-first reading). ON GHC
+-- HEAD, without the workaround below, it inverts: 1.0235 in counts, 1.3084 in
+-- time and 1.41x the result vector allocated where the basis allocates 1.00x,
+-- which is that compiler and not this code --
+-- GHC https://gitlab.haskell.org/ghc/ghc/-/work_items/27778: a bang-bound
+-- 'plusPtr' result let-generalises to 'forall b. Ptr b', and from 9.14 the
+-- simplifier keeps the case on that type lambda, so a 'Ptr' is allocated and
+-- taken apart on every run. The ':: Ptr Double' on every such binding in the
+-- three pointer arms is the workaround, and the 9.12 code is unchanged by it.
 -- Not kept in step with 'fbMutOdoVecdimsAddInLeafU2' past the one
 -- change it exists to price: whatever improved that leaf since is not
 -- here.
@@ -2553,32 +2483,26 @@ fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
         !oshV  = VU.fromList (init sh)
         !oatsB = VU.fromList (map (* 8) (init ats))
 
--- 'fbMutOdoVecdimsAddInLeafU2' with its cursors as running pointers
--- at every level, the change 'fbMutOdoVecdimsAddInLeafU1Ptr' makes
--- to '-u1', added 2026-09-05 so that Run 26 compares the two pointer
--- forms in one process. Like that arm it is the Ptr-walking fill
--- README's dead-ideas ruling refused for the library, and it is timed
--- for the CEILING '-u2' would reach under a register allocator that
--- spilled nothing, not as a candidate to ship. Read by profile on
--- the shim-free g912 recipe: nine instructions per two elements, no
--- stack access. Counted on the same build: 0.8356 of '-u2''s corrected
--- instructions over nineteen shapes, 19 of 19 below 1, and 0.8604
--- of '-u1-ptr''s at 18 of 19 -- 4.50 an element on the long runs
--- against 6.00, so with the spill gone the unrolling alone is worth a
--- quarter of the loop, the figure task 2 could not separate under the
--- allocator. RUN 26 READ IT: 0.8357 and 0.8605 in counts on the 9.12
--- basis, both reproducing, and 0.9479 of '-u2' and 0.9431 of
--- '-u1-ptr' as paired geomeans in TIME -- but 1.0688 and 1.0097 in the
--- published column, which is winsorized per row, and 13 of 19 with
--- sign p 0.17 against its own parent, so this arm's lead over '-u2' is
--- NOT established while its lead over '-u1-ptr' is. Removing the
--- reload from both arms leaves the unrolled one further ahead, not
--- nearer, which is the opposite of what the twentieth reading
--- registered. ON GHC HEAD it inverted
--- hardest of any arm on the roster: 1.8842 in counts, 2.6731 in time
--- and 2.61x the result vector allocated against 1.00x here --
--- GHC https://gitlab.haskell.org/ghc/ghc/-/work_items/27778,
--- worked around by the ':: Ptr Double' annotations as in
+-- 'fbMutOdoVecdimsAddInLeafU2' with its cursors as running pointers at
+-- every level, the change 'fbMutOdoVecdimsAddInLeafU1Ptr' makes to '-u1',
+-- so the two pointer forms are compared in one process. Like that arm it is
+-- timed for the CEILING, here the one '-u2' would reach under a register
+-- allocator that spilled nothing, and not as a candidate to ship. Read by
+-- profile on the shim-free g912 recipe: nine instructions per two elements,
+-- no stack access. Counted on the same build, and reproduced on Run 26's
+-- 9.12 basis at 0.8357 and 0.8605: 0.8356 of '-u2''s corrected instructions
+-- over nineteen shapes, 19 of 19 below 1, and 0.8604 of '-u1-ptr''s at
+-- 18 of 19 -- 4.50 an element on the long runs against 6.00, so with the
+-- spill gone the unrolling alone is worth a quarter of the loop. Run 26
+-- reads 0.9479 of '-u2' and 0.9431 of '-u1-ptr' as paired geomeans in TIME
+-- -- but 1.0688 and 1.0097 in the published column, which is winsorized
+-- per row, and 13 of 19 with sign p 0.17 against its own parent, so this
+-- arm's lead over '-u2' is NOT established while its lead over '-u1-ptr'
+-- is. Removing the reload from both arms leaves the unrolled one further
+-- ahead, not nearer, which is the opposite of what the twentieth reading
+-- registered. Without the ':: Ptr Double' annotations GHC HEAD inverts this
+-- arm hardest of any on the roster: 1.8842 in counts, 2.6731 in time and
+-- 2.61x the result vector allocated against 1.00x here, by the GHC issue at
 -- 'fbMutOdoVecdimsAddInLeafU1Ptr' above.
 -- Not kept in step with 'fbMutOdoVecdimsAddInLeafU2' past the one
 -- change it exists to price: whatever improved that leaf since is not
@@ -2636,25 +2560,20 @@ fbMutOdoVecdimsAddInLeafU2Ptr sh (T (Strides ats) ao v) =
         !oshV  = VU.fromList (init sh)
         !oatsB = VU.fromList (map (* 8) (init ats))
 
--- 'fbMutOdoVecdimsAddInLeafU2' with the fill's bound a falling count
--- instead of the @oEnd@ cursor bound -- one change, so that arm is its
--- control. It exists for the allocator and not for the algorithm: in
--- Run 20's HEAD binary the run-level copy of the U2 fill keeps seven
--- values live and spills both base pointers, four stack reloads per
--- two elements, where its rank-1 copy keeps them in registers
--- (README.md#the-mutable-ceiling-taken). The count replaces @oEnd@
--- one for one, so the loop is a value lighter, and the same epilogue
--- takes the odd or empty run. Rostered 'Only' on 2026-08-27 and timed
--- from 2026-08-28. The bound is on the count and not the cursor, so it is
--- as sign-agnostic as its control. What Run 21 read as this arm's loss
--- was the doubled stride both unrolled fills then carried; with it gone
--- (README.md#the-mutable-ceiling-taken, the fifteenth and eighteenth
--- readings) the pair is a tie in time and equal in counts, Run 26
--- reading the two within a rounding on @runs-65536@ -- the parent's
--- guard computes @o + 1@ per pair, the instruction this arm spends on
--- @d - 2@. 'fbMutOdoVecdimsAddInLeafU2Last' hoists that look-ahead and
--- parts from both there in counts, half an instruction an element on
--- the long runs and nothing on the three-wide ones (its definition).
+-- 'fbMutOdoVecdimsAddInLeafU2' with the fill's bound a falling count instead
+-- of the @oEnd@ cursor bound -- one change, so that arm is its control. It
+-- exists for the allocator and not for the algorithm: in Run 20's HEAD binary
+-- the run-level copy of the U2 fill keeps seven values live and spills both
+-- base pointers, four stack reloads per two elements, where its rank-1 copy
+-- keeps them in registers (README.md#the-mutable-ceiling-taken). The count
+-- replaces @oEnd@ one for one, so the loop is a value lighter, and the same
+-- epilogue takes the odd or empty run. The bound is on the count and not
+-- the cursor, so it is as sign-agnostic as its control. The pair is a tie
+-- in time and equal in counts (README.md#the-mutable-ceiling-taken, the
+-- fifteenth and eighteenth readings), Run 26 reading the two within a rounding
+-- on @runs-65536@ -- the parent's guard computes @o + 1@ per pair, the
+-- instruction this arm spends on @d - 2@, and 'fbMutOdoVecdimsAddInLeafU2Last'
+-- hoists that look-ahead (its definition).
 -- Non-vacuity, 2026-08-27: dropping
 -- the @+ tInner@ from the second read fails @check@ at @cnn-L1-6x6-c1@,
 -- naming this arm.
@@ -2699,7 +2618,7 @@ fbMutOdoVecdimsAddInLeafU2Down sh (T (Strides ats) ao v) = VS.create $ do
   where !l = product sh
         !sInner = last sh
         !tInner = last ats
-        -- No doubled stride here any more; see the fill's own note.
+        -- No doubled stride here; see the fill's own note.
         !rOuter = length sh - 1
         oshV, oatsV :: VU.Vector Int
         !oshV  = VU.fromList (init sh)
@@ -2759,15 +2678,13 @@ outerFirst = reverse . innerFirst
 -- to find the innermost axis in a list.
 data Walk = Walk !Int !Int InnerFirst
 
--- The library's 'canonicalizeT' to the line: the canonical axes
--- innermost first, 'mergeAxes' over the pairs it zips, each axis merged
--- into the one outside it or dropped where its extent is 1, with the
--- innermost axis at the head, where 'canonView' above writes the dims
--- outermost first for the arms whose fills and tables take them as
--- lists. Since 2026-09-22 the pass of every dispatch that
--- builds a 'Walk' from the canonical view, in place of 'canonView'
--- followed by 'walkOfDims', which reversed what this writes in order;
--- but 'routeList4''s, a loop of its own since 2026-09-26.
+-- The library's 'canonicalizeT' to the line: the canonical axes innermost
+-- first, 'mergeAxes' over the pairs it zips, each axis merged into the one
+-- outside it or dropped where its extent is 1, with the innermost axis at the
+-- head, where 'canonView' above writes the dims outermost first for the arms
+-- whose fills and tables take them as lists. The pass of every dispatch that
+-- builds a 'Walk' from the canonical view but 'routeList4', whose pass is a
+-- loop of its own.
 canonicalize :: ShapeL -> [Int] -> InnerFirst
 canonicalize sh ats = mergeAxes (zip ats sh)
 {-# INLINE canonicalize #-}
@@ -3293,19 +3210,17 @@ mkStrided normalSh =
 -- strategy of its own, and a candidate beside them says so at its
 -- definition; their pairs are what an orthotope user would measure.
 
--- Stage zero, master's: Data/Array/Internal.hs on master at 44d29ed,
--- its 'toVectorT' over its 'toVectorListT' -- regime 1 the vector itself
--- or a slice, regime 2 one slice per maximal normal suffix and a
--- concatenation, as stage one has them, and regime 3 a vector built from
--- the element list, behind 'toListT''s test for the natural layout,
--- which cannot hold there, the innermost stride not being 1. Read
--- against that file branch for branch on 2026-10-04: the slice list is a
--- difference list there and a plain list here, as at 'fbLibStage1', and
--- nothing else differs. So stage one is this arm with an empty view
--- answered and then the fill in place of the list, and 'list' is this
--- arm's regime-3 branch without the dispatch or the test. Added
--- 2026-10-04 by the owner, beside stage one. RETIRED 2026-10-06 by the
--- owner, checked and not timed.
+-- Stage zero, master's: Data/Array/Internal.hs on master at 44d29ed, its
+-- 'toVectorT' over its 'toVectorListT' -- regime 1 the vector itself or a
+-- slice, regime 2 one slice per maximal normal suffix and a concatenation,
+-- as stage one has them, and regime 3 a vector built from the element list,
+-- behind 'toListT''s test for the natural layout, which cannot hold there, the
+-- innermost stride not being 1. Read against that file branch for branch on
+-- 2026-10-04: the slice list is a difference list there and a plain list here,
+-- as at 'fbLibStage1', and nothing else differs. So stage one is this arm with
+-- an empty view answered and then the fill in place of the list, and 'list'
+-- is this arm's regime-3 branch without the dispatch or the test. RETIRED
+-- 2026-10-06 by the owner, checked and not timed.
 {-# NOINLINE fbLibStage0 #-}
 fbLibStage0 :: ShapeL -> T -> VS.Vector Double
 fbLibStage0 sh a@(T (Strides ats) ao v)
@@ -3326,12 +3241,9 @@ fbLibStage0 sh a@(T (Strides ats) ao v)
 
 -- Stage one as it shipped, Data/Array/Internal.hs on the branch
 -- speedup-strided-tovector (landed at 6ae326e):
--- regime 1 the vector itself or a slice, regime 2 one slice per maximal
--- normal suffix and a concatenation, regime 3 the fill
--- 'genericFillStrided', ported here as 'fillStage2' from 2026-09-11 as
--- in the library, the leaf 'fbMutOdoVecdimsAddInLeafU2' before, and
--- 'fillStage3', its 'Axis' form, which the library does not carry,
--- since 'fillStage2' was deleted on 2026-09-26;
+-- regime 1 the vector itself or a slice, regime 2 one slice per maximal normal
+-- suffix and a concatenation, regime 3 the fill 'genericFillStrided', here
+-- 'fillStage3', an 'Axis' form of it the library does not carry;
 -- 'liblist-stage1-sum' below fills through the same. The arm is the shipped
 -- route whole, read against that file's 'toVectorListT' branch for
 -- branch on 2026-09-19 at 570a485: the slice list is a difference list
@@ -3361,27 +3273,23 @@ fbLibStage1 sh (T (Strides ats) ao v)
           | otherwise = concat [loop bs ns ts (i * t + o) | i <- [0 .. n - 1]]
         loop _ _ _ _ = error "fbLibStage1: impossible"
 
--- Stage two as the branch pr-mikolaj-toVectorListT had it until
--- 2026-09-05, when its 'regimeT' took the lean form below: the view
--- canonicalized ('canonicalize'), natural canonical strides the vector or a
--- slice, and everything else -- contiguous runs included -- filled by
--- 'fillStage3', the 'Axis' form of 'fillStage2', which it replaced on
--- 2026-09-26 -- the dispatch is that branch's of before the ruling, the
--- fill, until then, ahead of that branch's own copy; reasons at
--- 'fillStage3'.
+-- Stage two as the branch pr-mikolaj-toVectorListT had it before its
+-- 'regimeT' took the lean form below on 2026-09-05: the view canonicalized
+-- ('canonicalize'), natural canonical strides the vector or a slice, and
+-- everything else -- contiguous runs included -- filled by 'fillStage3';
+-- reasons at 'fillStage3'.
 -- One change over 'fbLibStage1' per
 -- population: on the main set none (both fill, the same loop), on the
 -- runs class the route, on the broadcast classes the conditions.
 -- The one dispatch that keeps the strides comparison after the ruling of
--- 2026-09-05 at 'fbLibStage2Lean', as that arm's control, written over
--- the innermost-first axes since 2026-09-22; every other natural-strides
--- dispatch here, and the branch's 'regimeT', took the lean form.
--- The branch's 'toVectorT' fills contiguous runs where master
--- concatenates the slice list; the laziness ruling of 2026-09-07
--- (README.md#dead-ideas) does not reach it, 'toVectorT' being strict
--- whichever way it is built, and what questions the route is the runs
--- class, where one slice per run wins from 'dispRun' up. The lean
--- arm's control.
+-- 2026-09-05 at 'fbLibStage2Lean', as that arm's control, written over the
+-- innermost-first axes; every other natural-strides dispatch here, and the
+-- branch's 'regimeT', took the lean form.
+-- The branch's 'toVectorT' fills contiguous runs where master concatenates the
+-- slice list; the laziness ruling of 2026-09-07 (README.md#dead-ideas) does
+-- not reach it, 'toVectorT' being strict whichever way it is built, and what
+-- questions the route is the runs class, where one slice per run wins from
+-- 'dispRun' up.
 {-# NOINLINE fbLibStage2 #-}
 fbLibStage2 :: ShapeL -> T -> VS.Vector Double
 fbLibStage2 sh (T (Strides ats) ao v)
@@ -3394,14 +3302,13 @@ fbLibStage2 sh (T (Strides ats) ao v)
   where l = product sh
         canon = canonicalize sh ats
 
--- 'fbLibStage2' with canonical contiguous runs sent back to one slice
--- per run and a concatenation, stage one's route for them over stage
--- two's dispatch -- the repair candidate if the runs class reads the
--- fill behind the memcpy at long runs. One change over 'fbLibStage2Lean'
--- when written, so that arm is its control, and the pair is the runs
--- class's question. Off the runs the two have read different code since
--- 2026-09-26, when 'fillStage2' was deleted and this arm took
--- 'fillStage3', and since 2026-10-03 that arm runs the branch's code.
+-- 'fbLibStage2' with canonical contiguous runs sent back to one slice per run
+-- and a concatenation, stage one's route for them over stage two's dispatch --
+-- the repair candidate if the runs class reads the fill behind the memcpy at
+-- long runs. One change over 'fbLibStage2Lean' when written, so that arm is
+-- its control, and the pair is the runs class's question. Off the runs the two
+-- read different code, this arm's fill being 'fillStage3' and that arm's the
+-- branch's.
 {-# NOINLINE fbLibStage2Concat #-}
 fbLibStage2Concat :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Concat sh (T (Strides ats) ao v)
@@ -3421,35 +3328,15 @@ fbLibStage2Concat sh (T (Strides ats) ao v)
 
 -- The run length at or above which 'fbLibStage2Disp' sends a contiguous
 -- canonical run back to one slice, and the only thing it varies over
--- 'fbLibStage2Lean'. Read off the runs class rather than chosen: the
--- class sweeps the run from 2 to 65536, so what it can settle is which
--- pair of its lengths the crossover falls between, and any value inside
--- that pair selects the same route on every view this suite holds. The
--- number is therefore a bracket's representative and not a measurement of
--- its own, and a library taking this dispatch would want its own sweep.
--- Cut to 256 on 2026-08-30 inside a bracket of 96 to 1024; re-cut to
--- 2048 on 2026-09-02 by the one-binary probe README's task 9 records,
--- which put the crossover between `runs-1024` and `runs-4096` on the
--- dead-spot binary and read the 2048 arm nowhere behind the better route
--- past the class's floor, where 8192 and 32768 were behind it at 4096.
--- Re-cut to 32768 on 2026-10-04, over the branch's fill of 2026-10-04,
--- by one process over the runs class on Run 44's basis recipe
--- with this arm at a threshold of 1, so that it sliced every run
--- (probe-p45disp1-runs.json): the slice route over the fill, net, read
--- 1.1374 at `runs-1024`, 1.1095 at `runs-r3-48x30`'s runs of 1440, 1.0078
--- at `runs-4096`, 1.0026 at `runs-16384` and 0.9838 at `runs-65536`, the
--- sign turning between the last two. Every figure from `runs-4096` up is
--- inside that process's A/A spread, the shipped leaf's twin parting by
--- 1.24% a shape and 3.47% at worst, while the fill leads by 10.9% and more
--- at runs of 1440 and below. Re-cut to 8192 on 2026-10-05 on readings that
--- put the slice route level with the fill or behind it at `runs-4096`
--- and ahead of it at `runs-16384`: this arm at a threshold of 1 over
--- 'lib-stage2-lean' at 0.9983 to 1.0338 at `runs-4096` in the four movsb
--- probes of 2026-10-05 (probe-movsb-*-runs.json) and at 0.9693 to 0.9835
--- at `runs-16384` in three of them, the fourth reading 0.9291 on a lean
--- cell of CI 1.84%; and 'lib-stage1', which slices every run, at 1.0115
--- to 1.0302 at `runs-4096` and 0.9709 to 0.9876 at `runs-16384` on both
--- halves of every run from Run 40 to Run 45. 8192 represents that bracket.
+-- 'fbLibStage2Lean'. Read off the runs class rather than chosen: the class
+-- sweeps the run from 2 to 65536, so what it can settle is which pair of
+-- its lengths the crossover falls between, and any value inside that pair
+-- selects the same route on every view this suite holds. The number is
+-- therefore a bracket's representative and not a measurement of its own,
+-- and a library taking this dispatch would want its own sweep. 8192, cut on
+-- 2026-10-05, represents the bracket the readings at README's 'dispRun' entry
+-- (README.md#what-is-open) put the crossover in: the slice route level with
+-- the fill or behind it at `runs-4096` and ahead of it at `runs-16384`.
 dispRun :: Int
 dispRun = 8192
 
@@ -3461,9 +3348,7 @@ dispRun = 8192
 -- own walker lists, 'runSlicesLib', which is that branch's 'toVectorListT'
 -- concatenated. Which route wins where is at 'dispRun'. Only a view of
 -- contiguous runs is touched, so on every other population this arm and
--- 'fbLibStage2Lean' are the same code and only the runs class separates
--- them. Until 2026-10-04 it was this dispatch over 'fbLibStage2Concat', stage
--- two's route before the lean ruling, with a base-offset table for its slices.
+-- 'fbLibStage2Lean' are the same code and only the runs class separates them.
 --
 -- Non-vacuity of the threshold is not something 'check' can give: every
 -- threshold is correct, so the route has to be read off ALLOCATION, where the
@@ -3519,23 +3404,15 @@ dispRun = 8192
 -- and a slight overhead outside runs, which would sometimes reverse
 -- if VS.concat fused, but it can't
 --
--- RULED OUT for the library 2026-09-07: the code complexity sat right at
--- the threshold, and the dependence on a hard-coded L1-sized constant
--- tipped it. Parked 'Only' the same day, checked and not timed; its
--- figures stand in runs/run26.md and the 'dispRun' entry; the three
--- threshold arms of 2026-09-02 went with it (README.md#dead-ideas).
--- Timed again from 2026-10-04 by the owner, rebuilt over
--- 'fbLibStage2Lean' as above.
+-- RULED OUT for the library 2026-09-07: the code complexity sat right at the
+-- threshold, and the dependence on a hard-coded L1-sized constant tipped
+-- it. Its figures stand in runs/run26.md and the 'dispRun' entry.
 --
 -- OVERRIDDEN 2026-10-06 by the owner, and the arm RETIRED, checked and not
--- timed: since pr-mikolaj-toVectorListT's commit "Copy whole runs inside the
--- fill from a length each instance picks", the library's 'genericFillStrided'
--- copies whole each run at stride 1 at least as long as a run length each
--- instance picks, which is this dispatch done inside the fill, and well
--- enough to be worth the longer source code; its cut, 'copyRun' here, is set
--- past where a copy's cost a run is paid off and not to this box's L1. Since
--- the same day this arm's fill, 'fillStage2Axes', copies the runs below
--- 'dispRun' from 'copyRun' on too.
+-- timed: the library's 'genericFillStrided' copies whole each run at stride
+-- 1 from a run length each instance picks, 'copyRun' here, which is this
+-- dispatch done inside the fill (README.md#dead-ideas). This arm's fill,
+-- 'fillStage2Axes', copies the runs below 'dispRun' from 'copyRun' on too.
 {-# NOINLINE fbLibStage2Disp #-}
 fbLibStage2Disp :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Disp sh a@(T _ _ v)
@@ -3550,20 +3427,15 @@ fbLibStage2Disp sh a@(T _ _ v)
 
 -- The fill of 'lib-stage2-lean', 'liblist-stage4-sum' and
 -- 'libunord-stage13-sum': the library's 'genericFillStrided' as
--- pr-mikolaj-toVectorListT's commit "Copy whole runs inside the fill from a
--- length each instance picks" (2026-10-05) has it, at Storable Double,
+-- pr-mikolaj-toVectorListT's commit "Copy whole runs inside the fill from
+-- a length each instance picks" (2026-10-05) has it, at Storable Double,
 -- comments stripped except where it differs from 'fillStage3': the stepping
--- run's stride an argument, which runs at stride 1 shorter than 'copyRun'
--- take as a literal in a walk of their own, and the fused level holding its
--- 'Axis', 'NestLib' where 'fillStage3' has 'NestAx'; the reasons for the rest
--- are at 'fillStage3'. NOINLINE as every fill here, where the library's is
--- INLINABLE: what that pragma is for, a client specialising the fill once
--- per vector type, has no counterpart at one type in one module. Until
--- 2026-10-06 it was the branch's commit "Port the Axis path", which copies
--- no run. From 2026-10-03 until 2026-10-04 its 'level' loop ran to an end
--- computed from @outPos@, as the branch's did; until 2026-10-03 it was
--- 'fillStage2' as that read on 2026-09-25, over pairs, the comparison for the
--- three arms' twins on the 'Axis' path.
+-- run's stride an argument, which runs at stride 1 shorter than 'copyRun' take
+-- as a literal in a walk of their own, and the fused level holding its 'Axis',
+-- 'NestLib' where 'fillStage3' has 'NestAx'; the reasons for the rest are at
+-- 'fillStage3'. NOINLINE as every fill here, where the library's is INLINABLE:
+-- what that pragma is for, a client specialising the fill once per vector
+-- type, has no counterpart at one type in one module.
 {-# NOINLINE fillStage2Axes #-}
 fillStage2Axes :: WalkAx -> Int -> Int -> VS.Vector Double
                -> VS.Vector Double
@@ -3781,8 +3653,8 @@ fillStage2OneLevel (Walk tInner sInner outerAxes) !ao !l !v =
                         in  dim n outPos baseOff
           in  go top 0 ao
     -- No outer level is the run alone and one is the fused level's runs,
-    -- neither needing the table, which is built only where a level sits
-    -- above the fused one. Since 2026-09-22.
+    -- neither needing the table, which is built only where a level sits above
+    -- the fused one.
     _ <- case innerFirst outerAxes of
       [] ->
         (if tInner == 0 then writeRunSet else writeRunStep) 0 ao
@@ -3798,21 +3670,16 @@ fillStage2OneLevel (Walk tInner sInner outerAxes) !ao !l !v =
     return out
 
 -- 'fillStage2' as it read before it took one table of pairs: its levels
--- numbered innermost first in two tables, here Storable instead of
--- unboxed -- comments stripped, the code copied. Its three '-vsdims'
--- arms price the scratch flavour for the shipped fill, where the probe
--- of 2026-08-08 priced it for 'bq-expand''s table
--- (README.md#the-scratch-vector-flavour), against 'lib-stage2-lean',
--- 'liblist-stage4-sum' and 'libunord-stage13-sum' on that day, and
--- against their inward twins since 2026-09-21 (the TODOs at the arms).
--- Added 2026-09-19 for that probe, which read the two flavours level on
--- all three arms, every pair inside Run 36's floor, so the shipped fill
--- keeps its unboxed tables; not kept in step with 'fillStage2'. Since
--- the twins moved to 'fillStage3' on 2026-09-25, which builds no table,
--- a flavour pair prices the tables against its nest besides the
--- flavour; it priced the 'Axis' path too until 2026-10-03, when the
--- arms took their controls' routes, and since then a conversion of the
--- axes to pairs, 'walkOfAx', a call.
+-- numbered innermost first in two tables, here Storable instead of unboxed
+-- -- comments stripped, the code copied. Its three '-vsdims' arms price
+-- the scratch flavour for the shipped fill, where the probe of 2026-08-08
+-- priced it for 'bq-expand''s table (README.md#the-scratch-vector-flavour),
+-- against their inward twins (the TODOs at the arms). The probe of 2026-09-19
+-- read the two flavours level on all three arms, every pair inside Run 36's
+-- floor, so the shipped fill keeps its unboxed tables; not kept in step
+-- with 'fillStage2'. The twins' fill, 'fillStage3', builds no table, so a
+-- flavour pair prices the tables against its nest besides the flavour, and a
+-- conversion of the axes to pairs, 'walkOfAx', a call.
 {-# NOINLINE fillStage2VSdims #-}
 fillStage2VSdims :: Walk -> Int -> Int -> VS.Vector Double
            -> VS.Vector Double
@@ -4002,32 +3869,26 @@ fillStage2U4 sh ats !ao !l !v = assert (l > 0) $ VS.create $ do
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
 
--- 'fillStage2' with a run of 2, 3, 4 or 5 elements written by a body
--- unrolled to exactly that length -- no inner loop, no bound test, no
--- tail -- the body chosen once per row of runs as the broadcast body
--- already is, and every other run length taking the stepping loop
--- unchanged. One change over that fill, so 'lib-stage2' is this arm's
--- control. What it aims at is the per-run cost the counts put at about
--- thirteen instructions a run against about six an element, which on
--- the k3 and k5 convolution shapes and on the runs class's short end is
--- half the work or more; 'canonView' has already merged every run that
--- could be longer, so a short run here is short for good. One
--- deliberate asymmetry: the rank-1 leaf keeps the stepping loop at
--- every length, no rostered view reaching it with a short extent. The
--- complexity bar recorded at 'fillStage2U4' is taken per orthogonal
--- feature, so the short bodies are judged on their own and not with
--- the loop beside them; nothing rules them out, and Run 22 prices them.
--- RULED OUT FOR THE LIBRARY, 2026-09-04, by Mikolaj: a body per run
--- length of 2 to 5 is too repetitive and so too complex for orthotope,
--- by the bar the quad loop failed on 2026-08-30 -- taken per orthogonal
--- feature, so it rules out the short bodies wherever they appear -- in
--- 'fbLibStage2Short', and in the composite `lib-stage2-short-lean` that
--- stood beside it under the lean dispatch until 2026-09-05, when this
--- arm took that dispatch too and the composite, now the same code, was
--- removed -- and says nothing about the lean dispatch. The arm prices
--- what the bodies would buy and is not a candidate to ship; the ruling
--- is in README beside the arm's entry. Retired, so not kept in step
--- with 'fillStage2': whatever improved that driver since is not here.
+-- 'fillStage2' with a run of 2, 3, 4 or 5 elements written by a body unrolled
+-- to exactly that length -- no inner loop, no bound test, no tail -- the body
+-- chosen once per row of runs as the broadcast body already is, and every
+-- other run length taking the stepping loop unchanged. One change over that
+-- fill, so 'lib-stage2' is this arm's control. What it aims at is the per-run
+-- cost the counts put at about thirteen instructions a run against about
+-- six an element, which on the k3 and k5 convolution shapes and on the runs
+-- class's short end is half the work or more; 'canonView' has already merged
+-- every run that could be longer, so a short run here is short for good. One
+-- deliberate asymmetry: the rank-1 leaf keeps the stepping loop at every
+-- length, no rostered view reaching it with a short extent. The complexity bar
+-- recorded at 'fillStage2U4' is taken per orthogonal feature, so the short
+-- bodies are judged on their own and not with the loop beside them.
+-- RULED OUT FOR THE LIBRARY, 2026-09-04, by Mikolaj: a body per run length of
+-- 2 to 5 is too repetitive and so too complex for orthotope, by the bar the
+-- quad loop failed on 2026-08-30, which rules out the short bodies wherever
+-- they appear and says nothing about the lean dispatch. The arm prices what
+-- the bodies would buy and is not a candidate to ship; the ruling is in README
+-- beside the arm's entry. Retired, so not kept in step with 'fillStage2':
+-- whatever improved that driver since is not here.
 {-# NOINLINE fillStage2Short #-}
 fillStage2Short :: Walk -> Int -> Int -> VS.Vector Double
                 -> VS.Vector Double
@@ -4138,13 +3999,12 @@ fillStage2Short (Walk tInner sInner outerAxes) !ao !l !v =
         !oshV  = VU.fromList (map snd levels)
         !oatsV = VU.fromList (map fst levels)
 
--- 'fbLibStage2Lean' over 'fillStage2U4', so that 'lib-stage2-lean' is
--- the control (since 2026-09-05; its readings were taken against
--- 'lib-stage2') and every population where the fill runs reads the
--- unrolling.  Two changes since 2026-09-22, not one: the fill takes
--- lists, so the dispatch keeps 'canonView' where the control's merges
--- in a loop ('canonicalize' until 2026-09-26), and the pair carries
--- that prologue with the fill.
+-- 'fbLibStage2Lean' over 'fillStage2U4', so that 'lib-stage2-lean' is the
+-- control (its readings before 2026-09-05 taken against 'lib-stage2') and
+-- every population where the fill runs reads the unrolling. Two changes, not
+-- one: the fill takes lists, so the dispatch keeps 'canonView' where the
+-- control's merges in a loop, and the pair carries that prologue with the
+-- fill.
 {-# NOINLINE fbLibStage2U4 #-}
 fbLibStage2U4 :: ShapeL -> T -> VS.Vector Double
 fbLibStage2U4 sh (T (Strides ats) ao v)
@@ -4158,14 +4018,13 @@ fbLibStage2U4 sh (T (Strides ats) ao v)
     whole | ao == 0 && VS.length v == l = v
           | otherwise = VS.slice ao l v
 
--- 'fbLibStage2Lean' as it read on 2026-09-05 over 'fillStage2Short' --
--- the same dispatch, the fill the one change, so 'lib-stage2-lean' is the
--- control (since 2026-09-05; its readings were taken against
--- 'lib-stage2'); it could move only where the canonical run is 2 to 5
--- elements long, every other view being the control's code then.
--- Retired, so not kept in step: the control's merge has been a loop of
--- its own since 2026-09-26, and its route and fill the branch's since
--- 2026-10-03, so the pair carries those besides the short bodies.
+-- 'fbLibStage2Lean' as it read on 2026-09-05 over 'fillStage2Short' -- the
+-- same dispatch, the fill the one change, so 'lib-stage2-lean' is the control
+-- (its readings before 2026-09-05 taken against 'lib-stage2'); it could move
+-- only where the canonical run is 2 to 5 elements long, every other view being
+-- the control's code then. Retired, so not kept in step: the control's merge
+-- is a loop of its own and its route and fill the branch's, so the pair
+-- carries those besides the short bodies.
 {-# NOINLINE fbLibStage2Short #-}
 fbLibStage2Short :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Short sh (T (Strides ats) ao v)
@@ -4186,12 +4045,10 @@ fbLibStage2Short sh (T (Strides ats) ao v)
 -- branch's 'routeVectorT' over its 'routeT'. It is the control of
 -- 'lib-stage3-lean', and the pair prices what the branch's code does
 -- otherwise, which the head of the 'Axis' path lists.
--- 'fbLibStage2' with the dispatch read off the merged form alone,
--- written over the same fill so that the pair priced the dispatch and
--- nothing else; today this arm reads 'fillStage2Axes' and that one
--- 'fillStage3', so the pair carries the fill too. What licenses it: a
--- canonical view of rank 2 or more can never carry the natural strides,
--- because 'canonicalize' merges exactly the
+-- 'fbLibStage2' with the dispatch read off the merged form alone; this arm
+-- reads 'fillStage2Axes' and that one 'fillStage3', so the pair carries the
+-- fill too. What licenses it: a canonical view of rank 2 or more can never
+-- carry the natural strides, because 'canonicalize' merges exactly the
 -- adjacent pairs the natural strides consist of -- 'getStridesT' sets
 -- each outer stride to the inner dim times the inner stride, which is
 -- the merge condition -- so the `cats /= ts` the control asks is
@@ -4201,23 +4058,20 @@ fbLibStage2Short sh (T (Strides ats) ao v)
 -- every view. It is also the simpler form,
 -- which the complexity ruling at 'fillStage2U4' prefers where the
 -- performance is close.
--- TAKEN 2026-09-05 for every dispatch that admits it, here and in the
--- branch's 'regimeT' (README.md#the-stride-classes-and-what-they-cover):
--- mainly for the simplification, no stride list built at the dispatch,
--- and for Run 24 reading this arm at or below 'fbLibStage2' on every
--- population of both halves. 'fbLibStage2' alone keeps the comparison,
--- as this arm's control. What does not admit it: the stage-one ports
--- and 'regimeOf', which compare RAW strides, where the invariant does
--- not hold; the two unordered ports' one-block tests, whose sort by
--- absolute stride can make a rank-2 canonical view one block, which the
--- candidate 'routeUnord3' answers by canonicalizing the sorted pairs
--- again; and 'check''s own regime conditions, kept explicit so the
--- equivalence is checked, not assumed.
+-- TAKEN 2026-09-05 for every dispatch that admits it, here and in the branch's
+-- 'regimeT' (README.md#the-stride-classes-and-what-they-cover): mainly for
+-- the simplification, no stride list built at the dispatch, and for Run 24
+-- reading this arm at or below 'fbLibStage2' on every population of both
+-- halves. 'fbLibStage2' alone keeps the comparison. What does not admit it:
+-- the stage-one ports and 'regimeOf', which compare RAW strides, where the
+-- invariant does not hold; the two unordered ports' one-block tests, whose
+-- sort by absolute stride can make a rank-2 canonical view one block, which
+-- the candidate 'routeUnord3' answers by canonicalizing the sorted pairs
+-- again; and 'check''s own regime conditions, kept explicit so the equivalence
+-- is checked, not assumed.
 -- The fill of the runs under it is the branch's route, outside the
 -- laziness ruling of 2026-09-07 as 'fbLibStage2''s is, and the runs
 -- class is what questions it; the lean dispatch is what shipped.
--- Written as the library's 'toVectorT' is since 2026-09-22, over pairs
--- until 2026-10-03.
 {-# NOINLINE fbLibStage2Lean #-}
 fbLibStage2Lean :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Lean sh a@(T _ _ v)
@@ -4226,24 +4080,19 @@ fbLibStage2Lean sh a@(T _ _ v)
   where !l = product sh
 
 -- The fastest variant benchmarked of the library's 'toVectorT':
--- 'fbLibStage2Lean' on the 'Axis' path, its dispatch and fill the
--- path's copies, 'routeList5' and 'fillStage3', where that arm has the
--- branch's 'routeList4' and 'fillStage2Axes'; so that arm is its
--- control, and the pair prices what the branch's code does otherwise,
--- which the head of the 'Axis' path lists. Added 2026-09-21, over
--- 'fillStage2' until 2026-09-25.
+-- 'fbLibStage2Lean' on the 'Axis' path, its dispatch and fill the path's
+-- copies, 'routeList5' and 'fillStage3', where that arm has the branch's
+-- 'routeList4' and 'fillStage2Axes'; so that arm is its control, and the pair
+-- prices what the branch's code does otherwise, which the head of the 'Axis'
+-- path lists.
 {-# NOINLINE fbLibStage3Lean #-}
 fbLibStage3Lean :: ShapeL -> T -> VS.Vector Double
 fbLibStage3Lean sh a@(T _ _ v) = routeVectorInward v (routeList5 sh a)
 
--- 'fbLibStage3Lean' as it read until 2026-09-25 over
--- 'fillStage2OneLevel', the pair reader 'routeVectorInward', deleted
--- 2026-09-26, written out with that fill in place of 'fillStage2': one
--- change, so that arm is its control; the reasons and the ruling are at
--- 'fillStage2OneLevel'. Added 2026-09-23. Retired 2026-09-25, when
--- 'lib-stage3-lean' moved to the 'Axis' path. Since 2026-10-03 it reads
--- that arm's route, 'routeList5', through 'walkOfAx', where it had read
--- 'routeList4' over pairs, so that against that arm it carries a
+-- 'fbLibStage3Lean' as it read on pairs, its reader written out with
+-- 'fillStage2OneLevel' in place of 'fillStage2'; the reasons and the ruling
+-- are at 'fillStage2OneLevel'. Retired 2026-09-25. It reads that arm's
+-- route, 'routeList5', through 'walkOfAx', so against that arm it carries a
 -- conversion of the axes to pairs as well as the fill.
 {-# NOINLINE fbLibStage3LeanOneLevel #-}
 fbLibStage3LeanOneLevel :: ShapeL -> T -> VS.Vector Double
@@ -4252,10 +4101,9 @@ fbLibStage3LeanOneLevel sh a@(T _ _ v) = case routeList5 sh a of
   RRunsAx axes ao l -> fillStage2OneLevel (walkOfAx axes) ao l v
   RFillAx axes ao l -> fillStage2OneLevel (walkOfAx axes) ao l v
 
--- 'fbLibStage3Lean' with 'fillStage2VSdims' for its fill, a 'walkOfAx'
--- a call there; the probe of 2026-09-19, reasons, and what the pair
--- prices, at that fill. Over that arm's route, 'routeList5', since
--- 2026-10-03, where it had read 'canonicalize'.
+-- 'fbLibStage3Lean' with 'fillStage2VSdims' for its fill, a 'walkOfAx' a call
+-- there; the probe of 2026-09-19, reasons, and what the pair prices, at that
+-- fill. Over that arm's route, 'routeList5'.
 -- TODO: update wrt the inward pairing of 2026-09-21, which made
 -- 'lib-stage3-lean' the control: rename to 'lib-stage3-lean-vsdims'.
 {-# NOINLINE fbLibStage2LeanVSdims #-}
@@ -4265,12 +4113,9 @@ fbLibStage2LeanVSdims sh a@(T _ _ v) = case routeList5 sh a of
   RRunsAx axes ao l -> fillStage2VSdims (walkOfAx axes) ao l v
   RFillAx axes ao l -> fillStage2VSdims (walkOfAx axes) ao l v
 
--- 'fbLibStage3Lean' over 'fillStage3U1', its reader
--- 'routeVectorInward' written out with that fill in place of
--- 'fillStage3': one change, the run bodies, so that arm is its control;
--- reasons at 'fillStage3U1'. Added 2026-09-07 for Run 27; its dispatch
--- 'canonView''s, and its control 'fbLibStage2Lean', until 2026-09-24;
--- on the 'Axis' path since 2026-09-26.
+-- 'fbLibStage3Lean' over 'fillStage3U1', its reader 'routeVectorInward'
+-- written out with that fill in place of 'fillStage3': one change, the run
+-- bodies, so that arm is its control; reasons at 'fillStage3U1'.
 {-# NOINLINE fbLibStage2LeanU1 #-}
 fbLibStage2LeanU1 :: ShapeL -> T -> VS.Vector Double
 fbLibStage2LeanU1 sh a@(T _ _ v) = case routeList5 sh a of
@@ -4293,10 +4138,9 @@ fbLibStage2LeanU1 sh a@(T _ _ v) = case routeList5 sh a of
 -- dispatch keeps the natural-strides comparison, as 'fbLibStage2' does,
 -- so stage four is one change over it. What is timed is its consumer,
 -- 'fbLibListStage3Sum',
--- which against master's prices the canonicalization and the odometer
--- against the slice recursion, and 'fbLibListStage4Sum', under the lean
--- dispatch, which prices the odometer against the strict base-offset
--- table. Added 2026-09-07 for Run 27.
+-- which against master's prices the canonicalization and the odometer against
+-- the slice recursion, and 'fbLibListStage4Sum', under the lean dispatch,
+-- which prices the odometer against the strict base-offset table.
 routeList3 :: ShapeL -> T -> Route
 routeList3 sh (T (Strides ats) ao _)
   | l == 0 = RSlice 0 0
@@ -4308,16 +4152,13 @@ routeList3 sh (T (Strides ats) ao _)
   where !l = product sh
         axes = canonicalize sh ats
 
--- Stage four of the list entry point: 'routeList3' under the lean
--- dispatch, the regime read off the merged form alone and no
--- 'getStridesT' built, as 'fbLibStage2Lean' reads it. One change over
--- stage three, and one over stage two, whose lean dispatch it shares,
--- the list's construction. Added 2026-09-07 for Run 27. Since 2026-10-03
--- it is the library's 'routeT' as ~/r/orthotope.toVectorListT has it
--- that day, its uncommitted diff included, at the 'Axis' path's types,
--- 'canonicalizeLib' and 'routeOfLib' being the branch's 'canonicalizeT'
--- and 'routeOfT'; from 2026-09-26 until then it was 'routeList5' over
--- pairs.
+-- Stage four of the list entry point: 'routeList3' under the lean dispatch,
+-- the regime read off the merged form alone and no 'getStridesT' built, as
+-- 'fbLibStage2Lean' reads it. One change over stage three, and one over stage
+-- two, whose lean dispatch it shares, the list's construction. It is the
+-- library's 'routeT' as ~/r/orthotope.toVectorListT has it on 2026-10-03, its
+-- uncommitted diff included, at the 'Axis' path's types, 'canonicalizeLib' and
+-- 'routeOfLib' being the branch's 'canonicalizeT' and 'routeOfT'.
 --
 -- @routeList4 sh l a@, the route of the view of @a@ at shape @sh@ as it
 -- is, requires one stride in @a@ per dimension of @sh@, @l == product
@@ -4366,73 +4207,59 @@ routeOfLib start l axes@(WalkAx 1 _ _) = RRunsAx axes start l
 routeOfLib start l axes = RFillAx axes start l
 {-# INLINE routeOfLib #-}
 
--- Stage three, RULED OUT for the library since 2026-09-07 and kept as
--- the CEILING of an address-order fill (README.md#dead-ideas), not a
--- port of anything: the one-block test generalized into the dispatch.
--- An unordered consumer owes no order, so the view is walked in ADDRESS
--- order whatever its logical one: the canonical dims sorted by absolute
--- stride, descending, from the lowest offset -- a reversed axis
--- covering the same addresses from the other end -- and the sorted
--- pairs canonicalized AGAIN, so that every adjacent pair the sort
--- brought together merges and the lean rank test decides one block
--- (rank 0, or rank 1 at stride 1: one slice); everything else is ONE
--- 'fillStage3' over the sorted positive strides, every axis walked
--- forward and the smallest stride innermost. What it prices: Run 25's
--- flip class read a reversed run at about twice its forward cost on
--- identical instructions, which this fill never pays, and a transposed
--- view fills with its smallest stride innermost. The library form the
--- commit adding stage three carried -- this dispatch in place of
--- 'toUnorderedVectorListT''s one-block test and fall-back, the fill
--- returned as a singleton list -- is RULED OUT since 2026-09-07
--- (README.md#dead-ideas): the list has to stay lazy, and a fill returns
--- the whole array before the consumer sees an element. So the arm
--- stayed timed as the ceiling of what an address-order fill would buy
--- until 2026-09-09, when every arm concatenating a list went to 'Only'
--- and its consumer took the ceiling's slot; only the dispatch half can
--- land: the rank test over the re-canonicalized sorted pairs equals the
--- sorted natural-strides test the library asks today, checked over
--- 300000 random views and every view to rank 3 with extents to 3 and
--- strides to 4, a mutant skipping the re-canonicalization failing it.
--- Since 2026-09-09 the arm is stage five's route with its runs turned
--- into fills, which is what it always was -- and equal in effect to
--- stage five's fill arm since 2026-09-21, the pair reader
--- 'routeVectorInward', deleted 2026-09-26, filling runs itself -- and
--- 'fbLibUnordStage3Sum' is the fill's consumer: what a reduction pays
--- over the ceiling, the pair with stage five's consumer pricing the
--- list against the fill it replaces.
+-- Stage three, kept as the CEILING of an address-order fill, not a port of
+-- anything: the one-block test generalized into the dispatch. An unordered
+-- consumer owes no order, so the view is walked in ADDRESS order whatever
+-- its logical one: the canonical dims sorted by absolute stride, descending,
+-- from the lowest offset -- a reversed axis covering the same addresses from
+-- the other end -- and the sorted pairs canonicalized AGAIN, so that every
+-- adjacent pair the sort brought together merges and the lean rank test
+-- decides one block (rank 0, or rank 1 at stride 1: one slice); everything
+-- else is ONE 'fillStage3' over the sorted positive strides, every axis walked
+-- forward and the smallest stride innermost. What it prices: Run 25's flip
+-- class read a reversed run at about twice its forward cost on identical
+-- instructions, which this fill never pays, and a transposed view fills with
+-- its smallest stride innermost. Its library form -- this dispatch in place of
+-- 'toUnorderedVectorListT''s one-block test and fall-back, the fill returned
+-- as a singleton list -- is RULED OUT 2026-09-07 (README.md#dead-ideas):
+-- the list has to stay lazy, and a fill returns the whole array before the
+-- consumer sees an element. Only the dispatch half can land: the rank test
+-- over the re-canonicalized sorted pairs equals the sorted natural-strides
+-- test the library asks today, checked over 300000 random views and every
+-- view to rank 3 with extents to 3 and strides to 4, a mutant skipping the
+-- re-canonicalization failing it. The arm is stage five's route with its
+-- runs turned into fills, equal in effect to stage five's fill arm, and
+-- 'fbLibUnordStage3Sum' is the fill's consumer: what a reduction pays over the
+-- ceiling, the pair with stage five's consumer pricing the list against the
+-- fill it replaces.
 routeUnord3 :: ShapeL -> T -> RouteAx
 routeUnord3 sh a = case routeUnord5 sh a of
   RRunsAx axes o l -> RFillAx axes o l
   r -> r
 
--- The lazy odometer list, shared by every lazy candidate here: one
--- slice per run, in address or logical order over the outer levels,
--- produced on demand in continuation-passing form, so a consumer that
--- folds it holds no more of it than it has reached -- master's
--- 'toVectorListT' laziness in regime 2, without its per-level list
--- comprehension and 'concat'. The run's extent is the innermost
--- level's; each outer level steps the base offset by its stride,
--- negative and zero strides included. Added 2026-09-07 with the ruling
--- that the list stays lazy (README.md#dead-ideas). In 'build' form
--- since 2026-09-09, so that a foldr-shaped consumer applied where the
--- list is produced fuses with it: the cons cell and the slice header
--- went with the list, which the fusion probe of that day read as 104
--- bytes and 14 ns a run against 145 and 19, and 88 bytes once the loop
--- was compiled once for every stage; the thunk, the boxed accumulator
--- and the partial application a run the level form still left went with
--- the flat walker of the same day, 'runSlices'
--- (README.md#what-is-open). The leaf is fused, the fills' trick: the
--- innermost outer level conses its slices itself rather than calling
--- 'go' once more per run, a quarter of the time and 8 bytes a run off
--- on short runs, 9.3 ns and 80 bytes on the k3 window. The fills' other
--- trick of that day, the levels as unboxed tables indexed by level,
--- which they have since dropped, read a further sixth, 7.8 ns, and was
--- REFUSED 2026-09-09 on code size against how little the entry point is
--- used and how little any of this moves most shapes. The fold has to
--- sit on the list expression itself: applied to a case-bound variable,
--- or partially applied and floated to the top level, it never meets the
--- 'build'. A consumer that cannot fuse, 'VS.concat' under the Fill arms
--- until 2026-09-21, paid the form nothing once compiled once; inlined
+-- The lazy odometer list, shared by every lazy candidate here: one slice per
+-- run, in address or logical order over the outer levels, produced on demand
+-- in continuation-passing form, so a consumer that folds it holds no more of
+-- it than it has reached -- master's 'toVectorListT' laziness in regime 2,
+-- without its per-level list comprehension and 'concat'. The run's extent
+-- is the innermost level's; each outer level steps the base offset by its
+-- stride, negative and zero strides included; lazy by the ruling of 2026-09-07
+-- (README.md#dead-ideas). In 'build' form, so that a foldr-shaped consumer
+-- applied where the list is produced fuses with it: the cons cell and the
+-- slice header go with the list, which the fusion probe of 2026-09-09 read as
+-- 104 bytes and 14 ns a run against 145 and 19, and 88 bytes once the loop
+-- was compiled once for every stage; the thunk, the boxed accumulator and the
+-- partial application a run the level form still left go with the flat walker,
+-- 'runSlices' (README.md#what-is-open). The leaf is fused, the fills' trick:
+-- the innermost outer level conses its slices itself rather than calling 'go'
+-- once more per run, a quarter of the time and 8 bytes a run off on short
+-- runs, 9.3 ns and 80 bytes on the k3 window. The levels as unboxed tables
+-- indexed by level read a further sixth, 7.8 ns, and were REFUSED 2026-09-09
+-- on code size against how little the entry point is used and how little
+-- any of this moves most shapes. The fold has to sit on the list expression
+-- itself: applied to a case-bound variable, or partially applied and floated
+-- to the top level, it never meets the 'build'. A consumer that cannot fuse,
+-- such as 'VS.concat', pays the form nothing once compiled once; inlined
 -- beside it the probe read 16 bytes a run more.
 lazyRuns :: Walk -> Int -> VS.Vector Double -> [VS.Vector Double]
 lazyRuns axes start v = build (runSlices axes start v)
@@ -4444,27 +4271,25 @@ lazyRuns axes start v = build (runSlices axes start v)
 --
 -- 'go' walks the innermost outer level with a counter and a cursor, and
 -- 'block' holds the levels above it, an 'Odometer' stepped only when the
--- counter runs out. Every continuation a fused fold meets is 'go',
--- 'block' or 'nil', all known calls, so base's left folds, 'sum' among
--- them, allocate nothing a run. A 'foldr' per level with the rest of
--- the list as its continuation, the form before 2026-09-09, met at every
--- level's exit a continuation it could not see and passed it the
--- accumulator lazily and boxed, a thunk and a 'D#' a run
--- (closure-probe/).
+-- counter runs out. Every continuation a fused fold meets is 'go', 'block' or
+-- 'nil', all known calls, so base's left folds, 'sum' among them, allocate
+-- nothing a run. A 'foldr' per level with the rest of the list as its
+-- continuation meets at every level's exit a continuation it cannot see
+-- and passes it the accumulator lazily and boxed, a thunk and a 'D#' a run
+-- (closure-probe/, 2026-09-09).
 --
--- The odometer is a value since 2026-09-24, each level holding its own
--- offset, where a carry loop had collected the levels it reset,
--- reversed them back on and undone the counter's stride arithmetic.
--- Against that carry (e2f68a7), on Run 39's recipe: 26 to 35% less
--- allocation on the window views, up to 3.3% fewer instructions, and on
--- GHC HEAD two taken branches a run fewer on the 'runs' views, 'go' no
--- longer carrying the odometer; 9.12.4's run loop is unchanged. Not
--- kept, that day: the odometer an argument of 'go', which keeps the
--- carry's run loop on HEAD; the axes as a second list beside the
--- levels, one more value live across the run loop and 4.5% more
--- instructions than the carry on window-32x32-c64-k3; and the initial
--- state by 'foldl'' over the reversed axes, up to 0.5% fewer
--- instructions, not attributed, for a reverse a walk.
+-- The odometer is a value, each level holding its own offset, where a carry
+-- loop collects the levels it resets, reverses them back on and undoes the
+-- counter's stride arithmetic. Against that carry (e2f68a7), on Run 39's
+-- recipe, 2026-09-24: 26 to 35% less allocation on the window views, up to
+-- 3.3% fewer instructions, and on GHC HEAD two taken branches a run fewer on
+-- the 'runs' views, 'go' no longer carrying the odometer; 9.12.4's run loop is
+-- unchanged. Not kept, that day: the odometer an argument of 'go', which keeps
+-- the carry's run loop on HEAD; the axes as a second list beside the levels,
+-- one more value live across the run loop and 4.5% more instructions than the
+-- carry on window-32x32-c64-k3; and the initial state by 'foldl'' over the
+-- reversed axes, up to 0.5% fewer instructions, not attributed, for a reverse
+-- a walk.
 --
 -- The order of the guards of 'go' is free: swapped, the run loop keeps
 -- its instructions, taken branches and fetches on both compilers. On
@@ -4536,14 +4361,11 @@ stepOdometer (OdoLevel o c axis@(OdoAxis s d) outer)
 -- A lazy stage's dispatch as a value: one slice, the runs 'lazyRuns'
 -- will walk, or one fill. Its readers -- the list, for the
 -- laziness gate and as the library-shaped function; the Fill arm, which
--- hands a slice or a fill back as the library's 'toVectorT' does, the
--- runs filled too since 2026-09-21, where until then it concatenated
--- them as master's did; and the sum consumer, whose fused run loop is
--- compiled ONCE as 'sumLazyRuns' and reached by every stage still on
--- pairs through its route, with its 'fillStage2VSdims' twin; and, until
--- 2026-09-26, when it moved to 'RouteAx' with its stage, the loop arm's
--- fold, 'loopSumRoute'. The one compiled loop is why the dispatch is
--- data rather than the list itself: the fusion probe's
+-- hands a slice or a fill back as the library's 'toVectorT' does, the runs
+-- filled too; and the sum consumer, whose fused run loop is compiled ONCE as
+-- 'sumLazyRuns' and reached by every stage still on pairs through its route,
+-- with its 'fillStage2VSdims' twin. The one compiled loop is why the dispatch
+-- is data rather than the list itself: the fusion probe's
 -- overhaul first inlined each stage's list function into its consumer,
 -- and two of six copies of the identical loop came out 8 bytes and
 -- several ns a run dearer than the others -- the per-copy code
@@ -4568,18 +4390,17 @@ wholeOrSlice ao l v
   | otherwise = VS.slice ao l v
 {-# INLINE wholeOrSlice #-}
 
--- The library's 'routeSlicesT' as ~/r/orthotope.toVectorListT has it
--- on 2026-10-03, over its walker, 'runSlicesLib', and its fill,
--- 'fillStage2Axes': the slices of a route handed to a 'build''s cons
--- and nil, so that the route's case sits INSIDE the 'build' the list
--- arms wrap around it and a fold applied to the list meets the 'build'
--- whichever branch the route takes: written as a case returning a list
--- per branch, the fold stays outside the case and never fuses, which is
--- what 'libunord-stage6-list-sum' read on 2026-09-09, 160 bytes a run.
--- No empty view reaches it: as in the library, the list's entry point
--- answers one with nil first, which is the invariant the library's
--- 'toVectorListT' states and 'emptyListGate' asks. The vector first, as
--- the library takes it. Over pairs until 2026-10-03.
+-- The library's 'routeSlicesT' as ~/r/orthotope.toVectorListT has it on
+-- 2026-10-03, over its walker, 'runSlicesLib', and its fill, 'fillStage2Axes':
+-- the slices of a route handed to a 'build''s cons and nil, so that the
+-- route's case sits INSIDE the 'build' the list arms wrap around it and a fold
+-- applied to the list meets the 'build' whichever branch the route takes:
+-- written as a case returning a list per branch, the fold stays outside the
+-- case and never fuses, which is what 'libunord-stage6-list-sum' read on
+-- 2026-09-09, 160 bytes a run. No empty view reaches it: as in the library,
+-- the list's entry point answers one with nil first, which is the invariant
+-- the library's 'toVectorListT' states and 'emptyListGate' asks. The vector
+-- first, as the library takes it.
 routeSlices :: VS.Vector Double -> RouteAx
             -> (VS.Vector Double -> b -> b) -> b -> b
 routeSlices v route cons nil = case route of
@@ -4657,13 +4478,11 @@ sumLazyRunsLib axes !o v =
   foldl' (\ !acc p -> acc + sumNoSpec p) 0 (build (runSlicesLib axes o v))
 
 -- The two readers of the stages still on pairs, over 'fillStage3' through
--- 'walkAx', 'fillStage2' until 2026-09-26: copies of 'routeSlices'
--- and 'sumRoute' as those two read until 2026-10-03, the fill the one
--- change. The third, the vector reader, moved to the 'Axis' path with
--- 'lib-stage3-lean' on 2026-09-25 and has its name there. Since 2026-09-26
--- they read only the two stages written out over pairs, 'routeList3' and
--- 'routeUnord4', the others' readers being 'routeSlicesInwardAx' and
--- 'sumRouteInwardAx'.
+-- 'walkAx': copies of 'routeSlices' and 'sumRoute' as those two read before
+-- 2026-10-03, the fill the one change. They read only the two stages written
+-- out over pairs, 'routeList3' and 'routeUnord4', the others' readers being
+-- 'routeSlicesInwardAx' and 'sumRouteInwardAx' and the vector reader being on
+-- the 'Axis' path.
 routeSlicesInward :: VS.Vector Double -> Route
                   -> (VS.Vector Double -> b -> b) -> b -> b
 routeSlicesInward v route cons nil = case route of
@@ -4681,10 +4500,9 @@ sumRouteInward v route = case route of
   RFill axes ao l -> VS.sum (fillStage3 (walkAx axes) ao l v)
 {-# INLINE sumRouteInward #-}
 
--- 'sumRouteInwardAx' with its fill case through 'fillStage2VSdims', the
--- axes made pairs again by 'walkOfAx'; the probe of 2026-09-19, reasons
--- at that fill. Over pairs, 'sumRouteInward' with that fill, until
--- 2026-10-03.
+-- 'sumRouteInwardAx' with its fill case through 'fillStage2VSdims', the axes
+-- made pairs again by 'walkOfAx'; the probe of 2026-09-19, reasons at that
+-- fill.
 sumRouteVSdims :: VS.Vector Double -> RouteAx -> Double
 sumRouteVSdims v route = case route of
   RSliceAx ao l -> VS.sum (VS.slice ao l v)
@@ -4715,17 +4533,16 @@ sumLazyRuns axes !o v =
   foldl' (\ !acc p -> acc + sumNoSpec p) 0 (lazyRuns axes o v)
 
 -- Each run summed without vector's SPEC argument, which is what -O2 was
--- worth to 'libunord-stage10-sum' on Run 31 and the whole of it
--- (2026-09-14, stage10-probe/): vector's 'sum' is a fold carrying SPEC
--- so that SpecConstr can specialise it, and at -O1 that pass does not
--- run, so the loop re-passes the argument every element -- one
--- instruction an element and one a run, six against five in the body --
--- where '-O1 -fspec-constr' gives -O2's Core and assembly byte for byte
--- on the walker and '-fliberate-case' alone gives -O1's. This loop reads
--- -O2's counts at -O1 on every runs shape, within a hundred instructions
--- a call of Run 31's o2 binary, and its time on 'runs-3', so the shared
--- loop reads the same at either level, and the '-list-sum' arms, which
--- keep vector's 'sum', are what price the argument from Run 32 on.
+-- worth to 'libunord-stage10-sum' on Run 31 and the whole of it (2026-09-14,
+-- stage10-probe/): vector's 'sum' is a fold carrying SPEC so that SpecConstr
+-- can specialise it, and at -O1 that pass does not run, so the loop re-passes
+-- the argument every element -- one instruction an element and one a run,
+-- six against five in the body -- where '-O1 -fspec-constr' gives -O2's Core
+-- and assembly byte for byte on the walker and '-fliberate-case' alone gives
+-- -O1's. This loop reads -O2's counts at -O1 on every runs shape, within a
+-- hundred instructions a call of Run 31's o2 binary, and its time on 'runs-3',
+-- so the shared loop reads the same at either level, and the '-list-sum' arms,
+-- which keep vector's 'sum', are what price the argument.
 sumNoSpec :: VS.Vector Double -> Double
 sumNoSpec p = go 0 0
   where !n = VS.length p
@@ -4733,16 +4550,13 @@ sumNoSpec p = go 0 0
                    | otherwise = acc
 {-# INLINE sumNoSpec #-}
 
--- The lean dispatch over an axis order: the axes the order hands back
--- are canonicalized by a loop of 'routeUnord14''s form, which also drops
--- the axes of extent 1 the orders keep, and 'routeOfAx' reads them.
--- Stages three and five to twelve are this over their own order, so a
--- pair of them differs in the order function alone; stage four keeps the
--- natural-strides test and is written out. On the 'Axis' path since
--- 2026-09-26, so that each differs from 'routeUnord14' only in its order
--- and in the passes 'routeUnord13' saves, where until then it read
--- pairs through 'routeOf' and the fold 'canonViewOfPairs', both
--- deleted that day.
+-- The lean dispatch over an axis order: the axes the order hands back are
+-- canonicalized by a loop of 'routeUnord14''s form, which also drops the axes
+-- of extent 1 the orders keep, and 'routeOfAx' reads them. Stages three and
+-- five to twelve are this over their own order, so a pair of them differs in
+-- the order function alone; stage four keeps the natural-strides test and is
+-- written out. On the 'Axis' path, so that each differs from 'routeUnord14'
+-- only in its order and in the passes 'routeUnord13' saves.
 dispatchLean :: (ShapeL -> [Int] -> [Axis]) -> ShapeL -> T -> RouteAx
 dispatchLean order sh (T (Strides ats) ao _)
   | l == 0 = RSliceAx 0 0
@@ -4764,12 +4578,11 @@ dispatchLean order sh (T (Strides ats) ao _)
       routeOfAx off l st' n' (InnerFirstAx rest)
 {-# INLINE dispatchLean #-}
 
--- The orders, as the axes every consumer of one now wants. Absolute
--- stride descending, the extent breaking a tie the larger first, is the
--- sort every stage before seven used. An unzip immediately undone by a
--- zip stood 'libunord-stage10-sum' 19% over '-stage7-sum' on 'small'
--- where it now stands 3% over (2026-09-14, tweak-probe/), read over
--- pairs, as the orders were until 2026-09-26.
+-- The orders, as the axes every consumer of one wants. Absolute stride
+-- descending, the extent breaking a tie the larger first, is the sort every
+-- stage before seven used. An unzip immediately undone by a zip stood
+-- 'libunord-stage10-sum' 19% over '-stage7-sum' on 'small' against 3% without
+-- it (2026-09-14, tweak-probe/, over pairs).
 sortedAbsAxes :: (Axis -> Axis -> Ordering) -> ShapeL -> [Int] -> [Axis]
 sortedAbsAxes cmp sh ats =
   sortBy cmp (zipWith (\st n -> Axis (abs st) n) ats sh)
@@ -4789,20 +4602,19 @@ canonSortedAxes sh ats =
   let (csh, cats) = canonView sh ats
   in  sortedAbsAxes (flip compare) csh cats
 
--- Stage four, the unordered list kept lazy up to the exception and read
--- in address order: 'lsUnordStage2''s one-block test on the sorted
--- canonical view, the natural-strides comparison kept and written over
--- the sorted axes innermost first since 2026-09-22, then runs by
--- 'lazyRuns' where the sorted innermost stride is 1,
+-- Stage four, the unordered list kept lazy up to the exception and read in
+-- address order: 'lsUnordStage2''s one-block test on the sorted canonical
+-- view, the natural-strides comparison kept and written over the sorted axes
+-- innermost first, then runs by 'lazyRuns' where the sorted innermost stride
+-- is 1,
 -- and one 'fillStage3' only where no run is longer than one element --
 -- master's own strict pattern there. What it moves between patterns is
 -- the sort, the exception's own case: a reversed axis is walked forward
 -- and a transposed block's stride-1 axis becomes the run -- a transposed
--- dense array, which every main-set view is, being one block to the
--- test and one slice here. The dispatch is a 'Route', read by the
--- list and the sum consumer alike (the type's comment). The consumer's
--- own reading is 'fbLibUnordStage4Sum'. Added 2026-09-07
--- for Run 27; a 'Route' since 2026-09-09.
+-- dense array, which every main-set view is, being one block to the test
+-- and one slice here. The dispatch is a 'Route', read by the list and the
+-- sum consumer alike (the type's comment). The consumer's own reading is
+-- 'fbLibUnordStage4Sum'.
 routeUnord4 :: ShapeL -> T -> Route
 routeUnord4 sh (T (Strides ats) ao _)
   | l == 0 = RSlice 0 0
@@ -4821,44 +4633,36 @@ routeUnord4 sh (T (Strides ats) ao _)
 
 -- Stage five, stage four under the lean dispatch: the sorted axes
 -- canonicalized AGAIN, so the lean rank test decides one block and no
--- 'getStridesT' is built anywhere -- 'routeUnord3''s dispatch, the
--- half of that stage the ruling leaves, over 'lazyRuns' in place of its
--- fill. The second canonicalization is what the lean test needs, and it
--- also merges every adjacent pair the sort brought together, so a run
--- here can be longer than stage four's; the pair with stage four prices
--- the two together. Added 2026-09-07 for Run 27.
+-- 'getStridesT' is built anywhere -- 'routeUnord3''s dispatch, the half of
+-- that stage the ruling leaves, over 'lazyRuns' in place of its fill. The
+-- second canonicalization is what the lean test needs, and it also merges
+-- every adjacent pair the sort brought together, so a run here can be longer
+-- than stage four's; the pair with stage four prices the two together.
 routeUnord5 :: ShapeL -> T -> RouteAx
 routeUnord5 = dispatchLean canonSortedAxes
 
--- Stage six, stage five with the first canonicalization dropped: the
--- RAW axes sorted by absolute stride and canonicalized once, so the
--- lean rank test reads the same dims and one pass per call is owed
--- rather than two. On 2026-09-09 a 'check'-mode comparison read the
--- two dispatches' sorted canonical dims equal on all 91 checked views,
--- so the pair with stage five prices dispatch cost alone -- the pass
--- saved where it merged nothing ('small-patch-k5', [6, 5, 5] on
--- strides [25, 1, 5]) against the longer sort where it collapsed the
--- rank ('small-flat64', [4, 1, 64] on [64, 0, 1], rank one before the
--- sort under stage five and three axes sorted here). One change over
--- 'routeUnord5' per population. Added 2026-09-09 for Run 28; the
--- registration is README's open list.
+-- Stage six, stage five with the first canonicalization dropped: the RAW
+-- axes sorted by absolute stride and canonicalized once, so the lean rank
+-- test reads the same dims and one pass per call is owed rather than two. On
+-- 2026-09-09 a 'check'-mode comparison read the two dispatches' sorted
+-- canonical dims equal on all 91 checked views, so the pair with stage five
+-- prices dispatch cost alone -- the pass saved where it merged nothing
+-- ('small-patch-k5', [6, 5, 5] on strides [25, 1, 5]) against the longer sort
+-- where it collapsed the rank ('small-flat64', [4, 1, 64] on [64, 0, 1], rank
+-- one before the sort under stage five and three axes sorted here). One change
+-- over 'routeUnord5' per population.
 routeUnord6 :: ShapeL -> T -> RouteAx
 routeUnord6 = dispatchLean (sortedAbsAxes (flip compare))
 
--- The fold as a strict loop over the levels and no list at all, over
--- stage six's dispatch, its leaf fused as 'lazyRuns''s is so that the
--- pair reads the interface and not the odometer: what a fold entry
--- point costs against the list interface. Registered while the fused
--- list paid a thunk, a box and a partial application a run, the fusion
--- probe of 2026-09-09 reading it at 5 ns and no allocation against the
--- list's 9 and 80 bytes on the k3 window; since the flat walker of the
--- same day the list allocates nothing a run either and this loop is
--- the slower of the two, Run 28's item (8) (README.md#what-is-open).
--- Timed as 'libunord-stage6-loop-sum', the interface question of the
--- laziness ruling made an arm: the ruling keeps the list for 'anyT' and
--- 'allT', which a strict loop cannot stop early; the pair with
--- 'fbLibUnordStage6Sum' prices what that costs a reduction. Added
--- 2026-09-09 for Run 28.
+-- The fold as a strict loop over the levels and no list at all, over stage
+-- six's dispatch, its leaf fused as 'lazyRuns''s is so that the pair reads
+-- the interface and not the odometer: what a fold entry point costs against
+-- the list interface. Over the flat walker the list allocates nothing a
+-- run either and this loop is the slower of the two (Run 28's item (8),
+-- README.md#what-is-open). Timed as 'libunord-stage6-loop-sum', the interface
+-- question of the laziness ruling made an arm: the ruling keeps the list for
+-- 'anyT' and 'allT', which a strict loop cannot stop early; the pair with
+-- 'fbLibUnordStage6Sum' prices what that costs a reduction.
 foldRunsLoop :: (Double -> VS.Vector Double -> Double) -> Double -> WalkAx
              -> Int -> VS.Vector Double -> Double
 foldRunsLoop f z0 (WalkAx _ n outerAxes) !start v =
@@ -4885,14 +4689,12 @@ fbLibUnordStage6LoopSum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage6LoopSum sh a@(T _ _ v) =
   VS.singleton (loopSumRoute v (routeUnord6 sh a))
 
--- The consumer as a user of 'toUnorderedVectorListT' writes it: base's
--- 'sum' over the list itself, no route in hand and so no 'sumLazyRuns'.
--- Base's 'sum' is base's 'foldl'', so against 'libunord-stage6-sum' this
--- prices what a consumer in the wild gets from the list's shape alone,
--- which is what a producer written for base's fold has to serve: under
--- the level-form walker it read 96 bytes a run where the harness's own
--- consumer read 80, under the flat one none, as the harness's.
--- Added 2026-09-09, Run 28's item (12).
+-- The consumer as a user of 'toUnorderedVectorListT' writes it: base's 'sum'
+-- over the list itself, no route in hand and so no 'sumLazyRuns'. Base's
+-- 'sum' is base's 'foldl'', so against 'libunord-stage6-sum' this prices what
+-- a consumer in the wild gets from the list's shape alone, which is what a
+-- producer written for base's fold has to serve: over the flat walker it
+-- allocates nothing a run, as the harness's own consumer does.
 {-# NOINLINE fbLibUnordStage6ListSum #-}
 fbLibUnordStage6ListSum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage6ListSum sh a@(T _ _ v) =
@@ -4909,8 +4711,7 @@ fbLibUnordStage6ListSum sh a@(T _ _ v) =
 -- moves the six unstrided 'window' views, the two with channels among
 -- them, from runs of the kernel's width to runs of the output's, and
 -- 'small-patch-r5', runs of 16 for 8.
--- One change over 'routeUnord6' per population. Added 2026-09-09 for
--- Run 28.
+-- One change over 'routeUnord6' per population.
 routeUnord7 :: ShapeL -> T -> RouteAx
 routeUnord7 = dispatchLean (sortedAbsAxes byStrideExtent)
 
@@ -4919,29 +4720,27 @@ routeUnord7 = dispatchLean (sortedAbsAxes byStrideExtent)
 byStrideExtent :: Axis -> Axis -> Ordering
 byStrideExtent (Axis s1 n1) (Axis s2 n2) = compare s2 s1 <> compare n1 n2
 
--- Stage eight, stage six with the run chosen as the longest contiguous
--- one rather than as the innermost sorted axis: from each unit-stride
--- axis, any remaining axis whose absolute stride equals the run's
--- length so far extends it -- 'canonView''s merge condition, asked of
--- every axis rather than of the sort's neighbour -- and the longest
--- chain over every order of absorption is the run, the axes it leaves
--- sorted outside it in stage six's order. Where no axis has stride 1
--- the route is stage six's, and so is it where one has stride 0, which
--- is stage nine's question and kept out of this pair. Against stage six
--- it moves what stage seven moves, the longest unit-stride axis being
--- the run either way, 'small-patch-r5' included, runs of 16 where the
--- sort leaves 8 -- the pair with stage seven, read beside, prices the
--- absorption alone, which parts from the tie-break only where an axis
--- with the run's length sits away from the run after sorting, a thing
--- an injective view cannot arrange -- and the order of two outer levels
--- tied on stride, the 'window' views and 'small-patch-r5', where this
--- arm keeps stage six's and stage seven has the reverse, moving no run
--- count. One change over 'routeUnord6' per population. Added 2026-09-09
--- for Run 28. REFUTED 2026-09-11 on that run's registration (6): on
--- every rostered view its run is stage seven's, 'small-patch-r5'
--- included, so the pair priced this dispatch's exhaustive search and
--- the order of two tied levels, 1.05 behind on 'window' and 1.22 to
--- 1.26 on 'small-patch-r5'; where
+-- Stage eight, stage six with the run chosen as the longest contiguous one
+-- rather than as the innermost sorted axis: from each unit-stride axis,
+-- any remaining axis whose absolute stride equals the run's length so far
+-- extends it -- 'canonView''s merge condition, asked of every axis rather
+-- than of the sort's neighbour -- and the longest chain over every order of
+-- absorption is the run, the axes it leaves sorted outside it in stage six's
+-- order. Where no axis has stride 1 the route is stage six's, and so is it
+-- where one has stride 0, which is stage nine's question and kept out of
+-- this pair. Against stage six it moves what stage seven moves, the longest
+-- unit-stride axis being the run either way, 'small-patch-r5' included, runs
+-- of 16 where the sort leaves 8 -- the pair with stage seven, read beside,
+-- prices the absorption alone, which parts from the tie-break only where an
+-- axis with the run's length sits away from the run after sorting, a thing an
+-- injective view cannot arrange -- and the order of two outer levels tied on
+-- stride, the 'window' views and 'small-patch-r5', where this arm keeps stage
+-- six's and stage seven has the reverse, moving no run count. One change over
+-- 'routeUnord6' per population. REFUTED 2026-09-11 on Run 28's registration
+-- (6): on every rostered view its run is stage seven's, 'small-patch-r5'
+-- included, so the pair priced this dispatch's exhaustive search and the
+-- order of two tied levels, 1.05 behind on 'window' and 1.22 to 1.26 on
+-- 'small-patch-r5'; where
 -- a chain can beat the tie-break, and why no realistic view has that
 -- shape, is README.md#dead-ideas.
 routeUnord8 :: ShapeL -> T -> RouteAx
@@ -4989,18 +4788,16 @@ bestOf = foldr1 (\x y -> if fst x >= fst y then x else y)
 dropAt :: Int -> [a] -> [a]
 dropAt i xs = take i xs ++ drop (i + 1) xs
 
--- Stage nine, stage six with every zero-stride axis outermost on the
--- list route: a broadcast then lists one real slice as many times as
--- the axis is long, where stage six sorts stride 0 innermost and falls
--- to the fill -- 'bcast-inner8' as eight slices of 6400 rather than 6400
--- runs of eight written. The multiset is the same, which is all the
--- unordered list promises. The fill route is stage six's unchanged, so
--- a view with no unit stride reads as stage six does, and so does one
--- with no zero stride. What the pair prices is the fill's write against
--- the slice's repeat, on 'bcast', 'bcastmid', 'compose' and
--- 'small-bcast32', at slices from eight elements to a million. One
--- change over 'routeUnord6' per population. Added 2026-09-09 for Run
--- 28.
+-- Stage nine, stage six with every zero-stride axis outermost on the list
+-- route: a broadcast then lists one real slice as many times as the axis
+-- is long, where stage six sorts stride 0 innermost and falls to the fill
+-- -- 'bcast-inner8' as eight slices of 6400 rather than 6400 runs of eight
+-- written. The multiset is the same, which is all the unordered list
+-- promises. The fill route is stage six's unchanged, so a view with no unit
+-- stride reads as stage six does, and so does one with no zero stride. What
+-- the pair prices is the fill's write against the slice's repeat, on 'bcast',
+-- 'bcastmid', 'compose' and 'small-bcast32', at slices from eight elements to
+-- a million. One change over 'routeUnord6' per population.
 routeUnord9 :: ShapeL -> T -> RouteAx
 routeUnord9 = dispatchLean zerosFirst
 
@@ -5023,17 +4820,15 @@ zerosOutermost ps
   | otherwise = ps
 
 -- Stage ten, stage seven's tie-break under stage nine's move: on equal
--- absolute strides the larger extent lands innermost, so the run is
--- the longest unit-stride axis, and every zero-stride axis then goes
--- outermost on the list route, so a broadcast lists one real slice as
--- many times as the axis is long. The tie-break decides the run and
--- the move the outer order, so where both fire the run is the
--- tie-break's with the zero-stride axes outside it, and where one
--- fires the route is stage seven's or stage nine's. What the arm
--- prices is whether the two savings Run 28 read alone -- the tie-break
--- at 0.72 on 'window', the move at 0.45 to 0.75 on the zero-stride
--- views -- compose with nothing paid for each other. Two changes over
--- 'routeUnord6'. Added 2026-09-11 for Run 29.
+-- absolute strides the larger extent lands innermost, so the run is the
+-- longest unit-stride axis, and every zero-stride axis then goes outermost on
+-- the list route, so a broadcast lists one real slice as many times as the
+-- axis is long. The tie-break decides the run and the move the outer order, so
+-- where both fire the run is the tie-break's with the zero-stride axes outside
+-- it, and where one fires the route is stage seven's or stage nine's. What the
+-- arm prices is whether the two savings Run 28 read alone -- the tie-break
+-- at 0.72 on 'window', the move at 0.45 to 0.75 on the zero-stride views --
+-- compose with nothing paid for each other. Two changes over 'routeUnord6'.
 routeUnord10 :: ShapeL -> T -> RouteAx
 routeUnord10 = dispatchLean zerosFirstTied
 
@@ -5041,21 +4836,18 @@ routeUnord10 = dispatchLean zerosFirstTied
 zerosFirstTied :: ShapeL -> [Int] -> [Axis]
 zerosFirstTied sh ats = zerosOutermost (sortedAbsAxes byStrideExtent sh ats)
 
--- Stage eleven, stage ten with the move guarded: the zero-stride axes
--- go outermost only where the view has one, and a view without takes
--- stage seven's order and nothing else. On Run 32's small views stage
--- ten retired 650 to 1060 instructions a call more than stage seven,
--- the move's two filters and append run on every call, and trailed by
--- 55 to 109 ns on calls of 200 to 700 ns for it, the same on both
--- compilers; the guard is one pass over the strides. Where a zero
--- stride is there the route is stage ten's. One change over
--- 'routeUnord10'. Added 2026-09-15 for Run 33. The guard asked for
--- any zero stride until 2026-09-16 and asks since for one on an axis
--- of extent above 1, which is what the move can act on: on
--- 'small-flat64', [4, 1, 64] on strides [64, 0, 1], the raw zero ran
--- the move for a route canonicalization makes one block of on every
--- stage, 600-odd instructions and 21 percent a call on both of Run
--- 33's halves, the one double-digit cell the guard had left.
+-- Stage eleven, stage ten with the move guarded: the zero-stride axes go
+-- outermost only where the view has one, and a view without takes stage
+-- seven's order and nothing else. On Run 32's small views stage ten retired
+-- 650 to 1060 instructions a call more than stage seven, the move's two
+-- filters and append run on every call, and trailed by 55 to 109 ns on calls
+-- of 200 to 700 ns for it, the same on both compilers; the guard is one pass
+-- over the strides. Where a zero stride is there the route is stage ten's. One
+-- change over 'routeUnord10'. The guard asks for a zero stride on an axis
+-- of extent above 1, which is what the move can act on: asking for any, on
+-- 'small-flat64', [4, 1, 64] on strides [64, 0, 1], the raw zero ran the move
+-- for a route canonicalization makes one block of on every stage, 600-odd
+-- instructions and 21 percent a call on both of Run 33's halves.
 routeUnord11 :: ShapeL -> T -> RouteAx
 routeUnord11 = dispatchLean zerosFirstTiedGuarded
 
@@ -5092,30 +4884,27 @@ zeroAxis sh ats = any (== 0) ats && go ats sh
         go _ _ = False
 {-# INLINE zeroAxis #-}
 
--- Stage twelve, stage eleven with the run chosen among the unit-stride
--- axes by its extent, the run's length wherever no axis merges into it,
--- and not by the tie-break. The sum consumer's chain of adds runs at
--- one add latency an element on a long run and overlaps the next run's
--- on a short one, and Run 33's 'runs' column with the probe of
--- 2026-09-16 read the cost per element falling from runs of 5 to 9,
--- flat to 32, a shelf from 48 to 96 and a climb past it towards the
--- asymptote, with runs of 3 and 4 a hair above the shelf's cost. So on
--- a tie at stride 1 the axis on the plateau lands innermost, the
--- longest of them, and where none is on it the shelf beats runs of 3
--- and 4 and those beat the climb. Stage seven's order stays everywhere
--- else, the outer tie included, which stage eight kept the other way
--- and, with its exhaustive search, read at 1.05 behind stage seven on
--- 'window': the comparator branches on the stride. A list's route and
--- not a fill's: a fill copies its run and wants it long, and this arm's
--- fill is checked and never timed. Of the 'window' views it moves
--- three, 'window-128x128-k7' to runs of 7, 'window-64x64-k1x9' to 9 and
--- 'window-224x224-k3' to 3, and leaves the other five at stage seven's
--- run: the two with channels and 'window-28x28-k5', where the longer
--- tied axis is on the plateau, and the strided and dilated views, which
--- carry one unit-stride axis and no tie. 'small-patch-r5' carries one
--- too, its run of 16 set by a tie at stride 4 that this comparator
--- leaves as stage seven has it. One change over 'routeUnord11' per
--- population. Added 2026-09-16 for Run 34.
+-- Stage twelve, stage eleven with the run chosen among the unit-stride axes
+-- by its extent, the run's length wherever no axis merges into it, and not by
+-- the tie-break. The sum consumer's chain of adds runs at one add latency an
+-- element on a long run and overlaps the next run's on a short one, and Run
+-- 33's 'runs' column with the probe of 2026-09-16 read the cost per element
+-- falling from runs of 5 to 9, flat to 32, a shelf from 48 to 96 and a climb
+-- past it towards the asymptote, with runs of 3 and 4 a hair above the shelf's
+-- cost. So on a tie at stride 1 the axis on the plateau lands innermost, the
+-- longest of them, and where none is on it the shelf beats runs of 3 and 4 and
+-- those beat the climb. Stage seven's order stays everywhere else, the outer
+-- tie included, which stage eight kept the other way and, with its exhaustive
+-- search, read at 1.05 behind stage seven on 'window': the comparator branches
+-- on the stride. A list's route and not a fill's: a fill copies its run
+-- and wants it long, and this arm's fill is checked and never timed. Of
+-- the 'window' views it moves three, 'window-128x128-k7' to runs of 7,
+-- 'window-64x64-k1x9' to 9 and 'window-224x224-k3' to 3, and leaves the other
+-- five at stage seven's run: the two with channels and 'window-28x28-k5',
+-- where the longer tied axis is on the plateau, and the strided and dilated
+-- views, which carry one unit-stride axis and no tie. 'small-patch-r5' carries
+-- one too, its run of 16 set by a tie at stride 4 that this comparator leaves
+-- as stage seven has it. One change over 'routeUnord11' per population.
 routeUnord12 :: ShapeL -> T -> RouteAx
 routeUnord12 = dispatchLean zerosFirstRankedGuarded
 
@@ -5129,12 +4918,11 @@ zerosFirstRankedGuarded sh ats
 -- The order 'routeUnord13' sorts by, the library's 'byStrideRank' as
 -- ~/r/orthotope.toVectorListT has it on 2026-10-03, the same code as
 -- 'byStrideRankAx': absolute stride descending; on a tie at stride 1 the
--- length 'runRank' prefers last, so that it is the run, and on any other
--- tie the extent ascending. In case form rather than over '<>', on
--- counts of 2026-09-16 over three tie views, taken on this comparator
--- over pairs: the '<>' form retired 42 to 128 instructions a call more,
--- the tie branch being the one most comparisons never reach. Over pairs
--- until 2026-10-03.
+-- length 'runRank' prefers last, so that it is the run, and on any other tie
+-- the extent ascending. In case form rather than over '<>', on counts of
+-- 2026-09-16 over three tie views, taken on this comparator over pairs: the
+-- '<>' form retired 42 to 128 instructions a call more, the tie branch being
+-- the one most comparisons never reach.
 byStrideRank :: Axis -> Axis -> Ordering
 byStrideRank (Axis s1 n1) (Axis s2 n2) = case compare s2 s1 of
   EQ | s1 == 1 -> runRank n2 n1
@@ -5173,22 +4961,20 @@ runRank !a !b = case compare ta tb of
       | otherwise = 3
 {-# INLINE runRank #-}
 
--- Stage thirteen, the library's 'unorderedRouteT' as
--- pr-mikolaj-toVectorListT has it since 2026-10-05, at the 'Axis' path's
--- types: the view's elements as an unordered list of slices, found from the
--- shape and the strides in as few passes over them as the answer allows. It
--- takes the count, as the library's does, and wants it positive, its
--- readers answering an empty view first. Added 2026-09-17 for Run 35 as
--- stage twelve's route found in fewer passes, over pairs until 2026-10-03,
--- when it took the branch's code and with it the zero-stride axis just
--- outside the run, where stage twelve puts it outermost. In the library,
--- the three cases of 'routeOfLib' are the slice, the run list and the fill
--- that 'toUnorderedVectorListT' produces there. From here down nothing
--- names a stage or this harness: the account after the function explains
--- the dispatch on its own terms. The sort is 'sortAxes' and the merge loop
--- 'canonicalizeAx', since 2026-10-04 an insertion that enters the merge
--- loop at its end, both out of line as 'routeList4''s 'canonicalizeLib' is:
--- the library's 'sortAxesT' and 'canonicalizeSortedT' since 2026-10-05.
+-- Stage thirteen, the library's 'unorderedRouteT' as pr-mikolaj-toVectorListT
+-- has it on 2026-10-05, at the 'Axis' path's types: the view's elements as an
+-- unordered list of slices, found from the shape and the strides in as few
+-- passes over them as the answer allows. It takes the count, as the library's
+-- does, and wants it positive, its readers answering an empty view first. Its
+-- route is stage twelve's found in fewer passes, but for the zero-stride
+-- axis, just outside the run here where stage twelve puts it outermost. In
+-- the library, the three cases of 'routeOfLib' are the slice, the run list
+-- and the fill that 'toUnorderedVectorListT' produces there. From here down
+-- nothing names a stage or this harness: the account after the function
+-- explains the dispatch on its own terms. The sort is 'sortAxes', an insertion
+-- that enters the merge loop 'canonicalizeAx' at its end, both out of line
+-- as 'routeList4''s 'canonicalizeLib' is: the library's 'sortAxesT' and
+-- 'canonicalizeSortedT'.
 routeUnord13 :: ShapeL -> Int -> T -> RouteAx
 routeUnord13 sh !l (T (Strides ats) ao _) = case axes of
   a : axs -> routeOfLib off l (sortAxes a [] axs)
@@ -5234,17 +5020,15 @@ canonicalizeAx [] axes = axes
 -- the axes that matter, their strides made absolute, with the start
 -- offset beside them.
 --
--- Why drop the axes of extent 1 before the sort.  An axis of extent 1
--- selects one index and is walked no distance, so its stride says
--- nothing about which cells are touched, and canonicalization drops it
--- whatever its stride.  Dropped before the sort, it leaves the sort
--- fewer axes to order, and on a view where such an axis shares a stride
--- with another --- the channel axis of a one-channel convolution patch,
--- extent 1 at the output axis's stride --- the sort meets no tie and
--- has no order to undo, where 'sortBy', the sort until 2026-10-04, paid
--- several hundred instructions to reorder five axes on meeting one.  A
--- zero stride on such an axis goes with it, so no later test has to see
--- past it.
+-- Why drop the axes of extent 1 before the sort.  An axis of extent 1 selects
+-- one index and is walked no distance, so its stride says nothing about which
+-- cells are touched, and canonicalization drops it whatever its stride.
+-- Dropped before the sort, it leaves the sort fewer axes to order, and on a
+-- view where such an axis shares a stride with another --- the channel axis of
+-- a one-channel convolution patch, extent 1 at the output axis's stride ---
+-- the sort meets no tie and has no order to undo, where 'sortBy' paid several
+-- hundred instructions to reorder five axes on meeting one.  A zero stride on
+-- such an axis goes with it, so no later test has to see past it.
 --
 -- Why abs.  A negative stride walks an axis backwards over the same
 -- cells a positive one walks forwards.  Order is not asked for here, so
@@ -5310,17 +5094,14 @@ canonicalizeAx [] axes = axes
 -- Just outside the run rather than outermost is a choice neither
 -- placement wins; the readings are at 'routeUnord14''s move.
 
--- The library's 'absAxesAndStartT' as ~/r/orthotope.toVectorListT has
--- it on 2026-10-03, the same code as 'absAxes': the axes of extent above
--- 1, their strides made absolute, onto the list given in reverse of the
--- order given, and the offset given moved to the view's lowest address.
--- The reversal is what makes 'sortAxes' cheap since 2026-10-04: a view
--- whose axes come outermost first reaches it innermost first, and each
--- axis goes in at the head. Which of two axes of one absolute stride and
--- one extent comes first, the only order 'byStrideRank' leaves open,
--- 'routeUnord13''s merge loop treats alike. A function returning the
--- pair, with no 'INLINE', as 'absAxes' is; why, at it and in README's
--- entry on 'MergeAccAx'. Over pairs until 2026-10-03.
+-- The library's 'absAxesAndStartT' as ~/r/orthotope.toVectorListT has it on
+-- 2026-10-03, the same code as 'absAxes', which says what it returns. The
+-- reversal is what makes 'sortAxes' cheap: a view whose axes come outermost
+-- first reaches it innermost first, and each axis goes in at the head. Which
+-- of two axes of one absolute stride and one extent comes first, the only
+-- order 'byStrideRank' leaves open, 'routeUnord13''s merge loop treats
+-- alike. A function returning the pair, with no 'INLINE', as 'absAxes' is;
+-- why, at it and in README's entry on 'MergeAccAx'.
 absAxesAndStartLib :: [Axis] -> Int -> [Int] -> ShapeL -> ([Axis], Int)
 absAxesAndStartLib axes !off (_ : sts) (1 : ns) =
   absAxesAndStartLib axes off sts ns
@@ -5331,20 +5112,19 @@ absAxesAndStartLib axes !off (st : sts) (n : ns)
   | otherwise = absAxesAndStartLib (Axis st n : axes) off sts ns
 absAxesAndStartLib axes off _ _ = (axes, off)
 
--- The sort of 'routeUnord13', into 'byStrideRank''s order: an insertion
--- over the walk's list, the outermost axis so far held apart from the
--- rest, each axis after every axis it ranks after, so one comparison an
--- axis where the walk's list is already in reverse order; at the end it
--- enters the merge loop with the held axis as the merge's first, so the
--- sorted axes are never one list. In place of 'sortBy', which compiles to
--- a merge sort calling the comparator through a closure, since 2026-10-04:
--- on Run 44's basis recipe it reads 22 to 1250 instructions a call fewer
--- than 'sortBy' on every view of the main set and the classes, and up to
--- 856 bytes fewer, none more. Returning the sorted list for the route to
--- take apart, it read 40 to 249 instructions and 22 to 97 bytes more on
--- every view, and inserting during the walk, which meets the axes
--- outermost first and so put each at the end, 111 to 697 instructions
--- more than 'sortBy' on four views of rank 5 to 7.
+-- The sort of 'routeUnord13', into 'byStrideRank''s order: an insertion over
+-- the walk's list, the outermost axis so far held apart from the rest, each
+-- axis after every axis it ranks after, so one comparison an axis where the
+-- walk's list is already in reverse order; at the end it enters the merge
+-- loop with the held axis as the merge's first, so the sorted axes are never
+-- one list. In place of 'sortBy', which compiles to a merge sort calling the
+-- comparator through a closure: on Run 44's basis recipe (2026-10-04) it reads
+-- 22 to 1250 instructions a call fewer than 'sortBy' on every view of the
+-- main set and the classes, and up to 856 bytes fewer, none more. Returning
+-- the sorted list for the route to take apart, it read 40 to 249 instructions
+-- and 22 to 97 bytes more on every view, and inserting during the walk, which
+-- meets the axes outermost first and so put each at the end, 111 to 697
+-- instructions more than 'sortBy' on four views of rank 5 to 7.
 sortAxes :: Axis -> [Axis] -> [Axis] -> WalkAx
 sortAxes h !rest (x : xs)
   | GT <- byStrideRank x h = sortAxes h (insertAxis x rest) xs
@@ -5357,33 +5137,29 @@ insertAxis x (y : ys)
   | GT <- byStrideRank x y = let !r = insertAxis x ys in y : r
 insertAxis x ys = x : ys
 
--- The 'Axis' path, since 2026-09-25 the three inward twins' own, and
--- since 2026-09-26 'lib-stage2-lean-u1''s through 'fillStage3U1' and
--- the unordered stages 'dispatchLean' builds, three and five to twelve:
--- 'lib-stage3-lean', 'liblist-stage5-sum' and 'libunord-stage14-sum'
--- read their views through copies of the dispatch, the route, the runs
--- walker and the fill in which a canonical axis is an 'Axis', where the
--- arms left on pairs read a (stride, extent) pair. Their pairs with
--- 'lib-stage2-lean', 'liblist-stage4-sum' and 'libunord-stage13-sum' priced
--- that representation from 2026-09-26, the copies' other changes ported
--- to those three arms' code that day, until 2026-10-03, when those three
--- took the code of pr-mikolaj-toVectorListT as ~/r/orthotope.toVectorListT
--- has it, its uncommitted diff included, at this path's types. Since then
--- 'lib-stage3-lean', 'liblist-stage5-sum' and 'libunord-stage15-sum'
--- against them price what the branch's code does otherwise: the ordered
--- merge an out-of-line loop over a 'WalkAx', 'canonicalizeLib', with a
--- view of one element answered before it, where 'routeList5''s loops are
--- local; the unordered route's sort, since 2026-10-04 an insertion that
--- enters an out-of-line merge loop at its end, where 'routeUnord15' calls
--- 'sortBy' and merges in a loop local to the route; 'routeOfLib' taking
--- the axes as one 'WalkAx'; the count passed to the routes and an empty
--- view answered before them; the runs walked through 'offsetsLib'; and in
--- the fill, the level loop bounded by an end, where 'fillStage3' counts
--- its blocks down, and the runs at stride 1 walked by a copy of their
--- own. 'libunord-stage14-sum' against 'libunord-stage13-sum' carries the
--- zero-stride axis's place as well. Each copy began as its original's
--- code with the pair an 'Axis' and its name suffixed @Ax@, carrying its
--- original's comment adjusted to that, and says so where it has moved on
+-- The 'Axis' path: 'lib-stage3-lean', 'liblist-stage5-sum' and
+-- 'libunord-stage14-sum', and with them 'lib-stage2-lean-u1' through
+-- 'fillStage3U1' and the unordered stages 'dispatchLean' builds, three
+-- and five to twelve, read their views through copies of the dispatch,
+-- the route, the runs walker and the fill in which a canonical axis is
+-- an 'Axis', where the arms left on pairs read a (stride, extent) pair.
+-- 'lib-stage2-lean', 'liblist-stage4-sum' and 'libunord-stage13-sum' run
+-- the code of pr-mikolaj-toVectorListT as ~/r/orthotope.toVectorListT has
+-- it on 2026-10-03, its uncommitted diff included, at this path's types, so
+-- 'lib-stage3-lean', 'liblist-stage5-sum' and 'libunord-stage15-sum' against
+-- them price what the branch's code does otherwise: the ordered merge an
+-- out-of-line loop over a 'WalkAx', 'canonicalizeLib', with a view of one
+-- element answered before it, where 'routeList5''s loops are local; the
+-- unordered route's sort an insertion that enters an out-of-line merge loop at
+-- its end, where 'routeUnord15' calls 'sortBy' and merges in a loop local to
+-- the route; 'routeOfLib' taking the axes as one 'WalkAx'; the count passed to
+-- the routes and an empty view answered before them; the runs walked through
+-- 'offsetsLib'; and in the fill, the level loop bounded by an end, where
+-- 'fillStage3' counts its blocks down, and the runs at stride 1 walked by a
+-- copy of their own. 'libunord-stage14-sum' against 'libunord-stage13-sum'
+-- carries the zero-stride axis's place as well. Each copy began as its
+-- original's code with the pair an 'Axis' and its name suffixed @Ax@, carrying
+-- its original's comment adjusted to that, and says so where it has moved on
 -- since; a figure dated 2026-09-25 was read on the copy, every other on the
 -- original.
 
@@ -5424,24 +5200,22 @@ newtype InnerFirstAx = InnerFirstAx { innerFirstAx :: [Axis] }
 data WalkAx = WalkAx !Int !Int InnerFirstAx
 
 -- A 'Walk' as a 'WalkAx', each outer axis made an 'Axis': how the pair
--- dispatches hand their fills to 'fillStage3' since 'fillStage2' was
--- deleted (2026-09-26), a list built a call.
+-- dispatches hand their fills to 'fillStage3', a list built a call.
 walkAx :: Walk -> WalkAx
 walkAx (Walk t n axes) =
   WalkAx t n (InnerFirstAx [Axis st d | (st, d) <- innerFirst axes])
 {-# INLINE walkAx #-}
 
--- A 'WalkAx' as a 'Walk', the inverse of 'walkAx': how the parked arms
--- whose fills take pairs read a route of the 'Axis' path since
--- 2026-10-03, a list built a call.
+-- A 'WalkAx' as a 'Walk', the inverse of 'walkAx': how the parked arms whose
+-- fills take pairs read a route of the 'Axis' path, a list built a call.
 walkOfAx :: WalkAx -> Walk
 walkOfAx (WalkAx t n axes) =
   Walk t n (InnerFirst [(st, d) | Axis st d <- innerFirstAx axes])
 {-# INLINE walkOfAx #-}
 
--- 'walkOfDims' as a 'WalkAx', built directly: how 'lsListStage1' hands
--- its fill to 'fillStage3' since 2026-09-26, so that its two list arms
--- differ from their models in the port alone.
+-- 'walkOfDims' as a 'WalkAx', built directly: how 'lsListStage1' hands its
+-- fill to 'fillStage3', so that its two list arms differ from their models in
+-- the port alone.
 walkOfDimsAx :: ShapeL -> [Int] -> WalkAx
 walkOfDimsAx sh ats = case reverse (zipWith Axis ats sh) of
   [] -> WalkAx 0 1 (InnerFirstAx [])
@@ -5450,13 +5224,11 @@ walkOfDimsAx sh ats = case reverse (zipWith Axis ats sh) of
 
 
 -- Stage five of the list entry point, the dispatch of 'lib-stage3-lean',
--- 'lib-stage2-lean-u1' and 'liblist-stage5-sum': 'routeList3' under the
--- lean dispatch, the regime read off the merged form alone and no
--- 'getStridesT' built, as stage four, 'routeList4', reads it, which
--- from 2026-09-26 until 2026-10-03 was this over pairs. The merge is
--- the library's as the branch's commits have it before its uncommitted
--- diff of 2026-10-03, loops inside the route over the shape and the
--- strides:
+-- 'lib-stage2-lean-u1' and 'liblist-stage5-sum': 'routeList3' under the lean
+-- dispatch, the regime read off the merged form alone and no 'getStridesT'
+-- built, as stage four, 'routeList4', reads it. The merge is the library's
+-- as the branch's commits have it before its uncommitted diff of 2026-10-03,
+-- loops inside the route over the shape and the strides:
 -- 'start' skips the axes of extent 1 up to the first kept one, and
 -- 'canonicalizeAx' merges each kept axis into the one just outside it,
 -- carried as its stride and extent, where that one's stride is this
@@ -5496,12 +5268,11 @@ routeList5 sh (T (Strides ats) ao _)
 {-# INLINE routeList5 #-}
 
 -- Stage fourteen, the dispatch of 'libunord-stage14-sum': 'routeUnord13'
--- as that read over pairs until 2026-10-03, on the 'Axis' path, the
--- zero-stride axis appended outermost where stage thirteen, the
--- library's 'unorderedRouteT' since that day, conses it just outside the
--- run. The account of the dispatch is at 'routeUnord13', the place of
--- the broadcast aside. The absolute axes and their sort are 'absAxes'
--- and 'byStrideRankAx'.
+-- as that read over pairs before 2026-10-03, on the 'Axis' path, the
+-- zero-stride axis appended outermost where stage thirteen, the library's
+-- 'unorderedRouteT', conses it just outside the run. The account of the
+-- dispatch is at 'routeUnord13', the place of the broadcast aside. The
+-- absolute axes and their sort are 'absAxes' and 'byStrideRankAx'.
 routeUnord14 :: ShapeL -> T -> RouteAx
 routeUnord14 sh (T (Strides ats) ao _)
   | l == 0 = RSliceAx 0 0
@@ -5537,9 +5308,9 @@ routeUnord14 sh (T (Strides ats) ao _)
 
 -- Stage fifteen, 'routeUnord14' with the zero-stride axis consed just
 -- outside the run where that one appends it outermost: one change, so
--- 'libunord-stage14-sum' is its control. Neither placement wins: the
--- readings of 2026-09-26, 'compose-bcast-nest' and 'compose-bcast-wide',
--- are at 'routeUnord14''s move. Added 2026-09-26.
+-- 'libunord-stage14-sum' is its control. Neither placement wins: the readings
+-- of 2026-09-26, 'compose-bcast-nest' and 'compose-bcast-wide', are at
+-- 'routeUnord14''s move.
 routeUnord15 :: ShapeL -> T -> RouteAx
 routeUnord15 sh (T (Strides ats) ao _)
   | l == 0 = RSliceAx 0 0
@@ -5580,11 +5351,8 @@ absAxes axes !off (st : sts) (n : ns)
   | otherwise = absAxes (Axis st n : axes) off sts ns
 absAxes axes off _ _ = (axes, off)
 
--- 'byStrideRank' as the 'Axis' path's sorts read it, the same code:
--- absolute stride descending; on a tie at stride 1 the length 'runRank'
--- prefers last, so that it is the run, and on any other tie the extent
--- ascending. In case form rather than over '<>' on the counts at
--- 'byStrideRank'.
+-- 'byStrideRank' as the 'Axis' path's sorts read it, the same code; the order,
+-- and why it is in case form, are at 'byStrideRank'.
 byStrideRankAx :: Axis -> Axis -> Ordering
 byStrideRankAx (Axis s1 n1) (Axis s2 n2) = case compare s2 s1 of
   EQ | s1 == 1 -> runRank n2 n1
@@ -5607,14 +5375,13 @@ routeOfAx start l t n rest = RFillAx (WalkAx t n rest) start l
 
 -- 'Route' over 'WalkAx', the path's dispatch as a value: one slice, the
 -- runs 'lazyRunsAx' will walk, or one fill, which the path's two readers
--- take, 'routeVectorInward' handing a slice or a fill back as the
--- library's 'toVectorT' does, the runs filled too, and 'sumRouteInwardAx'
--- summing it; since 2026-10-03 also the branch's routes, which
--- 'routeVector', 'routeSlices' and 'sumRoute' read. Data rather than the
--- list itself for 'Route''s reason, one run loop compiled once -- here
--- the path's own, beside 'sumLazyRuns''s and the branch's
--- 'sumLazyRunsLib''s; the path's sum arms against the branch's price it
--- with the rest.
+-- take, 'routeVectorInward' handing a slice or a fill back as the library's
+-- 'toVectorT' does, the runs filled too, and 'sumRouteInwardAx' summing it;
+-- also the branch's routes, which 'routeVector', 'routeSlices' and 'sumRoute'
+-- read. Data rather than the list itself for 'Route''s reason, one run loop
+-- compiled once -- here the path's own, beside 'sumLazyRuns''s and the
+-- branch's 'sumLazyRunsLib''s; the path's sum arms against the branch's price
+-- it with the rest.
 -- The bang on 'RRunsAx''s axes is the library's: pr-mikolaj-toVectorListT
 -- made 'RRuns''s 'Axes' strict at 1816fe6, which there drops the thunk
 -- its out-of-line 'routeOfT' built around the 'Axes' of every 'RRuns'.
@@ -5637,9 +5404,8 @@ routeVectorInward v route = case route of
 {-# INLINE routeVectorInward #-}
 
 -- 'routeSlicesInward' over 'RouteAx': the slices of a route handed to a
--- 'build''s cons and nil, for the list consumers of the stages
--- 'dispatchLean' builds and for the laziness gate's rows of the path's
--- stages, since 2026-09-26.
+-- 'build''s cons and nil, for the list consumers of the stages 'dispatchLean'
+-- builds and for the laziness gate's rows of the path's stages.
 routeSlicesInwardAx :: VS.Vector Double -> RouteAx
                     -> (VS.Vector Double -> b -> b) -> b -> b
 routeSlicesInwardAx v route cons nil = case route of
@@ -5659,87 +5425,36 @@ sumRouteInwardAx v route = case route of
   RFillAx axes ao l -> VS.sum (fillStage3 axes ao l v)
 {-# INLINE sumRouteInwardAx #-}
 
--- The fold on the list expression itself, where it fuses with the
--- 'build'; compiled once and never inlined, so both of the path's sums
--- run it, and a second compiled copy of 'sumLazyRuns''s loop. Base's
--- 'foldl'', which hands the new accumulator to the continuation lazily:
--- with 'runSlicesAx' one flat loop, every continuation is a known strict
--- call and the accumulator crosses it unboxed, none a run and 3.7 ns on
--- 'runs-9' where the level-form walker read 80 bytes and 10.7 (9.12.4,
--- 2026-09-09). A fold forcing the new accumulator first, a 'foldl''' written
--- as base writes its own, took the 80 bytes out of the level form too, and
--- over the flat walker read the same as base's to a hundredth of a
--- nanosecond, so it is not kept: the walker is the fix, and it reaches
--- base's own folds, 'sum' among them.
+-- The fold on the list expression itself, where it fuses with the 'build';
+-- compiled once and never inlined, so both of the path's sums run it: a second
+-- compiled copy of 'sumLazyRuns''s loop, base's 'foldl'' over 'runSlicesAx',
+-- for the reasons at 'sumLazyRuns'.
 {-# NOINLINE sumLazyRunsAx #-}
 sumLazyRunsAx :: WalkAx -> Int -> VS.Vector Double -> Double
 sumLazyRunsAx axes !o v =
   foldl' (\ !acc p -> acc + sumNoSpec p) 0 (lazyRunsAx axes o v)
 
--- The lazy odometer list of the 'Axis' path, which 'sumLazyRunsAx'
--- folds: one slice per run, in address or logical order over the outer
--- levels, produced on demand in continuation-passing form, so a
--- consumer that folds it holds no more of it than it has reached --
--- master's 'toVectorListT' laziness in regime 2, without its per-level
--- list comprehension and 'concat'. The run's extent is the innermost
--- level's; each outer level steps the base offset by its stride,
--- negative and zero strides included. In 'build' form, as 'lazyRuns'
--- is, so that a foldr-shaped consumer applied where the list is
--- produced fuses with it: the cons cell and the slice header went with
--- the list, which the fusion probe of 2026-09-09 read as 104 bytes and
--- 14 ns a run against 145 and 19. The leaf is fused, the fills' trick:
--- the innermost outer level conses its slices itself rather than
--- calling 'go' once more per run, a quarter of the time and 8 bytes a
--- run off on short runs. The fills' other trick of that day, the levels
--- as unboxed tables indexed by level, which they have since dropped,
--- was REFUSED 2026-09-09 on code size (at 'lazyRuns'). The fold has to
--- sit on the list expression itself: applied to a case-bound variable,
--- or partially applied and floated to the top level, it never meets the
--- 'build'.
+-- The lazy odometer list of the 'Axis' path, which 'sumLazyRunsAx' folds:
+-- 'lazyRuns' over a 'WalkAx', in 'build' form with its leaf fused, for the
+-- reasons at 'lazyRuns'.
 lazyRunsAx :: WalkAx -> Int -> VS.Vector Double -> [VS.Vector Double]
 lazyRunsAx axes start v = build (runSlicesAx axes start v)
 {-# INLINE lazyRunsAx #-}
 
--- The walker with the 'build''s 'cons' and 'nil' as arguments, the
--- library's 'runSlicesT' over 'WalkAx' as it read before the branch's
--- commit "List a view along its route rather than by an indexT per
--- element" moved its loop out as 'offsetsT', the form 'runSlicesLib'
--- copies; 'lazyRunsAx' wraps it in its 'build'.
---
--- 'go' walks the innermost outer level with a counter and a cursor, and
--- 'block' holds the levels above it, an 'OdometerAx' stepped only when
--- the counter runs out. Every continuation a fused fold meets is 'go',
--- 'block' or 'nil', all known calls, so base's left folds, 'sum' among
--- them, allocate nothing a run. A 'foldr' per level with the rest of
--- the list as its continuation, the form before 2026-09-09, met at every
--- level's exit a continuation it could not see and passed it the
--- accumulator lazily and boxed, a thunk and a 'D#' a run
--- (closure-probe/).
+-- The walker with the 'build''s 'cons' and 'nil' as arguments, the library's
+-- 'runSlicesT' over 'WalkAx' as it read before the branch's commit "List a
+-- view along its route rather than by an indexT per element" moved its loop
+-- out as 'offsetsT', the form 'runSlicesLib' copies; 'lazyRunsAx' wraps it in
+-- its 'build'. 'runSlices' over a 'WalkAx', entered on 'RRunsAx': its 'go'
+-- and 'block' over an 'OdometerAx', the order of its guards, the bang on the
+-- vector and the arm for no outer level are that walker's, for the reasons at
+-- it.
 --
 -- The odometer is a value, each level holding its own offset and its
 -- axis, the canonical list's own 'Axis', where 'runSlices' builds an
 -- 'OdoAxis' a level from the pair. What the value form bought against
 -- the carry loop before it (e2f68a7), and the forms not kept, are at
 -- 'runSlices'.
---
--- The order of the guards of 'go' is free: swapped, the run loop keeps
--- its instructions, taken branches and fetches on both compilers. On
--- the carry walker it was a near-tie in GHC's block layout,
--- https://gitlab.haskell.org/ghc/ghc/-/work_items/27799: the swap gave
--- HEAD the fall-through into the run, 24% on runs-2, and took it from
--- 9.12.4, 11 to 14% there.
---
--- The bang on the vector is measured (2026-09-13): a view of no runs
--- never touches it, so without the bang the worker takes it boxed and
--- every run re-enters it for its length and address, 25 of the 64
--- instructions a run on 'runs-2', all but one of what -fliberate-case
--- bought this loop on Run 30 by copying it under a case on the vector;
--- banged, the flag has nothing left to do (stage10-probe/).
---
--- Entered on a route of canonical rank two or more, which is what
--- 'RRunsAx' means. The arm for no outer level, which no route reaches,
--- is the one run as one slice, so the walker is total on its own terms,
--- as the library's 'runSlicesT' is.
 --
 -- 'block' takes its offset unbanged only to match the library's walker,
 -- which dropped the bang and keeps it dropped in 'offsetsT': 'go' forces
@@ -5754,12 +5469,8 @@ runSlicesAx (WalkAx _ n outerAxes) !start !v cons nil =
           block o outer =
             let go :: Int -> Int -> b
                 go !i !p
-                  -- TODO: 'VS.slice' bounds-checks every run, three tests
-                  -- that cannot fail on a view the odometer walks,
-                  -- @n >= 0@ among them not even varying with the run;
-                  -- removing them wants a vSliceUnsafe in the library's
-                  -- 'Vector' class, which this port follows, rather than
-                  -- 'VS.unsafeSlice' here.
+                  -- TODO: 'VS.slice' bounds-checks every run, as at
+                  -- 'runSlices'.
                   | i < dk = cons (VS.slice p n v) (go (i + 1) (p + sk))
                   | otherwise = case stepOdometerAx outer of
                       OdoDoneAx -> nil
@@ -5770,15 +5481,10 @@ runSlicesAx (WalkAx _ n outerAxes) !start !v cons nil =
                        OdoDoneAx above)
 {-# INLINE runSlicesAx #-}
 
--- The outer levels of 'runSlicesAx''s odometer, innermost first, each
--- at an offset, with indices left, of an 'Axis'. A strict list,
--- hand-rolled so that a level and its cell are one object: a list cell
--- cannot unpack a strict record, so a list of level records took two
--- objects and a pointer hop a level, and two fifths more allocation on
--- the window views (2026-09-24). The tail's bang makes the initial
--- 'foldr' build the odometer whole; without it that leaves a thunk a
--- level, 64 to 121 bytes an iteration on the windows and under a tenth
--- of a percent in instructions.
+-- The outer levels of 'runSlicesAx''s odometer, innermost first, each at an
+-- offset, with indices left, of an 'Axis': 'Odometer' with the 'Axis' for the
+-- 'OdoAxis', a hand-rolled strict list with its tail banged for the reasons at
+-- 'Odometer'.
 data OdometerAx = OdoLevelAx !Int !Int !Axis !OdometerAx | OdoDoneAx
 
 -- The odometer one step on, 'OdoDoneAx' once it has gone round.
@@ -5790,9 +5496,8 @@ stepOdometerAx (OdoLevelAx o c axis@(Axis s d) outer)
       OdoDoneAx -> OdoDoneAx
       next@(OdoLevelAx oNext _ _ _) -> OdoLevelAx oNext d axis next
 
--- The outer levels of a view as 'fillStage3' walks them, and the
--- branch's fill, 'fillStage2Axes', did until 2026-10-04, 'NestLib' being its
--- form since: the fused level's runs, or a level of @n@
+-- The outer levels of a view as 'fillStage3' walks them, 'NestLib' being the
+-- branch's fill's form: the fused level's runs, or a level of @n@
 -- blocks of @blk@ elements at stride @st@, stride 0 copying the first,
 -- @st@ and @n@ the outer axes list's own 'Axis'. A hand-rolled strict
 -- list, the loop nest as data, holding the 'Axis' for readability and a
@@ -5804,24 +5509,24 @@ stepOdometerAx (OdoLevelAx o c axis@(Axis s d) outer)
 -- bring the allocation back into the loop.
 data NestAx = FusedAx | LevelAx !Axis !Int !NestAx
 
--- The branch's 'Nest' since 2026-10-04, 'fillStage2Axes''s: 'NestAx' with
--- the fused level holding the innermost outer level's 'Axis', so that
--- the counted loop over it mentions what 'run' takes apart and stays in
--- 'run' where a client specialises the library's fill (GHC
+-- The branch's 'Nest', 'fillStage2Axes''s: 'NestAx' with the fused
+-- level holding the innermost outer level's 'Axis', so that the
+-- counted loop over it mentions what 'run' takes apart and stays
+-- in 'run' where a client specialises the library's fill (GHC
 -- https://gitlab.haskell.org/ghc/ghc/-/work_items/27894).
 data NestLib = FusedLib !Axis | LevelLib !Axis !Int !NestLib
 
 -- The run length from which the three fills kept in step with the library,
 -- 'fillStage3', 'fillStage3U1' and 'fillStage2Axes', copy a run at stride 1
--- whole, one 'VS.unsafeCopy' a run, as the library's 'genericFillStrided'
--- does since pr-mikolaj-toVectorListT's commit "Copy whole runs inside the
--- fill from a length each instance picks" (2026-10-05). The value is that
--- commit's Storable instance's, 512 bytes over the element's size, which
--- at Double is 64 elements: past where a copy's cost a run is paid
--- off and not where the branch's figures, in that commit's comment at
--- 'genericFillStrided', would put the cut; no figure was taken here. Ported
--- 2026-10-06; 'fillStage2OneLevel', 'fillStage2VSdims', 'fillStage2U4' and
--- 'fillStage2Short', parked and not kept in step, copy no run.
+-- whole, one 'VS.unsafeCopy' a run, as the library's 'genericFillStrided' does
+-- since pr-mikolaj-toVectorListT's commit "Copy whole runs inside the fill
+-- from a length each instance picks" (2026-10-05). The value is that commit's
+-- Storable instance's, 512 bytes over the element's size, which at Double
+-- is 64 elements: past where a copy's cost a run is paid off and not where
+-- the branch's figures, in that commit's comment at 'genericFillStrided',
+-- would put the cut; no figure was taken here. 'fillStage2OneLevel',
+-- 'fillStage2VSdims', 'fillStage2U4' and 'fillStage2Short', parked and not
+-- kept in step, copy no run.
 -- Non-vacuity, 2026-10-06, one fill at a time, @check@ stopping at the
 -- first view that fails: copying every run from the view's offset @ao@
 -- fails it at @runs-64@ in 'fillStage2Axes', naming lib-stage2-disp and
@@ -5831,21 +5536,19 @@ copyRun :: Int
 copyRun = 512 `quot` sizeOf (undefined :: Double)
 
 -- 'fillStage2' over 'WalkAx', the path's fill: a copy of the fill the
--- library's 'genericFillStrided' is ported from, at Storable Double,
--- the library's own being in its Data/Array/Internal.hs. Since
--- 2026-09-26, when 'fillStage2' was deleted, also the fill of every arm
--- that called it, through 'walkAx'; the comments of older fills still
--- name 'fillStage2' as the form they were copied from. This one walks
--- the outer levels as a 'NestAx' built over them innermost first, each
--- level holding its 'Axis', and since 2026-10-06 it copies a run at
--- stride 1 whole from 'copyRun' on, as the library does. 'check' holds
--- it to the reference on every view. The two zero-stride bodies say at
--- their definitions what each buys. The fills take @l > 0@, asserted
--- at each entry: a zero-stride innermost run reads its one element,
--- and a zero-stride level writes its innermost run or block, before
--- reading the extent, so a zero extent there would read past the source
--- or write into an empty result. Every dispatch guards @l == 0@ before
--- calling one, the stage-1 ports since 2026-09-21; the degenerate
+-- library's 'genericFillStrided' is ported from, at Storable Double, the
+-- library's own being in its Data/Array/Internal.hs. Also the fill of every
+-- arm on pairs, through 'walkAx': 'fillStage2', which the comments of older
+-- fills name as the form they were copied from, was this fill over pairs,
+-- deleted 2026-09-26. This one walks the outer levels as a 'NestAx' built
+-- over them innermost first, each level holding its 'Axis', and it copies a
+-- run at stride 1 whole from 'copyRun' on, as the library does. 'check' holds
+-- it to the reference on every view. The two zero-stride bodies say at their
+-- definitions what each buys. The fills take @l > 0@, asserted at each entry:
+-- a zero-stride innermost run reads its one element, and a zero-stride level
+-- writes its innermost run or block, before reading the extent, so a zero
+-- extent there would read past the source or write into an empty result. Every
+-- dispatch guards @l == 0@ before calling one; the degenerate
 -- and @edge-bcastmid-b0@ views are where @check@ fails when one does
 -- not. This one's @l@ takes no bang only to match 'genericFillStrided' in
 -- ~/r/orthotope.toVectorListT, which dropped it: the assertion forces it
@@ -5885,13 +5588,13 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao l !v =
         writeRunCopy !outPos !baseOff =
           VS.unsafeCopy (VSM.unsafeSlice outPos sInner out)
                         (VS.unsafeSlice baseOff sInner v)
-        -- Unrolled by two as the stepping run is, since 2026-09-09: one
-        -- write and a compare per element read 1.20 of master's leaf
-        -- fill at an innermost run of 2, bcast-tall-Mx2, on Run 27.
-        -- 'fillStage3U1' keeps the one-per-iteration body, so the u1 pair
-        -- prices this unroll on the broadcast views as it prices the
-        -- stepping one elsewhere. Non-vacuity, 2026-09-09: dropping the
-        -- second write fails @check@ at @bcast-inner8@.
+        -- Unrolled by two as the stepping run is: one write and a
+        -- compare per element read 1.20 of master's leaf fill at an
+        -- innermost run of 2, bcast-tall-Mx2, on Run 27. 'fillStage3U1'
+        -- keeps the one-per-iteration body, so the u1 pair prices this
+        -- unroll on the broadcast views as it prices the stepping one
+        -- elsewhere. Non-vacuity, 2026-09-09: dropping the second write fails
+        -- @check@ at @bcast-inner8@.
         {-# INLINE writeRunSet #-}
         writeRunSet :: Int -> Int -> ST s ()
         writeRunSet !outPos !baseOff = do
@@ -5985,28 +5688,23 @@ fillStage3 (WalkAx tInner sInner outerAxes) !ao l !v =
     return out
 
 -- 'fillStage3' with neither run unrolled: the stepping run
--- 'fbMutOdoVecdimsAddInLeafU1''s loop in place of '-u2''s, the cursor
--- bound and one element per iteration, each read as 'fillStage3' reads
--- it since 2026-10-02, and, since 2026-09-09, the broadcast run
--- 'writeRunSet''s loop as it was before 'fillStage2' unrolled its own;
--- everything else 'fillStage3''s, comments stripped,
+-- 'fbMutOdoVecdimsAddInLeafU1''s loop in place of '-u2''s, the cursor bound
+-- and one element per iteration, each read as 'fillStage3' reads it, and the
+-- broadcast run 'writeRunSet''s loop as it was before 'fillStage2' unrolled
+-- its own; everything else 'fillStage3''s, comments stripped,
 -- the code copied, so that the two fills differ in their run bodies
 -- alone. The pair 'lib-stage2-lean-u1'
 -- against 'lib-stage3-lean' prices the unrolling under the lean
 -- dispatch, the stepping run's wherever the innermost stride is
 -- not 0 and the run is not copied whole, the broadcast run's where the
 -- stride is 0, where the leaf family
--- prices the first under the arms' own odometer, '-u2' over '-u1' at
--- 0.9644 in time and 0.9208 in counts on Run 26's main set. Added
--- 2026-09-07 for Run 27 as 'fillStage2U1', over pairs; its walk
--- 'fillStage2''s from 2026-09-24, where until then it kept the odometer
--- of 'fillStage2Axes' and 'lib-stage2-lean' was its pair; on the
--- 'Axis' path since 2026-09-26, a day after 'lib-stage3-lean'.  Not
+-- prices the first under the arms' own odometer, '-u2' over '-u1'
+-- at 0.9644 in time and 0.9208 in counts on Run 26's main set. Not
 -- where the fill is rank 1, read on that odometer: the latch of GHC
 -- https://gitlab.haskell.org/ghc/ghc/-/work_items/27799 costs this
 -- loop one instruction an element there, on one half or the other
--- (README.md#what-is-open). Price the unrolling on the main set, or off
--- a rank-2 view.
+-- (README.md#what-is-open). Price the unrolling on the main set, or off a
+-- rank-2 view.
 -- Non-vacuity, 2026-09-07 and on this fill 2026-09-26: dropping the
 -- @+ tInner@ from the run's recursive call fails @check@ at
 -- @cnn-L1-6x6-c1@, naming lib-stage2-lean-u1 alone.
@@ -6163,24 +5861,20 @@ lsListStage2 sh (T (Strides ats) ao v)
         [fillStage3 (walkAx (Walk t n (InnerFirst rest))) ao l v]
   where l = product sh
 
--- The reducing consumer, which is what the unordered entry point exists
--- for: 'sumT' is @sum . map vSum . toUnorderedVectorListT@, one slice at
--- a time and no concatenation, so what a Fill arm over the same list
--- carries is a copy of the whole array the consumer never pays -- which
--- is why no reading before Run 27 could price the entry point as it is
--- used. Each of these is that consumer over one stage's list, returned
--- as a one-element vector so the harness times it as it times every
--- arm, the forcing sum over one element costing nothing; 'check' holds
--- the element to the reference's sum. Read as pairs: the stage-five
--- consumer against the stage-one one is the ruling's own question, what the
--- address order and the odometer list buy a fold. Added 2026-09-07 for
--- Run 27. In fold form since 2026-09-09: master's and the port's lists
--- under 'sumRuns', which does not fuse with them and reads the same as
--- the recursion did; stages four to nine through 'sumRoute', one fused
--- loop for all (README.md#what-is-open). Today each form the routes take
--- has a reader of its own over a fused loop of its own: 'sumRouteInward'
--- over pairs, 'sumRouteInwardAx' on the 'Axis' path and 'sumRoute' the
--- branch's.
+-- The reducing consumer, which is what the unordered entry point exists for:
+-- 'sumT' is @sum . map vSum . toUnorderedVectorListT@, one slice at a time
+-- and no concatenation, so what a Fill arm over the same list carries is a
+-- copy of the whole array the consumer never pays. Each of these is that
+-- consumer over one stage's list, returned as a one-element vector so the
+-- harness times it as it times every arm, the forcing sum over one element
+-- costing nothing; 'check' holds the element to the reference's sum. Read as
+-- pairs: the stage-five consumer against the stage-one one is the ruling's own
+-- question, what the address order and the odometer list buy a fold. In fold
+-- form: master's and the port's lists under 'sumRuns', which does not fuse
+-- with them and reads the same as a recursion (README.md#what-is-open), and
+-- each form the routes take under a reader of its own over a fused loop of its
+-- own, 'sumRouteInward' over pairs, 'sumRouteInwardAx' on the 'Axis' path and
+-- 'sumRoute' the branch's.
 sumRuns :: [VS.Vector Double] -> Double
 sumRuns = foldl' (\ !acc p -> acc + VS.sum p) 0
 {-# INLINE sumRuns #-}
@@ -6206,7 +5900,6 @@ fbLibListStage3Sum sh a@(T _ _ v) =
 -- 'routeList4' reads, the empty view answered first. It is the control
 -- of 'liblist-stage5-sum', and the pair prices what the branch's code
 -- does otherwise, which the head of the 'Axis' path lists.
--- Over pairs until 2026-10-03.
 {-# NOINLINE fbLibListStage4Sum #-}
 fbLibListStage4Sum :: ShapeL -> T -> VS.Vector Double
 fbLibListStage4Sum sh a@(T _ _ v)
@@ -6219,18 +5912,16 @@ fbLibListStage4Sum sh a@(T _ _ v)
 -- and reader the path's copies, 'routeList5' and 'sumRouteInwardAx',
 -- where stage four has the branch's 'routeList4' and 'sumRoute'; so
 -- stage four is its control, and the pair prices what the branch's code
--- does otherwise, which the head of the 'Axis' path lists. Added
--- 2026-09-21, over 'fillStage2' until 2026-09-25.
+-- does otherwise, which the head of the 'Axis' path lists.
 {-# NOINLINE fbLibListStage5Sum #-}
 fbLibListStage5Sum :: ShapeL -> T -> VS.Vector Double
 fbLibListStage5Sum sh a@(T _ _ v) =
   VS.singleton (sumRouteInwardAx v (routeList5 sh a))
 
 -- 'fbLibListStage5Sum' through 'sumRouteVSdims', its fill case through
--- 'fillStage2VSdims', a 'walkOfAx' a call there; the probe of
--- 2026-09-19, reasons, and what the pair prices, at that fill. Over that
--- arm's route, 'routeList5', since 2026-10-03, where it had read
--- 'routeList4'.
+-- 'fillStage2VSdims', a 'walkOfAx' a call there; the probe of 2026-09-19,
+-- reasons, and what the pair prices, at that fill. Over that arm's route,
+-- 'routeList5'.
 -- TODO: update wrt the inward pairing of 2026-09-21, which made
 -- 'liblist-stage5-sum' the control: rename to 'liblist-stage5-vsdims-sum'.
 {-# NOINLINE fbLibListStage4SumVSdims #-}
@@ -6299,13 +5990,12 @@ fbLibUnordStage12Sum sh a@(T _ _ v) =
 -- This arm reflects the implementation on branch pr-mikolaj-toVectorListT,
 -- which may not be the fastest, but behaves better when compilation
 -- time is the main issue: the library's 'toUnorderedVectorListT' as
--- pr-mikolaj-toVectorListT has it since 2026-10-05, summed by 'sumRoute'
--- over the route 'routeUnord13' reads, the empty view answered first.
--- 'libunord-stage15-sum' against it prices what the branch's code does
--- otherwise, which the head of the 'Axis' path lists, and
--- 'libunord-stage14-sum', whose control it has been since 2026-09-21,
--- that and the zero-stride axis's place.
--- Over pairs until 2026-10-03.
+-- pr-mikolaj-toVectorListT has it on 2026-10-05, summed by 'sumRoute'
+-- over the route 'routeUnord13' reads, the empty view answered
+-- first. 'libunord-stage15-sum' against it prices what the branch's
+-- code does otherwise, which the head of the 'Axis' path lists, and
+-- 'libunord-stage14-sum', whose control it is, that and the zero-stride axis's
+-- place.
 {-# NOINLINE fbLibUnordStage13Sum #-}
 fbLibUnordStage13Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage13Sum sh a@(T _ _ v)
@@ -6313,13 +6003,11 @@ fbLibUnordStage13Sum sh a@(T _ _ v)
   | otherwise = VS.singleton (sumRoute v (routeUnord13 sh l a))
   where !l = product sh
 
--- Stage fourteen, stage thirteen as that read over pairs until
--- 2026-10-03, on the 'Axis' path: its route and reader the path's copies,
--- 'routeUnord14' and 'sumRouteInwardAx', where stage thirteen has the
--- branch's 'routeUnord13' and 'sumRoute', so that the pair prices what the
--- branch's code does otherwise and the zero-stride axis's place; reasons at
--- the head of the 'Axis' path. Added 2026-09-21, over 'fillStage2' until
--- 2026-09-25.
+-- Stage fourteen, stage thirteen as that read over pairs before 2026-10-03, on
+-- the 'Axis' path: its route and reader the path's copies, 'routeUnord14' and
+-- 'sumRouteInwardAx', where stage thirteen has the branch's 'routeUnord13' and
+-- 'sumRoute', so that the pair prices what the branch's code does otherwise
+-- and the zero-stride axis's place; reasons at the head of the 'Axis' path.
 {-# NOINLINE fbLibUnordStage14Sum #-}
 fbLibUnordStage14Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage14Sum sh a@(T _ _ v) =
@@ -6336,10 +6024,9 @@ fbLibUnordStage15Sum sh a@(T _ _ v) =
   VS.singleton (sumRouteInwardAx v (routeUnord15 sh a))
 
 -- 'fbLibUnordStage14Sum' through 'sumRouteVSdims', its fill case through
--- 'fillStage2VSdims', a 'walkOfAx' a call there; the probe of
--- 2026-09-19, reasons, and what the pair prices, at that fill. Over that
--- arm's route, 'routeUnord14', since 2026-10-03, where it had read
--- 'routeUnord13'.
+-- 'fillStage2VSdims', a 'walkOfAx' a call there; the probe of 2026-09-19,
+-- reasons, and what the pair prices, at that fill. Over that arm's route,
+-- 'routeUnord14'.
 -- TODO: update wrt the inward pairing of 2026-09-21, which made
 -- 'libunord-stage14-sum' the control: rename to
 -- 'libunord-stage14-vsdims-sum'.
@@ -6351,40 +6038,34 @@ fbLibUnordStage13SumVSdims sh a@(T _ _ v) =
 -- The cross-over of 'fbLibUnordStage6ListSum' and 'fbLibUnordStage10Sum':
 -- base's 'sum' over stage TEN's list, the consumer a user of
 -- 'toUnorderedVectorListT' writes, carried from stage six's route to the
--- composed one. Against 'libunord-stage10-sum' it asks Run 28's item
--- (12) again where the route has changed under it -- on Run 30 the
--- user's fold read 0.7610 on 'window' and 0.8495 on 'runs' of the
--- harness's, inlining the route into the fold where the harness
--- compiles one loop for every stage, and the bangs of 2026-09-13 are
--- what should take that gap out. They did: Run 31 reads the pair at
--- 1.0154 on 'window' and 1.0132 on 'runs' on the same plain -O1
--- recipe, and within 2% of level on every population of both halves,
--- so the user's fold is no longer ahead anywhere. The composed route
--- is what the tie-break and the zero-stride move leave a fold to
--- walk: on a broadcast, one real slice listed as many times as the
--- axis is long. Since 2026-09-14 the shared loop sums each run through
--- 'sumNoSpec' and this arm keeps vector's 'sum', so the pair prices the
--- SPEC argument as well as the inlining: above level where runs are
--- short, by what -O2 was worth to the shared loop on Run 31.
--- Added 2026-09-13 for Run 31, registration (15); re-registered for
--- Run 32 on the loop change.
+-- composed one. Against 'libunord-stage10-sum' it asks Run 28's item (12)
+-- again where the route has changed under it. The user's fold inlines the
+-- route into the fold where the harness compiles one loop for every stage,
+-- which read 0.7610 on 'window' and 0.8495 on 'runs' of the harness's on Run
+-- 30, until the bangs of 2026-09-13 took the gap out: Run 31 reads the pair at
+-- 1.0154 on 'window' and 1.0132 on 'runs' on the same plain -O1 recipe, and
+-- within 2% of level on every population of both halves. The composed route
+-- is what the tie-break and the zero-stride move leave a fold to walk: on a
+-- broadcast, one real slice listed as many times as the axis is long. The
+-- shared loop sums each run through 'sumNoSpec' and this arm keeps vector's
+-- 'sum', so the pair prices the SPEC argument as well as the inlining: above
+-- level where runs are short, by what -O2 was worth to the shared loop on Run
+-- 31.
 {-# NOINLINE fbLibUnordStage10ListSum #-}
 fbLibUnordStage10ListSum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage10ListSum sh a@(T _ _ v) =
   VS.singleton
     (sum (map VS.sum (build (routeSlicesInwardAx v (routeUnord10 sh a)))))
 
--- The same fold over stage FOUR's list, the lean dispatch on the
--- canonical view with no reordering, so that a fold keeping vector's
--- 'sum' stands against the shared loop on the lean route as on the
--- composed one. Where the two routes walk the same runs -- a view whose
--- canonical axes are already in stride order, the 'runs' and 'block'
--- classes on Run 31's counts -- this pair and stage ten's meet one loop
--- and should read alike, which registration (16) holds them to;
--- elsewhere stage ten's sort or its zero-stride move gives the fold a
--- different walk, and the two pairs are registered apart.
--- Added 2026-09-14 for Run 32, registration (16). Since 2026-10-03 over
--- the branch's list, 'listOf''s form written out, as stage four is.
+-- The same fold over stage FOUR's list, the lean dispatch on the canonical
+-- view with no reordering, so that a fold keeping vector's 'sum' stands
+-- against the shared loop on the lean route as on the composed one. Where the
+-- two routes walk the same runs -- a view whose canonical axes are already in
+-- stride order, the 'runs' and 'block' classes on Run 31's counts -- this pair
+-- and stage ten's meet one loop and should read alike; elsewhere stage ten's
+-- sort or its zero-stride move gives the fold a different walk, and the two
+-- pairs are read apart. Over the branch's list, 'listOf''s form written out,
+-- as stage four is.
 {-# NOINLINE fbLibListStage4ListSum #-}
 fbLibListStage4ListSum :: ShapeL -> T -> VS.Vector Double
 fbLibListStage4ListSum sh a@(T _ _ v) =
@@ -6568,25 +6249,23 @@ regimeOf sh (T (Strides ats) _ v)
 -- Each class is its own pinned population, published beside the existing
 -- geomean and never folded into it
 -- (README.md#the-stride-classes-and-what-they-cover):
--- 'check' holds every strategy and builder to the reference on all of
--- them, the @classes@ benchmark mode times them -- one population per
--- process, per the protocol at 'classBenches' -- while the default run
--- stays the main set alone, and 'partitioned' holds every entry to
--- 'sizeCap'. Regime-2 views have their own class since 2026-08-28,
--- 'runsShapes', for the route the library takes on them. @rotate@
--- deliberately has no generator: it is a composite of stretch, reshape,
--- window, stride and rev whose own output keeps innermost stride 1
--- (regime 2), and the strides a further transpose exposes -- negated sums
--- of dim products -- add no mechanism the rev and scaled classes do not
--- already cover. A general transpose likewise has no generator: no class
--- permutes the outer dims among themselves, the innermost-two swap aside.
--- Non-monotonic stride orders do occur incidentally ('gather48-src-50',
--- 'stretch-wide-2xM', 'bcastmid-primes'), the kernel walks the dims in
--- whatever order it is given with no order-sensitive branch, and
--- outer-dim order is the one axis with a measured null result behind it:
--- horde-ad's shm-reorder experiment moved nothing, in time or in
--- allocation. Add a permuting generator only if that measurement is ever
--- contradicted.
+-- 'check' holds every strategy and builder to the reference on all of them,
+-- the @classes@ benchmark mode times them -- one population per process, per
+-- the protocol at 'classBenches' -- while the default run stays the main set
+-- alone, and 'partitioned' holds every entry to 'sizeCap'. Regime-2 views
+-- have their own class, 'runsShapes', for the route the library takes on
+-- them. @rotate@ deliberately has no generator: it is a composite of stretch,
+-- reshape, window, stride and rev whose own output keeps innermost stride 1
+-- (regime 2), and the strides a further transpose exposes -- negated sums of
+-- dim products -- add no mechanism the rev and scaled classes do not already
+-- cover. A general transpose likewise has no generator: no class permutes the
+-- outer dims among themselves, the innermost-two swap aside. Non-monotonic
+-- stride orders do occur incidentally ('gather48-src-50', 'stretch-wide-2xM',
+-- 'bcastmid-primes'), the kernel walks the dims in whatever order it is given
+-- with no order-sensitive branch, and outer-dim order is the one axis with
+-- a measured null result behind it: horde-ad's shm-reorder experiment moved
+-- nothing, in time or in allocation. Add a permuting generator only if that
+-- measurement is ever contradicted.
 --
 -- Why this coverage survives hand-built views: the constructors are
 -- exported, so a program can write any strides and offset directly, yet a
@@ -6609,13 +6288,12 @@ regimeOf sh (T (Strides ats) _ v)
 -- Under the branch's fill the mechanism a view exercises is its CANONICAL
 -- form: 'canonView' drops the unit dimensions and merges what merges before
 -- it dispatches, so two classes whose views canonicalize alike
--- time one mechanism twice, and a hand-built view is covered by the
--- canonical form it reaches and not by the operation that built it.
--- 'retiredClasses' below is that test applied to the classes here,
--- 2026-09-04, and the coverage claim reads per canonical mechanism since:
--- regime 1; contiguous runs by length, gap, offset and direction; the
--- broadcast body; the block copy; the strided fill with and without a
--- stride-1 level and with overlap; and per-call size.
+-- time one mechanism twice, and a hand-built view is covered by the canonical
+-- form it reaches and not by the operation that built it. 'retiredClasses'
+-- below is that test applied to the classes here, 2026-09-04, and the coverage
+-- claim reads per canonical mechanism: regime 1; contiguous runs by length,
+-- gap, offset and direction; the broadcast body; the block copy; the strided
+-- fill with and without a stride-1 level and with overlap; and per-call size.
 
 -- Regime-3 view as @rev@ produces it: 'mkStrided''s view with EVERY
 -- dimension reversed -- each stride negated, the offset moved to where the
@@ -6681,16 +6359,15 @@ mkBroadcastMid b normalSh =
 mkReshape1 :: ShapeL -> (ShapeL, T)
 mkReshape1 normalSh = mkBroadcast (normalSh ++ [1])
 
--- The same trap over a STRIDED source, added 2026-08-25 so the class
--- stays discriminating for the canonicalizing arms. 'mkReshape1' appends
--- the size-1 dim to a DENSE array, so dropping that dim leaves a
--- contiguous run and the composite arm short-circuits to an O(1) slice --
--- which measures dispatch and not filling. Here the dim is appended to
--- 'mkStrided''s innermost-two-transposed view, so the canonical form is
--- still strided and neither a slice nor a run memcpy can serve it. Same
--- @l@, @sInner@ and @m@ as 'reshape1-r3', whose dense shape it takes, so
--- the pair differs in the source's stridedness and in the order of the
--- two trailing view dims the transpose swaps.
+-- The same trap over a STRIDED source, so the class stays discriminating for
+-- the canonicalizing arms. 'mkReshape1' appends the size-1 dim to a DENSE
+-- array, so dropping that dim leaves a contiguous run and the composite
+-- arm short-circuits to an O(1) slice -- which measures dispatch and not
+-- filling. Here the dim is appended to 'mkStrided''s innermost-two-transposed
+-- view, so the canonical form is still strided and neither a slice nor a run
+-- memcpy can serve it. Same @l@, @sInner@ and @m@ as 'reshape1-r3', whose
+-- dense shape it takes, so the pair differs in the source's stridedness and in
+-- the order of the two trailing view dims the transpose swaps.
 mkReshape1Strided :: ShapeL -> (ShapeL, T)
 mkReshape1Strided normalSh =
   case mkStrided normalSh of
@@ -6715,18 +6392,17 @@ mkSliced !normalSh =
       strides' = swapLast2 enclosingStrides
   in  (sh', T (Strides strides') ao v)
 
--- Regime-3 view as @window@ produces it: the im2col patch tensor itself --
--- dense @[h, w]@ windowed to @[h-kh+1, w-kw+1, kh, kw]@ with strides
+-- Regime-3 view as @window@ produces it: the im2col patch tensor itself
+-- -- dense @[h, w]@ windowed to @[h-kh+1, w-kw+1, kh, kw]@ with strides
 -- @[w, 1, w, 1]@, then the same innermost-two transpose the conv gather
 -- merges in. The windowed strides DUPLICATE the source's, so distinct
 -- output positions read the same element through distinct non-zero
 -- strides: @l@ exceeds the backing and runs overlap, which is the overlap
--- README.md#non-urgent-todo-list records the main set as pessimistic
--- about. A six-entry listing adds a window stride @s@ and a kernel
--- dilation @d@ (2026-09-03): the outer strides become @s * w@ and @s@, the
--- kernel's @d@ and @d * w@, and the output shrinks to what the strided
--- and dilated kernel fits, as a strided or dilated convolution's patch
--- view has them. Four entries are @s = d = 1@.
+-- README.md#non-urgent-todo-list records the main set as pessimistic about. A
+-- six-entry listing adds a window stride @s@ and a kernel dilation @d@: the
+-- outer strides become @s * w@ and @s@, the kernel's @d@ and @d * w@, and the
+-- output shrinks to what the strided and dilated kernel fits, as a strided or
+-- dilated convolution's patch view has them. Four entries are @s = d = 1@.
 mkWindow :: ShapeL -> (ShapeL, T)
 mkWindow [h, w, kh, kw] = mkWindow [h, w, kh, kw, 1, 1]
 mkWindow [h, w, kh, kw, !s, !d] =
@@ -6738,11 +6414,10 @@ mkWindow [h, w, kh, kw, !s, !d] =
 mkWindow sh = error ("mkWindow: [h, w, kh, kw] or [h, w, kh, kw, s, d]"
                      ++ " expected: " ++ show sh)
 
--- 'mkWindow' over a channels-first image: the same [oh, ow, kw, kh]
--- order with the channel axis inserted after the output positions, at
--- the stride of a whole image plane, so the class's row-multiples
--- condition holds of its first and last strides as it does of
--- 'mkWindow''s. Unstrided and undilated; added 2026-09-09.
+-- 'mkWindow' over a channels-first image: the same [oh, ow, kw, kh] order with
+-- the channel axis inserted after the output positions, at the stride of a
+-- whole image plane, so the class's row-multiples condition holds of its first
+-- and last strides as it does of 'mkWindow''s. Unstrided and undilated.
 mkWindowChannels :: ShapeL -> (ShapeL, T)
 mkWindowChannels [!h, !w, c, kh, kw] =
   let v = VS.enumFromN (0 :: Double) (c * h * w)
@@ -6767,76 +6442,73 @@ mkScaled sh strides@(Strides ats) =
       v = VS.enumFromN (0 :: Double) n
   in  (sh, T strides 0 v)
 
--- Regime-3 view as @rev@ of a DENSE array produces it, whole or along
--- its last axis: natural strides with the reversed dims negated, the
--- offset where the reversed index map starts. The innermost stride is
--- -1 -- regime 2 mirrored, which no other class reaches, 'mkRev' negating
--- 'mkStrided' views whose innermost stride is never 1 -- and 'canonView'
--- merges sign-agnostically, so the whole reversal is one run at stride
--- -1 and a last-axis reversal is rows of them. Added 2026-09-03.
+-- Regime-3 view as @rev@ of a DENSE array produces it, whole or along its last
+-- axis: natural strides with the reversed dims negated, the offset where the
+-- reversed index map starts. The innermost stride is -1 -- regime 2 mirrored,
+-- which no other class reaches, 'mkRev' negating 'mkStrided' views whose
+-- innermost stride is never 1 -- and 'canonView' merges sign-agnostically, so
+-- the whole reversal is one run at stride -1 and a last-axis reversal is rows
+-- of them.
 mkFlip :: [Int] -> ShapeL -> (ShapeL, T)
 mkFlip rs sh = mkFlipIn rs sh sh
 
--- The same reversal of a sub-block of a wider dense array, 'mkBlock''s
--- view with some of its axes reversed, listed as dims to reverse, view
--- shape and enclosing shape; 'mkFlip' is the case of an enclosure equal
--- to the view. The row gap keeps 'canonView' from merging, so the
--- reversal is not one run: reversing the innermost axis leaves the fill
--- a reversed run per row, the walk the 'flip' class reads at about twice
--- its forward cost, and reversing the outer axis instead leaves forward
--- runs in reversed order, the control that separates the direction of
--- the innermost walk from the reversal as such. The pair is what
--- stage three, 'routeUnord3', is priced on. Added 2026-09-05.
+-- The same reversal of a sub-block of a wider dense array, 'mkBlock''s view
+-- with some of its axes reversed, listed as dims to reverse, view shape and
+-- enclosing shape; 'mkFlip' is the case of an enclosure equal to the view. The
+-- row gap keeps 'canonView' from merging, so the reversal is not one run:
+-- reversing the innermost axis leaves the fill a reversed run per row, the
+-- walk the 'flip' class reads at about twice its forward cost, and reversing
+-- the outer axis instead leaves forward runs in reversed order, the control
+-- that separates the direction of the innermost walk from the reversal as
+-- such. The pair is what stage three, 'routeUnord3', is priced on.
 mkFlipIn :: [Int] -> ShapeL -> ShapeL -> (ShapeL, T)
 mkFlipIn rs sh esh =
   let v = VS.enumFromN (0 :: Double) (product esh)
       (ats, ao) = reverseDims rs sh (drop 1 (getStridesT esh))
   in  (sh, T (Strides ats) ao v)
 
--- Regime-2 view as @slice@ of a wider array produces it: a sub-block
--- of an enclosing dense array, every extent below the outermost short
--- of the enclosure's so 'canonView' merges nothing, listed as view
--- shape, enclosing shape and offset. The axes 'runsShapes' fixes,
--- swept: the gap between one run's end and the next's start, from one
--- element to a page, which decides what each run's first read costs;
--- a rank-3 block, so the fill's odometer runs a level deeper per run
--- where the slice route's per-run cost is flat; and an offset off an
--- 8-element boundary, which a memcpy per run meets and a stepping loop
--- does not. Added 2026-09-03; a run of 63 at the gap of one, every run
--- starting on a 64-element boundary where 'block-run64-gap1''s drift by
--- one a row, added 2026-10-06.
+-- Regime-2 view as @slice@ of a wider array produces it: a sub-block of
+-- an enclosing dense array, every extent below the outermost short of the
+-- enclosure's so 'canonView' merges nothing, listed as view shape, enclosing
+-- shape and offset. The axes 'runsShapes' fixes, swept: the gap between one
+-- run's end and the next's start, from one element to a page, which decides
+-- what each run's first read costs; a rank-3 block, so the fill's odometer
+-- runs a level deeper per run where the slice route's per-run cost is flat;
+-- and an offset off an 8-element boundary, which a memcpy per run meets and
+-- a stepping loop does not. And a run of 63 at the gap of one, every run
+-- starting on a 64-element boundary where 'block-run64-gap1''s drift by one a
+-- row.
 mkBlock :: ShapeL -> ShapeL -> Int -> (ShapeL, T)
 mkBlock sh esh !ao =
   let v = VS.enumFromN (0 :: Double) (product esh)
   in  (sh, T (Strides (drop 1 (getStridesT esh))) ao v)
 
--- Views a few hundred elements or less, one per canonical regime, over
--- the tightest backing their strides span: every other population is
--- thousands of elements and up, so a per-call cost -- the dispatch,
--- 'canonView''s O(rank) list work, the base-offsets table's allocation --
--- is noise there and a share of the call here. Listed with the regime
--- the view takes, the class spanning them by design. Added 2026-09-03.
+-- Views a few hundred elements or less, one per canonical regime, over the
+-- tightest backing their strides span: every other population is thousands of
+-- elements and up, so a per-call cost -- the dispatch, 'canonView''s O(rank)
+-- list work, the base-offsets table's allocation -- is noise there and a share
+-- of the call here. Listed with the regime the view takes, the class spanning
+-- them by design.
 mkSmall :: ShapeL -> Strides -> (ShapeL, T)
 mkSmall = mkScaled
 
 -- Views combining mechanisms the classes above hold one at a time, as the
--- library composes its operations and no one operation's class builds:
--- a broadcast reversed; a broadcast sliced to a non-zero offset; a zero
--- stride on each side of a non-zero one, which 'canonView' cannot merge,
--- adjacent zeros being the case it does, so the hoisted read and the
--- block copy compose in one fill; and a scalar broadcast to a whole
--- array, every stride 0. Listed with explicit strides and offset, over
--- the tightest backing the view spans from that offset. Added 2026-09-03.
--- 'compose-bcast-nest', added 2026-09-26, is where the placement of
--- 'routeUnord14''s zero-axis move matters most: a broadcast of 6 beside
--- runs of 10 under three strided axes nothing merges, one reversed, so the
--- move has axes to pass and the broadcast's small extent could turn the
--- odometer over. 'compose-bcast-wide', added the same day, is its mirror
--- and the placement's own worst case: a broadcast of 120 beside runs of 6
--- under five strided axes of extent 4 or 5 nothing merges, one reversed,
--- so the odometer turns over on an extent of 5 where the broadcast's would
--- have held it for 120 runs. Both grown to 'sizeCap' on 2026-09-27, every
--- extent by about one factor and every stride keeping its gap's ratio.
+-- library composes its operations and no one operation's class builds: a
+-- broadcast reversed; a broadcast sliced to a non-zero offset; a zero stride
+-- on each side of a non-zero one, which 'canonView' cannot merge, adjacent
+-- zeros being the case it does, so the hoisted read and the block copy
+-- compose in one fill; and a scalar broadcast to a whole array, every stride
+-- 0. Listed with explicit strides and offset, over the tightest backing the
+-- view spans from that offset. 'compose-bcast-nest' is where the placement of
+-- 'routeUnord14''s zero-axis move matters most: a broadcast of 6 beside runs
+-- of 10 under three strided axes nothing merges, one reversed, so the move
+-- has axes to pass and the broadcast's small extent could turn the odometer
+-- over. 'compose-bcast-wide' is its mirror and the placement's own worst case:
+-- a broadcast of 120 beside runs of 6 under five strided axes of extent 4 or
+-- 5 nothing merges, one reversed, so the odometer turns over on an extent of
+-- 5 where the broadcast's would have held it for 120 runs. Both are grown to
+-- 'sizeCap', every extent by about one factor and every stride keeping its
+-- gap's ratio.
 mkCompose :: ShapeL -> Strides -> Int -> (ShapeL, T)
 mkCompose sh strides@(Strides ats) ao =
   let !top = ao + sum [(s - 1) * t | (s, t) <- zip sh ats, t > 0]
@@ -6860,11 +6532,10 @@ mkCompose sh strides@(Strides ats) ao =
 -- controls, which calibrate every other figure and were the roster's scarce
 -- resource (README.md#what-moves-a-figure-when-no-strategy-changed).
 --
--- It DOES move the published geomean, which an earlier version of this
--- comment denied: the eleven skew small, and the base-offsets build is a
--- larger share of a small shape, so both the geomean and the ratios between
--- strategies shift past the noise floor -- a change of population, not of
--- any strategy (README.md#the-shape-set).
+-- It DOES move the published geomean: the eleven skew small, and the
+-- base-offsets build is a larger share of a small shape, so both the geomean
+-- and the ratios between strategies shift past the noise floor -- a change of
+-- population, not of any strategy (README.md#the-shape-set).
 --
 -- Two of the kept eleven are load-bearing beyond their workload and must
 -- not be dropped in a later cut. 'gather48-src-50' and 'conv1d-24' are the
@@ -6880,10 +6551,10 @@ convShapes :: [(String, ShapeL)]
 convShapes =
   [ -- horde-ad shaped CNN (MnistCnnShaped2; kernel kh+1 = 3)
     ("cnn-L1-6x6-c1",       [6, 6, 1, 3, 3])          -- 324
-    -- Two small shapes added 2026-09-02 for Run 24, in the gap between
-    -- 324 and 4096 elements and below 288, where the set had nothing: a
-    -- per-call dispatch cost is a share of a small call and of nothing
-    -- else, and the leaner dispatch's whole constituency is here.
+    -- Two small shapes, in the gap between 324 and 4096 elements and below
+    -- 288, where the set had nothing: a per-call dispatch cost is a share
+    -- of a small call and of nothing else, and the leaner dispatch's whole
+    -- constituency is here.
   , ("cnn-L1-12x12-c1",     [12, 12, 1, 3, 3])        -- 1296
   , ("cnn-L1-24x24-c1",     [24, 24, 1, 3, 3])        -- 5184
   , ("cnn-L2-24x24-c32",    [24, 24, 32, 3, 3])       -- 165888
@@ -6926,7 +6597,7 @@ stretchShapes =
     -- The only other route to one run is rank 1, and 'mkStrided' needs two
     -- innermost dims to transpose. So no shape here can reach @m == 1@.
     -- The orthotope library can produce such strides, though (stride or slice
-    -- operation on a rank-1 array) -- now exercised, check-only, by
+    -- operation on a rank-1 array) -- exercised, check-only, by
     -- 'scaled-rank1-m1' in 'scaledViews'.
   , ("stretch-tall-Mx2",    [900000, 2])              -- 1800000, 2 base offsets
   , ("stretch-coprime-r7",  [2, 3, 5, 7, 11, 13, 2])  -- 60060, rank 7, coprime
@@ -6970,32 +6641,14 @@ allShapes = convShapes ++ stretchShapes
 
 -- Main-set shapes retired from TIMING and kept in 'check', ruled 2026-09-04
 -- on their canonical forms as the stride classes were ('retiredClasses'
--- below): every main-set view canonicalizes to a rank-3 positive fill with a
--- stride-1 level, or to a regime-1 slice, so what is left to differ in is
--- the two inner extents, their strides and the run count. 'stretch-inner1'
--- is the regime-1 slice, O(1) at any size, which 'small-flat64' times;
--- 'lenet-slice-c6-k5' is 'small-patch-k5' to the stride; 'cnn-L1-6x6-c1',
--- 'stretch-rank10', 'cifar-L2-16-c64-k3' and 'cnn-L1-12x12-c1' are rungs of
--- the [A, 3, 3] ladder at strides [9, 1, 3] beside 'cnn-slice-c32',
--- 'cnn-L1-24x24-c1', 'cnn-L2-24x24-c32' and 'vgg-14-c512-k3', the first two
--- within a tenth in A of a kept rung and the rank-10 odometer merged away;
--- 'conv1d-24' is runs of 3 at stride 24 beside 'gather48-src-50' at 50; and
--- 'stretch-rank12' is runs of 2 at stride 2, its rank merged away, the third
--- of three runs-of-2 shapes and the only small one, which the small class
--- covers. The anchor 'cifar-L2-16-c64-k3' held moved to 'cnn-L2-24x24-c32'
--- with it (read-run.py's ANCHORS, run-alonelegs.sh). The population moved,
--- so a Run 25 geomean re-baselines against Run 24; the fingerprint's per-
--- shape rows and the anchors cross. The entries stay listed so that @check@
--- still holds every arm to the reference on them and older readers parse the
--- lists; a shape is re-timed by deleting its name here
--- (README.md#the-shape-set), as 'cnn-L1-6x6-c1' was on 2026-09-05: a rung
--- the ladder did not need, but at 324 elements the second small main-set
--- shape beside 'cnn-slice-c32', and the per-call reading the lean dispatch
--- turns on wants two. A class view is retired here too since 2026-09-25,
--- when 'runs-3' went: its readings are fragile, the consumers' shared run
--- loop drawing one of three op-cache modes per process on runs of 3
--- (README.md#what-is-open). 'bcastmid-block150k' followed on 2026-10-05: its
--- lean-family fills draw a slow or a fast state per process, so two arms
+-- below), each shape's reason at README.md#the-shape-set. The entries stay
+-- listed so that @check@ still holds every arm to the reference on them and
+-- older readers parse the lists; a shape is re-timed by deleting its name
+-- here, as 'cnn-L1-6x6-c1' was on 2026-09-05. A class view is retired here
+-- too: 'runs-3' on 2026-09-25, its readings being fragile, the consumers'
+-- shared run loop drawing one of three op-cache modes per process on runs of
+-- 3 (README.md#what-is-open). 'bcastmid-block150k' followed on 2026-10-05:
+-- its lean-family fills draw a slow or a fast state per process, so two arms
 -- running one fill loop parted by 10% on Run 45's basis, and which arm drew
 -- slow changed from process to process. read-run.py's class counts do not drop
 -- a retired view yet: the first run file tabling its class without it owes
@@ -7081,13 +6734,12 @@ broadcastShapes =
   [ ("bcast-inner8",   [64, 100, 8])    -- 51200, over a 6400-elem source
   , ("bcast-inner900", [50, 40, 900])   -- 1800000, long runs, tiny source
   , ("bcast-tall-Mx2", [900000, 2])     -- 1800000, 900k-run table, all hits
-    -- The repeat ladder, added 2026-09-09 for Run 28: one source length
-    -- per rung, broadcast to the same 1.8 million elements, so what
-    -- varies is how long the slice stage nine repeats and how many
-    -- times -- 8 elements 225000 times up to 512 elements 3515 times --
-    -- against a fill whose runs are the repeat count long. The two views
-    -- above bracket it at 2000 and 900000 elements; this is where the
-    -- repeated slice meets the fill.
+    -- The repeat ladder: one source length per rung, broadcast to the same
+    -- 1.8 million elements, so what varies is how long the slice stage nine
+    -- repeats and how many times -- 8 elements 225000 times up to 512 elements
+    -- 3515 times -- against a fill whose runs are the repeat count long. The
+    -- two views above bracket it at 2000 and 900000 elements; this is where
+    -- the repeated slice meets the fill.
   , ("bcast-src8",     [8, 225000])     -- 1800000, an 8-element source
   , ("bcast-src64",    [64, 28125])     -- 1800000, a 64-element source
   , ("bcast-src512",   [512, 3515])     -- 1799680, a 512-element source
@@ -7098,32 +6750,31 @@ broadcastMidShapes :: [(String, Int, ShapeL)]
 broadcastMidShapes =
   [ ("bcastmid-c32-cnn", 32, [24, 24, 3, 3])  -- 165888, mirrors cnn-L2-c32
   , ("bcastmid-primes",  89, [97, 29])        -- 250357
-    -- The third shape every class took on 2026-08-14, two shapes not
-    -- being enough to winsorize, so one disturbed cell owned the class
-    -- geomean (README.md#what-is-open). Each is the class's OWN extreme
-    -- rather than another size: here the stretch factor taken to the size
-    -- cap, a nine-element table read 200000 times, where the two above
-    -- stretch by 32 and 89. It is the case where the broadcast IS the
-    -- cost and the table build vanishes beside it.
+    -- The third shape every class takes, two shapes not being enough to
+    -- winsorize, so that one disturbed cell would own the class geomean
+    -- (README.md#what-is-open). Each is the class's OWN extreme rather
+    -- than another size: here the stretch factor taken to the size cap, a
+    -- nine-element table read 200000 times, where the two above stretch by 32
+    -- and 89. It is the case where the broadcast IS the cost and the table
+    -- build vanishes beside it.
   , ("bcastmid-b200k",   200000, [3, 3])      -- 1800000, stretch at the cap
-    -- The fourth shape, added 2026-08-25 with the 'mid-copy' arm: the
-    -- BLOCK taken to the cap's scale -- 150000 elements filled once and
-    -- copied three times per outer index -- where the three above run
-    -- blocks of 216, 97 and 3, so this is the block-copy arm's best case
-    -- exactly as 'b200k' above is its worst.
+    -- The fourth shape, for the 'mid-copy' arm: the BLOCK taken to the cap's
+    -- scale -- 150000 elements filled once and copied three times per outer
+    -- index -- where the three above run blocks of 216, 97 and 3, so this is
+    -- the block-copy arm's best case exactly as 'b200k' above is its worst.
   , ("bcastmid-block150k", 4, [3, 300, 500])  -- 1800000, 150000-elem block
   ]
 
 -- The `edge` class: 'mkBroadcastMid' views checked and never timed, in
--- 'retiredClasses' from birth, at the extents a doubling block copy can
--- get wrong and no timed view has --- 2, one more than a power of two,
--- and one more than the next. A copy stopping one block short passed
--- @check@ on every timed view on 2026-09-09, the class's extents being
--- 4, 32, 89 and 200000; these are where it fails. And 0, added 2026-09-21:
--- a zero extent at the zero stride, where the 'fillStage2' fills would
--- write a run or block into an empty result before reading the extent -- the
--- horde-ad segfault of 2026-09-20 -- which their @l > 0@ assertion turns
--- into a failure of @check@ at any dispatch that does not guard it.
+-- 'retiredClasses' from birth, at the extents a doubling block copy can get
+-- wrong and no timed view has --- 2, one more than a power of two, and one
+-- more than the next. A copy stopping one block short passed @check@ on every
+-- timed view on 2026-09-09, the class's extents being 4, 32, 89 and 200000;
+-- these are where it fails. And 0: a zero extent at the zero stride, where
+-- the fills would write a run or block into an empty result before reading
+-- the extent -- the horde-ad segfault of 2026-09-20 -- which their @l > 0@
+-- assertion turns into a failure of @check@ at any dispatch that does not
+-- guard it.
 edgeMidShapes :: [(String, Int, ShapeL)]
 edgeMidShapes =
   [ ("edge-bcastmid-b0", 0, [3, 3])  -- 0, a zero extent at the zero stride
@@ -7138,11 +6789,10 @@ reshape1Shapes :: [(String, ShapeL)]
 reshape1Shapes =
   [ ("reshape1-500k", [500000])         -- 500000, the [n] -> [n, 1] trap
   , ("reshape1-r3",   [100, 50, 36])    -- 180000, differing trailing dims
-    -- The class's extreme, added 2026-08-14: appending the size-1 dim
-    -- makes sInner 1 and so m = l for every shape here, which is one run
-    -- per element; this takes that to a rank-11 view over the deepest
-    -- odometer the main set carries, where the two above are rank 2
-    -- and 4. Per-run overhead against nothing else.
+    -- The class's extreme: appending the size-1 dim makes sInner 1 and so m =
+    -- l for every shape here, which is one run per element; this takes that to
+    -- a rank-11 view over the deepest odometer the main set carries, where the
+    -- two above are rank 2 and 4. Per-run overhead against nothing else.
   , ("reshape1-rank10", [3,3,3,3,3,3,3,3,3,3])  -- 59049, deepest odometer
   ]
 
@@ -7157,10 +6807,10 @@ slicedShapes :: [(String, ShapeL)]
 slicedShapes =
   [ ("slice-cnn-L2-24x24-c32", [24, 24, 32, 3, 3])  -- 165888, sliced c32
   , ("slice-primes",           [97, 89, 29])        -- 250357, sliced primes
-    -- The class's extreme, added 2026-08-14: this class offsets by 1 in
-    -- every dimension of an enclosing array, so what stresses it is
-    -- dimensions -- rank 7 with coprime extents, where the two above are
-    -- rank 5 and 3 and every extent is small.
+    -- The class's extreme: this class offsets by 1 in every dimension of
+    -- an enclosing array, so what stresses it is dimensions -- rank 7 with
+    -- coprime extents, where the two above are rank 5 and 3 and every extent
+    -- is small.
   , ("slice-coprime-r7",     [2, 3, 5, 7, 11, 13, 2])  -- 60060, rank 7
   ]
 
@@ -7169,43 +6819,41 @@ windowShapes :: [(String, ShapeL)]
 windowShapes =
   [ ("window-28x28-k5",   [28, 28, 5, 5])    -- 14400, over 784 elements
   , ("window-224x224-k3", [224, 224, 3, 3])  -- 443556, over 50176
-    -- The class's extreme, added 2026-08-14: the kernel sets the two
-    -- innermost extents of the view, and both shapes above are square, so
-    -- neither can say what a degenerate one costs. This one is 1 by 9 --
-    -- innermost extent 1 under the repeated strides an overlapping window
-    -- has, which is the run-of-one-element case this class never saw.
-    -- Under 'canonView' that kernel row of 1 is dropped and the view is
-    -- runs of 9, 'runs-9''s own run, over a backing those runs overlap on;
-    -- kept for that overlap, which 'runsShapes' has none of (2026-09-04).
+    -- The class's extreme: the kernel sets the two innermost extents of
+    -- the view, and both shapes above are square, so neither can say what
+    -- a degenerate one costs. This one is 1 by 9 -- innermost extent 1
+    -- under the repeated strides an overlapping window has, which is the
+    -- run-of-one-element case this class never saw. Under 'canonView' that
+    -- kernel row of 1 is dropped and the view is runs of 9, 'runs-9''s own
+    -- run, over a backing those runs overlap on; kept for that overlap, which
+    -- 'runsShapes' has none of (2026-09-04).
   , ("window-64x64-k1x9", [64, 64, 1, 9])    -- 32256, over 4096
-    -- A kernel one past the short bodies of 'fillStage2Short', which
-    -- write runs of 2 to 5, added 2026-09-02 for Run 24: both square
-    -- shapes above are inside that range, so the class that gave the
-    -- short-body arm its widest lead could not say where the lead ends.
-    -- The image is sized to keep the view under 'sizeCap'.
+    -- A kernel one past the short bodies of 'fillStage2Short', which write
+    -- runs of 2 to 5: both square shapes above are inside that range, so the
+    -- class that gave the short-body arm its widest lead could not say where
+    -- the lead ends. The image is sized to keep the view under 'sizeCap'.
   , ("window-128x128-k7", [128, 128, 7, 7])  -- 729316, over 16384
   ]
 
--- A strided and a dilated window over the k3 image, added 2026-09-03:
--- the four above are stride-1 and undilated, as 'mkWindow' built every
--- window until then, so a strided convolution's patch view -- outer
--- strides twice the row and 2 -- and a dilated kernel's -- taps a row
--- and two elements apart -- had no view. The kernel stays k3 so the
--- short body still fires. Listed as image and kernel beside (stride,
--- dilation), IN A LIST OF THEIR OWN rather than as six-entry rows of
--- 'windowShapes': read-run.py's older revisions, which `defect-run.py
--- --audit` replays against today's Main.hs, unpack that list's rows
--- four ways and die on a longer one, and a day of six-entry rows there
--- turned 25 audits into tracebacks (2026-09-03). A list an old reader
--- does not name it does not read.
+-- A strided and a dilated window over the k3 image: the four above are
+-- stride-1 and undilated, so without these a strided convolution's patch
+-- view -- outer strides twice the row and 2 -- and a dilated kernel's --
+-- taps a row and two elements apart -- would have no view. The kernel stays
+-- k3 so the short body still fires. Listed as image and kernel beside
+-- (stride, dilation), IN A LIST OF THEIR OWN rather than as six-entry rows of
+-- 'windowShapes': read-run.py's older revisions, which `defect-run.py --audit`
+-- replays against today's Main.hs, unpack that list's rows four ways and die
+-- on a longer one, and a day of six-entry rows there turned 25 audits into
+-- tracebacks (2026-09-03). A list an old reader does not name it does not
+-- read.
 windowStridedShapes :: [(String, ShapeL, (Int, Int))]
 windowStridedShapes =
   [ ("window-224x224-k3-s2", [224, 224, 3, 3], (2, 1))  -- 110889, stride 2
   , ("window-224x224-k3-d2", [224, 224, 3, 3], (1, 2))  -- 435600, dilated by 2
   ]
 
--- A patch view with channels, added 2026-09-09 for Run 28: the
--- convolution's own input, an image of @c@ channels windowed by a
+-- A patch view with channels: the convolution's own input, an image of @c@
+-- channels windowed by a
 -- @kh x kw@ kernel, [oh, ow, c, kw, kh] over a channels-first image.
 -- The two unit-stride axes tie as in every unstrided window, and the
 -- channel axis sits between the tied pairs at stride @h * w@, which is
@@ -7228,17 +6876,17 @@ scaledViews :: [(String, ShapeL, Strides)]
 scaledViews =
   [ ("scaled-super-r3", [40, 50, 30], Strides [4547, 91, 3])  -- 60000
   , ("scaled-rank1-m1", [300000], Strides [5])  -- 300000, the m == 1 floor
-    -- The class's extreme, added 2026-08-14, and the shape this README's
-    -- own findings ask for: rank 5 with coprime extents against the rank
-    -- 3 and rank 1 above, its superincreasing strides scattering 15015
-    -- outputs across 42735 source elements -- read nearly three times its
-    -- own size, deepest odometer here, per-run work dominant. That is the
-    -- memory-placement corner the wild cell and the mid-bench step both
-    -- live in (README.md#what-is-open), and this class had no cell in it.
-    -- Strides superincreasing as this list's are and none 1: each exceeds
-    -- the span of everything under it (36, 406, 2848, 14244), so no two
-    -- runs overlap. Rank stops at 5 because the entry must fit one line
-    -- for the reader's parser, and rank 7 needs six-digit strides.
+    -- The class's extreme, and the shape README's own findings ask for:
+    -- rank 5 with coprime extents against the rank 3 and rank 1 above, its
+    -- superincreasing strides scattering 15015 outputs across 42735 source
+    -- elements -- read nearly three times its own size, deepest odometer here,
+    -- per-run work dominant. That is the memory-placement corner the wild
+    -- cell and the mid-bench step both live in (README.md#what-is-open), and
+    -- this class had no cell in it. Strides superincreasing as this list's
+    -- are and none 1: each exceeds the span of everything under it (36, 406,
+    -- 2848, 14244), so no two runs overlap. Rank stops at 5 because the entry
+    -- must fit one line for the reader's parser, and rank 7 needs six-digit
+    -- strides.
   , ("scaled-r5", [3,5,7,11,13], Strides [14245,2849,407,37,3])  -- 15015
   ]
 
@@ -7248,81 +6896,66 @@ scaledViews =
 -- thunks: nothing here forces a source vector until criterion's @env@
 -- builds that group's input, and 'partitioned' forces shapes alone.
 --
--- A CLASS NAME CARRIES NO HYPHEN, though a shape name may and most do.
--- The drivers derive a bench's population by cutting its name at the first
--- hyphen, so `bcast-inner8` yields `bcast`, and a class called `bcast-mid`
--- would yield `bcast` too and be run as one population with it -- one
--- process for two, its bench count agreeing, and the second leaving no
--- artifact. The names below already read as though this were known; it was
--- not written down until 2026-08-17, and run-major.sh now refuses a
--- hyphenated name in CLASSES rather than leaving it to be noticed.
+-- A CLASS NAME CARRIES NO HYPHEN, though a shape name may and most do. The
+-- drivers derive a bench's population by cutting its name at the first hyphen,
+-- so `bcast-inner8` yields `bcast`, and a class called `bcast-mid` would yield
+-- `bcast` too and be run as one population with it -- one process for two,
+-- its bench count agreeing, and the second leaving no artifact. run-major.sh
+-- refuses a hyphenated name in CLASSES rather than leaving it to be noticed.
 -- Regime-2 views: an innermost run of contiguous elements under a padded
--- outer stride, as @slice@ of a wider array, @window@ with a unit kernel
--- row, or any dense array's sub-block produces them -- the one population
--- the library dispatches to a slice-and-concatenate path and not to the
--- regime-3 fill, and the one the stage-two branch moved to the fill. The
--- listed shape is the view shape; the run is everything under the outer
--- dim, the outer stride the run plus one, so the view is regime 2 and
--- never regime 1. Unlike its siblings this class is a sweep and not a
--- triple: its question is a crossover in run length -- one memcpy per
--- run against the fill's stepping loop -- so it walks the run from 2 to
--- 65536 at a fixed size, with one rank-3 entry whose two inner dims are
--- contiguous and merge under 'canonView', so the library's merge and not
--- the listing decides its run, and one entry at 4096 small enough that
--- its source and result fit in L2 together.
+-- outer stride, as @slice@ of a wider array, @window@ with a unit kernel row,
+-- or any dense array's sub-block produces them -- the one population the
+-- library dispatches to a slice-and-concatenate path and not to the regime-3
+-- fill, and the one the stage-two branch moved to the fill. The listed shape
+-- is the view shape; the run is everything under the outer dim, the outer
+-- stride the run plus one, so the view is regime 2 and never regime 1. Unlike
+-- its siblings this class is a sweep and not a triple, its question being a
+-- crossover in run length -- one memcpy per run against the fill's stepping
+-- loop (README.md#the-stride-classes-and-what-they-cover).
 runsShapes :: [(String, ShapeL)]
 runsShapes =
   [ ("runs-2",        [900000, 2])      -- 1800000, runs of 2
   , ("runs-3",        [600000, 3])      -- 1800000, a k3 conv row
   , ("runs-4",        [450000, 4])      -- 1800000, a 2x2 pooling window
   , ("runs-5",        [360000, 5])      -- 1800000, a k5 conv row
-    -- One past the short bodies of 'fillStage2Short', which write runs
-    -- of 2 to 5, added 2026-09-02 for Run 24: the first length where the
-    -- stepping loop with its odd tail takes over from them, and a k7
-    -- conv row.
+    -- One past the short bodies of 'fillStage2Short', which write runs of 2 to
+    -- 5: the first length where the stepping loop with its odd tail takes over
+    -- from them, and a k7 conv row.
   , ("runs-7",        [257142, 7])      -- 1799994, a k7 conv row
   , ("runs-9",        [200000, 9])      -- 1800000, the window probe's run
-    -- Three lengths inside the 9 to 96 gap, added 2026-09-16 for Run 34:
-    -- Run 33 read stage eleven at 0.289 ns an element on runs of 9 and
-    -- 0.380 on runs of 96, and a fit to its curve put a minimum between
-    -- them. A probe the same day (probe-runsdip-basis.json, the basis
-    -- recipe, not a run) read 0.31 at 32 and 0.38 at 48 and 64 against 0.31
-    -- at 9 and 0.39 at 96 in the same process: a plateau to 32 and a step
-    -- by 48, no dip. Run 34 read stage eleven on the basis at 0.300 at 32,
-    -- 0.362 at 48, 0.371 at 64 and 0.380 at 96 against 0.290 at 9: the step
-    -- under way by 48 and not done there (runs/run34.md, registration (4)).
+    -- Three lengths inside the 9 to 96 gap, where a fit to Run 33's curve
+    -- put a minimum. There is no dip: Run 34 read stage eleven on the basis
+    -- at 0.300 ns an element at 32, 0.362 at 48, 0.371 at 64 and 0.380 at 96
+    -- against 0.290 at 9, a plateau to 32 and a step under way by 48 and not
+    -- done there (runs/run34.md, registration (4)).
   , ("runs-32",       [56250, 32])      -- 1800000
   , ("runs-48",       [37500, 48])      -- 1800000
   , ("runs-64",       [28125, 64])      -- 1800000
   , ("runs-96",       [18750, 96])      -- 1800000, an image row
-    -- The `flip` class's forward control, added 2026-09-09, and a `runs`
-    -- shape only in how it is built. `flip-last-rows` is the same `l` at
-    -- the same `sInner` reversed, and the class's reversal finding is the
-    -- two of them divided; until now they were in two classes and so in
-    -- two processes, each over its own `list`. `classOf` reads the class
-    -- off the name, so the name is what puts this one in `flip` while the
-    -- generator, the `check` clause and the shape-count parser stay the
-    -- ones `runsShapes` already has. It sits here rather than in
-    -- `flipShapes` because `flipConds` asserts an innermost stride of -1 of
-    -- every member there, which is the class's definition and not a
-    -- condition to relax for a control.
+    -- The `flip` class's forward control, and a `runs` shape only in how
+    -- it is built. `flip-last-rows` is the same `l` at the same `sInner`
+    -- reversed, and the class's reversal finding is the two of them divided,
+    -- which in two classes would be read in two processes, each over its own
+    -- `list`. `classOf` reads the class off the name, so the name is what
+    -- puts this one in `flip` while the generator, the `check` clause and the
+    -- shape-count parser stay the ones `runsShapes` already has. It sits here
+    -- rather than in `flipShapes` because `flipConds` asserts an innermost
+    -- stride of -1 of every member there, which is the class's definition and
+    -- not a condition to relax for a control.
   , ("flip-fwd-rows96", [18750, 96])   -- 1800000, runs-96 under a flip name
-    -- Two lengths that bracket 'dispRun' within a factor of two, added
-    -- 2026-08-30: the class jumped 96 -> 1024 with the crossover inside,
-    -- so the threshold was cut to a bracket an order of magnitude wide.
+    -- Two lengths inside the jump from 96 to 1024, which left a crossover in
+    -- it bracketed an order of magnitude wide.
   , ("runs-256",      [7031, 256])      -- 1799936
   , ("runs-512",      [3515, 512])      -- 1799680
   , ("runs-1024",     [1757, 1024])     -- 1799168
-    -- Two lengths inside the 64x gap the crossover moved into, added
-    -- 2026-09-02 for Run 24: Runs 22 and 23 read stage two ahead of stage
-    -- one at 1024 and behind at 65536 on both compilers and both layouts,
-    -- so the bracket a threshold is cut to was again an order of
-    -- magnitude wide, twice over.
+    -- Two lengths inside the 64x gap from 1024 to 65536, where Runs 22 and 23
+    -- read stage two ahead of stage one at 1024 and behind at 65536 on both
+    -- compilers and both layouts, a bracket an order of magnitude wide twice
+    -- over.
   , ("runs-4096",     [439, 4096])      -- 1798144
   , ("runs-16384",    [109, 16384])     -- 1785856
   , ("runs-65536",    [27, 65536])      -- 1769472, a few long runs
   , ("runs-r3-48x30", [1250, 48, 30])   -- 1800000, merges to runs of 1440
-    -- Added 2026-10-06.
   , ("runs-4096-l2",  [6, 4096])        -- 24576, runs-4096 in L2
   ]
 
@@ -7544,12 +7177,11 @@ classChecks =
       , ("backing-enclosing", VS.length v == product (map (+ 2) normalSh)) ]
     -- Non-vacuity: an innermost stride of 2 in place of the row multiple
     -- (still in-bounds) fails row-multiples alone; shrinking the view to a
-    -- single patch fails aliasing alone. The condition was dup-stride,
-    -- outer equal to innermost, until the strided and dilated windows of
-    -- 2026-09-03, whose two are @s * w@ and @d * w@. A channel view, whose
-    -- builder reads [h, w, c, kh, kw], owes the same two: its channel
-    -- stride is a multiple of the width too, but the condition reads the
-    -- first and last strides.
+    -- single patch fails aliasing alone. The condition is not dup-stride,
+    -- outer equal to innermost, which the strided and dilated windows fail,
+    -- their two being @s * w@ and @d * w@. A channel view, whose builder reads
+    -- [h, w, c, kh, kw], owes the same two: its channel stride is a multiple
+    -- of the width too, but the condition reads the first and last strides.
     windowConds w (sh, T (Strides ats) _ v) =
       [ ("aliasing",      VS.length v < product sh)
       , ("row-multiples", case ats of
@@ -7624,19 +7256,11 @@ classChecks =
 -- Classes retired from TIMING and kept in 'check', by prefix -- ruled
 -- 2026-09-04 on the canonical forms the branch's fill sees ('canonView',
 -- then 'fillStage2''s dispatch), which is what a timed class has to be
--- distinct in. 'reshape1': three of its four views canonicalize to the
--- regime-1 slice 'stretch-inner1' and 'small-flat64' already time, and the
--- fourth to a main-set view -- which is why it is the class the correction
--- degenerates on. 'revsome': reproduced 'rev' on every run it ran; its
--- inner-reversed view is 'rev''s mechanism and its two outer-reversed ones
--- are main-set views walked in another order, the fill's addressing being
--- sign-agnostic and the sign-sensitive bounds it was built for belonging to
--- the packed Int32 scan, settled. 'slice': a main-set view plus a base
--- offset the fill reads once, the offset timed by 'block-run64-off7' and
--- 'compose-slice-bcast' since. 'edge', added 2026-09-09, was never timed:
+-- distinct in: 'reshape1', 'revsome' and 'slice', each class's reason at
+-- README.md#the-stride-classes-and-what-they-cover. 'edge' was never timed:
 -- three broadcast-mid views at the extents a doubling block copy can get
--- wrong, checked for that alone ('edgeMidShapes'). The lists and
--- generators stay: 'check' holds
+-- wrong, checked for that alone ('edgeMidShapes'). The lists and generators
+-- stay: 'check' holds
 -- every arm to the reference on these views still, read-run.py's older
 -- revisions parse the lists, and a class is re-timed by deleting its name
 -- here. run-major.sh's CLASSES omits them, held to `classes --list` by its
@@ -7689,10 +7313,8 @@ partitioned = all ((<= sizeCap) . product . snd) allShapes
                   | (n, (sh, _)) <- classViews ]
 
 -- One roster entry: what 'mkBench' declares and what 'check' holds to the
--- reference. Both read the same list, so the two cannot come apart; they used
--- to be two hand-written lists of the same strategies, with @--lint@
--- comparing them. The constructor is where every deliberate asymmetry is
--- stated:
+-- reference. Both read the same list, so the two cannot come apart. The
+-- constructor is where every deliberate asymmetry is stated:
 --
 --   Base  'fbList': timed like the rest, and the vector every other arm is
 --         held to, so it has nothing of its own left to check.
@@ -7712,16 +7334,16 @@ partitioned = all ((<= sizeCap) . product . snd) allShapes
 --         of the two rulings of 2026-08-08
 --         (README.md#what-the-benchmark-does) -- a size precondition, or 2.4x
 --         the result in allocation -- and the entry names the disqualifying
---         fact alone. With the column those preconditions used to occupy gone
---         from README's table, these entries are where they are recorded.
+--         fact alone. README's table has no column for those preconditions,
+--         so these entries are where they are recorded.
 --
 -- @read-run.py --lint@ reads the list below and holds it to what a reader of
 -- either file assumes: every name documented in README.md, every @fb@
 -- function defined here rostered, each 'Twin' naming the arm it duplicates,
 -- and the controls named as that script's own control test recognises them.
 --
--- ADDING AN ARM touches five places, listed because the last time they were
--- found one failing check at a time, after the arm had already been measured:
+-- ADDING AN ARM touches five places, listed so that each is found before the
+-- arm is measured:
 --
 --   1. this 'roster', with the reason for the SLOT at the entry -- an arm's
 --      position is part of what it measures;
@@ -7774,78 +7396,59 @@ roster =
     -- agree the correction is sound; if they diverge, the term is not a
     -- constant and the correction must be dropped rather than applied.
     --
-    -- Every run since has licensed it, and the correction is applied to
-    -- every published figure
-    -- (README.md#sum-only-and-the-correction-now-applied). Both halves
-    -- stay in the roster, because this is a test every run must repeat:
-    -- a run whose halves diverged would invalidate its whole time column,
-    -- not merely decline to correct it. What this pair CANNOT test about
-    -- itself -- that a fixed vector is read at the same cost as one the fill
-    -- has just written -- is what the two 'Force' arms measure.
+    -- Every run has licensed it, and the correction
+    -- is applied to every published figure
+    -- (README.md#sum-only-and-the-correction-now-applied). Both halves stay in
+    -- the roster, because this is a test every run must repeat: a run whose
+    -- halves diverged would invalidate its whole time column, not merely
+    -- decline to correct it. What this pair CANNOT test about itself -- that a
+    -- fixed vector is read at the same cost as one the fill has just written
+    -- -- is what the two 'Force' arms measure.
     --
-    -- THIS SLOT IS LOAD-BEARING and was moved here after Run 9, from
-    -- below the three distant twins. Timing a sum over a FIXED vector
-    -- means allocating that vector once in setup and almost nothing per
-    -- call, and that one large allocation grows the block pool and leaves
-    -- it grown -- so this bench silently divides the group into a cold
-    -- prefix and a warm remainder. With it below the twins, all three were
-    -- measured cold against bases measured warm, which is a heap-state
-    -- difference where the crossed design intends a POSITION difference,
-    -- and on 'vgg-14-c512-k3' it put 'bq-expand-aa-distant' 41% above its
-    -- own base for two runs running. Measured, not reasoned: inserting
-    -- this bench between the twin and the base is alone enough to move the
-    -- base from 4.58 ms to 3.35 ms, where 'mut-odo-vecdims' in the same
-    -- slot changes nothing
+    -- THIS SLOT IS LOAD-BEARING. Timing a sum over a FIXED vector means
+    -- allocating that vector once in setup and almost nothing per call, and
+    -- that one large allocation grows the block pool and leaves it grown --
+    -- so this bench silently divides the group into a cold prefix and a warm
+    -- remainder. Below the three distant twins it had all three measured cold
+    -- against bases measured warm, which is a heap-state difference where the
+    -- crossed design intends a POSITION difference, and on 'vgg-14-c512-k3'
+    -- it put 'bq-expand-aa-distant' 41% above its own base for two runs
+    -- running. Measured, not reasoned: inserting this bench between the
+    -- twin and the base is alone enough to move the base from 4.58 ms to
+    -- 3.35 ms, where 'mut-odo-vecdims' in the same slot changes nothing
     -- (README.md#what-moves-a-figure-when-no-strategy-changed).
     --
-    -- MOVED AGAIN BEFORE RUN 10, this time above 'list', which leaves
-    -- nothing in the group measured on an ungrown pool. Through Run 9 it
-    -- sat below the baseline deliberately, the argument being that warming
-    -- 'list' moves the denominator of every published ratio and so is a
-    -- larger change than the one being made -- true, and the reason it
-    -- waited for a run willing to pay it. What made this that run is that
-    -- the pool asymmetry had been narrowed to exactly one bench: after the
-    -- move above, every timed arm is measured warm EXCEPT the one every
-    -- figure divides by, which is also the arm the nursery punishes hardest
-    -- (README.md#what-moves-a-figure-when-no-strategy-changed). This is
-    -- the warm-up bench the TODO list asks for, spent from the roster
-    -- rather than added to it, so the delta stays order-only.
+    -- It sits above 'list', so nothing in the group is measured on an ungrown
+    -- pool: below it, every timed arm would be measured warm EXCEPT the one
+    -- every figure divides by, which is also the arm the nursery punishes
+    -- hardest (README.md#what-moves-a-figure-when-no-strategy-changed). It is
+    -- the warm-up bench, spent from the roster rather than added to it.
     --
-    -- Two consequences to expect rather than to discover. The three
-    -- absolute 'list' anchors are built to detect a moved baseline and this
-    -- moves it on purpose, so they fire by construction. And unlike the
-    -- previous move, this one relocates code: swapping these two entries
-    -- shifts every worker by ~40 KB and rerolls every hot loop's alignment,
-    -- measured on the two binaries, where the slot-5-to-2 move left all
-    -- eight measured loops byte-identical
-    -- (README.md#what-is-open). Anything added above
-    -- the twins from now on has to be checked for the pool property, and
-    -- any reorder at all for this one.
+    -- Anything added above the twins has to be checked for the pool property,
+    -- and any reorder at all for code placement: swapping this entry with
+    -- 'list' shifts every worker by ~40 KB and rerolls every hot loop's
+    -- alignment (README.md#provenance).
   [ ("sum-only-early",             Term)
   , ("list",                       Base fbList)
     -- The adjacent half of the baseline's own pair, and the one insertion
     -- above the distant twins the slot rule allows -- measured rather than
-    -- argued, on the -L1 pass of the day it landed: it allocates 134261336
-    -- B a call against 'list''s 134261403, agreeing to 1.1e-4 over all 24
-    -- shapes, where 'sum-only-early', the bench that rule is about,
-    -- allocates 204 B a call because its allocation is a one-off setup
-    -- vector. So it fills as its base does and grows no pool the way that
-    -- bench does. Added 2026-08-14, first read in Run 14.
+    -- argued, on an -L1 pass: it allocates 134261336 B a call against
+    -- 'list''s 134261403, agreeing to 1.1e-4 over all 24 shapes, where
+    -- 'sum-only-early', the bench that rule is about, allocates 204 B a call
+    -- because its allocation is a one-off setup vector. So it fills as its
+    -- base does and grows no pool the way that bench does.
   , ("list-aa-adjacent",           Twin fbList)
-    -- The distant halves of the crossed A/A pairs, none a strategy: each
-    -- runs an existing function twice, so its true ratio is known to be
-    -- exactly 1 and what it measures is what two identical things differ
-    -- by -- a margin narrower than they are is not a result. Each twinned
-    -- strategy is duplicated once here and once beside its base, so
-    -- position varies within a strategy and strategy within a position,
-    -- which is the design that settled the position question
-    -- (README.md#what-moves-a-figure-when-no-strategy-changed). Nine
-    -- strategies were twinned at Run 14, the scan band's pair the oldest,
-    -- its distant half once in the slot above these; 'offtab''s twins
-    -- went with its parking
-    -- on 2026-08-28 and five more pairs with the prune of 2026-09-04
-    -- (README.md#what-the-benchmark-does), a twin of an untimed arm
-    -- pricing nothing, and the slots below stayed where they were.
+    -- The distant halves of the crossed A/A pairs, none a strategy:
+    -- each runs an existing function twice, so its true ratio is known
+    -- to be exactly 1 and what it measures is what two identical things
+    -- differ by -- a margin narrower than they are is not a result. Each
+    -- twinned strategy is duplicated once here and once beside its
+    -- base, so position varies within a strategy and strategy within a
+    -- position, which is the design that settled the position question
+    -- (README.md#what-moves-a-figure-when-no-strategy-changed). A twin of
+    -- an untimed arm prices nothing, so a parked arm's twins are deleted
+    -- (README.md#what-the-benchmark-does), the slots below staying where they
+    -- were.
   , ("bq-expand-aa-distant",       Twin fbBQexpand)
   , ("mut-odo-vecdims-aa-distant", Twin fbMutOdoVecdims)
   , ("list-aa-distant",            Twin fbList)
@@ -7853,13 +7456,13 @@ roster =
     -- the Run 21 entry): superseded, answering no registered question;
     -- its column in a run's own geomean table stays blank from Run 21 on
   , ("gen-quotrem",                Only fbGenQuotRem)
-    -- Parked 'Only' 2026-09-04 by the prune, with fifteen more below
-    -- marked the same way: the roster is cut to the one question left,
-    -- how the mut-odo-vecdims family is used in the library
-    -- (README.md#what-the-benchmark-does). An arm parked so stays
-    -- checked; its A/A twins and its 'Force' arm are deleted, a control
-    -- of an untimed arm pricing nothing; and its column in a run's own
-    -- geomean table stays blank from Run 25 on.
+    -- Parked 'Only' 2026-09-04 by the prune, with the others below
+    -- marked the same way: the roster is cut to the one question
+    -- left, how the mut-odo-vecdims family is used in the library
+    -- (README.md#what-the-benchmark-does). An arm parked so stays checked; its
+    -- A/A twins and its 'Force' arm are deleted, a control of an untimed arm
+    -- pricing nothing; and its column in a run's own geomean table stays blank
+    -- from Run 25 on.
   , ("gen-unsafe",                 Only fbGenUnsafe)
     -- not timed: 27.94x the result
   , ("unfold-add",                 Only fbUnfoldAdd)
@@ -7888,16 +7491,12 @@ roster =
     -- distorts most, and one pair on its own could not tell a biased term
     -- from a size-dependent one -- two pairs an octave apart in speed can.
   , ("mut-odo-vecdims-nosum",      Force fbMutOdoVecdims)
-    -- The fast-end control, on the fastest strategy measured, where a
-    -- Failed Run 6 prediction had the noise floor tracking 1/time rather
-    -- than GC pressure -- the noisier of its two pairs being the one
-    -- allocating LESS. The runs since split that prediction: per-cell
-    -- scatter does track 1/time, but it CANCELS, where the distant pairs
-    -- carry span-ordered biases that do not
-    -- (README.md#what-moves-a-figure-when-no-strategy-changed).
-    -- So keep this arm for the
-    -- scatter it measures, and read the floor off the pairs that are
-    -- biased, not the one that is merely noisy.
+    -- The fast-end control, on the fastest strategy measured. Per-cell
+    -- scatter tracks 1/time rather than GC pressure, but it CANCELS,
+    -- where the distant pairs carry span-ordered biases that do not
+    -- (README.md#what-moves-a-figure-when-no-strategy-changed). So keep this
+    -- arm for the scatter it measures, and read the floor off the pairs that
+    -- are biased, not the one that is merely noisy.
   , ("mut-odo-vecdims-aa",         Twin fbMutOdoVecdims)
     -- The FastReshape decomposition, four arms after their shared control
     -- above (README.md#the-mutable-ceiling-taken): solo input axis,
@@ -7914,58 +7513,44 @@ roster =
   , ("mut-odo-vecdims-add-out",    Only fbMutOdoVecdimsAddOut)
   , ("mut-odo-vecdims-add-both",   Only fbMutOdoVecdimsAddBoth)
   , ("mut-odo-vecdims-add-both-down", Only fbMutOdoVecdimsAddBothDown)
-    -- The Run 20 extension of the FastReshape block, added 2026-08-24,
-    -- first read in Run 20: the leaf call fused into the innermost outer
-    -- level, solo, crossed with the count-down fill, and crowned with
-    -- the unrolled fill, over the controls each varies
+    -- The extension of the FastReshape block: the leaf call fused into
+    -- the innermost outer level, solo, crossed with the count-down fill,
+    -- and crowned with the unrolled fill, over the controls each varies
     -- (README.md#the-mutable-ceiling-taken).
     -- The count-down fill's own solo arms sit here as 'Only', refuted by
-    -- codegen the day they were written, reasons at their definitions.
-    -- Appended to the family block for the block's own reason -- after
-    -- the control's pair, so no existing control moves.
+    -- codegen, reasons at their definitions. Appended to the family block
+    -- for the block's own reason -- after the control's pair, so no existing
+    -- control moves.
     -- not timed: the down fill reloads per element at the go leaf, see
     -- its definition
   , ("mut-odo-vecdims-down",       Only fbMutOdoVecdimsDown)
     -- not timed: the same reloads, see its definition
   , ("mut-odo-vecdims-add-in-down", Only fbMutOdoVecdimsAddInDown)
-    -- Parked 'Only' 2026-09-02, after Run 23 read the ordering on both
-    -- halves: the shipped `-u2` leaf leads this one on every population
-    -- and its count-down twin in all twenty, so neither is an alternative
-    -- any more. Timed again
-    -- 2026-09-04 for Run 25 alone, as the bound control of the `-u1` arm
-    -- below (README.md#what-is-open, the Run 25 entry); parked again
-    -- after it, 2026-09-06, the bound control having been spent on that
-    -- run and the -u1 question answered. That answer cited
-    -- `recommended-tasks-after-run-NN, item 2` until 2026-09-11; the
-    -- section has never carried numbered items, in Run 27's version or
-    -- Run 28's, so the pointer named nothing and is gone rather than
-    -- renamed a third time.
+    -- Parked 'Only' 2026-09-06: Run 23 read the shipped `-u2` leaf ahead of
+    -- this one on every population and of its count-down twin in all twenty,
+    -- so neither is an alternative, and its use as the bound control of the
+    -- `-u1` arm below was spent on Run 25 (README.md#what-is-open, the Run 25
+    -- entry).
   , ("mut-odo-vecdims-add-in-leaf", Only fbMutOdoVecdimsAddInLeaf)
   , ("mut-odo-vecdims-add-in-leaf-down", Only fbMutOdoVecdimsAddInLeafDown)
-    -- Timed once more for Run 26, which read Run 24's registration 5 on
-    -- it: '-u2' ahead of THIS arm in all eleven populations on both
-    -- halves (runs/run26.md, item 4). 'Only' again since 2026-09-06.
-    -- The note sat on 'mut-odo-vecdims-add-in-leaf' above until
-    -- 2026-09-11, which Run 26 did not time at all and which that
-    -- registration does not name.
+    -- 'Only' since 2026-09-06: Run 26 read '-u2' ahead of THIS arm in all
+    -- eleven populations on both halves (runs/run26.md, item 4).
   , ("mut-odo-vecdims-add-in-leaf-u2", Fill fbMutOdoVecdimsAddInLeafU2)
-    -- The shipped fill's near A/A copy, beside its base, added 2026-09-09
-    -- with the far one at the tail: the pair is what makes position vary
-    -- within a strategy where a lone distant twin would only have varied
-    -- strategy within a position, which is the crossed design the floor
-    -- section states and the three older A/A strategies already carry.
+    -- The shipped fill's near A/A copy, beside its base, with the far one at
+    -- the tail: the pair is what makes position vary within a strategy where
+    -- a lone distant twin would only have varied strategy within a position,
+    -- which is the crossed design the floor section states and the other A/A
+    -- strategies carry.
   , ("mut-odo-vecdims-add-in-leaf-u2-aa", Twin fbMutOdoVecdimsAddInLeafU2)
-    -- The unrolled loop with its look-ahead hoisted out of the guard,
-    -- added 2026-09-07 beside its parent for Run 27; reasons at its
-    -- definition.
+    -- The unrolled loop with its look-ahead hoisted out of the guard, beside
+    -- its parent; reasons at its definition.
     -- Parked 'Only' 2026-09-11: three runs read the hoisted look-ahead
     -- as an instruction saving time does not follow, 1.0137 and 1.0144
     -- behind '-u2' on Run 28's main set; its case is the conversion-rate
     -- entry (README.md#what-is-open).
   , ("mut-odo-vecdims-add-in-leaf-u2-last", Only fbMutOdoVecdimsAddInLeafU2Last)
-    -- The unrolled loop with its cursors as pointers at every level,
-    -- added 2026-09-05 beside its parent for Run 26's comparison with
-    -- '-u1-ptr': the ceiling '-u2' would
+    -- The unrolled loop with its cursors as pointers at every level, beside
+    -- its parent: the ceiling '-u2' would
     -- reach under an allocator that spilled nothing, not a candidate
     -- (README.md#dead-ideas); reasons at its definition.
     -- Parked 'Only' 2026-09-13: the ceiling is read, 0.9385 of '-u2' on
@@ -7973,54 +7558,49 @@ roster =
     -- Run 29's halves and 0.9532 on Run 28's basis -- moved by neither
     -- -O2 pass, and the form it prices is refused for the library.
   , ("mut-odo-vecdims-add-in-leaf-u2-ptr", Only fbMutOdoVecdimsAddInLeafU2Ptr)
-    -- Timed since 2026-08-28, parked 'Only' the day before: the
-    -- lighter-loop form of the shipped arm, see its definition.
+    -- The lighter-loop form of the shipped arm, see its definition.
     -- Parked 'Only' 2026-09-11: a tie with '-u2' for a third run, 1.0034
     -- and 0.9981 on Run 28's main set and equal in counts since Run 26;
     -- the allocator question it was kept for was one HEAD binary's and
     -- is closed.
   , ("mut-odo-vecdims-add-in-leaf-u2-down", Only fbMutOdoVecdimsAddInLeafU2Down)
-    -- The un-unrolled form of the shipped fill, added 2026-09-04 for Run
-    -- 25 and placed beside its parents; reasons at its definition.
+    -- The un-unrolled form of the shipped fill, placed beside its parents;
+    -- reasons at its definition.
     -- Parked 'Only' 2026-09-23 by the owner; 'instance-gate.sh' times
     -- the shipped '-u2' cell in its place.
   , ("mut-odo-vecdims-add-in-leaf-u1", Only fbMutOdoVecdimsAddInLeafU1)
-    -- The same loop with its cursors as pointers at every level, added
-    -- 2026-09-05 beside its parent: the ceiling '-u1' would reach under
-    -- an allocator that spilled nothing,
+    -- The same loop with its cursors as pointers at every level, beside its
+    -- parent: the ceiling '-u1' would reach under an allocator that spilled
+    -- nothing,
     -- not a candidate (README.md#dead-ideas); reasons at its definition.
     -- Parked 'Only' 2026-09-13 with '-u2-ptr': 0.9748 of '-u1' on Run
     -- 30's basis and 0.9761 on its control, 0.9690 and 0.9709 on Run
     -- 29's halves and 0.9769 on Run 28's basis; the reload it removes
     -- is priced, and the form is refused for the library.
   , ("mut-odo-vecdims-add-in-leaf-u1-ptr", Only fbMutOdoVecdimsAddInLeafU1Ptr)
-    -- The same fill with the source base held rather than reloaded,
-    -- added 2026-09-05 beside the arm it is one change from and parked
-    -- 'Only' the same day: it executes 0.9985 of '-u1''s instructions,
-    -- so the reload it was written to remove is still there and its
-    -- time would price nothing. Timed slots are unmoved by it.
+    -- The same fill with the source base held rather than reloaded, beside the
+    -- arm it is one change from, and parked 'Only' 2026-09-05: it executes
+    -- 0.9985 of '-u1''s instructions, so the reload it was written to remove
+    -- is still there and its time would price nothing. Timed slots are unmoved
+    -- by it.
   , ("mut-odo-vecdims-add-in-leaf-u1-base", Only fbMutOdoVecdimsAddInLeafU1Base)
-    -- Pointers in the leaf alone, parked 'Only' the day it was written:
-    -- its per-run setup outweighs the reload it removes; reasons at its
-    -- definition.
+    -- Pointers in the leaf alone, parked 'Only': its per-run setup outweighs
+    -- the reload it removes; reasons at its definition.
   , ("mut-odo-vecdims-add-in-leaf-u1-ptr-leaf", Only fbMutOdoVecdimsAddInLeafU1PtrLeaf)
-    -- The rework-proposal block, added 2026-08-25, first read in Run 20
+    -- The rework-proposal block
     -- (README.md#the-two-stage-plan-and-the-rework-proposal): the
-    -- canonicalizing composite, its memcpy-run form, the two
-    -- zero-stride conditions solo, and the full endpoint, each one
-    -- change over 'mut-odo-vecdims' or over the previous member,
-    -- reasons at the definitions. Appended after the family for the
-    -- family block's own reason -- no existing control moves.
-    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
-    -- Timed once more for Run 26, which read the small class's second
-    -- clause on it: behind 'mut-odo-vecdims' on three regime-3 views and
-    -- collapsing 'small-flat64' (runs/run26.md, item 6). 'Only' again
-    -- since 2026-09-06.
+    -- canonicalizing composite, its memcpy-run form, the two zero-stride
+    -- conditions solo, and the full endpoint, each one change over
+    -- 'mut-odo-vecdims' or over the previous member, reasons at the
+    -- definitions. Appended after the family for the family block's own reason
+    -- -- no existing control moves.
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does); its
+    -- last reading, Run 26's: behind 'mut-odo-vecdims' on three regime-3 views
+    -- and collapsing 'small-flat64' (runs/run26.md, item 6).
   , ("canon-vecdims",              Only fbCanonVecdims)
-    -- Parked 'Only' 2026-09-02: refused at Run 20, behind the arm it
-    -- varies on `window`
-    -- (README.md#the-two-stage-plan-and-the-rework-proposal), and timed
-    -- for three runs since without a question left.
+    -- Parked 'Only' 2026-09-02: refused at Run 20, behind the arm it varies on
+    -- `window` (README.md#the-two-stage-plan-and-the-rework-proposal), with no
+    -- question left.
   , ("canon-memcpy-r2",            Only fbCanonMemcpyR2)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
   , ("bcast-set",                  Only fbBcastSet)
@@ -8031,134 +7611,110 @@ roster =
     -- whose write pattern varied across the main set, went with it
     -- (README.md#sum-only-and-the-correction-now-applied)
   , ("canon-full",                 Only fbCanonFull)
-    -- The library-shaped block, added 2026-08-28: what a user's
-    -- toVectorT costs under stage one, under stage two, and under stage
-    -- two with contiguous runs routed to slices -- each a port of the
-    -- library code -- stage one Data/Array/Internal.hs on the branch
-    -- speedup-strided-tovector, stage two pr-mikolaj-toVectorListT's
-    -- dispatch over stage one's fill -- which copy each matches, and
-    -- when it was read, at the definitions. Appended for the family
-    -- block's own reason -- no existing control moves.
-    -- Master's, added 2026-10-04 by the owner at the head of the block,
-    -- beside stage one, from which it differs in regime 3 alone: what the
-    -- two stages replace.
+    -- The library-shaped block: what a user's toVectorT costs under stage
+    -- one, under stage two, and under stage two with contiguous runs
+    -- routed to slices -- each a port of the library code -- stage one
+    -- Data/Array/Internal.hs on the branch speedup-strided-tovector, stage two
+    -- pr-mikolaj-toVectorListT's dispatch over stage one's fill -- which copy
+    -- each matches, and when it was read, at the definitions. Appended for the
+    -- family block's own reason -- no existing control moves. Master's, at
+    -- the head of the block beside stage one, from which it differs in regime
+    -- 3 alone: what the two stages replace.
     -- RETIRED 2026-10-06 by the owner, checked and not timed.
   , ("lib-stage0",                 Only fbLibStage0)
   , ("lib-stage1",                 Fill fbLibStage1)
-    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does):
-    -- the two halves that bracketed 'dispRun', spent once the arm below
-    -- carried its cut
-    -- Timed once more for Run 26 as the lean arm's control, which read
-    -- 'lib-stage2-lean' at or below this arm everywhere and ahead on the
-    -- small shapes (runs/run26.md, items 5 and 6). 'Only' again since
-    -- 2026-09-06. Outside the laziness ruling of 2026-09-07, 'toVectorT'
-    -- being strict (README.md#dead-ideas), reasons at the definition.
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does): the
+    -- two halves that bracketed 'dispRun', spent once the arm below carried
+    -- its cut; its last reading, Run 26's as the lean arm's control, put
+    -- 'lib-stage2-lean' at or below it everywhere and ahead on the small
+    -- shapes (runs/run26.md, items 5 and 6). Outside the laziness ruling of
+    -- 2026-09-07, 'toVectorT' being strict (README.md#dead-ideas), reasons at
+    -- the definition.
   , ("lib-stage2",                 Only fbLibStage2)
   , ("lib-stage2-concat",          Only fbLibStage2Concat)
-    -- The dispatch arm the runs class's crossover asks for, added
-    -- 2026-08-30: one change over the entry above, and placed beside it
-    -- so the two are read as neighbours.
-    -- Re-cut to 2048 on 2026-09-02 by the one-binary probe, the cut at 256
-    -- having been killed by Run 22 on both compilers and by Run 23 on
-    -- both layouts; timed by Run 24 at the new cut, reasons at 'dispRun'.
-    -- RULED OUT for the library 2026-09-07 and parked 'Only' the same
-    -- day: code complexity at the threshold, a hard-coded L1-sized
-    -- constant tipping it, reasons at the definition.
-    -- Timed again from 2026-10-04 by the owner, as the lean arm with the
-    -- run-length dispatch: its control is 'lib-stage2-lean', below, and
-    -- the slot is the one it held. Re-cut to 32768 the same day and to
-    -- 8192 on 2026-10-05, reasons at 'dispRun'.
+    -- The dispatch arm the runs class's crossover asks for, placed beside the
+    -- entry above so the two are read as neighbours: the lean arm with the
+    -- run-length dispatch, its control 'lib-stage2-lean', below; the cut is at
+    -- 'dispRun'.
     -- RETIRED 2026-10-06 by the owner, checked and not timed, the ruling
     -- of 2026-09-07 overridden: the library's fill copies each run at
     -- stride 1 whole from 'copyRun' on, the dispatch done inside the fill;
     -- reasons at the definition.
   , ("lib-stage2-disp",            Only fbLibStage2Disp)
-    -- Three candidates for the branch, added 2026-08-30 for Run 22: the
-    -- run unrolled by four, a run of 2 to 5 elements written by a body
-    -- of exactly that length, and the same fill under a leaner dispatch,
-    -- each one change over 'lib-stage2'. Placed beside their control as
-    -- the entry above is; reasons at the definitions.
+    -- Three candidates for the branch: the run unrolled by four, a run of 2
+    -- to 5 elements written by a body of exactly that length, and the same
+    -- fill under a leaner dispatch, each one change over 'lib-stage2'. Placed
+    -- beside their control as the entry above is; reasons at the definitions.
     -- Parked 'Only' 2026-09-02: ruled out for the library at its
     -- definition, and Run 23's dead-spot half read it behind its control
     -- on `runs`, the one class it had a lead in.
   , ("lib-stage2-u4",              Only fbLibStage2U4)
     -- Parked 'Only' 2026-09-04: ruled out for the library at
-    -- 'fillStage2Short''s definition, the short bodies too repetitive and
-    -- so too complex, as the quad loop was; its Run 24 readings stand.
-    -- Timed once more for Run 26, which read the two-window item on it:
-    -- ahead of the lean arm on all three k3 window views (runs/run26.md,
-    -- item 7), what the short bodies would have bought and not a
-    -- candidate to ship. 'Only' again since 2026-09-06.
+    -- 'fillStage2Short''s definition, the short bodies too repetitive and so
+    -- too complex, as the quad loop was. Its last reading, Run 26's, ahead of
+    -- the lean arm on all three k3 window views (runs/run26.md, item 7), is
+    -- what the short bodies would have bought and not a candidate to ship.
   , ("lib-stage2-short",           Only fbLibStage2Short)
-    -- pr-mikolaj-toVectorListT's code since 2026-10-03, which may not be
+    -- pr-mikolaj-toVectorListT's code on 2026-10-03, which may not be
     -- the fastest but behaves better when compilation time is the main
     -- issue. Outside the laziness ruling of 2026-09-07, 'toVectorT' being
     -- strict (README.md#dead-ideas), reasons at the definition.
   , ("lib-stage2-lean",            Fill fbLibStage2Lean)
-    -- The fastest variant benchmarked. The lean arm over the fill
-    -- numbered innermost first, added 2026-09-21 beside its control;
-    -- reasons at 'fbLibStage3Lean'.
+    -- The fastest variant benchmarked. The lean arm over the fill numbered
+    -- innermost first, beside its control; reasons at 'fbLibStage3Lean'.
   , ("lib-stage3-lean",            Fill fbLibStage3Lean)
-    -- The arm above over the fill that skips its tables at one outer
-    -- level, added 2026-09-23 beside its control; reasons, and the ruling
-    -- that keeps it out of the shipped fill, at 'fillStage2OneLevel'.
+    -- The arm above over the fill that skips its tables at one outer level,
+    -- beside its control; reasons, and the ruling that keeps it out of the
+    -- shipped fill, at 'fillStage2OneLevel'.
     -- RETIRED 2026-09-25 by the owner, checked and not timed: not worth
     -- it even with the speedup Run 40 read on plain -O1, 7 to 18% on
     -- four classes (README.md#what-is-open, the one-level entry).
   , ("lib-stage3-lean-onelevel",   Only fbLibStage3LeanOneLevel)
-    -- The flavour twin of 2026-09-19: 'lib-stage2-lean' with
-    -- 'fillStage2''s two dimension vectors Storable, beside its original
-    -- as the twin of 2026-08-08 stood beside 'bq-expand'. Parked 'Only'
-    -- the same day, the probe having read the pair level; reasons at
-    -- 'fillStage2VSdims'. Its control is 'lib-stage3-lean' since
-    -- 2026-09-21, both inward then, the control on the 'Axis' path
-    -- since 2026-09-25, and this arm over the control's route since
-    -- 2026-10-03.
+    -- The flavour twin of 2026-09-19: 'lib-stage2-lean' with 'fillStage2''s
+    -- two dimension vectors Storable, beside its original as the twin of
+    -- 2026-08-08 stood beside 'bq-expand'. Parked 'Only' the same day, the
+    -- probe having read the pair level; reasons at 'fillStage2VSdims'. Its
+    -- control is 'lib-stage3-lean', on the 'Axis' path, and this arm reads the
+    -- control's route.
   , ("lib-stage2-lean-vsdims",     Only fbLibStage2LeanVSdims)
-    -- The fill not unrolled under the lean dispatch, added 2026-09-07
-    -- beside its control for Run 27; reasons at 'fillStage3U1'.
+    -- The fill not unrolled under the lean dispatch, beside its control;
+    -- reasons at 'fillStage3U1'.
   , ("lib-stage2-lean-u1",         Fill fbLibStage2LeanU1)
-    -- The ordered list's consumers, added 2026-09-09 for Run 28:
-    -- 'sumT'-shaped over each stage's ordered list, master's and the
-    -- port's under 'sumRuns', stages three and four through their
-    -- routes and a fused loop. They replaced the arms that
-    -- concatenated each stage's list, retired that day and removed
-    -- 2026-09-23: a list concatenated is the API's failure mode,
-    -- 'toVectorT' being the fill for that.
+    -- The ordered list's consumers: 'sumT'-shaped over each stage's ordered
+    -- list, master's and the port's under 'sumRuns', stages three and four
+    -- through their routes and a fused loop. No arm concatenates a stage's
+    -- list: a list concatenated is the API's failure mode, 'toVectorT' being
+    -- the fill for that.
   , ("liblist-stage1-sum",         Fill fbLibListStage1Sum)
     -- Stages two and three parked 'Only' 2026-09-23 by the owner.
   , ("liblist-stage2-sum",         Only fbLibListStage2Sum)
   , ("liblist-stage3-sum",         Only fbLibListStage3Sum)
-    -- Stage four, pr-mikolaj-toVectorListT's code since 2026-10-03, which
-    -- may not be the fastest but behaves better when compilation time is
-    -- the main issue; reasons at the definition.
+    -- Stage four, pr-mikolaj-toVectorListT's code on 2026-10-03, which may
+    -- not be the fastest but behaves better when compilation time is the main
+    -- issue; reasons at the definition.
   , ("liblist-stage4-sum",         Fill fbLibListStage4Sum)
-    -- The fastest variant benchmarked. The inward twin of 2026-09-21, on
-    -- the 'Axis' path since 2026-09-25: stage four's route and fill as
-    -- the path's copies, against the arm above, which reads the branch's
-    -- code since 2026-10-03; reasons at the path's head.
+    -- The fastest variant benchmarked. The inward twin, on the 'Axis' path:
+    -- stage four's route and fill as the path's copies, against the arm above,
+    -- which reads the branch's code; reasons at the path's head.
   , ("liblist-stage5-sum",         Fill fbLibListStage5Sum)
-    -- The flavour twin of 2026-09-19: 'liblist-stage4-sum' with
-    -- 'fillStage2''s two dimension vectors Storable, beside its original
-    -- as the twin of 2026-08-08 stood beside 'bq-expand'. Parked 'Only'
-    -- the same day, the probe having read the pair level; reasons at
-    -- 'fillStage2VSdims'. Its control is 'liblist-stage5-sum' since
-    -- 2026-09-21, both inward then, the control on the 'Axis' path
-    -- since 2026-09-25, and this arm over the control's route since
-    -- 2026-10-03.
+    -- The flavour twin of 2026-09-19: 'liblist-stage4-sum' with 'fillStage2''s
+    -- two dimension vectors Storable, beside its original as the twin of
+    -- 2026-08-08 stood beside 'bq-expand'. Parked 'Only' the same day, the
+    -- probe having read the pair level; reasons at 'fillStage2VSdims'. Its
+    -- control is 'liblist-stage5-sum', on the 'Axis' path, and this arm reads
+    -- the control's route.
   , ("liblist-stage4-vsdims-sum",  Only fbLibListStage4SumVSdims)
     -- The reducing consumer over each stage's list, added the same day:
     -- 'sumT' as the library composes it, one slice at a time and no
     -- concatenation, a lazy stage's consumer against the stage-one one
     -- being what the lazy candidates buy a fold.
   , ("libunord-stage1-sum",        Fill fbLibUnordStage1Sum)
-    -- Parked 'Only' 2026-09-13: the branch port's consumer, timed since
-    -- Run 27 and named by no registration; its one reading, that run's
-    -- class leads, went with the ruling that a reducing consumer has no
-    -- corrected time.
+    -- Parked 'Only' 2026-09-13: the branch port's consumer, named by no
+    -- registration; its one reading, Run 27's class leads, went with the
+    -- ruling that a reducing consumer has no corrected time.
   , ("libunord-stage2-sum",        Only fbLibUnordStage2Sum)
-    -- The ceiling's consumer, added 2026-09-09 for Run 28: the fill
-    -- summed, what stage five's list is read against.
+    -- The ceiling's consumer: the fill summed, what stage five's list is read
+    -- against.
     -- Parked 'Only' 2026-09-13 with stage five's consumer: their pair,
     -- the fused list against the same route's fill, read 0.5681, 0.5675
     -- and 0.5808 on 'runs' and 0.4457, 0.4453 and 0.4520 on 'block' on
@@ -8167,17 +7723,16 @@ roster =
   , ("libunord-stage3-sum",        Only fbLibUnordStage3Sum)
     -- Parked 'Only' 2026-09-11: the natural-strides dispatch against the
     -- sorted one read 1.0051 and 1.0030 on Run 28's main set and level
-    -- on `runs`, and stages six and seven stand on stage five now.
+    -- on `runs`, and stages six and seven stand on stage five.
   , ("libunord-stage4-sum",        Only fbLibUnordStage4Sum)
     -- Parked 'Only' 2026-09-13 with stage three's consumer, above.
   , ("libunord-stage5-sum",        Only fbLibUnordStage5Sum)
     -- and stage six's consumer, added with it.
   , ("libunord-stage6-sum",        Fill fbLibUnordStage6Sum)
-    -- The fold entry point over stage six, added 2026-09-09 for Run 28;
-    -- reasons at the definition.
+    -- The fold entry point over stage six; reasons at the definition.
   , ("libunord-stage6-loop-sum",   Fill fbLibUnordStage6LoopSum)
-    -- The same sum as a library user writes it, base's 'sum' over the
-    -- list, added 2026-09-09; reasons at the definition.
+    -- The same sum as a library user writes it, base's 'sum' over the list;
+    -- reasons at the definition.
     -- Parked 'Only' 2026-09-13: Run 28's item (12) held, 0.7176 and
     -- 0.7314 of 'libunord-stage6-sum' on 'window' and 0.8349 and 0.8415
     -- on 'runs', and nothing has read it since.
@@ -8192,9 +7747,8 @@ roster =
   , ("libunord-stage8-sum",        Only fbLibUnordStage8Sum)
     -- RETIRED 2026-10-04 by the owner with stage seven's, above.
   , ("libunord-stage9-sum",        Only fbLibUnordStage9Sum)
-    -- Stage seven's tie-break under stage nine's move, added 2026-09-11
-    -- for Run 29 at the tail of the consumers, beside the two it
-    -- composes; reasons at 'routeUnord10'.
+    -- Stage seven's tie-break under stage nine's move, at the tail of the
+    -- consumers, beside the two it composes; reasons at 'routeUnord10'.
     -- RETIRED 2026-09-19, checked and not timed: why it trails stage
     -- nine on 'window' and stage seven on the tiny views was answered
     -- 2026-09-15 (README.md#what-is-open, stage ten's entry), and stage
@@ -8202,68 +7756,61 @@ roster =
     -- with stage seven where no stride is zero and with this arm where
     -- one is. Its route stays in every stage above it.
   , ("libunord-stage10-sum",       Only fbLibUnordStage10Sum)
-    -- Base's 'sum' over stage ten's list, added 2026-09-13 for Run 31 at
-    -- the tail of the consumers as stage ten's own was, beside the entry
-    -- it pairs with and so that no existing control's span moves.
-    -- Reasons at the definition.
+    -- Base's 'sum' over stage ten's list, at the tail of the consumers as
+    -- stage ten's own is, beside the entry it pairs with and so that no
+    -- existing control's span moves. Reasons at the definition.
     -- RETIRED 2026-09-19 with its pair, the question it was added for
     -- answered on Run 31 as the definition says and again by Run 32's
     -- item (15), which HELD.
   , ("libunord-stage10-list-sum",  Only fbLibUnordStage10ListSum)
-    -- Base's 'sum' over stage four's list, added 2026-09-14 for Run 32 at
-    -- the tail of the consumers, so that a fold keeping vector's 'sum'
-    -- stands against the shared loop on the lean route as on the
-    -- composed one. Reasons at the definition.
+    -- Base's 'sum' over stage four's list, at the tail of the consumers, so
+    -- that a fold keeping vector's 'sum' stands against the shared loop on the
+    -- lean route as on the composed one. Reasons at the definition.
     -- Parked 'Only' 2026-09-21.
   , ("liblist-stage4-list-sum",    Only fbLibListStage4ListSum)
-    -- Stage ten with its zero-stride move guarded, added 2026-09-15 for
-    -- Run 33 at the tail of the consumers, so that no existing control's
-    -- span moves; reasons at 'routeUnord11'. Its control is
-    -- 'libunord-stage10-sum', one change over it, and 'libunord-stage7-sum'
-    -- is what it should read level with on every view without a zero
-    -- stride.
+    -- Stage ten with its zero-stride move guarded, at the tail of the
+    -- consumers, so that no existing control's span moves; reasons at
+    -- 'routeUnord11'. Its control is 'libunord-stage10-sum', one change over
+    -- it, and 'libunord-stage7-sum' is what it should read level with on every
+    -- view without a zero stride.
     -- RETIRED 2026-09-19, checked and not timed, with its control: Run
     -- 33 held both halves of its prediction, and stages twelve and
     -- thirteen carry its guard.
   , ("libunord-stage11-sum",       Only fbLibUnordStage11Sum)
     -- Stage eleven with the run chosen among tied unit-stride axes by
-    -- its length, added 2026-09-16 for Run 34 at the tail; reasons at
-    -- 'routeUnord12'. Its control was 'libunord-stage11-sum', one change
-    -- over it, until that arm was retired 2026-09-19. What it should
-    -- read level with: 'libunord-stage6-sum' on the three 'window' views
-    -- it moves, 'libunord-stage7-sum' on every other view without a zero
-    -- stride; on the views with one, 'libunord-stage14-sum' is the one
-    -- timed arm on its route.
+    -- its length, at the tail; reasons at 'routeUnord12'. Its control,
+    -- 'libunord-stage11-sum', one change from it, is retired. What it should
+    -- read level with: 'libunord-stage6-sum' on the three 'window' views it
+    -- moves, 'libunord-stage7-sum' on every other view without a zero stride;
+    -- on the views with one, 'libunord-stage14-sum' is the one timed arm on
+    -- its route.
     -- Parked 'Only' 2026-09-23 by the owner.
   , ("libunord-stage12-sum",       Only fbLibUnordStage12Sum)
-    -- Stage twelve's route found with fewer passes over the axes, added
-    -- 2026-09-17 for Run 35 at the tail of the consumers, where a new
-    -- entry moves no existing one. Its control was
-    -- 'libunord-stage12-sum', Run 35 registering it at or under that arm
-    -- on every view, furthest under where a call is short: the 'small'
-    -- views and the three c1 conv views. pr-mikolaj-toVectorListT's
-    -- code since 2026-10-03, which may not be the fastest but behaves
-    -- better when compilation time is the main issue, and with it the
-    -- zero-stride axis just outside the run, so no longer stage twelve's
-    -- route on a view where that axis moves; reasons at 'routeUnord13'.
+    -- Stage twelve's route found with fewer passes over the axes, at the tail
+    -- of the consumers, where a new entry moves no existing one. Its control
+    -- was 'libunord-stage12-sum', Run 35 registering it at or under that
+    -- arm on every view, furthest under where a call is short: the 'small'
+    -- views and the three c1 conv views. pr-mikolaj-toVectorListT's code
+    -- on 2026-10-03, which may not be the fastest but behaves better when
+    -- compilation time is the main issue, and with it the zero-stride axis
+    -- just outside the run, so not stage twelve's route on a view where that
+    -- axis moves; reasons at 'routeUnord13'.
   , ("libunord-stage13-sum",       Fill fbLibUnordStage13Sum)
     -- The flavour twin of 2026-09-19: 'libunord-stage13-sum' with
     -- 'fillStage2''s two dimension vectors Storable, beside its original
     -- as the twin of 2026-08-08 stood beside 'bq-expand'. Parked 'Only'
     -- the same day, the probe having read the pair level; reasons at
-    -- 'fillStage2VSdims'. Its control is 'libunord-stage14-sum' since
-    -- 2026-09-21, both inward then, the control on the 'Axis' path
-    -- since 2026-09-25, and this arm over the control's route since
-    -- 2026-10-03.
+    -- 'fillStage2VSdims'. Its control is 'libunord-stage14-sum', on the 'Axis'
+    -- path, and this arm reads the control's route.
   , ("libunord-stage13-vsdims-sum", Only fbLibUnordStage13SumVSdims)
-    -- The inward twin of 2026-09-21, at the tail of the consumers as stage
-    -- thirteen's was, on the 'Axis' path since 2026-09-25: stage thirteen's
-    -- route and fill as the path's copies, against 'libunord-stage13-sum',
-    -- which reads the branch's code; reasons at the path's head.
+    -- The inward twin, at the tail of the consumers as stage thirteen's is, on
+    -- the 'Axis' path: stage thirteen's route and fill as the path's copies,
+    -- against 'libunord-stage13-sum', which reads the branch's code; reasons
+    -- at the path's head.
   , ("libunord-stage14-sum",       Fill fbLibUnordStage14Sum)
-    -- The fastest variant benchmarked. Stage fourteen with the
-    -- zero-stride axis just outside the run, added 2026-09-26 beside its
-    -- control; reasons at 'routeUnord15'.
+    -- The fastest variant benchmarked. Stage fourteen with the zero-stride
+    -- axis just outside the run, beside its control; reasons at
+    -- 'routeUnord15'.
   , ("libunord-stage15-sum",       Fill fbLibUnordStage15Sum)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
@@ -8292,12 +7839,10 @@ roster =
   , ("bq-mut-lemire-out",          Only fbBQmutLemireOut)
     -- not timed: l < 2^32
   , ("bq-mut-lemire-mulback",      Only fbBQmutLemireMulback)
-    -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
-    -- the Run 21 entry): superseded, answering no registered question;
-    -- its column in a run's own geomean table stays blank from Run 21 on,
-    -- and its two A/A twins, added 2026-08-14 and read from Run 14 to Run
-    -- 20, are gone
-    -- with it -- a twin of an untimed arm prices nothing.
+    -- parked 2026-08-28, permanently, by decision (README.md#what-is-open, the
+    -- Run 21 entry): superseded, answering no registered question; its column
+    -- in a run's own geomean table stays blank from Run 21 on, and its two A/A
+    -- twins are gone with it -- a twin of an untimed arm prices nothing.
   , ("offtab",                     Only fbOffTab)
     -- not timed: 'int32Fits' on the source, i.e. at most 2^31 elements
   , ("offtab32",                   Only fbOffTab32)
@@ -8368,15 +7913,14 @@ roster =
     -- README.md#sum-only-and-the-correction-now-applied.
   , ("bq-expand-nosum",            Force fbBQexpand)
   , ("bq-expand-aa-adjacent",      Twin fbBQexpand)
-    -- The shipped fill's own A/A copy, at the far end of the roster from
-    -- its base, added 2026-09-09. The family lost both its placement
-    -- controls in the prune of 2026-09-04 and Run 27 read the cost of
-    -- that on `flip-last-rows`: six arms of one loop family moved 6% to
-    -- 17% between the compilers on byte-identical code at the same
-    -- cache-line offsets, and the only A/A group near them,
-    -- `mut-odo-vecdims`'s, sits three slots wide at the other end of the
-    -- process. A twin here prices a slot for the arm that shipped rather
-    -- than for the family root, which is what a clause about `-u2` needs.
+    -- The shipped fill's own A/A copy, at the far end of the roster from its
+    -- base. Without placement controls of its own the family is exposed, as
+    -- Run 27 read on `flip-last-rows`: six arms of one loop family moved 6% to
+    -- 17% between the compilers on byte-identical code at the same cache-line
+    -- offsets, and the only A/A group near them, `mut-odo-vecdims`'s, sits
+    -- three slots wide at the other end of the process. A twin here prices a
+    -- slot for the arm that shipped rather than for the family root, which is
+    -- what a clause about `-u2` needs.
   , ("mut-odo-vecdims-add-in-leaf-u2-aa-distant", Twin fbMutOdoVecdimsAddInLeafU2)
     -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
     -- the Run 21 entry): superseded, answering no registered question;
@@ -8390,23 +7934,18 @@ roster =
   , ("cm-gather",                  Only fbCMGather)
     -- not timed: 8.21x the result
   , ("all-expand",                 Only fbAllExpand)
-    -- Not a strategy: the shared forcing term every other bench carries.
-    -- Each of them is @whnf (VS.sum . fb sh) a@, so each timing is fill
-    -- PLUS this sum, and every ratio reported anywhere is @(B+S)/(A+S)@ --
-    -- compressed toward 1 by an amount nothing measured until now, and
-    -- compressed most for the fastest arms, which is where the table is
-    -- closest. With @S@ in hand every margin in the record becomes
-    -- correctable after the fact, which is why it is worth a row in the
-    -- last run at this optimisation level.
+    -- Not a strategy: the shared forcing term every other bench carries. Each
+    -- of them is @whnf (VS.sum . fb sh) a@, so each timing is fill PLUS this
+    -- sum, and every ratio reported anywhere is @(B+S)/(A+S)@ -- compressed
+    -- toward 1, and most for the fastest arms, which is where the table is
+    -- closest. With @S@ in hand every margin in the record is correctable
+    -- after the fact.
     --
     -- The late half of the pair; the early half sits third in the group
     -- and the two together test whether the term is position-independent
     -- (see there). Last in the group deliberately: its 'env' materialises
     -- a second l-element vector, and nothing after it can be perturbed by
     -- that -- nothing follows.
-    -- 'gen-unsafe-aa-distant' sat here from Run 14 to Run 24, the one
-    -- distant twin placed late so that early-distant could be read
-    -- against late-distant; deleted 2026-09-04 with its arm's parking.
   , ("sum-only-late",              Term)
   ]
 
@@ -8615,7 +8154,7 @@ provenance !nGroups = do
 -- pair being fused into a single indexing expression is that the fill arrives
 -- as a closure out of 'roster', as at 'benchView', which protects the sum arms
 -- alike. The 'VS.null' guard costs one test per call and keeps the arm defined
--- on a degenerate shape, which nothing benchmarks today but @check@ carries.
+-- on a degenerate shape, which nothing benchmarks but @check@ carries.
 touchLast :: VS.Vector Double -> Double
 touchLast v = if VS.null v then 0 else VS.unsafeLast v
 {-# NOINLINE touchLast #-}
@@ -8669,17 +8208,17 @@ wildLog nm phase n = do
         ++ " run=" ++ runq
         ++ " cpu=" ++ show busy
 
--- The three load fields the line above ends with, decided 2026-08-22 for Run
--- 18 and read in the same hooks, outside the timed block. THE REASON IS THE
--- WILD CELL: from inside a process its signature -- a non-reproducing mutator
--- step at flat RTS totals -- is exactly an external intrusion's, and Run 16's
--- updater cell was told apart only by a wall-clock window. `cpu` is what
--- separates them, being machine-wide rather than this process's: differenced
--- between consecutive stamps and less the process's own mutator-plus-collector
--- delta, what is left is the CPU something ELSE consumed during that sample,
--- which is the updater class, and none of it is the machine's own. That
--- subtraction is `./read-run.py --wild`'s, and `load` and `run` are printed
--- beside it rather than subtracted.
+-- The three load fields the line above ends with, decided 2026-08-22 and read
+-- in the same hooks, outside the timed block. THE REASON IS THE WILD CELL:
+-- from inside a process its signature -- a non-reproducing mutator step at
+-- flat RTS totals -- is exactly an external intrusion's, and Run 16's updater
+-- cell was told apart only by a wall-clock window. `cpu` is what separates
+-- them, being machine-wide rather than this process's: differenced between
+-- consecutive stamps and less the process's own mutator-plus-collector delta,
+-- what is left is the CPU something ELSE consumed during that sample, which is
+-- the updater class, and none of it is the machine's own. That subtraction is
+-- `./read-run.py --wild`'s, and `load` and `run` are printed beside it rather
+-- than subtracted.
 --
 -- `load` ALONE WOULD NOT DO IT, which is why the other two ride with it: the
 -- 1-minute average is damped over 60 s and updated every 5 s, so it dates a
@@ -8827,17 +8366,16 @@ classTablesKnown =
 
 -- The builders compared directly, not only through the strategies
 -- that consume them. End-to-end agreement hides a table that is
--- wrong past the entries a fill happens to read, or right in its
--- entries and wrong in its length -- which is exactly how
--- 'baseOffsetsScan' came to return a one-element table at @m == 0@
--- while every strategy built on it still produced the right vector.
--- 'baseOffsetsList' is the reference because it is the one nothing
--- else is derived from. This and 'diag' read one list, 'offsetBuilders',
--- so every builder 'diag' measures is here, the Int32 twins beside them: a
--- builder reached only through a consumer has its entries checked
--- where that consumer reads them and its length checked nowhere,
--- which is the gap this check exists to close. Non-vacuity, per
--- conjunct and not merely for the whole:
+-- wrong past the entries a fill happens to read, or right in its entries and
+-- wrong in its length -- which is exactly how 'baseOffsetsScan' fails without
+-- its @m == 0@ guard: a one-element table while every strategy built on it
+-- produces the right vector. 'baseOffsetsList' is the reference because it
+-- is the one nothing else is derived from. This and 'diag' read one list,
+-- 'offsetBuilders', so every builder 'diag' measures is here, the Int32 twins
+-- beside them: a builder reached only through a consumer has its entries
+-- checked where that consumer reads them and its length checked nowhere, which
+-- is the gap this check exists to close. Non-vacuity, per conjunct and not
+-- merely for the whole:
 -- lengthening 'baseOffsetsScanRem', 'baseOffsetsOdo' or
 -- 'baseOffsetsScanPacked' by one entry fails at the first shape
 -- with @agree=True, builds=False@ -- the very split this check is
