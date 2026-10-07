@@ -4446,7 +4446,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     # and reading the executing session's half is the largest avoidable
     # spend here. The default form prints each step through its `why:`
     # line; `--full` adds the reasons under it.
-    cd ~/r/orthotope/micro-regime3        # and re-set R, PREV and REGIME
+    cd ~/r/orthotope/micro-regime3        # and re-set R and PREV
     #      per call
     #      NN is one past the highest-numbered file in runs/, the run
     #      behind you. DO NOT MAKE `runs/$R.md` YET: post-run step 5
@@ -4458,11 +4458,9 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      before post-run step 5 -- the evening's machine check, the tables
     #      read back -- wants the run behind you and would read this run's
     #      empty file instead. The disk is where the run number is written.
-    R=runNN; PREV=runMM; REGIME=-fspec-constr   # an empty regime is a
-    #      plain -O1 build and nothing downstream notices; that hazard is
-    #      step 2's alone, REGIME reaching the build and nothing else.
-    #      PREV is the run behind you, which the steps below read from --
-    #      its note, its basis binary, its fills
+    R=runNN; PREV=runMM                   # PREV is the run behind you,
+    #      which the steps below read from -- its note, its basis binary,
+    #      its fills
     ./run-status.sh $R                    # 0. what is already done, off the
     #      artifacts and the repository rather than off this list, and it
     #      is not always nothing: a preparation can arrive to find 12a and
@@ -4558,9 +4556,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      and the section and the open list's task recording the
     #      decision are amended first, in a commit of their own.
     #      Every build wants -fforce-recomp and a fresh --builddir; the
-    #      recipe spells the regime out rather than interpolating $REGIME.
-    #      $REGIME is for the ad-hoc call, and where one is written
-    #      --ghc-options="$REGIME" stays quoted. Build the halves back to
+    #      recipe spells the regime out. Build the halves back to
     #      back with nothing touched between, which is one call: build,
     #      copy, build, copy. Keep both executables and delete each
     #      --builddir once its binary is copied out; the pair's variable is
@@ -5783,11 +5779,10 @@ that displacement along with whatever it meant to price.
 
 There is no single-binary form of a major run any more, the pairing being
 permanent: `run-major.sh` and `run-gate.sh` both refuse to start without both
-halves, so a lone binary has no driver. What
-`cabal build micro ${REGIME:+--ghc-options=$REGIME}` is still for is a probe ---
-a filtered handful of benches answering one question --- and those are run
-with `cabal run micro ${REGIME:+--ghc-options=$REGIME} --`, never through
-the sequence below.
+halves, so a lone binary has no driver. What `cabal build micro` is still
+for is a probe --- a filtered handful of benches answering one question ---
+built with the flags the last run's pair note gives its basis half and run
+with `cabal run micro`, never through the sequence below.
 
 **The cheap checks run against the binaries that will be timed**, not a third
 built beside them, and the two document checks against `Main.hs` and this file,
@@ -6128,25 +6123,20 @@ heap state and each JSON is single-population by construction. It leaves
 `$R-<half>-main.json` and `$R-<half>-<class>.json` for every class on both
 halves, each with a `.log` beside it, and `$R-wallclock.log` over them all;
 the gate's `$R-gate-*` and the riders' `$R-al-*` are not among them
-and the relaunch guard excludes both. **The regime is a variable
-of the procedure, not a flag to remember**: `REGIME` is set beside the run's
-name and goes to each half's build, so that leaving it empty is a deliberate act
-rather than an omission --- an empty `$REGIME` is a plain -O1 build that every
-gate here passes, since no check mode takes a regime, where an empty `$R`
-is loud, the drivers refusing without a name. It is the bare GHC flag and
-not a `--ghc-options=` spelling of it, because a recipe composes it
-with a `-pgma` of its own; its value begins with a dash, so it goes inside
-the quotes --- `--ghc-options="$REGIME"` --- and never as a bare word after
-a space, which the option's parser reads as the next flag. Each tool call gets
-a fresh shell, so both are re-set at the head of every command. A run made
-in the wrong regime is not detectably wrong --- the roster, the shapes,
-the gates and the reader all pass, the JSON records no compiler flag,
-and the only symptom is the regime's own effect failing to appear, which reads
-as a refutation of the design rather than as a missing flag; the `diag` reading
-at step 9 is the whole guard, which is why that step is not optional. A session
-starts in `~/r/horde-ad`, which leaves *that* repository's `CLAUDE.md` resident;
-this directory's own `CLAUDE.md` says how far it binds here, and where the two
-differ this file and `read-run.py`'s docstring govern.
+and the relaunch guard excludes both. **The regime is the note's recipe, spelled
+out in each half's build and never held in a shell variable**, so what the note
+says is what was built; a flag in `--ghc-options` begins with a dash, so it goes
+inside the quotes --- `--ghc-options="-fspec-constr"` --- and never as a bare
+word after a space, which the option's parser reads as the next flag. Each tool
+call gets a fresh shell, so `$R` and `$PREV` are re-set at the head of every
+command. A run made in the wrong regime is not detectably wrong --- the roster,
+the shapes, the gates and the reader all pass, the JSON records no compiler
+flag, and the only symptom is the regime's own effect failing to appear, which
+reads as a refutation of the design rather than as a missing flag; the `diag`
+reading at step 9 is the whole guard, which is why that step is not optional.
+A session starts in `~/r/horde-ad`, which leaves *that* repository's `CLAUDE.md`
+resident; this directory's own `CLAUDE.md` says how far it binds here, and where
+the two differ this file and `read-run.py`'s docstring govern.
 
 **`run-major.sh` is that sequence as a driver**, `$R` its argument rather
 than a variable it inherits, and the evening's third stage. It refuses without
