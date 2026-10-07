@@ -8604,29 +8604,16 @@ provenance !nGroups = do
     ++ "s; peak " ++ mib (max_mem_in_use_bytes s) ++ " MiB in use, "
     ++ mib (max_live_bytes s) ++ " MiB max residency"
 
--- Benchmark one view ('benchView'; 'mkBench' builds the main set's view
--- with 'mkStrided'): every 'roster' arm its first argument times, in that
--- list's order, which is where each arm's slot and the reason for it are
--- recorded. Criterion's 'env' builds the input once and forces it to normal
--- form before the clock starts, so input construction is excluded from timing
--- and the source vector is fully materialised. The agreement/regime check is
--- deliberately NOT here -- it lives in the separate 'check' mode, so the timed
--- program never even computes it and thus cannot share (CSE) a strategy's
--- result between the check and the benchmark.
---
--- Each fill reaches the timed loop as a closure out of 'roster' rather than
--- as a literal composition, which is what deriving both consumers from one
--- list costs, and it costs it in every arm alike.
 -- What a 'Force' arm forces with: the fill runs in full -- every strategy
 -- here writes its whole buffer before returning a vector at all -- and then
 -- ONE element is read, in place of the O(l) sum every other arm carries.
 --
 -- Reading an element rather than taking 'VS.length' is deliberate: a length
 -- does not depend on the buffer's contents, so it is the one thing an
--- optimiser could serve without the fill having happened, and the point
--- of this arm is that the fill DID happen and the sum did not. What stops
--- the pair being fused into a single indexing expression is that the fill
--- arrives as a closure out of 'roster', as above, which protects the sum arms
+-- optimiser could serve without the fill having happened, and the point of
+-- this arm is that the fill DID happen and the sum did not. What stops the
+-- pair being fused into a single indexing expression is that the fill arrives
+-- as a closure out of 'roster', as at 'benchView', which protects the sum arms
 -- alike. The 'VS.null' guard costs one test per call and keeps the arm defined
 -- on a degenerate shape, which nothing benchmarks today but @check@ carries.
 touchLast :: VS.Vector Double -> Double
@@ -8736,6 +8723,19 @@ whnfLogged nm f x =
   Benchmarkable (wildLog nm "pre") (\n () -> wildLog nm "post" n)
                 (\() n -> whnf' f x n) False
 
+-- Benchmark one view ('benchView'; 'mkBench' builds the main set's view
+-- with 'mkStrided'): every 'roster' arm its first argument times, in that
+-- list's order, which is where each arm's slot and the reason for it are
+-- recorded. Criterion's 'env' builds the input once and forces it to normal
+-- form before the clock starts, so input construction is excluded from timing
+-- and the source vector is fully materialised. The agreement/regime check is
+-- deliberately NOT here -- it lives in the separate 'check' mode, so the timed
+-- program never even computes it and thus cannot share (CSE) a strategy's
+-- result between the check and the benchmark.
+--
+-- Each fill reaches the timed loop as a closure out of 'roster' rather than
+-- as a literal composition, which is what deriving both consumers from one
+-- list costs, and it costs it in every arm alike.
 benchView :: (String -> Bool) -> String -> (ShapeL, T) -> Benchmark
 benchView times name view =
   env (evaluate (force view)) $ \ ~(sh, a) ->
