@@ -183,6 +183,8 @@ instance Vector V.Vector where
   -- Forced: no element of an Unboxed vector is undefined.
   {-# INLINE vWithElem #-}
   vWithElem v i k = let !x = v V.! i in k x
+  {-# INLINE vGenerate' #-}
+  vGenerate' = V.generate
   {-# INLINE vFillStrided #-}
   vFillStrided = genericFillStrided 64
   {-# INLINE vConcatN #-}

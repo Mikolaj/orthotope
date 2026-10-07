@@ -132,6 +132,11 @@ class Vector v where
   vWithElem :: (VecElem v a) => v a -> Int -> (a -> r) -> r
   vWithElem v i k = k (vIndex v i)
 
+  -- | A vector of n elements, the ith g i, each evaluated to weak head
+  -- normal form as it is stored.  The default lists them.
+  vGenerate' :: (VecElem v a) => Int -> (Int -> a) -> v a
+  vGenerate' n g = vFromListN n [ x | i <- [0 .. n - 1], let !x = g i ]
+
 class None a
 instance None a
 
@@ -1810,7 +1815,7 @@ iterateNT n f x = fromListT [n] $ take n $ iterate f x
 
 {-# INLINE iotaT #-}
 iotaT :: (Vector v, VecElem v a, Num a) => Int -> T v a
-iotaT n = fromVectorT [n] $ vFromListN n [ x | i <- [0 .. n - 1], let !x = fromIntegral i ]  -- evaluated, as a boxed vGenerate would not
+iotaT n = fromVectorT [n] $ vGenerate' n fromIntegral  -- evaluated, as a boxed vGenerate would not
 
 -------
 

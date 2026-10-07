@@ -166,6 +166,9 @@ instance Vector V.Vector where
   -- elements ('elemsT').
   {-# INLINE vWithElem #-}
   vWithElem v i k = case V.indexM v i of Box x -> k x
+  -- Each element forced as it is written.
+  {-# INLINE vGenerate' #-}
+  vGenerate' n g = zipLoop n (\ i -> return $! g i)
   {-# INLINE vFillStrided #-}
   vFillStrided = genericFillStrided 5
   -- vConcatPadN takes genericConcatPadN, which on GHC HEAD took 0.33 and 0.35
