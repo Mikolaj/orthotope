@@ -115,6 +115,14 @@ class Vector v where
   vConcatN n [v] | vLength v == n = v
   vConcatN _ vs = vConcat vs
 
+  -- | Concatenate pieces whose lengths sum to the count given first, each a
+  -- part or, as 'Left', a number of copies of the value given second.  The
+  -- default makes each such run with 'vReplicate' and concatenates with
+  -- 'vConcatN'; the vector instances override it with 'genericConcatPadN',
+  -- which writes the copies into the result where they go.
+  vConcatPadN :: (VecElem v a) => Int -> a -> [Either Int (v a)] -> v a
+  vConcatPadN n x = vConcatN n . map (either (`vReplicate` x) id)
+
 class None a
 instance None a
 
@@ -650,19 +658,20 @@ genericFillStrided !copyRun (Axes tInner sInner outerAxes) !ao l !v =
 -- Every caller of vConcatN can hand it a lone part of the length given, as
 -- concatOuter of one array and rotate along the outermost dimension do, and
 -- that is returned as it is; like a view's, it can be a slice of a longer
--- vector and keep that alive.  On GHC HEAD with loop heads aligned, on 200000
--- Doubles at Storable and Unboxed elements, at allocation areas of 32 MB and
--- then of 4 MB, pad and rerank both took 0.38 to 0.68 and 0.40 to 0.49 of
--- their time on rows of 2 to 8 elements, rerank allocating 99 to 356 bytes an
--- element where it had allocated 110 to 400; on rows of 500 pad and rerank, and
--- pad on a transposed view, took 0.79 to 1.00 and 0.81 to 0.94; concatOuter
--- took 0.87 to 1.10 and 0.90 to 0.93 on four transposed views, running as many
--- instructions; and rotate along the outermost dimension took 0.54 to 0.73 at
--- 32 MB, while at 4 MB it ran 0.92 to 0.93 of the cycles alone in its process
--- but took 2.5 times as long or more in a process holding a large live heap.
--- Neither concatenation fuses with a consumer that streams the result: none of
--- vector's fusion rules fired in clients streaming what pad, concatOuter or
--- rerank return, compiled by GHC HEAD at -O1 or -O2.
+-- vector and keep that alive.  Measured while pad still called vConcatN, on
+-- GHC HEAD with loop heads aligned, on 200000 Doubles at Storable and Unboxed
+-- elements, at allocation areas of 32 MB and then of 4 MB, pad and rerank
+-- both took 0.38 to 0.68 and 0.40 to 0.49 of their time on rows of 2 to 8
+-- elements, rerank allocating 99 to 356 bytes an element where it had allocated
+-- 110 to 400; on rows of 500 pad and rerank, and pad on a transposed view, took
+-- 0.79 to 1.00 and 0.81 to 0.94; concatOuter took 0.87 to 1.10 and 0.90 to 0.93
+-- on four transposed views, running as many instructions; and rotate along
+-- the outermost dimension took 0.54 to 0.73 at 32 MB, while at 4 MB it ran
+-- 0.92 to 0.93 of the cycles alone in its process but took 2.5 times as long
+-- or more in a process holding a large live heap.  Neither concatenation fuses
+-- with a consumer that streams the result: none of vector's fusion rules fired
+-- in clients streaming what concatOuter or rerank return, compiled by GHC HEAD
+-- at -O1 or -O2.
 {-# INLINE genericConcatN #-}
 genericConcatN :: (VG.Vector w a) => Int -> [w a] -> w a
 genericConcatN n [v] | VG.length v == n = v
@@ -673,6 +682,24 @@ genericConcatN n vs = VG.create $ do
         assert (i + m <= n) $ VG.unsafeCopy (VGM.unsafeSlice i m out) x
         k (i + m)
   foldr step (\ !i -> assert (i == n) $ return ()) vs 0
+  return out
+
+-- The concatenation for 'vConcatPadN': 'genericConcatN', each 'Left' piece
+-- writing its copies of the value into the buffer, where a vector 'vReplicate'
+-- made would have been allocated and copied.
+{-# INLINE genericConcatPadN #-}
+genericConcatPadN :: (VG.Vector w a) => Int -> a -> [Either Int (w a)] -> w a
+genericConcatPadN n _ [Right v] | VG.length v == n = v
+genericConcatPadN n x ps = VG.create $ do
+  out <- VGM.unsafeNew n
+  let step (Left m) k = \ !i -> do
+        assert (i + m <= n) $ VGM.set (VGM.unsafeSlice i m out) x
+        k (i + m)
+      step (Right y) k = \ !i -> do
+        let !m = VG.length y
+        assert (i + m <= n) $ VG.unsafeCopy (VGM.unsafeSlice i m out) y
+        k (i + m)
+  foldr step (\ !i -> assert (i == n) $ return ()) ps 0
   return out
 
 -- The outer levels of a view as 'genericFillStrided' walks them: the
@@ -1633,28 +1660,24 @@ zipWithLong2 :: (a -> b -> b) -> [a] -> [b] -> [b]
 zipWithLong2 f (a:as) (b:bs) = f a b : zipWithLong2 f as bs
 zipWithLong2 _     _     bs  = bs
 
--- TODO: 'vReplicate' gets the padding value unforced, so an unboxed
--- vector's replicate may unbox it again for every element it writes, as
--- Data.Vector.Unboxed's does.  A bang would also force a boxed padding value
--- that may never be read; see the TODO at 'zipWithT'.
 {-# INLINABLE padT #-}
 padT :: forall v a . (Vector v, VecElem v a) => a -> [(Int, Int)] -> ShapeL -> T v a -> ([Int], T v a)
 padT v aps ash at =
-  (ss, fromVectorT ss $ vConcatN (product ss) $ pad' aps ash st at)
-  where pad' :: [(Int, Int)] -> ShapeL -> [Int] -> T v a -> [v a]
+  (ss, fromVectorT ss $ vConcatPadN (product ss) v $ pad' aps ash st at)
+  where pad' :: [(Int, Int)] -> ShapeL -> [Int] -> T v a -> [Either Int (v a)]
         -- The last padded dimension's block is taken whole as toVectorListT's
         -- list and not recursed into: recursing made each core a subarray of
         -- that dimension, a scalar where the innermost dimension is padded,
         -- and so a slice and an indexT per element; on views of about 200000
         -- Doubles with the innermost dimension padded, the block taken whole
         -- took 0.01 to 0.32 of the time.  As a list and not one vector by
-        -- toVectorT: here vConcatN copies every part once, so a block lying in
-        -- runs of the source is copied once from the list's slices and would
-        -- be copied twice from a vector toVectorT filled; a strided block,
-        -- which no slice can take, is filled and copied either way.  The
-        -- vector was tried on 2026-10-06 and refuted: about twice the list's
-        -- time on a block of runs of 500, and faster only on boxed runs of
-        -- 8, in about half the list's time, which a choice per block by run
+        -- toVectorT: here vConcatPadN copies every part once, so a block
+        -- lying in runs of the source is copied once from the list's slices
+        -- and would be copied twice from a vector toVectorT filled; a strided
+        -- block, which no slice can take, is filled and copied either way.
+        -- The vector was tried on 2026-10-06 and refuted: about twice the
+        -- list's time on a block of runs of 500, and faster only on boxed runs
+        -- of 8, in about half the list's time, which a choice per block by run
         -- length would buy for a dispatch here.  The parts produced under one
         -- 'build', each level handing the rest on so that genericConcatN's
         -- 'foldr' fuses with them, were tried on 2026-10-06 and refuted: on
@@ -1662,11 +1685,11 @@ padT v aps ash at =
         -- of 32 MB and then of 4 MB, 0.99 to 1.34 and 1.03 to 1.30 times
         -- the list's time, allocating at most 3.3% less, and at boxed ones
         -- 0.88 to 0.96 and 0.94 to 1.08 times it.
-        pad' [] sh _ t = toVectorListT sh t
+        pad' [] sh _ t = map Right (toVectorListT sh t)
         pad' [(l,h)] (s:sh) (!n:_) t =
-          [vReplicate (n*l) v] ++ toVectorListT (s:sh) t ++ [vReplicate (n*h) v]
+          Left (n*l) : map Right (toVectorListT (s:sh) t) ++ [Left (n*h)]
         pad' ((l,h):ps) (s:sh) (!n:ns) t =
-          [vReplicate (n*l) v] ++ concatMap (pad' ps sh ns . indexT t) [0..s-1] ++ [vReplicate (n*h) v]
+          Left (n*l) : concatMap (pad' ps sh ns . indexT t) [0..s-1] ++ [Left (n*h)]
         pad' _ _ _ _ = error $ "pad: rank mismatch " ++ show (length aps, length ash)
         _ : st = getStridesT ss
         ss = zipWithLong2 (\ (l,h) s -> l+s+h) aps ash

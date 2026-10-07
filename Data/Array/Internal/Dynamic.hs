@@ -64,7 +64,7 @@ import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.DynamicG as G
-import Data.Array.Internal(ShapeL, Vector(..), None, genericFillStrided, rnfViewT)
+import Data.Array.Internal(ShapeL, Vector(..), None, genericConcatPadN, genericFillStrided, rnfViewT)
 import qualified Data.Array.Internal.DynamicG as DG
 
 instance Vector V.Vector where
@@ -123,6 +123,11 @@ instance Vector V.Vector where
   vAny = V.any
   {-# INLINE vFillStrided #-}
   vFillStrided = genericFillStrided 5
+  -- vConcatPadN takes genericConcatPadN, which on GHC HEAD took 0.33 and 0.35
+  -- of the default's time in pad on rows of two boxed Doubles at allocation
+  -- areas of 32 MB and then of 4 MB, and 0.91 and 0.92 on rows of 500.
+  {-# INLINE vConcatPadN #-}
+  vConcatPadN = genericConcatPadN
   -- vConcatN keeps the default, the vector package's concat but for a
   -- lone part: on GHC HEAD, copying each part as the list yields it, as
   -- genericConcatN does, took 0.95 to 1.28 times as long on boxed parts of
