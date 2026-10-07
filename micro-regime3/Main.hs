@@ -8622,13 +8622,13 @@ provenance !nGroups = do
 -- ONE element is read, in place of the O(l) sum every other arm carries.
 --
 -- Reading an element rather than taking 'VS.length' is deliberate: a length
--- does not depend on the buffer's contents, so it is the one thing an optimiser
--- could serve without the fill having happened, and the point of this arm is
--- that the fill DID happen and the sum did not. What stops the pair being fused
--- into a single indexing expression is that the fill arrives as a closure out
--- of 'roster', as above, which protects the sum arms alike. The 'VS.null'
--- guard costs one test per call and keeps the arm defined on a degenerate
--- shape, which nothing benchmarks today but @check@ carries.
+-- does not depend on the buffer's contents, so it is the one thing an
+-- optimiser could serve without the fill having happened, and the point
+-- of this arm is that the fill DID happen and the sum did not. What stops
+-- the pair being fused into a single indexing expression is that the fill
+-- arrives as a closure out of 'roster', as above, which protects the sum arms
+-- alike. The 'VS.null' guard costs one test per call and keeps the arm defined
+-- on a degenerate shape, which nothing benchmarks today but @check@ carries.
 touchLast :: VS.Vector Double -> Double
 touchLast v = if VS.null v then 0 else VS.unsafeLast v
 {-# NOINLINE touchLast #-}
