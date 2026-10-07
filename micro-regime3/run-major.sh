@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # A major run, paired: both halves take the main set and both take every
-# class (README, the run's plan). 18 processes, unattended, several hours.
+# class (README, the run's plan). One process per population per half,
+# unattended, several hours.
 #
 #     ./run-major.sh run10          # the argument names every artifact
 #

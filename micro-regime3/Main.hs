@@ -6931,8 +6931,8 @@ stretchShapes =
   , ("stretch-tall-Mx2",    [900000, 2])              -- 1800000, 2 base offsets
   , ("stretch-coprime-r7",  [2, 3, 5, 7, 11, 13, 2])  -- 60060, rank 7, coprime
   , ("stretch-rank12",      [2,2,2,2,2,2,2,2,2,2,2,2])  -- 4096, deepest rank
-    -- Sized to the 1800000 cap, which is what keeps it out of the @big@
-    -- class. It keeps what it is for -- a base-offsets table as large
+    -- Sized to the 1800000 cap, which is what keeps it in the main
+    -- set. It keeps what it is for -- a base-offsets table as large
     -- as that cap allows (@m == l \/ 2@, tied with 'stretch-wide-2xM'),
     -- over a rank-3 outer odometer, which is what separates it from that
     -- shape's rank-2 grid of the same size.
@@ -7670,9 +7670,9 @@ sizeCap = 1800000
 
 -- The cap's rule as a check rather than a comment, and the only thing
 -- standing between a mistyped dimension and a shape that quietly takes a
--- whole run's budget, for every class but @big@. Asserted in 'main', so it
--- holds in every mode and not only in the one that happens to read the list
--- it guards.
+-- whole run's budget, in the main set and every class but @big@. Asserted
+-- in 'main', so it holds in every mode and not only in the one that happens
+-- to read the list it guards.
 -- Non-vacuity: lower 'sizeCap', or move one 'bigShapes' entry into
 -- 'convShapes', and every mode dies at startup -- run with the cap at
 -- 1000000, where @check@, @diag@ and a benchmark Run each exited 1 on
