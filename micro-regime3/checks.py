@@ -80,10 +80,6 @@ UNCOVERED = {
                     'note-figures-reads-a-row-only-as-present, and not '
                     "the header, since it reads the two binaries and the "
                     'mutants copy holds tracked files alone',
-    'copy-test.sh': 'post-run step 4a\'s copy test, which spends the quiet '
-                    'box on real binaries under perf; its cells are '
-                    '--copy-cells\'s and its log --copy-test\'s, each with '
-                    'a case',
     'half-bin.sh': 'the launch path of a half, read by every driver that '
                    'spends the machine, whose cases exercise its no-mount '
                    'branch on stub halves; the mount branch is a box\'s '
@@ -91,11 +87,9 @@ UNCOVERED = {
                    'tmpfs under it',
     'smoke-l1.sh': 'the reader\'s smoke sweep, driven by the run chapter; '
                    'no case yet',
-    'check-scripts.py': 'retired into defects.py and the shared tools on '
-                        '2026-09-02; the records naming it are memory',
 }
-# The probes: inputs to README rather than drivers, each run by hand for
-# the question it is named for.
+# The probes, run by hand or by another probe for the questions they were
+# written for.
 for _name in ('probe-r33-instance.sh',
               'probe-hugebin.sh', 'probe-ibs.sh',
               'probe-attr-build.sh',
@@ -106,7 +100,7 @@ for _name in ('probe-r33-instance.sh',
               'probe-disp-build.sh',
               'probe-disp-ghead-build.sh',
               'probe-fetches.sh', 'probe-fetches-read.py',
-              'probe-interleave.sh', 'probe-evening-a.sh',
+              'probe-evening-a.sh',
               'probe-evening-b.sh', 'probe-evening-chain.sh',
               'probe-evening-c.sh', 'probe-fillpair-build.sh',
               'probe-fillpair-read.sh', 'probe-fillpair-run.sh',
@@ -116,10 +110,9 @@ for _name in ('probe-r33-instance.sh',
               'probe-oneblock.py', 'probe-order-reversal.sh',
               'probe-r23-g3-twins.sh', 'probe-r32-g3-twins.sh',
               'probe-r34-instance.sh', 'probe-r34-instance2.sh',
-              'probe-r38-sweep.py', 'probe-r39-instance.sh',
-              'probe-r39-rules.py',
+              'probe-r39-instance.sh',
               'probe-read.sh', 'probe-second-term.py',
-              'probe-smoke-runs.sh', 'probe-stalls-read.py', 'probe-stalls.sh',
+              'probe-smoke-runs.sh',
               'probe-times.sh',
               'probe-within-evening.sh'):
-    UNCOVERED[_name] = 'a probe: an input to README, run by hand'
+    UNCOVERED[_name] = 'a probe, run by hand or by another probe'
