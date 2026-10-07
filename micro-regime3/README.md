@@ -316,9 +316,9 @@ not this fallback's).
 
 ## Contents
 
-History is not here. `MARGINALIA` beside this file is a write-only journal
-and not something to read: it exists because the models working here keep
-putting history inside instructions, and it is where that goes instead
+History is not here. `../MARGINALIA`, at the repository root, is a write-only
+journal and not something to read: it exists because the models working here
+keep putting history inside instructions, and it is where that goes instead
 of into this README. It is not a `CHANGELOG`, which would face users. What
 this README keeps is the rule and, where an editor might plausibly undo it, one
 clause saying what undoing it cost.
@@ -2277,7 +2277,8 @@ section][floor], and the roster fix it carried puts `sum-only-early` above
 **What this heading holds is rulings taken in past runs' write-ups, and no task:
 what the next run should do is the open list's `OPEN` entries above.** **Every
 run's `What Run N made cheaper` block is in `MARGINALIA`, appended there
-at post-run step 5d, and this heading keeps none**: what a block asks
+at post-run step 5d --- Runs 33 to 44's in the archived `MARGINALIA.old.1`
+beside this file --- and this heading keeps none**: what a block asks
 of the procedure is made in the chapter or a tool in the same write-up, which
 is where the next run meets it.
 
