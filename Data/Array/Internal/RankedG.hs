@@ -328,13 +328,9 @@ concatOuter as | any null shs = error "concatOuter: rank 0 array"
 {-# INLINE ravel #-}
 ravel :: (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' (Array n v a), KnownNat (1+n)) =>
          Array 1 v' (Array n v a) -> Array (1+n) v a
-ravel aa =
-  case toList aa of
-    [] -> error "ravel: empty array"
-    as | not $ allSame shs -> error $ "ravel: non-conforming inner dimensions: " ++ show shs
-       | otherwise -> fromVector sh' $ vConcatN (product sh') $ map toVector as
-      where shs@(sh:_) = map shapeL as
-            sh' = length as : sh
+ravel aa = case shapeL aa of
+  [k] | k > 0 -> ravelOuterOf "ravel" [k] (shapeL (unScalar (index aa 0))) (toList aa)
+  _ -> error "ravel: empty array"
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
@@ -487,10 +483,16 @@ rerank f (A sh t)
 {-# INLINE ravelOuter #-}
 ravelOuter :: (HasCallStack, Vector v, VecElem v a, KnownNat m) => String -> ShapeL -> [Array n v a] -> Array m v a
 ravelOuter name _ [] = error $ name ++ ": empty list"
-ravelOuter name osh as@(a : _) =
-  fromVector sh' $ vConcatN (product sh') $ map part as
-  where sh = shapeL a
-        sh' = osh ++ sh
+ravelOuter name osh as@(a : _) = ravelOuterOf name osh (shapeL a) as
+
+-- 'ravelOuter' given the shape every array must have, which 'ravel' reads off
+-- its first array without taking the list's head, so that the list fuses with
+-- the copy.
+{-# INLINE ravelOuterOf #-}
+ravelOuterOf :: (HasCallStack, Vector v, VecElem v a, KnownNat m) =>
+                String -> ShapeL -> ShapeL -> [Array n v a] -> Array m v a
+ravelOuterOf name osh sh as = fromVector sh' $ vConcatN (product sh') $ map part as
+  where sh' = osh ++ sh
         part x | shapeL x == sh = toVector x
                | otherwise = error $ name ++ ": non-conforming inner dimensions: " ++ show [sh, shapeL x]
 
