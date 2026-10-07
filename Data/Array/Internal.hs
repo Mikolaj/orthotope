@@ -1475,13 +1475,17 @@ zipWith5T sh f t t' t'' t''' t'''' = fromVectorT sh $ vZipWith5 f v v' v'' v''' 
 transposeT :: [Int] -> T v a -> T v a
 transposeT is (T ss o v) = T (permute is ss) o v
 
--- Return all subarrays n dimensions down.
--- The shape argument should be a prefix of the array shape.
+-- Return all subarrays n dimensions down.  The shape argument should be a
+-- prefix of the array shape.  In row-major order, under one 'build' walked by
+-- 'offsetsT', so that a consumer folding the list fuses with the walk; an empty
+-- outer dimension leaves none.
 {-# INLINE subArraysT #-}
 subArraysT :: ShapeL -> T v a -> [T v a]
-subArraysT sh ten = sub sh ten []
-  where sub [] t = (t :)
-        sub (n:ns) !t = foldr (.) id [sub ns (indexT t i) | !i <- [0..n-1]]
+subArraysT sh (T ts o v) = build $ \ cons nil ->
+  if product sh == 0 then nil else case reverse (zipWith Axis ots sh) of
+    [] -> cons (T its o v) nil
+    axis : above -> offsetsT axis above o (\ p rest -> cons (T its p v) rest) nil
+  where (ots, its) = splitAt (length sh) ts
 
 -- Reverse the given dimensions.
 {-# INLINE reverseT #-}
