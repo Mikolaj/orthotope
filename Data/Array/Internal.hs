@@ -1813,13 +1813,18 @@ updateT sh t us = T ss 0 $ vUpdate (toVectorT sh t) $ map ix us
   where _ : ss = getStridesT sh
         ix (is, a) = (sum $ zipWith (*) is ss, a)
 
+-- Each index list is built under 'build', each component computed as the list
+-- is consumed, so that a function that consumes it where it is inlined, as sum
+-- does, fuses with it.
 {-# INLINE generateT #-}
 generateT :: (Vector v, VecElem v a) => ShapeL -> ([Int] -> a) -> T v a
 generateT sh f = T ss 0 $ vGenerate s g
   where s : ss = getStridesT sh
-        g i = f (toIx ss i)
-        toIx [] _ = []
-        toIx (n:ns) !i = q : toIx ns r where (q, r) = quotRem i n
+        g i = f (build $ \cons nil ->
+                   let go [] _ = nil
+                       go (n : ns) !j = case quotRem j n of
+                         (q, r) -> q `cons` go ns r
+                   in  go ss i)
 
 {-# INLINE iterateNT #-}
 iterateNT :: (Vector v, VecElem v a) => Int -> (a -> a) -> a -> T v a
