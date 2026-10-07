@@ -255,6 +255,9 @@ test = testGroup "Dynamic" $
       zipWith3A_3 = assertEqual "3" [5, 6, 7, 8] (toList (zipWith3A (\ _ _ z -> z) u u (transpose [1, 0] (fromList [2, 2] [5, 7, 6, 8 :: Int]))))
         where u = transpose [1, 0] (fromList [2, 2] [undefined, undefined, undefined, undefined]) :: Array Int
       zipWith3A_4 = assertEqual "4" 7 (unScalar (index (index (zipWith3A (\ x y _ -> if x == 0 then error "forced" else x + y) (transpose [1, 0] (fromList [2, 2] [0, 1, 0, 1])) (transpose [1, 0] (fromList [2, 2] [5, 6, 7, 8 :: Int])) (transpose [1, 0] (fromList [2, 2] [0, 0, 0, 0 :: Int]))) 1) 0))
+      -- The broadcast branches hand on the one element unforced at boxed.
+      zipWithA_8 = assertEqual "8" [5, 7] (toList (zipWithA (\ _ y -> y) (constant [2] undefined :: Array Int) (fromList [2] [5, 7 :: Int])))
+      zipWithA_9 = assertEqual "9" [5, 7] (toList (zipWithA (\ x _ -> x) (fromList [2] [5, 7 :: Int]) (constant [2] undefined :: Array Int)))
       pad_1 = assertEqual "1" (fromList [5,10] [9,9,9,9,9,9,9,9,9,9,
                                                 9,9,9,1,2,3,9,9,9,9,
                                                 9,9,9,4,5,6,9,9,9,9,
@@ -606,6 +609,8 @@ test = testGroup "Dynamic" $
         , testCase "zipWithA_7" zipWithA_7
         , testCase "zipWith3A_3" zipWith3A_3
         , testCase "zipWith3A_4" zipWith3A_4
+        , testCase "zipWithA_8" zipWithA_8
+        , testCase "zipWithA_9" zipWithA_9
         , testCase "pad_1" pad_1
         , testCase "pad_2" pad_2
         , testCase "pad_3" pad_3

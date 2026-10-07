@@ -1474,6 +1474,9 @@ convertT sh g t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip
   where (bs, rsh, r) = dropBroadcastT sh t
 
 -- Zip two arrays with a function.
+-- The two branches that map over one array read the other array's one
+-- element through 'vWithElem', forced where it is unboxed and unforced where
+-- it is boxed, before the map takes it.
 -- TODO: two views of the same strides that each read every element of one
 -- part could zip those parts and keep the strides, as 'convertT' maps a view.
 -- Measured on 60000 Doubles, that pays only where they broadcast, from 550
@@ -1492,10 +1495,10 @@ zipWithT sh f t@(T ss _ v) t'@(T _ _ v') =
       T ss 0 $ vSingleton $ f (vIndex v 0) (vIndex v' 0)
     (1, _) ->
       -- First vector has length 1, so use a map instead.
-      mapT sh (vIndex v 0 `f` ) t'
+      vWithElem v 0 $ \ x -> mapT sh (x `f`) t'
     (_, 1) ->
       -- Second vector has length 1, so use a map instead.
-      mapT sh (`f` vIndex v' 0) t
+      vWithElem v' 0 $ \ y -> mapT sh (`f` y) t
     (_, _) ->
       let cv  = toVectorT sh t
           cv' = toVectorT sh t'
