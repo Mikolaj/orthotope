@@ -123,6 +123,15 @@ class Vector v where
   vConcatPadN :: (VecElem v a) => Int -> a -> [Either Int (v a)] -> v a
   vConcatPadN n x = vConcatN n . map (either (`vReplicate` x) id)
 
+  -- | Hand the element at an index to a continuation, read as the instance
+  -- chooses.  The list of a view's elements that 'elemsT' builds holds what it
+  -- is handed.  The default hands on 'vIndex' unevaluated, a thunk holding the
+  -- vector; the boxed vector instance hands on the element stored, unforced,
+  -- and the Storable and Unboxed ones the element read and forced, as none of
+  -- theirs is undefined.
+  vWithElem :: (VecElem v a) => v a -> Int -> (a -> r) -> r
+  vWithElem v i k = k (vIndex v i)
+
 class None a
 instance None a
 
@@ -947,16 +956,17 @@ runSlicesT (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
 
 -- The elements of a non-empty canonical view in row-major order, as the
 -- cons and nil of a 'build': 'offsetsT' with the innermost axis as its
--- counter, an element a position.  Each element is consed unevaluated,
--- so a boxed vector's elements are forced by the consumer alone.  The
--- vector is banged as in 'runSlicesT', every use of it likewise under
--- the consumer's cons.
+-- counter, an element a position.  Each element is read by 'vWithElem', which
+-- leaves forcing it to the consumer at a boxed vector and forces it where
+-- the instance's elements cannot be undefined.  The vector is banged as in
+-- 'runSlicesT'.
 {-# INLINE elemsT #-}
 elemsT :: forall v a b. (Vector v, VecElem v a)
        => Axes -> Int -> v a -> (a -> b -> b) -> b -> b
 elemsT (Axes t n (InnerFirst outerAxes)) !start !v cons nil =
-  -- TODO: 'vIndex' bounds-checks every element; see 'runSlicesT'.
-  offsetsT (Axis t n) outerAxes start (\p rest -> cons (vIndex v p) rest) nil
+  -- TODO: 'vWithElem' bounds-checks every element; see 'runSlicesT'.
+  offsetsT (Axis t n) outerAxes start
+           (\p rest -> vWithElem v p (`cons` rest)) nil
 
 -- The offsets of a counter axis's positions under the axes outside it,
 -- in row-major order, each handed to the step as the walk reaches it:
@@ -1441,7 +1451,7 @@ convertT sh g t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip
 -- array's one element unforced, so the map unboxes it again for every element
 -- of an unboxed vector.  A bang would also force a boxed element that may
 -- never be read; forcing only unboxed elements, as 'VG.elemseq' does in
--- 'genericFillStrided', needs a method the 'Vector' class does not have.
+-- 'genericFillStrided', can read it through 'vWithElem'.
 -- TODO: two views of the same strides that each read every element of one
 -- part could zip those parts and keep the strides, as 'convertT' maps a view.
 -- Measured on 60000 Doubles, that pays only where they broadcast, from 550

@@ -161,6 +161,11 @@ instance Vector V.Vector where
           go !i | i >= n = False
                 | otherwise = case V.unsafeIndexM v i of
                     Box x -> q x || go (i + 1)
+  -- The element stored, unforced, read through indexM, which hands it on
+  -- without the thunk of the read that vIndex would leave in a list of a view's
+  -- elements ('elemsT').
+  {-# INLINE vWithElem #-}
+  vWithElem v i k = case V.indexM v i of Box x -> k x
   {-# INLINE vFillStrided #-}
   vFillStrided = genericFillStrided 5
   -- vConcatPadN takes genericConcatPadN, which on GHC HEAD took 0.33 and 0.35
