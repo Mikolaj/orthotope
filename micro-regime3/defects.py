@@ -9963,7 +9963,13 @@ RECORDS = [
          plant=lambda t: {'rundoc': plant_begins_mid_sentence(t)},
          argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['begin mid-sentence']),
-         bug=V(exit=0, hasnt=['begin mid-sentence'])),
+         bug=V(exit=0, hasnt=['begin mid-sentence']),
+         # No audit: the pre-fix --check-doc also holds the run file to its
+         # cross-half `list` sites, and its patterns predate the phrasing
+         # --prose-draft writes, so it fails on today's run file before
+         # the plant can matter. The mutant beside this fix in mutants.py
+         # is what proves the check bites.
+         no_audit='fixture-from-a-document-the-era-lacks'),
 
     case('paragraph-cut-before-a-heading-fails', 'read-run.py',
          '4a1793a',
@@ -9978,7 +9984,9 @@ RECORDS = [
          plant=lambda t: {'rundoc': plant_cut_before_heading(t)},
          argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['stop mid-sentence']),
-         bug=V(exit=0, hasnt=['stop mid-sentence'])),
+         bug=V(exit=0, hasnt=['stop mid-sentence']),
+         # No audit, for the reason at the case above.
+         no_audit='fixture-from-a-document-the-era-lacks'),
 
     case('vecdims-arms-name-the-summary-column', 'read-run.py',
          '26816e6',
