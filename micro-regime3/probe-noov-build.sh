@@ -1,4 +1,8 @@
 #!/bin/bash
+# NOT A CURRENT RECIPE: built on Run 21's basis, -fspec-constr among its
+# flags, which no basis has carried since Run 29; the current basis is in
+# the last run's pair note.
+#
 # Task 6's pair: the same recipe with the shim's containment test off and
 # on. OFF must reproduce the current build byte for byte -- that is what
 # says the switch is a switch and not a basis change taken by accident.

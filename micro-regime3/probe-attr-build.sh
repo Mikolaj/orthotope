@@ -1,4 +1,8 @@
 #!/bin/bash
+# NOT A CURRENT RECIPE: built on Run 21's basis, -fspec-constr among its
+# flags, which no basis has carried since Run 29; the current basis is in
+# the last run's pair note.
+#
 # The -g3 twin item 4's attribution wants: the g912 recipe with -g3, so
 # the binary carries a line table and perf can say which SOURCE LINE the
 # instructions of a fill go to. A -g3 build is a twin to READ and never

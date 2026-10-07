@@ -1,4 +1,8 @@
 #!/bin/bash
+# NOT A CURRENT RECIPE: built on Run 21's basis, -fspec-constr among its
+# flags, which no basis has carried since Run 29; the current basis is in
+# the last run's pair note.
+#
 # The spill-free binary the run-length condition's second half wants
 # (README.md#the-mutable-ceiling-taken, the sixth reading): the g912
 # recipe with -fllvm in place of the assembler shim, which is the native

@@ -1,4 +1,8 @@
 #!/bin/bash
+# NOT A CURRENT RECIPE: built on Run 21's basis, -fspec-constr among its
+# flags, which no basis has carried since Run 29; the current basis is in
+# the last run's pair note.
+#
 # The control for item 4's answer: the g912 recipe WITHOUT the assembler
 # shim, so the alignment padding is GHC's own and not align-as.py's. If
 # the residue on a long-run view is the shim's padding, it moves here;

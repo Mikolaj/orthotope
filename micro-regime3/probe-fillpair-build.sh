@@ -1,4 +1,8 @@
 #!/bin/bash
+# NOT A CURRENT RECIPE: built on Run 21's basis, -fspec-constr among its
+# flags, which no basis has carried since Run 29; the current basis is in
+# the last run's pair note.
+#
 # The pair that prices a fill change in TIME, which counted work cannot
 # do: instructions are load-insensitive and so cheap, but what this
 # README publishes is time, and the second term between them is largest

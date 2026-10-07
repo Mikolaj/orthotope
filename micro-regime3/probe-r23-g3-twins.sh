@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# NOT A CURRENT RECIPE: built on Run 23's two halves, -fspec-constr among their
+# flags, which no basis has carried since Run 29; the current basis is in
+# the last run's pair note.
+#
 # Post-run step 0's two -g3 twins for Run 23, built from run23-pair.txt's
 # own two recipes with -g3 added and nothing else moved -- as Run 22's were
 # taken on 2026-08-31. They NAME the fill groups; they are not timed and

@@ -1,4 +1,8 @@
 #!/bin/bash
+# NOT A CURRENT RECIPE: built on Run 21's basis, -fspec-constr among its
+# flags, which no basis has carried since Run 29; the current basis is in
+# the last run's pair note.
+#
 # The dispatch arm's binary: Run 21's basis recipe (run21-pair.txt) over
 # the current source, which is probe-bang-g912's recipe too -- so the two
 # differ in the roster alone and the dispatch arm's three neighbours are

@@ -1,4 +1,8 @@
 #!/bin/bash
+# NOT A CURRENT RECIPE: built on Run 21's other half, -fspec-constr among its
+# flags, which no basis has carried since Run 29; the current basis is in
+# the last run's pair note.
+#
 # The dispatch arm on the second compiler, which task 2 asks for outright:
 # a compiler can move a crossover, so a threshold read on one compiler
 # alone is a threshold nobody has checked. Run 21's OTHER half's recipe
