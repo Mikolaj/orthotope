@@ -117,7 +117,51 @@ test = testGroup "BenchViews"
       ++ [ testCase "Dynamic/pad at Storable, not specialised"
              (unspecialisedOver b unspecialisedPad)
          | b <- callsNamed "pad" OD.opsB ]
+    -- The walks of the benchmark's transposed view fill no vector and build
+    -- no list, and boxed zipWith5A keeps off vector's boxed stream.
+  , optimisedGroup "walks"
+      $  [ testCase (family ++ "/" ++ name) (walked name kinds bound bs ss us)
+         | (family, bs, ss, us) <- [ ("Dynamic", OD.opsB, OD.opsS, OD.opsU)
+                                   , ("Ranked", OR.opsB, OR.opsS, OR.opsU)
+                                   , ("Shaped", OS.opsB, OS.opsS, OS.opsU) ]
+         , (name, kinds, bound) <- walkBounds ]
+      ++ [ testCase (family ++ "/traverseA, Storable as Unboxed")
+             (storableAsUnboxed "traverseA" ss us)
+         | (family, ss, us) <- [ ("Dynamic", OD.opsS, OD.opsU)
+                               , ("Ranked", OR.opsS, OR.opsU)
+                               , ("Shaped", OS.opsS, OS.opsU) ] ]
   ]
+
+-- Bytes an element under which an operation's calls of the kinds named
+-- allocate, each between what they allocate on GHC HEAD, with or without
+-- -fspec-constr, and what the form they replaced did: reduce's fill, the
+-- fills of zipWithA's two arguments, the thunk elemsT consed for traverseA,
+-- generate's lazy index lists, iota's list and vector's zipWith5.
+walkBounds :: [(String, String, Double)]
+walkBounds =
+  [ ("reduce", "BSU", 4), ("zipWithA", "SU", 16), ("traverseA", "SU", 120)
+  , ("generate", "BSU", 200), ("iota", "BSU", 56), ("zipWith5A", "B", 300) ]
+
+-- The calls of the operation of the name at the kinds named allocate under
+-- the bound.
+walked :: String -> String -> Double -> [Call] -> [Call] -> [Call] -> Assertion
+walked name kinds bound bs ss us = do
+  over <- sequence
+    [ (\ a -> (kind, perElem a)) <$> callAlloc c
+    | (kind, cs) <- zip "BSU" [bs, ss, us], kind `elem` kinds
+    , c <- callsNamed name cs ]
+  let bad = [ [kind] ++ " " ++ show a ++ " bytes an element"
+            | (kind, a) <- over, a >= bound ]
+  assertBool (intercalate ", " bad ++ ", not under " ++ show bound) (null bad)
+
+-- The Storable call of the operation allocates at most 8 bytes an element
+-- more than the Unboxed one: Storable's reads are forced as Unboxed's are.
+storableAsUnboxed :: String -> [Call] -> [Call] -> Assertion
+storableAsUnboxed name ss us = do
+  aS <- sum <$> mapM callAlloc (callsNamed name ss)
+  aU <- sum <$> mapM callAlloc (callsNamed name us)
+  let o = perElem (aS - aU)
+  assertBool (show o ++ " bytes an element over Unboxed") (o <= 8)
 
 -- The calls of the specialisation benchmark, a row an operation with its
 -- boxed, Storable and Unboxed calls.
