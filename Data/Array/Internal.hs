@@ -1699,15 +1699,35 @@ sumT sh = sum . map vSum . toUnorderedVectorListT sh
 productT :: (Vector v, VecElem v a, Num a) => ShapeL -> T v a -> a
 productT sh = product . map vProduct . toUnorderedVectorListT sh
 
--- Note: assumes max is commutative&associative.
+-- Note: assumes max is commutative&associative.  A view of runs folds the
+-- runs' maxima in the order 'maximum' folds their list, the walk's own cons
+-- carrying whether one has been taken, so that no list is built; the element
+-- at the offset only starts the accumulator, which the first maximum replaces
+-- unread.  A view that is one vector, a slice or a fill, takes its maximum as
+-- it is: folded as runs are, on a dense array of boxed Doubles it ran 12% more
+-- instructions.
 {-# INLINE maximumT #-}
 maximumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
-maximumT sh = maximum . map vMaximum . toUnorderedVectorListT sh
+maximumT sh t@(T _ ao v)
+  | l == 0 = maximum (map vMaximum (toUnorderedVectorListT sh t))
+  | otherwise = case unorderedRouteT sh l t of
+      RRuns axes o _ -> runSlicesT axes o v step (\ _ acc -> acc) False (vIndex v ao)
+      route -> routeSlicesT v route (\ s _ -> vMaximum s) (vIndex v ao)
+  where !l = product sh
+        step s k = \ started !acc -> let !m = vMaximum s
+                                     in  k True (if started then max acc m else m)
 
--- Note: assumes min is commutative&associative.
+-- Note: assumes min is commutative&associative.  Folded as 'maximumT' folds.
 {-# INLINE minimumT #-}
 minimumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
-minimumT sh = minimum . map vMinimum . toUnorderedVectorListT sh
+minimumT sh t@(T _ ao v)
+  | l == 0 = minimum (map vMinimum (toUnorderedVectorListT sh t))
+  | otherwise = case unorderedRouteT sh l t of
+      RRuns axes o _ -> runSlicesT axes o v step (\ _ acc -> acc) False (vIndex v ao)
+      route -> routeSlicesT v route (\ s _ -> vMinimum s) (vIndex v ao)
+  where !l = product sh
+        step s k = \ started !acc -> let !m = vMinimum s
+                                     in  k True (if started then min acc m else m)
 
 {-# INLINE anyT #-}
 anyT :: (Vector v, VecElem v a) => ShapeL -> (a -> Bool) -> T v a -> Bool
