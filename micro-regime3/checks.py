@@ -98,7 +98,7 @@ UNCOVERED = {
 # the question it is named for.
 for _name in ('probe-r33-instance.sh',
               'probe-hugebin.sh', 'probe-ibs.sh',
-              'probe-attr-build.sh', 'probe-attrnoshim-build.sh',
+              'probe-attr-build.sh',
               'probe-attr-read.py', 'probe-attr.sh',
               'probe-flip-counters.sh', 'probe-flip-counters-read.py',
               'probe-flip-reroll.sh', 'probe-flip-reroll-read.py',
@@ -120,6 +120,6 @@ for _name in ('probe-r33-instance.sh',
               'probe-r39-rules.py',
               'probe-read.sh', 'probe-second-term.py',
               'probe-smoke-runs.sh', 'probe-stalls-read.py', 'probe-stalls.sh',
-              'probe-tail-build.sh', 'probe-times.sh',
+              'probe-times.sh',
               'probe-within-evening.sh'):
     UNCOVERED[_name] = 'a probe: an input to README, run by hand'
