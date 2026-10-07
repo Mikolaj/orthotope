@@ -15029,6 +15029,18 @@ RECORDS = [
          # restoring it.
          argv=None, ok=None),
 
+    case('checks-pyflakes-lints-an-untracked-script', 'checks.py', 'self',
+         "check-all's pyflakes step took every *.py here, so an untracked"
+         " script of the owner's was linted and could fail it",
+         # NO CASE, for the reason the record above gives its shellcheck
+         # twin: a step of check-all is not a program a fixture drives.
+         # WATCHED both ways on 2026-10-07: a planted untracked script with
+         # an unused import failed the old glob at rc=1 and passed the
+         # tracked form at 0, and the same import appended to the tracked
+         # view-floor.py failed the tracked form at 123, the copy restoring
+         # it. Found by a scan of the files the tree's documents name.
+         argv=None, ok=None),
+
     case('preflight-step-10-passes-an-empty-library-reading', 'preflight.sh', 'self',
          'step 10 printed PASS with an empty reading where loop-offsets'
          ' --library answered without a same-offset line',

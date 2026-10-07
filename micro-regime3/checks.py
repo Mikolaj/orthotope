@@ -26,8 +26,10 @@ SCAN = ['*.py', '*.sh']
 STEPS = [
     ('records validate',       ['python3', '{bin}/defect-cases.py', '{root}']),
     ('source lint',            ['python3', '{bin}/defect-lint.py', '{root}']),
+    # The TRACKED scripts at this level since 2026-10-07, as the shellcheck
+    # step reads them: an untracked script is the owner's scratch.
     ('pyflakes',               ['bash', '-c',
-                                'cd "{root}" && if command -v pyflakes >/dev/null; then pyflakes *.py; elif python3 -m pyflakes --version >/dev/null 2>&1; then python3 -m pyflakes *.py; else echo "pyflakes is not on PATH (command -v pyflakes finds nothing) and python3 -m pyflakes does not import, so the Python here went unlinted"; exit 1; fi']),
+                                'cd "{root}" && if command -v pyflakes >/dev/null; then git ls-files -z -- \':(glob)*.py\' | xargs -0 pyflakes; elif python3 -m pyflakes --version >/dev/null 2>&1; then git ls-files -z -- \':(glob)*.py\' | xargs -0 python3 -m pyflakes; else echo "pyflakes is not on PATH (command -v pyflakes finds nothing) and python3 -m pyflakes does not import, so the Python here went unlinted"; exit 1; fi']),
     # The TRACKED scripts at this level, since 2026-09-26, as preflight's
     # 8b reads them: an untracked probe is the owner's scratch.
     ('shellcheck',             ['bash', '-c',
