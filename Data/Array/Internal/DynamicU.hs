@@ -97,28 +97,45 @@ instance Vector V.Vector where
   -- fuse with a vector they read, but each array operation stores its result,
   -- so the array operations never fused their inputs; a map of a map allocates
   -- a vector an operation with vector's map and with this one alike.
+  -- Each read is forced before the function takes it: given a function GHC
+  -- cannot see into, on GHC HEAD with vector's issue 570 fixed, on views of
+  -- 200000 Doubles, mapA allocated 40 bytes an element where 80 and zipWithA
+  -- 72 where 152, and given known functions every operation ran as many
+  -- instructions as before.
   {-# INLINE vMap #-}
-  vMap f v = indexLoop (V.length v) (\ i -> f (V.unsafeIndex v i))
+  vMap f v = indexLoop (V.length v) (\ i -> let !x = V.unsafeIndex v i in f x)
   {-# INLINE vZipWith #-}
   vZipWith f a b =
     V.generate (V.length a `min` V.length b) $ \ i ->
-      f (V.unsafeIndex a i) (V.unsafeIndex b i)
+      let !x = V.unsafeIndex a i
+          !y = V.unsafeIndex b i
+      in  f x y
   {-# INLINE vZipWith3 #-}
   vZipWith3 f a b c =
     indexLoop (V.length a `min` V.length b `min` V.length c) $ \ i ->
-      f (V.unsafeIndex a i) (V.unsafeIndex b i) (V.unsafeIndex c i)
+      let !x = V.unsafeIndex a i
+          !y = V.unsafeIndex b i
+          !z = V.unsafeIndex c i
+      in  f x y z
   {-# INLINE vZipWith4 #-}
   vZipWith4 f a b c d =
     indexLoop (V.length a `min` V.length b `min` V.length c
                `min` V.length d) $ \ i ->
-      f (V.unsafeIndex a i) (V.unsafeIndex b i) (V.unsafeIndex c i)
-        (V.unsafeIndex d i)
+      let !x = V.unsafeIndex a i
+          !y = V.unsafeIndex b i
+          !z = V.unsafeIndex c i
+          !u = V.unsafeIndex d i
+      in  f x y z u
   {-# INLINE vZipWith5 #-}
   vZipWith5 f a b c d e =
     V.generate (V.length a `min` V.length b `min` V.length c
                 `min` V.length d `min` V.length e) $ \ i ->
-      f (V.unsafeIndex a i) (V.unsafeIndex b i) (V.unsafeIndex c i)
-        (V.unsafeIndex d i) (V.unsafeIndex e i)
+      let !x = V.unsafeIndex a i
+          !y = V.unsafeIndex b i
+          !z = V.unsafeIndex c i
+          !u = V.unsafeIndex d i
+          !w = V.unsafeIndex e i
+      in  f x y z u w
   {-# INLINE vAppend #-}
   vAppend = (V.++)
   {-# INLINE vConcat #-}
