@@ -1611,11 +1611,9 @@ convertT sh g t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip
 -- rather than filling each; on GHC HEAD, on views of 200000 Doubles, zipWithA
 -- so took 0.42 to 0.72 of its time on a transposed view and 0.70 to 0.74 on a
 -- view of runs.
--- TODO: the two branches that map over one array hand 'mapT' the other
--- array's one element unforced, so the map unboxes it again for every element
--- of an unboxed vector.  A bang would also force a boxed element that may
--- never be read; forcing only unboxed elements, as 'VG.elemseq' does in
--- 'genericFillStrided', can read it through 'vWithElem'.
+-- The two branches that map over one array read the other array's one
+-- element through 'vWithElem', forced where it is unboxed and unforced where
+-- it is boxed, before the map takes it.
 -- TODO: two views of the same strides that each read every element of one
 -- part could zip those parts and keep the strides, as 'convertT' maps a view.
 -- Measured on 60000 Doubles, that pays only where they broadcast, from 550
@@ -1634,10 +1632,10 @@ zipWithT sh f t@(T ss o v) t'@(T ss' o' v') =
       T ss 0 $ vSingleton $ f (vIndex v 0) (vIndex v' 0)
     (1, _) ->
       -- First vector has length 1, so use a map instead.
-      mapT sh (vIndex v 0 `f` ) t'
+      vWithElem v 0 $ \ x -> mapT sh (x `f`) t'
     (_, 1) ->
       -- Second vector has length 1, so use a map instead.
-      mapT sh (`f` vIndex v' 0) t
+      vWithElem v' 0 $ \ y -> mapT sh (`f` y) t
     (_, _)
       | l > 0, not (isSliceRoute (routeT sh l t) && isSliceRoute (routeT sh l t')) ->
           fromVectorT sh $ vZipWithStrided f sh ss o v ss' o' v'
