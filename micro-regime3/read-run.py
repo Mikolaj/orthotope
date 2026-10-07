@@ -12944,8 +12944,7 @@ def move_registration(readme, run_doc):
             ' before it ran --- and what it answered.** The registrations,'
             ' their kill conditions and their verdicts are [in Run %d\'s own'
             ' file](%s/run%d.md#what-this-run-was-built-to-answer-and-what-it'
-            '-answered), where a run\'s registrations have lived since'
-            ' 2026-08-29; in a clause each: ___.' % (n, n, RUNS_DIR, n))
+            '-answered); in a clause each: ___.' % (n, n, RUNS_DIR, n))
     lines[hit[0]] = stub
     out = '\n'.join(lines)
     if was_wrapped:
