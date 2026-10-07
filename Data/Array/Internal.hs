@@ -151,6 +151,18 @@ class Vector v where
   vGenerate' :: (VecElem v a) => Int -> (Int -> a) -> v a
   vGenerate' n g = vFromListN n [ x | i <- [0 .. n - 1], let !x = g i ]
 
+  -- Left out of the class, to keep it small until users find
+  -- the speedups worth its size: vZipWithStrided to vZipWith5Strided,
+  -- with which the vector instances zip views that no slice serves by
+  -- one walk rather than filling each, and vConcatPadN, with which they
+  -- write pad's padding into the result in place.  On GHC HEAD, zipWithA
+  -- of a transposed view of 200000 Doubles took 0.42 to 0.49 of its time
+  -- at Storable and Unboxed elements, zipWith3A to zipWith5A 0.17 to
+  -- 0.61, and pad of rows of two Doubles 0.65 to 0.75, and 0.33 to 0.35
+  -- at boxed.  They wait, with the conditions of those measurements, on
+  -- the branch pr-mikolaj-toVectorListT-vZipWithStrided-vConcatPadN of
+  -- https://github.com/Mikolaj/orthotope.
+
 class None a
 instance None a
 
