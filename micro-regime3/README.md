@@ -4002,7 +4002,7 @@ first, those that did not die on paper at all:
   Routing the case through the recursive odometer removes the spill at a 72-byte
   closure a call, which is a trick against the allocator, and the special case
   is complication that `genericFillStrided` does without and `fillStage2`, which
-  since 2026-09-24 builds no table at any level count, has no use for. Its arm
+  from 2026-09-24 built no table at any level count, had no use for. Its arm
   went to `Only` on 2026-09-25, Run 40's 7 to 18% on plain -O1 not changing
   the verdict ([the one-level entry][open]).
 - **Building `fillStage2`'s level nest out of closures, a loop per level around

@@ -2093,11 +2093,11 @@ fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
                   VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
                   inner (o + 2) (src' + tInner)
         in  inner outPos baseOff
-      -- The broadcast run at innermost stride 0, its one element read once and
-      -- written unrolled by two: 'fillStage2''s 'writeRunSet' body, without
-      -- the INLINE pragma the driver gives it, this leaf's stepping body
-      -- having none either. Non-vacuity, 2026-09-11: dropping the second write
-      -- fails @check@ at @bcast-inner8@.
+      -- The broadcast run at innermost stride 0, its one element read once
+      -- and written unrolled by two: the 'writeRunSet' body 'fillStage2' had,
+      -- without the INLINE pragma that driver gave it, this leaf's stepping
+      -- body having none either. Non-vacuity, 2026-09-11: dropping the second
+      -- write fails @check@ at @bcast-inner8@.
       writeRunSet !outPos !baseOff =
         let !x = VS.unsafeIndex v baseOff
             !oEnd = outPos + sInner
@@ -2414,28 +2414,27 @@ fbMutOdoVecdimsAddInLeafU1PtrLeaf sh (T (Strides ats) ao v) =
 -- alike, one reload an iteration (README.md#the-mutable-ceiling-taken, the
 -- twentieth reading). It is the Ptr-walking fill README's dead-ideas ruling
 -- of 2026-08-29 refused for the library, and the ruling stands: this arm is
--- timed for the CEILING, the time '-u1' would reach under a register allocator
--- that spilled nothing, and not as a candidate to ship. Read by profile on
--- the shim-free g912 recipe: six instructions an element, no stack access,
--- and none in the run loop above it. Counted on the same build: 0.8945 of
--- '-u1''s corrected instructions over nineteen shapes, 19 of 19 below 1, and
--- 0.9712 of '-u2''s at 14 of 19 -- the un-unrolled loop without its spill
--- executes less than the unrolled one with it. On Run 26's 9.12 basis the
--- first ratio reproduces at 0.8944 and the arm is 0.9693 of '-u1' in TIME,
--- past that half's 0.31% floor, so the spill is worth about a thirtieth of
--- the fill and under a third of the instruction saving reaches the clock
--- (README.md#the-mutable-ceiling-taken, the twenty-first reading). ON GHC
--- HEAD, without the workaround below, it inverts: 1.0235 in counts, 1.3084 in
--- time and 1.41x the result vector allocated where the basis allocates 1.00x,
--- which is that compiler and not this code --
+-- rostered for the CEILING, the time '-u1' would reach under a register
+-- allocator that spilled nothing, and not as a candidate to ship. Read by
+-- profile on the shim-free g912 recipe: six instructions an element, no
+-- stack access, and none in the run loop above it. Counted on the same
+-- build: 0.8945 of '-u1''s corrected instructions over nineteen shapes, 19
+-- of 19 below 1, and 0.9712 of '-u2''s at 14 of 19 -- the un-unrolled loop
+-- without its spill executes less than the unrolled one with it. On Run 26's
+-- 9.12 basis the first ratio reproduces at 0.8944 and the arm is 0.9693
+-- of '-u1' in TIME, past that half's 0.31% floor, so the spill is worth
+-- about a thirtieth of the fill and under a third of the instruction saving
+-- reaches the clock (README.md#the-mutable-ceiling-taken, the twenty-first
+-- reading). ON GHC HEAD, without the workaround below, it inverts: 1.0235
+-- in counts, 1.3084 in time and 1.41x the result vector allocated where
+-- the basis allocates 1.00x, which is that compiler and not this code --
 -- GHC https://gitlab.haskell.org/ghc/ghc/-/work_items/27778: a bang-bound
 -- 'plusPtr' result let-generalises to 'forall b. Ptr b', and from 9.14 the
 -- simplifier keeps the case on that type lambda, so a 'Ptr' is allocated and
 -- taken apart on every run. The ':: Ptr Double' on every such binding in the
 -- three pointer arms is the workaround, and the 9.12 code is unchanged by it.
--- Not kept in step with 'fbMutOdoVecdimsAddInLeafU2' past the one
--- change it exists to price: whatever improved that leaf since is not
--- here.
+-- Not kept in step with 'fbMutOdoVecdimsAddInLeafU2' past the one change it
+-- exists to price: whatever improved that leaf since is not here.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU1Ptr #-}
 fbMutOdoVecdimsAddInLeafU1Ptr :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
@@ -2486,7 +2485,7 @@ fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
 -- 'fbMutOdoVecdimsAddInLeafU2' with its cursors as running pointers at
 -- every level, the change 'fbMutOdoVecdimsAddInLeafU1Ptr' makes to '-u1',
 -- so the two pointer forms are compared in one process. Like that arm it is
--- timed for the CEILING, here the one '-u2' would reach under a register
+-- rostered for the CEILING, here the one '-u2' would reach under a register
 -- allocator that spilled nothing, and not as a candidate to ship. Read by
 -- profile on the shim-free g912 recipe: nine instructions per two elements,
 -- no stack access. Counted on the same build, and reproduced on Run 26's
