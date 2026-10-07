@@ -24,17 +24,17 @@
 -- at Double, read off what the calls of the specialisation benchmark
 -- allocate: Storable and Unboxed allocate at most 32 bytes an element more
 -- than boxed, which has no element dictionary to lose, where a call passing
--- its element dictionary at run time allocated 64 to 145 more on GHC HEAD; the
--- control from Unspecialised is such a call.  Boxed allocates at most 16 bytes
--- an element more than the smaller of Storable and Unboxed, where on GHC 9.12.4
--- a boxed operation that missed the copies -fpolymorphic-specialisation makes
--- allocated 48 more for each element it wrote; mapA, the zips, generate,
--- rerank2 with its zip and unravel are exempt, exceeding that bound boxed
--- with their specialisation too.  The boxed bound holds from GHC 9.6.3 on,
--- the first to know that flag, and has no control here: boxed pad called from
--- Unspecialised, at Double or polymorphic in the element, allocated like the
--- specialised call, where the boxed modules built without the flag failed the
--- bound on 9.12.4.  DynamicS's bitcast, having no boxed counterpart, goes
+-- its element dictionary at run time allocated 64 to 145 more on GHC HEAD;
+-- the control from Unspecialised is such a call.  Boxed allocates at most 16
+-- bytes an element more than the smaller of Storable and Unboxed, where on GHC
+-- 9.12.4 a boxed operation that missed the copies -fpolymorphic-specialisation
+-- makes allocated 48 more for each element it wrote; mapA, traverseA, the zips,
+-- generate, rerank2 with its zip and unravel are exempt, exceeding that bound
+-- boxed with their specialisation too.  The boxed bound holds from GHC 9.6.3
+-- on, the first to know that flag, and has no control here: boxed pad called
+-- from Unspecialised, at Double or polymorphic in the element, allocated like
+-- the specialised call, where the boxed modules built without the flag failed
+-- the bound on 9.12.4.  DynamicS's bitcast, having no boxed counterpart, goes
 -- unchecked.
 -- The Dynamic modules' rotate, which DynamicU lacks, goes unchecked too.
 -- Its bounds on toVector, sumA, the list heads and specialisation run in an
@@ -157,7 +157,7 @@ specialised row b s u = do
 -- zip it applies, and unravel: boxed, they exceed the bound with their
 -- specialisation too.
 boxedExempt :: [String]
-boxedExempt = [ "/mapA", "/zipWithA", "/zipWith3A", "/zipWith4A"
+boxedExempt = [ "/mapA", "/traverseA", "/zipWithA", "/zipWith3A", "/zipWith4A"
               , "/zipWith5A", "/generate", "/rerank2", "/unravel" ]
 
 -- Whether the boxed modules make the copies their specialisation is:
