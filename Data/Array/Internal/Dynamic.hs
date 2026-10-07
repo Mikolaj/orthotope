@@ -76,6 +76,8 @@ instance Vector V.Vector where
   type VecElem V.Vector = None
   {-# INLINE vIndex #-}
   vIndex = (V.!)
+  {-# INLINE vUnsafeIndex #-}
+  vUnsafeIndex = V.unsafeIndex
   {-# INLINE vLength #-}
   vLength = V.length
   {-# INLINE vToList #-}
@@ -130,6 +132,8 @@ instance Vector V.Vector where
   vFold = V.foldl'
   {-# INLINE vSlice #-}
   vSlice = V.slice
+  {-# INLINE vUnsafeSlice #-}
+  vUnsafeSlice = V.unsafeSlice
   {-# INLINE vSum #-}
   vSum = V.sum
   {-# INLINE vProduct #-}
@@ -161,11 +165,11 @@ instance Vector V.Vector where
           go !i | i >= n = False
                 | otherwise = case V.unsafeIndexM v i of
                     Box x -> q x || go (i + 1)
-  -- The element stored, unforced, read through indexM, which hands it on
-  -- without the thunk of the read that vIndex would leave in a list of a view's
-  -- elements ('elemsT').
+  -- The element stored, unforced, read through unsafeIndexM, which hands it on
+  -- without the thunk of the read that vUnsafeIndex would leave in a list of a
+  -- view's elements ('elemsT').
   {-# INLINE vWithElem #-}
-  vWithElem v i k = case V.indexM v i of Box x -> k x
+  vWithElem v i k = case V.unsafeIndexM v i of Box x -> k x
   -- Each element forced as it is written.
   {-# INLINE vGenerate' #-}
   vGenerate' n g = zipLoop n (\ i -> return $! g i)

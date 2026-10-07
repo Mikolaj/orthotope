@@ -72,6 +72,8 @@ instance Vector V.Vector where
   type VecElem V.Vector = Unbox
   {-# INLINE vIndex #-}
   vIndex = (V.!)
+  {-# INLINE vUnsafeIndex #-}
+  vUnsafeIndex = V.unsafeIndex
   {-# INLINE vLength #-}
   vLength = V.length
   {-# INLINE vToList #-}
@@ -148,6 +150,8 @@ instance Vector V.Vector where
   vFold = V.foldl'
   {-# INLINE vSlice #-}
   vSlice = V.slice
+  {-# INLINE vUnsafeSlice #-}
+  vUnsafeSlice = V.unsafeSlice
   {-# INLINE vSum #-}
   vSum = V.sum
   {-# INLINE vProduct #-}
@@ -182,7 +186,7 @@ instance Vector V.Vector where
   vAny = V.any
   -- Forced: no element of an Unboxed vector is undefined.
   {-# INLINE vWithElem #-}
-  vWithElem v i k = let !x = v V.! i in k x
+  vWithElem v i k = let !x = V.unsafeIndex v i in k x
   {-# INLINE vGenerate' #-}
   vGenerate' = V.generate
   {-# INLINE vFillStrided #-}
