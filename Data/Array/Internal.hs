@@ -88,6 +88,16 @@ class Vector v where
 
   vFromListN n = vFromList . take n
 
+  -- | 'vIndex' at an index in bounds, which the instance need not check: the
+  -- default is 'vIndex', and the vector instances read without the check.
+  vUnsafeIndex :: (VecElem v a) => v a -> Int -> a
+  vUnsafeIndex = vIndex
+
+  -- | 'vSlice' of a slice in bounds, which the instance need not check: the
+  -- default is 'vSlice', and the vector instances slice without the check.
+  vUnsafeSlice :: (VecElem v a) => Int -> Int -> v a -> v a
+  vUnsafeSlice = vSlice
+
   -- | Materialize a strided view in row-major order.  The arguments are
   -- the view's canonical axes (as t'Axes'), the offset, the total element
   -- count and the source vector.  The contract: every extent in the axes
@@ -127,14 +137,14 @@ class Vector v where
   vConcatN n [v] | vLength v == n = v
   vConcatN _ vs = vConcat vs
 
-  -- | Hand the element at an index to a continuation, read as the instance
-  -- chooses.  The list of a view's elements that 'elemsT' builds holds what it
-  -- is handed.  The default hands on 'vIndex' unevaluated, a thunk holding the
-  -- vector; the boxed vector instance hands on the element stored, unforced,
-  -- and the Storable and Unboxed ones the element read and forced, as none of
-  -- theirs is undefined.
+  -- | Hand the element at an index in bounds to a continuation, read as the
+  -- instance chooses.  The list of a view's elements that 'elemsT' builds holds
+  -- what it is handed.  The default hands on 'vUnsafeIndex' unevaluated, a
+  -- thunk holding the vector; the boxed vector instance hands on the element
+  -- stored, unforced, and the Storable and Unboxed ones the element read and
+  -- forced, as none of theirs is undefined.
   vWithElem :: (VecElem v a) => v a -> Int -> (a -> r) -> r
-  vWithElem v i k = k (vIndex v i)
+  vWithElem v i k = k (vUnsafeIndex v i)
 
   -- | A vector of n elements, the ith g i, each evaluated to weak head
   -- normal form as it is stored.  The default lists them.
@@ -216,6 +226,13 @@ prettyShowL l = render . pPrintPrec l 0
 -- To find where item /i,j/ of the two outermost dimensions is you
 -- calculate vector index @offset + i*strides[0] + j*strides[1]@, etc.
 --
+-- Every element of a view lies in its vector: where the view has any element,
+-- each vector index so computed is at least 0 and below the vector's length.
+-- The operations here rely on this, and at the vector instances read and
+-- slice unchecked, so a view built by hand that reaches outside its vector
+-- reads whatever memory lies there, unless vector's unsafe checks are on, as
+-- cabal.project.checks sets them.
+--
 -- The functions here have contracts, which the operations of the array
 -- modules establish before calling them. A call that breaks one is a bug:
 -- where a contract is checked, the error says "violated contract", or an
@@ -245,7 +262,7 @@ instance NFData (v a) => NFData (T v a)
 {-# INLINE rnfViewT #-}
 rnfViewT :: (Vector v, VecElem v a, NFData a, NFData (v a)) => ShapeL -> T v a -> ()
 rnfViewT sh t@(T _ _ v) = case readRangeT sh t of
-  Just (lo, n) -> rnf (vSlice lo n v)
+  Just (lo, n) -> rnf (vUnsafeSlice lo n v)
   Nothing -> let (_, rsh, r) = dropBroadcastT sh t
              in  foldr (\ x z -> rnf x `seq` z) () (toListT rsh r)
 
@@ -338,8 +355,9 @@ equalT s x@(T _ _ vx) y@(T _ _ vy)
     go :: Int -> Int -> Int -> Bool
     go = goWith vy
     goWith !w !ox !oy !k = loop 0
-      where loop !i = i >= k || (vIndex vx (ox + i) == vIndex w (oy + i)
-                                 && loop (i + 1))
+      where loop !i = i >= k
+                      || (vUnsafeIndex vx (ox + i) == vUnsafeIndex w (oy + i)
+                          && loop (i + 1))
 
 -- Compare two arrays of the same shape lexicographically in row-major order:
 -- two views of the same strides part by part along the route of their views
@@ -386,7 +404,8 @@ compareT s x@(T _ _ vx) y@(T _ _ vy)
       where loop !i
               | i >= k = EQ
               | otherwise =
-                  case compare (vIndex vx (ox + i)) (vIndex w (oy + i)) of
+                  case compare (vUnsafeIndex vx (ox + i))
+                               (vUnsafeIndex w (oy + i)) of
                     EQ -> loop (i + 1)
                     o -> o
 
@@ -454,7 +473,7 @@ scalarT = T [] 0 . vSingleton
 -- Convert a scalar array to the actual value.
 {-# INLINE unScalarT #-}
 unScalarT :: (Vector v, VecElem v a) => T v a -> a
-unScalarT (T _ o v) = vIndex v o
+unScalarT (T _ o v) = vUnsafeIndex v o
 
 -- Make a constant array.
 {-# INLINE constantT #-}
@@ -971,15 +990,11 @@ runSlicesT :: forall v a b. (Vector v, VecElem v a)
            => Axes -> Int -> v a -> (v a -> b -> b) -> b -> b
 runSlicesT (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
   case outerAxes of
-    [] -> cons (vSlice start n v) nil
+    [] -> cons (vUnsafeSlice start n v) nil
       -- Currently impossible: 'routeOfT' sends a view of one run to
       -- 'RSlice', where it is the vector or one slice of it.
     axis : above ->
-      -- TODO: 'vSlice' bounds-checks every run, tests that cannot fail
-      -- on a view the odometer walks, @n >= 0@ among them not even
-      -- varying with the run; removing them wants an unchecked slice in
-      -- the 'Vector' class.
-      offsetsT axis above start (\p rest -> cons (vSlice p n v) rest) nil
+      offsetsT axis above start (\p rest -> cons (vUnsafeSlice p n v) rest) nil
 
 -- The elements of a non-empty canonical view in row-major order, as the
 -- cons and nil of a 'build': 'offsetsT' with the innermost axis as its
@@ -991,7 +1006,6 @@ runSlicesT (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
 elemsT :: forall v a b. (Vector v, VecElem v a)
        => Axes -> Int -> v a -> (a -> b -> b) -> b -> b
 elemsT (Axes t n (InnerFirst outerAxes)) !start !v cons nil =
-  -- TODO: 'vWithElem' bounds-checks every element; see 'runSlicesT'.
   offsetsT (Axis t n) outerAxes start
            (\p rest -> vWithElem v p (`cons` rest)) nil
 
@@ -1086,7 +1100,7 @@ toVectorListT sh a@(T _ _ v) = build $ \cons nil ->
 wholeOrSliceT :: (Vector v, VecElem v a) => Int -> Int -> v a -> v a
 wholeOrSliceT ao l v
   | ao == 0 && vLength v == l = v
-  | otherwise = vSlice ao l v
+  | otherwise = vUnsafeSlice ao l v
 
 -- The slices a route stands for, as the cons and nil of a 'build': one
 -- slice of the vector, one slice per run, or the view filled as one
@@ -1135,16 +1149,16 @@ toVectorT sh a@(T _ _ v)
   where !l = product sh
 
 -- Put the array into a vector of just its elements, in the linearization
--- order.  An array whose elements lie one after another in that order in
--- its vector, whatever the strides of its dimensions of extent 1, keeps
--- the vector where they are all of it, and otherwise has them copied,
+-- order.  A non-empty array whose elements lie one after another in that
+-- order in its vector, whatever the strides of its dimensions of extent 1,
+-- keeps the vector where they are all of it, and otherwise has them copied,
 -- by vConcat of the one slice, which builds a new vector, as the class
 -- requires.
 {-# INLINE normalizeT #-}
 normalizeT :: (Vector v, VecElem v a) => ShapeL -> T v a -> T v a
 normalizeT sh t@(T ats ao v)
-  | map fst dense == ts' =
-    fromVectorT sh $ if vLength v == l then v else vConcat [vSlice ao l v]
+  | l > 0, map fst dense == ts' =
+    fromVectorT sh $ if vLength v == l then v else vConcat [vUnsafeSlice ao l v]
   | otherwise = fromVectorT sh $ toVectorT sh t
   where dense = [ (st, s) | (st, s) <- zip ats sh, s /= 1 ]
         l : ts' = getStridesT (map snd dense)
@@ -1468,7 +1482,7 @@ mapT sh f t = convertT sh (vMap f) t
 convertT :: (Vector v, VecElem v a, Vector w, VecElem w b)
          => ShapeL -> (v a -> w b) -> T v a -> T w b
 convertT sh _ _ | 0 `elem` sh = fromVectorT sh (vConcat [])
-convertT sh g t@(T ss o v) | Just (lo, n) <- readRangeT sh t = T ss (o - lo) (g (vSlice lo n v))
+convertT sh g t@(T ss o v) | Just (lo, n) <- readRangeT sh t = T ss (o - lo) (g (vUnsafeSlice lo n v))
 convertT sh g t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip bs sh ] $
                   g $ toVectorT rsh r
   where (bs, rsh, r) = dropBroadcastT sh t
@@ -1492,7 +1506,7 @@ zipWithT sh f t@(T ss _ v) t'@(T _ _ v') =
       -- If both vectors have length 1, then it's a degenerate case and it's better
       -- to operate on the single element directly, unless the view is empty and
       -- the element lies outside it.
-      T ss 0 $ vSingleton $ f (vIndex v 0) (vIndex v' 0)
+      T ss 0 $ vSingleton $ f (vUnsafeIndex v 0) (vUnsafeIndex v' 0)
     (1, _) ->
       -- First vector has length 1, so use a map instead.
       vWithElem v 0 $ \ x -> mapT sh (x `f`) t'
@@ -1513,7 +1527,8 @@ zipWith3T sh f (T ss _ v) (T _ _ v') (T _ _ v'') |
   -- to operate on the single element directly, unless the view is empty and
   -- the element lies outside it.
   0 `notElem` sh, vLength v == 1, vLength v' == 1, vLength v'' == 1 =
-    T ss 0 $ vSingleton $ f (vIndex v 0) (vIndex v' 0) (vIndex v'' 0)
+    T ss 0 $ vSingleton $
+      f (vUnsafeIndex v 0) (vUnsafeIndex v' 0) (vUnsafeIndex v'' 0)
 zipWith3T sh f t t' t'' = fromVectorT sh $ vZipWith3 f v v' v''
   where v   = toVectorT sh t
         v'  = toVectorT sh t'
@@ -1605,14 +1620,14 @@ traverseT sh f a = fmap (fromListT sh) (traverse f (toListT sh a))
 allSameT :: (Vector v, VecElem v a, Eq a) => ShapeL -> T v a -> Bool
 allSameT sh t@(T _ ao v)
   | product sh <= 1 = True
-  | vLength v == 1 = let !x = vIndex v 0 in x == x
+  | vLength v == 1 = let !x = vUnsafeIndex v 0 in x == x
   | otherwise =
     -- Order does not matter, so the unordered list, which is one slice
     -- for a dense view under any transposition.  The element at index
     -- zero sits at the offset, so no slice is held for it.  The fold sits
     -- on the list expression, where it fuses with the walk and stops at
     -- the first element that differs.
-    let !x = vIndex v ao
+    let !x = vUnsafeIndex v ao
     in  all (vAll (x ==)) (toUnorderedVectorListT sh t)
 
 newtype Rect = Rect { unRect :: [String] }  -- A rectangle of text
@@ -1784,8 +1799,8 @@ maximumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
 maximumT sh t@(T _ ao v)
   | l == 0 = maximum (map vMaximum (toUnorderedVectorListT sh t))
   | otherwise = case unorderedRouteT sh l t of
-      RRuns axes o _ -> runSlicesT axes o v step (\ _ acc -> acc) False (vIndex v ao)
-      route -> routeSlicesT v route (\ s _ -> vMaximum s) (vIndex v ao)
+      RRuns axes o _ -> runSlicesT axes o v step (\ _ acc -> acc) False (vUnsafeIndex v ao)
+      route -> routeSlicesT v route (\ s _ -> vMaximum s) (vUnsafeIndex v ao)
   where !l = product sh
         step s k = \ started !acc -> let !m = vMaximum s
                                      in  k True (if started then max acc m else m)
@@ -1796,8 +1811,8 @@ minimumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
 minimumT sh t@(T _ ao v)
   | l == 0 = minimum (map vMinimum (toUnorderedVectorListT sh t))
   | otherwise = case unorderedRouteT sh l t of
-      RRuns axes o _ -> runSlicesT axes o v step (\ _ acc -> acc) False (vIndex v ao)
-      route -> routeSlicesT v route (\ s _ -> vMinimum s) (vIndex v ao)
+      RRuns axes o _ -> runSlicesT axes o v step (\ _ acc -> acc) False (vUnsafeIndex v ao)
+      route -> routeSlicesT v route (\ s _ -> vMinimum s) (vUnsafeIndex v ao)
   where !l = product sh
         step s k = \ started !acc -> let !m = vMinimum s
                                      in  k True (if started then min acc m else m)

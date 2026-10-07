@@ -87,6 +87,8 @@ instance Vector V.Vector where
   type VecElem V.Vector = Unbox
   {-# INLINE vIndex #-}
   vIndex = (V.!)
+  {-# INLINE vUnsafeIndex #-}
+  vUnsafeIndex = V.unsafeIndex
   {-# INLINE vLength #-}
   vLength = V.length
   -- vToList, vFold, vAll and vAny hand each element to a function of the
@@ -178,6 +180,8 @@ instance Vector V.Vector where
                          let !x = V.unsafeIndex v i in go (f acc x) (i + 1)
   {-# INLINE vSlice #-}
   vSlice = V.slice
+  {-# INLINE vUnsafeSlice #-}
+  vUnsafeSlice = V.unsafeSlice
   {-# INLINE vSum #-}
   vSum = V.sum
   {-# INLINE vProduct #-}
@@ -204,7 +208,7 @@ instance Vector V.Vector where
                 | otherwise = let !x = V.unsafeIndex v i in q x || go (i + 1)
   -- Forced: no element of a Storable vector is undefined.
   {-# INLINE vWithElem #-}
-  vWithElem v i k = let !x = v V.! i in k x
+  vWithElem v i k = let !x = V.unsafeIndex v i in k x
   {-# INLINE vGenerate' #-}
   vGenerate' = V.generate
   {-# INLINE vFillStrided #-}
