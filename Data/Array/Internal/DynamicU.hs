@@ -13,6 +13,7 @@
 -- limitations under the License.
 
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
@@ -54,6 +55,7 @@ import Control.DeepSeq
 import Data.Coerce(coerce)
 import Data.Data(Data)
 import qualified Data.Vector.Unboxed as V
+import qualified Data.Vector.Unboxed.Mutable as MV
 import GHC.Stack(HasCallStack)
 import Test.QuickCheck hiding (generate)
 import GHC.Generics(Generic)
@@ -82,27 +84,33 @@ instance Vector V.Vector where
   vSingleton = V.singleton
   {-# INLINE vReplicate #-}
   vReplicate = V.replicate
-  -- The map and the zips generate their result over the indices, working around
+  -- The map and the zips build their result over the indices, working around
   -- vector's own, whose stream-fused loops at -O1, lacking the SpecConstr of
   -- -O2, allocate per element: a zipWith on Doubles 72 bytes an element against
-  -- 8, taking through zipWithA 13 to 15 times as long.  No fusion is given up:
-  -- vector's fuse with a vector they read, but each array operation stores its
-  -- result, so the array operations never fused their inputs; a map of a map
-  -- allocates a vector an operation with vector's map and with this one alike.
+  -- 8, taking through zipWithA 13 to 15 times as long.  The map, zipWith3 and
+  -- zipWith4 write it by a loop of their own ('indexLoop') rather than by
+  -- generate: on GHC HEAD with vector's issue 570 fixed, on views of 200000
+  -- Doubles, mapA took 0.64 to 0.74 of its time at -O1 and 0.94 to 0.97 with
+  -- -fspec-constr, and zipWith3A and zipWith4A 0.93 to 1.00 and 0.76 to 0.97;
+  -- zipWith and zipWith5 keep generate, the loop gaining nothing on the first
+  -- and costing the second 2 to 6% at -O1.  No fusion is given up: vector's
+  -- fuse with a vector they read, but each array operation stores its result,
+  -- so the array operations never fused their inputs; a map of a map allocates
+  -- a vector an operation with vector's map and with this one alike.
   {-# INLINE vMap #-}
-  vMap f v = V.generate (V.length v) (\ i -> f (V.unsafeIndex v i))
+  vMap f v = indexLoop (V.length v) (\ i -> f (V.unsafeIndex v i))
   {-# INLINE vZipWith #-}
   vZipWith f a b =
     V.generate (V.length a `min` V.length b) $ \ i ->
       f (V.unsafeIndex a i) (V.unsafeIndex b i)
   {-# INLINE vZipWith3 #-}
   vZipWith3 f a b c =
-    V.generate (V.length a `min` V.length b `min` V.length c) $ \ i ->
+    indexLoop (V.length a `min` V.length b `min` V.length c) $ \ i ->
       f (V.unsafeIndex a i) (V.unsafeIndex b i) (V.unsafeIndex c i)
   {-# INLINE vZipWith4 #-}
   vZipWith4 f a b c d =
-    V.generate (V.length a `min` V.length b `min` V.length c
-                `min` V.length d) $ \ i ->
+    indexLoop (V.length a `min` V.length b `min` V.length c
+               `min` V.length d) $ \ i ->
       f (V.unsafeIndex a i) (V.unsafeIndex b i) (V.unsafeIndex c i)
         (V.unsafeIndex d i)
   {-# INLINE vZipWith5 #-}
@@ -127,10 +135,26 @@ instance Vector V.Vector where
   vSum = V.sum
   {-# INLINE vProduct #-}
   vProduct = V.product
+  -- The maximum and the minimum fold over the indices, in the order of
+  -- vector's foldl1': on GHC HEAD with vector's issue 570 fixed, minimumA took
+  -- 0.67 to 0.72 of its time at -O1 and maximumA as long as with vector's own,
+  -- and with -fspec-constr, on a view of runs, 0.71 and 0.85 of it, elsewhere
+  -- as long.
   {-# INLINE vMaximum #-}
-  vMaximum = V.maximum
+  vMaximum v | V.null v = V.maximum v
+             | otherwise = let !x0 = V.unsafeIndex v 0 in go x0 1
+    where !n = V.length v
+          go !acc !i | i >= n = acc
+                     | otherwise =
+                         let !x = V.unsafeIndex v i in go (max acc x) (i + 1)
+  -- Folded as vMaximum is.
   {-# INLINE vMinimum #-}
-  vMinimum = V.minimum
+  vMinimum v | V.null v = V.minimum v
+             | otherwise = let !x0 = V.unsafeIndex v 0 in go x0 1
+    where !n = V.length v
+          go !acc !i | i >= n = acc
+                     | otherwise =
+                         let !x = V.unsafeIndex v i in go (min acc x) (i + 1)
   {-# INLINE vUpdate #-}
   vUpdate = (V.//)
   {-# INLINE vGenerate #-}
@@ -145,6 +169,15 @@ instance Vector V.Vector where
   vConcatN = genericConcatN
   {-# INLINE vConcatPadN #-}
   vConcatPadN = genericConcatPadN
+
+-- A vector of n elements, the ith g i, written over the indices.
+{-# INLINE indexLoop #-}
+indexLoop :: Unbox a => Int -> (Int -> a) -> V.Vector a
+indexLoop !n g = V.create $ do
+  mv <- MV.unsafeNew n
+  let go !i | i >= n = return mv
+            | otherwise = MV.unsafeWrite mv i (g i) >> go (i + 1)
+  go 0
 
 type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }

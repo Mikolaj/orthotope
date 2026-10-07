@@ -13,6 +13,7 @@
 -- limitations under the License.
 
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -20,6 +21,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -55,10 +57,13 @@ module Data.Array.Internal.Dynamic(
   generate, iterateN, iota,
   ) where
 import Control.DeepSeq
+import Control.Monad.ST(ST)
 import Data.Coerce(coerce)
 import Data.Data(Data)
+import Data.Vector.Fusion.Util(Box(..))
 import GHC.Generics(Generic)
 import qualified Data.Vector as V
+import qualified Data.Vector.Mutable as MV
 import GHC.Stack(HasCallStack)
 import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
@@ -85,14 +90,34 @@ instance Vector V.Vector where
   vReplicate = V.replicate
   {-# INLINE vMap #-}
   vMap = fmap
+  -- The zips write each result unevaluated over the indices, reading the
+  -- elements unforced, as vector's own do, whose stream state, an index for
+  -- each vector and the element held between them, stays boxed without the
+  -- SpecConstr of -O2.  On GHC HEAD with vector's issue 570 fixed, on views
+  -- of 200000 Doubles, zipWithA to zipWith5A took 0.44 to 0.82 of their time
+  -- at -O1 and rerank2 of zipWithA 0.62; with -fspec-constr, 0.94 to 1.03,
+  -- but zipWith5A, whose stream SpecConstr leaves boxed, 0.50 to 0.62,
+  -- allocating 120 bytes an element where 528.  The same loop gained nothing
+  -- for vGenerate, which keeps vector's own.
   {-# INLINE vZipWith #-}
-  vZipWith = V.zipWith
+  vZipWith f a b = zipLoop (V.length a `min` V.length b) $ \ i ->
+    f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i
   {-# INLINE vZipWith3 #-}
-  vZipWith3 = V.zipWith3
+  vZipWith3 f a b c =
+    zipLoop (V.length a `min` V.length b `min` V.length c) $ \ i ->
+      f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i <*> V.unsafeIndexM c i
   {-# INLINE vZipWith4 #-}
-  vZipWith4 = V.zipWith4
+  vZipWith4 f a b c d =
+    zipLoop (V.length a `min` V.length b `min` V.length c
+             `min` V.length d) $ \ i ->
+      f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i <*> V.unsafeIndexM c i
+        <*> V.unsafeIndexM d i
   {-# INLINE vZipWith5 #-}
-  vZipWith5 = V.zipWith5
+  vZipWith5 f a b c d e =
+    zipLoop (V.length a `min` V.length b `min` V.length c `min` V.length d
+             `min` V.length e) $ \ i ->
+      f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i <*> V.unsafeIndexM c i
+        <*> V.unsafeIndexM d i <*> V.unsafeIndexM e i
   {-# INLINE vAppend #-}
   vAppend = (V.++)
   {-# INLINE vConcat #-}
@@ -117,10 +142,25 @@ instance Vector V.Vector where
   vUpdate = (V.//)
   {-# INLINE vGenerate #-}
   vGenerate = V.generate
+  -- vAll and vAny read each element by index through unsafeIndexM, which hands
+  -- the predicate the element stored, where unsafeIndex would hand it a thunk
+  -- of the read.  On GHC HEAD with vector's issue 570 fixed, on views of 200000
+  -- Doubles, they ran 0.96 of the instructions of vector's own at -O1 and as
+  -- many with -fspec-constr; their times, varying from run to run by up to 1.55
+  -- times, showed no difference.
   {-# INLINE vAll #-}
-  vAll = V.all
+  vAll q v = go 0
+    where !n = V.length v
+          go !i | i >= n = True
+                | otherwise = case V.unsafeIndexM v i of
+                    Box x -> q x && go (i + 1)
+  -- Read as vAll's are.
   {-# INLINE vAny #-}
-  vAny = V.any
+  vAny q v = go 0
+    where !n = V.length v
+          go !i | i >= n = False
+                | otherwise = case V.unsafeIndexM v i of
+                    Box x -> q x || go (i + 1)
   {-# INLINE vFillStrided #-}
   vFillStrided = genericFillStrided 5
   -- vConcatPadN takes genericConcatPadN, which on GHC HEAD took 0.33 and 0.35
@@ -134,6 +174,19 @@ instance Vector V.Vector where
   -- 500 elements or more at a 32 MB allocation area and 1.22 to 2.21 at 4 MB,
   -- running 1.02 to 1.41 and 1.35 to 2.88 times the instructions, though it
   -- took 0.41 to 0.79 and 0.50 to 0.76 of the time on rows of 2 to 8 elements.
+
+-- A vector of n elements, the ith what the action at i returns, written
+-- unevaluated.
+{-# INLINE zipLoop #-}
+zipLoop :: Int -> (forall s. Int -> ST s a) -> V.Vector a
+zipLoop !n g = V.create $ do
+  mv <- MV.unsafeNew n
+  let go !i | i >= n = return mv
+            | otherwise = do
+                x <- g i
+                MV.unsafeWrite mv i x
+                go (i + 1)
+  go 0
 
 type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }

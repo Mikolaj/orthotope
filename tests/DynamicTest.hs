@@ -178,6 +178,12 @@ test = testGroup "Dynamic" $
       zipWithA_3 = assertEqual "3" [] (toList (zipWithA quot (constant [0] 1) (constant [0] (0 :: Int))))  -- 1 `quot` 0 outside the view
       zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
       zipWith3A_2 = assertEqual "2" [] (toList (zipWith3A (\ x y z -> x `quot` (y + z)) (constant [0] 1) (constant [0] 0) (constant [0] (0 :: Int))))
+      -- The zips read the elements of their arguments unforced and leave each
+      -- result unevaluated, as vector's own do.
+      zipWithA_4 = assertEqual "4" [5, 7] (toList (zipWithA (\ _ y -> y) (fromList [2] [undefined, undefined] :: Array Int) (fromList [2] [5, 7 :: Int])))
+      zipWithA_5 = assertEqual "5" 7 (unScalar (index (zipWithA (\ x y -> if x == 0 then error "forced" else x + y) (fromList [2] [0, 1]) (fromList [2] [5, 6 :: Int])) 1))
+      zipWith5A_1 = assertEqual "1" [9] (toList (zipWith5A (\ _ _ _ _ e -> e) u u u u (fromList [1] [9 :: Int])))
+        where u = fromList [1] [undefined] :: Array Int
       pad_1 = assertEqual "1" (fromList [5,10] [9,9,9,9,9,9,9,9,9,9,
                                                 9,9,9,1,2,3,9,9,9,9,
                                                 9,9,9,4,5,6,9,9,9,9,
@@ -490,6 +496,9 @@ test = testGroup "Dynamic" $
         , testCase "zipWithA_3" zipWithA_3
         , testCase "zipWith3A_1" zipWith3A_1
         , testCase "zipWith3A_2" zipWith3A_2
+        , testCase "zipWithA_4" zipWithA_4
+        , testCase "zipWithA_5" zipWithA_5
+        , testCase "zipWith5A_1" zipWith5A_1
         , testCase "pad_1" pad_1
         , testCase "pad_2" pad_2
         , testCase "transpose_1" transpose_1
