@@ -63,7 +63,7 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.DynamicG as G
-import Data.Array.Internal(ShapeL, Vector(..), genericConcatN, genericConcatPadN, genericZipWithStrided,
+import Data.Array.Internal(ShapeL, Vector(..), genericConcatN, genericConcatPadN, genericZipWithStrided, genericZipWith3Strided, genericZipWith4Strided, genericZipWith5Strided,
                            genericFillStrided)
 
 type Unbox = V.Unbox
@@ -187,6 +187,12 @@ instance Vector V.Vector where
   vGenerate' = V.generate
   {-# INLINE vZipWithStrided #-}
   vZipWithStrided = genericZipWithStrided
+  {-# INLINE vZipWith3Strided #-}
+  vZipWith3Strided = genericZipWith3Strided
+  {-# INLINE vZipWith4Strided #-}
+  vZipWith4Strided = genericZipWith4Strided
+  {-# INLINE vZipWith5Strided #-}
+  vZipWith5Strided = genericZipWith5Strided
   {-# INLINE vFillStrided #-}
   vFillStrided = genericFillStrided 64
   {-# INLINE vConcatN #-}

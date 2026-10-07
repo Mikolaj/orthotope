@@ -41,6 +41,7 @@ import Data.Ord(comparing)
 import Data.Proxy
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
+import Data.Vector.Fusion.Util(Box(..))
 import GHC.Exts(Constraint, SpecConstrAnnotation(..), build)
 import GHC.Generics(Generic)
 import GHC.TypeLits(KnownNat, natVal)
@@ -147,6 +148,31 @@ class Vector v where
                   -> [Int] -> Int -> v b -> v c
   vZipWithStrided f sh ss o v ss' o' v' =
     vZipWith f (toVectorT sh (T ss o v)) (toVectorT sh (T ss' o' v'))
+
+  -- | 'vZipWithStrided' for three views, as 'vZipWith3' is for three vectors.
+  vZipWith3Strided :: (VecElem v a, VecElem v b, VecElem v c, VecElem v d)
+                   => (a -> b -> c -> d) -> ShapeL
+                   -> [Int] -> Int -> v a -> [Int] -> Int -> v b -> [Int] -> Int -> v c -> v d
+  vZipWith3Strided f sh s1 o1 v1 s2 o2 v2 s3 o3 v3 =
+    vZipWith3 f (toVectorT sh (T s1 o1 v1)) (toVectorT sh (T s2 o2 v2))
+               (toVectorT sh (T s3 o3 v3))
+
+  -- | 'vZipWithStrided' for four views.
+  vZipWith4Strided :: (VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e)
+                   => (a -> b -> c -> d -> e) -> ShapeL
+                   -> [Int] -> Int -> v a -> [Int] -> Int -> v b -> [Int] -> Int -> v c -> [Int] -> Int -> v d -> v e
+  vZipWith4Strided f sh s1 o1 v1 s2 o2 v2 s3 o3 v3 s4 o4 v4 =
+    vZipWith4 f (toVectorT sh (T s1 o1 v1)) (toVectorT sh (T s2 o2 v2))
+               (toVectorT sh (T s3 o3 v3)) (toVectorT sh (T s4 o4 v4))
+
+  -- | 'vZipWithStrided' for five views.
+  vZipWith5Strided :: (VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, VecElem v f)
+                   => (a -> b -> c -> d -> e -> f) -> ShapeL
+                   -> [Int] -> Int -> v a -> [Int] -> Int -> v b -> [Int] -> Int -> v c -> [Int] -> Int -> v d -> [Int] -> Int -> v e -> v f
+  vZipWith5Strided f sh s1 o1 v1 s2 o2 v2 s3 o3 v3 s4 o4 v4 s5 o5 v5 =
+    vZipWith5 f (toVectorT sh (T s1 o1 v1)) (toVectorT sh (T s2 o2 v2))
+               (toVectorT sh (T s3 o3 v3)) (toVectorT sh (T s4 o4 v4))
+               (toVectorT sh (T s5 o5 v5))
 
 class None a
 instance None a
@@ -470,6 +496,80 @@ genericZipWithStrided f sh ss !o !v ss' !o' !v' = VG.create fill
           return (pos + 1)
     _ <- walk sh ss ss' o o' 0
     return out
+
+-- The walk of up to five views of one shape, each given as its strides and
+-- offset, a view a caller does not use given strides of zero: a vector of the
+-- shape's elements in row-major order, each what the read at the views'
+-- offsets there gives, run in 'Box', so that the reads happen as the walk
+-- reaches them and the result is written as it is, unevaluated at boxed
+-- elements.  Its loops are 'genericZipWithStrided''s.
+{-# INLINE genericWalkStrided5 #-}
+genericWalkStrided5 :: forall w c. VG.Vector w c
+                    => ShapeL -> [Int] -> [Int] -> [Int] -> [Int] -> [Int]
+                    -> Int -> Int -> Int -> Int -> Int
+                    -> (Int -> Int -> Int -> Int -> Int -> Box c) -> w c
+genericWalkStrided5 sh s1 s2 s3 s4 s5 !o1 !o2 !o3 !o4 !o5 act = VG.create fill
+ where
+  fill :: forall s. ST s (VG.Mutable w s c)
+  fill = do
+    out <- VGM.unsafeNew (product sh)
+    let put !pos !q1 !q2 !q3 !q4 !q5 = case act q1 q2 q3 q4 q5 of
+          Box x -> VGM.unsafeWrite out pos x
+        walk :: [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> [Int]
+             -> Int -> Int -> Int -> Int -> Int -> Int -> ST s Int
+        walk [!n] [!t1] [!t2] [!t3] [!t4] [!t5] !p1 !p2 !p3 !p4 !p5 !pos =
+          inner 0 p1 p2 p3 p4 p5 pos
+          where inner !k !q1 !q2 !q3 !q4 !q5 !o
+                  | k >= n = return o
+                  | otherwise = do
+                      put o q1 q2 q3 q4 q5
+                      inner (k + 1) (q1 + t1) (q2 + t2) (q3 + t3) (q4 + t4)
+                            (q5 + t5) (o + 1)
+        walk (!n : ns) (!t1 : ts1) (!t2 : ts2) (!t3 : ts3) (!t4 : ts4)
+             (!t5 : ts5) !p1 !p2 !p3 !p4 !p5 !pos = outer 0 p1 p2 p3 p4 p5 pos
+          where outer !k !q1 !q2 !q3 !q4 !q5 !o
+                  | k >= n = return o
+                  | otherwise = do
+                      o' <- walk ns ts1 ts2 ts3 ts4 ts5 q1 q2 q3 q4 q5 o
+                      outer (k + 1) (q1 + t1) (q2 + t2) (q3 + t3) (q4 + t4)
+                            (q5 + t5) o'
+        walk _ _ _ _ _ _ !p1 !p2 !p3 !p4 !p5 !pos = do
+          put pos p1 p2 p3 p4 p5
+          return (pos + 1)
+    _ <- walk sh s1 s2 s3 s4 s5 o1 o2 o3 o4 o5 0
+    return out
+
+-- 'genericZipWithStrided' for three, four and five views, walked by
+-- 'genericWalkStrided5'.
+{-# INLINE genericZipWith3Strided #-}
+genericZipWith3Strided :: (VG.Vector w a, VG.Vector w b, VG.Vector w c, VG.Vector w d)
+                       => (a -> b -> c -> d) -> ShapeL -> [Int] -> Int -> w a
+                       -> [Int] -> Int -> w b -> [Int] -> Int -> w c -> w d
+genericZipWith3Strided f sh s1 o1 v1 s2 o2 v2 s3 o3 v3 =
+  genericWalkStrided5 sh s1 s2 s3 zs zs o1 o2 o3 0 0 $ \ p q r _ _ ->
+    f <$> VG.unsafeIndexM v1 p <*> VG.unsafeIndexM v2 q <*> VG.unsafeIndexM v3 r
+  where zs = map (const 0) sh
+
+{-# INLINE genericZipWith4Strided #-}
+genericZipWith4Strided :: (VG.Vector w a, VG.Vector w b, VG.Vector w c, VG.Vector w d, VG.Vector w e)
+                       => (a -> b -> c -> d -> e) -> ShapeL -> [Int] -> Int -> w a
+                       -> [Int] -> Int -> w b -> [Int] -> Int -> w c
+                       -> [Int] -> Int -> w d -> w e
+genericZipWith4Strided f sh s1 o1 v1 s2 o2 v2 s3 o3 v3 s4 o4 v4 =
+  genericWalkStrided5 sh s1 s2 s3 s4 zs o1 o2 o3 o4 0 $ \ p q r t _ ->
+    f <$> VG.unsafeIndexM v1 p <*> VG.unsafeIndexM v2 q <*> VG.unsafeIndexM v3 r
+      <*> VG.unsafeIndexM v4 t
+  where zs = map (const 0) sh
+
+{-# INLINE genericZipWith5Strided #-}
+genericZipWith5Strided :: (VG.Vector w a, VG.Vector w b, VG.Vector w c, VG.Vector w d, VG.Vector w e, VG.Vector w f)
+                       => (a -> b -> c -> d -> e -> f) -> ShapeL -> [Int] -> Int -> w a
+                       -> [Int] -> Int -> w b -> [Int] -> Int -> w c
+                       -> [Int] -> Int -> w d -> [Int] -> Int -> w e -> w f
+genericZipWith5Strided f sh s1 o1 v1 s2 o2 v2 s3 o3 v3 s4 o4 v4 s5 o5 v5 =
+  genericWalkStrided5 sh s1 s2 s3 s4 s5 o1 o2 o3 o4 o5 $ \ p q r t u ->
+    f <$> VG.unsafeIndexM v1 p <*> VG.unsafeIndexM v2 q <*> VG.unsafeIndexM v3 r
+      <*> VG.unsafeIndexM v4 t <*> VG.unsafeIndexM v5 u
 
 -- The measured-fastest fill for 'vFillStrided': an allocate-once mutable
 -- result, an odometer recursion over the outer dimensions with the input offset
@@ -827,6 +927,11 @@ data Route
 -- measurement: each bang of this module was flipped alone and the -O1
 -- Core compared, and the one on the axes of 'RRuns' improved it, where
 -- one on those of 'RFill' did not.
+
+-- Whether a route is one slice of the vector.
+isSliceRoute :: Route -> Bool
+isSliceRoute RSlice{} = True
+isSliceRoute _ = False
 
 -- | An axis as its stride and extent.  Each level of the odometer of
 -- 'offsetsT' holds the canonical list's own axis, shared by every state
@@ -1534,17 +1639,16 @@ zipWithT sh f t@(T ss o v) t'@(T ss' o' v') =
       -- Second vector has length 1, so use a map instead.
       mapT sh (`f` vIndex v' 0) t
     (_, _)
-      | l > 0, not (isSlice (routeT sh l t) && isSlice (routeT sh l t')) ->
+      | l > 0, not (isSliceRoute (routeT sh l t) && isSliceRoute (routeT sh l t')) ->
           fromVectorT sh $ vZipWithStrided f sh ss o v ss' o' v'
       | otherwise ->
           let cv  = toVectorT sh t
               cv' = toVectorT sh t'
           in  fromVectorT sh $ vZipWith f cv cv'
   where !l = product sh
-        isSlice RSlice{} = True
-        isSlice _ = False
 
--- Zip three arrays with a function.
+-- Zip three arrays with a function, views that are not all one slice by
+-- 'vZipWith3Strided', as 'zipWithT' zips two.
 {-# INLINE zipWith3T #-}
 zipWith3T :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d) =>
              ShapeL -> (a -> b -> c -> d) -> T v a -> T v b -> T v c -> T v d
@@ -1554,25 +1658,37 @@ zipWith3T sh f (T ss _ v) (T _ _ v') (T _ _ v'') |
   -- the element lies outside it.
   0 `notElem` sh, vLength v == 1, vLength v' == 1, vLength v'' == 1 =
     T ss 0 $ vSingleton $ f (vIndex v 0) (vIndex v' 0) (vIndex v'' 0)
-zipWith3T sh f t t' t'' = fromVectorT sh $ vZipWith3 f v v' v''
-  where v   = toVectorT sh t
+zipWith3T sh f t@(T s1 o1 v1) t'@(T s2 o2 v2) t''@(T s3 o3 v3)
+  | l > 0, not (all isSliceRoute [routeT sh l t, routeT sh l t', routeT sh l t'']) =
+      fromVectorT sh $ vZipWith3Strided f sh s1 o1 v1 s2 o2 v2 s3 o3 v3
+  | otherwise = fromVectorT sh $ vZipWith3 f v v' v''
+  where !l = product sh
+        v   = toVectorT sh t
         v'  = toVectorT sh t'
         v'' = toVectorT sh t''
 
--- Zip four arrays with a function.
+-- Zip four arrays with a function, as 'zipWith3T' zips three.
 {-# INLINE zipWith4T #-}
 zipWith4T :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e) => ShapeL -> (a -> b -> c -> d -> e) -> T v a -> T v b -> T v c -> T v d -> T v e
-zipWith4T sh f t t' t'' t''' = fromVectorT sh $ vZipWith4 f v v' v'' v'''
-  where v   = toVectorT sh t
+zipWith4T sh f t@(T s1 o1 v1) t'@(T s2 o2 v2) t''@(T s3 o3 v3) t'''@(T s4 o4 v4)
+  | l > 0, not (all isSliceRoute [routeT sh l t, routeT sh l t', routeT sh l t'', routeT sh l t''']) =
+      fromVectorT sh $ vZipWith4Strided f sh s1 o1 v1 s2 o2 v2 s3 o3 v3 s4 o4 v4
+  | otherwise = fromVectorT sh $ vZipWith4 f v v' v'' v'''
+  where !l = product sh
+        v   = toVectorT sh t
         v'  = toVectorT sh t'
         v'' = toVectorT sh t''
         v'''= toVectorT sh t'''
 
--- Zip five arrays with a function.
+-- Zip five arrays with a function, as 'zipWith3T' zips three.
 {-# INLINE zipWith5T #-}
 zipWith5T :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, VecElem v f) => ShapeL -> (a -> b -> c -> d -> e -> f) -> T v a -> T v b -> T v c -> T v d -> T v e -> T v f
-zipWith5T sh f t t' t'' t''' t'''' = fromVectorT sh $ vZipWith5 f v v' v'' v''' v''''
-  where v   = toVectorT sh t
+zipWith5T sh f t@(T s1 o1 v1) t'@(T s2 o2 v2) t''@(T s3 o3 v3) t'''@(T s4 o4 v4) t''''@(T s5 o5 v5)
+  | l > 0, not (all isSliceRoute [routeT sh l t, routeT sh l t', routeT sh l t'', routeT sh l t''', routeT sh l t'''']) =
+      fromVectorT sh $ vZipWith5Strided f sh s1 o1 v1 s2 o2 v2 s3 o3 v3 s4 o4 v4 s5 o5 v5
+  | otherwise = fromVectorT sh $ vZipWith5 f v v' v'' v''' v''''
+  where !l = product sh
+        v   = toVectorT sh t
         v'  = toVectorT sh t'
         v'' = toVectorT sh t''
         v'''= toVectorT sh t'''

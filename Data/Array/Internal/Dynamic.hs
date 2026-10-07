@@ -69,7 +69,7 @@ import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.DynamicG as G
-import Data.Array.Internal(ShapeL, Vector(..), None, genericConcatPadN, genericFillStrided, genericZipWithStrided, rnfViewT)
+import Data.Array.Internal(ShapeL, Vector(..), None, genericConcatPadN, genericFillStrided, genericZipWithStrided, genericZipWith3Strided, genericZipWith4Strided, genericZipWith5Strided, rnfViewT)
 import qualified Data.Array.Internal.DynamicG as DG
 
 instance Vector V.Vector where
@@ -171,6 +171,12 @@ instance Vector V.Vector where
   vGenerate' n g = zipLoop n (\ i -> return $! g i)
   {-# INLINE vZipWithStrided #-}
   vZipWithStrided = genericZipWithStrided
+  {-# INLINE vZipWith3Strided #-}
+  vZipWith3Strided = genericZipWith3Strided
+  {-# INLINE vZipWith4Strided #-}
+  vZipWith4Strided = genericZipWith4Strided
+  {-# INLINE vZipWith5Strided #-}
+  vZipWith5Strided = genericZipWith5Strided
   {-# INLINE vFillStrided #-}
   vFillStrided = genericFillStrided 5
   -- vConcatPadN takes genericConcatPadN, which on GHC HEAD took 0.33 and 0.35
