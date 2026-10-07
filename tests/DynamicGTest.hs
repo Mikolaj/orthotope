@@ -80,6 +80,7 @@ backend nan n = testGroup n $
   , testPropertyN "prop_fromVector" (prop_fromVector @v @a)
   , testPropertyN "prop_show" (prop_show @v @a)
   , testPropertyN "prop_rerank" (prop_rerank @v @a)
+  , testPropertyN "prop_ravel" (prop_ravel @v @a)
   , testPropertyN "prop_rotate" (prop_rotate @v @a)
   ]
 
@@ -348,6 +349,17 @@ prop_rerank v@(View sh _) =
                .&&. toList (rerank2 n (zipWithA (+)) x x) === map (* 2) (toList x)
                .&&. toList (rerank2 n (zipWithA (-)) x y) === map (* (-2)) (toList x)
                .&&. toList (rerank2 n (zipWithA (-)) y x) === map (* 2) (toList x))
+
+-- ravel fails on an outer array of none, and on arrays of differing shapes,
+-- naming the first one's shape and the first that differs.
+prop_ravel :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
+prop_ravel v@(View sh _) =
+  let x = mkViewG v (upTo (product sh)) :: Array v a
+      y = reshape [product (shapeL x), 1] x
+      msg = "ravel: non-conforming inner dimensions: " ++ show [shapeL x, shapeL y]
+  in  failsWith "ravel: empty array" (ravel (fromList [0] [] :: Array V.Vector (Array v a)))
+      .&&. (if shapeL x == shapeL y then property True
+            else failsWith msg (ravel (fromList [3] [x, x, y] :: Array V.Vector (Array v a))))
 
 -- A call of rotate on an array of shape osh ++ h : t, rotating it k times
 -- along dimension length osh.
