@@ -213,18 +213,19 @@ badShape sh = any (< 0) sh || (0 `notElem` sh && overflows 1 sh)
   where overflows !_ [] = False
         overflows !n (s : ss) = n > maxBound `quot` s || overflows (n * s) ss
 
--- Compare two arrays of the same shape, the first argument, element by
--- element, stopping at the first element that differs.  Two views of the same
--- strides read their vectors alike, from offsets that may differ: where they
--- read every element of one part of their vectors ('readRangeT') they compare
--- the two parts, and where they do not they compare their views without the
--- broadcast dimensions, which repeat what the rest holds, part by part along
--- the route ('routePartsT'), a part being a run or, where the uniform run
--- length is one element, an element.  Otherwise two views that are one slice each
--- compare as the slices, a view and a slice as the view's parts against the
--- slice from its start on, and any other pair through 'toListT'.  The index
--- loops allocate nothing, a walk against a slice 16 bytes a part, and no case
--- reads an element outside the views or materializes one.
+-- Compare two arrays of the same shape, the first argument, element by element,
+-- stopping at the first element that differs.  Two views of the same strides
+-- read their vectors alike, from offsets that may differ: where they read every
+-- element of one part of their vectors ('readRangeT') they compare the two
+-- parts, and where they do not they compare their views without the broadcast
+-- dimensions, which repeat what the rest holds, part by part along the route
+-- ('routePartsT'), a part being a run or, where the uniform run length is one
+-- element, an element.  Otherwise two views that are one slice each compare as
+-- the slices, a view and a slice as the view's parts against the slice from its
+-- start on, and any other pair as the first view's parts against the second
+-- normalized, a slice of its own.  The index loops allocate nothing, a walk
+-- against a slice 16 bytes a part, and no case reads an element outside the
+-- views or materializes one but the last, which copies the second.
 --
 -- The parts that two views of the same strides read whole are compared
 -- in the order of the vectors, not of the views, so where they hold an
@@ -266,22 +267,25 @@ equalT s x@(T _ _ vx) y@(T _ _ vy)
       (RSlice ox _, ry) ->
         routePartsT ry (\p n rest !q -> go q p n && rest (q + n))
                     (const True) ox
-      _ -> and (zipWith (==) (toListT s x) (toListT s y))
+      (rx, _) -> let !(T _ oz vz) = normalizeT s y
+                 in  routePartsT rx (\p n rest !q -> goWith vz p q n && rest (q + n))
+                                 (const True) oz
   where
     !l = product s
     !d = offset y - offset x
     go :: Int -> Int -> Int -> Bool
-    go !ox !oy !k = loop 0
-      where loop !i = i >= k || (vIndex vx (ox + i) == vIndex vy (oy + i)
+    go = goWith vy
+    goWith !w !ox !oy !k = loop 0
+      where loop !i = i >= k || (vIndex vx (ox + i) == vIndex w (oy + i)
                                  && loop (i + 1))
 
 -- Compare two arrays of the same shape lexicographically in row-major order:
 -- two views of the same strides part by part along the route of their views
 -- without the broadcast dimensions, as 'equalT' does where they read no part
 -- whole, two views that are one slice each by index, a view and a slice as
--- 'equalT' compares them, and any other pair through 'toListT'.  Without the
--- broadcast dimensions the order is kept: the first element that differs in
--- the views is the first one that differs in what remains.
+-- 'equalT' compares them, and any other pair as 'equalT' does.  Without the
+-- broadcast dimensions the order is kept: the first element that differs in the
+-- views is the first one that differs in what remains.
 {-# INLINE compareT #-}
 compareT :: (Vector v, VecElem v a, Ord a)
             => ShapeL -> T v a -> T v a -> Ordering
@@ -306,17 +310,21 @@ compareT s x@(T _ _ vx) y@(T _ _ vy)
                                           EQ -> rest (q + n)
                                           o -> o)
                     (const EQ) ox
-      _ -> foldr (\o r -> if o == EQ then r else o) EQ
-                 (zipWith compare (toListT s x) (toListT s y))
+      (rx, _) -> let !(T _ oz vz) = normalizeT s y
+                 in  routePartsT rx (\p n rest !q -> case goWith vz p q n of
+                                                      EQ -> rest (q + n)
+                                                      o -> o)
+                                 (const EQ) oz
   where
     !l = product s
     !d = offset y - offset x
     go :: Int -> Int -> Int -> Ordering
-    go !ox !oy !k = loop 0
+    go = goWith vy
+    goWith !w !ox !oy !k = loop 0
       where loop !i
               | i >= k = EQ
               | otherwise =
-                  case compare (vIndex vx (ox + i)) (vIndex vy (oy + i)) of
+                  case compare (vIndex vx (ox + i)) (vIndex w (oy + i)) of
                     EQ -> loop (i + 1)
                     o -> o
 

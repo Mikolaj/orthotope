@@ -98,10 +98,10 @@ prop_toList v@(View sh _) =
       l = [ unScalar (foldl index x is) | is <- mapM (\ s -> [0 .. s - 1]) (shapeL x) ]
   in  toList x === l .&&. I.vToList (toVector x) === l
 
--- == and compare agree with comparing the lists, between a view and an
--- array of its elements with at most one of them changed, and between two
--- views of one layout over vectors that differ in at most one element,
--- inside the views or outside them.
+-- == and compare agree with comparing the lists, between a view and an array of
+-- its elements with at most one of them changed, laid out in order or in the
+-- reverse order of its dimensions, and between two views of one layout over
+-- vectors that differ in at most one element, inside the views or outside them.
 prop_compare :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Elem a) =>
                 View -> Property
 prop_compare v@(View sh _) =
@@ -114,6 +114,10 @@ prop_compare v@(View sh _) =
       forAll (choose (1, 3)) $ \ m ->
       let l' = [ if k == i then e + fromIntegral d else e | (k, e) <- zip [0 ..] l ]
           y = fromList (shapeL x) l'
+          -- y laid out in the reverse order of its dimensions, which no slice
+          -- reads where two of them exceed one
+          yt = transpose rv (fromList (reverse (shapeL x)) (toList (transpose rv y)))
+          rv = reverse [0 .. length (shapeL x) - 1]
           z = mkViewG v [ fromIntegral (if k == j then k + d else k) | k <- [0 .. n - 1] ]
           -- z with its strides, at an offset m further into a longer vector
           w = case z of
@@ -122,6 +126,8 @@ prop_compare v@(View sh _) =
             _ -> z
       in  (x == y) === (l == l') .&&. compare x y === compare l l'
           .&&. compare y x === compare l' l
+          .&&. (x == yt) === (l == l') .&&. compare x yt === compare l l'
+          .&&. compare yt x === compare l' l
           .&&. (x == z) === (l == toList z) .&&. compare x z === compare l (toList z)
           .&&. (x == w) === (l == toList w) .&&. compare x w === compare l (toList w)
 
