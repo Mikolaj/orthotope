@@ -823,6 +823,27 @@ section][floor], and the roster fix it carried puts `sum-only-early` above
   on `c0a8aaa`'s rewrite of the inward fill, which the registration predates;
   and (2) `probe-r39-rules.py` names no arm slower past 3% on both halves in any
   population, so no back-edge rule is named for retirement.
+- `ANSWERED` **The two passes' third on `small-flat64`'s lean fills is one
+  fold's boxing: the canonical-axes merge over a list accumulator, which only
+  SpecConstr unboxes.** On Run 40 the four lean fills read about 37 ns net
+  on the basis against 28 on the control, on a view that canonicalizes to one
+  slice, so that the fill there is its dispatch and a slice header. Callgrind
+  over the two `-g3` twins puts the difference at 98 instructions a call
+  and criterion's allocation fit at 72 bytes, the forcing pass cancelling
+  exactly, and the Core says where: `canonicalize`'s `foldl' mergeInner`
+  over a list allocates at plain -O1 a cell and a pair for each axis kept,
+  and those and a lazy thunk for each merge, where SpecConstr's specialisation
+  carries the head axis unboxed and allocates 56 bytes once --- the 72 bytes
+  to the byte. The gap dates from Run 39, the cross figure going 0.945 on Run 38
+  to 1.339, the step where `78c5521` put `canonicalize` into `routeList4`,
+  neither side built. A strict record accumulator in `mergeInner`, tried
+  2026-09-25, takes the basis's lean fills on `small-flat64` to 0.71 to 0.77
+  of Run 40's net time and 64 bytes a call, and the unordered `libunord`
+  consumers' allocation, control over basis per cell, to within 3.1 points of 1;
+  it costs the control 5 to 56 instructions a call on the `small` lean fills
+  and reads 1.00 to 1.11 of their net time, more than those instructions
+  explain, and a `foldr` form tried the same day, its head carried boxed,
+  allocates less than the record on views that push, re-boxing nothing.
 - `ANSWERED` **What Run 38 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 38's own file](runs/run38.md); in a clause each: (1)
@@ -1553,7 +1574,7 @@ section][floor], and the roster fix it carried puts `sum-only-early` above
   and the pointer fills' three spans KILLED with two of their three directions
   established and the third parting between the two statistics the run file
   publishes --- and not one clause of the eight was unreadable, where Runs 24
-  and 25 lost five between them.
+  and 25 lost six between them.
 - `ANSWERED` **What Run 25 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 25's own file](runs/run25.md); in a clause each: (1)
@@ -2199,7 +2220,7 @@ section][floor], and the roster fix it carried puts `sum-only-early` above
   and the instrument that would name it, load/store-split or `perf mem`
   sampling, is unavailable on this machine (no IBS exposure; findings item 58).
   Answered: the added misses at `-A4m` are mutator-side, the collector's own
-  symbols carrying ~1% of samples in every cell, so the conceptual objection
+  symbols carrying ~1-2% of samples in every cell, so the conceptual objection
   in [the floor section][floor] stands measured (item 56).
 
 - `PARKED` **`mut-odo-vecdims-add-in` leads `mut-odo-vecdims` on one compiler
@@ -2613,9 +2634,9 @@ does not fuse away, and that is `bq-expand`'s edge over `offsets-quot`.
 **Strictness bangs on the hot loop are performance-essential**, worth ~2x
 on their own, and are carried into `Data/Array/Internal.hs` with the logic.
 
-**While this was achieved, the harness had to be hardened** --- criterion `env`
-employed to move input construction outside the clock, `NOINLINE` so
-that the arms and the `check` mode run one compiled body of each strategy,
+**The fourth finding is that the harness had to be hardened** --- criterion
+`env` employed to move input construction outside the clock, `NOINLINE`
+so that the arms and the `check` mode run one compiled body of each strategy,
 and the agreement check in a separate `check` mode so it cannot share
 a computation with the benchmark via CSE. Each call stays inside the timed loop
 because criterion's own loop, `whnf'`, is compiled without full laziness.
@@ -2806,7 +2827,7 @@ ahead of the implementation:
   is no combined figure to compute, so a sentence comparing populations compares
   their tables. One process per class follows from the same ruling,
   and `read-run.py` enforces it --- it names the population it read, fails
-  a file spanning two, and refuses to emit a table for one.
+  a file spanning two, and refuses such a file a table.
 - **No strategy is excluded from any class.** Every one is to be fixed to work
   on all of them, seen failing first wherever the failure can be fired; why
   the Int32 strategies cannot fail below a 2^31-element source whatever
@@ -3439,11 +3460,11 @@ builds agreeing to three decimals ([the ceiling](#the-mutable-ceiling-taken))
 
 Validation on this branch:
 
-- orthotope's own test suite: **596/596 pass** (Dynamic/Ranked/Shaped x
+- orthotope's own test suite: **passes whole** (Dynamic/Ranked/Shaped x
   boxed/storable/unboxed), with the fallback live through the method.
 - Non-vacuity: deliberately dropping the `+ tInner` from the driver's unrolled
-  second read fails 94 of the 596, `rev_2` among them --- so the pass
-  is not vacuous.
+  second read failed 94 of the 596 tests the suite then had, `rev_2` among them
+  --- so the pass is not vacuous.
 - This benchmark: `check` agrees with `list` on every shape of every class
   for the ported arm, so the algorithm the driver ports covers negative,
   mixed-sign, zero and overlapping strides; the library port itself is validated
