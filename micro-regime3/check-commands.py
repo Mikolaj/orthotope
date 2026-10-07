@@ -26,6 +26,10 @@ a file, or where `on` or `over` and a backticked JSON follow it, as the run
 files write a mode's input; a bare `--compare ...` with neither reads the
 run's main-set pair, its halves off pair-halves.sh.
 
+A reader that exits with neither 0 nor 1, or with a traceback, read
+nothing: its command is listed as not run, and its output bears out no
+figure.
+
     --dir DIR    run the commands from DIR, this script's own by default
 
 Exit 0 when every figure matched, 1 with the list, 2 when nothing was read.
@@ -156,7 +160,7 @@ def main(argv):
         sys.stderr.write('check-commands.py: %s; nothing was read\n' % e)
         return 2
     run = os.path.basename(argv[0])[:-3]
-    outputs, refused, listed = {}, [], []
+    outputs, refused, listed, dark = {}, [], [], set()
     for para in prose(text):
         for sentence in SENTENCE_RE.split(para):
             argvs = []
@@ -177,8 +181,23 @@ def main(argv):
                                            capture_output=True, text=True,
                                            timeout=TIMEOUT)
                         outputs[a] = r.stdout + r.stderr
+                        # A reader exits 1 with findings, so only another
+                        # status or a traceback says it read nothing; its
+                        # text is then a refusal, and a figure the refusal
+                        # echoes bears nothing out.
+                        if r.returncode not in (0, 1) or ('Traceback (most'
+                                                          ' recent call'
+                                                          ' last)'
+                                                          in r.stderr):
+                            last = outputs[a].strip().splitlines()
+                            outputs[a] = ''
+                            dark.add(a)
+                            refused.append((' '.join(a), 'exited %d: %s' % (
+                                r.returncode,
+                                last[-1] if last else '(no output)')))
                     except (OSError, subprocess.SubprocessError) as e:
                         outputs[a] = ''
+                        dark.add(a)
                         refused.append((' '.join(a), 'did not run: %s' % e))
                 numbers += [float(n) for n in NUMBER_RE.findall(outputs[a])]
             claimed = FIGURE_RE.findall(SPAN_RE.sub(' ', sentence))
@@ -186,7 +205,8 @@ def main(argv):
             if unmatched:
                 listed.append((sentence, unmatched))
     print('%s: %d command(s) run, %d not run, %d sentence(s) with a figure'
-          ' no command printed' % (os.path.basename(argv[0]), len(outputs),
+          ' no command printed' % (os.path.basename(argv[0]),
+                                   len(outputs) - len(dark),
                                    len(refused), len(listed)))
     for sentence, unmatched in listed:
         print('  %s' % sentence)

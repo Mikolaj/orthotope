@@ -421,22 +421,29 @@ def rundoc_with_a_mask(tmp):
                         + text[m.end(1):])
 
 
-def commands_doc(tmp, clean=False):
+def commands_doc(tmp, clean=False, refuse=False):
     """A directory for check-commands.py: a stand-in `read-run.py` printing
     two figures, and a run file quoting it -- a sentence its output
     carries, by rounding and as a percentage off a ratio, one it does not,
-    a bare mode the checker expands, and a driver it must not run."""
+    a bare mode the checker expands, and a driver it must not run. With
+    `refuse`, a clean file plus one sentence whose command the stand-in
+    refuses at exit 2, echoing the sentence's figure as its argument."""
     d = os.path.join(tmp, 'cmd')
     os.makedirs(d)
     os.chmod(write(os.path.join(d, 'read-run.py'),
                    '#!/usr/bin/env python3\nimport sys\n'
+                   'if "--band" in sys.argv:\n'
+                   '    print("refusing --band 1.5: no such population")\n'
+                   '    sys.exit(2)\n'
                    'print("list 1.29291")\nprint("ratio 0.9639")\n'
                    'if "run95-x-main.json" in sys.argv:\n'
                    '    print("json 2.5")\n'), 0o755)
     body = ('**Head.** `./read-run.py --show run95` reads 1.2929 and 3.6%'
             ' faster. `--show run95` reads 1.293 too. `--counts c.txt'
             ' --pair a b` on `run95-x-main.json` reads 2.5.')
-    if not clean:
+    if refuse:
+        body += ' `./read-run.py --band 1.5 run95` puts the arm 1.5 clear.'
+    elif not clean:
         body += (' `./read-run.py --show run95` takes the floor from 0.85%'
                  ' to 0.53%. `./run-evening.sh run95` is a driver at 1.5.')
     doc = os.path.join(d, 'run95.md')
@@ -1625,13 +1632,15 @@ def drift_repo(tmp, moved=True):
     return {'dir': d}
 
 
-def drift_since_repo(tmp, code=True, pragma=False):
+def drift_since_repo(tmp, code=True, pragma=False, mute=False):
     """A throwaway checkout for `registration-drift.py --since`: a roster
     of two arms, `lib-a` reaching `fooFill` through `fbA` and `lib-b`
     reaching nothing, built once as Run 96, then one commit that changes
     `fooFill`'s code where `code`, only a comment above it otherwise, and
     only an INLINE pragma for it at column 0 where `pragma`;
-    Run 97's note names the tip, and no binary is here."""
+    Run 97's note names the tip, and no binary is here unless `mute`,
+    which puts one beside the note whose `--list` prints nothing and
+    exits 1."""
     d = os.path.join(tmp, 'repo')
     os.makedirs(d)
     g = lambda *a: subprocess.run(['git', '-C', d, '-c', 'user.email=t@t',
@@ -1655,7 +1664,11 @@ def drift_since_repo(tmp, code=True, pragma=False):
       'rebuild the fill' if code else 'note the fill')
     tip = g('rev-parse', '--short', 'HEAD').stdout.strip()
     write(os.path.join(d, 'run96-pair.txt'), '  Main.hs at        %s\n' % base)
-    write(os.path.join(d, 'run97-pair.txt'), '  Main.hs at        %s\n' % tip)
+    write(os.path.join(d, 'run97-pair.txt'), '  Main.hs at        %s\n' % tip
+          + ('HALVES: basis=a other=b\n' if mute else ''))
+    if mute:
+        write(os.path.join(d, 'run97-a'), '#!/bin/sh\nexit 1\n')
+        os.chmod(os.path.join(d, 'run97-a'), 0o755)
     return {'dir': d}
 
 
@@ -13876,6 +13889,22 @@ RECORDS = [
          # as the run files write it, and its figure prints only with it.
          ok=V(exit=0, has=['0 sentence(s) with a figure no command printed'])),
 
+    # A reader that refused still counted as run, and its refusal joined
+    # the numbers a figure is matched against, so a refusal echoing its
+    # argument bore out the very figure it never read. Found 2026-10-07 by
+    # a triage of defect-lint's dropped-status hits.
+    case('check-commands-names-a-command-that-refused',
+         'check-commands.py', 'self',
+         'a quoted reader command that exited 2 counted as run, and the'
+         ' figure its refusal echoed matched',
+         plant=lambda t: commands_doc(t, refuse=True),
+         argv=['--dir', '{dir}', '{doc}'],
+         ok=V(exit=1, has=['unmatched: 1.5', 'exited 2',
+                           '2 command(s) run, 1 not run']),
+         bug=V(exit=0, has=['3 command(s) run, 0 not run',
+                            '0 sentence(s) with a figure no command'
+                            ' printed'])),
+
     case('registration-lead-is-the-movers-key', 'read-run.py', None,
          'a registration whose bold lead carried one clause more passed'
          ' pre-run 7 and was refused by --move-registration after the run,'
@@ -14071,6 +14100,22 @@ RECORDS = [
          ok=V(exit=1, has=['note the fill', 'code: none -- comments only',
                            'by none: lib-a, lib-b'],
               hasnt=['arms: lib-a'])),
+
+    # A basis binary that answered `--list` with nothing left `timed` an
+    # empty set rather than None, so every roster arm was filtered out and
+    # the drift read as reaching no timed arm, of a roster never read.
+    # roster-delta.py refused this case already. Found 2026-10-07 by a
+    # triage of defect-lint's dropped-status hits.
+    case('drift-since-refuses-a-binary-that-lists-nothing',
+         'registration-drift.py', 'self',
+         'a basis binary whose --list failed read as a roster with no timed'
+         ' arm, the drift reaching none of them',
+         plant=lambda t: drift_since_repo(t, code=True, mute=True),
+         argv=['run97', '--since', 'run96', '--dir', '{dir}'],
+         ok=V(exit=2, has=['run97-a --list', 'listed nothing'],
+              hasnt=['reached by some commit']),
+         bug=V(exit=1, has=['reached by some commit: 0 arm(s); by none:'
+                            ' none'])),
 
     case('predictions-in-place-keeps-the-headings-two-blanks', 'read-run.py',
          'd941cc6',
@@ -15792,6 +15837,19 @@ RECORDS = [
          plant=lambda t: {'legs': reroll_legs(t, 1.021)},
          argv=['zzvl', '--legs', '{legs}', '--bar', '5'],
          ok=V(exit=0, has=['2.10%'])),
+
+    # --legs reads one view's legs and writes no table, so a --csv or a -c
+    # given with it was accepted and ignored: the CSV never written and
+    # nothing said. Found 2026-10-07 by a triage of defect-lint's hits.
+    case('view-floor-legs-refuses-what-it-does-not-read', 'view-floor.py',
+         'self',
+         '--legs took --csv and -c in silence, writing no CSV and reading'
+         ' no class',
+         plant=lambda t: {'legs': reroll_legs(t, 1.021)},
+         argv=['zzvl', '--legs', '{legs}', '--bar', '5', '--csv',
+               '{tmp}/legs.csv'],
+         ok=V(exit=2, has=['--csv'], hasnt=['2.10%']),
+         bug=V(exit=0, has=['2.10%'])),
 
     # Three fixes to preflight.sh, whose steps and reporters have no case
     # (checks.py's UNCOVERED); how each bug direction was watched is its

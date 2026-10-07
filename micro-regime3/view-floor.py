@@ -30,7 +30,7 @@ Exit 0 when no view exceeds its class floor by more than --factor (default 2),
 1 when one does, and 2 when the run did not happen -- no JSONs, or a class
 whose views carry no A/A group at all. With --legs there is no class floor,
 so the exit is 1 when a group's widest spread passes --bar percent (default
-2.0), and --factor is refused rather than ignored.
+2.0), and --factor, --csv and -c are refused rather than ignored.
 """
 import argparse, collections, glob, json, os, statistics, sys
 
@@ -131,6 +131,12 @@ def main():
         if a.factor is not None:
             print('--legs reads its bar from --bar, in percent; legs of one'
                   ' view have no class floor for --factor to multiply')
+            return 2
+        # Nor does it read a class or write a table, so those are refused
+        # too rather than taken in silence.
+        if a.csv or a.classes:
+            print('--legs reads the legs of one view and writes no table;'
+                  ' --csv and -c belong to the class floors')
             return 2
         a.bar = 2.0 if a.bar is None else a.bar
         return legs_mode(a)

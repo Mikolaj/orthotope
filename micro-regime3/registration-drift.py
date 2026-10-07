@@ -30,7 +30,9 @@ is value-level: a changed `data`, `newtype`, `type`, `class` or `instance`
 declaration is named under `code:`, and reaches an arm only through a
 definition whose own code changed with it. Where
 the basis binary is here its `--list` says which arms are timed, and only
-those are named; without one every roster arm reached is. This is the
+those are named; without one every roster arm reached is, and one whose
+`--list` fails or lists nothing is refused, exit 2
+(`drift-since-refuses-a-binary-that-lists-nothing`). This is the
 arm-by-arm reading the pre-run list's reading 7 is scoped by. Cases:
 `drift-since-names-the-arms-a-commit-reaches` and
 `drift-since-reads-a-comment-only-commit-as-one`.
@@ -152,6 +154,13 @@ def since(d, run, prev):
     if binary and os.access(binary, os.X_OK):
         r = subprocess.run([binary, '--list'], capture_output=True, text=True)
         timed = {l.split('/', 1)[1] for l in r.stdout.split() if '/' in l}
+        if r.returncode or not timed:
+            print('%s --list exited %d and listed %s -- wrong binary, or a'
+                  ' mode it lacks; which arms are timed cannot be told,'
+                  ' nothing read' % (os.path.basename(binary), r.returncode,
+                                     '%d arm(s)' % len(timed) if timed
+                                     else 'nothing'))
+            return 2
         arms = [a for a in arms if a[0] in timed]
     print('%s since %s: Main.hs %s..%s, %d commit(s); arms named are %s'
           % (run, prev, rows[prev], tip, len(commits),
