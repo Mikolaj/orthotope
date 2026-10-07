@@ -180,6 +180,9 @@ instance Vector V.Vector where
   vAll = V.all
   {-# INLINE vAny #-}
   vAny = V.any
+  -- Forced: no element of an Unboxed vector is undefined.
+  {-# INLINE vWithElem #-}
+  vWithElem v i k = let !x = v V.! i in k x
   {-# INLINE vFillStrided #-}
   vFillStrided = genericFillStrided 64
   {-# INLINE vConcatN #-}
