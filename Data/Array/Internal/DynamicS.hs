@@ -13,6 +13,7 @@
 -- limitations under the License.
 
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
@@ -70,6 +71,7 @@ import Data.Data(Data)
 import qualified Data.Vector.Storable as V
 import Foreign.Storable(sizeOf)
 import GHC.Generics(Generic)
+import GHC.Exts(build)
 import GHC.Stack(HasCallStack)
 import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
@@ -87,8 +89,22 @@ instance Vector V.Vector where
   vIndex = (V.!)
   {-# INLINE vLength #-}
   vLength = V.length
+  -- vToList, vFold, vAll and vAny hand each element to a function of the
+  -- client's, so they read it by index and force it, where vector's own hand on
+  -- Storable's read as a thunk (https://github.com/haskell/vector/issues/570)
+  -- that a function GHC cannot see into, or a consumer keeping the elements,
+  -- as traverseA does, takes as it is, 40 bytes an element holding the vector.
+  -- On GHC HEAD with the issue fixed and -fspec-constr, the operations reading
+  -- through them took 0.95 to 1.02 of their time; at -O1, anyA and allA took
+  -- 0.61 and 0.91 of it, fixed or not.  vSum, vProduct, vMaximum and vMinimum
+  -- keep vector's own: their functions are the element's class methods, which a
+  -- call the client specialises knows, so the read is no thunk there.
   {-# INLINE vToList #-}
-  vToList = V.toList
+  vToList v = build $ \ cons nil ->
+    let !n = V.length v
+        go !i | i >= n = nil
+              | otherwise = let !x = V.unsafeIndex v i in cons x (go (i + 1))
+    in  go 0
   {-# INLINE vFromList #-}
   vFromList = V.fromList
   {-# INLINE vFromListN #-}
@@ -136,8 +152,13 @@ instance Vector V.Vector where
   -- copies apart (https://gitlab.haskell.org/ghc/ghc/-/work_items/27892).
   vConcat [] = V.empty
   vConcat vs = V.concat vs
+  -- Each element read forced, as at vToList.
   {-# INLINE vFold #-}
-  vFold = V.foldl'
+  vFold f z v = go z 0
+    where !n = V.length v
+          go !acc !i | i >= n = acc
+                     | otherwise =
+                         let !x = V.unsafeIndex v i in go (f acc x) (i + 1)
   {-# INLINE vSlice #-}
   vSlice = V.slice
   {-# INLINE vSum #-}
@@ -152,10 +173,18 @@ instance Vector V.Vector where
   vUpdate = (V.//)
   {-# INLINE vGenerate #-}
   vGenerate = V.generate
+  -- Each element read forced, as at vToList.
   {-# INLINE vAll #-}
-  vAll = V.all
+  vAll q v = go 0
+    where !n = V.length v
+          go !i | i >= n = True
+                | otherwise = let !x = V.unsafeIndex v i in q x && go (i + 1)
+  -- Each element read forced, as at vToList.
   {-# INLINE vAny #-}
-  vAny = V.any
+  vAny q v = go 0
+    where !n = V.length v
+          go !i | i >= n = False
+                | otherwise = let !x = V.unsafeIndex v i in q x || go (i + 1)
   {-# INLINE vFillStrided #-}
   vFillStrided :: forall a. Unbox a
                => Axes -> Int -> Int -> V.Vector a -> V.Vector a
