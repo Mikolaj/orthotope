@@ -127,6 +127,14 @@ prettyShowL l = render . pPrintPrec l 0
 -- dimension starts you calculate vector index @offset + i*strides[0]@.
 -- To find where item /i,j/ of the two outermost dimensions is you
 -- calculate vector index @offset + i*strides[0] + j*strides[1]@, etc.
+--
+-- The functions here have contracts, which the operations of the array
+-- modules establish before calling them. A call that breaks one is a bug:
+-- where a contract is checked, the error says "violated contract", or an
+-- assert fails. An argument a caller keeping every contract can pass, and
+-- that has no result, is checked in the operation that takes it, before any
+-- contract check and before any call that relies on it, and the error names
+-- that operation.
 type role T representational nominal
 data T v a = T
     { strides :: ![Int]   -- length is tensor rank

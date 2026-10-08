@@ -159,6 +159,7 @@ stretch :: ShapeL -> Array n a -> Array n a
 stretch s = A . G.stretch s . unA
 
 -- | Change the size of the outermost dimension by replication.
+-- Fails if the outermost dimension is not 1.
 {-# INLINABLE stretchOuter #-}
 stretchOuter :: (HasCallStack, 1 <= n) => Int -> Array n a -> Array n a
 stretchOuter s = A . G.stretchOuter s . unA
@@ -176,6 +177,7 @@ unScalar :: (Unbox a) => Array 0 a -> a
 unScalar = G.unScalar . unA
 
 -- | Make an array with all elements having the same value.
+-- Fails if an extent is negative.
 -- O(1) time
 {-# INLINABLE constant #-}
 constant :: (Unbox a, KnownNat n) => ShapeL -> a -> Array n a
@@ -188,14 +190,16 @@ mapA :: (Unbox a, Unbox b) =>
         (a -> b) -> Array n a -> Array n b
 mapA f = A . G.mapA f . unA
 
--- | Map over the array elements.
+-- | Combine the elements of two arrays.
+-- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINABLE zipWithA #-}
 zipWithA :: (Unbox a, Unbox b, Unbox c) =>
             (a -> b -> c) -> Array n a -> Array n b -> Array n c
 zipWithA f a b = A $ G.zipWithA f (unA a) (unA b)
 
--- | Map over the array elements.
+-- | Combine the elements of three arrays.
+-- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINABLE zipWith3A #-}
 zipWith3A :: (Unbox a, Unbox b, Unbox c, Unbox d) =>
@@ -203,6 +207,7 @@ zipWith3A :: (Unbox a, Unbox b, Unbox c, Unbox d) =>
 zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)
 
 -- | Pad each dimension on the low and high side with the given value.
+-- Fails if the padding list is longer than the rank.
 -- O(n) time.
 {-# INLINABLE pad #-}
 pad :: (Unbox a, KnownNat n) => [(Int, Int)] -> a -> Array n a -> Array n a
@@ -218,13 +223,14 @@ transpose is = A . G.transpose is . unA
 
 -- | Append two arrays along the outermost dimension.
 -- All dimensions, except the outermost, must be the same.
+-- Fails if either array has rank 0.
 -- O(n) time.
 {-# INLINABLE append #-}
 append :: (Unbox a, KnownNat n) => Array n a -> Array n a -> Array n a
 append x y = A $ G.append (unA x) (unA y)
 
 -- | Concatenate a number of arrays into a single array.
--- Fails if any, but the outer, dimensions differ.
+-- Fails if the list is empty or any but the outer dimensions differ.
 -- O(n) time.
 {-# INLINABLE concatOuter #-}
 concatOuter :: (Unbox a, KnownNat n) => [Array n a] -> Array n a
@@ -232,6 +238,7 @@ concatOuter = A . G.concatOuter . coerce
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
+-- Fails if the outer array is empty.
 -- O(n) time.
 {-# INLINABLE ravel #-}
 ravel :: (Unbox a, KnownNat (1+n)) =>
@@ -252,6 +259,8 @@ unravel = R.A . G.mapA A . G.unravel . unA
 -- @[8,10,3,3,8]@.
 --
 -- E.g., @window [2] (fromList [4] [1,2,3,4]) == fromList [3,2] [1,2, 2,3, 3,4]@
+-- Fails if the window list is longer than the rank or a window is negative or
+-- larger than its dimension.
 -- O(1) time.
 --
 -- If the window parameter @ws = [w1,...,wk]@ and @wa = window ws a@ then
@@ -263,6 +272,7 @@ window ws = A . G.window ws . unA
 -- | Stride the outermost dimensions.
 -- E.g., if the array shape is @[10,12,8]@ and the strides are
 -- @[2,2]@ then the resulting shape will be @[5,6,8]@.
+-- Fails if the stride list is longer than the rank.
 -- O(1) time.
 {-# INLINABLE stride #-}
 stride :: [Int] -> Array n a -> Array n a
@@ -271,6 +281,7 @@ stride ws = A . G.stride ws . unA
 -- | Rotate the array k times along the d'th dimension.
 -- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
 -- the resulting shape will be @[2, 4, 3, 2]@.
+-- Fails if d is not a dimension of the array or k is negative.
 {-# INLINABLE rotate #-}
 rotate :: forall d p a.
           (KnownNat p, KnownNat d, Unbox a,
@@ -308,6 +319,7 @@ rerank f = A . G.rerank (unA . f . A) . unA
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
 -- The /n/ must not exceed the rank of the array.
+-- Fails if the arrays differ in those /n/ outermost dimensions.
 -- O(n) time.
 {-# INLINABLE rerank2 #-}
 rerank2 :: forall n i o a b c .
@@ -316,6 +328,7 @@ rerank2 :: forall n i o a b c .
 rerank2 f ta tb = A $ G.rerank2 @n (\ a b -> unA $ f (A a) (A b)) (unA ta) (unA tb)
 
 -- | Reverse the given dimensions, with the outermost being dimension 0.
+-- Fails if a given dimension is not one of the array's.
 -- O(1) time.
 {-# INLINABLE rev #-}
 rev :: [Int] -> Array n a -> Array n a
@@ -359,11 +372,13 @@ productA :: (Unbox a, Num a) => Array r a -> a
 productA = G.productA . unA
 
 -- | Maximum of all elements.
+-- Fails if the array is empty.
 {-# INLINE maximumA #-}
 maximumA :: (Unbox a, Ord a) => Array r a -> a
 maximumA = G.maximumA . unA
 
 -- | Minimum of all elements.
+-- Fails if the array is empty.
 {-# INLINE minimumA #-}
 minimumA :: (Unbox a, Ord a) => Array r a -> a
 minimumA = G.minimumA . unA
@@ -382,6 +397,7 @@ allA p = G.allA p . unA
 -- and just replicate the data along all other dimensions.
 -- The list of dimensions indicies must have the same rank as the argument array
 -- and it must be strictly ascending.
+-- Fails if an index is not a dimension of the result.
 {-# INLINABLE broadcast #-}
 broadcast :: forall r' r a .
              (HasCallStack, Unbox a, KnownNat r, KnownNat r') =>

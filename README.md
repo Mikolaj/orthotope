@@ -65,6 +65,21 @@ treat the elements in a uniform way.  For more algorithmic operations,
 e.g., matrix multiplication, we suggest using a different library,
 like `hmatrix`.
 
+### Errors
+
+An operation of the array modules either returns its result or fails
+with an error naming it, such as `reshape: size mismatch ([2,3],[5])`. Such
+an argument breaks no contract: the error is its result, and the operation's
+documentation says when it occurs, with "Fails if" or with "must". Some failures
+hold throughout and go unsaid: in the `Ranked` modules, a rank other
+than the one the types give. The `Shaped` modules check most arguments in their
+types instead.
+
+The functions of `Data.Array.Internal` have contracts, which the operations
+establish before calling them. A call that breaks one is a bug, in orthotope
+or in code calling that module directly; where it is caught, the error says
+`violated contract`, or an assertion fails in a build that keeps asserts.
+
 ### Examples using `Dynamic`
 
 Some preliminaries:

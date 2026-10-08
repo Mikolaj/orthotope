@@ -173,6 +173,7 @@ stretch sh (A sh' vs) | Just bs <- str sh sh' = A sh $ stretchT bs vs
         str _ _ = Nothing
 
 -- | Change the size of the outermost dimension by replication.
+-- Fails if the outermost dimension is not 1.
 {-# INLINE stretchOuter #-}
 stretchOuter :: (HasCallStack) => Int -> Array v a -> Array v a
 stretchOuter s (A (1:sh) vs) =
@@ -186,6 +187,7 @@ scalar :: (Vector v, VecElem v a) => a -> Array v a
 scalar = A [] . scalarT
 
 -- | Convert a scalar (rank 0) array to a value.
+-- Fails if the array is not a scalar.
 -- O(1) time.
 {-# INLINE unScalar #-}
 unScalar :: (HasCallStack, Vector v, VecElem v a) => Array v a -> a
@@ -193,6 +195,7 @@ unScalar (A [] t) = unScalarT t
 unScalar _ = error "unScalar: not a scalar"
 
 -- | Make an array with all elements having the same value.
+-- Fails if an extent is negative.
 -- O(1) time
 {-# INLINE constant #-}
 constant :: (HasCallStack, Vector v, VecElem v a) => ShapeL -> a -> Array v a
@@ -205,7 +208,8 @@ constant sh | badShape sh = error "constant: bad shape"
 mapA :: (Vector v, VecElem v a, VecElem v b) => (a -> b) -> Array v a -> Array v b
 mapA f (A s t) = A s (mapT s f t)
 
--- | Map over the array elements.
+-- | Combine the elements of two arrays.
+-- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWithA #-}
 zipWithA :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c) =>
@@ -213,7 +217,8 @@ zipWithA :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c) =>
 zipWithA f (A s t) (A s' t') | s == s' = A s (zipWithT s f t t')
                              | otherwise = error $ "zipWithA: shape mismatch " ++ show (s, s')
 
--- | Map over the array elements.
+-- | Combine the elements of three arrays.
+-- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith3A #-}
 zipWith3A :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d) =>
@@ -221,7 +226,8 @@ zipWith3A :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c, Vec
 zipWith3A f (A s t) (A s' t') (A s'' t'') | s == s' && s == s'' = A s (zipWith3T s f t t' t'')
                                           | otherwise = error $ "zipWith3A: shape mismatch " ++ show (s, s', s'')
 
--- | Map over the array elements.
+-- | Combine the elements of four arrays.
+-- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith4A #-}
 zipWith4A :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e) =>
@@ -229,7 +235,8 @@ zipWith4A :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c, Vec
 zipWith4A f (A s t) (A s' t') (A s'' t'') (A s''' t''') | s == s' && s == s'' && s == s''' = A s (zipWith4T s f t t' t'' t''')
                                                         | otherwise = error $ "zipWith4A: shape mismatch " ++ show (s, s', s'', s''')
 
--- | Map over the array elements.
+-- | Combine the elements of five arrays.
+-- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith5A #-}
 zipWith5A :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, VecElem v f) =>
@@ -238,6 +245,7 @@ zipWith5A f (A s t) (A s' t') (A s'' t'') (A s''' t''') (A s'''' t'''') | s == s
                                                                         | otherwise = error $ "zipWith5A: shape mismatch " ++ show (s, s', s'', s''', s'''')
 
 -- | Pad each dimension on the low and high side with the given value.
+-- Fails if the padding list is longer than the rank.
 -- O(n) time.
 {-# INLINE pad #-}
 pad :: forall a v . (Vector v, VecElem v a) =>
@@ -261,6 +269,7 @@ transpose is (A sh t) | l > n = error $ "transpose: rank exceeded " ++ show (is,
 
 -- | Append two arrays along the outermost dimension.
 -- All dimensions, except the outermost, must be the same.
+-- Fails if either array has rank 0.
 -- O(n) time.
 {-# INLINE append #-}
 append :: (HasCallStack, Vector v, VecElem v a) => Array v a -> Array v a -> Array v a
@@ -269,7 +278,7 @@ append a@(A (sa:sh) _) b@(A (sb:sh') _) | sh == sh' =
 append _ _ = error "append: bad shape"
 
 -- | Concatenate a number of arrays into a single array.
--- Fails if any, but the outer, dimensions differ.
+-- Fails if the list is empty or any but the outer dimensions differ.
 -- O(n) time.
 {-# INLINE concatOuter #-}
 concatOuter :: (HasCallStack, Vector v, VecElem v a) => [Array v a] -> Array v a
@@ -282,6 +291,7 @@ concatOuter as | not $ allSame $ map tail shs =
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
+-- Fails if the outer array does not have rank 1 or the outer array is empty.
 -- O(n) time.
 {-# INLINE ravel #-}
 ravel :: (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' (Array v a)) =>
@@ -309,6 +319,8 @@ unravel = rerank 1 scalar
 -- @[8,10,3,3,8]@.
 --
 -- E.g., @window [2] (fromList [4] [1,2,3,4]) == fromList [3,2] [1,2, 2,3, 3,4]@
+-- Fails if the window list is longer than the rank or a window is negative or
+-- larger than its dimension.
 -- O(1) time.
 --
 -- If the window parameter @ws = [w1,...,wk]@ and @wa = window ws a@ then
@@ -325,7 +337,7 @@ window aws (A ash (T ss o v)) = A (win aws ash) (T (ss' ++ ss) o v)
 -- | Stride the outermost dimensions.
 -- E.g., if the array shape is @[10,12,8]@ and the strides are
 -- @[2,2]@ then the resulting shape will be @[5,6,8]@.
--- The rank of the stride list must not exceed the rank of the array.
+-- Fails if the stride list is longer than the rank.
 -- O(1) time.
 {-# INLINE stride #-}
 stride :: (HasCallStack, Vector v) => [Int] -> Array v a -> Array v a
@@ -337,6 +349,7 @@ stride ats (A ash (T ss o v)) = A (str ats ash) (T (zipWith (*) (ats ++ repeat 1
 -- | Rotate the array k times along the d'th dimension.
 -- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
 -- the resulting shape will be @[2, 4, 3, 2]@.
+-- Fails if d is not a dimension of the array or k is negative.
 {-# INLINE rotate #-}
 rotate :: (HasCallStack, Vector v, VecElem v a) => Int -> Int -> Array v a -> Array v a
 rotate d k a | d < rank a, k >= 0 = rerank d f a
@@ -393,6 +406,7 @@ ravelOuter osh as | not $ allSame shs = error $ "ravelOuter: non-conforming inne
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
 -- The /n/ must not exceed the rank of the array.
+-- Fails if the arrays differ in those /n/ outermost dimensions.
 -- O(n) time.
 {-# INLINE rerank2 #-}
 rerank2 :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c) =>
@@ -408,6 +422,7 @@ rerank2 n f (A sha ta) (A shb tb) | n < 0 || n > length sha || n > length shb = 
         ishb = drop n shb
 
 -- | Reverse the given dimensions, with the outermost being dimension 0.
+-- Fails if a given dimension is not one of the array's.
 -- O(1) time.
 {-# INLINE rev #-}
 rev :: (HasCallStack) => [Int] -> Array v a -> Array v a
@@ -457,12 +472,14 @@ productA :: (Vector v, VecElem v a, Num a) => Array v a -> a
 productA (A sh t) = productT sh t
 
 -- | Maximum of all elements.
+-- Fails if the array is empty.
 {-# INLINE maximumA #-}
 maximumA :: (HasCallStack, Vector v, VecElem v a, Ord a) => Array v a -> a
 maximumA a@(A sh t) | size a > 0 = maximumT sh t
                     | otherwise  = error "maximumA: empty array"
 
 -- | Minimum of all elements.
+-- Fails if the array is empty.
 {-# INLINE minimumA #-}
 minimumA :: (HasCallStack, Vector v, VecElem v a, Ord a) => Array v a -> a
 minimumA a@(A sh t) | size a > 0 = minimumT sh t
@@ -482,6 +499,7 @@ allA p (A sh t) = allT sh p t
 -- and just replicate the data along all other dimensions.
 -- The list of dimensions indicies must have the same rank as the argument array
 -- and it must be strictly ascending.
+-- Fails if an index is not a dimension of the result.
 broadcast :: (HasCallStack, Vector v, VecElem v a) =>
              [Int] -> ShapeL -> Array v a -> Array v a
 broadcast ds sh a | length ds /= rank a = error "broadcast: wrong number of broadcasts"
@@ -494,6 +512,7 @@ broadcast ds sh a | length ds /= rank a = error "broadcast: wrong number of broa
         ascending _ = True
 
 -- | Update the array at the specified indicies to the associated value.
+-- Fails if an index is out of bounds.
 update :: (HasCallStack, Vector v, VecElem v a) =>
           Array v a -> [([Int], a)] -> Array v a
 update (A sh t) us | all (ok . fst) us = A sh $ updateT sh t us

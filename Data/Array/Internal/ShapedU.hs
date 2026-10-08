@@ -173,12 +173,12 @@ constant = A . G.constant
 mapA :: (Unbox a, Unbox b, Shape sh) => (a -> b) -> Array sh a -> Array sh b
 mapA f = A . G.mapA f . unA
 
--- | Map over the array elements.
+-- | Combine the elements of two arrays.
 -- O(n) time.
 zipWithA :: (Unbox a, Unbox b, Unbox c, Shape sh) => (a -> b -> c) -> Array sh a -> Array sh b -> Array sh c
 zipWithA f a b = A $ G.zipWithA f (unA a) (unA b)
 
--- | Map over the array elements.
+-- | Combine the elements of three arrays.
 -- O(n) time.
 zipWith3A :: (Unbox a, Unbox b, Unbox c, Unbox d, Shape sh) => (a -> b -> c -> d) -> Array sh a -> Array sh b -> Array sh c -> Array sh d
 zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)

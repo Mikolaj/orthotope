@@ -197,6 +197,7 @@ stretch :: (HasCallStack) => ShapeL -> Array a -> Array a
 stretch s = A . G.stretch s . unA
 
 -- | Change the size of the outermost dimension by replication.
+-- Fails if the outermost dimension is not 1.
 stretchOuter :: (HasCallStack) => Int -> Array a -> Array a
 stretchOuter s = A . G.stretchOuter s . unA
 
@@ -206,11 +207,13 @@ scalar :: (Unbox a) => a -> Array a
 scalar = A . G.scalar
 
 -- | Convert a scalar (rank 0) array to a value.
+-- Fails if the array is not a scalar.
 -- O(1) time.
 unScalar :: (HasCallStack, Unbox a) => Array a -> a
 unScalar = G.unScalar . unA
 
 -- | Make an array with all elements having the same value.
+-- Fails if an extent is negative.
 -- O(1) time
 {-# INLINE constant #-}
 constant :: (Unbox a) => ShapeL -> a -> Array a
@@ -222,28 +225,32 @@ constant sh = A . G.constant sh
 mapA :: (Unbox a, Unbox b) => (a -> b) -> Array a -> Array b
 mapA f = A . G.mapA f . unA
 
--- | Map over the array elements.
+-- | Combine the elements of two arrays.
+-- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWithA #-}
 zipWithA :: (HasCallStack, Unbox a, Unbox b, Unbox c) =>
             (a -> b -> c) -> Array a -> Array b -> Array c
 zipWithA f a b = A $ G.zipWithA f (unA a) (unA b)
 
--- | Map over the array elements.
+-- | Combine the elements of three arrays.
+-- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith3A #-}
 zipWith3A :: (HasCallStack, Unbox a, Unbox b, Unbox c, Unbox d) =>
              (a -> b -> c -> d) -> Array a -> Array b -> Array c -> Array d
 zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)
 
--- | Map over the array elements.
+-- | Combine the elements of four arrays.
+-- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith4A #-}
 zipWith4A :: (HasCallStack, Unbox a, Unbox b, Unbox c, Unbox d, Unbox e) =>
              (a -> b -> c -> d -> e) -> Array a -> Array b -> Array c -> Array d -> Array e
 zipWith4A f a b c d = A $ G.zipWith4A f (unA a) (unA b) (unA c) (unA d)
 
--- | Map over the array elements.
+-- | Combine the elements of five arrays.
+-- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith5A #-}
 zipWith5A :: (HasCallStack, Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Unbox f) =>
@@ -251,6 +258,7 @@ zipWith5A :: (HasCallStack, Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Unbox f
 zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e)
 
 -- | Pad each dimension on the low and high side with the given value.
+-- Fails if the padding list is longer than the rank.
 -- O(n) time.
 pad :: (HasCallStack, Unbox a) => [(Int, Int)] -> a -> Array a -> Array a
 pad ps v = A . G.pad ps v . unA
@@ -264,18 +272,20 @@ transpose is = A . G.transpose is . unA
 
 -- | Append two arrays along the outermost dimension.
 -- All dimensions, except the outermost, must be the same.
+-- Fails if either array has rank 0.
 -- O(n) time.
 append :: (HasCallStack, Unbox a) => Array a -> Array a -> Array a
 append x y = A $ G.append (unA x) (unA y)
 
 -- | Concatenate a number of arrays into a single array.
--- Fails if any, but the outer, dimensions differ.
+-- Fails if the list is empty or any but the outer dimensions differ.
 -- O(n) time.
 concatOuter :: (HasCallStack, Unbox a) => [Array a] -> Array a
 concatOuter = A . G.concatOuter . coerce
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
+-- Fails if the outer array does not have rank 1 or the outer array is empty.
 -- O(n) time.
 ravel :: (HasCallStack, Unbox a) => D.Array (Array a) -> Array a
 ravel = A . G.ravel . G.mapA unA . D.unA
@@ -290,6 +300,8 @@ unravel = D.A . G.mapA A . G.unravel . unA
 -- E.g., if the shape of the array is @[10,12,8]@ and
 -- the window size is @[3,3]@ then the resulting array will have shape
 -- @[8,10,3,3,8]@.
+-- Fails if the window list is longer than the rank or a window is negative or
+-- larger than its dimension.
 -- O(1) time.
 window :: (HasCallStack) => [Int] -> Array a -> Array a
 window ws = A . G.window ws . unA
@@ -297,6 +309,7 @@ window ws = A . G.window ws . unA
 -- | Stride the outermost dimensions.
 -- E.g., if the array shape is @[10,12,8]@ and the strides are
 -- @[2,2]@ then the resulting shape will be @[5,6,8]@.
+-- Fails if the stride list is longer than the rank.
 -- O(1) time.
 stride :: (HasCallStack) => [Int] -> Array a -> Array a
 stride ws = A . G.stride ws . unA
@@ -304,6 +317,7 @@ stride ws = A . G.stride ws . unA
 -- | Rotate the array k times along the d'th dimension.
 -- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
 -- the resulting shape will be @[2, 4, 3, 2]@.
+-- Fails if d is not a dimension of the array or k is negative.
 rotate :: (HasCallStack, Unbox a) => Int -> Int -> Array a -> Array a
 rotate d k = A . G.rotate d k . unA
 
@@ -326,12 +340,14 @@ rerank n f = A . G.rerank n (unA . f . A) . unA
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
 -- The /n/ must not exceed the rank of the array.
+-- Fails if the arrays differ in those /n/ outermost dimensions.
 -- O(n) time.
 rerank2 :: (HasCallStack, Unbox a, Unbox b, Unbox c) =>
            Int -> (Array a -> Array b -> Array c) -> Array a -> Array b -> Array c
 rerank2 n f ta tb = A $ G.rerank2 n (\ a b -> unA $ f (A a) (A b)) (unA ta) (unA tb)
 
 -- | Reverse the given dimensions, with the outermost being dimension 0.
+-- Fails if a given dimension is not one of the array's.
 -- O(1) time.
 rev :: [Int] -> Array a -> Array a
 rev rs = A . G.rev rs . unA
@@ -369,11 +385,13 @@ productA :: (Unbox a, Num a) => Array a -> a
 productA = G.productA . unA
 
 -- | Maximum of all elements.
+-- Fails if the array is empty.
 {-# INLINE maximumA #-}
 maximumA :: (HasCallStack, Unbox a, Ord a) => Array a -> a
 maximumA = G.maximumA . unA
 
 -- | Minimum of all elements.
+-- Fails if the array is empty.
 {-# INLINE minimumA #-}
 minimumA :: (HasCallStack, Unbox a, Ord a) => Array a -> a
 minimumA = G.minimumA . unA
@@ -392,12 +410,14 @@ allA p = G.allA p . unA
 -- and just replicate the data along all other dimensions.
 -- The list of dimensions indicies must have the same rank as the argument array
 -- and it must be strictly ascending.
+-- Fails if an index is not a dimension of the result.
 {-# INLINE broadcast #-}
 broadcast :: (HasCallStack, Unbox a) =>
              [Int] -> ShapeL -> Array a -> Array a
 broadcast ds sh = A. G.broadcast ds sh . unA
 
 -- | Update the array at the specified indicies to the associated value.
+-- Fails if an index is out of bounds.
 {-# INLINE update #-}
 update :: (HasCallStack, Unbox a) =>
           Array a -> [([Int], a)] -> Array a
@@ -422,6 +442,7 @@ iota = A . G.iota
 -- | Convert between types by just reinterpreting the bits as another type.
 -- For instance the floating point number @(1.5 :: Float)@ will convert to
 -- @(0x3fc00000 :: Word32)@ since they have the same bit representation.
+-- Fails if the two types differ in size.
 {-# INLINE bitcast #-}
 bitcast :: forall a b . (HasCallStack, Unbox a, Unbox b) => Array a -> Array b
 bitcast (A (G.A sh (T ss o v)))

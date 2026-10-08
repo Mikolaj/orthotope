@@ -227,14 +227,14 @@ mapA :: (Vector v, VecElem v a, VecElem v b, Shape sh) =>
         (a -> b) -> Array sh v a -> Array sh v b
 mapA f a@(A t) = A $ mapT (shapeL a) f t
 
--- | Map over the array elements.
+-- | Combine the elements of two arrays.
 -- O(n) time.
 {-# INLINE zipWithA #-}
 zipWithA :: (Vector v, VecElem v a, VecElem v b, VecElem v c, Shape sh) =>
             (a -> b -> c) -> Array sh v a -> Array sh v b -> Array sh v c
 zipWithA f a@(A t) (A t') = A $ zipWithT (shapeL a) f t t'
 
--- | Map over the array elements.
+-- | Combine the elements of three arrays.
 -- O(n) time.
 {-# INLINE zipWith3A #-}
 zipWith3A :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, Shape sh) =>
