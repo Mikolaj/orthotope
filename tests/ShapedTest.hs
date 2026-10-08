@@ -118,6 +118,8 @@ test = testGroup "Shaped" $
                               (pad @['(1,2), '(3,4)] 9 a1)
       -- A padded size past maxBound.
       pad_2 = assertThrowsIn "2" "pad" (pad @['(0,0), '(0,4294967294)] 0 (constant 7 :: Array [4294967296, 2] Int) :: Array [4294967296, 4294967296] Int)
+      -- Extents summing past maxBound.
+      pad_3 = assertThrowsIn "3" "pad" (pad @'[ '(9223372036854775807, 9223372036854775807)] 0 (fromList [1,2,3] :: Array '[3] Int) :: Array '[18446744073709551617] Int)
       a5 :: Array '[2,3,4] Int
       a5 = fromList [1..24]
       transpose_1 = assertEqual "1" (fromList [1,2,3,4,
@@ -329,6 +331,7 @@ test = testGroup "Shaped" $
         , testCase "zipWith3A_1" zipWith3A_1
         , testCase "pad_1" pad_1
         , testCase "pad_2" pad_2
+        , testCase "pad_3" pad_3
         , testCase "transpose_1" transpose_1
         , testCase "transpose_2" transpose_2
         , testCase "transpose_3" transpose_3

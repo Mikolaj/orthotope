@@ -220,6 +220,8 @@ test = testGroup "Dynamic" $
                                                 9,9,9,9,9,9,9,9,9,9])
                               (pad [(1,2),(3,4)] 9 a1)
       pad_2 = assertThrows "2" (pad [(1,1),(1,1),(1,1)] 0 a1)
+      -- Extents summing past maxBound.
+      pad_3 = assertThrowsIn "3" "pad" (pad [(maxBound, maxBound)] 0 (fromList [3] [1,2,3::Int]))
       a5 :: Array Int
       a5 = fromList [2,3,4] [1..24]
       transpose_1 = assertEqual "1" (fromList [2,3,4] [1,2,3,4,
@@ -306,9 +308,13 @@ test = testGroup "Dynamic" $
                                     (transpose [1,0] a5)
       append_1 = assertEqual "1" (fromList [3,3] [1..9])
                                  (append a1 (fromList [1,3] [7,8,9]))
+      -- Extents summing past maxBound.
+      append_2 = assertThrowsIn "2" "append" (append (constant [maxBound] 0) (constant [maxBound] (0::Int)))
       concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                       (concatOuter [a1, concatOuter [a1,a1]])
       concatOuter_2 = assertThrows "2" (concatOuter [a1, a2])
+      -- Extents summing past maxBound.
+      concatOuter_3 = assertThrowsIn "3" "concatOuter" (concatOuter [constant [maxBound] 0, constant [maxBound] 0, fromList [3] [1,2,3::Int]])
       ravel_1 = assertEqual "1" (fromList [3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                 (ravel $ fromList [3] [a1,a1,a1])
       ravel_2 = assertThrows "2" (ravel $ fromList [2] [a1, concatOuter [a1,a1]])
@@ -540,6 +546,7 @@ test = testGroup "Dynamic" $
         , testCase "zipWith3A_2" zipWith3A_2
         , testCase "pad_1" pad_1
         , testCase "pad_2" pad_2
+        , testCase "pad_3" pad_3
         , testCase "transpose_1" transpose_1
         , testCase "transpose_2" transpose_2
         , testCase "transpose_3" transpose_3
@@ -550,8 +557,10 @@ test = testGroup "Dynamic" $
         , testCase "transpose_8" transpose_8
         , testCase "transpose_9" transpose_9
         , testCase "append_1" append_1
+        , testCase "append_2" append_2
         , testCase "concatOuter_1" concatOuter_1
         , testCase "concatOuter_2" concatOuter_2
+        , testCase "concatOuter_3" concatOuter_3
         , testCase "ravel_1" ravel_1
         , testCase "ravel_2" ravel_2
         , testCase "unravel_1" unravel_1

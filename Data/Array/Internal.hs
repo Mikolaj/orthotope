@@ -183,6 +183,18 @@ badShape = go 1
                        | n > maxBound `quot` s = any (< 0) ss || 0 `notElem` ss
                        | otherwise = go (n * s) ss
 
+-- The sum of non-negative extents, or -1 where it is past 'maxBound', where
+-- an extent made by adding them would wrap.  A foldr, so that a list built
+-- to be summed, a literal or a map, fuses with it and is never allocated.
+{-# INLINE sumExtents #-}
+sumExtents :: [Int] -> Int
+sumExtents ss = foldr (\ s k !n -> if n > maxBound - s then -1 else k (n + s)) id ss 0
+
+-- Whether non-negative extents sum past 'maxBound'.
+{-# INLINE sumOverflows #-}
+sumOverflows :: [Int] -> Bool
+sumOverflows ss = sumExtents ss < 0
+
 -- When shapes match, we can be efficient and use loop-fused comparisons instead
 -- of materializing a vector.
 -- Note this assumes the shape is the same for both Vectors.

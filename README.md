@@ -73,9 +73,9 @@ an argument breaks no contract: the error is its result, and the operation's
 documentation says when it occurs, with "Fails if" or with "must". The error's
 call stack shows the line that called the operation. Some failures hold
 throughout and go unsaid: a shape with a negative extent or with more elements
-than an `Int` counts and, in the `Ranked` modules, a rank other than the one
-the types give. The `Shaped` modules check most arguments in their types
-instead.
+than an `Int` counts, extents or paddings summing past `maxBound`, and,
+in the `Ranked` modules, a rank other than the one the types give. The `Shaped`
+modules check most arguments in their types instead.
 
 The functions of `Data.Array.Internal` have contracts, which the operations
 establish before calling them. A call that breaks one is a bug, in orthotope

@@ -268,12 +268,13 @@ zipWith5A f (A s t) (A s' t') (A s'' t'') (A s''' t''') (A s'''' t'''') | s == s
 -- | Pad each dimension on the low and high side with the given value.
 -- Fails if the padding list is longer than the rank or a padding is negative.
 -- O(n) time.
--- A padded extent past 'maxBound' can wrap to a wrong one.
 {-# INLINE pad #-}
 pad :: forall a v . (HasCallStack, Vector v, VecElem v a) =>
        [(Int, Int)] -> a -> Array v a -> Array v a
 pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " ++ show (length aps, length ash)
                      | any (\ (l, h) -> l < 0 || h < 0) aps = error $ "pad: negative padding " ++ show aps
+                     | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
+                         error $ "pad: padding past maxBound " ++ show (aps, ash)
                      | badShape sh = error $ "pad: bad shape " ++ show sh
                      | otherwise = A sh t
   where sh = zipWithLong2 (\ (l, h) s -> l + s + h) aps ash
@@ -298,10 +299,9 @@ transpose is (A sh t) | l > n = error $ "transpose: rank exceeded " ++ show (is,
 -- All dimensions, except the outermost, must be the same.
 -- Fails if either array has rank 0.
 -- O(n) time.
--- An outer extent summed past 'maxBound' can wrap to a wrong one.
 {-# INLINE append #-}
 append :: (HasCallStack, Vector v, VecElem v a) => Array v a -> Array v a -> Array v a
-append a@(A (sa:sh) _) b@(A (sb:sh') _) | sh == sh' =
+append a@(A (sa:sh) _) b@(A (sb:sh') _) | sh == sh' && not (sumOverflows [sa, sb]) =
   fromVector (sa+sb : sh) (vAppend (toVector a) (toVector b))
 append _ _ = error "append: bad shape"
 
@@ -309,16 +309,17 @@ append _ _ = error "append: bad shape"
 -- Fails if the list is empty, an array has rank 0 or any but the outer
 -- dimensions differ.
 -- O(n) time.
--- An outer extent summed past 'maxBound' can wrap to a wrong one.
 {-# INLINE concatOuter #-}
 concatOuter :: (HasCallStack, Vector v, VecElem v a) => [Array v a] -> Array v a
 concatOuter [] = error "concatOuter: empty list"
 concatOuter as | any null shs = error "concatOuter: rank 0 array"
                | not $ allSame $ map tail shs =
                  error $ "concatOuter: non-conforming inner dimensions: " ++ show shs
+               | n < 0 = error $ "concatOuter: outer extents summing past maxBound: " ++ show (map head shs)
                | otherwise = fromVector sh' $ vConcat $ map toVector as
   where shs@(sh:_) = map shapeL as
-        sh' = sum (map head shs) : tail sh
+        n = sumExtents (map head shs)
+        sh' = n : tail sh
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape,

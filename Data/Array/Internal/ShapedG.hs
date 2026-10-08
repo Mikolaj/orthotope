@@ -254,7 +254,9 @@ zipWith3A f a@(A t) (A t') (A t'') = A $ zipWith3T (shapeL a) f t t' t''
 {-# INLINE pad #-}
 pad :: forall ps sh' sh a v . (HasCallStack, Vector v, VecElem v a, Padded ps sh sh', Shape sh) =>
        a -> Array sh v a -> Array sh' v a
-pad v a@(A at) | badShape sh = error $ "pad: bad shape " ++ show sh
+pad v a@(A at) | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
+                   error $ "pad: padding past maxBound " ++ show (aps, ash)
+               | badShape sh = error $ "pad: bad shape " ++ show sh
                | otherwise = A t
   where ash = shapeL a
         aps = padded (Proxy :: Proxy ps) (Proxy :: Proxy sh)
