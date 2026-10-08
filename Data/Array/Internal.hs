@@ -1264,6 +1264,21 @@ unorderedRouteT sh !l (T ats ao _) = case axes of
   where
     (axes, !off) = absAxesAndStartT [] ao ats sh
 
+-- 'unorderedRouteT' without a broadcast's copies, for a consumer to which
+-- an element read again adds nothing, as 'allSameT', 'maximumT',
+-- 'minimumT', 'anyT' and 'allT' are: the one axis of stride 0 the merge can
+-- leave, innermost or just outside the run, is dropped, so that the route
+-- reads each cell of the view once.
+{-# INLINE cellsRouteT #-}
+cellsRouteT :: ShapeL -> Int -> T v a -> Route
+cellsRouteT sh l t = case unorderedRouteT sh l t of
+  RFill (Axes 0 _ (InnerFirst [])) o _ -> RSlice o 1
+  RFill (Axes 0 n (InnerFirst (Axis st m : outer))) o l' ->
+    routeOfT o (l' `quot` n) (Axes st m (InnerFirst outer))
+  RRuns (Axes 1 m (InnerFirst (Axis 0 n : outer))) o l' ->
+    routeOfT o (l' `quot` n) (Axes 1 m (InnerFirst outer))
+  route -> route
+
 -- The sort of 'unorderedRouteT', into 'byStrideRank''s order: an
 -- insertion over the walk's list, the outermost axis so far held apart
 -- from the rest, each axis after every axis it ranks after, so one
@@ -1656,7 +1671,7 @@ allSameT sh t@(T _ ao v)
     -- zero sits at the offset, so no slice is held for it.  The fold stops
     -- at the first element that differs.
     let !x = vUnsafeIndex v ao
-    in  routeFoldT v (unorderedRouteT sh l t) (\ s r -> vAll (x ==) s && r) (\ y r -> x == y && r) True
+    in  routeFoldT v (cellsRouteT sh l t) (\ s r -> vAll (x ==) s && r) (\ y r -> x == y && r) True
   where !l = product sh
 
 newtype Rect = Rect { unRect :: [String] }  -- A rectangle of text
@@ -1841,7 +1856,7 @@ productT sh t@(T _ _ v)
 maximumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
 maximumT sh t@(T _ ao v)
   | l == 0 = maximum (map vMaximum (toUnorderedVectorListT sh t))
-  | otherwise = case unorderedRouteT sh l t of
+  | otherwise = case cellsRouteT sh l t of
       RSlice o n -> vMaximum (wholeOrSliceT o n v)
       RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (max acc x)) id (vUnsafeIndex v o)
       route -> routeSlicesT v route step (\ _ acc -> acc) False (vUnsafeIndex v ao)
@@ -1854,7 +1869,7 @@ maximumT sh t@(T _ ao v)
 minimumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
 minimumT sh t@(T _ ao v)
   | l == 0 = minimum (map vMinimum (toUnorderedVectorListT sh t))
-  | otherwise = case unorderedRouteT sh l t of
+  | otherwise = case cellsRouteT sh l t of
       RSlice o n -> vMinimum (wholeOrSliceT o n v)
       RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (min acc x)) id (vUnsafeIndex v o)
       route -> routeSlicesT v route step (\ _ acc -> acc) False (vUnsafeIndex v ao)
@@ -1868,7 +1883,7 @@ minimumT sh t@(T _ ao v)
 anyT :: (Vector v, VecElem v a) => ShapeL -> (a -> Bool) -> T v a -> Bool
 anyT sh p t@(T _ _ v)
   | l == 0 = False
-  | otherwise = routeFoldT v (unorderedRouteT sh l t) (\ s r -> vAny p s || r) (\ x r -> p x || r) False
+  | otherwise = routeFoldT v (cellsRouteT sh l t) (\ s r -> vAny p s || r) (\ x r -> p x || r) False
   where !l = product sh
 
 -- Folded as 'anyT' folds.
@@ -1876,7 +1891,7 @@ anyT sh p t@(T _ _ v)
 allT :: (Vector v, VecElem v a) => ShapeL -> (a -> Bool) -> T v a -> Bool
 allT sh p t@(T _ _ v)
   | l == 0 = True
-  | otherwise = routeFoldT v (unorderedRouteT sh l t) (\ s r -> vAll p s && r) (\ x r -> p x && r) True
+  | otherwise = routeFoldT v (cellsRouteT sh l t) (\ s r -> vAll p s && r) (\ x r -> p x && r) True
   where !l = product sh
 
 -- vUpdate copies the vector toVectorT returns, a second copy wherever the view
