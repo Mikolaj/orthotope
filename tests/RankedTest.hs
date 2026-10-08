@@ -124,6 +124,7 @@ test = testGroup "Ranked" $
       pad_2 = assertThrows "2" (pad [(1,1),(1,1),(1,1)] 0 a1)
       -- Extents summing past maxBound.
       pad_3 = assertThrowsIn "3" "pad" (pad [(maxBound, maxBound)] 0 (fromList [3] [1,2,3] :: Array 1 Int))
+      pad_4 = assertThrowsIn "4" "pad" (pad [(0,0),(1,1)] 0 (fromList [0] [] :: Array 1 Int))
       a5 :: Array 3 Int
       a5 = fromList [2,3,4] [1..24]
       transpose_1 = assertEqual "1" (fromList [2,3,4] [1,2,3,4,
@@ -382,6 +383,7 @@ test = testGroup "Ranked" $
         , testCase "pad_1" pad_1
         , testCase "pad_2" pad_2
         , testCase "pad_3" pad_3
+        , testCase "pad_4" pad_4
         , testCase "transpose_1" transpose_1
         , testCase "transpose_2" transpose_2
         , testCase "transpose_3" transpose_3

@@ -633,7 +633,12 @@ padT v aps ash at = (ss, fromVectorT ss $ vConcat $ pad' aps ash st at)
           [vReplicate (n*l) v] ++ concatMap (pad' ps sh ns . indexT t) [0..s-1] ++ [vReplicate (n*h) v]
         pad' _ _ _ _ = error $ "padT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
         _ : st = getStridesT ss
-        ss = zipWithLong2 (\ (l,h) s -> l+s+h) aps ash
+        -- The padded shape, which fails on more pairs than dimensions even
+        -- where an empty dimension stops pad' before the surplus pair.
+        ss = padded aps ash
+        padded ((l,h):ps) (s:sh) = l+s+h : padded ps sh
+        padded [] sh = sh
+        padded _ [] = error $ "padT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
 
 -- Check if a reshape is just adding/removing some dimensions of
 -- size 1, in which case it can be done by just manipulating
