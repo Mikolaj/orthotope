@@ -15,7 +15,7 @@
 -- Random views and other helpers for the properties of the test modules.
 module Views(testPropertyN, failsWith, failsIn, Elem, genElems, upTo, genShape, Op(..), opShape
             , opSource, genBadOp, opName, View(..), mkView, applyOpG
-            , mkViewG, genRawView) where
+            , mkViewG, genRawView, genOps) where
 
 import Control.DeepSeq (NFData)
 import Control.Exception (ErrorCall (..), evaluate, try)

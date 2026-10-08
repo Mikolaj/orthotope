@@ -46,8 +46,8 @@ import Test.QuickCheck
   ( Arbitrary (..), Property, choose, conjoin, counterexample, elements, forAll, listOf, property
   , shrinkList, vectorOf, (.&&.), (===), (==>) )
 import Views
-  ( Elem, View (..), applyOpG, failsIn, failsWith, genBadOp, genElems, genShape, mkViewG
-  , opName, opShape, opSource, testPropertyN, upTo )
+  ( Elem, View (..), applyOpG, failsIn, failsWith, genBadOp, genElems, genOps, genShape
+  , mkViewG, opName, opShape, opSource, testPropertyN, upTo )
 
 test :: Test
 test = testGroup "DynamicG" $ backends @Int True ++ [testGroup "Word8" (backends @Word8 False)]
@@ -73,6 +73,7 @@ backend nan n = testGroup n $
   , testPropertyN "prop_reduce" (prop_reduce @v @a)
   , testPropertyN "prop_pad" (prop_pad @v @a)
   , testPropertyN "prop_viewOps" (prop_viewOps @v @a)
+  , testPropertyN "prop_mapAViews" (prop_mapAViews @v @a)
   , testPropertyN "prop_badOps" (prop_badOps @v @a)
   , testPropertyN "prop_copy" (prop_copy @v @a)
   , testPropertyN "prop_zipWith" (prop_zipWith @v @a)
@@ -182,6 +183,19 @@ prop_viewOps (View sh ops) =
               (shapeL y === opShape xsh op
                .&&. map (at y) iss === map (at x . opSource xsh op) iss)
   in  conjoin (map step (zip3 steps ops (drop 1 steps)))
+
+-- mapA id of a view keeps its strides over a copy of the part of the vector
+-- it reads, a layout no random view starts from; under further operations it
+-- gives what the view gives: its elements, its vector, its sum and normalize.
+prop_mapAViews :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
+prop_mapAViews v@(View sh _) =
+  let x = mkViewG v (upTo (product sh)) :: Array v a
+  in  forAll (choose (0, 3) >>= \ n -> genOps n (shapeL x)) $ \ ops ->
+      let y = foldl (flip applyOpG) x ops
+          z = foldl (flip applyOpG) (mapA id x) ops
+          l = toList y
+      in  toList z === l .&&. I.vToList (toVector z) === l
+          .&&. sumA z === sum l .&&. toList (normalize z) === l
 
 -- An operation invalid on a view fails as soon as its result is evaluated,
 -- with an error of the function opName names.
