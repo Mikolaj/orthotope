@@ -20,6 +20,7 @@
 module OpsShaped (opsB, opsS, opsU) where
 
 import Data.Functor.Identity (Identity (..))
+import Data.Int (Int64)
 import Data.Proxy (Proxy)
 import GHC.TypeLits (Nat, SomeNat (..), someNatVal)
 
@@ -51,7 +52,9 @@ type Vec (m :: Nat) = '[m]
 
 #define ARR S
 #define OPS opsS
+#define WITH_BITCAST
 #include "shaped-ops.inc"
+#undef WITH_BITCAST
 #undef OPS
 #undef ARR
 

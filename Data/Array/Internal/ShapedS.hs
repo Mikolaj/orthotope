@@ -43,21 +43,25 @@ module Data.Array.Internal.ShapedS(
   scalar, unScalar, constant,
   reshape, stretch, stretchOuter, transpose,
   index, pad,
-  mapA, zipWithA, zipWith3A,
-  append,
+  mapA, zipWithA, zipWith3A, zipWith4A, zipWith5A,
+  append, concatOuter,
   ravel, unravel,
-  window, stride,
+  window, stride, rotate,
   slice, rerank, rerank2, rev,
   reduce, foldrA, traverseA,
   allSameA,
   sumA, productA, minimumA, maximumA,
   anyA, allA,
   broadcast,
+  update,
   generate, iterateN, iota,
+  bitcast,
   ) where
 import Control.DeepSeq
+import Data.Coerce(coerce)
 import Data.Data(Data)
 import qualified Data.Vector.Storable as V
+import Foreign.Storable(sizeOf)
 import GHC.Generics(Generic)
 import GHC.TypeLits(KnownNat, type (+), type (<=))
 import GHC.Stack(HasCallStack)
@@ -67,7 +71,7 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 import Data.Array.Internal.DynamicS()  -- Vector instance
 import qualified Data.Array.Internal.Shaped as S
 import qualified Data.Array.Internal.ShapedG as G
-import Data.Array.Internal(ShapeL, Vector)
+import Data.Array.Internal(ShapeL, T(..), Vector)
 import Data.Array.Internal.Shape
 
 type Unbox = V.Storable
@@ -211,6 +215,20 @@ zipWithA f a b = A $ G.zipWithA f (unA a) (unA b)
 zipWith3A :: (Unbox a, Unbox b, Unbox c, Unbox d, Shape sh) => (a -> b -> c -> d) -> Array sh a -> Array sh b -> Array sh c -> Array sh d
 zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)
 
+-- | Combine the elements of four arrays.
+-- O(n) time.
+{-# INLINE zipWith4A #-}
+zipWith4A :: (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Shape sh) =>
+             (a -> b -> c -> d -> e) -> Array sh a -> Array sh b -> Array sh c -> Array sh d -> Array sh e
+zipWith4A f a b c d = A $ G.zipWith4A f (unA a) (unA b) (unA c) (unA d)
+
+-- | Combine the elements of five arrays.
+-- O(n) time.
+{-# INLINE zipWith5A #-}
+zipWith5A :: (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Unbox f, Shape sh) =>
+             (a -> b -> c -> d -> e -> f) -> Array sh a -> Array sh b -> Array sh c -> Array sh d -> Array sh e -> Array sh f
+zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e)
+
 -- | Pad each dimension on the low and high side with the given value.
 -- O(n) time.
 {-# INLINABLE pad #-}
@@ -235,6 +253,14 @@ transpose = A . G.transpose @is . unA
 append :: (Unbox a, Shape sh, KnownNat m, KnownNat n, KnownNat (m+n)) =>
           Array (m ': sh) a -> Array (n ': sh) a -> Array (m+n ': sh) a
 append x y = A $ G.append (unA x) (unA y)
+
+-- | Concatenate a number of arrays into a single array.
+-- Fails if the outer extents of the arrays do not sum to that of the result.
+-- O(n) time.
+{-# INLINABLE concatOuter #-}
+concatOuter :: forall m n sh a . (HasCallStack, Unbox a, KnownNat m, KnownNat n, Shape sh) =>
+               [Array (n ': sh) a] -> Array (m ': sh) a
+concatOuter = A . G.concatOuter @m @n . coerce
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
@@ -276,6 +302,16 @@ stride :: forall ts sh' sh a .
           (Stride ts sh sh', Shape ts) =>
           Array sh a -> Array sh' a
 stride = A . G.stride @ts . unA
+
+-- | Rotate the array k times along the d'th dimension.
+-- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
+-- the resulting shape will be @[2, 4, 3, 2]@.
+{-# INLINABLE rotate #-}
+rotate :: forall d k sh a .
+          (HasCallStack, KnownNat d, KnownNat k, Unbox a, Shape sh,
+           d + 1 <= Rank sh, Shape (Take d sh ++ (k ': Drop d sh))) =>
+          Array sh a -> Array (Take d sh ++ (k ': Drop d sh)) a
+rotate = A . G.rotate @d @k . unA
 
 -- | Extract a slice of an array.
 -- The first type argument is a list of (offset, length) pairs.
@@ -384,6 +420,13 @@ broadcast :: forall ds sh' sh a .
              Array sh a -> Array sh' a
 broadcast = A . G.broadcast @ds @sh' @sh . unA
 
+-- | Update the array at the specified indicies to the associated value.
+-- Fails if an index is out of bounds.
+{-# INLINABLE update #-}
+update :: (HasCallStack, Unbox a, Shape sh) =>
+          Array sh a -> [([Int], a)] -> Array sh a
+update a = A . G.update (unA a)
+
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}
 generate :: (Unbox a, Shape sh) => ([Int] -> a) -> Array sh a
@@ -399,3 +442,17 @@ iterateN f = A . G.iterateN f
 {-# INLINE iota #-}
 iota :: (KnownNat n, Unbox a, Num a) => Array '[n] a
 iota = A G.iota
+
+-- | Convert between types by just reinterpreting the bits as another type.
+-- For instance the floating point number @(1.5 :: Float)@ will convert to
+-- @(0x3fc00000 :: Word32)@ since they have the same bit representation.
+-- Fails if the two types differ in size.
+{-# INLINE bitcast #-}
+bitcast :: forall a b sh . (HasCallStack, Unbox a, Unbox b) => Array sh a -> Array sh b
+bitcast (A (G.A (T ss o v)))
+  | sza /= szb
+  = error $ "bitcast: the types must have the same size. " ++ show (sza, szb)
+  | otherwise
+  = A (G.A (T ss o (V.unsafeCast v)))
+  where sza = sizeOf (undefined :: a)
+        szb = sizeOf (undefined :: b)

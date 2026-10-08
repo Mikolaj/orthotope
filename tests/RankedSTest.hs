@@ -20,6 +20,7 @@ module RankedSTest(test) where
 import Control.DeepSeq
 import Control.Exception
 import Data.Array.RankedS
+import Data.Word (Word16, Word32)
 import qualified Data.Vector.Storable as V
 import Foreign.ForeignPtr.Unsafe (unsafeForeignPtrToPtr)
 import Foreign.Ptr (minusPtr)
@@ -248,8 +249,12 @@ test = testGroup "RankedS" $
               indexN :: Array 2 a -> Int -> Array 1 a
               indexN = index
 
-      -- One call of each reduction wrapper that the other tests of
-      -- RankedTest, RankedSTest or RankedUTest leave uncalled.
+      bitcast_1 = assertEqual "1" [1,4,2,5,3,6] (toList (bitcast a2 :: Array 2 Word))
+      bitcast_2 = assertEqual "2" [0x3fc00000] (toList (bitcast (fromList [1] [1.5 :: Float]) :: Array 1 Word32))
+      bitcast_3 = assertThrows "3" (bitcast a1 :: Array 2 Word16)
+
+      -- One call of each wrapper that the other tests of RankedTest,
+      -- RankedSTest or RankedUTest leave uncalled.
       wrappers_1 = do
         assertEqual "sumA" 21 (sumA a1)
         assertEqual "productA" 720 (productA a1)
@@ -258,6 +263,12 @@ test = testGroup "RankedS" $
         assertEqual "anyA" True (anyA (> 5) a1)
         assertEqual "allA" False (allA (> 1) a1)
         assertEqual "allSameA" False (allSameA a1)
+        assertEqual "zipWith4A" [4, 8 .. 24] (toList (zipWith4A (\ a b c d -> a + b + c + d) a1 a1 a1 a1))
+        assertEqual "zipWith5A" [5, 10 .. 30]
+                    (toList (zipWith5A (\ a b c d e -> a + b + c + d + e) a1 a1 a1 a1 a1))
+        assertEqual "update" [9, 2, 3, 4, 5, 6] (toList (update a1 [([0, 0], 9)]))
+        assertEqual "size" 6 (size a1)
+        assertEqual "traverseA" (Just [2 .. 7]) (fmap toList (traverseA (Just . (+ 1)) a1))
 
       tests =
         [ testCase "show_1" show_1
@@ -333,6 +344,9 @@ test = testGroup "RankedS" $
         , testCase "reduce_3" reduce_3
         , testCase "foldrA_1" foldrA_1
         , testCase "constraints_1" constraints_1
+        , testCase "bitcast_1" bitcast_1
+        , testCase "bitcast_2" bitcast_2
+        , testCase "bitcast_3" bitcast_3
         , testCase "wrappers_1" wrappers_1
         ]
   in  tests

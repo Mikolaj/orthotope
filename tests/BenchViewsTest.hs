@@ -34,9 +34,8 @@
 -- 9.6.3 on, the first to know that flag, and has no control here: boxed pad
 -- called from Unspecialised, at Double or polymorphic in the element, allocated
 -- like the specialised call, where the boxed modules built without the flag
--- failed the bound on 9.12.4.  DynamicS's bitcast, having no boxed counterpart,
--- goes unchecked.
--- The Dynamic modules' rotate, which DynamicU lacks, goes unchecked too.
+-- failed the bound on 9.12.4.  The bitcasts, having no boxed counterpart,
+-- go unchecked.
 -- Its bounds on toVector, sumA, the list heads and specialisation run in an
 -- optimised build alone.
 {-# LANGUAGE CPP #-}

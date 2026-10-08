@@ -206,6 +206,10 @@ test = testGroup "Shaped" $
                                     (transpose @'[1,0] a5)
       append_1 = assertEqual "1" (fromList [1..9])
                                  (append a1 (fromList @[1,3] [7,8,9]))
+      concatOuter_1 = assertEqual "1" (fromList [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
+                                      (concatOuter [a1, a1, a1] :: Array [6,3] Int)
+      concatOuter_2 = assertEqual "2" (fromList []) (concatOuter ([] :: [Array [2,3] Int]) :: Array [0,3] Int)
+      concatOuter_3 = assertThrowsIn "3" "concatOuter" (concatOuter [a1, a1] :: Array [5,3] Int)
       ravel_1 = assertEqual "1" (fromList @[3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                 (ravel $ fromList @'[3] [a1,a1,a1])
       unravel_1 = assertEqual "1" [a1,a1,a1]
@@ -243,6 +247,16 @@ test = testGroup "Shaped" $
                                                     13,15,
                                                     21,23])
                                  (stride @[1,2,2] a5)
+      rotate_1 = assertEqual "1" (fromList @[2,4,3,2]
+                                           [1, 2, 3, 4, 5, 6,
+                                            5, 6, 1, 2, 3, 4,
+                                            3, 4, 5, 6, 1, 2,
+                                            1, 2, 3, 4, 5, 6,
+                                            7, 8, 9, 10, 11, 12,
+                                            11, 12, 7, 8, 9, 10,
+                                            9, 10, 11, 12, 7, 8,
+                                            7, 8, 9, 10, 11, 12])
+                                 (rotate @1 @4 (fromList [1 .. 12] :: Array [2,3,2] Int))
       slice_1 = assertEqual "1" (fromList @[2,2,1] [8,12,20,24])
                                 (slice @['(0,2), '(1,2), '(3,1)] a5)
       box = scalar . Just
@@ -281,8 +295,10 @@ test = testGroup "Shaped" $
       reduce_2 = assertEqual "2" (fromList @'[2] [6,120]) (rerank @1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList @'[3] [4,10,18]) (rerank @1 (reduce (*) 1) a2)
 
-      -- One call of each reduction wrapper that the other tests of
-      -- ShapedTest, ShapedSTest or ShapedUTest leave uncalled.
+      update_1 = assertThrowsIn "1" "update" (update a1 [([2, 0], 0)])
+
+      -- One call of each wrapper that the other tests of ShapedTest,
+      -- ShapedSTest or ShapedUTest leave uncalled.
       wrappers_1 = do
         assertEqual "sumA" 21 (sumA a1)
         assertEqual "productA" 720 (productA a1)
@@ -291,6 +307,15 @@ test = testGroup "Shaped" $
         assertEqual "anyA" True (anyA (> 5) a1)
         assertEqual "allA" False (allA (> 1) a1)
         assertEqual "allSameA" False (allSameA a1)
+        assertEqual "zipWith4A" [4, 8 .. 24] (toList (zipWith4A (\ a b c d -> a + b + c + d) a1 a1 a1 a1))
+        assertEqual "zipWith5A" [5, 10 .. 30]
+                    (toList (zipWith5A (\ a b c d e -> a + b + c + d + e) a1 a1 a1 a1 a1))
+        assertEqual "update" [9, 2, 3, 4, 5, 6] (toList (update a1 [([0, 0], 9)]))
+        assertEqual "size" 6 (size a1)
+        assertEqual "foldrA" [1 .. 6] (foldrA (:) [] a1)
+        assertEqual "traverseA" (Just [2 .. 7]) (fmap toList (traverseA (Just . (+ 1)) a1))
+        assertEqual "iterateN" [1, 2, 4] (toList (iterateN (* 2) 1 :: Array '[3] Int))
+        assertEqual "iota" [0, 1, 2] (toList (iota :: Array '[3] Int))
 
       tests =
         [ testCase "show_1" show_1
@@ -348,10 +373,14 @@ test = testGroup "Shaped" $
         , testCase "transpose_6" transpose_6
         , testCase "transpose_9" transpose_9
         , testCase "append_1" append_1
+        , testCase "concatOuter_1" concatOuter_1
+        , testCase "concatOuter_2" concatOuter_2
+        , testCase "concatOuter_3" concatOuter_3
         , testCase "ravel_1" ravel_1
         , testCase "unravel_1" unravel_1
         , testCase "window_1" window_1
         , testCase "stride_1" stride_1
+        , testCase "rotate_1" rotate_1
         , testCase "slice_1" slice_1
         , testCase "rerank_1" rerank_1
         , testCase "rerank_2" rerank_2
@@ -368,6 +397,7 @@ test = testGroup "Shaped" $
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
+        , testCase "update_1" update_1
         , testCase "wrappers_1" wrappers_1
         ]
   in  tests

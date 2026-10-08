@@ -27,18 +27,14 @@ import Call (Call (..), elems, n)
 
 #define ARR B
 #define OPS opsB
-#define WITH_ROTATE
 #include "dynamic-ops.inc"
-#undef WITH_ROTATE
 #undef OPS
 #undef ARR
 
 #define ARR S
 #define OPS opsS
 #define WITH_BITCAST
-#define WITH_ROTATE
 #include "dynamic-ops.inc"
-#undef WITH_ROTATE
 #undef WITH_BITCAST
 #undef OPS
 #undef ARR

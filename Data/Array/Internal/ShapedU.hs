@@ -43,19 +43,21 @@ module Data.Array.Internal.ShapedU(
   scalar, unScalar, constant,
   reshape, stretch, stretchOuter, transpose,
   index, pad,
-  mapA, zipWithA, zipWith3A,
-  append,
+  mapA, zipWithA, zipWith3A, zipWith4A, zipWith5A,
+  append, concatOuter,
   ravel, unravel,
-  window, stride,
+  window, stride, rotate,
   slice, rerank, rerank2, rev,
   reduce, foldrA, traverseA,
   allSameA,
   sumA, productA, minimumA, maximumA,
   allA, anyA,
   broadcast,
+  update,
   generate, iterateN, iota,
   ) where
 import Control.DeepSeq
+import Data.Coerce(coerce)
 import Data.Data(Data)
 import qualified Data.Vector.Unboxed as V
 import GHC.Generics(Generic)
@@ -211,6 +213,20 @@ zipWithA f a b = A $ G.zipWithA f (unA a) (unA b)
 zipWith3A :: (Unbox a, Unbox b, Unbox c, Unbox d, Shape sh) => (a -> b -> c -> d) -> Array sh a -> Array sh b -> Array sh c -> Array sh d
 zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)
 
+-- | Combine the elements of four arrays.
+-- O(n) time.
+{-# INLINE zipWith4A #-}
+zipWith4A :: (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Shape sh) =>
+             (a -> b -> c -> d -> e) -> Array sh a -> Array sh b -> Array sh c -> Array sh d -> Array sh e
+zipWith4A f a b c d = A $ G.zipWith4A f (unA a) (unA b) (unA c) (unA d)
+
+-- | Combine the elements of five arrays.
+-- O(n) time.
+{-# INLINE zipWith5A #-}
+zipWith5A :: (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Unbox f, Shape sh) =>
+             (a -> b -> c -> d -> e -> f) -> Array sh a -> Array sh b -> Array sh c -> Array sh d -> Array sh e -> Array sh f
+zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e)
+
 -- | Pad each dimension on the low and high side with the given value.
 -- O(n) time.
 {-# INLINABLE pad #-}
@@ -235,6 +251,14 @@ transpose = A . G.transpose @is . unA
 append :: (Unbox a, Shape sh, KnownNat m, KnownNat n, KnownNat (m+n)) =>
           Array (m ': sh) a -> Array (n ': sh) a -> Array (m+n ': sh) a
 append x y = A $ G.append (unA x) (unA y)
+
+-- | Concatenate a number of arrays into a single array.
+-- Fails if the outer extents of the arrays do not sum to that of the result.
+-- O(n) time.
+{-# INLINABLE concatOuter #-}
+concatOuter :: forall m n sh a . (HasCallStack, Unbox a, KnownNat m, KnownNat n, Shape sh) =>
+               [Array (n ': sh) a] -> Array (m ': sh) a
+concatOuter = A . G.concatOuter @m @n . coerce
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
@@ -276,6 +300,16 @@ stride :: forall ts sh' sh a .
           (Stride ts sh sh', Shape ts) =>
           Array sh a -> Array sh' a
 stride = A . G.stride @ts . unA
+
+-- | Rotate the array k times along the d'th dimension.
+-- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
+-- the resulting shape will be @[2, 4, 3, 2]@.
+{-# INLINABLE rotate #-}
+rotate :: forall d k sh a .
+          (HasCallStack, KnownNat d, KnownNat k, Unbox a, Shape sh,
+           d + 1 <= Rank sh, Shape (Take d sh ++ (k ': Drop d sh))) =>
+          Array sh a -> Array (Take d sh ++ (k ': Drop d sh)) a
+rotate = A . G.rotate @d @k . unA
 
 -- | Extract a slice of an array.
 -- The first type argument is a list of (offset, length) pairs.
@@ -384,6 +418,13 @@ broadcast :: forall ds sh' sh a .
               G.Broadcast ds sh sh') =>
              Array sh a -> Array sh' a
 broadcast = A . G.broadcast @ds @sh' @sh . unA
+
+-- | Update the array at the specified indicies to the associated value.
+-- Fails if an index is out of bounds.
+{-# INLINABLE update #-}
+update :: (HasCallStack, Unbox a, Shape sh) =>
+          Array sh a -> [([Int], a)] -> Array sh a
+update a = A . G.update (unA a)
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}
