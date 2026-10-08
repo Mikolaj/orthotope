@@ -135,7 +135,7 @@ fromList ss vs | n /= l = error $ "fromList: size mismatch " ++ show (n, l)
 -- O(1) time.
 {-# INLINE fromVector #-}
 fromVector :: (HasCallStack, Vector v, VecElem v a) => ShapeL -> v a -> Array v a
-fromVector ss v | n /= l = error $ "fromList: size mismatch " ++ show (n, l)
+fromVector ss v | n /= l = error $ "fromVector: size mismatch " ++ show (n, l)
                 | otherwise = A ss $ T st 0 v
   where n : st = getStridesT ss
         l = vLength v
@@ -350,7 +350,7 @@ rotate d k a | d < rank a, k >= 0 = rerank d f a
              . reshape [(k + 1) * n]
              . stretchOuter (k + 1)
              . reshape (1:h:t) $ arr
-rotate d k a = error $ "Incorrect arguments to rotate: " ++ show (d, k, rank a)
+rotate d k a = error $ "rotate: dimension out of range or negative count " ++ show (d, k, rank a)
 
 -- | Extract a slice of an array.
 -- The first argument is a list of (offset, length) pairs.
@@ -396,7 +396,7 @@ ravelOuter osh as | not $ allSame shs = error $ "ravelOuter: non-conforming inne
 {-# INLINE rerank2 #-}
 rerank2 :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c) =>
            Int -> (Array v a -> Array v b -> Array v c) -> Array v a -> Array v b -> Array v c
-rerank2 n f (A sha ta) (A shb tb) | n < 0 || n > length sha || n > length shb = error "rerank: rank exceeded"
+rerank2 n f (A sha ta) (A shb tb) | n < 0 || n > length sha || n > length shb = error "rerank2: rank exceeded"
                                   | take n sha /= take n shb = error "rerank2: shape mismatch"
                                   | otherwise =
   ravelOuter osh $
@@ -411,7 +411,7 @@ rerank2 n f (A sha ta) (A shb tb) | n < 0 || n > length sha || n > length shb = 
 {-# INLINE rev #-}
 rev :: (HasCallStack) => [Int] -> Array v a -> Array v a
 rev rs (A sh t) | all (\ r -> r >= 0 && r < n) rs = A sh (reverseT rs sh t)
-                | otherwise = error "reverse: bad reverse dimension"
+                | otherwise = error "rev: bad reverse dimension"
   where n = length sh
 
 -- | Reduce all elements of an array into a rank 0 array.
@@ -459,13 +459,13 @@ productA (A sh t) = productT sh t
 {-# INLINE maximumA #-}
 maximumA :: (HasCallStack, Vector v, VecElem v a, Ord a) => Array v a -> a
 maximumA a@(A sh t) | size a > 0 = maximumT sh t
-                    | otherwise  = error "maximumA called with empty array"
+                    | otherwise  = error "maximumA: empty array"
 
 -- | Minimum of all elements.
 {-# INLINE minimumA #-}
 minimumA :: (HasCallStack, Vector v, VecElem v a, Ord a) => Array v a -> a
 minimumA a@(A sh t) | size a > 0 = minimumT sh t
-                    | otherwise  = error "minimumA called with empty array"
+                    | otherwise  = error "minimumA: empty array"
 
 -- | Test if the predicate holds for any element.
 {-# INLINE anyA #-}

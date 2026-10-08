@@ -433,7 +433,7 @@ rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error "rerank2: sha
 {-# INLINE rev #-}
 rev :: [Int] -> Array n v a -> Array n v a
 rev rs (A sh t) | all (\ r -> r >= 0 && r < n) rs = A sh (reverseT rs sh t)
-                | otherwise = error "reverse: bad reverse dimension"
+                | otherwise = error "rev: bad reverse dimension"
   where n = length sh
 
 -- | Reduce all elements of an array into a rank 0 array.
@@ -481,13 +481,13 @@ productA (A sh t) = productT sh t
 {-# INLINE maximumA #-}
 maximumA :: (HasCallStack, Vector v, VecElem v a, Ord a) => Array r v a -> a
 maximumA a@(A sh t) | size a > 0 = maximumT sh t
-                    | otherwise  = error "maximumA called with empty array"
+                    | otherwise  = error "maximumA: empty array"
 
 -- | Minimum of all elements.
 {-# INLINE minimumA #-}
 minimumA :: (HasCallStack, Vector v, VecElem v a, Ord a) => Array r v a -> a
 minimumA a@(A sh t) | size a > 0 = minimumT sh t
-                    | otherwise  = error "minimumA called with empty array"
+                    | otherwise  = error "minimumA: empty array"
 
 -- | Test if the predicate holds for any element.
 {-# INLINE anyA #-}
