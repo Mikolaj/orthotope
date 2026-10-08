@@ -39,7 +39,7 @@ module Data.Array.Internal.RankedG(
   scalar, unScalar, constant,
   reshape, stretch, stretchOuter, transpose,
   index, pad,
-  mapA, zipWithA, zipWith3A,
+  mapA, zipWithA, zipWith3A, zipWith4A, zipWith5A,
   append, concatOuter,
   ravel, unravel,
   window, stride, rotate,
@@ -49,6 +49,7 @@ module Data.Array.Internal.RankedG(
   sumA, productA, maximumA, minimumA,
   anyA, allA,
   broadcast,
+  update,
   generate, iterateN, iota,
   ) where
 import Control.Monad(replicateM)
@@ -262,6 +263,24 @@ zipWith3A :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c, Vec
              (a -> b -> c -> d) -> Array n v a -> Array n v b -> Array n v c -> Array n v d
 zipWith3A f (A s t) (A s' t') (A s'' t'') | s == s' && s == s'' = A s (zipWith3T s f t t' t'')
                                           | otherwise = error $ "zipWith3A: shape mismatch " ++ show (s, s', s'')
+
+-- | Combine the elements of four arrays.
+-- Fails if the shapes differ.
+-- O(n) time.
+{-# INLINE zipWith4A #-}
+zipWith4A :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e) =>
+             (a -> b -> c -> d -> e) -> Array n v a -> Array n v b -> Array n v c -> Array n v d -> Array n v e
+zipWith4A f (A s t) (A s' t') (A s'' t'') (A s''' t''') | s == s' && s == s'' && s == s''' = A s (zipWith4T s f t t' t'' t''')
+                                                        | otherwise = error $ "zipWith4A: shape mismatch " ++ show (s, s', s'', s''')
+
+-- | Combine the elements of five arrays.
+-- Fails if the shapes differ.
+-- O(n) time.
+{-# INLINE zipWith5A #-}
+zipWith5A :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, VecElem v f) =>
+             (a -> b -> c -> d -> e -> f) -> Array n v a -> Array n v b -> Array n v c -> Array n v d -> Array n v e -> Array n v f
+zipWith5A f (A s t) (A s' t') (A s'' t'') (A s''' t''') (A s'''' t'''') | s == s' && s == s'' && s == s''' && s == s'''' = A s (zipWith5T s f t t' t'' t''' t'''')
+                                                                        | otherwise = error $ "zipWith5A: shape mismatch " ++ show (s, s', s'', s''', s'''')
 
 -- | Pad each dimension on the low and high side with the given value.
 -- Fails if the padding list is longer than the rank or a padding is negative.
@@ -620,6 +639,16 @@ broadcast ds sh a | length ds /= valueOf @r = error "broadcast: wrong number of 
         sts = [ fromMaybe 0 (lookup i (zip ds ats)) | i <- [0 .. r - 1] ]
         ascending (x:y:ys) = x < y && ascending (y:ys)
         ascending _ = True
+
+-- | Update the array at the specified indicies to the associated value.
+-- Fails if an index is out of bounds.
+{-# INLINE update #-}
+update :: (HasCallStack, Vector v, VecElem v a) =>
+          Array n v a -> [([Int], a)] -> Array n v a
+update (A sh t) us | all (ok . fst) us = A sh $ updateT sh t us
+                   | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst us)
+  where ok is = length is == r && and (zipWith (\ i s -> 0 <= i && i < s) is sh)
+        r = length sh
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}

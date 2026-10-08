@@ -34,6 +34,7 @@ import qualified Data.Array.Internal.DynamicG as DG
 import Data.Array.Internal.DynamicS ()
 import Data.Array.Internal.DynamicU ()
 import qualified Data.Array.Internal.RankedG as RG
+import Data.List (zipWith4, zipWith5)
 import Data.Proxy (Proxy (..))
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
@@ -106,8 +107,11 @@ sameAs a b = ioProperty $ do
 -- A random view, as a Ranked array of its rank, gives what it does as a
 -- Dynamic array or a list: its elements, their reductions and right fold,
 -- its order against an array of its elements with at most one of them
--- changed, the results of normalize, mapA, zipWithA, reduce, pad, append
--- and reshape to one dimension; and it reads back from its show.
+-- changed, the results of normalize, mapA, zipWithA, zipWith4A, zipWith5A,
+-- update, reduce, pad, append and reshape to one dimension; and it reads
+-- back from its show.  zipWith4A and zipWith5A with the view padded as an
+-- argument, and update at the index its shape is, fail as Dynamic's do or,
+-- on a scalar, give what they do.
 prop_views :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
               View -> Property
 prop_views v@(View sh _) =
@@ -116,6 +120,9 @@ prop_views v@(View sh _) =
       xsh = DG.shapeL x
       l = DG.toList x
       ps = [ (1, 2) | not (null xsh) ]
+      us = [ (map (`quot` 2) xsh, 7) | 0 `notElem` xsh ]
+      f4 w0 w1 w2 w3 = w0 - 2 * w1 + 3 * w2 - 4 * w3
+      f5 w0 w1 w2 w3 w4 = f4 w0 w1 w2 w3 + 5 * w4
   in  withRank (length xsh) $ \ (_ :: Proxy n) ->
       let r = toR x :: RG.Array n v a
       in  forAll (choose (0, length l)) $ \ i ->
@@ -131,11 +138,17 @@ prop_views v@(View sh _) =
               .&&. (r == r') === (l == l') .&&. compare r r' === compare l l'
               .&&. RG.toList (RG.mapA (* 2) r) === map (* 2) l
               .&&. RG.toList (RG.zipWithA (-) r r') === zipWith (-) l l'
+              .&&. RG.toList (RG.zipWith4A f4 r r' r' r) === zipWith4 f4 l l' l' l
+              .&&. RG.toList (RG.zipWith5A f5 r r' r' r r') === zipWith5 f5 l l' l' l l'
+              .&&. obs (RG.update r us) === obsD (DG.update x us)
               .&&. RG.unScalar (RG.reduce (+) 0 r) === sum l
               .&&. obs (RG.pad ps 0 r) === obsD (DG.pad ps 0 x)
               .&&. (if null xsh then property True else obs (RG.append r r) === obsD (DG.append x x))
               .&&. obs (RG.reshape @n @1 [length l] r) === obsD (DG.reshape [length l] x)
               .&&. read (show r) === r
+              .&&. sameAs (obs (RG.zipWith4A f4 r r r (RG.pad ps 0 r))) (obsD (DG.zipWith4A f4 x x x (DG.pad ps 0 x)))
+              .&&. sameAs (obs (RG.zipWith5A f5 r r r r (RG.pad ps 0 r))) (obsD (DG.zipWith5A f5 x x x x (DG.pad ps 0 x)))
+              .&&. sameAs (obs (RG.update r [(xsh, 7)])) (obsD (DG.update x [(xsh, 7)]))
 
 -- The Ranked operation of an Op, from an array of rank n to one of rank n'.
 applyOpR :: forall n n' v a . (KnownNat n, KnownNat n', I.Vector v, I.VecElem v a) =>

@@ -40,16 +40,17 @@ module Data.Array.Internal.ShapedG(
   scalar, unScalar, constant,
   reshape, stretch, stretchOuter, transpose,
   index, pad,
-  mapA, zipWithA, zipWith3A,
-  append,
+  mapA, zipWithA, zipWith3A, zipWith4A, zipWith5A,
+  append, concatOuter,
   ravel, unravel,
-  window, stride,
+  window, stride, rotate,
   slice, rerank, rerank2, rev,
   reduce, foldrA, traverseA,
   allSameA,
   sumA, productA, minimumA, maximumA,
   anyA, allA,
   broadcast,
+  update,
   generate, iterateN, iota,
   ) where
 import Control.DeepSeq
@@ -62,6 +63,7 @@ import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass
 
 import Data.Array.Internal
+import qualified Data.Array.Internal.DynamicG as DG
 import Data.Array.Internal.Shape
 
 -- | Arrays stored in a /v/ with values of type /a/.
@@ -249,6 +251,20 @@ zipWith3A :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, Shap
              (a -> b -> c -> d) -> Array sh v a -> Array sh v b -> Array sh v c -> Array sh v d
 zipWith3A f a@(A t) (A t') (A t'') = A $ zipWith3T (shapeL a) f t t' t''
 
+-- | Combine the elements of four arrays.
+-- O(n) time.
+{-# INLINE zipWith4A #-}
+zipWith4A :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, Shape sh) =>
+             (a -> b -> c -> d -> e) -> Array sh v a -> Array sh v b -> Array sh v c -> Array sh v d -> Array sh v e
+zipWith4A f a@(A t) (A t') (A t'') (A t''') = A $ zipWith4T (shapeL a) f t t' t'' t'''
+
+-- | Combine the elements of five arrays.
+-- O(n) time.
+{-# INLINE zipWith5A #-}
+zipWith5A :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, VecElem v f, Shape sh) =>
+             (a -> b -> c -> d -> e -> f) -> Array sh v a -> Array sh v b -> Array sh v c -> Array sh v d -> Array sh v e -> Array sh v f
+zipWith5A f a@(A t) (A t') (A t'') (A t''') (A t'''') = A $ zipWith5T (shapeL a) f t t' t'' t''' t''''
+
 -- | Pad each dimension on the low and high side with the given value.
 -- O(n) time.
 {-# INLINE pad #-}
@@ -285,6 +301,17 @@ transpose (A t) = A (transposeT is' t)
 append :: (Vector v, VecElem v a, Shape sh, KnownNat m, KnownNat n, KnownNat (m+n)) =>
           Array (m ': sh) v a -> Array (n ': sh) v a -> Array (m+n ': sh) v a
 append a b = fromVector (vAppend (toVector a) (toVector b))
+
+-- | Concatenate a number of arrays into a single array.
+-- Fails if the outer extents of the arrays do not sum to that of the result.
+-- O(n) time.
+{-# INLINE concatOuter #-}
+concatOuter :: forall m n sh v a . (HasCallStack, Vector v, VecElem v a, KnownNat m, KnownNat n, Shape sh) =>
+               [Array (n ': sh) v a] -> Array (m ': sh) v a
+concatOuter as | sumExtents ns /= s = error $ "concatOuter: outer extent mismatch " ++ show (ns, s)
+               | otherwise = fromVector $ vConcatN (sizeT @(m ': sh)) $ map toVector as
+  where ns = map (const (valueOf @n)) as
+        s = valueOf @m
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
@@ -333,6 +360,18 @@ stride :: forall ts sh' sh v a .
           Array sh v a -> Array sh' v a
 stride (A (T ss o v)) = A (T (zipWith (*) (ats ++ repeat 1) ss) o v)
   where ats = shapeP (Proxy :: Proxy ts)
+
+-- | Rotate the array k times along the d'th dimension.
+-- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
+-- the resulting shape will be @[2, 4, 3, 2]@.
+{-# INLINE rotate #-}
+rotate :: forall d k sh v a .
+          (HasCallStack, KnownNat d, KnownNat k, Vector v, VecElem v a, Shape sh,
+           d + 1 <= Rank sh, Shape (Take d sh ++ (k ': Drop d sh))) =>
+          Array sh v a -> Array (Take d sh ++ (k ': Drop d sh)) v a
+-- Through DynamicG's rotate, as RankedG's is.
+rotate a@(A t) = case DG.rotate (valueOf @d) (valueOf @k) (DG.A (shapeL a) t) of
+  DG.A _ t' -> A t'
 
 -- | Extract a slice of an array.
 -- The first type argument is a list of (offset, length) pairs.
@@ -469,6 +508,17 @@ broadcast a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now
         sh = shapeP (Proxy :: Proxy sh)
         rsh = [ if b then 1 else s | (s, b) <- zip sh' bc ]
         bc = broadcasting @ds @sh @sh'
+
+-- | Update the array at the specified indicies to the associated value.
+-- Fails if an index is out of bounds.
+{-# INLINE update #-}
+update :: (HasCallStack, Vector v, VecElem v a, Shape sh) =>
+          Array sh v a -> [([Int], a)] -> Array sh v a
+update a@(A t) us | all (ok . fst) us = A $ updateT sh t us
+                  | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst us)
+  where sh = shapeL a
+        ok is = length is == r && and (zipWith (\ i s -> 0 <= i && i < s) is sh)
+        r = length sh
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}

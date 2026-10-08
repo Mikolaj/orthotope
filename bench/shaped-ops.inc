@@ -22,11 +22,17 @@ OPS =
   , Call "mapA" (ARR.mapA (+ 1)) t
   , Call "zipWithA" (\ a -> ARR.zipWithA (+) a a) t
   , Call "zipWith3A" (\ a -> ARR.zipWith3A (\ x y z -> x + y + z) a a a) t
+  , Call "zipWith4A" (\ a -> ARR.zipWith4A (\ x y z u -> x + y + z + u)
+                                         a a a a) t
+  , Call "zipWith5A" (\ a -> ARR.zipWith5A (\ x y z u w -> x + y + z + u + w)
+                                         a a a a a) t
   , Call "append" (\ a -> ARR.append a a) t
+  , Call "concatOuter" (\ a -> ARR.concatOuter @800 [a, a]) t
   , Call "ravel" ARR.ravel (ARR.unravel t)
   , Call "unravel" ARR.unravel t
   , Call "window" (ARR.window @Win) t
   , Call "stride" (ARR.stride @Win) t
+  , Call "rotate" (ARR.rotate @0 @2) t
   , Call "slice" (ARR.slice @Sl) t
   , Call "rerank" (ARR.rerank @1
                      (\ r -> ARR.scalar (ARR.sumA (r `asTypeOf` row))))
@@ -46,11 +52,15 @@ OPS =
   , Call "anyA" (ARR.anyA (> 2)) t
   , Call "allA" (ARR.allA (< 2)) t
   , Call "broadcast" (ARR.broadcast @Bc @Sh) row
+  , Call "update" (`ARR.update` [([3, 4], 9)]) t
   , Call "generate" (\ k -> ARR.generate (\ ix -> fromIntegral (sum ix + k))
                           `asTypeOf` t)
                   0
   , Call "iterateN" (ARR.iterateN @200000 (+ 1)) x0
   , Call "iota" iota n
+#ifdef WITH_BITCAST
+  , Call "bitcast" (ARR.bitcast :: ARR.Array Sh Double -> ARR.Array Sh Int64) t
+#endif
   , Call "==" (\ a -> a == a) t
   , Call "compare" (\ a -> compare a a) t
   , Call "rnf" id t

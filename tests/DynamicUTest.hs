@@ -222,6 +222,16 @@ test = testGroup "DynamicU" $
       stride_2 = assertThrows "2" (stride [1,2,2] a1)
       stride_3 = assertThrows "3" (stride [0] a1)
       stride_4 = assertThrows "4" (stride [-1] a1)
+      rotate_1 = assertEqual "1" (fromList [2, 4, 3, 2]
+                                           [1, 2, 3, 4, 5, 6,
+                                            5, 6, 1, 2, 3, 4,
+                                            3, 4, 5, 6, 1, 2,
+                                            1, 2, 3, 4, 5, 6,
+                                            7, 8, 9, 10, 11, 12,
+                                            11, 12, 7, 8, 9, 10,
+                                            9, 10, 11, 12, 7, 8,
+                                            7, 8, 9, 10, 11, 12])
+                                 (rotate 1 4 $ fromList [2, 3, 2] [1 .. 12::Int])
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrows "2" (slice [(0,0)] a4)
@@ -270,6 +280,7 @@ test = testGroup "DynamicU" $
         assertEqual "generate" [0 .. 5] (toList (generate [2, 3] (\ is -> 3 * is !! 0 + is !! 1) :: Array Int))
         assertEqual "broadcast" [1, 2, 3, 1, 2, 3] (toList (broadcast [1] [2, 3] (index a1 0)))
         assertEqual "stretchOuter" [1, 2, 3, 1, 2, 3] (toList (stretchOuter 2 (reshape [1, 3] (index a1 0))))
+        assertEqual "rotate" [2, 3, 1, 1, 2, 3] (toList (rotate 0 2 (index a1 0)))
         assertEqual "ravel . unravel" a1 (ravel (unravel a1))
 
       tests =
@@ -338,6 +349,7 @@ test = testGroup "DynamicU" $
         , testCase "stride_2" stride_2
         , testCase "stride_3" stride_3
         , testCase "stride_4" stride_4
+        , testCase "rotate_1" rotate_1
         , testCase "slice_1" slice_1
         , testCase "slice_2" slice_2
         , testCase "slice_3" slice_3

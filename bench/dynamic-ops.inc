@@ -32,9 +32,7 @@ OPS =
   , Call "unravel" ARR.unravel t
   , Call "window" (ARR.window [2, 2]) t
   , Call "stride" (ARR.stride [2, 2]) t
-#ifdef WITH_ROTATE
   , Call "rotate" (ARR.rotate 0 2) t
-#endif
   , Call "slice" (ARR.slice [(1, 398)]) t
   , Call "rerank" (ARR.rerank 1 (ARR.scalar . ARR.sumA)) t
   , Call "rerank2" (\ a -> ARR.rerank2 1 (ARR.zipWithA (+)) a a) t

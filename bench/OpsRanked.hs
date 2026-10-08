@@ -19,6 +19,7 @@
 module OpsRanked (opsB, opsS, opsU) where
 
 import Data.Functor.Identity (Identity (..))
+import Data.Int (Int64)
 
 import qualified Data.Array.Ranked as B
 import qualified Data.Array.RankedS as S
@@ -34,7 +35,9 @@ import Call (Call (..), elems, n)
 
 #define ARR S
 #define OPS opsS
+#define WITH_BITCAST
 #include "ranked-ops.inc"
+#undef WITH_BITCAST
 #undef OPS
 #undef ARR
 
