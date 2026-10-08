@@ -107,7 +107,18 @@ instance Vector [] where
   vAppend = (++)
   vConcat = concat
   vFold = foldl'
-  vSlice o n = take n . drop o
+  -- Fails on a slice out of range, as the vector instances do; on one the
+  -- list runs out in, only where its end is forced.
+  vSlice o n xs
+    | o < 0 || n < 0 = bad
+    | otherwise = let ys = dropN o xs in ys `seq` takeN n ys
+    where bad = error $ "vSlice: violated contract: invalid slice " ++ show (o, n, length xs)
+          dropN 0 ys = ys
+          dropN k (_ : ys) = dropN (k - 1) ys
+          dropN _ [] = bad
+          takeN 0 _ = []
+          takeN k (y : ys) = y : takeN (k - 1) ys
+          takeN _ [] = bad
   vSum = sum
   vProduct = product
   vMaximum = maximum

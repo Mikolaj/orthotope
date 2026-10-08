@@ -118,6 +118,9 @@ test = testGroup "Dynamic" $
                                      (I.vFromListN 2 [1,2,3])
       vFromListN_2 = assertEqual "2" [1,2]
                                      (G.toList (G.fromList [2] [1,2] :: G.Array OldVector Int))
+      vSlice_1 = assertEqual "1" ([2,3], []) (I.vSlice 1 2 [1,2,3::Int], I.vSlice 3 0 [1,2,3::Int])
+      vSlice_2 = mapM_ (\ (o, n) -> assertThrows "2" (I.vSlice o n [1,2,3::Int]))
+                       [(2,5), (4,0), (-1,1), (0,-1)]
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [6] [1..6]) (reshape [6] a1)
       reshape_2 = assertEqual "1" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2)
@@ -430,6 +433,8 @@ test = testGroup "Dynamic" $
         , testCase "fromVector_2" fromVector_2
         , testCase "vFromListN_1" vFromListN_1
         , testCase "vFromListN_2" vFromListN_2
+        , testCase "vSlice_1" vSlice_1
+        , testCase "vSlice_2" vSlice_2
         , testCase "normalize_1" normalize_1
         , testCase "reshape_1" reshape_1
         , testCase "reshape_2" reshape_2
