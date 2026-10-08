@@ -244,8 +244,8 @@ test = testGroup "RankedU" $
               indexN :: Array 2 a -> Int -> Array 1 a
               indexN = index
 
-      -- One call of each reduction wrapper that the other tests of
-      -- RankedTest, RankedSTest or RankedUTest leave uncalled.
+      -- One call of each wrapper that the other tests of RankedTest,
+      -- RankedSTest or RankedUTest leave uncalled.
       wrappers_1 = do
         assertEqual "sumA" 21 (sumA a1)
         assertEqual "productA" 720 (productA a1)
@@ -254,6 +254,12 @@ test = testGroup "RankedU" $
         assertEqual "anyA" True (anyA (> 5) a1)
         assertEqual "allA" False (allA (> 1) a1)
         assertEqual "allSameA" False (allSameA a1)
+        assertEqual "zipWith4A" [4, 8 .. 24] (toList (zipWith4A (\ a b c d -> a + b + c + d) a1 a1 a1 a1))
+        assertEqual "zipWith5A" [5, 10 .. 30]
+                    (toList (zipWith5A (\ a b c d e -> a + b + c + d + e) a1 a1 a1 a1 a1))
+        assertEqual "update" [9, 2, 3, 4, 5, 6] (toList (update a1 [([0, 0], 9)]))
+        assertEqual "size" 6 (size a1)
+        assertEqual "traverseA" (Just [2 .. 7]) (fmap toList (traverseA (Just . (+ 1)) a1))
 
       tests =
         [ testCase "show_1" show_1

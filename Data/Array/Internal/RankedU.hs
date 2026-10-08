@@ -42,7 +42,7 @@ module Data.Array.Internal.RankedU(
   scalar, unScalar, constant,
   reshape, stretch, stretchOuter, transpose,
   index, pad,
-  mapA, zipWithA, zipWith3A,
+  mapA, zipWithA, zipWith3A, zipWith4A, zipWith5A,
   append, concatOuter,
   ravel, unravel,
   window, stride, rotate,
@@ -52,6 +52,7 @@ module Data.Array.Internal.RankedU(
   sumA, productA, minimumA, maximumA,
   anyA, allA,
   broadcast,
+  update,
   generate, iterateN, iota,
   ) where
 import Control.DeepSeq
@@ -213,6 +214,22 @@ zipWithA f a b = A $ G.zipWithA f (unA a) (unA b)
 zipWith3A :: (HasCallStack, Unbox a, Unbox b, Unbox c, Unbox d) =>
              (a -> b -> c -> d) -> Array n a -> Array n b -> Array n c -> Array n d
 zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)
+
+-- | Combine the elements of four arrays.
+-- Fails if the shapes differ.
+-- O(n) time.
+{-# INLINE zipWith4A #-}
+zipWith4A :: (HasCallStack, Unbox a, Unbox b, Unbox c, Unbox d, Unbox e) =>
+             (a -> b -> c -> d -> e) -> Array n a -> Array n b -> Array n c -> Array n d -> Array n e
+zipWith4A f a b c d = A $ G.zipWith4A f (unA a) (unA b) (unA c) (unA d)
+
+-- | Combine the elements of five arrays.
+-- Fails if the shapes differ.
+-- O(n) time.
+{-# INLINE zipWith5A #-}
+zipWith5A :: (HasCallStack, Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Unbox f) =>
+             (a -> b -> c -> d -> e -> f) -> Array n a -> Array n b -> Array n c -> Array n d -> Array n e -> Array n f
+zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e)
 
 -- | Pad each dimension on the low and high side with the given value.
 -- Fails if the padding list is longer than the rank or a padding is negative.
@@ -413,6 +430,13 @@ broadcast :: forall r' r a .
              (HasCallStack, Unbox a, KnownNat r, KnownNat r') =>
              [Int] -> ShapeL -> Array r a -> Array r' a
 broadcast ds sh = A . G.broadcast ds sh . unA
+
+-- | Update the array at the specified indicies to the associated value.
+-- Fails if an index is out of bounds.
+{-# INLINABLE update #-}
+update :: (HasCallStack, Unbox a) =>
+          Array n a -> [([Int], a)] -> Array n a
+update a = A . G.update (unA a)
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}

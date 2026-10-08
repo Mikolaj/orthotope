@@ -131,6 +131,9 @@ ops =
   , ("slice [(1,1),(0,2)]", obs . SG.slice @'[ '(1,1), '(0,2) ], obsD . DG.slice [(1,1),(0,2)])
   , ("stride [2,2,3]", obs . SG.stride @'[2,2,3], obsD . DG.stride [2,2,3])
   , ("window [2,2]", obs . SG.window @'[2,2], obsD . DG.window [2,2])
+  , ("rotate 0 3", obs . SG.rotate @0 @3, obsD . DG.rotate 0 3)
+  , ("rotate 1 0", obs . SG.rotate @1 @0, obsD . DG.rotate 1 0)
+  , ("rotate 2 5", obs . SG.rotate @2 @5, obsD . DG.rotate 2 5)
   , ("index 1", obs . (`SG.index` 1), obsD . (`DG.index` 1))
   , ( "broadcast [0,2,3] [2,5,3,4]", obs . SG.broadcast @'[0,2,3] @'[2,5,3,4]
     , obsD . DG.broadcast [0,2,3] [2,5,3,4] )
@@ -144,7 +147,17 @@ ops =
     , obs . SG.stretchOuter @3 . SG.reshape @'[1,2,3,4]
     , obsD . DG.stretchOuter 3 . DG.reshape [1,2,3,4] )
   , ("pad [(1,2),(0,1)]", obs . SG.pad @'[ '(1,2), '(0,1) ] 0, obsD . DG.pad [(1,2),(0,1)] 0)
+  , ( "zipWith4A with rev [0], rev [1] and rev [2]"
+    , \ a -> obs (SG.zipWith4A f4 a (SG.rev @'[0] a) (SG.rev @'[1] a) (SG.rev @'[2] a))
+    , \ x -> obsD (DG.zipWith4A f4 x (DG.rev [0] x) (DG.rev [1] x) (DG.rev [2] x)) )
+  , ( "zipWith5A with rev [0], rev [1], rev [2] and itself"
+    , \ a -> obs (SG.zipWith5A f5 a (SG.rev @'[0] a) (SG.rev @'[1] a) (SG.rev @'[2] a) a)
+    , \ x -> obsD (DG.zipWith5A f5 x (DG.rev [0] x) (DG.rev [1] x) (DG.rev [2] x) x) )
+  , ( "update [([1,2,3],7),([0,1,0],5),([1,2,3],6)]", \ a -> obs (SG.update a us)
+    , \ x -> obsD (DG.update x us) )
   , ("append", \ a -> obs (SG.append a a), \ x -> obsD (DG.append x x))
+  , ( "concatOuter of itself, rev [1] and itself", \ a -> obs (SG.concatOuter @6 [a, SG.rev @'[1] a, a])
+    , \ x -> obsD (DG.concatOuter [x, DG.rev [1] x, x]) )
   , ( "unravel"
     , \ a -> nested (map obs (SG.toList (SG.unravel a :: SG.Array '[2] V.Vector (SG.Array '[3,4] v a))))
     , \ x -> nested (map obsD (DG.toList (DG.unravel x :: DG.Array V.Vector (DG.Array v a)))) )
@@ -176,3 +189,6 @@ ops =
     , const (obsD (DG.iterateN 5 (+ 1) 0 :: DG.Array v a)) )
   ]
   where nested ps = (concatMap fst ps, concatMap snd ps)
+        f4 w0 w1 w2 w3 = w0 - 2 * w1 + 3 * w2 - 4 * w3
+        f5 w0 w1 w2 w3 w4 = f4 w0 w1 w2 w3 + 5 * w4
+        us = [([1,2,3], 7), ([0,1,0], 5), ([1,2,3], 6)]
