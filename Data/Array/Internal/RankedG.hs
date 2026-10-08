@@ -249,7 +249,8 @@ zipWith3A f (A s t) (A s' t') (A s'' t'') | s == s' && s == s'' = A s (zipWith3T
 {-# INLINE pad #-}
 pad :: forall n a v . (Vector v, VecElem v a) =>
        [(Int, Int)] -> a -> Array n v a -> Array n v a
-pad aps v (A ash at) = uncurry A $ padT v aps ash at
+pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " ++ show (length aps, length ash)
+                     | otherwise = uncurry A $ padT v aps ash at
 
 -- | Do an arbitrary array transposition.
 -- Fails if the transposition argument is not a permutation of the numbers
@@ -383,6 +384,7 @@ slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
   where (o, rsh) = slc asl ash ats
         slc ((k,n):sl) (s:sh) (t:ts) | k < 0 || k > s || k+n > s = error "slice: out of bounds"
                                      | otherwise = (i + k*t, n:ns) where (i, ns) = slc sl sh ts
+        slc (_:_) [] _ = error "slice: slice list too long"
         slc [] sh _ = (ao, sh)
         slc _ _ _ = error "impossible"
 

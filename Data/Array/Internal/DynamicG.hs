@@ -242,7 +242,8 @@ zipWith5A f (A s t) (A s' t') (A s'' t'') (A s''' t''') (A s'''' t'''') | s == s
 {-# INLINE pad #-}
 pad :: forall a v . (Vector v, VecElem v a) =>
        [(Int, Int)] -> a -> Array v a -> Array v a
-pad aps v (A ash at) = uncurry A $ padT v aps ash at
+pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " ++ show (length aps, length ash)
+                     | otherwise = uncurry A $ padT v aps ash at
 
 -- | Do an arbitrary array transposition.
 -- Fails if the transposition argument is not a permutation of the numbers
