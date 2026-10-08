@@ -1425,8 +1425,8 @@ canonicalizeSortedT [] axes = axes
 --
 -- An invariant: the returned list has no empty vectors, an empty
 -- array yielding the empty list.  The list is produced lazily, as
--- 'toVectorListT''s is, so 'anyT' and 'allT' stop at the first slice that
--- decides.
+-- 'toVectorListT''s is; on 'RFill' its one vector is the whole view filled,
+-- which the reductions here avoid by walking it.
 {-# INLINE toUnorderedVectorListT #-}
 toUnorderedVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
 toUnorderedVectorListT sh a@(T _ _ v) = build $ \cons nil ->
@@ -1434,6 +1434,23 @@ toUnorderedVectorListT sh a@(T _ _ v) = build $ \cons nil ->
   -- is and for the same reason.
   if l == 0 then nil else routeSlicesT v (unorderedRouteT sh l a) cons nil
   where !l = product sh
+
+-- The parts of the vector a route reads, folded right by a cons for a slice
+-- and a cons for an element: the slices where the route hands slices out,
+-- and on 'RFill' the elements one by one, walked ('elemsT') and not filled,
+-- so that the view is not allocated and a consumer that stops early does no
+-- more of the walk.  The order-free reductions 'sumT', 'productT', 'anyT',
+-- 'allT' and 'allSameT' take it: on stride 2 of 200000 Doubles, on GHC HEAD,
+-- they then ran in 0.48 to 0.63 of the fill's time.  'toListT', 'reduceT'
+-- and 'rnfViewT' keep their own dispatch: through it the first two took
+-- the same time and 64 and 40 bytes a call more, and 'rnfViewT' 1.10 of its
+-- time.
+{-# INLINE routeFoldT #-}
+routeFoldT :: (Vector v, VecElem v a)
+           => v a -> Route -> (v a -> b -> b) -> (a -> b -> b) -> b -> b
+routeFoldT v route onSlice onElem nil = case route of
+  RFill axes ao _ -> elemsT axes ao v onElem nil
+  _ -> routeSlicesT v route onSlice nil
 
 -- Convert to one vector holding all the elements, not necessarily in
 -- the right order.  Dispatches as 'toUnorderedVectorListT' does and
@@ -1631,16 +1648,16 @@ traverseT sh f a = fmap (fromListT sh) (traverse f (toListT sh a))
 {-# INLINABLE allSameT #-}
 allSameT :: (Vector v, VecElem v a, Eq a) => ShapeL -> T v a -> Bool
 allSameT sh t@(T _ ao v)
-  | product sh <= 1 = True
+  | l <= 1 = True
   | vLength v == 1 = let !x = vUnsafeIndex v 0 in x == x
   | otherwise =
-    -- Order does not matter, so the unordered list, which is one slice
+    -- Order does not matter, so the unordered parts, which are one slice
     -- for a dense view under any transposition.  The element at index
-    -- zero sits at the offset, so no slice is held for it.  The fold sits
-    -- on the list expression, where it fuses with the walk and stops at
-    -- the first element that differs.
+    -- zero sits at the offset, so no slice is held for it.  The fold stops
+    -- at the first element that differs.
     let !x = vUnsafeIndex v ao
-    in  all (vAll (x ==)) (toUnorderedVectorListT sh t)
+    in  routeFoldT v (unorderedRouteT sh l t) (\ s r -> vAll (x ==) s && r) (\ y r -> x == y && r) True
+  where !l = product sh
 
 newtype Rect = Rect { unRect :: [String] }  -- A rectangle of text
 
@@ -1789,30 +1806,45 @@ simpleReshape osts os ns
       loop _ _ = error $ "simpleReshape: violated contract: not one stride per dimension " ++ show (osts, os, ns)
 simpleReshape _ _ _ = Nothing
 
--- Note: assumes + is commutative&associative.
+-- Note: assumes + is commutative&associative.  A strict left fold from 0 over
+-- the parts, as 'sum' of their list folds: each slice's sum, and on 'RFill'
+-- each element.
 {-# INLINE sumT #-}
 sumT :: (Vector v, VecElem v a, Num a) => ShapeL -> T v a -> a
-sumT sh = sum . map vSum . toUnorderedVectorListT sh
+sumT sh t@(T _ _ v)
+  | l == 0 = 0
+  | otherwise = routeFoldT v (unorderedRouteT sh l t)
+      (\ s k !acc -> k (acc + vSum s)) (\ x k !acc -> k (acc + x)) id 0
+  where !l = product sh
 
--- Note: assumes * is commutative&associative.
+-- Note: assumes * is commutative&associative.  Folded as 'sumT' folds.
 {-# INLINE productT #-}
 productT :: (Vector v, VecElem v a, Num a) => ShapeL -> T v a -> a
-productT sh = product . map vProduct . toUnorderedVectorListT sh
+productT sh t@(T _ _ v)
+  | l == 0 = 1
+  | otherwise = routeFoldT v (unorderedRouteT sh l t)
+      (\ s k !acc -> k (acc * vProduct s)) (\ x k !acc -> k (acc * x)) id 1
+  where !l = product sh
 
 -- Note: assumes max is commutative&associative.  A view of runs folds the
 -- runs' maxima in the order 'maximum' folds their list, the walk's own cons
 -- carrying whether one has been taken, so that no list is built; the element
 -- at the offset only starts the accumulator, which the first maximum replaces
--- unread.  A view that is one vector, a slice or a fill, takes its maximum as
--- it is: folded as runs are, on a dense array of boxed Doubles it ran 12% more
+-- unread.  An 'RFill' view, walked and not filled, folds max over its
+-- elements from the first of them, which 'max x x' leaves as it is, NaN
+-- included, so that the fold carries the accumulator alone: carrying the
+-- flag as the runs do, at Storable Doubles it took 2.8 times the time of the
+-- fill and 'vMaximum'.  A view that is one slice takes its maximum as it
+-- is: folded as runs are, on a dense array of boxed Doubles it ran 12% more
 -- instructions.
 {-# INLINE maximumT #-}
 maximumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
 maximumT sh t@(T _ ao v)
   | l == 0 = maximum (map vMaximum (toUnorderedVectorListT sh t))
   | otherwise = case unorderedRouteT sh l t of
-      RRuns axes o _ -> runSlicesT axes o v step (\ _ acc -> acc) False (vUnsafeIndex v ao)
-      route -> routeSlicesT v route (\ s _ -> vMaximum s) (vUnsafeIndex v ao)
+      RSlice o n -> vMaximum (wholeOrSliceT o n v)
+      RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (max acc x)) id (vUnsafeIndex v o)
+      route -> routeSlicesT v route step (\ _ acc -> acc) False (vUnsafeIndex v ao)
   where !l = product sh
         step s k = \ started !acc -> let !m = vMaximum s
                                      in  k True (if started then max acc m else m)
@@ -1823,19 +1855,29 @@ minimumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
 minimumT sh t@(T _ ao v)
   | l == 0 = minimum (map vMinimum (toUnorderedVectorListT sh t))
   | otherwise = case unorderedRouteT sh l t of
-      RRuns axes o _ -> runSlicesT axes o v step (\ _ acc -> acc) False (vUnsafeIndex v ao)
-      route -> routeSlicesT v route (\ s _ -> vMinimum s) (vUnsafeIndex v ao)
+      RSlice o n -> vMinimum (wholeOrSliceT o n v)
+      RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (min acc x)) id (vUnsafeIndex v o)
+      route -> routeSlicesT v route step (\ _ acc -> acc) False (vUnsafeIndex v ao)
   where !l = product sh
         step s k = \ started !acc -> let !m = vMinimum s
                                      in  k True (if started then min acc m else m)
 
+-- The parts in turn, stopping at the first that decides: a slice, or on
+-- 'RFill' an element.
 {-# INLINE anyT #-}
 anyT :: (Vector v, VecElem v a) => ShapeL -> (a -> Bool) -> T v a -> Bool
-anyT sh p = or . map (vAny p) . toUnorderedVectorListT sh
+anyT sh p t@(T _ _ v)
+  | l == 0 = False
+  | otherwise = routeFoldT v (unorderedRouteT sh l t) (\ s r -> vAny p s || r) (\ x r -> p x || r) False
+  where !l = product sh
 
+-- Folded as 'anyT' folds.
 {-# INLINE allT #-}
 allT :: (Vector v, VecElem v a) => ShapeL -> (a -> Bool) -> T v a -> Bool
-allT sh p = and . map (vAll p) . toUnorderedVectorListT sh
+allT sh p t@(T _ _ v)
+  | l == 0 = True
+  | otherwise = routeFoldT v (unorderedRouteT sh l t) (\ s r -> vAll p s && r) (\ x r -> p x && r) True
+  where !l = product sh
 
 -- vUpdate copies the vector toVectorT returns, a second copy wherever the view
 -- is not one slice and that vector was just filled.  Not skipped: that wants
