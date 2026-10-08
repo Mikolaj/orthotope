@@ -53,6 +53,7 @@ import Control.DeepSeq
 import Data.Data(Data)
 import qualified Data.Vector.Unboxed as V
 import GHC.Generics(Generic)
+import GHC.Stack(HasCallStack)
 import GHC.TypeLits(KnownNat, type (+), type (<=))
 import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
@@ -104,7 +105,7 @@ rank = G.rank . unA
 
 -- | Index into an array.  Fails if the index is out of bounds.
 -- O(1) time.
-index :: (Unbox a, KnownNat s) => Array (s:sh) a -> Int -> Array sh a
+index :: (HasCallStack, Unbox a, KnownNat s) => Array (s:sh) a -> Int -> Array sh a
 index a = A . G.index (unA a)
 
 -- | Convert to a list with the elements in the linearization order.
@@ -115,7 +116,7 @@ toList = G.toList . unA
 -- | Convert from a list with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(n) time.
-fromList :: forall sh a . (Unbox a, Shape sh) => [a] -> Array sh a
+fromList :: forall sh a . (HasCallStack, Unbox a, Shape sh) => [a] -> Array sh a
 fromList = A . G.fromList
 
 -- | Convert to a vector with the elements in the linearization order.
@@ -126,7 +127,7 @@ toVector = G.toVector . unA
 -- | Convert from a vector with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(1) time.
-fromVector :: forall sh a . (Unbox a, Shape sh) => V.Vector a -> Array sh a
+fromVector :: forall sh a . (HasCallStack, Unbox a, Shape sh) => V.Vector a -> Array sh a
 fromVector = A . G.fromVector
 
 -- | Make sure the underlying vector is in the linearization order.

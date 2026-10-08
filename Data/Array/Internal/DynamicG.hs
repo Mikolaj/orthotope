@@ -120,6 +120,14 @@ toList (A sh t) = toListT sh t
 toVector :: (Vector v, VecElem v a) => Array v a -> v a
 toVector (A sh t) = toVectorT sh t
 
+-- HasCallStack, here and in the other array modules, goes on exactly the
+-- functions that check an argument, calling error when it is bad, as
+-- fromList does, and on the functions of the same name that pass their
+-- arguments on to one, as the wrappers in the other modules do, so that the
+-- error shows the line the operation was called from.  A contract check,
+-- whose error says "violated contract", adds none, nor does an assert, both
+-- guarding against a bug in the library, and class methods take none, as a
+-- stack on one would bind every instance.
 -- | Convert from a list with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(n) time.
@@ -248,7 +256,7 @@ zipWith5A f (A s t) (A s' t') (A s'' t'') (A s''' t''') (A s'''' t'''') | s == s
 -- Fails if the padding list is longer than the rank.
 -- O(n) time.
 {-# INLINE pad #-}
-pad :: forall a v . (Vector v, VecElem v a) =>
+pad :: forall a v . (HasCallStack, Vector v, VecElem v a) =>
        [(Int, Int)] -> a -> Array v a -> Array v a
 pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " ++ show (length aps, length ash)
                      | otherwise = uncurry A $ padT v aps ash at

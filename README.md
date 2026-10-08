@@ -70,10 +70,11 @@ like `hmatrix`.
 An operation of the array modules either returns its result or fails
 with an error naming it, such as `reshape: size mismatch ([2,3],[5])`. Such
 an argument breaks no contract: the error is its result, and the operation's
-documentation says when it occurs, with "Fails if" or with "must". Some failures
-hold throughout and go unsaid: in the `Ranked` modules, a rank other
-than the one the types give. The `Shaped` modules check most arguments in their
-types instead.
+documentation says when it occurs, with "Fails if" or with "must". The error's
+call stack shows the line that called the operation. Some failures hold
+throughout and go unsaid: in the `Ranked` modules, a rank other than the one
+the types give. The `Shaped` modules check most arguments in their types
+instead.
 
 The functions of `Data.Array.Internal` have contracts, which the operations
 establish before calling them. A call that breaks one is a bug, in orthotope

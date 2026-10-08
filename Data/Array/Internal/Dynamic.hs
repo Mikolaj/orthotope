@@ -161,7 +161,7 @@ fromList ss = A . G.fromList ss
 
 -- | Convert to a vector with the elements in the linearization order.
 -- O(n) or O(1) time (the latter if the vector is already in the linearization order).
-toVector :: (HasCallStack) => Array a -> V.Vector a
+toVector :: Array a -> V.Vector a
 toVector = G.toVector . unA
 
 -- | Convert from a vector with the elements given in the linearization order.
@@ -207,7 +207,7 @@ unScalar = G.unScalar . unA
 -- | Make an array with all elements having the same value.
 -- Fails if an extent is negative.
 -- O(1) time
-constant :: ShapeL -> a -> Array a
+constant :: (HasCallStack) => ShapeL -> a -> Array a
 constant sh = A . G.constant sh
 
 -- | Map over the array elements.
@@ -283,7 +283,7 @@ ravel = A . G.ravel . G.mapA unA . unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
-unravel :: (HasCallStack) => Array a -> Array (Array a)
+unravel :: Array a -> Array (Array a)
 unravel = A . G.mapA A . G.unravel . unA
 
 -- | Make a window of the outermost dimensions.
@@ -344,7 +344,7 @@ rerank2 n f ta tb = A $ G.rerank2 n (\ a b -> unA $ f (A a) (A b)) (unA ta) (unA
 -- | Reverse the given dimensions, with the outermost being dimension 0.
 -- Fails if a given dimension is not one of the array's.
 -- O(1) time.
-rev :: [Int] -> Array a -> Array a
+rev :: (HasCallStack) => [Int] -> Array a -> Array a
 rev rs = A . G.rev rs . unA
 
 -- | Reduce all elements of an array into a rank 0 array.

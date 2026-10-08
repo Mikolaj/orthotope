@@ -244,7 +244,7 @@ zipWith3A f a@(A t) (A t') (A t'') = A $ zipWith3T (shapeL a) f t t' t''
 -- | Pad each dimension on the low and high side with the given value.
 -- O(n) time.
 {-# INLINE pad #-}
-pad :: forall ps sh' sh a v . (HasCallStack, Vector v, VecElem v a, Padded ps sh sh', Shape sh) =>
+pad :: forall ps sh' sh a v . (Vector v, VecElem v a, Padded ps sh sh', Shape sh) =>
        a -> Array sh v a -> Array sh' v a
 pad v a@(A at) = A $ snd $ padT v aps ash at
   where ash = shapeL a

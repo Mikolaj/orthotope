@@ -102,7 +102,7 @@ rank = G.rank . unA
 
 -- | Index into an array.  Fails if the index is out of bounds.
 -- O(1) time.
-index :: HasCallStack => Array (1+n) a -> Int -> Array n a
+index :: (HasCallStack) => Array (1+n) a -> Int -> Array n a
 index a = A . G.index (unA a)
 
 -- | Convert to a list with the elements in the linearization order.
@@ -114,7 +114,7 @@ toList = G.toList . unA
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(n) time.
 {-# INLINABLE fromList #-}
-fromList :: forall n a . (KnownNat n) => ShapeL -> [a] -> Array n a
+fromList :: forall n a . (HasCallStack, KnownNat n) => ShapeL -> [a] -> Array n a
 fromList ss = A . G.fromList ss
 
 -- | Convert to a vector with the elements in the linearization order.
@@ -126,7 +126,7 @@ toVector = G.toVector . unA
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(1) time.
 {-# INLINABLE fromVector #-}
-fromVector :: forall n a . (KnownNat n) => ShapeL -> V.Vector a -> Array n a
+fromVector :: forall n a . (HasCallStack, KnownNat n) => ShapeL -> V.Vector a -> Array n a
 fromVector ss = A . G.fromVector ss
 
 -- | Make sure the underlying vector is in the linearization order.
@@ -138,13 +138,13 @@ normalize = A . G.normalize . unA
 
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.
-reshape :: forall n' n a . (KnownNat n, KnownNat n') => ShapeL -> Array n a -> Array n' a
+reshape :: forall n' n a . (HasCallStack, KnownNat n, KnownNat n') => ShapeL -> Array n a -> Array n' a
 reshape s = A . G.reshape s . unA
 
 -- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
 -- All other dimensions must remain the same.
 -- O(1) time.
-stretch :: ShapeL -> Array n a -> Array n a
+stretch :: (HasCallStack) => ShapeL -> Array n a -> Array n a
 stretch s = A . G.stretch s . unA
 
 -- | Change the size of the outermost dimension by replication.
@@ -165,7 +165,7 @@ unScalar = G.unScalar . unA
 -- | Make an array with all elements having the same value.
 -- Fails if an extent is negative.
 -- O(1) time
-constant :: forall n a . (KnownNat n) => ShapeL -> a -> Array n a
+constant :: forall n a . (HasCallStack, KnownNat n) => ShapeL -> a -> Array n a
 constant sh = A . G.constant sh
 
 -- | Map over the array elements.
@@ -185,46 +185,46 @@ instance Traversable (Array n) where
 -- | Combine the elements of two arrays.
 -- Fails if the shapes differ.
 -- O(n) time.
-zipWithA :: (a -> b -> c) -> Array n a -> Array n b -> Array n c
+zipWithA :: (HasCallStack) => (a -> b -> c) -> Array n a -> Array n b -> Array n c
 zipWithA f a b = A $ G.zipWithA f (unA a) (unA b)
 
 -- | Combine the elements of three arrays.
 -- Fails if the shapes differ.
 -- O(n) time.
-zipWith3A :: (a -> b -> c -> d) -> Array n a -> Array n b -> Array n c -> Array n d
+zipWith3A :: (HasCallStack) => (a -> b -> c -> d) -> Array n a -> Array n b -> Array n c -> Array n d
 zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)
 
 -- | Pad each dimension on the low and high side with the given value.
 -- Fails if the padding list is longer than the rank.
 -- O(n) time.
-pad :: (KnownNat n) => [(Int, Int)] -> a -> Array n a -> Array n a
+pad :: (HasCallStack, KnownNat n) => [(Int, Int)] -> a -> Array n a -> Array n a
 pad ps v = A . G.pad ps v . unA
 
 -- | Do an arbitrary array transposition.
 -- Fails if the transposition argument is not a permutation of the numbers
 -- [0..r-1], where r is the rank of the array.
 -- O(1) time.
-transpose :: (KnownNat n) => [Int] -> Array n a -> Array n a
+transpose :: (HasCallStack, KnownNat n) => [Int] -> Array n a -> Array n a
 transpose is = A . G.transpose is . unA
 
 -- | Append two arrays along the outermost dimension.
 -- All dimensions, except the outermost, must be the same.
 -- Fails if either array has rank 0.
 -- O(n) time.
-append :: (KnownNat n) => Array n a -> Array n a -> Array n a
+append :: (HasCallStack, KnownNat n) => Array n a -> Array n a -> Array n a
 append x y = A $ G.append (unA x) (unA y)
 
 -- | Concatenate a number of arrays into a single array.
 -- Fails if the list is empty or any but the outer dimensions differ.
 -- O(n) time.
-concatOuter :: (KnownNat n) => [Array n a] -> Array n a
+concatOuter :: (HasCallStack, KnownNat n) => [Array n a] -> Array n a
 concatOuter = A . G.concatOuter . coerce
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
 -- Fails if the outer array is empty.
 -- O(n) time.
-ravel :: (KnownNat (1+n)) =>
+ravel :: (HasCallStack, KnownNat (1+n)) =>
          Array 1 (Array n a) -> Array (1+n) a
 ravel = A . G.ravel . G.mapA unA . unA
 
@@ -241,7 +241,7 @@ unravel = A . G.mapA A . G.unravel . unA
 -- Fails if the window list is longer than the rank or a window is negative or
 -- larger than its dimension.
 -- O(1) time.
-window :: (KnownNat n, KnownNat n') => [Int] -> Array n a -> Array n' a
+window :: (HasCallStack, KnownNat n, KnownNat n') => [Int] -> Array n a -> Array n' a
 window ws = A . G.window ws . unA
 
 -- | Stride the outermost dimensions.
@@ -249,7 +249,7 @@ window ws = A . G.window ws . unA
 -- @[2,2]@ then the resulting shape will be @[5,6,8]@.
 -- Fails if the stride list is longer than the rank.
 -- O(1) time.
-stride :: [Int] -> Array n a -> Array n a
+stride :: (HasCallStack) => [Int] -> Array n a -> Array n a
 stride ws = A . G.stride ws . unA
 
 -- | Rotate the array k times along the d'th dimension.
@@ -275,7 +275,7 @@ rotate k = A . G.rotate @d @p k . unA
 -- The extracted slice must fall within the array dimensions.
 -- E.g. @slice [1,2] (fromList [4] [1,2,3,4]) == [2,3]@.
 -- O(1) time.
-slice :: [(Int, Int)] -> Array n a -> Array n a
+slice :: (HasCallStack) => [(Int, Int)] -> Array n a -> Array n a
 slice ss = A . G.slice ss . unA
 
 -- | Apply a function to the subarrays /n/ levels down and make
@@ -292,14 +292,14 @@ rerank f = A . G.rerank (unA . f . A) . unA
 -- Fails if the arrays differ in those /n/ outermost dimensions.
 -- O(n) time.
 rerank2 :: forall n i o a b c .
-           (KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
+           (HasCallStack, KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
            (Array i a -> Array i b -> Array o c) -> Array (n+i) a -> Array (n+i) b -> Array (n+o) c
 rerank2 f ta tb = A $ G.rerank2 @n (\ a b -> unA $ f (A a) (A b)) (unA ta) (unA tb)
 
 -- | Reverse the given dimensions, with the outermost being dimension 0.
 -- Fails if a given dimension is not one of the array's.
 -- O(1) time.
-rev :: [Int] -> Array n a -> Array n a
+rev :: (HasCallStack) => [Int] -> Array n a -> Array n a
 rev rs = A . G.rev rs . unA
 
 -- | Reduce all elements of an array into a rank 0 array.
@@ -339,13 +339,13 @@ productA = G.productA . unA
 -- | Maximum of all elements.
 -- Fails if the array is empty.
 {-# INLINE maximumA #-}
-maximumA :: (Ord a) => Array r a -> a
+maximumA :: (HasCallStack, Ord a) => Array r a -> a
 maximumA = G.maximumA . unA
 
 -- | Minimum of all elements.
 -- Fails if the array is empty.
 {-# INLINE minimumA #-}
-minimumA :: (Ord a) => Array r a -> a
+minimumA :: (HasCallStack, Ord a) => Array r a -> a
 minimumA = G.minimumA . unA
 
 -- | Test if the predicate holds for any element.
@@ -370,7 +370,7 @@ broadcast ds sh = A . G.broadcast ds sh . unA
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}
-generate :: forall n a . (KnownNat n) =>
+generate :: forall n a . (HasCallStack, KnownNat n) =>
             ShapeL -> ([Int] -> a) -> Array n a
 generate sh = A . G.generate sh
 

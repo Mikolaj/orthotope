@@ -217,7 +217,7 @@ unScalar (A _ t) = unScalarT t
 -- Fails if an extent is negative.
 -- O(1) time
 {-# INLINE constant #-}
-constant :: forall n v a . (Vector v, VecElem v a, KnownNat n) =>
+constant :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
             ShapeL -> a -> Array n v a
 constant sh | badShape sh = error $ "constant: bad shape: " ++ show sh
             | length sh /= valueOf @n = error "constant: rank mismatch"
@@ -234,7 +234,7 @@ mapA f (A s t) = A s (mapT s f t)
 -- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWithA #-}
-zipWithA :: (Vector v, VecElem v a, VecElem v b, VecElem v c) =>
+zipWithA :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c) =>
             (a -> b -> c) -> Array n v a -> Array n v b -> Array n v c
 zipWithA f (A s t) (A s' t') | s == s' = A s (zipWithT s f t t')
                              | otherwise = error $ "zipWithA: shape mismatch " ++ show (s, s')
@@ -243,7 +243,7 @@ zipWithA f (A s t) (A s' t') | s == s' = A s (zipWithT s f t t')
 -- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith3A #-}
-zipWith3A :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d) =>
+zipWith3A :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d) =>
              (a -> b -> c -> d) -> Array n v a -> Array n v b -> Array n v c -> Array n v d
 zipWith3A f (A s t) (A s' t') (A s'' t'') | s == s' && s == s'' = A s (zipWith3T s f t t' t'')
                                           | otherwise = error $ "zipWith3A: shape mismatch " ++ show (s, s', s'')
@@ -252,7 +252,7 @@ zipWith3A f (A s t) (A s' t') (A s'' t'') | s == s' && s == s'' = A s (zipWith3T
 -- Fails if the padding list is longer than the rank.
 -- O(n) time.
 {-# INLINE pad #-}
-pad :: forall n a v . (Vector v, VecElem v a) =>
+pad :: forall n a v . (HasCallStack, Vector v, VecElem v a) =>
        [(Int, Int)] -> a -> Array n v a -> Array n v a
 pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " ++ show (length aps, length ash)
                      | otherwise = uncurry A $ padT v aps ash at
@@ -262,7 +262,7 @@ pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " +
 -- [0..r-1], where r is the rank of the array.
 -- O(1) time.
 {-# INLINE transpose #-}
-transpose :: forall n v a . (KnownNat n) =>
+transpose :: forall n v a . (HasCallStack, KnownNat n) =>
             [Int] -> Array n v a -> Array n v a
 transpose is (A sh t) | l > n = error "transpose: rank exceeded"
                       | sort is /= [0 .. l-1] =
@@ -277,7 +277,7 @@ transpose is (A sh t) | l > n = error "transpose: rank exceeded"
 -- Fails if either array has rank 0.
 -- O(n) time.
 {-# INLINE append #-}
-append :: (Vector v, VecElem v a, KnownNat n) =>
+append :: (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
           Array n v a -> Array n v a -> Array n v a
 append a@(A (sa:sh) _) b@(A (sb:sh') _) | sh == sh' =
   fromVector (sa+sb : sh) (vAppend (toVector a) (toVector b))
@@ -287,7 +287,7 @@ append _ _ = error "append: bad shape"
 -- Fails if the list is empty or any but the outer dimensions differ.
 -- O(n) time.
 {-# INLINE concatOuter #-}
-concatOuter :: (Vector v, VecElem v a, KnownNat n) => [Array n v a] -> Array n v a
+concatOuter :: (HasCallStack, Vector v, VecElem v a, KnownNat n) => [Array n v a] -> Array n v a
 concatOuter [] = error "concatOuter: empty list"
 concatOuter as | not $ allSame $ map tail shs =
                  error $ "concatOuter: non-conforming inner dimensions: " ++ show shs
@@ -300,7 +300,7 @@ concatOuter as | not $ allSame $ map tail shs =
 -- Fails if the outer array is empty.
 -- O(n) time.
 {-# INLINE ravel #-}
-ravel :: (Vector v, Vector v', VecElem v a, VecElem v' (Array n v a), KnownNat (1+n)) =>
+ravel :: (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' (Array n v a), KnownNat (1+n)) =>
          Array 1 v' (Array n v a) -> Array (1+n) v a
 ravel aa =
   case toList aa of
@@ -331,7 +331,7 @@ unravel = rerank @1 scalar
 -- If the window parameter @ws = [w1,...,wk]@ and @wa = window ws a@ then
 -- @wa `index` i1 ... `index` ik == slice [(i1,w1),...,(ik,wk)] a@.
 {-# INLINE window #-}
-window :: forall n n' v a . (Vector v, KnownNat n, KnownNat n') =>
+window :: forall n n' v a . (HasCallStack, Vector v, KnownNat n, KnownNat n') =>
           [Int] -> Array n v a -> Array n' v a
 window aws _ | valueOf @n' /= length aws + valueOf @n = error $ "window: rank mismatch " ++ show (valueOf @n' :: Int, length aws, valueOf @n :: Int)
 window aws (A ash (T ss o v)) = A (win aws ash) (T (ss' ++ ss) o v)
@@ -347,7 +347,7 @@ window aws (A ash (T ss o v)) = A (win aws ash) (T (ss' ++ ss) o v)
 -- Fails if the stride list is longer than the rank.
 -- O(1) time.
 {-# INLINE stride #-}
-stride :: (Vector v) => [Int] -> Array n v a -> Array n v a
+stride :: (HasCallStack, Vector v) => [Int] -> Array n v a -> Array n v a
 stride ats (A ash (T ss o v)) = A (str ats ash) (T (zipWith (*) (ats ++ repeat 1) ss) o v)
   where str (t:ts) (s:sh) = (s+t-1) `quot` t : str ts sh
         str [] sh = sh
@@ -390,7 +390,7 @@ rotate k a = rerank @d @p @(p + 1) f a
 -- E.g. @slice [1,2] (fromList [4] [1,2,3,4]) == [2,3]@.
 -- O(1) time.
 {-# INLINE slice #-}
-slice :: [(Int, Int)] -> Array n v a -> Array n v a
+slice :: (HasCallStack) => [(Int, Int)] -> Array n v a -> Array n v a
 slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
   where (o, rsh) = slc asl ash ats
         slc ((k,n):sl) (s:sh) (t:ts) | k < 0 || k > s || k+n > s = error "slice: out of bounds"
@@ -415,7 +415,7 @@ rerank f (A sh t) =
   where (osh, ish) = splitAt (valueOf @n) sh
 
 {-# INLINABLE ravelOuter #-}
-ravelOuter :: (Vector v, VecElem v a, KnownNat m) => ShapeL -> [Array n v a] -> Array m v a
+ravelOuter :: (HasCallStack, Vector v, VecElem v a, KnownNat m) => ShapeL -> [Array n v a] -> Array m v a
 ravelOuter _ [] = error "ravelOuter: empty list"
 ravelOuter osh as | not $ allSame shs = error $ "ravelOuter: non-conforming inner dimensions: " ++ show shs
                   | otherwise = fromVector sh' $ vConcat $ map toVector as
@@ -429,7 +429,7 @@ ravelOuter osh as | not $ allSame shs = error $ "ravelOuter: non-conforming inne
 -- O(n) time.
 {-# INLINE rerank2 #-}
 rerank2 :: forall n i o a b c v .
-           (Vector v, VecElem v a, VecElem v b, VecElem v c,
+           (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c,
             KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
            (Array i v a -> Array i v b -> Array o v c) -> Array (n+i) v a -> Array (n+i) v b -> Array (n+o) v c
 rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error "rerank2: shape mismatch"
@@ -446,7 +446,7 @@ rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error "rerank2: sha
 -- Fails if a given dimension is not one of the array's.
 -- O(1) time.
 {-# INLINE rev #-}
-rev :: [Int] -> Array n v a -> Array n v a
+rev :: (HasCallStack) => [Int] -> Array n v a -> Array n v a
 rev rs (A sh t) | all (\ r -> r >= 0 && r < n) rs = A sh (reverseT rs sh t)
                 | otherwise = error "rev: bad reverse dimension"
   where n = length sh
@@ -538,7 +538,7 @@ broadcast ds sh a | length ds /= valueOf @r = error "broadcast: wrong number of 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}
 generate :: forall n v a .
-            (KnownNat n, Vector v, VecElem v a) =>
+            (HasCallStack, KnownNat n, Vector v, VecElem v a) =>
             ShapeL -> ([Int] -> a) -> Array n v a
 generate sh | length sh /= valueOf @n = error $ "generate: rank mismatch " ++ show (length sh, valueOf @n :: Int)
             | otherwise = A sh . generateT sh

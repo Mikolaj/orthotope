@@ -196,7 +196,7 @@ zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)
 
 -- | Pad each dimension on the low and high side with the given value.
 -- O(n) time.
-pad :: forall ps sh' sh a . (HasCallStack, Padded ps sh sh', Shape sh) =>
+pad :: forall ps sh' sh a . (Padded ps sh sh', Shape sh) =>
        a -> Array sh a -> Array sh' a
 pad v = A . G.pad @ps v . unA
 

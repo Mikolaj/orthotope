@@ -106,7 +106,7 @@ rank = G.rank . unA
 
 -- | Index into an array.  Fails if the index is out of bounds.
 -- O(1) time.
-index :: (Unbox a, KnownNat s) => Array (s:sh) a -> Int -> Array sh a
+index :: (HasCallStack, Unbox a, KnownNat s) => Array (s:sh) a -> Int -> Array sh a
 index a = A . G.index (unA a)
 
 -- | Convert to a list with the elements in the linearization order.
