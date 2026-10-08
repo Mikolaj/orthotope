@@ -104,11 +104,11 @@ instance Vector [] where
   vUpdate xs us = loop xs (sortOn fst us) 0
     where
       loop [] [] _ = []
-      loop [] (_:_) _ = error "vUpdate: out of bounds"
+      loop [] (_:_) _ = error "vUpdate: violated contract: index out of bounds"
       loop as [] _ = as
       loop (a:as) ias@((i,a'):ias') n =
         case compare i n of
-          LT -> error "vUpdate: bad index"
+          LT -> error "vUpdate: violated contract: bad index"
           EQ -> a' : loop as ias' (n+1)
           GT -> a  : loop as ias  (n+1)
   vGenerate n f = map f [0 .. n-1]
@@ -194,7 +194,7 @@ isCanonicalT (n:ss') (T ss o v) =
     o == 0 &&         -- Vector offset is 0
     ss == ss' &&      -- All strides are normal
     vLength v == n    -- The vector is the right size
-isCanonicalT _ _ = error "impossible"
+isCanonicalT _ _ = error "isCanonicalT: violated contract: no size"
 
 -- Convert a value to a scalar array.
 {-# INLINE scalarT #-}
@@ -230,7 +230,7 @@ toVectorListT sh a@(T ats ao v) =
         else
           -- Strides are not normal, collect slices.
           DL.concat [ loop bs ss ts (i*t + o) | i <- [0 .. s-1] ]
-      loop _ _ _ _ = error "impossible"  -- due to how @loop@ is called
+      loop _ _ _ _ = error "toVectorListT: violated contract: not one stride per dimension"  -- due to how @loop@ is called
   in  if ats == ts' && vLength v == l then
         -- All strides are normal, return entire vector
         [v]
@@ -291,7 +291,7 @@ fromListT sh = fromVectorT sh . vFromListN (product sh)
 {-# INLINE indexT #-}
 indexT :: T v a -> Int -> T v a
 indexT (T (s : ss) o v) i = T ss (o + i * s) v
-indexT _ _ = error "impossible"
+indexT _ _ = error "indexT: violated contract: rank 0"
 
 -- Stretch the given dimensions to have arbitrary size.
 -- The stretched dimensions must have size 1, and stretching is
@@ -384,7 +384,7 @@ reverseT rs sh (T ats ao v) = T rts ro v
         rev r (m:ms) (t:ts) | r `elem` rs = (o + (m-1)*t, -t : ts')
                             | otherwise   = (o,            t : ts')
           where (o, ts') = rev (r+1) ms ts
-        rev _ _ _ = error "reverseT: impossible"
+        rev _ _ _ = error "reverseT: violated contract: not one stride per dimension"
 
 -- Reduction of all array elements.
 {-# INLINE reduceT #-}
@@ -507,7 +507,7 @@ padT v aps ash at = (ss, fromVectorT ss $ vConcat $ pad' aps ash st at)
         pad' [] sh _ t = toVectorListT sh t
         pad' ((l,h):ps) (s:sh) (n:ns) t =
           [vReplicate (n*l) v] ++ concatMap (pad' ps sh ns . indexT t) [0..s-1] ++ [vReplicate (n*h) v]
-        pad' _ _ _ _ = error $ "pad: rank mismatch " ++ show (length aps, length ash)
+        pad' _ _ _ _ = error $ "padT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
         _ : st = getStridesT ss
         ss = zipWithLong2 (\ (l,h) s -> l+s+h) aps ash
 
@@ -526,7 +526,7 @@ simpleReshape osts os ns
       loop [] [] = []
       loop (1:ss)     sts  = 0  : loop ss sts
       loop (_:ss) (st:sts) = st : loop ss sts
-      loop _ _ = error $ "simpleReshape: shouldn't happen " ++ show (osts, os, ns)
+      loop _ _ = error $ "simpleReshape: violated contract: not one stride per dimension " ++ show (osts, os, ns)
 simpleReshape _ _ _ = Nothing
 
 -- Note: assumes + is commutative&associative.

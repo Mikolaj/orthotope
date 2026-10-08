@@ -386,7 +386,7 @@ slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
                                      | otherwise = (i + k*t, n:ns) where (i, ns) = slc sl sh ts
         slc (_:_) [] _ = error "slice: slice list too long"
         slc [] sh _ = (ao, sh)
-        slc _ _ _ = error "impossible"
+        slc _ _ _ = error "slice: violated contract: not one stride per dimension"
 
 -- | Apply a function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
