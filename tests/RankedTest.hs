@@ -279,6 +279,18 @@ test = testGroup "Ranked" $
       stride_3 = assertThrows "3" (stride [0] a1)
       stride_4 = assertThrows "4" (stride [-1] a1)
       stride_5 = assertEqual "5" (fromList [1] [1]) (stride [maxBound] (fromList [3] [1,2,3] :: Array 1 Int))
+      -- stride with fewer strides than dimensions keeps the rest.
+      stride_6 = assertEqual "6" (fromList [2, 2] [1, 2, 5, 6]) (stride [2] (fromList [4, 2] [1 .. 8] :: Array 2 Int))
+      -- fromVector of a vector of another size, and generate at
+      -- another rank, fail.
+      fromVector_2 = assertThrowsIn "2" "fromVector" (fromVector [2, 3] (V.fromList [1 .. 5]) :: Array 2 Int)
+      generate_1 = assertThrowsIn "1" "generate" (generate [2] (const 0) :: Array 2 Int)
+      -- read rejects a count of elements that is not the shape's, and a shape
+      -- of another rank.
+      read_1 = assertEqual "1" (Nothing, Nothing, Just (fromList [2] [1, 2] :: Array 1 Int))
+                 ( readMaybe "fromList [2] [1,2,3]" :: Maybe (Array 1 Int)
+                 , readMaybe "fromList [2] [1,2]" :: Maybe (Array 2 Int)
+                 , readMaybe "fromList [2] [1,2]" )
       rotate_1 = assertEqual "1" (fromList [2, 4, 3, 2]
                                      [1, 2, 3, 4, 5, 6,
                                       5, 6, 1, 2, 3, 4,
@@ -466,6 +478,10 @@ test = testGroup "Ranked" $
         , testCase "stride_3" stride_3
         , testCase "stride_4" stride_4
         , testCase "stride_5" stride_5
+        , testCase "stride_6" stride_6
+        , testCase "fromVector_2" fromVector_2
+        , testCase "generate_1" generate_1
+        , testCase "read_1" read_1
         , testCase "rotate_1" rotate_1
         , testCase "rotate_2" rotate_2
         , testCase "rotate_3" rotate_3
