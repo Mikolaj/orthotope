@@ -237,11 +237,11 @@ prettyShowL l = render . pPrintPrec l 0
 -- and the strides and copies nothing, so a slice, a transposition or
 -- a broadcast of an array is another @T@ view over the same vector.
 -- The comments below say /view/ for a @T@ taken with its shape; /walk/
--- for one traversal of a view's innermost axis; /innermost run/ for
--- what one walk yields, consecutive in the result whatever its stride;
--- and /run/ for a stretch of a view's elements that lie in the vector
--- consecutively and in the view's order, which an innermost run is at
--- innermost stride 1.
+-- for one traversal of a view, of some of its axes or of a list;
+-- /innermost run/ for what one walk of a view's innermost axis yields,
+-- consecutive in the result whatever its stride; and /run/ for a stretch
+-- of a view's elements that lie in the vector consecutively and in the
+-- view's order, which an innermost run is at innermost stride 1.
 --
 -- To avoid manipulating the data the indexing into the vector containing
 -- the data is somewhat complex.  To find where item /i/ of the outermost
@@ -749,12 +749,12 @@ genericUnsafeFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
               -- Where a client specialises the fill rather than
               -- inlining it, the specialised copy meets full laziness
               -- before any simplification, and a loop that mentions
-              -- nothing run binds is floated out of run and becomes a
+              -- nothing 'run' binds is floated out of 'run' and becomes a
               -- heap closure, 56 to 80 bytes a call
               -- (https://gitlab.haskell.org/ghc/ghc/-/work_items/27894).
-              -- This one mentions st, of the Axis that run takes out of
+              -- This one mentions st, of the Axis that 'run' takes out of
               -- its Nest, which is why Fused holds the innermost
-              -- level's, so it stays in run and becomes a join point.
+              -- level's, so it stays in 'run' and becomes a join point.
               -- Bounding it by an end computed from outPos does the
               -- same with a loop one instruction shorter, which on Zen 3
               -- ran slower where the innermost runs are two elements
