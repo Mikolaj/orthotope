@@ -678,7 +678,7 @@ broadcast :: forall r' r v a .
 broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dimension index"
                   | not (ascending ds) = error "broadcast: unordered dimensions"
                   | badShape sh = error $ "broadcast: bad shape " ++ show sh
-                  | length sh /= r = error "broadcast: wrong rank"
+                  | length sh /= r = error $ "broadcast: rank mismatch " ++ show (length sh, r)
                   | permute ds sh /= shapeL a =
                       error $ "broadcast: shape mismatch " ++ show (shapeL a, ds, sh)
                   | otherwise = A sh $ T sts o v
