@@ -35,7 +35,7 @@
 {-# OPTIONS_GHC -fno-polymorphic-specialisation #-}
 #endif
 module Data.Array.Internal.RankedS(
-  Array(..), Vector, ShapeL, Unbox,
+  Array(..), Vector, ShapeL, V.Storable, Unbox,
   size, shapeL, rank,
   toList, fromList, toVector, fromVector,
   normalize, force,
