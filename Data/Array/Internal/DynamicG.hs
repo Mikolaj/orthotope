@@ -387,17 +387,24 @@ stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ r
 -- | Rotate the array k times along the d'th dimension.
 -- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
 -- the resulting shape will be @[2, 4, 3, 2]@.
--- Fails if d is not a dimension of the array or k is negative.
+-- Fails if d is not a dimension of the array or k is negative, and may fail
+-- if the result has more than half of 'maxBound' elements.
 {-# INLINABLE rotate #-}  -- a complex operation, too much code for INLINE
 rotate :: (HasCallStack, Vector v, VecElem v a) => Int -> Int -> Array v a -> Array v a
 rotate d k a@(A sh _)
   | d < 0 || d >= rank a || k < 0 = error $ "rotate: dimension out of range or negative count " ++ show (d, k, rank a)
   | badShape sh' = error $ "rotate: bad shape " ++ show sh'
   | 0 `elem` sh' = A sh' $ fromVectorT sh' (vConcat [])  -- no elements
+  | copies > toInteger (maxBound :: Int) = error $ "rotate: count too large " ++ show (d, k, sh)
   | otherwise = rerank d f a
  where
   (osh, ish) = splitAt d sh
   sh' = osh ++ k : ish
+  -- How many elements f's copies of a subarray hold: fewer than twice the
+  -- k * n of its rotations, so past maxBound only where those pass half of it.
+  copies = let h = toInteger (sh !! d)
+               k' = toInteger k
+           in (k' + (k' + h - 2) `quot` h) * toInteger (product ish)
   f arr = let h:t = shapeL arr
               m = product t
               n = h * m
