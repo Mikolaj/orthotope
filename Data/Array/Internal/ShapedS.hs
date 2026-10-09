@@ -442,7 +442,7 @@ allA p = G.allA p . unA
 
 -- | Put the dimensions of the argument into the specified dimensions,
 -- and just replicate the data along all other dimensions.
--- The list of dimensions indices must have the same rank as the argument array
+-- The list of dimension indices must have the same rank as the argument array
 -- and it must be strictly ascending.
 {-# INLINABLE broadcast #-}
 broadcast :: forall ds sh' sh a .
