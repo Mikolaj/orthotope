@@ -95,10 +95,10 @@ instance Vector V.Vector where
   -- The zips write each result unevaluated over the indices, reading the
   -- elements unforced, as vector's own do, whose stream state, an index for
   -- each vector and the element held between them, stays boxed without the
-  -- SpecConstr of -O2.  On GHC HEAD with vector's issue 570 fixed, on views
-  -- of 200000 Doubles, zipWithA to zipWith5A took 0.44 to 0.82 of their time
-  -- at -O1 and rerank2 of zipWithA 0.62; with -fspec-constr, 0.94 to 1.03,
-  -- but zipWith5A, whose stream SpecConstr leaves boxed, 0.50 to 0.62,
+  -- SpecConstr of -O2.  On GHC HEAD with vector patched as issue 570 proposes,
+  -- on views of 200000 Doubles, zipWithA to zipWith5A took 0.44 to 0.82 of
+  -- their time at -O1 and rerank2 of zipWithA 0.62; with -fspec-constr, 0.94 to
+  -- 1.03, but zipWith5A, whose stream SpecConstr leaves boxed, 0.50 to 0.62,
   -- allocating 120 bytes an element where 528.  The same loop gained nothing
   -- for vGenerate, which keeps vector's own.
   {-# INLINE vZipWith #-}
@@ -148,10 +148,10 @@ instance Vector V.Vector where
   vGenerate = V.generate
   -- vAll and vAny read each element by index through unsafeIndexM, which hands
   -- the predicate the element stored, where unsafeIndex would hand it a thunk
-  -- of the read.  On GHC HEAD with vector's issue 570 fixed, on views of 200000
-  -- Doubles, they ran 0.96 of the instructions of vector's own at -O1 and as
-  -- many with -fspec-constr; their times, varying from run to run by up to 1.55
-  -- times, showed no difference.
+  -- of the read.  On GHC HEAD with vector patched as issue 570 proposes, on
+  -- views of 200000 Doubles, they ran 0.96 of the instructions of vector's own
+  -- at -O1 and as many with -fspec-constr; their times, varying from run to run
+  -- by up to 1.55 times, showed no difference.
   {-# INLINE vAll #-}
   vAll q v = go 0
     where !n = V.length v

@@ -96,11 +96,12 @@ instance Vector V.Vector where
   -- Storable's read as a thunk (https://github.com/haskell/vector/issues/570)
   -- that a function GHC cannot see into, or a consumer keeping the elements,
   -- as traverseA does, takes as it is, 40 bytes an element holding the vector.
-  -- On GHC HEAD with the issue fixed and -fspec-constr, the operations reading
-  -- through them took 0.95 to 1.02 of their time; at -O1, anyA and allA took
-  -- 0.61 and 0.91 of it, fixed or not.  vSum, vProduct, vMaximum and vMinimum
-  -- keep vector's own: their functions are the element's class methods, which a
-  -- call the client specialises knows, so the read is no thunk there.
+  -- On GHC HEAD with vector patched as the issue proposes and -fspec-constr,
+  -- the operations reading through them took 0.95 to 1.02 of their time; at
+  -- -O1, anyA and allA took 0.61 and 0.91 of it, fixed or not.  vSum, vProduct,
+  -- vMaximum and vMinimum keep vector's own: their functions are the element's
+  -- class methods, which a call the client specialises knows, so the read is no
+  -- thunk there.
   {-# INLINE vToList #-}
   vToList v = build $ \ cons nil ->
     let !n = V.length v
@@ -125,10 +126,10 @@ instance Vector V.Vector where
   -- result, so the array operations never fused their inputs; a map of a map
   -- allocates one vector per map, with vector's map as with this one.
   -- Each read is forced before the function takes it: given a function GHC
-  -- cannot see into, on GHC HEAD with vector's issue 570 fixed, on views of
-  -- 200000 Doubles, mapA allocated 40 bytes an element where 80 and zipWithA
-  -- 72 where 152, and given known functions every operation ran as many
-  -- instructions as before.
+  -- cannot see into, on GHC HEAD with vector patched as issue 570 proposes, on
+  -- views of 200000 Doubles, mapA allocated 40 bytes an element where 80 and
+  -- zipWithA 72 where 152, and given known functions every operation ran as
+  -- many instructions as before.
   {-# INLINE vMap #-}
   vMap f v = V.generate (V.length v) (\ i -> let !x = V.unsafeIndex v i in f x)
   {-# INLINE vZipWith #-}
