@@ -280,6 +280,14 @@ test = testGroup "Ranked" $
       rotate_3 = assertThrowsIn "3" "rotate" (rotate @0 @1 (maxBound `quot` 4 + 1) (fromList [4] [1,2,3,4] :: Array 1 Int))
       -- A result shape within maxBound, where the copies of the row pass it.
       rotate_4 = assertThrowsIn "4" "rotate" (rotate @0 @1 (maxBound `quot` 2 + 2) (fromList [1] [7] :: Array 1 Int))
+      -- A negative size and too few broadcast dimensions fail at the checks
+      -- of the shape they would make, and an empty outer dimension at
+      -- ravelOuter's check of its list.
+      laterChecks_1 = mapM_ (\ (m, a) -> catch (deepseq a $ assertFailure m)
+                                              (\ (ErrorCall e) -> assertEqual m m e))
+        [ ("stretchOuter: bad shape [-1,2]", stretchOuter (-1) (fromList [1,2] [1,2] :: Array 2 Int))
+        , ("broadcast: shape mismatch ([2,3],[0],[2,3])", broadcast [0] [2,3] (fromList [2,3] [1..6] :: Array 2 Int))
+        , ("ravelOuter: empty outer dimension", rerank @1 (id :: Array 1 Int -> Array 1 Int) (fromList [0,2] [])) ]
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrows "2" (slice [(0,0)] a4)
@@ -303,12 +311,12 @@ test = testGroup "Ranked" $
                                  (rerank @2 box a5)
       rerank_4 = assertEqual "4" (mapA (Just . scalar) a5)
                                  (rerank @3 box a5)
-      rerank_5 = assertThrowsIn "5" "rerank" (rerank @1 (\ a -> constant [unScalar a] 0) (fromList [2] [1,2] :: Array 1 Int) :: Array 2 Int)
+      rerank_5 = assertThrowsIn "5" "ravelOuterOf" (rerank @1 (\ a -> constant [unScalar a] 0) (fromList [2] [1,2] :: Array 1 Int) :: Array 2 Int)
       a7 = mapA succ a5
       dot x y = reduce (+) 0 $ zipWithA (*) x y
       rerank2_1 = assertEqual "1" (fromList [2,3] [40,200,488,904,1448,2120])
                                   (rerank2 @2 dot a5 a7)
-      rerank2_2 = assertThrowsIn "2" "rerank2" (rerank2 @1 (\ a _ -> constant [unScalar a] 0) v v :: Array 2 Int)
+      rerank2_2 = assertThrowsIn "2" "ravelOuterOf" (rerank2 @1 (\ a _ -> constant [unScalar a] 0) v v :: Array 2 Int)
         where v = fromList [2] [1,2] :: Array 1 Int
       rev_1 = assertEqual "1" (fromList [2,3] [3,2,1,6,5,4])
                               (rev [1] a1)
@@ -430,6 +438,7 @@ test = testGroup "Ranked" $
         , testCase "rotate_2" rotate_2
         , testCase "rotate_3" rotate_3
         , testCase "rotate_4" rotate_4
+        , testCase "laterChecks_1" laterChecks_1
         , testCase "slice_1" slice_1
         , testCase "slice_2" slice_2
         , testCase "slice_3" slice_3

@@ -341,7 +341,7 @@ slice ss = A . G.slice ss . unA
 -- O(n) time.
 {-# INLINE rerank #-}
 rerank :: forall n i o a b .
-          (HasCallStack, Unbox a, Unbox b, KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
+          (Unbox a, Unbox b, KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
           (Array i a -> Array o b) -> Array (n+i) a -> Array (n+o) b
 rerank f = A . G.rerank (unA . f . A) . unA
 

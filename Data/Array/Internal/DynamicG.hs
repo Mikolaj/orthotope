@@ -195,7 +195,6 @@ stretch sh (A sh' vs) | Just bs <- str sh sh' = A sh $ stretchT bs vs
 -- Fails if the outermost dimension is not 1 or the size is negative.
 {-# INLINE stretchOuter #-}
 stretchOuter :: (HasCallStack) => Int -> Array v a -> Array v a
-stretchOuter s _ | s < 0 = error $ "stretchOuter: negative size " ++ show s
 stretchOuter s (A (1:sh) vs)
   | badShape (s:sh) = error $ "stretchOuter: bad shape " ++ show (s:sh)
   | otherwise = A (s:sh) $ stretchT (True : map (const False) (strides vs)) vs
@@ -330,7 +329,7 @@ ravel :: (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' (Array v a)
          Array v' (Array v a) -> Array v a
 ravel aa | rank aa /= 1 = error "ravel: outermost array does not have rank 1"
          | otherwise = case shapeL aa of
-  [k] | k > 0 -> ravelOuterOf "ravel" [k] (shapeL (unScalar (index aa 0))) (toList aa)
+  [k] | k > 0 -> ravelOuterOf [k] (shapeL (unScalar (index aa 0))) (toList aa)
   _ -> error "ravel: empty array"
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
@@ -392,7 +391,7 @@ stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ r
 {-# INLINABLE rotate #-}  -- a complex operation, too much code for INLINE
 rotate :: (HasCallStack, Vector v, VecElem v a) => Int -> Int -> Array v a -> Array v a
 rotate d k a@(A sh _)
-  | d < 0 || d >= rank a || k < 0 = error $ "rotate: dimension out of range or negative count " ++ show (d, k, rank a)
+  | d < 0 || d >= rank a = error $ "rotate: dimension out of range " ++ show (d, rank a)
   | badShape sh' = error $ "rotate: bad shape " ++ show sh'
   | 0 `elem` sh' = A sh' $ fromVectorT sh' (vConcat [])  -- no elements
   | copies > toInteger (maxBound :: Int) = error $ "rotate: count too large " ++ show (d, k, sh)
@@ -442,33 +441,32 @@ slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
 rerank :: (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' b) =>
           Int -> (Array v a -> Array v' b) -> Array v a -> Array v' b
 rerank n f (A sh t) | n < 0 || n > length sh = error "rerank: rank exceeded"
-                    -- f is never applied, so the inner shape is unknown
-                    | 0 `elem` osh = error "rerank: empty outer dimension"
                     | otherwise =
-  ravelOuter "rerank" osh $
+  ravelOuter osh $
   map (f . A ish) $
   subArraysT osh t
   where (osh, ish) = splitAt n sh
 
--- The first argument names the caller in the errors.  The caller computes the
--- arrays, one for each index of @osh@, and each one's shape is checked against
--- the first's as it is copied, not all before the copy, which, the fields of an
--- array being strict, would compute every array and hold them all.
+-- The caller computes the arrays, one for each index of @osh@, and each one's
+-- shape is checked against the first's as it is copied, not all before
+-- the copy, which, the fields of an array being strict, would compute every
+-- array and hold them all.  Over an empty outer dimension there is none
+-- to take the inner shape from.
 {-# INLINE ravelOuter #-}
-ravelOuter :: (HasCallStack, Vector v, VecElem v a) => String -> ShapeL -> [Array v a] -> Array v a
-ravelOuter name _ [] = error $ name ++ ": empty list"
-ravelOuter name osh as@(a : _) = ravelOuterOf name osh (shapeL a) as
+ravelOuter :: (HasCallStack, Vector v, VecElem v a) => ShapeL -> [Array v a] -> Array v a
+ravelOuter _ [] = error "ravelOuter: empty outer dimension"
+ravelOuter osh as@(a : _) = ravelOuterOf osh (shapeL a) as
 
 -- 'ravelOuter' given the shape every array must have, which 'ravel' reads off
 -- its first array without taking the list's head, so that the list fuses with
 -- the copy.
 {-# INLINE ravelOuterOf #-}
 ravelOuterOf :: (HasCallStack, Vector v, VecElem v a) =>
-                String -> ShapeL -> ShapeL -> [Array v a] -> Array v a
-ravelOuterOf name osh sh as = fromVector sh' $ vUnsafeConcatN (product sh') $ map part as
+                ShapeL -> ShapeL -> [Array v a] -> Array v a
+ravelOuterOf osh sh as = fromVector sh' $ vUnsafeConcatN (product sh') $ map vec as
   where sh' = osh ++ sh
-        part x | shapeL x == sh = toVector x
-               | otherwise = error $ name ++ ": non-conforming inner dimensions: " ++ show [sh, shapeL x]
+        vec x | shapeL x == sh = toVector x
+              | otherwise = error $ "ravelOuterOf: non-conforming inner dimensions: " ++ show [sh, shapeL x]
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
@@ -481,10 +479,8 @@ rerank2 :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c) =>
            Int -> (Array v a -> Array v b -> Array v c) -> Array v a -> Array v b -> Array v c
 rerank2 n f (A sha ta) (A shb tb) | n < 0 || n > length sha || n > length shb = error "rerank2: rank exceeded"
                                   | take n sha /= take n shb = error "rerank2: shape mismatch"
-                                  -- f is never applied, so the inner shape is unknown
-                                  | 0 `elem` osh = error "rerank2: empty outer dimension"
                                   | otherwise =
-  ravelOuter "rerank2" osh $
+  ravelOuter osh $
   zipWith (\ a b -> f (A isha a) (A ishb b))
           (subArraysT osh ta)
           (subArraysT osh tb)
@@ -580,8 +576,7 @@ allA p (A sh t) = allT sh p t
 {-# INLINE broadcast #-}
 broadcast :: (HasCallStack, Vector v, VecElem v a) =>
              [Int] -> ShapeL -> Array v a -> Array v a
-broadcast ds sh a | length ds /= rank a = error "broadcast: wrong number of broadcasts"
-                  | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dimension index"
+broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dimension index"
                   | not (ascending ds) = error "broadcast: unordered dimensions"
                   | badShape sh = error $ "broadcast: bad shape " ++ show sh
                   | permute ds sh /= shapeL a =
