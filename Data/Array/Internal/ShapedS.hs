@@ -175,7 +175,7 @@ stretch :: forall sh' sh a . (Shape sh, Shape sh', ValidStretch sh sh') => Array
 stretch = A . G.stretch . unA
 
 -- | Change the size of the outermost dimension by replication.
-stretchOuter :: forall s sh a . Array (1 : sh) a -> Array (s : sh) a
+stretchOuter :: (KnownNat s, Shape sh) => Array (1 : sh) a -> Array (s : sh) a
 stretchOuter = A . G.stretchOuter . unA
 
 -- | Convert a value to a scalar (rank 0) array.
@@ -242,7 +242,7 @@ pad v = A . G.pad @ps v . unA
 -- dimensions it permutes.
 -- O(1) time.
 transpose :: forall is sh a .
-             (Permutation is, Rank is <= Rank sh, Shape sh, Shape is, KnownNat (Rank sh)) =>
+             (HasCallStack, Permutation is, Rank is <= Rank sh, Shape sh, Shape is, KnownNat (Rank sh)) =>
              Array sh a -> Array (Permute is sh) a
 transpose = A . G.transpose @is . unA
 
@@ -290,7 +290,7 @@ unravel = S.A . G.mapA A . G.unravel . unA
 -- @wa `index` i1 ... `index` ik == slice \@'[ '(i1,w1),...,'(ik,wk)] a@.
 {-# INLINABLE window #-}
 window :: forall ws sh' sh a .
-          (Window ws sh sh', KnownNat (Rank ws)) =>
+          (Window ws sh sh', KnownNat (Rank ws), Shape sh') =>
           Array sh a -> Array sh' a
 window = A . G.window @ws . unA
 

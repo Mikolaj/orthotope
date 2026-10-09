@@ -83,7 +83,9 @@ though an outer extent of 0 leaves the shape none: the type
 `'[0, 4611686018427387904, 4]` fails for its rows
 of `'[4611686018427387904, 4]`, where `Dynamic` accepts the shape
 `[0, 4611686018427387904, 4]`. The `Shaped` modules check most arguments
-in their types instead.
+in their types instead. A number past `maxBound` in a `Shaped` type fails where
+it is read. An operation makes these checks before it returns, so no array
+an operation returns has a shape that fails.
 
 The functions of `Data.Array.Internal` have contracts, which the operations
 establish before calling them. A call that breaks one is a bug, in orthotope
