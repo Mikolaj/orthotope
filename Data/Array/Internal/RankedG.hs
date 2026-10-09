@@ -55,7 +55,6 @@ module Data.Array.Internal.RankedG(
 import Control.Monad(replicateM)
 import Control.DeepSeq
 import Data.Data(Data)
-import Data.List(sort)
 import Data.Maybe(fromMaybe)
 import GHC.Generics(Generic)
 import GHC.Stack
@@ -84,7 +83,7 @@ instance (KnownNat n, Vector v, Read a, VecElem v a) => Read (Array n v a) where
     , product s == length xs]
 
 instance (Vector v, Eq a, VecElem v a) => Eq (Array n v a) where
-  (A s v) == (A s' v') = s == s' && equalT s v v'
+  (A s v) == (A s' v') = equalT s s' v v'
   {-# INLINE (==) #-}
 
 instance (Vector v, Ord a, VecElem v a) => Ord (Array n v a) where
@@ -306,7 +305,7 @@ pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " +
 transpose :: forall n v a . (HasCallStack, KnownNat n) =>
             [Int] -> Array n v a -> Array n v a
 transpose is (A sh t) | l > n = error $ "transpose: rank exceeded " ++ show (is, sh)
-                      | sort is /= [0 .. l-1] =
+                      | not (all (`elem` is) [0 .. l-1]) =
                           error $ "transpose: not a permutation: " ++ show is
                       | otherwise = A (permute is' sh) (transposeT is' t)
   where l = length is
