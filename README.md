@@ -68,12 +68,14 @@ like `hmatrix`.
 ### Errors
 
 An operation of the array modules either returns its result or fails
-with an error naming it, such as `reshape: size mismatch ([2,3],[5])`. Such
-an argument breaks no contract: the error is its result, and the operation's
-documentation says when it occurs, with "Fails if" or with "must". The error's
-call stack shows the line that called the operation. Some failures hold
-throughout and go unsaid: a shape with a negative extent or with more elements
-than an `Int` counts, extents or paddings summing past `maxBound`, and,
+with an error naming the function whose check failed: the operation itself,
+as in `reshape: size mismatch ([2,3],[5])`, or one it called,
+as in `fromVector: bad shape [4611686018427387904,2]` from `append`. Such
+a failure breaks no contract: the error is the operation's result,
+and its documentation says when it occurs, with "Fails if" or with "must".
+The error's call stack shows the line that called the operation. Some failures
+hold throughout and go unsaid: a shape with a negative extent or with more
+elements than an `Int` counts, extents or paddings summing past `maxBound`, and,
 in the `Ranked` modules, a rank other than the one the types give.
 In the `Shaped` modules a shape also fails if any inner part of it,
 the dimensions from some one inward, has more elements than an `Int` counts,
