@@ -21,6 +21,7 @@ import Control.DeepSeq hiding (force)
 import Control.Exception
 import Data.Array.Convert (convert, convertE)
 import qualified Data.Array.Dynamic as D
+import qualified Data.Array.DynamicS as DS
 import Data.Array.Ranked
 import qualified Data.Array.RankedS as RS
 import qualified Data.Array.RankedU as RU
@@ -344,6 +345,19 @@ test = testGroup "Ranked" $
       convert_1 = assertEqual "1" ([1,2], [1,2])
                     (RU.toList (convert x :: RU.Array 1 Int), RS.toList (convert x :: RS.Array 1 Int))
         where x = index (fromList [2,2] [1,2,undefined,undefined]) 0 :: Array 1 Int
+      -- The conversions no other test runs, there and back where there is a way
+      -- back, and convertE's Left where the rank differs.
+      convert_2 = do
+        let r = fromList [2, 3] [1 .. 6] :: Array 2 Int
+            d = D.fromList [2, 3] [1 .. 6 :: Int]
+            ds = DS.fromList [2, 3] [1 .. 6 :: Int]
+        assertEqual "RU" r (convert (convert r :: RU.Array 2 Int))
+        assertEqual "RS" r (convert (convert r :: RS.Array 2 Int))
+        assertEqual "D" d (convert r)
+        assertEqual "convertE D" (Right r) (convertE d)
+        assertEqual "convertE DS" (Right (convert r :: RS.Array 2 Int)) (convertE ds)
+        assertEqual "convertE DS rank" (Left "convert: rank mismatch")
+          (() <$ (convertE ds :: Either String (RS.Array 1 Int)))
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank @1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank @1 (reduce (*) 1) a2)
@@ -476,6 +490,7 @@ test = testGroup "Ranked" $
         , testCase "convertE_1" convertE_1
         , testCase "rnf_1" rnf_1
         , testCase "convert_1" convert_1
+        , testCase "convert_2" convert_2
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
