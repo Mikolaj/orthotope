@@ -215,7 +215,7 @@ instance Eq (G.Array V.Vector a) => Eq (Array a) where
   {-# INLINE (==) #-}
 
 instance Ord (G.Array V.Vector a) => Ord (Array a) where
-  compare x y = compare (shapeL x) (shapeL y) <> compare (unA x) (unA y)
+  compare x y = compare (unA x) (unA y)
   {-# INLINE compare #-}
 
 -- | The number of elements in the array.
