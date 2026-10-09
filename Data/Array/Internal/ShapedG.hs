@@ -298,9 +298,9 @@ pad v a@(A at) | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
         (_, t) = padT v aps ash at
 
 -- | Do an arbitrary array transposition.
--- Fails if the transposition argument is not a permutation of the numbers
--- [0..l-1] for an l no greater than the rank of the array, whose l outermost
--- dimensions it permutes.
+-- The transposition argument, which its type checks, is a permutation of the
+-- numbers [0..l-1] for an l no greater than the rank of the array, whose l
+-- outermost dimensions it permutes.
 -- O(1) time.
 {-# INLINE transpose #-}
 transpose :: forall is sh v a .
