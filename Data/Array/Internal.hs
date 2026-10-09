@@ -70,9 +70,8 @@ class Vector v where
   vZipWith4 :: (VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e) => (a -> b -> c -> d -> e) -> v a -> v b -> v c -> v d -> v e
   vZipWith5 :: (VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, VecElem v f) => (a -> b -> c -> d -> e -> f) -> v a -> v b -> v c -> v d -> v e -> v f
   vAppend   :: (VecElem v a) => v a -> v a -> v a
-  -- | The vectors' elements, in order, in a new vector, which shares no
-  -- buffer with them even when there is one: 'normalize' relies on it to
-  -- copy an array out of a larger vector.
+  -- | The vectors' elements, in order, in a new vector, which shares no buffer
+  -- with them even when there is one: the default of 'vForce' relies on it.
   vConcat   :: (VecElem v a) => [v a] -> v a
   vFold     :: (VecElem v a) => (a -> a -> a) -> a -> v a -> a
   vSlice    :: (VecElem v a) => Int -> Int -> v a -> v a
@@ -151,6 +150,15 @@ class Vector v where
   vGenerate' :: (VecElem v a) => Int -> (Int -> a) -> v a
   vGenerate' n g = vFromListN n [ x | i <- [0 .. n - 1], let !x = g i ]
 
+  -- | The vector with its elements in storage of its own, so that it keeps
+  -- alive no longer vector, as a slice of one does.  It can copy a vector
+  -- that is no slice too, as the default, 'vConcat' of the one vector,
+  -- always does.  The vector instances keep the default, since vector's
+  -- 'Data.Vector.Generic.force' fills its new vector with zeros before it
+  -- copies into it (https://github.com/haskell/vector/issues/571).
+  vForce :: (VecElem v a) => v a -> v a
+  vForce v = vConcat [v]
+
   -- Left out of the class, to keep it small until users find
   -- the speedups worth its size: vZipWithStrided to vZipWith5Strided,
   -- with which the vector instances zip views that no slice serves by
@@ -185,6 +193,9 @@ instance Vector [] where
   vAppend = (++)
   vConcat = concat
   vFold = foldl'
+  -- A slice of a list, once its spine is evaluated, is cells of its own,
+  -- which keep alive no longer list.
+  vForce = id
   -- Fails on a slice out of range, as the vector instances do; on one the
   -- list runs out in, only where its end is forced.
   vSlice o n xs
@@ -272,7 +283,7 @@ instance NFData (v a) => NFData (T v a)
 -- reads every element of one part, and otherwise its elements without
 -- its broadcast dimensions, which repeat what the rest holds.  An element
 -- outside the view stays as it is, keeping alive what it references until
--- 'normalize' copies the view out of the vector.
+-- 'forceT' copies the view out of the vector.
 {-# INLINE rnfViewT #-}
 rnfViewT :: (Vector v, VecElem v a, NFData a, NFData (v a)) => ShapeL -> T v a -> ()
 rnfViewT sh t@(T _ _ v) = case readRangeT sh t of
@@ -1226,17 +1237,36 @@ toVectorT sh a@(T _ _ v)
 -- Put the array into a vector of just its elements, in the linearization
 -- order.  A non-empty array whose elements lie one after another in that
 -- order in its vector, whatever the strides of its dimensions of extent 1,
--- keeps the vector where they are all of it, and otherwise has them copied,
--- by vConcat of the one slice, which builds a new vector, as the class
--- requires.
+-- keeps the vector, or the slice of it they fill, which keeps the whole
+-- vector alive, and otherwise has them copied into a new one; 'forceT'
+-- copies them out of a longer vector.
 {-# INLINE normalizeT #-}
 normalizeT :: (Vector v, VecElem v a) => ShapeL -> T v a -> T v a
 normalizeT sh t@(T ats ao v)
-  | l > 0, map fst dense == ts' =
-    fromVectorT sh $ if vLength v == l then v else vConcat [vUnsafeSlice ao l v]
+  | l > 0, map fst dense == ts' = fromVectorT sh $ wholeOrSliceT ao l v
   | otherwise = fromVectorT sh $ toVectorT sh t
   where dense = [ (st, s) | (st, s) <- zip ats sh, s /= 1 ]
         l : ts' = getStridesT (map snd dense)
+
+-- The view with k dimensions of extent 1 inserted before its dimension d,
+-- which reads the same elements, sharing the vector.
+{-# INLINE insertUnitsT #-}
+insertUnitsT :: Int -> Int -> T v a -> T v a
+insertUnitsT d k (T ss o v) = T (take d ss ++ replicate k 0 ++ drop d ss) o v
+
+-- The array with its elements in a vector of their own, in the
+-- linearization order, which keeps alive no vector the array shares: the
+-- part of the vector that a view reads in that order is copied by
+-- 'vForce', and any other view is filled into a new vector, as
+-- 'toVectorT' fills it.
+{-# INLINE forceT #-}
+forceT :: (Vector v, VecElem v a) => ShapeL -> T v a -> T v a
+forceT sh t@(T _ _ v)
+  | l == 0 = fromVectorT sh (vConcat [])
+  | otherwise = fromVectorT sh $ case routeT sh l t of
+      RSlice ao n -> vForce (wholeOrSliceT ao n v)
+      route -> routeVectorT v route
+  where !l = product sh
 
 -- The vector a route stands for: one slice of the vector, or the view
 -- filled as one vector, runs included.  'toVectorT' and

@@ -17,7 +17,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module RankedSTest(test) where
 
-import Control.DeepSeq
+import Control.DeepSeq hiding (force)
 import Control.Exception
 import Data.Array.RankedS
 import Data.Word (Word16, Word32)
@@ -59,10 +59,11 @@ test = testGroup "RankedS" $
       fromList_2 = assertThrows "sh" (fromList [4,5] [1,2] :: Array 2 Int)
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
       normalize_1 = assertEqual "1" a1 (normalize a1)
-      -- toVector of a row is a slice of the whole vector, which normalize copies
-      -- the row out of.
-      normalize_2 = assertEqual "2" (True, False)
-                      (inBig (toVector (index big 1)), inBig (toVector (normalize (index big 1))))
+      -- toVector of a row is a slice of the whole vector, which normalize
+      -- keeps and force copies the row out of.
+      normalize_2 = assertEqual "2" (True, True, False)
+                      ( inBig (toVector (index big 1)), inBig (toVector (normalize (index big 1)))
+                      , inBig (toVector (force (index big 1))) )
         where big = fromList [4,1000] [1..4000] :: Array 2 Double
               ptrOf = unsafeForeignPtrToPtr . fst . V.unsafeToForeignPtr0
               inBig w = let d = ptrOf w `minusPtr` ptrOf (toVector big) in d >= 0 && d < 32000

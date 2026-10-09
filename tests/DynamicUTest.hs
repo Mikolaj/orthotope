@@ -15,7 +15,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module DynamicUTest(test) where
 
-import Control.DeepSeq
+import Control.DeepSeq hiding (force)
 import Control.Exception
 import Data.Array.DynamicU
 import qualified Data.Vector.Unboxed as V

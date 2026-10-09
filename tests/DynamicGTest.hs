@@ -214,7 +214,7 @@ valuesOf :: Array v a -> v a
 valuesOf (DG.A _ t) = I.values t
 
 -- Whether a vector's storage holds its elements and nothing more, keeping no
--- larger vector alive, as normalize's copy out of a longer vector must.
+-- larger vector alive, as force's copy must.
 class Owns w where
   ownsStorage :: w -> Bool
 
@@ -239,7 +239,8 @@ instance Owns (VU.Vector Word8) where
   ownsStorage (VUB.V_Word8 (VP.Vector _ n b)) = sizeofByteArray b == n
 
 -- normalize gives the view as a normal array, its elements in a vector
--- of just their number, at offset 0 and with natural strides; reshape to
+-- of just their number, at offset 0 and with natural strides, and force
+-- the same in storage of its own; reshape to
 -- one dimension, append and concatOuter of the view and a normal array of
 -- its shape, zipWithA of the two either way round, and traverseA in the
 -- applicative of pairs agree with the lists; concatOuter of the view alone,
@@ -256,8 +257,8 @@ prop_copy v@(View sh _) =
       let y = fromList xsh ys
           z = normalize x
       in  toList z === l .&&. layoutOf z === (0, drop 1 (scanr (*) 1 xsh), n)
-          .&&. counterexample "normalize keeps a larger vector"
-                 (I.vLength (valuesOf x) == n || ownsStorage (valuesOf z))
+          .&&. toList (force x) === l
+          .&&. counterexample "force keeps a larger vector" (ownsStorage (valuesOf (force x)))
           .&&. toList (reshape [n] x) === l
           .&&. toList (zipWithA (-) x y) === zipWith (-) l ys
           .&&. toList (zipWithA (-) y x) === zipWith (-) ys l
