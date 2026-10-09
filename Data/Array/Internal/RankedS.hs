@@ -87,7 +87,7 @@ instance (KnownNat n, Read a, Unbox a) => Read (Array n a) where
   readsPrec p s = [(A a, r) | (a, r) <- readsPrec p s]
 
 instance Eq (G.Array n V.Vector a) => Eq (Array n a) where
-  x == y = shapeL x == shapeL y && unA x == unA y
+  x == y = unA x == unA y
   {-# INLINE (==) #-}
 
 instance Ord (G.Array n V.Vector a) => Ord (Array n a) where
