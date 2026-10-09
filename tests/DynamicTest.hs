@@ -12,12 +12,13 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 module DynamicTest(test) where
 
-import Control.DeepSeq
+import Control.DeepSeq hiding (force)
 import Control.Exception
 import Data.Array.Convert (convert)
 import Data.Array.Dynamic
@@ -29,11 +30,12 @@ import qualified Data.Array.Internal.Dynamic as DI
 import qualified Data.Array.Internal.DynamicG as DG
 import Data.Bits (finiteBitSize)
 import Data.List (nub, sort)
+import qualified Data.Primitive.Array as P
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
 import Data.Word (Word8)
-import GHC.Exts (isTrue#, reallyUnsafePtrEquality#)
+import GHC.Exts (isTrue#, reallyUnsafePtrEquality#, sameMutableArray#, unsafeCoerce#)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
@@ -420,6 +422,26 @@ test = testGroup "Dynamic" $
                                          (\ (ErrorCall e) -> assertEqual m m e))
         [ ("window: rank mismatch ([0,1],[9223372036854775807])", window [0, 1] (constant [maxBound] (0 :: Int)))
         , ("window: bad shape [9223372036854775808,0]", window [0] (constant [maxBound] 0)) ]
+      -- An operation that returns its argument or a view of a part of it
+      -- shares the array under the argument's vector, which force copies
+      -- out.  The vector itself is a record, and on GHC 9.0.2 and 9.2.8
+      -- update and rotate return a different one.
+      sharing_1 = do
+        assertEqual "shares" (replicate 10 True)
+          [ shares (pad [(0,0),(0,0)] 0 a1), shares (append a1 (fromList [0,3] []))
+          , shares (append (fromList [0,3] []) a1), shares (concatOuter [a1]), shares (update a1 [])
+          , shares (ravel (fromList [1] [a1])), shares (rerank 1 id (reshape [1,2,3] a1))
+          , shares (rerank2 1 (\ x _ -> x) (reshape [1,2,3] a1) (reshape [1,2,3] a1))
+          , shares (rotate 0 1 a1), not (shares (force a1)) ]
+        assertEqual "elements" (replicate 6 (toList a1))
+          [ toList (ravel (fromList [1] [a1])), toList (rerank 1 id (reshape [1,2,3] a1))
+          , toList (rotate 0 1 a1), toList (rotate 1 1 a1), toList (pad [(0,0)] 0 a1), toList (force a1) ]
+        assertEqual "shapes" [[1,2,3], [1,2,3], [2,1,3]]
+          [shapeL (ravel (fromList [1] [a1])), shapeL (rotate 0 1 a1), shapeL (rotate 1 1 a1)]
+        where buf (DI.A (DG.A _ t)) = case V.toArraySlice (I.values t) of
+                (P.Array a, _, _) -> a
+              shares b = isTrue# (sameMutableArray# (unsafeCoerce# (buf a1))
+                                                    (unsafeCoerce# (buf b)))
       stride_1 = assertEqual "1" (fromList [2,2,2] [1,3,
                                                     9,11,
 
@@ -678,6 +700,7 @@ test = testGroup "Dynamic" $
         , testCase "window_2" window_2
         , testCase "window_3" window_3
         , testCase "window_4" window_4
+        , testCase "sharing_1" sharing_1
         , testCase "stride_1" stride_1
         , testCase "stride_2" stride_2
         , testCase "stride_3" stride_3

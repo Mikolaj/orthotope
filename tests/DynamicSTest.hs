@@ -17,7 +17,7 @@
 {-# LANGUAGE TypeApplications #-}
 module DynamicSTest(test) where
 
-import Control.DeepSeq
+import Control.DeepSeq hiding (force)
 import Control.Exception
 import Data.Array.DynamicS
 import qualified Data.Array.Internal as I
@@ -83,16 +83,20 @@ test = testGroup "DynamicS" $
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
       fromVector_2 = assertThrowsIn "2" "fromVector" (fromVector [2,3] $ V.fromList [1..5::Int])
       normalize_1 = assertEqual "1" a1 (normalize a1)
-      -- toVector of a row is a slice of the whole vector, which normalize copies
-      -- the row out of, and a normal array normalize leaves alone, as it does
-      -- one whose dimension of extent 1 has stride 0.
-      normalize_2 = assertEqual "2" (True, False, True, False, True, True)
+      -- toVector of a row is a slice of the whole vector, which normalize
+      -- keeps, as it keeps a normal array and one whose dimension of extent 1
+      -- has stride 0, and which force copies the row out of, as it copies
+      -- a normal array.
+      normalize_2 = assertEqual "2" (True, True, True, True, True, True, False, False, False)
                       ( inBig (toVector (index big 1)), inBig (toVector (normalize (index big 1)))
                       , inBig (toVector (reshape [1,1000] (index big 1)))
                       , inBig (toVector (normalize (reshape [1,1000] (index big 1))))
                       , ptrOf (toVector (normalize big)) == ptrOf (toVector big)
                       , ptrOf (toVector (normalize (reshape [4000,1] (reshape [4000] big))))
-                        == ptrOf (toVector big) )
+                        == ptrOf (toVector big)
+                      , inBig (toVector (force (index big 1)))
+                      , inBig (toVector (force (reshape [1,1000] (index big 1))))
+                      , ptrOf (toVector (force big)) == ptrOf (toVector big) )
         where big = fromList [4,1000] [1..4000] :: Array Double
               ptrOf = unsafeForeignPtrToPtr . fst . V.unsafeToForeignPtr0
               inBig w = let d = ptrOf w `minusPtr` ptrOf (toVector big) in d >= 0 && d < 32000

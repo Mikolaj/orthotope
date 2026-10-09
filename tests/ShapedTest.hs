@@ -17,7 +17,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module ShapedTest(test) where
 
-import Control.DeepSeq
+import Control.DeepSeq hiding (force)
 import Control.Exception
 import Data.Array.Convert (convert, convertE)
 import qualified Data.Array.Dynamic as D

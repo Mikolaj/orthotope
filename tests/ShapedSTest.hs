@@ -17,7 +17,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module ShapedSTest(test) where
 
-import Control.DeepSeq
+import Control.DeepSeq hiding (force)
 import Control.Exception
 import Data.Array.ShapedS
 import Data.Word (Word16, Word32)
@@ -65,10 +65,11 @@ test = testGroup "ShapedS" $
       fromList_2 = assertThrows "sh" (fromList [1,2] :: Array [4,5] Int)
       fromVector_1 = assertEqual "1" a1 (fromVector $ V.fromList [1..6])
       normalize_1 = assertEqual "1" a1 (normalize a1)
-      -- toVector of a row is a slice of the whole vector, which normalize copies
-      -- the row out of.
-      normalize_2 = assertEqual "2" (True, False)
-                      (inBig (toVector (index big 1)), inBig (toVector (normalize (index big 1))))
+      -- toVector of a row is a slice of the whole vector, which normalize
+      -- keeps and force copies the row out of.
+      normalize_2 = assertEqual "2" (True, True, False)
+                      ( inBig (toVector (index big 1)), inBig (toVector (normalize (index big 1)))
+                      , inBig (toVector (force (index big 1))) )
         where big = fromList [1..4000] :: Array '[4,1000] Double
               ptrOf = unsafeForeignPtrToPtr . fst . V.unsafeToForeignPtr0
               inBig w = let d = ptrOf w `minusPtr` ptrOf (toVector big) in d >= 0 && d < 32000

@@ -26,7 +26,7 @@ module Data.Array.Internal.DynamicG(
   Array(..), Vector, VecElem,
   size, shapeL, rank,
   toList, fromList, toVector, fromVector,
-  normalize,
+  normalize, force,
   scalar, unScalar, constant,
   reshape, stretch, stretchOuter, transpose,
   index, pad,
@@ -43,7 +43,7 @@ module Data.Array.Internal.DynamicG(
   update,
   generate, iterateN, iota,
   ) where
-import Control.DeepSeq
+import Control.DeepSeq hiding (force)
 import Control.Monad(replicateM)
 import Data.Data(Data)
 import Data.Maybe(fromMaybe)
@@ -117,8 +117,7 @@ toList (A sh t) = toListT sh t
 -- | Convert to a vector with the elements in the linearization order.
 -- O(n) or O(1) time (the latter if the vector is already in the linearization order).
 -- The O(1) result can be a slice of a larger vector, which it keeps alive;
--- 'normalize' the array first to get a vector of just its elements, which
--- can itself be a slice, as 'normalize' says.
+-- 'force' the array first to get a vector of just its elements.
 {-# INLINE toVector #-}
 toVector :: (Vector v, VecElem v a) => Array v a -> v a
 toVector (A sh t) = toVectorT sh t
@@ -154,16 +153,28 @@ fromVector ss v | badShape ss = error $ "fromVector: bad shape " ++ show ss
         l = vLength v
 
 -- | Make sure the underlying vector is in the linearization order.
--- The vector then holds just the elements of the array, so no larger vector
--- the array is a view of is kept alive; an array whose vector holds just its
--- elements keeps that vector, even where it is a slice of a larger one, such
--- as one given to 'fromVector' or taken by 'reshape' from a view.
+-- Where the elements already lie in that order in one part of the vector,
+-- the result keeps that part without copying it, and so keeps the whole
+-- vector alive; 'force' copies them out.
 -- This is semantically an identity function, but can have big performance
 -- implications.
 -- O(n) or O(1) time.
 {-# INLINE normalize #-}
 normalize :: (Vector v, VecElem v a) => Array v a -> Array v a
 normalize (A sh t) = A sh $ normalizeT sh t
+
+-- | Copy the elements of the array into a vector of their own, in the
+-- linearization order, sharing no storage with another array.  At the list
+-- instance, whose 'vForce' is the identity, a whole list is not copied, and
+-- a lazy result keeps alive what its unevaluated parts refer to.  This is
+-- especially useful for a view of a large array, such as @'index' a 0@, which
+-- keeps the whole vector of @a@ alive, the elements it does not show included:
+-- forcing it copies just its own elements and allows the large vector to be
+-- garbage collected, if nothing else refers to it.
+-- O(n) time.
+{-# INLINE force #-}
+force :: (Vector v, VecElem v a) => Array v a -> Array v a
+force (A sh t) = A sh $ forceT sh t
 
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.
@@ -266,6 +277,8 @@ zipWith5A f (A s t) (A s' t') (A s'' t'') (A s''' t''') (A s'''' t'''') | s == s
 -- | Pad each dimension on the low and high side with the given value.
 -- Fails if the padding list is longer than the rank or a padding is negative.
 -- O(n) time.
+-- With no padding, the result is the array itself, sharing its vector; 'force'
+-- copies it out.
 {-# INLINE pad #-}
 pad :: forall a v . (HasCallStack, Vector v, VecElem v a) =>
        [(Int, Int)] -> a -> Array v a -> Array v a
@@ -274,6 +287,7 @@ pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " +
                      | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
                          error $ "pad: padding past maxBound " ++ show (aps, ash)
                      | badShape sh = error $ "pad: bad shape " ++ show sh
+                     | all (== (0, 0)) aps = A ash at  -- no padding: the array itself
                      | otherwise = A sh t
   where sh = zipWithLong2 (\ (l, h) s -> l + s + h) aps ash
         (_, t) = padT v aps ash at
@@ -297,20 +311,28 @@ transpose is (A sh t) | l > n = error $ "transpose: rank exceeded " ++ show (is,
 -- All dimensions, except the outermost, must be the same.
 -- Fails if either array has rank 0.
 -- O(n) time.
+-- Where one array's outer extent is 0, the result is the other itself, sharing
+-- its vector; 'force' copies it out.
 {-# INLINE append #-}
 append :: (HasCallStack, Vector v, VecElem v a) => Array v a -> Array v a -> Array v a
-append a@(A (sa:sh) _) b@(A (sb:sh') _) | sh == sh' && not (sumOverflows [sa, sb]) =
-  fromVector (sa+sb : sh) (vAppend (toVector a) (toVector b))
+append a@(A (sa:sh) _) b@(A (sb:sh') _)
+  | sh == sh', sa == 0 = b  -- nothing to append to: the other array itself
+  | sh == sh', sb == 0 = a
+  | sh == sh' && not (sumOverflows [sa, sb]) =
+    fromVector (sa+sb : sh) (vAppend (toVector a) (toVector b))
 append _ _ = error "append: bad shape"
 
 -- | Concatenate a number of arrays into a single array.
 -- Fails if the list is empty, an array has rank 0 or any but the outer
 -- dimensions differ.
 -- O(n) time.
+-- Of one array, the result is that array itself, sharing its vector; 'force'
+-- copies it out.
 {-# INLINE concatOuter #-}
 concatOuter :: (HasCallStack, Vector v, VecElem v a) => [Array v a] -> Array v a
 concatOuter [] = error "concatOuter: empty list"
 concatOuter as | any null shs = error "concatOuter: rank 0 array"
+               | [a] <- as = a  -- one array: the array itself
                | not $ allSame $ map tail shs =
                  error $ "concatOuter: non-conforming inner dimensions: " ++ show shs
                | n < 0 = error $ "concatOuter: outer extents summing past maxBound: " ++ show (map head shs)
@@ -324,11 +346,15 @@ concatOuter as | any null shs = error "concatOuter: rank 0 array"
 -- and there must be at least one.
 -- Fails if the outer array does not have rank 1.
 -- O(n) time.
+-- Of one array, the result is a view of it, sharing its vector; 'force' copies
+-- it out.
 {-# INLINE ravel #-}
 ravel :: (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' (Array v a)) =>
          Array v' (Array v a) -> Array v a
 ravel aa | rank aa /= 1 = error "ravel: outermost array does not have rank 1"
          | otherwise = case shapeL aa of
+  [1] -> case unScalar (index aa 0) of  -- one array: a view of it
+    A sh t -> A (1 : sh) (insertUnitsT 0 1 t)
   [k] | k > 0 -> ravelOuterOf [k] (shapeL (unScalar (index aa 0))) (toList aa)
   _ -> error "ravel: empty array"
 
@@ -394,12 +420,15 @@ stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ r
 -- the resulting shape will be @[2, 4, 3, 2]@.
 -- Fails if d is not a dimension of the array or k is negative, and may fail
 -- if the result has more than half of 'maxBound' elements.
+-- With k = 1, the result is a view of the array, sharing its vector; 'force'
+-- copies it out.
 {-# INLINABLE rotate #-}  -- a complex operation, too much code for INLINE
 rotate :: (HasCallStack, Vector v, VecElem v a) => Int -> Int -> Array v a -> Array v a
 rotate d k a@(A sh _)
   | d < 0 || d >= rank a = error $ "rotate: dimension out of range " ++ show (d, rank a)
   | badShape sh' = error $ "rotate: bad shape " ++ show sh'
   | 0 `elem` sh' = A sh' $ fromVectorT sh' (vConcat [])  -- no elements
+  | k == 1, A _ t <- a = A sh' (insertUnitsT d 1 t)  -- one rotation: a view of the array
   | copies > toInteger (maxBound :: Int) = error $ "rotate: count too large " ++ show (d, k, sh)
   | otherwise = rerank d f a
  where
@@ -443,10 +472,15 @@ slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
 -- The /n/ must not exceed the rank of the array, and none of those /n/
 -- dimensions may be empty.
 -- O(n) time.
+-- Over one outer index, the result is a view of the function's result,
+-- sharing its vector; 'force' copies it out.
 {-# INLINE rerank #-}
 rerank :: (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' b) =>
           Int -> (Array v a -> Array v' b) -> Array v a -> Array v' b
 rerank n f (A sh t) | n < 0 || n > length sh = error "rerank: rank exceeded"
+                    | product osh == 1, [s] <- subArraysT osh t =
+                      case f (A ish s) of  -- one subarray: a view of f's result
+                        A rsh rt -> A (osh ++ rsh) (insertUnitsT 0 (length osh) rt)
                     | otherwise =
   ravelOuter osh $
   map (f . A ish) $
@@ -480,11 +514,16 @@ ravelOuterOf osh sh as = fromVector sh' $ vUnsafeConcatN (product sh') $ map vec
 -- dimensions may be empty.
 -- Fails if the arrays differ in those /n/ outermost dimensions.
 -- O(n) time.
+-- Over one outer index, the result is a view of the function's result,
+-- sharing its vector; 'force' copies it out.
 {-# INLINE rerank2 #-}
 rerank2 :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c) =>
            Int -> (Array v a -> Array v b -> Array v c) -> Array v a -> Array v b -> Array v c
 rerank2 n f (A sha ta) (A shb tb) | n < 0 || n > length sha || n > length shb = error "rerank2: rank exceeded"
                                   | take n sha /= take n shb = error "rerank2: shape mismatch"
+                                  | product osh == 1, [sa] <- subArraysT osh ta, [sb] <- subArraysT osh tb =
+                                    case f (A isha sa) (A ishb sb) of  -- one subarray each: a view of f's result
+                                      A rsh rt -> A (osh ++ rsh) (insertUnitsT 0 (length osh) rt)
                                   | otherwise =
   ravelOuter osh $
   zipWith (\ a b -> f (A isha a) (A ishb b))
@@ -597,10 +636,13 @@ broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dime
 
 -- | Update the array at the specified indicies to the associated value.
 -- Fails if an index is out of bounds.
+-- With no updates, the result is the array itself, sharing its vector; 'force'
+-- copies it out.
 {-# INLINE update #-}
 update :: (HasCallStack, Vector v, VecElem v a) =>
           Array v a -> [([Int], a)] -> Array v a
-update (A sh t) us | all (ok . fst) us = A sh $ updateT sh t us
+update (A sh t) us | null us = A sh t  -- no update: the array itself
+                   | all (ok . fst) us = A sh $ updateT sh t us
                    | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst us)
   where ok is = length is == r && and (zipWith (\ i s -> 0 <= i && i < s) is sh)
         r = length sh

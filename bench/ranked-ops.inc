@@ -11,6 +11,7 @@ OPS =
   , Call "fromVector" (\ v -> ARR.fromVector [400, 500] v `asTypeOf` t)
                     (ARR.toVector d)
   , Call "normalize" ARR.normalize t
+  , Call "force" ARR.force t
   , Call "scalar" ARR.scalar x0
   , Call "unScalar" ARR.unScalar (ARR.scalar x0)
   , Call "constant" (\ x -> ARR.constant [400, 500] x `asTypeOf` t) x0

@@ -107,11 +107,14 @@ at a time, its `peek` being the type's own decoding, so a type whose `peek` can
 fail fails there; and the `Unboxed` modules, copying a view broadcast along
 its innermost dimension, evaluate a `DoNotUnboxLazy` element,
 as vector-0.13.2.0's `elemseq` does against its documentation ([vector issue
-575](https://github.com/haskell/vector/issues/575)). An array can be a view
-of a larger vector, which it then keeps alive, the elements outside the view
-included, unevaluated as they are and with whatever they reference: in the boxed
-modules `rnf` evaluates only the elements of the view, and `normalize` copies
-the view out of the larger vector.
+575](https://github.com/haskell/vector/issues/575)). A view, such as `index`,
+`slice` or `transpose` makes, shares its argument's vector, and so do `toVector`
+and `normalize` where the elements fill one part of the vector in order,
+and an operation that returns its argument or a part of it, such as `pad`
+with no padding or `concatOuter` of one array. Such an array keeps the vector
+it shares alive, the elements outside it included, unevaluated as they
+are and with whatever they reference: `force` copies the array's own elements
+into a vector of their own, and in the boxed modules `rnf` evaluates only those.
 
 ### Examples using `Dynamic`
 
