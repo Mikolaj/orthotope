@@ -142,6 +142,13 @@ test = testGroup "Dynamic" $
       pretty_1 = assertEqual "1" (replicate 4 "\x250c\x2510\n\x2514\x2518")
                                  (map prettyShow [ fromList [0] [], fromList [0,3] []
                                                  , fromList [2,0] [], fromList [2,0,2] [] :: Array Int ])
+      -- prettyShow of non-empty arrays, as 0.1.8.0 printed them.
+      pretty_2 = assertEqual "2"
+                   [ "\9484\9472\9472\9472\9472\9472\9488\n\9474\&1 2 3\9474\n\9474\&4 5 6\9474\n\9492\9472\9472\9472\9472\9472\9496"
+                   , "\9484\9472\9472\9472\9472\9472\9472\9472\9472\9472\9488\n\9474   1   10\9474\n\9474 100 1000\9474\n\9474         \9474\n\9474  -5    6\9474\n\9474   7    8\9474\n\9492\9472\9472\9472\9472\9472\9472\9472\9472\9472\9496"
+                   , "\9484\9472\9472\9472\9472\9472\9488\n\9474\&7 8 9\9474\n\9492\9472\9472\9472\9472\9472\9496" ]
+                   (map prettyShow [ fromList [2, 3] [1 .. 6], fromList [2, 2, 2] [1, 10, 100, 1000, -5, 6, 7, 8]
+                                   , fromList [3] [7, 8, 9] :: Array Int ])
       eq_1 = assertEqual "1" True (a1 == a1)
       eq_2 = assertEqual "2" False (a1 == a2)
       -- Views over vectors with elements outside them, which == must not compare.
@@ -614,6 +621,7 @@ test = testGroup "Dynamic" $
         [ testCase "show_1" show_1
         , testCase "show_2" show_2
         , testCase "pretty_1" pretty_1
+        , testCase "pretty_2" pretty_2
         , testCase "eq_1" eq_1
         , testCase "eq_2" eq_2
         , testCase "eq_3" eq_3
