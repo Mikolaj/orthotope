@@ -21,6 +21,9 @@ import Control.DeepSeq hiding (force)
 import Control.Exception
 import Data.Array.Convert (convert, convertE)
 import qualified Data.Array.Dynamic as D
+import qualified Data.Array.DynamicS as DS
+import qualified Data.Array.Ranked as R
+import qualified Data.Array.RankedS as RS
 import Data.Array.Shape (Shape(..), listP, validShape, withShape, withShapeP)
 import Data.Array.Shaped
 import qualified Data.Array.Internal as I
@@ -329,6 +332,30 @@ test = testGroup "Shaped" $
       convert_1 = assertEqual "1" ([1,2], [1,2])
                     (SU.toList (convert x :: SU.Array '[2] Int), SS.toList (convert x :: SS.Array '[2] Int))
         where x = index (fromList [1,2,undefined,undefined] :: Array '[2,2] Int) 0
+      -- The conversions no other test runs, there and back where there is a way
+      -- back, and convertE's Left where the shape differs.
+      convert_2 = do
+        let s = fromList [1 .. 6] :: Array '[2, 3] Int
+            ss = convert s :: SS.Array '[2, 3] Int
+            d = D.fromList [2, 3] [1 .. 6 :: Int]
+            r = R.fromList [2, 3] [1 .. 6 :: Int]
+            rs = RS.fromList [2, 3] [1 .. 6 :: Int]
+            ds = DS.fromList [2, 3] [1 .. 6 :: Int]
+        assertEqual "SU" s (convert (convert s :: SU.Array '[2, 3] Int))
+        assertEqual "SS" s (convert ss)
+        assertEqual "D" d (convert s)
+        assertEqual "R" r (convert s)
+        assertEqual "DS" ds (convert ss)
+        assertEqual "convertE D" (Right s) (convertE d)
+        assertEqual "convertE R" (Right s) (convertE r)
+        assertEqual "convertE RS" (Right ss) (convertE rs)
+        assertEqual "convertE DS" (Right ss) (convertE ds)
+        assertEqual "convertE R shape" (Left "convert: shape mismatch")
+          (() <$ (convertE r :: Either String (Array '[3, 2] Int)))
+        assertEqual "convertE RS shape" (Left "convert: shape mismatch")
+          (() <$ (convertE rs :: Either String (SS.Array '[3, 2] Int)))
+        assertEqual "convertE DS shape" (Left "convert: shape mismatch: ([2,3],[3,2])")
+          (() <$ (convertE ds :: Either String (SS.Array '[3, 2] Int)))
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList @'[2] [6,120]) (rerank @1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList @'[3] [4,10,18]) (rerank @1 (reduce (*) 1) a2)
@@ -447,6 +474,7 @@ test = testGroup "Shaped" $
         , testCase "convertE_2" convertE_2
         , testCase "rnf_1" rnf_1
         , testCase "convert_1" convert_1
+        , testCase "convert_2" convert_2
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
