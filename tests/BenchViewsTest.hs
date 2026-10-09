@@ -23,20 +23,23 @@
 -- And that a client specialises every operation of the nine array modules
 -- at Double, read off what the calls of the specialisation benchmark
 -- allocate: Storable and Unboxed allocate at most 32 bytes an element more
--- than boxed, which has no element dictionary to lose, where a call passing
--- its element dictionary at run time allocated 64 to 145 more on GHC HEAD;
--- the control from Unspecialised is such a call.  Boxed allocates at most 16
--- bytes an element more than the smaller of Storable and Unboxed, where on GHC
--- 9.12.4 a boxed operation that missed the copies -fpolymorphic-specialisation
--- makes allocated 48 more for each element it wrote; mapA, traverseA, the zips,
--- generate, iota, rerank2 with its zip and unravel are exempt, exceeding that
--- bound boxed with their specialisation too.  The boxed bound holds from GHC
--- 9.6.3 on, the first to know that flag, and has no control here: boxed pad
--- called from Unspecialised, at Double or polymorphic in the element, allocated
--- like the specialised call, where the boxed modules built without the flag
--- failed the bound on 9.12.4.  The bitcasts, having no boxed counterpart,
--- go unchecked.
--- Its bounds on toVector, sumA, the list heads and specialisation run in an
+-- than boxed, which has no element dictionary to lose, where a call passing its
+-- element dictionary at run time allocated 48 to 648 more on GHC HEAD, on the
+-- operations where it allocated more at all; the control from Unspecialised is
+-- such a call.  Boxed allocates at most 16 bytes an element more than the
+-- smaller of Storable and Unboxed, where on GHC 9.12.4 a boxed operation that
+-- missed the copies -fpolymorphic-specialisation makes allocated 48 more for
+-- each element it wrote; mapA, traverseA, the zips, generate, iota, rerank2
+-- with its zip and unravel are exempt, exceeding that bound boxed with their
+-- specialisation too.  The boxed bound holds from GHC 9.6.3 on, the first to
+-- know that flag, and has no control here: boxed pad called from Unspecialised,
+-- at Double or polymorphic in the element, allocated like the specialised call,
+-- where the boxed modules built without the flag failed the bound on 9.12.4.
+-- The bitcasts, having no boxed counterpart, go unchecked.
+-- And that the walks of reduce, traverseA, generate, iota and zipWith5A
+-- allocate under bounds that the forms they replaced exceeded, traverseA at
+-- Storable at most 8 bytes an element more than at Unboxed.  Its bounds on
+-- toVector, sumA, the list heads, specialisation and the walks run in an
 -- optimised build alone.
 {-# LANGUAGE CPP #-}
 module BenchViewsTest(test) where
@@ -233,9 +236,9 @@ callAlloc (Call _ f x) = do
   _ <- allocated (rnf . f) x
   allocated (rnf . f) x
 
--- The bounds on toVector, sumA and the list heads hold for an optimised
--- build alone, an unoptimised one allocating more for each element, so
--- their groups run empty there.
+-- The bounds on toVector, sumA, the list heads, specialisation and the walks
+-- hold for an optimised build alone, an unoptimised one allocating more for
+-- each element, so their groups run empty there.
 optimisedGroup :: String -> [Test] -> Test
 optimisedGroup n ts = testGroup n (if optimised then ts else [])
 
