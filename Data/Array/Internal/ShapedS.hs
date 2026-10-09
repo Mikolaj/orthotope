@@ -117,7 +117,7 @@ rank = G.rank . unA
 -- | Index into an array.  Fails if the index is out of bounds.
 -- O(1) time.
 {-# INLINE index #-}
-index :: (HasCallStack, KnownNat s) => Array (s:sh) a -> Int -> Array sh a
+index :: forall a s sh . (HasCallStack, KnownNat s) => Array (s:sh) a -> Int -> Array sh a
 index a = A . G.index (unA a)
 
 -- | Convert to a list with the elements in the linearization order.
@@ -175,7 +175,7 @@ stretch :: forall sh' sh a . (Shape sh, Shape sh', ValidStretch sh sh') => Array
 stretch = A . G.stretch . unA
 
 -- | Change the size of the outermost dimension by replication.
-stretchOuter :: Array (1 : sh) a -> Array (s : sh) a
+stretchOuter :: forall s sh a . Array (1 : sh) a -> Array (s : sh) a
 stretchOuter = A . G.stretchOuter . unA
 
 -- | Convert a value to a scalar (rank 0) array.

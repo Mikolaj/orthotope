@@ -236,7 +236,7 @@ zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e
 -- Fails if the padding list is longer than the rank or a padding is negative.
 -- O(n) time.
 {-# INLINABLE pad #-}
-pad :: (HasCallStack) => [(Int, Int)] -> a -> Array n a -> Array n a
+pad :: forall n a . (HasCallStack) => [(Int, Int)] -> a -> Array n a -> Array n a
 pad ps v = A . G.pad ps v . unA
 
 -- | Do an arbitrary array transposition.

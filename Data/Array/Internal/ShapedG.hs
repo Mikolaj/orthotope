@@ -317,7 +317,7 @@ concatOuter as | sumExtents ns /= s = error $ "concatOuter: outer extent mismatc
 -- dimension of the result array.  All the arrays must have the same shape.
 -- O(n) time.
 {-# INLINE ravel #-}
-ravel :: forall s sh v v' a .
+ravel :: forall v v' a sh s .
          (Vector v, Vector v', VecElem v a, VecElem v' (Array sh v a)
          , Shape sh, KnownNat s) =>
          Array '[s] v' (Array sh v a) -> Array (s:sh) v a
