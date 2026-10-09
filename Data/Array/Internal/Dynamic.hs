@@ -176,7 +176,7 @@ instance Vector V.Vector where
   {-# INLINE vFillStrided #-}
   vFillStrided = genericFillStrided 5
   -- vConcatN keeps the default, the vector package's concat but for a
-  -- lone part: on GHC HEAD, copying each part as the list yields it, as
+  -- lone vector: on GHC HEAD, copying each vector as the list yields it, as
   -- genericConcatN does, took 0.95 to 1.28 times as long on boxed parts of
   -- 500 elements or more at a 32 MB allocation area and 1.22 to 2.21 at 4 MB,
   -- running 1.02 to 1.41 and 1.35 to 2.88 times the instructions, though it

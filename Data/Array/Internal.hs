@@ -1151,10 +1151,10 @@ routeSlicesT v route cons nil = case route of
     -- whose vector-backed instances write a mutable buffer directly.
     cons (vFillStrided axes ao l v) nil
 
--- The parts of the vector a route reads, in the route's order, as the
--- offset and the length of each, by the step and nil of a right fold:
--- the one slice, a run at a time, or an element at a time where the
--- uniform run length is one element.
+-- The parts of the vector a route reads, in the route's order, as the offset
+-- and the length of each, by the step and nil of a right fold: its runs, which
+-- on 'RSlice' are the one slice and on 'RFill', where the uniform run length is
+-- one element, are its elements.
 {-# INLINE routePartsT #-}
 routePartsT :: Route -> (Int -> Int -> b -> b) -> b -> b
 routePartsT route step nil = case route of
@@ -1952,6 +1952,8 @@ iotaT n = fromVectorT [n] $ vGenerate' n fromIntegral  -- evaluated, as a boxed 
 -------
 
 -- | Permute the elements of a list, the first argument is indices into the original list.
+-- Strict in the result's spine and in every element it selects, which every
+-- caller here can afford, all permuting 'Int's.
 {-# INLINE permute #-}
 permute :: [Int] -> [a] -> [a]
 permute is xs = go is
