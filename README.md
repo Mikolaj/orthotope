@@ -73,14 +73,16 @@ as in `reshape: size mismatch ([2,3],[5])`, or one it called,
 as in `fromVector: bad shape [4611686018427387904,2]` from `append`. Such
 a failure breaks no contract: the error is the operation's result,
 and its documentation says when it occurs, with "Fails if" or with "must".
-The error's call stack shows the line that called the operation. Some failures
-hold throughout and go unsaid: a shape with a negative extent or with more
-elements than an `Int` counts, extents or paddings summing past `maxBound`, and,
-in the `Ranked` modules, a rank other than the one the types give.
-In the `Shaped` modules a shape also fails if any inner part of it,
-the dimensions from some one inward, has more elements than an `Int` counts,
-though an outer extent of 0 leaves the shape none: the type
-`'[0, 4611686018427387904, 4]` fails for its rows
+The error's call stack reaches the line that called the operation
+if the operation, or the one it wraps, an operation of the same name in another
+module, can fail by a check of its own; otherwise it may stop at a line inside
+the operation. Some failures hold throughout and go unsaid: a shape
+with a negative extent or with more elements than an `Int` counts, extents
+or paddings summing past `maxBound`, and, in the `Ranked` modules, a rank other
+than the one the types give. In the `Shaped` modules a shape also fails if any
+inner part of it, the dimensions from some one inward, has more elements
+than an `Int` counts, though an outer extent of 0 leaves the shape none:
+the type `'[0, 4611686018427387904, 4]` fails for its rows
 of `'[4611686018427387904, 4]`, where `Dynamic` accepts the shape
 `[0, 4611686018427387904, 4]`. The `Shaped` modules check most arguments
 in their types instead. A number past `maxBound` in a `Shaped` type fails where
