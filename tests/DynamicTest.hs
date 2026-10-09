@@ -484,7 +484,7 @@ test = testGroup "Dynamic" $
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (reduce (*) 1) a2)
       -- Empty views of a longer vector, so that reading the element at the
       -- offset fails: at the vector's end under the bounds checks, and over
-      -- an undefined element, which only a boxed array can hold, in any build.
+      -- an undefined element, which a boxed array can hold, in any build.
       allSameA_1 = assertEqual "1" [True, True]
                      (map allSameA [ slice [(2,0)] a1
                                    , slice [(1,0)] (fromList [2,3] [1, 2, 3, undefined, 5, 6]) ])
