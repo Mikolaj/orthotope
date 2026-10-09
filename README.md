@@ -92,6 +92,15 @@ establish before calling them. A call that breaks one is a bug, in orthotope
 or in code calling that module directly; where it is caught, the error says
 `violated contract`, or an assertion fails in a build that keeps asserts.
 
+### Evaluation
+
+The operations evaluate only the elements they compute themselves, as `iota`
+does, storing each evaluated to weak head normal form. An element supplied
+by a list or by a function of the user's is stored as the vector type stores it,
+unevaluated in `Data.Vector` and in `Data.Vector.Unboxed`'s `DoNotUnboxLazy`,
+and an element an operation only reads or moves, as a fold or a copy does,
+is handed on as stored, evaluated only by a function it is handed to.
+
 ### Examples using `Dynamic`
 
 Some preliminaries:

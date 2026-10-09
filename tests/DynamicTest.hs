@@ -194,6 +194,12 @@ test = testGroup "Dynamic" $
       iota_2 = try (evaluate (iota 3 :: Array OneFails)) >>=
                either (\ (ErrorCall e) -> assertEqual "2" "1 evaluated" e)
                       (const (assertFailure "2"))
+      -- So does vGenerate', which iota calls, at vector's DoNotUnboxLazy,
+      -- whose write stores an element as it is given.
+      iota_3 = try (evaluate (I.vGenerate' 3 g :: VU.Vector (VU.DoNotUnboxLazy Int))) >>=
+               either (\ (ErrorCall e) -> assertEqual "3" "1 evaluated" e)
+                      (const (assertFailure "3"))
+        where g i = VU.DoNotUnboxLazy (if i == 1 then error "1 evaluated" else i)
       -- No array has a negative extent.
       badShape_1 = mapM_ (uncurry assertThrows)
         [ ("fromList", fromList [-2,-3] [1..6])
@@ -592,6 +598,7 @@ test = testGroup "Dynamic" $
         , testCase "constant_1" constant_1
         , testCase "iota_1" iota_1
         , testCase "iota_2" iota_2
+        , testCase "iota_3" iota_3
         , testCase "badShape_1" badShape_1
         , testCase "badShape_2" badShape_2
         , testCase "badShape_3" badShape_3

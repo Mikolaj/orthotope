@@ -444,6 +444,7 @@ iterateN :: forall n a .
 iterateN f = A . G.iterateN f
 
 -- | Generate a vector from 0 to n-1.
+-- Each element is evaluated to weak head normal form as it is stored.
 {-# INLINE iota #-}
 iota :: (KnownNat n, Unbox a, Num a) => Array '[n] a
 iota = A G.iota

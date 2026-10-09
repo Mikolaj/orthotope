@@ -175,8 +175,17 @@ instance Vector V.Vector where
   vAny = V.any
   {-# INLINE vUnsafeWithElem #-}
   vUnsafeWithElem = elemAt
+  -- Each element forced before it is written: vector's write stores
+  -- a DoNotUnboxLazy element as it is given.
   {-# INLINE vGenerate' #-}
-  vGenerate' = V.generate
+  vGenerate' !n g = V.create $ do
+    mv <- MV.unsafeNew (max 0 n)
+    let go !i | i >= n = return mv
+              | otherwise = do
+                  let !x = g i
+                  MV.unsafeWrite mv i x
+                  go (i + 1)
+    go 0
   {-# INLINE vUnsafeFillStrided #-}
   vUnsafeFillStrided = genericUnsafeFillStrided 64
   {-# INLINE vUnsafeConcatN #-}
@@ -568,6 +577,7 @@ iterateN :: (HasCallStack, Unbox a) =>
 iterateN n f = A . G.iterateN n f
 
 -- | Generate a vector from 0 to n-1.
+-- Each element is evaluated to weak head normal form as it is stored.
 -- Fails if n is negative.
 {-# INLINE iota #-}
 iota :: (HasCallStack, Unbox a, Num a) => Int -> Array a
