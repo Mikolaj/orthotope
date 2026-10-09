@@ -452,7 +452,8 @@ stride ws = A . G.stride ws . unA
 -- | Rotate the array k times along the d'th dimension.
 -- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
 -- the resulting shape will be @[2, 4, 3, 2]@.
--- Fails if d is not a dimension of the array or k is negative.
+-- Fails if d is not a dimension of the array or k is negative, and may fail
+-- if the result has more than half of 'maxBound' elements.
 {-# INLINABLE rotate #-}
 rotate :: (HasCallStack, Unbox a) => Int -> Int -> Array a -> Array a
 rotate d k = A . G.rotate d k . unA

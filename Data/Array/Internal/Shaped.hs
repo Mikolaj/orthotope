@@ -311,6 +311,7 @@ stride = A . G.stride @ts . unA
 -- | Rotate the array k times along the d'th dimension.
 -- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
 -- the resulting shape will be @[2, 4, 3, 2]@.
+-- May fail if the result has more than half of 'maxBound' elements.
 rotate :: forall d k sh a .
           (HasCallStack, KnownNat d, KnownNat k, Shape sh,
            d + 1 <= Rank sh, Shape (Take d sh ++ (k ': Drop d sh))) =>
