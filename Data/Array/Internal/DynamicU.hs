@@ -512,12 +512,16 @@ productA :: (Unbox a, Num a) => Array a -> a
 productA = G.productA . unA
 
 -- | Maximum of all elements.
+-- Of elements that compare equal, as @0.0@ and @-0.0@ do, the one returned
+-- depends on the array's layout.
 -- Fails if the array is empty.
 {-# INLINE maximumA #-}
 maximumA :: (HasCallStack, Unbox a, Ord a) => Array a -> a
 maximumA = G.maximumA . unA
 
 -- | Minimum of all elements.
+-- Of elements that compare equal, as @0.0@ and @-0.0@ do, the one returned
+-- depends on the array's layout.
 -- Fails if the array is empty.
 {-# INLINE minimumA #-}
 minimumA :: (HasCallStack, Unbox a, Ord a) => Array a -> a
