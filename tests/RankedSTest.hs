@@ -254,8 +254,8 @@ test = testGroup "RankedS" $
       bitcast_2 = assertEqual "2" [0x3fc00000] (toList (bitcast (fromList [1] [1.5 :: Float]) :: Array 1 Word32))
       bitcast_3 = assertThrows "3" (bitcast a1 :: Array 2 Word16)
 
-      -- One call of each wrapper that the other tests of RankedTest,
-      -- RankedSTest or RankedUTest leave uncalled.
+      -- Calls of wrappers that the other tests of this module leave uncalled,
+      -- each against its value.
       wrappers_1 = do
         assertEqual "sumA" 21 (sumA a1)
         assertEqual "productA" 720 (productA a1)
@@ -270,6 +270,13 @@ test = testGroup "RankedS" $
         assertEqual "update" [9, 2, 3, 4, 5, 6] (toList (update a1 [([0, 0], 9)]))
         assertEqual "size" 6 (size a1)
         assertEqual "traverseA" (Just [2 .. 7]) (fmap toList (traverseA (Just . (+ 1)) a1))
+        assertEqual "stretchOuter" [1, 2, 3, 1, 2, 3] (toList (stretchOuter 2 (reshape [1, 3] (index a1 0) :: Array 2 Int)))
+        assertEqual "ravel . unravel" [1 .. 6] (toList (ravel (unravel a1)))
+        assertEqual "rotate" [2, 3, 1, 1, 2, 3] (toList (rotate @0 @1 2 (fromList [3] [1, 2, 3]) :: Array 2 Int))
+        assertEqual "broadcast" [1, 2, 3, 1, 2, 3] (toList (broadcast [1] [2, 3] (index a1 0) :: Array 2 Int))
+        assertEqual "generate" [0 .. 5] (toList (generate [2, 3] (sum . zipWith (*) [3, 1]) :: Array 2 Int))
+        assertEqual "iterateN" [1, 2, 4] (toList (iterateN 3 (* 2) 1 :: Array 1 Int))
+        assertEqual "iota" [0, 1, 2] (toList (iota 3 :: Array 1 Int))
 
       tests =
         [ testCase "show_1" show_1
