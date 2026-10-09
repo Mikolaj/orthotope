@@ -2,10 +2,9 @@
 --
 --   cabal test --project-file=cabal.project.checks --builddir=dist-checks
 --
--- Of the GHCs in tested-with, 9.4.8 and later run the tests with it.  With
--- 9.2.8, -fcheck-prim-bounds stops update of an empty unboxed view of a
--- longer vector, in vector's code, which the later ones pass, and 9.0.2
--- and 8.10.7 lack the flag.
+-- With 9.2.8, -fcheck-prim-bounds stops update of an empty unboxed view of a
+-- longer vector, in vector's code, which the later ones pass, and 9.0.2 and
+-- 8.10.7 lack the flag.
 --
 -- vector checks its unsafe operations and its internal invariants too,
 -- and -fcheck-prim-bounds has every package built here check its array
