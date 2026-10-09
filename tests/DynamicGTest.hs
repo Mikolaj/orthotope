@@ -63,8 +63,8 @@ backends nan =
   , backend @[] @a nan "list"
   ]
 
-backend :: forall v a . ( I.Vector v, I.VecElem v a, I.VecElem v Double, Ord (v a)
-                        , Show (v a), Elem a, Owns (v a) ) =>
+backend :: forall v a . ( I.Vector v, I.VecElem v a, I.VecElem v Double, Elem a
+                        , Owns (v a) ) =>
            Bool -> String -> Test
 backend nan n = testGroup n $
   [ testPropertyN "prop_allSameA" (prop_allSameA @v) | nan ] ++
@@ -104,7 +104,7 @@ prop_toList v@(View sh _) =
 -- its elements with at most one of them changed, laid out in order or in the
 -- reverse order of its dimensions, and between two views of one layout over
 -- vectors that differ in at most one element, inside the views or outside them.
-prop_compare :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Elem a) =>
+prop_compare :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
                 View -> Property
 prop_compare v@(View sh _) =
   let n = product sh
@@ -136,7 +136,7 @@ prop_compare v@(View sh _) =
 -- The reductions agree with the list's: reduce, sumA, productA, maximumA,
 -- minimumA, anyA and allA; and the vector toUnorderedVectorT gives holds
 -- the list's elements in some order.
-prop_reduce :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
+prop_reduce :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
                View -> Property
 prop_reduce v@(View sh _) =
   forAll (genElems (1, 9) (product sh)) $ \ xs ->
@@ -247,7 +247,7 @@ instance Owns (VU.Vector Word8) where
 -- applicative of pairs agree with the lists; concatOuter of the view alone,
 -- a concatenation of one part, is the view; and append and concatOuter fail
 -- on scalars.
-prop_copy :: forall v a . (Owns (v a), I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
+prop_copy :: forall v a . (Owns (v a), I.Vector v, I.VecElem v a, Elem a) =>
              View -> Property
 prop_copy v@(View sh _) =
   let x = mkViewG v (upTo (product sh)) :: Array v a
@@ -294,7 +294,7 @@ prop_zipWith v@(View sh _) =
 -- update agrees with replacing elements of the list, the last update at
 -- an index being the one that stays, and fails on an index outside the
 -- view.
-prop_update :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
+prop_update :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
                View -> Property
 prop_update v@(View sh _) =
   let x = mkViewG v (upTo (product sh)) :: Array v a
@@ -310,7 +310,7 @@ prop_update v@(View sh _) =
 -- fromVector makes an array of the elements of a vector, here a slice of
 -- a longer one, and fails on a vector of another length; iterateN makes
 -- one of the first iterates of a function.
-prop_fromVector :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
+prop_fromVector :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
                    Property
 prop_fromVector =
   forAll (genShape 3) $ \ sh ->
@@ -326,7 +326,7 @@ prop_fromVector =
       .&&. iterateN n (* 3) 1 === (fromList [n] (take n (iterate (* 3) 1)) :: Array v a)
 
 -- An array reads back from its show.
-prop_show :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
+prop_show :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
              View -> Property
 prop_show v@(View sh _) =
   forAll (genElems (-9, 9) (product sh)) $ \ xs ->
@@ -339,7 +339,7 @@ prop_show v@(View sh _) =
 -- subarrays below the first dimension and ravel puts them back.  Where one
 -- of those dimensions is empty, unravel gives an empty array, and rerank and
 -- rerank2 fail, having no result of the function to take a shape from.
-prop_rerank :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
+prop_rerank :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
                View -> Property
 prop_rerank v@(View sh _) =
   let x = mkViewG v (upTo (product sh)) :: Array v a
@@ -397,7 +397,7 @@ shrinkExtent = filter (>= 0) . shrink
 -- is the subarray rotated left by k-1-i rows.  An array whose elements,
 -- 1 to n, the type cannot hold, past 255 in Word8, is discarded, as
 -- repeated elements could hide a misplaced one.
-prop_rotate :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
+prop_rotate :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
                RotateCase -> Property
 prop_rotate (RotateCase osh h t k) =
   let m = product t

@@ -29,6 +29,9 @@ library
   hs-source-dirs:      .
   ghc-options:         -Wall -Wno-unrecognised-warning-flags -Wno-x-partial -Widentities -Wmissing-export-lists -Wpartial-fields -Wunused-packages -Wredundant-bang-patterns -Wredundant-strictness-flags
 -- -Wredundant-constraints -Wterm-variable-capture -Wmissed-specialisations
+-- -Wredundant-constraints also reports constraints that stay: the contexts of
+-- Shape.hs's classes without methods, and those, such as Size sh ~ Size sh',
+-- that check or fix a signature's types or limit a stub instance.
 --  if impl(ghc >= 9.8)
 --      ghc-options: -Wmissing-role-annotations
   exposed-modules:     Data.Array.Convert

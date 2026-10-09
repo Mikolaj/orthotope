@@ -103,7 +103,7 @@ rank (A s _) = length s
 -- | Index into an array.  Fails if the array has rank 0 or if the index is out of bounds.
 -- O(1) time.
 {-# INLINE index #-}
-index :: (HasCallStack, Vector v) => Array v a -> Int -> Array v a
+index :: HasCallStack => Array v a -> Int -> Array v a
 index (A (s:ss) t) i | i < 0 || i >= s = error $ "index: out of bounds " ++ show (i, s)
                      | otherwise = A ss $ indexT t i
 index (A [] _) _ = error "index: scalar"
@@ -362,7 +362,7 @@ ravel aa | rank aa /= 1 = error "ravel: outermost array does not have rank 1"
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
 -- Fails if the array has rank 0.
 {-# INLINE unravel #-}
-unravel :: (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' (Array v a)) =>
+unravel :: forall v v' a . (HasCallStack, Vector v', VecElem v' (Array v a)) =>
            Array v a -> Array v' (Array v a)
 unravel (A [] _) = error "unravel: rank 0 array"
 unravel (A (0 : _) _) = A [0] $ fromVectorT [0] (vConcat [])  -- no subarrays
@@ -382,7 +382,7 @@ unravel a = rerank 1 scalar a
 -- If the window parameter @ws = [w1,...,wk]@ and @wa = window ws a@ then
 -- @wa `index` i1 ... `index` ik == slice [(i1,w1),...,(ik,wk)] a@.
 {-# INLINE window #-}
-window :: (HasCallStack, Vector v) => [Int] -> Array v a -> Array v a
+window :: HasCallStack => [Int] -> Array v a -> Array v a
 -- The window list is checked before the shape is built, so that the shape
 -- a message shows holds no error of its own, and the extents are computed
 -- as Integers, a window of 0 over an extent of maxBound making one past it.
@@ -407,7 +407,7 @@ window aws (A ash (T ss o v))
 {-# INLINE stride #-}
 -- The shape is forced here, not checked with 'badShape' as window's is:
 -- its extents, each s / t rounded up, never pass the array's.
-stride :: (HasCallStack, Vector v) => [Int] -> Array v a -> Array v a
+stride :: HasCallStack => [Int] -> Array v a -> Array v a
 stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ repeat 1) ss) o v)  -- check now
   where rsh = str ats ash
         str (t:ts) (s:sh) | t <= 0 = error $ "stride: non-positive stride " ++ show ats
@@ -475,7 +475,7 @@ slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank #-}
-rerank :: (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' b) =>
+rerank :: forall v v' a b . (HasCallStack, Vector v', VecElem v' b) =>
           Int -> (Array v a -> Array v' b) -> Array v a -> Array v' b
 rerank n f (A sh t) | n < 0 || n > length sh = error "rerank: rank exceeded"
                     | product osh == 1, [s] <- subArraysT osh t =
@@ -517,7 +517,7 @@ ravelOuterOf osh sh as = fromVector sh' $ vUnsafeConcatN (product sh') $ map vec
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank2 #-}
-rerank2 :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c) =>
+rerank2 :: forall v a b c . (HasCallStack, Vector v, VecElem v c) =>
            Int -> (Array v a -> Array v b -> Array v c) -> Array v a -> Array v b -> Array v c
 rerank2 n f (A sha ta) (A shb tb) | n < 0 || n > length sha || n > length shb = error "rerank2: rank exceeded"
                                   | take n sha /= take n shb = error "rerank2: shape mismatch"
@@ -621,7 +621,7 @@ allA p (A sh t) = allT sh p t
 -- Fails if an index is not a dimension of the result or the argument's
 -- dimensions differ from the result's at those indices.
 {-# INLINE broadcast #-}
-broadcast :: (HasCallStack, Vector v, VecElem v a) =>
+broadcast :: HasCallStack =>
              [Int] -> ShapeL -> Array v a -> Array v a
 broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dimension index"
                   | not (ascending ds) = error "broadcast: unordered dimensions"

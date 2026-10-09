@@ -291,7 +291,7 @@ ravel = A . G.ravel . G.mapA unA . R.unA
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
 {-# INLINABLE unravel #-}
-unravel :: forall n a . (Unbox a) =>
+unravel :: forall n a .
            Array (1+n) a -> R.Array 1 (Array n a)
 unravel = R.A . G.mapA A . G.unravel . unA
 
@@ -330,7 +330,7 @@ stride ws = A . G.stride ws . unA
 -- copies it out.
 {-# INLINABLE rotate #-}
 rotate :: forall d p a.
-          (HasCallStack, KnownNat p, KnownNat d, Unbox a,
+          (HasCallStack, KnownNat d, Unbox a,
           1 <= p  -- d is a dimension of the array
           ) =>
           Int -> Array (p + d) a -> Array (p + d + 1) a
@@ -355,7 +355,7 @@ slice ss = A . G.slice ss . unA
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank #-}
 rerank :: forall n i o a b .
-          (Unbox a, Unbox b, KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
+          (Unbox b, KnownNat n, KnownNat o, KnownNat (n+o)) =>
           (Array i a -> Array o b) -> Array (n+i) a -> Array (n+o) b
 rerank f = A . G.rerank (unA . f . A) . unA
 
@@ -370,7 +370,7 @@ rerank f = A . G.rerank (unA . f . A) . unA
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank2 #-}
 rerank2 :: forall n i o a b c .
-           (HasCallStack, Unbox a, Unbox b, Unbox c, KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
+           (HasCallStack, Unbox c, KnownNat n, KnownNat o, KnownNat (n+o)) =>
            (Array i a -> Array i b -> Array o c) -> Array (n+i) a -> Array (n+i) b -> Array (n+o) c
 rerank2 f = \ ta tb -> A $ G.rerank2 @n (\ a b -> unA $ f (A a) (A b)) (unA ta) (unA tb)
 
@@ -453,7 +453,7 @@ allA p = G.allA p . unA
 -- dimensions differ from the result's at those indices.
 {-# INLINABLE broadcast #-}
 broadcast :: forall r' r a .
-             (HasCallStack, Unbox a, KnownNat r, KnownNat r') =>
+             (HasCallStack, KnownNat r') =>
              [Int] -> ShapeL -> Array r a -> Array r' a
 broadcast ds sh = A . G.broadcast ds sh . unA
 

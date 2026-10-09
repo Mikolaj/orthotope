@@ -18,6 +18,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -447,7 +448,7 @@ ravel = A . G.ravel . G.mapA unA . D.unA
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
 -- Fails if the array has rank 0.
 {-# INLINABLE unravel #-}
-unravel :: (HasCallStack, Unbox a) => Array a -> D.Array (Array a)
+unravel :: HasCallStack => Array a -> D.Array (Array a)
 unravel = D.A . G.mapA A . G.unravel . unA
 
 -- | Make a window of the outermost dimensions.
@@ -504,7 +505,7 @@ slice ss = A . G.slice ss . unA
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank #-}
-rerank :: (HasCallStack, Unbox a, Unbox b) => Int -> (Array a -> Array b) -> Array a -> Array b
+rerank :: forall a b . (HasCallStack, Unbox b) => Int -> (Array a -> Array b) -> Array a -> Array b
 rerank n f = A . G.rerank n (unA . f . A) . unA
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
@@ -516,7 +517,7 @@ rerank n f = A . G.rerank n (unA . f . A) . unA
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank2 #-}
-rerank2 :: (HasCallStack, Unbox a, Unbox b, Unbox c) =>
+rerank2 :: forall a b c . (HasCallStack, Unbox c) =>
            Int -> (Array a -> Array b -> Array c) -> Array a -> Array b -> Array c
 rerank2 n f = \ ta tb -> A $ G.rerank2 n (\ a b -> unA $ f (A a) (A b)) (unA ta) (unA tb)
 
@@ -597,7 +598,7 @@ allA p = G.allA p . unA
 -- Fails if an index is not a dimension of the result or the argument's
 -- dimensions differ from the result's at those indices.
 {-# INLINABLE broadcast #-}
-broadcast :: (HasCallStack, Unbox a) =>
+broadcast :: HasCallStack =>
              [Int] -> ShapeL -> Array a -> Array a
 broadcast ds sh = A. G.broadcast ds sh . unA
 

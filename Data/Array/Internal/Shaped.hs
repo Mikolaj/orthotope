@@ -106,7 +106,7 @@ shapeL = G.shapeL . unA
 -- | The rank of an array, i.e., the number of dimensions it has,
 -- which is the length of @sh@ in @Array sh a@.
 -- O(1) time.
-rank :: (Shape sh, KnownNat (Rank sh)) => Array sh a -> Int
+rank :: KnownNat (Rank sh) => Array sh a -> Int
 rank = G.rank . unA
 
 -- | Index into an array.  Fails if the index is out of bounds.
@@ -174,7 +174,7 @@ reshape = A . G.reshape . unA
 -- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
 -- All other dimensions must remain the same.
 -- O(1) time.
-stretch :: forall sh' sh a . (Shape sh, Shape sh', ValidStretch sh sh') => Array sh a -> Array sh' a
+stretch :: forall sh' sh a . (Shape sh', ValidStretch sh sh') => Array sh a -> Array sh' a
 stretch = A . G.stretch . unA
 
 -- | Change the size of the outermost dimension by replication.

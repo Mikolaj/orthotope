@@ -111,7 +111,7 @@ shapeL = G.shapeL . unA
 -- | The rank of an array, i.e., the number of dimensions it has,
 -- which is the length of @sh@ in @Array sh a@.
 -- O(1) time.
-rank :: (Shape sh, KnownNat (Rank sh)) => Array sh a -> Int
+rank :: KnownNat (Rank sh) => Array sh a -> Int
 rank = G.rank . unA
 
 -- | Index into an array.  Fails if the index is out of bounds.
@@ -180,7 +180,7 @@ reshape = A . G.reshape . unA
 -- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
 -- All other dimensions must remain the same.
 -- O(1) time.
-stretch :: forall sh' sh a . (Shape sh, Shape sh', ValidStretch sh sh') => Array sh a -> Array sh' a
+stretch :: forall sh' sh a . (Shape sh', ValidStretch sh sh') => Array sh a -> Array sh' a
 stretch = A . G.stretch . unA
 
 -- | Change the size of the outermost dimension by replication.
@@ -290,7 +290,7 @@ ravel = A . G.ravel . G.mapA unA . S.unA
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
 {-# INLINABLE unravel #-}
-unravel :: forall sh s a . (Unbox a, Shape sh, KnownNat s) =>
+unravel :: forall sh s a . (Shape sh, KnownNat s) =>
            Array (s:sh) a -> S.Array '[s] (Array sh a)
 unravel = S.A . G.mapA A . G.unravel . unA
 
@@ -352,7 +352,7 @@ slice = A . G.slice @sl . unA
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank #-}
 rerank :: forall n i o sh a b .
-          (Unbox a, Unbox b,
+          (Unbox b,
            Drop n sh ~ i, Shape sh, KnownNat n, Shape o, Shape (Take n sh ++ o)) =>
           (Array i a -> Array o b) -> Array sh a -> Array (Take n sh ++ o) b
 rerank f = A . G.rerank @n (unA . f . A) . unA
@@ -365,7 +365,7 @@ rerank f = A . G.rerank @n (unA . f . A) . unA
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank2 #-}
 rerank2 :: forall n i o sh a b c .
-           (Unbox a, Unbox b, Unbox c,
+           (Unbox c,
             Drop n sh ~ i, Shape sh, KnownNat n, Shape o, Shape (Take n sh ++ o)) =>
            (Array i a -> Array i b -> Array o c) -> Array sh a -> Array sh b -> Array (Take n sh ++ o) c
 rerank2 f = \ ta tb -> A $ G.rerank2 @n (\ a b -> unA $ f (A a) (A b)) (unA ta) (unA tb)

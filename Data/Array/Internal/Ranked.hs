@@ -329,7 +329,7 @@ stride ws = A . G.stride ws . unA
 -- With k = 1, the result is a view of the array, sharing its vector; 'force'
 -- copies it out.
 rotate :: forall d p a.
-          (HasCallStack, KnownNat p, KnownNat d,
+          (HasCallStack, KnownNat d,
           1 <= p  -- d is a dimension of the array
           ) =>
           Int -> Array (p + d) a -> Array (p + d + 1) a
@@ -353,7 +353,7 @@ slice ss = A . G.slice ss . unA
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank #-}
-rerank :: forall n i o a b . (KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
+rerank :: forall n i o a b . (KnownNat n, KnownNat o, KnownNat (n+o)) =>
           (Array i a -> Array o b) -> Array (n+i) a -> Array (n+o) b
 rerank f = A . G.rerank (unA . f . A) . unA
 
@@ -368,7 +368,7 @@ rerank f = A . G.rerank (unA . f . A) . unA
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank2 #-}
 rerank2 :: forall n i o a b c .
-           (HasCallStack, KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
+           (HasCallStack, KnownNat n, KnownNat o, KnownNat (n+o)) =>
            (Array i a -> Array i b -> Array o c) -> Array (n+i) a -> Array (n+i) b -> Array (n+o) c
 rerank2 f = \ ta tb -> A $ G.rerank2 @n (\ a b -> unA $ f (A a) (A b)) (unA ta) (unA tb)
 
@@ -453,7 +453,7 @@ allA p = G.allA p . unA
 -- dimensions differ from the result's at those indices.
 {-# INLINABLE broadcast #-}
 broadcast :: forall r' r a .
-             (HasCallStack, KnownNat r, KnownNat r') =>
+             (HasCallStack, KnownNat r') =>
              [Int] -> ShapeL -> Array r a -> Array r' a
 broadcast ds sh = A . G.broadcast ds sh . unA
 
