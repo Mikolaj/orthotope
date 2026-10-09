@@ -355,8 +355,9 @@ slice ss = A . G.slice ss . unA
 
 -- | Apply a function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
--- The /n/ must not exceed the rank of the array, and none of those /n/
--- dimensions may be empty unless the function returns scalars.
+-- The /n/ must not exceed the rank of the array, none of those /n/ dimensions
+-- may be empty unless the function returns scalars, and the function's results
+-- must all have one shape.
 -- O(n) time.
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
@@ -368,8 +369,9 @@ rerank f = A . G.rerank (unA . f . A) . unA
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
--- The /n/ must not exceed the rank of the array, and none of those /n/
--- dimensions may be empty unless the function returns scalars.
+-- The /n/ must not exceed the rank of the array, none of those /n/ dimensions
+-- may be empty unless the function returns scalars, and the function's results
+-- must all have one shape.
 -- Fails if the arrays differ in those /n/ outermost dimensions.
 -- O(n) time.
 -- Over one outer index, the result is a view of the function's result,
