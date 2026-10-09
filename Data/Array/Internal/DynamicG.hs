@@ -621,6 +621,7 @@ iterateN n f | n < 0 = error $ "iterateN: negative size " ++ show n
              | otherwise = A [n] . iterateNT n f
 
 -- | Generate a vector from 0 to n-1.
+-- Each element is evaluated to weak head normal form as it is stored.
 -- Fails if n is negative.
 {-# INLINE iota #-}
 iota :: forall v a .

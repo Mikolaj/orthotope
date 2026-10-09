@@ -549,6 +549,7 @@ iterateN :: forall n v a .
 iterateN f = A . iterateNT (natT @n) f
 
 -- | Generate a vector from 0 to n-1.
+-- Each element is evaluated to weak head normal form as it is stored.
 {-# INLINE iota #-}
 iota :: forall n v a .
         (Vector v, VecElem v a, KnownNat n, Num a) =>
