@@ -115,13 +115,13 @@ shapeL _ = shapeP (Proxy :: Proxy sh)
 -- | The rank of an array, i.e., the number of dimensions it has.
 -- O(1) time.
 {-# INLINE rank #-}
-rank :: forall sh v a . (Shape sh, KnownNat (Rank sh)) => Array sh v a -> Int
+rank :: forall sh v a . KnownNat (Rank sh) => Array sh v a -> Int
 rank _ = valueOf @(Rank sh)
 
 -- | Index into an array.  Fails if the index is out of bounds.
 -- O(1) time.
 {-# INLINE index #-}
-index :: forall s sh v a . (HasCallStack, Vector v, KnownNat s) =>
+index :: forall s sh v a . (HasCallStack, KnownNat s) =>
          Array (s:sh) v a -> Int -> Array sh v a
 index (A t) i | i < 0 || i >= s = error $ "index: out of bounds " ++ show (i, s)
               | otherwise = A $ indexT t i
@@ -209,7 +209,7 @@ reshape' sh sh' (A t@(T ost oo v))
 -- All other dimensions must remain the same.
 -- O(1) time.
 {-# INLINE stretch #-}
-stretch :: forall sh' sh v a . (Shape sh, Shape sh', ValidStretch sh sh') =>
+stretch :: forall sh' sh v a . (Shape sh', ValidStretch sh sh') =>
            Array sh v a -> Array sh' v a
 stretch a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now
             stretch' (stretching (Proxy :: Proxy sh) (Proxy :: Proxy sh')) a
@@ -358,7 +358,7 @@ ravel aa | natT @s == 1, [A t] <- toList aa = A (insertUnitsT 0 1 t)  -- one arr
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
 {-# INLINE unravel #-}
-unravel :: forall sh s v v' a . (Vector v, Vector v', VecElem v a, VecElem v' (Array sh v a)
+unravel :: forall sh s v v' a . (Vector v', VecElem v' (Array sh v a)
            , Shape sh, KnownNat s) =>
            Array (s:sh) v a -> Array '[s] v' (Array sh v a)
 unravel = rerank @1 scalar
@@ -376,7 +376,7 @@ unravel = rerank @1 scalar
 -- @wa `index` i1 ... `index` ik == slice \@'[ '(i1,w1),...,'(ik,wk)] a@.
 {-# INLINE window #-}
 window :: forall ws sh' sh v a .
-          (Window ws sh sh', Vector v, KnownNat (Rank ws), Shape sh') =>
+          (Window ws sh sh', KnownNat (Rank ws), Shape sh') =>
           Array sh v a -> Array sh' v a
 window (A (T ss o v)) = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now
                         A (T (ss' ++ ss) o v)
@@ -388,7 +388,7 @@ window (A (T ss o v)) = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size c
 -- O(1) time.
 {-# INLINE stride #-}
 stride :: forall ts sh' sh v a .
-          (Stride ts sh sh', Vector v, Shape ts) =>
+          (Stride ts sh sh', Shape ts) =>
           Array sh v a -> Array sh' v a
 stride (A (T ss o v)) = A (T (zipWith (*) (ats ++ repeat 1) ss) o v)
   where ats = listP (Proxy :: Proxy ts)
@@ -431,7 +431,7 @@ slice (A (T ts o v)) = A (T ts (o+i) v)
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank #-}
 rerank :: forall n i o sh v v' a b .
-          (Vector v, Vector v', VecElem v a, VecElem v' b,
+          (Vector v', VecElem v' b,
            Drop n sh ~ i, Shape sh, KnownNat n, Shape o, Shape (Take n sh ++ o)) =>
           (Array i v a -> Array o v' b) -> Array sh v a -> Array (Take n sh ++ o) v' b
 rerank f a@(A t)
@@ -453,8 +453,8 @@ rerank f a@(A t)
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank2 #-}
 rerank2 :: forall n i1 i2 o sh1 sh2 r v a b c .
-           (Vector v, VecElem v a, VecElem v b, VecElem v c,
-            Drop n sh1 ~ i1, Drop n sh2 ~ i2, Shape sh1, Shape sh2,
+           (Vector v, VecElem v c,
+            Drop n sh1 ~ i1, Drop n sh2 ~ i2, Shape sh1,
             Take n sh1 ~ r, Take n sh2 ~ r,
             KnownNat n, Shape o, Shape (r ++ o)) =>
            (Array i1 v a -> Array i2 v b -> Array o v c) -> Array sh1 v a -> Array sh2 v b -> Array (r ++ o) v c

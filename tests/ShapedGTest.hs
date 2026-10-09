@@ -107,7 +107,7 @@ obsD x = (DG.shapeL x, DG.toList x)
 
 -- Arrays of shape [2,3,4] over the elements, fresh and as views of other
 -- arrays: transposed, reversed, sliced, strided and broadcast.
-sources :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
+sources :: forall v a . (I.Vector v, I.VecElem v a) =>
            [a] -> [(String, SG.Array '[2,3,4] v a)]
 sources xs =
   [ ("fresh", SG.fromList (take 24 xs))
