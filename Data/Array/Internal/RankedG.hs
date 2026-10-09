@@ -120,7 +120,7 @@ rank (A _ _) = natT @n
 -- | Index into an array.  Fails if the index is out of bounds.
 -- O(1) time.
 {-# INLINE index #-}
-index :: forall n v a . (Vector v, HasCallStack) => Array (1+n) v a -> Int -> Array n v a
+index :: forall n v a . HasCallStack => Array (1+n) v a -> Int -> Array n v a
 index (A (s:ss) t) i | i < 0 || i >= s = error $ "index: out of bounds " ++ show (i, s)
                      | otherwise = A ss $ indexT t i
 index (A [] _) _ = error "index: scalar"
@@ -378,7 +378,7 @@ ravel aa = case shapeL aa of
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
 {-# INLINE unravel #-}
-unravel :: forall n v v' a . (Vector v, Vector v', VecElem v a, VecElem v' (Array n v a)) =>
+unravel :: forall n v v' a . (Vector v', VecElem v' (Array n v a)) =>
            Array (1+n) v a -> Array 1 v' (Array n v a)
 unravel = rerank @1 scalar
 
@@ -396,7 +396,7 @@ unravel = rerank @1 scalar
 -- If the window parameter @ws = [w1,...,wk]@ and @wa = window ws a@ then
 -- @wa `index` i1 ... `index` ik == slice [(i1,w1),...,(ik,wk)] a@.
 {-# INLINE window #-}
-window :: forall n n' v a . (HasCallStack, Vector v, KnownNat n, KnownNat n') =>
+window :: forall n n' v a . (HasCallStack, KnownNat n, KnownNat n') =>
           [Int] -> Array n v a -> Array n' v a
 window aws _ | natT @n' /= length aws + natT @n = error $ "window: rank mismatch " ++ show (natT @n' :: Int, length aws, natT @n :: Int)
 -- The window list is checked before the shape is built, so that the shape
@@ -423,7 +423,7 @@ window aws (A ash (T ss o v))
 {-# INLINE stride #-}
 -- The shape is forced here, not checked with 'badShape' as window's is:
 -- its extents, each s / t rounded up, never pass the array's.
-stride :: forall n v a . (HasCallStack, Vector v) => [Int] -> Array n v a -> Array n v a
+stride :: forall n v a . HasCallStack => [Int] -> Array n v a -> Array n v a
 stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ repeat 1) ss) o v)  -- check now
   where rsh = str ats ash
         str (t:ts) (s:sh) | t <= 0 = error $ "stride: non-positive stride " ++ show ats
@@ -440,7 +440,7 @@ stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ r
 -- copies it out.
 {-# INLINE rotate #-}
 rotate :: forall d p v a.
-          (HasCallStack, KnownNat p, KnownNat d,
+          (HasCallStack, KnownNat d,
           Vector v, VecElem v a,
           1 <= p  -- d is a dimension of the array
           ) =>
@@ -525,8 +525,8 @@ slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
 -- Over an empty outer dimension f is never applied, so the inner shape
 -- is known only for scalars.
 rerank :: forall n i o v v' a b .
-          (Vector v, Vector v', VecElem v a, VecElem v' b
-          , KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
+          (Vector v', VecElem v' b
+          , KnownNat n, KnownNat o, KnownNat (n+o)) =>
           (Array i v a -> Array o v' b) -> Array (n+i) v a -> Array (n+o) v' b
 rerank f (A sh t)
                   | 0 `elem` osh, natT @o == (0 :: Int) = A osh $ fromVectorT osh (vConcat [])
@@ -573,8 +573,8 @@ ravelOuterOf osh sh as = fromVector sh' $ vUnsafeConcatN (product sh') $ map vec
 -- Over an empty outer dimension f is never applied, so the inner shape
 -- is known only for scalars.
 rerank2 :: forall n i o a b c v .
-           (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c,
-            KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
+           (HasCallStack, Vector v, VecElem v c,
+            KnownNat n, KnownNat o, KnownNat (n+o)) =>
            (Array i v a -> Array i v b -> Array o v c) -> Array (n+i) v a -> Array (n+i) v b -> Array (n+o) v c
 rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error "rerank2: shape mismatch"
                                 | 0 `elem` osh, natT @o == (0 :: Int) = A osh $ fromVectorT osh (vConcat [])
@@ -679,7 +679,7 @@ allA p (A sh t) = allT sh p t
 -- dimensions differ from the result's at those indices.
 {-# INLINE broadcast #-}
 broadcast :: forall r' r v a .
-             (HasCallStack, Vector v, VecElem v a, KnownNat r, KnownNat r') =>
+             (HasCallStack, KnownNat r') =>
              [Int] -> ShapeL -> Array r v a -> Array r' v a
 broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dimension index"
                   | not (ascending ds) = error "broadcast: unordered dimensions"
