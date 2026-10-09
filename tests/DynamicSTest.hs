@@ -34,7 +34,7 @@ import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Test.QuickCheck (Property, forAll, (.&&.), (===))
-import Views (Elem, View (..), failsWith, genElems, mkViewG, testPropertyN)
+import Views (Elem, View (..), assertThrowsIn, failsWith, genElems, mkViewG, testPropertyN)
 
 -- A Storable whose peek fails on a byte it does not decode.
 data E = E0 | E1 deriving (Eq, Show, Enum)
@@ -47,10 +47,6 @@ instance Storable E where
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
-
-assertThrowsIn :: (NFData a) => String -> String -> a -> Assertion
-assertThrowsIn s f a = catch (deepseq a $ assertFailure s)
-                             (\ (ErrorCall e) -> assertEqual s f (takeWhile (/= ':') e))
 
 test :: Test
 test = testGroup "DynamicS" $

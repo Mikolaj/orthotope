@@ -43,14 +43,10 @@ import Test.QuickCheck
   (Property, choose, classify, conjoin, counterexample, elements, forAll, property, (.&&.), (===))
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
-import Views (View (..), failsWith, genRawView, mkView, testPropertyN)
+import Views (View (..), assertThrowsIn, failsWith, genRawView, mkView, testPropertyN)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
-
-assertThrowsIn :: (NFData a) => String -> String -> a -> Assertion
-assertThrowsIn s f a = catch (deepseq a $ assertFailure s)
-                             (\ (ErrorCall e) -> assertEqual s f (takeWhile (/= ':') e))
 
 -- A Vector instance with the methods the class had before vFromListN.
 newtype OldVector a = OldVector [a]
