@@ -107,19 +107,19 @@ instance Vector V.Vector where
   -- -O2, allocate per element: a zipWith on Doubles 72 bytes an element against
   -- 8, taking through zipWithA 13 to 15 times as long.  The map, zipWith3 and
   -- zipWith4 write it by a loop of their own ('indexLoop') rather than by
-  -- generate: on GHC HEAD with vector's issue 570 fixed, on views of 200000
-  -- Doubles, mapA took 0.64 to 0.74 of its time at -O1 and 0.94 to 0.97 with
-  -- -fspec-constr, and zipWith3A and zipWith4A 0.93 to 1.00 and 0.76 to 0.97;
-  -- zipWith and zipWith5 keep generate, the loop gaining nothing on the first
-  -- and costing the second 2 to 6% at -O1.  No fusion is given up: vector's
-  -- fuse with a vector they read, but each array operation stores its result,
-  -- so the array operations never fused their inputs; a map of a map allocates
-  -- one vector per map, with vector's map as with this one.
+  -- generate: on GHC HEAD with vector patched as issue 570 proposes, on views
+  -- of 200000 Doubles, mapA took 0.64 to 0.74 of its time at -O1 and 0.94 to
+  -- 0.97 with -fspec-constr, and zipWith3A and zipWith4A 0.93 to 1.00 and 0.76
+  -- to 0.97; zipWith and zipWith5 keep generate, the loop gaining nothing on
+  -- the first and costing the second 2 to 6% at -O1.  No fusion is given up:
+  -- vector's fuse with a vector they read, but each array operation stores its
+  -- result, so the array operations never fused their inputs; a map of a map
+  -- allocates one vector per map, with vector's map as with this one.
   -- Each element is read by 'elemAt' before the function takes it: given a
-  -- function GHC cannot see into, on GHC HEAD with vector's issue 570 fixed,
-  -- on views of 200000 Doubles, mapA allocated 40 bytes an element where a
-  -- lazy read made it 80 and zipWithA 72 where 152, and given known functions
-  -- every operation ran as many instructions as before.
+  -- function GHC cannot see into, on GHC HEAD with vector patched as issue 570
+  -- proposes, on views of 200000 Doubles, mapA allocated 40 bytes an element
+  -- where a lazy read made it 80 and zipWithA 72 where 152, and given known
+  -- functions every operation ran as many instructions as before.
   {-# INLINE vMap #-}
   vMap f v = indexLoop (V.length v) (\ i -> elemAt v i f)
   {-# INLINE vZipWith #-}
@@ -161,10 +161,10 @@ instance Vector V.Vector where
   {-# INLINE vProduct #-}
   vProduct = V.product
   -- The maximum and the minimum fold over the indices, in the order of
-  -- vector's foldl1': on GHC HEAD with vector's issue 570 fixed, minimumA took
-  -- 0.67 to 0.72 of its time at -O1 and maximumA as long as with vector's own,
-  -- and with -fspec-constr, on a view of runs, 0.71 and 0.85 of it, elsewhere
-  -- as long.
+  -- vector's foldl1': on GHC HEAD with vector patched as issue 570 proposes,
+  -- minimumA took 0.67 to 0.72 of its time at -O1 and maximumA as long as with
+  -- vector's own, and with -fspec-constr, on a view of runs, 0.71 and 0.85 of
+  -- it, elsewhere as long.
   {-# INLINE vMaximum #-}
   vMaximum v | V.null v = V.maximum v
              | otherwise = let !x0 = V.unsafeIndex v 0 in go x0 1

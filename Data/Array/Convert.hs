@@ -46,8 +46,8 @@ import Data.Array.Internal.Shape(Shape(..), validShape)
 -- is stored, where vector's convert stores the read as a thunk holding the
 -- Storable vector (https://github.com/haskell/vector/issues/570).  On GHC
 -- HEAD, converting a view of 200000 Doubles took 0.28 of the time at -O1
--- and allocated 72 bytes an element where 120; with the issue fixed and
--- -fspec-constr, it took 0.93 to 0.95 of it.
+-- and allocated 72 bytes an element where 120; with vector patched as the issue
+-- proposes and -fspec-constr, it took 0.93 to 0.95 of it.
 fromStorable :: VS.Storable a => VS.Vector a -> V.Vector a
 fromStorable v = V.create $ do
   let !n = VS.length v
