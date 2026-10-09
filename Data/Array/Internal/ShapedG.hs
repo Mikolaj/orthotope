@@ -85,7 +85,7 @@ instance (Shape sh, Vector v, Read a, VecElem v a) => Read (Array sh v a) where
 
 instance (Vector v, Eq a, VecElem v a, Shape sh)
          => Eq (Array sh v a) where
-  a@(A v) == (A v') = equalT (shapeL a) v v'
+  a@(A v) == (A v') = equalT (shapeL a) (shapeL a) v v'
   {-# INLINE (==) #-}
 
 instance (Vector v, Ord a, VecElem v a, Shape sh)

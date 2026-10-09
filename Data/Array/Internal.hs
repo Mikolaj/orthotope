@@ -36,8 +36,7 @@ import Data.Kind (Type)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List(foldl')
 #endif
-import Data.List(zipWith4, zipWith5, sortBy, sortOn, foldl1')
-import Data.Ord(comparing)
+import Data.List(zipWith4, zipWith5, sortOn, foldl1')
 import Data.Proxy
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
@@ -304,19 +303,12 @@ sumExtents ss = foldr (\ s k !n -> if n > maxBound - s then -1 else k (n + s)) i
 sumOverflows :: [Int] -> Bool
 sumOverflows ss = sumExtents ss < 0
 
--- Compare two arrays of the same shape, the first argument, element by element,
--- stopping at the first element that differs.  Two views of the same strides
+-- Compare two arrays of the shapes given, element by element, stopping at
+-- the first element that differs.  Two views of one shape and the same strides
 -- read their vectors alike, from offsets that may differ: where they read every
 -- element of one part of their vectors ('readRangeT') they compare the two
--- parts, and where they do not they compare their views without the broadcast
--- dimensions, which repeat what the rest holds, part by part along the route
--- ('routePartsT'), a part being a run or, where the uniform run length is one
--- element, an element.  Otherwise two views that are one slice each compare as
--- the slices, a view and a slice as the view's parts against the slice from its
--- start on, and any other pair as the first view's parts against the second
--- normalized, a slice of its own.  The index loops allocate nothing, a walk
--- against a slice 16 bytes a part, and no case reads an element outside the
--- views or materializes one but the last, which copies the second.
+-- parts, and otherwise they compare as 'foldPartsT' folds them.  The index
+-- loops allocate nothing.
 --
 -- The parts that two views of the same strides read whole are compared
 -- in the order of the vectors, not of the views, so where they hold an
@@ -342,90 +334,82 @@ sumOverflows ss = sumExtents ss < 0
 -- the same shape and, from GHC 9.12 on, the same cost, hence the loop
 -- in 'compareT'.
 {-# INLINE equalT #-}
-equalT :: (Vector v, VecElem v a, Eq a) => ShapeL -> T v a -> T v a -> Bool
-equalT s x@(T _ _ vx) y@(T _ _ vy)
-  | l == 0 = True
-  | strides x == strides y = case readRangeT s x of
-      Just (lo, n) -> go lo (lo + d) n
-      Nothing -> let (_, rs, x') = dropBroadcastT s x
-                 in  routePartsT (routeT rs (product rs) x')
-                                 (\p n rest -> go p (p + d) n && rest) True
-  | otherwise = case (routeT s l x, routeT s l y) of
-      (RSlice ox _, RSlice oy _) -> go ox oy l
-      (rx, RSlice oy _) ->
-        routePartsT rx (\p n rest !q -> go p q n && rest (q + n))
-                    (const True) oy
-      (RSlice ox _, ry) ->
-        routePartsT ry (\p n rest !q -> go q p n && rest (q + n))
-                    (const True) ox
-      (rx, _) -> let !(T _ oz vz) = normalizeT s y
-                 in  routePartsT rx (\p n rest !q -> goWith vz p q n && rest (q + n))
-                                 (const True) oz
-  where
-    !l = product s
-    !d = offset y - offset x
-    go :: Int -> Int -> Int -> Bool
-    go = goWith vy
-    goWith !w !ox !oy !k = loop 0
-      where loop !i = i >= k
-                      || (vUnsafeIndex vx (ox + i) == vUnsafeIndex w (oy + i)
-                          && loop (i + 1))
+equalT :: (Vector v, VecElem v a, Eq a) => ShapeL -> ShapeL -> T v a -> T v a -> Bool
+equalT s s' x@(T _ _ vx) y@(T _ _ vy)
+  | Just (lo, n) <- sameRangeT s s' x y = eqWith vx vy lo (lo + offset y - offset x) n
+  | s /= s' = False
+  | otherwise = foldPartsT (&&) True eqWith s x y
+  where eqWith u w !ox !oy !k = loop u w 0
+          where loop !u' !w' !i = i >= k
+                          || (vUnsafeIndex u' (ox + i) == vUnsafeIndex w' (oy + i)
+                              && loop u' w' (i + 1))
 
--- Compare two arrays of the same shape lexicographically in row-major order:
--- two views of the same strides part by part along the route of their views
--- without the broadcast dimensions, as 'equalT' does where they read no part
--- whole, two views that are one slice each by index, a view and a slice as
--- 'equalT' compares them, and any other pair as 'equalT' does.  Without the
--- broadcast dimensions the order is kept: the first element that differs in the
--- views is the first one that differs in what remains.
-{-# INLINE compareT #-}
-compareT :: (Vector v, VecElem v a, Ord a)
-            => ShapeL -> T v a -> T v a -> Ordering
-compareT s x@(T _ _ vx) y@(T _ _ vy)
-  | l == 0 = EQ
+-- Fold two arrays of the shape given part by part, in the order of their
+-- views: c combines what goWith u w p q n makes of each
+-- pair of parts, n elements of u from p and of w from q, e being the result
+-- where there are none.  Two views of the same strides read their vectors
+-- alike, from offsets that may differ, and fold without the broadcast
+-- dimensions, which repeat what the rest holds, part by part along the route
+-- ('routePartsT'), a part being a run or, where the uniform run length is one
+-- element, an element.  Otherwise two views that are one slice each fold as
+-- the slices, a view and a slice as the view's parts against the slice from
+-- its start on, and any other pair as the first view's parts against the
+-- second normalized, a slice of its own.  A walk against a slice allocates
+-- 16 bytes a part, and no case reads an element outside the views or
+-- materializes one but the last, which copies the second.
+{-# INLINE foldPartsT #-}
+foldPartsT :: (Vector v, VecElem v a)
+           => (r -> r -> r) -> r -> (v a -> v a -> Int -> Int -> Int -> r)
+           -> ShapeL -> T v a -> T v a -> r
+foldPartsT c e goWith s x@(T _ _ vx) y@(T _ _ vy)
+  | l == 0 = e
   | strides x == strides y =
       let (_, rs, x') = dropBroadcastT s x
       in  routePartsT (routeT rs (product rs) x')
-                      (\p n rest -> case go p (p + d) n of
-                                      EQ -> rest
-                                      o -> o)
-                      EQ
+                      (\p n rest -> go p (p + d) n `c` rest) e
   | otherwise = case (routeT s l x, routeT s l y) of
       (RSlice ox _, RSlice oy _) -> go ox oy l
       (rx, RSlice oy _) ->
-        routePartsT rx (\p n rest !q -> case go p q n of
-                                          EQ -> rest (q + n)
-                                          o -> o)
-                    (const EQ) oy
+        routePartsT rx (\p n rest !q -> go p q n `c` rest (q + n)) (const e) oy
       (RSlice ox _, ry) ->
-        routePartsT ry (\p n rest !q -> case go q p n of
-                                          EQ -> rest (q + n)
-                                          o -> o)
-                    (const EQ) ox
+        routePartsT ry (\p n rest !q -> go q p n `c` rest (q + n)) (const e) ox
       (rx, _) -> let !(T _ oz vz) = normalizeT s y
-                 in  routePartsT rx (\p n rest !q -> case goWith vz p q n of
-                                                      EQ -> rest (q + n)
-                                                      o -> o)
-                                 (const EQ) oz
+                 in  routePartsT rx (\p n rest !q -> goWith vx vz p q n `c` rest (q + n))
+                                 (const e) oz
   where
     !l = product s
     !d = offset y - offset x
-    go :: Int -> Int -> Int -> Ordering
-    go = goWith vy
-    goWith !w !ox !oy !k = loop 0
-      where loop !i
-              | i >= k = EQ
-              | otherwise =
-                  case compare (vUnsafeIndex vx (ox + i))
-                               (vUnsafeIndex w (oy + i)) of
-                    EQ -> loop (i + 1)
-                    o -> o
+    go = goWith vx vy
+
+-- Compare two arrays of the same shape lexicographically in row-major order,
+-- as 'foldPartsT' folds them.  Without the broadcast dimensions the order is
+-- kept: the first element that differs in the views is the first one that
+-- differs in what remains.
+-- TODO: on GHC HEAD two [2,2] arrays of one canonical layout compare in
+-- 1.24 of 0.1.8.0's instructions; a fast path for views read in vector
+-- order, as 'equalT' has one for views that read one part, is to remove
+-- that.
+{-# INLINE compareT #-}
+compareT :: (Vector v, VecElem v a, Ord a)
+            => ShapeL -> T v a -> T v a -> Ordering
+compareT = foldPartsT (Prelude.<>) EQ cmpWith
+  where cmpWith u w !ox !oy !k = loop u w 0
+          where loop !u' !w' !i
+                  | i >= k = EQ
+                  | otherwise =
+                      case compare (vUnsafeIndex u' (ox + i))
+                                   (vUnsafeIndex w' (oy + i)) of
+                        EQ -> loop u' w' (i + 1)
+                        o -> o
 
 -- Given the dimensions, return the stride in the underlying vector
 -- for each dimension.  The first element of the list is the total length.
 {-# INLINE getStridesT #-}
 getStridesT :: ShapeL -> [Int]
-getStridesT = scanr (*) 1
+getStridesT [] = [1]
+getStridesT (s : ss) = case getStridesT ss of
+  r@(m : _) -> let !x = s * m in x : r
+  [] -> []
 
 -- Convert an array to a list of its elements in row-major order.
 -- The first argument is the array shape.
@@ -453,20 +437,59 @@ toListT sh a@(T _ _ v)
 
 -- The start and length of the part of the vector the array reads, if it reads
 -- every element of one part, broadcasts and overlapping windows included, and
--- Nothing if it reads no element or skips one.  Leaving out the dimensions of
--- stride 0 or size 1 and taking the others by increasing absolute stride, the
--- array reads one part if each absolute stride is at most one more than the
--- reach of those before it.
+-- Nothing if it reads no element or skips one.  Over the axes sorted as
+-- 'unorderedRouteT' sorts them, innermost first by absolute stride, the
+-- array reads one part if each stride is at most one more than the reach of
+-- the axes inside it.
 {-# INLINE readRangeT #-}
 readRangeT :: ShapeL -> T v a -> Maybe (Int, Int)
-readRangeT sh (T ats ao _)
-  | product sh == 0 = Nothing
-  | otherwise = go 0 (sortBy (comparing fst) [ (abs t, s) | (t, s) <- tss ])
-  where tss = [ (t, s) | (t, s) <- zip ats sh, t /= 0, s /= 1 ]
-        lo = ao + sum [ (s - 1) * t | (t, s) <- tss, t < 0 ]  -- lowest index read
-        go !hi [] = Just (lo, hi + 1)
-        go !hi ((t, s) : sts) | t <= hi + 1 = go (hi + (s - 1) * t) sts
-                              | otherwise = Nothing
+readRangeT [n] (T [s] ao _) = range3T n s 1 1 1 1 ao
+readRangeT [n1, n2] (T [s1, s2] ao _) = range3T n1 s1 n2 s2 1 1 ao
+readRangeT [n1, n2, n3] (T [s1, s2, s3] ao _) = range3T n1 s1 n2 s2 n3 s3 ao
+readRangeT sh (T ats ao _) = case absAxesAndStartT [] ao ats sh of
+  ([], lo) -> Just (lo, 1)
+  (a : axs, lo) -> case sortAxesT a [] axs of
+    Axes st n (InnerFirst outer) -> go lo 0 st n outer
+  where go !lo !hi !st !n axs
+          | n == 0 || st > hi + 1 = Nothing
+          | otherwise = let !hi' = hi + (n - 1) * st in case axs of
+              Axis st' n' : axs' -> go lo hi' st' n' axs'
+              [] -> Just (lo, hi' + 1)
+
+-- readRangeT of the first view where the second has its shape and strides,
+-- and Nothing where it has not.
+{-# INLINE sameRangeT #-}
+sameRangeT :: ShapeL -> ShapeL -> T v a -> T v a -> Maybe (Int, Int)
+sameRangeT [n] [m] (T [s] ao _) (T [t] _ _) =
+  if n == m && s == t then range3T n s 1 1 1 1 ao else Nothing
+sameRangeT [n1, n2] [m1, m2] (T [s1, s2] ao _) (T [t1, t2] _ _) =
+  if n1 == m1 && n2 == m2 && s1 == t1 && s2 == t2 then range3T n1 s1 n2 s2 1 1 ao else Nothing
+sameRangeT sh sh' x y | sh == sh' && strides x == strides y = readRangeT sh x
+                      | otherwise = Nothing
+
+-- readRangeT at rank 3, and at ranks 1 and 2 given axes of extent 1 and
+-- stride 1: a view of the canonical strides reads all of one part, an axis of
+-- extent 1 or stride 0 reaches nothing, and the axes read one part if each
+-- stride is at most one more than the reach of the axes of smaller strides,
+-- equal strides ordered by position.
+{-# INLINE range3T #-}
+range3T :: Int -> Int -> Int -> Int -> Int -> Int -> Int -> Maybe (Int, Int)
+range3T n1 !s1 n2 !s2 n3 !s3 ao
+  | n1 == 0 || n2 == 0 || n3 == 0 = Nothing
+  | s3 == 1 && s2 == n3 && s1 == n2 * n3 = Just (ao, n1 * n2 * n3)
+  | a1 <= 1 + lt a2 a1 r2 + lt a3 a1 r3 && a2 <= 1 + le a1 a2 r1 + lt a3 a2 r3
+    && a3 <= 1 + le a1 a3 r1 + le a2 a3 r2 =
+      Just (ao - neg s1 r1 - neg s2 r2 - neg s3 r3, r1 + r2 + r3 + 1)
+  | otherwise = Nothing
+  where a1 = if n1 == 1 then 0 else abs s1
+        a2 = if n2 == 1 then 0 else abs s2
+        a3 = if n3 == 1 then 0 else abs s3
+        r1 = (n1 - 1) * a1
+        r2 = (n2 - 1) * a2
+        r3 = (n3 - 1) * a3
+        lt a b r = if a < b then r else 0
+        le a b r = if a <= b then r else 0
+        neg s r = if s < 0 then r else 0
 
 -- The array without its broadcast dimensions, of stride 0 and positive
 -- extent, which repeat one subarray: which dimensions those are, and the
@@ -1185,18 +1208,18 @@ routeVectorT v route = case route of
   RRuns axes ao l -> vFillStrided axes ao l v
   RFill axes ao l -> vFillStrided axes ao l v
 
--- The axes of extent above 1, their strides made absolute, onto the
--- list given in reverse of the order given, and the offset given moved
--- to the view's lowest address, in one walk over the strides and the
--- shape; the view is non-empty, which the caller has checked, so no
--- extent is 0.  The reversal is what makes 'sortAxesT' cheap: a view
--- whose axes come outermost first reaches it innermost first, and
--- each axis goes in at the head.  Which of two axes of one absolute
--- stride and one extent comes first, the only order 'byStrideRank'
--- leaves open, 'canonicalizeSortedT' treats alike.  A function
--- returning the pair, which GHC returns in registers: as a loop
--- inside 'unorderedRouteT', going on into the sort, it cost 10 to 58
--- instructions a call.  The account after 'unorderedRouteT' says why
+-- The axes of extent other than 1, their strides made absolute, onto
+-- the list given in reverse of the order given, and the offset given
+-- moved to the view's lowest address, in one walk over the strides
+-- and the shape.  Only 'readRangeT' passes it an empty view, and
+-- answers Nothing for one.  The reversal is what makes 'sortAxesT'
+-- cheap: a view whose axes come outermost first reaches it innermost
+-- first, and each axis goes in at the head.  Which of two axes of
+-- one absolute stride and one extent comes first, the only order
+-- 'byStrideRank' leaves open, 'canonicalizeSortedT' treats alike.  A
+-- function returning the pair, which GHC returns in registers: as a
+-- loop inside 'unorderedRouteT', going on into the sort, it cost 10 to
+-- 58 instructions a call.  The account after 'unorderedRouteT' says why
 -- one walk and why each of the three.
 absAxesAndStartT :: [Axis] -> Int -> [Int] -> ShapeL -> ([Axis], Int)
 absAxesAndStartT axes !off (_ : sts) (1 : ns) =
@@ -1525,8 +1548,8 @@ mapT sh f t = convertT sh (vMap f) t
 {-# INLINE convertT #-}
 convertT :: (Vector v, VecElem v a, Vector w, VecElem w b)
          => ShapeL -> (v a -> w b) -> T v a -> T w b
-convertT sh _ _ | 0 `elem` sh = fromVectorT sh (vConcat [])
 convertT sh g t@(T ss o v) | Just (lo, n) <- readRangeT sh t = T ss (o - lo) (g (vUnsafeSlice lo n v))
+convertT sh _ _ | 0 `elem` sh = fromVectorT sh (vConcat [])
 convertT sh g t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip bs sh ] $
                   g $ toVectorT rsh r
   where (bs, rsh, r) = dropBroadcastT sh t
@@ -1931,7 +1954,12 @@ iotaT n = fromVectorT [n] $ vGenerate' n fromIntegral  -- evaluated, as a boxed 
 -- | Permute the elements of a list, the first argument is indices into the original list.
 {-# INLINE permute #-}
 permute :: [Int] -> [a] -> [a]
-permute is xs = map (xs!!) is
+permute is xs = go is
+  where go [] = []
+        go (i : is') = let !y = ix xs i; !r = go is' in y : r
+        ix (y : _) 0 = y
+        ix (_ : ys) k = ix ys (k - 1)
+        ix [] _ = error "permute: violated contract: index out of range"
 
 -- | Like 'dropWhile' but at the end of the list.
 revDropWhile :: (a -> Bool) -> [a] -> [a]
