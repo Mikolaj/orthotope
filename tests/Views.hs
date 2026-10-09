@@ -32,6 +32,7 @@ import Test.QuickCheck
   , ioProperty, oneof, shuffle, sublistOf, suchThat, vectorOf, (===) )
 
 -- A property checked on a thousand cases rather than the default hundred.
+-- The count is fixed here, so --maximum-generated-tests does not raise it.
 testPropertyN :: Testable p => String -> p -> Test
 testPropertyN name =
   plusTestOptions mempty { topt_maximum_generated_tests = Just 1000 } . testProperty name
