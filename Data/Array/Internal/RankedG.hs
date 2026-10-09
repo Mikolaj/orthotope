@@ -63,6 +63,7 @@ import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import Data.Array.Internal
+import Data.Array.Internal.Shape(natT)
 import qualified Data.Array.Internal.DynamicG as DG
 
 -- | Arrays stored in a /v/ with values of type /a/.
@@ -79,7 +80,7 @@ instance (KnownNat n, Vector v, Read a, VecElem v a) => Read (Array n v a) where
   readsPrec p = readParen (p > 10) $ \ r1 ->
     [(fromList s xs, r4)
     | ("fromList", r2) <- lex r1, (s, r3) <- readsPrec 11 r2
-    , (xs, r4) <- readsPrec 11 r3, length s == valueOf @n, not (badShape s)
+    , (xs, r4) <- readsPrec 11 r3, length s == natT @n, not (badShape s)
     , product s == length xs]
 
 instance (Vector v, Eq a, VecElem v a) => Eq (Array n v a) where
@@ -115,7 +116,7 @@ shapeL (A s _) = s
 -- O(1) time.
 {-# INLINE rank #-}
 rank :: forall n v a . (KnownNat n) => Array n v a -> Int
-rank (A _ _) = valueOf @n
+rank (A _ _) = natT @n
 
 -- | Index into an array.  Fails if the index is out of bounds.
 -- O(1) time.
@@ -148,7 +149,7 @@ fromList :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
             ShapeL -> [a] -> Array n v a
 fromList ss vs | badShape ss = error $ "fromList: bad shape " ++ show ss
                | n /= l = error $ "fromList: size mismatch " ++ show (n, l)
-               | length ss /= valueOf @n = error $ "fromList: rank mismatch " ++ show (length ss, valueOf @n :: Int)
+               | length ss /= natT @n = error $ "fromList: rank mismatch " ++ show (length ss, natT @n :: Int)
                | otherwise = A ss $ T st 0 $ vFromListN l vs
   where n : st = getStridesT ss
         l = length vs
@@ -161,7 +162,7 @@ fromVector :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =
               ShapeL -> v a -> Array n v a
 fromVector ss v | badShape ss = error $ "fromVector: bad shape " ++ show ss
                 | n /= l = error $ "fromVector: size mismatch " ++ show (n, l)
-                | length ss /= valueOf @n = error $ "fromVector: rank mismatch " ++ show (length ss, valueOf @n :: Int)
+                | length ss /= natT @n = error $ "fromVector: rank mismatch " ++ show (length ss, natT @n :: Int)
                 | otherwise = A ss $ T st 0 v
   where n : st = getStridesT ss
         l = vLength v
@@ -186,7 +187,7 @@ reshape :: forall n n' v a . (HasCallStack,Vector v, VecElem v a, KnownNat n') =
 reshape sh (A sh' t@(T ost oo v))
   | badShape sh = error $ "reshape: bad shape " ++ show sh
   | n /= n' = error $ "reshape: size mismatch " ++ show (sh, sh')
-  | length sh /= valueOf @n' = error $ "reshape: rank mismatch " ++ show (length sh, valueOf @n' :: Int)
+  | length sh /= natT @n' = error $ "reshape: rank mismatch " ++ show (length sh, natT @n' :: Int)
   | vLength v == 1 = A sh $ T (map (const 0) sh) 0 v  -- Fast special case for singleton vector
   | Just nst <- simpleReshape ost sh' sh = A sh $ T nst oo v
   | otherwise = A sh $ T st 0 $ toVectorT sh' t
@@ -234,7 +235,7 @@ unScalar (A _ t) = unScalarT t
 constant :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
             ShapeL -> a -> Array n v a
 constant sh | badShape sh = error $ "constant: bad shape " ++ show sh
-            | length sh /= valueOf @n = error "constant: rank mismatch"
+            | length sh /= natT @n = error "constant: rank mismatch"
             | otherwise = A sh . constantT sh
 
 -- | Map over the array elements.
@@ -308,7 +309,7 @@ transpose is (A sh t) | l > n = error $ "transpose: rank exceeded " ++ show (is,
                           error $ "transpose: not a permutation: " ++ show is
                       | otherwise = A (permute is' sh) (transposeT is' t)
   where l = length is
-        n = valueOf @n
+        n = natT @n
         is' = is ++ [l .. n-1]
 
 -- | Append two arrays along the outermost dimension.
@@ -372,7 +373,7 @@ unravel = rerank @1 scalar
 {-# INLINE window #-}
 window :: forall n n' v a . (HasCallStack, Vector v, KnownNat n, KnownNat n') =>
           [Int] -> Array n v a -> Array n' v a
-window aws _ | valueOf @n' /= length aws + valueOf @n = error $ "window: rank mismatch " ++ show (valueOf @n' :: Int, length aws, valueOf @n :: Int)
+window aws _ | natT @n' /= length aws + natT @n = error $ "window: rank mismatch " ++ show (natT @n' :: Int, length aws, natT @n :: Int)
 -- The window list is checked before the shape is built, so that the shape
 -- a message shows holds no error of its own, and the extents are computed
 -- as Integers, a window of 0 over an extent of maxBound making one past it.
@@ -425,7 +426,7 @@ rotate :: forall d p v a.
           Int -> Array (p + d) v a -> Array (p + d + 1) v a
 -- Through DynamicG's rotate, as a workaround: see the original
 -- definition below.
-rotate k (A sh t) = case DG.rotate (valueOf @d) k (DG.A sh t) of
+rotate k (A sh t) = case DG.rotate (natT @d) k (DG.A sh t) of
   DG.A sh' t' -> A sh' t'
 
 -- The original definition of 'rotate', with the signature above, an
@@ -492,12 +493,12 @@ rerank :: forall n i o v v' a b .
           , KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
           (Array i v a -> Array o v' b) -> Array (n+i) v a -> Array (n+o) v' b
 rerank f (A sh t)
-                  | 0 `elem` osh, valueOf @o == (0 :: Int) = A osh $ fromVectorT osh (vConcat [])
+                  | 0 `elem` osh, natT @o == (0 :: Int) = A osh $ fromVectorT osh (vConcat [])
                   | otherwise =
   ravelOuter osh $
   map (f . A ish) $
   subArraysT osh t
-  where (osh, ish) = splitAt (valueOf @n) sh
+  where (osh, ish) = splitAt (natT @n) sh
 
 -- The caller computes the arrays, one for each index of @osh@, and each one's
 -- shape is checked against the first's as it is copied, not all before
@@ -534,7 +535,7 @@ rerank2 :: forall n i o a b c v .
             KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
            (Array i v a -> Array i v b -> Array o v c) -> Array (n+i) v a -> Array (n+i) v b -> Array (n+o) v c
 rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error "rerank2: shape mismatch"
-                                | 0 `elem` osh, valueOf @o == (0 :: Int) = A osh $ fromVectorT osh (vConcat [])
+                                | 0 `elem` osh, natT @o == (0 :: Int) = A osh $ fromVectorT osh (vConcat [])
                                 | otherwise =
   ravelOuter osh $
   zipWith (\ a b -> f (A isha a) (A ishb b))
@@ -542,7 +543,7 @@ rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error "rerank2: sha
           (subArraysT osh tb)
   where (osh, isha) = splitAt n sha
         ishb = drop n shb
-        n = valueOf @n
+        n = natT @n
 
 -- | Reverse the given dimensions, with the outermost being dimension 0.
 -- Fails if a given dimension is not one of the array's.
@@ -582,7 +583,7 @@ allSameA (A sh t) = allSameT sh t
 instance (KnownNat r, Vector v, VecElem v a, Arbitrary a) => Arbitrary (Array r v a) where
   arbitrary = do
     -- Don't generate huge number of elements
-    ss <- replicateM (valueOf @r) (getSmall . getPositive <$> arbitrary) `suchThat` ((< 10000) . product)
+    ss <- replicateM (natT @r) (getSmall . getPositive <$> arbitrary) `suchThat` ((< 10000) . product)
     fromList ss <$> vector (product ss)
 
 -- | Sum of all elements.
@@ -640,7 +641,7 @@ broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dime
                   | permute ds sh /= shapeL a =
                       error $ "broadcast: shape mismatch " ++ show (shapeL a, ds, sh)
                   | otherwise = A sh $ T sts o v
-  where r = valueOf @r'
+  where r = natT @r'
         -- The array's strides at ds, and 0 at the dimensions broadcast.
         A _ (T ats o v) = a
         sts = [ fromMaybe 0 (lookup i (zip ds ats)) | i <- [0 .. r - 1] ]
@@ -663,7 +664,7 @@ generate :: forall n v a .
             (HasCallStack, KnownNat n, Vector v, VecElem v a) =>
             ShapeL -> ([Int] -> a) -> Array n v a
 generate sh | badShape sh = error $ "generate: bad shape " ++ show sh
-            | length sh /= valueOf @n = error $ "generate: rank mismatch " ++ show (length sh, valueOf @n :: Int)
+            | length sh /= natT @n = error $ "generate: rank mismatch " ++ show (length sh, natT @n :: Int)
             | otherwise = A sh . generateT sh
 
 -- | Iterate a function n times.
