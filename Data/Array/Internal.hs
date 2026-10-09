@@ -832,7 +832,7 @@ genericUnsafeFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
 -- rerank return, compiled by GHC HEAD at -O1 or -O2.
 {-# INLINE genericUnsafeConcatN #-}
 genericUnsafeConcatN :: (VG.Vector w a) => Int -> [w a] -> w a
-genericUnsafeConcatN n [v] | VG.length v == n = v
+genericUnsafeConcatN n [v] | VG.length v == n = v  -- False only for a call breaking the contract
 genericUnsafeConcatN n vs = VG.create $ do
   out <- VGM.unsafeNew n
   let step x k = \ !i -> do
