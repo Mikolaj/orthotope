@@ -324,19 +324,13 @@ stride ws = A . G.stride ws . unA
 -- | Rotate the array k times along the d'th dimension.
 -- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
 -- the resulting shape will be @[2, 4, 3, 2]@.
--- Fails if d is not a dimension of the array or k is negative, and may fail
--- if the result has more than half of 'maxBound' elements.
+-- Fails if k is negative, and may fail if the result has more than half of
+-- 'maxBound' elements.
 -- With k = 1, the result is a view of the array, sharing its vector; 'force'
 -- copies it out.
 rotate :: forall d p a.
           (HasCallStack, KnownNat p, KnownNat d,
-          -- Nonsense
-          (d + (p + 1)) ~ ((p + d) + 1),
-          (d + p) ~ (p + d),
-          1 <= p + 1,
-          KnownNat ((p + d) + 1),
-          KnownNat (p + 1),
-          KnownNat (1 + (p + 1))
+          1 <= p  -- d is a dimension of the array
           ) =>
           Int -> Array (p + d) a -> Array (p + d + 1) a
 rotate k = A . G.rotate @d @p k . unA
