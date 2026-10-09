@@ -479,12 +479,12 @@ iota = A G.iota
 -- | Convert between types by just reinterpreting the bits as another type.
 -- For instance the floating point number @(1.5 :: Float)@ will convert to
 -- @(0x3fc00000 :: Word32)@ since they have the same bit representation.
--- Fails if the two types differ in size.
+-- Fails if the two types differ in size or have size 0.
 {-# INLINE bitcast #-}
 bitcast :: forall sh a b . (HasCallStack, Unbox a, Unbox b) => Array sh a -> Array sh b
 bitcast (A (G.A (T ss o v)))
-  | sza /= szb
-  = error $ "bitcast: the types must have the same size. " ++ show (sza, szb)
+  | sza /= szb || sza == 0
+  = error $ "bitcast: the types must have the same, nonzero size. " ++ show (sza, szb)
   | otherwise
   = A (G.A (T ss o (V.unsafeCast v)))
   where sza = sizeOf (undefined :: a)
