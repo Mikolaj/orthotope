@@ -97,16 +97,9 @@ class Vector v where
   vUnsafeSlice :: (VecElem v a) => Int -> Int -> v a -> v a
   vUnsafeSlice = vSlice
 
-  -- | Materialize a strided view in row-major order.  The arguments are
-  -- the view's canonical axes (as t'Axes'), the offset, the total element
-  -- count and the source vector.  The contract: every extent in the axes
-  -- is positive, the count is their product (@product sh@, passed in
-  -- because every caller already has it), and every element the axes
-  -- address from the offset lies in the source vector.  The vector-backed
-  -- instances check none of it, but for an assertion of a positive count
-  -- that an optimised build drops unless asserts are kept, and read and
-  -- write unchecked, so a call that breaks it reads outside the source or
-  -- writes outside the result, which can corrupt memory.  This method is
+  -- | Materialize a strided view in row-major order, unchecked: the
+  -- arguments and the contract are those of 'fillStrided', which checks the
+  -- contract and says what breaking it does here.  This method is
   -- what makes a fast 'toVectorListT' and
   -- 'toVectorT' possible: what the conversions to vectors do not hand
   -- out as slices of the source they fill through it, over the
@@ -522,6 +515,34 @@ unScalarT (T _ o v) = vUnsafeIndex v o
 constantT :: (Vector v, VecElem v a) => ShapeL -> a -> T v a
 constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 
+-- | Materialize a strided view in row-major order, checked.  The arguments
+-- are the view's axes (as t'Axes', as 'canonicalizeT' gives them), the
+-- offset, the total element count and the source vector.  The contract,
+-- which 'vUnsafeFillStrided' relies on and this function checks before
+-- calling it: every extent in the axes is positive, the count is their
+-- product, and every element the axes address from the offset lies in the
+-- source vector.  A call that breaks it fails here with an error saying
+-- "violated contract", where 'vUnsafeFillStrided', whose vector-backed
+-- instances check none of it but for an assertion of a positive count that
+-- an optimised build drops unless asserts are kept, would read outside the
+-- source or write outside the result, which can corrupt memory.  The
+-- operations of the array modules call 'vUnsafeFillStrided' directly, on axes
+-- taken from a view that keeps the contract already.
+fillStrided :: (Vector v, VecElem v a) => Axes -> Int -> Int -> v a -> v a
+fillStrided axes@(Axes st n outer) ao l v
+  | any ((<= 0) . axisExtent) axs = bad "an extent that is not positive"
+  | product (map (toInteger . axisExtent) axs) /= toInteger l =
+      bad "a count other than the extents' product"
+  | toInteger ao + lo < 0 || toInteger ao + hi >= toInteger (vLength v) =
+      bad "an element outside the source vector"
+  | otherwise = vUnsafeFillStrided axes ao l v
+  where axs = Axis st n : innerFirst outer
+        reach = [ toInteger (axisStride a) * toInteger (axisExtent a - 1) | a <- axs ]
+        lo = sum (map (min 0) reach)
+        hi = sum (map (max 0) reach)
+        bad what = error $ "fillStrided: violated contract: " ++ what ++ ": "
+                           ++ show ([ (axisStride a, axisExtent a) | a <- axs ], ao, l, vLength v)
+
 -- The measured-fastest fill for 'vUnsafeFillStrided': an allocate-once mutable
 -- result, an odometer recursion over the outer dimensions with the input offset
 -- stepped additively, the innermost outer level fused into a dedicated loop
@@ -564,7 +585,7 @@ constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 -- extent would read past the source or write into an empty result.
 -- Every entry point of this module returns the empty vector or list
 -- before routing an empty view here, and a caller of 'vUnsafeFillStrided'
--- from outside owes the same.
+-- from outside owes the same, as part of the contract 'fillStrided' checks.
 --
 -- Written once against 'Data.Vector.Generic', which supplies
 -- the mutable machinery orthotope's own 'Vector' class deliberately does
