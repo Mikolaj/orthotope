@@ -852,7 +852,8 @@ genericUnsafeConcatN n vs = VG.create $ do
 -- own, built before the loop, and 'run' and 'level' only take it apart;
 -- a consumer that had to build one would bring the allocation back into
 -- the loop.  'Fused' holds the innermost outer level's 'Axis' too, so
--- that the loop over it mentions what 'run' takes apart (GHC #27894).
+-- that the loop over it mentions what 'run' takes apart
+-- (https://gitlab.haskell.org/ghc/ghc/-/work_items/27894).
 data Nest = Fused !Axis | Level !Axis !Int !Nest
 
 -- | The route a non-empty view takes once canonicalized: what its consumer does
