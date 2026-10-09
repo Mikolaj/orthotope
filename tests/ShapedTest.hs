@@ -258,6 +258,8 @@ test = testGroup "Shaped" $
                                             9, 10, 11, 12, 7, 8,
                                             7, 8, 9, 10, 11, 12])
                                  (rotate @1 @4 (fromList [1 .. 12] :: Array [2,3,2] Int))
+      -- A result shape within maxBound, where the copies of the row pass it.
+      rotate_2 = assertThrowsIn "2" "rotate" (rotate @0 @4611686018427387905 (fromList [7] :: Array '[1] Int))
       slice_1 = assertEqual "1" (fromList @[2,2,1] [8,12,20,24])
                                 (slice @['(0,2), '(1,2), '(3,1)] a5)
       box = scalar . Just
@@ -402,6 +404,7 @@ test = testGroup "Shaped" $
         , testCase "window_1" window_1
         , testCase "stride_1" stride_1
         , testCase "rotate_1" rotate_1
+        , testCase "rotate_2" rotate_2
         , testCase "slice_1" slice_1
         , testCase "rerank_1" rerank_1
         , testCase "rerank_2" rerank_2
