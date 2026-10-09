@@ -359,8 +359,8 @@ test = testGroup "Ranked" $
               reshapeN :: Array n Int -> Array 1 Int
               reshapeN = reshape [6]
 
-      -- One call of each wrapper that the other tests of RankedTest,
-      -- RankedSTest or RankedUTest leave uncalled.
+      -- Calls of wrappers that the other tests of this module leave uncalled,
+      -- each against its value.
       wrappers_1 = do
         assertEqual "sumA" 21 (sumA a1)
         assertEqual "productA" 720 (productA a1)
@@ -375,6 +375,7 @@ test = testGroup "Ranked" $
         assertEqual "update" [9, 2, 3, 4, 5, 6] (toList (update a1 [([0, 0], 9)]))
         assertEqual "size" 6 (size a1)
         assertEqual "traverseA" (Just [2 .. 7]) (fmap toList (traverseA (Just . (+ 1)) a1))
+        assertEqual "force" [1 .. 6] (toList (force a1))
 
       tests =
         [ testCase "show_1" show_1

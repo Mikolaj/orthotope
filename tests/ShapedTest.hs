@@ -338,8 +338,8 @@ test = testGroup "Shaped" $
 
       update_1 = assertThrowsIn "1" "update" (update a1 [([2, 0], 0)])
 
-      -- One call of each wrapper that the other tests of ShapedTest,
-      -- ShapedSTest or ShapedUTest leave uncalled.
+      -- Calls of wrappers that the other tests of this module leave uncalled,
+      -- each against its value.
       wrappers_1 = do
         assertEqual "sumA" 21 (sumA a1)
         assertEqual "productA" 720 (productA a1)
@@ -357,6 +357,7 @@ test = testGroup "Shaped" $
         assertEqual "traverseA" (Just [2 .. 7]) (fmap toList (traverseA (Just . (+ 1)) a1))
         assertEqual "iterateN" [1, 2, 4] (toList (iterateN (* 2) 1 :: Array '[3] Int))
         assertEqual "iota" [0, 1, 2] (toList (iota :: Array '[3] Int))
+        assertEqual "force" [1 .. 6] (toList (force a1))
 
       tests =
         [ testCase "show_1" show_1

@@ -226,8 +226,8 @@ test = testGroup "ShapedU" $
       reduce_2 = assertEqual "2" (fromList @'[2] [6,120]) (rerank @1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList @'[3] [4,10,18]) (rerank @1 (reduce (*) 1) a2)
 
-      -- One call of each wrapper that the other tests of ShapedTest,
-      -- ShapedSTest or ShapedUTest leave uncalled.
+      -- Calls of wrappers that the other tests of this module leave uncalled,
+      -- each against its value.
       wrappers_1 = do
         assertEqual "sumA" 21 (sumA a1)
         assertEqual "productA" 720 (productA a1)
@@ -247,6 +247,8 @@ test = testGroup "ShapedU" $
         assertEqual "iota" [0, 1, 2] (toList (iota :: Array '[3] Int))
         assertEqual "concatOuter" [1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6] (toList (concatOuter [a1, a1] :: Array [4,3] Int))
         assertEqual "rotate" [2, 3, 1, 1, 2, 3] (toList (rotate @0 @2 (index a1 0)))
+        assertEqual "generate" [0 .. 5] (toList (generate (sum . zipWith (*) [3, 1]) :: Array '[2, 3] Int))
+        assertEqual "force" [1 .. 6] (toList (force a1))
 
       tests =
         [ testCase "show_1" show_1

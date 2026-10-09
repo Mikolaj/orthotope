@@ -19,6 +19,8 @@ module DynamicSTest(test) where
 
 import Control.DeepSeq hiding (force)
 import Control.Exception
+import Data.Array.Convert (convert)
+import qualified Data.Array.Dynamic as D
 import Data.Array.DynamicS
 import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.DynamicS as DS
@@ -317,8 +319,8 @@ test = testGroup "DynamicS" $
         assertThrowsIn "outside" "fillStrided" (I.fillStrided axes 5 6 v)
         assertThrowsIn "extent" "fillStrided" (I.fillStrided (I.Axes 2 0 (I.InnerFirst [I.Axis 1 2])) 0 0 v)
 
-      -- One call of each wrapper that the other tests of DynamicTest,
-      -- DynamicSTest or DynamicUTest leave uncalled.
+      -- Calls of wrappers that the other tests of this module leave uncalled,
+      -- each against its value.
       wrappers_1 = do
         assertEqual "size" 6 (size a1)
         assertEqual "sumA" 21 (sumA a1)
@@ -339,6 +341,8 @@ test = testGroup "DynamicS" $
         assertEqual "stretchOuter" [1, 2, 3, 1, 2, 3] (toList (stretchOuter 2 (reshape [1, 3] (index a1 0))))
         assertEqual "rotate" [2, 3, 1, 1, 2, 3] (toList (rotate 0 2 (index a1 0)))
         assertEqual "ravel . unravel" a1 (ravel (unravel a1))
+      -- convert to boxed of a transposed view keeps the view's order.
+      convert_1 = assertEqual "1" (toList (transpose [1, 0] a1)) (D.toList (convert (transpose [1, 0] a1) :: D.Array Int))
 
       tests =
         [ testCase "show_1" show_1
@@ -426,6 +430,7 @@ test = testGroup "DynamicS" $
         , testCase "unit_1" unit_1
         , testCase "fillStrided_1" fillStrided_1
         , testCase "wrappers_1" wrappers_1
+        , testCase "convert_1" convert_1
         ]
   in  tests ++ [ testPropertyN "prop_bitcast" (prop_bitcast @Int @Word)
               , testGroup "Word8" [testPropertyN "prop_bitcast" (prop_bitcast @Word8 @Int8)] ]
