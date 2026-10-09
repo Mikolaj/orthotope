@@ -86,7 +86,10 @@ the type `'[0, 4611686018427387904, 4]` fails for its rows
 of `'[4611686018427387904, 4]`, where `Dynamic` accepts the shape
 `[0, 4611686018427387904, 4]`. The `Shaped` modules check most arguments
 in their types instead. A number past `maxBound` in a `Shaped` or `Ranked` type
-fails where it is read. An operation makes these checks before it returns,
+fails where it is read. Unless the operation checks it itself, such a shape
+or number fails in the `Shape` class or a function beside it, with an error
+that names `Shape` rather than the operation and, for a shape, a call stack
+that stops in `Shape`. An operation makes these checks before it returns,
 so no array an operation returns has a shape that fails.
 
 The functions of `Data.Array.Internal` have contracts, which the operations
