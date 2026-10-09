@@ -473,11 +473,15 @@ productA :: (Vector v, VecElem v a, Num a, Shape sh) => Array sh v a -> a
 productA a@(A t) = productT (shapeL a) t
 
 -- | Maximum of all elements.
+-- Of elements that compare equal, as @0.0@ and @-0.0@ do, the one returned
+-- depends on the array's layout.
 {-# INLINE maximumA #-}
 maximumA :: (Vector v, VecElem v a, Ord a, Shape sh, 1 <= Size sh) => Array sh v a -> a
 maximumA a@(A t) = maximumT (shapeL a) t
 
 -- | Minimum of all elements.
+-- Of elements that compare equal, as @0.0@ and @-0.0@ do, the one returned
+-- depends on the array's layout.
 {-# INLINE minimumA #-}
 minimumA :: (Vector v, VecElem v a, Ord a, Shape sh, 1 <= Size sh) => Array sh v a -> a
 minimumA a@(A t) = minimumT (shapeL a) t
