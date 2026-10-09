@@ -200,6 +200,12 @@ test = testGroup "Dynamic" $
                either (\ (ErrorCall e) -> assertEqual "3" "1 evaluated" e)
                       (const (assertFailure "3"))
         where g i = VU.DoNotUnboxLazy (if i == 1 then error "1 evaluated" else i)
+      -- An n below 0 gives vGenerate' no elements, at every instance.
+      iota_4 = assertEqual "4" (0, 0, 0, 0)
+                 ( V.length (I.vGenerate' (-1) id :: V.Vector Int)
+                 , VS.length (I.vGenerate' (-1) id :: VS.Vector Int)
+                 , VU.length (I.vGenerate' (-1) id :: VU.Vector Int)
+                 , length (I.vGenerate' (-1) id :: [Int]) )
       -- No array has a negative extent.
       badShape_1 = mapM_ (uncurry assertThrows)
         [ ("fromList", fromList [-2,-3] [1..6])
@@ -608,6 +614,7 @@ test = testGroup "Dynamic" $
         , testCase "iota_1" iota_1
         , testCase "iota_2" iota_2
         , testCase "iota_3" iota_3
+        , testCase "iota_4" iota_4
         , testCase "badShape_1" badShape_1
         , testCase "badShape_2" badShape_2
         , testCase "badShape_3" badShape_3
