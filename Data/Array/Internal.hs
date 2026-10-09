@@ -1727,14 +1727,19 @@ traverseT sh f a = fmap (fromListT sh) (traverse f (toListT sh a))
 allSameT :: (Vector v, VecElem v a, Eq a) => ShapeL -> T v a -> Bool
 allSameT sh t@(T _ ao v)
   | l <= 1 = True
-  | vLength v == 1 = let !x = vUnsafeIndex v 0 in x == x
+  -- A broadcast compares its element with itself, as allSame of its list
+  -- does, which a NaN fails.
+  | vLength v == 1 = vUnsafeWithElem v 0 $ \ x -> x == x
   | otherwise =
     -- Order does not matter, so the unordered parts, which are one slice
     -- for a dense view under any transposition.  The element at index
     -- zero sits at the offset, so no slice is held for it.  The fold stops
-    -- at the first element that differs.
-    let !x = vUnsafeIndex v ao
-    in  routeFoldT v (cellsRouteT sh l t) (\ s r -> vAll (x ==) s && r) (\ y r -> x == y && r) True
+    -- at the first element that differs.  The element is read as
+    -- the instance reads it: evaluated at a primitive representation, so
+    -- that it is unboxed once rather than at every comparison, and as stored
+    -- at a boxed one, for == alone to evaluate.
+    vUnsafeWithElem v ao $ \ x ->
+      routeFoldT v (cellsRouteT sh l t) (\ s r -> vAll (x ==) s && r) (\ y r -> x == y && r) True
   where !l = product sh
 
 newtype Rect = Rect { unRect :: [String] }  -- A rectangle of text
