@@ -101,7 +101,16 @@ does, storing each evaluated to weak head normal form. An element supplied
 by a list or by a function of the user's is stored as the vector type stores it,
 unevaluated in `Data.Vector` and in `Data.Vector.Unboxed`'s `DoNotUnboxLazy`,
 and an element an operation only reads or moves, as a fold or a copy does,
-is handed on as stored, evaluated only by a function it is handed to.
+is handed on as stored, evaluated only by a function it is handed to, with two
+exceptions. The `Storable` modules evaluate an element they read, or copy one
+at a time, its `peek` being the type's own decoding, so a type whose `peek` can
+fail fails there; and the `Unboxed` modules, copying a view broadcast along
+its innermost dimension, evaluate a `DoNotUnboxLazy` element,
+as vector-0.13.2.0's `elemseq` does against its documentation. An array can
+be a view of a larger vector, which it then keeps alive, the elements outside
+the view included, unevaluated as they are and with whatever they reference:
+in the boxed modules `rnf` evaluates only the elements of the view,
+and `normalize` copies the view out of the larger vector.
 
 ### Examples using `Dynamic`
 

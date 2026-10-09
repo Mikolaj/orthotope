@@ -140,8 +140,8 @@ class Vector v where
   -- the element as 'Data.Vector.Generic.unsafeIndexM' reads it, which is the
   -- element stored, unforced, for a boxed vector and for vector's
   -- DoNotUnboxLazy and an evaluated one for every primitive representation, and
-  -- the Storable one the element read and forced, as no Storable element is
-  -- undefined.
+  -- the Storable one the element read and forced, which fails here for a type
+  -- whose peek can fail.
   vUnsafeWithElem :: (VecElem v a) => v a -> Int -> (a -> r) -> r
   vUnsafeWithElem v i k = k (vUnsafeIndex v i)
 
@@ -270,7 +270,9 @@ instance NFData (v a) => NFData (T v a)
 -- The elements of the view, of the shape given, reduced to normal form,
 -- and no element outside it: the part of the vector it reads where it
 -- reads every element of one part, and otherwise its elements without
--- its broadcast dimensions, which repeat what the rest holds.
+-- its broadcast dimensions, which repeat what the rest holds.  An element
+-- outside the view stays as it is, keeping alive what it references until
+-- 'normalize' copies the view out of the vector.
 {-# INLINE rnfViewT #-}
 rnfViewT :: (Vector v, VecElem v a, NFData a, NFData (v a)) => ShapeL -> T v a -> ()
 rnfViewT sh t@(T _ _ v) = case readRangeT sh t of
@@ -678,11 +680,18 @@ genericUnsafeFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
                     VGM.unsafeWrite out o x
                     VGM.unsafeWrite out (o + 1) x
                     inner (o + 2)
-          -- 'VG.elemseq' forces x for unboxed elements and leaves a boxed
-          -- one unforced.  Specialization should simplify it to 'seq' or to
+          -- 'VG.elemseq' evaluates x before the stores as far as storing it
+          -- would, by its documentation, so that an unboxed x is read into
+          -- a register once, and leaves a boxed one unforced.
+          -- Specialization should simplify it to 'seq' or to
           -- nothing; where it does not, as in an instance polymorphic in
           -- 'Unbox a', it stays a call through the dictionary, which only the
           -- Core of a caller's own call at its concrete arrays shows.
+          -- TODO: vector-0.13.2.0's elemseq for DoNotUnboxLazy is seq, against
+          -- its documentation, so this copy forces such an element, as
+          -- README's Evaluation section says.  Once vector fixes it, check
+          -- that the copy leaves the element unforced, and remove this TODO
+          -- and README's exception for it.
           VG.elemseq v x (inner outPos)
         -- A zero-stride outer level: everything below it repeats
         -- verbatim, so the block below is filled once and copied to
