@@ -29,6 +29,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 module Data.Array.Internal.Shape(module Data.Array.Internal.Shape) where
 import Data.Proxy
+import GHC.Stack(HasCallStack)
 import Type.Reflection
 import GHC.TypeLits
 
@@ -229,7 +230,7 @@ validShape = (>= 0) . foldr step 1
 -- 'maxBound', but their products, which mean nothing here, are not checked
 -- as a shape's are.
 {-# INLINE listP #-}
-listP :: (Shape s) => Proxy s -> [Int]
+listP :: (HasCallStack, Shape s) => Proxy s -> [Int]
 listP p = map toInt (natsP p)
   where toInt n | n > toInteger (maxBound :: Int) =
                     error $ "Shape: a number past maxBound in " ++ show (natsP p)
@@ -237,7 +238,7 @@ listP p = map toInt (natsP p)
 
 -- | A type-level number as an 'Int'; fails past 'maxBound'.
 {-# INLINE natT #-}
-natT :: forall n . (KnownNat n) => Int
+natT :: forall n . (HasCallStack, KnownNat n) => Int
 natT | n > toInteger (maxBound :: Int) =
          error $ "Shape: a number past maxBound: " ++ show n
      | otherwise = fromInteger n
@@ -253,14 +254,16 @@ sizeT = sizeP (Proxy :: Proxy sh)
 
 -- | Turn a dynamic shape back into a type level shape.
 -- @withShapeP sh shapeP == sh@
-withShapeP :: [Int] -> (forall sh . (Shape sh) => Proxy sh -> r) -> r
-withShapeP [] f = f (Proxy :: Proxy ('[] :: [Nat]))
-withShapeP (n:ns) f =
-  case someNatVal (toInteger n) of
-    Just (SomeNat (_ :: Proxy n)) -> withShapeP ns (\ (_ :: Proxy ns) -> f (Proxy :: Proxy (n ': ns)))
-    _ -> error $ "withShapeP: bad size: " ++ show n
+withShapeP :: (HasCallStack) => [Int] -> (forall sh . (Shape sh) => Proxy sh -> r) -> r
+withShapeP sh0 f0 = go sh0 f0
+  where go :: [Int] -> (forall sh . (Shape sh) => Proxy sh -> r') -> r'
+        go [] f = f (Proxy :: Proxy ('[] :: [Nat]))
+        go (n:ns) f =
+          case someNatVal (toInteger n) of
+            Just (SomeNat (_ :: Proxy n)) -> go ns (\ (_ :: Proxy ns) -> f (Proxy :: Proxy (n ': ns)))
+            _ -> error $ "withShapeP: bad size: " ++ show n
 
-withShape :: [Int] -> (forall sh . (Shape sh) => r) -> r
+withShape :: (HasCallStack) => [Int] -> (forall sh . (Shape sh) => r) -> r
 withShape sh f | n : _ <- filter (< 0) sh = error $ "withShape: bad size: " ++ show n
                | otherwise = withShapeP sh (\ (_ :: Proxy sh) -> f @sh)
 
