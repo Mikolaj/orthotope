@@ -17,7 +17,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module RankedUTest(test) where
 
-import Control.DeepSeq
+import Control.DeepSeq hiding (force)
 import Control.Exception
 import qualified Data.Array.Ranked as R
 import Data.Array.RankedU

@@ -10,6 +10,7 @@ OPS =
   , Call "toVector" ARR.toVector t
   , Call "fromVector" (ARR.fromVector @Sh) (ARR.toVector d)
   , Call "normalize" ARR.normalize t
+  , Call "force" ARR.force t
   , Call "scalar" ARR.scalar x0
   , Call "unScalar" ARR.unScalar (ARR.scalar x0)
   , Call "constant" (ARR.constant @Sh) x0

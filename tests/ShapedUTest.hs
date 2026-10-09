@@ -17,7 +17,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module ShapedUTest(test) where
 
-import Control.DeepSeq
+import Control.DeepSeq hiding (force)
 import Control.Exception
 import qualified Data.Array.Shaped as S
 import Data.Array.ShapedU

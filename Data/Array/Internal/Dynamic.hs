@@ -39,7 +39,7 @@ module Data.Array.Internal.Dynamic(
   Array(..), Vector, ShapeL,
   size, shapeL, rank,
   toList, fromList, toVector, fromVector,
-  normalize,
+  normalize, force,
   scalar, unScalar, constant,
   reshape, stretch, stretchOuter, transpose,
   index, pad,
@@ -56,7 +56,7 @@ module Data.Array.Internal.Dynamic(
   update,
   generate, iterateN, iota,
   ) where
-import Control.DeepSeq
+import Control.DeepSeq hiding (force)
 import Control.Monad.ST(ST)
 import Data.Coerce(coerce)
 import Data.Data(Data)
@@ -257,8 +257,7 @@ fromList ss = A . G.fromList ss
 -- | Convert to a vector with the elements in the linearization order.
 -- O(n) or O(1) time (the latter if the vector is already in the linearization order).
 -- The O(1) result can be a slice of a larger vector, which it keeps alive;
--- 'normalize' the array first to get a vector of just its elements, which
--- can itself be a slice, as 'normalize' says.
+-- 'force' the array first to get a vector of just its elements.
 {-# INLINE toVector #-}
 toVector :: Array a -> V.Vector a
 toVector = G.toVector . unA
@@ -271,16 +270,26 @@ fromVector :: (HasCallStack) => ShapeL -> V.Vector a -> Array a
 fromVector ss = A . G.fromVector ss
 
 -- | Make sure the underlying vector is in the linearization order.
--- The vector then holds just the elements of the array, so no larger vector
--- the array is a view of is kept alive; an array whose vector holds just its
--- elements keeps that vector, even where it is a slice of a larger one, such
--- as one given to 'fromVector' or taken by 'reshape' from a view.
+-- Where the elements already lie in that order in one part of the vector,
+-- the result keeps that part without copying it, and so keeps the whole
+-- vector alive; 'force' copies them out.
 -- This is semantically an identity function, but can have big performance
 -- implications.
 -- O(n) or O(1) time.
 {-# INLINABLE normalize #-}
 normalize :: Array a -> Array a
 normalize = A . G.normalize . unA
+
+-- | Copy the elements of the array into a vector of their own, in the
+-- linearization order, sharing no storage with another array.  This is
+-- especially useful for a view of a large array, such as @'index' a 0@,
+-- which keeps the whole vector of @a@ alive, the elements it does not show
+-- included: forcing it copies just its own elements and allows the large
+-- vector to be garbage collected, if nothing else refers to it.
+-- O(n) time.
+{-# INLINABLE force #-}
+force :: Array a -> Array a
+force = A . G.force . unA
 
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.
@@ -363,6 +372,8 @@ zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e
 -- | Pad each dimension on the low and high side with the given value.
 -- Fails if the padding list is longer than the rank or a padding is negative.
 -- O(n) time.
+-- With no padding, the result is the array itself, sharing its vector; 'force'
+-- copies it out.
 {-# INLINABLE pad #-}
 pad :: (HasCallStack) => [(Int, Int)] -> a -> Array a -> Array a
 pad ps v = A . G.pad ps v . unA
@@ -379,6 +390,8 @@ transpose is = A . G.transpose is . unA
 -- All dimensions, except the outermost, must be the same.
 -- Fails if either array has rank 0.
 -- O(n) time.
+-- Where one array's outer extent is 0, the result is the other itself, sharing
+-- its vector; 'force' copies it out.
 {-# INLINABLE append #-}
 append :: (HasCallStack) => Array a -> Array a -> Array a
 append x y = A $ G.append (unA x) (unA y)
@@ -387,6 +400,8 @@ append x y = A $ G.append (unA x) (unA y)
 -- Fails if the list is empty, an array has rank 0 or any but the outer
 -- dimensions differ.
 -- O(n) time.
+-- Of one array, the result is that array itself, sharing its vector; 'force'
+-- copies it out.
 {-# INLINABLE concatOuter #-}
 concatOuter :: (HasCallStack) => [Array a] -> Array a
 concatOuter = A . G.concatOuter . coerce
@@ -396,6 +411,8 @@ concatOuter = A . G.concatOuter . coerce
 -- and there must be at least one.
 -- Fails if the outer array does not have rank 1.
 -- O(n) time.
+-- Of one array, the result is a view of it, sharing its vector; 'force' copies
+-- it out.
 {-# INLINABLE ravel #-}
 ravel :: (HasCallStack) => Array (Array a) -> Array a
 ravel = A . G.ravel . G.mapA unA . unA
@@ -438,6 +455,8 @@ stride ws = A . G.stride ws . unA
 -- the resulting shape will be @[2, 4, 3, 2]@.
 -- Fails if d is not a dimension of the array or k is negative, and may fail
 -- if the result has more than half of 'maxBound' elements.
+-- With k = 1, the result is a view of the array, sharing its vector; 'force'
+-- copies it out.
 rotate :: (HasCallStack) => Int -> Int -> Array a -> Array a
 rotate d k = A . G.rotate d k . unA
 
@@ -455,6 +474,8 @@ slice ss = A . G.slice ss . unA
 -- The /n/ must not exceed the rank of the array, and none of those /n/
 -- dimensions may be empty.
 -- O(n) time.
+-- Over one outer index, the result is a view of the function's result,
+-- sharing its vector; 'force' copies it out.
 {-# INLINE rerank #-}
 rerank :: (HasCallStack) => Int -> (Array a -> Array b) -> Array a -> Array b
 rerank n f = A . G.rerank n (unA . f . A) . unA
@@ -465,6 +486,8 @@ rerank n f = A . G.rerank n (unA . f . A) . unA
 -- dimensions may be empty.
 -- Fails if the arrays differ in those /n/ outermost dimensions.
 -- O(n) time.
+-- Over one outer index, the result is a view of the function's result,
+-- sharing its vector; 'force' copies it out.
 {-# INLINE rerank2 #-}
 rerank2 :: (HasCallStack) => Int -> (Array a -> Array b -> Array c) -> Array a -> Array b -> Array c
 rerank2 n f = \ ta tb -> A $ G.rerank2 n (\ a b -> unA $ f (A a) (A b)) (unA ta) (unA tb)
@@ -553,6 +576,8 @@ broadcast ds sh = A . G.broadcast ds sh . unA
 
 -- | Update the array at the specified indicies to the associated value.
 -- Fails if an index is out of bounds.
+-- With no updates, the result is the array itself, sharing its vector; 'force'
+-- copies it out.
 {-# INLINABLE update #-}
 update :: (HasCallStack) =>
           Array a -> [([Int], a)] -> Array a

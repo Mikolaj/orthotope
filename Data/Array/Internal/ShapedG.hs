@@ -36,7 +36,7 @@ module Data.Array.Internal.ShapedG(
   Broadcast,
   size, shapeL, rank,
   toList, fromList, toVector, fromVector,
-  normalize,
+  normalize, force,
   scalar, unScalar, constant,
   reshape, stretch, stretchOuter, transpose,
   index, pad,
@@ -53,7 +53,7 @@ module Data.Array.Internal.ShapedG(
   update,
   generate, iterateN, iota,
   ) where
-import Control.DeepSeq
+import Control.DeepSeq hiding (force)
 import Data.Data(Data)
 import Data.Proxy(Proxy(..))
 import GHC.Generics(Generic)
@@ -136,8 +136,7 @@ toList a@(A t) = toListT (shapeL a) t
 -- | Convert to a vector with the elements in the linearization order.
 -- O(n) or O(1) time (the latter if the vector is already in the linearization order).
 -- The O(1) result can be a slice of a larger vector, which it keeps alive;
--- 'normalize' the array first to get a vector of just its elements, which
--- can itself be a slice, as 'normalize' says.
+-- 'force' the array first to get a vector of just its elements.
 {-# INLINE toVector #-}
 toVector :: (Vector v, VecElem v a, Shape sh) => Array sh v a -> v a
 toVector a@(A t) = toVectorT (shapeL a) t
@@ -167,16 +166,28 @@ fromVector v | n /= l = error $ "fromVector: size mismatch " ++ show (n, l)
         ss = shapeP (Proxy :: Proxy sh)
 
 -- | Make sure the underlying vector is in the linearization order.
--- The vector then holds just the elements of the array, so no larger vector
--- the array is a view of is kept alive; an array whose vector holds just its
--- elements keeps that vector, even where it is a slice of a larger one, such
--- as one given to 'fromVector' or taken by 'reshape' from a view.
+-- Where the elements already lie in that order in one part of the vector,
+-- the result keeps that part without copying it, and so keeps the whole
+-- vector alive; 'force' copies them out.
 -- This is semantically an identity function, but can have big performance
 -- implications.
 -- O(n) or O(1) time.
 {-# INLINE normalize #-}
 normalize :: (Vector v, VecElem v a, Shape sh) => Array sh v a -> Array sh v a
 normalize a@(A t) = A $ normalizeT (shapeL a) t
+
+-- | Copy the elements of the array into a vector of their own, in the
+-- linearization order, sharing no storage with another array.  At the list
+-- instance, whose 'vForce' is the identity, a whole list is not copied, and
+-- a lazy result keeps alive what its unevaluated parts refer to.  This is
+-- especially useful for a view of a large array, such as @'index' a 0@, which
+-- keeps the whole vector of @a@ alive, the elements it does not show included:
+-- forcing it copies just its own elements and allows the large vector to be
+-- garbage collected, if nothing else refers to it.
+-- O(n) time.
+{-# INLINE force #-}
+force :: (Vector v, VecElem v a, Shape sh) => Array sh v a -> Array sh v a
+force a@(A t) = A $ forceT (shapeL a) t
 
 -- | Change the shape of an array.  Type error if the arrays have different number of elements.
 -- O(n) or O(1) time.
@@ -269,12 +280,15 @@ zipWith5A f a@(A t) (A t') (A t'') (A t''') (A t'''') = A $ zipWith5T (shapeL a)
 
 -- | Pad each dimension on the low and high side with the given value.
 -- O(n) time.
+-- With no padding, the result is the array itself, sharing its vector; 'force'
+-- copies it out.
 {-# INLINE pad #-}
 pad :: forall ps sh' sh a v . (HasCallStack, Vector v, VecElem v a, Padded ps sh sh', Shape sh) =>
        a -> Array sh v a -> Array sh' v a
 pad v a@(A at) | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
                    error $ "pad: padding past maxBound " ++ show (aps, ash)
                | not (validShape sh) = error $ "pad: bad shape " ++ show sh
+               | all (== (0, 0)) aps = A at  -- no padding: the array itself
                | otherwise = A t
   where ash = shapeL a
         aps = padded (Proxy :: Proxy ps) (Proxy :: Proxy sh)
@@ -303,18 +317,27 @@ transpose a@(A t) | not (validShape sh') = error $ "transpose: bad shape " ++ sh
 -- | Append two arrays along the outermost dimension.
 -- All dimensions, except the outermost, must be the same.
 -- O(n) time.
+-- Where one array's outer extent is 0, the result is the other itself, sharing
+-- its vector; 'force' copies it out.
 {-# INLINE append #-}
-append :: (Vector v, VecElem v a, Shape sh, KnownNat m, KnownNat n, KnownNat (m+n)) =>
+append :: forall v a sh m n .
+          (Vector v, VecElem v a, Shape sh, KnownNat m, KnownNat n, KnownNat (m+n)) =>
           Array (m ': sh) v a -> Array (n ': sh) v a -> Array (m+n ': sh) v a
-append a b = fromVector (vAppend (toVector a) (toVector b))
+append a@(A ta) b@(A tb)
+  | natT @m == 0 = A tb  -- nothing to append to: the other array itself
+  | natT @n == 0 = A ta
+  | otherwise = fromVector (vAppend (toVector a) (toVector b))
 
 -- | Concatenate a number of arrays into a single array.
 -- Fails if the outer extents of the arrays do not sum to that of the result.
 -- O(n) time.
+-- Of one array, the result is that array itself, sharing its vector; 'force'
+-- copies it out.
 {-# INLINE concatOuter #-}
 concatOuter :: forall m n sh v a . (HasCallStack, Vector v, VecElem v a, KnownNat m, KnownNat n, Shape sh) =>
                [Array (n ': sh) v a] -> Array (m ': sh) v a
 concatOuter as | sumExtents ns /= s = error $ "concatOuter: outer extent mismatch " ++ show (ns, s)
+               | [A t] <- as = A t  -- one array: the array itself
                | otherwise = fromVector $ vUnsafeConcatN (sizeT @(m ': sh)) $ map toVector as
   where ns = map (const (natT @n)) as
         s = natT @m
@@ -322,12 +345,15 @@ concatOuter as | sumExtents ns /= s = error $ "concatOuter: outer extent mismatc
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
 -- O(n) time.
+-- Of one array, the result is a view of it, sharing its vector; 'force' copies
+-- it out.
 {-# INLINE ravel #-}
 ravel :: forall v v' a sh s .
          (Vector v, Vector v', VecElem v a, VecElem v' (Array sh v a)
          , Shape sh, KnownNat s) =>
          Array '[s] v' (Array sh v a) -> Array (s:sh) v a
-ravel = fromVector . vUnsafeConcatN (sizeT @(s:sh)) . map toVector . toList
+ravel aa | natT @s == 1, [A t] <- toList aa = A (insertUnitsT 0 1 t)  -- one array: a view of it
+         | otherwise = fromVector $ vUnsafeConcatN (sizeT @(s:sh)) $ map toVector $ toList aa
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
@@ -372,6 +398,8 @@ stride (A (T ss o v)) = A (T (zipWith (*) (ats ++ repeat 1) ss) o v)
 -- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
 -- the resulting shape will be @[2, 4, 3, 2]@.
 -- May fail if the result has more than half of 'maxBound' elements.
+-- With k = 1, the result is a view of the array, sharing its vector; 'force'
+-- copies it out.
 {-# INLINE rotate #-}
 rotate :: forall d k sh v a .
           (HasCallStack, KnownNat d, KnownNat k, Vector v, VecElem v a, Shape sh,
@@ -400,12 +428,18 @@ slice (A (T ts o v)) = A (T ts (o+i) v)
 -- the results into an array with the same /n/ outermost dimensions.
 -- The /n/ must not exceed the rank of the array.
 -- O(n) time.
+-- Over one outer index, the result is a view of the function's result,
+-- sharing its vector; 'force' copies it out.
 {-# INLINE rerank #-}
 rerank :: forall n i o sh v v' a b .
           (Vector v, Vector v', VecElem v a, VecElem v' b,
            Drop n sh ~ i, Shape sh, KnownNat n, Shape o, Shape (Take n sh ++ o)) =>
           (Array i v a -> Array o v' b) -> Array sh v a -> Array (Take n sh ++ o) v' b
-rerank f a@(A t) =
+rerank f a@(A t)
+  | product osh == 1, [s] <- subArraysT osh t =
+    case f (A s) of  -- one subarray: a view of f's result
+      A rt -> A (insertUnitsT 0 (length osh) rt)
+  | otherwise =
   fromVector $
   vUnsafeConcatN (sizeT @(Take n sh ++ o)) $
   map (toVector . f . A) $
@@ -416,6 +450,8 @@ rerank f a@(A t) =
 -- the results into an array with the same /n/ outermost dimensions.
 -- The /n/ must not exceed the rank of the array.
 -- O(n) time.
+-- Over one outer index, the result is a view of the function's result,
+-- sharing its vector; 'force' copies it out.
 {-# INLINE rerank2 #-}
 rerank2 :: forall n i1 i2 o sh1 sh2 r v a b c .
            (Vector v, VecElem v a, VecElem v b, VecElem v c,
@@ -423,7 +459,11 @@ rerank2 :: forall n i1 i2 o sh1 sh2 r v a b c .
             Take n sh1 ~ r, Take n sh2 ~ r,
             KnownNat n, Shape o, Shape (r ++ o)) =>
            (Array i1 v a -> Array i2 v b -> Array o v c) -> Array sh1 v a -> Array sh2 v b -> Array (r ++ o) v c
-rerank2 f aa@(A ta) (A tb) =
+rerank2 f aa@(A ta) (A tb)
+  | product osh == 1, [sa] <- subArraysT osh ta, [sb] <- subArraysT osh tb =
+    case f (A sa) (A sb) of  -- one subarray each: a view of f's result
+      A rt -> A (insertUnitsT 0 (length osh) rt)
+  | otherwise =
   fromVector $
   vUnsafeConcatN (sizeT @(r ++ o)) $
   zipWith (\ a b -> toVector $ f (A a) (A b))
@@ -525,10 +565,13 @@ broadcast a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now
 
 -- | Update the array at the specified indicies to the associated value.
 -- Fails if an index is out of bounds.
+-- With no updates, the result is the array itself, sharing its vector; 'force'
+-- copies it out.
 {-# INLINE update #-}
 update :: (HasCallStack, Vector v, VecElem v a, Shape sh) =>
           Array sh v a -> [([Int], a)] -> Array sh v a
-update a@(A t) us | all (ok . fst) us = A $ updateT sh t us
+update a@(A t) us | null us = a  -- no update: the array itself
+                  | all (ok . fst) us = A $ updateT sh t us
                   | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst us)
   where sh = shapeL a
         ok is = length is == r && and (zipWith (\ i s -> 0 <= i && i < s) is sh)

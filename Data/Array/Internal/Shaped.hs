@@ -37,7 +37,7 @@ module Data.Array.Internal.Shaped(
   Window, Stride, Permute, Permutation, ValidDims,
   size, shapeL, rank,
   toList, fromList, toVector, fromVector,
-  normalize,
+  normalize, force,
   scalar, unScalar, constant,
   reshape, stretch, stretchOuter, transpose,
   index, pad,
@@ -54,7 +54,7 @@ module Data.Array.Internal.Shaped(
   update,
   generate, iterateN, iota,
   ) where
-import Control.DeepSeq
+import Control.DeepSeq hiding (force)
 import Data.Coerce(coerce)
 import Data.Data(Data)
 import qualified Data.Vector as V
@@ -131,8 +131,7 @@ fromList = A . G.fromList
 -- | Convert to a vector with the elements in the linearization order.
 -- O(n) or O(1) time (the latter if the vector is already in the linearization order).
 -- The O(1) result can be a slice of a larger vector, which it keeps alive;
--- 'normalize' the array first to get a vector of just its elements, which
--- can itself be a slice, as 'normalize' says.
+-- 'force' the array first to get a vector of just its elements.
 {-# INLINE toVector #-}
 toVector :: (Shape sh) => Array sh a -> V.Vector a
 toVector = G.toVector . unA
@@ -145,16 +144,26 @@ fromVector :: forall sh a . (HasCallStack, Shape sh) => V.Vector a -> Array sh a
 fromVector = A . G.fromVector
 
 -- | Make sure the underlying vector is in the linearization order.
--- The vector then holds just the elements of the array, so no larger vector
--- the array is a view of is kept alive; an array whose vector holds just its
--- elements keeps that vector, even where it is a slice of a larger one, such
--- as one given to 'fromVector' or taken by 'reshape' from a view.
+-- Where the elements already lie in that order in one part of the vector,
+-- the result keeps that part without copying it, and so keeps the whole
+-- vector alive; 'force' copies them out.
 -- This is semantically an identity function, but can have big performance
 -- implications.
 -- O(n) or O(1) time.
 {-# INLINABLE normalize #-}
 normalize :: (Shape sh) => Array sh a -> Array sh a
 normalize = A . G.normalize . unA
+
+-- | Copy the elements of the array into a vector of their own, in the
+-- linearization order, sharing no storage with another array.  This is
+-- especially useful for a view of a large array, such as @'index' a 0@,
+-- which keeps the whole vector of @a@ alive, the elements it does not show
+-- included: forcing it copies just its own elements and allows the large
+-- vector to be garbage collected, if nothing else refers to it.
+-- O(n) time.
+{-# INLINABLE force #-}
+force :: (Shape sh) => Array sh a -> Array sh a
+force = A . G.force . unA
 
 -- | Change the shape of an array.  Type error if the arrays have different number of elements.
 -- O(n) or O(1) time.
@@ -236,6 +245,8 @@ zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e
 
 -- | Pad each dimension on the low and high side with the given value.
 -- O(n) time.
+-- With no padding, the result is the array itself, sharing its vector; 'force'
+-- copies it out.
 {-# INLINABLE pad #-}
 pad :: forall ps sh' sh a . (HasCallStack, Padded ps sh sh', Shape sh) =>
        a -> Array sh a -> Array sh' a
@@ -254,6 +265,8 @@ transpose = A . G.transpose @is . unA
 -- | Append two arrays along the outermost dimension.
 -- All dimensions, except the outermost, must be the same.
 -- O(n) time.
+-- Where one array's outer extent is 0, the result is the other itself, sharing
+-- its vector; 'force' copies it out.
 {-# INLINABLE append #-}
 append :: (Shape sh, KnownNat m, KnownNat n, KnownNat (m+n)) =>
           Array (m ': sh) a -> Array (n ': sh) a -> Array (m+n ': sh) a
@@ -262,6 +275,8 @@ append x y = A $ G.append (unA x) (unA y)
 -- | Concatenate a number of arrays into a single array.
 -- Fails if the outer extents of the arrays do not sum to that of the result.
 -- O(n) time.
+-- Of one array, the result is that array itself, sharing its vector; 'force'
+-- copies it out.
 {-# INLINABLE concatOuter #-}
 concatOuter :: forall m n sh a . (HasCallStack, KnownNat m, KnownNat n, Shape sh) =>
                [Array (n ': sh) a] -> Array (m ': sh) a
@@ -270,6 +285,8 @@ concatOuter = A . G.concatOuter @m @n . coerce
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
 -- O(n) time.
+-- Of one array, the result is a view of it, sharing its vector; 'force' copies
+-- it out.
 {-# INLINABLE ravel #-}
 ravel :: (Shape sh, KnownNat s) =>
          Array '[s] (Array sh a) -> Array (s:sh) a
@@ -312,6 +329,8 @@ stride = A . G.stride @ts . unA
 -- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
 -- the resulting shape will be @[2, 4, 3, 2]@.
 -- May fail if the result has more than half of 'maxBound' elements.
+-- With k = 1, the result is a view of the array, sharing its vector; 'force'
+-- copies it out.
 rotate :: forall d k sh a .
           (HasCallStack, KnownNat d, KnownNat k, Shape sh,
            d + 1 <= Rank sh, Shape (Take d sh ++ (k ': Drop d sh))) =>
@@ -333,6 +352,8 @@ slice = A . G.slice @sl . unA
 -- the results into an array with the same /n/ outermost dimensions.
 -- The /n/ must not exceed the rank of the array.
 -- O(n) time.
+-- Over one outer index, the result is a view of the function's result,
+-- sharing its vector; 'force' copies it out.
 {-# INLINE rerank #-}
 rerank :: forall n i o sh a b .
           (Drop n sh ~ i, Shape sh, KnownNat n, Shape o, Shape (Take n sh ++ o)) =>
@@ -343,6 +364,8 @@ rerank f = A . G.rerank @n (unA . f . A) . unA
 -- the results into an array with the same /n/ outermost dimensions.
 -- The /n/ must not exceed the rank of the array.
 -- O(n) time.
+-- Over one outer index, the result is a view of the function's result,
+-- sharing its vector; 'force' copies it out.
 {-# INLINE rerank2 #-}
 rerank2 :: forall n i o sh a b c .
            (Drop n sh ~ i, Shape sh, KnownNat n, Shape o, Shape (Take n sh ++ o)) =>
@@ -432,6 +455,8 @@ broadcast = A . G.broadcast @ds @sh' @sh . unA
 
 -- | Update the array at the specified indicies to the associated value.
 -- Fails if an index is out of bounds.
+-- With no updates, the result is the array itself, sharing its vector; 'force'
+-- copies it out.
 {-# INLINABLE update #-}
 update :: (HasCallStack, Shape sh) =>
           Array sh a -> [([Int], a)] -> Array sh a
