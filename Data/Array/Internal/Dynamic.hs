@@ -172,7 +172,7 @@ instance Vector V.Vector where
   vUnsafeWithElem v i k = case V.unsafeIndexM v i of Box x -> k x
   -- Each element forced as it is written.
   {-# INLINE vGenerate' #-}
-  vGenerate' n g = zipLoop n (\ i -> return $! g i)
+  vGenerate' n g = zipLoop (max 0 n) (\ i -> return $! g i)
   {-# INLINE vUnsafeFillStrided #-}
   vUnsafeFillStrided = genericUnsafeFillStrided 5
   -- vUnsafeConcatN keeps the default, the vector package's concat but for a

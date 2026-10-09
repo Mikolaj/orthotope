@@ -146,7 +146,8 @@ class Vector v where
   vUnsafeWithElem v i k = k (vUnsafeIndex v i)
 
   -- | A vector of n elements, the ith g i, each evaluated to weak head
-  -- normal form as it is stored.  The default lists them.
+  -- normal form as it is stored, and an empty one for an n below 0.
+  -- The default lists them.
   vGenerate' :: (VecElem v a) => Int -> (Int -> a) -> v a
   vGenerate' n g = vFromListN n [ x | i <- [0 .. n - 1], let !x = g i ]
 
