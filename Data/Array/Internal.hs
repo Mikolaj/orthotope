@@ -1955,7 +1955,7 @@ productT sh t@(T _ _ v)
 {-# INLINE maximumT #-}
 maximumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
 maximumT sh t@(T _ ao v)
-  | l == 0 = maximum (map vMaximum (toUnorderedVectorListT sh t))
+  | l == 0 = error "maximumT: violated contract: empty view"
   | otherwise = case cellsRouteT sh l t of
       RSlice o n -> vMaximum (wholeOrSliceT o n v)
       RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (max acc x)) id (vUnsafeIndex v o)
@@ -1968,7 +1968,7 @@ maximumT sh t@(T _ ao v)
 {-# INLINE minimumT #-}
 minimumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
 minimumT sh t@(T _ ao v)
-  | l == 0 = minimum (map vMinimum (toUnorderedVectorListT sh t))
+  | l == 0 = error "minimumT: violated contract: empty view"
   | otherwise = case cellsRouteT sh l t of
       RSlice o n -> vMinimum (wholeOrSliceT o n v)
       RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (min acc x)) id (vUnsafeIndex v o)
