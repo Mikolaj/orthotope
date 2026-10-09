@@ -171,7 +171,8 @@ prop_pad v@(View sh _) =
 
 -- Each operation of a view has the shape opShape gives, and reads at every
 -- index of its result the element of the array it applies to at the index
--- opSource gives.
+-- opSource gives.  For an Index op the two reads are one expression, so that
+-- step checks the shape alone; prop_toList checks index against toList.
 prop_viewOps :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
 prop_viewOps (View sh ops) =
   let steps = scanl (flip applyOpG) (fromList sh (upTo (product sh))) ops :: [Array v a]
