@@ -1212,6 +1212,8 @@ routePartsT route step nil = case route of
   RSlice ao l -> step ao l nil
   RRuns (Axes _ n (InnerFirst outerAxes)) ao _ -> case outerAxes of
     [] -> step ao n nil
+      -- Currently impossible: 'routeOfT' sends a view of one run to
+      -- 'RSlice', where it is the vector or one slice of it.
     axis : above -> offsetsT axis above ao (\p rest -> step p n rest) nil
   RFill (Axes t n (InnerFirst outerAxes)) ao _ ->
     offsetsT (Axis t n) outerAxes ao (\p rest -> step p 1 rest) nil
@@ -1634,7 +1636,7 @@ convertT sh g t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip
 -- TODO: two views of the same strides that each read every element of one
 -- part could zip those parts and keep the strides, as 'convertT' maps a view.
 -- Measured on 60000 Doubles, that pays only where they broadcast, from 550
--- us to 1.9, gains nothing on transpositions and costs 14% on dense arrays;
+-- us to 1.9 us, gains nothing on transpositions and costs 14% on dense arrays;
 -- a guard confining it to parts smaller than the view would complicate this
 -- function and slow down every call.
 {-# INLINE zipWithT #-}

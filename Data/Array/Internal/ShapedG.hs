@@ -357,7 +357,6 @@ ravel aa | natT @s == 1, [A t] <- toList aa = A (insertUnitsT 0 1 t)  -- one arr
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
--- O(n) time.
 {-# INLINE unravel #-}
 unravel :: (Vector v, Vector v', VecElem v a, VecElem v' (Array sh v a)
            , Shape sh, KnownNat s) =>
@@ -549,7 +548,7 @@ allA p a@(A t) = allT (shapeL a) p t
 
 -- | Put the dimensions of the argument into the specified dimensions,
 -- and just replicate the data along all other dimensions.
--- The list of dimensions indicies must have the same rank as the argument array
+-- The list of dimensions indices must have the same rank as the argument array
 -- and it must be strictly ascending.
 {-# INLINE broadcast #-}
 broadcast :: forall ds sh' sh v a .
@@ -565,7 +564,7 @@ broadcast a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now
         rsh = [ if b then 1 else s | (s, b) <- zip sh' bc ]
         bc = broadcasting @ds @sh @sh'
 
--- | Update the array at the specified indicies to the associated value.
+-- | Update the array at the specified indices to the associated value.
 -- Fails if an index is out of bounds.
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
