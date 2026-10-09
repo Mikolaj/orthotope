@@ -32,13 +32,10 @@ import qualified Data.Vector as V
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
+import Views (assertThrowsIn)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
-
-assertThrowsIn :: (NFData a) => String -> String -> a -> Assertion
-assertThrowsIn s f a = catch (deepseq a $ assertFailure s)
-                             (\ (ErrorCall e) -> assertEqual s f (takeWhile (/= ':') e))
 
 -- An error before the result reaches weak head normal form.
 assertWhnfThrowsIn :: String -> String -> a -> Assertion

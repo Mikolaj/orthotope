@@ -13,12 +13,12 @@
 -- limitations under the License.
 
 -- Random views and other helpers for the properties of the test modules.
-module Views(testPropertyN, failsWith, failsIn, Elem, genElems, upTo, genShape, Op(..), opShape
+module Views(testPropertyN, failsWith, failsIn, assertThrowsIn, Elem, genElems, upTo, genShape, Op(..), opShape
             , opSource, genBadOp, opName, View(..), mkView, applyOpG
             , mkViewG, genRawView, genOps) where
 
-import Control.DeepSeq (NFData)
-import Control.Exception (ErrorCall (..), evaluate, try)
+import Control.DeepSeq (NFData, deepseq)
+import Control.Exception (ErrorCall (..), catch, evaluate, try)
 import Data.Array.Dynamic
 import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.Dynamic as DI
@@ -27,6 +27,7 @@ import Data.List (nub, sort)
 import Data.Word (Word8)
 import Test.Framework (Test, TestOptions' (..), plusTestOptions)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
+import Test.HUnit (Assertion, assertEqual, assertFailure)
 import Test.QuickCheck
   ( Arbitrary (..), Gen, Property, Testable, choose, counterexample, elements, frequency
   , ioProperty, oneof, shuffle, sublistOf, suchThat, vectorOf, (===) )
@@ -53,6 +54,12 @@ failsIn name a = ioProperty $ do
   return $ case r of
     Left (ErrorCall e) -> counterexample e (takeWhile (/= ':') e == name)
     Right _ -> counterexample ("no error, where an error of " ++ name ++ " was due") False
+
+-- Forcing the value to normal form fails with an error whose part before its
+-- first colon is the name, the assertion labelled s.
+assertThrowsIn :: (NFData a) => String -> String -> a -> Assertion
+assertThrowsIn s f a = catch (deepseq a $ assertFailure s)
+                             (\ (ErrorCall e) -> assertEqual s f (takeWhile (/= ':') e))
 
 -- The element types of the properties that take one: Int, and Word8,
 -- whose arithmetic wraps at 256.
