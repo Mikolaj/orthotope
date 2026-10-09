@@ -116,25 +116,29 @@ class Vector v where
   --
   -- The default lists the view's elements as 'toListT' does ('elemsT') and
   -- builds its result from that list.  The vector-backed instances override it
-  -- with the faster mutable fill 'genericFillStrided', each passing the run
-  -- length from which it copies runs whole.  An instance that keeps the
-  -- default fills element by element every view that is not one slice,
-  -- runs of a contiguous view included, which 'toVectorT' and the
-  -- operations built on it then pay: override it, with
-  -- 'genericFillStrided' where the vector type is an instance of
-  -- 'Data.Vector.Generic.Vector', or risk their slowness on such views.
-  vFillStrided :: (VecElem v a) => Axes -> Int -> Int -> v a -> v a
-  vFillStrided axes !ao l !v = vFromListN l (elemsT axes ao v (:) [])
+  -- with the faster mutable fill 'genericUnsafeFillStrided', each passing the
+  -- run length from which it copies runs whole.  An instance that keeps the
+  -- default fills element by element every view that is not one slice, runs of
+  -- a contiguous view included, which 'toVectorT' and the operations built on
+  -- it then pay: override it, with 'genericUnsafeFillStrided' where the vector
+  -- type is an instance of 'Data.Vector.Generic.Vector', or risk their slowness
+  -- on such views.
+  vUnsafeFillStrided :: (VecElem v a) => Axes -> Int -> Int -> v a -> v a
+  vUnsafeFillStrided axes !ao l !v = vFromListN l (elemsT axes ao v (:) [])
 
-  -- | Concatenate parts whose lengths sum to the count given first, which every
-  -- caller already has.  The default returns a lone part of that length as it
-  -- is and otherwise is 'vConcat', reading the count for nothing else.  The
-  -- Storable and Unboxed instances override it with 'genericConcatN', which
-  -- copies each part as the list yields it; the boxed one keeps the default and
-  -- says why.
-  vConcatN :: (VecElem v a) => Int -> [v a] -> v a
-  vConcatN n [v] | vLength v == n = v
-  vConcatN _ vs = vConcat vs
+  -- | Concatenate vectors whose lengths sum to the count given first, which
+  -- every caller already has.  The contract: the count is the sum of their
+  -- lengths.  The default returns a lone vector of that length as it is and
+  -- otherwise is 'vConcat', reading the count for nothing else.  The Storable
+  -- and Unboxed instances override it with 'genericUnsafeConcatN', which copies
+  -- each vector as the list yields it into a buffer of the count's length and
+  -- checks the count only by assertions that an optimised build drops unless
+  -- asserts are kept, so a call that breaks the contract writes outside the
+  -- result or leaves part of it unwritten, which can corrupt memory; the boxed
+  -- one keeps the default and says why.
+  vUnsafeConcatN :: (VecElem v a) => Int -> [v a] -> v a
+  vUnsafeConcatN n [v] | vLength v == n = v
+  vUnsafeConcatN _ vs = vConcat vs
 
   -- | Hand the element at an index in bounds to a continuation, read as the
   -- instance chooses.  The list of a view's elements that 'elemsT' builds holds
@@ -142,8 +146,8 @@ class Vector v where
   -- thunk holding the vector; the boxed vector instance hands on the element
   -- stored, unforced, and the Storable and Unboxed ones the element read and
   -- forced, as none of theirs is undefined.
-  vWithElem :: (VecElem v a) => v a -> Int -> (a -> r) -> r
-  vWithElem v i k = k (vUnsafeIndex v i)
+  vUnsafeWithElem :: (VecElem v a) => v a -> Int -> (a -> r) -> r
+  vUnsafeWithElem v i k = k (vUnsafeIndex v i)
 
   -- | A vector of n elements, the ith g i, each evaluated to weak head
   -- normal form as it is stored.  The default lists them.
@@ -515,7 +519,7 @@ unScalarT (T _ o v) = vUnsafeIndex v o
 constantT :: (Vector v, VecElem v a) => ShapeL -> a -> T v a
 constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 
--- The measured-fastest fill for 'vFillStrided': an allocate-once mutable
+-- The measured-fastest fill for 'vUnsafeFillStrided': an allocate-once mutable
 -- result, an odometer recursion over the outer dimensions with the input offset
 -- stepped additively, the innermost outer level fused into a dedicated loop
 -- over the innermost runs, and the innermost-run fill unrolled by two with its
@@ -556,7 +560,7 @@ constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 -- its innermost run or block, before reading the extent, so a zero
 -- extent would read past the source or write into an empty result.
 -- Every entry point of this module returns the empty vector or list
--- before routing an empty view here, and a caller of 'vFillStrided'
+-- before routing an empty view here, and a caller of 'vUnsafeFillStrided'
 -- from outside owes the same.
 --
 -- Written once against 'Data.Vector.Generic', which supplies
@@ -564,7 +568,7 @@ constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 -- not; each vector-backed instance reuses it verbatim.  Ported
 -- bang-for-bang from the fastest fill of the micro-benchmark preserved
 -- at https://github.com/Mikolaj/orthotope/tree/speedup-strided-tovector/micro-regime3/
--- as of the commit "Read the runs' elements as genericFillStrided does" (the
+-- as of the commit "Read the runs' elements as genericUnsafeFillStrided does" (the
 -- bang patterns are part of what was measured), but for the count's bang, whose
 -- removal shrinks the -O1 Core, and for the copied run; one choice made for the
 -- NCG, marked at the line it is on, costs -fllvm a little.
@@ -582,10 +586,10 @@ constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 -- leaving the exposed loop's exit holding the boxed cursors, which a
 -- client's specialisation then keeps boxed: a box an element, as seen with
 -- GHC HEAD 10.1 (https://gitlab.haskell.org/ghc/ghc/-/work_items/27893).
-{-# INLINABLE genericFillStrided #-}
-genericFillStrided :: forall w a. (VG.Vector w a)
+{-# INLINABLE genericUnsafeFillStrided #-}
+genericUnsafeFillStrided :: forall w a. (VG.Vector w a)
                    => Int -> Axes -> Int -> Int -> w a -> w a
-genericFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
+genericUnsafeFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
   assert (l > 0) $ VG.create fill
  where
   fill :: forall s. ST s (VG.Mutable w s a)
@@ -758,12 +762,12 @@ genericFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
     else walk (writeRunStep stInner)
     return out
 
--- The concatenation for 'vConcatN': one buffer of the length given, each part
+-- The concatenation for 'vUnsafeConcatN': one buffer of the length given, each part
 -- copied into it as the list yields it, by one 'foldr', so that a part dies
 -- young and a list a 'build' produces is never built.  The vector package's
 -- concat walks its list twice, for the length and then to copy, so it holds
 -- the list and every part before it copies any and fuses with no producer.
--- Every caller of vConcatN can hand it a lone part of the length given, as
+-- Every caller of vUnsafeConcatN can hand it a lone part of the length given, as
 -- concatOuter of one array and rotate along the outermost dimension do, and
 -- that is returned as it is; like a view's, it can be a slice of a longer
 -- vector and keep that alive.  On GHC HEAD with loop heads aligned, on 200000
@@ -779,10 +783,10 @@ genericFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
 -- Neither concatenation fuses with a consumer that streams the result: none of
 -- vector's fusion rules fired in clients streaming what pad, concatOuter or
 -- rerank return, compiled by GHC HEAD at -O1 or -O2.
-{-# INLINE genericConcatN #-}
-genericConcatN :: (VG.Vector w a) => Int -> [w a] -> w a
-genericConcatN n [v] | VG.length v == n = v
-genericConcatN n vs = VG.create $ do
+{-# INLINE genericUnsafeConcatN #-}
+genericUnsafeConcatN :: (VG.Vector w a) => Int -> [w a] -> w a
+genericUnsafeConcatN n [v] | VG.length v == n = v
+genericUnsafeConcatN n vs = VG.create $ do
   out <- VGM.unsafeNew n
   let step x k = \ !i -> do
         let !m = VG.length x
@@ -791,7 +795,7 @@ genericConcatN n vs = VG.create $ do
   foldr step (\ !i -> assert (i == n) $ return ()) vs 0
   return out
 
--- The outer levels of a view as 'genericFillStrided' walks them: the
+-- The outer levels of a view as 'genericUnsafeFillStrided' walks them: the
 -- fused level's innermost runs, or a level of @n@ blocks of @blk@
 -- elements at stride @st@, stride 0 copying the first, @st@ and @n@
 -- the outer axes list's own 'Axis'.  A hand-rolled strict list, the
@@ -820,9 +824,9 @@ data Nest = Fused !Axis | Level !Axis !Int !Nest
 --
 -- The system is mixed: some patterns of shape and strides are told apart
 -- here, as routes, and others, or the same ones again, further down, where
--- 'genericFillStrided' tells runs from strided views by the innermost stride,
--- as 'routeOfT' does, and finds broadcasts, which no route names, in the
--- innermost axis and at each outer level.  The split was made case by case,
+-- 'genericUnsafeFillStrided' tells runs from strided views by the innermost
+-- stride, as 'routeOfT' does, and finds broadcasts, which no route names, in
+-- the innermost axis and at each outer level.  The split was made case by case,
 -- mostly for speed; no system expressing every pattern as a route was ever
 -- built and optimized to compare with it, so nothing shows this one cannot
 -- be bettered.  The constructors are limited throughout by what the vector
@@ -876,7 +880,7 @@ newtype InnerFirst = InnerFirst { innerFirst :: [Axis] }
 
 -- | The canonical axes of a non-empty view: the innermost stride
 -- and extent, then the axes outside it, innermost first.  What
--- 'canonicalizeT' takes and returns and 'routeOfT', 'vFillStrided' and
+-- 'canonicalizeT' takes and returns and 'routeOfT', 'vUnsafeFillStrided' and
 -- the runs walker take, so that none of them has to find the innermost
 -- axis in a list.
 --
@@ -1033,8 +1037,8 @@ runSlicesT (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
 
 -- The elements of a non-empty canonical view in row-major order, as the
 -- cons and nil of a 'build': 'offsetsT' with the innermost axis as its
--- counter, an element a position.  Each element is read by 'vWithElem', which
--- leaves forcing it to the consumer at a boxed vector and forces it where
+-- counter, an element a position.  Each element is read by 'vUnsafeWithElem',
+-- which leaves forcing it to the consumer at a boxed vector and forces it where
 -- the instance's elements cannot be undefined.  The vector is banged as in
 -- 'runSlicesT'.
 {-# INLINE elemsT #-}
@@ -1042,7 +1046,7 @@ elemsT :: forall v a b. (Vector v, VecElem v a)
        => Axes -> Int -> v a -> (a -> b -> b) -> b -> b
 elemsT (Axes t n (InnerFirst outerAxes)) !start !v cons nil =
   offsetsT (Axis t n) outerAxes start
-           (\p rest -> vWithElem v p (`cons` rest)) nil
+           (\p rest -> vUnsafeWithElem v p (`cons` rest)) nil
 
 -- The offsets of a counter axis's positions under the axes outside it,
 -- in row-major order, each handed to the step as the walk reaches it:
@@ -1147,9 +1151,9 @@ routeSlicesT v route cons nil = case route of
   RSlice ao l -> cons (wholeOrSliceT ao l v) nil
   RRuns axes ao _ -> runSlicesT axes ao v cons nil
   RFill axes ao l ->
-    -- No slice can be taken.  Fill the result through 'vFillStrided',
+    -- No slice can be taken.  Fill the result through 'vUnsafeFillStrided',
     -- whose vector-backed instances write a mutable buffer directly.
-    cons (vFillStrided axes ao l v) nil
+    cons (vUnsafeFillStrided axes ao l v) nil
 
 -- The parts of the vector a route reads, in the route's order, as the offset
 -- and the length of each, by the step and nil of a right fold: its runs, which
@@ -1167,14 +1171,14 @@ routePartsT route step nil = case route of
 
 -- Convert an array to one vector holding all the elements in the
 -- natural order.  Dispatches as 'toVectorListT' does, except that a
--- view of contiguous runs is filled through 'vFillStrided' rather than
+-- view of contiguous runs is filled through 'vUnsafeFillStrided' rather than
 -- sliced and concatenated: in the micro-benchmark preserved at
 -- https://github.com/Mikolaj/orthotope/tree/speedup-strided-tovector/micro-regime3/,
 -- on runs of nine elements, the slice list ties the fill on time
 -- and allocates several times the result in slice headers and list
 -- cells.  Where its instance asks, the fill copies each run whole into its one
--- buffer ('genericFillStrided'): on 200000 boxed Doubles in runs of 5 to 16
--- that took 0.36 to 0.46 of the slice list's time, and the same from runs of
+-- buffer ('genericUnsafeFillStrided'): on 200000 boxed Doubles in runs of 5 to
+-- 16 that took 0.36 to 0.46 of the slice list's time, and the same from runs of
 -- 1000.
 {-# INLINE toVectorT #-}
 toVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
@@ -1205,8 +1209,8 @@ normalizeT sh t@(T ats ao v)
 routeVectorT :: (Vector v, VecElem v a) => v a -> Route -> v a
 routeVectorT v route = case route of
   RSlice ao l -> wholeOrSliceT ao l v
-  RRuns axes ao l -> vFillStrided axes ao l v
-  RFill axes ao l -> vFillStrided axes ao l v
+  RRuns axes ao l -> vUnsafeFillStrided axes ao l v
+  RFill axes ao l -> vUnsafeFillStrided axes ao l v
 
 -- The axes of extent other than 1, their strides made absolute, onto
 -- the list given in reverse of the order given, and the offset given
@@ -1556,7 +1560,7 @@ convertT sh g t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip
 
 -- Zip two arrays with a function.
 -- The two branches that map over one array read the other array's one
--- element through 'vWithElem', forced where it is unboxed and unforced where
+-- element through 'vUnsafeWithElem', forced where it is unboxed and unforced where
 -- it is boxed, before the map takes it.
 -- TODO: two views of the same strides that each read every element of one
 -- part could zip those parts and keep the strides, as 'convertT' maps a view.
@@ -1576,10 +1580,10 @@ zipWithT sh f t@(T ss _ v) t'@(T _ _ v') =
       T ss 0 $ vSingleton $ f (vUnsafeIndex v 0) (vUnsafeIndex v' 0)
     (1, _) ->
       -- First vector has length 1, so use a map instead.
-      vWithElem v 0 $ \ x -> mapT sh (x `f`) t'
+      vUnsafeWithElem v 0 $ \ x -> mapT sh (x `f`) t'
     (_, 1) ->
       -- Second vector has length 1, so use a map instead.
-      vWithElem v' 0 $ \ y -> mapT sh (`f` y) t
+      vUnsafeWithElem v' 0 $ \ y -> mapT sh (`f` y) t
     (_, _) ->
       let cv  = toVectorT sh t
           cv' = toVectorT sh t'
@@ -1790,7 +1794,7 @@ zipWithLong2 _     _     bs  = bs
 {-# INLINABLE padT #-}
 padT :: forall v a . (Vector v, VecElem v a) => a -> [(Int, Int)] -> ShapeL -> T v a -> ([Int], T v a)
 padT v aps ash at =
-  (ss, fromVectorT ss $ vConcatN (product ss) $ pad' aps ash st at)
+  (ss, fromVectorT ss $ vUnsafeConcatN (product ss) $ pad' aps ash st at)
   where pad' :: [(Int, Int)] -> ShapeL -> [Int] -> T v a -> [v a]
         -- The last padded dimension's block is taken whole as toVectorListT's
         -- list and not recursed into: recursing made each core a subarray of
@@ -1798,7 +1802,7 @@ padT v aps ash at =
         -- and so a slice and an indexT per element; on views of about 200000
         -- Doubles with the innermost dimension padded, the block taken whole
         -- took 0.01 to 0.32 of the time.  As a list and not one vector by
-        -- toVectorT: here vConcatN copies every part once, so a block lying in
+        -- toVectorT: here vUnsafeConcatN copies every part once, so a block lying in
         -- runs of the source is copied once from the list's slices and would
         -- be copied twice from a vector toVectorT filled; a strided block,
         -- which no slice can take, is filled and copied either way.  The
@@ -1806,7 +1810,7 @@ padT v aps ash at =
         -- time on a block of runs of 500, and faster only on boxed runs of
         -- 8, in about half the list's time, which a choice per block by run
         -- length would buy for a dispatch here.  The parts produced under one
-        -- 'build', each level handing the rest on so that genericConcatN's
+        -- 'build', each level handing the rest on so that genericUnsafeConcatN's
         -- 'foldr' fuses with them, were tried and refuted: on
         -- GHC HEAD at Storable and Unboxed elements, at allocation areas
         -- of 32 MB and then of 4 MB, 0.99 to 1.34 and 1.03 to 1.30 times
@@ -1920,7 +1924,7 @@ allT sh p t@(T _ _ v)
 -- vUpdate copies the vector toVectorT returns, a second copy wherever the view
 -- is not one slice and that vector was just filled.  Not skipped: that wants
 -- a class method updating a vector the caller owns, updateT reaching the fill
--- only through vFillStrided and so unable to force it inline for vector's
+-- only through vUnsafeFillStrided and so unable to force it inline for vector's
 -- clone/new rule to drop the copy.
 {-# INLINE updateT #-}
 updateT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [([Int], a)] -> T v a

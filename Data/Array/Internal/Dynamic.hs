@@ -69,7 +69,7 @@ import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.DynamicG as G
-import Data.Array.Internal(ShapeL, Vector(..), None, genericFillStrided, rnfViewT)
+import Data.Array.Internal(ShapeL, Vector(..), None, genericUnsafeFillStrided, rnfViewT)
 import qualified Data.Array.Internal.DynamicG as DG
 
 instance Vector V.Vector where
@@ -168,19 +168,20 @@ instance Vector V.Vector where
   -- The element stored, unforced, read through unsafeIndexM, which hands it on
   -- without the thunk of the read that vUnsafeIndex would leave in a list of a
   -- view's elements ('elemsT').
-  {-# INLINE vWithElem #-}
-  vWithElem v i k = case V.unsafeIndexM v i of Box x -> k x
+  {-# INLINE vUnsafeWithElem #-}
+  vUnsafeWithElem v i k = case V.unsafeIndexM v i of Box x -> k x
   -- Each element forced as it is written.
   {-# INLINE vGenerate' #-}
   vGenerate' n g = zipLoop n (\ i -> return $! g i)
-  {-# INLINE vFillStrided #-}
-  vFillStrided = genericFillStrided 5
-  -- vConcatN keeps the default, the vector package's concat but for a
+  {-# INLINE vUnsafeFillStrided #-}
+  vUnsafeFillStrided = genericUnsafeFillStrided 5
+  -- vUnsafeConcatN keeps the default, the vector package's concat but for a
   -- lone vector: on GHC HEAD, copying each vector as the list yields it, as
-  -- genericConcatN does, took 0.95 to 1.28 times as long on boxed parts of
-  -- 500 elements or more at a 32 MB allocation area and 1.22 to 2.21 at 4 MB,
-  -- running 1.02 to 1.41 and 1.35 to 2.88 times the instructions, though it
-  -- took 0.41 to 0.79 and 0.50 to 0.76 of the time on rows of 2 to 8 elements.
+  -- genericUnsafeConcatN does, took 0.95 to 1.28 times as long on boxed
+  -- vectors of 500 elements or more at a 32 MB allocation area and 1.22
+  -- to 2.21 at 4 MB, running 1.02 to 1.41 and 1.35 to 2.88 times the
+  -- instructions, though it took 0.41 to 0.79 and 0.50 to 0.76 of the time
+  -- on rows of 2 to 8 elements.
 
 -- A vector of n elements, the ith what the action at i returns, written
 -- unevaluated.

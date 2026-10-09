@@ -309,7 +309,7 @@ append a b = fromVector (vAppend (toVector a) (toVector b))
 concatOuter :: forall m n sh v a . (HasCallStack, Vector v, VecElem v a, KnownNat m, KnownNat n, Shape sh) =>
                [Array (n ': sh) v a] -> Array (m ': sh) v a
 concatOuter as | sumExtents ns /= s = error $ "concatOuter: outer extent mismatch " ++ show (ns, s)
-               | otherwise = fromVector $ vConcatN (sizeT @(m ': sh)) $ map toVector as
+               | otherwise = fromVector $ vUnsafeConcatN (sizeT @(m ': sh)) $ map toVector as
   where ns = map (const (valueOf @n)) as
         s = valueOf @m
 
@@ -321,7 +321,7 @@ ravel :: forall s sh v v' a .
          (Vector v, Vector v', VecElem v a, VecElem v' (Array sh v a)
          , Shape sh, KnownNat s) =>
          Array '[s] v' (Array sh v a) -> Array (s:sh) v a
-ravel = fromVector . vConcatN (sizeT @(s:sh)) . map toVector . toList
+ravel = fromVector . vUnsafeConcatN (sizeT @(s:sh)) . map toVector . toList
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
@@ -397,7 +397,7 @@ rerank :: forall n i o sh v v' a b .
           (Array i v a -> Array o v' b) -> Array sh v a -> Array (Take n sh ++ o) v' b
 rerank f a@(A t) =
   fromVector $
-  vConcatN (sizeT @(Take n sh ++ o)) $
+  vUnsafeConcatN (sizeT @(Take n sh ++ o)) $
   map (toVector . f . A) $
   subArraysT osh t
   where osh = take (valueOf @n) (shapeL a)
@@ -415,7 +415,7 @@ rerank2 :: forall n i1 i2 o sh1 sh2 r v a b c .
            (Array i1 v a -> Array i2 v b -> Array o v c) -> Array sh1 v a -> Array sh2 v b -> Array (r ++ o) v c
 rerank2 f aa@(A ta) (A tb) =
   fromVector $
-  vConcatN (sizeT @(r ++ o)) $
+  vUnsafeConcatN (sizeT @(r ++ o)) $
   zipWith (\ a b -> toVector $ f (A a) (A b))
           (subArraysT osh ta)
           (subArraysT osh tb)
