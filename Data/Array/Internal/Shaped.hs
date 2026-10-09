@@ -398,7 +398,7 @@ foldrA f z = G.foldrA f z . unA
 -- Note that this 'Array' actually has 'Traversable' anyway.
 {-# INLINE traverseA #-}
 traverseA
-  :: (Applicative f, Shape sh) => (a -> f b) -> Array sh a -> f (Array sh b)
+  :: forall sh f a b . (Applicative f, Shape sh) => (a -> f b) -> Array sh a -> f (Array sh b)
 traverseA f = fmap A . G.traverseA f . unA
 
 -- | Check if all elements of the array are equal.
@@ -410,12 +410,12 @@ instance (Shape sh, Arbitrary a) => Arbitrary (Array sh a) where arbitrary = A <
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}
-sumA :: (Num a, Shape sh) => Array sh a -> a
+sumA :: forall sh a . (Num a, Shape sh) => Array sh a -> a
 sumA = G.sumA . unA
 
 -- | Product of all elements.
 {-# INLINE productA #-}
-productA :: (Num a, Shape sh) => Array sh a -> a
+productA :: forall sh a . (Num a, Shape sh) => Array sh a -> a
 productA = G.productA . unA
 
 -- | Maximum of all elements.
@@ -423,7 +423,7 @@ productA = G.productA . unA
 -- depends on the array's layout, and so does which pairs of elements it
 -- compares, an element with itself among them.
 {-# INLINE maximumA #-}
-maximumA :: (Ord a, Shape sh, 1 <= Size sh) => Array sh a -> a
+maximumA :: forall sh a . (Ord a, Shape sh, 1 <= Size sh) => Array sh a -> a
 maximumA = G.maximumA . unA
 
 -- | Minimum of all elements.
@@ -431,7 +431,7 @@ maximumA = G.maximumA . unA
 -- depends on the array's layout, and so does which pairs of elements it
 -- compares, an element with itself among them.
 {-# INLINE minimumA #-}
-minimumA :: (Ord a, Shape sh, 1 <= Size sh) => Array sh a -> a
+minimumA :: forall sh a . (Ord a, Shape sh, 1 <= Size sh) => Array sh a -> a
 minimumA = G.minimumA . unA
 
 -- | Test if the predicate holds for any element.

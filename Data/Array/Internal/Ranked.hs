@@ -201,7 +201,7 @@ constant sh = A . G.constant sh
 -- | Map over the array elements.
 -- O(n) time.
 {-# INLINE mapA #-}
-mapA :: (a -> b) -> Array n a -> Array n b
+mapA :: forall n a b . (a -> b) -> Array n a -> Array n b
 mapA f = A . G.mapA f . unA
 
 instance Functor (Array n) where
@@ -217,28 +217,28 @@ instance Traversable (Array n) where
 -- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWithA #-}
-zipWithA :: (HasCallStack) => (a -> b -> c) -> Array n a -> Array n b -> Array n c
+zipWithA :: forall n a b c . (HasCallStack) => (a -> b -> c) -> Array n a -> Array n b -> Array n c
 zipWithA f a b = A $ G.zipWithA f (unA a) (unA b)
 
 -- | Combine the elements of three arrays.
 -- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith3A #-}
-zipWith3A :: (HasCallStack) => (a -> b -> c -> d) -> Array n a -> Array n b -> Array n c -> Array n d
+zipWith3A :: forall n a b c d . (HasCallStack) => (a -> b -> c -> d) -> Array n a -> Array n b -> Array n c -> Array n d
 zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)
 
 -- | Combine the elements of four arrays.
 -- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith4A #-}
-zipWith4A :: (HasCallStack) => (a -> b -> c -> d -> e) -> Array n a -> Array n b -> Array n c -> Array n d -> Array n e
+zipWith4A :: forall n a b c d e . (HasCallStack) => (a -> b -> c -> d -> e) -> Array n a -> Array n b -> Array n c -> Array n d -> Array n e
 zipWith4A f a b c d = A $ G.zipWith4A f (unA a) (unA b) (unA c) (unA d)
 
 -- | Combine the elements of five arrays.
 -- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith5A #-}
-zipWith5A :: (HasCallStack) => (a -> b -> c -> d -> e -> f) -> Array n a -> Array n b -> Array n c -> Array n d -> Array n e -> Array n f
+zipWith5A :: forall n a b c d e f . (HasCallStack) => (a -> b -> c -> d -> e -> f) -> Array n a -> Array n b -> Array n c -> Array n d -> Array n e -> Array n f
 zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e)
 
 -- | Pad each dimension on the low and high side with the given value.
@@ -389,38 +389,38 @@ rev rs = A . G.rev rs . unA
 -- Forcing the result forces the initial value.
 -- O(n) time.
 {-# INLINE reduce #-}
-reduce :: (a -> a -> a) -> a -> Array n a -> Array 0 a
+reduce :: forall n a . (a -> a -> a) -> a -> Array n a -> Array 0 a
 reduce f z = A . G.reduce f z . unA
 
 -- | Constrained version of 'foldr' for Arrays.
 --
 -- Note that this 'Array' actually has 'Traversable' anyway.
 {-# INLINE foldrA #-}
-foldrA :: (a -> b -> b) -> b -> Array n a -> b
+foldrA :: forall n a b . (a -> b -> b) -> b -> Array n a -> b
 foldrA f z = G.foldrA f z . unA
 
 -- | Constrained version of 'traverse' for Arrays.
 --
 -- Note that this 'Array' actually has 'Traversable' anyway.
 {-# INLINE traverseA #-}
-traverseA :: Applicative f => (a -> f b) -> Array n a -> f (Array n b)
+traverseA :: forall n f a b . Applicative f => (a -> f b) -> Array n a -> f (Array n b)
 traverseA f = fmap A . G.traverseA f . unA
 
 -- | Check if all elements of the array are equal.
 {-# INLINE allSameA #-}
-allSameA :: (Eq a) => Array r a -> Bool
+allSameA :: forall r a . (Eq a) => Array r a -> Bool
 allSameA = G.allSameA . unA
 
 instance (KnownNat r, Arbitrary a) => Arbitrary (Array r a) where arbitrary = A <$> arbitrary
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}
-sumA :: (Num a) => Array r a -> a
+sumA :: forall r a . (Num a) => Array r a -> a
 sumA = G.sumA . unA
 
 -- | Product of all elements.
 {-# INLINE productA #-}
-productA :: (Num a) => Array r a -> a
+productA :: forall r a . (Num a) => Array r a -> a
 productA = G.productA . unA
 
 -- | Maximum of all elements.
@@ -429,7 +429,7 @@ productA = G.productA . unA
 -- compares, an element with itself among them.
 -- Fails if the array is empty.
 {-# INLINE maximumA #-}
-maximumA :: (HasCallStack, Ord a) => Array r a -> a
+maximumA :: forall r a . (HasCallStack, Ord a) => Array r a -> a
 maximumA = G.maximumA . unA
 
 -- | Minimum of all elements.
@@ -438,17 +438,17 @@ maximumA = G.maximumA . unA
 -- compares, an element with itself among them.
 -- Fails if the array is empty.
 {-# INLINE minimumA #-}
-minimumA :: (HasCallStack, Ord a) => Array r a -> a
+minimumA :: forall r a . (HasCallStack, Ord a) => Array r a -> a
 minimumA = G.minimumA . unA
 
 -- | Test if the predicate holds for any element.
 {-# INLINE anyA #-}
-anyA :: (a -> Bool) -> Array r a -> Bool
+anyA :: forall r a . (a -> Bool) -> Array r a -> Bool
 anyA p = G.anyA p . unA
 
 -- | Test if the predicate holds for all elements.
 {-# INLINE allA #-}
-allA :: (a -> Bool) -> Array r a -> Bool
+allA :: forall r a . (a -> Bool) -> Array r a -> Bool
 allA p = G.allA p . unA
 
 -- | Put the dimensions of the argument into the specified dimensions,

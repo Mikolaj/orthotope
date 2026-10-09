@@ -117,7 +117,7 @@ rank = G.rank . unA
 -- | Index into an array.  Fails if the index is out of bounds.
 -- O(1) time.
 {-# INLINE index #-}
-index :: forall a s sh . (HasCallStack, KnownNat s) => Array (s:sh) a -> Int -> Array sh a
+index :: forall s sh a . (HasCallStack, KnownNat s) => Array (s:sh) a -> Int -> Array sh a
 index a = A . G.index (unA a)
 
 -- | Convert to a list with the elements in the linearization order.
@@ -138,7 +138,7 @@ fromList = A . G.fromList
 -- The O(1) result can be a slice of a larger vector, which it keeps alive;
 -- 'force' the array first to get a vector of just its elements.
 {-# INLINE toVector #-}
-toVector :: (Unbox a, Shape sh) => Array sh a -> V.Vector a
+toVector :: forall sh a . (Unbox a, Shape sh) => Array sh a -> V.Vector a
 toVector = G.toVector . unA
 
 -- | Convert from a vector with the elements given in the linearization order.
@@ -156,7 +156,7 @@ fromVector = A . G.fromVector
 -- implications.
 -- O(n) or O(1) time.
 {-# INLINABLE normalize #-}
-normalize :: (Unbox a, Shape sh) => Array sh a -> Array sh a
+normalize :: forall sh a . (Unbox a, Shape sh) => Array sh a -> Array sh a
 normalize = A . G.normalize . unA
 
 -- | Copy the elements of the array into a vector of their own, in the
@@ -167,7 +167,7 @@ normalize = A . G.normalize . unA
 -- vector to be garbage collected, if nothing else refers to it.
 -- O(n) time.
 {-# INLINABLE force #-}
-force :: (Unbox a, Shape sh) => Array sh a -> Array sh a
+force :: forall sh a . (Unbox a, Shape sh) => Array sh a -> Array sh a
 force = A . G.force . unA
 
 -- | Change the shape of an array.  Type error if the arrays have different number of elements.
@@ -209,32 +209,32 @@ constant = A . G.constant
 -- | Map over the array elements.
 -- O(n) time.
 {-# INLINE mapA #-}
-mapA :: (Unbox a, Unbox b, Shape sh) => (a -> b) -> Array sh a -> Array sh b
+mapA :: forall sh a b . (Unbox a, Unbox b, Shape sh) => (a -> b) -> Array sh a -> Array sh b
 mapA f = A . G.mapA f . unA
 
 -- | Combine the elements of two arrays.
 -- O(n) time.
 {-# INLINE zipWithA #-}
-zipWithA :: (Unbox a, Unbox b, Unbox c, Shape sh) => (a -> b -> c) -> Array sh a -> Array sh b -> Array sh c
+zipWithA :: forall sh a b c . (Unbox a, Unbox b, Unbox c, Shape sh) => (a -> b -> c) -> Array sh a -> Array sh b -> Array sh c
 zipWithA f a b = A $ G.zipWithA f (unA a) (unA b)
 
 -- | Combine the elements of three arrays.
 -- O(n) time.
 {-# INLINE zipWith3A #-}
-zipWith3A :: (Unbox a, Unbox b, Unbox c, Unbox d, Shape sh) => (a -> b -> c -> d) -> Array sh a -> Array sh b -> Array sh c -> Array sh d
+zipWith3A :: forall sh a b c d . (Unbox a, Unbox b, Unbox c, Unbox d, Shape sh) => (a -> b -> c -> d) -> Array sh a -> Array sh b -> Array sh c -> Array sh d
 zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)
 
 -- | Combine the elements of four arrays.
 -- O(n) time.
 {-# INLINE zipWith4A #-}
-zipWith4A :: (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Shape sh) =>
+zipWith4A :: forall sh a b c d e . (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Shape sh) =>
              (a -> b -> c -> d -> e) -> Array sh a -> Array sh b -> Array sh c -> Array sh d -> Array sh e
 zipWith4A f a b c d = A $ G.zipWith4A f (unA a) (unA b) (unA c) (unA d)
 
 -- | Combine the elements of five arrays.
 -- O(n) time.
 {-# INLINE zipWith5A #-}
-zipWith5A :: (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Unbox f, Shape sh) =>
+zipWith5A :: forall sh a b c d e f . (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Unbox f, Shape sh) =>
              (a -> b -> c -> d -> e -> f) -> Array sh a -> Array sh b -> Array sh c -> Array sh d -> Array sh e -> Array sh f
 zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e)
 
@@ -263,7 +263,7 @@ transpose = A . G.transpose @is . unA
 -- Where one array's outer extent is 0, the result is the other itself, sharing
 -- its vector; 'force' copies it out.
 {-# INLINABLE append #-}
-append :: (Unbox a, Shape sh, KnownNat m, KnownNat n, KnownNat (m+n)) =>
+append :: forall sh m n a . (Unbox a, Shape sh, KnownNat m, KnownNat n, KnownNat (m+n)) =>
           Array (m ': sh) a -> Array (n ': sh) a -> Array (m+n ': sh) a
 append x y = A $ G.append (unA x) (unA y)
 
@@ -283,14 +283,14 @@ concatOuter = A . G.concatOuter @m @n . coerce
 -- Of one array, the result is a view of it, sharing its vector; 'force' copies
 -- it out.
 {-# INLINABLE ravel #-}
-ravel :: (Unbox a, Shape sh, KnownNat s) =>
+ravel :: forall sh s a . (Unbox a, Shape sh, KnownNat s) =>
          S.Array '[s] (Array sh a) -> Array (s:sh) a
 ravel = A . G.ravel . G.mapA unA . S.unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
 {-# INLINABLE unravel #-}
-unravel :: (Unbox a, Shape sh, KnownNat s) =>
+unravel :: forall sh s a . (Unbox a, Shape sh, KnownNat s) =>
            Array (s:sh) a -> S.Array '[s] (Array sh a)
 unravel = S.A . G.mapA A . G.unravel . unA
 
@@ -381,18 +381,18 @@ rev = A . G.rev @rs . unA
 -- Forcing the result forces the initial value.
 -- O(n) time.
 {-# INLINE reduce #-}
-reduce :: (Unbox a, Shape sh) => (a -> a -> a) -> a -> Array sh a -> Array '[] a
+reduce :: forall sh a . (Unbox a, Shape sh) => (a -> a -> a) -> a -> Array sh a -> Array '[] a
 reduce f z = A . G.reduce f z . unA
 
 -- | Constrained version of 'foldr' for Arrays.
 {-# INLINE foldrA #-}
-foldrA :: (Unbox a, Shape sh) => (a -> b -> b) -> b -> Array sh a -> b
+foldrA :: forall sh a b . (Unbox a, Shape sh) => (a -> b -> b) -> b -> Array sh a -> b
 foldrA f z = G.foldrA f z . unA
 
 -- | Constrained version of 'traverse' for Arrays.
 {-# INLINE traverseA #-}
 traverseA
-  :: (Unbox a, Unbox b, Applicative f, Shape sh)
+  :: forall sh a b f . (Unbox a, Unbox b, Applicative f, Shape sh)
   => (a -> f b) -> Array sh a -> f (Array sh b)
 traverseA f = fmap A . G.traverseA f . unA
 
@@ -405,12 +405,12 @@ instance (Shape sh, Arbitrary a, Unbox a) => Arbitrary (Array sh a) where arbitr
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}
-sumA :: (Unbox a, Num a, Shape sh) => Array sh a -> a
+sumA :: forall sh a . (Unbox a, Num a, Shape sh) => Array sh a -> a
 sumA = G.sumA . unA
 
 -- | Product of all elements.
 {-# INLINE productA #-}
-productA :: (Unbox a, Num a, Shape sh) => Array sh a -> a
+productA :: forall sh a . (Unbox a, Num a, Shape sh) => Array sh a -> a
 productA = G.productA . unA
 
 -- | Maximum of all elements.
@@ -418,7 +418,7 @@ productA = G.productA . unA
 -- depends on the array's layout, and so does which pairs of elements it
 -- compares, an element with itself among them.
 {-# INLINE maximumA #-}
-maximumA :: (Unbox a, Ord a, Shape sh, 1 <= Size sh) => Array sh a -> a
+maximumA :: forall sh a . (Unbox a, Ord a, Shape sh, 1 <= Size sh) => Array sh a -> a
 maximumA = G.maximumA . unA
 
 -- | Minimum of all elements.
@@ -426,7 +426,7 @@ maximumA = G.maximumA . unA
 -- depends on the array's layout, and so does which pairs of elements it
 -- compares, an element with itself among them.
 {-# INLINE minimumA #-}
-minimumA :: (Unbox a, Ord a, Shape sh, 1 <= Size sh) => Array sh a -> a
+minimumA :: forall sh a . (Unbox a, Ord a, Shape sh, 1 <= Size sh) => Array sh a -> a
 minimumA = G.minimumA . unA
 
 -- | Test if the predicate holds for any element.
@@ -455,13 +455,13 @@ broadcast = A . G.broadcast @ds @sh' @sh . unA
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
 {-# INLINABLE update #-}
-update :: (HasCallStack, Unbox a, Shape sh) =>
+update :: forall sh a . (HasCallStack, Unbox a, Shape sh) =>
           Array sh a -> [([Int], a)] -> Array sh a
 update a = A . G.update (unA a)
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}
-generate :: (Unbox a, Shape sh) => ([Int] -> a) -> Array sh a
+generate :: forall sh a . (Unbox a, Shape sh) => ([Int] -> a) -> Array sh a
 generate = A . G.generate
 
 -- | Iterate a function n times.
@@ -481,7 +481,7 @@ iota = A G.iota
 -- @(0x3fc00000 :: Word32)@ since they have the same bit representation.
 -- Fails if the two types differ in size.
 {-# INLINE bitcast #-}
-bitcast :: forall a b sh . (HasCallStack, Unbox a, Unbox b) => Array sh a -> Array sh b
+bitcast :: forall sh a b . (HasCallStack, Unbox a, Unbox b) => Array sh a -> Array sh b
 bitcast (A (G.A (T ss o v)))
   | sza /= szb
   = error $ "bitcast: the types must have the same size. " ++ show (sza, szb)
