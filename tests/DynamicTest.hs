@@ -222,7 +222,7 @@ test = testGroup "Dynamic" $
                  , VU.length (I.vGenerate' (-1) id :: VU.Vector Int)
                  , length (I.vGenerate' (-1) id :: [Int]) )
       -- No array has a negative extent.
-      badShape_1 = mapM_ (uncurry assertThrows)
+      badShape_1 = mapM_ (\ (f, a) -> assertThrowsIn f f a)
         [ ("fromList", fromList [-2,-3] [1..6])
         , ("fromVector", fromVector [-2,-3] (V.fromList [1..6]))
         , ("reshape", reshape [-2,-3] a1)
@@ -239,7 +239,7 @@ test = testGroup "Dynamic" $
                      (readMaybe "fromList [-2,-3] [1,2,3,4,5,6]" :: Maybe (Array Int))
       -- Nor more elements than an Int counts.
       badShape_3 = do
-        mapM_ (uncurry assertThrows)
+        mapM_ (\ (f, a) -> assertThrowsIn f f a)
           [ ("fromList", fromList [4, h] [] :: Array Int)
           , ("fromVector", fromVector [4, h] V.empty)
           , ("reshape", reshape [4, h] (fromList [0] []))
