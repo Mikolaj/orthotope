@@ -476,6 +476,8 @@ test = testGroup "Dynamic" $
       -- read rejects a count of elements that is not the shape's.
       read_1 = assertEqual "1" (Nothing, Just (fromList [2] [1, 2] :: Array Int))
                  (readMaybe "fromList [2] [1,2,3]" :: Maybe (Array Int), readMaybe "fromList [2] [1,2]")
+      -- reshape to a shape of another size fails.
+      reshape_3 = assertThrowsIn "3" "reshape" (reshape [5] (fromList [2, 3] [1 .. 6 :: Int]))
       rotate_1 = assertEqual "1" (fromList [2, 4, 3, 2]
                                            [1, 2, 3, 4, 5, 6,
                                             5, 6, 1, 2, 3, 4,
@@ -737,6 +739,7 @@ test = testGroup "Dynamic" $
         , testCase "stretch_5" stretch_5
         , testCase "badShape_4" badShape_4
         , testCase "read_1" read_1
+        , testCase "reshape_3" reshape_3
         , testCase "rotate_1" rotate_1
         , testCase "rotate_2" rotate_2
         , testCase "rotate_3" rotate_3
