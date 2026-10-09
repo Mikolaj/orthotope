@@ -143,9 +143,12 @@ class Vector v where
   -- | Hand the element at an index in bounds to a continuation, read as the
   -- instance chooses.  The list of a view's elements that 'elemsT' builds holds
   -- what it is handed.  The default hands on 'vUnsafeIndex' unevaluated, a
-  -- thunk holding the vector; the boxed vector instance hands on the element
-  -- stored, unforced, and the Storable and Unboxed ones the element read and
-  -- forced, as none of theirs is undefined.
+  -- thunk holding the vector; the boxed and Unboxed vector instances hand on
+  -- the element as 'Data.Vector.Generic.unsafeIndexM' reads it, which is the
+  -- element stored, unforced, for a boxed vector and for vector's
+  -- DoNotUnboxLazy and an evaluated one for every primitive representation, and
+  -- the Storable one the element read and forced, as no Storable element is
+  -- undefined.
   vUnsafeWithElem :: (VecElem v a) => v a -> Int -> (a -> r) -> r
   vUnsafeWithElem v i k = k (vUnsafeIndex v i)
 
@@ -1560,8 +1563,8 @@ convertT sh g t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip
 
 -- Zip two arrays with a function.
 -- The two branches that map over one array read the other array's one
--- element through 'vUnsafeWithElem', forced where it is unboxed and unforced where
--- it is boxed, before the map takes it.
+-- element through 'vUnsafeWithElem', as the instance reads it, before the map takes
+-- it.
 -- TODO: two views of the same strides that each read every element of one
 -- part could zip those parts and keep the strides, as 'convertT' maps a view.
 -- Measured on 60000 Doubles, that pays only where they broadcast, from 550

@@ -54,6 +54,7 @@ module Data.Array.Internal.DynamicU(
 import Control.DeepSeq
 import Data.Coerce(coerce)
 import Data.Data(Data)
+import Data.Vector.Fusion.Util(Box(..))
 import qualified Data.Vector.Unboxed as V
 import qualified Data.Vector.Unboxed.Mutable as MV
 import GHC.Stack(HasCallStack)
@@ -99,45 +100,33 @@ instance Vector V.Vector where
   -- fuse with a vector they read, but each array operation stores its result,
   -- so the array operations never fused their inputs; a map of a map allocates
   -- one vector per map, with vector's map as with this one.
-  -- Each read is forced before the function takes it: given a function GHC
-  -- cannot see into, on GHC HEAD with vector's issue 570 fixed, on views of
-  -- 200000 Doubles, mapA allocated 40 bytes an element where 80 and zipWithA
-  -- 72 where 152, and given known functions every operation ran as many
-  -- instructions as before.
+  -- Each element is read by 'elemAt' before the function takes it: given a
+  -- function GHC cannot see into, on GHC HEAD with vector's issue 570 fixed,
+  -- on views of 200000 Doubles, mapA allocated 40 bytes an element where a
+  -- lazy read made it 80 and zipWithA 72 where 152, and given known functions
+  -- every operation ran as many instructions as before.
   {-# INLINE vMap #-}
-  vMap f v = indexLoop (V.length v) (\ i -> let !x = V.unsafeIndex v i in f x)
+  vMap f v = indexLoop (V.length v) (\ i -> elemAt v i f)
   {-# INLINE vZipWith #-}
   vZipWith f a b =
     V.generate (V.length a `min` V.length b) $ \ i ->
-      let !x = V.unsafeIndex a i
-          !y = V.unsafeIndex b i
-      in  f x y
+      elemAt a i $ \ x -> elemAt b i $ \ y -> f x y
   {-# INLINE vZipWith3 #-}
   vZipWith3 f a b c =
     indexLoop (V.length a `min` V.length b `min` V.length c) $ \ i ->
-      let !x = V.unsafeIndex a i
-          !y = V.unsafeIndex b i
-          !z = V.unsafeIndex c i
-      in  f x y z
+      elemAt a i $ \ x -> elemAt b i $ \ y -> elemAt c i $ \ z -> f x y z
   {-# INLINE vZipWith4 #-}
   vZipWith4 f a b c d =
     indexLoop (V.length a `min` V.length b `min` V.length c
                `min` V.length d) $ \ i ->
-      let !x = V.unsafeIndex a i
-          !y = V.unsafeIndex b i
-          !z = V.unsafeIndex c i
-          !u = V.unsafeIndex d i
-      in  f x y z u
+      elemAt a i $ \ x -> elemAt b i $ \ y -> elemAt c i $ \ z ->
+      elemAt d i $ \ u -> f x y z u
   {-# INLINE vZipWith5 #-}
   vZipWith5 f a b c d e =
     V.generate (V.length a `min` V.length b `min` V.length c
                 `min` V.length d `min` V.length e) $ \ i ->
-      let !x = V.unsafeIndex a i
-          !y = V.unsafeIndex b i
-          !z = V.unsafeIndex c i
-          !u = V.unsafeIndex d i
-          !w = V.unsafeIndex e i
-      in  f x y z u w
+      elemAt a i $ \ x -> elemAt b i $ \ y -> elemAt c i $ \ z ->
+      elemAt d i $ \ u -> elemAt e i $ \ w -> f x y z u w
   {-# INLINE vAppend #-}
   vAppend = (V.++)
   {-# INLINE vConcat #-}
@@ -184,15 +173,23 @@ instance Vector V.Vector where
   vAll = V.all
   {-# INLINE vAny #-}
   vAny = V.any
-  -- Forced: no element of an Unboxed vector is undefined.
   {-# INLINE vUnsafeWithElem #-}
-  vUnsafeWithElem v i k = let !x = V.unsafeIndex v i in k x
+  vUnsafeWithElem = elemAt
   {-# INLINE vGenerate' #-}
   vGenerate' = V.generate
   {-# INLINE vUnsafeFillStrided #-}
   vUnsafeFillStrided = genericUnsafeFillStrided 64
   {-# INLINE vUnsafeConcatN #-}
   vUnsafeConcatN = genericUnsafeConcatN
+
+-- The element at an index in bounds, handed on as unsafeIndexM reads it, as
+-- the boxed instance reads its own: evaluated for the primitive
+-- representations, whose reads are strict, and as stored for vector's
+-- DoNotUnboxLazy, whose elements can be undefined.  Forcing the read, as
+-- 'V.unsafeIndex' with a bang did, would fail on such an element.
+{-# INLINE elemAt #-}
+elemAt :: Unbox a => V.Vector a -> Int -> (a -> r) -> r
+elemAt v i k = case V.unsafeIndexM v i of Box x -> k x
 
 -- A vector of n elements, the ith g i, written over the indices.
 {-# INLINE indexLoop #-}
