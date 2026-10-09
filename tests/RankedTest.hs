@@ -91,7 +91,7 @@ test = testGroup "Ranked" $
       constant_1 = assertEqual "1" (fromList [2,3] [1,1,1,1,1,1]) (constant [2,3] 1 :: Array 2 Int)
       -- No array has a negative extent.  window, iterateN and iota make arrays
       -- of other ranks, so they are separate tests.
-      badShape_1 = mapM_ (uncurry assertThrows)
+      badShape_1 = mapM_ (\ (f, a) -> assertThrowsIn f f a)
         [ ("fromList", fromList [-2,-3] [1..6])
         , ("fromVector", fromVector [-2,-3] (V.fromList [1..6]))
         , ("reshape", reshape [-2,-3] a1)
@@ -101,14 +101,14 @@ test = testGroup "Ranked" $
         , ("slice", slice [(1,-1)] a1)
         , ("pad", pad [(-1,0)] 0 a1)
         , ("generate", generate [-1,3] (const 0)) ]
-      badShape_2 = assertThrows "window" (window [-1] a1 :: Array 3 Int)
-      badShape_3 = assertThrows "iterateN" (iterateN (-1) id 0 :: Array 1 Int)
-      badShape_4 = assertThrows "iota" (iota (-1) :: Array 1 Int)
+      badShape_2 = assertThrowsIn "window" "window" (window [-1] a1 :: Array 3 Int)
+      badShape_3 = assertThrowsIn "iterateN" "iterateN" (iterateN (-1) id 0 :: Array 1 Int)
+      badShape_4 = assertThrowsIn "iota" "iota" (iota (-1) :: Array 1 Int)
       badShape_5 = assertEqual "read" Nothing
                      (readMaybe "fromList [-2,-3] [1,2,3,4,5,6]" :: Maybe (Array 2 Int))
       -- Nor more elements than an Int counts.
       badShape_6 = do
-        mapM_ (uncurry assertThrows)
+        mapM_ (\ (f, a) -> assertThrowsIn f f a)
           [ ("fromList", fromList [4, h] [] :: Array 2 Int)
           , ("fromVector", fromVector [4, h] V.empty)
           , ("reshape", reshape [4, h] (fromList [0] [] :: Array 1 Int))
