@@ -109,7 +109,7 @@ shapeL :: (Shape sh) => Array sh a -> ShapeL
 shapeL = G.shapeL . unA
 
 -- | The rank of an array, i.e., the number of dimensions it has,
--- which is the @n@ in @Array n a@.
+-- which is the length of @sh@ in @Array sh a@.
 -- O(1) time.
 rank :: (Shape sh, KnownNat (Rank sh)) => Array sh a -> Int
 rank = G.rank . unA
@@ -248,9 +248,9 @@ pad :: forall ps sh' sh a . (HasCallStack, Unbox a, Padded ps sh sh', Shape sh) 
 pad v = A . G.pad @ps v . unA
 
 -- | Do an arbitrary array transposition.
--- Fails if the transposition argument is not a permutation of the numbers
--- [0..l-1] for an l no greater than the rank of the array, whose l outermost
--- dimensions it permutes.
+-- The transposition argument, which its type checks, is a permutation of the
+-- numbers [0..l-1] for an l no greater than the rank of the array, whose l
+-- outermost dimensions it permutes.
 -- O(1) time.
 transpose :: forall is sh a .
              (HasCallStack, Permutation is, Rank is <= Rank sh, Shape sh, Shape is, KnownNat (Rank sh)) =>
