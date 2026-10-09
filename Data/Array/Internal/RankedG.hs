@@ -99,7 +99,6 @@ instance (NFData (v a)) => NFData (Array n v a) where
   {-# INLINE rnf #-}
 
 -- | The number of elements in the array.
--- O(1) time.
 {-# INLINE size #-}
 size :: Array n v a -> Int
 size = product . shapeL
@@ -241,7 +240,7 @@ unScalar :: (Vector v, VecElem v a) => Array 0 v a -> a
 unScalar (A _ t) = unScalarT t
 
 -- | Make an array with all elements having the same value.
--- O(1) time
+-- O(1) time.
 {-# INLINE constant #-}
 constant :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
             ShapeL -> a -> Array n v a
@@ -668,7 +667,7 @@ allA p (A sh t) = allT sh p t
 
 -- | Put the dimensions of the argument into the specified dimensions,
 -- and just replicate the data along all other dimensions.
--- The list of dimensions indicies must have the same rank as the argument array
+-- The list of dimensions indices must have the same rank as the argument array
 -- and it must be strictly ascending.
 -- Fails if an index is not a dimension of the result or the argument's
 -- dimensions differ from the result's at those indices.
@@ -690,7 +689,7 @@ broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dime
         ascending (x:y:ys) = x < y && ascending (y:ys)
         ascending _ = True
 
--- | Update the array at the specified indicies to the associated value.
+-- | Update the array at the specified indices to the associated value.
 -- Fails if an index is out of bounds.
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.

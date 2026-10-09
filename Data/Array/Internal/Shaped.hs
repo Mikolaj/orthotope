@@ -446,7 +446,7 @@ allA p = G.allA p . unA
 
 -- | Put the dimensions of the argument into the specified dimensions,
 -- and just replicate the data along all other dimensions.
--- The list of dimensions indicies must have the same rank as the argument array
+-- The list of dimensions indices must have the same rank as the argument array
 -- and it must be strictly ascending.
 {-# INLINABLE broadcast #-}
 broadcast :: forall ds sh' sh a .
@@ -455,7 +455,7 @@ broadcast :: forall ds sh' sh a .
              Array sh a -> Array sh' a
 broadcast = A . G.broadcast @ds @sh' @sh . unA
 
--- | Update the array at the specified indicies to the associated value.
+-- | Update the array at the specified indices to the associated value.
 -- Fails if an index is out of bounds.
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
