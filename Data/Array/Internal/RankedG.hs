@@ -434,21 +434,15 @@ stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ r
 -- | Rotate the array k times along the d'th dimension.
 -- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
 -- the resulting shape will be @[2, 4, 3, 2]@.
--- Fails if d is not a dimension of the array or k is negative, and may fail
--- if the result has more than half of 'maxBound' elements.
+-- Fails if k is negative, and may fail if the result has more than half of
+-- 'maxBound' elements.
 -- With k = 1, the result is a view of the array, sharing its vector; 'force'
 -- copies it out.
 {-# INLINE rotate #-}
 rotate :: forall d p v a.
           (HasCallStack, KnownNat p, KnownNat d,
           Vector v, VecElem v a,
-          -- Nonsense
-          (d + (p + 1)) ~ ((p + d) + 1),
-          (d + p) ~ (p + d),
-          1 <= p + 1,
-          KnownNat ((p + d) + 1),
-          KnownNat (p + 1),
-          KnownNat (1 + (p + 1))
+          1 <= p  -- d is a dimension of the array
           ) =>
           Int -> Array (p + d) v a -> Array (p + d + 1) v a
 -- Through DynamicG's rotate, as a workaround: see the original
@@ -456,7 +450,7 @@ rotate :: forall d p v a.
 rotate k (A sh t) = case DG.rotate (natT @d) k (DG.A sh t) of
   DG.A sh' t' -> A sh' t'
 
--- The original definition of 'rotate', with the signature above, an
+-- The original definition of 'rotate', with its signature, an
 -- example of how to use the type safety of the ranked operations: the
 -- types check the ranks of every step but the view of the windows,
 -- built by hand.  The 'rotate' above goes through DynamicG's instead,
@@ -470,6 +464,18 @@ rotate k (A sh t) = case DG.rotate (natT @d) k (DG.A sh t) of
 -- takes the dimension as an 'Int', so GHC specialises it on the vector
 -- and element types only, and one copy serves every rank.
 --
+-- rotate :: forall d p v a.
+--           (HasCallStack, KnownNat p, KnownNat d,
+--           Vector v, VecElem v a,
+--           -- Nonsense
+--           (d + (p + 1)) ~ ((p + d) + 1),
+--           (d + p) ~ (p + d),
+--           1 <= p + 1,
+--           KnownNat ((p + d) + 1),
+--           KnownNat (p + 1),
+--           KnownNat (1 + (p + 1))
+--           ) =>
+--           Int -> Array (p + d) v a -> Array (p + d + 1) v a
 -- rotate k a@(A sh _)
 --   | valueOf @d >= length sh || k < 0 = error $ "rotate: dimension out of range or negative count " ++ show (valueOf @d :: Int, k, length sh)
 --   | badShape sh' = error $ "rotate: bad shape " ++ show sh'
