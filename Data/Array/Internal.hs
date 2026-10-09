@@ -316,7 +316,8 @@ sumOverflows ss = sumExtents ss < 0
 -- The parts that two views of the same strides read whole are compared
 -- in the order of the vectors, not of the views, so where they hold an
 -- undefined element, x == y can fail on it where compare x y, which
--- follows the views, returns.
+-- follows the views, returns, and can return False where compare meets
+-- it first and fails.
 --
 -- The loops are written out rather than taken from the vectors'
 -- own '==', which on two Storable vectors of 60000 Doubles, on GHC
