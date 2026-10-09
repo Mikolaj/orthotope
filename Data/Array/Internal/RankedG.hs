@@ -636,7 +636,8 @@ productA (A sh t) = productT sh t
 
 -- | Maximum of all elements.
 -- Of elements that compare equal, as @0.0@ and @-0.0@ do, the one returned
--- depends on the array's layout.
+-- depends on the array's layout, and so does which pairs of elements it
+-- compares, an element with itself among them.
 -- Fails if the array is empty.
 {-# INLINE maximumA #-}
 maximumA :: (HasCallStack, Vector v, VecElem v a, Ord a) => Array r v a -> a
@@ -645,7 +646,8 @@ maximumA a@(A sh t) | size a > 0 = maximumT sh t
 
 -- | Minimum of all elements.
 -- Of elements that compare equal, as @0.0@ and @-0.0@ do, the one returned
--- depends on the array's layout.
+-- depends on the array's layout, and so does which pairs of elements it
+-- compares, an element with itself among them.
 -- Fails if the array is empty.
 {-# INLINE minimumA #-}
 minimumA :: (HasCallStack, Vector v, VecElem v a, Ord a) => Array r v a -> a
