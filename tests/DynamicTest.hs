@@ -442,6 +442,10 @@ test = testGroup "Dynamic" $
                 (P.Array a, _, _) -> a
               shares b = isTrue# (sameMutableArray# (unsafeCoerce# (buf a1))
                                                     (unsafeCoerce# (buf b)))
+      -- maximumA and minimumA fail on an empty array.
+      maximumA_empty = do
+        assertThrowsIn "max" "maximumA" (maximumA (fromList [0] [] :: Array Int))
+        assertThrowsIn "min" "minimumA" (minimumA (fromList [2, 0] [] :: Array Int))
       stride_1 = assertEqual "1" (fromList [2,2,2] [1,3,
                                                     9,11,
 
@@ -701,6 +705,7 @@ test = testGroup "Dynamic" $
         , testCase "window_3" window_3
         , testCase "window_4" window_4
         , testCase "sharing_1" sharing_1
+        , testCase "maximumA_empty" maximumA_empty
         , testCase "stride_1" stride_1
         , testCase "stride_2" stride_2
         , testCase "stride_3" stride_3
