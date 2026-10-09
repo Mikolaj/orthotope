@@ -206,7 +206,7 @@ instance Vector V.Vector where
     where !n = V.length v
           go !i | i >= n = False
                 | otherwise = let !x = V.unsafeIndex v i in q x || go (i + 1)
-  -- Forced: no element of a Storable vector is undefined.
+  -- Forced, as at vToList, so a peek that fails fails here.
   {-# INLINE vUnsafeWithElem #-}
   vUnsafeWithElem v i k = let !x = V.unsafeIndex v i in k x
   {-# INLINE vGenerate' #-}
