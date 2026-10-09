@@ -110,6 +110,12 @@ instance I.Vector Repeated where
   vAll p = all p . I.vToList
   vAny p = any p . I.vToList
 
+-- An Eq whose == evaluates neither argument.
+data L = L deriving Show
+
+instance Eq L where
+  _ == _ = True
+
 -- A number whose 1 fails when evaluated, which tells an element stored
 -- evaluated from one stored as a thunk.
 newtype OneFails = OneFails Int
@@ -517,6 +523,10 @@ test = testGroup "Dynamic" $
                                                  , constant [3] nan, normalize (constant [3] nan)
                                                  , slice [(0,1)] (fromList [2] [nan, 1]) ])
         where nan = 0 / 0 :: Double
+      -- allSameA hands its first element to == as stored, at a broadcast and
+      -- at a dense view alike.
+      allSameA_3 = assertEqual "3" (True, True)
+                     (allSameA (constant [3] (undefined :: L)), allSameA (fromList [2] [undefined, undefined :: L]))
 
       -- Test fast toVector
       toVector_10 =
@@ -701,6 +711,7 @@ test = testGroup "Dynamic" $
         , testCase "reduce_3" reduce_3
         , testCase "allSameA_1" allSameA_1
         , testCase "allSameA_2" allSameA_2
+        , testCase "allSameA_3" allSameA_3
         , testCase "toVector_10" toVector_10
         , testCase "toVector_11" toVector_11
         , testCase "toVector_12" toVector_12
