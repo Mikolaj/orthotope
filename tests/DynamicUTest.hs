@@ -17,6 +17,8 @@ module DynamicUTest(test) where
 
 import Control.DeepSeq hiding (force)
 import Control.Exception
+import Data.Array.Convert (convert)
+import qualified Data.Array.Dynamic as D
 import Data.Array.DynamicU
 import qualified Data.Vector.Unboxed as V
 import Data.Word (Word8)
@@ -276,8 +278,8 @@ test = testGroup "DynamicU" $
         where lz = fromList [2] (map V.DoNotUnboxLazy [undefined, 1 :: Int])
               lz2 = fromList [2, 2] (map V.DoNotUnboxLazy [undefined, 1, 2, 3 :: Int])
 
-      -- One call of each wrapper that the other tests of DynamicTest,
-      -- DynamicSTest or DynamicUTest leave uncalled.
+      -- Calls of wrappers that the other tests of this module leave uncalled,
+      -- each against its value.
       wrappers_1 = do
         assertEqual "size" 6 (size a1)
         assertEqual "sumA" 21 (sumA a1)
@@ -298,6 +300,9 @@ test = testGroup "DynamicU" $
         assertEqual "stretchOuter" [1, 2, 3, 1, 2, 3] (toList (stretchOuter 2 (reshape [1, 3] (index a1 0))))
         assertEqual "rotate" [2, 3, 1, 1, 2, 3] (toList (rotate 0 2 (index a1 0)))
         assertEqual "ravel . unravel" a1 (ravel (unravel a1))
+        assertEqual "force" [1 .. 6] (toList (force a1))
+      -- convert to boxed of a transposed view keeps the view's order.
+      convert_1 = assertEqual "1" (toList (transpose [1, 0] a1)) (D.toList (convert (transpose [1, 0] a1) :: D.Array Int))
 
       tests =
         [ testCase "show_1" show_1
@@ -383,5 +388,6 @@ test = testGroup "DynamicU" $
         , testCase "allSameA_2" allSameA_2
         , testCase "lazyElems_1" lazyElems_1
         , testCase "wrappers_1" wrappers_1
+        , testCase "convert_1" convert_1
         ]
   in  tests
