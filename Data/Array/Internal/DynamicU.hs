@@ -63,8 +63,8 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.DynamicG as G
-import Data.Array.Internal(ShapeL, Vector(..), genericConcatN,
-                           genericFillStrided)
+import Data.Array.Internal(ShapeL, Vector(..), genericUnsafeConcatN,
+                           genericUnsafeFillStrided)
 
 type Unbox = V.Unbox
 
@@ -185,14 +185,14 @@ instance Vector V.Vector where
   {-# INLINE vAny #-}
   vAny = V.any
   -- Forced: no element of an Unboxed vector is undefined.
-  {-# INLINE vWithElem #-}
-  vWithElem v i k = let !x = V.unsafeIndex v i in k x
+  {-# INLINE vUnsafeWithElem #-}
+  vUnsafeWithElem v i k = let !x = V.unsafeIndex v i in k x
   {-# INLINE vGenerate' #-}
   vGenerate' = V.generate
-  {-# INLINE vFillStrided #-}
-  vFillStrided = genericFillStrided 64
-  {-# INLINE vConcatN #-}
-  vConcatN = genericConcatN
+  {-# INLINE vUnsafeFillStrided #-}
+  vUnsafeFillStrided = genericUnsafeFillStrided 64
+  {-# INLINE vUnsafeConcatN #-}
+  vUnsafeConcatN = genericUnsafeConcatN
 
 -- A vector of n elements, the ith g i, written over the indices.
 {-# INLINE indexLoop #-}
