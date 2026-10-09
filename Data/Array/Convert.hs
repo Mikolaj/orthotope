@@ -40,7 +40,7 @@ import qualified Data.Array.Internal.Shaped as S
 import qualified Data.Array.Internal.ShapedG as SG
 import qualified Data.Array.Internal.ShapedS as SS
 import qualified Data.Array.Internal.ShapedU as SU
-import Data.Array.Internal.Shape(Shape(..))
+import Data.Array.Internal.Shape(Shape(..), validShape)
 
 -- A Storable vector copied into a boxed one, each element read before it
 -- is stored, where vector's convert stores the read as a thunk holding the
@@ -148,12 +148,14 @@ instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (S.Array sh a) (R.Array n
   convert (S.A a@(SG.A t)) = R.A (RG.A (SG.shapeL a) t)
 
 instance (a ~ b, S.Shape sh) => Convert (D.Array a) (S.Array sh b) where
-  convertE (D.A (DG.A sh t)) | sh == shapeP (Proxy :: Proxy sh) = Right $ S.A (SG.A t)
-  convertE _ = Left "convert: shape mismatch"
+  convertE (D.A (DG.A sh t)) | map toInteger sh /= natsP (Proxy :: Proxy sh) = Left "convert: shape mismatch"
+                             | not (validShape sh) = Left "convert: bad shape"
+                             | otherwise = Right $ S.A (SG.A t)
 
 instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (R.Array n a) (S.Array sh b) where
-  convertE (R.A (RG.A sh t)) | sh == shapeP (Proxy :: Proxy sh) = Right $ S.A (SG.A t)
-  convertE _ = Left "convert: shape mismatch"
+  convertE (R.A (RG.A sh t)) | map toInteger sh /= natsP (Proxy :: Proxy sh) = Left "convert: shape mismatch"
+                             | not (validShape sh) = Left "convert: bad shape"
+                             | otherwise = Right $ S.A (SG.A t)
 
 ------
 
@@ -162,13 +164,15 @@ instance (a ~ b, KnownNat n) => Convert (DS.Array a) (RS.Array n b) where
                               | otherwise = Right $ RS.A (RG.A sh t)
 
 instance (a ~ b, SS.Rank sh ~ n, SS.Shape sh) => Convert (RS.Array n a) (SS.Array sh b) where
-  convertE (RS.A (RG.A sh t)) | sh == shapeP (Proxy :: Proxy sh) = Right $ SS.A (SG.A t)
-  convertE _ = Left "convert: shape mismatch"
+  convertE (RS.A (RG.A sh t)) | map toInteger sh /= natsP (Proxy :: Proxy sh) = Left "convert: shape mismatch"
+                              | not (validShape sh) = Left "convert: bad shape"
+                              | otherwise = Right $ SS.A (SG.A t)
 
 instance (a ~ b, SS.Shape sh) => Convert (DS.Array a) (SS.Array sh b) where
-  convertE (DS.A (DG.A sh t)) | sh == sh' = Right $ SS.A (SG.A t)
-                              | otherwise = Left $ "convert: shape mismatch: " ++ show (sh, sh')
-                              where sh' = shapeP (Proxy :: Proxy sh)
+  convertE (DS.A (DG.A sh t)) | map toInteger sh /= ns = Left $ "convert: shape mismatch: " ++ show (sh, ns)
+                              | not (validShape sh) = Left "convert: bad shape"
+                              | otherwise = Right $ SS.A (SG.A t)
+                              where ns = natsP (Proxy :: Proxy sh)
 
 instance (a ~ b, SS.Shape sh) => Convert (SS.Array sh a) (DS.Array b) where
   convert (SS.A a@(SG.A t)) = DS.A (DG.A (SG.shapeL a) t)

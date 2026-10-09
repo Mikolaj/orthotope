@@ -292,7 +292,7 @@ transpose (A t) = A (transposeT is' t)
   where l = length is
         n = valueOf @(Rank sh)
         is' = is ++ [l .. n-1]
-        is = shapeP (Proxy :: Proxy is)
+        is = listP (Proxy :: Proxy is)
 
 -- | Append two arrays along the outermost dimension.
 -- All dimensions, except the outermost, must be the same.
@@ -359,7 +359,7 @@ stride :: forall ts sh' sh v a .
           (Stride ts sh sh', Vector v, Shape ts) =>
           Array sh v a -> Array sh' v a
 stride (A (T ss o v)) = A (T (zipWith (*) (ats ++ repeat 1) ss) o v)
-  where ats = shapeP (Proxy :: Proxy ts)
+  where ats = listP (Proxy :: Proxy ts)
 
 -- | Rotate the array k times along the d'th dimension.
 -- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
@@ -427,7 +427,7 @@ rerank2 f aa@(A ta) (A tb) =
 {-# INLINE rev #-}
 rev :: forall rs sh v a . (ValidDims rs sh, Shape rs, Shape sh) => Array sh v a -> Array sh v a
 rev a@(A t) = A (reverseT rs sh t)
-  where rs = shapeP (Proxy :: Proxy rs)
+  where rs = listP (Proxy :: Proxy rs)
         sh = shapeL a
 
 -- | Reduce all elements of an array into a rank 0 array.

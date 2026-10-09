@@ -22,12 +22,13 @@ import Control.DeepSeq
 import Control.Exception
 import Data.Array.Convert (convert, convertE)
 import qualified Data.Array.Dynamic as D
-import Data.Array.Shape (withShape, withShapeP)
+import Data.Array.Shape (Shape(..), listP, validShape, withShape, withShapeP)
 import Data.Array.Shaped
 import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.ShapedG as SG
 import qualified Data.Array.ShapedS as SS
 import qualified Data.Array.ShapedU as SU
+import Data.Proxy (Proxy(..))
 import qualified Data.Vector as V
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
@@ -284,7 +285,27 @@ test = testGroup "Shaped" $
                               (rev @[0,1] a1)
       withShapeP_1 = assertThrowsIn "1" "withShapeP" (withShapeP [-1] (\ _ -> ()))
       withShape_1 = assertThrowsIn "1" "withShape" (withShape [-1] ())
+      -- A shape fails if any inner part of it has more elements than an Int
+      -- counts, though an outer extent of 0 leaves it none.
+      shapeRule_1 = do
+        assertThrowsIn "1" "Shape" (shapeL (constant 0 :: Array '[0, 4611686018427387904, 4] Int))
+        assertEqual "2" [4611686018427387904, 4, 0] (shapeL (constant 0 :: Array '[4611686018427387904, 4, 0] Int))
+        assertEqual "3" [False, True] (map validShape [[0, 4611686018427387904, 4], [4611686018427387904, 4, 0]])
+      -- A type-level list that is not a shape is not checked as one: strides
+      -- whose product passes maxBound, and a permutation of 22 axes, whose
+      -- inner part from 1 multiplies to 21!.
+      listP_1 = do
+        assertEqual "1" [1] (toList (stride @'[4294967296, 4294967296] (fromList @'[2, 2] [1 .. 4 :: Int])))
+        assertEqual "2" [0 .. 21] (listP (Proxy :: Proxy '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]))
+        assertThrowsIn "3" "Shape" (shapeP (Proxy :: Proxy '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]))
       convertE_1 = assertEqual "1" (Left "convert: shape mismatch") (convertE (D.fromList [2] [1,2 :: Int]) :: Either String (Array '[3] Int))
+      -- convertE fails with Left where the shapes differ and where the Shaped
+      -- type's shape fails, rather than throwing.
+      convertE_2 = do
+        assertEqual "1" (Left "convert: shape mismatch")
+          (() <$ (convertE (D.fromList [2, 3] [1 .. 6 :: Int]) :: Either String (Array '[4294967296, 4294967296] Int)))
+        assertEqual "2" (Left "convert: bad shape")
+          (() <$ (convertE (D.constant [0, 4611686018427387904, 4] (0 :: Int)) :: Either String (Array '[0, 4611686018427387904, 4] Int)))
       -- rnf forces no element outside the view.
       rnf_1 = assertEqual "1" () (rnf (index (fromList [1,2,undefined,undefined] :: Array '[2,2] Int) 0))
       -- The conversions between boxings convert no element outside the view.
@@ -391,7 +412,10 @@ test = testGroup "Shaped" $
         , testCase "rev_2" rev_2
         , testCase "withShapeP_1" withShapeP_1
         , testCase "withShape_1" withShape_1
+        , testCase "shapeRule_1" shapeRule_1
+        , testCase "listP_1" listP_1
         , testCase "convertE_1" convertE_1
+        , testCase "convertE_2" convertE_2
         , testCase "rnf_1" rnf_1
         , testCase "convert_1" convert_1
         , testCase "reduce_1" reduce_1

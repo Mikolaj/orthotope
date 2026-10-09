@@ -172,21 +172,30 @@ instance (Slice ls ss rs, (o+n) <= s, KnownNat o) => Slice ('(o,n) ': ls) (s ': 
 -----------------
 -- Shape extraction
 
--- The extents and the size of a shape, as Ints.  A shape with an extent or
--- a size past 'maxBound', such as '[4294967296, 4294967296], fails where it
--- is first read, as Dynamic and Ranked operations reject such shapes with
--- badShape.
+-- | The extents and the size of a shape, as 'Int's, and the numbers of
+-- a type-level list that is not a shape.  A shape fails where it is first
+-- read if any inner part of it, the dimensions from some one inward, has an
+-- extent or a size past 'maxBound', even where an outer extent of 0 leaves
+-- the shape no elements: @'[0, 4611686018427387904, 4]@ fails for its rows of
+-- shape @'[4611686018427387904, 4]@, while @'[4611686018427387904, 4, 0]@ does
+-- not.  The Dynamic and Ranked operations reject only a shape with
+-- a negative extent or a size past 'maxBound', so they accept the first
+-- of these.  'validShape' says whether a shape passes.
 class (Typeable s) => Shape (s :: [Nat]) where
   shapeP :: Proxy s -> [Int]
   sizeP  :: Proxy s -> Int
+  -- | The numbers of the list as they are, checked for nothing.
+  natsP  :: Proxy s -> [Integer]
 
 instance Shape '[] where
   {-# INLINE shapeP #-}
   shapeP _ = []
   {-# INLINE sizeP #-}
   sizeP  _ = 1
+  {-# INLINE natsP #-}
+  natsP  _ = []
 
--- Both methods bound outside the proxy's lambda, so that a dictionary computes
+-- The methods bound outside the proxy's lambda, so that a dictionary computes
 -- its checked shape and size once, not at every call.  sizeP is NOINLINE:
 -- inlined, it ran GHC out of simplifier ticks compiling the test suite.
 instance forall n s . (Shape s, KnownNat n) => Shape (n ': s) where
@@ -203,6 +212,28 @@ instance forall n s . (Shape s, KnownNat n) => Shape (n ': s) where
           n = natVal (Proxy :: Proxy n)
           i = fromInteger n :: Int
           m = sizeP (Proxy :: Proxy s)
+  {-# INLINE natsP #-}
+  natsP = const ns
+    where ns = natVal (Proxy :: Proxy n) : natsP (Proxy :: Proxy s)
+
+-- | Whether a shape passes the check of 'shapeP': every inner part of it, the
+-- dimensions from some one inward, has a size that an 'Int' counts.
+validShape :: [Int] -> Bool
+validShape = (>= 0) . foldr step 1
+  where step _ (-1) = -1
+        step n m | n < 0 || m /= 0 && n > maxBound `quot` m = -1
+                 | otherwise = n * m
+
+-- | The numbers of a type-level list that is not a shape, such as
+-- a permutation, strides or dimension indices, as 'Int's: each fails past
+-- 'maxBound', but their products, which mean nothing here, are not checked
+-- as a shape's are.
+{-# INLINE listP #-}
+listP :: (Shape s) => Proxy s -> [Int]
+listP p = map toInt (natsP p)
+  where toInt n | n > toInteger (maxBound :: Int) =
+                    error $ "Shape: a number past maxBound in " ++ show (natsP p)
+                | otherwise = fromInteger n
 
 {-# INLINE shapeT #-}
 shapeT :: forall sh . (Shape sh) => [Int]
