@@ -1521,7 +1521,8 @@ canonicalizeSortedT [] axes = axes
 
 -- Convert to a list of vectors containing altogether the right elements,
 -- but not necessarily in the right order.
--- This is used for reduction with commutative&associative operations.
+-- It suits a reduction by a commutative and associative operation; this
+-- module's reductions walk the view instead.
 --
 -- This is over-optimized: the dispatch is long, its order of passes is
 -- tuned, and it carries three magic constants read off one machine.
@@ -1944,12 +1945,12 @@ productT sh t@(T _ _ v)
 -- Note: assumes max is commutative&associative.  A view of runs folds the
 -- runs' maxima in the order 'maximum' folds their list, the walk's own cons
 -- carrying whether one has been taken, so that no list is built; the element
--- at the offset only starts the accumulator, which the first maximum replaces
--- unread.  An 'RFill' view, walked and not filled, folds max over its
--- elements from the first of them, which 'max x x' leaves as it is, NaN
--- included, so that the fold carries the accumulator alone: carrying the
--- flag as the runs do, at Storable Doubles it took 2.8 times the time of the
--- fill and 'vMaximum'.  A view that is one slice takes its maximum as it
+-- at the offset only starts the accumulator, which the first maximum replaces,
+-- evaluated but never compared.  An 'RFill' view, walked and not filled, folds
+-- max over its elements from the first of them, which 'max x x' leaves as it
+-- is, NaN included, so that the fold carries the accumulator alone: carrying
+-- the flag as the runs do, at Storable Doubles it took 2.8 times the time of
+-- the fill and 'vMaximum'.  A view that is one slice takes its maximum as it
 -- is: folded as runs are, on a dense array of boxed Doubles it ran 12% more
 -- instructions.
 {-# INLINE maximumT #-}
