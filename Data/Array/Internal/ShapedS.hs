@@ -35,8 +35,9 @@
 {-# OPTIONS_GHC -fno-polymorphic-specialisation #-}
 #endif
 module Data.Array.Internal.ShapedS(
-  Array(..), Shape(..), Size, Rank, Vector, ShapeL, Unbox,
+  Array(..), Shape(..), Size, Rank, Vector, ShapeL, V.Storable, Unbox,
   Window, Stride, Permute, Permutation, ValidDims,
+  Broadcast,
   size, shapeL, rank,
   toList, fromList, toVector, fromVector,
   normalize, force,
