@@ -52,6 +52,12 @@ test = testGroup "Ranked" $
       shapeL_2 = assertEqual "2" [3,2] (shapeL a2)
       rank_1 = assertEqual "1" 2 (rank a1)
       rank_2 = assertEqual "2" 2 (rank a2)
+      -- A rank past maxBound fails where it is read, and convertE to it
+      -- returns Left.
+      rank_3 = do
+        assertThrowsIn "3" "Shape" (fromList [5] [1 .. 5] :: Array 18446744073709551617 Int)
+        assertEqual "convertE" (Left "convert: rank mismatch")
+          (() <$ (convertE (D.fromList [5] [1 .. 5 :: Int]) :: Either String (Array 18446744073709551617 Int)))
       index_1 = assertEqual "1" (fromList [3] [1,2,3]) (index a1 0)
       index_2 = assertEqual "2" (fromList [2] [1,4]) (index a2 0)
       index_3 = assertEqual "3" (fromList [] [4]) (a2 `index` 0 `index` 1)
@@ -377,6 +383,7 @@ test = testGroup "Ranked" $
         , testCase "shapeL_2" shapeL_2
         , testCase "rank_1" rank_1
         , testCase "rank_2" rank_2
+        , testCase "rank_3" rank_3
         , testCase "index_1" index_1
         , testCase "index_2" index_2
         , testCase "index_3" index_3

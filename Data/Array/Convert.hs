@@ -25,7 +25,7 @@ import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as MV
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Storable as VS
-import GHC.TypeLits(KnownNat)
+import GHC.TypeLits(KnownNat, natVal)
 
 import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.Dynamic as D
@@ -138,7 +138,7 @@ instance (a ~ b) => Convert (R.Array n a) (D.Array b) where
   convert (R.A (RG.A sh t)) = D.A (DG.A sh t)
 
 instance (a ~ b, KnownNat n) => Convert (D.Array a) (R.Array n b) where
-  convertE (D.A (DG.A sh t)) | length sh /= I.valueOf @n = Left "convert: rank mismatch"
+  convertE (D.A (DG.A sh t)) | toInteger (length sh) /= natVal (Proxy :: Proxy n) = Left "convert: rank mismatch"
                              | otherwise = Right $ R.A (RG.A sh t)
 
 instance (a ~ b, S.Shape sh) => Convert (S.Array sh a) (D.Array b) where
@@ -160,7 +160,7 @@ instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (R.Array n a) (S.Array sh
 ------
 
 instance (a ~ b, KnownNat n) => Convert (DS.Array a) (RS.Array n b) where
-  convertE (DS.A (DG.A sh t)) | length sh /= I.valueOf @n = Left "convert: rank mismatch"
+  convertE (DS.A (DG.A sh t)) | toInteger (length sh) /= natVal (Proxy :: Proxy n) = Left "convert: rank mismatch"
                               | otherwise = Right $ RS.A (RG.A sh t)
 
 instance (a ~ b, SS.Rank sh ~ n, SS.Shape sh) => Convert (RS.Array n a) (SS.Array sh b) where
