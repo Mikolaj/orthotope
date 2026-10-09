@@ -40,7 +40,7 @@
 -- allocate under bounds that the forms they replaced exceeded, traverseA at
 -- Storable at most 8 bytes an element more than at Unboxed.  Its bounds on
 -- toVector, sumA, the list heads, specialisation and the walks run in an
--- optimised build alone.
+-- optimised build alone and hold in one without profiling or coverage.
 {-# LANGUAGE CPP #-}
 module BenchViewsTest(test) where
 
@@ -237,8 +237,9 @@ callAlloc (Call _ f x) = do
   allocated (rnf . f) x
 
 -- The bounds on toVector, sumA, the list heads, specialisation and the walks
--- hold for an optimised build alone, an unoptimised one allocating more for
--- each element, so their groups run empty there.
+-- hold for an optimised build without profiling or coverage, the others
+-- allocating more for each element: an unoptimised build runs their groups
+-- empty, and a profiled or coverage build runs them and may fail them.
 optimisedGroup :: String -> [Test] -> Test
 optimisedGroup n ts = testGroup n (if optimised then ts else [])
 
