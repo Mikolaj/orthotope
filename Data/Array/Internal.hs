@@ -855,18 +855,18 @@ genericUnsafeConcatN n vs = VG.create $ do
 -- that the loop over it mentions what 'run' takes apart (GHC #27894).
 data Nest = Fused !Axis | Level !Axis !Int !Nest
 
--- | The route a non-empty view takes once canonicalized: what its
--- consumer does with it, which is what 'toVectorListT', 'toVectorT',
--- 'toListT', 'equalT', 'compareT' and, on the view with its axes
--- reordered, the two unordered entry points dispatch on.  A view of no
--- elements (@product sh == 0@) has no route: each of these entry points
--- answers it before computing one.
+-- | The route a non-empty view takes once canonicalized: what its consumer does
+-- with it, which is what every consumer of a view in this module dispatches on,
+-- some on the view with its axes reordered.  A view of no elements
+-- (@product sh == 0@) has no route: each consumer answers it before
+-- computing one.
 --
--- Three constructors: slice the view, walk its runs as slices, or fill a vector
--- from it.  Every route carries the offset it starts at and the element count
--- (@product sh@), which every caller has in hand, so that a consumer takes the
--- route and the vector and nothing beside them; each constructor carries what
--- its way takes and no more, and 'RRuns' serves the lists and the comparisons,
+-- Three constructors: slice the view, walk its runs as slices, or fill a
+-- vector from it.  Every route carries the offset it starts at and the count
+-- of elements it reads, which is @product sh@, in every caller's hand, except
+-- where 'cellsRouteT' drops a broadcast, so that a consumer takes the route
+-- and the vector and nothing beside them; each constructor carries what its
+-- way takes and no more, and 'RRuns' serves the lists and the comparisons,
 -- 'routeVectorT' filling it as it fills 'RFill'.
 --
 -- The system is mixed: some patterns of shape and strides are told apart
@@ -927,9 +927,9 @@ newtype InnerFirst = InnerFirst { innerFirst :: [Axis] }
 
 -- | The canonical axes of a non-empty view: the innermost stride
 -- and extent, then the axes outside it, innermost first.  What
--- 'canonicalizeT' takes and returns and 'routeOfT', 'vUnsafeFillStrided' and
--- the runs walker take, so that none of them has to find the innermost
--- axis in a list.
+-- 'canonicalizeT' takes and returns and 'routeOfT', 'vUnsafeFillStrided',
+-- 'elemsT' and the runs walker take, so that none of them has to find the
+-- innermost axis in a list.
 --
 -- In effect a non-empty t'InnerFirst' with a strict head, and the head
 -- is two 'Int' fields, unboxed by the type, where an '!Axis' is unboxed
@@ -1345,10 +1345,10 @@ runRank !a !b = case compare ta tb of
       | n <= runFar = 1
       | otherwise = 3
 
--- The route of a non-empty view with its axes reordered for a consumer
--- that owes no order, from the offset the reordered view starts at:
--- what the two unordered entry points dispatch on.  The account below
--- says why each piece.
+-- The route of a non-empty view with its axes reordered for a consumer that
+-- owes no order, from the offset the reordered view starts at: what every such
+-- consumer in this module dispatches on, directly or through 'cellsRouteT'.
+-- The account below says why each piece.
 {-# INLINE unorderedRouteT #-}
 unorderedRouteT :: ShapeL -> Int -> T v a -> Route
 unorderedRouteT sh !l (T ats ao _) = case axes of
@@ -1361,7 +1361,7 @@ unorderedRouteT sh !l (T ats ao _) = case axes of
 -- an element read again adds nothing, as 'allSameT', 'maximumT',
 -- 'minimumT', 'anyT' and 'allT' are: the one axis of stride 0 the merge can
 -- leave, innermost or just outside the run, is dropped, so that the route
--- reads each cell of the view once.
+-- reads a broadcast's elements once.
 {-# INLINE cellsRouteT #-}
 cellsRouteT :: ShapeL -> Int -> T v a -> Route
 cellsRouteT sh l t = case unorderedRouteT sh l t of
