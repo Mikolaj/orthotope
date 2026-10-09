@@ -20,6 +20,7 @@ module DynamicSTest(test) where
 import Control.DeepSeq
 import Control.Exception
 import Data.Array.DynamicS
+import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.DynamicS as DS
 import Data.Int (Int8)
 import qualified Data.Vector.Storable as V
@@ -287,6 +288,16 @@ test = testGroup "DynamicS" $
       unit_1 = let u = fromList [2,3] (replicate 6 ()) :: Array ()
                in  assertEqual "1" 6 (V.length (toVector (transpose [1,0] u)))
 
+      -- fillStrided fills a view of a Storable vector, and fails on each part
+      -- of the contract its unchecked method relies on.
+      fillStrided_1 = do
+        let v = V.fromList [0 .. 9 :: Int]
+            axes = I.Axes 2 3 (I.InnerFirst [I.Axis 1 2])
+        assertEqual "fill" [0, 2, 4, 1, 3, 5] (V.toList (I.fillStrided axes 0 6 v))
+        assertThrowsIn "count" "fillStrided" (I.fillStrided axes 0 5 v)
+        assertThrowsIn "outside" "fillStrided" (I.fillStrided axes 5 6 v)
+        assertThrowsIn "extent" "fillStrided" (I.fillStrided (I.Axes 2 0 (I.InnerFirst [I.Axis 1 2])) 0 0 v)
+
       -- One call of each wrapper that the other tests of DynamicTest,
       -- DynamicSTest or DynamicUTest leave uncalled.
       wrappers_1 = do
@@ -393,6 +404,7 @@ test = testGroup "DynamicS" $
         , testCase "allSameA_1" allSameA_1
         , testCase "allSameA_2" allSameA_2
         , testCase "unit_1" unit_1
+        , testCase "fillStrided_1" fillStrided_1
         , testCase "wrappers_1" wrappers_1
         ]
   in  tests ++ [ testPropertyN "prop_bitcast" (prop_bitcast @Int @Word)
