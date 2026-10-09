@@ -315,7 +315,7 @@ concatOuter as | any null shs = error "concatOuter: rank 0 array"
                | not $ allSame $ map tail shs =
                  error $ "concatOuter: non-conforming inner dimensions: " ++ show shs
                | n < 0 = error $ "concatOuter: outer extents summing past maxBound: " ++ show (map head shs)
-               | otherwise = fromVector sh' $ vConcatN (product sh') $ map toVector as
+               | otherwise = fromVector sh' $ vUnsafeConcatN (product sh') $ map toVector as
   where shs@(sh:_) = map shapeL as
         n = sumExtents (map head shs)
         sh' = n : tail sh
@@ -458,7 +458,7 @@ ravelOuter name osh as@(a : _) = ravelOuterOf name osh (shapeL a) as
 {-# INLINE ravelOuterOf #-}
 ravelOuterOf :: (HasCallStack, Vector v, VecElem v a) =>
                 String -> ShapeL -> ShapeL -> [Array v a] -> Array v a
-ravelOuterOf name osh sh as = fromVector sh' $ vConcatN (product sh') $ map part as
+ravelOuterOf name osh sh as = fromVector sh' $ vUnsafeConcatN (product sh') $ map part as
   where sh' = osh ++ sh
         part x | shapeL x == sh = toVector x
                | otherwise = error $ name ++ ": non-conforming inner dimensions: " ++ show [sh, shapeL x]
