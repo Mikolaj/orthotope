@@ -15,7 +15,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeOperators #-}
 module ShapedTest(test) where
 
 import Control.DeepSeq
@@ -41,6 +40,11 @@ assertThrowsIn :: (NFData a) => String -> String -> a -> Assertion
 assertThrowsIn s f a = catch (deepseq a $ assertFailure s)
                              (\ (ErrorCall e) -> assertEqual s f (takeWhile (/= ':') e))
 
+-- An error before the result reaches weak head normal form.
+assertWhnfThrowsIn :: String -> String -> a -> Assertion
+assertWhnfThrowsIn s f a = catch (evaluate a >> assertFailure s)
+                                 (\ (ErrorCall e) -> assertEqual s f (takeWhile (/= ':') e))
+
 test :: Test
 test = testGroup "Shaped" $
   let a1, a1' :: Array [2,3] Int
@@ -65,14 +69,12 @@ test = testGroup "Shaped" $
       index_5 = assertThrows ">" (index a1 2)
       index_6 = catch (deepseq (index a1 (-1)) $ assertFailure "6")
                       (\ (ErrorCall e) -> assertEqual "6" "index: out of bounds (-1,2)" e)
-      -- stretchOuter need not know the extent it stretches to nor the shape
-      -- below it, and ShapedG's show need not know how to show a vector.
-      constraints_1 = assertEqual "1" (stretchOuter b :: Array [2,3] Int, show a1)
-                                      (stretchOuterN b, showG (SG.fromList [1..6] :: SG.Array [2,3] [] Int))
-        where b = fromList [1,2,3] :: Array [1,3] Int
-              stretchOuterN :: Array (1 : sh) Int -> Array (s : sh) Int
-              stretchOuterN = stretchOuter
-              showG :: (Show a, I.Vector v, I.VecElem v a, Shape sh) => SG.Array sh v a -> String
+      -- An extent past maxBound fails as it is read; no array of that type
+      -- can be made, so none is given.
+      index_7 = assertWhnfThrowsIn "7" "Shape" (index (undefined :: Array '[18446744073709551619] Int) 3)
+      -- ShapedG's show need not know how to show a vector.
+      constraints_1 = assertEqual "1" (show a1) (showG (SG.fromList [1..6] :: SG.Array [2,3] [] Int))
+        where showG :: (Show a, I.Vector v, I.VecElem v a, Shape sh) => SG.Array sh v a -> String
               showG = show
       toList_1 = assertEqual "1" [1,2,3,4,5,6] (toList a1)
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
@@ -98,12 +100,16 @@ test = testGroup "Shaped" $
       stretch_2 = assertEqual "2" (fromList @[2,2,3,2] [1,1,2,2,3,3,4,4,5,5,6,6,1,1,2,2,3,3,4,4,5,5,6,6])
                                   (stretch @[2,2,3,2] (reshape @[1,2,3,1] a1))
       stretch_3 = assertThrowsIn "3" "Shape" (stretch @[4294967296, 4294967296] (fromList [7] :: Array [1,1] Int))
+      stretchOuter_1 = assertWhnfThrowsIn "1" "Shape" (stretchOuter @4611686018427387904 (constant 0 :: Array '[1, 4] Int))
 
       scalar_1 = assertEqual "1" a4 (scalar 5)
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
       constant_1 = assertEqual "1" (fromList [1,1,1,1,1,1]) (constant 1 :: Array [2,3] Int)
       constant_2 = assertThrowsIn "2" "Shape" (constant 0 :: Array [4294967296, 4294967296] Int)
       generate_1 = assertThrowsIn "1" "Shape" (generate (const 0) :: Array [4294967296, 4294967296] Int)
+      -- Extents past maxBound.
+      iterateN_1 = assertWhnfThrowsIn "1" "Shape" (iterateN @18446744073709551617 (+ 1) (0 :: Int))
+      iota_1 = assertWhnfThrowsIn "1" "Shape" (iota :: Array '[18446744073709551615] Int)
       broadcast_1 = assertEqual "1" [1,1,2,2,3,3] (toList (broadcast @'[0] @'[3,2] (index a1 0)))
       broadcast_2 = assertEqual "2" [7,7,7,7,7,7]
                                     (toList (broadcast @'[1] @'[2,3] (constant 7 :: Array '[3] Int)))
@@ -123,6 +129,10 @@ test = testGroup "Shaped" $
       pad_2 = assertThrowsIn "2" "pad" (pad @['(0,0), '(0,4294967294)] 0 (constant 7 :: Array [4294967296, 2] Int) :: Array [4294967296, 4294967296] Int)
       -- Extents summing past maxBound.
       pad_3 = assertThrowsIn "3" "pad" (pad @'[ '(9223372036854775807, 9223372036854775807)] 0 (fromList [1,2,3] :: Array '[3] Int) :: Array '[18446744073709551617] Int)
+      -- A padded shape whose inner part has more elements than an Int counts.
+      pad_4 = assertWhnfThrowsIn "4" "pad" (pad @'[ '(0,0), '(4611686018427387904,0)] 0 (constant 0 :: Array '[0,2,4] Int))
+      -- A padding past maxBound.
+      pad_5 = assertWhnfThrowsIn "5" "Shape" (pad @'[ '(18446744073709551616, 0)] 0 (fromList [1] :: Array '[1] Int))
       a5 :: Array '[2,3,4] Int
       a5 = fromList [1..24]
       transpose_1 = assertEqual "1" (fromList [1,2,3,4,
@@ -205,6 +215,8 @@ test = testGroup "Shaped" $
                                                9,10,11,12,
                                                21,22,23,24])
                                     (transpose @'[1,0] a5)
+      -- A permuted shape whose inner part has more elements than an Int counts.
+      transpose_10 = assertWhnfThrowsIn "10" "transpose" (transpose @'[2,0,1] (constant 0 :: Array '[4611686018427387904, 4, 0] Int))
       append_1 = assertEqual "1" (fromList [1..9])
                                  (append a1 (fromList @[1,3] [7,8,9]))
       concatOuter_1 = assertEqual "1" (fromList [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
@@ -242,6 +254,8 @@ test = testGroup "Shaped" $
                                                       13,14,15,
                                                       18,19,20])
                                  (window @[3,3] a6)
+      -- A result extent past maxBound.
+      window_2 = assertWhnfThrowsIn "2" "Shape" (window @'[0] (constant 0 :: Array '[9223372036854775807] Int))
       stride_1 = assertEqual "1" (fromList @[2,2,2] [1,3,
                                                     9,11,
 
@@ -260,6 +274,10 @@ test = testGroup "Shaped" $
                                  (rotate @1 @4 (fromList [1 .. 12] :: Array [2,3,2] Int))
       -- A result shape within maxBound, where the copies of the row pass it.
       rotate_2 = assertThrowsIn "2" "rotate" (rotate @0 @4611686018427387905 (fromList [7] :: Array '[1] Int))
+      -- A result shape whose inner part has more elements than an Int counts,
+      -- and a count past maxBound.
+      rotate_3 = assertWhnfThrowsIn "3" "Shape" (rotate @1 @4611686018427387904 (constant 0 :: Array '[0,2] Int))
+      rotate_4 = assertWhnfThrowsIn "4" "Shape" (rotate @0 @18446744073709551617 (fromList [7] :: Array '[1] Int))
       slice_1 = assertEqual "1" (fromList @[2,2,1] [8,12,20,24])
                                 (slice @['(0,2), '(1,2), '(3,1)] a5)
       box = scalar . Just
@@ -357,6 +375,7 @@ test = testGroup "Shaped" $
         , testCase "index_4" index_4
         , testCase "index_5" index_5
         , testCase "index_6" index_6
+        , testCase "index_7" index_7
         , testCase "constraints_1" constraints_1
         , testCase "toList_1" toList_1
         , testCase "toList_2" toList_2
@@ -373,11 +392,14 @@ test = testGroup "Shaped" $
         , testCase "stretch_1" stretch_1
         , testCase "stretch_2" stretch_2
         , testCase "stretch_3" stretch_3
+        , testCase "stretchOuter_1" stretchOuter_1
         , testCase "scalar_1" scalar_1
         , testCase "unScalar_1" unScalar_1
         , testCase "constant_1" constant_1
         , testCase "constant_2" constant_2
         , testCase "generate_1" generate_1
+        , testCase "iterateN_1" iterateN_1
+        , testCase "iota_1" iota_1
         , testCase "broadcast_1" broadcast_1
         , testCase "broadcast_2" broadcast_2
         , testCase "broadcast_3" broadcast_3
@@ -388,6 +410,8 @@ test = testGroup "Shaped" $
         , testCase "pad_1" pad_1
         , testCase "pad_2" pad_2
         , testCase "pad_3" pad_3
+        , testCase "pad_4" pad_4
+        , testCase "pad_5" pad_5
         , testCase "transpose_1" transpose_1
         , testCase "transpose_2" transpose_2
         , testCase "transpose_3" transpose_3
@@ -395,6 +419,7 @@ test = testGroup "Shaped" $
         , testCase "transpose_5" transpose_5
         , testCase "transpose_6" transpose_6
         , testCase "transpose_9" transpose_9
+        , testCase "transpose_10" transpose_10
         , testCase "append_1" append_1
         , testCase "concatOuter_1" concatOuter_1
         , testCase "concatOuter_2" concatOuter_2
@@ -402,9 +427,12 @@ test = testGroup "Shaped" $
         , testCase "ravel_1" ravel_1
         , testCase "unravel_1" unravel_1
         , testCase "window_1" window_1
+        , testCase "window_2" window_2
         , testCase "stride_1" stride_1
         , testCase "rotate_1" rotate_1
         , testCase "rotate_2" rotate_2
+        , testCase "rotate_3" rotate_3
+        , testCase "rotate_4" rotate_4
         , testCase "slice_1" slice_1
         , testCase "rerank_1" rerank_1
         , testCase "rerank_2" rerank_2

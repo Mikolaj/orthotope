@@ -51,14 +51,9 @@ test = testGroup "ShapedU" $
       index_3 = assertEqual "3" (fromList [4]) (a2 `index` 0 `index` 1)
       index_4 = assertThrows "<0" (index a1 (-1))
       index_5 = assertThrows ">" (index a1 2)
-      -- stretchOuter need not know the extent it stretches to, nor index that
-      -- the elements are Unboxed.
-      constraints_1 = assertEqual "1" (stretchOuter b :: Array [2,3] Int, index a1 1)
-                                      (stretchOuterN b, indexN a1 1)
-        where b = fromList [1,2,3] :: Array [1,3] Int
-              stretchOuterN :: Array '[1, 3] Int -> Array '[s, 3] Int
-              stretchOuterN = stretchOuter
-              indexN :: Array '[2, 3] a -> Int -> Array '[3] a
+      -- index need not know that the elements are Unboxed.
+      constraints_1 = assertEqual "1" (index a1 1) (indexN a1 1)
+        where indexN :: Array '[2, 3] a -> Int -> Array '[3] a
               indexN = index
       toList_1 = assertEqual "1" [1,2,3,4,5,6] (toList a1)
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
