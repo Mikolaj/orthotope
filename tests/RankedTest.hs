@@ -255,6 +255,12 @@ test = testGroup "Ranked" $
                                  (window [3,3] a6 :: Array 4 Int)
       window_2 = assertThrows "2" (window [3,6] a6 :: Array 4 Int)
       window_3 = assertThrows "3" (window [3,3,3] a6 :: Array 5 Int)
+      -- The window list is checked before the shape, and the message shows
+      -- an extent past maxBound as it is.
+      window_4 = do
+        let msg m a = catch (deepseq a $ assertFailure m) (\ (ErrorCall e) -> assertEqual m m e)
+        msg "window: rank mismatch ([0,1],[9223372036854775807])" (window [0, 1] (constant [maxBound] 0 :: Array 1 Int) :: Array 3 Int)
+        msg "window: bad shape [9223372036854775808,0]" (window [0] (constant [maxBound] 0 :: Array 1 Int) :: Array 2 Int)
       stride_1 = assertEqual "1" (fromList [2,2,2] [1,3,
                                                     9,11,
 
@@ -429,6 +435,7 @@ test = testGroup "Ranked" $
         , testCase "window_1" window_1
         , testCase "window_2" window_2
         , testCase "window_3" window_3
+        , testCase "window_4" window_4
         , testCase "stride_1" stride_1
         , testCase "stride_2" stride_2
         , testCase "stride_3" stride_3

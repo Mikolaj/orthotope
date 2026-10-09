@@ -357,14 +357,20 @@ unravel a = rerank 1 scalar a
 -- @wa `index` i1 ... `index` ik == slice [(i1,w1),...,(ik,wk)] a@.
 {-# INLINE window #-}
 window :: (HasCallStack, Vector v) => [Int] -> Array v a -> Array v a
-window aws (A ash (T ss o v)) | badShape rsh = error $ "window: bad shape " ++ show rsh
-                              | otherwise = A rsh (T (ss' ++ ss) o v)
-  where rsh = win aws ash
+-- The window list is checked before the shape is built, so that the shape
+-- a message shows holds no error of its own, and the extents are computed
+-- as Integers, a window of 0 over an extent of maxBound making one past it.
+window aws (A ash (T ss o v))
+  | length aws > length ash = error $ "window: rank mismatch " ++ show (aws, ash)
+  | (w, s) : _ <- filter (\ (w, s) -> w < 0 || w > s) (zip aws ash) =
+      error $ "window: bad window size " ++ show (w, s)
+  | any (> toInteger (maxBound :: Int)) rshI || badShape rsh =
+      error $ "window: bad shape " ++ show rshI
+  | otherwise = A rsh (T (ss' ++ ss) o v)
+  where rshI = zipWith (\ w s -> toInteger s - toInteger w + 1) aws ash
+               ++ map toInteger (aws ++ drop (length aws) ash)
+        rsh = map fromInteger rshI
         ss' = zipWith const ss aws
-        win (w:ws) (s:sh) | 0 <= w && w <= s = s - w + 1 : win ws sh
-                          | otherwise = error $ "window: bad window size " ++ show (w, s)
-        win [] sh = aws ++ sh
-        win _ _ = error $ "window: rank mismatch " ++ show (aws, ash)
 
 -- | Stride the outermost dimensions.
 -- E.g., if the array shape is @[10,12,8]@ and the strides are
