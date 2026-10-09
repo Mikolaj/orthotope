@@ -58,6 +58,10 @@ test = testGroup "Ranked" $
         assertThrowsIn "3" "Shape" (fromList [5] [1 .. 5] :: Array 18446744073709551617 Int)
         assertEqual "convertE" (Left "convert: rank mismatch")
           (() <$ (convertE (D.fromList [5] [1 .. 5 :: Int]) :: Either String (Array 18446744073709551617 Int)))
+      -- maximumA and minimumA fail on an empty array.
+      maximumA_empty = do
+        assertThrowsIn "max" "maximumA" (maximumA (fromList [0] [] :: Array 1 Int))
+        assertThrowsIn "min" "minimumA" (minimumA (fromList [2, 0] [] :: Array 2 Int))
       index_1 = assertEqual "1" (fromList [3] [1,2,3]) (index a1 0)
       index_2 = assertEqual "2" (fromList [2] [1,4]) (index a2 0)
       index_3 = assertEqual "3" (fromList [] [4]) (a2 `index` 0 `index` 1)
@@ -384,6 +388,7 @@ test = testGroup "Ranked" $
         , testCase "rank_1" rank_1
         , testCase "rank_2" rank_2
         , testCase "rank_3" rank_3
+        , testCase "maximumA_empty" maximumA_empty
         , testCase "index_1" index_1
         , testCase "index_2" index_2
         , testCase "index_3" index_3
