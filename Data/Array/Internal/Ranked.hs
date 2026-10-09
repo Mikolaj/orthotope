@@ -423,7 +423,8 @@ productA = G.productA . unA
 
 -- | Maximum of all elements.
 -- Of elements that compare equal, as @0.0@ and @-0.0@ do, the one returned
--- depends on the array's layout.
+-- depends on the array's layout, and so does which pairs of elements it
+-- compares, an element with itself among them.
 -- Fails if the array is empty.
 {-# INLINE maximumA #-}
 maximumA :: (HasCallStack, Ord a) => Array r a -> a
@@ -431,7 +432,8 @@ maximumA = G.maximumA . unA
 
 -- | Minimum of all elements.
 -- Of elements that compare equal, as @0.0@ and @-0.0@ do, the one returned
--- depends on the array's layout.
+-- depends on the array's layout, and so does which pairs of elements it
+-- compares, an element with itself among them.
 -- Fails if the array is empty.
 {-# INLINE minimumA #-}
 minimumA :: (HasCallStack, Ord a) => Array r a -> a
