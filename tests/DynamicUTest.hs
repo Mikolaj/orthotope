@@ -19,6 +19,7 @@ import Control.DeepSeq hiding (force)
 import Control.Exception
 import Data.Array.Convert (convert)
 import qualified Data.Array.Dynamic as D
+import qualified Data.Array.Internal as I
 import Data.Array.DynamicU
 import qualified Data.Vector.Unboxed as V
 import Data.Word (Word8)
@@ -300,6 +301,9 @@ test = testGroup "DynamicU" $
         assertEqual "force" [1 .. 6] (toList (force a1))
       -- convert to boxed of a transposed view keeps the view's order.
       convert_1 = assertEqual "1" (toList (transpose [1, 0] a1)) (D.toList (convert (transpose [1, 0] a1) :: D.Array Int))
+      -- vZipWith of vectors of two lengths zips as many elements as the shorter
+      -- has, as vector's zipWith does.
+      vZipWith_1 = assertEqual "1" (V.fromList [11, 22 :: Int]) (I.vZipWith (+) (V.fromList [1, 2, 3]) (V.fromList [10, 20]))
 
       tests =
         [ testCase "show_1" show_1
@@ -386,5 +390,6 @@ test = testGroup "DynamicU" $
         , testCase "lazyElems_1" lazyElems_1
         , testCase "wrappers_1" wrappers_1
         , testCase "convert_1" convert_1
+        , testCase "vZipWith_1" vZipWith_1
         ]
   in  tests
