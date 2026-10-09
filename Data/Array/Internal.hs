@@ -584,15 +584,15 @@ fillStrided axes@(Axes st n outer) ao l v
 -- a run.  Boxed vectors copy runs of 5 elements or more: on 200000 elements
 -- the copy is 1.2 times faster than the stepping loop on runs of 6 and 3.4
 -- times on runs of 1000 or more, and level with it on runs of 4.  Storable and
--- Unboxed stores pay no barrier.  Storable vectors copy runs of 512 bytes or
--- more and Unboxed ones, whose element size the class does not give, runs of 64
--- elements: well past where a copy's cost a run is paid off, rather than where
--- this machine's figures would put the cut.  On views of 20000 to 100000000
--- Doubles a copy of every run took 0.6 to 1.6 of the stepping loop's time at
--- both kinds: faster on runs of 64 to 4096 in views of 20000 and 200000 and on
--- runs past glibc's non-temporal threshold of 24 MiB, slower on runs of 5 and
--- up to 10% slower on runs of 4096 to 1048576 in views of 10000000 to 100000000
--- Doubles.  Measured on Zen 3.
+-- Unboxed stores pay no barrier.  Storable vectors copy runs of as many whole
+-- elements as fit in 512 bytes, or more, and Unboxed ones, whose element size
+-- the class does not give, runs of 64 elements: well past where a copy's cost a
+-- run is paid off, rather than where this machine's figures would put the cut.
+-- On views of 20000 to 100000000 Doubles a copy of every run took 0.6 to 1.6
+-- of the stepping loop's time at both kinds: faster on runs of 64 to 4096 in
+-- views of 20000 and 200000 and on runs past glibc's non-temporal threshold of
+-- 24 MiB, slower on runs of 5 and up to 10% slower on runs of 4096 to 1048576
+-- in views of 10000000 to 100000000 Doubles.  Measured on Zen 3.
 --
 -- The count must be positive, asserted at entry: a zero-stride
 -- innermost run reads its one element, and a zero-stride level writes
