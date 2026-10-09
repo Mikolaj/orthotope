@@ -37,6 +37,7 @@
 module Data.Array.Internal.ShapedU(
   Array(..), Shape(..), Size, Rank, Vector, ShapeL, Unbox,
   Window, Stride, Permute, Permutation, ValidDims,
+  Broadcast,
   size, shapeL, rank,
   toList, fromList, toVector, fromVector,
   normalize, force,

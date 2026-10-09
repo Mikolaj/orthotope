@@ -23,7 +23,7 @@
 -- | Arrays of dynamic size.  The arrays are polymorphic in the underlying
 -- linear data structure used to store the actual values.
 module Data.Array.Internal.DynamicG(
-  Array(..), Vector, VecElem,
+  Array(..), Vector, ShapeL, VecElem,
   size, shapeL, rank,
   toList, fromList, toVector, fromVector,
   normalize, force,

@@ -31,7 +31,7 @@
 -- | Arrays of static size.  The arrays are polymorphic in the underlying
 -- linear data structure used to store the actual values.
 module Data.Array.Internal.ShapedG(
-  Array(..), Shape(..), Size, Rank, Vector, VecElem,
+  Array(..), Shape(..), Size, Rank, Vector, ShapeL, VecElem,
   Window, Stride, Permute, Permutation, ValidDims,
   Broadcast,
   size, shapeL, rank,
