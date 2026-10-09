@@ -305,6 +305,11 @@ test = testGroup "Shaped" $
                               (rev @[0,1] a1)
       withShapeP_1 = assertThrowsIn "1" "withShapeP" (withShapeP [-1] (\ _ -> ()))
       withShape_1 = assertThrowsIn "1" "withShape" (withShape [-1] ())
+      -- A shape of exactly maxBound elements passes the check, in one extent
+      -- and as a product.
+      sizeP_1 = assertEqual "1" [maxBound, maxBound]
+                  [ size (constant 0 :: Array '[9223372036854775807] Int)
+                  , size (constant 0 :: Array '[7, 1317624576693539401] Int) ]
       -- A shape fails if any inner part of it has more elements than an Int
       -- counts, though an outer extent of 0 leaves it none.
       shapeRule_1 = do
@@ -468,6 +473,7 @@ test = testGroup "Shaped" $
         , testCase "rev_2" rev_2
         , testCase "withShapeP_1" withShapeP_1
         , testCase "withShape_1" withShape_1
+        , testCase "sizeP_1" sizeP_1
         , testCase "shapeRule_1" shapeRule_1
         , testCase "listP_1" listP_1
         , testCase "convertE_1" convertE_1
