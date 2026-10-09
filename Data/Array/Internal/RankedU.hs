@@ -113,7 +113,7 @@ rank = G.rank . unA
 -- | Index into an array.  Fails if the index is out of bounds.
 -- O(1) time.
 {-# INLINE index #-}
-index :: (HasCallStack) => Array (1+n) a -> Int -> Array n a
+index :: forall a n . (HasCallStack) => Array (1+n) a -> Int -> Array n a
 index a = A . G.index (unA a)
 
 -- | Convert to a list with the elements in the linearization order.
@@ -160,7 +160,7 @@ normalize = A . G.normalize . unA
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.
 {-# INLINABLE reshape #-}
-reshape :: (HasCallStack, Unbox a, KnownNat n') => ShapeL -> Array n a -> Array n' a
+reshape :: forall a n n' . (HasCallStack, Unbox a, KnownNat n') => ShapeL -> Array n a -> Array n' a
 reshape s = A . G.reshape s . unA
 
 -- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
