@@ -571,12 +571,9 @@ broadcast a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now
 {-# INLINE update #-}
 update :: forall sh v a . (HasCallStack, Vector v, VecElem v a, Shape sh) =>
           Array sh v a -> [([Int], a)] -> Array sh v a
-update a@(A t) us | null us = a  -- no update: the array itself
-                  | all (ok . fst) us = A $ updateT sh t us
-                  | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst us)
-  where sh = shapeL a
-        ok is = length is == r && and (zipWith (\ i s -> 0 <= i && i < s) is sh)
-        r = length sh
+-- Through DynamicG's update, as 'rotate' goes through DynamicG's rotate.
+update a@(A t) us = case DG.update (DG.A (shapeL a) t) us of
+  DG.A _ t' -> A t'
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}
