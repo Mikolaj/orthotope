@@ -47,7 +47,7 @@ module Data.Array.Internal.ShapedG(
   slice, rerank, rerank2, rev,
   reduce, foldrA, traverseA,
   allSameA,
-  sumA, productA, minimumA, maximumA,
+  sumA, productA, maximumA, minimumA,
   anyA, allA,
   broadcast,
   update,
