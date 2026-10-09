@@ -366,7 +366,7 @@ Numeric constants are automatically of the right shape.
 ┌────────┐
 │14 16 18│
 └────────┘
-> pp $ a + a
+> pp $ m + m
 ┌───────────┐
 │ 2  4  6  8│
 │10 12 14 16│
@@ -382,7 +382,7 @@ What is value arguments for `Dynamic` arrays sometimes turn into type arguments
 for shaped arrays.
 
 ```
-> pp $ reshape @[3,8] a
+> pp $ reshape @[3,8] m
 ┌───────────────────────┐
 │ 1  2  3  4  5  6  7  8│
 │ 9 10 11 12 13 14 15 16│
