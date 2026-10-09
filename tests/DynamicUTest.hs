@@ -259,6 +259,18 @@ test = testGroup "DynamicU" $
                                                  , constant [3] nan, normalize (constant [3] nan)
                                                  , slice [(0,1)] (fromList [2] [nan, 1]) ])
         where nan = 0 / 0 :: Double
+      -- vector's DoNotUnboxLazy stores its elements unevaluated, and an
+      -- operation that does not use one leaves it so, on a dense view and on
+      -- a transposed one alike.
+      lazyElems_1 = do
+        assertEqual "mapA" [0, 0] (toList (mapA (\ _ -> 0 :: Int) lz))
+        assertEqual "zipWithA" [5, 6] (toList (zipWithA (\ _ b -> b) lz (fromList [2] [5, 6 :: Int])))
+        assertEqual "zipWith3A" [5, 6] (toList (zipWith3A (\ _ _ c -> c) lz lz (fromList [2] [5, 6 :: Int])))
+        assertEqual "toList" 4 (length (toList (transpose [1, 0] lz2)))
+        assertEqual "foldrA" 4 (foldrA (\ _ n -> n + 1 :: Int) 0 (transpose [1, 0] lz2))
+        assertEqual "anyA" True (anyA (const True) (transpose [1, 0] lz2))
+        where lz = fromList [2] (map V.DoNotUnboxLazy [undefined, 1 :: Int])
+              lz2 = fromList [2, 2] (map V.DoNotUnboxLazy [undefined, 1, 2, 3 :: Int])
 
       -- One call of each wrapper that the other tests of DynamicTest,
       -- DynamicSTest or DynamicUTest leave uncalled.
@@ -364,6 +376,7 @@ test = testGroup "DynamicU" $
         , testCase "reduce_3" reduce_3
         , testCase "allSameA_1" allSameA_1
         , testCase "allSameA_2" allSameA_2
+        , testCase "lazyElems_1" lazyElems_1
         , testCase "wrappers_1" wrappers_1
         ]
   in  tests
