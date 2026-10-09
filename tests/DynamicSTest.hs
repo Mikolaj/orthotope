@@ -26,13 +26,22 @@ import Data.Int (Int8)
 import qualified Data.Vector.Storable as V
 import Data.Word (Word16, Word8)
 import Foreign.ForeignPtr.Unsafe (unsafeForeignPtrToPtr)
-import Foreign.Ptr (minusPtr)
-import Foreign.Storable (sizeOf)
+import Foreign.Ptr (castPtr, minusPtr)
+import Foreign.Storable (Storable (..))
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Test.QuickCheck (Property, forAll, (.&&.), (===))
 import Views (Elem, View (..), failsWith, genElems, mkViewG, testPropertyN)
+
+-- A Storable whose peek fails on a byte it does not decode.
+data E = E0 | E1 deriving (Eq, Show, Enum)
+
+instance Storable E where
+  sizeOf _ = 1
+  alignment _ = 1
+  peek p = toEnum . fromIntegral <$> (peek (castPtr p) :: IO Word8)
+  poke p e = poke (castPtr p) (fromIntegral (fromEnum e) :: Word8)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -109,6 +118,12 @@ test = testGroup "DynamicS" $
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
       zipWithA_2 = assertThrows "2" (zipWithA (+) a1 a2)
       zipWithA_3 = assertEqual "3" [] (toList (zipWithA quot (constant [0] 1) (constant [0] (0 :: Int))))  -- 1 `quot` 0 outside the view
+      -- An empty view of a broadcast element that does not decode leaves
+      -- it unread, at either argument.
+      zipWithA_4 = assertEqual "4" ([], [])
+                     ( toList (zipWithA (\ _ _ -> E0) (stretch [0] eOne) (fromList [0] [] :: Array E))
+                     , toList (zipWithA (\ _ _ -> E0) (fromList [0] [] :: Array E) (stretch [0] eOne)) )
+        where eOne = fromVector [1] (V.unsafeCast (V.fromList [5 :: Word8])) :: Array E
       zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
       zipWith3A_2 = assertEqual "2" [] (toList (zipWith3A (\ x y z -> x `quot` (y + z)) (constant [0] 1) (constant [0] 0) (constant [0] (0 :: Int))))
       pad_1 = assertEqual "1" (fromList [5,10] [9,9,9,9,9,9,9,9,9,9,
@@ -365,6 +380,7 @@ test = testGroup "DynamicS" $
         , testCase "zipWithA_1" zipWithA_1
         , testCase "zipWithA_2" zipWithA_2
         , testCase "zipWithA_3" zipWithA_3
+        , testCase "zipWithA_4" zipWithA_4
         , testCase "zipWith3A_1" zipWith3A_1
         , testCase "zipWith3A_2" zipWith3A_2
         , testCase "pad_1" pad_1

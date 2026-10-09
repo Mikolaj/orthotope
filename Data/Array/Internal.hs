@@ -1594,8 +1594,10 @@ convertT sh g t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip
 
 -- Zip two arrays with a function.
 -- The two branches that map over one array read the other array's one
--- element through 'vUnsafeWithElem', as the instance reads it, before the map takes
--- it.
+-- element through 'vUnsafeWithElem', as the instance reads it, before the map
+-- takes it, rather than hand the map a thunk of the read, which cost it at
+-- Storable and Unboxed four to six times its instructions.  Like the branch for
+-- two such vectors, they skip an empty view, whose element lies outside it.
 -- TODO: two views of the same strides that each read every element of one
 -- part could zip those parts and keep the strides, as 'convertT' maps a view.
 -- Measured on 60000 Doubles, that pays only where they broadcast, from 550
@@ -1612,10 +1614,10 @@ zipWithT sh f t@(T ss _ v) t'@(T _ _ v') =
       -- to operate on the single element directly, unless the view is empty and
       -- the element lies outside it.
       T ss 0 $ vSingleton $ f (vUnsafeIndex v 0) (vUnsafeIndex v' 0)
-    (1, _) ->
+    (1, _) | 0 `notElem` sh ->
       -- First vector has length 1, so use a map instead.
       vUnsafeWithElem v 0 $ \ x -> mapT sh (x `f`) t'
-    (_, 1) ->
+    (_, 1) | 0 `notElem` sh ->
       -- Second vector has length 1, so use a map instead.
       vUnsafeWithElem v' 0 $ \ y -> mapT sh (`f` y) t
     (_, _) ->
