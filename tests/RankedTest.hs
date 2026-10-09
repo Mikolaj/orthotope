@@ -289,7 +289,8 @@ test = testGroup "Ranked" $
                                       9, 10, 11, 12, 7, 8,
                                       7, 8, 9, 10, 11, 12] :: Array 4 Int)
                            (rotate @1 4 (fromList [2, 3, 2] [1 .. 12] :: Array 3 Int))
-      rotate_2 = assertThrowsIn "2" "rotate" (rotate @1 @0 0 (fromList [3] [1,2,3] :: Array 1 Int))
+      -- A negative count; that d is a dimension of the array the type checks.
+      rotate_2 = assertThrowsIn "2" "rotate" (rotate @0 @1 (-1) (fromList [3] [1,2,3] :: Array 1 Int))
       -- A result shape past maxBound.
       rotate_3 = assertThrowsIn "3" "rotate" (rotate @0 @1 (maxBound `quot` 4 + 1) (fromList [4] [1,2,3,4] :: Array 1 Int))
       -- A result shape within maxBound, where the copies of the row pass it.
