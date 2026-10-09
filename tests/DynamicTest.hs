@@ -459,6 +459,8 @@ test = testGroup "Dynamic" $
       stride_3 = assertThrows "3" (stride [0] a1)
       stride_4 = assertThrows "4" (stride [-1] a1)
       stride_5 = assertEqual "5" (fromList [1] [1]) (stride [maxBound] (fromList [3] [1,2,3::Int]))
+      -- stride with fewer strides than dimensions keeps the rest.
+      stride_6 = assertEqual "6" (fromList [2, 2] [1, 2, 5, 6]) (stride [2] (fromList [4, 2] [1 .. 8 :: Int]))
       -- compare decides by the first element that differs, here in the first of
       -- the parts two transposed views fold, the last differing the other way.
       compare_1 = assertEqual "1" (GT, GT) (compare (toList x) (toList y), compare x y)
@@ -466,6 +468,14 @@ test = testGroup "Dynamic" $
               y = transpose [1, 0] (fromList [2, 2] [0, 2, 3, 9])
       -- An axis of extent 0 does not stretch.
       stretch_5 = assertThrowsIn "5" "stretch" (stretch [3] (fromList [0] [] :: Array Int))
+      -- A size past maxBound fails where no later extent is 0, and passes where
+      -- one is.
+      badShape_4 = do
+        assertEqual "1" [4611686018427387904, 4, 0] (shapeL (fromList [4611686018427387904, 4, 0] [] :: Array Int))
+        assertThrowsIn "2" "fromList" (fromList [4611686018427387904, 4, 3] [] :: Array Int)
+      -- read rejects a count of elements that is not the shape's.
+      read_1 = assertEqual "1" (Nothing, Just (fromList [2] [1, 2] :: Array Int))
+                 (readMaybe "fromList [2] [1,2,3]" :: Maybe (Array Int), readMaybe "fromList [2] [1,2]")
       rotate_1 = assertEqual "1" (fromList [2, 4, 3, 2]
                                            [1, 2, 3, 4, 5, 6,
                                             5, 6, 1, 2, 3, 4,
@@ -722,8 +732,11 @@ test = testGroup "Dynamic" $
         , testCase "stride_3" stride_3
         , testCase "stride_4" stride_4
         , testCase "stride_5" stride_5
+        , testCase "stride_6" stride_6
         , testCase "compare_1" compare_1
         , testCase "stretch_5" stretch_5
+        , testCase "badShape_4" badShape_4
+        , testCase "read_1" read_1
         , testCase "rotate_1" rotate_1
         , testCase "rotate_2" rotate_2
         , testCase "rotate_3" rotate_3
