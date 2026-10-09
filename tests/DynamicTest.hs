@@ -40,7 +40,7 @@ import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Test.QuickCheck
-  (Property, choose, conjoin, counterexample, elements, forAll, property, (.&&.), (===))
+  (Property, choose, classify, conjoin, counterexample, elements, forAll, property, (.&&.), (===))
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
 import Views (View (..), failsWith, genRawView, mkView, testPropertyN)
@@ -862,7 +862,13 @@ prop_sameElems v@(View sh _) =
       t = case x of DI.A (DG.A _ t') -> t'
       same ys = and [ Just True == (samePtr <$> V.indexM src i <*> V.indexM ys k)
                     | (k, i) <- zip [0 ..] is ]
-  in  conjoin
+      -- The control: an element read from the vector and from vector's copy of
+      -- the vector, one heap object unless the build, as a coverage one can,
+      -- tells them apart.
+      ptrEq = n == 0 || Just True == (samePtr <$> V.indexM src 0 <*> V.indexM (V.force src) 0)
+  in  classify (not ptrEq) "pointer equality unavailable" $
+      if not ptrEq then property True else
+      conjoin
         [ counterexample name ok
         | (name, ok) <-
             [ ("toVector", same (toVector x))
