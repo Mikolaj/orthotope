@@ -337,7 +337,7 @@ slice ss = A . G.slice ss . unA
 -- dimensions may be empty unless the function returns scalars.
 -- O(n) time.
 {-# INLINE rerank #-}
-rerank :: forall n i o a b . (HasCallStack, KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
+rerank :: forall n i o a b . (KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
           (Array i a -> Array o b) -> Array (n+i) a -> Array (n+o) b
 rerank f = A . G.rerank (unA . f . A) . unA
 

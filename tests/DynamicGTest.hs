@@ -356,8 +356,8 @@ prop_rerank v@(View sh _) =
           rv = reverse [0 .. length xsh - 1]
           y = transpose rv (fromList (reverse xsh) (toList (transpose rv (mapA (* 3) x))))
       in  if product osh == 0
-          then failsWith "rerank: empty outer dimension" (rerank n double x)
-               .&&. failsWith "rerank2: empty outer dimension" (rerank2 n (zipWithA (+)) x x)
+          then failsWith "ravelOuter: empty outer dimension" (rerank n double x)
+               .&&. failsWith "ravelOuter: empty outer dimension" (rerank2 n (zipWithA (+)) x x)
           else shapeL (rerank n double x) === osh ++ [product ish]
                .&&. toList (rerank n double x) === concatMap (map (* 2)) subs
                .&&. toList (rerank2 n (zipWithA (+)) x x) === map (* 2) (toList x)
@@ -370,7 +370,7 @@ prop_ravel :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Proper
 prop_ravel v@(View sh _) =
   let x = mkViewG v (upTo (product sh)) :: Array v a
       y = reshape [product (shapeL x), 1] x
-      msg = "ravel: non-conforming inner dimensions: " ++ show [shapeL x, shapeL y]
+      msg = "ravelOuterOf: non-conforming inner dimensions: " ++ show [shapeL x, shapeL y]
   in  failsWith "ravel: empty array" (ravel (fromList [0] [] :: Array V.Vector (Array v a)))
       .&&. (if shapeL x == shapeL y then property True
             else failsWith msg (ravel (fromList [3] [x, x, y] :: Array V.Vector (Array v a))))
