@@ -120,7 +120,7 @@ rank (A _ _) = natT @n
 -- | Index into an array.  Fails if the index is out of bounds.
 -- O(1) time.
 {-# INLINE index #-}
-index :: (Vector v, HasCallStack) => Array (1+n) v a -> Int -> Array n v a
+index :: forall n v a . (Vector v, HasCallStack) => Array (1+n) v a -> Int -> Array n v a
 index (A (s:ss) t) i | i < 0 || i >= s = error $ "index: out of bounds " ++ show (i, s)
                      | otherwise = A ss $ indexT t i
 index (A [] _) _ = error "index: scalar"
@@ -128,7 +128,7 @@ index (A [] _) _ = error "index: scalar"
 -- | Convert to a list with the elements in the linearization order.
 -- O(n) time.
 {-# INLINE toList #-}
-toList :: (Vector v, VecElem v a) => Array n v a -> [a]
+toList :: forall n v a . (Vector v, VecElem v a) => Array n v a -> [a]
 toList (A sh t) = toListT sh t
 
 -- | Convert to a vector with the elements in the linearization order.
@@ -136,7 +136,7 @@ toList (A sh t) = toListT sh t
 -- The O(1) result can be a slice of a larger vector, which it keeps alive;
 -- 'force' the array first to get a vector of just its elements.
 {-# INLINE toVector #-}
-toVector :: (Vector v, VecElem v a) => Array n v a -> v a
+toVector :: forall n v a . (Vector v, VecElem v a) => Array n v a -> v a
 toVector (A sh t) = toVectorT sh t
 
 -- | Convert from a list with the elements given in the linearization order.
@@ -173,7 +173,7 @@ fromVector ss v | badShape ss = error $ "fromVector: bad shape " ++ show ss
 -- implications.
 -- O(n) or O(1) time.
 {-# INLINE normalize #-}
-normalize :: (Vector v, VecElem v a) => Array n v a -> Array n v a
+normalize :: forall n v a . (Vector v, VecElem v a) => Array n v a -> Array n v a
 normalize (A sh t) = A sh $ normalizeT sh t
 
 -- | Copy the elements of the array into a vector of their own, in the
@@ -186,7 +186,7 @@ normalize (A sh t) = A sh $ normalizeT sh t
 -- garbage collected, if nothing else refers to it.
 -- O(n) time.
 {-# INLINE force #-}
-force :: (Vector v, VecElem v a) => Array n v a -> Array n v a
+force :: forall n v a . (Vector v, VecElem v a) => Array n v a -> Array n v a
 force (A sh t) = A sh $ forceT sh t
 
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
@@ -251,7 +251,7 @@ constant sh | badShape sh = error $ "constant: bad shape " ++ show sh
 -- | Map over the array elements.
 -- O(n) time.
 {-# INLINE mapA #-}
-mapA :: (Vector v, VecElem v a, VecElem v b) =>
+mapA :: forall n v a b . (Vector v, VecElem v a, VecElem v b) =>
         (a -> b) -> Array n v a -> Array n v b
 mapA f (A s t) = A s (mapT s f t)
 
@@ -259,7 +259,7 @@ mapA f (A s t) = A s (mapT s f t)
 -- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWithA #-}
-zipWithA :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c) =>
+zipWithA :: forall n v a b c . (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c) =>
             (a -> b -> c) -> Array n v a -> Array n v b -> Array n v c
 zipWithA f (A s t) (A s' t') | s == s' = A s (zipWithT s f t t')
                              | otherwise = error $ "zipWithA: shape mismatch " ++ show (s, s')
@@ -268,7 +268,7 @@ zipWithA f (A s t) (A s' t') | s == s' = A s (zipWithT s f t t')
 -- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith3A #-}
-zipWith3A :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d) =>
+zipWith3A :: forall n v a b c d . (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d) =>
              (a -> b -> c -> d) -> Array n v a -> Array n v b -> Array n v c -> Array n v d
 zipWith3A f (A s t) (A s' t') (A s'' t'') | s == s' && s == s'' = A s (zipWith3T s f t t' t'')
                                           | otherwise = error $ "zipWith3A: shape mismatch " ++ show (s, s', s'')
@@ -277,7 +277,7 @@ zipWith3A f (A s t) (A s' t') (A s'' t'') | s == s' && s == s'' = A s (zipWith3T
 -- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith4A #-}
-zipWith4A :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e) =>
+zipWith4A :: forall n v a b c d e . (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e) =>
              (a -> b -> c -> d -> e) -> Array n v a -> Array n v b -> Array n v c -> Array n v d -> Array n v e
 zipWith4A f (A s t) (A s' t') (A s'' t'') (A s''' t''') | s == s' && s == s'' && s == s''' = A s (zipWith4T s f t t' t'' t''')
                                                         | otherwise = error $ "zipWith4A: shape mismatch " ++ show (s, s', s'', s''')
@@ -286,7 +286,7 @@ zipWith4A f (A s t) (A s' t') (A s'' t'') (A s''' t''') | s == s' && s == s'' &&
 -- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith5A #-}
-zipWith5A :: (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, VecElem v f) =>
+zipWith5A :: forall n v a b c d e f . (HasCallStack, Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, VecElem v f) =>
              (a -> b -> c -> d -> e -> f) -> Array n v a -> Array n v b -> Array n v c -> Array n v d -> Array n v e -> Array n v f
 zipWith5A f (A s t) (A s' t') (A s'' t'') (A s''' t''') (A s'''' t'''') | s == s' && s == s'' && s == s''' && s == s'''' = A s (zipWith5T s f t t' t'' t''' t'''')
                                                                         | otherwise = error $ "zipWith5A: shape mismatch " ++ show (s, s', s'', s''', s'''')
@@ -332,7 +332,7 @@ transpose is (A sh t) | l > n = error $ "transpose: rank exceeded " ++ show (is,
 -- Where one array's outer extent is 0, the result is the other itself, sharing
 -- its vector; 'force' copies it out.
 {-# INLINE append #-}
-append :: (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
+append :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
           Array n v a -> Array n v a -> Array n v a
 append a@(A (sa:sh) _) b@(A (sb:sh') _)
   | sh == sh', sa == 0 = b  -- nothing to append to: the other array itself
@@ -348,7 +348,7 @@ append _ _ = error "append: bad shape"
 -- Of one array, the result is that array itself, sharing its vector; 'force'
 -- copies it out.
 {-# INLINE concatOuter #-}
-concatOuter :: (HasCallStack, Vector v, VecElem v a, KnownNat n) => [Array n v a] -> Array n v a
+concatOuter :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) => [Array n v a] -> Array n v a
 concatOuter [] = error "concatOuter: empty list"
 concatOuter as | any null shs = error "concatOuter: rank 0 array"
                | [a] <- as = a  -- one array: the array itself
@@ -367,7 +367,7 @@ concatOuter as | any null shs = error "concatOuter: rank 0 array"
 -- Of one array, the result is a view of it, sharing its vector; 'force' copies
 -- it out.
 {-# INLINE ravel #-}
-ravel :: (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' (Array n v a), KnownNat (1+n)) =>
+ravel :: forall n v v' a . (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' (Array n v a), KnownNat (1+n)) =>
          Array 1 v' (Array n v a) -> Array (1+n) v a
 ravel aa = case shapeL aa of
   [1] -> case unScalar (index aa 0) of  -- one array: a view of it
@@ -378,7 +378,7 @@ ravel aa = case shapeL aa of
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
 {-# INLINE unravel #-}
-unravel :: (Vector v, Vector v', VecElem v a, VecElem v' (Array n v a)) =>
+unravel :: forall n v v' a . (Vector v, Vector v', VecElem v a, VecElem v' (Array n v a)) =>
            Array (1+n) v a -> Array 1 v' (Array n v a)
 unravel = rerank @1 scalar
 
@@ -423,7 +423,7 @@ window aws (A ash (T ss o v))
 {-# INLINE stride #-}
 -- The shape is forced here, not checked with 'badShape' as window's is:
 -- its extents, each s / t rounded up, never pass the array's.
-stride :: (HasCallStack, Vector v) => [Int] -> Array n v a -> Array n v a
+stride :: forall n v a . (HasCallStack, Vector v) => [Int] -> Array n v a -> Array n v a
 stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ repeat 1) ss) o v)  -- check now
   where rsh = str ats ash
         str (t:ts) (s:sh) | t <= 0 = error $ "stride: non-positive stride " ++ show ats
@@ -598,25 +598,25 @@ rev rs (A sh t) | all (\ r -> r >= 0 && r < n) rs = A sh (reverseT rs sh t)
 -- Forcing the result forces the initial value.
 -- O(n) time.
 {-# INLINE reduce #-}
-reduce :: (Vector v, VecElem v a) =>
+reduce :: forall n v a . (Vector v, VecElem v a) =>
           (a -> a -> a) -> a -> Array n v a -> Array 0 v a
 reduce f z (A sh t) = A [] $ reduceT sh f z t
 
 -- | Right fold across all elements of an array.
 {-# INLINE foldrA #-}
-foldrA :: (Vector v, VecElem v a) => (a -> b -> b) -> b -> Array n v a -> b
+foldrA :: forall n v a b . (Vector v, VecElem v a) => (a -> b -> b) -> b -> Array n v a -> b
 foldrA f z (A sh t) = foldrT sh f z t
 
 -- | Constrained version of 'traverse' for 'Array's.
 {-# INLINE traverseA #-}
 traverseA
-  :: (Vector v, VecElem v a, VecElem v b, Applicative f)
+  :: forall n v a b f . (Vector v, VecElem v a, VecElem v b, Applicative f)
   => (a -> f b) -> Array n v a -> f (Array n v b)
 traverseA f (A sh t) = A sh <$> traverseT sh f t
 
 -- | Check if all elements of the array are equal.
 {-# INLINE allSameA #-}
-allSameA :: (Vector v, VecElem v a, Eq a) => Array r v a -> Bool
+allSameA :: forall r v a . (Vector v, VecElem v a, Eq a) => Array r v a -> Bool
 allSameA (A sh t) = allSameT sh t
 
 instance (KnownNat r, Vector v, VecElem v a, Arbitrary a) => Arbitrary (Array r v a) where
@@ -627,12 +627,12 @@ instance (KnownNat r, Vector v, VecElem v a, Arbitrary a) => Arbitrary (Array r 
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}
-sumA :: (Vector v, VecElem v a, Num a) => Array r v a -> a
+sumA :: forall r v a . (Vector v, VecElem v a, Num a) => Array r v a -> a
 sumA (A sh t) = sumT sh t
 
 -- | Product of all elements.
 {-# INLINE productA #-}
-productA :: (Vector v, VecElem v a, Num a) => Array r v a -> a
+productA :: forall r v a . (Vector v, VecElem v a, Num a) => Array r v a -> a
 productA (A sh t) = productT sh t
 
 -- | Maximum of all elements.
@@ -641,7 +641,7 @@ productA (A sh t) = productT sh t
 -- compares, an element with itself among them.
 -- Fails if the array is empty.
 {-# INLINE maximumA #-}
-maximumA :: (HasCallStack, Vector v, VecElem v a, Ord a) => Array r v a -> a
+maximumA :: forall r v a . (HasCallStack, Vector v, VecElem v a, Ord a) => Array r v a -> a
 maximumA a@(A sh t) | size a > 0 = maximumT sh t
                     | otherwise  = error "maximumA: empty array"
 
@@ -651,18 +651,18 @@ maximumA a@(A sh t) | size a > 0 = maximumT sh t
 -- compares, an element with itself among them.
 -- Fails if the array is empty.
 {-# INLINE minimumA #-}
-minimumA :: (HasCallStack, Vector v, VecElem v a, Ord a) => Array r v a -> a
+minimumA :: forall r v a . (HasCallStack, Vector v, VecElem v a, Ord a) => Array r v a -> a
 minimumA a@(A sh t) | size a > 0 = minimumT sh t
                     | otherwise  = error "minimumA: empty array"
 
 -- | Test if the predicate holds for any element.
 {-# INLINE anyA #-}
-anyA :: (Vector v, VecElem v a) => (a -> Bool) -> Array r v a -> Bool
+anyA :: forall r v a . (Vector v, VecElem v a) => (a -> Bool) -> Array r v a -> Bool
 anyA p (A sh t) = anyT sh p t
 
 -- | Test if the predicate holds for all elements.
 {-# INLINE allA #-}
-allA :: (Vector v, VecElem v a) => (a -> Bool) -> Array r v a -> Bool
+allA :: forall r v a . (Vector v, VecElem v a) => (a -> Bool) -> Array r v a -> Bool
 allA p (A sh t) = allT sh p t
 
 -- | Put the dimensions of the argument into the specified dimensions,
@@ -694,7 +694,7 @@ broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dime
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
 {-# INLINE update #-}
-update :: (HasCallStack, Vector v, VecElem v a) =>
+update :: forall n v a . (HasCallStack, Vector v, VecElem v a) =>
           Array n v a -> [([Int], a)] -> Array n v a
 update (A sh t) us | null us = A sh t  -- no update: the array itself
                    | all (ok . fst) us = A sh $ updateT sh t us

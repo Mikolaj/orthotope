@@ -130,7 +130,7 @@ index (A t) i | i < 0 || i >= s = error $ "index: out of bounds " ++ show (i, s)
 -- | Convert to a list with the elements in the linearization order.
 -- O(n) time.
 {-# INLINE toList #-}
-toList :: (Vector v, VecElem v a, Shape sh) => Array sh v a -> [a]
+toList :: forall sh v a . (Vector v, VecElem v a, Shape sh) => Array sh v a -> [a]
 toList a@(A t) = toListT (shapeL a) t
 
 -- | Convert to a vector with the elements in the linearization order.
@@ -138,7 +138,7 @@ toList a@(A t) = toListT (shapeL a) t
 -- The O(1) result can be a slice of a larger vector, which it keeps alive;
 -- 'force' the array first to get a vector of just its elements.
 {-# INLINE toVector #-}
-toVector :: (Vector v, VecElem v a, Shape sh) => Array sh v a -> v a
+toVector :: forall sh v a . (Vector v, VecElem v a, Shape sh) => Array sh v a -> v a
 toVector a@(A t) = toVectorT (shapeL a) t
 
 -- | Convert from a list with the elements given in the linearization order.
@@ -173,7 +173,7 @@ fromVector v | n /= l = error $ "fromVector: size mismatch " ++ show (n, l)
 -- implications.
 -- O(n) or O(1) time.
 {-# INLINE normalize #-}
-normalize :: (Vector v, VecElem v a, Shape sh) => Array sh v a -> Array sh v a
+normalize :: forall sh v a . (Vector v, VecElem v a, Shape sh) => Array sh v a -> Array sh v a
 normalize a@(A t) = A $ normalizeT (shapeL a) t
 
 -- | Copy the elements of the array into a vector of their own, in the
@@ -186,7 +186,7 @@ normalize a@(A t) = A $ normalizeT (shapeL a) t
 -- garbage collected, if nothing else refers to it.
 -- O(n) time.
 {-# INLINE force #-}
-force :: (Vector v, VecElem v a, Shape sh) => Array sh v a -> Array sh v a
+force :: forall sh v a . (Vector v, VecElem v a, Shape sh) => Array sh v a -> Array sh v a
 force a@(A t) = A $ forceT (shapeL a) t
 
 -- | Change the shape of an array.  Type error if the arrays have different number of elements.
@@ -246,35 +246,35 @@ constant = A . constantT (shapeP (Proxy :: Proxy sh))
 -- | Map over the array elements.
 -- O(n) time.
 {-# INLINE mapA #-}
-mapA :: (Vector v, VecElem v a, VecElem v b, Shape sh) =>
+mapA :: forall sh v a b . (Vector v, VecElem v a, VecElem v b, Shape sh) =>
         (a -> b) -> Array sh v a -> Array sh v b
 mapA f a@(A t) = A $ mapT (shapeL a) f t
 
 -- | Combine the elements of two arrays.
 -- O(n) time.
 {-# INLINE zipWithA #-}
-zipWithA :: (Vector v, VecElem v a, VecElem v b, VecElem v c, Shape sh) =>
+zipWithA :: forall sh v a b c . (Vector v, VecElem v a, VecElem v b, VecElem v c, Shape sh) =>
             (a -> b -> c) -> Array sh v a -> Array sh v b -> Array sh v c
 zipWithA f a@(A t) (A t') = A $ zipWithT (shapeL a) f t t'
 
 -- | Combine the elements of three arrays.
 -- O(n) time.
 {-# INLINE zipWith3A #-}
-zipWith3A :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, Shape sh) =>
+zipWith3A :: forall sh v a b c d . (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, Shape sh) =>
              (a -> b -> c -> d) -> Array sh v a -> Array sh v b -> Array sh v c -> Array sh v d
 zipWith3A f a@(A t) (A t') (A t'') = A $ zipWith3T (shapeL a) f t t' t''
 
 -- | Combine the elements of four arrays.
 -- O(n) time.
 {-# INLINE zipWith4A #-}
-zipWith4A :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, Shape sh) =>
+zipWith4A :: forall sh v a b c d e . (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, Shape sh) =>
              (a -> b -> c -> d -> e) -> Array sh v a -> Array sh v b -> Array sh v c -> Array sh v d -> Array sh v e
 zipWith4A f a@(A t) (A t') (A t'') (A t''') = A $ zipWith4T (shapeL a) f t t' t'' t'''
 
 -- | Combine the elements of five arrays.
 -- O(n) time.
 {-# INLINE zipWith5A #-}
-zipWith5A :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, VecElem v f, Shape sh) =>
+zipWith5A :: forall sh v a b c d e f . (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, VecElem v f, Shape sh) =>
              (a -> b -> c -> d -> e -> f) -> Array sh v a -> Array sh v b -> Array sh v c -> Array sh v d -> Array sh v e -> Array sh v f
 zipWith5A f a@(A t) (A t') (A t'') (A t''') (A t'''') = A $ zipWith5T (shapeL a) f t t' t'' t''' t''''
 
@@ -320,7 +320,7 @@ transpose a@(A t) | not (validShape sh') = error $ "transpose: bad shape " ++ sh
 -- Where one array's outer extent is 0, the result is the other itself, sharing
 -- its vector; 'force' copies it out.
 {-# INLINE append #-}
-append :: forall v a sh m n .
+append :: forall sh m n v a .
           (Vector v, VecElem v a, Shape sh, KnownNat m, KnownNat n, KnownNat (m+n)) =>
           Array (m ': sh) v a -> Array (n ': sh) v a -> Array (m+n ': sh) v a
 append a@(A ta) b@(A tb)
@@ -348,7 +348,7 @@ concatOuter as | sumExtents ns /= s = error $ "concatOuter: outer extent mismatc
 -- Of one array, the result is a view of it, sharing its vector; 'force' copies
 -- it out.
 {-# INLINE ravel #-}
-ravel :: forall v v' a sh s .
+ravel :: forall sh s v v' a .
          (Vector v, Vector v', VecElem v a, VecElem v' (Array sh v a)
          , Shape sh, KnownNat s) =>
          Array '[s] v' (Array sh v a) -> Array (s:sh) v a
@@ -358,7 +358,7 @@ ravel aa | natT @s == 1, [A t] <- toList aa = A (insertUnitsT 0 1 t)  -- one arr
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
 {-# INLINE unravel #-}
-unravel :: (Vector v, Vector v', VecElem v a, VecElem v' (Array sh v a)
+unravel :: forall sh s v v' a . (Vector v, Vector v', VecElem v a, VecElem v' (Array sh v a)
            , Shape sh, KnownNat s) =>
            Array (s:sh) v a -> Array '[s] v' (Array sh v a)
 unravel = rerank @1 scalar
@@ -484,21 +484,21 @@ rev a@(A t) = A (reverseT rs sh t)
 -- Forcing the result forces the initial value.
 -- O(n) time.
 {-# INLINE reduce #-}
-reduce :: (Vector v, VecElem v a, Shape sh) =>
+reduce :: forall sh v a . (Vector v, VecElem v a, Shape sh) =>
           (a -> a -> a) -> a -> Array sh v a -> Array '[] v a
 reduce f z a@(A t) = A $ reduceT (shapeL a) f z t
 
 -- | Right fold across all elements of an array.
 {-# INLINE foldrA #-}
 foldrA
-  :: (Vector v, VecElem v a, Shape sh)
+  :: forall sh v a b . (Vector v, VecElem v a, Shape sh)
   => (a -> b -> b) -> b -> Array sh v a -> b
 foldrA f z a@(A t) = foldrT (shapeL a) f z t
 
 -- | Constrained version of 'traverse' for 'Array's.
 {-# INLINE traverseA #-}
 traverseA
-  :: (Vector v, VecElem v a, VecElem v b, Applicative f, Shape sh)
+  :: forall sh v a b f . (Vector v, VecElem v a, VecElem v b, Applicative f, Shape sh)
   => (a -> f b) -> Array sh v a -> f (Array sh v b)
 traverseA f a@(A t) = A <$> traverseT (shapeL a) f t
 
@@ -512,12 +512,12 @@ instance (Shape sh, Vector v, VecElem v a, Arbitrary a) => Arbitrary (Array sh v
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}
-sumA :: (Vector v, VecElem v a, Num a, Shape sh) => Array sh v a -> a
+sumA :: forall sh v a . (Vector v, VecElem v a, Num a, Shape sh) => Array sh v a -> a
 sumA a@(A t) = sumT (shapeL a) t
 
 -- | Product of all elements.
 {-# INLINE productA #-}
-productA :: (Vector v, VecElem v a, Num a, Shape sh) => Array sh v a -> a
+productA :: forall sh v a . (Vector v, VecElem v a, Num a, Shape sh) => Array sh v a -> a
 productA a@(A t) = productT (shapeL a) t
 
 -- | Maximum of all elements.
@@ -525,7 +525,7 @@ productA a@(A t) = productT (shapeL a) t
 -- depends on the array's layout, and so does which pairs of elements it
 -- compares, an element with itself among them.
 {-# INLINE maximumA #-}
-maximumA :: (Vector v, VecElem v a, Ord a, Shape sh, 1 <= Size sh) => Array sh v a -> a
+maximumA :: forall sh v a . (Vector v, VecElem v a, Ord a, Shape sh, 1 <= Size sh) => Array sh v a -> a
 maximumA a@(A t) = maximumT (shapeL a) t
 
 -- | Minimum of all elements.
@@ -533,17 +533,17 @@ maximumA a@(A t) = maximumT (shapeL a) t
 -- depends on the array's layout, and so does which pairs of elements it
 -- compares, an element with itself among them.
 {-# INLINE minimumA #-}
-minimumA :: (Vector v, VecElem v a, Ord a, Shape sh, 1 <= Size sh) => Array sh v a -> a
+minimumA :: forall sh v a . (Vector v, VecElem v a, Ord a, Shape sh, 1 <= Size sh) => Array sh v a -> a
 minimumA a@(A t) = minimumT (shapeL a) t
 
 -- | Test if the predicate holds for any element.
 {-# INLINE anyA #-}
-anyA :: (Vector v, VecElem v a, Shape sh) => (a -> Bool) -> Array sh v a -> Bool
+anyA :: forall sh v a . (Vector v, VecElem v a, Shape sh) => (a -> Bool) -> Array sh v a -> Bool
 anyA p a@(A t) = anyT (shapeL a) p t
 
 -- | Test if the predicate holds for all elements.
 {-# INLINE allA #-}
-allA :: (Vector v, VecElem v a, Shape sh) => (a -> Bool) -> Array sh v a -> Bool
+allA :: forall sh v a . (Vector v, VecElem v a, Shape sh) => (a -> Bool) -> Array sh v a -> Bool
 allA p a@(A t) = allT (shapeL a) p t
 
 -- | Put the dimensions of the argument into the specified dimensions,
@@ -569,7 +569,7 @@ broadcast a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
 {-# INLINE update #-}
-update :: (HasCallStack, Vector v, VecElem v a, Shape sh) =>
+update :: forall sh v a . (HasCallStack, Vector v, VecElem v a, Shape sh) =>
           Array sh v a -> [([Int], a)] -> Array sh v a
 update a@(A t) us | null us = a  -- no update: the array itself
                   | all (ok . fst) us = A $ updateT sh t us
