@@ -95,6 +95,10 @@ test = testGroup "DynamicU" $
                                                 9,9,9,9,9,9,9,9,9,9])
                               (pad [(1,2),(3,4)] 9 a1)
       pad_2 = assertThrows "2" (pad [(1,1),(1,1),(1,1)] 0 a1)
+      -- pad writes a padding of -0.0 as it is, which primitive-0.9.1.0's
+      -- setByteArray writes as +0.0.
+      pad_3 = assertEqual "3" [True, True, False, True]
+                (map isNegativeZero (toList (pad [(2, 1)] (-0.0) (fromList [1] [1.5 :: Double]))))
       a5 :: Array Int
       a5 = fromList [2,3,4] [1..24]
       transpose_1 = assertEqual "1" (fromList [2,3,4] [1,2,3,4,
@@ -342,6 +346,7 @@ test = testGroup "DynamicU" $
         , testCase "zipWith3A_2" zipWith3A_2
         , testCase "pad_1" pad_1
         , testCase "pad_2" pad_2
+        , testCase "pad_3" pad_3
         , testCase "transpose_1" transpose_1
         , testCase "transpose_2" transpose_2
         , testCase "transpose_3" transpose_3
