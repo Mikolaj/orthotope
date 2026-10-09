@@ -85,8 +85,23 @@ instance Vector V.Vector where
   vFromListN = V.fromListN
   {-# INLINE vSingleton #-}
   vSingleton = V.singleton
+  -- One write and then copies of what is written, doubling, as vector's
+  -- default basicSet does: vector's replicate fills through primitive's
+  -- setByteArray, which in primitive-0.9.1.0 writes +0.0 for -0.0 at Float
+  -- and Double (fixed by https://github.com/haskell/primitive/pull/433, in
+  -- no release yet), and a write per element took about 25 times the
+  -- instructions of its memset on 200000 Doubles.
+  -- TODO: once a primitive release has the fix, check that V.replicate
+  -- keeps -0.0, measure it against this and go back to it.
   {-# INLINE vReplicate #-}
-  vReplicate = V.replicate
+  vReplicate n x = V.create $ do
+    mv <- MV.unsafeNew (max 0 n)
+    let fill !i | 2 * i < n = do
+                    MV.unsafeCopy (MV.unsafeSlice i i mv) (MV.unsafeSlice 0 i mv)
+                    fill (2 * i)
+                | otherwise =
+                    MV.unsafeCopy (MV.unsafeSlice i (n - i) mv) (MV.unsafeSlice 0 (n - i) mv)
+    if n <= 0 then return mv else MV.unsafeWrite mv 0 x >> fill 1 >> return mv
   -- The map and the zips build their result over the indices, working around
   -- vector's own, whose stream-fused loops at -O1, lacking the SpecConstr of
   -- -O2, allocate per element: a zipWith on Doubles 72 bytes an element against
