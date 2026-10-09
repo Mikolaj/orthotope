@@ -341,6 +341,12 @@ test = testGroup "DynamicS" $
         assertEqual "stretchOuter" [1, 2, 3, 1, 2, 3] (toList (stretchOuter 2 (reshape [1, 3] (index a1 0))))
         assertEqual "rotate" [2, 3, 1, 1, 2, 3] (toList (rotate 0 2 (index a1 0)))
         assertEqual "ravel . unravel" a1 (ravel (unravel a1))
+      -- Rows of 600 Word8s, 600 bytes, reach the fill's whole-run copy, which
+      -- starts at 512 bytes and which the random views reach only at wider
+      -- elements.
+      wholeRuns_1 = assertEqual "1" [ fromIntegral (1000 * i + j) | i <- [0 .. 9 :: Int], j <- [0 .. 599] ]
+                      (V.toList (toVector (slice [(0, 10), (0, 600)] w8)))
+        where w8 = fromList [10, 1000] [ fromIntegral k | k <- [0 .. 9999 :: Int] ] :: Array Word8
       -- convert to boxed of a transposed view keeps the view's order.
       convert_1 = assertEqual "1" (toList (transpose [1, 0] a1)) (D.toList (convert (transpose [1, 0] a1) :: D.Array Int))
 
@@ -430,6 +436,7 @@ test = testGroup "DynamicS" $
         , testCase "unit_1" unit_1
         , testCase "fillStrided_1" fillStrided_1
         , testCase "wrappers_1" wrappers_1
+        , testCase "wholeRuns_1" wholeRuns_1
         , testCase "convert_1" convert_1
         ]
   in  tests ++ [ testPropertyN "prop_bitcast" (prop_bitcast @Int @Word)
