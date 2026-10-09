@@ -125,7 +125,7 @@ index :: forall s sh v a . (HasCallStack, Vector v, KnownNat s) =>
          Array (s:sh) v a -> Int -> Array sh v a
 index (A t) i | i < 0 || i >= s = error $ "index: out of bounds " ++ show (i, s)
               | otherwise = A $ indexT t i
-  where s = valueOf @s
+  where s = natT @s
 
 -- | Convert to a list with the elements in the linearization order.
 -- O(n) time.
@@ -208,8 +208,10 @@ stretch' str (A vs) = A $ stretchT str vs
 
 -- | Change the size of the outermost dimension by replication.
 {-# INLINE stretchOuter #-}
-stretchOuter :: forall s sh v a . Array (1 : sh) v a -> Array (s : sh) v a
-stretchOuter (A vs) = A $ stretchT (True : map (const False) (strides vs)) vs
+stretchOuter :: forall s sh v a . (KnownNat s, Shape sh) =>
+                Array (1 : sh) v a -> Array (s : sh) v a
+stretchOuter (A vs) = sizeP (Proxy :: Proxy (s : sh)) `seq`  -- the result's size checked now
+                      A $ stretchT (True : map (const False) (strides vs)) vs
 
 -- | Convert a value to a scalar (rank 0) array.
 -- O(1) time.
@@ -272,10 +274,12 @@ pad :: forall ps sh' sh a v . (HasCallStack, Vector v, VecElem v a, Padded ps sh
        a -> Array sh v a -> Array sh' v a
 pad v a@(A at) | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
                    error $ "pad: padding past maxBound " ++ show (aps, ash)
-               | badShape sh = error $ "pad: bad shape " ++ show sh
+               | not (validShape sh) = error $ "pad: bad shape " ++ show sh
                | otherwise = A t
   where ash = shapeL a
         aps = padded (Proxy :: Proxy ps) (Proxy :: Proxy sh)
+        -- Computed, not taken from padT's result: forcing that pair
+        -- for the shape built the padded array too, before the checks.
         sh = zipWithLong2 (\ (l, h) s -> l + s + h) aps ash
         (_, t) = padT v aps ash at
 
@@ -286,10 +290,12 @@ pad v a@(A at) | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
 -- O(1) time.
 {-# INLINE transpose #-}
 transpose :: forall is sh v a .
-             (Permutation is, Rank is <= Rank sh, Shape sh, Shape is, KnownNat (Rank sh)) =>
+             (HasCallStack, Permutation is, Rank is <= Rank sh, Shape sh, Shape is, KnownNat (Rank sh)) =>
              Array sh v a -> Array (Permute is sh) v a
-transpose (A t) = A (transposeT is' t)
-  where l = length is
+transpose a@(A t) | not (validShape sh') = error $ "transpose: bad shape " ++ show sh'
+                  | otherwise = A (transposeT is' t)
+  where sh' = permute is' (shapeL a)
+        l = length is
         n = valueOf @(Rank sh)
         is' = is ++ [l .. n-1]
         is = listP (Proxy :: Proxy is)
@@ -310,8 +316,8 @@ concatOuter :: forall m n sh v a . (HasCallStack, Vector v, VecElem v a, KnownNa
                [Array (n ': sh) v a] -> Array (m ': sh) v a
 concatOuter as | sumExtents ns /= s = error $ "concatOuter: outer extent mismatch " ++ show (ns, s)
                | otherwise = fromVector $ vUnsafeConcatN (sizeT @(m ': sh)) $ map toVector as
-  where ns = map (const (valueOf @n)) as
-        s = valueOf @m
+  where ns = map (const (natT @n)) as
+        s = natT @m
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
@@ -345,9 +351,10 @@ unravel = rerank @1 scalar
 -- @wa `index` i1 ... `index` ik == slice \@'[ '(i1,w1),...,'(ik,wk)] a@.
 {-# INLINE window #-}
 window :: forall ws sh' sh v a .
-          (Window ws sh sh', Vector v, KnownNat (Rank ws)) =>
+          (Window ws sh sh', Vector v, KnownNat (Rank ws), Shape sh') =>
           Array sh v a -> Array sh' v a
-window (A (T ss o v)) = A (T (ss' ++ ss) o v)
+window (A (T ss o v)) = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now
+                        A (T (ss' ++ ss) o v)
   where ss' = take (valueOf @(Rank ws)) ss
 
 -- | Stride the outermost dimensions.
@@ -371,8 +378,10 @@ rotate :: forall d k sh v a .
            d + 1 <= Rank sh, Shape (Take d sh ++ (k ': Drop d sh))) =>
           Array sh v a -> Array (Take d sh ++ (k ': Drop d sh)) v a
 -- Through DynamicG's rotate, as RankedG's is.
-rotate a@(A t) = case DG.rotate (valueOf @d) (valueOf @k) (DG.A (shapeL a) t) of
-  DG.A _ t' -> A t'
+rotate a@(A t) =
+  sizeP (Proxy :: Proxy (Take d sh ++ (k ': Drop d sh))) `seq`  -- the result's size checked now
+  case DG.rotate (natT @d) (natT @k) (DG.A (shapeL a) t) of
+    DG.A _ t' -> A t'
 
 -- | Extract a slice of an array.
 -- The first type argument is a list of (offset, length) pairs.
@@ -537,11 +546,11 @@ generate = A . generateT (shapeP (Proxy :: Proxy sh))
 iterateN :: forall n v a .
             (Vector v, VecElem v a, KnownNat n) =>
             (a -> a) -> a -> Array '[n] v a
-iterateN f = A . iterateNT (valueOf @n) f
+iterateN f = A . iterateNT (natT @n) f
 
 -- | Generate a vector from 0 to n-1.
 {-# INLINE iota #-}
 iota :: forall n v a .
         (Vector v, VecElem v a, KnownNat n, Num a) =>
         Array '[n] v a
-iota = A $ iotaT (valueOf @n)
+iota = A $ iotaT (natT @n)

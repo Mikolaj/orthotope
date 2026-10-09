@@ -110,7 +110,7 @@ instance Padded '[] sh sh where
   padded _ _ = []
 instance (KnownNat l, KnownNat h, (l+s+h) ~ s', Padded ps sh sh') =>
          Padded ('(l,h) ': ps) (s ': sh) (s' ': sh') where
-  padded _ _ = (valueOf @l, valueOf @h) : padded (Proxy :: Proxy ps) (Proxy :: Proxy sh)
+  padded _ _ = (natT @l, natT @h) : padded (Proxy :: Proxy ps) (Proxy :: Proxy sh)
 
 -----------------
 
@@ -166,7 +166,7 @@ class Slice (ls :: [(Nat,Nat)]) (ss :: [Nat]) (rs :: [Nat]) | ls ss -> rs where
 instance Slice '[] ss ss where
   sliceOffsets _ _ = []
 instance (Slice ls ss rs, (o+n) <= s, KnownNat o) => Slice ('(o,n) ': ls) (s ': ss) (n ': rs) where
-  sliceOffsets _ _ = valueOf @o : sliceOffsets (Proxy :: Proxy ls) (Proxy :: Proxy ss)
+  sliceOffsets _ _ = natT @o : sliceOffsets (Proxy :: Proxy ls) (Proxy :: Proxy ss)
 
 
 -----------------
@@ -234,6 +234,14 @@ listP p = map toInt (natsP p)
   where toInt n | n > toInteger (maxBound :: Int) =
                     error $ "Shape: a number past maxBound in " ++ show (natsP p)
                 | otherwise = fromInteger n
+
+-- | A type-level number as an 'Int'; fails past 'maxBound'.
+{-# INLINE natT #-}
+natT :: forall n . (KnownNat n) => Int
+natT | n > toInteger (maxBound :: Int) =
+         error $ "Shape: a number past maxBound: " ++ show n
+     | otherwise = fromInteger n
+  where n = natVal (Proxy :: Proxy n)
 
 {-# INLINE shapeT #-}
 shapeT :: forall sh . (Shape sh) => [Int]
