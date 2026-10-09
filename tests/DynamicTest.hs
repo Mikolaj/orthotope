@@ -464,6 +464,8 @@ test = testGroup "Dynamic" $
       compare_1 = assertEqual "1" (GT, GT) (compare (toList x) (toList y), compare x y)
         where x = transpose [1, 0] (fromList [2, 2] [1, 2, 3, 4 :: Int])
               y = transpose [1, 0] (fromList [2, 2] [0, 2, 3, 9])
+      -- An axis of extent 0 does not stretch.
+      stretch_5 = assertThrowsIn "5" "stretch" (stretch [3] (fromList [0] [] :: Array Int))
       rotate_1 = assertEqual "1" (fromList [2, 4, 3, 2]
                                            [1, 2, 3, 4, 5, 6,
                                             5, 6, 1, 2, 3, 4,
@@ -721,6 +723,7 @@ test = testGroup "Dynamic" $
         , testCase "stride_4" stride_4
         , testCase "stride_5" stride_5
         , testCase "compare_1" compare_1
+        , testCase "stretch_5" stretch_5
         , testCase "rotate_1" rotate_1
         , testCase "rotate_2" rotate_2
         , testCase "rotate_3" rotate_3
