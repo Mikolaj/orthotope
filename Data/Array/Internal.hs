@@ -607,7 +607,7 @@ fillStrided axes@(Axes st n outer) ao l v
 -- not; each vector-backed instance reuses it verbatim.  Ported
 -- bang-for-bang from the fastest fill of the micro-benchmark preserved
 -- at https://github.com/Mikolaj/orthotope/tree/speedup-strided-tovector/micro-regime3/
--- as of the commit "Read the runs' elements as genericUnsafeFillStrided does" (the
+-- as of the commit "Read the runs' elements as genericFillStrided does" (the
 -- bang patterns are part of what was measured), but for the count's bang, whose
 -- removal shrinks the -O1 Core, and for the copied run; one choice made for the
 -- NCG, marked at the line it is on, costs -fllvm a little.
