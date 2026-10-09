@@ -689,7 +689,8 @@ genericUnsafeFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
           -- 'Unbox a', it stays a call through the dictionary, which only the
           -- Core of a caller's own call at its concrete arrays shows.
           -- TODO: vector-0.13.2.0's elemseq for DoNotUnboxLazy is seq, against
-          -- its documentation, so this copy forces such an element, as
+          -- its documentation (https://github.com/haskell/vector/issues/575),
+          -- so this copy forces such an element, as
           -- README's Evaluation section says.  Once vector fixes it, check
           -- that the copy leaves the element unforced, and remove this TODO
           -- and README's exception for it.
