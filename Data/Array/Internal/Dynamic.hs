@@ -570,6 +570,7 @@ iterateN :: (HasCallStack) => Int -> (a -> a) -> a -> Array a
 iterateN n f = A . G.iterateN n f
 
 -- | Generate a vector from 0 to n-1.
+-- Each element is evaluated to weak head normal form as it is stored.
 -- Fails if n is negative.
 {-# INLINE iota #-}
 iota :: (HasCallStack, Num a) => Int -> Array a
