@@ -345,6 +345,8 @@ test = testGroup "DynamicS" $
         where w8 = fromList [10, 1000] [ fromIntegral k | k <- [0 .. 9999 :: Int] ] :: Array Word8
       -- convert to boxed of a transposed view keeps the view's order.
       convert_1 = assertEqual "1" (toList (transpose [1, 0] a1)) (D.toList (convert (transpose [1, 0] a1) :: D.Array Int))
+      -- bitcast between types of size 0 fails, as between types of two sizes.
+      bitcast_1 = assertThrowsIn "1" "bitcast" (bitcast (fromList [2] [(), ()]) :: Array ())
 
       tests =
         [ testCase "show_1" show_1
@@ -434,6 +436,7 @@ test = testGroup "DynamicS" $
         , testCase "wrappers_1" wrappers_1
         , testCase "wholeRuns_1" wholeRuns_1
         , testCase "convert_1" convert_1
+        , testCase "bitcast_1" bitcast_1
         ]
   in  tests ++ [ testPropertyN "prop_bitcast" (prop_bitcast @Int @Word)
               , testGroup "Word8" [testPropertyN "prop_bitcast" (prop_bitcast @Word8 @Int8)] ]
@@ -450,6 +453,6 @@ prop_bitcast v@(View sh _) =
   let x = mkView v xs :: Array a
       w = bitcast x :: Array b
   in  toList w === map fromIntegral (toList x) .&&. bitcast w === x
-      .&&. failsWith ("bitcast: the types must have the same size. "
+      .&&. failsWith ("bitcast: the types must have the same, nonzero size. "
                       ++ show (sizeOf (0 :: a), sizeOf (0 :: Word16)))
                      (bitcast x :: Array Word16)
