@@ -461,7 +461,7 @@ rotate d k a@(A sh _)
 slice :: (HasCallStack) => [(Int, Int)] -> Array v a -> Array v a
 slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
   where (o, rsh) = slc asl ash ats
-        slc ((k,n):sl) (s:sh) (t:ts) | k < 0 || k > s || n < 0 || n > s - k = error $ "slice: out of bounds: slice=" ++ show (k, n) ++ " size=" ++ show s
+        slc ((k,n):sl) (s:sh) (t:ts) | k < 0 || n < 0 || n > s - k = error $ "slice: out of bounds: slice=" ++ show (k, n) ++ " size=" ++ show s
                                      | otherwise = (i + k*t, n:ns) where (i, ns) = slc sl sh ts
         slc (_:_) [] _ = error "slice: slice list too long"
         slc [] sh _ = (ao, sh)
