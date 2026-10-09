@@ -27,6 +27,7 @@ import qualified ShapedGTest
 import qualified ShapedSTest
 import qualified ShapedTest
 import qualified ShapedUTest
+import qualified TypeAppTest
 
 main :: IO ()
 main = defaultMain
@@ -42,5 +43,6 @@ main = defaultMain
   , ShapedSTest.test
   , ShapedUTest.test
   , ShapedGTest.test
+  , TypeAppTest.test
   , BenchViewsTest.test
   ]
