@@ -167,6 +167,8 @@ instance Vector V.Vector where
   -- it, elsewhere as long.
   {-# INLINE vMaximum #-}
   vMaximum v | V.null v = V.maximum v
+               -- No reduction here passes an empty vector; another caller's
+               -- fails as vector's maximum does.
              | otherwise = let !x0 = V.unsafeIndex v 0 in go x0 1
     where !n = V.length v
           go !acc !i | i >= n = acc
@@ -175,6 +177,8 @@ instance Vector V.Vector where
   -- Folded as vMaximum is.
   {-# INLINE vMinimum #-}
   vMinimum v | V.null v = V.minimum v
+               -- No reduction here passes an empty vector; another caller's
+               -- fails as vector's minimum does.
              | otherwise = let !x0 = V.unsafeIndex v 0 in go x0 1
     where !n = V.length v
           go !acc !i | i >= n = acc
