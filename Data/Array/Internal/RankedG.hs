@@ -211,7 +211,6 @@ stretch sh (A sh' vs) | Just bs <- str sh sh' = A sh $ stretchT bs vs
 {-# INLINE stretchOuter #-}
 stretchOuter :: (HasCallStack, 1 <= n) =>
                 Int -> Array n v a -> Array n v a
-stretchOuter s _ | s < 0 = error $ "stretchOuter: negative size " ++ show s
 stretchOuter s (A (1:sh) vs)
   | badShape (s:sh) = error $ "stretchOuter: bad shape " ++ show (s:sh)
   | otherwise = A (s:sh) $ stretchT (True : map (const False) (strides vs)) vs
@@ -347,7 +346,7 @@ concatOuter as | any null shs = error "concatOuter: rank 0 array"
 ravel :: (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' (Array n v a), KnownNat (1+n)) =>
          Array 1 v' (Array n v a) -> Array (1+n) v a
 ravel aa = case shapeL aa of
-  [k] | k > 0 -> ravelOuterOf "ravel" [k] (shapeL (unScalar (index aa 0))) (toList aa)
+  [k] | k > 0 -> ravelOuterOf [k] (shapeL (unScalar (index aa 0))) (toList aa)
   _ -> error "ravel: empty array"
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
@@ -483,37 +482,37 @@ slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
 -- Over an empty outer dimension f is never applied, so the inner shape
 -- is known only for scalars.
 rerank :: forall n i o v v' a b .
-          (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' b
+          (Vector v, Vector v', VecElem v a, VecElem v' b
           , KnownNat n, KnownNat o, KnownNat (n+o), KnownNat (1+o)) =>
           (Array i v a -> Array o v' b) -> Array (n+i) v a -> Array (n+o) v' b
 rerank f (A sh t)
                   | 0 `elem` osh, valueOf @o == (0 :: Int) = A osh $ fromVectorT osh (vConcat [])
-                  | 0 `elem` osh = error "rerank: empty outer dimension"
                   | otherwise =
-  ravelOuter "rerank" osh $
+  ravelOuter osh $
   map (f . A ish) $
   subArraysT osh t
   where (osh, ish) = splitAt (valueOf @n) sh
 
--- The first argument names the caller in the errors.  The caller computes the
--- arrays, one for each index of @osh@, and each one's shape is checked against
--- the first's as it is copied, not all before the copy, which, the fields of an
--- array being strict, would compute every array and hold them all.
+-- The caller computes the arrays, one for each index of @osh@, and each one's
+-- shape is checked against the first's as it is copied, not all before
+-- the copy, which, the fields of an array being strict, would compute every
+-- array and hold them all.  Over an empty outer dimension there is none
+-- to take the inner shape from.
 {-# INLINE ravelOuter #-}
-ravelOuter :: (HasCallStack, Vector v, VecElem v a, KnownNat m) => String -> ShapeL -> [Array n v a] -> Array m v a
-ravelOuter name _ [] = error $ name ++ ": empty list"
-ravelOuter name osh as@(a : _) = ravelOuterOf name osh (shapeL a) as
+ravelOuter :: (HasCallStack, Vector v, VecElem v a, KnownNat m) => ShapeL -> [Array n v a] -> Array m v a
+ravelOuter _ [] = error "ravelOuter: empty outer dimension"
+ravelOuter osh as@(a : _) = ravelOuterOf osh (shapeL a) as
 
 -- 'ravelOuter' given the shape every array must have, which 'ravel' reads off
 -- its first array without taking the list's head, so that the list fuses with
 -- the copy.
 {-# INLINE ravelOuterOf #-}
 ravelOuterOf :: (HasCallStack, Vector v, VecElem v a, KnownNat m) =>
-                String -> ShapeL -> ShapeL -> [Array n v a] -> Array m v a
-ravelOuterOf name osh sh as = fromVector sh' $ vUnsafeConcatN (product sh') $ map part as
+                ShapeL -> ShapeL -> [Array n v a] -> Array m v a
+ravelOuterOf osh sh as = fromVector sh' $ vUnsafeConcatN (product sh') $ map vec as
   where sh' = osh ++ sh
-        part x | shapeL x == sh = toVector x
-               | otherwise = error $ name ++ ": non-conforming inner dimensions: " ++ show [sh, shapeL x]
+        vec x | shapeL x == sh = toVector x
+              | otherwise = error $ "ravelOuterOf: non-conforming inner dimensions: " ++ show [sh, shapeL x]
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
@@ -530,9 +529,8 @@ rerank2 :: forall n i o a b c v .
            (Array i v a -> Array i v b -> Array o v c) -> Array (n+i) v a -> Array (n+i) v b -> Array (n+o) v c
 rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error "rerank2: shape mismatch"
                                 | 0 `elem` osh, valueOf @o == (0 :: Int) = A osh $ fromVectorT osh (vConcat [])
-                                | 0 `elem` osh = error "rerank2: empty outer dimension"
                                 | otherwise =
-  ravelOuter "rerank2" osh $
+  ravelOuter osh $
   zipWith (\ a b -> f (A isha a) (A ishb b))
           (subArraysT osh ta)
           (subArraysT osh tb)
@@ -629,8 +627,7 @@ allA p (A sh t) = allT sh p t
 broadcast :: forall r' r v a .
              (HasCallStack, Vector v, VecElem v a, KnownNat r, KnownNat r') =>
              [Int] -> ShapeL -> Array r v a -> Array r' v a
-broadcast ds sh a | length ds /= valueOf @r = error "broadcast: wrong number of broadcasts"
-                  | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dimension index"
+broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dimension index"
                   | not (ascending ds) = error "broadcast: unordered dimensions"
                   | badShape sh = error $ "broadcast: bad shape " ++ show sh
                   | length sh /= r = error "broadcast: wrong rank"
