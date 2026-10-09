@@ -47,19 +47,21 @@ failsWith msg a = ioProperty $ do
     Right _ -> counterexample ("no error, where " ++ msg ++ " was due") False
 
 -- Evaluating the value to WHNF fails with a message whose part before its
--- first colon is the name.
+-- first colon is the name; the whole message is evaluated, as by
+-- assertThrowsIn.
 failsIn :: String -> a -> Property
 failsIn name a = ioProperty $ do
   r <- try (evaluate a)
   return $ case r of
-    Left (ErrorCall e) -> counterexample e (takeWhile (/= ':') e == name)
+    Left (ErrorCall e) -> length e `seq` counterexample e (takeWhile (/= ':') e == name)
     Right _ -> counterexample ("no error, where an error of " ++ name ++ " was due") False
 
 -- Forcing the value to normal form fails with an error whose part before its
--- first colon is the name, the assertion labelled s.
+-- first colon is the name, the assertion labelled s; the whole message is
+-- evaluated, so that one failing in its text fails the assertion.
 assertThrowsIn :: (NFData a) => String -> String -> a -> Assertion
 assertThrowsIn s f a = catch (deepseq a $ assertFailure s)
-                             (\ (ErrorCall e) -> assertEqual s f (takeWhile (/= ':') e))
+                             (\ (ErrorCall e) -> length e `seq` assertEqual s f (takeWhile (/= ':') e))
 
 -- The element types of the properties that take one: Int, and Word8,
 -- whose arithmetic wraps at 256.
