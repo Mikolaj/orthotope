@@ -158,24 +158,30 @@ instance (a ~ b, n ~ m, SS.Unbox a, S.Shape n) => Convert (SS.Array n a) (S.Arra
 -----
 
 instance (a ~ b) => Convert (R.Array n a) (D.Array b) where
+  {-# INLINE convert #-}
   convert (R.A (RG.A sh t)) = D.A (DG.A sh t)
 
 instance (a ~ b, KnownNat n) => Convert (D.Array a) (R.Array n b) where
+  {-# INLINE convertE #-}
   convertE (D.A (DG.A sh t)) | toInteger (length sh) /= natVal (Proxy :: Proxy n) = Left "convert: rank mismatch"
                              | otherwise = Right $ R.A (RG.A sh t)
 
 instance (a ~ b, S.Shape sh) => Convert (S.Array sh a) (D.Array b) where
+  {-# INLINE convert #-}
   convert (S.A a@(SG.A t)) = D.A (DG.A (SG.shapeL a) t)
 
 instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (S.Array sh a) (R.Array n b) where
+  {-# INLINE convert #-}
   convert (S.A a@(SG.A t)) = R.A (RG.A (SG.shapeL a) t)
 
 instance (a ~ b, S.Shape sh) => Convert (D.Array a) (S.Array sh b) where
+  {-# INLINE convertE #-}
   convertE (D.A (DG.A sh t)) | map toInteger sh /= natsP (Proxy :: Proxy sh) = Left "convert: shape mismatch"
                              | not (validShape sh) = Left "convert: bad shape"
                              | otherwise = Right $ S.A (SG.A t)
 
 instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (R.Array n a) (S.Array sh b) where
+  {-# INLINE convertE #-}
   convertE (R.A (RG.A sh t)) | map toInteger sh /= natsP (Proxy :: Proxy sh) = Left "convert: shape mismatch"
                              | not (validShape sh) = Left "convert: bad shape"
                              | otherwise = Right $ S.A (SG.A t)
@@ -183,54 +189,67 @@ instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (R.Array n a) (S.Array sh
 ------
 
 instance (a ~ b, KnownNat n) => Convert (DS.Array a) (RS.Array n b) where
+  {-# INLINE convertE #-}
   convertE (DS.A (DG.A sh t)) | toInteger (length sh) /= natVal (Proxy :: Proxy n) = Left "convert: rank mismatch"
                               | otherwise = Right $ RS.A (RG.A sh t)
 
 instance (a ~ b, SS.Rank sh ~ n, SS.Shape sh) => Convert (RS.Array n a) (SS.Array sh b) where
+  {-# INLINE convertE #-}
   convertE (RS.A (RG.A sh t)) | map toInteger sh /= natsP (Proxy :: Proxy sh) = Left "convert: shape mismatch"
                               | not (validShape sh) = Left "convert: bad shape"
                               | otherwise = Right $ SS.A (SG.A t)
 
 instance (a ~ b, SS.Shape sh) => Convert (DS.Array a) (SS.Array sh b) where
+  {-# INLINE convertE #-}
   convertE (DS.A (DG.A sh t)) | map toInteger sh /= ns = Left $ "convert: shape mismatch: " ++ show (sh, ns)
                               | not (validShape sh) = Left "convert: bad shape"
                               | otherwise = Right $ SS.A (SG.A t)
                               where ns = natsP (Proxy :: Proxy sh)
 
 instance (a ~ b, SS.Shape sh) => Convert (SS.Array sh a) (DS.Array b) where
+  {-# INLINE convert #-}
   convert (SS.A a@(SG.A t)) = DS.A (DG.A (SG.shapeL a) t)
 
 ------
 
 instance (a ~ b) => Convert (D.Array a) (DG.Array V.Vector b) where
+  {-# INLINE convert #-}
   convert (D.A a) = a
 
 instance (a ~ b) => Convert (DU.Array a) (DG.Array VU.Vector b) where
+  {-# INLINE convert #-}
   convert (DU.A a) = a
 
 instance (a ~ b) => Convert (DS.Array a) (DG.Array VS.Vector b) where
+  {-# INLINE convert #-}
   convert (DS.A a) = a
 
 ------
 
 instance (a ~ b, n ~ m) => Convert (R.Array n a) (RG.Array m V.Vector b) where
+  {-# INLINE convert #-}
   convert (R.A a) = a
 
 instance (a ~ b, n ~ m) => Convert (RU.Array n a) (RG.Array m VU.Vector b) where
+  {-# INLINE convert #-}
   convert (RU.A a) = a
 
 instance (a ~ b, n ~ m) => Convert (RS.Array n a) (RG.Array m VS.Vector b) where
+  {-# INLINE convert #-}
   convert (RS.A a) = a
 
 ------
 
 instance (a ~ b, s ~ t) => Convert (S.Array s a) (SG.Array t V.Vector b) where
+  {-# INLINE convert #-}
   convert (S.A a) = a
 
 instance (a ~ b, s ~ t) => Convert (SU.Array s a) (SG.Array t VU.Vector b) where
+  {-# INLINE convert #-}
   convert (SU.A a) = a
 
 instance (a ~ b, s ~ t) => Convert (SS.Array s a) (SG.Array t VS.Vector b) where
+  {-# INLINE convert #-}
   convert (SS.A a) = a
 
 ------

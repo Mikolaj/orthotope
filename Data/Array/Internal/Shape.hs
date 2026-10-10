@@ -87,8 +87,10 @@ type family Init (xs :: [Nat]) where
 class ValidStretch (from :: [Nat]) (to :: [Nat]) where
   stretching :: Proxy from -> Proxy to -> [Bool]
 instance ValidStretch '[] '[] where
+  {-# INLINE stretching #-}
   stretching _ _ = []
 instance (BoolVal (Stretch s m), ValidStretch ss ms) => ValidStretch (s ': ss) (m ': ms) where
+  {-# INLINE stretching #-}
   stretching _ _ = boolVal (Proxy :: Proxy (Stretch s m)) :
     stretching (Proxy :: Proxy ss) (Proxy :: Proxy ms)
 type family Stretch (s::Nat) (m::Nat) :: Bool where
@@ -108,9 +110,11 @@ instance BoolVal 'True where
 class Padded (ps :: [(Nat, Nat)]) (sh :: [Nat]) (sh' :: [Nat]) | ps sh -> sh' where
   padded :: Proxy ps -> Proxy sh -> [(Int, Int)]
 instance Padded '[] sh sh where
+  {-# INLINE padded #-}
   padded _ _ = []
 instance (KnownNat l, KnownNat h, (l+s+h) ~ s', Padded ps sh sh') =>
          Padded ('(l,h) ': ps) (s ': sh) (s' ': sh') where
+  {-# INLINE padded #-}
   padded _ _ = (natT @l, natT @h) : padded (Proxy :: Proxy ps) (Proxy :: Proxy sh)
 
 -----------------
@@ -165,8 +169,10 @@ instance (Stride ts ss rs, DivRoundUp s t ~ r) => Stride (t ': ts) (s ': ss) (r 
 class Slice (ls :: [(Nat,Nat)]) (ss :: [Nat]) (rs :: [Nat]) | ls ss -> rs where
   sliceOffsets :: Proxy ls -> Proxy ss -> [Int]
 instance Slice '[] ss ss where
+  {-# INLINE sliceOffsets #-}
   sliceOffsets _ _ = []
 instance (Slice ls ss rs, (o+n) <= s, KnownNat o) => Slice ('(o,n) ': ls) (s ': ss) (n ': rs) where
+  {-# INLINE sliceOffsets #-}
   sliceOffsets _ _ = natT @o : sliceOffsets (Proxy :: Proxy ls) (Proxy :: Proxy ss)
 
 
@@ -273,13 +279,16 @@ withShape sh f | n : _ <- filter (< 0) sh = error $ "withShape: bad size: " ++ s
 class Broadcast (ds :: [Nat]) (sh :: [Nat]) (sh' :: [Nat]) where
   broadcasting :: [Bool]
 instance (Broadcast' 0 ds sh sh') => Broadcast ds sh sh' where
+  {-# INLINE broadcasting #-}
   broadcasting = broadcasting' @0 @ds @sh @sh'
 
 class Broadcast' (i :: Nat) (ds :: [Nat]) (sh :: [Nat]) (sh' :: [Nat]) where
   broadcasting' :: [Bool]
 instance Broadcast' i '[] '[] '[] where
+  {-# INLINE broadcasting' #-}
   broadcasting' = []
 instance (Broadcast' i '[] '[] sh') => Broadcast' i '[] '[] (s : sh') where
+  {-# INLINE broadcasting' #-}
   broadcasting' = True : broadcasting' @i @'[] @'[] @sh'
 instance (TypeError ('Text "Too few dimension indices")) => Broadcast' i '[] (s ': sh) sh' where
   broadcasting' = undefined
@@ -288,13 +297,16 @@ instance (TypeError ('Text "Too many dimension indices")) => Broadcast' i (d ': 
 instance (TypeError ('Text "Too few result dimensions")) => Broadcast' i (d ': ds) (s ': sh) '[] where
   broadcasting' = undefined
 instance (Broadcast'' (CmpNat i d) i d ds (s ': sh) (s' ': sh')) => Broadcast' i (d ': ds) (s ': sh) (s' ': sh') where
+  {-# INLINE broadcasting' #-}
   broadcasting' = broadcasting'' @(CmpNat i d) @i @d @ds @(s ': sh) @(s' ': sh')
 
 class Broadcast'' (o :: Ordering) (i :: Nat) (d :: Nat) (ds :: [Nat]) (sh :: [Nat]) (sh' :: [Nat]) where
   broadcasting'' :: [Bool]
 instance (Broadcast' (i+1)       ds  sh rsh) => Broadcast'' 'EQ i d ds (s ': sh) (s ': rsh) where
+  {-# INLINE broadcasting'' #-}
   broadcasting'' = False : broadcasting' @(i+1) @ds @sh @rsh
 instance (Broadcast' (i+1) (d ': ds) sh rsh) => Broadcast'' 'LT i d ds sh (s' ': rsh) where
+  {-# INLINE broadcasting'' #-}
   broadcasting'' = True : broadcasting' @(i+1) @(d ': ds) @sh @rsh
 instance (TypeError ('Text "unordered dimensions")) => Broadcast'' 'GT i d ds sh rsh where
   broadcasting'' = undefined
