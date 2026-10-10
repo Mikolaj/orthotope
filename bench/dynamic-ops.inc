@@ -50,6 +50,11 @@ OPS =
   , Call "allA" (ARR.allA (< 2)) t
   , Call "broadcast" (ARR.broadcast [1] [400, 500]) row
   , Call "update" (`ARR.update` [([3, 4], 9)]) t
+  -- 2000 pairs built in each call, the list depending on its array so that
+  -- it is not floated out of the loop.
+  , Call "update2000"
+         (\ a -> ARR.update a [ ([i `quot` 500, i `rem` 500], fromIntegral i)
+                              | i <- [0 .. ARR.size a `quot` 100 - 1] ]) t
   , Call "generate" (\ k -> ARR.generate [400, 500]
                                 (\ ix -> fromIntegral (sum ix + k) :: Double))
                   0
