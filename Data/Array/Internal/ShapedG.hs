@@ -98,6 +98,7 @@ instance (Vector v, Pretty a, VecElem v a, Shape sh) => Pretty (Array sh v a) wh
 
 instance (NFData (v a)) => NFData (Array sh v a) where
   rnf (A t) = rnf t
+  {-# INLINE rnf #-}
 
 -- | The number of elements in the array.
 {-# INLINE size #-}

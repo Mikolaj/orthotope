@@ -79,7 +79,9 @@ instance (Vector v, Ord a, VecElem v a) => Ord (Array v a) where
 instance (Vector v, Pretty a, VecElem v a) => Pretty (Array v a) where
   pPrintPrec l p (A sh t) = ppT l p sh t
 
-instance (NFData (v a)) => NFData (Array v a)
+instance (NFData (v a)) => NFData (Array v a) where
+  rnf (A sh t) = rnf sh `seq` rnf t
+  {-# INLINE rnf #-}
 
 -- | The number of elements in the array.
 {-# INLINE size #-}
