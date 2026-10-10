@@ -107,6 +107,7 @@ shapeL = G.shapeL . unA
 -- | The rank of an array, i.e., the number of dimensions it has,
 -- which is the @n@ in @Array n a@.
 -- O(1) time.
+{-# INLINE rank #-}
 rank :: (KnownNat n) => Array n a -> Int
 rank = G.rank . unA
 
@@ -254,6 +255,7 @@ pad ps v = A . G.pad ps v . unA
 -- [0..l-1] for an l no greater than the rank of the array, whose l outermost
 -- dimensions it permutes.
 -- O(1) time.
+{-# INLINE transpose #-}
 transpose :: (HasCallStack, KnownNat n) => [Int] -> Array n a -> Array n a
 transpose is = A . G.transpose is . unA
 

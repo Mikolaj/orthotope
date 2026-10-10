@@ -101,12 +101,14 @@ size = G.size . unA
 -- In the linearization of the array the outermost (i.e. first list element)
 -- varies most slowly.
 -- O(1) time.
+{-# INLINE shapeL #-}
 shapeL :: (Shape sh) => Array sh a -> ShapeL
 shapeL = G.shapeL . unA
 
 -- | The rank of an array, i.e., the number of dimensions it has,
 -- which is the length of @sh@ in @Array sh a@.
 -- O(1) time.
+{-# INLINE rank #-}
 rank :: KnownNat (Rank sh) => Array sh a -> Int
 rank = G.rank . unA
 
@@ -168,6 +170,7 @@ force = A . G.force . unA
 
 -- | Change the shape of an array.  Type error if the arrays have different number of elements.
 -- O(n) or O(1) time.
+{-# INLINABLE reshape #-}
 reshape :: forall sh' sh a . (Shape sh, Shape sh', Size sh ~ Size sh') =>
            Array sh a -> Array sh' a
 reshape = A . G.reshape . unA
@@ -175,10 +178,12 @@ reshape = A . G.reshape . unA
 -- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
 -- All other dimensions must remain the same.
 -- O(1) time.
+{-# INLINE stretch #-}
 stretch :: forall sh' sh a . (Shape sh', ValidStretch sh sh') => Array sh a -> Array sh' a
 stretch = A . G.stretch . unA
 
 -- | Change the size of the outermost dimension by replication.
+{-# INLINE stretchOuter #-}
 stretchOuter :: (KnownNat s, Shape sh) => Array (1 : sh) a -> Array (s : sh) a
 stretchOuter = A . G.stretchOuter . unA
 
@@ -258,6 +263,7 @@ pad v = A . G.pad @ps v . unA
 -- numbers [0..l-1] for an l no greater than the rank of the array, whose l
 -- outermost dimensions it permutes.
 -- O(1) time.
+{-# INLINE transpose #-}
 transpose :: forall is sh a .
              (HasCallStack, Permutation is, Rank is <= Rank sh, Shape sh, Shape is, KnownNat (Rank sh)) =>
              Array sh a -> Array (Permute is sh) a
@@ -321,6 +327,7 @@ window = A . G.window @ws . unA
 -- E.g., if the array shape is @[10,12,8]@ and the strides are
 -- @[2,2]@ then the resulting shape will be @[5,6,8]@.
 -- O(1) time.
+{-# INLINE stride #-}
 stride :: forall ts sh' sh a .
           (Stride ts sh sh', Shape ts) =>
           Array sh a -> Array sh' a
@@ -332,6 +339,7 @@ stride = A . G.stride @ts . unA
 -- May fail if the result has more than half of 'maxBound' elements.
 -- With k = 1, the result is a view of the array, sharing its vector; 'force'
 -- copies it out.
+{-# INLINABLE rotate #-}
 rotate :: forall d k sh a .
           (HasCallStack, KnownNat d, KnownNat k, Shape sh,
            d + 1 <= Rank sh, Shape (Take d sh ++ (k ': Drop d sh))) =>
@@ -344,6 +352,7 @@ rotate = A . G.rotate @d @k . unA
 -- The extracted slice must fall within the array dimensions.
 -- E.g. @slice \@'[ '(1,2)] (fromList \@'[4] [1,2,3,4]) == fromList \@'[2] [2,3]@.
 -- O(1) time.
+{-# INLINE slice #-}
 slice :: forall sl sh' sh a .
          (Slice sl sh sh') =>
          Array sh a -> Array sh' a
@@ -375,6 +384,7 @@ rerank2 f ta tb = A $ G.rerank2 @n (\ a b -> unA $ f (A a) (A b)) (unA ta) (unA 
 
 -- | Reverse the given dimensions, with the outermost being dimension 0.
 -- O(1) time.
+{-# INLINE rev #-}
 rev :: forall rs sh a . (ValidDims rs sh, Shape rs, Shape sh) =>
        Array sh a -> Array sh a
 rev = A . G.rev @rs . unA
