@@ -47,7 +47,12 @@ import Data.Array.Internal.Shape(Shape(..), validShape)
 -- Storable vector (https://github.com/haskell/vector/issues/570).  On GHC
 -- HEAD, converting a view of 200000 Doubles took 0.28 of the time at -O1
 -- and allocated 72 bytes an element where 120; with vector patched as the issue
--- proposes and -fspec-constr, it took 0.93 to 0.95 of it.
+-- proposes and -fspec-constr, it took 0.93 to 0.95 of it.  INLINE:
+-- under INLINABLE a client's specialised convert still called
+-- its worker with the Storable dictionary, running 3.5 times the
+-- instructions, since the instance's a ~ b casts that dictionary
+-- (https://gitlab.haskell.org/ghc/ghc/-/work_items/27920).
+{-# INLINE fromStorable #-}
 fromStorable :: VS.Storable a => VS.Vector a -> V.Vector a
 fromStorable v = V.create $ do
   let !n = VS.length v
@@ -80,21 +85,31 @@ class Convert a b where
 -- Convert (X a) (Y a)" instead, they'd not be selected until the element types
 -- of both arrays are determined to be the same by other means, which would
 -- lead to unnecessary ambiguity errors.
+--
+-- The conversions between boxings are INLINABLE, so that a client specialises
+-- them at its element type: their worker, with 'I.convertT' inlined into it,
+-- is too big for an unfolding of its own, and called with the element's
+-- dictionary, converting a dense array of 200000 Doubles ran 2.3 to 7.0 times
+-- the instructions and allocated up to 12 times as much.
 
 -----
 
 instance (a ~ b, DU.Unbox a) => Convert (D.Array a) (DU.Array b) where
+  {-# INLINABLE convert #-}
   convert (D.A (DG.A sh t)) = DU.A (DG.A sh (I.convertT sh V.convert t))
 
 instance (a ~ b, DU.Unbox a) => Convert (DU.Array a) (D.Array b) where
+  {-# INLINABLE convert #-}
   convert (DU.A (DG.A sh t)) = D.A (DG.A sh (I.convertT sh V.convert t))
 
 -----
 
 instance (a ~ b, DS.Unbox a) => Convert (D.Array a) (DS.Array b) where
+  {-# INLINABLE convert #-}
   convert (D.A (DG.A sh t)) = DS.A (DG.A sh (I.convertT sh V.convert t))
 
 instance (a ~ b, DS.Unbox a) => Convert (DS.Array a) (D.Array b) where
+  {-# INLINABLE convert #-}
   convert (DS.A (DG.A sh t)) = D.A (DG.A sh (I.convertT sh fromStorable t))
 
 -----
@@ -103,33 +118,41 @@ instance (a ~ b, DS.Unbox a) => Convert (DS.Array a) (D.Array b) where
 -- before the ranks are known to be equal, then constrain them to be equal.
 
 instance (a ~ b, n ~ m, RU.Unbox a) => Convert (R.Array n a) (RU.Array m b) where
+  {-# INLINABLE convert #-}
   convert (R.A (RG.A sh t)) = RU.A (RG.A sh (I.convertT sh V.convert t))
 
 instance (a ~ b, n ~ m, RU.Unbox a) => Convert (RU.Array n a) (R.Array m b) where
+  {-# INLINABLE convert #-}
   convert (RU.A (RG.A sh t)) = R.A (RG.A sh (I.convertT sh V.convert t))
 
 -----
 
 instance (a ~ b, n ~ m, RS.Unbox a) => Convert (R.Array n a) (RS.Array m b) where
+  {-# INLINABLE convert #-}
   convert (R.A (RG.A sh t)) = RS.A (RG.A sh (I.convertT sh V.convert t))
 
 instance (a ~ b, n ~ m, RS.Unbox a) => Convert (RS.Array n a) (R.Array m b) where
+  {-# INLINABLE convert #-}
   convert (RS.A (RG.A sh t)) = R.A (RG.A sh (I.convertT sh fromStorable t))
 
 -----
 
 instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n) => Convert (S.Array n a) (SU.Array m b) where
+  {-# INLINABLE convert #-}
   convert (S.A g@(SG.A t)) = SU.A (SG.A (I.convertT (SG.shapeL g) V.convert t))
 
 instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n) => Convert (SU.Array n a) (S.Array m b) where
+  {-# INLINABLE convert #-}
   convert (SU.A g@(SG.A t)) = S.A (SG.A (I.convertT (SG.shapeL g) V.convert t))
 
 -----
 
 instance (a ~ b, n ~ m, SS.Unbox a, S.Shape n) => Convert (S.Array n a) (SS.Array m b) where
+  {-# INLINABLE convert #-}
   convert (S.A g@(SG.A t)) = SS.A (SG.A (I.convertT (SG.shapeL g) V.convert t))
 
 instance (a ~ b, n ~ m, SS.Unbox a, S.Shape n) => Convert (SS.Array n a) (S.Array m b) where
+  {-# INLINABLE convert #-}
   convert (SS.A g@(SG.A t)) = S.A (SG.A (I.convertT (SG.shapeL g) fromStorable t))
 
 -----
