@@ -348,7 +348,7 @@ sumOverflows ss = sumExtents ss < 0
 -- '==', the thunk remaining.  'compare' is vector-stream's 'cmpBy', of
 -- the same shape and, from GHC 9.12 on, the same cost, hence the loop
 -- in 'compareT'.
-{-# INLINE equalT #-}
+{-# INLINABLE equalT #-}
 equalT :: (Vector v, VecElem v a, Eq a) => ShapeL -> ShapeL -> T v a -> T v a -> Bool
 equalT s s' x@(T _ _ vx) y@(T _ _ vy)
   | Just (lo, n) <- sameRangeT s s' x y = eqWith vx vy lo (lo + offset y - offset x) n
@@ -400,6 +400,9 @@ foldPartsT c e goWith s x@(T _ _ vx) y@(T _ _ vy)
     !d = offset y - offset x
     go = goWith vx vy
 
+-- INLINE: on GHC HEAD (2026-10-10), made INLINABLE as 'equalT' is,
+-- eta-expanded or not, it ran compare of a transposed [400, 500] view of
+-- Doubles 1.12 to 1.17 times the instructions.
 -- Compare two arrays of the same shape lexicographically in row-major order,
 -- as 'foldPartsT' folds them.  Without the broadcast dimensions the order is
 -- kept: the first element that differs in the views is the first one that
