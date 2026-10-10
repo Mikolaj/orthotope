@@ -1784,7 +1784,10 @@ allSameT sh t@(T _ ao v)
     -- at the first element that differs.  The element is read as
     -- the instance reads it: evaluated at a primitive representation, so
     -- that it is unboxed once rather than at every comparison, and as stored
-    -- at a boxed one, for == alone to evaluate.
+    -- at a boxed one, for == alone to evaluate.  That costs boxed Doubles a
+    -- quarter of the instructions: with the element forced before the fold,
+    -- allSameA of a transposed [400, 500] view of equal Doubles ran 0.76
+    -- times them on GHC HEAD.
     vUnsafeWithElem v ao $ \ x ->
       routeFoldT v (cellsRouteT sh l t) (\ s r -> vAll (x ==) s && r) (\ y r -> x == y && r) True
   where !l = product sh
