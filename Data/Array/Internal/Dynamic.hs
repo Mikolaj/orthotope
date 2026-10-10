@@ -578,11 +578,17 @@ broadcast :: (HasCallStack) =>
              [Int] -> ShapeL -> Array a -> Array a
 broadcast ds sh = A . G.broadcast ds sh . unA
 
+-- INLINE: the other structural operations are INLINABLE, but on GHC HEAD
+-- 10.1.20260918 (2026-10-17), under INLINABLE, the specialisation benchmark's
+-- update of a [3, 3] array ran 1.13 to 1.64 times the instructions and
+-- allocated 72 to 160 bytes a call more, and summed boxed and Unboxed update
+-- at [400, 500] 1.07 to 1.42 times, against 0.74 to 0.85 times at Dynamic and
+-- Ranked Storable's, the test suite's Core growing 0.02% inlined.
 -- | Update the array at the specified indices to the associated value.
 -- Fails if an index is out of bounds.
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE update #-}
+{-# INLINE update #-}
 update :: (HasCallStack) =>
           Array a -> [([Int], a)] -> Array a
 update a = A . G.update (unA a)
