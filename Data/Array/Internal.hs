@@ -809,30 +809,30 @@ genericUnsafeFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
     else walk (writeRunStep stInner)
     return out
 
--- The concatenation for 'vUnsafeConcatN': one buffer of the length given, each part
--- copied into it as the list yields it, by one 'foldr', so that a part dies
--- young and a list a 'build' produces is never built.  The vector package's
--- concat walks its list twice, for the length and then to copy, so it holds
--- the list and every part before it copies any and fuses with no producer.
--- Every caller of vUnsafeConcatN can hand it a lone part of the length given, as
--- concatOuter of one array and rotate along the outermost dimension do, and
--- that is returned as it is; like a view's, it can be a slice of a longer
--- vector and keep that alive.  On GHC HEAD with loop heads aligned, on 200000
--- Doubles at Storable and Unboxed elements, at allocation areas of 32 MB and
--- then of 4 MB, pad and rerank both took 0.38 to 0.68 and 0.40 to 0.49 of
--- their time on rows of 2 to 8 elements, rerank allocating 99 to 356 bytes an
--- element where it had allocated 110 to 400; on rows of 500 pad and rerank, and
--- pad on a transposed view, took 0.79 to 1.00 and 0.81 to 0.94; concatOuter
--- took 0.87 to 1.10 and 0.90 to 0.93 on four transposed views, running as many
--- instructions; and rotate along the outermost dimension took 0.54 to 0.73 at
--- 32 MB, while at 4 MB it ran 0.92 to 0.93 of the cycles alone in its process
--- but took 2.5 times as long or more in a process holding a large live heap.
--- Neither concatenation fuses with a consumer that streams the result: none of
--- vector's fusion rules fired in clients streaming what pad, concatOuter or
--- rerank return, compiled by GHC HEAD at -O1 or -O2.
+-- The concatenation for 'vUnsafeConcatN': one buffer of the length given,
+-- each vector copied into it as the list yields it, by one 'foldr', so that a
+-- vector dies young and a list a 'build' produces is never built.  The vector
+-- package's concat walks its list twice, for the length and then to copy, so
+-- it holds the list and every vector before it copies any and fuses with no
+-- producer.  A lone vector is copied too: the equation that returned it kept
+-- every list from fusing, and the operations that would hand one over, such as
+-- concatOuter of one array, return it uncopied instead.  Without that equation,
+-- on GHC HEAD at -O1 on 200000 Doubles at Storable and Unboxed elements,
+-- ravel of rows of 8 ran 0.77 to 0.79 of the instructions and allocated 13
+-- bytes an element where 24, and rerank over them 0.86 to 0.88, allocating
+-- 11 fewer.  With it, on GHC HEAD with loop heads aligned, on 200000 Doubles
+-- at Storable and Unboxed elements, at allocation areas of 32 MB and then of
+-- 4 MB, pad and rerank both took 0.38 to 0.68 and 0.40 to 0.49 of their time
+-- with vector's concat on rows of 2 to 8 elements, rerank allocating 99 to 356
+-- bytes an element where it had allocated 110 to 400; on rows of 500 pad and
+-- rerank, and pad on a transposed view, took 0.79 to 1.00 and 0.81 to 0.94;
+-- and concatOuter took 0.87 to 1.10 and 0.90 to 0.93 on four transposed views,
+-- running as many instructions.  Neither concatenation fuses with a consumer
+-- that streams the result: none of vector's fusion rules fired in clients
+-- streaming what pad, concatOuter or rerank return, compiled by GHC HEAD at -O1
+-- or -O2.
 {-# INLINE genericUnsafeConcatN #-}
 genericUnsafeConcatN :: (VG.Vector w a) => Int -> [w a] -> w a
-genericUnsafeConcatN n [v] | VG.length v == n = v  -- False only for a call breaking the contract
 genericUnsafeConcatN n vs = VG.create $ do
   out <- VGM.unsafeNew n
   let step x k = \ !i -> do
@@ -1879,20 +1879,21 @@ padT v aps ash at =
         -- and so a slice and an indexT per element; on views of about 200000
         -- Doubles with the innermost dimension padded, the block taken whole
         -- took 0.01 to 0.32 of the time.  As a list and not one vector by
-        -- toVectorT: here vUnsafeConcatN copies every part once, so a block lying in
-        -- runs of the source is copied once from the list's slices and would
-        -- be copied twice from a vector toVectorT filled; a strided block,
-        -- which no slice can take, is filled and copied either way.  The
-        -- vector was tried and refuted: about twice the list's
-        -- time on a block of runs of 500, and faster only on boxed runs of
-        -- 8, in about half the list's time, which a choice per block by run
-        -- length would buy for a dispatch here.  The parts produced under one
-        -- 'build', each level handing the rest on so that genericUnsafeConcatN's
-        -- 'foldr' fuses with them, were tried and refuted: on
-        -- GHC HEAD at Storable and Unboxed elements, at allocation areas
-        -- of 32 MB and then of 4 MB, 0.99 to 1.34 and 1.03 to 1.30 times
-        -- the list's time, allocating at most 3.3% less, and at boxed ones
-        -- 0.88 to 0.96 and 0.94 to 1.08 times it.
+        -- toVectorT: here vUnsafeConcatN copies every vector once, so a block
+        -- lying in runs of the source is copied once from the list's slices
+        -- and would be copied twice from a vector toVectorT filled; a strided
+        -- block, which no slice can take, is filled and copied either way.
+        -- The vector was tried and refuted: about twice the list's time on a
+        -- block of runs of 500, and faster only on boxed runs of 8, in about
+        -- half the list's time, which a choice per block by run length would
+        -- buy for a dispatch here.  The vectors produced under one 'build',
+        -- each level handing the rest on so that genericUnsafeConcatN's 'foldr'
+        -- fuses with them, were tried and refuted, but while an equation of
+        -- genericUnsafeConcatN returning a lone vector kept every list from
+        -- fusing: on GHC HEAD at Storable and Unboxed elements, at allocation
+        -- areas of 32 MB and then of 4 MB, 0.99 to 1.34 and 1.03 to 1.30 times
+        -- the list's time, allocating at most 3.3% less, and at boxed ones 0.88
+        -- to 0.96 and 0.94 to 1.08 times it.
         pad' [] sh _ t = toVectorListT sh t
         pad' [(l,h)] (s:sh) (!n:_) t =
           [vReplicate (n*l) v] ++ toVectorListT (s:sh) t ++ [vReplicate (n*h) v]
