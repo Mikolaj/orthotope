@@ -510,6 +510,7 @@ allSameA a@(A t) = allSameT (shapeL a) t
 
 instance (Shape sh, Vector v, VecElem v a, Arbitrary a) => Arbitrary (Array sh v a) where
   arbitrary = fromList <$> vector (sizeP (Proxy :: Proxy sh))
+  {-# INLINABLE arbitrary #-}
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}

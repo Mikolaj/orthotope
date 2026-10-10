@@ -407,7 +407,9 @@ traverseA f = fmap A . G.traverseA f . unA
 allSameA :: forall n a . (Unbox a, Eq a) => Array n a -> Bool
 allSameA = G.allSameA . unA
 
-instance (KnownNat r, Arbitrary a, Unbox a) => Arbitrary (Array r a) where arbitrary = A <$> arbitrary
+instance (KnownNat r, Arbitrary a, Unbox a) => Arbitrary (Array r a) where
+  arbitrary = A <$> arbitrary
+  {-# INLINE arbitrary #-}
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}

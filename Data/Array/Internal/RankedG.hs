@@ -633,6 +633,7 @@ instance (KnownNat r, Vector v, VecElem v a, Arbitrary a) => Arbitrary (Array r 
     -- Don't generate huge number of elements
     ss <- replicateM (natT @r) (getSmall . getPositive <$> arbitrary) `suchThat` ((< 10000) . product)
     fromList ss <$> vector (product ss)
+  {-# INLINABLE arbitrary #-}
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}

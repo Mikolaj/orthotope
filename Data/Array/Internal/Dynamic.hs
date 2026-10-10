@@ -525,7 +525,9 @@ traverseA f = fmap A . G.traverseA f . unA
 allSameA :: (Eq a) => Array a -> Bool
 allSameA = G.allSameA . unA
 
-instance Arbitrary a => Arbitrary (Array a) where arbitrary = A <$> arbitrary
+instance Arbitrary a => Arbitrary (Array a) where
+  arbitrary = A <$> arbitrary
+  {-# INLINE arbitrary #-}
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}
