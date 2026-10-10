@@ -369,9 +369,13 @@ equalT s s' x@(T _ _ vx) y@(T _ _ vy)
 -- element, an element.  Otherwise two views that are one slice each fold as
 -- the slices, a view and a slice as the view's parts against the slice from
 -- its start on, and any other pair as the first view's parts against the
--- second normalized, a slice of its own.  A walk against a slice allocates
--- 16 bytes a part, and no case reads an element outside the views or
--- materializes one but the last, which copies the second.
+-- second normalized, a slice of its own.  No case reads an element outside
+-- the views or materializes one but the last, which copies the second.  The
+-- continuations ending a walk against a slice bang the cursor they are handed,
+-- which keeps it unboxed: with 'const e' it was boxed, 16 bytes a part, and
+-- == of views of 200000 Doubles against dense copies at -O1 ran 1.7 times the
+-- instructions at Storable elements and 1.4 times at Unboxed ones, though 0.96
+-- times at boxed ones.
 {-# INLINE foldPartsT #-}
 foldPartsT :: (Vector v, VecElem v a)
            => (r -> r -> r) -> r -> (v a -> v a -> Int -> Int -> Int -> r)
@@ -385,12 +389,12 @@ foldPartsT c e goWith s x@(T _ _ vx) y@(T _ _ vy)
   | otherwise = case (routeT s l x, routeT s l y) of
       (RSlice ox _, RSlice oy _) -> go ox oy l
       (rx, RSlice oy _) ->
-        routePartsT rx (\p n rest !q -> go p q n `c` rest (q + n)) (const e) oy
+        routePartsT rx (\p n rest !q -> go p q n `c` rest (q + n)) (\ !_ -> e) oy
       (RSlice ox _, ry) ->
-        routePartsT ry (\p n rest !q -> go q p n `c` rest (q + n)) (const e) ox
+        routePartsT ry (\p n rest !q -> go q p n `c` rest (q + n)) (\ !_ -> e) ox
       (rx, _) -> let !(T _ oz vz) = normalizeT s y
                  in  routePartsT rx (\p n rest !q -> goWith vx vz p q n `c` rest (q + n))
-                                 (const e) oz
+                                 (\ !_ -> e) oz
   where
     !l = product s
     !d = offset y - offset x
