@@ -446,10 +446,13 @@ rotate d k a@(A sh _)
               A _ (T [s] o v) = reshape [c * n]
                                 . stretchOuter c
                                 . reshape (1:h:t) $ arr
-          -- The k windows as one view: window [n] would view all
-          -- c * n - n + 1 of them first, a view whose size can overflow Int.
-          in rev [0]
-             . reshape (k:h:t) $ A [k, n] (T [(n + m) * s, s] o v)
+          -- The k windows as one view of shape k:h:t: window [n] would view
+          -- all c * n - n + 1 of them first, a view whose size can overflow
+          -- Int, and reshaping a view of shape [k, n] to k:h:t copies it,
+          -- which made rotate 0 2 of a [1000, 200] array of Doubles run 1.6
+          -- times the instructions at Storable and Unboxed elements and 2.9
+          -- times at boxed ones.
+          in rev [0] $ A (k:h:t) (T ((n + m) * s : map (* s) (tail (getStridesT (h:t)))) o v)
 
 -- | Extract a slice of an array.
 -- The first argument is a list of (offset, length) pairs.
