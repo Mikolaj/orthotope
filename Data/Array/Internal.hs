@@ -2012,13 +2012,16 @@ updateT sh t us = T ss 0 $ vUpdate (toVectorT sh t) $ map ix us
 
 -- Each index list is built under 'build', each component computed as the list
 -- is consumed, so that a function that consumes it where it is inlined, as sum
--- does, fuses with it.
+-- does, fuses with it.  Both equations of go bang the index, which keeps it
+-- unboxed: with the first lazy, generate of 200000 Doubles at -O1 allocated
+-- 56 bytes an element where 8 at Storable and Unboxed elements, running 1.3
+-- times the instructions, and 72 where 24 at boxed ones, running 2.2 times.
 {-# INLINE generateT #-}
 generateT :: (Vector v, VecElem v a) => ShapeL -> ([Int] -> a) -> T v a
 generateT sh f = T ss 0 $ vGenerate s g
   where s : ss = getStridesT sh
         g i = f (build $ \cons nil ->
-                   let go [] _ = nil
+                   let go [] !_ = nil
                        go (n : ns) !j = case quotRem j n of
                          (q, r) -> q `cons` go ns r
                    in  go ss i)
