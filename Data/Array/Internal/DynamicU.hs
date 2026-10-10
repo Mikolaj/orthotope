@@ -604,11 +604,12 @@ broadcast :: HasCallStack =>
              [Int] -> ShapeL -> Array a -> Array a
 broadcast ds sh = A. G.broadcast ds sh . unA
 
+-- INLINE: see the comment on update in Dynamic.
 -- | Update the array at the specified indices to the associated value.
 -- Fails if an index is out of bounds.
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE update #-}
+{-# INLINE update #-}
 update :: (HasCallStack, Unbox a) =>
           Array a -> [([Int], a)] -> Array a
 update a = A . G.update (unA a)
