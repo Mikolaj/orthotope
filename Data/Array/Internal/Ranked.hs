@@ -105,6 +105,7 @@ shapeL = G.shapeL . unA
 -- | The rank of an array, i.e., the number of dimensions it has,
 -- which is the @n@ in @Array n a@.
 -- O(1) time.
+{-# INLINE rank #-}
 rank :: (KnownNat n) => Array n a -> Int
 rank = G.rank . unA
 
@@ -166,6 +167,7 @@ force = A . G.force . unA
 
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.
+{-# INLINABLE reshape #-}
 reshape :: forall n' n a . (HasCallStack, KnownNat n') => ShapeL -> Array n a -> Array n' a
 reshape s = A . G.reshape s . unA
 
@@ -255,6 +257,7 @@ pad ps v = A . G.pad ps v . unA
 -- [0..l-1] for an l no greater than the rank of the array, whose l outermost
 -- dimensions it permutes.
 -- O(1) time.
+{-# INLINE transpose #-}
 transpose :: (HasCallStack, KnownNat n) => [Int] -> Array n a -> Array n a
 transpose is = A . G.transpose is . unA
 
@@ -328,6 +331,7 @@ stride ws = A . G.stride ws . unA
 -- 'maxBound' elements.
 -- With k = 1, the result is a view of the array, sharing its vector; 'force'
 -- copies it out.
+{-# INLINABLE rotate #-}
 rotate :: forall d p a.
           (HasCallStack, KnownNat d,
           1 <= p  -- d is a dimension of the array
