@@ -578,6 +578,7 @@ instance (Vector v, VecElem v a, Arbitrary a) => Arbitrary (Array v a) where
     -- Don't generate huge number of elements
     ss <- replicateM r (getSmall . getPositive <$> arbitrary) `suchThat` ((< 10000) . product)
     fromList ss <$> vector (product ss)
+  {-# INLINABLE arbitrary #-}
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}
