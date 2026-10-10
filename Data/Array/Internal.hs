@@ -547,6 +547,7 @@ constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 -- source or write outside the result, which can corrupt memory.  The
 -- operations of the array modules call 'vUnsafeFillStrided' directly, on axes
 -- taken from a view that keeps the contract already.
+{-# INLINE fillStrided #-}
 fillStrided :: (Vector v, VecElem v a) => Axes -> Int -> Int -> v a -> v a
 fillStrided axes@(Axes st n outer) ao l v
   | any ((<= 0) . axisExtent) axs = bad "an extent that is not positive"
