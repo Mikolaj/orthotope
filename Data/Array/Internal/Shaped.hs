@@ -214,16 +214,21 @@ mapA f = A . G.mapA f . unA
 
 instance (Shape sh) => Functor (Array sh) where
   fmap = mapA
+  {-# INLINE fmap #-}
 
 instance (Shape sh) => Foldable (Array sh) where
   foldr = foldrA
+  {-# INLINE foldr #-}
 
 instance (Shape sh) => Traversable (Array sh) where
   traverse = traverseA
+  {-# INLINE traverse #-}
 
 instance (Shape sh) => Applicative (Array sh) where
   pure = constant
+  {-# INLINE pure #-}
   (<*>) = zipWithA ($)
+  {-# INLINE (<*>) #-}
 
 -- | Combine the elements of two arrays.
 -- O(n) time.
