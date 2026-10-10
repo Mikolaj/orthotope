@@ -2060,7 +2060,7 @@ permute is xs = go is
 revDropWhile :: (a -> Bool) -> [a] -> [a]
 revDropWhile p = reverse . dropWhile p . reverse
 
-{-# INLINABLE allSame #-}
+{-# INLINE allSame #-}
 allSame :: (Eq a) => [a] -> Bool
 allSame [] = True
 allSame (x : xs) = all (x ==) xs
