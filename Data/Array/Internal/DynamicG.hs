@@ -400,6 +400,8 @@ window aws (A ash (T ss o v))
         rsh = map fromInteger rshI
         ss' = zipWith const ss aws
 
+-- The shape is forced here, not checked with 'badShape' as window's is:
+-- its extents, each s / t rounded up, never pass the array's.
 -- | Stride the outermost dimensions.
 -- E.g., if the array shape is @[10,12,8]@ and the strides are
 -- @[2,2]@ then the resulting shape will be @[5,6,8]@.
@@ -407,8 +409,6 @@ window aws (A ash (T ss o v))
 -- positive.
 -- O(1) time.
 {-# INLINE stride #-}
--- The shape is forced here, not checked with 'badShape' as window's is:
--- its extents, each s / t rounded up, never pass the array's.
 stride :: HasCallStack => [Int] -> Array v a -> Array v a
 stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ repeat 1) ss) o v)  -- check now
   where rsh = str ats ash
