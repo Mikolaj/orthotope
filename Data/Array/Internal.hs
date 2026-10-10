@@ -620,7 +620,7 @@ fillStrided axes@(Axes st n outer) ao l v
 -- FastReshape.hs (a Storable-only odometer flatten behind an unsafeCast to
 -- Double or Float, never in the cabal file, removed once subsumed by this).
 --
--- INLINABLE, so that a client specialises the fill at most once per
+-- INLINABLE, so that a client module specialises the fill at most once per
 -- instance of 'Vector' and element type instead of inlining it at
 -- every call.  Exposing it instead by -fexpose-overloaded-unfoldings,
 -- with no pragma, waits until clients routinely build with
@@ -1299,6 +1299,10 @@ routeVectorT v route = case route of
 absAxesAndStartT :: [Axis] -> Int -> [Int] -> ShapeL -> ([Axis], Int)
 absAxesAndStartT axes !off (_ : sts) (1 : ns) =
   absAxesAndStartT axes off sts ns
+-- -Wredundant-bang-patterns reports the bang on off below, but without it
+-- this equation falls into a match group of its own, which matches both
+-- lists again and builds the Axis of a non-negative stride lazily
+-- (https://gitlab.haskell.org/ghc/ghc/-/work_items/27862).
 absAxesAndStartT axes !off (st : sts) (n : ns)
   | st < 0 =
       absAxesAndStartT (Axis (negate st) n : axes) (off + (n - 1) * st) sts ns
@@ -1722,6 +1726,8 @@ subArraysT sh (T ts o v) = build $ \ cons nil ->
 reverseT :: [Int] -> ShapeL -> T v a -> T v a
 reverseT rs sh (T ats ao v) = T rts ro v
   where (ro, rts) = rev 0 sh ats
+        -- The second bang, which -Wredundant-bang-patterns reports, keeps
+        -- the two equations in one match group, as at 'absAxesAndStartT'.
         rev !_ [] [] = (ao, [])
         rev !r (m:ms) (t:ts) | r `elem` rs = (o + (m-1)*t, -t : ts')
                              | otherwise   = (o,            t : ts')
