@@ -36,11 +36,17 @@
 -- at Double or polymorphic in the element, allocated like the specialised call,
 -- where the boxed modules built without the flag failed the bound on 9.12.4.
 -- The bitcasts, having no boxed counterpart, go unchecked.
+-- And that fillStrided, which clients outside the array modules call,
+-- allocates at most 16 bytes an element at Storable and Unboxed, its
+-- result's 8, where a call through a copy compiled for any vector type,
+-- passing both dictionaries at run time, allocated 152 and 72 on GHC HEAD;
+-- the control from Unspecialised is such a call.
 -- And that the walks of reduce, traverseA, generate, iota and zipWith5A
 -- allocate under bounds that the forms they replaced exceeded, traverseA at
 -- Storable at most 8 bytes an element more than at Unboxed.  Its bounds on
--- toVector, sumA, the list heads, specialisation and the walks run in an
--- optimised build alone and hold in one without profiling or coverage.
+-- toVector, sumA, the list heads, specialisation, fillStrided and the walks
+-- run in an optimised build alone and hold in one without profiling or
+-- coverage.
 {-# LANGUAGE CPP #-}
 module BenchViewsTest(test) where
 
@@ -54,6 +60,7 @@ import Data.Bits (shiftR, xor)
 import Data.Int (Int64)
 import Data.List (intercalate, isSuffixOf, mapAccumR)
 import qualified Data.Vector.Storable as VS
+import qualified Data.Vector.Unboxed as VU
 import GHC.Conc (getAllocationCounter, setAllocationCounter)
 import Test.Framework (Test, TestOptions' (..), plusTestOptions, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
@@ -66,7 +73,7 @@ import qualified Call
 import qualified OpsDynamic as OD
 import qualified OpsRanked as OR
 import qualified OpsShaped as OS
-import Unspecialised (unspecialisedPad)
+import Unspecialised (unspecialisedFill, unspecialisedPad)
 
 -- A view's shape, strides and offset, and the length of the vector
 -- under it.
@@ -121,6 +128,9 @@ test = testGroup "BenchViews"
       ++ [ testCase "Dynamic/pad at Storable, not specialised"
              (unspecialisedOver b unspecialisedPad)
          | b <- callsNamed "pad" OD.opsB ]
+  , optimisedGroup "fillStrided"
+      $  [ testCase kind (fillUnder c) | (kind, c) <- fillCalls ]
+      ++ [ testCase "Storable, not specialised" (fillOver unspecialisedFill) ]
   , optimisedGroup "walks"
       $  [ testCase (family ++ "/" ++ name) (walked name kinds bound bs ss us)
          | (family, bs, ss, us) <- [ ("Dynamic", OD.opsB, OD.opsS, OD.opsU)
@@ -224,6 +234,29 @@ unspecialisedOver b c = do
   assertBool (show over ++ " bytes an element over boxed, not over 32")
              (over > 32)
 
+-- fillStrided, which clients outside the array modules call, on the view
+-- of the specialisation benchmark at Storable and Unboxed.
+fillCalls :: [(String, Call)]
+fillCalls =
+  [ ("Storable", Call "fillStrided" (I.fillStrided Call.axes 0 Call.n)
+                      (VS.fromList Call.elems))
+  , ("Unboxed", Call "fillStrided" (I.fillStrided Call.axes 0 Call.n)
+                     (VU.fromList Call.elems)) ]
+
+-- The call allocates at most 16 bytes an element, the result's 8 and no
+-- element boxed.
+fillUnder :: Call -> Assertion
+fillUnder c = do
+  o <- perElem <$> callAlloc c
+  assertBool (show o ++ " bytes an element") (o <= 16)
+
+-- The control allocates more than 16 bytes an element: the bound tells
+-- an unspecialised call apart.
+fillOver :: Call -> Assertion
+fillOver c = do
+  o <- perElem <$> callAlloc c
+  assertBool (show o ++ " bytes an element, not over 16") (o > 16)
+
 -- Bytes over the elements of the calls' view.
 perElem :: Int64 -> Double
 perElem a = fromIntegral a / fromIntegral Call.n
@@ -236,10 +269,11 @@ callAlloc (Call _ f x) = do
   _ <- allocated (rnf . f) x
   allocated (rnf . f) x
 
--- The bounds on toVector, sumA, the list heads, specialisation and the walks
--- hold for an optimised build without profiling or coverage, the others
--- allocating more for each element: an unoptimised build runs their groups
--- empty, and a profiled or coverage build runs them and may fail them.
+-- The bounds on toVector, sumA, the list heads, specialisation, fillStrided
+-- and the walks hold for an optimised build without profiling or coverage,
+-- the others allocating more for each element: an unoptimised build runs
+-- their groups empty, and a profiled or coverage build runs them and may
+-- fail them.
 optimisedGroup :: String -> [Test] -> Test
 optimisedGroup n ts = testGroup n (if optimised then ts else [])
 
