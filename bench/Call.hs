@@ -15,9 +15,10 @@
 -- An operation applied to its input, on the one view all the calls share,
 -- for the specialisation benchmark and test alike.
 {-# LANGUAGE ExistentialQuantification #-}
-module Call (Call (..), n, elems) where
+module Call (Call (..), n, elems, axes) where
 
 import Control.DeepSeq (NFData)
+import Data.Array.Internal (Axes (..), Axis (..), InnerFirst (..))
 
 -- | An operation, its name and its input.
 data Call = forall a b. (NFData a, NFData b) => Call String (a -> b) a
@@ -30,3 +31,8 @@ n = 200000
 elems :: [Double]
 elems = [ fromIntegral ((i * 2654435761) `mod` 1000003) / 1000003
         | i <- [0 .. n - 1] ]
+
+-- | The axes of the one view, [500, 400] transposed: the inner dimension
+-- at stride 400, the outer at stride 1.
+axes :: Axes
+axes = Axes 400 500 (InnerFirst [Axis 1 400])
