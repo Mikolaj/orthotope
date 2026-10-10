@@ -1246,14 +1246,12 @@ toVectorT sh a@(T _ _ v)
 -- order in its vector, whatever the strides of its dimensions of extent 1,
 -- keeps the vector, or the slice of it they fill, which keeps the whole
 -- vector alive, and otherwise has them copied into a new one; 'forceT'
--- copies them out of a longer vector.
+-- copies them out of a longer vector.  That is the vector 'toVectorT' returns,
+-- whose route tells the two cases apart: a test of the strides of its own
+-- before it cost a [2,2] array 1.6 to 2.2 times the instructions.
 {-# INLINE normalizeT #-}
 normalizeT :: (Vector v, VecElem v a) => ShapeL -> T v a -> T v a
-normalizeT sh t@(T ats ao v)
-  | l > 0, map fst dense == ts' = fromVectorT sh $ wholeOrSliceT ao l v
-  | otherwise = fromVectorT sh $ toVectorT sh t
-  where dense = [ (st, s) | (st, s) <- zip ats sh, s /= 1 ]
-        l : ts' = getStridesT (map snd dense)
+normalizeT sh t = fromVectorT sh $ toVectorT sh t
 
 -- The view with k dimensions of extent 1 inserted before its dimension d,
 -- which reads the same elements, sharing the vector.
