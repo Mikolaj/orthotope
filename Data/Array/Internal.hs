@@ -426,7 +426,6 @@ compareT = foldPartsT (Prelude.<>) EQ cmpWith
 
 -- Given the dimensions, return the stride in the underlying vector
 -- for each dimension.  The first element of the list is the total length.
-{-# INLINE getStridesT #-}
 getStridesT :: ShapeL -> [Int]
 getStridesT [] = [1]
 getStridesT (s : ss) = case getStridesT ss of
