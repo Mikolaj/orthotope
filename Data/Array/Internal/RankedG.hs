@@ -414,6 +414,8 @@ window aws (A ash (T ss o v))
         rsh = map fromInteger rshI
         ss' = zipWith const ss aws
 
+-- The shape is forced here, not checked with 'badShape' as window's is:
+-- its extents, each s / t rounded up, never pass the array's.
 -- | Stride the outermost dimensions.
 -- E.g., if the array shape is @[10,12,8]@ and the strides are
 -- @[2,2]@ then the resulting shape will be @[5,6,8]@.
@@ -421,8 +423,6 @@ window aws (A ash (T ss o v))
 -- positive.
 -- O(1) time.
 {-# INLINE stride #-}
--- The shape is forced here, not checked with 'badShape' as window's is:
--- its extents, each s / t rounded up, never pass the array's.
 stride :: forall n v a . HasCallStack => [Int] -> Array n v a -> Array n v a
 stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ repeat 1) ss) o v)  -- check now
   where rsh = str ats ash
@@ -516,6 +516,8 @@ slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
         slc [] sh _ = (ao, sh)
         slc _ _ _ = error "slice: violated contract: not one stride per dimension"
 
+-- Over an empty outer dimension f is never applied, so the inner shape
+-- is known only for scalars.
 -- | Apply a function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
 -- The /n/ must not exceed the rank of the array, none of those /n/ dimensions
@@ -525,8 +527,6 @@ slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank #-}
--- Over an empty outer dimension f is never applied, so the inner shape
--- is known only for scalars.
 rerank :: forall n i o v v' a b .
           (Vector v', VecElem v' b
           , KnownNat n, KnownNat o, KnownNat (n+o)) =>
@@ -563,6 +563,8 @@ ravelOuterOf osh sh as = fromVector sh' $ vUnsafeConcatN (product sh') $ map vec
         vec x | shapeL x == sh = toVector x
               | otherwise = error $ "ravelOuterOf: non-conforming inner dimensions: " ++ show [sh, shapeL x]
 
+-- Over an empty outer dimension f is never applied, so the inner shape
+-- is known only for scalars.
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
 -- The /n/ must not exceed the rank of the array, none of those /n/ dimensions
@@ -573,8 +575,6 @@ ravelOuterOf osh sh as = fromVector sh' $ vUnsafeConcatN (product sh') $ map vec
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank2 #-}
--- Over an empty outer dimension f is never applied, so the inner shape
--- is known only for scalars.
 rerank2 :: forall n i o a b c v .
            (HasCallStack, Vector v, VecElem v c,
             KnownNat n, KnownNat o, KnownNat (n+o)) =>
