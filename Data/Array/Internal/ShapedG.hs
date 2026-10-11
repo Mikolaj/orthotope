@@ -158,10 +158,13 @@ toList a@(A t) = toListT (shapeL a) t
 toVector :: forall sh v a . (Vector v, VecElem v a, Shape sh) => Array sh v a -> v a
 toVector a@(A t) = toVectorT (shapeL a) t
 
+-- INLINABLE: F1 reads no fusion here: its list goes to length and to
+-- vFromListN, whose vector instances take it apart by case, so it fuses with no
+-- producer.
 -- | Convert from a list with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(n) time.
-{-# INLINE fromList #-}
+{-# INLINABLE fromList #-}
 fromList :: forall sh v a . (HasCallStack, Vector v, VecElem v a, Shape sh) =>
             [a] -> Array sh v a
 fromList vs | n /= l = error $ "fromList: size mismatch " ++ show (n, l)
@@ -346,12 +349,14 @@ append a@(A ta) b@(A tb)
   | natT @n == 0 = A ta
   | otherwise = fromVector (vAppend (toVector a) (toVector b))
 
+-- INLINABLE: F1 reads no fusion here: its list goes to its checks and to the
+-- concatenation, so it fuses with no producer.
 -- | Concatenate a number of arrays into a single array.
 -- Fails if the outer extents of the arrays do not sum to that of the result.
 -- O(n) time.
 -- Of one array, the result is that array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINE concatOuter #-}
+{-# INLINABLE concatOuter #-}
 concatOuter :: forall m n sh v a . (HasCallStack, Vector v, VecElem v a, KnownNat m, KnownNat n, Shape sh) =>
                [Array (n ': sh) v a] -> Array (m ': sh) v a
 concatOuter as | sumExtents ns /= s = error $ "concatOuter: outer extent mismatch " ++ show (ns, s)

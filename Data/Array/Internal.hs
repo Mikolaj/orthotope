@@ -308,6 +308,9 @@ badShape = go 1
                        | n > maxBound `quot` s = any (< 0) ss || 0 `notElem` ss
                        | otherwise = go (n * s) ss
 
+-- INLINE: F1, directly fusing: it consumes its list once, by a foldr, which
+-- fold/build fuses with a producer's build where it is inlined.
+--
 -- The sum of non-negative extents, or -1 where it is past 'maxBound', where
 -- an extent made by adding them would wrap.  A foldr, so that a list built
 -- to be summed, a literal or a map, fuses with it and is never allocated.
@@ -437,6 +440,9 @@ getStridesT (s : ss) = case getStridesT ss of
   r@(m : _) -> let !x = s * m in x : r
   [] -> []
 
+-- INLINE: F1, directly fusing: its list is a build, which fold/build fuses
+-- with a consumer's foldr where it is inlined.
+--
 -- Convert an array to a list of its elements in row-major order.
 -- The first argument is the array shape.
 --
@@ -847,6 +853,9 @@ genericUnsafeFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
     else walk (writeRunStep stInner)
     return out
 
+-- INLINE: F1, directly fusing: it consumes its list once, by a foldr, which
+-- fold/build fuses with a producer's build where it is inlined.
+--
 -- The concatenation for 'vUnsafeConcatN': one buffer of the length given,
 -- each vector copied into it as the list yields it, by one 'foldr', so that a
 -- vector dies young and a list a 'build' produces is never built.  The vector
@@ -1200,6 +1209,9 @@ stepOdometer (OdoLevel o c axis@(Axis s d) outer)
       OdoDone -> OdoDone
       next@(OdoLevel oNext _ _ _) -> OdoLevel oNext d axis next
 
+-- INLINE: F1, directly fusing: its list is a build, which fold/build fuses
+-- with a consumer's foldr where it is inlined.
+--
 -- Convert an array to a list of vectors, which together contain
 -- all the elements in the natural order.
 --
@@ -1543,6 +1555,9 @@ canonicalizeSortedT [] axes = axes
 -- its extent exceeds that of the axis it would displace would take the
 -- better of both; untried.
 
+-- INLINE: F1, directly fusing: its list is a build, which fold/build fuses
+-- with a consumer's foldr where it is inlined.
+--
 -- Convert to a list of vectors containing altogether the right elements,
 -- but not necessarily in the right order.
 -- It suits a reduction by a commutative and associative operation; this
@@ -1614,8 +1629,11 @@ toUnorderedVectorT sh a@(T _ _ v)
 fromVectorT :: ShapeL -> v a -> T v a
 fromVectorT sh = T (tail $ getStridesT sh) 0
 
+-- INLINABLE: F1 reads no fusion here: its list goes to vFromListN, whose
+-- vector instances take it apart by case, so it fuses with no producer.
+--
 -- Convert from a list
-{-# INLINE fromListT #-}
+{-# INLINABLE fromListT #-}
 fromListT :: (Vector v, VecElem v a) => [Int] -> [a] -> T v a
 fromListT sh = fromVectorT sh . vFromListN (product sh)
 
@@ -1740,6 +1758,9 @@ zipWith5T sh f t t' t'' t''' t'''' = fromVectorT sh $ vZipWith5 f v v' v'' v''' 
 transposeT :: [Int] -> T v a -> T v a
 transposeT is (T ss o v) = T (permute is ss) o v
 
+-- INLINE: F1, directly fusing: its list is a build, which fold/build fuses
+-- with a consumer's foldr where it is inlined.
+--
 -- Return all subarrays n dimensions down.  The shape argument should be a
 -- prefix of the array shape.  In row-major order, under one 'build' walked by
 -- 'offsetsT', so that a consumer folding the list fuses with the walk; an empty
@@ -2044,6 +2065,9 @@ allT sh p t@(T _ _ v)
   | otherwise = routeFoldT v (cellsRouteT sh l t) (\ s r -> vAll p s && r) (\ x r -> p x && r) True
   where !l = product sh
 
+-- INLINE: F1, directly fusing: it consumes its list once, by a map, which
+-- fold/build fuses with a producer's build where it is inlined.
+--
 -- vUpdate copies the vector toVectorT returns, a second copy wherever the view
 -- is not one slice and that vector was just filled.  Not skipped: that wants
 -- a class method updating a vector the caller owns, updateT reaching the fill
@@ -2109,7 +2133,9 @@ isPermutation is = all (`elem` is) [0 .. length is - 1]
 revDropWhile :: (a -> Bool) -> [a] -> [a]
 revDropWhile p = reverse . dropWhile p . reverse
 
-{-# INLINE allSame #-}
+-- INLINABLE: F1 reads no fusion here: it matches its list before all consumes
+-- the tail, so it fuses with no producer.
+{-# INLINABLE allSame #-}
 allSame :: (Eq a) => [a] -> Bool
 allSame [] = True
 allSame (x : xs) = all (x ==) xs

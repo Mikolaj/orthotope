@@ -93,6 +93,9 @@ instance Vector V.Vector where
   vUnsafeIndex = V.unsafeIndex
   {-# INLINE vLength #-}
   vLength = V.length
+  -- INLINE: F1, directly fusing: its list is a build, which fold/build fuses
+  -- with a consumer's foldr where it is inlined.
+  --
   -- vToList, vFold, vAll and vAny hand each element to a function of the
   -- client's, so they read it by index and force it, where vector's own hand on
   -- Storable's read as a thunk (https://github.com/haskell/vector/issues/570)
