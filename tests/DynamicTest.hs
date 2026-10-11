@@ -811,8 +811,8 @@ prop_readRangeT v = forAll genRawView $ \ w -> readRange v .&&. readRange w
   where readRange u@(View sh _) =
           let x = mkView u (replicate (product sh) ())
               range is = case sort (nub is) of
-                js@(j : _) | js == [j .. j + length js - 1] -> Just (j, length js)
-                _ -> Nothing
+                js@(j : _) | js == [j .. j + length js - 1] -> I.Range j (length js)
+                _ -> I.NoRange
               positions (I.T ss o w) = I.T ss o (V.fromList [0 .. V.length w - 1])
           in  case x of DI.A (DG.A sh' t) -> I.readRangeT sh' t === range (I.toListT sh' (positions t))
 

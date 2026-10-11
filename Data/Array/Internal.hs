@@ -288,8 +288,8 @@ instance NFData (v a) => NFData (T v a)
 {-# INLINE rnfViewT #-}
 rnfViewT :: (Vector v, VecElem v a, NFData a, NFData (v a)) => ShapeL -> T v a -> ()
 rnfViewT sh t@(T _ _ v) = case readRangeT sh t of
-  Just (lo, n) -> rnf (vUnsafeSlice lo n v)
-  Nothing -> let (_, rsh, r) = dropBroadcastT sh t
+  Range lo n -> rnf (vUnsafeSlice lo n v)
+  NoRange -> let (_, rsh, r) = dropBroadcastT sh t
              in  foldr (\ x z -> rnf x `seq` z) () (toListT rsh r)
 
 -- | The shape of an array is a list of its dimensions.
@@ -352,7 +352,7 @@ sumOverflows ss = sumExtents ss < 0
 {-# INLINABLE equalT #-}
 equalT :: (Vector v, VecElem v a, Eq a) => ShapeL -> ShapeL -> T v a -> T v a -> Bool
 equalT s s' x@(T _ _ vx) y@(T _ _ vy)
-  | Just (lo, n) <- sameRangeT s s' x y = eqWith vx vy lo (lo + offset y - offset x) n
+  | Range lo n <- sameRangeT s s' x y = eqWith vx vy lo (lo + offset y - offset x) n
   | s /= s' = False
   | otherwise = foldPartsT (&&) True eqWith s x y
   where eqWith u w !ox !oy !k = loop u w 0
@@ -457,37 +457,43 @@ toListT sh a@(T _ _ v)
       RFill axes ao _ -> build $ \cons nil -> elemsT axes ao v cons nil
   where !l = product sh
 
--- The start and length of the part of the vector the array reads, if it reads
--- every element of one part, broadcasts and overlapping windows included, and
--- Nothing if it reads no element or skips one.  Over the axes sorted as
--- 'unorderedRouteT' sorts them, innermost first by absolute stride, the
--- array reads one part if each stride is at most one more than the reach of
--- the axes inside it.
+-- | The contiguous slice of its vector holding exactly the elements a view
+-- accesses: its start and its length, or NoRange; each function returning one
+-- says in its comment when it returns NoRange.
+data Range = Range !Int !Int | NoRange
+  deriving (Eq, Show)
+
+-- The start and length of the contiguous slice of the vector holding exactly
+-- the elements the array accesses, broadcasts and overlapping windows included,
+-- and NoRange if it accesses no element or skips one.  Over the axes sorted as
+-- 'unorderedRouteT' sorts them, innermost first by absolute stride, the array
+-- accesses one contiguous slice if each stride is at most one more than the
+-- reach of the axes inside it.
 {-# INLINE readRangeT #-}
-readRangeT :: ShapeL -> T v a -> Maybe (Int, Int)
+readRangeT :: ShapeL -> T v a -> Range
 readRangeT [n] (T [s] ao _) = range3T n s 1 1 1 1 ao
 readRangeT [n1, n2] (T [s1, s2] ao _) = range3T n1 s1 n2 s2 1 1 ao
 readRangeT [n1, n2, n3] (T [s1, s2, s3] ao _) = range3T n1 s1 n2 s2 n3 s3 ao
 readRangeT sh (T ats ao _) = case absAxesAndStartT [] ao ats sh of
-  ([], lo) -> Just (lo, 1)
+  ([], lo) -> Range lo 1
   (a : axs, lo) -> case sortAxesT a [] axs of
     Axes st n (InnerFirst outer) -> go lo 0 st n outer
   where go !lo !hi !st !n axs
-          | n == 0 || st > hi + 1 = Nothing
+          | n == 0 || st > hi + 1 = NoRange
           | otherwise = let !hi' = hi + (n - 1) * st in case axs of
               Axis st' n' : axs' -> go lo hi' st' n' axs'
-              [] -> Just (lo, hi' + 1)
+              [] -> Range lo (hi' + 1)
 
 -- readRangeT of the first view where the second has its shape and strides,
--- and Nothing where it has not.
+-- and NoRange where it has not.
 {-# INLINE sameRangeT #-}
-sameRangeT :: ShapeL -> ShapeL -> T v a -> T v a -> Maybe (Int, Int)
+sameRangeT :: ShapeL -> ShapeL -> T v a -> T v a -> Range
 sameRangeT [n] [m] (T [s] ao _) (T [t] _ _) =
-  if n == m && s == t then range3T n s 1 1 1 1 ao else Nothing
+  if n == m && s == t then range3T n s 1 1 1 1 ao else NoRange
 sameRangeT [n1, n2] [m1, m2] (T [s1, s2] ao _) (T [t1, t2] _ _) =
-  if n1 == m1 && n2 == m2 && s1 == t1 && s2 == t2 then range3T n1 s1 n2 s2 1 1 ao else Nothing
+  if n1 == m1 && n2 == m2 && s1 == t1 && s2 == t2 then range3T n1 s1 n2 s2 1 1 ao else NoRange
 sameRangeT sh sh' x y | sh == sh' && strides x == strides y = readRangeT sh x
-                      | otherwise = Nothing
+                      | otherwise = NoRange
 
 -- readRangeT at rank 3, and at ranks 1 and 2 given axes of extent 1 and
 -- stride 1: a view of the canonical strides reads all of one part, an axis of
@@ -495,14 +501,14 @@ sameRangeT sh sh' x y | sh == sh' && strides x == strides y = readRangeT sh x
 -- stride is at most one more than the reach of the axes of smaller strides,
 -- equal strides ordered by position.
 {-# INLINE range3T #-}
-range3T :: Int -> Int -> Int -> Int -> Int -> Int -> Int -> Maybe (Int, Int)
+range3T :: Int -> Int -> Int -> Int -> Int -> Int -> Int -> Range
 range3T n1 !s1 n2 !s2 n3 !s3 ao
-  | n1 == 0 || n2 == 0 || n3 == 0 = Nothing
-  | s3 == 1 && s2 == n3 && s1 == n2 * n3 = Just (ao, n1 * n2 * n3)
+  | n1 == 0 || n2 == 0 || n3 == 0 = NoRange
+  | s3 == 1 && s2 == n3 && s1 == n2 * n3 = Range ao (n1 * n2 * n3)
   | a1 <= 1 + lt a2 a1 r2 + lt a3 a1 r3 && a2 <= 1 + le a1 a2 r1 + lt a3 a2 r3
     && a3 <= 1 + le a1 a3 r1 + le a2 a3 r2 =
-      Just (ao - neg s1 r1 - neg s2 r2 - neg s3 r3, r1 + r2 + r3 + 1)
-  | otherwise = Nothing
+      Range (ao - neg s1 r1 - neg s2 r2 - neg s3 r3) (r1 + r2 + r3 + 1)
+  | otherwise = NoRange
   where a1 = if n1 == 1 then 0 else abs s1
         a2 = if n2 == 1 then 0 else abs s2
         a3 = if n3 == 1 then 0 else abs s3
@@ -1291,7 +1297,7 @@ routeVectorT v route = case route of
 -- the list given in reverse of the order given, and the offset given
 -- moved to the view's lowest address, in one walk over the strides
 -- and the shape.  Only 'readRangeT' passes it an empty view, and
--- answers Nothing for one.  The reversal is what makes 'sortAxesT'
+-- returns NoRange for one.  The reversal is what makes 'sortAxesT'
 -- cheap: a view whose axes come outermost first reaches it innermost
 -- first, and each axis goes in at the head.  Which of two axes of
 -- one absolute stride and one extent comes first, the only order
@@ -1632,7 +1638,7 @@ mapT sh f t = convertT sh (vMap f) t
 {-# INLINE convertT #-}
 convertT :: (Vector v, VecElem v a, Vector w, VecElem w b)
          => ShapeL -> (v a -> w b) -> T v a -> T w b
-convertT sh g t@(T ss o v) | Just (lo, n) <- readRangeT sh t = T ss (o - lo) (g (vUnsafeSlice lo n v))
+convertT sh g t@(T ss o v) | Range lo n <- readRangeT sh t = T ss (o - lo) (g (vUnsafeSlice lo n v))
 convertT sh _ _ | 0 `elem` sh = fromVectorT sh (vConcat [])
 convertT sh g t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip bs sh ] $
                   g $ toVectorT rsh r
