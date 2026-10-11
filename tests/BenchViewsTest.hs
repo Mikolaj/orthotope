@@ -175,8 +175,8 @@ storableAsUnboxed name ss us = do
   let o = perElem (aS - aU)
   assertBool (show o ++ " bytes an element over Unboxed") (o <= 8)
 
--- The calls of the specialisation benchmark, a row an operation with its
--- boxed, Storable and Unboxed calls.
+-- The calls of the specialisation benchmark's large strided view, a row a
+-- name with its boxed, Storable and Unboxed calls.
 callRows :: [(String, Call, Call, Call)]
 callRows =
   [ (family ++ "/" ++ name, b, s, u)
@@ -203,13 +203,14 @@ specialised row b s u = do
             , let o = perElem (a - aB), o > 32 ]
          ++ [ "boxed " ++ show o
               ++ " bytes an element over Storable and Unboxed"
-            | boxedSpecialised, not (any (`isSuffixOf` row) boxedExempt)
+            | boxedSpecialised
+            , not (any (`isSuffixOf` takeWhile (/= '.') row) boxedExempt)
             , let o = perElem (aB - min aS aU), o > 16 ]
   assertBool (intercalate ", " bad) (null bad)
 
 -- The operations that compute their elements, rerank2 among them with the
 -- zip it applies, and unravel: boxed, they exceed the bound with their
--- specialisation too.
+-- specialisation too, at each of their arms.
 boxedExempt :: [String]
 boxedExempt = [ "/mapA", "/traverseA", "/zipWithA", "/zipWith3A", "/zipWith4A"
               , "/zipWith5A", "/generate", "/iota", "/rerank2"
@@ -234,14 +235,14 @@ unspecialisedOver b c = do
   assertBool (show over ++ " bytes an element over boxed, not over 32")
              (over > 32)
 
--- fillStrided, which clients outside the array modules call, on the view
--- of the specialisation benchmark at Storable and Unboxed.
+-- fillStrided, which clients outside the array modules call, on the large
+-- strided view of the specialisation benchmark at Storable and Unboxed.
 fillCalls :: [(String, Call)]
 fillCalls =
-  [ ("Storable", Call "fillStrided" (I.fillStrided Call.axes 0 Call.n)
-                      (VS.fromList Call.elems))
-  , ("Unboxed", Call "fillStrided" (I.fillStrided Call.axes 0 Call.n)
-                     (VU.fromList Call.elems)) ]
+  [ ("Storable", Call.call "fillStrided" (I.fillStrided Call.axes 0 Call.n)
+                           (VS.fromList Call.elems))
+  , ("Unboxed", Call.call "fillStrided" (I.fillStrided Call.axes 0 Call.n)
+                          (VU.fromList Call.elems)) ]
 
 -- The call allocates at most 16 bytes an element, the result's 8 and no
 -- element boxed.
