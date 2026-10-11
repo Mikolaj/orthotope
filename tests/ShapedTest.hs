@@ -69,9 +69,11 @@ test = testGroup "Shaped" $
       index_5 = assertThrows ">" (index a1 2)
       index_6 = catch (deepseq (index a1 (-1)) $ assertFailure "6")
                       (\ (ErrorCall e) -> assertEqual "6" "index: out of bounds (-1,2)" e)
-      -- An extent past maxBound fails as it is read; no array of that type
-      -- can be made, so none is given.
-      index_7 = assertWhnfThrowsIn "7" "Shape" (index (undefined :: Array '[18446744073709551619] Int) 3)
+      -- An extent past maxBound fails as it is read, in index or in making
+      -- the array, whichever GHC evaluates first; so the array is made as
+      -- a user would make it, not left undefined, which an INLINABLE index
+      -- forced first.
+      index_7 = assertWhnfThrowsIn "7" "Shape" (index (constant 0 :: Array '[18446744073709551619] Int) 3)
       -- ShapedG's show need not know how to show a vector.
       constraints_1 = assertEqual "1" (show a1) (showG (SG.fromList [1..6] :: SG.Array [2,3] [] Int))
         where showG :: (Show a, I.Vector v, I.VecElem v a, Shape sh) => SG.Array sh v a -> String
