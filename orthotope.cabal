@@ -132,6 +132,7 @@ benchmark specialisation
   main-is:             Specialisation.hs
   other-modules:       Call
                      , Harness
+                     , Materialize
                      , OpsDynamic
                      , OpsRanked
                      , OpsShaped
