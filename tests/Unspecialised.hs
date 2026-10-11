@@ -12,8 +12,8 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
--- Storable pad and fillStrided on the view of the specialisation benchmark,
--- from a module the specialiser does not run in: the controls of
+-- Storable pad and fillStrided on the specialisation benchmark's large strided
+-- view, from a module the specialiser does not run in: the controls of
 -- BenchViewsTest's bounds on what Storable and Unboxed calls allocate over
 -- boxed ones and on what fillStrided allocates.  pad's call passes its element
 -- dictionary at run time.  fillStrided's goes through a copy compiled for any
@@ -33,11 +33,11 @@ import qualified Call
 
 unspecialisedPad :: Call
 unspecialisedPad =
-  Call "pad" (DS.pad [(1, 1), (1, 1)] 0)
-       (DS.transpose [1, 0] (DS.fromList [500, 400] elems))
+  Call.call "pad" (DS.pad [(0, 1), (1, 1)] 0)
+            (DS.transpose [1, 0] (DS.fromList [500, 400] elems))
 
 unspecialisedFill :: Call
-unspecialisedFill = Call "fillStrided" polymorphicFill (VS.fromList elems)
+unspecialisedFill = Call.call "fillStrided" polymorphicFill (VS.fromList elems)
 
 {-# NOINLINE polymorphicFill #-}
 polymorphicFill :: (I.Vector v, I.VecElem v a) => v a -> v a

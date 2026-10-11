@@ -13,11 +13,13 @@
 -- limitations under the License.
 
 {-# LANGUAGE BangPatterns #-}
-module Harness (measure) where
+module Harness (measure, allocated) where
 
 import Control.DeepSeq (rnf)
 import Control.Exception (evaluate)
+import Data.Int (Int64)
 import GHC.Clock (getMonotonicTimeNSec)
+import GHC.Conc (getAllocationCounter, setAllocationCounter)
 
 import Call (Call (..))
 
@@ -28,13 +30,17 @@ import Call (Call (..))
 perturb :: Int -> a -> a
 perturb i x = if i == minBound then error "perturb" else x
 
--- | Nanoseconds a call of the result forced to normal form: the fastest of
--- three batches, each of as many calls as take 5 ms.
-measure :: Call -> IO Double
+-- | Nanoseconds a call of the result forced to normal form, the fastest of
+-- three batches, each of as many calls as take 5 ms, and the bytes the second
+-- of two calls allocates.
+measure :: Call -> IO (Double, Int64)
 measure (Call _ f x) = do
   _ <- evaluate (rnf x)
+  _ <- allocated (rnf . f) x
+  a <- allocated (rnf . f) x
   k <- calibrate 1
-  minimum <$> mapM (const (batch k)) [1 .. 3 :: Int]
+  t <- minimum <$> mapM (const (batch k)) [1 .. 3 :: Int]
+  return (t, a)
  where
   calls :: Int -> IO ()
   calls 0 = return ()
@@ -51,3 +57,12 @@ measure (Call _ f x) = do
     calls k
     t1 <- getMonotonicTimeNSec
     if t1 - t0 >= 5000000 then return k else calibrate (2 * k)
+
+-- | The bytes the thread allocates evaluating @f x@ to WHNF.
+{-# NOINLINE allocated #-}
+allocated :: (a -> b) -> a -> IO Int64
+allocated f x = do
+  setAllocationCounter maxBound
+  _ <- evaluate (f x)
+  c <- getAllocationCounter
+  return (maxBound - c)
