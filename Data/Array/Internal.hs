@@ -467,6 +467,7 @@ toListT sh a@(T _ _ v)
       RFill axes ao _ -> build $ \cons nil -> elemsT axes ao v cons nil
   where !l = product sh
 
+-- Unmaterialized: as 'Route' is.
 -- | The contiguous slice of its vector holding exactly the elements a view
 -- accesses: its start and its length, or NoRange; each function returning one
 -- says in its comment when it returns NoRange.
@@ -903,6 +904,9 @@ genericUnsafeConcatN n vs = VG.create $ do
 -- (https://gitlab.haskell.org/ghc/ghc/-/work_items/27894).
 data Nest = Fused !Axis | Level !Axis !Int !Nest
 
+-- Unmaterialized: built where a consumer takes it apart, each binding that
+-- takes or returns one inlined: GHC HEAD 10.1.20260918 returns no sum
+-- unboxed, so a call out of line on either side builds it.
 -- | The route a non-empty view takes once canonicalized: what its consumer does
 -- with it, which is what every consumer of a view in this module dispatches on,
 -- some on the view with its axes reordered.  A view of no elements
@@ -973,6 +977,9 @@ data Axis = Axis { axisStride :: !Int, axisExtent :: !Int }
 -- 'unorderedRouteT' write and every consumer of a canonical view reads.
 newtype InnerFirst = InnerFirst { innerFirst :: [Axis] }
 
+-- Unmaterialized: a product, which worker/wrapper passes and returns unboxed
+-- out of line on GHC HEAD 10.1.20260918, so that only a binding storing one
+-- builds it, as 'RRuns' and 'RFill' do.
 -- | The canonical axes of a non-empty view: the innermost stride
 -- and extent, then the axes outside it, innermost first.  What
 -- 'canonicalizeT' takes and returns and 'routeOfT', 'vUnsafeFillStrided',
