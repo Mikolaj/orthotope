@@ -174,6 +174,7 @@ class Vector v where
 class None a
 instance None a
 
+-- No pragma throughout: a reference semantics, not timed.
 -- This instance serves as a reference semantics.  Pretty-printing also uses it,
 -- for the array of rendered elements.
 instance Vector [] where
