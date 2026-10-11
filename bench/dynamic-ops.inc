@@ -19,6 +19,12 @@ OPS =
   , Call "stretchOuter" (ARR.stretchOuter 400) r1
   , Call "transpose" (ARR.transpose [1, 0]) t
   , Call "index" (`ARR.index` 7) t
+  -- Every element read through two indexes, the row index i varying
+  -- fastest so that each element takes its own row: with j fastest, one
+  -- row served 500 elements.
+  , Call "indexIndex"
+         (\ a -> sum [ ARR.unScalar (ARR.index (ARR.index a i) j)
+                     | j <- [0 .. 499], i <- [0 .. 399] ]) t
   , Call "pad" (ARR.pad [(1, 1), (1, 1)] 0) t
   , Call "mapA" (ARR.mapA (+ 1)) t
   , Call "zipWithA" (\ a -> ARR.zipWithA (+) a a) t

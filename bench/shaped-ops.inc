@@ -19,6 +19,18 @@ OPS =
   , Call "stretchOuter" (\ a -> ARR.stretchOuter a `asTypeOf` t) r1
   , Call "transpose" (ARR.transpose @Perm) t
   , Call "index" (`ARR.index` 7) t
+  -- Every element read through two indexes, the row index i varying
+  -- fastest so that each element takes its own row: with j fastest, one
+  -- row served 500 elements.
+  -- GHC.Exts.lazy on the array in ShapedG's index, putting index's check
+  -- before the array is forced, stops GHC simplifying through it: tried
+  -- 2026-10-11 on GHC HEAD 10.1.20260918, this row then allocated 32 bytes
+  -- an element and took 1.2 to 1.5 times as long with index INLINE, and 64
+  -- bytes and 2.2 to 3.3 times as long with index INLINABLE, Dynamic's row
+  -- unmoved.
+  , Call "indexIndex"
+         (\ a -> sum [ ARR.unScalar (ARR.index (ARR.index a i) j)
+                     | j <- [0 .. 499], i <- [0 .. 399] ]) t
   , Call "pad" (ARR.pad @Pads 0) t
   , Call "mapA" (ARR.mapA (+ 1)) t
   , Call "zipWithA" (\ a -> ARR.zipWithA (+) a a) t
