@@ -247,6 +247,17 @@ listP p = map toInt (natsP p)
                     error $ "Shape: a number past maxBound in " ++ show (natsP p)
                 | otherwise = fromInteger n
 
+-- natT, like shapeP, sizeP and listP, reads only types, so a check made
+-- with it needs nothing of the arrays its function is given; yet where
+-- the function is strict in an array, GHC may force the array before the
+-- check, in a guard or before a seq, which orders nothing, and show the
+-- array's error instead.  So what a check races with must fail with an
+-- error as friendly, as every array the API makes does, and work that
+-- could fail otherwise or cost, as building a result, goes in the branch
+-- past the checks, not in a binding above them.  Ruled out on 2026-10-11:
+-- GHC.Exts.lazy on the array, or pseq, which fix the order but block
+-- simplification (see the specialisation benchmark's indexIndex row), and
+-- lazy around the error call alone, as too complex.
 -- | A type-level number as an 'Int'; fails past 'maxBound'.
 {-# INLINE natT #-}
 natT :: forall n . (HasCallStack, KnownNat n) => Int
