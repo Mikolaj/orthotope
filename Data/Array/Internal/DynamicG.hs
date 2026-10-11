@@ -145,6 +145,10 @@ toList (A sh t) = toListT sh t
 toVector :: (Vector v, VecElem v a) => Array v a -> v a
 toVector (A sh t) = toVectorT sh t
 
+-- INLINABLE: F1 reads no fusion here: its list goes to length and to
+-- vFromListN, whose vector instances take it apart by case, so it fuses with no
+-- producer.
+--
 -- HasCallStack, here and in the other array modules, goes on exactly the
 -- functions that check an argument, calling error when it is bad, as
 -- fromList does, and on the functions of the same name that pass their
@@ -156,7 +160,7 @@ toVector (A sh t) = toVectorT sh t
 -- | Convert from a list with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(n) time.
-{-# INLINE fromList #-}
+{-# INLINABLE fromList #-}
 fromList :: (HasCallStack, Vector v, VecElem v a) => ShapeL -> [a] -> Array v a
 fromList ss vs | badShape ss = error $ "fromList: bad shape " ++ show ss
                | n /= l = error $ "fromList: size mismatch " ++ show (n, l)
@@ -345,13 +349,15 @@ append a@(A (sa:sh) _) b@(A (sb:sh') _)
     fromVector (sa+sb : sh) (vAppend (toVector a) (toVector b))
 append _ _ = error "append: bad shape"
 
+-- INLINABLE: F1 reads no fusion here: its list goes to its checks and to the
+-- concatenation, so it fuses with no producer.
 -- | Concatenate a number of arrays into a single array.
 -- Fails if the list is empty, an array has rank 0 or any but the outer
 -- dimensions differ.
 -- O(n) time.
 -- Of one array, the result is that array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINE concatOuter #-}
+{-# INLINABLE concatOuter #-}
 concatOuter :: (HasCallStack, Vector v, VecElem v a) => [Array v a] -> Array v a
 concatOuter [] = error "concatOuter: empty list"
 concatOuter as | any null shs = error "concatOuter: rank 0 array"
@@ -523,6 +529,9 @@ ravelOuter :: (HasCallStack, Vector v, VecElem v a) => ShapeL -> [Array v a] -> 
 ravelOuter _ [] = error "ravelOuter: empty outer dimension"
 ravelOuter osh as@(a : _) = ravelOuterOf osh (shapeL a) as
 
+-- INLINE: F1, directly fusing: it consumes its list once, by a map, which
+-- fold/build fuses with a producer's build where it is inlined.
+--
 -- 'ravelOuter' given the shape every array must have, which 'ravel' reads off
 -- its first array without taking the list's head, so that the list fuses with
 -- the copy.
@@ -663,11 +672,13 @@ broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dime
         ascending (x:y:ys) = x < y && ascending (y:ys)
         ascending _ = True
 
+-- INLINABLE: F1 reads no fusion here: its list goes to null, to all and to
+-- updateT, so it fuses with no producer.
 -- | Update the array at the specified indices to the associated value.
 -- Fails if an index is out of bounds.
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINE update #-}
+{-# INLINABLE update #-}
 update :: (HasCallStack, Vector v, VecElem v a) =>
           Array v a -> [([Int], a)] -> Array v a
 update (A sh t) us | null us = A sh t  -- no update: the array itself
