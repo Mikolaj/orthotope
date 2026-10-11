@@ -21,6 +21,7 @@
 #
 # Artifacts probe-attr-<shape>-<arm>.{data,txt} and probe-attr-<shape>.txt.
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 [ $# -ge 2 ] || { echo "usage: ./probe-attr.sh SHAPE ARM [ARM ...]"; exit 2; }
 B=${BIN:-./probe-attr-g912}

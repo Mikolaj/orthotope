@@ -59,6 +59,7 @@
 #
 # Non-vacuity, 2026-08-30: probe-stalls-selftest.log.
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 B=${BIN:-./probe-bang-g912}
 case $B in /*|./*) ;; *) B=./$B ;; esac

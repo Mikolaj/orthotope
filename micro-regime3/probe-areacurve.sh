@@ -34,6 +34,7 @@
 #
 # About an hour: six processes of 120 benches at criterion's default budget.
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 HALF=${HALF:-run16-a32m}
 case $HALF in /*|./*) B=$HALF ;; *) B=./$HALF ;; esac

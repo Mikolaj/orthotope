@@ -28,6 +28,7 @@
 # such a cell by tens of instructions at N=100000 (2026-09-25), so a
 # difference of that size there is not yet code.
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 [ $# -ge 2 ] || { echo "usage: ./run-counts.sh RUN HALF [CLASS]  # e.g. run19 g912 rev"
                   exit 2; }   # 2, "did not run", as every usage path here

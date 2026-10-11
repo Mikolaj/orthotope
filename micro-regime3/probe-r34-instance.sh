@@ -14,6 +14,7 @@
 #
 #     bash probe-r34-instance.sh > probe-r34-instance.log 2>&1
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 mountpoint -q hugebin || { echo "hugebin/ is not mounted"; exit 1; }
 for p in "exit nospec" "gheadexit ghead"; do

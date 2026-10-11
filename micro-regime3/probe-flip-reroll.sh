@@ -42,6 +42,7 @@
 # Writes nothing outside OUTDIR. Reads the two Run 27 binaries in place.
 
 set -euo pipefail
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 
 REPS=3
 OUT="$(cd "$(dirname "$0")" && pwd)/reroll-out"

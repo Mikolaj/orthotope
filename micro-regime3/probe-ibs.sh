@@ -18,6 +18,7 @@
 # its outer loop on HEAD's half; the copy at /tmp/g is the one probe-
 # pageflags.py read fast, at the same virtual addresses.
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 # Where the recordings go, per user: root cannot open a file
 # another user left in /tmp (fs.protected_regular), and the stale .err

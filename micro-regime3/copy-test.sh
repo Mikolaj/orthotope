@@ -18,6 +18,7 @@
 # A reading and never a gate: exits 0 whatever it finds, 2 where it could
 # not run.
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 2
 if [ $# -lt 1 ] || [ $# -gt 2 ]; then
   echo "usage: ./copy-test.sh RUN [PREV]    # e.g. run41" >&2

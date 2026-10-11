@@ -23,6 +23,7 @@
 # Writes nothing outside OUTDIR.
 
 set -euo pipefail
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 
 OUT="$(cd "$(dirname "$0")" && pwd)/counters-out"
 BIN="$(cd "$(dirname "$0")" && pwd)"

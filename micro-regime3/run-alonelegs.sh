@@ -50,6 +50,7 @@
 # the deflation decomposition Run 18 registers. SATURATE_BY passes through
 # with it: unset is the roster's own sprayer, `spray` the pure pinned burst.
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 [ $# -ge 2 ] || { echo "usage: ./run-alonelegs.sh RUN HALF   # e.g. run17 det"
                   exit 2; }   # 2, "did not run", as every usage path here

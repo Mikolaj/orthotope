@@ -40,7 +40,8 @@ PAIRS = [('mut-odo-vecdims', 'mut-odo-vecdims-nosum'),
 CTRL = ['sum-only-early', 'sum-only-late']
 TARGET_S = 2.0
 REPS = 3
-ENV = dict(os.environ, SATURATE='1')
+ENV = dict(os.environ, SATURATE='1',  # the RTS clock off (README)
+           GHCRTS=(os.environ.get('GHCRTS', '') + ' -V0').strip())
 
 
 def slopes(binary):

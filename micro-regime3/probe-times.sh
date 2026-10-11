@@ -48,6 +48,7 @@
 # one of that run's processes, and a probe parked there reads exactly like
 # the run breaking.
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 [ $# -ge 1 ] || { echo "usage: [BIN=... OUT=...] ./probe-times.sh POP [POP ...]   # main, or a class name"; exit 2; }
 

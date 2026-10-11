@@ -12,6 +12,7 @@
 #
 #     bash probe-r39-instance.sh > log-probe-r39-instance.txt 2>&1
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 for h in gheadnospec gheadtwopass; do
   [ -e "probe-copy-run39-$h" ] || cp "run39-$h" "probe-copy-run39-$h"

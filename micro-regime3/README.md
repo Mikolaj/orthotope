@@ -4401,7 +4401,12 @@ is not to vary again.** `micro.cabal` bakes the whole line, `-A32m -I0 -T -M8G`,
 the one every recorded recipe since Run 13 carried, so no recipe passes
 `-with-rtsopts` any more, and a `+RTS` line that varies anything else repeats
 it in full. The churn findings are why: the tax grows with the area, and `-A32m`
-is their recommendation for this workload class.
+is their recommendation for this workload class. **Since 2026-10-11 every timed
+or counted process here also runs under `GHCRTS=-V0`, which stops the RTS clock,
+by the owner's ruling for all horde-ad and orthotope measurements**: each
+launching script beside this file exports it, and a line typed by hand prefixes
+it. A profile is the exception, `-hT` taking 3 samples under it where it took 12
+without.
 
 **Those last four need no build and no pair**: `micro.cabal` compiles
 with `-rtsopts`, so an already-built binary takes any RTS setting, and `-s`,

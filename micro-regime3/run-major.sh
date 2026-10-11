@@ -38,6 +38,7 @@
 # A fix here wants a case there first.
 
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 
 if [ $# -lt 1 ]; then

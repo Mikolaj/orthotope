@@ -10,6 +10,7 @@
 # BRACKET even though it settles no figure. The full-budget re-take stays
 # the authority and the arm is rebuilt if it disagrees.
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 for spec in "probe-bang-g912:probe-smoke-runs-bang" \
             "probe-disp-g912:probe-smoke-runs-disp" \

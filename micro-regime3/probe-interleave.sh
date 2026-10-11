@@ -19,6 +19,7 @@
 # than wall time and a busy sibling thread more; a quiet window is still
 # what the reading wants, and the range printed says how quiet it was.
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 [ $# -ge 3 ] || { echo "usage: ./probe-interleave.sh A B CELL [CELL...]"; exit 2; }
 A=$1; B=$2; shift 2

@@ -9,6 +9,7 @@
 #
 #     bash probe-r33-instance.sh
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 BENCH='runs-16384/lib-stage2-lean-u1'
 

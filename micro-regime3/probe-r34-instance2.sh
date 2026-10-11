@@ -5,6 +5,7 @@
 # a b b a a b b a a b b a a b b a, raw cycles an iteration from `-n 2N`
 # less `-n N` over N, under SATURATE=1. A probe: exits 0 whatever it finds.
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 tmp=$(mktemp)
 count() {

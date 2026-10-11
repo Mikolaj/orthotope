@@ -20,6 +20,7 @@
 # cell perf could not count, which is also the exit status. ONLY=<shape>
 # restricts it to one shape, for a smoke run and never for a reading.
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 [ $# -ge 1 ] || { echo "usage: ./probe-fetches.sh BINARY [BINARY...]"; exit 2; }
 N=${N:-50}

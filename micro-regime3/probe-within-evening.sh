@@ -26,6 +26,7 @@
 # with every stage's verdict appended to probe-within-evening.txt as it
 # lands, the last line being the one to wait on.
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 1
 
 N=${N:-3}

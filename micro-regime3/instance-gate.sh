@@ -44,6 +44,7 @@
 # mount, and INSTANCE_FAKE=A,B hands back A and B cycles an iteration for
 # the launch instance and the copy instead of running either.
 set -u
+export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 2
 [ $# -eq 1 ] || { echo "usage: ./instance-gate.sh RUN    # both halves, one cell each"; exit 2; }
 R=$1
