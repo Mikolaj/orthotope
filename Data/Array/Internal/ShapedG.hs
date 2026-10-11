@@ -127,6 +127,9 @@ index :: forall s sh v a . (HasCallStack, KnownNat s) =>
 index (A t) i | i < 0 || i >= s = error $ "index: out of bounds " ++ show (i, s)
               | otherwise = A $ indexT t i
   where s = natT @s
+  -- The check needs nothing of the array, but index is strict in it, so GHC
+  -- may force the array first and show its error instead, as it does with
+  -- index INLINABLE: see natT.
 
 -- | Convert to a list with the elements in the linearization order.
 -- O(n) time.
@@ -212,7 +215,7 @@ reshape' sh sh' (A t@(T ost oo v))
 {-# INLINE stretch #-}
 stretch :: forall sh' sh v a . (Shape sh', ValidStretch sh sh') =>
            Array sh v a -> Array sh' v a
-stretch a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now
+stretch a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now; see natT
             stretch' (stretching (Proxy :: Proxy sh) (Proxy :: Proxy sh')) a
 
 stretch' :: [Bool] -> Array sh v a -> Array sh' v a
@@ -222,7 +225,7 @@ stretch' str (A vs) = A $ stretchT str vs
 {-# INLINE stretchOuter #-}
 stretchOuter :: forall s sh v a . (KnownNat s, Shape sh) =>
                 Array (1 : sh) v a -> Array (s : sh) v a
-stretchOuter (A vs) = sizeP (Proxy :: Proxy (s : sh)) `seq`  -- the result's size checked now
+stretchOuter (A vs) = sizeP (Proxy :: Proxy (s : sh)) `seq`  -- the result's size checked now; see natT
                       A $ stretchT (True : map (const False) (strides vs)) vs
 
 -- | Convert a value to a scalar (rank 0) array.
@@ -290,13 +293,13 @@ pad v a@(A at) | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
                    error $ "pad: padding past maxBound " ++ show (aps, ash)
                | not (validShape sh) = error $ "pad: bad shape " ++ show sh
                | all (== (0, 0)) aps = A at  -- no padding: the array itself
-               | otherwise = A t
+               -- Built past the checks, not bound above them: see natT.
+               | otherwise = A (snd (padT v aps ash at))
   where ash = shapeL a
         aps = padded (Proxy :: Proxy ps) (Proxy :: Proxy sh)
         -- Computed, not taken from padT's result: forcing that pair
         -- for the shape built the padded array too, before the checks.
         sh = zipWithLong2 (\ (l, h) s -> l + s + h) aps ash
-        (_, t) = padT v aps ash at
 
 -- | Do an arbitrary array transposition.
 -- The transposition argument, which its type checks, is a permutation of the
@@ -379,7 +382,7 @@ unravel = rerank @1 scalar
 window :: forall ws sh' sh v a .
           (Window ws sh sh', KnownNat (Rank ws), Shape sh') =>
           Array sh v a -> Array sh' v a
-window (A (T ss o v)) = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now
+window (A (T ss o v)) = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now; see natT
                         A (T (ss' ++ ss) o v)
   where ss' = take (valueOf @(Rank ws)) ss
 
@@ -407,7 +410,7 @@ rotate :: forall d k sh v a .
           Array sh v a -> Array (Take d sh ++ (k ': Drop d sh)) v a
 -- Through DynamicG's rotate, as RankedG's is.
 rotate a@(A t) =
-  sizeP (Proxy :: Proxy (Take d sh ++ (k ': Drop d sh))) `seq`  -- the result's size checked now
+  sizeP (Proxy :: Proxy (Take d sh ++ (k ': Drop d sh))) `seq`  -- the result's size checked now; see natT
   case DG.rotate (natT @d) (natT @k) (DG.A (shapeL a) t) of
     DG.A _ t' -> A t'
 
@@ -558,7 +561,7 @@ broadcast :: forall ds sh' sh v a .
               Broadcast ds sh sh',
               Vector v, VecElem v a) =>
              Array sh v a -> Array sh' v a
-broadcast a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now
+broadcast a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now; see natT
               stretch' bc $
               reshape' rsh sh a
   where sh' = shapeP (Proxy :: Proxy sh')

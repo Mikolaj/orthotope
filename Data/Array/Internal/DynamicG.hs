@@ -290,9 +290,9 @@ pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " +
                          error $ "pad: padding past maxBound " ++ show (aps, ash)
                      | badShape sh = error $ "pad: bad shape " ++ show sh
                      | all (== (0, 0)) aps = A ash at  -- no padding: the array itself
-                     | otherwise = A sh t
+                     -- Built past the checks, not bound above them: see natT.
+                     | otherwise = A sh (snd (padT v aps ash at))
   where sh = zipWithLong2 (\ (l, h) s -> l + s + h) aps ash
-        (_, t) = padT v aps ash at
 
 -- | Do an arbitrary array transposition.
 -- Fails if the transposition argument is not a permutation of the numbers
