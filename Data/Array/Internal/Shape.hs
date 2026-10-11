@@ -202,13 +202,18 @@ instance Shape '[] where
   {-# INLINE natsP #-}
   natsP  _ = []
 
+-- INLINE: shapeP and natsP, since on GHC HEAD 10.1.20260918 (2026-10-11)
+-- INLINABLE grew the specialisation benchmark's Shaped client 4% in Core,
+-- where GHC then made 53 specialised copies of the Shaped arrays' rnf against
+-- 25 under INLINE, and ran its Shaped rows no faster.
 -- The methods bound outside the proxy's lambda, so that a dictionary computes
--- its checked shape and size once, not at every call.  sizeP is NOINLINE:
--- inlined, it ran GHC out of simplifier ticks compiling the test suite.
+-- its checked shape and size once, not at every call.
 instance forall n s . (Shape s, KnownNat n) => Shape (n ': s) where
   {-# INLINE shapeP #-}
   shapeP = const sh
     where sh = sizeP (Proxy :: Proxy (n ': s)) `seq` valueOf @n : shapeP (Proxy :: Proxy s)
+  -- NOINLINE: on GHC HEAD 10.1.20260918 (2026-10-11), inlined, it ran GHC out
+  -- of simplifier ticks compiling the test suite's ShapedTest and ShapedGTest.
   {-# NOINLINE sizeP #-}
   sizeP = const sz
     where sz | n > toInteger (maxBound :: Int) || m /= 0 && i > maxBound `quot` m =
