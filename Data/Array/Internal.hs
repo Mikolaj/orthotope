@@ -474,6 +474,8 @@ toListT sh a@(T _ _ v)
 data Range = Range !Int !Int | NoRange
   deriving (Eq, Show)
 
+-- INLINE: Range, A3: it returns the Range its callers take apart.
+--
 -- The start and length of the contiguous slice of the vector holding exactly
 -- the elements the array accesses, broadcasts and overlapping windows included,
 -- and NoRange if it accesses no element or skips one.  Over the axes sorted as
@@ -495,6 +497,8 @@ readRangeT sh (T ats ao _) = case absAxesAndStartT [] ao ats sh of
               Axis st' n' : axs' -> go lo hi' st' n' axs'
               [] -> Range lo (hi' + 1)
 
+-- INLINE: Range, A3: it returns the Range its callers take apart.
+--
 -- readRangeT of the first view where the second has its shape and strides,
 -- and NoRange where it has not.
 {-# INLINE sameRangeT #-}
@@ -506,6 +510,8 @@ sameRangeT [n1, n2] [m1, m2] (T [s1, s2] ao _) (T [t1, t2] _ _) =
 sameRangeT sh sh' x y | sh == sh' && strides x == strides y = readRangeT sh x
                       | otherwise = NoRange
 
+-- INLINE: Range, A3: it returns the Range its callers take apart.
+--
 -- readRangeT at rank 3, and at ranks 1 and 2 given axes of extent 1 and
 -- stride 1: a view of the canonical strides reads all of one part, an axis of
 -- extent 1 or stride 0 reaches nothing, and the axes read one part if each
@@ -994,6 +1000,8 @@ newtype InnerFirst = InnerFirst { innerFirst :: [Axis] }
 -- call, 35 to 48 bytes, and more instructions in all but one case.
 data Axes = Axes !Int !Int InnerFirst
 
+-- INLINE: Route, A3: it returns the Route its callers take apart.
+--
 -- @routeT sh l a@, the route of the view of @a@ at shape @sh@ as it is,
 -- requires one stride in @a@ per dimension of @sh@, @l == product sh@
 -- and @l > 0@; on other arguments it fails or returns a wrong route.
@@ -1051,6 +1059,8 @@ canonicalizeT (st : sts) (n : ns) (Axes stHead nHead irest@(InnerFirst rest))
       canonicalizeT sts ns (Axes st n (InnerFirst (Axis stHead nHead : rest)))
 canonicalizeT _ _ axes = axes
 
+-- INLINE: Route, A3: it returns the Route its callers take apart.
+--
 -- The route of a view given as its canonical axes, at a start offset
 -- and of an element count, the innermost axis as its stride and
 -- extent and the axes outside it innermost first: 'routeT' reads it
@@ -1246,6 +1256,8 @@ wholeOrSliceT ao l v
   | ao == 0 && vLength v == l = v
   | otherwise = vUnsafeSlice ao l v
 
+-- INLINE: Route, A3: it takes apart the Route its callers build.
+--
 -- The slices a route stands for, as the cons and nil of a 'build': one
 -- slice of the vector, one slice per run, or the view filled as one
 -- vector where the uniform run length is one element.
@@ -1260,6 +1272,8 @@ routeSlicesT v route cons nil = case route of
     -- whose vector-backed instances write a mutable buffer directly.
     cons (vUnsafeFillStrided axes ao l v) nil
 
+-- INLINE: Route, A3: it takes apart the Route its callers build.
+--
 -- The parts of the vector a route reads, in the route's order, as the offset
 -- and the length of each, by the step and nil of a right fold: its runs, which
 -- on 'RSlice' are the one slice and on 'RFill', where the uniform run length is
@@ -1329,6 +1343,8 @@ forceT sh t@(T _ _ v) = fromVectorT sh $
     route -> routeVectorT v route
   where !l = product sh
 
+-- INLINE: Route, A3: it takes apart the Route its callers build.
+--
 -- The vector a route stands for: one slice of the vector, or the view
 -- filled as one vector, runs included.  'toVectorT' and
 -- 'toUnorderedVectorT' both take it.
@@ -1406,6 +1422,8 @@ runRank !a !b = case compare ta tb of
       | n <= runFar = 1
       | otherwise = 3
 
+-- INLINE: Route, A3: it returns the Route its callers take apart.
+--
 -- The route of a non-empty view with its axes reordered for a consumer that
 -- owes no order, from the offset the reordered view starts at: what every such
 -- consumer in this module dispatches on, directly or through 'cellsRouteT'.
@@ -1418,6 +1436,8 @@ unorderedRouteT sh !l (T ats ao _) = case axes of
   where
     (axes, !off) = absAxesAndStartT [] ao ats sh
 
+-- INLINE: Route, A3: it returns the Route its callers take apart.
+--
 -- 'unorderedRouteT' without a broadcast's copies, for a consumer to which
 -- an element read again adds nothing, as 'allSameT', 'maximumT',
 -- 'minimumT', 'anyT' and 'allT' are: the one axis of stride 0 the merge can
@@ -1590,6 +1610,8 @@ toUnorderedVectorListT sh a@(T _ _ v) = build $ \cons nil ->
   if l == 0 then nil else routeSlicesT v (unorderedRouteT sh l a) cons nil
   where !l = product sh
 
+-- INLINE: Route, A3: it takes apart the Route its callers build.
+--
 -- The parts of the vector a route reads, folded right by a cons for a slice
 -- and a cons for an element: the slices where the route hands slices out,
 -- and on 'RFill' the elements one by one, walked ('elemsT') and not filled,
