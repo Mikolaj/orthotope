@@ -1887,10 +1887,12 @@ zipWithLong2 :: (a -> b -> b) -> [a] -> [b] -> [b]
 zipWithLong2 f (a:as) (b:bs) = f a b : zipWithLong2 f as bs
 zipWithLong2 _     _     bs  = bs
 
+-- The padded array alone, its callers computing its shape: a shape returned
+-- beside it, forced for their checks, built the array before them.
 {-# INLINABLE padT #-}
-padT :: forall v a . (Vector v, VecElem v a) => a -> [(Int, Int)] -> ShapeL -> T v a -> ([Int], T v a)
+padT :: forall v a . (Vector v, VecElem v a) => a -> [(Int, Int)] -> ShapeL -> T v a -> T v a
 padT v aps ash at =
-  (ss, fromVectorT ss $ vUnsafeConcatN (product ss) $ pad' aps ash st at)
+  fromVectorT ss $ vUnsafeConcatN (product ss) $ pad' aps ash st at
   where pad' :: [(Int, Int)] -> ShapeL -> [Int] -> T v a -> [v a]
         -- The last padded dimension's block is taken whole as toVectorListT's
         -- list and not recursed into: recursing made each core a subarray of
