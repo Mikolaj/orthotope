@@ -307,11 +307,9 @@ pad v a@(A at) | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
                | not (validShape sh) = error $ "pad: bad shape " ++ show sh
                | all (== (0, 0)) aps = A at  -- no padding: the array itself
                -- Built past the checks, not bound above them: see natT.
-               | otherwise = A (snd (padT v aps ash at))
+               | otherwise = A (padT v aps ash at)
   where ash = shapeL a
         aps = padded (Proxy :: Proxy ps) (Proxy :: Proxy sh)
-        -- Computed, not taken from padT's result: forcing that pair
-        -- for the shape built the padded array too, before the checks.
         sh = zipWithLong2 (\ (l, h) s -> l + s + h) aps ash
 
 -- | Do an arbitrary array transposition.
