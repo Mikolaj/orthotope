@@ -1,13 +1,13 @@
 -- Every operation of a Ranked module, included by OpsRanked once a vector kind
--- and a size with ARR the module of the kind, OPS its list on a view, ROWS the
--- shape's rows, SIZE the size's other values, IARR the kind's internal module,
--- CONV the module of the kind convert converts to, BOXED or STORABLE defined
--- at those kinds, CD and CS the kind's Dynamic and Shaped modules, and SHD and
--- SHMD the Shaped shapes of the view and of one more row.  After an operation's
--- call come those of the arms it leaves untaken, each named for its operation
--- and its arm; at ROWS 0 only the calls an empty array takes.
-OPS :: View -> [Call]
-OPS view =
+-- and a size with ARR the module of the kind, OPS its list on a view in a form,
+-- ROWS the shape's rows, SIZE the size's other values, IARR the kind's internal
+-- module, CONV the module of the kind convert converts to, BOXED or STORABLE
+-- defined at those kinds, CD and CS the kind's Dynamic and Shaped modules, and
+-- SHD and SHMD the Shaped shapes of the view and of one more row.  After an
+-- operation's call come those of the arms it leaves untaken, each named for its
+-- operation and its arm; at ROWS 0 only the calls an empty array takes.
+OPS :: Form -> View -> [Call]
+OPS form view =
   [ call "size" ARR.size t
   , call "shapeL" ARR.shapeL t
   , call "rank" ARR.rank t
@@ -215,7 +215,7 @@ OPS view =
   Size {..} = SIZE
   x0 = 1.5 :: Double
   d = ARR.fromList [cols, ROWS] (take (ROWS * cols) elemsFrom) `asTypeOf` t
-  t = viewOf elemsFrom
+  t = formed (viewOf elemsFrom)
   -- The view in the vector's order; an array of one element at stride 0
   -- throughout; the view under a dimension of two elements at stride 0,
   -- and among five dimensions, the outermost of one element and two between
@@ -249,7 +249,10 @@ OPS view =
            :: ARR.Array 5 Double) :: ARR.Array 6 Double) :: ARR.Array 7 Double
 #endif
   rows = ARR.unravel t :: B.Array 1 (ARR.Array 1 Double)
-  same = viewOf (repeat x0)
+  same = formed (viewOf (repeat x0))
+  formed a = case form of
+    Viewed -> a
+    Normalized -> ARR.normalize a
   viewOf :: [Double] -> ARR.Array 2 Double
   viewOf xs = case view of
     Dense -> ARR.fromList [ROWS, cols] (take (ROWS * cols) xs)

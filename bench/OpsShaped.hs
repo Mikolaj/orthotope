@@ -49,13 +49,13 @@ import qualified Data.Array.Internal.ShapedG as SG
 import qualified Data.Array.Internal.ShapedS as IS
 import qualified Data.Array.Internal.ShapedU as IU
 
-import Call ( Call (..), Size (..), View (..), call, elemsFrom
+import Call ( Call (..), Form (..), Size (..), View (..), call, elemsFrom
             , sizeEmpty, sizeLarge, sizeSmall )
 
 opsB, opsS, opsU :: [Call]
-opsB = opsBLarge Strided
-opsS = opsSLarge Strided
-opsU = opsULarge Strided
+opsB = opsBLarge Viewed Strided
+opsS = opsSLarge Viewed Strided
+opsU = opsULarge Viewed Strided
 
 -- The type arguments, named here because the C preprocessor that includes
 -- the lists replaces no macro on a line after an apostrophe: those of every

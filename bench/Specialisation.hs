@@ -85,49 +85,24 @@ module Main (main) where
 import Control.Monad (forM_)
 import Data.Int (Int64)
 import Data.List (isInfixOf)
-import Data.Maybe (isJust)
 import System.Environment (getArgs)
 import Text.Printf (printf)
 
-import Call (Call (..), View (..), n, viewName, views)
+import Call (Form (..))
 import Harness (measure)
-import qualified OpsDynamic as D
-import qualified OpsRanked as R
-import qualified OpsShaped as S
+import qualified Rows
 
 main :: IO ()
 main = do
   args <- getArgs
-  let families =
-        [ ("Dynamic", [ ("large", n, [D.opsBLarge, D.opsSLarge, D.opsULarge])
-                      , ("small", 1, [D.opsBSmall, D.opsSSmall, D.opsUSmall])
-                      , ("empty", 1, [D.opsBEmpty, D.opsSEmpty, D.opsUEmpty]) ])
-        , ("Ranked", [ ("large", n, [R.opsBLarge, R.opsSLarge, R.opsULarge])
-                     , ("small", 1, [R.opsBSmall, R.opsSSmall, R.opsUSmall])
-                     , ("empty", 1, [R.opsBEmpty, R.opsSEmpty, R.opsUEmpty]) ])
-        , ("Shaped", [ ("large", n, [S.opsBLarge, S.opsSLarge, S.opsULarge])
-                     , ("small", 1, [S.opsBSmall, S.opsSSmall, S.opsUSmall])
-                     , ("empty", 1, [S.opsBEmpty, S.opsSEmpty, S.opsUEmpty]) ])
-        ]
-      rows = [ (row, per, cells)
-             | (family, sizes) <- families
-             , name <- merged [ [ nm | Call nm _ _ <- ops Strided ]
-                              | (_, _, kinds) <- sizes, ops <- kinds ]
-             , (size, per, kinds) <- sizes
-             , view <- if name `elem` viewless then [Strided]
-                       else if size == "empty" then filter (/= Window) views
-                       else views
-             , let row = family ++ "/" ++ name ++ "/" ++ size ++ "/"
-                         ++ viewName view
-             , null args || any (`isInfixOf` row) args
-             , let cells = map (\ ops -> callNamed name (ops view)) kinds
-             , any isJust cells ]
+  let rows = [ r | r@(row, _, _) <- Rows.rows
+                 , null args || any (`isInfixOf` row) args ]
   printf "%-36s %s\n" ""
          "ns, then bytes, an element at the large size, a call at the others"
   printf "%-36s %9s%9s%9s %9s%9s%9s\n" "" "boxed" "Storable" "Unboxed"
                                          "boxed" "Storable" "Unboxed"
   forM_ rows $ \ (row, per, cells) -> do
-    ms <- mapM (traverse measure) cells
+    ms <- mapM (traverse measure) (cells Viewed)
     let time = maybe "-" (\ (t, _) -> printf "%.2f" (t / fromIntegral per))
         bytes = maybe "-" (\ (_, a) -> printf "%.2f" (perOf per a))
     printf "%-36s %9s%9s%9s %9s%9s%9s\n" row
@@ -137,37 +112,3 @@ main = do
 -- Bytes over the count given.
 perOf :: Int -> Int64 -> Double
 perOf per a = fromIntegral a / fromIntegral per
-
--- The names of the lists, each list's in its order, a name that no earlier list
--- holds placed before the name after it in its own, so that the call of an arm
--- that one size alone has stays beside its operation's.
-merged :: [[String]] -> [String]
-merged = foldl (\ acc names -> place acc Nothing (reverse names)) []
- where
-  place acc _ [] = acc
-  place acc next (nm : nms)
-    | nm `elem` acc = place acc (Just nm) nms
-    | otherwise = place (before next nm acc) (Just nm) nms
-  before Nothing nm acc = acc ++ [nm]
-  before (Just s) nm acc = let (xs, ys) = break (== s) acc in xs ++ nm : ys
-
--- The calls whose input is no view, or whose arm accesses none of it, which run
--- on one view.
-viewless :: [String]
-viewless = [ "fromList", "fromVector", "scalar", "unScalar", "constant"
-           , "generate", "iterateN", "iota", "pure"
-           , "append.emptyL", "append.emptyR", "concatOuter.one", "rotate.one"
-           , "update.none", "pad.none", "==.shapes", "maximumA.one"
-           , "reshape.scalar", "allSameA.tiers"
-           , "convert.ranked", "convertE.ranked"
-           , "convert.shaped", "convertE.shaped"
-           , "convert.dynamic", "convertE.dynamic"
-           , "convert.g", "convertE.g"
-           , "<=", "<=.g", ">", ">.g", ">=", ">=.g"
-           , "max", "max.g", "min", "min.g" ]
-
--- The call of the operation of the name, if the kind has it.
-callNamed :: String -> [Call] -> Maybe Call
-callNamed name calls = case [ c | c@(Call m _ _) <- calls, m == name ] of
-  c : _ -> Just c
-  [] -> Nothing

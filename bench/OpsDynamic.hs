@@ -45,13 +45,13 @@ import qualified Data.Array.Internal.DynamicG as DG
 import qualified Data.Array.Internal.DynamicS as IS
 import qualified Data.Array.Internal.DynamicU as IU
 
-import Call ( Call (..), Size (..), View (..), call, elemsFrom
+import Call ( Call (..), Form (..), Size (..), View (..), call, elemsFrom
             , sizeEmpty, sizeLarge, sizeSmall )
 
 opsB, opsS, opsU :: [Call]
-opsB = opsBLarge Strided
-opsS = opsSLarge Strided
-opsU = opsULarge Strided
+opsB = opsBLarge Viewed Strided
+opsS = opsSLarge Viewed Strided
+opsU = opsULarge Viewed Strided
 
 -- The Shaped arrays' shapes the lists convert to, which the C preprocessor
 -- must not see after an apostrophe: the view's, and one of a single row.

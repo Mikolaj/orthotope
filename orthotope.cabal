@@ -82,7 +82,8 @@ test-suite tests
 
   default-language:    Haskell2010
 
-  other-modules:       BenchViewsTest
+  other-modules:       BenchRowsTest
+                     , BenchViewsTest
                      , DynamicTest
                      , DynamicGTest
                      , DynamicUTest
@@ -102,6 +103,7 @@ test-suite tests
                      , OpsDynamic
                      , OpsRanked
                      , OpsShaped
+                     , Rows
 
   -- On every GHC: -fno-ignore-asserts keeps the test modules' asserts
   -- in an optimised build, the library's following its own stanza;
@@ -132,6 +134,7 @@ benchmark specialisation
                      , OpsDynamic
                      , OpsRanked
                      , OpsShaped
+                     , Rows
   include-dirs:        bench
   -- On every GHC: -with-rtsopts=-A32m as for the tests, so that this
   -- times the library at a client's allocation area; -rtsopts lets a run

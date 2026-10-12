@@ -15,23 +15,32 @@
 -- An operation applied to its input, on the views the calls share, for
 -- the specialisation benchmark and test alike.
 {-# LANGUAGE ExistentialQuantification #-}
-module Call ( Call (..), call, View (..), views, viewName
+module Call ( Call (..), call, Form (..), View (..), views, viewName
             , n, elems, elemsFrom, axes
             , Size (..), sizeLarge, sizeSmall, sizeEmpty ) where
 
 import Control.DeepSeq (NFData)
+import Data.Typeable (Typeable)
 import Data.Array.Internal (Axes (..), Axis (..), InnerFirst (..))
 import Data.Char (toLower)
 
--- | An operation, its name and its input.
-data Call = forall a b. (NFData a, NFData b) => Call String (a -> b) a
+-- | An operation, its name and its input, its result comparable to
+-- another call's.
+data Call = forall a b. (NFData a, NFData b, Eq b, Show b, Typeable b)
+                     => Call String (a -> b) a
 
 -- | The call of the operation on its input.  The rows build their calls with
 -- it rather than with Call, so that what a call carries can change in one
 -- place.
 {-# INLINE call #-}
-call :: (NFData a, NFData b) => String -> (a -> b) -> a -> Call
+call :: (NFData a, NFData b, Eq b, Show b, Typeable b)
+     => String -> (a -> b) -> a -> Call
 call = Call
+
+-- | Whether a call's input is the view or the view normalized, every other
+-- input derived from either alike.
+data Form = Viewed | Normalized
+  deriving Show
 
 -- | How the view of a shape lies in its vector, each reaching a route of its
 -- own: 'Dense', the natural strides, one slice of the vector, accessed in order
