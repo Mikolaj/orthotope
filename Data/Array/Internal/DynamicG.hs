@@ -72,9 +72,26 @@ instance (Vector v, Eq a, VecElem v a) => Eq (Array v a) where
   (A s v) == (A s' v') = equalT s s' v v'
   {-# INLINE (==) #-}
 
+-- INLINE throughout: on GHC HEAD 10.1.20260918 (2026-10-12), with compare
+-- alone defined, < of two [400, 500] views of Doubles took the class's
+-- default, not (y <= x), and a client called the default <= unspecialised,
+-- allocating 832 bytes an element at Storable, 208 at Unboxed and 144 boxed,
+-- where DynamicS's < allocated none.
 instance (Vector v, Ord a, VecElem v a) => Ord (Array v a) where
   (A s v) `compare` (A s' v') = compare s s' <> compareT s v v'
   {-# INLINE compare #-}
+  x < y = case compare x y of { LT -> True; _ -> False }
+  {-# INLINE (<) #-}
+  x <= y = case compare x y of { GT -> False; _ -> True }
+  {-# INLINE (<=) #-}
+  x > y = case compare x y of { GT -> True; _ -> False }
+  {-# INLINE (>) #-}
+  x >= y = case compare x y of { LT -> False; _ -> True }
+  {-# INLINE (>=) #-}
+  max x y = if x <= y then y else x
+  {-# INLINE max #-}
+  min x y = if x <= y then x else y
+  {-# INLINE min #-}
 
 instance (Vector v, Pretty a, VecElem v a) => Pretty (Array v a) where
   pPrintPrec l p (A sh t) = ppT l p sh t

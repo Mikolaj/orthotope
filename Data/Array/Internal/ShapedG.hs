@@ -88,10 +88,23 @@ instance (Vector v, Eq a, VecElem v a, Shape sh)
   a@(A v) == (A v') = equalT (shapeL a) (shapeL a) v v'
   {-# INLINE (==) #-}
 
+-- INLINE throughout: see DynamicG's Ord instance.
 instance (Vector v, Ord a, VecElem v a, Shape sh)
          => Ord (Array sh v a) where
   a@(A v) `compare` (A v') = compareT (shapeL a) v v'
   {-# INLINE compare #-}
+  x < y = case compare x y of { LT -> True; _ -> False }
+  {-# INLINE (<) #-}
+  x <= y = case compare x y of { GT -> False; _ -> True }
+  {-# INLINE (<=) #-}
+  x > y = case compare x y of { GT -> True; _ -> False }
+  {-# INLINE (>) #-}
+  x >= y = case compare x y of { LT -> False; _ -> True }
+  {-# INLINE (>=) #-}
+  max x y = if x <= y then y else x
+  {-# INLINE max #-}
+  min x y = if x <= y then x else y
+  {-# INLINE min #-}
 
 instance (Vector v, Pretty a, VecElem v a, Shape sh) => Pretty (Array sh v a) where
   pPrintPrec l p a@(A t) = ppT l p (shapeL a) t
