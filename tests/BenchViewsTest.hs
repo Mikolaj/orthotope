@@ -112,7 +112,7 @@ test = testGroup "BenchViews"
     -- broadcast dimensions, and == and mapA take an empty view at once, in
     -- under 32768 bytes.
   , testGroup "== allocation"
-      [ testCase "broadcast of a strided row" (allocUnder 32768 (\ x -> x == x) stridedBroadcast)
+      [ testCase "bcastmid of a scaled row" (allocUnder 32768 (\ x -> x == x) scaledBcastmid)
       , testCase "empty view" (allocUnder 32768 (\ x -> x == x) emptyView) ]
   , testGroup "mapA allocation"
       [ testCase "empty view" (allocUnder 32768 (mapA (+ 1)) emptyView) ]
@@ -327,8 +327,8 @@ runsBlock = mkBlock [200000, 20] [200000, 32] 0
 transposedBlock = mkCompose [20, 200000] [1, 32] 0
 
 -- A row of 2 elements 2 apart, broadcast to 100000 rows.
-stridedBroadcast :: Layout
-stridedBroadcast = ([100000, 2], [0, 2], 0, 3)
+scaledBcastmid :: Layout
+scaledBcastmid = ([100000, 2], [0, 2], 0, 3)
 
 -- An empty view whose outer dimension has 10^7 indices.
 emptyView :: Layout
@@ -471,20 +471,20 @@ mkRev dsh = mkRevSome [0 .. length dsh - 1] dsh
 
 -- The given shape with its innermost dimension broadcast, at stride 0,
 -- over a dense source of the outer dimensions.
-mkBroadcast :: [Int] -> Layout
-mkBroadcast sh = (sh, natural (init sh) ++ [0], 0, product (init sh))
+mkBcast :: [Int] -> Layout
+mkBcast sh = (sh, natural (init sh) ++ [0], 0, product (init sh))
 
 -- mkStrided's view with a dimension of extent b at stride 0 inserted
 -- after the outermost.
-mkBroadcastMid :: Int -> [Int] -> Layout
-mkBroadcastMid b dsh = case mkStrided dsh of
+mkBcastmid :: Int -> [Int] -> Layout
+mkBcastmid b dsh = case mkStrided dsh of
   (s0 : srest, t0 : trest, _, n) -> (s0 : b : srest, t0 : 0 : trest, 0, n)
-  _ -> error "mkBroadcastMid: a scalar"
+  _ -> error "mkBcastmid: a scalar"
 
 -- A dense array reshaped with a unit innermost dimension appended, which
 -- gets stride 0.
 mkReshape1 :: [Int] -> Layout
-mkReshape1 dsh = mkBroadcast (dsh ++ [1])
+mkReshape1 dsh = mkBcast (dsh ++ [1])
 
 -- The same over mkStrided's view.
 mkReshape1Strided :: [Int] -> Layout
@@ -593,14 +593,14 @@ classViews =
      | (n, rs, s) <- [ ("revsome-inner-primes", [2],    [97, 89, 29])
                      , ("revsome-outer-g48",    [0],    [50, 3, 3, 50])
                      , ("revsome-mid-cnn-L2",   [1, 2], [24, 24, 32, 3, 3]) ] ]
-  ++ [ (n, mkBroadcast s)
+  ++ [ (n, mkBcast s)
      | (n, s) <- [ ("bcast-inner8",   [64, 100, 8])
                  , ("bcast-inner900", [50, 40, 900])
                  , ("bcast-tall-Mx2", [900000, 2])
                  , ("bcast-src8",     [8, 225000])
                  , ("bcast-src64",    [64, 28125])
                  , ("bcast-src512",   [512, 3515]) ] ]
-  ++ [ (n, mkBroadcastMid b s)
+  ++ [ (n, mkBcastmid b s)
      | (n, b, s) <- [ ("bcastmid-c32-cnn", 32, [24, 24, 3, 3])
                     , ("bcastmid-primes",  89, [97, 29])
                     , ("bcastmid-b200k",   200000, [3, 3])
