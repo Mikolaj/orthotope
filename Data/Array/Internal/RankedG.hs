@@ -87,9 +87,22 @@ instance (Vector v, Eq a, VecElem v a) => Eq (Array n v a) where
   (A s v) == (A s' v') = equalT s s' v v'
   {-# INLINE (==) #-}
 
+-- INLINE throughout: see DynamicG's Ord instance.
 instance (Vector v, Ord a, VecElem v a) => Ord (Array n v a) where
   (A s v) `compare` (A s' v') = compare s s' <> compareT s v v'
   {-# INLINE compare #-}
+  x < y = case compare x y of { LT -> True; _ -> False }
+  {-# INLINE (<) #-}
+  x <= y = case compare x y of { GT -> False; _ -> True }
+  {-# INLINE (<=) #-}
+  x > y = case compare x y of { GT -> True; _ -> False }
+  {-# INLINE (>) #-}
+  x >= y = case compare x y of { LT -> False; _ -> True }
+  {-# INLINE (>=) #-}
+  max x y = if x <= y then y else x
+  {-# INLINE max #-}
+  min x y = if x <= y then x else y
+  {-# INLINE min #-}
 
 instance (Vector v, Pretty a, VecElem v a) => Pretty (Array n v a) where
   pPrintPrec l p (A sh t) = ppT l p sh t
