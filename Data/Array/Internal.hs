@@ -732,9 +732,7 @@ genericUnsafeFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
         -- refilling the level on 200000 copies of 24 bytes; by
         -- doubling, the copy wins.
         copies :: Int -> Int -> Int -> ST s ()
-        copies !n !blk !src
-          | n <= 1 = return ()
-          | otherwise = grow blk
+        copies !n !blk !src = grow blk
           where
             !end = src + n * blk
             grow :: Int -> ST s ()
