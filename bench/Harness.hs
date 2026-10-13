@@ -20,6 +20,7 @@ import Control.Exception (evaluate)
 import Data.Int (Int64)
 import GHC.Clock (getMonotonicTimeNSec)
 import GHC.Conc (getAllocationCounter, setAllocationCounter)
+import System.Mem (performMajorGC)
 
 import Call (Call (..))
 
@@ -35,8 +36,12 @@ perturb i x = if i == minBound then error "perturb" else x
 -- of two calls allocates.
 measure :: Call -> IO (Double, Int64)
 measure (Call _ f x) = do
-  _ <- evaluate (rnf x)
   _ <- allocated (rnf . f) x
+  -- A major collection between the first call, which evaluates the part of
+  -- the input the calls use, and the calls measured: without one, the calls
+  -- followed the indirections that evaluating the input left, and boxed ravel
+  -- of a large dense view took twice its time.
+  performMajorGC
   a <- allocated (rnf . f) x
   k <- calibrate 1
   t <- minimum <$> mapM (const (batch k)) [1 .. 3 :: Int]
