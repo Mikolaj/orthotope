@@ -13,7 +13,7 @@
 -- limitations under the License.
 
 {-# LANGUAGE BangPatterns #-}
-module Harness (measure, allocated) where
+module Harness (Mode (..), measure, allocated) where
 
 import Control.DeepSeq (rnf)
 import Control.Exception (evaluate)
@@ -31,25 +31,33 @@ import Call (Call (..))
 perturb :: Int -> a -> a
 perturb i x = if i == minBound then error "perturb" else x
 
--- | Nanoseconds a call of the result forced to normal form, the fastest of
--- three batches, each of as many calls as take 5 ms, and the bytes the second
--- of two calls allocates.
-measure :: Call -> IO (Double, Int64)
-measure (Call _ f x) = do
-  _ <- allocated (rnf . f) x
+-- | Whether a call's result is forced to normal form, as a client keeping
+-- it would, or summed, every component taken apart, as one consuming it
+-- would.
+data Mode = Forced | Summing
+
+-- | Nanoseconds a call of the result forced or summed, the fastest of three
+-- batches, each of as many calls as take 5 ms, and the bytes the second of
+-- two calls allocates.
+measure :: Mode -> Call -> IO (Double, Int64)
+measure mode (Call _ f x g) = do
+  _ <- allocated h x
   -- A major collection between the first call, which evaluates the part of
   -- the input the calls use, and the calls measured: without one, the calls
   -- followed the indirections that evaluating the input left, and boxed ravel
   -- of a large dense view took twice its time.
   performMajorGC
-  a <- allocated (rnf . f) x
+  a <- allocated h x
   k <- calibrate 1
   t <- minimum <$> mapM (const (batch k)) [1 .. 3 :: Int]
   return (t, a)
  where
+  h = case mode of
+    Forced -> rnf . f
+    Summing -> \ y -> g y `seq` ()
   calls :: Int -> IO ()
   calls 0 = return ()
-  calls !i = evaluate (rnf (f (perturb i x))) >> calls (i - 1)
+  calls !i = evaluate (h (perturb i x)) >> calls (i - 1)
   batch :: Int -> IO Double
   batch !k = do
     t0 <- getMonotonicTimeNSec

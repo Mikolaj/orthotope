@@ -25,11 +25,18 @@
 -- the library's code but those that fail, those no operation reaches, the list
 -- instance of Vector and the instances that print, parse or generate arrays,
 -- and those at the large size every such arm but those of an empty array.  A
--- row is the family, the operation, the size and the view, and a cell the
--- time of forcing the result to normal form, the fastest of three batches of
--- calls, and the bytes a call allocates, both per element of the view at the
--- large size and per call at the others, where what a call costs once shows.
--- Arguments, if any, select the rows whose names contain one of them.
+-- row is the family, the operation, the size and the view, and a cell the time
+-- of a call with its result forced to normal form or, given --summed, summed,
+-- every component taken apart as a client consuming it would, the fastest of
+-- three batches of calls, and the bytes a call allocates, both per element of
+-- the view at the large size and per call at the others, where what a call
+-- costs once shows.  Other arguments, if any, select the rows whose names
+-- contain one of them.
+--
+-- The two tables, forced and summed, are compared and never combined: where
+-- they lead to different conclusions about a change, the divergence is
+-- investigated, and one that cannot be removed gets a note at the code
+-- responsible saying why.
 --
 -- Each family's calls are written once, in an include file that the C
 -- preprocessor instantiates once a vector kind and a size, with the module, the
@@ -73,13 +80,10 @@
 -- such an Unboxed rotate took less time than the boxed one on GHC HEAD.
 --
 -- The table's times measure no change between two builds, loop placement alone
--- moving a reading by more than many a change does, while its bytes and the
--- probes' compare exactly.  To compare two builds' times, build each on GHC
--- HEAD in a fresh build directory, its loop heads aligned to cache lines by
--- horde-ad's assembler shim tools/align-as.py, given to GHC as -pgma with
--- LOOP_MAXSKIP, LOOP_LOOKTHROUGH, LOOP_DEADSPOT, LOOP_EXITSPAN and LOOP_SETTLED
--- set to 1, and run the two binaries interleaved, one row a process, pinned to
--- one core; their bytes need no shim.
+-- moving a reading by more than many a change does, while its bytes compare
+-- exactly.  To compare two builds' times, build each on GHC HEAD in a fresh
+-- build directory and run the two binaries interleaved, one row a process,
+-- pinned to one core.
 module Main (main) where
 
 import Control.Monad (forM_)
@@ -89,20 +93,24 @@ import System.Environment (getArgs)
 import Text.Printf (printf)
 
 import Call (Form (..))
-import Harness (measure)
+import Harness (Mode (..), measure)
 import qualified Rows
 
 main :: IO ()
 main = do
-  args <- getArgs
-  let rows = [ r | r@(row, _, _) <- Rows.rows
+  allArgs <- getArgs
+  let summing = "--summed" `elem` allArgs
+      mode = if summing then Summing else Forced
+      args = filter (/= "--summed") allArgs
+      rows = [ r | r@(row, _, _) <- Rows.rows
                  , null args || any (`isInfixOf` row) args ]
-  printf "%-36s %s\n" ""
+  printf "%-36s %s, the result %s\n" ""
          "ns, then bytes, an element at the large size, a call at the others"
+         (if summing then "summed" else "forced")
   printf "%-36s %9s%9s%9s %9s%9s%9s\n" "" "boxed" "Storable" "Unboxed"
                                          "boxed" "Storable" "Unboxed"
   forM_ rows $ \ (row, per, cells) -> do
-    ms <- mapM (traverse measure) (cells Viewed)
+    ms <- mapM (traverse (measure mode)) (cells Viewed)
     let time = maybe "-" (\ (t, _) -> printf "%.2f" (t / fromIntegral per))
         bytes = maybe "-" (\ (_, a) -> printf "%.2f" (perOf per a))
     printf "%-36s %9s%9s%9s %9s%9s%9s\n" row

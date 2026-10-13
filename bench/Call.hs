@@ -23,19 +23,24 @@ import Control.DeepSeq (NFData)
 import Data.Typeable (Typeable)
 import Data.Array.Internal (Axes (..), Axis (..), InnerFirst (..))
 import Data.Char (toLower)
+import GHC.Exts (inline)
+
+import Summed (Summed (..))
 
 -- | An operation, its name and its input, its result comparable to
--- another call's.
+-- another call's, and the operation with its result summed.
 data Call = forall a b. (NFData a, NFData b, Eq b, Show b, Typeable b)
-                     => Call String (a -> b) a
+                     => Call String (a -> b) a (a -> Double)
 
--- | The call of the operation on its input.  The rows build their calls with
--- it rather than with Call, so that what a call carries can change in one
--- place.
+-- | A call and its result summed at its site, compiled as a client's own
+-- @summed (f x)@ is: 'inline' unfolds the row's expression @f@ into the sum,
+-- and GHC inlines the operation there as it would for a client.  The expression
+-- written out twice compiles the same; 'inline' on the operation's own name, at
+-- the row, inlines more, but for a class method such as @convert@.
 {-# INLINE call #-}
-call :: (NFData a, NFData b, Eq b, Show b, Typeable b)
+call :: (NFData a, NFData b, Eq b, Show b, Typeable b, Summed b)
      => String -> (a -> b) -> a -> Call
-call = Call
+call nm f x = Call nm f x (\ y -> summed (inline f y))
 
 -- | Whether a call's input is the view or the view normalized, every other
 -- input derived from either alike.
