@@ -34,7 +34,7 @@ rows :: [(String, Int, Form -> [Maybe Call])]
 rows =
   [ (row, per, cells)
   | (family, sizes) <- families
-  , name <- merged [ [ nm | Call nm _ _ <- ops Viewed Strided ]
+  , name <- merged [ [ nm | Call nm _ _ _ <- ops Viewed Strided ]
                    | (_, _, kinds) <- sizes, ops <- kinds ]
   , (size, per, kinds) <- sizes
   , view <- if name `elem` viewless then [Strided]
@@ -85,6 +85,6 @@ viewless = [ "fromList", "fromVector", "scalar", "unScalar", "constant"
 
 -- The call of the operation of the name, if the kind has it.
 callNamed :: String -> [Call] -> Maybe Call
-callNamed name calls = case [ c | c@(Call m _ _) <- calls, m == name ] of
+callNamed name calls = case [ c | c@(Call m _ _ _) <- calls, m == name ] of
   c : _ -> Just c
   [] -> Nothing

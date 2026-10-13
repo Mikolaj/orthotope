@@ -183,12 +183,12 @@ callRows =
   | (family, bs, ss, us) <- [ ("Dynamic", OD.opsB, OD.opsS, OD.opsU)
                             , ("Ranked", OR.opsB, OR.opsS, OR.opsU)
                             , ("Shaped", OS.opsB, OS.opsS, OS.opsU) ]
-  , b@(Call name _ _) <- bs
+  , b@(Call name _ _ _) <- bs
   , s <- callsNamed name ss, u <- callsNamed name us ]
 
 -- The calls of the operation of the name.
 callsNamed :: String -> [Call] -> [Call]
-callsNamed name cs = [ c | c@(Call m _ _) <- cs, m == name ]
+callsNamed name cs = [ c | c@(Call m _ _ _) <- cs, m == name ]
 
 -- Storable and Unboxed allocate at most 32 bytes an element more than
 -- boxed, and boxed at most 16 more than the smaller of the two, but where
@@ -265,7 +265,7 @@ perElem a = fromIntegral a / fromIntegral Call.n
 -- What forcing the result of the call to normal form allocates the second
 -- time, the input forced beforehand.
 callAlloc :: Call -> IO Int64
-callAlloc (Call _ f x) = do
+callAlloc (Call _ f x _) = do
   _ <- evaluate (rnf x)
   _ <- allocated (rnf . f) x
   allocated (rnf . f) x

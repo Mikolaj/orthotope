@@ -58,7 +58,7 @@ agreeRow row cells = do
 -- The call at the kind on the view against the call on its normalized copy.
 agree :: String -> String -> (Maybe Call, Maybe Call) -> Assertion
 agree _ _ (Nothing, Nothing) = return ()
-agree row kind (Just (Call name f a), Just (Call _ g b)) =
+agree row kind (Just (Call name f a _), Just (Call _ g b _)) =
   case cast (g b) of
     Nothing -> assertFailure (row ++ " at " ++ kind ++ ": two result types")
     Just y -> do
