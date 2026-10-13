@@ -66,7 +66,7 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.DynamicG as G
 import Data.Array.Internal(ShapeL, Vector(..), genericUnsafeConcatN,
-                           genericUnsafeFillStrided)
+                           genericForce, genericUnsafeFillStrided)
 
 type Unbox = V.Unbox
 
@@ -208,6 +208,8 @@ instance Vector V.Vector where
     go 0
   {-# INLINE vUnsafeFillStrided #-}
   vUnsafeFillStrided = genericUnsafeFillStrided 64
+  {-# INLINE vForce #-}
+  vForce = genericForce
   {-# INLINE vUnsafeConcatN #-}
   vUnsafeConcatN = genericUnsafeConcatN
 

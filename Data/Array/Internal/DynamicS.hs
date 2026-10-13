@@ -79,7 +79,7 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.Internal.DynamicG as G
 import Data.Array.Internal(Axes, T(..), ShapeL, Vector(..), genericUnsafeConcatN,
-                           genericUnsafeFillStrided)
+                           genericForce, genericUnsafeFillStrided)
 
 type Unbox = V.Storable
 
@@ -216,6 +216,8 @@ instance Vector V.Vector where
   vUnsafeFillStrided :: forall a. Unbox a
                => Axes -> Int -> Int -> V.Vector a -> V.Vector a
   vUnsafeFillStrided = genericUnsafeFillStrided (512 `quot` max 1 (sizeOf (undefined :: a)))
+  {-# INLINE vForce #-}
+  vForce = genericForce
   {-# INLINE vUnsafeConcatN #-}
   vUnsafeConcatN = genericUnsafeConcatN
 

@@ -153,9 +153,7 @@ class Vector v where
   -- | The vector with its elements in storage of its own, so that it keeps
   -- alive no longer vector, as a slice of one does.  It can copy a vector
   -- that is no slice too, as the default, 'vConcat' of the one vector,
-  -- always does.  The vector instances keep the default, since vector's
-  -- 'Data.Vector.Generic.force' fills its new vector with zeros before it
-  -- copies into it (https://github.com/haskell/vector/issues/571).
+  -- always does.  The vector instances copy by 'genericForce' instead.
   vForce :: (VecElem v a) => v a -> v a
   vForce v = vConcat [v]
 
@@ -571,6 +569,17 @@ fillStrided axes@(Axes st n outer) ao l v
         hi = sum (map (max 0) reach)
         bad what = error $ "fillStrided: violated contract: " ++ what ++ ": "
                            ++ show ([ (axisStride a, axisExtent a) | a <- axs ], ao, l, vLength v)
+
+-- The vector in a new one of its length, copied into once: vector's
+-- 'Data.Vector.Generic.force' fills a new Storable or unboxed vector with zeros
+-- before it copies into it (https://github.com/haskell/vector/issues/571), and
+-- 'vConcat' of the one vector takes it boxed, in a list.
+{-# INLINABLE genericForce #-}
+genericForce :: VG.Vector w a => w a -> w a
+genericForce v = VG.create $ do
+  out <- VGM.unsafeNew (VG.length v)
+  VG.unsafeCopy out v
+  return out
 
 -- The measured-fastest fill for 'vUnsafeFillStrided': an allocate-once mutable
 -- result, an odometer recursion over the outer dimensions with the input offset

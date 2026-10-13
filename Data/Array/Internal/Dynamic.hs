@@ -69,7 +69,7 @@ import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.DynamicG as G
-import Data.Array.Internal(ShapeL, Vector(..), None, genericUnsafeFillStrided, rnfViewT)
+import Data.Array.Internal(ShapeL, Vector(..), None, genericForce, genericUnsafeFillStrided, rnfViewT)
 import qualified Data.Array.Internal.DynamicG as DG
 
 instance Vector V.Vector where
@@ -175,6 +175,8 @@ instance Vector V.Vector where
   vGenerate' n g = zipLoop (max 0 n) (\ i -> return $! g i)
   {-# INLINE vUnsafeFillStrided #-}
   vUnsafeFillStrided = genericUnsafeFillStrided 5
+  {-# INLINE vForce #-}
+  vForce = genericForce
   -- vUnsafeConcatN keeps the default, the vector package's concat but for a
   -- lone vector: on GHC HEAD, copying each vector as the list yields it, as
   -- genericUnsafeConcatN does, took 0.95 to 1.28 times as long on boxed
