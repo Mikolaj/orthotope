@@ -2336,38 +2336,37 @@ a pair changes codegen, as on Run 18. `mut-odo`'s wide interval is the live case
   were read in bytes. Neither blocks the ruling and both would sharpen it.
 - `OPEN` **Boxed broadcast runs still store element by element: fill
   an innermost broadcast by doubling copies from the instance's `copyRun` on ---
-  registered 2026-10-06, unmeasured.** Since the commit "Copy whole runs inside
-  the fill from a length each instance picks" on `pr-mikolaj-toVectorListT`,
-  the library's `genericFillStrided` copies each run at stride 1 whole
-  from a run length each `Vector` instance passes, because a boxed `writeArray#`
-  pays GHC's write barrier on every store --- the array's header written again,
-  a card marked, the nonmoving collector's test --- and one `copyArray#` a run
-  pays it once. The innermost broadcast, `writeRunSet`, still stores one pointer
-  `sInner` times. The remedy is already in the fill: `copies` doubles a block
-  onto a zero-stride level's positions, so storing the element once
-  and then `copies sInner 1 outPos` would pay the barrier about log2 `sInner`
-  times --- one branch at the head of `writeRunSet` on `sInner >= copyRun`,
-  no new walk, and nothing evaluated, the copy moving pointers. Expected near
-  the runs' 3.4x on long boxed broadcasts and less, or a loss, on short ones,
-  so the cut wants measuring rather than borrowing from the runs' 5. **The real
-  question is the shared cut**: Storable and Unboxed stores pay no barrier
-  and their broadcast loop is one store an element, unrolled by two, so doubling
-  `memcpy`s may win only on long broadcasts in cache; if one `copyRun` does
-  not fit runs and broadcasts at every kind of vector, broadcasts want a number
-  of their own per instance, a cost in the hook not to pay for a small gain.
-  Not worth special-casing: a whole constant view as `VGM.replicate`, which
-  saves even the doubling pass but is one more pattern recognized inside
-  the fill. In `Main.hs` the views with an innermost broadcast under the ordered
-  route are `bcast-inner8`, `bcast-inner900`, `bcast-tall-Mx2`, `bcast-src8`,
-  `bcast-src64`, `bcast-src512`, `small-bcast32` and every `compose` view;
-  `bcast-tall-Mx2`'s broadcast of 2 sits below both cuts, and `bcast-inner8`,
-  `small-bcast32`, `compose-rev-bcast`, `compose-slice-bcast`
-  and `compose-bcast-nest` below the Storable one, 64; the unordered route moves
-  the zero stride outside an adjacent unit-stride axis, which of these only
-  `compose-scalar` lacks. This harness times Storable Doubles only, so it can
-  price the Storable half; the boxed half wants a boxed bench, `[r, 1]`
-  stretched to `[r, k]` for `k` from 2 to 4096 and one constant view, under GHC
-  HEAD and the shim.
+  registered 2026-10-06, unmeasured.** Since 2026-10-05
+  on `pr-mikolaj-toVectorListT`, the library's `genericFillStrided` copies each
+  run at stride 1 whole from a run length each `Vector` instance passes, because
+  a boxed `writeArray#` pays GHC's write barrier on every store --- the array's
+  header written again, a card marked, the nonmoving collector's test ---
+  and one `copyArray#` a run pays it once. The innermost broadcast,
+  `writeRunSet`, still stores one pointer `sInner` times. The remedy is already
+  in the fill: `copies` doubles a block onto a zero-stride level's positions,
+  so storing the element once and then `copies sInner 1 outPos` would pay
+  the barrier about log2 `sInner` times --- one branch at the head
+  of `writeRunSet` on `sInner >= copyRun`, no new walk, and nothing evaluated,
+  the copy moving pointers. Expected near the runs' 3.4x on long boxed
+  broadcasts and less, or a loss, on short ones, so the cut wants measuring
+  rather than borrowing from the runs' 5. **The real question is the shared
+  cut**: Storable and Unboxed stores pay no barrier and their broadcast loop
+  is one store an element, unrolled by two, so doubling `memcpy`s may win only
+  on long broadcasts in cache; if one `copyRun` does not fit runs and broadcasts
+  at every kind of vector, broadcasts want a number of their own per instance,
+  a cost in the hook not to pay for a small gain. Not worth special-casing:
+  a whole constant view as `VGM.replicate`, which saves even the doubling pass
+  but is one more pattern recognized inside the fill. In `Main.hs` the views
+  with an innermost broadcast under the ordered route are `bcast-inner8`,
+  `bcast-inner900`, `bcast-tall-Mx2`, `bcast-src8`, `bcast-src64`,
+  `bcast-src512`, `small-bcast32` and every `compose` view; `bcast-tall-Mx2`'s
+  broadcast of 2 sits below both cuts, and `bcast-inner8`, `small-bcast32`,
+  `compose-rev-bcast`, `compose-slice-bcast` and `compose-bcast-nest` below
+  the Storable one, 64; the unordered route moves the zero stride outside
+  an adjacent unit-stride axis, which of these only `compose-scalar` lacks.
+  This harness times Storable Doubles only, so it can price the Storable half;
+  the boxed half wants a boxed bench, `[r, 1]` stretched to `[r, k]` for `k`
+  from 2 to 4096 and one constant view, under GHC HEAD and the shim.
 - `OPEN` **A tie above stride 1 at the length the run has reached decides
   the unordered route's run by extent and never by `runRank`, and k x 1, 1-D
   and channels-last windows meet it: let the axis that began the run's chain
@@ -4038,14 +4037,13 @@ first, those that did not die on paper at all:
   with the dependence on a hard-coded constant tipping it: the threshold
   is a run of 16 KB sized to the L1 and cut on this box, a library would carry
   it blind, and the past-cache probe read the crossover moving with the working
-  set. **OVERRIDDEN 2026-10-06 by the owner**: since
-  `pr-mikolaj-toVectorListT`'s commit "Copy whole runs inside the fill
-  from a length each instance picks", `genericFillStrided` copies each run
-  at stride 1 whole, one `VG.unsafeCopy` a run, from a run length each `Vector`
-  instance passes, and steps the shorter ones --- the dispatch on run length,
-  done inside the fill, and well enough to be worth the longer source code;
-  its Storable cut, 512 bytes, is set past where a copy's cost a run is paid off
-  and not to this box's L1. The fills here kept in step with the library carry
+  set. **OVERRIDDEN 2026-10-06 by the owner**: since 2026-10-05
+  `pr-mikolaj-toVectorListT`'s `genericFillStrided` copies each run at stride 1
+  whole, one `VG.unsafeCopy` a run, from a run length each `Vector` instance
+  passes, and steps the shorter ones --- the dispatch on run length, done inside
+  the fill, and well enough to be worth the longer source code; its Storable
+  cut, 512 bytes, is set past where a copy's cost a run is paid off and
+  not to this box's L1. The fills here kept in step with the library carry
   the copy (`copyRun` in `Main.hs`). What the gain is worth and where --- a tie
   past the L3 at 64 MB, the per-call comparison priced on `small`,
   the real-world views that reach it --- is at the arm's definition

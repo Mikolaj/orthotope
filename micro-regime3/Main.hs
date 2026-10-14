@@ -3426,8 +3426,7 @@ fbLibStage2Disp sh a@(T _ _ v)
 
 -- The fill of 'lib-stage2-lean', 'liblist-stage4-sum' and
 -- 'libunord-stage13-sum': the library's 'genericFillStrided' as
--- pr-mikolaj-toVectorListT's commit "Copy whole runs inside the fill from
--- a length each instance picks" (2026-10-05) has it, at Storable Double,
+-- pr-mikolaj-toVectorListT has it on 2026-10-05, at Storable Double,
 -- comments stripped except where it differs from 'fillStage3': the stepping
 -- run's stride an argument, which runs at stride 1 shorter than 'copyRun' take
 -- as a literal in a walk of their own, and the fused level holding its 'Axis',
@@ -4038,7 +4037,7 @@ fbLibStage2Short sh (T (Strides ats) ao v)
 -- This arm reflects the implementation on branch
 -- pr-mikolaj-toVectorListT, which may not be the fastest, but behaves
 -- better when compilation time is the main issue: the library's
--- 'toVectorT' as ~/r/orthotope.toVectorListT has it on 2026-10-03, its
+-- 'toVectorT' as pr-mikolaj-toVectorListT has it on 2026-10-03, that day's
 -- uncommitted diff included, the empty view answered first and every
 -- other one by 'routeVector' over the route 'routeList4' reads, the
 -- branch's 'routeVectorT' over its 'routeT'. It is the control of
@@ -4153,11 +4152,12 @@ routeList3 sh (T (Strides ats) ao _)
 
 -- Stage four of the list entry point: 'routeList3' under the lean dispatch,
 -- the regime read off the merged form alone and no 'getStridesT' built, as
--- 'fbLibStage2Lean' reads it. One change over stage three, and one over stage
--- two, whose lean dispatch it shares, the list's construction. It is the
--- library's 'routeT' as ~/r/orthotope.toVectorListT has it on 2026-10-03, its
--- uncommitted diff included, at the 'Axis' path's types, 'canonicalizeLib' and
--- 'routeOfLib' being the branch's 'canonicalizeT' and 'routeOfT'.
+-- 'fbLibStage2Lean' reads it. One change over stage three, and one over
+-- stage two, whose lean dispatch it shares, the list's construction. It is
+-- the library's 'routeT' as pr-mikolaj-toVectorListT has it on 2026-10-03,
+-- that day's uncommitted diff included, at the 'Axis' path's types,
+-- 'canonicalizeLib' and 'routeOfLib' being the branch's 'canonicalizeT' and
+-- 'routeOfT'.
 --
 -- @routeList4 sh l a@, the route of the view of @a@ at shape @sh@ as it
 -- is, requires one stride in @a@ per dimension of @sh@, @l == product
@@ -4389,7 +4389,7 @@ wholeOrSlice ao l v
   | otherwise = VS.slice ao l v
 {-# INLINE wholeOrSlice #-}
 
--- The library's 'routeSlicesT' as ~/r/orthotope.toVectorListT has it on
+-- The library's 'routeSlicesT' as pr-mikolaj-toVectorListT has it on
 -- 2026-10-03, over its walker, 'runSlicesLib', and its fill, 'fillStage2Axes':
 -- the slices of a route handed to a 'build''s cons and nil, so that the
 -- route's case sits INSIDE the 'build' the list arms wrap around it and a fold
@@ -4426,7 +4426,7 @@ sumRoute v route = case route of
 {-# INLINE sumRoute #-}
 
 -- The library's runs walker, its 'runSlicesT' over 'offsetsT', as
--- ~/r/orthotope.toVectorListT has them on 2026-10-03, at the 'Axis'
+-- pr-mikolaj-toVectorListT has them on 2026-10-03, at the 'Axis'
 -- path's types: 'runSlicesAx''s walk, the run's slice handed to the
 -- offsets loop as a step, the form the branch's commit "List a view
 -- along its route rather than by an indexT per element" gave it so that
@@ -4915,7 +4915,7 @@ zerosFirstRankedGuarded sh ats
   | otherwise = sortedAbsAxes byStrideRankAx sh ats
 
 -- The order 'routeUnord13' sorts by, the library's 'byStrideRank' as
--- ~/r/orthotope.toVectorListT has it on 2026-10-03, the same code as
+-- pr-mikolaj-toVectorListT has it on 2026-10-03, the same code as
 -- 'byStrideRankAx': absolute stride descending; on a tie at stride 1 the
 -- length 'runRank' prefers last, so that it is the run, and on any other tie
 -- the extent ascending. In case form rather than over '<>', on counts of
@@ -5074,7 +5074,7 @@ canonicalizeAx [] axes = axes
 -- Just outside the run rather than outermost is a choice neither
 -- placement wins; the readings are at 'routeUnord14''s move.
 
--- The library's 'absAxesAndStartT' as ~/r/orthotope.toVectorListT has it on
+-- The library's 'absAxesAndStartT' as pr-mikolaj-toVectorListT has it on
 -- 2026-10-03, the same code as 'absAxes', which says what it returns. The
 -- reversal is what makes 'sortAxes' cheap: a view whose axes come outermost
 -- first reaches it innermost first, and each axis goes in at the head. Which
@@ -5124,8 +5124,8 @@ insertAxis x ys = x : ys
 -- the route, the runs walker and the fill in which a canonical axis is
 -- an 'Axis', where the arms left on pairs read a (stride, extent) pair.
 -- 'lib-stage2-lean', 'liblist-stage4-sum' and 'libunord-stage13-sum' run
--- the code of pr-mikolaj-toVectorListT as ~/r/orthotope.toVectorListT has
--- it on 2026-10-03, its uncommitted diff included, at this path's types, so
+-- the code of pr-mikolaj-toVectorListT on 2026-10-03, that day's
+-- uncommitted diff included, at this path's types, so
 -- 'lib-stage3-lean', 'liblist-stage5-sum' and 'libunord-stage15-sum' against
 -- them price what the branch's code does otherwise: the ordered merge an
 -- out-of-line loop over a 'WalkAx', 'canonicalizeLib', with a view of one
@@ -5344,8 +5344,8 @@ byStrideRankAx (Axis s1 n1) (Axis s2 n2) = case compare s2 s1 of
 -- extent and the axes outside it: one slice where that axis is the only
 -- one and has stride 1, runs where its stride is 1, the fill otherwise.
 -- Shared by the path's two dispatches, so that it is written once. The
--- first equation's bang on the count is there only to match 'routeOfT'
--- in ~/r/orthotope.toVectorListT; here the Core is the same without it
+-- first equation's bang on the count is there only to match 'routeOfLib',
+-- the library's 'routeOfT'; here the Core is the same without it
 -- (2026-09-28).
 routeOfAx :: Int -> Int -> Int -> Int -> InnerFirstAx -> RouteAx
 routeOfAx start !l 1 _ (InnerFirstAx []) = RSliceAx start l
@@ -5363,7 +5363,7 @@ routeOfAx start l t n rest = RFillAx (WalkAx t n rest) start l
 -- branch's 'sumLazyRunsLib''s; the path's sum arms against the branch's price
 -- it with the rest.
 -- The bang on 'RRunsAx''s axes is the library's: pr-mikolaj-toVectorListT
--- made 'RRuns''s 'Axes' strict at 1816fe6, which there drops the thunk
+-- made 'RRuns''s 'Axes' strict on 2026-09-28, which there drops the thunk
 -- its out-of-line 'routeOfT' built around the 'Axes' of every 'RRuns'.
 -- Here it changes nothing -- 'routeOfAx' inlines into readers that take
 -- the route apart at once, so no 'RRunsAx' is ever built and the Core is
@@ -5499,11 +5499,10 @@ data NestLib = FusedLib !Axis | LevelLib !Axis !Int !NestLib
 -- The run length from which the three fills kept in step with the library,
 -- 'fillStage3', 'fillStage3U1' and 'fillStage2Axes', copy a run at stride 1
 -- whole, one 'VS.unsafeCopy' a run, as the library's 'genericFillStrided' does
--- since pr-mikolaj-toVectorListT's commit "Copy whole runs inside the fill
--- from a length each instance picks" (2026-10-05). The value is that commit's
+-- on pr-mikolaj-toVectorListT since 2026-10-05. The value is the branch's
 -- Storable instance's, 512 bytes over the element's size, which at Double
 -- is 64 elements: past where a copy's cost a run is paid off and not where
--- the branch's figures, in that commit's comment at 'genericFillStrided',
+-- the branch's figures, in its comment at 'genericFillStrided',
 -- would put the cut; no figure was taken here. 'fillStage2OneLevel',
 -- 'fillStage2VSdims', 'fillStage2U4' and 'fillStage2Short', parked and not
 -- kept in step, copy no run.
@@ -5530,8 +5529,8 @@ copyRun = 512 `quot` sizeOf (undefined :: Double)
 -- extent there would read past the source or write into an empty result. Every
 -- dispatch guards @l == 0@ before calling one; the degenerate
 -- and @edge-bcastmid-b0@ views are where @check@ fails when one does
--- not. This one's @l@ takes no bang only to match 'genericFillStrided' in
--- ~/r/orthotope.toVectorListT, which dropped it: the assertion forces it
+-- not. This one's @l@ takes no bang only to match 'fillStage2Axes', the
+-- library's 'genericFillStrided', which dropped it: the assertion forces it
 -- at entry anyway, and the Core is the same either way (2026-09-28).
 {-# NOINLINE fillStage3 #-}
 fillStage3 :: WalkAx -> Int -> Int -> VS.Vector Double -> VS.Vector Double
@@ -5875,8 +5874,8 @@ fbLibListStage3Sum sh a@(T _ _ v) =
 -- This arm reflects the implementation on branch
 -- pr-mikolaj-toVectorListT, which may not be the fastest, but behaves
 -- better when compilation time is the main issue: the library's
--- 'toVectorListT' as ~/r/orthotope.toVectorListT has it on 2026-10-03,
--- its uncommitted diff included, summed by 'sumRoute' over the route
+-- 'toVectorListT' as pr-mikolaj-toVectorListT has it on 2026-10-03,
+-- that day's uncommitted diff included, summed by 'sumRoute' over the route
 -- 'routeList4' reads, the empty view answered first. It is the control
 -- of 'liblist-stage5-sum', and the pair prices what the branch's code
 -- does otherwise, which the head of the 'Axis' path lists.

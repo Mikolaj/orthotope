@@ -1,17 +1,18 @@
 # Handoff: the fill's prologue tables on a one-level view
 
 Written 2026-09-22 at the end of the session that landed `b781c63`, `78c5521`
-and `c652c57` in `~/r/orthotope` and `80b6f6a` in `~/r/orthotope.toVectorListT`,
+and `c652c57` on `speedup-strided-tovector` and their library counterpart
 on `pr-mikolaj-toVectorListT`. It records one candidate those commits left
 unmeasured, measured in both fills and kept as the arm
 `lib-stage3-lean-onelevel` (`fe430cf`), with the recipes to price it. Everything
 below the observation was a plan, and each experiment's result closes
-its section. The words: the harness is `Main.hs` in `micro-regime3` of the first
-checkout, whose roster of benchmark arms this file names by their roster names;
-the library is `Data/Array/Internal.hs` in the second; a run is one evening
-over the whole roster, written up under `runs/`, and a probe is anything
-smaller; a pair is two binaries, its halves, built from one recipe and differing
-in one thing; the floor of a population is the spread its A/A copies show, which
+its section. The words: the harness is `Main.hs` in `micro-regime3`
+on `speedup-strided-tovector`, whose roster of benchmark arms this file names
+by their roster names; the library is `Data/Array/Internal.hs`
+on `pr-mikolaj-toVectorListT`; a run is one evening over the whole roster,
+written up under `runs/`, and a probe is anything smaller; a pair is two
+binaries, its halves, built from one recipe and differing in one thing;
+the floor of a population is the spread its A/A copies show, which
 `read-run.py --aa` prints. `micro-regime3/CLAUDE.md` and the README's run
 chapter hold the rules the recipes below lean on.
 
@@ -291,10 +292,11 @@ and not a jump, re-entering once a run, 1.24 of the table on a probe view
 of runs of 2.
 
 No committed fill has the first cause: every under-applied use of an `INLINE`
-name in `Main.hs` at `cdb007d` and in the library at `8f7d7d1`, read against
-both modules' Core, is inlined but `runRank`, a sort comparator called in tail
-position, `magicOf` in `map magicOf nts` and the `baseOffsets*`
-of the `offsetBuilders` table, none of which takes a function argument.
+name in `Main.hs` at `cdb007d` and in the library as `pr-mikolaj-toVectorListT`
+had it on 2026-09-24, read against both modules' Core, is inlined but `runRank`,
+a sort comparator called in tail position, `magicOf` in `map magicOf nts`
+and the `baseOffsets*` of the `offsetBuilders` table, none of which takes
+a function argument.
 
 ## The `stretch-wide-2xM` cell, read after `2aa607a`
 
