@@ -1504,38 +1504,20 @@ canonicalizeSortedT [] axes = axes
 -- and the walk adds each as it takes the stride's absolute value, the
 -- sign being in hand there and nowhere later.
 --
--- Why sort.  A transposition reorders the axes and their strides
--- together without changing which cells are touched (an index sum does
--- not care about the order of its terms).  Sorting by stride magnitude,
--- descending, puts the axes from outermost to innermost, which is the
--- order in which two axes walked as one stand next to each other, and
--- in which the innermost axis, the run, is last.  'byStrideRank' is
--- that order.  Equal strides alias, one step along either axis reading
--- the same element, so a tie exists only in a self-overlapping view, a
--- window over an array among them; on a tie at stride 1 the comparator
--- puts the axis whose extent makes the better run innermost, and on
--- any other tie the shorter axis outside.
---
--- Why the run's length is ranked.  A reducing consumer's chain of adds
--- runs at one add latency an element on a long run and overlaps the
--- next run's on a short one, so its cost per element falls from the
--- shortest runs to a plateau, stays flat across it, sits on a shelf
--- above it, and climbs past the shelf towards the long-run rate, with
--- runs of 3 and 4 a hair above the shelf.  'runRank' orders the tiers
--- and the lengths within them; its corners are one machine's, and a
--- tie at stride 1 is the only place they decide anything.
---
--- Why merge after the sort.  Two adjacent axes are one axis when the
--- outer stride is the inner stride times the inner extent: walking the
--- inner axis to its end and stepping the outer axis once lands where
--- one axis of the combined extent would.  The merge loop merges every
--- such pair.  Done after the sort, the merge finds every pair the sorted
--- order stands next to each other, which in a view without a stride
--- tie is every pair any order of the axes would have put together; a
--- view that is one block of the vector has no tie, so it merges to a
--- single axis of stride 1 and reads as one slice, whatever order its
--- axes came in, and 'routeOfT' decides that off the merged form with
--- no stride list built.
+-- Why sort, then merge.  Reordering the axes changes no cell the view
+-- reads, so the axes are sorted into 'byStrideRank''s order, outermost
+-- first, and the merge loop merges each adjacent pair whose outer
+-- stride is the inner stride times the inner extent; one block of the
+-- vector so merges to a single axis of stride 1 whatever order its
+-- axes came in, and 'routeOfT' reads one slice off it with no stride
+-- list built.  The innermost axis left is the run, chosen by 'runRank'
+-- only on a tie at stride 1.  In a view that reads some element twice,
+-- another order can merge a pair the sort keeps apart or give an axis
+-- to another neighbour, and of two axes tied at the stride the run
+-- has reached the longer joins it, also in a k x 1 or a channels-last
+-- window, where 'runRank' prefers the other.  Why no other order is
+-- tried, and the tie that stays open:
+-- https://github.com/Mikolaj/orthotope/blob/speedup-strided-tovector/micro-regime3/README.md#dead-ideas
 --
 -- Why the zero-stride axis moves just outside the run, and why after
 -- the merge.  A broadcast axis, stride 0, reads the same cells at every
