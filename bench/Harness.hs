@@ -37,10 +37,10 @@ perturb i x = if i == minBound then error "perturb" else x
 data Mode = Forced | Summing
 
 -- | Nanoseconds a call of the result forced or summed, the fastest of three
--- batches, each of as many calls as take 5 ms, and the bytes the second of
--- two calls allocates.
-measure :: Mode -> Call -> IO (Double, Int64)
-measure mode (Call _ f x g) = do
+-- batches, each of as many calls as take 5 ms, or given a count, of one batch
+-- of that many calls, and the bytes the second of two calls allocates.
+measure :: Mode -> Maybe Int -> Call -> IO (Double, Int64)
+measure mode iters (Call _ f x g) = do
   _ <- allocated h x
   -- A major collection between the first call, which evaluates the part of
   -- the input the calls use, and the calls measured: without one, the calls
@@ -48,8 +48,11 @@ measure mode (Call _ f x g) = do
   -- of a large dense view took twice its time.
   performMajorGC
   a <- allocated h x
-  k <- calibrate 1
-  t <- minimum <$> mapM (const (batch k)) [1 .. 3 :: Int]
+  t <- case iters of
+    Just k -> batch k
+    Nothing -> do
+      k <- calibrate 1
+      minimum <$> mapM (const (batch k)) [1 .. 3 :: Int]
   return (t, a)
  where
   h = case mode of
