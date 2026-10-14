@@ -2081,6 +2081,18 @@ permute is xs = go is
         ix (_ : ys) k = ix ys (k - 1)
         ix [] _ = error "permute: violated contract: index out of range"
 
+-- NOINLINE: GHC HEAD 10.1.20260918, 2026-10-13: inlined into transpose, the
+-- check of a literal permutation was computed once in a library built at
+-- -funfolding-creation-threshold=30, and in every call in one built at the
+-- default thresholds with Dynamic's transpose INLINE.  Out of line, a call of
+-- it on a literal is a constant, computed once at any threshold.
+--
+-- | Whether the list holds each of 0 to its length less 1, so that it is a
+-- permutation of them.
+{-# NOINLINE isPermutation #-}
+isPermutation :: [Int] -> Bool
+isPermutation is = all (`elem` is) [0 .. length is - 1]
+
 -- | Like 'dropWhile' but at the end of the list.
 revDropWhile :: (a -> Bool) -> [a] -> [a]
 revDropWhile p = reverse . dropWhile p . reverse

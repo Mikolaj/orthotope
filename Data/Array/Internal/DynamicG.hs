@@ -319,7 +319,7 @@ pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " +
 {-# INLINE transpose #-}
 transpose :: (HasCallStack) => [Int] -> Array v a -> Array v a
 transpose is (A sh t) | l > n = error $ "transpose: rank exceeded " ++ show (is, sh)
-                      | not (all (`elem` is) [0 .. l-1]) =
+                      | not (isPermutation is) =
                           error $ "transpose: not a permutation: " ++ show is
                       | otherwise = A (permute is' sh) (transposeT is' t)
   where l = length is
