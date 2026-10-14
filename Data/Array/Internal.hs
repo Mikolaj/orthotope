@@ -520,11 +520,19 @@ range3T n1 !s1 n2 !s2 n3 !s3 ao
 -- The array without its broadcast dimensions, of stride 0 and positive
 -- extent, which repeat one subarray: which dimensions those are, and the
 -- shape and the view of the rest.
+--
+-- The rest is kept by a loop, not by comprehensions over zip: inlined into a
+-- client's rnf, on GHC HEAD 10.1.20260918, 2026-10-14, the zips stayed unfused
+-- and allocated their pairs, 432 bytes a call of boxed unravel's forced result
+-- at the small size.
 {-# INLINE dropBroadcastT #-}
 dropBroadcastT :: ShapeL -> T v a -> ([Bool], ShapeL, T v a)
 dropBroadcastT sh (T ats ao v) =
-  (bs, [ s | (b, s) <- zip bs sh, not b ], T [ t | (b, t) <- zip bs ats, not b ] ao v)
+  (bs, keep bs sh, T (keep bs ats) ao v)
   where bs = zipWith (\ s t -> t == 0 && s > 0) sh ats
+        keep (b : bs') (x : xs) | b = keep bs' xs
+                                | otherwise = x : keep bs' xs
+        keep _ _ = []
 
 -- Convert a value to a scalar array.
 {-# INLINE scalarT #-}
@@ -1618,6 +1626,10 @@ indexT _ _ = error "indexT: violated contract: rank 0"
 -- Stretch the given dimensions to have arbitrary size.
 -- The stretched dimensions must have size 1, and stretching is
 -- done by setting the stride to 0.
+--
+-- By zipWith, which fuses here, and not by a loop as dropBroadcastT's, which on
+-- GHC HEAD 10.1.20260918, 2026-10-14, took 2 instructions a call more of Shaped
+-- stretch summed at the small size.
 {-# INLINE stretchT #-}
 stretchT :: [Bool] -> T v a -> T v a
 stretchT bs (T ss o v) = T (zipWith (\ b s -> if b then 0 else s) bs ss) o v
