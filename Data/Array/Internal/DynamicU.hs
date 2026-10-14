@@ -72,6 +72,8 @@ type Unbox = V.Unbox
 
 instance Vector V.Vector where
   type VecElem V.Vector = Unbox
+  -- Point-free, as are the point-free methods below, for the reason at the
+  -- boxed instance in Data.Array.Internal.Dynamic.
   {-# INLINE vIndex #-}
   vIndex = (V.!)
   {-# INLINE vUnsafeIndex #-}
@@ -237,6 +239,8 @@ newtype Array a = A { unA :: G.Array V.Vector a }
 
 instance NFData (Array a)
 
+-- Point-free, as are the point-free wrappers and instance methods below, for
+-- the reason at the Show instance of Data.Array.Internal.Dynamic.
 instance (Show a, Unbox a) => Show (Array a) where
   showsPrec p = showsPrec p . unA
 

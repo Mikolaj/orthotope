@@ -111,6 +111,9 @@ instance (NFData (v a)) => NFData (Array n v a) where
   rnf (A sh v) = rnf sh `seq` rnf v
   {-# INLINE rnf #-}
 
+-- Point-free, as are the point-free definitions below, for the reason at
+-- Data.Array.Internal.DynamicG's size.
+--
 -- | The number of elements in the array.
 {-# INLINE size #-}
 size :: Array n v a -> Int

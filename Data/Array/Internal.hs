@@ -296,6 +296,10 @@ type ShapeL = [Int]
 -- A shape with a negative extent, or with more elements than an Int counts.
 -- After an extent of 0 only a negative one makes the shape bad,
 -- and after the size passes maxBound so does the lack of a 0 to follow.
+--
+-- Point-free: naming its argument changed no byte of the specialisation
+-- benchmark, its calls saturated, and no instruction count past 0.5%, on GHC
+-- HEAD 10.1.20260918, 2026-10-15.
 badShape :: ShapeL -> Bool
 badShape = go 1
   where go !_ [] = False
@@ -410,6 +414,8 @@ foldPartsT c e goWith s x@(T _ _ vx) y@(T _ _ vy)
 -- 1.24 of 0.1.8.0's instructions; a fast path for views read in vector
 -- order, as 'equalT' has one for views that read one part, is to remove
 -- that.
+--
+-- Point-free, for the reason at badShape.
 {-# INLINE compareT #-}
 compareT :: (Vector v, VecElem v a, Ord a)
             => ShapeL -> T v a -> T v a -> Ordering
@@ -535,6 +541,8 @@ dropBroadcastT sh (T ats ao v) =
         keep _ _ = []
 
 -- Convert a value to a scalar array.
+--
+-- Point-free, for the reason at badShape.
 {-# INLINE scalarT #-}
 scalarT :: (Vector v, VecElem v a) => a -> T v a
 scalarT = T [] 0 . vSingleton
@@ -1608,6 +1616,18 @@ toUnorderedVectorT sh a@(T _ _ v)
   where !l = product sh
 
 -- Convert from a vector.
+--
+-- Point-free in the vector, as the next definition is in the list: so T is
+-- applied in part, and its argument tail (getStridesT sh) is let-bound and
+-- floated out of a Shaped client as a constant, while with either named, T,
+-- strict in that field, is applied in full, its field evaluated by a case
+-- at each call and kept live across the client's fill loop; on GHC HEAD
+-- 10.1.20260918, 2026-10-14, Shaped traverse with its result forced then took
+-- 13 instructions a call more and one an element, the same on 2026-10-15 with
+-- the benchmark's calls saturated, and the same again with neither named and
+-- traverseT's call of fromListT saturated.  The strides' tail by tail and not
+-- drop 1: with drop 1, on GHC HEAD 10.1.20260918, 2026-10-13, its callers
+-- allocated up to 104 bytes more a call.
 {-# INLINE fromVectorT #-}
 fromVectorT :: ShapeL -> v a -> T v a
 fromVectorT sh = T (tail $ getStridesT sh) 0
@@ -1785,7 +1805,8 @@ foldrT
   :: (Vector v, VecElem v a) => ShapeL -> (a -> b -> b) -> b -> T v a -> b
 foldrT sh f z a = foldr f z (toListT sh a)
 
--- Traversal via toListT/fromListT.
+-- Traversal via toListT/fromListT, the latter applied in part for the reason at
+-- fromVectorT: saturated, it applies T in full, at the cost given there.
 {-# INLINE traverseT #-}
 traverseT
   :: (Vector v, VecElem v a, VecElem v b, Applicative f)
