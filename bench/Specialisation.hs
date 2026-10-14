@@ -31,7 +31,13 @@
 -- three batches of calls, and the bytes a call allocates, both per element of
 -- the view at the large size and per call at the others, where what a call
 -- costs once shows.  Other arguments, if any, select the rows whose names
--- contain one of them.
+-- contain one of them.  Given --iters N and -m glob PATTERN, as criterion
+-- takes them, it makes instead one batch of N calls of the one cell whose
+-- name, the row's and the vector kind's joined by a slash, PATTERN matches,
+-- and prints the cell's nanoseconds and bytes a call: two runs' instruction
+-- counts, at N calls and at 2N, differ by N calls', the process's setup
+-- cancelling, where a batch of 5 ms holds a number of calls that varies
+-- between builds.
 --
 -- The two tables, forced and summed, are compared and never combined: where
 -- they lead to different conclusions about a change, the divergence is
@@ -88,7 +94,7 @@ module Main (main) where
 
 import Control.Monad (forM_)
 import Data.Int (Int64)
-import Data.List (isInfixOf)
+import Data.List (isInfixOf, tails)
 import System.Environment (getArgs)
 import Text.Printf (printf)
 
@@ -101,16 +107,23 @@ main = do
   allArgs <- getArgs
   let summing = "--summed" `elem` allArgs
       mode = if summing then Summing else Forced
-      args = filter (/= "--summed") allArgs
-      rows = [ r | r@(row, _, _) <- Rows.rows
+  case options (filter (/= "--summed") allArgs) of
+    (Just k, Just pattern, _) -> counted mode k pattern
+    (Nothing, Nothing, args) -> table mode args
+    _ -> error "--iters and -m glob go together"
+
+-- The table of the rows the arguments select.
+table :: Mode -> [String] -> IO ()
+table mode args = do
+  let rows = [ r | r@(row, _, _) <- Rows.rows
                  , null args || any (`isInfixOf` row) args ]
   printf "%-36s %s, the result %s\n" ""
          "ns, then bytes, an element at the large size, a call at the others"
-         (if summing then "summed" else "forced")
+         (case mode of Forced -> "forced"; Summing -> "summed")
   printf "%-36s %9s%9s%9s %9s%9s%9s\n" "" "boxed" "Storable" "Unboxed"
                                          "boxed" "Storable" "Unboxed"
   forM_ rows $ \ (row, per, cells) -> do
-    ms <- mapM (traverse (measure mode)) (cells Viewed)
+    ms <- mapM (traverse (measure mode Nothing)) (cells Viewed)
     let time = maybe "-" (\ (t, _) -> printf "%.2f" (t / fromIntegral per))
         bytes = maybe "-" (\ (_, a) -> printf "%.2f" (perOf per a))
     printf "%-36s %9s%9s%9s %9s%9s%9s\n" row
@@ -120,3 +133,38 @@ main = do
 -- Bytes over the count given.
 perOf :: Int -> Int64 -> Double
 perOf per a = fromIntegral a / fromIntegral per
+
+-- One batch of the given number of calls of the one cell the pattern matches,
+-- and the cell's nanoseconds and bytes a call.
+counted :: Mode -> Int -> String -> IO ()
+counted mode k pattern =
+  case [ (cell, c) | (row, _, cells) <- Rows.rows
+                   , (kind, Just c) <- zip kinds (cells Viewed)
+                   , let cell = row ++ "/" ++ kind
+                   , glob pattern cell ] of
+    [(cell, c)] -> do
+      (t, a) <- measure mode (Just k) c
+      printf "%s %.2f %d\n" cell t a
+    cs -> error $ "-m glob matches " ++ show (length cs) ++ " cells, not one"
+
+-- The vector kinds, in the order of a row's cells.
+kinds :: [String]
+kinds = ["boxed", "Storable", "Unboxed"]
+
+-- The count of --iters, the pattern of -m glob and the other arguments.
+options :: [String] -> (Maybe Int, Maybe String, [String])
+options ("--iters" : k : as) = let (_, p, rest) = options as
+                               in (Just (read k), p, rest)
+options ("-m" : "glob" : p : as) = let (i, _, rest) = options as
+                                   in (i, Just p, rest)
+options (a : as) = let (i, p, rest) = options as in (i, p, a : rest)
+options [] = (Nothing, Nothing, [])
+
+-- Whether the pattern, its * matching any string and its ? any character,
+-- matches the whole name.
+glob :: String -> String -> Bool
+glob ('*' : p) s = any (glob p) (tails s)
+glob ('?' : p) (_ : s) = glob p s
+glob (c : p) (d : s) = c == d && glob p s
+glob p [] = all (== '*') p
+glob [] (_ : _) = False
