@@ -241,6 +241,9 @@ stretchOuter :: forall s sh v a . (KnownNat s, Shape sh) =>
 stretchOuter (A vs) = sizeP (Proxy :: Proxy (s : sh)) `seq`  -- the result's size checked now; see natT
                       A $ stretchT (True : map (const False) (strides vs)) vs
 
+-- Point-free, as are the point-free definitions below, for the reason at
+-- Data.Array.Internal.DynamicG's size.
+--
 -- | Convert a value to a scalar (rank 0) array.
 -- O(1) time.
 {-# INLINE scalar #-}

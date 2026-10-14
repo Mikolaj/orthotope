@@ -81,6 +81,8 @@ newtype Array sh a = A { unA :: G.Array sh V.Vector a }
 
 instance NFData (Array sh a)
 
+-- Point-free, as are the point-free wrappers and instance methods below, for
+-- the reason at the Show instance of Data.Array.Internal.Dynamic.
 instance (Unbox a, Show a, Shape sh) => Show (Array sh a) where
   showsPrec p = showsPrec p . unA
 

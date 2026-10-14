@@ -76,6 +76,8 @@ instance NFData a => NFData (Array n a) where
   rnf (A (G.A sh t)) = rnf sh `seq` rnfViewT sh t
   {-# INLINE rnf #-}
 
+-- Point-free, as are the point-free wrappers and instance methods below, for
+-- the reason at the Show instance of Data.Array.Internal.Dynamic.
 instance (Show a) => Show (Array n a) where
   showsPrec p = showsPrec p . unA
 

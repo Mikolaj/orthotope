@@ -78,6 +78,8 @@ instance (NFData a, Shape sh) => NFData (Array sh a) where
   rnf (A a@(G.A t)) = rnfViewT (G.shapeL a) t
   {-# INLINE rnf #-}
 
+-- Point-free, as are the point-free wrappers and instance methods below, for
+-- the reason at the Show instance of Data.Array.Internal.Dynamic.
 instance (Show a, Shape sh) => Show (Array sh a) where
   showsPrec p = showsPrec p . unA
 

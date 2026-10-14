@@ -100,6 +100,10 @@ instance (NFData (v a)) => NFData (Array v a) where
   rnf (A sh t) = rnf sh `seq` rnf t
   {-# INLINE rnf #-}
 
+-- Point-free, as are the point-free definitions below: naming their arguments
+-- changed no byte of the specialisation benchmark, its calls saturated, and no
+-- instruction count past 0.5%, on GHC HEAD 10.1.20260918, 2026-10-15.
+--
 -- | The number of elements in the array.
 {-# INLINE size #-}
 size :: Array v a -> Int

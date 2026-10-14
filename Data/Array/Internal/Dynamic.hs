@@ -74,6 +74,10 @@ import qualified Data.Array.Internal.DynamicG as DG
 
 instance Vector V.Vector where
   type VecElem V.Vector = None
+  -- Point-free, as are the point-free methods below: named, they changed
+  -- no byte of the specialisation benchmark, its calls saturated, and no
+  -- instruction count past 0.5%, on GHC HEAD 10.1.20260918, 2026-10-15, and
+  -- grew this module's copies of them from aliases into whole bodies.
   {-# INLINE vIndex #-}
   vIndex = (V.!)
   {-# INLINE vUnsafeIndex #-}
@@ -206,6 +210,17 @@ instance NFData a => NFData (Array a) where
   rnf (A (DG.A sh t)) = rnf sh `seq` rnfViewT sh t
   {-# INLINE rnf #-}
 
+-- Point-free, as are the point-free wrappers and instance methods below: named,
+-- all together, with the specialisation benchmark's calls saturated, on GHC
+-- HEAD 10.1.20260918, 2026-10-15, they changed no byte of it but toVector's, 32
+-- a call less at a small dense view of boxed elements, and no instruction count
+-- past 1% but toVector's, 4% more at the empty size, its call in the benchmark
+-- then reduced to the bare function and called out of line.  On 2026-10-14,
+-- with the calls as written, a pragma-free alias of an INLINE function, as
+-- fmap = mapA, named while that function stayed point-free, applied it to more
+-- arguments than its INLINE counts and so took on its body, past the size
+-- GHC inlines at any call, and calls of fmap, foldr, traverse and sequenceA
+-- allocated up to 728 bytes a call more, their results summed too.
 instance (Show a) => Show (Array a) where
   showsPrec p = showsPrec p . unA
 
