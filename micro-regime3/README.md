@@ -2368,6 +2368,38 @@ a pair changes codegen, as on Run 18. `mut-odo`'s wide interval is the live case
   price the Storable half; the boxed half wants a boxed bench, `[r, 1]`
   stretched to `[r, k]` for `k` from 2 to 4096 and one constant view, under GHC
   HEAD and the shim.
+- `OPEN` **A tie above stride 1 at the length the run has reached decides
+  the unordered route's run by extent and never by `runRank`, and k x 1, 1-D
+  and channels-last windows meet it: let the axis that began the run's chain
+  trade places with the tied one where `runRank` prefers the run that gives ---
+  registered 2026-10-14, unmeasured.** `byStrideRank` puts the shorter of two
+  axes tied at a stride other than 1 outside, so where that stride is the run's
+  length so far, the longer merges into the run. `window [5,1]` over `[28,28]`
+  reads runs of 672 where `runRank` prefers 140, `window [7,1]` over `[224,224]`
+  48832 for 1568, `window [3]` over `[100,16]` 1568 for 48,
+  and the channels-last `window [3,3]` over `[32,32,16]` 480 for 48,
+  `window [5,5]` over `[28,28,3]` 72 for 15 and `window [3,1]` over `[32,32,8]`
+  7680 for 768: in each, a kernel axis and an output axis tie at the stride
+  the run reaches. None of the harness's views has it, the oracle of the same
+  day in [dead ideas][dead] flagging none of the 102 it reaches. By the curve
+  of the run-cutting entry there, runs of 1568 and 480 move from the climb
+  to the shelf, 72 from the shelf to the plateau, and 672, 7680 and 48832 stay
+  on the climb, shortened. The repair that oracle checked: the merge loop
+  carries the stride at which the run's chain began, one `Int` more through
+  the loop, and at its exit, where the first outer axis of nonzero stride has
+  that stride, above 1, that axis takes the place of the chain's first axis when
+  `runRank` prefers the run it gives. Over the oracle's 17829 views it changes
+  the run on 3, exactly the lone ties, each to the best complete merge;
+  it splits no axis of a view's own, changes none of the harness's views,
+  and gives `runRank`'s choice on all six windows above. Owed before
+  it is proposed, and after the restarted pragma run
+  of `pr-mikolaj-toVectorListT`, since the change moves every order-free
+  reduction's Core: a k x 1 window and a channels-last window in the roster,
+  so that a row reads the gain; the gain read first without a library change,
+  raw layouts reading the same elements by the two routes under `sumA`,
+  `[5,672]` on strides `[28,1]` against `[24,140]` on `[28,1]` for the first
+  window above; and the loop's added work priced by instruction counts
+  over the roster.
 - `STANDING` **A class process's provenance line counts every class view,
   not the population that ran.** The count is fixed before criterion does
   the selecting, so each class process reports the whole class set's size beside
@@ -3914,20 +3946,82 @@ axes, `libunord-stage8`, in place of the tie-break's longest unit-stride axis
 --- refuted 2026-09-11, on Run 28's registration (6).** The chain can beat
 the sort only where an axis whose stride equals the run's length is
 not the sort's neighbour of the run: a blocker of intermediate stride between
-them, dims [4,3,4] on strides [1,2,4], runs of 16 where the sort stops at 4;
-or two axes tied at the run's stride of which the smaller leads on to a third,
-dims [4,2,4,3] on strides [1,4,4,8], runs of 24 where the tie-break takes 16.
-Both are self-overlapping views with an exact tiling at the same scale, which
-a parity reshape of a hop axis produces and no image view does: im2col at any
-hop or dilation, pooling, patchify, channels-last and transposed windows carry
-strides at two scales, 1 and the row width, and the chain needs one at a third.
-On the roster the chain's run never differs from stage seven's ---
-`small-patch-r5`, the one view the registration named, reads sixteen runs of 16
-under both --- so what Run 28 priced was the dispatch, an exhaustive search
-over lists, and the order of two tied levels the chain leaves in stage six's
-form where stage seven reverses it: 1.05 behind stage seven on `window` and 1.22
-to 1.26 on `small-patch-r5`, on both halves. `libunord-stage8-sum` is checked
-and not timed since; the route stays for `check`.
+them, dims [4,3,4] on strides [1,2,4], runs of 16 where the sort stops at 4; two
+axes tied at a stride equal to the run's length, of which the smaller leads
+on to a third, dims [4,2,4,3] on strides [1,4,4,8], runs of 24 where
+the tie-break takes 16; or a second unit-stride axis between them, dims
+[2,2,2,3] on strides [1,1,1,2], runs of 6 where the sort stops at 2. All three
+are self-overlapping views, the first two with an exact tiling at the same
+scale, which a parity reshape of a hop axis produces, and no image view has any
+of them: im2col at any hop or dilation, pooling, patchify and transposed windows
+carry strides at two scales, 1 and the row width, where the first two forms need
+one at a third, and the third form needs two unit-stride axes and a stride equal
+to the run's length, while a window with two, at unit hop and dilation, has
+its other strides at multiples of the row width, which both of their extents
+fall short of; a channels-last window adds the channel count as a third scale,
+and the oracle of the next entry reads the chain's run equal to the sort's
+on such windows, [3,3] over [32,32,16], [5,5] over [28,28,3] and [3,1]
+over [32,32,8]. On the roster the chain's run never differs from stage seven's
+--- `small-patch-r5`, the one view the registration named, reads sixteen runs
+of 16 under both --- so what Run 28 priced was the dispatch, an exhaustive
+search over lists, and the order of two tied levels the chain leaves in stage
+six's form where stage seven reverses it: 1.05 behind stage seven on `window`
+and 1.22 to 1.26 on `small-patch-r5`, on both halves. `libunord-stage8-sum`
+is checked and not timed since; the route stays for `check`.
+
+**Choosing the unordered route's run again among the merges other orders
+of the axes make, by `runRank` --- a merge trying every pair of axes rather
+than the sort's neighbours, stage eight's chain ranked by `runRank` rather
+than by length, a guard of one comparison meant to send only the views that can
+gain to either, or a swap at the merge loop's exit --- refuted 2026-10-14
+on an oracle over random views, for every form but a tie above stride 1
+at the length the run has reached, which [the TODO list][todo] keeps open.**
+The proposals answer a review of `pr-mikolaj-toVectorListT`'s unordered route
+of 2026-09-30, the route `routeUnord13` copies, its findings F21 and F79.
+The oracle tries every order of a view's axes up to seven of them, merges
+neighbours as `canonicalizeAx` does and ranks the unit-stride runs
+with `runRank`, whose code the library shares. Over 20000 random views at one
+seed, each a fresh array of rank up to 3 or a raw layout with strides from -4
+to 4 under up to four transposes, reversals, slices, strides, windows, indexings
+and broadcasts, it reaches 17829 non-empty ones, 11094 routed to a slice, 1572
+to runs and 5163 to a fill; it finds the dispatch's own run among its runs
+on every runs view, and flags both of the review's views. **57 runs views, 3.6%,
+get a run `runRank` prefers from some complete merge, and every one of them
+reads some element twice**, in four forms: a pair the sort keeps apart, F21, 40
+views, dims [2,2,2,3] on strides [6,4,3,1] reading four runs of 6 for two of 12;
+a tie at the run's length decided by extent, F79, 3 views alone and 3 of the 40,
+dims [2,3,16] on [16,16,1] reading two runs of 48 for three of 32; a tie
+at stride 1 that `runRank` breaks on the extents before the merge lengthens
+the axis it left outside, 9 views, dims [2,2,2,3] on [1,1,1,2] reading runs of 2
+for runs of 6; and an axis that two others of equal span could take, handed
+to the run's neighbour, 5 views, dims [4,2,2] on [1,2,4] reading runs of 4
+for runs of 8. A further 20 views, none of them self-overlapping, get
+a preferred run only by declining a merge, dims [4,4,2,3] on [12,3,0,1] reading
+runs of 48 for runs of 12, so picking the run by `runRank` over every order
+is the cut that died on paper on 2026-09-16, below. Of this harness's views,
+in the copy the branch's tests keep of them, the oracle reaches 102, the four
+empty ones and the three of rank 10 to 12 lying beyond it, and flags none.
+By that entry's curve the gains run from 0.38 to 0.31 ns an element where runs
+of 48 become 32, from 0.70 to about 0.3 where runs of 2 become 6, and to next
+to nothing between two lengths on the plateau. **The guard**, an outer axis
+of positive stride at most the run's length, catches all 57 and fires on 605
+runs views, every one self-overlapping, and on nine of the harness's views,
+`window-28x28-k5`, `window-224x224-k3`, `window-64x64-k1x9`,
+`window-128x128-k7`, `window-224x224-k3-s2`, `window-224x224-k3-d2`,
+`window-64x64-c16-k3`, `window-32x32-c64-k3` and `small-patch-r5`, none of which
+gains: the populations on which Run 28 read stage eight's search 1.05 and 1.22
+to 1.26 behind. **The exit swap** reads a run of length `l` as `(s, l / s)`
+over `(1, s)` and merges `(1, s)` with the first outer axis whose stride `s`
+divides `l`, at no search: it reaches the best complete merge on 10 of the 57,
+the 3 lone ties, the 5 equal spans and 2 of the 40, and on 39 views outside
+the 57 it gives a run no complete merge of the view's own axes gives, which
+is the cut again, as on `window-224x224-k3-d2`, whose run of 220 it makes runs
+of 6. So every form but the tie is rare, self-overlapping, absent
+from the harness's views and from the image windows checked, and priced out
+by the search that repairs it; ox-arrays calls none of the seven order-free
+reductions, and horde-ad calls two of them only inside a block comment,
+as of 2026-10-14. Stage thirteen's account in `Main.hs`, and the library's
+on the branch, say what the sort and the merge decide and point here.
 
 Ideas that **died on paper**, recorded so they are not re-proposed --- and,
 first, those that did not die on paper at all:
