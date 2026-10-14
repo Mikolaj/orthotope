@@ -1277,18 +1277,21 @@ normalizeT sh t = fromVectorT sh $ toVectorT sh t
 insertUnitsT :: Int -> Int -> T v a -> T v a
 insertUnitsT d k (T ss o v) = T (take d ss ++ replicate k 0 ++ drop d ss) o v
 
--- The array with its elements in a vector of their own, in the
--- linearization order, which keeps alive no vector the array shares: the
--- part of the vector that a view reads in that order is copied by
--- 'vForce', and any other view is filled into a new vector, as
--- 'toVectorT' fills it.
+-- The array with its elements in a vector of their own, in the linearization
+-- order, which keeps alive no vector the array shares: the part of the vector
+-- that a view reads in that order is copied by 'vForce', and any other view
+-- is filled into a new vector, as 'toVectorT' fills it.  The result is built
+-- in one place: built in each branch, it reached the array of a boxed Ranked
+-- or Dynamic force through a join point, and that force's worker returned it
+-- boxed.
 {-# INLINE forceT #-}
 forceT :: (Vector v, VecElem v a) => ShapeL -> T v a -> T v a
-forceT sh t@(T _ _ v)
-  | l == 0 = fromVectorT sh (vConcat [])
-  | otherwise = fromVectorT sh $ case routeT sh l t of
-      RSlice ao n -> vForce (wholeOrSliceT ao n v)
-      route -> routeVectorT v route
+forceT sh t@(T _ _ v) = fromVectorT sh $
+  if l == 0
+  then vConcat []
+  else case routeT sh l t of
+    RSlice ao n -> vForce (wholeOrSliceT ao n v)
+    route -> routeVectorT v route
   where !l = product sh
 
 -- The vector a route stands for: one slice of the vector, or the view
