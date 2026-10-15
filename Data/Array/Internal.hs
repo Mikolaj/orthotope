@@ -29,24 +29,23 @@
 {-# LANGUAGE UndecidableSuperClasses #-}
 -- INLINE throughout but vFromListN, vUnsafeFillStrided, vUnsafeConcatN,
 -- prettyShowL, badShape, equalT, getStridesT, genericUnsafeFillStrided,
--- canonicalizeT, stepOdometer, absAxesAndStartT, byStrideRank, runRank,
--- sortAxesT, insertAxis, canonicalizeSortedT, allSameT, rectPad, hcatRect,
--- rectWidth, ppT, showsT, box, zipWithLong2, simpleReshape, isPermutation
--- and allSame: on GHC HEAD 10.1.20260918 (2026-10-15), this module's
--- functions INLINABLE, as their types give them, cost the specialisation
--- benchmark up to 1960 bytes a call (the conversions), 624 (liftA2), 560
--- (concatOuter) and 384 (pad); productT, maximumT and minimumT INLINABLE,
--- with Data.Array.Internal.DynamicU's vMaximum and vMinimum, ran productA,
--- maximumA and minimumA in up to 1.6 times the instructions, though in up
--- to 3% fewer at boxed Dynamic and Ranked arrays, and permute without a
--- pragma ran Ranked transpose in up to 1.08 times.  Those it leaves out
--- keep the pragma their types give them, but isPermutation, NOINLINE as
--- measured on GHC HEAD 10.1.20260918 on 2026-10-13: inlined into transpose,
--- the check of a literal permutation was computed once in a library built at
--- -funfolding-creation-threshold=30, and in every call in one built at the
--- default thresholds with Dynamic's transpose INLINE; out of line, a call of
--- it on a literal is a constant, computed once at any threshold.  F1 reads no
--- fusion in allSame: it matches its list before all consumes the tail, so it
+-- canonicalizeT, stepOdometer, absAxesAndStartT, sortAxesT, insertAxis,
+-- canonicalizeSortedT, allSameT, rectPad, hcatRect, rectWidth, ppT, showsT,
+-- box, zipWithLong2, simpleReshape, isPermutation and allSame: on GHC HEAD
+-- 10.1.20260918 (2026-10-15), this module's functions INLINABLE, as their
+-- types give them, cost the specialisation benchmark up to 1960 bytes a call
+-- (the conversions), 624 (liftA2), 560 (concatOuter) and 384 (pad); productT,
+-- maximumT and minimumT INLINABLE, with Data.Array.Internal.DynamicU's vMaximum
+-- and vMinimum, ran productA, maximumA and minimumA in up to 1.6 times the
+-- instructions, though in up to 3% fewer at boxed Dynamic and Ranked arrays,
+-- and permute without a pragma ran Ranked transpose in up to 1.08 times.  Those
+-- it leaves out keep the pragma their types give them, but isPermutation,
+-- NOINLINE as measured on GHC HEAD 10.1.20260918 on 2026-10-13: inlined into
+-- transpose, the check of a literal permutation was computed once in a library
+-- built at -funfolding-creation-threshold=30, and in every call in one built at
+-- the default thresholds with Dynamic's transpose INLINE; out of line, a call
+-- of it on a literal is a constant, computed once at any threshold.  F1 reads
+-- no fusion in allSame: it matches its list before all consumes the tail, so it
 -- fuses with no producer.
 module Data.Array.Internal(module Data.Array.Internal) where
 import Control.DeepSeq
@@ -1411,9 +1410,18 @@ absAxesAndStartT axes !off (st : sts) (n : ns)
   | otherwise = absAxesAndStartT (Axis st n : axes) off sts ns
 absAxesAndStartT axes off _ _ = (axes, off)
 
+-- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), with runRank INLINE too,
+-- sortAxesT and insertAxis compare in place and rank a stride-1 tie in place;
+-- with neither, the tie called runRank out of line, and with runRank alone
+-- INLINE, this grew too large to inline and every comparison was a call.  With
+-- both, the specialisation benchmark ran allSameA's tiers rows in 5.7 to 7.3%
+-- fewer instructions than with neither, and none of the cells where runRank
+-- alone cost more ran more.
+--
 -- Absolute stride descending; on a tie at stride 1 the length 'runRank'
 -- prefers last, so that it is the run, and on any other tie the extent
 -- ascending.
+{-# INLINE byStrideRank #-}
 byStrideRank :: Axis -> Axis -> Ordering
 byStrideRank (Axis s1 n1) (Axis s2 n2) = case compare s2 s1 of
   EQ | s1 == 1 -> runRank n2 n1
@@ -1432,12 +1440,15 @@ runLo = 5
 runHi = 32
 runFar = 96
 
+-- INLINE: see byStrideRank.
+--
 -- Which of two run lengths a reducing consumer prefers, LT the faster:
 -- by tier, the plateau, the shelf above it, runs of 3 and 4, the climb
 -- past the shelf, then 2 and 1; and within a tier the longer on the
 -- plateau and among the short runs, where the rate falls or is flat,
 -- and the shorter on the shelf, which rises across its width, and on
 -- the climb.
+{-# INLINE runRank #-}
 runRank :: Int -> Int -> Ordering
 runRank !a !b = case compare ta tb of
   EQ | ta == 1 || ta == 3 -> compare a b
