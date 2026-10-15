@@ -1397,6 +1397,14 @@ absAxesAndStartT axes !off (st : sts) (n : ns)
   | otherwise = absAxesAndStartT (Axis st n : axes) off sts ns
 absAxesAndStartT axes off _ _ = (axes, off)
 
+-- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), with runRank INLINE too,
+-- sortAxesT and insertAxis compare in place and rank a stride-1 tie in place;
+-- with neither, the tie called runRank out of line, and with runRank alone
+-- INLINE, this grew too large to inline and every comparison was a call.  With
+-- both, the specialisation benchmark ran allSameA's tiers rows in 5.7 to 7.3%
+-- fewer instructions than with neither, at none of the cells runRank alone
+-- cost.
+--
 -- Absolute stride descending; on a tie at stride 1 the length 'runRank'
 -- prefers last, so that it is the run, and on any other tie the extent
 -- ascending.
@@ -1404,6 +1412,7 @@ absAxesAndStartT axes off _ _ = (axes, off)
 -- In case form rather than over '<>', as measured: the '<>' form retired from
 -- 42 to 128 instructions a call more than this, the tie branch being the one
 -- most comparisons never reach.  A workaround for an unidentified GHC issue.
+{-# INLINE byStrideRank #-}
 byStrideRank :: Axis -> Axis -> Ordering
 byStrideRank (Axis s1 n1) (Axis s2 n2) = case compare s2 s1 of
   EQ | s1 == 1 -> runRank n2 n1
@@ -1422,12 +1431,15 @@ runLo = 5
 runHi = 32
 runFar = 96
 
+-- INLINE: see byStrideRank.
+--
 -- Which of two run lengths a reducing consumer prefers, LT the faster:
 -- by tier, the plateau, the shelf above it, runs of 3 and 4, the climb
 -- past the shelf, then 2 and 1; and within a tier the longer on the
 -- plateau and among the short runs, where the rate falls or is flat,
 -- and the shorter on the shelf, which rises across its width, and on
 -- the climb.
+{-# INLINE runRank #-}
 runRank :: Int -> Int -> Ordering
 runRank !a !b = case compare ta tb of
   EQ | ta == 1 || ta == 3 -> compare a b
