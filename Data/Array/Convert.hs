@@ -73,6 +73,17 @@ class Convert a b where
   convertE :: a -> Either String b
   {-# INLINABLE convert #-}
   convert = either error id . convertE
+  -- Lazy in convert's result.  The instances below in which building
+  -- no thunk under Right saved bytes define convertE strictly; strict
+  -- here, on GHC HEAD 10.1.20260918 (2026-10-15), a boxed array
+  -- converted to a Storable one allocated 8 to 16 bytes a call more
+  -- where forced, and a boxed Dynamic or Ranked one converted to an
+  -- Unboxed one 40 more where summed, against 24 less where forced.
+  -- The forced cost, where read, was a thunk of GHC's tag inference
+  -- (https://gitlab.haskell.org/ghc/ghc/-/work_items/27841),
+  -- and the summed one a call of a method of the benchmark's
+  -- summing dictionary, used once and left out of line by design
+  -- (https://gitlab.haskell.org/ghc/ghc/-/work_items/26571).
   {-# INLINE convertE #-}
   convertE = Right . convert
   {-# MINIMAL convert | convertE #-}
@@ -101,6 +112,8 @@ instance (a ~ b, DU.Unbox a) => Convert (D.Array a) (DU.Array b) where
 instance (a ~ b, DU.Unbox a) => Convert (DU.Array a) (D.Array b) where
   {-# INLINABLE convert #-}
   convert (DU.A (DG.A sh t)) = D.A (DG.A sh (I.convertT sh V.convert t))
+  {-# INLINABLE convertE #-}
+  convertE x = Right $! convert x
 
 -----
 
@@ -111,6 +124,8 @@ instance (a ~ b, DS.Unbox a) => Convert (D.Array a) (DS.Array b) where
 instance (a ~ b, DS.Unbox a) => Convert (DS.Array a) (D.Array b) where
   {-# INLINABLE convert #-}
   convert (DS.A (DG.A sh t)) = D.A (DG.A sh (I.convertT sh fromStorable t))
+  {-# INLINABLE convertE #-}
+  convertE x = Right $! convert x
 
 -----
 
@@ -124,6 +139,8 @@ instance (a ~ b, n ~ m, RU.Unbox a) => Convert (R.Array n a) (RU.Array m b) wher
 instance (a ~ b, n ~ m, RU.Unbox a) => Convert (RU.Array n a) (R.Array m b) where
   {-# INLINABLE convert #-}
   convert (RU.A (RG.A sh t)) = R.A (RG.A sh (I.convertT sh V.convert t))
+  {-# INLINABLE convertE #-}
+  convertE x = Right $! convert x
 
 -----
 
@@ -134,16 +151,22 @@ instance (a ~ b, n ~ m, RS.Unbox a) => Convert (R.Array n a) (RS.Array m b) wher
 instance (a ~ b, n ~ m, RS.Unbox a) => Convert (RS.Array n a) (R.Array m b) where
   {-# INLINABLE convert #-}
   convert (RS.A (RG.A sh t)) = R.A (RG.A sh (I.convertT sh fromStorable t))
+  {-# INLINABLE convertE #-}
+  convertE x = Right $! convert x
 
 -----
 
 instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n) => Convert (S.Array n a) (SU.Array m b) where
   {-# INLINABLE convert #-}
   convert (S.A g@(SG.A t)) = SU.A (SG.A (I.convertT (SG.shapeL g) V.convert t))
+  {-# INLINABLE convertE #-}
+  convertE x = Right $! convert x
 
 instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n) => Convert (SU.Array n a) (S.Array m b) where
   {-# INLINABLE convert #-}
   convert (SU.A g@(SG.A t)) = S.A (SG.A (I.convertT (SG.shapeL g) V.convert t))
+  {-# INLINABLE convertE #-}
+  convertE x = Right $! convert x
 
 -----
 
@@ -154,12 +177,15 @@ instance (a ~ b, n ~ m, SS.Unbox a, S.Shape n) => Convert (S.Array n a) (SS.Arra
 instance (a ~ b, n ~ m, SS.Unbox a, S.Shape n) => Convert (SS.Array n a) (S.Array m b) where
   {-# INLINABLE convert #-}
   convert (SS.A g@(SG.A t)) = S.A (SG.A (I.convertT (SG.shapeL g) fromStorable t))
+  {-# INLINABLE convertE #-}
+  convertE x = Right $! convert x
 
 -----
 
 instance (a ~ b) => Convert (R.Array n a) (D.Array b) where
   {-# INLINE convert #-}
   convert (R.A (RG.A sh t)) = D.A (DG.A sh t)
+  convertE x = Right $! convert x
 
 instance (a ~ b, KnownNat n) => Convert (D.Array a) (R.Array n b) where
   -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-15), the convertE methods that
@@ -173,10 +199,14 @@ instance (a ~ b, KnownNat n) => Convert (D.Array a) (R.Array n b) where
 instance (a ~ b, S.Shape sh) => Convert (S.Array sh a) (D.Array b) where
   {-# INLINE convert #-}
   convert (S.A a@(SG.A t)) = D.A (DG.A (SG.shapeL a) t)
+  {-# INLINABLE convertE #-}
+  convertE x = Right $! convert x
 
 instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (S.Array sh a) (R.Array n b) where
   {-# INLINE convert #-}
   convert (S.A a@(SG.A t)) = R.A (RG.A (SG.shapeL a) t)
+  {-# INLINABLE convertE #-}
+  convertE x = Right $! convert x
 
 instance (a ~ b, S.Shape sh) => Convert (D.Array a) (S.Array sh b) where
   -- INLINE: see convertE from D.Array to R.Array above.
@@ -218,6 +248,8 @@ instance (a ~ b, SS.Shape sh) => Convert (DS.Array a) (SS.Array sh b) where
 instance (a ~ b, SS.Shape sh) => Convert (SS.Array sh a) (DS.Array b) where
   {-# INLINE convert #-}
   convert (SS.A a@(SG.A t)) = DS.A (DG.A (SG.shapeL a) t)
+  {-# INLINABLE convertE #-}
+  convertE x = Right $! convert x
 
 ------
 
