@@ -670,8 +670,9 @@ instance (KnownNat r, Vector v, VecElem v a, Arbitrary a) => Arbitrary (Array r 
     ss <- replicateM (natT @r) (getSmall . getPositive <$> arbitrary) `suchThat` ((< 10000) . product)
     fromList ss <$> vector (product ss)
 
+-- INLINABLE: see Data.Array.Internal.Dynamic's sumA.
 -- | Sum of all elements.
-{-# INLINE sumA #-}
+{-# INLINABLE sumA #-}
 sumA :: forall r v a . (Vector v, VecElem v a, Num a) => Array r v a -> a
 sumA (A sh t) = sumT sh t
 

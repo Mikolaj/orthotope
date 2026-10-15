@@ -566,8 +566,18 @@ instance Arbitrary a => Arbitrary (Array a) where
   {-# INLINABLE arbitrary #-}
   arbitrary = A <$> arbitrary
 
+-- INLINABLE: on GHC HEAD 10.1.20260918 (2026-10-15), with sumA INLINE here, in
+-- the other wrapper modules and in DynamicG and RankedG, the specialisation
+-- benchmark allocated 120 bytes a call more at Storable and Unboxed rerank
+-- of [3, 3] views whose subarrays are not contiguous: inlined into rerank's
+-- function, sumT's loop over such a subarray is a 40-byte closure, and out of
+-- line a join point; and it ran Shaped Unboxed rerank of [400, 500] 1.5 times
+-- the instructions on contiguous views and boxed up to 1.2 times.  A workaround
+-- for an unidentified GHC issue.  Out of line, sumA costs 4 to 8 instructions
+-- more a contiguous Storable subarray, up to 1.04% at [3, 3].  ShapedG's sumA
+-- keeps INLINE, as measured.
 -- | Sum of all elements.
-{-# INLINE sumA #-}
+{-# INLINABLE sumA #-}
 sumA :: (Num a) => Array a -> a
 sumA = G.sumA . unA
 

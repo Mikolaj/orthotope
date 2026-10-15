@@ -440,8 +440,9 @@ instance (Shape sh, Arbitrary a) => Arbitrary (Array sh a) where
   {-# INLINABLE arbitrary #-}
   arbitrary = A <$> arbitrary
 
+-- INLINABLE: see Data.Array.Internal.Dynamic's sumA.
 -- | Sum of all elements.
-{-# INLINE sumA #-}
+{-# INLINABLE sumA #-}
 sumA :: forall sh a . (Num a, Shape sh) => Array sh a -> a
 sumA = G.sumA . unA
 

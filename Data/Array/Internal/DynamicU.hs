@@ -575,8 +575,9 @@ instance (Arbitrary a, Unbox a) => Arbitrary (Array a) where
   {-# INLINABLE arbitrary #-}
   arbitrary = A <$> arbitrary
 
+-- INLINABLE: see Data.Array.Internal.Dynamic's sumA.
 -- | Sum of all elements.
-{-# INLINE sumA #-}
+{-# INLINABLE sumA #-}
 sumA :: (Unbox a, Num a) => Array a -> a
 sumA = G.sumA . unA
 

@@ -421,8 +421,9 @@ instance (KnownNat r, Arbitrary a, Unbox a) => Arbitrary (Array r a) where
   {-# INLINABLE arbitrary #-}
   arbitrary = A <$> arbitrary
 
+-- INLINABLE: see Data.Array.Internal.Dynamic's sumA.
 -- | Sum of all elements.
-{-# INLINE sumA #-}
+{-# INLINABLE sumA #-}
 sumA :: forall r a . (Unbox a, Num a) => Array r a -> a
 sumA = G.sumA . unA
 
