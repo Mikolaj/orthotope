@@ -313,6 +313,16 @@ fromVector ss = A . G.fromVector ss
 normalize :: (Unbox a) => Array a -> Array a
 normalize = A . G.normalize . unA
 
+-- INLINABLE: on GHC HEAD 10.1.20260918 (2026-10-15), with force INLINE
+-- here and in RankedS, the specialisation benchmark ran summed force of
+-- a dense [400, 500] array 1.35 times the instructions, the fill loop
+-- inlined into the summing loop costing 2 instructions an element more,
+-- the loop reloading the vector's address and length from the C stack at
+-- every element.  A workaround for the NCG's linear register allocator
+-- (https://gitlab.haskell.org/ghc/ghc/-/work_items/27742).  Out of line,
+-- force's specialised worker returns the vector boxed, so that a summed call at
+-- [3, 3] allocates 32 bytes more, and at [3, 3] and at empty arrays the call
+-- costs up to 17 instructions more.
 -- | Copy the elements of the array into a vector of their own, in the
 -- linearization order, sharing no storage with another array.  This is
 -- especially useful for a view of a large array, such as @'index' a 0@,
@@ -320,7 +330,7 @@ normalize = A . G.normalize . unA
 -- included: forcing it copies just its own elements and allows the large
 -- vector to be garbage collected, if nothing else refers to it.
 -- O(n) time.
-{-# INLINE force #-}
+{-# INLINABLE force #-}
 force :: (Unbox a) => Array a -> Array a
 force = A . G.force . unA
 
