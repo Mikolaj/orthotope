@@ -153,13 +153,13 @@ prop_views v@(View sh _) =
 -- The Ranked operation of an Op, from an array of rank n to one of rank n'.
 applyOpR :: forall n n' v a . (KnownNat n, KnownNat n', I.Vector v, I.VecElem v a) =>
             Op -> RG.Array n v a -> RG.Array n' v a
-applyOpR (Transpose is) = retype . RG.transpose is
-applyOpR (Rev rs) = retype . RG.rev rs
-applyOpR (Slice sl) = retype . RG.slice sl
-applyOpR (Stride ts) = retype . RG.stride ts
-applyOpR (Window ws) = RG.window ws
+applyOpR (Transpose is) = \ a -> retype (RG.transpose is a)
+applyOpR (Rev rs) = \ a -> retype (RG.rev rs a)
+applyOpR (Slice sl) = \ a -> retype (RG.slice sl a)
+applyOpR (Stride ts) = \ a -> retype (RG.stride ts a)
+applyOpR (Window ws) = \ a -> RG.window ws a
 applyOpR (Index i) = \ a -> RG.index (retype a :: RG.Array (1 + n') v a) i
-applyOpR (Broadcast ds sh) = RG.broadcast ds sh
+applyOpR (Broadcast ds sh) = \ a -> RG.broadcast ds sh a
 applyOpR (Raw sh ss o k m) = \ a ->
   let v = RG.toVector a in RG.A sh (I.T ss o (I.vSlice k (I.vLength v - k - m) v))
 
@@ -229,16 +229,16 @@ prop_rank3 =
                         in  if product osh == 0 then rd === (osh, []) else sameAs rd dd
   in  rot 0 (RG.rotate @0 @3 k r) .&&. rot 1 (RG.rotate @1 @2 k r) .&&. rot 2 (RG.rotate @2 @1 k r)
       .&&. counterexample "rerank 1"
-             (sameAs (obs (RG.rerank @1 (RG.transpose [1,0]) r))
-                     (obsD (DG.rerank 1 (DG.transpose [1,0]) x)))
+             (sameAs (obs (RG.rerank @1 (\ y -> RG.transpose [1,0] y) r))
+                     (obsD (DG.rerank 1 (\ y -> DG.transpose [1,0] y) x)))
       .&&. counterexample "rerank 2"
-             (scalars 2 (obs (RG.rerank @2 (RG.reduce (+) 0) r)) (obsD (DG.rerank 2 (DG.reduce (+) 0) x)))
+             (scalars 2 (obs (RG.rerank @2 (\ y -> RG.reduce (+) 0 y) r)) (obsD (DG.rerank 2 (\ y -> DG.reduce (+) 0 y) x)))
       .&&. counterexample "rerank2 2"
-             (sameAs (obs (RG.rerank2 @2 (RG.zipWithA (+)) r r))
-                     (obsD (DG.rerank2 2 (DG.zipWithA (+)) x x)))
+             (sameAs (obs (RG.rerank2 @2 (\ y z -> RG.zipWithA (+) y z) r r))
+                     (obsD (DG.rerank2 2 (\ y z -> DG.zipWithA (+) y z) x x)))
       .&&. counterexample "rerank2 3"
-             (scalars 3 (obs (RG.rerank2 @3 (RG.zipWithA (+)) r r))
-                        (obsD (DG.rerank2 3 (DG.zipWithA (+)) x x)))
+             (scalars 3 (obs (RG.rerank2 @3 (\ y z -> RG.zipWithA (+) y z) r r))
+                        (obsD (DG.rerank2 3 (\ y z -> DG.zipWithA (+) y z) x x)))
       .&&. counterexample "unravel"
              (sameAs (nested (map obs (RG.toList (RG.unravel r :: RG.Array 1 V.Vector (RG.Array 2 v a)))))
                      (nested (map obsD (DG.toList (DG.unravel x :: DG.Array V.Vector (DG.Array v a))))))

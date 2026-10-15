@@ -97,7 +97,7 @@ prop_allSameA v@(View sh _) =
 prop_toList :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
 prop_toList v@(View sh _) =
   let x = mkViewG v (upTo (product sh)) :: Array v a
-      l = [ unScalar (foldl index x is) | is <- mapM (\ s -> [0 .. s - 1]) (shapeL x) ]
+      l = [ unScalar (foldl (\ a i -> index a i) x is) | is <- mapM (\ s -> [0 .. s - 1]) (shapeL x) ]
   in  toList x === l .&&. I.vToList (toVector x) === l
 
 -- == and compare agree with comparing the lists, between a view and an array of
@@ -164,7 +164,7 @@ prop_pad v@(View sh _) =
           at is = let (os, js) = splitAt k is
                       os' = zipWith (\ i (lo, _) -> i - lo) os ps
                   in  if and (zipWith (\ i s -> i >= 0 && i < s) os' xsh)
-                      then unScalar (foldl index x (os' ++ js)) else -1
+                      then unScalar (foldl (\ a i -> index a i) x (os' ++ js)) else -1
       in  product psh <= 10000 ==>
           shapeL (pad ps (-1) x) === psh
           .&&. toList (pad ps (-1) x) === [ at is | is <- mapM (\ s -> [0 .. s - 1]) psh ]
@@ -176,7 +176,7 @@ prop_pad v@(View sh _) =
 prop_viewOps :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
 prop_viewOps (View sh ops) =
   let steps = scanl (flip applyOpG) (fromList sh (upTo (product sh))) ops :: [Array v a]
-      at x is = unScalar (foldl index x is)
+      at x is = unScalar (foldl (\ a i -> index a i) x is)
       step (x, op, y) =
         let xsh = shapeL x
             iss = mapM (\ s -> [0 .. s - 1]) (shapeL y)
@@ -347,24 +347,24 @@ prop_rerank v@(View sh _) =
       unravelled = case xsh of
         [] -> property True
         0 : _ -> shapeL (unravel x :: Array V.Vector (Array v a)) === [0]
-        s : _ -> map toList (toList (unravel x :: Array V.Vector (Array v a)))
+        s : _ -> map (\ a -> toList a) (toList (unravel x :: Array V.Vector (Array v a)))
                  === [ toList (index x i) | i <- [0 .. s - 1] ]
                  .&&. ravel (unravel x :: Array V.Vector (Array v a)) === x
   in  unravelled .&&. forAll (choose (0, length xsh)) (\ n ->
       let (osh, ish) = splitAt n xsh
-          subs = [ toList (foldl index x is) | is <- mapM (\ s -> [0 .. s - 1]) osh ]
+          subs = [ toList (foldl (\ a i -> index a i) x is) | is <- mapM (\ s -> [0 .. s - 1]) osh ]
           double a = reshape [product (shapeL a)] (mapA (* 2) a)
           -- three times x, laid out in the reverse order of its dimensions
           rv = reverse [0 .. length xsh - 1]
           y = transpose rv (fromList (reverse xsh) (toList (transpose rv (mapA (* 3) x))))
       in  if product osh == 0
           then failsWith "ravelOuter: empty outer dimension" (rerank n double x)
-               .&&. failsWith "ravelOuter: empty outer dimension" (rerank2 n (zipWithA (+)) x x)
+               .&&. failsWith "ravelOuter: empty outer dimension" (rerank2 n (\ a b -> zipWithA (+) a b) x x)
           else shapeL (rerank n double x) === osh ++ [product ish]
                .&&. toList (rerank n double x) === concatMap (map (* 2)) subs
-               .&&. toList (rerank2 n (zipWithA (+)) x x) === map (* 2) (toList x)
-               .&&. toList (rerank2 n (zipWithA (-)) x y) === map (* (-2)) (toList x)
-               .&&. toList (rerank2 n (zipWithA (-)) y x) === map (* 2) (toList x))
+               .&&. toList (rerank2 n (\ a b -> zipWithA (+) a b) x x) === map (* 2) (toList x)
+               .&&. toList (rerank2 n (\ a b -> zipWithA (-) a b) x y) === map (* (-2)) (toList x)
+               .&&. toList (rerank2 n (\ a b -> zipWithA (-) a b) y x) === map (* 2) (toList x))
 
 -- ravel fails on an outer array of none, and on arrays of differing shapes,
 -- naming the first one's shape and the first that differs.

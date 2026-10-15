@@ -84,30 +84,30 @@ test = testGroup "BenchViews"
   [ testGroup "values"
       [ testOnce n (prop_values l) | (n, l) <- mainViews ++ otherViews ]
   , optimisedGroup "toVector allocation"
-      $  [ testCase n (allocUnder (scaled toVectorFactor l) toVector l)
+      $  [ testCase n (allocUnder (scaled toVectorFactor l) (\ a -> toVector a) l)
          | (n, l) <- mainViews ++ otherViews ]
       ++ [ testCase "transposed runs, element by element"
              (allocOver (scaled toVectorFactor transposedBlock)
                         (headOf elementwise) transposedBlock) ]
   , optimisedGroup "sumA allocation"
-      $  [ testCase n (allocUnder 16384 sumA l) | (n, l) <- mainViews ]
-      ++ [ testCase n (allocUnder (scaled sumAFactor l) sumA l) | (n, l) <- otherViews ]
+      $  [ testCase n (allocUnder 16384 (\ a -> sumA a) l) | (n, l) <- mainViews ]
+      ++ [ testCase n (allocUnder (scaled sumAFactor l) (\ a -> sumA a) l) | (n, l) <- otherViews ]
     -- The head of a list of vectors of a view of runs is one run, built
     -- in under 32768 bytes, the lists being lazy; so is the unordered
     -- list's head of the same runs transposed.
   , optimisedGroup "list heads"
       [ testCase "ordered, runs"
-          (allocUnder 32768 (headOf I.toVectorListT) runsBlock)
+          (allocUnder 32768 (headOf (\ s v -> I.toVectorListT s v)) runsBlock)
       , testCase "unordered, runs"
-          (allocUnder 32768 (headOf I.toUnorderedVectorListT) runsBlock)
+          (allocUnder 32768 (headOf (\ s v -> I.toUnorderedVectorListT s v)) runsBlock)
       , testCase "ordered, transposed runs"
           (allocUnder (scaled orderedHeadFactor transposedBlock)
-                      (headOf I.toVectorListT) transposedBlock)
+                      (headOf (\ s v -> I.toVectorListT s v)) transposedBlock)
       , testCase "ordered, transposed runs, element by element"
           (allocOver (scaled orderedHeadFactor transposedBlock)
                      (headOf elementwise) transposedBlock)
       , testCase "unordered, transposed runs"
-          (allocUnder 32768 (headOf I.toUnorderedVectorListT) transposedBlock) ]
+          (allocUnder 32768 (headOf (\ s v -> I.toUnorderedVectorListT s v)) transposedBlock) ]
     -- == compares a broadcast of a view that skips elements without its
     -- broadcast dimensions, and == and mapA take an empty view at once, in
     -- under 32768 bytes.
@@ -115,14 +115,14 @@ test = testGroup "BenchViews"
       [ testCase "bcastmid of a scaled row" (allocUnder 32768 (\ x -> x == x) scaledBcastmid)
       , testCase "empty view" (allocUnder 32768 (\ x -> x == x) emptyView) ]
   , testGroup "mapA allocation"
-      [ testCase "empty view" (allocUnder 32768 (mapA (+ 1)) emptyView) ]
+      [ testCase "empty view" (allocUnder 32768 (\ a -> mapA (+ 1) a) emptyView) ]
     -- The lists of vectors of an empty view hold no vector.
   , testGroup "empty lists"
       [ testCase (vn ++ ", " ++ n) (assertBool "a vector" (null (f sh t)))
       | (vn, l@(sh, _, _, _)) <- [ (n, mkStrided s) | (n, s) <- degenerateShapes ]
       , let t = fst (mkArray 1 l)
-      , (n, f) <- [ ("ordered", I.toVectorListT)
-                  , ("unordered", I.toUnorderedVectorListT) ] ]
+      , (n, f) <- [ ("ordered", \ s v -> I.toVectorListT s v)
+                  , ("unordered", \ s v -> I.toUnorderedVectorListT s v) ] ]
   , optimisedGroup "specialisation"
       $  [ testCase row (specialised row b s u) | (row, b, s, u) <- callRows ]
       ++ [ testCase "Dynamic/pad at Storable, not specialised"
@@ -239,9 +239,9 @@ unspecialisedOver b c = do
 -- strided view of the specialisation benchmark at Storable and Unboxed.
 fillCalls :: [(String, Call)]
 fillCalls =
-  [ ("Storable", Call.call "fillStrided" (I.fillStrided Call.axes 0 Call.n)
+  [ ("Storable", Call.call "fillStrided" (\ v -> I.fillStrided Call.axes 0 Call.n v)
                            (VS.fromList Call.elems))
-  , ("Unboxed", Call.call "fillStrided" (I.fillStrided Call.axes 0 Call.n)
+  , ("Unboxed", Call.call "fillStrided" (\ v -> I.fillStrided Call.axes 0 Call.n v)
                           (VU.fromList Call.elems)) ]
 
 -- The call allocates at most 16 bytes an element, the result's 8 and no
@@ -438,7 +438,7 @@ headOf f (DS.A (DG.A sh t)) = case f sh t of
 
 -- The natural strides of a dense array of the given shape.
 natural :: [Int] -> [Int]
-natural = drop 1 . I.getStridesT
+natural sh = drop 1 (I.getStridesT sh)
 
 swapLast2 :: [a] -> [a]
 swapLast2 xs = case reverse xs of

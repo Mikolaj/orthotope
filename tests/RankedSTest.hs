@@ -236,19 +236,19 @@ test = testGroup "RankedS" $
                               (rev [0,1] a1)
       rev_3 = assertThrows "3" (rev [2] a1)
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
-      reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank @1 (reduce (*) 1) a1)
-      reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank @1 (reduce (*) 1) a2)
+      reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank @1 (\ r -> reduce (*) 1 r) a1)
+      reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank @1 (\ r -> reduce (*) 1 r) a2)
       foldrA_1 = assertEqual "1" [1,4,2,5,3,6] (foldrA (:) [] a2)
       -- pad, reshape and index need not know the rank of the array they take,
       -- nor index that its elements are Storable.
       constraints_1 = assertEqual "1" (pad [(1,1)] 0 a1, reshape [6] a1 :: Array 1 Int, index a1 1)
                                       (padN a1, reshapeN a1, indexN a1 1)
         where padN :: Array n Int -> Array n Int
-              padN = pad [(1,1)] 0
+              padN a = pad [(1,1)] 0 a
               reshapeN :: Array n Int -> Array 1 Int
-              reshapeN = reshape [6]
+              reshapeN a = reshape [6] a
               indexN :: Array 2 a -> Int -> Array 1 a
-              indexN = index
+              indexN a i = index a i
 
       bitcast_1 = assertEqual "1" [1,4,2,5,3,6] (toList (bitcast a2 :: Array 2 Word))
       bitcast_2 = assertEqual "2" [0x3fc00000] (toList (bitcast (fromList [1] [1.5 :: Float]) :: Array 1 Word32))
@@ -269,7 +269,7 @@ test = testGroup "RankedS" $
                     (toList (zipWith5A (\ a b c d e -> a + b + c + d + e) a1 a1 a1 a1 a1))
         assertEqual "update" [9, 2, 3, 4, 5, 6] (toList (update a1 [([0, 0], 9)]))
         assertEqual "size" 6 (size a1)
-        assertEqual "traverseA" (Just [2 .. 7]) (fmap toList (traverseA (Just . (+ 1)) a1))
+        assertEqual "traverseA" (Just [2 .. 7]) (fmap (\ a -> toList a) (traverseA (Just . (+ 1)) a1))
         assertEqual "stretchOuter" [1, 2, 3, 1, 2, 3] (toList (stretchOuter 2 (reshape [1, 3] (index a1 0) :: Array 2 Int)))
         assertEqual "ravel . unravel" [1 .. 6] (toList (ravel (unravel a1)))
         assertEqual "rotate" [2, 3, 1, 1, 2, 3] (toList (rotate @0 @1 2 (fromList [3] [1, 2, 3]) :: Array 2 Int))

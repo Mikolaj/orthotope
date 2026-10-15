@@ -323,7 +323,7 @@ test = testGroup "Ranked" $
       slice_5 = assertThrows "5" (slice [(0,3)] a5)
       slice_6 = assertThrowsIn "6" "slice" (slice [(1, maxBound)] (fromList [3] [1,2,3] :: Array 1 Int))
 
-      box = scalar . Just
+      box x = scalar (Just x)
       rerank_1 = assertEqual "1" (box a5)
                                  (rerank @0 box a5)
       rerank_2 = assertEqual "2" (fromList [2] [Just $ fromList [3,4] [1,2,3,4,5,6,7,8,9,10,11,12],
@@ -336,7 +336,7 @@ test = testGroup "Ranked" $
                                                   Just $ fromList [4] [17,18,19,20],
                                                   Just $ fromList [4] [21,22,23,24]])
                                  (rerank @2 box a5)
-      rerank_4 = assertEqual "4" (mapA (Just . scalar) a5)
+      rerank_4 = assertEqual "4" (mapA (\ x -> Just (scalar x)) a5)
                                  (rerank @3 box a5)
       rerank_5 = assertThrowsIn "5" "ravelOuterOf" (rerank @1 (\ a -> constant [unScalar a] 0) (fromList [2] [1,2] :: Array 1 Int) :: Array 2 Int)
       a7 = mapA succ a5
@@ -372,16 +372,16 @@ test = testGroup "Ranked" $
         assertEqual "convertE DS rank" (Left "convert: rank mismatch")
           (() <$ (convertE ds :: Either String (RS.Array 1 Int)))
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
-      reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank @1 (reduce (*) 1) a1)
-      reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank @1 (reduce (*) 1) a2)
+      reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank @1 (\ r -> reduce (*) 1 r) a1)
+      reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank @1 (\ r -> reduce (*) 1 r) a2)
       foldrA_1 = assertEqual "1" [1,4,2,5,3,6] (foldrA (:) [] a2)
       -- pad and reshape need not know the rank of the array they take.
       constraints_1 = assertEqual "1" (pad [(1,1)] 0 a1, reshape [6] a1 :: Array 1 Int)
                                       (padN a1, reshapeN a1)
         where padN :: Array n Int -> Array n Int
-              padN = pad [(1,1)] 0
+              padN a = pad [(1,1)] 0 a
               reshapeN :: Array n Int -> Array 1 Int
-              reshapeN = reshape [6]
+              reshapeN a = reshape [6] a
 
       -- Calls of wrappers that the other tests of this module leave uncalled,
       -- each against its value.
@@ -398,7 +398,7 @@ test = testGroup "Ranked" $
                     (toList (zipWith5A (\ a b c d e -> a + b + c + d + e) a1 a1 a1 a1 a1))
         assertEqual "update" [9, 2, 3, 4, 5, 6] (toList (update a1 [([0, 0], 9)]))
         assertEqual "size" 6 (size a1)
-        assertEqual "traverseA" (Just [2 .. 7]) (fmap toList (traverseA (Just . (+ 1)) a1))
+        assertEqual "traverseA" (Just [2 .. 7]) (fmap (\ a -> toList a) (traverseA (Just . (+ 1)) a1))
         assertEqual "force" [1 .. 6] (toList (force a1))
 
       tests =

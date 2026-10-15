@@ -54,7 +54,7 @@ test = testGroup "ShapedU" $
       -- index need not know that the elements are Unboxed.
       constraints_1 = assertEqual "1" (index a1 1) (indexN a1 1)
         where indexN :: Array '[2, 3] a -> Int -> Array '[3] a
-              indexN = index
+              indexN a i = index a i
       toList_1 = assertEqual "1" [1,2,3,4,5,6] (toList a1)
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
@@ -223,8 +223,8 @@ test = testGroup "ShapedU" $
       rev_2 = assertEqual "2" (fromList [6,5,4,3,2,1])
                               (rev @[0,1] a1)
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
-      reduce_2 = assertEqual "2" (fromList @'[2] [6,120]) (rerank @1 (reduce (*) 1) a1)
-      reduce_3 = assertEqual "3" (fromList @'[3] [4,10,18]) (rerank @1 (reduce (*) 1) a2)
+      reduce_2 = assertEqual "2" (fromList @'[2] [6,120]) (rerank @1 (\ r -> reduce (*) 1 r) a1)
+      reduce_3 = assertEqual "3" (fromList @'[3] [4,10,18]) (rerank @1 (\ r -> reduce (*) 1 r) a2)
 
       -- Calls of wrappers that the other tests of this module leave uncalled,
       -- each against its value.
@@ -242,7 +242,7 @@ test = testGroup "ShapedU" $
         assertEqual "update" [9, 2, 3, 4, 5, 6] (toList (update a1 [([0, 0], 9)]))
         assertEqual "size" 6 (size a1)
         assertEqual "foldrA" [1 .. 6] (foldrA (:) [] a1)
-        assertEqual "traverseA" (Just [2 .. 7]) (fmap toList (traverseA (Just . (+ 1)) a1))
+        assertEqual "traverseA" (Just [2 .. 7]) (fmap (\ a -> toList a) (traverseA (Just . (+ 1)) a1))
         assertEqual "iterateN" [1, 2, 4] (toList (iterateN (* 2) 1 :: Array '[3] Int))
         assertEqual "iota" [0, 1, 2] (toList (iota :: Array '[3] Int))
         assertEqual "concatOuter" [1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6] (toList (concatOuter [a1, a1] :: Array [4,3] Int))

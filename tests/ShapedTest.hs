@@ -77,7 +77,7 @@ test = testGroup "Shaped" $
       -- ShapedG's show need not know how to show a vector.
       constraints_1 = assertEqual "1" (show a1) (showG (SG.fromList [1..6] :: SG.Array [2,3] [] Int))
         where showG :: (Show a, I.Vector v, I.VecElem v a, Shape sh) => SG.Array sh v a -> String
-              showG = show
+              showG a = show a
       toList_1 = assertEqual "1" [1,2,3,4,5,6] (toList a1)
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
@@ -282,7 +282,7 @@ test = testGroup "Shaped" $
       rotate_4 = assertWhnfThrowsIn "4" "Shape" (rotate @0 @18446744073709551617 (fromList [7] :: Array '[1] Int))
       slice_1 = assertEqual "1" (fromList @[2,2,1] [8,12,20,24])
                                 (slice @['(0,2), '(1,2), '(3,1)] a5)
-      box = scalar . Just
+      box x = scalar (Just x)
       rerank_1 = assertEqual "1" (box a5)
                                  (rerank @0 box a5)
       rerank_2 = assertEqual "2" (fromList [Just $ fromList @[3,4] [1,2,3,4,5,6,7,8,9,10,11,12],
@@ -295,7 +295,7 @@ test = testGroup "Shaped" $
                                                    Just $ fromList [17,18,19,20],
                                                    Just $ fromList [21,22,23,24]])
                                  (rerank @2 box a5)
-      rerank_4 = assertEqual "4" (mapA (Just . scalar) a5)
+      rerank_4 = assertEqual "4" (mapA (\ x -> Just (scalar x)) a5)
                                  (rerank @3 box a5)
       a7 = mapA succ a5
       dot x y = reduce (+) 0 $ zipWithA (*) x y
@@ -318,7 +318,7 @@ test = testGroup "Shaped" $
       shapeRule_1 = do
         assertThrowsIn "1" "Shape" (shapeL (constant 0 :: Array '[0, 4611686018427387904, 4] Int))
         assertEqual "2" [4611686018427387904, 4, 0] (shapeL (constant 0 :: Array '[4611686018427387904, 4, 0] Int))
-        assertEqual "3" [False, True] (map validShape [[0, 4611686018427387904, 4], [4611686018427387904, 4, 0]])
+        assertEqual "3" [False, True] (map (\ s -> validShape s) [[0, 4611686018427387904, 4], [4611686018427387904, 4, 0]])
       -- A type-level list that is not a shape is not checked as one: strides
       -- whose product passes maxBound, and a permutation of 22 axes, whose
       -- inner part from 1 multiplies to 21!.
@@ -365,8 +365,8 @@ test = testGroup "Shaped" $
         assertEqual "convertE DS shape" (Left "convert: shape mismatch: ([2,3],[3,2])")
           (() <$ (convertE ds :: Either String (SS.Array '[3, 2] Int)))
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
-      reduce_2 = assertEqual "2" (fromList @'[2] [6,120]) (rerank @1 (reduce (*) 1) a1)
-      reduce_3 = assertEqual "3" (fromList @'[3] [4,10,18]) (rerank @1 (reduce (*) 1) a2)
+      reduce_2 = assertEqual "2" (fromList @'[2] [6,120]) (rerank @1 (\ r -> reduce (*) 1 r) a1)
+      reduce_3 = assertEqual "3" (fromList @'[3] [4,10,18]) (rerank @1 (\ r -> reduce (*) 1 r) a2)
 
       update_1 = assertThrowsIn "1" "update" (update a1 [([2, 0], 0)])
 
@@ -386,7 +386,7 @@ test = testGroup "Shaped" $
         assertEqual "update" [9, 2, 3, 4, 5, 6] (toList (update a1 [([0, 0], 9)]))
         assertEqual "size" 6 (size a1)
         assertEqual "foldrA" [1 .. 6] (foldrA (:) [] a1)
-        assertEqual "traverseA" (Just [2 .. 7]) (fmap toList (traverseA (Just . (+ 1)) a1))
+        assertEqual "traverseA" (Just [2 .. 7]) (fmap (\ a -> toList a) (traverseA (Just . (+ 1)) a1))
         assertEqual "iterateN" [1, 2, 4] (toList (iterateN (* 2) 1 :: Array '[3] Int))
         assertEqual "iota" [0, 1, 2] (toList (iota :: Array '[3] Int))
         assertEqual "force" [1 .. 6] (toList (force a1))
