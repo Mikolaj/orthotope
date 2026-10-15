@@ -71,7 +71,7 @@ class Convert a b where
   convert  :: a -> b
   -- | Convert between two array types if possible, or return error message.
   convertE :: a -> Either String b
-  {-# INLINE convert #-}
+  {-# INLINABLE convert #-}
   convert = either error id . convertE
   {-# INLINE convertE #-}
   convertE = Right . convert
@@ -162,6 +162,10 @@ instance (a ~ b) => Convert (R.Array n a) (D.Array b) where
   convert (R.A (RG.A sh t)) = D.A (DG.A sh t)
 
 instance (a ~ b, KnownNat n) => Convert (D.Array a) (R.Array n b) where
+  -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-15), the convertE methods that
+  -- check a rank or a shape INLINABLE, as their contexts give them, cost the
+  -- specialisation benchmark's summed conversions to Shaped arrays 16 to 40
+  -- bytes a call, against 16 saved where forced.
   {-# INLINE convertE #-}
   convertE (D.A (DG.A sh t)) | toInteger (length sh) /= natVal (Proxy :: Proxy n) = Left "convert: rank mismatch"
                              | otherwise = Right $ R.A (RG.A sh t)
@@ -175,12 +179,14 @@ instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (S.Array sh a) (R.Array n
   convert (S.A a@(SG.A t)) = R.A (RG.A (SG.shapeL a) t)
 
 instance (a ~ b, S.Shape sh) => Convert (D.Array a) (S.Array sh b) where
+  -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
   convertE (D.A (DG.A sh t)) | map toInteger sh /= natsP (Proxy :: Proxy sh) = Left "convert: shape mismatch"
                              | not (validShape sh) = Left "convert: bad shape"
                              | otherwise = Right $ S.A (SG.A t)
 
 instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (R.Array n a) (S.Array sh b) where
+  -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
   convertE (R.A (RG.A sh t)) | map toInteger sh /= natsP (Proxy :: Proxy sh) = Left "convert: shape mismatch"
                              | not (validShape sh) = Left "convert: bad shape"
@@ -189,17 +195,20 @@ instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (R.Array n a) (S.Array sh
 ------
 
 instance (a ~ b, KnownNat n) => Convert (DS.Array a) (RS.Array n b) where
+  -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
   convertE (DS.A (DG.A sh t)) | toInteger (length sh) /= natVal (Proxy :: Proxy n) = Left "convert: rank mismatch"
                               | otherwise = Right $ RS.A (RG.A sh t)
 
 instance (a ~ b, SS.Rank sh ~ n, SS.Shape sh) => Convert (RS.Array n a) (SS.Array sh b) where
+  -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
   convertE (RS.A (RG.A sh t)) | map toInteger sh /= natsP (Proxy :: Proxy sh) = Left "convert: shape mismatch"
                               | not (validShape sh) = Left "convert: bad shape"
                               | otherwise = Right $ SS.A (SG.A t)
 
 instance (a ~ b, SS.Shape sh) => Convert (DS.Array a) (SS.Array sh b) where
+  -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
   convertE (DS.A (DG.A sh t)) | map toInteger sh /= ns = Left $ "convert: shape mismatch: " ++ show (sh, ns)
                               | not (validShape sh) = Left "convert: bad shape"

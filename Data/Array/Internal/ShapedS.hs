@@ -86,18 +86,20 @@ instance NFData (Array sh a)
 -- Point-free, as are the point-free wrappers and instance methods below, for
 -- the reason at the Show instance of Data.Array.Internal.Dynamic.
 instance (Unbox a, Show a, Shape sh) => Show (Array sh a) where
+  {-# INLINE showsPrec #-}
   showsPrec p = showsPrec p . unA
 
 instance (Read a, Unbox a, Shape sh) => Read (Array sh a) where
+  {-# INLINABLE readsPrec #-}
   readsPrec p s = [(A a, r) | (a, r) <- readsPrec p s]
 
 instance Eq (G.Array sh V.Vector a) => Eq (Array sh a) where
+  {-# INLINABLE (==) #-}
   x == y = unA x == unA y
-  {-# INLINE (==) #-}
 
 instance Ord (G.Array sh V.Vector a) => Ord (Array sh a) where
-  compare x y = compare (unA x) (unA y)
   {-# INLINE compare #-}
+  compare x y = compare (unA x) (unA y)
 
 -- | The number of elements in the array.
 {-# INLINE size #-}
@@ -160,7 +162,7 @@ fromVector = A . G.fromVector
 -- This is semantically an identity function, but can have big performance
 -- implications.
 -- O(n) or O(1) time.
-{-# INLINABLE normalize #-}
+{-# INLINE normalize #-}
 normalize :: forall sh a . (Unbox a, Shape sh) => Array sh a -> Array sh a
 normalize = A . G.normalize . unA
 
@@ -171,13 +173,13 @@ normalize = A . G.normalize . unA
 -- included: forcing it copies just its own elements and allows the large
 -- vector to be garbage collected, if nothing else refers to it.
 -- O(n) time.
-{-# INLINABLE force #-}
+{-# INLINE force #-}
 force :: forall sh a . (Unbox a, Shape sh) => Array sh a -> Array sh a
 force = A . G.force . unA
 
 -- | Change the shape of an array.  Type error if the arrays have different number of elements.
 -- O(n) or O(1) time.
-{-# INLINABLE reshape #-}
+{-# INLINE reshape #-}
 reshape :: forall sh' sh a . (Unbox a, Shape sh, Shape sh', Size sh ~ Size sh') =>
            Array sh a -> Array sh' a
 reshape = A . G.reshape . unA
@@ -249,7 +251,7 @@ zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e
 -- O(n) time.
 -- With no padding, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE pad #-}
+{-# INLINE pad #-}
 pad :: forall ps sh' sh a . (HasCallStack, Unbox a, Padded ps sh sh', Shape sh) =>
        a -> Array sh a -> Array sh' a
 pad v = A . G.pad @ps v . unA
@@ -270,7 +272,7 @@ transpose = A . G.transpose @is . unA
 -- O(n) time.
 -- Where one array's outer extent is 0, the result is the other itself, sharing
 -- its vector; 'force' copies it out.
-{-# INLINABLE append #-}
+{-# INLINE append #-}
 append :: forall sh m n a . (Unbox a, Shape sh, KnownNat m, KnownNat n, KnownNat (m+n)) =>
           Array (m ': sh) a -> Array (n ': sh) a -> Array (m+n ': sh) a
 append x y = A $ G.append (unA x) (unA y)
@@ -280,17 +282,18 @@ append x y = A $ G.append (unA x) (unA y)
 -- O(n) time.
 -- Of one array, the result is that array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE concatOuter #-}
+{-# INLINE concatOuter #-}
 concatOuter :: forall m n sh a . (HasCallStack, Unbox a, KnownNat m, KnownNat n, Shape sh) =>
                [Array (n ': sh) a] -> Array (m ': sh) a
 concatOuter = A . G.concatOuter @m @n . coerce
 
+-- INLINE: see Data.Array.Internal.Dynamic's ravel.
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
 -- O(n) time.
 -- Of one array, the result is a view of it, sharing its vector; 'force' copies
 -- it out.
-{-# INLINABLE ravel #-}
+{-# INLINE ravel #-}
 ravel :: forall sh s a . (Unbox a, Shape sh, KnownNat s) =>
          S.Array '[s] (Array sh a) -> Array (s:sh) a
 ravel = A . G.ravel . G.mapA unA . S.unA
@@ -313,7 +316,7 @@ unravel = S.A . G.mapA A . G.unravel . unA
 --
 -- If the window type parameter @ws = '[w1,...,wk]@ and @wa = window \@ws a@ then
 -- @wa `index` i1 ... `index` ik == slice \@'[ '(i1,w1),...,'(ik,wk)] a@.
-{-# INLINABLE window #-}
+{-# INLINE window #-}
 window :: forall ws sh' sh a .
           (Window ws sh sh', KnownNat (Rank ws), Shape sh') =>
           Array sh a -> Array sh' a
@@ -335,7 +338,7 @@ stride = A . G.stride @ts . unA
 -- May fail if the result has more than half of 'maxBound' elements.
 -- With k = 1, the result is a view of the array, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE rotate #-}
+{-# INLINE rotate #-}
 rotate :: forall d k sh a .
           (HasCallStack, KnownNat d, KnownNat k, Unbox a, Shape sh,
            d + 1 <= Rank sh, Shape (Take d sh ++ (k ': Drop d sh))) =>
@@ -413,8 +416,8 @@ allSameA :: (Shape sh, Unbox a, Eq a) => Array sh a -> Bool
 allSameA = G.allSameA . unA
 
 instance (Shape sh, Arbitrary a, Unbox a) => Arbitrary (Array sh a) where
+  {-# INLINABLE arbitrary #-}
   arbitrary = A <$> arbitrary
-  {-# INLINE arbitrary #-}
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}
@@ -456,7 +459,7 @@ allA p = G.allA p . unA
 -- and just replicate the data along all other dimensions.
 -- The list of dimension indices must have the same rank as the argument array
 -- and it must be strictly ascending.
-{-# INLINABLE broadcast #-}
+{-# INLINE broadcast #-}
 broadcast :: forall ds sh' sh a .
              (Unbox a, Shape sh, Shape sh',
               G.Broadcast ds sh sh') =>
@@ -494,7 +497,7 @@ iota = A G.iota
 -- For instance the floating point number @(1.5 :: Float)@ will convert to
 -- @(0x3fc00000 :: Word32)@ since they have the same bit representation.
 -- Fails if the two types differ in size or have size 0.
-{-# INLINE bitcast #-}
+{-# INLINABLE bitcast #-}
 bitcast :: forall sh a b . (HasCallStack, Unbox a, Unbox b) => Array sh a -> Array sh b
 bitcast (A (G.A (T ss o v)))
   | sza /= szb || sza == 0

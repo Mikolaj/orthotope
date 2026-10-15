@@ -27,6 +27,27 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE UndecidableSuperClasses #-}
+-- INLINE throughout but vFromListN, vUnsafeFillStrided, vUnsafeConcatN,
+-- prettyShowL, badShape, equalT, getStridesT, genericUnsafeFillStrided,
+-- canonicalizeT, stepOdometer, absAxesAndStartT, byStrideRank, runRank,
+-- sortAxesT, insertAxis, canonicalizeSortedT, allSameT, rectPad, hcatRect,
+-- rectWidth, ppT, showsT, box, zipWithLong2, simpleReshape, isPermutation
+-- and allSame: on GHC HEAD 10.1.20260918 (2026-10-15), this module's
+-- functions INLINABLE, as their types give them, cost the specialisation
+-- benchmark up to 1960 bytes a call (the conversions), 624 (liftA2), 560
+-- (concatOuter) and 384 (pad); productT, maximumT and minimumT INLINABLE,
+-- with Data.Array.Internal.DynamicU's vMaximum and vMinimum, ran productA,
+-- maximumA and minimumA in up to 1.6 times the instructions, though in up
+-- to 3% fewer at boxed Dynamic and Ranked arrays, and permute without a
+-- pragma ran Ranked transpose in up to 1.08 times.  Those it leaves out
+-- keep the pragma their types give them, but isPermutation, NOINLINE as
+-- measured on GHC HEAD 10.1.20260918 on 2026-10-13: inlined into transpose,
+-- the check of a literal permutation was computed once in a library built at
+-- -funfolding-creation-threshold=30, and in every call in one built at the
+-- default thresholds with Dynamic's transpose INLINE; out of line, a call of
+-- it on a literal is a constant, computed once at any threshold.  F1 reads no
+-- fusion in allSame: it matches its list before all consumes the tail, so it
+-- fuses with no producer.
 module Data.Array.Internal(module Data.Array.Internal) where
 import Control.DeepSeq
 import Control.Exception(assert)
@@ -84,16 +105,19 @@ class Vector v where
   vAll      :: (VecElem v a) => (a -> Bool) -> v a -> Bool
   vAny      :: (VecElem v a) => (a -> Bool) -> v a -> Bool
 
+  {-# INLINABLE vFromListN #-}
   vFromListN n = vFromList . take n
 
   -- | 'vIndex' at an index in bounds, which the instance need not check: the
   -- default is 'vIndex', and the vector instances read without the check.
   vUnsafeIndex :: (VecElem v a) => v a -> Int -> a
+  {-# INLINE vUnsafeIndex #-}
   vUnsafeIndex = vIndex
 
   -- | 'vSlice' of a slice in bounds, which the instance need not check: the
   -- default is 'vSlice', and the vector instances slice without the check.
   vUnsafeSlice :: (VecElem v a) => Int -> Int -> v a -> v a
+  {-# INLINE vUnsafeSlice #-}
   vUnsafeSlice = vSlice
 
   -- | Materialize a strided view in row-major order, unchecked: the
@@ -116,6 +140,7 @@ class Vector v where
   -- type is an instance of 'Data.Vector.Generic.Vector', or risk their slowness
   -- on such views.
   vUnsafeFillStrided :: (VecElem v a) => Axes -> Int -> Int -> v a -> v a
+  {-# INLINABLE vUnsafeFillStrided #-}
   vUnsafeFillStrided axes !ao l !v = vFromListN l (elemsT axes ao v (:) [])
 
   -- | Concatenate vectors whose lengths sum to the count given first, which
@@ -129,6 +154,7 @@ class Vector v where
   -- result or leaves part of it unwritten, which can corrupt memory; the boxed
   -- one keeps the default and says why.
   vUnsafeConcatN :: (VecElem v a) => Int -> [v a] -> v a
+  {-# INLINABLE vUnsafeConcatN #-}
   vUnsafeConcatN n [v] | vLength v == n = v
   vUnsafeConcatN _ vs = vConcat vs
 
@@ -142,12 +168,14 @@ class Vector v where
   -- the Storable one the element read and forced, which fails here for a type
   -- whose peek can fail.
   vUnsafeWithElem :: (VecElem v a) => v a -> Int -> (a -> r) -> r
+  {-# INLINE vUnsafeWithElem #-}
   vUnsafeWithElem v i k = k (vUnsafeIndex v i)
 
   -- | A vector of n elements, the ith g i, each evaluated to weak head
   -- normal form as it is stored, and an empty one for an n below 0.
   -- The default lists them.
   vGenerate' :: (VecElem v a) => Int -> (Int -> a) -> v a
+  {-# INLINE vGenerate' #-}
   vGenerate' n g = vFromListN n [ x | i <- [0 .. n - 1], let !x = g i ]
 
   -- | The vector with its elements in storage of its own, so that it keeps
@@ -155,6 +183,7 @@ class Vector v where
   -- that is no slice too, as the default, 'vConcat' of the one vector,
   -- always does.  The vector instances copy by 'genericForce' instead.
   vForce :: (VecElem v a) => v a -> v a
+  {-# INLINE vForce #-}
   vForce v = vConcat [v]
 
   -- Left out of the class, to keep it small until users find
@@ -225,6 +254,7 @@ instance Vector [] where
   vAll = all
   vAny = any
 
+{-# INLINABLE prettyShowL #-}
 prettyShowL :: (Pretty a) => PrettyLevel -> a -> String
 prettyShowL l = render . pPrintPrec l 0
 
@@ -603,7 +633,7 @@ fillStrided axes@(Axes st n outer) ao l v
 -- 'Data.Vector.Generic.force' fills a new Storable or unboxed vector with zeros
 -- before it copies into it (https://github.com/haskell/vector/issues/571), and
 -- 'vConcat' of the one vector takes it boxed, in a list.
-{-# INLINABLE genericForce #-}
+{-# INLINE genericForce #-}
 genericForce :: VG.Vector w a => w a -> w a
 genericForce v = VG.create $ do
   out <- VGM.unsafeNew (VG.length v)
@@ -1394,6 +1424,9 @@ byStrideRank (Axis s1 n1) (Axis s2 n2) = case compare s2 s1 of
 -- against the run length, measured on one machine: where the plateau
 -- begins, where it ends, and the shelf's end, past which a run loses
 -- to a run of 3.
+{-# INLINE runFar #-}
+{-# INLINE runHi #-}
+{-# INLINE runLo #-}
 runLo, runHi, runFar :: Int
 runLo = 5
 runHi = 32
@@ -1405,7 +1438,6 @@ runFar = 96
 -- plateau and among the short runs, where the rate falls or is flat,
 -- and the shorter on the shelf, which rises across its width, and on
 -- the climb.
-{-# INLINE runRank #-}
 runRank :: Int -> Int -> Ordering
 runRank !a !b = case compare ta tb of
   EQ | ta == 1 || ta == 3 -> compare a b
@@ -1658,11 +1690,12 @@ toUnorderedVectorT sh a@(T _ _ v)
 fromVectorT :: ShapeL -> v a -> T v a
 fromVectorT sh = T (tail $ getStridesT sh) 0
 
--- INLINABLE: F1 reads no fusion here: its list goes to vFromListN, whose
--- vector instances take it apart by case, so it fuses with no producer.
+-- INLINE: by the measurement in the module's header, not for fusion; F1 reads
+-- no fusion here: its list goes to vFromListN, whose vector instances take it
+-- apart by case, so it fuses with no producer.
 --
 -- Convert from a list
-{-# INLINABLE fromListT #-}
+{-# INLINE fromListT #-}
 fromListT :: (Vector v, VecElem v a) => [Int] -> [a] -> T v a
 fromListT sh = fromVectorT sh . vFromListN (product sh)
 
@@ -1873,9 +1906,11 @@ allSameT sh t@(T _ ao v)
 
 newtype Rect = Rect { unRect :: [String] }  -- A rectangle of text
 
+{-# INLINE toRect #-}
 toRect :: String -> Rect
 toRect = Rect . lines
 
+{-# INLINE fromRect #-}
 fromRect :: Rect -> String
 fromRect (Rect ls) = unlines ls
 
@@ -1892,9 +1927,11 @@ hcatRect (Rect xs) (Rect ys) = Rect $ zipWith (\ x y -> x ++ " " ++ y) xs ys
 
 -- Vertical catenation.  Assumes input rectangle are padded.
 -- Adds no space between Rects.
+{-# INLINE vcatRect #-}
 vcatRect :: Rect -> Rect -> Rect
 vcatRect (Rect xs) (Rect ys) = Rect $ xs ++ ys
 
+{-# INLINE rectHeight #-}
 rectHeight :: Rect -> Int
 rectHeight = length . unRect
 
@@ -1906,6 +1943,7 @@ rectWidth = maximum . (0:) . map length . unRect
 -- which is not shown otherwise: arrays of shapes [3] and [1,3] print alike,
 -- and every array with no elements has no rows, so prints as the same empty
 -- box, or as nothing below prettyNormal, "()" at a precedence above 10.
+{-# INLINABLE ppT #-}
 ppT
   :: (Vector v, VecElem v a, Pretty a)
   => PrettyLevel -> Rational -> ShapeL -> T v a -> Doc
@@ -1914,6 +1952,7 @@ ppT l p sh = maybeParens (p > 10) . vcat' . map text . unRect . box boxMode . pp
                 | otherwise = BoxMode False False False
         vcat' = foldl' ($+$) empty
 
+{-# INLINE ppT_ #-}
 ppT_
   :: (Vector v, VecElem v a)
   => (a -> String) -> ShapeL -> T v a -> Rect
@@ -1936,6 +1975,7 @@ showsT (n:ns) t = foldl1' vcat' rs
 
 data BoxMode = BoxMode { _bmBars, _bmUnicode, _bmHeader :: Bool }
 
+{-# INLINE prettyBoxMode #-}
 prettyBoxMode :: BoxMode
 prettyBoxMode = BoxMode False False False
 
@@ -1963,7 +2003,7 @@ zipWithLong2 _     _     bs  = bs
 
 -- The padded array alone, its callers computing its shape: a shape returned
 -- beside it, forced for their checks, built the array before them.
-{-# INLINABLE padT #-}
+{-# INLINE padT #-}
 padT :: forall v a . (Vector v, VecElem v a) => a -> [(Int, Int)] -> ShapeL -> T v a -> T v a
 padT v aps ash at =
   fromVectorT ss $ vUnsafeConcatN (product ss) $ pad' aps ash st at
@@ -2146,12 +2186,6 @@ permute is xs = go is
         ix (_ : ys) k = ix ys (k - 1)
         ix [] _ = error "permute: violated contract: index out of range"
 
--- NOINLINE: GHC HEAD 10.1.20260918, 2026-10-13: inlined into transpose, the
--- check of a literal permutation was computed once in a library built at
--- -funfolding-creation-threshold=30, and in every call in one built at the
--- default thresholds with Dynamic's transpose INLINE.  Out of line, a call of
--- it on a literal is a constant, computed once at any threshold.
---
 -- | Whether the list holds each of 0 to its length less 1, so that it is a
 -- permutation of them.
 {-# NOINLINE isPermutation #-}
@@ -2159,11 +2193,10 @@ isPermutation :: [Int] -> Bool
 isPermutation is = all (`elem` is) [0 .. length is - 1]
 
 -- | Like 'dropWhile' but at the end of the list.
+{-# INLINE revDropWhile #-}
 revDropWhile :: (a -> Bool) -> [a] -> [a]
 revDropWhile p = reverse . dropWhile p . reverse
 
--- INLINABLE: F1 reads no fusion here: it matches its list before all consumes
--- the tail, so it fuses with no producer.
 {-# INLINABLE allSame #-}
 allSame :: (Eq a) => [a] -> Bool
 allSame [] = True

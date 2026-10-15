@@ -90,7 +90,7 @@ instance ValidStretch '[] '[] where
   {-# INLINE stretching #-}
   stretching _ _ = []
 instance (BoolVal (Stretch s m), ValidStretch ss ms) => ValidStretch (s ': ss) (m ': ms) where
-  {-# INLINE stretching #-}
+  {-# INLINABLE stretching #-}
   stretching _ _ = boolVal (Proxy :: Proxy (Stretch s m)) :
     stretching (Proxy :: Proxy ss) (Proxy :: Proxy ms)
 type family Stretch (s::Nat) (m::Nat) :: Bool where
@@ -101,8 +101,10 @@ type family Stretch (s::Nat) (m::Nat) :: Bool where
 class BoolVal (b :: Bool) where
   boolVal :: Proxy b -> Bool
 instance BoolVal 'False where
+  {-# INLINE boolVal #-}
   boolVal _ = False
 instance BoolVal 'True where
+  {-# INLINE boolVal #-}
   boolVal _ = True
 
 -----------------
@@ -240,13 +242,17 @@ validShape = (>= 0) . foldr step 1
 -- a permutation, strides or dimension indices, as 'Int's: each fails past
 -- 'maxBound', but their products, which mean nothing here, are not checked
 -- as a shape's are.
-{-# INLINE listP #-}
+{-# INLINABLE listP #-}
 listP :: (HasCallStack, Shape s) => Proxy s -> [Int]
 listP p = map toInt (natsP p)
   where toInt n | n > toInteger (maxBound :: Int) =
                     error $ "Shape: a number past maxBound in " ++ show (natsP p)
                 | otherwise = fromInteger n
 
+-- INLINE: on GHC HEAD 10.1.20260918 (2026-10-15), INLINABLE, as its type
+-- gives it, it cost Shaped iota 16 bytes a call in both of the specialisation
+-- benchmark's readings.
+--
 -- natT, like shapeP, sizeP and listP, reads only types, so a check made
 -- with it needs nothing of the arrays its function is given; yet where
 -- the function is strict in an array, GHC may force the array before the
@@ -276,6 +282,7 @@ sizeT = sizeP (Proxy :: Proxy sh)
 
 -- | Turn a dynamic shape back into a type level shape.
 -- @withShapeP sh shapeP == sh@
+{-# INLINE withShapeP #-}
 withShapeP :: (HasCallStack) => [Int] -> (forall sh . (Shape sh) => Proxy sh -> r) -> r
 withShapeP sh0 f0 = go sh0 f0
   where go :: [Int] -> (forall sh . (Shape sh) => Proxy sh -> r') -> r'
