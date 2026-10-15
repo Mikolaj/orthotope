@@ -143,13 +143,13 @@ instance Vector V.Vector where
   {-# INLINE vProduct #-}
   vProduct = V.product
   {-# INLINE vMaximum #-}
-  vMaximum = V.maximum
+  vMaximum !a = V.maximum a
   {-# INLINE vMinimum #-}
-  vMinimum = V.minimum
+  vMinimum !a = V.minimum a
   {-# INLINE vUpdate #-}
-  vUpdate = (V.//)
+  vUpdate !a !b = (V.//) a b
   {-# INLINE vGenerate #-}
-  vGenerate = V.generate
+  vGenerate !a b = V.generate a b
   -- vAll and vAny read each element by index through unsafeIndexM, which hands
   -- the predicate the element stored, where unsafeIndex would hand it a thunk
   -- of the read.  On GHC HEAD with vector patched as issue 570 proposes, on

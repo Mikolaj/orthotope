@@ -193,9 +193,9 @@ instance Vector V.Vector where
   {-# INLINE vProduct #-}
   vProduct = V.product
   {-# INLINE vMaximum #-}
-  vMaximum = V.maximum
+  vMaximum !a = V.maximum a
   {-# INLINE vMinimum #-}
-  vMinimum = V.minimum
+  vMinimum !a = V.minimum a
   {-# INLINE vUpdate #-}
   vUpdate = (V.//)
   {-# INLINE vGenerate #-}
