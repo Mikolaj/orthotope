@@ -29,18 +29,19 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
--- INLINE throughout but showsPrec, readsPrec, (==), rnf, size, window and
--- arbitrary: on GHC HEAD 10.1.20260918 (2026-10-15), the generic modules'
--- functions INLINABLE, as their types give them, cost the specialisation
--- benchmark up to 1160 bytes a call (append), 472 (transpose) and 456 (iota),
--- and their view operations, whose types carry no class, without a pragma up
--- to 136 (broadcast), 96 (slice) and 88 (stride).  Under it, rev allocates 32
--- bytes a call more forced at the small and empty sizes and 8 fewer summed,
--- and rotate, through the call of rev in DynamicG's rotate, 48 fewer in both
--- readings: inlined into a client, rev gets a local worker there, which returns
--- the strides, offset and vector untagged, and GHC builds the strict-field T
--- over them as a thunk, which it forces at once.  Those it leaves out keep the
--- pragma their types give them.
+-- INLINE throughout but showsPrec, readsPrec, (==), rnf, size, window,
+-- arbitrary and sumA: on GHC HEAD 10.1.20260918 (2026-10-15), the generic
+-- modules' functions INLINABLE, as their types give them, cost the
+-- specialisation benchmark up to 1160 bytes a call (append), 472 (transpose)
+-- and 456 (iota), and their view operations, whose types carry no class,
+-- without a pragma up to 136 (broadcast), 96 (slice) and 88 (stride).  Under
+-- it, rev allocates 32 bytes a call more forced at the small and empty sizes
+-- and 8 fewer summed, and rotate, through the call of rev in DynamicG's rotate,
+-- 48 fewer in both readings: inlined into a client, rev gets a local worker
+-- there, which returns the strides, offset and vector untagged, and GHC builds
+-- the strict-field T over them as a thunk, which it forces at once.  Those it
+-- leaves out keep the pragma their types give them; sumA is INLINABLE for the
+-- reason at Data.Array.Internal.Dynamic's sumA.
 -- | Arrays of dynamic size, but static rank.  The arrays are polymorphic in the underlying
 -- linear data structure used to store the actual values.
 module Data.Array.Internal.RankedG(
@@ -673,7 +674,7 @@ instance (KnownNat r, Vector v, VecElem v a, Arbitrary a) => Arbitrary (Array r 
     fromList ss <$> vector (product ss)
 
 -- | Sum of all elements.
-{-# INLINE sumA #-}
+{-# INLINABLE sumA #-}
 sumA :: forall r v a . (Vector v, VecElem v a, Num a) => Array r v a -> a
 sumA (A sh t) = sumT sh t
 
