@@ -162,6 +162,7 @@ fromVector ss = A . G.fromVector ss
 normalize :: forall n a . (Unbox a) => Array n a -> Array n a
 normalize = A . G.normalize . unA
 
+-- INLINABLE: see Data.Array.Internal.DynamicS's force.
 -- | Copy the elements of the array into a vector of their own, in the
 -- linearization order, sharing no storage with another array.  This is
 -- especially useful for a view of a large array, such as @'index' a 0@,
@@ -169,7 +170,7 @@ normalize = A . G.normalize . unA
 -- included: forcing it copies just its own elements and allows the large
 -- vector to be garbage collected, if nothing else refers to it.
 -- O(n) time.
-{-# INLINE force #-}
+{-# INLINABLE force #-}
 force :: forall n a . (Unbox a) => Array n a -> Array n a
 force = A . G.force . unA
 
