@@ -142,14 +142,36 @@ instance Vector V.Vector where
   vSum = V.sum
   {-# INLINE vProduct #-}
   vProduct = V.product
+  -- vMaximum and vMinimum are named, for the bangs, here and in the Storable
+  -- instance of Data.Array.Internal.DynamicS: on GHC HEAD 10.1.20260918
+  -- (2026-10-17) the specialisation benchmark's maximumA and minimumA ran 13
+  -- to 15 instructions a call fewer with them boxed, up to 4.2%, and 6 fewer
+  -- Storable, up to 2.1%, on every view but runs, scaled and window.  With a
+  -- bang GHC copies the fold into each branch of the case on the view's start,
+  -- where without one a branch called a copy floated out to the top level.
   {-# INLINE vMaximum #-}
-  vMaximum = V.maximum
+  vMaximum !a = V.maximum a
   {-# INLINE vMinimum #-}
-  vMinimum = V.minimum
+  vMinimum !a = V.minimum a
+  -- Named, for the bangs: on GHC HEAD 10.1.20260918 (2026-10-17) the
+  -- specialisation benchmark's summed boxed update2000 at [400, 500] ran 4.8
+  -- to 8.6% fewer instructions with them in Dynamic and Ranked, and forced at
+  -- [3, 3] up to 0.4% more.  The bang on the list evaluates its first cell
+  -- before the vector's copy, after which the loop over the updates swaps
+  -- registers through a stack slot on each pass, while the summing loop,
+  -- its Core unchanged, makes one such swap fewer an element, the shape of
+  -- https://gitlab.haskell.org/ghc/ghc/-/work_items/27800.
   {-# INLINE vUpdate #-}
-  vUpdate = (V.//)
+  vUpdate !a !b = (V.//) a b
+  -- Named, for the bang: on GHC HEAD 10.1.20260918 (2026-10-17) the
+  -- specialisation benchmark's summed boxed generate ran 17 to 26
+  -- instructions a call fewer with it at [3, 3] and 2 to 3 an element at
+  -- [400, 500].  The bang evaluates the size earlier, which leaves the
+  -- loops' Core unchanged, but where they swapped registers through stack
+  -- slots twice an element they rotate three through one, the shape of
+  -- https://gitlab.haskell.org/ghc/ghc/-/work_items/27800.
   {-# INLINE vGenerate #-}
-  vGenerate = V.generate
+  vGenerate !a b = V.generate a b
   -- vAll and vAny read each element by index through unsafeIndexM, which hands
   -- the predicate the element stored, where unsafeIndex would hand it a thunk
   -- of the read.  On GHC HEAD with vector patched as issue 570 proposes, on

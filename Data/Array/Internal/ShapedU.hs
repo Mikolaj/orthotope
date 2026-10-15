@@ -13,6 +13,7 @@
 -- limitations under the License.
 
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
@@ -175,12 +176,17 @@ normalize = A . G.normalize . unA
 force :: forall sh a . (Unbox a, Shape sh) => Array sh a -> Array sh a
 force = A . G.force . unA
 
+-- Named, for the bang: on GHC HEAD 10.1.20260918 (2026-10-17) the
+-- specialisation benchmark's forced reshape ran 8 instructions a call fewer
+-- with it, up to 2.2%: with it the caller takes the array apart and calls the
+-- worker of Data.Array.Internal.ShapedG's reshape' itself, where without it
+-- the caller called the specialised wrapper of reshape', which does that.
 -- | Change the shape of an array.  Type error if the arrays have different number of elements.
 -- O(n) or O(1) time.
 {-# INLINE reshape #-}
 reshape :: forall sh' sh a . (Unbox a, Shape sh, Shape sh', Size sh ~ Size sh') =>
            Array sh a -> Array sh' a
-reshape = A . G.reshape . unA
+reshape !a = A (G.reshape (unA a))
 
 -- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
 -- All other dimensions must remain the same.

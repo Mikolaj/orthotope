@@ -192,10 +192,12 @@ instance Vector V.Vector where
   vSum = V.sum
   {-# INLINE vProduct #-}
   vProduct = V.product
+  -- vMaximum and vMinimum are named, for the bangs, as at the boxed instance
+  -- in Data.Array.Internal.Dynamic.
   {-# INLINE vMaximum #-}
-  vMaximum = V.maximum
+  vMaximum !a = V.maximum a
   {-# INLINE vMinimum #-}
-  vMinimum = V.minimum
+  vMinimum !a = V.minimum a
   {-# INLINE vUpdate #-}
   vUpdate = (V.//)
   {-# INLINE vGenerate #-}
