@@ -51,6 +51,11 @@
 -- polymorphic in the vector kind or in anything else, an unlikely use case the
 -- benchmark does not cover.
 --
+-- Every call applies each operation of the library to all its arguments, a
+-- composition, a section or a partial application written as a lambda naming
+-- them: GHC inlines an INLINE function only at a call giving it every argument
+-- its definition names.
+--
 -- A property no construction keeps, so check it once a year or every 100
 -- commits, whichever comes first: the large size's rows and the small size's
 -- take the same arms of the library's code.  It last held on 2026-10-12, on
