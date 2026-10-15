@@ -28,6 +28,10 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
+-- INLINE throughout: on GHC HEAD 10.1.20260918 (2026-10-15), the generic
+-- modules' functions INLINABLE, as their types give them, cost the
+-- specialisation benchmark up to 1160 bytes a call (append), 472 (transpose)
+-- and 456 (iota).
 -- | Arrays of static size.  The arrays are polymorphic in the underlying
 -- linear data structure used to store the actual values.
 module Data.Array.Internal.ShapedG(
@@ -77,6 +81,7 @@ instance (Vector v, Show a, VecElem v a, Shape sh) => Show (Array sh v a) where
     showString "fromList @" . showsPrec 11 (shapeL a) . showString" " . showsPrec 11 (toList a)
 
 instance (Shape sh, Vector v, Read a, VecElem v a) => Read (Array sh v a) where
+  {-# INLINABLE readsPrec #-}
   readsPrec p = readParen (p > 10) $ \ r1 ->
     [(fromList xs, r4)
     | ("fromList", r2) <- lex r1, ("@", r2') <- lex r2
@@ -85,33 +90,34 @@ instance (Shape sh, Vector v, Read a, VecElem v a) => Read (Array sh v a) where
 
 instance (Vector v, Eq a, VecElem v a, Shape sh)
          => Eq (Array sh v a) where
+  {-# INLINABLE (==) #-}
   a@(A v) == (A v') = equalT (shapeL a) (shapeL a) v v'
-  {-# INLINE (==) #-}
 
 -- INLINE throughout: see DynamicG's Ord instance.
 instance (Vector v, Ord a, VecElem v a, Shape sh)
          => Ord (Array sh v a) where
-  a@(A v) `compare` (A v') = compareT (shapeL a) v v'
   {-# INLINE compare #-}
-  x < y = case compare x y of { LT -> True; _ -> False }
+  a@(A v) `compare` (A v') = compareT (shapeL a) v v'
   {-# INLINE (<) #-}
-  x <= y = case compare x y of { GT -> False; _ -> True }
+  x < y = case compare x y of { LT -> True; _ -> False }
   {-# INLINE (<=) #-}
-  x > y = case compare x y of { GT -> True; _ -> False }
+  x <= y = case compare x y of { GT -> False; _ -> True }
   {-# INLINE (>) #-}
-  x >= y = case compare x y of { LT -> False; _ -> True }
+  x > y = case compare x y of { GT -> True; _ -> False }
   {-# INLINE (>=) #-}
-  max x y = if x <= y then y else x
+  x >= y = case compare x y of { LT -> False; _ -> True }
   {-# INLINE max #-}
-  min x y = if x <= y then x else y
+  max x y = if x <= y then y else x
   {-# INLINE min #-}
+  min x y = if x <= y then x else y
 
 instance (Vector v, Pretty a, VecElem v a, Shape sh) => Pretty (Array sh v a) where
+  {-# INLINABLE pPrintPrec #-}
   pPrintPrec l p a@(A t) = ppT l p (shapeL a) t
 
 instance (NFData (v a)) => NFData (Array sh v a) where
-  rnf (A t) = rnf t
   {-# INLINE rnf #-}
+  rnf (A t) = rnf t
 
 -- | The number of elements in the array.
 {-# INLINE size #-}
@@ -134,7 +140,7 @@ rank _ = valueOf @(Rank sh)
 
 -- | Index into an array.  Fails if the index is out of bounds.
 -- O(1) time.
-{-# INLINE index #-}
+{-# INLINABLE index #-}
 index :: forall s sh v a . (HasCallStack, KnownNat s) =>
          Array (s:sh) v a -> Int -> Array sh v a
 index (A t) i | i < 0 || i >= s = error $ "index: out of bounds " ++ show (i, s)
@@ -158,13 +164,13 @@ toList a@(A t) = toListT (shapeL a) t
 toVector :: forall sh v a . (Vector v, VecElem v a, Shape sh) => Array sh v a -> v a
 toVector a@(A t) = toVectorT (shapeL a) t
 
--- INLINABLE: F1 reads no fusion here: its list goes to length and to
--- vFromListN, whose vector instances take it apart by case, so it fuses with no
--- producer.
+-- INLINE: by the measurement in the module's header, not for fusion: its list
+-- goes to length and to vFromListN, whose vector instances take it apart by
+-- case, so it fuses with no producer.
 -- | Convert from a list with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(n) time.
-{-# INLINABLE fromList #-}
+{-# INLINE fromList #-}
 fromList :: forall sh v a . (HasCallStack, Vector v, VecElem v a, Shape sh) =>
             [a] -> Array sh v a
 fromList vs | n /= l = error $ "fromList: size mismatch " ++ show (n, l)
@@ -234,6 +240,7 @@ stretch :: forall sh' sh v a . (Shape sh', ValidStretch sh sh') =>
 stretch a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now; see natT
             stretch' (stretching (Proxy :: Proxy sh) (Proxy :: Proxy sh')) a
 
+{-# INLINE stretch' #-}
 stretch' :: [Bool] -> Array sh v a -> Array sh' v a
 stretch' str (A vs) = A $ stretchT str vs
 
@@ -305,7 +312,7 @@ zipWith5A f a@(A t) (A t') (A t'') (A t''') (A t'''') = A $ zipWith5T (shapeL a)
 -- O(n) time.
 -- With no padding, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINE pad #-}
+{-# INLINABLE pad #-}
 pad :: forall ps sh' sh a v . (HasCallStack, Vector v, VecElem v a, Padded ps sh sh', Shape sh) =>
        a -> Array sh v a -> Array sh' v a
 pad v a@(A at) | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
@@ -349,14 +356,14 @@ append a@(A ta) b@(A tb)
   | natT @n == 0 = A ta
   | otherwise = fromVector (vAppend (toVector a) (toVector b))
 
--- INLINABLE: F1 reads no fusion here: its list goes to its checks and to the
--- concatenation, so it fuses with no producer.
+-- INLINE: by the measurement in the module's header, not for fusion: its list
+-- goes to its checks and to the concatenation, so it fuses with no producer.
 -- | Concatenate a number of arrays into a single array.
 -- Fails if the outer extents of the arrays do not sum to that of the result.
 -- O(n) time.
 -- Of one array, the result is that array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE concatOuter #-}
+{-# INLINE concatOuter #-}
 concatOuter :: forall m n sh v a . (HasCallStack, Vector v, VecElem v a, KnownNat m, KnownNat n, Shape sh) =>
                [Array (n ': sh) v a] -> Array (m ': sh) v a
 concatOuter as | sumExtents ns /= s = error $ "concatOuter: outer extent mismatch " ++ show (ns, s)
@@ -397,7 +404,7 @@ unravel = rerank @1 scalar
 --
 -- If the window type parameter @ws = '[w1,...,wk]@ and @wa = window \@ws a@ then
 -- @wa `index` i1 ... `index` ik == slice \@'[ '(i1,w1),...,'(ik,wk)] a@.
-{-# INLINE window #-}
+{-# INLINABLE window #-}
 window :: forall ws sh' sh v a .
           (Window ws sh sh', KnownNat (Rank ws), Shape sh') =>
           Array sh v a -> Array sh' v a
@@ -439,7 +446,7 @@ rotate a@(A t) =
 -- The extracted slice must fall within the array dimensions.
 -- E.g. @slice \@'[ '(1,2)] (fromList \@'[4] [1,2,3,4]) == fromList \@'[2] [2,3]@.
 -- O(1) time.
-{-# INLINE slice #-}
+{-# INLINABLE slice #-}
 slice :: forall sl sh' sh v a .
          (Slice sl sh sh') =>
          Array sh v a -> Array sh' v a
@@ -531,8 +538,8 @@ allSameA :: (Shape sh, Vector v, VecElem v a, Eq a) => Array sh v a -> Bool
 allSameA a@(A t) = allSameT (shapeL a) t
 
 instance (Shape sh, Vector v, VecElem v a, Arbitrary a) => Arbitrary (Array sh v a) where
+  {-# INLINE arbitrary #-}
   arbitrary = fromList <$> vector (sizeP (Proxy :: Proxy sh))
-  {-# INLINABLE arbitrary #-}
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}

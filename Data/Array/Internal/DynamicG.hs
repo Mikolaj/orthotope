@@ -20,6 +20,16 @@
 {-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UndecidableInstances #-}
+-- INLINE throughout: on GHC HEAD 10.1.20260918 (2026-10-15), the generic
+-- modules' functions INLINABLE, as their types give them, cost the
+-- specialisation benchmark up to 1160 bytes a call (append), 472 (transpose)
+-- and 456 (iota), and their view operations, whose types carry no class,
+-- without a pragma up to 136 (broadcast), 96 (slice) and 88 (stride).  Under
+-- it, rev allocates 32 bytes a call more forced at the small and empty sizes
+-- and 8 fewer summed, and rotate 48 fewer in both readings: inlined into a
+-- client, it gets a local worker there, which returns the strides, offset and
+-- vector untagged, and GHC builds the strict-field T over them as a thunk,
+-- which it forces at once.
 -- | Arrays of dynamic size.  The arrays are polymorphic in the underlying
 -- linear data structure used to store the actual values.
 module Data.Array.Internal.DynamicG(
@@ -60,17 +70,19 @@ data Array v a = A !ShapeL !(T v a)
   deriving (Generic, Data)
 
 instance (Vector v, Show a, VecElem v a) => Show (Array v a) where
+  {-# INLINABLE showsPrec #-}
   showsPrec p a@(A s _) = showParen (p > 10) $
     showString "fromList " . showsPrec 11 s . showString " " . showsPrec 11 (toList a)
 
 instance (Vector v, Read a, VecElem v a) => Read (Array v a) where
+  {-# INLINABLE readsPrec #-}
   readsPrec p = readParen (p > 10) $ \ r1 ->
     [(fromList s xs, r4) | ("fromList", r2) <- lex r1, (s, r3) <- readsPrec 11 r2,
                     (xs, r4) <- readsPrec 11 r3, not (badShape s), product s == length xs]
 
 instance (Vector v, Eq a, VecElem v a) => Eq (Array v a) where
+  {-# INLINABLE (==) #-}
   (A s v) == (A s' v') = equalT s s' v v'
-  {-# INLINE (==) #-}
 
 -- INLINE throughout: on GHC HEAD 10.1.20260918 (2026-10-12), with compare
 -- alone defined, < of two [400, 500] views of Doubles took the class's
@@ -78,34 +90,34 @@ instance (Vector v, Eq a, VecElem v a) => Eq (Array v a) where
 -- at Storable, 208 at Unboxed and 144 boxed, where DynamicS's < allocated
 -- none.
 instance (Vector v, Ord a, VecElem v a) => Ord (Array v a) where
-  (A s v) `compare` (A s' v') = compare s s' <> compareT s v v'
   {-# INLINE compare #-}
-  x < y = case compare x y of { LT -> True; _ -> False }
+  (A s v) `compare` (A s' v') = compare s s' <> compareT s v v'
   {-# INLINE (<) #-}
-  x <= y = case compare x y of { GT -> False; _ -> True }
+  x < y = case compare x y of { LT -> True; _ -> False }
   {-# INLINE (<=) #-}
-  x > y = case compare x y of { GT -> True; _ -> False }
+  x <= y = case compare x y of { GT -> False; _ -> True }
   {-# INLINE (>) #-}
-  x >= y = case compare x y of { LT -> False; _ -> True }
+  x > y = case compare x y of { GT -> True; _ -> False }
   {-# INLINE (>=) #-}
-  max x y = if x <= y then y else x
+  x >= y = case compare x y of { LT -> False; _ -> True }
   {-# INLINE max #-}
-  min x y = if x <= y then x else y
+  max x y = if x <= y then y else x
   {-# INLINE min #-}
+  min x y = if x <= y then x else y
 
 instance (Vector v, Pretty a, VecElem v a) => Pretty (Array v a) where
+  {-# INLINE pPrintPrec #-}
   pPrintPrec l p (A sh t) = ppT l p sh t
 
 instance (NFData (v a)) => NFData (Array v a) where
+  {-# INLINABLE rnf #-}
   rnf (A sh t) = rnf sh `seq` rnf t
-  {-# INLINE rnf #-}
 
 -- Point-free, as are the point-free definitions below: naming their arguments
 -- changed no byte of the specialisation benchmark, its calls saturated, and no
 -- instruction count past 0.5%, on GHC HEAD 10.1.20260918, 2026-10-15.
 --
 -- | The number of elements in the array.
-{-# INLINE size #-}
 size :: Array v a -> Int
 size = product . shapeL
 
@@ -145,9 +157,9 @@ toList (A sh t) = toListT sh t
 toVector :: (Vector v, VecElem v a) => Array v a -> v a
 toVector (A sh t) = toVectorT sh t
 
--- INLINABLE: F1 reads no fusion here: its list goes to length and to
--- vFromListN, whose vector instances take it apart by case, so it fuses with no
--- producer.
+-- INLINE: by the measurement in the module's header, not for fusion: its list
+-- goes to length and to vFromListN, whose vector instances take it apart by
+-- case, so it fuses with no producer.
 --
 -- HasCallStack, here and in the other array modules, goes on exactly the
 -- functions that check an argument, calling error when it is bad, as
@@ -160,7 +172,7 @@ toVector (A sh t) = toVectorT sh t
 -- | Convert from a list with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(n) time.
-{-# INLINABLE fromList #-}
+{-# INLINE fromList #-}
 fromList :: (HasCallStack, Vector v, VecElem v a) => ShapeL -> [a] -> Array v a
 fromList ss vs | badShape ss = error $ "fromList: bad shape " ++ show ss
                | n /= l = error $ "fromList: size mismatch " ++ show (n, l)
@@ -349,15 +361,15 @@ append a@(A (sa:sh) _) b@(A (sb:sh') _)
     fromVector (sa+sb : sh) (vAppend (toVector a) (toVector b))
 append _ _ = error "append: bad shape"
 
--- INLINABLE: F1 reads no fusion here: its list goes to its checks and to the
--- concatenation, so it fuses with no producer.
+-- INLINE: by the measurement in the module's header, not for fusion: its list
+-- goes to its checks and to the concatenation, so it fuses with no producer.
 -- | Concatenate a number of arrays into a single array.
 -- Fails if the list is empty, an array has rank 0 or any but the outer
 -- dimensions differ.
 -- O(n) time.
 -- Of one array, the result is that array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE concatOuter #-}
+{-# INLINE concatOuter #-}
 concatOuter :: (HasCallStack, Vector v, VecElem v a) => [Array v a] -> Array v a
 concatOuter [] = error "concatOuter: empty list"
 concatOuter as | any null shs = error "concatOuter: rank 0 array"
@@ -410,7 +422,6 @@ unravel a = rerank 1 scalar a
 --
 -- If the window parameter @ws = [w1,...,wk]@ and @wa = window ws a@ then
 -- @wa `index` i1 ... `index` ik == slice [(i1,w1),...,(ik,wk)] a@.
-{-# INLINE window #-}
 window :: HasCallStack => [Int] -> Array v a -> Array v a
 -- The window list is checked before the shape is built, so that the shape
 -- a message shows holds no error of its own, and the extents are computed
@@ -603,12 +614,12 @@ allSameA :: (Vector v, VecElem v a, Eq a) => Array v a -> Bool
 allSameA (A sh t) = allSameT sh t
 
 instance (Vector v, VecElem v a, Arbitrary a) => Arbitrary (Array v a) where
+  {-# INLINABLE arbitrary #-}
   arbitrary = do
     r <- choose (0, 5)  -- Don't generate huge ranks
     -- Don't generate huge number of elements
     ss <- replicateM r (getSmall . getPositive <$> arbitrary) `suchThat` ((< 10000) . product)
     fromList ss <$> vector (product ss)
-  {-# INLINABLE arbitrary #-}
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}
@@ -672,13 +683,13 @@ broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dime
         ascending (x:y:ys) = x < y && ascending (y:ys)
         ascending _ = True
 
--- INLINABLE: F1 reads no fusion here: its list goes to null, to all and to
--- updateT, so it fuses with no producer.
+-- INLINE: by the measurement in the module's header, not for fusion: its list
+-- goes to null, to all and to updateT, so it fuses with no producer.
 -- | Update the array at the specified indices to the associated value.
 -- Fails if an index is out of bounds.
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE update #-}
+{-# INLINE update #-}
 update :: (HasCallStack, Vector v, VecElem v a) =>
           Array v a -> [([Int], a)] -> Array v a
 update (A sh t) us | null us = A sh t  -- no update: the array itself

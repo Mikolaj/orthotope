@@ -217,7 +217,7 @@ instance Vector V.Vector where
   vUnsafeWithElem v i k = let !x = V.unsafeIndex v i in k x
   {-# INLINE vGenerate' #-}
   vGenerate' = V.generate
-  {-# INLINE vUnsafeFillStrided #-}
+  {-# INLINABLE vUnsafeFillStrided #-}
   vUnsafeFillStrided :: forall a. Unbox a
                => Axes -> Int -> Int -> V.Vector a -> V.Vector a
   vUnsafeFillStrided = genericUnsafeFillStrided (512 `quot` max 1 (sizeOf (undefined :: a)))
@@ -235,21 +235,22 @@ instance NFData (Array a)
 -- Point-free, as are the point-free wrappers and instance methods below, for
 -- the reason at the Show instance of Data.Array.Internal.Dynamic.
 instance (Show a, Unbox a) => Show (Array a) where
+  {-# INLINE showsPrec #-}
   showsPrec p = showsPrec p . unA
 
 instance (Read a, Unbox a) => Read (Array a) where
+  {-# INLINABLE readsPrec #-}
   readsPrec p s = [(A a, r) | (a, r) <- readsPrec p s]
 
 instance Eq (G.Array V.Vector a) => Eq (Array a) where
+  {-# INLINABLE (==) #-}
   x == y = unA x == unA y
-  {-# INLINE (==) #-}
 
 instance Ord (G.Array V.Vector a) => Ord (Array a) where
-  compare x y = compare (unA x) (unA y)
   {-# INLINE compare #-}
+  compare x y = compare (unA x) (unA y)
 
 -- | The number of elements in the array.
-{-# INLINE size #-}
 size :: Array a -> Int
 size = product . shapeL
 
@@ -257,11 +258,13 @@ size = product . shapeL
 -- In the linearization of the array the outermost (i.e. first list element)
 -- varies most slowly.
 -- O(1) time.
+{-# INLINE shapeL #-}
 shapeL :: Array a -> ShapeL
 shapeL = G.shapeL . unA
 
 -- | The rank of an array, i.e., the number of dimensions it has.
 -- O(1) time.
+{-# INLINE rank #-}
 rank :: Array a -> Int
 rank = G.rank . unA
 
@@ -306,7 +309,7 @@ fromVector ss = A . G.fromVector ss
 -- This is semantically an identity function, but can have big performance
 -- implications.
 -- O(n) or O(1) time.
-{-# INLINABLE normalize #-}
+{-# INLINE normalize #-}
 normalize :: (Unbox a) => Array a -> Array a
 normalize = A . G.normalize . unA
 
@@ -317,24 +320,26 @@ normalize = A . G.normalize . unA
 -- included: forcing it copies just its own elements and allows the large
 -- vector to be garbage collected, if nothing else refers to it.
 -- O(n) time.
-{-# INLINABLE force #-}
+{-# INLINE force #-}
 force :: (Unbox a) => Array a -> Array a
 force = A . G.force . unA
 
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.
-{-# INLINABLE reshape #-}
+{-# INLINE reshape #-}
 reshape :: (HasCallStack, Unbox a) => ShapeL -> Array a -> Array a
 reshape s = A . G.reshape s . unA
 
 -- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
 -- All other dimensions must remain the same.
 -- O(1) time.
+{-# INLINE stretch #-}
 stretch :: (HasCallStack) => ShapeL -> Array a -> Array a
 stretch s = A . G.stretch s . unA
 
 -- | Change the size of the outermost dimension by replication.
 -- Fails if the outermost dimension is not 1 or the size is negative.
+{-# INLINE stretchOuter #-}
 stretchOuter :: (HasCallStack) => Int -> Array a -> Array a
 stretchOuter s = A . G.stretchOuter s . unA
 
@@ -400,7 +405,7 @@ zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e
 -- O(n) time.
 -- With no padding, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE pad #-}
+{-# INLINE pad #-}
 pad :: (HasCallStack, Unbox a) => [(Int, Int)] -> a -> Array a -> Array a
 pad ps v = A . G.pad ps v . unA
 
@@ -409,6 +414,7 @@ pad ps v = A . G.pad ps v . unA
 -- [0..l-1] for an l no greater than the rank of the array, whose l outermost
 -- dimensions it permutes.
 -- O(1) time.
+{-# INLINE transpose #-}
 transpose :: (HasCallStack) => [Int] -> Array a -> Array a
 transpose is = A . G.transpose is . unA
 
@@ -418,20 +424,22 @@ transpose is = A . G.transpose is . unA
 -- O(n) time.
 -- Where one array's outer extent is 0, the result is the other itself, sharing
 -- its vector; 'force' copies it out.
-{-# INLINABLE append #-}
+{-# INLINE append #-}
 append :: (HasCallStack, Unbox a) => Array a -> Array a -> Array a
 append x y = A $ G.append (unA x) (unA y)
 
+-- INLINE: see Data.Array.Internal.Dynamic's concatOuter.
 -- | Concatenate a number of arrays into a single array.
 -- Fails if the list is empty, an array has rank 0 or any but the outer
 -- dimensions differ.
 -- O(n) time.
 -- Of one array, the result is that array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE concatOuter #-}
+{-# INLINE concatOuter #-}
 concatOuter :: (HasCallStack, Unbox a) => [Array a] -> Array a
 concatOuter = A . G.concatOuter . coerce
 
+-- INLINE: see Data.Array.Internal.Dynamic's concatOuter.
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape,
 -- and there must be at least one.
@@ -439,14 +447,13 @@ concatOuter = A . G.concatOuter . coerce
 -- O(n) time.
 -- Of one array, the result is a view of it, sharing its vector; 'force' copies
 -- it out.
-{-# INLINABLE ravel #-}
+{-# INLINE ravel #-}
 ravel :: (HasCallStack, Unbox a) => D.Array (Array a) -> Array a
 ravel = A . G.ravel . G.mapA unA . D.unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
 -- Fails if the array has rank 0.
-{-# INLINABLE unravel #-}
 unravel :: HasCallStack => Array a -> D.Array (Array a)
 unravel = D.A . G.mapA A . G.unravel . unA
 
@@ -463,7 +470,7 @@ unravel = D.A . G.mapA A . G.unravel . unA
 --
 -- If the window parameter @ws = [w1,...,wk]@ and @wa = window ws a@ then
 -- @wa `index` i1 ... `index` ik == slice [(i1,w1),...,(ik,wk)] a@.
-{-# INLINABLE window #-}
+{-# INLINE window #-}
 window :: (HasCallStack) => [Int] -> Array a -> Array a
 window ws = A . G.window ws . unA
 
@@ -473,6 +480,7 @@ window ws = A . G.window ws . unA
 -- Fails if the stride list is longer than the rank or a stride is not
 -- positive.
 -- O(1) time.
+{-# INLINE stride #-}
 stride :: (HasCallStack) => [Int] -> Array a -> Array a
 stride ws = A . G.stride ws . unA
 
@@ -483,7 +491,7 @@ stride ws = A . G.stride ws . unA
 -- if the result has more than half of 'maxBound' elements.
 -- With k = 1, the result is a view of the array, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE rotate #-}
+{-# INLINE rotate #-}
 rotate :: (HasCallStack, Unbox a) => Int -> Int -> Array a -> Array a
 rotate d k = A . G.rotate d k . unA
 
@@ -493,6 +501,7 @@ rotate d k = A . G.rotate d k . unA
 -- The extracted slice must fall within the array dimensions.
 -- E.g. @slice [(1,2)] (fromList [4] [1,2,3,4]) == fromList [2] [2,3]@.
 -- O(1) time.
+{-# INLINE slice #-}
 slice :: (HasCallStack) => [(Int, Int)] -> Array a -> Array a
 slice ss = A . G.slice ss . unA
 
@@ -523,6 +532,7 @@ rerank2 n f ta tb = A $ G.rerank2 n (\ a b -> unA $ f (A a) (A b)) (unA ta) (unA
 -- | Reverse the given dimensions, with the outermost being dimension 0.
 -- Fails if a given dimension is not one of the array's.
 -- O(1) time.
+{-# INLINE rev #-}
 rev :: (HasCallStack) => [Int] -> Array a -> Array a
 rev rs = A . G.rev rs . unA
 
@@ -551,8 +561,8 @@ allSameA :: (Unbox a, Eq a) => Array a -> Bool
 allSameA = G.allSameA . unA
 
 instance (Arbitrary a, Unbox a) => Arbitrary (Array a) where
+  {-# INLINABLE arbitrary #-}
   arbitrary = A <$> arbitrary
-  {-# INLINE arbitrary #-}
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}
@@ -598,7 +608,7 @@ allA p = G.allA p . unA
 -- and it must be strictly ascending.
 -- Fails if an index is not a dimension of the result or the argument's
 -- dimensions differ from the result's at those indices.
-{-# INLINABLE broadcast #-}
+{-# INLINE broadcast #-}
 broadcast :: HasCallStack =>
              [Int] -> ShapeL -> Array a -> Array a
 broadcast ds sh = A. G.broadcast ds sh . unA
@@ -636,7 +646,7 @@ iota = A . G.iota
 -- For instance the floating point number @(1.5 :: Float)@ will convert to
 -- @(0x3fc00000 :: Word32)@ since they have the same bit representation.
 -- Fails if the two types differ in size or have size 0.
-{-# INLINE bitcast #-}
+{-# INLINABLE bitcast #-}
 bitcast :: forall a b . (HasCallStack, Unbox a, Unbox b) => Array a -> Array b
 bitcast (A (G.A sh (T ss o v)))
   | sza /= szb || sza == 0

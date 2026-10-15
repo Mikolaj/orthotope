@@ -75,24 +75,26 @@ newtype Array sh a = A { unA :: G.Array sh V.Vector a }
   deriving (Pretty, Generic, Data)
 
 instance (NFData a, Shape sh) => NFData (Array sh a) where
+  {-# INLINABLE rnf #-}
   rnf (A a@(G.A t)) = rnfViewT (G.shapeL a) t
-  {-# INLINE rnf #-}
 
 -- Point-free, as are the point-free wrappers and instance methods below, for
 -- the reason at the Show instance of Data.Array.Internal.Dynamic.
 instance (Show a, Shape sh) => Show (Array sh a) where
+  {-# INLINE showsPrec #-}
   showsPrec p = showsPrec p . unA
 
 instance (Read a, Shape sh) => Read (Array sh a) where
+  {-# INLINABLE readsPrec #-}
   readsPrec p s = [(A a, r) | (a, r) <- readsPrec p s]
 
 instance Eq (G.Array sh V.Vector a) => Eq (Array sh a) where
+  {-# INLINABLE (==) #-}
   x == y = unA x == unA y
-  {-# INLINE (==) #-}
 
 instance Ord (G.Array sh V.Vector a) => Ord (Array sh a) where
-  compare x y = compare (unA x) (unA y)
   {-# INLINE compare #-}
+  compare x y = compare (unA x) (unA y)
 
 -- | The number of elements in the array.
 {-# INLINE size #-}
@@ -155,7 +157,7 @@ fromVector = A . G.fromVector
 -- This is semantically an identity function, but can have big performance
 -- implications.
 -- O(n) or O(1) time.
-{-# INLINABLE normalize #-}
+{-# INLINE normalize #-}
 normalize :: (Shape sh) => Array sh a -> Array sh a
 normalize = A . G.normalize . unA
 
@@ -166,13 +168,13 @@ normalize = A . G.normalize . unA
 -- included: forcing it copies just its own elements and allows the large
 -- vector to be garbage collected, if nothing else refers to it.
 -- O(n) time.
-{-# INLINABLE force #-}
+{-# INLINE force #-}
 force :: (Shape sh) => Array sh a -> Array sh a
 force = A . G.force . unA
 
 -- | Change the shape of an array.  Type error if the arrays have different number of elements.
 -- O(n) or O(1) time.
-{-# INLINABLE reshape #-}
+{-# INLINE reshape #-}
 reshape :: forall sh' sh a . (Shape sh, Shape sh', Size sh ~ Size sh') =>
            Array sh a -> Array sh' a
 reshape = A . G.reshape . unA
@@ -223,22 +225,22 @@ mapA :: (Shape sh) => (a -> b) -> Array sh a -> Array sh b
 mapA f a = A (G.mapA f (unA a))
 
 instance (Shape sh) => Functor (Array sh) where
-  fmap = mapA
   {-# INLINE fmap #-}
+  fmap = mapA
 
 instance (Shape sh) => Foldable (Array sh) where
-  foldr = foldrA
   {-# INLINE foldr #-}
+  foldr = foldrA
 
 instance (Shape sh) => Traversable (Array sh) where
-  traverse = traverseA
   {-# INLINE traverse #-}
+  traverse = traverseA
 
 instance (Shape sh) => Applicative (Array sh) where
-  pure = constant
   {-# INLINE pure #-}
-  (<*>) = zipWithA ($)
+  pure = constant
   {-# INLINE (<*>) #-}
+  (<*>) = zipWithA ($)
 
 -- | Combine the elements of two arrays.
 -- O(n) time.
@@ -268,7 +270,7 @@ zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e
 -- O(n) time.
 -- With no padding, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE pad #-}
+{-# INLINE pad #-}
 pad :: forall ps sh' sh a . (HasCallStack, Padded ps sh sh', Shape sh) =>
        a -> Array sh a -> Array sh' a
 pad v = A . G.pad @ps v . unA
@@ -289,27 +291,29 @@ transpose = A . G.transpose @is . unA
 -- O(n) time.
 -- Where one array's outer extent is 0, the result is the other itself, sharing
 -- its vector; 'force' copies it out.
-{-# INLINABLE append #-}
+{-# INLINE append #-}
 append :: (Shape sh, KnownNat m, KnownNat n, KnownNat (m+n)) =>
           Array (m ': sh) a -> Array (n ': sh) a -> Array (m+n ': sh) a
 append x y = A $ G.append (unA x) (unA y)
 
+-- INLINE: see Data.Array.Internal.Dynamic's concatOuter.
 -- | Concatenate a number of arrays into a single array.
 -- Fails if the outer extents of the arrays do not sum to that of the result.
 -- O(n) time.
 -- Of one array, the result is that array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE concatOuter #-}
+{-# INLINE concatOuter #-}
 concatOuter :: forall m n sh a . (HasCallStack, KnownNat m, KnownNat n, Shape sh) =>
                [Array (n ': sh) a] -> Array (m ': sh) a
 concatOuter = A . G.concatOuter @m @n . coerce
 
+-- INLINE: see Data.Array.Internal.Dynamic's concatOuter.
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
 -- O(n) time.
 -- Of one array, the result is a view of it, sharing its vector; 'force' copies
 -- it out.
-{-# INLINABLE ravel #-}
+{-# INLINE ravel #-}
 ravel :: (Shape sh, KnownNat s) =>
          Array '[s] (Array sh a) -> Array (s:sh) a
 ravel = A . G.ravel . G.mapA unA . unA
@@ -332,7 +336,7 @@ unravel = A . G.mapA A . G.unravel . unA
 --
 -- If the window type parameter @ws = '[w1,...,wk]@ and @wa = window \@ws a@ then
 -- @wa `index` i1 ... `index` ik == slice \@'[ '(i1,w1),...,'(ik,wk)] a@.
-{-# INLINABLE window #-}
+{-# INLINE window #-}
 window :: forall ws sh' sh a .
           (Window ws sh sh', KnownNat (Rank ws), Shape sh') =>
           Array sh a -> Array sh' a
@@ -354,7 +358,7 @@ stride = A . G.stride @ts . unA
 -- May fail if the result has more than half of 'maxBound' elements.
 -- With k = 1, the result is a view of the array, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE rotate #-}
+{-# INLINE rotate #-}
 rotate :: forall d k sh a .
           (HasCallStack, KnownNat d, KnownNat k, Shape sh,
            d + 1 <= Rank sh, Shape (Take d sh ++ (k ': Drop d sh))) =>
@@ -433,8 +437,8 @@ allSameA :: (Shape sh, Eq a) => Array sh a -> Bool
 allSameA = G.allSameA . unA
 
 instance (Shape sh, Arbitrary a) => Arbitrary (Array sh a) where
+  {-# INLINABLE arbitrary #-}
   arbitrary = A <$> arbitrary
-  {-# INLINE arbitrary #-}
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}
@@ -476,7 +480,7 @@ allA p = G.allA p . unA
 -- and just replicate the data along all other dimensions.
 -- The list of dimension indices must have the same rank as the argument array
 -- and it must be strictly ascending.
-{-# INLINABLE broadcast #-}
+{-# INLINE broadcast #-}
 broadcast :: forall ds sh' sh a .
              (Shape sh, Shape sh',
               G.Broadcast ds sh sh') =>
