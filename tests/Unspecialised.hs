@@ -33,7 +33,7 @@ import qualified Call
 
 unspecialisedPad :: Call
 unspecialisedPad =
-  Call.call "pad" (DS.pad [(0, 1), (1, 1)] 0)
+  Call.call "pad" (\ a -> DS.pad [(0, 1), (1, 1)] 0 a)
             (DS.transpose [1, 0] (DS.fromList [500, 400] elems))
 
 unspecialisedFill :: Call
@@ -41,4 +41,4 @@ unspecialisedFill = Call.call "fillStrided" polymorphicFill (VS.fromList elems)
 
 {-# NOINLINE polymorphicFill #-}
 polymorphicFill :: (I.Vector v, I.VecElem v a) => v a -> v a
-polymorphicFill = I.fillStrided Call.axes 0 Call.n
+polymorphicFill v = I.fillStrided Call.axes 0 Call.n v

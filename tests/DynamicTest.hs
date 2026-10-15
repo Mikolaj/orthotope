@@ -532,7 +532,7 @@ test = testGroup "Dynamic" $
       slice_4 = assertThrows "4" (slice [(10,0)] a5)
       slice_5 = assertThrows "5" (slice [(0,3)] a5)
       slice_6 = assertThrowsIn "6" "slice" (slice [(1, maxBound)] (fromList [3] [1,2,3::Int]))
-      box = scalar . Just
+      box x = scalar (Just x)
       rerank_1 = assertEqual "1" (box a5)
                                  (rerank 0 box a5)
       rerank_2 = assertEqual "2" (fromList [2] [Just $ fromList [3,4] [1,2,3,4,5,6,7,8,9,10,11,12],
@@ -545,7 +545,7 @@ test = testGroup "Dynamic" $
                                                   Just $ fromList [4] [17,18,19,20],
                                                   Just $ fromList [4] [21,22,23,24]])
                                  (rerank 2 box a5)
-      rerank_4 = assertEqual "4" (mapA (Just . scalar) a5)
+      rerank_4 = assertEqual "4" (mapA (\ x -> Just (scalar x)) a5)
                                  (rerank 3 box a5)
       rerank_5 = assertThrows "4" (rerank 4 box a5)
       rerank_6 = assertThrowsIn "6" "ravelOuterOf" (rerank 1 (\ a -> constant [unScalar a] (0 :: Int)) (fromList [2] [1,2 :: Int]))
@@ -563,17 +563,17 @@ test = testGroup "Dynamic" $
       rev_3 = assertThrows "3" (rev [2] a1)
       rev_4 = assertThrowsIn "4" "rev" (rev [2] a1)
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
-      reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank 1 (reduce (*) 1) a1)
-      reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (reduce (*) 1) a2)
+      reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank 1 (\ r -> reduce (*) 1 r) a1)
+      reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (\ r -> reduce (*) 1 r) a2)
       -- Empty views of a longer vector, so that reading the element at the
       -- offset fails: at the vector's end under the bounds checks, and over
       -- an undefined element, which a boxed array can hold, in any build.
       allSameA_1 = assertEqual "1" [True, True]
-                     (map allSameA [ slice [(2,0)] a1
+                     (map (\ a -> allSameA a) [ slice [(2,0)] a1
                                    , slice [(1,0)] (fromList [2,3] [1, 2, 3, undefined, 5, 6]) ])
       -- As allSame . toList, comparing the first element with the others only.
       allSameA_2 = assertEqual "2" [True, False, False, False, True]
-                                   (map allSameA [ fromList [1] [nan], fromList [2] [nan, nan]
+                                   (map (\ a -> allSameA a) [ fromList [1] [nan], fromList [2] [nan, nan]
                                                  , constant [3] nan, normalize (constant [3] nan)
                                                  , slice [(0,1)] (fromList [2] [nan, 1]) ])
         where nan = 0 / 0 :: Double
@@ -623,7 +623,7 @@ test = testGroup "Dynamic" $
         assertEqual "zipWith4A" [4, 8 .. 24] (toList (zipWith4A (\ a b c d -> a + b + c + d) a1 a1 a1 a1))
         assertEqual "zipWith5A" [5, 10 .. 30]
                     (toList (zipWith5A (\ a b c d e -> a + b + c + d + e) a1 a1 a1 a1 a1))
-        assertEqual "traverseA" (Just [2 .. 7]) (toList <$> traverseA (Just . (+ 1)) a1)
+        assertEqual "traverseA" (Just [2 .. 7]) ((\ a -> toList a) <$> traverseA (Just . (+ 1)) a1)
         assertEqual "update" [9, 2, 3, 4, 5, 6] (toList (update a1 [([0, 0], 9)]))
         assertEqual "iterateN" [1, 2, 4] (toList (iterateN 3 (* 2) (1 :: Int)))
         assertEqual "generate" [0 .. 5] (toList (generate [2, 3] (\ is -> 3 * is !! 0 + is !! 1) :: Array Int))

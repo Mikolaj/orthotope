@@ -267,13 +267,13 @@ genRawView = do
 -- The operation, and the view over the elements given, through DynamicG at
 -- any instance of Vector.
 applyOpG :: (I.Vector v, I.VecElem v a) => Op -> DG.Array v a -> DG.Array v a
-applyOpG (Transpose is) = DG.transpose is
-applyOpG (Rev rs) = DG.rev rs
-applyOpG (Slice sl) = DG.slice sl
-applyOpG (Stride ts) = DG.stride ts
-applyOpG (Window ws) = DG.window ws
-applyOpG (Index i) = (`DG.index` i)
-applyOpG (Broadcast ds sh) = DG.broadcast ds sh
+applyOpG (Transpose is) = \ x -> DG.transpose is x
+applyOpG (Rev rs) = \ x -> DG.rev rs x
+applyOpG (Slice sl) = \ x -> DG.slice sl x
+applyOpG (Stride ts) = \ x -> DG.stride ts x
+applyOpG (Window ws) = \ x -> DG.window ws x
+applyOpG (Index i) = \ x -> DG.index x i
+applyOpG (Broadcast ds sh) = \ x -> DG.broadcast ds sh x
 applyOpG (Raw sh ss o k m) = \ x ->
   let v = DG.toVector x in DG.A sh (I.T ss o (I.vSlice k (I.vLength v - k - m) v))
 

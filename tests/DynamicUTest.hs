@@ -54,7 +54,7 @@ test = testGroup "DynamicU" $
       -- index need not know that the elements are Unboxed.
       constraints_1 = assertEqual "1" (index a1 1) (indexN a1 1)
         where indexN :: Array a -> Int -> Array a
-              indexN = index
+              indexN a i = index a i
       toList_1 = assertEqual "1" [1,2,3,4,5,6] (toList a1)
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
@@ -252,14 +252,14 @@ test = testGroup "DynamicU" $
                               (rev [0,1] a1)
       rev_3 = assertThrows "3" (rev [2] a1)
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
-      reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank 1 (reduce (*) 1) a1)
-      reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (reduce (*) 1) a2)
+      reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank 1 (\ r -> reduce (*) 1 r) a1)
+      reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (\ r -> reduce (*) 1 r) a2)
       -- An empty view at the end of a longer vector, so that reading the
       -- element at the offset fails under the bounds checks.
       allSameA_1 = assertEqual "1" True (allSameA (slice [(2,0)] a1))
       -- As allSame . toList, comparing the first element with the others only.
       allSameA_2 = assertEqual "2" [True, False, False, False, True]
-                                   (map allSameA [ fromList [1] [nan], fromList [2] [nan, nan]
+                                   (map (\ a -> allSameA a) [ fromList [1] [nan], fromList [2] [nan, nan]
                                                  , constant [3] nan, normalize (constant [3] nan)
                                                  , slice [(0,1)] (fromList [2] [nan, 1]) ])
         where nan = 0 / 0 :: Double
@@ -290,7 +290,7 @@ test = testGroup "DynamicU" $
         assertEqual "zipWith4A" [4, 8 .. 24] (toList (zipWith4A (\ a b c d -> a + b + c + d) a1 a1 a1 a1))
         assertEqual "zipWith5A" [5, 10 .. 30]
                     (toList (zipWith5A (\ a b c d e -> a + b + c + d + e) a1 a1 a1 a1 a1))
-        assertEqual "traverseA" (Just [2 .. 7]) (toList <$> traverseA (Just . (+ 1)) a1)
+        assertEqual "traverseA" (Just [2 .. 7]) ((\ a -> toList a) <$> traverseA (Just . (+ 1)) a1)
         assertEqual "update" [9, 2, 3, 4, 5, 6] (toList (update a1 [([0, 0], 9)]))
         assertEqual "iterateN" [1, 2, 4] (toList (iterateN 3 (* 2) (1 :: Int)))
         assertEqual "generate" [0 .. 5] (toList (generate [2, 3] (\ is -> 3 * is !! 0 + is !! 1) :: Array Int))

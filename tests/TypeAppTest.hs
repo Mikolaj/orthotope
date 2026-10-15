@@ -66,5 +66,5 @@ test = testGroup "TypeApp"
   , testCase "stride" $
       assertEqual "RG" [1, 3] (RG.toList (RG.stride @1 @V.Vector @Int [2] (RG.fromList [4] [1 .. 4])))
   , testCase "traverseA" $
-      assertEqual "S" (Just [2, 3]) (S.toList <$> S.traverseA @'[2] @Maybe @Int @Int (Just . succ) (S.fromList [1, 2]))
+      assertEqual "S" (Just [2, 3]) ((\ a -> S.toList a) <$> S.traverseA @'[2] @Maybe @Int @Int (Just . succ) (S.fromList [1, 2]))
   ]

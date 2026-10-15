@@ -124,29 +124,29 @@ sources xs =
 ops :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
        [(String, SG.Array '[2,3,4] v a -> ([Int], [a]), DG.Array v a -> ([Int], [a]))]
 ops =
-  [ ("transpose [2,0,1]", obs . SG.transpose @'[2,0,1], obsD . DG.transpose [2,0,1])
-  , ("transpose [1,0]", obs . SG.transpose @'[1,0], obsD . DG.transpose [1,0])
-  , ("rev [1]", obs . SG.rev @'[1], obsD . DG.rev [1])
-  , ("rev [0,2]", obs . SG.rev @'[0,2], obsD . DG.rev [0,2])
-  , ("slice [(1,1),(0,2)]", obs . SG.slice @'[ '(1,1), '(0,2) ], obsD . DG.slice [(1,1),(0,2)])
-  , ("stride [2,2,3]", obs . SG.stride @'[2,2,3], obsD . DG.stride [2,2,3])
-  , ("window [2,2]", obs . SG.window @'[2,2], obsD . DG.window [2,2])
-  , ("rotate 0 3", obs . SG.rotate @0 @3, obsD . DG.rotate 0 3)
-  , ("rotate 1 0", obs . SG.rotate @1 @0, obsD . DG.rotate 1 0)
-  , ("rotate 2 5", obs . SG.rotate @2 @5, obsD . DG.rotate 2 5)
-  , ("index 1", obs . (`SG.index` 1), obsD . (`DG.index` 1))
-  , ( "broadcast [0,2,3] [2,5,3,4]", obs . SG.broadcast @'[0,2,3] @'[2,5,3,4]
-    , obsD . DG.broadcast [0,2,3] [2,5,3,4] )
-  , ("reshape [6,4]", obs . SG.reshape @'[6,4], obsD . DG.reshape [6,4])
-  , ("reshape [4,3,2]", obs . SG.reshape @'[4,3,2], obsD . DG.reshape [4,3,2])
-  , ("reshape [24]", obs . SG.reshape @'[24], obsD . DG.reshape [24])
+  [ ("transpose [2,0,1]", \ a -> obs (SG.transpose @'[2,0,1] a), \ x -> obsD (DG.transpose [2,0,1] x))
+  , ("transpose [1,0]", \ a -> obs (SG.transpose @'[1,0] a), \ x -> obsD (DG.transpose [1,0] x))
+  , ("rev [1]", \ a -> obs (SG.rev @'[1] a), \ x -> obsD (DG.rev [1] x))
+  , ("rev [0,2]", \ a -> obs (SG.rev @'[0,2] a), \ x -> obsD (DG.rev [0,2] x))
+  , ("slice [(1,1),(0,2)]", \ a -> obs (SG.slice @'[ '(1,1), '(0,2) ] a), \ x -> obsD (DG.slice [(1,1),(0,2)] x))
+  , ("stride [2,2,3]", \ a -> obs (SG.stride @'[2,2,3] a), \ x -> obsD (DG.stride [2,2,3] x))
+  , ("window [2,2]", \ a -> obs (SG.window @'[2,2] a), \ x -> obsD (DG.window [2,2] x))
+  , ("rotate 0 3", \ a -> obs (SG.rotate @0 @3 a), \ x -> obsD (DG.rotate 0 3 x))
+  , ("rotate 1 0", \ a -> obs (SG.rotate @1 @0 a), \ x -> obsD (DG.rotate 1 0 x))
+  , ("rotate 2 5", \ a -> obs (SG.rotate @2 @5 a), \ x -> obsD (DG.rotate 2 5 x))
+  , ("index 1", \ a -> obs (SG.index a 1), \ x -> obsD (DG.index x 1))
+  , ( "broadcast [0,2,3] [2,5,3,4]", \ a -> obs (SG.broadcast @'[0,2,3] @'[2,5,3,4] a)
+    , \ x -> obsD (DG.broadcast [0,2,3] [2,5,3,4] x) )
+  , ("reshape [6,4]", \ a -> obs (SG.reshape @'[6,4] a), \ x -> obsD (DG.reshape [6,4] x))
+  , ("reshape [4,3,2]", \ a -> obs (SG.reshape @'[4,3,2] a), \ x -> obsD (DG.reshape [4,3,2] x))
+  , ("reshape [24]", \ a -> obs (SG.reshape @'[24] a), \ x -> obsD (DG.reshape [24] x))
   , ( "stretch [2,5,3,4] of reshape [2,1,3,4]"
-    , obs . SG.stretch @'[2,5,3,4] . SG.reshape @'[2,1,3,4]
-    , obsD . DG.stretch [2,5,3,4] . DG.reshape [2,1,3,4] )
+    , \ a -> obs (SG.stretch @'[2,5,3,4] (SG.reshape @'[2,1,3,4] a))
+    , \ x -> obsD (DG.stretch [2,5,3,4] (DG.reshape [2,1,3,4] x)) )
   , ( "stretchOuter 3 of reshape [1,2,3,4]"
-    , obs . SG.stretchOuter @3 . SG.reshape @'[1,2,3,4]
-    , obsD . DG.stretchOuter 3 . DG.reshape [1,2,3,4] )
-  , ("pad [(1,2),(0,1)]", obs . SG.pad @'[ '(1,2), '(0,1) ] 0, obsD . DG.pad [(1,2),(0,1)] 0)
+    , \ a -> obs (SG.stretchOuter @3 (SG.reshape @'[1,2,3,4] a))
+    , \ x -> obsD (DG.stretchOuter 3 (DG.reshape [1,2,3,4] x)) )
+  , ("pad [(1,2),(0,1)]", \ a -> obs (SG.pad @'[ '(1,2), '(0,1) ] 0 a), \ x -> obsD (DG.pad [(1,2),(0,1)] 0 x))
   , ( "zipWith4A with rev [0], rev [1] and rev [2]"
     , \ a -> obs (SG.zipWith4A f4 a (SG.rev @'[0] a) (SG.rev @'[1] a) (SG.rev @'[2] a))
     , \ x -> obsD (DG.zipWith4A f4 x (DG.rev [0] x) (DG.rev [1] x) (DG.rev [2] x)) )
@@ -164,21 +164,21 @@ ops =
   , ( "ravel of unravel"
     , \ a -> obs (SG.ravel (SG.unravel a :: SG.Array '[2] V.Vector (SG.Array '[3,4] v a)))
     , \ x -> obsD (DG.ravel (DG.unravel x :: DG.Array V.Vector (DG.Array v a))) )
-  , ( "rerank 1 (transpose [1,0])", obs . SG.rerank @1 (SG.transpose @'[1,0])
-    , obsD . DG.rerank 1 (DG.transpose [1,0]) )
-  , ( "rerank2 2 (zipWithA (+))", \ a -> obs (SG.rerank2 @2 (SG.zipWithA (+)) a a)
-    , \ x -> obsD (DG.rerank2 2 (DG.zipWithA (+)) x x) )
+  , ( "rerank 1 (transpose [1,0])", \ a -> obs (SG.rerank @1 (\ r -> SG.transpose @'[1,0] r) a)
+    , \ x -> obsD (DG.rerank 1 (\ r -> DG.transpose [1,0] r) x) )
+  , ( "rerank2 2 (zipWithA (+))", \ a -> obs (SG.rerank2 @2 (\ p q -> SG.zipWithA (+) p q) a a)
+    , \ x -> obsD (DG.rerank2 2 (\ p q -> DG.zipWithA (+) p q) x x) )
   , ( "rev [1] of transpose [2,0,1] of broadcast [0,2,3] [2,5,3,4]"
-    , obs . SG.rev @'[1] . SG.transpose @'[2,0,1] . SG.broadcast @'[0,2,3] @'[2,5,3,4]
-    , obsD . DG.rev [1] . DG.transpose [2,0,1] . DG.broadcast [0,2,3] [2,5,3,4] )
+    , \ a -> obs (SG.rev @'[1] (SG.transpose @'[2,0,1] (SG.broadcast @'[0,2,3] @'[2,5,3,4] a)))
+    , \ x -> obsD (DG.rev [1] (DG.transpose [2,0,1] (DG.broadcast [0,2,3] [2,5,3,4] x))) )
   , ( "window [2] of stride [1,2,3] of rev [2]"
-    , obs . SG.window @'[2] . SG.stride @'[1,2,3] . SG.rev @'[2]
-    , obsD . DG.window [2] . DG.stride [1,2,3] . DG.rev [2] )
+    , \ a -> obs (SG.window @'[2] (SG.stride @'[1,2,3] (SG.rev @'[2] a)))
+    , \ x -> obsD (DG.window [2] (DG.stride [1,2,3] (DG.rev [2] x))) )
   , ( "slice [(0,2),(1,2)] of transpose [1,2,0] of index 1 of reshape [2,1,3,4]"
-    , obs . SG.slice @'[ '(0,2), '(1,2) ] . SG.transpose @'[1,2,0] . (`SG.index` 1)
-      . SG.reshape @'[2,1,3,4]
-    , obsD . DG.slice [(0,2),(1,2)] . DG.transpose [1,2,0] . (`DG.index` 1)
-      . DG.reshape [2,1,3,4] )
+    , \ a -> obs (SG.slice @'[ '(0,2), '(1,2) ]
+                    (SG.transpose @'[1,2,0] (SG.index (SG.reshape @'[2,1,3,4] a) 1)))
+    , \ x -> obsD (DG.slice [(0,2),(1,2)]
+                     (DG.transpose [1,2,0] (DG.index (DG.reshape [2,1,3,4] x) 1))) )
   , ( "constant [2,3] 7", const (obs (SG.constant @'[2,3] 7 :: SG.Array '[2,3] v a))
     , const (obsD (DG.constant [2,3] 7 :: DG.Array v a)) )
   , ( "generate [2,3] sum", const (obs (SG.generate @'[2,3] (fromIntegral . sum) :: SG.Array '[2,3] v a))
