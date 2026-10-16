@@ -85,7 +85,7 @@ instance Vector V.Vector where
   {-# INLINE vLength #-}
   vLength = V.length
   {-# INLINE vToList #-}
-  vToList = V.toList
+  vToList !a = V.toList a
   {-# INLINE vFromList #-}
   vFromList = V.fromList
   {-# INLINE vFromListN #-}
