@@ -13829,7 +13829,8 @@ def wrap_verdict(path, cur, bad, note):
                     # line is flagged when it is in NEITHER form, and a
                     # long line can be in neither -- Run 38's open entry
                     # quoted a regex holding two literal spaces, which
-                    # `--unwrap` collapses, so the line the file had was
+                    # `--unwrap` collapsed until wrap80 b6d9cf6
+                    # (2026-10-16), so the line the file had was
                     # not the line either fixed point produces. The
                     # remedy named is right in both cases; the message
                     # sent a session hunting a wrapped paragraph that did

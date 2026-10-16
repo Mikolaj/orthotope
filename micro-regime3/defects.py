@@ -16889,11 +16889,13 @@ RECORDS = [
     # ---- --check-doc's hand-wrap verdict, which named no line ----------
     # `wrapped by hand` is the usual cause and not the only one: a
     # paragraph is flagged when a line of it is in NEITHER fixed point,
-    # and a LONG line can be in neither -- two literal spaces inside
-    # backticks survive in the file and are collapsed by `--unwrap`, so
-    # the line the file has is one no form produces. The verdict named
-    # the paragraph's first line number and nothing else, which sent a
-    # session hunting a hand-wrapped paragraph that did not exist.
+    # and a LONG line could be in neither -- two literal spaces inside
+    # backticks, which `--unwrap` collapsed until wrap80 b6d9cf6
+    # (2026-10-16). The verdict named the paragraph's first line number
+    # and nothing else, which sent a session hunting a hand-wrapped
+    # paragraph that did not exist. The plant was that line until wrap80
+    # began keeping the spaces, and is now a line broken short, which
+    # both forms join.
     # THE FIRST DRAFT OF THE FIX NAMED THE WRONG LINE, caught by watching
     # it: `ok` is the comparison loop's and by the time the message is
     # built it holds the LAST block's, so the set was rebuilt for the
@@ -16902,14 +16904,14 @@ RECORDS = [
          'the verdict named a paragraph and not what was wrong with it',
          plant=lambda t: {'readme': edited_readme(t, (
              a_registration_lead(),
-             '- `OPEN` **A planted line no fixed point produces.** It quotes'
-             ' `a  b`, two literal spaces inside backticks, which --unwrap'
-             ' collapses.\n' + a_registration_lead()))},
+             '- `OPEN` **A planted line no fixed point produces.** It breaks'
+             '\n  here, by hand.\n' + a_registration_lead()))},
          argv=['--check-doc', '--quiet', '--readme', '{readme}'],
          ok=V(exit=1,
               has=['whose first line in neither form is',
                    'A planted line no fixed point produces']),
-         bug=V(hasnt=['whose first line in neither form'])),
+         bug=V(exit=1, has=['are wrapped by hand -- first at line'],
+               hasnt=['whose first line in neither form'])),
 
     # ---- the seams Run 40's write-up met, 2026-09-25 ----
     case('fill-in-straddle-row-reads-the-listed-word', 'preflight.sh',
