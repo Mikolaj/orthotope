@@ -1148,8 +1148,89 @@ def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None,
     return write(os.path.join(tmp, 'R.md'), text + '\n' + entry + '\n')
 
 
-def prev_rundoc_for_a_registration(tmp, pointer):
-    """`runs/run98.md` beside a fixture README registering Run 99.
+def registration_to_move_mid_edit(tmp):
+    """`registration_to_move`'s README in its WRAPPED form with one
+    paragraph left long, as an edit in progress leaves it: at neither
+    fixed point, which the mover read as unwrapped and wrote back whole
+    one line a paragraph."""
+    r = registration_to_move(tmp)
+    text = subprocess.run(['wrap80'], input=open(r['readme']).read(),
+                          capture_output=True, text=True, check=True).stdout
+    text = text.replace('A paragraph.\n', 'A paragraph an edit in progress'
+                        ' has left long, at a length the wrapper would'
+                        ' break, so the file is at neither form.\n', 1)
+    with open(fresh(r['readme']), 'w') as f:
+        f.write(text)
+    return r
+
+
+def stale_pair_readded(tmp, n=97):
+    """`stale_pair`'s checkout with the run file ADDED TWICE: added, removed
+    and added again with another figure, which the working file keeps.
+    Step 5's copy is the newest add, the one the file descends from, and
+    the reading took the oldest."""
+    m = _reader()
+    d = os.path.join(tmp, m.RUNS_DIR)
+    os.makedirs(d, exist_ok=True)
+    doc = os.path.join(d, 'run%d.md' % n)
+    rel = os.path.relpath(doc, tmp)
+    def copy(fig):
+        return ('# Run %d\n\nA head paragraph.\n\n**On Run %d the floor is'
+                ' %s on the basis half.** It is read over the six A/A pairs'
+                ' this roster carries, and the pair that carries it is named'
+                ' beside the figure in the table above.\n'
+                % (n - 1, n - 1, fig))
+    write(doc, copy('0.31%'))
+    fixture_git(tmp, 'init', '-q')
+    fixture_git(tmp, 'add', '--', rel)
+    fixture_git(tmp, 'commit', '-q', '-m', 'copy run%d to run%d' % (n - 1, n))
+    fixture_git(tmp, 'rm', '-q', '--', rel)
+    fixture_git(tmp, 'commit', '-q', '-m', 'take the copy back')
+    os.makedirs(d, exist_ok=True)   # git rm took the emptied directory
+    write(doc, copy('0.44%'))
+    fixture_git(tmp, 'add', '--', rel)
+    fixture_git(tmp, 'commit', '-q', '-m', 'copy run%d to run%d again'
+                % (n - 1, n))
+    write(doc, '# Run %d\n\nA head paragraph of its own, rewritten for this'
+               ' run.\n\n**On Run %d the floor is 0.44%% on the basis half,'
+               ' the widest of the eight A/A pairs.** It is read over the'
+               ' eight pairs this roster carries, and this run names the pair'
+               ' that carries it beside the figure in the table above.\n'
+               % (n, n))
+    return {'doc': doc}
+
+
+def brief_tips_repo(tmp, run='run97', after=41):
+    """`brief_pair`'s directory as a checkout whose step-6d commit sits
+    `after` commits below the tip: the run file added, a commit whose
+    subject names the run and a step, then that many more."""
+    out = brief_pair(tmp, run=run)
+    d = os.path.join(tmp, 'runs')
+    os.makedirs(d, exist_ok=True)
+    write(os.path.join(d, '%s.md' % run), '# Run 97\n')
+    fixture_git(tmp, 'init', '-q')
+    fixture_git(tmp, 'add', '--', 'runs/%s.md' % run)
+    fixture_git(tmp, 'commit', '-q', '-m', 'copy run96 to %s' % run)
+    fixture_git(tmp, 'commit', '-q', '--allow-empty', '-m',
+                'Run 97 step 6d: the readings')
+    for k in range(after):
+        fixture_git(tmp, 'commit', '-q', '--allow-empty', '-m', 'later %d' % k)
+    return out
+
+
+def cross_classes_one_sided(tmp, prefix='zzcc'):
+    """A pair note and class JSONs under `prefix` in the temp directory,
+    one class carried by the basis half alone."""
+    p = os.path.join(tmp, prefix)
+    write(p + '-pair.txt', 'a stand-in note.\nHALVES: basis=aa other=bb\n')
+    synth_json(tmp, 'rev', prefix + '-aa-rev.json')
+    synth_json(tmp, 'rev', prefix + '-bb-rev.json')
+    synth_json(tmp, 'flip', prefix + '-aa-flip.json')
+    return {'prefix': p}
+
+
+def prev_rundoc_for_a_registration(tmp, pointer, n=98):
+    """`runs/run<n>.md` beside a fixture README registering Run 99.
 
     Its compares-against section declares the next run's pair, which is
     what a run file's does, and `pointer` is whether it also names the
@@ -1161,10 +1242,13 @@ def prev_rundoc_for_a_registration(tmp, pointer):
     d = os.path.join(tmp, 'runs')
     os.makedirs(d, exist_ok=True)
     ref = ' [registered 2026-09-18][open]' if pointer else ''
-    return write(os.path.join(d, 'run98.md'),
-                 '# Run 98\n\n## What the next run compares against\n\n'
-                 '**Run 99 is the pair below%s.** One variable and nothing'
-                 ' else.\n\n## Another section\n\nProse.\n' % ref)
+    # `n` below 98 leaves a gap, the previous run file being the newest
+    # below 99 rather than 98, which the lint took as num-1 and missed.
+    return write(os.path.join(d, 'run%d.md' % n),
+                 '# Run %d\n\n## What the next run compares against\n\n' % n
+                 + '**Run 99 is the pair below%s.** One variable and'
+                   ' nothing else.\n\n## Another section\n\nProse.\n'
+                   % ref)
 
 
 def readme_with_an_uncovered_figure(tmp, kind):
@@ -2031,7 +2115,7 @@ def lost_pair(tmp, n=97, deleted=True):
     return {'doc': doc}
 
 
-def stale_pair(tmp, n=97, kept=True, word=False):
+def stale_pair(tmp, n=97, kept=True, word=False, figure=None):
     """A run file whose step-5 copy is a commit, and which edited a figure
     -- or did not.
 
@@ -2055,7 +2139,9 @@ def stale_pair(tmp, n=97, kept=True, word=False):
     # a WORD numeral: the mode's first tiers admitted digits alone, so those
     # two sat in the bucket only --all prints while its docstring claimed
     # the default view printed them.
-    planted = 'thirty-four' if word else '0.31%'
+    # `figure` plants a bare percentage, `5%`, which the numeral pattern
+    # cut to `5` until 2026-10-16.
+    planted = figure or ('thirty-four' if word else '0.31%')
     copy = ('# Run %d\n\nA head paragraph.\n\n**On Run %d the floor is'
             ' %s on the basis half.** It is read over the six A/A pairs'
             ' this roster carries, and the pair that carries it is named'
@@ -2099,7 +2185,8 @@ def brief_with_a_standing_slot(tmp):
     return subs
 
 
-def brief_pair(tmp, run='run97', whole=True, stale_block=False, bodied=False):
+def brief_pair(tmp, run='run97', whole=True, stale_block=False, bodied=False,
+               gapped=False):
     """A facts file and a checker brief, the brief missing an item or not.
 
     `--brief-update` writes the brief's two THIS RUN ONLY items from the
@@ -2127,6 +2214,10 @@ def brief_pair(tmp, run='run97', whole=True, stale_block=False, bodied=False):
     # under the new items, run after run.
     if bodied:
         body += '    last run\'s body of item five\n'
+    # `gapped` puts a blank line inside item five's body, which ended the
+    # skip and left the rest standing until 2026-10-16.
+    if gapped:
+        body += '\n    a second paragraph of item five\n'
     if whole:
         body += ' 6. THIS RUN ONLY -- THE WINDOW AND THE INSTRUMENTS. Last run\'s.\n'
         if bodied:
@@ -6964,6 +7055,184 @@ TIER1.update({
         trigger='two threads loading the reader under -j',
         ok='published once loaded', bug='a module half run'),
 })
+# The review's smaller findings, 2026-10-16, each on the record.
+TIER1.update({
+    'refusals-exit-2': dict(_R16,
+        family='error-as-value',
+        trigger='a mode refusing a call',
+        ok='exit 2',
+        bug='exit 1'),
+    'check-doc-without-wrap80-exits-2': dict(_R16,
+        family='error-as-value',
+        trigger='wrap80 off PATH',
+        ok='exit 2 on its BLOCKED',
+        bug='exit 1'),
+    'doc-verdict-blocked-alone-is-2': dict(_R16,
+        family='error-as-value', proved='asserted',
+        trigger='a gate stopped by BLOCKED lines alone',
+        ok='BLOCKED at exit 2',
+        bug='FAIL at exit 1'),
+    'opening-reads-the-named-run-s-file': dict(_R16,
+        family='two-spellings',
+        trigger='--opening naming an older run',
+        ok="that run's file",
+        bug='the newest file'),
+    'modes-lists-the-dispatch-in-source-order': dict(_R16,
+        family='other:breadth-first-walk',
+        trigger='a test nested in the dispatch',
+        ok='source order',
+        bug='breadth first'),
+    'selftest-names-an-unrun-check-a-skip': dict(_R16,
+        family='quiet-failure',
+        trigger='a run carrying no `list`',
+        ok='a `skip:` line',
+        bug='an `ok:` line'),
+    'with-tables-refuses-a-number-below-one': dict(_R16,
+        family='domain-unchecked',
+        trigger='--with-tables -1',
+        ok='refused',
+        bug='the second-to-last table'),
+    'modifier-without-its-mode-is-refused': dict(_R16,
+        family='silent-option',
+        trigger='--rows on the default reading',
+        ok='refused',
+        bug='the default table whole'),
+    'per-shape-without-a-pair-is-refused': dict(_R16,
+        family='silent-option',
+        trigger='--per-shape with no --pair or --compare',
+        ok='refused',
+        bug='taken and ignored'),
+    'para-at-handle-matches-its-own-lead': dict(_R16,
+        family='scan-for-parse',
+        trigger='a lead with `(3)`',
+        ok='a handle matching its lead',
+        bug='a handle matching no lead'),
+    'movement-refuses-a-ragged-json': dict(_R16,
+        family='guard-on-the-wrong-side',
+        trigger='a run missing a cell',
+        ok='exit 2, cells named',
+        bug='KeyError traceback'),
+    'movement-refuses-a-filter': dict(_R16,
+        family='silent-option',
+        trigger='--exclude with --movement',
+        ok='refused',
+        bug='read the whole run'),
+    'stale-reads-a-bare-percentage': dict(_R16,
+        family='scan-for-parse',
+        trigger='a kept `5%`',
+        ok='listed in the default view',
+        bug='the --all tier as `5`'),
+    'block-compare-in-place-is-refused': dict(_R16,
+        family='silent-option',
+        trigger='--block --compare --in-place',
+        ok='refused',
+        bug='nothing written at exit 0'),
+    'brief-update-skips-a-body-across-a-blank': dict(_R16,
+        family='scan-for-parse',
+        trigger='a blank line inside an item body',
+        ok='the body replaced whole',
+        bug='the rest left standing'),
+    'check-doc-reads-an-underscore-anchor': dict(_R16,
+        family='scan-for-parse',
+        trigger='a fragment or heading with `_`',
+        ok='read and resolved',
+        bug='never read, or slugged wrong'),
+    'check-doc-reads-a-run-file-link-to-another-run': dict(_R16,
+        family='scan-for-parse',
+        trigger="a run file's `run44.md#x`",
+        ok="held to run44.md's headings",
+        bug='unchecked'),
+    'check-doc-holds-the-run-file-to-its-own-table': dict(_R16,
+        family='domain-unchecked',
+        trigger='a README table line beside a run file without its own',
+        ok='FAIL',
+        bug='the README line standing in'),
+    'check-doc-names-a-cell-by-its-file': dict(_R16,
+        family='two-spellings',
+        trigger='a `?` cell in the run file',
+        ok='`run45.md:N`',
+        bug="the joined document's line"),
+    'lint-reads-the-previous-run-file-across-a-gap': dict(_R16,
+        family='domain-unchecked',
+        trigger='no run file at N-1',
+        ok='the newest file below N',
+        bug='no file read'),
+    'move-registration-keeps-a-mid-edit-readme-wrapped': dict(_R16,
+        family='unverified-state',
+        trigger='a README at neither fixed point',
+        ok='written back wrapped',
+        bug='written back unwrapped whole'),
+    'stale-reads-the-newest-add': dict(_R16,
+        family='two-spellings',
+        trigger='a run file added twice',
+        ok='the newest add',
+        bug='the oldest add'),
+    'brief-tips-read-past-forty-commits': dict(_R16,
+        family='domain-unchecked',
+        trigger='a 6d commit past forty below the tip',
+        ok='RUNTIP found',
+        bug='RUNTIP=?'),
+    'cross-classes-names-a-class-one-half-lacks': dict(_R16,
+        family='quiet-failure',
+        trigger='a class one half lacks',
+        ok='refused, named',
+        bug='dropped in silence'),
+    'block-per-shape-says-none-for-a-narrowed-class': dict(_R16,
+        family='quiet-failure',
+        trigger='a class timing no bolded arm',
+        ok='a `none` line',
+        bug='a lead with no row'),
+    'chapter-reads-the-halves-with-no-arm-to-compare': dict(_R16,
+        family='quiet-failure',
+        trigger='no arm on two shared shapes',
+        ok='the halves still read',
+        bug='returned, then a KeyError on the anchors'),
+    'alloc-per-shape-skips-a-fit-at-or-below-zero': dict(_R16,
+        family='domain-unchecked',
+        trigger='a fitted allocation at or below 0',
+        ok='counted, left out',
+        bug='math domain error'),
+    'controls-names-a-sum-only-half-not-timed': dict(_R16,
+        family='other:wrong-reason-given',
+        trigger='one `sum-only` half untimed',
+        ok='that half named',
+        bug='a slope blamed'),
+    'block-prints-the-floor-a-clean-class-has': dict(_R16,
+        family='domain-unchecked',
+        trigger='a class the plain arm leads cleanly',
+        ok='a floor line',
+        bug='none, the summary refused'),
+    'compare-corrects-both-runs-alike': dict(_R16,
+        family='two-spellings',
+        trigger='--compare --corr insitu',
+        ok='both runs in situ',
+        bug='the other by sum-only'),
+    'prose-draft-names-a-class-property-3-did-not-read': dict(_R16,
+        family='quiet-failure',
+        trigger='a class whose property-3 line reads `--`',
+        ok='named, left out of the count',
+        bug='counted with no figure'),
+    'predictions-in-place-finds-a-wrapped-host': dict(_R16,
+        family='scan-for-parse',
+        trigger='`(N) *` split by a line break',
+        ok='the reading placed',
+        bug='skipped in silence'),
+    'half-movers-read-past-a-mismatched-population': dict(_R16,
+        family='other:one-refusal-ends-the-reading',
+        trigger="one population's mismatched JSON",
+        ok='that population NOT READ',
+        bug='the whole reading ended'),
+    'aa-pairs-warns-once-a-call': dict(_R16,
+        family='other:duplicate-work', proved='ran',
+        trigger='a sunk A/A pair under --block',
+        ok='one warning',
+        bug='three'),
+    'nothing-to-compare-exits-1': dict(_R16,
+        family='error-as-value', proved='ran',
+        trigger='sweeps or a fingerprint with nothing in common',
+        ok='exit 2',
+        bug='exit 1'),
+})
 
 
 RECORDS = [
@@ -7217,7 +7486,7 @@ RECORDS = [
          plant=lambda t: {'rundoc': rundoc_without_class_table(t),
                           'run': synth_json(t, 'rev')},
          argv=['{run}', '--block', '--in-place', '--run-doc', '{rundoc}'],
-         ok=V(exit=1, has=['refusing to write there'],
+         ok=V(exit=2, has=['refusing to write there'],
               hasnt=['installed at']),
          no_audit='argv-postdates-history',
          # No --audit: `--run-doc` postdates every commit this case could
@@ -7932,7 +8201,7 @@ RECORDS = [
          plant=lambda t: {'run': synth_json(t, 'main', 'a.json'),
                           'other': synth_json(t, 'rev', 'b.json')},
          argv=['{run}', '--compare', '{other}', '--bridge'],
-         ok=V(exit=1, has=['different populations'])),
+         ok=V(exit=2, has=['different populations'])),
 
     case('block-refuses-a-second-mode', 'read-run.py', '9e94c9d',
          'the one-mode guard, relaxed for --compare, let a mode through',
@@ -8591,7 +8860,7 @@ RECORDS = [
          plant=lambda t, rev: {'main': mangled_main(t, rev),
                                'readme': era_readme(t, rev)},
          argv=['--check-doc', '--main', '{main}', '--readme', '{readme}'],
-         ok=V(exit=1, has=['BLOCKED: no roster parsed']),
+         ok=V(exit=2, has=['BLOCKED: no roster parsed']),
          # The silence and not the exit: the era's README names files the
          # tree has since lost, align-as.py among them, which the pre-fix
          # path check fails on (2026-10-06).
@@ -8617,7 +8886,7 @@ RECORDS = [
          plant=lambda t, rev: {'main': era_main_file(t, rev),
                                'readme': readme_goal_above_open(t, rev)},
          argv=['--check-doc', '--main', '{main}', '--readme', '{readme}'],
-         ok=V(exit=1, has=['BLOCKED: the open list']),
+         ok=V(exit=2, has=['BLOCKED: the open list']),
          # The silence and not the exit, as in the case above.
          bug=V(hasnt=['BLOCKED: the open list', 'Traceback'])),
 
@@ -9000,7 +9269,7 @@ RECORDS = [
                                        '# shape arm N instructions/iter\n'
                                        'r1 lib-a 50 1000\n')},
          argv=['--counts-over', '{new}', '{old}'],
-         ok=V(exit=1, has=['no shape in common'],
+         ok=V(exit=2, has=['no shape in common'],
               hasnt=['Traceback']),
          bug=V(exit=1, has=['Traceback'])),
 
@@ -11125,14 +11394,14 @@ RECORDS = [
                           'b': synth_run(os.path.join(t, 'rev2.json'),
                                          run_order_shapes('rev'))},
          argv=['--extremes', '--classes', '{a}', '{b}'],
-         ok=V(exit=1, has=['a class is named twice']),
+         ok=V(exit=2, has=['a class is named twice']),
          no_audit='argv-postdates-history'),
 
     case('extremes-is-not-for-the-main-set', 'read-run.py', '3596ba2',
          'the main set has no class row and would have been ranked as one',
          plant=lambda t: {'a': synth_json(t, 'main')},
          argv=['--extremes', '--classes', '{a}'],
-         ok=V(exit=1, has=['ranks the stride classes']),
+         ok=V(exit=2, has=['ranks the stride classes']),
          no_audit='argv-postdates-history'),
 
     case('extremes-with-no-classes', 'read-run.py', '3596ba2',
@@ -13844,7 +14113,7 @@ RECORDS = [
          # matched nothing, the mode passed, and this mutation was
          # invisible to it.
          shadow=dict(mutate=[('read-run.py',
-                              "sys.exit('nothing left after --exclude')",
+                              "refuse('nothing left after --exclude')",
                               'sys.exit(0)')],
                      extra=lambda: halves('zzxf-lookrts', 'zzxf-a1g')
                      + [('zzxf-pair.txt', NOTE_STUB)]),
@@ -17634,6 +17903,391 @@ RECORDS = [
          ' for a binary gone or a count not read',
          argv=None, ok=None),
 
+    # ---- the review's smaller findings, 2026-10-16: the reader --------
+    # The ones the review's own list left out, from its readers' reports.
+    #
+    # A REFUSAL IS A CALL THAT DID NOT HAPPEN, exit 2 in this tree, and the
+    # reader's own refusals went out through `sys.exit(str)`, which is 1,
+    # the status of a finding: a driver reading the status took a mode
+    # that never ran for one that found something.
+    case('refusals-exit-2', 'read-run.py', 'self',
+         'a call refused as not happening exited 1, the status of a finding',
+         plant=lambda t: {'run': synth_json(t, 'main', 'a.json')},
+         argv=['{run}', '--block'],
+         ok=V(exit=2, has=['--block is for a stride-class run']),
+         bug=V(exit=1, has=['--block is for a stride-class run'])),
+    case('check-doc-without-wrap80-exits-2', 'read-run.py', 'self',
+         'check-doc with wrap80 off PATH exited 1 on its own BLOCKED',
+         env={'PATH': '/usr/bin:/bin'},
+         argv=['--check-doc', '--quiet'],
+         ok=V(exit=2, has=['BLOCKED: wrap80']),
+         bug=V(exit=1, has=['BLOCKED: wrap80'])),
+    # And a document gate whose every stopping line is a BLOCKED is a gate
+    # that did not happen: FAIL at exit 1 said a check had found something.
+    # A finding beside a BLOCKED is still 1, a finding being an answer.
+    case('doc-verdict-blocked-alone-is-2', 'read-run.py', 'self',
+         'a gate stopped by BLOCKED lines alone read FAIL at exit 1',
+         argv=['--unit', "(doc_verdict(['BLOCKED: x']),"
+                         " doc_verdict(['BLOCKED: x', 'y']), doc_verdict([]))"],
+         ok=V(has=['VERDICT: BLOCKED (exit 2)', 'VERDICT: FAIL (exit 1)',
+                   'VERDICT: PASS (exit 0)', '(2, 1, 0)']),
+         no_audit='argv-postdates-history'),
+    # --opening names its run, and its three readers took the newest file
+    # whatever it named, as the drafts did before `held_run_doc` read
+    # them: `--opening run44` held run45.md to run44.md.
+    case('opening-reads-the-named-run-s-file', 'read-run.py', 'self',
+         '--opening RUN read the newest run file whatever RUN named',
+         argv=['--opening', 'run44'],
+         ok=V(exit=0, has=['carried whole from run43.md'],
+              hasnt=['carried whole from run44.md']),
+         bug=V(has=['carried whole from run44.md'])),
+    # --modes says it lists the dispatch in the order `main` reads it, and
+    # `ast.walk` is breadth first, so a test nested one level down printed
+    # after every test above it at the outer level.
+    case('modes-lists-the-dispatch-in-source-order', 'read-run.py', 'self',
+         '--modes printed the dispatch breadth first, against its own'
+         ' "in the order it reads them"',
+         # Planted, since the live dispatch need not carry such a test: one
+         # inside a loop, then one at the outer level below it.
+         plant=lambda t: {'m': write(os.path.join(t, 'm.py'),
+             'def main():\n    for x in y:\n        if args.b:\n'
+             '            g()\n    if args.a:\n        f()\n')},
+         argv=['--unit', "(lambda n: (len(n), n == sorted(n)))([int(x)"
+                         " for x in re.findall(r'^  L(\\d+)',"
+                         " capture(modes_table, '{m}'), re.M)])"],
+         ok=V(has=['(2, True)']),
+         bug=V(has=['(2, False)'])),
+    # The winsorizing check on a run carrying no `list` did not run, and
+    # said so on an `ok:` line.
+    case('selftest-names-an-unrun-check-a-skip', 'read-run.py', 'self',
+         'a winsorizing check that did not run printed as `ok:`',
+         plant=lambda t: {'run': doctored(t, 'main', lambda b: [
+             b.remove(x) for x in [x for x in b
+                                   if x['reportName'].endswith('/list')]],
+             'a.json')},
+         argv=['{run}', '--selftest'],
+         ok=V(has=['skip: winsorizing: not checked'],
+              hasnt=['ok:   winsorizing: not checked']),
+         bug=V(has=['ok:   winsorizing: not checked'])),
+    # A table number of 0 or less indexed from the end: -1 printed the
+    # second-to-last table, a section's tables being counted from 1.
+    case('with-tables-refuses-a-number-below-one', 'read-run.py', 'self',
+         '--with-tables -1 printed the second-to-last table',
+         plant=lambda t: {'doc': doc_with_a_table(t, 3)},
+         argv=['--section', 'Middle', '--with-tables', '-1',
+               '--readme', '{doc}'],
+         ok=V(exit=2, has=['--with-tables counts a section\'s tables from 1']),
+         bug=V(exit=0, hasnt=['--with-tables counts'])),
+    # A MODIFIER WITH NO MODE OF ITS OWN GIVEN was read by nothing: the
+    # default table printed as though `--rows` or `--per-shape` had shaped
+    # it, the silent-option family the roll calls refuse for the modes.
+    case('modifier-without-its-mode-is-refused', 'read-run.py', 'self',
+         '--rows on the default reading printed the default table whole',
+         plant=lambda t: {'run': synth_json(t, 'main', 'a.json')},
+         argv=['{run}', '--rows', 'list'],
+         ok=V(exit=2, has=['--rows is read by --markdown and --block']),
+         bug=V(exit=0, hasnt=['--rows is read by'])),
+    case('per-shape-without-a-pair-is-refused', 'read-run.py', 'self',
+         '--per-shape on the default reading was taken and ignored',
+         plant=lambda t: {'run': synth_json(t, 'main', 'a.json')},
+         argv=['{run}', '--per-shape'],
+         ok=V(exit=2, has=['--per-shape is read by --pair and --compare']),
+         bug=V(exit=0, hasnt=['--per-shape is read by'])),
+    # --para-at's handle is a REGEX for --para, built from a lead's words
+    # as they stand, so a lead with `(3)` in it gave a pattern that missed
+    # its own lead -- and the loop took no hit at all for a unique one.
+    case('para-at-handle-matches-its-own-lead', 'read-run.py', 'self',
+         "a lead's `(3)` made a handle that matched no lead, taken as unique",
+         plant=lambda t: {'readme': write(os.path.join(t, 'R.md'),
+             '# T\n\n**The (3) rule of things.** Body one, unique.\n\n'
+             '**The (3) rule of others.** Body two, unique.\n')},
+         argv=['--para-at', '{readme}:3', '--readme', '{readme}'],
+         ok=V(exit=0, has=["handle: --para 'The .3. rule of things'"]),
+         bug=V(has=["handle: --para 'The (3) rule of things'"])),
+    # --movement loaded its JSON itself, past main's gates: a ragged run
+    # raised KeyError where every other mode refuses, and --exclude,
+    # --exclude-shape and --pin were taken and ignored.
+    case('movement-refuses-a-ragged-json', 'read-run.py', 'self',
+         '--movement over a run missing a cell raised a KeyError',
+         plant=lambda t: {'a': doctored(t, 'main', lambda b: [b.pop(0)],
+                                        'a.json'),
+                          'doc': write_rundoc(t, rundoc_text())},
+         argv=['{a}', '--movement', '--run-doc', '{doc}'],
+         ok=V(exit=2, has=['cell(s) missing'], hasnt=['Traceback']),
+         bug=V(has=['Traceback'])),
+    case('movement-refuses-a-filter', 'read-run.py', 'self',
+         '--movement took --exclude and read the whole run',
+         plant=lambda t: {'a': synth_json(t, 'main', 'a.json'),
+                          'doc': write_rundoc(t, rundoc_text())},
+         argv=['{a}', '--movement', '--exclude', 'lib-stage1',
+               '--run-doc', '{doc}'],
+         ok=V(exit=2, has=['--movement reads the run whole']),
+         bug=V(exit=0, hasnt=['--movement reads the run whole'])),
+    # A bare percentage, `5%`, was cut to `5` by the numeral pattern's
+    # trailing \b, so the measured tier's `%` arms never matched one.
+    case('stale-reads-a-bare-percentage', 'read-run.py', 'self',
+         'a kept `5%` dropped to the --all tier as the digit `5`',
+         plant=lambda t: stale_pair(t, figure='5%'),
+         argv=['--stale', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['5%', '1 edited paragraph(s)'],
+              hasnt=['1 more keep only']),
+         bug=V(has=['1 more keep only'])),
+    # --block --compare prints the paragraphs that need the other half,
+    # for the session to place, and installs nothing: with --in-place it
+    # wrote nothing at exit 0, which reads as an install that happened.
+    case('block-compare-in-place-is-refused', 'read-run.py', 'self',
+         '--block --compare --in-place wrote nothing at exit 0',
+         plant=lambda t: {'a': synth_json(t, 'rev', 'a.json'),
+                          'b': synth_json(t, 'rev', 'b.json'),
+                          'doc': write_rundoc(t, rundoc_text())},
+         argv=['{a}', '--block', '--compare', '{b}', '--in-place',
+               '--run-doc', '{doc}'],
+         ok=V(exit=2, has=['installs nothing']),
+         bug=V(exit=0, hasnt=['installs nothing'])),
+    # An item's body ran to the first line not indented, and a blank line
+    # inside it is one: the skip ended there and the rest of the old body
+    # stood under the new item.
+    case('brief-update-skips-a-body-across-a-blank', 'read-run.py', 'self',
+         "a blank line inside an old item's body left the rest of it standing",
+         plant=lambda t: brief_pair(t, bodied=True, gapped=True),
+         argv=['--brief-update', '{run}', '--brief-dir', '{dir}'],
+         probe=lambda subs: open(subs['brief']).read(),
+         ok=V(has=['One window', 'THE NEXT SECTION stays'],
+              hasnt=['a second paragraph of item five']),
+         bug=V(has=['a second paragraph of item five'])),
+    # A heading's anchor keeps `_`, as GitHub's does, where headings_of
+    # dropped it; and the fragment pattern stopped at `_` and at capitals,
+    # so a link carrying either was never read at all.
+    case('check-doc-reads-an-underscore-anchor', 'read-run.py', 'self',
+         'a fragment with `_` was never checked, and a heading with one'
+         ' lost it from its anchor',
+         plant=lambda t: {'readme': write(os.path.join(t, 'R.md'),
+             open(README).read() + '\n\n## A `x_y` heading\n\nSee [it]'
+             '(#a-x_y-heading) and [that](#no_such_anchor).\n')},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=1, has=['#no_such_anchor'], hasnt=['#a-x_y-heading']),
+         bug=V(hasnt=['#no_such_anchor'])),
+    # A run file's link to another run's file, `run44.md#x`, carries no
+    # `runs/` -- it is written beside its target -- so its role read as
+    # `elsewhere` and its fragment went unchecked.
+    case('check-doc-reads-a-run-file-link-to-another-run', 'read-run.py',
+         'self',
+         "a run file's link into another run's file went unchecked",
+         plant=lambda t: {'doc': edited_rundoc(t, (
+             '## Provenance\n', '## Provenance\n\nSee [a](run44.md'
+             '#no-such-section) and [b](run44.md#what-the-next-run-compares'
+             '-against).\n'))},
+         argv=['--check-doc', '--quiet', '--run-doc', '{doc}'],
+         ok=V(exit=1, has=['run44.md#no-such-section'],
+              hasnt=['run44.md#what-the-next-run-compares-against']),
+         bug=V(hasnt=['run44.md#no-such-section'])),
+    # The two-column table is the RUN FILE's, and the check searched
+    # README and the run file joined, so a README line could stand in for
+    # a table the run file had lost.
+    case('check-doc-holds-the-run-file-to-its-own-table', 'read-run.py',
+         'self',
+         "a README line stood in for the run file's lost two-column table",
+         plant=lambda t: {
+             'doc': edited_rundoc(t, ('| strategy | Run 45 (',
+                                      '| arm | Run 45 (')),
+             'readme': write(os.path.join(t, 'R.md'), open(README).read()
+                             + '\n\n| strategy | Run 99 (a) | Run 99 (b) |\n')},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}',
+               '--run-doc', '{doc}'],
+         ok=V(exit=1, has=["the run file's two-column geomeans are gone"]),
+         bug=V(hasnt=["the run file's two-column geomeans are gone"])),
+    # And its line numbers were the JOINED document's, README's length
+    # added to every run-file line.
+    case('check-doc-names-a-cell-by-its-file', 'read-run.py', 'self',
+         "a `?` cell's line was the joined document's, past both files",
+         plant=lambda t: {'doc': edited_rundoc(t, (
+             '| `mut-odo-vecdims-add-in-leaf-u2` | **0.026** | 0.033 |',
+             '| `mut-odo-vecdims-add-in-leaf-u2` | ? | 0.033 |'))},
+         argv=['--check-doc', '--quiet', '--run-doc', '{doc}'],
+         ok=V(exit=1, has=['first at run45.md:'], hasnt=['first at line ']),
+         bug=V(has=['first at line '])),
+    # The lint held the registration to `run<N-1>.md` by arithmetic, so
+    # with a gap -- no run file at N-1 -- it read no previous file at all.
+    case('lint-reads-the-previous-run-file-across-a-gap', 'read-run.py',
+         'self',
+         'the previous run file was taken as num-1, missing it across a gap',
+         plant=lambda t: {'readme': readme_with_a_registration(t),
+                          'prev': prev_rundoc_for_a_registration(t, False,
+                                                                 n=97)},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(exit=1, has=['names no registration']),
+         bug=V(hasnt=['names no registration'])),
+    # The mover asked whether README was at the WRAPPED fixed point, and a
+    # README at neither, an edit in progress, read as unwrapped and went
+    # back one line a paragraph, every wrapped paragraph joined.
+    case('move-registration-keeps-a-mid-edit-readme-wrapped', 'read-run.py',
+         'self',
+         'a README mid-edit was written back whole one line a paragraph',
+         plant=lambda t: registration_to_move_mid_edit(t),
+         argv=['--move-registration', '--readme', '{readme}',
+               '--run-doc', '{doc}'],
+         probe=lambda subs: 'FORM: %s' % (
+             'wrapped' if subprocess.run(
+                 ['wrap80', subs['readme']], capture_output=True,
+                 text=True).stdout == open(subs['readme']).read()
+             else 'not-wrapped'),
+         ok=V(has=['FORM: wrapped']),
+         bug=V(has=['FORM: not-wrapped'])),
+    # Step 5's copy is the commit that ADDED the run file, and for a file
+    # added twice --stale and --lost took the oldest while base_rev_for
+    # took the newest: the copy the file descends from is the newest.
+    case('stale-reads-the-newest-add', 'read-run.py', 'self',
+         '--stale read a re-added run file against its first copy',
+         plant=lambda t: stale_pair_readded(t),
+         argv=['--stale', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['0.44%', '1 edited paragraph(s)']),
+         bug=V(hasnt=['0.44%'])),
+    # --brief-update's RUNTIP candidate was looked for in the last forty
+    # commits alone, so a run with more since its step-6d commit got `?`.
+    case('brief-tips-read-past-forty-commits', 'read-run.py', 'self',
+         "RUNTIP was looked for in the last forty commits and no further",
+         plant=lambda t: brief_tips_repo(t),
+         argv=['--brief-update', '{run}', '--brief-dir', '{dir}'],
+         ok=V(has=['RUNTIP='], hasnt=['RUNTIP=?']),
+         bug=V(has=['RUNTIP=?'])),
+    # --cross-classes RUN took the classes both halves carry and dropped
+    # the rest without a word, so the summary's verdict over every class
+    # was over some.
+    case('cross-classes-names-a-class-one-half-lacks', 'read-run.py', 'self',
+         '--cross-classes RUN dropped a class one half lacked, unnamed',
+         plant=lambda t: cross_classes_one_sided(t),
+         argv=['{prefix}', '--cross-classes'],
+         ok=V(exit=2, has=['carried by one half only', 'flip']),
+         bug=V(exit=0, hasnt=['carried by one half only'])),
+    # The per-shape paragraph lists the arms the run file's Results table
+    # bolds, and the narrowed class times none of them: the lead printed
+    # with no row under it, and install-tables.sh installed it so.
+    case('block-per-shape-says-none-for-a-narrowed-class', 'read-run.py',
+         'self',
+         "the per-shape lead printed with no row for a class timing no bold"
+         ' arm',
+         plant=lambda t: {'run': narrowed_json(t),
+                          'doc': write_rundoc(t, rundoc_text())},
+         argv=['{run}', '--block', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=["none of the arms the run file's Results table"
+                           ' bolds is timed in this population']),
+         bug=V(exit=0, hasnt=["none of the arms the run file's Results"])),
+    # --chapter returned at an empty arm-by-arm reading, and the halves'
+    # floors and anchors below it went with it.
+    case('chapter-reads-the-halves-with-no-arm-to-compare', 'read-run.py',
+         'self',
+         '--chapter with no arm on two shared shapes returned before the'
+         " halves' floors",
+         plant=lambda t: {'a': synth_json(t, 'main', 'a.json'),
+                          'b': synth_json(t, 'main', 'b.json')},
+         argv=['{a}', '--compare', '{b}', '--chapter']
+              + [x for sh in main_shapes()[1:]
+                 for x in ('--exclude-shape', sh)],
+         ok=V(exit=0, has=['basis half: floor', 'arm by arm: no arm']),
+         bug=V(hasnt=['basis half: floor'])),
+    # The per-arm allocation ratio divided by this half's bytes, a fit
+    # that can sit at or below 0 while the other half's passes the floor.
+    case('alloc-per-shape-skips-a-fit-at-or-below-zero', 'read-run.py',
+         'self',
+         '--alloc --per-shape over a non-positive fit raised a math domain'
+         ' error',
+         plant=lambda t: {'run': synth_json(
+                              t, 'main', 'a.json',
+                              alloc_skew=[(main_shapes()[0], 'bq-expand',
+                                           -1.0)]),
+                          'other': synth_json(t, 'main', 'b.json')},
+         argv=['{run}', '--compare', '{other}', '--alloc', '--per-shape'],
+         ok=V(exit=0, has=['at or below 0'], hasnt=['Traceback']),
+         bug=V(has=['Traceback'])),
+    # With one `sum-only` half timed and not the other, the warning
+    # blamed a cell's slope, which is the other reason it can say.
+    case('controls-names-a-sum-only-half-not-timed', 'read-run.py', 'self',
+         'one `sum-only` half untimed was blamed on a non-positive slope',
+         plant=lambda t: {'run': doctored(t, 'rev', lambda b: [
+             b.remove(x) for x in [x for x in b if x['reportName']
+                                   .endswith('/sum-only-late')]], 'c.json'),
+             'doc': write_rundoc(t, rundoc_text())},
+         argv=['{run}', '--block', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['`sum-only-late` is not timed'],
+              hasnt=['a cell having no positive slope']),
+         bug=V(has=['a cell having no positive slope'])),
+    # The class floor printed beside a priced margin or a broken property
+    # 1 and nowhere else, so a class the plain arm leads cleanly printed
+    # none, and install-tables.sh's summary row, which reads it, refused.
+    case('block-prints-the-floor-a-clean-class-has', 'read-run.py', 'self',
+         'a class the plain arm led cleanly printed no floor line, refusing'
+         ' the summary install',
+         plant=lambda t: {'a': synth_json(t, 'rev', 'a.json', skew=[
+             (s, 'mut-odo-vecdims', 0.4) for s in class_shapes('rev')])},
+         argv=['{a}', '--block', '--brief'],
+         ok=V(exit=0, has=["this class's floor of"]),
+         bug=V(exit=0, hasnt=["this class's floor of"])),
+    # --corr chose this run's correction and not the other run's: every
+    # second run was corrected by `sum-only`, so --compare --corr insitu
+    # read two identical runs as apart.
+    case('compare-corrects-both-runs-alike', 'read-run.py', 'self',
+         '--corr insitu corrected this run in situ and the other by sum-only',
+         plant=lambda t: {'a': synth_json(t, 'main', 'a.json'),
+                          'b': synth_json(t, 'main', 'b.json')},
+         argv=['{a}', '--compare', '{b}', '--corr', 'insitu'],
+         ok=V(exit=0, has=['lib-stage1                           1.0000'
+                           '   1.0000']),
+         bug=V(exit=0, hasnt=['lib-stage1                           1.0000'
+                              '   1.0000'])),
+    # --prose-draft's property 3 counted every class in its sentence and
+    # read figures off those whose line carried them, so a narrowed
+    # class, `--` there, was in the count and in no figure.
+    case('prose-draft-names-a-class-property-3-did-not-read', 'read-run.py',
+         'self',
+         'property 3 said "in the N classes" over a class it read no figure'
+         ' of',
+         plant=lambda t: {'doc': write_rundoc(t, rundoc_text())},
+         shadow=dict(extra=lambda: narrowed_whole_run('zzp3')),
+         env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['--prose-draft', 'zzp3', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['carrying no property 3 figures']),
+         bug=V(exit=0, hasnt=['carrying no property 3 figures'])),
+    # An item's host is the paragraph carrying `(N) *`, looked for as one
+    # string, so a wrapped run file whose break fell between the two
+    # skipped the item in silence.
+    case('predictions-in-place-finds-a-wrapped-host', 'read-run.py', 'self',
+         "an item whose `(N) *` a line break split got no reading, unnamed",
+         plant=lambda t: (lambda r: (write(r['rundoc'], open(r['rundoc'])
+             .read().replace('(1) *', '(1)\n*', 1)), r)[1])(
+                 scoped_spans_in_place(t)),
+         argv=['{a}', '--compare', '{b}', '--predictions', '--in-place',
+               '--run-doc', '{rundoc}'],
+         probe=lambda subs: 'item-1-paragraphs=%d' % open(
+             subs['rundoc']).read().count('item (1):**'),
+         ok=V(exit=0, has=['item-1-paragraphs=1']),
+         bug=V(has=['item-1-paragraphs=0'])),
+    # One population whose other run's JSON is another population's
+    # ended the whole --half-movers reading at load_other's refusal.
+    case('half-movers-read-past-a-mismatched-population', 'read-run.py',
+         'self',
+         "one population's mismatched JSON ended the whole reading",
+         plant=lambda t: (lambda r: (
+             synth_json(t, 'rev', name='run98-lookrts-rev.json'),
+             synth_json(t, 'rev', name='run98-a1g-rev.json'),
+             synth_json(t, 'rev', name='run97-nospec-rev.json'),
+             synth_json(t, 'main', name='run97-ghead-rev.json'), r)[-1])(
+                 plant_half_mover(t)),
+         argv=['--half-movers', '{run}'],
+         ok=V(exit=0, has=['rev -- NOT READ', 'over 1 population(s) read']),
+         bug=V(hasnt=['over 1 population(s) read'])),
+
+    # ---- the review's smaller findings, 2026-10-16: by hand -----------
+    # Each watched by running the reader before and after on a planted
+    # file where a reader is, and read and linted where a probe wants
+    # perf, a mount or a run's binaries.
+    case('aa-pairs-warns-once-a-call', 'read-run.py', 'self',
+         '--block printed the unreadable-pair warning once per A/A reading,'
+         ' three times a call',
+         argv=None, ok=None),
+    case('nothing-to-compare-exits-1', 'read-run.py', 'self',
+         '--counts-over and --machine with nothing to compare exited 1, the'
+         ' status of a finding',
+         argv=None, ok=None),
     # ---- the review's smaller findings, 2026-10-16, with no case -------
     case('defects-filed-as-controls', 'defects.py', 'self',
          'records of defects that shipped and were fixed later carried no'

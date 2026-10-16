@@ -1007,11 +1007,24 @@ def aa_pairs(cells, shapes, strategies):
         out.append(AA(a, b, r, geomean(r), max(zip(dev, shapes)),
                       paired_ci(r)))
     if dropped:
-        sys.stderr.write('warning: %d control pair(s) not readable, a cell'
-                         ' having no positive net: %s -- every A/A figure'
-                         ' below is over the rest\n'
-                         % (len(dropped), ', '.join(dropped)))
+        warn_once('warning: %d control pair(s) not readable, a cell'
+                  ' having no positive net: %s -- every A/A figure below'
+                  ' is over the rest\n' % (len(dropped), ', '.join(dropped)),
+                  (id(cells), tuple(shapes)))
     return out
+
+
+_WARNED = set()
+
+
+def warn_once(msg, key):
+    """`msg` on stderr the first time this process says it of `key`, the
+    cells it reads: --block reads the A/A pairs three times and printed
+    the same warning three times (2026-10-16, by review), while another
+    run's cells, in a process reading several, still get theirs."""
+    if (key, msg) not in _WARNED:
+        _WARNED.add((key, msg))
+        sys.stderr.write(msg)
 
 
 CARRY_BACK = ('mut-odo-vecdims', 'bq-expand', 'bq-scan-rem-gm-mulback')
@@ -1556,6 +1569,15 @@ def run_doc_mismatch(args, who):
     return False
 
 
+def refuse(msg):
+    """`msg` on stderr and exit 2: the call did not happen, which this
+    tree reads apart from a finding's 1. `sys.exit(str)` is 1, and the
+    reader's refusals went out through it until 2026-10-16 (by review).
+    Case: `refusals-exit-2`."""
+    sys.stderr.write(msg.rstrip('\n') + '\n')
+    sys.exit(2)
+
+
 def want_run_doc(args):
     """The run file, or a refusal naming what is missing.
 
@@ -1567,7 +1589,7 @@ def want_run_doc(args):
     """
     if args.run_doc:
         return args.run_doc
-    sys.exit("no run file: this mode reads or writes `%s/run<N>.md`, which"
+    refuse("no run file: this mode reads or writes `%s/run<N>.md`, which"
              " carries the Results table, the fingerprint and the class"
              " blocks, and that directory holds"
              " none. Make the file, or name it with --run-doc." % RUNS_DIR)
@@ -1717,9 +1739,9 @@ def install(readme, table, src, after=None):
     write to the wrong place.
 
     Born checked, four ways deliberately (2026-08-08). Pointed at a header
-    no line equals, it exits 1 saying so. Pointed at the six-column class
-    header with no `after`, it exits 1 naming eight matches rather than
-    taking the first. Given an `after` no line starts with, it exits 1
+    no line equals, it refuses saying so. Pointed at the six-column class
+    header with no `after`, it refuses naming eight matches rather than
+    taking the first. Given an `after` no line starts with, it refuses
     rather than falling back. And installed over a table it already agrees
     with -- the main Results table, both fingerprint tables and a class
     block's -- it leaves README byte-identical, which is the check that the
@@ -1742,7 +1764,7 @@ def install(readme, table, src, after=None):
     if after is not None:
         start = [i for i, line in enumerate(lines) if line.startswith(after)]
         if len(start) != 1:
-            sys.exit('--in-place: %d line(s) start with %r, need exactly one'
+            refuse('--in-place: %d line(s) start with %r, need exactly one'
                      % (len(start), after))
         # Inside that block, and not merely below its lead. The eight class
         # tables share one header line, so the first hit below the lead is
@@ -1764,13 +1786,13 @@ def install(readme, table, src, after=None):
                    len(lines))
         hits = [i for i in hits if start[0] < i < end]
         if not hits:
-            sys.exit('--in-place: the block led by %r (%s:%d) carries no line'
+            refuse('--in-place: the block led by %r (%s:%d) carries no line'
                      ' equal to the header, and the next one below it belongs'
                      ' to another block; refusing to write there\n  %s'
                      % (after, os.path.basename(readme), start[0] + 1,
                         hdr[:68]))
     if len(hits) != 1:
-        sys.exit('--in-place: %d line(s) equal the header, need exactly one;'
+        refuse('--in-place: %d line(s) equal the header, need exactly one;'
                  ' refusing to guess\n  %s' % (len(hits), hdr[:68]))
     i = hits[0]
     j = i
@@ -1821,7 +1843,7 @@ def emit_or_install(text, args, shapes, meta, block=False):
         after = '**`%s`' % prefix
     tables = tables_in(text)
     if not tables:
-        sys.exit('--in-place: this mode emitted no table')
+        refuse('--in-place: this mode emitted no table')
     for table in tables:
         install(want_run_doc(args), table, args.run, after)
     if block:
@@ -2175,7 +2197,18 @@ def controls_skeleton(cells, shapes, strategies, terms):
               None if not ci else (ci[0] <= 1.0 <= ci[1]))
     if not aa:
         return
-    if so is None and 'sum-only-early' in strategies:
+    # ONE HALF UNTIMED is said as that, where the warning blamed a slope
+    # (2026-10-16, by review). Case:
+    # `controls-names-a-sum-only-half-not-timed`.
+    halves = [h for h in ('sum-only-early', 'sum-only-late')
+              if h in strategies]
+    if so is None and len(halves) == 1:
+        sys.stderr.write('warning: `%s` is not timed in this run, so the'
+                         ' `sum-only` halves have no pair and the Controls'
+                         ' sentence below carries no reading of them\n'
+                         % ({'sum-only-early', 'sum-only-late'}
+                            - set(halves)).pop())
+    elif so is None and halves:
         sys.stderr.write('warning: the `sum-only` halves are not comparable,'
                          ' a cell having no positive slope, so the Controls'
                          ' sentence below carries no reading of them\n')
@@ -2290,23 +2323,30 @@ def chapter_skeleton(cells, shapes, strategies, meta, other, main_hs):
             continue
         lg = [math.log(x) for x in r]
         rows.append((geomean(r), stats.pstdev(lg), st))
+    # NO ARM TO COMPARE is said, and the halves' floors and anchors below
+    # still print: the mode returned here and took them with it
+    # (2026-10-16, by review). Case:
+    # `chapter-reads-the-halves-with-no-arm-to-compare`.
     if not rows:
-        return
-    out = [t for t in rows if abs(t[0] - 1) > 0.01]
-    print('\n  arm by arm, over %d arm(s): %d within 1%% of 1, %d outside'
-          % (len(rows), len(rows) - len(out), len(out)))
-    for g, _, st in sorted(out, key=lambda t: -abs(t[0] - 1)):
-        print('    %-30s %.4f  (%+.2f%%)' % (st, g, (g - 1) * 100))
-    print('    below 1: %d   above 1: %d   geomean over the arms: %.4f'
-          % (sum(1 for g, _, _ in rows if g < 1),
-             sum(1 for g, _, _ in rows if g > 1),
-             geomean([g for g, _, _ in rows])))
-    sp = sorted(rows, key=lambda t: -t[1])
-    print('\n  widest per-shape spread (log sd), which ranks how loosely an')
-    print('  arm measures rather than what it computes:')
-    for i, (g, sd, st) in enumerate(sp[:6], 1):
-        print('    %d. %-28s %.4f%s' % (i, st, sd,
-              '   <- moved past 1%' if abs(g - 1) > 0.01 else ''))
+        print('\n  arm by arm: no arm has a positive net on two or more'
+              ' of the %d shape(s) both runs carry' % len(both_sh))
+    else:
+        out = [t for t in rows if abs(t[0] - 1) > 0.01]
+        print('\n  arm by arm, over %d arm(s): %d within 1%% of 1, %d outside'
+              % (len(rows), len(rows) - len(out), len(out)))
+        for g, _, st in sorted(out, key=lambda t: -abs(t[0] - 1)):
+            print('    %-30s %.4f  (%+.2f%%)' % (st, g, (g - 1) * 100))
+        print('    below 1: %d   above 1: %d   geomean over the arms: %.4f'
+              % (sum(1 for g, _, _ in rows if g < 1),
+                 sum(1 for g, _, _ in rows if g > 1),
+                 geomean([g for g, _, _ in rows])))
+        sp = sorted(rows, key=lambda t: -t[1])
+        print('\n  widest per-shape spread (log sd), which ranks how loosely'
+              ' an')
+        print('  arm measures rather than what it computes:')
+        for i, (g, sd, st) in enumerate(sp[:6], 1):
+            print('    %d. %-28s %.4f%s' % (i, st, sd,
+                  '   <- moved past 1%' if abs(g - 1) > 0.01 else ''))
     for tag, cs, shs, sts in (('basis', cells, shapes, strategies),
                               ('other', b_cells, b_shapes, b_strategies)):
         aa = aa_pairs(cs, shs, sts)
@@ -2324,8 +2364,11 @@ def chapter_skeleton(cells, shapes, strategies, meta, other, main_hs):
             print('  %s half: carry-back figure %.2f%% (%s), over the'
                   ' %d pair(s) that carry back to Run 10'
                   % (tag, abs(b6.g - 1) * 100, b6.a, len(six)))
+        # THE HALF'S OWN SHAPES: one --exclude-shape left out carries no
+        # corrected net, a KeyError the early return above had hidden
+        # (2026-10-16, by review).
         anch = [(sh, cs[sh]['list']['net']) for sh in ANCHORS
-                if sh in cs and 'list' in cs[sh]]
+                if sh in shs and 'list' in cs[sh]]
         if anch:
             print('  %s half: anchors %s'
                   % (tag, ', '.join('%s %s' % (sh, fmt_abs(t))
@@ -2449,13 +2492,20 @@ def compare_alloc(cells, shapes, strategies, meta, other, main_hs,
         # took an absolute deviation, so `2 - ratio` reached the page on a
         # third arm and reversed its direction. Both columns print here for
         # that reason: there is no direction left to infer.
-        rows = []
+        rows, unfit = [], 0
         for st in both_st:
             rs = []
             for sh in both_sh:
                 a_b = cells[sh][st]['alloc_bytes']
                 b_b = b_cells[sh][st]['alloc_bytes']
                 if a_b is None or b_b is None or max(a_b, b_b) < FLOOR:
+                    continue
+                # A FIT AT OR BELOW 0 has no ratio, and one half's can sit
+                # there while the other's passes the floor: a math domain
+                # error until 2026-10-16 (by review). Counted, not divided.
+                # Case: `alloc-per-shape-skips-a-fit-at-or-below-zero`.
+                if min(a_b, b_b) <= 0:
+                    unfit += 1
                     continue
                 rs.append((b_b / a_b, sh))
             if rs:
@@ -2471,6 +2521,9 @@ def compare_alloc(cells, shapes, strategies, meta, other, main_hs,
             for g, st, n, lo, hi in sorted(rows):
                 print('%-42s %8.4f %8.4f %5d   %.3f (%s) .. %.3f (%s)'
                       % (st, g, 1.0 / g, n, lo[0], lo[1], hi[0], hi[1]))
+        if unfit:
+            print('  %d cell(s) left out: a fitted allocation at or below 0'
+                  ' on one half, which has no ratio' % unfit)
     print('\nThe multiple the alloc column publishes is these bytes divided'
           '\nby a constant per shape, so it agrees exactly where these do and'
           '\nthere is no second column to prefer. Allocation is deterministic'
@@ -3173,7 +3226,7 @@ def predictions_in_place(args):
     sec = next(i for i, q in enumerate(paras) if q.startswith(REG_HEAD))
     end = next((i for i in range(sec + 1, len(paras))
                 if paras[i].startswith('## ')), len(paras))
-    written = 0
+    written, homeless = 0, []
     # IN ITEM ORDER, each placed after its item and after any paragraph an
     # earlier item placed there, so a registration written as one
     # paragraph gets its readings in its own order.
@@ -3203,11 +3256,18 @@ def predictions_in_place(args):
         if old:
             paras[old[0]] = para
         else:
+            # WHITESPACE AS ONE SPACE, a wrapped file's break falling
+            # between `(N)` and `*`; and an item still with no host is
+            # NAMED, where it was skipped in silence (2026-10-16, by
+            # review). Case: `predictions-in-place-finds-a-wrapped-host`.
+            mark = '(%s) *' % num
             host = next((i for i in range(sec, end)
-                         if paras[i].startswith('(%s) *' % num)),
+                         if ' '.join(paras[i].split()).startswith(mark)),
                         next((i for i in range(sec, end)
-                              if '(%s) *' % num in paras[i]), None))
+                              if mark in ' '.join(paras[i].split())),
+                             None))
             if host is None:
+                homeless.append(num)
                 continue
             at_i = host + 1
             while at_i < end and paras[at_i].startswith(
@@ -3222,6 +3282,11 @@ def predictions_in_place(args):
     print('wrote %d item paragraph(s) of span readings into %s, over %d'
           ' population(s) on both halves; the verdicts and the tally are'
           ' yours' % (written, os.path.basename(doc), len(pops)))
+    if homeless:
+        print('NOT WRITTEN: item(s) %s, no paragraph of the section'
+              ' carries `(N) *` for a reading to follow'
+              % ', '.join('(%s)' % n for n in homeless))
+        return 1
     return 0
 
 
@@ -4757,7 +4822,7 @@ def machine_check(cells, shapes, readme, thresh=3.0, spread=7.0,
         print('machine: no shape of this run is in the run file\'s'
               ' fingerprint, so there is nothing to compare -- which is'
               ' itself worth reading')
-        return 1
+        return 2
     # A non-positive net has no ratio and no log, and this is the fifth site
     # of the family the other four were guarded against on 2026-08-17. It is
     # the one where an unguarded traceback does lasting damage rather than
@@ -4778,7 +4843,7 @@ def machine_check(cells, shapes, readme, thresh=3.0, spread=7.0,
         print('machine: every fingerprinted shape of this run has a'
               ' non-positive `list` net, so there is nothing to compare --'
               ' read the forcing term before the box')
-        return 1
+        return 2
     ratios = [n / w for _, n, w in have]
     g = geomean(ratios)
     worst = max(have, key=lambda t: abs(math.log(t[1] / t[2])))
@@ -5465,9 +5530,9 @@ def fingerprint_table(cells, shapes, strategies, meta, classes=(),
     then name. Every cell is this run's; nothing is carried from an
     earlier run or from the run file, which is what lets the JSONs go
     once it is installed. Born checked: pointed at a run without `list`
-    (--exclude list) it refuses with exit 1."""
+    (--exclude list) it refuses."""
     if 'list' not in strategies:
-        sys.exit('--fingerprint needs the `list` baseline in the run')
+        refuse('--fingerprint needs the `list` baseline in the run')
     dims = meta['dims']
     print(FINGERPRINT_HEADER)
     print('|---' + '|---:' * 4 + '|---' * 2 + '|')
@@ -5660,14 +5725,18 @@ def block_verdicts(cells, shapes, strategies, meta, args):
         print('  summary bolds        %-30s (%s), the one of the two this'
               ' population times' % ('best outside vecdims', outside[0][1]))
     plain = next((r for r in timed if r[1] == PLAIN), None)
+    # THE FLOOR, ONCE, wherever it is known: install-tables.sh's summary
+    # row reads it, and it printed beside a priced margin or a broken
+    # property 1 alone, so a class the plain arm led cleanly refused the
+    # whole summary install (2026-10-16, by review). Case:
+    # `block-prints-the-floor-a-clean-class-has`.
+    if floor is not None:
+        print("  floor                this class's floor of %.2f%% (`%s`)"
+              % (abs(floor.g - 1) * 100, floor.a))
     if not plain and untimed(cells, shapes, PLAIN):
         print('  %-19s %-30s not timed in this population'
               % (PLAIN, '(the plain arm)'))
         print('  property 1, `worst` under 1: not timed in this population')
-        if floor is not None:
-            print("  floor                this class's floor of %.2f%% (`%s`),"
-                  ' with no plain arm to price a margin against'
-                  % (abs(floor.g - 1) * 100, floor.a))
     if plain:
         print('  %-19s %-30s %.3f   worst %.3f'
               % (PLAIN, '(the plain arm)', plain[0], plain[6]))
@@ -5915,6 +5984,14 @@ def compare_cell(cells, shapes, meta, path, other, main_hs, cell):
     return 0
 
 
+# THE CORRECTION THE CALL ASKED FOR, which every second run it loads takes
+# too: they were corrected by `sum-only` whatever --corr said, so
+# `--compare --corr insitu` read two identical runs as apart (2026-10-16,
+# by review). Set by main; properties.py's readings keep the default.
+# Case: `compare-corrects-both-runs-alike`.
+CORR = 'sumonly'
+
+
 def load_other(other, main_hs, shapes, meta):
     """The other run, corrected, or an exit if it is a different population.
 
@@ -5944,11 +6021,11 @@ def load_other(other, main_hs, shapes, meta):
             % (os.path.basename(other), len(holes),
                '; '.join('%s/%s' % h for h in holes[:5])))
         sys.exit(2)
-    apply_correction(b_cells, b_shapes, b_strategies)
+    apply_correction(b_cells, b_shapes, b_strategies, CORR)
     mine = population_of(shapes, meta['dims'])[1]
     theirs = population_of(b_shapes, b_meta['dims'])[1]
     if mine != theirs:
-        sys.exit('this run is %s and %s is %s: different populations, and no'
+        refuse('this run is %s and %s is %s: different populations, and no'
                  ' figure crosses between them'
                  % (mine, os.path.basename(other), theirs))
     return b_cells, b_shapes, b_strategies
@@ -6204,10 +6281,10 @@ def class_reading(path, main_hs, args):
     show.
     """
     cells, shapes, strategies, meta = load(path, main_hs)
-    apply_correction(cells, shapes, strategies)
+    apply_correction(cells, shapes, strategies, getattr(args, 'corr', CORR))
     kind, label, _ = population_of(shapes, meta['dims'])
     if kind != 'class':
-        sys.exit('--extremes ranks the stride classes, and %s is %s'
+        refuse('--extremes ranks the stride classes, and %s is %s'
                  % (os.path.basename(path), label))
     # A CLASS THAT TIMES NO PLAIN ARM, as Main.hs's `classArms` makes
     # `big`, has no row by its definition and is passed over, said so,
@@ -6223,7 +6300,7 @@ def class_reading(path, main_hs, args):
     led = table_leaders(cells, shapes, strategies, args)
     if led is None or not (led.timed and led.outside and led.vecdims
                            and led.plain):
-        sys.exit('%s: no `list` baseline, no timed arm outside `%s`, none'
+        refuse('%s: no `list` baseline, no timed arm outside `%s`, none'
                  ' in it, or no `%s` at all, so this class has no row'
                  % (os.path.basename(path), VECDIMS, PLAIN))
     out, ceil, plain = led.outside[0], led.vecdims[0], led.plain
@@ -6508,8 +6585,16 @@ def half_movers(run, prev, args, collect=None):
                 break
             cells, shapes, strategies, meta = load(this, args.main)
             apply_correction(cells, shapes, strategies, args.corr)
-            b_cells, b_shapes, b_strategies = load_other(that, args.main,
-                                                         shapes, meta)
+            # ONE POPULATION REFUSED IS ONE NOT READ: load_other's refusal
+            # ended the whole reading (2026-10-16, by review), its reason
+            # on stderr. Case:
+            # `half-movers-read-past-a-mismatched-population`.
+            try:
+                b_cells, b_shapes, b_strategies = load_other(
+                    that, args.main, shapes, meta)
+            except SystemExit:
+                sides = 'refused'
+                break
             pairs = aa_pairs(cells, shapes, strategies)
             floor = (abs(aa_floor(pairs).g - 1) if len(pairs) >= 2
                      else None)
@@ -6539,6 +6624,10 @@ def half_movers(run, prev, args, collect=None):
         if sides is None:
             print('\n%s -- NOT READ: a half of one run has no JSON for it'
                   % pop)
+            continue
+        if sides == 'refused':
+            print('\n%s -- NOT READ: the other run\'s JSON was refused, the'
+                  ' reason above on stderr' % pop)
             continue
         read += 1
         (f0, g0, c0, w0), (f1, g1, c1, w1) = sides
@@ -6678,11 +6767,18 @@ def cell_movers(run, top, args):
         if not os.path.exists(that):
             print('%s -- NOT READ: no JSON on the %s half' % (pop, h[1]))
             continue
-        read += 1
         cells, shapes, strategies, meta = load(this, args.main)
         apply_correction(cells, shapes, strategies, args.corr)
-        b_cells, b_shapes, b_strategies = load_other(that, args.main,
-                                                     shapes, meta)
+        # As --half-movers reads past a refused population, since
+        # 2026-10-16 (by review).
+        try:
+            b_cells, b_shapes, b_strategies = load_other(that, args.main,
+                                                         shapes, meta)
+        except SystemExit:
+            print('%s -- NOT READ: the %s half\'s JSON was refused, the'
+                  ' reason above on stderr' % (pop, h[1]))
+            continue
+        read += 1
         ca, cb = sweep_of(h[0], pop), sweep_of(h[1], pop)
         for sh in shapes:
             if sh not in b_shapes:
@@ -6778,6 +6874,17 @@ def movement(path, args):
     populations, until 2026-10-16. Case: `movement-refuses-a-class-json`.
     """
     cells, shapes, strategies, meta = load(path, args.main)
+    # AND MAIN'S HOLES GATE, which this load passes by: a ragged run raised
+    # KeyError where every other mode refuses (2026-10-16, by review).
+    # Case: `movement-refuses-a-ragged-json`.
+    holes = [(sh, st) for sh in shapes for st in strategies
+             if st not in cells[sh]]
+    if holes:
+        sys.stderr.write('%s: %d cell(s) missing, so the analysis did not'
+                         ' happen. The first few: %s\n'
+                         % (os.path.basename(path), len(holes),
+                            '; '.join('%s/%s' % h for h in holes[:5])))
+        return 2
     pop = population_of(shapes, meta['dims'])
     if pop[0] != 'main':
         sys.stderr.write('%s reads as %s, and --movement reads the main set'
@@ -6857,7 +6964,7 @@ def counts_over(new, old):
                   & {arm for sh in b for arm in b[sh]})
     if not arms:
         print('  no arm is in both sweeps')
-        return 1
+        return 2
     print('  %-40s %9s %22s %22s %18s'
           % ('arm', 'geomean', 'lowest', 'highest', 'widest a call'))
     read = 0
@@ -6880,7 +6987,7 @@ def counts_over(new, old):
     if not read:
         print('  no shape in common: the two sweeps share arms and read them'
               ' over different populations')
-        return 1
+        return 2
     return 0
 
 
@@ -7767,12 +7874,26 @@ def prose_draft(run, args):
     pbasis = pv[0] if pv else None
     me = [sys.executable, os.path.abspath(__file__)]
 
+    # ONE PROCESS A READING, AND A REPEAT SERVED FROM THE FIRST, and no
+    # more than that, measured 2026-10-16 (by review): over run45 the
+    # draft makes 153 calls, 150 of them distinct, so a cache saves three;
+    # a --block is about a second, half of it its A/A pairs read three
+    # times, so caching those saves a third of a second a call against a
+    # stale figure if the cells move under it. Running the calls in
+    # parallel was not taken: the box is shared, and the draft is once a
+    # write-up.
+    memo = {}
+
     def rd(*a, prog=None):
+        key = (tuple(prog or me),) + a
+        if key in memo:
+            return memo[key]
         try:
             p = subprocess.run((prog or me) + list(a), capture_output=True,
                                text=True, cwd=where, timeout=900)
         except (OSError, subprocess.TimeoutExpired):
             return ''
+        memo[key] = p.stdout
         return p.stdout
 
     def js(half, pop, r=None):
@@ -8226,6 +8347,13 @@ def prose_draft(run, args):
         if not tiers:
             return ('3. **The allocation tiers survive and their ORDER is'
                     ' ___** (no property 3 line read)')
+        # THE CLASSES READ, named apart from those whose property-3 line
+        # carries no figure -- a narrowed class prints `--` there -- which
+        # the count took in and no figure came from (2026-10-16, by
+        # review). Case: `prose-draft-names-a-class-property-3-did-not-read`.
+        read = [c for c in classes
+                if (basis, c) in tiers and (other, c) in tiers]
+        unread = [c for c in classes if c not in read]
         bqr = [t[1] for t in tiers.values()]
         lr = [t[2] for t in tiers.values()]
         moved = [k for k in tiers if k[0] == basis
@@ -8240,7 +8368,7 @@ def prose_draft(run, args):
                               r'\**([\d.]+x)' % re.escape(arm), md, re.M)
                 med[h, arm] = m.group(1) if m else '___'
         s = ('3. **The allocation tiers survive and their ORDER is %s in'
-             ' the %s classes, on both halves --- and'
+             ' the %s classes%s, on both halves --- and'
              ' their LEVEL clause %s.** `bq-expand` sits between %.2fx and'
              ' %.2fx the result vector and `list` at %.2fx to %.2fx, on both'
              ' halves and in every class. On the main set `bq-expand` reads'
@@ -8249,9 +8377,11 @@ def prose_draft(run, args):
              ' they are not to be divided. ___'
              % ('unbroken' if not broken else
                 'BROKEN (%s)' % ', '.join(broken),
-                say_number(len(classes)),
+                say_number(len(read)),
+                (' read, %s carrying no property 3 figures'
+                 % ', '.join('`%s`' % c for c in unread)) if unread else '',
                 'BREAKS in %s of the %s classes' % (
-                    say_number(len(moved)), say_number(len(classes)))
+                    say_number(len(moved)), say_number(len(read)))
                 if moved else 'HOLDS',
                 min(bqr), max(bqr), min(lr), max(lr),
                 med[basis, 'bq-expand'], med[other, 'bq-expand'],
@@ -8789,12 +8919,12 @@ def extremes_table(paths, main_hs, args):
     rows = [r for r in (class_reading(p, main_hs, args) for p in paths)
             if r is not None]
     if not rows:
-        sys.exit('--extremes: no class named has a row, so nothing is'
+        refuse('--extremes: no class named has a row, so nothing is'
                  ' ranked')
     seen = collections.Counter(r.label for r in rows)
     dup = [c for c, n in seen.items() if n > 1]
     if dup:
-        sys.exit('%s named twice, so a rank over these files would count one'
+        refuse('%s named twice, so a rank over these files would count one'
                  ' class as two populations: %s'
                  % ('a class is' if len(dup) == 1 else 'classes are',
                     ', '.join(sorted(dup))))
@@ -9068,15 +9198,15 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
     scaffolded, and the class's paragraph only in its figures, given the
     other half, with `___` where the finding goes (`class_says`).
 
-    Born checked: pointed at the main set it refuses with exit 1 naming
-    the population, and its rev output matched the hand-written rev block
+    Born checked: pointed at the main set it refuses naming the
+    population, and its rev output matched the hand-written rev block
     to the digit, the per-shape line and the anchor both."""
     kind, label, prefix = population_of(shapes, meta['dims'])
     if kind != 'class':
-        sys.exit('--block is for a stride-class run, and this run is %s'
+        refuse('--block is for a stride-class run, and this run is %s'
                  % label)
     if 'list' not in strategies:
-        sys.exit('--block needs the `list` baseline in the run')
+        refuse('--block needs the `list` baseline in the run')
     # --brief drops the table from the TERMINAL: --in-place installs it
     # from this same computation, so a session that is installing has no
     # use for the copy on its terminal, and it is the bulk of what this
@@ -9110,6 +9240,13 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
         print()
         print("**Per shape, in the run's shape order (%s):**"
               % ', '.join(shapes))
+        # A LEAD WITH NO ROW is what a narrowed class printed, timing no
+        # arm the main table bolds, and install-tables.sh installed it
+        # so (2026-10-16, by review). Case:
+        # `block-per-shape-says-none-for-a-narrowed-class`.
+        if not bold:
+            print("  none of the arms the run file's Results table bolds"
+                  ' is timed in this population')
         for st in bold:
             # `--` on a sunk cell, as the fingerprint and `time_of` do: this
             # paragraph is installed into the README by install-tables.sh, so
@@ -9440,8 +9577,8 @@ def _unwrapped(text):
                               text=True, capture_output=True,
                               check=True).stdout
     except (OSError, subprocess.CalledProcessError) as e:
-        raise SystemExit('BLOCKED: wrap80 --unwrap failed (%s), so no prose'
-                         ' was read at all' % e)
+        refuse('BLOCKED: wrap80 --unwrap failed (%s), so no prose was read'
+               ' at all' % e)
     src = [(n, l.strip()) for n, l in enumerate(lines, 1)
            if l.strip() and not l.lstrip().startswith('|')]
     out, k = [], 0
@@ -9599,13 +9736,24 @@ def prose_hits(lines, pats):
     return sorted(set(out))
 
 
+def slug_of(heading):
+    """The anchor GitHub gives a heading: its rendered text lowercased,
+    punctuation dropped but `_` and `-`, spaces to hyphens. `_` is KEPT
+    inside a code span and inside a word, and only emphasis loses it:
+    every `_` used to be dropped, which no heading here met until one
+    would (2026-10-16, by review). Case:
+    `check-doc-reads-an-underscore-anchor`."""
+    parts = heading.split('`')
+    for i in range(0, len(parts), 2):
+        parts[i] = re.sub(r'(?<![A-Za-z0-9])_+|_+(?![A-Za-z0-9])', '',
+                          parts[i].replace('*', ''))
+    s = ''.join(parts).lower()
+    return re.sub(r'[^a-z0-9 _-]', '', s).strip().replace(' ', '-')
+
+
 def headings_of(text):
     """Every heading and the anchor GitHub gives it."""
-    out = {}
-    for h in re.findall(r'^#+\s+(.*)$', text, re.M):
-        s = re.sub(r'[`*_]', '', h.lower())
-        out[re.sub(r'[^a-z0-9 -]', '', s).strip().replace(' ', '-')] = h
-    return out
+    return {slug_of(h): h for h in re.findall(r'^#+\s+(.*)$', text, re.M)}
 
 
 RUNS_DIR = 'runs'
@@ -9661,13 +9809,16 @@ def held_run_doc(args, newest):
     over Run 44's JSONs adjudicated Run 45's registration. And the drafts'
     bare RUN names a run too, which a `runN-` prefix never matched, so
     `--prose-draft run46 --in-place` wrote the newest file whatever it
-    named. Cases: `predictions-read-the-named-run-s-file`,
-    `held-run-doc-refuses-a-draft-for-another-run`.
+    named, and so did `--opening RUN`'s three readers. Cases:
+    `predictions-read-the-named-run-s-file`,
+    `held-run-doc-refuses-a-draft-for-another-run`,
+    `opening-reads-the-named-run-s-file`.
     """
     if not newest:
         return newest, None
     named = {int(m.group(1))
-             for f in ([args.run, args.prose_draft, args.provenance_draft]
+             for f in ([args.run, args.prose_draft, args.provenance_draft,
+                        getattr(args, 'opening', None)]
                        + (args.classes or [])) if f
              for m in [re.match(r'run(\d+)(?:-|$)', os.path.basename(f))]
              if m}
@@ -9873,11 +10024,16 @@ MEASURED_RE = re.compile(
     r'|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty'
     r'|fifty|sixty|seventy|eighty|ninety|hundred|thousand)$', re.I)
 
+# A PERCENTAGE WHOLE, `5%` and not `5`: the trailing \b of the old
+# pattern needs a word character after the `%`, so it backed off to the
+# digits and MEASURED_RE's `%` arms matched nothing (2026-10-16, by
+# review). Case: `stale-reads-a-bare-percentage`.
 NUMERAL_RE = re.compile(
-    r'\b(?:\d+(?:\.\d+)?%?|one|two|three|four|five|six|seven|eight|nine|ten'
+    r'\b(?:\d+(?:\.\d+)?%(?!\w)|(?:\d+(?:\.\d+)?|one|two|three|four|five'
+    r'|six|seven|eight|nine|ten'
     r'|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen'
     r'|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety'
-    r'|hundred|thousand)\b', re.I)
+    r'|hundred|thousand)\b)', re.I)
 
 
 def step5_copy(path, mode):
@@ -9908,10 +10064,9 @@ def step5_copy(path, mode):
         return 2
     rel = os.path.relpath(os.path.abspath(path), repo)
     try:
-        adds = subprocess.run(['git', '-C', repo, 'log', '--format=%H',
-                               '--diff-filter=A', '--', rel],
-                              capture_output=True, text=True, check=True)
-        first = adds.stdout.split()[-1]
+        first = added_rev(repo, rel)
+        if not first:
+            raise IndexError(rel)
         copy = subprocess.run(['git', '-C', repo, 'show',
                                '%s:%s' % (first, rel)],
                               capture_output=True, text=True, check=True)
@@ -10125,7 +10280,8 @@ def stale_figures(run_doc, ratio=0.55, verbose=False):
         if best is None or score < ratio:
             continue
         kept = [n for n in dict.fromkeys(NUMERAL_RE.findall(p))
-                if re.search(r'\b%s\b' % re.escape(n), best, re.I)]
+                if re.search(r'(?<![\w.])%s(?!\w)' % re.escape(n), best,
+                             re.I)]
         if not kept:
             continue
         # TWO TIERS, because the first draft printed sixty-two paragraphs
@@ -10261,14 +10417,17 @@ def _brief_tips(run, where='.'):
             return ''
         return done.stdout.strip() if done.returncode == 0 else ''
 
-    added = git('log', '--diff-filter=A', '--format=%h', '--',
-                'runs/%s.md' % run)
-    pre = added.split('\n')[-1] if added else ''
+    full = added_rev(where, 'runs/%s.md' % run)
+    pre = git('rev-parse', '--short', full) if full else ''
     want = re.compile(r'\bRun %s\b.*\bstep\b'
                       % re.escape(run[3:] if run.startswith('run') else run),
                       re.I)
     tip = ''
-    for line in git('log', '--format=%h %s', '-40').split('\n'):
+    # EVERY COMMIT SINCE STEP 5's COPY, and not the last forty, which a
+    # run with more since its 6d commit read as `?` (2026-10-16, by
+    # review). Case: `brief-tips-read-past-forty-commits`.
+    for line in git('log', '--format=%h %s',
+                    *(['%s..HEAD' % full] if full else [])).split('\n'):
         if want.search(line):
             # answered spaced-split: the log is `%h %s`; a hash has no space.
             tip = line.split(' ', 1)[0]
@@ -10460,9 +10619,15 @@ def brief_update(run, readings_dir=None, brief=None, where='.'):
     # Run 36 to Run 39 the brief carried every run's items one under
     # another, found by Run 39's first checker pass. Case:
     # `brief-update-replaces-each-item-whole`.
+    # AND ACROSS A BLANK LINE inside the body, which ended the skip and
+    # left the rest of the old body standing (2026-10-16, by review).
+    # Case: `brief-update-skips-a-body-across-a-blank`.
     skipping = False
-    for line in open(brief, encoding='utf-8').read().split('\n'):
-        if skipping and line.startswith('    '):
+    src = open(brief, encoding='utf-8').read().split('\n')
+    for k, line in enumerate(src):
+        if skipping and (line.startswith('    ') or (
+                line == '' and k + 1 < len(src)
+                and src[k + 1].startswith('    '))):
             continue
         skipping = False
         m = re.match(r' ([56])\. THIS RUN ONLY', line)
@@ -10674,9 +10839,11 @@ def modes_table(path=None):
     print('the modes `main` dispatches on, in the order it reads them,'
           ' off this file\'s own source:')
     n = guards = 0
-    for node in ast.walk(fn):
-        if not isinstance(node, ast.If):
-            continue
+    # IN SOURCE ORDER: `ast.walk` is breadth first, so a test nested one
+    # level down printed after every test above it at the outer level.
+    # Case: `modes-lists-the-dispatch-in-source-order`.
+    for node in sorted((x for x in ast.walk(fn) if isinstance(x, ast.If)),
+                       key=lambda x: (x.lineno, x.col_offset)):
         named = sorted({a.attr for a in ast.walk(node.test)
                         if isinstance(a, ast.Attribute)
                         and isinstance(a.value, ast.Name)
@@ -10853,18 +11020,26 @@ EVERYTHING = frozenset()
 BASE_REV = 'HEAD'
 
 
+def added_rev(repo, rel):
+    """The NEWEST commit that added `rel` in `repo`, step 5's copy of a run
+    file -- the one the file descends from, where it was added twice --
+    or '' where git cannot say. One rule for --stale, --lost, the
+    added-lines check and --brief-update's PRETIP, the first two having
+    taken the oldest (2026-10-16, by review). Case:
+    `stale-reads-the-newest-add`."""
+    try:
+        got = subprocess.run(['git', '-C', repo, 'log', '--diff-filter=A',
+                              '-1', '--format=%H', '--', rel],
+                             capture_output=True, text=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return ''
+    return got.stdout.strip() if got.returncode == 0 else ''
+
+
 def base_rev_for(run_doc):
     """The commit that added `run_doc`, or None where git cannot say."""
     at = os.path.dirname(os.path.abspath(__file__))
-    try:
-        rel = os.path.relpath(os.path.abspath(run_doc), at)
-        got = subprocess.run(['git', 'log', '--diff-filter=A', '-1',
-                              '--format=%H', '--', rel], cwd=at,
-                             capture_output=True, text=True, timeout=20)
-    except (OSError, subprocess.SubprocessError):
-        return None
-    rev = got.stdout.strip()
-    return rev if got.returncode == 0 and rev else None
+    return added_rev(at, os.path.relpath(os.path.abspath(run_doc), at)) or None
 
 
 def added_lines(*paths):
@@ -11044,8 +11219,7 @@ def replaced_section_blocks(text, covered):
     for i in range(1, len(parts), 2):
         head = parts[i]
         body = parts[i + 1] if i + 1 < len(parts) else ''
-        t = re.sub(r'[`*_]', '', head.lstrip('# ').strip().lower())
-        slug = re.sub(r'[^a-z0-9 -]', '', t).strip().replace(' ', '-')
+        slug = slug_of(head.lstrip('# ').strip())
         if slug not in covered:
             continue
         for key, lines in blocks_of(body):
@@ -13148,13 +13322,17 @@ def move_registration(readme, run_doc):
         got = subprocess.run(cmd, input=text, capture_output=True,
                              text=True)
         if got.returncode != 0:
-            sys.exit('--move-registration: %s exited %d: %s'
+            refuse('--move-registration: %s exited %d: %s'
                      % (' '.join(cmd), got.returncode, got.stderr.strip()))
         return got.stdout
     # A wrapped document is wrap80's fixed point, so the form is read by
     # asking the tool rather than by a line length, which a table row
-    # exceeds in either form.
-    was_wrapped = wrap80(rd, unwrap=False) == rd
+    # exceeds in either form. Asked of the UNWRAPPED point: a README at
+    # neither, an edit in progress, read as unwrapped and went back one
+    # line a paragraph whole (2026-10-16, by review), where its committed
+    # form is the wrapped one. Case:
+    # `move-registration-keeps-a-mid-edit-readme-wrapped`.
+    was_wrapped = wrap80(rd, unwrap=True) != rd
     lines = wrap80(rd, unwrap=True).split('\n')
     hit = [i for i, q in enumerate(lines) if q.startswith(lead)]
     if len(hit) != 1:
@@ -13419,7 +13597,12 @@ def paragraph_at(docs, where):
             # retrieves four paragraphs has not replaced the line number
             # it was meant to replace.
             src = flat or para
-            words = re.sub(r'[`*]', '', src).split()
+            # AND ITS OTHER METACHARACTERS AS `.`, which matches each of
+            # them: a lead's `(3)` made a group of the handle, which then
+            # missed its own lead (2026-10-16, by review). Case:
+            # `para-at-handle-matches-its-own-lead`.
+            words = re.sub(r'[()\[\]{}?+|^$\\]', '.',
+                           re.sub(r'[`*]', '', src)).split()
             # STARTS AT WHAT THERE IS, not at six: a lead of three words
             # -- and the shortest here is two -- left `short` unset and
             # handed back `--para ''`, which matches every paragraph in
@@ -13427,6 +13610,11 @@ def paragraph_at(docs, where):
             # number it replaces, the line number at least being wrong
             # only later.
             short = ' '.join(words).rstrip(' ,;:.-')
+            # ONE LEAD, its own, where it has one -- a handle hitting none
+            # was taken as unique -- and none where it has none, the
+            # body being where `--para` then looks.
+            want = 1 if flat else 0
+            hits = None
             for k in range(min(6, len(words)), min(len(words), 20) + 1):
                 short = ' '.join(words[:k]).rstrip(' ,;:.-')
                 try:
@@ -13438,11 +13626,15 @@ def paragraph_at(docs, where):
                     ld = LEAD_RE.search(q)
                     if ld and rx2.search(' '.join(ld.group(1).split())):
                         hits += 1
-                if hits <= 1:
+                if hits == want:
                     break
             if flat:
                 print("  lead:   %s" % flat)
                 print("  handle: --para %r" % short)
+                if hits != want:
+                    print('  NOT UNIQUE: up to twenty words this handle'
+                          ' matches %s lead(s), so pass --all or add a'
+                          ' word' % ('no' if hits is None else hits))
                 print('  The handle survives a rewrap and an install; the'
                       ' line number survives neither. Carry it instead.')
             else:
@@ -13897,6 +14089,19 @@ def para_pointer_sources(here):
             if os.path.basename(n) not in ('defects.py', 'mutants.py')]
 
 
+def doc_verdict(bad):
+    """The last line of a document gate, and its status: FAIL at 1 where
+    a check found something, BLOCKED at 2 where every stopping line is
+    a check that did not happen, PASS at 0. A finding beside a BLOCKED
+    is still 1, a finding being an answer. Case:
+    `doc-verdict-blocked-alone-is-2`."""
+    found = [l for l in bad if not l.startswith('BLOCKED')]
+    rc = 1 if found else 2 if bad else 0
+    print('VERDICT: %s (exit %d)'
+          % ('FAIL' if found else 'BLOCKED' if bad else 'PASS', rc))
+    return rc
+
+
 def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     """The mechanical half of verifying the write-up, as one command.
 
@@ -14133,17 +14338,25 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     # directory would call every link into the run file dead. What a link
     # names is a ROLE -- the README, this run's file, some other run's --
     # and the role is in the name.
-    def role_of(target):
+    def role_of(src, target):
         rel = target.partition('#')[0]
         if not rel:
             return 'same'
         base = os.path.basename(rel)
         if base == 'README.md':
             return 'readme'
-        if re.match(r'^run\d+\.md$', base) and RUNS_DIR + '/' in rel:
+        # A RUN FILE'S `run44.md#x` names its sibling, written beside its
+        # target with no `runs/`, and read as `elsewhere` it went
+        # unchecked (2026-10-16, by review). Case:
+        # `check-doc-reads-a-run-file-link-to-another-run`.
+        if re.match(r'^run\d+\.md$', base) and (
+                RUNS_DIR + '/' in rel or (src == run_doc and '/' not in rel)):
             return ('run' if run_doc is not None
                     and base == os.path.basename(run_doc) else 'other-run')
         return 'elsewhere'
+
+    def rel_of(target):
+        return target.partition('#')[0]
 
     def resolve(src, target):
         if re.match(r'^[a-z][a-z0-9+.-]*://', target):
@@ -14151,13 +14364,22 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         frag = target.partition('#')[2]
         if not frag:
             return True
-        role = role_of(target)
+        role = role_of(src, target)
         if role == 'same':
             return frag in per_doc[src]
         if role == 'readme':
             return frag in per_doc[readme]
         if role == 'run':
             return frag in per_doc[run_doc]
+        if role == 'other-run' and src == run_doc:
+            # Its own predecessor's sections are a run file's to cite: the
+            # anchor is held to that file, as it stands in runs/.
+            there = os.path.join(at_dir[readme], RUNS_DIR,
+                                 os.path.basename(rel_of(target)))
+            try:
+                return frag in headings_of(open(there).read())
+            except OSError:
+                return False
         if role == 'other-run':
             return None
         return True     # another document, which `check_paths` answers for
@@ -14204,7 +14426,9 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         refs.update(mine)
         # A well-formed fragment only: this README quotes `](#...)` in
         # the entry that asked for the check, and a quoted link is not one.
-        for target in re.findall(r'\]\(([^)\s]*#[a-z0-9-]+)\)', text):
+        # `_` and capitals included since 2026-10-16: the pattern stopped
+        # at either, so such a link was never read.
+        for target in re.findall(r'\]\(([^)\s]*#[A-Za-z0-9_-]+)\)', text):
             got = resolve(src, target)
             if got is False:
                 dead.append('%s -> %s' % (base, target))
@@ -14908,9 +15132,9 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     if qmark:
         bad.append('%d published table cell(s) still carry the `?` that'
                    ' install writes for a row it cannot carry forward --'
-                   ' first at line %d; fill each from the run or from the'
+                   ' first at %s; fill each from the run or from the'
                    ' note written before it'
-                   % (len(qmark), qmark[0]))
+                   % (len(qmark), where(qmark[0])))
     else:
         print('ok:   no published table cell is left at install\'s `?`')
 
@@ -14935,8 +15159,8 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
             while j < len(lines) and lines[j].startswith('|'):
                 got = len(lines[j].split('|')) - 2
                 if got != want:
-                    ragged.append('line %d: %d cell(s) against %d (%s)'
-                                  % (j + 1, got, want,
+                    ragged.append('%s: %d cell(s) against %d (%s)'
+                                  % (where(j + 1), got, want,
                                      lines[j].split('|')[1].strip()))
                 j += 1
             k = j
@@ -14949,12 +15173,19 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     else:
         print('ok:   every table row carries its header\'s cell count')
 
-    yard = [l for l in lines if l.startswith('| strategy |') and '(' in l]
-    if not yard:
+    # THE RUN FILE'S LINES, not the joined document's: a README line
+    # stood in for a table the run file had lost (2026-10-16, by
+    # review), and with no run file the BLOCKED above has said so.
+    # Cases: `check-doc-holds-the-run-file-to-its-own-table`, and
+    # `check-doc-names-a-cell-by-its-file` for `where` above.
+    yard = ([l for l in run_text.split('\n')
+             if l.startswith('| strategy |') and '(' in l]
+            if run_text is not None else None)
+    if yard == []:
         bad.append("the run file's two-column geomeans are gone: no"
                    ' `| strategy |` header naming the run and its halves,'
                    ' so the next run has no basis to be read against')
-    else:
+    elif yard:
         regimes = set(re.findall(r'\(([^)]*)\)', yard[0]))
         if len(regimes) < 2:
             bad.append('the two-column table names one regime (%s); a'
@@ -16443,9 +16674,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     # against piping a verification command is stated three times in
     # these documents and was broken anyway on 2026-08-29. A verdict
     # that survives the pipe is cheaper than a fourth copy of the rule.
-    print('VERDICT: %s (exit %d)' % ('FAIL' if bad else 'PASS',
-                                     1 if bad else 0))
-    return 1 if bad else 0
+    return doc_verdict(bad)
 
 
 def check_doc_loud(readme, main_hs, run_doc=None, prev_doc=None):
@@ -16621,9 +16850,9 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
         return 2
     roster = roster_of(main)
     if not roster:
-        print('FAIL: no roster parsed out of %s, so none of the checks below'
-              ' happened' % main_hs)
-        return 1
+        print('FAIL: BLOCKED: no roster parsed out of %s, so none of the'
+              ' checks below happened' % main_hs)
+        return doc_verdict(['BLOCKED'])
     names = [n for n, _, _ in roster]
     timed = [n for n, r, _ in roster if r != 'Only']
     fun = {n: f for n, _, f in roster}
@@ -17003,8 +17232,12 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
             # answers in the registration, so where both exist the section
             # points at the registration; which of them is right stays the
             # owner's, and this only refuses the silence.
-            prev_doc = os.path.join(os.path.dirname(os.path.abspath(readme)),
-                                    'runs', 'run%d.md' % (int(num) - 1))
+            # The newest run file below this run's, and not run<N-1>.md by
+            # arithmetic, which a gap left unread (2026-10-16, by review).
+            # Case: `lint-reads-the-previous-run-file-across-a-gap`.
+            prev_doc = previous_run_doc(os.path.join(
+                os.path.dirname(os.path.abspath(readme)), 'runs',
+                'run%s.md' % num)) or ''
             if os.path.exists(prev_doc):
                 try:
                     txt = io.open(prev_doc, encoding='utf-8').read()
@@ -17243,9 +17476,7 @@ def lint(main_hs, readme, run_doc=None, quiet=False):
     # against piping a verification command is stated three times in
     # these documents and was broken anyway on 2026-08-29. A verdict
     # that survives the pipe is cheaper than a fourth copy of the rule.
-    print('VERDICT: %s (exit %d)' % ('FAIL' if bad else 'PASS',
-                                     1 if bad else 0))
-    return 1 if bad else 0
+    return doc_verdict(bad)
 
 
 def selftest(cells, shapes, strategies, meta):
@@ -17440,8 +17671,11 @@ def selftest(cells, shapes, strategies, meta):
         # Saying so beats the KeyError this used to raise: the docstring
         # promises this reader is useful on a partial run, and a four-bench
         # gate is exactly that.
-        ok.append('winsorizing: not checked, the run carries no `list` to'
-                  ' divide by -- add `*/list` to the selection to exercise it')
+        # A skip and not an `ok:`, a check that did not run (2026-10-16,
+        # by review). Case: `selftest-names-an-unrun-check-a-skip`.
+        skip.append('winsorizing: not checked, the run carries no `list`'
+                    ' to divide by -- add `*/list` to the selection to'
+                    ' exercise it')
     else:
         capped = short = 0
         for st in strategies:
@@ -17625,12 +17859,11 @@ def selftest(cells, shapes, strategies, meta):
     # against piping a verification command is stated three times in
     # these documents and was broken anyway on 2026-08-29. A verdict
     # that survives the pipe is cheaper than a fourth copy of the rule.
-    print('VERDICT: %s (exit %d)' % ('FAIL' if bad else 'PASS',
-                                     1 if bad else 0))
-    return 1 if bad else 0
+    return doc_verdict(bad)
 
 
 def main():
+    global CORR
     # --cells exists to be piped, and the default Python SIGPIPE handler
     # turns `| head` into a traceback rather than a clean stop.
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)
@@ -18060,6 +18293,7 @@ def main():
                    help="restrict this run's aggregates to the shapes OTHER"
                         ' also has, which is what a cross-run figure owes')
     args = p.parse_args()
+    CORR = args.corr
     # RESOLVED ONCE, HERE, so that every mode below reads the same run and a
     # session cannot install one run's tables while reading another's
     # figures back. The default is the newest file in runs/ rather than a
@@ -18156,7 +18390,19 @@ def main():
         cls = sorted(f[len(pre[0][1]):-5]
                      for f in glob.glob(pre[0][1] + '*.json')
                      if not f.endswith('-main.json'))
-        cls = [c for c in cls if os.path.exists(pre[1][1] + c + '.json')]
+        # A CLASS ONE HALF LACKS IS NAMED: it was dropped without a word,
+        # and the summary's verdict over every class was over some
+        # (2026-10-16, by review). Case:
+        # `cross-classes-names-a-class-one-half-lacks`.
+        theirs = {f[len(pre[1][1]):-5]
+                  for f in glob.glob(pre[1][1] + '*.json')
+                  if not f.endswith('-main.json')}
+        lone = sorted(set(cls) ^ theirs)
+        if lone:
+            p.error('--cross-classes %s: %s carried by one half only, so'
+                    ' a summary over every class would be over some;'
+                    ' name the lists with --classes and --others to read'
+                    ' those both carry' % (args.run, ', '.join(lone)))
         args.classes = [pre[0][1] + c + '.json' for c in cls]
         args.others = [pre[1][1] + c + '.json' for c in cls]
     if args.cross_classes and not (args.classes and args.others):
@@ -18243,6 +18489,14 @@ def main():
     clash = [f for f in ('chapter', 'alloc', 'ci', 'bridge', 'hand_tables',
                          'movers', 'predictions', 'cell')
              if args.block and asked(getattr(args, f))]
+    # --block --compare prints the paragraphs that need the other half,
+    # for the session to place, and installs nothing: with --in-place it
+    # wrote nothing at exit 0 (2026-10-16, by review). Case:
+    # `block-compare-in-place-is-refused`.
+    if args.block and args.compare and args.in_place:
+        p.error('--block --compare prints the paragraphs that need the'
+                ' other half, for you to place, and installs nothing; the'
+                ' block is installed by --block --in-place alone')
     if clash:
         p.error('--block takes --compare and nothing else; %s %s a reading'
                 ' of its own, so run it separately'
@@ -18278,6 +18532,37 @@ def main():
                 ' invocations README\'s checklist spells out, one at a'
                 ' time' % (' and '.join('--' + f.replace('_', '-')
                                         for f in subs), len(subs)))
+    # A MODIFIER IS READ BY ITS MODES AND BY NOTHING ELSE, so one given
+    # without any of them was taken and ignored -- `--rows list` on the
+    # default reading printed the default table whole -- the silent-option
+    # family the roll calls above refuse for the modes (2026-10-16, by
+    # review). The defaults are the parser's; a modifier at its default
+    # is not asked for. Cases: `modifier-without-its-mode-is-refused`,
+    # `per-shape-without-a-pair-is-refused`.
+    for dest, default, flag, owners in (
+            ('rows', None, '--rows', ('markdown', 'block')),
+            ('per_shape', False, '--per-shape', ('pair', 'compare')),
+            ('band', 3.3, '--band', ('bridge',)),
+            ('with_', None, '--with', ('replace',)),
+            ('with_tables', None, '--with-tables', ('section',)),
+            ('delete_limit', 1500, '--delete-limit', ('delete',)),
+            ('repeat', False, '--repeat', ('note',)),
+            ('all_paras', False, '--all',
+             ('para', 'opening', 'inherited', 'stale')),
+            ('brief_dir', '.', '--brief-dir', ('brief_update',))):
+        if getattr(args, dest) != default and not any(
+                getattr(args, o) for o in owners):
+            names = ['--' + o.replace('_', '-') for o in owners]
+            p.error('%s is read by %s, and none was given, so it would be'
+                    ' taken and ignored'
+                    % (flag, names[0] if len(names) == 1 else
+                       ', '.join(names[:-1]) + ' and ' + names[-1]))
+    # A table number counts from 1, and Python's indexing took -1 for the
+    # second-to-last. Case: `with-tables-refuses-a-number-below-one`.
+    if args.with_tables is not None and args.with_tables < 0:
+        p.error("--with-tables counts a section's tables from 1, and %d is"
+                ' none of them; bare, it prints them all'
+                % args.with_tables)
     if args.counts and not (args.compare or args.pair or args.countdiff):
         p.error('--counts is a modifier: ONE sweep file with `--pair A B`'
                 ' or `--countdiff A B` for the within-half reading, TWO'
@@ -18324,7 +18609,7 @@ def main():
         else [])
     if args.replace:
         if not args.with_:
-            sys.exit('--replace wants --with FILE, the replacement text')
+            refuse('--replace wants --with FILE, the replacement text')
         sys.exit(splice(docs, args.replace, args.with_))
     if args.cross_classes:
         sys.exit(cross_class_summary(args.classes, args.others, args.main))
@@ -18337,15 +18622,14 @@ def main():
     # without --note fell through to "a run file is required", naming the
     # wrong thing, and --halves without --draft was taken and ignored.
     if (args.draft or args.halves) and not args.note:
-        sys.exit('--draft and --halves are --note\'s; there is nothing to'
+        refuse('--draft and --halves are --note\'s; there is nothing to'
                  ' carry over without a note to carry it from')
     if args.halves and not args.draft:
-        sys.exit('--halves is --draft\'s: without it the note is READ and'
+        refuse('--halves is --draft\'s: without it the note is READ and'
                  ' not carried over, so the new names have nowhere to go')
     if (args.imperative or args.full) and not args.checklist:
         # p.error, so the status is 2: this is usage, which the tree reads
-        # as `the run did not happen`. The two refusals above exit 1
-        # through sys.exit, which predates that convention.
+        # as `the run did not happen`, as the two refusals above do.
         p.error('--%s is --checklist\'s: it chooses how much of each step'
                 ' prints, and there are no steps without a list to'
                 ' print. Taken alone it was read and ignored'
@@ -18468,6 +18752,13 @@ def main():
         if not args.run:
             p.error('--movement reads a main-set JSON against the run'
                     " file's Results table: name the JSON")
+        # LOADED BY ITSELF, past main's filters: --exclude, --exclude-shape
+        # and --pin were taken and ignored (2026-10-16, by review). Case:
+        # `movement-refuses-a-filter`.
+        if args.exclude or args.exclude_shape or args.pin:
+            p.error('--movement reads the run whole against the published'
+                    ' column, which is the whole run\'s, so --exclude,'
+                    ' --exclude-shape and --pin narrow nothing it reads')
         at = json_run_half(args.run or '')
         cmp_run = (note_compare(at[0])
                    if at and not run_doc_named else None)
@@ -18603,7 +18894,7 @@ def main():
                     ' cannot be combined')
         strategies = [s for s in strategies if not is_control(s)]
     if not shapes or not strategies:
-        sys.exit('nothing left after --exclude')
+        refuse('nothing left after --exclude')
     holes = [(sh, st) for sh in shapes for st in strategies
              if st not in cells[sh]]
     if holes:

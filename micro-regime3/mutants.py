@@ -171,7 +171,8 @@ MUTANTS = [
     # the figure moved and reports zero honestly.
     ('--stale stops reading the figures an edited paragraph kept',
      'read-run.py',
-     "                if re.search(r'\\b%s\\b' % re.escape(n), best, re.I)]",
+     "                if re.search(r'(?<![\\w.])%s(?!\\w)' % re.escape(n), best,\n"
+     "                             re.I)]",
      '                if False]',
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nf = d.stale_pair(t)\nr = subprocess.run([sys.executable, \'{file}\', \'--stale\', \'--run-doc\', f[\'doc\']], capture_output=True, text=True)\nsys.exit(0 if \'1 edited paragraph(s) keep a MEASURED\' in r.stdout else 1)"'),
 
