@@ -251,6 +251,15 @@ def _newest_run_doc():
 
 
 RUNDOC = _newest_run_doc()
+# WRAP80 IS A FIXTURE'S TOOL, thirty-odd plants building off the unwrapped
+# documents: off PATH, each raised FileNotFoundError, which the runner
+# counts a skip that could not run, so a run could pass having built none
+# of them. BLOCKED here instead, as a missing run file is above.
+# 2026-10-16, by review.
+if shutil.which('wrap80') is None:
+    print('BLOCKED: wrap80 is not on PATH, and the fixtures built off the'
+          ' unwrapped README and run file cannot be built without it')
+    raise SystemExit(2)
 # Where --properties looks for runs: this directory, or what a case names,
 # which is how an empty corpus is handed to it.
 CORPUS = os.environ.get('CORPUS', HERE)
@@ -280,9 +289,35 @@ def sweep():
 atexit.register(sweep)
 
 
+def git_env(**extra):
+    """The caller's environment less every variable that points git at
+    another repository: GIT_DIR, GIT_WORK_TREE and GIT_INDEX_FILE outrank
+    both `-C` and the working directory, and the plants run in the
+    runner's own process, outside the cleaned environment it gives a
+    program. Exported, they sent a fixture's commit into the repository
+    they named. Case: `fixture-git-ignores-an-inherited-git-dir`."""
+    env = {k: v for k, v in os.environ.items()
+           if k not in ('GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE',
+                        'GIT_OBJECT_DIRECTORY', 'GIT_COMMON_DIR',
+                        'GIT_NAMESPACE')}
+    env.update(extra)
+    return env
+
+
 def git(*args):
     return subprocess.run(('git',) + args, cwd=HERE, capture_output=True,
-                          text=True)
+                          text=True, env=git_env())
+
+
+def fixture_git(d, *args):
+    """git in the throwaway checkout `d`, committing as nobody and
+    unsigned: with the user's own configuration a commit signs, and a
+    fixture did not build where no gpg agent ran. Case:
+    `fixture-git-commits-unsigned`."""
+    return subprocess.run(['git', '-C', d, '-c', 'user.email=t@t', '-c',
+                           'user.name=t', '-c', 'commit.gpgsign=false']
+                          + list(args), check=True, capture_output=True,
+                          text=True, env=git_env())
 
 
 # ---------------------------------------------------------------- fixtures
@@ -322,8 +357,19 @@ def era_readme(tmp, rev, name='era-README.md'):
     return p
 
 
+def fresh(path):
+    """`path`, a link at it removed: a shadow is this directory's names as
+    links, and a fixture opened for writing through one wrote the live
+    file. Every open for writing here goes through this; the few copies
+    with `shutil.copy` write into a case's temp directory, which no
+    shadow's link reaches. Case: `fixture-write-replaces-a-link`."""
+    if os.path.islink(path):
+        os.remove(path)
+    return path
+
+
 def write(path, text):
-    with open(path, 'w') as f:
+    with open(fresh(path), 'w') as f:
         f.write(text)
     return path
 
@@ -606,8 +652,13 @@ def plant_retired_shape_exempt(tmp):
     retired = _reader().retired_shapes(MAIN)
     timed = [n for n in names if n not in retired]
     # The run's population as the reader derives it, and one more retired
-    # than the gap between today's set and it.
-    was = len(timed) - len(declared & set(timed)) + len(declared_retired & retired)
+    # than the gap between today's set and it. The declared-retired views
+    # are the MAIN SET's alone, as in `plant_main_shapes_exempt` since
+    # 2026-10-05: a retired class view counted in made this 20 against
+    # the run file's 19 (2026-10-16, by review). Record:
+    # `retired-shape-plant-counts-a-class-view`.
+    was = (len(timed) - len(declared & set(timed))
+           + len(declared_retired & retired & set(names)))
     # The run's own count is what the dropped exemption must leave matching
     # no population, and a fixture cannot choose it; say so loudly rather
     # than let the mutant survive as it did once a class reached a count.
@@ -1616,9 +1667,7 @@ def drift_repo(tmp, moved=True):
     `fooFill` after the registration; the note names the tip as built."""
     d = os.path.join(tmp, 'repo')
     os.makedirs(d)
-    g = lambda *a: subprocess.run(['git', '-C', d, '-c', 'user.email=t@t',
-                                   '-c', 'user.name=t'] + list(a),
-                                  check=True, capture_output=True, text=True)
+    g = lambda *a: fixture_git(d, *a)
     g('init', '-q')
     write(os.path.join(d, 'README.md'), 'What Run 97 is built to answer.\n')
     write(os.path.join(d, 'Main.hs'), 'fooFill :: Int\nfooFill = 1\n')
@@ -1643,9 +1692,7 @@ def drift_since_repo(tmp, code=True, pragma=False, mute=False):
     exits 1."""
     d = os.path.join(tmp, 'repo')
     os.makedirs(d)
-    g = lambda *a: subprocess.run(['git', '-C', d, '-c', 'user.email=t@t',
-                                   '-c', 'user.name=t'] + list(a),
-                                  check=True, capture_output=True, text=True)
+    g = lambda *a: fixture_git(d, *a)
     g('init', '-q')
     head = ('roster :: [(String, Arm)]\nroster =\n'
             '  [ ("lib-a",  Fill fbA)\n  , ("lib-b",  Fill fbB)\n  ]\n'
@@ -1871,6 +1918,28 @@ def inherited_pair(tmp, n=97, share=True, half=False):
     return {'doc': doc}
 
 
+def decoy_repo(tmp):
+    """A repository with one empty commit, `decoy base`, standing for the
+    one an exported GIT_DIR names, for a case about a fixture that must
+    not commit into it."""
+    d = os.path.join(tmp, 'decoy')
+    os.makedirs(d)
+    fixture_git(d, 'init', '-q')
+    fixture_git(d, 'commit', '-q', '--allow-empty', '-m', 'decoy base')
+    return d
+
+
+def signing_home(tmp):
+    """A HOME whose git configuration signs every commit with a program
+    that always fails, which is what signing is with no gpg agent."""
+    h = os.path.join(tmp, 'home')
+    os.makedirs(h)
+    write(os.path.join(h, '.gitconfig'),
+          '[commit]\n\tgpgsign = true\n[gpg]\n\tprogram = false\n'
+          '[user]\n\tname = t\n\temail = t@t\n')
+    return h
+
+
 def lost_pair(tmp, n=97, deleted=True):
     """A run file whose step-5 copy is a commit, and which lost a paragraph.
 
@@ -1894,13 +1963,9 @@ def lost_pair(tmp, n=97, deleted=True):
             ' ten times apart, which is the level this basis asks for.')
     write(doc, '# Run %d\n\nA head paragraph.\n\n%s\n\n%s\n'
                % (n - 1, kept_para, goes))
-    env = dict(os.environ, GIT_AUTHOR_NAME='t', GIT_AUTHOR_EMAIL='t@t',
-               GIT_COMMITTER_NAME='t', GIT_COMMITTER_EMAIL='t@t')
     for cmd in (['init', '-q'], ['add', '--', os.path.relpath(doc, tmp)],
-                ['-c', 'commit.gpgsign=false', 'commit', '-q', '-m',
-                 'copy run%d to run%d' % (n - 1, n)]):
-        subprocess.run(['git', '-C', tmp] + cmd, check=True, env=env,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                ['commit', '-q', '-m', 'copy run%d to run%d' % (n - 1, n)]):
+        fixture_git(tmp, *cmd)
     rewritten = ('**The straddling loops stand at TWELVE on each half.** The'
                  ' survey reads them off the timed binary and the count'
                  ' moved on both halves alike, so it is the source.')
@@ -1942,13 +2007,9 @@ def stale_pair(tmp, n=97, kept=True, word=False):
             ' beside the figure in the table above.\n'
             % (n - 1, n - 1, planted))
     write(doc, copy)
-    env = dict(os.environ, GIT_AUTHOR_NAME='t', GIT_AUTHOR_EMAIL='t@t',
-               GIT_COMMITTER_NAME='t', GIT_COMMITTER_EMAIL='t@t')
     for cmd in (['init', '-q'], ['add', '--', os.path.relpath(doc, tmp)],
-                ['-c', 'commit.gpgsign=false', 'commit', '-q', '-m',
-                 'copy run%d to run%d' % (n - 1, n)]):
-        subprocess.run(['git', '-C', tmp] + cmd, check=True, env=env,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                ['commit', '-q', '-m', 'copy run%d to run%d' % (n - 1, n)]):
+        fixture_git(tmp, *cmd)
     figure = planted if kept else ('forty-one' if word else '0.44%')
     write(doc, '# Run %d\n\nA head paragraph of its own, rewritten for this'
                ' run.\n\n**On Run %d the floor is %s on the basis half, the'
@@ -2731,7 +2792,7 @@ def counts_leg(tmp, run, half, pop=None, elapsed=80, ended=True):
     """
     name = '%s-counts-%s%s.txt' % (run, half, '-%s' % pop if pop else '')
     path = os.path.join(tmp, name)
-    with open(path, 'w') as fh:
+    with open(fresh(path), 'w') as fh:
         fh.write('# %s-%s deadbeef N=50 2026-01-01T00:00:00+00:00 full%s\n'
                  % (run, half, ' class=%s' % pop if pop else ''))
         fh.write('# shape arm N instructions/iter\n')
@@ -2858,7 +2919,7 @@ def synth_counts(tmp, name, ratio=1.0, refuse=(), extra_arms=(), n=50,
     shapes = main_shapes() if shapes is None else shapes
     path = os.path.join(tmp, name)
     refused = {(s, a) for s, a in refuse}
-    with open(path, 'w') as f:
+    with open(fresh(path), 'w') as f:
         f.write('# %s %s N=%d 2026-01-01T00:00:00+00:00 full\n'
                 % (name, '0' * 32, n))
         f.write('# shape arm N instructions/iter\n')
@@ -3060,7 +3121,7 @@ def deflation_leg_zero_slope(tag='runzzq', half='h'):
                 r['regCoeffs']['iters']['estPoint'] = 0.0
                 hit += 1
     assert hit, 'no time fit in the leg to zero'
-    with open(leg, 'w') as f:
+    with open(fresh(leg), 'w') as f:
         json.dump(d, f)
     return run
 
@@ -3219,7 +3280,7 @@ def doctored(tmp, pop, mutate, name='x.json'):
     d = json.loads(open(p).read())
     n = mutate(d[2])
     assert n, 'the mutation matched no bench in the built %s run' % pop
-    with open(p, 'w') as f:
+    with open(fresh(p), 'w') as f:
         f.write(json.dumps(d))
     return p
 
@@ -4493,7 +4554,7 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=(),
                     alloc *= f_w
             reports.append(_synth_report('%s/%s' % (sh, name), slope, alloc,
                                          samples))
-    with open(path, 'w') as f:
+    with open(fresh(path), 'w') as f:
         f.write(json.dumps(['criterion', '1.6.5.0', reports]))
     if fingerprint:
         # A README carrying nothing but the fingerprint table, in the four
@@ -4513,7 +4574,7 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=(),
                 'of %d have none, first %s -- `list` is dropped by '
                 'no_twins=True, being a twin base, and by drop_arms naming it'
                 % (len(missing), len(shapes), missing[0]))
-        with open(fingerprint, 'w') as f:
+        with open(fresh(fingerprint), 'w') as f:
             f.write('| shape | . | . | `list` net |\n|---|---|---|---:|\n')
             for sh in shapes:
                 f.write('| `%s` | . | . | %.9f us |\n' % (sh,
@@ -4825,7 +4886,7 @@ def staged_doc(tmp):
             ' sentence pretends to name, which makes it the biggest'
             ' superlative in the README.\n')
     idx = os.path.join(tmp, 'index')
-    env = dict(os.environ, GIT_INDEX_FILE=idx)
+    env = git_env(GIT_INDEX_FILE=idx)
     # THE RUN FILE GOES INTO THIS INDEX TOO. `added_lines` asks one
     # `ls-files --error-unmatch` of every document it reads and falls back
     # to its EVERYTHING sentinel if any is unknown -- so a run file this
@@ -4913,6 +4974,13 @@ def case(name, prog, fix, gist, argv, ok, bug=None, plant=None, env=None,
         '%s: a bug verdict wants the commit that fixed it, or `self` where'
         ' the case lands with its fix, or --audit has nothing to replay --'
         ' drop the bug to make it a control' % name)
+    # A TIER1 ENTRY IS A DEFECT'S, and one beside a record filed with no
+    # fix was dropped in silence, the defect counted as a control with its
+    # family and harm unread, defects that had fired in use among them.
+    # Refused here, where the author is standing. 2026-10-16, by review.
+    assert fix or name not in TIER1, (
+        '%s: TIER1 describes a defect, and the record names no fix -- give'
+        ' it the commit that fixed it, or drop the TIER1 entry' % name)
 
     def plant_py(ctx):
         subs = {}
@@ -4928,8 +4996,12 @@ def case(name, prog, fix, gist, argv, ok, bug=None, plant=None, env=None,
     rec = {'id': name, 'program': prog, 'name': gist,
            'kind': 'defect' if fix else 'control'}
     if fix:
+        # `ran` only where the audit replays the bug direction: a bug
+        # verdict beside a `no_audit` is never run, and six such records
+        # said `ran` (2026-10-16, by review).
         rec.update(fix_rev=fix, family=None, trigger=None, ok=None, bug=None,
-                   proved='ran' if bug else None, harm=None, discovery=None)
+                   proved='ran' if bug and not no_audit else None,
+                   harm=None, discovery=None)
         rec.update(TIER1.get(name, {}))
     if no_audit:
         rec['no_audit'] = no_audit
@@ -4953,6 +5025,19 @@ def case(name, prog, fix, gist, argv, ok, bug=None, plant=None, env=None,
     for key, want in (('expect', ok), ('bug', bug)):
         if want is None:
             continue
+        # A VERDICT OF ABSENCES ALONE holds on a crash, which the header
+        # ruled out on 2026-08-23 and nothing enforced: thirty-odd had come
+        # back by 2026-10-16, and two more asserted an exit 1 and nothing
+        # else, which a Python crash also exits. On a Python program a
+        # crash prints a traceback, so a verdict requiring no text asserts
+        # its absence too; on any other there is no such mark, and the
+        # verdict wants an exit at least.
+        if not want['has']:
+            assert want['exit'] is not None or prog.endswith('.py'), (
+                '%s: a %s verdict of absences alone holds on a crash -- give'
+                ' it the exit, or something the output says' % (name, key))
+            if prog.endswith('.py') and 'Traceback' not in want['hasnt']:
+                want = dict(want, hasnt=list(want['hasnt']) + ['Traceback'])
         if want['exit'] is not None:
             rec[key + '_exit'] = want['exit']
         if want['has']:
@@ -5157,14 +5242,6 @@ TIER1 = {
         bug='replaced lead and table together at exit 0, taking the flip'
             ' class\'s 38 rows out of Run 29\'s file, with --check-doc'
             ' passing straight afterwards'),
-    'status-reads-a-bare-item-header': dict(
-        family='scan-for-parse', discovery='in-use', harm='fired',
-        harm_count=1,
-        trigger='a carrier return whose headers are the bare `ITEM N` the'
-                ' chapter asks for, as Run 27\'s was',
-        ok='reads the four blocks present',
-        bug='read all four absent, so post-run 4, 5 and 6a stood NOT DONE'
-            ' with the file written and complete'),
     'smoke-exercises-the-arm-filter': dict(
         family='vacuous-check', discovery='review', harm='fired',
         trigger='--exclude named an Only arm, bq-expand-b since c10e8cf',
@@ -6268,6 +6345,97 @@ TIER1 = {
               ' finds no commit putting the name in run-gate.sh.'),
 }
 
+# ---- the review of 2026-10-16 ----
+# A /code-review over every tracked script here, its findings fixed the
+# same day, each with a case where one could be driven and a record alone
+# where not. `proved` is the case's own where it has one; the records
+# below with none say whether the bug direction was watched.
+_R16 = dict(discovery='review', harm='latent')
+TIER1.update({
+    'shadow-refuses-a-cd-inside-a-line': dict(_R16,
+        family='scan-for-parse',
+        trigger='`$(cd /path && ...)` or `x; cd /path` in a driver',
+        ok='refused as absolute', bug='held in a shadow'),
+    'fixture-write-replaces-a-link': dict(_R16,
+        family='unverified-state',
+        trigger='a fixture written into a shadow by a name the directory'
+                ' carries',
+        ok='the link replaced by the file', bug='the live file written'),
+    'shadow-skips-a-concurrent-fixture': dict(_R16,
+        family='unverified-state',
+        trigger='a shadow built under -j while another case\'s here_file'
+                ' stands',
+        ok='the fixture is not linked', bug='linked, and reachable'),
+    'fixture-git-ignores-an-inherited-git-dir': dict(_R16,
+        family='environment-decides',
+        trigger='the runner started with GIT_DIR exported',
+        ok='the fixture commits into its own throwaway checkout',
+        bug='the commit landed in the repository GIT_DIR named'),
+    'fixture-git-commits-unsigned': dict(_R16,
+        family='environment-decides',
+        trigger='commit.gpgsign set and no gpg agent',
+        ok='the drift fixtures build unsigned',
+        bug='six fixtures did not build'),
+    # The records with no case, at the foot of RECORDS.
+    'records-pass-a-bug-verdict-on-argparse': dict(_R16,
+        family='vacuous-check', proved='asserted',
+        trigger='a record whose argv names a flag its own fix added',
+        ok='`no_audit: argv-postdates-history`, the bug not replayed',
+        bug='the old reader refusing the flag read as the defect'),
+    'verdicts-of-absences-alone': dict(_R16,
+        family='vacuous-check', proved='asserted',
+        trigger='a verdict with no exit and no text, or an exit alone',
+        ok='a Python program\'s asserts no traceback; any other\'s wants an'
+           ' exit, refused at import',
+        bug='held when the program crashed'),
+    'tier1-for-a-fixless-record-dropped': dict(_R16,
+        family='quiet-failure', proved='ran',
+        trigger='a TIER1 entry beside a record filed with no fix',
+        ok='refused at import',
+        bug='dropped, the defect counted as a control',
+        notes='Watched 2026-10-16: once in, the guard refused three such'
+              ' records beside the four the review had named.'),
+    'tier1-entry-naming-no-record': dict(_R16,
+        family='quiet-failure', proved='ran',
+        trigger='a TIER1 key with no record',
+        ok='refused at import', bug='its data no defect\'s, unreported'),
+    'bug-beside-no-audit-recorded-as-ran': dict(_R16,
+        family='vacuous-check', proved='asserted',
+        trigger='a bug verdict beside a `no_audit`',
+        ok='`proved` left to TIER1', bug='`proved: ran`, never run'),
+    'plants-skip-where-wrap80-is-off-path': dict(_R16,
+        family='environment-decides', proved='asserted',
+        trigger='the runner\'s PATH lacking wrap80',
+        ok='BLOCKED at import', bug='thirty-odd plants counted as skips'),
+    'strip-env-leaves-driver-switches': dict(_R16,
+        family='environment-decides', proved='asserted',
+        trigger='CLASS, LINEAR_TOL, ALLOC or CORPUS exported',
+        ok='stripped from every case', bug='read by the cases not setting'
+                                           ' them'),
+    'retired-shape-plant-counts-a-class-view': dict(_R16,
+        family='two-spellings', proved='ran',
+        trigger='a declared-retired view of a class',
+        ok='the main set\'s population, 19 on Run 45\'s file',
+        bug='20, the class view counted in'),
+    'movement-mutant-caught-by-a-refusal': dict(_R16,
+        family='vacuous-check', proved='asserted',
+        trigger='the `--movement` mutant',
+        ok='the mutant is the self-comparison, the judge wanting a moved row',
+        bug='caught by the reader\'s refusal of an empty table, a real'
+            ' self-comparison passing the judge'),
+    'mutants-comments-stale': dict(_R16,
+        family='false-comment', proved='asserted',
+        trigger='reading mutants.py\'s comments against its judges',
+        ok='each comment over its own mutant, saying what it does',
+        bug='two over the wrong mutants, a header naming globs no judge'
+            ' makes, an exit 0 that is 2'),
+    'carried-note-verdict-matches-usage': dict(_R16,
+        family='vacuous-check', proved='asserted',
+        trigger='the control\'s verdict `--inherited`',
+        ok='the note\'s own words asserted',
+        bug='matched by argparse\'s usage line on any bad argument'),
+})
+
 
 RECORDS = [
     # ---- read-run.py, the first review's ------------------------------
@@ -6668,7 +6836,7 @@ RECORDS = [
                                             name='run99-half-main.json')},
          argv=['{run}', '--deflation'],
          ok=V(exit=2, has=['the riders were not taken']),
-         bug=V(exit=2, hasnt=['the riders were not taken'])),
+         no_audit='argv-postdates-history'),
 
     # ---- the wider identity check, and its scoping ------------------
     # Both are --unit cases over synthetic documents, because the live
@@ -8221,7 +8389,7 @@ RECORDS = [
          plant=probe_stalls_sweeps,
          argv=['--counts', '{new}', '--countdiff', 'lib-a', 'lib-b'],
          ok=V(exit=0, has=['largest -970 on s1', 'smallest -1000 on s2']),
-         bug=V(exit=2, has=['--countdiff'])),
+         no_audit='argv-postdates-history'),
 
     case('countdiff-names-its-malformed-lines', 'read-run.py', None,
          'CONTROL: --countdiff counts the lines it could not read, as'
@@ -8324,7 +8492,7 @@ RECORDS = [
          argv=['--counts-over', '{new}', '{old}'],
          ok=V(exit=0, has=['lib-a', '1.0149', '1.0300 on s1',
                            '+30 on s1', 'lib-b', '1.0000']),
-         bug=V(exit=2, has=['--counts-over'])),
+         no_audit='argv-postdates-history'),
 
     case('draft-compares-with-the-run-it-drafts-from', 'read-run.py', None,
          'CONTROL: a carried COMPARE line is reset to the drafted-from run,'
@@ -8367,7 +8535,7 @@ RECORDS = [
          ok=V(exit=1, has=['continuity claim reaching only Run 96',
                            'item (5)', 'not on the roll', 'no [EXEC] block',
                            'no VARIABLE-CHECK line']),
-         bug=V(exit=2, hasnt=['continuity claim'])),
+         no_audit='argv-postdates-history'),
 
     case('note-check-passes-a-note-with-none-of-them', 'read-run.py', None,
          'CONTROL: the same note with its three statements current',
@@ -8836,8 +9004,8 @@ RECORDS = [
          'the ceiling was a max over agreeing cells the sentence excludes',
          argv=['--unit', 'small_ceiling([(2e-4, "s1", "a", 500.0),'
                          ' (1e-5, "s2", "b", 5000.0)])'],
-         ok=V(has=['500']),
-         bug=V(has=["name 'small_ceiling' is not defined"], hasnt=['500.0'])),
+         ok=V(has=['500.0'], hasnt=['5000.0']),
+         no_audit='argv-postdates-history'),
 
     case('dropped-control-pairs-are-named', 'read-run.py', 'de79a95',
          'a pair dropped for a sunk cell narrowed a PUBLISHED figure quietly',
@@ -8904,6 +9072,9 @@ RECORDS = [
 
     case('shadow-refuses-an-absolute-cd', 'defects.py', '77fd51b',
          'a program cd-ing to an absolute path ran for real from a shadow',
+         # The fix is check-scripts.py's, before it became this file in
+         # 27580a5, so the audit has no `fix^` of this program to replay.
+         no_audit='other:program-renamed',
          # The overwrite of 2026-08-23, as a case: a shadow holds a program
          # only if the program stays in it, and probe-areacurve.sh's old
          # `cd /home/...` put it back here, on the real binary, writing the
@@ -8917,6 +9088,7 @@ RECORDS = [
 
     case('shadow-refuses-a-quoted-absolute-cd', 'defects.py', '9a51f3a',
          'the same cd in quotes slipped the guard',
+         no_audit='other:program-renamed',
          plant=lambda t: {'tmp': t},
          argv=['--unit', "shadow_dir('{tmp}', 'probe-areacurve.sh',"
                          " 'cd \"/nowhere-zz\"\\n')"],
@@ -8933,6 +9105,7 @@ RECORDS = [
 
     case('fixture-ci-bounds-are-criterion-shaped', 'defects.py', '40f7a37',
          'the fixture wrote a negative lower CI bound, which criterion never does',
+         no_audit='other:program-renamed',
          # Criterion writes both deviations positive (`confIntLDX`
          # 9.649e-11 beside `confIntUDX` 1.154e-10 in run10-aligned-main),
          # and the reader's CI% is their mean over the slope. `_est` wrote
@@ -9564,7 +9737,9 @@ RECORDS = [
          # members is the shape this record is about.
          plant=rundoc_pair_with_carried_body_claim,
          argv=['--check-doc', '--worklists', '--run-doc', '{rundoc}'],
-         ok=V(has=['--inherited'])),
+         # The flag alone is in argparse's usage line on any bad argument,
+         # so the note's own words are what is asserted (2026-10-16).
+         ok=V(has=['`--inherited` lists them'])),
 
     case('stale-names-a-word-numeral-in-its-default-view', 'read-run.py',
          None,
@@ -9600,7 +9775,7 @@ RECORDS = [
                      'no paragraph went by count in either document']),
          # Before the mode there was nothing to run: argparse refuses the
          # flag, which is what `every gate here` amounted to.
-         bug=V(exit=2, hasnt=['WENT BY COUNT'])),
+         no_audit='argv-postdates-history'),
 
     # The control: the same edit with nothing removed, on which the mode
     # must find nothing -- a rewritten lead over the same body is
@@ -9909,7 +10084,7 @@ RECORDS = [
          argv=['--extremes', '--classes', '{a}', '{b}'],
          ok=V(exit=0, has=['2 class population(s)', 'tightest floor',
                            'widest gap, paired']),
-         bug=V(exit=2, hasnt=['class population(s)'])),
+         no_audit='argv-postdates-history'),
 
     case('cross-classes-aggregates-the-blocks-own-rows', 'read-run.py', None,
          "the class section's intro figures were assembled by hand",
@@ -10038,20 +10213,20 @@ RECORDS = [
                                          run_order_shapes('rev'))},
          argv=['--extremes', '--classes', '{a}', '{b}'],
          ok=V(exit=1, has=['a class is named twice']),
-         bug=V(exit=2, hasnt=['a class is named twice'])),
+         no_audit='argv-postdates-history'),
 
     case('extremes-is-not-for-the-main-set', 'read-run.py', '3596ba2',
          'the main set has no class row and would have been ranked as one',
          plant=lambda t: {'a': synth_json(t, 'main')},
          argv=['--extremes', '--classes', '{a}'],
          ok=V(exit=1, has=['ranks the stride classes']),
-         bug=V(exit=2, hasnt=['ranks the stride classes'])),
+         no_audit='argv-postdates-history'),
 
     case('extremes-with-no-classes', 'read-run.py', '3596ba2',
          'a mode whose whole input is a modifier, given without it',
          argv=['--extremes'],
          ok=V(exit=2, has=['none were given']),
-         bug=V(exit=2, hasnt=['none were given'])),
+         no_audit='argv-postdates-history'),
 
     case('classes-without-a-mode-that-reads-it', 'read-run.py', '3596ba2',
          'the files named by --classes were read by nobody, at exit 0',
@@ -11726,7 +11901,7 @@ RECORDS = [
          probe=lambda subs: open(os.path.join(
              str(subs['at']), 'log-read-zzpr3',
              'main-lookrts-cells.tsv')).read().split('\n')[0],
-         ok=V(hasnt=['criterion 1.6'])),
+         ok=V(exit=1, hasnt=['criterion 1.6'])),
 
     case('readings-rewrite-their-directory-whole', 'post-run-readings.sh',
          '6581d06',
@@ -12718,9 +12893,8 @@ RECORDS = [
          shadow=dict(extra=lambda text: halves('zztl-lookrts', 'zztl-a1g', classes=classes_in(text))
                      + [('zztl-pair.txt', NOTE_STUB),
                         ('zztl-scratch.txt', 'untracked\n')]),
-         plant=lambda t: (subprocess.run(
-             ['git', 'init', '-q', os.path.join(t, 'shadow')], check=True),
-             {})[1],
+         plant=lambda t: (fixture_git(os.path.join(t, 'shadow'), 'init',
+                                      '-q'), {})[1],
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zztl'],
          probe=lambda subs: open(os.path.join(subs['at'],
@@ -12790,7 +12964,7 @@ RECORDS = [
          argv=['zzit'],
          ok=V(has=['no counts sweeps yet',
                    'rerun ./install-tables.sh zzit once']),
-         bug=V(hasnt=['no counts sweeps yet'])),
+         bug=V(exit=0, hasnt=['no counts sweeps yet'])),
 
     case('prose-draft-drafts-every-paragraph', 'read-run.py', None,
          'CONTROL: --prose-draft drafts each of its paragraphs off a whole'
@@ -13004,7 +13178,7 @@ RECORDS = [
          ok=V(has=['10 cross-class summary row(s) installed',
                    'in the order the table already had'],
               hasnt=['LEFT STANDING']),
-         bug=V(hasnt=['cross-class summary row(s) installed'])),
+         bug=V(exit=0, hasnt=['cross-class summary row(s) installed'])),
 
     case('install-notes-a-one-half-run', 'install-tables.sh', None,
          'CONTROL: no other half and no paragraph to leave standing is a'
@@ -13178,7 +13352,7 @@ RECORDS = [
          ok=V(exit=0, has=['KEPT-EVENING', 'evening: kept',
                            "`read-all.sh` gates each process ___"],
               hasnt=['PLANTED-PLATEAU']),
-         bug=V(exit=2, has=['PLANTED-PLATEAU'])),
+         no_audit='argv-postdates-history'),
 
     case('install-is-idempotent', 'install-tables.sh', None,
          'CONTROL: a full pass over an untouched run file rewrites no table',
@@ -13467,9 +13641,9 @@ RECORDS = [
                             ' so this row has no geomean to bracket'])),
 
     case('fingerprint-names-an-arm-with-no-corrected-time', 'read-run.py',
-         None,
-         'CONTROL: the kept per-shape table names no arm the `time` column'
-         ' reads as `--`',
+         '5ccc5d9',
+         'the kept per-shape table named an arm the `time` column reads as'
+         ' `--`',
          # The two columns agreed by construction while `is_control` WAS
          # `no_net` plus the twins; once the reducing consumers joined
          # `no_net` alone, this column went on dividing their nets. Held
@@ -13487,9 +13661,9 @@ RECORDS = [
               hasnt=['`%s`' % a for a in consumer_arms()])),
 
     case('draft-carries-a-block-naming-another-run-unmarked', 'read-run.py',
-         None,
-         'CONTROL: a carried [SAME] block naming a run the rename does not'
-         ' touch is flagged, and one naming only the previous run is not',
+         '1d767c0',
+         'a carried [SAME] block naming a run the rename does not touch came'
+         ' through unmarked, reading as correctly carried',
          # The renames map the PREVIOUS run onto this one and touch no
          # other number, so a `[SAME]` block quoting an older run's figure
          # comes through pointing one run too far back and reads as
@@ -13585,9 +13759,10 @@ RECORDS = [
          argv=['--doc', 'nosuch'],
          ok=V(exit=2, has=['no part `nosuch`'], hasnt=['Modes:'])),
 
-    case('note-figures-reads-a-row-only-as-present', 'preflight.sh', None,
-         'CONTROL: --figures holds each derived figure to the note ROW of'
-         ' its own label, not to the note anywhere',
+    case('note-figures-reads-a-row-only-as-present', 'preflight.sh',
+         '1d767c0',
+         '--figures held a derived figure to the note anywhere, not to the'
+         ' row of its own label',
          # NO CASE, and for a reason of its own rather than the one the
          # record below gives preflight: --figures reads the two BINARIES,
          # which are not tracked, and the mutants copy holds tracked files
@@ -13677,7 +13852,7 @@ RECORDS = [
          argv=['--copy-cells', '{run}'],
          ok=V(exit=0, has=['run98-lookrts run97-nospec main %s/lib-stage1'
                            % main_shapes()[0]]),
-         bug=V(exit=2)),
+         no_audit='argv-postdates-history'),
 
     case('copy-test-names-build-and-process', 'read-run.py',
          '632d85e',
@@ -13688,7 +13863,7 @@ RECORDS = [
          plant=lambda t: {'log': plant_copy_test_log(t)},
          argv=['--copy-test', '{log}'],
          ok=V(exit=0, has=['BUILD', 'PROCESS']),
-         bug=V(exit=2)),
+         no_audit='argv-postdates-history'),
 
     case('copy-test-log-keeps-off-the-run-prefix', 'copy-test.sh', 'self',
          "copy-test.sh wrote its log as `$R-copy-test.log`, in the run's"
@@ -13725,7 +13900,7 @@ RECORDS = [
          plant=lambda t: {'run': os.path.join(t, 'run99')},
          argv=['--opening', '{run}'],
          ok=V(has=['== --inherited', '== --stale', '== --prose-facts']),
-         bug=V(exit=2)),
+         no_audit='argv-postdates-history'),
 
     case('half-movers-refuse-without-prev-or-compare', 'read-run.py', None,
          'CONTROL: --half-movers RUN alone, with no COMPARE line, is refused'
@@ -14289,9 +14464,10 @@ RECORDS = [
                            ' the OTHER']),
          bug=V(exit=0, hasnt=['on THIS half over the same arm'])),
 
-    case('gate-show-derives-the-selection', 'run-gate.sh', None,
-         'CONTROL: --show prints SEL and the count it derives, and spends'
-         ' no machine',
+    case('gate-show-derives-the-selection', 'run-gate.sh', 'f40fad2',
+         "the note's gate arms were read out of run-gate.sh's SEL by eye,"
+         ' and stood beside a SEL that had moved',
+         no_audit='argv-postdates-history',
          shadow=dict(extra=[('zzshow-a1g', FAKE_HALF),
                             ('zzshow-lookrts', FAKE_HALF),
                             ('zzshow-pair.txt', NOTE_STUB)]),
@@ -14303,19 +14479,16 @@ RECORDS = [
                            'shapes 2', 'expect 8 benches a process'],
               hasnt=['expecting'])),
 
-    case('gate-show-absorbs-a-third-argument', 'run-gate.sh', None,
+    case('gate-show-absorbs-a-third-argument', 'run-gate.sh', '53ba16b',
          'a third word after --show was taken without effect or error',
-         # No fix_rev: the defect and its repair are the same day and the
-         # same body of work as `--show` itself, so there is no commit at
-         # which the flag exists and the refusal does not. A control, then,
-         # guarding forward -- which is what the corpus's third kind is for.
          shadow=dict(extra=[('zzshow2-a1g', FAKE_HALF),
                             ('zzshow2-lookrts', FAKE_HALF),
                             ('zzshow2-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzshow2', '--show', 'nonsense'],
          ok=V(exit=2, has=['too many arguments'],
-              hasnt=['expect 8 benches a process'])),
+              hasnt=['expect 8 benches a process']),
+         bug=V(exit=0, has=['run-gate.sh selection for zzshow2'])),
 
     case('gate-selects-one-small-class-and-four-arms', 'run-gate.sh',
          None,
@@ -14335,9 +14508,10 @@ RECORDS = [
                            'zzgr-gate-lookrts-a rc=0 benchmarking=12'],
               hasnt=['!!'])),
 
-    case('roster-delta-reads-two-listings', 'roster-delta.py', None,
-         'CONTROL: two identical listings move nothing, and the survivors'
-         ' keep their order',
+    case('roster-delta-reads-two-listings', 'roster-delta.py', 'f40fad2',
+         'a roster change was stated in three documents off a diff nothing'
+         ' performed, and a note miscounted the controls',
+         no_audit='argv-postdates-history',
          plant=lambda t: {'old': stub_half(t, 'zzrd-old'),
                           'new': stub_half(t, 'zzrd-new')},
          argv=['{old}', '{new}'],
@@ -14475,7 +14649,7 @@ RECORDS = [
          # on record, and the gate's readings are the write-up's.
          shadow=dict(extra=[('run97-pair.txt', NOTE_STUB + CLEAN_GATE)]),
          argv=['run97'],
-         ok=V(hasnt=['14a', 'GATE VERDICT'])),
+         ok=V(exit=1, hasnt=['14a', 'GATE VERDICT'])),
 
     case('status-counts-the-slots-a-note-still-owes', 'run-status.sh', None,
          'CONTROL: a note carrying <yours> reads NOT DONE at 2c, naming'
@@ -14528,7 +14702,7 @@ RECORDS = [
                             ('probe-g3-b-r97', '#!/bin/sh\n')]),
          argv=['run97'],
          ok=V(has=['2 -g3 twin(s) here']),
-         bug=V(hasnt=['2 -g3 twin(s) here'])),
+         bug=V(exit=1, hasnt=['2 -g3 twin(s) here'])),
 
     case('status-asks-for-the-named-fills-in-the-note', 'run-status.sh',
          '61051dd',
@@ -14542,7 +14716,7 @@ RECORDS = [
                             ('run97-pair.txt', 'HALVES: basis=a other=b\n')]),
          argv=['run97'],
          ok=V(has=['no NAMED FILLS block in run97-pair.txt']),
-         bug=V(hasnt=['NAMED FILLS'])),
+         bug=V(exit=1, hasnt=['NAMED FILLS'])),
 
     case('status-reads-the-merged-rider-log', 'run-status.sh', 'self',
          'step 19 read NOT DONE over a merged rider set, looking for the'
@@ -14968,6 +15142,79 @@ RECORDS = [
          ok=V(has=['cds to an absolute path']),
          bug=V(has=['/shadow'], hasnt=['cds to an absolute path'])),
 
+    # The guard read a `cd` only at the head of a line, and a command
+    # substitution or a `;` or `&&` puts one anywhere. Found 2026-10-16 by
+    # review.
+    case('shadow-refuses-a-cd-inside-a-line', 'defects.py', 'self',
+         '`$(cd /path && ...)` and `x; cd /path` slipped the guard',
+         plant=lambda t: {'tmp': t},
+         argv=['--unit', "shadow_dir('{tmp}', 'probe-areacurve.sh',"
+                         " 'X=$(cd /nowhere-zz && pwd)\\n')"],
+         ok=V(has=['cds to an absolute path']),
+         bug=V(has=['/shadow'], hasnt=['cds to an absolute path'])),
+
+    # A shadow is this directory's names as links, so a fixture written
+    # into one by a name the directory has went through the link into the
+    # live file. Found 2026-10-16 by review; the link here stands for one.
+    case('fixture-write-replaces-a-link', 'defects.py', 'self',
+         'a fixture written into a shadow under a name this directory'
+         ' carries overwrote the live file through its link',
+         plant=lambda t: {'tmp': t, 'x': (
+             write(os.path.join(t, 'live'), 'LIVE\n'),
+             os.symlink(os.path.join(t, 'live'), os.path.join(t, 'link')))
+                          and ''},
+         argv=['--unit', "(write('{tmp}/link', 'FIXTURE\\n'),"
+                         " open('{tmp}/live').read())[1]"],
+         ok=V(has=['LIVE'], hasnt=['FIXTURE']),
+         bug=V(has=['FIXTURE'])),
+
+    # And a concurrent case's fixture in this directory, a `here_file`, was
+    # linked into every shadow built while it stood, so writing that name
+    # there reached the other case's file. Found 2026-10-16 by review.
+    case('shadow-skips-a-concurrent-fixture', 'defects.py', 'self',
+         "a shadow built while another case's fixture stood here linked it,"
+         ' and a write into the shadow by that name reached it',
+         plant=lambda t: {'tmp': t},
+         argv=['--unit', "(write(here_file('runzz-shadow-probe.txt'), 'x'),"
+                         " os.path.lexists(os.path.join(shadow_dir('{tmp}',"
+                         " 'probe-areacurve.sh', 'cd \"$(dirname"
+                         " \"$0\")\"\\n'), 'runzz-shadow-probe.txt')))[1]"],
+         ok=V(has=['False']),
+         bug=V(has=['True'])),
+
+    # A fixture's git ran with the runner's environment, and GIT_DIR,
+    # GIT_WORK_TREE and GIT_INDEX_FILE outrank `-C`: exported, they sent
+    # the fixture's commit into whatever repository they named. The decoy
+    # stands for that repository. Found 2026-10-16 by review.
+    case('fixture-git-ignores-an-inherited-git-dir', 'defects.py', 'self',
+         "a fixture's throwaway commit landed in the repository an exported"
+         ' GIT_DIR named',
+         plant=lambda t: {'decoy': decoy_repo(t),
+                          'fx': os.makedirs(os.path.join(t, 'fx')) or
+                          os.path.join(t, 'fx')},
+         env={'GIT_DIR': '{decoy}/.git'},
+         argv=['--unit', "(lost_pair('{fx}'), subprocess.run(['git',"
+                         " '--git-dir', '{decoy}/.git', 'log',"
+                         " '--format=%s'], capture_output=True,"
+                         " text=True).stdout)[1]"],
+         ok=V(has=['decoy base'], hasnt=['copy run96 to run97']),
+         bug=V(has=['copy run96 to run97'])),
+
+    # drift_repo and drift_since_repo committed with the user's own
+    # configuration, signing included, where the other fixtures turned it
+    # off: with no gpg agent, six cases' fixtures did not build. HOME
+    # names a configuration that signs with a program that always fails.
+    case('fixture-git-commits-unsigned', 'defects.py', 'self',
+         'the drift fixtures signed their throwaway commits, and did not'
+         ' build where signing could not run',
+         plant=lambda t: {'home': signing_home(t),
+                          'fx': os.makedirs(os.path.join(t, 'fx')) or
+                          os.path.join(t, 'fx')},
+         env={'HOME': '{home}'},
+         argv=['--unit', "drift_repo('{fx}') and 'BUILT'"],
+         ok=V(has=['BUILT']),
+         bug=V(has=['returned non-zero exit status'], hasnt=['BUILT'])),
+
     # Three records without a case: two docstrings and a probe.
     case('mutants-name-a-property-without-one', 'mutants.py', '462fb1b',
          '"the three properties" stood over mutants for two',
@@ -14986,7 +15233,7 @@ RECORDS = [
          argv=None, ok=None, no_audit='program-retired'),
 
     case('note-paths-read-a-name-that-merely-contains-the-run', 'preflight.sh',
-         None,
+         '25487e3',
          "10c took the tail of `smoke-l1-run28-bcast.json` for a path of its"
          ' own and reported it gone',
          # NO CASE, for the reason checks.py's UNCOVERED gives preflight,
@@ -15939,7 +16186,75 @@ RECORDS = [
          # 2026-10-06, so this is memory.
          argv=None, ok=None),
 
+    # TWO TIER1 ENTRIES WITH NO RECORD, each saying `No case` and never
+    # given the memory record that says so, so neither defect was counted,
+    # one of them fired in use. Found 2026-10-16 by review.
+    case('evening-14a-stamp-does-not-say-when', 'run-evening.sh', '478b12e',
+         "the stamp handing post-run 14a to a session named no moment, and a"
+         ' session took the verdict at the stamp',
+         argv=None, ok=None),
+
+    case('agreeing-sweep-one-capture-row-with-alone-patterns', 'read-run.py',
+         '4e121a2',
+         "an AGREEING row of one capture with alone-patterns took the first"
+         ' character of its figure and raised TypeError on its ok line',
+         argv=None, ok=None),
+
+    # ---- the review of 2026-10-16, the fixes with no case ------------
+    # Each a record alone, for the reason beside it: this corpus's own
+    # rules, which a case would have to plant a corpus to exercise; the
+    # probes, which want perf, a mount or a build to reach the line; and
+    # preflight, whose steps are this suite (checks.py's UNCOVERED).
+    case('records-pass-a-bug-verdict-on-argparse', 'defects.py', 'self',
+         "thirteen records' bug verdicts were met by the old reader refusing"
+         ' a flag the fix added, and one ok verdict by a substring',
+         argv=None, ok=None),
+    case('verdicts-of-absences-alone', 'defects.py', 'self',
+         'thirty-odd verdicts asserted only what the output lacked, and held'
+         ' on a crash',
+         argv=None, ok=None),
+    case('tier1-for-a-fixless-record-dropped', 'defects.py', 'self',
+         "a TIER1 entry beside a record filed with no fix was dropped, the"
+         ' defect counted as a control',
+         argv=None, ok=None),
+    case('tier1-entry-naming-no-record', 'defects.py', 'self',
+         'three TIER1 entries named no record and were counted nowhere',
+         argv=None, ok=None),
+    case('bug-beside-no-audit-recorded-as-ran', 'defects.py', 'self',
+         'a bug verdict beside a `no_audit` recorded `proved: ran`, the'
+         ' audit never running it',
+         argv=None, ok=None),
+    case('plants-skip-where-wrap80-is-off-path', 'defects.py', 'self',
+         'with wrap80 off PATH every plant built off an unwrapped document'
+         ' counted as a skip that could not run',
+         argv=None, ok=None),
+    case('strip-env-leaves-driver-switches', 'defects.py', 'self',
+         "strip_env left out switches the drivers read, so a session's"
+         ' export reached every case not setting them',
+         argv=None, ok=None),
+    case('retired-shape-plant-counts-a-class-view', 'defects.py', 'self',
+         "the retired-shape plant counted a retired class view into the"
+         " main set's population, 20 against the run's 19",
+         argv=None, ok=None),
+    case('carried-note-verdict-matches-usage', 'defects.py', 'self',
+         "a control's verdict was a flag name argparse's usage line prints",
+         argv=None, ok=None),
+    case('movement-mutant-caught-by-a-refusal', 'mutants.py', 'self',
+         'the --movement mutant was caught by the reader refusing an empty'
+         ' table, and its judge would pass a real self-comparison',
+         argv=None, ok=None),
+    case('mutants-comments-stale', 'mutants.py', 'self',
+         "two comments sat over the wrong mutants, and the header named"
+         ' globs and an exit no judge makes',
+         argv=None, ok=None),
 ]
+
+# Every TIER1 entry names a record, or its data is no defect's: three stood
+# with none, two meant as memory and one whose case had retired. Refused
+# at import. 2026-10-16, by review.
+_ORPHANS = sorted(set(TIER1) - {r['id'] for r in RECORDS})
+assert not _ORPHANS, 'TIER1 entries naming no record: %s' % ', '.join(
+    _ORPHANS)
 
 
 def shadow_dir(tmp, prog, text, mutate=(), extra=(), with_horde=True):
@@ -15976,7 +16291,11 @@ def shadow_dir(tmp, prog, text, mutate=(), extra=(), with_horde=True):
     # and `shadow-holds-its-own-directory`, asked of this function directly.
     # And `cd -- /`, `cd ~/`, `cd "$HOME/` and `pushd /` since 2026-09-04,
     # four more escapes, each with a case; no tracked script uses them.
-    if re.search(r'^\s*(cd|pushd)\s+(--\s+)?["\']?(/|~|\$HOME)', text, re.M):
+    # And inside a line since 2026-10-16: after `$(`, a `;`, `&&`, a pipe,
+    # a brace or a `then`, `do`, `else` or `exec`. Case:
+    # `shadow-refuses-a-cd-inside-a-line`.
+    if re.search(r'(^|[;&|(`{]|\b(?:then|do|else|exec)\b)\s*(cd|pushd)\s+'
+                 r'(--\s+)?["\']?(/|~|\$HOME)', text, re.M):
         raise AssertionError('%s cds to an absolute path, so a shadow cannot'
                              ' hold it and running it would run for real'
                              % prog)
@@ -15994,8 +16313,13 @@ def shadow_dir(tmp, prog, text, mutate=(), extra=(), with_horde=True):
         horde = os.path.join(tmp, 'no-horde-ad')
     if os.path.isdir(horde):
         os.symlink(horde, os.path.join(tmp, 'horde-ad'))
+    # Nor another case's fixture standing here, a `here_file`: under -j a
+    # shadow built while it stood linked it, and a write into the shadow by
+    # that name reached it. Case: `shadow-skips-a-concurrent-fixture`.
+    stray = set(STRAY)
     for name in os.listdir(HERE):
-        if name.startswith('zz-') or name == '__pycache__':
+        if (name.startswith('zz-') or name == '__pycache__'
+                or os.path.join(HERE, name) in stray):
             continue
         os.symlink(os.path.join(HERE, name), os.path.join(d, name))
     # A script of an era before the move calls these beside itself, so
@@ -16049,11 +16373,15 @@ CONFIG = {
     # would dose or restrict a driver the case did not ask to. Nor the
     # harness's own marker, which would make every evening case refuse in a
     # session that predates the reaper switch; the one case that wants it
-    # sets it itself.
+    # sets it itself. And since 2026-10-16 the switches no case had named:
+    # probe-stalls.sh's CLASS, LINEAR_TOL and ALLOC, smoke-sweep.sh's
+    # CLASS, and properties.py's CORPUS, each read with a default that an
+    # export overrode for every case not setting it.
     'strip_env': ['BASIS', 'OTHER', 'SATURATE', 'SATURATE_BY', 'WILDLOG',
                   'SAT', 'ONLY', 'ARMS', 'N', 'MAXBUSY', 'FAKE_SATURATE',
                   'CLAUDE_CODE_SESSION_ID', 'INSTANCE_DIR', 'INSTANCE_FAKE',
-                  'INSTANCE_BAR', 'INSTANCE_CELL', 'INSTANCE_N'],
+                  'INSTANCE_BAR', 'INSTANCE_CELL', 'INSTANCE_N', 'CLASS',
+                  'LINEAR_TOL', 'ALLOC', 'CORPUS'],
     'cleanup': sweep,
     # THE CASES THAT BUILD IN THIS DIRECTORY, run alone under -j after the
     # rest: every read-all.sh case, `synthetic_run` being a run this
@@ -16074,5 +16402,6 @@ CONFIG = {
                'provenance-draft-names-a-warned-json',
                'added-lines-over-head', 'added-lines-untracked',
                'superlative-worklist-names-its-settling-mode',
-               'step-9-asserts-specconstr-of-every-basis'],
+               'step-9-asserts-specconstr-of-every-basis',
+               'shadow-skips-a-concurrent-fixture'],
 }

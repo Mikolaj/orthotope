@@ -23,20 +23,16 @@ READER = ('f=$(ls "{root}"/*.json 2>/dev/null | head -1); test -n "$f" '
           '&& python3 "{file}" "$f" --selftest')
 PROPS = 'python3 "{dir}/properties.py"'
 
-# TWO JUDGES BELOW FAILED OPEN UNTIL 2026-09-18 and now exit 2 instead:
-# the emphasis and rate columns' both glob a `g912` half, which no run
+# TWO JUDGES BELOW FAILED OPEN UNTIL 2026-09-18 and exit 2 instead: the
+# emphasis and rate columns' then globbed a `g912` half, which no run
 # after 28 carries, and both answered `sys.exit(0)` when the glob came
-# back empty -- a PASS for a judge that did not run. Deleting Runs 24 to
-# 30's artifacts that day emptied it and the two mutants read MISSED,
-# which at least says something; a judge that had also been mutated into
-# passing would have read `ok`. Exit 2 is this toolset's `the run did not
-# happen`, and selftest-mutants.py reports it as LOST, which is the
-# honest answer. The rate judge's THIRD guard, `if not t`, is left at 0
-# deliberately: it fires when the reader's --pair output does not match,
-# which a mutation can cause, so raising it would report the mutant
-# caught by the regex rather than by the defect. The same goes for the two judges that name run27 and
-# run29 outright: they are LOST with those runs' artifacts and the suite
-# says so rather than quietly proving less.
+# back empty -- a PASS for a judge that did not run. Both now glob any
+# run on disk. Exit 2 is this toolset's `the run did not happen`,
+# and selftest-mutants.py reports it as LOST, which is the honest answer.
+# The rate judge's THIRD guard, `if not t`, is left at 0 deliberately: it
+# fires when the reader's --pair output does not match, which a mutation
+# can cause, so raising it would report the mutant caught by the regex
+# rather than by the defect.
 MUTANTS = [
     # THE PALINDROME READ AS TWO PAIRS AND NOT AS FOUR LEGS: the driver
     # emits each half over its own two legs beside the two cross-half
@@ -268,10 +264,15 @@ MUTANTS = [
     # figures are gone after 5b, so a movement read off the NEW table is
     # every row moving by nothing -- a reading that cannot fail and says
     # nothing, which is the state the step was in when no mode did it.
+    # The mutant IS that reading, the table taken as this run's own
+    # figures, and the judge wants a row to move at exit 0: until
+    # 2026-10-16 the mutant emptied the table, the reader refused it, and
+    # a judge asking only for a row name and the tally's words read that
+    # refusal as a catch while passing a real self-comparison.
     ('--movement compares this run against itself', 'read-run.py',
      "    prev = readme_rows(doc, set(strategies), set(strategies))",
-     "    prev = {}",
-     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nj = d.synth_json(t, \'main\')\ndoc = d.rundoc_with_a_results_table(t)\nr = subprocess.run([sys.executable, \'{file}\', j, \'--movement\', \'--run-doc\', doc], capture_output=True, text=True)\nsys.exit(0 if \'lib-stage2-lean\' in r.stdout and \'row(s) moved\' in r.stdout else 1)"'),
+     "    prev = {r.st: (None, None, None, '%.3f' % r.time) for r in rows}",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, os, re, subprocess, sys, tempfile\nspec = importlib.util.spec_from_file_location(\'d\', os.path.join(\'{root}\', \'defects.py\'))\nd = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(d)\nt = tempfile.mkdtemp()\nj = d.synth_json(t, \'main\')\ndoc = d.rundoc_with_a_results_table(t)\nr = subprocess.run([sys.executable, \'{file}\', j, \'--movement\', \'--run-doc\', doc], capture_output=True, text=True)\nm = re.search(r\'^(\\d+) row\\(s\\) moved\', r.stdout, re.M)\nsys.exit(0 if r.returncode == 0 and \'lib-stage2-lean\' in r.stdout and m and int(m.group(1)) > 0 else 1)"'),
 
     # AND --half-movers FLAGS AN ARM THAT MOVED ON ONE HALF ALONE. The
     # rule is the one reading that separates a file instance's term from
@@ -395,7 +396,7 @@ MUTANTS = [
     # the row, and got 41.2% where the answer is 21.9%. The judge
     # recomputes the rate from the corrected column the same output prints
     # and `--pair`'s own time geomean, so it catches the swap AND a column
-    # blinded to `--`; it exits 0 with no run on disk, which is LOST
+    # blinded to `--`; it exits 2 with no run on disk, which is LOST
     # rather than caught, as every corpus judge here is. The pair is the
     # shipped leaf over `mut-odo-vecdims`, both timed on every run: its first
     # form named the `-u1` leaf, parked by c870e1e, and read red unmutated
@@ -632,8 +633,6 @@ MUTANTS = [
     ('properties pass over an empty corpus', 'properties.py',
      '        if not n:', '        if False:',
      'd=$(mktemp -d); CORPUS="$d" python3 "{dir}/properties.py" >/dev/null 2>&1; test $? -eq 1'),
-    # The shadow's one guard: a program cd-ing to an absolute path would run
-    # for real from a shadow, and did once, overwriting a recorded run.
     # The registration check's two arms, each broken on its own. The judge
     # plants the synthetic registration from defects.py and requires the
     # FAIL: the fixture appends its own OPEN entry rather than editing the
@@ -859,11 +858,10 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--check-doc\', \'--quiet\', \'--readme\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if any(\'Zz coverage probe\' in l and \'bullet links\' in l for l in (r.stdout + r.stderr).split(chr(10))) else 1)"'),
-    # THE THREE CHECKS RUN 26 ADDED OR WIDENED, 2026-09-06.
-    # The worklist tally, which exists because a `tail -30` over
-    # `--worklists` cut nine stale paragraphs out of a list of
-    # twenty-two and the run adjudicated the remainder: count the
-    # indented items and the tally must move with them.
+    # A CHECK RUN 26 ADDED, 2026-09-06: the worklist tally, which exists
+    # because a `tail -30` over `--worklists` cut nine stale paragraphs out
+    # of a list of twenty-two and the run adjudicated the remainder: count
+    # the indented items and the tally must move with them.
     ('check-doc --worklists stops tallying its listed items', 'read-run.py',
      "    items = [l for l in lines if l.startswith('        ') and l.strip()]",
      "    items = []",
@@ -873,12 +871,11 @@ MUTANTS = [
      'ok = any(l.startswith(\'worklist tally: \') and not l.startswith(\'worklist tally: 0 \')'
      ' for l in r.stdout.split(chr(10)))\n'
      'sys.exit(0 if ok else 1)"'),
-    # The floor-pair agreement check, widened from one phrasing to five
-    # after it saw two of the six sites Run 26 carries: drop the four
-    # added phrasings and it falls back to fewer than two sites, which
-    # is the state where it reports that it did not run.
+    # The shadow's one guard: a program cd-ing to an absolute path would run
+    # for real from a shadow, and did once, overwriting a recorded run.
     ('shadow_dir holds a program that cds to an absolute path', 'defects.py',
-     '''    if re.search(r'^\\s*(cd|pushd)\\s+(--\\s+)?["\\']?(/|~|\\$HOME)', text, re.M):''',
+     '''    if re.search(r'(^|[;&|(`{]|\\b(?:then|do|else|exec)\\b)\\s*(cd|pushd)\\s+'\n'''
+     '''                 r'(--\\s+)?["\\']?(/|~|\\$HOME)', text, re.M):''',
      '    if False:',
      'python3 -c "import importlib.util, sys, tempfile\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{file}\')\n'
