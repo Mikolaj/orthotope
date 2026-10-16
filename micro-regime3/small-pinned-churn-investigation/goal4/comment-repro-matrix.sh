@@ -2,7 +2,8 @@
 # The follow-up comment's reproducer matrix: goal4/ReproV2.hs (the issue
 # description's Repro.hs plus the interleave modes, the bytes the
 # comment embeds), all interleave modes and the alone legs at -A32m and
-# -A1G, 1G twice (the residue split's area). The comment's table is
+# -A1G, both areas twice (1G being the residue split's area). The
+# comment's table is
 # this driver log; the verbatim outputs are the a8-*.log cells.
 # Registered leans, judged not remembered (items 44, 54, 55 carried to
 # this program; the control leans REVISED after the first matrix and

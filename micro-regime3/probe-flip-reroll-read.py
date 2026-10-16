@@ -16,7 +16,8 @@ asks it:
   4. the -A legs against the default ones, which decides (c).
 
 `--csv` writes one row per (leg, arm) if the numbers are wanted elsewhere.
-Exit 0 clean, 1 with a verdict that fires, 2 when the run did not happen --
+Exit 0 clean, 1 with a verdict that fires or an arm with no positive net to
+read, 2 when the run did not happen --
 no legs, a missing forcing term, a leg whose JSON criterion never wrote.
 """
 import argparse, collections, json, os, statistics, sys
@@ -56,7 +57,10 @@ def leg_cells(path):
 
 
 def spread(xs):
-    return (max(xs) / min(xs) - 1) * 100 if xs and min(xs) > 0 else float('nan')
+    # TWO COPIES OR MORE: one has no spread, and read 0% (2026-10-16, by
+    # review).
+    return ((max(xs) / min(xs) - 1) * 100 if len(xs) >= 2 and min(xs) > 0
+            else float('nan'))
 
 
 def main():
@@ -171,12 +175,17 @@ def main():
         print('   NOT READ: no binary was run twice at one setting, and one'
               ' leg cannot say whether a cell reproduces.')
         return 2
-    fixed, rolling = [], []
+    fixed, rolling, unread = [], [], []
     for arm in FAMILY:
         sp = [spread([legs[t][arm] for t in ts if arm in legs[t]])
               for ts in groups.values()
               if len([t for t in ts if arm in legs[t]]) >= 2]
         if not sp:
+            continue
+        # A NaN, a repeat with no positive net, is no reading, where it
+        # compared False and read `(a) fixed` (2026-10-16, by review).
+        if any(s != s for s in sp):
+            unread.append(arm)
             continue
         w = max(sp)
         (rolling if w > 3 * med_floor else fixed).append((arm, w))
@@ -187,7 +196,10 @@ def main():
     print('   --- %d of %d arms reproduce inside 3x the %.2f%% median floor;'
           ' the split is per arm and not per run.'
           % (len(fixed), len(fixed) + len(rolling), med_floor))
-    rc = 1 if rolling or floorless else 0
+    for arm in unread:
+        print('   (c) not read          %-38s a repeat with no positive net'
+              % arm)
+    rc = 1 if rolling or floorless or unread else 0
     if len(seen) > 1:
         print('   the fill family orders itself %d ways across these legs,'
               ' so no ordering on this view is a property of the code.'

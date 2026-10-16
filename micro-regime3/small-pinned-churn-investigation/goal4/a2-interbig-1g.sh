@@ -11,8 +11,8 @@
 # late in the horizon would instead re-read it as rate-dependent.
 # (2) perf: interunboxed's added cost over interbig is LLC misses at
 # ~flat victim instructions and ~flat dTLB, item 39's channel.
-# Binary: goal4/ReproSmall (the k:/iters: build); alone legs are A1's --
-# run a1-al-owngroup.sh first or take the two -A1G alone cells here.
+# Binary: goal4/ReproSmall (the k:/iters: build); the alone legs are the
+# two -A1G alone cells here, A1's (a1-al-owngroup.sh) being at -A4m.
 set -u
 cd /home/mikolaj/r/orthotope/micro-regime3/small-pinned-churn-investigation
 R=goal4/ReproSmall

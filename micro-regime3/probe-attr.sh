@@ -126,13 +126,26 @@ for A in "$@"; do
          "whatever ran when sampling resumed -- raise PERIOD" | tee -a "$OUT"
     BAD=1; UNUSABLE=yes
   fi
+  # A RECORD THAT FAILED, OR A REPORT WITH NO EVENT COUNT, is no
+  # histogram: an empty total read as 0% of the counted one and was
+  # blamed on PERIOD (2026-10-16, by review).
+  TOTOK=yes
+  case ${TOT:-} in
+    ''|*[!0-9]*) TOTOK=no ;;
+  esac
+  if [ "$rc" != 0 ] || [ "$TOTOK" = no ]; then
+    echo "!! $A: perf record exited $rc, its report's event count" \
+         "'${TOT:-}', so there is no histogram to read" | tee -a "$OUT"
+    BAD=1; UNUSABLE=yes; TOTOK=no
+  fi
   # A COUNT OF 0 IS NO COUNT: it passed the digits test and divided by
   # zero below, which ends the probe at exit 1 with the arms after it
   # unrun and $OUT short of them (2026-09-18, by review).
   case ${TRUE:-} in
     ''|0|*[!0-9]*) echo "!! $A: perf stat gave no count, so the histogram's scale"\
                       "is unchecked" | tee -a "$OUT"; BAD=1; UNUSABLE=yes ;;
-    *) if [ "$(( 100 * TOT / TRUE ))" -lt 95 ] || [ "$(( 100 * TOT / TRUE ))" -gt 105 ]
+    *) if [ "$TOTOK" = yes ] && { [ "$(( 100 * TOT / TRUE ))" -lt 95 ] \
+         || [ "$(( 100 * TOT / TRUE ))" -gt 105 ]; }
        then
          echo "!! $A: the sampled total is $TOT against a counted $TRUE,"\
               "$(( 100 * TOT / TRUE ))% -- the counter was off for part of"\

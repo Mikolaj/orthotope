@@ -93,6 +93,13 @@ UNCOVERED = {
     'small-pinned-churn-investigation/span-correlate.py':
         'an investigation script, run by hand over a probe\'s table',
 }
+# The investigation's other scripts a record names, each run by hand.
+for _name in ('goal2/check-sprays.py', 'goal3/probe65-mnist.sh',
+              'goal4/a2-interbig-1g.sh', 'goal4/comment-repro-matrix.sh',
+              'goal4/t2x-reduce.py'):
+    UNCOVERED['small-pinned-churn-investigation/' + _name] = (
+        'an investigation script, run by hand for the question it was'
+        ' written for')
 # The probes, run by hand or by another probe for the questions they were
 # written for.
 for _name in ('probe-r33-instance.sh',

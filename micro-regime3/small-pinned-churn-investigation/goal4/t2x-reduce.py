@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Reduce a t22/t23 interleaved-null run: per cell, the two per-pair B/A
-ratios off the criterion time-line slope, units asserted equal within a
-cell. Usage: t2x-reduce.py DIR PREFIX (e.g. ... goal4 t22). Cells are
-discovered from DIR/PREFIX-*-a-r1.log, so the script and the driver
-share no hand-kept list."""
+ratios off the criterion time-line slope, each converted to seconds
+from its own unit. Usage: t2x-reduce.py DIR PREFIX (e.g. ... goal4
+t22). Cells are discovered from DIR/PREFIX-*-a-r1.log, so the script
+and the driver share no hand-kept list."""
 import glob
 import os
 import re

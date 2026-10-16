@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Adjudicate Run 39's item (2): the arms slower past the mover bar on BOTH
-halves against Run 38, over every population both runs have, which are
-the candidates a hand reading with LOOP_TRACE then sorts.
+"""The arms slower past the mover bar on BOTH halves of a run against an
+earlier one, over every population both runs have: the candidates a hand
+reading with LOOP_TRACE then sorts. Written for Run 39's item (2) against
+Run 38, whose halves it reads.
 
     ./probe-r39-rules.py run39 run38   # exit 0 none, 1 candidates, 2 did not run
 
@@ -41,7 +42,11 @@ HALVES = ('gheadnospec', 'gheadtwopass')
 POPS = ('main', 'bcast', 'bcastmid', 'block', 'compose', 'flip', 'rev',
         'runs', 'scaled', 'small', 'window')
 ROW = re.compile(r'^(\S+)\s+([0-9.]+)\s+([0-9.]+)\s+(\d+)/(\d+)\s')
-FLOOR = re.compile(r'^(\S+) -- floors ([0-9.]+)% on (\S+), ([0-9.]+)% on (\S+)')
+# `none` where a half has no floor, read as no floor above the bar: the
+# pattern wanted a figure and dropped such a population in silence
+# (2026-10-16, by review).
+FLOOR = re.compile(r'^(\S+) -- floors ([0-9.]+%|none) on (\S+),'
+                   r' ([0-9.]+%|none) on (\S+)')
 
 
 def reader(*args):
@@ -68,11 +73,19 @@ def main():
     for line in reader(main_json, '--half-movers', run, prev).split('\n'):
         m = FLOOR.match(line)
         if m:
-            floors[m.group(1)] = {m.group(3): float(m.group(2)) / 100,
-                                  m.group(5): float(m.group(4)) / 100}
+            fig = lambda s: 0.0 if s == 'none' else float(s[:-1]) / 100
+            floors[m.group(1)] = {m.group(3): fig(m.group(2)),
+                                  m.group(5): fig(m.group(4))}
+    # THE HALVES THIS PROBE READS, refused by name where the run's are
+    # others: a KeyError, exit 1, until 2026-10-16 (by review).
+    other = sorted({h for f in floors.values() for h in f} - set(HALVES))
+    if other:
+        die('probe-r39-rules: %s reads halves %s, and this probe reads %s;'
+            ' nothing ran' % (run, ', '.join(other), ' and '.join(HALVES)))
     killed, read = [], 0
     for pop in POPS:
         if pop not in floors:
+            print(f'  {pop:9s} not read: --half-movers printed no floor line')
             continue
         ratios = {}
         for half in HALVES:

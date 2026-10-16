@@ -7,6 +7,14 @@
 # time whenever it is not.
 set -u
 cd "$(dirname "$0")" || exit 1
+# A LINE ALREADY THERE is an earlier evening's, or this one's A done, and
+# B started at once on it (2026-10-16, by review): refused, B and C
+# being runnable by hand.
+if grep -q 'EVENING A COMPLETE' probe-bangtime-wallclock.log 2>/dev/null; then
+  echo "!! probe-bangtime-wallclock.log already says EVENING A COMPLETE:" \
+       "move it aside, or run probe-evening-b.sh and -c.sh; nothing ran"
+  exit 2
+fi
 until grep -q 'EVENING A COMPLETE' probe-bangtime-wallclock.log 2>/dev/null; do sleep 60; done
 # The halves' complaints carried on, where the chain announced a complete
 # evening at exit 0 whatever they said (2026-10-16, by review).

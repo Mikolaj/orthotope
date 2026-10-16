@@ -65,6 +65,7 @@ for i in $(seq 1 "$N"); do
 done
 
 log "WITHIN-EVENING COMPLETE: $N process(es), complaints=$BAD -- read the\
- '!!' lines of each probe-within<i>-wallclock.log anyway, then the six A/A\
- pairs across the processes with ./read-run.py probe-within<i>-main.json --aa"
+ '!!' lines of each probe-within<i>-wallclock.log anyway, then the A/A\
+ pairs across the $N processes, by ./read-run.py probe-within<i>-main.json\
+ --aa"
 exit $((BAD > 0))

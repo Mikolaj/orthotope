@@ -2,7 +2,8 @@
 # 2026-08-18, the second real-suite datum: sequentialMnistTest on the
 # existing ghc-9.14.1 binary, FOUR arms interleaved in cycles (drift
 # cancels within a cycle), two cycles:
-#   bare          -- the baked -A1G -I0, the incumbent and control
+#   bare          -- the binary's baked options, the incumbent and
+#                    control: -A1G -I0 then, -A32m -I0 on a rebuild
 #   -A64m         -- item 17's CAFlessTest winner
 #   -A32m         -- the half-tax point and the saturated-mix optimum
 #                    (item 34); the open 32-vs-64 question for real suites

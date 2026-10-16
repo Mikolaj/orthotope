@@ -98,6 +98,7 @@ echo "counting: $EV"
   done
 } > "$OUT/provenance.txt"
 
+BAD=0
 for h in g912 ghead; do
   for arm in "${ARMS[@]}"; do
     # `-m glob` and not the bare positional, which is a PREFIX: the legs
@@ -117,7 +118,7 @@ for h in g912 ghead; do
       # criterion had opened for the next run to skip (2026-09-18).
       "$BIN/run27-$h" classes -m glob "$sel" --json "$j" \
            > "$OUT/alone-$h-$arm.log" 2>&1 \
-        || { echo "!! alone $h $arm exited $?"
+        || { echo "!! alone $h $arm exited $?"; BAD=1
              mv -f "$j" "$OUT/alone-$h-$arm.failed.json" 2>/dev/null \
                && echo "   its JSON is set aside as alone-$h-$arm.failed.json" || true; }
     }
@@ -128,7 +129,11 @@ for h in g912 ghead; do
         echo "== perf $h $arm n=$n"
         perf stat -e "$EV" -x, -o "$f" -- \
           "$BIN/run27-$h" classes -m glob "$sel" -n "$n" \
-          > "$OUT/perf-$h-$arm-n$n.log" 2>&1 || true
+          > "$OUT/perf-$h-$arm-n$n.log" 2>&1 \
+          || { echo "!! perf $h $arm n=$n exited $?"; BAD=1
+               # SET ASIDE as the alone leg's is, where it was kept and
+               # skipped on every re-run (2026-10-16, by review).
+               mv -f "$f" "$f.failed" 2>/dev/null || true; }
       }
     done
   done
@@ -136,3 +141,4 @@ done
 
 echo
 echo "read it with:  ./probe-flip-counters-read.py $OUT"
+exit "$BAD"

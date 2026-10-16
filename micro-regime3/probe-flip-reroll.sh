@@ -60,6 +60,14 @@ while [ $# -gt 0 ]; do
     *) echo "unknown argument: $1" >&2; exit 2;;
   esac
 done
+# HELD TO WHAT RUNS: a non-numeric or zero -r ran no repetition and a
+# group naming nothing selected no bench, both at exit 0 (2026-10-16,
+# by review).
+case $REPS in ''|*[!0-9]*|0) echo "-r wants a count of at least 1, not" \
+  "'$REPS'; nothing ran" >&2; exit 2;; esac
+LIST=$("$BIN/run27-g912" classes --list 2>/dev/null) || LIST=
+case $LIST in *"$GROUP/"*) ;; *) echo "no bench of group $GROUP in" \
+  "$BIN/run27-g912's classes --list; nothing ran" >&2; exit 2;; esac
 
 # Run 27 launched every process under WILDLOG=1 SATURATE=1, and SATURATE is
 # not decoration: it is the saturating preamble that sprays `cnn-slice-c32`

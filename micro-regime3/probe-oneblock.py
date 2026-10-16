@@ -78,7 +78,10 @@ def main(argv):
     if len(argv) == 3 and argv[1] == '--check-log':
         text = open(argv[2]).read()
     elif len(argv) == 2 and not argv[1].startswith('-'):
-        run = subprocess.run(['./' + argv[1].lstrip('./'), 'check'],
+        # A path is run as given and a bare name from here: `lstrip('./')`
+        # took `../x` to `x` and `/abs` to `abs` (2026-10-16, by review).
+        exe = argv[1] if '/' in argv[1] else './' + argv[1]
+        run = subprocess.run([exe, 'check'],
                              capture_output=True, text=True)
         if run.returncode != 0:
             print('!! `%s check` exited %d' % (argv[1], run.returncode))

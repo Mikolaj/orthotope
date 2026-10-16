@@ -12,7 +12,12 @@ a shape whose net is not positive on either arm is DROPPED and named.
 
     probe-r45-cyc.py A B FILE [FILE ...]           one block a file
     SHAPE=stretch-wide-2xM probe-r45-cyc.py A B FILE ...   adds that
-                                                   shape's own ratios"""
+                                                   shape's own ratios
+
+Exit 0 with a reading of every file, 1 where a file has no shape
+carrying both arms, 2 on usage or a file with no `# shape arm N`
+header -- a mistyped arm read `0 shapes carry both` at exit 0 until
+2026-10-16 (by review)."""
 import math
 import os
 import sys
@@ -49,13 +54,24 @@ def gm(xs):
     return math.exp(sum(math.log(x) for x in xs) / len(xs))
 
 
+if len(sys.argv) < 4:
+    print(__doc__.split('\n\n')[2], file=sys.stderr)
+    sys.exit(2)
 a, b = sys.argv[1], sys.argv[2]
 one = os.environ.get('SHAPE')
+rc = 0
 for path in sys.argv[3:]:
     cells, order, nonlin = read(path)
+    if order is None:
+        print('%s: no `# shape arm N` header, so nothing was read' % path,
+              file=sys.stderr)
+        sys.exit(2)
     shapes = sorted({s for s, _ in cells
                      if (s, a) in cells and (s, b) in cells})
     print('%s: %s over %s, %d shapes carry both' % (path, a, b, len(shapes)))
+    if not shapes:
+        print('  arms here: %s' % ', '.join(sorted({x for _, x in cells})))
+        rc = 1
     for ev in [e for e in ('instructions:u', 'cycles:u', 'bytes')
                if e in order]:
         r, gone = [], []
@@ -79,3 +95,4 @@ for path in sys.argv[3:]:
                  hi[1], nl,
                  '; dropped, net not positive: ' + ', '.join(gone)
                  if gone else ''))
+sys.exit(rc)

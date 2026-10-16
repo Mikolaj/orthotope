@@ -29,8 +29,20 @@ one, which is README's rule for every filtered probe made by hand.
 Run by hand on a quiet box, one process at a time; a shape on one half is
 about four minutes, the saturating preamble running once per process. Not
 covered by the corpus: it is a probe, and its output is an input to README.
+
+ITS BINARIES ARE GONE, Run 25's halves deleted with the run's artifacts,
+so it refuses as it stands; it is kept as the record of the measurement.
+Exit 2 where nothing was measured -- a binary absent, a selection of any
+count but one, a process that failed -- which went out as 1 until
+2026-10-16 (by review).
 """
 import os, subprocess, sys, time, statistics as stats
+
+
+def die(msg):
+    sys.stderr.write(msg + '; nothing was measured\n')
+    sys.exit(2)
+
 
 HALVES = ['run25-g912', 'run25-ghead']
 SHAPES = ['cnn-L1-24x24-c1', 'lenet-L1-28-c1-k5', 'gather48-src-50',
@@ -69,10 +81,9 @@ def wall(binary, bench, n):
         dt = time.perf_counter() - t0
         nb = (r.stdout + r.stderr).count('benchmarking ')
         if nb != 1:
-            sys.exit('%s -n %d %r selected %d benches'
-                     % (binary, n, bench, nb))
+            die('%s -n %d %r selected %d benches' % (binary, n, bench, nb))
         if r.returncode != 0:
-            sys.exit('%s -n %d %r rc=%d' % (binary, n, bench, r.returncode))
+            die('%s -n %d %r rc=%d' % (binary, n, bench, r.returncode))
         best = dt if best is None else min(best, dt)
     return best
 
@@ -87,6 +98,9 @@ def percall(binary, sl, shape, arm):
 
 
 def main():
+    gone = [b for b in HALVES if not os.access(b, os.X_OK)]
+    if gone:
+        die('%s not here' % ', '.join(gone))
     print('# gate 3 at fixed iters: (t(2N)-t(N))/N, N per bench for ~%.0fs,'
           ' min of %d, SATURATE=1, -m glob' % (TARGET_S, REPS))
     for binary in HALVES:

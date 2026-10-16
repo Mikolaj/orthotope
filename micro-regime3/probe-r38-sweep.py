@@ -22,7 +22,7 @@ control. Three counters a run, differenced over two iteration counts
 so the process's startup cancels: cycles, op-cache fetches (raw 0x28F)
 and cycles with the op queue empty (raw 0xA9). A probe, run by hand;
 writes only under a temporary directory. 2026-09-22. Exit 2 when gcc,
-perf, objdump or nm is missing or perf stops answering, 1 when a build
+perf or nm is missing or perf stops answering, 1 when a build
 fails, 0 otherwise.
 """
 import argparse
@@ -170,7 +170,17 @@ def main():
     ap.add_argument('--pairs', type=int, default=2,
                     help='differenced pairs per cell, the least taken')
     args = ap.parse_args()
-    for tool in ('gcc', 'perf', 'objdump', 'nm'):
+    # IN RANGE, or refused: a residue or line past the 64 a line or page
+    # has built a kernel elsewhere, and --pairs 0 took a min of nothing
+    # (2026-10-16, by review). objdump is not run, the header's reading
+    # of it having been done by hand, so it is not asked for.
+    if any(not 0 <= k < 64 for k in (args.only or [])) or any(
+            not 0 <= n < 64 for n in args.lines):
+        ap.error('--only and --lines take 0 to 63, a residue of a 64-byte'
+                 ' line and a line of a 4 KiB page')
+    if args.pairs < 1:
+        ap.error('--pairs wants at least one differenced pair')
+    for tool in ('gcc', 'perf', 'nm'):
         if shutil.which(tool) is None:
             die('probe-r38-sweep: %s is not on PATH; nothing ran' % tool)
     if counts('/bin/true', '') is None:

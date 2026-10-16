@@ -15,6 +15,10 @@ before it is pointed at a leg nobody has read.
 
 The two legs are named `-r0` so that a fixture can never be mistaken for a
 measurement: the probe numbers its own repetitions from 1.
+
+ITS SOURCE IS GONE, Run 27's flip JSONs deleted with the run's artifacts,
+so it exits 2 as it stands; it is kept as the record of how the reader
+was first shown to speak.
 """
 import argparse, json, os, sys
 

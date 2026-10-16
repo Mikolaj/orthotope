@@ -3,13 +3,17 @@
 session header's 620k-917k claim): for each pair-cell criterion JSON
 given (or every pois-*/vpois-*/AL-pois-* JSON in this directory when run
 bare), sum the poison bench's iters over its reportMeasured and flag any
-dose under 3e5 sprays as LOW.  The poison bench is cnn-slice-c32/list."""
+dose under 3e5 sprays as LOW.  The poison bench is cnn-slice-c32/list.
+Exit 0 when every dose reaches the bar, 1 on a LOW dose or a JSON with
+no poison bench, 2 on a JSON that could not be read -- it exited 0
+whatever it printed until 2026-10-16 (by review)."""
 import glob
 import json
 import os
 import sys
 
 paths = sys.argv[1:]
+rc = 0
 if not paths:
     here = os.path.dirname(os.path.abspath(__file__))
     for pat in ('pois-*.json', 'vpois-*.json', 'AL-pois-*.json'):
@@ -28,10 +32,15 @@ for p in paths:
                 if r['reportName'] == 'cnn-slice-c32/list']
         if not pois:
             print(f"{p}: NO cnn-slice-c32/list REPORT")
+            rc = max(rc, 1)
             continue
         ii = pois[0]['reportKeys'].index('iters')
         sprays = sum(m[ii] for m in pois[0]['reportMeasured'])
         flag = 'ok' if sprays >= 3e5 else 'LOW'
+        if flag == 'LOW':
+            rc = max(rc, 1)
         print(f"{os.path.basename(p)}: sprays {sprays:>10.0f} {flag}")
     except Exception as e:
         print(f"{p}: ERROR {e}")
+        rc = 2
+sys.exit(rc)

@@ -39,7 +39,9 @@ echo "===================== 3. task 1: the same, and every other arm, against Ru
 for p in $POPS; do
   [ -e "probe-bangtime-$p.json" ] || continue
   echo "--- $p, this probe / run21-g912-$p"
-  ./read-run.py "probe-bangtime-$p.json" --compare "run21-g912-$p.json" 2>/dev/null | sed -n '3,60p'
+  # Whole past the header, where `sed -n '3,60p'` cut a roster past 58
+  # arms (2026-10-16, by review).
+  ./read-run.py "probe-bangtime-$p.json" --compare "run21-g912-$p.json" 2>/dev/null | tail -n +3
 done
 echo
 echo "===================== 4. task 1: each population's own floor"

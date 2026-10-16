@@ -10,9 +10,11 @@ sorted by the percentage difference, and a summary: cells in both files,
 cells moved, cells in one file only, cells that could not be counted. A cell that moved
 is one the pair of the two placements can differ on; a cell that did not
 cannot, whatever the timing says. Exit 0 with output, 1 when a file
-carries no cells, 2 on usage.
+carries no cells or the two share none, 2 on usage. A cell A counts at 0
+fetches and B does not reads as moved, `inf`.
 """
 import argparse
+import math
 import signal
 import sys
 
@@ -46,10 +48,17 @@ def main():
               % (args.a if not a else args.b), file=sys.stderr)
         return 1
     both = sorted(set(a) & set(b))
+    # NO CELL IN COMMON compared nothing and said so at exit 0, and an A of
+    # 0 read as 0% moved whatever B said (2026-10-16, by review).
+    if not both:
+        print('probe-fetches-read: %s and %s share no cell, so nothing was'
+              ' compared' % (args.a, args.b), file=sys.stderr)
+        return 1
     rows = []
     for k in both:
         d = b[k] - a[k]
-        rows.append((100.0 * d / a[k] if a[k] else 0.0, d, k))
+        rows.append((100.0 * d / a[k] if a[k]
+                     else math.copysign(math.inf, d) if d else 0.0, d, k))
     rows.sort(key=lambda r: -abs(r[0]))
     moved = [r for r in rows if abs(r[0]) >= args.min]
     print('%-9s %-24s %-36s %12s %12s %9s %8s'

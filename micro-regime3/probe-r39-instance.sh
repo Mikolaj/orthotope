@@ -42,11 +42,28 @@ cyc () {  # cyc BIN SEL CELL N -> user cycles of one process, or fails
   esac
   printf '%s\n' "$v"
 }
+# EVERY CELL HELD TO EACH BINARY'S ROSTER, as probe-stalls.sh holds its
+# names: a binary that lacks the shape or arm selects no bench, and its
+# two empty processes differenced to a figure (2026-10-16, by review).
+MISS=
+while read -r h c s a n; do
+  sel=classes; [ "$c" = main ] && sel=
+  for b in "run39-$h" "probe-copy-run39-$h" "run38-$h"; do
+    [ -x "./$b" ] || continue
+    # shellcheck disable=SC2086  # an empty selector is no argument
+    "./$b" $sel --list 2>/dev/null | grep -qxF "$s/$a" \
+      || MISS="$MISS $b:$s/$a"
+  done
+done <<< "$CELLS"
 echo "pass half cell binary cycles/iter"
 for pass in 1 2 3; do
   while read -r h c s a n; do
     sel=classes; [ "$c" = main ] && sel=
     for b in "run39-$h" "probe-copy-run39-$h" "run38-$h"; do
+      case " $MISS " in
+        *" $b:$s/$a "*) echo "$pass $h $s/$a $b !! not timed by this binary"
+                       continue ;;
+      esac
       one=; two=
       if one=$(cyc "$b" "$sel" "$s/$a" "$n") \
          && two=$(cyc "$b" "$sel" "$s/$a" $((2 * n))); then

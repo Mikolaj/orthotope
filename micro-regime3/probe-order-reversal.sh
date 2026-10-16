@@ -53,6 +53,14 @@ LOG=${LOG:-probe-order-reversal.txt}
 # Class, then which order runs first. The four cheapest classes by Run
 # 26's wallclock, which is what buys four of them rather than one.
 CLASSES=${CLASSES:-"rev:basis bcast:control scaled:basis bcastmid:control"}
+# EVERY ENTRY CLASS:basis OR CLASS:control, before anything runs: one
+# with neither ran control first without a word (2026-10-16, by review).
+for spec in $CLASSES; do
+  case $spec in *:basis|*:control) ;;
+    *) echo "!! CLASSES entry '$spec' wants CLASS:basis or" \
+         "CLASS:control; nothing ran" >&2; exit 2 ;;
+  esac
+done
 
 log () { echo "=== $(date -Is) $*" | tee -a "$LOG"; }
 
