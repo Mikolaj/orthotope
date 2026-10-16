@@ -1331,13 +1331,15 @@ def rundoc_with_a_narrowed_block(tmp):
     return write_rundoc(tmp, '\n'.join(lines))
 
 
-def narrowed_whole_run(prefix):
-    """`whole_run` over the recorded classes and the narrowed one, its JSON
-    on each half carrying only the arms `classArms` gives it."""
+def narrowed_whole_run(prefix, classes=None):
+    """`whole_run` over `classes`, the recorded ones by default, and the
+    narrowed one, its JSON on each half carrying only the arms `classArms`
+    gives it."""
     cls = sorted(class_arms())[0]
     out = []
     for name, body in whole_run(['lookrts', 'ovhalf'], prefix=prefix,
-                                classes=recorded_classes() + [cls]):
+                                classes=(classes or recorded_classes())
+                                + [cls]):
         if name.endswith('-%s.json' % cls):
             body = synth_text(class_shapes(cls), samples=2,
                               drop_arms=narrowed_drop(cls))
@@ -4474,6 +4476,18 @@ def recorded_classes():
     return [c for c in all_class_names() if c in leads]
 
 
+def draft_classes():
+    """The classes a `--prose-draft` fixture carries: the first two recorded.
+
+    The draft runs its readers over every class present on both halves,
+    and over all of them a case took up to five minutes; the audit then
+    replayed one program's cases one after another, so with them it ran past
+    check-all's 900 s (2026-10-16). Two keep the plurals and the per-class
+    loops at work.
+    """
+    return recorded_classes()[:2]
+
+
 _WHOLE = {}
 
 
@@ -4489,7 +4503,7 @@ def whole_run(halves_of, samples=2, prefix=SRC, short_class=None,
     of, so a fixture carrying the run's own prefix reads as a previous
     attempt and the control case never runs at all.
 
-    Nine files a half -- the main set and each class -- because that is
+    One file each half for the main set and each class, because that is
     what a driver enumerates rather than assumes: `classes --list` globs
     the class files for its roster, and every expected bench count is read
     back from a listing. A `.log` rides with each, carrying the provenance
@@ -14473,7 +14487,7 @@ RECORDS = [
          plant=lambda t: {'doc': write_rundoc(t, rundoc_text())},
          shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
                                              prefix='zzit',
-                                             classes=recorded_classes())),
+                                             classes=draft_classes())),
          env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['--prose-draft', 'zzit', '--run-doc', '{doc}'],
          ok=V(exit=0, has=['[divide] **DO NOT DIVIDE TWO ROWS',
@@ -14489,7 +14503,7 @@ RECORDS = [
          plant=lambda t: {'doc': write_rundoc(t, rundoc_text())},
          shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
                                              prefix='zzit',
-                                             classes=recorded_classes())),
+                                             classes=draft_classes())),
          env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['--prose-draft', 'zzit', '--run-doc', '{doc}', '--in-place'],
          probe=lambda subs: open(subs['doc']).read(),
@@ -14505,7 +14519,7 @@ RECORDS = [
          plant=lambda t: {'doc': rundoc_registration_quotes_delta(t)},
          shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
                                              prefix='zzit',
-                                             classes=recorded_classes())),
+                                             classes=draft_classes())),
          env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['--prose-draft', 'zzit', '--run-doc', '{doc}', '--in-place'],
          ok=V(exit=0, has=['offsets: kept'],
@@ -14520,7 +14534,7 @@ RECORDS = [
          plant=lambda t: {'doc': rundoc_with_masked_keys(t)},
          shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
                                              prefix='zzim',
-                                             classes=recorded_classes())),
+                                             classes=draft_classes())),
          env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['--prose-draft', 'zzim', '--run-doc', '{doc}', '--in-place'],
          ok=V(exit=0, has=['bar: kept', 'prop2: kept'],
@@ -14538,7 +14552,7 @@ RECORDS = [
          plant=lambda t: {'doc': write_rundoc(t, rundoc_text())},
          shadow=dict(extra=lambda: [
              e for e in whole_run(['lookrts', 'ovhalf'], prefix='zzit',
-                                  classes=recorded_classes())
+                                  classes=draft_classes())
              if e[0] != 'zzit-lookrts-main.json'] + [(
                  'zzit-lookrts-main.json',
                  synth_text(main_shapes(), samples=2, skew=[
@@ -14557,7 +14571,7 @@ RECORDS = [
          plant=lambda t: {'doc': plant_one_tie(t)},
          shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
                                              prefix='zzit',
-                                             classes=recorded_classes())),
+                                             classes=draft_classes())),
          env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['--prose-draft', 'zzit', '--run-doc', '{doc}'],
          ok=V(exit=0, has=['**ONE row ties at three decimals this run**']),
@@ -14573,11 +14587,11 @@ RECORDS = [
          plant=lambda t: {'doc': write_rundoc(t, rundoc_text())},
          shadow=dict(extra=lambda: [
              e for e in whole_run(['lookrts', 'ovhalf'], prefix='zzit',
-                                  classes=recorded_classes())
-             if e[0] != 'zzit-lookrts-%s.json' % recorded_classes()[0]] + [(
-                 'zzit-lookrts-%s.json' % recorded_classes()[0],
-                 synth_text(class_shapes(recorded_classes()[0]), samples=2,
-                            skew=[(class_shapes(recorded_classes()[0])[0],
+                                  classes=draft_classes())
+             if e[0] != 'zzit-lookrts-%s.json' % draft_classes()[0]] + [(
+                 'zzit-lookrts-%s.json' % draft_classes()[0],
+                 synth_text(class_shapes(draft_classes()[0]), samples=2,
+                            skew=[(class_shapes(draft_classes()[0])[0],
                                    'mut-odo-vecdims', 30)]))]),
          env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['--prose-draft', 'zzit', '--run-doc', '{doc}'],
@@ -14599,7 +14613,7 @@ RECORDS = [
              ' replaced')},
          shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
                                              prefix='zzit',
-                                             classes=recorded_classes())),
+                                             classes=draft_classes())),
          env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['--prose-draft', 'zzit', '--run-doc', '{doc}', '--in-place'],
          probe=lambda subs: open(subs['doc']).read(),
@@ -18407,7 +18421,8 @@ RECORDS = [
          'property 3 said "in the N classes" over a class it read no figure'
          ' of',
          plant=lambda t: {'doc': write_rundoc(t, rundoc_text())},
-         shadow=dict(extra=lambda: narrowed_whole_run('zzp3')),
+         shadow=dict(extra=lambda: narrowed_whole_run('zzp3',
+                                                      draft_classes())),
          env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['--prose-draft', 'zzp3', '--run-doc', '{doc}'],
          ok=V(exit=0, has=['carrying no property 3 figures']),
