@@ -132,6 +132,21 @@ fi
 
 declare -a LEGS=(main) EXPECT=("$EXPECT_MAIN")
 for c in $CLASSES; do
+  # AND TO EACH CLASS NAMED, since 2026-10-16: the check above reads every
+  # class's arms at once, and `big` times only what Main.hs's `classArms`
+  # names, so its leg ran without an ARMS arm and passed. Case:
+  # `roster-pass-holds-arms-to-each-class`.
+  if [ -n "$ARMS" ]; then
+    mine=$("$BIN" classes --list 2>/dev/null | grep "^$c-" | cut -d/ -f2 \
+           | sort -u)
+    for a in $ARMS; do
+      printf '%s\n' "$mine" | grep -qxF "$a" \
+        || { echo "!! ARMS names '$a', which class '$c' does not time --"
+             echo "   Main.hs's classArms narrows it -- so its leg would pass"
+             echo "   without the arm; name the class out, or the arm"
+             exit 2; }
+    done
+  fi
   n=$("$BIN" classes --list 2>/dev/null | grep "^$c-" \
       | awk -F/ -v s="$SEL " 's == " " || index(s, " " $2 " ")' | wc -l)
   [ "$n" -gt 0 ] || { echo "!! class '$c' matches no bench of $BIN"; exit 2; }

@@ -131,6 +131,15 @@ def since(d, run, prev):
               ' read from; nothing read' % prev)
         return 2
     tip = rows[run] or 'HEAD'
+    # PREV's build must come before this one's, or `PREV..RUN` is empty and
+    # reads as nothing changed: the two runs named the wrong way round did
+    # that at exit 0 until 2026-10-16. Case:
+    # `drift-since-refuses-two-runs-the-wrong-way-round`.
+    if git(d, 'merge-base', '--is-ancestor', rows[prev], tip) is None:
+        print("%s's build %s is not an ancestor of %s's %s, so the commits"
+              ' between them are not a span; nothing read -- name the'
+              ' earlier run with --since' % (prev, rows[prev], run, tip))
+        return 2
     log = git(d, 'log', '--reverse', '--format=%h %s',
               '%s..%s' % (rows[prev], tip), '--', 'Main.hs')
     main = git(d, 'show', '%s:./Main.hs' % tip)

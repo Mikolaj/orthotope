@@ -17,7 +17,7 @@
 # is the shim's and is rebuilt here with a builddir of this script's own.
 # Printed before anything builds, so a recipe misread is seen first.
 set -u
-cd "$(dirname "$0")" || exit 1
+cd "$(dirname "$0")" || exit 2
 if [ $# -lt 1 ] || [ $# -gt 2 ] || { [ $# -eq 2 ] && [ "$2" != --dry-run ]; }; then
   echo "usage: ./g3-twins.sh RUN [--dry-run]"
   exit 2
@@ -124,6 +124,14 @@ build () {  # build HALF
   echo "### $(date -Is) $out built, $(stat -c%s "$out") B"
 }
 
+# A recipe build cannot read is a twin that did not run, `build`'s 2, and
+# it was folded into the 1 a failed build gets, under --dry-run too, which
+# builds nothing (2026-10-16, by review).
 for h in "$BASIS" "$OTHER"; do
-  build "$h" || { echo "### the $h twin did not build"; exit 1; }
+  rc=0; build "$h" || rc=$?
+  if [ "$rc" = 2 ]; then
+    echo "### the $h twin's recipe did not read, so nothing ran"; exit 2
+  elif [ "$rc" != 0 ]; then
+    echo "### the $h twin did not build"; exit 1
+  fi
 done

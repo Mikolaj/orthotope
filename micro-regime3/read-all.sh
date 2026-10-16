@@ -178,10 +178,24 @@ fi
 # Counting bare `!!` therefore made every run whose gate tripped that check
 # report a complaint no process made, at exit 1, for ever after. Case:
 # `quoted-note-block-is-not-a-run-complaint`.
-NOISY=$(grep -c '^=== .*!!' "$LOG")
+# AND ONLY WHERE NOTHING LATER ANSWERED IT, since 2026-10-16: the log keeps
+# every attempt, so a partial rerun that re-took a complained-of process
+# clean left the first attempt's complaint counted for ever after. One
+# naming a process stands unless that process started again after it; one
+# naming none, unless another attempt began after it. Case:
+# `a-retaken-process-s-complaint-is-answered`.
+COMPLAINTS=$(awk '
+  NR == FNR { if ($3 == "start") last[$4] = FNR
+              if (/ major run begins/) began = FNR; next }
+  /^=== .*!!/ {
+    p = ""
+    for (i = 4; i <= NF; i++) { w = $i; sub(/(\.log)?[:,.]*$/, "", w)
+                                 if (w in last) { p = w; break } }
+    if (p != "" ? last[p] < FNR : began < FNR) print }' "$LOG" "$LOG")
+NOISY=$(printf '%s' "$COMPLAINTS" | grep -c .)
 if [ "$NOISY" != 0 ]; then
   echo "!! $LOG carries $NOISY complaint(s) from the run itself:"
-  grep '^=== .*!!' "$LOG" | sed 's/^/   /'
+  printf '%s\n' "$COMPLAINTS" | sed 's/^/   /'
   echo
 fi
 
@@ -543,11 +557,18 @@ brief_facts () {
  derived -- read them by hand"
   fi
   if [ -f "$R-evening-out.txt" ]; then
-    MC=$(sed -n 's/^ *geomean \(.*\)/\1/p' "$R-evening-out.txt" | head -1)
+    # THE NEWEST MACHINE SECTION, as run-evening.sh stamps it: a resumed
+    # evening carries more than one, and this took the first geomean and a
+    # BOX MOVED from any (2026-10-16). Case:
+    # `brief-facts-reads-the-newest-machine-section`.
+    SEC=$(awk '/^##### / { m = ($0 == "##### machine"); if (m) s = ""; next }
+               m { s = s $0 "\n" } END { printf "%s", s }' \
+              "$R-evening-out.txt")
+    MC=$(printf '%s\n' "$SEC" | sed -n 's/^ *geomean \(.*\)/\1/p' | head -1)
     # A FIRED CHECK IS NOT A BOX MOVE until it is read against the previous
     # build of THIS recipe: Run 30's fired at +12.96% against a fingerprint
     # belonging to the other half's regime, and the box had not moved at all.
-    if grep -q 'BOX MOVED' "$R-evening-out.txt"; then
+    if printf '%s\n' "$SEC" | grep -q 'BOX MOVED'; then
       MC="$MC -- BOX MOVED, which is the check asking whether the FINGERPRINT's
                  half is this basis's recipe; read it against that recipe's
                  previous build before believing it"
@@ -681,10 +702,13 @@ second window"
                       | sort -u | grep -v "^$BASIS$"); do
     m="$R-$h-main.json"
     [ -f "$m" ] || continue
+    # One --markdown a half, its warnings read twice, where it was run
+    # twice for the two halves of one line (2026-10-16, by review).
+    w=$(./read-run.py "$m" --markdown 2>&1 >/dev/null)
     printf '  %-14s %s\n' "sunk $h" \
-      "$(./read-run.py "$m" --markdown 2>&1 >/dev/null \
+      "$(printf '%s\n' "$w" \
            | sed -n 's/^warning: \([0-9]*\) cell(s) whose forcing term.*/\1/p'
-        )$(./read-run.py "$m" --markdown 2>&1 >/dev/null \
+        )$(printf '%s\n' "$w" \
              | sed -n 's/.*and \([0-9]*\) row(s) are geomeans.*/ cell(s) over \1 row(s)/p')"
   done
 }
@@ -829,9 +853,12 @@ for_brief () {
   echo "    A/A worst cells past 5%: $(row 'A/A past 5%')"
   # A HALF WITH NO SUNK CELL SAYS SO. The row is empty when nothing sank,
   # which is the good answer; pasted as a bare label it reads as a figure
-  # nobody derived, which is this tree's silent-shortfall family again.
+  # nobody derived, which is this tree's silent-shortfall family again. A
+  # half's name is [A-Za-z0-9_], as pair-halves.sh holds it, and `a1g` went
+  # out bare while the pattern took lower-case letters alone (2026-10-16).
+  # Case: `for-brief-says-none-for-a-half-with-a-digit`.
   echo "    Sunk cells: $(printf '%s\n' "$facts" | sed -n 's/^  sunk /sunk /p' \
-                            | sed 's/[[:space:]]*$//; s/^\(sunk [a-z]*\)$/\1 none/' \
+                            | sed 's/[[:space:]]*$//; s/^\(sunk [A-Za-z0-9_]*\)$/\1 none/' \
                             | tr '\n' ';' | sed 's/;$//')"
   echo "    $(intrusion)."
   echo "    $(class_counts)."

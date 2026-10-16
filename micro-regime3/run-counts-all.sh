@@ -105,6 +105,17 @@ for c in '' $CLASSES; do
   for h in $OTHER $BASIS; do
     label="counts $h ${c:-main}"
     F="$R-counts-$h${c:+-$c}.txt"          # run-counts.sh's own name
+    # A FILE WITH NO `# end` STAMP IS A KILLED SWEEP'S, its cells a part of
+    # the population: kept, it stood for the sweep on every later call, a
+    # complaint each time and never a retake (2026-10-16, by review). Set
+    # aside, named, and swept again. Case:
+    # `counts-all-retakes-a-killed-sweep`.
+    if [ -e "$F" ] && ! grep -q '^# end ' "$F"; then
+      KILLED="$F.killed-$(date +%s)"
+      mv "$F" "$KILLED" \
+        && stamp "$label: $F has no \`# end\` stamp, a killed sweep's --\
+ set aside as $KILLED and swept again"
+    fi
     if [ -e "$F" ]; then
       case $(grep -F "$label: done, rc=" "$STATUS" | tail -1) in
         *': done, rc=0') stamp "$label: $F kept from an earlier call" ;;

@@ -22,7 +22,9 @@
 # want no quiet machine, so this runs whenever. ONLY=<shape> and ARMS="a b"
 # restrict it, for a smoke run and never for a recorded column. Output:
 # RUN-counts-HALF.txt, one line a cell: shape, arm, N, instructions an
-# iteration; a cell perf could not count is a `!!` line and the exit status.
+# iteration; a cell whose process failed or that perf could not count is a
+# `!!` line and the exit status, and a shape and arm the listing does not
+# pair a `#` line, not counted.
 # A cell of a few thousand instructions is only as exact as the GCs are in
 # step: one minor GC falling inside one window and not the other moved
 # such a cell by tens of instructions at N=100000 (2026-09-25), so a
@@ -114,7 +116,13 @@ count() {  # count SHAPE ARM ITERS -> user instructions of one process
   local f; f=$(mktemp)
   perf stat -x, -e instructions:u -o "$f" \
     "$B" $SEL -m glob "$1/$2" -n "$3" > /dev/null 2>&1
+  # THE STATUS IS THE CHILD'S, perf handing it back, and was read by
+  # nothing: a process dying on an assertion left a count in the file all
+  # the same, recorded as the cell's (2026-10-16). Case:
+  # `counts-records-a-cell-whose-process-failed`.
+  local rc=$?
   local c; c=$(grep 'instructions:u' "$f" | cut -d, -f1); rm -f "$f"
+  if [ "$rc" != 0 ]; then echo "RC$rc"; return; fi
   case $c in ''|*[!0-9]*) echo "NaN" ;; *) echo "$c" ;; esac
 }
 # THE RESTRICTION GOES IN THE FILE, not just in the launch line. ONLY and
@@ -143,8 +151,19 @@ BEGAN=$(date +%s)
 BAD=0
 for S in $SHAPES; do
   for A in $ARMS; do
+    # A CELL THE LISTING DOES NOT PAIR is said and not counted: the cells
+    # are the cross product of its shapes and its arms, and a shape not
+    # timing an arm got a count of a process selecting nothing, the
+    # binary starting and stopping (2026-10-16). Case:
+    # `counts-skips-a-cell-the-binary-does-not-time`.
+    printf '%s\n' "$LIST" | grep -qxF "$S/$A" \
+      || { echo "# $S $A: not a cell $B times, so not counted" >> "$OUT"
+           continue; }
     c2=$(count "$S" "$A" $((2 * N))); c1=$(count "$S" "$A" "$N")
-    if [ "$c2" = NaN ] || [ "$c1" = NaN ]; then
+    if [ "${c2#RC}" != "$c2" ] || [ "${c1#RC}" != "$c1" ]; then
+      echo "!! $S $A: its process failed ($c2, $c1), so nothing was" \
+           "counted" >> "$OUT"; BAD=1
+    elif [ "$c2" = NaN ] || [ "$c1" = NaN ]; then
       echo "!! $S $A: perf could not count" >> "$OUT"; BAD=1
     else
       echo "$S $A $N $(( (c2 - c1) / N ))" >> "$OUT"

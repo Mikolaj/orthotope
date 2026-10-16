@@ -15,8 +15,8 @@
 # probe-rNN-instance.sh, which git ignores, so no run inherited one.
 # WANTS THE QUIET BOX, asked for at run list step 19a or taken where the
 # note says QUIET-AFTER: allowed; it refuses a busy machine as the riders do.
-# A reading and never a gate: exits 0 whatever it finds, 2 where it could
-# not run.
+# A reading and never a gate: exits 0 whatever it finds, 1 where a cell
+# could not be read, logged `!!`, and 2 where it could not run.
 set -u
 export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
 cd "$(dirname "$0")" || exit 2
@@ -46,25 +46,45 @@ while read -r timed _prev _pop _cell _n; do
   [ -e "probe-copy-$timed" ] || cp "$timed" "probe-copy-$timed" || exit 2
 done <<< "$CELLS"
 ST=$(mktemp)
-cyc () {  # cyc BIN POP CELL N -> user cycles of one process
+# THE BINARY, THE PROCESS AND THE READING ARE EACH CHECKED, since
+# 2026-10-16: none was, and an empty operand in the arithmetic below is
+# 0, so a previous run's binary gone at its deletion offer, a process
+# that died, or a perf counting nothing was logged as 0 cycles an
+# iteration and read as a figure. A cell that cannot be read is logged
+# `!!` and the script exits 1. Case:
+# `copy-test-logs-no-cycles-for-a-missing-binary`.
+cyc () {  # cyc BIN POP CELL N -> user cycles of one process, or fails
   sel=classes; [ "$2" = main ] && sel=
+  [ -x "./$1" ] || { echo "$1 is not here to run"; return 1; }
   # shellcheck disable=SC2086  # an empty selector is no argument
   perf stat -x, -e cycles:u -o "$ST" "./$1" $sel -m glob "$3" -n "$4" \
-    > /dev/null 2>&1
-  grep cycles:u "$ST" | cut -d, -f1
+    > /dev/null 2>&1 || { echo "$1 exited $? on $3"; return 1; }
+  v=$(grep cycles:u "$ST" | cut -d, -f1)
+  case $v in
+    ''|*[!0-9]*) echo "perf counted no cycles of $1 on $3 ('$v')"
+                 return 1 ;;
+  esac
+  printf '%s\n' "$v"
 }
 {
   echo "# copy test of $R, $(date -Iseconds)"
   echo "pass half cell binary cycles/iter"
 } > "$LOG"
+BAD=0
 for pass in 1 2 3; do
   while read -r timed prev pop cell n; do
     for b in "$timed" "probe-copy-$timed" "$prev"; do
-      one=$(cyc "$b" "$pop" "$cell" "$n")
-      two=$(cyc "$b" "$pop" "$cell" $((2 * n)))
-      echo "$pass $timed $cell $b $(( (two - one) / n ))" | tee -a "$LOG"
+      one=; two=
+      if one=$(cyc "$b" "$pop" "$cell" "$n") \
+         && two=$(cyc "$b" "$pop" "$cell" $((2 * n))); then
+        echo "$pass $timed $cell $b $(( (two - one) / n ))" | tee -a "$LOG"
+      else
+        echo "!! $pass $timed $cell $b: ${two:-$one}" | tee -a "$LOG"
+        BAD=1
+      fi
     done
   done <<< "$CELLS"
 done
 rm -f "$ST"
 echo "read it: ./read-run.py --copy-test $LOG"
+exit "$BAD"

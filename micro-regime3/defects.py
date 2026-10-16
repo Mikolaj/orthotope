@@ -891,6 +891,19 @@ def plant_copy_test_log(tmp):
     return write(os.path.join(tmp, 'ct.log'), '\n'.join(lines) + '\n')
 
 
+def plant_copy_test_without_prev(tmp):
+    """`plant_copy_test_in_shadow`'s run with no log standing, the timed
+    binary a stand-in, and the previous run's binary gone, as its deletion
+    offer leaves it."""
+    plant_copy_test_in_shadow(tmp)
+    d = os.path.join(tmp, 'shadow')
+    for name in ('run98-copy-test.log', 'probe-copy-test-run98.log'):
+        os.remove(os.path.join(d, name))
+    os.chmod(write(os.path.join(d, 'run98-lookrts'), FAKE_HALF), 0o755)
+    return {'stub': stub_dir(tmp, PERF_ANSWERS.replace(',instructions:u,',
+                                                       ',cycles:u,'))}
+
+
 def plant_copy_test_in_shadow(tmp):
     """`plant_half_mover`'s run, written into the case's shadow, where
     copy-test.sh reads it, with a log already standing at each name the
@@ -3551,6 +3564,20 @@ fi
 exit 0
 """
 
+# The same stand-in with its `other` class narrowed, as Main.hs's
+# `classArms` narrows `big`: no `mut-odo-vecdims` there, which the other
+# class times (2026-10-16).
+FAKE_HALF_NARROWED = FAKE_HALF.replace(
+    '  for s in rev-shape-a rev-shape-b other-shape-a; do\n'
+    '    for a in list bq-expand mut-odo-vecdims sum-only-early'
+    ' sum-only-late; do\n      echo "$s/$a"\n    done\n  done\n',
+    '  for s in rev-shape-a rev-shape-b; do\n'
+    '    for a in list bq-expand mut-odo-vecdims sum-only-early'
+    ' sum-only-late; do\n      echo "$s/$a"\n    done\n  done\n'
+    '  for a in list sum-only-early sum-only-late; do\n'
+    '    echo "other-shape-a/$a"\n  done\n')
+assert FAKE_HALF_NARROWED != FAKE_HALF, 'FAKE_HALF_NARROWED: anchor moved'
+
 # The same stand-in answering `+RTS -tFILE --machine-readable`, as GHC's
 # RTS does: a line naming the command, then the stats, of which a probe
 # reads `bytes allocated` -- 1000 a call over a fixed 5000 (2026-09-26).
@@ -3831,6 +3858,24 @@ line="$n,,instructions:u,257660,100.00,,"
 if [ -n "$out" ]; then echo "$line" > "$out"; else echo "$line" >&2; fi
 exit 0
 """
+
+# The same perf with its child failing on one arm, as `perf stat` hands
+# back the status of a process that died on an assertion: the count is
+# written all the same, which is what made it read as a measurement
+# (2026-10-16).
+PERF_FAILS_ON_BQ = PERF_ANSWERS.replace(
+    'exit 0\n', 'case "$*" in */bq-expand*) exit 1 ;; esac\nexit 0\n')
+assert PERF_FAILS_ON_BQ != PERF_ANSWERS, 'PERF_FAILS_ON_BQ: anchor moved'
+
+# The stand-in half with a class whose shapes time different arms, so the
+# cross product of its shapes and arms names a cell it does not carry.
+FAKE_HALF_HOLE = FAKE_HALF.replace(
+    '  for s in rev-shape-a rev-shape-b other-shape-a; do\n'
+    '    for a in list bq-expand mut-odo-vecdims sum-only-early'
+    ' sum-only-late; do\n      echo "$s/$a"\n    done\n  done\n',
+    '  for a in list bq-expand; do echo "mix-a/$a"; done\n'
+    '  echo "mix-b/list"\n')
+assert FAKE_HALF_HOLE != FAKE_HALF, 'FAKE_HALF_HOLE: anchor moved'
 
 
 def stub_dir(tmp, body, name='perf'):
@@ -4679,6 +4724,7 @@ def synth_text(shapes, **kw):
 
 def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
                   complained=False, note_block=False, riders=False,
+                  retaken=False,
                   into=None, plateau=None, skew=(), states=None,
                   expect=None):
     """A whole run in this directory: JSONs, and the log that describes it.
@@ -4749,6 +4795,14 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
         log.append('=== 2026-01-01T00:10:00+01:00   !! %s-lookrts-rev:'
                    ' expected 141 benches, got 94 -- the selection is not'
                    ' what was asked for' % tag)
+    if retaken:
+        # A later attempt that re-took the process complained of, clean:
+        # the complaint is the earlier attempt's and was answered.
+        log += ['=== 2026-01-01T01:00:00+01:00 major run begins; tree at'
+                ' 0000000, Main.hs at 0000000; roster is 1 benches',
+                '=== 2026-01-01T01:00:01+01:00 start %s-lookrts-rev' % tag,
+                '=== 2026-01-01T01:10:00+01:00 done  %s-lookrts-rev rc=0'
+                ' benchmarking=47' % tag]
     if killed:
         log.append('=== 2026-01-01T00:10:01+01:00 start %s-lookrts-window'
                    % tag)
@@ -6578,9 +6632,73 @@ TIER1.update({
         trigger='install-tables.sh over a run with a `big` block',
         ok='the class\'s row installed with `--` where it times nothing',
         bug='REFUSED, and nothing installed'),
+    'roster-pass-holds-arms-to-each-class': dict(_R16,
+        family='two-spellings',
+        trigger='ARMS naming an arm a named class does not time',
+        ok='refused, naming the class',
+        bug='the class leg ran without the arm and passed'),
+    'counts-records-a-cell-whose-process-failed': dict(_R16,
+        family='error-as-value', trigger='a cell whose process exits nonzero',
+        ok='`!!`, and exit 1', bug='a count recorded at exit 0'),
+    'counts-skips-a-cell-the-binary-does-not-time': dict(_R16,
+        family='scan-for-parse',
+        trigger='a shape and arm the listing does not pair',
+        ok='said and not counted',
+        bug='a count of a process selecting nothing'),
+    'copy-test-logs-no-cycles-for-a-missing-binary': dict(_R16,
+        family='quiet-failure',
+        trigger='a binary gone, a process failed, or perf counting nothing',
+        ok='`!!` logged, exit 1', bug='0 cycles an iteration logged'),
     'copy-test-reads-no-zero-reading': dict(_R16,
         family='domain-unchecked', trigger='a log line reading 0 cycles',
         ok='left out and counted', bug='ZeroDivisionError'),
+    'halves-read-the-compare-line-not-prose': dict(_R16,
+        family='scan-for-parse',
+        trigger='a prose line opening `COMPARE:` above the machine line',
+        ok='the machine line read', bug='the prose line refused'),
+    'evening-resumes-from-the-gate': dict(_R16,
+        family='two-spellings', trigger='--from gate over a dead attempt',
+        ok='resumed', bug='refused as a relaunch'),
+    'evening-reads-the-launch-line-not-prose': dict(_R16,
+        family='scan-for-parse',
+        trigger='a prose line opening `LAUNCH:` above the machine line',
+        ok='the machine line read', bug='the evening refused'),
+    'evening-reads-box-moved-off-the-newest-machine': dict(_R16,
+        family='scan-for-parse',
+        trigger='an out file whose earlier machine section said BOX MOVED',
+        ok='the newest section read alone',
+        bug='BOX MOVED stamped beside the newest figures'),
+    'a-retaken-process-s-complaint-is-answered': dict(_R16,
+        family='unverified-state',
+        trigger='a complaint about a process a later attempt re-took clean',
+        ok='not counted', bug='counted for ever after'),
+    'for-brief-says-none-for-a-half-with-a-digit': dict(_R16,
+        family='scan-for-parse', trigger='a half named with a digit or `_`',
+        ok='`sunk <half> none`', bug='`sunk <half>` bare'),
+    'brief-facts-reads-the-newest-machine-section': dict(_R16,
+        family='scan-for-parse',
+        trigger='an out file with more than one machine section',
+        ok='the newest section\'s figure and verdict',
+        bug='the first section\'s figure, BOX MOVED from any'),
+    'drift-since-refuses-two-runs-the-wrong-way-round': dict(_R16,
+        family='unverified-state',
+        trigger='--since naming the later run as PREV',
+        ok='refused at exit 2', bug='0 commits read, exit 0'),
+    'view-floor-says-a-truncated-class-json-did-not-read': dict(_R16,
+        family='error-as-value', trigger='a class JSON cut off mid-write',
+        ok='`!!` unreadable, exit 2', bug='a traceback at exit 1'),
+    'view-floor-says-a-class-with-no-readable-group': dict(_R16,
+        family='quiet-failure',
+        trigger='a class whose every A/A group reads no figure',
+        ok='`!!` said, exit 2', bug='nothing printed, exit 0'),
+    'properties-table-read-back-names-an-unreadable-run': dict(_R16,
+        family='quiet-failure', trigger='a JSON that will not load',
+        ok='named unreadable', bug='skipped as covered'),
+    'counts-all-retakes-a-killed-sweep': dict(_R16,
+        family='unverified-state',
+        trigger='a counts file with no `# end` stamp',
+        ok='set aside and swept again',
+        bug='kept, a complaint on every call, never re-taken'),
     'counts-arm-the-other-json-lacks': dict(_R16,
         family='unverified-state',
         trigger='an arm in this run and the counts, lacked by the other JSON',
@@ -6643,6 +6761,26 @@ TIER1.update({
         ok='each comment over its own mutant, saying what it does',
         bug='two over the wrong mutants, a header naming globs no judge'
             ' makes, an exit 0 that is 2'),
+    'g3-twins-folds-did-not-run-into-1': dict(_R16,
+        family='error-as-value', proved='asserted',
+        trigger='a recipe build cannot read',
+        ok='exit 2', bug='exit 1, as a failed build'),
+    'preflight-10d-reads-a-substring': dict(_R16,
+        family='scan-for-parse', proved='asserted',
+        trigger='a note naming `$R-$h` only inside another name',
+        ok='a name bounded both sides', bug='read as the binary named'),
+    'preflight-9-passes-a-zero-divisor': dict(_R16,
+        family='domain-unchecked', proved='asserted',
+        trigger='a diag row reading mut 0',
+        ok='FAILs as UNCONFIRMED', bug='PASSed on the traceback'),
+    'preflight-reads-the-first-machine-line': dict(_R16,
+        family='scan-for-parse', proved='asserted',
+        trigger='a previous out file with more than one machine reading',
+        ok='the newest', bug='the first'),
+    'read-all-runs-markdown-twice': dict(_R16,
+        family='other:duplicate-work', proved='asserted',
+        trigger='every half\'s main set', ok='one --markdown a half',
+        bug='two for one row'),
     'carried-note-verdict-matches-usage': dict(_R16,
         family='vacuous-check', proved='asserted',
         trigger='the control\'s verdict `--inherited`',
@@ -10895,6 +11033,49 @@ RECORDS = [
               hasnt=['every process gated clean']),
          bug=V(exit=0, has=['every process gated clean'])),
 
+    # A complaint is counted unless a later attempt re-took what it is
+    # about: a partial rerun after a complaint left it standing, and the
+    # run read as having complained for ever after. Found 2026-10-16 by
+    # review.
+    case('a-retaken-process-s-complaint-is-answered', 'read-all.sh', 'self',
+         "an earlier attempt's complaint about a process a later attempt"
+         ' re-took clean was still counted',
+         plant=lambda t: synthetic_run(t, complained=True, retaken=True),
+         argv=['{tag}'],
+         ok=V(exit=0, has=['every process gated clean'],
+              hasnt=['complaint(s) from the run itself']),
+         bug=V(exit=1, has=['complaint(s) from the run itself'])),
+
+    # The sunk-cell row appended `none` to a half named in lower-case
+    # letters alone, and half names take digits and `_`: `a1g` went into
+    # the brief as a bare label. Found 2026-10-16 by review.
+    case('for-brief-says-none-for-a-half-with-a-digit', 'read-all.sh',
+         'self',
+         '`sunk a1g` with nothing after it went into the brief, `none` being'
+         ' appended to a lower-case-letter half alone',
+         plant=lambda t: (lambda r: (synth_run(here_file(
+             'runzz-a1g-main.json'), main_shapes()), r)[1])(synthetic_run(t)),
+         argv=['{tag}', '--for-brief'],
+         ok=V(has=['Sunk cells:', 'sunk a1g none']),
+         bug=V(has=['Sunk cells:'], hasnt=['sunk a1g none'])),
+
+    # The machine row took the out file's first geomean and a BOX MOVED
+    # from any section, where run-evening.sh reads the newest: a resumed
+    # evening carries more than one. Found 2026-10-16 by review.
+    case('brief-facts-reads-the-newest-machine-section', 'read-all.sh',
+         'self',
+         "the machine check row read the out file's first machine section,"
+         ' and a BOX MOVED from any',
+         plant=lambda t: (lambda r: (write(here_file(
+             'runzz-evening-out.txt'), '\n##### machine\n  geomean 1.0900'
+             ' over 3 shapes\n  !! BOX MOVED\n\n##### riders\nx\n\n#####'
+             ' machine\n  geomean 1.0002 over 3 shapes\n'), r)[1])(
+                 synthetic_run(t)),
+         argv=['{tag}', '--brief-facts'],
+         ok=V(has=['1.0002 over 3 shapes -- did not fire'],
+              hasnt=['1.0900', 'BOX MOVED']),
+         bug=V(has=['1.0900 over 3 shapes -- BOX MOVED'])),
+
     case('quoted-note-block-is-not-a-run-complaint', 'read-all.sh',
          'bf9acf2',
          'the pair note run-major.sh quotes carried `!!`, read as the run\'s',
@@ -11844,6 +12025,41 @@ RECORDS = [
              subs['at'], 'zzct4-counts-g912.txt')).read(),
          ok=V(exit=0, has=['shape-a list 1'], hasnt=['perf could not'])),
 
+    # `count()` read perf's file and never its status, which is the
+    # child's, so a cell whose process died wrote a count. Found 2026-10-16
+    # by review.
+    case('counts-records-a-cell-whose-process-failed', 'run-counts.sh',
+         'self',
+         "a cell whose process failed was recorded as a count, perf"
+         " writing one whatever the child did",
+         shadow=dict(extra=[('zzct6-g912', FAKE_HALF)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_FAILS_ON_BQ)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
+              'ARMS': 'list bq-expand', 'N': '1'},
+         argv=['zzct6', 'g912'],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'zzct6-counts-g912.txt')).read(),
+         ok=V(exit=1, has=['shape-a list 1', '!! shape-a bq-expand'],
+              hasnt=['shape-a bq-expand 1 ']),
+         bug=V(exit=0, has=['shape-a bq-expand 1 '])),
+
+    # And the cells are the cross product of the listing's shapes and its
+    # arms, so a shape that does not time an arm got a count of a process
+    # whose selection matched nothing: the binary starting and stopping.
+    case('counts-skips-a-cell-the-binary-does-not-time', 'run-counts.sh',
+         'self',
+         'a shape and arm the listing does not pair were counted, the'
+         ' process selecting nothing',
+         shadow=dict(extra=[('zzct7-g912', FAKE_HALF_HOLE)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'N': '1'},
+         argv=['zzct7', 'g912', 'mix'],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'zzct7-counts-g912-mix.txt')).read(),
+         ok=V(exit=0, has=['mix-a bq-expand 1', 'mix-b list 1'],
+              hasnt=['mix-b bq-expand 1']),
+         bug=V(has=['mix-b bq-expand 1'])),
+
     case('stalls-marks-a-cell-no-one-process-read', 'probe-stalls.sh',
          'd8ab388',
          'a difference of two processes in different modes read as a'
@@ -12194,6 +12410,19 @@ RECORDS = [
          argv=['zzph3'],
          ok=V(exit=1, has=["has no 'HALVES: basis=<b> other=<o>' line"])),
 
+    # The HALVES line is the first one that parses; COMPARE was the first
+    # one at all, so a wrapped prose line opening with the word stood for
+    # the machine line. Found 2026-10-16 by review.
+    case('halves-read-the-compare-line-not-prose', 'pair-halves.sh', 'self',
+         "a prose line opening `COMPARE:` above the machine line was read as"
+         ' it, and the note refused',
+         shadow=dict(extra=[('zzph4-pair.txt', NOTE_STUB
+                             + 'COMPARE: the run below, read as the chapter'
+                               ' says\nCOMPARE: run44\n')]),
+         argv=['zzph4'],
+         ok=V(exit=0, has=['COMPARE=run44']),
+         bug=V(exit=1, has=["COMPARE line names 'the run below"])),
+
     case('half-name-carries-no-hyphen', 'pair-halves.sh', '7249a35',
          'a hyphenated tag was CUT at the hyphen and handed on truncated,'
          ' so every driver would have run a binary nobody built',
@@ -12525,8 +12754,10 @@ RECORDS = [
          shadow=dict(extra=[('zzg3-pair.txt', NOTE_STUB + G3_RECIPES.replace(
              'LOOP_A=1 LOOP_B=1', 'LOOP_A=1 nice LOOP_B=1', 1))]),
          argv=['zzg3', '--dry-run'],
-         ok=V(exit=1, has=['something other than environment assignments',
-                           'did not build'])),
+         # Exit 2 since 2026-10-16, a recipe no build can read being a
+         # twin that did not run.
+         ok=V(exit=2, has=['something other than environment assignments',
+                           "recipe did not read, so nothing ran"])),
 
     # ---- run-evening.sh, the run list's quiet machine steps as one command
     case('evening-chains-the-stages', 'run-evening.sh', None,
@@ -12699,6 +12930,69 @@ RECORDS = [
          argv=['zzen', '--from', 'sequence'],
          ok=V(exit=2, has=['nothing to resume'],
               hasnt=['evening begins', 'evening resumed'])),
+
+    # `gate` was both the default and a stage to resume from, so `--from
+    # gate` over a dead attempt's status file was refused as a relaunch,
+    # and an evening whose gate died could not be resumed at all. Found
+    # 2026-10-16 by review.
+    case('evening-resumes-from-the-gate', 'run-evening.sh', 'self',
+         '`--from gate` over a dead attempt was refused as a relaunch, so no'
+         ' evening could be resumed at its first stage',
+         shadow=dict(extra=lambda: evening_fixture('zzeg') + [
+             ('zzeg-evening.txt', '=== 2026-01-01T00:00:00+00:00 evening'
+              ' begins for zzeg\n=== 2026-01-01T00:00:01+00:00 gate:'
+              ' start\n')]),
+         env={'MAXBUSY': '100', 'FAKE_SATURATE': '1',
+              'ONLY': main_shapes()[0]},
+         argv=['zzeg', '--from', 'gate'],
+         probe=lambda subs: open(os.path.join(subs['at'],
+                                              'zzeg-evening.txt')).read(),
+         ok=V(has=['evening resumed for zzeg from gate'],
+              hasnt=["a previous attempt's record"]),
+         bug=V(exit=1, has=["a previous attempt's record"])),
+
+    # The LAUNCH and RIDERS lines were the first at all opening with the
+    # word, where HALVES is the first that parses, so a wrapped prose line
+    # opening `LAUNCH:` above the machine line was refused as one. Found
+    # 2026-10-16 by review.
+    case('evening-reads-the-launch-line-not-prose', 'run-evening.sh', 'self',
+         "a prose line opening `LAUNCH:` above the machine line was read as"
+         ' it, and the evening refused',
+         shadow=dict(extra=lambda: [
+             (n, b.replace('LAUNCH: SATURATE=1\n', 'LAUNCH: the line below'
+                           ' sets the dose\nLAUNCH: SATURATE=1\n'))
+             for n, b in evening_fixture('zzel')]),
+         env={'MAXBUSY': '100', 'FAKE_SATURATE': '1',
+              'ONLY': main_shapes()[0]},
+         argv=['zzel'],
+         ok=V(has=['evening begins for zzel'],
+              hasnt=['which is not NAME=value']),
+         bug=V(exit=1, has=["carries 'the', which is not NAME=value"])),
+
+    # And BOX MOVED was taken from any machine section of the out file, a
+    # resumed evening carrying an earlier one, where the figures beside it
+    # were the newest section's. The reader is a stand-in, its machine
+    # section reading inside the bar. Found 2026-10-16 by review.
+    case('evening-reads-box-moved-off-the-newest-machine', 'run-evening.sh',
+         'self',
+         "an earlier machine section's BOX MOVED was stamped beside the"
+         " newest section's figures",
+         shadow=dict(extra=lambda: evening_fixture('zzbm') + [
+             ('zzbm-evening.txt', '=== 2026-01-01T00:00:00+00:00 evening'
+              ' begins for zzbm\n=== 2026-01-01T01:00:00+00:00 sequence:'
+              ' done, rc=0\n'),
+             ('zzbm-evening-out.txt', '\n##### machine\n  geomean 1.0900'
+              ' over 3 shapes\n  !! BOX MOVED\n'),
+             ('read-run.py', '#!/bin/sh\necho "  geomean 1.0002 over 3'
+              ' shapes"\nexit 0\n')]),
+         env={'MAXBUSY': '100', 'FAKE_SATURATE': '1',
+              'ONLY': main_shapes()[0]},
+         argv=['zzbm', '--from', 'machine'],
+         probe=lambda subs: open(os.path.join(subs['at'],
+                                              'zzbm-evening.txt')).read(),
+         ok=V(has=['machine: geomean 1.0002 over 3 shapes, inside the bar'],
+              hasnt=['BOX MOVED']),
+         bug=V(has=['machine: geomean 1.0002 over 3 shapes -- BOX MOVED'])),
 
     case('evening-refuses-a-stray-run-artifact-before-the-gate',
          'run-evening.sh', 'a35f698',
@@ -14551,6 +14845,27 @@ RECORDS = [
          ok=V(exit=2, has=['probe-copy-test-run98.log exists']),
          bug=V(exit=2, has=['run98-copy-test.log exists'])),
 
+    # `cyc` checked neither the binary nor perf's reading, and an empty
+    # operand in shell arithmetic is 0, so a binary gone at its deletion
+    # offer was logged at 0 cycles an iteration. Found 2026-10-16 by
+    # review.
+    case('copy-test-logs-no-cycles-for-a-missing-binary', 'copy-test.sh',
+         'self',
+         "a binary that was not there, or a perf that counted nothing, was"
+         ' logged as 0 cycles an iteration',
+         plant=plant_copy_test_without_prev,
+         shadow=dict(),
+         env={'MAXBUSY': '100', 'PATH': '{stub}:/usr/bin:/bin'},
+         argv=['run98', 'run97'],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'probe-copy-test-run98.log')).read(),
+         ok=V(exit=1, has=['!! 1 run98-lookrts', 'run97-nospec is not here'],
+              hasnt=[' run97-nospec 0']),
+         # The stub perf counts for any binary, so the binary gone logs the
+         # stub's figure, where a real perf left the operand empty and 0.
+         bug=V(has=['lib-stage1 run97-nospec '],
+               hasnt=['run97-nospec is not here'])),
+
     case('worklist-names-a-figure-no-reader-printed', 'read-run.py',
          '3328953',
          'a prose figure no reader mode is named for went unlisted, and the'
@@ -14912,6 +15227,18 @@ RECORDS = [
          argv=['run97', '--dir', '{dir}'],
          ok=V(exit=0, has=['no commit to Main.hs between them'])),
 
+    # --since read `PREV..RUN` without asking whether PREV's build is an
+    # ancestor of RUN's, so the two runs named the wrong way round read an
+    # empty log as nothing changed. Found 2026-10-16 by review.
+    case('drift-since-refuses-two-runs-the-wrong-way-round',
+         'registration-drift.py', 'self',
+         '--since with the two runs swapped read no commit and every arm'
+         ' reached by none, at exit 0',
+         plant=lambda t: drift_since_repo(t, code=True),
+         argv=['run96', '--since', 'run97', '--dir', '{dir}'],
+         ok=V(exit=2, has=['is not an ancestor of']),
+         bug=V(exit=0, has=['0 commit(s)'])),
+
     case('drift-since-names-the-arms-a-commit-reaches',
          'registration-drift.py', None,
          'CONTROL: --since names the definition a commit changed and the'
@@ -15231,6 +15558,21 @@ RECORDS = [
          # sweep the same day.
          argv=None, ok=None, no_audit='too-dangerous-to-run'),
 
+    # ARMS was held to the union of every class's arms, and `big` times
+    # only what `classArms` names, so a class leg asked for an arm its
+    # class does not time ran without it and passed. Found 2026-10-16 by
+    # review; the stand-in's `other` class stands for `big`.
+    case('roster-pass-holds-arms-to-each-class', 'smoke-l1.sh', 'self',
+         "ARMS was checked against every class's arms at once, so a class"
+         ' that does not time one ran its leg without it',
+         shadow=dict(extra=[('zzsl-pair.txt', NOTE_STUB),
+                            ('zzsl-lookrts', FAKE_HALF_NARROWED)]),
+         env={'ARMS': 'mut-odo-vecdims'},
+         argv=['zzsl', 'rev', 'other'],
+         ok=V(exit=2, has=["ARMS names 'mut-odo-vecdims', which class"
+                           " 'other' does not time"]),
+         bug=V(exit=1, hasnt=["which class 'other' does not time"])),
+
     # ---- the review of 2026-09-04 ----------------------------------------
     # Fifteen findings over the shell and Python here, by a reviewer reading
     # the files whole; a case for each program that can be driven, and a
@@ -15421,6 +15763,37 @@ RECORDS = [
                    '--doc definitions'])),
 
     # ---- view-floor.py, the per-view floor -----------------------------
+    # Class mode read each JSON unguarded, so one cut off mid-write was a
+    # traceback at exit 1, which the docstring defines as a view past its
+    # floor; legs mode catches it. Found 2026-10-16 by review.
+    case('view-floor-says-a-truncated-class-json-did-not-read',
+         'view-floor.py', 'self',
+         'a truncated class JSON was a traceback at exit 1, the finding'
+         " exit",
+         plant=lambda t: (lambda d: (write(os.path.join(
+             d, 'zzvf-g912-flip.json'), '[["criterion"], [], [{"rep'),
+             {'dir': d})[1])(floor_legs(t)),
+         argv=['zzvf', '-d', '{dir}'],
+         ok=V(exit=2, has=['zzvf-g912-flip.json unreadable']),
+         bug=V(exit=1, has=['Traceback'])),
+
+    # And a class whose every A/A group read no figure -- a copy missing on
+    # every view, or every net not positive -- was passed over in silence,
+    # the run exiting 0 with no table. The planted class's forcing pair
+    # costs more than every arm.
+    case('view-floor-says-a-class-with-no-readable-group', 'view-floor.py',
+         'self',
+         'a class whose A/A groups were all unreadable printed nothing and'
+         ' exited 0 clean',
+         plant=lambda t: (lambda d: (synth_json(
+             d, 'flip', name='zzvf-g912-flip.json', skew=[
+                 (sh, a, 1000) for sh in class_shapes('flip')
+                 for a in ('sum-only-early', 'sum-only-late')]),
+             {'dir': d})[1])(floor_legs(t)),
+         argv=['zzvf', '-d', '{dir}'],
+         ok=V(exit=2, has=['no A/A group read a figure']),
+         bug=V(exit=0, hasnt=['no A/A group read a figure'])),
+
     case('view-floor-skips-the-legs-that-are-not-classes', 'view-floor.py',
          '18021d0',
          'the skip of the main set, the alone legs and the gate processes'
@@ -15768,6 +16141,24 @@ RECORDS = [
          argv=[],
          ok=V(exit=2, has=['CORPUS_LIMIT'], hasnt=['empty corpus']),
          bug=V(exit=1, has=['empty corpus'], hasnt=['CORPUS_LIMIT'])),
+
+    # The same swallow one property along: the table read-back caught
+    # every load exception and went on, so the run cut off mid-write was
+    # one it covered. Found 2026-10-16 by review.
+    case('properties-table-read-back-names-an-unreadable-run',
+         'properties.py', 'self',
+         'the table read-back skipped a JSON that would not load and passed'
+         ' over it',
+         plant=corpus_with_an_unreadable_run,
+         env={'CORPUS': '{corpus}'},
+         argv=[],
+         ok=V(exit=1, has=['FAIL prop_table_reads_back        over 1'
+                           ' population(s) on disk\n'
+                           '       truncated-main.json: unreadable']),
+         bug=V(exit=1, has=['prop_table_reads_back'],
+               hasnt=['FAIL prop_table_reads_back        over 1'
+                      ' population(s) on disk\n'
+                      '       truncated-main.json: unreadable'])),
 
     case('properties-name-an-unreadable-run', 'properties.py', 'ae6cbce',
          'a JSON that would not load was skipped and counted as covered',
@@ -16586,7 +16977,8 @@ RECORDS = [
          shadow=dict(extra=[('zzcg-lookrts', FAKE_HALF),
                             ('zzcg-a1g', FAKE_HALF),
                             ('zzcg-pair.txt', NOTE_STUB),
-                            ('zzcg-counts-a1g.txt', 'counted earlier\n'),
+                            ('zzcg-counts-a1g.txt', 'counted earlier\n# end'
+                             ' 2026-09-03T13:30:00+02:00 elapsed=60s\n'),
                             ('zzcg-evening.txt',
                              EVENING_DONE + counts_attempt(
                                  'zzcg', clean=('counts a1g main',)))]),
@@ -16600,6 +16992,39 @@ RECORDS = [
               hasnt=['COMPLAINT(S)']),
          bug=V(exit=1, has=['counts a1g main: done, rc=2 -- COMPLAINT'])),
 
+    # A sweep killed mid-file left a counts file with no `# end` stamp, and
+    # once its dangling `start` was stamped done by hand -- the refusal of
+    # a stage still running being right, there being no telling a dead one
+    # -- every later call kept the file as a complaint, never re-taking it.
+    # Found 2026-10-16 by review.
+    case('counts-all-retakes-a-killed-sweep', 'run-counts-all.sh', 'self',
+         "a killed sweep's file with no `# end` stamp was kept on every"
+         ' later call, and the population never swept again',
+         shadow=dict(extra=[('zzck-lookrts', FAKE_HALF),
+                            ('zzck-a1g', FAKE_HALF),
+                            ('zzck-pair.txt', NOTE_STUB),
+                            ('zzck-counts-a1g.txt', '# zzck-a1g deadbeef N=1'
+                             ' 2026-01-01T00:00:00+00:00 full\n# shape arm N'
+                             ' instructions/iter\nshape-a list 1 100000\n'),
+                            ('zzck-evening.txt', EVENING_DONE
+                             + '=== 2026-09-03T13:20:00+02:00 counted work'
+                               ' begins for zzck: basis lookrts, control'
+                               ' a1g\n=== 2026-09-03T13:20:01+02:00 counts'
+                               ' a1g main: start\n=== 2026-09-03T13:40:00'
+                               '+02:00 counts a1g main: done, rc=137 --'
+                               ' COMPLAINT, killed\n')]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
+              'ARMS': 'list', 'N': '1'},
+         argv=['zzck'],
+         probe=lambda subs: open(os.path.join(subs['at'],
+                                              'zzck-evening.txt')).read(),
+         ok=V(has=['has no `# end` stamp, a killed sweep',
+                   'counts a1g main: done, rc=0'],
+              hasnt=['kept from an earlier call']),
+         bug=V(exit=1, has=['kept from an earlier call, which'
+                            ' complained'])),
+
     case('counts-all-retake-keeps-an-earlier-complaint', 'run-counts-all.sh',
          None,
          'CONTROL: a file kept from a sweep that complained is still a'
@@ -16607,7 +17032,8 @@ RECORDS = [
          shadow=dict(extra=[('zzch-lookrts', FAKE_HALF),
                             ('zzch-a1g', FAKE_HALF),
                             ('zzch-pair.txt', NOTE_STUB),
-                            ('zzch-counts-a1g.txt', 'counted earlier\n'),
+                            ('zzch-counts-a1g.txt', 'counted earlier\n# end'
+                             ' 2026-09-03T13:30:00+02:00 elapsed=60s\n'),
                             ('zzch-evening.txt',
                              EVENING_DONE + counts_attempt('zzch'))]),
          plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
@@ -16919,6 +17345,24 @@ RECORDS = [
     case('mutants-comments-stale', 'mutants.py', 'self',
          "two comments sat over the wrong mutants, and the header named"
          ' globs and an exit no judge makes',
+         argv=None, ok=None),
+    case('g3-twins-folds-did-not-run-into-1', 'g3-twins.sh', 'self',
+         "a recipe the build could not read exited 1, a failed build's code",
+         argv=None, ok=None),
+    case('preflight-10d-reads-a-substring', 'preflight.sh', 'self',
+         "10d took a half's binary named inside another name as the note"
+         ' naming it',
+         argv=None, ok=None),
+    case('preflight-9-passes-a-zero-divisor', 'preflight.sh', 'self',
+         'step 9 passed a no-SpecConstr recipe on a diag row whose mut read'
+         ' 0',
+         argv=None, ok=None),
+    case('preflight-reads-the-first-machine-line', 'preflight.sh', 'self',
+         "the previous run's machine row was its out file's first reading,"
+         ' not its newest',
+         argv=None, ok=None),
+    case('read-all-runs-markdown-twice', 'read-all.sh', 'self',
+         'the sunk row ran --markdown twice a half for one line',
          argv=None, ok=None),
 ]
 

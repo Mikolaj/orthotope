@@ -61,8 +61,13 @@ cd "$(dirname "$0")" || exit 1
 # any $R-*.json or $R-*.log. Cases:
 # `evening-resumes-from-a-named-stage`, `evening-refuses-to-resume-nothing`.
 FROM=gate
+# RESUMING IS SAID BY THE FLAG and not by the stage: `gate` is the default
+# and a stage, so `--from gate` over a dead attempt was refused as a
+# relaunch, and no evening could be resumed at its first stage
+# (2026-10-16). Case: `evening-resumes-from-the-gate`.
+RESUME=0
 if [ $# -eq 3 ] && [ "$2" = --from ]; then
-  FROM=$3
+  FROM=$3; RESUME=1
 elif [ $# -ne 1 ]; then
   FROM=usage
 fi
@@ -116,8 +121,14 @@ fi
 # own: present, and of the words allowed. A LAUNCH line is a list of
 # NAME=value words or the word `none`; a RIDERS line is `clean`, `clean
 # sat` or `none`. Anything else is refused by name, before the hours.
-LAUNCH_LINE=$(grep -m1 '^LAUNCH:' "$NOTE")
-RIDERS_LINE=$(grep -m1 '^RIDERS:' "$NOTE")
+# THE FIRST LINE THAT PARSES, as pair-halves.sh takes HALVES, and the first
+# opening with the word only where none does, for the refusal to name: a
+# wrapped prose line opening `LAUNCH:` above the machine line was read as
+# it (2026-10-16). Case: `evening-reads-the-launch-line-not-prose`.
+LAUNCH_LINE=$(grep -m1 -E '^LAUNCH:( +(none|[A-Za-z_][A-Za-z0-9_]*=[^ ]*))+ *$' "$NOTE") \
+  || LAUNCH_LINE=$(grep -m1 '^LAUNCH:' "$NOTE")
+RIDERS_LINE=$(grep -m1 -E '^RIDERS:( +(clean|sat|none))+ *$' "$NOTE") \
+  || RIDERS_LINE=$(grep -m1 '^RIDERS:' "$NOTE")
 if [ -z "$LAUNCH_LINE" ] || [ -z "$RIDERS_LINE" ]; then
   echo "!! $NOTE lacks a machine line this driver reads:"
   [ -n "$LAUNCH_LINE" ] || echo "   LAUNCH: <NAME=value ...>   or   LAUNCH: none"
@@ -154,12 +165,12 @@ fi
 for h in $OTHER $BASIS; do
   [ -x "./$R-$h" ] || { echo "missing ./$R-$h -- $NOTE has the recipe"; exit 1; }
 done
-if [ "$FROM" != gate ] && ! [ -e "$STATUS" ]; then
+if [ "$RESUME" = 1 ] && ! [ -e "$STATUS" ]; then
   echo "--from $FROM: no $STATUS, so there is nothing to resume; run the"
   echo "evening without --from. Nothing ran."
   exit 2
 fi
-if [ "$FROM" = gate ] && [ -e "$STATUS" ]; then
+if [ "$RESUME" = 0 ] && [ -e "$STATUS" ]; then
   echo "$R already has $STATUS, a previous attempt's record:"
   sed 's/^/  /' "$STATUS"
   echo "relaunching would run the stages over its artifacts, which each"
@@ -207,7 +218,7 @@ stage () {   # stage LABEL cmd...   -> the command's status, recorded.
   return "$rc"
 }
 
-if [ "$FROM" = gate ]; then
+if [ "$RESUME" = 0 ]; then
   stamp "evening begins for $R: basis $BASIS, control $OTHER, launch env\
  '${LAUNCH# }', riders '${RIDERS# }'"
 else
@@ -330,10 +341,12 @@ if at machine; then
   stage machine ./read-run.py "$R-$BASIS-main.json" --machine "${MDOC[@]}" \
     || true
   # The newest machine section's figures, a resumed evening carrying more
-  # than one.
+  # than one -- and its BOX MOVED alone, which was taken from any section
+  # until 2026-10-16. Case: `evening-reads-box-moved-off-the-newest-machine`.
   MC=$(awk '/^##### / { sec = $0 } sec == "##### machine" && /^ *geomean / {
               sub(/^ */, ""); line = $0 } END { print line }' "$OUT")
-  if awk '/^##### / { sec = $0 } sec == "##### machine" && /BOX MOVED/ {
+  if awk '/^##### / { sec = $0; if (sec == "##### machine") hit = 0 }
+          sec == "##### machine" && /BOX MOVED/ {
             hit = 1 } END { exit !hit }' "$OUT"; then
     stamp "machine: $MC -- BOX MOVED: read it against the fingerprint half's\
  previous build before believing it; the run goes on, and the write-up names it"

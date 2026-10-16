@@ -218,12 +218,19 @@ def prop_table_reads_back(m):
         if LIMIT and runs >= LIMIT:
             break
         runs += 1
+        # A finding where the run cannot be read, as the sibling above has
+        # it: every load exception was swallowed here, and a run cut off
+        # mid-write was counted among those covered (2026-10-16, by
+        # review). A JSON that is not criterion's is still left alone.
+        # Case: `properties-table-read-back-names-an-unreadable-run`.
         try:
             cells, shapes, strategies, meta = m.load(
                 os.path.join(CORPUS, f), MAIN)
-        except SystemExit:
+        except (OSError, ValueError) as e:
+            bad.append('%s: unreadable (%s), so it is not a run this'
+                       ' covers' % (f, str(e)[:60]))
             continue
-        except Exception:
+        except (SystemExit, IndexError, KeyError, TypeError):
             continue
         # The MAIN SET's table only. A class table drops the editorial
         # column deliberately, so that `readme_rows` does not match it and

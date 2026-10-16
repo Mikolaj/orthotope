@@ -112,7 +112,12 @@ if [ -n "${OTHER:-}" ] && [ "$OTHER" != "$O" ]; then
   echo "   the note is the authority; unset OTHER or fix the note" >&2
   exit 1
 fi
-C=$(grep -m1 '^COMPARE:' "$NOTE")
+# THE FIRST COMPARE LINE THAT PARSES, as HALVES is taken above, and the
+# first opening with the word only where none does, for the refusal below
+# to name: a wrapped prose line opening `COMPARE:` above the machine line
+# was read as it (2026-10-16). Case: `halves-read-the-compare-line-not-prose`.
+C=$(grep -m1 -E '^COMPARE:[[:space:]]*run[0-9]+[[:space:]]*$' "$NOTE") \
+  || C=$(grep -m1 '^COMPARE:' "$NOTE")
 if [ -n "$C" ]; then
   C=$(printf '%s\n' "$C" | sed 's/^COMPARE:[[:space:]]*//; s/[[:space:]]*$//')
   if ! printf '%s\n' "$C" | grep -qx 'run[0-9][0-9]*'; then

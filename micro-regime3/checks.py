@@ -87,8 +87,6 @@ UNCOVERED = {
                    'branch on stub halves; the mount branch is a box\'s '
                    'and a run\'s to exercise, the corpus copy having no '
                    'tmpfs under it',
-    'smoke-l1.sh': 'the reader\'s smoke sweep, driven by the run chapter; '
-                   'no case yet',
 }
 # The probes, run by hand or by another probe for the questions they were
 # written for.

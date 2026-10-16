@@ -499,8 +499,12 @@ step_10d () {  # 10d. AND THAT THE RECIPES BUILD THE HALVES THE LINE NAMES:
   # 2026-09-01 on stub notes: a note naming both halves PASSes, one
   # naming only the basis FAILs naming the other's binary.
   [ -f "$R-pair.txt" ] || return 0
+  # As a NAME, bounded both sides as 10c's harvest is since 25487e3: a
+  # bare substring took `smoke-l1-$R-$h-*` or a half `$h` extended for
+  # the binary named (2026-10-16, by review).
   MISS=$(for h in $BASIS $OTHER; do
-           grep -q "$R-$h" "$R-pair.txt" || echo "$R-$h"; done)
+           grep -qE "(^|[^A-Za-z0-9_-])$R-$h([^A-Za-z0-9_-]|\$)" \
+             "$R-pair.txt" || echo "$R-$h"; done)
   if [ -z "$MISS" ]; then
     say 10d PASS "HALVES line basis=$BASIS other=$OTHER, and the note names \
 both binaries"
@@ -772,6 +776,13 @@ WANT=$(regime_want "$BASIS" "$OTHER")
 read -r SCAN MUT <<< "$(diag_rows "$BASIS")"
 if [ -z "$SCAN" ] || [ -z "$MUT" ]; then
   say 9 FAIL "could not read the diag row; regime UNCONFIRMED"
+# A zero or unreadable divisor made the ratio below a traceback, which the
+# python reads leave IS_SPEC at 0 over, so a no-SpecConstr recipe PASSed on
+# it (2026-10-16, by review).
+elif ! python3 -c "import sys; sys.exit(0 if float('$SCAN') > 0 and \
+float('$MUT') > 0 else 1)" 2>/dev/null; then
+  say 9 FAIL "the diag row reads scan $SCAN and mut $MUT, not two positive \
+figures; regime UNCONFIRMED"
 elif [ "$WANT" = unknown ]; then
   say 9 FAIL "no recipe block for $R-$BASIS in $R-pair.txt, or none naming \
 --ghc-options; regime UNCONFIRMED"
@@ -1163,11 +1174,14 @@ delta is step 6c's to take by hand"
     # Off the previous evening's out file, where run-evening.sh's machine
     # stage files it since 2026-10-05 and where the gate's copy also landed
     # before; the note, where the gate filed it, for a run older than its
-    # out file's keeping.
+    # out file's keeping. THE NEWEST reading in a file, as run-evening.sh
+    # stamps it: a resumed evening files more than one, and this took the
+    # first (2026-10-16, by review).
     printf '  %-16s  %s\n' 'prev machine' \
       "$(for f in "run$PN-evening-out.txt" "run$PN-pair.txt"; do
            awk '/^ *machine: `list` net against/ { m = 1; next }
-                m && NF { sub(/^ */, ""); print; exit }' "$f" 2>/dev/null
+                m && NF { sub(/^ */, ""); last = $0; m = 0 }
+                END { if (last != "") print last }' "$f" 2>/dev/null
          done | head -1 | grep . \
          || echo "<yours> -- run$PN-evening-out.txt and run$PN-pair.txt carry no machine line")"
   fi

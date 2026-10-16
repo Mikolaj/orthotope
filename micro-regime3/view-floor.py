@@ -27,10 +27,11 @@ thing this most wants to read.
 RUN is the prefix the artifacts carry, `run27`. Reads
 `RUN-<half>-<class>.json` for whichever halves and classes are on disk.
 Exit 0 when no view exceeds its class floor by more than --factor (default 2),
-1 when one does, and 2 when the run did not happen -- no JSONs, or a class
-whose views carry no A/A group at all. With --legs there is no class floor,
-so the exit is 1 when a group's widest spread passes --bar percent (default
-2.0), and --factor, --csv and -c are refused rather than ignored.
+1 when one does, and 2 when the run did not happen -- no JSONs, a class JSON
+that does not read, or a class with no A/A group that yields a figure. With
+--legs there is no class floor, so the exit is 1 when a group's widest spread
+passes --bar percent (default 2.0), and --factor, --csv and -c are refused
+rather than ignored.
 """
 import argparse, collections, glob, json, os, statistics, sys
 
@@ -175,7 +176,16 @@ def main():
 
     rows, worst_flag = [], 0
     for half, cls, f in legs:
-        R = read(f)
+        # Guarded as legs mode's read is: a JSON cut off mid-write was a
+        # traceback at exit 1, the exit of a finding (2026-10-16). Case:
+        # `view-floor-says-a-truncated-class-json-did-not-read`.
+        try:
+            R = read(f)
+        except (OSError, ValueError, KeyError, IndexError, TypeError) as e:
+            print('!! %s unreadable (%s)' % (os.path.basename(f),
+                                             type(e).__name__))
+            worst_flag = max(worst_flag, 2)
+            continue
         arms = {k.split('/', 1)[1] for k in R}
         gs = groups_of(arms)
         if not gs:
@@ -197,7 +207,15 @@ def main():
                 best[base] = spread(net)
             if best:
                 per_view[v] = best
+        # Said and not passed over: every group's copy missing on every
+        # view, or every net not positive, left the class with no floor and
+        # the run exiting 0 with no table (2026-10-16). Case:
+        # `view-floor-says-a-class-with-no-readable-group`.
         if not per_view:
+            print('!! %s: no A/A group read a figure on any view -- a copy'
+                  ' missing, or no net over the forcing pair positive -- so'
+                  ' it has no floor' % os.path.basename(f))
+            worst_flag = max(worst_flag, 2)
             continue
         # A class floor PER A/A GROUP, and a view read against the group
         # whose cost structure resembles the arm the clause is about. Taking
