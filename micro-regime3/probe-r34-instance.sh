@@ -28,11 +28,21 @@ md5sum run34-exit hugebin/run34-exit hugebin/probe-copy-r34-exit \
        run32-ghead hugebin/probe-copy-r32-ghead
 
 tmp=$(mktemp)
+# A BINARY GONE, A PROCESS THAT FAILED OR A COUNT NOT READ fails the cell,
+# logged `!!`: an empty operand in the arithmetic below is 0, and such a
+# cell was logged at 0 an iteration (2026-10-16, by review).
 count() {  # count BINARY CLASS BENCH ITERS -> "cycles instructions"
+  [ -x "$1" ] || { echo "!! $1 is not here to run"; return 1; }
   SATURATE=1 perf stat -x, -e cycles:u,instructions:u -o "$tmp" \
-    "$1" classes -m glob "$3" -n "$4" > /dev/null 2>&1
-  printf '%s %s\n' "$(grep ',cycles:u' "$tmp" | cut -d, -f1)" \
-                   "$(grep ',instructions:u' "$tmp" | cut -d, -f1)"
+    "$1" classes -m glob "$3" -n "$4" > /dev/null 2>&1 \
+    || { echo "!! $1 exited $? on $3"; return 1; }
+  c=$(grep ',cycles:u' "$tmp" | cut -d, -f1)
+  i=$(grep ',instructions:u' "$tmp" | cut -d, -f1)
+  case "$c,$i" in
+    ,*|*,|*[!0-9,]*) echo "!! perf counted no event of $1 on $3 ('$c,$i')"
+                     return 1 ;;
+  esac
+  printf '%s %s\n' "$c" "$i"
 }
 # half34 half32 bench N
 CELLS="exit nospec scaled-rank1-m1/mut-odo-vecdims-add-in-leaf-u1 4000
@@ -51,9 +61,14 @@ printf '%s\n' "$CELLS" | while read -r h34 h32 bench n; do
       d) bin=hugebin/probe-copy-r32-$h32 ;;
       e) bin=./run32-$h32 ;;
     esac
-    read -r c1 i1 < <(count "$bin" x "$bench" "$n")
-    read -r c2 i2 < <(count "$bin" x "$bench" $((2 * n)))
-    echo "$v $bench $n $(( (c2 - c1) / n )) $(( (i2 - i1) / n ))"
+    r1=; r2=
+    if r1=$(count "$bin" x "$bench" "$n") \
+       && r2=$(count "$bin" x "$bench" $((2 * n))); then
+      read -r c1 i1 <<< "$r1"; read -r c2 i2 <<< "$r2"
+      echo "$v $bench $n $(( (c2 - c1) / n )) $(( (i2 - i1) / n ))"
+    else
+      echo "$v $bench $n ${r2:-$r1}"
+    fi
   done
 done
 rm -f "$tmp"

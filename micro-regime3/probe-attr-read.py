@@ -106,14 +106,32 @@ def spans(src, main_hs):
     starts = {}
     for arm, name in FUNCS.items():
         if src.count(name) != 1:
-            die('%s does not name one definition in %s (%d matches)'
-                     % (arm, main_hs, src.count(name)))
+            die('%s does not name one definition in %s (%d matches)%s'
+                % (arm, main_hs, src.count(name),
+                   '' if name != FILL else
+                   ' -- no build since 910db73 (2026-09-21) carries it, an'
+                   ' assert having gone into its head, and c838dba then'
+                   ' ported the fill to the `fillStage3` the stage arms'
+                   ' reach today, so a histogram of a later build wants'
+                   ' FILL and its spans re-anchored'))
         starts[arm] = src[:src.index(name)].count('\n')
+    # A SUB-ANCHOR IS SOUGHT IN ITS OWN FUNCTION, which ends at the next
+    # line at column 0 not opening another of its equations: searched to
+    # the end of the file, a lost one closed at a sibling's copy and took
+    # its samples in silence, where the docstring promises a loud failure
+    # (2026-10-16, by review).
+    ends = {}
+    for arm, name in FUNCS.items():
+        head = name.split()[0]
+        ends[arm] = next((k for k in range(starts[arm] + 1, len(lines))
+                          if lines[k][:1] not in ('', ' ')
+                          and not lines[k].startswith(head + ' ')),
+                         len(lines))
     out = {}
     for (arm, role), (a, b) in SPANS.items():
         i = starts[arm]
         lo = hi = None
-        for k in range(i, len(lines)):
+        for k in range(i, ends[arm]):
             if lo is None and lines[k] == a:
                 lo = k + 1
             elif lo is not None and lines[k] == b:
@@ -168,7 +186,7 @@ def spans(src, main_hs):
 def main():
     if len(sys.argv) not in (2, 3):
         die(__doc__)
-    arms, cur, built = {}, None, None
+    arms, cur, built, unusable = {}, None, None, []
     for ln in open(sys.argv[1]):
         m = re.match(r'^# Main\.hs at ([0-9a-f]{7,})\s*$', ln)
         if m:
@@ -177,12 +195,21 @@ def main():
         if m:
             cur = m.group(1)
             arms[cur] = {}
+            # probe-attr.sh marks a histogram whose sampled total missed
+            # the counted one, or that lost samples, and this read it as a
+            # good one (2026-10-16, by review).
+            if re.search(r'\bunusable=yes\b', ln):
+                unusable.append(cur)
             continue
         m = re.match(r'^\s+[0-9.]+%\s+(\d+)\s+(\S+)', ln)
         if m and cur:
             arms[cur][m.group(2)] = arms[cur].get(m.group(2), 0) + int(m.group(1))
     if not arms:
         die('no arm sections in that file')
+    if unusable:
+        die('the probe marked %s unusable -- its `!!` line in the file says'
+            ' why; take the histogram again, at a larger PERIOD'
+            % ', '.join(unusable))
     here = os.path.dirname(os.path.abspath(__file__))
     if len(sys.argv) == 3:
         main_hs, src = sys.argv[2], open(sys.argv[2]).read()

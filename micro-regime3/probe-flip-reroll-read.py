@@ -199,7 +199,11 @@ def main():
             for t in order:
                 for arm, v in sorted(legs[t].items()):
                     fh.write('%s,%s,%.6f\n' % (t, arm, v))
-    return rc
+    # A REFUSED LEG IS THE DOCSTRING'S EXIT 2, an unreadable JSON or one
+    # with no forcing term being a leg that did not run: they were printed
+    # and dropped, and the verdict on the survivors exited 0 (2026-10-16,
+    # by review).
+    return 2 if bad else rc
 
 
 if __name__ == '__main__':

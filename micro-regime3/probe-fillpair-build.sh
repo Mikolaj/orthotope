@@ -23,6 +23,11 @@ BEFORE=${BEFORE:-1c33cff}          # fillStage2 changed, the two unrolled fills 
 for t in A B; do
   [ -e "probe-fill$t-g912" ] && { echo "probe-fill$t-g912 exists"; exit 1; }
 done
+# A LEFTOVER COPY IS A DEAD RUN'S, as in probe-llvmpair.sh: refused, its
+# edits being possibly the only copy (2026-10-16, by review).
+[ -e Main.hs.workingtree ] && { echo "Main.hs.workingtree exists -- a dead"\
+  "run's copy of the working tree, which may hold the only copy of your"\
+  "edits: compare it with Main.hs and restore it by hand"; exit 2; }
 cp Main.hs Main.hs.workingtree
 restore () { cp Main.hs.workingtree Main.hs; rm -f Main.hs.workingtree; }
 trap restore EXIT

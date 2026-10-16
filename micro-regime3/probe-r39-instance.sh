@@ -28,19 +28,32 @@ gheadtwopass rev rev-cnn-L1-24x24-c1 lib-stage2-lean-u1 72810
 gheadtwopass runs runs-512 list 23
 gheadtwopass window window-64x64-k1x9 lib-stage2-lean-u1 17306'
 ST=$(mktemp)
-cyc () {  # cyc BIN SEL CELL N -> user cycles of one process
+# A BINARY GONE, A PROCESS THAT FAILED OR A COUNT NOT READ fails the cell,
+# logged `!!`, as copy-test.sh's does (2026-10-16, by review): an empty
+# operand in the arithmetic below is 0.
+cyc () {  # cyc BIN SEL CELL N -> user cycles of one process, or fails
+  [ -x "./$1" ] || { echo "!! $1 is not here to run"; return 1; }
   perf stat -x, -e cycles:u -o "$ST" "./$1" $2 -m glob "$3" -n "$4" \
-    > /dev/null 2>&1
-  grep cycles:u "$ST" | cut -d, -f1
+    > /dev/null 2>&1 || { echo "!! $1 exited $? on $3"; return 1; }
+  v=$(grep cycles:u "$ST" | cut -d, -f1)
+  case $v in
+    ''|*[!0-9]*) echo "!! perf counted no cycles of $1 on $3 ('$v')"
+                 return 1 ;;
+  esac
+  printf '%s\n' "$v"
 }
 echo "pass half cell binary cycles/iter"
 for pass in 1 2 3; do
   while read -r h c s a n; do
     sel=classes; [ "$c" = main ] && sel=
     for b in "run39-$h" "probe-copy-run39-$h" "run38-$h"; do
-      one=$(cyc "$b" "$sel" "$s/$a" "$n")
-      two=$(cyc "$b" "$sel" "$s/$a" $((2 * n)))
-      echo "$pass $h $s/$a $b $(( (two - one) / n ))"
+      one=; two=
+      if one=$(cyc "$b" "$sel" "$s/$a" "$n") \
+         && two=$(cyc "$b" "$sel" "$s/$a" $((2 * n))); then
+        echo "$pass $h $s/$a $b $(( (two - one) / n ))"
+      else
+        echo "$pass $h $s/$a $b ${two:-$one}"
+      fi
     done
   done <<< "$CELLS"
 done

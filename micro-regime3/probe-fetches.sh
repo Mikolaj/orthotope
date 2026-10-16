@@ -38,21 +38,31 @@ count() {  # count BINARY SEL SHAPE ARM ITERS -> the event over one process
   local c; c=$(grep "$EV" "$f" | cut -d, -f1); rm -f "$f"
   case $c in ''|*[!0-9]*) echo "NaN" ;; *) echo "$c" ;; esac
 }
-BAD=0
+BAD=0 NOTRUN=0
 for B in "$@"; do
   case $B in */*) ;; *) B=./$B ;; esac      # a bare name is a file here, not a command
   [ -x "$B" ] || { echo "!! $B is not an executable here"; BAD=1; continue; }
   OUT=probe-fetches-$(basename "$B").txt
+  # A PREVIOUS SWEEP'S FILE IS REFUSED, as every other probe here refuses
+  # one, and ONLY is held to the listing: a misspelt one skipped every
+  # cell and wrote a header-only file over that sweep at exit 0
+  # (2026-10-16, by review).
+  [ -e "$OUT" ] && { echo "!! $OUT exists; move it aside first"; NOTRUN=1; continue; }
+  # --list ends with a roster line carrying no `/`, which is not a cell.
+  MAIN=$("$B" --list 2>/dev/null | grep /)
+  CLS=$("$B" classes --list 2>/dev/null | grep /)
+  [ -n "$MAIN" ] && [ -n "$CLS" ] || { echo "!! $B: --list gave nothing"; BAD=1; continue; }
+  if [ -n "${ONLY-}" ] && ! printf '%s\n%s\n' "$MAIN" "$CLS" | cut -d/ -f1 \
+       | grep -qxF "$ONLY"; then
+    echo "!! ONLY names '$ONLY', which $B lists no cell of -- nothing ran"
+    NOTRUN=1; continue
+  fi
   BEGAN=$(date +%s)
   {
     echo "# $B $(md5sum "$B" | cut -d' ' -f1) N=$N event=$EV $(date -Is)"
     echo "# population shape arm N fetches/iter"
     [ -z "${ONLY-}" ] || echo "# RESTRICTED to ONLY=$ONLY: a smoke run"
   } > "$OUT"
-  # --list ends with a roster line carrying no `/`, which is not a cell.
-  MAIN=$("$B" --list 2>/dev/null | grep /)
-  CLS=$("$B" classes --list 2>/dev/null | grep /)
-  [ -n "$MAIN" ] && [ -n "$CLS" ] || { echo "!! $B: --list gave nothing"; BAD=1; continue; }
   POPS="main $(printf '%s\n' "$CLS" | cut -d/ -f1 | sed 's/-.*//' | awk '!seen[$0]++')"
   for P in $POPS; do
     if [ "$P" = main ]; then SEL=; LIST=$MAIN
@@ -75,4 +85,4 @@ for B in "$@"; do
   done
   echo "# end $(date -Is) elapsed=$(( $(date +%s) - BEGAN ))s" >> "$OUT"
 done
-exit $BAD
+exit $(( NOTRUN ? 2 : BAD ))

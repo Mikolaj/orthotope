@@ -14,9 +14,12 @@
 # killed probe; to run it again, point HALF at a half that exists and
 # read the figures below as the other binary's rather than as these.
 #
-# EVERY +RTS LINE REPEATS THE BAKED OPTIONS IN FULL. A +RTS line inherits
-# none of them, so a bare `+RTS -A64m` would run at -I0 and -M8G unset --
-# a regime nobody chose, and figures that are not this run's.
+# EVERY +RTS LINE REPEATS THE BAKED OPTIONS IN FULL, which states the
+# regime in the command and changes nothing: a +RTS line overrides only
+# what it names, the baked ones standing beside it. Measured 2026-10-16,
+# where this header had said a +RTS line inherits none of them: a binary
+# baked `-A32m -I0 -T -M8G` and run `+RTS -A64m` read -A64m with -T and
+# -M8G still set.
 #
 # Spent: it ran on 2026-08-20 and README's Run 16 chapter carries the curve.
 # It refuses to start over its own artifacts, as the run drivers do and for

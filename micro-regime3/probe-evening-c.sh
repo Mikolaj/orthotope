@@ -14,7 +14,10 @@
 #
 # Wants the quiet machine, cycles being load-sensitive where instructions
 # are not, so it runs here rather than on a working desktop. Minutes: 285
-# cells at two processes each.
+# cells at three processes each, probe-stalls.sh's third at -n 3N being
+# its linearity check. Three of the classes, slice, revsome and reshape1,
+# are retired and probe-stalls.sh refuses them, so a run today counts
+# three complaints, and exits 1 for them since 2026-10-16.
 set -u
 cd "$(dirname "$0")" || exit 1
 export ARMS="list lib-stage1 lib-stage2 mut-odo-vecdims-add-in-leaf-u2 sum-only-early"
@@ -28,3 +31,6 @@ for c in rev revsome bcast bcastmid reshape1 slice window scaled runs; do
   CLASS=$c ./probe-stalls.sh || { echo "!! $c complained"; BAD=1; }
 done
 echo "=== $(date -Is) EVENING C COMPLETE, complaints=$BAD" | tee -a probe-bangtime-wallclock.log
+# The complaints in the status too, which ended at the `tee` and so was 0
+# whatever the sweeps did (2026-10-16, by review).
+exit $((BAD > 0))

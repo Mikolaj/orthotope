@@ -20,8 +20,9 @@ reported and dropped rather than silently skipped.
 BOTH SIDES ARE NET AND BOTH ARE THE SAME NET.  The time side is
 `slope_net_s` out of `read-run.py --cells`, which is the reader's own
 slope minus its own correction, so this script neither re-fits nor
-re-corrects; the counted side subtracts `sum-only-early` per shape, which
-is what the counts files' own readings subtract.  The foot prints three
+re-corrects; the counted side subtracts the mean of the two `sum-only`
+arms per shape, which is what read-run.py's counts readings subtract
+(the early arm alone, until 2026-10-16).  The foot prints three
 conventions and names each: a plain geomean, the reader's winsorized one
 (3 scaled MADs of the log, as `read-run.py`'s `winsorize`) and the
 median.  They differ where one cell has the work removed rather than
@@ -135,13 +136,21 @@ def main():
     t, (c, refused) = cells(times), counts(sys.argv[4:])
     dropped, removed = [], []
     rows = []
-    for sh in sorted(t):
-        td, cd = t[sh], c.get(sh, {})
+    # EVERY SHAPE EITHER SIDE CARRIES, a shape the counts alone carry
+    # being dropped and said, as the docstring promises: the time side's
+    # walk passed such shapes over without a word. And the counts net the
+    # mean of both forcing arms where both are there, as read-run.py's
+    # counts_pair does, where they took the early arm alone, so the two
+    # sides' nets were not the same net (2026-10-16, by review).
+    for sh in sorted(set(t) | set(c)):
+        td, cd = t.get(sh, {}), c.get(sh, {})
         if not all(k in td for k in (a, b)) or \
            not all(k in cd for k in (a, b, 'sum-only-early')):
             dropped.append(sh)
             continue
-        corr = cd['sum-only-early']
+        forcing = [cd[k] for k in ('sum-only-early', 'sum-only-late')
+                   if k in cd]
+        corr = sum(forcing) / len(forcing)
         # A NON-POSITIVE NET IS A CELL WITH THE WORK REMOVED, not a cell
         # measured small: `reshape1` canonicalizes to regime 1 under stage
         # two, so the arm returns the vector and its net time sits at or

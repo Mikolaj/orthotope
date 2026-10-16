@@ -22,24 +22,32 @@
 # which wants root, expecting a contiguous run of hundreds of pages and
 # `phys==virt mod 2MiB: True`. A level pair says the change costs nothing
 # on this cell and buys determinism; a move is the iTLB term and goes in
-# the note as such. A probe and never a check: exits 0 whatever it finds.
+# the note as such. A probe and never a check: exits 0 whatever it finds,
+# and 2 where it did not run -- no mount, or no copy into it -- which it
+# exited 0 for too until 2026-10-16.
 #
 #     bash probe-hugebin.sh run33-exit
 set -u
 export GHCRTS="${GHCRTS:+$GHCRTS }-V0"  # the RTS clock off (README)
-cd "$(dirname "$0")" || exit 1
+cd "$(dirname "$0")" || exit 2
 HALF=${1:?the binary of one half, e.g. run33-exit}
 BENCH='runs-16384/lib-stage2-lean-u1'
-mountpoint -q hugebin || { echo "hugebin is not mounted here; the header says how"; exit 0; }
-cp "$HALF" "hugebin/$HALF" || exit 0
+mountpoint -q hugebin || { echo "hugebin is not mounted here; the header says how -- nothing ran"; exit 2; }
+cp "$HALF" "hugebin/$HALF" || { echo "$HALF did not copy into hugebin -- nothing ran"; exit 2; }
 md5sum "$HALF" "hugebin/$HALF"
 
 echo "== cycles for 300 iterations of $BENCH, on disk then on the mount"
+# A process that failed or a count not read is `!!`, not a figure, as in
+# copy-test.sh (2026-10-16, by review).
 for i in 1 2; do
   for b in "./$HALF" "hugebin/$HALF"; do
-    perf stat -x, -e cycles:u -o /tmp/st-hugebin.txt \
-      "$b" classes runs -m glob "$BENCH" -n 300 > /dev/null 2>&1
-    c=$(grep cycles:u /tmp/st-hugebin.txt | cut -d, -f1)
+    if perf stat -x, -e cycles:u -o /tmp/st-hugebin.txt \
+         "$b" classes runs -m glob "$BENCH" -n 300 > /dev/null 2>&1; then
+      c=$(grep cycles:u /tmp/st-hugebin.txt | cut -d, -f1)
+      case $c in ''|*[!0-9]*) c="!! perf counted no cycles ('$c')" ;; esac
+    else
+      c="!! the process exited $?"
+    fi
     echo "pass$i $b $c"
   done
 done

@@ -87,6 +87,11 @@ UNCOVERED = {
                    'branch on stub halves; the mount branch is a box\'s '
                    'and a run\'s to exercise, the corpus copy having no '
                    'tmpfs under it',
+    'small-pinned-churn-investigation/goal4/a10-issuerepro.sh':
+        'an investigation script, run by hand to verify a filed issue\'s'
+        ' repro',
+    'small-pinned-churn-investigation/span-correlate.py':
+        'an investigation script, run by hand over a probe\'s table',
 }
 # The probes, run by hand or by another probe for the questions they were
 # written for.

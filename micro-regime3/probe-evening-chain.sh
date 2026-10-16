@@ -8,6 +8,11 @@
 set -u
 cd "$(dirname "$0")" || exit 1
 until grep -q 'EVENING A COMPLETE' probe-bangtime-wallclock.log 2>/dev/null; do sleep 60; done
-./probe-evening-b.sh
-./probe-evening-c.sh
-echo "=== $(date -Is) THE EVENING IS COMPLETE" | tee -a probe-bangtime-wallclock.log
+# The halves' complaints carried on, where the chain announced a complete
+# evening at exit 0 whatever they said (2026-10-16, by review).
+BAD=0
+./probe-evening-b.sh || BAD=1
+./probe-evening-c.sh || BAD=1
+echo "=== $(date -Is) THE EVENING IS COMPLETE, complaints=$BAD" \
+  | tee -a probe-bangtime-wallclock.log
+exit $((BAD > 0))

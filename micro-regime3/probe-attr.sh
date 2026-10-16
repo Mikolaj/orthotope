@@ -92,8 +92,11 @@ BAD=0
   echo "# per-iteration total matches the timed binary's counted work."
 } > "$OUT"
 for A in "$@"; do
-  printf '%s\n' "$LIST" | cut -d/ -f2 | grep -qxF "$A" \
-    || { echo "!! $A is not an arm of the roster -- skipped" | tee -a "$OUT"; BAD=1; continue; }
+  # ON THIS SHAPE, not on any: `big` times only what Main.hs's `classArms`
+  # names, so an arm every other class times passed the roster-wide test
+  # and its glob selected nothing here (2026-10-16, by review).
+  printf '%s\n' "$LIST" | grep -qxF "$SH/$A" \
+    || { echo "!! $A is not timed on $SH -- skipped" | tee -a "$OUT"; BAD=1; continue; }
   D=probe-attr-$SH${TAG:+-$TAG}-$A.data
   perf record -q -e instructions:u -c "$PERIOD" -o "$D" \
     "$B" $SEL -m glob "$SH/$A" -n "$N" > /dev/null 2>&1
@@ -113,28 +116,33 @@ for A in "$@"; do
   TRUE=$(perf stat -x, -e instructions:u \
            "$B" $SEL -m glob "$SH/$A" -n "$N" 2>&1 >/dev/null \
          | sed -n 's/^\([0-9]*\),.*instructions:u.*/\1/p')
+  # AN UNUSABLE HISTOGRAM IS MARKED ON ITS OWN HEADER, `unusable=yes`,
+  # which probe-attr-read.py refuses: the `!!` lines alone were read by
+  # nobody, the reader parsing headers and rows, so it bucketed such a
+  # histogram as a good one (2026-10-16, by review).
+  UNUSABLE=no
   if [ "${LOST:-0}" != 0 ]; then
     echo "!! $A: perf lost $LOST sample(s), so this histogram is biased toward"\
          "whatever ran when sampling resumed -- raise PERIOD" | tee -a "$OUT"
-    BAD=1
+    BAD=1; UNUSABLE=yes
   fi
   # A COUNT OF 0 IS NO COUNT: it passed the digits test and divided by
   # zero below, which ends the probe at exit 1 with the arms after it
   # unrun and $OUT short of them (2026-09-18, by review).
   case ${TRUE:-} in
     ''|0|*[!0-9]*) echo "!! $A: perf stat gave no count, so the histogram's scale"\
-                      "is unchecked" | tee -a "$OUT"; BAD=1 ;;
+                      "is unchecked" | tee -a "$OUT"; BAD=1; UNUSABLE=yes ;;
     *) if [ "$(( 100 * TOT / TRUE ))" -lt 95 ] || [ "$(( 100 * TOT / TRUE ))" -gt 105 ]
        then
          echo "!! $A: the sampled total is $TOT against a counted $TRUE,"\
               "$(( 100 * TOT / TRUE ))% -- the counter was off for part of"\
               "the run, so raise PERIOD; this histogram is not usable" \
            | tee -a "$OUT"
-         BAD=1
+         BAD=1; UNUSABLE=yes
        fi ;;
   esac
   { echo
-    echo "=== $A  rc=$rc  samples=$NS  events=$TOT  counted=${TRUE:-?}  per iteration=$((TOT / N))"
+    echo "=== $A  rc=$rc  unusable=$UNUSABLE  samples=$NS  events=$TOT  counted=${TRUE:-?}  per iteration=$((TOT / N))"
     printf '%s\n' "$R" | grep -E '^ +[0-9]+\.[0-9]+%' \
       | awk -v t="$TOT" -v n="$N" '{gsub("%","",$1);
           printf "   %7.3f%%  %14.0f  %s\n", $1, $1/100*t/n, $2}'

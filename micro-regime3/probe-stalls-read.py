@@ -99,6 +99,13 @@ def main():
                       if (sh, k) in marked['UNCHECKED']]
         c = d['sum-only-early']
         net = {arm: {e: d[arm][e] - c[e] for e in order} for arm in (a, b)}
+        # A NaN field is dropped with the shape, as probe-second-term.py
+        # has done since 2026-09-01: it passes the `<= 0` test below, and
+        # its row went into the table and the foot counted it while the
+        # geomean left it out (2026-10-16, by review).
+        if any(x != x for arm in (a, b) for x in net[arm].values()):
+            dropped.append(sh)
+            continue
         if min(net[a]['instructions:u'], net[b]['instructions:u'],
                net[a]['cycles:u'], net[b]['cycles:u']) <= 0:
             dropped.append(sh)

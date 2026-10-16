@@ -33,9 +33,17 @@ def parse(path):
         out[f[0]]=(vals,span,peak)
     return out
 def spearman(xs,ys):
+    # TIES TAKE THEIR AVERAGE RANK, the spans being the six AREAS values and
+    # ties the rule: ranked in sort order, rho moved with the order the
+    # shapes came in, 1.0, 0.6 or 0.8 for one set of pairs whose tie-averaged
+    # rho is 0.894 (2026-10-16, by review).
     def rank(v):
-        o=sorted(range(len(v)), key=lambda i:v[i]); r=[0]*len(v)
-        for j,i in enumerate(o): r[i]=j
+        o=sorted(range(len(v)), key=lambda i:v[i]); r=[0.0]*len(v); j=0
+        while j<len(o):
+            k=j
+            while k+1<len(o) and v[o[k+1]]==v[o[j]]: k+=1
+            for i in o[j:k+1]: r[i]=(j+k)/2
+            j=k+1
         return r
     rx,ry=rank(xs),rank(ys); n=len(xs)
     if n<3: return float('nan')

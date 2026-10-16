@@ -24,6 +24,12 @@ BEFORE=${BEFORE:-dc8fe46}          # the tree before any fill change
 for tag in before after; do
   [ -e "probe-llvm-$tag-g912" ] && { echo "probe-llvm-$tag-g912 exists"; exit 1; }
 done
+# A LEFTOVER COPY IS A DEAD RUN'S, its Main.hs the BEFORE tree and the edits
+# only in the copy: copying over it lost them, the trap then restoring
+# BEFORE as the working tree (2026-10-16, by review). Refused.
+[ -e Main.hs.workingtree ] && { echo "Main.hs.workingtree exists -- a dead"\
+  "run's copy of the working tree, which may hold the only copy of your"\
+  "edits: compare it with Main.hs and restore it by hand"; exit 2; }
 cp Main.hs Main.hs.workingtree
 restore () { cp Main.hs.workingtree Main.hs; rm -f Main.hs.workingtree; }
 trap restore EXIT

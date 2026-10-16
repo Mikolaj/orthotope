@@ -10,10 +10,16 @@
 # percent" run-to-run spread of its table; a mode that fails to
 # compile, crashes, or reads a different sign is a filing blocker.
 set -u
-cd /home/mikolaj/r/orthotope/micro-regime3/small-pinned-churn-investigation
+cd /home/mikolaj/r/orthotope/micro-regime3/small-pinned-churn-investigation \
+  || exit 2
 exec > goal4/a10-issuerepro-driver.log 2>&1
 echo "start: $(date), loadavg: $(cat /proc/loadavg)"
-python3 - <<'EOF'
+# THE EXTRACTION AND THE BUILD ARE EACH CHECKED, and what an earlier run
+# left is removed first: a failed assert went on to compile and run the
+# previous extraction as the issue's bytes, and `ghc` was whichever was on
+# PATH where the header says 9.12.4 (2026-10-16, by review).
+rm -f goal4/a10-IssueRepro.hs goal4/a10-IssueRepro
+python3 - <<'EOF' || { echo "EXTRACTION FAILED"; exit 2; }
 import re
 s = open("/home/mikolaj/r/horde-ad/docs/ghc-issue-small-pinned-churn.md").read()
 m = re.findall(r"```haskell\n(.*?)```", s, re.S)
@@ -22,7 +28,7 @@ open("goal4/a10-IssueRepro.hs", "w").write(m[0])
 print("extracted", len(m[0]), "bytes")
 EOF
 md5sum goal4/a10-IssueRepro.hs
-ghc -O1 -rtsopts -outputdir goal4/a10-objs -o goal4/a10-IssueRepro \
+ghc-9.12.4 -O1 -rtsopts -outputdir goal4/a10-objs -o goal4/a10-IssueRepro \
   goal4/a10-IssueRepro.hs || { echo "COMPILE FAILED"; exit 1; }
 run() { local name=$1; shift
   ./goal4/a10-IssueRepro "$@" -RTS > goal4/a10-ir-$name.log 2>&1

@@ -61,7 +61,12 @@ def alone_slope(path, arm):
     `--list` prints nothing at all once one is given -- so it is done, not
     trusted, and a contaminated leg is refused rather than averaged.
     """
-    d = json.load(open(path))[2]
+    # A leg cut off mid-write is refused as any other, where it was a
+    # traceback at exit 1, the code of a finding (2026-10-16, by review).
+    try:
+        d = json.load(open(path))[2]
+    except (OSError, ValueError, IndexError, KeyError, TypeError) as e:
+        return None, 'unreadable (%s)' % type(e).__name__
     if not d:
         return None, 'no reports'
     got = [r['reportName'].split('/', 1)[-1] for r in d]
@@ -139,7 +144,8 @@ def main():
             rc = max(rc, 2)
             continue
         print('   %s' % arm)
-        for e in sorted(set(rows['g912']) & set(rows['ghead'])):
+        both = sorted(set(rows['g912']) & set(rows['ghead']))
+        for e in both:
             x, y = rows['g912'][e], rows['ghead'][e]
             r = y / x if x else float('nan')
             note = ''
@@ -147,6 +153,13 @@ def main():
                 note = '   <- CONTROL FAILED, the differencing is not clean'
                 rc = max(rc, 2)
             print('      %-24s %14.1f %14.1f %8.4f%s' % (e, x, y, r, note))
+        # The control is the instructions count, and with none read on
+        # both halves -- refused, renamed, `<not counted>` -- it was not
+        # run and nothing said so (2026-10-16, by review).
+        if not any(e.startswith('instructions') for e in both):
+            print('      CONTROL NOT RUN: no instructions count on both'
+                  ' halves, so the differencing is unchecked')
+            rc = max(rc, 2)
     return rc
 
 

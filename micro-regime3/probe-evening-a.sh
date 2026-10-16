@@ -14,7 +14,13 @@
 set -u
 cd "$(dirname "$0")" || exit 1
 export WILDLOG=1 SATURATE=1
-./probe-times.sh runs || echo "!! the re-take complained -- read the wall-clock log"
+# Complaints ride the COMPLETE line and the status, as probe-evening-c's
+# do since 2026-10-16: this exited 0 whatever the sweeps did.
+BAD=0
+./probe-times.sh runs \
+  || { echo "!! the re-take complained -- read the wall-clock log"; BAD=1; }
 ./probe-times.sh main rev revsome slice scaled window bcast bcastmid \
-  || echo "!! a population complained -- read the wall-clock log"
-echo "=== $(date -Is) EVENING A COMPLETE" | tee -a probe-bangtime-wallclock.log
+  || { echo "!! a population complained -- read the wall-clock log"; BAD=1; }
+echo "=== $(date -Is) EVENING A COMPLETE, complaints=$BAD" \
+  | tee -a probe-bangtime-wallclock.log
+exit $((BAD > 0))

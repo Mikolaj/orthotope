@@ -19,8 +19,13 @@
 set -u
 cd "$(dirname "$0")" || exit 1
 export WILDLOG=1 SATURATE=1
-BIN=./probe-disp-g912  OUT=probe-runlen-disp    ./probe-times.sh runs || echo "!! disp g912 complained"
-BIN=./probe-disp-ghead OUT=probe-runlen-ghead   ./probe-times.sh runs || echo "!! disp ghead complained"
-BIN=./probe-nospill-g912 OUT=probe-runlen-nospill ./probe-times.sh runs || echo "!! nospill complained"
-./probe-times.sh reshape1 || echo "!! reshape1 complained"
-echo "=== $(date -Is) EVENING B COMPLETE" | tee -a probe-bangtime-wallclock.log
+# Complaints ride the COMPLETE line and the status, as probe-evening-c's
+# do since 2026-10-16: this exited 0 whatever the sweeps did.
+BAD=0
+BIN=./probe-disp-g912  OUT=probe-runlen-disp    ./probe-times.sh runs || { echo "!! disp g912 complained"; BAD=1; }
+BIN=./probe-disp-ghead OUT=probe-runlen-ghead   ./probe-times.sh runs || { echo "!! disp ghead complained"; BAD=1; }
+BIN=./probe-nospill-g912 OUT=probe-runlen-nospill ./probe-times.sh runs || { echo "!! nospill complained"; BAD=1; }
+./probe-times.sh reshape1 || { echo "!! reshape1 complained"; BAD=1; }
+echo "=== $(date -Is) EVENING B COMPLETE, complaints=$BAD" \
+  | tee -a probe-bangtime-wallclock.log
+exit $((BAD > 0))
