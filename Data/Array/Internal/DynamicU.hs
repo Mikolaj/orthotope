@@ -88,8 +88,12 @@ instance Vector V.Vector where
   vFromList = V.fromList
   {-# INLINE vFromListN #-}
   vFromListN = V.fromListN
+  -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), under INLINABLE the
+  -- specialisation benchmark's summed Shaped reduce at [3, 3] and of an empty
+  -- array ran 5 instructions a call more, 1 to 3%, and Dynamic and Ranked
+  -- rerank at [3, 3] 6 to 8 fewer, 0.2%.
   {-# INLINE vSingleton #-}
-  vSingleton = V.singleton
+  vSingleton a = V.create (do v <- MV.unsafeNew 1; MV.unsafeWrite v 0 a; return v)
   -- One write and then copies of what is written, doubling, as vector's
   -- default basicSet does: vector's replicate fills through primitive's
   -- setByteArray, which in primitive-0.9.1.0 writes +0.0 for -0.0 at Float

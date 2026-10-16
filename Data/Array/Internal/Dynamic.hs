@@ -93,8 +93,14 @@ instance Vector V.Vector where
   vFromList = V.fromList
   {-# INLINE vFromListN #-}
   vFromListN = V.fromListN
+  -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), under INLINABLE the
+  -- specialisation benchmark's boxed rerank and reduce at [3, 3] and
+  -- zipWith3A.singleR of an empty array ran 1 to 3% more instructions, and
+  -- summed zipWith3A.singleR at [3, 3] 0.2% fewer.  MV.replicate rather than
+  -- DynamicU's MV.unsafeNew and a write: with those, boxed rerank and reduce
+  -- ran 18 and 4 to 6 instructions a call more.
   {-# INLINE vSingleton #-}
-  vSingleton = V.singleton
+  vSingleton a = V.create (MV.replicate 1 a)
   {-# INLINE vReplicate #-}
   vReplicate = V.replicate
   {-# INLINE vMap #-}
