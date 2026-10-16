@@ -81,7 +81,7 @@ import qualified Data.Array.Internal.DynamicG as DG
 
 -- | Arrays stored in a /v/ with values of type /a/.
 type role Array nominal representational nominal
-data Array (n :: Nat) v a = A !ShapeL !(T v a)
+data Array (n :: Nat) v a = A !ShapeL {-# UNPACK #-} !(T v a)
   deriving (Generic, Data)
 
 instance (Vector v, Show a, VecElem v a) => Show (Array n v a) where

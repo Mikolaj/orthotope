@@ -2044,11 +2044,21 @@ padT v aps ash at =
         pad' [(l,h)] (s:sh) (!n:_) t =
           [vReplicate (n*l) v] ++ toVectorListT (s:sh) t ++ [vReplicate (n*h) v]
         pad' ((l,h):ps) (s:sh) (!n:ns) t =
-          [vReplicate (n*l) v] ++ concatMap (pad' ps sh ns . indexT t) [0..s-1] ++ [vReplicate (n*h) v]
+          [vReplicate (n*l) v] ++ concatMap (padS ps sh ns . indexT t) [0..s-1] ++ [vReplicate (n*h) v]
         pad' _ _ _ _ = error $ "padT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
+        -- pad' strict in the subarray, so that the T's fields pass through
+        -- the recursion, not the T; pad' itself stays lazy in the array it is
+        -- given, which a strict one would take apart and build again.
+        padS :: [(Int, Int)] -> ShapeL -> [Int] -> T v a -> [v a]
+        padS [] sh _ !t = toVectorListT sh t
+        padS [(l,h)] (s:sh) (!n:_) !t =
+          [vReplicate (n*l) v] ++ toVectorListT (s:sh) t ++ [vReplicate (n*h) v]
+        padS ((l,h):ps) (s:sh) (!n:ns) !t =
+          [vReplicate (n*l) v] ++ concatMap (padS ps sh ns . indexT t) [0..s-1] ++ [vReplicate (n*h) v]
+        padS _ _ _ _ = error $ "padT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
         _ : st = getStridesT ss
         -- The padded shape, which fails on more pairs than dimensions even
-        -- where an empty dimension stops pad' before the surplus pair.
+        -- where an empty dimension stops pad' or padS before the surplus pair.
         ss = padded aps ash
         padded ((l,h):ps) (s:sh) = l+s+h : padded ps sh
         padded [] sh = sh

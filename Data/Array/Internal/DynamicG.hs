@@ -70,7 +70,7 @@ import Data.Array.Internal
 
 -- | Arrays stored in a /v/ with values of type /a/.
 type role Array representational nominal
-data Array v a = A !ShapeL !(T v a)
+data Array v a = A !ShapeL {-# UNPACK #-} !(T v a)
   deriving (Generic, Data)
 
 instance (Vector v, Show a, VecElem v a) => Show (Array v a) where
