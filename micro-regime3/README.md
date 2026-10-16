@@ -8238,7 +8238,8 @@ rather than one implementation, and a fix without one can come back.
                                             # the classes has no other source
     ./read-run.py RUN.json --markdown --in-place   # install it, do not paste
     ./read-run.py RUN.json --selftest       # check the reader's own invariants
-    ./read-run.py RUN.json --exclude concat-runs --exclude-shape deep-7-c512-k3
+    ./read-run.py RUN.json --exclude ARM --exclude-shape SHAPE  # each one
+                                            # the run carries, or it refuses
     ./read-run.py RUN.json --deflation      # the roster cell over this run's
                                             # own alone legs, per shape
     ./read-run.py RUN-half-pop.log --wild   # the per-sample instrument's LOG,

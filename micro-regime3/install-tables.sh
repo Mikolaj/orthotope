@@ -322,6 +322,12 @@ def summary_row(blk, c):
     from theirs, the floor from the margin line, and WHICH COLUMN BOLDS
     from `summary bolds` -- computed there on the unrounded values, which
     is the whole reason it is not decided here.
+
+    A CLASS THAT TIMES NO PLAIN ARM AND NO VECDIMS ARM, as Main.hs's
+    `classArms` makes `big`, gets `--` in those three cells, its block
+    saying `not timed in this population` on each line it cannot print,
+    where it was refused and the whole install with it until 2026-10-16.
+    Case: `install-takes-a-narrowed-class-s-row`.
     """
     def one(pat, what):
         m = re.search(pat, blk, re.M)
@@ -329,19 +335,27 @@ def summary_row(blk, c):
             refuse(f'  REFUSED {c}: --block emitted no {what} line, so the'
                    f' cross-class summary cannot be installed from it')
         return m.groups()
+    def untimed(lead):
+        return re.search(r'^\s*' + lead + r'\s+not timed in this population',
+                         blk, re.M) is not None
     shapes, _ = one(r'over (\d+) shapes of the (\w+) class', 'shape count')
-    plain, worst = one(r'^\s*mut-odo-vecdims\s+\(the plain arm\)\s+'
-                       r'([\d.]+)\s+worst\s+([\d.]+)', 'plain arm')
+    if untimed(r'mut-odo-vecdims\s+\(the plain arm\)'):
+        plain = worst = '--'
+    else:
+        plain, worst = one(r'^\s*mut-odo-vecdims\s+\(the plain arm\)\s+'
+                           r'([\d.]+)\s+worst\s+([\d.]+)', 'plain arm')
     oarm, oval = one(r'^\s*best outside vecdims\s+(\S+)\s+([\d.]+)',
                      'best outside vecdims')
-    carm, cval = one(r'^\s*ceiling \(vecdims\)\s+(\S+)\s+([\d.]+)',
-                     'ceiling')
+    carm = None
+    if not untimed(r'ceiling \(vecdims\)'):
+        carm, cval = one(r'^\s*ceiling \(vecdims\)\s+(\S+)\s+([\d.]+)',
+                         'ceiling')
     floor, _fp = one(r"floor of ([\d.]+)% \(`([^`]+)`\)", 'floor')
     bold, = one(r'^\s*summary bolds\s+(best outside vecdims|ceiling)',
                 'summary bolds')
     out = f'`{oarm}` {oval}'
-    ceil = f'`{carm}` {cval}'
-    if bold == 'ceiling':
+    ceil = '--' if carm is None else f'`{carm}` {cval}'
+    if bold == 'ceiling' and carm is not None:
         ceil = f'**`{carm}`** {cval}'
     else:
         out = f'**`{oarm}`** {oval}'

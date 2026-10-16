@@ -416,9 +416,11 @@ MUTANTS = [
     # --provenance-draft --in-place, blinded: every paragraph carrying its
     # phrase is taken, so an author's paragraph goes with the carried ones.
     # The judge plants the case's run file and wants the kept one standing.
+    # The rule is `replaceable`'s since 2026-10-16, shared with
+    # --prose-draft, so the mutant blinds both installers.
     ('provenance draft replaces a written paragraph', 'read-run.py',
-     "        if flat in carried or (not tracked and '___' in flat):",
-     "        if True:",
+     "    return flat in carried or (not tracked and '___' in flat)",
+     "    return True",
      'PATH="{bin}:$PATH" BASIS=lookrts OTHER=ovhalf python3 -c "import importlib.util, sys, tempfile, subprocess\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
      'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
@@ -996,7 +998,10 @@ MUTANTS = [
     # with it. Mutated by making the presence test vacuous, which is
     # how such a check usually dies. Judged on a stand-in note built
     # in the copy, so it does not go LOST with the run's own note at
-    # post-run 9's deletion offer.
+    # post-run 9's deletion offer, and on a stand-in registration
+    # named by --run-doc, --note-check reading the note's own run file
+    # since 2026-10-16: kept out of runs/, where it would be the newest
+    # run file to every later judge in the same copy.
     ('note-check stops asking whether a promised block is there',
      'read-run.py',
      "        if not re.search(r'^%s\\b' % re.escape(name), text, re.M):",
@@ -1009,8 +1014,10 @@ MUTANTS = [
      ' LEARNED is at the foot of this note under LEARNED.\\nHALVES:'
      ' basis=gheadnospec other=gheadtwopass\\n\' >'
      ' "{dir}/run97-pair.txt";'
+     ' printf \'## What this run was built to answer, and what it'
+     ' answered\\n\\n(1) *A stand-in item.*\\n\' > "{dir}/run97-reg.md";'
      ' python3 "{file}" --note-check "{dir}/run97-pair.txt"'
-     ' > "{dir}/nc.out" 2>/dev/null;'
+     ' --run-doc "{dir}/run97-reg.md" > "{dir}/nc.out" 2>/dev/null;'
      ' grep -q "promises a block" "{dir}/nc.out"'),
     # THE BRIEF'S PASTE DISCARDING PROSE WITHOUT SAYING SO. It
     # re-pastes items 5 and 6 from the facts file, whose `<yours>`
