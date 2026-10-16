@@ -69,6 +69,7 @@ import Control.DeepSeq hiding (force)
 import Data.Coerce(coerce)
 import Data.Data(Data)
 import qualified Data.Vector.Storable as V
+import qualified Data.Vector.Storable.Mutable as VM
 import Data.Word(Word8, Word16, Word32)
 import Foreign.ForeignPtr(castForeignPtr)
 import Foreign.Storable(alignment, sizeOf)
@@ -119,8 +120,12 @@ instance Vector V.Vector where
   vFromList = V.fromList
   {-# INLINE vFromListN #-}
   vFromListN = V.fromListN
+  -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), under INLINABLE the
+  -- specialisation benchmark's summed reduce at [3, 3] and constant at
+  -- [3, 3] and of an empty array allocated a PlainPtr more, 16 bytes a
+  -- call, and reduce ran 9 instructions more.
   {-# INLINE vSingleton #-}
-  vSingleton = V.singleton
+  vSingleton a = V.create (do v <- VM.unsafeNew 1; VM.unsafeWrite v 0 a; return v)
   {-# INLINE vReplicate #-}
   vReplicate = V.replicate
   -- The map and the zips generate their result over the indices, working
