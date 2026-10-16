@@ -339,14 +339,16 @@ MUTANTS = [
     # The per-view floor's whole judgement is one comparison, so inverting
     # it is a mutant of the tool. The judge reads every star's own
     # annotation back on the newest run on disk -- `ARM P% against F%`,
-    # the view's spread against its class floor -- and wants P above F
-    # on all of them and at least one star; inverted, the stars land on
+    # the view's spread against its class floor -- and wants P above twice
+    # F, the default --factor, on all of them and at least one star; it
+    # wanted P above F, which a mutant dropping the factor passed, until
+    # 2026-10-16 (by review). Inverted, the stars land on
     # the views UNDER the floor. It named Run 27's `flip-last-rows` until
     # 2026-09-18, when that run's artifacts were deleted and it read LOST.
     ('the per-view floor stars a view no wider than its class', 'view-floor.py',
      '                over = b in floor and sp > a.factor * floor[b]',
      '                over = b in floor and sp < a.factor * floor[b]',
-     'R=$(ls {root}/run*-*-main.json | sed "s|.*/\\(run[0-9]*\\)-.*|\\1|" | sort -V | tail -1); python3 "{file}" $R -d "{root}" -c flip | python3 -c "import re, sys\np = re.findall(r\'([0-9.]+)% against ([0-9.]+)%\', sys.stdin.read())\nsys.exit(0 if p and all(float(a) > float(b) for a, b in p) else 1)"'),
+     'R=$(ls {root}/run*-*-main.json | sed "s|.*/\\(run[0-9]*\\)-.*|\\1|" | sort -V | tail -1); python3 "{file}" $R -d "{root}" -c flip | python3 -c "import re, sys\np = re.findall(r\'([0-9.]+)% against ([0-9.]+)%\', sys.stdin.read())\nsys.exit(0 if p and all(float(a) > 2 * float(b) for a, b in p) else 1)"'),
     # The class paragraph wrapped narrow and at hyphens again, which is
     # the defect Run 38 met: a name split by the wrap is joined back with
     # a space by the `--brief` arm and by install-tables.sh, and

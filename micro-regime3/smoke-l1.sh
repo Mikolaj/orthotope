@@ -251,7 +251,11 @@ for i in "${!LEGS[@]}"; do
     # those files by hand to write the note's `WHAT IT FOUND` line, and
     # generalised the rest from their heads. The warnings ARE the product
     # of this step, so they go where its verdict goes.
-    sort -u "$LOGDIR/$leg"-*.err 2>/dev/null | grep '^warning:' \
+    # THE MODES THAT RAN, not the ones refused on purpose, whose -skip-
+    # files the glob took in too (2026-10-16, by review).
+    for e in "$LOGDIR/$leg"-*.err; do
+      case $e in *"/$leg-skip-"*) ;; *) cat "$e" 2>/dev/null ;; esac
+    done | sort -u | grep '^warning:' \
       | while IFS= read -r w; do say "        $w"; done
     say "        that is where a structural fault shows; read them"
   fi

@@ -27,11 +27,11 @@ thing this most wants to read.
 RUN is the prefix the artifacts carry, `run27`. Reads
 `RUN-<half>-<class>.json` for whichever halves and classes are on disk.
 Exit 0 when no view exceeds its class floor by more than --factor (default 2),
-1 when one does, and 2 when the run did not happen -- no JSONs, a class JSON
-that does not read, or a class with no A/A group that yields a figure. With
---legs there is no class floor, so the exit is 1 when a group's widest spread
-passes --bar percent (default 2.0), and --factor, --csv and -c are refused
-rather than ignored.
+1 when one does, and 2 when the run did not happen -- no JSONs, a -c naming no
+class here, a class JSON that does not read, or a class with no A/A group that
+yields a figure. With --legs there is no class floor, so the exit is 1 when a
+group's widest spread passes --bar percent (default 2.0), 2 over legs of more
+than one view, and --factor, --csv and -c are refused rather than ignored.
 """
 import argparse, collections, glob, json, os, statistics, sys
 
@@ -87,7 +87,15 @@ def legs_mode(a):
             print('!! %s holds %d views; this mode wants one'
                   % (os.path.basename(f), len(views)))
             return 2
-        view = views.pop()
+        # ONE VIEW OVER ALL THE LEGS: a second leg of another view was
+        # read as the first's, the floor printed under the last name
+        # (2026-10-16, by review). Case: `view-floor-legs-refuse-two-views`.
+        here = views.pop()
+        if view is not None and here != view:
+            print('!! %s holds %s where the others hold %s; this mode reads'
+                  ' the legs of one view' % (os.path.basename(f), here, view))
+            return 2
+        view = here
         so = (R.get(view + '/sum-only-early', 0)
               + R.get(view + '/sum-only-late', 0)) / 2
         for base, copies in groups_of(arms).items():
@@ -173,6 +181,14 @@ def main():
     if not legs:
         print('no %s-<half>-<class>.json under %s' % (a.run, a.d))
         return 2
+    # EVERY -c NAMES A CLASS HERE: one mistyped beside a valid one was
+    # taken and ignored (2026-10-16, by review). Case:
+    # `view-floor-refuses-a-class-naming-no-json`.
+    for c in a.classes or []:
+        if c not in {cls for _, cls, _ in legs}:
+            print('-c %s names no %s-<half>-%s.json under %s'
+                  % (c, a.run, c, a.d))
+            return 2
 
     rows, worst_flag = [], 0
     for half, cls, f in legs:

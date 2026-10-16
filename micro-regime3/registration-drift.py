@@ -205,6 +205,12 @@ def main(argv):
     d = os.path.dirname(os.path.abspath(__file__))
     if '--dir' in argv:
         i = argv.index('--dir')
+        # A VALUE OR A REFUSAL: given last it raised IndexError, exit 1
+        # (2026-10-16, by review). Case:
+        # `drift-refuses-a-dir-with-no-checkout`.
+        if i + 1 >= len(argv):
+            print('--dir wants a checkout after it; nothing read')
+            return 2
         d = argv[i + 1]
         argv = argv[:i] + argv[i + 2:]
     prev = None

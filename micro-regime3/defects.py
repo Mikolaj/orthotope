@@ -7222,6 +7222,21 @@ TIER1.update({
         trigger="one population's mismatched JSON",
         ok='that population NOT READ',
         bug='the whole reading ended'),
+    'view-floor-refuses-a-class-naming-no-json': dict(_R16,
+        family='silent-option',
+        trigger='a mistyped -c beside a valid one',
+        ok='refused',
+        bug='absorbed'),
+    'view-floor-legs-refuse-two-views': dict(_R16,
+        family='domain-unchecked',
+        trigger='--legs over two views',
+        ok='refused',
+        bug='read as one view'),
+    'drift-refuses-a-dir-with-no-checkout': dict(_R16,
+        family='domain-unchecked',
+        trigger='--dir given last',
+        ok='usage at exit 2',
+        bug='IndexError at exit 1'),
     'aa-pairs-warns-once-a-call': dict(_R16,
         family='other:duplicate-work', proved='ran',
         trigger='a sunk A/A pair under --block',
@@ -7342,6 +7357,16 @@ TIER1.update({
         trigger="a cell a binary's roster lacks",
         ok='named, not timed',
         bug='a figure off two empty processes'),
+    'view-floor-judge-passes-a-dropped-factor': dict(_R16,
+        family='vacuous-check', proved='asserted',
+        trigger='a mutant dropping --factor',
+        ok='caught',
+        bug='passed'),
+    'smoke-warnings-take-the-refused-modes': dict(_R16,
+        family='domain-unchecked', proved='asserted',
+        trigger="a refused mode's stderr",
+        ok='left out',
+        bug="read as the run's warning"),
 })
 
 
@@ -15826,6 +15851,13 @@ RECORDS = [
          argv=['run96', '--since', 'run97', '--dir', '{dir}'],
          ok=V(exit=2, has=['is not an ancestor of']),
          bug=V(exit=0, has=['0 commit(s)'])),
+    # --dir with no checkout after it raised IndexError, exit 1.
+    case('drift-refuses-a-dir-with-no-checkout', 'registration-drift.py',
+         'self',
+         '--dir given last raised an IndexError at exit 1',
+         argv=['run97', '--dir'],
+         ok=V(exit=2, has=['--dir wants a checkout']),
+         bug=V(has=['IndexError'])),
 
     case('drift-since-names-the-arms-a-commit-reaches',
          'registration-drift.py', None,
@@ -16381,6 +16413,29 @@ RECORDS = [
          argv=['zzvf', '-d', '{dir}'],
          ok=V(exit=2, has=['no A/A group read a figure']),
          bug=V(exit=0, hasnt=['no A/A group read a figure'])),
+    # A -c naming no class here, beside one that does, was taken and
+    # ignored: the floors printed for the class that matched.
+    case('view-floor-refuses-a-class-naming-no-json', 'view-floor.py',
+         'self',
+         'a mistyped -c beside a valid one was absorbed in silence',
+         plant=lambda t: {'dir': floor_legs(t)},
+         argv=['zzvf', '-d', '{dir}', '-c', 'flip', '-c', 'flpi'],
+         ok=V(exit=2, has=['-c flpi names no zzvf-<half>-flpi.json']),
+         bug=V(hasnt=['names no zzvf'])),
+    # --legs reads repeated legs of ONE view, and took legs of two, the
+    # floor printed under the last one's name over both.
+    case('view-floor-legs-refuse-two-views', 'view-floor.py', 'self',
+         '--legs over legs of two views read them as one',
+         plant=lambda t: (lambda d: (os.makedirs(d), [
+             doctored(d, 'flip', lambda b, s=s: [
+                 b.remove(x) for x in [x for x in b if not x['reportName']
+                                       .startswith(s + '/')]],
+                 name='leg-%d.json' % k)
+             for k, s in enumerate(class_shapes('flip')[:2])],
+             {'legs': d})[-1])(os.path.join(t, 'legs')),
+         argv=['zzvf', '--legs', '{legs}'],
+         ok=V(exit=2, has=['where the others hold']),
+         bug=V(hasnt=['where the others hold'])),
 
     case('view-floor-skips-the-legs-that-are-not-classes', 'view-floor.py',
          '18021d0',
@@ -18485,6 +18540,15 @@ RECORDS = [
          "a cell a binary's roster lacks differenced two empty processes"
          ' into a figure',
          argv=None, ok=None),
+    case('view-floor-judge-passes-a-dropped-factor', 'mutants.py', 'self',
+         "the per-view floor's judge wanted P above F, which a mutant"
+         ' dropping --factor passed',
+         argv=None, ok=None),
+    case('smoke-warnings-take-the-refused-modes', 'smoke-l1.sh', 'self',
+         "the warnings dedupe read the deliberately refused modes' stderr"
+         ' too',
+         argv=None, ok=None),
+
     # ---- the review's smaller findings, 2026-10-16, with no case -------
     case('defects-filed-as-controls', 'defects.py', 'self',
          'records of defects that shipped and were fixed later carried no'
