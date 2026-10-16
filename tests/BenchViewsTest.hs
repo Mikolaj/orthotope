@@ -22,25 +22,28 @@
 -- view that skips elements, and == and mapA on an empty view.
 -- And that a client specialises every operation of the nine array modules
 -- at Double, read off what the calls of the specialisation benchmark
--- allocate: Storable and Unboxed allocate at most 32 bytes an element more
--- than boxed, which has no element dictionary to lose, where a call passing its
--- element dictionary at run time allocated 48 to 648 more on GHC HEAD, on the
--- operations where it allocated more at all; the control from Unspecialised is
--- such a call.  Boxed allocates at most 16 bytes an element more than the
--- smaller of Storable and Unboxed, where on GHC 9.12.4 a boxed operation that
--- missed the copies -fpolymorphic-specialisation makes allocated 48 more for
--- each element it wrote; mapA, traverseA, the zips, generate, iota, rerank2
--- with its zip and unravel are exempt, exceeding that bound boxed with their
--- specialisation too.  The boxed bound holds from GHC 9.6.3 on, the first to
--- know that flag, and has no control here: boxed pad called from Unspecialised,
--- at Double or polymorphic in the element, allocated like the specialised call,
--- where the boxed modules built without the flag failed the bound on 9.12.4.
+-- allocate: Storable and Unboxed allocate at most 32 bytes an element
+-- more than boxed, which has no element dictionary to lose, where a call
+-- passing its element dictionary at run time allocated 48 to 648 more on
+-- GHC HEAD, on the operations where it allocated more at all; the control
+-- from Unspecialised is such a call at Unboxed, and at Storable, whose fill
+-- copies elements by their size, the same call meets the bound.  Boxed
+-- allocates at most 16 bytes an element more than the smaller of Storable
+-- and Unboxed, where on GHC 9.12.4 a boxed operation that missed the copies
+-- -fpolymorphic-specialisation makes allocated 48 more for each element it
+-- wrote; mapA, traverseA, the zips, generate, iota, rerank2 with its zip and
+-- unravel are exempt, exceeding that bound boxed with their specialisation
+-- too.  The boxed bound holds from GHC 9.6.3 on, the first to know that flag,
+-- and has no control here: boxed pad called from Unspecialised, at Double or
+-- polymorphic in the element, allocated like the specialised call, where the
+-- boxed modules built without the flag failed the bound on 9.12.4.
 -- The bitcasts, having no boxed counterpart, go unchecked.
 -- And that fillStrided, which clients outside the array modules call,
--- allocates at most 16 bytes an element at Storable and Unboxed, its
--- result's 8, where a call through a copy compiled for any vector type,
--- passing both dictionaries at run time, allocated 152 and 72 on GHC HEAD;
--- the control from Unspecialised is such a call.
+-- allocates at most 16 bytes an element at Storable and Unboxed, its result's
+-- 8, where at Unboxed a call through a copy compiled for any vector type,
+-- passing both dictionaries at run time, allocated 72 on GHC HEAD; the control
+-- from Unspecialised is such a call, and at Storable, whose fill copies
+-- elements by their size, the same call meets the bound.
 -- And that the walks of reduce, traverseA, generate, iota and zipWith5A
 -- allocate under bounds that the forms they replaced exceeded, traverseA at
 -- Storable at most 8 bytes an element more than at Unboxed.  Its bounds on
@@ -73,7 +76,8 @@ import qualified Call
 import qualified OpsDynamic as OD
 import qualified OpsRanked as OR
 import qualified OpsShaped as OS
-import Unspecialised (unspecialisedFill, unspecialisedPad)
+import Unspecialised
+  (unspecialisedFill, unspecialisedFillU, unspecialisedPad, unspecialisedPadU)
 
 -- A view's shape, strides and offset, and the length of the vector
 -- under it.
@@ -125,12 +129,16 @@ test = testGroup "BenchViews"
                   , ("unordered", \ s v -> I.toUnorderedVectorListT s v) ] ]
   , optimisedGroup "specialisation"
       $  [ testCase row (specialised row b s u) | (row, b, s, u) <- callRows ]
-      ++ [ testCase "Dynamic/pad at Storable, not specialised"
-             (unspecialisedOver b unspecialisedPad)
-         | b <- callsNamed "pad" OD.opsB ]
+      ++ [ testCase ("Dynamic/pad at " ++ kind ++ ", not specialised")
+                    (check b c)
+         | b <- callsNamed "pad" OD.opsB
+         , (kind, check, c) <-
+             [ ("Storable", unspecialisedUnder, unspecialisedPad)
+             , ("Unboxed", unspecialisedOver, unspecialisedPadU) ] ]
   , optimisedGroup "fillStrided"
       $  [ testCase kind (fillUnder c) | (kind, c) <- fillCalls ]
-      ++ [ testCase "Storable, not specialised" (fillOver unspecialisedFill) ]
+      ++ [ testCase "Storable, not specialised" (fillUnder unspecialisedFill)
+         , testCase "Unboxed, not specialised" (fillOver unspecialisedFillU) ]
   , optimisedGroup "walks"
       $  [ testCase (family ++ "/" ++ name) (walked name kinds bound bs ss us)
          | (family, bs, ss, us) <- [ ("Dynamic", OD.opsB, OD.opsS, OD.opsU)
@@ -225,8 +233,17 @@ boxedSpecialised = True
 boxedSpecialised = False
 #endif
 
--- The control allocates more than 32 bytes an element over the boxed call:
--- the bound tells an unspecialised call apart.
+-- An unspecialised Storable call meets the bound, its fill copying elements
+-- by their size.
+unspecialisedUnder :: Call -> Call -> Assertion
+unspecialisedUnder b c = do
+  ab <- callAlloc b
+  ac <- callAlloc c
+  let over = perElem (ac - ab)
+  assertBool (show over ++ " bytes an element over boxed") (over <= 32)
+
+-- The control, at Unboxed, allocates more than 32 bytes an element over
+-- the boxed call: the bound tells an unspecialised call apart.
 unspecialisedOver :: Call -> Call -> Assertion
 unspecialisedOver b c = do
   ab <- callAlloc b
@@ -251,8 +268,8 @@ fillUnder c = do
   o <- perElem <$> callAlloc c
   assertBool (show o ++ " bytes an element") (o <= 16)
 
--- The control allocates more than 16 bytes an element: the bound tells
--- an unspecialised call apart.
+-- The control, at Unboxed, allocates more than 16 bytes an element: the bound
+-- tells an unspecialised call apart.
 fillOver :: Call -> Assertion
 fillOver c = do
   o <- perElem <$> callAlloc c
