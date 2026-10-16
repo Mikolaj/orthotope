@@ -221,25 +221,36 @@ instance Vector V.Vector where
   vUnsafeWithElem v i k = let !x = V.unsafeIndex v i in k x
   {-# INLINE vGenerate' #-}
   vGenerate' = V.generate
-  -- Elements of one, two, four and eight bytes are filled as words of
-  -- their size, so that a caller general in the element type reads and
-  -- writes no element through its Storable dictionary and boxes none: the
-  -- dictionary gives the size and the alignment, once a call.
-  {-# INLINABLE vUnsafeFillStrided #-}
-  vUnsafeFillStrided :: forall a. Unbox a
-               => Axes -> Int -> Int -> V.Vector a -> V.Vector a
-  vUnsafeFillStrided !ax !ao !l !v
-    | size == 8 && aligned = sameSize (fillDouble ax ao l (sameSize v))
-    | size == 4 && aligned = sameSize (fillWord32 ax ao l (sameSize v))
-    | size == 2 && aligned = sameSize (fillWord16 ax ao l (sameSize v))
-    | size == 1 = sameSize (fillWord8 ax ao l (sameSize v))
-    | otherwise = genericUnsafeFillStrided (512 `quot` max 1 size) ax ao l v
-    where size = sizeOf (undefined :: a)
-          aligned = alignment (undefined :: a) `rem` size == 0
+  {-# INLINE vUnsafeFillStrided #-}
+  vUnsafeFillStrided = fillStridedS
   {-# INLINE vForce #-}
   vForce = genericForce
   {-# INLINE vUnsafeConcatN #-}
   vUnsafeConcatN = genericUnsafeConcatN
+
+-- Elements of one byte, and of two, four and eight bytes aligned to a multiple
+-- of their size, are filled as Word8, Word16, Word32 and Double, so that a
+-- caller general in the element type reads and writes no element through
+-- its Storable dictionary and boxes none: the dictionary gives the size and
+-- the alignment, once a call.  Double, not Word64: with Word64, on GHC HEAD
+-- 10.1.20260918 (2026-10-16), the fill copied each element through a general
+-- register and spilled another around every second store, one instruction an
+-- element more.  The body of 'vUnsafeFillStrided', outside the instance: on
+-- GHC 9.12.4 (2026-10-16) a client called the INLINABLE method unspecialised,
+-- and the specialisation benchmark's Storable force of a small strided array
+-- ran 16% more instructions in Dynamic and 20% in Shaped than through this
+-- function.
+{-# INLINABLE fillStridedS #-}
+fillStridedS :: forall a. Unbox a
+             => Axes -> Int -> Int -> V.Vector a -> V.Vector a
+fillStridedS !ax !ao !l !v
+  | size == 8 && aligned = sameSize (fillDouble ax ao l (sameSize v))
+  | size == 4 && aligned = sameSize (fillWord32 ax ao l (sameSize v))
+  | size == 2 && aligned = sameSize (fillWord16 ax ao l (sameSize v))
+  | size == 1 = sameSize (fillWord8 ax ao l (sameSize v))
+  | otherwise = genericUnsafeFillStrided (512 `quot` max 1 size) ax ao l v
+  where size = sizeOf (undefined :: a)
+        aligned = alignment (undefined :: a) `rem` size == 0
 
 -- 'V.unsafeCast' between element types of one size, the length
 -- kept: 'V.unsafeCast' computes it again, (n * size) `div` size, a
@@ -249,8 +260,8 @@ sameSize :: V.Vector a -> V.Vector b
 sameSize v = case V.unsafeToForeignPtr0 v of
   (fp, n) -> V.unsafeFromForeignPtr0 (castForeignPtr fp) n
 
--- The fills 'vUnsafeFillStrided' uses for elements of one, two, four and
--- eight bytes, one specialisation of 'genericUnsafeFillStrided' each.
+-- The fills 'fillStridedS' uses for elements of one, two, four and eight
+-- bytes, one specialisation of 'genericUnsafeFillStrided' each.
 {-# INLINE fillWord8 #-}
 fillWord8 :: Axes -> Int -> Int -> V.Vector Word8 -> V.Vector Word8
 fillWord8 = genericUnsafeFillStrided 512
