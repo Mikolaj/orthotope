@@ -84,8 +84,11 @@ instance Vector V.Vector where
   vUnsafeIndex = V.unsafeIndex
   {-# INLINE vLength #-}
   vLength = V.length
+  -- Named, for the bang: on GHC HEAD 10.1.20260918 (2026-10-16) the
+  -- specialisation benchmark's foldrA, fold, foldr and traversals at [3, 3]
+  -- ran 8 instructions a call fewer with it, 0.3 to 1.6%.
   {-# INLINE vToList #-}
-  vToList = V.toList
+  vToList !a = V.toList a
   {-# INLINE vFromList #-}
   vFromList = V.fromList
   {-# INLINE vFromListN #-}

@@ -80,8 +80,10 @@ instance Vector V.Vector where
   vUnsafeIndex = V.unsafeIndex
   {-# INLINE vLength #-}
   vLength = V.length
+  -- Named, for the bang, as at the boxed instance in
+  -- Data.Array.Internal.Dynamic.
   {-# INLINE vToList #-}
-  vToList = V.toList
+  vToList !a = V.toList a
   {-# INLINE vFromList #-}
   vFromList = V.fromList
   {-# INLINE vFromListN #-}
