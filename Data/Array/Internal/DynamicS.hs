@@ -69,7 +69,9 @@ import Control.DeepSeq hiding (force)
 import Data.Coerce(coerce)
 import Data.Data(Data)
 import qualified Data.Vector.Storable as V
-import Foreign.Storable(sizeOf)
+import Data.Word(Word8, Word16, Word32)
+import Foreign.ForeignPtr(castForeignPtr)
+import Foreign.Storable(alignment, sizeOf)
 import GHC.Generics(Generic)
 import GHC.Exts(build)
 import GHC.Stack(HasCallStack)
@@ -217,14 +219,50 @@ instance Vector V.Vector where
   vUnsafeWithElem v i k = let !x = V.unsafeIndex v i in k x
   {-# INLINE vGenerate' #-}
   vGenerate' = V.generate
+  -- Elements of one, two, four and eight bytes are filled as words of
+  -- their size, so that a caller general in the element type reads and
+  -- writes no element through its Storable dictionary and boxes none: the
+  -- dictionary gives the size and the alignment, once a call.
   {-# INLINABLE vUnsafeFillStrided #-}
   vUnsafeFillStrided :: forall a. Unbox a
                => Axes -> Int -> Int -> V.Vector a -> V.Vector a
-  vUnsafeFillStrided = genericUnsafeFillStrided (512 `quot` max 1 (sizeOf (undefined :: a)))
+  vUnsafeFillStrided !ax !ao !l !v
+    | size == 8 && aligned = sameSize (fillDouble ax ao l (sameSize v))
+    | size == 4 && aligned = sameSize (fillWord32 ax ao l (sameSize v))
+    | size == 2 && aligned = sameSize (fillWord16 ax ao l (sameSize v))
+    | size == 1 = sameSize (fillWord8 ax ao l (sameSize v))
+    | otherwise = genericUnsafeFillStrided (512 `quot` max 1 size) ax ao l v
+    where size = sizeOf (undefined :: a)
+          aligned = alignment (undefined :: a) `rem` size == 0
   {-# INLINE vForce #-}
   vForce = genericForce
   {-# INLINE vUnsafeConcatN #-}
   vUnsafeConcatN = genericUnsafeConcatN
+
+-- 'V.unsafeCast' between element types of one size, the length kept:
+-- 'V.unsafeCast' computes it again, a multiplication and a shift a call
+-- that GHC does not cancel.  A workaround for an unidentified GHC issue.
+sameSize :: V.Vector a -> V.Vector b
+sameSize v = case V.unsafeToForeignPtr0 v of
+  (fp, n) -> V.unsafeFromForeignPtr0 (castForeignPtr fp) n
+
+-- The fills 'vUnsafeFillStrided' uses for elements of one, two, four and
+-- eight bytes, one specialisation of 'genericUnsafeFillStrided' each.
+{-# INLINE fillWord8 #-}
+fillWord8 :: Axes -> Int -> Int -> V.Vector Word8 -> V.Vector Word8
+fillWord8 = genericUnsafeFillStrided 512
+
+{-# INLINE fillWord16 #-}
+fillWord16 :: Axes -> Int -> Int -> V.Vector Word16 -> V.Vector Word16
+fillWord16 = genericUnsafeFillStrided 256
+
+{-# INLINE fillWord32 #-}
+fillWord32 :: Axes -> Int -> Int -> V.Vector Word32 -> V.Vector Word32
+fillWord32 = genericUnsafeFillStrided 128
+
+{-# INLINE fillDouble #-}
+fillDouble :: Axes -> Int -> Int -> V.Vector Double -> V.Vector Double
+fillDouble = genericUnsafeFillStrided 64
 
 type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }

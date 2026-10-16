@@ -73,7 +73,8 @@ import qualified Call
 import qualified OpsDynamic as OD
 import qualified OpsRanked as OR
 import qualified OpsShaped as OS
-import Unspecialised (unspecialisedFill, unspecialisedPad)
+import Unspecialised
+  (unspecialisedFill, unspecialisedFillU, unspecialisedPad, unspecialisedPadU)
 
 -- A view's shape, strides and offset, and the length of the vector
 -- under it.
@@ -125,12 +126,16 @@ test = testGroup "BenchViews"
                   , ("unordered", \ s v -> I.toUnorderedVectorListT s v) ] ]
   , optimisedGroup "specialisation"
       $  [ testCase row (specialised row b s u) | (row, b, s, u) <- callRows ]
-      ++ [ testCase "Dynamic/pad at Storable, not specialised"
-             (unspecialisedOver b unspecialisedPad)
-         | b <- callsNamed "pad" OD.opsB ]
+      ++ [ testCase ("Dynamic/pad at " ++ kind ++ ", not specialised")
+                    (check b c)
+         | b <- callsNamed "pad" OD.opsB
+         , (kind, check, c) <-
+             [ ("Storable", unspecialisedUnder, unspecialisedPad)
+             , ("Unboxed", unspecialisedOver, unspecialisedPadU) ] ]
   , optimisedGroup "fillStrided"
       $  [ testCase kind (fillUnder c) | (kind, c) <- fillCalls ]
-      ++ [ testCase "Storable, not specialised" (fillOver unspecialisedFill) ]
+      ++ [ testCase "Storable, not specialised" (fillUnder unspecialisedFill)
+         , testCase "Unboxed, not specialised" (fillOver unspecialisedFillU) ]
   , optimisedGroup "walks"
       $  [ testCase (family ++ "/" ++ name) (walked name kinds bound bs ss us)
          | (family, bs, ss, us) <- [ ("Dynamic", OD.opsB, OD.opsS, OD.opsU)
@@ -225,8 +230,17 @@ boxedSpecialised = True
 boxedSpecialised = False
 #endif
 
--- The control allocates more than 32 bytes an element over the boxed call:
--- the bound tells an unspecialised call apart.
+-- An unspecialised Storable call meets the bound, its fill copying elements
+-- by their size.
+unspecialisedUnder :: Call -> Call -> Assertion
+unspecialisedUnder b c = do
+  ab <- callAlloc b
+  ac <- callAlloc c
+  let over = perElem (ac - ab)
+  assertBool (show over ++ " bytes an element over boxed") (over <= 32)
+
+-- The control, at Unboxed, allocates more than 32 bytes an element over
+-- the boxed call: the bound tells an unspecialised call apart.
 unspecialisedOver :: Call -> Call -> Assertion
 unspecialisedOver b c = do
   ab <- callAlloc b
@@ -251,8 +265,8 @@ fillUnder c = do
   o <- perElem <$> callAlloc c
   assertBool (show o ++ " bytes an element") (o <= 16)
 
--- The control allocates more than 16 bytes an element: the bound tells
--- an unspecialised call apart.
+-- The control, at Unboxed, allocates more than 16 bytes an element: the bound
+-- tells an unspecialised call apart.
 fillOver :: Call -> Assertion
 fillOver c = do
   o <- perElem <$> callAlloc c
