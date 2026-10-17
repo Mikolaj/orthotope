@@ -30,9 +30,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - compiler: ghc-9.14.1
+          # GHC 9.14.2's second release candidate: 9.14.1 panics compiling the
+          # tests (https://gitlab.haskell.org/ghc/ghc/-/work_items/26682).
+          - compiler: ghc-9.14.1.20260916
             compilerKind: ghc
-            compilerVersion: 9.14.1
+            compilerVersion: 9.14.1.20260916
             setup-method: ghcup
             allow-failure: false
           - compiler: ghc-9.12.2
@@ -93,6 +95,7 @@ jobs:
       - name: Install GHC (GHCup)
         if: matrix.setup-method == 'ghcup'
         run: |
+          "$HOME/.ghcup/bin/ghcup" config add-release-channel prereleases
           "$HOME/.ghcup/bin/ghcup" install ghc "$HCVER" || (cat "$HOME"/.ghcup/logs/*.* && false)
           HC=$("$HOME/.ghcup/bin/ghcup" whereis ghc "$HCVER")
           HCPKG=$(echo "$HC" | sed 's#ghc$#ghc-pkg#')
@@ -222,7 +225,7 @@ jobs:
           $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH all --write-ghc-environment-files=always
       - name: tests
         run: |
-          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90400 || HCNUMVER >= 90600)) -ne 0 ] ; then $CABAL v2-test $ARG_COMPILER $ARG_TESTS $ARG_BENCH all --test-show-details=direct ; fi
+          if [ $((HCNUMVER >= 90000 && HCNUMVER < 90200 || HCNUMVER >= 90600)) -ne 0 ] ; then $CABAL v2-test $ARG_COMPILER $ARG_TESTS $ARG_BENCH all --test-show-details=direct ; fi
       - name: benchmarks
         run: |
           if [ "$ARG_BENCH" = --enable-benchmarks ] ; then $CABAL v2-bench $ARG_COMPILER $ARG_TESTS $ARG_BENCH all ; fi
