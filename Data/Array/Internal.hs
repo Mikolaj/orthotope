@@ -918,7 +918,8 @@ genericUnsafeFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
 genericUnsafeConcatN :: (VG.Vector w a) => Int -> [w a] -> w a
 genericUnsafeConcatN n vs = VG.create $ do
   out <- VGM.unsafeNew n
-  let step x k = \ !i -> do
+  let {-# INLINE step #-}
+      step x k = \ !i -> do
         let !m = VG.length x
         assert (i + m <= n) $ VG.unsafeCopy (VGM.unsafeSlice i m out) x
         k (i + m)
@@ -2122,6 +2123,7 @@ maximumT sh t@(T _ ao v)
       RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (max acc x)) id (vUnsafeIndex v o)
       route -> routeSlicesT v route step (\ _ acc -> acc) False (vUnsafeIndex v ao)
   where !l = product sh
+        {-# INLINE step #-}
         step s k = \ started !acc -> let !m = vMaximum s
                                      in  k True (if started then max acc m else m)
 
@@ -2135,6 +2137,7 @@ minimumT sh t@(T _ ao v)
       RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (min acc x)) id (vUnsafeIndex v o)
       route -> routeSlicesT v route step (\ _ acc -> acc) False (vUnsafeIndex v ao)
   where !l = product sh
+        {-# INLINE step #-}
         step s k = \ started !acc -> let !m = vMinimum s
                                      in  k True (if started then min acc m else m)
 
