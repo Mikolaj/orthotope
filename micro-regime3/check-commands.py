@@ -85,8 +85,8 @@ def command(span, run, where, after=''):
     if not words:
         return None
     if words[0].startswith('../../tools/'):
-        # horde-ad's tools, where loop-offsets.py went on 2026-10-06.
-        return words if words[0][21:] in READERS else None
+        # ~/slop's shared tools, loop-offsets.py among them.
+        return words if words[0][len('../../tools/'):] in READERS else None
     if words[0].startswith('./'):
         prog = words[0][2:]
         if prog == 'loop-offsets.py':

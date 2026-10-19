@@ -471,15 +471,22 @@ def rundoc_with_a_mask(tmp):
                         + text[m.end(1):])
 
 
-def commands_doc(tmp, clean=False, refuse=False):
+def commands_doc(tmp, clean=False, refuse=False, shared=False):
     """A directory for check-commands.py: a stand-in `read-run.py` printing
     two figures, and a run file quoting it -- a sentence its output
     carries, by rounding and as a percentage off a ratio, one it does not,
     a bare mode the checker expands, and a driver it must not run. With
     `refuse`, a clean file plus one sentence whose command the stand-in
-    refuses at exit 2, echoing the sentence's figure as its argument."""
-    d = os.path.join(tmp, 'cmd')
+    refuses at exit 2, echoing the sentence's figure as its argument. With
+    `shared`, a clean file plus one sentence quoting a stand-in
+    `loop-offsets.py` two levels up, in `tools/`, where ~/slop keeps it."""
+    d = os.path.join(tmp, 'o', 'cmd') if shared else os.path.join(tmp, 'cmd')
     os.makedirs(d)
+    if shared:
+        os.makedirs(os.path.join(tmp, 'tools'))
+        os.chmod(write(os.path.join(tmp, 'tools', 'loop-offsets.py'),
+                       '#!/usr/bin/env python3\nprint("copies 1.75")\n'),
+                 0o755)
     os.chmod(write(os.path.join(d, 'read-run.py'),
                    '#!/usr/bin/env python3\nimport sys\n'
                    'if "--band" in sys.argv:\n'
@@ -493,6 +500,8 @@ def commands_doc(tmp, clean=False, refuse=False):
             ' --pair a b` on `run95-x-main.json` reads 2.5.')
     if refuse:
         body += ' `./read-run.py --band 1.5 run95` puts the arm 1.5 clear.'
+    elif shared:
+        body += ' `../../tools/loop-offsets.py --survey run95-x` reads 1.75.'
     elif not clean:
         body += (' `./read-run.py --show run95` takes the floor from 0.85%'
                  ' to 0.53%. `./run-evening.sh run95` is a driver at 1.5.')
@@ -2413,6 +2422,27 @@ def note_with_a_rebuilt_compiler(tmp):
                  'GATE: NOT RUN.\n\n'
                  'Verified when built, 2026-01-01:\n'
                  '  md5 a           deadbeef\n')
+
+
+def note_with_a_shim_from_horde_ad(tmp):
+    """A previous note two levels below a `tools/` checkout with
+    align-as.py committed, its `shim at` row naming a commit that checkout
+    lacks, as a note from before 2026-10-19 names one of horde-ad's."""
+    tools = os.path.join(tmp, 'tools')
+    os.makedirs(tools)
+    fixture_git(tools, 'init', '-q')
+    write(os.path.join(tools, 'align-as.py'), '#!/usr/bin/env python3\n')
+    fixture_git(tools, 'add', 'align-as.py')
+    fixture_git(tools, 'commit', '-q', '-m', 'shim')
+    here = os.path.join(tmp, 'o', 'm')
+    os.makedirs(here)
+    return write(os.path.join(here, 'run97-pair.txt'),
+                 'The pair run97-a and run97-b, Run 97s, written by hand'
+                 ' 2026-01-01.\n\n'
+                 'HALVES: basis=a other=b\n\n'
+                 'GATE: NOT RUN.\n\n'
+                 'Verified when built, 2026-01-01:\n'
+                 '  shim at           deadbee, tree clean\n')
 
 
 def probe_stalls_sweeps(tmp):
@@ -4486,6 +4516,24 @@ def draft_classes():
     loops at work.
     """
     return recorded_classes()[:2]
+
+
+def shared_loop_offsets(tmp):
+    """A stand-in `loop-offsets.py` in `tools/` beside a shadow's `o/`,
+    where ~/slop keeps the real one, printing a `--survey` and a
+    `--library` reading; nothing for the plant to substitute."""
+    os.makedirs(os.path.join(tmp, 'tools'))
+    os.chmod(write(os.path.join(tmp, 'tools', 'loop-offsets.py'),
+                   '#!/usr/bin/env python3\nimport sys\n'
+                   'if "--library" in sys.argv:\n'
+                   '    print("7 library self-loops in both")\n'
+                   '    print("  same offset in line: 42.9%")\n'
+                   'elif "--survey" in sys.argv:\n'
+                   '    print("5 self-loops")\n'
+                   '    print("  at offset 0        : 3")\n'
+                   '    print("  still straddling   : 1")\n'
+                   '    print("  exit spans astride : 2")\n'), 0o755)
+    return {}
 
 
 _WHOLE = {}
@@ -9319,6 +9367,21 @@ RECORDS = [
                '--repeat'],
          ok=V(exit=0, has=["MOVED SINCE run97's BUILD, THE COMPILER"]),
          bug=V(exit=0, hasnt=['THE COMPILER'])),
+
+    # The shim left horde-ad for ~/slop on 2026-10-19, so a note from
+    # before names a commit of horde-ad's, which the slot reported as a
+    # shim that MOVED whether its code had or not. Found 2026-10-20 by a
+    # shape pass over the move.
+    case('repeat-reads-a-shim-commit-git-lacks', 'read-run.py', 'self',
+         "--repeat drafted a `shim at` commit git does not hold as a shim"
+         " that moved, which every row of horde-ad's became once the shim"
+         ' left it',
+         plant=lambda t: {'note': note_with_a_shim_from_horde_ad(t)},
+         argv=['--note', '{note}', '--draft', 'run98', '--halves', 'a,b',
+               '--repeat'],
+         ok=V(exit=0, has=["TO READ SINCE run97's BUILD, THE SHIM",
+                           'which git does not hold here']),
+         bug=V(exit=0, has=["MOVED SINCE run97's BUILD, THE SHIM"])),
 
     # THE CYCLES AND THE BYTES OF A SWEEP had no reader: parse_counts took
     # the instructions column alone, so Run 44's and Run 45's preparations
@@ -14496,6 +14559,31 @@ RECORDS = [
                            '[offsets]', 'the binaries are gone'],
               hasnt=['Traceback'])),
 
+    # The shared tools left horde-ad for ~/slop on 2026-10-19, and the
+    # offsets and straddle paragraphs still ran loop-offsets.py from
+    # horde-ad's tools, where it no longer is: the first drafted no figure
+    # and the second failed on the empty reading. Found 2026-10-20 by a
+    # shape pass over the move.
+    case('prose-draft-runs-the-shared-loop-offsets', 'read-run.py', 'self',
+         "--prose-draft ran loop-offsets.py from horde-ad's tools after it"
+         ' left them, drafting no offsets figure and failing the straddle'
+         ' paragraph',
+         plant=lambda t: dict(shared_loop_offsets(t),
+                              doc=write_rundoc(t, rundoc_text())),
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                             prefix='zzit',
+                                             classes=draft_classes())
+                     + [('zzit-lookrts', '#!/bin/sh\n'),
+                        ('zzit-ovhalf', '#!/bin/sh\n')],
+                     with_horde=False),
+         env={'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['--prose-draft', 'zzit', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['reads 5 self-loops of at most 64 B',
+                           'puts **42.9%** of the 7 library self-loops'],
+              hasnt=['Traceback']),
+         bug=V(exit=0, has=['**Within the pair**: .',
+                            'the straddle draft failed'])),
+
     case('prose-draft-keeps-a-written-one', 'read-run.py', None,
          'CONTROL: --prose-draft --in-place keeps a paragraph that carries'
          ' no `___` in a file with no step-5 copy, as --provenance-draft'
@@ -15694,6 +15782,20 @@ RECORDS = [
          bug=V(exit=0, has=['3 command(s) run, 0 not run',
                             '0 sentence(s) with a figure no command'
                             ' printed'])),
+
+    # The shared tools' prefix shortened when they left horde-ad for ~/slop
+    # on 2026-10-19, and the slice cutting it off the program's name kept
+    # the old prefix's length, so a quoted `../../tools/` reader was no
+    # command at all and its sentence went unchecked. Found 2026-10-20 by
+    # a shape pass over the move.
+    case('check-commands-runs-a-shared-reader',
+         'check-commands.py', 'self',
+         'a quoted ../../tools/ reader was taken for no command, its name'
+         ' sliced at the old prefix length',
+         plant=lambda t: commands_doc(t, shared=True),
+         argv=['--dir', '{dir}', '{doc}'],
+         ok=V(exit=0, has=['3 command(s) run, 0 not run']),
+         bug=V(exit=0, has=['2 command(s) run, 0 not run'])),
 
     case('registration-lead-is-the-movers-key', 'read-run.py', None,
          'a registration whose bold lead carried one clause more passed'
@@ -18667,7 +18769,8 @@ def shadow_dir(tmp, prog, text, mutate=(), extra=(), with_horde=True):
     # Built two levels down and reached by a link, beside links to horde-ad
     # and to ~/slop's shared tools, so a script's ../../horde-ad/ and
     # ../../tools/ resolve in it as they do here, unless `with_horde` is
-    # false, for a case about a script that finds no history there.
+    # false, for a case about a script that finds no history there or
+    # one planting a `tools/` of its own.
     deep = os.path.join(tmp, 'o', 'micro-regime3')
     os.makedirs(deep)
     d = os.path.join(tmp, 'shadow')

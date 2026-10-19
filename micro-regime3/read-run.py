@@ -8491,8 +8491,7 @@ def prose_draft(run, args):
         return '%s-%s' % (r, h) if r and h and have('%s-%s' % (r, h)) \
             else None
 
-    LO = [os.path.join(where, '..', '..', 'horde-ad', 'tools',
-                       'loop-offsets.py')]
+    LO = [os.path.join(where, '..', '..', 'tools', 'loop-offsets.py')]
 
     def g_offsets():
         b, o = binary(name, basis), binary(name, other)
@@ -12407,7 +12406,8 @@ def _inputs_moved(near, text):
              'align-as.py', 'shim')):
         m = re.search(r'^\s*%s at\s+([0-9a-f]{7,40})\b' % re.escape(row),
                       text, re.M)
-        r = subprocess.run(['git', '-C', os.path.join(near or '.', repo),
+        where = os.path.join(near or '.', repo)
+        r = subprocess.run(['git', '-C', where,
                             'log', '-1', '--format=%h', '--', path],
                            capture_output=True, text=True)
         now = r.stdout.strip() if r.returncode == 0 else ''
@@ -12415,8 +12415,23 @@ def _inputs_moved(near, text):
             out.append((label, 'NOT READ', '%s: the previous note has no'
                         ' row for it or git has no commit' % path))
         elif not (now.startswith(m.group(1)) or m.group(1).startswith(now)):
-            out.append((label, 'MOVED', '%s at %s where the previous build'
-                        ' had %s' % (path, now, m.group(1))))
+            # A commit git does not hold here says nothing of the code: the
+            # shim lived in horde-ad until 2026-10-19, and a note from
+            # before names a commit of horde-ad's. Case:
+            # `repeat-reads-a-shim-commit-git-lacks`.
+            held = subprocess.run(['git', '-C', where, 'cat-file', '-e',
+                                   m.group(1) + '^{commit}'],
+                                  capture_output=True).returncode == 0
+            if held:
+                out.append((label, 'MOVED', '%s at %s where the previous'
+                            ' build had %s' % (path, now, m.group(1))))
+            else:
+                out.append((label, 'TO READ', '%s: the previous build had'
+                            ' %s, which git does not hold here%s'
+                            % (path, m.group(1),
+                               ' -- a row from before 2026-10-19 names'
+                               " horde-ad's, where the shim lived until"
+                               ' then' if row == 'shim' else '')))
     d = re.search(r'^Verified when built, (\d{4}-\d\d-\d\d)', text, re.M)
     try:
         up = float(open('/proc/uptime').read().split()[0])
