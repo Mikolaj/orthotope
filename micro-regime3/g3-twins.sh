@@ -29,7 +29,7 @@ HALVES=$(./pair-halves.sh "$R") || exit 2
 eval "$HALVES"
 
 # THE TWINS ARE OF THE PAIR'S SOURCE OR NOT BUILT (2026-09-25, by review).
-# They build from this tree's Main.hs and horde-ad's tools/align-as.py, so each
+# They build from this tree's Main.hs and ~/slop's tools/align-as.py, so each
 # must sit at the commit the note's `Main.hs at` or `shim at` row names and be
 # clean against it; otherwise their loop bodies are not the timed binaries'
 # and `--match` names the wrong copies or none. --dry-run says a mismatch and
@@ -37,7 +37,7 @@ eval "$HALVES"
 # move known to leave the code alone, a write-up's comment edit being the usual
 # one, and prints the mismatch above the build.
 SRC_BAD=
-for row in 'Main.hs at:.:Main.hs' 'shim at:../../horde-ad:tools/align-as.py'; do
+for row in 'Main.hs at:.:Main.hs' 'shim at:../../tools:align-as.py'; do
   lbl=${row%%:*}; rest=${row#*:}; repo=${rest%%:*}; path=${rest#*:}
   want=$(sed -n "s/^ *$lbl  *\([0-9a-f]\{7,40\}\).*/\1/p" "$NOTE" | head -1)
   have=$(git -C "$repo" log -1 --format=%H -- "$path" 2>/dev/null)
@@ -117,7 +117,7 @@ build () {  # build HALF
   # shellcheck disable=SC2086  # the environment is a word list on purpose
   env $env cabal build micro "${pfa[@]}" --builddir="$bd" \
     --ghc-options="$opts -g3" \
-    --ghc-options="-pgma $PWD/../../horde-ad/tools/align-as.py -fforce-recomp" \
+    --ghc-options="-pgma $PWD/../../tools/align-as.py -fforce-recomp" \
     || return 1
   cp "$(cabal list-bin micro "${pfa[@]}" --builddir="$bd")" "$out" || return 1
   rm -rf "$bd"

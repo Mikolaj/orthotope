@@ -166,8 +166,8 @@ carries --ghc-options and not the compiler, so nothing else here records
 it, and a repetition read against
 an earlier run needs both notes to name one.
 
-THE SHIM [PAIR'S]: the commit horde-ad's tools/align-as.py stood at,
-`git -C ../../horde-ad log -1 --format=%h -- :/tools/align-as.py`. It
+THE SHIM [PAIR'S]: the commit ~/slop's tools/align-as.py stood at,
+`git -C ../../tools log -1 --format=%h -- align-as.py`. It
 is on the recipe's -pgma and is as much an input to the binary as the source;
 preflight's fill-in reads this back. A repetition read against an earlier run
 wants both notes to name the same one, a shim that moved between them being
@@ -207,9 +207,9 @@ form would do, record it here as the alternative so the decision stays one.
 
 WHAT TO READ BACK BEFORE THE EVENING [SAME]: the fill-in block below, which
 `./preflight.sh $R --fill-in` derives; by hand, the same readings are
-    ../../horde-ad/tools/loop-offsets.py $R-<other> $R-<basis>
-    ../../horde-ad/tools/loop-offsets.py --library $R-<basis> $R-<other>
-    ../../horde-ad/tools/loop-offsets.py --survey $R-<basis>    # and $R-<other>
+    ../../tools/loop-offsets.py $R-<other> $R-<basis>
+    ../../tools/loop-offsets.py --library $R-<basis> $R-<other>
+    ../../tools/loop-offsets.py --survey $R-<basis>    # and $R-<other>
     md5sum $R-<basis> $R-<other>
     cmp <(./$R-<basis> check 2>&1) <(./$R-<other> check 2>&1)
   Record this pair's --library figure and not the series; what a reading
@@ -338,7 +338,7 @@ Verified when built, YYYY-MM-DD:
                     an unequal one names nothing
   fills             the tracked loops' offsets, whether they are the ones
                     the last pair held, and what --library reads.
-                    `../../horde-ad/tools/loop-offsets.py --delta PREV NOW`
+                    `../../tools/loop-offsets.py --delta PREV NOW`
                     is the reading against the previous build of this recipe,
                     and `--library` the one within the pair -- THIS PAIR'S
                     FIGURE AND NOT THE SERIES

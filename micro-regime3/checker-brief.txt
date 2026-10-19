@@ -23,7 +23,7 @@ You are an independent checker for a benchmark write-up. Report DISCREPANCIES, n
 
 SPAWN NO AGENT OF YOUR OWN. You are a leaf: what you cannot reach within your budget comes back unfinished and named in your report, never delegated.
 
-WHERE YOU ARE. Work in /home/mikolaj/r/orthotope/micro-regime3. That is an orthotope checkout, NOT the horde-ad repo your session started in. Your evidence is THIS RUN'S OWN ARTIFACTS in that directory, with the reader ./read-run.py there. They are MORE THAN THE JSONS, and a claim you cannot settle from the JSONs is usually settled by one of the rest:
+WHERE YOU ARE. Work in /home/mikolaj/slop/orthotope/micro-regime3. That is an orthotope checkout, NOT ~/slop, where your session started. Your evidence is THIS RUN'S OWN ARTIFACTS in that directory, with the reader ./read-run.py there. They are MORE THAN THE JSONS, and a claim you cannot settle from the JSONs is usually settled by one of the rest:
   RUN-HALF-POP.json  the twenty-two timed processes; every published table
   RUN-HALF-POP.log   the same processes' per-sample stamps -- allocation,
                      mutator, collector, foreign CPU, and the @@saturate
@@ -50,8 +50,8 @@ TWO DOCUMENTS, and the run's numbers are in the second: README.md is what stands
 THE TWO INVOCATIONS SEE DIFFERENT DOCUMENTS, and this is not a simplification to ignore. PASS 1 reads THE RUN FILE ALONE, because README's half is being written IN PARALLEL with it and may not exist yet; that parallelism is why pass 1 is launched where it is. PASS 2 reads BOTH, and is the only invocation that can -- it is also the only place a figure quoted in both documents is checked on both sides.
 
 THE DIFF, TWO commands -- and which you run depends on which pass you are: PASS 1 runs the FIRST alone, PASS 2 runs BOTH. They are separate because the two files have different histories. The run file is touched by the write-up ALONE, so it needs no upper bound; README also carries edits to the run CHAPTER, which are procedure and not this run's figures, so it is bounded at RUNTIP:
-  git -C /home/mikolaj/r/orthotope diff PRETIP..HEAD   -- micro-regime3/runs
-  git -C /home/mikolaj/r/orthotope diff PRETIP..RUNTIP -- micro-regime3/README.md
+  git -C /home/mikolaj/slop/orthotope diff PRETIP..HEAD   -- micro-regime3/runs
+  git -C /home/mikolaj/slop/orthotope diff PRETIP..RUNTIP -- micro-regime3/README.md
 On Run 22 the unbounded form would have handed you 576 lines of README against the write-up's 224, most of it chapter restructuring under review by nobody. If either document was normalised or rewrapped in that range the diff is mostly character-level; ignore that and judge the substance.
 
 SIX THINGS YOU CANNOT DERIVE, so they are given -- and items 5 and 6 are THIS RUN'S and are rewritten every run:

@@ -13,8 +13,8 @@
 # generated unit runs before /home is unlocked and exits 32. The line, kept
 # here because this probe is the one thing that still wants the mount:
 #
-#   tmpfs  /home/mikolaj/r/orthotope/micro-regime3/hugebin  tmpfs  noauto,size=1g,huge=always,mode=0755,uid=1000,gid=1000  0  0
-#   mkdir -p ~/r/orthotope/micro-regime3/hugebin && mount hugebin    # as root
+#   tmpfs  /home/mikolaj/slop/orthotope/micro-regime3/hugebin  tmpfs  noauto,size=1g,huge=always,mode=0755,uid=1000,gid=1000  0  0
+#   mkdir -p ~/slop/orthotope/micro-regime3/hugebin && mount hugebin    # as root
 #
 # Then, for a half named on the command line, this copies it into the
 # mount, times the cell on the on-disk file and on the mounted copy twice
@@ -57,6 +57,6 @@ echo "== frames of the mounted copy's hot lines, the u1 fill loop then the sum l
 "hugebin/$HALF" classes runs -m glob "$BENCH" -L 60 > /dev/null 2>&1 &
 pid=$!
 sleep 10
-python3 ../../horde-ad/tools/probe-pageflags.py "$pid" 0x430980 0x4bad80
+python3 ../../tools/probe-pageflags.py "$pid" 0x430980 0x4bad80
 grep -E '^(FilePmdMapped|AnonHugePages)' "/proc/$pid/smaps_rollup"
 wait "$pid"

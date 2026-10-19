@@ -19,7 +19,7 @@ build () {   # $1 = half, then the env the recipe puts in front of cabal
   env "$@" \
   cabal build micro --builddir="$bd" \
     --ghc-options="-fspec-constr -fobject-determinism -g3" \
-    --ghc-options="-pgma $PWD/../../horde-ad/tools/align-as.py -fforce-recomp" \
+    --ghc-options="-pgma $PWD/../../tools/align-as.py -fforce-recomp" \
     || return 1
   cp "$(cabal list-bin micro --builddir="$bd")" "probe-g3-$h-r23" || return 1
   rm -rf "$bd"

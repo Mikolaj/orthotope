@@ -1094,7 +1094,7 @@ section][floor], and the roster fix it carried puts `sum-only-early` above
   that case where 9.14.1 and HEAD keep it, so STG allocates a `Ptr` per run
   in `-u1-ptr` and one more per two elements in `-u2-ptr`; a strict or unlifted
   field does it and a lazy lifted one does not, and HEAD's own default language
-  hides it, MonoLocalBinds being in it. The record is horde-ad's
+  hides it, MonoLocalBinds being in it. The record is `~/slop`'s
   `docs/ghc-issue-strict-polymorphic-ptr-boxed.md`. **The workaround
   is applied**, `:: Ptr Double` on every such binding in the three pointer arms,
   leaving 9.12.4's STG byte-identical and HEAD's free of `Ptr` allocation,
@@ -4544,7 +4544,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     # and reading the executing session's half is the largest avoidable
     # spend here. The default form prints each step through its `why:`
     # line; `--full` adds the reasons under it.
-    cd ~/r/orthotope/micro-regime3        # and re-set R and PREV
+    cd ~/slop/orthotope/micro-regime3     # and re-set R and PREV
     #      per call
     #      NN is one past the highest-numbered file in runs/, the run
     #      behind you. DO NOT MAKE `runs/$R.md` YET: post-run step 5
@@ -4631,7 +4631,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      And the note is never reflowed, by any tool. Break a long line
     #      by hand where one bothers you, or leave it long.
     #      One command does the reading and the copying, redirected to
-    #      $R-pair.txt in an unsandboxed call:
+    #      $R-pair.txt:
     #          ./read-run.py --note $PREV-pair.txt --draft $R \
     #                        --halves <basis>,<other> [--repeat]
     #      `--repeat` is for the previous pair's own recipes built again:
@@ -4760,7 +4760,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      why: --para 'Which two halves a pair has'
     #      So nothing is set in any script. pair-halves.sh refuses any
     #      other tag, as `--draft` does at step 2
-    ../../horde-ad/tools/loop-offsets.py --delta $PREV-<PREV's basis> $R-<basis>   # 2d. the
+    ../../tools/loop-offsets.py --delta $PREV-<PREV's basis> $R-<basis>   # 2d. the
     #      fills against the previous build of this recipe, taken the
     #      moment both binaries exist and before anything else changes.
     #      There is no 2c: that is run-status.sh's label for a finished
@@ -4950,7 +4950,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      own fix -- whatever changed since the last run, a data change
     #      owing the audit as much as a code change. Not a call of your
     #      own: checks-deep.py's two case steps, which `--corpus` below
-    #      runs. 8c to 8e want an unsandboxed seat, and they run alone
+    #      runs. 8c to 8e run alone
     #  8e. every mutant, `selftest-mutants.py .`, checks-deep.py's last
     #      step: an edit can move a mutant's anchor, and 94a3cfd lost one
     #      unseen until a write-up
@@ -4982,8 +4982,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      line, which preflight runs at 4-10 and --note-check holds to one
     #      of its three forms (2b)
     #      why: diag answers for the regime and for nothing else
-    ../../horde-ad/tools/loop-offsets.py $R-<other> $R-<basis>    # 10. fills, kept with the run:
-    ../../horde-ad/tools/loop-offsets.py --library $R-<basis> $R-<other>   #     the eye's reading
+    ../../tools/loop-offsets.py $R-<other> $R-<basis>    # 10. fills, kept with the run:
+    ../../tools/loop-offsets.py --library $R-<basis> $R-<other>   #     the eye's reading
     #      is the same fills at the same addresses in both, and only
     #      `--library` prints a figure -- read it against the band for
     #      this pair's recipes: near-total for one source padded to one
@@ -4992,8 +4992,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      against a fixed line, and not against a note's nm-based figure,
     #      which is another number
     #      why: --para 'can differ by more than Main'
-    ../../horde-ad/tools/loop-offsets.py --survey $R-<basis>       # 10a. one leg per half,
-    ../../horde-ad/tools/loop-offsets.py --survey $R-<other>       # 10b. both owed, both new,
+    ../../tools/loop-offsets.py --survey $R-<basis>       # 10a. one leg per half,
+    ../../tools/loop-offsets.py --survey $R-<other>       # 10b. both owed, both new,
     #      and the answer goes in the note.
     #      Each leg prints three counts, the third being exit
     #      spans astride, the span as align-as.py costs it under
@@ -5063,8 +5063,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      A `tail` window misses the lines where several land between two
     #      polls; the note's own writing is a dozen calls and each carries
     #      the poll for nothing.
-    #      The background mechanism is horde-ad's portable notes, under
-    #      the session facts, and is not restated here; the command lines
+    #      The background mechanism is ~/slop's CLAUDE.md's, under its
+    #      sandboxing notes, and is not restated here; the command lines
     #      above carry no `&` for it. With `; echo "exit $?"` last, what
     #      the harness announces is the echo's 0 for a step that exited 2,
     #      an aborted preflight reading as a clean one
@@ -5099,8 +5099,8 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      The turn-end hold is set at the first wait and not here, which
     #      is step 2's build (~/.claude/rules/turn-end-hold.md), on each
     #      repository the run edits, named: `wrap-restore --hold
-    #      ~/r/orthotope`, a bare --hold holding the working directory's,
-    #      which for a session rooted in horde-ad is not this one. Clear it
+    #      ~/slop/orthotope`, a bare --hold holding the working directory's,
+    #      which for a session rooted in ~/slop is not this one. Clear it
     #      at 12c. And wait on nothing: launched as step 11 says you are
     #      woken. A `tail` between legs shows nothing
     #      why: --para 'After a roster change'
@@ -5717,35 +5717,27 @@ Unsandboxed throughout:
     #      It owes criterion nothing and is insensitive to load; counted
     #      beside a timed process, both readings are spoilt
 
-**One rule for the sandbox in this directory, since half of what a run does must
-write here.** Run everything unsandboxed except the read-only checks.
-Those are worth having cheap and are all of them safe: both `check`s, `diag`,
-`--lint`, `--check-doc`, `tools/loop-offsets.py`, `--list`, a `grep`
-of the note, and pre-run steps 6 to 10 --- except 8c and 8d, which write `zz-`
-fixtures here and remove them. Everything that builds, benchmarks or leaves
-a file is the other kind: 2, 11, 12, 14, 17, 19 and 20, and steps 4 and 5 too,
-which write only through their redirect and that is enough. A session starts
-in `~/r/horde-ad`, so its sandbox permits writes there and to its own temp
-directory and nowhere else; THIS directory is outside it, and `run-major.sh`
-moves here before doing anything. **And never write `$TMPDIR` here; spell
-the scratch path in full.** That variable is `/tmp/claude-1000`
-under the sandbox and `/tmp` outside it, so the idiom that works in a read-only
-check writes somewhere else the moment the flag that makes a command able
-to write at all is added --- silently, the write succeeding and the file missing
-from the next sandboxed read. The rule is about the PLACE and not the variable,
-because the conditional it would otherwise be turns on a property of the call,
-which changes call to call here, where `$TMPDIR/x` is a habit that does not.
-`/tmp/a.log` is in neither permitted directory and `/tmp/claude` is not the temp
-directory in every seat. **The two refusals do not look alike, which is the part
-that has cost hours.** A redirection on a simple command is checked before exec,
-so the benchmark never starts at all; `log`'s `tee` is a pipeline whose `echo`
-still prints, so you get the sequence's start lines on the console,
-no wall-clock file, no JSON and no run. That reads as a run in progress, which
-is how two copies once ended up on this machine at once. Confirm a launch
-by an unsandboxed process list, never by the launching shell --- and note
-that `ps` in a session lists only that session's own processes, so it catches
-a launch made from here and not one made from anywhere else, `uptime` being
-the half of it that reaches the machine.
+**One rule for the sandbox in this directory: a reading runs unsandboxed,
+and the rest either way.** A session starts in `~/slop`, and its sandbox permits
+writes under it, this directory included (measured 2026-10-20), and to its own
+temp directory, so a build, a check or a step that only leaves a file here runs
+sandboxed as well as not. What times or counts for the record --- steps 12, 14,
+17, 19 and 20 and a probe's reading --- stays unsandboxed, so that a run's
+conditions stay those of the runs before it. **And never write `$TMPDIR` here;
+spell the scratch path in full.** That variable is `/tmp/claude-1000`
+under the sandbox and `/tmp` outside it, so the idiom writes somewhere else
+the moment a call goes unsandboxed --- silently, the write succeeding
+and the file missing from the next sandboxed read. The rule is about the PLACE
+and not the variable, because the conditional it would otherwise be turns
+on a property of the call, which changes call to call here, where `$TMPDIR/x`
+is a habit that does not. `/tmp/a.log` is in neither permitted directory
+and `/tmp/claude` is not the temp directory in every seat. **Confirm a launch
+by an unsandboxed process list, never by the launching shell**: a launch whose
+log the sandbox refused once printed its start lines and nothing else, which
+read as a run in progress, and that is how two copies once ended up
+on this machine at once. `ps` in a session lists only that session's own
+processes, so it catches a launch made from here and not one made from anywhere
+else, `uptime` being the half of it that reaches the machine.
 
 **Steps 7 and 8 are the whole of this README's document check, and no other
 repository's checkers belong on it.** Theirs carry a per-repo configuration ---
@@ -6232,9 +6224,9 @@ the shapes, the gates and the reader all pass, the JSON records no compiler
 flag, and the only symptom is the regime's own effect failing to appear, which
 reads as a refutation of the design rather than as a missing flag; the `diag`
 reading at step 9 is the whole guard, which is why that step is not optional.
-A session starts in `~/r/horde-ad`, which leaves *that* repository's `CLAUDE.md`
-resident; this directory's own `CLAUDE.md` says how far it binds here, and where
-the two differ this file and `read-run.py`'s docstring govern.
+A session starts in `~/slop`, which leaves *that* directory's `CLAUDE.md`
+resident; this directory's own `CLAUDE.md` says how far that file and horde-ad's
+bind here, and where they differ this file and `read-run.py`'s docstring govern.
 
 **`run-major.sh` is that sequence as a driver**, `$R` its argument rather
 than a variable it inherits, and the evening's third stage. It refuses without
@@ -6469,7 +6461,7 @@ not otherwise.
     #      of the loop body and never by proximity, and read the count
     #      check -- a group whose twin carries fewer copies than the
     #      timed binary is not named from the twin at all.
-    #      `../../horde-ad/tools/loop-offsets.py $R-<half> --match probe-g3-<half>-$R` does
+    #      `../../tools/loop-offsets.py $R-<half> --match probe-g3-<half>-$R` does
     #      the straddlers' half of that by the same rule, naming each by
     #      its bytes and saying NOT NAMED where no twin holds a copy.
     #      GIVE IT BOTH TWINS, the half's own first, and add --loose.
@@ -6615,7 +6607,7 @@ not otherwise.
     #      then, where it says INSTANCE and BEFORE anything evicts
     #      the file -- a reboot, a copy over it, the fadvise -- the frames
     #      off the slow instance while it runs:
-    python3 ../../horde-ad/tools/probe-pageflags.py <pid> <addr of the hot line> --heap   # as root
+    python3 ../../tools/probe-pageflags.py <pid> <addr of the hot line> --heap   # as root
     #      which prints the code frame beside the heap's; its header says
     #      what PID and VADDR are
     #      why: --para 'The physical frame of a code page is a placement term too'
@@ -6833,8 +6825,8 @@ not otherwise.
     #      is why they are bullets and not sub-steps; 6a and 6c ARE it
     #      * SET THE TURN-END HOLD HERE and clear it at 9, setting it
     #        again for any editing past 9 (~/.claude/rules/
-    #        turn-end-hold.md), on ~/r/orthotope by name, `wrap-restore
-    #        --hold ~/r/orthotope`, and on any other repository the
+    #        turn-end-hold.md), on ~/slop/orthotope by name, `wrap-restore
+    #        --hold ~/slop/orthotope`, and on any other repository the
     #        write-up edits: a bare --hold holds the working directory's.
     #        read-run.py's --replace, --delete and
     #        --para match the flattened form and want no unwrap; an
@@ -9162,7 +9154,7 @@ at `-A64m` and at `-A256m`, +44% at `-A1G`, and only 4 MB-scale areas decline
 to pay, at their own collector cost --- and the remedy is route-specific:
 padding cures upfront bursts outright, no source-level policy reaches
 the in-process route, so its outs are process isolation or a GHC fix; the issue
-and its follow-up comment are staged in horde-ad's docs, nothing posted.
+and its follow-up comment are staged in `~/slop`'s docs, nothing posted.
 The former boundary is resolved: cifar's +10.2% at the DEFAULT nursery
 was roster context over a ~+5.5% clean-pair tax inside the small-area band
 (findings items 40b/51) --- small-area immunity was never strict anyway, a few
@@ -9493,7 +9485,7 @@ is per arm and exists for six of them, so for any other pair this is a statement
 about the population of loops rather than about that pair's own. Reading
 the offsets is minutes of `objdump` against a quiet-machine window, so it
 is the cheap first question about a gap this size. `tools/loop-offsets.py`
-in horde-ad finds the copies structurally --- a backward branch whose target
+in `~/slop` finds the copies structurally --- a backward branch whose target
 is one loop length back, grouped by raw bytes, so "byte-identical copies"
 is read rather than assumed --- and it was proved non-vacuous by reproducing
 three of the probe binaries' documented offsets before it was pointed
@@ -9524,7 +9516,7 @@ at 16 bytes one of four; at 32 or more none at all, a 28-byte loop starting at 0
 or 32 ending inside its line either way.
 
 **An isolated reproducer prices the same effect at 1.58x, and names what
-it needs to appear** --- horde-ad's `docs/ghc-issue-no-loop-alignment.md`, filed
+it needs to appear** --- `~/slop`'s `docs/ghc-issue-no-loop-alignment.md`, filed
 as GHC [#27668](https://gitlab.haskell.org/ghc/ghc/-/work_items/27668), which
 is where this belongs written up and which cites this benchmark for what
 `-fproc-alignment=64` does in a larger program and what the correction costs
@@ -9940,7 +9932,7 @@ the fresh builddir being what forces the rebuild a value-carrying flag does not.
 
 **The loops can be aligned outright, though, by standing in for the assembler**
 (2026-08-10). `-pgma` replaces the program GHC assembles with,
-so `tools/align-as.py`, in horde-ad, rewrites the `.s` on the way past: every
+so `tools/align-as.py`, in `~/slop`, rewrites the `.s` on the way past: every
 local label that a later instruction jumps backwards to --- which is what a loop
 head is in the NCG's output --- gets a `.p2align 6`. On this suite that aligns
 395 heads and puts **every copy of both fills at offset 0**, grows `.text`
@@ -10055,7 +10047,7 @@ functions, which is data about a program rather than a part of one ---
 and it changes the emitted code exactly as `-g3` does: one instruction fewer
 and a different register assignment on an eight-line module, the same on GHC
 9.10.3, 9.12.4, 9.14.1 and HEAD, with `-g2` between them behaving alike.
-The reproducer and that table are horde-ad's
+The reproducer and that table are `~/slop`'s
 `docs/ghc-issue-debug-changes-codegen.md`, filed as GHC
 [#27687](https://gitlab.haskell.org/ghc/ghc/-/work_items/27687), which
 this README's finding produced; what they settle here is that no debug level
@@ -10125,7 +10117,7 @@ that toggles a flag must force the rebuild** --- `-fforce-recomp` or a fresh
 `--builddir` --- and the regime comparisons already run that way only because
 they were built in separate trees. The first round of the alignment experiment
 had neither and read its flag as inert. Written up
-as `docs/ghc-issue-recompilation-ignores-codegen-flags.md` in horde-ad, beside
+as `docs/ghc-issue-recompilation-ignores-codegen-flags.md` in `~/slop`, beside
 the block-pool issue and in the same form, and filed from there as GHC
 [#27667](https://gitlab.haskell.org/ghc/ghc/-/work_items/27667) --- that file
 carries the cause in GHC's own source and the list of settings, and is the copy

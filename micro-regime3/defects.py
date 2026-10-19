@@ -31,10 +31,10 @@ which is how one proof was made worthless before this file existed. The
 pre-fix program is materialised as ONE FILE beside today's neighbours
 (`materialise: file`): a driver under test still calls today's
 `./read-run.py`, exactly as the proofs did. So the suite plants files in
-this directory and MUST RUN UNSANDBOXED from a session rooted elsewhere:
-a session's sandbox permits writes under the repo it started in and nowhere
-else, and every fixture that writes here dies on `Read-only file system`,
-reported as a fixture that did not build.
+this directory and MUST RUN UNSANDBOXED from a session whose working
+directory does not hold this one: its sandbox refuses a write here, and
+every fixture that writes here dies on `Read-only file system`, reported as
+a fixture that did not build.
 
 TWO HALVES, and they are not the same instrument. A case is MEMORY: one
 defect already found, planted again, and it can only ever re-catch that
@@ -17734,7 +17734,7 @@ RECORDS = [
          env={'PATH': '{stub}:/usr/bin:/bin'},
          argv=['zzg3'],
          ok=V(exit=2, has=['git names no commit for Main.hs',
-                           'git names no commit for tools/align-as.py'],
+                           'git names no commit for align-as.py'],
               hasnt=['stub cabal ran'])),
 
     case('g3-twins-builds-over-the-source-when-told', 'g3-twins.sh', None,
@@ -18664,20 +18664,23 @@ def shadow_dir(tmp, prog, text, mutate=(), extra=(), with_horde=True):
         raise AssertionError('%s cds to an absolute path, so a shadow cannot'
                              ' hold it and running it would run for real'
                              % prog)
-    # Built two levels down and reached by a link, beside a link to
-    # horde-ad, so a script's ../../horde-ad/tools/ resolves in it as
-    # it does here (2026-10-06, when machine-busy.sh moved there), unless
-    # `with_horde` is false, for a case about a script that finds no
-    # history there.
+    # Built two levels down and reached by a link, beside links to horde-ad
+    # and to ~/slop's shared tools, so a script's ../../horde-ad/ and
+    # ../../tools/ resolve in it as they do here, unless `with_horde` is
+    # false, for a case about a script that finds no history there.
     deep = os.path.join(tmp, 'o', 'micro-regime3')
     os.makedirs(deep)
     d = os.path.join(tmp, 'shadow')
     os.symlink(deep, d)
     horde = os.path.realpath(os.path.join(HERE, '..', '..', 'horde-ad'))
+    tools = os.path.realpath(os.path.join(HERE, '..', '..', 'tools'))
     if not with_horde:
         horde = os.path.join(tmp, 'no-horde-ad')
+        tools = os.path.join(tmp, 'no-tools')
     if os.path.isdir(horde):
         os.symlink(horde, os.path.join(tmp, 'horde-ad'))
+    if os.path.isdir(tools):
+        os.symlink(tools, os.path.join(tmp, 'tools'))
     # Nor another case's fixture standing here, a `here_file`: under -j a
     # shadow built while it stood linked it, and a write into the shadow by
     # that name reached it. Case: `shadow-skips-a-concurrent-fixture`.
@@ -18690,8 +18693,8 @@ def shadow_dir(tmp, prog, text, mutate=(), extra=(), with_horde=True):
     # A script of an era before the move calls these beside itself, so
     # its replay finds them where it looks.
     for name in ('loop-offsets.py', 'machine-busy.sh'):
-        if './' + name in text and os.path.isdir(horde):
-            os.symlink(os.path.join(horde, 'tools', name),
+        if './' + name in text and os.path.isdir(tools):
+            os.symlink(os.path.join(tools, name),
                        os.path.join(d, name))
     real = os.path.join(d, prog)
     os.remove(real)

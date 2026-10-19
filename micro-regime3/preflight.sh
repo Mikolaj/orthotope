@@ -274,7 +274,7 @@ for half in (basis, other):
                     sh('./%s +RTS --info 2>/dev/null | grep with-rtsopts' % b))
     want.append(('baked RTS', [rts.group(1)] if rts else ['UNREADABLE']))
 for lbl, repo, path in (('Main.hs at', '.', ':/micro-regime3/Main.hs'),
-                        ('shim at', '../../horde-ad', ':/tools/align-as.py')):
+                        ('shim at', '../../tools', 'align-as.py')):
     want.append((lbl, [sh('git -C %s log -1 --format=%%h -- %s'
                           % (repo, path)).strip()]))
 n = len(sh('./%s-%s --list 2>/dev/null' % (R, basis)).split())
@@ -621,7 +621,7 @@ if [ "$REST" = 1 ]; then
 # that said nothing is the empty verdict.
 srv () {
   local out
-  out=$(../../horde-ad/tools/loop-offsets.py --survey "$1" 2>/dev/null) \
+  out=$(../../tools/loop-offsets.py --survey "$1" 2>/dev/null) \
     || return 0
   printf '%s\n' "$out" \
     | awk 'function n(s) { sub(/^[^:]*: */, "", s); sub(/,.*/, "", s)
@@ -869,7 +869,7 @@ esac
 # header's "exit status is the whole verdict". Two `==` headers, one per
 # half, each with a count above zero, is what a half of this benchmark
 # reads -- the run-fill loop is in every build this README has timed.
-if ../../horde-ad/tools/loop-offsets.py "$R-$OTHER" "$R-$BASIS" \
+if ../../tools/loop-offsets.py "$R-$OTHER" "$R-$BASIS" \
      > "$TMP/fills" 2>&1; then
   HEADS=$(grep -c '^== ' "$TMP/fills")
   EMPTY=$(awk '/^== / && $3 == 0 { print $2 }' "$TMP/fills" | tr -d :)
@@ -884,7 +884,7 @@ else
   say 10 FAIL "loop-offsets refused: $(tail -1 "$TMP/fills")"
 fi
 # A reworded reading is one not taken, never an empty PASS (2026-10-06).
-if ! ../../horde-ad/tools/loop-offsets.py --library "$R-$BASIS" "$R-$OTHER" \
+if ! ../../tools/loop-offsets.py --library "$R-$BASIS" "$R-$OTHER" \
      > "$TMP/lib" 2>&1; then
   say 10 FAIL "--library refused: $(tail -1 "$TMP/lib")"
 elif LIB=$(grep -m1 'same offset' "$TMP/lib"); then
@@ -1020,9 +1020,9 @@ fill_in () {
        --porcelain -- :/micro-regime3/Main.hs | grep -q . && echo DIRTY \
        || echo clean) against it"
   printf '  %-16s  %s\n' 'shim at' \
-    "$(git -C ../../horde-ad log -1 --format=%h -- :/tools/align-as.py), \
-tree $(git -C ../../horde-ad status \
-       --porcelain -- :/tools/align-as.py | grep -q . && echo DIRTY \
+    "$(git -C ../../tools log -1 --format=%h -- align-as.py), \
+tree $(git -C ../../tools status \
+       --porcelain -- align-as.py | grep -q . && echo DIRTY \
        || echo clean) against it"
   printf '  %-16s  %s\n' 'compilers' \
     "on PATH $(ghc --numeric-version 2>/dev/null); in the binaries, \
@@ -1119,7 +1119,7 @@ run$PN; say whether the md5s repeat run$PN-pair.txt's"
     # kept the preserved case's line and dropped the moved one's, so Run
     # 39's block printed displacements under no statement of what moved
     # (2026-09-23).
-    ../../horde-ad/tools/loop-offsets.py --delta "$PB" "./$R-$BASIS" \
+    ../../tools/loop-offsets.py --delta "$PB" "./$R-$BASIS" \
         2>/dev/null \
       | grep -E -e '^ +(offsets MOVED|every mod-64|NO address)' \
                 -e '^ +([0-9]+ displacement|of the)' \

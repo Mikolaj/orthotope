@@ -8506,7 +8506,7 @@ def prose_draft(run, args):
                              r'\s+(every mod-64 offset preserved: \[.*?\]|'
                              r'copy COUNT moved: offsets \[.*?\] -> \[.*?\])',
                              d, re.M)
-            s += (' `../../horde-ad/tools/loop-offsets.py --delta %s %s`'
+            s += (' `../../tools/loop-offsets.py --delta %s %s`'
                   ' reads %s.'
                   % (pb, b, '; '.join('%s -> %s copies: %s'
                                       % (g[0], g[1], g[3])
@@ -10882,9 +10882,10 @@ def run_no_of(path):
 
 # Where a named path may live. This directory first, then the orthotope
 # checkout it sits in, then the sibling this README cites for horde-ad's
-# benchmark, its docs and its CLAUDE.md.
+# benchmark, its docs and its CLAUDE.md, then ~/slop, holding the shared
+# tools and the filed issues.
 PATH_ROOTS = [('.', 'here'), ('..', 'orthotope'),
-              ('../../horde-ad', 'horde-ad')]
+              ('../../horde-ad', 'horde-ad'), ('../..', 'slop')]
 # Names that exist only while a run or a pair does, so their absence is the
 # directory's normal state rather than a broken reference. The templates
 # (`$R-...`, `<prefix>-...`) are caught by the `$`/`<` test instead.
@@ -10921,7 +10922,7 @@ def check_paths(doc):
     out the eighteen real ones and nothing else.
 
     A name that does not resolve FAILS: this is the check that catches a
-    renamed script. Names outside any checkout (`~/r/horde-ad`) and
+    renamed script. Names outside any checkout (`~/slop/horde-ad`) and
     templates are not path-shaped by the test above. Transient artifacts are
     listed separately rather than failed, a run's artifacts being kept
     while questions keep coming back to them.
@@ -12402,8 +12403,8 @@ def _inputs_moved(near, text):
     out = []
     for label, repo, path, row in (
             ('THE SOURCE', '.', 'Main.hs', 'Main.hs'),
-            ('THE SHIM', os.path.join('..', '..', 'horde-ad'),
-             'tools/align-as.py', 'shim')):
+            ('THE SHIM', os.path.join('..', '..', 'tools'),
+             'align-as.py', 'shim')):
         m = re.search(r'^\s*%s at\s+([0-9a-f]{7,40})\b' % re.escape(row),
                       text, re.M)
         r = subprocess.run(['git', '-C', os.path.join(near or '.', repo),

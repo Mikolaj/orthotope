@@ -44,16 +44,16 @@ STEPS = [
     # none after.
     ('executable bits',        ['bash', '-c',
                                 'cd "{root}" && bad=$(git ls-files -s -- . | awk -F"\\t" \'{ split($1, a, " "); if (a[1] == "100644") print $2 }\' | while IFS= read -r f; do [ "$(head -c2 "$f" 2>/dev/null)" = "#!" ] && printf "%s\\n" "$f"; done); if [ -n "$bad" ]; then printf "committed without the executable bit, each opening with #!:\\n%s\\n" "$bad"; exit 1; fi; echo "every tracked file opening with #! is committed 100755"']),
-    # The bang checker is horde-ad's, reached through the sibling checkout
-    # as the twin-sync check reaches its twin, and BLOCKED with exit 2 when
-    # that checkout is not mounted, so an unrun step is never a pass. It
-    # exits 0 on whatever it prints unless given --allow, so the allow
-    # file is what makes this a gate: a candidate not listed there fails
-    # the step, and a listed one prints as read. Added 2026-09-13, the day
-    # two lazy binders in the walker were read back out of a flag's worth
-    # on Run 30; it names one of them STRONG, the carry's empty clause.
+    # The bang checker is ~/slop's shared one, reached two levels up, and
+    # BLOCKED with exit 2 when it is not there, so an unrun step is never a
+    # pass. It exits 0 on whatever it prints unless given --allow, so the
+    # allow file is what makes this a gate: a candidate not listed there
+    # fails the step, and a listed one prints as read. Added 2026-09-13,
+    # the day two lazy binders in the walker were read back out of a flag's
+    # worth on Run 30; it names one of them STRONG, the carry's empty
+    # clause.
     ('bang shapes',            ['bash', '-c',
-                                'cd "{root}" && t=../../horde-ad/tools/bang-lazy-check.py && '
+                                'cd "{root}" && t=../../tools/bang-lazy-check.py && '
                                 '{ [ -f "$t" ] || { echo "BLOCKED: $t is not mounted, so Main.hs went unread for bang shapes"; exit 2; }; } && '
                                 'python3 "$t" --allow bang-lazy-allow.txt Main.hs']),
 ]

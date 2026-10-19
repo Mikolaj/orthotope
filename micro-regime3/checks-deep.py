@@ -13,7 +13,7 @@ suggestion, rather than after each edit:
 RUN IT ALONE: the cases plant files in this directory and diff the working
 tree, so a file created anywhere in it while they run -- a log, a scratch
 redirect, an edit committed or not -- makes them report PARTIAL and settle
-nothing; and it wants an unsandboxed seat, the fixtures being written here.
+nothing.
 Between runs of it, `defect-run.py --changed .` and `--audit --changed .` are
 what an edit owes, a script's or a data file's.
 

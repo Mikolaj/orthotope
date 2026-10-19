@@ -1,4 +1,4 @@
-# Candidates horde-ad's tools/bang-lazy-check.py prints over Main.hs that a
+# Candidates ~/slop's tools/bang-lazy-check.py prints over Main.hs that a
 # reader has read, one a line as `Main.hs:NAME ARG  # reason`, read by the
 # `bang shapes` step of checks.py. The reason is the point of an entry: one
 # without a reason hides the very shape the checker exists to show. The step

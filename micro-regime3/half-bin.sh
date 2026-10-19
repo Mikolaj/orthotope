@@ -35,7 +35,7 @@
 # The mount, for a run that wants it, once in /etc/fstab
 # -- AND THE `noauto` IS WHY THE SUSPENSION HAPPENED, so it is not optional:
 #
-#   tmpfs  /home/mikolaj/r/orthotope/micro-regime3/hugebin  tmpfs  noauto,size=1g,huge=always,mode=0755,uid=1000,gid=1000  0  0
+#   tmpfs  /home/mikolaj/slop/orthotope/micro-regime3/hugebin  tmpfs  noauto,size=1g,huge=always,mode=0755,uid=1000,gid=1000  0  0
 #
 # then `mkdir -p hugebin && mount hugebin`, as root, when a run wants it.
 # WITHOUT `noauto` systemd generates a mount unit that runs AT BOOT, and on
