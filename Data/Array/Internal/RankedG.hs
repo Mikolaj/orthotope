@@ -101,9 +101,9 @@ instance (Vector v, Eq a, VecElem v a) => Eq (Array n v a) where
   {-# INLINABLE (==) #-}
   (A s v) == (A s' v') = equalT s s' v v'
 
--- INLINE throughout: see DynamicG's Ord instance.
+-- INLINE throughout but compare: see DynamicG's Ord instance.
 instance (Vector v, Ord a, VecElem v a) => Ord (Array n v a) where
-  {-# INLINE compare #-}
+  {-# INLINABLE compare #-}
   (A s v) `compare` (A s' v') = compare s s' <> compareT s v v'
   {-# INLINE (<) #-}
   x < y = case compare x y of { LT -> True; _ -> False }

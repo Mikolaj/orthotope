@@ -94,10 +94,10 @@ instance (Vector v, Eq a, VecElem v a, Shape sh)
   {-# INLINABLE (==) #-}
   a@(A v) == (A v') = equalT (shapeL a) (shapeL a) v v'
 
--- INLINE throughout: see DynamicG's Ord instance.
+-- INLINE throughout but compare: see DynamicG's Ord instance.
 instance (Vector v, Ord a, VecElem v a, Shape sh)
          => Ord (Array sh v a) where
-  {-# INLINE compare #-}
+  {-# INLINABLE compare #-}
   a@(A v) `compare` (A v') = compareT (shapeL a) v v'
   {-# INLINE (<) #-}
   x < y = case compare x y of { LT -> True; _ -> False }

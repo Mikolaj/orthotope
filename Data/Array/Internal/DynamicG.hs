@@ -88,13 +88,19 @@ instance (Vector v, Eq a, VecElem v a) => Eq (Array v a) where
   {-# INLINABLE (==) #-}
   (A s v) == (A s' v') = equalT s s' v v'
 
--- INLINE throughout: on GHC HEAD 10.1.20260918 (2026-10-12), with compare
--- alone defined, < of two [400, 500] views of Doubles took the class's
--- default, not (y <= x), and a client called the default <= unspecialised,
--- allocating 832 bytes an element at Storable, 208 at Unboxed and 144 boxed,
--- where DynamicS's < allocated none.
+-- INLINE throughout but compare: on GHC HEAD 10.1.20260918 (2026-10-12),
+-- with compare alone defined, < of two [400, 500] views of Doubles took
+-- the class's default, not (y <= x), and a client called the default <=
+-- unspecialised, allocating 832 bytes an element at Storable, 208 at
+-- Unboxed and 144 boxed, where DynamicS's < allocated none.  On the same
+-- GHC (2026-10-19), compare INLINABLE cut the time to build the tests and
+-- the specialisation benchmark by 25%, kept every allocation figure of the
+-- benchmark, raised its times by at most 2.9% at [3, 3] and cut them by
+-- up to 13.6% at [400, 500], except those of boxed min and max of strided
+-- [400, 500] views summed, raised by 21% in the benchmark's own summing loop
+-- (https://gitlab.haskell.org/ghc/ghc/-/work_items/25349).
 instance (Vector v, Ord a, VecElem v a) => Ord (Array v a) where
-  {-# INLINE compare #-}
+  {-# INLINABLE compare #-}
   (A s v) `compare` (A s' v') = compare s s' <> compareT s v v'
   {-# INLINE (<) #-}
   x < y = case compare x y of { LT -> True; _ -> False }
