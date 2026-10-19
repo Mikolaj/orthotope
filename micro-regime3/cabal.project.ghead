@@ -19,7 +19,7 @@
 -- The path below names a moving target: a HEAD that moves is a different
 -- compiler, so read the version out of the binary.
 packages: .
-with-compiler: /home/mikolaj/r/horde-ad/ghc/_build/stage1/bin/ghc
+with-compiler: /home/mikolaj/slop/ghc/_build/stage1/bin/ghc
 index-state: hackage.haskell.org 2026-09-19T16:13:55Z
 
 allow-newer: base, ghc-prim, ghc-bignum, template-haskell, containers
