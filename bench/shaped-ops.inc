@@ -15,6 +15,8 @@ OPS form view =
   , call "rank" (\ a -> ARR.rank a) t
   , call "toList" (\ a -> sum (ARR.toList a)) t
   , call "fromList" (\ xs -> ARR.fromList @SH xs) (take (ROWS * cols) elemsFrom)
+  , call "fromList.map" (\ xs -> ARR.fromList @SH (map (+ 1) xs))
+                        (take (ROWS * cols) elemsFrom)
   , call "toVector" (\ a -> ARR.toVector a) t
   , call "toUnorderedVectorT"
          (\ (IARR.A a@(SG.A u)) -> I.toUnorderedVectorT (SG.shapeL a) u) t
@@ -77,6 +79,13 @@ OPS form view =
 #endif
   , call "concatOuter" (\ (a, b) -> ARR.concatOuter @CAT [a, b]) (t, tn)
   , call "concatOuter.one" (\ a -> ARR.concatOuter @ROWS [a]) t
+#if ROWS > 0
+  , call "concatOuter.map"
+         (\ a -> ARR.concatOuter @ROWS
+                   (map (\ i -> ARR.reshape @ROW1 (ARR.index a i))
+                        [0 .. ROWS - 1]))
+         t
+#endif
   , call "ravel" (\ a -> ARR.ravel a) (ARR.unravel t)
 #if ROWS > 0
   , call "ravel.one" (\ a -> ARR.ravel a) (ARR.unravel t1)

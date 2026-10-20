@@ -71,8 +71,8 @@ merged = foldl (\ acc names -> place acc Nothing (reverse names)) []
 -- The calls whose input is no view, or whose arm accesses none of it, which run
 -- on one view.
 viewless :: [String]
-viewless = [ "fromList", "fromVector", "scalar", "unScalar", "constant"
-           , "generate", "iterateN", "iota", "pure"
+viewless = [ "fromList", "fromList.map", "fromVector", "scalar", "unScalar"
+           , "constant", "generate", "iterateN", "iota", "pure"
            , "append.emptyL", "append.emptyR", "concatOuter.one", "rotate.one"
            , "update.none", "pad.none", "==.shapes", "maximumA.one"
            , "reshape.scalar", "allSameA.tiers"
