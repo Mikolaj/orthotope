@@ -167,19 +167,19 @@ toList a@(A t) = toListT (shapeL a) t
 toVector :: forall sh v a . (Vector v, VecElem v a, Shape sh) => Array sh v a -> v a
 toVector a@(A t) = toVectorT (shapeL a) t
 
--- INLINE: by the measurement in the module's header, not for fusion: its list
--- goes to length and to vFromListN, whose vector instances take it apart by
--- case, so it fuses with no producer.
+-- INLINE: F1, directly fusing: its list goes to vFromListExactN, whose vector
+-- instances take it by one foldr, which fold/build fuses with a producer's
+-- build where it is inlined.
 -- | Convert from a list with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(n) time.
 {-# INLINE fromList #-}
 fromList :: forall sh v a . (HasCallStack, Vector v, VecElem v a, Shape sh) =>
             [a] -> Array sh v a
-fromList vs | n /= l = error $ "fromList: size mismatch " ++ show (n, l)
-            | otherwise = A $ T st 0 $ vFromListN l vs
+fromList vs = case vFromListExactN n vs of
+                Right v -> A $ T st 0 v
+                Left l -> error $ "fromList: size mismatch " ++ show (n, l)
   where n : st = getStridesT ss
-        l = length vs
         ss = shapeP (Proxy :: Proxy sh)
 
 -- | Convert from a vector with the elements given in the linearization order.

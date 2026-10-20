@@ -69,7 +69,9 @@ import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.DynamicG as G
-import Data.Array.Internal(ShapeL, Vector(..), None, genericForce, genericUnsafeFillStrided, rnfViewT)
+import Data.Array.Internal(ShapeL, Vector(..), None, genericForce,
+                           genericFromListExactN, genericUnsafeFillStrided,
+                           rnfViewT)
 import qualified Data.Array.Internal.DynamicG as DG
 
 instance Vector V.Vector where
@@ -93,6 +95,8 @@ instance Vector V.Vector where
   vFromList = V.fromList
   {-# INLINE vFromListN #-}
   vFromListN = V.fromListN
+  {-# INLINE vFromListExactN #-}
+  vFromListExactN = genericFromListExactN
   -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), under INLINABLE the
   -- specialisation benchmark's boxed rerank and reduce at [3, 3] and
   -- zipWith3A.singleR of an empty array ran 1 to 3% more instructions, and

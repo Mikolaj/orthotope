@@ -200,7 +200,7 @@ callsNamed name cs = [ c | c@(Call m _ _ _) <- cs, m == name ]
 
 -- Storable and Unboxed allocate at most 32 bytes an element more than
 -- boxed, and boxed at most 16 more than the smaller of the two, but where
--- 'boxedExempt' names the operation.
+-- 'boxedExempt' names the operation or the row.
 specialised :: String -> Call -> Call -> Call -> Assertion
 specialised row b s u = do
   aB <- callAlloc b
@@ -212,17 +212,20 @@ specialised row b s u = do
          ++ [ "boxed " ++ show o
               ++ " bytes an element over Storable and Unboxed"
             | boxedSpecialised
-            , not (any (`isSuffixOf` takeWhile (/= '.') row) boxedExempt)
+            , not (any (\ e -> e `isSuffixOf` takeWhile (/= '.') row
+                               || e `isSuffixOf` row)
+                       boxedExempt)
             , let o = perElem (aB - min aS aU), o > 16 ]
   assertBool (intercalate ", " bad) (null bad)
 
 -- The operations that compute their elements, rerank2 among them with the
 -- zip it applies, and unravel: boxed, they exceed the bound with their
--- specialisation too, at each of their arms.
+-- specialisation too, at each of their arms.  So does the row fromList.map,
+-- its elements stored as the map's thunks; plain fromList stays bounded.
 boxedExempt :: [String]
 boxedExempt = [ "/mapA", "/traverseA", "/zipWithA", "/zipWith3A", "/zipWith4A"
               , "/zipWith5A", "/generate", "/iota", "/rerank2"
-              , "/unravel" ]
+              , "/unravel", "/fromList.map" ]
 
 -- Whether the boxed modules make the copies their specialisation is:
 -- GHCs before 9.6.3 lack the flag that makes them.

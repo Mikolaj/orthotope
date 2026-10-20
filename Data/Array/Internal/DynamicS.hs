@@ -82,7 +82,8 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.Internal.DynamicG as G
 import Data.Array.Internal(Axes, T(..), ShapeL, Vector(..), genericUnsafeConcatN,
-                           genericForce, genericUnsafeFillStrided)
+                           genericForce, genericFromListExactN,
+                           genericUnsafeFillStrided)
 
 type Unbox = V.Storable
 
@@ -120,6 +121,8 @@ instance Vector V.Vector where
   vFromList = V.fromList
   {-# INLINE vFromListN #-}
   vFromListN = V.fromListN
+  {-# INLINE vFromListExactN #-}
+  vFromListExactN = genericFromListExactN
   -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), under INLINABLE, summed,
   -- the specialisation benchmark's reduce at [3, 3] and constant at [3, 3] and
   -- of an empty array allocated a PlainPtr more, 16 bytes a call, and reduce

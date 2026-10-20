@@ -27,25 +27,26 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE UndecidableSuperClasses #-}
--- INLINE throughout but vFromListN, vUnsafeFillStrided, vUnsafeConcatN,
--- prettyShowL, badShape, equalT, getStridesT, genericUnsafeFillStrided,
--- canonicalizeT, stepOdometer, absAxesAndStartT, sortAxesT, insertAxis,
--- canonicalizeSortedT, allSameT, rectPad, hcatRect, rectWidth, ppT, showsT,
--- box, zipWithLong2, simpleReshape, isPermutation and allSame: on GHC HEAD
--- 10.1.20260918 (2026-10-15), this module's functions INLINABLE, as their
--- types give them, cost the specialisation benchmark up to 1960 bytes a call
--- (the conversions), 624 (liftA2), 560 (concatOuter) and 384 (pad); productT,
--- maximumT and minimumT INLINABLE, with Data.Array.Internal.DynamicU's vMaximum
--- and vMinimum, ran productA, maximumA and minimumA in up to 1.6 times the
--- instructions, though in up to 3% fewer at boxed Dynamic and Ranked arrays,
--- and permute without a pragma ran Ranked transpose in up to 1.08 times.  Those
--- it leaves out keep the pragma their types give them, but isPermutation,
--- NOINLINE as measured on GHC HEAD 10.1.20260918 on 2026-10-13: inlined into
--- transpose, the check of a literal permutation was computed once in a library
--- built at -funfolding-creation-threshold=30, and in every call in one built at
--- the default thresholds with Dynamic's transpose INLINE; out of line, a call
--- of it on a literal is a constant, computed once at any threshold.  F1 reads
--- no fusion in allSame: it matches its list before all consumes the tail, so it
+-- INLINE throughout but vFromListN, vFromListExactN, vUnsafeFillStrided,
+-- vUnsafeConcatN, prettyShowL, badShape, equalT, getStridesT,
+-- genericUnsafeFillStrided, canonicalizeT, stepOdometer, absAxesAndStartT,
+-- sortAxesT, insertAxis, canonicalizeSortedT, allSameT, rectPad, hcatRect,
+-- rectWidth, ppT, showsT, box, zipWithLong2, simpleReshape, isPermutation
+-- and allSame: on GHC HEAD 10.1.20260918 (2026-10-15), this module's
+-- functions INLINABLE, as their types give them, cost the specialisation
+-- benchmark up to 1960 bytes a call (the conversions), 624 (liftA2), 560
+-- (concatOuter) and 384 (pad); productT, maximumT and minimumT INLINABLE,
+-- with Data.Array.Internal.DynamicU's vMaximum and vMinimum, ran productA,
+-- maximumA and minimumA in up to 1.6 times the instructions, though in up
+-- to 3% fewer at boxed Dynamic and Ranked arrays, and permute without a
+-- pragma ran Ranked transpose in up to 1.08 times.  Those it leaves out
+-- keep the pragma their types give them, but isPermutation, NOINLINE as
+-- measured on GHC HEAD 10.1.20260918 on 2026-10-13: inlined into transpose,
+-- the check of a literal permutation was computed once in a library built at
+-- -funfolding-creation-threshold=30, and in every call in one built at the
+-- default thresholds with Dynamic's transpose INLINE; out of line, a call of
+-- it on a literal is a constant, computed once at any threshold.  F1 reads no
+-- fusion in allSame: it matches its list before all consumes the tail, so it
 -- fuses with no producer.
 module Data.Array.Internal(module Data.Array.Internal) where
 import Control.DeepSeq
@@ -106,6 +107,14 @@ class Vector v where
 
   {-# INLINABLE vFromListN #-}
   vFromListN n = vFromList . take n
+
+  -- | The list's elements in a vector where the list has exactly the given
+  -- number of them, and otherwise the list's length.
+  vFromListExactN :: (VecElem v a) => Int -> [a] -> Either Int (v a)
+  {-# INLINABLE vFromListExactN #-}
+  vFromListExactN n xs | l == n = Right (vFromListN n xs)
+                       | otherwise = Left l
+    where l = length xs
 
   -- | 'vIndex' at an index in bounds, which the instance need not check: the
   -- default is 'vIndex', and the vector instances read without the check.
@@ -891,6 +900,26 @@ genericUnsafeFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
       if nInner >= copyRun then walk writeRunCopy else walk (writeRunStep 1)
     else walk (writeRunStep stInner)
     return out
+
+-- INLINE: F1, directly fusing: it consumes its list once, by a foldr, which
+-- fold/build fuses with a producer's build where it is inlined.
+--
+-- The vector-backed instances' 'vFromListExactN': one foldr writes the list
+-- into a buffer of n elements, counting on past n without writing.  The loop
+-- returns the count's excess over n, not the count: returned in a Left as it
+-- is, the count stays boxed in the loop, an I# allocated an element, on GHC
+-- 9.6.7 to HEAD (https://gitlab.haskell.org/ghc/ghc/-/work_items/24203).
+{-# INLINE genericFromListExactN #-}
+genericFromListExactN :: (VG.Vector w a) => Int -> [a] -> Either Int (w a)
+genericFromListExactN n xs = case VG.createT (do
+    out <- VGM.unsafeNew n
+    let {-# INLINE step #-}
+        step x k = \ !i -> if i < n then VGM.unsafeWrite out i x >> k (i + 1)
+                                    else k (i + 1)
+    foldr step (\ !i -> return $ if i == n then Right out else Left (i - n))
+                xs 0) of
+  Left d -> Left (n + d)
+  Right v -> Right v
 
 -- INLINE: F1, directly fusing: it consumes its list once, by a foldr, which
 -- fold/build fuses with a producer's build where it is inlined.

@@ -168,9 +168,9 @@ toList (A sh t) = toListT sh t
 toVector :: (Vector v, VecElem v a) => Array v a -> v a
 toVector (A sh t) = toVectorT sh t
 
--- INLINE: by the measurement in the module's header, not for fusion: its list
--- goes to length and to vFromListN, whose vector instances take it apart by
--- case, so it fuses with no producer.
+-- INLINE: F1, directly fusing: its list goes to vFromListExactN, whose vector
+-- instances take it by one foldr, which fold/build fuses with a producer's
+-- build where it is inlined.
 --
 -- HasCallStack, here and in the other array modules, goes on exactly the
 -- functions that check an argument, calling error when it is bad, as
@@ -186,10 +186,10 @@ toVector (A sh t) = toVectorT sh t
 {-# INLINE fromList #-}
 fromList :: (HasCallStack, Vector v, VecElem v a) => ShapeL -> [a] -> Array v a
 fromList ss vs | badShape ss = error $ "fromList: bad shape " ++ show ss
-               | n /= l = error $ "fromList: size mismatch " ++ show (n, l)
-               | otherwise = A ss $ T st 0 $ vFromListN l vs
+               | otherwise = case vFromListExactN n vs of
+                   Right v -> A ss $ T st 0 v
+                   Left l -> error $ "fromList: size mismatch " ++ show (n, l)
   where n : st = getStridesT ss
-        l = length vs
 
 -- | Convert from a vector with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the vector.

@@ -66,7 +66,8 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.DynamicG as G
 import Data.Array.Internal(ShapeL, Vector(..), genericUnsafeConcatN,
-                           genericForce, genericUnsafeFillStrided)
+                           genericForce, genericFromListExactN,
+                           genericUnsafeFillStrided)
 
 type Unbox = V.Unbox
 
@@ -88,6 +89,8 @@ instance Vector V.Vector where
   vFromList = V.fromList
   {-# INLINE vFromListN #-}
   vFromListN = V.fromListN
+  {-# INLINE vFromListExactN #-}
+  vFromListExactN = genericFromListExactN
   -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), under INLINABLE the
   -- specialisation benchmark's summed Shaped reduce at [3, 3] and of an empty
   -- array ran 5 instructions a call more, 1 to 3%, and Dynamic and Ranked
