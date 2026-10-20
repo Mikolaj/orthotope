@@ -88,6 +88,13 @@ class Convert a b where
   convertE = Right . convert
   {-# MINIMAL convert | convertE #-}
 
+-- Whether a shape is the one the type gives. Monomorphic, so that no client
+-- calls base's list equality with Integer's dictionary.
+sameShape :: [Int] -> [Integer] -> Bool
+sameShape (x : xs) (y : ys) = toInteger x == y && sameShape xs ys
+sameShape [] [] = True
+sameShape _ _ = False
+
 -- We write these instances like "instance (a ~ b) => Convert (X a) (Y b)" so
 -- that instance resolution will commit to them as soon as it knows the array
 -- types, and then introduce an equality constraint on the element types.  This
@@ -211,14 +218,14 @@ instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (S.Array sh a) (R.Array n
 instance (a ~ b, S.Shape sh) => Convert (D.Array a) (S.Array sh b) where
   -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
-  convertE (D.A (DG.A sh t)) | map toInteger sh /= natsP (Proxy :: Proxy sh) = Left "convert: shape mismatch"
+  convertE (D.A (DG.A sh t)) | not (sameShape sh (natsP (Proxy :: Proxy sh))) = Left "convert: shape mismatch"
                              | not (validShape sh) = Left "convert: bad shape"
                              | otherwise = Right $ S.A (SG.A t)
 
 instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (R.Array n a) (S.Array sh b) where
   -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
-  convertE (R.A (RG.A sh t)) | map toInteger sh /= natsP (Proxy :: Proxy sh) = Left "convert: shape mismatch"
+  convertE (R.A (RG.A sh t)) | not (sameShape sh (natsP (Proxy :: Proxy sh))) = Left "convert: shape mismatch"
                              | not (validShape sh) = Left "convert: bad shape"
                              | otherwise = Right $ S.A (SG.A t)
 
@@ -233,14 +240,14 @@ instance (a ~ b, KnownNat n) => Convert (DS.Array a) (RS.Array n b) where
 instance (a ~ b, SS.Rank sh ~ n, SS.Shape sh) => Convert (RS.Array n a) (SS.Array sh b) where
   -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
-  convertE (RS.A (RG.A sh t)) | map toInteger sh /= natsP (Proxy :: Proxy sh) = Left "convert: shape mismatch"
+  convertE (RS.A (RG.A sh t)) | not (sameShape sh (natsP (Proxy :: Proxy sh))) = Left "convert: shape mismatch"
                               | not (validShape sh) = Left "convert: bad shape"
                               | otherwise = Right $ SS.A (SG.A t)
 
 instance (a ~ b, SS.Shape sh) => Convert (DS.Array a) (SS.Array sh b) where
   -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
-  convertE (DS.A (DG.A sh t)) | map toInteger sh /= ns = Left $ "convert: shape mismatch: " ++ show (sh, ns)
+  convertE (DS.A (DG.A sh t)) | not (sameShape sh ns) = Left $ "convert: shape mismatch: " ++ show (sh, ns)
                               | not (validShape sh) = Left "convert: bad shape"
                               | otherwise = Right $ SS.A (SG.A t)
                               where ns = natsP (Proxy :: Proxy sh)
