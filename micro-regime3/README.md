@@ -4504,7 +4504,8 @@ without.
 with `-rtsopts`, so an already-built binary takes any RTS setting, and `-s`,
 `-hT` and `-S` are available in a non-profiling build, so a question about
 the collector is answered on binaries already timed. What `-s` cannot see
-is the churn state: on the 27719 reproducer it prints
+is the churn state: on the reproducer of GHC
+[#27719](https://gitlab.haskell.org/ghc/ghc/-/work_items/27719) it prints
 `0 MiB lost due to fragmentation` poisoned and clean alike and reads
 productivity HIGHER poisoned, and `max_mem_in_use_bytes`, the heap peak every
 run prints, is flat under the tax --- so a clean `-s` or an equal peak across
@@ -9154,11 +9155,11 @@ at `-A64m` and at `-A256m`, +44% at `-A1G`, and only 4 MB-scale areas decline
 to pay, at their own collector cost --- and the remedy is route-specific:
 padding cures upfront bursts outright, no source-level policy reaches
 the in-process route, so its outs are process isolation or a GHC fix; the issue
-and its follow-up comment are staged in `~/slop`'s docs, nothing posted.
-The former boundary is resolved: cifar's +10.2% at the DEFAULT nursery
-was roster context over a ~+5.5% clean-pair tax inside the small-area band
-(findings items 40b/51) --- small-area immunity was never strict anyway, a few
-percent rather than zero (items 27/30).
+is GHC [#27719](https://gitlab.haskell.org/ghc/ghc/-/work_items/27719),
+and its follow-up comment is posted there. The former boundary is resolved:
+cifar's +10.2% at the DEFAULT nursery was roster context over a ~+5.5%
+clean-pair tax inside the small-area band (findings items 40b/51) --- small-area
+immunity was never strict anyway, a few percent rather than zero (items 27/30).
 
 **And the five shapes a bigger nursery helps are NOT this term --- that
 is the correction the same probes force.** The victim runs 1.74x faster at 32 MB
