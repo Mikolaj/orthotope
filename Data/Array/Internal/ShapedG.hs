@@ -14,6 +14,7 @@
 
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -61,6 +62,7 @@ module Data.Array.Internal.ShapedG(
 import Control.DeepSeq hiding (force)
 import Data.Data(Data)
 import Data.Proxy(Proxy(..))
+import GHC.Exts(build)
 import GHC.Generics(Generic)
 import GHC.Stack(HasCallStack)
 import GHC.TypeLits(Nat, type (<=), KnownNat, type (+))
@@ -358,7 +360,8 @@ append a@(A ta) b@(A tb)
   | otherwise = fromVector (vAppend (toVector a) (toVector b))
 
 -- INLINE: by the measurement in the module's header, not for fusion: its list
--- goes to its checks and to the concatenation, so it fuses with no producer.
+-- goes to the one-array check and to the concatenation, which counts it as it
+-- takes it, so it fuses with no producer.
 -- | Concatenate a number of arrays into a single array.
 -- Fails if the outer extents of the arrays do not sum to that of the result.
 -- O(n) time.
@@ -367,11 +370,25 @@ append a@(A ta) b@(A tb)
 {-# INLINE concatOuter #-}
 concatOuter :: forall m n sh v a . (HasCallStack, Vector v, VecElem v a, KnownNat m, KnownNat n, Shape sh) =>
                [Array (n ': sh) v a] -> Array (m ': sh) v a
-concatOuter as | sumExtents ns /= s = error $ "concatOuter: outer extent mismatch " ++ show (ns, s)
-               | [A t] <- as = A t  -- one array: the array itself
-               | otherwise = fromVector $ vUnsafeConcatN (sizeT @(m ': sh)) $ map toVector as
-  where ns = map (const (natT @n)) as
+concatOuter as | [A t] <- as, n == s = A t  -- one array: the array itself
+               | n > 0, (k, 0) <- s `quotRem` n =
+                 fromVector $ vUnsafeConcatN (sizeT @(m ': sh)) $ counted k as
+               | n == 0, s == 0 = fromVector $ vUnsafeConcatN (sizeT @(m ': sh)) $ map toVector as
+               | otherwise = mismatch (length as)
+  where n = natT @n
         s = natT @m
+        mismatch :: Int -> b
+        mismatch c = error $ "concatOuter: outer extent mismatch " ++ show (replicate c n, s)
+        -- The k arrays the extents need, counted as the concatenation takes
+        -- them, under 'build', so that the concatenation's foldr fuses with
+        -- the count: not by a walk of the list before it, which held the list
+        -- whole.
+        counted k xs = build $ \ cons nil ->
+          let go !i (x : rest) | i < k = toVector x `cons` go (i + 1) rest
+                               | otherwise = mismatch (i + 1 + length rest)
+              go i [] | i == k = nil
+                      | otherwise = mismatch i
+          in  go 0 xs
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.

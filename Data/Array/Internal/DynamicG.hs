@@ -61,6 +61,7 @@ import Control.DeepSeq hiding (force)
 import Control.Monad(replicateM)
 import Data.Data(Data)
 import Data.Maybe(fromMaybe)
+import GHC.Exts(build)
 import GHC.Generics(Generic)
 import GHC.Stack
 import Test.QuickCheck hiding (generate)
@@ -694,7 +695,8 @@ broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dime
         ascending _ = True
 
 -- INLINE: by the measurement in the module's header, not for fusion: its list
--- goes to null, to all and to updateT, so it fuses with no producer.
+-- goes to null and, checked as it is taken, to updateT, so it fuses with no
+-- producer.
 -- | Update the array at the specified indices to the associated value.
 -- Fails if an index is out of bounds.
 -- With no updates, the result is the array itself, sharing its vector; 'force'
@@ -703,10 +705,19 @@ broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dime
 update :: (HasCallStack, Vector v, VecElem v a) =>
           Array v a -> [([Int], a)] -> Array v a
 update (A sh t) us | null us = A sh t  -- no update: the array itself
-                   | all (ok . fst) us = A sh $ updateT sh t us
-                   | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst us)
+                   | otherwise = A sh $ updateT sh t (checked us)
   where ok is = length is == r && and (zipWith (\ i s -> 0 <= i && i < s) is sh)
         r = length sh
+        -- Each index is checked as updateT takes it, under 'build', so that
+        -- updateT's map fuses with the check: the list is walked once, neither
+        -- copied nor held whole.  The indices before the first bad one are
+        -- good, so the error lists every bad one.
+        checked xs = build $ \ cons nil ->
+          let go (u@(is, _) : rest)
+                | ok is = u `cons` go rest
+                | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst (u : rest))
+              go [] = nil
+          in  go xs
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}
