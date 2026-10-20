@@ -423,13 +423,16 @@ foldPartsT c e goWith s x@(T _ _ vx) y@(T _ _ vy)
                       (\p n rest -> go p (p + d) n `c` rest) e
   | otherwise = case (routeT s l x, routeT s l y) of
       (RSlice ox _, RSlice oy _) -> go ox oy l
-      (rx, RSlice oy _) ->
-        routePartsT rx (\p n rest !q -> go p q n `c` rest (q + n)) (\ !_ -> e) oy
       (RSlice ox _, ry) ->
         routePartsT ry (\p n rest !q -> go q p n `c` rest (q + n)) (\ !_ -> e) ox
-      (rx, _) -> let !(T _ oz vz) = normalizeT s y
-                 in  routePartsT rx (\p n rest !q -> goWith vx vz p q n `c` rest (q + n))
-                                 (\ !_ -> e) oz
+      (rx, ry) ->
+        -- One walk of x's parts, against y's slice or y normalized.
+        let against !vz !oz =
+              routePartsT rx (\p n rest !q -> goWith vx vz p q n `c` rest (q + n))
+                          (\ !_ -> e) oz
+        in  case ry of
+              RSlice oy _ -> against vy oy
+              _ -> let !(T _ oz vz) = normalizeT s y in against vz oz
   where
     !l = product s
     !d = offset y - offset x
