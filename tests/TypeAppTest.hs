@@ -21,6 +21,7 @@
 {-# LANGUAGE TypeApplications #-}
 module TypeAppTest(test) where
 
+import qualified Data.Array.Dynamic as D
 import qualified Data.Array.Ranked as R
 import qualified Data.Array.RankedG as RG
 import qualified Data.Array.RankedS as RS
@@ -66,6 +67,10 @@ test = testGroup "TypeApp"
       assertEqual "SU" (VU.fromList [1 .. 6]) (SU.toVector @'[3, 2] @Int (SU.fromList [1 .. 6]))
   , testCase "stride" $
       assertEqual "RG" [1, 3] (RG.toList (RG.stride @1 @V.Vector @Int [2] (RG.fromList [4] [1 .. 4])))
-  , testCase "traverseA" $
-      assertEqual "S" (Just [2, 3]) ((\ a -> S.toList a) <$> S.traverseA @'[2] @Maybe @Int @Int (Just . succ) (S.fromList [1, 2]))
+  , testCase "rerank2" $
+      assertEqual "RG" [11, 22] (RG.toList (RG.rerank2 @1 @0 @0 @V.Vector @Int @Int @Int (RG.zipWithA (+)) (RG.fromList [2] [1, 2]) (RG.fromList [2] [10, 20])))
+  , testCase "traverseA" $ do
+      assertEqual "D" (Just [2, 3]) ((\ a -> D.toList a) <$> D.traverseA @Int @Int @Maybe (Just . succ) (D.fromList [2] [1, 2]))
+      assertEqual "R" (Just [2, 3]) ((\ a -> R.toList a) <$> R.traverseA @1 @Int @Int @Maybe (Just . succ) (R.fromList [2] [1, 2]))
+      assertEqual "S" (Just [2, 3]) ((\ a -> S.toList a) <$> S.traverseA @'[2] @Int @Int @Maybe (Just . succ) (S.fromList [1, 2]))
   ]

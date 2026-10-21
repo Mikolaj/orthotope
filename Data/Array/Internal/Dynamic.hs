@@ -584,7 +584,7 @@ foldrA f z = G.foldrA f z . unA
 --
 -- Note that this 'Array' actually has 'Traversable' anyway.
 {-# INLINE traverseA #-}
-traverseA :: Applicative f => (a -> f b) -> Array a -> f (Array b)
+traverseA :: forall a b f . Applicative f => (a -> f b) -> Array a -> f (Array b)
 traverseA f = fmap A . G.traverseA f . unA
 
 -- | Check if all elements of the array are equal.

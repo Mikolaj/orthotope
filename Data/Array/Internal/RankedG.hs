@@ -614,7 +614,7 @@ ravelOuterOf osh sh as = fromVector sh' $ vUnsafeConcatN (product sh') $ map vec
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank2 #-}
-rerank2 :: forall n i o a b c v .
+rerank2 :: forall n i o v a b c .
            (HasCallStack, Vector v, VecElem v c,
             KnownNat n, KnownNat o, KnownNat (n+o)) =>
            (Array i v a -> Array i v b -> Array o v c) -> Array (n+i) v a -> Array (n+i) v b -> Array (n+o) v c
