@@ -96,7 +96,7 @@ test-suite tests
                      , ShapedUTest
                      , ShapedSTest
                      , ShapedGTest
-                    , TypeAppTest
+                     , TypeAppTest
                      , Views
                      , Unspecialised
                      , Call

@@ -27,6 +27,7 @@ import Foreign.Ptr (minusPtr)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
+import Views (assertThrowsIn)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -234,7 +235,7 @@ test = testGroup "ShapedS" $
 
       bitcast_1 = assertEqual "1" [1,4,2,5,3,6] (toList (bitcast (transpose @'[1,0] a1) :: Array [3,2] Word))
       bitcast_2 = assertEqual "2" [0x3fc00000] (toList (bitcast (fromList [1.5 :: Float] :: Array '[1] Float) :: Array '[1] Word32))
-      bitcast_3 = assertThrows "3" (bitcast a1 :: Array [2,3] Word16)
+      bitcast_3 = assertThrowsIn "3" "bitcast" (bitcast a1 :: Array [2,3] Word16)
 
       -- Calls of wrappers that the other tests of this module leave uncalled,
       -- each against its value.

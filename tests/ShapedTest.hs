@@ -35,15 +35,10 @@ import qualified Data.Vector as V
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
-import Views (assertThrowsIn)
+import Views (assertThrowsIn, assertThrowsWith, assertWhnfThrowsIn)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
-
--- An error before the result reaches weak head normal form.
-assertWhnfThrowsIn :: String -> String -> a -> Assertion
-assertWhnfThrowsIn s f a = catch (evaluate a >> assertFailure s)
-                                 (\ (ErrorCall e) -> assertEqual s f (takeWhile (/= ':') e))
 
 test :: Test
 test = testGroup "Shaped" $
@@ -65,10 +60,8 @@ test = testGroup "Shaped" $
       index_1 = assertEqual "1" (fromList [1,2,3]) (index a1 0)
       index_2 = assertEqual "2" (fromList [1,4]) (index a2 0)
       index_3 = assertEqual "3" (fromList [4]) (a2 `index` 0 `index` 1)
-      index_4 = assertThrows "<0" (index a1 (-1))
+      index_4 = assertThrowsWith "<0" "index: out of bounds (-1,2)" (index a1 (-1))
       index_5 = assertThrows ">" (index a1 2)
-      index_6 = catch (deepseq (index a1 (-1)) $ assertFailure "6")
-                      (\ (ErrorCall e) -> assertEqual "6" "index: out of bounds (-1,2)" e)
       -- An extent past maxBound fails as it is read, in index or in making
       -- the array, whichever GHC evaluates first; so the array is made as
       -- a user would make it, not left undefined, which an INLINABLE index
@@ -407,7 +400,6 @@ test = testGroup "Shaped" $
         , testCase "index_3" index_3
         , testCase "index_4" index_4
         , testCase "index_5" index_5
-        , testCase "index_6" index_6
         , testCase "index_7" index_7
         , testCase "constraints_1" constraints_1
         , testCase "toList_1" toList_1

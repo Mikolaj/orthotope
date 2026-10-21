@@ -93,11 +93,25 @@ prop_allSameA v@(View sh _) =
   let x = mkViewG v xs :: Array v Double
   in  allSameA x === I.allSame (toList x)
 
+-- Every index of the shape, in order.
+indices :: [Int] -> [[Int]]
+indices sh = mapM (\ s -> [0 .. s - 1]) sh
+
+-- The element of the array at the index.
+at :: (I.Vector v, I.VecElem v a) => Array v a -> [Int] -> a
+at x is = unScalar (foldl (\ a i -> index a i) x is)
+
+-- The array laid out in the reverse order of its dimensions.
+reversedLayout :: (I.Vector v, I.VecElem v a) => Array v a -> Array v a
+reversedLayout x =
+  transpose rv (fromList (reverse (shapeL x)) (toList (transpose rv x)))
+  where rv = reverse [0 .. length (shapeL x) - 1]
+
 -- toList and toVector agree with indexing the view element by element.
 prop_toList :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
 prop_toList v@(View sh _) =
   let x = mkViewG v (upTo (product sh)) :: Array v a
-      l = [ unScalar (foldl (\ a i -> index a i) x is) | is <- mapM (\ s -> [0 .. s - 1]) (shapeL x) ]
+      l = map (at x) (indices (shapeL x))
   in  toList x === l .&&. I.vToList (toVector x) === l
 
 -- == and compare agree with comparing the lists, between a view and an array of
@@ -118,8 +132,7 @@ prop_compare v@(View sh _) =
           y = fromList (shapeL x) l'
           -- y laid out in the reverse order of its dimensions, which no slice
           -- reads where two of them exceed one
-          yt = transpose rv (fromList (reverse (shapeL x)) (toList (transpose rv y)))
-          rv = reverse [0 .. length (shapeL x) - 1]
+          yt = reversedLayout y
           z = mkViewG v [ fromIntegral (if k == j then k + d else k) | k <- [0 .. n - 1] ]
           -- z with its strides, at an offset m further into a longer vector
           w = case z of
@@ -161,13 +174,13 @@ prop_pad v@(View sh _) =
   in  forAll (choose (0, length xsh)) $ \ k ->
       forAll (vectorOf k ((,) <$> choose (0, 2) <*> choose (0, 2))) $ \ ps ->
       let psh = zipWith (\ (lo, hi) s -> lo + s + hi) ps xsh ++ drop k xsh
-          at is = let (os, js) = splitAt k is
-                      os' = zipWith (\ i (lo, _) -> i - lo) os ps
-                  in  if and (zipWith (\ i s -> i >= 0 && i < s) os' xsh)
-                      then unScalar (foldl (\ a i -> index a i) x (os' ++ js)) else -1
+          elemAt is = let (os, js) = splitAt k is
+                          os' = zipWith (\ i (lo, _) -> i - lo) os ps
+                      in  if and (zipWith (\ i s -> i >= 0 && i < s) os' xsh)
+                          then at x (os' ++ js) else -1
       in  product psh <= 10000 ==>
           shapeL (pad ps (-1) x) === psh
-          .&&. toList (pad ps (-1) x) === [ at is | is <- mapM (\ s -> [0 .. s - 1]) psh ]
+          .&&. toList (pad ps (-1) x) === map elemAt (indices psh)
 
 -- Each operation of a view has the shape opShape gives, and reads at every
 -- index of its result the element of the array it applies to at the index
@@ -176,10 +189,9 @@ prop_pad v@(View sh _) =
 prop_viewOps :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
 prop_viewOps (View sh ops) =
   let steps = scanl (flip applyOpG) (fromList sh (upTo (product sh))) ops :: [Array v a]
-      at x is = unScalar (foldl (\ a i -> index a i) x is)
       step (x, op, y) =
         let xsh = shapeL x
-            iss = mapM (\ s -> [0 .. s - 1]) (shapeL y)
+            iss = indices (shapeL y)
         in  counterexample (show op)
               (shapeL y === opShape xsh op
                .&&. map (at y) iss === map (at x . opSource xsh op) iss)
@@ -300,7 +312,7 @@ prop_update v@(View sh _) =
   let x = mkViewG v (upTo (product sh)) :: Array v a
       xsh = shapeL x
       l = toList x
-      ixs = zip [0 :: Int ..] (mapM (\ s -> [0 .. s - 1]) xsh)
+      ixs = zip [0 :: Int ..] (indices xsh)
       bad = if null xsh then [0] else xsh
   in  forAll (if null l then return [] else listOf ((,) <$> elements ixs <*> (fromIntegral <$> choose (-9, -1 :: Int)))) $ \ us ->
       let set ys ((k, _), e) = [ if k' == k then e else y | (k', y) <- zip [0 ..] ys ]
@@ -352,11 +364,10 @@ prop_rerank v@(View sh _) =
                  .&&. ravel (unravel x :: Array V.Vector (Array v a)) === x
   in  unravelled .&&. forAll (choose (0, length xsh)) (\ n ->
       let (osh, ish) = splitAt n xsh
-          subs = [ toList (foldl (\ a i -> index a i) x is) | is <- mapM (\ s -> [0 .. s - 1]) osh ]
+          subs = [ toList (foldl (\ a i -> index a i) x is) | is <- indices osh ]
           double a = reshape [product (shapeL a)] (mapA (* 2) a)
           -- three times x, laid out in the reverse order of its dimensions
-          rv = reverse [0 .. length xsh - 1]
-          y = transpose rv (fromList (reverse xsh) (toList (transpose rv (mapA (* 3) x))))
+          y = reversedLayout (mapA (* 3) x)
       in  if product osh == 0
           then failsWith "ravelOuter: empty outer dimension" (rerank n double x)
                .&&. failsWith "ravelOuter: empty outer dimension" (rerank2 n (\ a b -> zipWithA (+) a b) x x)

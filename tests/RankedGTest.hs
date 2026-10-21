@@ -47,8 +47,8 @@ import Test.QuickCheck
   ( Arbitrary (..), Property, choose, conjoin, counterexample, forAll, ioProperty
   , property, suchThat, (.&&.), (===) )
 import Views
-  ( Elem, Op (..), View (..), applyOpG, failsIn, genBadOp, genElems, mkViewG, opName, opShape
-  , testPropertyN, upTo )
+  ( Elem, Op (..), View (..), applyOpG, failsIn, genBadOp, genElems, mkViewG, opName
+  , testPropertyN, upTo, viewShape )
 
 test :: Test
 test = testGroup "RankedG" $ backends @Int ++ [testGroup "Word8" (backends @Word8)]
@@ -160,8 +160,7 @@ applyOpR (Stride ts) = \ a -> retype (RG.stride ts a)
 applyOpR (Window ws) = \ a -> RG.window ws a
 applyOpR (Index i) = \ a -> RG.index (retype a :: RG.Array (1 + n') v a) i
 applyOpR (Broadcast ds sh) = \ a -> RG.broadcast ds sh a
-applyOpR (Raw sh ss o k m) = \ a ->
-  let v = RG.toVector a in RG.A sh (I.T ss o (I.vSlice k (I.vLength v - k - m) v))
+applyOpR op@Raw{} = \ (RG.A sh t) -> toR (applyOpG op (DG.A sh t))
 
 -- Each operation of a random view, done by Ranked at the ranks of its
 -- argument and of its result, gives what Dynamic's does.
@@ -201,7 +200,7 @@ prop_badOps v@(View sh _) =
 
 -- The rank of a view.
 rankOf :: View -> Int
-rankOf (View sh ops) = length (foldl opShape sh ops)
+rankOf v = length (viewShape v)
 
 -- rotate, rerank, rerank2, unravel, ravel, stretch and stretchOuter,
 -- whose types fix the ranks they take, give what Dynamic's do on the
@@ -221,6 +220,8 @@ prop_rank3 =
       r = toR x :: RG.Array 3 v a
       xsh = DG.shapeL x
       e = max 0 k  -- an extent
+      ur = RG.unravel r :: RG.Array 1 V.Vector (RG.Array 2 v a)
+      ud = DG.unravel x :: DG.Array V.Vector (DG.Array v a)
       rot :: Int -> RG.Array 4 v a -> Property
       rot d a = counterexample ("rotate " ++ show d) (sameAs (obs a) (obsD (DG.rotate d k x)))
       nested ps = (concatMap fst ps, concatMap snd ps)
@@ -240,11 +241,8 @@ prop_rank3 =
              (scalars 3 (obs (RG.rerank2 @3 (\ y z -> RG.zipWithA (+) y z) r r))
                         (obsD (DG.rerank2 3 (\ y z -> DG.zipWithA (+) y z) x x)))
       .&&. counterexample "unravel"
-             (sameAs (nested (map obs (RG.toList (RG.unravel r :: RG.Array 1 V.Vector (RG.Array 2 v a)))))
-                     (nested (map obsD (DG.toList (DG.unravel x :: DG.Array V.Vector (DG.Array v a))))))
-      .&&. counterexample "ravel"
-             (sameAs (obs (RG.ravel (RG.unravel r :: RG.Array 1 V.Vector (RG.Array 2 v a))))
-                     (obsD (DG.ravel (DG.unravel x :: DG.Array V.Vector (DG.Array v a)))))
+             (sameAs (nested (map obs (RG.toList ur))) (nested (map obsD (DG.toList ud))))
+      .&&. counterexample "ravel" (sameAs (obs (RG.ravel ur)) (obsD (DG.ravel ud)))
       .&&. counterexample "stretch"
              (sameAs (obs (RG.stretch (e : xsh) (RG.reshape @3 @4 (1 : xsh) r)))
                      (obsD (DG.stretch (e : xsh) (DG.reshape (1 : xsh) x))))
