@@ -13,7 +13,7 @@
 -- limitations under the License.
 
 -- The views measured by the micro-benchmark of toVector preserved at
--- https://github.com/Mikolaj/orthotope/tree/speedup-strided-tovector/micro-regime3/,
+-- https://github.com/Mikolaj/orthotope/tree/4fa12a2e2e47feb44218f44473c59de6e60966fa/micro-regime3/,
 -- with the shapes, strides and offsets it gave them, over random Storable
 -- elements, and what it checked of them: the values that toVector, toList,
 -- the two lists of vectors and sumA give, what toVector and sumA allocate,

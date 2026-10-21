@@ -202,9 +202,8 @@ class Vector v where
   -- of a transposed view of 200000 Doubles took 0.42 to 0.49 of its time
   -- at Storable and Unboxed elements, zipWith3A to zipWith5A 0.17 to
   -- 0.61, and pad of rows of two Doubles 0.65 to 0.75, and 0.33 to 0.35
-  -- at boxed.  They wait, with the conditions of those measurements, on
-  -- the branch pr-mikolaj-toVectorListT-vZipWithStrided-vConcatPadN of
-  -- https://github.com/Mikolaj/orthotope.
+  -- at boxed.  They wait, with the conditions of those measurements, at
+  -- https://github.com/Mikolaj/orthotope/tree/0888a7bbb8fc599864d4ba7ee0d462114e4c4589.
 
 class None a
 instance None a
@@ -699,7 +698,7 @@ genericForce v = VG.create $ do
 -- the mutable machinery orthotope's own 'Vector' class deliberately does
 -- not; each vector-backed instance reuses it verbatim.  Ported
 -- bang-for-bang from the fastest fill of the micro-benchmark preserved
--- at https://github.com/Mikolaj/orthotope/tree/speedup-strided-tovector/micro-regime3/
+-- at https://github.com/Mikolaj/orthotope/tree/4fa12a2e2e47feb44218f44473c59de6e60966fa/micro-regime3/
 -- as of the commit "Read the runs' elements as genericFillStrided does" (the
 -- bang patterns are part of what was measured), but for the count's bang, whose
 -- removal shrinks the -O1 Core, and for the copied run; one choice made for the
@@ -1356,7 +1355,7 @@ routePartsT route step nil = case route of
 -- natural order.  Dispatches as 'toVectorListT' does, except that a
 -- view of contiguous runs is filled through 'vUnsafeFillStrided' rather than
 -- sliced and concatenated: in the micro-benchmark preserved at
--- https://github.com/Mikolaj/orthotope/tree/speedup-strided-tovector/micro-regime3/,
+-- https://github.com/Mikolaj/orthotope/tree/4fa12a2e2e47feb44218f44473c59de6e60966fa/micro-regime3/,
 -- on runs of nine elements, the slice list ties the fill on time
 -- and allocates several times the result in slice headers and list
 -- cells.  Where its instance asks, the fill copies each run whole into its one
@@ -1632,7 +1631,7 @@ canonicalizeSortedT [] axes = axes
 -- has reached the longer joins it, also in a k x 1 or a channels-last
 -- window, where 'runRank' prefers the other.  Why no other order is
 -- tried, and the tie that stays open:
--- https://github.com/Mikolaj/orthotope/blob/speedup-strided-tovector/micro-regime3/README.md#dead-ideas
+-- https://github.com/Mikolaj/orthotope/blob/4fa12a2e2e47feb44218f44473c59de6e60966fa/micro-regime3/README.md#dead-ideas
 --
 -- Why the zero-stride axis moves just outside the run, and why after
 -- the merge.  A broadcast axis, stride 0, reads the same cells at every
