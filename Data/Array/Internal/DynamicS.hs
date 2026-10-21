@@ -338,6 +338,9 @@ type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }
   deriving (Pretty, Generic, Data)
 
+-- Through Generic, so that rnf evaluates the shape and the vector to weak head
+-- normal form, as vector's own rnf does, and no element, every element being
+-- stored evaluated; the boxed modules' rnf evaluates the elements of the view.
 instance NFData (Array a)
 
 -- Point-free, as are the point-free wrappers and instance methods below, for
