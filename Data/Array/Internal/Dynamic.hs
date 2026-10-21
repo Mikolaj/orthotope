@@ -31,7 +31,11 @@
 -- only -fpolymorphic-specialisation makes them, off by default before GHC HEAD:
 -- without it, on 9.12.4, a boxed reshape, pad or append took 5 to 8 times as
 -- long on a transposed [400, 500] view of Doubles.  9.6.3 is the first GHC to
--- know the flag, and DynamicS turns it off for the opposite reason.
+-- know the flag, and DynamicS turns it off for the opposite reason.  GHC turned
+-- polymorphic specialisation off by default, adding the flag, after wrong
+-- results at run time, https://gitlab.haskell.org/ghc/ghc/-/work_items/23469
+-- among them, and turns it on by default only in HEAD, after fixes no 9.x
+-- release carries: before HEAD the speed comes at the risk of such a result.
 #if MIN_VERSION_GLASGOW_HASKELL(9,6,3,0)
 {-# OPTIONS_GHC -fpolymorphic-specialisation #-}
 #endif
