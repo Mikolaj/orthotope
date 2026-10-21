@@ -620,9 +620,27 @@ broadcast a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now
 {-# INLINE update #-}
 update :: forall sh v a . (HasCallStack, Vector v, VecElem v a, Shape sh) =>
           Array sh v a -> [([Int], a)] -> Array sh v a
--- Through DynamicG's update, as 'rotate' goes through DynamicG's rotate.
-update a@(A t) us = case DG.update (DG.A (shapeL a) t) us of
-  DG.A _ t' -> A t'
+-- Not through DynamicG's update, as RankedG's is not: through it, on GHC HEAD
+-- 10.1.20261019 (2026-10-21), the specialisation benchmark's forced update
+-- at [3, 3] ran 441 to 449 instructions a call more at Storable and Unboxed
+-- elements, 41 to 67%, allocating 144 bytes a call more, and 18 to 20 more at
+-- boxed ones, up to 1.4%; only its update2000 of boxed elements ran fewer, 10 a
+-- call, 0.3%.
+update a@(A t) us | null us = A t  -- no update: the array itself
+                  | otherwise = A $ updateT sh t (checked us)
+  where sh = shapeL a
+        ok is = length is == r && and (zipWith (\ i s -> 0 <= i && i < s) is sh)
+        r = length sh
+        -- Each index is checked as updateT takes it, under 'build', so that
+        -- updateT's map fuses with the check: the list is walked once, neither
+        -- copied nor held whole.  The indices before the first bad one are
+        -- good, so the error lists every bad one.
+        checked xs = build $ \ cons nil ->
+          let go (u@(is, _) : rest)
+                | ok is = u `cons` go rest
+                | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst (u : rest))
+              go [] = nil
+          in  go xs
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}

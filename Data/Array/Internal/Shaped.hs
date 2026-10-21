@@ -172,6 +172,9 @@ normalize = A . G.normalize . unA
 force :: (Shape sh) => Array sh a -> Array sh a
 force = A . G.force . unA
 
+-- Point-free, without the bang ShapedS's and ShapedU's reshape take: boxed, on
+-- GHC HEAD 10.1.20261019 (2026-10-21), it moved no count of the specialisation
+-- benchmark's reshape.
 -- | Change the shape of an array.  Type error if the arrays have different number of elements.
 -- O(n) or O(1) time.
 {-# INLINE reshape #-}

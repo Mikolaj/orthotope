@@ -748,6 +748,9 @@ broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dime
 {-# INLINE update #-}
 update :: forall n v a . (HasCallStack, Vector v, VecElem v a) =>
           Array n v a -> [([Int], a)] -> Array n v a
+-- Not through DynamicG's update, as ShapedG's is not: through it, on GHC HEAD
+-- 10.1.20261019 (2026-10-21), the specialisation benchmark's forced update at
+-- [3, 3] ran 15 to 22 instructions a call more, up to 1.3%.
 update (A sh t) us | null us = A sh t  -- no update: the array itself
                    | otherwise = A sh $ updateT sh t (checked us)
   where ok is = length is == r && and (zipWith (\ i s -> 0 <= i && i < s) is sh)

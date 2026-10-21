@@ -167,6 +167,10 @@ fromVector = A . G.fromVector
 normalize :: forall sh a . (Unbox a, Shape sh) => Array sh a -> Array sh a
 normalize = A . G.normalize . unA
 
+-- INLINE, not INLINABLE as DynamicS's and RankedS's force: INLINABLE here, on
+-- GHC HEAD 10.1.20261019 (2026-10-21), changed no instruction count of the
+-- specialisation benchmark's force and allocated 32 bytes a call more in its
+-- summed force of a small array.
 -- | Copy the elements of the array into a vector of their own, in the
 -- linearization order, sharing no storage with another array.  This is
 -- especially useful for a view of a large array, such as @'index' a 0@,
