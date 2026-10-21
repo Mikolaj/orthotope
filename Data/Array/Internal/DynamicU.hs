@@ -473,7 +473,7 @@ ravel = A . G.ravel . G.mapA unA . D.unA
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
 -- Fails if the array has rank 0.
-unravel :: HasCallStack => Array a -> D.Array (Array a)
+unravel :: (HasCallStack) => Array a -> D.Array (Array a)
 unravel = D.A . G.mapA A . G.unravel . unA
 
 -- | Make a window of the outermost dimensions.
@@ -629,9 +629,9 @@ allA p = G.allA p . unA
 -- Fails if an index is not a dimension of the result or the argument's
 -- dimensions differ from the result's at those indices.
 {-# INLINE broadcast #-}
-broadcast :: HasCallStack =>
+broadcast :: (HasCallStack) =>
              [Int] -> ShapeL -> Array a -> Array a
-broadcast ds sh = A. G.broadcast ds sh . unA
+broadcast ds sh = A . G.broadcast ds sh . unA
 
 -- | Update the array at the specified indices to the associated value.
 -- Fails if an index is out of bounds.

@@ -422,6 +422,7 @@ allSameA = G.allSameA . unA
 instance (Shape sh, Arbitrary a, Unbox a) => Arbitrary (Array sh a) where
   {-# INLINABLE arbitrary #-}
   arbitrary = A <$> arbitrary
+
 -- INLINABLE: see Data.Array.Internal.Dynamic's sumA.
 -- | Sum of all elements.
 {-# INLINABLE sumA #-}

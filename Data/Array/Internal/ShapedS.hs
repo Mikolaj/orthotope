@@ -65,8 +65,8 @@ import Data.Data(Data)
 import qualified Data.Vector.Storable as V
 import Foreign.Storable(sizeOf)
 import GHC.Generics(Generic)
-import GHC.TypeLits(KnownNat, type (+), type (<=))
 import GHC.Stack(HasCallStack)
+import GHC.TypeLits(KnownNat, type (+), type (<=))
 import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 

@@ -15,9 +15,9 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ExplicitNamespaces #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -416,7 +416,7 @@ traverseA f = fmap A . G.traverseA f . unA
 
 -- | Check if all elements of the array are equal.
 {-# INLINE allSameA #-}
-allSameA :: forall n a . (Unbox a, Eq a) => Array n a -> Bool
+allSameA :: forall r a . (Unbox a, Eq a) => Array r a -> Bool
 allSameA = G.allSameA . unA
 
 instance (KnownNat r, Arbitrary a, Unbox a) => Arbitrary (Array r a) where
