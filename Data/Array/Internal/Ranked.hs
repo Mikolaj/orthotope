@@ -172,7 +172,7 @@ force = A . G.force . unA
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.
 {-# INLINE reshape #-}
-reshape :: forall n' n a . (HasCallStack, KnownNat n') => ShapeL -> Array n a -> Array n' a
+reshape :: forall n n' a . (HasCallStack, KnownNat n') => ShapeL -> Array n a -> Array n' a
 reshape s = A . G.reshape s . unA
 
 -- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
