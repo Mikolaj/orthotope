@@ -106,8 +106,9 @@ unevaluated in `Data.Vector` and in `Data.Vector.Unboxed`'s `DoNotUnboxLazy`,
 and an element an operation only reads or moves, as a fold or a copy does,
 is handed on as stored, evaluated only by a function it is handed to, with two
 exceptions. The `Storable` modules evaluate an element they read, or copy one
-at a time, its `peek` being the type's own decoding, so a type whose `peek` can
-fail fails there; and the `Unboxed` modules, copying a view broadcast along
+at a time at a size other than 1, 2, 4 or 8 bytes or an alignment not a multiple
+of the size, its `peek` being the type's own decoding, so a type whose `peek`
+can fail fails there; and the `Unboxed` modules, copying a view broadcast along
 its innermost dimension, evaluate a `DoNotUnboxLazy` element,
 as vector-0.13.2.0's `elemseq` does against its documentation ([vector issue
 575](https://github.com/haskell/vector/issues/575)). A view, such as `index`,
