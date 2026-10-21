@@ -106,14 +106,14 @@ instance Vector V.Vector where
   -- vToList, vFold, vAll and vAny hand each element to a function of the
   -- client's, so they read it by index and force it, where vector's own hand on
   -- Storable's read as a thunk (https://github.com/haskell/vector/issues/570)
-  -- that a function GHC cannot see into, or a consumer keeping the elements,
-  -- as traverseA does, takes as it is, 40 bytes an element holding the vector.
-  -- On GHC HEAD with vector patched as the issue proposes and -fspec-constr,
-  -- the operations reading through them took 0.95 to 1.02 of their time; at
-  -- -O1, anyA and allA took 0.61 and 0.91 of it, fixed or not.  vSum, vProduct,
-  -- vMaximum and vMinimum keep vector's own: their functions are the element's
-  -- class methods, which a call the client specialises knows, so the read is no
-  -- thunk there.
+  -- that a function GHC cannot see into, or a consumer keeping the elements, as
+  -- traverseA does, takes as it is, 40 bytes an element holding the vector.  On
+  -- GHC HEAD with vector patched as the issue proposes and -fspec-constr, the
+  -- operations reading through them took 0.95 to 1.02 of their time; at -O1,
+  -- anyA and allA took 0.61 and 0.91 of it, fixed or not.  vSum and vProduct
+  -- keep vector's own: their functions are the element's class methods, which a
+  -- call the client specialises knows, so the read is no thunk there; vMaximum
+  -- and vMinimum fold over the indices, for the reason at them.
   {-# INLINE vToList #-}
   vToList v = build $ \ cons nil ->
     let !n = V.length v
@@ -134,22 +134,28 @@ instance Vector V.Vector where
   vSingleton a = V.create (do v <- MV.unsafeNew 1; MV.unsafeWrite v 0 a; return v)
   {-# INLINE vReplicate #-}
   vReplicate = V.replicate
-  -- The map and the zips generate their result over the indices, working
+  -- The map and the zips build their result over the indices, working
   -- around vector's own, whose stream-fused loops allocate per element:
   -- a zipWith on Doubles 112 bytes an element at -O1, against 8, taking
   -- through zipWithA and zipWith3A 7 to 49 times as long, and still 64
   -- with the SpecConstr of -O2, 56 of them the lazy element read of
   -- https://github.com/haskell/vector/issues/570.  No fusion is given up:
-  -- vector's fuse with a vector they read, but each array operation stores its
-  -- result, so the array operations never fused their inputs; a map of a map
-  -- allocates one vector per map, with vector's map as with this one.
+  -- vector's fuse with a vector they read, but each array operation stores
+  -- its result, so the array operations never fused their inputs; a map of
+  -- a map allocates one vector per map, with vector's map as with this one.
   -- Each read is forced before the function takes it: given a function GHC
-  -- cannot see into, on GHC HEAD with vector patched as issue 570 proposes, on
-  -- views of 200000 Doubles, mapA allocated 40 bytes an element where 80 and
-  -- zipWithA 72 where 152, and given known functions every operation ran as
-  -- many instructions as before.
+  -- cannot see into, on GHC HEAD with vector patched as issue 570 proposes,
+  -- on views of 200000 Doubles, mapA allocated 40 bytes an element where 80
+  -- and zipWithA 72 where 152, and given known functions every operation ran
+  -- as many instructions as before.  The map, zipWith3 and zipWith4 write it
+  -- by a loop of their own ('indexLoop') rather than by generate: on GHC HEAD
+  -- 10.1.20261019 (2026-10-21) the specialisation benchmark's forced mapA,
+  -- zipWith3A and zipWith4A ran 21 to 29 instructions a call fewer at [3, 3], 1
+  -- to 3%, and 2 an element fewer at [400, 500], 8 to 25%, the zips allocating
+  -- 16 bytes a call less at [3, 3]; zipWith and zipWith5 keep generate, the
+  -- loop not tried on them.
   {-# INLINE vMap #-}
-  vMap f v = V.generate (V.length v) (\ i -> let !x = V.unsafeIndex v i in f x)
+  vMap f v = indexLoop (V.length v) (\ i -> let !x = V.unsafeIndex v i in f x)
   {-# INLINE vZipWith #-}
   vZipWith f a b =
     V.generate (V.length a `min` V.length b) $ \ i ->
@@ -158,14 +164,14 @@ instance Vector V.Vector where
       in  f x y
   {-# INLINE vZipWith3 #-}
   vZipWith3 f a b c =
-    V.generate (V.length a `min` V.length b `min` V.length c) $ \ i ->
+    indexLoop (V.length a `min` V.length b `min` V.length c) $ \ i ->
       let !x = V.unsafeIndex a i
           !y = V.unsafeIndex b i
           !z = V.unsafeIndex c i
       in  f x y z
   {-# INLINE vZipWith4 #-}
   vZipWith4 f a b c d =
-    V.generate (V.length a `min` V.length b `min` V.length c
+    indexLoop (V.length a `min` V.length b `min` V.length c
                 `min` V.length d) $ \ i ->
       let !x = V.unsafeIndex a i
           !y = V.unsafeIndex b i
@@ -205,12 +211,34 @@ instance Vector V.Vector where
   vSum = V.sum
   {-# INLINE vProduct #-}
   vProduct = V.product
-  -- vMaximum and vMinimum are named, for the bangs, as at the boxed instance
-  -- in Data.Array.Internal.Dynamic.
+  -- INLINE: see the header of Data.Array.Internal, where these two are measured
+  -- with productT, maximumT and minimumT.
+  --
+  -- The maximum and the minimum fold over the indices, in the order of vector's
+  -- foldl1', as DynamicU's do: on GHC HEAD 10.1.20261019 (2026-10-21) the
+  -- specialisation benchmark's forced maximumA and minimumA ran 3 instructions
+  -- a call fewer at [3, 3] and 1 an element fewer at [400, 500], 10 to 12.5%,
+  -- than through vector's own.
   {-# INLINE vMaximum #-}
-  vMaximum !a = V.maximum a
+  vMaximum v | V.null v = V.maximum v
+               -- No reduction here passes an empty vector; another caller's
+               -- fails as vector's maximum does.
+             | otherwise = let !x0 = V.unsafeIndex v 0 in go x0 1
+    where !n = V.length v
+          go !acc !i | i >= n = acc
+                     | otherwise =
+                         let !x = V.unsafeIndex v i in go (max acc x) (i + 1)
+  -- INLINE: see vMaximum.
+  -- Folded as vMaximum is.
   {-# INLINE vMinimum #-}
-  vMinimum !a = V.minimum a
+  vMinimum v | V.null v = V.minimum v
+               -- No reduction here passes an empty vector; another caller's
+               -- fails as vector's minimum does.
+             | otherwise = let !x0 = V.unsafeIndex v 0 in go x0 1
+    where !n = V.length v
+          go !acc !i | i >= n = acc
+                     | otherwise =
+                         let !x = V.unsafeIndex v i in go (min acc x) (i + 1)
   {-# INLINE vUpdate #-}
   vUpdate = (V.//)
   {-# INLINE vGenerate #-}
@@ -296,6 +324,15 @@ type Bits64 = Double
 #else
 type Bits64 = Word64
 #endif
+
+-- A vector of n elements, the ith g i, written over the indices.
+{-# INLINE indexLoop #-}
+indexLoop :: Unbox a => Int -> (Int -> a) -> V.Vector a
+indexLoop !n g = V.create $ do
+  mv <- MV.unsafeNew n
+  let go !i | i >= n = return mv
+            | otherwise = MV.unsafeWrite mv i (g i) >> go (i + 1)
+  go 0
 
 type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }

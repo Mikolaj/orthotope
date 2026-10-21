@@ -159,13 +159,12 @@ instance Vector V.Vector where
   vSum = V.sum
   {-# INLINE vProduct #-}
   vProduct = V.product
-  -- vMaximum and vMinimum are named, for the bangs, here and in the Storable
-  -- instance of Data.Array.Internal.DynamicS: on GHC HEAD 10.1.20260918
-  -- (2026-10-17) the specialisation benchmark's maximumA and minimumA ran 13
-  -- to 15 instructions a call fewer with them boxed, up to 4.2%, and 6 fewer
-  -- Storable, up to 2.1%, on every view but runs, scaled and window.  With a
-  -- bang GHC copies the fold into each branch of the case on the view's start,
-  -- where without one a branch called a copy floated out to the top level.
+  -- vMaximum and vMinimum are named, for the bangs: on GHC HEAD 10.1.20260918
+  -- (2026-10-17) the specialisation benchmark's maximumA and minimumA ran 13 to
+  -- 15 instructions a call fewer with them boxed, up to 4.2%, on every view but
+  -- runs, scaled and window.  With a bang GHC copies the fold into each branch
+  -- of the case on the view's start, where without one a branch called a copy
+  -- floated out to the top level.
   {-# INLINE vMaximum #-}
   vMaximum !a = V.maximum a
   {-# INLINE vMinimum #-}
