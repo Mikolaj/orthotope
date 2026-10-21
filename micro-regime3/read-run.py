@@ -14867,7 +14867,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     # rewraps this file on every edit, and where a hook restores its
     # committed form it can move between one session turn and the next, so
     # a `.md:12` would rot with nothing in any history to show it. Its
-    # counterpart in horde-ad is `check-plan-citations.py`'s PROSE-LINE,
+    # counterpart in ~/slop/tools is `check-plan-citations.py`'s LINE-NUMBER,
     # which refuses the same citation from the other side.
     #
     # Non-vacuous 2026-08-13: planting `micro-regime3/README.md:12` and a

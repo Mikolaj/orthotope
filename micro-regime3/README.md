@@ -5749,8 +5749,7 @@ read at all. Said here rather than beside the verification pass it governs
 because a session starts in another repository and arrives
 with that repository's standing checks already resident, so the moment to know
 this is the moment the checklist reaches these two steps. If a future document
-here does grow `file:line` citations, that is the moment to port one,
-and not before.
+here does grow code citations, that is the moment to port one, and not before.
 
 **Where the effort actually goes, because it is not where it looks.** The run
 is several hours and *unattended* --- a process sitting far longer
@@ -7625,14 +7624,14 @@ size comes from the reader's first line;
    but its passes live here, in this repo's own instruments,
    and the general-purpose form of it does not fit a README whose claims
    are *measurements* rather than statements about code. Pass 1, which resolves
-   `file:line` citations and pinned permalinks, has no subject: this README
-   cites no line and no permalink, deliberately, and what it does cite --- arm
-   names, strategy names, shape names, `Main.hs` functions --- is what `--lint`
-   checks, which a line number could not, a citation surviving the refactor
-   that moves it. Pass 2 is `--check-doc`'s path check. Pass 3 is the reading,
-   below. The heading-scope and cross-reference passes are `--check-doc`'s
-   anchor and replace-list coverage checks. No other repository's checkers
-   belong in this README, for the reason given with the pre-run checklist, where
+   code citations and pinned permalinks, has no subject: this README cites
+   no line and no permalink, deliberately, and what it does cite --- arm names,
+   strategy names, shape names, `Main.hs` functions --- is what `--lint` checks,
+   which a line number could not, a citation surviving the refactor that moves
+   it. Pass 2 is `--check-doc`'s path check. Pass 3 is the reading, below.
+   The heading-scope and cross-reference passes are `--check-doc`'s anchor
+   and replace-list coverage checks. No other repository's checkers belong
+   in this README, for the reason given with the pre-run checklist, where
    a session meets these two tools first.
 
    **What the instruments cannot supply is the reading, and the reading
