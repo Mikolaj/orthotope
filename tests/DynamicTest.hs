@@ -43,7 +43,8 @@ import Test.QuickCheck
   (Property, choose, classify, conjoin, counterexample, elements, forAll, property, (.&&.), (===))
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
-import Views (View (..), assertThrowsIn, failsWith, genRawView, mkView, testPropertyN)
+import Views ( View (..), assertThrowsIn, assertThrowsWith, assertWhnfThrowsIn
+             , failsWith, genRawView, mkView, testPropertyN )
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -182,7 +183,7 @@ test = testGroup "Dynamic" $
       vFromListN_2 = assertEqual "2" [1,2]
                                      (G.toList (G.fromList [2] [1,2] :: G.Array OldVector Int))
       vSlice_1 = assertEqual "1" ([2,3], []) (I.vSlice 1 2 [1,2,3::Int], I.vSlice 3 0 [1,2,3::Int])
-      vSlice_2 = mapM_ (\ (o, n) -> assertThrows "2" (I.vSlice o n [1,2,3::Int]))
+      vSlice_2 = mapM_ (\ (o, n) -> assertThrowsIn "2" "vSlice" (I.vSlice o n [1,2,3::Int]))
                        [(2,5), (4,0), (-1,1), (0,-1)]
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [6] [1..6]) (reshape [6] a1)
@@ -202,14 +203,11 @@ test = testGroup "Dynamic" $
       iota_1 = assertEqual "1" (map fromIntegral [0..299::Int]) (toList (iota 300 :: Array Word8))
       -- iota stores its elements evaluated, so evaluating the array
       -- evaluates its 1.
-      iota_2 = try (evaluate (iota 3 :: Array OneFails)) >>=
-               either (\ (ErrorCall e) -> assertEqual "2" "1 evaluated" e)
-                      (const (assertFailure "2"))
+      iota_2 = assertWhnfThrowsIn "2" "1 evaluated" (iota 3 :: Array OneFails)
       -- So does vGenerate', which iota calls, at vector's DoNotUnboxLazy,
       -- whose write stores an element as it is given.
-      iota_3 = try (evaluate (I.vGenerate' 3 g :: VU.Vector (VU.DoNotUnboxLazy Int))) >>=
-               either (\ (ErrorCall e) -> assertEqual "3" "1 evaluated" e)
-                      (const (assertFailure "3"))
+      iota_3 = assertWhnfThrowsIn "3" "1 evaluated"
+                                  (I.vGenerate' 3 g :: VU.Vector (VU.DoNotUnboxLazy Int))
         where g i = VU.DoNotUnboxLazy (if i == 1 then error "1 evaluated" else i)
       -- An n below 0 gives vGenerate' no elements, at every instance.
       iota_4 = assertEqual "4" (0, 0, 0, 0)
@@ -251,8 +249,8 @@ test = testGroup "Dynamic" $
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "1" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
       mapA_3 = assertEqual "3" True  -- 1 `div` 0 outside the view, the vector forced as if strict
-                               (case mapA (1 `div`) (stretch [4] (slice [(2,1)] (fromList [3] [0,0,1 :: Int]))) of
-                                  DI.A (DG.A _ t) -> V.all (== 1) (I.values t))
+                               (V.all (== 1) (valuesOf
+                                  (mapA (1 `div`) (stretch [4] (slice [(2,1)] (fromList [3] [0,0,1 :: Int]))))))
       -- mapA maps only the part of the vector a view reads, and a broadcast
       -- of a view that skips elements without its broadcast dimensions.
       mapA_4 = assertEqual "4" [100, 100, 2]
@@ -260,7 +258,6 @@ test = testGroup "Dynamic" $
                  , vlen (mapA (+ 1) (window [50] (iota 100 :: Array Int)))
                  , vlen (mapA (+ 1) (broadcast [1] [1000,2] (stride [2] (fromList [3] [1,2,3 :: Int])))) ]
         where m = fromList [10,100] [1..1000] :: Array Int
-              vlen x = case x of DI.A (DG.A _ t) -> V.length (I.values t)
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
       zipWithA_2 = assertThrows "2" (zipWithA (+) a1 a2)
       zipWithA_3 = assertEqual "3" [] (toList (zipWithA quot (constant [0] 1) (constant [0] (0 :: Int))))  -- 1 `quot` 0 outside the view
@@ -421,8 +418,7 @@ test = testGroup "Dynamic" $
       window_3 = assertThrows "3" (window [3,3,3] a6)
       -- The window list is checked before the shape, and the message shows
       -- an extent past maxBound as it is.
-      window_4 = mapM_ (\ (m, a) -> catch (deepseq a $ assertFailure m)
-                                         (\ (ErrorCall e) -> assertEqual m m e))
+      window_4 = mapM_ (\ (m, a) -> assertThrowsWith m m a)
         [ ("window: rank mismatch ([0,1],[9223372036854775807])", window [0, 1] (constant [maxBound] (0 :: Int)))
         , ("window: bad shape [9223372036854775808,0]", window [0] (constant [maxBound] 0)) ]
       -- An operation that returns its argument or a view of a part of it
@@ -441,7 +437,7 @@ test = testGroup "Dynamic" $
           , toList (rotate 0 1 a1), toList (rotate 1 1 a1), toList (pad [(0,0)] 0 a1), toList (force a1) ]
         assertEqual "shapes" [[1,2,3], [1,2,3], [2,1,3]]
           [shapeL (ravel (fromList [1] [a1])), shapeL (rotate 0 1 a1), shapeL (rotate 1 1 a1)]
-        where buf (DI.A (DG.A _ t)) = case V.toArraySlice (I.values t) of
+        where buf x = case V.toArraySlice (valuesOf x) of
                 (P.Array a, _, _) -> a
               shares b = isTrue# (sameMutableArray# (unsafeCoerce# (buf a1))
                                                     (unsafeCoerce# (buf b)))
@@ -456,8 +452,8 @@ test = testGroup "Dynamic" $
                                                     21,23])
                                  (stride [1,2,2] a5)
       stride_2 = assertThrows "2" (stride [1,2,2] a1)
-      stride_3 = assertThrows "3" (stride [0] a1)
-      stride_4 = assertThrows "4" (stride [-1] a1)
+      stride_3 = assertThrowsIn "3" "stride" (stride [0] a1)
+      stride_4 = assertThrowsIn "4" "stride" (stride [-1] a1)
       stride_5 = assertEqual "5" (fromList [1] [1]) (stride [maxBound] (fromList [3] [1,2,3::Int]))
       -- stride with fewer strides than dimensions keeps the rest.
       stride_6 = assertEqual "6" (fromList [2, 2] [1, 2, 5, 6]) (stride [2] (fromList [4, 2] [1 .. 8 :: Int]))
@@ -504,7 +500,7 @@ test = testGroup "Dynamic" $
       rotate_4 = assertThrowsIn "4" "rotate" (rotate 0 (-2) $ fromList [3] [1,2,3::Int])
       rotate_5 = assertEqual "5" (fromList [0,2,3] []) (rotate 1 2 $ fromList [0,3] ([] :: [Int]))
       rotate_6 = assertEqual "6" 0  -- the empty rotation keeps no vector alive
-                                 (case rotate 1 2 (slice [(0,0)] a1) of DI.A (DG.A _ t) -> V.length (I.values t))
+                                 (vlen (rotate 1 2 (slice [(0,0)] a1)))
       rotate_7 = assertThrowsIn "7" "rotate" (rotate (-1) 2 $ fromList [3] [1,2,3::Int])
       -- Two rotations of a row of n elements, 2^31+1 at a 64-bit Int, where
       -- a view of all the windows of the row's copies has more elements than
@@ -519,8 +515,7 @@ test = testGroup "Dynamic" $
       -- A negative size or count and too few broadcast dimensions fail at the
       -- checks of the shape they would make, and an empty outer dimension at
       -- ravelOuter's check of its list.
-      laterChecks_1 = mapM_ (\ (m, a) -> catch (deepseq a $ assertFailure m)
-                                              (\ (ErrorCall e) -> assertEqual m m e))
+      laterChecks_1 = mapM_ (\ (m, a) -> assertThrowsWith m m a)
         [ ("stretchOuter: bad shape [-1,2]", stretchOuter (-1) (fromList [1,2] [1,2 :: Int]))
         , ("rotate: bad shape [-2,3]", rotate 0 (-2) (fromList [3] [1,2,3]))
         , ("broadcast: shape mismatch ([2,3],[0],[2,3])", broadcast [0] [2,3] (fromList [2,3] [1..6]))
@@ -560,8 +555,7 @@ test = testGroup "Dynamic" $
                               (rev [1] a1)
       rev_2 = assertEqual "2" (fromList [2,3] [6,5,4,3,2,1])
                               (rev [0,1] a1)
-      rev_3 = assertThrows "3" (rev [2] a1)
-      rev_4 = assertThrowsIn "4" "rev" (rev [2] a1)
+      rev_3 = assertThrowsIn "3" "rev" (rev [2] a1)
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank 1 (\ r -> reduce (*) 1 r) a1)
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (\ r -> reduce (*) 1 r) a2)
@@ -609,8 +603,8 @@ test = testGroup "Dynamic" $
                 I.RRuns (I.Axes _ n _) _ _ -> Just n
                 _ -> Nothing
 
-      -- One call of each wrapper that the other tests of DynamicTest,
-      -- DynamicSTest or DynamicUTest leave uncalled.
+      -- Calls of wrappers that the other tests of this module leave uncalled,
+      -- each against its value.
       wrappers_1 = do
         assertEqual "size" 6 (size a1)
         assertEqual "sumA" 21 (sumA a1)
@@ -629,8 +623,6 @@ test = testGroup "Dynamic" $
         assertEqual "generate" [0 .. 5] (toList (generate [2, 3] (\ is -> 3 * is !! 0 + is !! 1) :: Array Int))
         assertEqual "broadcast" [1, 2, 3, 1, 2, 3] (toList (broadcast [1] [2, 3] (index a1 0)))
         assertEqual "stretchOuter" [1, 2, 3, 1, 2, 3] (toList (stretchOuter 2 (reshape [1, 3] (index a1 0))))
-        assertEqual "rotate" [2, 3, 1, 1, 2, 3] (toList (rotate 0 2 (index a1 0)))
-        assertEqual "ravel . unravel" a1 (ravel (unravel a1))
 
       tests =
         [ testCase "show_1" show_1
@@ -769,7 +761,6 @@ test = testGroup "Dynamic" $
         , testCase "rev_1" rev_1
         , testCase "rev_2" rev_2
         , testCase "rev_3" rev_3
-        , testCase "rev_4" rev_4
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
@@ -795,12 +786,24 @@ test = testGroup "Dynamic" $
         ]
   in  tests
 
+-- The vector of the array.
+valuesOf :: Array a -> V.Vector a
+valuesOf (DI.A (DG.A _ t)) = I.values t
+
+-- The length of the vector of the array.
+vlen :: Array a -> Int
+vlen x = V.length (valuesOf x)
+
+-- The positions in the vector of the elements a view reads, in its order.
+viewIndices :: View -> [Int]
+viewIndices v@(View sh _) = toList (mkView v [0 .. product sh - 1])
+
 -- The view over the vector of its indices, with the elements outside
 -- the view failing when forced.
 mkViewOnly :: View -> Array Int
 mkViewOnly v@(View sh _) =
   let n = product sh
-      is = toList (mkView v [0 .. n - 1])
+      is = viewIndices v
   in  mkView v [ if i `elem` is then i else error "outside the view" | i <- [0 .. n - 1] ]
 
 -- readRangeT finds the part of the vector a view reads where it reads every
@@ -832,13 +835,13 @@ prop_mapA v =
   let x = mkViewOnly v
       y = mapA (* 2) x
   in  toList y === map (* 2) (toList x)
-      .&&. (case y of DI.A (DG.A _ t) -> V.sum (I.values t) >= 0)
+      .&&. V.sum (valuesOf y) >= 0
 
 -- A prefix of toList and its length force no element outside the prefix.
 prop_toListLazy :: View -> Property
 prop_toListLazy v@(View sh _) =
   let n = product sh
-      is = toList (mkView v [0 .. n - 1])
+      is = viewIndices v
   in  forAll (choose (0, length is)) $ \ k ->
       let pre = take k is
           x = mkView v [ if i `elem` pre then i else error "outside the prefix"
@@ -854,7 +857,6 @@ prop_lazy v@(View sh _) =
       xsh = shapeL x
       n = product xsh
       t = case x of DI.A (DG.A _ t') -> t'
-      vlen y = case y of DI.A (DG.A _ t') -> V.length (I.values t')
   in  conjoin
         [ counterexample name ok
         | (name, ok) <-
@@ -884,7 +886,7 @@ samePtr a b = isTrue# (reallyUnsafePtrEquality# a b)
 prop_sameElems :: View -> Property
 prop_sameElems v@(View sh _) =
   let n = product sh
-      is = toList (mkView v [0 .. n - 1])
+      is = viewIndices v
       xs = map Just [0 .. n - 1]
       src = V.fromList xs
       x = mkView v xs
@@ -908,7 +910,7 @@ prop_sameElems v@(View sh _) =
 prop_rnf :: View -> Property
 prop_rnf v@(View sh _) =
   let n = product sh
-      is = toList (mkView v [0 .. n - 1])
+      is = viewIndices v
   in  rnf (mkViewOnly v) === ()
       .&&. (if null is then property True
             else forAll (elements is) $ \ i ->

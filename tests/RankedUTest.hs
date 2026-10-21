@@ -25,6 +25,7 @@ import qualified Data.Vector.Unboxed as V
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
+import Views (assertThrowsIn)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -212,8 +213,8 @@ test = testGroup "RankedU" $
                                                     21,23])
                                  (stride [1,2,2] a5)
       stride_2 = assertThrows "2" (stride [1,2,2] a1)
-      stride_3 = assertThrows "3" (stride [0] a1)
-      stride_4 = assertThrows "4" (stride [-1] a1)
+      stride_3 = assertThrowsIn "3" "stride" (stride [0] a1)
+      stride_4 = assertThrowsIn "4" "stride" (stride [-1] a1)
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrows "2" (slice [(0,0)] a4)
@@ -261,7 +262,6 @@ test = testGroup "RankedU" $
         assertEqual "size" 6 (size a1)
         assertEqual "traverseA" (Just [2 .. 7]) (fmap (\ a -> toList a) (traverseA (Just . (+ 1)) a1))
         assertEqual "stretchOuter" [1, 2, 3, 1, 2, 3] (toList (stretchOuter 2 (reshape [1, 3] (index a1 0) :: Array 2 Int)))
-        assertEqual "ravel . unravel" [1 .. 6] (toList (ravel (unravel a1)))
         assertEqual "rotate" [2, 3, 1, 1, 2, 3] (toList (rotate @0 @1 2 (fromList [3] [1, 2, 3]) :: Array 2 Int))
         assertEqual "broadcast" [1, 2, 3, 1, 2, 3] (toList (broadcast [1] [2, 3] (index a1 0) :: Array 2 Int))
         assertEqual "generate" [0 .. 5] (toList (generate [2, 3] (sum . zipWith (*) [3, 1]) :: Array 2 Int))

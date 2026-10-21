@@ -64,14 +64,13 @@ import Data.Int (Int64)
 import Data.List (intercalate, isSuffixOf, mapAccumR)
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
-import GHC.Conc (getAllocationCounter, setAllocationCounter)
 import Test.Framework (Test, TestOptions' (..), plusTestOptions, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.HUnit (Assertion, assertBool)
 import Test.QuickCheck (Property, choose, counterexample, forAll, (.&&.), (===))
 
-import Call (Call (..))
+import Call (Call (..), allocated)
 import qualified Call
 import qualified OpsDynamic as OD
 import qualified OpsRanked as OR
@@ -141,15 +140,11 @@ test = testGroup "BenchViews"
          , testCase "Unboxed, not specialised" (fillOver unspecialisedFillU) ]
   , optimisedGroup "walks"
       $  [ testCase (family ++ "/" ++ name) (walked name kinds bound bs ss us)
-         | (family, bs, ss, us) <- [ ("Dynamic", OD.opsB, OD.opsS, OD.opsU)
-                                   , ("Ranked", OR.opsB, OR.opsS, OR.opsU)
-                                   , ("Shaped", OS.opsB, OS.opsS, OS.opsU) ]
+         | (family, bs, ss, us) <- families
          , (name, kinds, bound) <- walkBounds ]
       ++ [ testCase (family ++ "/traverseA, Storable as Unboxed")
              (storableAsUnboxed "traverseA" ss us)
-         | (family, ss, us) <- [ ("Dynamic", OD.opsS, OD.opsU)
-                               , ("Ranked", OR.opsS, OR.opsU)
-                               , ("Shaped", OS.opsS, OS.opsU) ] ]
+         | (family, _, ss, us) <- families ]
   ]
 
 -- Bytes an element under which an operation's calls of the kinds named
@@ -183,14 +178,19 @@ storableAsUnboxed name ss us = do
   let o = perElem (aS - aU)
   assertBool (show o ++ " bytes an element over Unboxed") (o <= 8)
 
+-- The families of the specialisation benchmark, each with its boxed,
+-- Storable and Unboxed calls of the large strided view.
+families :: [(String, [Call], [Call], [Call])]
+families = [ ("Dynamic", OD.opsB, OD.opsS, OD.opsU)
+           , ("Ranked", OR.opsB, OR.opsS, OR.opsU)
+           , ("Shaped", OS.opsB, OS.opsS, OS.opsU) ]
+
 -- The calls of the specialisation benchmark's large strided view, a row a
 -- name with its boxed, Storable and Unboxed calls.
 callRows :: [(String, Call, Call, Call)]
 callRows =
   [ (family ++ "/" ++ name, b, s, u)
-  | (family, bs, ss, us) <- [ ("Dynamic", OD.opsB, OD.opsS, OD.opsU)
-                            , ("Ranked", OR.opsB, OR.opsS, OR.opsU)
-                            , ("Shaped", OS.opsB, OS.opsS, OS.opsU) ]
+  | (family, bs, ss, us) <- families
   , b@(Call name _ _ _) <- bs
   , s <- callsNamed name ss, u <- callsNamed name us ]
 
@@ -239,21 +239,21 @@ boxedSpecialised = False
 -- An unspecialised Storable call meets the bound, its fill copying elements
 -- by their size.
 unspecialisedUnder :: Call -> Call -> Assertion
-unspecialisedUnder b c = do
-  ab <- callAlloc b
-  ac <- callAlloc c
-  let over = perElem (ac - ab)
-  assertBool (show over ++ " bytes an element over boxed") (over <= 32)
+unspecialisedUnder b c =
+  overBoxed b c >>= within True " bytes an element over boxed" 32
 
 -- The control, at Unboxed, allocates more than 32 bytes an element over
 -- the boxed call: the bound tells an unspecialised call apart.
 unspecialisedOver :: Call -> Call -> Assertion
-unspecialisedOver b c = do
+unspecialisedOver b c =
+  overBoxed b c >>= within False " bytes an element over boxed" 32
+
+-- Bytes an element the call allocates over the boxed call.
+overBoxed :: Call -> Call -> IO Double
+overBoxed b c = do
   ab <- callAlloc b
   ac <- callAlloc c
-  let over = perElem (ac - ab)
-  assertBool (show over ++ " bytes an element over boxed, not over 32")
-             (over > 32)
+  return (perElem (ac - ab))
 
 -- fillStrided, which clients outside the array modules call, on the large
 -- strided view of the specialisation benchmark at Storable and Unboxed.
@@ -267,20 +267,24 @@ fillCalls =
 -- The call allocates at most 16 bytes an element, the result's 8 and no
 -- element boxed.
 fillUnder :: Call -> Assertion
-fillUnder c = do
-  o <- perElem <$> callAlloc c
-  assertBool (show o ++ " bytes an element") (o <= 16)
+fillUnder c = perElem <$> callAlloc c >>= within True " bytes an element" 16
 
 -- The control, at Unboxed, allocates more than 16 bytes an element: the bound
 -- tells an unspecialised call apart.
 fillOver :: Call -> Assertion
-fillOver c = do
-  o <- perElem <$> callAlloc c
-  assertBool (show o ++ " bytes an element, not over 16") (o > 16)
+fillOver c = perElem <$> callAlloc c >>= within False " bytes an element" 16
 
 -- Bytes over the elements of the calls' view.
 perElem :: Int64 -> Double
 perElem a = fromIntegral a / fromIntegral Call.n
+
+-- The measure, in the unit named, is at most the bound, or with False over
+-- it: the control showing that the bound tells what it holds apart.
+within :: (Ord b, Show b) => Bool -> String -> b -> b -> Assertion
+within under unit bound x =
+  assertBool (show x ++ unit ++ (if under then ", over " else ", not over ")
+              ++ show bound)
+             ((x <= bound) == under)
 
 -- What forcing the result of the call to normal form allocates the second
 -- time, the input forced beforehand.
@@ -415,16 +419,12 @@ agree what u r = counterexample (what ++ ": " ++ firstDiff) (u == r)
 -- time allocates at most the bound, in bytes; the first time can also
 -- allocate a new chunk of the thread's stack.
 allocUnder :: Int64 -> (DS.Array Double -> b) -> Layout -> Assertion
-allocUnder bound f l = do
-  bytes <- secondAlloc f l
-  assertBool (show bytes ++ " bytes allocated, over " ++ show bound) (bytes <= bound)
+allocUnder bound f l = secondAlloc f l >>= within True " bytes allocated" bound
 
 -- The same allocates more than the bound: the control that shows a bound
 -- tells what it holds apart.
 allocOver :: Int64 -> (DS.Array Double -> b) -> Layout -> Assertion
-allocOver bound f l = do
-  bytes <- secondAlloc f l
-  assertBool (show bytes ++ " bytes allocated, not over " ++ show bound) (bytes > bound)
+allocOver bound f l = secondAlloc f l >>= within False " bytes allocated" bound
 
 -- What evaluating f of the view to WHNF allocates the second time.
 secondAlloc :: (DS.Array Double -> b) -> Layout -> IO Int64
@@ -434,15 +434,6 @@ secondAlloc f l@(sh, ts, _, _) = do
   _ <- evaluate x
   _ <- allocated f x
   allocated f x
-
--- The bytes the thread allocates evaluating f x to WHNF.
-{-# NOINLINE allocated #-}
-allocated :: (a -> b) -> a -> IO Int64
-allocated f x = do
-  setAllocationCounter maxBound
-  _ <- evaluate (f x)
-  c <- getAllocationCounter
-  return (maxBound - c)
 
 -- The listing a fill replaced: the elements one by one into a vector, the
 -- list forced whole first.

@@ -260,8 +260,8 @@ test = testGroup "DynamicS" $
                                                     21,23])
                                  (stride [1,2,2] a5)
       stride_2 = assertThrows "2" (stride [1,2,2] a1)
-      stride_3 = assertThrows "3" (stride [0] a1)
-      stride_4 = assertThrows "4" (stride [-1] a1)
+      stride_3 = assertThrowsIn "3" "stride" (stride [0] a1)
+      stride_4 = assertThrowsIn "4" "stride" (stride [-1] a1)
       rotate_1 = assertEqual "1" (fromList [2, 4, 3, 2]
                                            [1, 2, 3, 4, 5, 6,
                                             5, 6, 1, 2, 3, 4,
@@ -335,7 +335,6 @@ test = testGroup "DynamicS" $
         assertEqual "generate" [0 .. 5] (toList (generate [2, 3] (\ is -> 3 * is !! 0 + is !! 1) :: Array Int))
         assertEqual "broadcast" [1, 2, 3, 1, 2, 3] (toList (broadcast [1] [2, 3] (index a1 0)))
         assertEqual "stretchOuter" [1, 2, 3, 1, 2, 3] (toList (stretchOuter 2 (reshape [1, 3] (index a1 0))))
-        assertEqual "rotate" [2, 3, 1, 1, 2, 3] (toList (rotate 0 2 (index a1 0)))
         assertEqual "ravel . unravel" a1 (ravel (unravel a1))
       -- Rows of 600 Word8s, 600 bytes, reach the fill's whole-run copy, which
       -- starts at 512 bytes and which the random views reach only at wider

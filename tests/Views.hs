@@ -13,8 +13,9 @@
 -- limitations under the License.
 
 -- Random views and other helpers for the properties of the test modules.
-module Views(testPropertyN, failsWith, failsIn, assertThrowsIn, Elem, genElems, upTo, genShape, Op(..), opShape
-            , opSource, genBadOp, opName, View(..), mkView, applyOpG
+module Views(testPropertyN, failsWith, failsIn, assertThrowsWith, assertThrowsIn
+            , assertWhnfThrowsIn, Elem, genElems, upTo, genShape, Op(..), opShape
+            , opSource, genBadOp, opName, View(..), viewShape, mkView, applyOpG
             , mkViewG, genRawView, genOps) where
 
 import Control.DeepSeq (NFData, deepseq)
@@ -56,12 +57,23 @@ failsIn name a = ioProperty $ do
     Left (ErrorCall e) -> length e `seq` counterexample e (takeWhile (/= ':') e == name)
     Right _ -> counterexample ("no error, where an error of " ++ name ++ " was due") False
 
+-- Forcing the value to normal form fails with the message, the assertion
+-- labelled s.
+assertThrowsWith :: (NFData a) => String -> String -> a -> Assertion
+assertThrowsWith s msg a = catch (deepseq a $ assertFailure s)
+                                 (\ (ErrorCall e) -> assertEqual s msg e)
+
 -- Forcing the value to normal form fails with an error whose part before its
 -- first colon is the name, the assertion labelled s; the whole message is
 -- evaluated, so that one failing in its text fails the assertion.
 assertThrowsIn :: (NFData a) => String -> String -> a -> Assertion
 assertThrowsIn s f a = catch (deepseq a $ assertFailure s)
                              (\ (ErrorCall e) -> length e `seq` assertEqual s f (takeWhile (/= ':') e))
+
+-- Evaluating the value to WHNF fails as in assertThrowsIn.
+assertWhnfThrowsIn :: String -> String -> a -> Assertion
+assertWhnfThrowsIn s f a = catch (evaluate a >> assertFailure s)
+                                 (\ (ErrorCall e) -> length e `seq` assertEqual s f (takeWhile (/= ':') e))
 
 -- The element types of the properties that take one: Int, and Word8,
 -- whose arithmetic wraps at 256.
@@ -241,6 +253,10 @@ genOps n sh = do
 data View = View [Int] [Op]
   deriving Show
 
+-- The shape of a view.
+viewShape :: View -> [Int]
+viewShape (View sh ops) = foldl opShape sh ops
+
 -- At least three random views in four have a dimension and no empty one.
 -- One in three starts with Raw.
 instance Arbitrary View where
@@ -250,9 +266,7 @@ instance Arbitrary View where
             sh <- genShape 3
             n <- choose (0, 4)
             View sh <$> genOps n sh
-          nontrivial (View sh ops) =
-            let vsh = foldl opShape sh ops
-            in  not (null vsh) && product vsh > 0
+          nontrivial v = let vsh = viewShape v in not (null vsh) && product vsh > 0
   shrink (View sh ops) = [ View sh (take i ops) | i <- [0 .. length ops - 1] ]
 
 -- A view that starts with Raw.

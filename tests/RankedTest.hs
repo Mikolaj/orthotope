@@ -30,7 +30,7 @@ import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Text.Read (readMaybe)
-import Views (assertThrowsIn)
+import Views (assertThrowsIn, assertThrowsWith)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -266,7 +266,7 @@ test = testGroup "Ranked" $
       -- The window list is checked before the shape, and the message shows
       -- an extent past maxBound as it is.
       window_4 = do
-        let msg m a = catch (deepseq a $ assertFailure m) (\ (ErrorCall e) -> assertEqual m m e)
+        let msg m = assertThrowsWith m m
         msg "window: rank mismatch ([0,1],[9223372036854775807])" (window [0, 1] (constant [maxBound] 0 :: Array 1 Int) :: Array 3 Int)
         msg "window: bad shape [9223372036854775808,0]" (window [0] (constant [maxBound] 0 :: Array 1 Int) :: Array 2 Int)
       stride_1 = assertEqual "1" (fromList [2,2,2] [1,3,
@@ -276,8 +276,8 @@ test = testGroup "Ranked" $
                                                     21,23])
                                  (stride [1,2,2] a5)
       stride_2 = assertThrows "2" (stride [1,2,2] a1)
-      stride_3 = assertThrows "3" (stride [0] a1)
-      stride_4 = assertThrows "4" (stride [-1] a1)
+      stride_3 = assertThrowsIn "3" "stride" (stride [0] a1)
+      stride_4 = assertThrowsIn "4" "stride" (stride [-1] a1)
       stride_5 = assertEqual "5" (fromList [1] [1]) (stride [maxBound] (fromList [3] [1,2,3] :: Array 1 Int))
       -- stride with fewer strides than dimensions keeps the rest.
       stride_6 = assertEqual "6" (fromList [2, 2] [1, 2, 5, 6]) (stride [2] (fromList [4, 2] [1 .. 8] :: Array 2 Int))
@@ -310,8 +310,7 @@ test = testGroup "Ranked" $
       -- A negative size and too few broadcast dimensions fail at the checks
       -- of the shape they would make, and an empty outer dimension at
       -- ravelOuter's check of its list.
-      laterChecks_1 = mapM_ (\ (m, a) -> catch (deepseq a $ assertFailure m)
-                                              (\ (ErrorCall e) -> assertEqual m m e))
+      laterChecks_1 = mapM_ (\ (m, a) -> assertThrowsWith m m a)
         [ ("stretchOuter: bad shape [-1,2]", stretchOuter (-1) (fromList [1,2] [1,2] :: Array 2 Int))
         , ("broadcast: shape mismatch ([2,3],[0],[2,3])", broadcast [0] [2,3] (fromList [2,3] [1..6] :: Array 2 Int))
         , ("ravelOuter: empty outer dimension", rerank @1 (id :: Array 1 Int -> Array 1 Int) (fromList [0,2] [])) ]
@@ -349,8 +348,7 @@ test = testGroup "Ranked" $
                               (rev [1] a1)
       rev_2 = assertEqual "2" (fromList [2,3] [6,5,4,3,2,1])
                               (rev [0,1] a1)
-      rev_3 = assertThrows "3" (rev [2] a1)
-      rev_4 = assertThrowsIn "4" "rev" (rev [2] a1)
+      rev_3 = assertThrowsIn "3" "rev" (rev [2] a1)
       convertE_1 = assertEqual "1" (Left "convert: rank mismatch") (convertE (D.fromList [2] [1,2 :: Int]) :: Either String (Array 2 Int))
       -- rnf forces no element outside the view.
       rnf_1 = assertEqual "1" () (rnf (index (fromList [2,2] [1,2,undefined,undefined]) 0 :: Array 1 Int))
@@ -503,7 +501,6 @@ test = testGroup "Ranked" $
         , testCase "rev_1" rev_1
         , testCase "rev_2" rev_2
         , testCase "rev_3" rev_3
-        , testCase "rev_4" rev_4
         , testCase "convertE_1" convertE_1
         , testCase "rnf_1" rnf_1
         , testCase "convert_1" convert_1
