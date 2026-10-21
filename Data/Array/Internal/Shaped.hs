@@ -487,7 +487,6 @@ broadcast :: forall ds sh' sh a .
              Array sh a -> Array sh' a
 broadcast = A . G.broadcast @ds @sh' @sh . unA
 
--- INLINE: see the comment on update in Dynamic.
 -- | Update the array at the specified indices to the associated value.
 -- Fails if an index is out of bounds.
 -- With no updates, the result is the array itself, sharing its vector; 'force'
