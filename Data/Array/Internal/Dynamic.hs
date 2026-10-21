@@ -17,11 +17,11 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -61,7 +61,6 @@ module Data.Array.Internal.Dynamic(
   generate, iterateN, iota,
   ) where
 import Control.DeepSeq hiding (force)
-import Control.Monad.ST(ST)
 import Data.Coerce(coerce)
 import Data.Data(Data)
 import Data.Vector.Fusion.Util(Box(..))
@@ -74,7 +73,7 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import Data.Array.Internal(ShapeL, Vector(..), None, genericForce,
                            genericFromListExactN, genericUnsafeFillStrided,
-                           rnfViewT)
+                           genericZipLoop, rnfViewT)
 import qualified Data.Array.Internal.DynamicG as G
 
 instance Vector V.Vector where
@@ -123,23 +122,23 @@ instance Vector V.Vector where
   -- benchmark's forced mapA and fmap ran 58 instructions a call fewer at [3, 3]
   -- and 6 an element fewer at [400, 500], 3.7 to 5.3%.
   {-# INLINE vMap #-}
-  vMap f v = zipLoop (V.length v) $ \ i -> f <$> V.unsafeIndexM v i
+  vMap f v = genericZipLoop (V.length v) $ \ i -> f <$> V.unsafeIndexM v i
   {-# INLINE vZipWith #-}
-  vZipWith f a b = zipLoop (V.length a `min` V.length b) $ \ i ->
+  vZipWith f a b = genericZipLoop (V.length a `min` V.length b) $ \ i ->
     f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i
   {-# INLINE vZipWith3 #-}
   vZipWith3 f a b c =
-    zipLoop (V.length a `min` V.length b `min` V.length c) $ \ i ->
+    genericZipLoop (V.length a `min` V.length b `min` V.length c) $ \ i ->
       f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i <*> V.unsafeIndexM c i
   {-# INLINE vZipWith4 #-}
   vZipWith4 f a b c d =
-    zipLoop (V.length a `min` V.length b `min` V.length c
+    genericZipLoop (V.length a `min` V.length b `min` V.length c
              `min` V.length d) $ \ i ->
       f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i <*> V.unsafeIndexM c i
         <*> V.unsafeIndexM d i
   {-# INLINE vZipWith5 #-}
   vZipWith5 f a b c d e =
-    zipLoop (V.length a `min` V.length b `min` V.length c `min` V.length d
+    genericZipLoop (V.length a `min` V.length b `min` V.length c `min` V.length d
              `min` V.length e) $ \ i ->
       f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i <*> V.unsafeIndexM c i
         <*> V.unsafeIndexM d i <*> V.unsafeIndexM e i
@@ -209,7 +208,7 @@ instance Vector V.Vector where
   vUnsafeWithElem v i k = case V.unsafeIndexM v i of Box x -> k x
   -- Each element forced as it is written.
   {-# INLINE vGenerate' #-}
-  vGenerate' n g = zipLoop (max 0 n) (\ i -> return $! g i)
+  vGenerate' n g = genericZipLoop (max 0 n) (\ i -> return $! g i)
   {-# INLINE vUnsafeFillStrided #-}
   vUnsafeFillStrided = genericUnsafeFillStrided 5
   {-# INLINE vForce #-}
@@ -221,19 +220,6 @@ instance Vector V.Vector where
   -- to 2.21 at 4 MB, running 1.02 to 1.41 and 1.35 to 2.88 times the
   -- instructions, though it took 0.41 to 0.79 and 0.50 to 0.76 of the time
   -- on rows of 2 to 8 elements.
-
--- A vector of n elements, the ith what the action at i returns, written
--- unevaluated.
-{-# INLINE zipLoop #-}
-zipLoop :: Int -> (forall s. Int -> ST s a) -> V.Vector a
-zipLoop !n g = V.create $ do
-  mv <- MV.unsafeNew n
-  let go !i | i >= n = return mv
-            | otherwise = do
-                x <- g i
-                MV.unsafeWrite mv i x
-                go (i + 1)
-  go 0
 
 type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }

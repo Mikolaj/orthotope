@@ -21,6 +21,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE QuantifiedConstraints #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -63,6 +64,7 @@ import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import GHC.Exts(Constraint, SpecConstrAnnotation(..), build)
 import GHC.Generics(Generic)
+import GHC.Stack(HasCallStack)
 import GHC.TypeLits(KnownNat, natVal)
 import Text.PrettyPrint
 import Text.PrettyPrint.HughesPJClass
@@ -325,7 +327,7 @@ rnfViewT :: (Vector v, VecElem v a, NFData a, NFData (v a)) => ShapeL -> T v a -
 rnfViewT sh t@(T _ _ v) = case readRangeT sh t of
   Range lo n -> rnf (vUnsafeSlice lo n v)
   NoRange -> let (_, rsh, r) = dropBroadcastT sh t
-             in  foldr (\ x z -> rnf x `seq` z) () (toListT rsh r)
+             in  foldrT rsh (\ x z -> rnf x `seq` z) () r
 
 -- | The shape of an array is a list of its dimensions.
 type ShapeL = [Int]
@@ -649,6 +651,30 @@ genericForce v = VG.create $ do
   out <- VGM.unsafeNew (VG.length v)
   VG.unsafeCopy out v
   return out
+
+-- A vector of n elements, the ith what the action at i returns, written as the
+-- action returns it: unevaluated where the vector stores an element so, as a
+-- boxed vector and vector's DoNotUnboxLazy do.
+{-# INLINE genericZipLoop #-}
+genericZipLoop :: VG.Vector w a => Int -> (forall s. Int -> ST s a) -> w a
+genericZipLoop !n g = VG.create $ do
+  mv <- VGM.unsafeNew n
+  let go !i | i >= n = return mv
+            | otherwise = do
+                x <- g i
+                VGM.unsafeWrite mv i x
+                go (i + 1)
+  go 0
+
+-- The function folded over a non-empty vector from its first element, over the
+-- indices in the order of vector's foldl1', each element read forced.
+{-# INLINE genericFoldl1 #-}
+genericFoldl1 :: VG.Vector w a => (a -> a -> a) -> w a -> a
+genericFoldl1 f v = let !x0 = VG.unsafeIndex v 0 in go x0 1
+  where !n = VG.length v
+        go !acc !i | i >= n = acc
+                   | otherwise =
+                       let !x = VG.unsafeIndex v i in go (f acc x) (i + 1)
 
 -- The measured-fastest fill for 'vUnsafeFillStrided': an allocate-once mutable
 -- result, an odometer recursion over the outer dimensions with the input offset
@@ -1188,8 +1214,8 @@ routeOfT start l axes = RFill axes start l
 -- measured.
 --
 -- Entered on a view of canonical rank two or more, which is what
--- 'RRuns' means, so there is at least one outer level and one run.  The
--- arm for no outer level, which no route reaches, is the one run as
+-- 'RRuns' means, so there is at least one outer level and one run.
+-- With no outer level, which no route reaches, it gives the one run as
 -- one slice: correct rather than an error, so the walker is total on
 -- its own terms and the type asks nothing of the route that builds it.
 --
@@ -1201,12 +1227,7 @@ routeOfT start l axes = RFill axes start l
 runSlicesT :: forall v a b. (Vector v, VecElem v a)
            => Axes -> Int -> v a -> (v a -> b -> b) -> b -> b
 runSlicesT (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
-  case outerAxes of
-    [] -> cons (vUnsafeSlice start n v) nil
-      -- Currently impossible: 'routeOfT' sends a view of one run to
-      -- 'RSlice', where it is the vector or one slice of it.
-    axis : above ->
-      offsetsT axis above start (\p rest -> cons (vUnsafeSlice p n v) rest) nil
+  outerOffsetsT outerAxes start (\p rest -> cons (vUnsafeSlice p n v) rest) nil
 
 -- The elements of a non-empty canonical view in row-major order, as the
 -- cons and nil of a 'build': 'offsetsT' with the innermost axis as its
@@ -1266,6 +1287,17 @@ offsetsT (Axis sk dk) above !start step nil =
   in  block start
             (foldr (\axis@(Axis _ d) outer -> OdoLevel start d axis outer)
                    OdoDone above)
+
+-- The offsets 'offsetsT' walks under the outer axes, innermost first, the
+-- start alone where there is no outer axis: the walk of 'runSlicesT', of
+-- 'routePartsT' on 'RRuns' and of 'subArraysT'.  On 'RRuns' there is always an
+-- outer axis: 'routeOfT' sends a view of one run to 'RSlice', where it is the
+-- vector or one slice of it.
+{-# INLINE outerOffsetsT #-}
+outerOffsetsT :: [Axis] -> Int -> (Int -> b -> b) -> b -> b
+outerOffsetsT outer start step nil = case outer of
+  [] -> step start nil
+  axis : above -> offsetsT axis above start step nil
 
 -- The outer levels of the odometer of 'offsetsT', innermost first, each at
 -- an offset, with indices left, of an 'Axis'.  A strict list,
@@ -1343,11 +1375,8 @@ routeSlicesT v route cons nil = case route of
 routePartsT :: Route -> (Int -> Int -> b -> b) -> b -> b
 routePartsT route step nil = case route of
   RSlice ao l -> step ao l nil
-  RRuns (Axes _ n (InnerFirst outerAxes)) ao _ -> case outerAxes of
-    [] -> step ao n nil
-      -- Currently impossible: 'routeOfT' sends a view of one run to
-      -- 'RSlice', where it is the vector or one slice of it.
-    axis : above -> offsetsT axis above ao (\p rest -> step p n rest) nil
+  RRuns (Axes _ n (InnerFirst outerAxes)) ao _ ->
+    outerOffsetsT outerAxes ao (\p rest -> step p n rest) nil
   RFill (Axes t n (InnerFirst outerAxes)) ao _ ->
     offsetsT (Axis t n) outerAxes ao (\p rest -> step p 1 rest) nil
 
@@ -1873,9 +1902,9 @@ transposeT is (T ss o v) = T (permute is ss) o v
 {-# INLINE subArraysT #-}
 subArraysT :: ShapeL -> T v a -> [T v a]
 subArraysT sh (T ts o v) = build $ \ cons nil ->
-  if product sh == 0 then nil else case reverse (zipWith Axis ots sh) of
-    [] -> cons (T its o v) nil
-    axis : above -> offsetsT axis above o (\ p rest -> cons (T its p v) rest) nil
+  if product sh == 0 then nil
+  else outerOffsetsT (reverse (zipWith Axis ots sh)) o
+                     (\ p rest -> cons (T its p v) rest) nil
   where (ots, its) = splitAt (length sh) ts
 
 -- Reverse the given dimensions.
@@ -2077,6 +2106,10 @@ padT v aps ash at =
           [vReplicate (n*l) v] ++ toVectorListT (s:sh) t ++ [vReplicate (n*h) v]
         pad' ((l,h):ps) (s:sh) (!n:ns) t =
           [vReplicate (n*l) v] ++ concatMap (padS ps sh ns . indexT t) [0..s-1] ++ [vReplicate (n*h) v]
+        -- The message written out at each equation: one local binding for it,
+        -- which pad', padS and padded shared, cost Shaped pad 96 bytes a call
+        -- at [3, 3] and 0.06 to 0.07 an element at [400, 500] on GHC HEAD
+        -- 10.1.20261019 (2026-10-21).
         pad' _ _ _ _ = error $ "padT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
         -- pad' strict in the subarray, so that the T's fields pass through
         -- the recursion, not the T; pad' itself stays lazy in the array it is
@@ -2147,30 +2180,28 @@ productT sh t@(T _ _ v)
 -- instructions.
 {-# INLINE maximumT #-}
 maximumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
-maximumT sh t@(T _ ao v)
-  | l == 0 = error "maximumT: violated contract: empty view"
-  | otherwise = case cellsRouteT sh l t of
-      RSlice o n -> vMaximum (wholeOrSliceT o n v)
-      RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (max acc x)) id (vUnsafeIndex v o)
-      route -> routeSlicesT v route step (\ _ acc -> acc) False (vUnsafeIndex v ao)
-  where !l = product sh
-        {-# INLINE step #-}
-        step s k = \ started !acc -> let !m = vMaximum s
-                                     in  k True (if started then max acc m else m)
+maximumT sh t = extremumT "maximumT" max vMaximum sh t
 
 -- Note: assumes min is commutative&associative.  Folded as 'maximumT' folds.
 {-# INLINE minimumT #-}
 minimumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
-minimumT sh t@(T _ ao v)
-  | l == 0 = error "minimumT: violated contract: empty view"
+minimumT sh t = extremumT "minimumT" min vMinimum sh t
+
+-- The fold of 'maximumT' and 'minimumT', by the function and its reduction of
+-- a vector, the name the error's.
+{-# INLINE extremumT #-}
+extremumT :: (Vector v, VecElem v a) =>
+             String -> (a -> a -> a) -> (v a -> a) -> ShapeL -> T v a -> a
+extremumT name op vop sh t@(T _ ao v)
+  | l == 0 = error $ name ++ ": violated contract: empty view"
   | otherwise = case cellsRouteT sh l t of
-      RSlice o n -> vMinimum (wholeOrSliceT o n v)
-      RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (min acc x)) id (vUnsafeIndex v o)
+      RSlice o n -> vop (wholeOrSliceT o n v)
+      RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (op acc x)) id (vUnsafeIndex v o)
       route -> routeSlicesT v route step (\ _ acc -> acc) False (vUnsafeIndex v ao)
   where !l = product sh
         {-# INLINE step #-}
-        step s k = \ started !acc -> let !m = vMinimum s
-                                     in  k True (if started then min acc m else m)
+        step s k = \ started !acc -> let !m = vop s
+                                     in  k True (if started then op acc m else m)
 
 -- The parts in turn, stopping at the first that decides: a slice, or on
 -- 'RFill' an element.
@@ -2202,6 +2233,33 @@ updateT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [([Int], a)] -> T v a
 updateT sh t us = T ss 0 $ vUpdate (toVectorT sh t) $ map ix us
   where _ : ss = getStridesT sh
         ix (is, a) = (sum $ zipWith (*) is ss, a)
+
+-- The updates, each index checked against the shape as 'updateT' takes it,
+-- under 'build', so that updateT's map fuses with the check: the list is walked
+-- once, neither copied nor held whole.  The indices before the first bad one
+-- are good, so the error lists every bad one.
+{-# INLINE checkedUpdatesT #-}
+checkedUpdatesT :: HasCallStack => ShapeL -> [([Int], a)] -> [([Int], a)]
+checkedUpdatesT sh us = build $ \ cons nil ->
+  let go (u@(is, _) : rest)
+        | ok is = u `cons` go rest
+        | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst (u : rest))
+      go [] = nil
+  in  go us
+  where ok is = length is == r && and (zipWith (\ i s -> 0 <= i && i < s) is sh)
+        r = length sh
+
+-- The view broadcast along the dimensions flagged True, at stride 0, each other
+-- dimension taking the next of the array's strides in order.
+{-# INLINE broadcastT #-}
+broadcastT :: [Bool] -> T v a -> T v a
+broadcastT bc (T ats o v) = T (go bc ats) o v
+  where go (True : bs) ss = 0 : go bs ss
+        go (False : bs) (s : ss) = s : go bs ss
+        go [] _ = []
+        go (False : _) [] =
+          error $ "broadcastT: violated contract: fewer strides than dimensions "
+                  ++ "not broadcast " ++ show (bc, ats)
 
 -- Each index list is built under 'build', each component computed as the list
 -- is consumed, so that a function that consumes it where it is inlined, as sum

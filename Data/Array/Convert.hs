@@ -22,7 +22,6 @@
 module Data.Array.Convert(Convert(..)) where
 import Data.Proxy
 import qualified Data.Vector as V
-import qualified Data.Vector.Mutable as MV
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Storable as VS
 import GHC.TypeLits(KnownNat, natVal)
@@ -54,15 +53,8 @@ import Data.Array.Internal.Shape(Shape(..), validShape)
 -- proposes and -fspec-constr, it took 0.93 to 0.95 of it.
 {-# INLINE fromStorable #-}
 fromStorable :: VS.Storable a => VS.Vector a -> V.Vector a
-fromStorable v = V.create $ do
-  let !n = VS.length v
-  mv <- MV.unsafeNew n
-  let go !i | i >= n = return mv
-            | otherwise = do
-                let !x = VS.unsafeIndex v i
-                MV.unsafeWrite mv i x
-                go (i + 1)
-  go 0
+fromStorable v =
+  I.genericZipLoop (VS.length v) (\ i -> return $! VS.unsafeIndex v i)
 
 class Convert a b where
   -- | Convert between two array types.
