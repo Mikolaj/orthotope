@@ -71,6 +71,9 @@ import Data.Data(Data)
 import qualified Data.Vector.Storable as V
 import qualified Data.Vector.Storable.Mutable as MV
 import Data.Word(Word8, Word16, Word32)
+#if !defined(x86_64_HOST_ARCH) && !defined(aarch64_HOST_ARCH)
+import Data.Word(Word64)
+#endif
 import Foreign.ForeignPtr(castForeignPtr)
 import Foreign.Storable(alignment, sizeOf)
 import GHC.Generics(Generic)
@@ -237,22 +240,24 @@ instance Vector V.Vector where
   vUnsafeConcatN = genericUnsafeConcatN
 
 -- Elements of one byte, and of two, four and eight bytes aligned to a multiple
--- of their size, are filled as Word8, Word16, Word32 and Double, so that a
+-- of their size, are filled as Word8, Word16, Word32 and Bits64, so that a
 -- caller general in the element type reads and writes no element through
 -- its Storable dictionary and boxes none: the dictionary gives the size and
--- the alignment, once a call.  Double, not Word64: with Word64, on GHC HEAD
--- 10.1.20260918 (2026-10-16), the fill copied each element through a general
--- register and spilled another around every second store, one instruction an
--- element more.  The body of 'vUnsafeFillStrided', outside the instance: on
--- GHC 9.12.4 (2026-10-16) a client called the INLINABLE method unspecialised,
--- and the specialisation benchmark's Storable force of a small strided array
--- ran 16% more instructions in Dynamic and 20% in Shaped than through this
--- function.
+-- the alignment, once a call.  Bits64 is Double, not Word64, on x86-64 and
+-- AArch64, whose loads and stores of a Double keep its bits, a NaN's included:
+-- with Word64, on x86-64 and GHC HEAD 10.1.20260918 (2026-10-16), the fill
+-- copied each element through a general register and spilled another around
+-- every second store, one instruction an element more.  Elsewhere it is
+-- Word64: there a Double's load or store may change a NaN's bits.  The body
+-- of 'vUnsafeFillStrided', outside the instance: on GHC 9.12.4 (2026-10-16)
+-- a client called the INLINABLE method unspecialised, and the specialisation
+-- benchmark's Storable force of a small strided array ran 16% more instructions
+-- in Dynamic and 20% in Shaped than through this function.
 {-# INLINABLE fillStridedS #-}
 fillStridedS :: forall a. Unbox a
              => Axes -> Int -> Int -> V.Vector a -> V.Vector a
 fillStridedS !ax !ao !l !v
-  | size == 8 && aligned = sameSize (fillDouble ax ao l (sameSize v))
+  | size == 8 && aligned = sameSize (fillBits64 ax ao l (sameSize v))
   | size == 4 && aligned = sameSize (fillWord32 ax ao l (sameSize v))
   | size == 2 && aligned = sameSize (fillWord16 ax ao l (sameSize v))
   | size == 1 = sameSize (fillWord8 ax ao l (sameSize v))
@@ -282,9 +287,15 @@ fillWord16 = genericUnsafeFillStrided 256
 fillWord32 :: Axes -> Int -> Int -> V.Vector Word32 -> V.Vector Word32
 fillWord32 = genericUnsafeFillStrided 128
 
-{-# INLINE fillDouble #-}
-fillDouble :: Axes -> Int -> Int -> V.Vector Double -> V.Vector Double
-fillDouble = genericUnsafeFillStrided 64
+{-# INLINE fillBits64 #-}
+fillBits64 :: Axes -> Int -> Int -> V.Vector Bits64 -> V.Vector Bits64
+fillBits64 = genericUnsafeFillStrided 64
+
+#if defined(x86_64_HOST_ARCH) || defined(aarch64_HOST_ARCH)
+type Bits64 = Double
+#else
+type Bits64 = Word64
+#endif
 
 type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }
