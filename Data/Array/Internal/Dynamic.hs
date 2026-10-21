@@ -111,17 +111,20 @@ instance Vector V.Vector where
   vSingleton a = V.create (MV.replicate 1 a)
   {-# INLINE vReplicate #-}
   vReplicate = V.replicate
+  -- The map and the zips write each result unevaluated over the indices,
+  -- reading the elements unforced, as vector's own do, whose stream state,
+  -- an index for each vector and the element held between them, stays boxed
+  -- without the SpecConstr of -O2.  On GHC HEAD with vector patched as issue
+  -- 570 proposes, on views of 200000 Doubles, zipWithA to zipWith5A took
+  -- 0.44 to 0.82 of their time at -O1 and rerank2 of zipWithA 0.62; with
+  -- -fspec-constr, 0.94 to 1.03, but zipWith5A, whose stream SpecConstr leaves
+  -- boxed, 0.50 to 0.62, allocating 120 bytes an element where 528.  The same
+  -- loop gained nothing for vGenerate, which keeps vector's own.  For the map,
+  -- against vector's, on GHC HEAD 10.1.20261019 (2026-10-21) the specialisation
+  -- benchmark's forced mapA and fmap ran 58 instructions a call fewer at [3, 3]
+  -- and 6 an element fewer at [400, 500], 3.7 to 5.3%.
   {-# INLINE vMap #-}
-  vMap = fmap
-  -- The zips write each result unevaluated over the indices, reading the
-  -- elements unforced, as vector's own do, whose stream state, an index for
-  -- each vector and the element held between them, stays boxed without the
-  -- SpecConstr of -O2.  On GHC HEAD with vector patched as issue 570 proposes,
-  -- on views of 200000 Doubles, zipWithA to zipWith5A took 0.44 to 0.82 of
-  -- their time at -O1 and rerank2 of zipWithA 0.62; with -fspec-constr, 0.94 to
-  -- 1.03, but zipWith5A, whose stream SpecConstr leaves boxed, 0.50 to 0.62,
-  -- allocating 120 bytes an element where 528.  The same loop gained nothing
-  -- for vGenerate, which keeps vector's own.
+  vMap f v = zipLoop (V.length v) $ \ i -> f <$> V.unsafeIndexM v i
   {-# INLINE vZipWith #-}
   vZipWith f a b = zipLoop (V.length a `min` V.length b) $ \ i ->
     f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i
