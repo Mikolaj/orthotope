@@ -176,15 +176,8 @@ instance Vector V.Vector where
   -- https://gitlab.haskell.org/ghc/ghc/-/work_items/27800.
   {-# INLINE vUpdate #-}
   vUpdate !a !b = (V.//) a b
-  -- Named, for the bang: on GHC HEAD 10.1.20260918 (2026-10-17) the
-  -- specialisation benchmark's summed boxed generate ran 17 to 26
-  -- instructions a call fewer with it at [3, 3] and 2 to 3 an element at
-  -- [400, 500].  The bang evaluates the size earlier, which leaves the
-  -- loops' Core unchanged, but where they swapped registers through stack
-  -- slots twice an element they rotate three through one, the shape of
-  -- https://gitlab.haskell.org/ghc/ghc/-/work_items/27800.
   {-# INLINE vGenerate #-}
-  vGenerate !a b = V.generate a b
+  vGenerate = V.generate
   -- vAll and vAny read each element by index through unsafeIndexM, which hands
   -- the predicate the element stored, where unsafeIndex would hand it a thunk
   -- of the read.  On GHC HEAD with vector patched as issue 570 proposes, on
