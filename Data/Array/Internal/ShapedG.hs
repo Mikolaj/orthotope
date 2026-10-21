@@ -495,7 +495,7 @@ rerank f a@(A t)
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
--- The /n/ must not exceed the rank of the array.
+-- The /n/ must not exceed the rank of each array.
 -- O(n) time.
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.

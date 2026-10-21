@@ -577,7 +577,7 @@ ravelOuterOf osh sh as = fromVector sh' $ vUnsafeConcatN (product sh') $ map vec
 rerank2 :: forall v a b c . (HasCallStack, Vector v, VecElem v c) =>
            Int -> (Array v a -> Array v b -> Array v c) -> Array v a -> Array v b -> Array v c
 rerank2 n f (A sha ta) (A shb tb) | n < 0 || n > length sha || n > length shb = error "rerank2: rank exceeded"
-                                  | take n sha /= take n shb = error "rerank2: shape mismatch"
+                                  | take n sha /= take n shb = error $ "rerank2: shape mismatch " ++ show (take n sha, take n shb)
                                   | product osh == 1, [sa] <- subArraysT osh ta, [sb] <- subArraysT osh tb =
                                     case f (A isha sa) (A ishb sb) of  -- one subarray each: a view of f's result
                                       A rsh rt -> A (osh ++ rsh) (insertUnitsT 0 (length osh) rt)

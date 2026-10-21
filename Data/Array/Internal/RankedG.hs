@@ -606,7 +606,7 @@ ravelOuterOf osh sh as = fromVector sh' $ vUnsafeConcatN (product sh') $ map vec
 -- is known only for scalars.
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
--- The /n/ must not exceed the rank of the array, none of those /n/ dimensions
+-- The /n/ must not exceed the rank of each array, none of those /n/ dimensions
 -- may be empty unless the function returns scalars, and the function's results
 -- must all have one shape.
 -- Fails if the arrays differ in those /n/ outermost dimensions.
@@ -618,7 +618,7 @@ rerank2 :: forall n i o v a b c .
            (HasCallStack, Vector v, VecElem v c,
             KnownNat n, KnownNat o, KnownNat (n+o)) =>
            (Array i v a -> Array i v b -> Array o v c) -> Array (n+i) v a -> Array (n+i) v b -> Array (n+o) v c
-rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error "rerank2: shape mismatch"
+rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error $ "rerank2: shape mismatch " ++ show (take n sha, take n shb)
                                 | 0 `elem` osh, natT @o == (0 :: Int) = A osh $ fromVectorT osh (vConcat [])
                                 | product osh == 1, [sa] <- subArraysT osh ta, [sb] <- subArraysT osh tb =
                                   case f (A isha sa) (A ishb sb) of  -- one subarray each: a view of f's result
