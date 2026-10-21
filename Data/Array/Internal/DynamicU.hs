@@ -66,7 +66,7 @@ import GHC.Generics(Generic)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.Internal.Dynamic as D
-import qualified Data.Array.DynamicG as G
+import qualified Data.Array.Internal.DynamicG as G
 import Data.Array.Internal(ShapeL, Vector(..), genericUnsafeConcatN,
                            genericForce, genericFromListExactN,
                            genericUnsafeFillStrided)
@@ -660,8 +660,7 @@ generate sh = A . G.generate sh
 -- | Iterate a function n times.
 -- Fails if n is negative.
 {-# INLINE iterateN #-}
-iterateN :: (HasCallStack, Unbox a) =>
-            Int -> (a -> a) -> a -> Array a
+iterateN :: (HasCallStack, Unbox a) => Int -> (a -> a) -> a -> Array a
 iterateN n f = A . G.iterateN n f
 
 -- | Generate a vector from 0 to n-1.

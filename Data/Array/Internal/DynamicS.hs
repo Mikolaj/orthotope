@@ -748,8 +748,7 @@ generate sh = A . G.generate sh
 -- | Iterate a function n times.
 -- Fails if n is negative.
 {-# INLINE iterateN #-}
-iterateN :: (HasCallStack, Unbox a) =>
-            Int -> (a -> a) -> a -> Array a
+iterateN :: (HasCallStack, Unbox a) => Int -> (a -> a) -> a -> Array a
 iterateN n f = A . G.iterateN n f
 
 -- | Generate a vector from 0 to n-1.

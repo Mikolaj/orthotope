@@ -72,11 +72,10 @@ import GHC.Stack(HasCallStack)
 import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
-import qualified Data.Array.DynamicG as G
 import Data.Array.Internal(ShapeL, Vector(..), None, genericForce,
                            genericFromListExactN, genericUnsafeFillStrided,
                            rnfViewT)
-import qualified Data.Array.Internal.DynamicG as DG
+import qualified Data.Array.Internal.DynamicG as G
 
 instance Vector V.Vector where
   type VecElem V.Vector = None
@@ -242,7 +241,7 @@ newtype Array a = A { unA :: G.Array V.Vector a }
 
 instance NFData a => NFData (Array a) where
   {-# INLINABLE rnf #-}
-  rnf (A (DG.A sh t)) = rnf sh `seq` rnfViewT sh t
+  rnf (A (G.A sh t)) = rnf sh `seq` rnfViewT sh t
 
 -- Point-free, as are the point-free wrappers and instance methods below: named,
 -- all together, with the specialisation benchmark's calls saturated, on GHC
@@ -594,7 +593,7 @@ traverseA f = fmap A . G.traverseA f . unA
 allSameA :: (Eq a) => Array a -> Bool
 allSameA = G.allSameA . unA
 
-instance Arbitrary a => Arbitrary (Array a) where
+instance (Arbitrary a) => Arbitrary (Array a) where
   {-# INLINABLE arbitrary #-}
   arbitrary = A <$> arbitrary
 
