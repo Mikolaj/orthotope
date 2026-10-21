@@ -148,7 +148,7 @@ OPS form view =
                   0
   , call "iterateN" (\ x -> ARR.iterateN @NN (+ 1) x) x0
   , call "iota" (\ k -> iota k) (ROWS * cols :: Int)
-#ifdef WITH_BITCAST
+#ifdef STORABLE
   , call "bitcast" (\ a -> ARR.bitcast a :: ARR.Array SH Int64) t
 #endif
   , call "convert" (\ a -> convert a :: CONV.Array SH Double) t
@@ -160,8 +160,6 @@ OPS form view =
 #endif
 #ifdef BOXED
   , call "convert.ranked" (\ a -> convert a :: CR.Array 2 Double) t
-#endif
-#ifdef BOXED
   , call "convert.unboxed" (\ a -> convert a :: U.Array SH Double) t
   , call "convertE.unboxed"
          (\ a -> convertE a :: Either String (U.Array SH Double)) t

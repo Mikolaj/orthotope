@@ -17,6 +17,7 @@
 -- having it.
 module Rows (rows) where
 
+import Data.List (find)
 import Data.Maybe (isJust)
 
 import Call (Call (..), Form (..), View (..), n, viewName, views)
@@ -85,6 +86,4 @@ viewless = [ "fromList", "fromList.map", "fromVector", "scalar", "unScalar"
 
 -- The call of the operation of the name, if the kind has it.
 callNamed :: String -> [Call] -> Maybe Call
-callNamed name calls = case [ c | c@(Call m _ _ _) <- calls, m == name ] of
-  c : _ -> Just c
-  [] -> Nothing
+callNamed name = find (\ (Call m _ _ _) -> m == name)

@@ -67,49 +67,13 @@ type FlatDEmpty = '[0]
 #define ROWS 400
 #define SIZE sizeLarge
 
-#define ARR B
-#define IARR IB
-#define CONV S
-#define CR RB
-#define CS SB
-#define BOXED
-#define OPS opsBLarge
-#include "dynamic-ops.inc"
-#undef OPS
-#undef BOXED
-#undef CS
-#undef CR
-#undef CONV
-#undef IARR
-#undef ARR
-
-#define ARR S
-#define IARR IS
-#define CONV B
-#define STORABLE
-#define CR RS
-#define CS SS
-#define OPS opsSLarge
-#define WITH_BITCAST
-#include "dynamic-ops.inc"
-#undef WITH_BITCAST
-#undef OPS
-#undef CS
-#undef CR
-#undef STORABLE
-#undef CONV
-#undef IARR
-#undef ARR
-
-#define ARR U
-#define IARR IU
-#define CONV B
-#define OPS opsULarge
-#include "dynamic-ops.inc"
-#undef OPS
-#undef CONV
-#undef IARR
-#undef ARR
+#define OPSB opsBLarge
+#define OPSS opsSLarge
+#define OPSU opsULarge
+#include "dynamic-kinds.inc"
+#undef OPSU
+#undef OPSS
+#undef OPSB
 
 #undef ROWS
 #undef SIZE
@@ -120,49 +84,13 @@ type FlatDEmpty = '[0]
 #define ROWS 3
 #define SIZE sizeSmall
 
-#define ARR B
-#define IARR IB
-#define CONV S
-#define CR RB
-#define CS SB
-#define BOXED
-#define OPS opsBSmall
-#include "dynamic-ops.inc"
-#undef OPS
-#undef BOXED
-#undef CS
-#undef CR
-#undef CONV
-#undef IARR
-#undef ARR
-
-#define ARR S
-#define IARR IS
-#define CONV B
-#define STORABLE
-#define CR RS
-#define CS SS
-#define OPS opsSSmall
-#define WITH_BITCAST
-#include "dynamic-ops.inc"
-#undef WITH_BITCAST
-#undef OPS
-#undef CS
-#undef CR
-#undef STORABLE
-#undef CONV
-#undef IARR
-#undef ARR
-
-#define ARR U
-#define IARR IU
-#define CONV B
-#define OPS opsUSmall
-#include "dynamic-ops.inc"
-#undef OPS
-#undef CONV
-#undef IARR
-#undef ARR
+#define OPSB opsBSmall
+#define OPSS opsSSmall
+#define OPSU opsUSmall
+#include "dynamic-kinds.inc"
+#undef OPSU
+#undef OPSS
+#undef OPSB
 
 #undef ROWS
 #undef SIZE
@@ -173,42 +101,10 @@ type FlatDEmpty = '[0]
 #define ROWS 0
 #define SIZE sizeEmpty
 
-#define ARR B
-#define IARR IB
-#define CONV S
-#define CR RB
-#define CS SB
-#define BOXED
-#define OPS opsBEmpty
-#include "dynamic-ops.inc"
-#undef OPS
-#undef BOXED
-#undef CS
-#undef CR
-#undef CONV
-#undef IARR
-#undef ARR
-
-#define ARR S
-#define IARR IS
-#define CONV B
-#define STORABLE
-#define CR RS
-#define CS SS
-#define OPS opsSEmpty
-#define WITH_BITCAST
-#include "dynamic-ops.inc"
-#undef WITH_BITCAST
-#undef OPS
-#undef CS
-#undef CR
-#undef STORABLE
-#undef CONV
-#undef IARR
-#undef ARR
-
-#define ARR U
-#define IARR IU
-#define CONV B
-#define OPS opsUEmpty
-#include "dynamic-ops.inc"
+#define OPSB opsBEmpty
+#define OPSS opsSEmpty
+#define OPSU opsUEmpty
+#include "dynamic-kinds.inc"
+#undef OPSU
+#undef OPSS
+#undef OPSB
