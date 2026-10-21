@@ -136,9 +136,7 @@ range3 _ _ = 0
 -- an 'I.Axes' and the rest left to the merge loop.
 {-# INLINE canonicalize #-}
 canonicalize :: (I.Axes -> I.Axes) -> DG.Array v Double -> Int
-canonicalize b (DG.A (n : ns) (I.T (st : sts) _ _)) =
-  axesSum (b $! I.canonicalizeT sts ns (I.Axes st n (I.InnerFirst [])))
-canonicalize _ _ = 0
+canonicalize b (DG.A sh t) = axesSum (b $! axesOf sh t)
 
 -- The axes sorted, as 'I.unorderedRouteT' takes them.
 {-# INLINE sortAxes #-}

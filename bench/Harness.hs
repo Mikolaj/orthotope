@@ -13,16 +13,15 @@
 -- limitations under the License.
 
 {-# LANGUAGE BangPatterns #-}
-module Harness (Mode (..), measure, allocated) where
+module Harness (Mode (..), measure) where
 
 import Control.DeepSeq (rnf)
 import Control.Exception (evaluate)
 import Data.Int (Int64)
 import GHC.Clock (getMonotonicTimeNSec)
-import GHC.Conc (getAllocationCounter, setAllocationCounter)
 import System.Mem (performMajorGC)
 
-import Call (Call (..))
+import Call (Call (..), allocated)
 
 -- The argument handed on through a call the compiler cannot see through,
 -- varying with the call, so that full laziness cannot float the call out of
@@ -69,16 +68,5 @@ measure mode iters (Call _ f x g) = do
     return $! fromIntegral (t1 - t0) / fromIntegral k
   calibrate :: Int -> IO Int
   calibrate !k = do
-    t0 <- getMonotonicTimeNSec
-    calls k
-    t1 <- getMonotonicTimeNSec
-    if t1 - t0 >= 5000000 then return k else calibrate (2 * k)
-
--- | The bytes the thread allocates evaluating @f x@ to WHNF.
-{-# NOINLINE allocated #-}
-allocated :: (a -> b) -> a -> IO Int64
-allocated f x = do
-  setAllocationCounter maxBound
-  _ <- evaluate (f x)
-  c <- getAllocationCounter
-  return (maxBound - c)
+    t <- batch k
+    if t * fromIntegral k >= 5e6 then return k else calibrate (2 * k)

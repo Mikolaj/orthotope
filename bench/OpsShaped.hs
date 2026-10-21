@@ -164,47 +164,13 @@ type SlNREmpty = '[ '(0, 0), '(0, 2)]
 #define COL1 Col1
 #define EMP Emp
 
-#define ARR B
-#define IARR IB
-#define CONV S
-#define CD DB
-#define CR RB
-#define BOXED
-#define OPS opsBLarge
-#include "shaped-ops.inc"
-#undef OPS
-#undef BOXED
-#undef CR
-#undef CD
-#undef CONV
-#undef IARR
-#undef ARR
-
-#define ARR S
-#define IARR IS
-#define CONV B
-#define STORABLE
-#define CD DS
-#define OPS opsSLarge
-#define WITH_BITCAST
-#include "shaped-ops.inc"
-#undef WITH_BITCAST
-#undef OPS
-#undef CD
-#undef STORABLE
-#undef CONV
-#undef IARR
-#undef ARR
-
-#define ARR U
-#define IARR IU
-#define CONV B
-#define OPS opsULarge
-#include "shaped-ops.inc"
-#undef OPS
-#undef CONV
-#undef IARR
-#undef ARR
+#define OPSB opsBLarge
+#define OPSS opsSLarge
+#define OPSU opsULarge
+#include "shaped-kinds.inc"
+#undef OPSU
+#undef OPSS
+#undef OPSB
 
 #undef EMP
 #undef COL1
@@ -261,47 +227,13 @@ type SlNREmpty = '[ '(0, 0), '(0, 2)]
 #define COL1 Col1Small
 #define EMP EmpSmall
 
-#define ARR B
-#define IARR IB
-#define CONV S
-#define CD DB
-#define CR RB
-#define BOXED
-#define OPS opsBSmall
-#include "shaped-ops.inc"
-#undef OPS
-#undef BOXED
-#undef CR
-#undef CD
-#undef CONV
-#undef IARR
-#undef ARR
-
-#define ARR S
-#define IARR IS
-#define CONV B
-#define STORABLE
-#define CD DS
-#define OPS opsSSmall
-#define WITH_BITCAST
-#include "shaped-ops.inc"
-#undef WITH_BITCAST
-#undef OPS
-#undef CD
-#undef STORABLE
-#undef CONV
-#undef IARR
-#undef ARR
-
-#define ARR U
-#define IARR IU
-#define CONV B
-#define OPS opsUSmall
-#include "shaped-ops.inc"
-#undef OPS
-#undef CONV
-#undef IARR
-#undef ARR
+#define OPSB opsBSmall
+#define OPSS opsSSmall
+#define OPSU opsUSmall
+#include "shaped-kinds.inc"
+#undef OPSU
+#undef OPSS
+#undef OPSB
 
 #undef EMP
 #undef COL1
@@ -347,40 +279,10 @@ type SlNREmpty = '[ '(0, 0), '(0, 2)]
 #define SHB ShBEmpty
 #define COL1 Col1Empty
 
-#define ARR B
-#define IARR IB
-#define CONV S
-#define CD DB
-#define CR RB
-#define BOXED
-#define OPS opsBEmpty
-#include "shaped-ops.inc"
-#undef OPS
-#undef BOXED
-#undef CR
-#undef CD
-#undef CONV
-#undef IARR
-#undef ARR
-
-#define ARR S
-#define IARR IS
-#define CONV B
-#define STORABLE
-#define CD DS
-#define OPS opsSEmpty
-#define WITH_BITCAST
-#include "shaped-ops.inc"
-#undef WITH_BITCAST
-#undef OPS
-#undef CD
-#undef STORABLE
-#undef CONV
-#undef IARR
-#undef ARR
-
-#define ARR U
-#define IARR IU
-#define CONV B
-#define OPS opsUEmpty
-#include "shaped-ops.inc"
+#define OPSB opsBEmpty
+#define OPSS opsSEmpty
+#define OPSU opsUEmpty
+#include "shaped-kinds.inc"
+#undef OPSU
+#undef OPSS
+#undef OPSB

@@ -108,8 +108,8 @@ import Data.List (isInfixOf, tails)
 import System.Environment (getArgs)
 import Text.Printf (printf)
 
-import Call (Form (..))
-import Harness (Mode (..), allocated, measure)
+import Call (Form (..), allocated)
+import Harness (Mode (..), measure)
 import Materialize (Probe (..), probes)
 import qualified Rows
 

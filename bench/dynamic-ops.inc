@@ -133,7 +133,7 @@ OPS form view =
                   0
   , call "iterateN" (\ x -> ARR.iterateN (ROWS * cols) (+ 1) x) x0
   , call "iota" (\ k -> ARR.iota k :: ARR.Array Double) (ROWS * cols)
-#ifdef WITH_BITCAST
+#ifdef STORABLE
   , call "bitcast" (\ a -> ARR.bitcast a :: ARR.Array Int64) t
 #endif
   , call "convert" (\ a -> convert a :: CONV.Array Double) t

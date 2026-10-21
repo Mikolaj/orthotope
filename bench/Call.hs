@@ -12,17 +12,21 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
--- An operation applied to its input, on the views the calls share, for
--- the specialisation benchmark and test alike.
+-- An operation applied to its input, on the views the calls share, and the
+-- count of the bytes a call allocates, for the specialisation benchmark and
+-- test alike.
 {-# LANGUAGE ExistentialQuantification #-}
 module Call ( Call (..), call, Form (..), View (..), views, viewName
             , n, elems, elemsFrom, axes
-            , Size (..), sizeLarge, sizeSmall, sizeEmpty ) where
+            , Size (..), sizeLarge, sizeSmall, sizeEmpty, allocated ) where
 
 import Control.DeepSeq (NFData)
+import Control.Exception (evaluate)
 import Data.Typeable (Typeable)
 import Data.Array.Internal (Axes (..), Axis (..), InnerFirst (..))
 import Data.Char (toLower)
+import Data.Int (Int64)
+import GHC.Conc (getAllocationCounter, setAllocationCounter)
 import GHC.Exts (inline)
 
 import Summed (Summed (..))
@@ -63,12 +67,11 @@ data Form = Viewed | Normalized
 -- of one element to such a consumer.
 data View = Dense | Strided | Runs | Scaled | Bcastmid
           | Flip | Window | Bcast | Scalar
-  deriving (Eq, Show)
+  deriving (Eq, Show, Enum, Bounded)
 
 -- | Every view, the one 'opsB' and its kin share second.
 views :: [View]
-views = [ Dense, Strided, Runs, Scaled, Bcastmid
-        , Flip, Window, Bcast, Scalar ]
+views = [minBound .. maxBound]
 
 -- | The view's name, in lower case.
 viewName :: View -> String
@@ -111,3 +114,12 @@ sizeSmall = Size { cols = 3, irow = 1, ielem = [1, 1], sliceRows = 1
                  , perPair = 2, twn = 172, tw1 = 2, tw2 = 3, tw3 = 4
                  , tw4 = 5, tw5 = 33, tw6 = 34 }
 sizeEmpty = sizeSmall { irow = 0, ielem = [0, 0], sliceRows = 0 }
+
+-- | The bytes the thread allocates evaluating @f x@ to WHNF.
+{-# NOINLINE allocated #-}
+allocated :: (a -> b) -> a -> IO Int64
+allocated f x = do
+  setAllocationCounter maxBound
+  _ <- evaluate (f x)
+  c <- getAllocationCounter
+  return (maxBound - c)
