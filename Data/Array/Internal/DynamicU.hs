@@ -23,6 +23,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -53,6 +54,7 @@ module Data.Array.Internal.DynamicU(
   generate, iterateN, iota,
   ) where
 import Control.DeepSeq hiding (force)
+import Control.Monad.ST(ST)
 import Data.Coerce(coerce)
 import Data.Data(Data)
 import Data.Vector.Fusion.Util(Box(..))
@@ -117,43 +119,46 @@ instance Vector V.Vector where
   -- The map and the zips build their result over the indices, working around
   -- vector's own, whose stream-fused loops at -O1, lacking the SpecConstr of
   -- -O2, allocate per element: a zipWith on Doubles 72 bytes an element against
-  -- 8, taking through zipWithA 13 to 15 times as long.  The map, zipWith3 and
-  -- zipWith4 write it by a loop of their own ('indexLoop') rather than by
-  -- generate: on GHC HEAD with vector patched as issue 570 proposes, on views
-  -- of 200000 Doubles, mapA took 0.64 to 0.74 of its time at -O1 and 0.94 to
-  -- 0.97 with -fspec-constr, and zipWith3A and zipWith4A 0.93 to 1.00 and 0.76
-  -- to 0.97; zipWith and zipWith5 keep generate, the loop gaining nothing on
-  -- the first and costing the second 2 to 6% at -O1.  No fusion is given up:
-  -- vector's fuse with a vector they read, but each array operation stores its
-  -- result, so the array operations never fused their inputs; a map of a map
-  -- allocates one vector per map, with vector's map as with this one.
-  -- Each element is read by 'elemAt' before the function takes it: given a
-  -- function GHC cannot see into, on GHC HEAD with vector patched as issue 570
-  -- proposes, on views of 200000 Doubles, mapA allocated 40 bytes an element
-  -- where a lazy read made it 80 and zipWithA 72 where 152, and given known
-  -- functions every operation ran as many instructions as before.
+  -- 8, taking through zipWithA 13 to 15 times as long.  They write it by
+  -- 'zipLoop', as the boxed instance's zips do, each element read in ST before
+  -- the function takes it, strictly for the primitive representations and as
+  -- stored for vector's DoNotUnboxLazy, so that such a result holds, until
+  -- forced, the elements its function reads and not the vectors they come from:
+  -- written as 'g i', by a loop of their own or by generate, it held those (the
+  -- test lazyElems_2).  Against that, on GHC HEAD 10.1.20261019 (2026-10-21),
+  -- the specialisation benchmark's forced zipWithA ran 24 instructions a
+  -- call fewer at [3, 3] and 2 an element fewer at [400, 500], 1.5 to 17%,
+  -- and zipWith5A 8 a call fewer, mapA, zipWith3A and zipWith4A as many.  No
+  -- fusion is given up: vector's fuse with a vector they read, but each array
+  -- operation stores its result, so the array operations never fused their
+  -- inputs; a map of a map allocates one vector per map, with vector's map as
+  -- with this one.  Reading each element before the function takes it, as the
+  -- loop over 'elemAt' did too, saves allocation: given a function GHC cannot
+  -- see into, on GHC HEAD with vector patched as issue 570 proposes, on views
+  -- of 200000 Doubles, mapA allocated 40 bytes an element where a lazy read
+  -- made it 80 and zipWithA 72 where 152, and given known functions every
+  -- operation ran as many instructions as before.
   {-# INLINE vMap #-}
-  vMap f v = indexLoop (V.length v) (\ i -> elemAt v i f)
+  vMap f v = zipLoop (V.length v) $ \ i -> f <$> V.unsafeIndexM v i
   {-# INLINE vZipWith #-}
-  vZipWith f a b =
-    V.generate (V.length a `min` V.length b) $ \ i ->
-      elemAt a i $ \ x -> elemAt b i $ \ y -> f x y
+  vZipWith f a b = zipLoop (V.length a `min` V.length b) $ \ i ->
+    f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i
   {-# INLINE vZipWith3 #-}
   vZipWith3 f a b c =
-    indexLoop (V.length a `min` V.length b `min` V.length c) $ \ i ->
-      elemAt a i $ \ x -> elemAt b i $ \ y -> elemAt c i $ \ z -> f x y z
+    zipLoop (V.length a `min` V.length b `min` V.length c) $ \ i ->
+      f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i <*> V.unsafeIndexM c i
   {-# INLINE vZipWith4 #-}
   vZipWith4 f a b c d =
-    indexLoop (V.length a `min` V.length b `min` V.length c
-               `min` V.length d) $ \ i ->
-      elemAt a i $ \ x -> elemAt b i $ \ y -> elemAt c i $ \ z ->
-      elemAt d i $ \ u -> f x y z u
+    zipLoop (V.length a `min` V.length b `min` V.length c
+             `min` V.length d) $ \ i ->
+      f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i <*> V.unsafeIndexM c i
+        <*> V.unsafeIndexM d i
   {-# INLINE vZipWith5 #-}
   vZipWith5 f a b c d e =
-    V.generate (V.length a `min` V.length b `min` V.length c
-                `min` V.length d `min` V.length e) $ \ i ->
-      elemAt a i $ \ x -> elemAt b i $ \ y -> elemAt c i $ \ z ->
-      elemAt d i $ \ u -> elemAt e i $ \ w -> f x y z u w
+    zipLoop (V.length a `min` V.length b `min` V.length c `min` V.length d
+             `min` V.length e) $ \ i ->
+      f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i <*> V.unsafeIndexM c i
+        <*> V.unsafeIndexM d i <*> V.unsafeIndexM e i
   {-# INLINE vAppend #-}
   vAppend = (V.++)
   {-# INLINE vConcat #-}
@@ -237,13 +242,18 @@ instance Vector V.Vector where
 elemAt :: Unbox a => V.Vector a -> Int -> (a -> r) -> r
 elemAt v i k = case V.unsafeIndexM v i of Box x -> k x
 
--- A vector of n elements, the ith g i, written over the indices.
-{-# INLINE indexLoop #-}
-indexLoop :: Unbox a => Int -> (Int -> a) -> V.Vector a
-indexLoop !n g = V.create $ do
+-- A vector of n elements, the ith what the action at i returns, written as the
+-- boxed instance's zipLoop writes it: unevaluated where the representation
+-- stores an element so, as DoNotUnboxLazy does.
+{-# INLINE zipLoop #-}
+zipLoop :: Unbox a => Int -> (forall s. Int -> ST s a) -> V.Vector a
+zipLoop !n g = V.create $ do
   mv <- MV.unsafeNew n
   let go !i | i >= n = return mv
-            | otherwise = MV.unsafeWrite mv i (g i) >> go (i + 1)
+            | otherwise = do
+                x <- g i
+                MV.unsafeWrite mv i x
+                go (i + 1)
   go 0
 
 type role Array nominal

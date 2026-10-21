@@ -21,8 +21,12 @@ import Data.Array.Convert (convert)
 import qualified Data.Array.Dynamic as D
 import qualified Data.Array.Internal as I
 import Data.Array.DynamicU
+import Data.IORef (IORef, mkWeakIORef, newIORef)
+import Data.Maybe (isJust)
 import qualified Data.Vector.Unboxed as V
 import Data.Word (Word8)
+import System.Mem (performMajorGC)
+import System.Mem.Weak (deRefWeak)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
@@ -275,6 +279,32 @@ test = testGroup "DynamicU" $
         assertEqual "anyA" True (anyA (const True) (transpose [1, 0] lz2))
         where lz = fromList [2] (map V.DoNotUnboxLazy [undefined, 1 :: Int])
               lz2 = fromList [2, 2] (map V.DoNotUnboxLazy [undefined, 1, 2, 3 :: Int])
+      -- An unforced element of a DoNotUnboxLazy result holds the elements its
+      -- function reads, not the vectors they are read from, as vector's own
+      -- map and zipWith store it: with the second element of the result
+      -- forced, nothing holds the second element of the source.
+      lazyElems_2 = do
+        m <- retains (mapA (\ (V.DoNotUnboxLazy r) -> V.DoNotUnboxLazy (r `seq` 0)))
+        z <- retains (\ a -> zipWithA (\ (V.DoNotUnboxLazy r) _ -> V.DoNotUnboxLazy (r `seq` 0)) a a)
+        assertEqual "the second source element held, after mapA and zipWithA" (False, False) (m, z)
+        where
+          retains :: (Array (V.DoNotUnboxLazy (IORef Int)) -> Array (V.DoNotUnboxLazy Int)) -> IO Bool
+          retains op = do
+            (b, w) <- make op
+            performMajorGC
+            held <- isJust <$> deRefWeak w
+            _ <- evaluate (length (toList b))  -- the result kept past the collection
+            return held
+          {-# NOINLINE make #-}
+          make op = do
+            r0 <- newIORef 0
+            r1 <- newIORef 1
+            w <- mkWeakIORef r1 (return ())
+            b <- evaluate (op (fromList [2] [V.DoNotUnboxLazy r0, V.DoNotUnboxLazy r1]))
+            case toList b of
+              [_, V.DoNotUnboxLazy y] -> () <$ evaluate y
+              _ -> assertFailure "two elements"
+            return (b, w)
 
       -- Calls of wrappers that the other tests of this module leave uncalled,
       -- each against its value.
@@ -388,6 +418,7 @@ test = testGroup "DynamicU" $
         , testCase "allSameA_1" allSameA_1
         , testCase "allSameA_2" allSameA_2
         , testCase "lazyElems_1" lazyElems_1
+        , testCase "lazyElems_2" lazyElems_2
         , testCase "wrappers_1" wrappers_1
         , testCase "convert_1" convert_1
         , testCase "vZipWith_1" vZipWith_1
