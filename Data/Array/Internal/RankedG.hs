@@ -193,8 +193,8 @@ fromList ss vs | badShape ss = error $ "fromList: bad shape " ++ show ss
 fromVector :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
               ShapeL -> v a -> Array n v a
 fromVector ss v | badShape ss = error $ "fromVector: bad shape " ++ show ss
-                | n /= l = error $ "fromVector: size mismatch " ++ show (n, l)
                 | length ss /= natT @n = error $ "fromVector: rank mismatch " ++ show (length ss, natT @n :: Int)
+                | n /= l = error $ "fromVector: size mismatch " ++ show (n, l)
                 | otherwise = A ss $ T st 0 v
   where n : st = getStridesT ss
         l = vLength v
@@ -226,12 +226,12 @@ force (A sh t) = A sh $ forceT sh t
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.
 {-# INLINE reshape #-}
-reshape :: forall n n' v a . (HasCallStack,Vector v, VecElem v a, KnownNat n') =>
+reshape :: forall n n' v a . (HasCallStack, Vector v, VecElem v a, KnownNat n') =>
            ShapeL -> Array n v a -> Array n' v a
 reshape sh (A sh' t@(T ost oo v))
   | badShape sh = error $ "reshape: bad shape " ++ show sh
-  | n /= n' = error $ "reshape: size mismatch " ++ show (sh, sh')
   | length sh /= natT @n' = error $ "reshape: rank mismatch " ++ show (length sh, natT @n' :: Int)
+  | n /= n' = error $ "reshape: size mismatch " ++ show (sh, sh')
   | vLength v == 1 = A sh $ T (map (const 0) sh) 0 v  -- Fast special case for singleton vector
   | Just nst <- simpleReshape ost sh' sh = A sh $ T nst oo v
   | otherwise = A sh $ T st 0 $ toVectorT sh' t
@@ -279,7 +279,7 @@ unScalar (A _ t) = unScalarT t
 constant :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
             ShapeL -> a -> Array n v a
 constant sh | badShape sh = error $ "constant: bad shape " ++ show sh
-            | length sh /= natT @n = error "constant: rank mismatch"
+            | length sh /= natT @n = error $ "constant: rank mismatch " ++ show (length sh, natT @n :: Int)
             | otherwise = A sh . constantT sh
 
 -- | Map over the array elements.
