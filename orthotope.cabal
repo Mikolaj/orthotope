@@ -113,8 +113,12 @@ test-suite tests
   ghc-options:
     -Wall -rtsopts -fno-ignore-asserts "-with-rtsopts=-A32m"
 
+  -- base 4.18, of GHC 9.6: BenchViewsTest's allocation bounds fail on
+  -- earlier GHCs, 9.2.8's Storable and Unboxed convert and convertE
+  -- allocating 32.01 bytes an element over boxed against a bound of 32, and
+  -- in a profiled or coverage build on any GHC.
   build-depends:
-    base,
+    base                       >= 4.18,
     deepseq,
     orthotope,
     pretty,
