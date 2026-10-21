@@ -15,12 +15,12 @@
 -- pad and fillStrided on the specialisation benchmark's large strided view,
 -- from a module the specialiser does not run in, at Storable and at Unboxed.
 -- pad's call passes its element dictionary at run time.  fillStrided's goes
--- through a copy compiled for any vector and element type, as a client's call
--- reached the library's own before fillStrided had a pragma, and passes both
--- dictionaries.  At Unboxed they are the controls of BenchViewsTest's bounds
--- on what Storable and Unboxed calls allocate over boxed ones and on what
--- fillStrided allocates; at Storable, whose fill copies elements by their size,
--- they meet those bounds.
+-- through a copy compiled for any vector and element type, as a client's
+-- call reached the library's own before fillStrided had a pragma, and passes
+-- both dictionaries.  At Unboxed, in GHC 9.12.4, they are the controls of
+-- BenchViewsTest's bounds on what Storable and Unboxed calls allocate over
+-- boxed ones and on what fillStrided allocates; at Storable, whose fill copies
+-- elements by their size, they meet those bounds.
 {-# OPTIONS_GHC -fno-specialise #-}
 module Unspecialised
   ( unspecialisedPad, unspecialisedPadU, unspecialisedFill, unspecialisedFillU
