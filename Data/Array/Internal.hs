@@ -440,7 +440,7 @@ foldPartsT c e goWith s x@(T _ _ vx) y@(T _ _ vy)
                           (\ !_ -> e) oz
         in  case ry of
               RSlice oy _ -> against vy oy
-              _ -> let !(T _ oz vz) = normalizeT s y in against vz oz
+              _ -> against (routeVectorT vy ry) 0
   where
     !l = product s
     !d = offset y - offset x
