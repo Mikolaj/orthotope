@@ -240,7 +240,7 @@ reshape' sh sh' (A t@(T ost oo v))
 {-# INLINE stretch #-}
 stretch :: forall sh' sh v a . (Shape sh', ValidStretch sh sh') =>
            Array sh v a -> Array sh' v a
-stretch a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now; see natT
+stretch a = sizeT @sh' `seq`  -- the result's size checked now; see natT
             stretch' (stretching (Proxy :: Proxy sh) (Proxy :: Proxy sh')) a
 
 {-# INLINE stretch' #-}
@@ -251,7 +251,7 @@ stretch' str (A vs) = A $ stretchT str vs
 {-# INLINE stretchOuter #-}
 stretchOuter :: forall s sh v a . (KnownNat s, Shape sh) =>
                 Array (1 : sh) v a -> Array (s : sh) v a
-stretchOuter (A vs) = sizeP (Proxy :: Proxy (s : sh)) `seq`  -- the result's size checked now; see natT
+stretchOuter (A vs) = sizeT @(s : sh) `seq`  -- the result's size checked now; see natT
                       A $ stretchT (True : map (const False) (strides vs)) vs
 
 -- Point-free, as are the point-free definitions below, for the reason at
@@ -426,7 +426,7 @@ unravel = rerank @1 scalar
 window :: forall ws sh' sh v a .
           (Window ws sh sh', KnownNat (Rank ws), Shape sh') =>
           Array sh v a -> Array sh' v a
-window (A (T ss o v)) = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now; see natT
+window (A (T ss o v)) = sizeT @sh' `seq`  -- the result's size checked now; see natT
                         A (T (ss' ++ ss) o v)
   where ss' = take (valueOf @(Rank ws)) ss
 
@@ -454,7 +454,7 @@ rotate :: forall d k sh v a .
           Array sh v a -> Array (Take d sh ++ (k ': Drop d sh)) v a
 -- Through DynamicG's rotate, as RankedG's is.
 rotate a@(A t) =
-  sizeP (Proxy :: Proxy (Take d sh ++ (k ': Drop d sh))) `seq`  -- the result's size checked now; see natT
+  sizeT @(Take d sh ++ (k ': Drop d sh)) `seq`  -- the result's size checked now; see natT
   case DG.rotate (natT @d) (natT @k) (DG.A (shapeL a) t) of
     DG.A _ t' -> A t'
 
@@ -605,13 +605,8 @@ broadcast :: forall ds sh' sh v a .
               Broadcast ds sh sh',
               Vector v, VecElem v a) =>
              Array sh v a -> Array sh' v a
-broadcast a = sizeP (Proxy :: Proxy sh') `seq`  -- the result's size checked now; see natT
-              stretch' bc $
-              reshape' rsh sh a
-  where sh' = shapeP (Proxy :: Proxy sh')
-        sh = shapeP (Proxy :: Proxy sh)
-        rsh = [ if b then 1 else s | (s, b) <- zip sh' bc ]
-        bc = broadcasting @ds @sh @sh'
+broadcast (A t) = sizeT @sh' `seq`  -- the result's size checked now; see natT
+                 A (broadcastT (broadcasting @ds @sh @sh') t)
 
 -- | Update the array at the specified indices to the associated value.
 -- Fails if an index is out of bounds.
@@ -627,20 +622,8 @@ update :: forall sh v a . (HasCallStack, Vector v, VecElem v a, Shape sh) =>
 -- boxed ones, up to 1.4%; only its update2000 of boxed elements ran fewer, 10 a
 -- call, 0.3%.
 update a@(A t) us | null us = A t  -- no update: the array itself
-                  | otherwise = A $ updateT sh t (checked us)
+                  | otherwise = A $ updateT sh t (checkedUpdatesT sh us)
   where sh = shapeL a
-        ok is = length is == r && and (zipWith (\ i s -> 0 <= i && i < s) is sh)
-        r = length sh
-        -- Each index is checked as updateT takes it, under 'build', so that
-        -- updateT's map fuses with the check: the list is walked once, neither
-        -- copied nor held whole.  The indices before the first bad one are
-        -- good, so the error lists every bad one.
-        checked xs = build $ \ cons nil ->
-          let go (u@(is, _) : rest)
-                | ok is = u `cons` go rest
-                | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst (u : rest))
-              go [] = nil
-          in  go xs
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}

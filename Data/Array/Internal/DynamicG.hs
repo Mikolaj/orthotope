@@ -60,8 +60,6 @@ module Data.Array.Internal.DynamicG(
 import Control.DeepSeq hiding (force)
 import Control.Monad(replicateM)
 import Data.Data(Data)
-import Data.Maybe(fromMaybe)
-import GHC.Exts(build)
 import GHC.Generics(Generic)
 import GHC.Stack
 import Test.QuickCheck hiding (generate)
@@ -434,19 +432,20 @@ unravel a = rerank 1 scalar a
 -- If the window parameter @ws = [w1,...,wk]@ and @wa = window ws a@ then
 -- @wa `index` i1 ... `index` ik == slice [(i1,w1),...,(ik,wk)] a@.
 window :: HasCallStack => [Int] -> Array v a -> Array v a
--- The window list is checked before the shape is built, so that the shape
--- a message shows holds no error of its own, and the extents are computed
--- as Integers, a window of 0 over an extent of maxBound making one past it.
+-- The window list is checked before the shape is built, so that the shape a
+-- message shows holds no error of its own; a window of 0 over an extent of
+-- maxBound makes one past it, which the message shows as an Integer.
 window aws (A ash (T ss o v))
   | length aws > length ash = error $ "window: rank mismatch " ++ show (aws, ash)
   | (w, s) : _ <- filter (\ (w, s) -> w < 0 || w > s) (zip aws ash) =
       error $ "window: bad window size " ++ show (w, s)
-  | any (> toInteger (maxBound :: Int)) rshI || badShape rsh =
+  | or (zipWith (\ w s -> w == 0 && s == maxBound) aws ash) || badShape rsh =
       error $ "window: bad shape " ++ show rshI
   | otherwise = A rsh (T (ss' ++ ss) o v)
-  where rshI = zipWith (\ w s -> toInteger s - toInteger w + 1) aws ash
+  where rsh = zipWith (\ w s -> s - w + 1) aws ash
+              ++ aws ++ drop (length aws) ash
+        rshI = zipWith (\ w s -> toInteger s - toInteger w + 1) aws ash
                ++ map toInteger (aws ++ drop (length aws) ash)
-        rsh = map fromInteger rshI
         ss' = zipWith const ss aws
 
 -- The shape is forced here, not checked with 'badShape' as window's is:
@@ -475,11 +474,11 @@ stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ r
 -- copies it out.
 {-# INLINABLE rotate #-}
 rotate :: (HasCallStack, Vector v, VecElem v a) => Int -> Int -> Array v a -> Array v a
-rotate d k a@(A sh _)
+rotate d k a@(A sh at)
   | d < 0 || d >= rank a = error $ "rotate: dimension out of range " ++ show (d, rank a)
   | badShape sh' = error $ "rotate: bad shape " ++ show sh'
   | 0 `elem` sh' = A sh' $ fromVectorT sh' (vConcat [])  -- no elements
-  | k == 1, A _ t <- a = A sh' (insertUnitsT d 1 t)  -- one rotation: a view of the array
+  | k == 1 = A sh' (insertUnitsT d 1 at)  -- one rotation: a view of the array
   | copies > toInteger (maxBound :: Int) = error $ "rotate: count too large " ++ show (d, k, sh)
   | otherwise = rerank d f a
  where
@@ -686,11 +685,10 @@ broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dime
                   | badShape sh = error $ "broadcast: bad shape " ++ show sh
                   | permute ds sh /= shapeL a =
                       error $ "broadcast: shape mismatch " ++ show (shapeL a, ds, sh)
-                  | otherwise = A sh $ T sts o v
+                  | otherwise =
+                      A sh $ broadcastT [ i `notElem` ds | i <- [0 .. r - 1] ] t
   where r = length sh
-        -- The array's strides at ds, and 0 at the dimensions broadcast.
-        A _ (T ats o v) = a
-        sts = [ fromMaybe 0 (lookup i (zip ds ats)) | i <- [0 .. r - 1] ]
+        A _ t = a
         ascending (x:y:ys) = x < y && ascending (y:ys)
         ascending _ = True
 
@@ -705,19 +703,7 @@ broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error "broadcast: bad dime
 update :: (HasCallStack, Vector v, VecElem v a) =>
           Array v a -> [([Int], a)] -> Array v a
 update (A sh t) us | null us = A sh t  -- no update: the array itself
-                   | otherwise = A sh $ updateT sh t (checked us)
-  where ok is = length is == r && and (zipWith (\ i s -> 0 <= i && i < s) is sh)
-        r = length sh
-        -- Each index is checked as updateT takes it, under 'build', so that
-        -- updateT's map fuses with the check: the list is walked once, neither
-        -- copied nor held whole.  The indices before the first bad one are
-        -- good, so the error lists every bad one.
-        checked xs = build $ \ cons nil ->
-          let go (u@(is, _) : rest)
-                | ok is = u `cons` go rest
-                | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst (u : rest))
-              go [] = nil
-          in  go xs
+                   | otherwise = A sh $ updateT sh t (checkedUpdatesT sh us)
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}
