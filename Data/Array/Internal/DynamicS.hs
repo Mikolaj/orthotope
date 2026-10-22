@@ -83,7 +83,9 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.Internal.DynamicG as G
-import Data.Array.Internal(Axes, T(..), ShapeL, Vector(..), genericUnsafeConcatN,
+import Data.Array.Internal(genericZipWithStrided, genericZipWith3Strided,
+                           genericZipWith4Strided, genericZipWith5Strided,
+                           Axes, T(..), ShapeL, Vector(..), genericUnsafeConcatN,
                            genericFoldl1, genericForce, genericFromListExactN,
                            genericUnsafeFillStrided)
 
@@ -254,6 +256,14 @@ instance Vector V.Vector where
   vUnsafeFillStrided = fillStridedS
   {-# INLINE vForce #-}
   vForce = genericForce
+  {-# INLINE vZipWithStrided #-}
+  vZipWithStrided = genericZipWithStrided True
+  {-# INLINE vZipWith3Strided #-}
+  vZipWith3Strided = genericZipWith3Strided True
+  {-# INLINE vZipWith4Strided #-}
+  vZipWith4Strided = genericZipWith4Strided True
+  {-# INLINE vZipWith5Strided #-}
+  vZipWith5Strided = genericZipWith5Strided True
   {-# INLINE vUnsafeConcatN #-}
   vUnsafeConcatN = genericUnsafeConcatN
 

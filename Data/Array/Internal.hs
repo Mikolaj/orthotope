@@ -200,15 +200,42 @@ class Vector v where
   {-# INLINABLE vEmpty #-}
   vEmpty = VG.empty
 
-  -- Left out of the class, to keep it small until users find
-  -- the speedups worth its size: vZipWithStrided to vZipWith5Strided,
-  -- with which the vector instances zip views that no slice serves by
-  -- one walk rather than filling each, and vConcatPadN, with which they
-  -- write pad's padding into the result in place.  On GHC HEAD, zipWithA
-  -- of a transposed view of 200000 Doubles took 0.42 to 0.49 of its time
-  -- at Storable and Unboxed elements, zipWith3A to zipWith5A 0.17 to
-  -- 0.61, and pad of rows of two Doubles 0.65 to 0.75, and 0.33 to 0.35
-  -- at boxed.  They wait, with the conditions of those measurements, at
+  -- | The zips of views of one shape, each given as a T, into a vector
+  -- in row-major order.  The defaults fill each view by 'toVectorT' and
+  -- zip the vectors; the vector instances walk the views at once by
+  -- 'genericZipWithStrided' and its siblings, filling none.
+  vZipWithStrided :: (VecElem v a, VecElem v b, VecElem v c)
+                  => (a -> b -> c) -> ShapeL -> T v a -> T v b -> v c
+  {-# INLINE vZipWithStrided #-}
+  vZipWithStrided f sh t t' = vZipWith f (toVectorT sh t) (toVectorT sh t')
+  vZipWith3Strided :: (VecElem v a, VecElem v b, VecElem v c, VecElem v d)
+                   => (a -> b -> c -> d) -> ShapeL -> T v a -> T v b -> T v c
+                   -> v d
+  {-# INLINE vZipWith3Strided #-}
+  vZipWith3Strided f sh t t' t'' =
+    vZipWith3 f (toVectorT sh t) (toVectorT sh t') (toVectorT sh t'')
+  vZipWith4Strided :: (VecElem v a, VecElem v b, VecElem v c, VecElem v d,
+                       VecElem v e)
+                   => (a -> b -> c -> d -> e) -> ShapeL -> T v a -> T v b
+                   -> T v c -> T v d -> v e
+  {-# INLINE vZipWith4Strided #-}
+  vZipWith4Strided f sh t t' t'' t''' =
+    vZipWith4 f (toVectorT sh t) (toVectorT sh t') (toVectorT sh t'')
+                (toVectorT sh t''')
+  vZipWith5Strided :: (VecElem v a, VecElem v b, VecElem v c, VecElem v d,
+                       VecElem v e, VecElem v f)
+                   => (a -> b -> c -> d -> e -> f) -> ShapeL -> T v a -> T v b
+                   -> T v c -> T v d -> T v e -> v f
+  {-# INLINE vZipWith5Strided #-}
+  vZipWith5Strided f sh t t' t'' t''' t'''' =
+    vZipWith5 f (toVectorT sh t) (toVectorT sh t') (toVectorT sh t'')
+                (toVectorT sh t''') (toVectorT sh t'''')
+
+  -- Left out of the class, to keep it small until users find the speedup
+  -- worth its size: vConcatPadN, with which the vector instances write pad's
+  -- padding into the result in place.  On GHC HEAD, pad of rows of two Doubles
+  -- took 0.65 to 0.75 of its time, and 0.33 to 0.35 at boxed.  It waits, with
+  -- the conditions of that measurement, at
   -- https://github.com/Mikolaj/orthotope/tree/0888a7bbb8fc599864d4ba7ee0d462114e4c4589.
   --
   -- Left out as well, and not written: a strided map, with which 'convertT'
@@ -681,6 +708,209 @@ genericZipLoop !n g = VG.create $ do
                 VGM.unsafeWrite mv i x
                 go (i + 1)
   go 0
+
+-- The zips of views of one shape, each given as a T, into a vector in row-major
+-- order by one walk over the shape that reads each view at its own strides, so
+-- that no view is filled: the outer dimensions by recursion, the innermost by
+-- a loop, one counter over slices where every view's stride there is 1.  Each
+-- element is read as the instance's zips read it, forced where strict is True
+-- and as stored otherwise, and each result written as the vector stores it.
+-- The second equation's bang on n, which -Wredundant-bang-patterns reports,
+-- keeps the equations in one match group, as at 'absAxesAndStartT'.
+{-# INLINE readAtT #-}
+readAtT :: VG.Vector w x => Bool -> w x -> Int -> ST s x
+readAtT True v i = let !x = VG.unsafeIndex v i in return x
+readAtT False v i = VG.unsafeIndexM v i
+
+{-# INLINE genericZipWithStrided #-}
+genericZipWithStrided :: (VG.Vector w a, VG.Vector w b, VG.Vector w c)
+                         => Bool -> (a -> b -> c) -> ShapeL -> T w a -> T w b -> w c
+genericZipWithStrided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) = VG.create $ do
+  out <- VGM.unsafeNew (product sh)
+  let walk [!n] [!t1] [!t2] !p1 !p2 !pos
+        | t1 == 1 && t2 == 1 =
+            let !s1 = VG.unsafeSlice p1 n v1
+                !s2 = VG.unsafeSlice p2 n v2
+                !so = VGM.unsafeSlice pos n out
+                unit !k | k >= n = return (pos + n)
+                        | otherwise = do
+                            x1 <- readAtT strict s1 k
+                            x2 <- readAtT strict s2 k
+                            VGM.unsafeWrite so k (f x1 x2)
+                            unit (k + 1)
+            in  unit 0
+        | otherwise = inner pos p1 p2
+        where !oEnd = pos + n
+              inner !o !q1 !q2
+                | o >= oEnd = return o
+                | otherwise = do
+                    x1 <- readAtT strict v1 q1
+                    x2 <- readAtT strict v2 q2
+                    VGM.unsafeWrite out o (f x1 x2)
+                    inner (o + 1) (q1 + t1) (q2 + t2)
+      walk (!n : ns) (!t1 : ts1) (!t2 : ts2) !p1 !p2 !pos = outer 0 p1 p2 pos
+        where outer !k !q1 !q2 !o
+                | k >= n = return o
+                | otherwise = do
+                    o' <- walk ns ts1 ts2 q1 q2 o
+                    outer (k + 1) (q1 + t1) (q2 + t2) o'
+      walk _ _ _ !p1 !p2 !pos = do
+        x1 <- readAtT strict v1 p1
+        x2 <- readAtT strict v2 p2
+        VGM.unsafeWrite out pos (f x1 x2)
+        return (pos + 1)
+  _ <- walk sh ss1 ss2 o1 o2 0
+  return out
+
+{-# INLINE genericZipWith3Strided #-}
+genericZipWith3Strided :: (VG.Vector w a, VG.Vector w b, VG.Vector w c, VG.Vector w d)
+                          => Bool -> (a -> b -> c -> d) -> ShapeL -> T w a -> T w b -> T w c -> w d
+genericZipWith3Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3) = VG.create $ do
+  out <- VGM.unsafeNew (product sh)
+  let walk [!n] [!t1] [!t2] [!t3] !p1 !p2 !p3 !pos
+        | t1 == 1 && t2 == 1 && t3 == 1 =
+            let !s1 = VG.unsafeSlice p1 n v1
+                !s2 = VG.unsafeSlice p2 n v2
+                !s3 = VG.unsafeSlice p3 n v3
+                !so = VGM.unsafeSlice pos n out
+                unit !k | k >= n = return (pos + n)
+                        | otherwise = do
+                            x1 <- readAtT strict s1 k
+                            x2 <- readAtT strict s2 k
+                            x3 <- readAtT strict s3 k
+                            VGM.unsafeWrite so k (f x1 x2 x3)
+                            unit (k + 1)
+            in  unit 0
+        | otherwise = inner pos p1 p2 p3
+        where !oEnd = pos + n
+              inner !o !q1 !q2 !q3
+                | o >= oEnd = return o
+                | otherwise = do
+                    x1 <- readAtT strict v1 q1
+                    x2 <- readAtT strict v2 q2
+                    x3 <- readAtT strict v3 q3
+                    VGM.unsafeWrite out o (f x1 x2 x3)
+                    inner (o + 1) (q1 + t1) (q2 + t2) (q3 + t3)
+      walk (!n : ns) (!t1 : ts1) (!t2 : ts2) (!t3 : ts3) !p1 !p2 !p3 !pos =
+          outer 0 p1 p2 p3 pos
+        where outer !k !q1 !q2 !q3 !o
+                | k >= n = return o
+                | otherwise = do
+                    o' <- walk ns ts1 ts2 ts3 q1 q2 q3 o
+                    outer (k + 1) (q1 + t1) (q2 + t2) (q3 + t3) o'
+      walk _ _ _ _ !p1 !p2 !p3 !pos = do
+        x1 <- readAtT strict v1 p1
+        x2 <- readAtT strict v2 p2
+        x3 <- readAtT strict v3 p3
+        VGM.unsafeWrite out pos (f x1 x2 x3)
+        return (pos + 1)
+  _ <- walk sh ss1 ss2 ss3 o1 o2 o3 0
+  return out
+
+{-# INLINE genericZipWith4Strided #-}
+genericZipWith4Strided :: (VG.Vector w a, VG.Vector w b, VG.Vector w c, VG.Vector w d, VG.Vector w e)
+                          => Bool -> (a -> b -> c -> d -> e) -> ShapeL -> T w a -> T w b -> T w c -> T w d -> w e
+genericZipWith4Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3) (T ss4 o4 v4) = VG.create $ do
+  out <- VGM.unsafeNew (product sh)
+  let walk [!n] [!t1] [!t2] [!t3] [!t4] !p1 !p2 !p3 !p4 !pos
+        | t1 == 1 && t2 == 1 && t3 == 1 && t4 == 1 =
+            let !s1 = VG.unsafeSlice p1 n v1
+                !s2 = VG.unsafeSlice p2 n v2
+                !s3 = VG.unsafeSlice p3 n v3
+                !s4 = VG.unsafeSlice p4 n v4
+                !so = VGM.unsafeSlice pos n out
+                unit !k | k >= n = return (pos + n)
+                        | otherwise = do
+                            x1 <- readAtT strict s1 k
+                            x2 <- readAtT strict s2 k
+                            x3 <- readAtT strict s3 k
+                            x4 <- readAtT strict s4 k
+                            VGM.unsafeWrite so k (f x1 x2 x3 x4)
+                            unit (k + 1)
+            in  unit 0
+        | otherwise = inner pos p1 p2 p3 p4
+        where !oEnd = pos + n
+              inner !o !q1 !q2 !q3 !q4
+                | o >= oEnd = return o
+                | otherwise = do
+                    x1 <- readAtT strict v1 q1
+                    x2 <- readAtT strict v2 q2
+                    x3 <- readAtT strict v3 q3
+                    x4 <- readAtT strict v4 q4
+                    VGM.unsafeWrite out o (f x1 x2 x3 x4)
+                    inner (o + 1)
+                        (q1 + t1) (q2 + t2) (q3 + t3) (q4 + t4)
+      walk (!n : ns) (!t1 : ts1) (!t2 : ts2) (!t3 : ts3) (!t4 : ts4) !p1 !p2 !p3 !p4 !pos =
+          outer 0 p1 p2 p3 p4 pos
+        where outer !k !q1 !q2 !q3 !q4 !o
+                | k >= n = return o
+                | otherwise = do
+                    o' <- walk ns ts1 ts2 ts3 ts4 q1 q2 q3 q4 o
+                    outer (k + 1) (q1 + t1) (q2 + t2) (q3 + t3) (q4 + t4) o'
+      walk _ _ _ _ _ !p1 !p2 !p3 !p4 !pos = do
+        x1 <- readAtT strict v1 p1
+        x2 <- readAtT strict v2 p2
+        x3 <- readAtT strict v3 p3
+        x4 <- readAtT strict v4 p4
+        VGM.unsafeWrite out pos (f x1 x2 x3 x4)
+        return (pos + 1)
+  _ <- walk sh ss1 ss2 ss3 ss4 o1 o2 o3 o4 0
+  return out
+
+{-# INLINE genericZipWith5Strided #-}
+genericZipWith5Strided :: (VG.Vector w a, VG.Vector w b, VG.Vector w c, VG.Vector w d, VG.Vector w e, VG.Vector w f)
+                          => Bool -> (a -> b -> c -> d -> e -> f) -> ShapeL -> T w a -> T w b -> T w c -> T w d -> T w e -> w f
+genericZipWith5Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3) (T ss4 o4 v4) (T ss5 o5 v5) = VG.create $ do
+  out <- VGM.unsafeNew (product sh)
+  let walk [!n] [!t1] [!t2] [!t3] [!t4] [!t5] !p1 !p2 !p3 !p4 !p5 !pos
+        | t1 == 1 && t2 == 1 && t3 == 1 && t4 == 1 && t5 == 1 =
+            let !s1 = VG.unsafeSlice p1 n v1
+                !s2 = VG.unsafeSlice p2 n v2
+                !s3 = VG.unsafeSlice p3 n v3
+                !s4 = VG.unsafeSlice p4 n v4
+                !s5 = VG.unsafeSlice p5 n v5
+                !so = VGM.unsafeSlice pos n out
+                unit !k | k >= n = return (pos + n)
+                        | otherwise = do
+                            x1 <- readAtT strict s1 k
+                            x2 <- readAtT strict s2 k
+                            x3 <- readAtT strict s3 k
+                            x4 <- readAtT strict s4 k
+                            x5 <- readAtT strict s5 k
+                            VGM.unsafeWrite so k (f x1 x2 x3 x4 x5)
+                            unit (k + 1)
+            in  unit 0
+        | otherwise = inner pos p1 p2 p3 p4 p5
+        where !oEnd = pos + n
+              inner !o !q1 !q2 !q3 !q4 !q5
+                | o >= oEnd = return o
+                | otherwise = do
+                    x1 <- readAtT strict v1 q1
+                    x2 <- readAtT strict v2 q2
+                    x3 <- readAtT strict v3 q3
+                    x4 <- readAtT strict v4 q4
+                    x5 <- readAtT strict v5 q5
+                    VGM.unsafeWrite out o (f x1 x2 x3 x4 x5)
+                    inner (o + 1)
+                        (q1 + t1) (q2 + t2) (q3 + t3) (q4 + t4) (q5 + t5)
+      walk (!n : ns) (!t1 : ts1) (!t2 : ts2) (!t3 : ts3) (!t4 : ts4) (!t5 : ts5) !p1 !p2 !p3 !p4 !p5 !pos =
+          outer 0 p1 p2 p3 p4 p5 pos
+        where outer !k !q1 !q2 !q3 !q4 !q5 !o
+                | k >= n = return o
+                | otherwise = do
+                    o' <- walk ns ts1 ts2 ts3 ts4 ts5 q1 q2 q3 q4 q5 o
+                    outer (k + 1)
+                        (q1 + t1) (q2 + t2) (q3 + t3) (q4 + t4) (q5 + t5) o'
+      walk _ _ _ _ _ _ !p1 !p2 !p3 !p4 !p5 !pos = do
+        x1 <- readAtT strict v1 p1
+        x2 <- readAtT strict v2 p2
+        x3 <- readAtT strict v3 p3
+        x4 <- readAtT strict v4 p4
+        x5 <- readAtT strict v5 p5
+        VGM.unsafeWrite out pos (f x1 x2 x3 x4 x5)
+        return (pos + 1)
+  _ <- walk sh ss1 ss2 ss3 ss4 ss5 o1 o2 o3 o4 o5 0
+  return out
 
 -- The function folded over a non-empty vector from its first element, over the
 -- indices in the order of vector's foldl1', each element read forced.
@@ -1365,6 +1595,14 @@ wholeOrSliceT ao l v
   | ao == 0 && vLength v == l = v
   | otherwise = vUnsafeSlice ao l v
 
+-- The view as the slice of its vector that 'toVectorT' hands out, where it
+-- hands out one, the length given being the view's, above 0.
+{-# INLINE sliceOfT #-}
+sliceOfT :: (Vector v, VecElem v a) => ShapeL -> Int -> T v a -> Maybe (v a)
+sliceOfT sh l t@(T _ _ v) = case routeT sh l t of
+  RSlice ao n -> Just (wholeOrSliceT ao n v)
+  _ -> Nothing
+
 -- INLINE: Route, A3: it takes apart the Route its callers build.
 --
 -- The slices a route stands for, as the cons and nil of a 'build': one
@@ -1867,10 +2105,13 @@ zipWithT sh f t@(T ss _ v) t'@(T _ _ v') =
     (_, 1) | 0 `notElem` sh ->
       -- Second vector has length 1, so use a map instead.
       vUnsafeWithElem v' 0 $ \ y -> mapT sh (`f` y) t
-    (_, _) ->
-      let cv  = toVectorT sh t
-          cv' = toVectorT sh t'
-      in  fromVectorT sh $ vZipWith f cv cv'
+    (_, _)
+      | l > 0, Just cv <- sliceOfT sh l t, Just cv' <- sliceOfT sh l t' ->
+          fromVectorT sh $ vZipWith f cv cv'
+      | l > 0 -> fromVectorT sh $ vZipWithStrided f sh t t'
+      | otherwise ->
+          fromVectorT sh $ vZipWith f (toVectorT sh t) (toVectorT sh t')
+  where l = product sh
 
 -- Zip three arrays with a function.
 {-# INLINE zipWith3T #-}
@@ -1883,6 +2124,13 @@ zipWith3T sh f (T ss _ v) (T _ _ v') (T _ _ v'') |
   0 `notElem` sh, vLength v == 1, vLength v' == 1, vLength v'' == 1 =
     T ss 0 $ vSingleton $
       f (vUnsafeIndex v 0) (vUnsafeIndex v' 0) (vUnsafeIndex v'' 0)
+zipWith3T sh f t t' t''
+  | l > 0, Just v <- sliceOfT sh l t
+  , Just v' <- sliceOfT sh l t'
+  , Just v'' <- sliceOfT sh l t'' =
+      fromVectorT sh $ vZipWith3 f v v' v''
+  | l > 0 = fromVectorT sh $ vZipWith3Strided f sh t t' t''
+  where l = product sh
 zipWith3T sh f t t' t'' = fromVectorT sh $ vZipWith3 f v v' v''
   where v   = toVectorT sh t
         v'  = toVectorT sh t'
@@ -1891,6 +2139,14 @@ zipWith3T sh f t t' t'' = fromVectorT sh $ vZipWith3 f v v' v''
 -- Zip four arrays with a function.
 {-# INLINE zipWith4T #-}
 zipWith4T :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e) => ShapeL -> (a -> b -> c -> d -> e) -> T v a -> T v b -> T v c -> T v d -> T v e
+zipWith4T sh f t t' t'' t'''
+  | l > 0, Just v <- sliceOfT sh l t
+  , Just v' <- sliceOfT sh l t'
+  , Just v'' <- sliceOfT sh l t''
+  , Just v''' <- sliceOfT sh l t''' =
+      fromVectorT sh $ vZipWith4 f v v' v'' v'''
+  | l > 0 = fromVectorT sh $ vZipWith4Strided f sh t t' t'' t'''
+  where l = product sh
 zipWith4T sh f t t' t'' t''' = fromVectorT sh $ vZipWith4 f v v' v'' v'''
   where v   = toVectorT sh t
         v'  = toVectorT sh t'
@@ -1900,6 +2156,15 @@ zipWith4T sh f t t' t'' t''' = fromVectorT sh $ vZipWith4 f v v' v'' v'''
 -- Zip five arrays with a function.
 {-# INLINE zipWith5T #-}
 zipWith5T :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, VecElem v f) => ShapeL -> (a -> b -> c -> d -> e -> f) -> T v a -> T v b -> T v c -> T v d -> T v e -> T v f
+zipWith5T sh f t t' t'' t''' t''''
+  | l > 0, Just v <- sliceOfT sh l t
+  , Just v' <- sliceOfT sh l t'
+  , Just v'' <- sliceOfT sh l t''
+  , Just v''' <- sliceOfT sh l t'''
+  , Just v'''' <- sliceOfT sh l t'''' =
+      fromVectorT sh $ vZipWith5 f v v' v'' v''' v''''
+  | l > 0 = fromVectorT sh $ vZipWith5Strided f sh t t' t'' t''' t''''
+  where l = product sh
 zipWith5T sh f t t' t'' t''' t'''' = fromVectorT sh $ vZipWith5 f v v' v'' v''' v''''
   where v   = toVectorT sh t
         v'  = toVectorT sh t'

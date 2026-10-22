@@ -71,7 +71,9 @@ import GHC.Stack(HasCallStack)
 import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
-import Data.Array.Internal(ShapeL, Vector(..), None, genericForce,
+import Data.Array.Internal(genericZipWithStrided, genericZipWith3Strided,
+                           genericZipWith4Strided, genericZipWith5Strided,
+                           ShapeL, Vector(..), None, genericForce,
                            genericFromListExactN, genericUnsafeFillStrided,
                            genericZipLoop, rnfViewT)
 import qualified Data.Array.Internal.DynamicG as G
@@ -212,6 +214,14 @@ instance Vector V.Vector where
   vUnsafeFillStrided = genericUnsafeFillStrided 5
   {-# INLINE vForce #-}
   vForce = genericForce
+  {-# INLINE vZipWithStrided #-}
+  vZipWithStrided = genericZipWithStrided False
+  {-# INLINE vZipWith3Strided #-}
+  vZipWith3Strided = genericZipWith3Strided False
+  {-# INLINE vZipWith4Strided #-}
+  vZipWith4Strided = genericZipWith4Strided False
+  {-# INLINE vZipWith5Strided #-}
+  vZipWith5Strided = genericZipWith5Strided False
   -- A constant, not the default: VG.empty, inlined into a caller even under
   -- INLINABLE, was built there inside the runRW# that also took the caller's
   -- continuation, so anew at every call, which on GHC HEAD 10.1.20261019
