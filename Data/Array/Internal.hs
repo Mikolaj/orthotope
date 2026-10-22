@@ -2170,25 +2170,51 @@ simpleReshape osts os ns
       loop _ _ = error $ "simpleReshape: violated contract: not one stride per dimension " ++ show (osts, os, ns)
 simpleReshape _ _ _ = Nothing
 
+-- f applied n times, each result forced.
+{-# INLINE applyN #-}
+applyN :: Int -> (b -> b) -> b -> b
+applyN n f = go n
+  where go !j !x | j <= 0 = x
+                 | otherwise = go (j - 1) (f x)
+
 -- Note: assumes + is commutative&associative.  A strict left fold from 0 over
 -- the parts, as 'sum' of their list folds: each slice's sum, and on 'RFill'
--- each element.
+-- each element.  A run a broadcast repeats in a row, the axis of stride 0 the
+-- merge can leave just outside it being the one 'cellsRouteT' drops, is summed
+-- once and its sum added once a copy, the additions a walk of every copy makes,
+-- in its order.  That arm is matched in 'foldNumT', each other route in an
+-- alternative of its own with the fold inlined there: with the copies returned
+-- beside the route by a function that 'cellsRouteT' then started from, sumA,
+-- productA and the folds of 'cellsRouteT' allocated 24 to 64 bytes a call more
+-- on small arrays, and with the other routes in one default alternative, sumA
+-- still did, on GHC HEAD 10.1.20261019 (2026-10-21).
 {-# INLINE sumT #-}
 sumT :: (Vector v, VecElem v a, Num a) => ShapeL -> T v a -> a
-sumT sh t@(T _ _ v)
-  | l == 0 = 0
-  | otherwise = routeFoldT v (unorderedRouteT sh l t)
-      (\ s k !acc -> k (acc + vSum s)) (\ x k !acc -> k (acc + x)) id 0
-  where !l = product sh
+sumT sh t = foldNumT (+) vSum 0 sh t
 
 -- Note: assumes * is commutative&associative.  Folded as 'sumT' folds.
 {-# INLINE productT #-}
 productT :: (Vector v, VecElem v a, Num a) => ShapeL -> T v a -> a
-productT sh t@(T _ _ v)
-  | l == 0 = 1
-  | otherwise = routeFoldT v (unorderedRouteT sh l t)
-      (\ s k !acc -> k (acc * vProduct s)) (\ x k !acc -> k (acc * x)) id 1
+productT sh t = foldNumT (*) vProduct 1 sh t
+
+-- The fold of 'sumT' and 'productT', by the function, its reduction of
+-- a vector and its value on no elements.
+{-# INLINE foldNumT #-}
+foldNumT :: (Vector v, VecElem v a) =>
+            (a -> a -> a) -> (v a -> a) -> a -> ShapeL -> T v a -> a
+foldNumT op vop z sh t@(T _ _ v)
+  | l == 0 = z
+  | otherwise = case unorderedRouteT sh l t of
+      RRuns (Axes 1 m (InnerFirst (Axis 0 n : outer))) o _ ->
+        runSlicesT (Axes 1 m (InnerFirst outer)) o v
+          (\ s k !acc -> let !y = vop s in k (applyN n (`op` y) acc)) id z
+      RRuns axes o l' -> fold (RRuns axes o l')
+      RSlice o l' -> fold (RSlice o l')
+      RFill axes o l' -> fold (RFill axes o l')
   where !l = product sh
+        {-# INLINE fold #-}
+        fold route = routeFoldT v route
+          (\ s k !acc -> k (acc `op` vop s)) (\ x k !acc -> k (acc `op` x)) id z
 
 -- Note: assumes max is commutative&associative.  A view of runs folds the
 -- runs' maxima in the order 'maximum' folds their list, the walk's own cons
