@@ -39,7 +39,7 @@ import qualified Data.Array.Internal.Shaped as S
 import qualified Data.Array.Internal.ShapedG as SG
 import qualified Data.Array.Internal.ShapedS as SS
 import qualified Data.Array.Internal.ShapedU as SU
-import Data.Array.Internal.Shape(Shape(..), validShape)
+import Data.Array.Internal.Shape(Shape(..))
 
 -- INLINE: on GHC HEAD (2026-10-10), under INLINABLE a client's specialised
 -- convert still called its worker with the Storable dictionary, running 3.5
@@ -86,6 +86,20 @@ sameShape :: [Int] -> [Integer] -> Bool
 sameShape (x : xs) (y : ys) = toInteger x == y && sameShape xs ys
 sameShape [] [] = True
 sameShape _ _ = False
+
+-- INLINE: on GHC HEAD 10.1.20261019 (2026-10-22), under INLINABLE it stayed
+-- out of line, returning the Either its caller takes apart built, and the
+-- specialisation benchmark's convert to a Shaped array of a small or empty
+-- array allocated 16 bytes a call more, 48 summed, and convertE to one of
+-- another shape 32 more, and 72 summed from a Ranked array.
+-- The checks of a conversion to a Shaped array: the shape against the type's,
+-- then the type's against the check of 'shapeP', made once a dictionary.
+{-# INLINE shapedE #-}
+shapedE :: Shape sh => Proxy sh -> [Int] -> r -> Either String r
+shapedE p sh r | not (sameShape sh ns) = Left $ "convert: shape mismatch " ++ show (sh, ns)
+               | not (validP p) = Left "convert: bad shape"
+               | otherwise = Right r
+  where ns = natsP p
 
 -- We write these instances like "instance (a ~ b) => Convert (X a) (Y b)" so
 -- that instance resolution will commit to them as soon as it knows the array
@@ -210,16 +224,12 @@ instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (S.Array sh a) (R.Array n
 instance (a ~ b, S.Shape sh) => Convert (D.Array a) (S.Array sh b) where
   -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
-  convertE (D.A (DG.A sh t)) | not (sameShape sh (natsP (Proxy :: Proxy sh))) = Left "convert: shape mismatch"
-                             | not (validShape sh) = Left "convert: bad shape"
-                             | otherwise = Right $ S.A (SG.A t)
+  convertE (D.A (DG.A sh t)) = shapedE (Proxy :: Proxy sh) sh $ S.A (SG.A t)
 
 instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (R.Array n a) (S.Array sh b) where
   -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
-  convertE (R.A (RG.A sh t)) | not (sameShape sh (natsP (Proxy :: Proxy sh))) = Left "convert: shape mismatch"
-                             | not (validShape sh) = Left "convert: bad shape"
-                             | otherwise = Right $ S.A (SG.A t)
+  convertE (R.A (RG.A sh t)) = shapedE (Proxy :: Proxy sh) sh $ S.A (SG.A t)
 
 ------
 
@@ -232,17 +242,12 @@ instance (a ~ b, KnownNat n) => Convert (DS.Array a) (RS.Array n b) where
 instance (a ~ b, SS.Rank sh ~ n, SS.Shape sh) => Convert (RS.Array n a) (SS.Array sh b) where
   -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
-  convertE (RS.A (RG.A sh t)) | not (sameShape sh (natsP (Proxy :: Proxy sh))) = Left "convert: shape mismatch"
-                              | not (validShape sh) = Left "convert: bad shape"
-                              | otherwise = Right $ SS.A (SG.A t)
+  convertE (RS.A (RG.A sh t)) = shapedE (Proxy :: Proxy sh) sh $ SS.A (SG.A t)
 
 instance (a ~ b, SS.Shape sh) => Convert (DS.Array a) (SS.Array sh b) where
   -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
-  convertE (DS.A (DG.A sh t)) | not (sameShape sh ns) = Left $ "convert: shape mismatch: " ++ show (sh, ns)
-                              | not (validShape sh) = Left "convert: bad shape"
-                              | otherwise = Right $ SS.A (SG.A t)
-                              where ns = natsP (Proxy :: Proxy sh)
+  convertE (DS.A (DG.A sh t)) = shapedE (Proxy :: Proxy sh) sh $ SS.A (SG.A t)
 
 instance (a ~ b, SS.Shape sh) => Convert (SS.Array sh a) (DS.Array b) where
   {-# INLINE convert #-}
