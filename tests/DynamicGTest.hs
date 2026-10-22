@@ -164,13 +164,15 @@ prop_reduce v@(View sh _) =
             else maximumA x === maximum l .&&. minimumA x === minimum l)
       .&&. sort (I.vToList (I.toUnorderedVectorT xsh tx)) === sort l
 
--- pad agrees with indexing the view where an index falls inside it, and
--- gives the padding value elsewhere, for a pad list of any length up to
--- the rank that leaves at most 10000 elements.
+-- pad agrees with indexing the view where an index falls inside it, and gives
+-- the padding value elsewhere, for a pad list of any length up to the rank that
+-- leaves at most 10000 elements; and padT, given a pad list of zeros of that
+-- length, returns the view's own layout.
 prop_pad :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
 prop_pad v@(View sh _) =
   let x = mkViewG v (upTo (product sh)) :: Array v a
       xsh = shapeL x
+      DG.A _ t = x
   in  forAll (choose (0, length xsh)) $ \ k ->
       forAll (vectorOf k ((,) <$> choose (0, 2) <*> choose (0, 2))) $ \ ps ->
       let psh = zipWith (\ (lo, hi) s -> lo + s + hi) ps xsh ++ drop k xsh
@@ -178,9 +180,11 @@ prop_pad v@(View sh _) =
                           os' = zipWith (\ i (lo, _) -> i - lo) os ps
                       in  if and (zipWith (\ i s -> i >= 0 && i < s) os' xsh)
                           then at x (os' ++ js) else -1
+          t' = I.padT (-1) (map (const (0, 0)) ps) xsh t
       in  product psh <= 10000 ==>
           shapeL (pad ps (-1) x) === psh
           .&&. toList (pad ps (-1) x) === map elemAt (indices psh)
+          .&&. (I.offset t', I.strides t') === (I.offset t, I.strides t)
 
 -- Each operation of a view has the shape opShape gives, and reads at every
 -- index of its result the element of the array it applies to at the index

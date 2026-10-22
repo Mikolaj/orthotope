@@ -336,9 +336,9 @@ pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " +
                      | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
                          error $ "pad: padding past maxBound " ++ show (aps, ash)
                      | badShape sh = error $ "pad: bad shape " ++ show sh
-                     | all (== (0, 0)) aps = A ash at  -- no padding: the array itself
                      -- Built past the checks, not bound above them: see natT.
-                     | otherwise = A sh (padT v aps ash at)
+                     | all (== (0, 0)) aps = A ash at  -- no padding: the array itself
+                     | otherwise = A sh (padCopyT v aps ash at)
   where sh = zipWithLong2 (\ (l, h) s -> l + s + h) aps ash
 
 -- | Do an arbitrary array transposition.

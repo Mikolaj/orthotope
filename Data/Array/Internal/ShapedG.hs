@@ -321,9 +321,9 @@ pad :: forall ps sh' sh a v . (HasCallStack, Vector v, VecElem v a, Padded ps sh
 pad v a@(A at) | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
                    error $ "pad: padding past maxBound " ++ show (aps, ash)
                | not (validShape sh) = error $ "pad: bad shape " ++ show sh
-               | all (== (0, 0)) aps = A at  -- no padding: the array itself
                -- Built past the checks, not bound above them: see natT.
-               | otherwise = A (padT v aps ash at)
+               | all (== (0, 0)) aps = A at  -- no padding: the array itself
+               | otherwise = A (padCopyT v aps ash at)
   where ash = shapeL a
         aps = padded (Proxy :: Proxy ps) (Proxy :: Proxy sh)
         sh = zipWithLong2 (\ (l, h) s -> l + s + h) aps ash
