@@ -206,6 +206,16 @@ class Vector v where
   -- 0.61, and pad of rows of two Doubles 0.65 to 0.75, and 0.33 to 0.35
   -- at boxed.  They wait, with the conditions of those measurements, at
   -- https://github.com/Mikolaj/orthotope/tree/0888a7bbb8fc599864d4ba7ee0d462114e4c4589.
+  --
+  -- Left out as well, and not written: a strided map, with which 'convertT'
+  -- would map or convert a view that no slice serves in one walk rather than
+  -- filling it and copying the fill, and a strided fill at an offset, with
+  -- which 'rerank', 'rerank2' and 'ravel' would write a result that is such
+  -- a view into their output rather than filling it and copying the fill in.
+  -- Without them, on GHC HEAD 10.1.20261019 (2026-10-21), at Storable and
+  -- Unboxed elements, mapA of the runs and scaled views of 200000 Doubles
+  -- allocated 16 bytes an element against the dense view's 8, and ravel of the
+  -- rows of the strided, scaled and flipped views 16.1 to 16.2 against 8.1.
 
 class None a
 instance None a
