@@ -2742,7 +2742,7 @@ checkedUpdatesT :: HasCallStack => ShapeL -> [([Int], a)] -> [([Int], a)]
 checkedUpdatesT sh us = build $ \ cons nil ->
   let go (u@(is, _) : rest)
         | ok is = u `cons` go rest
-        | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst (u : rest))
+        | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst (u : rest), sh)
       go [] = nil
   in  go us
   where ok is = length is == r && and (zipWith (\ i s -> 0 <= i && i < s) is sh)

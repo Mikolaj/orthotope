@@ -446,7 +446,7 @@ test = testGroup "Dynamic" $
         [ ("stretchOuter: bad shape [-1,2]", stretchOuter (-1) (fromList [1,2] [1,2 :: Int]))
         , ("rotate: bad shape [-2,3]", rotate 0 (-2) (fromList [3] [1,2,3]))
         , ("broadcast: shape mismatch ([2,3],[0],[2,3])", broadcast [0] [2,3] (fromList [2,3] [1..6]))
-        , ("ravelOuter: empty outer dimension", rerank 1 id (fromList [0,2] [])) ]
+        , ("ravelOuter: empty outer dimension [0]", rerank 1 id (fromList [0,2] [])) ]
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrows "2" (slice [(0,0)] a4)

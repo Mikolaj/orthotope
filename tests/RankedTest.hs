@@ -54,7 +54,7 @@ test = testGroup "Ranked" $
       -- returns Left.
       rank_3 = do
         assertThrowsIn "3" "Shape" (fromList [5] [1 .. 5] :: Array 18446744073709551617 Int)
-        assertEqual "convertE" (Left "convert: rank mismatch")
+        assertEqual "convertE" (Left "convert: rank mismatch ([5],18446744073709551617)")
           (() <$ (convertE (D.fromList [5] [1 .. 5 :: Int]) :: Either String (Array 18446744073709551617 Int)))
       -- maximumA and minimumA fail on an empty array.
       maximumA_empty = do
@@ -313,7 +313,7 @@ test = testGroup "Ranked" $
       laterChecks_1 = mapM_ (\ (m, a) -> assertThrowsWith m m a)
         [ ("stretchOuter: bad shape [-1,2]", stretchOuter (-1) (fromList [1,2] [1,2] :: Array 2 Int))
         , ("broadcast: shape mismatch ([2,3],[0],[2,3])", broadcast [0] [2,3] (fromList [2,3] [1..6] :: Array 2 Int))
-        , ("ravelOuter: empty outer dimension", rerank @1 (id :: Array 1 Int -> Array 1 Int) (fromList [0,2] [])) ]
+        , ("ravelOuter: empty outer dimension [0]", rerank @1 (id :: Array 1 Int -> Array 1 Int) (fromList [0,2] [])) ]
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrows "2" (slice [(0,0)] a4)
@@ -349,7 +349,7 @@ test = testGroup "Ranked" $
       rev_2 = assertEqual "2" (fromList [2,3] [6,5,4,3,2,1])
                               (rev [0,1] a1)
       rev_3 = assertThrowsIn "3" "rev" (rev [2] a1)
-      convertE_1 = assertEqual "1" (Left "convert: rank mismatch") (convertE (D.fromList [2] [1,2 :: Int]) :: Either String (Array 2 Int))
+      convertE_1 = assertEqual "1" (Left "convert: rank mismatch ([2],2)") (convertE (D.fromList [2] [1,2 :: Int]) :: Either String (Array 2 Int))
       -- rnf forces no element outside the view.
       rnf_1 = assertEqual "1" () (rnf (index (fromList [2,2] [1,2,undefined,undefined]) 0 :: Array 1 Int))
       -- The conversions between boxings convert no element outside the view.
@@ -367,7 +367,7 @@ test = testGroup "Ranked" $
         assertEqual "D" d (convert r)
         assertEqual "convertE D" (Right r) (convertE d)
         assertEqual "convertE DS" (Right (convert r :: RS.Array 2 Int)) (convertE ds)
-        assertEqual "convertE DS rank" (Left "convert: rank mismatch")
+        assertEqual "convertE DS rank" (Left "convert: rank mismatch ([2,3],1)")
           (() <$ (convertE ds :: Either String (RS.Array 1 Int)))
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank @1 (\ r -> reduce (*) 1 r) a1)

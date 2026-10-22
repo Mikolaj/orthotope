@@ -97,7 +97,7 @@ sameShape _ _ = False
 {-# INLINE shapedE #-}
 shapedE :: Shape sh => Proxy sh -> [Int] -> r -> Either String r
 shapedE p sh r | not (sameShape sh ns) = Left $ "convert: shape mismatch " ++ show (sh, ns)
-               | not (validP p) = Left "convert: bad shape"
+               | not (validP p) = Left $ "convert: bad shape " ++ show ns
                | otherwise = Right r
   where ns = natsP p
 
@@ -206,7 +206,7 @@ instance (a ~ b, KnownNat n) => Convert (D.Array a) (R.Array n b) where
   -- specialisation benchmark's summed conversions to Shaped arrays 16 to 40
   -- bytes a call, against 16 saved where forced.
   {-# INLINE convertE #-}
-  convertE (D.A (DG.A sh t)) | toInteger (length sh) /= natVal (Proxy :: Proxy n) = Left "convert: rank mismatch"
+  convertE (D.A (DG.A sh t)) | toInteger (length sh) /= natVal (Proxy :: Proxy n) = Left $ "convert: rank mismatch " ++ show (sh, natVal (Proxy :: Proxy n))
                              | otherwise = Right $ R.A (RG.A sh t)
 
 instance (a ~ b, S.Shape sh) => Convert (S.Array sh a) (D.Array b) where
@@ -236,7 +236,7 @@ instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (R.Array n a) (S.Array sh
 instance (a ~ b, KnownNat n) => Convert (DS.Array a) (RS.Array n b) where
   -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
-  convertE (DS.A (DG.A sh t)) | toInteger (length sh) /= natVal (Proxy :: Proxy n) = Left "convert: rank mismatch"
+  convertE (DS.A (DG.A sh t)) | toInteger (length sh) /= natVal (Proxy :: Proxy n) = Left $ "convert: rank mismatch " ++ show (sh, natVal (Proxy :: Proxy n))
                               | otherwise = Right $ RS.A (RG.A sh t)
 
 instance (a ~ b, SS.Rank sh ~ n, SS.Shape sh) => Convert (RS.Array n a) (SS.Array sh b) where

@@ -263,8 +263,8 @@ prop_copy v@(View sh _) =
           .&&. toList (zipWithA (-) x y) === zipWith (-) l ys
           .&&. toList (zipWithA (-) y x) === zipWith (-) ys l
           .&&. (if null xsh
-                then failsWith "append: bad shape" (append x y)
-                     .&&. failsWith "concatOuter: rank 0 array" (concatOuter [x, y, y])
+                then failsWith ("append: bad shape " ++ show (xsh, shapeL y)) (append x y)
+                     .&&. failsWith ("concatOuter: rank 0 array " ++ show [xsh, shapeL y, shapeL y]) (concatOuter [x, y, y])
                 else toList (append x y) === l ++ ys
                      .&&. toList (concatOuter [x, y, y]) === l ++ ys ++ ys
                      .&&. concatOuter [x] === x)
@@ -304,7 +304,7 @@ prop_update v@(View sh _) =
   in  forAll (if null l then return [] else listOf ((,) <$> elements ixs <*> (fromIntegral <$> choose (-9, -1 :: Int)))) $ \ us ->
       let set ys ((k, _), e) = [ if k' == k then e else y | (k', y) <- zip [0 ..] ys ]
       in  update x [ (is, e) | ((_, is), e) <- us ] === fromList xsh (foldl set l us)
-          .&&. failsWith ("update: index out of bounds: " ++ show [bad]) (update x [(bad, 0)])
+          .&&. failsWith ("update: index out of bounds: " ++ show ([bad], xsh)) (update x [(bad, 0)])
 
 -- fromVector makes an array of the elements of a vector, here a slice of
 -- a longer one, and fails on a vector of another length; iterateN makes
@@ -320,7 +320,7 @@ prop_fromVector =
   let n' = length xs
       vec = I.vSlice k n' (I.vFromList (replicate k 99 ++ xs ++ replicate m 99))
   in  fromVector sh vec === (fromList sh xs :: Array v a)
-      .&&. failsWith ("fromVector: size mismatch " ++ show (n', n' + 1))
+      .&&. failsWith ("fromVector: size mismatch " ++ show (sh, n' + 1))
                      (fromVector sh (I.vFromList (0 : xs)) :: Array v a)
       .&&. iterateN n (* 3) 1 === (fromList [n] (take n (iterate (* 3) 1)) :: Array v a)
 
@@ -356,8 +356,8 @@ prop_rerank v@(View sh _) =
           -- three times x, laid out in the reverse order of its dimensions
           y = reversedLayout (mapA (* 3) x)
       in  if product osh == 0
-          then failsWith "ravelOuter: empty outer dimension" (rerank n double x)
-               .&&. failsWith "ravelOuter: empty outer dimension" (rerank2 n (\ a b -> zipWithA (+) a b) x x)
+          then failsWith ("ravelOuter: empty outer dimension " ++ show osh) (rerank n double x)
+               .&&. failsWith ("ravelOuter: empty outer dimension " ++ show osh) (rerank2 n (\ a b -> zipWithA (+) a b) x x)
           else shapeL (rerank n double x) === osh ++ [product ish]
                .&&. toList (rerank n double x) === concatMap (map (* 2)) subs
                .&&. toList (rerank2 n (\ a b -> zipWithA (+) a b) x x) === map (* 2) (toList x)

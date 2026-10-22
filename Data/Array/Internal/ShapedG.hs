@@ -178,7 +178,7 @@ fromList :: forall sh v a . (HasCallStack, Vector v, VecElem v a, Shape sh) =>
             [a] -> Array sh v a
 fromList vs = case vFromListExactN n vs of
                 Right v -> A $ T st 0 v
-                Left l -> error $ "fromList: size mismatch " ++ show (n, l)
+                Left l -> error $ "fromList: size mismatch " ++ show (ss, l)
   where n : st = getStridesT ss
         ss = shapeP (Proxy :: Proxy sh)
 
@@ -188,7 +188,7 @@ fromList vs = case vFromListExactN n vs of
 {-# INLINE fromVector #-}
 fromVector :: forall sh v a . (HasCallStack, Vector v, VecElem v a, Shape sh) =>
               v a -> Array sh v a
-fromVector v | n /= l = error $ "fromVector: size mismatch " ++ show (n, l)
+fromVector v | n /= l = error $ "fromVector: size mismatch " ++ show (ss, l)
              | otherwise = A $ T st 0 v
   where n : st = getStridesT ss
         l = vLength v

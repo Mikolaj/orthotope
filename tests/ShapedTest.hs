@@ -325,7 +325,7 @@ test = testGroup "Shaped" $
       convertE_2 = do
         assertEqual "1" (Left "convert: shape mismatch ([2,3],[4294967296,4294967296])")
           (() <$ (convertE (D.fromList [2, 3] [1 .. 6 :: Int]) :: Either String (Array '[4294967296, 4294967296] Int)))
-        assertEqual "2" (Left "convert: bad shape")
+        assertEqual "2" (Left "convert: bad shape [0,4611686018427387904,4]")
           (() <$ (convertE (D.constant [0, 4611686018427387904, 4] (0 :: Int)) :: Either String (Array '[0, 4611686018427387904, 4] Int)))
       -- rnf forces no element outside the view.
       rnf_1 = assertEqual "1" () (rnf (index (fromList [1,2,undefined,undefined] :: Array '[2,2] Int) 0))
