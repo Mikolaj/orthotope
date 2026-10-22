@@ -30,12 +30,11 @@ import qualified Data.Array.Internal.Dynamic as DI
 import qualified Data.Array.Internal.DynamicG as DG
 import Data.Bits (finiteBitSize)
 import Data.List (nub, sort)
-import qualified Data.Primitive.Array as P
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
 import Data.Word (Word8)
-import GHC.Exts (isTrue#, reallyUnsafePtrEquality#, sameMutableArray#, unsafeCoerce#)
+import GHC.Exts (isTrue#, reallyUnsafePtrEquality#)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
@@ -43,8 +42,8 @@ import Test.QuickCheck
   (Property, choose, classify, conjoin, counterexample, elements, forAll, property, (.&&.), (===))
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
-import Views ( View (..), assertThrowsIn, assertThrowsWith, assertWhnfThrowsIn
-             , failsWith, genRawView, mkView, testPropertyN )
+import Views ( Owns (..), View (..), assertThrowsIn, assertThrowsWith
+             , assertWhnfThrowsIn, failsWith, genRawView, mkView, testPropertyN )
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -437,10 +436,7 @@ test = testGroup "Dynamic" $
           , toList (rotate 0 1 a1), toList (rotate 1 1 a1), toList (pad [(0,0)] 0 a1), toList (force a1) ]
         assertEqual "shapes" [[1,2,3], [1,2,3], [2,1,3]]
           [shapeL (ravel (fromList [1] [a1])), shapeL (rotate 0 1 a1), shapeL (rotate 1 1 a1)]
-        where buf x = case V.toArraySlice (valuesOf x) of
-                (P.Array a, _, _) -> a
-              shares b = isTrue# (sameMutableArray# (unsafeCoerce# (buf a1))
-                                                    (unsafeCoerce# (buf b)))
+        where shares b = sameStorage (valuesOf b) (valuesOf a1)
       -- maximumA and minimumA fail on an empty array.
       maximumA_empty = do
         assertThrowsIn "max" "maximumA" (maximumA (fromList [0] [] :: Array Int))

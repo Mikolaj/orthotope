@@ -12,11 +12,14 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -- Random views and other helpers for the properties of the test modules.
 module Views(testPropertyN, failsWith, failsIn, assertThrowsWith, assertThrowsIn
             , assertWhnfThrowsIn, Elem, genElems, upTo, genShape, Op(..), opShape
             , opSource, genBadOp, opName, View(..), viewShape, mkView, applyOpG
-            , mkViewG, genRawView, genOps) where
+            , mkViewG, genRawView, genOps, Owns(..)) where
 
 import Control.DeepSeq (NFData, deepseq)
 import Control.Exception (ErrorCall (..), catch, evaluate, try)
@@ -25,7 +28,19 @@ import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.Dynamic as DI
 import qualified Data.Array.Internal.DynamicG as DG
 import Data.List (nub, sort)
+import qualified Data.Primitive.Array as P
+import Data.Primitive.ByteArray (ByteArray (..), sizeofByteArray)
+import qualified Data.Vector as V
+import qualified Data.Vector.Primitive as VP
+import qualified Data.Vector.Storable as VS
+import qualified Data.Vector.Unboxed as VU
+import qualified Data.Vector.Unboxed.Base as VUB
 import Data.Word (Word8)
+import Foreign.Storable (Storable, sizeOf)
+import GHC.Exts
+  ( Int (I#), isTrue#, sameMutableArray#, sameMutableByteArray#, sizeofMutableByteArray#
+  , unsafeCoerce# )
+import GHC.ForeignPtr (ForeignPtr (..), ForeignPtrContents (..))
 import Test.Framework (Test, TestOptions' (..), plusTestOptions)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.HUnit (Assertion, assertEqual, assertFailure)
@@ -297,3 +312,49 @@ mkViewG (View sh ops) xs = foldl (flip applyOpG) (DG.fromList sh xs) ops
 -- The view over the elements given, as a boxed Dynamic array.
 mkView :: View -> [a] -> Array a
 mkView v = DI.A . mkViewG v
+
+-- Whether a vector's storage holds its elements and nothing more, keeping no
+-- larger vector alive, as force's copy must, and whether a vector lies in the
+-- storage of another, as a slice of it does.  A list's slice is cells of its
+-- own, so the list instance's sameStorage, which the tests give only slices, is
+-- False.
+class Owns w where
+  ownsStorage :: w -> Bool
+  sameStorage :: w -> w -> Bool
+
+instance Owns [a] where
+  ownsStorage _ = True
+  sameStorage _ _ = False
+
+instance Owns (V.Vector a) where
+  ownsStorage w = let (arr, _, n) = V.toArraySlice w
+                  in  V.length (V.fromArray arr) == n
+  sameStorage w w' = case (V.toArraySlice w, V.toArraySlice w') of
+    ((P.Array a, _, _), (P.Array a', _, _)) ->
+      isTrue# (sameMutableArray# (unsafeCoerce# a) (unsafeCoerce# a'))
+
+instance Storable a => Owns (VS.Vector a) where
+  ownsStorage w = case VS.unsafeToForeignPtr0 w of
+    (ForeignPtr _ (PlainPtr m), n) -> owns m n
+    (ForeignPtr _ (MallocPtr m _), n) -> owns m n
+    (_, n) -> n == 0
+    where owns m n = I# (sizeofMutableByteArray# m) == n * sizeOf (undefined :: a)
+  sameStorage w w' = case (VS.unsafeToForeignPtr0 w, VS.unsafeToForeignPtr0 w') of
+    ((ForeignPtr _ (PlainPtr m), _), (ForeignPtr _ (PlainPtr m'), _)) ->
+      isTrue# (sameMutableByteArray# m m')
+    ((ForeignPtr _ (MallocPtr m _), _), (ForeignPtr _ (MallocPtr m' _), _)) ->
+      isTrue# (sameMutableByteArray# m m')
+    _ -> False
+
+instance Owns (VU.Vector Int) where
+  ownsStorage (VUB.V_Int (VP.Vector _ n b)) = sizeofByteArray b == n * sizeOf (0 :: Int)
+  sameStorage (VUB.V_Int (VP.Vector _ _ b)) (VUB.V_Int (VP.Vector _ _ b')) = sameBytes b b'
+
+instance Owns (VU.Vector Word8) where
+  ownsStorage (VUB.V_Word8 (VP.Vector _ n b)) = sizeofByteArray b == n
+  sameStorage (VUB.V_Word8 (VP.Vector _ _ b)) (VUB.V_Word8 (VP.Vector _ _ b')) = sameBytes b b'
+
+-- Whether two byte arrays are one.
+sameBytes :: ByteArray -> ByteArray -> Bool
+sameBytes (ByteArray b) (ByteArray b') =
+  isTrue# (sameMutableByteArray# (unsafeCoerce# b) (unsafeCoerce# b'))
