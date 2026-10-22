@@ -98,6 +98,7 @@ OPS form view =
   , call "stride.outer" (\ a -> ARR.stride @Str1 a) t
   , call "rotate" (\ a -> ARR.rotate @0 @2 a) t
   , call "rotate.one" (\ a -> ARR.rotate @1 @1 a) t
+  , call "rotate.inner" (\ a -> ARR.rotate @1 @2 a) t
 #if ROWS > 0
   , call "slice" (\ a -> ARR.slice @SL a) t
 #endif
