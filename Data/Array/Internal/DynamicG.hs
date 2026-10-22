@@ -369,11 +369,12 @@ transpose is (A sh t) | l > n = error $ "transpose: rank exceeded " ++ show (is,
 -- its vector; 'force' copies it out.
 {-# INLINE append #-}
 append :: (HasCallStack, Vector v, VecElem v a) => Array v a -> Array v a -> Array v a
-append a@(A (sa:sh) _) b@(A (sb:sh') _)
+append a@(A (sa:sh) ta) b@(A (sb:sh') tb)
   | sh == sh', sa == 0 = b  -- nothing to append to: the other array itself
   | sh == sh', sb == 0 = a
   | sh == sh' && not (sumOverflows [sa, sb]) =
-    fromVector (sa+sb : sh) (vAppend (toVector a) (toVector b))
+    fromVector (sa+sb : sh) $
+      vUnsafeConcatViewsN (product (sa+sb : sh)) [(sa:sh, ta), (sb:sh', tb)]
 append _ _ = error "append: bad shape"
 
 -- INLINE: by the measurement in the module's header, not for fusion: its list
@@ -392,7 +393,7 @@ concatOuter as | any null shs = error "concatOuter: rank 0 array"
                | not $ allSame $ map tail shs =
                  error $ "concatOuter: non-conforming inner dimensions: " ++ show shs
                | n < 0 = error $ "concatOuter: outer extents summing past maxBound: " ++ show (map head shs)
-               | otherwise = fromVector sh' $ vUnsafeConcatN (product sh') $ map toVector as
+               | otherwise = fromVector sh' $ vUnsafeConcatViewsN (product sh') $ map (\ (A s t) -> (s, t)) as
   where shs@(sh:_) = map shapeL as
         n = sumExtents (map head shs)
         sh' = n : tail sh
@@ -600,9 +601,9 @@ ravelOuter osh as@(a : _) = ravelOuterOf osh (shapeL a) as
 {-# INLINE ravelOuterOf #-}
 ravelOuterOf :: (HasCallStack, Vector v, VecElem v a) =>
                 ShapeL -> ShapeL -> [Array v a] -> Array v a
-ravelOuterOf osh sh as = fromVector sh' $ vUnsafeConcatN (product sh') $ map vec as
+ravelOuterOf osh sh as = fromVector sh' $ vUnsafeConcatViewsN (product sh') $ map vec as
   where sh' = osh ++ sh
-        vec x | shapeL x == sh = toVector x
+        vec x@(A _ t) | shapeL x == sh = (sh, t)
               | otherwise = error $ "ravelOuterOf: non-conforming inner dimensions: " ++ show [sh, shapeL x]
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make

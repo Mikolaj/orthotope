@@ -253,13 +253,14 @@ class Vector v where
   {-# INLINE vMapStrided #-}
   vMapStrided f sh t = vMap f (toVectorT sh t)
 
-  -- Left out of the class, and not written: a strided fill at an offset, with
-  -- which 'rerank', 'rerank2' and 'ravel' would write a result that is such
-  -- a view into their output rather than filling it and copying the fill in.
-  -- Without them, on GHC HEAD 10.1.20261019 (2026-10-21), at Storable and
-  -- Unboxed elements, mapA of the runs and scaled views of 200000 Doubles
-  -- allocated 16 bytes an element against the dense view's 8, and ravel of the
-  -- rows of the strided, scaled and flipped views 16.1 to 16.2 against 8.1.
+  -- | Concatenate views, each given as its shape and T, whose sizes sum
+  -- to the count given first, each in row-major order.  The contract is
+  -- 'vUnsafeConcatN''s.  The default concatenates the views' 'toVectorT'; the
+  -- vector instances write each view into the result by
+  -- 'genericUnsafeConcatViewsN', as 'vConcatPadN' writes its views.
+  vUnsafeConcatViewsN :: (VecElem v a) => Int -> [(ShapeL, T v a)] -> v a
+  {-# INLINE vUnsafeConcatViewsN #-}
+  vUnsafeConcatViewsN n = vUnsafeConcatN n . map (uncurry toVectorT)
 
 class None a
 instance None a
@@ -973,6 +974,22 @@ genericMapStrided storable f sh (T ss1 o1 v1) = VG.create $ do
   _ <- walk sh ss1 o1 0
   return out
 
+-- INLINE: F1, directly fusing: it consumes its list once, by a foldr, which
+-- fold/build fuses with a producer's build where it is inlined.
+--
+-- The concatenation for 'vUnsafeConcatViewsN': 'genericUnsafeConcatN' with each
+-- view written at its place in the result by 'writeViewT', by the fill given
+-- first, the instance's wrapper of 'genericUnsafeFillStridedInto'.
+{-# INLINE genericUnsafeConcatViewsN #-}
+genericUnsafeConcatViewsN :: (VG.Vector w a)
+                          => FillInto w a -> Int -> [(ShapeL, T w a)] -> w a
+genericUnsafeConcatViewsN fillInto n vs = VG.create $ do
+  out <- VGM.unsafeNew n
+  let {-# INLINE step #-}
+      step v k = \ !i -> writeViewT fillInto out n v i >>= k
+  foldr step (\ !i -> assert (i == n) $ return ()) vs 0
+  return out
+
 -- The function folded over a non-empty vector from its first element, over the
 -- indices in the order of vector's foldl1', each element read forced.
 {-# INLINE genericFoldl1 #-}
@@ -984,14 +1001,14 @@ genericFoldl1 f v = let !x0 = VG.unsafeIndex v 0 in go x0 1
                        let !x = VG.unsafeIndex v i in go (f acc x) (i + 1)
 
 -- The measured-fastest fill for 'vUnsafeFillStrided', written into a buffer
--- from a position, so that 'vConcatPadN' can fill a view in place: an odometer
--- recursion over the outer dimensions with the input offset stepped additively,
--- the innermost outer level fused into a dedicated loop over the innermost
--- runs, and the innermost-run fill unrolled by two with its bound on the output
--- cursor, so it is sound for zero and negative strides, or, from a run length
--- the instance picks, each run at stride 1 copied whole.  The recursion walks
--- the outer levels as a 'Nest' built over them innermost first, each level
--- holding its 'Axis'.
+-- from a position, so that 'vConcatPadN' and 'vUnsafeConcatViewsN' can fill a
+-- view in place: an odometer recursion over the outer dimensions with the input
+-- offset stepped additively, the innermost outer level fused into a dedicated
+-- loop over the innermost runs, and the innermost-run fill unrolled by two
+-- with its bound on the output cursor, so it is sound for zero and negative
+-- strides, or, from a run length the instance picks, each run at stride 1
+-- copied whole. The recursion walks the outer levels as a 'Nest' built over
+-- them innermost first, each level holding its 'Axis'.
 --
 -- Two zero-stride conditions sit inside it, neither decided per element:
 -- an innermost run at stride 0, decided once a fill, reads its one element

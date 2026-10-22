@@ -65,7 +65,7 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.Internal.DynamicG as G
-import Data.Array.Internal(genericMapStrided, genericConcatPadN, genericZipWithStrided, genericZipWith3Strided,
+import Data.Array.Internal(genericUnsafeConcatViewsN, genericMapStrided, genericConcatPadN, genericZipWithStrided, genericZipWith3Strided,
                            genericZipWith4Strided, genericZipWith5Strided,
                            ShapeL, Vector(..), genericUnsafeConcatN,
                            genericForce, genericFromListExactN,
@@ -205,6 +205,8 @@ instance Vector V.Vector where
   vUnsafeFillStrided = genericUnsafeFillStrided 64
   {-# INLINE vForce #-}
   vForce = genericForce
+  {-# INLINE vUnsafeConcatViewsN #-}
+  vUnsafeConcatViewsN = genericUnsafeConcatViewsN (genericFillInto 64)
   {-# INLINE vMapStrided #-}
   vMapStrided = genericMapStrided False
   {-# INLINE vConcatPadN #-}

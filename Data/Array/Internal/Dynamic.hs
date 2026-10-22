@@ -71,7 +71,7 @@ import GHC.Stack(HasCallStack)
 import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
-import Data.Array.Internal(genericMapStrided, genericConcatPadN, genericZipWithStrided, genericZipWith3Strided,
+import Data.Array.Internal(genericUnsafeConcatViewsN, genericMapStrided, genericConcatPadN, genericZipWithStrided, genericZipWith3Strided,
                            genericZipWith4Strided, genericZipWith5Strided,
                            ShapeL, Vector(..), None, genericForce,
                            genericFromListExactN, genericUnsafeFillStrided,
@@ -214,6 +214,18 @@ instance Vector V.Vector where
   vUnsafeFillStrided = genericUnsafeFillStrided 5
   {-# INLINE vForce #-}
   vForce = genericForce
+  -- vUnsafeConcatViewsN writes each view as the list yields it, which
+  -- vUnsafeConcatN below does not.  Against filling each view apart and
+  -- concatenating, on GHC HEAD 10.1.20261019 (2026-10-23), it took 0.86 to 0.99
+  -- of the instructions on every concat row at [3, 3], but at [400, 500] up to
+  -- 1.02 times on ravel and concatOuter.map and 1.05 on rerank2, whose excess
+  -- callgrind booked mostly to the collector.  Forcing every view before the
+  -- first write, as vector's concat builds every vector before it copies, took
+  -- 0.94 to 0.95 of its instructions on rerank2's views at [400, 500] other
+  -- than the dense one, but up to 1.02 times on the dense one, ravel, rerank
+  -- and concatOuter.map there and 1.07 to 1.16 on every row at [3, 3].
+  {-# INLINE vUnsafeConcatViewsN #-}
+  vUnsafeConcatViewsN = genericUnsafeConcatViewsN (genericFillInto 5)
   {-# INLINE vMapStrided #-}
   vMapStrided = genericMapStrided False
   {-# INLINE vConcatPadN #-}

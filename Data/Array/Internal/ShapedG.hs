@@ -357,7 +357,8 @@ append :: forall sh m n v a .
 append a@(A ta) b@(A tb)
   | natT @m == 0 = A tb  -- nothing to append to: the other array itself
   | natT @n == 0 = A ta
-  | otherwise = fromVector (vAppend (toVector a) (toVector b))
+  | otherwise =
+    fromVector (vUnsafeConcatViewsN (sizeT @(m+n ': sh)) [viewOfA a, viewOfA b])
 
 -- INLINE: by the measurement in the module's header, not for fusion: its list
 -- goes to the one-array check and to the concatenation, which counts it as it
@@ -372,9 +373,11 @@ concatOuter :: forall m n sh v a . (HasCallStack, Vector v, VecElem v a, KnownNa
                [Array (n ': sh) v a] -> Array (m ': sh) v a
 concatOuter as | [A t] <- as, n == s = A t  -- one array: the array itself
                | n > 0, (k, 0) <- s `quotRem` n =
-                 fromVector $ vUnsafeConcatN (sizeT @(m ': sh)) $ counted k as
-               | n == 0, s == 0 = fromVector $ vUnsafeConcatN (sizeT @(m ': sh)) $ map toVector as
-               | otherwise = mismatch (length as)
+                 fromVector $ vUnsafeConcatViewsN (sizeT @(m ': sh)) $ counted k as
+               | n == 0, s == 0 = fromVector vEmpty  -- empty however many
+               | otherwise =  -- no count would do: at most one more than fits
+                 case splitAt (1 + if n > 0 then s `quot` n else 0) as of
+                   (front, rest) -> mismatch (length front) (not (null rest))
   where n = natT @n
         s = natT @m
         mismatch :: Int -> b
@@ -384,7 +387,7 @@ concatOuter as | [A t] <- as, n == s = A t  -- one array: the array itself
         -- the count: not by a walk of the list before it, which held the list
         -- whole.
         counted k xs = build $ \ cons nil ->
-          let go !i (x : rest) | i < k = toVector x `cons` go (i + 1) rest
+          let go !i (x : rest) | i < k = viewOfA x `cons` go (i + 1) rest
                                | otherwise = mismatch (i + 1 + length rest)
               go i [] | i == k = nil
                       | otherwise = mismatch i
@@ -395,13 +398,24 @@ concatOuter as | [A t] <- as, n == s = A t  -- one array: the array itself
 -- O(n) time.
 -- Of one array, the result is a view of it, sharing its vector; 'force' copies
 -- it out.
+-- An array as its shape and T, for 'vUnsafeConcatViewsN'.
+{-# INLINE viewOfA #-}
+viewOfA :: Shape sh => Array sh v a -> (ShapeL, T v a)
+viewOfA a@(A t) = (shapeL a, t)
+
+-- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
+-- dimension of the result array.  All the arrays have the same shape, which
+-- the types check.
+-- O(n) time.
+-- Of one array, the result is a view of it, sharing its vector; 'force' copies
+-- it out.
 {-# INLINE ravel #-}
 ravel :: forall sh s v v' a .
          (Vector v, Vector v', VecElem v a, VecElem v' (Array sh v a)
          , Shape sh, KnownNat s) =>
          Array '[s] v' (Array sh v a) -> Array (s:sh) v a
 ravel aa | natT @s == 1, [A t] <- toList aa = A (insertUnitsT 0 1 t)  -- one array: a view of it
-         | otherwise = fromVector $ vUnsafeConcatN (sizeT @(s:sh)) $ map toVector $ toList aa
+         | otherwise = fromVector $ vUnsafeConcatViewsN (sizeT @(s:sh)) $ map viewOfA $ toList aa
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
@@ -488,8 +502,8 @@ rerank f a@(A t)
       A rt -> A (insertUnitsT 0 (length osh) rt)
   | otherwise =
   fromVector $
-  vUnsafeConcatN (sizeT @(Take n sh ++ o)) $
-  map (toVector . f . A) $
+  vUnsafeConcatViewsN (sizeT @(Take n sh ++ o)) $
+  map (viewOfA . f . A) $
   subArraysT osh t
   where osh = take (valueOf @n) (shapeL a)
 
@@ -512,8 +526,8 @@ rerank2 f aa@(A ta) (A tb)
       A rt -> A (insertUnitsT 0 (length osh) rt)
   | otherwise =
   fromVector $
-  vUnsafeConcatN (sizeT @(r ++ o)) $
-  zipWith (\ a b -> toVector $ f (A a) (A b))
+  vUnsafeConcatViewsN (sizeT @(r ++ o)) $
+  zipWith (\ a b -> viewOfA $ f (A a) (A b))
           (subArraysT osh ta)
           (subArraysT osh tb)
   where osh = take (valueOf @n) (shapeL aa)
