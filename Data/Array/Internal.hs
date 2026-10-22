@@ -1420,8 +1420,9 @@ toVectorT sh a@(T _ _ v)
 normalizeT :: (Vector v, VecElem v a) => ShapeL -> T v a -> T v a
 normalizeT sh t = fromVectorT sh $ toVectorT sh t
 
--- The view with k dimensions of extent 1 inserted before its dimension d,
--- which reads the same elements, sharing the vector.
+-- The view with k dimensions of stride 0 inserted before its dimension d,
+-- sharing the vector: of extent 1 they add no element, and of a greater one
+-- they repeat the view along them.
 {-# INLINE insertUnitsT #-}
 insertUnitsT :: Int -> Int -> T v a -> T v a
 insertUnitsT d k (T ss o v) = T (take d ss ++ replicate k 0 ++ drop d ss) o v

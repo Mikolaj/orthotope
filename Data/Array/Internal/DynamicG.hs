@@ -13,6 +13,8 @@
 -- limitations under the License.
 
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -27,9 +29,8 @@
 -- and 456 (iota), and their view operations, whose types carry no class,
 -- without a pragma up to 136 (broadcast), 96 (slice) and 88 (stride).  Under
 -- it, rev allocates 32 bytes a call more forced at the small and empty sizes
--- and 8 fewer summed, and rotate, through the call of rev in DynamicG's rotate,
--- 48 fewer in both readings: inlined into a client, rev gets a local worker
--- there, which returns the strides, offset and vector untagged, and GHC builds
+-- and 8 fewer summed: inlined into a client, rev gets a local worker there,
+-- which returns the strides, offset and vector untagged, and GHC builds
 -- the strict-field T over them as a thunk, which it forces at once.  Those
 -- it leaves out keep the pragma their types give them; rotate is a complex
 -- operation, too much code for INLINE, and sumA is INLINABLE for the reason at
@@ -60,6 +61,11 @@ module Data.Array.Internal.DynamicG(
 import Control.DeepSeq hiding (force)
 import Control.Monad(replicateM)
 import Data.Data(Data)
+#if MIN_VERSION_base(4,15,0)
+import GHC.Exts(noinline)
+#else
+import GHC.Base(noinline)
+#endif
 import GHC.Generics(Generic)
 import GHC.Stack
 import Test.QuickCheck hiding (generate)
@@ -470,39 +476,74 @@ stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ r
 -- the resulting shape will be @[2, 4, 3, 2]@.
 -- Fails if d is not a dimension of the array or k is negative, and may fail
 -- if the result has more than half of 'maxBound' elements.
--- With k = 1, the result is a view of the array, sharing its vector; 'force'
--- copies it out.
+-- With k = 1, or along a dimension the array broadcasts, the result is a view
+-- of the array, sharing its vector; 'force' copies it out.
 {-# INLINABLE rotate #-}
 rotate :: (HasCallStack, Vector v, VecElem v a) => Int -> Int -> Array v a -> Array v a
-rotate d k a@(A sh at)
+rotate d k a@(A sh at@T{values = v})
   | d < 0 || d >= rank a = error $ "rotate: dimension out of range " ++ show (d, rank a)
   | badShape sh' = error $ "rotate: bad shape " ++ show sh'
   | 0 `elem` sh' = A sh' $ fromVectorT sh' (vConcat [])  -- no elements
   | k == 1 = A sh' (insertUnitsT d 1 at)  -- one rotation: a view of the array
   | copies > toInteger (maxBound :: Int) = error $ "rotate: count too large " ++ show (d, k, sh)
-  | otherwise = rerank d f a
+  -- Along a dimension of stride 0 every rotation equals the array, so the
+  -- result is a view, as with k = 1: copied, rotate 0 2 of a scalar broadcast
+  -- to 200000 Doubles ran about 3000 times the instructions of the view, on GHC
+  -- HEAD 10.1.20261019 (2026-10-22).
+  | 0 : _ <- drop d (strides at) = A sh' (insertUnitsT d 1 at)
+  -- Each rotation as two slices of its subarray, every subarray's rotations
+  -- the last first, all copied once into the result.  Stretched into windows
+  -- that rerank ravelled, a subarray's elements were copied three times along
+  -- any dimension but the first: rotate 1 2 of [400, 500] Doubles allocated 61
+  -- bytes an element against the result's 16, and ran 11.1 to 11.6 instructions
+  -- an element at Storable and Unboxed elements, on GHC HEAD 10.1.20261019
+  -- (2026-10-21).
+  | otherwise = A sh' $ fromVectorT sh' $ vUnsafeConcatN (product sh') $
+      slices (product sh - n) 0 []
  where
+  -- One split shared by sh', h and m: with take d sh and drop d sh apart, the
+  -- call built a thunk of drop d sh and k's cons before checking sh', and
+  -- rotate 0 2 of an empty array allocated 32 bytes a call more on GHC HEAD
+  -- 10.1.20261019 (2026-10-22).
   (osh, ish) = splitAt d sh
   sh' = osh ++ k : ish
-  -- How many elements f's copies of a subarray hold: fewer than twice the
-  -- k * n of its rotations, so past maxBound only where those pass half of it.
-  copies = let h = toInteger (sh !! d)
+  h = case ish of
+        e : _ -> e
+        [] -> error "rotate: violated contract: d past the rank"
+  m = product (drop 1 ish)
+  n = h * m
+  -- noinline, so that the copying path's case on the vector stays in that
+  -- path.  Without it the worker's head bound the vector's fields and kept them
+  -- across the rank check's call on every path: rotate of an empty array, and
+  -- rotate with k = 1, ran 8 instructions a call more on GHC HEAD 10.1.20261019
+  -- (2026-10-22), and rotate copying [3, 3] Doubles allocated 24 bytes a call
+  -- more and ran 30 to 75 instructions more.  It is applied to v, the vector
+  -- the argument's pattern binds: applied to values at, it left the copying
+  -- path building the T again to select the vector from it, 32 bytes a call.
+  w = toVectorT sh (at { values = noinline v })
+  -- The limit the documentation gives, fewer than twice the k * n elements of
+  -- a subarray's rotations, so past maxBound only where those pass half of it:
+  -- the size of the copies of a subarray the rotations were once windows into,
+  -- kept so that rotate fails where it did.
+  copies = let h' = toInteger h
                k' = toInteger k
-           in (k' + (k' + h - 2) `quot` h) * toInteger (product ish)
-  f arr = let h:t = shapeL arr
-              m = product t
-              n = h * m
-              c = k + (k + h - 2) `quot` h  -- copies to fit k windows n + m apart
-              A _ (T [s] o v) = reshape [c * n]
-                                . stretchOuter c
-                                . reshape (1:h:t) $ arr
-          -- The k windows as one view of shape k:h:t: window [n] would view
-          -- all c * n - n + 1 of them first, a view whose size can overflow
-          -- Int, and reshaping a view of shape [k, n] to k:h:t copies it,
-          -- which made rotate 0 2 of a [1000, 200] array of Doubles run 1.6
-          -- times the instructions at Storable and Unboxed elements and 2.9
-          -- times at boxed ones.
-          in rev [0] $ A (k:h:t) (T ((n + m) * s : map (* s) (tail (getStridesT (h:t)))) o v)
+           in (k' + (k' + h' - 2) `quot` h') * toInteger n
+  -- Onto acc, the slices of subarray b's rotations from the last down to r,
+  -- and before them those of every subarray before b: the list built from its
+  -- end, each slice forced as it is consed, and a rotation's second slice left
+  -- out where it is empty, the first never being so.  Built lazily by a list
+  -- comprehension, the list cost about 110 to 140 bytes a slice more, and
+  -- rotate 1 2 of [3, 3] Doubles 984 to 1240 bytes a call more, on GHC HEAD
+  -- 10.1.20261019 (2026-10-22); there, a slice left a thunk cost rotate 1 2 of
+  -- [400, 3] Doubles 23 to 30% more.
+  slices !b !r !acc
+    | b < 0 = acc
+    | r == k = slices (b - n) 0 acc
+    | otherwise =
+        let !j = (r `rem` h) * m
+            !s = vUnsafeSlice (b + j) (n - j) w
+        in  if j == 0 then slices b (r + 1) (s : acc)
+            else let !s' = vUnsafeSlice b j w in slices b (r + 1) (s : s' : acc)
 
 -- | Extract a slice of an array.
 -- The first argument is a list of (offset, length) pairs.

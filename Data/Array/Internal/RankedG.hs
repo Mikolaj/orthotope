@@ -36,10 +36,9 @@
 -- and 456 (iota), and their view operations, whose types carry no class,
 -- without a pragma up to 136 (broadcast), 96 (slice) and 88 (stride).  Under
 -- it, rev allocates 32 bytes a call more forced at the small and empty sizes
--- and 8 fewer summed, and rotate, through the call of rev in DynamicG's rotate,
--- 48 fewer in both readings: inlined into a client, rev gets a local worker
--- there, which returns the strides, offset and vector untagged, and GHC builds
--- the strict-field T over them as a thunk, which it forces at once.  Those it
+-- and 8 fewer summed: inlined into a client, rev gets a local worker there,
+-- which returns the strides, offset and vector untagged, and GHC builds the
+-- strict-field T over them as a thunk, which it forces at once.  Those it
 -- leaves out keep the pragma their types give them; sumA is INLINABLE for the
 -- reason at Data.Array.Internal.Dynamic's sumA.
 -- | Arrays of dynamic size, but static rank.  The arrays are polymorphic in the underlying
@@ -471,8 +470,8 @@ stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ r
 -- the resulting shape will be @[2, 4, 3, 2]@.
 -- Fails if k is negative, and may fail if the result has more than half of
 -- 'maxBound' elements.
--- With k = 1, the result is a view of the array, sharing its vector; 'force'
--- copies it out.
+-- With k = 1, or along a dimension the array broadcasts, the result is a view
+-- of the array, sharing its vector; 'force' copies it out.
 {-# INLINE rotate #-}
 rotate :: forall d p v a.
           (HasCallStack, KnownNat d,

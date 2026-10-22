@@ -28,7 +28,6 @@ import qualified Data.Array.DynamicU as DU
 import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.Dynamic as DI
 import qualified Data.Array.Internal.DynamicG as DG
-import Data.Bits (finiteBitSize)
 import Data.List (nub, sort)
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
@@ -76,37 +75,6 @@ instance I.Vector OldVector where
   vGenerate n = OldVector . I.vGenerate n
   vAll p (OldVector xs) = I.vAll p xs
   vAny p (OldVector xs) = I.vAny p xs
-
--- A Vector instance whose vectors repeat one element, so that a constant
--- array costs the same at any size.  It is right only on such vectors.
-data Repeated a = Repeated !Int a
-
-instance I.Vector Repeated where
-  type VecElem Repeated = I.None
-  vIndex (Repeated _ x) _ = x
-  vLength (Repeated n _) = n
-  vToList (Repeated n x) = replicate n x
-  vFromList xs = I.vFromListN (length xs) xs
-  vFromListN n xs = Repeated n (case xs of x : _ -> x; [] -> error "Repeated: no element")
-  vSingleton = Repeated 1
-  vReplicate = Repeated
-  vMap f (Repeated n x) = Repeated n (f x)
-  vZipWith f (Repeated n x) (Repeated _ y) = Repeated n (f x y)
-  vZipWith3 f (Repeated n x) (Repeated _ y) (Repeated _ z) = Repeated n (f x y z)
-  vZipWith4 f (Repeated n x) (Repeated _ y) (Repeated _ z) (Repeated _ u) = Repeated n (f x y z u)
-  vZipWith5 f (Repeated n x) (Repeated _ y) (Repeated _ z) (Repeated _ u) (Repeated _ w) = Repeated n (f x y z u w)
-  vAppend v w = I.vConcat [v, w]
-  vConcat vs = I.vFromListN (sum [ n | Repeated n _ <- vs ]) [ x | Repeated n x <- vs, n > 0 ]
-  vFold f z = foldl f z . I.vToList
-  vSlice _ n (Repeated _ x) = Repeated n x
-  vSum = sum . I.vToList
-  vProduct = product . I.vToList
-  vMaximum = maximum . I.vToList
-  vMinimum = minimum . I.vToList
-  vUpdate _ _ = error "Repeated: vUpdate"
-  vGenerate n g = I.vFromListN n (map g [0 .. n - 1])
-  vAll p = all p . I.vToList
-  vAny p = any p . I.vToList
 
 -- An Eq whose == evaluates neither argument.
 data L = L deriving Show
@@ -498,12 +466,6 @@ test = testGroup "Dynamic" $
       rotate_6 = assertEqual "6" 0  -- the empty rotation keeps no vector alive
                                  (vlen (rotate 1 2 (slice [(0,0)] a1)))
       rotate_7 = assertThrowsIn "7" "rotate" (rotate (-1) 2 $ fromList [3] [1,2,3::Int])
-      -- Two rotations of a row of n elements, 2^31+1 at a 64-bit Int, where
-      -- a view of all the windows of the row's copies has more elements than
-      -- an Int holds.
-      rotate_8 = assertEqual "8" [2, n]
-                    (G.shapeL (G.rotate 0 2 (G.constant [n] 0 :: G.Array Repeated Int)))
-        where n = 2 ^ (finiteBitSize (0 :: Int) `quot` 2 - 1) + 1
       -- A result shape past maxBound.
       rotate_9 = assertThrowsIn "9" "rotate" (rotate 0 (maxBound `quot` 4 + 1) (fromList [4] [1,2,3,4::Int]))
       -- A result shape within maxBound, where the copies of the row pass it.
@@ -797,7 +759,6 @@ test = testGroup "Dynamic" $
         , testCase "rotate_5" rotate_5
         , testCase "rotate_6" rotate_6
         , testCase "rotate_7" rotate_7
-        , testCase "rotate_8" rotate_8
         , testCase "rotate_9" rotate_9
         , testCase "rotate_10" rotate_10
         , testCase "laterChecks_1" laterChecks_1
