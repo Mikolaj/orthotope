@@ -339,8 +339,8 @@ stride ws = A . G.stride ws . unA
 -- the resulting shape will be @[2, 4, 3, 2]@.
 -- Fails if k is negative, and may fail if the result has more than half of
 -- 'maxBound' elements.
--- With k = 1, the result is a view of the array, sharing its vector; 'force'
--- copies it out.
+-- With k = 1, or along a dimension the array broadcasts, the result is a view
+-- of the array, sharing its vector; 'force' copies it out.
 {-# INLINE rotate #-}
 rotate :: forall d p a.
           (HasCallStack, KnownNat d, Unbox a,
