@@ -120,11 +120,11 @@ shapedE p sh r | not (sameShape sh ns) = Left $ "convert: shape mismatch " ++ sh
 
 instance (a ~ b, DU.Unbox a) => Convert (D.Array a) (DU.Array b) where
   {-# INLINABLE convert #-}
-  convert (D.A (DG.A sh t)) = DU.A (DG.A sh (I.convertT sh V.convert t))
+  convert (D.A (DG.A sh t)) = DU.A (DG.A sh (I.convertT sh V.convert (I.genericMapStrided False id) t))
 
 instance (a ~ b, DU.Unbox a) => Convert (DU.Array a) (D.Array b) where
   {-# INLINABLE convert #-}
-  convert (DU.A (DG.A sh t)) = D.A (DG.A sh (I.convertT sh V.convert t))
+  convert (DU.A (DG.A sh t)) = D.A (DG.A sh (I.convertT sh V.convert (I.genericMapStrided False id) t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 
@@ -132,11 +132,11 @@ instance (a ~ b, DU.Unbox a) => Convert (DU.Array a) (D.Array b) where
 
 instance (a ~ b, DS.Unbox a) => Convert (D.Array a) (DS.Array b) where
   {-# INLINABLE convert #-}
-  convert (D.A (DG.A sh t)) = DS.A (DG.A sh (I.convertT sh V.convert t))
+  convert (D.A (DG.A sh t)) = DS.A (DG.A sh (I.convertT sh V.convert (I.genericMapStrided False id) t))
 
 instance (a ~ b, DS.Unbox a) => Convert (DS.Array a) (D.Array b) where
   {-# INLINABLE convert #-}
-  convert (DS.A (DG.A sh t)) = D.A (DG.A sh (I.convertT sh fromStorable t))
+  convert (DS.A (DG.A sh t)) = D.A (DG.A sh (I.convertT sh fromStorable (I.genericMapStrided True id) t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 
@@ -147,11 +147,11 @@ instance (a ~ b, DS.Unbox a) => Convert (DS.Array a) (D.Array b) where
 
 instance (a ~ b, n ~ m, RU.Unbox a) => Convert (R.Array n a) (RU.Array m b) where
   {-# INLINABLE convert #-}
-  convert (R.A (RG.A sh t)) = RU.A (RG.A sh (I.convertT sh V.convert t))
+  convert (R.A (RG.A sh t)) = RU.A (RG.A sh (I.convertT sh V.convert (I.genericMapStrided False id) t))
 
 instance (a ~ b, n ~ m, RU.Unbox a) => Convert (RU.Array n a) (R.Array m b) where
   {-# INLINABLE convert #-}
-  convert (RU.A (RG.A sh t)) = R.A (RG.A sh (I.convertT sh V.convert t))
+  convert (RU.A (RG.A sh t)) = R.A (RG.A sh (I.convertT sh V.convert (I.genericMapStrided False id) t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 
@@ -159,11 +159,11 @@ instance (a ~ b, n ~ m, RU.Unbox a) => Convert (RU.Array n a) (R.Array m b) wher
 
 instance (a ~ b, n ~ m, RS.Unbox a) => Convert (R.Array n a) (RS.Array m b) where
   {-# INLINABLE convert #-}
-  convert (R.A (RG.A sh t)) = RS.A (RG.A sh (I.convertT sh V.convert t))
+  convert (R.A (RG.A sh t)) = RS.A (RG.A sh (I.convertT sh V.convert (I.genericMapStrided False id) t))
 
 instance (a ~ b, n ~ m, RS.Unbox a) => Convert (RS.Array n a) (R.Array m b) where
   {-# INLINABLE convert #-}
-  convert (RS.A (RG.A sh t)) = R.A (RG.A sh (I.convertT sh fromStorable t))
+  convert (RS.A (RG.A sh t)) = R.A (RG.A sh (I.convertT sh fromStorable (I.genericMapStrided True id) t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 
@@ -171,13 +171,13 @@ instance (a ~ b, n ~ m, RS.Unbox a) => Convert (RS.Array n a) (R.Array m b) wher
 
 instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n) => Convert (S.Array n a) (SU.Array m b) where
   {-# INLINABLE convert #-}
-  convert (S.A g@(SG.A t)) = SU.A (SG.A (I.convertT (SG.shapeL g) V.convert t))
+  convert (S.A g@(SG.A t)) = SU.A (SG.A (I.convertT (SG.shapeL g) V.convert (I.genericMapStrided False id) t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 
 instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n) => Convert (SU.Array n a) (S.Array m b) where
   {-# INLINABLE convert #-}
-  convert (SU.A g@(SG.A t)) = S.A (SG.A (I.convertT (SG.shapeL g) V.convert t))
+  convert (SU.A g@(SG.A t)) = S.A (SG.A (I.convertT (SG.shapeL g) V.convert (I.genericMapStrided False id) t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 
@@ -185,11 +185,11 @@ instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n) => Convert (SU.Array n a) (S.Arra
 
 instance (a ~ b, n ~ m, SS.Unbox a, S.Shape n) => Convert (S.Array n a) (SS.Array m b) where
   {-# INLINABLE convert #-}
-  convert (S.A g@(SG.A t)) = SS.A (SG.A (I.convertT (SG.shapeL g) V.convert t))
+  convert (S.A g@(SG.A t)) = SS.A (SG.A (I.convertT (SG.shapeL g) V.convert (I.genericMapStrided False id) t))
 
 instance (a ~ b, n ~ m, SS.Unbox a, S.Shape n) => Convert (SS.Array n a) (S.Array m b) where
   {-# INLINABLE convert #-}
-  convert (SS.A g@(SG.A t)) = S.A (SG.A (I.convertT (SG.shapeL g) fromStorable t))
+  convert (SS.A g@(SG.A t)) = S.A (SG.A (I.convertT (SG.shapeL g) fromStorable (I.genericMapStrided True id) t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 

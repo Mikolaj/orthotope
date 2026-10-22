@@ -246,9 +246,14 @@ class Vector v where
   vConcatPadN n x =
     vUnsafeConcatN n . map (either (`vReplicate` x) (uncurry toVectorT))
 
-  -- Left out of the class, and not written: a strided map, with which 'convertT'
-  -- would map or convert a view that no slice serves in one walk rather than
-  -- filling it and copying the fill, and a strided fill at an offset, with
+  -- | The map of a view, given as its shape and T, into a vector in row-major
+  -- order.  The default fills the view by 'toVectorT' and maps the vector; the
+  -- vector instances walk the view by 'genericMapStrided', filling nothing.
+  vMapStrided :: (VecElem v a, VecElem v b) => (a -> b) -> ShapeL -> T v a -> v b
+  {-# INLINE vMapStrided #-}
+  vMapStrided f sh t = vMap f (toVectorT sh t)
+
+  -- Left out of the class, and not written: a strided fill at an offset, with
   -- which 'rerank', 'rerank2' and 'ravel' would write a result that is such
   -- a view into their output rather than filling it and copying the fill in.
   -- Without them, on GHC HEAD 10.1.20261019 (2026-10-21), at Storable and
@@ -918,6 +923,54 @@ genericZipWith5Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3) (T 
         VGM.unsafeWrite out pos (f x1 x2 x3 x4 x5)
         return (pos + 1)
   _ <- walk sh ss1 ss2 ss3 ss4 ss5 o1 o2 o3 o4 o5 0
+  return out
+
+-- The map of a view, given as its shape and T, into a vector of a type of
+-- the vector package's, possibly another, in row-major order by one walk as
+-- 'genericZipWithStrided' walks, filling nothing: for 'vMapStrided' and for the
+-- conversions between the vector types.  Its first argument, storable, says
+-- whether the view is a Storable vector's, whose elements are read forced, and
+-- only there is a run of stride 1 walked by one counter over slices, whose
+-- addresses hold their offsets: on GHC HEAD 10.1.20261019 (2026-10-23) that
+-- loop took 11% more instructions at Unboxed on runs of [400, 500], whose
+-- slices keep their offsets apart, and at boxed its own application of f kept
+-- f out of line, 1 to 7% more at every view of [400, 500], those 'vMap' takes
+-- included; the zips take it at every kind, where without it Unboxed zips took
+-- up to 1.47 times the instructions.
+{-# INLINE genericMapStrided #-}
+genericMapStrided :: (VG.Vector v a, VG.Vector w b)
+                  => Bool -> (a -> b) -> ShapeL -> T v a -> w b
+genericMapStrided storable f sh (T ss1 o1 v1) = VG.create $ do
+  out <- VGM.unsafeNew (product sh)
+  let walk [!n] [!t1] !p1 !pos
+        | storable && t1 == 1 =
+            let !s1 = VG.unsafeSlice p1 n v1
+                !so = VGM.unsafeSlice pos n out
+                unit !k | k >= n = return (pos + n)
+                        | otherwise = do
+                            x1 <- readAtT storable s1 k
+                            VGM.unsafeWrite so k (f x1)
+                            unit (k + 1)
+            in  unit 0
+        | otherwise = inner pos p1
+        where !oEnd = pos + n
+              inner !o !q1
+                | o >= oEnd = return o
+                | otherwise = do
+                    x1 <- readAtT storable v1 q1
+                    VGM.unsafeWrite out o (f x1)
+                    inner (o + 1) (q1 + t1)
+      walk (!n : ns) (!t1 : ts1) !p1 !pos = outer 0 p1 pos
+        where outer !k !q1 !o
+                | k >= n = return o
+                | otherwise = do
+                    o' <- walk ns ts1 q1 o
+                    outer (k + 1) (q1 + t1) o'
+      walk _ _ !p1 !pos = do
+        x1 <- readAtT storable v1 p1
+        VGM.unsafeWrite out pos (f x1)
+        return (pos + 1)
+  _ <- walk sh ss1 o1 0
   return out
 
 -- The function folded over a non-empty vector from its first element, over the
@@ -2137,20 +2190,23 @@ stretchT bs (T ss o v) = T (zipWith (\ b s -> if b then 0 else s) bs ss) o v
 -- axis has in the new vector; otherwise build the view whole, as now.
 {-# INLINE mapT #-}
 mapT :: (Vector v, VecElem v a, VecElem v b) => ShapeL -> (a -> b) -> T v a -> T v b
-mapT sh f t = convertT sh (vMap f) t
+mapT sh f t = convertT sh (vMap f) (vMapStrided f) t
 
--- Convert the vector of an array by the function given, which takes only
--- the part of the vector the view reads: 'mapT' is this at 'vMap', and
--- the conversions between the boxings of the vector package take it too.
--- The future TODO at 'mapT' holds of every use: a view that skips
--- elements and reads others more than once is built whole here.
+-- Convert the vector of an array by the first function given, which takes only
+-- the part of the vector the view reads, or, where no range serves the view
+-- and no slice either, by the second, which walks the view: 'mapT' is this at
+-- 'vMap' and 'vMapStrided', and the conversions between the boxings of the
+-- vector package take it too.  The future TODO at 'mapT' holds of every use: a
+-- view that skips elements and reads others more than once is built whole here.
 {-# INLINE convertT #-}
 convertT :: (Vector v, VecElem v a, Vector w, VecElem w b)
-         => ShapeL -> (v a -> w b) -> T v a -> T w b
-convertT sh g t@(T ss o v) | Range lo n <- readRangeT sh t = T ss (o - lo) (g (vUnsafeSlice lo n v))
-convertT sh _ _ | 0 `elem` sh = emptyT sh
-convertT sh g t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip bs sh ] $
-                  g $ toVectorT rsh r
+         => ShapeL -> (v a -> w b) -> (ShapeL -> T v a -> w b) -> T v a -> T w b
+convertT sh g _ t@(T ss o v) | Range lo n <- readRangeT sh t = T ss (o - lo) (g (vUnsafeSlice lo n v))
+convertT sh _ _ _ | 0 `elem` sh = emptyT sh
+convertT sh g gs t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip bs sh ] $
+                     case sliceOfT rsh (product rsh) r of
+                       Just w -> g w
+                       Nothing -> gs rsh r
   where (bs, rsh, r) = dropBroadcastT sh t
 
 -- Zip two arrays with a function.

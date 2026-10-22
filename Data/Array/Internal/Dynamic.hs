@@ -71,7 +71,7 @@ import GHC.Stack(HasCallStack)
 import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
-import Data.Array.Internal(genericConcatPadN, genericZipWithStrided, genericZipWith3Strided,
+import Data.Array.Internal(genericMapStrided, genericConcatPadN, genericZipWithStrided, genericZipWith3Strided,
                            genericZipWith4Strided, genericZipWith5Strided,
                            ShapeL, Vector(..), None, genericForce,
                            genericFromListExactN, genericUnsafeFillStrided,
@@ -214,6 +214,8 @@ instance Vector V.Vector where
   vUnsafeFillStrided = genericUnsafeFillStrided 5
   {-# INLINE vForce #-}
   vForce = genericForce
+  {-# INLINE vMapStrided #-}
+  vMapStrided = genericMapStrided False
   {-# INLINE vConcatPadN #-}
   vConcatPadN = genericConcatPadN (genericFillInto 5)
   {-# INLINE vZipWithStrided #-}
