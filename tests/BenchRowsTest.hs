@@ -22,6 +22,13 @@
 -- that fails, the numbers in their shown forms each within a relative 1e-9, a
 -- reduction adding in the order the layout gives; the unordered vectors are
 -- compared as their elements sorted.
+--
+-- Every size's rows run, the large ones too, though the rows took 77.5 s of the
+-- suite's 100 on GHC HEAD 10.1.20261019 (2026-10-21): kept to the large rows
+-- that reach an arm no smaller row reaches, the test would go stale without a
+-- coverage run before each test, which would cost more than the rows it drops.
+-- A call whose input no form changes runs in both forms all the same, its
+-- second run costing about 1% of the rows' time on the same GHC (2026-10-22).
 module BenchRowsTest (test) where
 
 import Control.Monad (unless, zipWithM_)

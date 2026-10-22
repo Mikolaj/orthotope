@@ -61,7 +61,7 @@ import qualified Data.Array.Internal.DynamicG as DG
 import qualified Data.Array.Internal.DynamicS as DS
 import Data.Bits (shiftR, xor)
 import Data.Int (Int64)
-import Data.List (intercalate, isSuffixOf, mapAccumR)
+import Data.List (intercalate, isSuffixOf)
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
 import Test.Framework (Test, TestOptions' (..), plusTestOptions, testGroup)
@@ -381,11 +381,14 @@ randomVector seed n =
                      z2 = (z1 `xor` (z1 `shiftR` 27)) * 0x94d049bb133111eb
                  in  z2 `xor` (z2 `shiftR` 31)
 
--- The view's elements in row-major order, each read off the strides and
--- offset alone.
+-- The view's elements in row-major order, each read off the strides and offset
+-- alone: the offsets listed outermost dimension first, those of the dimensions
+-- inside it listed once and shared.
 reference :: Layout -> VS.Vector Double -> VS.Vector Double
-reference (sh, ts, o, _) v = VS.generate (product sh) (\ i -> v VS.! (o + at i))
-  where at i = sum (zipWith (*) ts (snd (mapAccumR (\ q s -> q `quotRem` s) i sh)))
+reference (sh, ts, o, _) v = VS.fromListN (product sh) (map (v VS.!) offsets)
+  where offsets = foldr (\ (s, t) inner -> [ i * t + j | i <- [0 .. s - 1]
+                                                       , j <- inner ])
+                        [o] (zip sh ts)
 
 -- toVector, toList and the ordered list of vectors give the view's
 -- elements in order, the unordered list gives as many as the view has
