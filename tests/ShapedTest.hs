@@ -24,7 +24,7 @@ import qualified Data.Array.Dynamic as D
 import qualified Data.Array.DynamicS as DS
 import qualified Data.Array.Ranked as R
 import qualified Data.Array.RankedS as RS
-import Data.Array.Shape (Shape(..), listP, validShape, withShape, withShapeP)
+import Data.Array.Shape (listP, validShape, withShape, withShapeP)
 import Data.Array.Shaped
 import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.ShapedG as SG
@@ -319,11 +319,11 @@ test = testGroup "Shaped" $
         assertEqual "1" [1] (toList (stride @'[4294967296, 4294967296] (fromList @'[2, 2] [1 .. 4 :: Int])))
         assertEqual "2" [0 .. 21] (listP (Proxy :: Proxy '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]))
         assertThrowsIn "3" "Shape" (shapeP (Proxy :: Proxy '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]))
-      convertE_1 = assertEqual "1" (Left "convert: shape mismatch") (convertE (D.fromList [2] [1,2 :: Int]) :: Either String (Array '[3] Int))
+      convertE_1 = assertEqual "1" (Left "convert: shape mismatch ([2],[3])") (convertE (D.fromList [2] [1,2 :: Int]) :: Either String (Array '[3] Int))
       -- convertE fails with Left where the shapes differ and where the Shaped
       -- type's shape fails, rather than throwing.
       convertE_2 = do
-        assertEqual "1" (Left "convert: shape mismatch")
+        assertEqual "1" (Left "convert: shape mismatch ([2,3],[4294967296,4294967296])")
           (() <$ (convertE (D.fromList [2, 3] [1 .. 6 :: Int]) :: Either String (Array '[4294967296, 4294967296] Int)))
         assertEqual "2" (Left "convert: bad shape")
           (() <$ (convertE (D.constant [0, 4611686018427387904, 4] (0 :: Int)) :: Either String (Array '[0, 4611686018427387904, 4] Int)))
@@ -351,11 +351,11 @@ test = testGroup "Shaped" $
         assertEqual "convertE R" (Right s) (convertE r)
         assertEqual "convertE RS" (Right ss) (convertE rs)
         assertEqual "convertE DS" (Right ss) (convertE ds)
-        assertEqual "convertE R shape" (Left "convert: shape mismatch")
+        assertEqual "convertE R shape" (Left "convert: shape mismatch ([2,3],[3,2])")
           (() <$ (convertE r :: Either String (Array '[3, 2] Int)))
-        assertEqual "convertE RS shape" (Left "convert: shape mismatch")
+        assertEqual "convertE RS shape" (Left "convert: shape mismatch ([2,3],[3,2])")
           (() <$ (convertE rs :: Either String (SS.Array '[3, 2] Int)))
-        assertEqual "convertE DS shape" (Left "convert: shape mismatch: ([2,3],[3,2])")
+        assertEqual "convertE DS shape" (Left "convert: shape mismatch ([2,3],[3,2])")
           (() <$ (convertE ds :: Either String (SS.Array '[3, 2] Int)))
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList @'[2] [6,120]) (rerank @1 (\ r -> reduce (*) 1 r) a1)
