@@ -38,8 +38,8 @@ import Data.Word (Word8)
 import Foreign.Storable (Storable)
 import Test.Framework (Test, testGroup)
 import Test.QuickCheck
-  (Property, choose, conjoin, counterexample, forAll, (.&&.), (===))
-import Views (Elem, View (..), genElems, mkViewG, testPropertyN)
+  (Property, choose, conjoin, counterexample, forAll, once, (.&&.), (===))
+import Views (Elem, View (..), genElems, mkViewG, testPropertyN, upTo)
 
 test :: Test
 test = testGroup "ShapedG" $ backends @Int ++ [testGroup "Word8" (backends @Word8)]
@@ -87,12 +87,14 @@ prop_views v@(View sh _) =
               .&&. SG.unScalar (SG.reduce (+) 0 s) === sum l
               .&&. read (show s) === s
 
--- The Shaped operation gives what the Dynamic one does on each source.
+-- The Shaped operation gives what the Dynamic one does on each source, once,
+-- over distinct elements, where any element out of place shows: the operations
+-- branch on no element, and random repeated ones could hide one.
 prop_op :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
            (SG.Array '[2,3,4] v a -> ([Int], [a])) -> (DG.Array v a -> ([Int], [a]))
         -> Property
-prop_op f g = forAll (genElems (-9, 9) 60) $ \ xs ->
-  conjoin [ counterexample n (f s === g (toD s)) | (n, s) <- sources xs ]
+prop_op f g = once $
+  conjoin [ counterexample n (f s === g (toD s)) | (n, s) <- sources (upTo 60) ]
 
 -- The Dynamic array a Shaped one is.
 toD :: forall sh v a . SG.Shape sh => SG.Array sh v a -> DG.Array v a
