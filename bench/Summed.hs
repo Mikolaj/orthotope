@@ -13,8 +13,9 @@
 -- limitations under the License.
 
 -- A client that sums every component of a call's result, an array's shape,
--- strides, offset and vector included, rather than forcing it to normal
--- form: one that a call inlined into it may pass its fields unbuilt.
+-- strides and offset, its vector's length and its view's elements included,
+-- rather than forcing it to normal form: one that a call inlined into it may
+-- pass its fields unbuilt.
 {-# LANGUAGE BangPatterns, FlexibleContexts, FlexibleInstances #-}
 module Summed (Summed (..), sumVec) where
 
@@ -55,9 +56,38 @@ sumVec v = go 0 0
     go !i !acc | i >= len = acc
                | otherwise = go (i + 1) (acc + summed (VG.unsafeIndex v i))
 
+-- The sum of an array's shape, strides and offset, its vector's length, and
+-- the elements of its view, each index of the shape walked at the strides from
+-- the offset as by a client traversing the view: an element the view repeats
+-- is added once for each index reaching it, and no element outside the view is
+-- accessed.
 {-# INLINE sumT #-}
 sumT :: (VG.Vector v e, Summed e) => [Int] -> I.T v e -> Double
-sumT sh (I.T st o v) = fromIntegral (sum sh + sum st + o) + sumVec v
+sumT sh (I.T st o v) =
+  fromIntegral (sum sh + sum st + o + VG.length v) + sumView v sh st o 0
+
+-- The walk of 'sumT', from the offset given, adding to the sum given.  Out of
+-- line, the vector an argument: local to sumT, the walk allocated 56 bytes
+-- a call more than summing the whole vector took, on GHC HEAD 10.1.20261019
+-- (2026-10-21).  Every equation bangs the offset, the last, unreachable,
+-- included: without that bang the walk took the offset boxed, 16 bytes a run.
+-- The loops take the extent and the stride as arguments, which unboxes them
+-- once: captured, they were unboxed again at every element.
+{-# INLINABLE sumView #-}
+sumView :: (VG.Vector v e, Summed e)
+        => v e -> [Int] -> [Int] -> Int -> Double -> Double
+sumView !v [] _ !i !acc = acc + summed (VG.unsafeIndex v i)
+sumView v [n] (s : _) !i !acc = run n s 0 i acc
+  where
+    run !n' !s' !k !j !a
+      | k >= n' = a
+      | otherwise = run n' s' (k + 1) (j + s') (a + summed (VG.unsafeIndex v j))
+sumView v (n : ns) (s : ss) !i !acc = outer n s 0 i acc
+  where
+    outer !n' !s' !k !j !a
+      | k >= n' = a
+      | otherwise = outer n' s' (k + 1) (j + s') (sumView v ns ss j a)
+sumView _ _ [] !_ !acc = acc
 
 instance Summed Double where
   {-# INLINE summed #-}
