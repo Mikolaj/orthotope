@@ -2087,7 +2087,20 @@ zipWithLong2 _     _     bs  = bs
 -- beside it, forced for their checks, built the array before them.
 {-# INLINE padT #-}
 padT :: forall v a . (Vector v, VecElem v a) => a -> [(Int, Int)] -> ShapeL -> T v a -> T v a
-padT v aps ash at =
+padT v aps ash at
+  | all (== (0, 0)) aps = at  -- no padding: the array itself
+  | otherwise = padCopyT v aps ash at
+
+-- padT past its test for no padding, which pad of the generic modules makes
+-- itself, past its checks, before calling this.  With the test in padT alone,
+-- inlined into pad, it became a loop over the padding run at every call, where
+-- pad's own test of a constant padding is a constant: pad of no padding ran
+-- 27 to 105 instructions a call more, up to 20.7%, on GHC HEAD 10.1.20261019
+-- (2026-10-22), though summed boxed Shaped pad.outer allocated 32 bytes a call
+-- less, its result returned unboxed.
+{-# INLINE padCopyT #-}
+padCopyT :: forall v a . (Vector v, VecElem v a) => a -> [(Int, Int)] -> ShapeL -> T v a -> T v a
+padCopyT v aps ash at =
   fromVectorT ss $ vUnsafeConcatN (product ss) $ pad' aps ash st at
   where pad' :: [(Int, Int)] -> ShapeL -> [Int] -> T v a -> [v a]
         -- The last padded dimension's block is taken whole as toVectorListT's
