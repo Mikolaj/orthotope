@@ -566,7 +566,7 @@ rerank :: forall n i o v v' a b .
           , KnownNat n, KnownNat o, KnownNat (n+o)) =>
           (Array i v a -> Array o v' b) -> Array (n+i) v a -> Array (n+o) v' b
 rerank f (A sh t)
-                  | 0 `elem` osh, natT @o == (0 :: Int) = A osh $ fromVectorT osh (vConcat [])
+                  | 0 `elem` osh, natT @o == (0 :: Int) = A osh $ emptyT osh
                   | product osh == 1, [s] <- subArraysT osh t =
                     case f (A ish s) of  -- one subarray: a view of f's result
                       A rsh rt -> A (osh ++ rsh) (insertUnitsT 0 (length osh) rt)
@@ -617,7 +617,7 @@ rerank2 :: forall n i o v a b c .
             KnownNat n, KnownNat o, KnownNat (n+o)) =>
            (Array i v a -> Array i v b -> Array o v c) -> Array (n+i) v a -> Array (n+i) v b -> Array (n+o) v c
 rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error $ "rerank2: shape mismatch " ++ show (take n sha, take n shb)
-                                | 0 `elem` osh, natT @o == (0 :: Int) = A osh $ fromVectorT osh (vConcat [])
+                                | 0 `elem` osh, natT @o == (0 :: Int) = A osh $ emptyT osh
                                 | product osh == 1, [sa] <- subArraysT osh ta, [sb] <- subArraysT osh tb =
                                   case f (A isha sa) (A ishb sb) of  -- one subarray each: a view of f's result
                                     A rsh rt -> A (osh ++ rsh) (insertUnitsT 0 (length osh) rt)

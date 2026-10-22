@@ -160,12 +160,11 @@ instance Vector V.Vector where
         <*> V.unsafeIndexM d i <*> V.unsafeIndexM e i
   {-# INLINE vAppend #-}
   vAppend = (V.++)
+  -- INLINE: not for fusion; F1 reads no fusion here: V.concat hands its list to
+  -- vector's fromVectors, which refers to it three times, so it fuses with no
+  -- producer.
   {-# INLINE vConcat #-}
-  -- The empty list by hand: without -fspec-constr, off at -O, GHC keeps
-  -- V.concat []'s copy loop wherever it is inlined, and CSE keeps the
-  -- copies apart (https://gitlab.haskell.org/ghc/ghc/-/work_items/27892).
-  vConcat [] = V.empty
-  vConcat vs = V.concat vs
+  vConcat = V.concat
   {-# INLINE vFold #-}
   vFold = V.foldl'
   {-# INLINE vSlice #-}

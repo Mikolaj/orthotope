@@ -144,12 +144,11 @@ instance Vector V.Vector where
         <*> V.unsafeIndexM d i <*> V.unsafeIndexM e i
   {-# INLINE vAppend #-}
   vAppend = (V.++)
+  -- INLINE: not for fusion; F1 reads no fusion here: V.concat hands its list to
+  -- vector's fromVectors, which refers to it three times, so it fuses with no
+  -- producer.
   {-# INLINE vConcat #-}
-  -- The empty list by hand: without -fspec-constr, off at -O, GHC keeps
-  -- V.concat []'s copy loop wherever it is inlined, and CSE keeps the
-  -- copies apart (https://gitlab.haskell.org/ghc/ghc/-/work_items/27892).
-  vConcat [] = V.empty
-  vConcat vs = V.concat vs
+  vConcat = V.concat
   {-# INLINE vFold #-}
   vFold = V.foldl'
   {-# INLINE vSlice #-}
@@ -213,6 +212,13 @@ instance Vector V.Vector where
   vUnsafeFillStrided = genericUnsafeFillStrided 5
   {-# INLINE vForce #-}
   vForce = genericForce
+  -- A constant, not the default: VG.empty, inlined into a caller even under
+  -- INLINABLE, was built there inside the runRW# that also took the caller's
+  -- continuation, so anew at every call, which on GHC HEAD 10.1.20261019
+  -- (2026-10-22) cost the specialisation benchmark's boxed zipWithA to
+  -- zipWith5A of empty arrays 24 bytes a call for each array they zip.
+  {-# INLINE vEmpty #-}
+  vEmpty = emptyVector
   -- vUnsafeConcatN keeps the default, the vector package's concat but for a
   -- lone vector: on GHC HEAD, copying each vector as the list yields it, as
   -- genericUnsafeConcatN does, took 0.95 to 1.28 times as long on boxed
@@ -220,6 +226,12 @@ instance Vector V.Vector where
   -- to 2.21 at 4 MB, running 1.02 to 1.41 and 1.35 to 2.88 times the
   -- instructions, though it took 0.41 to 0.79 and 0.50 to 0.76 of the time
   -- on rows of 2 to 8 elements.
+
+-- No pragma: inlined, it is VG.empty, which vector defines V.empty as, the
+-- default that was built at every call; see the boxed instance's vEmpty.
+-- The vector of no elements, built once.
+emptyVector :: V.Vector a
+emptyVector = V.empty
 
 type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }

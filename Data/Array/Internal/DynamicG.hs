@@ -421,7 +421,7 @@ ravel aa | rank aa /= 1 = error "ravel: outermost array does not have rank 1"
 unravel :: forall v v' a . (HasCallStack, Vector v', VecElem v' (Array v a)) =>
            Array v a -> Array v' (Array v a)
 unravel (A [] _) = error "unravel: rank 0 array"
-unravel (A (0 : _) _) = A [0] $ fromVectorT [0] (vConcat [])  -- no subarrays
+unravel (A (0 : _) _) = A [0] $ emptyT [0]  -- no subarrays
 unravel a = rerank 1 scalar a
 
 -- | Make a window of the outermost dimensions.
@@ -483,7 +483,7 @@ rotate :: (HasCallStack, Vector v, VecElem v a) => Int -> Int -> Array v a -> Ar
 rotate d k a@(A sh at@T{values = v})
   | d < 0 || d >= rank a = error $ "rotate: dimension out of range " ++ show (d, rank a)
   | badShape sh' = error $ "rotate: bad shape " ++ show sh'
-  | 0 `elem` sh' = A sh' $ fromVectorT sh' (vConcat [])  -- no elements
+  | 0 `elem` sh' = A sh' $ emptyT sh'  -- no elements
   | k == 1 = A sh' (insertUnitsT d 1 at)  -- one rotation: a view of the array
   | copies > toInteger (maxBound :: Int) = error $ "rotate: count too large " ++ show (d, k, sh)
   -- Along a dimension of stride 0 every rotation equals the array, so the
