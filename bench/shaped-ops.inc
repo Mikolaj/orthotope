@@ -158,20 +158,16 @@ OPS form view =
   , call "convert.rank5" (\ a -> convert a :: CONV.Array SH5 Double) tx
 #if defined(BOXED) || defined(STORABLE)
   , call "convert.dynamic" (\ a -> convert a :: CD.Array Double) t
-#endif
-#ifdef BOXED
-  , call "convert.ranked" (\ a -> convert a :: CR.Array 2 Double) t
-  , call "convert.unboxed" (\ a -> convert a :: U.Array SH Double) t
-  , call "convertE.unboxed"
-         (\ a -> convertE a :: Either String (U.Array SH Double)) t
-#endif
-#if defined(BOXED) || defined(STORABLE)
   , call "convertE.dynamic"
          (\ a -> convertE a :: Either String (CD.Array Double)) t
 #endif
 #ifdef BOXED
+  , call "convert.ranked" (\ a -> convert a :: CR.Array 2 Double) t
   , call "convertE.ranked"
          (\ a -> convertE a :: Either String (CR.Array 2 Double)) t
+  , call "convert.unboxed" (\ a -> convert a :: U.Array SH Double) t
+  , call "convertE.unboxed"
+         (\ a -> convertE a :: Either String (U.Array SH Double)) t
 #endif
   , call "convert.g" (\ a -> convert a `asTypeOf` IARR.unA a) t
   , call "convertE.g" (\ a -> convertE a `asTypeOf` Right (IARR.unA a)) t

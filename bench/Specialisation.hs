@@ -132,8 +132,8 @@ table mode args = do
     printf "%-36s %s, the result %s\n" ""
            "ns, then bytes, an element at the large size, a call at the others"
            (case mode of Forced -> "forced"; Summing -> "summed")
-    printf "%-36s %9s%9s%9s %9s%9s%9s\n" "" "boxed" "Storable" "Unboxed"
-                                           "boxed" "Storable" "Unboxed"
+    let cols = concatMap (printf "%9s") kinds :: String
+    printf "%-36s %s %s\n" "" cols cols
   forM_ rows $ \ (row, per, cells) -> do
     ms <- mapM (traverse (measure mode Nothing)) (cells Viewed)
     let time = maybe "-" (\ (t, _) -> printf "%.2f" (t / fromIntegral per))
