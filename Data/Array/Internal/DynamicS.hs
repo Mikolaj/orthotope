@@ -189,12 +189,11 @@ instance Vector V.Vector where
       in  f x y z u w
   {-# INLINE vAppend #-}
   vAppend = (V.++)
+  -- INLINE: not for fusion; F1 reads no fusion here: V.concat hands its list to
+  -- vector's fromVectors, which refers to it three times, so it fuses with no
+  -- producer.
   {-# INLINE vConcat #-}
-  -- The empty list by hand: without -fspec-constr, off at -O, GHC keeps
-  -- V.concat []'s copy loop wherever it is inlined, and CSE keeps the
-  -- copies apart (https://gitlab.haskell.org/ghc/ghc/-/work_items/27892).
-  vConcat [] = V.empty
-  vConcat vs = V.concat vs
+  vConcat = V.concat
   -- Each element read forced, as at vToList.
   {-# INLINE vFold #-}
   vFold f z v = go z 0

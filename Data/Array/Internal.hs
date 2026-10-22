@@ -16,6 +16,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -29,7 +30,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE UndecidableSuperClasses #-}
 -- INLINE throughout but vFromListN, vFromListExactN, vUnsafeFillStrided,
--- vUnsafeConcatN, prettyShowL, badShape, equalT, getStridesT,
+-- vUnsafeConcatN, vEmpty, prettyShowL, badShape, equalT, getStridesT,
 -- genericUnsafeFillStrided, canonicalizeT, stepOdometer, absAxesAndStartT,
 -- sortAxesT, insertAxis, canonicalizeSortedT, allSameT, rectPad, hcatRect,
 -- rectWidth, ppT, showsT, box, zipWithLong2, simpleReshape, isPermutation
@@ -196,6 +197,14 @@ class Vector v where
   {-# INLINE vForce #-}
   vForce v = vConcat [v]
 
+  -- | The vector of no elements.  The default, 'VG.empty', serves the Storable
+  -- and Unboxed vector instances; the boxed one overrides it, its comment
+  -- giving the reason.
+  vEmpty :: (VecElem v a) => v a
+  default vEmpty :: (VecElem v a, VG.Vector v a) => v a
+  {-# INLINABLE vEmpty #-}
+  vEmpty = VG.empty
+
   -- Left out of the class, to keep it small until users find
   -- the speedups worth its size: vZipWithStrided to vZipWith5Strided,
   -- with which the vector instances zip views that no slice serves by
@@ -243,6 +252,7 @@ instance Vector [] where
   -- A slice of a list, once its spine is evaluated, is cells of its own,
   -- which keep alive no longer list.
   vForce = id
+  vEmpty = []
   -- Fails on a slice out of range, as the vector instances do; on one the
   -- list runs out in, only where its end is forced.
   vSlice o n xs
@@ -1404,7 +1414,7 @@ routePartsT route step nil = case route of
 {-# INLINE toVectorT #-}
 toVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
 toVectorT sh a@(T _ _ v)
-  | l == 0 = vConcat []
+  | l == 0 = vEmpty
   | otherwise = routeVectorT v (routeT sh l a)
   where !l = product sh
 
@@ -1438,7 +1448,7 @@ insertUnitsT d k (T ss o v) = T (take d ss ++ replicate k 0 ++ drop d ss) o v
 forceT :: (Vector v, VecElem v a) => ShapeL -> T v a -> T v a
 forceT sh t@(T _ _ v) = fromVectorT sh $
   if l == 0
-  then vConcat []
+  then vEmpty
   else case routeT sh l t of
     RSlice ao n -> vForce (wholeOrSliceT ao n v)
     route -> routeVectorT v route
@@ -1752,7 +1762,7 @@ routeFoldT v route onSlice onElem nil = case route of
 {-# INLINE toUnorderedVectorT #-}
 toUnorderedVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
 toUnorderedVectorT sh a@(T _ _ v)
-  | l == 0 = vConcat []
+  | l == 0 = vEmpty
   | otherwise = routeVectorT v (unorderedRouteT sh l a)
   where !l = product sh
 
@@ -1772,6 +1782,11 @@ toUnorderedVectorT sh a@(T _ _ v)
 {-# INLINE fromVectorT #-}
 fromVectorT :: ShapeL -> v a -> T v a
 fromVectorT sh = T (tail $ getStridesT sh) 0
+
+-- The array of a shape with an extent 0, which has no elements.
+{-# INLINE emptyT #-}
+emptyT :: (Vector v, VecElem v a) => ShapeL -> T v a
+emptyT sh = fromVectorT sh vEmpty
 
 -- INLINE: by the measurement in the module's header, not for fusion; F1 reads
 -- no fusion here: its list goes to vFromListN, whose vector instances take it
@@ -1823,7 +1838,7 @@ mapT sh f t = convertT sh (vMap f) t
 convertT :: (Vector v, VecElem v a, Vector w, VecElem w b)
          => ShapeL -> (v a -> w b) -> T v a -> T w b
 convertT sh g t@(T ss o v) | Range lo n <- readRangeT sh t = T ss (o - lo) (g (vUnsafeSlice lo n v))
-convertT sh _ _ | 0 `elem` sh = fromVectorT sh (vConcat [])
+convertT sh _ _ | 0 `elem` sh = emptyT sh
 convertT sh g t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip bs sh ] $
                   g $ toVectorT rsh r
   where (bs, rsh, r) = dropBroadcastT sh t
