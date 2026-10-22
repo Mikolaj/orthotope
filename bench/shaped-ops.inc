@@ -229,6 +229,8 @@ OPS form view =
   tx = ARR.broadcast @Bc14 @SH5 t
   txn = ARR.broadcast @Bc14 @SH5 tn
   tnr = ARR.slice @SLNR t
+  -- The view's first row, its type used by rows at every ROWS and its value
+  -- only by rows under ROWS > 0.
   row = ARR.index t 0
 #if ROWS > 0
   -- The view's first row alone, its first element alone, the view with an

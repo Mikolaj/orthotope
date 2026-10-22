@@ -235,6 +235,8 @@ OPS form view =
   tx = ARR.broadcast [1, 4] [1, ROWS, 2, 1, cols] t :: ARR.Array 5 Double
   txn = ARR.broadcast [1, 4] [1, ROWS, 2, 1, cols] tn `asTypeOf` tx
   tnr = ARR.slice [(0, ROWS), (0, cols - 1)] t
+  -- The view's first row, its type used by rows at every ROWS and its value
+  -- only by rows under ROWS > 0.
   row = ARR.index t 0 :: ARR.Array 1 Double
 #if ROWS > 0
   -- The view's first row alone, its first element alone, the view with an
