@@ -23,12 +23,10 @@ import qualified Data.Array.Ranked as R
 import Data.Array.RankedS
 import Data.Word (Word16, Word32)
 import qualified Data.Vector.Storable as V
-import Foreign.ForeignPtr.Unsafe (unsafeForeignPtrToPtr)
-import Foreign.Ptr (minusPtr)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
-import Views (assertThrowsIn)
+import Views (Owns (..), assertThrowsIn)
 
 assertThrows :: (NFData a) => String -> a -> Assertion
 assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
@@ -63,12 +61,12 @@ test = testGroup "RankedS" $
       normalize_1 = assertEqual "1" a1 (normalize a1)
       -- toVector of a row is a slice of the whole vector, which normalize
       -- keeps and force copies the row out of.
-      normalize_2 = assertEqual "2" (True, True, False)
-                      ( inBig (toVector (index big 1)), inBig (toVector (normalize (index big 1)))
-                      , inBig (toVector (force (index big 1))) )
+      normalize_2 = do
+        assertEqual "index" True (shares (index big 1))
+        assertEqual "normalize index" True (shares (normalize (index big 1)))
+        assertEqual "force index" False (shares (force (index big 1)))
         where big = fromList [4,1000] [1..4000] :: Array 2 Double
-              ptrOf = unsafeForeignPtrToPtr . fst . V.unsafeToForeignPtr0
-              inBig w = let d = ptrOf w `minusPtr` ptrOf (toVector big) in d >= 0 && d < 32000
+              shares a = sameStorage (toVector a) (toVector big)
       reshape_1 = assertEqual "1" (fromList [6] [1..6] :: Array 1 Int) (reshape [6] a1)
       reshape_2 = assertEqual "1" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2 :: Array 4 Int)
       a3 :: Array 1 Int

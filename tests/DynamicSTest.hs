@@ -27,14 +27,14 @@ import qualified Data.Array.Internal.DynamicS as DS
 import Data.Int (Int8)
 import qualified Data.Vector.Storable as V
 import Data.Word (Word16, Word8)
-import Foreign.ForeignPtr.Unsafe (unsafeForeignPtrToPtr)
-import Foreign.Ptr (castPtr, minusPtr)
+import Foreign.Ptr (castPtr)
 import Foreign.Storable (Storable (..))
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Test.QuickCheck (Property, forAll, (.&&.), (===))
-import Views (Elem, View (..), assertThrowsIn, failsWith, genElems, mkViewG, testPropertyN)
+import Views
+  (Elem, Owns (..), View (..), assertThrowsIn, failsWith, genElems, mkViewG, testPropertyN)
 
 -- A Storable whose peek fails on a byte it does not decode.
 data E = E0 | E1 deriving (Eq, Show, Enum)
@@ -85,19 +85,19 @@ test = testGroup "DynamicS" $
       -- keeps, as it keeps a normal array and one whose dimension of extent 1
       -- has stride 0, and which force copies the row out of, as it copies
       -- a normal array.
-      normalize_2 = assertEqual "2" (True, True, True, True, True, True, False, False, False)
-                      ( inBig (toVector (index big 1)), inBig (toVector (normalize (index big 1)))
-                      , inBig (toVector (reshape [1,1000] (index big 1)))
-                      , inBig (toVector (normalize (reshape [1,1000] (index big 1))))
-                      , ptrOf (toVector (normalize big)) == ptrOf (toVector big)
-                      , ptrOf (toVector (normalize (reshape [4000,1] (reshape [4000] big))))
-                        == ptrOf (toVector big)
-                      , inBig (toVector (force (index big 1)))
-                      , inBig (toVector (force (reshape [1,1000] (index big 1))))
-                      , ptrOf (toVector (force big)) == ptrOf (toVector big) )
+      normalize_2 = do
+        assertEqual "index" True (shares (index big 1))
+        assertEqual "normalize index" True (shares (normalize (index big 1)))
+        assertEqual "reshape index" True (shares (reshape [1,1000] (index big 1)))
+        assertEqual "normalize reshape index" True (shares (normalize (reshape [1,1000] (index big 1))))
+        assertEqual "normalize" True (shares (normalize big))
+        assertEqual "normalize reshape reshape" True
+          (shares (normalize (reshape [4000,1] (reshape [4000] big))))
+        assertEqual "force index" False (shares (force (index big 1)))
+        assertEqual "force reshape index" False (shares (force (reshape [1,1000] (index big 1))))
+        assertEqual "force" False (shares (force big))
         where big = fromList [4,1000] [1..4000] :: Array Double
-              ptrOf = unsafeForeignPtrToPtr . fst . V.unsafeToForeignPtr0
-              inBig w = let d = ptrOf w `minusPtr` ptrOf (toVector big) in d >= 0 && d < 32000
+              shares a = sameStorage (toVector a) (toVector big)
       reshape_1 = assertEqual "1" (fromList [6] [1..6]) (reshape [6] a1)
       reshape_2 = assertEqual "1" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2)
       a3, a4 :: Array Int

@@ -15,7 +15,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 -- The properties of Dynamic arrays, through DynamicG at the boxed,
@@ -31,23 +30,18 @@ import qualified Data.Array.Internal.DynamicG as DG
 import Data.Array.Internal.DynamicS ()
 import Data.Array.Internal.DynamicU ()
 import Data.List (sort, zipWith4, zipWith5)
-import Data.Primitive.ByteArray (sizeofByteArray)
 import qualified Data.Vector as V
-import qualified Data.Vector.Primitive as VP
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
-import qualified Data.Vector.Unboxed.Base as VUB
 import Data.Word (Word8)
-import Foreign.Storable (Storable, sizeOf)
-import GHC.Exts (Int (I#), sizeofMutableByteArray#)
-import GHC.ForeignPtr (ForeignPtr (..), ForeignPtrContents (..))
+import Foreign.Storable (Storable)
 import Test.Framework (Test, testGroup)
 import Test.QuickCheck
   ( Arbitrary (..), Property, choose, conjoin, counterexample, elements, forAll, listOf, property
   , shrinkList, vectorOf, (.&&.), (===), (==>) )
 import Views
-  ( Elem, View (..), applyOpG, failsIn, failsWith, genBadOp, genElems, genOps, genShape
-  , mkViewG, opName, opShape, opSource, testPropertyN, upTo )
+  ( Elem, Owns (..), View (..), applyOpG, failsIn, failsWith, genBadOp, genElems, genOps
+  , genShape, mkViewG, opName, opShape, opSource, testPropertyN, upTo )
 
 test :: Test
 test = testGroup "DynamicG" $ backends @Int True ++ [testGroup "Word8" (backends @Word8 False)]
@@ -167,12 +161,15 @@ prop_reduce v@(View sh _) =
 -- pad agrees with indexing the view where an index falls inside it, and gives
 -- the padding value elsewhere, for a pad list of any length up to the rank that
 -- leaves at most 10000 elements; and padT, given a pad list of zeros of that
--- length, returns the view's own layout.
-prop_pad :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
+-- length, returns the view's own layout and shares its vector where a slice of
+-- the vector does.
+prop_pad :: forall v a . (Owns (v a), I.Vector v, I.VecElem v a, Elem a) =>
+            View -> Property
 prop_pad v@(View sh _) =
   let x = mkViewG v (upTo (product sh)) :: Array v a
       xsh = shapeL x
       DG.A _ t = x
+      w = I.values t
   in  forAll (choose (0, length xsh)) $ \ k ->
       forAll (vectorOf k ((,) <$> choose (0, 2) <*> choose (0, 2))) $ \ ps ->
       let psh = zipWith (\ (lo, hi) s -> lo + s + hi) ps xsh ++ drop k xsh
@@ -185,6 +182,8 @@ prop_pad v@(View sh _) =
           shapeL (pad ps (-1) x) === psh
           .&&. toList (pad ps (-1) x) === map elemAt (indices psh)
           .&&. (I.offset t', I.strides t') === (I.offset t, I.strides t)
+          .&&. sameStorage (I.values t') w
+               === sameStorage (I.vSlice 0 (I.vLength w) w) w
 
 -- Each operation of a view has the shape opShape gives, and reads at every
 -- index of its result the element of the array it applies to at the index
@@ -230,39 +229,14 @@ layoutOf (DG.A _ t) = (I.offset t, I.strides t, I.vLength (I.values t))
 valuesOf :: Array v a -> v a
 valuesOf (DG.A _ t) = I.values t
 
--- Whether a vector's storage holds its elements and nothing more, keeping no
--- larger vector alive, as force's copy must.
-class Owns w where
-  ownsStorage :: w -> Bool
-
-instance Owns [a] where
-  ownsStorage _ = True
-
-instance Owns (V.Vector a) where
-  ownsStorage w = let (arr, _, n) = V.toArraySlice w
-                  in  V.length (V.fromArray arr) == n
-
-instance Storable a => Owns (VS.Vector a) where
-  ownsStorage w = case VS.unsafeToForeignPtr0 w of
-    (ForeignPtr _ (PlainPtr m), n) -> owns m n
-    (ForeignPtr _ (MallocPtr m _), n) -> owns m n
-    (_, n) -> n == 0
-    where owns m n = I# (sizeofMutableByteArray# m) == n * sizeOf (undefined :: a)
-
-instance Owns (VU.Vector Int) where
-  ownsStorage (VUB.V_Int (VP.Vector _ n b)) = sizeofByteArray b == n * sizeOf (0 :: Int)
-
-instance Owns (VU.Vector Word8) where
-  ownsStorage (VUB.V_Word8 (VP.Vector _ n b)) = sizeofByteArray b == n
-
--- normalize gives the view as a normal array, its elements in a vector
--- of just their number, at offset 0 and with natural strides, and force
--- the same in storage of its own; reshape to
--- one dimension, append and concatOuter of the view and a normal array of
--- its shape, zipWithA of the two either way round, and traverseA in the
--- applicative of pairs agree with the lists; concatOuter of the view alone,
--- a concatenation of one part, is the view; and append and concatOuter fail
--- on scalars.
+-- normalize gives the view as a normal array, its elements in a vector of just
+-- their number, at offset 0 and with natural strides, and force the same in
+-- storage of its own; normalize of a row of a normal array shares its vector
+-- where a slice of the vector does, and force of the row does not; reshape to
+-- one dimension, append and concatOuter of the view and a normal array of its
+-- shape, zipWithA of the two either way round, and traverseA in the applicative
+-- of pairs agree with the lists; concatOuter of the view alone, a concatenation
+-- of one part, is the view; and append and concatOuter fail on scalars.
 prop_copy :: forall v a . (Owns (v a), I.Vector v, I.VecElem v a, Elem a) =>
              View -> Property
 prop_copy v@(View sh _) =
@@ -276,6 +250,15 @@ prop_copy v@(View sh _) =
       in  toList z === l .&&. layoutOf z === (0, drop 1 (scanr (*) 1 xsh), n)
           .&&. toList (force x) === l
           .&&. counterexample "force keeps a larger vector" (ownsStorage (valuesOf (force x)))
+          .&&. (case xsh of
+                  s : _ | n > 0 ->
+                    let r = index y 0
+                        w = valuesOf y
+                    in  sameStorage (valuesOf (normalize r)) w
+                          === sameStorage (I.vSlice 0 (n `quot` s) w) w
+                        .&&. counterexample "force of a row shares its vector"
+                               (not (sameStorage (valuesOf (force r)) w))
+                  _ -> property True)
           .&&. toList (reshape [n] x) === l
           .&&. toList (zipWithA (-) x y) === zipWith (-) l ys
           .&&. toList (zipWithA (-) y x) === zipWith (-) ys l
