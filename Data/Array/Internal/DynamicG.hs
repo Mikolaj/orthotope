@@ -23,18 +23,17 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- INLINE throughout but showsPrec, readsPrec, (==), rnf, size, window,
--- rotate, arbitrary and sumA: on GHC HEAD 10.1.20260918 (2026-10-15), the
--- generic modules' functions INLINABLE, as their types give them, cost the
+-- arbitrary and sumA: on GHC HEAD 10.1.20260918 (2026-10-15), the generic
+-- modules' functions INLINABLE, as their types give them, cost the
 -- specialisation benchmark up to 1160 bytes a call (append), 472 (transpose)
 -- and 456 (iota), and their view operations, whose types carry no class,
 -- without a pragma up to 136 (broadcast), 96 (slice) and 88 (stride).  Under
 -- it, rev allocates 32 bytes a call more forced at the small and empty sizes
 -- and 8 fewer summed: inlined into a client, rev gets a local worker there,
--- which returns the strides, offset and vector untagged, and GHC builds
--- the strict-field T over them as a thunk, which it forces at once.  Those
--- it leaves out keep the pragma their types give them; rotate is a complex
--- operation, too much code for INLINE, and sumA is INLINABLE for the reason at
--- Data.Array.Internal.Dynamic's sumA.
+-- which returns the strides, offset and vector untagged, and GHC builds the
+-- strict-field T over them as a thunk, which it forces at once.  Those it
+-- leaves out keep the pragma their types give them; sumA is INLINABLE for the
+-- reason at Data.Array.Internal.Dynamic's sumA.
 -- | Arrays of dynamic size.  The arrays are polymorphic in the underlying
 -- linear data structure used to store the actual values.
 module Data.Array.Internal.DynamicG(
@@ -472,6 +471,12 @@ stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ r
         str [] sh = sh
         str _ _ = error $ "stride: rank mismatch " ++ show (ats, ash)
 
+-- INLINE: on GHC HEAD 10.1.20261019 (2026-10-22), INLINABLE, it ran the
+-- specialisation benchmark's Shaped rotate of small and empty arrays and of
+-- broadcast views in up to 2.5 times the instructions, and Dynamic's and
+-- Ranked's small and empty ones in up to 1.15 times, about 1.04 in the median;
+-- INLINE adds 1.6% to the Core of the library and the benchmark, and 1.7% to
+-- the test suite's, 5% to RankedGTest's.
 -- | Rotate the array k times along the d'th dimension.
 -- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
 -- the resulting shape will be @[2, 4, 3, 2]@.
@@ -479,7 +484,7 @@ stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ r
 -- if the result has more than half of 'maxBound' elements.
 -- With k = 1, or along a dimension the array broadcasts, the result is a view
 -- of the array, sharing its vector; 'force' copies it out.
-{-# INLINABLE rotate #-}
+{-# INLINE rotate #-}
 rotate :: (HasCallStack, Vector v, VecElem v a) => Int -> Int -> Array v a -> Array v a
 rotate d k a@(A sh at@T{values = v})
   | d < 0 || d >= rank a = error $ "rotate: dimension out of range " ++ show (d, rank a)

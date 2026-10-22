@@ -486,21 +486,19 @@ rotate k (A sh t) = case DG.rotate (natT @d) k (DG.A sh t) of
   DG.A sh' t' -> A sh' t'
 
 -- The original definition of 'rotate', with its signature, an
--- example of how to use the type safety of the ranked operations: the
--- types check the ranks of every step but the view of the windows,
--- built by hand.  The 'rotate' above goes through DynamicG's instead,
--- as a workaround, because GHC specialises a function on every type
--- argument that occurs in its constraints, and the constraints of this
--- definition mention the ranks.  When it was INLINE, its code was
--- copied into every use, leaving dozens of similar copies of its big
--- code in the test binary.  When it was INLINABLE and called from code
--- polymorphic in the vector type, GHC specialised it
--- once per rank pair and left the vector operations as
--- dictionary calls: such a specialisation has no unfolding
+-- example of how to use the type safety of the ranked operations:
+-- the types check the ranks of every step but the view of the
+-- windows, built by hand.  The 'rotate' above goes through DynamicG's
+-- instead, as a workaround, because GHC specialises a function
+-- on every type argument that occurs in its constraints, and the
+-- constraints of this definition mention the ranks.  When it was
+-- INLINABLE and called from code polymorphic in the vector type, GHC
+-- specialised it once per rank pair and left the vector operations
+-- as dictionary calls: such a specialisation has no unfolding
 -- (https://gitlab.haskell.org/ghc/ghc/-/work_items/23050), so callers
 -- specialised later on the vector type could not specialise it further.
--- 'DG.rotate' takes the dimension as an 'Int', so GHC specialises it on
--- the vector and element types only, and one copy serves every rank.
+-- 'DG.rotate' takes the dimension as an 'Int', so no rank occurs in its
+-- constraints.
 --
 -- rotate :: forall d p v a.
 --           (HasCallStack, KnownNat p, KnownNat d,
