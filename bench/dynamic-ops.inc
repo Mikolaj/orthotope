@@ -91,6 +91,7 @@ OPS form view =
   , call "stride.outer" (\ a -> ARR.stride [2] a) t
   , call "rotate" (\ a -> ARR.rotate 0 2 a) t
   , call "rotate.one" (\ a -> ARR.rotate 1 1 a) t
+  , call "rotate.inner" (\ a -> ARR.rotate 1 2 a) t
 #if ROWS > 0
   , call "slice" (\ a -> ARR.slice [(1, sliceRows), (1, cols - 1)] a) t
   , call "rerank" (\ a -> ARR.rerank 1 (\ r -> ARR.scalar (ARR.sumA r)) a) t
