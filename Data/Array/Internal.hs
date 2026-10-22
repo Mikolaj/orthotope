@@ -31,24 +31,24 @@
 {-# LANGUAGE UndecidableSuperClasses #-}
 -- INLINE throughout but vFromListN, vFromListExactN, vUnsafeFillStrided,
 -- vUnsafeConcatN, vEmpty, prettyShowL, badShape, equalT, getStridesT,
--- genericUnsafeFillStrided, canonicalizeT, stepOdometer, absAxesAndStartT,
--- sortAxesT, insertAxis, canonicalizeSortedT, allSameT, rectPad, hcatRect,
--- rectWidth, ppT, showsT, box, zipWithLong2, simpleReshape, isPermutation
--- and allSame: on GHC HEAD 10.1.20260918 (2026-10-15), this module's
--- functions INLINABLE, as their types give them, cost the specialisation
--- benchmark up to 1960 bytes a call (the conversions), 624 (liftA2), 560
--- (concatOuter) and 384 (pad); productT, maximumT and minimumT INLINABLE,
--- with Data.Array.Internal.DynamicU's vMaximum and vMinimum, ran productA,
--- maximumA and minimumA in up to 1.6 times the instructions, though in up
--- to 3% fewer at boxed Dynamic and Ranked arrays, and permute without a
--- pragma ran Ranked transpose in up to 1.08 times.  Those it leaves out
--- keep the pragma their types give them, but isPermutation, NOINLINE as
--- measured on GHC HEAD 10.1.20260918 on 2026-10-13: inlined into transpose,
--- the check of a literal permutation was computed once in a library built at
--- -funfolding-creation-threshold=30, and in every call in one built at the
--- default thresholds with Dynamic's transpose INLINE; out of line, a call of
--- it on a literal is a constant, computed once at any threshold.  F1 reads no
--- fusion in allSame: it matches its list before all consumes the tail, so it
+-- genericUnsafeFillStrided, genericUnsafeFillStridedInto, canonicalizeT,
+-- stepOdometer, absAxesAndStartT, sortAxesT, insertAxis, canonicalizeSortedT,
+-- allSameT, rectPad, hcatRect, rectWidth, ppT, showsT, box, zipWithLong2,
+-- simpleReshape, isPermutation and allSame: on GHC HEAD 10.1.20260918
+-- (2026-10-15), this module's functions INLINABLE, as their types give them,
+-- cost the specialisation benchmark up to 1960 bytes a call (the conversions),
+-- 624 (liftA2), 560 (concatOuter) and 384 (pad); productT, maximumT and
+-- minimumT INLINABLE, with Data.Array.Internal.DynamicU's vMaximum and
+-- vMinimum, ran productA, maximumA and minimumA in up to 1.6 times the
+-- instructions, though in up to 3% fewer at boxed Dynamic and Ranked arrays,
+-- and permute without a pragma ran Ranked transpose in up to 1.08 times.  Those
+-- it leaves out keep the pragma their types give them, but isPermutation,
+-- NOINLINE as measured on GHC HEAD 10.1.20260918 on 2026-10-13: inlined into
+-- transpose, the check of a literal permutation was computed once in a library
+-- built at -funfolding-creation-threshold=30, and in every call in one built at
+-- the default thresholds with Dynamic's transpose INLINE; out of line, a call
+-- of it on a literal is a constant, computed once at any threshold.  F1 reads
+-- no fusion in allSame: it matches its list before all consumes the tail, so it
 -- fuses with no producer.
 module Data.Array.Internal(module Data.Array.Internal) where
 import Control.DeepSeq
@@ -63,7 +63,7 @@ import Data.List(zipWith4, zipWith5, sortOn, foldl1')
 import Data.Proxy
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
-import GHC.Exts(Constraint, SpecConstrAnnotation(..), build)
+import GHC.Exts(Constraint, SpecConstrAnnotation(..), build, inline)
 import GHC.Generics(Generic)
 import GHC.Stack(HasCallStack)
 import GHC.TypeLits(KnownNat, natVal)
@@ -231,14 +231,22 @@ class Vector v where
     vZipWith5 f (toVectorT sh t) (toVectorT sh t') (toVectorT sh t'')
                 (toVectorT sh t''') (toVectorT sh t'''')
 
-  -- Left out of the class, to keep it small until users find the speedup
-  -- worth its size: vConcatPadN, with which the vector instances write pad's
-  -- padding into the result in place.  On GHC HEAD, pad of rows of two Doubles
-  -- took 0.65 to 0.75 of its time, and 0.33 to 0.35 at boxed.  It waits, with
-  -- the conditions of that measurement, at
-  -- https://github.com/Mikolaj/orthotope/tree/0888a7bbb8fc599864d4ba7ee0d462114e4c4589.
-  --
-  -- Left out as well, and not written: a strided map, with which 'convertT'
+  -- | Concatenate runs of padding and views, each view given as its shape
+  -- and T and in row-major order, whose sizes sum to the count given first:
+  -- a Left of k is k copies of the element given, a Right a view.  The
+  -- contract is 'vUnsafeConcatN''s.  The default replicates each run and
+  -- concatenates the views' 'toVectorT'; the vector instances write the
+  -- padding and the views into the result by 'genericConcatPadN', each view
+  -- that no slice serves by their fill into a buffer: in place, but at boxed
+  -- and Unboxed elements a view without runs long enough to copy whole, which
+  -- is filled apart and copied in.
+  vConcatPadN :: (VecElem v a)
+              => Int -> a -> [Either Int (ShapeL, T v a)] -> v a
+  {-# INLINE vConcatPadN #-}
+  vConcatPadN n x =
+    vUnsafeConcatN n . map (either (`vReplicate` x) (uncurry toVectorT))
+
+  -- Left out of the class, and not written: a strided map, with which 'convertT'
   -- would map or convert a view that no slice serves in one walk rather than
   -- filling it and copying the fill, and a strided fill at an offset, with
   -- which 'rerank', 'rerank2' and 'ravel' would write a result that is such
@@ -922,14 +930,15 @@ genericFoldl1 f v = let !x0 = VG.unsafeIndex v 0 in go x0 1
                    | otherwise =
                        let !x = VG.unsafeIndex v i in go (f acc x) (i + 1)
 
--- The measured-fastest fill for 'vUnsafeFillStrided': an allocate-once mutable
--- result, an odometer recursion over the outer dimensions with the input offset
--- stepped additively, the innermost outer level fused into a dedicated loop
--- over the innermost runs, and the innermost-run fill unrolled by two with its
--- bound on the output cursor, so it is sound for zero and negative strides, or,
--- from a run length the instance picks, each run at stride 1 copied whole.  The
--- recursion walks the outer levels as a 'Nest' built over them innermost first,
--- each level holding its 'Axis'.
+-- The measured-fastest fill for 'vUnsafeFillStrided', written into a buffer
+-- from a position, so that 'vConcatPadN' can fill a view in place: an odometer
+-- recursion over the outer dimensions with the input offset stepped additively,
+-- the innermost outer level fused into a dedicated loop over the innermost
+-- runs, and the innermost-run fill unrolled by two with its bound on the output
+-- cursor, so it is sound for zero and negative strides, or, from a run length
+-- the instance picks, each run at stride 1 copied whole.  The recursion walks
+-- the outer levels as a 'Nest' built over them innermost first, each level
+-- holding its 'Axis'.
 --
 -- Two zero-stride conditions sit inside it, neither decided per element:
 -- an innermost run at stride 0, decided once a fill, reads its one element
@@ -989,15 +998,12 @@ genericFoldl1 f v = let !x0 = VG.unsafeIndex v 0 in go x0 1
 -- leaving the exposed loop's exit holding the boxed cursors, which a
 -- client's specialisation then keeps boxed: a box an element, as seen with
 -- GHC HEAD 10.1 (https://gitlab.haskell.org/ghc/ghc/-/work_items/27893).
-{-# INLINABLE genericUnsafeFillStrided #-}
-genericUnsafeFillStrided :: forall w a. (VG.Vector w a)
-                   => Int -> Axes -> Int -> Int -> w a -> w a
-genericUnsafeFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
-  assert (l > 0) $ VG.create fill
- where
-  fill :: forall s. ST s (VG.Mutable w s a)
-  fill = do
-    out <- VGM.unsafeNew l
+{-# INLINABLE genericUnsafeFillStridedInto #-}
+genericUnsafeFillStridedInto :: forall w a s. (VG.Vector w a)
+                             => Int -> Axes -> Int -> w a
+                             -> VG.Mutable w s a -> Int -> ST s ()
+genericUnsafeFillStridedInto !copyRun (Axes stInner nInner outerAxes) !ao !v
+                             !out !start = do
     let -- The stepping run, an innermost run at nonzero stride: the
         -- source cursor advances by the stride, the fill unrolled
         -- by two.  The run bodies are INLINE so that inlining at their
@@ -1140,7 +1146,7 @@ genericUnsafeFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
         {-# INLINE walk #-}
         walk :: (Int -> Int -> ST s ()) -> ST s ()
         walk writeRun = case innerFirst outerAxes of
-          [] -> writeRun 0 ao
+          [] -> writeRun start ao
           axis0@(Axis _ n0) : outer ->
             let run :: Nest -> Int -> Int -> ST s ()
                 -- The innermost runs' loop has no register to spare, and two
@@ -1157,7 +1163,7 @@ genericUnsafeFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
                 run (Level axis blk inner) !outPos !baseOff =
                   level (run inner) axis blk outPos baseOff
             in  run (buildNest (Fused axis0) (n0 * nInner) (InnerFirst outer))
-                    0 ao
+                    start ao
     -- Contiguous runs, at stride 1, get a walk of their own: copied whole
     -- from the instance's @copyRun@ on, and below it stepped with the stride
     -- known to be 1 there and not a value 'run' holds, which, where a client
@@ -1170,6 +1176,20 @@ genericUnsafeFillStrided !copyRun (Axes stInner nInner outerAxes) !ao l !v =
     else if stInner == 1 then
       if nInner >= copyRun then walk writeRunCopy else walk (writeRunStep 1)
     else walk (writeRunStep stInner)
+
+-- The fill into a vector of its own, with a copy of the walk of its own,
+-- inlined, so that it writes a buffer it knows to start at offset 0: out of
+-- line, writing a buffer at an offset given, which Unboxed and boxed mutable
+-- vectors carry and Storable ones do not, force of a large strided view ran
+-- 12.55 instructions an element where 8.55 at Unboxed and 51.69 where 49.69
+-- boxed on GHC HEAD 10.1.20261019 (2026-10-23).
+{-# INLINABLE genericUnsafeFillStrided #-}
+genericUnsafeFillStrided :: (VG.Vector w a)
+                         => Int -> Axes -> Int -> Int -> w a -> w a
+genericUnsafeFillStrided !copyRun axes !ao l !v =
+  assert (l > 0) $ VG.create $ do
+    out <- VGM.unsafeNew l
+    inline genericUnsafeFillStridedInto copyRun axes ao v out 0
     return out
 
 -- INLINE: F1, directly fusing: it consumes its list once, by a foldr, which
@@ -1227,6 +1247,62 @@ genericUnsafeConcatN n vs = VG.create $ do
         assert (i + m <= n) $ VG.unsafeCopy (VGM.unsafeSlice i m out) x
         k (i + m)
   foldr step (\ !i -> assert (i == n) $ return ()) vs 0
+  return out
+
+-- A fill of a view, given as its axes, offset, count and vector, into
+-- a buffer from a position: the vector instances' own, for 'writeViewT'.
+type FillInto w a =
+  forall s. Axes -> Int -> Int -> w a -> VG.Mutable w s a -> Int -> ST s ()
+
+-- The fill into a buffer of the vectors whose mutable vectors carry an
+-- offset, boxed and Unboxed ones: a view of runs of copyRun elements or more
+-- copied run by run straight into the buffer, and any other filled apart by
+-- the allocating fill and copied in.  Filled straight in, at an offset the walk
+-- is given, pad of the outer dimension of a large strided view of Unboxed
+-- Doubles ran 1.35 times the instructions of filling apart and copying, and of
+-- a broadcast one 1.29, on GHC HEAD 10.1.20261019 (2026-10-23).
+{-# INLINE genericFillInto #-}
+genericFillInto :: (VG.Vector w a) => Int -> FillInto w a
+genericFillInto !copyRun axes@(Axes st n _) !ao !l !v out !p
+  | st == 1 && n >= copyRun =
+      genericUnsafeFillStridedInto copyRun axes ao v out p
+  | otherwise = VG.unsafeCopy (VGM.unsafeSlice p l out)
+                              (genericUnsafeFillStrided copyRun axes ao l v)
+
+-- A view, given as its shape and T, written into a buffer of the count given
+-- from a position, one slice copied and any other view filled by the fill
+-- given, and the position past it.
+{-# INLINE writeViewT #-}
+writeViewT :: (VG.Vector w a)
+           => FillInto w a -> VG.Mutable w s a -> Int -> (ShapeL, T w a) -> Int
+           -> ST s Int
+writeViewT fillInto out n (sh, t@(T _ _ v)) !i = case product sh of
+  0 -> return i
+  m -> do
+    assert (i + m <= n) $ case routeT sh m t of
+      RSlice ao _ -> VG.unsafeCopy (VGM.unsafeSlice i m out)
+                                   (VG.unsafeSlice ao m v)
+      RRuns axes ao _ -> fillInto axes ao m v out i
+      RFill axes ao _ -> fillInto axes ao m v out i
+    return (i + m)
+
+-- INLINE: F1, directly fusing: it consumes its list once, by a foldr, which
+-- fold/build fuses with a producer's build where it is inlined.
+--
+-- The concatenation for 'vConcatPadN': 'genericUnsafeConcatN' with the runs
+-- of padding set in the buffer and each view written by 'writeViewT'.
+{-# INLINE genericConcatPadN #-}
+genericConcatPadN :: (VG.Vector w a)
+                  => FillInto w a -> Int -> a -> [Either Int (ShapeL, T w a)]
+                  -> w a
+genericConcatPadN fillInto n x ps = VG.create $ do
+  out <- VGM.unsafeNew n
+  let {-# INLINE step #-}
+      step (Left m) k = \ !i -> do
+        assert (i + m <= n) $ VGM.set (VGM.unsafeSlice i m out) x
+        k (i + m)
+      step (Right v) k = \ !i -> writeViewT fillInto out n v i >>= k
+  foldr step (\ !i -> assert (i == n) $ return ()) ps 0
   return out
 
 -- The outer levels of a view as 'genericUnsafeFillStrided' walks them: the
@@ -2378,15 +2454,16 @@ padT v aps ash at
 {-# INLINE padCopyT #-}
 padCopyT :: forall v a . (Vector v, VecElem v a) => a -> [(Int, Int)] -> ShapeL -> T v a -> T v a
 padCopyT v aps ash at =
-  fromVectorT ss $ vUnsafeConcatN (product ss) $ pad' aps ash st at
-  where pad' :: [(Int, Int)] -> ShapeL -> [Int] -> T v a -> [v a]
+  fromVectorT ss $ vConcatPadN (product ss) v $ pad' aps ash st at
+  where pad' :: [(Int, Int)] -> ShapeL -> [Int] -> T v a
+             -> [Either Int (ShapeL, T v a)]
         -- The last padded dimension's block is taken whole as toVectorListT's
         -- list and not recursed into: recursing made each core a subarray of
         -- that dimension, a scalar where the innermost dimension is padded,
         -- and so a slice and an indexT per element; on views of about 200000
         -- Doubles with the innermost dimension padded, the block taken whole
         -- took 0.01 to 0.32 of the time.  As a list and not one vector by
-        -- toVectorT: here vUnsafeConcatN copies every vector once, so a block
+        -- toVectorT: here vConcatPadN copies every vector once, so a block
         -- lying in runs of the source is copied once from the list's slices
         -- and would be copied twice from a vector toVectorT filled; a strided
         -- block, which no slice can take, is filled and copied either way.
@@ -2401,11 +2478,11 @@ padCopyT v aps ash at =
         -- areas of 32 MB and then of 4 MB, 0.99 to 1.34 and 1.03 to 1.30 times
         -- the list's time, allocating at most 3.3% less, and at boxed ones 0.88
         -- to 0.96 and 0.94 to 1.08 times it.
-        pad' [] sh _ t = toVectorListT sh t
+        pad' [] sh _ t = [Right (sh, t)]
         pad' [(l,h)] (s:sh) (!n:_) t =
-          [vReplicate (n*l) v] ++ toVectorListT (s:sh) t ++ [vReplicate (n*h) v]
+          [Left (n*l), Right (s:sh, t), Left (n*h)]
         pad' ((l,h):ps) (s:sh) (!n:ns) t =
-          [vReplicate (n*l) v] ++ concatMap (padS ps sh ns . indexT t) [0..s-1] ++ [vReplicate (n*h) v]
+          Left (n*l) : concatMap (padS ps sh ns . indexT t) [0..s-1] ++ [Left (n*h)]
         -- The message written out at each equation: one local binding for it,
         -- which pad', padS and padded shared, cost Shaped pad 96 bytes a call
         -- at [3, 3] and 0.06 to 0.07 an element at [400, 500] on GHC HEAD
@@ -2414,12 +2491,13 @@ padCopyT v aps ash at =
         -- pad' strict in the subarray, so that the T's fields pass through
         -- the recursion, not the T; pad' itself stays lazy in the array it is
         -- given, which a strict one would take apart and build again.
-        padS :: [(Int, Int)] -> ShapeL -> [Int] -> T v a -> [v a]
-        padS [] sh _ !t = toVectorListT sh t
+        padS :: [(Int, Int)] -> ShapeL -> [Int] -> T v a
+             -> [Either Int (ShapeL, T v a)]
+        padS [] sh _ !t = [Right (sh, t)]
         padS [(l,h)] (s:sh) (!n:_) !t =
-          [vReplicate (n*l) v] ++ toVectorListT (s:sh) t ++ [vReplicate (n*h) v]
+          [Left (n*l), Right (s:sh, t), Left (n*h)]
         padS ((l,h):ps) (s:sh) (!n:ns) !t =
-          [vReplicate (n*l) v] ++ concatMap (padS ps sh ns . indexT t) [0..s-1] ++ [vReplicate (n*h) v]
+          Left (n*l) : concatMap (padS ps sh ns . indexT t) [0..s-1] ++ [Left (n*h)]
         padS _ _ _ _ = error $ "padT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
         _ : st = getStridesT ss
         -- The padded shape, which fails on more pairs than dimensions even

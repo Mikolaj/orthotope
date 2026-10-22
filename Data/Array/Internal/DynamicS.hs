@@ -65,6 +65,8 @@ module Data.Array.Internal.DynamicS(
   bitcast,
   ) where
 import Control.DeepSeq hiding (force)
+import Control.Exception(assert)
+import Control.Monad.ST(ST)
 import Data.Coerce(coerce)
 import Data.Data(Data)
 import qualified Data.Vector.Storable as V
@@ -83,11 +85,11 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.Internal.DynamicG as G
-import Data.Array.Internal(genericZipWithStrided, genericZipWith3Strided,
+import Data.Array.Internal(genericConcatPadN, genericZipWithStrided, genericZipWith3Strided,
                            genericZipWith4Strided, genericZipWith5Strided,
                            Axes, T(..), ShapeL, Vector(..), genericUnsafeConcatN,
                            genericFoldl1, genericForce, genericFromListExactN,
-                           genericUnsafeFillStrided)
+                           genericUnsafeFillStridedInto)
 
 type Unbox = V.Storable
 
@@ -256,6 +258,8 @@ instance Vector V.Vector where
   vUnsafeFillStrided = fillStridedS
   {-# INLINE vForce #-}
   vForce = genericForce
+  {-# INLINE vConcatPadN #-}
+  vConcatPadN = genericConcatPadN fillIntoS
   {-# INLINE vZipWithStrided #-}
   vZipWithStrided = genericZipWithStrided True
   {-# INLINE vZipWith3Strided #-}
@@ -284,12 +288,26 @@ instance Vector V.Vector where
 {-# INLINABLE fillStridedS #-}
 fillStridedS :: forall a. Unbox a
              => Axes -> Int -> Int -> V.Vector a -> V.Vector a
-fillStridedS !ax !ao !l !v
-  | size == 8 && aligned = sameSize (fillBits64 ax ao l (sameSize v))
-  | size == 4 && aligned = sameSize (fillWord32 ax ao l (sameSize v))
-  | size == 2 && aligned = sameSize (fillWord16 ax ao l (sameSize v))
-  | size == 1 = sameSize (fillWord8 ax ao l (sameSize v))
-  | otherwise = genericUnsafeFillStrided (512 `quot` max 1 size) ax ao l v
+fillStridedS !ax !ao !l !v = assert (l > 0) $ V.create $ do
+  out <- MV.unsafeNew l
+  fillIntoS ax ao l v out 0
+  return out
+
+-- The fill of 'fillStridedS' into a buffer from a position, for 'writeViewT'
+-- too, the buffer cast as the vector is: a Storable mutable vector carries no
+-- offset, so the walk writes it at a position given as fast as a buffer of its
+-- own, the count unused.
+{-# INLINABLE fillIntoS #-}
+fillIntoS :: forall a s. Unbox a
+          => Axes -> Int -> Int -> V.Vector a -> MV.MVector s a -> Int
+          -> ST s ()
+fillIntoS !ax !ao _ !v !out !p
+  | size == 8 && aligned = intoBits64 ax ao (sameSize v) (sameSizeM out) p
+  | size == 4 && aligned = intoWord32 ax ao (sameSize v) (sameSizeM out) p
+  | size == 2 && aligned = intoWord16 ax ao (sameSize v) (sameSizeM out) p
+  | size == 1 = intoWord8 ax ao (sameSize v) (sameSizeM out) p
+  | otherwise =
+      genericUnsafeFillStridedInto (512 `quot` max 1 size) ax ao v out p
   where size = sizeOf (undefined :: a)
         aligned = alignment (undefined :: a) `rem` size == 0
 
@@ -301,23 +319,32 @@ sameSize :: V.Vector a -> V.Vector b
 sameSize v = case V.unsafeToForeignPtr0 v of
   (fp, n) -> V.unsafeFromForeignPtr0 (castForeignPtr fp) n
 
--- The fills 'fillStridedS' uses for elements of one, two, four and eight
--- bytes, one specialisation of 'genericUnsafeFillStrided' each.
-{-# INLINE fillWord8 #-}
-fillWord8 :: Axes -> Int -> Int -> V.Vector Word8 -> V.Vector Word8
-fillWord8 = genericUnsafeFillStrided 512
+-- 'sameSize' of a mutable vector.
+sameSizeM :: MV.MVector s a -> MV.MVector s b
+sameSizeM v = case MV.unsafeToForeignPtr0 v of
+  (fp, n) -> MV.unsafeFromForeignPtr0 (castForeignPtr fp) n
 
-{-# INLINE fillWord16 #-}
-fillWord16 :: Axes -> Int -> Int -> V.Vector Word16 -> V.Vector Word16
-fillWord16 = genericUnsafeFillStrided 256
+-- The fills 'fillIntoS' uses for elements of one, two, four and eight
+-- bytes, one specialisation of 'genericUnsafeFillStridedInto' each.
+{-# INLINE intoWord8 #-}
+intoWord8 :: Axes -> Int -> V.Vector Word8 -> MV.MVector s Word8 -> Int
+          -> ST s ()
+intoWord8 = genericUnsafeFillStridedInto 512
 
-{-# INLINE fillWord32 #-}
-fillWord32 :: Axes -> Int -> Int -> V.Vector Word32 -> V.Vector Word32
-fillWord32 = genericUnsafeFillStrided 128
+{-# INLINE intoWord16 #-}
+intoWord16 :: Axes -> Int -> V.Vector Word16 -> MV.MVector s Word16 -> Int
+           -> ST s ()
+intoWord16 = genericUnsafeFillStridedInto 256
 
-{-# INLINE fillBits64 #-}
-fillBits64 :: Axes -> Int -> Int -> V.Vector Bits64 -> V.Vector Bits64
-fillBits64 = genericUnsafeFillStrided 64
+{-# INLINE intoWord32 #-}
+intoWord32 :: Axes -> Int -> V.Vector Word32 -> MV.MVector s Word32 -> Int
+           -> ST s ()
+intoWord32 = genericUnsafeFillStridedInto 128
+
+{-# INLINE intoBits64 #-}
+intoBits64 :: Axes -> Int -> V.Vector Bits64 -> MV.MVector s Bits64 -> Int
+           -> ST s ()
+intoBits64 = genericUnsafeFillStridedInto 64
 
 #if defined(x86_64_HOST_ARCH) || defined(aarch64_HOST_ARCH)
 type Bits64 = Double

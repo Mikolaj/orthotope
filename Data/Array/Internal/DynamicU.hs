@@ -65,12 +65,12 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.Internal.DynamicG as G
-import Data.Array.Internal(genericZipWithStrided, genericZipWith3Strided,
+import Data.Array.Internal(genericConcatPadN, genericZipWithStrided, genericZipWith3Strided,
                            genericZipWith4Strided, genericZipWith5Strided,
                            ShapeL, Vector(..), genericUnsafeConcatN,
                            genericForce, genericFromListExactN,
                            genericFoldl1, genericUnsafeFillStrided,
-                           genericZipLoop)
+                           genericFillInto, genericZipLoop)
 
 type Unbox = V.Unbox
 
@@ -100,23 +100,8 @@ instance Vector V.Vector where
   -- rerank at [3, 3] 6 to 8 fewer, 0.2%.
   {-# INLINE vSingleton #-}
   vSingleton a = V.create (do v <- MV.unsafeNew 1; MV.unsafeWrite v 0 a; return v)
-  -- One write and then copies of what is written, doubling, as vector's
-  -- default basicSet does: vector's replicate fills through primitive's
-  -- setByteArray, which in primitive-0.9.1.0 writes +0.0 for -0.0 at Float
-  -- and Double (fixed by https://github.com/haskell/primitive/pull/433, in
-  -- no release yet), and a write per element took about 25 times the
-  -- instructions of its memset on 200000 Doubles.
-  -- TODO: once a primitive release has the fix, check that V.replicate
-  -- keeps -0.0, measure it against this and go back to it.
-  {-# INLINABLE vReplicate #-}
-  vReplicate n x = V.create $ do
-    mv <- MV.unsafeNew (max 0 n)
-    let fill !i | 2 * i < n = do
-                    MV.unsafeCopy (MV.unsafeSlice i i mv) (MV.unsafeSlice 0 i mv)
-                    fill (2 * i)
-                | otherwise =
-                    MV.unsafeCopy (MV.unsafeSlice i (n - i) mv) (MV.unsafeSlice 0 (n - i) mv)
-    if n <= 0 then return mv else MV.unsafeWrite mv 0 x >> fill 1 >> return mv
+  {-# INLINE vReplicate #-}
+  vReplicate = V.replicate
   -- The map and the zips build their result over the indices, working around
   -- vector's own, whose stream-fused loops at -O1, lacking the SpecConstr
   -- of -O2, allocate per element: a zipWith on Doubles 72 bytes an element
@@ -220,6 +205,8 @@ instance Vector V.Vector where
   vUnsafeFillStrided = genericUnsafeFillStrided 64
   {-# INLINE vForce #-}
   vForce = genericForce
+  {-# INLINE vConcatPadN #-}
+  vConcatPadN = genericConcatPadN (genericFillInto 64)
   {-# INLINE vZipWithStrided #-}
   vZipWithStrided = genericZipWithStrided False
   {-# INLINE vZipWith3Strided #-}
@@ -414,6 +401,9 @@ zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e
 -- O(n) time.
 -- With no padding, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
+-- A padding of -0.0 at Float or Double is written as +0.0, by
+-- primitive-0.9.1.0's setByteArray, until a primitive release has
+-- https://github.com/haskell/primitive/pull/433.
 {-# INLINE pad #-}
 pad :: (HasCallStack, Unbox a) => [(Int, Int)] -> a -> Array a -> Array a
 pad ps v = A . G.pad ps v . unA

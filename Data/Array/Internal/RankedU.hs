@@ -256,6 +256,9 @@ zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e
 -- O(n) time.
 -- With no padding, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
+-- A padding of -0.0 at Float or Double is written as +0.0, by
+-- primitive-0.9.1.0's setByteArray, until a primitive release has
+-- https://github.com/haskell/primitive/pull/433.
 {-# INLINE pad #-}
 pad :: forall n a . (HasCallStack, Unbox a) => [(Int, Int)] -> a -> Array n a -> Array n a
 pad ps v = A . G.pad ps v . unA
