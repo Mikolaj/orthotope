@@ -71,7 +71,7 @@ import GHC.Stack(HasCallStack)
 import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
-import Data.Array.Internal(genericUnsafeConcatViewsN, genericMapStrided, genericConcatPadN, genericZipWithStrided, genericZipWith3Strided,
+import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN, genericMapStrided, genericConcatPadN, genericZipWithStrided, genericZipWith3Strided,
                            genericZipWith4Strided, genericZipWith5Strided,
                            ShapeL, Vector(..), None, genericForce,
                            genericFromListExactN, genericUnsafeFillStrided,
@@ -214,6 +214,8 @@ instance Vector V.Vector where
   vUnsafeFillStrided = genericUnsafeFillStrided 5
   {-# INLINE vForce #-}
   vForce = genericForce
+  {-# INLINE vUnsafeUpdateOwned #-}
+  vUnsafeUpdateOwned = genericUnsafeUpdateOwned
   -- vUnsafeConcatViewsN writes each view as the list yields it, which
   -- vUnsafeConcatN below does not.  Against filling each view apart and
   -- concatenating, on GHC HEAD 10.1.20261019 (2026-10-23), it took 0.86 to 0.99

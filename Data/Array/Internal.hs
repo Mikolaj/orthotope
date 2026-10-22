@@ -253,6 +253,15 @@ class Vector v where
   {-# INLINE vMapStrided #-}
   vMapStrided f sh t = vMap f (toVectorT sh t)
 
+  -- | 'vUpdate' of a vector that nothing else holds, which the instance may
+  -- update in place.  The default is 'vUpdate'; the vector instances write into
+  -- the vector itself by 'genericUnsafeUpdateOwned'.  'updateT' gives it
+  -- 'vForce' of a slice, so an instance that writes in place must copy in
+  -- 'vForce'.
+  vUnsafeUpdateOwned :: (VecElem v a) => v a -> [(Int, a)] -> v a
+  {-# INLINE vUnsafeUpdateOwned #-}
+  vUnsafeUpdateOwned = vUpdate
+
   -- | Concatenate views, each given as its shape and T, whose sizes sum
   -- to the count given first, each in row-major order.  The contract is
   -- 'vUnsafeConcatN''s.  The default concatenates the views' 'toVectorT'; the
@@ -1374,6 +1383,16 @@ genericConcatPadN fillInto n x ps = VG.create $ do
       step (Right v) k = \ !i -> writeViewT fillInto out n v i >>= k
   foldr step (\ !i -> assert (i == n) $ return ()) ps 0
   return out
+
+-- The update for 'vUnsafeUpdateOwned': the vector thawed without a copy and
+-- each update written in turn, so that the last of a repeated index stays, as
+-- in 'Data.Vector.Generic.//'.  Sound only for a vector nothing else holds.
+{-# INLINE genericUnsafeUpdateOwned #-}
+genericUnsafeUpdateOwned :: VG.Vector w a => w a -> [(Int, a)] -> w a
+genericUnsafeUpdateOwned v us = VG.create $ do
+  mv <- VG.unsafeThaw v
+  mapM_ (\ (i, x) -> VGM.write mv i x) us
+  return mv
 
 -- The outer levels of a view as 'genericUnsafeFillStrided' walks them: the
 -- fused level's innermost runs, or a level of @n@ blocks of @blk@
@@ -2700,15 +2719,18 @@ allT sh p t@(T _ _ v)
 -- INLINE: F1, directly fusing: it consumes its list once, by a map, which
 -- fold/build fuses with a producer's build where it is inlined.
 --
--- vUpdate copies the vector toVectorT returns, a second copy wherever the view
--- is not one slice and that vector was just filled.  Not skipped: that wants
--- a class method updating a vector the caller owns, updateT reaching the fill
--- only through vUnsafeFillStrided and so unable to force it inline for vector's
--- clone/new rule to drop the copy.
+-- A view that is one slice of its vector is copied by vForce, the vector being
+-- the caller's, and any other filled by toVectorT; vUnsafeUpdateOwned updates
+-- either in place, rather than copying it a second time.  Taking vUpdate for
+-- the slice, beside vUnsafeUpdateOwned for the fill, which names the list
+-- twice, took on GHC HEAD 10.1.20261019 (2026-10-23) up to 1.43 times this
+-- form's instructions at dense views and about 220 bytes more an update.
 {-# INLINE updateT #-}
 updateT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [([Int], a)] -> T v a
-updateT sh t us = T ss 0 $ vUpdate (toVectorT sh t) $ map ix us
-  where _ : ss = getStridesT sh
+updateT sh t us = T ss 0 $ vUnsafeUpdateOwned v $ map ix us
+  where l : ss = getStridesT sh
+        !v | l > 0, Just s <- sliceOfT sh l t = vForce s
+           | otherwise = toVectorT sh t
         ix (is, a) = (sum $ zipWith (*) is ss, a)
 
 -- The updates, each index checked against the shape as 'updateT' takes it,
