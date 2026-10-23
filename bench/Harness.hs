@@ -17,6 +17,7 @@ module Harness (Mode (..), measure) where
 
 import Control.DeepSeq (rnf)
 import Control.Exception (evaluate)
+import Control.Monad (replicateM)
 import Data.Int (Int64)
 import GHC.Clock (getMonotonicTimeNSec)
 
@@ -43,8 +44,9 @@ measure mode iters (Call _ f x g) = do
   t <- case iters of
     Just k -> batch k
     Nothing -> do
-      k <- calibrate 1
-      minimum <$> mapM (const (batch k)) [1 .. 3 :: Int]
+      (k, t1) <- calibrate 1
+      ts <- replicateM 2 (batch k)
+      return $! minimum (t1 : ts)
   return (t, a)
  where
   h = case mode of
@@ -59,7 +61,7 @@ measure mode iters (Call _ f x g) = do
     calls k
     t1 <- getMonotonicTimeNSec
     return $! fromIntegral (t1 - t0) / fromIntegral k
-  calibrate :: Int -> IO Int
+  calibrate :: Int -> IO (Int, Double)
   calibrate !k = do
     t <- batch k
-    if t * fromIntegral k >= 5e6 then return k else calibrate (2 * k)
+    if t * fromIntegral k >= 5e6 then return (k, t) else calibrate (2 * k)
