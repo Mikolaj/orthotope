@@ -88,8 +88,12 @@ test = testGroup "Dynamic" $
       eq_4 = assertEqual "4" True (x == x)
         where x = stretch [3,2] $ reshape [1,2] $ index a 0
               a = fromList [2,2] [1,2,undefined,undefined] :: Array Int
+      -- == looks at the shapes: the elements are alike however they are read.
+      eq_5 = assertEqual "5" False (fromList [2,3] (replicate 6 1) == (fromList [3,2] (replicate 6 1) :: Array Int))
       ord_1 = assertEqual "1" EQ (a1 `compare` a1)
       ord_2 = assertEqual "2" LT (a1 `compare` a2)
+      -- compare orders by the shapes first: the elements are alike.
+      ord_3 = assertEqual "3" LT (compare (fromList [2,3] (replicate 6 1)) (fromList [3,2] (replicate 6 (1 :: Int))))
       shapeL_1 = assertEqual "1" [2,3] (shapeL a1)
       shapeL_2 = assertEqual "2" [3,2] (shapeL a2)
       rank_1 = assertEqual "1" 2 (rank a1)
@@ -197,9 +201,11 @@ test = testGroup "Dynamic" $
         where m = fromList [10,100] [1..1000] :: Array Int
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
       zipWithA_2 = assertThrowsIn "2" "zipWithA" (zipWithA (+) a1 a2)
-      zipWithA_3 = assertEqual "3" [] (toList (zipWithA quot (constant [0] 1) (constant [0] (0 :: Int))))  -- 1 `quot` 0 outside the view
+      zipWithA_3 = assertEqual "3" True  -- 1 `quot` 0 outside the view, the vector forced as if strict
+                     (V.all (\ x -> x `seq` True) (valuesOf (zipWithA quot (constant [0] 1) (constant [0] (0 :: Int)))))
       zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
-      zipWith3A_2 = assertEqual "2" [] (toList (zipWith3A (\ x y z -> x `quot` (y + z)) (constant [0] 1) (constant [0] 0) (constant [0] (0 :: Int))))
+      zipWith3A_2 = assertEqual "2" True  -- 1 `quot` 0 outside the view, the vector forced as if strict
+                      (V.all (\ x -> x `seq` True) (valuesOf (zipWith3A (\ x y z -> x `quot` (y + z)) (constant [0] 1) (constant [0] 0) (constant [0] (0 :: Int)))))
       -- The zips read the elements of their arguments unforced and leave each
       -- result unevaluated, as vector's own do.
       zipWithA_4 = assertEqual "4" [5, 7] (toList (zipWithA (\ _ y -> y) (fromList [2] [undefined, undefined] :: Array Int) (fromList [2] [5, 7 :: Int])))
@@ -212,6 +218,11 @@ test = testGroup "Dynamic" $
       zipWith3A_3 = assertEqual "3" [5, 6, 7, 8] (toList (zipWith3A (\ _ _ z -> z) u u (transpose [1, 0] (fromList [2, 2] [5, 7, 6, 8 :: Int]))))
         where u = transpose [1, 0] (fromList [2, 2] [undefined, undefined, undefined, undefined]) :: Array Int
       zipWith3A_4 = assertEqual "4" 7 (unScalar (index (index (zipWith3A (\ x y _ -> if x == 0 then error "forced" else x + y) (transpose [1, 0] (fromList [2, 2] [0, 1, 0, 1])) (transpose [1, 0] (fromList [2, 2] [5, 6, 7, 8 :: Int])) (transpose [1, 0] (fromList [2, 2] [0, 0, 0, 0 :: Int]))) 1) 0))
+      zipWith3A_5 = do
+        assertThrowsIn "first" "zipWith3A" (zipWith3A f3 a2 a1 a1)
+        assertThrowsIn "second" "zipWith3A" (zipWith3A f3 a1 a2 a1)
+        assertThrowsIn "third" "zipWith3A" (zipWith3A f3 a1 a1 a2)
+        where f3 x y z = x + y + z
       -- The broadcast branches hand on the one element unforced at boxed.
       zipWithA_8 = assertEqual "8" [5, 7] (toList (zipWithA (\ _ y -> y) (constant [2] undefined :: Array Int) (fromList [2] [5, 7 :: Int])))
       zipWithA_9 = assertEqual "9" [5, 7] (toList (zipWithA (\ x _ -> x) (fromList [2] [5, 7 :: Int]) (constant [2] undefined :: Array Int)))
@@ -313,6 +324,8 @@ test = testGroup "Dynamic" $
                                  (append a1 (fromList [1,3] [7,8,9]))
       -- Extents summing past maxBound.
       append_2 = assertThrowsIn "2" "append" (append (constant [maxBound] 0) (constant [maxBound] (0::Int)))
+      -- Arrays whose inner dimensions differ.
+      append_3 = assertThrowsIn "3" "append" (append (fromList [1,2] [1,2]) (fromList [1,3] [1,2,3 :: Int]))
       concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                       (concatOuter [a1, concatOuter [a1,a1]])
       concatOuter_2 = assertThrowsIn "2" "concatOuter" (concatOuter [a1, a2])
@@ -482,6 +495,8 @@ test = testGroup "Dynamic" $
       rerank2_2 = assertThrowsIn "2" "rerank2" (rerank2 4 dot a5 a7)
       rerank2_3 = assertThrowsIn "3" "ravelOuterOf" (rerank2 1 (\ a _ -> constant [unScalar a] (0 :: Int)) v v)
         where v = fromList [2] [1,2 :: Int]
+      -- Arrays whose outer dimensions differ.
+      rerank2_4 = assertThrowsIn "4" "rerank2" (rerank2 1 const (fromList [3,2] [1..6 :: Int]) (fromList [2,2] [1..4 :: Int]))
       rev_1 = assertEqual "1" (fromList [2,3] [3,2,1,6,5,4])
                               (rev [1] a1)
       rev_2 = assertEqual "2" (fromList [2,3] [6,5,4,3,2,1])
@@ -527,10 +542,15 @@ test = testGroup "Dynamic" $
 
       -- A window over a vector ties its two axes at stride 1, and 'runRank'
       -- picks the run of the unordered route: on the shelf and on the climb
-      -- the shorter of the two.
-      runRank_1 = assertEqual "1" [Just 40, Just 100]
+      -- the shorter of the two, on the plateau the longer, the outer axis
+      -- or the inner.
+      runRank_1 = assertEqual "1" [Just 40, Just 41, Just 100, Just 101, Just 21, Just 20]
                     [ runOf (window [40] (fromList [80] [1 .. 80 :: Int]))
-                    , runOf (window [100] (fromList [200] [1 .. 200 :: Int])) ]
+                    , runOf (window [50] (fromList [90] [1 .. 90 :: Int]))
+                    , runOf (window [100] (fromList [200] [1 .. 200 :: Int]))
+                    , runOf (window [150] (fromList [250] [1 .. 250 :: Int]))
+                    , runOf (window [10] (fromList [30] [1 .. 30 :: Int]))
+                    , runOf (window [20] (fromList [30] [1 .. 30 :: Int])) ]
         where runOf (DI.A (DG.A sh t)) = case I.unorderedRouteT sh (product sh) t of
                 I.RRuns (I.Axes _ n _) _ _ -> Just n
                 _ -> Nothing
@@ -627,8 +647,10 @@ test = testGroup "Dynamic" $
         , testCase "eq_2" eq_2
         , testCase "eq_3" eq_3
         , testCase "eq_4" eq_4
+        , testCase "eq_5" eq_5
         , testCase "ord_1" ord_1
         , testCase "ord_2" ord_2
+        , testCase "ord_3" ord_3
         , testCase "shapeL_1" shapeL_1
         , testCase "shapeL_2" shapeL_2
         , testCase "rank_1" rank_1
@@ -686,6 +708,7 @@ test = testGroup "Dynamic" $
         , testCase "zipWithA_7" zipWithA_7
         , testCase "zipWith3A_3" zipWith3A_3
         , testCase "zipWith3A_4" zipWith3A_4
+        , testCase "zipWith3A_5" zipWith3A_5
         , testCase "zipWithA_8" zipWithA_8
         , testCase "zipWithA_9" zipWithA_9
         , testCase "pad_1" pad_1
@@ -703,6 +726,7 @@ test = testGroup "Dynamic" $
         , testCase "transpose_9" transpose_9
         , testCase "append_1" append_1
         , testCase "append_2" append_2
+        , testCase "append_3" append_3
         , testCase "concatOuter_1" concatOuter_1
         , testCase "concatOuter_2" concatOuter_2
         , testCase "concatOuter_3" concatOuter_3
@@ -753,6 +777,7 @@ test = testGroup "Dynamic" $
         , testCase "rerank2_1" rerank2_1
         , testCase "rerank2_2" rerank2_2
         , testCase "rerank2_3" rerank2_3
+        , testCase "rerank2_4" rerank2_4
         , testCase "rev_1" rev_1
         , testCase "rev_2" rev_2
         , testCase "rev_3" rev_3

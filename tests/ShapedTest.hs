@@ -34,6 +34,7 @@ import qualified Data.Vector as V
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual)
+import Text.Read (readMaybe)
 import Views (assertThrowsIn, assertThrowsWith, assertWhnfThrowsIn)
 
 test :: Test
@@ -85,6 +86,11 @@ test = testGroup "Shaped" $
       -- A list longer than the shape fails, counted no further than one past it.
       fromList_5 = assertThrowsWith "5" "fromList: size mismatch ([2,3],more than 6)" (fromList [1 ..] :: Array [2,3] Int)
       fromVector_1 = assertEqual "1" a1 (fromVector $ V.fromList [1..6])
+      fromVector_2 = assertThrowsIn "2" "fromVector" (fromVector (V.fromList [1..5]) :: Array [2,3] Int)
+      -- Read rejects a shape other than the type's, and a list of another size.
+      read_1 = do
+        assertEqual "shape" (Nothing :: Maybe (Array [2,3] Int)) (readMaybe "fromList @[3,2] [1,2,3,4,5,6]")
+        assertEqual "size" (Nothing :: Maybe (Array [2,3] Int)) (readMaybe "fromList @[2,3] [1,2,3]")
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [1..6] :: Array '[6] Int) (reshape a1)
       reshape_2 = assertEqual "2" (fromList [1,4,2,5,3,6]) (reshape a2 :: Array [1,2,3,1] Int)
@@ -491,6 +497,8 @@ test = testGroup "Shaped" $
         , testCase "fromList_4" fromList_4
         , testCase "fromList_5" fromList_5
         , testCase "fromVector_1" fromVector_1
+        , testCase "fromVector_2" fromVector_2
+        , testCase "read_1" read_1
         , testCase "normalize_1" normalize_1
         , testCase "reshape_1" reshape_1
         , testCase "reshape_2" reshape_2

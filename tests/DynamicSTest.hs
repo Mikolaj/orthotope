@@ -35,15 +35,21 @@ import Test.QuickCheck (Property, forAll, (.&&.), (===))
 import Views
   (Elem, Owns (..), View (..), assertThrowsIn, failsWith, genElems, mkViewG, testPropertyN)
 
--- A Storable whose peek fails on a byte it does not decode.
+-- A Storable of one byte whose peek fails, naming E, on a byte it does not
+-- decode.
 data E = E0 | E1 deriving (Eq, Show, Enum)
 
 instance Storable E where
   sizeOf _ = 1
   alignment _ = 1
-  peek p = toEnum . fromIntegral <$> (peek (castPtr p) :: IO Word8)
+  peek p = do
+    w <- peek (castPtr p) :: IO Word8
+    if w <= 1 then return (toEnum (fromIntegral w))
+    else error $ "E: bad byte " ++ show w
   poke p e = poke (castPtr p) (fromIntegral (fromEnum e) :: Word8)
 
+instance NFData E where
+  rnf e = e `seq` ()
 
 test :: Test
 test = testGroup "DynamicS" $
@@ -302,6 +308,35 @@ test = testGroup "DynamicS" $
       unit_1 = let u = fromList [2,3] (replicate 6 ()) :: Array ()
                in  assertEqual "1" 6 (V.length (toVector (transpose [1,0] u)))
 
+      -- A transposed view of the bytes [0,1,5,0] as E, 5 a byte E does not
+      -- decode.
+      et = transpose [1, 0] (fromVector [2, 2] (V.unsafeCast (V.fromList [0, 1, 5, 0 :: Word8])) :: Array E)
+      -- Elements of one byte are copied as bytes, as README's Evaluation
+      -- section says, so the copies of a transposed view of a byte E does
+      -- not decode return it, whichever operation copies.
+      decode_1 = do
+        assertEqual "force" [0, 5, 1, 0] (raw (force et))
+        assertEqual "normalize" [0, 5, 1, 0] (raw (normalize et))
+        assertEqual "reshape" [0, 5, 1, 0] (raw (reshape [4] et))
+        assertEqual "pad" [0, 0, 0, 5, 1, 0] (raw (pad [(1, 0)] E0 et))
+        assertEqual "append" [0, 5, 1, 0, 0, 5, 1, 0] (raw (append et et))
+        assertEqual "concatOuter" [0, 5, 1, 0, 0, 5, 1, 0] (raw (concatOuter [et, et]))
+        assertEqual "ravel" [0, 5, 1, 0, 0, 5, 1, 0] (raw (ravel (D.fromList [2] [et, et])))
+        assertEqual "rerank" [0, 5, 1, 0] (raw (rerank 1 id et))
+        assertEqual "rerank2" [0, 5, 1, 0] (raw (rerank2 1 const et et))
+        where raw :: Array E -> [Word8]
+              raw = V.toList . V.unsafeCast . toVector
+      -- And the operations that hand an element on read it decoded, the
+      -- zips of views of one element each included, failing on that byte.
+      decode_2 = do
+        assertThrowsIn "toList" "E" (toList et)
+        assertThrowsIn "foldrA" "E" (foldrA (\ _ n -> n + 1 :: Int) 0 et)
+        assertThrowsIn "mapA" "E" (mapA (const E0) et)
+        assertThrowsIn "zipWithA" "E" (zipWithA (\ _ _ -> E0) et et)
+        assertThrowsIn "zipWithA of one element" "E" (zipWithA (\ _ _ -> E0) eOne eOne)
+        assertThrowsIn "zipWith3A of one element" "E" (zipWith3A (\ _ _ _ -> E0) eOne eOne eOne)
+        where eOne = fromVector [1] (V.unsafeCast (V.fromList [5 :: Word8])) :: Array E
+
       -- fillStrided fills a view of a Storable vector, and fails on each part
       -- of the contract its unchecked method relies on.
       fillStrided_1 = do
@@ -311,6 +346,8 @@ test = testGroup "DynamicS" $
         assertThrowsIn "count" "fillStrided" (I.fillStrided axes 0 5 v)
         assertThrowsIn "outside" "fillStrided" (I.fillStrided axes 5 6 v)
         assertThrowsIn "extent" "fillStrided" (I.fillStrided (I.Axes 2 0 (I.InnerFirst [I.Axis 1 2])) 0 0 v)
+        assertThrowsIn "negative extent" "fillStrided" (I.fillStrided (I.Axes 2 (-3) (I.InnerFirst [I.Axis 1 2])) 0 6 v)
+        assertThrowsIn "below" "fillStrided" (I.fillStrided (I.Axes (-1) 3 (I.InnerFirst [])) 1 3 v)
 
       -- Calls of every wrapper the module under test exports, in the order of
       -- its export list, each against its value.
@@ -493,6 +530,8 @@ test = testGroup "DynamicS" $
         , testCase "allSameA_1" allSameA_1
         , testCase "allSameA_2" allSameA_2
         , testCase "unit_1" unit_1
+        , testCase "decode_1" decode_1
+        , testCase "decode_2" decode_2
         , testCase "fillStrided_1" fillStrided_1
         , testCase "wrappers_1" wrappers_1
         , testCase "wholeRuns_1" wholeRuns_1

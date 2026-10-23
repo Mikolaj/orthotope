@@ -182,6 +182,10 @@ test = testGroup "ShapedS" $
                                     (transpose @'[1,0] a5)
       append_1 = assertEqual "1" (fromList [1..9])
                                  (append a1 (fromList @[1,3] [7,8,9]))
+      ravel_1 = assertEqual "1" (fromList @[3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
+                                (ravel $ S.fromList @'[3] [a1,a1,a1])
+      unravel_1 = assertEqual "1" [a1,a1,a1]
+                                  (S.toList $ unravel $ ravel $ S.fromList @'[3] [a1,a1,a1])
       -- The conversion to the Storable Ranked module, as the boxed modules' is,
       -- and convertE of it.
       convert_1 = do
@@ -371,6 +375,8 @@ test = testGroup "ShapedS" $
         , testCase "transpose_6" transpose_6
         , testCase "transpose_9" transpose_9
         , testCase "append_1" append_1
+        , testCase "ravel_1" ravel_1
+        , testCase "unravel_1" unravel_1
         , testCase "convert_1" convert_1
         , testCase "window_1" window_1
         , testCase "stride_1" stride_1

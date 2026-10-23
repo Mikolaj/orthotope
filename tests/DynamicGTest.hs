@@ -24,6 +24,7 @@
 -- runs the generic code with the lists' own methods.
 module DynamicGTest(test) where
 
+import Control.DeepSeq (deepseq)
 import Data.Array.DynamicG
 import qualified Data.Array.Internal as I
 import qualified Data.Array.Internal.DynamicG as DG
@@ -200,18 +201,24 @@ prop_viewOps (View sh ops) =
                .&&. map (at y) iss === map (at x . opSource xsh op) iss)
   in  conjoin (map step (zip3 steps ops (drop 1 steps)))
 
--- mapA id of a view keeps its strides over a copy of the part of the vector
--- it reads, a layout no random view starts from; under further operations it
--- gives what the view gives: its elements, its vector, its sum and normalize.
+-- mapA id of a view that reads every element of one part of its vector keeps
+-- its strides over a copy of that part, a layout no random view starts from;
+-- and mapA id of any view, under further operations, gives what the view gives:
+-- its elements, its vector, its sum and normalize.
 prop_mapAViews :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
 prop_mapAViews v@(View sh _) =
-  let x = mkViewG v (upTo (product sh)) :: Array v a
-  in  forAll (choose (0, 3) >>= \ n -> genOps n (shapeL x)) $ \ ops ->
+  let x@(DG.A xsh tx) = mkViewG v (upTo (product sh)) :: Array v a
+      (_, ssx, _) = layoutOf x
+      (_, ssm, _) = layoutOf (mapA id x)
+      kept = case I.readRangeT xsh tx of
+        I.Range _ _ -> ssm === ssx
+        _ -> property True
+  in  kept .&&. forAll (choose (0, 3) >>= \ n -> genOps n (shapeL x)) (\ ops ->
       let y = foldl (flip applyOpG) x ops
           z = foldl (flip applyOpG) (mapA id x) ops
           l = toList y
       in  toList z === l .&&. I.vToList (toVector z) === l
-          .&&. sumA z === sum l .&&. toList (normalize z) === l
+          .&&. sumA z === sum l .&&. toList (normalize z) === l)
 
 -- An operation invalid on a view fails as soon as its result is evaluated,
 -- with an error of the function opName names.
@@ -234,7 +241,7 @@ valuesOf (DG.A _ t) = I.values t
 -- storage of its own; normalize of a row of a normal array shares its vector
 -- where a slice of the vector does, and force of the row does not; reshape to
 -- one dimension, append and concatOuter of the view and a normal array of its
--- shape, zipWithA of the two either way round, and traverseA in the applicative
+-- shape and of the view and itself, zipWithA of the two either way round, and traverseA in the applicative
 -- of pairs agree with the lists; concatOuter of the view alone, a concatenation
 -- of one part, is the view; and append and concatOuter fail on scalars.
 prop_copy :: forall v a . (Owns (v a), I.Vector v, I.VecElem v a, Elem a) =>
@@ -267,6 +274,8 @@ prop_copy v@(View sh _) =
                      .&&. failsWith ("concatOuter: rank 0 array " ++ show [xsh, shapeL y, shapeL y]) (concatOuter [x, y, y])
                 else toList (append x y) === l ++ ys
                      .&&. toList (concatOuter [x, y, y]) === l ++ ys ++ ys
+                     .&&. toList (append x x) === l ++ l
+                     .&&. toList (concatOuter [x, x]) === l ++ l
                      .&&. concatOuter [x] === x)
           .&&. traverseA (\ e -> ([e], e - 1)) x === (l, fromList xsh (map (subtract 1) l))
 
@@ -290,9 +299,10 @@ prop_zipWith v@(View sh _) =
           .&&. toList (zipWith5A f5 x y1 y2 y3 y4) === zipWith5 f5 l ys1 ys2 ys3 ys4
           .&&. toList (zipWith5A f5 y1 y2 y3 y4 x) === zipWith5 f5 ys1 ys2 ys3 ys4 l
 
--- update agrees with replacing elements of the list, the last update at
--- an index being the one that stays, and fails on an index outside the
--- view.
+-- update agrees with replacing elements of the list, the last update at an
+-- index being the one that stays, leaves the array it updates as it was, and
+-- fails on an index outside the view: every component out of bounds, the first
+-- below 0, the last at its extent, or a component too many.
 prop_update :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
                View -> Property
 prop_update v@(View sh _) =
@@ -301,10 +311,16 @@ prop_update v@(View sh _) =
       l = toList x
       ixs = zip [0 :: Int ..] (indices xsh)
       bad = if null xsh then [0] else xsh
+      zeros = map (const 0) xsh
+      bads = bad : (zeros ++ [0])
+             : [ (-1) : drop 1 zeros | not (null xsh) ]
+             ++ [ [ if k == length xsh - 1 then s else 0 | (k, s) <- zip [0 ..] xsh ] | not (null xsh) ]
   in  forAll (if null l then return [] else listOf ((,) <$> elements ixs <*> (fromIntegral <$> choose (-9, -1 :: Int)))) $ \ us ->
       let set ys ((k, _), e) = [ if k' == k then e else y | (k', y) <- zip [0 ..] ys ]
-      in  update x [ (is, e) | ((_, is), e) <- us ] === fromList xsh (foldl set l us)
-          .&&. failsWith ("update: index out of bounds: " ++ show ([bad], xsh)) (update x [(bad, 0)])
+      in  l `deepseq` update x [ (is, e) | ((_, is), e) <- us ] === fromList xsh (foldl set l us)
+          -- x read again, by index, once the update is evaluated
+          .&&. map (at x) (indices xsh) === l
+          .&&. conjoin [ failsWith ("update: index out of bounds: " ++ show ([b], xsh)) (update x [(b, 0)]) | b <- bads ]
 
 -- fromVector makes an array of the elements of a vector, here a slice of
 -- a longer one, and fails on a vector of another length; iterateN makes

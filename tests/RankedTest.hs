@@ -40,8 +40,12 @@ test = testGroup "Ranked" $
       show_2 = assertEqual "2" "fromList [3,2] [1,4,2,5,3,6]" (show a2)
       eq_1 = assertEqual "1" True (a1 == a1)
       eq_2 = assertEqual "2" False (a1 == a2)
+      -- == looks at the shapes: the elements are alike however they are read.
+      eq_3 = assertEqual "3" False (fromList [2,3] (replicate 6 1) == (fromList [3,2] (replicate 6 1) :: Array 2 Int))
       ord_1 = assertEqual "1" EQ (a1 `compare` a1)
       ord_2 = assertEqual "2" LT (a1 `compare` a2)
+      -- compare orders by the shapes first: the elements are alike.
+      ord_3 = assertEqual "3" LT (compare (fromList [2,3] (replicate 6 1)) (fromList [3,2] (replicate 6 1) :: Array 2 Int))
       shapeL_1 = assertEqual "1" [2,3] (shapeL a1)
       shapeL_2 = assertEqual "2" [3,2] (shapeL a2)
       rank_1 = assertEqual "1" 2 (rank a1)
@@ -72,10 +76,13 @@ test = testGroup "Ranked" $
       fromList_2 = assertThrowsIn "sh" "fromList" (fromList [4,5] [1,2] :: Array 2 Int)
       -- A list longer than the shape fails, counted no further than one past it.
       fromList_3 = assertThrowsWith "3" "fromList: size mismatch ([3],more than 3)" (fromList [3] [1 ..] :: Array 1 Int)
+      -- The rank checks: a shape of another rank than the type's fails.
+      fromList_4 = assertThrowsIn "4" "fromList" (fromList [2,3] [1..6] :: Array 1 Int)
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [6] [1..6] :: Array 1 Int) (reshape [6] a1)
       reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2 :: Array 4 Int)
+      reshape_3 = assertThrowsIn "3" "reshape" (reshape [6] a1 :: Array 2 Int)
       a3 :: Array 1 Int
       a3 = fromList [1] [5]
       a4 :: Array 0 Int
@@ -88,6 +95,7 @@ test = testGroup "Ranked" $
       scalar_1 = assertEqual "1" a4 (scalar 5)
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
       constant_1 = assertEqual "1" (fromList [2,3] [1,1,1,1,1,1]) (constant [2,3] 1 :: Array 2 Int)
+      constant_2 = assertThrowsIn "2" "constant" (constant [2,3] 1 :: Array 1 Int)
       -- No array has a negative extent.  window, iterateN and iota make arrays
       -- of other ranks, so they are separate tests.
       badShape_1 = mapM_ (\ (f, a) -> assertThrowsIn f f a)
@@ -126,6 +134,11 @@ test = testGroup "Ranked" $
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
       zipWithA_2 = assertThrowsIn "2" "zipWithA" (zipWithA (+) a1 a2)
       zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
+      zipWith3A_2 = do
+        assertThrowsIn "first" "zipWith3A" (zipWith3A f3 a2 a1 a1)
+        assertThrowsIn "second" "zipWith3A" (zipWith3A f3 a1 a2 a1)
+        assertThrowsIn "third" "zipWith3A" (zipWith3A f3 a1 a1 a2)
+        where f3 x y z = x + y + z
       pad_1 = assertEqual "1" (fromList [5,10] [9,9,9,9,9,9,9,9,9,9,
                                                 9,9,9,1,2,3,9,9,9,9,
                                                 9,9,9,4,5,6,9,9,9,9,
@@ -224,6 +237,8 @@ test = testGroup "Ranked" $
                                  (append a1 (fromList [1,3] [7,8,9]))
       -- Extents summing past maxBound.
       append_2 = assertThrowsIn "2" "append" (append (constant [maxBound] 0) (constant [maxBound] 0 :: Array 1 Int))
+      -- Arrays whose inner dimensions differ.
+      append_3 = assertThrowsIn "3" "append" (append (fromList [1,2] [1,2]) (fromList [1,3] [1,2,3] :: Array 2 Int))
       concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                       (concatOuter [a1, concatOuter [a1,a1]])
       concatOuter_2 = assertThrowsIn "2" "concatOuter" (concatOuter [a1, a2])
@@ -272,6 +287,7 @@ test = testGroup "Ranked" $
         let msg m = assertThrowsWith m m
         msg "window: rank mismatch ([0,1],[9223372036854775807])" (window [0, 1] (constant [maxBound] 0 :: Array 1 Int) :: Array 3 Int)
         msg "window: bad shape [9223372036854775808,0]" (window [0] (constant [maxBound] 0 :: Array 1 Int) :: Array 2 Int)
+      window_5 = assertThrowsIn "5" "window" (window [2] a1 :: Array 4 Int)
       stride_1 = assertEqual "1" (fromList [2,2,2] [1,3,
                                                     9,11,
 
@@ -287,6 +303,8 @@ test = testGroup "Ranked" $
       -- fromVector of a vector of another size, and generate at
       -- another rank, fail.
       fromVector_2 = assertThrowsIn "2" "fromVector" (fromVector [2, 3] (V.fromList [1 .. 5]) :: Array 2 Int)
+      fromVector_3 = assertThrowsIn "3" "fromVector" (fromVector [2, 3] (V.fromList [1 .. 6]) :: Array 1 Int)
+      broadcast_1 = assertThrowsIn "1" "broadcast" (broadcast [0] [2, 3] (fromList [2] [1, 2] :: Array 1 Int) :: Array 1 Int)
       generate_1 = assertThrowsIn "1" "generate" (generate [2] (const 0) :: Array 2 Int)
       -- read rejects a count of elements that is not the shape's, and a shape
       -- of another rank.
@@ -350,6 +368,8 @@ test = testGroup "Ranked" $
                                   (rerank2 @2 dot a5 a7)
       rerank2_2 = assertThrowsIn "2" "ravelOuterOf" (rerank2 @1 (\ a _ -> constant [unScalar a] 0) v v :: Array 2 Int)
         where v = fromList [2] [1,2] :: Array 1 Int
+      -- Arrays whose outer dimensions differ.
+      rerank2_3 = assertThrowsIn "3" "rerank2" (rerank2 @1 const (fromList [3,2] [1..6]) (fromList [2,2] [1..4] :: Array 2 Int) :: Array 2 Int)
       rev_1 = assertEqual "1" (fromList [2,3] [3,2,1,6,5,4])
                               (rev [1] a1)
       rev_2 = assertEqual "2" (fromList [2,3] [6,5,4,3,2,1])
@@ -476,8 +496,10 @@ test = testGroup "Ranked" $
         , testCase "show_2" show_2
         , testCase "eq_1" eq_1
         , testCase "eq_2" eq_2
+        , testCase "eq_3" eq_3
         , testCase "ord_1" ord_1
         , testCase "ord_2" ord_2
+        , testCase "ord_3" ord_3
         , testCase "shapeL_1" shapeL_1
         , testCase "shapeL_2" shapeL_2
         , testCase "rank_1" rank_1
@@ -497,10 +519,12 @@ test = testGroup "Ranked" $
         , testCase "fromList_1" fromList_1
         , testCase "fromList_2" fromList_2
         , testCase "fromList_3" fromList_3
+        , testCase "fromList_4" fromList_4
         , testCase "fromVector_1" fromVector_1
         , testCase "normalize_1" normalize_1
         , testCase "reshape_1" reshape_1
         , testCase "reshape_2" reshape_2
+        , testCase "reshape_3" reshape_3
         , testCase "stretch_1" stretch_1
         , testCase "stretch_2" stretch_2
         , testCase "stretch_3" stretch_3
@@ -508,6 +532,7 @@ test = testGroup "Ranked" $
         , testCase "scalar_1" scalar_1
         , testCase "unScalar_1" unScalar_1
         , testCase "constant_1" constant_1
+        , testCase "constant_2" constant_2
         , testCase "badShape_1" badShape_1
         , testCase "badShape_2" badShape_2
         , testCase "badShape_3" badShape_3
@@ -519,6 +544,7 @@ test = testGroup "Ranked" $
         , testCase "zipWithA_1" zipWithA_1
         , testCase "zipWithA_2" zipWithA_2
         , testCase "zipWith3A_1" zipWith3A_1
+        , testCase "zipWith3A_2" zipWith3A_2
         , testCase "pad_1" pad_1
         , testCase "pad_2" pad_2
         , testCase "pad_3" pad_3
@@ -534,6 +560,7 @@ test = testGroup "Ranked" $
         , testCase "transpose_9" transpose_9
         , testCase "append_1" append_1
         , testCase "append_2" append_2
+        , testCase "append_3" append_3
         , testCase "concatOuter_1" concatOuter_1
         , testCase "concatOuter_2" concatOuter_2
         , testCase "concatOuter_3" concatOuter_3
@@ -546,6 +573,7 @@ test = testGroup "Ranked" $
         , testCase "window_2" window_2
         , testCase "window_3" window_3
         , testCase "window_4" window_4
+        , testCase "window_5" window_5
         , testCase "stride_1" stride_1
         , testCase "stride_2" stride_2
         , testCase "stride_3" stride_3
@@ -553,6 +581,8 @@ test = testGroup "Ranked" $
         , testCase "stride_5" stride_5
         , testCase "stride_6" stride_6
         , testCase "fromVector_2" fromVector_2
+        , testCase "fromVector_3" fromVector_3
+        , testCase "broadcast_1" broadcast_1
         , testCase "generate_1" generate_1
         , testCase "read_1" read_1
         , testCase "rotate_1" rotate_1
@@ -574,6 +604,7 @@ test = testGroup "Ranked" $
         , testCase "rerank_6" rerank_6
         , testCase "rerank2_1" rerank2_1
         , testCase "rerank2_2" rerank2_2
+        , testCase "rerank2_3" rerank2_3
         , testCase "rev_1" rev_1
         , testCase "rev_2" rev_2
         , testCase "rev_3" rev_3

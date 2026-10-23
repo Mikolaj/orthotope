@@ -25,7 +25,7 @@ import Data.Maybe (isJust)
 import qualified Data.Vector.Unboxed as V
 import Data.Word (Word8)
 import System.Mem (performMajorGC)
-import System.Mem.Weak (deRefWeak)
+import System.Mem.Weak (Weak, deRefWeak)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure)
@@ -294,6 +294,8 @@ test = testGroup "DynamicU" $
             held <- isJust <$> deRefWeak w
             _ <- evaluate (length (toList b))  -- the result kept past the collection
             return held
+          -- NOINLINE, so that what make allocates stays reachable only
+          -- through what it returns.
           {-# NOINLINE make #-}
           make op = do
             r0 <- newIORef 0
@@ -304,6 +306,39 @@ test = testGroup "DynamicU" $
               [_, V.DoNotUnboxLazy y] -> () <$ evaluate y
               _ -> assertFailure "two elements"
             return (b, w)
+
+      -- So does a zip of views whose vectors hold one element each, here a row
+      -- of a longer vector: with the result unforced, nothing holds the
+      -- source's first element, outside the row.
+      lazyElems_3 = do
+        (b, w) <- make
+        performMajorGC
+        held <- isJust <$> deRefWeak w
+        _ <- evaluate (length (toList b))  -- the result kept past the collection
+        assertEqual "the first source element held, after zipWithA" False held
+        where
+          -- NOINLINE, so that what make allocates stays reachable only
+          -- through what it returns.
+          {-# NOINLINE make #-}
+          make :: IO (Array (V.DoNotUnboxLazy (IORef Int)), Weak (IORef Int))
+          make = do
+            r0 <- newIORef 0
+            r1 <- newIORef 1
+            w <- mkWeakIORef r0 (return ())
+            let a = normalize (index (fromList [2, 1] [V.DoNotUnboxLazy r0, V.DoNotUnboxLazy r1]) 1)
+            b <- evaluate (zipWithA const a a)
+            return (b, w)
+      -- A copy of a view broadcast along its innermost dimension forces its
+      -- element, as README's Evaluation section says: here a copy by force,
+      -- append, concatOuter, ravel and rerank.
+      lazyElems_4 = do
+        assertThrowsIn "force" "U" (force b)
+        assertThrowsIn "append" "U" (append b dense)
+        assertThrowsIn "concatOuter" "U" (concatOuter [b, dense])
+        assertThrowsIn "ravel" "U" (ravel (D.fromList [2] [b, b]))
+        assertThrowsIn "rerank" "U" (rerank 1 id b)
+        where b = stretch [2, 4] (reshape [1, 1] (fromList [1] [V.DoNotUnboxLazy (error "U" :: Int)]))
+              dense = fromList [1, 4] (map V.DoNotUnboxLazy [1, 2, 3, 4 :: Int])
 
       -- Calls of every wrapper the module under test exports, in the order of
       -- its export list, each against its value.
@@ -477,6 +512,8 @@ test = testGroup "DynamicU" $
         , testCase "allSameA_2" allSameA_2
         , testCase "lazyElems_1" lazyElems_1
         , testCase "lazyElems_2" lazyElems_2
+        , testCase "lazyElems_3" lazyElems_3
+        , testCase "lazyElems_4" lazyElems_4
         , testCase "wrappers_1" wrappers_1
         , testCase "convert_1" convert_1
         , testCase "vZipWith_1" vZipWith_1

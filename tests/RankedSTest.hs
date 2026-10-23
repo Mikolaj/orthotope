@@ -179,6 +179,10 @@ test = testGroup "RankedS" $
       concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                       (concatOuter [a1, concatOuter [a1,a1]])
       concatOuter_2 = assertThrowsIn "2" "concatOuter" (concatOuter [a1, a2])
+      ravel_1 = assertEqual  "1" (fromList [3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
+                                 (ravel $ R.fromList [3] [a1,a1,a1])
+      unravel_1 = assertEqual "1" [a1,a1,a1]
+                                  (R.toList $ unravel $ ravel $ R.fromList [3] [a1,a1,a1])
       -- The conversion to the Storable Dynamic module, as the boxed modules' is,
       -- and convertE of it.
       convert_1 = do
@@ -393,6 +397,8 @@ test = testGroup "RankedS" $
         , testCase "append_1" append_1
         , testCase "concatOuter_1" concatOuter_1
         , testCase "concatOuter_2" concatOuter_2
+        , testCase "ravel_1" ravel_1
+        , testCase "unravel_1" unravel_1
         , testCase "convert_1" convert_1
         , testCase "window_1" window_1
         , testCase "window_2" window_2
