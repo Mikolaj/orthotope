@@ -12,15 +12,15 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
--- Every row of the specialisation benchmark as a test of its name: at
--- each vector kind, the row's call gives on the view what it gives on the
--- view's normalized copy, built from its list of elements rather than by
--- normalize, so that the fill is checked against another route, every other
--- input of the call derived from either alike; and the call summed, as the
--- summed table times it, runs on both, its sum holding the layout and so
--- compared with nothing.  Between them the rows take every arm of the library's code that the
--- benchmark's header names, and each arm that a call reaches through the view
--- is checked against what the dense path gives; a call whose input no form
+-- Every row of the specialisation benchmark as a test of its name: at each
+-- vector kind, the row's call gives on the view what it gives on the view's
+-- normalized copy, built from its list of elements rather than by normalize,
+-- so that the fill is checked against another route, every other input of the
+-- call derived from either alike; and the call summed, as the summed table
+-- times it, runs on both, its sum holding the layout and so compared with
+-- nothing.  Between them the rows take every arm of the library's code that
+-- the benchmark's header names, and each arm that a call reaches through the
+-- view is checked against what the dense path gives; a call whose input no form
 -- changes is checked only to run.  The results are compared with ==, and where
 -- that fails, the numbers in their shown forms each within a relative 1e-9, a
 -- reduction adding in the order the layout gives; the unordered vectors are

@@ -14,7 +14,6 @@
 
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 -- Shaped arrays against Dynamic ones, at the boxed, Storable, Unboxed and
@@ -37,9 +36,11 @@ import qualified Data.Vector.Unboxed as VU
 import Data.Word (Word8)
 import Foreign.Storable (Storable)
 import Test.Framework (Test, testGroup)
+import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.QuickCheck
   (Property, choose, conjoin, counterexample, forAll, once, (.&&.), (===))
-import Views (Elem, View (..), genElems, mkViewG, testPropertyN, upTo)
+import Views
+  (Elem, View (..), adjustAt, genElems, mkViewG, nested, obsD, testPropertyN, upTo)
 
 test :: Test
 test = testGroup "ShapedG" $ backends @Int ++ [testGroup "Word8" (backends @Word8)]
@@ -57,7 +58,7 @@ backend :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem 
            String -> Test
 backend n = testGroup n $
   testPropertyN "prop_views" (prop_views @v @a)
-  : [ testPropertyN on (prop_op f g) | (on, f, g) <- ops @v @a ]
+  : [ testProperty on (prop_op f g) | (on, f, g) <- ops @v @a ]
 
 -- A random view, as a Shaped array of its shape, gives what it does as a
 -- Dynamic array or a list: its elements, their reductions but maximumA and
@@ -74,7 +75,7 @@ prop_views v@(View sh _) =
       let s = SG.A t :: SG.Array sh v a
           l = DG.toList x
       in  forAll (choose (0, length l)) $ \ i ->
-          let l' = [ if k == i then e + 1 else e | (k, e) <- zip [0 ..] l ]
+          let l' = adjustAt i (+ 1) l
               s' = SG.fromList l' :: SG.Array sh v a
           in  SG.toList s === l .&&. SG.toVector s === DG.toVector x
               .&&. SG.toList (SG.normalize s) === l
@@ -103,9 +104,6 @@ toD a@(SG.A t) = DG.A (SG.shapeL a) t
 -- The shape and the elements of an array.
 obs :: (I.Vector v, I.VecElem v a, SG.Shape sh) => SG.Array sh v a -> ([Int], [a])
 obs a = (SG.shapeL a, SG.toList a)
-
-obsD :: (I.Vector v, I.VecElem v a) => DG.Array v a -> ([Int], [a])
-obsD x = (DG.shapeL x, DG.toList x)
 
 -- Arrays of shape [2,3,4] over the elements, fresh and as views of other
 -- arrays: transposed, reversed, sliced, strided and broadcast.
@@ -149,6 +147,9 @@ ops =
     , \ a -> obs (SG.stretchOuter @3 (SG.reshape @'[1,2,3,4] a))
     , \ x -> obsD (DG.stretchOuter 3 (DG.reshape [1,2,3,4] x)) )
   , ("pad [(1,2),(0,1)]", \ a -> obs (SG.pad @'[ '(1,2), '(0,1) ] 0 a), \ x -> obsD (DG.pad [(1,2),(0,1)] 0 x))
+  , ( "zipWith3A with rev [0] and rev [2]"
+    , \ a -> obs (SG.zipWith3A f3 a (SG.rev @'[0] a) (SG.rev @'[2] a))
+    , \ x -> obsD (DG.zipWith3A f3 x (DG.rev [0] x) (DG.rev [2] x)) )
   , ( "zipWith4A with rev [0], rev [1] and rev [2]"
     , \ a -> obs (SG.zipWith4A f4 a (SG.rev @'[0] a) (SG.rev @'[1] a) (SG.rev @'[2] a))
     , \ x -> obsD (DG.zipWith4A f4 x (DG.rev [0] x) (DG.rev [1] x) (DG.rev [2] x)) )
@@ -161,11 +162,11 @@ ops =
   , ( "concatOuter of itself, rev [1] and itself", \ a -> obs (SG.concatOuter @6 [a, SG.rev @'[1] a, a])
     , \ x -> obsD (DG.concatOuter [x, DG.rev [1] x, x]) )
   , ( "unravel"
-    , \ a -> nested (map obs (SG.toList (SG.unravel a :: SG.Array '[2] V.Vector (SG.Array '[3,4] v a))))
-    , \ x -> nested (map obsD (DG.toList (DG.unravel x :: DG.Array V.Vector (DG.Array v a)))) )
+    , \ a -> nested (map obs (SG.toList (uS a)))
+    , \ x -> nested (map obsD (DG.toList (uD x))) )
   , ( "ravel of unravel"
-    , \ a -> obs (SG.ravel (SG.unravel a :: SG.Array '[2] V.Vector (SG.Array '[3,4] v a)))
-    , \ x -> obsD (DG.ravel (DG.unravel x :: DG.Array V.Vector (DG.Array v a))) )
+    , \ a -> obs (SG.ravel (uS a))
+    , \ x -> obsD (DG.ravel (uD x)) )
   , ( "rerank 1 (transpose [1,0])", \ a -> obs (SG.rerank @1 (\ r -> SG.transpose @'[1,0] r) a)
     , \ x -> obsD (DG.rerank 1 (\ r -> DG.transpose [1,0] r) x) )
   , ( "rerank2 2 (zipWithA (+))", \ a -> obs (SG.rerank2 @2 (\ p q -> SG.zipWithA (+) p q) a a)
@@ -190,7 +191,9 @@ ops =
   , ( "iterateN 5 (+ 1) 0", const (obs (SG.iterateN @5 (+ 1) 0 :: SG.Array '[5] v a))
     , const (obsD (DG.iterateN 5 (+ 1) 0 :: DG.Array v a)) )
   ]
-  where nested ps = (concatMap fst ps, concatMap snd ps)
-        f4 w0 w1 w2 w3 = w0 - 2 * w1 + 3 * w2 - 4 * w3
+  where uS a = SG.unravel a :: SG.Array '[2] V.Vector (SG.Array '[3,4] v a)
+        uD x = DG.unravel x :: DG.Array V.Vector (DG.Array v a)
+        f3 w0 w1 w2 = w0 - 2 * w1 + 3 * w2
+        f4 w0 w1 w2 w3 = f3 w0 w1 w2 - 4 * w3
         f5 w0 w1 w2 w3 w4 = f4 w0 w1 w2 w3 + 5 * w4
         us = [([1,2,3], 7), ([0,1,0], 5), ([1,2,3], 6)]

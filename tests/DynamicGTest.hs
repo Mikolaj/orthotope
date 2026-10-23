@@ -14,14 +14,14 @@
 
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
--- The properties of Dynamic arrays, through DynamicG at the boxed,
--- Storable, Unboxed and list instances of Vector: over random views, but
--- for prop_fromVector and prop_rotate, and with Int and Word8 elements,
--- but for prop_allSameA, whose elements are Doubles.  The list instance
--- runs the generic code with the lists' own methods.
+-- The properties of Dynamic arrays, through DynamicG at the boxed, Storable,
+-- Unboxed and list instances of Vector: over random views, but for
+-- prop_fromVector, prop_rotate and prop_vZipWith, which zips the instances'
+-- vectors, and with Int and Word8 elements, but for prop_allSameA, whose
+-- elements are Doubles.  The list instance runs the generic code with the
+-- lists' own methods.
 module DynamicGTest(test) where
 
 import Control.DeepSeq (deepseq)
@@ -38,11 +38,12 @@ import Data.Word (Word8)
 import Foreign.Storable (Storable)
 import Test.Framework (Test, testGroup)
 import Test.QuickCheck
-  ( Arbitrary (..), Property, choose, conjoin, counterexample, elements, forAll, listOf, property
-  , shrinkList, vectorOf, (.&&.), (===), (==>) )
+  ( Arbitrary (..), Gen, Property, choose, conjoin, counterexample, elements, forAll, listOf
+  , property, shrinkList, vectorOf, (.&&.), (===), (==>) )
 import Views
-  ( Elem, Owns (..), View (..), applyOpG, failsIn, failsWith, genBadOp, genElems, genOps
-  , genShape, mkViewG, opName, opShape, opSource, testPropertyN, upTo )
+  ( Elem, Owns (..), View (..), adjustAt, applyOpG, failsIn, failsWith, forAllView
+  , genBadOp, genElems, genOps, genShape, mkViewG, mkViewUpTo, opName, opShape
+  , opSource, testPropertyN, upTo, valuesG )
 
 test :: Test
 test = testGroup "DynamicG" $ backends @Int True ++ [testGroup "Word8" (backends @Word8 False)]
@@ -71,13 +72,16 @@ backend nan n = testGroup n $
   , testPropertyN "prop_mapAViews" (prop_mapAViews @v @a)
   , testPropertyN "prop_badOps" (prop_badOps @v @a)
   , testPropertyN "prop_copy" (prop_copy @v @a)
+  , testPropertyN "prop_share" (prop_share @v @a)
   , testPropertyN "prop_zipWith" (prop_zipWith @v @a)
+  , testPropertyN "prop_inView" (prop_inView @v @a)
   , testPropertyN "prop_update" (prop_update @v @a)
   , testPropertyN "prop_fromVector" (prop_fromVector @v @a)
   , testPropertyN "prop_show" (prop_show @v @a)
   , testPropertyN "prop_rerank" (prop_rerank @v @a)
   , testPropertyN "prop_ravel" (prop_ravel @v @a)
   , testPropertyN "prop_rotate" (prop_rotate @v @a)
+  , testPropertyN "prop_vZipWith" (prop_vZipWith @v @a)
   ]
 
 -- allSameA agrees with allSame on the list, NaN included.
@@ -104,8 +108,8 @@ reversedLayout x =
 
 -- toList and toVector agree with indexing the view element by element.
 prop_toList :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
-prop_toList v@(View sh _) =
-  let x = mkViewG v (upTo (product sh)) :: Array v a
+prop_toList v =
+  let x = mkViewUpTo v :: Array v a
       l = map (at x) (indices (shapeL x))
   in  toList x === l .&&. I.vToList (toVector x) === l
 
@@ -123,7 +127,7 @@ prop_compare v@(View sh _) =
       forAll (choose (0, n)) $ \ j ->
       forAll (choose (-1, 1)) $ \ d ->
       forAll (choose (1, 3)) $ \ m ->
-      let l' = [ if k == i then e + fromIntegral d else e | (k, e) <- zip [0 ..] l ]
+      let l' = adjustAt i (+ fromIntegral d) l
           y = fromList (shapeL x) l'
           -- y laid out in the reverse order of its dimensions, which no slice
           -- reads where two of them exceed one
@@ -134,12 +138,14 @@ prop_compare v@(View sh _) =
             DG.A zsh (I.T zss o zv) | I.vLength zv > 0 ->
               DG.A zsh (I.T zss (o + m) (I.vAppend (I.vReplicate m 0) zv))
             _ -> z
+          lz = toList z
+          lw = toList w
       in  (x == y) === (l == l') .&&. compare x y === compare l l'
           .&&. compare y x === compare l' l
           .&&. (x == yt) === (l == l') .&&. compare x yt === compare l l'
           .&&. compare yt x === compare l' l
-          .&&. (x == z) === (l == toList z) .&&. compare x z === compare l (toList z)
-          .&&. (x == w) === (l == toList w) .&&. compare x w === compare l (toList w)
+          .&&. (x == z) === (l == lz) .&&. compare x z === compare l lz
+          .&&. (x == w) === (l == lw) .&&. compare x w === compare l lw
 
 -- The reductions agree with the list's: reduce, sumA, productA, maximumA,
 -- minimumA, anyA and allA; and the vector toUnorderedVectorT gives holds
@@ -166,8 +172,8 @@ prop_reduce v@(View sh _) =
 -- the vector does.
 prop_pad :: forall v a . (Owns (v a), I.Vector v, I.VecElem v a, Elem a) =>
             View -> Property
-prop_pad v@(View sh _) =
-  let x = mkViewG v (upTo (product sh)) :: Array v a
+prop_pad v =
+  let x = mkViewUpTo v :: Array v a
       xsh = shapeL x
       DG.A _ t = x
       w = I.values t
@@ -179,9 +185,10 @@ prop_pad v@(View sh _) =
                       in  if and (zipWith (\ i s -> i >= 0 && i < s) os' xsh)
                           then at x (os' ++ js) else -1
           t' = I.padT (-1) (map (const (0, 0)) ps) xsh t
+          p = pad ps (-1) x
       in  product psh <= 10000 ==>
-          shapeL (pad ps (-1) x) === psh
-          .&&. toList (pad ps (-1) x) === map elemAt (indices psh)
+          shapeL p === psh
+          .&&. toList p === map elemAt (indices psh)
           .&&. (I.offset t', I.strides t') === (I.offset t, I.strides t)
           .&&. sameStorage (I.values t') w
                === sameStorage (I.vSlice 0 (I.vLength w) w) w
@@ -206,8 +213,8 @@ prop_viewOps (View sh ops) =
 -- and mapA id of any view, under further operations, gives what the view gives:
 -- its elements, its vector, its sum and normalize.
 prop_mapAViews :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
-prop_mapAViews v@(View sh _) =
-  let x@(DG.A xsh tx) = mkViewG v (upTo (product sh)) :: Array v a
+prop_mapAViews v =
+  let x@(DG.A xsh tx) = mkViewUpTo v :: Array v a
       (_, ssx, _) = layoutOf x
       (_, ssm, _) = layoutOf (mapA id x)
       kept = case I.readRangeT xsh tx of
@@ -223,8 +230,8 @@ prop_mapAViews v@(View sh _) =
 -- An operation invalid on a view fails as soon as its result is evaluated,
 -- with an error of the function opName names.
 prop_badOps :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
-prop_badOps v@(View sh _) =
-  let x = mkViewG v (upTo (product sh)) :: Array v a
+prop_badOps v =
+  let x = mkViewUpTo v :: Array v a
       xsh = shapeL x
   in  forAll (genBadOp xsh) $ \ op ->
       failsIn (opName op) (applyOpG op x)
@@ -233,39 +240,27 @@ prop_badOps v@(View sh _) =
 layoutOf :: (I.Vector v, I.VecElem v a) => Array v a -> (Int, [Int], Int)
 layoutOf (DG.A _ t) = (I.offset t, I.strides t, I.vLength (I.values t))
 
-valuesOf :: Array v a -> v a
-valuesOf (DG.A _ t) = I.values t
-
 -- normalize gives the view as a normal array, its elements in a vector of just
 -- their number, at offset 0 and with natural strides, and force the same in
--- storage of its own; normalize of a row of a normal array shares its vector
--- where a slice of the vector does, and force of the row does not; reshape to
--- one dimension, append and concatOuter of the view and a normal array of its
--- shape and of the view and itself, zipWithA of the two either way round, and traverseA in the applicative
--- of pairs agree with the lists; concatOuter of the view alone, a concatenation
--- of one part, is the view; and append and concatOuter fail on scalars.
+-- storage of its own; reshape to one dimension, append and concatOuter of the
+-- view and a normal array of its shape and of the view and itself, zipWithA of
+-- the two either way round, and traverseA in the applicative of pairs agree
+-- with the lists; concatOuter of the view alone, a concatenation of one part,
+-- is the view; and append and concatOuter fail on scalars.
 prop_copy :: forall v a . (Owns (v a), I.Vector v, I.VecElem v a, Elem a) =>
              View -> Property
-prop_copy v@(View sh _) =
-  let x = mkViewG v (upTo (product sh)) :: Array v a
+prop_copy v =
+  let x = mkViewUpTo v :: Array v a
       xsh = shapeL x
       l = toList x
       n = length l
   in  forAll (genElems (-9, 9) n) $ \ ys ->
       let y = fromList xsh ys
           z = normalize x
+          fx = force x
       in  toList z === l .&&. layoutOf z === (0, drop 1 (scanr (*) 1 xsh), n)
-          .&&. toList (force x) === l
-          .&&. counterexample "force keeps a larger vector" (ownsStorage (valuesOf (force x)))
-          .&&. (case xsh of
-                  s : _ | n > 0 ->
-                    let r = index y 0
-                        w = valuesOf y
-                    in  sameStorage (valuesOf (normalize r)) w
-                          === sameStorage (I.vSlice 0 (n `quot` s) w) w
-                        .&&. counterexample "force of a row shares its vector"
-                               (not (sameStorage (valuesOf (force r)) w))
-                  _ -> property True)
+          .&&. toList fx === l
+          .&&. counterexample "force keeps a larger vector" (ownsStorage (valuesG fx))
           .&&. toList (reshape [n] x) === l
           .&&. toList (zipWithA (-) x y) === zipWith (-) l ys
           .&&. toList (zipWithA (-) y x) === zipWith (-) ys l
@@ -279,11 +274,31 @@ prop_copy v@(View sh _) =
                      .&&. concatOuter [x] === x)
           .&&. traverseA (\ e -> ([e], e - 1)) x === (l, fromList xsh (map (subtract 1) l))
 
+-- toVector and normalize of a non-empty view share its vector exactly where its
+-- elements lie one after another in order in it, whatever the strides of its
+-- dimensions of extent 1, and a slice of the vector shares it, as one of a list
+-- does not; force never shares it.
+prop_share :: forall v a . (Owns (v a), I.Vector v, I.VecElem v a, Elem a) =>
+              View -> Property
+prop_share v =
+  let x = mkViewUpTo v :: Array v a
+      (o, _, len) = layoutOf x
+      w = valuesG x
+      l = toList x
+      n = length l
+      part = I.vSlice o n w
+      shared = o + n <= len && I.vToList part == l && sameStorage part w
+  in  n > 0 ==>
+      sameStorage (toVector x) w === shared
+      .&&. sameStorage (valuesG (normalize x)) w === shared
+      .&&. counterexample "force shares its vector"
+             (not (sameStorage (valuesG (force x)) w))
+
 -- zipWith3A, zipWith4A and zipWith5A over the view and normal arrays of
 -- its shape, the view first or last, agree with the lists.
 prop_zipWith :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
-prop_zipWith v@(View sh _) =
-  let x = mkViewG v (upTo (product sh)) :: Array v a
+prop_zipWith v =
+  let x = mkViewUpTo v :: Array v a
       xsh = shapeL x
       l = toList x
       ys = genElems (-9, 9) (length l)
@@ -299,14 +314,30 @@ prop_zipWith v@(View sh _) =
           .&&. toList (zipWith5A f5 x y1 y2 y3 y4) === zipWith5 f5 l ys1 ys2 ys3 ys4
           .&&. toList (zipWith5A f5 y1 y2 y3 y4 x) === zipWith5 f5 ys1 ys2 ys3 ys4 l
 
+-- mapA, zipWithA and zipWith3A apply their function to the elements the view
+-- reads and to no other element of its vector, the whole vector of each
+-- result forced.
+prop_inView :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
+prop_inView v =
+  let x = mkViewUpTo v :: Array v a
+      l = toList x
+      y = fromList (shapeL x) l
+      g e | e `elem` l = e
+          | otherwise = error ("applied outside the view to " ++ show e)
+      forced r = I.vToList (valuesG r) `deepseq` toList r
+  in  forced (mapA g x) === l
+      .&&. forced (zipWithA (\ e _ -> g e) x y) === l
+      .&&. forced (zipWithA (\ _ e -> g e) y x) === l
+      .&&. forced (zipWith3A (\ e _ _ -> g e) x y y) === l
+
 -- update agrees with replacing elements of the list, the last update at an
 -- index being the one that stays, leaves the array it updates as it was, and
 -- fails on an index outside the view: every component out of bounds, the first
 -- below 0, the last at its extent, or a component too many.
 prop_update :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
                View -> Property
-prop_update v@(View sh _) =
-  let x = mkViewG v (upTo (product sh)) :: Array v a
+prop_update v =
+  let x = mkViewUpTo v :: Array v a
       xsh = shapeL x
       l = toList x
       ixs = zip [0 :: Int ..] (indices xsh)
@@ -316,7 +347,7 @@ prop_update v@(View sh _) =
              : [ (-1) : drop 1 zeros | not (null xsh) ]
              ++ [ [ if k == length xsh - 1 then s else 0 | (k, s) <- zip [0 ..] xsh ] | not (null xsh) ]
   in  forAll (if null l then return [] else listOf ((,) <$> elements ixs <*> (fromIntegral <$> choose (-9, -1 :: Int)))) $ \ us ->
-      let set ys ((k, _), e) = [ if k' == k then e else y | (k', y) <- zip [0 ..] ys ]
+      let set ys ((k, _), e) = adjustAt k (const e) ys
       in  l `deepseq` update x [ (is, e) | ((_, is), e) <- us ] === fromList xsh (foldl set l us)
           -- x read again, by index, once the update is evaluated
           .&&. map (at x) (indices xsh) === l
@@ -343,10 +374,7 @@ prop_fromVector =
 -- An array reads back from its show.
 prop_show :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
              View -> Property
-prop_show v@(View sh _) =
-  forAll (genElems (-9, 9) (product sh)) $ \ xs ->
-  let x = mkViewG v xs :: Array v a
-  in  read (show x) === x
+prop_show v = forAllView v $ \ (x :: Array v a) -> read (show x) === x
 
 -- rerank applies its function to each subarray below the first n dimensions,
 -- rerank2 to each pair of them, of the array with itself and with three times
@@ -356,18 +384,18 @@ prop_show v@(View sh _) =
 -- rerank2 fail, having no result of the function to take a shape from.
 prop_rerank :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
                View -> Property
-prop_rerank v@(View sh _) =
-  let x = mkViewG v (upTo (product sh)) :: Array v a
+prop_rerank v =
+  let x = mkViewUpTo v :: Array v a
       xsh = shapeL x
+      u = unravel x :: Array V.Vector (Array v a)
       unravelled = case xsh of
         [] -> property True
-        0 : _ -> shapeL (unravel x :: Array V.Vector (Array v a)) === [0]
-        s : _ -> map (\ a -> toList a) (toList (unravel x :: Array V.Vector (Array v a)))
+        0 : _ -> shapeL u === [0]
+        s : _ -> map (\ a -> toList a) (toList u)
                  === [ toList (index x i) | i <- [0 .. s - 1] ]
-                 .&&. ravel (unravel x :: Array V.Vector (Array v a)) === x
+                 .&&. ravel u === x
   in  unravelled .&&. forAll (choose (0, length xsh)) (\ n ->
       let (osh, ish) = splitAt n xsh
-          subs = [ toList (foldl (\ a i -> index a i) x is) | is <- indices osh ]
           double a = reshape [product (shapeL a)] (mapA (* 2) a)
           -- three times x, laid out in the reverse order of its dimensions
           y = reversedLayout (mapA (* 3) x)
@@ -375,7 +403,7 @@ prop_rerank v@(View sh _) =
           then failsWith ("rerank: empty outer dimension " ++ show osh) (rerank n double x)
                .&&. failsWith ("rerank2: empty outer dimension " ++ show osh) (rerank2 n (\ a b -> zipWithA (+) a b) x x)
           else shapeL (rerank n double x) === osh ++ [product ish]
-               .&&. toList (rerank n double x) === concatMap (map (* 2)) subs
+               .&&. toList (rerank n double x) === map (* 2) (toList x)
                .&&. toList (rerank2 n (\ a b -> zipWithA (+) a b) x x) === map (* 2) (toList x)
                .&&. toList (rerank2 n (\ a b -> zipWithA (-) a b) x y) === map (* (-2)) (toList x)
                .&&. toList (rerank2 n (\ a b -> zipWithA (-) a b) y x) === map (* 2) (toList x))
@@ -383,8 +411,8 @@ prop_rerank v@(View sh _) =
 -- ravel fails on an outer array of none, and on arrays of differing shapes,
 -- naming the first one's shape and the first that differs.
 prop_ravel :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
-prop_ravel v@(View sh _) =
-  let x = mkViewG v (upTo (product sh)) :: Array v a
+prop_ravel v =
+  let x = mkViewUpTo v :: Array v a
       y = reshape [product (shapeL x), 1] x
       msg = "ravel: non-conforming inner dimensions: " ++ show [shapeL x, shapeL y]
   in  failsWith "ravel: empty array" (ravel (fromList [0] [] :: Array V.Vector (Array v a)))
@@ -424,3 +452,22 @@ prop_rotate (RotateCase osh h t k) =
   in  map toInteger xs == [1 .. toInteger n] ==>
       rotate (length osh) k (fromList (osh ++ h : t) xs :: Array v a)
       === fromList (osh ++ k : h : t) (concatMap rot subs)
+
+-- The zips of the instance's vectors take as many elements as the shortest
+-- vector has, as the list's zips do.
+prop_vZipWith :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => Property
+prop_vZipWith =
+  forAll gen $ \ l1 -> forAll gen $ \ l2 -> forAll gen $ \ l3 ->
+  forAll gen $ \ l4 -> forAll gen $ \ l5 ->
+  let vec = I.vFromList :: [a] -> v a
+      f3 a b c = a + 10 * b + 100 * c
+      f4 a b c d = f3 a b c + 1000 * d
+      f5 a b c d e = f4 a b c d + 10000 * e
+  in  I.vToList (I.vZipWith (-) (vec l1) (vec l2)) === zipWith (-) l1 l2
+      .&&. I.vToList (I.vZipWith3 f3 (vec l1) (vec l2) (vec l3))
+           === zipWith3 f3 l1 l2 l3
+      .&&. I.vToList (I.vZipWith4 f4 (vec l1) (vec l2) (vec l3) (vec l4))
+           === zipWith4 f4 l1 l2 l3 l4
+      .&&. I.vToList (I.vZipWith5 f5 (vec l1) (vec l2) (vec l3) (vec l4) (vec l5))
+           === zipWith5 f5 l1 l2 l3 l4 l5
+  where gen = choose (0, 4) >>= genElems (-9, 9) :: Gen [a]

@@ -32,24 +32,24 @@ import qualified Data.Array.Internal as I
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
 
-import Call (Call (..), elems)
+import Call (Call (..))
 import qualified Call
 
 unspecialisedPad :: Call
 unspecialisedPad =
   Call.call "pad" (\ a -> DS.pad [(0, 1), (1, 1)] 0 a)
-            (DS.transpose [1, 0] (DS.fromList [500, 400] elems))
+            (DS.transpose [1, 0] (DS.fromList [500, 400] Call.elems))
 
 unspecialisedPadU :: Call
 unspecialisedPadU =
   Call.call "pad" (\ a -> DU.pad [(0, 1), (1, 1)] 0 a)
-            (DU.transpose [1, 0] (DU.fromList [500, 400] elems))
+            (DU.transpose [1, 0] (DU.fromList [500, 400] Call.elems))
 
 unspecialisedFill :: Call
-unspecialisedFill = Call.call "fillStrided" polymorphicFill (VS.fromList elems)
+unspecialisedFill = Call.call "fillStrided" polymorphicFill (VS.fromList Call.elems)
 
 unspecialisedFillU :: Call
-unspecialisedFillU = Call.call "fillStrided" polymorphicFill (VU.fromList elems)
+unspecialisedFillU = Call.call "fillStrided" polymorphicFill (VU.fromList Call.elems)
 
 {-# NOINLINE polymorphicFill #-}
 polymorphicFill :: (I.Vector v, I.VecElem v a) => v a -> v a

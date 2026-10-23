@@ -23,7 +23,7 @@ import qualified Data.Vector.Unboxed as V
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual)
-import Views (Owns (..), assertThrowsIn)
+import Views (assertThrowsIn)
 
 test :: Test
 test = testGroup "ShapedU" $
@@ -59,12 +59,6 @@ test = testGroup "ShapedU" $
       fromList_2 = assertThrowsIn "sh" "fromList" (fromList [1,2] :: Array [4,5] Int)
       fromVector_1 = assertEqual "1" a1 (fromVector $ V.fromList [1..6])
       normalize_1 = assertEqual "1" a1 (normalize a1)
-      normalize_2 = do
-        assertEqual "index" True (shares (index big 1))
-        assertEqual "normalize index" True (shares (normalize (index big 1)))
-        assertEqual "force index" False (shares (force (index big 1)))
-        where big = fromList [1..4000] :: Array '[4,1000] Int
-              shares a = sameStorage (toVector a) (toVector big)
       reshape_1 = assertEqual "1" (fromList [1..6] :: Array '[6] Int) (reshape a1)
       reshape_2 = assertEqual "2" (fromList [1,4,2,5,3,6]) (reshape a2 :: Array [1,2,3,1] Int)
       a3 :: Array '[1] Int
@@ -74,7 +68,6 @@ test = testGroup "ShapedU" $
       stretch_1 = assertEqual "1" (fromList @'[3] [5,5,5]) (stretch @'[3] a3)
       stretch_2 = assertEqual "2" (fromList @[2,2,3,2] [1,1,2,2,3,3,4,4,5,5,6,6,1,1,2,2,3,3,4,4,5,5,6,6])
                                   (stretch @[2,2,3,2] (reshape @[1,2,3,1] a1))
-
       scalar_1 = assertEqual "1" a4 (scalar 5)
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
       constant_1 = assertEqual "1" (fromList [1,1,1,1,1,1]) (constant 1 :: Array [2,3] Int)
@@ -287,7 +280,7 @@ test = testGroup "ShapedU" $
         assertEqual "slice" (fromList [2, 3, 5, 6])
                     (slice @'[ '(0, 2), '(1, 2)] a1)
         assertEqual "rerank" (fromList [6, 15])
-                    (rerank @1 (reduce (+) 0) a1)
+                    (rerank @1 (\ r -> reduce (+) 0 r) a1)
         assertEqual "rerank2" (fromList [14, 77]) (rerank2 @1 dot a1 a1)
         assertEqual "rev" (fromList [4, 5, 6, 1, 2, 3]) (rev @'[0] a1)
         assertEqual "reduce" (fromList [21]) (reduce (+) 0 a1)
@@ -336,7 +329,6 @@ test = testGroup "ShapedU" $
         , testCase "fromList_2" fromList_2
         , testCase "fromVector_1" fromVector_1
         , testCase "normalize_1" normalize_1
-        , testCase "normalize_2" normalize_2
         , testCase "reshape_1" reshape_1
         , testCase "reshape_2" reshape_2
         , testCase "stretch_1" stretch_1

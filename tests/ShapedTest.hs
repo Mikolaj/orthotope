@@ -14,7 +14,6 @@
 
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 module ShapedTest(test) where
 
 import Control.DeepSeq hiding (force)
@@ -339,8 +338,9 @@ test = testGroup "Shaped" $
       -- inner part from 1 multiplies to 21!.
       listP_1 = do
         assertEqual "1" [1] (toList (stride @'[4294967296, 4294967296] (fromList @'[2, 2] [1 .. 4 :: Int])))
-        assertEqual "2" [0 .. 21] (listP (Proxy :: Proxy '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]))
-        assertThrowsIn "3" "Shape" (shapeP (Proxy :: Proxy '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]))
+        assertEqual "2" [0 .. 21] (listP p)
+        assertThrowsIn "3" "Shape" (shapeP p)
+        where p = Proxy :: Proxy '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
       convertE_1 = assertEqual "1" (Left "convert: shape mismatch ([2],[3])") (convertE (D.fromList [2] [1,2 :: Int]) :: Either String (Array '[3] Int))
       -- convertE fails with Left where the shapes differ and where the Shaped
       -- type's shape fails, rather than throwing.
@@ -374,11 +374,11 @@ test = testGroup "Shaped" $
         assertEqual "convertE RS" (Right ss) (convertE rs)
         assertEqual "convertE DS" (Right ss) (convertE ds)
         assertEqual "convertE R shape" (Left "convert: shape mismatch ([2,3],[3,2])")
-          (() <$ (convertE r :: Either String (Array '[3, 2] Int)))
+          (convertE r :: Either String (Array '[3, 2] Int))
         assertEqual "convertE RS shape" (Left "convert: shape mismatch ([2,3],[3,2])")
-          (() <$ (convertE rs :: Either String (SS.Array '[3, 2] Int)))
+          (convertE rs :: Either String (SS.Array '[3, 2] Int))
         assertEqual "convertE DS shape" (Left "convert: shape mismatch ([2,3],[3,2])")
-          (() <$ (convertE ds :: Either String (SS.Array '[3, 2] Int)))
+          (convertE ds :: Either String (SS.Array '[3, 2] Int))
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList @'[2] [6,120]) (rerank @1 (\ r -> reduce (*) 1 r) a1)
       reduce_3 = assertEqual "3" (fromList @'[3] [4,10,18]) (rerank @1 (\ r -> reduce (*) 1 r) a2)
@@ -444,7 +444,7 @@ test = testGroup "Shaped" $
         assertEqual "slice" (fromList [2, 3, 5, 6])
                     (slice @'[ '(0, 2), '(1, 2)] a1)
         assertEqual "rerank" (fromList [6, 15])
-                    (rerank @1 (reduce (+) 0) a1)
+                    (rerank @1 (\ r -> reduce (+) 0 r) a1)
         assertEqual "rerank2" (fromList [14, 77]) (rerank2 @1 dot a1 a1)
         assertEqual "rev" (fromList [4, 5, 6, 1, 2, 3]) (rev @'[0] a1)
         assertEqual "reduce" (fromList [21]) (reduce (+) 0 a1)

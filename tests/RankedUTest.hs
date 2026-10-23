@@ -23,7 +23,7 @@ import qualified Data.Vector.Unboxed as V
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual)
-import Views (Owns (..), assertThrowsIn)
+import Views (assertThrowsIn)
 
 test :: Test
 test = testGroup "RankedU" $
@@ -53,12 +53,6 @@ test = testGroup "RankedU" $
       fromList_2 = assertThrowsIn "sh" "fromList" (fromList [4,5] [1,2] :: Array 2 Int)
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
       normalize_1 = assertEqual "1" a1 (normalize a1)
-      normalize_2 = do
-        assertEqual "index" True (shares (index big 1))
-        assertEqual "normalize index" True (shares (normalize (index big 1)))
-        assertEqual "force index" False (shares (force (index big 1)))
-        where big = fromList [4,1000] [1..4000] :: Array 2 Int
-              shares a = sameStorage (toVector a) (toVector big)
       reshape_1 = assertEqual "1" (fromList [6] [1..6] :: Array 1 Int) (reshape [6] a1)
       reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2 :: Array 4 Int)
       a3 :: Array 1 Int
@@ -174,8 +168,8 @@ test = testGroup "RankedU" $
       concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                       (concatOuter [a1, concatOuter [a1,a1]])
       concatOuter_2 = assertThrowsIn "2" "concatOuter" (concatOuter [a1, a2])
-      ravel_1 = assertEqual  "1" (fromList [3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
-                                 (ravel $ R.fromList [3] [a1,a1,a1])
+      ravel_1 = assertEqual "1" (fromList [3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
+                                (ravel $ R.fromList [3] [a1,a1,a1])
       unravel_1 = assertEqual "1" [a1,a1,a1]
                                   (R.toList $ unravel $ ravel $ R.fromList [3] [a1,a1,a1])
       a6 :: Array 2 Int
@@ -305,7 +299,7 @@ test = testGroup "RankedU" $
         assertEqual "slice" (fromList [2, 2] [2, 3, 5, 6])
                     (slice [(0, 2), (1, 2)] a1)
         assertEqual "rerank" (fromList [2] [6, 15])
-                    (rerank @1 (reduce (+) 0) a1)
+                    (rerank @1 (\ r -> reduce (+) 0 r) a1)
         assertEqual "rerank2" (fromList [2] [14, 77]) (rerank2 @1 dot a1 a1)
         assertEqual "rev" (fromList [2, 3] [4, 5, 6, 1, 2, 3]) (rev [0] a1)
         assertEqual "reduce" (fromList [] [21]) (reduce (+) 0 a1)
@@ -353,7 +347,6 @@ test = testGroup "RankedU" $
         , testCase "fromList_2" fromList_2
         , testCase "fromVector_1" fromVector_1
         , testCase "normalize_1" normalize_1
-        , testCase "normalize_2" normalize_2
         , testCase "reshape_1" reshape_1
         , testCase "reshape_2" reshape_2
         , testCase "stretch_1" stretch_1

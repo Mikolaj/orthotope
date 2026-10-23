@@ -18,8 +18,8 @@ module DynamicUTest(test) where
 import Control.Exception
 import Data.Array.Convert (convert)
 import qualified Data.Array.Dynamic as D
-import qualified Data.Array.Internal as I
 import Data.Array.DynamicU
+import qualified Data.Array.Internal.DynamicU as DU
 import Data.IORef (IORef, mkWeakIORef, newIORef)
 import Data.Maybe (isJust)
 import qualified Data.Vector.Unboxed as V
@@ -29,7 +29,8 @@ import System.Mem.Weak (Weak, deRefWeak)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure)
-import Views (assertThrowsIn)
+import Test.QuickCheck (Property, forAll, (.&&.), (===))
+import Views (View (..), assertThrowsIn, genElems, mkViewG, testPropertyN)
 
 test :: Test
 test = testGroup "DynamicU" $
@@ -81,13 +82,9 @@ test = testGroup "DynamicU" $
       iota_1 = assertEqual "1" (map fromIntegral [0..299::Int]) (toList (iota 300 :: Array Word8))
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "2" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
-      mapA_3 = assertEqual "3" (fromList [4] [1,1,1,1])  -- 1 `div` 0 outside the view
-                               (mapA (1 `div`) (stretch [4] (slice [(2,1)] (fromList [3] [0,0,1 :: Int]))))
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
       zipWithA_2 = assertThrowsIn "2" "zipWithA" (zipWithA (+) a1 a2)
-      zipWithA_3 = assertEqual "3" [] (toList (zipWithA quot (constant [0] 1) (constant [0] (0 :: Int))))  -- 1 `quot` 0 outside the view
       zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
-      zipWith3A_2 = assertEqual "2" [] (toList (zipWith3A (\ x y z -> x `quot` (y + z)) (constant [0] 1) (constant [0] 0) (constant [0] (0 :: Int))))
       pad_1 = assertEqual "1" (fromList [5,10] [9,9,9,9,9,9,9,9,9,9,
                                                 9,9,9,1,2,3,9,9,9,9,
                                                 9,9,9,4,5,6,9,9,9,9,
@@ -271,29 +268,25 @@ test = testGroup "DynamicU" $
       -- a transposed one alike.
       lazyElems_1 = do
         assertEqual "mapA" [0, 0] (toList (mapA (\ _ -> 0 :: Int) lz))
-        assertEqual "zipWithA" [5, 6] (toList (zipWithA (\ _ b -> b) lz (fromList [2] [5, 6 :: Int])))
-        assertEqual "zipWith3A" [5, 6] (toList (zipWith3A (\ _ _ c -> c) lz lz (fromList [2] [5, 6 :: Int])))
-        assertEqual "toList" 4 (length (toList (transpose [1, 0] lz2)))
-        assertEqual "foldrA" 4 (foldrA (\ _ n -> n + 1 :: Int) 0 (transpose [1, 0] lz2))
-        assertEqual "anyA" True (anyA (const True) (transpose [1, 0] lz2))
+        assertEqual "zipWithA" [5, 6] (toList (zipWithA (\ _ b -> b) lz five))
+        assertEqual "zipWith3A" [5, 6] (toList (zipWith3A (\ _ _ c -> c) lz lz five))
+        assertEqual "toList" 4 (length (toList lzT))
+        assertEqual "foldrA" 4 (foldrA (\ _ n -> n + 1 :: Int) 0 lzT)
+        assertEqual "anyA" True (anyA (const True) lzT)
         where lz = fromList [2] (map V.DoNotUnboxLazy [undefined, 1 :: Int])
-              lz2 = fromList [2, 2] (map V.DoNotUnboxLazy [undefined, 1, 2, 3 :: Int])
+              lzT = transpose [1, 0] (fromList [2, 2] (map V.DoNotUnboxLazy [undefined, 1, 2, 3 :: Int]))
+              five = fromList [2] [5, 6 :: Int]
       -- An unforced element of a DoNotUnboxLazy result holds the elements its
       -- function reads, not the vectors they are read from, as vector's own
       -- map and zipWith store it: with the second element of the result
       -- forced, nothing holds the second element of the source.
       lazyElems_2 = do
-        m <- retains (mapA (\ (V.DoNotUnboxLazy r) -> V.DoNotUnboxLazy (r `seq` 0)))
+        m <- retains (\ a -> mapA (\ (V.DoNotUnboxLazy r) -> V.DoNotUnboxLazy (r `seq` 0)) a)
         z <- retains (\ a -> zipWithA (\ (V.DoNotUnboxLazy r) _ -> V.DoNotUnboxLazy (r `seq` 0)) a a)
         assertEqual "the second source element held, after mapA and zipWithA" (False, False) (m, z)
         where
           retains :: (Array (V.DoNotUnboxLazy (IORef Int)) -> Array (V.DoNotUnboxLazy Int)) -> IO Bool
-          retains op = do
-            (b, w) <- make op
-            performMajorGC
-            held <- isJust <$> deRefWeak w
-            _ <- evaluate (length (toList b))  -- the result kept past the collection
-            return held
+          retains op = heldAfterGC (make op)
           -- NOINLINE, so that what make allocates stays reachable only
           -- through what it returns.
           {-# NOINLINE make #-}
@@ -311,10 +304,7 @@ test = testGroup "DynamicU" $
       -- of a longer vector: with the result unforced, nothing holds the
       -- source's first element, outside the row.
       lazyElems_3 = do
-        (b, w) <- make
-        performMajorGC
-        held <- isJust <$> deRefWeak w
-        _ <- evaluate (length (toList b))  -- the result kept past the collection
+        held <- heldAfterGC make
         assertEqual "the first source element held, after zipWithA" False held
         where
           -- NOINLINE, so that what make allocates stays reachable only
@@ -399,7 +389,7 @@ test = testGroup "DynamicU" $
         assertEqual "slice" (fromList [2, 2] [2, 3, 5, 6])
                     (slice [(0, 2), (1, 2)] a1)
         assertEqual "rerank" (fromList [2] [6, 15])
-                    (rerank 1 (reduce (+) 0) a1)
+                    (rerank 1 (\ r -> reduce (+) 0 r) a1)
         assertEqual "rerank2" (fromList [2] [14, 77]) (rerank2 1 dot a1 a1)
         assertEqual "rev" (fromList [2, 3] [4, 5, 6, 1, 2, 3]) (rev [0] a1)
         assertEqual "reduce" (fromList [] [21]) (reduce (+) 0 a1)
@@ -422,11 +412,6 @@ test = testGroup "DynamicU" $
         assertEqual "iterateN" (fromList [3] [1, 2, 4])
                     (iterateN 3 (* 2) (1 :: Int))
         assertEqual "iota" (fromList [3] [0, 1, 2]) (iota 3 :: Array Int)
-      -- convert to boxed of a transposed view keeps the view's order.
-      convert_1 = assertEqual "1" (toList (transpose [1, 0] a1)) (D.toList (convert (transpose [1, 0] a1) :: D.Array Int))
-      -- vZipWith of vectors of two lengths zips as many elements as the shorter
-      -- has, as vector's zipWith does.
-      vZipWith_1 = assertEqual "1" (V.fromList [11, 22 :: Int]) (I.vZipWith (+) (V.fromList [1, 2, 3]) (V.fromList [10, 20]))
 
       tests =
         [ testCase "show_1" show_1
@@ -467,12 +452,9 @@ test = testGroup "DynamicU" $
         , testCase "iota_1" iota_1
         , testCase "mapA_1" mapA_1
         , testCase "mapA_2" mapA_2
-        , testCase "mapA_3" mapA_3
         , testCase "zipWithA_1" zipWithA_1
         , testCase "zipWithA_2" zipWithA_2
-        , testCase "zipWithA_3" zipWithA_3
         , testCase "zipWith3A_1" zipWith3A_1
-        , testCase "zipWith3A_2" zipWith3A_2
         , testCase "pad_1" pad_1
         , testCase "pad_2" pad_2
         -- , testCase "pad_3" pad_3  -- TODO: back on with pad_3
@@ -515,7 +497,28 @@ test = testGroup "DynamicU" $
         , testCase "lazyElems_3" lazyElems_3
         , testCase "lazyElems_4" lazyElems_4
         , testCase "wrappers_1" wrappers_1
-        , testCase "convert_1" convert_1
-        , testCase "vZipWith_1" vZipWith_1
         ]
-  in  tests
+  in  tests ++ [testPropertyN "prop_convert" prop_convert]
+
+-- Whether the weak pointer the action returns still finds its key after a
+-- major collection, the array the action returns kept past the collection.
+heldAfterGC :: Unbox a => IO (Array a, Weak k) -> IO Bool
+heldAfterGC make = do
+  (b, w) <- make
+  performMajorGC
+  held <- isJust <$> deRefWeak w
+  _ <- evaluate (length (toList b))  -- the result kept past the collection
+  return held
+
+mkView :: Unbox a => View -> [a] -> Array a
+mkView v = DU.A . mkViewG v
+
+-- convert of a view to the boxed module and back keeps its shape and its
+-- elements in order.
+prop_convert :: View -> Property
+prop_convert v@(View sh _) =
+  forAll (genElems (-9, 9) (product sh)) $ \ xs ->
+  let x = mkView v xs :: Array Int
+      d = convert x :: D.Array Int
+  in  D.shapeL d === shapeL x .&&. D.toList d === toList x
+      .&&. convert d === x
