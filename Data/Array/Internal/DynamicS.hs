@@ -62,7 +62,7 @@ module Data.Array.Internal.DynamicS(
   broadcast,
   update,
   generate, iterateN, iota,
-  bitcast,
+  bitcast, bitcastT,
   ) where
 import Control.DeepSeq hiding (force)
 import Control.Exception(assert)
@@ -89,9 +89,10 @@ import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN,
                            genericMapStrided, genericConcatPadN,
                            genericZipWithStrided, genericZipWith3Strided,
                            genericZipWith4Strided, genericZipWith5Strided,
-                           Axes, T(..), ShapeL, Vector(..), genericUnsafeConcatN,
-                           genericFoldl1, genericForce, genericFromListExactN,
-                           genericUnsafeFillStridedInto)
+                           Axes, T(..), ShapeL, Vector(..),
+                           genericUnsafeConcatN, genericFoldlFrom,
+                           genericMaximum, genericMinimum, genericForce,
+                           genericFromListExactN, genericUnsafeFillStridedInto)
 
 type Unbox = V.Storable
 
@@ -136,7 +137,10 @@ instance Vector V.Vector where
   -- of an empty array allocated a PlainPtr more, 16 bytes a call, and reduce
   -- ran 9 instructions more.
   {-# INLINE vSingleton #-}
-  vSingleton a = V.create (do v <- MV.unsafeNew 1; MV.unsafeWrite v 0 a; return v)
+  vSingleton a = V.create $ do
+    v <- MV.unsafeNew 1
+    MV.unsafeWrite v 0 a
+    return v
   {-# INLINE vReplicate #-}
   vReplicate = V.replicate
   -- The map and the zips build their result over the indices, working
@@ -147,18 +151,18 @@ instance Vector V.Vector where
   -- https://github.com/haskell/vector/issues/570.  No fusion is given up:
   -- vector's fuse with a vector they read, but each array operation stores its
   -- result, so the array operations never fused their inputs; a map of a map
-  -- allocates one vector per map, with vector's map as with this one. Each read
-  -- is forced before the function takes it: given a function GHC cannot see
-  -- into, on GHC HEAD with vector patched as issue 570 proposes, on views of
-  -- 200000 Doubles, mapA allocated 40 bytes an element where 80 and zipWithA
+  -- allocates one vector per map, with vector's map as with this one.  Each
+  -- read is forced before the function takes it: given a function GHC cannot
+  -- see into, on GHC HEAD with vector patched as issue 570 proposes, on views
+  -- of 200000 Doubles, mapA allocated 40 bytes an element where 80 and zipWithA
   -- 72 where 152, and given known functions every operation ran as many
   -- instructions as before.  The map and the zips write it by a loop of their
-  -- own ('indexLoop') rather than by generate, as vGenerate' does: on GHC HEAD
-  -- 10.1.20261019 (2026-10-21) the specialisation benchmark's forced mapA and
-  -- zips ran 21 to 32 instructions a call fewer at [3, 3], 0.9 to 3%, and 2 an
-  -- element fewer at [400, 500], 6 to 25%, zipWith3A, zipWith4A and zipWith5A
-  -- allocating 16 bytes a call less at [3, 3], and iota 2 an element fewer at
-  -- [400, 500], 28%, and 15 to 20 a call fewer at [3, 3].
+  -- own ('indexLoop') rather than by generate, as vGenerate and vGenerate'
+  -- do: on GHC HEAD 10.1.20261019 (2026-10-21) the specialisation benchmark's
+  -- forced mapA and zips ran 21 to 32 instructions a call fewer at [3, 3], 0.9
+  -- to 3%, and 2 an element fewer at [400, 500], 6 to 25%, zipWith3A, zipWith4A
+  -- and zipWith5A allocating 16 bytes a call less at [3, 3], and iota 2 an
+  -- element fewer at [400, 500], 28%, and 15 to 20 a call fewer at [3, 3].
   {-# INLINE vMap #-}
   vMap f v = indexLoop (V.length v) (\ i -> let !x = V.unsafeIndex v i in f x)
   {-# INLINE vZipWith #-}
@@ -202,11 +206,7 @@ instance Vector V.Vector where
   vConcat = V.concat
   -- Each element read forced, as at vToList.
   {-# INLINE vFold #-}
-  vFold f z v = go z 0
-    where !n = V.length v
-          go !acc !i | i >= n = acc
-                     | otherwise =
-                         let !x = V.unsafeIndex v i in go (f acc x) (i + 1)
+  vFold f z v = genericFoldlFrom f z 0 v
   {-# INLINE vSlice #-}
   vSlice = V.slice
   {-# INLINE vUnsafeSlice #-}
@@ -224,21 +224,14 @@ instance Vector V.Vector where
   -- a call fewer at [3, 3] and 1 an element fewer at [400, 500], 10 to 12.5%,
   -- than through vector's own.
   {-# INLINE vMaximum #-}
-  vMaximum v | V.null v = V.maximum v
-               -- No reduction here passes an empty vector; another caller's
-               -- fails as vector's maximum does.
-             | otherwise = genericFoldl1 max v
-  -- INLINE: see vMaximum.
-  -- Folded as vMaximum is.
+  vMaximum v = genericMaximum v
+  -- INLINE and folded as vMaximum is.
   {-# INLINE vMinimum #-}
-  vMinimum v | V.null v = V.minimum v
-               -- No reduction here passes an empty vector; another caller's
-               -- fails as vector's minimum does.
-             | otherwise = genericFoldl1 min v
+  vMinimum v = genericMinimum v
   {-# INLINE vUpdate #-}
   vUpdate = (V.//)
   {-# INLINE vGenerate #-}
-  vGenerate = V.generate
+  vGenerate n g = indexLoop (max 0 n) g
   -- Each element read forced, as at vToList.
   {-# INLINE vAll #-}
   vAll q v = go 0
@@ -279,6 +272,15 @@ instance Vector V.Vector where
   {-# INLINE vUnsafeConcatN #-}
   vUnsafeConcatN = genericUnsafeConcatN
 
+-- A vector of n elements, the ith g i, written over the indices.
+{-# INLINE indexLoop #-}
+indexLoop :: Unbox a => Int -> (Int -> a) -> V.Vector a
+indexLoop !n g = V.create $ do
+  mv <- MV.unsafeNew n
+  let go !i | i >= n = return mv
+            | otherwise = MV.unsafeWrite mv i (g i) >> go (i + 1)
+  go 0
+
 -- Elements of one byte, and of two, four and eight bytes aligned to a multiple
 -- of their size, are filled as Word8, Word16, Word32 and Bits64, so that a
 -- caller general in the element type reads and writes no element through
@@ -310,14 +312,14 @@ fillIntoS :: forall a s. Unbox a
           => Axes -> Int -> Int -> V.Vector a -> MV.MVector s a -> Int
           -> ST s ()
 fillIntoS !ax !ao _ !v !out !p
-  | size == 8 && aligned = intoBits64 ax ao (sameSize v) (sameSizeM out) p
-  | size == 4 && aligned = intoWord32 ax ao (sameSize v) (sameSizeM out) p
-  | size == 2 && aligned = intoWord16 ax ao (sameSize v) (sameSizeM out) p
-  | size == 1 = intoWord8 ax ao (sameSize v) (sameSizeM out) p
+  | sz == 8 && aligned = intoBits64 ax ao (sameSize v) (sameSizeM out) p
+  | sz == 4 && aligned = intoWord32 ax ao (sameSize v) (sameSizeM out) p
+  | sz == 2 && aligned = intoWord16 ax ao (sameSize v) (sameSizeM out) p
+  | sz == 1 = intoWord8 ax ao (sameSize v) (sameSizeM out) p
   | otherwise =
-      genericUnsafeFillStridedInto (512 `quot` max 1 size) ax ao v out p
-  where size = sizeOf (undefined :: a)
-        aligned = alignment (undefined :: a) `rem` size == 0
+      genericUnsafeFillStridedInto (512 `quot` max 1 sz) ax ao v out p
+  where sz = sizeOf (undefined :: a)
+        aligned = alignment (undefined :: a) `rem` sz == 0
 
 -- 'V.unsafeCast' between element types of one size, the length
 -- kept: 'V.unsafeCast' computes it again, (n * size) `div` size, a
@@ -360,15 +362,6 @@ type Bits64 = Double
 type Bits64 = Word64
 #endif
 
--- A vector of n elements, the ith g i, written over the indices.
-{-# INLINE indexLoop #-}
-indexLoop :: Unbox a => Int -> (Int -> a) -> V.Vector a
-indexLoop !n g = V.create $ do
-  mv <- MV.unsafeNew n
-  let go !i | i >= n = return mv
-            | otherwise = MV.unsafeWrite mv i (g i) >> go (i + 1)
-  go 0
-
 type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }
   deriving (Pretty, Generic, Data)
@@ -397,6 +390,8 @@ instance Ord (G.Array V.Vector a) => Ord (Array a) where
   {-# INLINE compare #-}
   compare x y = compare (unA x) (unA y)
 
+-- Not G.size . unA: see Data.Array.Internal.Dynamic's size.
+--
 -- | The number of elements in the array.
 size :: Array a -> Int
 size = product . shapeL
@@ -605,7 +600,7 @@ concatOuter = A . G.concatOuter . coerce
 -- it out.
 {-# INLINE ravel #-}
 ravel :: (HasCallStack, Unbox a) => D.Array (Array a) -> Array a
-ravel = A . G.ravel . G.mapA unA . D.unA
+ravel = A . G.ravelWith unA . D.unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
@@ -806,10 +801,16 @@ iota = A . G.iota
 -- aligned as the source's.
 {-# INLINABLE bitcast #-}
 bitcast :: forall a b . (HasCallStack, Unbox a, Unbox b) => Array a -> Array b
-bitcast (A (G.A sh (T ss o v)))
+bitcast (A (G.A sh t)) = A (G.A sh (bitcastT t))
+
+-- The bitcast of the Storable modules on the view, its vector cast by
+-- 'sameSize'.
+{-# INLINE bitcastT #-}
+bitcastT :: forall a b . (HasCallStack, Unbox a, Unbox b)
+         => T V.Vector a -> T V.Vector b
+bitcastT (T ss o v)
   | sza /= szb || sza == 0
   = error $ "bitcast: the types must have the same, nonzero size. " ++ show (sza, szb)
-  | otherwise
-  = A (G.A sh (T ss o (V.unsafeCast v)))
+  | otherwise = T ss o (sameSize v)
   where sza = sizeOf (undefined :: a)
         szb = sizeOf (undefined :: b)

@@ -63,7 +63,6 @@ module Data.Array.Internal.Dynamic(
 import Control.DeepSeq hiding (force)
 import Data.Coerce(coerce)
 import Data.Data(Data)
-import Data.Vector.Fusion.Util(Box(..))
 import GHC.Generics(Generic)
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as MV
@@ -77,7 +76,11 @@ import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN,
                            genericZipWith4Strided, genericZipWith5Strided,
                            ShapeL, Vector(..), None, genericForce,
                            genericFromListExactN, genericUnsafeFillStrided,
-                           genericFillInto, genericZipLoop, rnfViewT)
+                           genericFillInto, rnfViewT,
+                           genericMap, genericZipWith, genericZipWith3,
+                           genericZipWith4, genericZipWith5,
+                           genericUnsafeWithElem, genericGenerate',
+                           genericAll, genericAny, constantT)
 import qualified Data.Array.Internal.DynamicG as G
 
 instance Vector V.Vector where
@@ -126,26 +129,15 @@ instance Vector V.Vector where
   -- benchmark's forced mapA and fmap ran 58 instructions a call fewer at [3, 3]
   -- and 6 an element fewer at [400, 500], 3.7 to 5.3%.
   {-# INLINE vMap #-}
-  vMap f v = genericZipLoop (V.length v) $ \ i -> f <$> V.unsafeIndexM v i
+  vMap = genericMap
   {-# INLINE vZipWith #-}
-  vZipWith f a b = genericZipLoop (V.length a `min` V.length b) $ \ i ->
-    f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i
+  vZipWith = genericZipWith
   {-# INLINE vZipWith3 #-}
-  vZipWith3 f a b c =
-    genericZipLoop (V.length a `min` V.length b `min` V.length c) $ \ i ->
-      f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i <*> V.unsafeIndexM c i
+  vZipWith3 = genericZipWith3
   {-# INLINE vZipWith4 #-}
-  vZipWith4 f a b c d =
-    genericZipLoop (V.length a `min` V.length b `min` V.length c
-             `min` V.length d) $ \ i ->
-      f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i <*> V.unsafeIndexM c i
-        <*> V.unsafeIndexM d i
+  vZipWith4 = genericZipWith4
   {-# INLINE vZipWith5 #-}
-  vZipWith5 f a b c d e =
-    genericZipLoop (V.length a `min` V.length b `min` V.length c `min` V.length d
-             `min` V.length e) $ \ i ->
-      f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i <*> V.unsafeIndexM c i
-        <*> V.unsafeIndexM d i <*> V.unsafeIndexM e i
+  vZipWith5 = genericZipWith5
   {-# INLINE vAppend #-}
   vAppend = (V.++)
   -- INLINE: not for fusion; F1 reads no fusion here: V.concat hands its list to
@@ -173,16 +165,8 @@ instance Vector V.Vector where
   vMaximum !a = V.maximum a
   {-# INLINE vMinimum #-}
   vMinimum !a = V.minimum a
-  -- Named, for the bangs: on GHC HEAD 10.1.20260918 (2026-10-17) the
-  -- specialisation benchmark's summed boxed update2000 at [400, 500] ran 4.8
-  -- to 8.6% fewer instructions with them in Dynamic and Ranked, and forced at
-  -- [3, 3] up to 0.4% more.  The bang on the list evaluates its first cell
-  -- before the vector's copy, after which the loop over the updates swaps
-  -- registers through a stack slot on each pass, while the summing loop,
-  -- its Core unchanged, makes one such swap fewer an element, the shape of
-  -- https://gitlab.haskell.org/ghc/ghc/-/work_items/27800.
   {-# INLINE vUpdate #-}
-  vUpdate !a !b = (V.//) a b
+  vUpdate = (V.//)
   {-# INLINE vGenerate #-}
   vGenerate = V.generate
   -- vAll and vAny read each element by index through unsafeIndexM, which hands
@@ -192,26 +176,17 @@ instance Vector V.Vector where
   -- at -O1 and as many with -fspec-constr; their times, varying from run to run
   -- by up to 1.55 times, showed no difference.
   {-# INLINE vAll #-}
-  vAll q v = go 0
-    where !n = V.length v
-          go !i | i >= n = True
-                | otherwise = case V.unsafeIndexM v i of
-                    Box x -> q x && go (i + 1)
-  -- Read as vAll's are.
+  vAll = genericAll
   {-# INLINE vAny #-}
-  vAny q v = go 0
-    where !n = V.length v
-          go !i | i >= n = False
-                | otherwise = case V.unsafeIndexM v i of
-                    Box x -> q x || go (i + 1)
+  vAny = genericAny
   -- The element stored, unforced, read through unsafeIndexM, which hands it on
   -- without the thunk of the read that vUnsafeIndex would leave in a list of a
   -- view's elements ('elemsT').
   {-# INLINE vUnsafeWithElem #-}
-  vUnsafeWithElem v i k = case V.unsafeIndexM v i of Box x -> k x
+  vUnsafeWithElem = genericUnsafeWithElem
   -- Each element forced as it is written.
   {-# INLINE vGenerate' #-}
-  vGenerate' n g = genericZipLoop (max 0 n) (\ i -> return $! g i)
+  vGenerate' = genericGenerate'
   {-# INLINE vUnsafeFillStrided #-}
   vUnsafeFillStrided = genericUnsafeFillStrided 5
   {-# INLINE vForce #-}
@@ -257,9 +232,8 @@ instance Vector V.Vector where
   -- instructions, though it took 0.41 to 0.79 and 0.50 to 0.76 of the time
   -- on rows of 2 to 8 elements.
 
--- No pragma: inlined, it is VG.empty, which vector defines V.empty as, the
--- default that was built at every call; see the boxed instance's vEmpty.
--- The vector of no elements, built once.
+-- The vector of no elements, built once: no pragma, as inlined it is the
+-- VG.empty that the boxed instance's vEmpty says was built at every call.
 emptyVector :: V.Vector a
 emptyVector = V.empty
 
@@ -298,6 +272,10 @@ instance Ord (G.Array V.Vector a) => Ord (Array a) where
   {-# INLINE compare #-}
   compare x y = compare (unA x) (unA y)
 
+-- Not G.size . unA, a forwarder, which takes INLINE: inlined into the
+-- specialisation benchmark, it ran 3 instructions a call more than this form,
+-- called out of line, on GHC HEAD 10.1.20261019 (2026-10-23).
+--
 -- | The number of elements in the array.
 size :: Array a -> Int
 size = product . shapeL
@@ -419,6 +397,10 @@ mapA f = A . G.mapA f . unA
 instance Functor Array where
   {-# INLINE fmap #-}
   fmap = mapA
+  -- A view of one element, as constant builds it, where the default maps over
+  -- every element; the array forced, as the default forces it.
+  {-# INLINE (<$) #-}
+  x <$ A (G.A sh _) = A (G.A sh (constantT sh x))
 
 instance Foldable Array where
   {-# INLINE foldr #-}
@@ -512,7 +494,7 @@ concatOuter = A . G.concatOuter . coerce
 -- it out.
 {-# INLINE ravel #-}
 ravel :: (HasCallStack) => Array (Array a) -> Array a
-ravel = A . G.ravel . G.mapA unA . unA
+ravel = A . G.ravelWith unA . unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.

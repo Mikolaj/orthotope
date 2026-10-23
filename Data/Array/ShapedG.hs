@@ -13,5 +13,6 @@
 -- limitations under the License.
 
 module Data.Array.ShapedG(module A) where
-import Data.Array.Internal.ShapedG as A hiding(Array(..), unravelWith)
+import Data.Array.Internal.ShapedG as A
+  hiding(Array(..), ravelWith, unravelWith)
 import Data.Array.Internal.ShapedG as A(Array)

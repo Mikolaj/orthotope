@@ -46,7 +46,7 @@ module Data.Array.Internal.DynamicG(
   index, pad,
   mapA, zipWithA, zipWith3A, zipWith4A, zipWith5A,
   append, concatOuter,
-  ravel, unravel, unravelWith,
+  ravel, ravelWith, unravel, unravelWith,
   window, stride, rotate,
   slice, rerank, rerank2, rev,
   reduce, foldrA, traverseA,
@@ -238,12 +238,10 @@ force (A sh t) = A sh $ forceT sh t
 -- O(n) or O(1) time.
 {-# INLINE reshape #-}
 reshape :: (HasCallStack, Vector v, VecElem v a) => ShapeL -> Array v a -> Array v a
-reshape sh (A sh' t@(T ost oo v))
+reshape sh (A sh' t)
   | badShape sh = error $ "reshape: bad shape " ++ show sh
   | n /= n' = error $ "reshape: size mismatch " ++ show (sh, sh')
-  | vLength v == 1 = A sh $ T (map (const 0) sh) 0 v  -- Fast special case for singleton vector
-  | Just nst <- simpleReshape ost sh' sh = A sh $ T nst oo v
-  | otherwise = A sh $ T st 0 $ toVectorT sh' t
+  | otherwise = A sh $ reshapeT sh st sh' t
   where n : st = getStridesT sh
         n' = product sh'
 
@@ -266,7 +264,7 @@ stretch sh (A sh' vs) | Just bs <- str sh sh' = A sh $ stretchT bs vs
 stretchOuter :: (HasCallStack) => Int -> Array v a -> Array v a
 stretchOuter s (A (1:sh) vs)
   | badShape (s:sh) = error $ "stretchOuter: bad shape " ++ show (s:sh)
-  | otherwise = A (s:sh) $ stretchT (True : map (const False) (strides vs)) vs
+  | otherwise = A (s:sh) $ stretchOuterT vs
 stretchOuter _ (A sh _) = error $ "stretchOuter: needs outermost dimension of size 1 " ++ show sh
 
 -- | Convert a value to a scalar (rank 0) array.
@@ -340,14 +338,14 @@ zipWith5A f (A s t) (A s' t') (A s'' t'') (A s''' t''') (A s'''' t'''') | s == s
 {-# INLINE pad #-}
 pad :: forall a v . (HasCallStack, Vector v, VecElem v a) =>
        [(Int, Int)] -> a -> Array v a -> Array v a
-pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " ++ show (aps, ash)
-                     | any (\ (l, h) -> l < 0 || h < 0) aps = error $ "pad: negative padding " ++ show aps
-                     | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
-                         error $ "pad: padding past maxBound " ++ show (aps, ash)
-                     | badShape sh = error $ "pad: bad shape " ++ show sh
-                     -- Built past the checks, not bound above them: see natT.
-                     | all (== (0, 0)) aps = A ash at  -- no padding: the array itself
-                     | otherwise = A sh (padCopyT v aps ash at)
+pad aps v a@(A ash at) | length aps > length ash = error $ "pad: rank mismatch " ++ show (aps, ash)
+                       | any (\ (l, h) -> l < 0 || h < 0) aps = error $ "pad: negative padding " ++ show aps
+                       | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
+                           error $ "pad: padding past maxBound " ++ show (aps, ash)
+                       | badShape sh = error $ "pad: bad shape " ++ show sh
+                       -- Built past the checks, not bound above them: see natT.
+                       | all (== (0, 0)) aps = a  -- no padding: the array itself
+                       | otherwise = A sh (padCopyT v aps ash at)
   where sh = zipWithLong2 (\ (l, h) s -> l + s + h) aps ash
 
 -- | Do an arbitrary array transposition.
@@ -376,9 +374,14 @@ append :: (HasCallStack, Vector v, VecElem v a) => Array v a -> Array v a -> Arr
 append a@(A (sa:sh) ta) b@(A (sb:sh') tb)
   | sh == sh', sa == 0 = b  -- nothing to append to: the other array itself
   | sh == sh', sb == 0 = a
-  | sh == sh' && not (sumOverflows [sa, sb]) =
-    fromVector (sa+sb : sh) $
-      vUnsafeConcatViewsN (product (sa+sb : sh)) [(sa:sh, ta), (sb:sh', tb)]
+  -- An outer extent summing past maxBound is negative, which badShape sees.
+  -- The sum forced here, past the empty cases: lazy, it was a thunk in the
+  -- shape, 32 bytes a call at [3, 3]; banged in a where clause, it was forced
+  -- before the empty cases too, which ran up to 9 instructions a call more, on
+  -- GHC HEAD 10.1.20261019 (2026-10-23).
+  | sh == sh', !sab <- sa + sb, let rsh = sab : sh, not (badShape rsh)
+  , let l : st = getStridesT rsh =
+    A rsh $ T st 0 $ vUnsafeConcatViewsN l [(sa:sh, ta), (sb:sh', tb)]
 append a b = error $ "append: bad shape " ++ show (shapeL a, shapeL b)
 
 -- INLINE: by the measurement in the module's header, not for fusion: its list
@@ -397,10 +400,13 @@ concatOuter as | any null shs = error $ "concatOuter: rank 0 array " ++ show shs
                | not $ allSame $ map tail shs =
                  error $ "concatOuter: non-conforming inner dimensions: " ++ show shs
                | n < 0 = error $ "concatOuter: outer extents summing past maxBound: " ++ show (map head shs)
-               | otherwise = fromVector sh' $ vUnsafeConcatViewsN (product sh') $ map (\ (A s t) -> (s, t)) as
+               | badShape sh' = error $ "concatOuter: bad shape " ++ show sh'
+               | otherwise = A sh' $ T st 0 $
+                   vUnsafeConcatViewsN l $ map (\ (A s t) -> (s, t)) as
   where shs@(sh:_) = map shapeL as
         n = sumExtents (map head shs)
         sh' = n : tail sh
+        l : st = getStridesT sh'
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape,
@@ -412,12 +418,21 @@ concatOuter as | any null shs = error $ "concatOuter: rank 0 array " ++ show shs
 {-# INLINE ravel #-}
 ravel :: (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' (Array v a)) =>
          Array v' (Array v a) -> Array v a
-ravel aa | rank aa /= 1 = error $ "ravel: outermost array does not have rank 1 " ++ show (shapeL aa)
-         | otherwise = case shapeL aa of
-  [1] -> case unScalar (index aa 0) of  -- one array: a view of it
+ravel = ravelWith id
+
+-- 'ravel' with a function applied to each element of the outer array, which
+-- the boxed, Storable and Unboxed modules give their unA, so that their ravel
+-- builds no array of generic arrays.
+{-# INLINE ravelWith #-}
+ravelWith :: (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' b) =>
+             (b -> Array v a) -> Array v' b -> Array v a
+ravelWith w aa = case shapeL aa of
+  [1] -> case w (unScalar (index aa 0)) of  -- one array: a view of it
     A sh t -> A (1 : sh) (insertUnitsT 0 1 t)
-  [k] | k > 0 -> ravelOuterOf "ravel" [k] (shapeL (unScalar (index aa 0))) (toList aa)
-  _ -> error "ravel: empty array"
+  [k] | k > 0 -> ravelOuterOf "ravel" [k] (shapeL (w (unScalar (index aa 0)))) w
+                                (toList aa)
+      | otherwise -> error "ravel: empty array"
+  sh -> error $ "ravel: outermost array does not have rank 1 " ++ show sh
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
@@ -478,10 +493,13 @@ window aws (A ash (T ss o v))
 -- O(1) time.
 {-# INLINE stride #-}
 stride :: HasCallStack => [Int] -> Array v a -> Array v a
-stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ repeat 1) ss) o v)  -- check now
+stride ats (A ash at) = length rsh `seq` A rsh (strideT ats at)  -- check now
   where rsh = str ats ash
         str (t:ts) (s:sh) | t <= 0 = error $ "stride: non-positive stride " ++ show ats
-                          | otherwise = negate (negate s `div` t) : str ts sh  -- s / t rounded up, without overflow
+                          | otherwise =
+                              -- s / t rounded up, without overflow
+                              let !e = negate (negate s `div` t)
+                              in  e : str ts sh
         str [] sh = sh
         str _ _ = error $ "stride: rank mismatch " ++ show (ats, ash)
 
@@ -505,7 +523,7 @@ rotate d k a@(A sh at@T{values = v})
   | badShape sh' = error $ "rotate: bad shape " ++ show sh'
   | 0 `elem` sh' = A sh' $ emptyT sh'  -- no elements
   | k == 1 = A sh' (insertUnitsT d 1 at)  -- one rotation: a view of the array
-  | copies > toInteger (maxBound :: Int) = error $ "rotate: count too large " ++ show (d, k, sh)
+  | tooMany = error $ "rotate: count too large " ++ show (d, k, sh)
   -- Along a dimension of stride 0 every rotation equals the array, so the
   -- result is a view, as with k = 1: copied, rotate 0 2 of a scalar broadcast
   -- to 200000 Doubles ran about 3000 times the instructions of the view, on GHC
@@ -518,8 +536,11 @@ rotate d k a@(A sh at@T{values = v})
   -- bytes an element against the result's 16, and ran 11.1 to 11.6 instructions
   -- an element at Storable and Unboxed elements, on GHC HEAD 10.1.20261019
   -- (2026-10-21).
-  | otherwise = A sh' $ fromVectorT sh' $ vUnsafeConcatN (product sh') $
-      slices (product sh - n) 0 []
+  -- m forced first: in Shaped, its shape a constant, m is one too, and slices
+  -- took it apart at every slice, rotate 1 2 of [400, 500] Doubles running up
+  -- to 6% more instructions on GHC HEAD 10.1.20261019 (2026-10-23).
+  | otherwise = m `seq` A sh' (fromVectorT sh' $ vUnsafeConcatN (product sh') $
+      slices (product sh - n) 0 [])
  where
   -- One split shared by sh', h and m: with take d sh and drop d sh apart, the
   -- call built a thunk of drop d sh and k's cons before checking sh', and
@@ -544,10 +565,11 @@ rotate d k a@(A sh at@T{values = v})
   -- The limit the documentation gives, fewer than twice the k * n elements of
   -- a subarray's rotations, so past maxBound only where those pass half of it:
   -- the size of the copies of a subarray the rotations were once windows into,
-  -- kept so that rotate fails where it did.
-  copies = let h' = toInteger h
-               k' = toInteger k
-           in (k' + (k' + h' - 2) `quot` h') * toInteger n
+  -- kept so that rotate fails where it did.  Those copies number
+  -- (k + (k + h - 2) `quot` h) * n, tested without overflow: at the guard
+  -- k >= 2 and h, n >= 1, so (k + h - 2) `quot` h is (k - 2) `quot` h + 1.
+  tooMany = let q = (k - 2) `quot` h
+            in  k > maxBound - 1 - q || k + 1 + q > maxBound `quot` n
   -- Onto acc, the slices of subarray b's rotations from the last down to r,
   -- and before them those of every subarray before b: the list built from its
   -- end, each slice forced as it is consed, and a rotation's second slice left
@@ -609,21 +631,31 @@ rerank n f (A sh t) | n < 0 || n > length sh = error $ "rerank: rank exceeded " 
 {-# INLINE ravelOuter #-}
 ravelOuter :: (HasCallStack, Vector v, VecElem v a) => String -> ShapeL -> [Array v a] -> Array v a
 ravelOuter name osh [] = error $ name ++ ": empty outer dimension " ++ show osh
-ravelOuter name osh as@(a : _) = ravelOuterOf name osh (shapeL a) as
+ravelOuter name osh as@(a : _) = ravelOuterOf name osh (shapeL a) id as
 
 -- INLINE: F1, directly fusing: it consumes its list once, by a map, which
 -- fold/build fuses with a producer's build where it is inlined.
 --
 -- 'ravelOuter' given the shape every array must have, which 'ravel' reads off
 -- its first array without taking the list's head, so that the list fuses with
--- the copy.
+-- the copy, and a function from each element of the list to its array, applied
+-- here rather than mapped over the list: ravelWith's unA mapped over toList's
+-- list left the list built and cost ravel 144 bytes a call at [3, 3], and at
+-- [400, 500] 45 to 50 a subarray, on GHC HEAD 10.1.20261019 (2026-10-23).
 {-# INLINE ravelOuterOf #-}
 ravelOuterOf :: (HasCallStack, Vector v, VecElem v a) =>
-                String -> ShapeL -> ShapeL -> [Array v a] -> Array v a
-ravelOuterOf name osh sh as = fromVector sh' $ vUnsafeConcatViewsN (product sh') $ map vec as
+                String -> ShapeL -> ShapeL -> (b -> Array v a) -> [b] -> Array v a
+ravelOuterOf name osh sh w as
+  | badShape sh' = error $ name ++ ": bad shape " ++ show sh'
+  -- fromVector, whose size check, which cannot fail, forces the vector's
+  -- length and with it, at the list instance, the error of an array of another
+  -- shape, which the vector instances raise as the vector is built.
+  | otherwise = fromVector sh' $ vUnsafeConcatViewsN (product sh') $ map vec as
   where sh' = osh ++ sh
-        vec x@(A _ t) | shapeL x == sh = (sh, t)
-              | otherwise = error $ name ++ ": non-conforming inner dimensions: " ++ show [sh, shapeL x]
+        vec x = case w x of
+          A s t | s == sh -> (sh, t)
+                | otherwise ->
+                    error $ name ++ ": non-conforming inner dimensions: " ++ show [sh, s]
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
@@ -637,7 +669,7 @@ ravelOuterOf name osh sh as = fromVector sh' $ vUnsafeConcatViewsN (product sh')
 rerank2 :: forall v a b c . (HasCallStack, Vector v, VecElem v c) =>
            Int -> (Array v a -> Array v b -> Array v c) -> Array v a -> Array v b -> Array v c
 rerank2 n f (A sha ta) (A shb tb) | n < 0 || n > length sha || n > length shb = error $ "rerank2: rank exceeded " ++ show (n, sha, shb)
-                                  | take n sha /= take n shb = error $ "rerank2: shape mismatch " ++ show (take n sha, take n shb)
+                                  | osh /= osh' = error $ "rerank2: shape mismatch " ++ show (osh, osh')
                                   | all (== 1) osh, [sa] <- subArraysT osh ta, [sb] <- subArraysT osh tb =
                                     case f (A isha sa) (A ishb sb) of  -- one subarray each: a view of f's result
                                       A rsh rt -> A (osh ++ rsh) (insertUnitsT 0 (length osh) rt)
@@ -647,7 +679,7 @@ rerank2 n f (A sha ta) (A shb tb) | n < 0 || n > length sha || n > length shb = 
           (subArraysT osh ta)
           (subArraysT osh tb)
   where (osh, isha) = splitAt n sha
-        ishb = drop n shb
+        (osh', ishb) = splitAt n shb
 
 -- | Reverse the given dimensions, with the outermost being dimension 0.
 -- Fails if a given dimension is not one of the array's, or is given twice.
@@ -742,15 +774,14 @@ allA p (A sh t) = allT sh p t
 {-# INLINE broadcast #-}
 broadcast :: HasCallStack =>
              [Int] -> ShapeL -> Array v a -> Array v a
-broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error $ "broadcast: bad dimension index " ++ show (shapeL a, ds, sh)
-                  | not (ascending ds) = error $ "broadcast: unordered dimensions " ++ show (shapeL a, ds, sh)
-                  | badShape sh = error $ "broadcast: bad shape " ++ show sh
-                  | permute ds sh /= shapeL a =
-                      error $ "broadcast: shape mismatch " ++ show (shapeL a, ds, sh)
-                  | otherwise =
-                      A sh $ broadcastT [ i `notElem` ds | i <- [0 .. r - 1] ] t
+broadcast ds sh (A ash t) | any (\ d -> d < 0 || d >= r) ds = error $ "broadcast: bad dimension index " ++ show (ash, ds, sh)
+                          | not (ascending ds) = error $ "broadcast: unordered dimensions " ++ show (ash, ds, sh)
+                          | badShape sh = error $ "broadcast: bad shape " ++ show sh
+                          | permute ds sh /= ash =
+                              error $ "broadcast: shape mismatch " ++ show (ash, ds, sh)
+                          | otherwise =
+                              A sh $ broadcastT [ i `notElem` ds | i <- [0 .. r - 1] ] t
   where r = length sh
-        A _ t = a
         ascending (x:y:ys) = x < y && ascending (y:ys)
         ascending _ = True
 
@@ -764,8 +795,8 @@ broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error $ "broadcast: bad di
 {-# INLINE update #-}
 update :: (HasCallStack, Vector v, VecElem v a) =>
           Array v a -> [([Int], a)] -> Array v a
-update (A sh t) us | null us = A sh t  -- no update: the array itself
-                   | otherwise = A sh $ updateT sh t (checkedUpdatesT sh us)
+update a@(A sh t) us | null us = a  -- no update: the array itself
+                     | otherwise = A sh $ updateT sh t (checkedUpdatesT sh us)
 
 -- The updates, each index checked against the shape as 'updateT' takes it,
 -- under 'build', so that updateT's map fuses with the check: the list is walked
@@ -780,8 +811,9 @@ checkedUpdatesT sh us = build $ \ cons nil ->
         | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst (u : rest), sh)
       go [] = nil
   in  go us
-  where ok is = length is == r && and (zipWith (\ i s -> 0 <= i && i < s) is sh)
-        r = length sh
+  where ok = inBounds sh
+        inBounds (s : ss) (i : is) = 0 <= i && i < s && inBounds ss is
+        inBounds ss is = null ss && null is
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}

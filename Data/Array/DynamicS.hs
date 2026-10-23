@@ -13,5 +13,5 @@
 -- limitations under the License.
 
 module Data.Array.DynamicS(module A) where
-import Data.Array.Internal.DynamicS as A hiding(Array(..))
+import Data.Array.Internal.DynamicS as A hiding(Array(..), bitcastT)
 import Data.Array.Internal.DynamicS as A(Array)

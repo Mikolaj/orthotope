@@ -60,17 +60,16 @@ import Control.DeepSeq hiding (force)
 import Data.Coerce(coerce)
 import Data.Data(Data)
 import qualified Data.Vector.Storable as V
-import Foreign.Storable(sizeOf)
 import GHC.TypeLits(KnownNat, type (+), type (<=))
 import Test.QuickCheck hiding (generate)
 import GHC.Generics(Generic)
 import GHC.Stack(HasCallStack)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
-import Data.Array.Internal.DynamicS()  -- Vector instance
+import Data.Array.Internal.DynamicS(bitcastT)  -- and the Vector instance
 import qualified Data.Array.Internal.Ranked as R
 import qualified Data.Array.Internal.RankedG as G
-import Data.Array.Internal(ShapeL, T(..), Vector(..))
+import Data.Array.Internal(ShapeL, Vector(..))
 
 type Unbox = V.Storable
 
@@ -78,10 +77,8 @@ type role Array nominal nominal
 newtype Array n a = A { unA :: G.Array n V.Vector a }
   deriving (Pretty, Generic, Data)
 
--- Through Generic, so that rnf evaluates the shape, the strides and the offset
--- fully and the vector to weak head normal form, as vector's own rnf does, and
--- no element, every element being stored evaluated; the boxed modules' rnf
--- evaluates the elements of the view.
+-- Through Generic, for the reason at the NFData instance of
+-- Data.Array.Internal.DynamicS.
 instance NFData (Array n a)
 
 -- Point-free, as are the point-free wrappers and instance methods below, for
@@ -102,6 +99,8 @@ instance Ord (G.Array n V.Vector a) => Ord (Array n a) where
   {-# INLINE compare #-}
   compare x y = compare (unA x) (unA y)
 
+-- Not G.size . unA: see Data.Array.Internal.Dynamic's size.
+--
 -- | The number of elements in the array.
 size :: Array n a -> Int
 size = product . shapeL
@@ -302,7 +301,7 @@ concatOuter = A . G.concatOuter . coerce
 {-# INLINE ravel #-}
 ravel :: forall n a . (HasCallStack, Unbox a, KnownNat (1+n)) =>
          R.Array 1 (Array n a) -> Array (1+n) a
-ravel = A . G.ravel . G.mapA unA . R.unA
+ravel = A . G.ravelWith unA . R.unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
@@ -375,7 +374,7 @@ slice ss = A . G.slice ss . unA
 rerank :: forall n i o a b .
           (HasCallStack, Unbox b, KnownNat n, KnownNat o, KnownNat (n+o)) =>
           (Array i a -> Array o b) -> Array (n+i) a -> Array (n+o) b
-rerank f = A . G.rerank (unA . f . A) . unA
+rerank f = A . G.rerank @n (unA . f . A) . unA
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
@@ -516,10 +515,4 @@ iota = A . G.iota
 -- aligned as the source's.
 {-# INLINABLE bitcast #-}
 bitcast :: forall n a b . (HasCallStack, Unbox a, Unbox b) => Array n a -> Array n b
-bitcast (A (G.A sh (T ss o v)))
-  | sza /= szb || sza == 0
-  = error $ "bitcast: the types must have the same, nonzero size. " ++ show (sza, szb)
-  | otherwise
-  = A (G.A sh (T ss o (V.unsafeCast v)))
-  where sza = sizeOf (undefined :: a)
-        szb = sizeOf (undefined :: b)
+bitcast (A (G.A sh t)) = A (G.A sh (bitcastT t))
