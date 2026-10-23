@@ -306,9 +306,10 @@ ravel = A . G.ravel . G.mapA unA . R.unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
+{-# INLINE unravel #-}
 unravel :: forall n a .
            Array (1+n) a -> R.Array 1 (Array n a)
-unravel = R.A . G.mapA A . G.unravel . unA
+unravel = R.A . G.unravelWith A . unA
 
 -- | Make a window of the outermost dimensions.
 -- The rank increases with the length of the window list.

@@ -13,5 +13,5 @@
 -- limitations under the License.
 
 module Data.Array.DynamicG(module A) where
-import Data.Array.Internal.DynamicG as A hiding(Array(..))
+import Data.Array.Internal.DynamicG as A hiding(Array(..), unravelWith)
 import Data.Array.Internal.DynamicG as A(Array)

@@ -53,7 +53,7 @@ module Data.Array.Internal.RankedG(
   index, pad,
   mapA, zipWithA, zipWith3A, zipWith4A, zipWith5A,
   append, concatOuter,
-  ravel, unravel,
+  ravel, unravel, unravelWith,
   window, stride, rotate,
   slice, rerank, rerank2, rev,
   reduce, foldrA, traverseA,
@@ -415,7 +415,18 @@ ravel aa = case shapeL aa of
 {-# INLINE unravel #-}
 unravel :: forall n v v' a . (Vector v', VecElem v' (Array n v a)) =>
            Array (1+n) v a -> Array 1 v' (Array n v a)
-unravel = rerank @1 scalar
+unravel = unravelWith id
+
+-- 'unravel' with a function applied to each subarray, which the boxed,
+-- Storable and Unboxed modules give their constructor, so that their unravel
+-- builds one vector, each subarray a view of the array's vector stored as it
+-- is made.
+{-# INLINE unravelWith #-}
+unravelWith :: forall n v v' a b . (Vector v', VecElem v' b) =>
+               (Array n v a -> b) -> Array (1+n) v a -> Array 1 v' b
+unravelWith w (A (k : ish) t) =
+  A [k] $ fromVectorT [k] $ vGenerate' k (\ i -> w (A ish (indexT t i)))
+unravelWith _ (A [] _) = error "unravel: violated contract: rank 0"
 
 -- | Make a window of the outermost dimensions.
 -- The rank increases with the length of the window list.

@@ -46,7 +46,7 @@ module Data.Array.Internal.DynamicG(
   index, pad,
   mapA, zipWithA, zipWith3A, zipWith4A, zipWith5A,
   append, concatOuter,
-  ravel, unravel,
+  ravel, unravel, unravelWith,
   window, stride, rotate,
   slice, rerank, rerank2, rev,
   reduce, foldrA, traverseA,
@@ -421,9 +421,18 @@ ravel aa | rank aa /= 1 = error $ "ravel: outermost array does not have rank 1 "
 {-# INLINE unravel #-}
 unravel :: forall v v' a . (HasCallStack, Vector v', VecElem v' (Array v a)) =>
            Array v a -> Array v' (Array v a)
-unravel (A [] _) = error "unravel: rank 0 array"
-unravel (A (0 : _) _) = A [0] $ emptyT [0]  -- no subarrays
-unravel a = rerank 1 scalar a
+unravel = unravelWith id
+
+-- 'unravel' with a function applied to each subarray, which the boxed,
+-- Storable and Unboxed modules give their constructor, so that their unravel
+-- builds one vector, each subarray a view of the array's vector stored as it
+-- is made.
+{-# INLINE unravelWith #-}
+unravelWith :: forall v v' a b . (HasCallStack, Vector v', VecElem v' b) =>
+               (Array v a -> b) -> Array v a -> Array v' b
+unravelWith _ (A [] _) = error "unravel: rank 0 array"
+unravelWith w (A (k : ish) t) =
+  A [k] $ fromVectorT [k] $ vGenerate' k (\ i -> w (A ish (indexT t i)))
 
 -- | Make a window of the outermost dimensions.
 -- The rank increases with the length of the window list.

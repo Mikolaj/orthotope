@@ -48,7 +48,7 @@ module Data.Array.Internal.ShapedG(
   index, pad,
   mapA, zipWithA, zipWith3A, zipWith4A, zipWith5A,
   append, concatOuter,
-  ravel, unravel,
+  ravel, unravel, unravelWith,
   window, stride, rotate,
   slice, rerank, rerank2, rev,
   reduce, foldrA, traverseA,
@@ -427,7 +427,18 @@ ravel aa | natT @s == 1, [A t] <- toList aa = A (insertUnitsT 0 1 t)  -- one arr
 unravel :: forall sh s v v' a . (Vector v', VecElem v' (Array sh v a)
            , Shape sh, KnownNat s) =>
            Array (s:sh) v a -> Array '[s] v' (Array sh v a)
-unravel = rerank @1 scalar
+unravel = unravelWith id
+
+-- 'unravel' with a function applied to each subarray, which the boxed,
+-- Storable and Unboxed modules give their constructor, so that their unravel
+-- builds one vector, each subarray a view of the array's vector stored as it
+-- is made.
+{-# INLINE unravelWith #-}
+unravelWith :: forall sh s v v' a b . (Vector v', VecElem v' b, KnownNat s) =>
+               (Array sh v a -> b) -> Array (s:sh) v a -> Array '[s] v' b
+unravelWith w (A t) =
+  A $ fromVectorT [k] $ vGenerate' k (\ i -> w (A (indexT t i)))
+  where k = natT @s
 
 -- | Make a window of the outermost dimensions.
 -- The rank increases with the length of the window list.

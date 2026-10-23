@@ -322,10 +322,10 @@ ravel = A . G.ravel . G.mapA unA . unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
-{-# INLINABLE unravel #-}
+{-# INLINE unravel #-}
 unravel :: (Shape sh, KnownNat s) =>
            Array (s:sh) a -> Array '[s] (Array sh a)
-unravel = A . G.mapA A . G.unravel . unA
+unravel = A . G.unravelWith A . unA
 
 -- | Make a window of the outermost dimensions.
 -- The rank increases with the length of the window list.

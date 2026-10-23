@@ -232,6 +232,8 @@ test = testGroup "Ranked" $
       ravel_2 = assertThrowsIn "2" "ravelOuterOf" (ravel $ fromList [2] [a1, concatOuter [a1,a1]])
       unravel_1 = assertEqual "1" [a1,a1,a1]
                                   (toList $ unravel $ ravel $ fromList [3] [a1,a1,a1])
+      -- Of an empty outer dimension, an empty array of arrays, as in Dynamic.
+      unravel_2 = assertEqual "2" [0] (shapeL (unravel (fromList [0,3] [] :: Array 2 Int)))
       a6 :: Array 2 Int
       a6 = fromList [4,5] [1..20]
       window_1 = assertEqual "1" (fromList [2,3,3,3] [1,2,3,
@@ -535,6 +537,7 @@ test = testGroup "Ranked" $
         , testCase "ravel_1" ravel_1
         , testCase "ravel_2" ravel_2
         , testCase "unravel_1" unravel_1
+        , testCase "unravel_2" unravel_2
         , testCase "window_1" window_1
         , testCase "window_2" window_2
         , testCase "window_3" window_3
