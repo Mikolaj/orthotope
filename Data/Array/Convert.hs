@@ -22,6 +22,7 @@
 module Data.Array.Convert(Convert(..)) where
 import Data.Proxy
 import qualified Data.Vector as V
+import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Storable as VS
 import GHC.TypeLits(KnownNat, natVal)
@@ -55,6 +56,20 @@ import Data.Array.Internal.Shape(Shape(..))
 fromStorable :: VS.Storable a => VS.Vector a -> V.Vector a
 fromStorable v =
   I.genericZipLoop (VS.length v) (\ i -> return $! VS.unsafeIndex v i)
+
+-- A view converted between the vector package's boxings, the source's
+-- elements read as stored: a range by vector's convert, any other view walked.
+{-# INLINE boxingT #-}
+boxingT :: (VG.Vector v a, VG.Vector w a, I.Vector v, I.VecElem v a,
+            I.Vector w, I.VecElem w a)
+        => [Int] -> I.T v a -> I.T w a
+boxingT sh = I.convertT sh V.convert (I.genericMapStrided False id)
+
+-- A Storable view converted to a boxed one, each element read before it is
+-- stored, as 'fromStorable' reads it.
+{-# INLINE fromStorableT #-}
+fromStorableT :: VS.Storable a => [Int] -> I.T VS.Vector a -> I.T V.Vector a
+fromStorableT sh = I.convertT sh fromStorable (I.genericMapStrided True id)
 
 class Convert a b where
   -- | Convert between two array types.
@@ -101,6 +116,17 @@ shapedE p sh r | not (sameShape sh ns) = Left $ "convert: shape mismatch " ++ sh
                | otherwise = Right r
   where ns = natsP p
 
+-- INLINE: see shapedE.
+-- The check of a conversion to a Ranked array: the shape's rank against the
+-- type's.
+{-# INLINE rankedE #-}
+rankedE :: KnownNat n => Proxy n -> [Int] -> r -> Either String r
+rankedE p sh r
+  | toInteger (length sh) /= n =
+      Left $ "convert: rank mismatch " ++ show (sh, n)
+  | otherwise = Right r
+  where n = natVal p
+
 -- We write these instances like "instance (a ~ b) => Convert (X a) (Y b)" so
 -- that instance resolution will commit to them as soon as it knows the array
 -- types, and then introduce an equality constraint on the element types.  This
@@ -120,11 +146,11 @@ shapedE p sh r | not (sameShape sh ns) = Left $ "convert: shape mismatch " ++ sh
 
 instance (a ~ b, DU.Unbox a) => Convert (D.Array a) (DU.Array b) where
   {-# INLINABLE convert #-}
-  convert (D.A (DG.A sh t)) = DU.A (DG.A sh (I.convertT sh V.convert (I.genericMapStrided False id) t))
+  convert (D.A (DG.A sh t)) = DU.A (DG.A sh (boxingT sh t))
 
 instance (a ~ b, DU.Unbox a) => Convert (DU.Array a) (D.Array b) where
   {-# INLINABLE convert #-}
-  convert (DU.A (DG.A sh t)) = D.A (DG.A sh (I.convertT sh V.convert (I.genericMapStrided False id) t))
+  convert (DU.A (DG.A sh t)) = D.A (DG.A sh (boxingT sh t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 
@@ -132,11 +158,11 @@ instance (a ~ b, DU.Unbox a) => Convert (DU.Array a) (D.Array b) where
 
 instance (a ~ b, DS.Unbox a) => Convert (D.Array a) (DS.Array b) where
   {-# INLINABLE convert #-}
-  convert (D.A (DG.A sh t)) = DS.A (DG.A sh (I.convertT sh V.convert (I.genericMapStrided False id) t))
+  convert (D.A (DG.A sh t)) = DS.A (DG.A sh (boxingT sh t))
 
 instance (a ~ b, DS.Unbox a) => Convert (DS.Array a) (D.Array b) where
   {-# INLINABLE convert #-}
-  convert (DS.A (DG.A sh t)) = D.A (DG.A sh (I.convertT sh fromStorable (I.genericMapStrided True id) t))
+  convert (DS.A (DG.A sh t)) = D.A (DG.A sh (fromStorableT sh t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 
@@ -147,11 +173,11 @@ instance (a ~ b, DS.Unbox a) => Convert (DS.Array a) (D.Array b) where
 
 instance (a ~ b, n ~ m, RU.Unbox a) => Convert (R.Array n a) (RU.Array m b) where
   {-# INLINABLE convert #-}
-  convert (R.A (RG.A sh t)) = RU.A (RG.A sh (I.convertT sh V.convert (I.genericMapStrided False id) t))
+  convert (R.A (RG.A sh t)) = RU.A (RG.A sh (boxingT sh t))
 
 instance (a ~ b, n ~ m, RU.Unbox a) => Convert (RU.Array n a) (R.Array m b) where
   {-# INLINABLE convert #-}
-  convert (RU.A (RG.A sh t)) = R.A (RG.A sh (I.convertT sh V.convert (I.genericMapStrided False id) t))
+  convert (RU.A (RG.A sh t)) = R.A (RG.A sh (boxingT sh t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 
@@ -159,11 +185,11 @@ instance (a ~ b, n ~ m, RU.Unbox a) => Convert (RU.Array n a) (R.Array m b) wher
 
 instance (a ~ b, n ~ m, RS.Unbox a) => Convert (R.Array n a) (RS.Array m b) where
   {-# INLINABLE convert #-}
-  convert (R.A (RG.A sh t)) = RS.A (RG.A sh (I.convertT sh V.convert (I.genericMapStrided False id) t))
+  convert (R.A (RG.A sh t)) = RS.A (RG.A sh (boxingT sh t))
 
 instance (a ~ b, n ~ m, RS.Unbox a) => Convert (RS.Array n a) (R.Array m b) where
   {-# INLINABLE convert #-}
-  convert (RS.A (RG.A sh t)) = R.A (RG.A sh (I.convertT sh fromStorable (I.genericMapStrided True id) t))
+  convert (RS.A (RG.A sh t)) = R.A (RG.A sh (fromStorableT sh t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 
@@ -171,13 +197,13 @@ instance (a ~ b, n ~ m, RS.Unbox a) => Convert (RS.Array n a) (R.Array m b) wher
 
 instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n) => Convert (S.Array n a) (SU.Array m b) where
   {-# INLINABLE convert #-}
-  convert (S.A g@(SG.A t)) = SU.A (SG.A (I.convertT (SG.shapeL g) V.convert (I.genericMapStrided False id) t))
+  convert (S.A g@(SG.A t)) = SU.A (SG.A (boxingT (SG.shapeL g) t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 
 instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n) => Convert (SU.Array n a) (S.Array m b) where
   {-# INLINABLE convert #-}
-  convert (SU.A g@(SG.A t)) = S.A (SG.A (I.convertT (SG.shapeL g) V.convert (I.genericMapStrided False id) t))
+  convert (SU.A g@(SG.A t)) = S.A (SG.A (boxingT (SG.shapeL g) t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 
@@ -185,11 +211,11 @@ instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n) => Convert (SU.Array n a) (S.Arra
 
 instance (a ~ b, n ~ m, SS.Unbox a, S.Shape n) => Convert (S.Array n a) (SS.Array m b) where
   {-# INLINABLE convert #-}
-  convert (S.A g@(SG.A t)) = SS.A (SG.A (I.convertT (SG.shapeL g) V.convert (I.genericMapStrided False id) t))
+  convert (S.A g@(SG.A t)) = SS.A (SG.A (boxingT (SG.shapeL g) t))
 
 instance (a ~ b, n ~ m, SS.Unbox a, S.Shape n) => Convert (SS.Array n a) (S.Array m b) where
   {-# INLINABLE convert #-}
-  convert (SS.A g@(SG.A t)) = S.A (SG.A (I.convertT (SG.shapeL g) fromStorable (I.genericMapStrided True id) t))
+  convert (SS.A g@(SG.A t)) = S.A (SG.A (fromStorableT (SG.shapeL g) t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 
@@ -206,8 +232,7 @@ instance (a ~ b, KnownNat n) => Convert (D.Array a) (R.Array n b) where
   -- specialisation benchmark's summed conversions to Shaped arrays 16 to 40
   -- bytes a call, against 16 saved where forced.
   {-# INLINE convertE #-}
-  convertE (D.A (DG.A sh t)) | toInteger (length sh) /= natVal (Proxy :: Proxy n) = Left $ "convert: rank mismatch " ++ show (sh, natVal (Proxy :: Proxy n))
-                             | otherwise = Right $ R.A (RG.A sh t)
+  convertE (D.A (DG.A sh t)) = rankedE (Proxy :: Proxy n) sh $ R.A (RG.A sh t)
 
 instance (a ~ b, S.Shape sh) => Convert (S.Array sh a) (D.Array b) where
   {-# INLINE convert #-}
@@ -241,8 +266,7 @@ instance (a ~ b) => Convert (RS.Array n a) (DS.Array b) where
 instance (a ~ b, KnownNat n) => Convert (DS.Array a) (RS.Array n b) where
   -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
-  convertE (DS.A (DG.A sh t)) | toInteger (length sh) /= natVal (Proxy :: Proxy n) = Left $ "convert: rank mismatch " ++ show (sh, natVal (Proxy :: Proxy n))
-                              | otherwise = Right $ RS.A (RG.A sh t)
+  convertE (DS.A (DG.A sh t)) = rankedE (Proxy :: Proxy n) sh $ RS.A (RG.A sh t)
 
 instance (a ~ b, SS.Shape sh) => Convert (SS.Array sh a) (DS.Array b) where
   {-# INLINE convert #-}

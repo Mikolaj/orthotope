@@ -80,10 +80,8 @@ type role Array nominal nominal
 newtype Array sh a = A { unA :: G.Array sh V.Vector a }
   deriving (Pretty, Generic, Data)
 
--- Through Generic, so that rnf evaluates the strides and the offset fully
--- and the vector to weak head normal form, as vector's own rnf does, and no
--- element: a DoNotUnboxLazy element stays as stored, where the boxed modules'
--- rnf evaluates the elements of the view.
+-- Through Generic, for the reason at the NFData instance of
+-- Data.Array.Internal.DynamicU.
 instance NFData (Array sh a)
 
 -- Point-free, as are the point-free wrappers and instance methods below, for
@@ -310,7 +308,7 @@ concatOuter = A . G.concatOuter @m @n . coerce
 {-# INLINE ravel #-}
 ravel :: forall sh s a . (Unbox a, Shape sh, KnownNat s) =>
          S.Array '[s] (Array sh a) -> Array (s:sh) a
-ravel = A . G.ravel . G.mapA unA . S.unA
+ravel = A . G.ravelWith unA . S.unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.

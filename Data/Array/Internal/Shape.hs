@@ -59,13 +59,6 @@ type family (++) (xs :: [Nat]) (ys :: [Nat]) :: [Nat] where
   (++) '[] ys = ys
   (++) (x ': xs) ys = x ': (xs ++ ys)
 
-{-
--- XXX O(n^2)
-type family Reverse (xs :: [Nat]) :: [Nat] where
-    Reverse '[] = '[]
-    Reverse (x ': xs) = Reverse xs ++ '[x]
--}
-
 type family Take (n :: Nat) (xs :: [Nat]) :: [Nat] where
     Take 0 xs = '[]
     Take n (x ': xs) = x ': Take (n-1) xs

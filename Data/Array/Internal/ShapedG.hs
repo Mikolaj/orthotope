@@ -48,7 +48,7 @@ module Data.Array.Internal.ShapedG(
   index, pad,
   mapA, zipWithA, zipWith3A, zipWith4A, zipWith5A,
   append, concatOuter,
-  ravel, unravel, unravelWith,
+  ravel, ravelWith, unravel, unravelWith,
   window, stride, rotate,
   slice, rerank, rerank2, rev,
   reduce, foldrA, traverseA,
@@ -81,7 +81,7 @@ newtype Array (sh :: [Nat]) v a = A (T v a)
 instance (Vector v, Show a, VecElem v a, Shape sh) => Show (Array sh v a) where
   {-# INLINABLE showsPrec #-}
   showsPrec p a@(A _) = showParen (p > 10) $
-    showString "fromList @" . showsPrec 11 (shapeL a) . showString" " . showsPrec 11 (toList a)
+    showString "fromList @" . showsPrec 11 (shapeL a) . showString " " . showsPrec 11 (toList a)
 
 instance (Shape sh, Vector v, Read a, VecElem v a) => Read (Array sh v a) where
   {-# INLINABLE readsPrec #-}
@@ -89,7 +89,7 @@ instance (Shape sh, Vector v, Read a, VecElem v a) => Read (Array sh v a) where
     [(fromList xs, r4)
     | ("fromList", r2) <- lex r1, ("@", r2') <- lex r2
     , (s, r3) <- readsPrec 11 r2', (xs, r4) <- readsPrec 11 r3
-    , s == shapeP (Proxy :: Proxy sh), product s == length xs]
+    , s == shapeT @sh, product s == length xs]
 
 instance (Vector v, Eq a, VecElem v a, Shape sh)
          => Eq (Array sh v a) where
@@ -128,7 +128,7 @@ instance (NFData (v a)) => NFData (Array sh v a) where
 -- | The number of elements in the array.
 {-# INLINE size #-}
 size :: forall sh v a . (Shape sh) => Array sh v a -> Int
-size _ = sizeP (Proxy :: Proxy sh)
+size _ = sizeT @sh
 
 -- | The shape of an array, i.e., a list of the sizes of its dimensions.
 -- In the linearization of the array the outermost (i.e. first list element)
@@ -136,7 +136,7 @@ size _ = sizeP (Proxy :: Proxy sh)
 -- O(1) time.
 {-# INLINE shapeL #-}
 shapeL :: forall sh v a . (Shape sh) => Array sh v a -> ShapeL
-shapeL _ = shapeP (Proxy :: Proxy sh)
+shapeL _ = shapeT @sh
 
 -- | The rank of an array, i.e., the number of dimensions it has.
 -- O(1) time.
@@ -186,7 +186,7 @@ fromList vs = case vFromListExactN n vs of
                 Left l -> error $ "fromList: size mismatch "
                             ++ showShapeLength ss n l
   where n : st = getStridesT ss
-        ss = shapeP (Proxy :: Proxy sh)
+        ss = shapeT @sh
 
 -- | Convert from a vector with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the vector.
@@ -198,7 +198,7 @@ fromVector v | n /= l = error $ "fromVector: size mismatch " ++ show (ss, l)
              | otherwise = A $ T st 0 v
   where n : st = getStridesT ss
         l = vLength v
-        ss = shapeP (Proxy :: Proxy sh)
+        ss = shapeT @sh
 
 -- | Make sure the underlying vector is in the linearization order.
 -- Where the elements already lie in that order in one part of the vector,
@@ -230,15 +230,12 @@ force a@(A t) = A $ forceT (shapeL a) t
 reshape :: forall sh' sh v a .
            (Vector v, VecElem v a, Shape sh, Shape sh', Size sh ~ Size sh') =>
            Array sh v a -> Array sh' v a
-reshape a = reshape' (shapeP (Proxy :: Proxy sh')) (shapeL a) a
+reshape a = reshape' (shapeT @sh') (shapeL a) a
 
 {-# INLINABLE reshape' #-}
 reshape' :: (Vector v, VecElem v a) =>
             ShapeL -> ShapeL -> Array sh v a -> Array sh' v a
-reshape' sh sh' (A t@(T ost oo v))
-  | vLength v == 1 = A $ T (map (const 0) sh) 0 v  -- Fast special case for singleton vector
-  | Just nst <- simpleReshape ost sh' sh = A $ T nst oo v
-  | otherwise = A $ fromVectorT sh $ toVectorT sh' t
+reshape' sh sh' (A t) = A $ reshapeT sh (tail (getStridesT sh)) sh' t
 
 -- | Change the size of dimensions with size 1.  These dimensions can be changed to any size.
 -- All other dimensions, which the types check, remain the same.
@@ -246,19 +243,15 @@ reshape' sh sh' (A t@(T ost oo v))
 {-# INLINE stretch #-}
 stretch :: forall sh' sh v a . (Shape sh', ValidStretch sh sh') =>
            Array sh v a -> Array sh' v a
-stretch a = sizeT @sh' `seq`  -- the result's size checked now; see natT
-            stretch' (stretching (Proxy :: Proxy sh) (Proxy :: Proxy sh')) a
-
-{-# INLINE stretch' #-}
-stretch' :: [Bool] -> Array sh v a -> Array sh' v a
-stretch' str (A vs) = A $ stretchT str vs
+stretch (A vs) = sizeT @sh' `seq`  -- the result's size checked now; see natT
+                 A (stretchT (stretching (Proxy :: Proxy sh) (Proxy :: Proxy sh')) vs)
 
 -- | Change the size of the outermost dimension by replication.
 {-# INLINE stretchOuter #-}
 stretchOuter :: forall s sh v a . (KnownNat s, Shape sh) =>
                 Array (1 : sh) v a -> Array (s : sh) v a
 stretchOuter (A vs) = sizeT @(s : sh) `seq`  -- the result's size checked now; see natT
-                      A $ stretchT (True : map (const False) (strides vs)) vs
+                      A $ stretchOuterT vs
 
 -- Point-free, as are the point-free definitions below, for the reason at
 -- Data.Array.Internal.DynamicG's size.
@@ -280,7 +273,7 @@ unScalar (A t) = unScalarT t
 {-# INLINE constant #-}
 constant :: forall sh v a . (Vector v, VecElem v a, Shape sh) =>
             a -> Array sh v a
-constant = A . constantT (shapeP (Proxy :: Proxy sh))
+constant = A . constantT (shapeT @sh)
 
 -- | Map over the array elements.
 -- O(n) time.
@@ -364,7 +357,7 @@ append a@(A ta) b@(A tb)
   | natT @m == 0 = A tb  -- nothing to append to: the other array itself
   | natT @n == 0 = A ta
   | otherwise =
-    fromVector (vUnsafeConcatViewsN (sizeT @(m+n ': sh)) [viewOfA a, viewOfA b])
+    unsafeFromVector (vUnsafeConcatViewsN (sizeT @(m+n ': sh)) [viewOfA a, viewOfA b])
 
 -- INLINE: by the measurement in the module's header, not for fusion: its list
 -- goes to the one-array check and to the concatenation, which counts it as it
@@ -379,7 +372,10 @@ concatOuter :: forall m n sh v a . (HasCallStack, Vector v, VecElem v a, KnownNa
                [Array (n ': sh) v a] -> Array (m ': sh) v a
 concatOuter as | [A t] <- as, n == s = A t  -- one array: the array itself
                | n > 0, (k, 0) <- s `quotRem` n =
-                 fromVector $ vUnsafeConcatViewsN (sizeT @(m ': sh)) $ counted k as
+                 unsafeFromVector $ vUnsafeConcatViewsN (sizeT @(m ': sh)) $ counted k as
+               -- fromVector, which GHC floats out here as a constant, where
+               -- unsafeFromVector's T was built at each call, 32 bytes at the
+               -- empty size on GHC HEAD 10.1.20261019 (2026-10-23).
                | n == 0, s == 0 = fromVector vEmpty  -- empty however many
                | otherwise =  -- no count would do: at most one more than fits
                  case splitAt (1 + if n > 0 then s `quot` n else 0) as of
@@ -402,6 +398,12 @@ concatOuter as | [A t] <- as, n == s = A t  -- one array: the array itself
                       | otherwise = mismatch i False
           in  go 0 xs
 
+-- 'fromVector' of a vector of the type's size, which the caller built,
+-- unchecked.
+{-# INLINE unsafeFromVector #-}
+unsafeFromVector :: forall sh v a . Shape sh => v a -> Array sh v a
+unsafeFromVector = A . fromVectorT (shapeT @sh)
+
 -- An array as its shape and T, for 'vUnsafeConcatViewsN'.
 {-# INLINE viewOfA #-}
 viewOfA :: Shape sh => Array sh v a -> (ShapeL, T v a)
@@ -418,8 +420,20 @@ ravel :: forall sh s v v' a .
          (Vector v, Vector v', VecElem v a, VecElem v' (Array sh v a)
          , Shape sh, KnownNat s) =>
          Array '[s] v' (Array sh v a) -> Array (s:sh) v a
-ravel aa | natT @s == 1, [A t] <- toList aa = A (insertUnitsT 0 1 t)  -- one array: a view of it
-         | otherwise = fromVector $ vUnsafeConcatViewsN (sizeT @(s:sh)) $ map viewOfA $ toList aa
+ravel = ravelWith id
+
+-- 'ravel' with a function applied to each element of the outer array, as at
+-- DynamicG's.
+{-# INLINE ravelWith #-}
+ravelWith :: forall sh s v v' a b .
+             (Vector v, Vector v', VecElem v a, VecElem v' b, Shape sh,
+              KnownNat s) =>
+             (b -> Array sh v a) -> Array '[s] v' b -> Array (s:sh) v a
+ravelWith w aa
+  | natT @s == 1, [x] <- toList aa, A t <- w x =
+    A (insertUnitsT 0 1 t)  -- one array: a view of it
+  | otherwise = unsafeFromVector $ vUnsafeConcatViewsN (sizeT @(s:sh)) $
+                map (viewOfA . w) $ toList aa
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
@@ -467,9 +481,9 @@ window (A (T ss o v)) = sizeT @sh' `seq`  -- the result's size checked now; see 
 stride :: forall ts sh' sh v a .
           (Stride ts sh sh', Shape ts) =>
           Array sh v a -> Array sh' v a
-stride (A (T ss o v)) =
+stride (A t) =
   foldr seq () ats `seq`  -- check now
-  A (T (zipWith (*) (ats ++ repeat 1) ss) o v)
+  A (strideT ats t)
   where ats = listP (Proxy :: Proxy ts)
 
 -- | Rotate the array k times along the d'th dimension.
@@ -518,7 +532,7 @@ rerank f a@(A t)
     case f (A s) of  -- one subarray: a view of f's result
       A rt -> A (insertUnitsT 0 (length osh) rt)
   | otherwise =
-  fromVector $
+  unsafeFromVector $
   vUnsafeConcatViewsN (sizeT @(Take n sh ++ o)) $
   map (viewOfA . f . A) $
   subArraysT osh t
@@ -541,6 +555,9 @@ rerank2 f aa@(A ta) (A tb)
   | all (== 1) osh, [sa] <- subArraysT osh ta, [sb] <- subArraysT osh tb =
     case f (A sa) (A sb) of  -- one subarray each: a view of f's result
       A rt -> A (insertUnitsT 0 (length osh) rt)
+  -- fromVector, not rerank's unsafeFromVector, with which rerank2 ran 1 to
+  -- 12 instructions a call more at [3, 3] and at the empty size on GHC HEAD
+  -- 10.1.20261019 (2026-10-23).
   | otherwise =
   fromVector $
   vUnsafeConcatViewsN (sizeT @(r ++ o)) $
@@ -548,7 +565,6 @@ rerank2 f aa@(A ta) (A tb)
           (subArraysT osh ta)
           (subArraysT osh tb)
   where osh = take (valueOf @n) (shapeL aa)
-
 
 -- | Reverse the given dimensions, with the outermost being dimension 0.
 -- Fails if a dimension is given twice.
@@ -590,7 +606,7 @@ allSameA a@(A t) = allSameT (shapeL a) t
 
 instance (Shape sh, Vector v, VecElem v a, Arbitrary a) => Arbitrary (Array sh v a) where
   {-# INLINE arbitrary #-}
-  arbitrary = fromList <$> vector (sizeP (Proxy :: Proxy sh))
+  arbitrary = fromList <$> vector (sizeT @sh)
 
 -- | Sum of all elements.
 {-# INLINE sumA #-}
@@ -654,7 +670,7 @@ update :: forall sh v a . (HasCallStack, Vector v, VecElem v a, Shape sh) =>
 -- elements, 41 to 67%, allocating 144 bytes a call more, and 18 to 20 more at
 -- boxed ones, up to 1.4%; only its update2000 of boxed elements ran fewer, 10 a
 -- call, 0.3%.
-update a@(A t) us | null us = A t  -- no update: the array itself
+update a@(A t) us | null us = a  -- no update: the array itself
                   | otherwise = A $ updateT sh t (DG.checkedUpdatesT sh us)
   where sh = shapeL a
 
@@ -663,7 +679,7 @@ update a@(A t) us | null us = A t  -- no update: the array itself
 generate :: forall sh v a .
             (Vector v, VecElem v a, Shape sh) =>
             ([Int] -> a) -> Array sh v a
-generate = A . generateT (shapeP (Proxy :: Proxy sh))
+generate = A . generateT (shapeT @sh)
 
 -- | Iterate a function n times.
 {-# INLINE iterateN #-}

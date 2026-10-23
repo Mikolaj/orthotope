@@ -13,5 +13,6 @@
 -- limitations under the License.
 
 module Data.Array.RankedG(module A) where
-import Data.Array.Internal.RankedG as A hiding(Array(..), unravelWith)
+import Data.Array.Internal.RankedG as A
+  hiding(Array(..), ravelWith, unravelWith)
 import Data.Array.Internal.RankedG as A(Array)

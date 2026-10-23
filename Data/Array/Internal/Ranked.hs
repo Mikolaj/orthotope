@@ -65,7 +65,7 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import Data.Array.Internal.Dynamic()  -- Vector instance
 import qualified Data.Array.Internal.RankedG as G
-import Data.Array.Internal(ShapeL, Vector(..), rnfViewT)
+import Data.Array.Internal(ShapeL, Vector(..), constantT, rnfViewT)
 
 type role Array nominal nominal
 newtype Array n a = A { unA :: G.Array n V.Vector a }
@@ -93,6 +93,8 @@ instance Ord (G.Array n V.Vector a) => Ord (Array n a) where
   {-# INLINE compare #-}
   compare x y = compare (unA x) (unA y)
 
+-- Not G.size . unA: see Data.Array.Internal.Dynamic's size.
+--
 -- | The number of elements in the array.
 size :: Array n a -> Int
 size = product . shapeL
@@ -214,6 +216,10 @@ mapA f = A . G.mapA f . unA
 instance Functor (Array n) where
   {-# INLINE fmap #-}
   fmap = mapA
+  -- A view of one element, as constant builds it, where the default maps over
+  -- every element; the array forced, as the default forces it.
+  {-# INLINE (<$) #-}
+  x <$ A (G.A sh _) = A (G.A sh (constantT sh x))
 
 instance Foldable (Array n) where
   {-# INLINE foldr #-}
@@ -303,7 +309,7 @@ concatOuter = A . G.concatOuter . coerce
 {-# INLINE ravel #-}
 ravel :: (HasCallStack, KnownNat (1+n)) =>
          Array 1 (Array n a) -> Array (1+n) a
-ravel = A . G.ravel . G.mapA unA . unA
+ravel = A . G.ravelWith unA . unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
@@ -374,7 +380,7 @@ slice ss = A . G.slice ss . unA
 {-# INLINE rerank #-}
 rerank :: forall n i o a b . (HasCallStack, KnownNat n, KnownNat o, KnownNat (n+o)) =>
           (Array i a -> Array o b) -> Array (n+i) a -> Array (n+o) b
-rerank f = A . G.rerank (unA . f . A) . unA
+rerank f = A . G.rerank @n (unA . f . A) . unA
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.

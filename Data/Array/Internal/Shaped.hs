@@ -55,6 +55,9 @@ module Data.Array.Internal.Shaped(
   update,
   generate, iterateN, iota,
   ) where
+#if !MIN_VERSION_base(4,18,0)
+import Control.Applicative(liftA2)
+#endif
 import Control.DeepSeq hiding (force)
 import Data.Coerce(coerce)
 import Data.Data(Data)
@@ -213,23 +216,19 @@ constant :: forall sh a . (Shape sh) =>
             a -> Array sh a
 constant = A . G.constant
 
--- The array named: point-free, mapA named one argument, so that fmap = mapA,
--- applied to two by liftA2's default, fmap f x <*> y, over-saturated it and GHC
--- inlined it there, growing liftA2 past what a client inlines; named, the call
--- stays a call and liftA2 is inlined into the client.  With the specialisation
--- benchmark's calls saturated, on GHC HEAD 10.1.20260918, 2026-10-15, boxed
--- liftA2 then took 30 to 57 percent fewer instructions and allocated up to 776
--- bytes a call less.
---
 -- | Map over the array elements.
 -- O(n) time.
 {-# INLINE mapA #-}
 mapA :: (Shape sh) => (a -> b) -> Array sh a -> Array sh b
-mapA f a = A (G.mapA f (unA a))
+mapA f = A . G.mapA f . unA
 
 instance (Shape sh) => Functor (Array sh) where
   {-# INLINE fmap #-}
   fmap = mapA
+  -- A view of one element, as constant builds it, where the default maps over
+  -- every element; the array forced, as the default forces it.
+  {-# INLINE (<$) #-}
+  x <$ a = a `seq` constant x
 
 instance (Shape sh) => Foldable (Array sh) where
   {-# INLINE foldr #-}
@@ -249,6 +248,10 @@ instance (Shape sh) => Applicative (Array sh) where
   pure = constant
   {-# INLINE (<*>) #-}
   (<*>) = zipWithA ($)
+  -- One zip, where the default, fmap f x <*> y, builds an array of the
+  -- partial applications first.
+  {-# INLINE liftA2 #-}
+  liftA2 = zipWithA
 
 -- | Combine the elements of two arrays.
 -- O(n) time.
@@ -324,7 +327,7 @@ concatOuter = A . G.concatOuter @m @n . coerce
 {-# INLINE ravel #-}
 ravel :: (Shape sh, KnownNat s) =>
          Array '[s] (Array sh a) -> Array (s:sh) a
-ravel = A . G.ravel . G.mapA unA . unA
+ravel = A . G.ravelWith unA . unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.

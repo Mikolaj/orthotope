@@ -61,6 +61,7 @@ import Data.List(foldl')
 #endif
 import Data.List(zipWith4, zipWith5, sortOn, foldl1')
 import Data.Proxy
+import Data.Vector.Fusion.Util(Box(..))
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import GHC.Exts(Constraint, SpecConstrAnnotation(..), build, inline)
@@ -71,13 +72,10 @@ import Text.PrettyPrint.HughesPJClass
 
 {- HLINT ignore "Reduce duplication" -}
 
--- The underlying storage of values must be an instance of Vector.
--- For some types, like unboxed vectors, we require an extra
--- constraint on the elements, which VecElem allows you to express.
--- For vector types that don't need the constraint it can be set
--- to some dummy class.
--- | The 'Vector' class is the interface to the underlying storage for the arrays.
--- The operations map straight to operations for 'Vector'.
+-- | The interface to the underlying storage of the arrays, whose operations
+-- map straight to the vector type's.  'VecElem' is the constraint the vector
+-- type needs on its elements, such as unboxed vectors' 'Unbox', or a class
+-- every type has where it needs none.
 class Vector v where
   type VecElem v :: Type -> Constraint
   vIndex    :: (VecElem v a) => v a -> Int -> a
@@ -131,13 +129,11 @@ class Vector v where
 
   -- | Materialize a strided view in row-major order, unchecked: the
   -- arguments and the contract are those of 'fillStrided', which checks the
-  -- contract and says what breaking it does here.  This method is
-  -- what makes a fast 'toVectorListT' and
-  -- 'toVectorT' possible: what the conversions to vectors do not hand
-  -- out as slices of the source they fill through it, over the
-  -- view's canonical axes ('routeT'), and the fast fills
-  -- write a mutable result buffer across runs, which no existing
-  -- method can express ('vGenerate' is stateless).
+  -- contract and says what breaking it does here.  It makes 'toVectorT' and
+  -- 'toVectorListT' fast: what they do not hand out as slices of the source
+  -- they fill through it, over the view's canonical axes ('routeT'), and the
+  -- vector instances write a mutable buffer across runs, which no other method
+  -- can ('vGenerate' is stateless).
   --
   -- The default lists the view's elements as 'toListT' does ('elemsT') and
   -- builds its result from that list.  The vector-backed instances override it
@@ -359,13 +355,10 @@ prettyShowL l = render . pPrintPrec l 0
 -- reads whatever memory lies there, unless vector's unsafe checks are on, as
 -- cabal.project.checks sets them.
 --
--- The functions here have contracts, which the operations of the array
--- modules establish before calling them. A call that breaks one is a bug:
--- where a contract is checked, the error says "violated contract", or an
--- assert fails. An argument a caller keeping every contract can pass, and
--- that has no result, is checked in the operation that takes it, before any
--- contract check and before any call that relies on it, and the error names
--- that operation.
+-- The functions here have contracts, as README's Errors section says.  An
+-- argument a caller keeping every contract can pass, and that has no result,
+-- is checked in the operation that takes it, before any contract check and
+-- before any call that relies on it, and the error names that operation.
 type role T representational nominal
 data T v a = T
     { strides :: ![Int]   -- length is tensor rank
@@ -736,6 +729,64 @@ genericZipLoop !n g = VG.create $ do
                 go (i + 1)
   go 0
 
+-- The map and the zips of the boxed and Unboxed instances: each element read
+-- as stored, by unsafeIndexM, and each result written unevaluated, by
+-- 'genericZipLoop'; the instances say why.
+{-# INLINE genericMap #-}
+genericMap :: (VG.Vector w a, VG.Vector w b) => (a -> b) -> w a -> w b
+genericMap f v = genericZipLoop (VG.length v) $ \ i -> f <$> VG.unsafeIndexM v i
+
+{-# INLINE genericZipWith #-}
+genericZipWith :: (VG.Vector w a, VG.Vector w b, VG.Vector w c)
+               => (a -> b -> c) -> w a -> w b -> w c
+genericZipWith f a b = genericZipLoop (VG.length a `min` VG.length b) $ \ i ->
+  f <$> VG.unsafeIndexM a i <*> VG.unsafeIndexM b i
+
+{-# INLINE genericZipWith3 #-}
+genericZipWith3 :: (VG.Vector w a, VG.Vector w b, VG.Vector w c, VG.Vector w d)
+                => (a -> b -> c -> d) -> w a -> w b -> w c -> w d
+genericZipWith3 f a b c =
+  genericZipLoop (VG.length a `min` VG.length b `min` VG.length c) $ \ i ->
+    f <$> VG.unsafeIndexM a i <*> VG.unsafeIndexM b i <*> VG.unsafeIndexM c i
+
+{-# INLINE genericZipWith4 #-}
+genericZipWith4 :: ( VG.Vector w a, VG.Vector w b, VG.Vector w c, VG.Vector w d
+                   , VG.Vector w e )
+                => (a -> b -> c -> d -> e) -> w a -> w b -> w c -> w d -> w e
+genericZipWith4 f a b c d =
+  genericZipLoop (VG.length a `min` VG.length b `min` VG.length c
+                  `min` VG.length d) $ \ i ->
+    f <$> VG.unsafeIndexM a i <*> VG.unsafeIndexM b i <*> VG.unsafeIndexM c i
+      <*> VG.unsafeIndexM d i
+
+{-# INLINE genericZipWith5 #-}
+genericZipWith5 :: ( VG.Vector w a, VG.Vector w b, VG.Vector w c, VG.Vector w d
+                   , VG.Vector w e, VG.Vector w f )
+                => (a -> b -> c -> d -> e -> f)
+                -> w a -> w b -> w c -> w d -> w e -> w f
+genericZipWith5 f a b c d e =
+  genericZipLoop (VG.length a `min` VG.length b `min` VG.length c
+                  `min` VG.length d `min` VG.length e) $ \ i ->
+    f <$> VG.unsafeIndexM a i <*> VG.unsafeIndexM b i <*> VG.unsafeIndexM c i
+      <*> VG.unsafeIndexM d i <*> VG.unsafeIndexM e i
+
+-- The element at an index in bounds, handed on as unsafeIndexM reads it.
+{-# INLINE genericUnsafeWithElem #-}
+genericUnsafeWithElem :: VG.Vector w a => w a -> Int -> (a -> r) -> r
+genericUnsafeWithElem v i k = case VG.unsafeIndexM v i of Box x -> k x
+
+-- A vector of n elements, the ith g i, each forced before it is written.
+{-# INLINE genericGenerate' #-}
+genericGenerate' :: VG.Vector w a => Int -> (Int -> a) -> w a
+genericGenerate' !n g = genericZipLoop (max 0 n) (\ i -> return $! g i)
+
+-- An element of a vector, read forced where the flag is True and as stored
+-- otherwise.
+{-# INLINE readAtT #-}
+readAtT :: VG.Vector w x => Bool -> w x -> Int -> ST s x
+readAtT True v i = let !x = VG.unsafeIndex v i in return x
+readAtT False v i = VG.unsafeIndexM v i
+
 -- The zips of views of one shape, each given as a T, into a vector in row-major
 -- order by one walk over the shape that reads each view at its own strides, so
 -- that no view is filled: the outer dimensions by recursion, the innermost by
@@ -744,11 +795,6 @@ genericZipLoop !n g = VG.create $ do
 -- and as stored otherwise, and each result written as the vector stores it.
 -- The second equation's bang on n, which -Wredundant-bang-patterns reports,
 -- keeps the equations in one match group, as at 'absAxesAndStartT'.
-{-# INLINE readAtT #-}
-readAtT :: VG.Vector w x => Bool -> w x -> Int -> ST s x
-readAtT True v i = let !x = VG.unsafeIndex v i in return x
-readAtT False v i = VG.unsafeIndexM v i
-
 {-# INLINE genericZipWithStrided #-}
 genericZipWithStrided :: (VG.Vector w a, VG.Vector w b, VG.Vector w c)
                          => Bool -> (a -> b -> c) -> ShapeL -> T w a -> T w b -> w c
@@ -1003,15 +1049,52 @@ genericUnsafeConcatViewsN fillInto n vs = VG.create $ do
   foldr step (\ !i -> assert (i == n) $ return ()) vs 0
   return out
 
--- The function folded over a non-empty vector from its first element, over the
--- indices in the order of vector's foldl1', each element read forced.
-{-# INLINE genericFoldl1 #-}
-genericFoldl1 :: VG.Vector w a => (a -> a -> a) -> w a -> a
-genericFoldl1 f v = let !x0 = VG.unsafeIndex v 0 in go x0 1
+-- The function folded over a vector's elements from the index given on, from
+-- the value given, over the indices in the order of vector's foldl', each
+-- element read forced.
+{-# INLINE genericFoldlFrom #-}
+genericFoldlFrom :: VG.Vector w a => (b -> a -> b) -> b -> Int -> w a -> b
+genericFoldlFrom f z !i0 v = go z i0
   where !n = VG.length v
         go !acc !i | i >= n = acc
                    | otherwise =
                        let !x = VG.unsafeIndex v i in go (f acc x) (i + 1)
+
+-- The function folded over a non-empty vector from its first element, over the
+-- indices in the order of vector's foldl1', each element read forced.
+{-# INLINE genericFoldl1 #-}
+genericFoldl1 :: VG.Vector w a => (a -> a -> a) -> w a -> a
+genericFoldl1 f v = let !x0 = VG.unsafeIndex v 0 in genericFoldlFrom f x0 1 v
+
+-- The maximum and the minimum by 'genericFoldl1'.  No reduction here passes an
+-- empty vector; another caller's fails as vector's maximum and minimum do.
+{-# INLINE genericMaximum #-}
+genericMaximum :: (VG.Vector w a, Ord a) => w a -> a
+genericMaximum v | VG.null v = VG.maximum v
+                 | otherwise = genericFoldl1 max v
+
+{-# INLINE genericMinimum #-}
+genericMinimum :: (VG.Vector w a, Ord a) => w a -> a
+genericMinimum v | VG.null v = VG.minimum v
+                 | otherwise = genericFoldl1 min v
+
+-- Whether every element, and whether any, satisfies the predicate, each read
+-- by index through unsafeIndexM, which hands the predicate the element stored.
+{-# INLINE genericAll #-}
+genericAll :: VG.Vector w a => (a -> Bool) -> w a -> Bool
+genericAll q v = go 0
+  where !n = VG.length v
+        go !i | i >= n = True
+              | otherwise = case VG.unsafeIndexM v i of
+                  Box x -> q x && go (i + 1)
+
+{-# INLINE genericAny #-}
+genericAny :: VG.Vector w a => (a -> Bool) -> w a -> Bool
+genericAny q v = go 0
+  where !n = VG.length v
+        go !i | i >= n = False
+              | otherwise = case VG.unsafeIndexM v i of
+                  Box x -> q x || go (i + 1)
 
 -- The measured-fastest fill for 'vUnsafeFillStrided', written into a buffer
 -- from a position, so that 'vConcatPadN' and 'vUnsafeConcatViewsN' can fill a
@@ -1529,18 +1612,7 @@ data Axes = Axes !Int !Int InnerFirst
 --
 -- 'routeT' answers a view of one element, rank 0 or every extent 1, as
 -- one slice from that count, so no view reaches its last equation and
--- 'canonicalizeT' always meets an axis of extent other than 1.  From
--- the outermost axis on, it merges each kept axis into the one just
--- outside it, carried as its stride and extent, where that one's stride
--- is this one's stride times its extent, drops that one where the merge
--- fails and it is of extent 1, and otherwise puts the kept axis inside
--- it.  The axes are kept innermost first, as 'InnerFirst', so that the
--- innermost axis and the axes outside it are a pattern match wherever a
--- consumer takes them apart.  The loop is out of line, so that its code
--- is not copied wherever 'routeT' is inlined, and takes and returns
--- 'Axes', which worker/wrapper passes and returns unboxed; returning
--- the merged list instead cost a built innermost axis and cons a call,
--- 48 bytes, and a 'Maybe' of the merged axes, 63 to 240 bytes.
+-- 'canonicalizeT' always meets an axis of extent other than 1.
 {-# INLINE routeT #-}
 routeT :: ShapeL -> Int -> T v a -> Route
 routeT _ 1 (T _ ao _) = RSlice ao 1
@@ -1551,7 +1623,17 @@ routeT _ _ _ =
 
 -- The merge loop of 'routeT', in the view's order, which the ordered
 -- result must keep, its 'Axes' last: first, GHC took each axis of
--- extent other than 1 apart twice.
+-- extent other than 1 apart twice.  From the outermost axis on, it merges
+-- each kept axis into the one just outside it, carried as its stride and
+-- extent, where that one's stride is this one's stride times its extent,
+-- drops that one where the merge fails and it is of extent 1, and otherwise
+-- puts the kept axis inside it.  The axes are kept innermost first, as
+-- 'InnerFirst', so that the innermost axis and the axes outside it are a
+-- pattern match wherever a consumer takes them apart.  The loop is out of
+-- line, so that its code is not copied wherever 'routeT' is inlined, and
+-- takes and returns 'Axes', which worker/wrapper passes and returns unboxed;
+-- returning the merged list instead cost a built innermost axis and cons a
+-- call, 48 bytes, and a 'Maybe' of the merged axes, 63 to 240 bytes.
 canonicalizeT :: [Int] -> ShapeL -> Axes -> Axes
 canonicalizeT (_ : sts) (1 : ns) !axes = canonicalizeT sts ns axes
 canonicalizeT (st : sts) (n : ns) (Axes stHead nHead irest@(InnerFirst rest))
@@ -1627,12 +1709,6 @@ routeOfT start l axes = RFill axes start l
 -- join can change the measured cost of the loop.  The join has a cost
 -- for each view of runs and a gain only for such strides, so it is not
 -- measured.
---
--- Entered on a view of canonical rank two or more, which is what
--- 'RRuns' means, so there is at least one outer level and one run.
--- With no outer level, which no route reaches, it gives the one run as
--- one slice: correct rather than an error, so the walker is total on
--- its own terms and the type asks nothing of the route that builds it.
 --
 -- The bang on the vector is measured, not style: every use of it sits
 -- under the consumer's cons, so without the bang the walk is lazy in
@@ -1849,13 +1925,17 @@ insertUnitsT d k (T ss o v) = T (take d ss ++ replicate k 0 ++ drop d ss) o v
 -- boxed.
 {-# INLINE forceT #-}
 forceT :: (Vector v, VecElem v a) => ShapeL -> T v a -> T v a
-forceT sh t@(T _ _ v) = fromVectorT sh $
-  if l == 0
-  then vEmpty
-  else case routeT sh l t of
-    RSlice ao n -> vForce (wholeOrSliceT ao n v)
-    route -> routeVectorT v route
-  where !l = product sh
+forceT sh t = fromVectorT sh $ forcedVectorT sh (product sh) t
+
+-- The vector of 'forceT', of the array's shape and size, which 'updateT'
+-- updates in place.
+{-# INLINE forcedVectorT #-}
+forcedVectorT :: (Vector v, VecElem v a) => ShapeL -> Int -> T v a -> v a
+forcedVectorT sh !l t@(T _ _ v)
+  | l == 0 = vEmpty
+  | otherwise = case routeT sh l t of
+      RSlice ao n -> vForce (wholeOrSliceT ao n v)
+      route -> routeVectorT v route
 
 -- INLINE: Route, A3: it takes apart the Route its callers build.
 --
@@ -2217,6 +2297,20 @@ indexT _ _ = error "indexT: violated contract: rank 0"
 stretchT :: [Bool] -> T v a -> T v a
 stretchT bs (T ss o v) = T (zipWith (\ b s -> if b then 0 else s) bs ss) o v
 
+-- The view with its outermost strides multiplied by those given, in order, the
+-- rest shared.
+{-# INLINE strideT #-}
+strideT :: [Int] -> T v a -> T v a
+strideT ts (T ss o v) = T (go ts ss) o v
+  where go (t : ts') (s : ss') = let !x = t * s in x : go ts' ss'
+        go _ ss' = ss'
+
+-- The view of rank 1 or more stretched along its outermost dimension, of
+-- extent 1, by its stride set to 0.
+{-# INLINE stretchOuterT #-}
+stretchOuterT :: T v a -> T v a
+stretchOuterT (T ss o v) = T (0 : drop 1 ss) o v
+
 -- Map over the array elements.  A view that skips elements is mapped
 -- without its broadcast dimensions, which then repeat the result.
 -- Future TODO: a view that skips elements and reads others more than
@@ -2233,20 +2327,18 @@ mapT :: (Vector v, VecElem v a, VecElem v b) => ShapeL -> (a -> b) -> T v a -> T
 mapT sh f t = convertT sh (vMap f) (vMapStrided f) t
 
 -- Convert the vector of an array by the first function given, which takes only
--- the part of the vector the view reads, or, where no range serves the view
--- and no slice either, by the second, which walks the view: 'mapT' is this at
--- 'vMap' and 'vMapStrided', and the conversions between the boxings of the
--- vector package take it too.  The future TODO at 'mapT' holds of every use: a
--- view that skips elements and reads others more than once is built whole here.
+-- the part of the vector the view reads, or, where no range serves the view,
+-- by the second, which walks the view without its broadcast dimensions, whose
+-- elements no slice holds either: 'mapT' is this at 'vMap' and 'vMapStrided',
+-- and the conversions between the boxings of the vector package take it too.
+-- The future TODO at 'mapT' holds of every use: a view that skips elements and
+-- reads others more than once is built whole here.
 {-# INLINE convertT #-}
 convertT :: (Vector v, VecElem v a, Vector w, VecElem w b)
          => ShapeL -> (v a -> w b) -> (ShapeL -> T v a -> w b) -> T v a -> T w b
 convertT sh g _ t@(T ss o v) | Range lo n <- readRangeT sh t = T ss (o - lo) (g (vUnsafeSlice lo n v))
 convertT sh _ _ _ | 0 `elem` sh = emptyT sh
-convertT sh g gs t = stretchT bs $ fromVectorT [ if b then 1 else s | (b, s) <- zip bs sh ] $
-                     case sliceOfT rsh (product rsh) r of
-                       Just w -> g w
-                       Nothing -> gs rsh r
+convertT sh _ gs t = broadcastT bs $ fromVectorT rsh $ gs rsh r
   where (bs, rsh, r) = dropBroadcastT sh t
 
 -- Zip two arrays with a function.
@@ -2283,8 +2375,7 @@ zipWithT sh f t@(T ss _ v) t'@(T _ _ v') =
       | l > 0, Just cv <- sliceOfT sh l t, Just cv' <- sliceOfT sh l t' ->
           fromVectorT sh $ vZipWith f cv cv'
       | l > 0 -> fromVectorT sh $ vZipWithStrided f sh t t'
-      | otherwise ->
-          fromVectorT sh $ vZipWith f (toVectorT sh t) (toVectorT sh t')
+      | otherwise -> emptyT sh
   where l = product sh
 
 -- Zip three arrays with a function.
@@ -2304,15 +2395,15 @@ zipWith3T sh f t t' t''
   , Just v'' <- sliceOfT sh l t'' =
       fromVectorT sh $ vZipWith3 f v v' v''
   | l > 0 = fromVectorT sh $ vZipWith3Strided f sh t t' t''
+  | otherwise = emptyT sh
   where l = product sh
-zipWith3T sh f t t' t'' = fromVectorT sh $ vZipWith3 f v v' v''
-  where v   = toVectorT sh t
-        v'  = toVectorT sh t'
-        v'' = toVectorT sh t''
 
 -- Zip four arrays with a function.
 {-# INLINE zipWith4T #-}
-zipWith4T :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e) => ShapeL -> (a -> b -> c -> d -> e) -> T v a -> T v b -> T v c -> T v d -> T v e
+zipWith4T :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d,
+              VecElem v e) =>
+             ShapeL -> (a -> b -> c -> d -> e)
+             -> T v a -> T v b -> T v c -> T v d -> T v e
 zipWith4T sh f t t' t'' t'''
   | l > 0, Just v <- sliceOfT sh l t
   , Just v' <- sliceOfT sh l t'
@@ -2320,16 +2411,15 @@ zipWith4T sh f t t' t'' t'''
   , Just v''' <- sliceOfT sh l t''' =
       fromVectorT sh $ vZipWith4 f v v' v'' v'''
   | l > 0 = fromVectorT sh $ vZipWith4Strided f sh t t' t'' t'''
+  | otherwise = emptyT sh
   where l = product sh
-zipWith4T sh f t t' t'' t''' = fromVectorT sh $ vZipWith4 f v v' v'' v'''
-  where v   = toVectorT sh t
-        v'  = toVectorT sh t'
-        v'' = toVectorT sh t''
-        v'''= toVectorT sh t'''
 
 -- Zip five arrays with a function.
 {-# INLINE zipWith5T #-}
-zipWith5T :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d, VecElem v e, VecElem v f) => ShapeL -> (a -> b -> c -> d -> e -> f) -> T v a -> T v b -> T v c -> T v d -> T v e -> T v f
+zipWith5T :: (Vector v, VecElem v a, VecElem v b, VecElem v c, VecElem v d,
+              VecElem v e, VecElem v f) =>
+             ShapeL -> (a -> b -> c -> d -> e -> f)
+             -> T v a -> T v b -> T v c -> T v d -> T v e -> T v f
 zipWith5T sh f t t' t'' t''' t''''
   | l > 0, Just v <- sliceOfT sh l t
   , Just v' <- sliceOfT sh l t'
@@ -2338,13 +2428,8 @@ zipWith5T sh f t t' t'' t''' t''''
   , Just v'''' <- sliceOfT sh l t'''' =
       fromVectorT sh $ vZipWith5 f v v' v'' v''' v''''
   | l > 0 = fromVectorT sh $ vZipWith5Strided f sh t t' t'' t''' t''''
+  | otherwise = emptyT sh
   where l = product sh
-zipWith5T sh f t t' t'' t''' t'''' = fromVectorT sh $ vZipWith5 f v v' v'' v''' v''''
-  where v   = toVectorT sh t
-        v'  = toVectorT sh t'
-        v'' = toVectorT sh t''
-        v'''= toVectorT sh t'''
-        v''''= toVectorT sh t''''
 
 -- Do an arbitrary transposition.  The first argument should be
 -- a permutation of the dimension, i.e., the numbers [0..r-1] in some order
@@ -2376,9 +2461,10 @@ reverseT rs sh (T ats ao v) = T rts ro v
         -- The second bang, which -Wredundant-bang-patterns reports, keeps
         -- the two equations in one match group, as at 'absAxesAndStartT'.
         rev !_ [] [] = (ao, [])
-        rev !r (m:ms) (t:ts) | r `elem` rs = (o + (m-1)*t, -t : ts')
-                             | otherwise   = (o,            t : ts')
-          where (o, ts') = rev (r+1) ms ts
+        rev !r (m:ms) (t:ts) = case rev (r+1) ms ts of
+          (!o, ts') | r `elem` rs -> let !o' = o + (m-1)*t; !t' = -t
+                                     in  (o', t' : ts')
+                    | otherwise   -> (o, t : ts')
         rev _ _ _ = error "reverseT: violated contract: not one stride per dimension"
 
 -- Reduction of all array elements, in row-major order, which the function may
@@ -2420,7 +2506,9 @@ allSameT :: (Vector v, VecElem v a, Eq a) => ShapeL -> T v a -> Bool
 allSameT sh t@(T _ ao v)
   | l <= 1 = True
   -- A broadcast compares its element with itself, as allSame of its list
-  -- does, which a NaN fails.
+  -- does, which a NaN fails.  The route gives the same answer, at a cost:
+  -- without this arm, on GHC HEAD 10.1.20261019 (2026-10-23), allSameA of a
+  -- scalar broadcast to [3, 3] allocated 152 bytes a call where 32.
   | vLength v == 1 = vUnsafeWithElem v 0 $ \ x -> x == x
   | otherwise =
     -- Order does not matter, so the unordered parts, which are one slice
@@ -2480,10 +2568,9 @@ rectWidth = maximum . (0:) . map length . unRect
 ppT
   :: (Vector v, VecElem v a, Pretty a)
   => PrettyLevel -> Rational -> ShapeL -> T v a -> Doc
-ppT l p sh = maybeParens (p > 10) . vcat' . map text . unRect . box boxMode . ppT_ (prettyShowL l) sh
+ppT l p sh = maybeParens (p > 10) . vcat . map text . unRect . box boxMode . ppT_ (prettyShowL l) sh
   where boxMode | l >= prettyNormal = BoxMode True True True
-                | otherwise = BoxMode False False False
-        vcat' = foldl' ($+$) empty
+                | otherwise = prettyBoxMode
 
 {-# INLINE ppT_ #-}
 ppT_
@@ -2495,7 +2582,7 @@ ppT_ show_ sh t = showsT sh t'
         maxW = maximum $ map rectWidth ss
         ss' = map (rectPad maxH maxW) ss
         t' :: T [] Rect
-        t' = T (tail (getStridesT sh)) 0 ss'
+        t' = fromVectorT sh ss'
 
 showsT :: [Int] -> T [] Rect -> Rect
 showsT s      _ | 0 `elem` s = Rect []  -- no elements, no rows
@@ -2552,7 +2639,7 @@ padT v aps ash at
 {-# INLINE padCopyT #-}
 padCopyT :: forall v a . (Vector v, VecElem v a) => a -> [(Int, Int)] -> ShapeL -> T v a -> T v a
 padCopyT v aps ash at =
-  fromVectorT ss $ vConcatPadN (product ss) v $ pad' aps ash st at
+  fromVectorT ss $ vConcatPadN len v $ pad' aps ash st at
   where pad' :: [(Int, Int)] -> ShapeL -> [Int] -> T v a
              -> [Either Int (ShapeL, T v a)]
         -- The last padded dimension's block is taken whole as toVectorListT's
@@ -2585,7 +2672,7 @@ padCopyT v aps ash at =
         -- which pad', padS and padded shared, cost Shaped pad 96 bytes a call
         -- at [3, 3] and 0.06 to 0.07 an element at [400, 500] on GHC HEAD
         -- 10.1.20261019 (2026-10-21).
-        pad' _ _ _ _ = error $ "padT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
+        pad' _ _ _ _ = error $ "padCopyT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
         -- pad' strict in the subarray, so that the T's fields pass through
         -- the recursion, not the T; pad' itself stays lazy in the array it is
         -- given, which a strict one would take apart and build again.
@@ -2596,14 +2683,25 @@ padCopyT v aps ash at =
           [Left (n*l), Right (s:sh, t), Left (n*h)]
         padS ((l,h):ps) (s:sh) (!n:ns) !t =
           Left (n*l) : concatMap (padS ps sh ns . indexT t) [0..s-1] ++ [Left (n*h)]
-        padS _ _ _ _ = error $ "padT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
-        _ : st = getStridesT ss
+        padS _ _ _ _ = error $ "padCopyT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
+        len : st = getStridesT ss
         -- The padded shape, which fails on more pairs than dimensions even
         -- where an empty dimension stops pad' or padS before the surplus pair.
         ss = padded aps ash
         padded ((l,h):ps) (s:sh) = l+s+h : padded ps sh
         padded [] sh = sh
-        padded _ [] = error $ "padT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
+        padded _ [] = error $ "padCopyT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
+
+-- The view of the first shape given, of strides the second, reshaped from the
+-- view of the third shape of the same size, sharing its vector where its
+-- vector is one element or 'simpleReshape' serves, and copied otherwise.
+{-# INLINE reshapeT #-}
+reshapeT :: (Vector v, VecElem v a)
+         => ShapeL -> [Int] -> ShapeL -> T v a -> T v a
+reshapeT sh st sh' t@(T ost oo v)
+  | vLength v == 1 = T (map (const 0) sh) 0 v  -- a singleton vector
+  | Just nst <- simpleReshape ost sh' sh = T nst oo v
+  | otherwise = T st 0 $ toVectorT sh' t
 
 -- Check if a reshape is just adding/removing some dimensions of
 -- size 1, in which case it can be done by just manipulating
@@ -2699,7 +2797,8 @@ extremumT name op vop sh t@(T _ ao v)
   | otherwise = case cellsRouteT sh l t of
       RSlice o n -> vop (wholeOrSliceT o n v)
       RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (op acc x)) id (vUnsafeIndex v o)
-      route -> routeSlicesT v route step (\ _ acc -> acc) False (vUnsafeIndex v ao)
+      RRuns axes o _ ->
+        runSlicesT axes o v step (\ _ acc -> acc) False (vUnsafeIndex v ao)
   where !l = product sh
         {-# INLINE step #-}
         step s k = \ started !acc -> let !m = vop s
@@ -2726,17 +2825,17 @@ allT sh p t@(T _ _ v)
 -- fold/build fuses with a producer's build where it is inlined.
 --
 -- A view that is one slice of its vector is copied by vForce, the vector being
--- the caller's, and any other filled by toVectorT; vUnsafeUpdateOwned updates
--- either in place, rather than copying it a second time.  Taking vUpdate for
--- the slice, beside vUnsafeUpdateOwned for the fill, which names the list
--- twice, took on GHC HEAD 10.1.20261019 (2026-10-23) up to 1.43 times this
--- form's instructions at dense views and about 220 bytes more an update.
+-- the caller's, and any other filled, by 'forcedVectorT' as 'forceT' does;
+-- vUnsafeUpdateOwned updates either in place, rather than copying it a second
+-- time.  Taking vUpdate for the slice, beside vUnsafeUpdateOwned for the fill,
+-- which names the list twice, took on GHC HEAD 10.1.20261019 (2026-10-23) up to
+-- 1.43 times this form's instructions at dense views and about 220 bytes more
+-- an update.
 {-# INLINE updateT #-}
 updateT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [([Int], a)] -> T v a
 updateT sh t us = T ss 0 $ vUnsafeUpdateOwned v $ map ix us
   where l : ss = getStridesT sh
-        !v | l > 0, Just s <- sliceOfT sh l t = vForce s
-           | otherwise = toVectorT sh t
+        !v = forcedVectorT sh l t
         ix (is, a) = (sum $ zipWith (*) is ss, a)
 
 -- The view broadcast along the dimensions flagged True, at stride 0, each other
@@ -2753,16 +2852,19 @@ broadcastT bc (T ats o v) = T (go bc ats) o v
 
 -- Each index list is built under 'build', each component computed as the list
 -- is consumed, so that a function that consumes it where it is inlined, as sum
--- does, fuses with it.  Both equations of go bang the index, which keeps it
+-- does, fuses with it.  Every equation of go bangs the index, which keeps it
 -- unboxed: with the first lazy, generate of 200000 Doubles at -O1 allocated
 -- 56 bytes an element where 8 at Storable and Unboxed elements, running 1.3
 -- times the instructions, and 72 where 24 at boxed ones, running 2.2 times.
+-- The innermost stride, the last that 'getStridesT' gives, is 1, so the last
+-- index is the remainder itself.
 {-# INLINE generateT #-}
 generateT :: (Vector v, VecElem v a) => ShapeL -> ([Int] -> a) -> T v a
 generateT sh f = T ss 0 $ vGenerate s g
   where s : ss = getStridesT sh
         g i = f (build $ \cons nil ->
                    let go [] !_ = nil
+                       go [_] !j = j `cons` nil
                        go (n : ns) !j = case quotRem j n of
                          (q, r) -> q `cons` go ns r
                    in  go ss i)

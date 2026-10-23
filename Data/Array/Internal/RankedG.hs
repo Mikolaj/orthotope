@@ -15,6 +15,7 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -30,17 +31,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- INLINE throughout but showsPrec, readsPrec, (==), rnf, size, window,
--- arbitrary and sumA: on GHC HEAD 10.1.20260918 (2026-10-15), the generic
--- modules' functions INLINABLE, as their types give them, cost the
--- specialisation benchmark up to 1160 bytes a call (append), 472 (transpose)
--- and 456 (iota), and their view operations, whose types carry no class,
--- without a pragma up to 136 (broadcast), 96 (slice) and 88 (stride).  Under
--- it, rev allocates 32 bytes a call more forced at the small and empty sizes
--- and 8 fewer summed: inlined into a client, rev gets a local worker there,
--- which returns the strides, offset and vector untagged, and GHC builds the
--- strict-field T over them as a thunk, which it forces at once.  Those it
--- leaves out keep the pragma their types give them; sumA is INLINABLE for the
--- reason at Data.Array.Internal.Dynamic's sumA.
+-- arbitrary and sumA, for the reasons in Data.Array.Internal.DynamicG's header.
 -- | Arrays of dynamic size, but static rank.  The arrays are polymorphic in the underlying
 -- linear data structure used to store the actual values.
 module Data.Array.Internal.RankedG(
@@ -53,7 +44,7 @@ module Data.Array.Internal.RankedG(
   index, pad,
   mapA, zipWithA, zipWith3A, zipWith4A, zipWith5A,
   append, concatOuter,
-  ravel, unravel, unravelWith,
+  ravel, ravelWith, unravel, unravelWith,
   window, stride, rotate,
   slice, rerank, rerank2, rev,
   reduce, foldrA, traverseA,
@@ -154,7 +145,7 @@ rank (A _ _) = natT @n
 index :: forall n v a . HasCallStack => Array (1+n) v a -> Int -> Array n v a
 index (A (s:ss) t) i | i < 0 || i >= s = error $ "index: out of bounds " ++ show (i, s:ss)
                      | otherwise = A ss $ indexT t i
-index (A [] _) _ = error "index: scalar"
+index (A [] _) _ = error "index: violated contract: rank 0"
 
 -- | Convert to a list with the elements in the linearization order.
 -- O(n) time.
@@ -180,7 +171,7 @@ toVector (A sh t) = toVectorT sh t
 fromList :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
             ShapeL -> [a] -> Array n v a
 fromList ss vs | badShape ss = error $ "fromList: bad shape " ++ show ss
-               | length ss /= natT @n = error $ "fromList: rank mismatch " ++ show (ss, natT @n :: Int)
+               | length ss /= natT @n = error $ "fromList: rank mismatch " ++ show (ss, natT @n)
                | otherwise = case vFromListExactN n vs of
                    Right v -> A ss $ T st 0 v
                    Left l -> error $ "fromList: size mismatch "
@@ -194,7 +185,7 @@ fromList ss vs | badShape ss = error $ "fromList: bad shape " ++ show ss
 fromVector :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
               ShapeL -> v a -> Array n v a
 fromVector ss v | badShape ss = error $ "fromVector: bad shape " ++ show ss
-                | length ss /= natT @n = error $ "fromVector: rank mismatch " ++ show (ss, natT @n :: Int)
+                | length ss /= natT @n = error $ "fromVector: rank mismatch " ++ show (ss, natT @n)
                 | n /= l = error $ "fromVector: size mismatch " ++ show (ss, l)
                 | otherwise = A ss $ T st 0 v
   where n : st = getStridesT ss
@@ -229,13 +220,11 @@ force (A sh t) = A sh $ forceT sh t
 {-# INLINE reshape #-}
 reshape :: forall n' n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n') =>
            ShapeL -> Array n v a -> Array n' v a
-reshape sh (A sh' t@(T ost oo v))
+reshape sh (A sh' t)
   | badShape sh = error $ "reshape: bad shape " ++ show sh
-  | length sh /= natT @n' = error $ "reshape: rank mismatch " ++ show (sh, natT @n' :: Int)
+  | length sh /= natT @n' = error $ "reshape: rank mismatch " ++ show (sh, natT @n')
   | n /= n' = error $ "reshape: size mismatch " ++ show (sh, sh')
-  | vLength v == 1 = A sh $ T (map (const 0) sh) 0 v  -- Fast special case for singleton vector
-  | Just nst <- simpleReshape ost sh' sh = A sh $ T nst oo v
-  | otherwise = A sh $ T st 0 $ toVectorT sh' t
+  | otherwise = A sh $ reshapeT sh st sh' t
   where n : st = getStridesT sh
         n' = product sh'
 
@@ -259,7 +248,7 @@ stretchOuter :: (HasCallStack, 1 <= n) =>
                 Int -> Array n v a -> Array n v a
 stretchOuter s (A (1:sh) vs)
   | badShape (s:sh) = error $ "stretchOuter: bad shape " ++ show (s:sh)
-  | otherwise = A (s:sh) $ stretchT (True : map (const False) (strides vs)) vs
+  | otherwise = A (s:sh) $ stretchOuterT vs
 stretchOuter _ (A sh _) = error $ "stretchOuter: needs outermost dimension of size 1 " ++ show sh
 
 -- | Convert a value to a scalar (rank 0) array.
@@ -280,7 +269,7 @@ unScalar (A _ t) = unScalarT t
 constant :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
             ShapeL -> a -> Array n v a
 constant sh | badShape sh = error $ "constant: bad shape " ++ show sh
-            | length sh /= natT @n = error $ "constant: rank mismatch " ++ show (sh, natT @n :: Int)
+            | length sh /= natT @n = error $ "constant: rank mismatch " ++ show (sh, natT @n)
             | otherwise = A sh . constantT sh
 
 -- | Map over the array elements.
@@ -334,14 +323,14 @@ zipWith5A f (A s t) (A s' t') (A s'' t'') (A s''' t''') (A s'''' t'''') | s == s
 {-# INLINE pad #-}
 pad :: forall n a v . (HasCallStack, Vector v, VecElem v a) =>
        [(Int, Int)] -> a -> Array n v a -> Array n v a
-pad aps v (A ash at) | length aps > length ash = error $ "pad: rank mismatch " ++ show (aps, ash)
-                     | any (\ (l, h) -> l < 0 || h < 0) aps = error $ "pad: negative padding " ++ show aps
-                     | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
-                         error $ "pad: padding past maxBound " ++ show (aps, ash)
-                     | badShape sh = error $ "pad: bad shape " ++ show sh
-                     -- Built past the checks, not bound above them: see natT.
-                     | all (== (0, 0)) aps = A ash at  -- no padding: the array itself
-                     | otherwise = A sh (padCopyT v aps ash at)
+pad aps v a@(A ash at) | length aps > length ash = error $ "pad: rank mismatch " ++ show (aps, ash)
+                       | any (\ (l, h) -> l < 0 || h < 0) aps = error $ "pad: negative padding " ++ show aps
+                       | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
+                           error $ "pad: padding past maxBound " ++ show (aps, ash)
+                       | badShape sh = error $ "pad: bad shape " ++ show sh
+                       -- Built past the checks, not bound above them: see natT.
+                       | all (== (0, 0)) aps = a  -- no padding: the array itself
+                       | otherwise = A sh (padCopyT v aps ash at)
   where sh = zipWithLong2 (\ (l, h) s -> l + s + h) aps ash
 
 -- | Do an arbitrary array transposition.
@@ -372,9 +361,14 @@ append :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) =>
 append a@(A (sa:sh) ta) b@(A (sb:sh') tb)
   | sh == sh', sa == 0 = b  -- nothing to append to: the other array itself
   | sh == sh', sb == 0 = a
-  | sh == sh' && not (sumOverflows [sa, sb]) =
-    fromVector (sa+sb : sh) $
-      vUnsafeConcatViewsN (product (sa+sb : sh)) [(sa:sh, ta), (sb:sh', tb)]
+  -- An outer extent summing past maxBound is negative, which badShape sees.
+  -- The sum forced here, past the empty cases: lazy, it was a thunk in the
+  -- shape, 32 bytes a call at [3, 3]; banged in a where clause, it was forced
+  -- before the empty cases too, which ran up to 9 instructions a call more, on
+  -- GHC HEAD 10.1.20261019 (2026-10-23).
+  | sh == sh', !sab <- sa + sb, let rsh = sab : sh, not (badShape rsh)
+  , let l : st = getStridesT rsh =
+    A rsh $ T st 0 $ vUnsafeConcatViewsN l [(sa:sh, ta), (sb:sh', tb)]
 append a b = error $ "append: bad shape " ++ show (shapeL a, shapeL b)
 
 -- INLINE: by the measurement in the module's header, not for fusion: its list
@@ -388,15 +382,18 @@ append a b = error $ "append: bad shape " ++ show (shapeL a, shapeL b)
 {-# INLINE concatOuter #-}
 concatOuter :: forall n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n) => [Array n v a] -> Array n v a
 concatOuter [] = error "concatOuter: empty list"
-concatOuter as | any null shs = error $ "concatOuter: rank 0 array " ++ show shs
+concatOuter as | natT @n == 0 = error $ "concatOuter: rank 0 array " ++ show shs
                | [a] <- as = a  -- one array: the array itself
                | not $ allSame $ map tail shs =
                  error $ "concatOuter: non-conforming inner dimensions: " ++ show shs
                | n < 0 = error $ "concatOuter: outer extents summing past maxBound: " ++ show (map head shs)
-               | otherwise = fromVector sh' $ vUnsafeConcatViewsN (product sh') $ map (\ (A s t) -> (s, t)) as
+               | badShape sh' = error $ "concatOuter: bad shape " ++ show sh'
+               | otherwise = A sh' $ T st 0 $
+                   vUnsafeConcatViewsN l $ map (\ (A s t) -> (s, t)) as
   where shs@(sh:_) = map shapeL as
         n = sumExtents (map head shs)
         sh' = n : tail sh
+        l : st = getStridesT sh'
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape,
@@ -407,10 +404,20 @@ concatOuter as | any null shs = error $ "concatOuter: rank 0 array " ++ show shs
 {-# INLINE ravel #-}
 ravel :: forall n v v' a . (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' (Array n v a), KnownNat (1+n)) =>
          Array 1 v' (Array n v a) -> Array (1+n) v a
-ravel aa = case shapeL aa of
-  [1] -> case unScalar (index aa 0) of  -- one array: a view of it
+ravel = ravelWith id
+
+-- 'ravel' with a function applied to each element of the outer array, as at
+-- DynamicG's.
+{-# INLINE ravelWith #-}
+ravelWith :: forall n v v' a b .
+             (HasCallStack, Vector v, Vector v', VecElem v a, VecElem v' b,
+              KnownNat (1+n)) =>
+             (b -> Array n v a) -> Array 1 v' b -> Array (1+n) v a
+ravelWith w aa = case shapeL aa of
+  [1] -> case w (unScalar (index aa 0)) of  -- one array: a view of it
     A sh t -> A (1 : sh) (insertUnitsT 0 1 t)
-  [k] | k > 0 -> ravelOuterOf "ravel" [k] (shapeL (unScalar (index aa 0))) (toList aa)
+  [k] | k > 0 -> ravelOuterOf "ravel" [k] (shapeL (w (unScalar (index aa 0)))) w
+                                (toList aa)
   _ -> error "ravel: empty array"
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
@@ -447,7 +454,7 @@ unravelWith _ (A [] _) = error "unravelWith: violated contract: rank 0"
 {-# INLINABLE window #-}
 window :: forall n' n v a . (HasCallStack, KnownNat n, KnownNat n') =>
           [Int] -> Array n v a -> Array n' v a
-window aws a | natT @n' /= length aws + natT @n = error $ "window: rank mismatch " ++ show (aws, shapeL a, natT @n' :: Int)
+window aws a | natT @n' /= length aws + natT @n = error $ "window: rank mismatch " ++ show (aws, shapeL a, natT @n')
 -- The window list is checked before the shape is built, so that the shape a
 -- message shows holds no error of its own; a window of 0 over an extent of
 -- maxBound makes one past it, which the message shows as an Integer.
@@ -474,10 +481,13 @@ window aws (A ash (T ss o v))
 -- O(1) time.
 {-# INLINE stride #-}
 stride :: forall n v a . HasCallStack => [Int] -> Array n v a -> Array n v a
-stride ats (A ash (T ss o v)) = length rsh `seq` A rsh (T (zipWith (*) (ats ++ repeat 1) ss) o v)  -- check now
+stride ats (A ash at) = length rsh `seq` A rsh (strideT ats at)  -- check now
   where rsh = str ats ash
         str (t:ts) (s:sh) | t <= 0 = error $ "stride: non-positive stride " ++ show ats
-                          | otherwise = negate (negate s `div` t) : str ts sh  -- s / t rounded up, without overflow
+                          | otherwise =
+                              -- s / t rounded up, without overflow
+                              let !e = negate (negate s `div` t)
+                              in  e : str ts sh
         str [] sh = sh
         str _ _ = error $ "stride: rank mismatch " ++ show (ats, ash)
 
@@ -580,7 +590,7 @@ rerank :: forall n i o v v' a b .
           , KnownNat n, KnownNat o, KnownNat (n+o)) =>
           (Array i v a -> Array o v' b) -> Array (n+i) v a -> Array (n+o) v' b
 rerank f (A sh t)
-                  | 0 `elem` osh, natT @o == (0 :: Int) = A osh $ emptyT osh
+                  | natT @o == 0, 0 `elem` osh = A osh $ emptyT osh
                   | all (== 1) osh, [s] <- subArraysT osh t =
                     case f (A ish s) of  -- one subarray: a view of f's result
                       A rsh rt -> A (osh ++ rsh) (insertUnitsT 0 (length osh) rt)
@@ -590,29 +600,28 @@ rerank f (A sh t)
   subArraysT osh t
   where (osh, ish) = splitAt (natT @n) sh
 
--- The caller computes the arrays, one for each index of @osh@, and each one's
--- shape is checked against the first's as it is copied, not all before the
--- copy, which, the fields of an array being strict, would compute every array
--- and hold them all.  Over an empty outer dimension there is none to take the
--- inner shape from.  The errors name the operation given first, which calls it.
+-- As DynamicG's ravelOuter.
 {-# INLINE ravelOuter #-}
 ravelOuter :: (HasCallStack, Vector v, VecElem v a, KnownNat m) => String -> ShapeL -> [Array n v a] -> Array m v a
 ravelOuter name osh [] = error $ name ++ ": empty outer dimension " ++ show osh
-ravelOuter name osh as@(a : _) = ravelOuterOf name osh (shapeL a) as
+ravelOuter name osh as@(a : _) = ravelOuterOf name osh (shapeL a) id as
 
 -- INLINE: F1, directly fusing: it consumes its list once, by a map, which
 -- fold/build fuses with a producer's build where it is inlined.
 --
--- 'ravelOuter' given the shape every array must have, which 'ravel' reads off
--- its first array without taking the list's head, so that the list fuses with
--- the copy.
+-- As DynamicG's ravelOuterOf.
 {-# INLINE ravelOuterOf #-}
 ravelOuterOf :: (HasCallStack, Vector v, VecElem v a, KnownNat m) =>
-                String -> ShapeL -> ShapeL -> [Array n v a] -> Array m v a
-ravelOuterOf name osh sh as = fromVector sh' $ vUnsafeConcatViewsN (product sh') $ map vec as
+                String -> ShapeL -> ShapeL -> (b -> Array n v a) -> [b] -> Array m v a
+ravelOuterOf name osh sh w as
+  | badShape sh' = error $ name ++ ": bad shape " ++ show sh'
+  -- fromVector for the reason at DynamicG's ravelOuterOf.
+  | otherwise = fromVector sh' $ vUnsafeConcatViewsN (product sh') $ map vec as
   where sh' = osh ++ sh
-        vec x@(A _ t) | shapeL x == sh = (sh, t)
-              | otherwise = error $ name ++ ": non-conforming inner dimensions: " ++ show [sh, shapeL x]
+        vec x = case w x of
+          A s t | s == sh -> (sh, t)
+                | otherwise ->
+                    error $ name ++ ": non-conforming inner dimensions: " ++ show [sh, s]
 
 -- Over an empty outer dimension f is never applied, so the inner shape
 -- is known only for scalars.
@@ -630,8 +639,8 @@ rerank2 :: forall n i o v a b c .
            (HasCallStack, Vector v, VecElem v c,
             KnownNat n, KnownNat o, KnownNat (n+o)) =>
            (Array i v a -> Array i v b -> Array o v c) -> Array (n+i) v a -> Array (n+i) v b -> Array (n+o) v c
-rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error $ "rerank2: shape mismatch " ++ show (take n sha, take n shb)
-                                | 0 `elem` osh, natT @o == (0 :: Int) = A osh $ emptyT osh
+rerank2 f (A sha ta) (A shb tb) | osh /= osh' = error $ "rerank2: shape mismatch " ++ show (osh, osh')
+                                | natT @o == 0, 0 `elem` osh = A osh $ emptyT osh
                                 | all (== 1) osh, [sa] <- subArraysT osh ta, [sb] <- subArraysT osh tb =
                                   case f (A isha sa) (A ishb sb) of  -- one subarray each: a view of f's result
                                     A rsh rt -> A (osh ++ rsh) (insertUnitsT 0 (length osh) rt)
@@ -641,7 +650,7 @@ rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error $ "rerank2: s
           (subArraysT osh ta)
           (subArraysT osh tb)
   where (osh, isha) = splitAt n sha
-        ishb = drop n shb
+        (osh', ishb) = splitAt n shb
         n = natT @n
 
 -- | Reverse the given dimensions, with the outermost being dimension 0.
@@ -737,16 +746,15 @@ allA p (A sh t) = allT sh p t
 broadcast :: forall r' r v a .
              (HasCallStack, KnownNat r') =>
              [Int] -> ShapeL -> Array r v a -> Array r' v a
-broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error $ "broadcast: bad dimension index " ++ show (shapeL a, ds, sh)
-                  | not (ascending ds) = error $ "broadcast: unordered dimensions " ++ show (shapeL a, ds, sh)
-                  | badShape sh = error $ "broadcast: bad shape " ++ show sh
-                  | length sh /= r = error $ "broadcast: rank mismatch " ++ show (sh, r)
-                  | permute ds sh /= shapeL a =
-                      error $ "broadcast: shape mismatch " ++ show (shapeL a, ds, sh)
-                  | otherwise =
-                      A sh $ broadcastT [ i `notElem` ds | i <- [0 .. r - 1] ] t
+broadcast ds sh (A ash t) | any (\ d -> d < 0 || d >= r) ds = error $ "broadcast: bad dimension index " ++ show (ash, ds, sh)
+                          | not (ascending ds) = error $ "broadcast: unordered dimensions " ++ show (ash, ds, sh)
+                          | badShape sh = error $ "broadcast: bad shape " ++ show sh
+                          | length sh /= r = error $ "broadcast: rank mismatch " ++ show (sh, r)
+                          | permute ds sh /= ash =
+                              error $ "broadcast: shape mismatch " ++ show (ash, ds, sh)
+                          | otherwise =
+                              A sh $ broadcastT [ i `notElem` ds | i <- [0 .. r - 1] ] t
   where r = natT @r'
-        A _ t = a
         ascending (x:y:ys) = x < y && ascending (y:ys)
         ascending _ = True
 
@@ -763,8 +771,8 @@ update :: forall n v a . (HasCallStack, Vector v, VecElem v a) =>
 -- Not through DynamicG's update, as ShapedG's is not: through it, on GHC HEAD
 -- 10.1.20261019 (2026-10-21), the specialisation benchmark's forced update at
 -- [3, 3] ran 15 to 22 instructions a call more, up to 1.3%.
-update (A sh t) us | null us = A sh t  -- no update: the array itself
-                   | otherwise = A sh $ updateT sh t (DG.checkedUpdatesT sh us)
+update a@(A sh t) us | null us = a  -- no update: the array itself
+                     | otherwise = A sh $ updateT sh t (DG.checkedUpdatesT sh us)
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}
@@ -772,7 +780,7 @@ generate :: forall n v a .
             (HasCallStack, KnownNat n, Vector v, VecElem v a) =>
             ShapeL -> ([Int] -> a) -> Array n v a
 generate sh | badShape sh = error $ "generate: bad shape " ++ show sh
-            | length sh /= natT @n = error $ "generate: rank mismatch " ++ show (sh, natT @n :: Int)
+            | length sh /= natT @n = error $ "generate: rank mismatch " ++ show (sh, natT @n)
             | otherwise = A sh . generateT sh
 
 -- | Iterate a function n times.

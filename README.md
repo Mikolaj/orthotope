@@ -70,8 +70,7 @@ like `hmatrix`.
 An operation of the array modules either returns its result or fails
 with an error naming an operation whose documented check failed: the operation
 itself, as in `reshape: size mismatch ([2,3],[5])`, even where a helper makes
-the check for it, or an operation it called,
-as in `fromVector: bad shape [4611686018427387904,2]` from `append`, and never
+the check for it, or an operation it called, and never
 a helper the modules do not export. Such a failure breaks no contract: the error
 is the operation's result, and its documentation says when it occurs,
 with "Fails if" or with "must". The error's call stack reaches the line

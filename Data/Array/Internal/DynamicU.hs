@@ -55,7 +55,6 @@ module Data.Array.Internal.DynamicU(
 import Control.DeepSeq hiding (force)
 import Data.Coerce(coerce)
 import Data.Data(Data)
-import Data.Vector.Fusion.Util(Box(..))
 import qualified Data.Vector.Unboxed as V
 import qualified Data.Vector.Unboxed.Mutable as MV
 import GHC.Stack(HasCallStack)
@@ -71,8 +70,12 @@ import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN,
                            genericZipWith4Strided, genericZipWith5Strided,
                            ShapeL, Vector(..), genericUnsafeConcatN,
                            genericForce, genericFromListExactN,
-                           genericFoldl1, genericUnsafeFillStrided,
-                           genericFillInto, genericZipLoop)
+                           genericMaximum, genericMinimum,
+                           genericUnsafeFillStrided, genericFillInto,
+                           genericMap, genericZipWith, genericZipWith3,
+                           genericZipWith4, genericZipWith5,
+                           genericUnsafeWithElem, genericGenerate',
+                           genericAll, genericAny)
 
 type Unbox = V.Unbox
 
@@ -101,14 +104,17 @@ instance Vector V.Vector where
   -- array ran 5 instructions a call more, 1 to 3%, and Dynamic and Ranked
   -- rerank at [3, 3] 6 to 8 fewer, 0.2%.
   {-# INLINE vSingleton #-}
-  vSingleton a = V.create (do v <- MV.unsafeNew 1; MV.unsafeWrite v 0 a; return v)
+  vSingleton a = V.create $ do
+    v <- MV.unsafeNew 1
+    MV.unsafeWrite v 0 a
+    return v
   {-# INLINE vReplicate #-}
   vReplicate = V.replicate
   -- The map and the zips build their result over the indices, working around
-  -- vector's own, whose stream-fused loops at -O1, lacking the SpecConstr
-  -- of -O2, allocate per element: a zipWith on Doubles 72 bytes an element
-  -- against 8, taking through zipWithA 13 to 15 times as long.  They write it
-  -- by 'genericZipLoop', as the boxed instance's zips do, each element read in
+  -- vector's own, whose stream-fused loops at -O1, lacking the SpecConstr of
+  -- -O2, allocate per element: a zipWith on Doubles 72 bytes an element against
+  -- 8, taking through zipWithA 13 to 15 times as long.  They write it by
+  -- 'genericMap' and its zips, as the boxed instance does, each element read in
   -- ST before the function takes it, strictly for the primitive representations
   -- and as stored for vector's DoNotUnboxLazy, so that such a result holds,
   -- until forced, the elements its function reads and not the vectors they come
@@ -117,36 +123,19 @@ instance Vector V.Vector where
   -- (2026-10-21), the specialisation benchmark's forced zipWithA ran 24
   -- instructions a call fewer at [3, 3] and 2 an element fewer at [400, 500],
   -- 1.5 to 17%, and zipWith5A 8 a call fewer, mapA, zipWith3A and zipWith4A as
-  -- many.  No fusion is given up: vector's fuse with a vector they read, but
-  -- each array operation stores its result, so the array operations never fused
-  -- their inputs; a map of a map allocates one vector per map, with vector's
-  -- map as with this one.  Reading each element before the function takes it
-  -- saves allocation: given a function GHC cannot see into, on GHC HEAD with
-  -- vector patched as issue 570 proposes, on views of 200000 Doubles, mapA
-  -- allocated 40 bytes an element where a lazy read made it 80 and zipWithA
-  -- 72 where 152, and given known functions every operation ran as many
-  -- instructions as before.
+  -- many.  No fusion is given up, and reading each element before the function
+  -- takes it saves allocation, as at DynamicS's map and zips, whose figures
+  -- were measured at both kinds.
   {-# INLINE vMap #-}
-  vMap f v = genericZipLoop (V.length v) $ \ i -> f <$> V.unsafeIndexM v i
+  vMap = genericMap
   {-# INLINE vZipWith #-}
-  vZipWith f a b = genericZipLoop (V.length a `min` V.length b) $ \ i ->
-    f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i
+  vZipWith = genericZipWith
   {-# INLINE vZipWith3 #-}
-  vZipWith3 f a b c =
-    genericZipLoop (V.length a `min` V.length b `min` V.length c) $ \ i ->
-      f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i <*> V.unsafeIndexM c i
+  vZipWith3 = genericZipWith3
   {-# INLINE vZipWith4 #-}
-  vZipWith4 f a b c d =
-    genericZipLoop (V.length a `min` V.length b `min` V.length c
-             `min` V.length d) $ \ i ->
-      f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i <*> V.unsafeIndexM c i
-        <*> V.unsafeIndexM d i
+  vZipWith4 = genericZipWith4
   {-# INLINE vZipWith5 #-}
-  vZipWith5 f a b c d e =
-    genericZipLoop (V.length a `min` V.length b `min` V.length c `min` V.length d
-             `min` V.length e) $ \ i ->
-      f <$> V.unsafeIndexM a i <*> V.unsafeIndexM b i <*> V.unsafeIndexM c i
-        <*> V.unsafeIndexM d i <*> V.unsafeIndexM e i
+  vZipWith5 = genericZipWith5
   {-# INLINE vAppend #-}
   vAppend = (V.++)
   -- INLINE: not for fusion; F1 reads no fusion here: V.concat hands its list to
@@ -173,36 +162,30 @@ instance Vector V.Vector where
   -- vector's own, and with -fspec-constr, on a view of runs, 0.71 and 0.85 of
   -- it, elsewhere as long.
   {-# INLINE vMaximum #-}
-  vMaximum v | V.null v = V.maximum v
-               -- No reduction here passes an empty vector; another caller's
-               -- fails as vector's maximum does.
-             | otherwise = genericFoldl1 max v
-  -- INLINE: see vMaximum.
-  -- Folded as vMaximum is.
+  vMaximum v = genericMaximum v
+  -- INLINE and folded as vMaximum is.
   {-# INLINE vMinimum #-}
-  vMinimum v | V.null v = V.minimum v
-               -- No reduction here passes an empty vector; another caller's
-               -- fails as vector's minimum does.
-             | otherwise = genericFoldl1 min v
+  vMinimum v = genericMinimum v
   {-# INLINE vUpdate #-}
   vUpdate = (V.//)
   {-# INLINE vGenerate #-}
   vGenerate = V.generate
+  -- vAll and vAny read as the boxed instance's do.
   {-# INLINE vAll #-}
-  vAll = V.all
+  vAll = genericAll
   {-# INLINE vAny #-}
-  vAny = V.any
+  vAny = genericAny
   -- The element at an index in bounds, handed on as unsafeIndexM reads
   -- it, as the boxed instance reads its own: evaluated for the primitive
   -- representations, whose reads are strict, and as stored for vector's
   -- DoNotUnboxLazy, whose elements can be undefined.  Forcing the read, as
   -- 'V.unsafeIndex' with a bang did, would fail on such an element.
   {-# INLINE vUnsafeWithElem #-}
-  vUnsafeWithElem v i k = case V.unsafeIndexM v i of Box x -> k x
+  vUnsafeWithElem = genericUnsafeWithElem
   -- Each element forced before it is written: vector's write stores
   -- a DoNotUnboxLazy element as it is given.
   {-# INLINE vGenerate' #-}
-  vGenerate' !n g = genericZipLoop (max 0 n) (\ i -> return $! g i)
+  vGenerate' = genericGenerate'
   {-# INLINE vUnsafeFillStrided #-}
   vUnsafeFillStrided = genericUnsafeFillStrided 64
   {-# INLINE vForce #-}
@@ -254,6 +237,8 @@ instance Ord (G.Array V.Vector a) => Ord (Array a) where
   {-# INLINE compare #-}
   compare x y = compare (unA x) (unA y)
 
+-- Not G.size . unA: see Data.Array.Internal.Dynamic's size.
+--
 -- | The number of elements in the array.
 size :: Array a -> Int
 size = product . shapeL
@@ -455,7 +440,7 @@ concatOuter = A . G.concatOuter . coerce
 -- it out.
 {-# INLINE ravel #-}
 ravel :: (HasCallStack, Unbox a) => D.Array (Array a) -> Array a
-ravel = A . G.ravel . G.mapA unA . D.unA
+ravel = A . G.ravelWith unA . D.unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@ where the outermost dimension is not empty.
