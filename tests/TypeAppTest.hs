@@ -50,9 +50,13 @@ test = testGroup "TypeApp"
       assertEqual "RU" [3, 4] (RU.toList (RU.index @1 @Int (RU.fromList [3, 2] [1 .. 6] :: RU.Array 2 Int) 1))
       assertEqual "RG" [3, 4] (RG.toList (RG.index @1 @V.Vector @Int (RG.fromList [3, 2] [1 .. 6] :: RG.Array 2 V.Vector Int) 1))
   , testCase "reshape" $ do
-      assertEqual "R" [3, 1, 2] (R.shapeL (R.reshape @2 @3 @Int [3, 1, 2] (R.fromList [3, 2] [1 .. 6])))
-      assertEqual "RS" [3, 1, 2] (RS.shapeL (RS.reshape @2 @3 @Int [3, 1, 2] (RS.fromList [3, 2] [1 .. 6])))
-      assertEqual "RU" [3, 1, 2] (RU.shapeL (RU.reshape @2 @3 @Int [3, 1, 2] (RU.fromList [3, 2] [1 .. 6])))
+      assertEqual "R" [3, 1, 2] (R.shapeL (R.reshape @3 @2 @Int [3, 1, 2] (R.fromList [3, 2] [1 .. 6])))
+      assertEqual "RS" [3, 1, 2] (RS.shapeL (RS.reshape @3 @2 @Int [3, 1, 2] (RS.fromList [3, 2] [1 .. 6])))
+      assertEqual "RU" [3, 1, 2] (RU.shapeL (RU.reshape @3 @2 @Int [3, 1, 2] (RU.fromList [3, 2] [1 .. 6])))
+  , testCase "window" $ do
+      assertEqual "R" [2, 2, 2] (R.shapeL (R.window @3 @2 @Int [2] (R.fromList [3, 2] [1 .. 6])))
+      assertEqual "RS" [2, 2, 2] (RS.shapeL (RS.window @3 @2 @Int [2] (RS.fromList [3, 2] [1 .. 6])))
+      assertEqual "RU" [2, 2, 2] (RU.shapeL (RU.window @3 @2 @Int [2] (RU.fromList [3, 2] [1 .. 6])))
   , testCase "pad" $
       assertEqual "R" [0, 1, 2, 0] (R.toList (R.pad @1 @Int [(1, 1)] 0 (R.fromList [2] [1, 2])))
   , testCase "ravel" $

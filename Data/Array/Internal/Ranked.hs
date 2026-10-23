@@ -171,7 +171,7 @@ force = A . G.force . unA
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.
 {-# INLINE reshape #-}
-reshape :: forall n n' a . (HasCallStack, KnownNat n') => ShapeL -> Array n a -> Array n' a
+reshape :: forall n' n a . (HasCallStack, KnownNat n') => ShapeL -> Array n a -> Array n' a
 reshape s = A . G.reshape s . unA
 
 -- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
@@ -320,7 +320,7 @@ unravel = A . G.mapA A . G.unravel . unA
 -- If the window parameter @ws = [w1,...,wk]@ and @wa = window ws a@ then
 -- @wa `index` i1 ... `index` ik == slice [(i1,w1),...,(ik,wk)] a@.
 {-# INLINE window #-}
-window :: (HasCallStack, KnownNat n, KnownNat n') => [Int] -> Array n a -> Array n' a
+window :: forall n' n a . (HasCallStack, KnownNat n, KnownNat n') => [Int] -> Array n a -> Array n' a
 window ws = A . G.window ws . unA
 
 -- | Stride the outermost dimensions.

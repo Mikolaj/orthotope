@@ -144,7 +144,7 @@ prop_views v@(View sh _) =
               .&&. RG.unScalar (RG.reduce (+) 0 r) === sum l
               .&&. obs (RG.pad ps 0 r) === obsD (DG.pad ps 0 x)
               .&&. (if null xsh then property True else obs (RG.append r r) === obsD (DG.append x x))
-              .&&. obs (RG.reshape @n @1 [length l] r) === obsD (DG.reshape [length l] x)
+              .&&. obs (RG.reshape @1 @n [length l] r) === obsD (DG.reshape [length l] x)
               .&&. read (show r) === r
               .&&. sameAs (obs (RG.zipWith4A f4 r r r (RG.pad ps 0 r))) (obsD (DG.zipWith4A f4 x x x (DG.pad ps 0 x)))
               .&&. sameAs (obs (RG.zipWith5A f5 r r r r (RG.pad ps 0 r))) (obsD (DG.zipWith5A f5 x x x x (DG.pad ps 0 x)))
@@ -244,10 +244,10 @@ prop_rank3 =
              (sameAs (nested (map obs (RG.toList ur))) (nested (map obsD (DG.toList ud))))
       .&&. counterexample "ravel" (sameAs (obs (RG.ravel ur)) (obsD (DG.ravel ud)))
       .&&. counterexample "stretch"
-             (sameAs (obs (RG.stretch (e : xsh) (RG.reshape @3 @4 (1 : xsh) r)))
+             (sameAs (obs (RG.stretch (e : xsh) (RG.reshape @4 @3 (1 : xsh) r)))
                      (obsD (DG.stretch (e : xsh) (DG.reshape (1 : xsh) x))))
       .&&. counterexample "stretchOuter"
-             (sameAs (obs (RG.stretchOuter e (RG.reshape @3 @4 (1 : xsh) r)))
+             (sameAs (obs (RG.stretchOuter e (RG.reshape @4 @3 (1 : xsh) r)))
                      (obsD (DG.stretchOuter e (DG.reshape (1 : xsh) x))))
       .&&. counterexample "constant"
              (sameAs (obs (RG.constant [e, 3] 7 :: RG.Array 2 v a))

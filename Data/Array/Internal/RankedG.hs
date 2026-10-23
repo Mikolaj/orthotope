@@ -224,7 +224,7 @@ force (A sh t) = A sh $ forceT sh t
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.
 {-# INLINE reshape #-}
-reshape :: forall n n' v a . (HasCallStack, Vector v, VecElem v a, KnownNat n') =>
+reshape :: forall n' n v a . (HasCallStack, Vector v, VecElem v a, KnownNat n') =>
            ShapeL -> Array n v a -> Array n' v a
 reshape sh (A sh' t@(T ost oo v))
   | badShape sh = error $ "reshape: bad shape " ++ show sh
@@ -431,7 +431,7 @@ unravel = rerank @1 scalar
 -- If the window parameter @ws = [w1,...,wk]@ and @wa = window ws a@ then
 -- @wa `index` i1 ... `index` ik == slice [(i1,w1),...,(ik,wk)] a@.
 {-# INLINABLE window #-}
-window :: forall n n' v a . (HasCallStack, KnownNat n, KnownNat n') =>
+window :: forall n' n v a . (HasCallStack, KnownNat n, KnownNat n') =>
           [Int] -> Array n v a -> Array n' v a
 window aws a | natT @n' /= length aws + natT @n = error $ "window: rank mismatch " ++ show (aws, shapeL a, natT @n' :: Int)
 -- The window list is checked before the shape is built, so that the shape a
@@ -526,9 +526,9 @@ rotate k (A sh t) = case DG.rotate (natT @d) k (DG.A sh t) of
 --               m = product t
 --               n = h * m
 --               c = k + (k + h - 2) `quot` h  -- copies to fit k windows n + m apart
---               arr' = reshape @p @(p + 1) (1:h:t) arr
+--               arr' = reshape @(p + 1) @p (1:h:t) arr
 --               repeated = stretchOuter c arr'
---               A _ (T [s] o v) = reshape @(p + 1) @1 [c * n] repeated
+--               A _ (T [s] o v) = reshape @1 @(p + 1) [c * n] repeated
 --               -- The k windows as one view: window [n] would view all
 --               -- c * n - n + 1 of them first, a view whose size can overflow Int.
 --               strided = A [k, n] (T [(n + m) * s, s] o v) :: Array 2 v a
