@@ -5,7 +5,7 @@
        matrix:
          include:
 -          - compiler: ghc-9.14.1
-+          # GHC 9.14.2's second release candidate: 9.14.1 panics compiling the
++          # GHC 9.14.2's release candidate: 9.14.1 panics compiling the
 +          # tests (https://gitlab.haskell.org/ghc/ghc/-/work_items/26682).
 +          - compiler: ghc-9.14.1.20260916
              compilerKind: ghc
