@@ -62,6 +62,8 @@ type FlatDSmall = '[9]
 type ShDEmpty = '[0, 3]
 type FlatDEmpty = '[0]
 
+#define FAMILY_OPS "dynamic-ops.inc"
+
 #define SHD ShD
 #define FLATD FlatD
 #define ROWS 400
@@ -70,10 +72,7 @@ type FlatDEmpty = '[0]
 #define OPSB opsBLarge
 #define OPSS opsSLarge
 #define OPSU opsULarge
-#include "dynamic-kinds.inc"
-#undef OPSU
-#undef OPSS
-#undef OPSB
+#include "kinds.inc"
 
 #undef ROWS
 #undef SIZE
@@ -87,10 +86,7 @@ type FlatDEmpty = '[0]
 #define OPSB opsBSmall
 #define OPSS opsSSmall
 #define OPSU opsUSmall
-#include "dynamic-kinds.inc"
-#undef OPSU
-#undef OPSS
-#undef OPSB
+#include "kinds.inc"
 
 #undef ROWS
 #undef SIZE
@@ -104,7 +100,4 @@ type FlatDEmpty = '[0]
 #define OPSB opsBEmpty
 #define OPSS opsSEmpty
 #define OPSU opsUEmpty
-#include "dynamic-kinds.inc"
-#undef OPSU
-#undef OPSS
-#undef OPSB
+#include "kinds.inc"

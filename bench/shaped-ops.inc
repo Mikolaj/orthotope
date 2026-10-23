@@ -37,8 +37,6 @@ OPS form view =
   , call "reshape" (\ a -> ARR.reshape @FLAT a) t
 #if ROWS > 0
   , call "reshape.scalar" (\ a -> ARR.reshape @Sh0 a) t11
-#endif
-#if ROWS > 0
   , call "stretch" (\ a -> ARR.stretch @SH a) r1
   , call "stretchOuter" (\ a -> ARR.stretchOuter a `asTypeOf` t) r1
 #endif
@@ -96,8 +94,6 @@ OPS form view =
   , call "unravel" (\ a -> ARR.unravel a) t
 #if ROWS > 0
   , call "unravel.one" (\ a -> ARR.unravel a) t1
-#endif
-#if ROWS > 0
   , call "window" (\ a -> ARR.window @Win a) t
 #endif
   , call "stride" (\ a -> ARR.stride @Str22 a) t

@@ -25,12 +25,14 @@ import qualified OpsDynamic as D
 import qualified OpsRanked as R
 import qualified OpsShaped as S
 
--- | Each row's name, the family, the operation, the size and the view;
--- the count its figures are per, the view's elements at the large size and
--- one call at the others; and its call at each vector kind, boxed,
--- Storable and Unboxed, if the kind has the operation, on the view in the
--- form given, made anew at each application, so that what holds the rows
--- holds no call's input.
+-- | Each row's name, the family, the operation, the size and the view; the
+-- count its figures are per, the view's elements at the large size and one call
+-- at the others; and its call at each vector kind, boxed, Storable and Unboxed,
+-- if the kind has the operation, on the view in the form given, made anew at
+-- each application where it depends on the form or the view, so that what holds
+-- the rows holds no such call's input.  An input that depends on neither GHC
+-- floats out as a constant, which the run keeps: fromList's large list, on GHC
+-- HEAD 10.1.20261019 (2026-10-23).
 rows :: [(String, Int, Form -> [Maybe Call])]
 rows =
   [ (row, per, cells)
@@ -69,8 +71,9 @@ merged = foldl (\ acc names -> place acc Nothing (reverse names)) []
   before Nothing nm acc = acc ++ [nm]
   before (Just s) nm acc = let (xs, ys) = break (== s) acc in xs ++ nm : ys
 
--- The calls whose input is no view, or whose arm accesses none of it, which run
--- on one view.
+-- The calls that run on one view: those whose input is no view, those whose arm
+-- accesses none of it, and those whose arms another row takes on every view, as
+-- that of < does the arms of <=, >, >=, max and min.
 viewless :: [String]
 viewless = [ "fromList", "fromList.map", "fromVector", "scalar", "unScalar"
            , "constant", "generate", "iterateN", "iota", "pure"

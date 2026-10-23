@@ -39,8 +39,6 @@ OPS form view =
   , call "reshape" (\ a -> ARR.reshape [ROWS * cols] a `asTypeOf` row) t
 #if ROWS > 0
   , call "reshape.scalar" (\ a -> ARR.reshape [] a :: ARR.Array 0 Double) t11
-#endif
-#if ROWS > 0
   , call "stretch" (\ a -> ARR.stretch [ROWS, cols] a) r1
   , call "stretchOuter" (\ a -> ARR.stretchOuter ROWS a) r1
 #endif
@@ -81,8 +79,6 @@ OPS form view =
          (\ a -> ARR.concatOuter
                    (map (\ i -> ARR.slice [(i, 1)] a) [0 .. ROWS - 1]))
          t
-#endif
-#if ROWS > 0
   , call "ravel" (\ a -> ARR.ravel a `asTypeOf` t) rows
   , call "ravel.one" (\ a -> ARR.ravel a `asTypeOf` t)
                     (ARR.unravel t1 `asTypeOf` rows)
@@ -90,8 +86,6 @@ OPS form view =
   , call "unravel" (\ a -> ARR.unravel a `asTypeOf` rows) t
 #if ROWS > 0
   , call "unravel.one" (\ a -> ARR.unravel a `asTypeOf` rows) t1
-#endif
-#if ROWS > 0
   , call "window" (\ a -> ARR.window [2, 2] a :: ARR.Array 4 Double) t
 #endif
   , call "stride" (\ a -> ARR.stride [2, 2] a) t
@@ -106,13 +100,14 @@ OPS form view =
                           (\ r -> ARR.scalar (ARR.sumA (r `asTypeOf` row)))
                           a)
                   t
+-- Over an empty outer dimension rerank and rerank2 fail but where the function
+-- returns scalars, whose rank the type gives, so the empty size has those
+-- rows alone.
 #if ROWS > 0
   , call "rerank.one" (\ a -> ARR.rerank @1
                               (\ r -> ARR.scalar (ARR.sumA (r `asTypeOf` row)))
                               a)
                       t1
-#endif
-#if ROWS > 0
   , call "rerank2" (\ (a, b) -> ARR.rerank2 @1
                            (\ x y -> ARR.zipWithA (+) (x `asTypeOf` row) y) a b)
                    (t, tn)
@@ -176,8 +171,6 @@ OPS form view =
   , call "convert.dynamic" (\ a -> convert a :: CD.Array Double) t
   , call "convertE.dynamic"
          (\ a -> convertE a :: Either String (CD.Array Double)) t
-#endif
-#if defined(BOXED) || defined(STORABLE)
   , call "convert.shaped" (\ a -> convert a :: CS.Array SHD Double) t
   , call "convertE.shaped"
          (\ a -> convertE a :: Either String (CS.Array SHMD Double)) t

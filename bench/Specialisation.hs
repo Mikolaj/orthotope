@@ -15,29 +15,33 @@
 -- The time and allocation of every operation of the nine array modules at
 -- Double, of the conversions between them and to their generic arrays,
 -- of the generic arrays' comparisons, and of the unordered vectors of
--- Data.Array.Internal: each runs at the vector kinds having it, at three
--- sizes, [400, 500], [3, 3] and [0, 3], on the nine views of Call's View at
--- the first two and on all but the window at the empty, the window having no
--- array of no rows, and beside an operation's call are calls of the arms of
--- its code that call leaves untaken, each named for the operation and the arm;
--- a call whose input is no view, or whose arm accesses none of it, runs once
--- a size.  Between them the calls at the two smaller sizes take every arm of
--- the library's code but those that fail, the Left of a conversion to a shape
--- the Shaped modules reject, those no operation reaches, the list instance of
--- Vector and the instances that print, parse or generate arrays, and those at
--- the large size every such arm but those of an empty array.  A row is the
--- family, the operation, the size and the view, and a cell the time of a call
--- with its result forced to normal form or, given --summed, summed, every
--- component taken apart as a client consuming it would, the fastest of three
--- batches of calls, and the bytes a call allocates, both per element of the
--- view at the large size and per call at the others, where what a call costs
--- once shows.  Other arguments, if any, select the rows whose names contain one
--- of them.  Given --iters N and -m glob PATTERN, as criterion takes them, it
--- makes instead one batch of N calls of the one cell whose name, the row's and
--- the vector kind's joined by a slash, PATTERN matches, and prints the cell's
--- nanoseconds and bytes a call: two runs' instruction counts, at N calls and at
--- 2N, differ by N calls', the process's setup cancelling, where a batch of 5 ms
--- holds a number of calls that varies between builds.
+-- Data.Array.Internal: each runs at the vector kinds having it, at three sizes,
+-- [400, 500], [3, 3] and [0, 3], on the nine views of Call's View at the first
+-- two and on all but the window at the empty, the window having no array of no
+-- rows, and beside an operation's call are calls of the arms of its code that
+-- call leaves untaken, each named for the operation and the arm; a call whose
+-- input is no view, whose arm accesses none of it, or whose arms another row
+-- takes on every view runs once a size.  Between them the calls at the two
+-- smaller sizes take every arm of the library's code but those that fail, the
+-- Left of a conversion to a shape the Shaped modules reject, those no operation
+-- reaches, the list instance of Vector, the Data and Generic instances and
+-- those that print, parse or generate arrays, Foldable's length and null,
+-- genericFillInto's copy of a run longer than their rows, and those that need
+-- an element other than Double, a rank-0 generate, a rank-3 view reversed
+-- along its third axis, a pad along three axes, a window of 0 or a shape whose
+-- extents overflow Int before one of 0.  A row is the family, the operation,
+-- the size and the view, and a cell the time of a call with its result forced
+-- to normal form or, given --summed, summed, every component taken apart as a
+-- client consuming it would, the fastest of three batches of calls, and the
+-- bytes a call allocates, both per element of the view at the large size and
+-- per call at the others, where what a call costs once shows.  Other arguments,
+-- if any, select the rows whose names contain one of them.  Given --iters N
+-- and -m glob PATTERN, as criterion takes them, it makes instead one batch of
+-- N calls of the one cell whose name, the row's and the vector kind's joined
+-- by a slash, PATTERN matches, and prints the cell's nanoseconds and bytes a
+-- call: two runs' instruction counts, at N calls and at 2N, differ by N calls',
+-- the process's setup cancelling, where a batch of 5 ms holds a number of calls
+-- that varies between builds.
 --
 -- Without --summed the probes follow, in a table of their own printed as the
 -- other is, where it has rows: for each type the library marks as never to be
@@ -62,33 +66,28 @@
 -- its definition names.
 --
 -- A property no construction keeps, so check it once a year or every 100
--- commits, whichever comes first: the large size's rows and the small size's
--- take the same arms of the library's code.  It last held on 2026-10-12, on
--- GHC HEAD 10.1.20260918.  Where it fails, widen a call until it holds again,
--- rather than adding a narrow one.  From the package's directory, with the hpc
--- of the GHC that builds it:
+-- commits, whichever comes first: the large size's rows and the small
+-- size's take the same arms of the library's code but genericFillInto's
+-- copy named above, which the large size's alone take.  It last held on
+-- 2026-10-23, on GHC HEAD 10.1.20261019.  Where it fails, widen a call until
+-- it holds again, rather than adding a narrow one.  From the package's
+-- directory, with the hpc of the GHC that builds it and $S a checkout of
+-- https://github.com/Mikolaj/slop:
 --
 --   cabal build bench:specialisation --ghc-options=-fhpc --builddir=dist-hpc
 --   B=$(find dist-hpc -type f -name specialisation -perm -u+x)
 --   rm -f specialisation.tix
 --   $B /large/ > /dev/null; mv specialisation.tix large.tix
 --   $B /small/ > /dev/null; mv specialisation.tix small.tix
---   hpc combine large.tix small.tix --output=both.tix
 --   P=$(cd .hpc && ls -d orthotope-*-inplace)
---   for t in large small both; do
---     hpc report $t.tix --hpcdir=.hpc/$P --include=$P:; done
---
--- The three reports must agree: a box that one size alone takes
--- puts both.tix's count above the other size's.  A run adds to the
--- specialisation.tix it finds, hence the rm.  Where they disagree, list what
--- each size never entered with horde-ad's tools/hpc-untaken.py, $H being a
--- checkout of horde-ad; an arm one list holds and the other does not is one
--- the other size alone takes:
---
 --   for t in large small; do
 --     hpc draft --hpcdir=.hpc/$P --include=$P: $t.tix > $t.draft
---     python3 $H/tools/hpc-untaken.py $t.draft --src . > $t.untaken; done
+--     python3 $S/tools/hpc-untaken.py $t.draft --src . > $t.untaken; done
 --   diff large.untaken small.untaken
+--
+-- A run adds to the specialisation.tix it finds, hence the rm.  The diff prints
+-- each arm one size never entered and the other did, and that copy alone where
+-- the property holds.
 --
 -- BenchViewsTest checks on the large size's calls on the strided view that
 -- a client specialises the operations, by what they allocate, which tells a
