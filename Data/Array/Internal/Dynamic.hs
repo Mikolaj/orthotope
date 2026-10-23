@@ -691,7 +691,7 @@ broadcast :: (HasCallStack) =>
 broadcast ds sh = A . G.broadcast ds sh . unA
 
 -- | Update the array at the specified indices to the associated value.
--- Fails if an index is out of bounds.
+-- Fails if an index is out of bounds or not of the array's rank.
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
 {-# INLINE update #-}

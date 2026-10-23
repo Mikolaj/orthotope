@@ -78,9 +78,10 @@ type role Array nominal nominal
 newtype Array n a = A { unA :: G.Array n V.Vector a }
   deriving (Pretty, Generic, Data)
 
--- Through Generic, so that rnf evaluates the shape and the vector to weak head
--- normal form, as vector's own rnf does, and no element, every element being
--- stored evaluated; the boxed modules' rnf evaluates the elements of the view.
+-- Through Generic, so that rnf evaluates the shape, the strides and the offset
+-- fully and the vector to weak head normal form, as vector's own rnf does, and
+-- no element, every element being stored evaluated; the boxed modules' rnf
+-- evaluates the elements of the view.
 instance NFData (Array n a)
 
 -- Point-free, as are the point-free wrappers and instance methods below, for
@@ -479,7 +480,7 @@ broadcast :: forall r' r a .
 broadcast ds sh = A . G.broadcast ds sh . unA
 
 -- | Update the array at the specified indices to the associated value.
--- Fails if an index is out of bounds.
+-- Fails if an index is out of bounds or not of the array's rank.
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
 {-# INLINE update #-}
@@ -511,6 +512,8 @@ iota = A . G.iota
 -- For instance the floating point number @(1.5 :: Float)@ will convert to
 -- @(0x3fc00000 :: Word32)@ since they have the same bit representation.
 -- Fails if the two types differ in size or have size 0.
+-- The alignments are not compared: an element of the result is only as
+-- aligned as the source's.
 {-# INLINABLE bitcast #-}
 bitcast :: forall n a b . (HasCallStack, Unbox a, Unbox b) => Array n a -> Array n b
 bitcast (A (G.A sh (T ss o v)))

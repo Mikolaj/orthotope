@@ -80,10 +80,10 @@ type role Array nominal nominal
 newtype Array sh a = A { unA :: G.Array sh V.Vector a }
   deriving (Pretty, Generic, Data)
 
--- Through Generic, so that rnf evaluates the shape and the vector to weak head
--- normal form, as vector's own rnf does, and no element: a DoNotUnboxLazy
--- element stays as stored, where the boxed modules' rnf evaluates the elements
--- of the view.
+-- Through Generic, so that rnf evaluates the strides and the offset fully
+-- and the vector to weak head normal form, as vector's own rnf does, and no
+-- element: a DoNotUnboxLazy element stays as stored, where the boxed modules'
+-- rnf evaluates the elements of the view.
 instance NFData (Array sh a)
 
 -- Point-free, as are the point-free wrappers and instance methods below, for
@@ -281,7 +281,7 @@ transpose :: forall is sh a .
 transpose = A . G.transpose @is . unA
 
 -- | Append two arrays along the outermost dimension.
--- All dimensions, except the outermost, must be the same.
+-- All dimensions but the outermost, which the types check, are the same.
 -- O(n) time.
 -- Where one array's outer extent is 0, the result is the other itself, sharing
 -- its vector; 'force' copies it out.
@@ -302,7 +302,8 @@ concatOuter = A . G.concatOuter @m @n . coerce
 
 -- INLINE: see Data.Array.Internal.Dynamic's ravel.
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
--- dimension of the result array.  All the arrays must have the same shape.
+-- dimension of the result array.  All the arrays have the same shape, which
+-- the types check.
 -- O(n) time.
 -- Of one array, the result is a view of it, sharing its vector; 'force' copies
 -- it out.
@@ -360,8 +361,8 @@ rotate = A . G.rotate @d @k . unA
 
 -- | Extract a slice of an array.
 -- The first type argument is a list of (offset, length) pairs.
--- The length of the slicing argument must not exceed the rank of the array.
--- The extracted slice must fall within the array dimensions.
+-- The slicing argument, which its type checks, is no longer than the rank of
+-- the array, and the extracted slice falls within the array dimensions.
 -- E.g. @slice \@'[ '(1,2)] (fromList \@'[4] [1,2,3,4]) == fromList \@'[2] [2,3]@.
 -- O(1) time.
 {-# INLINE slice #-}
@@ -372,7 +373,7 @@ slice = A . G.slice @sl . unA
 
 -- | Apply a function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
--- The /n/ must not exceed the rank of the array.
+-- The /n/, which the types check, does not exceed the rank of the array.
 -- O(n) time.
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
@@ -385,7 +386,7 @@ rerank f = A . G.rerank @n (unA . f . A) . unA
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
--- The /n/ must not exceed the rank of each array.
+-- The /n/, which the types check, does not exceed the rank of each array.
 -- O(n) time.
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
@@ -472,8 +473,8 @@ allA p = G.allA p . unA
 
 -- | Put the dimensions of the argument into the specified dimensions,
 -- and just replicate the data along all other dimensions.
--- The list of dimension indices must have the same rank as the argument array
--- and it must be strictly ascending.
+-- The list of dimension indices, which its type checks, is as long as the
+-- argument array's rank and strictly ascending.
 {-# INLINE broadcast #-}
 broadcast :: forall ds sh' sh a .
              (Unbox a, Shape sh, Shape sh',
@@ -482,7 +483,7 @@ broadcast :: forall ds sh' sh a .
 broadcast = A . G.broadcast @ds @sh' @sh . unA
 
 -- | Update the array at the specified indices to the associated value.
--- Fails if an index is out of bounds.
+-- Fails if an index is out of bounds or not of the array's rank.
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
 {-# INLINE update #-}

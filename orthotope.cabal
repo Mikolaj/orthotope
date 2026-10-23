@@ -19,6 +19,9 @@ extra-source-files:
       README.md
       bench/*.inc
 
+-- 9.14.1 builds the library, but panics compiling the tests
+-- (https://gitlab.haskell.org/ghc/ghc/-/work_items/26682), so CI tests
+-- 9.14.2's release candidate in its place.
 tested-with:         GHC ==8.10.7 || ==9.0.2 || ==9.2.8 || ==9.4.8 || ==9.6.7 || ==9.8.4 || ==9.10.3 || ==9.12.2 || ==9.14.1
 
 source-repository head
@@ -111,12 +114,11 @@ test-suite tests
   -- -with-rtsopts=-A32m runs the tests at the 32 MB allocation area
   -- a client of the library runs at.
   ghc-options:
-    -Wall -rtsopts -fno-ignore-asserts "-with-rtsopts=-A32m"
+    -rtsopts -fno-ignore-asserts "-with-rtsopts=-A32m"
 
   -- base 4.18, of GHC 9.6: BenchViewsTest's allocation bounds fail on
   -- earlier GHCs, 9.2.8's Storable and Unboxed convert and convertE
-  -- allocating 32.01 bytes an element over boxed against a bound of 32, and
-  -- in a profiled or coverage build on any GHC.
+  -- allocating 32.01 bytes an element over boxed against a bound of 32.
   build-depends:
     base                       >= 4.18,
     deepseq,

@@ -123,6 +123,9 @@ instance (Vector v, Pretty a, VecElem v a) => Pretty (Array v a) where
   {-# INLINE pPrintPrec #-}
   pPrintPrec l p (A sh t) = ppT l p sh t
 
+-- | rnf evaluates the array's fields, the vector by the vector's own rnf: at
+-- Data.Vector every element, those outside the view included, where the boxed
+-- modules' rnf evaluates the elements of the view alone.
 instance (NFData (v a)) => NFData (Array v a) where
   {-# INLINABLE rnf #-}
   rnf (A sh t) = rnf sh `seq` rnf t
@@ -754,7 +757,7 @@ broadcast ds sh a | any (\ d -> d < 0 || d >= r) ds = error $ "broadcast: bad di
 -- goes to null and, checked as it is taken, to updateT, so it fuses with no
 -- producer.
 -- | Update the array at the specified indices to the associated value.
--- Fails if an index is out of bounds.
+-- Fails if an index is out of bounds or not of the array's rank.
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
 {-# INLINE update #-}

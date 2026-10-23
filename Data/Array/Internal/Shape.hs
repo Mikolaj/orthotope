@@ -298,7 +298,7 @@ sizeT :: forall sh . (Shape sh) => Int
 sizeT = sizeP (Proxy :: Proxy sh)
 
 -- | Turn a dynamic shape back into a type level shape.
--- @withShapeP sh shapeP == sh@
+-- For a shape @sh@ that 'validShape' accepts, @withShapeP sh shapeP == sh@.
 {-# INLINE withShapeP #-}
 withShapeP :: (HasCallStack) => [Int] -> (forall sh . (Shape sh) => Proxy sh -> r) -> r
 withShapeP sh0 f0 = go sh0 f0

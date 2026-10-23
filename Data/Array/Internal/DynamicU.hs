@@ -228,10 +228,10 @@ type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }
   deriving (Pretty, Generic, Data)
 
--- Through Generic, so that rnf evaluates the shape and the vector to weak head
--- normal form, as vector's own rnf does, and no element: a DoNotUnboxLazy
--- element stays as stored, where the boxed modules' rnf evaluates the elements
--- of the view.
+-- Through Generic, so that rnf evaluates the shape, the strides and the offset
+-- fully and the vector to weak head normal form, as vector's own rnf does,
+-- and no element: a DoNotUnboxLazy element stays as stored, where the boxed
+-- modules' rnf evaluates the elements of the view.
 instance NFData (Array a)
 
 -- Point-free, as are the point-free wrappers and instance methods below, for
@@ -620,7 +620,7 @@ broadcast :: (HasCallStack) =>
 broadcast ds sh = A . G.broadcast ds sh . unA
 
 -- | Update the array at the specified indices to the associated value.
--- Fails if an index is out of bounds.
+-- Fails if an index is out of bounds or not of the array's rank.
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
 {-# INLINE update #-}

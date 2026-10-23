@@ -118,6 +118,9 @@ instance (Vector v, Pretty a, VecElem v a, Shape sh) => Pretty (Array sh v a) wh
   {-# INLINABLE pPrintPrec #-}
   pPrintPrec l p a@(A t) = ppT l p (shapeL a) t
 
+-- | rnf evaluates the array's fields, the vector by the vector's own rnf: at
+-- Data.Vector every element, those outside the view included, where the boxed
+-- modules' rnf evaluates the elements of the view alone.
 instance (NFData (v a)) => NFData (Array sh v a) where
   {-# INLINE rnf #-}
   rnf (A t) = rnf t
@@ -149,6 +152,8 @@ index :: forall s sh v a . (HasCallStack, KnownNat s) =>
 index (A t) i | i < 0 || i >= s = error $ "index: out of bounds " ++ show (i, s)
               | otherwise = A $ indexT t i
   where s = natT @s
+        -- The outer extent alone in the error: index has no Shape constraint
+        -- to show the rest of the shape by.
   -- The check needs nothing of the array, but index is strict in it, so GHC
   -- may force the array first and show its error instead, as it does with
   -- index INLINABLE: see natT.
@@ -347,7 +352,7 @@ transpose a@(A t) | not (validShape sh') = error $ "transpose: bad shape " ++ sh
         is = listP (Proxy :: Proxy is)
 
 -- | Append two arrays along the outermost dimension.
--- All dimensions, except the outermost, must be the same.
+-- All dimensions but the outermost, which the types check, are the same.
 -- O(n) time.
 -- Where one array's outer extent is 0, the result is the other itself, sharing
 -- its vector; 'force' copies it out.
@@ -397,11 +402,6 @@ concatOuter as | [A t] <- as, n == s = A t  -- one array: the array itself
                       | otherwise = mismatch i False
           in  go 0 xs
 
--- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
--- dimension of the result array.  All the arrays must have the same shape.
--- O(n) time.
--- Of one array, the result is a view of it, sharing its vector; 'force' copies
--- it out.
 -- An array as its shape and T, for 'vUnsafeConcatViewsN'.
 {-# INLINE viewOfA #-}
 viewOfA :: Shape sh => Array sh v a -> (ShapeL, T v a)
@@ -491,8 +491,8 @@ rotate a@(A t) =
 
 -- | Extract a slice of an array.
 -- The first type argument is a list of (offset, length) pairs.
--- The length of the slicing argument must not exceed the rank of the array.
--- The extracted slice must fall within the array dimensions.
+-- The slicing argument, which its type checks, is no longer than the rank of
+-- the array, and the extracted slice falls within the array dimensions.
 -- E.g. @slice \@'[ '(1,2)] (fromList \@'[4] [1,2,3,4]) == fromList \@'[2] [2,3]@.
 -- O(1) time.
 {-# INLINABLE slice #-}
@@ -504,7 +504,7 @@ slice (A (T ts o v)) = A (T ts (o+i) v)
 
 -- | Apply a function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
--- The /n/ must not exceed the rank of the array.
+-- The /n/, which the types check, does not exceed the rank of the array.
 -- O(n) time.
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
@@ -526,7 +526,7 @@ rerank f a@(A t)
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
--- The /n/ must not exceed the rank of each array.
+-- The /n/, which the types check, does not exceed the rank of each array.
 -- O(n) time.
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
@@ -630,8 +630,8 @@ allA p a@(A t) = allT (shapeL a) p t
 
 -- | Put the dimensions of the argument into the specified dimensions,
 -- and just replicate the data along all other dimensions.
--- The list of dimension indices must have the same rank as the argument array
--- and it must be strictly ascending.
+-- The list of dimension indices, which its type checks, is as long as the
+-- argument array's rank and strictly ascending.
 {-# INLINE broadcast #-}
 broadcast :: forall ds sh' sh v a .
              (Shape sh, Shape sh',
@@ -642,7 +642,7 @@ broadcast (A t) = sizeT @sh' `seq`  -- the result's size checked now; see natT
                  A (broadcastT (broadcasting @ds @sh @sh') t)
 
 -- | Update the array at the specified indices to the associated value.
--- Fails if an index is out of bounds.
+-- Fails if an index is out of bounds or not of the array's rank.
 -- With no updates, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
 {-# INLINE update #-}
