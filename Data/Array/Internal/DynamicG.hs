@@ -54,7 +54,7 @@ module Data.Array.Internal.DynamicG(
   sumA, productA, maximumA, minimumA,
   anyA, allA,
   broadcast,
-  update,
+  update, checkedUpdatesT,
   generate, iterateN, iota,
   ) where
 import Control.DeepSeq hiding (force)
@@ -65,6 +65,7 @@ import GHC.Exts(noinline)
 #else
 import GHC.Base(noinline)
 #endif
+import GHC.Exts(build)
 import GHC.Generics(Generic)
 import GHC.Stack
 import Test.QuickCheck hiding (generate)
@@ -415,7 +416,7 @@ ravel aa | rank aa /= 1 = error $ "ravel: outermost array does not have rank 1 "
          | otherwise = case shapeL aa of
   [1] -> case unScalar (index aa 0) of  -- one array: a view of it
     A sh t -> A (1 : sh) (insertUnitsT 0 1 t)
-  [k] | k > 0 -> ravelOuterOf [k] (shapeL (unScalar (index aa 0))) (toList aa)
+  [k] | k > 0 -> ravelOuterOf "ravel" [k] (shapeL (unScalar (index aa 0))) (toList aa)
   _ -> error "ravel: empty array"
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
@@ -595,20 +596,20 @@ rerank n f (A sh t) | n < 0 || n > length sh = error $ "rerank: rank exceeded " 
                       case f (A ish s) of  -- one subarray: a view of f's result
                         A rsh rt -> A (osh ++ rsh) (insertUnitsT 0 (length osh) rt)
                     | otherwise =
-  ravelOuter osh $
+  ravelOuter "rerank" osh $
   map (f . A ish) $
   subArraysT osh t
   where (osh, ish) = splitAt n sh
 
 -- The caller computes the arrays, one for each index of @osh@, and each one's
--- shape is checked against the first's as it is copied, not all before
--- the copy, which, the fields of an array being strict, would compute every
--- array and hold them all.  Over an empty outer dimension there is none
--- to take the inner shape from.
+-- shape is checked against the first's as it is copied, not all before the
+-- copy, which, the fields of an array being strict, would compute every array
+-- and hold them all.  Over an empty outer dimension there is none to take the
+-- inner shape from.  The errors name the operation given first, which calls it.
 {-# INLINE ravelOuter #-}
-ravelOuter :: (HasCallStack, Vector v, VecElem v a) => ShapeL -> [Array v a] -> Array v a
-ravelOuter osh [] = error $ "ravelOuter: empty outer dimension " ++ show osh
-ravelOuter osh as@(a : _) = ravelOuterOf osh (shapeL a) as
+ravelOuter :: (HasCallStack, Vector v, VecElem v a) => String -> ShapeL -> [Array v a] -> Array v a
+ravelOuter name osh [] = error $ name ++ ": empty outer dimension " ++ show osh
+ravelOuter name osh as@(a : _) = ravelOuterOf name osh (shapeL a) as
 
 -- INLINE: F1, directly fusing: it consumes its list once, by a map, which
 -- fold/build fuses with a producer's build where it is inlined.
@@ -618,11 +619,11 @@ ravelOuter osh as@(a : _) = ravelOuterOf osh (shapeL a) as
 -- the copy.
 {-# INLINE ravelOuterOf #-}
 ravelOuterOf :: (HasCallStack, Vector v, VecElem v a) =>
-                ShapeL -> ShapeL -> [Array v a] -> Array v a
-ravelOuterOf osh sh as = fromVector sh' $ vUnsafeConcatViewsN (product sh') $ map vec as
+                String -> ShapeL -> ShapeL -> [Array v a] -> Array v a
+ravelOuterOf name osh sh as = fromVector sh' $ vUnsafeConcatViewsN (product sh') $ map vec as
   where sh' = osh ++ sh
         vec x@(A _ t) | shapeL x == sh = (sh, t)
-              | otherwise = error $ "ravelOuterOf: non-conforming inner dimensions: " ++ show [sh, shapeL x]
+              | otherwise = error $ name ++ ": non-conforming inner dimensions: " ++ show [sh, shapeL x]
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
 -- the results into an array with the same /n/ outermost dimensions.
@@ -641,7 +642,7 @@ rerank2 n f (A sha ta) (A shb tb) | n < 0 || n > length sha || n > length shb = 
                                     case f (A isha sa) (A ishb sb) of  -- one subarray each: a view of f's result
                                       A rsh rt -> A (osh ++ rsh) (insertUnitsT 0 (length osh) rt)
                                   | otherwise =
-  ravelOuter osh $
+  ravelOuter "rerank2" osh $
   zipWith (\ a b -> f (A isha a) (A ishb b))
           (subArraysT osh ta)
           (subArraysT osh tb)
@@ -765,6 +766,22 @@ update :: (HasCallStack, Vector v, VecElem v a) =>
           Array v a -> [([Int], a)] -> Array v a
 update (A sh t) us | null us = A sh t  -- no update: the array itself
                    | otherwise = A sh $ updateT sh t (checkedUpdatesT sh us)
+
+-- The updates, each index checked against the shape as 'updateT' takes it,
+-- under 'build', so that updateT's map fuses with the check: the list is walked
+-- once, neither copied nor held whole.  The indices before the first bad one
+-- are good, so the error lists every bad one.  The error is update's: each
+-- generic module's update calls this.
+{-# INLINE checkedUpdatesT #-}
+checkedUpdatesT :: HasCallStack => ShapeL -> [([Int], a)] -> [([Int], a)]
+checkedUpdatesT sh us = build $ \ cons nil ->
+  let go (u@(is, _) : rest)
+        | ok is = u `cons` go rest
+        | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst (u : rest), sh)
+      go [] = nil
+  in  go us
+  where ok is = length is == r && and (zipWith (\ i s -> 0 <= i && i < s) is sh)
+        r = length sh
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}

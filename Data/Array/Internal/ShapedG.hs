@@ -655,7 +655,7 @@ update :: forall sh v a . (HasCallStack, Vector v, VecElem v a, Shape sh) =>
 -- boxed ones, up to 1.4%; only its update2000 of boxed elements ran fewer, 10 a
 -- call, 0.3%.
 update a@(A t) us | null us = A t  -- no update: the array itself
-                  | otherwise = A $ updateT sh t (checkedUpdatesT sh us)
+                  | otherwise = A $ updateT sh t (DG.checkedUpdatesT sh us)
   where sh = shapeL a
 
 -- | Generate an array with a function that computes the value for each index.

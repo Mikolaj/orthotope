@@ -410,7 +410,7 @@ ravel :: forall n v v' a . (HasCallStack, Vector v, Vector v', VecElem v a, VecE
 ravel aa = case shapeL aa of
   [1] -> case unScalar (index aa 0) of  -- one array: a view of it
     A sh t -> A (1 : sh) (insertUnitsT 0 1 t)
-  [k] | k > 0 -> ravelOuterOf [k] (shapeL (unScalar (index aa 0))) (toList aa)
+  [k] | k > 0 -> ravelOuterOf "ravel" [k] (shapeL (unScalar (index aa 0))) (toList aa)
   _ -> error "ravel: empty array"
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
@@ -429,7 +429,7 @@ unravelWith :: forall n v v' a b . (Vector v', VecElem v' b) =>
                (Array n v a -> b) -> Array (1+n) v a -> Array 1 v' b
 unravelWith w (A (k : ish) t) =
   A [k] $ fromVectorT [k] $ vGenerate' k (\ i -> w (A ish (indexT t i)))
-unravelWith _ (A [] _) = error "unravel: violated contract: rank 0"
+unravelWith _ (A [] _) = error "unravelWith: violated contract: rank 0"
 
 -- | Make a window of the outermost dimensions.
 -- The rank increases with the length of the window list.
@@ -576,7 +576,7 @@ slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank #-}
 rerank :: forall n i o v v' a b .
-          (Vector v', VecElem v' b
+          (HasCallStack, Vector v', VecElem v' b
           , KnownNat n, KnownNat o, KnownNat (n+o)) =>
           (Array i v a -> Array o v' b) -> Array (n+i) v a -> Array (n+o) v' b
 rerank f (A sh t)
@@ -585,20 +585,20 @@ rerank f (A sh t)
                     case f (A ish s) of  -- one subarray: a view of f's result
                       A rsh rt -> A (osh ++ rsh) (insertUnitsT 0 (length osh) rt)
                   | otherwise =
-  ravelOuter osh $
+  ravelOuter "rerank" osh $
   map (f . A ish) $
   subArraysT osh t
   where (osh, ish) = splitAt (natT @n) sh
 
 -- The caller computes the arrays, one for each index of @osh@, and each one's
--- shape is checked against the first's as it is copied, not all before
--- the copy, which, the fields of an array being strict, would compute every
--- array and hold them all.  Over an empty outer dimension there is none
--- to take the inner shape from.
+-- shape is checked against the first's as it is copied, not all before the
+-- copy, which, the fields of an array being strict, would compute every array
+-- and hold them all.  Over an empty outer dimension there is none to take the
+-- inner shape from.  The errors name the operation given first, which calls it.
 {-# INLINE ravelOuter #-}
-ravelOuter :: (HasCallStack, Vector v, VecElem v a, KnownNat m) => ShapeL -> [Array n v a] -> Array m v a
-ravelOuter osh [] = error $ "ravelOuter: empty outer dimension " ++ show osh
-ravelOuter osh as@(a : _) = ravelOuterOf osh (shapeL a) as
+ravelOuter :: (HasCallStack, Vector v, VecElem v a, KnownNat m) => String -> ShapeL -> [Array n v a] -> Array m v a
+ravelOuter name osh [] = error $ name ++ ": empty outer dimension " ++ show osh
+ravelOuter name osh as@(a : _) = ravelOuterOf name osh (shapeL a) as
 
 -- INLINE: F1, directly fusing: it consumes its list once, by a map, which
 -- fold/build fuses with a producer's build where it is inlined.
@@ -608,11 +608,11 @@ ravelOuter osh as@(a : _) = ravelOuterOf osh (shapeL a) as
 -- the copy.
 {-# INLINE ravelOuterOf #-}
 ravelOuterOf :: (HasCallStack, Vector v, VecElem v a, KnownNat m) =>
-                ShapeL -> ShapeL -> [Array n v a] -> Array m v a
-ravelOuterOf osh sh as = fromVector sh' $ vUnsafeConcatViewsN (product sh') $ map vec as
+                String -> ShapeL -> ShapeL -> [Array n v a] -> Array m v a
+ravelOuterOf name osh sh as = fromVector sh' $ vUnsafeConcatViewsN (product sh') $ map vec as
   where sh' = osh ++ sh
         vec x@(A _ t) | shapeL x == sh = (sh, t)
-              | otherwise = error $ "ravelOuterOf: non-conforming inner dimensions: " ++ show [sh, shapeL x]
+              | otherwise = error $ name ++ ": non-conforming inner dimensions: " ++ show [sh, shapeL x]
 
 -- Over an empty outer dimension f is never applied, so the inner shape
 -- is known only for scalars.
@@ -636,7 +636,7 @@ rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error $ "rerank2: s
                                   case f (A isha sa) (A ishb sb) of  -- one subarray each: a view of f's result
                                     A rsh rt -> A (osh ++ rsh) (insertUnitsT 0 (length osh) rt)
                                 | otherwise =
-  ravelOuter osh $
+  ravelOuter "rerank2" osh $
   zipWith (\ a b -> f (A isha a) (A ishb b))
           (subArraysT osh ta)
           (subArraysT osh tb)
@@ -764,7 +764,7 @@ update :: forall n v a . (HasCallStack, Vector v, VecElem v a) =>
 -- 10.1.20261019 (2026-10-21), the specialisation benchmark's forced update at
 -- [3, 3] ran 15 to 22 instructions a call more, up to 1.3%.
 update (A sh t) us | null us = A sh t  -- no update: the array itself
-                   | otherwise = A sh $ updateT sh t (checkedUpdatesT sh us)
+                   | otherwise = A sh $ updateT sh t (DG.checkedUpdatesT sh us)
 
 -- | Generate an array with a function that computes the value for each index.
 {-# INLINE generate #-}

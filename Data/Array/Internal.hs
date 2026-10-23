@@ -65,7 +65,6 @@ import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import GHC.Exts(Constraint, SpecConstrAnnotation(..), build, inline)
 import GHC.Generics(Generic)
-import GHC.Stack(HasCallStack)
 import GHC.TypeLits(KnownNat, natVal)
 import Text.PrettyPrint
 import Text.PrettyPrint.HughesPJClass
@@ -2739,21 +2738,6 @@ updateT sh t us = T ss 0 $ vUnsafeUpdateOwned v $ map ix us
         !v | l > 0, Just s <- sliceOfT sh l t = vForce s
            | otherwise = toVectorT sh t
         ix (is, a) = (sum $ zipWith (*) is ss, a)
-
--- The updates, each index checked against the shape as 'updateT' takes it,
--- under 'build', so that updateT's map fuses with the check: the list is walked
--- once, neither copied nor held whole.  The indices before the first bad one
--- are good, so the error lists every bad one.
-{-# INLINE checkedUpdatesT #-}
-checkedUpdatesT :: HasCallStack => ShapeL -> [([Int], a)] -> [([Int], a)]
-checkedUpdatesT sh us = build $ \ cons nil ->
-  let go (u@(is, _) : rest)
-        | ok is = u `cons` go rest
-        | otherwise = error $ "update: index out of bounds: " ++ show (filter (not . ok) $ map fst (u : rest), sh)
-      go [] = nil
-  in  go us
-  where ok is = length is == r && and (zipWith (\ i s -> 0 <= i && i < s) is sh)
-        r = length sh
 
 -- The view broadcast along the dimensions flagged True, at stride 0, each other
 -- dimension taking the next of the array's strides in order.

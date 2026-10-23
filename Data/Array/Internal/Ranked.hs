@@ -372,7 +372,7 @@ slice ss = A . G.slice ss . unA
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank #-}
-rerank :: forall n i o a b . (KnownNat n, KnownNat o, KnownNat (n+o)) =>
+rerank :: forall n i o a b . (HasCallStack, KnownNat n, KnownNat o, KnownNat (n+o)) =>
           (Array i a -> Array o b) -> Array (n+i) a -> Array (n+o) b
 rerank f = A . G.rerank (unA . f . A) . unA
 

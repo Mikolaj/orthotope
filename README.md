@@ -68,21 +68,23 @@ like `hmatrix`.
 ### Errors
 
 An operation of the array modules either returns its result or fails
-with an error naming the function whose check failed: the operation itself,
-as in `reshape: size mismatch ([2,3],[5])`, or one it called,
-as in `fromVector: bad shape [4611686018427387904,2]` from `append`. Such
-a failure breaks no contract: the error is the operation's result,
-and its documentation says when it occurs, with "Fails if" or with "must".
-The error's call stack reaches the line that called the operation
-if the operation, or the one it wraps, an operation of the same name in another
-module, can fail by a check of its own; otherwise it may stop at a line inside
-the operation. Some failures hold throughout and go unsaid: a shape
-with a negative extent or with more elements than an `Int` counts, extents
-or paddings summing past `maxBound`, and, in the `Ranked` modules, a rank other
-than the one the types give. In the `Shaped` modules a shape also fails if any
-inner part of it, the dimensions from some one inward, has more elements
-than an `Int` counts, though an outer extent of 0 leaves the shape none:
-the type `'[0, 4611686018427387904, 4]` fails for its rows
+with an error naming an operation whose documented check failed: the operation
+itself, as in `reshape: size mismatch ([2,3],[5])`, even where a helper makes
+the check for it, or an operation it called,
+as in `fromVector: bad shape [4611686018427387904,2]` from `append`, and never
+a helper the modules do not export. Such a failure breaks no contract: the error
+is the operation's result, and its documentation says when it occurs,
+with "Fails if" or with "must". The error's call stack reaches the line
+that called the operation where the error names it, or names the operation
+of the same name in another module that it wraps; where the error names
+an operation it called, the stack may stop at a line inside the operation. Some
+failures hold throughout and go unsaid: a shape with a negative extent
+or with more elements than an `Int` counts, extents or paddings summing past
+`maxBound`, and, in the `Ranked` modules, a rank other than the one the types
+give. In the `Shaped` modules a shape also fails if any inner part of it,
+the dimensions from some one inward, has more elements than an `Int` counts,
+though an outer extent of 0 leaves the shape none: the type
+`'[0, 4611686018427387904, 4]` fails for its rows
 of `'[4611686018427387904, 4]`, where `Dynamic` accepts the shape
 `[0, 4611686018427387904, 4]`. The `Shaped` modules check most arguments
 in their types instead. A number past `maxBound` in a `Shaped` or `Ranked` type
@@ -94,8 +96,9 @@ so no array an operation returns has a shape that fails.
 
 The functions of `Data.Array.Internal` have contracts, which the operations
 establish before calling them. A call that breaks one is a bug, in orthotope
-or in code calling that module directly; where it is caught, the error says
-`violated contract`, or an assertion fails in a build that keeps asserts.
+or in code calling that module directly; where it is caught, the error names
+the function whose contract it is and says `violated contract`, or an assertion
+fails in a build that keeps asserts.
 
 ### Evaluation
 

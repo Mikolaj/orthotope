@@ -342,7 +342,7 @@ test = testGroup "Dynamic" $
       concatOuter_3 = assertThrowsIn "3" "concatOuter" (concatOuter [constant [maxBound] 0, constant [maxBound] 0, fromList [3] [1,2,3::Int]])
       ravel_1 = assertEqual "1" (fromList [3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                 (ravel $ fromList [3] [a1,a1,a1])
-      ravel_2 = assertThrowsIn "2" "ravelOuterOf" (ravel $ fromList [2] [a1, concatOuter [a1,a1]])
+      ravel_2 = assertThrowsIn "2" "ravel" (ravel $ fromList [2] [a1, concatOuter [a1,a1]])
       unravel_1 = assertEqual "1" [a1,a1,a1]
                                   (toList $ unravel $ ravel $ fromList [3] [a1,a1,a1])
       unravel_2 = assertThrowsIn "2" "unravel" (unravel (scalar (1 :: Int)) :: Array (Array Int))
@@ -460,7 +460,7 @@ test = testGroup "Dynamic" $
         [ ("stretchOuter: bad shape [-1,2]", stretchOuter (-1) (fromList [1,2] [1,2 :: Int]))
         , ("rotate: bad shape [-2,3]", rotate 0 (-2) (fromList [3] [1,2,3]))
         , ("broadcast: shape mismatch ([2,3],[0],[2,3])", broadcast [0] [2,3] (fromList [2,3] [1..6]))
-        , ("ravelOuter: empty outer dimension [0]", rerank 1 id (fromList [0,2] [])) ]
+        , ("rerank: empty outer dimension [0]", rerank 1 id (fromList [0,2] [])) ]
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrowsIn "2" "slice" (slice [(0,0)] a4)
@@ -484,7 +484,7 @@ test = testGroup "Dynamic" $
       rerank_4 = assertEqual "4" (mapA (\ x -> Just (scalar x)) a5)
                                  (rerank 3 box a5)
       rerank_5 = assertThrowsIn "5" "rerank" (rerank 4 box a5)
-      rerank_6 = assertThrowsIn "6" "ravelOuterOf" (rerank 1 (\ a -> constant [unScalar a] (0 :: Int)) (fromList [2] [1,2 :: Int]))
+      rerank_6 = assertThrowsIn "6" "rerank" (rerank 1 (\ a -> constant [unScalar a] (0 :: Int)) (fromList [2] [1,2 :: Int]))
       -- Outer extents whose product passes maxBound, beside an empty inner one:
       -- f is applied to the first subarray, as to any other.
       rerank_7 = assertThrowsIn "7" "f" (rerank 2 (\ _ -> error "f" :: Array Int) (constant [4294967296, 4294967296, 0] (0 :: Int)))
@@ -493,7 +493,7 @@ test = testGroup "Dynamic" $
       rerank2_1 = assertEqual "1" (fromList [2,3] [40,200,488,904,1448,2120])
                                   (rerank2 2 dot a5 a7)
       rerank2_2 = assertThrowsIn "2" "rerank2" (rerank2 4 dot a5 a7)
-      rerank2_3 = assertThrowsIn "3" "ravelOuterOf" (rerank2 1 (\ a _ -> constant [unScalar a] (0 :: Int)) v v)
+      rerank2_3 = assertThrowsIn "3" "rerank2" (rerank2 1 (\ a _ -> constant [unScalar a] (0 :: Int)) v v)
         where v = fromList [2] [1,2 :: Int]
       -- Arrays whose outer dimensions differ.
       rerank2_4 = assertThrowsIn "4" "rerank2" (rerank2 1 const (fromList [3,2] [1..6 :: Int]) (fromList [2,2] [1..4 :: Int]))

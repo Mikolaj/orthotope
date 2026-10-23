@@ -372,8 +372,8 @@ prop_rerank v@(View sh _) =
           -- three times x, laid out in the reverse order of its dimensions
           y = reversedLayout (mapA (* 3) x)
       in  if product osh == 0
-          then failsWith ("ravelOuter: empty outer dimension " ++ show osh) (rerank n double x)
-               .&&. failsWith ("ravelOuter: empty outer dimension " ++ show osh) (rerank2 n (\ a b -> zipWithA (+) a b) x x)
+          then failsWith ("rerank: empty outer dimension " ++ show osh) (rerank n double x)
+               .&&. failsWith ("rerank2: empty outer dimension " ++ show osh) (rerank2 n (\ a b -> zipWithA (+) a b) x x)
           else shapeL (rerank n double x) === osh ++ [product ish]
                .&&. toList (rerank n double x) === concatMap (map (* 2)) subs
                .&&. toList (rerank2 n (\ a b -> zipWithA (+) a b) x x) === map (* 2) (toList x)
@@ -386,7 +386,7 @@ prop_ravel :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Proper
 prop_ravel v@(View sh _) =
   let x = mkViewG v (upTo (product sh)) :: Array v a
       y = reshape [product (shapeL x), 1] x
-      msg = "ravelOuterOf: non-conforming inner dimensions: " ++ show [shapeL x, shapeL y]
+      msg = "ravel: non-conforming inner dimensions: " ++ show [shapeL x, shapeL y]
   in  failsWith "ravel: empty array" (ravel (fromList [0] [] :: Array V.Vector (Array v a)))
       .&&. (if shapeL x == shapeL y then property True
             else failsWith msg (ravel (fromList [3] [x, x, y] :: Array V.Vector (Array v a))))
