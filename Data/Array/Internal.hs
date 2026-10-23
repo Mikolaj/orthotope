@@ -652,14 +652,18 @@ range3T n1 !s1 n2 !s2 n3 !s3 ao
 -- The rest is kept by a loop, not by comprehensions over zip: inlined into a
 -- client's rnf, on GHC HEAD 10.1.20260918, 2026-10-14, the zips stayed unfused
 -- and allocated their pairs, 432 bytes a call of boxed unravel's forced result
--- at the small size.
+-- at the small size.  The loop builds each list whole, forcing its tail before
+-- consing onto it: with the lists built lazily, on GHC HEAD 10.1.20261019
+-- (2026-10-23), the maps, the conversions, compare, and the boxed rnf and
+-- unravel took up to 1.08 times the instructions at the small size, and the
+-- boxed rnf of an empty array 0.94 to 0.95 times.
 {-# INLINE dropBroadcastT #-}
 dropBroadcastT :: ShapeL -> T v a -> ([Bool], ShapeL, T v a)
 dropBroadcastT sh (T ats ao v) =
   (bs, keep bs sh, T (keep bs ats) ao v)
   where bs = zipWith (\ s t -> t == 0 && s > 0) sh ats
         keep (b : bs') (x : xs) | b = keep bs' xs
-                                | otherwise = x : keep bs' xs
+                                | otherwise = let !r = keep bs' xs in x : r
         keep _ _ = []
 
 -- Convert a value to a scalar array.
