@@ -33,7 +33,8 @@ import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual)
 import Test.QuickCheck (Property, forAll, (.&&.), (===))
 import Views
-  (Elem, Owns (..), View (..), assertThrowsIn, failsWith, genElems, mkViewG, testPropertyN)
+  (Elem, Owns (..), View (..), assertThrowsIn, failsWith, genElems, mkViewG,
+   testPropertyN)
 
 -- A Storable of one byte whose peek fails, naming E, on a byte it does not
 -- decode.
@@ -86,7 +87,8 @@ test = testGroup "DynamicS" $
       fromList_1 = assertThrowsIn "sh" "fromList" (fromList [] [1,2::Int])
       fromList_2 = assertThrowsIn "sh" "fromList" (fromList [4,5] [1,2::Int])
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
-      fromVector_2 = assertThrowsIn "2" "fromVector" (fromVector [2,3] $ V.fromList [1..5::Int])
+      fromVector_2 = assertThrowsIn "2" "fromVector"
+                                    (fromVector [2,3] $ V.fromList [1..5::Int])
       normalize_1 = assertEqual "1" a1 (normalize a1)
       -- toVector of a row is a slice of the whole vector, which normalize
       -- keeps, as it keeps a normal array and one whose dimension of extent 1
@@ -108,23 +110,28 @@ test = testGroup "DynamicS" $
               row1 = reshape [1,1000] row
               shares a = sameStorage (toVector a) (toVector big)
       reshape_1 = assertEqual "1" (fromList [6] [1..6]) (reshape [6] a1)
-      reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2)
+      reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6])
+                                  (reshape [1,2,3,1] a2)
       a3, a4 :: Array Int
       a3 = fromList [1] [5]
       a4 = fromList [] [5]
       stretch_1 = assertEqual "1" (fromList [3] [5,5,5]) (stretch [3] a3)
-      stretch_2 = assertEqual "2" (fromList [2,2,3,2] [1,1,2,2,3,3,4,4,5,5,6,6,1,1,2,2,3,3,4,4,5,5,6,6])
+      stretch_2 = assertEqual "2" (fromList [2,2,3,2] [1,1,2,2,3,3,4,4,5,5,6,6,
+                                                       1,1,2,2,3,3,4,4,5,5,6,6])
                                   (stretch [2,2,3,2] $ reshape [1,2,3,1] a1)
       stretch_3 = assertThrowsIn "3" "stretch" (stretch [1,2] a3)
       stretch_4 = assertThrowsIn "4" "stretch" (stretch [4,3] a1)
       scalar_1 = assertEqual "1" a4 (scalar 5)
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
       unScalar_2 = assertThrowsIn "2" "unScalar" (unScalar a3)
-      constant_1 = assertEqual "1" (fromList [2,3] [1,1,1,1,1,1]) (constant [2,3] (1::Int))
-      iota_1 = assertEqual "1" (map fromIntegral [0..299::Int]) (toList (iota 300 :: Array Word8))
+      constant_1 = assertEqual "1" (fromList [2,3] [1,1,1,1,1,1])
+                                   (constant [2,3] (1::Int))
+      iota_1 = assertEqual "1" (map fromIntegral [0..299::Int])
+                               (toList (iota 300 :: Array Word8))
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "2" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
-      zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
+      zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12])
+                                   (zipWithA (+) a1 a1)
       zipWithA_2 = assertThrowsIn "2" "zipWithA" (zipWithA (+) a1 a2)
       -- One E of the byte 5, which E does not decode.
       eOne = bytesE [1] [5]
@@ -134,7 +141,8 @@ test = testGroup "DynamicS" $
                      ( toList (zipWithA (\ _ _ -> E0) (stretch [0] eOne) none)
                      , toList (zipWithA (\ _ _ -> E0) none (stretch [0] eOne)) )
         where none = fromList [0] [] :: Array E
-      zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
+      zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42])
+                                    (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
       pad_1 = assertEqual "1" (fromList [5,10] [9,9,9,9,9,9,9,9,9,9,
                                                 9,9,9,1,2,3,9,9,9,9,
                                                 9,9,9,4,5,6,9,9,9,9,
@@ -228,7 +236,8 @@ test = testGroup "DynamicS" $
                                     (transpose [1,0] a5)
       append_1 = assertEqual "1" (fromList [3,3] [1..9])
                                  (append a1 (fromList [1,3] [7,8,9]))
-      concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
+      concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,
+                                                       1,2,3,4,5,6])
                                       (concatOuter [a1, concatOuter [a1,a1]])
       concatOuter_2 = assertThrowsIn "2" "concatOuter" (concatOuter [a1, a2])
       a6 :: Array Int
@@ -278,7 +287,8 @@ test = testGroup "DynamicS" $
                                             11, 12, 7, 8, 9, 10,
                                             9, 10, 11, 12, 7, 8,
                                             7, 8, 9, 10, 11, 12])
-                                 (rotate 1 4 $ fromList [2, 3, 2] [1 .. 12::Int])
+                                 (rotate 1 4
+                                   $ fromList [2, 3, 2] [1 .. 12::Int])
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrowsIn "2" "slice" (slice [(0,0)] a4)
@@ -295,16 +305,21 @@ test = testGroup "DynamicS" $
                               (rev [0,1] a1)
       rev_3 = assertThrowsIn "3" "rev" (rev [2] a1)
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
-      reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank 1 (\ r -> reduce (*) 1 r) a1)
-      reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (\ r -> reduce (*) 1 r) a2)
+      reduce_2 = assertEqual "2" (fromList [2] [6,120])
+                                 (rerank 1 (\ r -> reduce (*) 1 r) a1)
+      reduce_3 = assertEqual "3" (fromList [3] [4,10,18])
+                                 (rerank 1 (\ r -> reduce (*) 1 r) a2)
       -- An empty view at the end of a longer vector, so that reading the
       -- element at the offset fails under the bounds checks.
       allSameA_1 = assertEqual "1" True (allSameA (slice [(2,0)] a1))
       -- As allSame . toList, comparing the first element with the others only.
       allSameA_2 = assertEqual "2" [True, False, False, False, True]
-                                   (map (\ a -> allSameA a) [ fromList [1] [nan], fromList [2] [nan, nan]
-                                                 , constant [3] nan, normalize (constant [3] nan)
-                                                 , slice [(0,1)] (fromList [2] [nan, 1]) ])
+                                   (map (\ a -> allSameA a)
+                                      [ fromList [1] [nan]
+                                      , fromList [2] [nan, nan]
+                                      , constant [3] nan
+                                      , normalize (constant [3] nan)
+                                      , slice [(0,1)] (fromList [2] [nan, 1]) ])
         where nan = 0 / 0 :: Double
 
       -- A strided view of elements of size 0, the size the fill's run length
@@ -324,8 +339,10 @@ test = testGroup "DynamicS" $
         assertEqual "reshape" [0, 5, 1, 0] (raw (reshape [4] et))
         assertEqual "pad" [0, 0, 0, 5, 1, 0] (raw (pad [(1, 0)] E0 et))
         assertEqual "append" [0, 5, 1, 0, 0, 5, 1, 0] (raw (append et et))
-        assertEqual "concatOuter" [0, 5, 1, 0, 0, 5, 1, 0] (raw (concatOuter [et, et]))
-        assertEqual "ravel" [0, 5, 1, 0, 0, 5, 1, 0] (raw (ravel (D.fromList [2] [et, et])))
+        assertEqual "concatOuter" [0, 5, 1, 0, 0, 5, 1, 0]
+                                  (raw (concatOuter [et, et]))
+        assertEqual "ravel" [0, 5, 1, 0, 0, 5, 1, 0]
+                            (raw (ravel (D.fromList [2] [et, et])))
         assertEqual "rerank" [0, 5, 1, 0] (raw (rerank 1 id et))
         assertEqual "rerank2" [0, 5, 1, 0] (raw (rerank2 1 const et et))
         where raw :: Array E -> [Word8]
@@ -337,8 +354,10 @@ test = testGroup "DynamicS" $
         assertThrowsIn "foldrA" "E" (foldrA (\ _ n -> n + 1 :: Int) 0 et)
         assertThrowsIn "mapA" "E" (mapA (const E0) et)
         assertThrowsIn "zipWithA" "E" (zipWithA (\ _ _ -> E0) et et)
-        assertThrowsIn "zipWithA of one element" "E" (zipWithA (\ _ _ -> E0) eOne eOne)
-        assertThrowsIn "zipWith3A of one element" "E" (zipWith3A (\ _ _ _ -> E0) eOne eOne eOne)
+        assertThrowsIn "zipWithA of one element" "E"
+                       (zipWithA (\ _ _ -> E0) eOne eOne)
+        assertThrowsIn "zipWith3A of one element" "E"
+                       (zipWith3A (\ _ _ _ -> E0) eOne eOne eOne)
 
       -- fillStrided fills a view of a Storable vector, and fails on each part
       -- of the contract its unchecked method relies on.
@@ -346,12 +365,15 @@ test = testGroup "DynamicS" $
         let v = V.fromList [0 .. 9 :: Int]
             axesOf n = I.Axes 2 n (I.InnerFirst [I.Axis 1 2])
             axes = axesOf 3
-        assertEqual "fill" [0, 2, 4, 1, 3, 5] (V.toList (I.fillStrided axes 0 6 v))
+        assertEqual "fill" [0, 2, 4, 1, 3, 5]
+                           (V.toList (I.fillStrided axes 0 6 v))
         assertThrowsIn "count" "fillStrided" (I.fillStrided axes 0 5 v)
         assertThrowsIn "outside" "fillStrided" (I.fillStrided axes 5 6 v)
         assertThrowsIn "extent" "fillStrided" (I.fillStrided (axesOf 0) 0 0 v)
-        assertThrowsIn "negative extent" "fillStrided" (I.fillStrided (axesOf (-3)) 0 6 v)
-        assertThrowsIn "below" "fillStrided" (I.fillStrided (I.Axes (-1) 3 (I.InnerFirst [])) 1 3 v)
+        assertThrowsIn "negative extent" "fillStrided"
+                       (I.fillStrided (axesOf (-3)) 0 6 v)
+        assertThrowsIn "below" "fillStrided"
+                       (I.fillStrided (I.Axes (-1) 3 (I.InnerFirst [])) 1 3 v)
 
       -- Calls of every wrapper the module under test exports, in the order of
       -- its export list, each against its value.
@@ -439,11 +461,15 @@ test = testGroup "DynamicS" $
       -- Rows of 600 Word8s, 600 bytes, reach the fill's whole-run copy, which
       -- starts at 512 bytes and which the random views reach only at wider
       -- elements.
-      wholeRuns_1 = assertEqual "1" [ fromIntegral (1000 * i + j) | i <- [0 .. 9 :: Int], j <- [0 .. 599] ]
+      wholeRuns_1 = assertEqual "1" [ fromIntegral (1000 * i + j)
+                                    | i <- [0 .. 9 :: Int], j <- [0 .. 599] ]
                       (V.toList (toVector (slice [(0, 10), (0, 600)] w8)))
-        where w8 = fromList [10, 1000] [ fromIntegral k | k <- [0 .. 9999 :: Int] ] :: Array Word8
+        where w8 = fromList [10, 1000]
+                     [ fromIntegral k | k <- [0 .. 9999 :: Int] ] :: Array Word8
       -- bitcast between types of size 0 fails, as between types of two sizes.
-      bitcast_1 = assertThrowsIn "1" "bitcast" (bitcast (fromList [2] [(), ()]) :: Array ())
+      bitcast_1 = assertThrowsIn "1" "bitcast"
+                                 (bitcast (fromList [2] [(), ()])
+                                    :: Array ())
 
       tests =
         [ testCase "show_1" show_1
@@ -535,8 +561,10 @@ test = testGroup "DynamicS" $
         ]
   in  tests ++ [ testPropertyN "prop_convert" prop_convert
               , testPropertyN "prop_bitcast" (prop_bitcast @Int @Word)
-              , testPropertyN "prop_bitcast to Double" (prop_bitcast @Int @Double)
-              , testGroup "Word8" [testPropertyN "prop_bitcast" (prop_bitcast @Word8 @Int8)] ]
+              , testPropertyN "prop_bitcast to Double"
+                              (prop_bitcast @Int @Double)
+              , testGroup "Word8"
+                  [testPropertyN "prop_bitcast" (prop_bitcast @Word8 @Int8)] ]
 
 mkView :: Unbox a => View -> [a] -> Array a
 mkView v = DS.A . mkViewG v

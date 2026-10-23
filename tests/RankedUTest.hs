@@ -49,12 +49,15 @@ test = testGroup "RankedU" $
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
       toVector_2 = assertEqual "2" (V.fromList [1,4,2,5,3,6]) (toVector a2)
-      fromList_1 = assertThrowsIn "sh" "fromList" (fromList [] [1,2] :: Array 0 Int)
-      fromList_2 = assertThrowsIn "sh" "fromList" (fromList [4,5] [1,2] :: Array 2 Int)
+      fromList_1 = assertThrowsIn "sh" "fromList"
+                                  (fromList [] [1,2] :: Array 0 Int)
+      fromList_2 = assertThrowsIn "sh" "fromList"
+                                  (fromList [4,5] [1,2] :: Array 2 Int)
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [6] [1..6] :: Array 1 Int) (reshape [6] a1)
-      reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2 :: Array 4 Int)
+      reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6])
+                                  (reshape [1,2,3,1] a2 :: Array 4 Int)
       a3 :: Array 1 Int
       a3 = fromList [1] [5]
       a4 :: Array 0 Int
@@ -168,10 +171,12 @@ test = testGroup "RankedU" $
       concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                       (concatOuter [a1, concatOuter [a1,a1]])
       concatOuter_2 = assertThrowsIn "2" "concatOuter" (concatOuter [a1, a2])
-      ravel_1 = assertEqual "1" (fromList [3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
+      ravel_1 = assertEqual "1" (fromList [3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,
+                                                   1,2,3,4,5,6])
                                 (ravel $ R.fromList [3] [a1,a1,a1])
       unravel_1 = assertEqual "1" [a1,a1,a1]
-                                  (R.toList $ unravel $ ravel $ R.fromList [3] [a1,a1,a1])
+                                  (R.toList $ unravel $ ravel
+                                    $ R.fromList [3] [a1,a1,a1])
       a6 :: Array 2 Int
       a6 = fromList [4,5] [1..20]
       window_1 = assertEqual "1" (fromList [2,3,3,3] [1,2,3,
@@ -226,12 +231,16 @@ test = testGroup "RankedU" $
                               (rev [0,1] a1)
       rev_3 = assertThrowsIn "3" "rev" (rev [2] a1)
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
-      reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank @1 (\ r -> reduce (*) 1 r) a1)
-      reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank @1 (\ r -> reduce (*) 1 r) a2)
+      reduce_2 = assertEqual "2" (fromList [2] [6,120])
+                                 (rerank @1 (\ r -> reduce (*) 1 r) a1)
+      reduce_3 = assertEqual "3" (fromList [3] [4,10,18])
+                                 (rerank @1 (\ r -> reduce (*) 1 r) a2)
       foldrA_1 = assertEqual "1" [1,4,2,5,3,6] (foldrA (:) [] a2)
       -- pad, reshape and index need not know the rank of the array they take,
       -- nor index that its elements are Unboxed.
-      constraints_1 = assertEqual "1" (pad [(1,1)] 0 a1, reshape [6] a1 :: Array 1 Int, index a1 1)
+      constraints_1 = assertEqual "1" (pad [(1,1)] 0 a1,
+                                       reshape [6] a1 :: Array 1 Int,
+                                       index a1 1)
                                       (padN a1, reshapeN a1, indexN a1 1)
         where padN :: Array n Int -> Array n Int
               padN a = pad [(1,1)] 0 a

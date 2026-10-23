@@ -46,10 +46,12 @@ unspecialisedPadU =
             (DU.transpose [1, 0] (DU.fromList [500, 400] Call.elems))
 
 unspecialisedFill :: Call
-unspecialisedFill = Call.call "fillStrided" polymorphicFill (VS.fromList Call.elems)
+unspecialisedFill =
+  Call.call "fillStrided" polymorphicFill (VS.fromList Call.elems)
 
 unspecialisedFillU :: Call
-unspecialisedFillU = Call.call "fillStrided" polymorphicFill (VU.fromList Call.elems)
+unspecialisedFillU =
+  Call.call "fillStrided" polymorphicFill (VU.fromList Call.elems)
 
 {-# NOINLINE polymorphicFill #-}
 polymorphicFill :: (I.Vector v, I.VecElem v a) => v a -> v a

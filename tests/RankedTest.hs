@@ -40,28 +40,38 @@ test = testGroup "Ranked" $
       eq_1 = assertEqual "1" True (a1 == a1)
       eq_2 = assertEqual "2" False (a1 == a2)
       -- == looks at the shapes: the elements are alike however they are read.
-      eq_3 = assertEqual "3" False (fromList [2,3] (replicate 6 1) == (fromList [3,2] (replicate 6 1) :: Array 2 Int))
+      eq_3 = assertEqual "3" False
+               (fromList [2,3] (replicate 6 1)
+                  == (fromList [3,2] (replicate 6 1) :: Array 2 Int))
       ord_1 = assertEqual "1" EQ (a1 `compare` a1)
       ord_2 = assertEqual "2" LT (a1 `compare` a2)
       -- compare orders by the shapes first: the elements are alike.
-      ord_3 = assertEqual "3" LT (compare (fromList [2,3] (replicate 6 1)) (fromList [3,2] (replicate 6 1) :: Array 2 Int))
+      ord_3 = assertEqual "3" LT
+                (compare (fromList [2,3] (replicate 6 1))
+                         (fromList [3,2] (replicate 6 1) :: Array 2 Int))
       shapeL_1 = assertEqual "1" [2,3] (shapeL a1)
       shapeL_2 = assertEqual "2" [3,2] (shapeL a2)
       rank_1 = assertEqual "1" 2 (rank a1)
       rank_2 = assertEqual "2" 2 (rank a2)
       -- Foldable's length and null, read off the shape.
-      foldable_1 = assertEqual "1" (6, False, 0, True) (length a1, null a1, length e, null e)
+      foldable_1 = assertEqual "1" (6, False, 0, True)
+                                   (length a1, null a1, length e, null e)
         where e = (fromList [2,0] [] :: Array 2 Int)
       -- A rank past maxBound fails where it is read, and convertE to it
       -- returns Left.
       rank_3 = do
-        assertThrowsIn "3" "Shape" (fromList [5] [1 .. 5] :: Array 18446744073709551617 Int)
-        assertEqual "convertE" (Left "convert: rank mismatch ([5],18446744073709551617)")
-          (() <$ (convertE (D.fromList [5] [1 .. 5 :: Int]) :: Either String (Array 18446744073709551617 Int)))
+        assertThrowsIn "3" "Shape"
+                       (fromList [5] [1 .. 5] :: Array 18446744073709551617 Int)
+        assertEqual "convertE"
+          (Left "convert: rank mismatch ([5],18446744073709551617)")
+          (() <$ (convertE (D.fromList [5] [1 .. 5 :: Int])
+                    :: Either String (Array 18446744073709551617 Int)))
       -- maximumA and minimumA fail on an empty array.
       maximumA_empty = do
-        assertThrowsIn "max" "maximumA" (maximumA (fromList [0] [] :: Array 1 Int))
-        assertThrowsIn "min" "minimumA" (minimumA (fromList [2, 0] [] :: Array 2 Int))
+        assertThrowsIn "max" "maximumA"
+                       (maximumA (fromList [0] [] :: Array 1 Int))
+        assertThrowsIn "min" "minimumA"
+                       (minimumA (fromList [2, 0] [] :: Array 2 Int))
       index_1 = assertEqual "1" (fromList [3] [1,2,3]) (index a1 0)
       index_2 = assertEqual "2" (fromList [2] [1,4]) (index a2 0)
       index_3 = assertEqual "3" (fromList [] [4]) (a2 `index` 0 `index` 1)
@@ -71,24 +81,37 @@ test = testGroup "Ranked" $
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
       toVector_2 = assertEqual "2" (V.fromList [1,4,2,5,3,6]) (toVector a2)
-      fromList_1 = assertThrowsIn "sh" "fromList" (fromList [] [1,2] :: Array 0 Int)
-      fromList_2 = assertThrowsIn "sh" "fromList" (fromList [4,5] [1,2] :: Array 2 Int)
-      -- A list longer than the shape fails, counted no further than one past it.
-      fromList_3 = assertThrowsWith "3" "fromList: size mismatch ([3],more than 3)" (fromList [3] [1 ..] :: Array 1 Int)
+      fromList_1 = assertThrowsIn "sh" "fromList"
+                                  (fromList [] [1,2] :: Array 0 Int)
+      fromList_2 = assertThrowsIn "sh" "fromList"
+                                  (fromList [4,5] [1,2] :: Array 2 Int)
+      -- A list longer than the shape fails, counted no further than one past
+      -- it.
+      fromList_3 = assertThrowsWith "3"
+                                    "fromList: size mismatch ([3],more than 3)"
+                                    (fromList [3] [1 ..] :: Array 1 Int)
       -- A shape of another rank than the type's fails.
       rankCheck_1 = do
-        assertThrowsIn "fromList" "fromList" (fromList [2,3] [1..6] :: Array 1 Int)
-        assertThrowsIn "fromVector" "fromVector" (fromVector [2,3] (V.fromList [1..6]) :: Array 1 Int)
+        assertThrowsIn "fromList" "fromList"
+                       (fromList [2,3] [1..6] :: Array 1 Int)
+        assertThrowsIn "fromVector" "fromVector"
+                       (fromVector [2,3] (V.fromList [1..6]) :: Array 1 Int)
         assertThrowsIn "reshape" "reshape" (reshape [6] a1 :: Array 2 Int)
         assertThrowsIn "constant" "constant" (constant [2,3] 1 :: Array 1 Int)
-        assertThrowsIn "generate" "generate" (generate [2] (const 0) :: Array 2 Int)
-        assertThrowsIn "broadcast" "broadcast" (broadcast [0] [2,3] (fromList [2] [1,2] :: Array 1 Int) :: Array 1 Int)
+        assertThrowsIn "generate" "generate"
+                       (generate [2] (const 0) :: Array 2 Int)
+        assertThrowsIn "broadcast" "broadcast"
+                       (broadcast [0] [2,3] (fromList [2] [1,2] :: Array 1 Int)
+                          :: Array 1 Int)
         assertThrowsIn "window" "window" (window [2] a1 :: Array 4 Int)
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
-      fromVector_2 = assertThrowsIn "2" "fromVector" (fromVector [2, 3] (V.fromList [1 .. 5]) :: Array 2 Int)
+      fromVector_2 = assertThrowsIn "2" "fromVector"
+                                    (fromVector [2, 3] (V.fromList [1 .. 5])
+                                       :: Array 2 Int)
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [6] [1..6] :: Array 1 Int) (reshape [6] a1)
-      reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2 :: Array 4 Int)
+      reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6])
+                                  (reshape [1,2,3,1] a2 :: Array 4 Int)
       a3 :: Array 1 Int
       a3 = fromList [1] [5]
       a4 :: Array 0 Int
@@ -117,7 +140,8 @@ test = testGroup "Ranked" $
         assertThrowsIn "iterateN" "iterateN" (iterateN (-1) id 0 :: Array 1 Int)
         assertThrowsIn "iota" "iota" (iota (-1) :: Array 1 Int)
       badShape_2 = assertEqual "read" Nothing
-                     (readMaybe "fromList [-2,-3] [1,2,3,4,5,6]" :: Maybe (Array 2 Int))
+                     (readMaybe "fromList [-2,-3] [1,2,3,4,5,6]"
+                        :: Maybe (Array 2 Int))
       -- Nor more elements than an Int counts.
       badShape_3 = do
         mapM_ (\ (f, a) -> assertThrowsIn f f a)
@@ -130,8 +154,11 @@ test = testGroup "Ranked" $
           , ("stretchOuter", stretchOuter h (reshape [1,4] r4))
           , ("broadcast", broadcast [1] [4, h] (constant [h] 0 :: Array 1 Int))
           , ("pad", pad [(h, 0)] 0 (fromList [4,4] [1..16]))
-          , ("window", window [4] (stretch [h] (fromList [1] [1] :: Array 1 Int))) ]
-        assertEqual "read" Nothing (readMaybe ("fromList " ++ show [4, h] ++ " []") :: Maybe (Array 2 Int))
+          , ("window", window [4]
+                              (stretch [h] (fromList [1] [1] :: Array 1 Int))) ]
+        assertEqual "read" Nothing
+          (readMaybe ("fromList " ++ show [4, h] ++ " []")
+             :: Maybe (Array 2 Int))
         where h = maxBound `quot` 2 + 1
               r4 = fromList [4] [1..4] :: Array 1 Int
       -- Nor a result of more, of arrays broadcast to fewer: the error names
@@ -139,9 +166,12 @@ test = testGroup "Ranked" $
       badShape_4 = do
         assertThrowsIn "append" "append" (append c c)
         assertThrowsIn "concatOuter" "concatOuter" (concatOuter [c, c])
-        assertThrowsIn "ravel" "ravel" (ravel (fromList [2] [c, c]) :: Array 3 Int)
-        assertThrowsIn "rerank" "rerank" (rerank @1 (\ _ -> c) one2 :: Array 3 Int)
-        assertThrowsIn "rerank2" "rerank2" (rerank2 @1 (\ _ _ -> c) one2 one2 :: Array 3 Int)
+        assertThrowsIn "ravel" "ravel"
+                       (ravel (fromList [2] [c, c]) :: Array 3 Int)
+        assertThrowsIn "rerank" "rerank"
+                       (rerank @1 (\ _ -> c) one2 :: Array 3 Int)
+        assertThrowsIn "rerank2" "rerank2"
+                       (rerank2 @1 (\ _ _ -> c) one2 one2 :: Array 3 Int)
         where c = constant [2 ^ (61 :: Int), 3] 0 :: Array 2 Int
               one2 = fromList [2] [1, 2] :: Array 1 Int
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
@@ -162,8 +192,12 @@ test = testGroup "Ranked" $
                               (pad [(1,2),(3,4)] 9 a1)
       pad_2 = assertThrowsIn "2" "pad" (pad [(1,1),(1,1),(1,1)] 0 a1)
       -- Extents summing past maxBound.
-      pad_3 = assertThrowsIn "3" "pad" (pad [(maxBound, maxBound)] 0 (fromList [3] [1,2,3] :: Array 1 Int))
-      pad_4 = assertThrowsIn "4" "pad" (pad [(0,0),(1,1)] 0 (fromList [0] [] :: Array 1 Int))
+      pad_3 = assertThrowsIn "3" "pad"
+                             (pad [(maxBound, maxBound)] 0
+                                  (fromList [3] [1,2,3] :: Array 1 Int))
+      pad_4 = assertThrowsIn "4" "pad"
+                             (pad [(0,0),(1,1)] 0
+                                  (fromList [0] [] :: Array 1 Int))
       a5 :: Array 3 Int
       a5 = fromList [2,3,4] [1..24]
       transpose_1 = assertEqual "1" (fromList [2,3,4] [1,2,3,4,
@@ -251,22 +285,32 @@ test = testGroup "Ranked" $
       append_1 = assertEqual "1" (fromList [3,3] [1..9])
                                  (append a1 (fromList [1,3] [7,8,9]))
       -- Extents summing past maxBound.
-      append_2 = assertThrowsIn "2" "append" (append (constant [maxBound] 0) (constant [maxBound] 0 :: Array 1 Int))
+      append_2 = assertThrowsIn "2" "append"
+                                (append (constant [maxBound] 0)
+                                        (constant [maxBound] 0 :: Array 1 Int))
       -- Arrays whose inner dimensions differ.
-      append_3 = assertThrowsIn "3" "append" (append (fromList [1,2] [1,2]) (fromList [1,3] [1,2,3] :: Array 2 Int))
+      append_3 = assertThrowsIn "3" "append"
+                                (append (fromList [1,2] [1,2])
+                                        (fromList [1,3] [1,2,3] :: Array 2 Int))
       concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                       (concatOuter [a1, concatOuter [a1,a1]])
       concatOuter_2 = assertThrowsIn "2" "concatOuter" (concatOuter [a1, a2])
-      concatOuter_3 = assertThrowsIn "3" "concatOuter" (concatOuter [scalar 1, scalar 2 :: Array 0 Int])
+      concatOuter_3 = assertThrowsIn "3" "concatOuter"
+                        (concatOuter [scalar 1, scalar 2 :: Array 0 Int])
       -- Extents summing past maxBound.
-      concatOuter_4 = assertThrowsIn "4" "concatOuter" (concatOuter [constant [maxBound] 0, constant [maxBound] 0, fromList [3] [1,2,3] :: Array 1 Int])
+      concatOuter_4 = assertThrowsIn "4" "concatOuter"
+                        (concatOuter [constant [maxBound] 0,
+                                      constant [maxBound] 0,
+                                      fromList [3] [1,2,3] :: Array 1 Int])
       ravel_1 = assertEqual  "1" (fromList [3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                  (ravel $ fromList [3] [a1,a1,a1])
-      ravel_2 = assertThrowsIn "2" "ravel" (ravel $ fromList [2] [a1, concatOuter [a1,a1]])
+      ravel_2 = assertThrowsIn "2" "ravel"
+                               (ravel $ fromList [2] [a1, concatOuter [a1,a1]])
       unravel_1 = assertEqual "1" [a1,a1,a1]
                                   (toList $ unravel $ ravel $ fromList [3] [a1,a1,a1])
       -- Of an empty outer dimension, an empty array of arrays, as in Dynamic.
-      unravel_2 = assertEqual "2" [0] (shapeL (unravel (fromList [0,3] [] :: Array 2 Int)))
+      unravel_2 = assertEqual "2" [0]
+                    (shapeL (unravel (fromList [0,3] [] :: Array 2 Int)))
       a6 :: Array 2 Int
       a6 = fromList [4,5] [1..20]
       window_1 = assertEqual "1" (fromList [2,3,3,3] [1,2,3,
@@ -300,8 +344,10 @@ test = testGroup "Ranked" $
       -- an extent past maxBound as it is.
       window_4 = do
         let msg m = assertThrowsWith m m
-        msg "window: rank mismatch ([0,1],[9223372036854775807])" (window [0, 1] (constant [maxBound] 0 :: Array 1 Int) :: Array 3 Int)
-        msg "window: bad shape [9223372036854775808,0]" (window [0] (constant [maxBound] 0 :: Array 1 Int) :: Array 2 Int)
+        msg "window: rank mismatch ([0,1],[9223372036854775807])"
+          (window [0, 1] (constant [maxBound] 0 :: Array 1 Int) :: Array 3 Int)
+        msg "window: bad shape [9223372036854775808,0]"
+          (window [0] (constant [maxBound] 0 :: Array 1 Int) :: Array 2 Int)
       stride_1 = assertEqual "1" (fromList [2,2,2] [1,3,
                                                     9,11,
 
@@ -311,12 +357,17 @@ test = testGroup "Ranked" $
       stride_2 = assertThrowsIn "2" "stride" (stride [1,2,2] a1)
       stride_3 = assertThrowsIn "3" "stride" (stride [0] a1)
       stride_4 = assertThrowsIn "4" "stride" (stride [-1] a1)
-      stride_5 = assertEqual "5" (fromList [1] [1]) (stride [maxBound] (fromList [3] [1,2,3] :: Array 1 Int))
+      stride_5 = assertEqual "5" (fromList [1] [1])
+                                 (stride [maxBound]
+                                    (fromList [3] [1,2,3] :: Array 1 Int))
       -- stride with fewer strides than dimensions keeps the rest.
-      stride_6 = assertEqual "6" (fromList [2, 2] [1, 2, 5, 6]) (stride [2] (fromList [4, 2] [1 .. 8] :: Array 2 Int))
+      stride_6 = assertEqual "6" (fromList [2, 2] [1, 2, 5, 6])
+                                 (stride [2]
+                                    (fromList [4, 2] [1 .. 8] :: Array 2 Int))
       -- read rejects a count of elements that is not the shape's, and a shape
       -- of another rank.
-      read_1 = assertEqual "1" (Nothing, Nothing, Just (fromList [2] [1, 2] :: Array 1 Int))
+      read_1 = assertEqual "1"
+                 (Nothing, Nothing, Just (fromList [2] [1, 2] :: Array 1 Int))
                  ( readMaybe "fromList [2] [1,2,3]" :: Maybe (Array 1 Int)
                  , readMaybe "fromList [2] [1,2]" :: Maybe (Array 2 Int)
                  , readMaybe "fromList [2] [1,2]" )
@@ -331,18 +382,27 @@ test = testGroup "Ranked" $
                                       7, 8, 9, 10, 11, 12] :: Array 4 Int)
                            (rotate @1 4 (fromList [2, 3, 2] [1 .. 12] :: Array 3 Int))
       -- A negative count; that d is a dimension of the array the type checks.
-      rotate_2 = assertThrowsIn "2" "rotate" (rotate @0 @1 (-1) (fromList [3] [1,2,3] :: Array 1 Int))
+      rotate_2 = assertThrowsIn "2" "rotate"
+                                (rotate @0 @1 (-1)
+                                        (fromList [3] [1,2,3] :: Array 1 Int))
       -- A result shape past maxBound.
-      rotate_3 = assertThrowsIn "3" "rotate" (rotate @0 @1 (maxBound `quot` 4 + 1) (fromList [4] [1,2,3,4] :: Array 1 Int))
+      rotate_3 = assertThrowsIn "3" "rotate"
+                                (rotate @0 @1 (maxBound `quot` 4 + 1)
+                                        (fromList [4] [1,2,3,4] :: Array 1 Int))
       -- A result shape within maxBound, where the copies of the row pass it.
-      rotate_4 = assertThrowsIn "4" "rotate" (rotate @0 @1 (maxBound `quot` 2 + 2) (fromList [1] [7] :: Array 1 Int))
+      rotate_4 = assertThrowsIn "4" "rotate"
+                                (rotate @0 @1 (maxBound `quot` 2 + 2)
+                                        (fromList [1] [7] :: Array 1 Int))
       -- A negative size and too few broadcast dimensions fail at the checks
       -- of the shape they would make, and an empty outer dimension at
       -- ravelOuter's check of its list.
       laterChecks_1 = mapM_ (\ (m, a) -> assertThrowsWith m m a)
-        [ ("stretchOuter: bad shape [-1,2]", stretchOuter (-1) (fromList [1,2] [1,2] :: Array 2 Int))
-        , ("broadcast: shape mismatch ([2,3],[0],[2,3])", broadcast [0] [2,3] (fromList [2,3] [1..6] :: Array 2 Int))
-        , ("rerank: empty outer dimension [0]", rerank @1 (id :: Array 1 Int -> Array 1 Int) (fromList [0,2] [])) ]
+        [ ("stretchOuter: bad shape [-1,2]",
+           stretchOuter (-1) (fromList [1,2] [1,2] :: Array 2 Int))
+        , ("broadcast: shape mismatch ([2,3],[0],[2,3])",
+           broadcast [0] [2,3] (fromList [2,3] [1..6] :: Array 2 Int))
+        , ("rerank: empty outer dimension [0]",
+           rerank @1 (id :: Array 1 Int -> Array 1 Int) (fromList [0,2] [])) ]
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrowsIn "2" "slice" (slice [(0,0)] a4)
@@ -365,30 +425,46 @@ test = testGroup "Ranked" $
                                  (rerank @2 box a5)
       rerank_4 = assertEqual "4" (mapA (\ x -> Just (scalar x)) a5)
                                  (rerank @3 box a5)
-      rerank_5 = assertThrowsIn "5" "rerank" (rerank @1 (\ a -> constant [unScalar a] 0) (fromList [2] [1,2] :: Array 1 Int) :: Array 2 Int)
+      rerank_5 = assertThrowsIn "5" "rerank"
+                   (rerank @1 (\ a -> constant [unScalar a] 0)
+                      (fromList [2] [1,2] :: Array 1 Int) :: Array 2 Int)
       -- Outer extents whose product passes maxBound, beside an empty inner one:
       -- f is applied to the first subarray, as to any other.
-      rerank_6 = assertThrowsIn "6" "f" (rerank @2 (\ _ -> error "f" :: Array 0 Int) (constant [4294967296, 4294967296, 0] 0 :: Array 3 Int) :: Array 2 Int)
+      rerank_6 = assertThrowsIn "6" "f"
+                   (rerank @2 (\ _ -> error "f" :: Array 0 Int)
+                      (constant [4294967296, 4294967296, 0] 0 :: Array 3 Int)
+                      :: Array 2 Int)
       a7 = mapA succ a5
       dot x y = reduce (+) 0 $ zipWithA (*) x y
       rerank2_1 = assertEqual "1" (fromList [2,3] [40,200,488,904,1448,2120])
                                   (rerank2 @2 dot a5 a7)
-      rerank2_2 = assertThrowsIn "2" "rerank2" (rerank2 @1 (\ a _ -> constant [unScalar a] 0) v v :: Array 2 Int)
+      rerank2_2 = assertThrowsIn "2" "rerank2"
+                    (rerank2 @1 (\ a _ -> constant [unScalar a] 0) v v
+                       :: Array 2 Int)
         where v = fromList [2] [1,2] :: Array 1 Int
       -- Arrays whose outer dimensions differ.
-      rerank2_3 = assertThrowsIn "3" "rerank2" (rerank2 @1 const (fromList [3,2] [1..6]) (fromList [2,2] [1..4] :: Array 2 Int) :: Array 2 Int)
+      rerank2_3 = assertThrowsIn "3" "rerank2"
+                                 (rerank2 @1 const (fromList [3,2] [1..6])
+                                          (fromList [2,2] [1..4] :: Array 2 Int)
+                                    :: Array 2 Int)
       rev_1 = assertEqual "1" (fromList [2,3] [3,2,1,6,5,4])
                               (rev [1] a1)
       rev_2 = assertEqual "2" (fromList [2,3] [6,5,4,3,2,1])
                               (rev [0,1] a1)
       rev_3 = assertThrowsIn "3" "rev" (rev [2] a1)
-      convertE_1 = assertEqual "1" (Left "convert: rank mismatch ([2],2)") (convertE (D.fromList [2] [1,2 :: Int]) :: Either String (Array 2 Int))
+      convertE_1 = assertEqual "1" (Left "convert: rank mismatch ([2],2)")
+                                   (convertE (D.fromList [2] [1,2 :: Int])
+                                      :: Either String (Array 2 Int))
       -- rnf forces no element outside the view.
-      rnf_1 = assertEqual "1" () (rnf (index (fromList [2,2] [1,2,undefined,undefined]) 0 :: Array 1 Int))
+      rnf_1 = assertEqual "1" ()
+                (rnf (index (fromList [2,2] [1,2,undefined,undefined]) 0
+                        :: Array 1 Int))
       -- The conversions between boxings convert no element outside the view.
       convert_1 = assertEqual "1" ([1,2], [1,2])
-                    (RU.toList (convert x :: RU.Array 1 Int), RS.toList (convert x :: RS.Array 1 Int))
-        where x = index (fromList [2,2] [1,2,undefined,undefined]) 0 :: Array 1 Int
+                    (RU.toList (convert x :: RU.Array 1 Int),
+                     RS.toList (convert x :: RS.Array 1 Int))
+        where x = index (fromList [2,2] [1,2,undefined,undefined]) 0
+                :: Array 1 Int
       -- The conversions no other test runs, there and back where there is a way
       -- back, and convertE's Left where the rank differs.
       convert_2 = do
@@ -399,15 +475,19 @@ test = testGroup "Ranked" $
         assertEqual "RS" r (convert (convert r :: RS.Array 2 Int))
         assertEqual "D" d (convert r)
         assertEqual "convertE D" (Right r) (convertE d)
-        assertEqual "convertE DS" (Right (convert r :: RS.Array 2 Int)) (convertE ds)
+        assertEqual "convertE DS" (Right (convert r :: RS.Array 2 Int))
+                                  (convertE ds)
         assertEqual "convertE DS rank" (Left "convert: rank mismatch ([2,3],1)")
           (convertE ds :: Either String (RS.Array 1 Int))
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
-      reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank @1 (\ r -> reduce (*) 1 r) a1)
-      reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank @1 (\ r -> reduce (*) 1 r) a2)
+      reduce_2 = assertEqual "2" (fromList [2] [6,120])
+                                 (rerank @1 (\ r -> reduce (*) 1 r) a1)
+      reduce_3 = assertEqual "3" (fromList [3] [4,10,18])
+                                 (rerank @1 (\ r -> reduce (*) 1 r) a2)
       foldrA_1 = assertEqual "1" [1,4,2,5,3,6] (foldrA (:) [] a2)
       -- pad and reshape need not know the rank of the array they take.
-      constraints_1 = assertEqual "1" (pad [(1,1)] 0 a1, reshape [6] a1 :: Array 1 Int)
+      constraints_1 = assertEqual "1" (pad [(1,1)] 0 a1,
+                                       reshape [6] a1 :: Array 1 Int)
                                       (padN a1, reshapeN a1)
         where padN :: Array n Int -> Array n Int
               padN a = pad [(1,1)] 0 a

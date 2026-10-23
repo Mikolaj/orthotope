@@ -245,7 +245,8 @@ class Vector v where
   -- | The map of a view, given as its shape and T, into a vector in row-major
   -- order.  The default fills the view by 'toVectorT' and maps the vector; the
   -- vector instances walk the view by 'genericMapStrided', filling nothing.
-  vMapStrided :: (VecElem v a, VecElem v b) => (a -> b) -> ShapeL -> T v a -> v b
+  vMapStrided :: (VecElem v a, VecElem v b)
+              => (a -> b) -> ShapeL -> T v a -> v b
   {-# INLINE vMapStrided #-}
   vMapStrided f sh t = vMap f (toVectorT sh t)
 
@@ -381,7 +382,8 @@ instance NFData (v a) => NFData (T v a)
 -- outside the view stays as it is, keeping alive what it references until
 -- 'forceT' copies the view out of the vector.
 {-# INLINE rnfViewT #-}
-rnfViewT :: (Vector v, VecElem v a, NFData a, NFData (v a)) => ShapeL -> T v a -> ()
+rnfViewT :: (Vector v, VecElem v a, NFData a, NFData (v a))
+         => ShapeL -> T v a -> ()
 rnfViewT sh t@(T _ _ v) = case readRangeT sh t of
   Range lo n -> rnf (vUnsafeSlice lo n v)
   NoRange -> let (_, rsh, r) = dropBroadcastT sh t
@@ -413,7 +415,8 @@ badShape = go 1
 -- to be summed, a literal or a map, fuses with it and is never allocated.
 {-# INLINE sumExtents #-}
 sumExtents :: [Int] -> Int
-sumExtents ss = foldr (\ s k !n -> if n > maxBound - s then -1 else k (n + s)) id ss 0
+sumExtents ss =
+  foldr (\ s k !n -> if n > maxBound - s then -1 else k (n + s)) id ss 0
 
 -- Whether non-negative extents sum past 'maxBound'.
 {-# INLINE sumOverflows #-}
@@ -452,15 +455,17 @@ sumOverflows ss = sumExtents ss < 0
 -- the same shape and, from GHC 9.12 on, the same cost, hence the loop
 -- in 'compareT'.
 {-# INLINABLE equalT #-}
-equalT :: (Vector v, VecElem v a, Eq a) => ShapeL -> ShapeL -> T v a -> T v a -> Bool
+equalT :: (Vector v, VecElem v a, Eq a)
+       => ShapeL -> ShapeL -> T v a -> T v a -> Bool
 equalT s s' x@(T _ _ vx) y@(T _ _ vy)
-  | Range lo n <- sameRangeT s s' x y = eqWith vx vy lo (lo + offset y - offset x) n
+  | Range lo n <- sameRangeT s s' x y =
+      eqWith vx vy lo (lo + offset y - offset x) n
   | s /= s' = False
   | otherwise = foldPartsT (&&) True eqWith s x y
   where eqWith u w !ox !oy !k = loop u w 0
           where loop !u' !w' !i = i >= k
-                          || (vUnsafeIndex u' (ox + i) == vUnsafeIndex w' (oy + i)
-                              && loop u' w' (i + 1))
+                  || (vUnsafeIndex u' (ox + i) == vUnsafeIndex w' (oy + i)
+                      && loop u' w' (i + 1))
 
 -- Fold two arrays of the shape given part by part, in the order of their
 -- views: c combines what goWith u w p q n makes of each
@@ -492,11 +497,13 @@ foldPartsT c e goWith s x@(T _ _ vx) y@(T _ _ vy)
   | otherwise = case (routeT s l x, routeT s l y) of
       (RSlice ox _, RSlice oy _) -> go ox oy l
       (RSlice ox _, ry) ->
-        routePartsT ry (\p n rest !q -> go q p n `c` rest (q + n)) (\ !_ -> e) ox
+        routePartsT ry (\p n rest !q -> go q p n `c` rest (q + n))
+                    (\ !_ -> e) ox
       (rx, ry) ->
         -- One walk of x's parts, against y's slice or y normalized.
         let against !vz !oz =
-              routePartsT rx (\p n rest !q -> goWith vx vz p q n `c` rest (q + n))
+              routePartsT rx
+                          (\p n rest !q -> goWith vx vz p q n `c` rest (q + n))
                           (\ !_ -> e) oz
         in  case ry of
               RSlice oy _ -> against vy oy
@@ -607,7 +614,9 @@ sameRangeT :: ShapeL -> ShapeL -> T v a -> T v a -> Range
 sameRangeT [n] [m] (T [s] ao _) (T [t] _ _) =
   if n == m && s == t then range3T n s 1 1 1 1 ao else NoRange
 sameRangeT [n1, n2] [m1, m2] (T [s1, s2] ao _) (T [t1, t2] _ _) =
-  if n1 == m1 && n2 == m2 && s1 == t1 && s2 == t2 then range3T n1 s1 n2 s2 1 1 ao else NoRange
+  if n1 == m1 && n2 == m2 && s1 == t1 && s2 == t2
+  then range3T n1 s1 n2 s2 1 1 ao
+  else NoRange
 sameRangeT sh sh' x y | sh == sh' && strides x == strides y = readRangeT sh x
                       | otherwise = NoRange
 
@@ -698,11 +707,13 @@ fillStrided axes@(Axes st n outer) ao l v
       bad "an element outside the source vector"
   | otherwise = vUnsafeFillStrided axes ao l v
   where axs = Axis st n : innerFirst outer
-        reach = [ toInteger (axisStride a) * toInteger (axisExtent a - 1) | a <- axs ]
+        reach = [ toInteger (axisStride a) * toInteger (axisExtent a - 1)
+                | a <- axs ]
         lo = sum (map (min 0) reach)
         hi = sum (map (max 0) reach)
         bad what = error $ "fillStrided: violated contract: " ++ what ++ ": "
-                           ++ show ([ (axisStride a, axisExtent a) | a <- axs ], ao, l, vLength v)
+                           ++ show ([ (axisStride a, axisExtent a) | a <- axs ]
+                                   , ao, l, vLength v)
 
 -- The vector in a new one of its length, copied into once: vector's
 -- 'Data.Vector.Generic.force' fills a new Storable or unboxed vector with zeros
@@ -797,7 +808,8 @@ readAtT False v i = VG.unsafeIndexM v i
 -- keeps the equations in one match group, as at 'absAxesAndStartT'.
 {-# INLINE genericZipWithStrided #-}
 genericZipWithStrided :: (VG.Vector w a, VG.Vector w b, VG.Vector w c)
-                         => Bool -> (a -> b -> c) -> ShapeL -> T w a -> T w b -> w c
+                      => Bool -> (a -> b -> c) -> ShapeL -> T w a -> T w b
+                      -> w c
 genericZipWithStrided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) = VG.create $ do
   out <- VGM.unsafeNew (product sh)
   let walk [!n] [!t1] [!t2] !p1 !p2 !pos
@@ -836,9 +848,12 @@ genericZipWithStrided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) = VG.create $ do
   return out
 
 {-# INLINE genericZipWith3Strided #-}
-genericZipWith3Strided :: (VG.Vector w a, VG.Vector w b, VG.Vector w c, VG.Vector w d)
-                          => Bool -> (a -> b -> c -> d) -> ShapeL -> T w a -> T w b -> T w c -> w d
-genericZipWith3Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3) = VG.create $ do
+genericZipWith3Strided :: ( VG.Vector w a, VG.Vector w b, VG.Vector w c
+                          , VG.Vector w d )
+                       => Bool -> (a -> b -> c -> d) -> ShapeL -> T w a -> T w b
+                       -> T w c -> w d
+genericZipWith3Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2)
+                       (T ss3 o3 v3) = VG.create $ do
   out <- VGM.unsafeNew (product sh)
   let walk [!n] [!t1] [!t2] [!t3] !p1 !p2 !p3 !pos
         | t1 == 1 && t2 == 1 && t3 == 1 =
@@ -881,9 +896,12 @@ genericZipWith3Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3) = V
   return out
 
 {-# INLINE genericZipWith4Strided #-}
-genericZipWith4Strided :: (VG.Vector w a, VG.Vector w b, VG.Vector w c, VG.Vector w d, VG.Vector w e)
-                          => Bool -> (a -> b -> c -> d -> e) -> ShapeL -> T w a -> T w b -> T w c -> T w d -> w e
-genericZipWith4Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3) (T ss4 o4 v4) = VG.create $ do
+genericZipWith4Strided :: ( VG.Vector w a, VG.Vector w b, VG.Vector w c
+                          , VG.Vector w d, VG.Vector w e )
+                       => Bool -> (a -> b -> c -> d -> e) -> ShapeL -> T w a
+                       -> T w b -> T w c -> T w d -> w e
+genericZipWith4Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
+                       (T ss4 o4 v4) = VG.create $ do
   out <- VGM.unsafeNew (product sh)
   let walk [!n] [!t1] [!t2] [!t3] [!t4] !p1 !p2 !p3 !p4 !pos
         | t1 == 1 && t2 == 1 && t3 == 1 && t4 == 1 =
@@ -913,7 +931,8 @@ genericZipWith4Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3) (T 
                     VGM.unsafeWrite out o (f x1 x2 x3 x4)
                     inner (o + 1)
                         (q1 + t1) (q2 + t2) (q3 + t3) (q4 + t4)
-      walk (!n : ns) (!t1 : ts1) (!t2 : ts2) (!t3 : ts3) (!t4 : ts4) !p1 !p2 !p3 !p4 !pos =
+      walk (!n : ns) (!t1 : ts1) (!t2 : ts2) (!t3 : ts3) (!t4 : ts4)
+           !p1 !p2 !p3 !p4 !pos =
           outer 0 p1 p2 p3 p4 pos
         where outer !k !q1 !q2 !q3 !q4 !o
                 | k >= n = return o
@@ -931,9 +950,12 @@ genericZipWith4Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3) (T 
   return out
 
 {-# INLINE genericZipWith5Strided #-}
-genericZipWith5Strided :: (VG.Vector w a, VG.Vector w b, VG.Vector w c, VG.Vector w d, VG.Vector w e, VG.Vector w f)
-                          => Bool -> (a -> b -> c -> d -> e -> f) -> ShapeL -> T w a -> T w b -> T w c -> T w d -> T w e -> w f
-genericZipWith5Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3) (T ss4 o4 v4) (T ss5 o5 v5) = VG.create $ do
+genericZipWith5Strided :: ( VG.Vector w a, VG.Vector w b, VG.Vector w c
+                          , VG.Vector w d, VG.Vector w e, VG.Vector w f )
+                       => Bool -> (a -> b -> c -> d -> e -> f) -> ShapeL
+                       -> T w a -> T w b -> T w c -> T w d -> T w e -> w f
+genericZipWith5Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
+                       (T ss4 o4 v4) (T ss5 o5 v5) = VG.create $ do
   out <- VGM.unsafeNew (product sh)
   let walk [!n] [!t1] [!t2] [!t3] [!t4] [!t5] !p1 !p2 !p3 !p4 !p5 !pos
         | t1 == 1 && t2 == 1 && t3 == 1 && t4 == 1 && t5 == 1 =
@@ -966,7 +988,8 @@ genericZipWith5Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3) (T 
                     VGM.unsafeWrite out o (f x1 x2 x3 x4 x5)
                     inner (o + 1)
                         (q1 + t1) (q2 + t2) (q3 + t3) (q4 + t4) (q5 + t5)
-      walk (!n : ns) (!t1 : ts1) (!t2 : ts2) (!t3 : ts3) (!t4 : ts4) (!t5 : ts5) !p1 !p2 !p3 !p4 !p5 !pos =
+      walk (!n : ns) (!t1 : ts1) (!t2 : ts2) (!t3 : ts3) (!t4 : ts4) (!t5 : ts5)
+           !p1 !p2 !p3 !p4 !p5 !pos =
           outer 0 p1 p2 p3 p4 p5 pos
         where outer !k !q1 !q2 !q3 !q4 !q5 !o
                 | k >= n = return o
@@ -2336,7 +2359,8 @@ mapT sh f t = convertT sh (vMap f) (vMapStrided f) t
 {-# INLINE convertT #-}
 convertT :: (Vector v, VecElem v a, Vector w, VecElem w b)
          => ShapeL -> (v a -> w b) -> (ShapeL -> T v a -> w b) -> T v a -> T w b
-convertT sh g _ t@(T ss o v) | Range lo n <- readRangeT sh t = T ss (o - lo) (g (vUnsafeSlice lo n v))
+convertT sh g _ t@(T ss o v) | Range lo n <- readRangeT sh t =
+  T ss (o - lo) (g (vUnsafeSlice lo n v))
 convertT sh _ _ _ | 0 `elem` sh = emptyT sh
 convertT sh _ gs t = broadcastT bs $ fromVectorT rsh $ gs rsh r
   where (bs, rsh, r) = dropBroadcastT sh t
@@ -2465,7 +2489,8 @@ reverseT rs sh (T ats ao v) = T rts ro v
           (!o, ts') | r `elem` rs -> let !o' = o + (m-1)*t; !t' = -t
                                      in  (o', t' : ts')
                     | otherwise   -> (o, t : ts')
-        rev _ _ _ = error "reverseT: violated contract: not one stride per dimension"
+        rev _ _ _ =
+          error "reverseT: violated contract: not one stride per dimension"
 
 -- Reduction of all array elements, in row-major order, which the function may
 -- need.  A view that no slice serves, which 'toVectorListT' would fill into
@@ -2522,7 +2547,8 @@ allSameT sh t@(T _ ao v)
     -- allSameA of a transposed [400, 500] view of equal Doubles ran 0.76
     -- times them on GHC HEAD.
     vUnsafeWithElem v ao $ \ x ->
-      routeFoldT v (cellsRouteT sh l t) (\ s r -> vAll (x ==) s && r) (\ y r -> x == y && r) True
+      routeFoldT v (cellsRouteT sh l t) (\ s r -> vAll (x ==) s && r)
+                 (\ y r -> x == y && r) True
   where !l = product sh
 
 newtype Rect = Rect { unRect :: [String] }  -- A rectangle of text
@@ -2568,7 +2594,8 @@ rectWidth = maximum . (0:) . map length . unRect
 ppT
   :: (Vector v, VecElem v a, Pretty a)
   => PrettyLevel -> Rational -> ShapeL -> T v a -> Doc
-ppT l p sh = maybeParens (p > 10) . vcat . map text . unRect . box boxMode . ppT_ (prettyShowL l) sh
+ppT l p sh = maybeParens (p > 10) . vcat . map text . unRect . box boxMode
+  . ppT_ (prettyShowL l) sh
   where boxMode | l >= prettyNormal = BoxMode True True True
                 | otherwise = prettyBoxMode
 
@@ -2590,7 +2617,8 @@ showsT []     t = unScalarT t
 showsT s@[_]  t = foldl1' hcatRect $ toListT s t
 showsT (n:ns) t = foldl1' vcat' rs
   where vcat' x y = vcatRect x (vcatRect spc y)
-        spc = Rect $ replicate (length ns - 1) (replicate (rectWidth (head rs)) ' ')
+        spc = Rect $ replicate (length ns - 1)
+                               (replicate (rectWidth (head rs)) ' ')
         rs = [ showsT ns (indexT t i) | i <- [0..n-1] ]
 
 data BoxMode = BoxMode { _bmBars, _bmUnicode, _bmHeader :: Bool }
@@ -2624,7 +2652,8 @@ zipWithLong2 _     _     bs  = bs
 -- The padded array alone, its callers computing its shape: a shape returned
 -- beside it, forced for their checks, built the array before them.
 {-# INLINE padT #-}
-padT :: forall v a . (Vector v, VecElem v a) => a -> [(Int, Int)] -> ShapeL -> T v a -> T v a
+padT :: forall v a . (Vector v, VecElem v a)
+     => a -> [(Int, Int)] -> ShapeL -> T v a -> T v a
 padT v aps ash at
   | all (== (0, 0)) aps = at  -- no padding: the array itself
   | otherwise = padCopyT v aps ash at
@@ -2637,7 +2666,8 @@ padT v aps ash at
 -- (2026-10-22), though summed boxed Shaped pad.outer allocated 32 bytes a call
 -- less, its result returned unboxed.
 {-# INLINE padCopyT #-}
-padCopyT :: forall v a . (Vector v, VecElem v a) => a -> [(Int, Int)] -> ShapeL -> T v a -> T v a
+padCopyT :: forall v a . (Vector v, VecElem v a)
+         => a -> [(Int, Int)] -> ShapeL -> T v a -> T v a
 padCopyT v aps ash at =
   fromVectorT ss $ vConcatPadN len v $ pad' aps ash st at
   where pad' :: [(Int, Int)] -> ShapeL -> [Int] -> T v a
@@ -2667,12 +2697,15 @@ padCopyT v aps ash at =
         pad' [(l,h)] (s:sh) (!n:_) t =
           [Left (n*l), Right (s:sh, t), Left (n*h)]
         pad' ((l,h):ps) (s:sh) (!n:ns) t =
-          Left (n*l) : concatMap (padS ps sh ns . indexT t) [0..s-1] ++ [Left (n*h)]
+          Left (n*l) : concatMap (padS ps sh ns . indexT t) [0..s-1]
+            ++ [Left (n*h)]
         -- The message written out at each equation: one local binding for it,
         -- which pad', padS and padded shared, cost Shaped pad 96 bytes a call
         -- at [3, 3] and 0.06 to 0.07 an element at [400, 500] on GHC HEAD
         -- 10.1.20261019 (2026-10-21).
-        pad' _ _ _ _ = error $ "padCopyT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
+        pad' _ _ _ _ = error $
+          "padCopyT: violated contract: padding list longer than the rank "
+            ++ show (length aps, length ash)
         -- pad' strict in the subarray, so that the T's fields pass through
         -- the recursion, not the T; pad' itself stays lazy in the array it is
         -- given, which a strict one would take apart and build again.
@@ -2682,15 +2715,20 @@ padCopyT v aps ash at =
         padS [(l,h)] (s:sh) (!n:_) !t =
           [Left (n*l), Right (s:sh, t), Left (n*h)]
         padS ((l,h):ps) (s:sh) (!n:ns) !t =
-          Left (n*l) : concatMap (padS ps sh ns . indexT t) [0..s-1] ++ [Left (n*h)]
-        padS _ _ _ _ = error $ "padCopyT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
+          Left (n*l) : concatMap (padS ps sh ns . indexT t) [0..s-1]
+            ++ [Left (n*h)]
+        padS _ _ _ _ = error $
+          "padCopyT: violated contract: padding list longer than the rank "
+            ++ show (length aps, length ash)
         len : st = getStridesT ss
         -- The padded shape, which fails on more pairs than dimensions even
         -- where an empty dimension stops pad' or padS before the surplus pair.
         ss = padded aps ash
         padded ((l,h):ps) (s:sh) = l+s+h : padded ps sh
         padded [] sh = sh
-        padded _ [] = error $ "padCopyT: violated contract: padding list longer than the rank " ++ show (length aps, length ash)
+        padded _ [] = error $
+          "padCopyT: violated contract: padding list longer than the rank "
+            ++ show (length aps, length ash)
 
 -- The view of the first shape given, of strides the second, reshaped from the
 -- view of the third shape of the same size, sharing its vector where its
@@ -2718,7 +2756,9 @@ simpleReshape osts os ns
       loop [] [] = []
       loop (1:ss)     sts  = 0  : loop ss sts
       loop (_:ss) (st:sts) = st : loop ss sts
-      loop _ _ = error $ "simpleReshape: violated contract: not one stride per dimension " ++ show (osts, os, ns)
+      loop _ _ = error $
+        "simpleReshape: violated contract: not one stride per dimension "
+          ++ show (osts, os, ns)
 simpleReshape _ _ _ = Nothing
 
 -- f applied n times, each result forced.
@@ -2796,13 +2836,15 @@ extremumT name op vop sh t@(T _ ao v)
   | l == 0 = error $ name ++ ": violated contract: empty view"
   | otherwise = case cellsRouteT sh l t of
       RSlice o n -> vop (wholeOrSliceT o n v)
-      RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (op acc x)) id (vUnsafeIndex v o)
+      RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (op acc x)) id
+                               (vUnsafeIndex v o)
       RRuns axes o _ ->
         runSlicesT axes o v step (\ _ acc -> acc) False (vUnsafeIndex v ao)
   where !l = product sh
         {-# INLINE step #-}
         step s k = \ started !acc -> let !m = vop s
-                                     in  k True (if started then op acc m else m)
+                                     in  k True
+                                           (if started then op acc m else m)
 
 -- The parts in turn, stopping at the first that decides: a slice, or on
 -- 'RFill' an element.
@@ -2810,7 +2852,8 @@ extremumT name op vop sh t@(T _ ao v)
 anyT :: (Vector v, VecElem v a) => ShapeL -> (a -> Bool) -> T v a -> Bool
 anyT sh p t@(T _ _ v)
   | l == 0 = False
-  | otherwise = routeFoldT v (cellsRouteT sh l t) (\ s r -> vAny p s || r) (\ x r -> p x || r) False
+  | otherwise = routeFoldT v (cellsRouteT sh l t) (\ s r -> vAny p s || r)
+                           (\ x r -> p x || r) False
   where !l = product sh
 
 -- Folded as 'anyT' folds.
@@ -2818,7 +2861,8 @@ anyT sh p t@(T _ _ v)
 allT :: (Vector v, VecElem v a) => ShapeL -> (a -> Bool) -> T v a -> Bool
 allT sh p t@(T _ _ v)
   | l == 0 = True
-  | otherwise = routeFoldT v (cellsRouteT sh l t) (\ s r -> vAll p s && r) (\ x r -> p x && r) True
+  | otherwise = routeFoldT v (cellsRouteT sh l t) (\ s r -> vAll p s && r)
+                           (\ x r -> p x && r) True
   where !l = product sh
 
 -- INLINE: F1, directly fusing: it consumes its list once, by a map, which
@@ -2847,8 +2891,9 @@ broadcastT bc (T ats o v) = T (go bc ats) o v
         go (False : bs) (s : ss) = s : go bs ss
         go [] _ = []
         go (False : _) [] =
-          error $ "broadcastT: violated contract: fewer strides than dimensions "
-                  ++ "not broadcast " ++ show (bc, ats)
+          error $
+            "broadcastT: violated contract: fewer strides than dimensions "
+              ++ "not broadcast " ++ show (bc, ats)
 
 -- Each index list is built under 'build', each component computed as the list
 -- is consumed, so that a function that consumes it where it is inlined, as sum
@@ -2875,7 +2920,8 @@ iterateNT n f x = fromListT [n] $ take n $ iterate f x
 
 {-# INLINE iotaT #-}
 iotaT :: (Vector v, VecElem v a, Num a) => Int -> T v a
-iotaT n = fromVectorT [n] $ vGenerate' n fromIntegral  -- evaluated, as a boxed vGenerate would not
+-- evaluated, as a boxed vGenerate would not
+iotaT n = fromVectorT [n] $ vGenerate' n fromIntegral
 
 -------
 

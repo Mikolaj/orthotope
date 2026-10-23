@@ -34,7 +34,8 @@ import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual)
 import Test.QuickCheck
-  (Property, choose, classify, conjoin, counterexample, elements, forAll, property, (.&&.), (===))
+  (Property, choose, classify, conjoin, counterexample, elements, forAll,
+   property, (.&&.), (===))
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
 import Views ( Owns (..), View (..), assertThrowsIn, assertThrowsWith
@@ -69,29 +70,39 @@ test = testGroup "Dynamic" $
       show_2 = assertEqual "2" "fromList [3,2] [1,4,2,5,3,6]" (show a2)
       -- Arrays with no elements print as an empty box.
       pretty_1 = assertEqual "1" (replicate 4 "\x250c\x2510\n\x2514\x2518")
-                                 (map prettyShow [ fromList [0] [], fromList [0,3] []
-                                                 , fromList [2,0] [], fromList [2,0,2] [] :: Array Int ])
+                                 (map prettyShow
+                                      [ fromList [0] []
+                                      , fromList [0,3] []
+                                      , fromList [2,0] []
+                                      , fromList [2,0,2] [] :: Array Int ])
       -- prettyShow of non-empty arrays, as 0.1.8.0 printed them.
       pretty_2 = assertEqual "2"
                    [ "\9484\9472\9472\9472\9472\9472\9488\n\9474\&1 2 3\9474\n\9474\&4 5 6\9474\n\9492\9472\9472\9472\9472\9472\9496"
                    , "\9484\9472\9472\9472\9472\9472\9472\9472\9472\9472\9488\n\9474   1   10\9474\n\9474 100 1000\9474\n\9474         \9474\n\9474  -5    6\9474\n\9474   7    8\9474\n\9492\9472\9472\9472\9472\9472\9472\9472\9472\9472\9496"
                    , "\9484\9472\9472\9472\9472\9472\9488\n\9474\&7 8 9\9474\n\9492\9472\9472\9472\9472\9472\9496" ]
-                   (map prettyShow [ fromList [2, 3] [1 .. 6], fromList [2, 2, 2] [1, 10, 100, 1000, -5, 6, 7, 8]
+                   (map prettyShow [ fromList [2, 3] [1 .. 6]
+                                   , fromList [2, 2, 2]
+                                              [1, 10, 100, 1000, -5, 6, 7, 8]
                                    , fromList [3] [7, 8, 9] :: Array Int ])
       eq_1 = assertEqual "1" True (a1 == a1)
       eq_2 = assertEqual "2" False (a1 == a2)
       -- == looks at the shapes: the elements are alike however they are read.
-      eq_5 = assertEqual "5" False (fromList [2,3] (replicate 6 1) == (fromList [3,2] (replicate 6 1) :: Array Int))
+      eq_5 = assertEqual "5" False
+                             (fromList [2,3] (replicate 6 1)
+                               == (fromList [3,2] (replicate 6 1) :: Array Int))
       ord_1 = assertEqual "1" EQ (a1 `compare` a1)
       ord_2 = assertEqual "2" LT (a1 `compare` a2)
       -- compare orders by the shapes first: the elements are alike.
-      ord_3 = assertEqual "3" LT (compare (fromList [2,3] (replicate 6 1)) (fromList [3,2] (replicate 6 1) :: Array Int))
+      ord_3 = assertEqual "3" LT
+                              (compare (fromList [2,3] (replicate 6 1))
+                                 (fromList [3,2] (replicate 6 1) :: Array Int))
       shapeL_1 = assertEqual "1" [2,3] (shapeL a1)
       shapeL_2 = assertEqual "2" [3,2] (shapeL a2)
       rank_1 = assertEqual "1" 2 (rank a1)
       rank_2 = assertEqual "2" 2 (rank a2)
       -- Foldable's length and null, read off the shape.
-      foldable_1 = assertEqual "1" (6, False, 0, True) (length a1, null a1, length e, null e)
+      foldable_1 = assertEqual "1" (6, False, 0, True)
+                                   (length a1, null a1, length e, null e)
         where e = (fromList [2,0] [] :: Array Int)
       index_1 = assertEqual "1" (fromList [3] [1,2,3]) (index a1 0)
       index_2 = assertEqual "2" (fromList [2] [1,4]) (index a2 0)
@@ -104,25 +115,36 @@ test = testGroup "Dynamic" $
       -- the empty one.
       toList_3 = do
         assertEqual "3" [] (toList (constant [10 ^ (12 :: Int), 0] (0 :: Int)))
-        assertEqual "3" [] (toList (mapA (+ 1) (constant [10 ^ (9 :: Int), 0, 10 ^ (9 :: Int)] (0 :: Int))))
+        assertEqual "3" []
+          (toList (mapA (+ 1) (constant [10 ^ (9 :: Int), 0, 10 ^ (9 :: Int)]
+                                        (0 :: Int))))
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
       toVector_2 = assertEqual "2" (V.fromList [1,4,2,5,3,6]) (toVector a2)
       fromList_1 = assertThrowsIn "sh" "fromList" (fromList [] [1,2::Int])
       fromList_2 = assertThrowsIn "sh" "fromList" (fromList [4,5] [1,2::Int])
-      -- A list longer than the shape fails, counted no further than one past it.
-      fromList_3 = assertThrowsWith "3" "fromList: size mismatch ([3],more than 3)" (fromList [3] [1 :: Int ..])
+      -- A list longer than the shape fails, counted no further than one past
+      -- it.
+      fromList_3 = assertThrowsWith "3"
+                                    "fromList: size mismatch ([3],more than 3)"
+                                    (fromList [3] [1 :: Int ..])
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
-      fromVector_2 = assertThrowsIn "2" "fromVector" (fromVector [2,3] $ V.fromList [1..5::Int])
+      fromVector_2 = assertThrowsIn "2" "fromVector"
+                                    (fromVector [2,3] $ V.fromList [1..5::Int])
       vFromListN_1 = assertEqual "1" (V.toList $ V.fromListN 2 [1,2,3::Int])
                                      (I.vFromListN 2 [1,2,3])
-      vSlice_1 = assertEqual "1" ([2,3], []) (I.vSlice 1 2 [1,2,3::Int], I.vSlice 3 0 [1,2,3::Int])
-      vSlice_2 = mapM_ (\ (o, n) -> assertThrowsIn "2" "vSlice" (I.vSlice o n [1,2,3::Int]))
+      vSlice_1 = assertEqual "1" ([2,3], [])
+                                 (I.vSlice 1 2 [1,2,3::Int],
+                                  I.vSlice 3 0 [1,2,3::Int])
+      vSlice_2 = mapM_ (\ (o, n) -> assertThrowsIn "2" "vSlice"
+                                                   (I.vSlice o n [1,2,3::Int]))
                        [(2,5), (4,0), (-1,1), (0,-1)]
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [6] [1..6]) (reshape [6] a1)
-      reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2)
+      reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6])
+                                  (reshape [1,2,3,1] a2)
       -- reshape to a shape of another size fails.
-      reshape_3 = assertThrowsIn "3" "reshape" (reshape [5] (fromList [2, 3] [1 .. 6 :: Int]))
+      reshape_3 = assertThrowsIn "3" "reshape"
+                                 (reshape [5] (fromList [2, 3] [1 .. 6 :: Int]))
       a3, a4 :: Array Int
       a3 = fromList [1] [5]
       a4 = fromList [] [5]
@@ -132,20 +154,24 @@ test = testGroup "Dynamic" $
       stretch_3 = assertThrowsIn "3" "stretch" (stretch [1,2] a3)
       stretch_4 = assertThrowsIn "4" "stretch" (stretch [4,3] a1)
       -- An axis of extent 0 does not stretch.
-      stretch_5 = assertThrowsIn "5" "stretch" (stretch [3] (fromList [0] [] :: Array Int))
+      stretch_5 = assertThrowsIn "5" "stretch"
+                                 (stretch [3] (fromList [0] [] :: Array Int))
       scalar_1 = assertEqual "1" a4 (scalar 5)
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
       unScalar_2 = assertThrowsIn "2" "unScalar" (unScalar a3)
       constant_1 = assertEqual "1" (fromList [2,3] [1,1,1,1,1,1]) (constant [2,3] (1::Int))
-      iota_1 = assertEqual "1" (map fromIntegral [0..299::Int]) (toList (iota 300 :: Array Word8))
+      iota_1 = assertEqual "1" (map fromIntegral [0..299::Int])
+                               (toList (iota 300 :: Array Word8))
       -- iota stores its elements evaluated, so evaluating the array
       -- evaluates its 1.
       iota_2 = assertWhnfThrowsIn "2" "1 evaluated" (iota 3 :: Array OneFails)
       -- So does vGenerate', which iota calls, at vector's DoNotUnboxLazy,
       -- whose write stores an element as it is given.
       iota_3 = assertWhnfThrowsIn "3" "1 evaluated"
-                                  (I.vGenerate' 3 g :: VU.Vector (VU.DoNotUnboxLazy Int))
-        where g i = VU.DoNotUnboxLazy (if i == 1 then error "1 evaluated" else i)
+                                  (I.vGenerate' 3 g
+                                     :: VU.Vector (VU.DoNotUnboxLazy Int))
+        where g i =
+                VU.DoNotUnboxLazy (if i == 1 then error "1 evaluated" else i)
       -- An n below 0 gives vGenerate' no elements, at every instance.
       iota_4 = assertEqual "4" (0, 0, 0, 0)
                  ( V.length (I.vGenerate' (-1) id :: V.Vector Int)
@@ -167,7 +193,8 @@ test = testGroup "Dynamic" $
         , ("iterateN", iterateN (-1) id 0)
         , ("iota", iota (-1)) ]
       badShape_2 = assertEqual "read" Nothing
-                     (readMaybe "fromList [-2,-3] [1,2,3,4,5,6]" :: Maybe (Array Int))
+                     (readMaybe "fromList [-2,-3] [1,2,3,4,5,6]"
+                        :: Maybe (Array Int))
       -- Nor more elements than an Int counts.
       badShape_3 = do
         mapM_ (\ (f, a) -> assertThrowsIn f f a)
@@ -176,18 +203,23 @@ test = testGroup "Dynamic" $
           , ("reshape", reshape [4, h] (fromList [0] []))
           , ("constant", constant [4, h] 1)
           , ("generate", generate [4, h] (const 0))
-          , ("stretch", stretch [4, h + 1] (reshape [4,1] (fromList [4] [1..4])))
-          , ("stretchOuter", stretchOuter h (reshape [1,4] (fromList [4] [1..4])))
+          , ("stretch", stretch [4, h + 1]
+                                (reshape [4,1] (fromList [4] [1..4])))
+          , ("stretchOuter", stretchOuter h
+                                          (reshape [1,4] (fromList [4] [1..4])))
           , ("broadcast", broadcast [1] [4, h] (constant [h] 0))
           , ("pad", pad [(h, 0)] 0 (fromList [4,4] [1..16]))
           , ("window", window [4] (stretch [h] (fromList [1] [1]))) ]
-        assertEqual "read" Nothing (readMaybe ("fromList " ++ show [4, h] ++ " []") :: Maybe (Array Int))
+        assertEqual "read" Nothing
+          (readMaybe ("fromList " ++ show [4, h] ++ " []") :: Maybe (Array Int))
         where h = maxBound `quot` 2 + 1
       -- A size past maxBound fails where no later extent is 0, and passes where
       -- one is.
       badShape_4 = do
-        assertEqual "1" [4611686018427387904, 4, 0] (shapeL (fromList [4611686018427387904, 4, 0] [] :: Array Int))
-        assertThrowsIn "2" "fromList" (fromList [4611686018427387904, 4, 3] [] :: Array Int)
+        assertEqual "1" [4611686018427387904, 4, 0]
+          (shapeL (fromList [4611686018427387904, 4, 0] [] :: Array Int))
+        assertThrowsIn "2" "fromList"
+                       (fromList [4611686018427387904, 4, 3] [] :: Array Int)
       -- Nor a result of more, of arrays broadcast to fewer: the error names
       -- the operation.
       badShape_5 = mapM_ (\ (f, a) -> assertThrowsIn f f a)
@@ -203,9 +235,12 @@ test = testGroup "Dynamic" $
       -- mapA maps only the part of the vector a view reads, and a broadcast
       -- of a view that skips elements without its broadcast dimensions.
       mapA_4 = assertEqual "4" [100, 100, 2]
-                 [ vlen (mapA (+ 1) (stretch [1000,100] (reshape [1,100] (index m 3))))
+                 [ vlen (mapA (+ 1)
+                          (stretch [1000,100] (reshape [1,100] (index m 3))))
                  , vlen (mapA (+ 1) (window [50] (iota 100 :: Array Int)))
-                 , vlen (mapA (+ 1) (broadcast [1] [1000,2] (stride [2] (fromList [3] [1,2,3 :: Int])))) ]
+                 , vlen (mapA (+ 1)
+                          (broadcast [1] [1000,2]
+                             (stride [2] (fromList [3] [1,2,3 :: Int])))) ]
         where m = fromList [10,100] [1..1000] :: Array Int
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
       zipWithA_2 = assertThrowsIn "2" "zipWithA" (zipWithA (+) a1 a2)
@@ -223,8 +258,12 @@ test = testGroup "Dynamic" $
                               (pad [(1,2),(3,4)] 9 a1)
       pad_2 = assertThrowsIn "2" "pad" (pad [(1,1),(1,1),(1,1)] 0 a1)
       -- Extents summing past maxBound.
-      pad_3 = assertThrowsIn "3" "pad" (pad [(maxBound, maxBound)] 0 (fromList [3] [1,2,3::Int]))
-      pad_4 = assertThrowsIn "4" "pad" (pad [(0,0),(1,1)] 0 (fromList [0] [] :: Array Int))
+      pad_3 = assertThrowsIn "3" "pad"
+                             (pad [(maxBound, maxBound)] 0
+                                  (fromList [3] [1,2,3::Int]))
+      pad_4 = assertThrowsIn "4" "pad"
+                             (pad [(0,0),(1,1)] 0
+                                  (fromList [0] [] :: Array Int))
       a5 :: Array Int
       a5 = fromList [2,3,4] [1..24]
       transpose_1 = assertEqual "1" (fromList [2,3,4] [1,2,3,4,
@@ -312,20 +351,30 @@ test = testGroup "Dynamic" $
       append_1 = assertEqual "1" (fromList [3,3] [1..9])
                                  (append a1 (fromList [1,3] [7,8,9]))
       -- Extents summing past maxBound.
-      append_2 = assertThrowsIn "2" "append" (append (constant [maxBound] 0) (constant [maxBound] (0::Int)))
+      append_2 = assertThrowsIn "2" "append"
+                                (append (constant [maxBound] 0)
+                                        (constant [maxBound] (0::Int)))
       -- Arrays whose inner dimensions differ.
-      append_3 = assertThrowsIn "3" "append" (append (fromList [1,2] [1,2]) (fromList [1,3] [1,2,3 :: Int]))
+      append_3 = assertThrowsIn "3" "append"
+                                (append (fromList [1,2] [1,2])
+                                        (fromList [1,3] [1,2,3 :: Int]))
       concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                       (concatOuter [a1, concatOuter [a1,a1]])
       concatOuter_2 = assertThrowsIn "2" "concatOuter" (concatOuter [a1, a2])
       -- Extents summing past maxBound.
-      concatOuter_3 = assertThrowsIn "3" "concatOuter" (concatOuter [constant [maxBound] 0, constant [maxBound] 0, fromList [3] [1,2,3::Int]])
+      concatOuter_3 = assertThrowsIn "3" "concatOuter"
+                                     (concatOuter [constant [maxBound] 0,
+                                                   constant [maxBound] 0,
+                                                   fromList [3] [1,2,3::Int]])
       ravel_1 = assertEqual "1" (fromList [3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                 (ravel $ fromList [3] [a1,a1,a1])
-      ravel_2 = assertThrowsIn "2" "ravel" (ravel $ fromList [2] [a1, concatOuter [a1,a1]])
+      ravel_2 = assertThrowsIn "2" "ravel"
+                               (ravel $ fromList [2] [a1, concatOuter [a1,a1]])
       unravel_1 = assertEqual "1" [a1,a1,a1]
                                   (toList $ unravel $ ravel $ fromList [3] [a1,a1,a1])
-      unravel_2 = assertThrowsIn "2" "unravel" (unravel (scalar (1 :: Int)) :: Array (Array Int))
+      unravel_2 = assertThrowsIn "2" "unravel"
+                                 (unravel (scalar (1 :: Int))
+                                    :: Array (Array Int))
       a6 :: Array Int
       a6 = fromList [4,5] [1..20]
       window_1 = assertEqual "1" (fromList [2,3,3,3] [1,2,3,
@@ -358,29 +407,40 @@ test = testGroup "Dynamic" $
       -- The window list is checked before the shape, and the message shows
       -- an extent past maxBound as it is.
       window_4 = mapM_ (\ (m, a) -> assertThrowsWith m m a)
-        [ ("window: rank mismatch ([0,1],[9223372036854775807])", window [0, 1] (constant [maxBound] (0 :: Int)))
-        , ("window: bad shape [9223372036854775808,0]", window [0] (constant [maxBound] 0)) ]
+        [ ("window: rank mismatch ([0,1],[9223372036854775807])",
+           window [0, 1] (constant [maxBound] (0 :: Int)))
+        , ("window: bad shape [9223372036854775808,0]",
+           window [0] (constant [maxBound] 0)) ]
       -- An operation that returns its argument or a view of a part of it
       -- shares the array under the argument's vector, which force copies
       -- out.  The vector itself is a record, and on GHC 9.0.2 and 9.2.8
       -- update and rotate return a different one.
       sharing_1 = do
         assertEqual "shares" (replicate 10 True)
-          [ shares (pad [(0,0),(0,0)] 0 a1), shares (append a1 (fromList [0,3] []))
-          , shares (append (fromList [0,3] []) a1), shares (concatOuter [a1]), shares (update a1 [])
-          , shares (ravel (fromList [1] [a1])), shares (rerank 1 id (reshape [1,2,3] a1))
-          , shares (rerank2 1 (\ x _ -> x) (reshape [1,2,3] a1) (reshape [1,2,3] a1))
+          [ shares (pad [(0,0),(0,0)] 0 a1)
+          , shares (append a1 (fromList [0,3] []))
+          , shares (append (fromList [0,3] []) a1), shares (concatOuter [a1])
+          , shares (update a1 [])
+          , shares (ravel (fromList [1] [a1]))
+          , shares (rerank 1 id (reshape [1,2,3] a1))
+          , shares (rerank2 1 (\ x _ -> x) (reshape [1,2,3] a1)
+                            (reshape [1,2,3] a1))
           , shares (rotate 0 1 a1), not (shares (force a1)) ]
         assertEqual "elements" (replicate 6 (toList a1))
-          [ toList (ravel (fromList [1] [a1])), toList (rerank 1 id (reshape [1,2,3] a1))
-          , toList (rotate 0 1 a1), toList (rotate 1 1 a1), toList (pad [(0,0)] 0 a1), toList (force a1) ]
+          [ toList (ravel (fromList [1] [a1]))
+          , toList (rerank 1 id (reshape [1,2,3] a1))
+          , toList (rotate 0 1 a1), toList (rotate 1 1 a1)
+          , toList (pad [(0,0)] 0 a1), toList (force a1) ]
         assertEqual "shapes" [[1,2,3], [1,2,3], [2,1,3]]
-          [shapeL (ravel (fromList [1] [a1])), shapeL (rotate 0 1 a1), shapeL (rotate 1 1 a1)]
+          [shapeL (ravel (fromList [1] [a1])), shapeL (rotate 0 1 a1),
+           shapeL (rotate 1 1 a1)]
         where shares b = sameStorage (valuesOf b) (valuesOf a1)
       -- maximumA and minimumA fail on an empty array.
       maximumA_empty = do
-        assertThrowsIn "max" "maximumA" (maximumA (fromList [0] [] :: Array Int))
-        assertThrowsIn "min" "minimumA" (minimumA (fromList [2, 0] [] :: Array Int))
+        assertThrowsIn "max" "maximumA"
+                       (maximumA (fromList [0] [] :: Array Int))
+        assertThrowsIn "min" "minimumA"
+                       (minimumA (fromList [2, 0] [] :: Array Int))
       stride_1 = assertEqual "1" (fromList [2,2,2] [1,3,
                                                     9,11,
 
@@ -390,17 +450,22 @@ test = testGroup "Dynamic" $
       stride_2 = assertThrowsIn "2" "stride" (stride [1,2,2] a1)
       stride_3 = assertThrowsIn "3" "stride" (stride [0] a1)
       stride_4 = assertThrowsIn "4" "stride" (stride [-1] a1)
-      stride_5 = assertEqual "5" (fromList [1] [1]) (stride [maxBound] (fromList [3] [1,2,3::Int]))
+      stride_5 = assertEqual "5" (fromList [1] [1])
+                                 (stride [maxBound] (fromList [3] [1,2,3::Int]))
       -- stride with fewer strides than dimensions keeps the rest.
-      stride_6 = assertEqual "6" (fromList [2, 2] [1, 2, 5, 6]) (stride [2] (fromList [4, 2] [1 .. 8 :: Int]))
+      stride_6 = assertEqual "6" (fromList [2, 2] [1, 2, 5, 6])
+                                 (stride [2] (fromList [4, 2] [1 .. 8 :: Int]))
       -- compare decides by the first element that differs, here in the first of
       -- the parts two transposed views fold, the last differing the other way.
-      compare_1 = assertEqual "1" (GT, GT) (compare (toList x) (toList y), compare x y)
+      compare_1 = assertEqual "1" (GT, GT)
+                                  (compare (toList x) (toList y), compare x y)
         where x = transpose [1, 0] (fromList [2, 2] [1, 2, 3, 4 :: Int])
               y = transpose [1, 0] (fromList [2, 2] [0, 2, 3, 9])
       -- read rejects a count of elements that is not the shape's.
-      read_1 = assertEqual "1" (Nothing, Just (fromList [2] [1, 2] :: Array Int))
-                 (readMaybe "fromList [2] [1,2,3]" :: Maybe (Array Int), readMaybe "fromList [2] [1,2]")
+      read_1 = assertEqual "1"
+                 (Nothing, Just (fromList [2] [1, 2] :: Array Int))
+                 (readMaybe "fromList [2] [1,2,3]" :: Maybe (Array Int),
+                  readMaybe "fromList [2] [1,2]")
       rotate_1 = assertEqual "1" (fromList [2, 4, 3, 2]
                                            [1, 2, 3, 4, 5, 6,
                                             5, 6, 1, 2, 3, 4,
@@ -422,25 +487,37 @@ test = testGroup "Dynamic" $
                                             11, 12, 7, 8, 9, 10,
                                             9, 10, 11, 12, 7, 8,
                                             7, 8, 9, 10, 11, 12])
-                                 (rotate 1 5 $ fromList [2, 3, 2] [1 .. 12::Int])
-      rotate_3 = assertEqual "3" (fromList [3,1] [5,5,5]) (rotate 0 3 $ fromList [1] [5::Int])
-      rotate_4 = assertThrowsIn "4" "rotate" (rotate 0 (-2) $ fromList [3] [1,2,3::Int])
-      rotate_5 = assertEqual "5" (fromList [0,2,3] []) (rotate 1 2 $ fromList [0,3] ([] :: [Int]))
+                                 (rotate 1 5
+                                   $ fromList [2, 3, 2] [1 .. 12::Int])
+      rotate_3 = assertEqual "3" (fromList [3,1] [5,5,5])
+                                 (rotate 0 3 $ fromList [1] [5::Int])
+      rotate_4 = assertThrowsIn "4" "rotate"
+                                (rotate 0 (-2) $ fromList [3] [1,2,3::Int])
+      rotate_5 = assertEqual "5" (fromList [0,2,3] [])
+                                 (rotate 1 2 $ fromList [0,3] ([] :: [Int]))
       rotate_6 = assertEqual "6" 0  -- the empty rotation keeps no vector alive
                                  (vlen (rotate 1 2 (slice [(0,0)] a1)))
-      rotate_7 = assertThrowsIn "7" "rotate" (rotate (-1) 2 $ fromList [3] [1,2,3::Int])
+      rotate_7 = assertThrowsIn "7" "rotate"
+                                (rotate (-1) 2 $ fromList [3] [1,2,3::Int])
       -- A result shape past maxBound.
-      rotate_9 = assertThrowsIn "9" "rotate" (rotate 0 (maxBound `quot` 4 + 1) (fromList [4] [1,2,3,4::Int]))
+      rotate_9 = assertThrowsIn "9" "rotate"
+                                (rotate 0 (maxBound `quot` 4 + 1)
+                                        (fromList [4] [1,2,3,4::Int]))
       -- A result shape within maxBound, where the copies of the row pass it.
-      rotate_10 = assertThrowsIn "10" "rotate" (rotate 0 (maxBound `quot` 2 + 2) (fromList [1] [7::Int]))
+      rotate_10 = assertThrowsIn "10" "rotate"
+                                 (rotate 0 (maxBound `quot` 2 + 2)
+                                         (fromList [1] [7::Int]))
       -- A negative size or count and too few broadcast dimensions fail at the
       -- checks of the shape they would make, and an empty outer dimension at
       -- ravelOuter's check of its list.
       laterChecks_1 = mapM_ (\ (m, a) -> assertThrowsWith m m a)
-        [ ("stretchOuter: bad shape [-1,2]", stretchOuter (-1) (fromList [1,2] [1,2 :: Int]))
+        [ ("stretchOuter: bad shape [-1,2]",
+           stretchOuter (-1) (fromList [1,2] [1,2 :: Int]))
         , ("rotate: bad shape [-2,3]", rotate 0 (-2) (fromList [3] [1,2,3]))
-        , ("broadcast: shape mismatch ([2,3],[0],[2,3])", broadcast [0] [2,3] (fromList [2,3] [1..6]))
-        , ("rerank: empty outer dimension [0]", rerank 1 id (fromList [0,2] [])) ]
+        , ("broadcast: shape mismatch ([2,3],[0],[2,3])",
+           broadcast [0] [2,3] (fromList [2,3] [1..6]))
+        , ("rerank: empty outer dimension [0]",
+           rerank 1 id (fromList [0,2] [])) ]
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrowsIn "2" "slice" (slice [(0,0)] a4)
@@ -463,27 +540,36 @@ test = testGroup "Dynamic" $
       rerank_4 = assertEqual "4" (mapA (\ x -> Just (scalar x)) a5)
                                  (rerank 3 box a5)
       rerank_5 = assertThrowsIn "5" "rerank" (rerank 4 box a5)
-      rerank_6 = assertThrowsIn "6" "rerank" (rerank 1 (\ a -> constant [unScalar a] (0 :: Int)) (fromList [2] [1,2 :: Int]))
+      rerank_6 = assertThrowsIn "6" "rerank"
+                   (rerank 1 (\ a -> constant [unScalar a] (0 :: Int))
+                           (fromList [2] [1,2 :: Int]))
       -- Outer extents whose product passes maxBound, beside an empty inner one:
       -- f is applied to the first subarray, as to any other.
-      rerank_7 = assertThrowsIn "7" "f" (rerank 2 (\ _ -> error "f" :: Array Int) (constant [4294967296, 4294967296, 0] (0 :: Int)))
+      rerank_7 = assertThrowsIn "7" "f"
+                   (rerank 2 (\ _ -> error "f" :: Array Int)
+                           (constant [4294967296, 4294967296, 0] (0 :: Int)))
       a7 = mapA succ a5
       dot x y = reduce (+) 0 $ zipWithA (*) x y
       rerank2_1 = assertEqual "1" (fromList [2,3] [40,200,488,904,1448,2120])
                                   (rerank2 2 dot a5 a7)
       rerank2_2 = assertThrowsIn "2" "rerank2" (rerank2 4 dot a5 a7)
-      rerank2_3 = assertThrowsIn "3" "rerank2" (rerank2 1 (\ a _ -> constant [unScalar a] (0 :: Int)) v v)
+      rerank2_3 = assertThrowsIn "3" "rerank2"
+                    (rerank2 1 (\ a _ -> constant [unScalar a] (0 :: Int)) v v)
         where v = fromList [2] [1,2 :: Int]
       -- Arrays whose outer dimensions differ.
-      rerank2_4 = assertThrowsIn "4" "rerank2" (rerank2 1 const (fromList [3,2] [1..6 :: Int]) (fromList [2,2] [1..4 :: Int]))
+      rerank2_4 = assertThrowsIn "4" "rerank2"
+                                 (rerank2 1 const (fromList [3,2] [1..6 :: Int])
+                                          (fromList [2,2] [1..4 :: Int]))
       rev_1 = assertEqual "1" (fromList [2,3] [3,2,1,6,5,4])
                               (rev [1] a1)
       rev_2 = assertEqual "2" (fromList [2,3] [6,5,4,3,2,1])
                               (rev [0,1] a1)
       rev_3 = assertThrowsIn "3" "rev" (rev [2] a1)
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
-      reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank 1 (\ r -> reduce (*) 1 r) a1)
-      reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (\ r -> reduce (*) 1 r) a2)
+      reduce_2 = assertEqual "2" (fromList [2] [6,120])
+                                 (rerank 1 (\ r -> reduce (*) 1 r) a1)
+      reduce_3 = assertEqual "3" (fromList [3] [4,10,18])
+                                 (rerank 1 (\ r -> reduce (*) 1 r) a2)
       -- Test fast toVector
       toVector_10 =
         assertEqual "10" (V.fromList [1..24]) (toVector a5)                  -- full vector
@@ -505,14 +591,16 @@ test = testGroup "Dynamic" $
       -- picks the run of the unordered route: on the shelf and on the climb
       -- the shorter of the two, on the plateau the longer, the outer axis
       -- or the inner.
-      runRank_1 = assertEqual "1" [Just 40, Just 41, Just 100, Just 101, Just 21, Just 20]
+      runRank_1 = assertEqual "1" [Just 40, Just 41, Just 100, Just 101,
+                                   Just 21, Just 20]
                     [ runOf (window [40] (fromList [80] [1 .. 80 :: Int]))
                     , runOf (window [50] (fromList [90] [1 .. 90 :: Int]))
                     , runOf (window [100] (fromList [200] [1 .. 200 :: Int]))
                     , runOf (window [150] (fromList [250] [1 .. 250 :: Int]))
                     , runOf (window [10] (fromList [30] [1 .. 30 :: Int]))
                     , runOf (window [20] (fromList [30] [1 .. 30 :: Int])) ]
-        where runOf (DI.A (DG.A sh t)) = case I.unorderedRouteT sh (product sh) t of
+        where runOf (DI.A (DG.A sh t)) =
+                case I.unorderedRouteT sh (product sh) t of
                 I.RRuns (I.Axes _ n _) _ _ -> Just n
                 _ -> Nothing
 
@@ -769,7 +857,8 @@ mkViewOnly :: View -> Array Int
 mkViewOnly v@(View sh _) =
   let n = product sh
       is = viewIndices v
-  in  mkView v [ if i `elem` is then i else error "outside the view" | i <- [0 .. n - 1] ]
+  in  mkView v [ if i `elem` is then i else error "outside the view"
+               | i <- [0 .. n - 1] ]
 
 -- readRangeT finds the part of the vector a view reads where it reads every
 -- element of one part, and nothing where it reads none or skips one, on a
@@ -779,10 +868,13 @@ prop_readRangeT v = forAll genRawView $ \ w -> readRange v .&&. readRange w
   where readRange u@(View sh _) =
           let x = mkView u (replicate (product sh) ())
               range is = case sort (nub is) of
-                js@(j : _) | js == [j .. j + length js - 1] -> I.Range j (length js)
+                js@(j : _) | js == [j .. j + length js - 1] ->
+                  I.Range j (length js)
                 _ -> I.NoRange
-              positions (I.T ss o w) = I.T ss o (V.fromList [0 .. V.length w - 1])
-          in  case x of DI.A (DG.A sh' t) -> I.readRangeT sh' t === range (I.toListT sh' (positions t))
+              positions (I.T ss o w) =
+                I.T ss o (V.fromList [0 .. V.length w - 1])
+          in  case x of DI.A (DG.A sh' t) -> I.readRangeT sh' t
+                          === range (I.toListT sh' (positions t))
 
 -- == agrees with comparing the lists, on the view against itself, the view
 -- mapped and the view normalized, and compares no element outside the views.
@@ -824,7 +916,8 @@ prop_toListLazy v@(View sh _) =
 -- result either.
 prop_lazy :: View -> Property
 prop_lazy v@(View sh _) =
-  let x = mkView v [ error ("element " ++ show i) | i <- [0 .. product sh - 1] ] :: Array Int
+  let x = mkView v [ error ("element " ++ show i) | i <- [0 .. product sh - 1] ]
+        :: Array Int
       xsh = shapeL x
       n = product xsh
       DI.A (DG.A _ t) = x
@@ -876,12 +969,14 @@ prop_sameElems v@(View sh _) =
       src = V.fromList xs
       x = mkView v xs
       DI.A (DG.A _ t) = x
-      same ys = and [ Just True == (samePtr <$> V.indexM src i <*> V.indexM ys k)
+      same ys = and [ Just True == (samePtr <$> V.indexM src i
+                                            <*> V.indexM ys k)
                     | (k, i) <- zip [0 ..] is ]
       -- The control: an element read from the vector and from vector's copy of
       -- the vector, one heap object unless the build, as a coverage one can,
       -- tells them apart.
-      ptrEq = n == 0 || Just True == (samePtr <$> V.indexM src 0 <*> V.indexM (V.force src) 0)
+      ptrEq = n == 0 || Just True == (samePtr <$> V.indexM src 0
+                                              <*> V.indexM (V.force src) 0)
   in  classify (not ptrEq) "pointer equality unavailable" $
       if not ptrEq then property True else
       conjoin
@@ -900,7 +995,8 @@ prop_rnf v@(View sh _) =
       .&&. (if null is then property True
             else forAll (elements is) $ \ i ->
                  failsWith "inside the view"
-                   (rnf (mkView v [ if j == i then error "inside the view" else j
+                   (rnf (mkView v [ if j == i then error "inside the view"
+                                    else j
                                   | j <- [0 .. n - 1] ])))
 
 -- Converting to the other boxings and back gives the view's elements,
@@ -913,6 +1009,7 @@ prop_convert v =
       u = convert x :: DU.Array Int
       s = convert x :: DS.Array Int
   in  DU.toList u === l .&&. DS.toList s === l
-      .&&. toList (convert u :: Array Int) === l .&&. toList (convert s :: Array Int) === l
+      .&&. toList (convert u :: Array Int) === l
+      .&&. toList (convert s :: Array Int) === l
       .&&. VU.length (valuesG (convert u :: G.Array VU.Vector Int)) <= length l
       .&&. VS.length (valuesG (convert s :: G.Array VS.Vector Int)) <= length l

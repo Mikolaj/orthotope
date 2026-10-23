@@ -52,8 +52,10 @@ test = testGroup "RankedS" $
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
       toVector_2 = assertEqual "2" (V.fromList [1,4,2,5,3,6]) (toVector a2)
-      fromList_1 = assertThrowsIn "sh" "fromList" (fromList [] [1,2] :: Array 0 Int)
-      fromList_2 = assertThrowsIn "sh" "fromList" (fromList [4,5] [1,2] :: Array 2 Int)
+      fromList_1 = assertThrowsIn "sh" "fromList"
+                                  (fromList [] [1,2] :: Array 0 Int)
+      fromList_2 = assertThrowsIn "sh" "fromList"
+                                  (fromList [4,5] [1,2] :: Array 2 Int)
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
       normalize_1 = assertEqual "1" a1 (normalize a1)
       -- toVector of a row is a slice of the whole vector, which normalize
@@ -64,25 +66,32 @@ test = testGroup "RankedS" $
         assertEqual "force index" False (shares (force (index big 1)))
         where big = fromList [4,1000] [1..4000] :: Array 2 Int
               shares a = sameStorage (toVector a) (toVector big)
-      reshape_1 = assertEqual "1" (fromList [6] [1..6] :: Array 1 Int) (reshape [6] a1)
-      reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2 :: Array 4 Int)
+      reshape_1 = assertEqual "1" (fromList [6] [1..6] :: Array 1 Int)
+                                  (reshape [6] a1)
+      reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6])
+                                  (reshape [1,2,3,1] a2 :: Array 4 Int)
       a3 :: Array 1 Int
       a3 = fromList [1] [5]
       a4 :: Array 0 Int
       a4 = fromList [] [5]
       stretch_1 = assertEqual "1" (fromList [3] [5,5,5]) (stretch [3] a3)
-      stretch_2 = assertEqual "2" (fromList [2,2,3,2] [1,1,2,2,3,3,4,4,5,5,6,6,1,1,2,2,3,3,4,4,5,5,6,6])
-                                  (stretch [2,2,3,2] (reshape [1,2,3,1] a1 :: Array 4 Int))
+      stretch_2 = assertEqual "2" (fromList [2,2,3,2] [1,1,2,2,3,3,4,4,5,5,6,6,
+                                                       1,1,2,2,3,3,4,4,5,5,6,6])
+                                  (stretch [2,2,3,2]
+                                     (reshape [1,2,3,1] a1 :: Array 4 Int))
       stretch_3 = assertThrowsIn "3" "stretch" (stretch [1,2] a3)
       stretch_4 = assertThrowsIn "4" "stretch" (stretch [4,3] a1)
       scalar_1 = assertEqual "1" a4 (scalar 5)
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
-      constant_1 = assertEqual "1" (fromList [2,3] [1,1,1,1,1,1]) (constant [2,3] 1 :: Array 2 Int)
+      constant_1 = assertEqual "1" (fromList [2,3] [1,1,1,1,1,1])
+                                   (constant [2,3] 1 :: Array 2 Int)
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "2" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
-      zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
+      zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12])
+                                   (zipWithA (+) a1 a1)
       zipWithA_2 = assertThrowsIn "2" "zipWithA" (zipWithA (+) a1 a2)
-      zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
+      zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42])
+                                    (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
       pad_1 = assertEqual "1" (fromList [5,10] [9,9,9,9,9,9,9,9,9,9,
                                                 9,9,9,1,2,3,9,9,9,9,
                                                 9,9,9,4,5,6,9,9,9,9,
@@ -176,18 +185,23 @@ test = testGroup "RankedS" $
                                     (transpose [1,0] a5)
       append_1 = assertEqual "1" (fromList [3,3] [1..9])
                                  (append a1 (fromList [1,3] [7,8,9]))
-      concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
+      concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,
+                                                       1,2,3,4,5,6])
                                       (concatOuter [a1, concatOuter [a1,a1]])
       concatOuter_2 = assertThrowsIn "2" "concatOuter" (concatOuter [a1, a2])
-      ravel_1 = assertEqual "1" (fromList [3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
+      ravel_1 = assertEqual "1" (fromList [3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,
+                                                   1,2,3,4,5,6])
                                 (ravel $ R.fromList [3] [a1,a1,a1])
       unravel_1 = assertEqual "1" [a1,a1,a1]
-                                  (R.toList $ unravel $ ravel $ R.fromList [3] [a1,a1,a1])
-      -- The conversion to the Storable Dynamic module, as the boxed modules' is,
-      -- and convertE of it.
+                                  (R.toList $ unravel $ ravel
+                                    $ R.fromList [3] [a1,a1,a1])
+      -- The conversion to the Storable Dynamic module, as the boxed modules'
+      -- is, and convertE of it.
       convert_1 = do
-        assertEqual "convert" (DS.fromList [3,2] [1,4,2,5,3,6]) (convert a2 :: DS.Array Int)
-        assertEqual "convertE" (Right (DS.fromList [2,3] [1..6])) (convertE a1 :: Either String (DS.Array Int))
+        assertEqual "convert" (DS.fromList [3,2] [1,4,2,5,3,6])
+                              (convert a2 :: DS.Array Int)
+        assertEqual "convertE" (Right (DS.fromList [2,3] [1..6]))
+                               (convertE a1 :: Either String (DS.Array Int))
       a6 :: Array 2 Int
       a6 = fromList [4,5] [1..20]
       window_1 = assertEqual "1" (fromList [2,3,3,3] [1,2,3,
@@ -242,12 +256,16 @@ test = testGroup "RankedS" $
                               (rev [0,1] a1)
       rev_3 = assertThrowsIn "3" "rev" (rev [2] a1)
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
-      reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank @1 (\ r -> reduce (*) 1 r) a1)
-      reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank @1 (\ r -> reduce (*) 1 r) a2)
+      reduce_2 = assertEqual "2" (fromList [2] [6,120])
+                                 (rerank @1 (\ r -> reduce (*) 1 r) a1)
+      reduce_3 = assertEqual "3" (fromList [3] [4,10,18])
+                                 (rerank @1 (\ r -> reduce (*) 1 r) a2)
       foldrA_1 = assertEqual "1" [1,4,2,5,3,6] (foldrA (:) [] a2)
       -- pad, reshape and index need not know the rank of the array they take,
       -- nor index that its elements are Storable.
-      constraints_1 = assertEqual "1" (pad [(1,1)] 0 a1, reshape [6] a1 :: Array 1 Int, index a1 1)
+      constraints_1 = assertEqual "1" (pad [(1,1)] 0 a1,
+                                       reshape [6] a1 :: Array 1 Int,
+                                       index a1 1)
                                       (padN a1, reshapeN a1, indexN a1 1)
         where padN :: Array n Int -> Array n Int
               padN a = pad [(1,1)] 0 a
@@ -256,8 +274,11 @@ test = testGroup "RankedS" $
               indexN :: Array 2 a -> Int -> Array 1 a
               indexN a i = index a i
 
-      bitcast_1 = assertEqual "1" [1,4,2,5,3,6] (toList (bitcast a2 :: Array 2 Word))
-      bitcast_2 = assertEqual "2" [0x3fc00000] (toList (bitcast (fromList [1] [1.5 :: Float]) :: Array 1 Word32))
+      bitcast_1 = assertEqual "1" [1,4,2,5,3,6]
+                                  (toList (bitcast a2 :: Array 2 Word))
+      bitcast_2 = assertEqual "2" [0x3fc00000]
+                                  (toList (bitcast (fromList [1] [1.5 :: Float])
+                                             :: Array 1 Word32))
       bitcast_3 = assertThrowsIn "3" "bitcast" (bitcast a1 :: Array 2 Word16)
 
       -- Calls of every wrapper the module under test exports, in the order of

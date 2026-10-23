@@ -17,7 +17,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 -- Random views and other helpers for the properties of the test modules.
 module Views(testPropertyN, failsWith, failsIn, assertThrowsWith, assertThrowsIn
-            , assertWhnfThrowsIn, Elem, genElems, upTo, adjustAt, genShape, Op(..)
+            , assertWhnfThrowsIn, Elem, genElems, upTo, adjustAt, genShape
+            , Op(..)
             , opShape, opSource, genBadOp, opName, View(..), viewShape, mkView
             , applyOpG, mkViewG, mkViewUpTo, forAllView, genRawView, genOps
             , valuesG, obsD, nested, Owns(..)) where
@@ -39,21 +40,24 @@ import qualified Data.Vector.Unboxed.Base as VUB
 import Data.Word (Word8)
 import Foreign.Storable (Storable, sizeOf)
 import GHC.Exts
-  ( Int (I#), isTrue#, sameMutableArray#, sameMutableByteArray#, sizeofMutableByteArray#
+  ( Int (I#), isTrue#, sameMutableArray#, sameMutableByteArray#
+  , sizeofMutableByteArray#
   , unsafeCoerce# )
 import GHC.ForeignPtr (ForeignPtr (..), ForeignPtrContents (..))
 import Test.Framework (Test, TestOptions' (..), plusTestOptions)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.HUnit (Assertion, assertEqual, assertFailure)
 import Test.QuickCheck
-  ( Arbitrary (..), Gen, Property, Testable, choose, counterexample, elements, forAll
-  , frequency, ioProperty, oneof, shuffle, sublistOf, suchThat, vectorOf, (===) )
+  ( Arbitrary (..), Gen, Property, Testable, choose, counterexample, elements
+  , forAll, frequency, ioProperty, oneof, shuffle, sublistOf, suchThat, vectorOf
+  , (===) )
 
 -- A property checked on a thousand cases rather than the default hundred.
 -- The count is fixed here, so --maximum-generated-tests does not raise it.
 testPropertyN :: Testable p => String -> p -> Test
 testPropertyN name =
-  plusTestOptions mempty { topt_maximum_generated_tests = Just 1000 } . testProperty name
+  plusTestOptions mempty { topt_maximum_generated_tests = Just 1000 }
+    . testProperty name
 
 -- Evaluating the value to WHNF fails with the message.
 failsWith :: String -> a -> Property
@@ -71,7 +75,9 @@ failsIn name a = ioProperty $ do
   r <- try (evaluate a)
   return $ case r of
     Left (ErrorCall e) -> length e `seq` counterexample e (nameIn e == name)
-    Right _ -> counterexample ("no error, where an error of " ++ name ++ " was due") False
+    Right _ ->
+      counterexample ("no error, where an error of " ++ name ++ " was due")
+                     False
 
 -- Forcing the value to normal form fails with the message, the assertion
 -- labelled s.
@@ -84,7 +90,8 @@ assertThrowsWith s msg a = catch (deepseq a $ assertFailure s)
 -- so that one failing in its text fails the assertion.
 assertWhnfThrowsIn :: String -> String -> a -> Assertion
 assertWhnfThrowsIn s f a = catch (evaluate a >> assertFailure s)
-                                 (\ (ErrorCall e) -> length e `seq` assertEqual s f (nameIn e))
+                                 (\ (ErrorCall e) ->
+                                   length e `seq` assertEqual s f (nameIn e))
 
 -- Forcing the value to normal form fails as in assertWhnfThrowsIn.
 assertThrowsIn :: (NFData a) => String -> String -> a -> Assertion
@@ -126,7 +133,8 @@ genShape r = do
 -- at its start and m at its end, as an array of shape sh with strides ss
 -- from offset o.
 data Op = Transpose [Int] | Rev [Int] | Slice [(Int, Int)] | Stride [Int]
-        | Window [Int] | Index Int | Broadcast [Int] [Int] | Raw [Int] [Int] Int Int Int
+        | Window [Int] | Index Int | Broadcast [Int] [Int]
+        | Raw [Int] [Int] Int Int Int
   deriving Show
 
 -- The shape of the result of an operation on an array of the given shape.
@@ -134,7 +142,8 @@ opShape :: [Int] -> Op -> [Int]
 opShape sh (Transpose is) = map (sh !!) is ++ drop (length is) sh
 opShape sh (Rev _) = sh
 opShape sh (Slice sl) = map snd sl ++ drop (length sl) sh
-opShape sh (Stride ts) = zipWith (\ s t -> (s + t - 1) `div` t) sh ts ++ drop (length ts) sh
+opShape sh (Stride ts) =
+  zipWith (\ s t -> (s + t - 1) `div` t) sh ts ++ drop (length ts) sh
 opShape sh (Window ws) =
   zipWith (\ s w -> s - w + 1) sh ws ++ ws ++ drop (length ws) sh
 opShape sh (Index _) = drop 1 sh
@@ -145,8 +154,10 @@ opShape _ (Raw sh' _ _ _ _) = sh'
 -- the operation reads.
 opSource :: [Int] -> Op -> [Int] -> [Int]
 opSource _ (Transpose is) js =
-  [ js !! i | d <- [0 .. length is - 1], (i, d') <- zip [0 ..] is, d' == d ] ++ drop (length is) js
-opSource sh (Rev rs) js = [ if d `elem` rs then s - 1 - j else j | (d, s, j) <- zip3 [0 ..] sh js ]
+  [ js !! i | d <- [0 .. length is - 1], (i, d') <- zip [0 ..] is, d' == d ]
+    ++ drop (length is) js
+opSource sh (Rev rs) js =
+  [ if d `elem` rs then s - 1 - j else j | (d, s, j) <- zip3 [0 ..] sh js ]
 opSource _ (Slice sl) js = zipWith (+) (map fst sl) js ++ drop (length sl) js
 opSource _ (Stride ts) js = zipWith (*) ts js ++ drop (length ts) js
 opSource _ (Window ws) js =
@@ -213,7 +224,8 @@ genLayout = do
 genBadOp :: [Int] -> Gen Op
 genBadOp sh = oneof $
   [ Transpose <$> shuffle [0 .. r]
-  , do ds <- sublistOf [0 .. r - 1]; d <- elements (-1 : r : ds); Rev <$> shuffle (d : ds)
+  , do ds <- sublistOf [0 .. r - 1]; d <- elements (-1 : r : ds);
+         Rev <$> shuffle (d : ds)
   , Slice . (++ [(0, 0)]) <$> mapM okSlice sh
   , Stride . (++ [1]) <$> okStrides sh
   , Window . (++ [0]) <$> okWindows sh
@@ -222,12 +234,15 @@ genBadOp sh = oneof $
        oneof $
          [ return (Broadcast (ds ++ [0]) sh') ] ++
          [ return (Broadcast (drop 1 ds) sh') | r > 0 ] ++
-         [ do j <- choose (0, r - 1); d <- elements [-1, r']; return (Broadcast (setAt j d ds) sh')
+         [ do j <- choose (0, r - 1); d <- elements [-1, r'];
+                return (Broadcast (setAt j d ds) sh')
          | r > 0 ] ++
-         [ Broadcast <$> elements [setAt 1 (ds !! 0) ds, setAt 0 (ds !! 1) (setAt 1 (ds !! 0) ds)]
+         [ Broadcast <$> elements [setAt 1 (ds !! 0) ds,
+                                   setAt 0 (ds !! 1) (setAt 1 (ds !! 0) ds)]
                      <*> pure sh'
          | r > 1 ] ++
-         [ do j <- choose (0, r' - 1); return (Broadcast ds (setAt j (-1) sh')) | r' > 0 ] ++
+         [ do j <- choose (0, r' - 1); return (Broadcast ds (setAt j (-1) sh'))
+         | r' > 0 ] ++
          [ do j <- choose (0, r - 1)
               s' <- elements (filter (/= sh !! j) [0 .. 5])
               return (Broadcast ds (setAt (ds !! j) s' sh'))
@@ -235,7 +250,8 @@ genBadOp sh = oneof $
          [ do ps <- shuffle sh `suchThat` (/= sh)
               return (Broadcast ds (foldr (uncurry setAt) sh' (zip ds ps)))
          | length (nub sh) > 1 ]
-  , if r == 0 then Index <$> choose (-1, 1) else Index <$> elements [-1, sh !! 0, sh !! 0 + 1]
+  , if r == 0 then Index <$> choose (-1, 1)
+    else Index <$> elements [-1, sh !! 0, sh !! 0 + 1]
   ] ++
   [ do k <- choose (1, r)
        is <- shuffle [0 .. k - 1]
@@ -246,7 +262,8 @@ genBadOp sh = oneof $
   [ do i <- choose (0, r - 1)
        let s = sh !! i
        oneof [ do sl <- mapM okSlice sh
-                  b <- elements [(-1, 0), (0, -1), (s + 1, 0), (0, s + 1), (1, maxBound)]
+                  b <- elements [(-1, 0), (0, -1), (s + 1, 0), (0, s + 1),
+                                 (1, maxBound)]
                   return (Slice (setAt i b sl))
              , do ts <- okStrides sh
                   t <- elements [0, -1]
@@ -294,7 +311,8 @@ instance Arbitrary View where
             sh <- genShape 3
             n <- choose (0, 4)
             View sh <$> genOps n sh
-          nontrivial v = let vsh = viewShape v in not (null vsh) && product vsh > 0
+          nontrivial v =
+            let vsh = viewShape v in not (null vsh) && product vsh > 0
   shrink (View sh ops) = [ View sh (take i ops) | i <- [0 .. length ops - 1] ]
 
 -- A view that starts with Raw.
@@ -317,7 +335,8 @@ applyOpG (Window ws) = \ x -> DG.window ws x
 applyOpG (Index i) = \ x -> DG.index x i
 applyOpG (Broadcast ds sh) = \ x -> DG.broadcast ds sh x
 applyOpG (Raw sh ss o k m) = \ x ->
-  let v = DG.toVector x in DG.A sh (I.T ss o (I.vSlice k (I.vLength v - k - m) v))
+  let v = DG.toVector x
+  in DG.A sh (I.T ss o (I.vSlice k (I.vLength v - k - m) v))
 
 mkViewG :: (I.Vector v, I.VecElem v a) => View -> [a] -> DG.Array v a
 mkViewG (View sh ops) xs = foldl (flip applyOpG) (DG.fromList sh xs) ops
@@ -329,7 +348,8 @@ mkViewUpTo v@(View sh _) = mkViewG v (upTo (product sh))
 -- A property of the view over random elements from -9 to 9.
 forAllView :: (I.Vector v, I.VecElem v a, Elem a, Testable p)
            => View -> (DG.Array v a -> p) -> Property
-forAllView v@(View sh _) k = forAll (genElems (-9, 9) (product sh)) (k . mkViewG v)
+forAllView v@(View sh _) k =
+  forAll (genElems (-9, 9) (product sh)) (k . mkViewG v)
 
 -- The vector of an array, its elements outside the view included.
 valuesG :: DG.Array v a -> v a
@@ -371,8 +391,10 @@ instance Storable a => Owns (VS.Vector a) where
     (ForeignPtr _ (PlainPtr m), n) -> owns m n
     (ForeignPtr _ (MallocPtr m _), n) -> owns m n
     (_, n) -> n == 0
-    where owns m n = I# (sizeofMutableByteArray# m) == n * sizeOf (undefined :: a)
-  sameStorage w w' = case (VS.unsafeToForeignPtr0 w, VS.unsafeToForeignPtr0 w') of
+    where owns m n =
+            I# (sizeofMutableByteArray# m) == n * sizeOf (undefined :: a)
+  sameStorage w w' = case (VS.unsafeToForeignPtr0 w,
+                           VS.unsafeToForeignPtr0 w') of
     ((ForeignPtr _ (PlainPtr m), _), (ForeignPtr _ (PlainPtr m'), _)) ->
       isTrue# (sameMutableByteArray# m m')
     ((ForeignPtr _ (MallocPtr m _), _), (ForeignPtr _ (MallocPtr m' _), _)) ->
@@ -380,12 +402,15 @@ instance Storable a => Owns (VS.Vector a) where
     _ -> False
 
 instance Owns (VU.Vector Int) where
-  ownsStorage (VUB.V_Int (VP.Vector _ n b)) = sizeofByteArray b == n * sizeOf (0 :: Int)
-  sameStorage (VUB.V_Int (VP.Vector _ _ b)) (VUB.V_Int (VP.Vector _ _ b')) = sameBytes b b'
+  ownsStorage (VUB.V_Int (VP.Vector _ n b)) =
+    sizeofByteArray b == n * sizeOf (0 :: Int)
+  sameStorage (VUB.V_Int (VP.Vector _ _ b))
+              (VUB.V_Int (VP.Vector _ _ b')) = sameBytes b b'
 
 instance Owns (VU.Vector Word8) where
   ownsStorage (VUB.V_Word8 (VP.Vector _ n b)) = sizeofByteArray b == n
-  sameStorage (VUB.V_Word8 (VP.Vector _ _ b)) (VUB.V_Word8 (VP.Vector _ _ b')) = sameBytes b b'
+  sameStorage (VUB.V_Word8 (VP.Vector _ _ b))
+              (VUB.V_Word8 (VP.Vector _ _ b')) = sameBytes b b'
 
 -- Whether two byte arrays are one.
 sameBytes :: ByteArray -> ByteArray -> Bool
