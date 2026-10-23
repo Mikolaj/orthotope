@@ -22,22 +22,22 @@
 -- its code that call leaves untaken, each named for the operation and the arm;
 -- a call whose input is no view, or whose arm accesses none of it, runs once
 -- a size.  Between them the calls at the two smaller sizes take every arm of
--- the library's code but those that fail, those no operation reaches, the list
--- instance of Vector and the instances that print, parse or generate arrays,
--- and those at the large size every such arm but those of an empty array.  A
--- row is the family, the operation, the size and the view, and a cell the time
--- of a call with its result forced to normal form or, given --summed, summed,
--- every component taken apart as a client consuming it would, the fastest of
--- three batches of calls, and the bytes a call allocates, both per element of
--- the view at the large size and per call at the others, where what a call
--- costs once shows.  Other arguments, if any, select the rows whose names
--- contain one of them.  Given --iters N and -m glob PATTERN, as criterion
--- takes them, it makes instead one batch of N calls of the one cell whose
--- name, the row's and the vector kind's joined by a slash, PATTERN matches,
--- and prints the cell's nanoseconds and bytes a call: two runs' instruction
--- counts, at N calls and at 2N, differ by N calls', the process's setup
--- cancelling, where a batch of 5 ms holds a number of calls that varies
--- between builds.
+-- the library's code but those that fail, the Left of a conversion to a shape
+-- the Shaped modules reject, those no operation reaches, the list instance of
+-- Vector and the instances that print, parse or generate arrays, and those at
+-- the large size every such arm but those of an empty array.  A row is the
+-- family, the operation, the size and the view, and a cell the time of a call
+-- with its result forced to normal form or, given --summed, summed, every
+-- component taken apart as a client consuming it would, the fastest of three
+-- batches of calls, and the bytes a call allocates, both per element of the
+-- view at the large size and per call at the others, where what a call costs
+-- once shows.  Other arguments, if any, select the rows whose names contain one
+-- of them.  Given --iters N and -m glob PATTERN, as criterion takes them, it
+-- makes instead one batch of N calls of the one cell whose name, the row's and
+-- the vector kind's joined by a slash, PATTERN matches, and prints the cell's
+-- nanoseconds and bytes a call: two runs' instruction counts, at N calls and at
+-- 2N, differ by N calls', the process's setup cancelling, where a batch of 5 ms
+-- holds a number of calls that varies between builds.
 --
 -- Without --summed the probes follow, in a table of their own printed as the
 -- other is, where it has rows: for each type the library marks as never to be
@@ -129,16 +129,16 @@ table mode args = do
   let rows = [ r | r@(row, _, _) <- Rows.rows
                  , null args || any (`isInfixOf` row) args ]
   unless (null rows) $ do
-    printf "%-36s %s, the result %s\n" ""
+    printf "%-48s %s, the result %s\n" ""
            "ns, then bytes, an element at the large size, a call at the others"
            (case mode of Forced -> "forced"; Summing -> "summed")
     let cols = concatMap (printf "%9s") kinds :: String
-    printf "%-36s %s %s\n" "" cols cols
+    printf "%-48s %s %s\n" "" cols cols
   forM_ rows $ \ (row, per, cells) -> do
     ms <- mapM (traverse (measure mode Nothing)) (cells Viewed)
     let time = maybe "-" (\ (t, _) -> printf "%.2f" (t / fromIntegral per))
         bytes = maybe "-" (\ (_, a) -> printf "%.2f" (perOf per a))
-    printf "%-36s %9s%9s%9s %9s%9s%9s\n" row
+    printf "%-48s %9s%9s%9s %9s%9s%9s\n" row
            (time (ms !! 0)) (time (ms !! 1)) (time (ms !! 2))
            (bytes (ms !! 0)) (bytes (ms !! 1)) (bytes (ms !! 2))
   let probed = case mode of
@@ -146,14 +146,14 @@ table mode args = do
         Forced -> [ p | p@(Probe row _ _ _) <- probes
                       , null args || any (`isInfixOf` row) args ]
   unless (null probed) $
-    printf "\n%-42s %s\n" ""
+    printf "\n%-48s %s\n" ""
            "bytes a call at Storable: as compiled, the value built, the difference"
   forM_ probed $ \ (Probe row f g a) -> do
     _ <- allocated f a
     af <- allocated f a
     _ <- allocated g a
     ag <- allocated g a
-    printf "%-42s %9d%9d%9d\n" row af ag (ag - af)
+    printf "%-48s %9d%9d%9d\n" row af ag (ag - af)
 
 -- Bytes over the count given.
 perOf :: Int -> Int64 -> Double

@@ -19,9 +19,8 @@ import Control.DeepSeq (rnf)
 import Control.Exception (evaluate)
 import Data.Int (Int64)
 import GHC.Clock (getMonotonicTimeNSec)
-import System.Mem (performMajorGC)
 
-import Call (Call (..), allocated)
+import Call (Call (..), allocatedSecond)
 
 -- The argument handed on through a call the compiler cannot see through,
 -- varying with the call, so that full laziness cannot float the call out of
@@ -40,13 +39,7 @@ data Mode = Forced | Summing
 -- of that many calls, and the bytes the second of two calls allocates.
 measure :: Mode -> Maybe Int -> Call -> IO (Double, Int64)
 measure mode iters (Call _ f x g) = do
-  _ <- allocated h x
-  -- A major collection between the first call, which evaluates the part of
-  -- the input the calls use, and the calls measured: without one, the calls
-  -- followed the indirections that evaluating the input left, and boxed ravel
-  -- of a large dense view took twice its time.
-  performMajorGC
-  a <- allocated h x
+  a <- allocatedSecond h x
   t <- case iters of
     Just k -> batch k
     Nothing -> do

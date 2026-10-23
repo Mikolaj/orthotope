@@ -3,11 +3,12 @@
 -- SH the shape, ROWS its rows, SIZE the size's other values, IARR the kind's
 -- internal module, CONV the module of the kind convert converts to, BOXED or
 -- STORABLE defined at those kinds, CD and CR the kind's Dynamic and Ranked
--- modules, and SHT, FLAT, ROW1, SL, CAT, NN, SHR, SLR, SHW, SH3, SH5, SHB, SHO,
--- WINO, COL1, EMP, SLNR, TW1 to TW6 and TWN the type arguments of the size.
--- After an operation's call come those of the arms it leaves untaken, each
--- named for its operation and its arm; at ROWS 0 only the calls an empty array
--- takes, on every view but the window, whose type has no array of no rows.
+-- modules at the boxed and Storable kinds, and SHT, FLAT, ROW1, SL, CAT, NN,
+-- SHR, SLR, SHW, SH3, SH5, SHB, SHO, WINO, COL1, EMP, SLNR, TW1 to TW6 and TWN
+-- the type arguments of the size.  After an operation's call come those of the
+-- arms it leaves untaken, each named for its operation and its arm; at ROWS 0
+-- only the calls an empty array takes, on every view but the window, whose type
+-- has no array of no rows.
 OPS :: Form -> View -> [Call]
 OPS form view =
   [ call "size" (\ a -> ARR.size a) t
@@ -80,6 +81,8 @@ OPS form view =
   , call "concatOuter" (\ (a, b) -> ARR.concatOuter @CAT [a, b]) (t, tn)
   , call "concatOuter.one" (\ a -> ARR.concatOuter @ROWS [a]) t
 #if ROWS > 0
+  -- Each row by index and reshape, where the other families slice it: the
+  -- offsets of a Shaped slice are types, and i is known only at run time.
   , call "concatOuter.map"
          (\ a -> ARR.concatOuter @ROWS
                    (map (\ i -> ARR.reshape @ROW1 (ARR.index a i))
@@ -92,10 +95,13 @@ OPS form view =
 #endif
   , call "unravel" (\ a -> ARR.unravel a) t
 #if ROWS > 0
+  , call "unravel.one" (\ a -> ARR.unravel a) t1
+#endif
+#if ROWS > 0
   , call "window" (\ a -> ARR.window @Win a) t
 #endif
   , call "stride" (\ a -> ARR.stride @Str22 a) t
-  , call "stride.outer" (\ a -> ARR.stride @Str1 a) t
+  , call "stride.outer" (\ a -> ARR.stride @Str2 a) t
   , call "rotate" (\ a -> ARR.rotate @0 @2 a) t
   , call "rotate.one" (\ a -> ARR.rotate @1 @1 a) t
   , call "rotate.inner" (\ a -> ARR.rotate @1 @2 a) t
@@ -103,17 +109,23 @@ OPS form view =
   , call "slice" (\ a -> ARR.slice @SL a) t
 #endif
   , call "rerank" (\ a -> ARR.rerank @1
-                            (\ r -> ARR.scalar (ARR.sumA (r `asTypeOf` row)))
-                            a)
+                          (\ r -> ARR.scalar (ARR.sumA (r `asTypeOf` row)))
+                          a)
                   t
+#if ROWS > 0
+  , call "rerank.one" (\ a -> ARR.rerank @1
+                              (\ r -> ARR.scalar (ARR.sumA (r `asTypeOf` row)))
+                              a)
+                      t1
+#endif
   , call "rerank2" (\ (a, b) -> ARR.rerank2 @1
                            (\ x y -> ARR.zipWithA (+) (x `asTypeOf` row) y) a b)
-                 (t, tn)
+                   (t, tn)
 #if ROWS > 0
   , call "rerank2.one" (\ a -> ARR.rerank2 @1
                                (\ x y -> ARR.zipWithA (+) (x `asTypeOf` row) y)
                                a a)
-                     t1
+                       t1
 #endif
   , call "rev" (\ a -> ARR.rev @Rev01 a) t
   , call "reduce" (\ a -> ARR.reduce (+) 0 a) t
@@ -160,11 +172,11 @@ OPS form view =
   , call "convert.dynamic" (\ a -> convert a :: CD.Array Double) t
   , call "convertE.dynamic"
          (\ a -> convertE a :: Either String (CD.Array Double)) t
-#endif
-#ifdef BOXED
   , call "convert.ranked" (\ a -> convert a :: CR.Array 2 Double) t
   , call "convertE.ranked"
          (\ a -> convertE a :: Either String (CR.Array 2 Double)) t
+#endif
+#ifdef BOXED
   , call "convert.unboxed" (\ a -> convert a :: U.Array SH Double) t
   , call "convertE.unboxed"
          (\ a -> convertE a :: Either String (U.Array SH Double)) t
@@ -172,6 +184,7 @@ OPS form view =
   , call "convert.g" (\ a -> convert a `asTypeOf` IARR.unA a) t
   , call "convertE.g" (\ a -> convertE a `asTypeOf` Right (IARR.unA a)) t
   , call "==" (\ (a, b) -> (a == b, b == a)) (t, tn)
+  , call "==.g" (\ (a, b) -> (a == b, b == a)) (IARR.unA t, IARR.unA tn)
 #if ROWS > 0
   , call "==.rank1" (\ (a, b) -> a == b) (row, rown)
 #endif
@@ -183,6 +196,8 @@ OPS form view =
   , call "/=" (\ (a, b) -> (a /= b, b /= a)) (t, tn)
   , call "/=.g" (\ (a, b) -> (a /= b, b /= a)) (IARR.unA t, IARR.unA tn)
   , call "compare" (\ (a, b) -> (compare a b, compare b a)) (t, tn)
+  , call "compare.g" (\ (a, b) -> (compare a b, compare b a))
+                     (IARR.unA t, IARR.unA tn)
 #if ROWS > 0
   , call "<" (\ (a, b) -> (a < b, b < a)) (t, tu)
   , call "<.g" (\ (a, b) -> (a < b, b < a)) (IARR.unA t, IARR.unA tu)
@@ -208,7 +223,7 @@ OPS form view =
   , call "sequenceA" (\ a -> runIdentity (sequenceA a)) (fmap Identity t)
   , call "pure" (\ x -> pure x `asTypeOf` t) x0
   , call "<*>" (\ a -> pure (+ 1) <*> a) t
-  , call "liftA2" (\ (a, b) -> A.liftA2 (+) a b) (t, t)
+  , call "liftA2" (\ (a, b) -> A.liftA2 (+) a b) (t, tn)
 #endif
   ]
  where
@@ -249,15 +264,17 @@ OPS form view =
            (ARR.fromList @TWN (take twn elemsFrom)))))))
 #endif
   same = formed (viewOf (repeat x0))
+  -- The normalized copy built from the view as a list, not by normalize, so
+  -- that the test of the rows checks the fill against another route.
   formed a = case form of
     Viewed -> a
-    Normalized -> ARR.normalize a
+    Normalized -> ARR.fromList (ARR.toList a)
   viewOf :: [Double] -> ARR.Array SH Double
   viewOf xs = case view of
     Dense -> ARR.fromList @SH (take (ROWS * cols) xs)
     Strided -> ARR.transpose @Perm (ARR.fromList @SHT (take (ROWS * cols) xs))
     Runs -> ARR.slice @SLR (ARR.fromList @SHR (take (ROWS * (cols + 2)) xs))
-    Scaled -> ARR.stride @Str2 (ARR.fromList @SHW (take (ROWS * 2 * cols) xs))
+    Scaled -> ARR.stride @Str12 (ARR.fromList @SHW (take (ROWS * 2 * cols) xs))
     Bcastmid -> ARR.stretch @SH (ARR.fromList @ROW1 (take cols xs))
     Flip -> ARR.rev @Rev1 (ARR.fromList @SH (take (ROWS * cols) xs))
 #if ROWS > 0
@@ -269,7 +286,8 @@ OPS form view =
     Bcast -> ARR.stretch @SH (ARR.fromList @COL1 (take ROWS xs))
     Scalar -> ARR.constant @SH (sum (take 1 xs))
   -- The size comes at run time: of a size known statically, full laziness
-  -- would make the array a constant computed once.
+  -- would make the array a constant computed once.  The row gives the
+  -- vector: the array's type holds the size, known only inside the case.
   iota k = case someNatVal (toInteger k) of
     Just (SomeNat p) -> ARR.toVector (ARR.iota `sizedBy` p)
     Nothing -> error "iota: negative size"

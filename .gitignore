@@ -3,3 +3,9 @@ dist/
 dist-newstyle/
 cabal.project.local
 dist-checks/
+# What the coverage recipe in bench/Specialisation.hs makes.
+dist-hpc/
+.hpc/
+*.tix
+*.draft
+*.untaken

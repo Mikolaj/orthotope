@@ -37,7 +37,10 @@
 -- and has no control here: boxed pad called from Unspecialised, at Double or
 -- polymorphic in the element, allocated like the specialised call, where the
 -- boxed modules built without the flag failed the bound on 9.12.4.
--- The bitcasts, having no boxed counterpart, go unchecked.
+-- The bitcasts, having no boxed counterpart, go unchecked, and a row
+-- the Unboxed calls lack, a conversion between the families, is checked
+-- at Storable alone.  A check of the calls of one name fails where it
+-- selects none.
 -- And that fillStrided, which clients outside the array modules call,
 -- allocates at most 16 bytes an element at Storable and Unboxed, its result's
 -- 8, where at Unboxed a call through a copy compiled for any vector type,
@@ -62,6 +65,7 @@ import qualified Data.Array.Internal.DynamicS as DS
 import Data.Bits (shiftR, xor)
 import Data.Int (Int64)
 import Data.List (intercalate, isSuffixOf)
+import Data.Maybe (listToMaybe)
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
 import Test.Framework (Test, TestOptions' (..), plusTestOptions, testGroup)
@@ -70,7 +74,7 @@ import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.HUnit (Assertion, assertBool)
 import Test.QuickCheck (Property, choose, counterexample, forAll, (.&&.), (===))
 
-import Call (Call (..), allocated)
+import Call (Call (..), allocated, allocatedSecond)
 import qualified Call
 import qualified OpsDynamic as OD
 import qualified OpsRanked as OR
@@ -111,14 +115,20 @@ test = testGroup "BenchViews"
                      (headOf elementwise) transposedBlock)
       , testCase "unordered, transposed runs"
           (allocUnder 32768 (headOf (\ s v -> I.toUnorderedVectorListT s v)) transposedBlock) ]
-    -- == compares a broadcast of a view that skips elements without its
-    -- broadcast dimensions, and == and mapA take an empty view at once, in
-    -- under 32768 bytes.
+    -- == and mapA take a broadcast of a view that skips elements without its
+    -- broadcast dimensions, and an empty view at once, in under 32768 bytes,
+    -- where comparing or mapping every element of the broadcast, the controls,
+    -- allocates over that.
   , testGroup "== allocation"
       [ testCase "bcastmid of a scaled row" (allocUnder 32768 (\ x -> x == x) scaledBcastmid)
+      , testCase "bcastmid of a scaled row, its vectors compared"
+          (allocOver 32768 (\ x -> toVector x == toVector x) scaledBcastmid)
       , testCase "empty view" (allocUnder 32768 (\ x -> x == x) emptyView) ]
   , testGroup "mapA allocation"
-      [ testCase "empty view" (allocUnder 32768 (\ a -> mapA (+ 1) a) emptyView) ]
+      [ testCase "bcastmid of a scaled row" (allocUnder 32768 (\ a -> mapA (+ 1) a) scaledBcastmid)
+      , testCase "bcastmid of a scaled row, its vector mapped"
+          (allocOver 32768 (\ a -> VS.map (+ 1) (toVector a)) scaledBcastmid)
+      , testCase "empty view" (allocUnder 32768 (\ a -> mapA (+ 1) a) emptyView) ]
     -- The lists of vectors of an empty view hold no vector.
   , testGroup "empty lists"
       [ testCase (vn ++ ", " ++ n) (assertBool "a vector" (null (f sh t)))
@@ -130,10 +140,10 @@ test = testGroup "BenchViews"
       $  [ testCase row (specialised row b s u) | (row, b, s, u) <- callRows ]
       ++ [ testCase ("Dynamic/pad at " ++ kind ++ ", not specialised")
                     (check b c)
-         | b <- callsNamed "pad" OD.opsB
-         , (kind, check, c) <-
+         | (kind, check, c) <-
              [ ("Storable", unspecialisedUnder, unspecialisedPad)
-             , ("Unboxed", unspecialisedOver, unspecialisedPadU) ] ]
+             , ("Unboxed", unspecialisedOver, unspecialisedPadU) ]
+         , let b = theCall "pad" OD.opsB ]
   , optimisedGroup "fillStrided"
       $  [ testCase kind (fillUnder c) | (kind, c) <- fillCalls ]
       ++ [ testCase "Storable, not specialised" (fillUnder unspecialisedFill)
@@ -161,10 +171,12 @@ walkBounds =
 -- the bound.
 walked :: String -> String -> Double -> [Call] -> [Call] -> [Call] -> Assertion
 walked name kinds bound bs ss us = do
+  let sel = [ (kind, callsNamed name cs)
+            | (kind, cs) <- zip "BSU" [bs, ss, us], kind `elem` kinds ]
+  assertBool ("no call of " ++ name ++ " at " ++ [ k | (k, []) <- sel ])
+             (all (not . null . snd) sel)
   over <- sequence
-    [ (\ a -> (kind, perElem a)) <$> callAlloc c
-    | (kind, cs) <- zip "BSU" [bs, ss, us], kind `elem` kinds
-    , c <- callsNamed name cs ]
+    [ (\ a -> (kind, perElem a)) <$> callAlloc c | (kind, cs) <- sel, c <- cs ]
   let bad = [ [kind] ++ " " ++ show a ++ " bytes an element"
             | (kind, a) <- over, a >= bound ]
   assertBool (intercalate ", " bad ++ ", not under " ++ show bound) (null bad)
@@ -173,6 +185,8 @@ walked name kinds bound bs ss us = do
 -- more than the Unboxed one: Storable's reads are forced as Unboxed's are.
 storableAsUnboxed :: String -> [Call] -> [Call] -> Assertion
 storableAsUnboxed name ss us = do
+  assertBool ("no Storable or no Unboxed call of " ++ name)
+             (not (null (callsNamed name ss) || null (callsNamed name us)))
   aS <- sum <$> mapM callAlloc (callsNamed name ss)
   aU <- sum <$> mapM callAlloc (callsNamed name us)
   let o = perElem (aS - aU)
@@ -186,28 +200,37 @@ families = [ ("Dynamic", OD.opsB, OD.opsS, OD.opsU)
            , ("Shaped", OS.opsB, OS.opsS, OS.opsU) ]
 
 -- The calls of the specialisation benchmark's large strided view, a row a
--- name with its boxed, Storable and Unboxed calls.
-callRows :: [(String, Call, Call, Call)]
+-- name with its boxed and Storable calls and its Unboxed one, which
+-- the conversions between the families lack.
+callRows :: [(String, Call, Call, Maybe Call)]
 callRows =
-  [ (family ++ "/" ++ name, b, s, u)
+  [ (family ++ "/" ++ name, b, s, listToMaybe (callsNamed name us))
   | (family, bs, ss, us) <- families
   , b@(Call name _ _ _) <- bs
-  , s <- callsNamed name ss, u <- callsNamed name us ]
+  , s <- callsNamed name ss ]
 
 -- The calls of the operation of the name.
 callsNamed :: String -> [Call] -> [Call]
 callsNamed name cs = [ c | c@(Call m _ _ _) <- cs, m == name ]
 
+-- The one call of the operation of the name, failing where there is none or
+-- more than one.
+theCall :: String -> [Call] -> Call
+theCall name cs = case callsNamed name cs of
+  [c] -> c
+  cs' -> error $ show (length cs') ++ " calls named " ++ name
+
 -- Storable and Unboxed allocate at most 32 bytes an element more than
 -- boxed, and boxed at most 16 more than the smaller of the two, but where
 -- 'boxedExempt' names the operation or the row.
-specialised :: String -> Call -> Call -> Call -> Assertion
-specialised row b s u = do
+specialised :: String -> Call -> Call -> Maybe Call -> Assertion
+specialised row b s mu = do
   aB <- callAlloc b
   aS <- callAlloc s
-  aU <- callAlloc u
-  let bad = [ kind ++ " " ++ show o ++ " bytes an element over boxed"
-            | (kind, a) <- [ ("Storable", aS), ("Unboxed", aU) ]
+  aU <- traverse callAlloc mu
+  let kinds = ("Storable", aS) : [ ("Unboxed", a) | Just a <- [aU] ]
+      bad = [ kind ++ " " ++ show o ++ " bytes an element over boxed"
+            | (kind, a) <- kinds
             , let o = perElem (a - aB), o > 32 ]
          ++ [ "boxed " ++ show o
               ++ " bytes an element over Storable and Unboxed"
@@ -215,7 +238,7 @@ specialised row b s u = do
             , not (any (\ e -> e `isSuffixOf` takeWhile (/= '.') row
                                || e `isSuffixOf` row)
                        boxedExempt)
-            , let o = perElem (aB - min aS aU), o > 16 ]
+            , let o = perElem (aB - minimum (map snd kinds)), o > 16 ]
   assertBool (intercalate ", " bad) (null bad)
 
 -- The operations that compute their elements, rerank2 among them with the
@@ -286,13 +309,10 @@ within under unit bound x =
               ++ show bound)
              ((x <= bound) == under)
 
--- What forcing the result of the call to normal form allocates the second
--- time, the input forced beforehand.
+-- What forcing the result of the call to normal form allocates the second time,
+-- as 'allocatedSecond' reads it.
 callAlloc :: Call -> IO Int64
-callAlloc (Call _ f x _) = do
-  _ <- evaluate (rnf x)
-  _ <- allocated (rnf . f) x
-  allocated (rnf . f) x
+callAlloc (Call _ f x _) = allocatedSecond (rnf . f) x
 
 -- The bounds on toVector, sumA, the list heads, specialisation, fillStrided
 -- and the walks hold for an optimised build without profiling or coverage,

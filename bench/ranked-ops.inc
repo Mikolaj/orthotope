@@ -89,6 +89,9 @@ OPS form view =
 #endif
   , call "unravel" (\ a -> ARR.unravel a `asTypeOf` rows) t
 #if ROWS > 0
+  , call "unravel.one" (\ a -> ARR.unravel a `asTypeOf` rows) t1
+#endif
+#if ROWS > 0
   , call "window" (\ a -> ARR.window [2, 2] a :: ARR.Array 4 Double) t
 #endif
   , call "stride" (\ a -> ARR.stride [2, 2] a) t
@@ -100,17 +103,23 @@ OPS form view =
   , call "slice" (\ a -> ARR.slice [(1, sliceRows), (1, cols - 1)] a) t
 #endif
   , call "rerank" (\ a -> ARR.rerank @1
-                            (\ r -> ARR.scalar (ARR.sumA (r `asTypeOf` row)))
-                            a)
+                          (\ r -> ARR.scalar (ARR.sumA (r `asTypeOf` row)))
+                          a)
                   t
+#if ROWS > 0
+  , call "rerank.one" (\ a -> ARR.rerank @1
+                              (\ r -> ARR.scalar (ARR.sumA (r `asTypeOf` row)))
+                              a)
+                      t1
+#endif
 #if ROWS > 0
   , call "rerank2" (\ (a, b) -> ARR.rerank2 @1
                            (\ x y -> ARR.zipWithA (+) (x `asTypeOf` row) y) a b)
-                 (t, tn)
+                   (t, tn)
   , call "rerank2.one" (\ a -> ARR.rerank2 @1
                                (\ x y -> ARR.zipWithA (+) (x `asTypeOf` row) y)
                                a a)
-                     t1
+                       t1
 #else
   , call "rerank2.scalar"
          (\ a -> ARR.rerank2 @1
@@ -181,6 +190,7 @@ OPS form view =
   , call "convert.g" (\ a -> convert a `asTypeOf` IARR.unA a) t
   , call "convertE.g" (\ a -> convertE a `asTypeOf` Right (IARR.unA a)) t
   , call "==" (\ (a, b) -> (a == b, b == a)) (t, tn)
+  , call "==.g" (\ (a, b) -> (a == b, b == a)) (IARR.unA t, IARR.unA tn)
 #if ROWS > 0
   , call "==.shapes" (\ (a, b) -> a == b) (t, t1)
   , call "==.rank1" (\ (a, b) -> a == b) (row, rown)
@@ -193,6 +203,8 @@ OPS form view =
   , call "/=" (\ (a, b) -> (a /= b, b /= a)) (t, tn)
   , call "/=.g" (\ (a, b) -> (a /= b, b /= a)) (IARR.unA t, IARR.unA tn)
   , call "compare" (\ (a, b) -> (compare a b, compare b a)) (t, tn)
+  , call "compare.g" (\ (a, b) -> (compare a b, compare b a))
+                     (IARR.unA t, IARR.unA tn)
 #if ROWS > 0
   , call "<" (\ (a, b) -> (a < b, b < a)) (t, tu)
   , call "<.g" (\ (a, b) -> (a < b, b < a)) (IARR.unA t, IARR.unA tu)
@@ -259,9 +271,11 @@ OPS form view =
 #endif
   rows = ARR.unravel t :: B.Array 1 (ARR.Array 1 Double)
   same = formed (viewOf (repeat x0))
+  -- The normalized copy built from the view as a list, not by normalize, so
+  -- that the test of the rows checks the fill against another route.
   formed a = case form of
     Viewed -> a
-    Normalized -> ARR.normalize a
+    Normalized -> ARR.fromList (ARR.shapeL a) (ARR.toList a)
   viewOf :: [Double] -> ARR.Array 2 Double
   viewOf xs = case view of
     Dense -> ARR.fromList [ROWS, cols] (take (ROWS * cols) xs)

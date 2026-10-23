@@ -14,8 +14,11 @@
 
 -- Every row of the specialisation benchmark as a test of its name: at
 -- each vector kind, the row's call gives on the view what it gives on the
--- view's normalized copy, every other input of the call derived from either
--- alike.  Between them the rows take every arm of the library's code that the
+-- view's normalized copy, built from its list of elements rather than by
+-- normalize, so that the fill is checked against another route, every other
+-- input of the call derived from either alike; and the call summed, as the
+-- summed table times it, runs on both, its sum holding the layout and so
+-- compared with nothing.  Between them the rows take every arm of the library's code that the
 -- benchmark's header names, and each arm that a call reaches through the view
 -- is checked against what the dense path gives; a call whose input no form
 -- changes is checked only to run.  The results are compared with ==, and where
@@ -31,6 +34,7 @@
 -- second run costing about 1% of the rows' time on the same GHC (2026-10-22).
 module BenchRowsTest (test) where
 
+import Control.Exception (evaluate)
 import Control.Monad (unless, zipWithM_)
 import Data.Char (isDigit)
 import Data.Foldable (asum)
@@ -65,7 +69,7 @@ agreeRow row cells = do
 -- The call at the kind on the view against the call on its normalized copy.
 agree :: String -> String -> (Maybe Call, Maybe Call) -> Assertion
 agree _ _ (Nothing, Nothing) = return ()
-agree row kind (Just (Call name f a _), Just (Call _ g b _)) =
+agree row kind (Just (Call name f a s), Just (Call _ g b s')) =
   case cast (g b) of
     Nothing -> assertFailure (row ++ " at " ++ kind ++ ": two result types")
     Just y -> do
@@ -76,6 +80,9 @@ agree row kind (Just (Call name f a _), Just (Call _ g b _)) =
       unless same $ assertFailure $
         row ++ " at " ++ kind ++ ": " ++ take 200 (show x) ++ " on the view, "
         ++ take 200 (show y) ++ " on its normalized copy"
+      _ <- evaluate (s a)
+      _ <- evaluate (s' b)
+      return ()
 agree row kind _ = assertFailure (row ++ " at " ++ kind ++ ": one call alone")
 
 -- The calls whose results lie in the order of the layout.

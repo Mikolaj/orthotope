@@ -1,12 +1,12 @@
 -- Every operation of a Dynamic module, included by OpsDynamic once a vector
--- kind and a size with ARR the module of the kind, OPS its list on a view
--- in a form, ROWS the shape's rows, SIZE the size's other values, IARR the
--- kind's internal module, CONV the module of the kind convert converts to,
--- BOXED or STORABLE defined at those kinds, CR and CS the kind's Ranked and
--- Shaped modules, and SHD and FLATD the Shaped shapes of the view and of its
--- elements in a row.  After an operation's call come those of the arms it
--- leaves untaken, each named for its operation and its arm; at ROWS 0 only the
--- calls an empty array takes.
+-- kind and a size with ARR the module of the kind, OPS its list on a view in a
+-- form, ROWS the shape's rows, SIZE the size's other values, IARR the kind's
+-- internal module, CONV the module of the kind convert converts to, BOXED or
+-- STORABLE defined at those kinds, CR and CS the kind's Ranked and Shaped
+-- modules at the boxed and Storable kinds, and SHD and FLATD the Shaped shapes
+-- of the view and of its elements in a row.  After an operation's call come
+-- those of the arms it leaves untaken, each named for its operation and its
+-- arm; at ROWS 0 only the calls an empty array takes.
 OPS :: Form -> View -> [Call]
 OPS form view =
   [ call "size" (\ a -> ARR.size a) t
@@ -85,6 +85,9 @@ OPS form view =
 #endif
   , call "unravel" (\ a -> ARR.unravel a) t
 #if ROWS > 0
+  , call "unravel.one" (\ a -> ARR.unravel a) t1
+#endif
+#if ROWS > 0
   , call "window" (\ a -> ARR.window [2, 2] a) t
 #endif
   , call "stride" (\ a -> ARR.stride [2, 2] a) t
@@ -95,6 +98,8 @@ OPS form view =
 #if ROWS > 0
   , call "slice" (\ a -> ARR.slice [(1, sliceRows), (1, cols - 1)] a) t
   , call "rerank" (\ a -> ARR.rerank 1 (\ r -> ARR.scalar (ARR.sumA r)) a) t
+  , call "rerank.one"
+         (\ a -> ARR.rerank 1 (\ r -> ARR.scalar (ARR.sumA r)) a) t1
   , call "rerank2"
          (\ (a, b) -> ARR.rerank2 1 (\ x y -> ARR.zipWithA (+) x y) a b) (t, tn)
   , call "rerank2.one"
@@ -156,6 +161,7 @@ OPS form view =
   , call "convert.g" (\ a -> convert a `asTypeOf` IARR.unA a) t
   , call "convertE.g" (\ a -> convertE a `asTypeOf` Right (IARR.unA a)) t
   , call "==" (\ (a, b) -> (a == b, b == a)) (t, tn)
+  , call "==.g" (\ (a, b) -> (a == b, b == a)) (IARR.unA t, IARR.unA tn)
 #if ROWS > 0
   , call "==.shapes" (\ (a, b) -> a == b) (t, t1)
   , call "==.rank1" (\ (a, b) -> a == b) (row, rown)
@@ -168,6 +174,8 @@ OPS form view =
   , call "/=" (\ (a, b) -> (a /= b, b /= a)) (t, tn)
   , call "/=.g" (\ (a, b) -> (a /= b, b /= a)) (IARR.unA t, IARR.unA tn)
   , call "compare" (\ (a, b) -> (compare a b, compare b a)) (t, tn)
+  , call "compare.g" (\ (a, b) -> (compare a b, compare b a))
+                     (IARR.unA t, IARR.unA tn)
 #if ROWS > 0
   , call "<" (\ (a, b) -> (a < b, b < a)) (t, tu)
   , call "<.g" (\ (a, b) -> (a < b, b < a)) (IARR.unA t, IARR.unA tu)
@@ -230,9 +238,11 @@ OPS form view =
            (ARR.fromList [twn] (take twn elemsFrom)))))))
 #endif
   same = formed (viewOf (repeat x0))
+  -- The normalized copy built from the view as a list, not by normalize, so
+  -- that the test of the rows checks the fill against another route.
   formed a = case form of
     Viewed -> a
-    Normalized -> ARR.normalize a
+    Normalized -> ARR.fromList (ARR.shapeL a) (ARR.toList a)
   viewOf xs = case view of
     Dense -> ARR.fromList [ROWS, cols] (take (ROWS * cols) xs)
     Strided -> ARR.transpose [1, 0]

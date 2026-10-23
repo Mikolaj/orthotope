@@ -17,7 +17,7 @@
 -- rather than forcing it to normal form: one that a call inlined into it may
 -- pass its fields unbuilt.
 {-# LANGUAGE BangPatterns, FlexibleContexts, FlexibleInstances #-}
-module Summed (Summed (..), sumVec) where
+module Summed (Summed (..)) where
 
 import Data.Char (ord)
 import Data.Int (Int64)

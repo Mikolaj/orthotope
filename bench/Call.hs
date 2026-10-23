@@ -18,7 +18,8 @@
 {-# LANGUAGE ExistentialQuantification #-}
 module Call ( Call (..), call, Form (..), View (..), views, viewName
             , n, elems, elemsFrom, axes
-            , Size (..), sizeLarge, sizeSmall, sizeEmpty, allocated ) where
+            , Size (..), sizeLarge, sizeSmall, sizeEmpty, allocated
+            , allocatedSecond ) where
 
 import Control.DeepSeq (NFData)
 import Control.Exception (evaluate)
@@ -28,6 +29,7 @@ import Data.Char (toLower)
 import Data.Int (Int64)
 import GHC.Conc (getAllocationCounter, setAllocationCounter)
 import GHC.Exts (inline)
+import System.Mem (performMajorGC)
 
 import Summed (Summed (..))
 
@@ -123,3 +125,16 @@ allocated f x = do
   _ <- evaluate (f x)
   c <- getAllocationCounter
   return (maxBound - c)
+
+-- | The bytes the second of two calls allocates, the specialisation
+-- benchmark's figure, which its tests bound too.  A major collection between
+-- the first call, which evaluates the part of the input the calls use, and
+-- the second: without one, the calls followed the indirections that
+-- evaluating the input left, and boxed ravel of a large dense view took twice
+-- its time.
+{-# NOINLINE allocatedSecond #-}
+allocatedSecond :: (a -> b) -> a -> IO Int64
+allocatedSecond f x = do
+  _ <- allocated f x
+  performMajorGC
+  allocated f x
