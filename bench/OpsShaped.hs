@@ -137,6 +137,8 @@ type ShBEmpty = '[2, 2, 0, 3, 2]
 type Col1Empty = '[0, 1]
 type SlNREmpty = '[ '(0, 0), '(0, 2)]
 
+#define FAMILY_OPS "shaped-ops.inc"
+
 #define TW1 TwE1
 #define TW2 TwE2
 #define TW3 TwE3
@@ -168,10 +170,7 @@ type SlNREmpty = '[ '(0, 0), '(0, 2)]
 #define OPSB opsBLarge
 #define OPSS opsSLarge
 #define OPSU opsULarge
-#include "shaped-kinds.inc"
-#undef OPSU
-#undef OPSS
-#undef OPSB
+#include "kinds.inc"
 
 #undef EMP
 #undef COL1
@@ -231,10 +230,7 @@ type SlNREmpty = '[ '(0, 0), '(0, 2)]
 #define OPSB opsBSmall
 #define OPSS opsSSmall
 #define OPSU opsUSmall
-#include "shaped-kinds.inc"
-#undef OPSU
-#undef OPSS
-#undef OPSB
+#include "kinds.inc"
 
 #undef EMP
 #undef COL1
@@ -283,7 +279,4 @@ type SlNREmpty = '[ '(0, 0), '(0, 2)]
 #define OPSB opsBEmpty
 #define OPSS opsSEmpty
 #define OPSU opsUEmpty
-#include "shaped-kinds.inc"
-#undef OPSU
-#undef OPSS
-#undef OPSB
+#include "kinds.inc"

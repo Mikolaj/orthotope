@@ -63,6 +63,8 @@ type ShMDSmall = '[4, 3]
 type ShDEmpty = '[0, 3]
 type ShMDEmpty = '[1, 3]
 
+#define FAMILY_OPS "ranked-ops.inc"
+
 #define SHD ShD
 #define SHMD ShMD
 #define ROWS 400
@@ -71,10 +73,7 @@ type ShMDEmpty = '[1, 3]
 #define OPSB opsBLarge
 #define OPSS opsSLarge
 #define OPSU opsULarge
-#include "ranked-kinds.inc"
-#undef OPSU
-#undef OPSS
-#undef OPSB
+#include "kinds.inc"
 
 #undef ROWS
 #undef SIZE
@@ -88,10 +87,7 @@ type ShMDEmpty = '[1, 3]
 #define OPSB opsBSmall
 #define OPSS opsSSmall
 #define OPSU opsUSmall
-#include "ranked-kinds.inc"
-#undef OPSU
-#undef OPSS
-#undef OPSB
+#include "kinds.inc"
 
 #undef ROWS
 #undef SIZE
@@ -105,7 +101,4 @@ type ShMDEmpty = '[1, 3]
 #define OPSB opsBEmpty
 #define OPSS opsSEmpty
 #define OPSU opsUEmpty
-#include "ranked-kinds.inc"
-#undef OPSU
-#undef OPSS
-#undef OPSB
+#include "kinds.inc"

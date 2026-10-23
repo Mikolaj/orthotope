@@ -36,8 +36,6 @@ OPS form view =
   , call "reshape" (\ a -> ARR.reshape [ROWS * cols] a) t
 #if ROWS > 0
   , call "reshape.scalar" (\ a -> ARR.reshape [] a) t11
-#endif
-#if ROWS > 0
   , call "stretch" (\ a -> ARR.stretch [ROWS, cols] a) r1
   , call "stretchOuter" (\ a -> ARR.stretchOuter ROWS a) r1
 #endif
@@ -78,16 +76,12 @@ OPS form view =
          (\ a -> ARR.concatOuter
                    (map (\ i -> ARR.slice [(i, 1)] a) [0 .. ROWS - 1]))
          t
-#endif
-#if ROWS > 0
   , call "ravel" (\ a -> ARR.ravel a) (ARR.unravel t)
   , call "ravel.one" (\ a -> ARR.ravel a) (ARR.unravel t1)
 #endif
   , call "unravel" (\ a -> ARR.unravel a) t
 #if ROWS > 0
   , call "unravel.one" (\ a -> ARR.unravel a) t1
-#endif
-#if ROWS > 0
   , call "window" (\ a -> ARR.window [2, 2] a) t
 #endif
   , call "stride" (\ a -> ARR.stride [2, 2] a) t
@@ -97,6 +91,8 @@ OPS form view =
   , call "rotate.inner" (\ a -> ARR.rotate 1 2 a) t
 #if ROWS > 0
   , call "slice" (\ a -> ARR.slice [(1, sliceRows), (1, cols - 1)] a) t
+  -- ravel, rerank and rerank2 fail on an empty outer dimension, so the empty
+  -- size has none of their rows.
   , call "rerank" (\ a -> ARR.rerank 1 (\ r -> ARR.scalar (ARR.sumA r)) a) t
   , call "rerank.one"
          (\ a -> ARR.rerank 1 (\ r -> ARR.scalar (ARR.sumA r)) a) t1
