@@ -17,9 +17,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 -- Random views and other helpers for the properties of the test modules.
 module Views(testPropertyN, failsWith, failsIn, assertThrowsWith, assertThrowsIn
-            , assertWhnfThrowsIn, Elem, genElems, upTo, genShape, Op(..), opShape
-            , opSource, genBadOp, opName, View(..), viewShape, mkView, applyOpG
-            , mkViewG, genRawView, genOps, Owns(..)) where
+            , assertWhnfThrowsIn, Elem, genElems, upTo, adjustAt, genShape, Op(..)
+            , opShape, opSource, genBadOp, opName, View(..), viewShape, mkView
+            , applyOpG, mkViewG, mkViewUpTo, forAllView, genRawView, genOps
+            , valuesG, obsD, nested, Owns(..)) where
 
 import Control.DeepSeq (NFData, deepseq)
 import Control.Exception (ErrorCall (..), catch, evaluate, try)
@@ -45,8 +46,8 @@ import Test.Framework (Test, TestOptions' (..), plusTestOptions)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.HUnit (Assertion, assertEqual, assertFailure)
 import Test.QuickCheck
-  ( Arbitrary (..), Gen, Property, Testable, choose, counterexample, elements, frequency
-  , ioProperty, oneof, shuffle, sublistOf, suchThat, vectorOf, (===) )
+  ( Arbitrary (..), Gen, Property, Testable, choose, counterexample, elements, forAll
+  , frequency, ioProperty, oneof, shuffle, sublistOf, suchThat, vectorOf, (===) )
 
 -- A property checked on a thousand cases rather than the default hundred.
 -- The count is fixed here, so --maximum-generated-tests does not raise it.
@@ -69,7 +70,7 @@ failsIn :: String -> a -> Property
 failsIn name a = ioProperty $ do
   r <- try (evaluate a)
   return $ case r of
-    Left (ErrorCall e) -> length e `seq` counterexample e (takeWhile (/= ':') e == name)
+    Left (ErrorCall e) -> length e `seq` counterexample e (nameIn e == name)
     Right _ -> counterexample ("no error, where an error of " ++ name ++ " was due") False
 
 -- Forcing the value to normal form fails with the message, the assertion
@@ -78,17 +79,21 @@ assertThrowsWith :: (NFData a) => String -> String -> a -> Assertion
 assertThrowsWith s msg a = catch (deepseq a $ assertFailure s)
                                  (\ (ErrorCall e) -> assertEqual s msg e)
 
--- Forcing the value to normal form fails with an error whose part before its
--- first colon is the name, the assertion labelled s; the whole message is
--- evaluated, so that one failing in its text fails the assertion.
-assertThrowsIn :: (NFData a) => String -> String -> a -> Assertion
-assertThrowsIn s f a = catch (deepseq a $ assertFailure s)
-                             (\ (ErrorCall e) -> length e `seq` assertEqual s f (takeWhile (/= ':') e))
-
--- Evaluating the value to WHNF fails as in assertThrowsIn.
+-- Evaluating the value to WHNF fails with an error whose part before its first
+-- colon is the name, the assertion labelled s; the whole message is evaluated,
+-- so that one failing in its text fails the assertion.
 assertWhnfThrowsIn :: String -> String -> a -> Assertion
 assertWhnfThrowsIn s f a = catch (evaluate a >> assertFailure s)
-                                 (\ (ErrorCall e) -> length e `seq` assertEqual s f (takeWhile (/= ':') e))
+                                 (\ (ErrorCall e) -> length e `seq` assertEqual s f (nameIn e))
+
+-- Forcing the value to normal form fails as in assertWhnfThrowsIn.
+assertThrowsIn :: (NFData a) => String -> String -> a -> Assertion
+assertThrowsIn s f a = assertWhnfThrowsIn s f (a `deepseq` a)
+
+-- The part of an error message before its first colon: the name of the
+-- function that failed.
+nameIn :: String -> String
+nameIn = takeWhile (/= ':')
 
 -- The element types of the properties that take one: Int, and Word8,
 -- whose arithmetic wraps at 256.
@@ -105,6 +110,11 @@ upTo :: Elem a => Int -> [a]
 upTo n | map toInteger xs == map toInteger [0 .. n - 1] = xs
        | otherwise = error ("upTo: " ++ show n ++ " elements are not distinct")
   where xs = map fromIntegral [0 .. n - 1]
+
+-- The list with the function applied to its element at i, unchanged where i is
+-- past its end.
+adjustAt :: Int -> (a -> a) -> [a] -> [a]
+adjustAt i f xs = [ if k == i then f x else x | (k, x) <- zip [0 ..] xs ]
 
 genShape :: Int -> Gen [Int]
 genShape r = do
@@ -154,6 +164,10 @@ okSlice s = do k <- choose (0, s); n <- choose (0, s - k); return (k, n)
 okStrides :: [Int] -> Gen [Int]
 okStrides = mapM (const (choose (1, 3)))
 
+-- Windows of 0 up to each extent of the shape.
+okWindows :: [Int] -> Gen [Int]
+okWindows = mapM (\ s -> choose (0, s))
+
 -- An operation valid on an array of the given shape.
 genOp :: [Int] -> Gen Op
 genOp sh = oneof $
@@ -163,7 +177,7 @@ genOp sh = oneof $
   , Stride <$> okStrides sh
   , uncurry Broadcast <$> genBroadcast sh
   ] ++
-  [ do k <- choose (1, min 2 (length ps)); Window <$> mapM (\ s -> choose (0, s)) (take k ps)
+  [ do k <- choose (1, min 2 (length ps)); Window <$> okWindows (take k ps)
   | let ps = takeWhile (> 0) sh, not (null ps) ] ++
   [ Index <$> choose (0, s - 1) | s : _ <- [sh], s > 0 ]
   where r = length sh
@@ -199,10 +213,10 @@ genLayout = do
 genBadOp :: [Int] -> Gen Op
 genBadOp sh = oneof $
   [ Transpose <$> shuffle [0 .. r]
-  , do ds <- sublistOf [0 .. r - 1]; d <- elements [-1, r]; Rev <$> shuffle (d : ds)
+  , do ds <- sublistOf [0 .. r - 1]; d <- elements (-1 : r : ds); Rev <$> shuffle (d : ds)
   , Slice . (++ [(0, 0)]) <$> mapM okSlice sh
   , Stride . (++ [1]) <$> okStrides sh
-  , Window . (++ [0]) <$> okWindows
+  , Window . (++ [0]) <$> okWindows sh
   , do (ds, sh') <- genBroadcast sh
        let r' = length sh'
        oneof $
@@ -232,18 +246,17 @@ genBadOp sh = oneof $
   [ do i <- choose (0, r - 1)
        let s = sh !! i
        oneof [ do sl <- mapM okSlice sh
-                  b <- elements [(-1, 0), (0, -1), (s + 1, 0), (0, s + 1)]
+                  b <- elements [(-1, 0), (0, -1), (s + 1, 0), (0, s + 1), (1, maxBound)]
                   return (Slice (setAt i b sl))
              , do ts <- okStrides sh
                   t <- elements [0, -1]
                   return (Stride (setAt i t ts))
-             , do ws <- okWindows
+             , do ws <- okWindows sh
                   w <- elements [-1, s + 1]
                   return (Window (setAt i w ws)) ]
   | r > 0 ]
   where r = length sh
-        okWindows = mapM (\ s -> choose (0, s)) sh
-        setAt i e xs = take i xs ++ e : drop (i + 1) xs
+        setAt i e = adjustAt i (const e)
 
 -- The function whose error reports an invalid operation.
 opName :: Op -> String
@@ -309,6 +322,27 @@ applyOpG (Raw sh ss o k m) = \ x ->
 mkViewG :: (I.Vector v, I.VecElem v a) => View -> [a] -> DG.Array v a
 mkViewG (View sh ops) xs = foldl (flip applyOpG) (DG.fromList sh xs) ops
 
+-- The view over the numbers from 0, as elements.
+mkViewUpTo :: (I.Vector v, I.VecElem v a, Elem a) => View -> DG.Array v a
+mkViewUpTo v@(View sh _) = mkViewG v (upTo (product sh))
+
+-- A property of the view over random elements from -9 to 9.
+forAllView :: (I.Vector v, I.VecElem v a, Elem a, Testable p)
+           => View -> (DG.Array v a -> p) -> Property
+forAllView v@(View sh _) k = forAll (genElems (-9, 9) (product sh)) (k . mkViewG v)
+
+-- The vector of an array, its elements outside the view included.
+valuesG :: DG.Array v a -> v a
+valuesG (DG.A _ t) = I.values t
+
+-- The shape and the elements of an array.
+obsD :: (I.Vector v, I.VecElem v a) => DG.Array v a -> ([Int], [a])
+obsD x = (DG.shapeL x, DG.toList x)
+
+-- The shapes and the elements of a list of arrays, joined.
+nested :: [([Int], [a])] -> ([Int], [a])
+nested ps = (concatMap fst ps, concatMap snd ps)
+
 -- The view over the elements given, as a boxed Dynamic array.
 mkView :: View -> [a] -> Array a
 mkView v = DI.A . mkViewG v
@@ -316,8 +350,7 @@ mkView v = DI.A . mkViewG v
 -- Whether a vector's storage holds its elements and nothing more, keeping no
 -- larger vector alive, as force's copy must, and whether a vector lies in the
 -- storage of another, as a slice of it does.  A list's slice is cells of its
--- own, so the list instance's sameStorage, which the tests give only slices, is
--- False.
+-- own, so the list instance's sameStorage is False.
 class Owns w where
   ownsStorage :: w -> Bool
   sameStorage :: w -> w -> Bool

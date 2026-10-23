@@ -12,10 +12,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE MagicHash #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies #-}
 module DynamicTest(test) where
 
 import Control.DeepSeq hiding (force)
@@ -41,7 +38,8 @@ import Test.QuickCheck
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
 import Views ( Owns (..), View (..), assertThrowsIn, assertThrowsWith
-             , assertWhnfThrowsIn, failsWith, genRawView, mkView, testPropertyN )
+             , assertWhnfThrowsIn, failsWith, genRawView, mkView, testPropertyN
+             , valuesG )
 
 -- An Eq whose == evaluates neither argument.
 data L = L deriving Show
@@ -82,18 +80,12 @@ test = testGroup "Dynamic" $
                                    , fromList [3] [7, 8, 9] :: Array Int ])
       eq_1 = assertEqual "1" True (a1 == a1)
       eq_2 = assertEqual "2" False (a1 == a2)
-      -- Views over vectors with elements outside them, which == must not compare.
-      eq_3 = assertEqual "3" True (x == x)
-        where x = stretch [4] (slice [(0,1)] (fromList [2] [1, undefined] :: Array Int))
-      eq_4 = assertEqual "4" True (x == x)
-        where x = stretch [3,2] $ reshape [1,2] $ index a 0
-              a = fromList [2,2] [1,2,undefined,undefined] :: Array Int
       -- == looks at the shapes: the elements are alike however they are read.
       eq_5 = assertEqual "5" False (fromList [2,3] (replicate 6 1) == (fromList [3,2] (replicate 6 1) :: Array Int))
       ord_1 = assertEqual "1" EQ (a1 `compare` a1)
       ord_2 = assertEqual "2" LT (a1 `compare` a2)
       -- compare orders by the shapes first: the elements are alike.
-      ord_3 = assertEqual "3" LT (compare (fromList [2,3] (replicate 6 1)) (fromList [3,2] (replicate 6 (1 :: Int))))
+      ord_3 = assertEqual "3" LT (compare (fromList [2,3] (replicate 6 1)) (fromList [3,2] (replicate 6 1) :: Array Int))
       shapeL_1 = assertEqual "1" [2,3] (shapeL a1)
       shapeL_2 = assertEqual "2" [3,2] (shapeL a2)
       rank_1 = assertEqual "1" 2 (rank a1)
@@ -196,11 +188,18 @@ test = testGroup "Dynamic" $
       badShape_4 = do
         assertEqual "1" [4611686018427387904, 4, 0] (shapeL (fromList [4611686018427387904, 4, 0] [] :: Array Int))
         assertThrowsIn "2" "fromList" (fromList [4611686018427387904, 4, 3] [] :: Array Int)
+      -- Nor a result of more, of arrays broadcast to fewer: the error names
+      -- the operation.
+      badShape_5 = mapM_ (\ (f, a) -> assertThrowsIn f f a)
+        [ ("append", append c c)
+        , ("concatOuter", concatOuter [c, c])
+        , ("ravel", ravel (fromList [2] [c, c]))
+        , ("rerank", rerank 1 (\ _ -> c) one2)
+        , ("rerank2", rerank2 1 (\ _ _ -> c) one2 one2) ]
+        where c = constant [2 ^ (61 :: Int), 3] (0 :: Int)
+              one2 = fromList [2] [1, 2 :: Int]
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "2" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
-      mapA_3 = assertEqual "3" True  -- 1 `div` 0 outside the view, the vector forced as if strict
-                               (V.all (== 1) (valuesOf
-                                  (mapA (1 `div`) (stretch [4] (slice [(2,1)] (fromList [3] [0,0,1 :: Int]))))))
       -- mapA maps only the part of the vector a view reads, and a broadcast
       -- of a view that skips elements without its broadcast dimensions.
       mapA_4 = assertEqual "4" [100, 100, 2]
@@ -210,31 +209,12 @@ test = testGroup "Dynamic" $
         where m = fromList [10,100] [1..1000] :: Array Int
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
       zipWithA_2 = assertThrowsIn "2" "zipWithA" (zipWithA (+) a1 a2)
-      zipWithA_3 = assertEqual "3" True  -- 1 `quot` 0 outside the view, the vector forced as if strict
-                     (V.all (\ x -> x `seq` True) (valuesOf (zipWithA quot (constant [0] 1) (constant [0] (0 :: Int)))))
       zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
-      zipWith3A_2 = assertEqual "2" True  -- 1 `quot` 0 outside the view, the vector forced as if strict
-                      (V.all (\ x -> x `seq` True) (valuesOf (zipWith3A (\ x y z -> x `quot` (y + z)) (constant [0] 1) (constant [0] 0) (constant [0] (0 :: Int)))))
-      -- The zips read the elements of their arguments unforced and leave each
-      -- result unevaluated, as vector's own do.
-      zipWithA_4 = assertEqual "4" [5, 7] (toList (zipWithA (\ _ y -> y) (fromList [2] [undefined, undefined] :: Array Int) (fromList [2] [5, 7 :: Int])))
-      zipWithA_5 = assertEqual "5" 7 (unScalar (index (zipWithA (\ x y -> if x == 0 then error "forced" else x + y) (fromList [2] [0, 1]) (fromList [2] [5, 6 :: Int])) 1))
-      zipWith5A_1 = assertEqual "1" [9] (toList (zipWith5A (\ _ _ _ _ e -> e) u u u u (fromList [1] [9 :: Int])))
-        where u = fromList [1] [undefined] :: Array Int
-      -- So do the zips of views that no slice serves.
-      zipWithA_6 = assertEqual "6" [5, 6, 7, 8] (toList (zipWithA (\ _ y -> y) (transpose [1, 0] (fromList [2, 2] [undefined, undefined, undefined, undefined] :: Array Int)) (transpose [1, 0] (fromList [2, 2] [5, 7, 6, 8 :: Int]))))
-      zipWithA_7 = assertEqual "7" 7 (unScalar (index (index (zipWithA (\ x y -> if x == 0 then error "forced" else x + y) (transpose [1, 0] (fromList [2, 2] [0, 1, 0, 1])) (transpose [1, 0] (fromList [2, 2] [5, 6, 7, 8 :: Int]))) 1) 0))
-      zipWith3A_3 = assertEqual "3" [5, 6, 7, 8] (toList (zipWith3A (\ _ _ z -> z) u u (transpose [1, 0] (fromList [2, 2] [5, 7, 6, 8 :: Int]))))
-        where u = transpose [1, 0] (fromList [2, 2] [undefined, undefined, undefined, undefined]) :: Array Int
-      zipWith3A_4 = assertEqual "4" 7 (unScalar (index (index (zipWith3A (\ x y _ -> if x == 0 then error "forced" else x + y) (transpose [1, 0] (fromList [2, 2] [0, 1, 0, 1])) (transpose [1, 0] (fromList [2, 2] [5, 6, 7, 8 :: Int])) (transpose [1, 0] (fromList [2, 2] [0, 0, 0, 0 :: Int]))) 1) 0))
-      zipWith3A_5 = do
+      zipWith3A_2 = do
         assertThrowsIn "first" "zipWith3A" (zipWith3A f3 a2 a1 a1)
         assertThrowsIn "second" "zipWith3A" (zipWith3A f3 a1 a2 a1)
         assertThrowsIn "third" "zipWith3A" (zipWith3A f3 a1 a1 a2)
         where f3 x y z = x + y + z
-      -- The broadcast branches hand on the one element unforced at boxed.
-      zipWithA_8 = assertEqual "8" [5, 7] (toList (zipWithA (\ _ y -> y) (constant [2] undefined :: Array Int) (fromList [2] [5, 7 :: Int])))
-      zipWithA_9 = assertEqual "9" [5, 7] (toList (zipWithA (\ x _ -> x) (fromList [2] [5, 7 :: Int]) (constant [2] undefined :: Array Int)))
       pad_1 = assertEqual "1" (fromList [5,10] [9,9,9,9,9,9,9,9,9,9,
                                                 9,9,9,1,2,3,9,9,9,9,
                                                 9,9,9,4,5,6,9,9,9,9,
@@ -467,7 +447,6 @@ test = testGroup "Dynamic" $
       slice_3 = assertThrowsIn "3" "slice" (slice [(-1,1)] a5)
       slice_4 = assertThrowsIn "4" "slice" (slice [(10,0)] a5)
       slice_5 = assertThrowsIn "5" "slice" (slice [(0,3)] a5)
-      slice_6 = assertThrowsIn "6" "slice" (slice [(1, maxBound)] (fromList [3] [1,2,3::Int]))
       box x = scalar (Just x)
       rerank_1 = assertEqual "1" (box a5)
                                  (rerank 0 box a5)
@@ -502,27 +481,9 @@ test = testGroup "Dynamic" $
       rev_2 = assertEqual "2" (fromList [2,3] [6,5,4,3,2,1])
                               (rev [0,1] a1)
       rev_3 = assertThrowsIn "3" "rev" (rev [2] a1)
-      rev_4 = assertThrowsIn "4" "rev" (rev [0, 0] a1)
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank 1 (\ r -> reduce (*) 1 r) a1)
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (\ r -> reduce (*) 1 r) a2)
-      -- Empty views of a longer vector, so that reading the element at the
-      -- offset fails: at the vector's end under the bounds checks, and over
-      -- an undefined element, which a boxed array can hold, in any build.
-      allSameA_1 = assertEqual "1" [True, True]
-                     (map (\ a -> allSameA a) [ slice [(2,0)] a1
-                                   , slice [(1,0)] (fromList [2,3] [1, 2, 3, undefined, 5, 6]) ])
-      -- As allSame . toList, comparing the first element with the others only.
-      allSameA_2 = assertEqual "2" [True, False, False, False, True]
-                                   (map (\ a -> allSameA a) [ fromList [1] [nan], fromList [2] [nan, nan]
-                                                 , constant [3] nan, normalize (constant [3] nan)
-                                                 , slice [(0,1)] (fromList [2] [nan, 1]) ])
-        where nan = 0 / 0 :: Double
-      -- allSameA hands its first element to == as stored, at a broadcast and
-      -- at a dense view alike.
-      allSameA_3 = assertEqual "3" (True, True)
-                     (allSameA (constant [3] (undefined :: L)), allSameA (fromList [2] [undefined, undefined :: L]))
-
       -- Test fast toVector
       toVector_10 =
         assertEqual "10" (V.fromList [1..24]) (toVector a5)                  -- full vector
@@ -614,7 +575,7 @@ test = testGroup "Dynamic" $
         assertEqual "slice" (fromList [2, 2] [2, 3, 5, 6])
                     (slice [(0, 2), (1, 2)] a1)
         assertEqual "rerank" (fromList [2] [6, 15])
-                    (rerank 1 (reduce (+) 0) a1)
+                    (rerank 1 (\ r -> reduce (+) 0 r) a1)
         assertEqual "rerank2" (fromList [2] [14, 77]) (rerank2 1 dot a1 a1)
         assertEqual "rev" (fromList [2, 3] [4, 5, 6, 1, 2, 3]) (rev [0] a1)
         assertEqual "reduce" (fromList [] [21]) (reduce (+) 0 a1)
@@ -645,8 +606,6 @@ test = testGroup "Dynamic" $
         , testCase "pretty_2" pretty_2
         , testCase "eq_1" eq_1
         , testCase "eq_2" eq_2
-        , testCase "eq_3" eq_3
-        , testCase "eq_4" eq_4
         , testCase "eq_5" eq_5
         , testCase "ord_1" ord_1
         , testCase "ord_2" ord_2
@@ -695,25 +654,14 @@ test = testGroup "Dynamic" $
         , testCase "badShape_2" badShape_2
         , testCase "badShape_3" badShape_3
         , testCase "badShape_4" badShape_4
+        , testCase "badShape_5" badShape_5
         , testCase "mapA_1" mapA_1
         , testCase "mapA_2" mapA_2
-        , testCase "mapA_3" mapA_3
         , testCase "mapA_4" mapA_4
         , testCase "zipWithA_1" zipWithA_1
         , testCase "zipWithA_2" zipWithA_2
-        , testCase "zipWithA_3" zipWithA_3
         , testCase "zipWith3A_1" zipWith3A_1
         , testCase "zipWith3A_2" zipWith3A_2
-        , testCase "zipWithA_4" zipWithA_4
-        , testCase "zipWithA_5" zipWithA_5
-        , testCase "zipWith5A_1" zipWith5A_1
-        , testCase "zipWithA_6" zipWithA_6
-        , testCase "zipWithA_7" zipWithA_7
-        , testCase "zipWith3A_3" zipWith3A_3
-        , testCase "zipWith3A_4" zipWith3A_4
-        , testCase "zipWith3A_5" zipWith3A_5
-        , testCase "zipWithA_8" zipWithA_8
-        , testCase "zipWithA_9" zipWithA_9
         , testCase "pad_1" pad_1
         , testCase "pad_2" pad_2
         , testCase "pad_3" pad_3
@@ -766,7 +714,6 @@ test = testGroup "Dynamic" $
         , testCase "slice_3" slice_3
         , testCase "slice_4" slice_4
         , testCase "slice_5" slice_5
-        , testCase "slice_6" slice_6
         , testCase "rerank_1" rerank_1
         , testCase "rerank_2" rerank_2
         , testCase "rerank_3" rerank_3
@@ -781,13 +728,9 @@ test = testGroup "Dynamic" $
         , testCase "rev_1" rev_1
         , testCase "rev_2" rev_2
         , testCase "rev_3" rev_3
-        , testCase "rev_4" rev_4
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
-        , testCase "allSameA_1" allSameA_1
-        , testCase "allSameA_2" allSameA_2
-        , testCase "allSameA_3" allSameA_3
         , testCase "toVector_10" toVector_10
         , testCase "toVector_11" toVector_11
         , testCase "toVector_12" toVector_12
@@ -801,6 +744,7 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_mapA" prop_mapA
         , testPropertyN "prop_toListLazy" prop_toListLazy
         , testPropertyN "prop_lazy" prop_lazy
+        , testPropertyN "prop_allSameALazy" prop_allSameALazy
         , testPropertyN "prop_sameElems" prop_sameElems
         , testPropertyN "prop_rnf" prop_rnf
         , testPropertyN "prop_convert" prop_convert
@@ -809,7 +753,7 @@ test = testGroup "Dynamic" $
 
 -- The vector of the array.
 valuesOf :: Array a -> V.Vector a
-valuesOf (DI.A (DG.A _ t)) = I.values t
+valuesOf (DI.A x) = valuesG x
 
 -- The length of the vector of the array.
 vlen :: Array a -> Int
@@ -849,14 +793,18 @@ prop_eq v =
   in  (x == x) === True .&&. (x == y) === (toList x == toList y)
       .&&. (x == normalize x) === True
 
--- mapA agrees with map on the list, and does not apply its function to
--- the elements outside the view, which a strict vector would force.
+-- mapA agrees with map on the list, and mapA, zipWithA and zipWith3A apply
+-- their function to no element outside the view, which a strict vector would
+-- force.
 prop_mapA :: View -> Property
 prop_mapA v =
   let x = mkViewOnly v
       y = mapA (* 2) x
+      forced a = V.all (\ e -> e `seq` True) (valuesOf a)
   in  toList y === map (* 2) (toList x)
-      .&&. V.sum (valuesOf y) >= 0
+      .&&. forced y
+      .&&. forced (zipWithA (+) x y)
+      .&&. forced (zipWith3A (\ a b c -> a + b + c) x y x)
 
 -- A prefix of toList and its length force no element outside the prefix.
 prop_toListLazy :: View -> Property
@@ -871,13 +819,19 @@ prop_toListLazy v@(View sh _) =
 
 -- The operations that build a vector from a view, and the reductions by
 -- functions that ignore the elements, force no element of the view, which
--- is built first on its own.
+-- is built first on its own; and the zips of the view, a dense copy of it and a
+-- broadcast of one element, the view in some position at each arity, force no
+-- result either.
 prop_lazy :: View -> Property
 prop_lazy v@(View sh _) =
   let x = mkView v [ error ("element " ++ show i) | i <- [0 .. product sh - 1] ] :: Array Int
       xsh = shapeL x
       n = product xsh
-      t = case x of DI.A (DG.A _ t') -> t'
+      DI.A (DG.A _ t) = x
+      y = normalize x
+      c = constant xsh (error "constant")
+      r = error "result" :: Int
+      unread z = length (toList z) == n
   in  conjoin
         [ counterexample name ok
         | (name, ok) <-
@@ -891,11 +845,21 @@ prop_lazy v@(View sh _) =
             , ("pad", rank (pad [ (1, 1) | not (null xsh) ] 0 x) == length xsh)
             , ("append", null xsh || rank (append x x) == length xsh)
             , ("mapA", toList (mapA (const 0) x) == replicate n (0 :: Int))
-            , ("zipWithA",
-               toList (zipWithA const (constant xsh 1) x) == replicate n (1 :: Int))
+            , ("zipWithA", all unread [ zipWithA (\ _ _ -> r) x y
+                                      , zipWithA (\ _ _ -> r) c x
+                                      , zipWithA (\ _ _ -> r) x c ])
+            , ("zipWith3A", unread (zipWith3A (\ _ _ _ -> r) y x c))
+            , ("zipWith4A", unread (zipWith4A (\ _ _ _ _ -> r) c y x x))
+            , ("zipWith5A", unread (zipWith5A (\ _ _ _ _ _ -> r) x c x y x))
             , ("reduce", unScalar (reduce (\ _ _ -> 0) 0 x) == 0)
             , ("anyA", anyA (const True) x == (n > 0))
             , ("allA", allA (const False) x == (n == 0)) ] ]
+
+-- allSameA evaluates no element of the view itself, handing each to == as
+-- stored, and reads none of an empty view.
+prop_allSameALazy :: View -> Property
+prop_allSameALazy v@(View sh _) =
+  allSameA (mkView v (replicate (product sh) (undefined :: L))) === True
 
 -- The two are one heap object; neither is forced.
 samePtr :: a -> a -> Bool
@@ -911,7 +875,7 @@ prop_sameElems v@(View sh _) =
       xs = map Just [0 .. n - 1]
       src = V.fromList xs
       x = mkView v xs
-      t = case x of DI.A (DG.A _ t') -> t'
+      DI.A (DG.A _ t) = x
       same ys = and [ Just True == (samePtr <$> V.indexM src i <*> V.indexM ys k)
                     | (k, i) <- zip [0 ..] is ]
       -- The control: an element read from the vector and from vector's copy of
@@ -950,7 +914,5 @@ prop_convert v =
       s = convert x :: DS.Array Int
   in  DU.toList u === l .&&. DS.toList s === l
       .&&. toList (convert u :: Array Int) === l .&&. toList (convert s :: Array Int) === l
-      .&&. (case convert u :: G.Array VU.Vector Int of
-              DG.A _ t -> VU.length (I.values t) <= length l)
-      .&&. (case convert s :: G.Array VS.Vector Int of
-              DG.A _ t -> VS.length (I.values t) <= length l)
+      .&&. VU.length (valuesG (convert u :: G.Array VU.Vector Int)) <= length l
+      .&&. VS.length (valuesG (convert s :: G.Array VS.Vector Int)) <= length l

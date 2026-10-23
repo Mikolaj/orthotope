@@ -74,7 +74,7 @@ import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.HUnit (Assertion, assertBool)
 import Test.QuickCheck (Property, choose, counterexample, forAll, (.&&.), (===))
 
-import Call (Call (..), allocated, allocatedSecond)
+import Call (Call (..), allocatedSecond)
 import qualified Call
 import qualified OpsDynamic as OD
 import qualified OpsRanked as OR
@@ -317,10 +317,13 @@ callAlloc (Call _ f x _) = allocatedSecond (rnf . f) x
 -- The bounds on toVector, sumA, the list heads, specialisation, fillStrided
 -- and the walks hold for an optimised build without profiling or coverage,
 -- the others allocating more for each element: an unoptimised build runs
--- their groups empty, and a profiled or coverage build runs them and may
--- fail them.
+-- their groups empty, named as not run, so that a GHC whose optimisation
+-- left the rule below unfired shows in the test log, and a profiled or
+-- coverage build runs them and may fail them.
 optimisedGroup :: String -> [Test] -> Test
-optimisedGroup n ts = testGroup n (if optimised then ts else [])
+optimisedGroup n ts
+  | optimised = testGroup n ts
+  | otherwise = testGroup (n ++ " (not run: unoptimised build)") []
 
 -- Whether this module was optimised: the rule fires only when optimising.
 optimised :: Bool
@@ -449,14 +452,14 @@ allocUnder bound f l = secondAlloc f l >>= within True " bytes allocated" bound
 allocOver :: Int64 -> (DS.Array Double -> b) -> Layout -> Assertion
 allocOver bound f l = secondAlloc f l >>= within False " bytes allocated" bound
 
--- What evaluating f of the view to WHNF allocates the second time.
+-- What evaluating f of the view to WHNF allocates the second time, as
+-- 'allocatedSecond' reads it.
 secondAlloc :: (DS.Array Double -> b) -> Layout -> IO Int64
 secondAlloc f l@(sh, ts, _, _) = do
   let (t, x) = mkArray 1 l
   _ <- evaluate (sum sh + sum ts + VS.length (I.values t))
   _ <- evaluate x
-  _ <- allocated f x
-  allocated f x
+  allocatedSecond f x
 
 -- The listing a fill replaced: the elements one by one into a vector, the
 -- list forced whole first.

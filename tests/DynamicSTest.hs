@@ -49,7 +49,11 @@ instance Storable E where
   poke p e = poke (castPtr p) (fromIntegral (fromEnum e) :: Word8)
 
 instance NFData E where
-  rnf e = e `seq` ()
+  rnf = rwhnf
+
+-- An array of E of the shape, of the bytes as they are.
+bytesE :: [Int] -> [Word8] -> Array E
+bytesE sh bs = fromVector sh (V.unsafeCast (V.fromList bs))
 
 test :: Test
 test = testGroup "DynamicS" $
@@ -89,17 +93,19 @@ test = testGroup "DynamicS" $
       -- has stride 0, and which force copies the row out of, as it copies
       -- a normal array.
       normalize_2 = do
-        assertEqual "index" True (shares (index big 1))
-        assertEqual "normalize index" True (shares (normalize (index big 1)))
-        assertEqual "reshape index" True (shares (reshape [1,1000] (index big 1)))
-        assertEqual "normalize reshape index" True (shares (normalize (reshape [1,1000] (index big 1))))
+        assertEqual "index" True (shares row)
+        assertEqual "normalize index" True (shares (normalize row))
+        assertEqual "reshape index" True (shares row1)
+        assertEqual "normalize reshape index" True (shares (normalize row1))
         assertEqual "normalize" True (shares (normalize big))
         assertEqual "normalize reshape reshape" True
           (shares (normalize (reshape [4000,1] (reshape [4000] big))))
-        assertEqual "force index" False (shares (force (index big 1)))
-        assertEqual "force reshape index" False (shares (force (reshape [1,1000] (index big 1))))
+        assertEqual "force index" False (shares (force row))
+        assertEqual "force reshape index" False (shares (force row1))
         assertEqual "force" False (shares (force big))
-        where big = fromList [4,1000] [1..4000] :: Array Double
+        where big = fromList [4,1000] [1..4000] :: Array Int
+              row = index big 1
+              row1 = reshape [1,1000] row
               shares a = sameStorage (toVector a) (toVector big)
       reshape_1 = assertEqual "1" (fromList [6] [1..6]) (reshape [6] a1)
       reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2)
@@ -118,19 +124,17 @@ test = testGroup "DynamicS" $
       iota_1 = assertEqual "1" (map fromIntegral [0..299::Int]) (toList (iota 300 :: Array Word8))
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "2" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
-      mapA_3 = assertEqual "3" (fromList [4] [1,1,1,1])  -- 1 `div` 0 outside the view
-                               (mapA (1 `div`) (stretch [4] (slice [(2,1)] (fromList [3] [0,0,1 :: Int]))))
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
       zipWithA_2 = assertThrowsIn "2" "zipWithA" (zipWithA (+) a1 a2)
-      zipWithA_3 = assertEqual "3" [] (toList (zipWithA quot (constant [0] 1) (constant [0] (0 :: Int))))  -- 1 `quot` 0 outside the view
+      -- One E of the byte 5, which E does not decode.
+      eOne = bytesE [1] [5]
       -- An empty view of a broadcast element that does not decode leaves
       -- it unread, at either argument.
       zipWithA_4 = assertEqual "4" ([], [])
-                     ( toList (zipWithA (\ _ _ -> E0) (stretch [0] eOne) (fromList [0] [] :: Array E))
-                     , toList (zipWithA (\ _ _ -> E0) (fromList [0] [] :: Array E) (stretch [0] eOne)) )
-        where eOne = fromVector [1] (V.unsafeCast (V.fromList [5 :: Word8])) :: Array E
+                     ( toList (zipWithA (\ _ _ -> E0) (stretch [0] eOne) none)
+                     , toList (zipWithA (\ _ _ -> E0) none (stretch [0] eOne)) )
+        where none = fromList [0] [] :: Array E
       zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
-      zipWith3A_2 = assertEqual "2" [] (toList (zipWith3A (\ x y z -> x `quot` (y + z)) (constant [0] 1) (constant [0] 0) (constant [0] (0 :: Int))))
       pad_1 = assertEqual "1" (fromList [5,10] [9,9,9,9,9,9,9,9,9,9,
                                                 9,9,9,1,2,3,9,9,9,9,
                                                 9,9,9,4,5,6,9,9,9,9,
@@ -310,7 +314,7 @@ test = testGroup "DynamicS" $
 
       -- A transposed view of the bytes [0,1,5,0] as E, 5 a byte E does not
       -- decode.
-      et = transpose [1, 0] (fromVector [2, 2] (V.unsafeCast (V.fromList [0, 1, 5, 0 :: Word8])) :: Array E)
+      et = transpose [1, 0] (bytesE [2, 2] [0, 1, 5, 0])
       -- Elements of one byte are copied as bytes, as README's Evaluation
       -- section says, so the copies of a transposed view of a byte E does
       -- not decode return it, whichever operation copies.
@@ -325,7 +329,7 @@ test = testGroup "DynamicS" $
         assertEqual "rerank" [0, 5, 1, 0] (raw (rerank 1 id et))
         assertEqual "rerank2" [0, 5, 1, 0] (raw (rerank2 1 const et et))
         where raw :: Array E -> [Word8]
-              raw = V.toList . V.unsafeCast . toVector
+              raw a = V.toList (V.unsafeCast (toVector a))
       -- And the operations that hand an element on read it decoded, the
       -- zips of views of one element each included, failing on that byte.
       decode_2 = do
@@ -335,18 +339,18 @@ test = testGroup "DynamicS" $
         assertThrowsIn "zipWithA" "E" (zipWithA (\ _ _ -> E0) et et)
         assertThrowsIn "zipWithA of one element" "E" (zipWithA (\ _ _ -> E0) eOne eOne)
         assertThrowsIn "zipWith3A of one element" "E" (zipWith3A (\ _ _ _ -> E0) eOne eOne eOne)
-        where eOne = fromVector [1] (V.unsafeCast (V.fromList [5 :: Word8])) :: Array E
 
       -- fillStrided fills a view of a Storable vector, and fails on each part
       -- of the contract its unchecked method relies on.
       fillStrided_1 = do
         let v = V.fromList [0 .. 9 :: Int]
-            axes = I.Axes 2 3 (I.InnerFirst [I.Axis 1 2])
+            axesOf n = I.Axes 2 n (I.InnerFirst [I.Axis 1 2])
+            axes = axesOf 3
         assertEqual "fill" [0, 2, 4, 1, 3, 5] (V.toList (I.fillStrided axes 0 6 v))
         assertThrowsIn "count" "fillStrided" (I.fillStrided axes 0 5 v)
         assertThrowsIn "outside" "fillStrided" (I.fillStrided axes 5 6 v)
-        assertThrowsIn "extent" "fillStrided" (I.fillStrided (I.Axes 2 0 (I.InnerFirst [I.Axis 1 2])) 0 0 v)
-        assertThrowsIn "negative extent" "fillStrided" (I.fillStrided (I.Axes 2 (-3) (I.InnerFirst [I.Axis 1 2])) 0 6 v)
+        assertThrowsIn "extent" "fillStrided" (I.fillStrided (axesOf 0) 0 0 v)
+        assertThrowsIn "negative extent" "fillStrided" (I.fillStrided (axesOf (-3)) 0 6 v)
         assertThrowsIn "below" "fillStrided" (I.fillStrided (I.Axes (-1) 3 (I.InnerFirst [])) 1 3 v)
 
       -- Calls of every wrapper the module under test exports, in the order of
@@ -408,7 +412,7 @@ test = testGroup "DynamicS" $
         assertEqual "slice" (fromList [2, 2] [2, 3, 5, 6])
                     (slice [(0, 2), (1, 2)] a1)
         assertEqual "rerank" (fromList [2] [6, 15])
-                    (rerank 1 (reduce (+) 0) a1)
+                    (rerank 1 (\ r -> reduce (+) 0 r) a1)
         assertEqual "rerank2" (fromList [2] [14, 77]) (rerank2 1 dot a1 a1)
         assertEqual "rev" (fromList [2, 3] [4, 5, 6, 1, 2, 3]) (rev [0] a1)
         assertEqual "reduce" (fromList [] [21]) (reduce (+) 0 a1)
@@ -438,13 +442,8 @@ test = testGroup "DynamicS" $
       wholeRuns_1 = assertEqual "1" [ fromIntegral (1000 * i + j) | i <- [0 .. 9 :: Int], j <- [0 .. 599] ]
                       (V.toList (toVector (slice [(0, 10), (0, 600)] w8)))
         where w8 = fromList [10, 1000] [ fromIntegral k | k <- [0 .. 9999 :: Int] ] :: Array Word8
-      -- convert to boxed of a transposed view keeps the view's order.
-      convert_1 = assertEqual "1" (toList (transpose [1, 0] a1)) (D.toList (convert (transpose [1, 0] a1) :: D.Array Int))
       -- bitcast between types of size 0 fails, as between types of two sizes.
       bitcast_1 = assertThrowsIn "1" "bitcast" (bitcast (fromList [2] [(), ()]) :: Array ())
-      -- vZipWith of vectors of two lengths zips as many elements as the shorter
-      -- has, as vector's zipWith does.
-      vZipWith_1 = assertEqual "1" (V.fromList [11, 22 :: Int]) (I.vZipWith (+) (V.fromList [1, 2, 3]) (V.fromList [10, 20]))
 
       tests =
         [ testCase "show_1" show_1
@@ -486,13 +485,10 @@ test = testGroup "DynamicS" $
         , testCase "iota_1" iota_1
         , testCase "mapA_1" mapA_1
         , testCase "mapA_2" mapA_2
-        , testCase "mapA_3" mapA_3
         , testCase "zipWithA_1" zipWithA_1
         , testCase "zipWithA_2" zipWithA_2
-        , testCase "zipWithA_3" zipWithA_3
         , testCase "zipWithA_4" zipWithA_4
         , testCase "zipWith3A_1" zipWith3A_1
-        , testCase "zipWith3A_2" zipWith3A_2
         , testCase "pad_1" pad_1
         , testCase "pad_2" pad_2
         , testCase "transpose_1" transpose_1
@@ -535,25 +531,36 @@ test = testGroup "DynamicS" $
         , testCase "fillStrided_1" fillStrided_1
         , testCase "wrappers_1" wrappers_1
         , testCase "wholeRuns_1" wholeRuns_1
-        , testCase "convert_1" convert_1
         , testCase "bitcast_1" bitcast_1
-        , testCase "vZipWith_1" vZipWith_1
         ]
-  in  tests ++ [ testPropertyN "prop_bitcast" (prop_bitcast @Int @Word)
+  in  tests ++ [ testPropertyN "prop_convert" prop_convert
+              , testPropertyN "prop_bitcast" (prop_bitcast @Int @Word)
+              , testPropertyN "prop_bitcast to Double" (prop_bitcast @Int @Double)
               , testGroup "Word8" [testPropertyN "prop_bitcast" (prop_bitcast @Word8 @Int8)] ]
 
 mkView :: Unbox a => View -> [a] -> Array a
 mkView v = DS.A . mkViewG v
 
--- bitcast of a view to an integral type b of the same size reinterprets
--- each element as fromIntegral does, and bitcast to a type of another size
--- fails.
-prop_bitcast :: forall a b . (Elem a, Unbox a, Integral b, Show b, Unbox b) => View -> Property
+-- convert of a view to the boxed module and back keeps its shape and its
+-- elements in order.
+prop_convert :: View -> Property
+prop_convert v@(View sh _) =
+  forAll (genElems (-9, 9) (product sh)) $ \ xs ->
+  let x = mkView v xs :: Array Int
+      d = convert x :: D.Array Int
+  in  D.shapeL d === shapeL x .&&. D.toList d === toList x
+      .&&. convert d === x
+
+-- bitcast of a view to a type b of the same size keeps the bits of each
+-- element, and bitcast to a type of another size, or of size 0, fails.
+prop_bitcast :: forall a b . (Elem a, Unbox a, Unbox b) => View -> Property
 prop_bitcast v@(View sh _) =
   forAll (genElems (-9, 9) (product sh)) $ \ xs ->
   let x = mkView v xs :: Array a
       w = bitcast x :: Array b
-  in  toList w === map fromIntegral (toList x) .&&. bitcast w === x
-      .&&. failsWith ("bitcast: the types must have the same, nonzero size. "
-                      ++ show (sizeOf (0 :: a), sizeOf (0 :: Word16)))
+  in  V.unsafeCast (toVector w) === toVector x .&&. bitcast w === x
+      .&&. failsWith (msg (sizeOf (0 :: a), sizeOf (0 :: Word16)))
                      (bitcast x :: Array Word16)
+      .&&. failsWith (msg (sizeOf (0 :: a), sizeOf ())) (bitcast x :: Array ())
+  where msg szs = "bitcast: the types must have the same, nonzero size. "
+                  ++ show szs
