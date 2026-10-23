@@ -233,27 +233,38 @@ instance (a ~ b, S.Rank sh ~ n, S.Shape sh) => Convert (R.Array n a) (S.Array sh
 
 ------
 
+instance (a ~ b) => Convert (RS.Array n a) (DS.Array b) where
+  {-# INLINE convert #-}
+  convert (RS.A (RG.A sh t)) = DS.A (DG.A sh t)
+  convertE x = Right $! convert x
+
 instance (a ~ b, KnownNat n) => Convert (DS.Array a) (RS.Array n b) where
   -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
   convertE (DS.A (DG.A sh t)) | toInteger (length sh) /= natVal (Proxy :: Proxy n) = Left $ "convert: rank mismatch " ++ show (sh, natVal (Proxy :: Proxy n))
                               | otherwise = Right $ RS.A (RG.A sh t)
 
-instance (a ~ b, SS.Rank sh ~ n, SS.Shape sh) => Convert (RS.Array n a) (SS.Array sh b) where
-  -- INLINE: see convertE from D.Array to R.Array above.
-  {-# INLINE convertE #-}
-  convertE (RS.A (RG.A sh t)) = shapedE (Proxy :: Proxy sh) sh $ SS.A (SG.A t)
+instance (a ~ b, SS.Shape sh) => Convert (SS.Array sh a) (DS.Array b) where
+  {-# INLINE convert #-}
+  convert (SS.A a@(SG.A t)) = DS.A (DG.A (SG.shapeL a) t)
+  {-# INLINABLE convertE #-}
+  convertE x = Right $! convert x
+
+instance (a ~ b, SS.Rank sh ~ n, SS.Shape sh) => Convert (SS.Array sh a) (RS.Array n b) where
+  {-# INLINE convert #-}
+  convert (SS.A a@(SG.A t)) = RS.A (RG.A (SG.shapeL a) t)
+  {-# INLINABLE convertE #-}
+  convertE x = Right $! convert x
 
 instance (a ~ b, SS.Shape sh) => Convert (DS.Array a) (SS.Array sh b) where
   -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
   convertE (DS.A (DG.A sh t)) = shapedE (Proxy :: Proxy sh) sh $ SS.A (SG.A t)
 
-instance (a ~ b, SS.Shape sh) => Convert (SS.Array sh a) (DS.Array b) where
-  {-# INLINE convert #-}
-  convert (SS.A a@(SG.A t)) = DS.A (DG.A (SG.shapeL a) t)
-  {-# INLINABLE convertE #-}
-  convertE x = Right $! convert x
+instance (a ~ b, SS.Rank sh ~ n, SS.Shape sh) => Convert (RS.Array n a) (SS.Array sh b) where
+  -- INLINE: see convertE from D.Array to R.Array above.
+  {-# INLINE convertE #-}
+  convertE (RS.A (RG.A sh t)) = shapedE (Proxy :: Proxy sh) sh $ SS.A (SG.A t)
 
 ------
 

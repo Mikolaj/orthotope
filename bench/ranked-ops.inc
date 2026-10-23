@@ -2,10 +2,11 @@
 -- and a size with ARR the module of the kind, OPS its list on a view in a form,
 -- ROWS the shape's rows, SIZE the size's other values, IARR the kind's internal
 -- module, CONV the module of the kind convert converts to, BOXED or STORABLE
--- defined at those kinds, CD and CS the kind's Dynamic and Shaped modules, and
--- SHD and SHMD the Shaped shapes of the view and of one more row.  After an
--- operation's call come those of the arms it leaves untaken, each named for its
--- operation and its arm; at ROWS 0 only the calls an empty array takes.
+-- defined at those kinds, CD and CS the kind's Dynamic and Shaped modules at
+-- the boxed and Storable kinds, and SHD and SHMD the Shaped shapes of the view
+-- and of one more row.  After an operation's call come those of the arms it
+-- leaves untaken, each named for its operation and its arm; at ROWS 0 only the
+-- calls an empty array takes.
 OPS :: Form -> View -> [Call]
 OPS form view =
   [ call "size" (\ a -> ARR.size a) t
@@ -162,7 +163,7 @@ OPS form view =
   , call "convert" (\ a -> convert a :: CONV.Array 2 Double) t
   , call "convertE" (\ a -> convertE a :: Either String (CONV.Array 2 Double)) t
   , call "convert.rank5" (\ a -> convert a :: CONV.Array 5 Double) tx
-#ifdef BOXED
+#if defined(BOXED) || defined(STORABLE)
   , call "convert.dynamic" (\ a -> convert a :: CD.Array Double) t
   , call "convertE.dynamic"
          (\ a -> convertE a :: Either String (CD.Array Double)) t

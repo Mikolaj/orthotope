@@ -21,11 +21,13 @@
 #define IARR IS
 #define CONV B
 #define STORABLE
+#define CD DS
 #define CS SS
 #define OPS OPSS
 #include "ranked-ops.inc"
 #undef OPS
 #undef CS
+#undef CD
 #undef STORABLE
 #undef CONV
 #undef IARR

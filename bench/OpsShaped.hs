@@ -44,6 +44,7 @@ import qualified Data.Array.Internal as I
 import qualified Data.Array.Dynamic as DB
 import qualified Data.Array.DynamicS as DS
 import qualified Data.Array.Ranked as RB
+import qualified Data.Array.RankedS as RS
 import qualified Data.Array.Internal.Shaped as IB
 import qualified Data.Array.Internal.ShapedG as SG
 import qualified Data.Array.Internal.ShapedS as IS

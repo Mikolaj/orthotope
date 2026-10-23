@@ -17,6 +17,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module ShapedSTest(test) where
 
+import Data.Array.Convert (convert, convertE)
+import qualified Data.Array.RankedS as RS
 import qualified Data.Array.Shaped as S
 import Data.Array.ShapedS
 import Data.Word (Word16, Word32)
@@ -180,6 +182,11 @@ test = testGroup "ShapedS" $
                                     (transpose @'[1,0] a5)
       append_1 = assertEqual "1" (fromList [1..9])
                                  (append a1 (fromList @[1,3] [7,8,9]))
+      -- The conversion to the Storable Ranked module, as the boxed modules' is,
+      -- and convertE of it.
+      convert_1 = do
+        assertEqual "convert" (RS.fromList [3,2] [1,4,2,5,3,6]) (convert a2 :: RS.Array 2 Int)
+        assertEqual "convertE" (Right (RS.fromList [2,3] [1..6])) (convertE a1 :: Either String (RS.Array 2 Int))
       a6 :: Array [4,5] Int
       a6 = fromList [1..20]
       window_1 = assertEqual "1" (fromList @[2,3,3,3] [1,2,3,
@@ -364,6 +371,7 @@ test = testGroup "ShapedS" $
         , testCase "transpose_6" transpose_6
         , testCase "transpose_9" transpose_9
         , testCase "append_1" append_1
+        , testCase "convert_1" convert_1
         , testCase "window_1" window_1
         , testCase "stride_1" stride_1
         , testCase "slice_1" slice_1

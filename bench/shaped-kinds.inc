@@ -22,9 +22,11 @@
 #define CONV B
 #define STORABLE
 #define CD DS
+#define CR RS
 #define OPS OPSS
 #include "shaped-ops.inc"
 #undef OPS
+#undef CR
 #undef CD
 #undef STORABLE
 #undef CONV

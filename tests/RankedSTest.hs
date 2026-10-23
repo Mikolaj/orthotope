@@ -17,6 +17,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module RankedSTest(test) where
 
+import Data.Array.Convert (convert, convertE)
+import qualified Data.Array.DynamicS as DS
 import qualified Data.Array.Ranked as R
 import Data.Array.RankedS
 import Data.Word (Word16, Word32)
@@ -177,6 +179,11 @@ test = testGroup "RankedS" $
       concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                       (concatOuter [a1, concatOuter [a1,a1]])
       concatOuter_2 = assertThrowsIn "2" "concatOuter" (concatOuter [a1, a2])
+      -- The conversion to the Storable Dynamic module, as the boxed modules' is,
+      -- and convertE of it.
+      convert_1 = do
+        assertEqual "convert" (DS.fromList [3,2] [1,4,2,5,3,6]) (convert a2 :: DS.Array Int)
+        assertEqual "convertE" (Right (DS.fromList [2,3] [1..6])) (convertE a1 :: Either String (DS.Array Int))
       a6 :: Array 2 Int
       a6 = fromList [4,5] [1..20]
       window_1 = assertEqual "1" (fromList [2,3,3,3] [1,2,3,
@@ -386,6 +393,7 @@ test = testGroup "RankedS" $
         , testCase "append_1" append_1
         , testCase "concatOuter_1" concatOuter_1
         , testCase "concatOuter_2" concatOuter_2
+        , testCase "convert_1" convert_1
         , testCase "window_1" window_1
         , testCase "window_2" window_2
         , testCase "window_3" window_3

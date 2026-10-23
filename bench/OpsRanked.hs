@@ -38,6 +38,7 @@ import qualified Data.Array.RankedU as U
 import Data.Array.Convert (convert, convertE)
 import qualified Data.Array.Internal as I
 import qualified Data.Array.Dynamic as DB
+import qualified Data.Array.DynamicS as DS
 import qualified Data.Array.Shaped as SB
 import qualified Data.Array.ShapedS as SS
 import qualified Data.Array.Internal.Ranked as IB
