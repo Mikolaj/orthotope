@@ -10,3 +10,5 @@ tests: >=9.6
 -- and kept to the library, failing first, they raise no false alarms as the
 -- code grows.
 benchmarks: >=9.0 && <9.4 || >=9.6
+-- Haddock builds the library's documentation alone, the only one published.
+haddock-components: libs

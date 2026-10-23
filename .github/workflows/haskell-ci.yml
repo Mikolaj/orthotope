@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
         include:
-          # GHC 9.14.2's second release candidate: 9.14.1 panics compiling the
+          # GHC 9.14.2's release candidate: 9.14.1 panics compiling the
           # tests (https://gitlab.haskell.org/ghc/ghc/-/work_items/26682).
           - compiler: ghc-9.14.1.20260916
             compilerKind: ghc
@@ -238,7 +238,7 @@ jobs:
           ${CABAL} -vnormal check
       - name: haddock
         run: |
-          $CABAL v2-haddock --disable-documentation --haddock-all $ARG_COMPILER --with-haddock $HADDOCK $ARG_TESTS $ARG_BENCH all
+          $CABAL v2-haddock --disable-documentation $ARG_COMPILER --with-haddock $HADDOCK $ARG_TESTS $ARG_BENCH all
       - name: unconstrained build
         run: |
           rm -f cabal.project.local
