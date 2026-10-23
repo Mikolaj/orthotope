@@ -239,7 +239,7 @@ reshape sh (A sh' t@(T ost oo v))
   where n : st = getStridesT sh
         n' = product sh'
 
--- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
+-- | Change the size of dimensions with size 1.  These dimensions can be changed to any size.
 -- All other dimensions must remain the same.
 -- O(1) time.
 {-# INLINE stretch #-}

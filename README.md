@@ -40,7 +40,7 @@ the underlying storage is.
     statically. E.g., `Array [2,3] Float` is the type of 2x3 arrays of `Float`.
 
 Converting between these types is cheap since they all share the same underlying
-trepresentation.
+representation.
 
 ### Storage
 
@@ -206,7 +206,7 @@ Indexing into an array removes the outermost dimension of it by selecting a suba
 └──┘
 ```
 
-The `scalar` and `unScalar` functions can be used to convert an element to/from and array.
+The `scalar` and `unScalar` functions can be used to convert an element to/from an array.
 ```
 > :type scalar 42
 scalar 42 :: Num a => Array a
@@ -316,7 +316,7 @@ to use a function "deeper down".
 └───────────┘
 ```
 
-To reduce along some dimension(s) that are not the innermost we can make them innermost by transpostion.
+To reduce along some dimension(s) that are not the innermost we can make them innermost by transposition.
 So to sum the columns:
 ```
 > pp $ rerank 2 (reduce (+) 0) $ transpose [0,2,1] a
@@ -379,7 +379,7 @@ Numeric constants are automatically of the right shape.
 └───────────┘
 ```
 
-What is value arguments for `Dynamic` arrays sometimes turn into type arguments
+Value arguments for `Dynamic` arrays sometimes turn into type arguments
 for shaped arrays.
 
 ```

@@ -71,7 +71,9 @@ import GHC.Stack(HasCallStack)
 import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
-import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN, genericMapStrided, genericConcatPadN, genericZipWithStrided, genericZipWith3Strided,
+import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN,
+                           genericMapStrided, genericConcatPadN,
+                           genericZipWithStrided, genericZipWith3Strided,
                            genericZipWith4Strided, genericZipWith5Strided,
                            ShapeL, Vector(..), None, genericForce,
                            genericFromListExactN, genericUnsafeFillStrided,
@@ -376,7 +378,7 @@ force = A . G.force . unA
 reshape :: (HasCallStack) => ShapeL -> Array a -> Array a
 reshape s = A . G.reshape s . unA
 
--- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
+-- | Change the size of dimensions with size 1.  These dimensions can be changed to any size.
 -- All other dimensions must remain the same.
 -- O(1) time.
 {-# INLINE stretch #-}
@@ -605,14 +607,14 @@ rev rs = A . G.rev rs . unA
 reduce :: (a -> a -> a) -> a -> Array a -> Array a
 reduce f z = A . G.reduce f z . unA
 
--- | Constrained version of 'foldr' for Arrays.
+-- | 'foldr' for Arrays, as the modules with constrained elements have it.
 --
 -- Note that this 'Array' actually has 'Traversable' anyway.
 {-# INLINE foldrA #-}
 foldrA :: (a -> b -> b) -> b -> Array a -> b
 foldrA f z = G.foldrA f z . unA
 
--- | Constrained version of 'traverse' for Arrays.
+-- | 'traverse' for Arrays, as the modules with constrained elements have it.
 --
 -- Note that this 'Array' actually has 'Traversable' anyway.
 {-# INLINE traverseA #-}

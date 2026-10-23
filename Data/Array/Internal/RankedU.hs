@@ -181,7 +181,7 @@ force = A . G.force . unA
 reshape :: forall n' n a . (HasCallStack, Unbox a, KnownNat n') => ShapeL -> Array n a -> Array n' a
 reshape s = A . G.reshape s . unA
 
--- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
+-- | Change the size of dimensions with size 1.  These dimensions can be changed to any size.
 -- All other dimensions must remain the same.
 -- O(1) time.
 {-# INLINE stretch #-}

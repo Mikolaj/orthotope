@@ -182,8 +182,8 @@ reshape :: forall sh' sh a . (Shape sh, Shape sh', Size sh ~ Size sh') =>
            Array sh a -> Array sh' a
 reshape = A . G.reshape . unA
 
--- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
--- All other dimensions must remain the same.
+-- | Change the size of dimensions with size 1.  These dimensions can be changed to any size.
+-- All other dimensions, which the types check, remain the same.
 -- O(1) time.
 {-# INLINE stretch #-}
 stretch :: forall sh' sh a . (Shape sh', ValidStretch sh sh') => Array sh a -> Array sh' a
@@ -425,14 +425,14 @@ rev = A . G.rev @rs . unA
 reduce :: (Shape sh) => (a -> a -> a) -> a -> Array sh a -> Array '[] a
 reduce f z = A . G.reduce f z . unA
 
--- | Constrained version of 'foldr' for Arrays.
+-- | 'foldr' for Arrays, as the modules with constrained elements have it.
 --
 -- Note that this 'Array' actually has 'Traversable' anyway.
 {-# INLINE foldrA #-}
 foldrA :: (Shape sh) => (a -> b -> b) -> b -> Array sh a -> b
 foldrA f z = G.foldrA f z . unA
 
--- | Constrained version of 'traverse' for Arrays.
+-- | 'traverse' for Arrays, as the modules with constrained elements have it.
 --
 -- Note that this 'Array' actually has 'Traversable' anyway.
 {-# INLINE traverseA #-}

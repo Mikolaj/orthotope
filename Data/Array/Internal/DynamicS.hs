@@ -85,7 +85,9 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.Internal.DynamicG as G
-import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN, genericMapStrided, genericConcatPadN, genericZipWithStrided, genericZipWith3Strided,
+import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN,
+                           genericMapStrided, genericConcatPadN,
+                           genericZipWithStrided, genericZipWith3Strided,
                            genericZipWith4Strided, genericZipWith5Strided,
                            Axes, T(..), ShapeL, Vector(..), genericUnsafeConcatN,
                            genericFoldl1, genericForce, genericFromListExactN,
@@ -485,7 +487,7 @@ force = A . G.force . unA
 reshape :: (HasCallStack, Unbox a) => ShapeL -> Array a -> Array a
 reshape s = A . G.reshape s . unA
 
--- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
+-- | Change the size of dimensions with size 1.  These dimensions can be changed to any size.
 -- All other dimensions must remain the same.
 -- O(1) time.
 {-# INLINE stretch #-}

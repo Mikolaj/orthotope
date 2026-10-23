@@ -192,8 +192,8 @@ reshape :: forall sh' sh a . (Unbox a, Shape sh, Shape sh', Size sh ~ Size sh') 
            Array sh a -> Array sh' a
 reshape !a = A (G.reshape (unA a))
 
--- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
--- All other dimensions must remain the same.
+-- | Change the size of dimensions with size 1.  These dimensions can be changed to any size.
+-- All other dimensions, which the types check, remain the same.
 -- O(1) time.
 {-# INLINE stretch #-}
 stretch :: forall sh' sh a . (Shape sh', ValidStretch sh sh') => Array sh a -> Array sh' a

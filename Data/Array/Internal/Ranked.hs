@@ -54,18 +54,18 @@ module Data.Array.Internal.Ranked(
   generate, iterateN, iota,
   ) where
 import Control.DeepSeq hiding (force)
-import Data.Data(Data)
 import Data.Coerce(coerce)
+import Data.Data(Data)
 import qualified Data.Vector as V
-import GHC.Stack
 import GHC.TypeLits(KnownNat, type (+), type (<=))
 import Test.QuickCheck hiding (generate)
-
 import GHC.Generics(Generic)
+import GHC.Stack(HasCallStack)
+import Text.PrettyPrint.HughesPJClass hiding ((<>))
+
 import Data.Array.Internal.Dynamic()  -- Vector instance
 import qualified Data.Array.Internal.RankedG as G
 import Data.Array.Internal(ShapeL, Vector(..), rnfViewT)
-import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 type role Array nominal nominal
 newtype Array n a = A { unA :: G.Array n V.Vector a }
@@ -174,7 +174,7 @@ force = A . G.force . unA
 reshape :: forall n' n a . (HasCallStack, KnownNat n') => ShapeL -> Array n a -> Array n' a
 reshape s = A . G.reshape s . unA
 
--- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
+-- | Change the size of dimensions with size 1.  These dimensions can be changed to any size.
 -- All other dimensions must remain the same.
 -- O(1) time.
 {-# INLINE stretch #-}
@@ -406,14 +406,14 @@ rev rs = A . G.rev rs . unA
 reduce :: forall n a . (a -> a -> a) -> a -> Array n a -> Array 0 a
 reduce f z = A . G.reduce f z . unA
 
--- | Constrained version of 'foldr' for Arrays.
+-- | 'foldr' for Arrays, as the modules with constrained elements have it.
 --
 -- Note that this 'Array' actually has 'Traversable' anyway.
 {-# INLINE foldrA #-}
 foldrA :: forall n a b . (a -> b -> b) -> b -> Array n a -> b
 foldrA f z = G.foldrA f z . unA
 
--- | Constrained version of 'traverse' for Arrays.
+-- | 'traverse' for Arrays, as the modules with constrained elements have it.
 --
 -- Note that this 'Array' actually has 'Traversable' anyway.
 {-# INLINE traverseA #-}

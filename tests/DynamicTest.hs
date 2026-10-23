@@ -129,6 +129,8 @@ test = testGroup "Dynamic" $
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [6] [1..6]) (reshape [6] a1)
       reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2)
+      -- reshape to a shape of another size fails.
+      reshape_3 = assertThrowsIn "3" "reshape" (reshape [5] (fromList [2, 3] [1 .. 6 :: Int]))
       a3, a4 :: Array Int
       a3 = fromList [1] [5]
       a4 = fromList [] [5]
@@ -137,6 +139,8 @@ test = testGroup "Dynamic" $
                                   (stretch [2,2,3,2] $ reshape [1,2,3,1] a1)
       stretch_3 = assertThrowsIn "3" "stretch" (stretch [1,2] a3)
       stretch_4 = assertThrowsIn "4" "stretch" (stretch [4,3] a1)
+      -- An axis of extent 0 does not stretch.
+      stretch_5 = assertThrowsIn "5" "stretch" (stretch [3] (fromList [0] [] :: Array Int))
       scalar_1 = assertEqual "1" a4 (scalar 5)
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
       unScalar_2 = assertThrowsIn "2" "unScalar" (unScalar a3)
@@ -187,6 +191,11 @@ test = testGroup "Dynamic" $
           , ("window", window [4] (stretch [h] (fromList [1] [1]))) ]
         assertEqual "read" Nothing (readMaybe ("fromList " ++ show [4, h] ++ " []") :: Maybe (Array Int))
         where h = maxBound `quot` 2 + 1
+      -- A size past maxBound fails where no later extent is 0, and passes where
+      -- one is.
+      badShape_4 = do
+        assertEqual "1" [4611686018427387904, 4, 0] (shapeL (fromList [4611686018427387904, 4, 0] [] :: Array Int))
+        assertThrowsIn "2" "fromList" (fromList [4611686018427387904, 4, 3] [] :: Array Int)
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "2" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
       mapA_3 = assertEqual "3" True  -- 1 `div` 0 outside the view, the vector forced as if strict
@@ -409,18 +418,9 @@ test = testGroup "Dynamic" $
       compare_1 = assertEqual "1" (GT, GT) (compare (toList x) (toList y), compare x y)
         where x = transpose [1, 0] (fromList [2, 2] [1, 2, 3, 4 :: Int])
               y = transpose [1, 0] (fromList [2, 2] [0, 2, 3, 9])
-      -- An axis of extent 0 does not stretch.
-      stretch_5 = assertThrowsIn "5" "stretch" (stretch [3] (fromList [0] [] :: Array Int))
-      -- A size past maxBound fails where no later extent is 0, and passes where
-      -- one is.
-      badShape_4 = do
-        assertEqual "1" [4611686018427387904, 4, 0] (shapeL (fromList [4611686018427387904, 4, 0] [] :: Array Int))
-        assertThrowsIn "2" "fromList" (fromList [4611686018427387904, 4, 3] [] :: Array Int)
       -- read rejects a count of elements that is not the shape's.
       read_1 = assertEqual "1" (Nothing, Just (fromList [2] [1, 2] :: Array Int))
                  (readMaybe "fromList [2] [1,2,3]" :: Maybe (Array Int), readMaybe "fromList [2] [1,2]")
-      -- reshape to a shape of another size fails.
-      reshape_3 = assertThrowsIn "3" "reshape" (reshape [5] (fromList [2, 3] [1 .. 6 :: Int]))
       rotate_1 = assertEqual "1" (fromList [2, 4, 3, 2]
                                            [1, 2, 3, 4, 5, 6,
                                             5, 6, 1, 2, 3, 4,
@@ -677,10 +677,12 @@ test = testGroup "Dynamic" $
         , testCase "normalize_1" normalize_1
         , testCase "reshape_1" reshape_1
         , testCase "reshape_2" reshape_2
+        , testCase "reshape_3" reshape_3
         , testCase "stretch_1" stretch_1
         , testCase "stretch_2" stretch_2
         , testCase "stretch_3" stretch_3
         , testCase "stretch_4" stretch_4
+        , testCase "stretch_5" stretch_5
         , testCase "scalar_1" scalar_1
         , testCase "unScalar_1" unScalar_1
         , testCase "unScalar_2" unScalar_2
@@ -692,6 +694,7 @@ test = testGroup "Dynamic" $
         , testCase "badShape_1" badShape_1
         , testCase "badShape_2" badShape_2
         , testCase "badShape_3" badShape_3
+        , testCase "badShape_4" badShape_4
         , testCase "mapA_1" mapA_1
         , testCase "mapA_2" mapA_2
         , testCase "mapA_3" mapA_3
@@ -747,10 +750,7 @@ test = testGroup "Dynamic" $
         , testCase "stride_5" stride_5
         , testCase "stride_6" stride_6
         , testCase "compare_1" compare_1
-        , testCase "stretch_5" stretch_5
-        , testCase "badShape_4" badShape_4
         , testCase "read_1" read_1
-        , testCase "reshape_3" reshape_3
         , testCase "rotate_1" rotate_1
         , testCase "rotate_2" rotate_2
         , testCase "rotate_3" rotate_3
