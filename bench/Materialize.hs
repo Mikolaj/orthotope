@@ -46,16 +46,19 @@ calls :: [(String, String, S.Array Double -> Int, S.Array Double -> Int)]
 calls = [ (ty, name, f . DS.unA, g . DS.unA) | (ty, name, f, g) <- calls' ]
  where
   calls' =
-    [ ("Route", "routeT", route id I.routeT, route built I.routeT)
-    , ("Route", "unorderedRouteT", route id I.unorderedRouteT
-                                 , route built I.unorderedRouteT)
-    , ("Route", "cellsRouteT", route id I.cellsRouteT
-                             , route built I.cellsRouteT)
+    [ ("Route", "routeT", route I.routeT fields id, route I.routeT fields built)
+    , ("Route", "unorderedRouteT", route I.unorderedRouteT fields id
+                                 , route I.unorderedRouteT fields built)
+    , ("Route", "cellsRouteT", route I.cellsRouteT fields id
+                             , route I.cellsRouteT fields built)
     , ("Route", "routeOfT", routeOf id, routeOf built)
-    , ("Route", "routeVectorT", vector id, vector built)
-    , ("Route", "routeSlicesT", slices id, slices built)
-    , ("Route", "routeFoldT", fold id, fold built)
-    , ("Route", "routePartsT", parts id, parts built)
+    , ("Route", "routeVectorT", route I.routeT vector id
+                              , route I.routeT vector built)
+    , ("Route", "routeSlicesT", route I.routeT slices id
+                              , route I.routeT slices built)
+    , ("Route", "routeFoldT", route I.routeT fold id, route I.routeT fold built)
+    , ("Route", "routePartsT", route I.routeT parts id
+                             , route I.routeT parts built)
     , ("Range", "readRangeT", readRange id, readRange built)
     , ("Range", "sameRangeT", sameRange id, sameRange built)
     , ("Range", "range3T", range3 id, range3 built)
@@ -75,11 +78,13 @@ calls = [ (ty, name, f . DS.unA, g . DS.unA) | (ty, name, f, g) <- calls' ]
               , fill (I.genericUnsafeFillStrided 64) built) ]
 
 -- INLINE: Route, A3: each call, its value handed to the function given, the
--- identity or 'built', so that each call site knows which.
+-- identity or 'built', so that each call site knows which, and then to the
+-- consumer given.
 {-# INLINE route #-}
-route :: (I.Route -> I.Route) -> (I.ShapeL -> Int -> I.T v Double -> I.Route)
-      -> DG.Array v Double -> Int
-route b f (DG.A sh t) = routeSum (b $! f sh (product sh) t)
+route :: (I.ShapeL -> Int -> I.T v Double -> I.Route)
+      -> (v Double -> I.Route -> Int)
+      -> (I.Route -> I.Route) -> DG.Array v Double -> Int
+route f k b (DG.A sh t@(I.T _ _ v)) = k v (b $! f sh (product sh) t)
 
 -- INLINE: Route, A3: see route.
 {-# INLINE routeOf #-}
@@ -88,33 +93,32 @@ routeOf b (DG.A sh t@(I.T _ o _)) =
   routeSum (b $! I.routeOfT o (product sh) (axesOf sh t))
 
 -- INLINE: Route, A3: see route.
+--
+-- The consumers of a route that 'route' takes: its fields, and each binding
+-- that takes one.
+{-# INLINE fields #-}
+fields :: v Double -> I.Route -> Int
+fields _ = routeSum
+
+-- INLINE: Route, A3: see route.
 {-# INLINE vector #-}
-vector :: (I.Vector v, I.VecElem v Double)
-       => (I.Route -> I.Route) -> DG.Array v Double -> Int
-vector b (DG.A sh t@(I.T _ _ v)) =
-  I.vLength (I.routeVectorT v (b $! I.routeT sh (product sh) t))
+vector :: (I.Vector v, I.VecElem v Double) => v Double -> I.Route -> Int
+vector v r = I.vLength (I.routeVectorT v r)
 
 -- INLINE: Route, A3: see route.
 {-# INLINE slices #-}
-slices :: (I.Vector v, I.VecElem v Double)
-       => (I.Route -> I.Route) -> DG.Array v Double -> Int
-slices b (DG.A sh t@(I.T _ _ v)) =
-  I.routeSlicesT v (b $! I.routeT sh (product sh) t) (\ s k -> I.vLength s + k)
-                 0
+slices :: (I.Vector v, I.VecElem v Double) => v Double -> I.Route -> Int
+slices v r = I.routeSlicesT v r (\ s k -> I.vLength s + k) 0
 
 -- INLINE: Route, A3: see route.
 {-# INLINE fold #-}
-fold :: (I.Vector v, I.VecElem v Double)
-     => (I.Route -> I.Route) -> DG.Array v Double -> Int
-fold b (DG.A sh t@(I.T _ _ v)) =
-  I.routeFoldT v (b $! I.routeT sh (product sh) t) (\ s k -> I.vLength s + k)
-               (\ _ k -> k + 1) 0
+fold :: (I.Vector v, I.VecElem v Double) => v Double -> I.Route -> Int
+fold v r = I.routeFoldT v r (\ s k -> I.vLength s + k) (\ _ k -> k + 1) 0
 
 -- INLINE: Route, A3: see route.
 {-# INLINE parts #-}
-parts :: (I.Route -> I.Route) -> DG.Array v Double -> Int
-parts b (DG.A sh t) =
-  I.routePartsT (b $! I.routeT sh (product sh) t) (\ o l k -> o + l + k) 0
+parts :: v Double -> I.Route -> Int
+parts _ r = I.routePartsT r (\ o l k -> o + l + k) 0
 
 -- INLINE: Range, A3: see route.
 {-# INLINE readRange #-}
@@ -133,12 +137,16 @@ range3 b (DG.A [n1, n2] (I.T [s1, s2] o _)) =
   rangeSum (b $! I.range3T n1 s1 n2 s2 1 1 o)
 range3 _ _ = 0
 
+-- INLINE: Axes, A3: see route.
+--
 -- The canonical axes of the view, as 'I.routeT' takes them, its first axis
 -- an 'I.Axes' and the rest left to the merge loop.
 {-# INLINE canonicalize #-}
 canonicalize :: (I.Axes -> I.Axes) -> DG.Array v Double -> Int
 canonicalize b (DG.A sh t) = axesSum (b $! axesOf sh t)
 
+-- INLINE: Axes, A3: see route.
+--
 -- The axes sorted, as 'I.unorderedRouteT' takes them.
 {-# INLINE sortAxes #-}
 sortAxes :: (I.Axes -> I.Axes) -> DG.Array v Double -> Int
@@ -146,6 +154,8 @@ sortAxes b (DG.A sh (I.T ats ao _)) = case I.absAxesAndStartT [] ao ats sh of
   (a : axs, _) -> axesSum (b $! I.sortAxesT a [] axs)
   ([], _) -> 0
 
+-- INLINE: Axes, A3: see route.
+--
 -- The view's axes, unsorted, merged as if sorted, the first an 'I.Axes'.
 {-# INLINE canonicalizeSorted #-}
 canonicalizeSorted :: (I.Axes -> I.Axes) -> DG.Array v Double -> Int
@@ -155,6 +165,8 @@ canonicalizeSorted b (DG.A sh (I.T ats ao _)) =
       axesSum (b $! I.canonicalizeSortedT rest (I.Axes st n (I.InnerFirst [])))
     ([], _) -> 0
 
+-- INLINE: Axes, A3: it builds the Axes its callers hand on.
+--
 -- The canonical axes handed to each binding that takes them.
 {-# INLINE axesOf #-}
 axesOf :: I.ShapeL -> I.T v Double -> I.Axes
@@ -162,23 +174,27 @@ axesOf (n : ns) (I.T (st : sts) _ _) =
   I.canonicalizeT sts ns (I.Axes st n (I.InnerFirst []))
 axesOf _ _ = I.Axes 1 1 (I.InnerFirst [])
 
+-- INLINE: Axes, A3: see route.
 {-# INLINE axesRouteOf #-}
 axesRouteOf :: (I.Axes -> I.Axes) -> DG.Array v Double -> Int
 axesRouteOf b (DG.A sh t@(I.T _ o _)) =
   routeSum (I.routeOfT o (product sh) (b $! axesOf sh t))
 
+-- INLINE: Axes, A3: see route.
 {-# INLINE runSlices #-}
 runSlices :: (I.Vector v, I.VecElem v Double)
           => (I.Axes -> I.Axes) -> DG.Array v Double -> Int
 runSlices b (DG.A sh t@(I.T _ o v)) =
   I.runSlicesT (b $! axesOf sh t) o v (\ s k -> I.vLength s + k) 0
 
+-- INLINE: Axes, A3: see route.
 {-# INLINE elems #-}
 elems :: (I.Vector v, I.VecElem v Double)
       => (I.Axes -> I.Axes) -> DG.Array v Double -> Int
 elems b (DG.A sh t@(I.T _ o v)) =
   I.elemsT (b $! axesOf sh t) o v (\ _ k -> k + 1) 0
 
+-- INLINE: Axes, A3: see route.
 {-# INLINE fill #-}
 fill :: (I.Vector v, I.VecElem v Double)
      => (I.Axes -> Int -> Int -> v Double -> v Double)
@@ -210,7 +226,10 @@ rangeSum r = case r of
   I.Range o l -> o + l
   I.NoRange -> 0
 
+-- INLINE: Axes, A3: it takes apart the Axes its callers build.
+--
 -- The fields of axes, the outer ones counted.
+{-# INLINE axesSum #-}
 axesSum :: I.Axes -> Int
 axesSum (I.Axes s n (I.InnerFirst outer)) = s + n + length outer
 

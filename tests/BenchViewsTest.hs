@@ -74,7 +74,7 @@ import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.HUnit (Assertion, assertBool)
 import Test.QuickCheck (Property, choose, counterexample, forAll, (.&&.), (===))
 
-import Call (Call (..), allocatedSecond)
+import Call (Call (..), Form (Viewed), View (Strided), allocatedSecond)
 import qualified Call
 import qualified OpsDynamic as OD
 import qualified OpsRanked as OR
@@ -152,7 +152,7 @@ test = testGroup "BenchViews"
          | (kind, check, c) <-
              [ ("Storable", unspecialisedUnder, unspecialisedPad)
              , ("Unboxed", unspecialisedOver, unspecialisedPadU) ]
-         , let b = theCall "pad" OD.opsB ]
+         , let b = theCall "pad" (OD.opsBLarge Viewed Strided) ]
   , optimisedGroup "fillStrided"
       $  [ testCase kind (fillUnder c) | (kind, c) <- fillCalls ]
       ++ [ testCase "Storable, not specialised" (fillUnder unspecialisedFill)
@@ -204,9 +204,12 @@ storableAsUnboxed name ss us = do
 -- The families of the specialisation benchmark, each with its boxed,
 -- Storable and Unboxed calls of the large strided view.
 families :: [(String, [Call], [Call], [Call])]
-families = [ ("Dynamic", OD.opsB, OD.opsS, OD.opsU)
-           , ("Ranked", OR.opsB, OR.opsS, OR.opsU)
-           , ("Shaped", OS.opsB, OS.opsS, OS.opsU) ]
+families =
+  [ (family, b Viewed Strided, s Viewed Strided, u Viewed Strided)
+  | (family, b, s, u) <-
+      [ ("Dynamic", OD.opsBLarge, OD.opsSLarge, OD.opsULarge)
+      , ("Ranked", OR.opsBLarge, OR.opsSLarge, OR.opsULarge)
+      , ("Shaped", OS.opsBLarge, OS.opsSLarge, OS.opsULarge) ] ]
 
 -- The calls of the specialisation benchmark's large strided view, a row a
 -- name with its boxed and Storable calls and its Unboxed one, which
@@ -215,12 +218,12 @@ callRows :: [(String, Call, Call, Maybe Call)]
 callRows =
   [ (family ++ "/" ++ name, b, s, listToMaybe (callsNamed name us))
   | (family, bs, ss, us) <- families
-  , b@(Call name _ _ _) <- bs
+  , b@(Call name _ _ _ _) <- bs
   , s <- callsNamed name ss ]
 
 -- The calls of the operation of the name.
 callsNamed :: String -> [Call] -> [Call]
-callsNamed name cs = [ c | c@(Call m _ _ _) <- cs, m == name ]
+callsNamed name cs = [ c | c@(Call m _ _ _ _) <- cs, m == name ]
 
 -- The one call of the operation of the name, failing where there is none or
 -- more than one.
@@ -293,10 +296,10 @@ fillCalls :: [(String, Call)]
 fillCalls =
   [ ("Storable", Call.call "fillStrided"
                            (\ v -> I.fillStrided Call.axes 0 Call.n v)
-                           (VS.fromList Call.elems))
+                           (VS.fromList Call.elemsLarge))
   , ("Unboxed", Call.call "fillStrided"
                           (\ v -> I.fillStrided Call.axes 0 Call.n v)
-                          (VU.fromList Call.elems)) ]
+                          (VU.fromList Call.elemsLarge)) ]
 
 -- The call allocates at most 16 bytes an element, the result's 8 and no
 -- element boxed.
@@ -323,7 +326,7 @@ within under unit bound x =
 -- What forcing the result of the call to normal form allocates the second time,
 -- as 'allocatedSecond' reads it.
 callAlloc :: Call -> IO Int64
-callAlloc (Call _ f x _) = allocatedSecond (rnf . f) x
+callAlloc (Call _ f x _ _) = allocatedSecond (rnf . f) x
 
 -- The bounds on toVector, sumA, the list heads, specialisation, fillStrided
 -- and the walks hold for an optimised build without profiling or coverage,

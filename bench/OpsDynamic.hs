@@ -12,16 +12,15 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
--- The operations of the three Dynamic modules, one list a vector kind and
--- a size, on a view: the large size, the shape [400, 500]; the small, [3, 3],
--- the least at which window keeps every dimension of more than one element;
--- and the empty, [0, 3].  'opsB', 'opsS' and 'opsU' are the large size's lists
--- on the strided view.
+-- The operations of the three Dynamic modules, one list a vector kind and a
+-- size, on a view: the large size, the shape [400, 500]; the small, [3, 3], the
+-- least at which window keeps every dimension of more than one element; and the
+-- empty, [0, 3].
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE RecordWildCards #-}
-module OpsDynamic ( opsB, opsS, opsU
-                  , opsBLarge, opsSLarge, opsULarge
+module OpsDynamic ( opsBLarge, opsSLarge, opsULarge
                   , opsBSmall, opsSSmall, opsUSmall
                   , opsBEmpty, opsSEmpty, opsUEmpty ) where
 
@@ -29,6 +28,7 @@ import Data.Foldable (fold)
 import Data.Functor.Identity (Identity (..))
 import Data.Int (Int64)
 import Data.Monoid (Sum (..))
+import GHC.TypeLits (Nat)
 
 import qualified Data.Array.Dynamic as B
 import qualified Data.Array.DynamicS as S
@@ -45,28 +45,22 @@ import qualified Data.Array.Internal.DynamicG as DG
 import qualified Data.Array.Internal.DynamicS as IS
 import qualified Data.Array.Internal.DynamicU as IU
 
-import Call ( Call (..), Form (..), Size (..), View (..), call, elemsFrom
-            , sizeEmpty, sizeLarge, sizeSmall )
-
-opsB, opsS, opsU :: [Call]
-opsB = opsBLarge Viewed Strided
-opsS = opsSLarge Viewed Strided
-opsU = opsULarge Viewed Strided
+import Call ( Call (..), Form (..), Size (..), View (..), call, callOnce
+            , elemsFrom, sizeEmpty, sizeLarge, sizeSmall )
 
 -- The Shaped arrays' shapes the lists convert to, which the C preprocessor
--- must not see after an apostrophe: the view's, and one of a single row.
-type ShD = '[400, 500]
-type FlatD = '[200000]
-type ShDSmall = '[3, 3]
-type FlatDSmall = '[9]
-type ShDEmpty = '[0, 3]
-type FlatDEmpty = '[0]
+-- must not see after an apostrophe: the view's, of the size's rows and
+-- columns, and one of a single row, of the size's elements.
+type ShD (r :: Nat) (c :: Nat) = '[r, c]
+type FlatD (n :: Nat) = '[n]
 
 #define FAMILY_OPS "dynamic-ops.inc"
 
-#define SHD ShD
-#define FLATD FlatD
+#define SHD (ShD ROWS COLS)
+
 #define ROWS 400
+#define COLS 500
+#define FLATD (FlatD 200000)
 #define SIZE sizeLarge
 
 #define OPSB opsBLarge
@@ -74,13 +68,13 @@ type FlatDEmpty = '[0]
 #define OPSU opsULarge
 #include "kinds.inc"
 
-#undef ROWS
 #undef SIZE
 #undef FLATD
-#undef SHD
-#define SHD ShDSmall
-#define FLATD FlatDSmall
+#undef COLS
+#undef ROWS
 #define ROWS 3
+#define COLS 3
+#define FLATD (FlatD 9)
 #define SIZE sizeSmall
 
 #define OPSB opsBSmall
@@ -88,13 +82,13 @@ type FlatDEmpty = '[0]
 #define OPSU opsUSmall
 #include "kinds.inc"
 
-#undef ROWS
 #undef SIZE
 #undef FLATD
-#undef SHD
-#define SHD ShDEmpty
-#define FLATD FlatDEmpty
+#undef COLS
+#undef ROWS
 #define ROWS 0
+#define COLS 3
+#define FLATD (FlatD 0)
 #define SIZE sizeEmpty
 
 #define OPSB opsBEmpty

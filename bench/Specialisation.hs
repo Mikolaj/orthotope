@@ -102,12 +102,11 @@
 module Main (main) where
 
 import Control.Monad (forM_, unless)
-import Data.Int (Int64)
 import Data.List (isInfixOf, tails)
 import System.Environment (getArgs)
 import Text.Printf (printf)
 
-import Call (Form (..), allocated)
+import Call (Form (..), allocatedSecond)
 import Harness (Mode (..), measure)
 import Materialize (Probe (..), probes)
 import qualified Rows
@@ -125,55 +124,45 @@ main = do
 -- The table of the rows the arguments select.
 table :: Mode -> [String] -> IO ()
 table mode args = do
-  let rows = [ r | r@(row, _, _) <- Rows.rows
-                 , null args || any (`isInfixOf` row) args ]
+  let rows = [ r | r@(row, _, _) <- Rows.rows, selected row ]
   unless (null rows) $ do
     printf "%-48s %s, the result %s\n" ""
            "ns, then bytes, an element at the large size, a call at the others"
            (case mode of Forced -> "forced"; Summing -> "summed")
-    let cols = concatMap (printf "%9s") kinds :: String
+    let cols = concatMap (printf "%9s") Rows.kinds :: String
     printf "%-48s %s %s\n" "" cols cols
   forM_ rows $ \ (row, per, cells) -> do
     ms <- mapM (traverse (measure mode Nothing)) (cells Viewed)
     let time = maybe "-" (\ (t, _) -> printf "%.2f" (t / fromIntegral per))
-        bytes = maybe "-" (\ (_, a) -> printf "%.2f" (perOf per a))
-    printf "%-48s %9s%9s%9s %9s%9s%9s\n" row
-           (time (ms !! 0)) (time (ms !! 1)) (time (ms !! 2))
-           (bytes (ms !! 0)) (bytes (ms !! 1)) (bytes (ms !! 2))
+        bytes = maybe "-" (\ (_, a) -> printf "%.2f"
+                             (fromIntegral a / fromIntegral per :: Double))
+        figures f = concatMap (printf "%9s" . f) ms :: String
+    printf "%-48s %s %s\n" row (figures time) (figures bytes)
   let probed = case mode of
         Summing -> []
-        Forced -> [ p | p@(Probe row _ _ _) <- probes
-                      , null args || any (`isInfixOf` row) args ]
+        Forced -> [ p | p@(Probe row _ _ _) <- probes, selected row ]
   unless (null probed) $
     printf "\n%-48s %s\n" ""
       "bytes a call at Storable: as compiled, the value built, the difference"
   forM_ probed $ \ (Probe row f g a) -> do
-    _ <- allocated f a
-    af <- allocated f a
-    _ <- allocated g a
-    ag <- allocated g a
+    af <- allocatedSecond f a
+    ag <- allocatedSecond g a
     printf "%-48s %9d%9d%9d\n" row af ag (ag - af)
-
--- Bytes over the count given.
-perOf :: Int -> Int64 -> Double
-perOf per a = fromIntegral a / fromIntegral per
+ where
+  selected row = null args || any (`isInfixOf` row) args
 
 -- One batch of the given number of calls of the one cell the pattern matches,
 -- and the cell's nanoseconds and bytes a call.
 counted :: Mode -> Int -> String -> IO ()
 counted mode k pattern =
   case [ (cell, c) | (row, _, cells) <- Rows.rows
-                   , (kind, Just c) <- zip kinds (cells Viewed)
+                   , (kind, Just c) <- zip Rows.kinds (cells Viewed)
                    , let cell = row ++ "/" ++ kind
                    , glob pattern cell ] of
     [(cell, c)] -> do
       (t, a) <- measure mode (Just k) c
       printf "%s %.2f %d\n" cell t a
     cs -> error $ "-m glob matches " ++ show (length cs) ++ " cells, not one"
-
--- The vector kinds, in the order of a row's cells.
-kinds :: [String]
-kinds = ["boxed", "Storable", "Unboxed"]
 
 -- The count of --iters, the pattern of -m glob and the other arguments.
 options :: [String] -> (Maybe Int, Maybe String, [String])

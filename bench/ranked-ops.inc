@@ -13,18 +13,18 @@ OPS form view =
   , call "shapeL" (\ a -> ARR.shapeL a) t
   , call "rank" (\ a -> ARR.rank a) t
   , call "toList" (\ a -> sum (ARR.toList a)) t
-  , call "fromList" (\ xs -> ARR.fromList [ROWS, cols] xs `asTypeOf` t)
-                  (take (ROWS * cols) elemsFrom)
-  , call "fromList.map"
-         (\ xs -> ARR.fromList [ROWS, cols] (map (+ 1) xs) `asTypeOf` t)
-         (take (ROWS * cols) elemsFrom)
+  , callOnce "fromList" (\ xs -> ARR.fromList [ROWS, cols] xs `asTypeOf` t)
+                      (take (ROWS * cols) elemsFrom)
+  , callOnce "fromList.map"
+             (\ xs -> ARR.fromList [ROWS, cols] (map (+ 1) xs) `asTypeOf` t)
+             (take (ROWS * cols) elemsFrom)
   , call "toVector" (\ a -> ARR.toVector a) t
   , call "toUnorderedVectorT"
          (\ (IARR.A (RG.A sh u)) -> I.toUnorderedVectorT sh u) t
   , call "toUnorderedVectorListT"
          (\ (IARR.A (RG.A sh u)) -> I.toUnorderedVectorListT sh u) t
-  , call "fromVector" (\ v -> ARR.fromVector [ROWS, cols] v `asTypeOf` t)
-                    (ARR.toVector d)
+  , callOnce "fromVector" (\ v -> ARR.fromVector [ROWS, cols] v `asTypeOf` t)
+                        (ARR.toVector d)
   , call "normalize" (\ a -> ARR.normalize a) t
   , call "force" (\ a -> ARR.force a) t
   , call "force.rank5" (\ a -> ARR.force a) tx
@@ -33,12 +33,13 @@ OPS form view =
   , call "force.window"
          (\ a -> ARR.force (ARR.window [2, 2] a :: ARR.Array 4 Double)) t
 #endif
-  , call "scalar" (\ x -> ARR.scalar x) x0
-  , call "unScalar" (\ a -> ARR.unScalar a) (ARR.scalar x0)
-  , call "constant" (\ x -> ARR.constant [ROWS, cols] x `asTypeOf` t) x0
+  , callOnce "scalar" (\ x -> ARR.scalar x) x0
+  , callOnce "unScalar" (\ a -> ARR.unScalar a) (ARR.scalar x0)
+  , callOnce "constant" (\ x -> ARR.constant [ROWS, cols] x `asTypeOf` t) x0
   , call "reshape" (\ a -> ARR.reshape [ROWS * cols] a `asTypeOf` row) t
 #if ROWS > 0
-  , call "reshape.scalar" (\ a -> ARR.reshape [] a :: ARR.Array 0 Double) t11
+  , callOnce "reshape.scalar"
+             (\ a -> ARR.reshape [] a :: ARR.Array 0 Double) t11
   , call "stretch" (\ a -> ARR.stretch [ROWS, cols] a) r1
   , call "stretchOuter" (\ a -> ARR.stretchOuter ROWS a) r1
 #endif
@@ -53,7 +54,7 @@ OPS form view =
          (\ a -> sum [ ARR.unScalar (ARR.index (ARR.index a i `asTypeOf` row) j)
                      | j <- [0 .. cols - 1], i <- [0 .. ROWS - 1] ]) t
   , call "pad" (\ a -> ARR.pad [(0, 1), (1, 1)] 0 a) t
-  , call "pad.none" (\ a -> ARR.pad [(0, 0), (0, 0)] 0 a) t
+  , callOnce "pad.none" (\ a -> ARR.pad [(0, 0), (0, 0)] 0 a) t
   , call "pad.outer" (\ a -> ARR.pad [(1, 1)] 0 a) t
   , call "mapA" (\ a -> ARR.mapA (+ 1) a) t
   , call "zipWithA" (\ (a, b) -> ARR.zipWithA (+) a b) (t, tn)
@@ -69,11 +70,11 @@ OPS form view =
                                    a b a b a) (t, tn)
   , call "append" (\ (a, b) -> ARR.append a b) (t, tn)
 #if ROWS > 0
-  , call "append.emptyL" (\ a -> ARR.append e a) t
-  , call "append.emptyR" (\ a -> ARR.append a e) t
+  , callOnce "append.emptyL" (\ a -> ARR.append e a) t
+  , callOnce "append.emptyR" (\ a -> ARR.append a e) t
 #endif
   , call "concatOuter" (\ (a, b) -> ARR.concatOuter [a, b]) (t, tn)
-  , call "concatOuter.one" (\ a -> ARR.concatOuter [a]) t
+  , callOnce "concatOuter.one" (\ a -> ARR.concatOuter [a]) t
 #if ROWS > 0
   , call "concatOuter.map"
          (\ a -> ARR.concatOuter
@@ -91,7 +92,7 @@ OPS form view =
   , call "stride" (\ a -> ARR.stride [2, 2] a) t
   , call "stride.outer" (\ a -> ARR.stride [2] a) t
   , call "rotate" (\ a -> ARR.rotate @0 2 a :: ARR.Array 3 Double) t
-  , call "rotate.one" (\ a -> ARR.rotate @1 1 a :: ARR.Array 3 Double) t
+  , callOnce "rotate.one" (\ a -> ARR.rotate @1 1 a :: ARR.Array 3 Double) t
   , call "rotate.inner" (\ a -> ARR.rotate @1 2 a :: ARR.Array 3 Double) t
 #if ROWS > 0
   , call "slice" (\ a -> ARR.slice [(1, sliceRows), (1, cols - 1)] a) t
@@ -130,13 +131,13 @@ OPS form view =
          (\ a -> runIdentity (ARR.traverseA (\ x -> Identity (x + 1)) a)) t
   , call "allSameA" (\ a -> ARR.allSameA a) same
 #if ROWS > 0
-  , call "allSameA.tiers" (\ a -> ARR.allSameA a) tw
+  , callOnce "allSameA.tiers" (\ a -> ARR.allSameA a) tw
 #endif
   , call "sumA" (\ a -> ARR.sumA a) t
   , call "productA" (\ a -> ARR.productA a) t
 #if ROWS > 0
   , call "maximumA" (\ a -> ARR.maximumA a) t
-  , call "maximumA.one" (\ a -> ARR.maximumA a) t11
+  , callOnce "maximumA.one" (\ a -> ARR.maximumA a) t11
   , call "maximumA.rank5" (\ a -> ARR.maximumA a) tx
   , call "minimumA" (\ a -> ARR.minimumA a) t
 #endif
@@ -149,18 +150,18 @@ OPS form view =
 #if ROWS > 0
   , call "update" (\ a -> ARR.update a [(ielem, 9)]) t
 #endif
-  , call "update.none" (\ a -> ARR.update a []) t
+  , callOnce "update.none" (\ a -> ARR.update a []) t
   -- A pair per perPair elements built in each call, the list depending on its
   -- array so that it is not floated out of the loop.
   , call "update2000"
          (\ a -> ARR.update a [ ([i `quot` cols, i `rem` cols], fromIntegral i)
                               | i <- [0 .. ARR.size a `quot` perPair - 1] ]) t
-  , call "generate" (\ k -> ARR.generate [ROWS, cols]
-                                      (\ ix -> fromIntegral (sum ix + k))
-                          `asTypeOf` t)
-                  0
-  , call "iterateN" (\ x -> ARR.iterateN (ROWS * cols) (+ 1) x) x0
-  , call "iota" (\ k -> ARR.iota k :: ARR.Array 1 Double) (ROWS * cols)
+  , callOnce "generate" (\ k -> ARR.generate [ROWS, cols]
+                                          (\ ix -> fromIntegral (sum ix + k))
+                              `asTypeOf` t)
+                      0
+  , callOnce "iterateN" (\ x -> ARR.iterateN (ROWS * cols) (+ 1) x) x0
+  , callOnce "iota" (\ k -> ARR.iota k :: ARR.Array 1 Double) (ROWS * cols)
 #ifdef STORABLE
   , call "bitcast" (\ a -> ARR.bitcast a :: ARR.Array 2 Int64) t
 #endif
@@ -168,24 +169,24 @@ OPS form view =
   , call "convertE" (\ a -> convertE a :: Either String (CONV.Array 2 Double)) t
   , call "convert.rank5" (\ a -> convert a :: CONV.Array 5 Double) tx
 #if defined(BOXED) || defined(STORABLE)
-  , call "convert.dynamic" (\ a -> convert a :: CD.Array Double) t
-  , call "convertE.dynamic"
-         (\ a -> convertE a :: Either String (CD.Array Double)) t
-  , call "convert.shaped" (\ a -> convert a :: CS.Array SHD Double) t
-  , call "convertE.shaped"
-         (\ a -> convertE a :: Either String (CS.Array SHMD Double)) t
+  , callOnce "convert.dynamic" (\ a -> convert a :: CD.Array Double) t
+  , callOnce "convertE.dynamic"
+             (\ a -> convertE a :: Either String (CD.Array Double)) t
+  , callOnce "convert.shaped" (\ a -> convert a :: CS.Array SHD Double) t
+  , callOnce "convertE.shaped"
+             (\ a -> convertE a :: Either String (CS.Array SHMD Double)) t
 #endif
 #ifdef BOXED
   , call "convert.unboxed" (\ a -> convert a :: U.Array 2 Double) t
   , call "convertE.unboxed"
          (\ a -> convertE a :: Either String (U.Array 2 Double)) t
 #endif
-  , call "convert.g" (\ a -> convert a `asTypeOf` IARR.unA a) t
-  , call "convertE.g" (\ a -> convertE a `asTypeOf` Right (IARR.unA a)) t
+  , callOnce "convert.g" (\ a -> convert a `asTypeOf` IARR.unA a) t
+  , callOnce "convertE.g" (\ a -> convertE a `asTypeOf` Right (IARR.unA a)) t
   , call "==" (\ (a, b) -> (a == b, b == a)) (t, tn)
   , call "==.g" (\ (a, b) -> (a == b, b == a)) (IARR.unA t, IARR.unA tn)
 #if ROWS > 0
-  , call "==.shapes" (\ (a, b) -> a == b) (t, t1)
+  , callOnce "==.shapes" (\ (a, b) -> a == b) (t, t1)
   , call "==.rank1" (\ (a, b) -> a == b) (row, rown)
 #endif
   , call "==.rank3" (\ (a, b) -> a == b) (t3, t3n)
@@ -201,16 +202,16 @@ OPS form view =
 #if ROWS > 0
   , call "<" (\ (a, b) -> (a < b, b < a)) (t, tu)
   , call "<.g" (\ (a, b) -> (a < b, b < a)) (IARR.unA t, IARR.unA tu)
-  , call "<=" (\ (a, b) -> (a <= b, b <= a)) (t, tu)
-  , call "<=.g" (\ (a, b) -> (a <= b, b <= a)) (IARR.unA t, IARR.unA tu)
-  , call ">" (\ (a, b) -> (a > b, b > a)) (t, tu)
-  , call ">.g" (\ (a, b) -> (a > b, b > a)) (IARR.unA t, IARR.unA tu)
-  , call ">=" (\ (a, b) -> (a >= b, b >= a)) (t, tu)
-  , call ">=.g" (\ (a, b) -> (a >= b, b >= a)) (IARR.unA t, IARR.unA tu)
-  , call "max" (\ (a, b) -> (max a b, max b a)) (t, tu)
-  , call "max.g" (\ (a, b) -> (max a b, max b a)) (IARR.unA t, IARR.unA tu)
-  , call "min" (\ (a, b) -> (min a b, min b a)) (t, tu)
-  , call "min.g" (\ (a, b) -> (min a b, min b a)) (IARR.unA t, IARR.unA tu)
+  , callOnce "<=" (\ (a, b) -> (a <= b, b <= a)) (t, tu)
+  , callOnce "<=.g" (\ (a, b) -> (a <= b, b <= a)) (IARR.unA t, IARR.unA tu)
+  , callOnce ">" (\ (a, b) -> (a > b, b > a)) (t, tu)
+  , callOnce ">.g" (\ (a, b) -> (a > b, b > a)) (IARR.unA t, IARR.unA tu)
+  , callOnce ">=" (\ (a, b) -> (a >= b, b >= a)) (t, tu)
+  , callOnce ">=.g" (\ (a, b) -> (a >= b, b >= a)) (IARR.unA t, IARR.unA tu)
+  , callOnce "max" (\ (a, b) -> (max a b, max b a)) (t, tu)
+  , callOnce "max.g" (\ (a, b) -> (max a b, max b a)) (IARR.unA t, IARR.unA tu)
+  , callOnce "min" (\ (a, b) -> (min a b, min b a)) (t, tu)
+  , callOnce "min.g" (\ (a, b) -> (min a b, min b a)) (IARR.unA t, IARR.unA tu)
 #endif
   , call "rnf" id t
 #ifdef BOXED
@@ -256,7 +257,7 @@ OPS form view =
   rown = ARR.index tn 0 `asTypeOf` row
   -- Seven dimensions at stride 1, whose lengths fall in every tier the sort
   -- of an unordered route ranks runs by, two pairs of them in one tier each.
-  tw = ARR.window [tw1] (ARR.window [tw2] (ARR.window [tw3]
+  tw = ARR.window [2] (ARR.window [3] (ARR.window [4]
          (ARR.window [tw4] (ARR.window [tw5] (ARR.window [tw6]
            (ARR.fromList [twn] (take twn elemsFrom) :: ARR.Array 1 Double)
            :: ARR.Array 2 Double) :: ARR.Array 3 Double) :: ARR.Array 4 Double)
