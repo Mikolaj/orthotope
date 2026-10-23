@@ -19,7 +19,7 @@ dimensions. E.g. the array shape `[2,3]` is a 2x3 matrix (2 rows, 3
 columns), and the shape `[]` is a single value (a scalar).
 The number of dimensions is called the *rank* of the array.
 
-The shape may or may not be part of the type, depending on which version of the
+The shape may or may not be part of the type, depending on which variant of the
 API you use.
 
 ## API variants
@@ -150,8 +150,8 @@ fromList [2,3] [1,2,3,4,5,6]
 Arrays can be pretty printed.  They are shown in the APL way:
 The innermost dimension on a line, the next dimension vertically,
 the next dimension vertically with an empty line in between, and so on.
-Normally there is a box drawn around the array, but this can be changed by lowering
-pretty printing level to `pPrintPrec`.
+Normally a box is drawn around the array; `pPrintPrec` at a level below
+`prettyNormal` draws none.
 
 ```
 > pp m

@@ -2,16 +2,11 @@
 --
 --   cabal test --project-file=cabal.project.checks --builddir=dist-checks
 --
--- With 9.2.8, -fcheck-prim-bounds stops update of an empty unboxed view of a
--- longer vector, in vector's code, which the later ones pass, and 9.0.2 and
--- 8.10.7 lack the flag.
---
--- vector checks its unsafe operations and its internal invariants too,
--- and -fcheck-prim-bounds has every package built here check its array
--- primops, aborting the run.  An access out of bounds through either then
--- fails where the ordinary build lets it pass; one through a raw pointer,
--- such as a Storable vector's unsafeWith gives, still passes.  The
--- library's asserts, which an optimised build drops, are kept as well.
+-- vector checks its unsafe operations and its internal invariants, and
+-- -fcheck-prim-bounds has every package built here check its array primops,
+-- aborting the run; an access through a raw pointer, such as a Storable
+-- vector's unsafeWith gives, goes unchecked.  The library's asserts, which an
+-- optimised build drops, are kept as well.
 packages: .
 tests: True
 
