@@ -245,7 +245,7 @@ instance (Read a, Unbox a) => Read (Array a) where
   readsPrec p s = [(A a, r) | (a, r) <- readsPrec p s]
 
 instance Eq (G.Array V.Vector a) => Eq (Array a) where
-  {-# INLINABLE (==) #-}
+  {-# INLINE (==) #-}
   x == y = unA x == unA y
 
 instance Ord (G.Array V.Vector a) => Ord (Array a) where

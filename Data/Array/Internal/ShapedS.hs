@@ -98,7 +98,7 @@ instance (Read a, Unbox a, Shape sh) => Read (Array sh a) where
   readsPrec p s = [(A a, r) | (a, r) <- readsPrec p s]
 
 instance Eq (G.Array sh V.Vector a) => Eq (Array sh a) where
-  {-# INLINABLE (==) #-}
+  {-# INLINE (==) #-}
   x == y = unA x == unA y
 
 instance Ord (G.Array sh V.Vector a) => Ord (Array sh a) where
