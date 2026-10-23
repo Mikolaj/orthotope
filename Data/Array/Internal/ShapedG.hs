@@ -501,7 +501,7 @@ rerank :: forall n i o sh v v' a b .
            Drop n sh ~ i, Shape sh, KnownNat n, Shape o, Shape (Take n sh ++ o)) =>
           (Array i v a -> Array o v' b) -> Array sh v a -> Array (Take n sh ++ o) v' b
 rerank f a@(A t)
-  | product osh == 1, [s] <- subArraysT osh t =
+  | all (== 1) osh, [s] <- subArraysT osh t =
     case f (A s) of  -- one subarray: a view of f's result
       A rt -> A (insertUnitsT 0 (length osh) rt)
   | otherwise =
@@ -525,7 +525,7 @@ rerank2 :: forall n i1 i2 o sh1 sh2 r v a b c .
             KnownNat n, Shape o, Shape (r ++ o)) =>
            (Array i1 v a -> Array i2 v b -> Array o v c) -> Array sh1 v a -> Array sh2 v b -> Array (r ++ o) v c
 rerank2 f aa@(A ta) (A tb)
-  | product osh == 1, [sa] <- subArraysT osh ta, [sb] <- subArraysT osh tb =
+  | all (== 1) osh, [sa] <- subArraysT osh ta, [sb] <- subArraysT osh tb =
     case f (A sa) (A sb) of  -- one subarray each: a view of f's result
       A rt -> A (insertUnitsT 0 (length osh) rt)
   | otherwise =

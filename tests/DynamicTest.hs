@@ -469,6 +469,9 @@ test = testGroup "Dynamic" $
                                  (rerank 3 box a5)
       rerank_5 = assertThrowsIn "5" "rerank" (rerank 4 box a5)
       rerank_6 = assertThrowsIn "6" "ravelOuterOf" (rerank 1 (\ a -> constant [unScalar a] (0 :: Int)) (fromList [2] [1,2 :: Int]))
+      -- Outer extents whose product passes maxBound, beside an empty inner one:
+      -- f is applied to the first subarray, as to any other.
+      rerank_7 = assertThrowsIn "7" "f" (rerank 2 (\ _ -> error "f" :: Array Int) (constant [4294967296, 4294967296, 0] (0 :: Int)))
       a7 = mapA succ a5
       dot x y = reduce (+) 0 $ zipWithA (*) x y
       rerank2_1 = assertEqual "1" (fromList [2,3] [40,200,488,904,1448,2120])
@@ -742,6 +745,7 @@ test = testGroup "Dynamic" $
         , testCase "rerank_4" rerank_4
         , testCase "rerank_5" rerank_5
         , testCase "rerank_6" rerank_6
+        , testCase "rerank_7" rerank_7
         , testCase "rerank2_1" rerank2_1
         , testCase "rerank2_2" rerank2_2
         , testCase "rerank2_3" rerank2_3

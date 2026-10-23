@@ -2360,7 +2360,7 @@ transposeT is (T ss o v) = T (permute is ss) o v
 {-# INLINE subArraysT #-}
 subArraysT :: ShapeL -> T v a -> [T v a]
 subArraysT sh (T ts o v) = build $ \ cons nil ->
-  if product sh == 0 then nil
+  if 0 `elem` sh then nil
   else outerOffsetsT (reverse (zipWith Axis ots sh)) o
                      (\ p rest -> cons (T its p v) rest) nil
   where (ots, its) = splitAt (length sh) ts

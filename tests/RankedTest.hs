@@ -336,6 +336,9 @@ test = testGroup "Ranked" $
       rerank_4 = assertEqual "4" (mapA (\ x -> Just (scalar x)) a5)
                                  (rerank @3 box a5)
       rerank_5 = assertThrowsIn "5" "ravelOuterOf" (rerank @1 (\ a -> constant [unScalar a] 0) (fromList [2] [1,2] :: Array 1 Int) :: Array 2 Int)
+      -- Outer extents whose product passes maxBound, beside an empty inner one:
+      -- f is applied to the first subarray, as to any other.
+      rerank_6 = assertThrowsIn "6" "f" (rerank @2 (\ _ -> error "f" :: Array 0 Int) (constant [4294967296, 4294967296, 0] 0 :: Array 3 Int) :: Array 2 Int)
       a7 = mapA succ a5
       dot x y = reduce (+) 0 $ zipWithA (*) x y
       rerank2_1 = assertEqual "1" (fromList [2,3] [40,200,488,904,1448,2120])
@@ -561,6 +564,7 @@ test = testGroup "Ranked" $
         , testCase "rerank_3" rerank_3
         , testCase "rerank_4" rerank_4
         , testCase "rerank_5" rerank_5
+        , testCase "rerank_6" rerank_6
         , testCase "rerank2_1" rerank2_1
         , testCase "rerank2_2" rerank2_2
         , testCase "rev_1" rev_1

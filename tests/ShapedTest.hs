@@ -297,6 +297,9 @@ test = testGroup "Shaped" $
                                  (rerank @2 box a5)
       rerank_4 = assertEqual "4" (mapA (\ x -> Just (scalar x)) a5)
                                  (rerank @3 box a5)
+      -- Outer extents whose product passes maxBound, beside an empty inner one:
+      -- f is applied to the first subarray, as to any other.
+      rerank_5 = assertThrowsIn "5" "f" (rerank @2 (\ _ -> error "f" :: Array '[0] Int) (constant 0 :: Array '[4294967296, 4294967296, 0] Int))
       a7 = mapA succ a5
       dot x y = reduce (+) 0 $ zipWithA (*) x y
       rerank2_1 = assertEqual "1" (fromList [40,200,488,904,1448,2120])
@@ -539,6 +542,7 @@ test = testGroup "Shaped" $
         , testCase "rerank_2" rerank_2
         , testCase "rerank_3" rerank_3
         , testCase "rerank_4" rerank_4
+        , testCase "rerank_5" rerank_5
         , testCase "rerank2_1" rerank2_1
         , testCase "rev_1" rev_1
         , testCase "rev_2" rev_2

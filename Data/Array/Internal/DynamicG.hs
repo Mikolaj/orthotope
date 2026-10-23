@@ -579,7 +579,7 @@ slice asl (A ash (T ats ao v)) = A rsh (T ats o v)
 rerank :: forall v v' a b . (HasCallStack, Vector v', VecElem v' b) =>
           Int -> (Array v a -> Array v' b) -> Array v a -> Array v' b
 rerank n f (A sh t) | n < 0 || n > length sh = error $ "rerank: rank exceeded " ++ show (n, sh)
-                    | product osh == 1, [s] <- subArraysT osh t =
+                    | all (== 1) osh, [s] <- subArraysT osh t =
                       case f (A ish s) of  -- one subarray: a view of f's result
                         A rsh rt -> A (osh ++ rsh) (insertUnitsT 0 (length osh) rt)
                     | otherwise =
@@ -625,7 +625,7 @@ rerank2 :: forall v a b c . (HasCallStack, Vector v, VecElem v c) =>
            Int -> (Array v a -> Array v b -> Array v c) -> Array v a -> Array v b -> Array v c
 rerank2 n f (A sha ta) (A shb tb) | n < 0 || n > length sha || n > length shb = error $ "rerank2: rank exceeded " ++ show (n, sha, shb)
                                   | take n sha /= take n shb = error $ "rerank2: shape mismatch " ++ show (take n sha, take n shb)
-                                  | product osh == 1, [sa] <- subArraysT osh ta, [sb] <- subArraysT osh tb =
+                                  | all (== 1) osh, [sa] <- subArraysT osh ta, [sb] <- subArraysT osh tb =
                                     case f (A isha sa) (A ishb sb) of  -- one subarray each: a view of f's result
                                       A rsh rt -> A (osh ++ rsh) (insertUnitsT 0 (length osh) rt)
                                   | otherwise =
