@@ -34,22 +34,22 @@
 -- genericUnsafeFillStrided, genericUnsafeFillStridedInto, canonicalizeT,
 -- stepOdometer, absAxesAndStartT, sortAxesT, insertAxis, canonicalizeSortedT,
 -- allSameT, rectPad, hcatRect, rectWidth, ppT, showsT, box, zipWithLong2,
--- simpleReshape, isPermutation and allSame: on GHC HEAD 10.1.20260918
--- (2026-10-15), this module's functions INLINABLE, as their types give them,
--- cost the specialisation benchmark up to 1960 bytes a call (the conversions),
--- 624 (liftA2), 560 (concatOuter) and 384 (pad); productT, maximumT and
--- minimumT INLINABLE, with Data.Array.Internal.DynamicU's vMaximum and
--- vMinimum, ran productA, maximumA and minimumA in up to 1.6 times the
+-- simpleReshape, isPermutation, allDistinct and allSame: on GHC HEAD
+-- 10.1.20260918 (2026-10-15), this module's functions INLINABLE, as their
+-- types give them, cost the specialisation benchmark up to 1960 bytes a call
+-- (the conversions), 624 (liftA2), 560 (concatOuter) and 384 (pad); productT,
+-- maximumT and minimumT INLINABLE, with Data.Array.Internal.DynamicU's vMaximum
+-- and vMinimum, ran productA, maximumA and minimumA in up to 1.6 times the
 -- instructions, though in up to 3% fewer at boxed Dynamic and Ranked arrays,
 -- and permute without a pragma ran Ranked transpose in up to 1.08 times.  Those
--- it leaves out keep the pragma their types give them, but isPermutation,
--- NOINLINE as measured on GHC HEAD 10.1.20260918 on 2026-10-13: inlined into
--- transpose, the check of a literal permutation was computed once in a library
--- built at -funfolding-creation-threshold=30, and in every call in one built at
--- the default thresholds with Dynamic's transpose INLINE; out of line, a call
--- of it on a literal is a constant, computed once at any threshold.  F1 reads
--- no fusion in allSame: it matches its list before all consumes the tail, so it
--- fuses with no producer.
+-- it leaves out keep the pragma their types give them, but isPermutation and
+-- allDistinct, NOINLINE as isPermutation measured on GHC HEAD 10.1.20260918 on
+-- 2026-10-13: inlined into transpose, the check of a literal permutation was
+-- computed once in a library built at -funfolding-creation-threshold=30, and in
+-- every call in one built at the default thresholds with Dynamic's transpose
+-- INLINE; out of line, a call of it on a literal is a constant, computed once
+-- at any threshold.  F1 reads no fusion in allSame: it matches its list before
+-- all consumes the tail, so it fuses with no producer.
 module Data.Array.Internal(module Data.Array.Internal) where
 import Control.DeepSeq
 import Control.Exception(assert)
@@ -2806,6 +2806,12 @@ permute is xs = go is
 {-# NOINLINE isPermutation #-}
 isPermutation :: [Int] -> Bool
 isPermutation is = all (`elem` is) [0 .. length is - 1]
+
+-- | Whether no element of the list occurs in it twice.
+{-# NOINLINE allDistinct #-}
+allDistinct :: [Int] -> Bool
+allDistinct (i : is) = i `notElem` is && allDistinct is
+allDistinct [] = True
 
 -- | A shape and a list's length as 'vFromListExactN' gives it, for an error
 -- of fromList: a length past the shape's size of n reads "more than n".

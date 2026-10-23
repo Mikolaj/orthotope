@@ -399,9 +399,10 @@ rerank2 :: forall n i o sh a b c .
 rerank2 f ta tb = A $ G.rerank2 @n (\ a b -> unA $ f (A a) (A b)) (unA ta) (unA tb)
 
 -- | Reverse the given dimensions, with the outermost being dimension 0.
+-- Fails if a dimension is given twice.
 -- O(1) time.
 {-# INLINE rev #-}
-rev :: forall rs sh a . (ValidDims rs sh, Shape rs, Shape sh) =>
+rev :: forall rs sh a . (HasCallStack, ValidDims rs sh, Shape rs, Shape sh) =>
        Array sh a -> Array sh a
 rev = A . G.rev @rs . unA
 

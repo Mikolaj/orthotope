@@ -631,11 +631,12 @@ rerank2 f (A sha ta) (A shb tb) | take n sha /= take n shb = error $ "rerank2: s
         n = natT @n
 
 -- | Reverse the given dimensions, with the outermost being dimension 0.
--- Fails if a given dimension is not one of the array's.
+-- Fails if a given dimension is not one of the array's, or is given twice.
 -- O(1) time.
 {-# INLINE rev #-}
 rev :: (HasCallStack) => [Int] -> Array n v a -> Array n v a
-rev rs (A sh t) | all (\ r -> r >= 0 && r < n) rs = A sh (reverseT rs sh t)
+rev rs (A sh t) | all (\ r -> r >= 0 && r < n) rs, allDistinct rs =
+                    A sh (reverseT rs sh t)
                 | otherwise = error $ "rev: bad reverse dimension " ++ show (rs, sh)
   where n = length sh
 

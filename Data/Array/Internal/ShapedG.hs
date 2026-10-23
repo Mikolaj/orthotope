@@ -538,10 +538,12 @@ rerank2 f aa@(A ta) (A tb)
 
 
 -- | Reverse the given dimensions, with the outermost being dimension 0.
+-- Fails if a dimension is given twice.
 -- O(1) time.
 {-# INLINE rev #-}
-rev :: forall rs sh v a . (ValidDims rs sh, Shape rs, Shape sh) => Array sh v a -> Array sh v a
-rev a@(A t) = A (reverseT rs sh t)
+rev :: forall rs sh v a . (HasCallStack, ValidDims rs sh, Shape rs, Shape sh) => Array sh v a -> Array sh v a
+rev a@(A t) | allDistinct rs = A (reverseT rs sh t)
+            | otherwise = error $ "rev: bad reverse dimension " ++ show (rs, sh)
   where rs = listP (Proxy :: Proxy rs)
         sh = shapeL a
 

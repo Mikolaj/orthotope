@@ -305,6 +305,7 @@ test = testGroup "Shaped" $
                               (rev @'[1] a1)
       rev_2 = assertEqual "2" (fromList [6,5,4,3,2,1])
                               (rev @[0,1] a1)
+      rev_3 = assertWhnfThrowsIn "3" "rev" (rev @'[0, 0] a1)
       withShapeP_1 = assertThrowsIn "1" "withShapeP" (withShapeP [-1] (\ _ -> ()))
       withShape_1 = assertThrowsIn "1" "withShape" (withShape [-1] ())
       withShape_2 = assertEqual "2" (7 :: Int) (withShape [2, 3] 7)
@@ -541,6 +542,7 @@ test = testGroup "Shaped" $
         , testCase "rerank2_1" rerank2_1
         , testCase "rev_1" rev_1
         , testCase "rev_2" rev_2
+        , testCase "rev_3" rev_3
         , testCase "withShapeP_1" withShapeP_1
         , testCase "withShape_1" withShape_1
         , testCase "withShape_2" withShape_2

@@ -481,6 +481,7 @@ test = testGroup "Dynamic" $
       rev_2 = assertEqual "2" (fromList [2,3] [6,5,4,3,2,1])
                               (rev [0,1] a1)
       rev_3 = assertThrowsIn "3" "rev" (rev [2] a1)
+      rev_4 = assertThrowsIn "4" "rev" (rev [0, 0] a1)
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank 1 (\ r -> reduce (*) 1 r) a1)
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (\ r -> reduce (*) 1 r) a2)
@@ -747,6 +748,7 @@ test = testGroup "Dynamic" $
         , testCase "rev_1" rev_1
         , testCase "rev_2" rev_2
         , testCase "rev_3" rev_3
+        , testCase "rev_4" rev_4
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3

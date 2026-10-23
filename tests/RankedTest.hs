@@ -347,6 +347,7 @@ test = testGroup "Ranked" $
       rev_2 = assertEqual "2" (fromList [2,3] [6,5,4,3,2,1])
                               (rev [0,1] a1)
       rev_3 = assertThrowsIn "3" "rev" (rev [2] a1)
+      rev_4 = assertThrowsIn "4" "rev" (rev [0, 0] a1)
       convertE_1 = assertEqual "1" (Left "convert: rank mismatch ([2],2)") (convertE (D.fromList [2] [1,2 :: Int]) :: Either String (Array 2 Int))
       -- rnf forces no element outside the view.
       rnf_1 = assertEqual "1" () (rnf (index (fromList [2,2] [1,2,undefined,undefined]) 0 :: Array 1 Int))
@@ -565,6 +566,7 @@ test = testGroup "Ranked" $
         , testCase "rev_1" rev_1
         , testCase "rev_2" rev_2
         , testCase "rev_3" rev_3
+        , testCase "rev_4" rev_4
         , testCase "convertE_1" convertE_1
         , testCase "rnf_1" rnf_1
         , testCase "convert_1" convert_1

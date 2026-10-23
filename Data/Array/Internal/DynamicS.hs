@@ -683,7 +683,7 @@ rerank2 :: forall a b c . (HasCallStack, Unbox c) =>
 rerank2 n f ta tb = A $ G.rerank2 n (\ a b -> unA $ f (A a) (A b)) (unA ta) (unA tb)
 
 -- | Reverse the given dimensions, with the outermost being dimension 0.
--- Fails if a given dimension is not one of the array's.
+-- Fails if a given dimension is not one of the array's, or is given twice.
 -- O(1) time.
 {-# INLINE rev #-}
 rev :: (HasCallStack) => [Int] -> Array a -> Array a
