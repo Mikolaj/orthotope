@@ -421,6 +421,10 @@ instance Functor Array where
 instance Foldable Array where
   {-# INLINE foldr #-}
   foldr = foldrA
+  -- length and null from the shape, rather than by a walk of the elements.
+  {-# INLINE length #-}
+  length = size
+  null = (== 0) . size
 
 instance Traversable Array where
   {-# INLINE traverse #-}

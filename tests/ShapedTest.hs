@@ -53,6 +53,9 @@ test = testGroup "Shaped" $
       shapeL_2 = assertEqual "2" [3,2] (shapeL a2)
       rank_1 = assertEqual "1" 2 (rank a1)
       rank_2 = assertEqual "2" 2 (rank a2)
+      -- Foldable's length and null, read off the shape.
+      foldable_1 = assertEqual "1" (6, False, 0, True) (length a1, null a1, length e, null e)
+        where e = (fromList [] :: Array [2,0] Int)
       index_1 = assertEqual "1" (fromList [1,2,3]) (index a1 0)
       index_2 = assertEqual "2" (fromList [1,4]) (index a2 0)
       index_3 = assertEqual "3" (fromList [4]) (a2 `index` 0 `index` 1)
@@ -470,6 +473,7 @@ test = testGroup "Shaped" $
         , testCase "shapeL_2" shapeL_2
         , testCase "rank_1" rank_1
         , testCase "rank_2" rank_2
+        , testCase "foldable_1" foldable_1
         , testCase "index_1" index_1
         , testCase "index_2" index_2
         , testCase "index_3" index_3

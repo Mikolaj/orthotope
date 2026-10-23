@@ -234,6 +234,11 @@ instance (Shape sh) => Functor (Array sh) where
 instance (Shape sh) => Foldable (Array sh) where
   {-# INLINE foldr #-}
   foldr = foldrA
+  -- length and null from the shape, rather than by a walk of the elements.
+  {-# INLINE length #-}
+  length = size
+  {-# INLINABLE null #-}
+  null = (== 0) . size
 
 instance (Shape sh) => Traversable (Array sh) where
   {-# INLINE traverse #-}

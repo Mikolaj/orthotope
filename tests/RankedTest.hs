@@ -46,6 +46,9 @@ test = testGroup "Ranked" $
       shapeL_2 = assertEqual "2" [3,2] (shapeL a2)
       rank_1 = assertEqual "1" 2 (rank a1)
       rank_2 = assertEqual "2" 2 (rank a2)
+      -- Foldable's length and null, read off the shape.
+      foldable_1 = assertEqual "1" (6, False, 0, True) (length a1, null a1, length e, null e)
+        where e = (fromList [2,0] [] :: Array 2 Int)
       -- A rank past maxBound fails where it is read, and convertE to it
       -- returns Left.
       rank_3 = do
@@ -479,6 +482,7 @@ test = testGroup "Ranked" $
         , testCase "shapeL_2" shapeL_2
         , testCase "rank_1" rank_1
         , testCase "rank_2" rank_2
+        , testCase "foldable_1" foldable_1
         , testCase "rank_3" rank_3
         , testCase "maximumA_empty" maximumA_empty
         , testCase "index_1" index_1
