@@ -264,6 +264,8 @@ test = testGroup "Shaped" $
                                                     13,15,
                                                     21,23])
                                  (stride @[1,2,2] a5)
+      -- A type-level stride past maxBound fails as stride returns.
+      stride_2 = assertWhnfThrowsIn "2" "Shape" (stride @'[18446744073709551616] (fromList [1,2,3] :: Array '[3] Int))
       rotate_1 = assertEqual "1" (fromList @[2,4,3,2]
                                            [1, 2, 3, 4, 5, 6,
                                             5, 6, 1, 2, 3, 4,
@@ -533,6 +535,7 @@ test = testGroup "Shaped" $
         , testCase "window_1" window_1
         , testCase "window_2" window_2
         , testCase "stride_1" stride_1
+        , testCase "stride_2" stride_2
         , testCase "rotate_1" rotate_1
         , testCase "rotate_2" rotate_2
         , testCase "rotate_3" rotate_3

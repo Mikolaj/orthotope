@@ -456,7 +456,9 @@ window (A (T ss o v)) = sizeT @sh' `seq`  -- the result's size checked now; see 
 stride :: forall ts sh' sh v a .
           (Stride ts sh sh', Shape ts) =>
           Array sh v a -> Array sh' v a
-stride (A (T ss o v)) = A (T (zipWith (*) (ats ++ repeat 1) ss) o v)
+stride (A (T ss o v)) =
+  foldr seq () ats `seq`  -- check now
+  A (T (zipWith (*) (ats ++ repeat 1) ss) o v)
   where ats = listP (Proxy :: Proxy ts)
 
 -- | Rotate the array k times along the d'th dimension.
