@@ -18,7 +18,6 @@
 module ShapedTest(test) where
 
 import Control.DeepSeq hiding (force)
-import Control.Exception
 import Data.Array.Convert (convert, convertE)
 import qualified Data.Array.Dynamic as D
 import qualified Data.Array.DynamicS as DS
@@ -34,11 +33,8 @@ import Data.Proxy (Proxy(..))
 import qualified Data.Vector as V
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
-import Test.HUnit (assertEqual, assertFailure, Assertion)
+import Test.HUnit (assertEqual)
 import Views (assertThrowsIn, assertThrowsWith, assertWhnfThrowsIn)
-
-assertThrows :: (NFData a) => String -> a -> Assertion
-assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
 
 test :: Test
 test = testGroup "Shaped" $
@@ -61,7 +57,7 @@ test = testGroup "Shaped" $
       index_2 = assertEqual "2" (fromList [1,4]) (index a2 0)
       index_3 = assertEqual "3" (fromList [4]) (a2 `index` 0 `index` 1)
       index_4 = assertThrowsWith "<0" "index: out of bounds (-1,2)" (index a1 (-1))
-      index_5 = assertThrows ">" (index a1 2)
+      index_5 = assertThrowsIn ">" "index" (index a1 2)
       -- An extent past maxBound fails as it is read, in index or in making
       -- the array, whichever GHC evaluates first; so the array is made as
       -- a user would make it, not left undefined, which an INLINABLE index
@@ -75,8 +71,8 @@ test = testGroup "Shaped" $
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
       toVector_2 = assertEqual "2" (V.fromList [1,4,2,5,3,6]) (toVector a2)
-      fromList_1 = assertThrows "sh" (fromList [1,2] :: Array '[] Int)
-      fromList_2 = assertThrows "sh" (fromList [1,2] :: Array [4,5] Int)
+      fromList_1 = assertThrowsIn "sh" "fromList" (fromList [1,2] :: Array '[] Int)
+      fromList_2 = assertThrowsIn "sh" "fromList" (fromList [1,2] :: Array [4,5] Int)
       -- Shapes with an extent or a size past maxBound, the extent below
       -- 2^64: fromList at '[2^64+3] made GHC 9.14.1 panic, not 10.1.20260918.
       -- TODO: try '[2^64+3] on GHC 9.14.2 once it is out, and if it still
@@ -86,7 +82,7 @@ test = testGroup "Shaped" $
       fromVector_1 = assertEqual "1" a1 (fromVector $ V.fromList [1..6])
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [1..6] :: Array '[6] Int) (reshape a1)
-      reshape_2 = assertEqual "1" (fromList [1,4,2,5,3,6]) (reshape a2 :: Array [1,2,3,1] Int)
+      reshape_2 = assertEqual "2" (fromList [1,4,2,5,3,6]) (reshape a2 :: Array [1,2,3,1] Int)
       a3 :: Array '[1] Int
       a3 = fromList [5]
       a4 :: Array '[] Int
@@ -111,7 +107,7 @@ test = testGroup "Shaped" $
       broadcast_3 = assertEqual "3" [1,2,3,1,2,3]
                                     (toList (broadcast @'[1] @'[2,3] (fromList [1,2,3] :: Array '[3] Int)))
       mapA_1 = assertEqual "1" (fromList [2..7]) (mapA succ a1)
-      mapA_2 = assertEqual "1" (fromList [2,5,3,6,4,7]) (mapA succ a2)
+      mapA_2 = assertEqual "2" (fromList [2,5,3,6,4,7]) (mapA succ a2)
       zipWithA_1 = assertEqual "1" (fromList [2,4..12]) (zipWithA (+) a1 a1)
       zipWith3A_1 = assertEqual "1" (fromList [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
       pad_1 = assertEqual "1" (fromList [9,9,9,9,9,9,9,9,9,9,
@@ -121,9 +117,9 @@ test = testGroup "Shaped" $
                                          9,9,9,9,9,9,9,9,9,9])
                               (pad @['(1,2), '(3,4)] 9 a1)
       -- A padded size past maxBound.
-      pad_2 = assertThrowsIn "2" "pad" (pad @['(0,0), '(0,4294967294)] 0 (constant 7 :: Array [4294967296, 2] Int) :: Array [4294967296, 4294967296] Int)
+      pad_2 = assertWhnfThrowsIn "2" "pad" (pad @['(0,0), '(0,4294967294)] 0 (constant 7 :: Array [4294967296, 2] Int) :: Array [4294967296, 4294967296] Int)
       -- Extents summing past maxBound.
-      pad_3 = assertThrowsIn "3" "pad" (pad @'[ '(9223372036854775807, 9223372036854775807)] 0 (fromList [1,2,3] :: Array '[3] Int) :: Array '[18446744073709551617] Int)
+      pad_3 = assertWhnfThrowsIn "3" "pad" (pad @'[ '(9223372036854775807, 9223372036854775807)] 0 (fromList [1,2,3] :: Array '[3] Int) :: Array '[18446744073709551617] Int)
       -- A padded shape whose inner part has more elements than an Int counts.
       pad_4 = assertWhnfThrowsIn "4" "pad" (pad @'[ '(0,0), '(4611686018427387904,0)] 0 (constant 0 :: Array '[0,2,4] Int))
       -- A padding past maxBound.

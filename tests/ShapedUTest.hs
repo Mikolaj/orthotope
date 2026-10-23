@@ -17,17 +17,13 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module ShapedUTest(test) where
 
-import Control.DeepSeq hiding (force)
-import Control.Exception
 import qualified Data.Array.Shaped as S
 import Data.Array.ShapedU
 import qualified Data.Vector.Unboxed as V
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
-import Test.HUnit (assertEqual, assertFailure, Assertion)
-
-assertThrows :: (NFData a) => String -> a -> Assertion
-assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
+import Test.HUnit (assertEqual)
+import Views (assertThrowsIn)
 
 test :: Test
 test = testGroup "ShapedU" $
@@ -49,8 +45,8 @@ test = testGroup "ShapedU" $
       index_1 = assertEqual "1" (fromList [1,2,3]) (index a1 0)
       index_2 = assertEqual "2" (fromList [1,4]) (index a2 0)
       index_3 = assertEqual "3" (fromList [4]) (a2 `index` 0 `index` 1)
-      index_4 = assertThrows "<0" (index a1 (-1))
-      index_5 = assertThrows ">" (index a1 2)
+      index_4 = assertThrowsIn "<0" "index" (index a1 (-1))
+      index_5 = assertThrowsIn ">" "index" (index a1 2)
       -- index need not know that the elements are Unboxed.
       constraints_1 = assertEqual "1" (index a1 1) (indexN a1 1)
         where indexN :: Array '[2, 3] a -> Int -> Array '[3] a
@@ -59,12 +55,12 @@ test = testGroup "ShapedU" $
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
       toVector_2 = assertEqual "2" (V.fromList [1,4,2,5,3,6]) (toVector a2)
-      fromList_1 = assertThrows "sh" (fromList [1,2] :: Array '[] Int)
-      fromList_2 = assertThrows "sh" (fromList [1,2] :: Array [4,5] Int)
+      fromList_1 = assertThrowsIn "sh" "fromList" (fromList [1,2] :: Array '[] Int)
+      fromList_2 = assertThrowsIn "sh" "fromList" (fromList [1,2] :: Array [4,5] Int)
       fromVector_1 = assertEqual "1" a1 (fromVector $ V.fromList [1..6])
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [1..6] :: Array '[6] Int) (reshape a1)
-      reshape_2 = assertEqual "1" (fromList [1,4,2,5,3,6]) (reshape a2 :: Array [1,2,3,1] Int)
+      reshape_2 = assertEqual "2" (fromList [1,4,2,5,3,6]) (reshape a2 :: Array [1,2,3,1] Int)
       a3 :: Array '[1] Int
       a3 = fromList [5]
       a4 :: Array '[] Int
@@ -82,7 +78,7 @@ test = testGroup "ShapedU" $
       broadcast_3 = assertEqual "3" [1,2,3,1,2,3]
                                     (toList (broadcast @'[1] @'[2,3] (fromList [1,2,3] :: Array '[3] Int)))
       mapA_1 = assertEqual "1" (fromList [2..7]) (mapA succ a1)
-      mapA_2 = assertEqual "1" (fromList [2,5,3,6,4,7]) (mapA succ a2)
+      mapA_2 = assertEqual "2" (fromList [2,5,3,6,4,7]) (mapA succ a2)
       zipWithA_1 = assertEqual "1" (fromList [2,4..12]) (zipWithA (+) a1 a1)
       zipWith3A_1 = assertEqual "1" (fromList [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
       pad_1 = assertEqual "1" (fromList [9,9,9,9,9,9,9,9,9,9,

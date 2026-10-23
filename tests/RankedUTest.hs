@@ -17,18 +17,13 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module RankedUTest(test) where
 
-import Control.DeepSeq hiding (force)
-import Control.Exception
 import qualified Data.Array.Ranked as R
 import Data.Array.RankedU
 import qualified Data.Vector.Unboxed as V
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
-import Test.HUnit (assertEqual, assertFailure, Assertion)
 import Views (assertThrowsIn)
-
-assertThrows :: (NFData a) => String -> a -> Assertion
-assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
+import Test.HUnit (assertEqual)
 
 test :: Test
 test = testGroup "RankedU" $
@@ -48,18 +43,18 @@ test = testGroup "RankedU" $
       index_1 = assertEqual "1" (fromList [3] [1,2,3]) (index a1 0)
       index_2 = assertEqual "2" (fromList [2] [1,4]) (index a2 0)
       index_3 = assertEqual "3" (fromList [] [4]) (a2 `index` 0 `index` 1)
-      index_4 = assertThrows "<0" (index a1 (-1))
-      index_5 = assertThrows ">" (index a1 2)
+      index_4 = assertThrowsIn "<0" "index" (index a1 (-1))
+      index_5 = assertThrowsIn ">" "index" (index a1 2)
       toList_1 = assertEqual "1" [1,2,3,4,5,6] (toList a1)
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
       toVector_2 = assertEqual "2" (V.fromList [1,4,2,5,3,6]) (toVector a2)
-      fromList_1 = assertThrows "sh" (fromList [] [1,2] :: Array 0 Int)
-      fromList_2 = assertThrows "sh" (fromList [4,5] [1,2] :: Array 2 Int)
+      fromList_1 = assertThrowsIn "sh" "fromList" (fromList [] [1,2] :: Array 0 Int)
+      fromList_2 = assertThrowsIn "sh" "fromList" (fromList [4,5] [1,2] :: Array 2 Int)
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [6] [1..6] :: Array 1 Int) (reshape [6] a1)
-      reshape_2 = assertEqual "1" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2 :: Array 4 Int)
+      reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2 :: Array 4 Int)
       a3 :: Array 1 Int
       a3 = fromList [1] [5]
       a4 :: Array 0 Int
@@ -67,15 +62,15 @@ test = testGroup "RankedU" $
       stretch_1 = assertEqual "1" (fromList [3] [5,5,5]) (stretch [3] a3)
       stretch_2 = assertEqual "2" (fromList [2,2,3,2] [1,1,2,2,3,3,4,4,5,5,6,6,1,1,2,2,3,3,4,4,5,5,6,6])
                                   (stretch [2,2,3,2] (reshape [1,2,3,1] a1 :: Array 4 Int))
-      stretch_3 = assertThrows "3" (stretch [1,2] a3)
-      stretch_4 = assertThrows "4" (stretch [4,3] a1)
+      stretch_3 = assertThrowsIn "3" "stretch" (stretch [1,2] a3)
+      stretch_4 = assertThrowsIn "4" "stretch" (stretch [4,3] a1)
       scalar_1 = assertEqual "1" a4 (scalar 5)
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
       constant_1 = assertEqual "1" (fromList [2,3] [1,1,1,1,1,1]) (constant [2,3] 1 :: Array 2 Int)
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
-      mapA_2 = assertEqual "1" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
+      mapA_2 = assertEqual "2" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
-      zipWithA_2 = assertThrows "2" (zipWithA (+) a1 a2)
+      zipWithA_2 = assertThrowsIn "2" "zipWithA" (zipWithA (+) a1 a2)
       zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
       pad_1 = assertEqual "1" (fromList [5,10] [9,9,9,9,9,9,9,9,9,9,
                                                 9,9,9,1,2,3,9,9,9,9,
@@ -83,7 +78,7 @@ test = testGroup "RankedU" $
                                                 9,9,9,9,9,9,9,9,9,9,
                                                 9,9,9,9,9,9,9,9,9,9])
                               (pad [(1,2),(3,4)] 9 a1)
-      pad_2 = assertThrows "2" (pad [(1,1),(1,1),(1,1)] 0 a1)
+      pad_2 = assertThrowsIn "2" "pad" (pad [(1,1),(1,1),(1,1)] 0 a1)
       a5 :: Array 3 Int
       a5 = fromList [2,3,4] [1..24]
       transpose_1 = assertEqual "1" (fromList [2,3,4] [1,2,3,4,
@@ -157,8 +152,8 @@ test = testGroup "RankedU" $
                                                        8,20,
                                                        12,24])
                                     (transpose [2,1,0] a5)
-      transpose_7 = assertThrows "7" (transpose [0,1,2,3] a5)
-      transpose_8 = assertThrows "7" (transpose [0,1,3] a5)
+      transpose_7 = assertThrowsIn "7" "transpose" (transpose [0,1,2,3] a5)
+      transpose_8 = assertThrowsIn "8" "transpose" (transpose [0,1,3] a5)
       transpose_9 = assertEqual "9" (fromList [3,2,4] [1,2,3,4,
                                                        13,14,15,16,
 
@@ -172,7 +167,7 @@ test = testGroup "RankedU" $
                                  (append a1 (fromList [1,3] [7,8,9]))
       concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                       (concatOuter [a1, concatOuter [a1,a1]])
-      concatOuter_2 = assertThrows "2" (concatOuter [a1, a2])
+      concatOuter_2 = assertThrowsIn "2" "concatOuter" (concatOuter [a1, a2])
       ravel_1 = assertEqual  "1" (fromList [3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                  (ravel $ R.fromList [3] [a1,a1,a1])
       unravel_1 = assertEqual "1" [a1,a1,a1]
@@ -204,23 +199,23 @@ test = testGroup "RankedU" $
                                                       13,14,15,
                                                       18,19,20])
                                  (window [3,3] a6 :: Array 4 Int)
-      window_2 = assertThrows "2" (window [3,6] a6 :: Array 4 Int)
-      window_3 = assertThrows "3" (window [3,3,3] a6 :: Array 5 Int)
+      window_2 = assertThrowsIn "2" "window" (window [3,6] a6 :: Array 4 Int)
+      window_3 = assertThrowsIn "3" "window" (window [3,3,3] a6 :: Array 5 Int)
       stride_1 = assertEqual "1" (fromList [2,2,2] [1,3,
                                                     9,11,
 
                                                     13,15,
                                                     21,23])
                                  (stride [1,2,2] a5)
-      stride_2 = assertThrows "2" (stride [1,2,2] a1)
+      stride_2 = assertThrowsIn "2" "stride" (stride [1,2,2] a1)
       stride_3 = assertThrowsIn "3" "stride" (stride [0] a1)
       stride_4 = assertThrowsIn "4" "stride" (stride [-1] a1)
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
-      slice_2 = assertThrows "2" (slice [(0,0)] a4)
-      slice_3 = assertThrows "3" (slice [(-1,1)] a5)
-      slice_4 = assertThrows "4" (slice [(10,0)] a5)
-      slice_5 = assertThrows "5" (slice [(0,3)] a5)
+      slice_2 = assertThrowsIn "2" "slice" (slice [(0,0)] a4)
+      slice_3 = assertThrowsIn "3" "slice" (slice [(-1,1)] a5)
+      slice_4 = assertThrowsIn "4" "slice" (slice [(10,0)] a5)
+      slice_5 = assertThrowsIn "5" "slice" (slice [(0,3)] a5)
       a7 = mapA succ a5
       dot x y = reduce (+) 0 $ zipWithA (*) x y
       rerank2_1 = assertEqual "1" (fromList [2,3] [40,200,488,904,1448,2120])
@@ -229,7 +224,7 @@ test = testGroup "RankedU" $
                               (rev [1] a1)
       rev_2 = assertEqual "2" (fromList [2,3] [6,5,4,3,2,1])
                               (rev [0,1] a1)
-      rev_3 = assertThrows "3" (rev [2] a1)
+      rev_3 = assertThrowsIn "3" "rev" (rev [2] a1)
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank @1 (\ r -> reduce (*) 1 r) a1)
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank @1 (\ r -> reduce (*) 1 r) a2)

@@ -19,7 +19,6 @@
 module DynamicTest(test) where
 
 import Control.DeepSeq hiding (force)
-import Control.Exception
 import Data.Array.Convert (convert)
 import Data.Array.Dynamic
 import qualified Data.Array.DynamicG as G
@@ -36,16 +35,13 @@ import Data.Word (Word8)
 import GHC.Exts (isTrue#, reallyUnsafePtrEquality#)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
-import Test.HUnit (assertEqual, assertFailure, Assertion)
+import Test.HUnit (assertEqual)
 import Test.QuickCheck
   (Property, choose, classify, conjoin, counterexample, elements, forAll, property, (.&&.), (===))
 import Text.PrettyPrint.HughesPJClass (prettyShow)
 import Text.Read (readMaybe)
 import Views ( Owns (..), View (..), assertThrowsIn, assertThrowsWith
              , assertWhnfThrowsIn, failsWith, genRawView, mkView, testPropertyN )
-
-assertThrows :: (NFData a) => String -> a -> Assertion
-assertThrows s a = catch (deepseq a $ assertFailure s) (\ (_ :: ErrorCall) -> return ())
 
 -- An Eq whose == evaluates neither argument.
 data L = L deriving Show
@@ -101,8 +97,8 @@ test = testGroup "Dynamic" $
       index_1 = assertEqual "1" (fromList [3] [1,2,3]) (index a1 0)
       index_2 = assertEqual "2" (fromList [2] [1,4]) (index a2 0)
       index_3 = assertEqual "3" (fromList [] [4]) (a2 `index` 0 `index` 1)
-      index_4 = assertThrows "<0" (index a1 (-1))
-      index_5 = assertThrows ">" (index a1 2)
+      index_4 = assertThrowsIn "<0" "index" (index a1 (-1))
+      index_5 = assertThrowsIn ">" "index" (index a1 2)
       toList_1 = assertEqual "1" [1,2,3,4,5,6] (toList a1)
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       -- An empty broadcast lists at once, however long its dimensions before
@@ -112,8 +108,8 @@ test = testGroup "Dynamic" $
         assertEqual "3" [] (toList (mapA (+ 1) (constant [10 ^ (9 :: Int), 0, 10 ^ (9 :: Int)] (0 :: Int))))
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
       toVector_2 = assertEqual "2" (V.fromList [1,4,2,5,3,6]) (toVector a2)
-      fromList_1 = assertThrows "sh" (fromList [] [1,2::Int])
-      fromList_2 = assertThrows "sh" (fromList [4,5] [1,2::Int])
+      fromList_1 = assertThrowsIn "sh" "fromList" (fromList [] [1,2::Int])
+      fromList_2 = assertThrowsIn "sh" "fromList" (fromList [4,5] [1,2::Int])
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
       fromVector_2 = assertThrowsIn "2" "fromVector" (fromVector [2,3] $ V.fromList [1..5::Int])
       vFromListN_1 = assertEqual "1" (V.toList $ V.fromListN 2 [1,2,3::Int])
@@ -123,18 +119,18 @@ test = testGroup "Dynamic" $
                        [(2,5), (4,0), (-1,1), (0,-1)]
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [6] [1..6]) (reshape [6] a1)
-      reshape_2 = assertEqual "1" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2)
+      reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2)
       a3, a4 :: Array Int
       a3 = fromList [1] [5]
       a4 = fromList [] [5]
       stretch_1 = assertEqual "1" (fromList [3] [5,5,5]) (stretch [3] a3)
       stretch_2 = assertEqual "2" (fromList [2,2,3,2] [1,1,2,2,3,3,4,4,5,5,6,6,1,1,2,2,3,3,4,4,5,5,6,6])
                                   (stretch [2,2,3,2] $ reshape [1,2,3,1] a1)
-      stretch_3 = assertThrows "3" (stretch [1,2] a3)
-      stretch_4 = assertThrows "4" (stretch [4,3] a1)
+      stretch_3 = assertThrowsIn "3" "stretch" (stretch [1,2] a3)
+      stretch_4 = assertThrowsIn "4" "stretch" (stretch [4,3] a1)
       scalar_1 = assertEqual "1" a4 (scalar 5)
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
-      unScalar_2 = assertThrows "2" (unScalar a3)
+      unScalar_2 = assertThrowsIn "2" "unScalar" (unScalar a3)
       constant_1 = assertEqual "1" (fromList [2,3] [1,1,1,1,1,1]) (constant [2,3] (1::Int))
       iota_1 = assertEqual "1" (map fromIntegral [0..299::Int]) (toList (iota 300 :: Array Word8))
       -- iota stores its elements evaluated, so evaluating the array
@@ -183,7 +179,7 @@ test = testGroup "Dynamic" $
         assertEqual "read" Nothing (readMaybe ("fromList " ++ show [4, h] ++ " []") :: Maybe (Array Int))
         where h = maxBound `quot` 2 + 1
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
-      mapA_2 = assertEqual "1" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
+      mapA_2 = assertEqual "2" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
       mapA_3 = assertEqual "3" True  -- 1 `div` 0 outside the view, the vector forced as if strict
                                (V.all (== 1) (valuesOf
                                   (mapA (1 `div`) (stretch [4] (slice [(2,1)] (fromList [3] [0,0,1 :: Int]))))))
@@ -195,7 +191,7 @@ test = testGroup "Dynamic" $
                  , vlen (mapA (+ 1) (broadcast [1] [1000,2] (stride [2] (fromList [3] [1,2,3 :: Int])))) ]
         where m = fromList [10,100] [1..1000] :: Array Int
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
-      zipWithA_2 = assertThrows "2" (zipWithA (+) a1 a2)
+      zipWithA_2 = assertThrowsIn "2" "zipWithA" (zipWithA (+) a1 a2)
       zipWithA_3 = assertEqual "3" [] (toList (zipWithA quot (constant [0] 1) (constant [0] (0 :: Int))))  -- 1 `quot` 0 outside the view
       zipWith3A_1 = assertEqual "1" (fromList [2,3] [2,6,12,20,30,42]) (zipWith3A (\ x y z -> x*y+z) a1 a1 a1)
       zipWith3A_2 = assertEqual "2" [] (toList (zipWith3A (\ x y z -> x `quot` (y + z)) (constant [0] 1) (constant [0] 0) (constant [0] (0 :: Int))))
@@ -220,7 +216,7 @@ test = testGroup "Dynamic" $
                                                 9,9,9,9,9,9,9,9,9,9,
                                                 9,9,9,9,9,9,9,9,9,9])
                               (pad [(1,2),(3,4)] 9 a1)
-      pad_2 = assertThrows "2" (pad [(1,1),(1,1),(1,1)] 0 a1)
+      pad_2 = assertThrowsIn "2" "pad" (pad [(1,1),(1,1),(1,1)] 0 a1)
       -- Extents summing past maxBound.
       pad_3 = assertThrowsIn "3" "pad" (pad [(maxBound, maxBound)] 0 (fromList [3] [1,2,3::Int]))
       pad_4 = assertThrowsIn "4" "pad" (pad [(0,0),(1,1)] 0 (fromList [0] [] :: Array Int))
@@ -297,8 +293,8 @@ test = testGroup "Dynamic" $
                                                        8,20,
                                                        12,24])
                                     (transpose [2,1,0] a5)
-      transpose_7 = assertThrows "7" (transpose [0,1,2,3] a5)
-      transpose_8 = assertThrows "7" (transpose [0,1,3] a5)
+      transpose_7 = assertThrowsIn "7" "transpose" (transpose [0,1,2,3] a5)
+      transpose_8 = assertThrowsIn "8" "transpose" (transpose [0,1,3] a5)
       transpose_9 = assertEqual "9" (fromList [3,2,4] [1,2,3,4,
                                                        13,14,15,16,
 
@@ -314,12 +310,12 @@ test = testGroup "Dynamic" $
       append_2 = assertThrowsIn "2" "append" (append (constant [maxBound] 0) (constant [maxBound] (0::Int)))
       concatOuter_1 = assertEqual "1" (fromList [6,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                       (concatOuter [a1, concatOuter [a1,a1]])
-      concatOuter_2 = assertThrows "2" (concatOuter [a1, a2])
+      concatOuter_2 = assertThrowsIn "2" "concatOuter" (concatOuter [a1, a2])
       -- Extents summing past maxBound.
       concatOuter_3 = assertThrowsIn "3" "concatOuter" (concatOuter [constant [maxBound] 0, constant [maxBound] 0, fromList [3] [1,2,3::Int]])
       ravel_1 = assertEqual "1" (fromList [3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                 (ravel $ fromList [3] [a1,a1,a1])
-      ravel_2 = assertThrows "2" (ravel $ fromList [2] [a1, concatOuter [a1,a1]])
+      ravel_2 = assertThrowsIn "2" "ravelOuterOf" (ravel $ fromList [2] [a1, concatOuter [a1,a1]])
       unravel_1 = assertEqual "1" [a1,a1,a1]
                                   (toList $ unravel $ ravel $ fromList [3] [a1,a1,a1])
       unravel_2 = assertThrowsIn "2" "unravel" (unravel (scalar (1 :: Int)) :: Array (Array Int))
@@ -350,8 +346,8 @@ test = testGroup "Dynamic" $
                                                       13,14,15,
                                                       18,19,20])
                                  (window [3,3] a6)
-      window_2 = assertThrows "2" (window [3,6] a6)
-      window_3 = assertThrows "3" (window [3,3,3] a6)
+      window_2 = assertThrowsIn "2" "window" (window [3,6] a6)
+      window_3 = assertThrowsIn "3" "window" (window [3,3,3] a6)
       -- The window list is checked before the shape, and the message shows
       -- an extent past maxBound as it is.
       window_4 = mapM_ (\ (m, a) -> assertThrowsWith m m a)
@@ -384,7 +380,7 @@ test = testGroup "Dynamic" $
                                                     13,15,
                                                     21,23])
                                  (stride [1,2,2] a5)
-      stride_2 = assertThrows "2" (stride [1,2,2] a1)
+      stride_2 = assertThrowsIn "2" "stride" (stride [1,2,2] a1)
       stride_3 = assertThrowsIn "3" "stride" (stride [0] a1)
       stride_4 = assertThrowsIn "4" "stride" (stride [-1] a1)
       stride_5 = assertEqual "5" (fromList [1] [1]) (stride [maxBound] (fromList [3] [1,2,3::Int]))
@@ -449,10 +445,10 @@ test = testGroup "Dynamic" $
         , ("ravelOuter: empty outer dimension [0]", rerank 1 id (fromList [0,2] [])) ]
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
-      slice_2 = assertThrows "2" (slice [(0,0)] a4)
-      slice_3 = assertThrows "3" (slice [(-1,1)] a5)
-      slice_4 = assertThrows "4" (slice [(10,0)] a5)
-      slice_5 = assertThrows "5" (slice [(0,3)] a5)
+      slice_2 = assertThrowsIn "2" "slice" (slice [(0,0)] a4)
+      slice_3 = assertThrowsIn "3" "slice" (slice [(-1,1)] a5)
+      slice_4 = assertThrowsIn "4" "slice" (slice [(10,0)] a5)
+      slice_5 = assertThrowsIn "5" "slice" (slice [(0,3)] a5)
       slice_6 = assertThrowsIn "6" "slice" (slice [(1, maxBound)] (fromList [3] [1,2,3::Int]))
       box x = scalar (Just x)
       rerank_1 = assertEqual "1" (box a5)
@@ -469,7 +465,7 @@ test = testGroup "Dynamic" $
                                  (rerank 2 box a5)
       rerank_4 = assertEqual "4" (mapA (\ x -> Just (scalar x)) a5)
                                  (rerank 3 box a5)
-      rerank_5 = assertThrows "4" (rerank 4 box a5)
+      rerank_5 = assertThrowsIn "5" "rerank" (rerank 4 box a5)
       rerank_6 = assertThrowsIn "6" "ravelOuterOf" (rerank 1 (\ a -> constant [unScalar a] (0 :: Int)) (fromList [2] [1,2 :: Int]))
       a7 = mapA succ a5
       dot x y = reduce (+) 0 $ zipWithA (*) x y
