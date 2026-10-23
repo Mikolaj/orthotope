@@ -110,12 +110,13 @@ class Vector v where
   vFromListN n = vFromList . take n
 
   -- | The list's elements in a vector where the list has exactly the given
-  -- number of them, and otherwise the list's length.
+  -- number of them, and otherwise the list's length, or that number plus one
+  -- where the list is longer, the list walked no further.
   vFromListExactN :: (VecElem v a) => Int -> [a] -> Either Int (v a)
   {-# INLINABLE vFromListExactN #-}
   vFromListExactN n xs | l == n = Right (vFromListN n xs)
                        | otherwise = Left l
-    where l = length xs
+    where l = length (take (n + 1) xs)
 
   -- | 'vIndex' at an index in bounds, which the instance need not check: the
   -- default is 'vIndex', and the vector instances read without the check.
@@ -1275,7 +1276,7 @@ genericUnsafeFillStrided !copyRun axes !ao l !v =
 -- fold/build fuses with a producer's build where it is inlined.
 --
 -- The vector-backed instances' 'vFromListExactN': one foldr writes the list
--- into a buffer of n elements, counting on past n without writing.  The loop
+-- into a buffer of n elements and stops at an element past n.  The loop
 -- returns the count's excess over n, not the count: returned in a Left as it
 -- is, the count stays boxed in the loop, an I# allocated an element, on GHC
 -- 9.6.7 to HEAD (https://gitlab.haskell.org/ghc/ghc/-/work_items/24203).
@@ -1285,7 +1286,7 @@ genericFromListExactN n xs = case VG.createT (do
     out <- VGM.unsafeNew n
     let {-# INLINE step #-}
         step x k = \ !i -> if i < n then VGM.unsafeWrite out i x >> k (i + 1)
-                                    else k (i + 1)
+                                    else return (Left 1)
     foldr step (\ !i -> return $ if i == n then Right out else Left (i - n))
                 xs 0) of
   Left d -> Left (n + d)
@@ -2805,6 +2806,14 @@ permute is xs = go is
 {-# NOINLINE isPermutation #-}
 isPermutation :: [Int] -> Bool
 isPermutation is = all (`elem` is) [0 .. length is - 1]
+
+-- | A shape and a list's length as 'vFromListExactN' gives it, for an error
+-- of fromList: a length past the shape's size of n reads "more than n".
+{-# INLINE showShapeLength #-}
+showShapeLength :: ShapeL -> Int -> Int -> String
+showShapeLength sh n l
+  | l > n = "(" ++ show sh ++ ",more than " ++ show n ++ ")"
+  | otherwise = show (sh, l)
 
 -- | Like 'dropWhile' but at the end of the list.
 {-# INLINE revDropWhile #-}

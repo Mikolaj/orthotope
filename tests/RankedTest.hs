@@ -67,6 +67,8 @@ test = testGroup "Ranked" $
       toVector_2 = assertEqual "2" (V.fromList [1,4,2,5,3,6]) (toVector a2)
       fromList_1 = assertThrowsIn "sh" "fromList" (fromList [] [1,2] :: Array 0 Int)
       fromList_2 = assertThrowsIn "sh" "fromList" (fromList [4,5] [1,2] :: Array 2 Int)
+      -- A list longer than the shape fails, counted no further than one past it.
+      fromList_3 = assertThrowsWith "3" "fromList: size mismatch ([3],more than 3)" (fromList [3] [1 ..] :: Array 1 Int)
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [6] [1..6] :: Array 1 Int) (reshape [6] a1)
@@ -484,6 +486,7 @@ test = testGroup "Ranked" $
         , testCase "toVector_2" toVector_2
         , testCase "fromList_1" fromList_1
         , testCase "fromList_2" fromList_2
+        , testCase "fromList_3" fromList_3
         , testCase "fromVector_1" fromVector_1
         , testCase "normalize_1" normalize_1
         , testCase "reshape_1" reshape_1

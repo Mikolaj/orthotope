@@ -178,7 +178,8 @@ fromList :: forall sh v a . (HasCallStack, Vector v, VecElem v a, Shape sh) =>
             [a] -> Array sh v a
 fromList vs = case vFromListExactN n vs of
                 Right v -> A $ T st 0 v
-                Left l -> error $ "fromList: size mismatch " ++ show (ss, l)
+                Left l -> error $ "fromList: size mismatch "
+                            ++ showShapeLength ss n l
   where n : st = getStridesT ss
         ss = shapeP (Proxy :: Proxy sh)
 
@@ -380,17 +381,20 @@ concatOuter as | [A t] <- as, n == s = A t  -- one array: the array itself
                    (front, rest) -> mismatch (length front) (not (null rest))
   where n = natT @n
         s = natT @m
-        mismatch :: Int -> b
-        mismatch c = error $ "concatOuter: outer extent mismatch " ++ show (replicate c n, s)
+        -- The extents of c arrays, and with more where more were not counted.
+        mismatch :: Int -> Bool -> b
+        mismatch c more = error $ "concatOuter: outer extent mismatch ("
+          ++ (if more then init (show (replicate c n)) ++ ",...]"
+              else show (replicate c n)) ++ "," ++ show s ++ ")"
         -- The k arrays the extents need, counted as the concatenation takes
         -- them, under 'build', so that the concatenation's foldr fuses with
         -- the count: not by a walk of the list before it, which held the list
         -- whole.
         counted k xs = build $ \ cons nil ->
           let go !i (x : rest) | i < k = viewOfA x `cons` go (i + 1) rest
-                               | otherwise = mismatch (i + 1 + length rest)
+                               | otherwise = mismatch (i + 1) (not (null rest))
               go i [] | i == k = nil
-                      | otherwise = mismatch i
+                      | otherwise = mismatch i False
           in  go 0 xs
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost

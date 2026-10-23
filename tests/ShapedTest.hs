@@ -79,6 +79,8 @@ test = testGroup "Shaped" $
       -- panics, report it to GHC.
       fromList_3 = assertThrowsIn "3" "Shape" (fromList [] :: Array [4294967296, 4294967296] Int)
       fromList_4 = assertThrowsIn "4" "Shape" (fromList [1,2,3] :: Array '[9223372036854775811] Int)
+      -- A list longer than the shape fails, counted no further than one past it.
+      fromList_5 = assertThrowsWith "5" "fromList: size mismatch ([2,3],more than 6)" (fromList [1 ..] :: Array [2,3] Int)
       fromVector_1 = assertEqual "1" a1 (fromVector $ V.fromList [1..6])
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [1..6] :: Array '[6] Int) (reshape a1)
@@ -214,6 +216,15 @@ test = testGroup "Shaped" $
                                       (concatOuter [a1, a1, a1] :: Array [6,3] Int)
       concatOuter_2 = assertEqual "2" (fromList []) (concatOuter ([] :: [Array [2,3] Int]) :: Array [0,3] Int)
       concatOuter_3 = assertThrowsIn "3" "concatOuter" (concatOuter [a1, a1] :: Array [5,3] Int)
+      -- The count of arrays the extents need, checked as the concatenation
+      -- takes them: too many, too few, and an infinite list, counted no further
+      -- than one past the count; an extent the arrays' does not divide, counted
+      -- no further than one past what fits; of arrays of extent 0, any number.
+      concatOuter_4 = assertThrowsWith "4" "concatOuter: outer extent mismatch ([2,2,2],4)" (concatOuter [a1, a1, a1] :: Array [4,3] Int)
+      concatOuter_5 = assertThrowsWith "5" "concatOuter: outer extent mismatch ([2],4)" (concatOuter [a1] :: Array [4,3] Int)
+      concatOuter_6 = assertThrowsWith "6" "concatOuter: outer extent mismatch ([2,2,2,...],4)" (concatOuter (repeat a1) :: Array [4,3] Int)
+      concatOuter_7 = assertThrowsWith "7" "concatOuter: outer extent mismatch ([2,2,2,...],5)" (concatOuter (repeat a1) :: Array [5,3] Int)
+      concatOuter_8 = assertEqual "8" [] (toList (concatOuter (repeat (constant 0 :: Array [0,3] Int)) :: Array [0,3] Int))
       ravel_1 = assertEqual "1" (fromList @[3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                 (ravel $ fromList @'[3] [a1,a1,a1])
       unravel_1 = assertEqual "1" [a1,a1,a1]
@@ -468,6 +479,7 @@ test = testGroup "Shaped" $
         , testCase "fromList_2" fromList_2
         , testCase "fromList_3" fromList_3
         , testCase "fromList_4" fromList_4
+        , testCase "fromList_5" fromList_5
         , testCase "fromVector_1" fromVector_1
         , testCase "normalize_1" normalize_1
         , testCase "reshape_1" reshape_1
@@ -507,6 +519,11 @@ test = testGroup "Shaped" $
         , testCase "concatOuter_1" concatOuter_1
         , testCase "concatOuter_2" concatOuter_2
         , testCase "concatOuter_3" concatOuter_3
+        , testCase "concatOuter_4" concatOuter_4
+        , testCase "concatOuter_5" concatOuter_5
+        , testCase "concatOuter_6" concatOuter_6
+        , testCase "concatOuter_7" concatOuter_7
+        , testCase "concatOuter_8" concatOuter_8
         , testCase "ravel_1" ravel_1
         , testCase "unravel_1" unravel_1
         , testCase "window_1" window_1

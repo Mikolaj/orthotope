@@ -180,7 +180,8 @@ fromList ss vs | badShape ss = error $ "fromList: bad shape " ++ show ss
                | length ss /= natT @n = error $ "fromList: rank mismatch " ++ show (ss, natT @n :: Int)
                | otherwise = case vFromListExactN n vs of
                    Right v -> A ss $ T st 0 v
-                   Left l -> error $ "fromList: size mismatch " ++ show (ss, l)
+                   Left l -> error $ "fromList: size mismatch "
+                               ++ showShapeLength ss n l
   where n : st = getStridesT ss
 
 -- | Convert from a vector with the elements given in the linearization order.
