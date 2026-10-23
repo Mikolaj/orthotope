@@ -55,12 +55,15 @@ test = testGroup "ShapedU" $
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
       toVector_2 = assertEqual "2" (V.fromList [1,4,2,5,3,6]) (toVector a2)
-      fromList_1 = assertThrowsIn "sh" "fromList" (fromList [1,2] :: Array '[] Int)
-      fromList_2 = assertThrowsIn "sh" "fromList" (fromList [1,2] :: Array [4,5] Int)
+      fromList_1 = assertThrowsIn "sh" "fromList"
+                                  (fromList [1,2] :: Array '[] Int)
+      fromList_2 = assertThrowsIn "sh" "fromList"
+                                  (fromList [1,2] :: Array [4,5] Int)
       fromVector_1 = assertEqual "1" a1 (fromVector $ V.fromList [1..6])
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [1..6] :: Array '[6] Int) (reshape a1)
-      reshape_2 = assertEqual "2" (fromList [1,4,2,5,3,6]) (reshape a2 :: Array [1,2,3,1] Int)
+      reshape_2 = assertEqual "2" (fromList [1,4,2,5,3,6])
+                                  (reshape a2 :: Array [1,2,3,1] Int)
       a3 :: Array '[1] Int
       a3 = fromList [5]
       a4 :: Array '[] Int
@@ -71,11 +74,16 @@ test = testGroup "ShapedU" $
       scalar_1 = assertEqual "1" a4 (scalar 5)
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
       constant_1 = assertEqual "1" (fromList [1,1,1,1,1,1]) (constant 1 :: Array [2,3] Int)
-      broadcast_1 = assertEqual "1" [1,1,2,2,3,3] (toList (broadcast @'[0] @'[3,2] (index a1 0)))
+      broadcast_1 = assertEqual "1" [1,1,2,2,3,3]
+                                    (toList (broadcast @'[0] @'[3,2]
+                                               (index a1 0)))
       broadcast_2 = assertEqual "2" [7,7,7,7,7,7]
-                                    (toList (broadcast @'[1] @'[2,3] (constant 7 :: Array '[3] Int)))
+                                    (toList (broadcast @'[1] @'[2,3]
+                                               (constant 7 :: Array '[3] Int)))
       broadcast_3 = assertEqual "3" [1,2,3,1,2,3]
-                                    (toList (broadcast @'[1] @'[2,3] (fromList [1,2,3] :: Array '[3] Int)))
+                                    (toList (broadcast @'[1] @'[2,3]
+                                               (fromList [1,2,3]
+                                                  :: Array '[3] Int)))
       mapA_1 = assertEqual "1" (fromList [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "2" (fromList [2,5,3,6,4,7]) (mapA succ a2)
       zipWithA_1 = assertEqual "1" (fromList [2,4..12]) (zipWithA (+) a1 a1)
@@ -170,10 +178,12 @@ test = testGroup "ShapedU" $
                                     (transpose @'[1,0] a5)
       append_1 = assertEqual "1" (fromList [1..9])
                                  (append a1 (fromList @[1,3] [7,8,9]))
-      ravel_1 = assertEqual "1" (fromList @[3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
+      ravel_1 = assertEqual "1" (fromList @[3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,
+                                                    1,2,3,4,5,6])
                                 (ravel $ S.fromList @'[3] [a1,a1,a1])
       unravel_1 = assertEqual "1" [a1,a1,a1]
-                                  (S.toList $ unravel $ ravel $ S.fromList @'[3] [a1,a1,a1])
+                                  (S.toList $ unravel $ ravel
+                                    $ S.fromList @'[3] [a1,a1,a1])
       a6 :: Array [4,5] Int
       a6 = fromList [1..20]
       window_1 = assertEqual "1" (fromList @[2,3,3,3] [1,2,3,
@@ -218,8 +228,10 @@ test = testGroup "ShapedU" $
       rev_2 = assertEqual "2" (fromList [6,5,4,3,2,1])
                               (rev @[0,1] a1)
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
-      reduce_2 = assertEqual "2" (fromList @'[2] [6,120]) (rerank @1 (\ r -> reduce (*) 1 r) a1)
-      reduce_3 = assertEqual "3" (fromList @'[3] [4,10,18]) (rerank @1 (\ r -> reduce (*) 1 r) a2)
+      reduce_2 = assertEqual "2" (fromList @'[2] [6,120])
+                                 (rerank @1 (\ r -> reduce (*) 1 r) a1)
+      reduce_3 = assertEqual "3" (fromList @'[3] [4,10,18])
+                                 (rerank @1 (\ r -> reduce (*) 1 r) a2)
 
       -- Calls of every wrapper the module under test exports, in the order of
       -- its export list, each against its value.

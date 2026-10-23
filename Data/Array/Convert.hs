@@ -111,7 +111,8 @@ sameShape _ _ = False
 -- then the type's against the check of 'shapeP', made once a dictionary.
 {-# INLINE shapedE #-}
 shapedE :: Shape sh => Proxy sh -> [Int] -> r -> Either String r
-shapedE p sh r | not (sameShape sh ns) = Left $ "convert: shape mismatch " ++ show (sh, ns)
+shapedE p sh r | not (sameShape sh ns) = Left $ "convert: shape mismatch "
+                 ++ show (sh, ns)
                | not (validP p) = Left $ "convert: bad shape " ++ show ns
                | otherwise = Right r
   where ns = natsP p
@@ -195,13 +196,15 @@ instance (a ~ b, n ~ m, RS.Unbox a) => Convert (RS.Array n a) (R.Array m b) wher
 
 -----
 
-instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n) => Convert (S.Array n a) (SU.Array m b) where
+instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n)
+         => Convert (S.Array n a) (SU.Array m b) where
   {-# INLINABLE convert #-}
   convert (S.A g@(SG.A t)) = SU.A (SG.A (boxingT (SG.shapeL g) t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 
-instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n) => Convert (SU.Array n a) (S.Array m b) where
+instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n)
+         => Convert (SU.Array n a) (S.Array m b) where
   {-# INLINABLE convert #-}
   convert (SU.A g@(SG.A t)) = S.A (SG.A (boxingT (SG.shapeL g) t))
   {-# INLINABLE convertE #-}
@@ -209,11 +212,13 @@ instance (a ~ b, n ~ m, SU.Unbox a, S.Shape n) => Convert (SU.Array n a) (S.Arra
 
 -----
 
-instance (a ~ b, n ~ m, SS.Unbox a, S.Shape n) => Convert (S.Array n a) (SS.Array m b) where
+instance (a ~ b, n ~ m, SS.Unbox a, S.Shape n)
+         => Convert (S.Array n a) (SS.Array m b) where
   {-# INLINABLE convert #-}
   convert (S.A g@(SG.A t)) = SS.A (SG.A (boxingT (SG.shapeL g) t))
 
-instance (a ~ b, n ~ m, SS.Unbox a, S.Shape n) => Convert (SS.Array n a) (S.Array m b) where
+instance (a ~ b, n ~ m, SS.Unbox a, S.Shape n)
+         => Convert (SS.Array n a) (S.Array m b) where
   {-# INLINABLE convert #-}
   convert (SS.A g@(SG.A t)) = S.A (SG.A (fromStorableT (SG.shapeL g) t))
   {-# INLINABLE convertE #-}
@@ -274,7 +279,8 @@ instance (a ~ b, SS.Shape sh) => Convert (SS.Array sh a) (DS.Array b) where
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
 
-instance (a ~ b, SS.Rank sh ~ n, SS.Shape sh) => Convert (SS.Array sh a) (RS.Array n b) where
+instance (a ~ b, SS.Rank sh ~ n, SS.Shape sh)
+         => Convert (SS.Array sh a) (RS.Array n b) where
   {-# INLINE convert #-}
   convert (SS.A a@(SG.A t)) = RS.A (RG.A (SG.shapeL a) t)
   {-# INLINABLE convertE #-}
@@ -285,7 +291,8 @@ instance (a ~ b, SS.Shape sh) => Convert (DS.Array a) (SS.Array sh b) where
   {-# INLINE convertE #-}
   convertE (DS.A (DG.A sh t)) = shapedE (Proxy :: Proxy sh) sh $ SS.A (SG.A t)
 
-instance (a ~ b, SS.Rank sh ~ n, SS.Shape sh) => Convert (RS.Array n a) (SS.Array sh b) where
+instance (a ~ b, SS.Rank sh ~ n, SS.Shape sh)
+         => Convert (RS.Array n a) (SS.Array sh b) where
   -- INLINE: see convertE from D.Array to R.Array above.
   {-# INLINE convertE #-}
   convertE (RS.A (RG.A sh t)) = shapedE (Proxy :: Proxy sh) sh $ SS.A (SG.A t)

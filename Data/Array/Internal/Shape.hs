@@ -110,7 +110,8 @@ instance Padded '[] sh sh where
 instance (KnownNat l, KnownNat h, (l+s+h) ~ s', Padded ps sh sh') =>
          Padded ('(l,h) ': ps) (s ': sh) (s' ': sh') where
   {-# INLINE padded #-}
-  padded _ _ = (natT @l, natT @h) : padded (Proxy :: Proxy ps) (Proxy :: Proxy sh)
+  padded _ _ =
+    (natT @l, natT @h) : padded (Proxy :: Proxy ps) (Proxy :: Proxy sh)
 
 -----------------
 
@@ -168,7 +169,8 @@ instance Slice '[] ss ss where
   sliceOffsets _ _ = []
 instance (Slice ls ss rs, (o+n) <= s, KnownNat o) => Slice ('(o,n) ': ls) (s ': ss) (n ': rs) where
   {-# INLINE sliceOffsets #-}
-  sliceOffsets _ _ = natT @o : sliceOffsets (Proxy :: Proxy ls) (Proxy :: Proxy ss)
+  sliceOffsets _ _ =
+    natT @o : sliceOffsets (Proxy :: Proxy ls) (Proxy :: Proxy ss)
 
 
 -----------------
@@ -211,7 +213,8 @@ instance Shape '[] where
 instance forall n s . (Shape s, KnownNat n) => Shape (n ': s) where
   {-# INLINE shapeP #-}
   shapeP = const sh
-    where sh = sizeP (Proxy :: Proxy (n ': s)) `seq` valueOf @n : shapeP (Proxy :: Proxy s)
+    where sh = sizeP (Proxy :: Proxy (n ': s))
+            `seq` valueOf @n : shapeP (Proxy :: Proxy s)
   -- NOINLINE: on GHC HEAD 10.1.20260918 (2026-10-11), inlined, it ran GHC out
   -- of simplifier ticks compiling the test suite's ShapedTest and ShapedGTest.
   {-# NOINLINE sizeP #-}
@@ -256,7 +259,8 @@ mulOverflows n m = m /= 0 && n > maxBound `quot` m
 listP :: (HasCallStack, Shape s) => Proxy s -> [Int]
 listP p = map toInt (natsP p)
   where toInt n | n > toInteger (maxBound :: Int) =
-                    error $ "Shape: a number past maxBound in " ++ show (natsP p)
+                    error $ "Shape: a number past maxBound in "
+                      ++ show (natsP p)
                 | otherwise = fromInteger n
 
 -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-15), INLINABLE, as its type
@@ -293,17 +297,20 @@ sizeT = sizeP (Proxy :: Proxy sh)
 -- | Turn a dynamic shape back into a type level shape.
 -- For a shape @sh@ that 'validShape' accepts, @withShapeP sh shapeP == sh@.
 {-# INLINE withShapeP #-}
-withShapeP :: (HasCallStack) => [Int] -> (forall sh . (Shape sh) => Proxy sh -> r) -> r
+withShapeP :: (HasCallStack) =>
+              [Int] -> (forall sh . (Shape sh) => Proxy sh -> r) -> r
 withShapeP sh0 f0 = go sh0 f0
   where go :: [Int] -> (forall sh . (Shape sh) => Proxy sh -> r') -> r'
         go [] f = f (Proxy :: Proxy ('[] :: [Nat]))
         go (n:ns) f =
           case someNatVal (toInteger n) of
-            Just (SomeNat (_ :: Proxy n)) -> go ns (\ (_ :: Proxy ns) -> f (Proxy :: Proxy (n ': ns)))
+            Just (SomeNat (_ :: Proxy n)) ->
+              go ns (\ (_ :: Proxy ns) -> f (Proxy :: Proxy (n ': ns)))
             _ -> error $ "withShapeP: bad size: " ++ show n
 
 withShape :: (HasCallStack) => [Int] -> (forall sh . (Shape sh) => r) -> r
-withShape sh f | n : _ <- filter (< 0) sh = error $ "withShape: bad size: " ++ show n
+withShape sh f | n : _ <- filter (< 0) sh =
+                   error $ "withShape: bad size: " ++ show n
                | otherwise = withShapeP sh (\ (_ :: Proxy sh) -> f @sh)
 
 -----------------
@@ -325,7 +332,8 @@ instance (Broadcast' i '[] '[] sh') => Broadcast' i '[] '[] (s : sh') where
   broadcasting' = True : broadcasting' @i @'[] @'[] @sh'
 instance (TypeError ('Text "Too few dimension indices")) => Broadcast' i '[] (s ': sh) sh' where
   broadcasting' = undefined
-instance (TypeError ('Text "Too many dimension indices")) => Broadcast' i (d ': ds) '[] sh' where
+instance (TypeError ('Text "Too many dimension indices")) =>
+         Broadcast' i (d ': ds) '[] sh' where
   broadcasting' = undefined
 instance (TypeError ('Text "Too few result dimensions")) => Broadcast' i (d ': ds) (s ': sh) '[] where
   broadcasting' = undefined

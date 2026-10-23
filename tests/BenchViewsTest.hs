@@ -91,14 +91,17 @@ test = testGroup "BenchViews"
   [ testGroup "values"
       [ testOnce n (prop_values l) | (n, l) <- mainViews ++ otherViews ]
   , optimisedGroup "toVector allocation"
-      $  [ testCase n (allocUnder (scaled toVectorFactor l) (\ a -> toVector a) l)
+      $  [ testCase n (allocUnder (scaled toVectorFactor l)
+                                  (\ a -> toVector a) l)
          | (n, l) <- mainViews ++ otherViews ]
       ++ [ testCase "transposed runs, element by element"
              (allocOver (scaled toVectorFactor transposedBlock)
                         (headOf elementwise) transposedBlock) ]
   , optimisedGroup "sumA allocation"
-      $  [ testCase n (allocUnder 16384 (\ a -> sumA a) l) | (n, l) <- mainViews ]
-      ++ [ testCase n (allocUnder (scaled sumAFactor l) (\ a -> sumA a) l) | (n, l) <- otherViews ]
+      $  [ testCase n (allocUnder 16384 (\ a -> sumA a) l)
+         | (n, l) <- mainViews ]
+      ++ [ testCase n (allocUnder (scaled sumAFactor l) (\ a -> sumA a) l)
+         | (n, l) <- otherViews ]
     -- The head of a list of vectors of a view of runs is one run, built
     -- in under 32768 bytes, the lists being lazy; so is the unordered
     -- list's head of the same runs transposed.
@@ -106,7 +109,8 @@ test = testGroup "BenchViews"
       [ testCase "ordered, runs"
           (allocUnder 32768 (headOf (\ s v -> I.toVectorListT s v)) runsBlock)
       , testCase "unordered, runs"
-          (allocUnder 32768 (headOf (\ s v -> I.toUnorderedVectorListT s v)) runsBlock)
+          (allocUnder 32768 (headOf (\ s v -> I.toUnorderedVectorListT s v))
+                      runsBlock)
       , testCase "ordered, transposed runs"
           (allocUnder (scaled orderedHeadFactor transposedBlock)
                       (headOf (\ s v -> I.toVectorListT s v)) transposedBlock)
@@ -114,25 +118,30 @@ test = testGroup "BenchViews"
           (allocOver (scaled orderedHeadFactor transposedBlock)
                      (headOf elementwise) transposedBlock)
       , testCase "unordered, transposed runs"
-          (allocUnder 32768 (headOf (\ s v -> I.toUnorderedVectorListT s v)) transposedBlock) ]
+          (allocUnder 32768 (headOf (\ s v -> I.toUnorderedVectorListT s v))
+                      transposedBlock) ]
     -- == and mapA take a broadcast of a view that skips elements without its
     -- broadcast dimensions, and an empty view at once, in under 32768 bytes,
     -- where comparing or mapping every element of the broadcast, the controls,
     -- allocates over that.
   , testGroup "== allocation"
-      [ testCase "bcastmid of a scaled row" (allocUnder 32768 (\ x -> x == x) scaledBcastmid)
+      [ testCase "bcastmid of a scaled row"
+          (allocUnder 32768 (\ x -> x == x) scaledBcastmid)
       , testCase "bcastmid of a scaled row, its vectors compared"
           (allocOver 32768 (\ x -> toVector x == toVector x) scaledBcastmid)
       , testCase "empty view" (allocUnder 32768 (\ x -> x == x) emptyView) ]
   , testGroup "mapA allocation"
-      [ testCase "bcastmid of a scaled row" (allocUnder 32768 (\ a -> mapA (+ 1) a) scaledBcastmid)
+      [ testCase "bcastmid of a scaled row"
+          (allocUnder 32768 (\ a -> mapA (+ 1) a) scaledBcastmid)
       , testCase "bcastmid of a scaled row, its vector mapped"
           (allocOver 32768 (\ a -> VS.map (+ 1) (toVector a)) scaledBcastmid)
-      , testCase "empty view" (allocUnder 32768 (\ a -> mapA (+ 1) a) emptyView) ]
+      , testCase "empty view"
+          (allocUnder 32768 (\ a -> mapA (+ 1) a) emptyView) ]
     -- The lists of vectors of an empty view hold no vector.
   , testGroup "empty lists"
       [ testCase (vn ++ ", " ++ n) (assertBool "a vector" (null (f sh t)))
-      | (vn, l@(sh, _, _, _)) <- [ (n, mkStrided s) | (n, s) <- degenerateShapes ]
+      | (vn, l@(sh, _, _, _)) <-
+          [ (n, mkStrided s) | (n, s) <- degenerateShapes ]
       , let t = fst (mkArray 1 l)
       , (n, f) <- [ ("ordered", \ s v -> I.toVectorListT s v)
                   , ("unordered", \ s v -> I.toUnorderedVectorListT s v) ] ]
@@ -282,9 +291,11 @@ overBoxed b c = do
 -- strided view of the specialisation benchmark at Storable and Unboxed.
 fillCalls :: [(String, Call)]
 fillCalls =
-  [ ("Storable", Call.call "fillStrided" (\ v -> I.fillStrided Call.axes 0 Call.n v)
+  [ ("Storable", Call.call "fillStrided"
+                           (\ v -> I.fillStrided Call.axes 0 Call.n v)
                            (VS.fromList Call.elems))
-  , ("Unboxed", Call.call "fillStrided" (\ v -> I.fillStrided Call.axes 0 Call.n v)
+  , ("Unboxed", Call.call "fillStrided"
+                          (\ v -> I.fillStrided Call.axes 0 Call.n v)
                           (VU.fromList Call.elems)) ]
 
 -- The call allocates at most 16 bytes an element, the result's 8 and no
@@ -354,18 +365,21 @@ orderedHeadFactor = 4
 -- A factor times the size of a view of Doubles, plus 32768 bytes for the
 -- costs of a call, which a small view's size does not cover.
 scaled :: Double -> Layout -> Int64
-scaled factor (sh, _, _, _) = round (factor * 8 * fromIntegral (product sh)) + 32768
+scaled factor (sh, _, _, _) =
+  round (factor * 8 * fromIntegral (product sh)) + 32768
 
 -- The mkStrided views of the shapes of convolutions, of the extremes and
 -- of the empty views.
 mainViews :: [(String, Layout)]
 mainViews =
-  [ (n, mkStrided s) | (n, s) <- convShapes ++ stretchShapes ++ degenerateShapes ]
+  [ (n, mkStrided s)
+  | (n, s) <- convShapes ++ stretchShapes ++ degenerateShapes ]
 
 -- The views of the stride classes, and a unit dimension of stride 0 beside
 -- one of stride 1 at a non-zero offset.
 otherViews :: [(String, Layout)]
-otherViews = classViews ++ [ ("reshape1-slice-off7", ([50, 1], [1, 0], 7, 100)) ]
+otherViews =
+  classViews ++ [ ("reshape1-slice-off7", ([50, 1], [1, 0], 7, 100)) ]
 
 -- 200000 runs of 20 with a gap of 12 between them, and the same
 -- transposed.
@@ -385,7 +399,8 @@ emptyView = ([10000000, 0, 1], [1, 10000000, 1], 0, 0)
 -- million elements, with a random seed.
 testOnce :: String -> (Int -> Property) -> Test
 testOnce n =
-  plusTestOptions mempty { topt_maximum_generated_tests = Just 1 } . testProperty n
+  plusTestOptions mempty { topt_maximum_generated_tests = Just 1 }
+  . testProperty n
   . forAll (choose (0, maxBound))
 
 -- The view over random elements drawn from the seed.
@@ -398,7 +413,8 @@ mkArray seed (sh, ts, o, n) =
 -- of two million of them is exact whatever the order of summation.
 randomVector :: Int -> Int -> VS.Vector Double
 randomVector seed n =
-  VS.generate n (\ i -> fromIntegral (mix (fromIntegral (seed + i)) `mod` 1000000))
+  VS.generate n
+    (\ i -> fromIntegral (mix (fromIntegral (seed + i)) `mod` 1000000))
   where mix :: Word -> Word
         mix z0 = let z1 = (z0 `xor` (z0 `shiftR` 30)) * 0xbf58476d1ce4e5b9
                      z2 = (z1 `xor` (z1 `shiftR` 27)) * 0x94d049bb133111eb
@@ -424,7 +440,8 @@ prop_values l@(sh, _, _, _) seed =
       ordered = I.toVectorListT sh t
       unordered = I.toUnorderedVectorListT sh t
       nonEmpty vs = product sh == 0 || not (any VS.null vs)
-  in  agree "toVector" (toVector x) r .&&. agree "toList" (VS.fromList (toList x)) r
+  in  agree "toVector" (toVector x) r
+      .&&. agree "toList" (VS.fromList (toList x)) r
       .&&. agree "ordered" (VS.concat ordered) r .&&. nonEmpty ordered
       .&&. sum (map VS.length unordered) === VS.length r
       .&&. sum (map VS.sum unordered) === VS.sum r .&&. nonEmpty unordered
@@ -437,8 +454,10 @@ agree what u r = counterexample (what ++ ": " ++ firstDiff) (u == r)
   where firstDiff
           | VS.length u /= VS.length r =
             "length " ++ show (VS.length u) ++ ", not " ++ show (VS.length r)
-          | otherwise = case [ i | i <- [0 .. VS.length u - 1], u VS.! i /= r VS.! i ] of
-              i : _ -> "at " ++ show i ++ ", " ++ show (u VS.! i) ++ ", not " ++ show (r VS.! i)
+          | otherwise =
+            case [ i | i <- [0 .. VS.length u - 1], u VS.! i /= r VS.! i ] of
+              i : _ -> "at " ++ show i ++ ", " ++ show (u VS.! i) ++ ", not "
+                ++ show (r VS.! i)
               [] -> "equal"
 
 -- Evaluating f of the view, built and forced beforehand, to WHNF a second
@@ -464,7 +483,8 @@ secondAlloc f l@(sh, ts, _, _) = do
 -- The listing a fill replaced: the elements one by one into a vector, the
 -- list forced whole first.
 elementwise :: [Int] -> I.T VS.Vector Double -> [VS.Vector Double]
-elementwise sh t = let xs = I.toListT sh t in length xs `seq` [I.vFromListN (length xs) xs]
+elementwise sh t =
+  let xs = I.toListT sh t in length xs `seq` [I.vFromListN (length xs) xs]
 
 -- The head of a list of vectors of the array.
 headOf :: ([Int] -> I.T VS.Vector Double -> [VS.Vector Double])
@@ -494,7 +514,8 @@ mkStrided sh = (swapLast2 sh, swapLast2 (natural sh), 0, product sh)
 reverseDims :: [Int] -> [Int] -> [Int] -> ([Int], Int)
 reverseDims rs sh ts =
   ( [ if r `elem` rs then negate t else t | (r, t) <- zip [0 ..] ts ]
-  , sum [ (n - 1) * t | (r, (n, t)) <- zip [0 :: Int ..] (zip sh ts), r `elem` rs ] )
+  , sum [ (n - 1) * t
+        | (r, (n, t)) <- zip [0 :: Int ..] (zip sh ts), r `elem` rs ] )
 
 -- mkStrided's view with the dims rs reversed, so the strides are of
 -- mixed signs, or all negative when rs are all the dims.
@@ -525,13 +546,15 @@ mkReshape1 dsh = mkBcast (dsh ++ [1])
 
 -- The same over mkStrided's view.
 mkReshape1Strided :: [Int] -> Layout
-mkReshape1Strided dsh = let (sh, ts, o, n) = mkStrided dsh in (sh ++ [1], ts ++ [0], o, n)
+mkReshape1Strided dsh = let (sh, ts, o, n) = mkStrided dsh
+                        in  (sh ++ [1], ts ++ [0], o, n)
 
 -- mkStrided's view cut out of an enclosing dense array two larger in
 -- every dimension, at offset 1 in each.
 mkSliced :: [Int] -> Layout
 mkSliced dsh = let es = natural (map (+ 2) dsh)
-               in  (swapLast2 dsh, swapLast2 es, sum es, product (map (+ 2) dsh))
+               in  (swapLast2 dsh, swapLast2 es, sum es,
+                    product (map (+ 2) dsh))
 
 -- The patches of a dense [h, w] image, [oh, ow, kw, kh], for a window
 -- stride s and a kernel dilation d, 1 unless listed: the strides repeat
@@ -555,7 +578,8 @@ mkWindowChannels sh = error ("mkWindowChannels: " ++ show sh)
 -- element between them.
 mkRuns :: [Int] -> Layout
 mkRuns sh@(rows : inner) = let run = product inner
-                           in  (sh, (run + 1) : natural inner, 0, rows * (run + 1))
+                           in  (sh, (run + 1) : natural inner, 0,
+                                rows * (run + 1))
 mkRuns sh = error ("mkRuns: " ++ show sh)
 
 -- A dense array of shape esh cut to shape sh at offset o.
@@ -564,14 +588,16 @@ mkBlock sh esh o = (sh, natural esh, o, product esh)
 
 -- mkBlock at offset 0 with the dims rs reversed.
 mkFlipIn :: [Int] -> [Int] -> [Int] -> Layout
-mkFlipIn rs sh esh = let (ts, o) = reverseDims rs sh (natural esh) in (sh, ts, o, product esh)
+mkFlipIn rs sh esh = let (ts, o) = reverseDims rs sh (natural esh)
+                     in  (sh, ts, o, product esh)
 
 mkFlip :: [Int] -> [Int] -> Layout
 mkFlip rs sh = mkFlipIn rs sh sh
 
 -- The given strides at offset o over the shortest vector they fit.
 mkCompose :: [Int] -> [Int] -> Int -> Layout
-mkCompose sh ts o = (sh, ts, o, o + sum [ (s - 1) * t | (s, t) <- zip sh ts, t > 0 ] + 1)
+mkCompose sh ts o =
+  (sh, ts, o, o + sum [ (s - 1) * t | (s, t) <- zip sh ts, t > 0 ] + 1)
 
 -- The patch tensors of convolutions, [outH, outW, Cin, KH, KW], the patches
 -- of one position, [Cin, KH, KW], and two shapes of rank 4, through
@@ -700,17 +726,22 @@ classViews =
                        , ("block-run64-gap64", [2048, 64],   [2048, 128],  0)
                        , ("block-run64-page",  [2048, 64],   [2048, 512],  0)
                        , ("block-run64-off7",  [2048, 64],   [2048, 128],  7)
-                       , ("block-r3-vol64",    [64, 64, 64], [72, 72, 72], 0) ] ]
+                       , ("block-r3-vol64",    [64, 64, 64], [72, 72, 72], 0)
+                       ] ]
   ++ [ (n, mkCompose s ts 0)
      | (n, s, ts) <- [ ("small-row96",    [4, 96],    [97, 1])
                      , ("small-patch-k5", [6, 5, 5],  [25, 1, 5])
                      , ("small-bcast32",  [8, 32],    [1, 0])
                      , ("small-flat64",   [4, 1, 64], [64, 0, 1])
-                     , ("small-patch-r5", [2, 2, 4, 4, 4], [20, 4, 1, 20, 4]) ] ]
+                     , ("small-patch-r5", [2, 2, 4, 4, 4], [20, 4, 1, 20, 4])
+                     ] ]
   ++ [ (n, mkCompose s ts o)
-     | (n, s, ts, o) <- [ ("compose-rev-bcast",   [64, 100, 8],   [-100, -1, 0], 6399)
-                        , ("compose-slice-bcast", [64, 100, 8],   [100, 1, 0],   7)
-                        , ("compose-zero-mid",    [200, 90, 100], [0, 1, 0],     0)
-                        , ("compose-scalar",      [1200, 1500],   [0, 0],        0)
-                        , ("compose-bcast-nest",  [25, 25, 48, 10, 6], [39233, -1268, 17, 1, 0], 30432)
-                        , ("compose-bcast-wide",  [4, 5, 5, 5, 5, 6, 120], [7564, -1466, 287, 55, 10, 1, 0], 5864) ] ]
+     | (n, s, ts, o) <-
+         [ ("compose-rev-bcast",   [64, 100, 8],   [-100, -1, 0], 6399)
+         , ("compose-slice-bcast", [64, 100, 8],   [100, 1, 0],   7)
+         , ("compose-zero-mid",    [200, 90, 100], [0, 1, 0],     0)
+         , ("compose-scalar",      [1200, 1500],   [0, 0],        0)
+         , ("compose-bcast-nest",  [25, 25, 48, 10, 6],
+            [39233, -1268, 17, 1, 0], 30432)
+         , ("compose-bcast-wide",  [4, 5, 5, 5, 5, 6, 120],
+            [7564, -1466, 287, 55, 10, 1, 0], 5864) ] ]

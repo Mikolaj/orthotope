@@ -322,7 +322,8 @@ toVector :: Array a -> V.Vector a
 toVector = G.toVector . unA
 
 -- | Convert from a vector with the elements given in the linearization order.
--- Fails if the given shape does not have the same number of elements as the vector.
+-- Fails if the given shape does not have the same number of elements as the
+-- vector.
 -- O(1) time.
 {-# INLINE fromVector #-}
 fromVector :: (HasCallStack) => ShapeL -> V.Vector a -> Array a
@@ -356,7 +357,8 @@ force = A . G.force . unA
 reshape :: (HasCallStack) => ShapeL -> Array a -> Array a
 reshape s = A . G.reshape s . unA
 
--- | Change the size of dimensions with size 1.  These dimensions can be changed to any size.
+-- | Change the size of dimensions with size 1.  These dimensions can be changed
+-- to any size.
 -- All other dimensions must remain the same.
 -- O(1) time.
 {-# INLINE stretch #-}
@@ -600,7 +602,8 @@ foldrA f z = G.foldrA f z . unA
 --
 -- Note that this 'Array' actually has 'Traversable' anyway.
 {-# INLINE traverseA #-}
-traverseA :: forall a b f . Applicative f => (a -> f b) -> Array a -> f (Array b)
+traverseA :: forall a b f . Applicative f
+          => (a -> f b) -> Array a -> f (Array b)
 traverseA f = fmap A . G.traverseA f . unA
 
 -- | Check if all elements of the array are equal.

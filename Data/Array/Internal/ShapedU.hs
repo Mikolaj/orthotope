@@ -125,7 +125,8 @@ rank = G.rank . unA
 -- | Index into an array.  Fails if the index is out of bounds.
 -- O(1) time.
 {-# INLINE index #-}
-index :: forall s sh a . (HasCallStack, KnownNat s) => Array (s:sh) a -> Int -> Array sh a
+index :: forall s sh a . (HasCallStack, KnownNat s) =>
+         Array (s:sh) a -> Int -> Array sh a
 index a = A . G.index (unA a)
 
 -- | Convert to a list with the elements in the linearization order.
@@ -150,10 +151,12 @@ toVector :: forall sh a . (Unbox a, Shape sh) => Array sh a -> V.Vector a
 toVector = G.toVector . unA
 
 -- | Convert from a vector with the elements given in the linearization order.
--- Fails if the given shape does not have the same number of elements as the vector.
+-- Fails if the given shape does not have the same number of elements as the
+-- vector.
 -- O(1) time.
 {-# INLINE fromVector #-}
-fromVector :: forall sh a . (HasCallStack, Unbox a, Shape sh) => V.Vector a -> Array sh a
+fromVector :: forall sh a . (HasCallStack, Unbox a, Shape sh) =>
+              V.Vector a -> Array sh a
 fromVector = A . G.fromVector
 
 -- | Make sure the underlying vector is in the linearization order.
@@ -183,18 +186,21 @@ force = A . G.force . unA
 -- with it, up to 2.2%: with it the caller takes the array apart and calls the
 -- worker of Data.Array.Internal.ShapedG's reshape' itself, where without it
 -- the caller called the specialised wrapper of reshape', which does that.
--- | Change the shape of an array.  Type error if the arrays have different number of elements.
+-- | Change the shape of an array.  Type error if the arrays have different
+-- number of elements.
 -- O(n) or O(1) time.
 {-# INLINE reshape #-}
 reshape :: forall sh' sh a . (Unbox a, Shape sh, Shape sh', Size sh ~ Size sh') =>
            Array sh a -> Array sh' a
 reshape !a = A (G.reshape (unA a))
 
--- | Change the size of dimensions with size 1.  These dimensions can be changed to any size.
+-- | Change the size of dimensions with size 1.  These dimensions can be changed
+-- to any size.
 -- All other dimensions, which the types check, remain the same.
 -- O(1) time.
 {-# INLINE stretch #-}
-stretch :: forall sh' sh a . (Shape sh', ValidStretch sh sh') => Array sh a -> Array sh' a
+stretch :: forall sh' sh a . (Shape sh', ValidStretch sh sh') =>
+           Array sh a -> Array sh' a
 stretch = A . G.stretch . unA
 
 -- | Change the size of the outermost dimension by replication.
@@ -224,7 +230,8 @@ constant = A . G.constant
 -- | Map over the array elements.
 -- O(n) time.
 {-# INLINE mapA #-}
-mapA :: forall sh a b . (Unbox a, Unbox b, Shape sh) => (a -> b) -> Array sh a -> Array sh b
+mapA :: forall sh a b . (Unbox a, Unbox b, Shape sh) =>
+        (a -> b) -> Array sh a -> Array sh b
 mapA f = A . G.mapA f . unA
 
 -- | Combine the elements of two arrays.
@@ -237,23 +244,31 @@ zipWithA f a b = A $ G.zipWithA f (unA a) (unA b)
 -- | Combine the elements of three arrays.
 -- O(n) time.
 {-# INLINE zipWith3A #-}
-zipWith3A :: forall sh a b c d . (Unbox a, Unbox b, Unbox c, Unbox d, Shape sh) =>
-             (a -> b -> c -> d) -> Array sh a -> Array sh b -> Array sh c -> Array sh d
+zipWith3A :: forall sh a b c d .
+             (Unbox a, Unbox b, Unbox c, Unbox d, Shape sh) =>
+             (a -> b -> c -> d) -> Array sh a -> Array sh b -> Array sh c
+             -> Array sh d
 zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)
 
 -- | Combine the elements of four arrays.
 -- O(n) time.
 {-# INLINE zipWith4A #-}
-zipWith4A :: forall sh a b c d e . (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Shape sh) =>
-             (a -> b -> c -> d -> e) -> Array sh a -> Array sh b -> Array sh c -> Array sh d -> Array sh e
+zipWith4A :: forall sh a b c d e .
+             (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Shape sh) =>
+             (a -> b -> c -> d -> e) -> Array sh a -> Array sh b -> Array sh c
+             -> Array sh d -> Array sh e
 zipWith4A f a b c d = A $ G.zipWith4A f (unA a) (unA b) (unA c) (unA d)
 
 -- | Combine the elements of five arrays.
 -- O(n) time.
 {-# INLINE zipWith5A #-}
-zipWith5A :: forall sh a b c d e f . (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Unbox f, Shape sh) =>
-             (a -> b -> c -> d -> e -> f) -> Array sh a -> Array sh b -> Array sh c -> Array sh d -> Array sh e -> Array sh f
-zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e)
+zipWith5A :: forall sh a b c d e f .
+             (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Unbox f,
+              Shape sh) =>
+             (a -> b -> c -> d -> e -> f) -> Array sh a -> Array sh b
+             -> Array sh c -> Array sh d -> Array sh e -> Array sh f
+zipWith5A f a b c d e =
+  A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e)
 
 -- | Pad each dimension on the low and high side with the given value.
 -- O(n) time.
@@ -263,7 +278,8 @@ zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e
 -- primitive-0.9.1.0's setByteArray, until a primitive release has
 -- https://github.com/haskell/primitive/pull/433.
 {-# INLINE pad #-}
-pad :: forall ps sh' sh a . (HasCallStack, Unbox a, Padded ps sh sh', Shape sh) =>
+pad :: forall ps sh' sh a .
+       (HasCallStack, Unbox a, Padded ps sh sh', Shape sh) =>
        a -> Array sh a -> Array sh' a
 pad v = A . G.pad @ps v . unA
 
@@ -274,7 +290,8 @@ pad v = A . G.pad @ps v . unA
 -- O(1) time.
 {-# INLINE transpose #-}
 transpose :: forall is sh a .
-             (HasCallStack, Permutation is, Rank is <= Rank sh, Shape sh, Shape is, KnownNat (Rank sh)) =>
+             (HasCallStack, Permutation is, Rank is <= Rank sh, Shape sh,
+              Shape is, KnownNat (Rank sh)) =>
              Array sh a -> Array (Permute is sh) a
 transpose = A . G.transpose @is . unA
 
@@ -284,7 +301,8 @@ transpose = A . G.transpose @is . unA
 -- Where one array's outer extent is 0, the result is the other itself, sharing
 -- its vector; 'force' copies it out.
 {-# INLINE append #-}
-append :: forall sh m n a . (Unbox a, Shape sh, KnownNat m, KnownNat n, KnownNat (m+n)) =>
+append :: forall sh m n a .
+          (Unbox a, Shape sh, KnownNat m, KnownNat n, KnownNat (m+n)) =>
           Array (m ': sh) a -> Array (n ': sh) a -> Array (m+n ': sh) a
 append x y = A $ G.append (unA x) (unA y)
 
@@ -294,7 +312,8 @@ append x y = A $ G.append (unA x) (unA y)
 -- Of one array, the result is that array itself, sharing its vector; 'force'
 -- copies it out.
 {-# INLINE concatOuter #-}
-concatOuter :: forall m n sh a . (HasCallStack, Unbox a, KnownNat m, KnownNat n, Shape sh) =>
+concatOuter :: forall m n sh a .
+               (HasCallStack, Unbox a, KnownNat m, KnownNat n, Shape sh) =>
                [Array (n ': sh) a] -> Array (m ': sh) a
 concatOuter = A . G.concatOuter @m @n . coerce
 
@@ -323,11 +342,12 @@ unravel = S.A . G.unravelWith A . unA
 -- the window size is @[3,3]@ then the resulting array will have shape
 -- @[8,10,3,3,8]@.
 --
--- E.g., @window \@'[2] (fromList \@'[4] [1,2,3,4]) == fromList \@'[3,2] [1,2, 2,3, 3,4]@
+-- E.g., @window \@'[2] (fromList \@'[4] [1,2,3,4]) == fromList \@'[3,2] [1,2,
+-- 2,3, 3,4]@
 -- O(1) time.
 --
--- If the window type parameter @ws = '[w1,...,wk]@ and @wa = window \@ws a@ then
--- @wa `index` i1 ... `index` ik == slice \@'[ '(i1,w1),...,'(ik,wk)] a@.
+-- If the window type parameter @ws = '[w1,...,wk]@ and @wa = window \@ws a@
+-- then @wa `index` i1 ... `index` ik == slice \@'[ '(i1,w1),...,'(ik,wk)] a@.
 {-# INLINE window #-}
 window :: forall ws sh' sh a .
           (Window ws sh sh', KnownNat (Rank ws), Shape sh') =>
@@ -361,7 +381,8 @@ rotate = A . G.rotate @d @k . unA
 -- The first type argument is a list of (offset, length) pairs.
 -- The slicing argument, which its type checks, is no longer than the rank of
 -- the array, and the extracted slice falls within the array dimensions.
--- E.g. @slice \@'[ '(1,2)] (fromList \@'[4] [1,2,3,4]) == fromList \@'[2] [2,3]@.
+-- E.g. @slice \@'[ '(1,2)] (fromList \@'[4] [1,2,3,4]) == fromList \@'[2]
+-- [2,3]@.
 -- O(1) time.
 {-# INLINE slice #-}
 slice :: forall sl sh' sh a .
@@ -408,12 +429,14 @@ rev = A . G.rev @rs . unA
 -- Forcing the result forces the initial value.
 -- O(n) time.
 {-# INLINE reduce #-}
-reduce :: forall sh a . (Unbox a, Shape sh) => (a -> a -> a) -> a -> Array sh a -> Array '[] a
+reduce :: forall sh a . (Unbox a, Shape sh) =>
+          (a -> a -> a) -> a -> Array sh a -> Array '[] a
 reduce f z = A . G.reduce f z . unA
 
 -- | Constrained version of 'foldr' for Arrays.
 {-# INLINE foldrA #-}
-foldrA :: forall sh a b . (Unbox a, Shape sh) => (a -> b -> b) -> b -> Array sh a -> b
+foldrA :: forall sh a b . (Unbox a, Shape sh) =>
+          (a -> b -> b) -> b -> Array sh a -> b
 foldrA f z = G.foldrA f z . unA
 
 -- | Constrained version of 'traverse' for Arrays.
@@ -448,7 +471,8 @@ productA = G.productA . unA
 -- depends on the array's layout, and so does which pairs of elements it
 -- compares, an element with itself among them.
 {-# INLINE maximumA #-}
-maximumA :: forall sh a . (Unbox a, Ord a, Shape sh, 1 <= Size sh) => Array sh a -> a
+maximumA :: forall sh a . (Unbox a, Ord a, Shape sh, 1 <= Size sh) =>
+            Array sh a -> a
 maximumA = G.maximumA . unA
 
 -- | Minimum of all elements.
@@ -456,7 +480,8 @@ maximumA = G.maximumA . unA
 -- depends on the array's layout, and so does which pairs of elements it
 -- compares, an element with itself among them.
 {-# INLINE minimumA #-}
-minimumA :: forall sh a . (Unbox a, Ord a, Shape sh, 1 <= Size sh) => Array sh a -> a
+minimumA :: forall sh a . (Unbox a, Ord a, Shape sh, 1 <= Size sh) =>
+            Array sh a -> a
 minimumA = G.minimumA . unA
 
 -- | Test if the predicate holds for any element.

@@ -438,7 +438,8 @@ toVector :: (Unbox a) => Array a -> V.Vector a
 toVector = G.toVector . unA
 
 -- | Convert from a vector with the elements given in the linearization order.
--- Fails if the given shape does not have the same number of elements as the vector.
+-- Fails if the given shape does not have the same number of elements as the
+-- vector.
 -- O(1) time.
 {-# INLINE fromVector #-}
 fromVector :: (HasCallStack, Unbox a) => ShapeL -> V.Vector a -> Array a
@@ -482,7 +483,8 @@ force = A . G.force . unA
 reshape :: (HasCallStack, Unbox a) => ShapeL -> Array a -> Array a
 reshape s = A . G.reshape s . unA
 
--- | Change the size of dimensions with size 1.  These dimensions can be changed to any size.
+-- | Change the size of dimensions with size 1.  These dimensions can be changed
+-- to any size.
 -- All other dimensions must remain the same.
 -- O(1) time.
 {-# INLINE stretch #-}
@@ -665,7 +667,8 @@ slice ss = A . G.slice ss . unA
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank #-}
-rerank :: forall a b . (HasCallStack, Unbox b) => Int -> (Array a -> Array b) -> Array a -> Array b
+rerank :: forall a b . (HasCallStack, Unbox b)
+       => Int -> (Array a -> Array b) -> Array a -> Array b
 rerank n f = A . G.rerank n (unA . f . A) . unA
 
 -- | Apply a two-argument function to the subarrays /n/ levels down and make
@@ -810,7 +813,8 @@ bitcastT :: forall a b . (HasCallStack, Unbox a, Unbox b)
          => T V.Vector a -> T V.Vector b
 bitcastT (T ss o v)
   | sza /= szb || sza == 0
-  = error $ "bitcast: the types must have the same, nonzero size. " ++ show (sza, szb)
+  = error $ "bitcast: the types must have the same, nonzero size. "
+    ++ show (sza, szb)
   | otherwise = T ss o (sameSize v)
   where sza = sizeOf (undefined :: a)
         szb = sizeOf (undefined :: b)

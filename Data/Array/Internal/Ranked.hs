@@ -130,7 +130,8 @@ toList = G.toList . unA
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(n) time.
 {-# INLINE fromList #-}
-fromList :: forall n a . (HasCallStack, KnownNat n) => ShapeL -> [a] -> Array n a
+fromList :: forall n a . (HasCallStack, KnownNat n) =>
+            ShapeL -> [a] -> Array n a
 fromList ss = A . G.fromList ss
 
 -- | Convert to a vector with the elements in the linearization order.
@@ -142,10 +143,12 @@ toVector :: Array n a -> V.Vector a
 toVector = G.toVector . unA
 
 -- | Convert from a vector with the elements given in the linearization order.
--- Fails if the given shape does not have the same number of elements as the vector.
+-- Fails if the given shape does not have the same number of elements as the
+-- vector.
 -- O(1) time.
 {-# INLINE fromVector #-}
-fromVector :: forall n a . (HasCallStack, KnownNat n) => ShapeL -> V.Vector a -> Array n a
+fromVector :: forall n a . (HasCallStack, KnownNat n) =>
+              ShapeL -> V.Vector a -> Array n a
 fromVector ss = A . G.fromVector ss
 
 -- | Make sure the underlying vector is in the linearization order.
@@ -173,10 +176,12 @@ force = A . G.force . unA
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.
 {-# INLINE reshape #-}
-reshape :: forall n' n a . (HasCallStack, KnownNat n') => ShapeL -> Array n a -> Array n' a
+reshape :: forall n' n a . (HasCallStack, KnownNat n') =>
+           ShapeL -> Array n a -> Array n' a
 reshape s = A . G.reshape s . unA
 
--- | Change the size of dimensions with size 1.  These dimensions can be changed to any size.
+-- | Change the size of dimensions with size 1.  These dimensions can be changed
+-- to any size.
 -- All other dimensions must remain the same.
 -- O(1) time.
 {-# INLINE stretch #-}
@@ -237,29 +242,37 @@ instance Traversable (Array n) where
 -- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWithA #-}
-zipWithA :: forall n a b c . (HasCallStack) => (a -> b -> c) -> Array n a -> Array n b -> Array n c
+zipWithA :: forall n a b c . (HasCallStack) =>
+            (a -> b -> c) -> Array n a -> Array n b -> Array n c
 zipWithA f a b = A $ G.zipWithA f (unA a) (unA b)
 
 -- | Combine the elements of three arrays.
 -- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith3A #-}
-zipWith3A :: forall n a b c d . (HasCallStack) => (a -> b -> c -> d) -> Array n a -> Array n b -> Array n c -> Array n d
+zipWith3A :: forall n a b c d . (HasCallStack) =>
+             (a -> b -> c -> d) -> Array n a -> Array n b -> Array n c
+             -> Array n d
 zipWith3A f a b c = A $ G.zipWith3A f (unA a) (unA b) (unA c)
 
 -- | Combine the elements of four arrays.
 -- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith4A #-}
-zipWith4A :: forall n a b c d e . (HasCallStack) => (a -> b -> c -> d -> e) -> Array n a -> Array n b -> Array n c -> Array n d -> Array n e
+zipWith4A :: forall n a b c d e . (HasCallStack) =>
+             (a -> b -> c -> d -> e) -> Array n a -> Array n b -> Array n c
+             -> Array n d -> Array n e
 zipWith4A f a b c d = A $ G.zipWith4A f (unA a) (unA b) (unA c) (unA d)
 
 -- | Combine the elements of five arrays.
 -- Fails if the shapes differ.
 -- O(n) time.
 {-# INLINE zipWith5A #-}
-zipWith5A :: forall n a b c d e f . (HasCallStack) => (a -> b -> c -> d -> e -> f) -> Array n a -> Array n b -> Array n c -> Array n d -> Array n e -> Array n f
-zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e)
+zipWith5A :: forall n a b c d e f . (HasCallStack) =>
+             (a -> b -> c -> d -> e -> f) -> Array n a -> Array n b -> Array n c
+             -> Array n d -> Array n e -> Array n f
+zipWith5A f a b c d e =
+  A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e)
 
 -- | Pad each dimension on the low and high side with the given value.
 -- Fails if the padding list is longer than the rank or a padding is negative.
@@ -267,7 +280,8 @@ zipWith5A f a b c d e = A $ G.zipWith5A f (unA a) (unA b) (unA c) (unA d) (unA e
 -- With no padding, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
 {-# INLINE pad #-}
-pad :: forall n a . (HasCallStack) => [(Int, Int)] -> a -> Array n a -> Array n a
+pad :: forall n a . (HasCallStack) =>
+       [(Int, Int)] -> a -> Array n a -> Array n a
 pad ps v = A . G.pad ps v . unA
 
 -- | Do an arbitrary array transposition.
@@ -331,7 +345,8 @@ unravel = A . G.unravelWith A . unA
 -- If the window parameter @ws = [w1,...,wk]@ and @wa = window ws a@ then
 -- @wa `index` i1 ... `index` ik == slice [(i1,w1),...,(ik,wk)] a@.
 {-# INLINE window #-}
-window :: forall n' n a . (HasCallStack, KnownNat n, KnownNat n') => [Int] -> Array n a -> Array n' a
+window :: forall n' n a . (HasCallStack, KnownNat n, KnownNat n') =>
+          [Int] -> Array n a -> Array n' a
 window ws = A . G.window ws . unA
 
 -- | Stride the outermost dimensions.
@@ -378,7 +393,8 @@ slice ss = A . G.slice ss . unA
 -- Over one outer index, the result is a view of the function's result,
 -- sharing its vector; 'force' copies it out.
 {-# INLINE rerank #-}
-rerank :: forall n i o a b . (HasCallStack, KnownNat n, KnownNat o, KnownNat (n+o)) =>
+rerank :: forall n i o a b .
+          (HasCallStack, KnownNat n, KnownNat o, KnownNat (n+o)) =>
           (Array i a -> Array o b) -> Array (n+i) a -> Array (n+o) b
 rerank f = A . G.rerank @n (unA . f . A) . unA
 
@@ -423,7 +439,8 @@ foldrA f z = G.foldrA f z . unA
 --
 -- Note that this 'Array' actually has 'Traversable' anyway.
 {-# INLINE traverseA #-}
-traverseA :: forall n a b f . Applicative f => (a -> f b) -> Array n a -> f (Array n b)
+traverseA :: forall n a b f . Applicative f =>
+             (a -> f b) -> Array n a -> f (Array n b)
 traverseA f = fmap A . G.traverseA f . unA
 
 -- | Check if all elements of the array are equal.

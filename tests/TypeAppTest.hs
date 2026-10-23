@@ -40,41 +40,80 @@ import Test.HUnit (assertEqual)
 test :: Test
 test = testGroup "TypeApp"
   [ testCase "order" $ do
-      assertEqual "S" [0, 0, 0, 0, 0] (S.toList (S.stretchOuter @5 (S.constant 0 :: S.Array '[1, 1] Int)))
-      assertEqual "SS" [0, 0, 0, 0, 0] (SS.toList (SS.stretchOuter @5 (SS.constant 0 :: SS.Array '[1, 1] Int)))
-      assertEqual "SU" [0, 0, 0, 0, 0] (SU.toList (SU.stretchOuter @5 (SU.constant 0 :: SU.Array '[1, 1] Int)))
+      assertEqual "S" [0, 0, 0, 0, 0]
+        (S.toList (S.stretchOuter @5 (S.constant 0 :: S.Array '[1, 1] Int)))
+      assertEqual "SS" [0, 0, 0, 0, 0]
+        (SS.toList (SS.stretchOuter @5 (SS.constant 0 :: SS.Array '[1, 1] Int)))
+      assertEqual "SU" [0, 0, 0, 0, 0]
+        (SU.toList (SU.stretchOuter @5 (SU.constant 0 :: SU.Array '[1, 1] Int)))
   , testCase "index" $ do
-      assertEqual "SS" [3, 4] (SS.toList (SS.index @3 @'[2] @Int (SS.fromList [1 .. 6] :: SS.Array '[3, 2] Int) 1))
-      assertEqual "SU" [3, 4] (SU.toList (SU.index @3 @'[2] @Int (SU.fromList [1 .. 6] :: SU.Array '[3, 2] Int) 1))
-      assertEqual "RS" [3, 4] (RS.toList (RS.index @1 @Int (RS.fromList [3, 2] [1 .. 6] :: RS.Array 2 Int) 1))
-      assertEqual "RU" [3, 4] (RU.toList (RU.index @1 @Int (RU.fromList [3, 2] [1 .. 6] :: RU.Array 2 Int) 1))
-      assertEqual "RG" [3, 4] (RG.toList (RG.index @1 @V.Vector @Int (RG.fromList [3, 2] [1 .. 6] :: RG.Array 2 V.Vector Int) 1))
+      assertEqual "SS" [3, 4]
+        (SS.toList (SS.index @3 @'[2] @Int
+                      (SS.fromList [1 .. 6] :: SS.Array '[3, 2] Int) 1))
+      assertEqual "SU" [3, 4]
+        (SU.toList (SU.index @3 @'[2] @Int
+                      (SU.fromList [1 .. 6] :: SU.Array '[3, 2] Int) 1))
+      assertEqual "RS" [3, 4]
+        (RS.toList (RS.index @1 @Int
+                      (RS.fromList [3, 2] [1 .. 6] :: RS.Array 2 Int) 1))
+      assertEqual "RU" [3, 4]
+        (RU.toList (RU.index @1 @Int
+                      (RU.fromList [3, 2] [1 .. 6] :: RU.Array 2 Int) 1))
+      assertEqual "RG" [3, 4]
+        (RG.toList (RG.index @1 @V.Vector @Int
+                      (RG.fromList [3, 2] [1 .. 6] :: RG.Array 2 V.Vector Int)
+                      1))
   , testCase "reshape" $ do
-      assertEqual "R" [3, 1, 2] (R.shapeL (R.reshape @3 @2 @Int [3, 1, 2] (R.fromList [3, 2] [1 .. 6])))
-      assertEqual "RS" [3, 1, 2] (RS.shapeL (RS.reshape @3 @2 @Int [3, 1, 2] (RS.fromList [3, 2] [1 .. 6])))
-      assertEqual "RU" [3, 1, 2] (RU.shapeL (RU.reshape @3 @2 @Int [3, 1, 2] (RU.fromList [3, 2] [1 .. 6])))
+      assertEqual "R" [3, 1, 2]
+        (R.shapeL (R.reshape @3 @2 @Int [3, 1, 2]
+                     (R.fromList [3, 2] [1 .. 6])))
+      assertEqual "RS" [3, 1, 2]
+        (RS.shapeL (RS.reshape @3 @2 @Int [3, 1, 2]
+                      (RS.fromList [3, 2] [1 .. 6])))
+      assertEqual "RU" [3, 1, 2]
+        (RU.shapeL (RU.reshape @3 @2 @Int [3, 1, 2]
+                      (RU.fromList [3, 2] [1 .. 6])))
   , testCase "window" $ do
-      assertEqual "R" [2, 2, 2] (R.shapeL (R.window @3 @2 @Int [2] (R.fromList [3, 2] [1 .. 6])))
-      assertEqual "RS" [2, 2, 2] (RS.shapeL (RS.window @3 @2 @Int [2] (RS.fromList [3, 2] [1 .. 6])))
-      assertEqual "RU" [2, 2, 2] (RU.shapeL (RU.window @3 @2 @Int [2] (RU.fromList [3, 2] [1 .. 6])))
+      assertEqual "R" [2, 2, 2]
+        (R.shapeL (R.window @3 @2 @Int [2] (R.fromList [3, 2] [1 .. 6])))
+      assertEqual "RS" [2, 2, 2]
+        (RS.shapeL (RS.window @3 @2 @Int [2] (RS.fromList [3, 2] [1 .. 6])))
+      assertEqual "RU" [2, 2, 2]
+        (RU.shapeL (RU.window @3 @2 @Int [2] (RU.fromList [3, 2] [1 .. 6])))
   , testCase "pad" $
-      assertEqual "R" [0, 1, 2, 0] (R.toList (R.pad @1 @Int [(1, 1)] 0 (R.fromList [2] [1, 2])))
+      assertEqual "R" [0, 1, 2, 0]
+        (R.toList (R.pad @1 @Int [(1, 1)] 0 (R.fromList [2] [1, 2])))
   , testCase "ravel" $
       assertEqual "SG" [1, 2, 3, 4, 5, 6]
         (SG.toList (SG.ravel @'[2] @3 @V.Vector @V.Vector @Int
-                      (SG.fromList [SG.fromList [1, 2], SG.fromList [3, 4], SG.fromList [5, 6]])))
+                      (SG.fromList [SG.fromList [1, 2], SG.fromList [3, 4],
+                                    SG.fromList [5, 6]])))
   , testCase "fromVector" $ do
-      assertEqual "RS" [1 .. 6] (RS.toList (RS.fromVector @2 @Int [3, 2] (VS.fromList [1 .. 6])))
-      assertEqual "RU" [1 .. 6] (RU.toList (RU.fromVector @2 @Int [3, 2] (VU.fromList [1 .. 6])))
+      assertEqual "RS" [1 .. 6]
+        (RS.toList (RS.fromVector @2 @Int [3, 2] (VS.fromList [1 .. 6])))
+      assertEqual "RU" [1 .. 6]
+        (RU.toList (RU.fromVector @2 @Int [3, 2] (VU.fromList [1 .. 6])))
   , testCase "toVector" $ do
-      assertEqual "SS" (VS.fromList [1 .. 6]) (SS.toVector @'[3, 2] @Int (SS.fromList [1 .. 6]))
-      assertEqual "SU" (VU.fromList [1 .. 6]) (SU.toVector @'[3, 2] @Int (SU.fromList [1 .. 6]))
+      assertEqual "SS" (VS.fromList [1 .. 6])
+        (SS.toVector @'[3, 2] @Int (SS.fromList [1 .. 6]))
+      assertEqual "SU" (VU.fromList [1 .. 6])
+        (SU.toVector @'[3, 2] @Int (SU.fromList [1 .. 6]))
   , testCase "stride" $
-      assertEqual "RG" [1, 3] (RG.toList (RG.stride @1 @V.Vector @Int [2] (RG.fromList [4] [1 .. 4])))
+      assertEqual "RG" [1, 3]
+        (RG.toList (RG.stride @1 @V.Vector @Int [2] (RG.fromList [4] [1 .. 4])))
   , testCase "rerank2" $
-      assertEqual "RG" [11, 22] (RG.toList (RG.rerank2 @1 @0 @0 @V.Vector @Int @Int @Int (RG.zipWithA (+)) (RG.fromList [2] [1, 2]) (RG.fromList [2] [10, 20])))
+      assertEqual "RG" [11, 22]
+        (RG.toList (RG.rerank2 @1 @0 @0 @V.Vector @Int @Int @Int
+                      (RG.zipWithA (+)) (RG.fromList [2] [1, 2])
+                      (RG.fromList [2] [10, 20])))
   , testCase "traverseA" $ do
-      assertEqual "D" (Just [2, 3]) ((\ a -> D.toList a) <$> D.traverseA @Int @Int @Maybe (Just . succ) (D.fromList [2] [1, 2]))
-      assertEqual "R" (Just [2, 3]) ((\ a -> R.toList a) <$> R.traverseA @1 @Int @Int @Maybe (Just . succ) (R.fromList [2] [1, 2]))
-      assertEqual "S" (Just [2, 3]) ((\ a -> S.toList a) <$> S.traverseA @'[2] @Int @Int @Maybe (Just . succ) (S.fromList [1, 2]))
+      assertEqual "D" (Just [2, 3])
+        ((\ a -> D.toList a) <$> D.traverseA @Int @Int @Maybe
+                                   (Just . succ) (D.fromList [2] [1, 2]))
+      assertEqual "R" (Just [2, 3])
+        ((\ a -> R.toList a) <$> R.traverseA @1 @Int @Int @Maybe
+                                   (Just . succ) (R.fromList [2] [1, 2]))
+      assertEqual "S" (Just [2, 3])
+        ((\ a -> S.toList a) <$> S.traverseA @'[2] @Int @Int @Maybe
+                                   (Just . succ) (S.fromList [1, 2]))
   ]

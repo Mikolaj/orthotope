@@ -146,7 +146,7 @@ table mode args = do
                       , null args || any (`isInfixOf` row) args ]
   unless (null probed) $
     printf "\n%-48s %s\n" ""
-           "bytes a call at Storable: as compiled, the value built, the difference"
+      "bytes a call at Storable: as compiled, the value built, the difference"
   forM_ probed $ \ (Probe row f g a) -> do
     _ <- allocated f a
     af <- allocated f a

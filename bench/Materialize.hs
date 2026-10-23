@@ -49,7 +49,8 @@ calls = [ (ty, name, f . DS.unA, g . DS.unA) | (ty, name, f, g) <- calls' ]
     [ ("Route", "routeT", route id I.routeT, route built I.routeT)
     , ("Route", "unorderedRouteT", route id I.unorderedRouteT
                                  , route built I.unorderedRouteT)
-    , ("Route", "cellsRouteT", route id I.cellsRouteT, route built I.cellsRouteT)
+    , ("Route", "cellsRouteT", route id I.cellsRouteT
+                             , route built I.cellsRouteT)
     , ("Route", "routeOfT", routeOf id, routeOf built)
     , ("Route", "routeVectorT", vector id, vector built)
     , ("Route", "routeSlicesT", slices id, slices built)

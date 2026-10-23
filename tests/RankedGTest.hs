@@ -44,14 +44,16 @@ import Foreign.Storable (Storable)
 import GHC.TypeLits (KnownNat, SomeNat (..), someNatVal, type (+))
 import Test.Framework (Test, testGroup)
 import Test.QuickCheck
-  ( Arbitrary (..), Property, choose, conjoin, counterexample, forAll, ioProperty
+  ( Arbitrary (..), Property, choose, conjoin, counterexample, forAll
+  , ioProperty
   , property, suchThat, (.&&.), (===) )
 import Views
   ( Elem, Op (..), View (..), adjustAt, applyOpG, failsIn, forAllView, genBadOp
   , mkViewUpTo, nested, obsD, opName, testPropertyN, upTo, viewShape )
 
 test :: Test
-test = testGroup "RankedG" $ backends @Int ++ [testGroup "Word8" (backends @Word8)]
+test = testGroup "RankedG" $
+  backends @Int ++ [testGroup "Word8" (backends @Word8)]
 
 -- The properties at each instance of Vector, with elements of an Elem type.
 backends :: forall a . (Elem a, Storable a, VU.Unbox a) => [Test]
@@ -62,7 +64,8 @@ backends =
   , backend @[] @a "list"
   ]
 
-backend :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
+backend :: forall v a . ( I.Vector v, I.VecElem v a, Ord (v a), Show (v a)
+                        , Elem a ) =>
            String -> Test
 backend n = testGroup n
   [ testPropertyN "prop_views" (prop_views @v @a)
@@ -110,7 +113,8 @@ sameAs a b = ioProperty $ do
 -- padded as an argument, update at the index its shape is, and concatOuter of
 -- the view and an array of its shape fail as Dynamic's do or, on a scalar, give
 -- what they do.
-prop_views :: forall v a . (I.Vector v, I.VecElem v a, Ord (v a), Show (v a), Elem a) =>
+prop_views :: forall v a . ( I.Vector v, I.VecElem v a, Ord (v a), Show (v a)
+                           , Elem a ) =>
               View -> Property
 prop_views v = forAllView v $ \ (x :: DG.Array v a) ->
   let xsh = DG.shapeL x
@@ -130,30 +134,42 @@ prop_views v = forAllView v $ \ (x :: DG.Array v a) ->
           in  RG.toList r === l .&&. RG.toVector r === DG.toVector x
               .&&. RG.toList (RG.normalize r) === l
               .&&. RG.sumA r === sum l .&&. RG.productA r === product l
-              .&&. RG.anyA (> 0) r === any (> 0) l .&&. RG.allA (> 0) r === all (> 0) l
+              .&&. RG.anyA (> 0) r === any (> 0) l
+              .&&. RG.allA (> 0) r === all (> 0) l
               .&&. (if null l then property True
-                    else RG.maximumA r === maximum l .&&. RG.minimumA r === minimum l)
+                    else RG.maximumA r === maximum l
+                         .&&. RG.minimumA r === minimum l)
               .&&. RG.allSameA r === DG.allSameA x .&&. RG.foldrA (:) [] r === l
               .&&. (r == r') === (l == l') .&&. compare r r' === compare l l'
               .&&. RG.toList (RG.mapA (* 2) r) === map (* 2) l
               .&&. RG.toList (RG.zipWithA (-) r r') === zipWith (-) l l'
               .&&. RG.toList (RG.zipWith3A f3 r r' r) === zipWith3 f3 l l' l
-              .&&. RG.toList (RG.zipWith4A f4 r r' r' r) === zipWith4 f4 l l' l' l
-              .&&. RG.toList (RG.zipWith5A f5 r r' r' r r') === zipWith5 f5 l l' l' l l'
+              .&&. RG.toList (RG.zipWith4A f4 r r' r' r)
+                   === zipWith4 f4 l l' l' l
+              .&&. RG.toList (RG.zipWith5A f5 r r' r' r r')
+                   === zipWith5 f5 l l' l' l l'
               .&&. obs (RG.update r us) === obsD (DG.update x us)
               .&&. RG.unScalar (RG.reduce (+) 0 r) === sum l
               .&&. obs rp === obsD xp
-              .&&. (if null xsh then property True else obs (RG.append r r) === obsD (DG.append x x))
-              .&&. obs (RG.reshape @1 @n [length l] r) === obsD (DG.reshape [length l] x)
+              .&&. (if null xsh then property True
+                    else obs (RG.append r r) === obsD (DG.append x x))
+              .&&. obs (RG.reshape @1 @n [length l] r)
+                   === obsD (DG.reshape [length l] x)
               .&&. read (show r) === r
-              .&&. sameAs (obs (RG.zipWith3A f3 r r rp)) (obsD (DG.zipWith3A f3 x x xp))
-              .&&. sameAs (obs (RG.zipWith4A f4 r r r rp)) (obsD (DG.zipWith4A f4 x x x xp))
-              .&&. sameAs (obs (RG.zipWith5A f5 r r r r rp)) (obsD (DG.zipWith5A f5 x x x x xp))
-              .&&. sameAs (obs (RG.concatOuter [r, r', r])) (obsD (DG.concatOuter [x, DG.fromList xsh l', x]))
-              .&&. sameAs (obs (RG.update r [(xsh, 7)])) (obsD (DG.update x [(xsh, 7)]))
+              .&&. sameAs (obs (RG.zipWith3A f3 r r rp))
+                          (obsD (DG.zipWith3A f3 x x xp))
+              .&&. sameAs (obs (RG.zipWith4A f4 r r r rp))
+                          (obsD (DG.zipWith4A f4 x x x xp))
+              .&&. sameAs (obs (RG.zipWith5A f5 r r r r rp))
+                          (obsD (DG.zipWith5A f5 x x x x xp))
+              .&&. sameAs (obs (RG.concatOuter [r, r', r]))
+                          (obsD (DG.concatOuter [x, DG.fromList xsh l', x]))
+              .&&. sameAs (obs (RG.update r [(xsh, 7)]))
+                          (obsD (DG.update x [(xsh, 7)]))
 
 -- The Ranked operation of an Op, from an array of rank n to one of rank n'.
-applyOpR :: forall n n' v a . (KnownNat n, KnownNat n', I.Vector v, I.VecElem v a) =>
+applyOpR :: forall n n' v a . ( KnownNat n, KnownNat n', I.Vector v
+                              , I.VecElem v a ) =>
             Op -> RG.Array n v a -> RG.Array n' v a
 applyOpR (Transpose is) = \ a -> retype (RG.transpose is a)
 applyOpR (Rev rs) = \ a -> retype (RG.rev rs a)
@@ -166,9 +182,11 @@ applyOpR op@Raw{} = \ (RG.A sh t) -> toR (applyOpG op (DG.A sh t))
 
 -- Each operation of a random view, done by Ranked at the ranks of its
 -- argument and of its result, gives what Dynamic's does.
-prop_viewOps :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
+prop_viewOps :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
+                View -> Property
 prop_viewOps (View sh ops) =
-  let steps = scanl (flip applyOpG) (DG.fromList sh (upTo (product sh))) ops :: [DG.Array v a]
+  let steps = scanl (flip applyOpG) (DG.fromList sh (upTo (product sh))) ops
+        :: [DG.Array v a]
       step (x, op, y) =
         withRank (DG.rank x) $ \ (_ :: Proxy n) ->
         withRank (DG.rank y) $ \ (_ :: Proxy n') ->
@@ -188,7 +206,8 @@ opRank n _ = Just n
 -- An operation invalid on a random view, done by Ranked at the rank of the
 -- view and the rank opRank gives, fails as Dynamic's does, and as soon as
 -- its result is evaluated.
-prop_badOps :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => View -> Property
+prop_badOps :: forall v a . (I.Vector v, I.VecElem v a, Elem a) =>
+               View -> Property
 prop_badOps v =
   let x = mkViewUpTo v :: DG.Array v a
   in  forAll (genBadOp (DG.shapeL x)) $ \ op ->
@@ -224,25 +243,32 @@ prop_rank3 =
       ur = RG.unravel r :: RG.Array 1 V.Vector (RG.Array 2 v a)
       ud = DG.unravel x :: DG.Array V.Vector (DG.Array v a)
       rot :: Int -> RG.Array 4 v a -> Property
-      rot d a = counterexample ("rotate " ++ show d) (sameAs (obs a) (obsD (DG.rotate d k x)))
+      rot d a = counterexample ("rotate " ++ show d)
+                               (sameAs (obs a) (obsD (DG.rotate d k x)))
       -- Over the first n dimensions, of a function that returns scalars.
       scalars n rd dd = let osh = take n (DG.shapeL x)
-                        in  if product osh == 0 then rd === (osh, []) else sameAs rd dd
-  in  rot 0 (RG.rotate @0 @3 k r) .&&. rot 1 (RG.rotate @1 @2 k r) .&&. rot 2 (RG.rotate @2 @1 k r)
+                        in  if product osh == 0 then rd === (osh, [])
+                            else sameAs rd dd
+  in  rot 0 (RG.rotate @0 @3 k r) .&&. rot 1 (RG.rotate @1 @2 k r)
+      .&&. rot 2 (RG.rotate @2 @1 k r)
       .&&. counterexample "rerank 1"
              (sameAs (obs (RG.rerank @1 (\ y -> RG.transpose [1,0] y) r))
                      (obsD (DG.rerank 1 (\ y -> DG.transpose [1,0] y) x)))
       .&&. counterexample "rerank 2"
-             (scalars 2 (obs (RG.rerank @2 (\ y -> RG.reduce (+) 0 y) r)) (obsD (DG.rerank 2 (\ y -> DG.reduce (+) 0 y) x)))
+             (scalars 2 (obs (RG.rerank @2 (\ y -> RG.reduce (+) 0 y) r))
+                        (obsD (DG.rerank 2 (\ y -> DG.reduce (+) 0 y) x)))
       .&&. counterexample "rerank2 2"
              (sameAs (obs (RG.rerank2 @2 (\ y z -> RG.zipWithA (+) y z) r r))
                      (obsD (DG.rerank2 2 (\ y z -> DG.zipWithA (+) y z) x x)))
       .&&. counterexample "rerank2 3"
              (scalars 3 (obs (RG.rerank2 @3 (\ y z -> RG.zipWithA (+) y z) r r))
-                        (obsD (DG.rerank2 3 (\ y z -> DG.zipWithA (+) y z) x x)))
+                        (obsD (DG.rerank2 3 (\ y z -> DG.zipWithA (+) y z)
+                                          x x)))
       .&&. counterexample "unravel"
-             (sameAs (nested (map obs (RG.toList ur))) (nested (map obsD (DG.toList ud))))
-      .&&. counterexample "ravel" (sameAs (obs (RG.ravel ur)) (obsD (DG.ravel ud)))
+             (sameAs (nested (map obs (RG.toList ur)))
+                     (nested (map obsD (DG.toList ud))))
+      .&&. counterexample "ravel"
+             (sameAs (obs (RG.ravel ur)) (obsD (DG.ravel ud)))
       .&&. counterexample "stretch"
              (sameAs (obs (RG.stretch (e : xsh) (RG.reshape @4 @3 (1 : xsh) r)))
                      (obsD (DG.stretch (e : xsh) (DG.reshape (1 : xsh) x))))
@@ -253,10 +279,13 @@ prop_rank3 =
              (sameAs (obs (RG.constant [e, 3] 7 :: RG.Array 2 v a))
                      (obsD (DG.constant [e, 3] 7 :: DG.Array v a)))
       .&&. counterexample "generate"
-             (sameAs (obs (RG.generate [2, e] (fromIntegral . sum) :: RG.Array 2 v a))
-                     (obsD (DG.generate [2, e] (fromIntegral . sum) :: DG.Array v a)))
+             (sameAs (obs (RG.generate [2, e] (fromIntegral . sum)
+                             :: RG.Array 2 v a))
+                     (obsD (DG.generate [2, e] (fromIntegral . sum)
+                              :: DG.Array v a)))
       .&&. counterexample "iota"
-             (sameAs (obs (RG.iota e :: RG.Array 1 v a)) (obsD (DG.iota e :: DG.Array v a)))
+             (sameAs (obs (RG.iota e :: RG.Array 1 v a))
+                     (obsD (DG.iota e :: DG.Array v a)))
       .&&. counterexample "iterateN"
              (sameAs (obs (RG.iterateN e (+ 1) 0 :: RG.Array 1 v a))
                      (obsD (DG.iterateN e (+ 1) 0 :: DG.Array v a)))
@@ -270,7 +299,8 @@ prop_rotate =
   forAllView v $ \ (x :: DG.Array v a) ->
   forAll (choose (-2, 9)) $ \ k ->
   let rot :: Int -> RG.Array m v a -> Property
-      rot d a = counterexample ("rotate " ++ show d) (sameAs (obs a) (obsD (DG.rotate d k x)))
+      rot d a = counterexample ("rotate " ++ show d)
+                               (sameAs (obs a) (obsD (DG.rotate d k x)))
   in  if DG.rank x == 1 then rot 0 (RG.rotate @0 @1 k (toR x :: RG.Array 1 v a))
       else rot 0 (RG.rotate @0 @2 k (toR x :: RG.Array 2 v a))
            .&&. rot 1 (RG.rotate @1 @1 k (toR x :: RG.Array 2 v a))

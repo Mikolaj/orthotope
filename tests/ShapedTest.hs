@@ -54,45 +54,65 @@ test = testGroup "Shaped" $
       rank_1 = assertEqual "1" 2 (rank a1)
       rank_2 = assertEqual "2" 2 (rank a2)
       -- Foldable's length and null, read off the shape.
-      foldable_1 = assertEqual "1" (6, False, 0, True) (length a1, null a1, length e, null e)
+      foldable_1 = assertEqual "1" (6, False, 0, True)
+                                   (length a1, null a1, length e, null e)
         where e = (fromList [] :: Array [2,0] Int)
       index_1 = assertEqual "1" (fromList [1,2,3]) (index a1 0)
       index_2 = assertEqual "2" (fromList [1,4]) (index a2 0)
       index_3 = assertEqual "3" (fromList [4]) (a2 `index` 0 `index` 1)
-      index_4 = assertThrowsWith "<0" "index: out of bounds (-1,2)" (index a1 (-1))
+      index_4 = assertThrowsWith "<0" "index: out of bounds (-1,2)"
+                                 (index a1 (-1))
       index_5 = assertThrowsIn ">" "index" (index a1 2)
       -- An extent past maxBound fails as it is read, in index or in making
       -- the array, whichever GHC evaluates first; so the array is made as
       -- a user would make it, not left undefined, which an INLINABLE index
       -- forced first.
-      index_7 = assertWhnfThrowsIn "7" "Shape" (index (constant 0 :: Array '[18446744073709551619] Int) 3)
+      index_7 = assertWhnfThrowsIn "7" "Shape"
+                  (index (constant 0 :: Array '[18446744073709551619] Int) 3)
       -- ShapedG's show need not know how to show a vector.
-      constraints_1 = assertEqual "1" (show a1) (showG (SG.fromList [1..6] :: SG.Array [2,3] [] Int))
-        where showG :: (Show a, I.Vector v, I.VecElem v a, Shape sh) => SG.Array sh v a -> String
+      constraints_1 = assertEqual "1" (show a1)
+                                      (showG (SG.fromList [1..6]
+                                                :: SG.Array [2,3] [] Int))
+        where showG :: (Show a, I.Vector v, I.VecElem v a, Shape sh) =>
+                       SG.Array sh v a -> String
               showG a = show a
       toList_1 = assertEqual "1" [1,2,3,4,5,6] (toList a1)
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
       toVector_2 = assertEqual "2" (V.fromList [1,4,2,5,3,6]) (toVector a2)
-      fromList_1 = assertThrowsIn "sh" "fromList" (fromList [1,2] :: Array '[] Int)
-      fromList_2 = assertThrowsIn "sh" "fromList" (fromList [1,2] :: Array [4,5] Int)
+      fromList_1 = assertThrowsIn "sh" "fromList"
+                                  (fromList [1,2] :: Array '[] Int)
+      fromList_2 = assertThrowsIn "sh" "fromList"
+                                  (fromList [1,2] :: Array [4,5] Int)
       -- Shapes with an extent or a size past maxBound, the extent below
       -- 2^64: fromList at '[2^64+3] made GHC 9.14.1 panic, not 10.1.20260918.
       -- TODO: try '[2^64+3] on GHC 9.14.2 once it is out, and if it still
       -- panics, report it to GHC.
-      fromList_3 = assertThrowsIn "3" "Shape" (fromList [] :: Array [4294967296, 4294967296] Int)
-      fromList_4 = assertThrowsIn "4" "Shape" (fromList [1,2,3] :: Array '[9223372036854775811] Int)
-      -- A list longer than the shape fails, counted no further than one past it.
-      fromList_5 = assertThrowsWith "5" "fromList: size mismatch ([2,3],more than 6)" (fromList [1 ..] :: Array [2,3] Int)
+      fromList_3 = assertThrowsIn "3" "Shape"
+                                  (fromList []
+                                     :: Array [4294967296, 4294967296] Int)
+      fromList_4 = assertThrowsIn "4" "Shape"
+                                  (fromList [1,2,3]
+                                     :: Array '[9223372036854775811] Int)
+      -- A list longer than the shape fails, counted no further than one past
+      -- it.
+      fromList_5 = assertThrowsWith "5"
+                     "fromList: size mismatch ([2,3],more than 6)"
+                     (fromList [1 ..] :: Array [2,3] Int)
       fromVector_1 = assertEqual "1" a1 (fromVector $ V.fromList [1..6])
-      fromVector_2 = assertThrowsIn "2" "fromVector" (fromVector (V.fromList [1..5]) :: Array [2,3] Int)
+      fromVector_2 = assertThrowsIn "2" "fromVector"
+                                    (fromVector (V.fromList [1..5])
+                                       :: Array [2,3] Int)
       -- Read rejects a shape other than the type's, and a list of another size.
       read_1 = do
-        assertEqual "shape" (Nothing :: Maybe (Array [2,3] Int)) (readMaybe "fromList @[3,2] [1,2,3,4,5,6]")
-        assertEqual "size" (Nothing :: Maybe (Array [2,3] Int)) (readMaybe "fromList @[2,3] [1,2,3]")
+        assertEqual "shape" (Nothing :: Maybe (Array [2,3] Int))
+                            (readMaybe "fromList @[3,2] [1,2,3,4,5,6]")
+        assertEqual "size" (Nothing :: Maybe (Array [2,3] Int))
+                           (readMaybe "fromList @[2,3] [1,2,3]")
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [1..6] :: Array '[6] Int) (reshape a1)
-      reshape_2 = assertEqual "2" (fromList [1,4,2,5,3,6]) (reshape a2 :: Array [1,2,3,1] Int)
+      reshape_2 = assertEqual "2" (fromList [1,4,2,5,3,6])
+                                  (reshape a2 :: Array [1,2,3,1] Int)
       a3 :: Array '[1] Int
       a3 = fromList [5]
       a4 :: Array '[] Int
@@ -100,22 +120,38 @@ test = testGroup "Shaped" $
       stretch_1 = assertEqual "1" (fromList @'[3] [5,5,5]) (stretch @'[3] a3)
       stretch_2 = assertEqual "2" (fromList @[2,2,3,2] [1,1,2,2,3,3,4,4,5,5,6,6,1,1,2,2,3,3,4,4,5,5,6,6])
                                   (stretch @[2,2,3,2] (reshape @[1,2,3,1] a1))
-      stretch_3 = assertThrowsIn "3" "Shape" (stretch @[4294967296, 4294967296] (fromList [7] :: Array [1,1] Int))
-      stretchOuter_1 = assertWhnfThrowsIn "1" "Shape" (stretchOuter @4611686018427387904 (constant 0 :: Array '[1, 4] Int))
+      stretch_3 = assertThrowsIn "3" "Shape"
+                                 (stretch @[4294967296, 4294967296]
+                                          (fromList [7] :: Array [1,1] Int))
+      stretchOuter_1 = assertWhnfThrowsIn "1" "Shape"
+                                          (stretchOuter @4611686018427387904
+                                             (constant 0 :: Array '[1, 4] Int))
 
       scalar_1 = assertEqual "1" a4 (scalar 5)
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
       constant_1 = assertEqual "1" (fromList [1,1,1,1,1,1]) (constant 1 :: Array [2,3] Int)
-      constant_2 = assertThrowsIn "2" "Shape" (constant 0 :: Array [4294967296, 4294967296] Int)
-      generate_1 = assertThrowsIn "1" "Shape" (generate (const 0) :: Array [4294967296, 4294967296] Int)
+      constant_2 = assertThrowsIn "2" "Shape"
+                                  (constant 0
+                                     :: Array [4294967296, 4294967296] Int)
+      generate_1 = assertThrowsIn "1" "Shape"
+                                  (generate (const 0)
+                                     :: Array [4294967296, 4294967296] Int)
       -- Extents past maxBound.
-      iterateN_1 = assertWhnfThrowsIn "1" "Shape" (iterateN @18446744073709551617 (+ 1) (0 :: Int))
-      iota_1 = assertWhnfThrowsIn "1" "Shape" (iota :: Array '[18446744073709551615] Int)
-      broadcast_1 = assertEqual "1" [1,1,2,2,3,3] (toList (broadcast @'[0] @'[3,2] (index a1 0)))
+      iterateN_1 = assertWhnfThrowsIn "1" "Shape"
+                                      (iterateN @18446744073709551617 (+ 1)
+                                                (0 :: Int))
+      iota_1 = assertWhnfThrowsIn "1" "Shape"
+                                  (iota :: Array '[18446744073709551615] Int)
+      broadcast_1 = assertEqual "1" [1,1,2,2,3,3]
+                                    (toList (broadcast @'[0] @'[3,2]
+                                               (index a1 0)))
       broadcast_2 = assertEqual "2" [7,7,7,7,7,7]
-                                    (toList (broadcast @'[1] @'[2,3] (constant 7 :: Array '[3] Int)))
+                                    (toList (broadcast @'[1] @'[2,3]
+                                               (constant 7 :: Array '[3] Int)))
       broadcast_3 = assertEqual "3" [1,2,3,1,2,3]
-                                    (toList (broadcast @'[1] @'[2,3] (fromList [1,2,3] :: Array '[3] Int)))
+                                    (toList (broadcast @'[1] @'[2,3]
+                                               (fromList [1,2,3]
+                                                  :: Array '[3] Int)))
       mapA_1 = assertEqual "1" (fromList [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "2" (fromList [2,5,3,6,4,7]) (mapA succ a2)
       zipWithA_1 = assertEqual "1" (fromList [2,4..12]) (zipWithA (+) a1 a1)
@@ -127,13 +163,23 @@ test = testGroup "Shaped" $
                                          9,9,9,9,9,9,9,9,9,9])
                               (pad @['(1,2), '(3,4)] 9 a1)
       -- A padded size past maxBound.
-      pad_2 = assertWhnfThrowsIn "2" "pad" (pad @['(0,0), '(0,4294967294)] 0 (constant 7 :: Array [4294967296, 2] Int) :: Array [4294967296, 4294967296] Int)
+      pad_2 = assertWhnfThrowsIn "2" "pad"
+                (pad @['(0,0), '(0,4294967294)] 0
+                     (constant 7 :: Array [4294967296, 2] Int)
+                   :: Array [4294967296, 4294967296] Int)
       -- Extents summing past maxBound.
-      pad_3 = assertWhnfThrowsIn "3" "pad" (pad @'[ '(9223372036854775807, 9223372036854775807)] 0 (fromList [1,2,3] :: Array '[3] Int) :: Array '[18446744073709551617] Int)
+      pad_3 = assertWhnfThrowsIn "3" "pad"
+                (pad @'[ '(9223372036854775807, 9223372036854775807)] 0
+                     (fromList [1,2,3] :: Array '[3] Int)
+                   :: Array '[18446744073709551617] Int)
       -- A padded shape whose inner part has more elements than an Int counts.
-      pad_4 = assertWhnfThrowsIn "4" "pad" (pad @'[ '(0,0), '(4611686018427387904,0)] 0 (constant 0 :: Array '[0,2,4] Int))
+      pad_4 = assertWhnfThrowsIn "4" "pad"
+                (pad @'[ '(0,0), '(4611686018427387904,0)] 0
+                     (constant 0 :: Array '[0,2,4] Int))
       -- A padding past maxBound.
-      pad_5 = assertWhnfThrowsIn "5" "Shape" (pad @'[ '(18446744073709551616, 0)] 0 (fromList [1] :: Array '[1] Int))
+      pad_5 = assertWhnfThrowsIn "5" "Shape"
+                (pad @'[ '(18446744073709551616, 0)] 0
+                     (fromList [1] :: Array '[1] Int))
       a5 :: Array '[2,3,4] Int
       a5 = fromList [1..24]
       transpose_1 = assertEqual "1" (fromList [1,2,3,4,
@@ -217,22 +263,41 @@ test = testGroup "Shaped" $
                                                21,22,23,24])
                                     (transpose @'[1,0] a5)
       -- A permuted shape whose inner part has more elements than an Int counts.
-      transpose_10 = assertWhnfThrowsIn "10" "transpose" (transpose @'[2,0,1] (constant 0 :: Array '[4611686018427387904, 4, 0] Int))
+      transpose_10 = assertWhnfThrowsIn "10" "transpose"
+                       (transpose @'[2,0,1]
+                          (constant 0
+                             :: Array '[4611686018427387904, 4, 0] Int))
       append_1 = assertEqual "1" (fromList [1..9])
                                  (append a1 (fromList @[1,3] [7,8,9]))
-      concatOuter_1 = assertEqual "1" (fromList [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
-                                      (concatOuter [a1, a1, a1] :: Array [6,3] Int)
-      concatOuter_2 = assertEqual "2" (fromList []) (concatOuter ([] :: [Array [2,3] Int]) :: Array [0,3] Int)
-      concatOuter_3 = assertThrowsIn "3" "concatOuter" (concatOuter [a1, a1] :: Array [5,3] Int)
+      concatOuter_1 = assertEqual "1" (fromList [1,2,3,4,5,6,1,2,3,4,5,6,
+                                                 1,2,3,4,5,6])
+                                      (concatOuter [a1, a1, a1]
+                                         :: Array [6,3] Int)
+      concatOuter_2 = assertEqual "2" (fromList [])
+                                      (concatOuter ([] :: [Array [2,3] Int])
+                                         :: Array [0,3] Int)
+      concatOuter_3 = assertThrowsIn "3" "concatOuter"
+                                     (concatOuter [a1, a1] :: Array [5,3] Int)
       -- The count of arrays the extents need, checked as the concatenation
       -- takes them: too many, too few, and an infinite list, counted no further
       -- than one past the count; an extent the arrays' does not divide, counted
       -- no further than one past what fits; of arrays of extent 0, any number.
-      concatOuter_4 = assertThrowsWith "4" "concatOuter: outer extent mismatch ([2,2,2],4)" (concatOuter [a1, a1, a1] :: Array [4,3] Int)
-      concatOuter_5 = assertThrowsWith "5" "concatOuter: outer extent mismatch ([2],4)" (concatOuter [a1] :: Array [4,3] Int)
-      concatOuter_6 = assertThrowsWith "6" "concatOuter: outer extent mismatch ([2,2,2,...],4)" (concatOuter (repeat a1) :: Array [4,3] Int)
-      concatOuter_7 = assertThrowsWith "7" "concatOuter: outer extent mismatch ([2,2,2,...],5)" (concatOuter (repeat a1) :: Array [5,3] Int)
-      concatOuter_8 = assertEqual "8" [] (toList (concatOuter (repeat (constant 0 :: Array [0,3] Int)) :: Array [0,3] Int))
+      concatOuter_4 = assertThrowsWith "4"
+                        "concatOuter: outer extent mismatch ([2,2,2],4)"
+                        (concatOuter [a1, a1, a1] :: Array [4,3] Int)
+      concatOuter_5 = assertThrowsWith "5"
+                        "concatOuter: outer extent mismatch ([2],4)"
+                        (concatOuter [a1] :: Array [4,3] Int)
+      concatOuter_6 = assertThrowsWith "6"
+                        "concatOuter: outer extent mismatch ([2,2,2,...],4)"
+                        (concatOuter (repeat a1) :: Array [4,3] Int)
+      concatOuter_7 = assertThrowsWith "7"
+                        "concatOuter: outer extent mismatch ([2,2,2,...],5)"
+                        (concatOuter (repeat a1) :: Array [5,3] Int)
+      concatOuter_8 = assertEqual "8" []
+                        (toList (concatOuter
+                                   (repeat (constant 0 :: Array [0,3] Int))
+                                   :: Array [0,3] Int))
       ravel_1 = assertEqual "1" (fromList @[3,2,3] [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6])
                                 (ravel $ fromList @'[3] [a1,a1,a1])
       unravel_1 = assertEqual "1" [a1,a1,a1]
@@ -265,7 +330,9 @@ test = testGroup "Shaped" $
                                                       18,19,20])
                                  (window @[3,3] a6)
       -- A result extent past maxBound.
-      window_2 = assertWhnfThrowsIn "2" "Shape" (window @'[0] (constant 0 :: Array '[9223372036854775807] Int))
+      window_2 = assertWhnfThrowsIn "2" "Shape"
+                   (window @'[0]
+                      (constant 0 :: Array '[9223372036854775807] Int))
       stride_1 = assertEqual "1" (fromList @[2,2,2] [1,3,
                                                     9,11,
 
@@ -273,7 +340,9 @@ test = testGroup "Shaped" $
                                                     21,23])
                                  (stride @[1,2,2] a5)
       -- A type-level stride past maxBound fails as stride returns.
-      stride_2 = assertWhnfThrowsIn "2" "Shape" (stride @'[18446744073709551616] (fromList [1,2,3] :: Array '[3] Int))
+      stride_2 = assertWhnfThrowsIn "2" "Shape"
+                                    (stride @'[18446744073709551616]
+                                       (fromList [1,2,3] :: Array '[3] Int))
       rotate_1 = assertEqual "1" (fromList @[2,4,3,2]
                                            [1, 2, 3, 4, 5, 6,
                                             5, 6, 1, 2, 3, 4,
@@ -283,13 +352,20 @@ test = testGroup "Shaped" $
                                             11, 12, 7, 8, 9, 10,
                                             9, 10, 11, 12, 7, 8,
                                             7, 8, 9, 10, 11, 12])
-                                 (rotate @1 @4 (fromList [1 .. 12] :: Array [2,3,2] Int))
+                                 (rotate @1 @4
+                                    (fromList [1 .. 12] :: Array [2,3,2] Int))
       -- A result shape within maxBound, where the copies of the row pass it.
-      rotate_2 = assertThrowsIn "2" "rotate" (rotate @0 @4611686018427387905 (fromList [7] :: Array '[1] Int))
+      rotate_2 = assertThrowsIn "2" "rotate"
+                                (rotate @0 @4611686018427387905
+                                        (fromList [7] :: Array '[1] Int))
       -- A result shape whose inner part has more elements than an Int counts,
       -- and a count past maxBound.
-      rotate_3 = assertWhnfThrowsIn "3" "Shape" (rotate @1 @4611686018427387904 (constant 0 :: Array '[0,2] Int))
-      rotate_4 = assertWhnfThrowsIn "4" "Shape" (rotate @0 @18446744073709551617 (fromList [7] :: Array '[1] Int))
+      rotate_3 = assertWhnfThrowsIn "3" "Shape"
+                                    (rotate @1 @4611686018427387904
+                                            (constant 0 :: Array '[0,2] Int))
+      rotate_4 = assertWhnfThrowsIn "4" "Shape"
+                                    (rotate @0 @18446744073709551617
+                                            (fromList [7] :: Array '[1] Int))
       slice_1 = assertEqual "1" (fromList @[2,2,1] [8,12,20,24])
                                 (slice @['(0,2), '(1,2), '(3,1)] a5)
       box x = scalar (Just x)
@@ -309,7 +385,9 @@ test = testGroup "Shaped" $
                                  (rerank @3 box a5)
       -- Outer extents whose product passes maxBound, beside an empty inner one:
       -- f is applied to the first subarray, as to any other.
-      rerank_5 = assertThrowsIn "5" "f" (rerank @2 (\ _ -> error "f" :: Array '[0] Int) (constant 0 :: Array '[4294967296, 4294967296, 0] Int))
+      rerank_5 = assertThrowsIn "5" "f"
+                   (rerank @2 (\ _ -> error "f" :: Array '[0] Int)
+                      (constant 0 :: Array '[4294967296, 4294967296, 0] Int))
       a7 = mapA succ a5
       dot x y = reduce (+) 0 $ zipWithA (*) x y
       rerank2_1 = assertEqual "1" (fromList [40,200,488,904,1448,2120])
@@ -319,7 +397,8 @@ test = testGroup "Shaped" $
       rev_2 = assertEqual "2" (fromList [6,5,4,3,2,1])
                               (rev @[0,1] a1)
       rev_3 = assertWhnfThrowsIn "3" "rev" (rev @'[0, 0] a1)
-      withShapeP_1 = assertThrowsIn "1" "withShapeP" (withShapeP [-1] (\ _ -> ()))
+      withShapeP_1 = assertThrowsIn "1" "withShapeP"
+                                    (withShapeP [-1] (\ _ -> ()))
       withShape_1 = assertThrowsIn "1" "withShape" (withShape [-1] ())
       withShape_2 = assertEqual "2" (7 :: Int) (withShape [2, 3] 7)
       -- A shape of exactly maxBound elements passes the check, in one extent
@@ -330,31 +409,46 @@ test = testGroup "Shaped" $
       -- A shape fails if any inner part of it has more elements than an Int
       -- counts, though an outer extent of 0 leaves it none.
       shapeRule_1 = do
-        assertThrowsIn "1" "Shape" (shapeL (constant 0 :: Array '[0, 4611686018427387904, 4] Int))
-        assertEqual "2" [4611686018427387904, 4, 0] (shapeL (constant 0 :: Array '[4611686018427387904, 4, 0] Int))
-        assertEqual "3" [False, True] (map (\ s -> validShape s) [[0, 4611686018427387904, 4], [4611686018427387904, 4, 0]])
+        assertThrowsIn "1" "Shape"
+          (shapeL (constant 0 :: Array '[0, 4611686018427387904, 4] Int))
+        assertEqual "2" [4611686018427387904, 4, 0]
+          (shapeL (constant 0 :: Array '[4611686018427387904, 4, 0] Int))
+        assertEqual "3" [False, True]
+          (map (\ s -> validShape s) [[0, 4611686018427387904, 4],
+                                      [4611686018427387904, 4, 0]])
       -- A type-level list that is not a shape is not checked as one: strides
       -- whose product passes maxBound, and a permutation of 22 axes, whose
       -- inner part from 1 multiplies to 21!.
       listP_1 = do
-        assertEqual "1" [1] (toList (stride @'[4294967296, 4294967296] (fromList @'[2, 2] [1 .. 4 :: Int])))
+        assertEqual "1" [1] (toList (stride @'[4294967296, 4294967296]
+                                       (fromList @'[2, 2] [1 .. 4 :: Int])))
         assertEqual "2" [0 .. 21] (listP p)
         assertThrowsIn "3" "Shape" (shapeP p)
-        where p = Proxy :: Proxy '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
-      convertE_1 = assertEqual "1" (Left "convert: shape mismatch ([2],[3])") (convertE (D.fromList [2] [1,2 :: Int]) :: Either String (Array '[3] Int))
+        where p = Proxy :: Proxy '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+                                   14, 15, 16, 17, 18, 19, 20, 21]
+      convertE_1 = assertEqual "1" (Left "convert: shape mismatch ([2],[3])")
+                                   (convertE (D.fromList [2] [1,2 :: Int])
+                                      :: Either String (Array '[3] Int))
       -- convertE fails with Left where the shapes differ and where the Shaped
       -- type's shape fails, rather than throwing.
       convertE_2 = do
-        assertEqual "1" (Left "convert: shape mismatch ([2,3],[4294967296,4294967296])")
-          (() <$ (convertE (D.fromList [2, 3] [1 .. 6 :: Int]) :: Either String (Array '[4294967296, 4294967296] Int)))
+        assertEqual "1"
+          (Left "convert: shape mismatch ([2,3],[4294967296,4294967296])")
+          (() <$ (convertE (D.fromList [2, 3] [1 .. 6 :: Int])
+                    :: Either String (Array '[4294967296, 4294967296] Int)))
         assertEqual "2" (Left "convert: bad shape [0,4611686018427387904,4]")
-          (() <$ (convertE (D.constant [0, 4611686018427387904, 4] (0 :: Int)) :: Either String (Array '[0, 4611686018427387904, 4] Int)))
+          (() <$ (convertE (D.constant [0, 4611686018427387904, 4] (0 :: Int))
+                    :: Either String (Array '[0, 4611686018427387904, 4] Int)))
       -- rnf forces no element outside the view.
-      rnf_1 = assertEqual "1" () (rnf (index (fromList [1,2,undefined,undefined] :: Array '[2,2] Int) 0))
+      rnf_1 = assertEqual "1" ()
+                (rnf (index (fromList [1,2,undefined,undefined]
+                               :: Array '[2,2] Int) 0))
       -- The conversions between boxings convert no element outside the view.
       convert_1 = assertEqual "1" ([1,2], [1,2])
-                    (SU.toList (convert x :: SU.Array '[2] Int), SS.toList (convert x :: SS.Array '[2] Int))
-        where x = index (fromList [1,2,undefined,undefined] :: Array '[2,2] Int) 0
+                    (SU.toList (convert x :: SU.Array '[2] Int),
+                     SS.toList (convert x :: SS.Array '[2] Int))
+        where x = index (fromList [1,2,undefined,undefined]
+                           :: Array '[2,2] Int) 0
       -- The conversions no other test runs, there and back where there is a way
       -- back, and convertE's Left where the shape differs.
       convert_2 = do
@@ -373,15 +467,20 @@ test = testGroup "Shaped" $
         assertEqual "convertE R" (Right s) (convertE r)
         assertEqual "convertE RS" (Right ss) (convertE rs)
         assertEqual "convertE DS" (Right ss) (convertE ds)
-        assertEqual "convertE R shape" (Left "convert: shape mismatch ([2,3],[3,2])")
+        assertEqual "convertE R shape"
+          (Left "convert: shape mismatch ([2,3],[3,2])")
           (convertE r :: Either String (Array '[3, 2] Int))
-        assertEqual "convertE RS shape" (Left "convert: shape mismatch ([2,3],[3,2])")
+        assertEqual "convertE RS shape"
+          (Left "convert: shape mismatch ([2,3],[3,2])")
           (convertE rs :: Either String (SS.Array '[3, 2] Int))
-        assertEqual "convertE DS shape" (Left "convert: shape mismatch ([2,3],[3,2])")
+        assertEqual "convertE DS shape"
+          (Left "convert: shape mismatch ([2,3],[3,2])")
           (convertE ds :: Either String (SS.Array '[3, 2] Int))
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
-      reduce_2 = assertEqual "2" (fromList @'[2] [6,120]) (rerank @1 (\ r -> reduce (*) 1 r) a1)
-      reduce_3 = assertEqual "3" (fromList @'[3] [4,10,18]) (rerank @1 (\ r -> reduce (*) 1 r) a2)
+      reduce_2 = assertEqual "2" (fromList @'[2] [6,120])
+                                 (rerank @1 (\ r -> reduce (*) 1 r) a1)
+      reduce_3 = assertEqual "3" (fromList @'[3] [4,10,18])
+                                 (rerank @1 (\ r -> reduce (*) 1 r) a2)
 
       update_1 = assertThrowsIn "1" "update" (update a1 [([2, 0], 0)])
 

@@ -63,10 +63,12 @@ test = testGroup "DynamicU" $
       fromList_1 = assertThrowsIn "sh" "fromList" (fromList [] [1,2::Int])
       fromList_2 = assertThrowsIn "sh" "fromList" (fromList [4,5] [1,2::Int])
       fromVector_1 = assertEqual "1" a1 (fromVector [2,3] $ V.fromList [1..6])
-      fromVector_2 = assertThrowsIn "2" "fromVector" (fromVector [2,3] $ V.fromList [1..5::Int])
+      fromVector_2 = assertThrowsIn "2" "fromVector"
+                                    (fromVector [2,3] $ V.fromList [1..5::Int])
       normalize_1 = assertEqual "1" a1 (normalize a1)
       reshape_1 = assertEqual "1" (fromList [6] [1..6]) (reshape [6] a1)
-      reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6]) (reshape [1,2,3,1] a2)
+      reshape_2 = assertEqual "2" (fromList [1,2,3,1] [1,4,2,5,3,6])
+                                  (reshape [1,2,3,1] a2)
       a3, a4 :: Array Int
       a3 = fromList [1] [5]
       a4 = fromList [] [5]
@@ -79,7 +81,8 @@ test = testGroup "DynamicU" $
       unScalar_1 = assertEqual "1" 5 (unScalar a4)
       unScalar_2 = assertThrowsIn "2" "unScalar" (unScalar a3)
       constant_1 = assertEqual "1" (fromList [2,3] [1,1,1,1,1,1]) (constant [2,3] (1::Int))
-      iota_1 = assertEqual "1" (map fromIntegral [0..299::Int]) (toList (iota 300 :: Array Word8))
+      iota_1 = assertEqual "1" (map fromIntegral [0..299::Int])
+                               (toList (iota 300 :: Array Word8))
       mapA_1 = assertEqual "1" (fromList [2,3] [2..7]) (mapA succ a1)
       mapA_2 = assertEqual "2" (fromList [3,2] [2,5,3,6,4,7]) (mapA succ a2)
       zipWithA_1 = assertEqual "1" (fromList [2,3] [2,4..12]) (zipWithA (+) a1 a1)
@@ -98,7 +101,9 @@ test = testGroup "DynamicU" $
       -- haddocks of DynamicU, RankedU and ShapedU, once a primitive release has
       -- https://github.com/haskell/primitive/pull/433.
       -- pad_3 = assertEqual "3" [True, True, False, True]
-      --           (map isNegativeZero (toList (pad [(2, 1)] (-0.0) (fromList [1] [1.5 :: Double]))))
+      --           (map isNegativeZero
+      --                (toList (pad [(2, 1)] (-0.0)
+      --                             (fromList [1] [1.5 :: Double]))))
       a5 :: Array Int
       a5 = fromList [2,3,4] [1..24]
       transpose_1 = assertEqual "1" (fromList [2,3,4] [1,2,3,4,
@@ -235,7 +240,8 @@ test = testGroup "DynamicU" $
                                             11, 12, 7, 8, 9, 10,
                                             9, 10, 11, 12, 7, 8,
                                             7, 8, 9, 10, 11, 12])
-                                 (rotate 1 4 $ fromList [2, 3, 2] [1 .. 12::Int])
+                                 (rotate 1 4
+                                   $ fromList [2, 3, 2] [1 .. 12::Int])
       slice_1 = assertEqual "1" (fromList [2,2,1] [8,12,20,24])
                                 (slice [(0,2),(1,2),(3,1)] a5)
       slice_2 = assertThrowsIn "2" "slice" (slice [(0,0)] a4)
@@ -252,16 +258,21 @@ test = testGroup "DynamicU" $
                               (rev [0,1] a1)
       rev_3 = assertThrowsIn "3" "rev" (rev [2] a1)
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
-      reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank 1 (\ r -> reduce (*) 1 r) a1)
-      reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (\ r -> reduce (*) 1 r) a2)
+      reduce_2 = assertEqual "2" (fromList [2] [6,120])
+                                 (rerank 1 (\ r -> reduce (*) 1 r) a1)
+      reduce_3 = assertEqual "3" (fromList [3] [4,10,18])
+                                 (rerank 1 (\ r -> reduce (*) 1 r) a2)
       -- An empty view at the end of a longer vector, so that reading the
       -- element at the offset fails under the bounds checks.
       allSameA_1 = assertEqual "1" True (allSameA (slice [(2,0)] a1))
       -- As allSame . toList, comparing the first element with the others only.
       allSameA_2 = assertEqual "2" [True, False, False, False, True]
-                                   (map (\ a -> allSameA a) [ fromList [1] [nan], fromList [2] [nan, nan]
-                                                 , constant [3] nan, normalize (constant [3] nan)
-                                                 , slice [(0,1)] (fromList [2] [nan, 1]) ])
+                                   (map (\ a -> allSameA a)
+                                      [ fromList [1] [nan]
+                                      , fromList [2] [nan, nan]
+                                      , constant [3] nan
+                                      , normalize (constant [3] nan)
+                                      , slice [(0,1)] (fromList [2] [nan, 1]) ])
         where nan = 0 / 0 :: Double
       -- vector's DoNotUnboxLazy stores its elements unevaluated, and an
       -- operation that does not use one leaves it so, on a dense view and on
@@ -269,23 +280,31 @@ test = testGroup "DynamicU" $
       lazyElems_1 = do
         assertEqual "mapA" [0, 0] (toList (mapA (\ _ -> 0 :: Int) lz))
         assertEqual "zipWithA" [5, 6] (toList (zipWithA (\ _ b -> b) lz five))
-        assertEqual "zipWith3A" [5, 6] (toList (zipWith3A (\ _ _ c -> c) lz lz five))
+        assertEqual "zipWith3A" [5, 6]
+                                (toList (zipWith3A (\ _ _ c -> c) lz lz five))
         assertEqual "toList" 4 (length (toList lzT))
         assertEqual "foldrA" 4 (foldrA (\ _ n -> n + 1 :: Int) 0 lzT)
         assertEqual "anyA" True (anyA (const True) lzT)
         where lz = fromList [2] (map V.DoNotUnboxLazy [undefined, 1 :: Int])
-              lzT = transpose [1, 0] (fromList [2, 2] (map V.DoNotUnboxLazy [undefined, 1, 2, 3 :: Int]))
+              lzT = transpose [1, 0]
+                      (fromList [2, 2]
+                         (map V.DoNotUnboxLazy [undefined, 1, 2, 3 :: Int]))
               five = fromList [2] [5, 6 :: Int]
       -- An unforced element of a DoNotUnboxLazy result holds the elements its
       -- function reads, not the vectors they are read from, as vector's own
       -- map and zipWith store it: with the second element of the result
       -- forced, nothing holds the second element of the source.
       lazyElems_2 = do
-        m <- retains (\ a -> mapA (\ (V.DoNotUnboxLazy r) -> V.DoNotUnboxLazy (r `seq` 0)) a)
-        z <- retains (\ a -> zipWithA (\ (V.DoNotUnboxLazy r) _ -> V.DoNotUnboxLazy (r `seq` 0)) a a)
-        assertEqual "the second source element held, after mapA and zipWithA" (False, False) (m, z)
+        m <- retains (\ a -> mapA (\ (V.DoNotUnboxLazy r) ->
+                                     V.DoNotUnboxLazy (r `seq` 0)) a)
+        z <- retains (\ a -> zipWithA (\ (V.DoNotUnboxLazy r) _ ->
+                                         V.DoNotUnboxLazy (r `seq` 0)) a a)
+        assertEqual "the second source element held, after mapA and zipWithA"
+                    (False, False) (m, z)
         where
-          retains :: (Array (V.DoNotUnboxLazy (IORef Int)) -> Array (V.DoNotUnboxLazy Int)) -> IO Bool
+          retains :: (Array (V.DoNotUnboxLazy (IORef Int))
+                      -> Array (V.DoNotUnboxLazy Int))
+                  -> IO Bool
           retains op = heldAfterGC (make op)
           -- NOINLINE, so that what make allocates stays reachable only
           -- through what it returns.
@@ -294,7 +313,8 @@ test = testGroup "DynamicU" $
             r0 <- newIORef 0
             r1 <- newIORef 1
             w <- mkWeakIORef r1 (return ())
-            b <- evaluate (op (fromList [2] [V.DoNotUnboxLazy r0, V.DoNotUnboxLazy r1]))
+            b <- evaluate (op (fromList [2] [V.DoNotUnboxLazy r0,
+                                             V.DoNotUnboxLazy r1]))
             case toList b of
               [_, V.DoNotUnboxLazy y] -> () <$ evaluate y
               _ -> assertFailure "two elements"
@@ -315,7 +335,8 @@ test = testGroup "DynamicU" $
             r0 <- newIORef 0
             r1 <- newIORef 1
             w <- mkWeakIORef r0 (return ())
-            let a = normalize (index (fromList [2, 1] [V.DoNotUnboxLazy r0, V.DoNotUnboxLazy r1]) 1)
+            let a = normalize (index (fromList [2, 1] [V.DoNotUnboxLazy r0,
+                                                       V.DoNotUnboxLazy r1]) 1)
             b <- evaluate (zipWithA const a a)
             return (b, w)
       -- A copy of a view broadcast along its innermost dimension forces its
@@ -327,7 +348,9 @@ test = testGroup "DynamicU" $
         assertThrowsIn "concatOuter" "U" (concatOuter [b, dense])
         assertThrowsIn "ravel" "U" (ravel (D.fromList [2] [b, b]))
         assertThrowsIn "rerank" "U" (rerank 1 id b)
-        where b = stretch [2, 4] (reshape [1, 1] (fromList [1] [V.DoNotUnboxLazy (error "U" :: Int)]))
+        where b = stretch [2, 4]
+                    (reshape [1, 1]
+                       (fromList [1] [V.DoNotUnboxLazy (error "U" :: Int)]))
               dense = fromList [1, 4] (map V.DoNotUnboxLazy [1, 2, 3, 4 :: Int])
 
       -- Calls of every wrapper the module under test exports, in the order of
