@@ -2265,8 +2265,10 @@ zipWithT sh f t@(T ss _ v) t'@(T _ _ v') =
     (1, 1) | 0 `notElem` sh ->
       -- If both vectors have length 1, then it's a degenerate case and it's better
       -- to operate on the single element directly, unless the view is empty and
-      -- the element lies outside it.
-      T ss 0 $ vSingleton $ f (vUnsafeIndex v 0) (vUnsafeIndex v' 0)
+      -- the element lies outside it.  Each element read as the (1,_) case
+      -- reads it, so that the result holds no read of a vector.
+      vUnsafeWithElem v 0 $ \ x -> vUnsafeWithElem v' 0 $ \ y ->
+        T ss 0 $ vSingleton $ f x y
     (1, _) | 0 `notElem` sh ->
       -- First vector has length 1, so use a map instead.
       vUnsafeWithElem v 0 $ \ x -> mapT sh (x `f`) t'
@@ -2290,8 +2292,8 @@ zipWith3T sh f (T ss _ v) (T _ _ v') (T _ _ v'') |
   -- to operate on the single element directly, unless the view is empty and
   -- the element lies outside it.
   0 `notElem` sh, vLength v == 1, vLength v' == 1, vLength v'' == 1 =
-    T ss 0 $ vSingleton $
-      f (vUnsafeIndex v 0) (vUnsafeIndex v' 0) (vUnsafeIndex v'' 0)
+    vUnsafeWithElem v 0 $ \ x -> vUnsafeWithElem v' 0 $ \ y ->
+      vUnsafeWithElem v'' 0 $ \ z -> T ss 0 $ vSingleton $ f x y z
 zipWith3T sh f t t' t''
   | l > 0, Just v <- sliceOfT sh l t
   , Just v' <- sliceOfT sh l t'
