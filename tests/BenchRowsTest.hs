@@ -49,7 +49,7 @@ import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (Assertion, assertFailure)
 
 import Call (Call (..), Form (..))
-import Rows (rows)
+import Rows (kinds, rows)
 
 test :: Test
 test = testGroup "BenchRows" [ testCase row (agreeRow row cells)
@@ -63,13 +63,12 @@ agreeRow :: String -> (Form -> [Maybe Call]) -> Assertion
 agreeRow row cells = do
   forms <- newIORef (Viewed, Normalized)
   (viewed, normalized) <- readIORef forms
-  zipWithM_ (agree row) ["boxed", "Storable", "Unboxed"]
-            (zip (cells viewed) (cells normalized))
+  zipWithM_ (agree row) kinds (zip (cells viewed) (cells normalized))
 
 -- The call at the kind on the view against the call on its normalized copy.
 agree :: String -> String -> (Maybe Call, Maybe Call) -> Assertion
 agree _ _ (Nothing, Nothing) = return ()
-agree row kind (Just (Call name f a s), Just (Call _ g b s')) =
+agree row kind (Just (Call name f a s _), Just (Call _ g b s' _)) =
   case cast (g b) of
     Nothing -> assertFailure (row ++ " at " ++ kind ++ ": two result types")
     Just y -> do

@@ -15,7 +15,7 @@
 -- The rows of the specialisation benchmark, which it times and
 -- BenchRowsTest checks, each a call of an operation at the vector kinds
 -- having it.
-module Rows (rows) where
+module Rows (rows, kinds) where
 
 import Data.List (find)
 import Data.Maybe (isJust)
@@ -37,14 +37,16 @@ rows :: [(String, Int, Form -> [Maybe Call])]
 rows =
   [ (row, per, cells)
   | (family, sizes) <- families
-  , name <- merged [ [ nm | Call nm _ _ _ <- ops Viewed Strided ]
-                   | (_, _, kinds) <- sizes, ops <- kinds ]
-  , (size, per, kinds) <- sizes
-  , view <- if name `elem` viewless then [Strided]
+  , name <- merged [ [ nm | Call nm _ _ _ _ <- ops Viewed Strided ]
+                   | (_, _, kindOps) <- sizes, ops <- kindOps ]
+  , (size, per, kindOps) <- sizes
+  , let once = or [ o | ops <- kindOps
+                      , Call nm _ _ _ o <- ops Viewed Strided, nm == name ]
+  , view <- if once then [Strided]
             else if size == "empty" then filter (/= Window) views
             else views
   , let row = family ++ "/" ++ name ++ "/" ++ size ++ "/" ++ viewName view
-        cells form = map (\ ops -> callNamed name (ops form view)) kinds
+        cells form = map (\ ops -> callNamed name (ops form view)) kindOps
   , any isJust (cells Viewed) ]
  where
   families =
@@ -57,6 +59,10 @@ rows =
     , ("Shaped", [ ("large", n, [S.opsBLarge, S.opsSLarge, S.opsULarge])
                  , ("small", 1, [S.opsBSmall, S.opsSSmall, S.opsUSmall])
                  , ("empty", 1, [S.opsBEmpty, S.opsSEmpty, S.opsUEmpty]) ]) ]
+
+-- | The vector kinds, in the order of a row's cells.
+kinds :: [String]
+kinds = ["boxed", "Storable", "Unboxed"]
 
 -- The names of the lists, each list's in its order, a name that no earlier list
 -- holds placed before the name after it in its own, so that the call of an arm
@@ -71,22 +77,6 @@ merged = foldl (\ acc names -> place acc Nothing (reverse names)) []
   before Nothing nm acc = acc ++ [nm]
   before (Just s) nm acc = let (xs, ys) = break (== s) acc in xs ++ nm : ys
 
--- The calls that run on one view: those whose input is no view, those whose arm
--- accesses none of it, and those whose arms another row takes on every view, as
--- that of < does the arms of <=, >, >=, max and min.
-viewless :: [String]
-viewless = [ "fromList", "fromList.map", "fromVector", "scalar", "unScalar"
-           , "constant", "generate", "iterateN", "iota", "pure"
-           , "append.emptyL", "append.emptyR", "concatOuter.one", "rotate.one"
-           , "update.none", "pad.none", "==.shapes", "maximumA.one"
-           , "reshape.scalar", "allSameA.tiers"
-           , "convert.ranked", "convertE.ranked"
-           , "convert.shaped", "convertE.shaped"
-           , "convert.dynamic", "convertE.dynamic"
-           , "convert.g", "convertE.g"
-           , "<=", "<=.g", ">", ">.g", ">=", ">=.g"
-           , "max", "max.g", "min", "min.g" ]
-
 -- The call of the operation of the name, if the kind has it.
 callNamed :: String -> [Call] -> Maybe Call
-callNamed name = find (\ (Call m _ _ _) -> m == name)
+callNamed name = find (\ (Call m _ _ _ _) -> m == name)

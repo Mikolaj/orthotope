@@ -128,31 +128,31 @@ instance (VU.Unbox a, Summed a) => Summed (VU.Vector a) where
 
 instance Summed a => Summed (DB.Array a) where
   {-# INLINE summed #-}
-  summed (DB.A (DG.A sh t)) = sumT sh t
+  summed (DB.A a) = summed a
 instance (VS.Storable a, Summed a) => Summed (DS.Array a) where
   {-# INLINE summed #-}
-  summed (DS.A (DG.A sh t)) = sumT sh t
+  summed (DS.A a) = summed a
 instance (VU.Unbox a, Summed a) => Summed (DU.Array a) where
   {-# INLINE summed #-}
-  summed (DU.A (DG.A sh t)) = sumT sh t
+  summed (DU.A a) = summed a
 instance Summed a => Summed (RB.Array n a) where
   {-# INLINE summed #-}
-  summed (RB.A (RG.A sh t)) = sumT sh t
+  summed (RB.A a) = summed a
 instance (VS.Storable a, Summed a) => Summed (RS.Array n a) where
   {-# INLINE summed #-}
-  summed (RS.A (RG.A sh t)) = sumT sh t
+  summed (RS.A a) = summed a
 instance (VU.Unbox a, Summed a) => Summed (RU.Array n a) where
   {-# INLINE summed #-}
-  summed (RU.A (RG.A sh t)) = sumT sh t
+  summed (RU.A a) = summed a
 instance (Sh.Shape sh, Summed a) => Summed (SB.Array sh a) where
   {-# INLINE summed #-}
-  summed (SB.A a@(SG.A t)) = sumT (SG.shapeL a) t
+  summed (SB.A a) = summed a
 instance (Sh.Shape sh, VS.Storable a, Summed a) => Summed (SS.Array sh a) where
   {-# INLINE summed #-}
-  summed (SS.A a@(SG.A t)) = sumT (SG.shapeL a) t
+  summed (SS.A a) = summed a
 instance (Sh.Shape sh, VU.Unbox a, Summed a) => Summed (SU.Array sh a) where
   {-# INLINE summed #-}
-  summed (SU.A a@(SG.A t)) = sumT (SG.shapeL a) t
+  summed (SU.A a) = summed a
 instance (VG.Vector v a, Summed a)
          => Summed (DG.Array v a) where
   {-# INLINE summed #-}

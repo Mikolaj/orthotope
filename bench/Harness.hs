@@ -39,7 +39,7 @@ data Mode = Forced | Summing
 -- batches, each of as many calls as take 5 ms, or given a count, of one batch
 -- of that many calls, and the bytes the second of two calls allocates.
 measure :: Mode -> Maybe Int -> Call -> IO (Double, Int64)
-measure mode iters (Call _ f x g) = do
+measure mode iters (Call _ f x g _) = do
   a <- allocatedSecond h x
   t <- case iters of
     Just k -> batch k

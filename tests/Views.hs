@@ -327,14 +327,14 @@ genRawView = do
 -- The operation, and the view over the elements given, through DynamicG at
 -- any instance of Vector.
 applyOpG :: (I.Vector v, I.VecElem v a) => Op -> DG.Array v a -> DG.Array v a
-applyOpG (Transpose is) = \ x -> DG.transpose is x
-applyOpG (Rev rs) = \ x -> DG.rev rs x
-applyOpG (Slice sl) = \ x -> DG.slice sl x
-applyOpG (Stride ts) = \ x -> DG.stride ts x
-applyOpG (Window ws) = \ x -> DG.window ws x
-applyOpG (Index i) = \ x -> DG.index x i
-applyOpG (Broadcast ds sh) = \ x -> DG.broadcast ds sh x
-applyOpG (Raw sh ss o k m) = \ x ->
+applyOpG (Transpose is) x = DG.transpose is x
+applyOpG (Rev rs) x = DG.rev rs x
+applyOpG (Slice sl) x = DG.slice sl x
+applyOpG (Stride ts) x = DG.stride ts x
+applyOpG (Window ws) x = DG.window ws x
+applyOpG (Index i) x = DG.index x i
+applyOpG (Broadcast ds sh) x = DG.broadcast ds sh x
+applyOpG (Raw sh ss o k m) x =
   let v = DG.toVector x
   in DG.A sh (I.T ss o (I.vSlice k (I.vLength v - k - m) v))
 
@@ -381,7 +381,7 @@ instance Owns [a] where
 
 instance Owns (V.Vector a) where
   ownsStorage w = let (arr, _, n) = V.toArraySlice w
-                  in  V.length (V.fromArray arr) == n
+                  in  P.sizeofArray arr == n
   sameStorage w w' = case (V.toArraySlice w, V.toArraySlice w') of
     ((P.Array a, _, _), (P.Array a', _, _)) ->
       isTrue# (sameMutableArray# (unsafeCoerce# a) (unsafeCoerce# a'))
