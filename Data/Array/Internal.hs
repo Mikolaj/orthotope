@@ -30,26 +30,27 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE UndecidableSuperClasses #-}
 -- INLINE throughout but vFromListN, vFromListExactN, vUnsafeFillStrided,
--- vUnsafeConcatN, vEmpty, prettyShowL, badShape, equalT, getStridesT,
+-- vUnsafeConcatN, prettyShowL, badShape, equalT, getStridesT,
 -- genericUnsafeFillStrided, genericUnsafeFillStridedInto, canonicalizeT,
 -- stepOdometer, absAxesAndStartT, sortAxesT, insertAxis, canonicalizeSortedT,
--- allSameT, rectPad, hcatRect, rectWidth, ppT, showsT, box, zipWithLong2,
--- simpleReshape, isPermutation, allDistinct and allSame: on GHC HEAD
--- 10.1.20260918 (2026-10-15), this module's functions INLINABLE, as their
+-- emptyVector, allSameT, rectPad, hcatRect, rectWidth, ppT, showsT, box,
+-- zipWithLong2, simpleReshape, isPermutation, allDistinct and allSame: on GHC
+-- HEAD 10.1.20260918 (2026-10-15), this module's functions INLINABLE, as their
 -- types give them, cost the specialisation benchmark up to 1960 bytes a call
 -- (the conversions), 624 (liftA2), 560 (concatOuter) and 384 (pad); productT,
 -- maximumT and minimumT INLINABLE, with Data.Array.Internal.DynamicU's vMaximum
 -- and vMinimum, ran productA, maximumA and minimumA in up to 1.6 times the
 -- instructions, though in up to 3% fewer at boxed Dynamic and Ranked arrays,
 -- and permute without a pragma ran Ranked transpose in up to 1.08 times.  Those
--- it leaves out keep the pragma their types give them, but isPermutation and
--- allDistinct, NOINLINE as isPermutation measured on GHC HEAD 10.1.20260918 on
--- 2026-10-13: inlined into transpose, the check of a literal permutation was
--- computed once in a library built at -funfolding-creation-threshold=30, and in
--- every call in one built at the default thresholds with Dynamic's transpose
--- INLINE; out of line, a call of it on a literal is a constant, computed once
--- at any threshold.  F1 reads no fusion in allSame: it matches its list before
--- all consumes the tail, so it fuses with no producer.
+-- it leaves out keep the pragma their types give them, but emptyVector,
+-- NOINLINE for the reason at it, and isPermutation and allDistinct, NOINLINE as
+-- isPermutation measured on GHC HEAD 10.1.20260918 on 2026-10-13: inlined into
+-- transpose, the check of a literal permutation was computed once in a library
+-- built at -funfolding-creation-threshold=30, and in every call in one built at
+-- the default thresholds with Dynamic's transpose INLINE; out of line, a call
+-- of it on a literal is a constant, computed once at any threshold.  F1 reads
+-- no fusion in allSame: it matches its list before all consumes the tail, so it
+-- fuses with no producer.
 module Data.Array.Internal(module Data.Array.Internal) where
 import Control.DeepSeq
 import Control.Exception(assert)
@@ -190,13 +191,12 @@ class Vector v where
   -- is no slice too.  The vector instances copy by 'genericForce'.
   vForce :: (VecElem v a) => v a -> v a
 
-  -- | The vector of no elements.  The default, 'VG.empty', serves the Storable
-  -- and Unboxed vector instances; the boxed one overrides it, its comment
-  -- giving the reason.
+  -- | The vector of no elements.  The default, a constant, serves the boxed,
+  -- Storable and Unboxed vector instances alike.
   vEmpty :: (VecElem v a) => v a
   default vEmpty :: (VecElem v a, VG.Vector v a) => v a
-  {-# INLINABLE vEmpty #-}
-  vEmpty = VG.empty
+  {-# INLINE vEmpty #-}
+  vEmpty = emptyVector
 
   -- | The zips of views of one shape, each given as a T, into a vector
   -- in row-major order.  The defaults fill each view by 'toVectorT' and
@@ -2351,6 +2351,20 @@ fromVectorT sh = T (tail $ getStridesT sh) 0
 {-# INLINE emptyT #-}
 emptyT :: (Vector v, VecElem v a) => ShapeL -> T v a
 emptyT sh = fromVectorT sh vEmpty
+
+-- NOINLINE: the vector of no elements that the class default 'vEmpty' is, so
+-- that an instance taking the default takes a constant rather than VG.empty
+-- inlined.  Inlined, even under INLINABLE, VG.empty was built inside the
+-- runRW# that also took the caller's continuation, so anew at every call: on
+-- GHC HEAD 10.1.20261019 the specialisation benchmark's boxed zipWithA to
+-- zipWith5A of empty arrays allocated 24 bytes a call for each array they zip
+-- (2026-10-22), and with Shaped's pad under INLINE, summed Storable toVector
+-- and mapA of an empty array 48 bytes a call where 16 (2026-10-24).  With no
+-- pragma here, summed convert at Storable and Unboxed elements, and many boxed
+-- operations, of an empty array allocated 24 bytes a call more (2026-10-24).
+{-# NOINLINE emptyVector #-}
+emptyVector :: VG.Vector v a => v a
+emptyVector = VG.empty
 
 -- INLINE: F1, directly fusing: its list goes to vFromListN, which the vector
 -- instances write by one foldr ('genericFromListN').
