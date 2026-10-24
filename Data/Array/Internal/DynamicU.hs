@@ -69,7 +69,7 @@ import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN,
                            genericZipWithStrided, genericZipWith3Strided,
                            genericZipWith4Strided, genericZipWith5Strided,
                            ShapeL, Vector(..), genericUnsafeConcatN,
-                           genericForce, genericFromListExactN,
+                           genericForce, genericUpdate, genericFromListExactN,
                            genericMaximum, genericMinimum,
                            genericUnsafeFillStrided, genericFillInto,
                            genericMap, genericZipWith, genericZipWith3,
@@ -193,8 +193,9 @@ instance Vector V.Vector where
   -- INLINE and folded as vMaximum is.
   {-# INLINE vMinimum #-}
   vMinimum v = genericMinimum v
+  -- Not by (//), for the reason at 'genericUpdate'.
   {-# INLINE vUpdate #-}
-  vUpdate = (V.//)
+  vUpdate = genericUpdate
   -- vGenerate writes over the indices ('genericZipLoop') each element as
   -- its function gives it, by one counter, where vector's generate fills
   -- through unstream's loop, which keeps the position it writes beside

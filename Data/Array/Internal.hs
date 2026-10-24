@@ -1550,6 +1550,18 @@ genericUnsafeUpdateOwned v us = VG.create $ do
   mapM_ (\ (i, x) -> VGM.write mv i x) us
   return mv
 
+-- The update for the Storable and Unboxed instances' 'vUpdate': as
+-- 'genericUnsafeUpdateOwned' on a copy that 'VG.thaw' makes into memory it
+-- does not fill first, where 'Data.Vector.Generic.//' copies through clone,
+-- which fills a new Storable or unboxed vector with zeros before it copies
+-- into it (https://github.com/haskell/vector/issues/571).
+{-# INLINE genericUpdate #-}
+genericUpdate :: VG.Vector w a => w a -> [(Int, a)] -> w a
+genericUpdate v us = VG.create $ do
+  mv <- VG.thaw v
+  mapM_ (\ (i, x) -> VGM.write mv i x) us
+  return mv
+
 -- The outer levels of a view as 'genericUnsafeFillStrided' walks them: the
 -- fused level's innermost runs, or a level of @n@ blocks of @blk@
 -- elements at stride @st@, stride 0 copying the first, @st@ and @n@
@@ -2873,7 +2885,9 @@ minimumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
 minimumT sh t = extremumT "minimumT" min vMinimum sh t
 
 -- The fold of 'maximumT' and 'minimumT', by the function and its reduction of
--- a vector, the name the error's.
+-- a vector, the name the error's.  The fold's start is read forced, where
+-- Storable's read is a thunk holding the vector
+-- (https://github.com/haskell/vector/issues/570).
 {-# INLINE extremumT #-}
 extremumT :: (Vector v, VecElem v a) =>
              String -> (a -> a -> a) -> (v a -> a) -> ShapeL -> T v a -> a
@@ -2881,10 +2895,10 @@ extremumT name op vop sh t@(T _ ao v)
   | l == 0 = error $ name ++ ": violated contract: empty view"
   | otherwise = case cellsRouteT sh l t of
       RSlice o n -> vop (wholeOrSliceT o n v)
-      RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (op acc x)) id
-                               (vUnsafeIndex v o)
-      RRuns axes o _ ->
-        runSlicesT axes o v step (\ _ acc -> acc) False (vUnsafeIndex v ao)
+      RFill axes o _ -> let !x0 = vUnsafeIndex v o
+                        in  elemsT axes o v (\ x k !acc -> k (op acc x)) id x0
+      RRuns axes o _ -> let !x0 = vUnsafeIndex v ao
+                        in  runSlicesT axes o v step (\ _ acc -> acc) False x0
   where !l = product sh
         {-# INLINE step #-}
         step s k = \ started !acc -> let !m = vop s

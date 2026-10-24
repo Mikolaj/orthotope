@@ -92,8 +92,8 @@ import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN,
                            Axes, T(..), ShapeL, Vector(..),
                            genericUnsafeConcatN, genericFoldlFrom,
                            genericMaximum, genericMinimum, genericForce,
-                           genericFromListExactN, genericUnsafeFillStridedInto,
-                           genericFromListN)
+                           genericUpdate, genericFromListExactN,
+                           genericUnsafeFillStridedInto, genericFromListN)
 
 type Unbox = V.Storable
 
@@ -257,8 +257,9 @@ instance Vector V.Vector where
   -- INLINE and folded as vMaximum is.
   {-# INLINE vMinimum #-}
   vMinimum v = genericMinimum v
+  -- Not by (//), for the reason at 'genericUpdate'.
   {-# INLINE vUpdate #-}
-  vUpdate = (V.//)
+  vUpdate = genericUpdate
   {-# INLINE vGenerate #-}
   vGenerate n g = indexLoop (max 0 n) g
   -- Each element read forced, as at vToList.
