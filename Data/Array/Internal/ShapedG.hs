@@ -30,7 +30,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- INLINE throughout but showsPrec, readsPrec, (==), pPrintPrec, index,
--- reshape', pad, window and slice: on GHC HEAD 10.1.20260918 (2026-10-15), the
+-- reshape', window and slice: on GHC HEAD 10.1.20260918 (2026-10-15), the
 -- generic modules' functions INLINABLE, as their types give them, cost the
 -- specialisation benchmark up to 1160 bytes a call (append), 472 (transpose)
 -- and 456 (iota).  Those it leaves out keep the pragma their types give them.
@@ -330,11 +330,18 @@ zipWith5A :: forall sh v a b c d e f .
 zipWith5A f a@(A t) (A t') (A t'') (A t''') (A t'''') =
   A $ zipWith5T (shapeL a) f t t' t'' t''' t''''
 
+-- INLINE: on GHC HEAD 10.1.20261019 (2026-10-24), against INLINABLE, the
+-- specialisation benchmark's summed pad, pad.outer and pad.rank3 ran up to 8.6%
+-- fewer instructions and allocated up to 64 bytes a call less, and forced pad
+-- up to 2.7% fewer at [400, 500]; forced, of an empty array, pad and pad.rank3
+-- at Storable and Unboxed and pad.outer at Unboxed ran 6 to 36 instructions a
+-- call more, up to 3.6%, and at [3, 3] the three at Unboxed up to 2.0% more.
+-- ShapedS's Core is 9% larger for it and ShapedU's 6%.
 -- | Pad each dimension on the low and high side with the given value.
 -- O(n) time.
 -- With no padding, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE pad #-}
+{-# INLINE pad #-}
 pad :: forall ps sh' sh a v .
        (HasCallStack, Vector v, VecElem v a, Padded ps sh sh', Shape sh) =>
        a -> Array sh v a -> Array sh' v a
