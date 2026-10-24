@@ -31,7 +31,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- INLINE throughout but showsPrec, readsPrec, (==), rnf, size, window,
--- arbitrary and sumA, for the reasons in Data.Array.Internal.DynamicG's header.
+-- arbitrary and sumA: see Data.Array.Internal.DynamicG's header.
 -- | Arrays of dynamic size, but static rank.  The arrays are polymorphic in the underlying
 -- linear data structure used to store the actual values.
 module Data.Array.Internal.RankedG(

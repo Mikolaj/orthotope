@@ -113,16 +113,18 @@ instance Vector V.Vector where
   -- vToList, vFold, vAll and vAny hand each element to a function of the
   -- client's, so they read it by index and force it, where vector's own hand on
   -- Storable's read as a thunk (https://github.com/haskell/vector/issues/570)
-  -- that a function GHC cannot see into, or a consumer keeping the elements, as
-  -- traverseA does, takes as it is, 40 bytes an element holding the vector.  On
-  -- GHC HEAD with vector patched as the issue proposes and -fspec-constr, the
-  -- operations reading through them took 0.95 to 1.02 of their time; at -O1,
-  -- anyA and allA took 0.61 and 0.91 of it, fixed or not.  vSum and vProduct
-  -- fold over the indices too, though their functions are the element's class
-  -- methods, which a call the client specialises knows, so the read is no thunk
-  -- there: against vector's own, on GHC HEAD 10.1.20261019 (2026-10-24) the
-  -- specialisation benchmark's sumA and productA ran 10 instructions a call
-  -- fewer at [3, 3] and 1 an element fewer at [400, 500], 1.6 and 17%, and as
+  -- that a function GHC cannot see into, or a consumer keeping the elements,
+  -- as traverseA does, takes as it is, 40 bytes an element holding the vector.
+  -- On GHC HEAD with vector patched as the issue proposes and -fspec-constr,
+  -- the operations reading through them took 0.95 to 1.02 of their time; at
+  -- -O1, anyA and allA took 0.61 and 0.91 of it, fixed or not, so there vAll
+  -- and vAny stand in for the SpecConstr that -O1 leaves off too.  The sums
+  -- vSum and vProduct fold over the indices too, which stands in for the
+  -- SpecConstr that -O1 leaves off, though their functions are the element's
+  -- class methods, which a call the client specialises knows, so the read is no
+  -- thunk there: against vector's own, on GHC HEAD 10.1.20261019 (2026-10-24)
+  -- the specialisation benchmark's sumA and productA ran 10 instructions a call
+  -- fewer at [3, 3], 1.6%, and 1 an element fewer at [400, 500], 17%, and as
   -- many with -fspec-constr; vMaximum and vMinimum fold over the indices, for
   -- the reason at them.
   {-# INLINE vToList #-}
@@ -138,6 +140,17 @@ instance Vector V.Vector where
   vFromListN = genericFromListN
   {-# INLINE vFromListExactN #-}
   vFromListExactN = genericFromListExactN
+  -- By a write into a vector of one element rather than by vector's singleton,
+  -- which fills through its stream loop and, inlined, built the buffer's
+  -- PlainPtr twice: on GHC HEAD 10.1.20260918 (2026-10-16) Storable constant
+  -- and scalar at [3, 3] and of an empty array allocated 16 bytes a call less
+  -- where forced, and scalar ran 13 to 20 instructions a call fewer.  The write
+  -- stands in for the SpecConstr that -O1 leaves off: on GHC HEAD 10.1.20261019
+  -- (2026-10-24) with vector patched as issues 570, 571 and 575 propose,
+  -- constant and scalar ran 14 to 30 instructions a call fewer and allocated 16
+  -- bytes less where forced, but with -fspec-constr from 2 fewer to 6 more,
+  -- allocating as many.
+  --
   -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), under INLINABLE, summed,
   -- the specialisation benchmark's reduce at [3, 3] and constant at [3, 3] and
   -- of an empty array allocated a PlainPtr more, 16 bytes a call, and reduce
@@ -149,26 +162,32 @@ instance Vector V.Vector where
     return v
   {-# INLINE vReplicate #-}
   vReplicate = V.replicate
-  -- The map and the zips build their result over the indices, working
-  -- around vector's own, whose stream-fused loops allocate per element:
-  -- a zipWith on Doubles 112 bytes an element at -O1, against 8, taking
-  -- through zipWithA and zipWith3A 7 to 49 times as long, and still 64
-  -- with the SpecConstr of -O2, 56 of them the lazy element read of
-  -- https://github.com/haskell/vector/issues/570.  No fusion is given up:
-  -- vector's fuse with a vector they read, but each array operation stores its
-  -- result, so the array operations never fused their inputs; a map of a map
-  -- allocates one vector per map, with vector's map as with this one.  Each
-  -- read is forced before the function takes it: given a function GHC cannot
-  -- see into, on GHC HEAD with vector patched as issue 570 proposes, on views
-  -- of 200000 Doubles, mapA allocated 40 bytes an element where 80 and zipWithA
-  -- 72 where 152, and given known functions every operation ran as many
-  -- instructions as before.  The map and the zips write it by a loop of their
-  -- own ('indexLoop') rather than by generate, as vGenerate and vGenerate'
-  -- do: on GHC HEAD 10.1.20261019 (2026-10-21) the specialisation benchmark's
-  -- forced mapA and zips ran 21 to 32 instructions a call fewer at [3, 3], 0.9
-  -- to 3%, and 2 an element fewer at [400, 500], 6 to 25%, zipWith3A, zipWith4A
-  -- and zipWith5A allocating 16 bytes a call less at [3, 3], and iota 2 an
-  -- element fewer at [400, 500], 28%, and 15 to 20 a call fewer at [3, 3].
+  -- The map and the zips build their result over the indices, which stands
+  -- in for the SpecConstr that -O1 leaves off and works around the lazy
+  -- element read of https://github.com/haskell/vector/issues/570: vector's own
+  -- stream-fused loops allocate per element, a zipWith on Doubles 112 bytes an
+  -- element at -O1, against 8, taking through zipWithA and zipWith3A 7 to 49
+  -- times as long, and still 64 with the SpecConstr of -O2, 56 of them that
+  -- lazy read.  No fusion is given up: vector's fuse with a vector they read,
+  -- but each array operation stores its result, so the array operations never
+  -- fused their inputs; a map of a map allocates one vector per map, with
+  -- vector's map as with this one.  Each read is forced before the function
+  -- takes it: given a function GHC cannot see into, on GHC HEAD with vector
+  -- patched as issue 570 proposes, on views of 200000 Doubles, mapA allocated
+  -- 40 bytes an element where 80 and zipWithA 72 where 152, and given known
+  -- functions every operation ran as many instructions as before.  The map
+  -- and the zips write it by a loop of their own ('indexLoop') rather than by
+  -- generate, and so do vGenerate and vGenerate': on GHC HEAD 10.1.20261019
+  -- (2026-10-21) the specialisation benchmark's forced mapA and zips ran 21 to
+  -- 32 instructions a call fewer at [3, 3], 0.9 to 3%, and 2 an element fewer
+  -- at [400, 500], 6 to 25%, zipWith3A, zipWith4A and zipWith5A allocating 16
+  -- bytes a call less at [3, 3], and iota, through vGenerate', 2 an element
+  -- fewer at [400, 500], 28%, and 15 to 20 a call fewer at [3, 3].  With
+  -- -fspec-constr too: on GHC HEAD 10.1.20261019 (2026-10-24) with vector
+  -- patched as issues 570, 571 and 575 propose, generate, through vGenerate,
+  -- ran 40 to 49 instructions a call fewer at [3, 3] and 4 to 5 an element
+  -- fewer at [400, 500], as against 34 to 58 and 5 to 6 at -O1, allocating 16
+  -- bytes a call less where forced at both.
   {-# INLINE vMap #-}
   vMap f v = indexLoop (V.length v) (\ i -> let !x = V.unsafeIndex v i in f x)
   {-# INLINE vZipWith #-}
@@ -217,18 +236,22 @@ instance Vector V.Vector where
   vSlice = V.slice
   {-# INLINE vUnsafeSlice #-}
   vUnsafeSlice = V.unsafeSlice
-  {-# INLINE vSum #-}
+  {-# INLINABLE vSum #-}
   vSum v = genericFoldlFrom (+) 0 0 v
-  {-# INLINE vProduct #-}
+  {-# INLINABLE vProduct #-}
   vProduct v = genericFoldlFrom (*) 1 0 v
-  -- INLINE: see the header of Data.Array.Internal, where these two are measured
-  -- with productT, maximumT and minimumT.
+  -- INLINE as DynamicU's vMaximum and vMinimum, which the header of
+  -- Data.Array.Internal measures with productT, maximumT and minimumT.
   --
   -- The maximum and the minimum fold over the indices, in the order of vector's
   -- foldl1', as DynamicU's do: on GHC HEAD 10.1.20261019 (2026-10-21) the
   -- specialisation benchmark's forced maximumA and minimumA ran 3 instructions
   -- a call fewer at [3, 3] and 1 an element fewer at [400, 500], 10 to 12.5%,
-  -- than through vector's own.
+  -- than through vector's own.  This stands in for the SpecConstr that -O1
+  -- leaves off: on GHC HEAD 10.1.20261019 (2026-10-24) with vector patched as
+  -- issues 570, 571 and 575 propose and -fspec-constr, they ran as many
+  -- instructions as through vector's own but on views of runs and windows, 55
+  -- to 61 a call more at [3, 3] and 0.06 to 0.07 an element more at [400, 500].
   {-# INLINE vMaximum #-}
   vMaximum v = genericMaximum v
   -- INLINE and folded as vMaximum is.
@@ -322,6 +345,10 @@ fillIntoS !ax !ao _ !v !out !p
   | sz == 4 && aligned = intoWord32 ax ao (sameSize v) (sameSizeM out) p
   | sz == 2 && aligned = intoWord16 ax ao (sameSize v) (sameSizeM out) p
   | sz == 1 = intoWord8 ax ao (sameSize v) (sameSizeM out) p
+  -- Any other element is read by Storable's own read, a thunk holding the
+  -- vector (https://github.com/haskell/vector/issues/570), which the store
+  -- forces at once where the caller specialises the fill, and which is built
+  -- an element where it does not.
   | otherwise =
       genericUnsafeFillStridedInto (512 `quot` max 1 sz) ax ao v out p
   where sz = sizeOf (undefined :: a)
@@ -808,13 +835,13 @@ iota = A . G.iota
 -- Fails if the two types differ in size or have size 0.
 -- The alignments are not compared: an element of the result is only as
 -- aligned as the source's.
-{-# INLINABLE bitcast #-}
+{-# INLINE bitcast #-}
 bitcast :: forall a b . (HasCallStack, Unbox a, Unbox b) => Array a -> Array b
 bitcast (A (G.A sh t)) = A (G.A sh (bitcastT t))
 
 -- The bitcast of the Storable modules on the view, its vector cast by
 -- 'sameSize'.
-{-# INLINE bitcastT #-}
+{-# INLINABLE bitcastT #-}
 bitcastT :: forall a b . (HasCallStack, Unbox a, Unbox b)
          => T V.Vector a -> T V.Vector b
 bitcastT (T ss o v)

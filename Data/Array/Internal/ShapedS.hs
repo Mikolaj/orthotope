@@ -538,7 +538,7 @@ iota = A G.iota
 -- Fails if the two types differ in size or have size 0.
 -- The alignments are not compared: an element of the result is only as
 -- aligned as the source's.
-{-# INLINABLE bitcast #-}
+{-# INLINE bitcast #-}
 bitcast :: forall sh a b . (HasCallStack, Unbox a, Unbox b) =>
            Array sh a -> Array sh b
 bitcast (A (G.A t)) = A (G.A (bitcastT t))

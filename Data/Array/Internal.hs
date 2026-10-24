@@ -135,15 +135,17 @@ class Vector v where
   -- vector instances write a mutable buffer across runs, which no other method
   -- can ('vGenerate' is stateless).
   --
-  -- The default lists the view's elements as 'toListT' does ('elemsT') and
-  -- builds its result from that list.  The vector-backed instances override it
-  -- with the faster mutable fill 'genericUnsafeFillStrided', each passing the
-  -- run length from which it copies runs whole.  An instance that keeps the
-  -- default fills element by element every view that is not one slice, runs of
-  -- a contiguous view included, which 'toVectorT' and the operations built on
-  -- it then pay: override it, with 'genericUnsafeFillStrided' where the vector
-  -- type is an instance of 'Data.Vector.Generic.Vector', or risk their slowness
-  -- on such views.
+  -- The default lists the view's elements as 'toListT' does ('elemsT')
+  -- and builds its result from that list.  The vector-backed instances
+  -- override it with a faster mutable fill, the boxed and Unboxed ones
+  -- with 'genericUnsafeFillStrided' and the Storable one with its own over
+  -- 'genericUnsafeFillStridedInto', each passing the run length from which
+  -- it copies runs whole.  An instance that keeps the default fills element
+  -- by element every view that is not one slice, runs of a contiguous view
+  -- included, which 'toVectorT' and the operations built on it then pay:
+  -- override it, with 'genericUnsafeFillStrided' where the vector type is an
+  -- instance of 'Data.Vector.Generic.Vector', or risk their slowness on such
+  -- views.
   vUnsafeFillStrided :: (VecElem v a) => Axes -> Int -> Int -> v a -> v a
   {-# INLINABLE vUnsafeFillStrided #-}
   vUnsafeFillStrided axes !ao l !v = vFromListN l (elemsT axes ao v (:) [])
@@ -650,14 +652,15 @@ range3T n1 !s1 n2 !s2 n3 !s3 ao
 -- extent, which repeat one subarray: which dimensions those are, and the
 -- shape and the view of the rest.
 --
--- The rest is kept by a loop, not by comprehensions over zip: inlined into a
--- client's rnf, on GHC HEAD 10.1.20260918, 2026-10-14, the zips stayed unfused
--- and allocated their pairs, 432 bytes a call of boxed unravel's forced result
--- at the small size.  The loop builds each list whole, forcing its tail before
--- consing onto it: with the lists built lazily, on GHC HEAD 10.1.20261019
--- (2026-10-23), the maps, the conversions, compare, and the boxed rnf and
--- unravel took up to 1.08 times the instructions at the small size, and the
--- boxed rnf of an empty array 0.94 to 0.95 times.
+-- The rest is kept by a loop, not by comprehensions over zip: with those,
+-- on GHC HEAD 10.1.20261019 (2026-10-24), where the zips fused, the maps,
+-- the conversions, compare, and the boxed rnf and unravel ran 49 to 218
+-- instructions a call more at the small size where they moved, 3.7 to 9.7%, and
+-- 45 to 138 fewer of an empty array, 3.6 to 6.2%, unravel 2 more.  The loop
+-- builds each list whole, forcing its tail before consing onto it: with the
+-- lists built lazily, on GHC HEAD 10.1.20261019 (2026-10-23), those took up to
+-- 1.08 times the instructions at the small size, and the boxed rnf of an empty
+-- array 0.94 to 0.95 times.
 {-# INLINE dropBroadcastT #-}
 dropBroadcastT :: ShapeL -> T v a -> ([Bool], ShapeL, T v a)
 dropBroadcastT sh (T ats ao v) =
@@ -781,7 +784,9 @@ genericZipWith5 f a b c d e =
     f <$> VG.unsafeIndexM a i <*> VG.unsafeIndexM b i <*> VG.unsafeIndexM c i
       <*> VG.unsafeIndexM d i <*> VG.unsafeIndexM e i
 
--- The element at an index in bounds, handed on as unsafeIndexM reads it.
+-- The element at an index in bounds, handed on as unsafeIndexM reads it,
+-- without the thunk of the read that unsafeIndex leaves: see the boxed
+-- instance's vUnsafeWithElem.
 {-# INLINE genericUnsafeWithElem #-}
 genericUnsafeWithElem :: VG.Vector w a => w a -> Int -> (a -> r) -> r
 genericUnsafeWithElem v i k = case VG.unsafeIndexM v i of Box x -> k x
@@ -792,7 +797,8 @@ genericGenerate' :: VG.Vector w a => Int -> (Int -> a) -> w a
 genericGenerate' !n g = genericZipLoop (max 0 n) (\ i -> return $! g i)
 
 -- An element of a vector, read forced where the flag is True and as stored
--- otherwise.
+-- otherwise, as the instances' zips read their elements, for the reasons at
+-- them.
 {-# INLINE readAtT #-}
 readAtT :: VG.Vector w x => Bool -> w x -> Int -> ST s x
 readAtT True v i = let !x = VG.unsafeIndex v i in return x
@@ -1417,13 +1423,14 @@ genericFromListExactN n xs = case VG.createT (do
 -- The vector-backed instances' 'vFromListN': one foldr writes at most n
 -- elements of the list into a buffer of n, reaching no cell past the nth,
 -- as 'take' reaches none, and keeps the elements written where the list is
--- shorter.  Against vector's fromListN, which takes its list apart by case
--- and so fuses with no producer, on GHC HEAD 10.1.20261019 (2026-10-24) the
--- specialisation benchmark's iterateN allocated 8 bytes an element where 104 at
--- Storable and Unboxed, and 48 where 104 at boxed, at [400, 500], and ran 0.07
--- and 0.56 of its instructions there, with -fspec-constr as well; traverseA,
--- traverse and sequenceA ran 0.93 to 0.98 of their instructions and allocated
--- 64 to 80 bytes a call less at [3, 3] and of an empty array.
+-- shorter.  Against vector's fromListN, which takes its list apart by case and
+-- so fuses with no producer (https://github.com/haskell/vector/issues/578), on
+-- GHC HEAD 10.1.20261019 (2026-10-24) the specialisation benchmark's iterateN
+-- allocated 8 bytes an element where 104 at Storable and Unboxed, and 48 where
+-- 104 at boxed, at [400, 500], and ran 0.07 and 0.56 of its instructions there,
+-- with -fspec-constr as well; traverseA, traverse and sequenceA ran 0.93 to
+-- 0.98 of their instructions and allocated 64 to 80 bytes a call less at [3, 3]
+-- and of an empty array.
 {-# INLINE genericFromListN #-}
 genericFromListN :: VG.Vector w a => Int -> [a] -> w a
 genericFromListN n xs = VG.create (do
@@ -1456,10 +1463,15 @@ genericFromListN n xs = VG.create (do
 -- bytes an element where it had allocated 110 to 400; on rows of 500 pad and
 -- rerank, and pad on a transposed view, took 0.79 to 1.00 and 0.81 to 0.94;
 -- and concatOuter took 0.87 to 1.10 and 0.90 to 0.93 on four transposed views,
--- running as many instructions.  Neither concatenation fuses with a consumer
--- that streams the result: none of vector's fusion rules fired in clients
--- streaming what pad, concatOuter or rerank return, compiled by GHC HEAD at -O1
--- or -O2.
+-- running as many instructions.  Against vector's concat on GHC HEAD
+-- 10.1.20261019 (2026-10-24), with vector patched as issues 570, 571 and 575
+-- propose, the specialisation benchmark's rotate at Storable and Unboxed
+-- elements allocated up to 56 bytes a call less at -O1 and with -fspec-constr
+-- alike, running with -fspec-constr from 54 fewer to 49 more instructions, and
+-- append, concatOuter and ravel allocated and ran as many.  Neither
+-- concatenation fuses with a consumer that streams the result: none of vector's
+-- fusion rules fired in clients streaming what pad, concatOuter or rerank
+-- return, compiled by GHC HEAD at -O1 or -O2.
 {-# INLINE genericUnsafeConcatN #-}
 genericUnsafeConcatN :: (VG.Vector w a) => Int -> [w a] -> w a
 genericUnsafeConcatN n vs = VG.create $ do

@@ -572,14 +572,15 @@ rotate d k a@(A sh at@T{values = v})
         [] -> error "rotate: violated contract: d past the rank"
   m = product (drop 1 ish)
   n = h * m
-  -- noinline, so that the copying path's case on the vector stays in that
-  -- path.  Without it the worker's head bound the vector's fields and kept them
-  -- across the rank check's call on every path: rotate of an empty array, and
-  -- rotate with k = 1, ran 8 instructions a call more on GHC HEAD 10.1.20261019
-  -- (2026-10-22), and rotate copying [3, 3] Doubles allocated 24 bytes a call
-  -- more and ran 30 to 75 instructions more.  It is applied to v, the vector
-  -- the argument's pattern binds: applied to values at, it left the copying
-  -- path building the T again to select the vector from it, 32 bytes a call.
+  -- noinline, a workaround for an unidentified issue, so that the copying
+  -- path's case on the vector stays in that path.  Without it the worker's
+  -- head bound the vector's fields and kept them across the rank check's call
+  -- on every path: rotate of an empty array, and rotate with k = 1, ran 8
+  -- instructions a call more on GHC HEAD 10.1.20261019 (2026-10-22), and rotate
+  -- copying [3, 3] Doubles allocated 24 bytes a call more and ran 30 to 75
+  -- instructions more.  It is applied to v, the vector the argument's pattern
+  -- binds: applied to values at, it left the copying path building the T again
+  -- to select the vector from it, 32 bytes a call.
   w = toVectorT sh (at { values = noinline v })
   -- The limit the documentation gives, fewer than twice the k * n elements of
   -- a subarray's rotations, so past maxBound only where those pass half of it:

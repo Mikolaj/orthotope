@@ -101,6 +101,18 @@ instance Vector V.Vector where
   vFromListN = genericFromListN
   {-# INLINE vFromListExactN #-}
   vFromListExactN = genericFromListExactN
+  -- By a write into a vector of one element rather than by vector's singleton,
+  -- which fills through its stream loop: on GHC HEAD 10.1.20260918 (2026-10-16)
+  -- Unboxed scalar, constant, reduce at [3, 3], rerank2.one and single-row
+  -- zips ran 12 to 27 instructions a call fewer, and Unboxed rerank 31
+  -- to 33 fewer at [3, 3].  The write stands in for the SpecConstr that -O1
+  -- leaves off: on GHC HEAD 10.1.20261019 (2026-10-24) with vector patched as
+  -- issues 570, 571 and 575 propose and -fspec-constr, scalar and constant ran
+  -- up to 5 instructions a call more than through vector's singleton, and
+  -- reduce up to 23 more.  Unlike singleton, whose elemseq forces it
+  -- (https://github.com/haskell/vector/issues/575), the write leaves an element
+  -- at vector's DoNotUnboxLazy unevaluated.
+  --
   -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), under INLINABLE the
   -- specialisation benchmark's summed Shaped reduce at [3, 3] and of an empty
   -- array ran 5 instructions a call more, 1 to 3%, and Dynamic and Ranked
@@ -110,24 +122,29 @@ instance Vector V.Vector where
     v <- MV.unsafeNew 1
     MV.unsafeWrite v 0 a
     return v
+  -- vector's replicate, whose elemseq forces an element at vector's
+  -- DoNotUnboxLazy (https://github.com/haskell/vector/issues/575).
   {-# INLINE vReplicate #-}
   vReplicate = V.replicate
-  -- The map and the zips build their result over the indices, working around
-  -- vector's own, whose stream-fused loops at -O1, lacking the SpecConstr of
-  -- -O2, allocate per element: a zipWith on Doubles 72 bytes an element against
-  -- 8, taking through zipWithA 13 to 15 times as long.  They write it by
-  -- 'genericMap' and its zips, as the boxed instance does, each element read in
-  -- ST before the function takes it, strictly for the primitive representations
-  -- and as stored for vector's DoNotUnboxLazy, so that such a result holds,
-  -- until forced, the elements its function reads and not the vectors they come
-  -- from: written as 'g i', by a loop of their own or by generate, it held
-  -- those (the test lazyElems_2).  Against that, on GHC HEAD 10.1.20261019
-  -- (2026-10-21), the specialisation benchmark's forced zipWithA ran 24
-  -- instructions a call fewer at [3, 3] and 2 an element fewer at [400, 500],
-  -- 1.5 to 17%, and zipWith5A 8 a call fewer, mapA, zipWith3A and zipWith4A as
-  -- many.  No fusion is given up, and reading each element before the function
-  -- takes it saves allocation, as at DynamicS's map and zips, whose figures
-  -- were measured at both kinds.
+  -- The map and the zips build their result over the indices, which
+  -- stands in for the SpecConstr that -O1 leaves off: without it vector's
+  -- own stream-fused loops allocate per element, a zipWith on Doubles
+  -- 72 bytes an element against 8, taking through zipWithA 13 to 15
+  -- times as long; and vector's zipWith5, whose stream SpecConstr leaves
+  -- boxed (https://github.com/haskell/vector/issues/579), allocates so
+  -- with -fspec-constr too, 496 bytes an element against 8, on GHC HEAD
+  -- 10.1.20261019 (2026-10-24).  They write it by 'genericMap' and its zips, as
+  -- the boxed instance does, each element read in ST before the function takes
+  -- it, strictly for the primitive representations and as stored for vector's
+  -- DoNotUnboxLazy, so that such a result holds, until forced, the elements its
+  -- function reads and not the vectors they come from: written as 'g i', by a
+  -- loop of their own or by generate, it held those (the test lazyElems_2).
+  -- Against that, on GHC HEAD 10.1.20261019 (2026-10-21), the specialisation
+  -- benchmark's forced zipWithA ran 24 instructions a call fewer at [3, 3]
+  -- and 2 an element fewer at [400, 500], 1.5 to 17%, and zipWith5A 8 a call
+  -- fewer, mapA, zipWith3A and zipWith4A as many.  No fusion is given up, and
+  -- reading each element before the function takes it saves allocation, as at
+  -- DynamicS's map and zips, whose figures were measured at both kinds.
   {-# INLINE vMap #-}
   vMap = genericMap
   {-# INLINE vZipWith #-}
@@ -146,29 +163,31 @@ instance Vector V.Vector where
   {-# INLINE vConcat #-}
   vConcat = V.concat
   -- vFold, vSum and vProduct fold over the indices, each element read as
-  -- stored, as vAll and vAny read it: against vector's own, on GHC HEAD
-  -- 10.1.20261019 (2026-10-24) the specialisation benchmark's reduce, sumA and
-  -- productA ran 8 to 10 instructions a call fewer at [3, 3] and 1 an element
-  -- fewer at [400, 500], 1.4 to 1.5% and 14%, and with -fspec-constr as many,
-  -- reduce at [3, 3] 2 more.
+  -- stored, as vAll and vAny read it, which stands in for the SpecConstr
+  -- that -O1 leaves off: against vector's own, on GHC HEAD 10.1.20261019
+  -- (2026-10-24) the specialisation benchmark's reduce, sumA and productA ran
+  -- 8 to 10 instructions a call fewer at [3, 3], 1.4 to 1.5%, and 1 an element
+  -- fewer at [400, 500], 14%, and with -fspec-constr as many, reduce at [3, 3]
+  -- 2 more.
   {-# INLINE vFold #-}
   vFold = genericFoldlStored
   {-# INLINE vSlice #-}
   vSlice = V.slice
   {-# INLINE vUnsafeSlice #-}
   vUnsafeSlice = V.unsafeSlice
-  {-# INLINE vSum #-}
+  {-# INLINABLE vSum #-}
   vSum = genericFoldlStored (+) 0
-  {-# INLINE vProduct #-}
+  {-# INLINABLE vProduct #-}
   vProduct = genericFoldlStored (*) 1
   -- INLINE: see the header of Data.Array.Internal, where these two are measured
   -- with productT, maximumT and minimumT.
   --
-  -- The maximum and the minimum fold over the indices, in the order of
-  -- vector's foldl1': on GHC HEAD with vector patched as issue 570 proposes,
-  -- minimumA took 0.67 to 0.72 of its time at -O1 and maximumA as long as with
-  -- vector's own, and with -fspec-constr, on a view of runs, 0.71 and 0.85 of
-  -- it, elsewhere as long.
+  -- The maximum and the minimum fold over the indices, in the order of vector's
+  -- foldl1': on GHC HEAD with vector patched as issue 570 proposes, minimumA
+  -- took 0.67 to 0.72 of its time at -O1 and maximumA as long as with vector's
+  -- own, and with -fspec-constr, on a view of runs, 0.71 and 0.85 of it,
+  -- elsewhere as long: but on views of runs, they stand in for the SpecConstr
+  -- that -O1 leaves off.
   {-# INLINE vMaximum #-}
   vMaximum v = genericMaximum v
   -- INLINE and folded as vMaximum is.
@@ -176,14 +195,23 @@ instance Vector V.Vector where
   vMinimum v = genericMinimum v
   {-# INLINE vUpdate #-}
   vUpdate = (V.//)
-  -- vGenerate writes over the indices ('genericZipLoop') each element as its
-  -- function gives it: against vector's generate, on GHC HEAD 10.1.20261019
-  -- (2026-10-24) the specialisation benchmark's generate ran 38 instructions a
-  -- call fewer at [3, 3] and 4 an element fewer at [400, 500], 2.6 and 3.4%,
-  -- and with -fspec-constr 28 and 3 fewer.
+  -- vGenerate writes over the indices ('genericZipLoop') each element as
+  -- its function gives it, by one counter, where vector's generate fills
+  -- through unstream's loop, which keeps the position it writes beside
+  -- the stream's index, two counters always equal that GHC does not merge
+  -- (https://gitlab.haskell.org/ghc/ghc/-/work_items/4470): against vector's
+  -- generate, on GHC HEAD 10.1.20261019 (2026-10-24) the specialisation
+  -- benchmark's generate ran 38 instructions a call fewer at [3, 3] and 4 an
+  -- element fewer at [400, 500], 2.6 and 3.4%, and with -fspec-constr 28 and 3
+  -- fewer.
   {-# INLINE vGenerate #-}
   vGenerate n g = genericZipLoop (max 0 n) (\ i -> return (g i))
-  -- vAll and vAny read as the boxed instance's do.
+  -- vAll and vAny read as the boxed instance's do, which stands in for the
+  -- SpecConstr that -O1 leaves off: on GHC HEAD 10.1.20261019 (2026-10-24) with
+  -- vector patched as issues 570, 571 and 575 propose, the specialisation
+  -- benchmark's allA and anyA ran up to 12 instructions a call fewer at [3, 3]
+  -- and up to 1 an element fewer at [400, 500], up to 11%, than through
+  -- vector's own, and with -fspec-constr up to 2 a call more at [3, 3].
   {-# INLINE vAll #-}
   vAll = genericAll
   {-# INLINE vAny #-}

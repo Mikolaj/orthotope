@@ -110,6 +110,16 @@ instance Vector V.Vector where
   vFromListN = genericFromListN
   {-# INLINE vFromListExactN #-}
   vFromListExactN = genericFromListExactN
+  -- By MV.replicate rather than by vector's singleton, which fills through its
+  -- stream loop: on GHC HEAD 10.1.20260918 (2026-10-16) the specialisation
+  -- benchmark's boxed scalar, constant, reduce at [3, 3], rerank2.one and
+  -- single-row zips ran 24 to 40 instructions a call fewer, and boxed rerank
+  -- 150 to 220 fewer at [3, 3].  With -fspec-constr too: on GHC HEAD
+  -- 10.1.20261019 (2026-10-24) with vector patched as issues 570, 571 and 575
+  -- propose, scalar and constant ran 3 to 7 fewer and rerank 104 to 232 fewer
+  -- at [3, 3], rerank and rerank.one allocating up to 120 bytes a call less, as
+  -- at -O1.
+  --
   -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), under INLINABLE the
   -- specialisation benchmark's boxed rerank and reduce at [3, 3] and
   -- zipWith3A.singleR of an empty array ran 1 to 3% more instructions, and
@@ -127,11 +137,12 @@ instance Vector V.Vector where
   -- 570 proposes, on views of 200000 Doubles, zipWithA to zipWith5A took
   -- 0.44 to 0.82 of their time at -O1 and rerank2 of zipWithA 0.62; with
   -- -fspec-constr, 0.94 to 1.03, but zipWith5A, whose stream SpecConstr leaves
-  -- boxed, 0.50 to 0.62, allocating 120 bytes an element where 528.  The same
-  -- loop gained nothing for vGenerate, which keeps vector's own.  For the map,
-  -- against vector's, on GHC HEAD 10.1.20261019 (2026-10-21) the specialisation
-  -- benchmark's forced mapA and fmap ran 58 instructions a call fewer at [3, 3]
-  -- and 6 an element fewer at [400, 500], 3.7 to 5.3%.
+  -- boxed (https://github.com/haskell/vector/issues/579), 0.50 to 0.62,
+  -- allocating 120 bytes an element where 528.  The same loop gained nothing
+  -- for vGenerate, which keeps vector's own.  For the map, against vector's, on
+  -- GHC HEAD 10.1.20261019 (2026-10-21) the specialisation benchmark's forced
+  -- mapA and fmap ran 58 instructions a call fewer at [3, 3] and 6 an element
+  -- fewer at [400, 500], 3.7 to 5.3%.
   {-# INLINE vMap #-}
   vMap = genericMap
   {-# INLINE vZipWith #-}
@@ -159,13 +170,22 @@ instance Vector V.Vector where
   vSlice = V.slice
   {-# INLINE vUnsafeSlice #-}
   vUnsafeSlice = V.unsafeSlice
-  -- vSum and vProduct fold over the indices, each element read as stored:
-  -- against vector's own, on GHC HEAD 10.1.20261019 (2026-10-24) the
-  -- specialisation benchmark's sumA and productA ran 10 instructions a call
-  -- fewer at [3, 3] and 1 an element fewer at [400, 500], 1.3 and 5.3%, and as
-  -- many with -fspec-constr.
+  -- INLINE: under INLINABLE, on GHC 9.14.1.20260916 (2026-10-25), this module's
+  -- and Ranked's specialisations of DynamicG's and RankedG's sumA at the boxed
+  -- Vector, still overloaded in the element, were exported without an unfolding
+  -- (https://gitlab.haskell.org/ghc/ghc/-/work_items/23050), with rules that
+  -- rewrite clients' boxed sumA into calls of them; boxed Dynamic sumA then
+  -- added through the Num dictionary, 16 bytes an element more.  Under INLINE
+  -- no such specialisation is exported.  The Storable and Unboxed modules,
+  -- built -fno-polymorphic-specialisation, make none and keep INLINABLE.  vSum
+  -- and vProduct fold over the indices, each element read as stored, which
+  -- stands in for the SpecConstr that -O1 leaves off: against vector's own, on
+  -- GHC HEAD 10.1.20261019 (2026-10-24) the specialisation benchmark's sumA and
+  -- productA ran 10 instructions a call fewer at [3, 3] and 1 an element fewer
+  -- at [400, 500], 1.3 and 5.3%, and as many with -fspec-constr.
   {-# INLINE vSum #-}
   vSum = genericFoldlStored (+) 0
+  -- INLINE: see vSum's.
   {-# INLINE vProduct #-}
   vProduct = genericFoldlStored (*) 1
   -- vMaximum and vMinimum are named, for the bangs: on GHC HEAD 10.1.20260918
@@ -189,8 +209,9 @@ instance Vector V.Vector where
   -- the predicate the element stored, where unsafeIndex would hand it a thunk
   -- of the read.  On GHC HEAD with vector patched as issue 570 proposes, on
   -- views of 200000 Doubles, they ran 0.96 of the instructions of vector's own
-  -- at -O1 and as many with -fspec-constr; their times, varying from run to run
-  -- by up to 1.55 times, showed no difference.
+  -- at -O1 and as many with -fspec-constr, so they stand in for the SpecConstr
+  -- that -O1 leaves off; their times, varying from run to run by up to 1.55
+  -- times, showed no difference.
   {-# INLINE vAll #-}
   vAll = genericAll
   {-# INLINE vAny #-}
@@ -248,8 +269,10 @@ instance Vector V.Vector where
   -- instructions, though it took 0.41 to 0.79 and 0.50 to 0.76 of the time
   -- on rows of 2 to 8 elements.
 
--- The vector of no elements, built once: no pragma, as inlined it is the
--- VG.empty that the boxed instance's vEmpty says was built at every call.
+-- No pragma: inlined, this would be the VG.empty built anew at every call that
+-- the boxed instance's vEmpty describes; see it.
+--
+-- The vector of no elements, built once.
 emptyVector :: V.Vector a
 emptyVector = V.empty
 
