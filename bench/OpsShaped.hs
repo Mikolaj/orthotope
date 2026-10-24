@@ -63,12 +63,14 @@ type Rev01 = '[0, 1]
 type Str12 = '[1, 2]
 type Pads0 = '[ '(0, 0), '(0, 0)]
 type Pads1 = '[ '(1, 1)]
+type Pads3 = '[ '(0, 0), '(1, 1), '(1, 1)]
 type Str22 = '[2, 2]
 type Str2 = '[2]
 type Bc14 = '[1, 4]
 type Bc12 = '[1, 2]
 type Bc123 = '[1, 2, 3]
 type Rev1 = '[1]
+type Rev2 = '[2]
 type Sl1 = '[ '(0, 1)]
 type Sl11 = '[ '(0, 1), '(0, 1)]
 type Sh0 = ('[] :: [Nat])
@@ -82,6 +84,7 @@ type ShR (r :: Nat) (c :: Nat) = '[r, c + 2]
 type SlR (r :: Nat) (c :: Nat) = '[ '(0, r), '(1, c)]
 type ShW (r :: Nat) (c :: Nat) = '[r, c + c]
 type Sh3 (r :: Nat) (c :: Nat) = '[2, r, c]
+type Sh13 (r :: Nat) (c :: Nat) = '[1, r, c]
 type Sh5 (r :: Nat) (c :: Nat) = '[1, r, 2, 1, c]
 type ShB (r :: Nat) (c :: Nat) = '[2, 2, r, c, 2]
 type ShO (r :: Nat) (c :: Nat) = '[r + c - 1]
@@ -99,6 +102,7 @@ type SlNR (r :: Nat) (c :: Nat) = '[ '(0, r), '(0, c - 1)]
 #define SLR (SlR ROWS COLS)
 #define SHW (ShW ROWS COLS)
 #define SH3 (Sh3 ROWS COLS)
+#define SH13 (Sh13 ROWS COLS)
 #define SH5 (Sh5 ROWS COLS)
 #define SHB (ShB ROWS COLS)
 #define SHO (ShO ROWS COLS)
