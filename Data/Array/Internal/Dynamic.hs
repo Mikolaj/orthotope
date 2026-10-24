@@ -240,13 +240,6 @@ instance Vector V.Vector where
   vZipWith4Strided = genericZipWith4Strided False
   {-# INLINE vZipWith5Strided #-}
   vZipWith5Strided = genericZipWith5Strided False
-  -- A constant, not the default: VG.empty, inlined into a caller even under
-  -- INLINABLE, was built there inside the runRW# that also took the caller's
-  -- continuation, so anew at every call, which on GHC HEAD 10.1.20261019
-  -- (2026-10-22) cost the specialisation benchmark's boxed zipWithA to
-  -- zipWith5A of empty arrays 24 bytes a call for each array they zip.
-  {-# INLINE vEmpty #-}
-  vEmpty = emptyVector
   -- vUnsafeConcatN keeps the default, the vector package's concat but for a
   -- lone vector: on GHC HEAD, copying each vector as the list yields it, as
   -- genericUnsafeConcatN does, took 0.95 to 1.28 times as long on boxed
@@ -254,13 +247,6 @@ instance Vector V.Vector where
   -- to 2.21 at 4 MB, running 1.02 to 1.41 and 1.35 to 2.88 times the
   -- instructions, though it took 0.41 to 0.79 and 0.50 to 0.76 of the time
   -- on rows of 2 to 8 elements.
-
--- No pragma: inlined, this would be the VG.empty built anew at every call that
--- the boxed instance's vEmpty describes; see it.
---
--- The vector of no elements, built once.
-emptyVector :: V.Vector a
-emptyVector = V.empty
 
 type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }
