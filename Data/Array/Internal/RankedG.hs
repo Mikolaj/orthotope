@@ -754,8 +754,9 @@ allSameA (A sh t) = allSameT sh t
 instance (KnownNat r, Vector v, VecElem v a, Arbitrary a) => Arbitrary (Array r v a) where
   {-# INLINABLE arbitrary #-}
   arbitrary = do
-    -- Don't generate huge number of elements
-    ss <- replicateM (natT @r) (getSmall . getPositive <$> arbitrary)
+    -- Don't generate huge number of elements; an extent of 0 makes an empty
+    -- array
+    ss <- replicateM (natT @r) (getSmall . getNonNegative <$> arbitrary)
       `suchThat` ((< 10000) . product)
     fromList ss <$> vector (product ss)
 

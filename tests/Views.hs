@@ -104,7 +104,7 @@ nameIn = takeWhile (/= ':')
 
 -- The element types of the properties that take one: Int, and Word8,
 -- whose arithmetic wraps at 256.
-class (Integral a, Show a, Read a, NFData a) => Elem a
+class (Integral a, Show a, Read a, NFData a, Arbitrary a) => Elem a
 instance Elem Int
 instance Elem Word8
 

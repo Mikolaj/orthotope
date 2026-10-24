@@ -44,8 +44,8 @@ import Foreign.Storable (Storable)
 import GHC.TypeLits (KnownNat, SomeNat (..), someNatVal, type (+))
 import Test.Framework (Test, testGroup)
 import Test.QuickCheck
-  ( Arbitrary (..), Property, choose, conjoin, counterexample, forAll
-  , ioProperty
+  ( Arbitrary (..), Gen, Property, checkCoverage, choose, conjoin
+  , counterexample, cover, forAll, ioProperty
   , property, suchThat, (.&&.), (===) )
 import Views
   ( Elem, Op (..), View (..), adjustAt, applyOpG, failsIn, forAllView, genBadOp
@@ -73,6 +73,7 @@ backend n = testGroup n
   , testPropertyN "prop_badOps" (prop_badOps @v @a)
   , testPropertyN "prop_rank3" (prop_rank3 @v @a)
   , testPropertyN "prop_rotate" (prop_rotate @v @a)
+  , testPropertyN "prop_arbitrary" (prop_arbitrary @v @a)
   ]
 
 -- Run the continuation at the rank given, as a type.
@@ -304,3 +305,11 @@ prop_rotate =
   in  if DG.rank x == 1 then rot 0 (RG.rotate @0 @1 k (toR x :: RG.Array 1 v a))
       else rot 0 (RG.rotate @0 @2 k (toR x :: RG.Array 2 v a))
            .&&. rot 1 (RG.rotate @1 @1 k (toR x :: RG.Array 2 v a))
+
+-- The Arbitrary instance's arrays of rank 2 hold as many elements as their
+-- shapes say, and some of them are empty.
+prop_arbitrary :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => Property
+prop_arbitrary = checkCoverage $
+  forAll (arbitrary :: Gen (RG.Array 2 v a)) $ \ x ->
+  cover 5 (null (RG.toList x)) "empty" $
+    length (RG.toList x) === product (RG.shapeL x)

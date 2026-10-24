@@ -38,8 +38,8 @@ import Data.Word (Word8)
 import Foreign.Storable (Storable)
 import Test.Framework (Test, testGroup)
 import Test.QuickCheck
-  ( Arbitrary (..), Gen, Property, choose, conjoin, counterexample, elements
-  , forAll, listOf
+  ( Arbitrary (..), Gen, Property, checkCoverage, choose, conjoin
+  , counterexample, cover, elements, forAll, listOf
   , property, shrinkList, vectorOf, (.&&.), (===), (==>) )
 import Views
   ( Elem, Owns (..), View (..), adjustAt, applyOpG, failsIn, failsWith
@@ -85,6 +85,7 @@ backend nan n = testGroup n $
   , testPropertyN "prop_ravel" (prop_ravel @v @a)
   , testPropertyN "prop_rotate" (prop_rotate @v @a)
   , testPropertyN "prop_vZipWith" (prop_vZipWith @v @a)
+  , testPropertyN "prop_arbitrary" (prop_arbitrary @v @a)
   ]
 
 -- allSameA agrees with allSame on the list, NaN included.
@@ -514,3 +515,11 @@ prop_vZipWith =
                                      (vec l5))
            === zipWith5 f5 l1 l2 l3 l4 l5
   where gen = choose (0, 4) >>= genElems (-9, 9) :: Gen [a]
+
+-- The Arbitrary instance's arrays hold as many elements as their shapes say,
+-- and some of them are empty.
+prop_arbitrary :: forall v a . (I.Vector v, I.VecElem v a, Elem a) => Property
+prop_arbitrary = checkCoverage $
+  forAll (arbitrary :: Gen (Array v a)) $ \ x ->
+  cover 5 (null (toList x)) "empty" $
+    length (toList x) === product (shapeL x)

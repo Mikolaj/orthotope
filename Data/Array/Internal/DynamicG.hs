@@ -758,8 +758,10 @@ instance (Vector v, VecElem v a, Arbitrary a) => Arbitrary (Array v a) where
   {-# INLINABLE arbitrary #-}
   arbitrary = do
     r <- choose (0, 5)  -- Don't generate huge ranks
-    -- Don't generate huge number of elements
-    ss <- replicateM r (getSmall . getPositive <$> arbitrary) `suchThat` ((< 10000) . product)
+    -- Don't generate huge number of elements; an extent of 0 makes an empty
+    -- array
+    ss <- replicateM r (getSmall . getNonNegative <$> arbitrary)
+      `suchThat` ((< 10000) . product)
     fromList ss <$> vector (product ss)
 
 -- | Sum of all elements.
