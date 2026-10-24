@@ -279,8 +279,16 @@ instance Vector V.Vector where
   vUnsafeWithElem v i k = let !x = V.unsafeIndex v i in k x
   {-# INLINE vGenerate' #-}
   vGenerate' n g = indexLoop (max 0 n) g
+  -- The arguments bound and banged, unlike the methods around it: defined as
+  -- fillStridedS alone, an unfolding with no binders, of which the specialiser
+  -- makes no copy, the method's calls in the specialised code of the test
+  -- suite's DynamicGTest, RankedGTest and ShapedGTest went to fillStridedS's
+  -- worker unspecialised, with its dictionary, on GHC HEAD 10.1.20261019
+  -- (2026-10-24); with the arguments bound and banged, each goes to a
+  -- copy specialised to its element type.  Bound but not banged, they are
+  -- eta-reduced away, and the unfolding is fillStridedS alone again.
   {-# INLINE vUnsafeFillStrided #-}
-  vUnsafeFillStrided = fillStridedS
+  vUnsafeFillStrided !ax !ao !l !v = fillStridedS ax ao l v
   {-# INLINE vForce #-}
   vForce = genericForce
   {-# INLINE vUnsafeUpdateOwned #-}
