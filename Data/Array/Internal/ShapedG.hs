@@ -334,7 +334,7 @@ zipWith5A f a@(A t) (A t') (A t'') (A t''') (A t'''') =
 -- O(n) time.
 -- With no padding, the result is the array itself, sharing its vector; 'force'
 -- copies it out.
-{-# INLINABLE pad #-}
+{-# INLINE pad #-}
 pad :: forall ps sh' sh a v .
        (HasCallStack, Vector v, VecElem v a, Padded ps sh sh', Shape sh) =>
        a -> Array sh v a -> Array sh' v a
@@ -343,10 +343,16 @@ pad v a@(A at) | or (zipWith (\ (l, h) s -> sumOverflows [l, s, h]) aps ash) =
                | not (validShape sh) = error $ "pad: bad shape " ++ show sh
                -- Built past the checks, not bound above them: see natT.
                | all (== (0, 0)) aps = A at  -- no padding: the array itself
-               | otherwise = A (padCopyT v aps ash at)
+               | otherwise = A (padCopyShapedT v aps ash at)
   where ash = shapeL a
         aps = padded (Proxy :: Proxy ps) (Proxy :: Proxy sh)
         sh = zipWithLong2 (\ (l, h) s -> l + s + h) aps ash
+
+-- The copy of 'pad', specialised on the vector and the element types alone.
+{-# INLINABLE padCopyShapedT #-}
+padCopyShapedT :: (Vector v, VecElem v a)
+               => a -> [(Int, Int)] -> ShapeL -> T v a -> T v a
+padCopyShapedT v aps ash at = padCopyT v aps ash at
 
 -- | Do an arbitrary array transposition.
 -- The transposition argument, which its type checks, is a permutation of the
