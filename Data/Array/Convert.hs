@@ -57,6 +57,10 @@ fromStorable :: VS.Storable a => VS.Vector a -> V.Vector a
 fromStorable v =
   I.genericZipLoop (VS.length v) (\ i -> return $! VS.unsafeIndex v i)
 
+-- INLINE: under INLINABLE, on GHC HEAD 10.1.20261019 (2026-10-24), the
+-- specialisation benchmark's Core was the same, so P keeps it, as a pragma dead
+-- only at today's thresholds.
+--
 -- A view converted between the vector package's boxings, the source's
 -- elements read as stored: a range by vector's convert, any other view walked.
 {-# INLINE boxingT #-}
@@ -65,6 +69,10 @@ boxingT :: (VG.Vector v a, VG.Vector w a, I.Vector v, I.VecElem v a,
         => [Int] -> I.T v a -> I.T w a
 boxingT sh = I.convertT sh V.convert (I.genericMapStrided False id)
 
+-- INLINE: on GHC HEAD 10.1.20261019 (2026-10-24), under INLINABLE the
+-- specialisation benchmark's Storable convert, convertE and convert.rank5
+-- allocated 32 to 200 bytes a call more at [3, 3] and of an empty array.
+--
 -- A Storable view converted to a boxed one, each element read before it is
 -- stored, as 'fromStorable' reads it.
 {-# INLINE fromStorableT #-}
@@ -137,20 +145,20 @@ rankedE p sh r
 -- of both arrays are determined to be the same by other means, which would
 -- lead to unnecessary ambiguity errors.
 --
--- The conversions between boxings are INLINABLE, so that a client specialises
--- them at its element type: their worker, with 'I.convertT' inlined into it,
--- is too big for an unfolding of its own, and called with the element's
--- dictionary, converting a dense array of 200000 Doubles ran 2.3 to 7.0 times
--- the instructions and allocated up to 12 times as much.
+-- The conversions between boxings are INLINE, as thin wrappers, so that a
+-- client specialises them at its element type: their worker, with 'I.convertT'
+-- inlined into it, is too big for an unfolding of its own, and called with the
+-- element's dictionary, converting a dense array of 200000 Doubles ran 2.3 to
+-- 7.0 times the instructions and allocated up to 12 times as much.
 
 -----
 
 instance (a ~ b, DU.Unbox a) => Convert (D.Array a) (DU.Array b) where
-  {-# INLINABLE convert #-}
+  {-# INLINE convert #-}
   convert (D.A (DG.A sh t)) = DU.A (DG.A sh (boxingT sh t))
 
 instance (a ~ b, DU.Unbox a) => Convert (DU.Array a) (D.Array b) where
-  {-# INLINABLE convert #-}
+  {-# INLINE convert #-}
   convert (DU.A (DG.A sh t)) = D.A (DG.A sh (boxingT sh t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
@@ -158,11 +166,11 @@ instance (a ~ b, DU.Unbox a) => Convert (DU.Array a) (D.Array b) where
 -----
 
 instance (a ~ b, DS.Unbox a) => Convert (D.Array a) (DS.Array b) where
-  {-# INLINABLE convert #-}
+  {-# INLINE convert #-}
   convert (D.A (DG.A sh t)) = DS.A (DG.A sh (boxingT sh t))
 
 instance (a ~ b, DS.Unbox a) => Convert (DS.Array a) (D.Array b) where
-  {-# INLINABLE convert #-}
+  {-# INLINE convert #-}
   convert (DS.A (DG.A sh t)) = D.A (DG.A sh (fromStorableT sh t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
@@ -173,11 +181,11 @@ instance (a ~ b, DS.Unbox a) => Convert (DS.Array a) (D.Array b) where
 -- before the ranks are known to be equal, then constrain them to be equal.
 
 instance (a ~ b, n ~ m, RU.Unbox a) => Convert (R.Array n a) (RU.Array m b) where
-  {-# INLINABLE convert #-}
+  {-# INLINE convert #-}
   convert (R.A (RG.A sh t)) = RU.A (RG.A sh (boxingT sh t))
 
 instance (a ~ b, n ~ m, RU.Unbox a) => Convert (RU.Array n a) (R.Array m b) where
-  {-# INLINABLE convert #-}
+  {-# INLINE convert #-}
   convert (RU.A (RG.A sh t)) = R.A (RG.A sh (boxingT sh t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x
@@ -185,11 +193,11 @@ instance (a ~ b, n ~ m, RU.Unbox a) => Convert (RU.Array n a) (R.Array m b) wher
 -----
 
 instance (a ~ b, n ~ m, RS.Unbox a) => Convert (R.Array n a) (RS.Array m b) where
-  {-# INLINABLE convert #-}
+  {-# INLINE convert #-}
   convert (R.A (RG.A sh t)) = RS.A (RG.A sh (boxingT sh t))
 
 instance (a ~ b, n ~ m, RS.Unbox a) => Convert (RS.Array n a) (R.Array m b) where
-  {-# INLINABLE convert #-}
+  {-# INLINE convert #-}
   convert (RS.A (RG.A sh t)) = R.A (RG.A sh (fromStorableT sh t))
   {-# INLINABLE convertE #-}
   convertE x = Right $! convert x

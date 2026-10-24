@@ -112,22 +112,22 @@ instance Vector V.Vector where
     return v
   {-# INLINE vReplicate #-}
   vReplicate = V.replicate
-  -- The map and the zips build their result over the indices, working around
-  -- vector's own, whose stream-fused loops at -O1, lacking the SpecConstr of
-  -- -O2, allocate per element: a zipWith on Doubles 72 bytes an element against
-  -- 8, taking through zipWithA 13 to 15 times as long.  They write it by
-  -- 'genericMap' and its zips, as the boxed instance does, each element read in
-  -- ST before the function takes it, strictly for the primitive representations
-  -- and as stored for vector's DoNotUnboxLazy, so that such a result holds,
-  -- until forced, the elements its function reads and not the vectors they come
-  -- from: written as 'g i', by a loop of their own or by generate, it held
-  -- those (the test lazyElems_2).  Against that, on GHC HEAD 10.1.20261019
-  -- (2026-10-21), the specialisation benchmark's forced zipWithA ran 24
-  -- instructions a call fewer at [3, 3] and 2 an element fewer at [400, 500],
-  -- 1.5 to 17%, and zipWith5A 8 a call fewer, mapA, zipWith3A and zipWith4A as
-  -- many.  No fusion is given up, and reading each element before the function
-  -- takes it saves allocation, as at DynamicS's map and zips, whose figures
-  -- were measured at both kinds.
+  -- The map and the zips build their result over the indices, which stands
+  -- in for the SpecConstr that -O1 leaves off: without it vector's own
+  -- stream-fused loops allocate per element, a zipWith on Doubles 72 bytes an
+  -- element against 8, taking through zipWithA 13 to 15 times as long.  They
+  -- write it by 'genericMap' and its zips, as the boxed instance does, each
+  -- element read in ST before the function takes it, strictly for the primitive
+  -- representations and as stored for vector's DoNotUnboxLazy, so that such a
+  -- result holds, until forced, the elements its function reads and not the
+  -- vectors they come from: written as 'g i', by a loop of their own or by
+  -- generate, it held those (the test lazyElems_2).  Against that, on GHC HEAD
+  -- 10.1.20261019 (2026-10-21), the specialisation benchmark's forced zipWithA
+  -- ran 24 instructions a call fewer at [3, 3] and 2 an element fewer at
+  -- [400, 500], 1.5 to 17%, and zipWith5A 8 a call fewer, mapA, zipWith3A and
+  -- zipWith4A as many.  No fusion is given up, and reading each element before
+  -- the function takes it saves allocation, as at DynamicS's map and zips,
+  -- whose figures were measured at both kinds.
   {-# INLINE vMap #-}
   vMap = genericMap
   {-# INLINE vZipWith #-}
@@ -146,20 +146,21 @@ instance Vector V.Vector where
   {-# INLINE vConcat #-}
   vConcat = V.concat
   -- vFold, vSum and vProduct fold over the indices, each element read as
-  -- stored, as vAll and vAny read it: against vector's own, on GHC HEAD
-  -- 10.1.20261019 (2026-10-24) the specialisation benchmark's reduce, sumA and
-  -- productA ran 8 to 10 instructions a call fewer at [3, 3] and 1 an element
-  -- fewer at [400, 500], 1.4 to 1.5% and 14%, and with -fspec-constr as many,
-  -- reduce at [3, 3] 2 more.
+  -- stored, as vAll and vAny read it, which stands in for the SpecConstr
+  -- that -O1 leaves off: against vector's own, on GHC HEAD 10.1.20261019
+  -- (2026-10-24) the specialisation benchmark's reduce, sumA and productA ran
+  -- 8 to 10 instructions a call fewer at [3, 3], 1.4 to 1.5%, and 1 an element
+  -- fewer at [400, 500], 14%, and with -fspec-constr as many, reduce at [3, 3]
+  -- 2 more.
   {-# INLINE vFold #-}
   vFold = genericFoldlStored
   {-# INLINE vSlice #-}
   vSlice = V.slice
   {-# INLINE vUnsafeSlice #-}
   vUnsafeSlice = V.unsafeSlice
-  {-# INLINE vSum #-}
+  {-# INLINABLE vSum #-}
   vSum = genericFoldlStored (+) 0
-  {-# INLINE vProduct #-}
+  {-# INLINABLE vProduct #-}
   vProduct = genericFoldlStored (*) 1
   -- INLINE: see the header of Data.Array.Internal, where these two are measured
   -- with productT, maximumT and minimumT.

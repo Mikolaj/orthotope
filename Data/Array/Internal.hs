@@ -781,7 +781,9 @@ genericZipWith5 f a b c d e =
     f <$> VG.unsafeIndexM a i <*> VG.unsafeIndexM b i <*> VG.unsafeIndexM c i
       <*> VG.unsafeIndexM d i <*> VG.unsafeIndexM e i
 
--- The element at an index in bounds, handed on as unsafeIndexM reads it.
+-- The element at an index in bounds, handed on as unsafeIndexM reads it,
+-- without the thunk of the read that unsafeIndex leaves: see the boxed
+-- instance's vUnsafeWithElem.
 {-# INLINE genericUnsafeWithElem #-}
 genericUnsafeWithElem :: VG.Vector w a => w a -> Int -> (a -> r) -> r
 genericUnsafeWithElem v i k = case VG.unsafeIndexM v i of Box x -> k x
@@ -792,7 +794,8 @@ genericGenerate' :: VG.Vector w a => Int -> (Int -> a) -> w a
 genericGenerate' !n g = genericZipLoop (max 0 n) (\ i -> return $! g i)
 
 -- An element of a vector, read forced where the flag is True and as stored
--- otherwise.
+-- otherwise, as the instances' zips read their elements, for the reasons at
+-- them.
 {-# INLINE readAtT #-}
 readAtT :: VG.Vector w x => Bool -> w x -> Int -> ST s x
 readAtT True v i = let !x = VG.unsafeIndex v i in return x

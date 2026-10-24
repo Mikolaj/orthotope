@@ -113,16 +113,17 @@ instance Vector V.Vector where
   -- vToList, vFold, vAll and vAny hand each element to a function of the
   -- client's, so they read it by index and force it, where vector's own hand on
   -- Storable's read as a thunk (https://github.com/haskell/vector/issues/570)
-  -- that a function GHC cannot see into, or a consumer keeping the elements, as
-  -- traverseA does, takes as it is, 40 bytes an element holding the vector.  On
-  -- GHC HEAD with vector patched as the issue proposes and -fspec-constr, the
-  -- operations reading through them took 0.95 to 1.02 of their time; at -O1,
-  -- anyA and allA took 0.61 and 0.91 of it, fixed or not.  vSum and vProduct
-  -- fold over the indices too, though their functions are the element's class
-  -- methods, which a call the client specialises knows, so the read is no thunk
-  -- there: against vector's own, on GHC HEAD 10.1.20261019 (2026-10-24) the
-  -- specialisation benchmark's sumA and productA ran 10 instructions a call
-  -- fewer at [3, 3] and 1 an element fewer at [400, 500], 1.6 and 17%, and as
+  -- that a function GHC cannot see into, or a consumer keeping the elements,
+  -- as traverseA does, takes as it is, 40 bytes an element holding the vector.
+  -- On GHC HEAD with vector patched as the issue proposes and -fspec-constr,
+  -- the operations reading through them took 0.95 to 1.02 of their time; at
+  -- -O1, anyA and allA took 0.61 and 0.91 of it, fixed or not.  The sums
+  -- vSum and vProduct fold over the indices too, which stands in for the
+  -- SpecConstr that -O1 leaves off, though their functions are the element's
+  -- class methods, which a call the client specialises knows, so the read is no
+  -- thunk there: against vector's own, on GHC HEAD 10.1.20261019 (2026-10-24)
+  -- the specialisation benchmark's sumA and productA ran 10 instructions a call
+  -- fewer at [3, 3], 1.6%, and 1 an element fewer at [400, 500], 17%, and as
   -- many with -fspec-constr; vMaximum and vMinimum fold over the indices, for
   -- the reason at them.
   {-# INLINE vToList #-}
@@ -217,9 +218,9 @@ instance Vector V.Vector where
   vSlice = V.slice
   {-# INLINE vUnsafeSlice #-}
   vUnsafeSlice = V.unsafeSlice
-  {-# INLINE vSum #-}
+  {-# INLINABLE vSum #-}
   vSum v = genericFoldlFrom (+) 0 0 v
-  {-# INLINE vProduct #-}
+  {-# INLINABLE vProduct #-}
   vProduct v = genericFoldlFrom (*) 1 0 v
   -- INLINE: see the header of Data.Array.Internal, where these two are measured
   -- with productT, maximumT and minimumT.
@@ -808,13 +809,13 @@ iota = A . G.iota
 -- Fails if the two types differ in size or have size 0.
 -- The alignments are not compared: an element of the result is only as
 -- aligned as the source's.
-{-# INLINABLE bitcast #-}
+{-# INLINE bitcast #-}
 bitcast :: forall a b . (HasCallStack, Unbox a, Unbox b) => Array a -> Array b
 bitcast (A (G.A sh t)) = A (G.A sh (bitcastT t))
 
 -- The bitcast of the Storable modules on the view, its vector cast by
 -- 'sameSize'.
-{-# INLINE bitcastT #-}
+{-# INLINABLE bitcastT #-}
 bitcastT :: forall a b . (HasCallStack, Unbox a, Unbox b)
          => T V.Vector a -> T V.Vector b
 bitcastT (T ss o v)

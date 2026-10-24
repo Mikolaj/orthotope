@@ -229,6 +229,9 @@ mapA f = A . G.mapA f . unA
 instance (Shape sh) => Functor (Array sh) where
   {-# INLINE fmap #-}
   fmap = mapA
+  -- INLINE: as boxingT's in Data.Array.Convert: under INLINABLE the benchmark's
+  -- Core was the same; see it.
+  --
   -- A view of one element, as constant builds it, where the default maps over
   -- every element; the array forced, as the default forces it.
   {-# INLINE (<$) #-}

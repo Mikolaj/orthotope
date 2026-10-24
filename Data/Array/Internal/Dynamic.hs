@@ -159,14 +159,14 @@ instance Vector V.Vector where
   vSlice = V.slice
   {-# INLINE vUnsafeSlice #-}
   vUnsafeSlice = V.unsafeSlice
-  -- vSum and vProduct fold over the indices, each element read as stored:
-  -- against vector's own, on GHC HEAD 10.1.20261019 (2026-10-24) the
-  -- specialisation benchmark's sumA and productA ran 10 instructions a call
-  -- fewer at [3, 3] and 1 an element fewer at [400, 500], 1.3 and 5.3%, and as
-  -- many with -fspec-constr.
-  {-# INLINE vSum #-}
+  -- vSum and vProduct fold over the indices, each element read as stored, which
+  -- stands in for the SpecConstr that -O1 leaves off: against vector's own, on
+  -- GHC HEAD 10.1.20261019 (2026-10-24) the specialisation benchmark's sumA and
+  -- productA ran 10 instructions a call fewer at [3, 3] and 1 an element fewer
+  -- at [400, 500], 1.3 and 5.3%, and as many with -fspec-constr.
+  {-# INLINABLE vSum #-}
   vSum = genericFoldlStored (+) 0
-  {-# INLINE vProduct #-}
+  {-# INLINABLE vProduct #-}
   vProduct = genericFoldlStored (*) 1
   -- vMaximum and vMinimum are named, for the bangs: on GHC HEAD 10.1.20260918
   -- (2026-10-17) the specialisation benchmark's maximumA and minimumA ran 13 to
@@ -248,8 +248,10 @@ instance Vector V.Vector where
   -- instructions, though it took 0.41 to 0.79 and 0.50 to 0.76 of the time
   -- on rows of 2 to 8 elements.
 
--- The vector of no elements, built once: no pragma, as inlined it is the
--- VG.empty that the boxed instance's vEmpty says was built at every call.
+-- No pragma: inlined, this would be the VG.empty built anew at every call that
+-- the boxed instance's vEmpty describes; see it.
+--
+-- The vector of no elements, built once.
 emptyVector :: V.Vector a
 emptyVector = V.empty
 
