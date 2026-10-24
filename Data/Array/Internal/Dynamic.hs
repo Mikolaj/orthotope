@@ -110,6 +110,12 @@ instance Vector V.Vector where
   vFromListN = genericFromListN
   {-# INLINE vFromListExactN #-}
   vFromListExactN = genericFromListExactN
+  -- By MV.replicate rather than by vector's singleton, which fills through its
+  -- stream loop: on GHC HEAD 10.1.20260918 (2026-10-16) the specialisation
+  -- benchmark's boxed scalar, constant, reduce at [3, 3], rerank2.one and
+  -- single-row zips ran 24 to 40 instructions a call fewer, and boxed rerank
+  -- 150 to 220 fewer at [3, 3].
+  --
   -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), under INLINABLE the
   -- specialisation benchmark's boxed rerank and reduce at [3, 3] and
   -- zipWith3A.singleR of an empty array ran 1 to 3% more instructions, and
@@ -189,8 +195,9 @@ instance Vector V.Vector where
   -- the predicate the element stored, where unsafeIndex would hand it a thunk
   -- of the read.  On GHC HEAD with vector patched as issue 570 proposes, on
   -- views of 200000 Doubles, they ran 0.96 of the instructions of vector's own
-  -- at -O1 and as many with -fspec-constr; their times, varying from run to run
-  -- by up to 1.55 times, showed no difference.
+  -- at -O1 and as many with -fspec-constr, so they stand in for the SpecConstr
+  -- that -O1 leaves off; their times, varying from run to run by up to 1.55
+  -- times, showed no difference.
   {-# INLINE vAll #-}
   vAll = genericAll
   {-# INLINE vAny #-}

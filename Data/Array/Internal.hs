@@ -73,9 +73,9 @@ import Text.PrettyPrint.HughesPJClass
 {- HLINT ignore "Reduce duplication" -}
 
 -- | The interface to the underlying storage of the arrays, whose operations
--- map straight to the vector type's.  'VecElem' is the constraint the vector
--- type needs on its elements, such as unboxed vectors' 'Unbox', or a class
--- every type has where it needs none.
+-- an instance writes by the vector type's own or by loops over its elements.
+-- 'VecElem' is the constraint the vector type needs on its elements, such as
+-- unboxed vectors' 'Unbox', or a class every type has where it needs none.
 class Vector v where
   type VecElem v :: Type -> Constraint
   vIndex    :: (VecElem v a) => v a -> Int -> a
@@ -135,15 +135,17 @@ class Vector v where
   -- vector instances write a mutable buffer across runs, which no other method
   -- can ('vGenerate' is stateless).
   --
-  -- The default lists the view's elements as 'toListT' does ('elemsT') and
-  -- builds its result from that list.  The vector-backed instances override it
-  -- with the faster mutable fill 'genericUnsafeFillStrided', each passing the
-  -- run length from which it copies runs whole.  An instance that keeps the
-  -- default fills element by element every view that is not one slice, runs of
-  -- a contiguous view included, which 'toVectorT' and the operations built on
-  -- it then pay: override it, with 'genericUnsafeFillStrided' where the vector
-  -- type is an instance of 'Data.Vector.Generic.Vector', or risk their slowness
-  -- on such views.
+  -- The default lists the view's elements as 'toListT' does ('elemsT')
+  -- and builds its result from that list.  The vector-backed instances
+  -- override it with a faster mutable fill, the boxed and Unboxed ones
+  -- with 'genericUnsafeFillStrided' and the Storable one with its own over
+  -- 'genericUnsafeFillStridedInto', each passing the run length from which
+  -- it copies runs whole.  An instance that keeps the default fills element
+  -- by element every view that is not one slice, runs of a contiguous view
+  -- included, which 'toVectorT' and the operations built on it then pay:
+  -- override it, with 'genericUnsafeFillStrided' where the vector type is an
+  -- instance of 'Data.Vector.Generic.Vector', or risk their slowness on such
+  -- views.
   vUnsafeFillStrided :: (VecElem v a) => Axes -> Int -> Int -> v a -> v a
   {-# INLINABLE vUnsafeFillStrided #-}
   vUnsafeFillStrided axes !ao l !v = vFromListN l (elemsT axes ao v (:) [])
@@ -650,14 +652,15 @@ range3T n1 !s1 n2 !s2 n3 !s3 ao
 -- extent, which repeat one subarray: which dimensions those are, and the
 -- shape and the view of the rest.
 --
--- The rest is kept by a loop, not by comprehensions over zip: inlined into a
--- client's rnf, on GHC HEAD 10.1.20260918, 2026-10-14, the zips stayed unfused
--- and allocated their pairs, 432 bytes a call of boxed unravel's forced result
--- at the small size.  The loop builds each list whole, forcing its tail before
--- consing onto it: with the lists built lazily, on GHC HEAD 10.1.20261019
--- (2026-10-23), the maps, the conversions, compare, and the boxed rnf and
--- unravel took up to 1.08 times the instructions at the small size, and the
--- boxed rnf of an empty array 0.94 to 0.95 times.
+-- The rest is kept by a loop, not by comprehensions over zip: with those,
+-- on GHC HEAD 10.1.20261019 (2026-10-24), where the zips fused, the maps,
+-- the conversions, compare, and the boxed rnf and unravel ran 49 to 218
+-- instructions a call more at the small size where they moved, 3.7 to 9.7%, and
+-- 45 to 138 fewer of an empty array, 3.6 to 6.2%, unravel 2 more.  The loop
+-- builds each list whole, forcing its tail before consing onto it: with the
+-- lists built lazily, on GHC HEAD 10.1.20261019 (2026-10-23), those took up to
+-- 1.08 times the instructions at the small size, and the boxed rnf of an empty
+-- array 0.94 to 0.95 times.
 {-# INLINE dropBroadcastT #-}
 dropBroadcastT :: ShapeL -> T v a -> ([Bool], ShapeL, T v a)
 dropBroadcastT sh (T ats ao v) =
@@ -1538,6 +1541,18 @@ genericConcatPadN fillInto n x ps = VG.create $ do
 genericUnsafeUpdateOwned :: VG.Vector w a => w a -> [(Int, a)] -> w a
 genericUnsafeUpdateOwned v us = VG.create $ do
   mv <- VG.unsafeThaw v
+  mapM_ (\ (i, x) -> VGM.write mv i x) us
+  return mv
+
+-- The update for the Storable and Unboxed instances' 'vUpdate': as
+-- 'genericUnsafeUpdateOwned' on a copy that 'VG.thaw' makes into memory it
+-- does not fill first, where 'Data.Vector.Generic.//' copies through clone,
+-- which fills a new Storable or unboxed vector with zeros before it copies
+-- into it (https://github.com/haskell/vector/issues/571).
+{-# INLINE genericUpdate #-}
+genericUpdate :: VG.Vector w a => w a -> [(Int, a)] -> w a
+genericUpdate v us = VG.create $ do
+  mv <- VG.thaw v
   mapM_ (\ (i, x) -> VGM.write mv i x) us
   return mv
 
@@ -2864,7 +2879,9 @@ minimumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
 minimumT sh t = extremumT "minimumT" min vMinimum sh t
 
 -- The fold of 'maximumT' and 'minimumT', by the function and its reduction of
--- a vector, the name the error's.
+-- a vector, the name the error's.  The fold's start is read forced, where
+-- Storable's read is a thunk holding the vector
+-- (https://github.com/haskell/vector/issues/570).
 {-# INLINE extremumT #-}
 extremumT :: (Vector v, VecElem v a) =>
              String -> (a -> a -> a) -> (v a -> a) -> ShapeL -> T v a -> a
@@ -2872,10 +2889,10 @@ extremumT name op vop sh t@(T _ ao v)
   | l == 0 = error $ name ++ ": violated contract: empty view"
   | otherwise = case cellsRouteT sh l t of
       RSlice o n -> vop (wholeOrSliceT o n v)
-      RFill axes o _ -> elemsT axes o v (\ x k !acc -> k (op acc x)) id
-                               (vUnsafeIndex v o)
-      RRuns axes o _ ->
-        runSlicesT axes o v step (\ _ acc -> acc) False (vUnsafeIndex v ao)
+      RFill axes o _ -> let !x0 = vUnsafeIndex v o
+                        in  elemsT axes o v (\ x k !acc -> k (op acc x)) id x0
+      RRuns axes o _ -> let !x0 = vUnsafeIndex v ao
+                        in  runSlicesT axes o v step (\ _ acc -> acc) False x0
   where !l = product sh
         {-# INLINE step #-}
         step s k = \ started !acc -> let !m = vop s

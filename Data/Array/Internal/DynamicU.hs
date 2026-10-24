@@ -69,7 +69,7 @@ import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN,
                            genericZipWithStrided, genericZipWith3Strided,
                            genericZipWith4Strided, genericZipWith5Strided,
                            ShapeL, Vector(..), genericUnsafeConcatN,
-                           genericForce, genericFromListExactN,
+                           genericForce, genericUpdate, genericFromListExactN,
                            genericMaximum, genericMinimum,
                            genericUnsafeFillStrided, genericFillInto,
                            genericMap, genericZipWith, genericZipWith3,
@@ -101,6 +101,14 @@ instance Vector V.Vector where
   vFromListN = genericFromListN
   {-# INLINE vFromListExactN #-}
   vFromListExactN = genericFromListExactN
+  -- By a write into a vector of one element rather than by vector's singleton,
+  -- which fills through its stream loop: on GHC HEAD 10.1.20260918 (2026-10-16)
+  -- Unboxed scalar, constant, reduce at [3, 3], rerank2.one and single-row
+  -- zips ran 12 to 27 instructions a call fewer, and Unboxed rerank 31
+  -- to 33 fewer at [3, 3].  Unlike singleton, whose elemseq forces it
+  -- (https://github.com/haskell/vector/issues/575), the write leaves an element
+  -- at vector's DoNotUnboxLazy unevaluated.
+  --
   -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), under INLINABLE the
   -- specialisation benchmark's summed Shaped reduce at [3, 3] and of an empty
   -- array ran 5 instructions a call more, 1 to 3%, and Dynamic and Ranked
@@ -110,6 +118,8 @@ instance Vector V.Vector where
     v <- MV.unsafeNew 1
     MV.unsafeWrite v 0 a
     return v
+  -- vector's replicate, whose elemseq forces an element at vector's
+  -- DoNotUnboxLazy (https://github.com/haskell/vector/issues/575).
   {-# INLINE vReplicate #-}
   vReplicate = V.replicate
   -- The map and the zips build their result over the indices, which stands
@@ -165,23 +175,29 @@ instance Vector V.Vector where
   -- INLINE: see the header of Data.Array.Internal, where these two are measured
   -- with productT, maximumT and minimumT.
   --
-  -- The maximum and the minimum fold over the indices, in the order of
-  -- vector's foldl1': on GHC HEAD with vector patched as issue 570 proposes,
-  -- minimumA took 0.67 to 0.72 of its time at -O1 and maximumA as long as with
-  -- vector's own, and with -fspec-constr, on a view of runs, 0.71 and 0.85 of
-  -- it, elsewhere as long.
+  -- The maximum and the minimum fold over the indices, in the order of vector's
+  -- foldl1': on GHC HEAD with vector patched as issue 570 proposes, minimumA
+  -- took 0.67 to 0.72 of its time at -O1 and maximumA as long as with vector's
+  -- own, and with -fspec-constr, on a view of runs, 0.71 and 0.85 of it,
+  -- elsewhere as long: but on views of runs, they stand in for the SpecConstr
+  -- that -O1 leaves off.
   {-# INLINE vMaximum #-}
   vMaximum v = genericMaximum v
   -- INLINE and folded as vMaximum is.
   {-# INLINE vMinimum #-}
   vMinimum v = genericMinimum v
+  -- Not by (//), for the reason at 'genericUpdate'.
   {-# INLINE vUpdate #-}
-  vUpdate = (V.//)
-  -- vGenerate writes over the indices ('genericZipLoop') each element as its
-  -- function gives it: against vector's generate, on GHC HEAD 10.1.20261019
-  -- (2026-10-24) the specialisation benchmark's generate ran 38 instructions a
-  -- call fewer at [3, 3] and 4 an element fewer at [400, 500], 2.6 and 3.4%,
-  -- and with -fspec-constr 28 and 3 fewer.
+  vUpdate = genericUpdate
+  -- vGenerate writes over the indices ('genericZipLoop') each element as
+  -- its function gives it, by one counter, where vector's generate fills
+  -- through unstream's loop, which keeps the position it writes beside
+  -- the stream's index, two counters always equal that GHC does not merge
+  -- (https://gitlab.haskell.org/ghc/ghc/-/work_items/4470): against vector's
+  -- generate, on GHC HEAD 10.1.20261019 (2026-10-24) the specialisation
+  -- benchmark's generate ran 38 instructions a call fewer at [3, 3] and 4 an
+  -- element fewer at [400, 500], 2.6 and 3.4%, and with -fspec-constr 28 and 3
+  -- fewer.
   {-# INLINE vGenerate #-}
   vGenerate n g = genericZipLoop (max 0 n) (\ i -> return (g i))
   -- vAll and vAny read as the boxed instance's do.
