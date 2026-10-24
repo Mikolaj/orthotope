@@ -4,11 +4,11 @@
 -- internal module, CONV the module of the kind convert converts to, BOXED or
 -- STORABLE defined at those kinds, CD and CR the kind's Dynamic and Ranked
 -- modules at the boxed and Storable kinds, and SHT, FLAT, ROW1, SL, CAT, NN,
--- SHR, SLR, SHW, SH3, SH5, SHB, SHO, WINO, COL1, EMP, SLNR, TW4 to TW6 and TWN
--- the type arguments of the size.  After an operation's call come those of the
--- arms it leaves untaken, each named for its operation and its arm; at ROWS 0
--- only the calls an empty array takes, on every view but the window, whose type
--- has no array of no rows.
+-- SHR, SLR, SHW, SH3, SH13, SH5, SHB, SHO, WINO, COL1, EMP, SLNR, TW4 to TW6
+-- and TWN the type arguments of the size.  After an operation's call come those
+-- of the arms it leaves untaken, each named for its operation and its arm; at
+-- ROWS 0 only the calls an empty array takes, on every view but the window,
+-- whose type has no array of no rows.
 OPS :: Form -> View -> [Call]
 OPS form view =
   [ call "size" (\ a -> ARR.size a) t
@@ -60,6 +60,7 @@ OPS form view =
   , call "pad" (\ a -> ARR.pad @Pads 0 a) t
   , callOnce "pad.none" (\ a -> ARR.pad @Pads0 0 a `asTypeOf` t) t
   , call "pad.outer" (\ a -> ARR.pad @Pads1 0 a) t
+  , call "pad.rank3" (\ a -> ARR.pad @Pads3 0 a) t31
   , call "mapA" (\ a -> ARR.mapA (+ 1) a) t
   , call "zipWithA" (\ (a, b) -> ARR.zipWithA (+) a b) (t, tn)
   , call "zipWithA.singleR" (\ a -> ARR.zipWithA (+) a c) t
@@ -97,6 +98,8 @@ OPS form view =
   , call "unravel.one" (\ a -> ARR.unravel a) t1
   , call "window" (\ a -> ARR.window @Win a) t
 #endif
+  -- No window.zero: Shaped's window, whose sizes are types, has no run-time arm
+  -- for a window of 0.
   , call "stride" (\ a -> ARR.stride @Str22 a) t
   , call "stride.outer" (\ a -> ARR.stride @Str2 a) t
   , call "rotate" (\ a -> ARR.rotate @0 @2 a) t
@@ -156,6 +159,10 @@ OPS form view =
   , callOnce "generate" (\ k -> ARR.generate (\ ix -> fromIntegral (sum ix + k))
                               `asTypeOf` t)
                       0
+  , callOnce "generate.scalar"
+             (\ k -> ARR.generate (\ ix -> fromIntegral (sum ix + k))
+                       :: ARR.Array Sh0 Double)
+             0
   , callOnce "iterateN" (\ x -> ARR.iterateN @NN (+ 1) x) x0
   , callOnce "iota" (\ k -> iota k) (ROWS * cols :: Int)
 #ifdef STORABLE
@@ -186,6 +193,8 @@ OPS form view =
   , call "==.rank1" (\ (a, b) -> a == b) (row, rown)
 #endif
   , call "==.rank3" (\ (a, b) -> a == b) (t3, t3n)
+  , call "==.rank3.rev" (\ (a, b) -> a == b)
+                        (ARR.rev @Rev2 t3, ARR.rev @Rev2 t3n)
   , call "==.rank5" (\ (a, b) -> a == b) (tx, txn)
 #if ROWS > 0
   , call "==.units" (\ (a, b) -> a == b) (t1, r1)
@@ -215,6 +224,8 @@ OPS form view =
   , call "<$" (\ a -> x0 <$ a) t
   , call "fold" (\ a -> fold a) (fmap Sum t)
   , call "foldr" (\ a -> foldr (+) 0 a) t
+  , call "length" (\ a -> length a) t
+  , call "null" (\ a -> null a) t
   , call "traverse" (\ a -> runIdentity (traverse (\ x -> Identity (x + 1)) a))
                     t
   , call "sequenceA" (\ a -> runIdentity (sequenceA a)) (fmap Identity t)
@@ -229,17 +240,18 @@ OPS form view =
   d = ARR.fromList @SHT (take (ROWS * cols) elemsFrom)
   t = formed (viewOf elemsFrom)
   -- The view in the vector's order; an array of one element at stride 0
-  -- throughout; the view under a dimension of two elements at stride 0,
-  -- and among five dimensions, the outermost of one element and two between
-  -- its own two, of two elements at stride 0 and of one, each beside its
-  -- order's so; and the view less its last column, its rows of the other
-  -- parity.
+  -- throughout; the view under a dimension of two elements at stride 0, and
+  -- among five dimensions, the outermost of one element and two between its
+  -- own two, of two elements at stride 0 and of one, each beside its order's
+  -- so; the view under a dimension of one element; and the view less its last
+  -- column, its rows of the other parity.
   tn = ARR.normalize t
   c = ARR.constant @SH x0
   t3 = ARR.broadcast @Bc12 @SH3 t
   t3n = ARR.broadcast @Bc12 @SH3 tn
   tx = ARR.broadcast @Bc14 @SH5 t
   txn = ARR.broadcast @Bc14 @SH5 tn
+  t31 = ARR.broadcast @Bc12 @SH13 t
   tnr = ARR.slice @SLNR t
   -- The view's first row, its type used by rows at every ROWS and its value
   -- only by rows under ROWS > 0.

@@ -56,6 +56,7 @@ OPS form view =
   , call "pad" (\ a -> ARR.pad [(0, 1), (1, 1)] 0 a) t
   , callOnce "pad.none" (\ a -> ARR.pad [(0, 0), (0, 0)] 0 a) t
   , call "pad.outer" (\ a -> ARR.pad [(1, 1)] 0 a) t
+  , call "pad.rank3" (\ a -> ARR.pad [(0, 0), (1, 1), (1, 1)] 0 a) t31
   , call "mapA" (\ a -> ARR.mapA (+ 1) a) t
   , call "zipWithA" (\ (a, b) -> ARR.zipWithA (+) a b) (t, tn)
   , call "zipWithA.singleR" (\ a -> ARR.zipWithA (+) a c) t
@@ -89,6 +90,7 @@ OPS form view =
   , call "unravel.one" (\ a -> ARR.unravel a `asTypeOf` rows) t1
   , call "window" (\ a -> ARR.window [2, 2] a :: ARR.Array 4 Double) t
 #endif
+  , call "window.zero" (\ a -> ARR.window [0] a :: ARR.Array 3 Double) t
   , call "stride" (\ a -> ARR.stride [2, 2] a) t
   , call "stride.outer" (\ a -> ARR.stride [2] a) t
   , call "rotate" (\ a -> ARR.rotate @0 2 a :: ARR.Array 3 Double) t
@@ -160,6 +162,10 @@ OPS form view =
                                           (\ ix -> fromIntegral (sum ix + k))
                               `asTypeOf` t)
                       0
+  , callOnce "generate.scalar"
+             (\ k -> ARR.generate [] (\ ix -> fromIntegral (sum ix + k))
+                       :: ARR.Array 0 Double)
+             0
   , callOnce "iterateN" (\ x -> ARR.iterateN (ROWS * cols) (+ 1) x) x0
   , callOnce "iota" (\ k -> ARR.iota k :: ARR.Array 1 Double) (ROWS * cols)
 #ifdef STORABLE
@@ -190,6 +196,8 @@ OPS form view =
   , call "==.rank1" (\ (a, b) -> a == b) (row, rown)
 #endif
   , call "==.rank3" (\ (a, b) -> a == b) (t3, t3n)
+  , call "==.rank3.rev" (\ (a, b) -> a == b)
+                        (ARR.rev [2] t3, ARR.rev [2] t3n)
   , call "==.rank5" (\ (a, b) -> a == b) (tx, txn)
 #if ROWS > 0
   , call "==.units" (\ (a, b) -> a == b) (t1, r1)
@@ -219,6 +227,8 @@ OPS form view =
   , call "<$" (\ a -> x0 <$ a) t
   , call "fold" (\ a -> fold a) (fmap Sum t)
   , call "foldr" (\ a -> foldr (+) 0 a) t
+  , call "length" (\ a -> length a) t
+  , call "null" (\ a -> null a) t
   , call "traverse" (\ a -> runIdentity (traverse (\ x -> Identity (x + 1)) a))
                     t
   , call "sequenceA" (\ a -> runIdentity (sequenceA a)) (fmap Identity t)
@@ -230,17 +240,18 @@ OPS form view =
   d = ARR.fromList [cols, ROWS] (take (ROWS * cols) elemsFrom) `asTypeOf` t
   t = formed (viewOf elemsFrom)
   -- The view in the vector's order; an array of one element at stride 0
-  -- throughout; the view under a dimension of two elements at stride 0,
-  -- and among five dimensions, the outermost of one element and two between
-  -- its own two, of two elements at stride 0 and of one, each beside its
-  -- order's so; and the view less its last column, its rows of the other
-  -- parity.
+  -- throughout; the view under a dimension of two elements at stride 0, and
+  -- among five dimensions, the outermost of one element and two between its
+  -- own two, of two elements at stride 0 and of one, each beside its order's
+  -- so; the view under a dimension of one element; and the view less its last
+  -- column, its rows of the other parity.
   tn = ARR.normalize t
   c = ARR.constant [ROWS, cols] x0 `asTypeOf` t
   t3 = ARR.broadcast [1, 2] [2, ROWS, cols] t :: ARR.Array 3 Double
   t3n = ARR.broadcast [1, 2] [2, ROWS, cols] tn `asTypeOf` t3
   tx = ARR.broadcast [1, 4] [1, ROWS, 2, 1, cols] t :: ARR.Array 5 Double
   txn = ARR.broadcast [1, 4] [1, ROWS, 2, 1, cols] tn `asTypeOf` tx
+  t31 = ARR.broadcast [1, 2] [1, ROWS, cols] t :: ARR.Array 3 Double
   tnr = ARR.slice [(0, ROWS), (0, cols - 1)] t
   -- The view's first row, its type used by rows at every ROWS and its value
   -- only by rows under ROWS > 0.
