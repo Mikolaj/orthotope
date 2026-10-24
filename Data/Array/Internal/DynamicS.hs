@@ -92,7 +92,8 @@ import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN,
                            Axes, T(..), ShapeL, Vector(..),
                            genericUnsafeConcatN, genericFoldlFrom,
                            genericMaximum, genericMinimum, genericForce,
-                           genericFromListExactN, genericUnsafeFillStridedInto)
+                           genericFromListExactN, genericUnsafeFillStridedInto,
+                           genericFromListN)
 
 type Unbox = V.Storable
 
@@ -117,9 +118,13 @@ instance Vector V.Vector where
   -- GHC HEAD with vector patched as the issue proposes and -fspec-constr, the
   -- operations reading through them took 0.95 to 1.02 of their time; at -O1,
   -- anyA and allA took 0.61 and 0.91 of it, fixed or not.  vSum and vProduct
-  -- keep vector's own: their functions are the element's class methods, which a
-  -- call the client specialises knows, so the read is no thunk there; vMaximum
-  -- and vMinimum fold over the indices, for the reason at them.
+  -- fold over the indices too, though their functions are the element's class
+  -- methods, which a call the client specialises knows, so the read is no thunk
+  -- there: against vector's own, on GHC HEAD 10.1.20261019 (2026-10-24) the
+  -- specialisation benchmark's sumA and productA ran 10 instructions a call
+  -- fewer at [3, 3] and 1 an element fewer at [400, 500], 1.6 and 17%, and as
+  -- many with -fspec-constr; vMaximum and vMinimum fold over the indices, for
+  -- the reason at them.
   {-# INLINE vToList #-}
   vToList v = build $ \ cons nil ->
     let !n = V.length v
@@ -128,8 +133,9 @@ instance Vector V.Vector where
     in  go 0
   {-# INLINE vFromList #-}
   vFromList = V.fromList
+  -- By one foldr, for the reason at 'genericFromListN'.
   {-# INLINE vFromListN #-}
-  vFromListN = V.fromListN
+  vFromListN = genericFromListN
   {-# INLINE vFromListExactN #-}
   vFromListExactN = genericFromListExactN
   -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), under INLINABLE, summed,
@@ -212,9 +218,9 @@ instance Vector V.Vector where
   {-# INLINE vUnsafeSlice #-}
   vUnsafeSlice = V.unsafeSlice
   {-# INLINE vSum #-}
-  vSum = V.sum
+  vSum v = genericFoldlFrom (+) 0 0 v
   {-# INLINE vProduct #-}
-  vProduct = V.product
+  vProduct v = genericFoldlFrom (*) 1 0 v
   -- INLINE: see the header of Data.Array.Internal, where these two are measured
   -- with productT, maximumT and minimumT.
   --

@@ -1089,6 +1089,17 @@ genericFoldlFrom f z !i0 v = go z i0
 genericFoldl1 :: VG.Vector w a => (a -> a -> a) -> w a -> a
 genericFoldl1 f v = let !x0 = VG.unsafeIndex v 0 in genericFoldlFrom f x0 1 v
 
+-- The function folded over a vector's elements from the value given, over the
+-- indices in the order of vector's foldl', each element read as stored, as
+-- 'genericAll' reads it.
+{-# INLINE genericFoldlStored #-}
+genericFoldlStored :: VG.Vector w a => (b -> a -> b) -> b -> w a -> b
+genericFoldlStored f z v = go z 0
+  where !n = VG.length v
+        go !acc !i | i >= n = acc
+                   | otherwise = case VG.unsafeIndexM v i of
+                       Box x -> go (f acc x) (i + 1)
+
 -- The maximum and the minimum by 'genericFoldl1'.  No reduction here passes an
 -- empty vector; another caller's fails as vector's maximum and minimum do.
 {-# INLINE genericMaximum #-}
@@ -1400,6 +1411,29 @@ genericFromListExactN n xs = case VG.createT (do
                 xs 0) of
   Left d -> Left (n + d)
   Right v -> Right v
+
+-- INLINE: F1, directly fusing: as genericFromListExactN.
+--
+-- The vector-backed instances' 'vFromListN': one foldr writes at most n
+-- elements of the list into a buffer of n, reaching no cell past the nth,
+-- as 'take' reaches none, and keeps the elements written where the list is
+-- shorter.  Against vector's fromListN, which takes its list apart by case
+-- and so fuses with no producer, on GHC HEAD 10.1.20261019 (2026-10-24) the
+-- specialisation benchmark's iterateN allocated 8 bytes an element where 104 at
+-- Storable and Unboxed, and 48 where 104 at boxed, at [400, 500], and ran 0.07
+-- and 0.56 of its instructions there, with -fspec-constr as well; traverseA,
+-- traverse and sequenceA ran 0.93 to 0.98 of their instructions and allocated
+-- 64 to 80 bytes a call less at [3, 3] and of an empty array.
+{-# INLINE genericFromListN #-}
+genericFromListN :: VG.Vector w a => Int -> [a] -> w a
+genericFromListN n xs = VG.create (do
+    out <- VGM.unsafeNew (max 0 n)
+    let {-# INLINE step #-}
+        step x k = \ !i -> do
+          VGM.unsafeWrite out i x
+          if i + 1 < n then k (i + 1) else return out
+    if n <= 0 then return out
+    else foldr step (\ !i -> return (VGM.unsafeSlice 0 i out)) xs 0)
 
 -- INLINE: F1, directly fusing: it consumes its list once, by a foldr, which
 -- fold/build fuses with a producer's build where it is inlined.
@@ -2294,9 +2328,8 @@ fromVectorT sh = T (tail $ getStridesT sh) 0
 emptyT :: (Vector v, VecElem v a) => ShapeL -> T v a
 emptyT sh = fromVectorT sh vEmpty
 
--- INLINE: by the measurement in the module's header, not for fusion; F1 reads
--- no fusion here: its list goes to vFromListN, whose vector instances take it
--- apart by case, so it fuses with no producer.
+-- INLINE: F1, directly fusing: its list goes to vFromListN, which the vector
+-- instances write by one foldr ('genericFromListN').
 --
 -- Convert from a list
 {-# INLINE fromListT #-}
