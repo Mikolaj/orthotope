@@ -2348,6 +2348,7 @@ emptyT :: (Vector v, VecElem v a) => ShapeL -> T v a
 emptyT sh = fromVectorT sh vEmpty
 
 -- Variant: the vector of no elements, as the boxed instance's emptyVector.
+{-# NOINLINE emptyVector #-}
 emptyVector :: VG.Vector v a => v a
 emptyVector = VG.empty
 
