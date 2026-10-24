@@ -86,7 +86,7 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.Internal.DynamicG as G
 import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN,
-                           genericMapStrided, genericConcatPadN,
+                           genericMapStrided, genericConcatPadN, ReadMode(..),
                            genericZipWithStrided, genericZipWith3Strided,
                            genericZipWith4Strided, genericZipWith5Strided,
                            Axes, T(..), ShapeL, Vector(..),
@@ -296,17 +296,17 @@ instance Vector V.Vector where
   {-# INLINE vUnsafeConcatViewsN #-}
   vUnsafeConcatViewsN = genericUnsafeConcatViewsN fillIntoS
   {-# INLINE vMapStrided #-}
-  vMapStrided = genericMapStrided True
+  vMapStrided = genericMapStrided ReadForced
   {-# INLINE vConcatPadN #-}
   vConcatPadN = genericConcatPadN fillIntoS
   {-# INLINE vZipWithStrided #-}
-  vZipWithStrided = genericZipWithStrided True
+  vZipWithStrided = genericZipWithStrided ReadForced
   {-# INLINE vZipWith3Strided #-}
-  vZipWith3Strided = genericZipWith3Strided True
+  vZipWith3Strided = genericZipWith3Strided ReadForced
   {-# INLINE vZipWith4Strided #-}
-  vZipWith4Strided = genericZipWith4Strided True
+  vZipWith4Strided = genericZipWith4Strided ReadForced
   {-# INLINE vZipWith5Strided #-}
-  vZipWith5Strided = genericZipWith5Strided True
+  vZipWith5Strided = genericZipWith5Strided ReadForced
   {-# INLINE vUnsafeConcatN #-}
   vUnsafeConcatN = genericUnsafeConcatN
 

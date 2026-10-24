@@ -67,7 +67,7 @@ fromStorable v =
 boxingT :: (VG.Vector v a, VG.Vector w a, I.Vector v, I.VecElem v a,
             I.Vector w, I.VecElem w a)
         => [Int] -> I.T v a -> I.T w a
-boxingT sh = I.convertT sh V.convert (I.genericMapStrided False id)
+boxingT sh = I.convertT sh V.convert (I.genericMapStrided I.ReadAsStored id)
 
 -- INLINE: on GHC HEAD 10.1.20261019 (2026-10-24), under INLINABLE the
 -- specialisation benchmark's Storable convert, convertE and convert.rank5
@@ -77,7 +77,8 @@ boxingT sh = I.convertT sh V.convert (I.genericMapStrided False id)
 -- stored, as 'fromStorable' reads it.
 {-# INLINE fromStorableT #-}
 fromStorableT :: VS.Storable a => [Int] -> I.T VS.Vector a -> I.T V.Vector a
-fromStorableT sh = I.convertT sh fromStorable (I.genericMapStrided True id)
+fromStorableT sh =
+  I.convertT sh fromStorable (I.genericMapStrided I.ReadForced id)
 
 class Convert a b where
   -- | Convert between two array types.

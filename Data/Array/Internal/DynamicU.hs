@@ -65,7 +65,7 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 import qualified Data.Array.Internal.Dynamic as D
 import qualified Data.Array.Internal.DynamicG as G
 import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN,
-                           genericMapStrided, genericConcatPadN,
+                           genericMapStrided, genericConcatPadN, ReadMode(..),
                            genericZipWithStrided, genericZipWith3Strided,
                            genericZipWith4Strided, genericZipWith5Strided,
                            ShapeL, Vector(..), genericUnsafeConcatN,
@@ -237,17 +237,17 @@ instance Vector V.Vector where
   {-# INLINE vUnsafeConcatViewsN #-}
   vUnsafeConcatViewsN = genericUnsafeConcatViewsN (genericFillInto 64)
   {-# INLINE vMapStrided #-}
-  vMapStrided = genericMapStrided False
+  vMapStrided = genericMapStrided ReadAsStored
   {-# INLINE vConcatPadN #-}
   vConcatPadN = genericConcatPadN (genericFillInto 64)
   {-# INLINE vZipWithStrided #-}
-  vZipWithStrided = genericZipWithStrided False
+  vZipWithStrided = genericZipWithStrided ReadAsStored
   {-# INLINE vZipWith3Strided #-}
-  vZipWith3Strided = genericZipWith3Strided False
+  vZipWith3Strided = genericZipWith3Strided ReadAsStored
   {-# INLINE vZipWith4Strided #-}
-  vZipWith4Strided = genericZipWith4Strided False
+  vZipWith4Strided = genericZipWith4Strided ReadAsStored
   {-# INLINE vZipWith5Strided #-}
-  vZipWith5Strided = genericZipWith5Strided False
+  vZipWith5Strided = genericZipWith5Strided ReadAsStored
   {-# INLINE vUnsafeConcatN #-}
   vUnsafeConcatN = genericUnsafeConcatN
 

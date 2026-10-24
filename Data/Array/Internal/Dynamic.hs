@@ -71,7 +71,7 @@ import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN,
-                           genericMapStrided, genericConcatPadN,
+                           genericMapStrided, genericConcatPadN, ReadMode(..),
                            genericZipWithStrided, genericZipWith3Strided,
                            genericZipWith4Strided, genericZipWith5Strided,
                            ShapeL, Vector(..), None, genericForce,
@@ -243,17 +243,17 @@ instance Vector V.Vector where
   {-# INLINE vUnsafeConcatViewsN #-}
   vUnsafeConcatViewsN = genericUnsafeConcatViewsN (genericFillInto 5)
   {-# INLINE vMapStrided #-}
-  vMapStrided = genericMapStrided False
+  vMapStrided = genericMapStrided ReadAsStored
   {-# INLINE vConcatPadN #-}
   vConcatPadN = genericConcatPadN (genericFillInto 5)
   {-# INLINE vZipWithStrided #-}
-  vZipWithStrided = genericZipWithStrided False
+  vZipWithStrided = genericZipWithStrided ReadAsStored
   {-# INLINE vZipWith3Strided #-}
-  vZipWith3Strided = genericZipWith3Strided False
+  vZipWith3Strided = genericZipWith3Strided ReadAsStored
   {-# INLINE vZipWith4Strided #-}
-  vZipWith4Strided = genericZipWith4Strided False
+  vZipWith4Strided = genericZipWith4Strided ReadAsStored
   {-# INLINE vZipWith5Strided #-}
-  vZipWith5Strided = genericZipWith5Strided False
+  vZipWith5Strided = genericZipWith5Strided ReadAsStored
   -- vUnsafeConcatN keeps the default, the vector package's concat but for a
   -- lone vector: on GHC HEAD, copying each vector as the list yields it, as
   -- genericUnsafeConcatN does, took 0.95 to 1.28 times as long on boxed

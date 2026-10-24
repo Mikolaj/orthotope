@@ -796,27 +796,30 @@ genericUnsafeWithElem v i k = case VG.unsafeIndexM v i of Box x -> k x
 genericGenerate' :: VG.Vector w a => Int -> (Int -> a) -> w a
 genericGenerate' !n g = genericZipLoop (max 0 n) (\ i -> return $! g i)
 
--- An element of a vector, read forced where the flag is True and as stored
--- otherwise, as the instances' zips read their elements, for the reasons at
--- them.
+-- | How the walks over views read their vectors' elements, as the instances'
+-- zips read them, for the reasons at them: forced, at Storable vectors,
+-- or as stored.
+data ReadMode = ReadForced | ReadAsStored
+
+-- An element of a vector, read as the mode says.
 {-# INLINE readAtT #-}
-readAtT :: VG.Vector w x => Bool -> w x -> Int -> ST s x
-readAtT True v i = let !x = VG.unsafeIndex v i in return x
-readAtT False v i = VG.unsafeIndexM v i
+readAtT :: VG.Vector w x => ReadMode -> w x -> Int -> ST s x
+readAtT ReadForced v i = let !x = VG.unsafeIndex v i in return x
+readAtT ReadAsStored v i = VG.unsafeIndexM v i
 
 -- The zips of views of one shape, each given as a T, into a vector in row-major
 -- order by one walk over the shape that reads each view at its own strides, so
 -- that no view is filled: the outer dimensions by recursion, the innermost by
 -- a loop, one counter over slices where every view's stride there is 1.  Each
--- element is read as the instance's zips read it, forced where strict is True
--- and as stored otherwise, and each result written as the vector stores it.
+-- element is read by the mode given first, as the instance's zips read it,
+-- and each result written as the vector stores it.
 -- The second equation's bang on n, which -Wredundant-bang-patterns reports,
 -- keeps the equations in one match group, as at 'absAxesAndStartT'.
 {-# INLINE genericZipWithStrided #-}
 genericZipWithStrided :: (VG.Vector w a, VG.Vector w b, VG.Vector w c)
-                      => Bool -> (a -> b -> c) -> ShapeL -> T w a -> T w b
-                      -> w c
-genericZipWithStrided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) = VG.create $ do
+                      => ReadMode -> (a -> b -> c) -> ShapeL -> T w a
+                      -> T w b -> w c
+genericZipWithStrided mode f sh (T ss1 o1 v1) (T ss2 o2 v2) = VG.create $ do
   out <- VGM.unsafeNew (product sh)
   let walk [!n] [!t1] [!t2] !p1 !p2 !pos
         | t1 == 1 && t2 == 1 =
@@ -825,8 +828,8 @@ genericZipWithStrided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) = VG.create $ do
                 !so = VGM.unsafeSlice pos n out
                 unit !k | k >= n = return (pos + n)
                         | otherwise = do
-                            x1 <- readAtT strict s1 k
-                            x2 <- readAtT strict s2 k
+                            x1 <- readAtT mode s1 k
+                            x2 <- readAtT mode s2 k
                             VGM.unsafeWrite so k (f x1 x2)
                             unit (k + 1)
             in  unit 0
@@ -835,8 +838,8 @@ genericZipWithStrided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) = VG.create $ do
               inner !o !q1 !q2
                 | o >= oEnd = return o
                 | otherwise = do
-                    x1 <- readAtT strict v1 q1
-                    x2 <- readAtT strict v2 q2
+                    x1 <- readAtT mode v1 q1
+                    x2 <- readAtT mode v2 q2
                     VGM.unsafeWrite out o (f x1 x2)
                     inner (o + 1) (q1 + t1) (q2 + t2)
       walk (!n : ns) (!t1 : ts1) (!t2 : ts2) !p1 !p2 !pos = outer 0 p1 p2 pos
@@ -846,8 +849,8 @@ genericZipWithStrided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) = VG.create $ do
                     o' <- walk ns ts1 ts2 q1 q2 o
                     outer (k + 1) (q1 + t1) (q2 + t2) o'
       walk _ _ _ !p1 !p2 !pos = do
-        x1 <- readAtT strict v1 p1
-        x2 <- readAtT strict v2 p2
+        x1 <- readAtT mode v1 p1
+        x2 <- readAtT mode v2 p2
         VGM.unsafeWrite out pos (f x1 x2)
         return (pos + 1)
   _ <- walk sh ss1 ss2 o1 o2 0
@@ -856,9 +859,9 @@ genericZipWithStrided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) = VG.create $ do
 {-# INLINE genericZipWith3Strided #-}
 genericZipWith3Strided :: ( VG.Vector w a, VG.Vector w b, VG.Vector w c
                           , VG.Vector w d )
-                       => Bool -> (a -> b -> c -> d) -> ShapeL -> T w a -> T w b
-                       -> T w c -> w d
-genericZipWith3Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2)
+                       => ReadMode -> (a -> b -> c -> d) -> ShapeL -> T w a
+                       -> T w b -> T w c -> w d
+genericZipWith3Strided mode f sh (T ss1 o1 v1) (T ss2 o2 v2)
                        (T ss3 o3 v3) = VG.create $ do
   out <- VGM.unsafeNew (product sh)
   let walk [!n] [!t1] [!t2] [!t3] !p1 !p2 !p3 !pos
@@ -869,9 +872,9 @@ genericZipWith3Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2)
                 !so = VGM.unsafeSlice pos n out
                 unit !k | k >= n = return (pos + n)
                         | otherwise = do
-                            x1 <- readAtT strict s1 k
-                            x2 <- readAtT strict s2 k
-                            x3 <- readAtT strict s3 k
+                            x1 <- readAtT mode s1 k
+                            x2 <- readAtT mode s2 k
+                            x3 <- readAtT mode s3 k
                             VGM.unsafeWrite so k (f x1 x2 x3)
                             unit (k + 1)
             in  unit 0
@@ -880,9 +883,9 @@ genericZipWith3Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2)
               inner !o !q1 !q2 !q3
                 | o >= oEnd = return o
                 | otherwise = do
-                    x1 <- readAtT strict v1 q1
-                    x2 <- readAtT strict v2 q2
-                    x3 <- readAtT strict v3 q3
+                    x1 <- readAtT mode v1 q1
+                    x2 <- readAtT mode v2 q2
+                    x3 <- readAtT mode v3 q3
                     VGM.unsafeWrite out o (f x1 x2 x3)
                     inner (o + 1) (q1 + t1) (q2 + t2) (q3 + t3)
       walk (!n : ns) (!t1 : ts1) (!t2 : ts2) (!t3 : ts3) !p1 !p2 !p3 !pos =
@@ -893,9 +896,9 @@ genericZipWith3Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2)
                     o' <- walk ns ts1 ts2 ts3 q1 q2 q3 o
                     outer (k + 1) (q1 + t1) (q2 + t2) (q3 + t3) o'
       walk _ _ _ _ !p1 !p2 !p3 !pos = do
-        x1 <- readAtT strict v1 p1
-        x2 <- readAtT strict v2 p2
-        x3 <- readAtT strict v3 p3
+        x1 <- readAtT mode v1 p1
+        x2 <- readAtT mode v2 p2
+        x3 <- readAtT mode v3 p3
         VGM.unsafeWrite out pos (f x1 x2 x3)
         return (pos + 1)
   _ <- walk sh ss1 ss2 ss3 o1 o2 o3 0
@@ -904,9 +907,9 @@ genericZipWith3Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2)
 {-# INLINE genericZipWith4Strided #-}
 genericZipWith4Strided :: ( VG.Vector w a, VG.Vector w b, VG.Vector w c
                           , VG.Vector w d, VG.Vector w e )
-                       => Bool -> (a -> b -> c -> d -> e) -> ShapeL -> T w a
-                       -> T w b -> T w c -> T w d -> w e
-genericZipWith4Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
+                       => ReadMode -> (a -> b -> c -> d -> e) -> ShapeL
+                       -> T w a -> T w b -> T w c -> T w d -> w e
+genericZipWith4Strided mode f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
                        (T ss4 o4 v4) = VG.create $ do
   out <- VGM.unsafeNew (product sh)
   let walk [!n] [!t1] [!t2] [!t3] [!t4] !p1 !p2 !p3 !p4 !pos
@@ -918,10 +921,10 @@ genericZipWith4Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
                 !so = VGM.unsafeSlice pos n out
                 unit !k | k >= n = return (pos + n)
                         | otherwise = do
-                            x1 <- readAtT strict s1 k
-                            x2 <- readAtT strict s2 k
-                            x3 <- readAtT strict s3 k
-                            x4 <- readAtT strict s4 k
+                            x1 <- readAtT mode s1 k
+                            x2 <- readAtT mode s2 k
+                            x3 <- readAtT mode s3 k
+                            x4 <- readAtT mode s4 k
                             VGM.unsafeWrite so k (f x1 x2 x3 x4)
                             unit (k + 1)
             in  unit 0
@@ -930,10 +933,10 @@ genericZipWith4Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
               inner !o !q1 !q2 !q3 !q4
                 | o >= oEnd = return o
                 | otherwise = do
-                    x1 <- readAtT strict v1 q1
-                    x2 <- readAtT strict v2 q2
-                    x3 <- readAtT strict v3 q3
-                    x4 <- readAtT strict v4 q4
+                    x1 <- readAtT mode v1 q1
+                    x2 <- readAtT mode v2 q2
+                    x3 <- readAtT mode v3 q3
+                    x4 <- readAtT mode v4 q4
                     VGM.unsafeWrite out o (f x1 x2 x3 x4)
                     inner (o + 1)
                         (q1 + t1) (q2 + t2) (q3 + t3) (q4 + t4)
@@ -946,10 +949,10 @@ genericZipWith4Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
                     o' <- walk ns ts1 ts2 ts3 ts4 q1 q2 q3 q4 o
                     outer (k + 1) (q1 + t1) (q2 + t2) (q3 + t3) (q4 + t4) o'
       walk _ _ _ _ _ !p1 !p2 !p3 !p4 !pos = do
-        x1 <- readAtT strict v1 p1
-        x2 <- readAtT strict v2 p2
-        x3 <- readAtT strict v3 p3
-        x4 <- readAtT strict v4 p4
+        x1 <- readAtT mode v1 p1
+        x2 <- readAtT mode v2 p2
+        x3 <- readAtT mode v3 p3
+        x4 <- readAtT mode v4 p4
         VGM.unsafeWrite out pos (f x1 x2 x3 x4)
         return (pos + 1)
   _ <- walk sh ss1 ss2 ss3 ss4 o1 o2 o3 o4 0
@@ -958,9 +961,9 @@ genericZipWith4Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
 {-# INLINE genericZipWith5Strided #-}
 genericZipWith5Strided :: ( VG.Vector w a, VG.Vector w b, VG.Vector w c
                           , VG.Vector w d, VG.Vector w e, VG.Vector w f )
-                       => Bool -> (a -> b -> c -> d -> e -> f) -> ShapeL
+                       => ReadMode -> (a -> b -> c -> d -> e -> f) -> ShapeL
                        -> T w a -> T w b -> T w c -> T w d -> T w e -> w f
-genericZipWith5Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
+genericZipWith5Strided mode f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
                        (T ss4 o4 v4) (T ss5 o5 v5) = VG.create $ do
   out <- VGM.unsafeNew (product sh)
   let walk [!n] [!t1] [!t2] [!t3] [!t4] [!t5] !p1 !p2 !p3 !p4 !p5 !pos
@@ -973,11 +976,11 @@ genericZipWith5Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
                 !so = VGM.unsafeSlice pos n out
                 unit !k | k >= n = return (pos + n)
                         | otherwise = do
-                            x1 <- readAtT strict s1 k
-                            x2 <- readAtT strict s2 k
-                            x3 <- readAtT strict s3 k
-                            x4 <- readAtT strict s4 k
-                            x5 <- readAtT strict s5 k
+                            x1 <- readAtT mode s1 k
+                            x2 <- readAtT mode s2 k
+                            x3 <- readAtT mode s3 k
+                            x4 <- readAtT mode s4 k
+                            x5 <- readAtT mode s5 k
                             VGM.unsafeWrite so k (f x1 x2 x3 x4 x5)
                             unit (k + 1)
             in  unit 0
@@ -986,11 +989,11 @@ genericZipWith5Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
               inner !o !q1 !q2 !q3 !q4 !q5
                 | o >= oEnd = return o
                 | otherwise = do
-                    x1 <- readAtT strict v1 q1
-                    x2 <- readAtT strict v2 q2
-                    x3 <- readAtT strict v3 q3
-                    x4 <- readAtT strict v4 q4
-                    x5 <- readAtT strict v5 q5
+                    x1 <- readAtT mode v1 q1
+                    x2 <- readAtT mode v2 q2
+                    x3 <- readAtT mode v3 q3
+                    x4 <- readAtT mode v4 q4
+                    x5 <- readAtT mode v5 q5
                     VGM.unsafeWrite out o (f x1 x2 x3 x4 x5)
                     inner (o + 1)
                         (q1 + t1) (q2 + t2) (q3 + t3) (q4 + t4) (q5 + t5)
@@ -1004,11 +1007,11 @@ genericZipWith5Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
                     outer (k + 1)
                         (q1 + t1) (q2 + t2) (q3 + t3) (q4 + t4) (q5 + t5) o'
       walk _ _ _ _ _ _ !p1 !p2 !p3 !p4 !p5 !pos = do
-        x1 <- readAtT strict v1 p1
-        x2 <- readAtT strict v2 p2
-        x3 <- readAtT strict v3 p3
-        x4 <- readAtT strict v4 p4
-        x5 <- readAtT strict v5 p5
+        x1 <- readAtT mode v1 p1
+        x2 <- readAtT mode v2 p2
+        x3 <- readAtT mode v3 p3
+        x4 <- readAtT mode v4 p4
+        x5 <- readAtT mode v5 p5
         VGM.unsafeWrite out pos (f x1 x2 x3 x4 x5)
         return (pos + 1)
   _ <- walk sh ss1 ss2 ss3 ss4 ss5 o1 o2 o3 o4 o5 0
@@ -1017,9 +1020,9 @@ genericZipWith5Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
 -- The map of a view, given as its shape and T, into a vector of a type of
 -- the vector package's, possibly another, in row-major order by one walk as
 -- 'genericZipWithStrided' walks, filling nothing: for 'vMapStrided' and for the
--- conversions between the vector types.  Its first argument, storable, says
--- whether the view is a Storable vector's, whose elements are read forced, and
--- only there is a run of stride 1 walked by one counter over slices, whose
+-- conversions between the vector types.  Its first argument, the read mode,
+-- is 'ReadForced' for a Storable vector's view alone, and only there is a run
+-- of stride 1 walked by one counter over slices, whose
 -- addresses hold their offsets: on GHC HEAD 10.1.20261019 (2026-10-23) that
 -- loop took 11% more instructions at Unboxed on runs of [400, 500], whose
 -- slices keep their offsets apart, and at boxed its own application of f kept
@@ -1028,16 +1031,16 @@ genericZipWith5Strided strict f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
 -- up to 1.47 times the instructions.
 {-# INLINE genericMapStrided #-}
 genericMapStrided :: (VG.Vector v a, VG.Vector w b)
-                  => Bool -> (a -> b) -> ShapeL -> T v a -> w b
-genericMapStrided storable f sh (T ss1 o1 v1) = VG.create $ do
+                  => ReadMode -> (a -> b) -> ShapeL -> T v a -> w b
+genericMapStrided mode f sh (T ss1 o1 v1) = VG.create $ do
   out <- VGM.unsafeNew (product sh)
   let walk [!n] [!t1] !p1 !pos
-        | storable && t1 == 1 =
+        | ReadForced <- mode, t1 == 1 =
             let !s1 = VG.unsafeSlice p1 n v1
                 !so = VGM.unsafeSlice pos n out
                 unit !k | k >= n = return (pos + n)
                         | otherwise = do
-                            x1 <- readAtT storable s1 k
+                            x1 <- readAtT mode s1 k
                             VGM.unsafeWrite so k (f x1)
                             unit (k + 1)
             in  unit 0
@@ -1046,7 +1049,7 @@ genericMapStrided storable f sh (T ss1 o1 v1) = VG.create $ do
               inner !o !q1
                 | o >= oEnd = return o
                 | otherwise = do
-                    x1 <- readAtT storable v1 q1
+                    x1 <- readAtT mode v1 q1
                     VGM.unsafeWrite out o (f x1)
                     inner (o + 1) (q1 + t1)
       walk (!n : ns) (!t1 : ts1) !p1 !pos = outer 0 p1 pos
@@ -1056,7 +1059,7 @@ genericMapStrided storable f sh (T ss1 o1 v1) = VG.create $ do
                     o' <- walk ns ts1 q1 o
                     outer (k + 1) (q1 + t1) o'
       walk _ _ !p1 !pos = do
-        x1 <- readAtT storable v1 p1
+        x1 <- readAtT mode v1 p1
         VGM.unsafeWrite out pos (f x1)
         return (pos + 1)
   _ <- walk sh ss1 o1 0
