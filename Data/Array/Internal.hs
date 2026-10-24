@@ -195,8 +195,9 @@ class Vector v where
   -- giving the reason.
   vEmpty :: (VecElem v a) => v a
   default vEmpty :: (VecElem v a, VG.Vector v a) => v a
-  {-# INLINABLE vEmpty #-}
-  vEmpty = VG.empty
+  -- Variant: a constant, as at the boxed instance.
+  {-# INLINE vEmpty #-}
+  vEmpty = emptyVector
 
   -- | The zips of views of one shape, each given as a T, into a vector
   -- in row-major order.  The defaults fill each view by 'toVectorT' and
@@ -2345,6 +2346,10 @@ fromVectorT sh = T (tail $ getStridesT sh) 0
 {-# INLINE emptyT #-}
 emptyT :: (Vector v, VecElem v a) => ShapeL -> T v a
 emptyT sh = fromVectorT sh vEmpty
+
+-- Variant: the vector of no elements, as the boxed instance's emptyVector.
+emptyVector :: VG.Vector v a => v a
+emptyVector = VG.empty
 
 -- INLINE: F1, directly fusing: its list goes to vFromListN, which the vector
 -- instances write by one foldr ('genericFromListN').
