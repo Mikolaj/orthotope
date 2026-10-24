@@ -75,7 +75,8 @@ import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN,
                            genericMap, genericZipWith, genericZipWith3,
                            genericZipWith4, genericZipWith5,
                            genericUnsafeWithElem, genericGenerate',
-                           genericAll, genericAny)
+                           genericAll, genericAny, genericZipLoop,
+                           genericFoldlStored, genericFromListN)
 
 type Unbox = V.Unbox
 
@@ -95,8 +96,9 @@ instance Vector V.Vector where
   vToList !a = V.toList a
   {-# INLINE vFromList #-}
   vFromList = V.fromList
+  -- By one foldr, for the reason at 'genericFromListN'.
   {-# INLINE vFromListN #-}
-  vFromListN = V.fromListN
+  vFromListN = genericFromListN
   {-# INLINE vFromListExactN #-}
   vFromListExactN = genericFromListExactN
   -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), under INLINABLE the
@@ -143,16 +145,22 @@ instance Vector V.Vector where
   -- producer.
   {-# INLINE vConcat #-}
   vConcat = V.concat
+  -- vFold, vSum and vProduct fold over the indices, each element read as
+  -- stored, as vAll and vAny read it: against vector's own, on GHC HEAD
+  -- 10.1.20261019 (2026-10-24) the specialisation benchmark's reduce, sumA and
+  -- productA ran 8 to 10 instructions a call fewer at [3, 3] and 1 an element
+  -- fewer at [400, 500], 1.4 to 1.5% and 14%, and with -fspec-constr as many,
+  -- reduce at [3, 3] 2 more.
   {-# INLINE vFold #-}
-  vFold = V.foldl'
+  vFold = genericFoldlStored
   {-# INLINE vSlice #-}
   vSlice = V.slice
   {-# INLINE vUnsafeSlice #-}
   vUnsafeSlice = V.unsafeSlice
   {-# INLINE vSum #-}
-  vSum = V.sum
+  vSum = genericFoldlStored (+) 0
   {-# INLINE vProduct #-}
-  vProduct = V.product
+  vProduct = genericFoldlStored (*) 1
   -- INLINE: see the header of Data.Array.Internal, where these two are measured
   -- with productT, maximumT and minimumT.
   --
@@ -168,8 +176,13 @@ instance Vector V.Vector where
   vMinimum v = genericMinimum v
   {-# INLINE vUpdate #-}
   vUpdate = (V.//)
+  -- vGenerate writes over the indices ('genericZipLoop') each element as its
+  -- function gives it: against vector's generate, on GHC HEAD 10.1.20261019
+  -- (2026-10-24) the specialisation benchmark's generate ran 38 instructions a
+  -- call fewer at [3, 3] and 4 an element fewer at [400, 500], 2.6 and 3.4%,
+  -- and with -fspec-constr 28 and 3 fewer.
   {-# INLINE vGenerate #-}
-  vGenerate = V.generate
+  vGenerate n g = genericZipLoop (max 0 n) (\ i -> return (g i))
   -- vAll and vAny read as the boxed instance's do.
   {-# INLINE vAll #-}
   vAll = genericAll

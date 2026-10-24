@@ -259,7 +259,7 @@ specialised row b s mu = do
 -- its elements stored as the map's thunks; plain fromList stays bounded.
 boxedExempt :: [String]
 boxedExempt = [ "/mapA", "/traverseA", "/zipWithA", "/zipWith3A", "/zipWith4A"
-              , "/zipWith5A", "/generate", "/iota", "/rerank2"
+              , "/zipWith5A", "/generate", "/iota", "/iterateN", "/rerank2"
               , "/unravel", "/fromList.map" ]
 
 -- Whether the boxed modules make the copies their specialisation is:

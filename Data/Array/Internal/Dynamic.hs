@@ -80,7 +80,8 @@ import Data.Array.Internal(genericUnsafeUpdateOwned, genericUnsafeConcatViewsN,
                            genericMap, genericZipWith, genericZipWith3,
                            genericZipWith4, genericZipWith5,
                            genericUnsafeWithElem, genericGenerate',
-                           genericAll, genericAny, constantT)
+                           genericAll, genericAny, constantT,
+                           genericFoldlStored, genericFromListN)
 import qualified Data.Array.Internal.DynamicG as G
 
 instance Vector V.Vector where
@@ -97,13 +98,16 @@ instance Vector V.Vector where
   vLength = V.length
   -- Named, for the bang: on GHC HEAD 10.1.20260918 (2026-10-16) the
   -- specialisation benchmark's foldrA, fold, foldr and traversals at [3, 3]
-  -- ran 8 instructions a call fewer with it, 0.3 to 1.6%.
+  -- ran 8 instructions a call fewer with it, 0.3 to 1.6%.  A build over the
+  -- indices, each element read as stored, ran as many instructions on toList,
+  -- foldr and fold on GHC HEAD 10.1.20261019 (2026-10-24).
   {-# INLINE vToList #-}
   vToList !a = V.toList a
   {-# INLINE vFromList #-}
   vFromList = V.fromList
+  -- By one foldr, for the reason at 'genericFromListN'.
   {-# INLINE vFromListN #-}
-  vFromListN = V.fromListN
+  vFromListN = genericFromListN
   {-# INLINE vFromListExactN #-}
   vFromListExactN = genericFromListExactN
   -- INLINE: on GHC HEAD 10.1.20260918 (2026-10-16), under INLINABLE the
@@ -145,22 +149,34 @@ instance Vector V.Vector where
   -- producer.
   {-# INLINE vConcat #-}
   vConcat = V.concat
+  -- vFold keeps vector's own: folded over the indices, each element read as
+  -- stored ('genericFoldlStored'), the specialisation benchmark's reduce ran on
+  -- GHC HEAD 10.1.20261019 (2026-10-24) 12 instructions a call fewer at [3, 3]
+  -- and 2 an element fewer at [400, 500], but with -fspec-constr 15 and 1 more.
   {-# INLINE vFold #-}
   vFold = V.foldl'
   {-# INLINE vSlice #-}
   vSlice = V.slice
   {-# INLINE vUnsafeSlice #-}
   vUnsafeSlice = V.unsafeSlice
+  -- vSum and vProduct fold over the indices, each element read as stored:
+  -- against vector's own, on GHC HEAD 10.1.20261019 (2026-10-24) the
+  -- specialisation benchmark's sumA and productA ran 10 instructions a call
+  -- fewer at [3, 3] and 1 an element fewer at [400, 500], 1.3 and 5.3%, and as
+  -- many with -fspec-constr.
   {-# INLINE vSum #-}
-  vSum = V.sum
+  vSum = genericFoldlStored (+) 0
   {-# INLINE vProduct #-}
-  vProduct = V.product
+  vProduct = genericFoldlStored (*) 1
   -- vMaximum and vMinimum are named, for the bangs: on GHC HEAD 10.1.20260918
   -- (2026-10-17) the specialisation benchmark's maximumA and minimumA ran 13 to
   -- 15 instructions a call fewer with them boxed, up to 4.2%, on every view but
   -- runs, scaled and window.  With a bang GHC copies the fold into each branch
   -- of the case on the view's start, where without one a branch called a copy
-  -- floated out to the top level.
+  -- floated out to the top level.  By genericMaximum and genericMinimum, as
+  -- Storable and Unboxed fold them, maximumA and minimumA ran 6 instructions a
+  -- call more at [3, 3] and 1 an element fewer at [400, 500], and maximumA with
+  -- -fspec-constr 15 more and as many, on GHC HEAD 10.1.20261019 (2026-10-24).
   {-# INLINE vMaximum #-}
   vMaximum !a = V.maximum a
   {-# INLINE vMinimum #-}
