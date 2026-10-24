@@ -186,8 +186,8 @@ fromList :: forall sh v a . (HasCallStack, Vector v, VecElem v a, Shape sh) =>
             [a] -> Array sh v a
 fromList vs = case vFromListExactN n vs of
                 Right v -> A $ T st 0 v
-                Left l -> error $ "fromList: size mismatch "
-                            ++ showShapeLength ss n l
+                Left m -> error $ "fromList: size mismatch "
+                            ++ showShapeLength ss n m
   where n : st = getStridesT ss
         ss = shapeT @sh
 

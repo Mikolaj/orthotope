@@ -73,6 +73,12 @@ import Text.PrettyPrint.HughesPJClass
 
 {- HLINT ignore "Reduce duplication" -}
 
+-- | How a list's length differs from the number of elements
+-- 'vFromListExactN' was given.
+data LengthMismatch = TooShort Int  -- ^ The list is shorter, of this length.
+                    | TooLong  -- ^ The list is longer.
+  deriving (Eq, Show)
+
 -- | The interface to the underlying storage of the arrays, whose operations
 -- an instance writes by the vector type's own or by loops over its elements.
 -- 'VecElem' is the constraint the vector type needs on its elements, such as
@@ -108,12 +114,13 @@ class Vector v where
   vFromListN n = vFromList . take n
 
   -- | The list's elements in a vector where the list has exactly the given
-  -- number of them, and otherwise the list's length, or that number plus one
-  -- where the list is longer, the list walked no further.
-  vFromListExactN :: (VecElem v a) => Int -> [a] -> Either Int (v a)
+  -- number of them, and otherwise how its length differs, the list walked
+  -- no further than one element past that number.
+  vFromListExactN :: (VecElem v a) => Int -> [a] -> Either LengthMismatch (v a)
   {-# INLINABLE vFromListExactN #-}
   vFromListExactN n xs | l == n = Right (vFromListN n xs)
-                       | otherwise = Left l
+                       | l > n = Left TooLong
+                       | otherwise = Left (TooShort l)
     where l = length (take (n + 1) xs)
 
   -- | 'vIndex' at an index in bounds, which the instance need not check: the
@@ -1406,11 +1413,13 @@ genericUnsafeFillStrided !copyRun axes !ao l !v =
 --
 -- The vector-backed instances' 'vFromListExactN': one foldr writes the list
 -- into a buffer of n elements and stops at an element past n.  The loop
--- returns the count's excess over n, not the count: returned in a Left as it
--- is, the count stays boxed in the loop, an I# allocated an element, on GHC
--- 9.6.7 to HEAD (https://gitlab.haskell.org/ghc/ghc/-/work_items/24203).
+-- returns the count's excess over n, or 1 where the list is longer, not
+-- the count: returned in a Left as it is, the count stays boxed in the loop,
+-- an I# allocated an element, on GHC 9.6.7 to HEAD
+-- (https://gitlab.haskell.org/ghc/ghc/-/work_items/24203).
 {-# INLINE genericFromListExactN #-}
-genericFromListExactN :: (VG.Vector w a) => Int -> [a] -> Either Int (w a)
+genericFromListExactN :: (VG.Vector w a)
+                      => Int -> [a] -> Either LengthMismatch (w a)
 genericFromListExactN n xs = case VG.createT (do
     out <- VGM.unsafeNew n
     let {-# INLINE step #-}
@@ -1418,7 +1427,8 @@ genericFromListExactN n xs = case VG.createT (do
                                     else return (Left 1)
     foldr step (\ !i -> return $ if i == n then Right out else Left (i - n))
                 xs 0) of
-  Left d -> Left (n + d)
+  Left d | d > 0 -> Left TooLong
+         | otherwise -> Left (TooShort (n + d))
   Right v -> Right v
 
 -- INLINE: F1, directly fusing: as genericFromListExactN.
@@ -3025,13 +3035,13 @@ allDistinct :: [Int] -> Bool
 allDistinct (i : is) = i `notElem` is && allDistinct is
 allDistinct [] = True
 
--- | A shape and a list's length as 'vFromListExactN' gives it, for an error
--- of fromList: a length past the shape's size of n reads "more than n".
+-- | A shape and how a list's length differs from the shape's size of n,
+-- as 'vFromListExactN' gives it, for an error of fromList: a longer list
+-- reads "more than n".
 {-# INLINE showShapeLength #-}
-showShapeLength :: ShapeL -> Int -> Int -> String
-showShapeLength sh n l
-  | l > n = "(" ++ show sh ++ ",more than " ++ show n ++ ")"
-  | otherwise = show (sh, l)
+showShapeLength :: ShapeL -> Int -> LengthMismatch -> String
+showShapeLength sh n TooLong = "(" ++ show sh ++ ",more than " ++ show n ++ ")"
+showShapeLength sh _ (TooShort l) = show (sh, l)
 
 -- | Like 'dropWhile' but at the end of the list.
 {-# INLINE revDropWhile #-}
