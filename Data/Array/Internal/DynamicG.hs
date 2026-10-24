@@ -816,7 +816,7 @@ broadcast :: HasCallStack =>
 broadcast ds sh (A ash t) | any (\ d -> d < 0 || d >= r) ds =
                               error $ "broadcast: bad dimension index "
                                 ++ show (ash, ds, sh)
-                          | not (ascending ds) =
+                          | not (strictlyAscending ds) =
                               error $ "broadcast: unordered dimensions "
                                 ++ show (ash, ds, sh)
                           | badShape sh =
@@ -828,8 +828,6 @@ broadcast ds sh (A ash t) | any (\ d -> d < 0 || d >= r) ds =
                               A sh $ broadcastT [ i `notElem` ds
                                                 | i <- [0 .. r - 1] ] t
   where r = length sh
-        ascending (x:y:ys) = x < y && ascending (y:ys)
-        ascending _ = True
 
 -- INLINE: by the measurement in the module's header, not for fusion: its list
 -- goes to null and, checked as it is taken, to updateT, so it fuses with no

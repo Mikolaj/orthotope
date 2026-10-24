@@ -34,7 +34,8 @@
 -- genericUnsafeFillStrided, genericUnsafeFillStridedInto, canonicalizeT,
 -- stepOdometer, absAxesAndStartT, sortAxesT, insertAxis, canonicalizeSortedT,
 -- emptyVector, allSameT, rectPad, hcatRect, rectWidth, ppT, showsT, box,
--- zipWithLong2, simpleReshape, isPermutation, allDistinct and allSame: on GHC
+-- zipWithLong2, simpleReshape, isPermutation, allDistinct, strictlyAscending
+-- and allSame: on GHC
 -- HEAD 10.1.20260918 (2026-10-15), this module's functions INLINABLE, as their
 -- types give them, cost the specialisation benchmark up to 1960 bytes a call
 -- (the conversions), 624 (liftA2), 560 (concatOuter) and 384 (pad); productT,
@@ -3035,6 +3036,11 @@ allDistinct :: [Int] -> Bool
 allDistinct (i : is) = i `notElem` is && allDistinct is
 allDistinct [] = True
 
+-- | Whether each element of the list is less than the next.
+strictlyAscending :: [Int] -> Bool
+strictlyAscending (x : xs@(y : _)) = x < y && strictlyAscending xs
+strictlyAscending _ = True
+
 -- | A shape and how a list's length differs from the shape's size of n,
 -- as 'vFromListExactN' gives it, for an error of fromList: a longer list
 -- reads "more than n".
@@ -3042,11 +3048,6 @@ allDistinct [] = True
 showShapeLength :: ShapeL -> Int -> LengthMismatch -> String
 showShapeLength sh n TooLong = "(" ++ show sh ++ ",more than " ++ show n ++ ")"
 showShapeLength sh _ (TooShort l) = show (sh, l)
-
--- | Like 'dropWhile' but at the end of the list.
-{-# INLINE revDropWhile #-}
-revDropWhile :: (a -> Bool) -> [a] -> [a]
-revDropWhile p = reverse . dropWhile p . reverse
 
 {-# INLINABLE allSame #-}
 allSame :: (Eq a) => [a] -> Bool
