@@ -2604,7 +2604,15 @@ reduceT sh f !z a@(T _ _ v)
         foldl' (vFold f) z (build $ \cons nil -> routeSlicesT v route cons nil)
   where !l = product sh
 
--- Right fold via toListT.
+-- Right fold via toListT.  With an f strict in its second argument, as (+)
+-- is, the stack grows a frame an element on an 'RSlice' and an 'RFill', and
+-- on 'RRuns', whose runs are folded last first, a frame a run plus one run's
+-- length: on GHC HEAD 10.1.20261019 (2026-10-25), foldr (+) 0 of [400, 500]
+-- Doubles allocated 16.6 bytes an element on a dense view and 0.08 on a view
+-- of runs.  Since foldr f z (xs ++ ys) == foldr f (foldr f z ys) xs, cutting
+-- the slice and the walk into blocks folded last first would keep the fold's
+-- meaning and bound the stack as on 'RRuns'; left, to limit complication, until
+-- the depth becomes a bottleneck for anybody.
 {-# INLINE foldrT #-}
 foldrT
   :: (Vector v, VecElem v a) => ShapeL -> (a -> b -> b) -> b -> T v a -> b
