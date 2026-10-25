@@ -187,6 +187,14 @@ class Vector v where
   {-# INLINE vUnsafeWithElem #-}
   vUnsafeWithElem v i k = k (vUnsafeIndex v i)
 
+  -- | The n elements from lo reduced to normal form, a slice in bounds, which
+  -- the instance need not check, for a view that one slice of the vector
+  -- serves: the default is the 'rnf' of 'vUnsafeSlice', and the boxed vector
+  -- instance walks the vector's array by a loop of its own, without the check.
+  vRnfSlice :: (VecElem v a, NFData a, NFData (v a)) => Int -> Int -> v a -> ()
+  {-# INLINE vRnfSlice #-}
+  vRnfSlice lo n v = rnf (vUnsafeSlice lo n v)
+
   -- | A vector of n elements, the ith g i, each evaluated to weak head
   -- normal form as it is stored, and an empty one for an n below 0.
   -- The default lists them.
@@ -395,7 +403,7 @@ instance NFData (v a) => NFData (T v a)
 rnfViewT :: (Vector v, VecElem v a, NFData a, NFData (v a))
          => ShapeL -> T v a -> ()
 rnfViewT sh t@(T _ _ v) = case readRangeT sh t of
-  Range lo n -> rnf (vUnsafeSlice lo n v)
+  Range lo n -> vRnfSlice lo n v
   NoRange -> let (_, rsh, r) = dropBroadcastT sh t
              in  foldrT rsh (\ x z -> rnf x `seq` z) () r
 

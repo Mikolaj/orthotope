@@ -66,6 +66,7 @@ import Data.Data(Data)
 import GHC.Generics(Generic)
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as MV
+import qualified Data.Primitive.Array as P
 import GHC.Stack(HasCallStack)
 import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
@@ -221,6 +222,21 @@ instance Vector V.Vector where
   -- view's elements ('elemsT').
   {-# INLINE vUnsafeWithElem #-}
   vUnsafeWithElem = genericUnsafeWithElem
+  -- A loop of its own over the vector's array, rnfArrayFrom, which
+  -- takes its registers from its arguments.  Vector's loop, compiled
+  -- inside the array's rnf under the default, took them from the
+  -- code before it, so that on GHC HEAD 10.1.20261019 (2026-10-25)
+  -- a change in that code moved the specialisation benchmark's
+  -- boxed rnf at [400, 500] between 19, 22 and 23 instructions an
+  -- element (https://gitlab.haskell.org/ghc/ghc/-/work_items/27981),
+  -- the 19 including the load of a dead SPEC argument
+  -- (https://gitlab.haskell.org/ghc/ghc/-/work_items/8327).  The loop of its
+  -- own ran 16 there, and on GHC 9.12.4 it ran 3 to 6 an element fewer than
+  -- vector's at [400, 500], at a cost of a few instructions a call on a short
+  -- slice.
+  {-# INLINABLE vRnfSlice #-}
+  vRnfSlice !lo !n !v = case V.toArraySlice (V.unsafeSlice lo n v) of
+    (arr, off, len) -> rnfArrayFrom off (off + len) arr
   -- Each element forced as it is written.
   {-# INLINE vGenerate' #-}
   vGenerate' = genericGenerate'
@@ -261,6 +277,14 @@ instance Vector V.Vector where
   -- to 2.21 at 4 MB, running 1.02 to 1.41 and 1.35 to 2.88 times the
   -- instructions, though it took 0.41 to 0.79 and 0.50 to 0.76 of the time
   -- on rows of 2 to 8 elements.
+
+-- The elements of an array at the indices [i .. hi - 1], reduced to normal
+-- form, by a recursive function, so that its loop is compiled as its own.
+{-# INLINABLE rnfArrayFrom #-}
+rnfArrayFrom :: NFData a => Int -> Int -> P.Array a -> ()
+rnfArrayFrom !i !hi !arr
+  | i >= hi = ()
+  | otherwise = rnf (P.indexArray arr i) `seq` rnfArrayFrom (i + 1) hi arr
 
 type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }
