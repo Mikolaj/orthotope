@@ -187,7 +187,10 @@ instance Vector V.Vector where
   -- patched as issues 570, 571 and 575 propose, generate, through vGenerate,
   -- ran 40 to 49 instructions a call fewer at [3, 3] and 4 to 5 an element
   -- fewer at [400, 500], as against 34 to 58 and 5 to 6 at -O1, allocating 16
-  -- bytes a call less where forced at both.
+  -- bytes a call less where forced at both; and iota, through vGenerate', 4
+  -- to 10 a call fewer at [3, 3] and 1 an element fewer at [400, 500], as
+  -- against 15 to 20 and 2, allocating 16 bytes a call less at every size
+  -- in Dynamic and Ranked arrays at both.
   {-# INLINE vMap #-}
   vMap f v = indexLoop (V.length v) (\ i -> let !x = V.unsafeIndex v i in f x)
   {-# INLINE vZipWith #-}

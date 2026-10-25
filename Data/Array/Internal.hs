@@ -1035,8 +1035,9 @@ genericZipWith5Strided mode f sh (T ss1 o1 v1) (T ss2 o2 v2) (T ss3 o3 v3)
 -- loop took 11% more instructions at Unboxed on runs of [400, 500], whose
 -- slices keep their offsets apart, and at boxed its own application of f kept
 -- f out of line, 1 to 7% more at every view of [400, 500], those 'vMap' takes
--- included; the zips take it at every kind, where without it Unboxed zips took
--- up to 1.47 times the instructions.
+-- included, and with -fspec-constr as much on 2026-10-24; the zips take it at
+-- every kind, where without it Unboxed zips took up to 1.47 times
+-- the instructions.
 {-# INLINE genericMapStrided #-}
 genericMapStrided :: (VG.Vector v a, VG.Vector w b)
                   => ReadMode -> (a -> b) -> ShapeL -> T v a -> w b
@@ -1399,7 +1400,11 @@ genericUnsafeFillStridedInto !copyRun (Axes stInner nInner outerAxes) !ao !v
 -- line, writing a buffer at an offset given, which Unboxed and boxed mutable
 -- vectors carry and Storable ones do not, force of a large strided view ran
 -- 12.55 instructions an element where 8.55 at Unboxed and 51.69 where 49.69
--- boxed on GHC HEAD 10.1.20261019 (2026-10-23).
+-- boxed on GHC HEAD 10.1.20261019 (2026-10-23).  With -fspec-constr too:
+-- on 2026-10-24 it ran 12.55 where 8.55 at Unboxed and 48.05 where 46.04
+-- boxed, as at -O1, allocating 8 bytes a call more at both, though at both
+-- boxed toVector of [400, 500], summed, ran up to 8 an element fewer out
+-- of line.
 {-# INLINABLE genericUnsafeFillStrided #-}
 genericUnsafeFillStrided :: (VG.Vector w a)
                          => Int -> Axes -> Int -> Int -> w a -> w a
@@ -1843,7 +1848,13 @@ elemsT (Axes t n (InnerFirst outerAxes)) !start !v cons nil =
 -- and boxed, a thunk and a box per run; here every continuation is
 -- 'go', 'block' or nil, all known to the compiler, so base's own left
 -- folds, 'sum' among them, see a strict known call and allocate nothing
--- per run.
+-- per run.  With -fspec-constr too: on GHC HEAD 10.1.20261019 (2026-10-24)
+-- the level form allocated up to 144 bytes an element on the specialisation
+-- benchmark's views of [400, 500] and ran sumA, productA and minimumA
+-- of a scaled Storable view in 19 times the instructions, as at -O1, though
+-- at both it ran boxed allA and anyA of a scaled view, boxed sums of runs
+-- and compare of a repeated row in 0.67 to 0.83 of them, and allocated 16
+-- bytes a call less on empty arrays.
 --
 -- The odometer is a value, each level holding its own offset and its
 -- axis, the canonical list's own 'Axis'.  A carry loop before it
@@ -2862,8 +2873,12 @@ applyN n f = go n
 -- alternative of its own with the fold inlined there: with the copies returned
 -- beside the route by a function that 'cellsRouteT' then started from, sumA,
 -- productA and the folds of 'cellsRouteT' allocated 24 to 64 bytes a call more
--- on small arrays, and with the other routes in one default alternative, sumA
--- still did, on GHC HEAD 10.1.20261019 (2026-10-21).
+-- on small arrays, on GHC HEAD 10.1.20261019 (2026-10-21).  With the other
+-- routes in one default alternative, that compiler gave sumA and productA
+-- the same Core on 2026-10-24, but on GHC 9.12.4 they built the route, 24 to
+-- 64 bytes a call at every size, and ran 12 to 32 instructions a call more
+-- on small arrays and, on the dense, reversed and strided views, 2 an element
+-- more at boxed [400, 500].
 {-# INLINE sumT #-}
 sumT :: (Vector v, VecElem v a, Num a) => ShapeL -> T v a -> a
 sumT sh t = foldNumT (+) vSum 0 sh t
@@ -2900,7 +2915,13 @@ foldNumT op vop z sh t@(T _ _ v)
 -- max over its elements from the first of them, which 'max x x' leaves as it
 -- is, NaN included, so that the fold carries the accumulator alone: carrying
 -- the flag as the runs do, at Storable Doubles it took 2.8 times the time of
--- the fill and 'vMaximum'.  A view that is one slice takes its maximum as it
+-- the fill and 'vMaximum'.  That stands in for the SpecConstr that -O1 leaves
+-- off: on GHC HEAD 10.1.20261019 (2026-10-24) the flag cost the specialisation
+-- benchmark's maximumA and minimumA of a scaled view 27 to 30 instructions an
+-- element at Storable and Unboxed [400, 500] and 10 to 11 at boxed, and with
+-- -fspec-constr none at Storable and Unboxed [400, 500] and 18 to 20 a call
+-- there at [3, 3], while at boxed it saved 1 an element.  A view that is one
+-- slice takes its maximum as it
 -- is: folded as runs are, on a dense array of boxed Doubles it ran 12% more
 -- instructions.
 {-# INLINE maximumT #-}

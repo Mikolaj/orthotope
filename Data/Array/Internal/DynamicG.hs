@@ -597,7 +597,9 @@ rotate d k a@(A sh at@T{values = v})
   -- comprehension, the list cost about 110 to 140 bytes a slice more, and
   -- rotate 1 2 of [3, 3] Doubles 984 to 1240 bytes a call more, on GHC HEAD
   -- 10.1.20261019 (2026-10-22); there, a slice left a thunk cost rotate 1 2 of
-  -- [400, 3] Doubles 23 to 30% more.
+  -- [400, 3] Doubles 23 to 30% more.  With -fspec-constr too: on 2026-10-24
+  -- the comprehension cost rotate 1 2 of [3, 3] Doubles 992 to 1080 bytes
+  -- a call more and 13 to 43% more instructions, as at -O1.
   slices !b !r !acc
     | b < 0 = acc
     | r == k = slices (b - n) 0 acc
@@ -669,6 +671,8 @@ ravelOuter name osh as@(a : _) = ravelOuterOf name osh (shapeL a) id as
 -- here rather than mapped over the list: ravelWith's unA mapped over toList's
 -- list left the list built and cost ravel 144 bytes a call at [3, 3], and at
 -- [400, 500] 45 to 50 a subarray, on GHC HEAD 10.1.20261019 (2026-10-23).
+-- With -fspec-constr too: on 2026-10-24 it cost 200 bytes a call at [3, 3]
+-- and 56 a subarray at [400, 500], as at -O1.
 {-# INLINE ravelOuterOf #-}
 ravelOuterOf :: (HasCallStack, Vector v, VecElem v a) =>
                 String -> ShapeL -> ShapeL -> (b -> Array v a) -> [b]
