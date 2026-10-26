@@ -215,14 +215,22 @@ instance forall n s . (Shape s, KnownNat n) => Shape (n ': s) where
   shapeP = const sh
     where sh = sizeP (Proxy :: Proxy (n ': s))
             `seq` valueOf @n : shapeP (Proxy :: Proxy s)
-  -- NOINLINE: on GHC HEAD 10.1.20260918 (2026-10-11), inlined, it ran GHC out
-  -- of simplifier ticks compiling the test suite's ShapedTest and ShapedGTest.
-  {-# NOINLINE sizeP #-}
+  -- INLINE: on GHC HEAD 10.1.20261019 (2026-10-25), against NOINLINE, the
+  -- specialisation benchmark's Shaped operations ran up to 841 instructions
+  -- a call fewer at [3, 3] and of empty arrays, rerank2, rotate, convert and
+  -- force of rank 5 and pad of rank 3 among them, and pad of no padding 27 more
+  -- at Storable and Unboxed elements.  Its overflow test is one comparison
+  -- of Integers and its failure the out-of-line sizeError, taking the inner
+  -- shape's proxy, so that it has one path that does not fail: with its
+  -- message inline, inlined, it ran GHC out of simplifier ticks compiling the
+  -- benchmark's OpsShaped, and with the test by mulOverflows, which leaves
+  -- two such paths, and shapeP in sizeError's argument, the test suite's
+  -- ShapedTest.
+  {-# INLINE sizeP #-}
   sizeP = const sz
-    where sz | n > toInteger (maxBound :: Int) || mulOverflows i m =
-                 error $ "Shape: a shape ending in "
-                         ++ show (n : map toInteger (shapeP (Proxy :: Proxy s)))
-                         ++ " has an extent or a size past maxBound"
+    where sz | n > toInteger (maxBound :: Int)
+               || n * toInteger m > toInteger (maxBound :: Int) =
+                 sizeError n (Proxy :: Proxy s)
              | otherwise = i * m
           n = natVal (Proxy :: Proxy n)
           i = fromInteger n :: Int
@@ -238,6 +246,13 @@ instance forall n s . (Shape s, KnownNat n) => Shape (n ': s) where
                && not (mulOverflows (fromInteger n) m)
           n = natVal (Proxy :: Proxy n)
           m = sizeP (Proxy :: Proxy s)
+
+-- NOINLINE: the failure of sizeP, out of line; see sizeP's INLINE.
+{-# NOINLINE sizeError #-}
+sizeError :: Shape s => Integer -> Proxy s -> Int
+sizeError n p = error $ "Shape: a shape ending in "
+                        ++ show (n : map toInteger (shapeP p))
+                        ++ " has an extent or a size past maxBound"
 
 -- | Whether a shape passes the check of 'shapeP': every inner part of it, the
 -- dimensions from some one inward, has a size that an 'Int' counts.

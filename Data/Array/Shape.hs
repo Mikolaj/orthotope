@@ -13,4 +13,4 @@
 -- limitations under the License.
 
 module Data.Array.Shape(module Data.Array.Internal.Shape) where
-import Data.Array.Internal.Shape hiding (mulOverflows)
+import Data.Array.Internal.Shape hiding (mulOverflows, sizeError)
