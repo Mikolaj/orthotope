@@ -2834,9 +2834,13 @@ padCopyT v aps ash at =
             ++ show (length aps, length ash)
         len : st = getStridesT ss
         -- The padded shape, which fails on more pairs than dimensions even
-        -- where an empty dimension stops pad' or padS before the surplus pair.
+        -- where an empty dimension stops pad' or padS before the surplus
+        -- pair.  Each extent and the rest of the shape built evaluated: lazy,
+        -- at -O1 on GHC HEAD 10.1.20261019 (2026-10-26) the specialisation
+        -- benchmark's Dynamic and Ranked pad allocated 80 bytes and ran about
+        -- 61 instructions a call more for each pair of the padding.
         ss = padded aps ash
-        padded ((l,h):ps) (s:sh) = l+s+h : padded ps sh
+        padded ((l,h):ps) (s:sh) = let !x = l+s+h; !r = padded ps sh in x : r
         padded [] sh = sh
         padded _ [] = error $
           "padCopyT: violated contract: padding list longer than the rank "
