@@ -188,7 +188,7 @@ fromList vs = case vFromListExactN n vs of
                 Right v -> A $ T st 0 v
                 Left m -> error $ "fromList: size mismatch "
                             ++ showShapeLength ss n m
-  where n : st = getStridesT ss
+  where (n, st) = sizeStridesT ss
         ss = shapeT @sh
 
 -- | Convert from a vector with the elements given in the linearization order.
@@ -200,7 +200,7 @@ fromVector :: forall sh v a . (HasCallStack, Vector v, VecElem v a, Shape sh) =>
               v a -> Array sh v a
 fromVector v | n /= l = error $ "fromVector: size mismatch " ++ show (ss, l)
              | otherwise = A $ T st 0 v
-  where n : st = getStridesT ss
+  where (n, st) = sizeStridesT ss
         l = vLength v
         ss = shapeT @sh
 

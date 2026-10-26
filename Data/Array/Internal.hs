@@ -30,7 +30,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE UndecidableSuperClasses #-}
 -- INLINE throughout but vFromListN, vFromListExactN, vUnsafeFillStrided,
--- vUnsafeConcatN, prettyShowL, badShape, equalT, getStridesT,
+-- vUnsafeConcatN, prettyShowL, badShape, equalT, getStridesT, sizeStridesT,
 -- genericUnsafeFillStrided, genericUnsafeFillStridedInto, canonicalizeT,
 -- stepOdometer, absAxesAndStartT, sortAxesT, insertAxis, canonicalizeSortedT,
 -- emptyVector, allSameT, rectPad, hcatRect, rectWidth, ppT, showsT, box,
@@ -565,6 +565,20 @@ getStridesT [] = [1]
 getStridesT (s : ss) = case getStridesT ss of
   r@(m : _) -> let !x = s * m in x : r
   [] -> []
+
+-- The size of a shape and its strides, the head and the tail of 'getStridesT',
+-- as a pair, so that no caller tests for an empty list.  In place of a lazy
+-- pattern on getStridesT's list, which GHC matched at every call or, where a
+-- client knows the shape, shared as a constant pair, as the client's other
+-- code decided, on GHC HEAD 10.1.20261019 (2026-10-26) the specialisation
+-- benchmark's fromList, fromVector, reshape and generate.scalar ran up to 4
+-- instructions a call fewer at [3, 3] and of empty arrays, Dynamic and Ranked
+-- append, concatOuter and update 17 to 44 fewer, and forced Storable and
+-- Unboxed append at [3, 3] 3 to 14 more.
+sizeStridesT :: ShapeL -> (Int, [Int])
+sizeStridesT [] = (1, [])
+sizeStridesT (s : ss) = case sizeStridesT ss of
+  (m, st) -> let !x = s * m in (x, m : st)
 
 -- INLINE: F1, directly fusing: its list is a build, which fold/build fuses
 -- with a consumer's foldr where it is inlined.
@@ -2375,7 +2389,12 @@ toUnorderedVectorT sh a@(T _ _ v)
 -- the benchmark's calls saturated, and the same again with neither named and
 -- traverseT's call of fromListT saturated.  The strides' tail by tail and not
 -- drop 1: with drop 1, on GHC HEAD 10.1.20260918, 2026-10-13, its callers
--- allocated up to 104 bytes more a call.
+-- allocated up to 104 bytes more a call.  And by getStridesT, not
+-- sizeStridesT: with sizeStridesT, on GHC HEAD 10.1.20261019, 2026-10-26,
+-- Shaped convert of an empty array computed the strides of its
+-- constant shape at each call, 40 bytes a dimension more, the call of
+-- sizeStridesT's worker, whose result is an unboxed pair, not floated out
+-- (https://gitlab.haskell.org/ghc/ghc/-/work_items/20269); see also padCopyT's.
 {-# INLINE fromVectorT #-}
 fromVectorT :: ShapeL -> v a -> T v a
 fromVectorT sh = T (tail $ getStridesT sh) 0
@@ -2832,6 +2851,10 @@ padCopyT v aps ash at =
         padS _ _ _ _ = error $
           "padCopyT: violated contract: padding list longer than the rank "
             ++ show (length aps, length ash)
+        -- By getStridesT, as fromVectorT's strides are: with either of the two
+        -- alone by sizeStridesT, Dynamic and Ranked pad allocated 40 bytes a
+        -- dimension more on GHC HEAD 10.1.20261019 (2026-10-26), and with this
+        -- one ran up to 160 instructions a call more.
         len : st = getStridesT ss
         -- The padded shape, which fails on more pairs than dimensions even
         -- where an empty dimension stops pad' or padS before the surplus
@@ -3006,7 +3029,7 @@ allT sh p t@(T _ _ v)
 {-# INLINE updateT #-}
 updateT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [([Int], a)] -> T v a
 updateT sh t us = T ss 0 $ vUnsafeUpdateOwned v $ map ix us
-  where l : ss = getStridesT sh
+  where (l, ss) = sizeStridesT sh
         !v = forcedVectorT sh l t
         ix (is, a) = (sum $ zipWith (*) is ss, a)
 
@@ -3029,12 +3052,12 @@ broadcastT bc (T ats o v) = T (go bc ats) o v
 -- unboxed: with the first lazy, generate of 200000 Doubles at -O1 allocated
 -- 56 bytes an element where 8 at Storable and Unboxed elements, running 1.3
 -- times the instructions, and 72 where 24 at boxed ones, running 2.2 times.
--- The innermost stride, the last that 'getStridesT' gives, is 1, so the last
+-- The innermost stride, the last that 'sizeStridesT' gives, is 1, so the last
 -- index is the remainder itself.
 {-# INLINE generateT #-}
 generateT :: (Vector v, VecElem v a) => ShapeL -> ([Int] -> a) -> T v a
 generateT sh f = T ss 0 $ vGenerate s g
-  where s : ss = getStridesT sh
+  where (s, ss) = sizeStridesT sh
         g i = f (build $ \cons nil ->
                    let go [] !_ = nil
                        go [_] !j = j `cons` nil

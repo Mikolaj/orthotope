@@ -199,7 +199,7 @@ fromList ss vs | badShape ss = error $ "fromList: bad shape " ++ show ss
                    Right v -> A ss $ T st 0 v
                    Left m -> error $ "fromList: size mismatch "
                                ++ showShapeLength ss n m
-  where n : st = getStridesT ss
+  where (n, st) = sizeStridesT ss
 
 -- | Convert from a vector with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the
@@ -210,7 +210,7 @@ fromVector :: (HasCallStack, Vector v, VecElem v a) => ShapeL -> v a -> Array v 
 fromVector ss v | badShape ss = error $ "fromVector: bad shape " ++ show ss
                 | n /= l = error $ "fromVector: size mismatch " ++ show (ss, l)
                 | otherwise = A ss $ T st 0 v
-  where n : st = getStridesT ss
+  where (n, st) = sizeStridesT ss
         l = vLength v
 
 -- | Make sure the underlying vector is in the linearization order.
@@ -245,7 +245,7 @@ reshape sh (A sh' t)
   | badShape sh = error $ "reshape: bad shape " ++ show sh
   | n /= n' = error $ "reshape: size mismatch " ++ show (sh, sh')
   | otherwise = A sh $ reshapeT sh st sh' t
-  where n : st = getStridesT sh
+  where (n, st) = sizeStridesT sh
         n' = product sh'
 
 -- | Change the size of dimensions with size 1.  These dimensions can be changed
@@ -394,7 +394,7 @@ append a@(A (sa:sh) ta) b@(A (sb:sh') tb)
   -- before the empty cases too, which ran up to 9 instructions a call more, on
   -- GHC HEAD 10.1.20261019 (2026-10-23).
   | sh == sh', !sab <- sa + sb, let rsh = sab : sh, not (badShape rsh)
-  , let l : st = getStridesT rsh =
+  , let (l, st) = sizeStridesT rsh =
     A rsh $ T st 0 $ vUnsafeConcatViewsN l [(sa:sh, ta), (sb:sh', tb)]
 append a b = error $ "append: bad shape " ++ show (shapeL a, shapeL b)
 
@@ -422,7 +422,7 @@ concatOuter as | any null shs = error $ "concatOuter: rank 0 array " ++ show shs
   where shs@(sh:_) = map shapeL as
         n = sumExtents (map head shs)
         sh' = n : tail sh
-        l : st = getStridesT sh'
+        (l, st) = sizeStridesT sh'
 
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape,
