@@ -11111,7 +11111,7 @@ RECORDS = [
     # THE ONLY READING THAT SEES A DELETION. Every gate here is a
     # predicate over what is PRESENT, so a paragraph a scripted edit
     # removed leaves its neighbours joining seamlessly and passes all of
-    # them -- the failure the user-scope CLAUDE.md records from orthotope,
+    # them -- the failure ~/.claude/CLAUDE-why.md records from orthotope,
     # where a removed paragraph left --lint, --check-doc and a purpose-built
     # truncation check all exiting 0. Post-run step 6e asks for this
     # comparison and supplied no tool until 2026-09-22, so every run

@@ -5098,7 +5098,7 @@ is what it is; a step that surprises you names its paragraph on a `why:` line.
     #      line, the contention in the elapsed times it records being a sanity
     #      reading and not a measurement.
     #      The turn-end hold is set at the first wait and not here, which
-    #      is step 2's build (~/.claude/rules/turn-end-hold.md), on each
+    #      is step 2's build (~/.claude/CLAUDE.md's wrapping bullet), on each
     #      repository the run edits, named: `wrap-restore --hold
     #      ~/slop/orthotope`, a bare --hold holding the working directory's,
     #      which for a session rooted in ~/slop is not this one. Clear it
@@ -6824,8 +6824,8 @@ not otherwise.
     #      bullets below GOVERN the walk rather than following it, which
     #      is why they are bullets and not sub-steps; 6a and 6c ARE it
     #      * SET THE TURN-END HOLD HERE and clear it at 9, setting it
-    #        again for any editing past 9 (~/.claude/rules/
-    #        turn-end-hold.md), on ~/slop/orthotope by name, `wrap-restore
+    #        again for any editing past 9 (~/.claude/CLAUDE.md's
+    #        wrapping bullet), on ~/slop/orthotope by name, `wrap-restore
     #        --hold ~/slop/orthotope`, and on any other repository the
     #        write-up edits: a bare --hold holds the working directory's.
     #        read-run.py's --replace, --delete and
@@ -7285,8 +7285,8 @@ not otherwise.
     #      8b runs after the done-condition, its text covering the
     #      output of 5d, 5e and 8, and 8a is what reports it undone, so
     #      the two are a short loop rather than a sequence.
-    #      The gate rule: the three ways a gate's status gets lost are the
-    #      user-scope CLAUDE.md's, with the measurements: a pipe and an
+    #      The gate rule: the three ways a gate's status gets lost are
+    #      ~/slop/CLAUDE.md's, with the measurements: a pipe and an
     #      `&&` chain each report the LAST command's status, and in
     #      background mode the harness reports the TASK's, so `check-all
     #      . > log; echo "RC=$?"` ends in the echo. The stderr a run wants
