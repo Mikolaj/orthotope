@@ -141,6 +141,10 @@ benchmark specialisation
   hs-source-dirs:      bench
   main-is:             Specialisation.hs
   other-modules:       Call
+                     , CellLists
+                     , Cells
+                     , Compare
+                     , Counter
                      , Harness
                      , Materialize
                      , OpsDynamic
@@ -157,5 +161,5 @@ benchmark specialisation
                        -Wunused-packages -Wredundant-bang-patterns
                        -Wredundant-strictness-flags
                        -rtsopts "-with-rtsopts=-A32m"
-  build-depends:       base, deepseq, orthotope, vector
+  build-depends:       base, containers, deepseq, directory, orthotope, vector
   default-language:    Haskell2010
