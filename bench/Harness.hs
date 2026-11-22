@@ -13,7 +13,7 @@
 -- limitations under the License.
 
 {-# LANGUAGE BangPatterns #-}
-module Harness (Mode (..), measure) where
+module Harness (Mode (..), measure, measureAround) where
 
 import Control.DeepSeq (rnf)
 import Control.Exception (evaluate)
@@ -39,10 +39,17 @@ data Mode = Forced | Summing
 -- batches, each of as many calls as take 5 ms, or given a count, of one batch
 -- of that many calls, and the bytes the second of two calls allocates.
 measure :: Mode -> Maybe Int -> Call -> IO (Double, Int64)
-measure mode iters (Call _ f x g _) = do
+measure = measureAround id
+
+-- | 'measure', given a count, its batch run through the function given, as
+-- a counter counts it, after the collection that the bytes' count makes.
+{-# NOINLINE measureAround #-}
+measureAround :: (IO Double -> IO Double) -> Mode -> Maybe Int -> Call
+              -> IO (Double, Int64)
+measureAround around mode iters (Call _ f x g _) = do
   a <- allocatedSecond h x
   t <- case iters of
-    Just k -> batch k
+    Just k -> around (batch k)
     Nothing -> do
       (k, t1) <- calibrate 1
       ts <- replicateM 2 (batch k)
