@@ -25,7 +25,7 @@ import Control.Monad (foldM, forM, forM_, unless, void, when)
 import Data.IORef (newIORef, readIORef, writeIORef)
 import Data.List (isInfixOf, isPrefixOf)
 import qualified Data.Map.Strict as M
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, isNothing)
 import qualified Data.Set as S
 import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as VU
@@ -33,7 +33,7 @@ import GHC.Conc (getAllocationCounter)
 import System.Directory (renameFile)
 import System.Exit (ExitCode (..))
 import System.IO ( BufferMode (..), IOMode (..), hPutStrLn
-                 , hSetBuffering, stderr, stdout, withFile )
+                 , hSetBuffering, readFile', stderr, stdout, withFile )
 import Text.Printf (printf)
 import Text.Read (readMaybe)
 
@@ -47,8 +47,8 @@ import qualified Rows
 -- | The options that only a run of cells takes, any of which makes a run one
 -- of cells.
 cellFlags :: [String]
-cellFlags = [ "--cells", "--forced", "--list", "--count", "--reps", "--out"
-            , "--shard", "--cpu" ]
+cellFlags = [ "--cells", "--forced", "--list", "--count", "--reps", "--tables"
+            , "--out", "--shard", "--cpu" ]
 
 data Selection = Full | Groups | Thin
 
@@ -57,6 +57,7 @@ data Options = Options
   , optForced, optSummed, optList, optCount :: Bool
   , optIters :: Maybe Int
   , optReps :: Int
+  , optTables :: Maybe (FilePath, FilePath)
   , optOut :: Maybe FilePath
   , optShard :: Maybe (Int, Int)
   , optCpu :: Maybe Int
@@ -65,7 +66,7 @@ data Options = Options
 -- One repetition, as the battery counts its cells.
 defaults :: Options
 defaults = Options Nothing False False False False Nothing 1 Nothing Nothing
-                   Nothing []
+                   Nothing Nothing []
 
 options :: Options -> [String] -> Either String Options
 options o args = case args of
@@ -83,6 +84,8 @@ options o args = case args of
     options o {optReps = k} as
   "--iters" : k : as -> positive "--iters" k >>= \ i ->
     options o {optIters = Just i} as
+  "--tables" : f : g : as -> options o {optTables = Just (f, g)} as
+  ["--tables", _] -> Left "--tables needs two files, FORCED and SUMMED"
   "--out" : f : as -> options o {optOut = Just f} as
   "--shard" : s : as -> case break (== '/') s of
     (i, _ : k) | Just i' <- readMaybe i, Just k' <- readMaybe k
@@ -92,7 +95,8 @@ options o args = case args of
     Just c' -> options o {optCpu = Just c'} as
     Nothing -> Left $ "--cpu " ++ c ++ ": not a CPU's number"
   "-m" : _ -> Left "-m glob selects a cell of the tables, not of --cells"
-  [a] | a `elem` ["--cells", "--reps", "--iters", "--out", "--shard", "--cpu"]
+  [a] | a `elem` [ "--cells", "--reps", "--iters", "--tables", "--out", "--shard"
+                 , "--cpu" ]
       -> Left $ a ++ " needs a value"
   a : as | "--" `isPrefixOf` a -> Left $ "unknown option " ++ a
          | otherwise -> options o {optPatterns = a : optPatterns o} as
@@ -111,18 +115,26 @@ cellName :: Cell -> String
 cellName (Cell nm _ _ _ _) = nm
 
 -- The cells of the selection that the options keep but those the output
--- file has, and the names the selection lists that no cell has.  Every list
--- of cells is local and built anew at each call, full laziness being off in
--- this module, so that none of them stays live while the cells are measured:
--- as a list of strings the names of every cell took some 30 MB, which each
--- major collection inside a batch copied.
+-- file has, each with its N where tables are given, the names the selection
+-- lists that no cell has, and the names of the cells kept to which the tables
+-- give no time.  Every list of cells is local and built anew at each call, full
+-- laziness being off in this module, so that none of them, nor the tables,
+-- stays live while the cells are measured: as a list of strings the names
+-- of every cell took some 30 MB, which each major collection inside a batch
+-- copied.
 {-# NOINLINE select #-}
-select :: Options -> Selection -> S.Set String -> IO (Packed, [String])
-select o sel have = do
-  todo <- packed [ c | c <- sharded, not (S.member (cellName c) have) ]
-  _ <- evaluate (length missing)
-  return (todo, missing)
+select :: Options -> Selection -> S.Set String -> Maybe (Table, Table)
+       -> IO (Packed, [String], [String])
+select o sel have tables = do
+  todo <- packed [ (c, n) | (c, Just n) <- withN ]
+  _ <- evaluate (length missing + length untimed)
+  return (todo, missing, untimed)
  where
+  remaining = [ c | c <- sharded, not (S.member (cellName c) have) ]
+  withN = case tables of
+    Nothing -> [ (c, Just 0) | c <- remaining ]
+    Just ts -> [ (c, tableCalls ts c) | c <- remaining ]
+  untimed = [ cellName c | (c, n) <- withN, isNothing n ]
   -- Every cell to which the tables give a time, the forced table's, then the
   -- summed one's, in the tables' order.
   catalogue =
@@ -146,30 +158,43 @@ select o sel have = do
     Nothing -> kept
     Just (i, k) -> [ c | (j, c) <- zip [0 :: Int ..] kept, j `mod` k == i ]
 
--- | A run of cells, given every argument, and its exit: 2 where an option or
--- a listed name is wrong, the CPU could not be taken or a cell was not
--- counted.
+-- | A run of cells, given every argument, and its exit: 2 where an option,
+-- a table or a listed name is wrong, the CPU could not be taken, a cell kept
+-- has no time in the tables or a cell was not counted.
 cellsMain :: [String] -> IO ExitCode
 cellsMain args = case options defaults args of
   Left e -> failed e
   Right o -> case optCells o of
     Nothing -> failed "--cells full, groups or thin selects the cells"
     Just _ | isJust (optIters o) && not (optCount o) ->
-      failed "--iters, given --cells, is the count of --count"
+             failed "--iters, given --cells, is the count of --count"
+           | isJust (optIters o) && isJust (optTables o) ->
+             failed "--iters and --tables each give N: one of them"
+           | isJust (optTables o) && not (optCount o || optList o) ->
+             failed "--tables sizes the counts of --count"
     Just sel -> do
+      got <- traverse readTables (optTables o)
       pinned <- maybe (return (Right ())) Counter.pin (optCpu o)
-      case pinned of
-        Left e -> failed $ "--cpu: " ++ e
-        Right () -> do
+      case (sequence got, pinned) of
+        (Left e, _) -> failed $ "--tables: " ++ e
+        (_, Left e) -> failed $ "--cpu: " ++ e
+        (Right tables, Right ()) -> do
           have <- case optOut o of
             Just f | not (optList o) -> written f
             _ -> return S.empty
-          (cells, missing) <- select o sel have
+          (cells, missing, untimed) <- select o sel have tables
           forM_ missing $ \ nm -> hPutStrLn stderr $ "no cell " ++ nm
+          forM_ untimed $ \ nm ->
+            hPutStrLn stderr $ "no time of " ++ nm ++ " in the tables"
           ok <- if optList o
-                then mapM_ (putStrLn . cellName) (unpacked cells) >> return True
+                then do
+                  forM_ (unpacked cells) $ \ (c, n) ->
+                    putStrLn $ cellName c
+                               ++ if isJust tables then '\t' : show n else ""
+                  return True
                 else run o sel cells
-          return $ if ok && null missing then ExitSuccess else ExitFailure 2
+          return $ if ok && null missing && null untimed then ExitSuccess
+                   else ExitFailure 2
  where
   failed e = hPutStrLn stderr e >> return (ExitFailure 2)
 
@@ -182,26 +207,31 @@ run o sel cells =
     else timeCells out cells >> return True
 
 -- The cells to measure, their names packed into one unboxed string with each
--- one's end, so that what is live while they are measured is little more than
--- their calls' closures.
+-- one's end, and each one's N from the tables, 0 where none are given, so that
+-- what is live while they are measured is little more than their calls'
+-- closures.
 data Packed = Packed (VU.Vector Char) (VU.Vector Int) (V.Vector Cell)
+                     (VU.Vector Int)
 
-packed :: [Cell] -> IO Packed
+packed :: [(Cell, Int)] -> IO Packed
 packed cells = do
-  let names = VU.fromList (concatMap cellName cells)
-      ends = VU.fromList (scanl1 (+) (map (length . cellName) cells))
+  let names = VU.fromList (concatMap (cellName . fst) cells)
+      ends = VU.fromList (scanl1 (+) (map (length . cellName . fst) cells))
       nameless = V.fromList [ Cell "" mode per cs k
-                            | Cell _ mode per cs k <- cells ]
-  _ <- evaluate (VU.length names + VU.length ends + V.length nameless)
-  return $! Packed names ends nameless
+                            | (Cell _ mode per cs k, _) <- cells ]
+      ns = VU.fromList (map snd cells)
+  _ <- evaluate (VU.length names + VU.length ends + V.length nameless
+                 + VU.length ns)
+  return $! Packed names ends nameless ns
 
--- The cells, each with its name.
-unpacked :: Packed -> [Cell]
-unpacked (Packed names ends nameless) =
-  [ Cell (VU.toList (VU.slice start (end - start) names)) mode per cs k
+-- The cells, each with its name, and each one's N from the tables.
+unpacked :: Packed -> [(Cell, Int)]
+unpacked (Packed names ends nameless ns) =
+  [ (Cell (VU.toList (VU.slice start (end - start) names)) mode per cs k, n)
   | (i, Cell _ mode per cs k) <- zip [0 ..] (V.toList nameless)
   , let end = ends VU.! i
-        start = if i == 0 then 0 else ends VU.! (i - 1) ]
+        start = if i == 0 then 0 else ends VU.! (i - 1)
+        n = ns VU.! i ]
 
 -- The names of the cells of the file's complete lines, a line of a time three
 -- fields and one of a count four, but those of a count of status 2, cells
@@ -256,7 +286,8 @@ callOf (Cell nm _ _ cells k) = case drop k (cells Viewed) of
 -- Each cell timed as its table entry is, its nanoseconds and bytes in its
 -- table's units.
 timeCells :: (String -> IO ()) -> Packed -> IO ()
-timeCells out cells = forM_ (unpacked cells) $ \ c@(Cell nm mode per _ _) -> do
+timeCells out cells = forM_ (map fst (unpacked cells)) $
+                      \ c@(Cell nm mode per _ _) -> do
   (t, a) <- measure mode Nothing (callOf c)
   out $ printf "%s\t%.2f\t%.2f" nm (t / fromIntegral per)
                 (fromIntegral a / fromIntegral per :: Double)
@@ -265,13 +296,50 @@ timeCells out cells = forM_ (unpacked cells) $ \ c@(Cell nm mode per _ _) -> do
 thinCalls :: Int
 thinCalls = 200000
 
--- $S/tools/NCG-battery/a2tcells.py's N of a cell timed at the nanoseconds
--- given, a call's: about 20 ms of calls, a call taken at 100 ns at least,
--- from 10 to 300000 calls, the time read as its table prints it.
+-- $S/tools/NCG-battery/a2tcells.py's N of a cell whose call takes
+-- the nanoseconds given: about 20 ms of calls, a call taken at 100 ns at least,
+-- from 10 to 300000 calls.
+callsFor :: Double -> Int
+callsFor ns = max 10 (min 300000 (truncate (2e7 / max ns 100)))
+
+-- The N of a cell timed at the nanoseconds given, a call's, the time read
+-- as its table prints it.
 sized :: Int -> Double -> Int
-sized per t = max 10 (min 300000 (truncate (2e7 / max ns 100)))
+sized per t =
+  callsFor (read (printf "%.2f" (t / fromIntegral per)) * fromIntegral per)
+
+-- A table the benchmark printed, each row's six figures by the row's name,
+-- read as $S/tools/census.py reads one: a line of seven fields whose first
+-- holds a slash.
+type Table = M.Map String [String]
+
+-- The two tables of --tables, the forced one's and the summed one's.
+readTables :: (FilePath, FilePath) -> IO (Either String (Table, Table))
+readTables (f, g) = do
+  got <- try ((,) <$> readFile' f <*> readFile' g)
+  return $ case got of
+    Left e -> Left $ show (e :: IOException)
+    Right (tf, tg) -> (,) <$> table f tf <*> table g tg
  where
-  ns = read (printf "%.2f" (t / fromIntegral per)) * fromIntegral per :: Double
+  table path text =
+    let t = M.fromList [ (row, fs) | l <- lines text, row : fs <- [words l]
+                                   , length fs == 6, '/' `elem` row ]
+    in if M.null t then Left (path ++ " has no table row") else Right t
+
+-- The N of a cell by its time in the table of its mode, none where the table
+-- has no number there.
+tableCalls :: (Table, Table) -> Cell -> Maybe Int
+tableCalls (forced, summed) (Cell nm mode per _ k) = do
+  figures <- M.lookup row (case mode of Forced -> forced; Summing -> summed)
+  t <- readMaybe =<< case drop k figures of
+         f : _ -> Just f
+         [] -> Nothing
+  return $! callsFor (t * fromIntegral per)
+ where
+  bare = case mode of
+    Forced -> nm
+    Summing -> drop (length "summed:") nm
+  row = reverse (drop 1 (dropWhile (/= '/') (reverse bare)))
 
 -- Each cell counted at N and 2N calls, R times, by
 -- $S/tools/perf-per-call.py's method, in the battery's a2t-LABEL.tsv form:
@@ -284,7 +352,7 @@ countCells o sel out cells = do
   case counter of
     Left e -> hPutStrLn stderr $ "--count: " ++ e ++ ", so bytes alone"
     Right _ -> return ()
-  foldM (\ !ok c@(Cell nm mode per _ _) -> do
+  foldM (\ !ok (c@(Cell nm mode per _ _), given) -> do
     let x = callOf c
         -- A batch counted at k calls, k forced before the counter starts,
         -- as N's sizing would otherwise be counted with the first batch, and
@@ -305,6 +373,7 @@ countCells o sel out cells = do
           return (i, maxBound - a)
     !n <- case (optIters o, sel) of
       (Just k, _) -> return k
+      _ | given > 0 -> return given
       (Nothing, Thin) -> return thinCalls
       (Nothing, _) -> sized per . fst <$> measure mode Nothing x
     runs <- forM [0 .. optReps o - 1] $ \ r ->
