@@ -51,40 +51,44 @@
 -- checkout of https://github.com/Mikolaj/slop: the row's name and the kind's
 -- joined by a slash, summed: before a summed one's.  The selection full is
 -- every cell to which the tables give a time, the forced table's then the
--- summed one's, in the tables' order, groups one cell of each group of them and
--- thin the battery's sample of 1000 forced cells, both lists as CellLists says.
--- Of these --forced or --summed keeps the forced or the summed cells alone,
--- other arguments those whose names contain one of them, and --shard I/K those
--- whose index among the cells kept is I modulo K; a listed name the benchmark
--- does not have goes to the standard error, and the exit is 2.  With --list it
--- prints the names and measures nothing.  Otherwise it prints a line a cell
--- as the cell ends, tab-separated: its name, its nanoseconds and its bytes,
--- as its table entry has them, or given --count, in the form of the battery's
--- a2t-LABEL.tsv, its name, its user-space instructions a call of the process's
--- own thread, by Linux's perf_event_open, a status, 0 for a cell counted, 1
--- for one whose repetitions' differences spread over 1% of its figure and
--- 2 for one not counted, and its bytes a call, by the thread's allocation
--- counter.  Each is the lowest count at 2N calls less the lowest at N, over N,
--- of --reps R repetitions, 1 by default, as $S/tools/perf-per-call.py takes
--- them: N is --iters N where given, else for thin 200000, the battery's, and
--- for the others such that N calls take about 20 ms at the cell's time, taken
--- first as above, a call taken at 100 ns at least, from 10 to 300000.  The
--- counter takes a batch's calls alone, after the major collection that the
+-- summed one's, in the tables' order, groups one cell of each group of them
+-- and thin the battery's sample of 1000 forced cells, both lists as CellLists
+-- says.  Of these --forced or --summed keeps the forced or the summed cells
+-- alone, other arguments those whose names contain one of them, and --shard
+-- I/K those whose index among the cells kept is I modulo K; a listed name the
+-- benchmark does not have goes to the standard error, and the exit is 2.  With
+-- --list it prints the names, given --tables each followed by a tab and its N,
+-- and measures nothing.  Otherwise it prints a line a cell as the cell ends,
+-- tab-separated: its name, its nanoseconds and its bytes, as its table entry
+-- has them, or given --count, in the form of the battery's a2t-LABEL.tsv, its
+-- name, its user-space instructions a call of the process's own thread, by
+-- Linux's perf_event_open, a status, 0 for a cell counted, 1 for one whose
+-- repetitions' differences spread over 1% of its figure and 2 for one not
+-- counted, and its bytes a call, by the thread's allocation counter.  Each
+-- is the lowest count at 2N calls less the lowest at N, over N, of --reps R
+-- repetitions, 1 by default, as $S/tools/perf-per-call.py takes them: N is
+-- --iters N where given, else, given --tables FORCED SUMMED, two tables the
+-- benchmark printed, without and with --summed, sized from the cell's time
+-- in the table of its mode, a cell kept that has no time there going to the
+-- standard error and the exit being 2, else for thin 200000, the battery's,
+-- and for the others sized from the cell's time taken first as above; sized, N
+-- calls take about 20 ms, a call taken at 100 ns at least, from 10 to 300000.
+-- The counter takes a batch's calls alone, after the major collection that the
 -- bytes' count makes, all in the one process, whose heap earlier batches have
 -- used: perf-per-call.py's fresh processes, whose batches run on nursery blocks
 -- used for the first time, counted 0.16% more instructions a call over the full
 -- selection.  A large cell's figure can move with N and with the cells counted
--- before it: Shaped/mapA/large/flip/boxed's falls by a sixth from N 10 to
--- N 20, in fresh processes too, and by 4% at N 10 after the forced large
--- cells of mapA and fmap before it, so that two counts of such a cell compare
--- only at one --iters N and with the same cells before it.
--- Off Linux, or where the kernel refuses the counter, it says so
--- and gives the bytes alone, and the exit is 2.  Given --out FILE it appends
--- the lines to FILE and passes over the cells FILE has, but for those of status
--- 2, whose lines it removes and which it counts again, so that a run stopped
--- resumes, and given --cpu C it pins the process to CPU C.  Given --compare A B
--- [N], it prints what $S/tools/NCG-battery/a2tcmp.py prints of two such files,
--- the N worst, 20 by default.
+-- before it: Shaped/mapA/large/flip/boxed's falls by a sixth from N 10 to N
+-- 20, in fresh processes too, and by 4% at N 10 after the forced large cells
+-- of mapA and fmap before it, so that two counts of such a cell compare only
+-- at one N, as --iters or --tables fixes it, and with the same cells before
+-- it.  Off Linux, or where the kernel refuses the counter, it says so and gives
+-- the bytes alone, and the exit is 2.  Given --out FILE it appends the lines
+-- to FILE and passes over the cells FILE has, but for those of status 2, whose
+-- lines it removes and which it counts again, so that a run stopped resumes,
+-- and given --cpu C it pins the process to CPU C.  Given --compare A B [N], it
+-- prints what $S/tools/NCG-battery/a2tcmp.py prints of two such files, the N
+-- worst, 20 by default.
 --
 -- The two tables, forced and summed, are compared and never combined: where
 -- they lead to different conclusions about a change, the divergence is
